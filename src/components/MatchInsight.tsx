@@ -18,6 +18,15 @@ import {
   calcWinProbability,
   summarizeWinProb,
 } from "@/lib/predict/win-probability";
+import {
+  bestDoubleChance,
+  dcCorrect,
+  predictGoalsMarket,
+  overActual,
+  bttsActual,
+  SOCCER_LEAGUES_FOR_MARKETS,
+  type DcPick,
+} from "@/lib/predict/markets";
 import type { PredictMatch } from "@/lib/predict/types";
 import FormDots from "./FormDots";
 import EloMeter from "./EloMeter";
@@ -84,6 +93,42 @@ export default async function MatchInsight({ match }: Props) {
     match.homeTeam.name,
     match.awayTeam.name,
   );
+
+  // === AI 예측 시장 (DC / OVER 2.5 / BTTS) — 축구만 ===
+  const isSoccer = SOCCER_LEAGUES_FOR_MARKETS.has(match.league);
+  const isFinished =
+    match.status === "FINISHED" &&
+    match.homeScore != null &&
+    match.awayScore != null;
+  const actualWinner = isFinished
+    ? match.homeScore! > match.awayScore!
+      ? ("HOME" as const)
+      : match.awayScore! > match.homeScore!
+        ? ("AWAY" as const)
+        : ("DRAW" as const)
+    : null;
+  const dc = bestDoubleChance(winProb);
+  const goals = isSoccer
+    ? predictGoalsMarket(matches, match.homeTeamId, match.awayTeamId, referenceTime)
+    : null;
+  const oneXTwoPick: "HOME" | "DRAW" | "AWAY" =
+    winProb.home >= winProb.away && winProb.home >= winProb.draw
+      ? "HOME"
+      : winProb.away >= winProb.draw
+        ? "AWAY"
+        : "DRAW";
+  const oneXTwoCorrect = actualWinner ? oneXTwoPick === actualWinner : null;
+  const dcOk = actualWinner ? dcCorrect(dc.pick, actualWinner) : null;
+  const ovPick = goals ? (goals.pOver >= 0.5 ? "OVER" : "UNDER") : null;
+  const ovOk =
+    isFinished && ovPick
+      ? ovPick === overActual(match.homeScore!, match.awayScore!)
+      : null;
+  const btPick = goals ? (goals.pBtts >= 0.5 ? "YES" : "NO") : null;
+  const btOk =
+    isFinished && btPick
+      ? btPick === bttsActual(match.homeScore!, match.awayScore!)
+      : null;
 
   // Elo 변천사 (양 팀 시즌 추이)
   const history = calcEloHistory(beforeMatches, [
@@ -194,6 +239,68 @@ export default async function MatchInsight({ match }: Props) {
           awayName={match.awayTeam.name}
           hideDraw={hideDraw}
         />
+      </Section>
+
+      {/* 1.5) AI 예측 종합 — 4개 시장 (축구는 4개 모두, 그 외는 1X2만) */}
+      <Section title={isFinished ? "AI 예측 종합 · 결과 비교" : "AI 예측 종합"}>
+        <div className={`grid ${isSoccer ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-1"} gap-3`}>
+          <MarketCard
+            label="결과 (1X2)"
+            pick={
+              oneXTwoPick === "HOME"
+                ? "홈 승"
+                : oneXTwoPick === "AWAY"
+                  ? "원정 승"
+                  : "무승부"
+            }
+            prob={
+              oneXTwoPick === "HOME"
+                ? winProb.home
+                : oneXTwoPick === "AWAY"
+                  ? winProb.away
+                  : winProb.draw
+            }
+            correct={oneXTwoCorrect}
+            isFinished={isFinished}
+            tone="blue"
+          />
+          {isSoccer && (
+            <MarketCard
+              label="더블 찬스"
+              pick={dcPickLabel(dc.pick, match.homeTeam.name, match.awayTeam.name)}
+              prob={dc.prob}
+              correct={dcOk}
+              isFinished={isFinished}
+              tone="emerald"
+            />
+          )}
+          {isSoccer && goals && ovPick && (
+            <MarketCard
+              label="OVER 2.5"
+              pick={ovPick === "OVER" ? "OVER (3골+)" : "UNDER (2골-)"}
+              prob={ovPick === "OVER" ? goals.pOver : 1 - goals.pOver}
+              correct={ovOk}
+              isFinished={isFinished}
+              tone="orange"
+            />
+          )}
+          {isSoccer && goals && btPick && (
+            <MarketCard
+              label="양 팀 득점"
+              pick={btPick === "YES" ? "YES" : "NO"}
+              prob={btPick === "YES" ? goals.pBtts : 1 - goals.pBtts}
+              correct={btOk}
+              isFinished={isFinished}
+              tone="pink"
+            />
+          )}
+        </div>
+        {isSoccer && goals && (
+          <p className="mt-3 text-[11px] text-neutral-500">
+            기대 골 (Poisson λ) — {match.homeTeam.name} {goals.lambdaHome.toFixed(2)} ·{" "}
+            {match.awayTeam.name} {goals.lambdaAway.toFixed(2)}
+          </p>
+        )}
       </Section>
 
       {/* 2) Elo + 변천사 */}
@@ -588,6 +695,78 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div>
       <div className="text-base font-bold tabular-nums">{value}</div>
       <div className="text-[10px] text-neutral-500">{label}</div>
+    </div>
+  );
+}
+
+function dcPickLabel(pick: DcPick, homeName: string, awayName: string): string {
+  if (pick === "1X") return `${homeName} 승 또는 무`;
+  if (pick === "X2") return `${awayName} 승 또는 무`;
+  return "무승부 제외";
+}
+
+const TONE_CLASSES = {
+  blue:
+    "border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-950/30",
+  emerald:
+    "border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/30",
+  orange:
+    "border-orange-200 dark:border-orange-900/40 bg-orange-50/60 dark:bg-orange-950/30",
+  pink:
+    "border-pink-200 dark:border-pink-900/40 bg-pink-50/60 dark:bg-pink-950/30",
+} as const;
+const TONE_TEXT = {
+  blue: "text-blue-700 dark:text-blue-300",
+  emerald: "text-emerald-700 dark:text-emerald-300",
+  orange: "text-orange-700 dark:text-orange-300",
+  pink: "text-pink-700 dark:text-pink-300",
+} as const;
+
+function MarketCard({
+  label,
+  pick,
+  prob,
+  correct,
+  isFinished,
+  tone,
+}: {
+  label: string;
+  pick: string;
+  prob: number;
+  correct: boolean | null;
+  isFinished: boolean;
+  tone: keyof typeof TONE_CLASSES;
+}) {
+  return (
+    <div
+      className={`rounded-xl border ${TONE_CLASSES[tone]} p-3.5 flex flex-col gap-1.5`}
+    >
+      <div className="flex items-center justify-between">
+        <div className={`text-[11px] font-semibold uppercase tracking-wider ${TONE_TEXT[tone]}`}>
+          {label}
+        </div>
+        {isFinished && correct !== null && (
+          <span
+            className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+              correct
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                : "bg-rose-500/15 text-rose-700 dark:text-rose-400"
+            }`}
+          >
+            {correct ? "✓ 적중" : "✗ 빗나감"}
+          </span>
+        )}
+      </div>
+      <div className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+        {pick}
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-2xl font-bold tabular-nums">
+          {Math.round(prob * 100)}
+          <span className="text-sm text-neutral-500">%</span>
+        </span>
+        <span className="text-[10px] text-neutral-500">추정 확률</span>
+      </div>
     </div>
   );
 }
