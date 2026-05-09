@@ -42,7 +42,7 @@ export default async function Home() {
     url: SITE_URL,
     logo: `${SITE_URL}/icon.png`,
     description:
-      "KBO · EPL · NBA 의 경기 결과·프리뷰·분석을 매일 자동 업데이트하는 데이터 기반 스포츠 미디어.",
+      "EPL · 라리가 · 분데스리가 · 세리에 A · 리그 1 · MLS · UCL · NBA · MLB · NHL 의 경기 결과·프리뷰·분석을 매일 자동 업데이트하는 데이터 기반 스포츠 미디어.",
   };
   const siteJsonLd = {
     "@context": "https://schema.org",

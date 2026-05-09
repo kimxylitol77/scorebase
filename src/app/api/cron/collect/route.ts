@@ -17,7 +17,7 @@ const ALL_LEAGUES: League[] = [
   "NBA",
   "NHL",
   "MLB",
-  "KBO",
+  // KBO 는 데이터 소스 정비 후 추후 재오픈
 ];
 
 function authorized(req: Request): boolean {

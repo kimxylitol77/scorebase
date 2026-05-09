@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
+// KBO 는 데이터 소스 정비 후 추후 재오픈 — 그동안 /leagues/KBO 는 404
 const VALID_LEAGUES = [
   "EPL",
   "LALIGA",
@@ -17,7 +18,6 @@ const VALID_LEAGUES = [
   "NBA",
   "NHL",
   "MLB",
-  "KBO",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -89,12 +89,6 @@ const LEAGUE_INFO: Record<
     subtitle: "UEFA Champions League",
     gradient: "from-indigo-700 via-blue-600 to-cyan-500",
     copy: "유럽 클럽 챔피언을 가리는 UEFA 챔피언스리그 분석.",
-  },
-  KBO: {
-    name: "KBO 리그",
-    subtitle: "Korean Baseball Organization",
-    gradient: "from-blue-600 via-cyan-500 to-teal-500",
-    copy: "한국 프로야구 KBO 리그의 경기 결과·프리뷰·분석.",
   },
 };
 

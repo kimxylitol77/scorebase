@@ -22,7 +22,7 @@ const VALID = [
   "NBA",
   "NHL",
   "MLB",
-  "KBO",
+  // KBO 는 데이터 소스 정비 후 추후 재오픈
 ] as const;
 type ValidLeague = (typeof VALID)[number];
 
@@ -105,13 +105,6 @@ const LEAGUE_INFO: Record<
     gradient: "from-indigo-700 via-blue-600 to-cyan-500",
     relegationCount: 0,
     showDraw: true,
-  },
-  KBO: {
-    name: "KBO 리그",
-    subtitle: "Korean Baseball Organization — 시즌 시뮬레이션",
-    gradient: "from-blue-600 via-cyan-500 to-teal-500",
-    relegationCount: 0,
-    showDraw: false,
   },
 };
 
