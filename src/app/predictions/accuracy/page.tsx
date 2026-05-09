@@ -37,63 +37,97 @@ export const metadata: Metadata = {
   },
 };
 
-interface LeagueStat {
-  league: string;
+interface MarketRate {
   evaluated: number;
   correct: number;
   rate: number;
-  highConfidence: { evaluated: number; correct: number; rate: number };
-  recent10: { evaluated: number; correct: number; rate: number };
+}
+interface LeagueStat {
+  league: string;
+  isSoccer: boolean;
+  oneXTwo: MarketRate;
+  dc: MarketRate;
+  over: MarketRate;
+  btts: MarketRate;
+  highConfidence: MarketRate;
+  recent10: MarketRate;
+}
+
+const SOCCER = new Set([
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+]);
+
+function rateOf(arr: Array<{ ok: boolean | null }>): MarketRate {
+  const evaluated = arr.filter((x) => x.ok !== null).length;
+  const correct = arr.filter((x) => x.ok === true).length;
+  return {
+    evaluated,
+    correct,
+    rate: evaluated > 0 ? correct / evaluated : 0,
+  };
 }
 
 async function statForLeague(league: string): Promise<LeagueStat> {
   const all = await prisma.match.findMany({
     where: { league, predCorrect: { not: null } },
-    select: { predCorrect: true, predHome: true, predDraw: true, predAway: true, startTime: true },
+    select: {
+      predCorrect: true,
+      predHome: true,
+      predDraw: true,
+      predAway: true,
+      predDcCorrect: true,
+      predOverCorrect: true,
+      predBttsCorrect: true,
+      startTime: true,
+    },
     orderBy: { startTime: "desc" },
   });
-  const evaluated = all.length;
-  const correct = all.filter((m) => m.predCorrect).length;
 
-  // 신뢰도 가중 — 가장 높은 확률이 60% 이상인 예측만
-  const highConf = all.filter((m) => {
-    const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
-    return top >= 0.6;
-  });
-  const hcCorrect = highConf.filter((m) => m.predCorrect).length;
+  const oneXTwo = rateOf(all.map((m) => ({ ok: m.predCorrect })));
+  const dc = rateOf(all.map((m) => ({ ok: m.predDcCorrect })));
+  const over = rateOf(all.map((m) => ({ ok: m.predOverCorrect })));
+  const btts = rateOf(all.map((m) => ({ ok: m.predBttsCorrect })));
 
-  // 최근 10경기
-  const recent = all.slice(0, 10);
-  const rCorrect = recent.filter((m) => m.predCorrect).length;
+  // 1X2 신뢰도 가중 — 가장 높은 확률 60% 이상
+  const highConf = all
+    .filter((m) => {
+      const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
+      return top >= 0.6;
+    })
+    .map((m) => ({ ok: m.predCorrect }));
+  const recent10 = all.slice(0, 10).map((m) => ({ ok: m.predCorrect }));
 
   return {
     league,
-    evaluated,
-    correct,
-    rate: evaluated > 0 ? correct / evaluated : 0,
-    highConfidence: {
-      evaluated: highConf.length,
-      correct: hcCorrect,
-      rate: highConf.length > 0 ? hcCorrect / highConf.length : 0,
-    },
-    recent10: {
-      evaluated: recent.length,
-      correct: rCorrect,
-      rate: recent.length > 0 ? rCorrect / recent.length : 0,
-    },
+    isSoccer: SOCCER.has(league),
+    oneXTwo,
+    dc,
+    over,
+    btts,
+    highConfidence: rateOf(highConf),
+    recent10: rateOf(recent10),
   };
 }
 
 export default async function AccuracyPage() {
   const stats = await Promise.all(LEAGUES.map((lg) => statForLeague(lg)));
-  const totalEvaluated = stats.reduce((s, x) => s + x.evaluated, 0);
-  const totalCorrect = stats.reduce((s, x) => s + x.correct, 0);
+  const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
+  const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
   const overallRate = totalEvaluated > 0 ? totalCorrect / totalEvaluated : 0;
 
-  // 정렬 — 적중률 높은 순
+  // 축구 시장 전체 평균
+  const soccerStats = stats.filter((s) => s.isSoccer);
+  const dcTotal = soccerStats.reduce((s, x) => s + x.dc.evaluated, 0);
+  const dcCorrect = soccerStats.reduce((s, x) => s + x.dc.correct, 0);
+  const overTotal = soccerStats.reduce((s, x) => s + x.over.evaluated, 0);
+  const overCorrect = soccerStats.reduce((s, x) => s + x.over.correct, 0);
+  const bttsTotal = soccerStats.reduce((s, x) => s + x.btts.evaluated, 0);
+  const bttsCorrect = soccerStats.reduce((s, x) => s + x.btts.correct, 0);
+
+  // 정렬 — DC 적중률 높은 순 (축구 우선)
   const sorted = [...stats]
-    .filter((s) => s.evaluated > 0)
-    .sort((a, b) => b.rate - a.rate);
+    .filter((s) => s.oneXTwo.evaluated > 0)
+    .sort((a, b) => b.oneXTwo.rate - a.oneXTwo.rate);
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
@@ -108,24 +142,47 @@ export default async function AccuracyPage() {
         </p>
       </header>
 
-      {/* 전체 요약 */}
-      <section className="mb-10 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-neutral-900 dark:to-neutral-950 p-6 sm:p-8">
-        <p className="text-xs uppercase tracking-wider text-neutral-500 mb-2">
-          전체 평균
-        </p>
-        <div className="flex items-baseline gap-4">
-          <span className="text-5xl sm:text-6xl font-bold tracking-tight tabular-nums bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            {Math.round(overallRate * 100)}%
-          </span>
-          <span className="text-sm text-neutral-500">
-            {totalCorrect.toLocaleString()} / {totalEvaluated.toLocaleString()} 경기 적중
-          </span>
-        </div>
-        <p className="mt-3 text-xs text-neutral-500">
-          무작위 선택 시 기대 적중률 약 33% (3-way) ~ 50% (2-way). 위 수치가
-          그보다 높을수록 모델이 신호를 잡고 있다고 해석할 수 있습니다.
-        </p>
+      {/* 전체 시장별 요약 — 4개 카드 */}
+      <section className="mb-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <SummaryCard
+          label="결과 적중 (1X2)"
+          subtitle="홈 / 무 / 원정"
+          rate={overallRate}
+          correct={totalCorrect}
+          total={totalEvaluated}
+          gradient="from-blue-500 to-purple-500"
+        />
+        <SummaryCard
+          label="더블 찬스 (DC)"
+          subtitle="축구 · 무승부 흡수"
+          rate={dcTotal > 0 ? dcCorrect / dcTotal : 0}
+          correct={dcCorrect}
+          total={dcTotal}
+          gradient="from-emerald-500 to-cyan-500"
+        />
+        <SummaryCard
+          label="OVER 2.5"
+          subtitle="축구 · 총 3골 이상"
+          rate={overTotal > 0 ? overCorrect / overTotal : 0}
+          correct={overCorrect}
+          total={overTotal}
+          gradient="from-orange-500 to-red-500"
+        />
+        <SummaryCard
+          label="BTTS"
+          subtitle="축구 · 양 팀 득점"
+          rate={bttsTotal > 0 ? bttsCorrect / bttsTotal : 0}
+          correct={bttsCorrect}
+          total={bttsTotal}
+          gradient="from-pink-500 to-rose-500"
+        />
       </section>
+
+      <p className="mb-8 text-xs text-neutral-500 leading-relaxed">
+        무작위 baseline: 1X2 ≈ 33%, DC/OVER/BTTS ≈ 50%. 위 수치가 그보다 높을수록
+        모델이 통계적 신호를 잡고 있다고 해석할 수 있습니다. 도박·베팅 권유는 아니며,
+        모든 수치는 데이터 모델의 후행 검증 결과입니다.
+      </p>
 
       {/* 리그별 카드 */}
       <section className="mb-10">
@@ -148,18 +205,31 @@ export default async function AccuracyPage() {
         <ul className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2 list-disc pl-5">
           <li>
             각 매치 시점 기준으로 그 이전까지의 데이터(Elo, 폼, 홈/원정 split,
-            상대 전적)만 사용해 승·무·패 확률을 추정합니다.
+            상대 전적, 평균 득/실점)만 사용해 확률을 추정합니다 — 미래 데이터
+            오염 없음.
           </li>
           <li>
-            가장 높은 확률의 결과(홈 승 / 무 / 원정 승)를 예측값으로 잡고
-            실제 결과와 비교합니다.
+            <strong>1X2</strong>: 홈 승 / 무 / 원정 승 중 가장 높은 확률을 선택.
           </li>
           <li>
-            <strong>강한 예측</strong> = 가장 높은 확률이 60% 이상인 매치만.
-            모델이 자신 있게 찍은 경기의 적중률입니다.
+            <strong>DC (Double Chance)</strong>: "홈 승 또는 무" / "원정 승 또는
+            무" / "홈 승 또는 원정 승" 중 가장 높은 합 선택. 무승부 변수가 큰
+            축구에서 정확도가 크게 올라갑니다.
           </li>
           <li>
-            <strong>최근 10경기</strong> = 가장 최근에 끝난 10경기 기준 적중률.
+            <strong>OVER 2.5</strong>: Poisson 모델로 양 팀 평균 득/실점에서
+            기대 골수(λ)를 추정해 총 득점 3골 이상 확률을 산출.
+          </li>
+          <li>
+            <strong>BTTS (Both Teams To Score)</strong>: 양 팀이 각각 한 골 이상
+            기록할 확률. Poisson(λ_home)·Poisson(λ_away) 각각의 P(0골) 보수.
+          </li>
+          <li>
+            <strong>강한 예측</strong> = 1X2 가장 높은 확률이 60% 이상인 매치만의
+            적중률.
+          </li>
+          <li>
+            <strong>최근 10경기</strong> = 가장 최근에 끝난 10경기 1X2 적중률.
             모델이 현재 시즌 흐름을 잘 따라가고 있는지 가늠.
           </li>
         </ul>
@@ -178,8 +248,49 @@ export default async function AccuracyPage() {
   );
 }
 
+function SummaryCard({
+  label,
+  subtitle,
+  rate,
+  correct,
+  total,
+  gradient,
+}: {
+  label: string;
+  subtitle: string;
+  rate: number;
+  correct: number;
+  total: number;
+  gradient: string;
+}) {
+  if (total === 0) return null;
+  const pct = Math.round(rate * 100);
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5">
+      <p className="text-xs text-neutral-500">{label}</p>
+      <p className="text-[10px] text-neutral-400 mt-0.5 mb-3">{subtitle}</p>
+      <div className="flex items-baseline gap-2 mb-3">
+        <span
+          className={`text-4xl font-bold tracking-tight tabular-nums bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}
+        >
+          {pct}%
+        </span>
+      </div>
+      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-2">
+        <div
+          className={`h-full bg-gradient-to-r ${gradient} rounded-full`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="text-[11px] text-neutral-500 tabular-nums">
+        {correct.toLocaleString()} / {total.toLocaleString()} 적중
+      </p>
+    </div>
+  );
+}
+
 function LeagueCard({ stat }: { stat: LeagueStat }) {
-  const pct = Math.round(stat.rate * 100);
+  const pct = Math.round(stat.oneXTwo.rate * 100);
   return (
     <Link
       href={`/leagues/${stat.league}`}
@@ -192,13 +303,16 @@ function LeagueCard({ stat }: { stat: LeagueStat }) {
             {LEAGUE_NAME[stat.league] ?? stat.league}
           </span>
         </div>
-        <span className="text-2xl font-bold tabular-nums">
-          {pct}
-          <span className="text-sm text-neutral-500">%</span>
-        </span>
+        <div className="text-right">
+          <div className="text-2xl font-bold tabular-nums">
+            {pct}
+            <span className="text-sm text-neutral-500">%</span>
+          </div>
+          <div className="text-[10px] text-neutral-400">1X2</div>
+        </div>
       </div>
 
-      {/* 막대 */}
+      {/* 1X2 메인 막대 */}
       <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
         <div
           className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
@@ -206,31 +320,52 @@ function LeagueCard({ stat }: { stat: LeagueStat }) {
         />
       </div>
 
-      {/* 보조 지표 */}
-      <div className="grid grid-cols-3 gap-2 text-[11px] text-neutral-500">
-        <div>
-          <div className="text-neutral-400">표본</div>
-          <div className="font-mono text-neutral-700 dark:text-neutral-300">
-            {stat.correct}/{stat.evaluated}
+      {/* 축구 리그면 4개 시장, 그 외엔 신뢰도/최근 10 */}
+      {stat.isSoccer ? (
+        <div className="grid grid-cols-3 gap-2 text-[11px]">
+          <MarketChip label="DC" rate={stat.dc} />
+          <MarketChip label="O 2.5" rate={stat.over} />
+          <MarketChip label="BTTS" rate={stat.btts} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2 text-[11px] text-neutral-500">
+          <div>
+            <div className="text-neutral-400">표본</div>
+            <div className="font-mono text-neutral-700 dark:text-neutral-300">
+              {stat.oneXTwo.correct}/{stat.oneXTwo.evaluated}
+            </div>
+          </div>
+          <div>
+            <div className="text-neutral-400">강한 예측</div>
+            <div className="font-mono text-neutral-700 dark:text-neutral-300">
+              {stat.highConfidence.evaluated > 0
+                ? `${Math.round(stat.highConfidence.rate * 100)}%`
+                : "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-neutral-400">최근 10</div>
+            <div className="font-mono text-neutral-700 dark:text-neutral-300">
+              {stat.recent10.evaluated > 0
+                ? `${Math.round(stat.recent10.rate * 100)}%`
+                : "—"}
+            </div>
           </div>
         </div>
-        <div>
-          <div className="text-neutral-400">강한 예측</div>
-          <div className="font-mono text-neutral-700 dark:text-neutral-300">
-            {stat.highConfidence.evaluated > 0
-              ? `${Math.round(stat.highConfidence.rate * 100)}%`
-              : "—"}
-          </div>
-        </div>
-        <div>
-          <div className="text-neutral-400">최근 10</div>
-          <div className="font-mono text-neutral-700 dark:text-neutral-300">
-            {stat.recent10.evaluated > 0
-              ? `${Math.round(stat.recent10.rate * 100)}%`
-              : "—"}
-          </div>
-        </div>
-      </div>
+      )}
     </Link>
+  );
+}
+
+function MarketChip({ label, rate }: { label: string; rate: MarketRate }) {
+  if (rate.evaluated === 0) return <div />;
+  const pct = Math.round(rate.rate * 100);
+  return (
+    <div className="rounded-lg bg-neutral-100 dark:bg-neutral-900 px-2 py-1.5">
+      <div className="text-[10px] text-neutral-500">{label}</div>
+      <div className="font-bold tabular-nums text-neutral-900 dark:text-white text-sm">
+        {pct}%
+      </div>
+    </div>
   );
 }

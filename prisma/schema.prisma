@@ -44,11 +44,27 @@ model Match {
   updatedAt  DateTime @updatedAt
 
   // 적중률 백테스트 — 매치 시점 기준 추정 (PREVIEW 글 유무와 무관하게 모든 매치 대상)
+  // 1X2 (Money Line / 1X2)
   predHome   Float?
   predDraw   Float?
   predAway   Float?
   predWinner String? // "HOME" | "DRAW" | "AWAY"
   predCorrect Boolean? // 매치 종료 후 actual 과 일치 여부
+
+  // Double Chance (축구 전용 — 무승부 흡수형 시장)
+  predDcPick    String?  // "1X" | "X2" | "12"
+  predDcProb    Float?
+  predDcCorrect Boolean?
+
+  // OVER/UNDER 2.5 골 (축구 전용 — Poisson 모델 기반)
+  predOverProb    Float?  // OVER 2.5 확률
+  predOverPick    String? // "OVER" | "UNDER"
+  predOverCorrect Boolean?
+
+  // BTTS (Both Teams To Score, 축구 전용)
+  predBttsProb    Float?
+  predBttsPick    String? // "YES" | "NO"
+  predBttsCorrect Boolean?
 
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])

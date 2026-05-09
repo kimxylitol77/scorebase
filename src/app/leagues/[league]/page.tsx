@@ -167,13 +167,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     // AI 적중률 미니 — 백테스트 결과 기준
     prisma.match.findMany({
       where: { league: upper, predCorrect: { not: null } },
-      select: { predCorrect: true },
+      select: { predCorrect: true, predDcCorrect: true },
     }),
   ]);
 
   const accEvaluated = accStats.length;
   const accCorrect = accStats.filter((m) => m.predCorrect).length;
   const accRate = accEvaluated > 0 ? accCorrect / accEvaluated : 0;
+  const dcEvaluated = accStats.filter((m) => m.predDcCorrect !== null).length;
+  const dcCorrect = accStats.filter((m) => m.predDcCorrect === true).length;
+  const dcRate = dcEvaluated > 0 ? dcCorrect / dcEvaluated : 0;
+  const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL"].includes(upper);
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
@@ -207,20 +211,35 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           </p>
 
           {accEvaluated > 0 && (
-            <Link
-              href="/predictions/accuracy"
-              className="mt-5 inline-flex items-center gap-2 rounded-full border border-neutral-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-900/60 backdrop-blur px-3 py-1.5 text-xs hover:border-neutral-400 dark:hover:border-neutral-600 transition"
-            >
-              <span aria-hidden>🎯</span>
-              <span className="text-neutral-500">AI 적중률</span>
-              <span className="font-bold tabular-nums text-neutral-900 dark:text-white">
-                {Math.round(accRate * 100)}%
-              </span>
-              <span className="text-neutral-400 tabular-nums">
-                ({accCorrect}/{accEvaluated})
-              </span>
-              <span className="text-neutral-400" aria-hidden>›</span>
-            </Link>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                href="/predictions/accuracy"
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-900/60 backdrop-blur px-3 py-1.5 text-xs hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+              >
+                <span aria-hidden>🎯</span>
+                <span className="text-neutral-500">1X2</span>
+                <span className="font-bold tabular-nums text-neutral-900 dark:text-white">
+                  {Math.round(accRate * 100)}%
+                </span>
+                <span className="text-neutral-400 tabular-nums">
+                  ({accCorrect}/{accEvaluated})
+                </span>
+              </Link>
+              {isSoccer && dcEvaluated > 0 && (
+                <Link
+                  href="/predictions/accuracy"
+                  className="inline-flex items-center gap-2 rounded-full border border-emerald-300 dark:border-emerald-700/60 bg-emerald-50/60 dark:bg-emerald-950/30 backdrop-blur px-3 py-1.5 text-xs hover:border-emerald-400 dark:hover:border-emerald-600 transition"
+                >
+                  <span aria-hidden>✨</span>
+                  <span className="text-emerald-700 dark:text-emerald-400">
+                    DC
+                  </span>
+                  <span className="font-bold tabular-nums text-emerald-900 dark:text-emerald-200">
+                    {Math.round(dcRate * 100)}%
+                  </span>
+                </Link>
+              )}
+            </div>
           )}
         </div>
       </section>
