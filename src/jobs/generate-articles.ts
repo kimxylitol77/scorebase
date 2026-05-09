@@ -24,19 +24,31 @@ function extractTitle(markdown: string): string {
   return m ? m[1].trim() : "제목 미상";
 }
 
-export async function runRecap() {
-  console.log("[generate] 시작");
+export async function runRecap(opts?: {
+  sinceHours?: number;
+  league?: string;
+  take?: number;
+  autoPublish?: boolean;
+}) {
+  const sinceHours = opts?.sinceHours ?? 36;
+  const take = opts?.take ?? 20;
+  const onlyLeague = opts?.league;
+  const autoPublish = opts?.autoPublish ?? false;
+  console.log(
+    `[generate] 시작 — sinceHours=${sinceHours}, league=${onlyLeague ?? "ALL"}, take=${take}, autoPublish=${autoPublish}`,
+  );
 
-  const since = new Date(Date.now() - 36 * 60 * 60 * 1000);
+  const since = new Date(Date.now() - sinceHours * 60 * 60 * 1000);
   const matches = await prisma.match.findMany({
     where: {
       status: "FINISHED",
       startTime: { gte: since },
       articles: { none: { type: "RECAP" } },
+      ...(onlyLeague ? { league: onlyLeague } : {}),
     },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { startTime: "desc" },
-    take: 20,
+    take,
   });
 
   console.log(`[generate] 대상 경기: ${matches.length}개`);
@@ -126,7 +138,8 @@ export async function runRecap() {
           title,
           slug,
           content,
-          status: "PENDING_REVIEW",
+          status: autoPublish ? "PUBLISHED" : "PENDING_REVIEW",
+          publishedAt: autoPublish ? new Date() : null,
         },
       });
 
