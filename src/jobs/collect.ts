@@ -8,7 +8,77 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { collectors } from "@/lib/sports";
 import { fetchEplRange } from "@/lib/sports/football-data";
+import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import type { League, NormalizedMatch } from "@/lib/sports/types";
+
+// 팀 이름 정규화 — football-data 와 ESPN 의 팀명 표기 차이 흡수
+// (예: "Manchester City FC" ↔ "Manchester City", "Tottenham Hotspur" ↔ "Tottenham")
+function normalizeTeamName(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\b(fc|afc|cf|club|hotspur|wanderers)\b/g, "")
+    .replace(/[^a-z0-9가-힣]/g, "");
+}
+
+function findEspnMatch(
+  espnList: NormalizedMatch[],
+  m: NormalizedMatch,
+): NormalizedMatch | undefined {
+  const homeN = normalizeTeamName(m.homeTeam.name);
+  const awayN = normalizeTeamName(m.awayTeam.name);
+  return espnList.find((e) => {
+    const eh = normalizeTeamName(e.homeTeam.name);
+    const ea = normalizeTeamName(e.awayTeam.name);
+    return (
+      (eh.includes(homeN) || homeN.includes(eh)) &&
+      (ea.includes(awayN) || awayN.includes(ea))
+    );
+  });
+}
+
+/**
+ * football-data EPL 결과를 ESPN 스코어보드와 cross-check 해서
+ * 종료된 매치의 점수가 다르면 ESPN 값으로 덮어쓴다.
+ * (football-data 무료 플랜 데이터 오류 사례 대응 — Liverpool vs Chelsea 1:1 → 잘못 1:2 응답한 사례)
+ */
+async function crossCheckEplWithEspn(
+  matches: NormalizedMatch[],
+): Promise<{ corrected: number }> {
+  if (matches.length === 0) return { corrected: 0 };
+  // 매치 날짜 unique 셋 → ESPN 한 번씩만 호출
+  const dateKeys = Array.from(
+    new Set(matches.map((m) => m.startTime.toISOString().slice(0, 10))),
+  );
+  const espnByDate = new Map<string, NormalizedMatch[]>();
+  for (const d of dateKeys) {
+    try {
+      const espn = await fetchEspnSoccerByDate("EPL", d);
+      espnByDate.set(d, espn);
+    } catch (e) {
+      console.warn(`[xcheck/EPL] ${d} ESPN fetch 실패:`, (e as Error).message);
+    }
+    await new Promise((r) => setTimeout(r, 80));
+  }
+  let corrected = 0;
+  for (const m of matches) {
+    if (m.status !== "FINISHED") continue;
+    const dateKey = m.startTime.toISOString().slice(0, 10);
+    const espn = findEspnMatch(espnByDate.get(dateKey) ?? [], m);
+    if (!espn || espn.status !== "FINISHED") continue;
+    if (
+      espn.homeScore !== m.homeScore ||
+      espn.awayScore !== m.awayScore
+    ) {
+      console.log(
+        `[xcheck/EPL] ${m.homeTeam.name} vs ${m.awayTeam.name}: football-data ${m.homeScore}:${m.awayScore} → ESPN ${espn.homeScore}:${espn.awayScore}`,
+      );
+      m.homeScore = espn.homeScore;
+      m.awayScore = espn.awayScore;
+      corrected++;
+    }
+  }
+  return { corrected };
+}
 
 function todayKST(): string {
   // KST(UTC+9) 기준 오늘 날짜
@@ -124,9 +194,18 @@ export async function runCollect(opts?: {
   for (const league of leagues) {
     try {
       // EPL: football-data 는 dateFrom/dateTo 한 번 호출로 범위 처리 가능
-      if (league === "EPL" && futureDays > 0 && process.env.FOOTBALL_DATA_KEY) {
-        const matches = await fetchEplRange(date, endDate);
-        console.log(`[collect/EPL] ${matches.length}경기 수집 (${date}~${endDate})`);
+      // + ESPN cross-check 로 score 오류 보정
+      if (league === "EPL" && process.env.FOOTBALL_DATA_KEY) {
+        const matches =
+          futureDays > 0
+            ? await fetchEplRange(date, endDate)
+            : await collectors.EPL.fetchByDate(date);
+        const { corrected } = await crossCheckEplWithEspn(matches);
+        console.log(
+          `[collect/EPL] ${matches.length}경기 수집 (${date}~${endDate})${
+            corrected > 0 ? ` · ESPN 보정 ${corrected}건` : ""
+          }`,
+        );
         for (const m of matches) await upsertMatch(m);
         continue;
       }

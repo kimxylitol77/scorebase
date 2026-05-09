@@ -18,13 +18,13 @@ import type {
 const BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer";
 
 export const SOCCER_LEAGUE_CODES: Partial<Record<League, string>> = {
+  EPL: "eng.1",
   LALIGA: "esp.1",
   BUNDESLIGA: "ger.1",
   SERIE_A: "ita.1",
   LIGUE_1: "fra.1",
   MLS: "usa.1",
   UCL: "uefa.champions",
-  // EPL 은 football-data.org 우선이라 여기엔 안 등록 (필요 시 "eng.1" 추가 가능)
 };
 
 interface EspnTeam {
