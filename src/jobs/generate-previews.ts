@@ -23,8 +23,9 @@ function buildSlug(league: string, matchId: number): string {
   return `${league.toLowerCase()}-preview-${matchId}`;
 }
 
-export async function runPreview() {
-  console.log("[preview] 시작");
+export async function runPreview(opts?: { autoPublish?: boolean }) {
+  const autoPublish = opts?.autoPublish ?? true;
+  console.log(`[preview] 시작 — autoPublish=${autoPublish}`);
 
   const now = new Date();
   // 다음 14일 SCHEDULED 매치까지 커버 (이전 7일 → 확장)
@@ -117,7 +118,8 @@ export async function runPreview() {
           title,
           slug,
           content,
-          status: "PENDING_REVIEW",
+          status: autoPublish ? "PUBLISHED" : "PENDING_REVIEW",
+          publishedAt: autoPublish ? new Date() : null,
         },
       });
 

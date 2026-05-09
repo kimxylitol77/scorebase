@@ -135,6 +135,21 @@ export default async function ArticlePage({ params }: Props) {
       }
     : null;
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Scorebase", item: SITE_URL },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: article.league,
+        item: `${SITE_URL}/leagues/${article.league}`,
+      },
+      { "@type": "ListItem", position: 3, name: article.title, item: url },
+    ],
+  };
+
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <script
@@ -147,6 +162,10 @@ export default async function ArticlePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
       <div className="mb-6">
         <Link

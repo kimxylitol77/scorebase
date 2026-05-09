@@ -33,7 +33,7 @@ export async function runRecap(opts?: {
   const sinceHours = opts?.sinceHours ?? 36;
   const take = opts?.take ?? 20;
   const onlyLeague = opts?.league;
-  const autoPublish = opts?.autoPublish ?? false;
+  const autoPublish = opts?.autoPublish ?? true;
   console.log(
     `[generate] 시작 — sinceHours=${sinceHours}, league=${onlyLeague ?? "ALL"}, take=${take}, autoPublish=${autoPublish}`,
   );
