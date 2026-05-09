@@ -153,7 +153,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   if (currentType !== "ALL") where.type = currentType;
 
   // 카운트는 type 별로 동시에 — 탭에 숫자 표시용
-  const [articles, countsByType] = await Promise.all([
+  const [articles, countsByType, accStats] = await Promise.all([
     prisma.article.findMany({
       where,
       orderBy: { publishedAt: "desc" },
@@ -164,7 +164,16 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       where: { status: "PUBLISHED", league: upper },
       _count: { _all: true },
     }),
+    // AI 적중률 미니 — 백테스트 결과 기준
+    prisma.match.findMany({
+      where: { league: upper, predCorrect: { not: null } },
+      select: { predCorrect: true },
+    }),
   ]);
+
+  const accEvaluated = accStats.length;
+  const accCorrect = accStats.filter((m) => m.predCorrect).length;
+  const accRate = accEvaluated > 0 ? accCorrect / accEvaluated : 0;
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
@@ -196,6 +205,23 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <p className="mt-3 text-neutral-600 dark:text-neutral-400 max-w-xl">
             {TYPE_DESC[currentType]}
           </p>
+
+          {accEvaluated > 0 && (
+            <Link
+              href="/predictions/accuracy"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-neutral-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-900/60 backdrop-blur px-3 py-1.5 text-xs hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+            >
+              <span aria-hidden>🎯</span>
+              <span className="text-neutral-500">AI 적중률</span>
+              <span className="font-bold tabular-nums text-neutral-900 dark:text-white">
+                {Math.round(accRate * 100)}%
+              </span>
+              <span className="text-neutral-400 tabular-nums">
+                ({accCorrect}/{accEvaluated})
+              </span>
+              <span className="text-neutral-400" aria-hidden>›</span>
+            </Link>
+          )}
         </div>
       </section>
 

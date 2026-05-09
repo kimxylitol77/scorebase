@@ -115,6 +115,16 @@ export async function runPreview(opts?: { autoPublish?: boolean }) {
         : `${prefix} ${rawTitle}`;
       const slug = buildSlug(m.league, m.id);
 
+      // 적중률 추적용 — 글 작성 시점의 추정 승률을 그대로 저장
+      const wp = context.winProb;
+      const predictedWinner = wp
+        ? wp.home >= wp.away && wp.home >= wp.draw
+          ? "HOME"
+          : wp.away >= wp.draw
+            ? "AWAY"
+            : "DRAW"
+        : null;
+
       const article = await prisma.article.create({
         data: {
           matchId: m.id,
@@ -125,6 +135,10 @@ export async function runPreview(opts?: { autoPublish?: boolean }) {
           content,
           status: autoPublish ? "PUBLISHED" : "PENDING_REVIEW",
           publishedAt: autoPublish ? new Date() : null,
+          predHome: wp?.home ?? null,
+          predDraw: wp?.draw ?? null,
+          predAway: wp?.away ?? null,
+          predWinner: predictedWinner,
         },
       });
 

@@ -43,6 +43,13 @@ model Match {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // 적중률 백테스트 — 매치 시점 기준 추정 (PREVIEW 글 유무와 무관하게 모든 매치 대상)
+  predHome   Float?
+  predDraw   Float?
+  predAway   Float?
+  predWinner String? // "HOME" | "DRAW" | "AWAY"
+  predCorrect Boolean? // 매치 종료 후 actual 과 일치 여부
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]
@@ -50,6 +57,7 @@ model Match {
   @@unique([league, externalId])
   @@index([league, startTime])
   @@index([status])
+  @@index([league, predCorrect])
 }
 
 // 페이지뷰 트래킹 — 단순 카운트 + 시간대별 그래프용
@@ -78,8 +86,18 @@ model Article {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  // PREVIEW 한정: 글 작성 시점에 추정한 승률 + 가장 높은 확률의 결과
+  // (적중률 통계용 — match 종료 후 evaluate 잡이 actualWinner/correct 채움)
+  predHome    Float?    // 0~1
+  predDraw    Float?    // 0~1
+  predAway    Float?    // 0~1
+  predWinner  String?   // "HOME" | "DRAW" | "AWAY"
+  evaluatedAt DateTime?
+  correct     Boolean?  // null = 미평가, true/false = 평가됨
+
   match Match? @relation(fields: [matchId], references: [id])
 
   @@index([league, status])
   @@index([publishedAt])
+  @@index([type, evaluatedAt])
 }
