@@ -34,6 +34,7 @@ import WinProbDonut from "./charts/WinProbDonut";
 import EloTrendChart from "./charts/EloTrendChart";
 import SeasonFormHeatmap from "./charts/SeasonFormHeatmap";
 import GoalScatter from "./charts/GoalScatter";
+import TeamMatchup from "./TeamMatchup";
 
 interface Props {
   match: {
@@ -228,6 +229,36 @@ export default async function MatchInsight({ match }: Props) {
         </div>
         <span className="text-xs font-medium text-neutral-500">{summary}</span>
       </div>
+
+      {/* 0) 팀 전력 — 양 팀 마주보기 비교 (NEW prototype) */}
+      {homeRow && awayRow && (
+        <TeamMatchup
+          home={{
+            name: match.homeTeam.name,
+            form: homeForm.results,
+            position: homeRow.position,
+            totalTeams: totalTeams,
+            played: homeRow.played,
+            wins: homeRow.wins,
+            draws: homeRow.draws,
+            losses: homeRow.losses,
+            goalsFor: homeRow.goalsFor,
+            goalsAgainst: homeRow.goalsAgainst,
+          }}
+          away={{
+            name: match.awayTeam.name,
+            form: awayForm.results,
+            position: awayRow.position,
+            totalTeams: totalTeams,
+            played: awayRow.played,
+            wins: awayRow.wins,
+            draws: awayRow.draws,
+            losses: awayRow.losses,
+            goalsFor: awayRow.goalsFor,
+            goalsAgainst: awayRow.goalsAgainst,
+          }}
+        />
+      )}
 
       {/* 1) 승률 도넛 */}
       <Section title="승률 추정">
