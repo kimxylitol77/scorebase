@@ -83,9 +83,9 @@ export default function MobileMenu() {
         {open ? <CloseIcon /> : <BurgerIcon />}
       </button>
 
-      {/* 모바일 패널 */}
+      {/* 모바일 패널 — h-[calc(100dvh-4rem)] 로 iOS Safari 동적 viewport 대응 */}
       <div
-        className={`sm:hidden fixed inset-x-0 top-16 bottom-0 z-30 bg-white dark:bg-neutral-950 transition-all duration-200 ${
+        className={`sm:hidden fixed inset-x-0 top-16 z-50 h-[calc(100dvh-4rem)] bg-white dark:bg-neutral-950 transition-all duration-200 ${
           open
             ? "opacity-100 visible"
             : "opacity-0 invisible pointer-events-none"
