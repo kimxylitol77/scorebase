@@ -426,11 +426,6 @@ function MethodologySection() {
       title: "시즌 시뮬레이션",
       body: "남은 일정을 Monte Carlo 방식으로 반복 시뮬레이션해 우승·강등·플레이오프 진출 확률을 산출합니다.",
     },
-    {
-      icon: "✍️",
-      title: "AI 자동 작성",
-      body: "위 데이터를 토대로 AI가 매치 프리뷰·리뷰·인사이트를 한국어로 자연스럽게 작성합니다.",
-    },
   ];
   return (
     <section aria-labelledby="method-title">
@@ -440,7 +435,7 @@ function MethodologySection() {
         href="/about"
         hrefLabel="자세히 보기"
       />
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((it) => (
           <div
             key={it.title}
