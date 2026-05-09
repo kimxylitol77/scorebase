@@ -7,6 +7,7 @@ import { generate } from "@/lib/ai/gemini";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { notifyDraftReady } from "@/lib/notify/telegram";
+import { titleDatePrefixKST } from "@/lib/format";
 import {
   buildMatchContext,
   enrichContextWithApiFootball,
@@ -107,7 +108,11 @@ export async function runPreview(opts?: { autoPublish?: boolean }) {
         { system: SYSTEM_PROMPT, maxTokens: 2500, temperature: 0.6 },
       );
 
-      const title = extractTitle(content);
+      const rawTitle = extractTitle(content);
+      const prefix = titleDatePrefixKST(m.startTime);
+      const title = rawTitle.startsWith("[")
+        ? rawTitle
+        : `${prefix} ${rawTitle}`;
       const slug = buildSlug(m.league, m.id);
 
       const article = await prisma.article.create({

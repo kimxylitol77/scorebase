@@ -39,3 +39,12 @@ export function formatShortDate(d: Date | string | number): string {
   const date = new Date(d);
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
+
+/**
+ * 글 제목용 KST 날짜 prefix ("[5/11]")
+ * 서버 timezone 과 무관하게 항상 한국 시간 기준 (UTC+9)
+ */
+export function titleDatePrefixKST(d: Date | string | number): string {
+  const kst = new Date(new Date(d).getTime() + 9 * 60 * 60 * 1000);
+  return `[${kst.getUTCMonth() + 1}/${kst.getUTCDate()}]`;
+}
