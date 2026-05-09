@@ -1,0 +1,85 @@
+// ====================================================
+// Scorebase DB Schema
+// 운영: PostgreSQL (Neon)
+// ====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 팀 정보
+model Team {
+  id         Int      @id @default(autoincrement())
+  league     String // KBO | EPL | NBA
+  externalId String // 외부 API 의 팀 ID
+  name       String
+  shortName  String?
+  logoUrl    String?
+  createdAt  DateTime @default(now())
+
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+
+  @@unique([league, externalId])
+}
+
+// 경기 정보
+model Match {
+  id         Int      @id @default(autoincrement())
+  league     String // KBO | EPL | NBA
+  externalId String // 외부 API 의 경기 ID
+  homeTeamId Int
+  awayTeamId Int
+  homeScore  Int?
+  awayScore  Int?
+  status     String // SCHEDULED | LIVE | FINISHED | POSTPONED
+  startTime  DateTime
+  raw        String? // 원본 JSON (디버깅/재가공용)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  articles Article[]
+
+  @@unique([league, externalId])
+  @@index([league, startTime])
+  @@index([status])
+}
+
+// 페이지뷰 트래킹 — 단순 카운트 + 시간대별 그래프용
+model PageView {
+  id        Int      @id @default(autoincrement())
+  path      String
+  ts        DateTime @default(now())
+  userAgent String?
+  referrer  String?
+
+  @@index([ts])
+  @@index([path])
+}
+
+// AI 가 생성한 기사
+model Article {
+  id          Int       @id @default(autoincrement())
+  matchId     Int?
+  type        String // PREVIEW | RECAP | ANALYSIS
+  league      String
+  title       String
+  slug        String    @unique
+  content     String // Markdown
+  status      String // DRAFT | PENDING_REVIEW | APPROVED | PUBLISHED | REJECTED
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  match Match? @relation(fields: [matchId], references: [id])
+
+  @@index([league, status])
+  @@index([publishedAt])
+}

@@ -1,0 +1,82 @@
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { COOKIE_NAME, readSessionCookie } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const c = await cookies();
+  const session = readSessionCookie(c.get(COOKIE_NAME)?.value);
+
+  // 로그인 페이지는 자기 자신이라 헤더 안 표시
+  // (session 이 null 이면 헤더 없는 단순 레이아웃)
+  if (!session) {
+    return <div className="py-8">{children}</div>;
+  }
+
+  return (
+    <div>
+      <AdminBar username={session.username} />
+      {children}
+    </div>
+  );
+}
+
+function AdminBar({ username }: { username: string }) {
+  return (
+    <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center gap-4 text-sm">
+        <span className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-500">
+          ADMIN
+        </span>
+
+        <nav className="flex items-center gap-3">
+          <Link
+            href="/admin"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            검수
+          </Link>
+          <Link
+            href="/admin/articles"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            글 관리
+          </Link>
+          <Link
+            href="/admin/new"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            새 글
+          </Link>
+          <Link
+            href="/admin/stats"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            접속자 통계
+          </Link>
+        </nav>
+
+        <div className="ml-auto flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="text-neutral-700 dark:text-neutral-300">
+              <span className="font-semibold">{username}</span>{" "}
+              <span className="text-neutral-500">로그인됨</span>
+            </span>
+          </span>
+          <a
+            href="/admin/logout"
+            className="text-xs px-2.5 py-1 rounded-md bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 transition"
+          >
+            로그아웃
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}

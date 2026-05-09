@@ -6,21 +6,46 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "job:collect": "tsx src/jobs/collect.ts",
+    "job:backfill": "tsx src/jobs/backfill.ts",
+    "job:generate": "tsx src/jobs/generate-articles.ts",
+    "job:preview": "tsx src/jobs/generate-previews.ts",
+    "job:analysis": "tsx src/jobs/generate-analysis.ts",
+    "scheduler": "tsx src/jobs/scheduler.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.1",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^6.19.3",
+    "axios": "^1.16.0",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.2",
     "next": "16.2.6",
+    "node-cron": "^4.2.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "recharts": "^3.8.1",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
