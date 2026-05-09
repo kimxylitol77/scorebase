@@ -1,12 +1,22 @@
-// PREVIEW 글 적중률 평가 잡.
-// 종료된 매치 + PREVIEW 글이 있고 아직 평가 안 된 것을 찾아
-// 실제 결과와 predWinner 를 비교해 correct 필드 채움.
+// 적중률 평가 잡.
+// (1) PREVIEW 글: 글 시점에 저장한 predWinner 와 실제 결과 비교
+// (2) Match 백테스트: 새로 종료된 모든 매치를 시점 기반 모델로 채움 (1X2/DC/OVER/BTTS)
 //
 // 사용:
 //   npm run job:evaluate
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
+import { buildMatchContext } from "@/lib/predict/build-context";
+import {
+  bestDoubleChance,
+  dcCorrect,
+  predictGoalsMarket,
+  overActual,
+  bttsActual,
+  SOCCER_LEAGUES_FOR_MARKETS,
+} from "@/lib/predict/markets";
+import type { PredictMatch } from "@/lib/predict/types";
 
 function actualWinnerOf(home: number, away: number): "HOME" | "DRAW" | "AWAY" {
   if (home > away) return "HOME";
@@ -59,8 +69,110 @@ export async function runEvaluate(opts?: { limit?: number }) {
   return { evaluated: articles.length, correct: correctCount };
 }
 
+/**
+ * Match 백테스트: predCorrect 가 아직 null 인 FINISHED 매치를 찾아
+ * 시점 기반 buildMatchContext + Poisson 으로 1X2/DC/OVER/BTTS 모두 채움.
+ * 리그별로 한 번씩 prisma.findMany 해서 in-memory 컨텍스트 재사용.
+ */
+export async function runEvaluateMatches(opts?: { limit?: number }) {
+  const limit = opts?.limit ?? 200;
+  console.log("[evaluate/match] 시작");
+
+  const pending = await prisma.match.findMany({
+    where: {
+      status: "FINISHED",
+      homeScore: { not: null },
+      awayScore: { not: null },
+      predCorrect: null,
+    },
+    orderBy: { startTime: "asc" },
+    take: limit,
+  });
+  console.log(`[evaluate/match] 미평가: ${pending.length}건`);
+  if (pending.length === 0) return { evaluated: 0, byLeague: {} };
+
+  // 리그별 전체 매치 한 번씩만 가져오기 (in-memory 캐시)
+  const leagues = Array.from(new Set(pending.map((m) => m.league)));
+  const cache = new Map<string, PredictMatch[]>();
+  for (const lg of leagues) {
+    const list = await prisma.match.findMany({
+      where: { league: lg },
+      select: {
+        id: true,
+        league: true,
+        status: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+      },
+    });
+    cache.set(lg, list as PredictMatch[]);
+  }
+
+  const tally: Record<string, number> = {};
+  for (const m of pending) {
+    if (m.homeScore == null || m.awayScore == null) continue;
+    const all = cache.get(m.league)!;
+    const ctx = buildMatchContext(
+      all,
+      m.league,
+      m.homeTeamId,
+      m.awayTeamId,
+      m.startTime,
+    );
+    const wp = ctx.winProb;
+    if (!wp) continue;
+
+    const winner =
+      wp.home >= wp.away && wp.home >= wp.draw
+        ? "HOME"
+        : wp.away >= wp.draw
+          ? "AWAY"
+          : "DRAW";
+    const actualW = actualWinnerOf(m.homeScore, m.awayScore);
+    const correct = winner === actualW;
+
+    const data: Record<string, unknown> = {
+      predHome: wp.home,
+      predDraw: wp.draw,
+      predAway: wp.away,
+      predWinner: winner,
+      predCorrect: correct,
+    };
+
+    // 축구 한정 — DC + OVER + BTTS
+    if (SOCCER_LEAGUES_FOR_MARKETS.has(m.league)) {
+      const dc = bestDoubleChance(wp);
+      const goals = predictGoalsMarket(
+        all,
+        m.homeTeamId,
+        m.awayTeamId,
+        m.startTime,
+      );
+      const ovPick = goals.pOver >= 0.5 ? "OVER" : "UNDER";
+      const btPick = goals.pBtts >= 0.5 ? "YES" : "NO";
+      data.predDcPick = dc.pick;
+      data.predDcProb = dc.prob;
+      data.predDcCorrect = dcCorrect(dc.pick, actualW);
+      data.predOverProb = goals.pOver;
+      data.predOverPick = ovPick;
+      data.predOverCorrect = ovPick === overActual(m.homeScore, m.awayScore);
+      data.predBttsProb = goals.pBtts;
+      data.predBttsPick = btPick;
+      data.predBttsCorrect = btPick === bttsActual(m.homeScore, m.awayScore);
+    }
+
+    await prisma.match.update({ where: { id: m.id }, data });
+    tally[m.league] = (tally[m.league] ?? 0) + 1;
+  }
+  console.log("[evaluate/match] 리그별 처리:", tally);
+  return { evaluated: pending.length, byLeague: tally };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runEvaluate()
+  Promise.all([runEvaluate(), runEvaluateMatches()])
     .catch((e) => {
       console.error(e);
       process.exit(1);

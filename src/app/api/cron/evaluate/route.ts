@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runEvaluate } from "@/jobs/evaluate-predictions";
+import { runEvaluate, runEvaluateMatches } from "@/jobs/evaluate-predictions";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +17,15 @@ export async function GET(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   try {
-    const result = await runEvaluate();
-    return NextResponse.json({ ok: true, ...result });
+    const [previewResult, matchResult] = await Promise.all([
+      runEvaluate(),
+      runEvaluateMatches(),
+    ]);
+    return NextResponse.json({
+      ok: true,
+      preview: previewResult,
+      match: matchResult,
+    });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
