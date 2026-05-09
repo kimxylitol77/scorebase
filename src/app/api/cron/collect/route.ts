@@ -32,7 +32,9 @@ export async function GET(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   try {
-    await runCollect({ leagues: ALL_LEAGUES });
+    // 오늘 + 향후 7일까지 매치 일정/스코어 수집
+    // → 미래 SCHEDULED 매치도 채워서 PREVIEW 잡이 잡아갈 수 있게 함
+    await runCollect({ leagues: ALL_LEAGUES, futureDays: 7 });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

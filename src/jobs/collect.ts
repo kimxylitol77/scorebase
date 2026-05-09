@@ -7,6 +7,7 @@
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { collectors } from "@/lib/sports";
+import { fetchEplRange } from "@/lib/sports/football-data";
 import type { League, NormalizedMatch } from "@/lib/sports/types";
 
 function todayKST(): string {
@@ -14,6 +15,12 @@ function todayKST(): string {
   const now = new Date();
   const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   return kst.toISOString().slice(0, 10);
+}
+
+function addDays(yyyymmdd: string, delta: number): string {
+  const d = new Date(yyyymmdd + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d.toISOString().slice(0, 10);
 }
 
 function parseArgs(): { leagues: League[]; date: string } {
@@ -92,22 +99,46 @@ async function upsertMatch(m: NormalizedMatch) {
   });
 }
 
-export async function runCollect(opts?: { leagues?: League[]; date?: string }) {
+export async function runCollect(opts?: {
+  leagues?: League[];
+  date?: string;
+  /** 양수 N 이면 date ~ date+N 일까지 모두 fetch (미래 일정 채우기). 기본 0 = 단일 날짜. */
+  futureDays?: number;
+}) {
   const argLeagues = opts?.leagues;
   const argDate = opts?.date;
+  const futureDays = opts?.futureDays ?? 0;
   const { leagues, date } = argLeagues || argDate
     ? {
         leagues: argLeagues ?? (["KBO", "EPL", "NBA"] as League[]),
         date: argDate ?? todayKST(),
       }
     : parseArgs();
-  console.log(`[collect] 시작 — leagues=${leagues.join(",")}, date=${date}`);
+  const endDate = futureDays > 0 ? addDays(date, futureDays) : date;
+  console.log(
+    `[collect] 시작 — leagues=${leagues.join(",")}, ${date}${
+      futureDays > 0 ? ` ~ ${endDate} (+${futureDays}d)` : ""
+    }`,
+  );
 
   for (const league of leagues) {
     try {
-      const matches = await collectors[league].fetchByDate(date);
-      console.log(`[collect/${league}] ${matches.length}경기 수집`);
-      for (const m of matches) await upsertMatch(m);
+      // EPL: football-data 는 dateFrom/dateTo 한 번 호출로 범위 처리 가능
+      if (league === "EPL" && futureDays > 0 && process.env.FOOTBALL_DATA_KEY) {
+        const matches = await fetchEplRange(date, endDate);
+        console.log(`[collect/EPL] ${matches.length}경기 수집 (${date}~${endDate})`);
+        for (const m of matches) await upsertMatch(m);
+        continue;
+      }
+      // 그 외: day-loop
+      let total = 0;
+      for (let d = date; d <= endDate; d = addDays(d, 1)) {
+        const matches = await collectors[league].fetchByDate(d);
+        for (const m of matches) await upsertMatch(m);
+        total += matches.length;
+        if (futureDays > 0) await new Promise((r) => setTimeout(r, 80));
+      }
+      console.log(`[collect/${league}] ${total}경기 수집`);
     } catch (err) {
       console.error(`[collect/${league}] 실패:`, (err as Error).message);
     }
