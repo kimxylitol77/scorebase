@@ -51,22 +51,22 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
   const awayAvgAgainst = away.played > 0 ? away.goalsAgainst / away.played : 0;
 
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 sm:px-6 py-6">
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 sm:px-6 py-5 sm:py-6">
       {/* 팀 헤더 */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 mb-6">
-        <div className="text-center">
-          <div className="text-base sm:text-lg font-bold tracking-tight text-blue-600 dark:text-blue-400 mb-2 truncate">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 mb-5 sm:mb-6">
+        <div className="text-center min-w-0">
+          <div className="text-sm sm:text-lg font-bold tracking-tight text-blue-600 dark:text-blue-400 mb-2 truncate">
             {home.name}
           </div>
           <div className="flex justify-center">
             <FormDots results={home.form} />
           </div>
         </div>
-        <div className="text-xs font-semibold tracking-wider text-neutral-400 uppercase">
+        <div className="text-[10px] sm:text-xs font-semibold tracking-wider text-neutral-400 uppercase">
           VS
         </div>
-        <div className="text-center">
-          <div className="text-base sm:text-lg font-bold tracking-tight text-rose-600 dark:text-rose-400 mb-2 truncate">
+        <div className="text-center min-w-0">
+          <div className="text-sm sm:text-lg font-bold tracking-tight text-rose-600 dark:text-rose-400 mb-2 truncate">
             {away.name}
           </div>
           <div className="flex justify-center">
@@ -149,11 +149,11 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
         )}
       </Group>
 
-      {/* 그룹: 홈/원정 강도 (양 팀 의미가 달라서 라벨에 명시) */}
+      {/* 그룹: 홈/원정 강도 */}
       {(home.splitPlayed > 0 || away.splitPlayed > 0) && (
-        <Group label="홈 / 원정 강도">
+        <Group label={`홈 · 원정 강도 (${home.splitLabel} / ${away.splitLabel})`}>
           <CompareRow
-            label={`${home.splitLabel} · ${away.splitLabel}`}
+            label="기록"
             home={
               home.splitPlayed > 0
                 ? `${home.splitWins}승 ${home.splitDraws}무 ${home.splitLosses}패`
@@ -201,14 +201,14 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
       )}
 
       {/* 그룹: 흐름 */}
-      <Group label="흐름">
+      <Group label="흐름 (최근 5경기)">
         <CompareRow
           label="진행중"
           home={streakLabel(home)}
           away={streakLabel(away)}
         />
         <CompareRow
-          label="클린시트 (최근 5)"
+          label="클린시트"
           home={`${home.cleanSheetsLast5}경기`}
           away={`${away.cleanSheetsLast5}경기`}
           highlight={
@@ -220,7 +220,7 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
           }
         />
         <CompareRow
-          label="무득점 (최근 5)"
+          label="무득점"
           home={`${home.failedToScoreLast5}경기`}
           away={`${away.failedToScoreLast5}경기`}
           highlight={
@@ -276,8 +276,8 @@ function CompareRow({
   big?: boolean;
 }) {
   const valueCls = big
-    ? "text-2xl sm:text-3xl font-black tabular-nums"
-    : "text-sm sm:text-base font-bold tabular-nums";
+    ? "text-xl sm:text-3xl font-black tabular-nums"
+    : "text-xs sm:text-base font-bold tabular-nums";
   const homeCls =
     highlight === "home"
       ? "text-blue-600 dark:text-blue-400"
@@ -287,12 +287,12 @@ function CompareRow({
       ? "text-rose-600 dark:text-rose-400"
       : "text-neutral-700 dark:text-neutral-300";
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 px-3 sm:px-4">
-      <div className={`text-right ${valueCls} ${homeCls}`}>{home}</div>
-      <div className="text-[11px] font-medium text-neutral-500 px-2 whitespace-nowrap text-center">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3 py-2.5 sm:py-3 px-2.5 sm:px-4">
+      <div className={`text-right ${valueCls} ${homeCls} truncate`}>{home}</div>
+      <div className="text-[10px] sm:text-[11px] font-medium text-neutral-500 px-1 sm:px-2 whitespace-nowrap text-center">
         {label}
       </div>
-      <div className={`text-left ${valueCls} ${awayCls}`}>{away}</div>
+      <div className={`text-left ${valueCls} ${awayCls} truncate`}>{away}</div>
     </div>
   );
 }
@@ -318,10 +318,10 @@ function CompareBarRow({
   const awayBetter =
     tone === "positive" ? awayValue > homeValue : awayValue < homeValue;
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 px-3 sm:px-4">
-      <div className="flex items-center justify-end gap-2">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3 py-2.5 sm:py-3 px-2.5 sm:px-4">
+      <div className="flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
         <span
-          className={`text-sm sm:text-base font-bold tabular-nums ${
+          className={`text-xs sm:text-base font-bold tabular-nums ${
             homeBetter
               ? "text-blue-600 dark:text-blue-400"
               : "text-neutral-700 dark:text-neutral-300"
@@ -329,7 +329,7 @@ function CompareBarRow({
         >
           {homeValue.toFixed(decimals)}
         </span>
-        <div className="w-14 sm:w-24 h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+        <div className="w-8 sm:w-24 h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden flex-shrink-0">
           <div
             className={`h-full ml-auto rounded-full ${
               homeBetter
@@ -340,11 +340,11 @@ function CompareBarRow({
           />
         </div>
       </div>
-      <div className="text-[11px] font-medium text-neutral-500 px-2 whitespace-nowrap text-center">
+      <div className="text-[10px] sm:text-[11px] font-medium text-neutral-500 px-1 sm:px-2 whitespace-nowrap text-center">
         {label}
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-14 sm:w-24 h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+        <div className="w-8 sm:w-24 h-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden flex-shrink-0">
           <div
             className={`h-full rounded-full ${
               awayBetter ? "bg-rose-500" : "bg-neutral-300 dark:bg-neutral-700"
@@ -353,7 +353,7 @@ function CompareBarRow({
           />
         </div>
         <span
-          className={`text-sm sm:text-base font-bold tabular-nums ${
+          className={`text-xs sm:text-base font-bold tabular-nums ${
             awayBetter
               ? "text-rose-600 dark:text-rose-400"
               : "text-neutral-700 dark:text-neutral-300"
