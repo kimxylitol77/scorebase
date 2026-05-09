@@ -192,7 +192,7 @@ export default async function AccuracyPage() {
             <LeagueCard key={s.league} stat={s} />
           ))}
         </div>
-        {stats.some((s) => s.evaluated === 0) && (
+        {stats.some((s) => s.oneXTwo.evaluated === 0) && (
           <p className="mt-4 text-xs text-neutral-500">
             데이터 부족 리그는 표시 생략됨 (백테스트 평가 매치 0건).
           </p>
