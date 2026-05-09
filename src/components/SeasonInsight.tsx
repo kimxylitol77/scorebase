@@ -151,7 +151,7 @@ export default async function SeasonInsight({ league }: Props) {
   let mcRelegation: Array<{ teamId: number; pct: number }> = [];
   if (scheduledCount > 0) {
     const mc = runMonteCarlo(matches, league, {
-      iterations: 3000,
+      iterations: 1000,
       relegationCount: info.relegationCount,
     });
     mcChampions = mc

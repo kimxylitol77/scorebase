@@ -132,7 +132,7 @@ export default async function SeasonInsightCard({ league }: Props) {
   let topChampPct: { name: string; pct: number } | null = null;
   if (scheduledCount > 0 && finishedCount >= 20) {
     const mc = runMonteCarlo(matches, league, {
-      iterations: 1500,
+      iterations: 500,
       relegationCount: info.relegationCount,
     });
     const champ = mc.find((r) => r.champion > 0);
