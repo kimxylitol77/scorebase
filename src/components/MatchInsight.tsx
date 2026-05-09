@@ -230,9 +230,10 @@ export default async function MatchInsight({ match }: Props) {
         <span className="text-xs font-medium text-neutral-500">{summary}</span>
       </div>
 
-      {/* 0) 팀 전력 — 양 팀 마주보기 비교 (NEW prototype) */}
+      {/* 0) 팀 전력 — 양 팀 마주보기 통합 비교 (시즌·홈원정·최근·흐름) */}
       {homeRow && awayRow && (
         <TeamMatchup
+          showDraw={!hideDraw}
           home={{
             name: match.homeTeam.name,
             form: homeForm.results,
@@ -244,6 +245,23 @@ export default async function MatchInsight({ match }: Props) {
             losses: homeRow.losses,
             goalsFor: homeRow.goalsFor,
             goalsAgainst: homeRow.goalsAgainst,
+            attackRank: homeAttackRank,
+            defenseRank: homeDefenseRank,
+            splitLabel: "🏠 홈",
+            splitPlayed: homeHA.home.played,
+            splitWins: homeHA.home.wins,
+            splitDraws: homeHA.home.draws,
+            splitLosses: homeHA.home.losses,
+            splitPpg: homeHA.home.ppg,
+            recentMatches: homeTrend.matches,
+            recentAvgFor: homeTrend.avgGoalsFor,
+            recentAvgAgainst: homeTrend.avgGoalsAgainst,
+            recentPpg: homeTrend.ppg,
+            winningRun: homeStreak.winningRun,
+            unbeatenRun: homeStreak.unbeatenRun,
+            losingRun: homeStreak.losingRun,
+            cleanSheetsLast5: homeStreak.cleanSheetsLast5,
+            failedToScoreLast5: homeStreak.failedToScoreLast5,
           }}
           away={{
             name: match.awayTeam.name,
@@ -256,6 +274,23 @@ export default async function MatchInsight({ match }: Props) {
             losses: awayRow.losses,
             goalsFor: awayRow.goalsFor,
             goalsAgainst: awayRow.goalsAgainst,
+            attackRank: awayAttackRank,
+            defenseRank: awayDefenseRank,
+            splitLabel: "✈ 원정",
+            splitPlayed: awayHA.away.played,
+            splitWins: awayHA.away.wins,
+            splitDraws: awayHA.away.draws,
+            splitLosses: awayHA.away.losses,
+            splitPpg: awayHA.away.ppg,
+            recentMatches: awayTrend.matches,
+            recentAvgFor: awayTrend.avgGoalsFor,
+            recentAvgAgainst: awayTrend.avgGoalsAgainst,
+            recentPpg: awayTrend.ppg,
+            winningRun: awayStreak.winningRun,
+            unbeatenRun: awayStreak.unbeatenRun,
+            losingRun: awayStreak.losingRun,
+            cleanSheetsLast5: awayStreak.cleanSheetsLast5,
+            failedToScoreLast5: awayStreak.failedToScoreLast5,
           }}
         />
       )}
@@ -375,75 +410,8 @@ export default async function MatchInsight({ match }: Props) {
         )}
       </Section>
 
-      {/* 3) 최근 5경기 폼 (단순 점) */}
-      <Section title="최근 5경기 폼">
-        <div className="space-y-2.5">
-          <FormRow name={match.homeTeam.name} form={homeForm} />
-          <FormRow name={match.awayTeam.name} form={awayForm} />
-        </div>
-      </Section>
-
-      {/* 새 섹션: 시즌 순위 + 공격/수비 */}
-      {homeRow && awayRow && (
-        <Section title="시즌 순위 / 공격·수비 랭킹">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <RankCard
-              name={match.homeTeam.name}
-              row={homeRow}
-              total={totalTeams}
-              attackRank={homeAttackRank}
-              defenseRank={homeDefenseRank}
-              variant="home"
-            />
-            <RankCard
-              name={match.awayTeam.name}
-              row={awayRow}
-              total={totalTeams}
-              attackRank={awayAttackRank}
-              defenseRank={awayDefenseRank}
-              variant="away"
-            />
-          </div>
-        </Section>
-      )}
-
-      {/* 새 섹션: 홈/원정 강도 */}
-      {(homeHA.home.played > 0 || awayHA.away.played > 0) && (
-        <Section title="홈/원정 강도">
-          <div className="grid sm:grid-cols-2 gap-4 text-sm">
-            <SplitCard
-              name={match.homeTeam.name}
-              label="🏠 홈 성적"
-              rec={homeHA.home}
-              variant="home"
-            />
-            <SplitCard
-              name={match.awayTeam.name}
-              label="✈ 원정 성적"
-              rec={awayHA.away}
-              variant="away"
-            />
-          </div>
-        </Section>
-      )}
-
-      {/* 새 섹션: Streak */}
-      <Section title="흐름 (Streak)">
-        <div className="grid sm:grid-cols-2 gap-4 text-sm">
-          <StreakCard name={match.homeTeam.name} s={homeStreak} variant="home" />
-          <StreakCard name={match.awayTeam.name} s={awayStreak} variant="away" />
-        </div>
-      </Section>
-
-      {/* 새 섹션: 최근 5경기 평균 */}
-      {(homeTrend.matches > 0 || awayTrend.matches > 0) && (
-        <Section title="최근 5경기 평균">
-          <div className="grid sm:grid-cols-2 gap-4 text-sm">
-            <TrendCard name={match.homeTeam.name} t={homeTrend} variant="home" />
-            <TrendCard name={match.awayTeam.name} t={awayTrend} variant="away" />
-          </div>
-        </Section>
-      )}
+      {/* 최근 5경기 폼 / 시즌 순위 / 홈원정 / Streak / 최근 5평균
+          → 모두 위쪽 TeamMatchup 한 섹션으로 통합됨 */}
 
       {/* 4) 시즌 폼 히트맵 */}
       {(homeSeasonForm.length > 0 || awaySeasonForm.length > 0) && (
@@ -529,206 +497,6 @@ function Section({
   );
 }
 
-function FormRow({
-  name,
-  form,
-}: {
-  name: string;
-  form: {
-    results: Array<"W" | "D" | "L">;
-    wins: number;
-    draws: number;
-    losses: number;
-  };
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm font-medium flex-1 truncate">{name}</span>
-      <span className="text-xs text-neutral-500 tabular-nums">
-        {form.wins}승 {form.draws}무 {form.losses}패
-      </span>
-      <FormDots results={form.results} />
-    </div>
-  );
-}
-
-const VARIANT_COLOR = {
-  home: "text-blue-600 dark:text-blue-400",
-  away: "text-rose-600 dark:text-rose-400",
-};
-const VARIANT_BG = {
-  home: "border-blue-200 dark:border-blue-900/30 bg-blue-50/40 dark:bg-blue-900/10",
-  away: "border-rose-200 dark:border-rose-900/30 bg-rose-50/40 dark:bg-rose-900/10",
-};
-
-function ordinal(n: number) {
-  return `${n}위`;
-}
-
-function RankCard({
-  name,
-  row,
-  total,
-  attackRank,
-  defenseRank,
-  variant,
-}: {
-  name: string;
-  row: { position: number; played: number; points: number; goalDiff: number };
-  total: number;
-  attackRank?: number;
-  defenseRank?: number;
-  variant: "home" | "away";
-}) {
-  return (
-    <div className={`rounded-lg border ${VARIANT_BG[variant]} p-3.5`}>
-      <div className={`text-xs font-semibold mb-2 truncate ${VARIANT_COLOR[variant]}`}>
-        {name}
-      </div>
-      <div className="flex items-baseline gap-2 mb-2">
-        <span className="text-2xl font-black tabular-nums">
-          {ordinal(row.position)}
-        </span>
-        <span className="text-xs text-neutral-500">/ {total}팀</span>
-      </div>
-      <div className="text-xs text-neutral-600 dark:text-neutral-400 space-y-0.5">
-        <div>승점 <span className="tabular-nums font-semibold">{row.points}</span> · 골득실 <span className="tabular-nums">{row.goalDiff > 0 ? `+${row.goalDiff}` : row.goalDiff}</span></div>
-        <div>
-          공격 <span className="font-semibold">{attackRank ? ordinal(attackRank) : "-"}</span>
-          {" · "}
-          수비 <span className="font-semibold">{defenseRank ? ordinal(defenseRank) : "-"}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SplitCard({
-  name,
-  label,
-  rec,
-  variant,
-}: {
-  name: string;
-  label: string;
-  rec: { played: number; wins: number; draws: number; losses: number; goalsFor: number; goalsAgainst: number; ppg: number };
-  variant: "home" | "away";
-}) {
-  if (rec.played === 0) {
-    return (
-      <div className={`rounded-lg border ${VARIANT_BG[variant]} p-3.5`}>
-        <div className={`text-xs font-semibold mb-1 truncate ${VARIANT_COLOR[variant]}`}>
-          {name}
-        </div>
-        <div className="text-xs text-neutral-500">{label} 데이터 없음</div>
-      </div>
-    );
-  }
-  return (
-    <div className={`rounded-lg border ${VARIANT_BG[variant]} p-3.5`}>
-      <div className={`text-xs font-semibold mb-1 truncate ${VARIANT_COLOR[variant]}`}>
-        {name}
-      </div>
-      <div className="text-[11px] text-neutral-500 mb-1.5">{label}</div>
-      <div className="text-base font-bold tabular-nums mb-1">
-        {rec.wins}승 {rec.draws}무 {rec.losses}패
-      </div>
-      <div className="text-xs text-neutral-600 dark:text-neutral-400">
-        경기당 승점 <span className="font-semibold tabular-nums">{rec.ppg.toFixed(2)}</span>
-        {" · "}
-        득실 <span className="tabular-nums">{rec.goalsFor}-{rec.goalsAgainst}</span>
-      </div>
-    </div>
-  );
-}
-
-function StreakCard({
-  name,
-  s,
-  variant,
-}: {
-  name: string;
-  s: {
-    unbeatenRun: number;
-    winningRun: number;
-    losingRun: number;
-    cleanSheetsLast5: number;
-    failedToScoreLast5: number;
-  };
-  variant: "home" | "away";
-}) {
-  const headline =
-    s.winningRun >= 2
-      ? { tone: "good", text: `${s.winningRun}연승 중` }
-      : s.unbeatenRun >= 3
-        ? { tone: "good", text: `${s.unbeatenRun}경기 무패 행진` }
-        : s.losingRun >= 2
-          ? { tone: "bad", text: `${s.losingRun}연패 중` }
-          : { tone: "neutral" as const, text: "특이 흐름 없음" };
-
-  const toneCls =
-    headline.tone === "good"
-      ? "text-emerald-600 dark:text-emerald-400"
-      : headline.tone === "bad"
-        ? "text-rose-600 dark:text-rose-400"
-        : "text-neutral-500";
-
-  return (
-    <div className={`rounded-lg border ${VARIANT_BG[variant]} p-3.5`}>
-      <div className={`text-xs font-semibold mb-1 truncate ${VARIANT_COLOR[variant]}`}>
-        {name}
-      </div>
-      <div className={`text-base font-bold mb-2 ${toneCls}`}>{headline.text}</div>
-      <div className="text-xs text-neutral-600 dark:text-neutral-400 space-y-0.5">
-        <div>최근 5경기 클린시트 <span className="font-semibold tabular-nums">{s.cleanSheetsLast5}</span></div>
-        <div>최근 5경기 무득점 <span className="font-semibold tabular-nums">{s.failedToScoreLast5}</span></div>
-      </div>
-    </div>
-  );
-}
-
-function TrendCard({
-  name,
-  t,
-  variant,
-}: {
-  name: string;
-  t: { matches: number; avgGoalsFor: number; avgGoalsAgainst: number; ppg: number };
-  variant: "home" | "away";
-}) {
-  if (t.matches === 0) {
-    return (
-      <div className={`rounded-lg border ${VARIANT_BG[variant]} p-3.5`}>
-        <div className={`text-xs font-semibold mb-1 truncate ${VARIANT_COLOR[variant]}`}>
-          {name}
-        </div>
-        <div className="text-xs text-neutral-500">데이터 없음</div>
-      </div>
-    );
-  }
-  return (
-    <div className={`rounded-lg border ${VARIANT_BG[variant]} p-3.5`}>
-      <div className={`text-xs font-semibold mb-1 truncate ${VARIANT_COLOR[variant]}`}>
-        {name}
-      </div>
-      <div className="text-xs text-neutral-500 mb-1.5">최근 {t.matches}경기 평균</div>
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <Stat label="득점" value={t.avgGoalsFor.toFixed(1)} />
-        <Stat label="실점" value={t.avgGoalsAgainst.toFixed(1)} />
-        <Stat label="승점" value={t.ppg.toFixed(2)} />
-      </div>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-base font-bold tabular-nums">{value}</div>
-      <div className="text-[10px] text-neutral-500">{label}</div>
-    </div>
-  );
-}
 
 function dcPickLabel(pick: DcPick, homeName: string, awayName: string): string {
   if (pick === "1X") return `${homeName} 승 또는 무`;
