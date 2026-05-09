@@ -38,11 +38,20 @@ export const metadata: Metadata = {
     title: "스코어베이스 — AI 데이터 분석 스포츠 미디어",
     description:
       "EPL·NBA·MLB·NHL의 프리뷰·리뷰·부상자 명단·매치 인사이트를 AI가 매일 분석·업데이트",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "스코어베이스 — 다크 톤 데이터 시각화 위에 축구공·농구공·야구공·아이스하키 퍽이 와이어프레임으로 표현된 AI 스포츠 미디어 배너",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "스코어베이스 (Scorebase)",
     description: "AI가 분석하는 EPL · NBA · MLB · NHL 프리뷰·리뷰·인사이트",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

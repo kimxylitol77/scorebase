@@ -32,12 +32,21 @@ export const metadata: Metadata = {
     title: "Scorebase — 데이터로 보는 글로벌 스포츠",
     description:
       "EPL · NBA · NHL · MLB 의 경기 결과·프리뷰·시즌 시뮬레이션. Elo 레이팅과 통계 기반 인사이트.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "스코어베이스 — AI가 매일 분석하는 EPL · NBA · MLB · NHL 데이터",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Scorebase",
     description:
       "데이터로 보는 EPL · NBA · NHL · MLB. 시즌 순위·Elo·승률 추정·시즌 시뮬레이션.",
+    images: ["/og-image.png"],
   },
   keywords: [
     "EPL", "프리미어리그", "라리가", "분데스리가", "세리에 A", "리그 1", "MLS",
