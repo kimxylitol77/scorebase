@@ -331,14 +331,14 @@ function FeaturesSection() {
     },
     {
       icon: "🤖",
-      title: "AI 데이터 분석",
+      title: "AI 스포츠 경기 심층 분석",
       body: (
         <>
           Elo 레이팅·시즌 시뮬레이션·H2H 전적 데이터를 결합한{" "}
           <strong className="text-neutral-900 dark:text-white">
             AI 매치 인사이트
           </strong>
-          가 데이터 기반 관전을 돕습니다.
+          로 데이터 기반 관전을 돕습니다.
         </>
       ),
     },
@@ -347,7 +347,7 @@ function FeaturesSection() {
     <section aria-labelledby="features-title">
       <SectionHeading
         title="스코어베이스가 매일 분석하는 4가지"
-        subtitle="공인 데이터 소스 + Elo · 시뮬레이션 · AI 글쓰기"
+        subtitle="공인 데이터 소스에서 Elo · 시뮬레이션 · AI 스포츠 경기 심층 분석까지"
       />
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {items.map((it) => (
