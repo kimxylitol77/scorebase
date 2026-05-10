@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageViewTracker from "@/components/PageViewTracker";
+// import Chatbot from "@/components/Chatbot"; // 결제(크레딧) 이슈 해결 시까지 비활성
 
 // 한글 콘텐츠가 메인이므로 본문 sans 는 Pretendard 를 우선.
 // 영문 코드/숫자는 Geist Mono 를 보조 폰트로.
@@ -100,6 +101,7 @@ export default function RootLayout({
         <Header />
         <main className="flex-1 w-full">{children}</main>
         <Footer />
+        {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
       </body>
     </html>
   );

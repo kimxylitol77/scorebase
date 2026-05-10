@@ -29,8 +29,9 @@ export async function runPreview(opts?: { autoPublish?: boolean }) {
   console.log(`[preview] 시작 — autoPublish=${autoPublish}`);
 
   const now = new Date();
-  // 다음 14일 SCHEDULED 매치까지 커버 (이전 7일 → 확장)
-  const horizon = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+  // 다음 3일 SCHEDULED 매치만 커버. 그 이상 먼 매치는 라인업/폼 변동이 커서
+  // 모델 신뢰도가 떨어지므로 의도적으로 좁게 잡는다.
+  const horizon = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
   const matches = await prisma.match.findMany({
     where: {
