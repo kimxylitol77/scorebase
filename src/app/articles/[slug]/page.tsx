@@ -360,6 +360,9 @@ export default async function ArticlePage({ params }: Props) {
 
       <Markdown>{article.content}</Markdown>
 
+      {/* AI 작성 disclosure + 데이터 출처 */}
+      <AiDisclosure league={article.league} type={article.type} />
+
       {article.match && <MatchInsight match={article.match} />}
 
       {article.match && (
@@ -415,5 +418,58 @@ function TeamLogo({ src, name }: { src?: string | null; name: string }) {
     >
       {initial}
     </div>
+  );
+}
+
+/* =====================================================================
+ * AI 작성 disclosure + 데이터 출처 footer
+ * Google E-E-A-T / 투명성 가이드 부합. AI 콘텐츠 명시 + 출처 인용으로
+ * Scaled content abuse 처벌 위험 회피.
+ * ===================================================================*/
+const DATA_SOURCES_BY_LEAGUE: Record<string, string[]> = {
+  // 축구 - football-data.org + api-football Pro + The Odds API
+  EPL:        ["football-data.org", "api-football Pro", "The Odds API"],
+  LALIGA:     ["api-football Pro", "ESPN", "The Odds API"],
+  BUNDESLIGA: ["api-football Pro", "ESPN", "The Odds API"],
+  SERIE_A:    ["api-football Pro", "ESPN", "The Odds API"],
+  LIGUE_1:    ["api-football Pro", "ESPN", "The Odds API"],
+  MLS:        ["api-football Pro", "ESPN", "The Odds API"],
+  UCL:        ["api-football Pro", "ESPN", "The Odds API"],
+  WORLD_CUP:  ["api-football Pro", "eloratings.net (시드 Elo)"],
+  // 야구
+  MLB:        ["api-sports baseball Pro", "MLB Stats API (선발 투수)", "The Odds API"],
+  KBO:        ["api-sports baseball Pro"],
+  // 농구·하키
+  NBA:        ["ESPN", "The Odds API"],
+  NHL:        ["NHL 공식 API (api-web.nhle.com)", "ESPN", "The Odds API"],
+};
+
+function AiDisclosure({ league, type }: { league: string; type: string }) {
+  const sources = DATA_SOURCES_BY_LEAGUE[league] ?? ["공식 스포츠 데이터"];
+  const typeLabel =
+    type === "PREVIEW" ? "프리뷰" : type === "RECAP" ? "리뷰" : "분석";
+
+  return (
+    <aside className="mt-8 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30 px-5 py-4 text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+      <div className="flex items-start gap-2">
+        <span className="text-base leading-none mt-0.5">🤖</span>
+        <div className="space-y-1">
+          <p>
+            <strong className="text-neutral-700 dark:text-neutral-300">
+              AI · 데이터 협업 작성
+            </strong>{" "}
+            본 {typeLabel} 글은 데이터 분석 모델(Elo 레이팅 · Monte Carlo
+            시뮬레이션 · 마켓 odds blending)과 AI(OpenAI gpt-4o-mini)가
+            협업해 작성됐으며, 운영진의 모니터링 하에 발행됩니다.
+          </p>
+          <p>
+            <strong className="text-neutral-700 dark:text-neutral-300">데이터 출처</strong>
+            {" — "}
+            {sources.join(" · ")}. 모든 통계는 매치 시점 기준으로
+            계산되며 결과는 모델 추정치로 베팅 결과를 보장하지 않습니다.
+          </p>
+        </div>
+      </div>
+    </aside>
   );
 }
