@@ -8,7 +8,9 @@ import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/gemini";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildSeasonAnalysisPrompt } from "@/prompts/season-analysis";
+import { buildWorldCupAnalysisPrompt } from "@/prompts/world-cup-analysis";
 import { buildSeasonContext } from "@/lib/predict/season-context";
+import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import type { PredictMatch } from "@/lib/predict/types";
 
 const RELEGATION_BY_LEAGUE: Record<string, number> = {
@@ -47,6 +49,7 @@ function isoWeek(d: Date): string {
 export async function runAnalysis() {
   console.log("[analysis] 시작");
   const leagues = [
+    "WORLD_CUP",
     "EPL",
     "LALIGA",
     "BUNDESLIGA",
@@ -79,41 +82,63 @@ export async function runAnalysis() {
         continue;
       }
 
-      const dbMatches = await prisma.match.findMany({
-        where: { league },
-        select: {
-          id: true,
-          league: true,
-          status: true,
-          homeTeamId: true,
-          awayTeamId: true,
-          homeScore: true,
-          awayScore: true,
-          startTime: true,
-        },
-      });
-      const matches = dbMatches as PredictMatch[];
+      let prompt: string;
 
-      const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
-      if (finishedCount < 30) {
-        console.log(
-          `[analysis] ${league} 데이터 부족 (FINISHED ${finishedCount}경기) — 스킵`,
-        );
-        continue;
+      if (league === "WORLD_CUP") {
+        // 월드컵은 외부 시드 Elo 기반 토너먼트 시뮬 결과로 분석.
+        // (클럽 매치 데이터 없으니 일반 시즌 분석 경로 안 탐)
+        const teams = await prisma.team.findMany({
+          where: { league: "WORLD_CUP" },
+        });
+        if (teams.length < 32) {
+          console.log(
+            `[analysis] WORLD_CUP 팀 수 ${teams.length} 부족 — 스킵`,
+          );
+          continue;
+        }
+        const teamMap = new Map(teams.map((t) => [t.id, t.name]));
+        const wcResults = simulateWorldCup(teamMap, 5000);
+        prompt = buildWorldCupAnalysisPrompt({
+          results: wcResults,
+          iterations: 5000,
+        });
+      } else {
+        const dbMatches = await prisma.match.findMany({
+          where: { league },
+          select: {
+            id: true,
+            league: true,
+            status: true,
+            homeTeamId: true,
+            awayTeamId: true,
+            homeScore: true,
+            awayScore: true,
+            startTime: true,
+          },
+        });
+        const matches = dbMatches as PredictMatch[];
+
+        const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
+        if (finishedCount < 30) {
+          console.log(
+            `[analysis] ${league} 데이터 부족 (FINISHED ${finishedCount}경기) — 스킵`,
+          );
+          continue;
+        }
+
+        const teams = await prisma.team.findMany({ where: { league } });
+        const nameById = new Map(teams.map((t) => [t.id, t.name]));
+
+        const context = buildSeasonContext(matches, league, {
+          relegationCount: RELEGATION_BY_LEAGUE[league] ?? 0,
+          iterations: 3000,
+        });
+
+        prompt = buildSeasonAnalysisPrompt({
+          context,
+          teamName: (id) => nameById.get(id) ?? `팀 ${id}`,
+        });
       }
-
-      const teams = await prisma.team.findMany({ where: { league } });
-      const nameById = new Map(teams.map((t) => [t.id, t.name]));
-
-      const context = buildSeasonContext(matches, league, {
-        relegationCount: RELEGATION_BY_LEAGUE[league] ?? 0,
-        iterations: 3000,
-      });
-
-      const prompt = buildSeasonAnalysisPrompt({
-        context,
-        teamName: (id) => nameById.get(id) ?? `팀 ${id}`,
-      });
 
       const content = await generate(prompt, {
         system: SYSTEM_PROMPT,
