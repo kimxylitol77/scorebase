@@ -59,6 +59,8 @@ export async function fetchLeagueOdds(
       params: {
         apiKey,
         regions: opts?.regions ?? "uk,eu,us",
+        // h2h(1X2) + totals(O/U) + spreads(HC) — 무료/Standard plan 지원.
+        // btts, double_chance 는 Pro plan ($99/월~) 추가 markets — 추후 결제 시 markets에 추가
         markets: opts?.markets ?? "h2h,totals,spreads",
         oddsFormat: "decimal",
       },
@@ -222,6 +224,73 @@ export function averageSpread(event: OddsApiEvent): {
     pick,
     homeOdds: homeSum / n,
     awayOdds: awaySum / n,
+    bookmakers: n,
+  };
+}
+
+/** BTTS (Both Teams To Score) 평균 — Yes/No */
+export function averageBtts(event: OddsApiEvent): {
+  yes: number;
+  no: number;
+  bookmakers: number;
+} | null {
+  let yesSum = 0,
+    noSum = 0,
+    n = 0;
+  for (const b of event.bookmakers) {
+    const m = b.markets.find((x) => x.key === "btts");
+    if (!m) continue;
+    const y = m.outcomes.find((o) => o.name === "Yes");
+    const no = m.outcomes.find((o) => o.name === "No");
+    if (y && no) {
+      yesSum += y.price;
+      noSum += no.price;
+      n++;
+    }
+  }
+  if (n === 0) return null;
+  return { yes: yesSum / n, no: noSum / n, bookmakers: n };
+}
+
+/** Double Chance 평균 — 1X / 12 / X2 */
+export function averageDoubleChance(event: OddsApiEvent): {
+  oneX: number; // home OR draw
+  twelve: number; // home OR away
+  xTwo: number; // draw OR away
+  bookmakers: number;
+} | null {
+  let oneXSum = 0,
+    twelveSum = 0,
+    xTwoSum = 0,
+    n = 0;
+  for (const b of event.bookmakers) {
+    const m = b.markets.find((x) => x.key === "double_chance");
+    if (!m) continue;
+    // outcome name 패턴: "Home Team or Draw" / "Home Team or Away Team" / "Draw or Away Team"
+    let oneX: number | null = null;
+    let twelve: number | null = null;
+    let xTwo: number | null = null;
+    for (const o of m.outcomes) {
+      const lower = o.name.toLowerCase();
+      const hasHome = lower.includes(event.home_team.toLowerCase());
+      const hasAway = lower.includes(event.away_team.toLowerCase());
+      const hasDraw = lower.includes("draw");
+      if (hasHome && hasDraw) oneX = o.price;
+      else if (hasHome && hasAway) twelve = o.price;
+      else if (hasDraw && hasAway) xTwo = o.price;
+    }
+    if (oneX && twelve && xTwo) {
+      oneXSum += oneX;
+      twelveSum += twelve;
+      xTwoSum += xTwo;
+      n++;
+    }
+  }
+  if (n === 0) return null;
+  return {
+    oneX: oneXSum / n,
+    twelve: twelveSum / n,
+    xTwo: xTwoSum / n,
     bookmakers: n,
   };
 }

@@ -93,6 +93,11 @@ model Match {
   oddsHcLine      Float?  // 시장 핸디캡 line (강팀 -line)
   oddsHcHome      Float?  // 핸디캡 home 배당
   oddsHcAway      Float?  // 핸디캡 away 배당
+  oddsBttsYes     Float?  // BTTS YES 배당 (축구)
+  oddsBttsNo      Float?  // BTTS NO 배당
+  oddsDc1X        Float?  // 더블 찬스 홈승 OR 무
+  oddsDc12        Float?  // 더블 찬스 홈승 OR 원정승 (무 제외)
+  oddsDcX2        Float?  // 더블 찬스 무 OR 원정승
 
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])

@@ -65,6 +65,11 @@ interface Props {
     oddsHcLine?: number | null;
     oddsHcHome?: number | null;
     oddsHcAway?: number | null;
+    oddsBttsYes?: number | null;
+    oddsBttsNo?: number | null;
+    oddsDc1X?: number | null;
+    oddsDc12?: number | null;
+    oddsDcX2?: number | null;
   };
 }
 
@@ -348,7 +353,9 @@ export default async function MatchInsight({ match }: Props) {
       {/* 0.6) 베팅사이트 평균 배당 (decimal odds) — UI 참고용 */}
       {(match.oddsHome ||
         match.oddsOver ||
-        match.oddsHcHome) && (
+        match.oddsHcHome ||
+        match.oddsBttsYes ||
+        match.oddsDc1X) && (
         <Section title="베팅사이트 평균 배당">
           <OddsTable
             homeName={match.homeTeam.name}
@@ -362,6 +369,11 @@ export default async function MatchInsight({ match }: Props) {
             oddsHcLine={match.oddsHcLine ?? null}
             oddsHcHome={match.oddsHcHome ?? null}
             oddsHcAway={match.oddsHcAway ?? null}
+            oddsBttsYes={match.oddsBttsYes ?? null}
+            oddsBttsNo={match.oddsBttsNo ?? null}
+            oddsDc1X={match.oddsDc1X ?? null}
+            oddsDc12={match.oddsDc12 ?? null}
+            oddsDcX2={match.oddsDcX2 ?? null}
             hideDraw={hideDraw}
           />
         </Section>
@@ -620,6 +632,11 @@ function OddsTable({
   oddsHcLine,
   oddsHcHome,
   oddsHcAway,
+  oddsBttsYes,
+  oddsBttsNo,
+  oddsDc1X,
+  oddsDc12,
+  oddsDcX2,
   hideDraw,
 }: {
   homeName: string;
@@ -633,6 +650,11 @@ function OddsTable({
   oddsHcLine: number | null;
   oddsHcHome: number | null;
   oddsHcAway: number | null;
+  oddsBttsYes: number | null;
+  oddsBttsNo: number | null;
+  oddsDc1X: number | null;
+  oddsDc12: number | null;
+  oddsDcX2: number | null;
   hideDraw: boolean;
 }) {
   const fmt = (n: number | null) => (n != null ? n.toFixed(2) : "—");
@@ -670,6 +692,28 @@ function OddsTable({
           <OddsCell label={`${homeName} -${oddsHcLine}`} value={fmt(oddsHcHome)} />
           <OddsCell label="line" value={`±${oddsHcLine}`} mono />
           <OddsCell label={`${awayName} +${oddsHcLine}`} value={fmt(oddsHcAway)} />
+        </div>
+      )}
+      {/* 더블 찬스 (축구만) */}
+      {oddsDc1X && oddsDc12 && oddsDcX2 && (
+        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
+          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
+            DC
+          </div>
+          <OddsCell label={`${homeName} 또는 무`} value={fmt(oddsDc1X)} />
+          <OddsCell label="홈 또는 원정" value={fmt(oddsDc12)} />
+          <OddsCell label={`무 또는 ${awayName}`} value={fmt(oddsDcX2)} />
+        </div>
+      )}
+      {/* BTTS (축구만) */}
+      {oddsBttsYes && oddsBttsNo && (
+        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
+          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
+            BTTS
+          </div>
+          <OddsCell label="양 팀 득점 YES" value={fmt(oddsBttsYes)} />
+          <div />
+          <OddsCell label="양 팀 득점 NO" value={fmt(oddsBttsNo)} />
         </div>
       )}
       <p className="text-[11px] text-neutral-500">
