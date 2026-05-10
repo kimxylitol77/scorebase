@@ -103,6 +103,16 @@ export async function runRecap(opts?: {
         m.startTime,
       );
 
+      // 매치 시점 시장 odds 가 저장돼 있으면 RECAP 에서 "시장 예측 vs 실제 결과" 비교
+      if (m.marketHome != null && m.marketAway != null) {
+        context.marketProb = {
+          home: m.marketHome,
+          draw: m.marketDraw ?? 0,
+          away: m.marketAway,
+          bookmakers: m.marketBookmakers ?? 0,
+        };
+      }
+
       const normalized: NormalizedMatch = {
         league: m.league as League,
         externalId: m.externalId,

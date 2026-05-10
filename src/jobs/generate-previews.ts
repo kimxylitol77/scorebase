@@ -85,6 +85,16 @@ export async function runPreview(opts?: { autoPublish?: boolean }) {
         m.startTime,
       );
 
+      // 시장 odds 가 저장돼 있으면 context 에 주입 → 프롬프트에서 Value Bet 자동 강조
+      if (m.marketHome != null && m.marketAway != null) {
+        context.marketProb = {
+          home: m.marketHome,
+          draw: m.marketDraw ?? 0,
+          away: m.marketAway,
+          bookmakers: m.marketBookmakers ?? 0,
+        };
+      }
+
       const normalized: NormalizedMatch = {
         league: m.league as League,
         externalId: m.externalId,

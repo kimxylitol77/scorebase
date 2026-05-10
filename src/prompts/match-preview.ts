@@ -45,6 +45,13 @@ export interface PreviewContext {
     home: Array<{ name: string; goals: number; assists: number }>;
     away: Array<{ name: string; goals: number; assists: number }>;
   };
+  /** 베팅사이트 평균 implied probability (vig 제거) — Value Bet 강조용 */
+  marketProb?: {
+    home: number;
+    draw: number;
+    away: number;
+    bookmakers: number;
+  };
 }
 
 export interface PreviewPromptInput {
@@ -89,6 +96,27 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     ctxLines.push(
       `- 통계 추정 승률: ${home} ${pct(context.winProb.home)} / 무 ${pct(context.winProb.draw)} / ${away} ${pct(context.winProb.away)}`,
     );
+  }
+  if (context.marketProb && context.winProb) {
+    const mp = context.marketProb;
+    const wp = context.winProb;
+    const gaps = [
+      { name: home, model: wp.home, market: mp.home },
+      { name: away, model: wp.away, market: mp.away },
+    ];
+    const valueSide = gaps
+      .filter((g) => g.model - g.market >= 0.05)
+      .sort((a, b) => b.model - b.market - (a.model - a.market))[0];
+    ctxLines.push(
+      `- 베팅사이트 평균 odds (${mp.bookmakers}개사 implied, vig 제거): ${home} ${pct(mp.home)} / 무 ${pct(mp.draw)} / ${away} ${pct(mp.away)}`,
+    );
+    if (valueSide) {
+      ctxLines.push(
+        `  → AI 모델은 ${valueSide.name} 가 시장 평균보다 ${Math.round((valueSide.model - valueSide.market) * 100)}%p 더 유리하다고 평가 (Value Bet 후보 — 본문에서 자연스럽게 언급)`,
+      );
+    } else {
+      ctxLines.push(`  → AI 모델과 시장 평균이 거의 일치 — 시장 합의 강함`);
+    }
   }
   if (context.attackDefense) {
     const ad = context.attackDefense;
