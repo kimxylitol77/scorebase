@@ -72,9 +72,7 @@ export default async function NoticeDetailPage({ params }: Props) {
         </h1>
       </header>
 
-      <div className="prose dark:prose-invert max-w-none">
-        <Markdown content={n.content} />
-      </div>
+      <Markdown>{n.content}</Markdown>
     </main>
   );
 }
