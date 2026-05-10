@@ -24,24 +24,35 @@ function buildSlug(league: string, matchId: number): string {
   return `${league.toLowerCase()}-preview-${matchId}`;
 }
 
-export async function runPreview(opts?: { autoPublish?: boolean }) {
+export async function runPreview(opts?: {
+  autoPublish?: boolean;
+  league?: string;
+  /** 기본 3일. 더 좁히고 싶을 때 1·2일 등 직접 지정 가능. */
+  horizonDays?: number;
+  take?: number;
+}) {
   const autoPublish = opts?.autoPublish ?? true;
-  console.log(`[preview] 시작 — autoPublish=${autoPublish}`);
+  const onlyLeague = opts?.league;
+  const horizonDays = opts?.horizonDays ?? 3;
+  const take = opts?.take ?? 40;
+  console.log(
+    `[preview] 시작 — autoPublish=${autoPublish}, league=${onlyLeague ?? "ALL"}, horizon=${horizonDays}d, take=${take}`,
+  );
 
   const now = new Date();
-  // 다음 3일 SCHEDULED 매치만 커버. 그 이상 먼 매치는 라인업/폼 변동이 커서
-  // 모델 신뢰도가 떨어지므로 의도적으로 좁게 잡는다.
-  const horizon = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  // 라인업/폼 변동이 큰 먼 미래 매치는 모델 신뢰도가 떨어지므로 의도적으로 좁게.
+  const horizon = new Date(now.getTime() + horizonDays * 24 * 60 * 60 * 1000);
 
   const matches = await prisma.match.findMany({
     where: {
       status: "SCHEDULED",
       startTime: { gte: now, lte: horizon },
       articles: { none: { type: "PREVIEW" } },
+      ...(onlyLeague ? { league: onlyLeague } : {}),
     },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { startTime: "asc" },
-    take: 40, // 한 번 실행 시 최대 40건 처리
+    take,
   });
 
   console.log(`[preview] 대상: ${matches.length}경기`);
