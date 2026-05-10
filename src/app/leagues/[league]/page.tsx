@@ -108,8 +108,10 @@ const TYPE_DESC: Record<FilterType, string> = {
 
 interface Props {
   params: Promise<{ league: string }>;
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; page?: string }>;
 }
+
+const PAGE_SIZE = 24;
 
 export async function generateMetadata({
   params,
@@ -146,6 +148,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     ? requested
     : "ALL";
 
+  const pageNum = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
+
   const where: { status: string; league: string; type?: string } = {
     status: "PUBLISHED",
     league: upper,
@@ -153,12 +157,14 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   if (currentType !== "ALL") where.type = currentType;
 
   // 카운트는 type 별로 동시에 — 탭에 숫자 표시용
-  const [articles, countsByType, accStats] = await Promise.all([
+  const [articles, totalArticles, countsByType, accStats] = await Promise.all([
     prisma.article.findMany({
       where,
       orderBy: { publishedAt: "desc" },
-      take: 60,
+      skip: (pageNum - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
     }),
+    prisma.article.count({ where }),
     prisma.article.groupBy({
       by: ["type"],
       where: { status: "PUBLISHED", league: upper },
@@ -319,14 +325,122 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             기사가 없습니다.
           </p>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {articles.map((a) => (
-              <ArticleCard key={a.id} article={a} />
-            ))}
-          </div>
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {articles.map((a) => (
+                <ArticleCard key={a.id} article={a} />
+              ))}
+            </div>
+            <Pagination
+              currentPage={pageNum}
+              totalPages={Math.ceil(totalArticles / PAGE_SIZE)}
+              total={totalArticles}
+              league={upper}
+              type={currentType}
+            />
+          </>
         )}
       </div>
     </div>
+  );
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  total,
+  league,
+  type,
+}: {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  league: string;
+  type: FilterType;
+}) {
+  if (totalPages <= 1) return null;
+
+  function makeHref(p: number) {
+    const params = new URLSearchParams();
+    if (type !== "ALL") params.set("type", type);
+    if (p > 1) params.set("page", String(p));
+    const qs = params.toString();
+    return qs ? `/leagues/${league}?${qs}` : `/leagues/${league}`;
+  }
+
+  // 페이지 번호 윈도우 — 현재 ±2 + 처음/마지막
+  const windowSize = 2;
+  const start = Math.max(1, currentPage - windowSize);
+  const end = Math.min(totalPages, currentPage + windowSize);
+  const nums: (number | "...")[] = [];
+  if (start > 1) {
+    nums.push(1);
+    if (start > 2) nums.push("...");
+  }
+  for (let i = start; i <= end; i++) nums.push(i);
+  if (end < totalPages) {
+    if (end < totalPages - 1) nums.push("...");
+    nums.push(totalPages);
+  }
+
+  return (
+    <nav
+      aria-label="페이지 이동"
+      className="mt-10 flex items-center justify-between flex-wrap gap-3"
+    >
+      <p className="text-xs text-neutral-500 tabular-nums">
+        총 <strong className="text-neutral-700 dark:text-neutral-300">{total.toLocaleString()}</strong>건 ·{" "}
+        {currentPage} / {totalPages} 페이지
+      </p>
+      <div className="flex items-center gap-1.5">
+        {currentPage > 1 ? (
+          <Link
+            href={makeHref(currentPage - 1)}
+            className="px-3 py-1.5 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+          >
+            ← 이전
+          </Link>
+        ) : (
+          <span className="px-3 py-1.5 text-sm rounded-lg border border-neutral-200 dark:border-neutral-800 text-neutral-400 cursor-not-allowed">
+            ← 이전
+          </span>
+        )}
+        {nums.map((n, i) =>
+          n === "..." ? (
+            <span key={`dots-${i}`} className="px-2 text-neutral-400 text-sm">
+              ···
+            </span>
+          ) : n === currentPage ? (
+            <span
+              key={n}
+              className="min-w-[2rem] text-center px-2 py-1.5 text-sm rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold tabular-nums"
+            >
+              {n}
+            </span>
+          ) : (
+            <Link
+              key={n}
+              href={makeHref(n)}
+              className="min-w-[2rem] text-center px-2 py-1.5 text-sm rounded-lg border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:border-neutral-400 dark:hover:border-neutral-600 transition tabular-nums"
+            >
+              {n}
+            </Link>
+          ),
+        )}
+        {currentPage < totalPages ? (
+          <Link
+            href={makeHref(currentPage + 1)}
+            className="px-3 py-1.5 text-sm rounded-lg border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+          >
+            다음 →
+          </Link>
+        ) : (
+          <span className="px-3 py-1.5 text-sm rounded-lg border border-neutral-200 dark:border-neutral-800 text-neutral-400 cursor-not-allowed">
+            다음 →
+          </span>
+        )}
+      </div>
+    </nav>
   );
 }
 
