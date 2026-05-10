@@ -10,8 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ALL_LEAGUES = [
     "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
     "WORLD_CUP",
-    "NBA", "NHL", "MLB",
-    // KBO 는 데이터 소스 정비 후 추후 재오픈
+    "NBA", "NHL", "MLB", "KBO",
   ];
 
   // 정적 페이지

@@ -6,7 +6,6 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-// KBO 는 데이터 소스 정비 후 추후 재오픈 — 그동안 /leagues/KBO 는 404
 const VALID_LEAGUES = [
   "EPL",
   "LALIGA",
@@ -19,6 +18,7 @@ const VALID_LEAGUES = [
   "NBA",
   "NHL",
   "MLB",
+  "KBO",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -97,6 +97,13 @@ const LEAGUE_INFO: Record<
     gradient: "from-amber-500 via-rose-500 to-fuchsia-600",
     copy:
       "북중미(미국·캐나다·멕시코) 공동 개최 2026 FIFA 월드컵의 조별예선부터 결승까지의 매치 프리뷰·결과·분석.",
+  },
+  KBO: {
+    name: "KBO 리그",
+    subtitle: "한국프로야구 (Korea Baseball Organization)",
+    gradient: "from-blue-600 via-indigo-600 to-rose-500",
+    copy:
+      "KIA·삼성·LG·두산·KT·SSG·롯데·한화·NC·키움 10팀이 144경기를 치르는 한국 프로야구. 매일 자동 업데이트되는 경기 결과·분석.",
   },
 };
 

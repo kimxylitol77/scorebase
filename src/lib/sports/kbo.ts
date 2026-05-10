@@ -19,9 +19,9 @@ import {
 } from "./api-baseball";
 import { fetchSeasonEvents, type TheSportsDBEvent } from "./thesportsdb";
 
-// api-sports baseball 의 KBO 리그 ID. 일반적으로 17 로 알려져 있으나
-// 키 발급 직후 한 번 leagues endpoint 로 확인하여 필요하면 수정.
-const KBO_API_BASEBALL_ID = 17;
+// api-sports baseball KBO 리그 ID — 실제 응답으로 확인 (id=5).
+// (id=55 는 "KBO Futures League" 2군 리그라 별도)
+const KBO_API_BASEBALL_ID = 5;
 const KBO_THESPORTSDB_ID = "4830";
 
 // === 한글 팀명 매핑 (양 소스 모두 영문 응답이라 공용 사용) ===
@@ -30,7 +30,8 @@ const TEAM_NAME_KO: Record<string, string> = {
   "Samsung Lions": "삼성 라이온즈",
   "LG Twins": "LG 트윈스",
   "Doosan Bears": "두산 베어스",
-  "KT Wiz": "kt wiz",
+  "KT Wiz": "KT 위즈",
+  "KT Wiz Suwon": "KT 위즈",
   "SSG Landers": "SSG 랜더스",
   "Lotte Giants": "롯데 자이언츠",
   "Hanwha Eagles": "한화 이글스",

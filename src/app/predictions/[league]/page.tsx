@@ -25,7 +25,7 @@ const VALID = [
   "NBA",
   "NHL",
   "MLB",
-  // KBO 는 데이터 소스 정비 후 추후 재오픈
+  "KBO",
 ] as const;
 type ValidLeague = (typeof VALID)[number];
 
@@ -115,6 +115,13 @@ const LEAGUE_INFO: Record<
     gradient: "from-amber-500 via-rose-500 to-fuchsia-600",
     relegationCount: 0,
     showDraw: true,
+  },
+  KBO: {
+    name: "KBO",
+    subtitle: "한국프로야구 — 시즌 시뮬레이션",
+    gradient: "from-blue-600 via-indigo-600 to-rose-500",
+    relegationCount: 0,
+    showDraw: false,
   },
 };
 
@@ -247,6 +254,7 @@ export default async function LeaguePredictions({ params }: Props) {
         <PredTab l="NBA" active={"NBA" === upper} />
         <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">⚾</span>
         <PredTab l="MLB" active={"MLB" === upper} />
+        <PredTab l="KBO" active={"KBO" === upper} />
         <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">🏒</span>
         <PredTab l="NHL" active={"NHL" === upper} />
       </div>
@@ -468,6 +476,7 @@ const TAB_LABEL: Record<string, string> = {
   WORLD_CUP: "월드컵 2026",
   NBA: "NBA",
   MLB: "MLB",
+  KBO: "KBO",
   NHL: "NHL",
 };
 

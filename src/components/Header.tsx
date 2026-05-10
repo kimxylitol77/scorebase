@@ -50,8 +50,11 @@ const CATEGORIES: CategoryDef[] = [
   },
   {
     label: "야구",
-    href: "/leagues/MLB",
-    items: [{ href: "/leagues/MLB", label: "MLB", desc: "메이저리그" }],
+    href: "/leagues/KBO",
+    items: [
+      { href: "/leagues/KBO", label: "KBO 리그", desc: "한국 프로야구", icon: "⭐" },
+      { href: "/leagues/MLB", label: "MLB", desc: "메이저리그" },
+    ],
   },
   {
     label: "하키",
