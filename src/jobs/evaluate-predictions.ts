@@ -28,6 +28,7 @@ import {
   computeGoalieAdjustment,
   applyGoalieToWinProb,
 } from "@/lib/predict/goalie-adjust";
+import { blendWithMarket } from "@/lib/predict/market-blend";
 import type { PredictMatch } from "@/lib/predict/types";
 
 function parseStarter(s: string | null) {
@@ -183,6 +184,17 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
     let wp = baseWp;
     if (sAdj.applied) wp = applyStarterToWinProb(wp, sAdj);
     if (gAdj.applied) wp = applyGoalieToWinProb(wp, gAdj);
+
+    // 시장 odds blending — 베팅사이트 평균과 ensemble (시장 60% / 우리 40%)
+    if (m.marketHome != null && m.marketAway != null) {
+      const blended = blendWithMarket(wp, {
+        home: m.marketHome,
+        draw: m.marketDraw,
+        away: m.marketAway,
+        bookmakers: m.marketBookmakers,
+      });
+      wp = blended;
+    }
 
     const winner =
       wp.home >= wp.away && wp.home >= wp.draw

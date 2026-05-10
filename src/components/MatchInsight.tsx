@@ -39,6 +39,7 @@ import {
   computeGoalieAdjustment,
   applyGoalieToWinProb,
 } from "@/lib/predict/goalie-adjust";
+import { blendWithMarket } from "@/lib/predict/market-blend";
 import type { PredictMatch } from "@/lib/predict/types";
 import FormDots from "./FormDots";
 import EloMeter from "./EloMeter";
@@ -179,11 +180,26 @@ export default async function MatchInsight({ match }: Props) {
   const awayGoalieEarly = parseGoalie(match.awayGoalie);
   const starterAdj = computeStarterAdjustment(homeStarterEarly, awayStarterEarly);
   const goalieAdj = computeGoalieAdjustment(homeGoalieEarly, awayGoalieEarly);
-  let winProb = baseWinProb;
+  let winProb: { home: number; draw: number; away: number } = baseWinProb;
   if (starterAdj.applied)
     winProb = applyStarterToWinProb(winProb, starterAdj);
   if (goalieAdj.applied)
     winProb = applyGoalieToWinProb(winProb, goalieAdj);
+
+  // 시장 odds blending — 베팅사이트 평균 implied 와 ensemble
+  let marketBlended = false;
+  if (match.marketHome != null && match.marketAway != null) {
+    const blended = blendWithMarket(winProb, {
+      home: match.marketHome,
+      draw: match.marketDraw,
+      away: match.marketAway,
+      bookmakers: match.marketBookmakers,
+    });
+    if (blended.blended) {
+      winProb = { home: blended.home, draw: blended.draw, away: blended.away };
+      marketBlended = true;
+    }
+  }
   const summary = summarizeWinProb(
     winProb,
     match.homeTeam.name,
@@ -338,12 +354,49 @@ export default async function MatchInsight({ match }: Props) {
   const awayGoalie = awayGoalieEarly;
   const hasGoalies = match.league === "NHL" && (homeGoalie || awayGoalie);
 
+  // Strong Pick / Value Bet 판정
+  const topConfidence = Math.max(winProb.home, winProb.away, winProb.draw);
+  const isStrongPick = topConfidence >= 0.65;
+  const isValueBet =
+    match.marketHome != null &&
+    match.marketAway != null &&
+    (() => {
+      const ourTopProb =
+        oneXTwoPick === "HOME"
+          ? winProb.home
+          : oneXTwoPick === "AWAY"
+            ? winProb.away
+            : winProb.draw;
+      const marketTopProb =
+        oneXTwoPick === "HOME"
+          ? match.marketHome
+          : oneXTwoPick === "AWAY"
+            ? match.marketAway
+            : (match.marketDraw ?? 0);
+      return ourTopProb - (marketTopProb ?? 0) >= 0.05;
+    })();
+
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-6 my-10 space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-base">📊</span>
           <h3 className="font-bold tracking-tight">매치 인사이트</h3>
+          {isStrongPick && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-sm">
+              ⭐ Strong Pick
+            </span>
+          )}
+          {isValueBet && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm">
+              💎 Value Bet
+            </span>
+          )}
+          {marketBlended && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800">
+              📈 시장 odds 반영
+            </span>
+          )}
         </div>
         <span className="text-xs font-medium text-neutral-500">{summary}</span>
       </div>
