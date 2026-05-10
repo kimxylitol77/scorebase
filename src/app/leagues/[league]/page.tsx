@@ -169,6 +169,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       where: { league: upper, predCorrect: { not: null } },
       select: {
         predCorrect: true,
+        predHome: true,
+        predDraw: true,
+        predAway: true,
         predDcCorrect: true,
         predOverCorrect: true,
         predHcCorrect: true,
@@ -191,6 +194,19 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const rOver = rateOf("predOverCorrect");
   const rHc = rateOf("predHcCorrect");
   const rBtts = rateOf("predBttsCorrect");
+  // AI Strong Pick — 65%+ 고신뢰
+  const strongArr = accStats.filter((m) => {
+    const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
+    return top >= 0.65;
+  });
+  const rStrong = {
+    evaluated: strongArr.length,
+    correct: strongArr.filter((m) => m.predCorrect).length,
+    rate:
+      strongArr.length > 0
+        ? strongArr.filter((m) => m.predCorrect).length / strongArr.length
+        : 0,
+  };
   const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL"].includes(upper);
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
@@ -227,6 +243,14 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           {r1x2.evaluated > 0 && (
             <div className="mt-5">
               <div className="flex flex-wrap gap-2">
+                {rStrong.evaluated >= 5 && (
+                  <AccPill
+                    icon="⭐"
+                    label="Strong Pick"
+                    rate={rStrong}
+                    tone="amber"
+                  />
+                )}
                 <AccPill icon="🎯" label="1X2" rate={r1x2} tone="neutral" />
                 {isSoccer && (
                   <AccPill icon="✨" label="DC" rate={rDc} tone="emerald" />
@@ -336,6 +360,12 @@ const PILL_TONES = {
     bg: "bg-pink-50/60 dark:bg-pink-950/30",
     label: "text-pink-700 dark:text-pink-400",
     value: "text-pink-900 dark:text-pink-200",
+  },
+  amber: {
+    border: "border-amber-400 dark:border-amber-600/70",
+    bg: "bg-gradient-to-r from-amber-100/80 to-orange-100/80 dark:from-amber-950/50 dark:to-orange-950/40",
+    label: "text-amber-700 dark:text-amber-300",
+    value: "text-amber-900 dark:text-amber-100",
   },
 } as const;
 

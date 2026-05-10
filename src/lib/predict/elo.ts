@@ -1,11 +1,15 @@
 // Elo 레이팅 계산.
-// 모든 팀이 동일한 시작점(1500)에서 출발해, FINISHED 매치를 시간순으로
-// 처리하며 누적 갱신한다.
+// FIDE/FiveThirtyEight 스타일 — 골 마진(MoV) 가중치 + 업셋 보정 적용.
 //
-// 공식: R_new = R_old + K * (S - E)
-//   K = 20 (축구는 20~32, 농구·야구도 동일 범위)
+// 공식: R_new = R_old + K_eff * (S - E)
 //   S = 실제 결과 (승=1, 무=0.5, 패=0)
-//   E = 기댓값 = 1 / (1 + 10^((R_opp - R_self) / 400))
+//   E = 1 / (1 + 10^((R_opp - R_self) / 400))
+//   K_eff = K * MoV * Upset
+//
+//   MoV (Margin of Victory) = ln(|goalDiff| + 1) * (2.2 / (eloDiff*0.001 + 2.2))
+//     → 4-0 압승은 1-0 신승보다 더 큰 Elo 변화
+//     → 단, 강팀의 압승은 약간 디스카운트 (이미 예상된 결과)
+//   Upset = 1 (현 버전에서는 MoV 만 적용)
 
 import type { PredictMatch } from "./types";
 
@@ -57,8 +61,17 @@ export function calcEloTable(matches: PredictMatch[]): EloTable {
     else if (m.homeScore < m.awayScore) s = 0;
     else s = 0.5;
 
-    const newHome = home + K_FACTOR * (s - expHome);
-    const newAway = away + K_FACTOR * (1 - s - (1 - expHome));
+    // FiveThirtyEight 스타일 MoV 가중치 — 점수 차이가 클수록 K 커짐
+    // ln(|diff|+1) 로 diminishing return; eloDiff 큰 매치에서는 약화
+    const goalDiff = Math.abs(m.homeScore - m.awayScore);
+    const eloDiffSigned = home + HOME_ADVANTAGE_ELO - away;
+    const winnerEloDiff = s === 1 ? eloDiffSigned : -eloDiffSigned;
+    const movMultiplier =
+      Math.log(goalDiff + 1) * (2.2 / (Math.abs(winnerEloDiff) * 0.001 + 2.2));
+    const kEff = K_FACTOR * Math.max(1, movMultiplier);
+
+    const newHome = home + kEff * (s - expHome);
+    const newAway = away + kEff * (1 - s - (1 - expHome));
 
     ratings.set(m.homeTeamId, newHome);
     ratings.set(m.awayTeamId, newAway);

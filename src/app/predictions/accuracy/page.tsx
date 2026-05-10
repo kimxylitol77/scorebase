@@ -50,7 +50,8 @@ interface LeagueStat {
   over: MarketRate;
   hc: MarketRate;
   btts: MarketRate;
-  highConfidence: MarketRate;
+  /** 1X2 가장 높은 확률 65%+ 인 매치만의 적중률 (AI Strong Pick) */
+  strong: MarketRate;
   recent10: MarketRate;
 }
 
@@ -91,11 +92,11 @@ async function statForLeague(league: string): Promise<LeagueStat> {
   const hc = rateOf(all.map((m) => ({ ok: m.predHcCorrect })));
   const btts = rateOf(all.map((m) => ({ ok: m.predBttsCorrect })));
 
-  // 1X2 신뢰도 가중 — 가장 높은 확률 60% 이상
-  const highConf = all
+  // AI Strong Pick — 가장 높은 확률 65% 이상
+  const strong = all
     .filter((m) => {
       const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
-      return top >= 0.6;
+      return top >= 0.65;
     })
     .map((m) => ({ ok: m.predCorrect }));
   const recent10 = all.slice(0, 10).map((m) => ({ ok: m.predCorrect }));
@@ -108,7 +109,7 @@ async function statForLeague(league: string): Promise<LeagueStat> {
     over,
     hc,
     btts,
-    highConfidence: rateOf(highConf),
+    strong: rateOf(strong),
     recent10: rateOf(recent10),
   };
 }
@@ -149,6 +150,9 @@ export default async function AccuracyPage() {
           적중률입니다. 종료된 모든 매치를 시점 기준으로 백테스트하여 산출.
         </p>
       </header>
+
+      {/* AI Strong Pick — 65%+ 고신뢰 픽만의 적중률 (마케팅 강조) */}
+      <StrongPickHero stats={stats} overallTotal={totalEvaluated} overallCorrect={totalCorrect} />
 
       {/* 전체 시장별 요약 — 5개 카드 */}
       <section className="mb-10 grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -267,6 +271,82 @@ export default async function AccuracyPage() {
         </Link>
       </p>
     </main>
+  );
+}
+
+function StrongPickHero({
+  stats,
+  overallTotal,
+  overallCorrect,
+}: {
+  stats: LeagueStat[];
+  overallTotal: number;
+  overallCorrect: number;
+}) {
+  const sTotal = stats.reduce((s, x) => s + x.strong.evaluated, 0);
+  const sCorrect = stats.reduce((s, x) => s + x.strong.correct, 0);
+  const sRate = sTotal > 0 ? sCorrect / sTotal : 0;
+  const overallRate = overallTotal > 0 ? overallCorrect / overallTotal : 0;
+  const lift = sRate - overallRate;
+  if (sTotal < 30) return null;
+
+  // 리그별 Strong 적중률 top 3
+  const topLeagues = [...stats]
+    .filter((s) => s.strong.evaluated >= 5)
+    .sort((a, b) => b.strong.rate - a.strong.rate)
+    .slice(0, 3);
+
+  return (
+    <section className="mb-8 rounded-2xl border border-amber-300 dark:border-amber-700/40 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-yellow-950/30 p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">
+            <span aria-hidden>⭐</span>
+            <span>AI Strong Pick</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            모델이 자신 있게 찍은 경기 적중률
+          </h2>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            1X2 가장 높은 확률 65% 이상인 매치만 — 모델이 명확한 신호를 잡은
+            경기들
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-5xl sm:text-6xl font-black tracking-tight tabular-nums bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+            {Math.round(sRate * 100)}%
+          </div>
+          <div className="text-[11px] text-neutral-500 mt-1 tabular-nums">
+            {sCorrect.toLocaleString()} / {sTotal.toLocaleString()} · 전체 평균 대비{" "}
+            <span className={lift > 0 ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-rose-600 dark:text-rose-400 font-bold"}>
+              {lift > 0 ? "+" : ""}
+              {Math.round(lift * 100)}%p
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {topLeagues.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          {topLeagues.map((lg) => (
+            <div
+              key={lg.league}
+              className="rounded-xl bg-white/60 dark:bg-neutral-950/40 backdrop-blur px-3 py-2"
+            >
+              <div className="text-[10px] text-neutral-500 mb-0.5">
+                {LEAGUE_NAME[lg.league] ?? lg.league}
+              </div>
+              <div className="text-lg font-bold tabular-nums">
+                {Math.round(lg.strong.rate * 100)}%
+              </div>
+              <div className="text-[10px] text-neutral-500 tabular-nums">
+                {lg.strong.correct}/{lg.strong.evaluated}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 

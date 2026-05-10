@@ -50,7 +50,7 @@ interface SportProfile {
 }
 
 const SPORT_PROFILE: Record<string, SportProfile> = {
-  // 축구 — 평균 2.7골/매치, std 약 1.6
+  // 축구 — 평균 2.7골/매치. handicapLine 1.5 (강팀 2골 차+) — 0.5 는 1X2 와 거의 동일해서 의미 적음
   EPL: { overLine: 2.5, totalStd: 1.6, marginStd: 1.5, handicapLine: 0.5, homeBoost: 1.1 },
   LALIGA: { overLine: 2.5, totalStd: 1.6, marginStd: 1.5, handicapLine: 0.5, homeBoost: 1.1 },
   BUNDESLIGA: { overLine: 2.5, totalStd: 1.7, marginStd: 1.6, handicapLine: 0.5, homeBoost: 1.1 },
@@ -65,6 +65,68 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   // 야구 — MLB 평균 8.7런, std 4.0, margin std 3.5
   MLB: { overLine: 8.5, totalStd: 4.0, marginStd: 3.5, handicapLine: 1.5, homeBoost: 1.04 },
 };
+
+/* =====================================================================
+ * Skellam 분포 — Poisson(λ1) - Poisson(λ2) 의 차이 분포
+ * 축구처럼 점수 작을 때 핸디캡(=골 차이) 정확히 모델링.
+ * 큰 점수(NBA 등)는 Normal 근사가 충분히 정확하므로 여전히 Normal.
+ * ===================================================================*/
+
+function logFactorial(n: number): number {
+  if (n < 2) return 0;
+  let s = 0;
+  for (let i = 2; i <= n; i++) s += Math.log(i);
+  return s;
+}
+
+/** Modified Bessel I_n(x) — log space 시리즈 합 (저차 정확) */
+function logBesselI(n: number, x: number): number {
+  const absN = Math.abs(n);
+  // I_n(x) = sum_{k=0..} (x/2)^(2k+n) / (k! * (k+n)!)
+  // log term: (2k+n)*log(x/2) - logFact(k) - logFact(k+n)
+  const logHalfX = Math.log(x / 2);
+  let maxLog = -Infinity;
+  const terms: number[] = [];
+  for (let k = 0; k < 60; k++) {
+    const logTerm =
+      (2 * k + absN) * logHalfX - logFactorial(k) - logFactorial(k + absN);
+    terms.push(logTerm);
+    if (logTerm > maxLog) maxLog = logTerm;
+    if (k > 10 && logTerm < maxLog - 30) break; // 수렴
+  }
+  // log-sum-exp
+  let sum = 0;
+  for (const t of terms) sum += Math.exp(t - maxLog);
+  return maxLog + Math.log(sum);
+}
+
+function skellamPmf(k: number, lambda1: number, lambda2: number): number {
+  if (lambda1 <= 0 && lambda2 <= 0) return k === 0 ? 1 : 0;
+  if (lambda1 <= 0) return Math.exp(-lambda2) * Math.pow(lambda2, -k) / Math.exp(logFactorial(-k));
+  if (lambda2 <= 0) return Math.exp(-lambda1) * Math.pow(lambda1, k) / Math.exp(logFactorial(k));
+  // log P = -(λ1+λ2) + (k/2)*log(λ1/λ2) + log I_|k|(2*sqrt(λ1*λ2))
+  const logP =
+    -(lambda1 + lambda2) +
+    (k / 2) * Math.log(lambda1 / lambda2) +
+    logBesselI(k, 2 * Math.sqrt(lambda1 * lambda2));
+  return Math.exp(logP);
+}
+
+/** P(margin > line) — 정수 line 이면 strict, 0.5 line 이면 ceil(line) 부터 */
+function skellamProbGreaterThan(
+  line: number,
+  lambda1: number,
+  lambda2: number,
+): number {
+  const start = Math.floor(line) + 1;
+  let sum = 0;
+  for (let k = start; k <= 30; k++) {
+    const p = skellamPmf(k, lambda1, lambda2);
+    sum += p;
+    if (k > start + 5 && p < 1e-7) break;
+  }
+  return Math.max(0, Math.min(1, sum));
+}
 
 export function getSportProfile(league: string): SportProfile | null {
   return SPORT_PROFILE[league] ?? null;
@@ -195,15 +257,22 @@ export function predictHandicapMarket(
   const expectedAway = (away.scoredPerGame + home.concededPerGame) / 2;
   const expectedMargin = expectedHome - expectedAway;
 
-  // 강팀 결정 (홈팀이 호의적이면 -line, 아니면 +line on home → away가 강팀)
   const homeStronger = expectedMargin > 0;
   const pick: "HOME" | "AWAY" = homeStronger ? "HOME" : "AWAY";
-  // 강팀이 line 차이 이상으로 이길 확률
-  // home이 강팀이면 P(home_score - away_score > line) = 1 - normalCdf(line, expectedMargin, std)
-  // away가 강팀이면 P(away_score - home_score > line) = normalCdf(-line, expectedMargin, std)
-  const prob = homeStronger
-    ? 1 - normalCdf(profile.handicapLine, expectedMargin, profile.marginStd)
-    : normalCdf(-profile.handicapLine, expectedMargin, profile.marginStd);
+
+  // 축구는 Skellam (정확) — λ < 5 범위에서 안정. 다른 종목은 Normal 근사 (큰 λ)
+  const useSkellam = SOCCER_LEAGUES_FOR_MARKETS.has(league);
+  let prob: number;
+  if (useSkellam) {
+    // P(home wins by line+) — line=1.5 → P(margin >= 2)
+    prob = homeStronger
+      ? skellamProbGreaterThan(profile.handicapLine, expectedHome, expectedAway)
+      : skellamProbGreaterThan(profile.handicapLine, expectedAway, expectedHome);
+  } else {
+    prob = homeStronger
+      ? 1 - normalCdf(profile.handicapLine, expectedMargin, profile.marginStd)
+      : normalCdf(-profile.handicapLine, expectedMargin, profile.marginStd);
+  }
 
   return {
     pick,
