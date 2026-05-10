@@ -31,7 +31,7 @@ const SOCCER_LEAGUES: SubItem[] = [
 
 const CATEGORIES: CategoryDef[] = [
   {
-    label: "🏆 월드컵",
+    label: "월드컵",
     href: "/leagues/WORLD_CUP",
     items: [
       {
@@ -76,14 +76,14 @@ export default function Header() {
           ))}
           <Link
             href="/predictions"
-            className="ml-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition shadow-sm shadow-blue-500/20"
+            className="ml-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition shadow-sm shadow-blue-500/20 whitespace-nowrap"
           >
             <span aria-hidden>📊</span>
             <span className="hidden lg:inline">예측</span>
           </Link>
           <Link
             href="/notices"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
           >
             <span aria-hidden>📢</span>
             <span className="hidden lg:inline">공지</span>
@@ -114,7 +114,7 @@ function CategoryDropdown({ label, href, items }: CategoryDef) {
     <div className="relative group">
       <Link
         href={href}
-        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition"
+        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
       >
         {label}
         {items.length > 1 && (
