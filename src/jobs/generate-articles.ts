@@ -3,7 +3,7 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
-import { generate } from "@/lib/ai/gemini";
+import { generate } from "@/lib/ai/openai";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
 import { notifyDraftReady } from "@/lib/notify/telegram";
