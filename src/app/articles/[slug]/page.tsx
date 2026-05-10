@@ -47,6 +47,125 @@ function makeDescription(content: string): string {
     .slice(0, 160);
 }
 
+// 종목별 평균 매치 시간 (분) — endDate 추정용
+const MATCH_DURATION_MIN: Record<string, number> = {
+  EPL: 110, LALIGA: 110, BUNDESLIGA: 110, SERIE_A: 110,
+  LIGUE_1: 110, MLS: 110, UCL: 110, WORLD_CUP: 120,
+  NBA: 150, NHL: 150,
+  MLB: 180, KBO: 200,
+};
+
+// 리그별 홈 국가/지역 — Place location 의 addressCountry 보강
+const LEAGUE_COUNTRY: Record<string, { name: string; code: string }> = {
+  EPL:        { name: "England",      code: "GB" },
+  LALIGA:     { name: "Spain",        code: "ES" },
+  BUNDESLIGA: { name: "Germany",      code: "DE" },
+  SERIE_A:    { name: "Italy",        code: "IT" },
+  LIGUE_1:    { name: "France",       code: "FR" },
+  MLS:        { name: "United States", code: "US" },
+  UCL:        { name: "Europe",       code: "EU" },
+  WORLD_CUP:  { name: "USA / Canada / Mexico", code: "US" },
+  NBA:        { name: "United States", code: "US" },
+  NHL:        { name: "United States", code: "US" },
+  MLB:        { name: "United States", code: "US" },
+  KBO:        { name: "South Korea",  code: "KR" },
+};
+
+interface MatchForEvent {
+  homeTeam: { name: string };
+  awayTeam: { name: string };
+  startTime: Date;
+  status: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  raw?: string | null;
+}
+
+function buildSportsEventJsonLd(opts: {
+  match: MatchForEvent;
+  league: string;
+  articleTitle: string;
+  description: string;
+  url: string;
+  siteUrl: string;
+}) {
+  const { match, league, articleTitle, description, url, siteUrl } = opts;
+  const home = match.homeTeam.name;
+  const away = match.awayTeam.name;
+  const start = match.startTime;
+  const durationMin = MATCH_DURATION_MIN[league] ?? 120;
+  const end = new Date(start.getTime() + durationMin * 60 * 1000);
+  const country = LEAGUE_COUNTRY[league];
+
+  // 매치 raw JSON 안에 venue 정보가 있으면 추출 (api-football / api-baseball 등)
+  let venueName: string | undefined;
+  let venueCity: string | undefined;
+  if (match.raw) {
+    try {
+      const r = JSON.parse(match.raw);
+      // api-football: fixture.venue.{name, city}
+      // api-baseball: 보통 없음
+      // football-data: 매치 객체에 venue (string)
+      venueName =
+        r?.fixture?.venue?.name ??
+        r?.venue?.name ??
+        (typeof r?.venue === "string" ? r.venue : undefined);
+      venueCity = r?.fixture?.venue?.city ?? r?.venue?.city;
+    } catch {}
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: `${home} vs ${away}`,
+    description,
+    url,
+    startDate: start.toISOString(),
+    endDate: end.toISOString(),
+    eventStatus:
+      match.status === "FINISHED"
+        ? "https://schema.org/EventCompleted"
+        : match.status === "POSTPONED"
+          ? "https://schema.org/EventPostponed"
+          : "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    sport: league,
+    location: {
+      "@type": "Place",
+      name: venueName ?? `${home} 홈 경기장`,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: venueCity ?? home,
+        addressCountry: country?.code ?? "US",
+      },
+    },
+    homeTeam: { "@type": "SportsTeam", name: home },
+    awayTeam: { "@type": "SportsTeam", name: away },
+    competitor: [
+      { "@type": "SportsTeam", name: home },
+      { "@type": "SportsTeam", name: away },
+    ],
+    performer: [
+      { "@type": "SportsTeam", name: home },
+      { "@type": "SportsTeam", name: away },
+    ],
+    image: [`${siteUrl}/og-image.png`],
+    organizer: {
+      "@type": "Organization",
+      name: country?.name ? `${league} (${country.name})` : league,
+    },
+    offers: {
+      "@type": "Offer",
+      url,
+      price: "0",
+      priceCurrency: "KRW",
+      availability: "https://schema.org/InStock",
+      validFrom: start.toISOString(),
+      category: "free analysis",
+    },
+  };
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await prisma.article.findUnique({
@@ -104,11 +223,16 @@ export default async function ArticlePage({ params }: Props) {
     "@type": "NewsArticle",
     headline: article.title,
     description: desc,
+    image: [`${SITE_URL}/og-image.png`],
     author: { "@type": "Organization", name: SITE_NAME },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
       url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/og-image.png`,
+      },
     },
     datePublished: (article.publishedAt ?? article.createdAt).toISOString(),
     dateModified: article.updatedAt.toISOString(),
@@ -118,21 +242,14 @@ export default async function ArticlePage({ params }: Props) {
   };
 
   const eventJsonLd = article.match
-    ? {
-        "@context": "https://schema.org",
-        "@type": "SportsEvent",
-        name: `${article.match.homeTeam.name} vs ${article.match.awayTeam.name}`,
-        startDate: article.match.startTime.toISOString(),
-        sport: article.league,
-        homeTeam: { "@type": "SportsTeam", name: article.match.homeTeam.name },
-        awayTeam: { "@type": "SportsTeam", name: article.match.awayTeam.name },
-        eventStatus:
-          article.match.status === "FINISHED"
-            ? "https://schema.org/EventCompleted"
-            : article.match.status === "POSTPONED"
-              ? "https://schema.org/EventPostponed"
-              : "https://schema.org/EventScheduled",
-      }
+    ? buildSportsEventJsonLd({
+        match: article.match,
+        league: article.league,
+        articleTitle: article.title,
+        description: desc,
+        url,
+        siteUrl: SITE_URL,
+      })
     : null;
 
   const breadcrumbJsonLd = {
