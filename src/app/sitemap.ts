@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: now, changeFrequency: "hourly", priority: 1.0 },
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/notices`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/predictions`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
     ...ALL_LEAGUES.map((lg) => ({
       url: `${base}/leagues/${lg}`,
@@ -45,5 +46,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...articlePages];
+  // 공지사항
+  const notices = await prisma.notice.findMany({
+    select: { slug: true, updatedAt: true, publishedAt: true },
+  });
+  const noticePages: MetadataRoute.Sitemap = notices.map((n) => ({
+    url: `${base}/notices/${n.slug}`,
+    lastModified: n.updatedAt ?? n.publishedAt ?? now,
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
+
+  return [...staticPages, ...articlePages, ...noticePages];
 }

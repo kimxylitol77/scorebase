@@ -103,9 +103,15 @@ export default function MobileMenu() {
           {/* 예측 진입점 강조 */}
           <Link
             href="/predictions"
-            className="block w-full mb-4 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold text-center shadow-sm"
+            className="block w-full mb-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold text-center shadow-sm"
           >
             📊 시즌 예측 대시보드
+          </Link>
+          <Link
+            href="/notices"
+            className="block w-full mb-4 px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 font-semibold text-center text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
+          >
+            📢 공지사항 · 패치노트
           </Link>
 
           {/* 카테고리별 */}
