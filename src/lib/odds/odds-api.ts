@@ -41,7 +41,7 @@ export interface OddsApiEvent {
   bookmakers: OddsApiBookmaker[];
 }
 
-/** 한 리그의 향후 매치 odds. h2h(=1X2)만 우선 */
+/** 한 리그의 향후 매치 odds. markets 옵션으로 h2h / totals / spreads 선택 */
 export async function fetchLeagueOdds(
   league: string,
   opts?: { regions?: string; markets?: string },
@@ -53,16 +53,25 @@ export async function fetchLeagueOdds(
     console.warn("[odds-api] ODDS_API_KEY 미설정");
     return [];
   }
-  const { data } = await axios.get<OddsApiEvent[]>(`${BASE}/sports/${sportKey}/odds`, {
-    params: {
-      apiKey,
-      regions: opts?.regions ?? "uk,eu,us",
-      markets: opts?.markets ?? "h2h",
-      oddsFormat: "decimal",
+  const { data, headers } = await axios.get<OddsApiEvent[]>(
+    `${BASE}/sports/${sportKey}/odds`,
+    {
+      params: {
+        apiKey,
+        regions: opts?.regions ?? "uk,eu,us",
+        markets: opts?.markets ?? "h2h,totals,spreads",
+        oddsFormat: "decimal",
+      },
+      timeout: 20000,
+      validateStatus: (s) => s < 500,
     },
-    timeout: 20000,
-    validateStatus: (s) => s < 500,
-  });
+  );
+  // The Odds API 한도 헤더 로그 (자동 감시용)
+  if (headers["x-requests-remaining"]) {
+    console.log(
+      `[odds-api/${league}] quota remaining: ${headers["x-requests-remaining"]} / used: ${headers["x-requests-used"] ?? "?"}`,
+    );
+  }
   if (!Array.isArray(data)) return [];
   return data;
 }
@@ -110,6 +119,152 @@ export function impliedFromOdds(event: OddsApiEvent): {
     draw: drawSum / n,
     away: awaySum / n,
     consensus: n,
+  };
+}
+
+/** OVER/UNDER 평균 — bookmaker 별 totals 마켓 평균 */
+export function averageTotals(event: OddsApiEvent): {
+  line: number;
+  over: number;
+  under: number;
+  bookmakers: number;
+} | null {
+  // 가장 흔한 line 선택 (vote)
+  const lineVotes = new Map<number, number>();
+  for (const b of event.bookmakers) {
+    const tot = b.markets.find((m) => m.key === "totals");
+    if (!tot) continue;
+    const overOut = tot.outcomes.find((o) => o.name === "Over");
+    if (!overOut) continue;
+    const line = (overOut as OddsApiOutcome & { point?: number }).point;
+    if (line == null) continue;
+    lineVotes.set(line, (lineVotes.get(line) ?? 0) + 1);
+  }
+  if (lineVotes.size === 0) return null;
+  const [bestLine] = [...lineVotes.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  let overSum = 0,
+    underSum = 0,
+    n = 0;
+  for (const b of event.bookmakers) {
+    const tot = b.markets.find((m) => m.key === "totals");
+    if (!tot) continue;
+    const o = tot.outcomes.find(
+      (x) => x.name === "Over" && (x as OddsApiOutcome & { point?: number }).point === bestLine,
+    );
+    const u = tot.outcomes.find(
+      (x) => x.name === "Under" && (x as OddsApiOutcome & { point?: number }).point === bestLine,
+    );
+    if (o && u) {
+      overSum += o.price;
+      underSum += u.price;
+      n++;
+    }
+  }
+  if (n === 0) return null;
+  return { line: bestLine, over: overSum / n, under: underSum / n, bookmakers: n };
+}
+
+/** 핸디캡(spreads) 평균 — 강팀(line < 0) 입장에서 abs(line) 표시 */
+export function averageSpread(event: OddsApiEvent): {
+  line: number; // 강팀 핸디캡 절대값 (예: -1.5 → 1.5)
+  pick: "HOME" | "AWAY";
+  homeOdds: number;
+  awayOdds: number;
+  bookmakers: number;
+} | null {
+  // 강팀 = home_team의 spread가 음수인 경우. line vote.
+  const lineVotes = new Map<string, number>(); // key = `${pick}|${absLine}`
+  for (const b of event.bookmakers) {
+    const sp = b.markets.find((m) => m.key === "spreads");
+    if (!sp) continue;
+    const homeOut = sp.outcomes.find((o) => o.name === event.home_team) as
+      | (OddsApiOutcome & { point?: number })
+      | undefined;
+    if (!homeOut || homeOut.point == null) continue;
+    const pick: "HOME" | "AWAY" = homeOut.point < 0 ? "HOME" : "AWAY";
+    const absLine = Math.abs(homeOut.point);
+    const key = `${pick}|${absLine}`;
+    lineVotes.set(key, (lineVotes.get(key) ?? 0) + 1);
+  }
+  if (lineVotes.size === 0) return null;
+  const [bestKey] = [...lineVotes.entries()].sort((a, b) => b[1] - a[1])[0];
+  const [pickStr, absStr] = bestKey.split("|");
+  const pick = pickStr as "HOME" | "AWAY";
+  const absLine = Number(absStr);
+  const targetHomePoint = pick === "HOME" ? -absLine : absLine;
+
+  let homeSum = 0,
+    awaySum = 0,
+    n = 0;
+  for (const b of event.bookmakers) {
+    const sp = b.markets.find((m) => m.key === "spreads");
+    if (!sp) continue;
+    const ho = sp.outcomes.find(
+      (o) =>
+        o.name === event.home_team &&
+        (o as OddsApiOutcome & { point?: number }).point === targetHomePoint,
+    );
+    const ao = sp.outcomes.find(
+      (o) =>
+        o.name === event.away_team &&
+        (o as OddsApiOutcome & { point?: number }).point === -targetHomePoint,
+    );
+    if (ho && ao) {
+      homeSum += ho.price;
+      awaySum += ao.price;
+      n++;
+    }
+  }
+  if (n === 0) return null;
+  return {
+    line: absLine,
+    pick,
+    homeOdds: homeSum / n,
+    awayOdds: awaySum / n,
+    bookmakers: n,
+  };
+}
+
+/** 1X2 raw decimal odds 평균 (vig 미제거) — UI 표시용 */
+export function averageH2h(event: OddsApiEvent): {
+  home: number;
+  draw: number | null;
+  away: number;
+  bookmakers: number;
+} | null {
+  let homeSum = 0,
+    drawSum = 0,
+    awaySum = 0,
+    n = 0,
+    drawN = 0;
+  for (const b of event.bookmakers) {
+    const h2h = b.markets.find((m) => m.key === "h2h");
+    if (!h2h) continue;
+    let h: number | null = null,
+      d: number | null = null,
+      a: number | null = null;
+    for (const o of h2h.outcomes) {
+      if (o.name === event.home_team) h = o.price;
+      else if (o.name === event.away_team) a = o.price;
+      else if (o.name === "Draw") d = o.price;
+    }
+    if (h && a) {
+      homeSum += h;
+      awaySum += a;
+      n++;
+      if (d) {
+        drawSum += d;
+        drawN++;
+      }
+    }
+  }
+  if (n === 0) return null;
+  return {
+    home: homeSum / n,
+    draw: drawN > 0 ? drawSum / drawN : null,
+    away: awaySum / n,
+    bookmakers: n,
   };
 }
 

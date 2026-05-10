@@ -83,6 +83,17 @@ model Match {
   valueGap        Float?  // model_pred - market_pred (양수 = 모델이 시장보다 자신감 큼)
   isValueBet      Boolean? // 5%p 이상 차이 + 모델 pick 와 같은 outcome
 
+  // Raw decimal odds (베팅사이트 평균, vig 미제거 — 표시용)
+  oddsHome        Float?  // 1X2 home 배당
+  oddsDraw        Float?  // 1X2 draw
+  oddsAway        Float?  // 1X2 away
+  oddsTotalLine   Float?  // OVER/UNDER 기준선 (예: 2.5)
+  oddsOver        Float?  // OVER 배당
+  oddsUnder       Float?  // UNDER 배당
+  oddsHcLine      Float?  // 시장 핸디캡 line (강팀 -line)
+  oddsHcHome      Float?  // 핸디캡 home 배당
+  oddsHcAway      Float?  // 핸디캡 away 배당
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]

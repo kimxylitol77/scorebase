@@ -6,6 +6,9 @@ import { prisma } from "@/lib/db";
 import {
   fetchLeagueOdds,
   impliedFromOdds,
+  averageH2h,
+  averageTotals,
+  averageSpread,
   normalizeOddsTeamName,
   ODDS_SUPPORTED_LEAGUES,
 } from "@/lib/odds/odds-api";
@@ -52,6 +55,12 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
         if (!ev) continue;
         const implied = impliedFromOdds(ev);
         if (!implied) continue;
+
+        // raw decimal odds — UI 표시용
+        const h2h = averageH2h(ev);
+        const totals = averageTotals(ev);
+        const spread = averageSpread(ev);
+
         await prisma.match.update({
           where: { id: m.id },
           data: {
@@ -60,6 +69,17 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
             marketAway: implied.away,
             marketBookmakers: implied.consensus,
             marketUpdatedAt: new Date(),
+            // raw decimal odds (vig 미제거)
+            oddsHome: h2h?.home ?? null,
+            oddsDraw: h2h?.draw ?? null,
+            oddsAway: h2h?.away ?? null,
+            oddsTotalLine: totals?.line ?? null,
+            oddsOver: totals?.over ?? null,
+            oddsUnder: totals?.under ?? null,
+            oddsHcLine: spread?.line ?? null,
+            // home/away 컬럼은 home의 핸디캡 line 기준
+            oddsHcHome: spread?.homeOdds ?? null,
+            oddsHcAway: spread?.awayOdds ?? null,
           },
         });
         matched++;

@@ -56,6 +56,15 @@ interface Props {
     marketDraw?: number | null;
     marketAway?: number | null;
     marketBookmakers?: number | null;
+    oddsHome?: number | null;
+    oddsDraw?: number | null;
+    oddsAway?: number | null;
+    oddsTotalLine?: number | null;
+    oddsOver?: number | null;
+    oddsUnder?: number | null;
+    oddsHcLine?: number | null;
+    oddsHcHome?: number | null;
+    oddsHcAway?: number | null;
   };
 }
 
@@ -336,6 +345,28 @@ export default async function MatchInsight({ match }: Props) {
         </Section>
       )}
 
+      {/* 0.6) 베팅사이트 평균 배당 (decimal odds) — UI 참고용 */}
+      {(match.oddsHome ||
+        match.oddsOver ||
+        match.oddsHcHome) && (
+        <Section title="베팅사이트 평균 배당">
+          <OddsTable
+            homeName={match.homeTeam.name}
+            awayName={match.awayTeam.name}
+            oddsHome={match.oddsHome ?? null}
+            oddsDraw={match.oddsDraw ?? null}
+            oddsAway={match.oddsAway ?? null}
+            oddsTotalLine={match.oddsTotalLine ?? null}
+            oddsOver={match.oddsOver ?? null}
+            oddsUnder={match.oddsUnder ?? null}
+            oddsHcLine={match.oddsHcLine ?? null}
+            oddsHcHome={match.oddsHcHome ?? null}
+            oddsHcAway={match.oddsHcAway ?? null}
+            hideDraw={hideDraw}
+          />
+        </Section>
+      )}
+
       {/* 1) 승률 도넛 */}
       <Section title="승률 추정">
         <WinProbDonut
@@ -576,6 +607,101 @@ const TONE_TEXT = {
   pink: "text-pink-700 dark:text-pink-300",
   violet: "text-violet-700 dark:text-violet-300",
 } as const;
+
+function OddsTable({
+  homeName,
+  awayName,
+  oddsHome,
+  oddsDraw,
+  oddsAway,
+  oddsTotalLine,
+  oddsOver,
+  oddsUnder,
+  oddsHcLine,
+  oddsHcHome,
+  oddsHcAway,
+  hideDraw,
+}: {
+  homeName: string;
+  awayName: string;
+  oddsHome: number | null;
+  oddsDraw: number | null;
+  oddsAway: number | null;
+  oddsTotalLine: number | null;
+  oddsOver: number | null;
+  oddsUnder: number | null;
+  oddsHcLine: number | null;
+  oddsHcHome: number | null;
+  oddsHcAway: number | null;
+  hideDraw: boolean;
+}) {
+  const fmt = (n: number | null) => (n != null ? n.toFixed(2) : "—");
+  return (
+    <div className="space-y-2.5">
+      {/* 1X2 */}
+      {oddsHome && oddsAway && (
+        <div className="grid grid-cols-[auto_1fr_1fr_1fr] sm:grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
+          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
+            1X2
+          </div>
+          <OddsCell label={homeName} value={fmt(oddsHome)} />
+          {!hideDraw && oddsDraw && <OddsCell label="무" value={fmt(oddsDraw)} />}
+          {(hideDraw || !oddsDraw) && <div />}
+          <OddsCell label={awayName} value={fmt(oddsAway)} />
+        </div>
+      )}
+      {/* OVER/UNDER */}
+      {oddsOver && oddsUnder && oddsTotalLine != null && (
+        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
+          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
+            O/U
+          </div>
+          <OddsCell label={`OVER ${oddsTotalLine}`} value={fmt(oddsOver)} />
+          <OddsCell label="기준선" value={String(oddsTotalLine)} mono />
+          <OddsCell label={`UNDER ${oddsTotalLine}`} value={fmt(oddsUnder)} />
+        </div>
+      )}
+      {/* 핸디캡 */}
+      {oddsHcHome && oddsHcAway && oddsHcLine != null && (
+        <div className="grid grid-cols-[auto_1fr_1fr_1fr] items-center gap-2 sm:gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2.5">
+          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-neutral-500 pr-2 sm:pr-3 border-r border-neutral-200 dark:border-neutral-800">
+            HC
+          </div>
+          <OddsCell label={`${homeName} -${oddsHcLine}`} value={fmt(oddsHcHome)} />
+          <OddsCell label="line" value={`±${oddsHcLine}`} mono />
+          <OddsCell label={`${awayName} +${oddsHcLine}`} value={fmt(oddsHcAway)} />
+        </div>
+      )}
+      <p className="text-[11px] text-neutral-500">
+        decimal odds (소수 배당) — 1.85 = 1만원 베팅 시 1.85만원 환수. 베팅사이트
+        평균값 (vig 미제거 raw odds).
+      </p>
+    </div>
+  );
+}
+
+function OddsCell({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="text-center min-w-0">
+      <div className="text-[10px] text-neutral-500 truncate">{label}</div>
+      <div
+        className={`text-base sm:text-lg font-bold tabular-nums ${
+          mono ? "text-neutral-500" : "text-neutral-900 dark:text-white"
+        }`}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
 
 function MarketCompareTable({
   modelHome,
