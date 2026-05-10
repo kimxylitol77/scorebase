@@ -20,7 +20,20 @@ import {
   getSportProfile,
   SOCCER_LEAGUES_FOR_MARKETS,
 } from "@/lib/predict/markets";
+import {
+  computeStarterAdjustment,
+  applyStarterToWinProb,
+} from "@/lib/predict/starter-adjust";
 import type { PredictMatch } from "@/lib/predict/types";
+
+function parseStarter(s: string | null) {
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
 
 function actualWinnerOf(home: number, away: number): "HOME" | "DRAW" | "AWAY" {
   if (home > away) return "HOME";
@@ -144,8 +157,14 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
       m.awayTeamId,
       m.startTime,
     );
-    const wp = ctx.winProb;
-    if (!wp) continue;
+    const baseWp = ctx.winProb;
+    if (!baseWp) continue;
+
+    // MLB 선발 투수 가중치 (양 starter 데이터 있을 때만)
+    const homeStarter = parseStarter(m.homeStarter);
+    const awayStarter = parseStarter(m.awayStarter);
+    const adj = computeStarterAdjustment(homeStarter, awayStarter);
+    const wp = adj.applied ? applyStarterToWinProb(baseWp, adj) : baseWp;
 
     const winner =
       wp.home >= wp.away && wp.home >= wp.draw
