@@ -54,6 +54,12 @@ function AdminBar({ username }: { username: string }) {
             새 글
           </Link>
           <Link
+            href="/admin/notices"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            공지/패치노트
+          </Link>
+          <Link
             href="/admin/stats"
             className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
           >
