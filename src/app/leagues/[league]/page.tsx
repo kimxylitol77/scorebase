@@ -167,16 +167,30 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     // AI 적중률 미니 — 백테스트 결과 기준
     prisma.match.findMany({
       where: { league: upper, predCorrect: { not: null } },
-      select: { predCorrect: true, predDcCorrect: true },
+      select: {
+        predCorrect: true,
+        predDcCorrect: true,
+        predOverCorrect: true,
+        predHcCorrect: true,
+        predBttsCorrect: true,
+      },
     }),
   ]);
 
-  const accEvaluated = accStats.length;
-  const accCorrect = accStats.filter((m) => m.predCorrect).length;
-  const accRate = accEvaluated > 0 ? accCorrect / accEvaluated : 0;
-  const dcEvaluated = accStats.filter((m) => m.predDcCorrect !== null).length;
-  const dcCorrect = accStats.filter((m) => m.predDcCorrect === true).length;
-  const dcRate = dcEvaluated > 0 ? dcCorrect / dcEvaluated : 0;
+  function rateOf(key: keyof (typeof accStats)[number]) {
+    const arr = accStats.filter((m) => m[key] !== null);
+    const correct = arr.filter((m) => m[key] === true).length;
+    return {
+      evaluated: arr.length,
+      correct,
+      rate: arr.length > 0 ? correct / arr.length : 0,
+    };
+  }
+  const r1x2 = rateOf("predCorrect");
+  const rDc = rateOf("predDcCorrect");
+  const rOver = rateOf("predOverCorrect");
+  const rHc = rateOf("predHcCorrect");
+  const rBtts = rateOf("predBttsCorrect");
   const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL"].includes(upper);
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
@@ -210,35 +224,28 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             {TYPE_DESC[currentType]}
           </p>
 
-          {accEvaluated > 0 && (
-            <div className="mt-5 flex flex-wrap gap-2">
+          {r1x2.evaluated > 0 && (
+            <div className="mt-5">
+              <div className="flex flex-wrap gap-2">
+                <AccPill icon="🎯" label="1X2" rate={r1x2} tone="neutral" />
+                {isSoccer && (
+                  <AccPill icon="✨" label="DC" rate={rDc} tone="emerald" />
+                )}
+                <AccPill icon="📊" label="OVER" rate={rOver} tone="orange" />
+                <AccPill icon="⚖️" label="핸디캡" rate={rHc} tone="violet" />
+                {isSoccer && (
+                  <AccPill icon="⚡" label="BTTS" rate={rBtts} tone="pink" />
+                )}
+              </div>
               <Link
                 href="/predictions/accuracy"
-                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-900/60 backdrop-blur px-3 py-1.5 text-xs hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+                className="inline-flex items-center gap-1.5 mt-3 text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition group"
               >
-                <span aria-hidden>🎯</span>
-                <span className="text-neutral-500">1X2</span>
-                <span className="font-bold tabular-nums text-neutral-900 dark:text-white">
-                  {Math.round(accRate * 100)}%
-                </span>
-                <span className="text-neutral-400 tabular-nums">
-                  ({accCorrect}/{accEvaluated})
+                <span>모든 리그 적중률 비교 — AI 적중률 보드 바로가기</span>
+                <span className="transition-transform group-hover:translate-x-0.5">
+                  →
                 </span>
               </Link>
-              {isSoccer && dcEvaluated > 0 && (
-                <Link
-                  href="/predictions/accuracy"
-                  className="inline-flex items-center gap-2 rounded-full border border-emerald-300 dark:border-emerald-700/60 bg-emerald-50/60 dark:bg-emerald-950/30 backdrop-blur px-3 py-1.5 text-xs hover:border-emerald-400 dark:hover:border-emerald-600 transition"
-                >
-                  <span aria-hidden>✨</span>
-                  <span className="text-emerald-700 dark:text-emerald-400">
-                    DC
-                  </span>
-                  <span className="font-bold tabular-nums text-emerald-900 dark:text-emerald-200">
-                    {Math.round(dcRate * 100)}%
-                  </span>
-                </Link>
-              )}
             </div>
           )}
         </div>
@@ -296,5 +303,68 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+const PILL_TONES = {
+  neutral: {
+    border: "border-neutral-300 dark:border-neutral-700",
+    bg: "bg-white/60 dark:bg-neutral-900/60",
+    label: "text-neutral-500",
+    value: "text-neutral-900 dark:text-white",
+  },
+  emerald: {
+    border: "border-emerald-300 dark:border-emerald-700/60",
+    bg: "bg-emerald-50/60 dark:bg-emerald-950/30",
+    label: "text-emerald-700 dark:text-emerald-400",
+    value: "text-emerald-900 dark:text-emerald-200",
+  },
+  orange: {
+    border: "border-orange-300 dark:border-orange-700/60",
+    bg: "bg-orange-50/60 dark:bg-orange-950/30",
+    label: "text-orange-700 dark:text-orange-400",
+    value: "text-orange-900 dark:text-orange-200",
+  },
+  violet: {
+    border: "border-violet-300 dark:border-violet-700/60",
+    bg: "bg-violet-50/60 dark:bg-violet-950/30",
+    label: "text-violet-700 dark:text-violet-400",
+    value: "text-violet-900 dark:text-violet-200",
+  },
+  pink: {
+    border: "border-pink-300 dark:border-pink-700/60",
+    bg: "bg-pink-50/60 dark:bg-pink-950/30",
+    label: "text-pink-700 dark:text-pink-400",
+    value: "text-pink-900 dark:text-pink-200",
+  },
+} as const;
+
+function AccPill({
+  icon,
+  label,
+  rate,
+  tone,
+}: {
+  icon: string;
+  label: string;
+  rate: { evaluated: number; correct: number; rate: number };
+  tone: keyof typeof PILL_TONES;
+}) {
+  if (rate.evaluated === 0) return null;
+  const t = PILL_TONES[tone];
+  return (
+    <Link
+      href="/predictions/accuracy"
+      className={`inline-flex items-center gap-2 rounded-full border ${t.border} ${t.bg} backdrop-blur px-3 py-1.5 text-xs hover:opacity-90 transition`}
+    >
+      <span aria-hidden>{icon}</span>
+      <span className={t.label}>{label}</span>
+      <span className={`font-bold tabular-nums ${t.value}`}>
+        {Math.round(rate.rate * 100)}%
+      </span>
+      <span className="text-neutral-400 tabular-nums hidden sm:inline">
+        ({rate.correct}/{rate.evaluated})
+      </span>
+    </Link>
   );
 }
