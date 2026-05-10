@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { formatDateKo } from "@/lib/format";
+import { getExternalLinks } from "@/lib/external-links";
 
 export const dynamic = "force-dynamic";
 
@@ -363,6 +364,9 @@ export default async function ArticlePage({ params }: Props) {
       {/* AI 작성 disclosure + 데이터 출처 */}
       <AiDisclosure league={article.league} type={article.type} />
 
+      {/* 참고 외부 출처 (공식 사이트·통계) */}
+      <ExternalSources league={article.league} />
+
       {article.match && <MatchInsight match={article.match} />}
 
       {article.match && (
@@ -468,6 +472,63 @@ function AiDisclosure({ league, type }: { league: string; type: string }) {
             {sources.join(" · ")}. 모든 통계는 매치 시점 기준으로
             계산되며 결과는 모델 추정치로 베팅 결과를 보장하지 않습니다.
           </p>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+/* =====================================================================
+ * 외부 참고 출처 — 권위 있는 공식 사이트·통계 사이트 링크
+ * rel="nofollow noopener" 로 PageRank 손실 방지 + 보안.
+ * ===================================================================*/
+function ExternalSources({ league }: { league: string }) {
+  const links = getExternalLinks(league);
+  if (links.length === 0) return null;
+
+  return (
+    <aside className="mt-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-5 py-4 text-xs">
+      <div className="flex items-start gap-2">
+        <span className="text-base leading-none mt-0.5">🔗</span>
+        <div className="flex-1">
+          <div className="text-neutral-500 dark:text-neutral-400 font-medium mb-1.5">
+            참고 출처
+          </div>
+          <ul className="space-y-1">
+            {links.map((l) => (
+              <li key={l.url} className="flex items-center gap-2 leading-relaxed">
+                <span className="text-neutral-400">·</span>
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  {l.label}
+                </span>
+                <span className="text-neutral-300 dark:text-neutral-700">—</span>
+                <a
+                  href={l.url}
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-0.5"
+                >
+                  {l.display}
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden
+                    className="opacity-60"
+                  >
+                    <path
+                      d="M3 9L9 3M9 3H4.5M9 3V7.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </aside>
