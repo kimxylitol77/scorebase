@@ -95,6 +95,26 @@ export async function runPreview(opts?: { autoPublish?: boolean }) {
         };
       }
 
+      // 라인업 (api-football Pro)
+      if (m.lineupHome && m.lineupAway) {
+        try {
+          context.lineups = {
+            home: JSON.parse(m.lineupHome),
+            away: JSON.parse(m.lineupAway),
+          };
+        } catch {}
+      }
+
+      // API-Football 자체 prediction (third opinion)
+      if (m.apiPredHome != null && m.apiPredAway != null) {
+        context.apiPrediction = {
+          homePct: m.apiPredHome,
+          drawPct: m.apiPredDraw ?? 0,
+          awayPct: m.apiPredAway,
+          advice: m.apiPredAdvice ?? undefined,
+        };
+      }
+
       const normalized: NormalizedMatch = {
         league: m.league as League,
         externalId: m.externalId,

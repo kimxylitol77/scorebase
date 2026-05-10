@@ -19,6 +19,14 @@
       "schedule": "0 21 * * *"
     },
     {
+      "path": "/api/cron/api-football",
+      "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/api-football",
+      "schedule": "0 14 * * *"
+    },
+    {
       "path": "/api/cron/recap",
       "schedule": "0 3 * * *"
     },

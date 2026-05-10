@@ -5,7 +5,7 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/gemini";
 import { SYSTEM_PROMPT } from "@/prompts/system";
-import { buildRecapPrompt } from "@/prompts/match-recap";
+import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
 import { notifyDraftReady } from "@/lib/notify/telegram";
 import { titleDatePrefixKST } from "@/lib/format";
 import {
@@ -111,6 +111,21 @@ export async function runRecap(opts?: {
           away: m.marketAway,
           bookmakers: m.marketBookmakers ?? 0,
         };
+      }
+
+      // API-Football fixture statistics (RECAP 강화)
+      if (m.fixtureStats) {
+        try {
+          (context as RecapContext).fixtureStats = JSON.parse(m.fixtureStats);
+        } catch {}
+      }
+      if (m.lineupHome && m.lineupAway && !context.lineups) {
+        try {
+          context.lineups = {
+            home: JSON.parse(m.lineupHome),
+            away: JSON.parse(m.lineupAway),
+          };
+        } catch {}
       }
 
       const normalized: NormalizedMatch = {

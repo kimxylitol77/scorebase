@@ -300,6 +300,165 @@ export async function fetchFixtureEvents(
   }
 }
 
+// ===== 매치 통계 (슛/패스/점유율) — RECAP 강화 =====
+
+export interface FixtureStat {
+  teamId: number;
+  teamName: string;
+  shotsOnGoal?: number;
+  shotsTotal?: number;
+  possessionPct?: number; // 0~100
+  passesTotal?: number;
+  passesAccuratePct?: number;
+  fouls?: number;
+  cornerKicks?: number;
+  yellowCards?: number;
+  redCards?: number;
+  saves?: number;
+}
+
+const STAT_KEY: Record<string, keyof FixtureStat> = {
+  "Shots on Goal": "shotsOnGoal",
+  "Total Shots": "shotsTotal",
+  "Ball Possession": "possessionPct",
+  "Total passes": "passesTotal",
+  "Passes accurate": "passesAccuratePct",
+  Fouls: "fouls",
+  "Corner Kicks": "cornerKicks",
+  "Yellow Cards": "yellowCards",
+  "Red Cards": "redCards",
+  "Goalkeeper Saves": "saves",
+};
+
+export async function fetchFixtureStatistics(
+  fixtureId: number,
+): Promise<FixtureStat[]> {
+  try {
+    const { data } = await client().get("/fixtures/statistics", {
+      params: { fixture: fixtureId },
+    });
+    return (data?.response ?? []).map((r: any) => {
+      const out: FixtureStat = {
+        teamId: r.team?.id,
+        teamName: r.team?.name ?? "",
+      };
+      for (const s of r.statistics ?? []) {
+        const key = STAT_KEY[s.type as string];
+        if (!key) continue;
+        let v: number | undefined;
+        if (typeof s.value === "number") v = s.value;
+        else if (typeof s.value === "string") {
+          const num = Number(s.value.replace("%", ""));
+          v = Number.isFinite(num) ? num : undefined;
+        }
+        if (v != null) (out as any)[key] = v;
+      }
+      return out;
+    });
+  } catch {
+    return [];
+  }
+}
+
+// ===== API-Football 자체 예측 (third opinion) =====
+
+export interface ApiFootballPrediction {
+  winner: "HOME" | "DRAW" | "AWAY" | null;
+  winnerComment?: string;
+  homePct: number; // 0~1
+  drawPct: number;
+  awayPct: number;
+  underOver?: string; // "+2.5" / "-1.5" 등 raw
+  goals?: { home: string; away: string }; // 기대 골수 raw
+  advice?: string;
+}
+
+export async function fetchFixturePredictions(
+  fixtureId: number,
+): Promise<ApiFootballPrediction | null> {
+  try {
+    const { data } = await client().get("/predictions", {
+      params: { fixture: fixtureId },
+    });
+    const r = (data?.response ?? [])[0];
+    if (!r) return null;
+    const winnerId = r.predictions?.winner?.id ?? null;
+    const homeId = r.teams?.home?.id;
+    const awayId = r.teams?.away?.id;
+    let winner: "HOME" | "DRAW" | "AWAY" | null = null;
+    if (winnerId === homeId) winner = "HOME";
+    else if (winnerId === awayId) winner = "AWAY";
+    else if (winnerId === null && r.predictions?.win_or_draw === false)
+      winner = "DRAW";
+
+    const pct = r.predictions?.percent ?? {};
+    const homePct = parsePct(pct.home);
+    const drawPct = parsePct(pct.draw);
+    const awayPct = parsePct(pct.away);
+    return {
+      winner,
+      winnerComment: r.predictions?.winner?.comment,
+      homePct,
+      drawPct,
+      awayPct,
+      underOver: r.predictions?.under_over ?? undefined,
+      goals: r.predictions?.goals
+        ? { home: r.predictions.goals.home, away: r.predictions.goals.away }
+        : undefined,
+      advice: r.predictions?.advice,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parsePct(s: string | undefined): number {
+  if (!s) return 0;
+  const n = Number(String(s).replace("%", ""));
+  return Number.isFinite(n) ? n / 100 : 0;
+}
+
+// ===== 향후 N일 fixture 목록 (라인업 fetch 사전 단계) =====
+
+export interface UpcomingFixture {
+  fixtureId: number;
+  date: string;
+  homeTeamName: string;
+  awayTeamName: string;
+  homeTeamId: number;
+  awayTeamId: number;
+}
+
+export async function fetchUpcomingFixtures(
+  league: string,
+  fromDate: Date,
+  toDate: Date,
+): Promise<UpcomingFixture[]> {
+  const lid = API_FOOTBALL_LEAGUE_ID[league];
+  if (!lid) return [];
+  const season = getApiFootballSeason(fromDate, league);
+  try {
+    const { data } = await client().get("/fixtures", {
+      params: {
+        league: lid,
+        season,
+        from: fromDate.toISOString().slice(0, 10),
+        to: toDate.toISOString().slice(0, 10),
+      },
+    });
+    return (data?.response ?? []).map((r: any) => ({
+      fixtureId: r.fixture.id,
+      date: r.fixture.date,
+      homeTeamName: r.teams.home.name,
+      awayTeamName: r.teams.away.name,
+      homeTeamId: r.teams.home.id,
+      awayTeamId: r.teams.away.id,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 /** 시즌 시작 연도 — api-football 형식 */
 export function getApiFootballSeason(date: Date, league: string): number {
   const m = date.getMonth();

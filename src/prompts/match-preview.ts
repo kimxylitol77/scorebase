@@ -52,6 +52,18 @@ export interface PreviewContext {
     away: number;
     bookmakers: number;
   };
+  /** 확정 라인업 (api-football Pro, 매치 1시간 전 발표) */
+  lineups?: {
+    home: { formation?: string; startXI: string[]; coach?: string };
+    away: { formation?: string; startXI: string[]; coach?: string };
+  };
+  /** API-Football 자체 예측 (third opinion) */
+  apiPrediction?: {
+    homePct: number;
+    drawPct: number;
+    awayPct: number;
+    advice?: string;
+  };
 }
 
 export interface PreviewPromptInput {
@@ -95,6 +107,20 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
   if (context.winProb) {
     ctxLines.push(
       `- 통계 추정 승률: ${home} ${pct(context.winProb.home)} / 무 ${pct(context.winProb.draw)} / ${away} ${pct(context.winProb.away)}`,
+    );
+  }
+  if (context.lineups) {
+    const lh = context.lineups.home;
+    const la = context.lineups.away;
+    const lhStr = `${lh.formation ? `[${lh.formation}] ` : ""}${lh.startXI.join(", ")}${lh.coach ? ` (감독: ${lh.coach})` : ""}`;
+    const laStr = `${la.formation ? `[${la.formation}] ` : ""}${la.startXI.join(", ")}${la.coach ? ` (감독: ${la.coach})` : ""}`;
+    ctxLines.push(`- 확정 라인업 ${home}: ${lhStr}`);
+    ctxLines.push(`- 확정 라인업 ${away}: ${laStr}`);
+  }
+  if (context.apiPrediction) {
+    const ap = context.apiPrediction;
+    ctxLines.push(
+      `- API-Football 자체 예측 (외부 third opinion): ${home} ${pct(ap.homePct)} / 무 ${pct(ap.drawPct)} / ${away} ${pct(ap.awayPct)}${ap.advice ? ` · advice: ${ap.advice}` : ""}`,
     );
   }
   if (context.marketProb && context.winProb) {

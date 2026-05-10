@@ -5,11 +5,6 @@ import type { NormalizedMatch } from "@/lib/sports/types";
 import type { PreviewContext } from "./match-preview";
 
 export interface RecapContext extends PreviewContext {
-  /** 실제 라인업 + 포메이션 */
-  lineups?: {
-    home: { formation?: string; startXI: string[]; coach?: string };
-    away: { formation?: string; startXI: string[]; coach?: string };
-  };
   /** 경기 이벤트 (골/카드/교체 — 시간순) */
   events?: Array<{
     minute: number;
@@ -18,6 +13,20 @@ export interface RecapContext extends PreviewContext {
     team: "home" | "away";
     player: string;
     assist?: string;
+  }>;
+  /** 매치 통계 (api-football Pro) */
+  fixtureStats?: Array<{
+    teamId: number;
+    teamName: string;
+    shotsOnGoal?: number;
+    shotsTotal?: number;
+    possessionPct?: number;
+    passesTotal?: number;
+    passesAccuratePct?: number;
+    cornerKicks?: number;
+    yellowCards?: number;
+    redCards?: number;
+    saves?: number;
   }>;
 }
 
@@ -60,6 +69,25 @@ export function buildRecapPrompt(input: RecapPromptInput): string {
     ctxLines.push(
       `- 경기 전 통계 추정 승률: ${home} ${pct(context.winProb.home)} / 무 ${pct(context.winProb.draw)} / ${away} ${pct(context.winProb.away)}`,
     );
+  }
+  if (context.fixtureStats && context.fixtureStats.length >= 2) {
+    const h = context.fixtureStats.find((s) => s.teamName === home) ?? context.fixtureStats[0];
+    const a = context.fixtureStats.find((s) => s.teamName === away) ?? context.fixtureStats[1];
+    const statLine = (s: typeof h) =>
+      [
+        s.shotsOnGoal != null ? `유효슛 ${s.shotsOnGoal}` : null,
+        s.shotsTotal != null ? `슛 ${s.shotsTotal}` : null,
+        s.possessionPct != null ? `점유율 ${s.possessionPct}%` : null,
+        s.passesAccuratePct != null ? `패스 정확도 ${s.passesAccuratePct}%` : null,
+        s.cornerKicks != null ? `코너 ${s.cornerKicks}` : null,
+        s.yellowCards != null && s.yellowCards > 0 ? `옐로 ${s.yellowCards}` : null,
+        s.redCards != null && s.redCards > 0 ? `레드 ${s.redCards}` : null,
+        s.saves != null ? `세이브 ${s.saves}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    ctxLines.push(`- 매치 통계 ${home}: ${statLine(h)}`);
+    ctxLines.push(`- 매치 통계 ${away}: ${statLine(a)}`);
   }
   if (context.attackDefense) {
     const ad = context.attackDefense;

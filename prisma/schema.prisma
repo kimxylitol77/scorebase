@@ -99,6 +99,20 @@ model Match {
   oddsDc12        Float?  // 더블 찬스 홈승 OR 원정승 (무 제외)
   oddsDcX2        Float?  // 더블 찬스 무 OR 원정승
 
+  // API-Football Pro 통합 (축구만)
+  apiFixtureId    Int?     // api-football fixture ID — 한 번 매칭 후 재사용
+  lineupHome      String?  // 라인업 JSON (formation, startXI, coach)
+  lineupAway      String?
+  lineupUpdatedAt DateTime?
+  fixtureStats    String?  // 슛/패스/점유율 등 JSON ([{teamId, ...}, ...])
+  // API-Football 자체 예측 (third opinion)
+  apiPredHome     Float?
+  apiPredDraw     Float?
+  apiPredAway     Float?
+  apiPredWinner   String?  // "HOME" | "DRAW" | "AWAY"
+  apiPredAdvice   String?  // raw advice text (예: "Combo : Tottenham or draw and -2.5 goals")
+  apiPredCorrect  Boolean?
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]
