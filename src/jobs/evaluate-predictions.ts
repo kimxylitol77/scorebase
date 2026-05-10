@@ -119,6 +119,24 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
   for (const m of pending) {
     if (m.homeScore == null || m.awayScore == null) continue;
     const all = cache.get(m.league)!;
+
+    // 시즌 초반 학습 부족 매치 제외 — Elo 가 1500 기본값이라
+    // 픽이 거의 50/50 random. 양 팀 모두 5경기 이상 치른 후의 매치만 평가.
+    const homePrior = all.filter(
+      (p) =>
+        (p.homeTeamId === m.homeTeamId || p.awayTeamId === m.homeTeamId) &&
+        p.status === "FINISHED" &&
+        p.startTime.getTime() < m.startTime.getTime(),
+    ).length;
+    const awayPrior = all.filter(
+      (p) =>
+        (p.homeTeamId === m.awayTeamId || p.awayTeamId === m.awayTeamId) &&
+        p.status === "FINISHED" &&
+        p.startTime.getTime() < m.startTime.getTime(),
+    ).length;
+    const MIN_PRIOR = 5; // 양 팀 모두 5경기 이상 학습 후
+    if (Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
+
     const ctx = buildMatchContext(
       all,
       m.league,

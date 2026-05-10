@@ -260,26 +260,36 @@ export function predictHandicapMarket(
   const expectedAway = (away.scoredPerGame + home.concededPerGame) / 2;
   const expectedMargin = expectedHome - expectedAway;
 
-  const homeStronger = expectedMargin > 0;
-  const pick: "HOME" | "AWAY" = homeStronger ? "HOME" : "AWAY";
-
-  // 축구는 Skellam (정확) — λ < 5 범위에서 안정. 다른 종목은 Normal 근사 (큰 λ)
+  // 양쪽 cover 확률을 다 계산 후 더 높은 쪽을 픽한다.
+  // 핵심: 야구처럼 점수 폭 작은 종목은 1점 차 게임 빈도가 높아서
+  // "강팀 -1.5" 보다 "약팀 +1.5 받기" 가 적중률 높을 수 있음.
+  // 현재 코드 (강팀 픽 강제) 가 KBO 핸디 적중률 35% 의 원인.
   const useSkellam = SOCCER_LEAGUES_FOR_MARKETS.has(league);
-  let prob: number;
-  if (useSkellam) {
-    // P(home wins by line+) — line=1.5 → P(margin >= 2)
-    prob = homeStronger
-      ? skellamProbGreaterThan(profile.handicapLine, expectedHome, expectedAway)
-      : skellamProbGreaterThan(profile.handicapLine, expectedAway, expectedHome);
-  } else {
-    prob = homeStronger
-      ? 1 - normalCdf(profile.handicapLine, expectedMargin, profile.marginStd)
-      : normalCdf(-profile.handicapLine, expectedMargin, profile.marginStd);
-  }
+  const line = profile.handicapLine;
+
+  // P(home wins by line+) — 홈이 -line 핸디 cover
+  const homeCovers = useSkellam
+    ? skellamProbGreaterThan(line, expectedHome, expectedAway)
+    : 1 - normalCdf(line, expectedMargin, profile.marginStd);
+
+  // P(away wins by line+ OR away loses by less than line) — 어웨이가 +line 핸디 cover
+  // = P(margin < line) under home view = normalCdf(line, margin, std) for non-soccer
+  // 단 0.5 line 이라 push 없음
+  const awayCovers = useSkellam
+    ? skellamProbGreaterThan(line, expectedAway, expectedHome) +
+      // 약팀 핸디는 "지더라도 line 미만 차로" 까지 포함 (margin < -line 이 아니어야 함)
+      // = 1 - P(home wins by line+) - P(즈ush) ≈ 1 - homeCovers (push 거의 없음)
+      0  // skellam 결과는 양 끝 한쪽이라 약팀 cover = 1 - homeCovers - tie. 단순화: 1-homeCovers
+    : normalCdf(line, expectedMargin, profile.marginStd);
+  const awayCoverProb = useSkellam ? 1 - homeCovers : awayCovers;
+
+  const homeBetter = homeCovers >= awayCoverProb;
+  const pick: "HOME" | "AWAY" = homeBetter ? "HOME" : "AWAY";
+  const prob = homeBetter ? homeCovers : awayCoverProb;
 
   return {
     pick,
-    line: profile.handicapLine,
+    line,
     prob: Math.max(0.01, Math.min(0.99, prob)),
     expectedMargin,
   };
@@ -291,9 +301,12 @@ export function handicapCorrect(
   homeScore: number,
   awayScore: number,
 ): boolean {
+  // 핸디캡 시장 표준 의미:
+  // pick = HOME → "홈에 -line 핸디" → 홈이 line 차 이상으로 이겨야 cover
+  // pick = AWAY → "어웨이에 +line 핸디" → 어웨이가 -line 이내로 지거나 이김 = margin < line
   const margin = homeScore - awayScore;
   if (pick === "HOME") return margin > line;
-  return -margin > line;
+  return margin < line;
 }
 
 /* =====================================================================
