@@ -17,6 +17,9 @@ const SPORT_KEY: Record<string, string> = {
   NBA: "basketball_nba",
   NHL: "icehockey_nhl",
   MLB: "baseball_mlb",
+  // KBO — 현재 The Odds API 에서 active=False (미국 베팅사이트 미게시).
+  // 시즌 후반·한국시리즈 임박 시 활성화될 수 있음. 활성화되면 cron 이 자동 수집.
+  KBO: "baseball_kbo",
 };
 
 interface OddsApiOutcome {
