@@ -64,9 +64,10 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   NHL: { overLine: 5.5, totalStd: 2.5, marginStd: 2.4, handicapLine: 1.5, homeBoost: 1.05 },
   // 야구 — MLB 평균 8.7런, std 4.0, margin std 3.5
   MLB: { overLine: 8.5, totalStd: 4.0, marginStd: 3.5, handicapLine: 1.5, homeBoost: 1.04 },
-  // KBO 야구 — 한국 프로야구. MLB 보다 살짝 타고투저 (평균 9~10런 시즌).
-  // overLine 9.5, std·홈부스트는 MLB 와 거의 동일하게 시작.
-  KBO: { overLine: 9.5, totalStd: 4.2, marginStd: 3.6, handicapLine: 1.5, homeBoost: 1.05 },
+  // KBO 야구 — 한국 프로야구. 평균 9~10런 시즌.
+  // 실측 평균 마진 -0.18 / std 4.83 — 홈 어드밴티지 사실상 없음, 분산 큼.
+  // overLine 9.5 (장타 코스), homeBoost 1.0 (실측 반영), marginStd 4.5 (실측 근사).
+  KBO: { overLine: 9.5, totalStd: 4.5, marginStd: 4.5, handicapLine: 1.5, homeBoost: 1.0 },
 };
 
 /* =====================================================================
@@ -160,11 +161,24 @@ interface TeamGoals {
   sample: number;
 }
 
+/**
+ * 팀의 평균 득점·실점.
+ *
+ * @param venue 'home' / 'away' / 'all' (기본 'all')
+ *   야구처럼 홈/원정 격차가 큰 종목은 분리해서 사용.
+ * @param recentBlend 0~1. 1 이면 최근 N경기만, 0 이면 시즌 평균만.
+ *   기본 0.4 — 시즌 60% + 최근 40%.
+ */
 function teamGoalAverages(
   matches: PredictMatch[],
   teamId: number,
   asOf: Date,
+  opts?: { venue?: "home" | "away" | "all"; recentBlend?: number; recentN?: number },
 ): TeamGoals {
+  const venue = opts?.venue ?? "all";
+  const recentBlend = opts?.recentBlend ?? 0;
+  const recentN = opts?.recentN ?? 10;
+
   const past = matches.filter(
     (m) =>
       m.startTime.getTime() < asOf.getTime() &&
@@ -176,21 +190,57 @@ function teamGoalAverages(
   if (past.length === 0) {
     return { scoredPerGame: 0, concededPerGame: 0, sample: 0 };
   }
-  let scored = 0;
-  let conceded = 0;
-  for (const m of past) {
-    if (m.homeTeamId === teamId) {
-      scored += m.homeScore ?? 0;
-      conceded += m.awayScore ?? 0;
-    } else {
-      scored += m.awayScore ?? 0;
-      conceded += m.homeScore ?? 0;
+
+  // venue 필터 — 홈/원정 분리
+  const filtered =
+    venue === "home"
+      ? past.filter((m) => m.homeTeamId === teamId)
+      : venue === "away"
+        ? past.filter((m) => m.awayTeamId === teamId)
+        : past;
+
+  // 표본이 너무 적으면 venue 필터 풀고 all 로 fallback
+  const used = filtered.length >= 5 ? filtered : past;
+
+  const compute = (list: PredictMatch[]) => {
+    let scored = 0;
+    let conceded = 0;
+    for (const m of list) {
+      if (m.homeTeamId === teamId) {
+        scored += m.homeScore ?? 0;
+        conceded += m.awayScore ?? 0;
+      } else {
+        scored += m.awayScore ?? 0;
+        conceded += m.homeScore ?? 0;
+      }
     }
+    return {
+      scoredPerGame: scored / list.length,
+      concededPerGame: conceded / list.length,
+    };
+  };
+
+  const seasonAvg = compute(used);
+
+  if (recentBlend <= 0 || used.length <= recentN) {
+    return { ...seasonAvg, sample: used.length };
   }
+
+  // 최근 N경기 가중치 (시간순 sort 후 마지막 N)
+  const sorted = [...used].sort(
+    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
+  );
+  const recent = sorted.slice(-recentN);
+  const recentAvg = compute(recent);
+
   return {
-    scoredPerGame: scored / past.length,
-    concededPerGame: conceded / past.length,
-    sample: past.length,
+    scoredPerGame:
+      seasonAvg.scoredPerGame * (1 - recentBlend) +
+      recentAvg.scoredPerGame * recentBlend,
+    concededPerGame:
+      seasonAvg.concededPerGame * (1 - recentBlend) +
+      recentAvg.concededPerGame * recentBlend,
+    sample: used.length,
   };
 }
 
@@ -213,8 +263,16 @@ export function predictTotalMarket(
 } | null {
   const profile = getSportProfile(league);
   if (!profile) return null;
-  const home = teamGoalAverages(matches, homeTeamId, asOf);
-  const away = teamGoalAverages(matches, awayTeamId, asOf);
+  // 야구는 홈/원정 격차 + 최근 폼 영향 큼 — KBO·MLB 분리 사용
+  const isBaseball = league === "KBO" || league === "MLB";
+  const home = teamGoalAverages(matches, homeTeamId, asOf, {
+    venue: isBaseball ? "home" : "all",
+    recentBlend: isBaseball ? 0.4 : 0,
+  });
+  const away = teamGoalAverages(matches, awayTeamId, asOf, {
+    venue: isBaseball ? "away" : "all",
+    recentBlend: isBaseball ? 0.4 : 0,
+  });
   const sample = Math.min(home.sample, away.sample);
   if (sample === 0) return null;
 
@@ -251,8 +309,15 @@ export function predictHandicapMarket(
 } | null {
   const profile = getSportProfile(league);
   if (!profile) return null;
-  const home = teamGoalAverages(matches, homeTeamId, asOf);
-  const away = teamGoalAverages(matches, awayTeamId, asOf);
+  const isBaseball = league === "KBO" || league === "MLB";
+  const home = teamGoalAverages(matches, homeTeamId, asOf, {
+    venue: isBaseball ? "home" : "all",
+    recentBlend: isBaseball ? 0.4 : 0,
+  });
+  const away = teamGoalAverages(matches, awayTeamId, asOf, {
+    venue: isBaseball ? "away" : "all",
+    recentBlend: isBaseball ? 0.4 : 0,
+  });
   if (Math.min(home.sample, away.sample) === 0) return null;
 
   const expectedHome =
