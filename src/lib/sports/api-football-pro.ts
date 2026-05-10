@@ -28,6 +28,31 @@ interface CacheEntry<T> {
 const injuriesCache = new Map<string, CacheEntry<InjuryEntry[]>>();
 const topScorersCache = new Map<string, CacheEntry<TopScorerEntry[]>>();
 
+/**
+ * api-football 팀명 매칭 — "Man City" ↔ "Manchester City",
+ * "Brighton Hove" ↔ "Brighton & Hove Albion" 같은 차이 흡수.
+ * 토큰화 후 의미 단어들의 부분집합 관계로 판단.
+ */
+export function teamsMatch(a: string, b: string): boolean {
+  const STOP = new Set([
+    "fc", "afc", "cf", "club", "the", "and", "&",
+    "city", "united", "town", "rovers", "wanderers", "hotspur",
+    "athletic", "albion", "rangers",
+  ]);
+  const tokenize = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣\s]/g, " ")
+      .split(/\s+/)
+      .filter((t) => t && !STOP.has(t));
+  const ta = tokenize(a);
+  const tb = tokenize(b);
+  if (ta.length === 0 || tb.length === 0) return false;
+  // 길이 적은 쪽의 모든 토큰이 다른 쪽에 포함되면 매치
+  const [shorter, longer] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+  return shorter.every((t) => longer.some((u) => u.startsWith(t) || t.startsWith(u)));
+}
+
 function client() {
   const k = process.env.API_FOOTBALL_KEY;
   if (!k) throw new Error("API_FOOTBALL_KEY 가 없습니다 (Pro 가입 필요).");
@@ -239,19 +264,11 @@ export async function findFixtureByDateAndTeams(
       awayTeamName: r.teams.away.name,
     }));
 
-    const norm = (s: string) =>
-      s.toLowerCase().replace(/\s+fc$/, "").replace(/\s+/g, "");
-    const h = norm(homeTeamName);
-    const a = norm(awayTeamName);
-
-    const found = list.find((m) => {
-      const mh = norm(m.homeTeamName);
-      const ma = norm(m.awayTeamName);
-      return (
-        (mh.includes(h) || h.includes(mh)) &&
-        (ma.includes(a) || a.includes(ma))
-      );
-    });
+    const found = list.find(
+      (m) =>
+        teamsMatch(m.homeTeamName, homeTeamName) &&
+        teamsMatch(m.awayTeamName, awayTeamName),
+    );
     return found?.fixtureId ?? null;
   } catch {
     return null;

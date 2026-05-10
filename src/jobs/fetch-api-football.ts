@@ -11,6 +11,7 @@ import {
   fetchFixtureLineups,
   fetchFixtureStatistics,
   fetchFixturePredictions,
+  teamsMatch,
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
 
@@ -55,8 +56,10 @@ export async function runApiFootball(opts?: { limit?: number }) {
     // 라인업 (1시간 전부터 발표)
     if (!m.lineupUpdatedAt || Date.now() - m.lineupUpdatedAt.getTime() > 30 * 60 * 1000) {
       const lineups = await fetchFixtureLineups(fid);
-      const home = lineups.find((l) => l.teamName === m.homeTeam.name) ?? lineups[0];
-      const away = lineups.find((l) => l.teamName === m.awayTeam.name) ?? lineups[1];
+      const home =
+        lineups.find((l) => teamsMatch(l.teamName, m.homeTeam.name)) ?? lineups[0];
+      const away =
+        lineups.find((l) => teamsMatch(l.teamName, m.awayTeam.name)) ?? lineups[1];
       if (home) {
         data.lineupHome = JSON.stringify(home);
         data.lineupUpdatedAt = new Date();
@@ -82,19 +85,20 @@ export async function runApiFootball(opts?: { limit?: number }) {
   }
   console.log(`[af/upcoming] 라인업 ${lineupCount}건, predictions ${predCount}건`);
 
-  // ===== Phase 2: 최근 36h FINISHED 매치 — fixture statistics =====
+  // ===== Phase 2: 최근 36h FINISHED 매치 — fixture statistics + 라인업 (사후) =====
   const recent = await prisma.match.findMany({
     where: {
       league: { in: SOCCER_LEAGUES },
       status: "FINISHED",
       startTime: { gte: new Date(Date.now() - 36 * 3600 * 1000) },
-      fixtureStats: null,
+      OR: [{ fixtureStats: null }, { lineupHome: null }],
     },
     include: { homeTeam: true, awayTeam: true },
     take: limit,
   });
   console.log(`[af/stats] 대상: ${recent.length}`);
   let statsCount = 0;
+  let postLineupCount = 0;
   for (const m of recent) {
     let fid = m.apiFixtureId ?? null;
     if (!fid) {
@@ -110,28 +114,44 @@ export async function runApiFootball(opts?: { limit?: number }) {
         data: { apiFixtureId: fid },
       });
     }
-    const stats = await fetchFixtureStatistics(fid);
-    if (stats.length > 0) {
-      // API-Football 자체 prediction 적중 평가도 같이
-      const data: Record<string, unknown> = {
-        fixtureStats: JSON.stringify(stats),
-      };
-      if (m.apiPredWinner && m.homeScore != null && m.awayScore != null) {
-        const actual =
-          m.homeScore > m.awayScore
-            ? "HOME"
-            : m.awayScore > m.homeScore
-              ? "AWAY"
-              : "DRAW";
-        data.apiPredCorrect = m.apiPredWinner === actual;
+    const data: Record<string, unknown> = {};
+    if (!m.fixtureStats) {
+      const stats = await fetchFixtureStatistics(fid);
+      if (stats.length > 0) {
+        data.fixtureStats = JSON.stringify(stats);
+        statsCount++;
       }
+    }
+    if (!m.lineupHome) {
+      const lineups = await fetchFixtureLineups(fid);
+      if (lineups.length >= 2) {
+        const home =
+          lineups.find((l) => teamsMatch(l.teamName, m.homeTeam.name)) ?? lineups[0];
+        const away =
+          lineups.find((l) => teamsMatch(l.teamName, m.awayTeam.name)) ?? lineups[1];
+        data.lineupHome = JSON.stringify(home);
+        data.lineupAway = JSON.stringify(away);
+        data.lineupUpdatedAt = new Date();
+        postLineupCount++;
+      }
+    }
+    // API-Football prediction 적중 평가
+    if (m.apiPredWinner && m.homeScore != null && m.awayScore != null && m.apiPredCorrect == null) {
+      const actual =
+        m.homeScore > m.awayScore
+          ? "HOME"
+          : m.awayScore > m.homeScore
+            ? "AWAY"
+            : "DRAW";
+      data.apiPredCorrect = m.apiPredWinner === actual;
+    }
+    if (Object.keys(data).length > 0) {
       await prisma.match.update({ where: { id: m.id }, data });
-      statsCount++;
     }
   }
-  console.log(`[af/stats] ${statsCount}건 통계 저장`);
+  console.log(`[af/stats] ${statsCount}건 통계 + ${postLineupCount}건 사후 라인업 저장`);
 
-  return { lineupCount, predCount, statsCount };
+  return { lineupCount, predCount, statsCount, postLineupCount };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
