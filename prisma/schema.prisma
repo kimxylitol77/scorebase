@@ -66,6 +66,13 @@ model Match {
   predBttsPick    String? // "YES" | "NO"
   predBttsCorrect Boolean?
 
+  // 핸디캡 (Asian Handicap / Spread) — 종목별 line 다름
+  // 축구 -0.5 / NBA -5.5 / NHL -1.5 / MLB -1.5
+  predHcLine     Float?
+  predHcPick     String?  // "HOME" | "AWAY" — 핸디캡 받는 쪽
+  predHcProb     Float?
+  predHcCorrect  Boolean?
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]

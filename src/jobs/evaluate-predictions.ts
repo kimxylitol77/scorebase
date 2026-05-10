@@ -11,9 +11,13 @@ import { buildMatchContext } from "@/lib/predict/build-context";
 import {
   bestDoubleChance,
   dcCorrect,
-  predictGoalsMarket,
+  predictTotalMarket,
+  predictBttsMarket,
+  predictHandicapMarket,
+  handicapCorrect,
   overActual,
   bttsActual,
+  getSportProfile,
   SOCCER_LEAGUES_FOR_MARKETS,
 } from "@/lib/predict/markets";
 import type { PredictMatch } from "@/lib/predict/types";
@@ -142,26 +146,63 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
       predCorrect: correct,
     };
 
-    // 축구 한정 — DC + OVER + BTTS
-    if (SOCCER_LEAGUES_FOR_MARKETS.has(m.league)) {
-      const dc = bestDoubleChance(wp);
-      const goals = predictGoalsMarket(
+    // OVER/UNDER + 핸디캡 — 모든 종목
+    const sportProfile = getSportProfile(m.league);
+    if (sportProfile) {
+      const total = predictTotalMarket(
         all,
+        m.league,
         m.homeTeamId,
         m.awayTeamId,
         m.startTime,
       );
-      const ovPick = goals.pOver >= 0.5 ? "OVER" : "UNDER";
-      const btPick = goals.pBtts >= 0.5 ? "YES" : "NO";
+      if (total) {
+        const ovPick = total.pOver >= 0.5 ? "OVER" : "UNDER";
+        data.predOverProb = total.pOver;
+        data.predOverPick = ovPick;
+        data.predOverCorrect =
+          ovPick === overActual(m.homeScore, m.awayScore, total.line);
+      }
+      const hc = predictHandicapMarket(
+        all,
+        m.league,
+        m.homeTeamId,
+        m.awayTeamId,
+        m.startTime,
+      );
+      if (hc) {
+        data.predHcLine = hc.line;
+        data.predHcPick = hc.pick;
+        data.predHcProb = hc.prob;
+        data.predHcCorrect = handicapCorrect(
+          hc.pick,
+          hc.line,
+          m.homeScore,
+          m.awayScore,
+        );
+      }
+    }
+
+    // 축구 한정 — DC + BTTS
+    if (SOCCER_LEAGUES_FOR_MARKETS.has(m.league)) {
+      const dc = bestDoubleChance(wp);
       data.predDcPick = dc.pick;
       data.predDcProb = dc.prob;
       data.predDcCorrect = dcCorrect(dc.pick, actualW);
-      data.predOverProb = goals.pOver;
-      data.predOverPick = ovPick;
-      data.predOverCorrect = ovPick === overActual(m.homeScore, m.awayScore);
-      data.predBttsProb = goals.pBtts;
-      data.predBttsPick = btPick;
-      data.predBttsCorrect = btPick === bttsActual(m.homeScore, m.awayScore);
+      const btts = predictBttsMarket(
+        all,
+        m.league,
+        m.homeTeamId,
+        m.awayTeamId,
+        m.startTime,
+      );
+      if (btts) {
+        const btPick = btts.pBtts >= 0.5 ? "YES" : "NO";
+        data.predBttsProb = btts.pBtts;
+        data.predBttsPick = btPick;
+        data.predBttsCorrect =
+          btPick === bttsActual(m.homeScore, m.awayScore);
+      }
     }
 
     await prisma.match.update({ where: { id: m.id }, data });

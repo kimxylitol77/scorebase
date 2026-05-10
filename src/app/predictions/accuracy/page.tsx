@@ -48,6 +48,7 @@ interface LeagueStat {
   oneXTwo: MarketRate;
   dc: MarketRate;
   over: MarketRate;
+  hc: MarketRate;
   btts: MarketRate;
   highConfidence: MarketRate;
   recent10: MarketRate;
@@ -77,6 +78,7 @@ async function statForLeague(league: string): Promise<LeagueStat> {
       predAway: true,
       predDcCorrect: true,
       predOverCorrect: true,
+      predHcCorrect: true,
       predBttsCorrect: true,
       startTime: true,
     },
@@ -86,6 +88,7 @@ async function statForLeague(league: string): Promise<LeagueStat> {
   const oneXTwo = rateOf(all.map((m) => ({ ok: m.predCorrect })));
   const dc = rateOf(all.map((m) => ({ ok: m.predDcCorrect })));
   const over = rateOf(all.map((m) => ({ ok: m.predOverCorrect })));
+  const hc = rateOf(all.map((m) => ({ ok: m.predHcCorrect })));
   const btts = rateOf(all.map((m) => ({ ok: m.predBttsCorrect })));
 
   // 1X2 신뢰도 가중 — 가장 높은 확률 60% 이상
@@ -103,6 +106,7 @@ async function statForLeague(league: string): Promise<LeagueStat> {
     oneXTwo,
     dc,
     over,
+    hc,
     btts,
     highConfidence: rateOf(highConf),
     recent10: rateOf(recent10),
@@ -119,10 +123,14 @@ export default async function AccuracyPage() {
   const soccerStats = stats.filter((s) => s.isSoccer);
   const dcTotal = soccerStats.reduce((s, x) => s + x.dc.evaluated, 0);
   const dcCorrect = soccerStats.reduce((s, x) => s + x.dc.correct, 0);
-  const overTotal = soccerStats.reduce((s, x) => s + x.over.evaluated, 0);
-  const overCorrect = soccerStats.reduce((s, x) => s + x.over.correct, 0);
   const bttsTotal = soccerStats.reduce((s, x) => s + x.btts.evaluated, 0);
   const bttsCorrect = soccerStats.reduce((s, x) => s + x.btts.correct, 0);
+
+  // OVER/UNDER + 핸디캡 — 모든 종목 합산
+  const overTotal = stats.reduce((s, x) => s + x.over.evaluated, 0);
+  const overCorrect = stats.reduce((s, x) => s + x.over.correct, 0);
+  const hcTotal = stats.reduce((s, x) => s + x.hc.evaluated, 0);
+  const hcCorrect = stats.reduce((s, x) => s + x.hc.correct, 0);
 
   // 정렬 — DC 적중률 높은 순 (축구 우선)
   const sorted = [...stats]
@@ -142,10 +150,10 @@ export default async function AccuracyPage() {
         </p>
       </header>
 
-      {/* 전체 시장별 요약 — 4개 카드 */}
-      <section className="mb-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* 전체 시장별 요약 — 5개 카드 */}
+      <section className="mb-10 grid grid-cols-2 lg:grid-cols-5 gap-3">
         <SummaryCard
-          label="결과 적중 (1X2)"
+          label="결과 (1X2)"
           subtitle="홈 / 무 / 원정"
           rate={overallRate}
           correct={totalCorrect}
@@ -153,20 +161,28 @@ export default async function AccuracyPage() {
           gradient="from-blue-500 to-purple-500"
         />
         <SummaryCard
-          label="더블 찬스 (DC)"
-          subtitle="축구 · 무승부 흡수"
+          label="더블 찬스"
+          subtitle="축구 · 무 흡수"
           rate={dcTotal > 0 ? dcCorrect / dcTotal : 0}
           correct={dcCorrect}
           total={dcTotal}
           gradient="from-emerald-500 to-cyan-500"
         />
         <SummaryCard
-          label="OVER 2.5"
-          subtitle="축구 · 총 3골 이상"
+          label="OVER/UNDER"
+          subtitle="모든 종목 · 총득점"
           rate={overTotal > 0 ? overCorrect / overTotal : 0}
           correct={overCorrect}
           total={overTotal}
           gradient="from-orange-500 to-red-500"
+        />
+        <SummaryCard
+          label="핸디캡"
+          subtitle="모든 종목 · 마진"
+          rate={hcTotal > 0 ? hcCorrect / hcTotal : 0}
+          correct={hcCorrect}
+          total={hcTotal}
+          gradient="from-violet-500 to-fuchsia-500"
         />
         <SummaryCard
           label="BTTS"
@@ -217,12 +233,18 @@ export default async function AccuracyPage() {
             축구에서 정확도가 크게 올라갑니다.
           </li>
           <li>
-            <strong>OVER 2.5</strong>: Poisson 모델로 양 팀 평균 득/실점에서
-            기대 골수(λ)를 추정해 총 득점 3골 이상 확률을 산출.
+            <strong>OVER/UNDER</strong>: 종목별 기준선 (축구 2.5골 · NBA 220.5점
+            · NHL 5.5골 · MLB 8.5점) 기준으로 양 팀 평균 득/실점에서 기대
+            총득점을 추정 → Normal CDF 로 P(OVER) 산출.
           </li>
           <li>
-            <strong>BTTS (Both Teams To Score)</strong>: 양 팀이 각각 한 골 이상
-            기록할 확률. Poisson(λ_home)·Poisson(λ_away) 각각의 P(0골) 보수.
+            <strong>핸디캡 (Asian Handicap / Spread)</strong>: 종목별 line (축구
+            -0.5 · NBA -5.5 · NHL -1.5 · MLB -1.5) 으로 강팀이 그 차이 이상으로
+            이길 확률. 마진의 Normal 분포 가정.
+          </li>
+          <li>
+            <strong>BTTS (Both Teams To Score)</strong>: 축구 전용. Poisson 으로
+            양 팀이 각각 한 골 이상 기록할 확률 산출 (P(0골) 보수).
           </li>
           <li>
             <strong>강한 예측</strong> = 1X2 가장 높은 확률이 60% 이상인 매치만의
@@ -320,32 +342,21 @@ function LeagueCard({ stat }: { stat: LeagueStat }) {
         />
       </div>
 
-      {/* 축구 리그면 4개 시장, 그 외엔 신뢰도/최근 10 */}
+      {/* 시장별 chip — 축구는 4개, 그 외는 OVER + 핸디캡만 */}
       {stat.isSoccer ? (
-        <div className="grid grid-cols-3 gap-2 text-[11px]">
+        <div className="grid grid-cols-4 gap-1.5 text-[11px]">
           <MarketChip label="DC" rate={stat.dc} />
-          <MarketChip label="O 2.5" rate={stat.over} />
+          <MarketChip label="OVER" rate={stat.over} />
+          <MarketChip label="HC" rate={stat.hc} />
           <MarketChip label="BTTS" rate={stat.btts} />
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2 text-[11px] text-neutral-500">
-          <div>
-            <div className="text-neutral-400">표본</div>
-            <div className="font-mono text-neutral-700 dark:text-neutral-300">
-              {stat.oneXTwo.correct}/{stat.oneXTwo.evaluated}
-            </div>
-          </div>
-          <div>
-            <div className="text-neutral-400">강한 예측</div>
-            <div className="font-mono text-neutral-700 dark:text-neutral-300">
-              {stat.highConfidence.evaluated > 0
-                ? `${Math.round(stat.highConfidence.rate * 100)}%`
-                : "—"}
-            </div>
-          </div>
+        <div className="grid grid-cols-3 gap-2 text-[11px]">
+          <MarketChip label="OVER" rate={stat.over} />
+          <MarketChip label="HC" rate={stat.hc} />
           <div>
             <div className="text-neutral-400">최근 10</div>
-            <div className="font-mono text-neutral-700 dark:text-neutral-300">
+            <div className="font-mono text-neutral-700 dark:text-neutral-300 text-sm font-bold">
               {stat.recent10.evaluated > 0
                 ? `${Math.round(stat.recent10.rate * 100)}%`
                 : "—"}

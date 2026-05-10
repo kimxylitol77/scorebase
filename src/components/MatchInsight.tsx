@@ -21,9 +21,13 @@ import {
 import {
   bestDoubleChance,
   dcCorrect,
-  predictGoalsMarket,
+  predictTotalMarket,
+  predictBttsMarket,
+  predictHandicapMarket,
+  handicapCorrect,
   overActual,
   bttsActual,
+  getSportProfile,
   SOCCER_LEAGUES_FOR_MARKETS,
   type DcPick,
 } from "@/lib/predict/markets";
@@ -95,8 +99,9 @@ export default async function MatchInsight({ match }: Props) {
     match.awayTeam.name,
   );
 
-  // === AI 예측 시장 (DC / OVER 2.5 / BTTS) — 축구만 ===
+  // === AI 예측 시장 ===
   const isSoccer = SOCCER_LEAGUES_FOR_MARKETS.has(match.league);
+  const sportProfile = getSportProfile(match.league);
   const isFinished =
     match.status === "FINISHED" &&
     match.homeScore != null &&
@@ -108,10 +113,6 @@ export default async function MatchInsight({ match }: Props) {
         ? ("AWAY" as const)
         : ("DRAW" as const)
     : null;
-  const dc = bestDoubleChance(winProb);
-  const goals = isSoccer
-    ? predictGoalsMarket(matches, match.homeTeamId, match.awayTeamId, referenceTime)
-    : null;
   const oneXTwoPick: "HOME" | "DRAW" | "AWAY" =
     winProb.home >= winProb.away && winProb.home >= winProb.draw
       ? "HOME"
@@ -119,16 +120,34 @@ export default async function MatchInsight({ match }: Props) {
         ? "AWAY"
         : "DRAW";
   const oneXTwoCorrect = actualWinner ? oneXTwoPick === actualWinner : null;
-  const dcOk = actualWinner ? dcCorrect(dc.pick, actualWinner) : null;
-  const ovPick = goals ? (goals.pOver >= 0.5 ? "OVER" : "UNDER") : null;
-  const ovOk =
-    isFinished && ovPick
-      ? ovPick === overActual(match.homeScore!, match.awayScore!)
-      : null;
-  const btPick = goals ? (goals.pBtts >= 0.5 ? "YES" : "NO") : null;
+
+  // 축구 전용 — DC + BTTS
+  const dc = isSoccer ? bestDoubleChance(winProb) : null;
+  const dcOk = dc && actualWinner ? dcCorrect(dc.pick, actualWinner) : null;
+  const btts = isSoccer
+    ? predictBttsMarket(matches, match.league, match.homeTeamId, match.awayTeamId, referenceTime)
+    : null;
+  const btPick = btts ? (btts.pBtts >= 0.5 ? "YES" : "NO") : null;
   const btOk =
     isFinished && btPick
       ? btPick === bttsActual(match.homeScore!, match.awayScore!)
+      : null;
+
+  // 모든 종목 공통 — OVER/UNDER + 핸디캡
+  const total = sportProfile
+    ? predictTotalMarket(matches, match.league, match.homeTeamId, match.awayTeamId, referenceTime)
+    : null;
+  const ovPick = total ? (total.pOver >= 0.5 ? "OVER" : "UNDER") : null;
+  const ovOk =
+    isFinished && ovPick && total
+      ? ovPick === overActual(match.homeScore!, match.awayScore!, total.line)
+      : null;
+  const hc = sportProfile
+    ? predictHandicapMarket(matches, match.league, match.homeTeamId, match.awayTeamId, referenceTime)
+    : null;
+  const hcOk =
+    isFinished && hc
+      ? handicapCorrect(hc.pick, hc.line, match.homeScore!, match.awayScore!)
       : null;
 
   // Elo 변천사 (양 팀 시즌 추이)
@@ -307,9 +326,9 @@ export default async function MatchInsight({ match }: Props) {
         />
       </Section>
 
-      {/* 1.5) AI 예측 종합 — 4개 시장 (축구는 4개 모두, 그 외는 1X2만) */}
+      {/* 1.5) AI 예측 종합 — 종목별 시장 카드 */}
       <Section title={isFinished ? "AI 예측 종합 · 결과 비교" : "AI 예측 종합"}>
-        <div className={`grid ${isSoccer ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-1"} gap-3`}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MarketCard
             label="결과 (1X2)"
             pick={
@@ -330,7 +349,7 @@ export default async function MatchInsight({ match }: Props) {
             isFinished={isFinished}
             tone="blue"
           />
-          {isSoccer && (
+          {dc && (
             <MarketCard
               label="더블 찬스"
               pick={dcPickLabel(dc.pick, match.homeTeam.name, match.awayTeam.name)}
@@ -340,31 +359,43 @@ export default async function MatchInsight({ match }: Props) {
               tone="emerald"
             />
           )}
-          {isSoccer && goals && ovPick && (
+          {total && ovPick && (
             <MarketCard
-              label="OVER 2.5"
-              pick={ovPick === "OVER" ? "OVER (3골+)" : "UNDER (2골-)"}
-              prob={ovPick === "OVER" ? goals.pOver : 1 - goals.pOver}
+              label={`OVER ${total.line}`}
+              pick={ovPick === "OVER" ? `OVER (${total.line}+)` : `UNDER (${total.line}-)`}
+              prob={ovPick === "OVER" ? total.pOver : 1 - total.pOver}
               correct={ovOk}
               isFinished={isFinished}
               tone="orange"
             />
           )}
-          {isSoccer && goals && btPick && (
+          {hc && (
+            <MarketCard
+              label={`핸디캡 ${hc.line > 0 ? `±${hc.line}` : ""}`}
+              pick={`${hc.pick === "HOME" ? match.homeTeam.name : match.awayTeam.name} -${hc.line}`}
+              prob={hc.prob}
+              correct={hcOk}
+              isFinished={isFinished}
+              tone="violet"
+            />
+          )}
+          {btts && btPick && (
             <MarketCard
               label="양 팀 득점"
               pick={btPick === "YES" ? "YES" : "NO"}
-              prob={btPick === "YES" ? goals.pBtts : 1 - goals.pBtts}
+              prob={btPick === "YES" ? btts.pBtts : 1 - btts.pBtts}
               correct={btOk}
               isFinished={isFinished}
               tone="pink"
             />
           )}
         </div>
-        {isSoccer && goals && (
+        {(total || hc) && (
           <p className="mt-3 text-[11px] text-neutral-500">
-            기대 골 (Poisson λ) — {match.homeTeam.name} {goals.lambdaHome.toFixed(2)} ·{" "}
-            {match.awayTeam.name} {goals.lambdaAway.toFixed(2)}
+            {total &&
+              `기대 총득점 ${total.expectedTotal.toFixed(1)} · 기준선 ${total.line}`}
+            {total && hc && " · "}
+            {hc && `기대 마진 ${hc.expectedMargin >= 0 ? "+" : ""}${hc.expectedMargin.toFixed(1)}`}
           </p>
         )}
       </Section>
@@ -513,12 +544,15 @@ const TONE_CLASSES = {
     "border-orange-200 dark:border-orange-900/40 bg-orange-50/60 dark:bg-orange-950/30",
   pink:
     "border-pink-200 dark:border-pink-900/40 bg-pink-50/60 dark:bg-pink-950/30",
+  violet:
+    "border-violet-200 dark:border-violet-900/40 bg-violet-50/60 dark:bg-violet-950/30",
 } as const;
 const TONE_TEXT = {
   blue: "text-blue-700 dark:text-blue-300",
   emerald: "text-emerald-700 dark:text-emerald-300",
   orange: "text-orange-700 dark:text-orange-300",
   pink: "text-pink-700 dark:text-pink-300",
+  violet: "text-violet-700 dark:text-violet-300",
 } as const;
 
 function MarketCard({
