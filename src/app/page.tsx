@@ -540,6 +540,42 @@ function LeagueDirectory() {
         title="리그별 매치 인사이트"
         subtitle="원하는 리그의 프리뷰·리뷰·시즌 분석으로 바로 이동"
       />
+
+      {/* 월드컵 강조 카드 — 개막 임박 */}
+      <Link
+        href="/leagues/WORLD_CUP"
+        className="group relative block mb-3 overflow-hidden rounded-2xl border border-amber-300 dark:border-amber-500/30"
+      >
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600 opacity-90" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 text-white">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <span className="text-4xl leading-none drop-shadow" aria-hidden>
+              🏆
+            </span>
+            <div>
+              <div className="text-[11px] font-bold tracking-[0.25em] uppercase opacity-80">
+                FIFA World Cup 2026 · LIVE SOON
+              </div>
+              <div className="text-lg sm:text-xl font-black tracking-tight">
+                북중미 월드컵 — 6/11 개막
+              </div>
+              <div className="text-xs sm:text-sm opacity-90 mt-0.5">
+                🇰🇷 한국 첫 경기 6/12 11:00 KST vs 체코 · 우승 후보·조별 통과 확률 보러가기
+              </div>
+            </div>
+          </div>
+          <div className="sm:ml-auto flex items-center gap-2 text-sm font-semibold">
+            <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
+              예측 / 매치 / 분석
+            </span>
+            <span aria-hidden className="transition group-hover:translate-x-1">
+              →
+            </span>
+          </div>
+        </div>
+      </Link>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {tiles.map((t) => (
           <Link
