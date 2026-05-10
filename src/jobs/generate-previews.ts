@@ -127,6 +127,16 @@ export async function runPreview(opts?: {
         };
       }
 
+      // MLB 선발 투수 (statsapi.mlb.com)
+      if (m.league === "MLB" && (m.homeStarter || m.awayStarter)) {
+        try {
+          context.starters = {
+            home: m.homeStarter ? JSON.parse(m.homeStarter) : undefined,
+            away: m.awayStarter ? JSON.parse(m.awayStarter) : undefined,
+          };
+        } catch {}
+      }
+
       const normalized: NormalizedMatch = {
         league: m.league as League,
         externalId: m.externalId,

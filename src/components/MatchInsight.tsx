@@ -31,6 +31,10 @@ import {
   SOCCER_LEAGUES_FOR_MARKETS,
   type DcPick,
 } from "@/lib/predict/markets";
+import {
+  computeStarterAdjustment,
+  applyStarterToWinProb,
+} from "@/lib/predict/starter-adjust";
 import type { PredictMatch } from "@/lib/predict/types";
 import FormDots from "./FormDots";
 import EloMeter from "./EloMeter";
@@ -136,7 +140,15 @@ export default async function MatchInsight({ match }: Props) {
     5,
   );
 
-  const winProb = calcWinProbability(homeElo, awayElo, match.league);
+  const baseWinProb = calcWinProbability(homeElo, awayElo, match.league);
+
+  // MLB 선발 투수 가중치 — 양 선발 ERA·WHIP·K9 비교해서 winProb 보정
+  const homeStarterEarly = parseStarter(match.homeStarter);
+  const awayStarterEarly = parseStarter(match.awayStarter);
+  const starterAdj = computeStarterAdjustment(homeStarterEarly, awayStarterEarly);
+  const winProb = starterAdj.applied
+    ? applyStarterToWinProb(baseWinProb, starterAdj)
+    : baseWinProb;
   const summary = summarizeWinProb(
     winProb,
     match.homeTeam.name,
@@ -283,9 +295,9 @@ export default async function MatchInsight({ match }: Props) {
     );
   }
 
-  // MLB 선발 투수 (있으면 그림)
-  const homeStarter = parseStarter(match.homeStarter);
-  const awayStarter = parseStarter(match.awayStarter);
+  // MLB 선발 투수 — 위에서 이미 parseStarter 한 값 재사용
+  const homeStarter = homeStarterEarly;
+  const awayStarter = awayStarterEarly;
   const hasStarters = match.league === "MLB" && (homeStarter || awayStarter);
 
   return (
@@ -1015,9 +1027,12 @@ function StarterPanel({
         <span>{side} · {teamName}</span>
         <span>{handLabel}</span>
       </div>
-      <div className="mt-1 font-semibold tracking-tight truncate">
+      <a
+        href={`/players/${starter.pid}`}
+        className="mt-1 block font-semibold tracking-tight truncate hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+      >
         {starter.name}
-      </div>
+      </a>
       <div className="mt-2 grid grid-cols-3 gap-1 text-center">
         <StatCell label="ERA" value={fmtNum(starter.era, 2)} />
         <StatCell label="WHIP" value={fmtNum(starter.whip, 2)} />

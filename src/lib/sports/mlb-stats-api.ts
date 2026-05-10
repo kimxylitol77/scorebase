@@ -126,6 +126,129 @@ export async function fetchPitcherStats(
   return out;
 }
 
+export interface PitcherProfile {
+  pid: number;
+  name: string;
+  hand?: string;
+  age?: number;
+  birthCity?: string;
+  birthCountry?: string;
+  team?: string;
+  /** 시즌 누적 통계 */
+  season?: {
+    era?: number;
+    whip?: number;
+    k9?: number;
+    wins?: number;
+    losses?: number;
+    gs?: number;
+    ip?: string;
+    so?: number;
+    bb?: number;
+    hra?: number;
+    avg?: string;
+  };
+}
+
+export interface PitcherRecentGame {
+  date: string; // YYYY-MM-DD
+  isHome: boolean;
+  opponent: string;
+  ip: string;
+  er: number;
+  so: number;
+  bb: number;
+  hits: number;
+  era: string;
+  decision?: string; // "W" / "L" / null
+}
+
+/** 선수 상세 + 시즌 통계 (한 번에). */
+export async function fetchPitcherProfile(
+  personId: number,
+  season: number,
+): Promise<PitcherProfile | null> {
+  const { data } = await client.get(`/people/${personId}`, {
+    params: {
+      hydrate: `stats(group=pitching,type=season,season=${season}),currentTeam`,
+    },
+  });
+  const p = data?.people?.[0];
+  if (!p) return null;
+  const profile: PitcherProfile = {
+    pid: personId,
+    name: p.fullName,
+    hand: p.pitchHand?.code,
+    age: p.currentAge,
+    birthCity: p.birthCity,
+    birthCountry: p.birthCountry,
+    team: p.currentTeam?.name,
+  };
+  for (const grp of p.stats ?? []) {
+    if (grp?.group?.displayName === "pitching") {
+      const split = grp.splits?.[0];
+      const s = split?.stat ?? {};
+      profile.season = {
+        era: s.era != null ? Number(s.era) : undefined,
+        whip: s.whip != null ? Number(s.whip) : undefined,
+        k9: s.strikeoutsPer9Inn != null ? Number(s.strikeoutsPer9Inn) : undefined,
+        wins: s.wins,
+        losses: s.losses,
+        gs: s.gamesStarted,
+        ip: s.inningsPitched,
+        so: s.strikeOuts,
+        bb: s.baseOnBalls,
+        hra: s.homeRuns,
+        avg: s.avg,
+      };
+      break;
+    }
+  }
+  return profile;
+}
+
+/** 한 선수의 시즌 등판 로그 (game-by-game). */
+export async function fetchPitcherRecent(
+  personId: number,
+  season: number,
+  limit = 10,
+): Promise<PitcherRecentGame[]> {
+  const { data } = await client.get(`/people/${personId}`, {
+    params: {
+      hydrate: `stats(group=pitching,type=gameLog,season=${season})`,
+    },
+  });
+  const p = data?.people?.[0];
+  if (!p) return [];
+  const out: PitcherRecentGame[] = [];
+  for (const grp of p.stats ?? []) {
+    if (grp?.group?.displayName === "pitching") {
+      const splits = grp.splits ?? [];
+      for (const sp of splits) {
+        const s = sp.stat ?? {};
+        out.push({
+          date: sp.date,
+          isHome: !!sp.isHome,
+          opponent: sp.opponent?.name ?? "?",
+          ip: s.inningsPitched ?? "0.0",
+          er: s.earnedRuns ?? 0,
+          so: s.strikeOuts ?? 0,
+          bb: s.baseOnBalls ?? 0,
+          hits: s.hits ?? 0,
+          era: s.era ?? "—",
+          decision:
+            s.wins ? "W" : s.losses ? "L" : s.holds ? "H" : s.saves ? "S" : undefined,
+        });
+      }
+      break;
+    }
+  }
+  // 최근 순으로 정렬 후 limit
+  return out
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, limit);
+}
+
 /**
  * 한 매치의 선발 투수 정보를 전체 (이름·ID + 시즌 통계) fetch.
  * homeStarter / awayStarter 가 둘 다 미정이면 null.

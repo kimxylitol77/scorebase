@@ -64,6 +64,31 @@ export interface PreviewContext {
     awayPct: number;
     advice?: string;
   };
+  /** MLB 선발 투수 (statsapi.mlb.com — MLB 만) */
+  starters?: {
+    home?: {
+      name: string;
+      hand?: string;
+      era?: number;
+      whip?: number;
+      k9?: number;
+      wins?: number;
+      losses?: number;
+      gs?: number;
+      ip?: string;
+    };
+    away?: {
+      name: string;
+      hand?: string;
+      era?: number;
+      whip?: number;
+      k9?: number;
+      wins?: number;
+      losses?: number;
+      gs?: number;
+      ip?: string;
+    };
+  };
 }
 
 export interface PreviewPromptInput {
@@ -122,6 +147,45 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     ctxLines.push(
       `- API-Football 자체 예측 (외부 third opinion): ${home} ${pct(ap.homePct)} / 무 ${pct(ap.drawPct)} / ${away} ${pct(ap.awayPct)}${ap.advice ? ` · advice: ${ap.advice}` : ""}`,
     );
+  }
+  if (context.starters?.home || context.starters?.away) {
+    const s = context.starters;
+    const fmt = (
+      side: NonNullable<typeof s>["home"] | NonNullable<typeof s>["away"],
+    ) => {
+      if (!side) return "선발 미정";
+      const handLabel =
+        side.hand === "L" ? "좌완" : side.hand === "R" ? "우완" : "스위치";
+      const stats = [
+        side.era != null ? `ERA ${side.era.toFixed(2)}` : null,
+        side.whip != null ? `WHIP ${side.whip.toFixed(2)}` : null,
+        side.k9 != null ? `K/9 ${side.k9.toFixed(1)}` : null,
+        side.wins != null && side.losses != null
+          ? `${side.wins}-${side.losses}`
+          : null,
+        side.ip != null ? `IP ${side.ip}` : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      return `${side.name} (${handLabel}, ${stats})`;
+    };
+    ctxLines.push(`- 홈 선발: ${fmt(s?.home)}`);
+    ctxLines.push(`- 원정 선발: ${fmt(s?.away)}`);
+    // ERA 차이로 우세 한 줄 자동 코멘트
+    if (s?.home?.era != null && s?.away?.era != null) {
+      const diff = s.away.era - s.home.era;
+      const absDiff = Math.abs(diff);
+      const better = diff > 0 ? home : away;
+      if (absDiff >= 0.5) {
+        ctxLines.push(
+          `- 선발 ERA 차이 ${absDiff.toFixed(2)} — ${better} 선발 우세. 선발 영향이 큰 야구의 핵심 변수.`,
+        );
+      } else {
+        ctxLines.push(
+          `- 양 선발 ERA 차이 ${absDiff.toFixed(2)} 로 비등 — 타선·불펜 결정적.`,
+        );
+      }
+    }
   }
   if (context.marketProb && context.winProb) {
     const mp = context.marketProb;
