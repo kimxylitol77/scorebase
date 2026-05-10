@@ -15,6 +15,7 @@ const VALID_LEAGUES = [
   "LIGUE_1",
   "MLS",
   "UCL",
+  "WORLD_CUP",
   "NBA",
   "NHL",
   "MLB",
@@ -89,6 +90,13 @@ const LEAGUE_INFO: Record<
     subtitle: "UEFA Champions League",
     gradient: "from-indigo-700 via-blue-600 to-cyan-500",
     copy: "유럽 클럽 챔피언을 가리는 UEFA 챔피언스리그 분석.",
+  },
+  WORLD_CUP: {
+    name: "FIFA 월드컵 2026",
+    subtitle: "FIFA World Cup 26 (북중미)",
+    gradient: "from-amber-500 via-rose-500 to-fuchsia-600",
+    copy:
+      "북중미(미국·캐나다·멕시코) 공동 개최 2026 FIFA 월드컵의 조별예선부터 결승까지의 매치 프리뷰·결과·분석.",
   },
 };
 
@@ -213,7 +221,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         ? strongArr.filter((m) => m.predCorrect).length / strongArr.length
         : 0,
   };
-  const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL"].includes(upper);
+  const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL","WORLD_CUP"].includes(upper);
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);

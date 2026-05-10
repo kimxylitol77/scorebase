@@ -17,6 +17,8 @@ const STYLES: Record<string, string> = {
     "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/20",
   MLS: "bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/20",
   UCL: "bg-indigo-50 text-indigo-700 ring-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-500/20",
+  WORLD_CUP:
+    "bg-gradient-to-r from-amber-500 to-rose-500 text-white ring-amber-300 dark:ring-amber-400/40",
 };
 
 const FALLBACK =
@@ -35,6 +37,7 @@ const LABELS: Record<string, string> = {
   LIGUE_1: "리그1",
   MLS: "MLS",
   UCL: "챔스",
+  WORLD_CUP: "월드컵",
 };
 
 interface Props {

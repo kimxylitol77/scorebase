@@ -6,6 +6,7 @@ import { nhlCollectorEspn } from "./espn-nhl";
 import { mlbCollectorEspn } from "./espn-mlb";
 import { buildSoccerCollector } from "./espn-soccer";
 import { kboCollector } from "./kbo";
+import { worldCupCollector } from "./world-cup";
 import type { League, MatchCollector } from "./types";
 
 const eplCollector: MatchCollector = process.env.FOOTBALL_DATA_KEY
@@ -29,6 +30,7 @@ export const collectors: Record<League, MatchCollector> = {
   LIGUE_1: buildSoccerCollector("LIGUE_1"),
   MLS: buildSoccerCollector("MLS"),
   UCL: buildSoccerCollector("UCL"),
+  WORLD_CUP: worldCupCollector,
   KBO: kboCollector,
 };
 
@@ -38,5 +40,6 @@ export {
   nhlCollectorEspn as nhlCollector,
   mlbCollectorEspn as mlbCollector,
   kboCollector,
+  worldCupCollector,
 };
 export * from "./types";

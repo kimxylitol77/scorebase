@@ -30,6 +30,18 @@ const SOCCER_LEAGUES: SubItem[] = [
 ];
 
 const CATEGORIES: CategoryDef[] = [
+  {
+    label: "🏆 월드컵",
+    href: "/leagues/WORLD_CUP",
+    items: [
+      {
+        href: "/leagues/WORLD_CUP",
+        label: "FIFA 월드컵 2026",
+        desc: "북중미 · 6/11 개막",
+        icon: "🏆",
+      },
+    ],
+  },
   { label: "축구", href: "/leagues/EPL", items: SOCCER_LEAGUES },
   {
     label: "농구",

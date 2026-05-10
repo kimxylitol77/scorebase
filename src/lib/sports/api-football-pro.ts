@@ -18,6 +18,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   LIGUE_1: 61,
   MLS: 253,
   UCL: 2,
+  WORLD_CUP: 1, // FIFA World Cup
 };
 
 interface CacheEntry<T> {
@@ -492,6 +493,8 @@ export function getApiFootballSeason(date: Date, league: string): number {
   ) {
     return m >= 7 ? date.getFullYear() : date.getFullYear() - 1;
   }
+  // 월드컵은 4년마다 단일 토너먼트. 다음 대회 = 2026 (북중미)
+  if (league === "WORLD_CUP") return 2026;
   // MLS 는 단일 연도
   return date.getFullYear();
 }

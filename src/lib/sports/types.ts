@@ -12,7 +12,8 @@ export type League =
   | "SERIE_A"
   | "LIGUE_1"
   | "MLS"
-  | "UCL";
+  | "UCL"
+  | "WORLD_CUP"; // 2026 FIFA 북중미 월드컵
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -23,6 +24,7 @@ export const SOCCER_LEAGUES = [
   "LIGUE_1",
   "MLS",
   "UCL",
+  "WORLD_CUP",
 ] as const satisfies readonly League[];
 
 export type MatchStatus =

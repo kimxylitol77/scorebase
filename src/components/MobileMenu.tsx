@@ -21,6 +21,18 @@ interface Group {
 
 const GROUPS: Group[] = [
   {
+    label: "월드컵",
+    emoji: "🏆",
+    items: [
+      {
+        href: "/leagues/WORLD_CUP",
+        label: "FIFA 월드컵 2026",
+        desc: "북중미 6/11~",
+        icon: "⭐",
+      },
+    ],
+  },
+  {
     label: "축구",
     emoji: "⚽",
     items: [
