@@ -291,7 +291,15 @@ export default async function Home() {
 // ============================================================
 
 function RecentUpdatesSection() {
-  const items = [
+  const items: Array<{
+    tag: string;
+    tone: keyof typeof UPDATE_TONES;
+    icon: string;
+    title: string;
+    body: string;
+    href: string;
+    cta: string;
+  }> = [
     {
       tag: "NEW",
       tone: "amber",
