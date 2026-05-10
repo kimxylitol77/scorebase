@@ -32,6 +32,8 @@ const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
   LIGUE_1: SOCCER_DRAW,
   MLS: SOCCER_DRAW,
   UCL: SOCCER_DRAW,
+  // 월드컵: 클럽 리그보다 무승부 빈도가 살짝 높음 (대형 토너먼트 통계 기반)
+  WORLD_CUP: { drawWeight: 0.21, drawSensitivity: 0.18 },
   // 농구·야구·하키
   NBA: NO_DRAW,
   NHL: NO_DRAW,

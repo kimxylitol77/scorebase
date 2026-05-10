@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
+import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
+import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -19,6 +21,7 @@ const VALID = [
   "LIGUE_1",
   "MLS",
   "UCL",
+  "WORLD_CUP",
   "NBA",
   "NHL",
   "MLB",
@@ -106,6 +109,13 @@ const LEAGUE_INFO: Record<
     relegationCount: 0,
     showDraw: true,
   },
+  WORLD_CUP: {
+    name: "FIFA 월드컵 2026",
+    subtitle: "북중미 월드컵 — 토너먼트 시뮬레이션",
+    gradient: "from-amber-500 via-rose-500 to-fuchsia-600",
+    relegationCount: 0,
+    showDraw: true,
+  },
 };
 
 interface Props {
@@ -149,19 +159,28 @@ export default async function LeaguePredictions({ params }: Props) {
   // 시뮬레이션 실행
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
   const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;
-  const canSimulate = finishedCount >= 20;
+
+  // 월드컵은 외부 시드 Elo 를 쓰므로 finished 0 이어도 시뮬 가능
+  const isWorldCup = upper === "WORLD_CUP";
+  const canSimulate = isWorldCup ? teams.length >= 32 : finishedCount >= 20;
 
   let mc: ReturnType<typeof runMonteCarlo> = [];
+  let wc: ReturnType<typeof simulateWorldCup> = [];
   if (canSimulate) {
-    mc = runMonteCarlo(matches, upper, {
-      iterations: 5000,
-      relegationCount: info.relegationCount,
-    });
+    if (isWorldCup) {
+      wc = simulateWorldCup(teamNameById, 5000);
+    } else {
+      mc = runMonteCarlo(matches, upper, {
+        iterations: 5000,
+        relegationCount: info.relegationCount,
+      });
+    }
   }
 
-  // 다가오는 경기 (다음 7일)
+  // 다가오는 경기 (다음 7일 — 월드컵은 개막까지 한 달 가까이 남아 14일로 확장)
   const now = new Date();
-  const horizon = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const horizonDays = isWorldCup ? 14 : 7;
+  const horizon = new Date(now.getTime() + horizonDays * 24 * 60 * 60 * 1000);
   const upcoming = await prisma.match.findMany({
     where: {
       league: upper,
@@ -173,7 +192,10 @@ export default async function LeaguePredictions({ params }: Props) {
     take: 12,
   });
 
-  const elo = calcEloTable(matches);
+  // 월드컵은 클럽 매치 데이터가 없으니 시드 Elo 를 직접 사용
+  const elo = isWorldCup
+    ? buildWorldCupSeedTable(teamNameById)
+    : calcEloTable(matches);
 
   return (
     <div>
@@ -211,6 +233,9 @@ export default async function LeaguePredictions({ params }: Props) {
 
       {/* 리그 탭 (카테고리별 그룹) */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center gap-x-2 gap-y-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-1">🏆</span>
+        <PredTab l="WORLD_CUP" active={"WORLD_CUP" === upper} />
+        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
         <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-1">⚽</span>
         {(
           ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL"] as const
@@ -240,8 +265,65 @@ export default async function LeaguePredictions({ params }: Props) {
           </div>
         )}
 
-        {/* Monte Carlo 결과 */}
-        {canSimulate && (
+        {/* 월드컵 — 토너먼트 시뮬레이션 결과 */}
+        {canSimulate && isWorldCup && wc.length > 0 && (
+          <>
+            <section>
+              <Heading
+                title="우승 확률"
+                subtitle="48개국 5,000회 토너먼트 시뮬레이션 (시드 Elo 기반)"
+              />
+              <MonteCarloBar
+                data={wc
+                  .filter((r) => r.champion >= 0.001)
+                  .slice(0, 14)
+                  .map((r) => ({
+                    name: r.teamName,
+                    value: r.champion * 100,
+                  }))}
+              />
+            </section>
+
+            <section>
+              <Heading
+                title="결승 진출 확률"
+                subtitle="우승 또는 준우승할 가능성"
+              />
+              <MonteCarloBar
+                data={wc
+                  .filter((r) => r.final >= 0.005)
+                  .sort((a, b) => b.final - a.final)
+                  .slice(0, 14)
+                  .map((r) => ({ name: r.teamName, value: r.final * 100 }))}
+              />
+            </section>
+
+            <section>
+              <Heading
+                title="4강 진출 확률"
+                subtitle="준결승 진출 가능성"
+              />
+              <MonteCarloBar
+                data={wc
+                  .filter((r) => r.sf >= 0.01)
+                  .sort((a, b) => b.sf - a.sf)
+                  .slice(0, 16)
+                  .map((r) => ({ name: r.teamName, value: r.sf * 100 }))}
+              />
+            </section>
+
+            <section>
+              <Heading
+                title="조별예선 통과 확률 (32강)"
+                subtitle="각 조 1·2위 + 3위 중 상위 8팀 진출"
+              />
+              <WorldCupGroupTable rows={wc} />
+            </section>
+          </>
+        )}
+
+        {/* 일반 리그 — Monte Carlo 결과 */}
+        {canSimulate && !isWorldCup && (
           <>
             {/* 우승 확률 */}
             <section>
@@ -318,7 +400,7 @@ export default async function LeaguePredictions({ params }: Props) {
           <section>
             <Heading
               title="다가오는 경기 — 승률 추정"
-              subtitle="다음 7일 SCHEDULED 매치"
+              subtitle={`다음 ${horizonDays}일 SCHEDULED 매치`}
             />
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
               <table className="w-full text-sm">
@@ -383,6 +465,7 @@ const TAB_LABEL: Record<string, string> = {
   LIGUE_1: "리그1",
   MLS: "MLS",
   UCL: "챔스",
+  WORLD_CUP: "월드컵 2026",
   NBA: "NBA",
   MLB: "MLB",
   NHL: "NHL",
@@ -503,6 +586,83 @@ function ProjectionsTable({ rows }: { rows: ProjectionRow[] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+
+interface WorldCupRow {
+  teamName: string;
+  group: string;
+  groupPass: number;
+  r16: number;
+  qf: number;
+  sf: number;
+  final: number;
+  champion: number;
+  expectedPoints: number;
+}
+
+function WorldCupGroupTable({ rows }: { rows: WorldCupRow[] }) {
+  // 조별로 묶고 조 내에서 통과 확률 내림차순
+  const byGroup = new Map<string, WorldCupRow[]>();
+  for (const r of rows) {
+    if (!byGroup.has(r.group)) byGroup.set(r.group, []);
+    byGroup.get(r.group)!.push(r);
+  }
+  const groups = Array.from(byGroup.entries()).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
+  for (const [, list] of groups) {
+    list.sort((a, b) => b.groupPass - a.groupPass);
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {groups.map(([g, list]) => (
+        <div
+          key={g}
+          className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden"
+        >
+          <div className="px-3 py-2 bg-neutral-50 dark:bg-neutral-900 text-xs font-bold tracking-[0.2em] uppercase text-neutral-500">
+            Group {g}
+          </div>
+          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+            {list.map((r) => {
+              const pct = Math.round(r.groupPass * 100);
+              const isKorea =
+                /korea/i.test(r.teamName) || r.teamName.includes("한국");
+              return (
+                <li
+                  key={r.teamName}
+                  className={`px-3 py-2 flex items-center gap-2 text-sm ${
+                    isKorea ? "bg-amber-50 dark:bg-amber-900/20 font-bold" : ""
+                  }`}
+                >
+                  <span className="flex-1 truncate">
+                    {isKorea ? "🇰🇷 " : ""}
+                    {r.teamName}
+                  </span>
+                  <span className="text-xs tabular-nums text-neutral-500">
+                    {r.expectedPoints.toFixed(1)}점
+                  </span>
+                  <span
+                    className={`text-xs tabular-nums font-semibold w-12 text-right ${
+                      pct >= 60
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : pct >= 30
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-neutral-400"
+                    }`}
+                  >
+                    {pct}%
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }
