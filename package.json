@@ -17,6 +17,7 @@
     "job:preview": "tsx src/jobs/generate-previews.ts",
     "job:analysis": "tsx src/jobs/generate-analysis.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
+    "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",
     "scheduler": "tsx src/jobs/scheduler.ts"
   },
   "dependencies": {

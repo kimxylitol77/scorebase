@@ -35,6 +35,10 @@ import {
   computeStarterAdjustment,
   applyStarterToWinProb,
 } from "@/lib/predict/starter-adjust";
+import {
+  computeGoalieAdjustment,
+  applyGoalieToWinProb,
+} from "@/lib/predict/goalie-adjust";
 import type { PredictMatch } from "@/lib/predict/types";
 import FormDots from "./FormDots";
 import EloMeter from "./EloMeter";
@@ -77,6 +81,9 @@ interface Props {
     homeStarter?: string | null;
     awayStarter?: string | null;
     startersUpdatedAt?: Date | null;
+    homeGoalie?: string | null;
+    awayGoalie?: string | null;
+    goaliesUpdatedAt?: Date | null;
   };
 }
 
@@ -94,10 +101,33 @@ interface MlbStarterInfo {
   ip?: string;
 }
 
+/** NHL 골리 정보 */
+interface NhlGoalieInfo {
+  pid: number;
+  name: string;
+  gaa?: number;
+  savePctg?: number;
+  wins?: number;
+  losses?: number;
+  otLosses?: number;
+  gamesPlayed?: number;
+  shutouts?: number;
+  isBest?: boolean;
+}
+
 function parseStarter(s?: string | null): MlbStarterInfo | null {
   if (!s) return null;
   try {
     return JSON.parse(s) as MlbStarterInfo;
+  } catch {
+    return null;
+  }
+}
+
+function parseGoalie(s?: string | null): NhlGoalieInfo | null {
+  if (!s) return null;
+  try {
+    return JSON.parse(s) as NhlGoalieInfo;
   } catch {
     return null;
   }
@@ -142,13 +172,18 @@ export default async function MatchInsight({ match }: Props) {
 
   const baseWinProb = calcWinProbability(homeElo, awayElo, match.league);
 
-  // MLB 선발 투수 가중치 — 양 선발 ERA·WHIP·K9 비교해서 winProb 보정
+  // MLB 선발 투수 / NHL 골리 가중치
   const homeStarterEarly = parseStarter(match.homeStarter);
   const awayStarterEarly = parseStarter(match.awayStarter);
+  const homeGoalieEarly = parseGoalie(match.homeGoalie);
+  const awayGoalieEarly = parseGoalie(match.awayGoalie);
   const starterAdj = computeStarterAdjustment(homeStarterEarly, awayStarterEarly);
-  const winProb = starterAdj.applied
-    ? applyStarterToWinProb(baseWinProb, starterAdj)
-    : baseWinProb;
+  const goalieAdj = computeGoalieAdjustment(homeGoalieEarly, awayGoalieEarly);
+  let winProb = baseWinProb;
+  if (starterAdj.applied)
+    winProb = applyStarterToWinProb(winProb, starterAdj);
+  if (goalieAdj.applied)
+    winProb = applyGoalieToWinProb(winProb, goalieAdj);
   const summary = summarizeWinProb(
     winProb,
     match.homeTeam.name,
@@ -295,10 +330,13 @@ export default async function MatchInsight({ match }: Props) {
     );
   }
 
-  // MLB 선발 투수 — 위에서 이미 parseStarter 한 값 재사용
+  // MLB 선발 투수 / NHL 골리 — 위에서 이미 parse 한 값 재사용
   const homeStarter = homeStarterEarly;
   const awayStarter = awayStarterEarly;
   const hasStarters = match.league === "MLB" && (homeStarter || awayStarter);
+  const homeGoalie = homeGoalieEarly;
+  const awayGoalie = awayGoalieEarly;
+  const hasGoalies = match.league === "NHL" && (homeGoalie || awayGoalie);
 
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-6 my-10 space-y-8">
@@ -315,6 +353,16 @@ export default async function MatchInsight({ match }: Props) {
         <StarterCard
           home={homeStarter}
           away={awayStarter}
+          homeTeam={match.homeTeam.name}
+          awayTeam={match.awayTeam.name}
+        />
+      )}
+
+      {/* 골리 (NHL) */}
+      {hasGoalies && (
+        <GoalieCard
+          home={homeGoalie}
+          away={awayGoalie}
           homeTeam={match.homeTeam.name}
           awayTeam={match.awayTeam.name}
         />
@@ -1084,4 +1132,128 @@ function StatCell({ label, value }: { label: string; value: string }) {
 function fmtNum(n: number | undefined, dp: number): string {
   if (n == null || Number.isNaN(n)) return "—";
   return n.toFixed(dp);
+}
+
+/* =====================================================================
+ * NHL 골리 카드 — 양 팀 시즌 best goalie (GAA·SV%·시즌 W-L)
+ * ===================================================================*/
+function GoalieCard({
+  home,
+  away,
+  homeTeam,
+  awayTeam,
+}: {
+  home: NhlGoalieInfo | null;
+  away: NhlGoalieInfo | null;
+  homeTeam: string;
+  awayTeam: string;
+}) {
+  const homeBetter =
+    home?.gaa != null && away?.gaa != null && home.gaa < away.gaa;
+  const awayBetter =
+    home?.gaa != null && away?.gaa != null && away.gaa < home.gaa;
+
+  return (
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 space-y-3">
+      <div className="flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-neutral-500">
+        <span>🏒</span>
+        <span>예상 시작 골리</span>
+        <span className="text-neutral-300 dark:text-neutral-700">·</span>
+        <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
+          NHL 공식 API · 시즌 best goalie
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <GoaliePanel
+          goalie={away}
+          teamName={awayTeam}
+          side="원정"
+          highlight={awayBetter}
+        />
+        <GoaliePanel
+          goalie={home}
+          teamName={homeTeam}
+          side="홈"
+          highlight={homeBetter}
+        />
+      </div>
+      {(home || away) && (home?.gaa != null || away?.gaa != null) && (
+        <p className="text-[11px] text-neutral-500 leading-relaxed">
+          ⓘ GAA(평균 실점)는 낮을수록 좋고, SV%(세이브율)는 높을수록 좋습니다.
+          NHL 시작 골리는 매치 1~2시간 전 발표 — 표시는 시즌 most-played 골리(추정).
+        </p>
+      )}
+    </div>
+  );
+}
+
+function GoaliePanel({
+  goalie,
+  teamName,
+  side,
+  highlight,
+}: {
+  goalie: NhlGoalieInfo | null;
+  teamName: string;
+  side: "홈" | "원정";
+  highlight: boolean;
+}) {
+  if (!goalie) {
+    return (
+      <div className="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-3 py-3 text-sm">
+        <div className="text-[11px] text-neutral-500">
+          {side} · {teamName}
+        </div>
+        <div className="mt-1 text-neutral-400">골리 정보 없음</div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`rounded-lg border px-3 py-3 ${
+        highlight
+          ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-500/5"
+          : "border-neutral-200 dark:border-neutral-800"
+      }`}
+    >
+      <div className="flex items-center justify-between text-[11px] text-neutral-500">
+        <span>
+          {side} · {teamName}
+        </span>
+        {goalie.shutouts != null && goalie.shutouts > 0 && (
+          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+            완봉 {goalie.shutouts}
+          </span>
+        )}
+      </div>
+      <div className="mt-1 font-semibold tracking-tight truncate">
+        {goalie.name}
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-1 text-center">
+        <StatCell label="GAA" value={fmtNum(goalie.gaa, 2)} />
+        <StatCell
+          label="SV%"
+          value={
+            goalie.savePctg != null
+              ? (goalie.savePctg * 100).toFixed(1)
+              : "—"
+          }
+        />
+        <StatCell
+          label="GP"
+          value={goalie.gamesPlayed != null ? String(goalie.gamesPlayed) : "—"}
+        />
+      </div>
+      {(goalie.wins != null || goalie.losses != null) && (
+        <div className="mt-2 text-[11px] text-neutral-500">
+          <span className="text-neutral-400">시즌 기록</span>{" "}
+          <span className="tabular-nums font-medium text-neutral-700 dark:text-neutral-300">
+            {goalie.wins ?? 0}-{goalie.losses ?? 0}
+            {goalie.otLosses != null && `-${goalie.otLosses}`}
+          </span>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -24,9 +24,22 @@ import {
   computeStarterAdjustment,
   applyStarterToWinProb,
 } from "@/lib/predict/starter-adjust";
+import {
+  computeGoalieAdjustment,
+  applyGoalieToWinProb,
+} from "@/lib/predict/goalie-adjust";
 import type { PredictMatch } from "@/lib/predict/types";
 
 function parseStarter(s: string | null) {
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+function parseGoalie(s: string | null) {
   if (!s) return null;
   try {
     return JSON.parse(s);
@@ -160,11 +173,16 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
     const baseWp = ctx.winProb;
     if (!baseWp) continue;
 
-    // MLB 선발 투수 가중치 (양 starter 데이터 있을 때만)
+    // MLB 선발 투수 / NHL 골리 가중치
     const homeStarter = parseStarter(m.homeStarter);
     const awayStarter = parseStarter(m.awayStarter);
-    const adj = computeStarterAdjustment(homeStarter, awayStarter);
-    const wp = adj.applied ? applyStarterToWinProb(baseWp, adj) : baseWp;
+    const homeGoalie = parseGoalie(m.homeGoalie);
+    const awayGoalie = parseGoalie(m.awayGoalie);
+    const sAdj = computeStarterAdjustment(homeStarter, awayStarter);
+    const gAdj = computeGoalieAdjustment(homeGoalie, awayGoalie);
+    let wp = baseWp;
+    if (sAdj.applied) wp = applyStarterToWinProb(wp, sAdj);
+    if (gAdj.applied) wp = applyGoalieToWinProb(wp, gAdj);
 
     const winner =
       wp.home >= wp.away && wp.home >= wp.draw

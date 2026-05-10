@@ -137,6 +137,16 @@ export async function runPreview(opts?: {
         } catch {}
       }
 
+      // NHL 골리 (api-web.nhle.com)
+      if (m.league === "NHL" && (m.homeGoalie || m.awayGoalie)) {
+        try {
+          context.goalies = {
+            home: m.homeGoalie ? JSON.parse(m.homeGoalie) : undefined,
+            away: m.awayGoalie ? JSON.parse(m.awayGoalie) : undefined,
+          };
+        } catch {}
+      }
+
       const normalized: NormalizedMatch = {
         league: m.league as League,
         externalId: m.externalId,

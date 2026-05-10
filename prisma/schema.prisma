@@ -119,6 +119,12 @@ model Match {
   awayStarter        String?
   startersUpdatedAt  DateTime?
 
+  // NHL 공식 API — 시작 골리 (NHL 만)
+  // JSON: { pid, name, gaa, savePctg, wins, losses, otLosses, gamesPlayed, shutouts }
+  homeGoalie         String?
+  awayGoalie         String?
+  goaliesUpdatedAt   DateTime?
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]

@@ -89,6 +89,29 @@ export interface PreviewContext {
       ip?: string;
     };
   };
+  /** NHL 시작 골리 (api-web.nhle.com — NHL 만) */
+  goalies?: {
+    home?: {
+      name: string;
+      gaa?: number;
+      savePctg?: number;
+      wins?: number;
+      losses?: number;
+      otLosses?: number;
+      gamesPlayed?: number;
+      shutouts?: number;
+    };
+    away?: {
+      name: string;
+      gaa?: number;
+      savePctg?: number;
+      wins?: number;
+      losses?: number;
+      otLosses?: number;
+      gamesPlayed?: number;
+      shutouts?: number;
+    };
+  };
 }
 
 export interface PreviewPromptInput {
@@ -183,6 +206,46 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
       } else {
         ctxLines.push(
           `- 양 선발 ERA 차이 ${absDiff.toFixed(2)} 로 비등 — 타선·불펜 결정적.`,
+        );
+      }
+    }
+  }
+  if (context.goalies?.home || context.goalies?.away) {
+    const g = context.goalies;
+    const fmt = (
+      side: NonNullable<typeof g>["home"] | NonNullable<typeof g>["away"],
+    ) => {
+      if (!side) return "골리 정보 없음";
+      const stats = [
+        side.gaa != null ? `GAA ${side.gaa.toFixed(2)}` : null,
+        side.savePctg != null
+          ? `SV% ${(side.savePctg * 100).toFixed(1)}`
+          : null,
+        side.wins != null && side.losses != null
+          ? `${side.wins}-${side.losses}${side.otLosses != null ? `-${side.otLosses}` : ""}`
+          : null,
+        side.gamesPlayed != null ? `GP ${side.gamesPlayed}` : null,
+        side.shutouts != null && side.shutouts > 0
+          ? `완봉 ${side.shutouts}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      return `${side.name} (${stats})`;
+    };
+    ctxLines.push(`- 홈 골리: ${fmt(g?.home)}`);
+    ctxLines.push(`- 원정 골리: ${fmt(g?.away)}`);
+    if (g?.home?.gaa != null && g?.away?.gaa != null) {
+      const diff = g.away.gaa - g.home.gaa;
+      const absDiff = Math.abs(diff);
+      const better = diff > 0 ? home : away;
+      if (absDiff >= 0.4) {
+        ctxLines.push(
+          `- 골리 GAA 차이 ${absDiff.toFixed(2)} — ${better} 골리 우세. 하키 결과의 큰 변수.`,
+        );
+      } else {
+        ctxLines.push(
+          `- 양 골리 GAA 차이 ${absDiff.toFixed(2)} 로 비등 — 공격력 결정적.`,
         );
       }
     }
