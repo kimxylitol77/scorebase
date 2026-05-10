@@ -62,13 +62,30 @@ export default async function AdminArticles({ searchParams }: Props) {
             ← 관리자 메인
           </Link>
           <h1 className="text-2xl font-bold tracking-tight mt-1">모든 글 관리</h1>
+          <p className="text-xs text-neutral-500 mt-1">
+            매치 PREVIEW · RECAP · ANALYSIS 글 관리. 공지사항/패치노트는{" "}
+            <Link
+              href="/admin/notices"
+              className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            >
+              여기서 관리 →
+            </Link>
+          </p>
         </div>
-        <Link
-          href="/admin/new"
-          className="px-3 py-1.5 rounded-md text-sm font-semibold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 transition"
-        >
-          ＋ 새 글 작성
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/notices"
+            className="px-3 py-1.5 rounded-md text-sm font-medium border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+          >
+            📢 공지/패치노트
+          </Link>
+          <Link
+            href="/admin/new"
+            className="px-3 py-1.5 rounded-md text-sm font-semibold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 transition"
+          >
+            ＋ 새 글 작성
+          </Link>
+        </div>
       </header>
 
       {/* 필터 */}

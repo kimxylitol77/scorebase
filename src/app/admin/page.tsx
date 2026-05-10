@@ -50,12 +50,18 @@ export default async function AdminHome() {
             {counts.map((c) => `${STATUS_LABEL[c.status]} ${c._count._all}`).join(" / ")}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Link
             href="/admin/articles"
             className="px-3 py-1.5 rounded-md text-sm font-medium bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
           >
             📋 모든 글 관리
+          </Link>
+          <Link
+            href="/admin/notices"
+            className="px-3 py-1.5 rounded-md text-sm font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition"
+          >
+            📢 공지/패치노트
           </Link>
           <Link
             href="/admin/new"
