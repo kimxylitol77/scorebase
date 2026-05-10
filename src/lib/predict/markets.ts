@@ -64,6 +64,9 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   NHL: { overLine: 5.5, totalStd: 2.5, marginStd: 2.4, handicapLine: 1.5, homeBoost: 1.05 },
   // 야구 — MLB 평균 8.7런, std 4.0, margin std 3.5
   MLB: { overLine: 8.5, totalStd: 4.0, marginStd: 3.5, handicapLine: 1.5, homeBoost: 1.04 },
+  // KBO 야구 — 한국 프로야구. MLB 보다 살짝 타고투저 (평균 9~10런 시즌).
+  // overLine 9.5, std·홈부스트는 MLB 와 거의 동일하게 시작.
+  KBO: { overLine: 9.5, totalStd: 4.2, marginStd: 3.6, handicapLine: 1.5, homeBoost: 1.05 },
 };
 
 /* =====================================================================
