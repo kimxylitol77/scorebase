@@ -52,6 +52,10 @@ interface Props {
     startTime: Date;
     homeTeam: { id: number; name: string };
     awayTeam: { id: number; name: string };
+    marketHome?: number | null;
+    marketDraw?: number | null;
+    marketAway?: number | null;
+    marketBookmakers?: number | null;
   };
 }
 
@@ -314,6 +318,24 @@ export default async function MatchInsight({ match }: Props) {
         />
       )}
 
+      {/* 0.5) 시장 odds 비교 — odds API 데이터가 있을 때만 */}
+      {match.marketHome != null && match.marketAway != null && (
+        <Section title="AI 모델 vs 시장 odds">
+          <MarketCompareTable
+            modelHome={winProb.home}
+            modelDraw={winProb.draw}
+            modelAway={winProb.away}
+            marketHome={match.marketHome}
+            marketDraw={match.marketDraw ?? null}
+            marketAway={match.marketAway}
+            homeName={match.homeTeam.name}
+            awayName={match.awayTeam.name}
+            bookmakers={match.marketBookmakers ?? 0}
+            hideDraw={hideDraw}
+          />
+        </Section>
+      )}
+
       {/* 1) 승률 도넛 */}
       <Section title="승률 추정">
         <WinProbDonut
@@ -554,6 +576,95 @@ const TONE_TEXT = {
   pink: "text-pink-700 dark:text-pink-300",
   violet: "text-violet-700 dark:text-violet-300",
 } as const;
+
+function MarketCompareTable({
+  modelHome,
+  modelDraw,
+  modelAway,
+  marketHome,
+  marketDraw,
+  marketAway,
+  homeName,
+  awayName,
+  bookmakers,
+  hideDraw,
+}: {
+  modelHome: number;
+  modelDraw: number;
+  modelAway: number;
+  marketHome: number;
+  marketDraw: number | null;
+  marketAway: number;
+  homeName: string;
+  awayName: string;
+  bookmakers: number;
+  hideDraw: boolean;
+}) {
+  const rows = [
+    { label: "홈 승", model: modelHome, market: marketHome, name: homeName, key: "h" },
+    !hideDraw && marketDraw !== null
+      ? { label: "무", model: modelDraw, market: marketDraw, name: "무승부", key: "d" }
+      : null,
+    { label: "원정 승", model: modelAway, market: marketAway, name: awayName, key: "a" },
+  ].filter(Boolean) as Array<{ label: string; model: number; market: number; name: string; key: string }>;
+
+  return (
+    <div>
+      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-[11px] uppercase tracking-wider text-neutral-500">
+            <tr>
+              <th className="text-left px-3 py-2 font-semibold">결과</th>
+              <th className="text-right px-3 py-2 font-semibold">AI 모델</th>
+              <th className="text-right px-3 py-2 font-semibold">시장</th>
+              <th className="text-right px-3 py-2 font-semibold">차이</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+            {rows.map((r) => {
+              const gap = r.model - r.market;
+              const isValue = gap >= 0.05;
+              const isOver = gap <= -0.05;
+              return (
+                <tr key={r.key}>
+                  <td className="px-3 py-2.5">
+                    <div className="text-xs text-neutral-500">{r.label}</div>
+                    <div className="font-medium truncate">{r.name}</div>
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold">
+                    {Math.round(r.model * 100)}%
+                  </td>
+                  <td className="px-3 py-2.5 text-right tabular-nums text-neutral-600 dark:text-neutral-400">
+                    {Math.round(r.market * 100)}%
+                  </td>
+                  <td className="px-3 py-2.5 text-right">
+                    <span
+                      className={`tabular-nums font-bold text-xs px-2 py-0.5 rounded ${
+                        isValue
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                          : isOver
+                            ? "bg-rose-500/15 text-rose-700 dark:text-rose-400"
+                            : "text-neutral-500"
+                      }`}
+                    >
+                      {gap > 0 ? "+" : ""}
+                      {Math.round(gap * 100)}%p
+                      {isValue && " ✨"}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-[11px] text-neutral-500">
+        시장 평균 = {bookmakers}개 베팅사이트 odds(vig 제거) · ✨ = AI 가 시장보다
+        5%p+ 자신 있는 결과 (Value Bet 후보)
+      </p>
+    </div>
+  );
+}
 
 function MarketCard({
   label,

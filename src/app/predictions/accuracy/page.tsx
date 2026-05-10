@@ -115,7 +115,10 @@ async function statForLeague(league: string): Promise<LeagueStat> {
 }
 
 export default async function AccuracyPage() {
-  const stats = await Promise.all(LEAGUES.map((lg) => statForLeague(lg)));
+  const [stats, valueBet] = await Promise.all([
+    Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
+    valueBetStats(),
+  ]);
   const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
   const overallRate = totalEvaluated > 0 ? totalCorrect / totalEvaluated : 0;
@@ -153,6 +156,9 @@ export default async function AccuracyPage() {
 
       {/* AI Strong Pick — 65%+ 고신뢰 픽만의 적중률 (마케팅 강조) */}
       <StrongPickHero stats={stats} overallTotal={totalEvaluated} overallCorrect={totalCorrect} />
+
+      {/* Value Bet — 시장 odds 데이터 있을 때만 */}
+      {valueBet && <ValueBetCard data={valueBet} />}
 
       {/* 전체 시장별 요약 — 5개 카드 */}
       <section className="mb-10 grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -271,6 +277,60 @@ export default async function AccuracyPage() {
         </Link>
       </p>
     </main>
+  );
+}
+
+async function valueBetStats() {
+  const all = await prisma.match.findMany({
+    where: { isValueBet: true, predCorrect: { not: null } },
+    select: { predCorrect: true, valueGap: true, league: true },
+  });
+  if (all.length === 0) return null;
+  const correct = all.filter((m) => m.predCorrect).length;
+  const avgGap =
+    all.reduce((s, m) => s + (m.valueGap ?? 0), 0) / all.length;
+  return {
+    total: all.length,
+    correct,
+    rate: correct / all.length,
+    avgGap,
+  };
+}
+
+function ValueBetCard({
+  data,
+}: {
+  data: { total: number; correct: number; rate: number; avgGap: number };
+}) {
+  return (
+    <section className="mb-8 rounded-2xl border border-emerald-300 dark:border-emerald-700/40 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-cyan-950/30 p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-2">
+            <span aria-hidden>✨</span>
+            <span>Value Bet · 시장보다 자신 있는 픽</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            AI 모델이 시장보다 5%p+ 자신 있던 매치 적중률
+          </h2>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            베팅사이트 평균 odds 대비 우리 모델이 더 자신 있게 찍은 결과만
+            추려본 통계 — 시장이 놓친 신호를 모델이 잡았는가
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-5xl sm:text-6xl font-black tracking-tight tabular-nums bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+            {Math.round(data.rate * 100)}%
+          </div>
+          <div className="text-[11px] text-neutral-500 mt-1 tabular-nums">
+            {data.correct}/{data.total} · 평균 차이{" "}
+            <span className="font-bold text-emerald-700 dark:text-emerald-300">
+              +{Math.round(data.avgGap * 100)}%p
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

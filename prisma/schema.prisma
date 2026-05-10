@@ -73,6 +73,16 @@ model Match {
   predHcProb     Float?
   predHcCorrect  Boolean?
 
+  // The Odds API 시장 odds (1X2, vig 제거된 implied probability)
+  marketHome      Float?
+  marketDraw      Float?
+  marketAway      Float?
+  marketUpdatedAt DateTime?
+  marketBookmakers Int?  // odds 통합한 bookmaker 수
+  // Value Bet — 우리 모델 prob > 시장 prob + 5%p
+  valueGap        Float?  // model_pred - market_pred (양수 = 모델이 시장보다 자신감 큼)
+  isValueBet      Boolean? // 5%p 이상 차이 + 모델 pick 와 같은 outcome
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]

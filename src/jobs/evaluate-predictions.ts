@@ -146,6 +146,21 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
       predCorrect: correct,
     };
 
+    // Value Bet 평가 — 시장 odds 가 저장돼 있으면 우리 모델 pick 의 prob 와 시장 prob 비교
+    if (m.marketHome != null && m.marketAway != null) {
+      const modelProb =
+        winner === "HOME" ? wp.home : winner === "AWAY" ? wp.away : wp.draw;
+      const marketProb =
+        winner === "HOME"
+          ? m.marketHome
+          : winner === "AWAY"
+            ? m.marketAway
+            : (m.marketDraw ?? 0);
+      const gap = modelProb - marketProb;
+      data.valueGap = gap;
+      data.isValueBet = gap >= 0.05; // 5%p 이상 모델이 시장보다 자신 있음
+    }
+
     // OVER/UNDER + 핸디캡 — 모든 종목
     const sportProfile = getSportProfile(m.league);
     if (sportProfile) {
