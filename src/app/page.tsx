@@ -178,6 +178,9 @@ export default async function Home() {
         {/* ───── 핵심 가치 4가지 — SEO 키워드 자연 노출 ───── */}
         <FeaturesSection />
 
+        {/* ───── 최근 업데이트 — 사이트 차별화 노출 ───── */}
+        <RecentUpdatesSection />
+
         {!hasAny && <EmptyState />}
 
         {featured && (
@@ -286,6 +289,147 @@ export default async function Home() {
 // ============================================================
 // 새 섹션 컴포넌트
 // ============================================================
+
+function RecentUpdatesSection() {
+  const items = [
+    {
+      tag: "NEW",
+      tone: "amber",
+      icon: "⭐",
+      title: "AI Strong Pick · 65% 이상 자신 있는 픽",
+      body: "모델이 강하게 찍은 매치만 따로 추적 — NBA 62%, NHL 61%, MLB 52% 적중. 전체 평균 대비 +13%p 리프트.",
+      href: "/predictions/accuracy",
+      cta: "적중률 보드 보기",
+    },
+    {
+      tag: "NEW",
+      tone: "emerald",
+      icon: "✨",
+      title: "베팅사이트 odds vs AI 모델 비교",
+      body: "글마다 8개 베팅사이트 평균 implied 확률을 우리 모델과 나란히 표시. 모델이 시장보다 5%p+ 자신 있는 결과는 ✨ Value Bet 으로 강조.",
+      href: "/predictions/accuracy",
+      cta: "Value Bet 통계",
+    },
+    {
+      tag: "UPGRADE",
+      tone: "blue",
+      icon: "🎯",
+      title: "예측 시장 5종 동시 추적",
+      body: "1X2 · 더블 찬스 · OVER/UNDER · 핸디캡 · BTTS — 종목별 자동 적용. 1,233매치 백테스트 기준 적중률 투명 공개.",
+      href: "/predictions/accuracy",
+      cta: "리그별 적중률",
+    },
+    {
+      tag: "UPGRADE",
+      tone: "violet",
+      icon: "📊",
+      title: "통계 모델 정밀화",
+      body: "Elo 마진 가중치(MoV) + 축구 핸디캡 Skellam 분포 적용. 골 차이가 큰 매치는 Elo 변동이 더 크고, 핸디캡 정확도도 안정.",
+      href: "/about",
+      cta: "방법론 상세",
+    },
+    {
+      tag: "AUTOMATION",
+      tone: "pink",
+      icon: "🔄",
+      title: "매일 7회 자동 갱신",
+      body: "결과 수집 / 프리뷰 작성 / 리뷰 작성 / 적중 평가 / 시장 odds 수집 — 매치 종료 직후 글이 자동으로 사이트에 올라옵니다.",
+      href: "/about",
+      cta: "데이터 흐름",
+    },
+  ];
+  return (
+    <section aria-labelledby="updates-title">
+      <SectionHeading
+        title="🆕 최근 업데이트 · 사이트 차별화"
+        subtitle="단순 결과 정리에서 한 발 더 — 데이터로 검증하고 시장과 비교합니다"
+      />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {items.map((it) => (
+          <UpdateCard key={it.title} item={it} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+const UPDATE_TONES = {
+  amber: {
+    border: "border-amber-300/60 dark:border-amber-700/40",
+    bg: "bg-gradient-to-br from-amber-50/80 to-orange-50/80 dark:from-amber-950/40 dark:to-orange-950/30",
+    tag: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+    cta: "text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200",
+  },
+  emerald: {
+    border: "border-emerald-300/60 dark:border-emerald-700/40",
+    bg: "bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/40 dark:to-teal-950/30",
+    tag: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+    cta: "text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-200",
+  },
+  blue: {
+    border: "border-blue-300/60 dark:border-blue-700/40",
+    bg: "bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-950/40 dark:to-indigo-950/30",
+    tag: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
+    cta: "text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-200",
+  },
+  violet: {
+    border: "border-violet-300/60 dark:border-violet-700/40",
+    bg: "bg-gradient-to-br from-violet-50/80 to-fuchsia-50/80 dark:from-violet-950/40 dark:to-fuchsia-950/30",
+    tag: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
+    cta: "text-violet-700 dark:text-violet-400 hover:text-violet-900 dark:hover:text-violet-200",
+  },
+  pink: {
+    border: "border-pink-300/60 dark:border-pink-700/40",
+    bg: "bg-gradient-to-br from-pink-50/80 to-rose-50/80 dark:from-pink-950/40 dark:to-rose-950/30",
+    tag: "bg-pink-500/15 text-pink-700 dark:text-pink-400",
+    cta: "text-pink-700 dark:text-pink-400 hover:text-pink-900 dark:hover:text-pink-200",
+  },
+} as const;
+
+function UpdateCard({
+  item,
+}: {
+  item: {
+    tag: string;
+    tone: keyof typeof UPDATE_TONES;
+    icon: string;
+    title: string;
+    body: string;
+    href: string;
+    cta: string;
+  };
+}) {
+  const t = UPDATE_TONES[item.tone];
+  return (
+    <article
+      className={`rounded-2xl border ${t.border} ${t.bg} p-5 flex flex-col`}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <span
+          className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${t.tag}`}
+        >
+          {item.tag}
+        </span>
+        <span className="text-xl" aria-hidden>
+          {item.icon}
+        </span>
+      </div>
+      <h3 className="font-bold text-base text-neutral-900 dark:text-white mb-2 leading-snug">
+        {item.title}
+      </h3>
+      <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed flex-1 mb-4">
+        {item.body}
+      </p>
+      <Link
+        href={item.href}
+        className={`inline-flex items-center gap-1 text-xs font-semibold ${t.cta} transition`}
+      >
+        {item.cta}
+        <span aria-hidden>→</span>
+      </Link>
+    </article>
+  );
+}
 
 function FeaturesSection() {
   const items = [
