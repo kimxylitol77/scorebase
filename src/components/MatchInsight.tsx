@@ -70,7 +70,33 @@ interface Props {
     oddsDc1X?: number | null;
     oddsDc12?: number | null;
     oddsDcX2?: number | null;
+    homeStarter?: string | null;
+    awayStarter?: string | null;
+    startersUpdatedAt?: Date | null;
   };
+}
+
+/** MLB 선발 투수 정보 — DB JSON 에서 파싱 */
+interface MlbStarterInfo {
+  pid: number;
+  name: string;
+  hand?: string;
+  era?: number;
+  whip?: number;
+  k9?: number;
+  wins?: number;
+  losses?: number;
+  gs?: number;
+  ip?: string;
+}
+
+function parseStarter(s?: string | null): MlbStarterInfo | null {
+  if (!s) return null;
+  try {
+    return JSON.parse(s) as MlbStarterInfo;
+  } catch {
+    return null;
+  }
 }
 
 export default async function MatchInsight({ match }: Props) {
@@ -257,6 +283,11 @@ export default async function MatchInsight({ match }: Props) {
     );
   }
 
+  // MLB 선발 투수 (있으면 그림)
+  const homeStarter = parseStarter(match.homeStarter);
+  const awayStarter = parseStarter(match.awayStarter);
+  const hasStarters = match.league === "MLB" && (homeStarter || awayStarter);
+
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-6 my-10 space-y-8">
       <div className="flex items-center justify-between">
@@ -266,6 +297,16 @@ export default async function MatchInsight({ match }: Props) {
         </div>
         <span className="text-xs font-medium text-neutral-500">{summary}</span>
       </div>
+
+      {/* 선발 투수 (MLB) */}
+      {hasStarters && (
+        <StarterCard
+          home={homeStarter}
+          away={awayStarter}
+          homeTeam={match.homeTeam.name}
+          awayTeam={match.awayTeam.name}
+        />
+      )}
 
       {/* 0) 팀 전력 — 양 팀 마주보기 통합 비교 (시즌·홈원정·최근·흐름) */}
       {homeRow && awayRow && (
@@ -883,4 +924,149 @@ function MarketCard({
       </div>
     </div>
   );
+}
+
+/* =====================================================================
+ * MLB 선발 투수 카드 — 양 팀 비교 (ERA·WHIP·K9·시즌 W-L)
+ * ===================================================================*/
+function StarterCard({
+  home,
+  away,
+  homeTeam,
+  awayTeam,
+}: {
+  home: MlbStarterInfo | null;
+  away: MlbStarterInfo | null;
+  homeTeam: string;
+  awayTeam: string;
+}) {
+  // ERA 비교 — 낮은 쪽이 우세
+  const homeBetterEra =
+    home?.era != null && away?.era != null && home.era < away.era;
+  const awayBetterEra =
+    home?.era != null && away?.era != null && away.era < home.era;
+
+  return (
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 space-y-3">
+      <div className="flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-neutral-500">
+        <span>⚾</span>
+        <span>오늘의 선발 매치업</span>
+        <span className="text-neutral-300 dark:text-neutral-700">·</span>
+        <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
+          MLB Stats API · 시즌 누적
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <StarterPanel
+          starter={away}
+          teamName={awayTeam}
+          side="원정"
+          highlight={awayBetterEra}
+        />
+        <StarterPanel
+          starter={home}
+          teamName={homeTeam}
+          side="홈"
+          highlight={homeBetterEra}
+        />
+      </div>
+      {(home || away) && (home?.era != null || away?.era != null) && (
+        <p className="text-[11px] text-neutral-500 leading-relaxed">
+          ⓘ ERA(평균자책점)·WHIP(이닝당 출루)·K/9(9이닝당 삼진) 모두 낮을수록 좋고,
+          K/9 만 높을수록 좋습니다. 오늘 매치 결과의 가장 큰 변수.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function StarterPanel({
+  starter,
+  teamName,
+  side,
+  highlight,
+}: {
+  starter: MlbStarterInfo | null;
+  teamName: string;
+  side: "홈" | "원정";
+  highlight: boolean;
+}) {
+  if (!starter) {
+    return (
+      <div className="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-3 py-3 text-sm">
+        <div className="text-[11px] text-neutral-500">{side} · {teamName}</div>
+        <div className="mt-1 text-neutral-400">선발 미정</div>
+      </div>
+    );
+  }
+
+  const handLabel =
+    starter.hand === "L" ? "좌완" : starter.hand === "R" ? "우완" : "스위치";
+
+  return (
+    <div
+      className={`rounded-lg border px-3 py-3 ${
+        highlight
+          ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-500/5"
+          : "border-neutral-200 dark:border-neutral-800"
+      }`}
+    >
+      <div className="flex items-center justify-between text-[11px] text-neutral-500">
+        <span>{side} · {teamName}</span>
+        <span>{handLabel}</span>
+      </div>
+      <div className="mt-1 font-semibold tracking-tight truncate">
+        {starter.name}
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-1 text-center">
+        <StatCell label="ERA" value={fmtNum(starter.era, 2)} />
+        <StatCell label="WHIP" value={fmtNum(starter.whip, 2)} />
+        <StatCell label="K/9" value={fmtNum(starter.k9, 1)} />
+      </div>
+      {(starter.wins != null ||
+        starter.gs != null ||
+        starter.ip != null) && (
+        <div className="mt-2 flex items-center gap-3 text-[11px] text-neutral-500">
+          {starter.wins != null && starter.losses != null && (
+            <span>
+              <span className="text-neutral-400">W-L</span>{" "}
+              <span className="tabular-nums font-medium text-neutral-700 dark:text-neutral-300">
+                {starter.wins}-{starter.losses}
+              </span>
+            </span>
+          )}
+          {starter.gs != null && (
+            <span>
+              <span className="text-neutral-400">GS</span>{" "}
+              <span className="tabular-nums font-medium text-neutral-700 dark:text-neutral-300">
+                {starter.gs}
+              </span>
+            </span>
+          )}
+          {starter.ip != null && (
+            <span>
+              <span className="text-neutral-400">IP</span>{" "}
+              <span className="tabular-nums font-medium text-neutral-700 dark:text-neutral-300">
+                {starter.ip}
+              </span>
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded bg-neutral-50 dark:bg-neutral-900 px-1 py-1.5">
+      <div className="text-[10px] text-neutral-500">{label}</div>
+      <div className="text-sm font-bold tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function fmtNum(n: number | undefined, dp: number): string {
+  if (n == null || Number.isNaN(n)) return "—";
+  return n.toFixed(dp);
 }

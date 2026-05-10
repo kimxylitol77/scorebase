@@ -113,6 +113,12 @@ model Match {
   apiPredAdvice   String?  // raw advice text (예: "Combo : Tottenham or draw and -2.5 goals")
   apiPredCorrect  Boolean?
 
+  // MLB Stats API — 선발 투수 (MLB 만, 매치 직전 publish)
+  // 한 줄 JSON 으로 저장 — { name, pid, era, whip, k9, wins, losses, gs, ip, hand }
+  homeStarter        String?
+  awayStarter        String?
+  startersUpdatedAt  DateTime?
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]

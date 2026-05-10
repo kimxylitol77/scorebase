@@ -41,6 +41,10 @@
     {
       "path": "/api/cron/analysis",
       "schedule": "0 0 * * 1"
+    },
+    {
+      "path": "/api/cron/mlb-starters",
+      "schedule": "0 12 * * *"
     }
   ]
 }
