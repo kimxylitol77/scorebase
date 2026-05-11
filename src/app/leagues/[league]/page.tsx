@@ -28,6 +28,17 @@ type FilterType = "ALL" | ArticleType;
 
 const VALID_TYPES: FilterType[] = ["ALL", "PREVIEW", "RECAP", "ANALYSIS"];
 
+// api-football Pro 부상자 데이터를 보유한 축구 리그만 '부상자명단' 탭 노출
+const SOCCER_INJURY_LEAGUES = new Set([
+  "EPL",
+  "LALIGA",
+  "BUNDESLIGA",
+  "SERIE_A",
+  "LIGUE_1",
+  "MLS",
+  "UCL",
+]);
+
 const LEAGUE_INFO: Record<
   ValidLeague,
   { name: string; subtitle: string; gradient: string; copy: string }
@@ -337,6 +348,15 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               </Link>
             );
           })}
+          {/* 부상자명단 — 축구 7개 리그만 (api-football Pro 지원) */}
+          {SOCCER_INJURY_LEAGUES.has(upper) && (
+            <Link
+              href={`/injuries/${upper}`}
+              className="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+            >
+              🩹 부상자명단
+            </Link>
+          )}
         </div>
       </div>
 
