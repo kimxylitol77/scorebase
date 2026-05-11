@@ -47,6 +47,18 @@ export default function HeroSection() {
           >
             ⚽ 프리미어리그 인사이트
           </Link>
+          <Link
+            href="/previews"
+            className="btn-secondary w-full sm:w-auto justify-center"
+          >
+            프리뷰 모음
+          </Link>
+          <Link
+            href="/injuries"
+            className="btn-secondary w-full sm:w-auto justify-center"
+          >
+            부상자 명단
+          </Link>
         </div>
       </div>
     </section>
