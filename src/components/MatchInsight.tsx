@@ -2,6 +2,7 @@
 // 차트 시각화 강화 버전 (recharts 기반).
 
 import { prisma } from "@/lib/db";
+import { toKoreanTeamName } from "@/lib/team-names";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcEloHistory } from "@/lib/predict/elo-history";
 import { calcForm } from "@/lib/predict/form";
@@ -202,8 +203,8 @@ export default async function MatchInsight({ match }: Props) {
   }
   const summary = summarizeWinProb(
     winProb,
-    match.homeTeam.name,
-    match.awayTeam.name,
+    toKoreanTeamName(match.homeTeam.name),
+    toKoreanTeamName(match.awayTeam.name),
   );
 
   // === AI 예측 시장 ===
@@ -406,8 +407,8 @@ export default async function MatchInsight({ match }: Props) {
         <StarterCard
           home={homeStarter}
           away={awayStarter}
-          homeTeam={match.homeTeam.name}
-          awayTeam={match.awayTeam.name}
+          homeTeam={toKoreanTeamName(match.homeTeam.name)}
+          awayTeam={toKoreanTeamName(match.awayTeam.name)}
         />
       )}
 
@@ -416,8 +417,8 @@ export default async function MatchInsight({ match }: Props) {
         <GoalieCard
           home={homeGoalie}
           away={awayGoalie}
-          homeTeam={match.homeTeam.name}
-          awayTeam={match.awayTeam.name}
+          homeTeam={toKoreanTeamName(match.homeTeam.name)}
+          awayTeam={toKoreanTeamName(match.awayTeam.name)}
         />
       )}
 
@@ -426,7 +427,7 @@ export default async function MatchInsight({ match }: Props) {
         <TeamMatchup
           showDraw={!hideDraw}
           home={{
-            name: match.homeTeam.name,
+            name: toKoreanTeamName(match.homeTeam.name),
             form: homeForm.results,
             position: homeRow.position,
             totalTeams: totalTeams,
@@ -455,7 +456,7 @@ export default async function MatchInsight({ match }: Props) {
             failedToScoreLast5: homeStreak.failedToScoreLast5,
           }}
           away={{
-            name: match.awayTeam.name,
+            name: toKoreanTeamName(match.awayTeam.name),
             form: awayForm.results,
             position: awayRow.position,
             totalTeams: totalTeams,
@@ -496,8 +497,8 @@ export default async function MatchInsight({ match }: Props) {
             marketHome={match.marketHome}
             marketDraw={match.marketDraw ?? null}
             marketAway={match.marketAway}
-            homeName={match.homeTeam.name}
-            awayName={match.awayTeam.name}
+            homeName={toKoreanTeamName(match.homeTeam.name)}
+            awayName={toKoreanTeamName(match.awayTeam.name)}
             bookmakers={match.marketBookmakers ?? 0}
             hideDraw={hideDraw}
           />
@@ -512,8 +513,8 @@ export default async function MatchInsight({ match }: Props) {
         match.oddsDc1X) && (
         <Section title="베팅사이트 평균 배당">
           <OddsTable
-            homeName={match.homeTeam.name}
-            awayName={match.awayTeam.name}
+            homeName={toKoreanTeamName(match.homeTeam.name)}
+            awayName={toKoreanTeamName(match.awayTeam.name)}
             oddsHome={match.oddsHome ?? null}
             oddsDraw={match.oddsDraw ?? null}
             oddsAway={match.oddsAway ?? null}
@@ -539,8 +540,8 @@ export default async function MatchInsight({ match }: Props) {
           homeProb={winProb.home}
           drawProb={winProb.draw}
           awayProb={winProb.away}
-          homeName={match.homeTeam.name}
-          awayName={match.awayTeam.name}
+          homeName={toKoreanTeamName(match.homeTeam.name)}
+          awayName={toKoreanTeamName(match.awayTeam.name)}
           hideDraw={hideDraw}
         />
       </Section>
@@ -571,7 +572,7 @@ export default async function MatchInsight({ match }: Props) {
           {dc && (
             <MarketCard
               label="더블 찬스"
-              pick={dcPickLabel(dc.pick, match.homeTeam.name, match.awayTeam.name)}
+              pick={dcPickLabel(dc.pick, toKoreanTeamName(match.homeTeam.name), toKoreanTeamName(match.awayTeam.name))}
               prob={dc.prob}
               correct={dcOk}
               isFinished={isFinished}
@@ -591,7 +592,7 @@ export default async function MatchInsight({ match }: Props) {
           {hc && (
             <MarketCard
               label={`핸디캡 ${hc.line > 0 ? `±${hc.line}` : ""}`}
-              pick={`${hc.pick === "HOME" ? match.homeTeam.name : match.awayTeam.name} -${hc.line}`}
+              pick={`${hc.pick === "HOME" ? toKoreanTeamName(match.homeTeam.name) : toKoreanTeamName(match.awayTeam.name)} -${hc.line}`}
               prob={hc.prob}
               correct={hcOk}
               isFinished={isFinished}
@@ -623,12 +624,12 @@ export default async function MatchInsight({ match }: Props) {
       <Section title="Elo 레이팅">
         <div className="space-y-3 mb-4">
           <EloMeter
-            name={match.homeTeam.name}
+            name={toKoreanTeamName(match.homeTeam.name)}
             rating={homeElo}
             opponentRating={awayElo}
           />
           <EloMeter
-            name={match.awayTeam.name}
+            name={toKoreanTeamName(match.awayTeam.name)}
             rating={awayElo}
             opponentRating={homeElo}
           />
@@ -639,7 +640,7 @@ export default async function MatchInsight({ match }: Props) {
         {homeHistory.length > 1 && awayHistory.length > 1 && (
           <EloTrendChart
             homeSeries={{
-              name: match.homeTeam.name,
+              name: toKoreanTeamName(match.homeTeam.name),
               color: "#3b82f6",
               points: homeHistory.map((h, i) => ({
                 index: i,
@@ -648,7 +649,7 @@ export default async function MatchInsight({ match }: Props) {
               })),
             }}
             awaySeries={{
-              name: match.awayTeam.name,
+              name: toKoreanTeamName(match.awayTeam.name),
               color: "#f43f5e",
               points: awayHistory.map((h, i) => ({
                 index: i,
@@ -669,13 +670,13 @@ export default async function MatchInsight({ match }: Props) {
           <div className="space-y-4">
             {homeSeasonForm.length > 0 && (
               <SeasonFormHeatmap
-                name={match.homeTeam.name}
+                name={toKoreanTeamName(match.homeTeam.name)}
                 cells={homeSeasonForm}
               />
             )}
             {awaySeasonForm.length > 0 && (
               <SeasonFormHeatmap
-                name={match.awayTeam.name}
+                name={toKoreanTeamName(match.awayTeam.name)}
                 cells={awaySeasonForm}
               />
             )}
@@ -692,8 +693,8 @@ export default async function MatchInsight({ match }: Props) {
             leagueAvgGA={leagueAvgGA}
           />
           <div className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
-            오른쪽 위로 갈수록 좋음. 점선은 리그 평균. 🟦 {match.homeTeam.name},{" "}
-            🟥 {match.awayTeam.name}
+            오른쪽 위로 갈수록 좋음. 점선은 리그 평균. 🟦 {toKoreanTeamName(match.homeTeam.name)},{" "}
+            🟥 {toKoreanTeamName(match.awayTeam.name)}
           </div>
         </Section>
       )}
@@ -703,13 +704,13 @@ export default async function MatchInsight({ match }: Props) {
         <Section title={`상대 전적 (최근 ${Math.min(h2h.total, 10)}경기)`}>
           <div className="flex items-center gap-3 text-sm">
             <span className="font-semibold text-blue-600 dark:text-blue-400">
-              {match.homeTeam.name} {h2h.homeTeamWins}승
+              {toKoreanTeamName(match.homeTeam.name)} {h2h.homeTeamWins}승
             </span>
             <span className="text-neutral-400">·</span>
             <span className="text-neutral-500">{h2h.draws}무</span>
             <span className="text-neutral-400">·</span>
             <span className="font-semibold text-rose-600 dark:text-rose-400">
-              {match.awayTeam.name} {h2h.awayTeamWins}승
+              {toKoreanTeamName(match.awayTeam.name)} {h2h.awayTeamWins}승
             </span>
             {h2h.recentForHome.length > 0 && (
               <span className="ml-auto">

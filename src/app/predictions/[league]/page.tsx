@@ -734,7 +734,7 @@ function WorldCupGroupTable({ rows }: { rows: WorldCupRow[] }) {
                 >
                   <span className="flex-1 truncate">
                     {isKorea ? "🇰🇷 " : ""}
-                    {r.teamName}
+                    {toKoreanTeamName(r.teamName)}
                   </span>
                   <span className="text-xs tabular-nums text-neutral-500">
                     {r.expectedPoints.toFixed(1)}점

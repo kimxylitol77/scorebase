@@ -9,6 +9,7 @@ import {
   getTeamKeyPlayers,
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 interface Props {
   league: string;
@@ -105,7 +106,7 @@ export default async function InjuryAndKeyPlayers({
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <KeyPlayerCard
-              teamName={homeTeamName}
+              teamName={toKoreanTeamName(homeTeamName)}
               players={homeKey.map((p) => ({
                 name: p.playerName,
                 goals: p.goals,
@@ -115,7 +116,7 @@ export default async function InjuryAndKeyPlayers({
               variant="home"
             />
             <KeyPlayerCard
-              teamName={awayTeamName}
+              teamName={toKoreanTeamName(awayTeamName)}
               players={awayKey.map((p) => ({
                 name: p.playerName,
                 goals: p.goals,

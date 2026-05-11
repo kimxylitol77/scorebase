@@ -1,6 +1,7 @@
 // 예정된 경기에 대한 프리뷰(Preview) 글 프롬프트.
 
 import type { NormalizedMatch } from "@/lib/sports/types";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export interface PreviewContext {
   /** Elo 레이팅 (양 팀) */
@@ -129,8 +130,8 @@ function pct(p: number) {
 
 export function buildPreviewPrompt(input: PreviewPromptInput): string {
   const { match, context = {} } = input;
-  const home = match.homeTeam.name;
-  const away = match.awayTeam.name;
+  const home = toKoreanTeamName(match.homeTeam.name);
+  const away = toKoreanTeamName(match.awayTeam.name);
   const dateStr = match.startTime.toLocaleString("ko-KR", {
     year: "numeric",
     month: "2-digit",

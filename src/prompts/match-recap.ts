@@ -3,6 +3,7 @@
 
 import type { NormalizedMatch } from "@/lib/sports/types";
 import type { PreviewContext } from "./match-preview";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export interface RecapContext extends PreviewContext {
   /** 경기 이벤트 (골/카드/교체 — 시간순) */
@@ -41,8 +42,8 @@ function pct(p: number) {
 
 export function buildRecapPrompt(input: RecapPromptInput): string {
   const { match, context = {} } = input;
-  const home = match.homeTeam.name;
-  const away = match.awayTeam.name;
+  const home = toKoreanTeamName(match.homeTeam.name);
+  const away = toKoreanTeamName(match.awayTeam.name);
   const score = `${match.homeScore ?? "?"} : ${match.awayScore ?? "?"}`;
   const dateStr = match.startTime.toLocaleString("ko-KR", {
     year: "numeric",

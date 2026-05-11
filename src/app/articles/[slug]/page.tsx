@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import { formatDateKo } from "@/lib/format";
 import { getExternalLinks } from "@/lib/external-links";
 import AdminEditLink from "@/components/AdminEditLink";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export const dynamic = "force-dynamic";
 
@@ -327,7 +328,7 @@ export default async function ArticlePage({ params }: Props) {
                 name={article.match.homeTeam.name}
               />
               <div className="mt-2 font-semibold text-sm sm:text-base group-hover:underline truncate max-w-full">
-                {article.match.homeTeam.name}
+                {toKoreanTeamName(article.match.homeTeam.name)}
               </div>
               <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 font-medium">
                 🏠 홈
@@ -351,7 +352,7 @@ export default async function ArticlePage({ params }: Props) {
                 name={article.match.awayTeam.name}
               />
               <div className="mt-2 font-semibold text-sm sm:text-base group-hover:underline truncate max-w-full">
-                {article.match.awayTeam.name}
+                {toKoreanTeamName(article.match.awayTeam.name)}
               </div>
               <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 font-medium">
                 ✈ 원정
