@@ -10,6 +10,8 @@ import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
+import UclBracket from "@/components/UclBracket";
+import { buildUclBracket } from "@/lib/predict/ucl-bracket";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 export const dynamic = "force-dynamic";
@@ -212,6 +214,18 @@ export default async function LeaguePredictions({ params }: Props) {
     ? buildWorldCupSeedTable(teamNameById)
     : calcEloTable(matches);
 
+  // UCL — knockout-stage 브래킷 빌드 (raw 필요해 별도 fetch)
+  const isUcl = upper === "UCL";
+  let uclBracket: ReturnType<typeof buildUclBracket> = [];
+  if (isUcl) {
+    const knockoutMatches = await prisma.match.findMany({
+      where: { league: "UCL" },
+      include: { homeTeam: true, awayTeam: true },
+      orderBy: { startTime: "asc" },
+    });
+    uclBracket = buildUclBracket(knockoutMatches);
+  }
+
   return (
     <div>
       {/* 히어로 */}
@@ -338,8 +352,19 @@ export default async function LeaguePredictions({ params }: Props) {
           </>
         )}
 
-        {/* 일반 리그 — Monte Carlo 결과 */}
-        {canSimulate && !isWorldCup && (
+        {/* UCL — knockout 브래킷 */}
+        {isUcl && (
+          <section>
+            <Heading
+              title="UCL 토너먼트 브래킷"
+              subtitle="16강 → 8강 → 4강 → 결승 (2-leg 합산 진출)"
+            />
+            <UclBracket series={uclBracket} />
+          </section>
+        )}
+
+        {/* 일반 리그 — Monte Carlo 결과 (UCL 제외) */}
+        {canSimulate && !isWorldCup && !isUcl && (
           <>
             {/* 우승 확률 */}
             <section>
