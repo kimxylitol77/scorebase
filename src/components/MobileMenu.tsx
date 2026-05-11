@@ -133,7 +133,7 @@ export default function MobileMenu() {
             href="/previews"
             className="block w-full mb-3 px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 font-semibold text-center text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
           >
-            🔮 프리뷰 모음 (종목별)
+            프리뷰 모음 (종목별)
           </Link>
           <Link
             href="/notices"
