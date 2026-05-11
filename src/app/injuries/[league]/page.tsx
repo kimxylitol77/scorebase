@@ -15,8 +15,8 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// 축구 7개 리그만 — api-football Pro 부상자 데이터 가능
-const VALID = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL"] as const;
+// UCL 부상자는 소속 리그(EPL/라리가/...) 페이지에 중복이라 제외 — 5대 리그 + MLS 만
+const VALID = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS"] as const;
 type Lg = (typeof VALID)[number];
 
 const LEAGUE_LABEL: Record<Lg, string> = {
@@ -26,7 +26,6 @@ const LEAGUE_LABEL: Record<Lg, string> = {
   SERIE_A: "세리에 A",
   LIGUE_1: "리그 1",
   MLS: "MLS",
-  UCL: "챔피언스리그",
 };
 
 const REASON_KO: Record<string, string> = {
