@@ -148,8 +148,32 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
 function normLolName(s: string): string {
   return s
     .toLowerCase()
-    .replace(/\b(esports|e\s*sports|gaming|club|team|rolster|life)\b/g, "")
+    .replace(/\b(esports|e\s*sports|gaming|club|team|rolster|life|redforce|hangame|kia)\b/g, "")
     .replace(/[^a-z0-9가-힣]/g, "");
+}
+
+// LCK 팀 영문 alias — DB Team.externalId(BDL id) → odds source 가 부르는 영문 패턴들
+// OddsPapi/Pinnacle/Cloudbet 등 source 다 다른 표기 가능.
+const LCK_TEAM_ALIASES: Record<string, string[]> = {
+  "1": ["t1"],
+  "2": ["geng", "gen.g", "genesports", "gengesports"],
+  "7": ["hanwhalife", "hanwhalifeesports", "hle"],
+  "8": ["ktrolster", "kt"],
+  "21": ["dplus", "dpluskia", "dk", "damwon", "damwonkia"],
+  "35": ["fearx", "bnkfearx", "bfx"],
+  "62": ["nongshim", "nongshimredforce", "ns", "redforce"],
+  "66": ["okbrion", "oksavingsbankbrion", "hanjinbrion", "bro", "brion"],
+  "320": ["soopers", "dnsoopers", "dnfreecs", "freecs", "dns"],
+  "321": ["drx"],
+};
+
+/** odds source 의 영문 매치명 → BDL externalId 추론 */
+function bdlIdFromOddsName(name: string): string | null {
+  const n = normLolName(name);
+  for (const [bdlId, aliases] of Object.entries(LCK_TEAM_ALIASES)) {
+    if (aliases.some((a) => n.includes(a) || a.includes(n))) return bdlId;
+  }
+  return null;
 }
 
 interface LolEventOdds {
@@ -284,26 +308,23 @@ async function fetchLolOdds(): Promise<number> {
 
   let matched = 0;
   for (const m of dbMatches) {
-    const homeN = normLolName(m.homeTeam.name);
-    const awayN = normLolName(m.awayTeam.name);
+    // BDL externalId 기반 alias 매칭 — 가장 정확 (영문/한글 양방향 호환)
+    const homeBdl = m.homeTeam.externalId;
+    const awayBdl = m.awayTeam.externalId;
     const ev = events.find((e) => {
-      const eh = normLolName(e.homeName);
-      const ea = normLolName(e.awayName);
+      const evHomeBdl = bdlIdFromOddsName(e.homeName);
+      const evAwayBdl = bdlIdFromOddsName(e.awayName);
       const direct =
-        (eh.includes(homeN) || homeN.includes(eh)) &&
-        (ea.includes(awayN) || awayN.includes(ea));
-      // home/away 가 베팅사 기준과 우리 DB 기준이 다를 수 있어 swap 도 허용
+        evHomeBdl === homeBdl && evAwayBdl === awayBdl;
       const swap =
-        (eh.includes(awayN) || awayN.includes(eh)) &&
-        (ea.includes(homeN) || homeN.includes(ea));
+        evHomeBdl === awayBdl && evAwayBdl === homeBdl;
       return direct || swap;
     });
     if (!ev) continue;
 
-    const ehHome = normLolName(ev.homeName);
-    const dbHome = normLolName(m.homeTeam.name);
-    const aligned =
-      ehHome.includes(dbHome) || dbHome.includes(ehHome);
+    // home/away 정렬 — odds source 의 home 이 우리 DB 의 home 과 같은가?
+    const evHomeBdl = bdlIdFromOddsName(ev.homeName);
+    const aligned = evHomeBdl === homeBdl;
     const dh = aligned ? ev.homeDecimal : ev.awayDecimal;
     const da = aligned ? ev.awayDecimal : ev.homeDecimal;
 
