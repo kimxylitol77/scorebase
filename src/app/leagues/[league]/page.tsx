@@ -20,6 +20,7 @@ const VALID_LEAGUES = [
   "NHL",
   "MLB",
   "KBO",
+  "LOL",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -119,6 +120,13 @@ const LEAGUE_INFO: Record<
     gradient: "from-blue-600 via-indigo-600 to-rose-500",
     copy:
       "KIA·삼성·LG·두산·KT·SSG·롯데·한화·NC·키움 10팀이 144경기를 치르는 한국 프로야구. 매일 자동 업데이트되는 경기 결과·분석.",
+  },
+  LOL: {
+    name: "LCK",
+    subtitle: "League of Legends Champions Korea",
+    gradient: "from-rose-500 via-fuchsia-600 to-indigo-600",
+    copy:
+      "T1·Gen.G·한화생명·KT·디플러스 기아·DRX·BNK 피어엑스·한진 브리온·농심 레드포스·DN SOOPers 10팀이 격돌하는 한국 LoL 1부 리그. 정규 스플릿부터 플레이오프·MSI·Worlds까지 매치 일정과 결과.",
   },
 };
 

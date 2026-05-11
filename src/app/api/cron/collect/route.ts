@@ -17,6 +17,7 @@ const ALL_LEAGUES: League[] = [
   "NBA",
   "NHL",
   "MLB",
+  "LOL",
   // KBO 는 데이터 소스 정비 후 추후 재오픈
 ];
 

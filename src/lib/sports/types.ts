@@ -13,7 +13,8 @@ export type League =
   | "LIGUE_1"
   | "MLS"
   | "UCL"
-  | "WORLD_CUP"; // 2026 FIFA 북중미 월드컵
+  | "WORLD_CUP" // 2026 FIFA 북중미 월드컵
+  | "LOL"; // LCK (League of Legends Champions Korea) — e스포츠
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [

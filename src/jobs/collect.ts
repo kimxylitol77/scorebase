@@ -10,6 +10,7 @@ import { collectors } from "@/lib/sports";
 import { fetchEplRange } from "@/lib/sports/football-data";
 import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
+import { fetchLolLckAll } from "@/lib/sports/lol";
 import type { League, NormalizedMatch } from "@/lib/sports/types";
 
 // 팀 이름 정규화 — football-data 와 ESPN 의 팀명 표기 차이 흡수
@@ -219,6 +220,14 @@ export async function runCollect(opts?: {
       if (league === "WORLD_CUP") {
         const matches = await fetchWorldCupAll();
         console.log(`[collect/WORLD_CUP] ${matches.length}경기 수집 (전체)`);
+        for (const m of matches) await upsertMatch(m);
+        continue;
+      }
+      // LoL/LCK: BALLDONTLIE LoL endpoint 가 날짜 필터를 지원하지 않아
+      // LCK tournament 전체를 한 번에 가져오는 게 효율적이다.
+      if (league === "LOL") {
+        const matches = await fetchLolLckAll();
+        console.log(`[collect/LOL] ${matches.length}경기 수집 (LCK 전체)`);
         for (const m of matches) await upsertMatch(m);
         continue;
       }

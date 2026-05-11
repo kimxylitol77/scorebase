@@ -61,6 +61,13 @@ const CATEGORIES: CategoryDef[] = [
     href: "/leagues/NHL",
     items: [{ href: "/leagues/NHL", label: "NHL", desc: "북미" }],
   },
+  {
+    label: "e스포츠",
+    href: "/leagues/LOL",
+    items: [
+      { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국", icon: "🎮" },
+    ],
+  },
 ];
 
 export default function Header() {

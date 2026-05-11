@@ -332,7 +332,8 @@ export default async function MatchInsight({ match }: Props) {
   const homeTrend = calcRecentTrend(matches, match.homeTeamId, referenceTime, 5);
   const awayTrend = calcRecentTrend(matches, match.awayTeamId, referenceTime, 5);
 
-  const hideDraw = match.league === "NBA" || match.league === "KBO";
+  const hideDraw =
+    match.league === "NBA" || match.league === "KBO" || match.league === "LOL";
   const dataSparse = eloTable.processed < 10;
 
   if (dataSparse) {
