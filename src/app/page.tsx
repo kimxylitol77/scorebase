@@ -339,15 +339,6 @@ function RecentUpdatesSection() {
       href: "/about",
       cta: "방법론 상세",
     },
-    {
-      tag: "AUTOMATION",
-      tone: "pink",
-      icon: "🔄",
-      title: "매일 7회 자동 갱신",
-      body: "결과 수집 / 프리뷰 작성 / 리뷰 작성 / 적중 평가 / 시장 odds 수집 — 매치 종료 직후 글이 자동으로 사이트에 올라옵니다.",
-      href: "/about",
-      cta: "데이터 흐름",
-    },
   ];
   return (
     <section aria-labelledby="updates-title">
