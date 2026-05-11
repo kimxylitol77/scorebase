@@ -175,20 +175,25 @@ export async function runCollect(opts?: {
   date?: string;
   /** 양수 N 이면 date ~ date+N 일까지 모두 fetch (미래 일정 채우기). 기본 0 = 단일 날짜. */
   futureDays?: number;
+  /** 양수 N 이면 date-N ~ date 까지도 함께 fetch (어제 끝난 매치 score/status 보정). 기본 0. */
+  pastDays?: number;
 }) {
   const argLeagues = opts?.leagues;
   const argDate = opts?.date;
   const futureDays = opts?.futureDays ?? 0;
+  const pastDays = opts?.pastDays ?? 0;
   const { leagues, date } = argLeagues || argDate
     ? {
         leagues: argLeagues ?? (["KBO", "EPL", "NBA"] as League[]),
         date: argDate ?? todayKST(),
       }
     : parseArgs();
+  const startDate = pastDays > 0 ? addDays(date, -pastDays) : date;
   const endDate = futureDays > 0 ? addDays(date, futureDays) : date;
+  const isRange = pastDays > 0 || futureDays > 0;
   console.log(
-    `[collect] 시작 — leagues=${leagues.join(",")}, ${date}${
-      futureDays > 0 ? ` ~ ${endDate} (+${futureDays}d)` : ""
+    `[collect] 시작 — leagues=${leagues.join(",")}, ${startDate}${
+      isRange ? ` ~ ${endDate} (-${pastDays}d/+${futureDays}d)` : ""
     }`,
   );
 
@@ -197,13 +202,12 @@ export async function runCollect(opts?: {
       // EPL: football-data 는 dateFrom/dateTo 한 번 호출로 범위 처리 가능
       // + ESPN cross-check 로 score 오류 보정
       if (league === "EPL" && process.env.FOOTBALL_DATA_KEY) {
-        const matches =
-          futureDays > 0
-            ? await fetchEplRange(date, endDate)
-            : await collectors.EPL.fetchByDate(date);
+        const matches = isRange
+          ? await fetchEplRange(startDate, endDate)
+          : await collectors.EPL.fetchByDate(date);
         const { corrected } = await crossCheckEplWithEspn(matches);
         console.log(
-          `[collect/EPL] ${matches.length}경기 수집 (${date}~${endDate})${
+          `[collect/EPL] ${matches.length}경기 수집 (${startDate}~${endDate})${
             corrected > 0 ? ` · ESPN 보정 ${corrected}건` : ""
           }`,
         );
@@ -220,11 +224,11 @@ export async function runCollect(opts?: {
       }
       // 그 외: day-loop
       let total = 0;
-      for (let d = date; d <= endDate; d = addDays(d, 1)) {
+      for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
         const matches = await collectors[league].fetchByDate(d);
         for (const m of matches) await upsertMatch(m);
         total += matches.length;
-        if (futureDays > 0) await new Promise((r) => setTimeout(r, 80));
+        if (isRange) await new Promise((r) => setTimeout(r, 80));
       }
       console.log(`[collect/${league}] ${total}경기 수집`);
     } catch (err) {
