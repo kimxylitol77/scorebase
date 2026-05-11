@@ -121,7 +121,8 @@ export default function Footer() {
           </div>
           <div>
             Built with <strong className="text-white/85">Claude Code</strong> ·
-            Powered by <strong className="text-white/85">Claude + Gemini</strong>{" "}
+            Powered by{" "}
+            <strong className="text-white/85">Claude + Gemini + ChatGPT</strong>{" "}
             · Next.js
           </div>
         </div>
