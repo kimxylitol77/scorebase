@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
 import { notFound } from "next/navigation";
@@ -171,11 +172,21 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   };
   if (currentType !== "ALL") where.type = currentType;
 
+  // 정렬: PREVIEW 는 다가오는 매치 순(가장 가까운 킥오프 먼저),
+  // RECAP 은 최근 끝난 매치 순. ALL / ANALYSIS 는 발행순 유지.
+  // match null 인 글(ANALYSIS 등)은 마지막으로 (nulls last) — 보조 publishedAt desc.
+  const articleOrderBy: Prisma.ArticleOrderByWithRelationInput[] =
+    currentType === "PREVIEW"
+      ? [{ match: { startTime: "asc" } }, { publishedAt: "desc" }]
+      : currentType === "RECAP"
+        ? [{ match: { startTime: "desc" } }, { publishedAt: "desc" }]
+        : [{ publishedAt: "desc" }];
+
   // 카운트는 type 별로 동시에 — 탭에 숫자 표시용
   const [articles, totalArticles, countsByType, accStats] = await Promise.all([
     prisma.article.findMany({
       where,
-      orderBy: { publishedAt: "desc" },
+      orderBy: articleOrderBy,
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
