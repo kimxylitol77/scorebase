@@ -92,12 +92,12 @@ export async function fetchEspnInjuries(
 }
 
 /** 팀명으로 부상자 필터 (api-football getTeamInjuries 와 동일 시그니처) */
-export function getTeamEspnInjuries(
-  all: EspnInjuryEntry[],
+export function getTeamEspnInjuries<T extends EspnInjuryEntry>(
+  all: T[],
   teamName: string,
   _beforeIso?: string,
   limit = 30,
-): EspnInjuryEntry[] {
+): T[] {
   const norm = (s: string) =>
     s.toLowerCase().replace(/[^a-z0-9]/g, "");
   const target = norm(teamName);
