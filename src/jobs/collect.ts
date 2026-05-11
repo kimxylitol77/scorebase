@@ -11,6 +11,9 @@ import { fetchEplRange } from "@/lib/sports/football-data";
 import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
 import type { League, NormalizedMatch } from "@/lib/sports/types";
+import { runParallel } from "@/lib/utils/parallel";
+
+const UPSERT_CONCURRENCY = 5;
 
 // 팀 이름 정규화 — football-data 와 ESPN 의 팀명 표기 차이 흡수
 // (예: "Manchester City FC" ↔ "Manchester City", "Tottenham Hotspur" ↔ "Tottenham")
@@ -211,7 +214,7 @@ export async function runCollect(opts?: {
             corrected > 0 ? ` · ESPN 보정 ${corrected}건` : ""
           }`,
         );
-        for (const m of matches) await upsertMatch(m);
+        await runParallel(matches, UPSERT_CONCURRENCY, (m) => upsertMatch(m));
         continue;
       }
       // 월드컵: 토너먼트 전체를 호출 1회로 받아 upsert.
@@ -219,14 +222,14 @@ export async function runCollect(opts?: {
       if (league === "WORLD_CUP") {
         const matches = await fetchWorldCupAll();
         console.log(`[collect/WORLD_CUP] ${matches.length}경기 수집 (전체)`);
-        for (const m of matches) await upsertMatch(m);
+        await runParallel(matches, UPSERT_CONCURRENCY, (m) => upsertMatch(m));
         continue;
       }
       // 그 외: day-loop
       let total = 0;
       for (let d = startDate; d <= endDate; d = addDays(d, 1)) {
         const matches = await collectors[league].fetchByDate(d);
-        for (const m of matches) await upsertMatch(m);
+        await runParallel(matches, UPSERT_CONCURRENCY, (m) => upsertMatch(m));
         total += matches.length;
         if (isRange) await new Promise((r) => setTimeout(r, 80));
       }

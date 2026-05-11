@@ -12,6 +12,9 @@ import { prisma } from "@/lib/db";
 import { collectors } from "@/lib/sports";
 import { fetchEplRange } from "@/lib/sports/football-data";
 import type { League, NormalizedMatch } from "@/lib/sports/types";
+import { runParallel } from "@/lib/utils/parallel";
+
+const UPSERT_CONCURRENCY = 5;
 
 function todayKST(): string {
   const now = new Date();
@@ -98,11 +101,12 @@ async function backfillEplSeason(start: string, end: string) {
   console.log(`[backfill/EPL] ${start} ~ ${end} 시즌 가져오는 중…`);
   const matches = await fetchEplRange(start, end);
   console.log(`[backfill/EPL] ${matches.length}경기 수집 → upsert 중`);
-  let i = 0;
-  for (const m of matches) {
+  let done = 0;
+  await runParallel(matches, UPSERT_CONCURRENCY, async (m) => {
     await upsertMatch(m);
-    if (++i % 50 === 0) console.log(`  …${i}/${matches.length}`);
-  }
+    done++;
+    if (done % 50 === 0) console.log(`  …${done}/${matches.length}`);
+  });
   console.log(`[backfill/EPL] 완료 (${matches.length}경기)`);
 }
 
@@ -114,7 +118,7 @@ async function backfillRecent(league: League, days: number) {
   for (let d = start; d <= end; d = addDays(d, 1)) {
     try {
       const matches = await collectors[league].fetchByDate(d);
-      for (const m of matches) await upsertMatch(m);
+      await runParallel(matches, UPSERT_CONCURRENCY, (m) => upsertMatch(m));
       total += matches.length;
       if (matches.length > 0) console.log(`  ${d}: ${matches.length}경기`);
       // ESPN 은 rate limit 약하지만 살짝 쉬어준다
