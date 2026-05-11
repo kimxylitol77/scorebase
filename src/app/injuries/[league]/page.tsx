@@ -133,6 +133,59 @@ export default async function InjuriesByLeague({ params }: Props) {
 
   const totalInjuries = byTeam.reduce((s, x) => s + x.injuries.length, 0);
 
+  // ===== 요약 통계 (SEO + 가독성) =====
+  const top = byTeam[0];
+  const topInjuredTeam =
+    top && top.injuries.length > 0
+      ? { name: toKoreanTeamName(top.team.name), count: top.injuries.length }
+      : null;
+  const fullSquadTeams = byTeam
+    .filter((x) => x.injuries.length === 0)
+    .slice(0, 3)
+    .map((x) => toKoreanTeamName(x.team.name));
+
+  // 부상 부위별 집계 (한글 사유 기준)
+  const bodyPartCount = new Map<string, number>();
+  for (const { injuries } of byTeam) {
+    for (const i of injuries) {
+      const ko = translateReason(i.reason);
+      bodyPartCount.set(ko, (bodyPartCount.get(ko) ?? 0) + 1);
+    }
+  }
+  const sortedParts = Array.from(bodyPartCount.entries()).sort(
+    (a, b) => b[1] - a[1],
+  );
+  const topBodyPart = sortedParts[0]
+    ? {
+        name: sortedParts[0][0],
+        count: sortedParts[0][1],
+        pct:
+          totalInjuries > 0
+            ? Math.round((sortedParts[0][1] / totalInjuries) * 100)
+            : 0,
+      }
+    : null;
+  const nextParts = sortedParts.slice(1, 3).map((p) => p[0]);
+
+  // 핵심 결장자 = 부상자 많은 상위 팀들의 대표 결장자 한 명씩 (한글 이름 매핑된 선수 우선)
+  const keyMissingPlayers: string[] = [];
+  for (const { injuries } of byTeam.slice(0, 6)) {
+    if (keyMissingPlayers.length >= 3) break;
+    const ko = injuries
+      .map((i) => toKoreanPlayerName(i.playerName))
+      .find((n) => /[가-힣]/.test(n));
+    if (ko) keyMissingPlayers.push(ko);
+  }
+
+  const lastUpdatedKst = new Date().toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const avgPerTeam = byTeam.length > 0 ? totalInjuries / byTeam.length : 0;
+
   return (
     <div>
       {/* 헤더 */}
@@ -185,6 +238,65 @@ export default async function InjuriesByLeague({ params }: Props) {
           );
         })}
       </div>
+
+      {/* 요약 텍스트 — SEO + 한 문단 개요 */}
+      {totalInjuries > 0 && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-2">
+          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-5 space-y-3">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">
+                {LEAGUE_LABEL[upper]} 부상자 명단 · 2025-26 시즌
+              </h2>
+              <p className="text-[11px] text-neutral-500 mt-0.5">
+                🕒 마지막 업데이트: {lastUpdatedKst} · 출처: api-football Pro
+              </p>
+            </div>
+            <div className="space-y-2 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+              <p>
+                <strong>
+                  2025-26 시즌 {LEAGUE_LABEL[upper]} 전체 부상·결장 선수는 총{" "}
+                  {totalInjuries}명
+                </strong>
+                으로 집계됐다. {byTeam.length}개 팀 평균 {avgPerTeam.toFixed(1)}명이
+                결장 중이며
+                {topInjuredTeam &&
+                  `, 가장 많은 결장자를 보유한 팀은 `}
+                {topInjuredTeam && (
+                  <strong>
+                    {topInjuredTeam.name}({topInjuredTeam.count}명)
+                  </strong>
+                )}
+                {fullSquadTeams.length > 0 && (
+                  <>
+                    , 반대로 풀스쿼드를 유지 중인 팀은{" "}
+                    <strong>{fullSquadTeams.join(", ")}</strong>이다.
+                  </>
+                )}
+                {fullSquadTeams.length === 0 && "."}
+              </p>
+              {topBodyPart && (
+                <p>
+                  부상 부위별로는{" "}
+                  <strong>
+                    {topBodyPart.name}({topBodyPart.count}건, {topBodyPart.pct}
+                    %)
+                  </strong>
+                  이 가장 많이 발생했고
+                  {nextParts.length > 0 &&
+                    `, 그 다음은 ${nextParts.join("과 ")} 순이다.`}
+                  {keyMissingPlayers.length > 0 && (
+                    <>
+                      {" "}
+                      이번 라운드 경기에 영향을 받을 핵심 결장자는{" "}
+                      {keyMissingPlayers.join(", ")} 등이다.
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
         {!hasKey && (
