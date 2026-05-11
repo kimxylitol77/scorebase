@@ -10,6 +10,7 @@ import {
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 interface Props {
   league: string;
@@ -108,7 +109,7 @@ export default async function InjuryAndKeyPlayers({
             <KeyPlayerCard
               teamName={toKoreanTeamName(homeTeamName)}
               players={homeKey.map((p) => ({
-                name: p.playerName,
+                name: toKoreanPlayerName(p.playerName),
                 goals: p.goals,
                 assists: p.assists,
                 appearances: p.appearances,
@@ -118,7 +119,7 @@ export default async function InjuryAndKeyPlayers({
             <KeyPlayerCard
               teamName={toKoreanTeamName(awayTeamName)}
               players={awayKey.map((p) => ({
-                name: p.playerName,
+                name: toKoreanPlayerName(p.playerName),
                 goals: p.goals,
                 assists: p.assists,
                 appearances: p.appearances,
@@ -139,7 +140,7 @@ export default async function InjuryAndKeyPlayers({
             <InjuryCard
               teamName={homeTeamName}
               players={homeInj.map((i) => ({
-                name: i.playerName,
+                name: toKoreanPlayerName(i.playerName),
                 reasonKo: translateReason(i.reason),
                 reasonRaw: i.reason,
                 fixtureDate: i.fixtureDate,
@@ -149,7 +150,7 @@ export default async function InjuryAndKeyPlayers({
             <InjuryCard
               teamName={awayTeamName}
               players={awayInj.map((i) => ({
-                name: i.playerName,
+                name: toKoreanPlayerName(i.playerName),
                 reasonKo: translateReason(i.reason),
                 reasonRaw: i.reason,
                 fixtureDate: i.fixtureDate,
