@@ -1,6 +1,7 @@
 // 한 매치에 대한 PreviewContext / RecapContext 를 한 번에 빌드.
 
 import type { PredictMatch } from "./types";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { calcEloTable, getElo } from "./elo";
 import { calcForm } from "./form";
 import { calcH2H } from "./h2h";
@@ -163,17 +164,23 @@ export async function enrichContextWithApiFootball(
     return {
       ...context,
       injuries: {
-        home: homeInj.map((i) => ({ name: i.playerName, reason: i.reason })),
-        away: awayInj.map((i) => ({ name: i.playerName, reason: i.reason })),
+        home: homeInj.map((i) => ({
+          name: toKoreanPlayerName(i.playerName),
+          reason: i.reason,
+        })),
+        away: awayInj.map((i) => ({
+          name: toKoreanPlayerName(i.playerName),
+          reason: i.reason,
+        })),
       },
       keyPlayers: {
         home: homeKey.map((p) => ({
-          name: p.playerName,
+          name: toKoreanPlayerName(p.playerName),
           goals: p.goals,
           assists: p.assists,
         })),
         away: awayKey.map((p) => ({
-          name: p.playerName,
+          name: toKoreanPlayerName(p.playerName),
           goals: p.goals,
           assists: p.assists,
         })),
@@ -229,12 +236,12 @@ export async function enrichRecapWithApiFootball(
       lineups: {
         home: {
           formation: homeLine?.formation,
-          startXI: homeLine?.startXI ?? [],
+          startXI: (homeLine?.startXI ?? []).map(toKoreanPlayerName),
           coach: homeLine?.coach,
         },
         away: {
           formation: awayLine?.formation,
-          startXI: awayLine?.startXI ?? [],
+          startXI: (awayLine?.startXI ?? []).map(toKoreanPlayerName),
           coach: awayLine?.coach,
         },
       },
@@ -249,8 +256,8 @@ export async function enrichRecapWithApiFootball(
                 homeTeamName.toLowerCase().includes(e.teamName.toLowerCase()))
                 ? "home"
                 : "away"),
-        player: e.playerName,
-        assist: e.assistName,
+        player: toKoreanPlayerName(e.playerName),
+        assist: e.assistName ? toKoreanPlayerName(e.assistName) : e.assistName,
       })),
     };
   } catch {
