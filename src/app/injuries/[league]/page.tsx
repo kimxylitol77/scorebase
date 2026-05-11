@@ -45,12 +45,27 @@ const REASON_KO: Record<string, string> = {
   Concussion: "뇌진탕",
   Achilles: "아킬레스",
   Illness: "질병",
+  Sick: "질병",
   Suspended: "출장 정지",
   Fitness: "컨디션",
   Muscle: "근육",
   "Broken Bone": "골절",
+  Fracture: "골절",
   "Cardiac problems": "심장 문제",
   Toe: "발가락",
+  Knock: "타박상",
+  "Yellow Cards": "경고 누적",
+  "Red Card": "퇴장 누적",
+  Injury: "부상",
+  Strain: "근육 파열",
+  Sprain: "염좌",
+  Cramp: "쥐",
+  Surgery: "수술",
+  Rehab: "재활",
+  Personal: "개인 사정",
+  "Coach Decision": "감독 결정",
+  Doubtful: "출전 불투명",
+  Rest: "휴식",
 };
 
 function translateReason(en: string): string {
@@ -228,11 +243,8 @@ function TeamInjuryCard({
   }>;
 }) {
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-900/40">
-      <Link
-        href={`/teams/${teamId}`}
-        className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
-      >
+    <details className="injury-card group rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-900/40">
+      <summary className="list-none cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition select-none">
         {logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -247,9 +259,13 @@ function TeamInjuryCard({
           </span>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-bold truncate">
+          <Link
+            href={`/teams/${teamId}`}
+            className="font-bold truncate hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
             {toKoreanTeamName(teamName)}
-          </div>
+          </Link>
           <div className="text-[11px] text-neutral-500 truncate">
             {teamName}
           </div>
@@ -265,13 +281,30 @@ function TeamInjuryCard({
         >
           {injuries.length === 0 ? "✅ 0명" : `${injuries.length}명`}
         </span>
-      </Link>
-      {injuries.length === 0 ? (
-        <div className="px-4 py-3 text-xs text-neutral-500">
-          최근 부상자 없음
-        </div>
-      ) : (
-        <ul className="divide-y divide-neutral-100 dark:divide-neutral-800 text-sm">
+        {injuries.length > 0 && (
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shrink-0 group-open:opacity-0 transition">
+            부상자 보기
+          </span>
+        )}
+        {injuries.length > 0 && (
+          <span className="text-xs font-semibold text-neutral-500 shrink-0 hidden group-open:inline-flex items-center gap-1">
+            닫기
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
+              <path
+                d="M1 3l4 4 4-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                transform="rotate(180 5 5)"
+              />
+            </svg>
+          </span>
+        )}
+      </summary>
+      {injuries.length > 0 && (
+        <ul className="divide-y divide-neutral-100 dark:divide-neutral-800 text-sm border-t border-neutral-100 dark:border-neutral-800">
           {injuries.map((p) => (
             <li
               key={p.playerId}
@@ -286,6 +319,6 @@ function TeamInjuryCard({
           ))}
         </ul>
       )}
-    </div>
+    </details>
   );
 }
