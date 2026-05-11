@@ -6,6 +6,8 @@ import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
+import { getSportFromLeague } from "@/lib/players/types";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -177,6 +179,21 @@ export default async function TeamPage({ params }: Props) {
     } catch {}
   }
 
+  // Supabase + 코드 fallback 으로 선수명 한글화
+  const sport = (() => {
+    try { return getSportFromLeague(team.league); } catch { return "soccer" as const; }
+  })();
+  const playerNameResolved = await resolvePlayerNames(
+    [
+      ...injuries.map((i) => ({ apiFootballId: i.playerId, nameEn: i.playerName })),
+      ...keyPlayers.map((p) => ({ apiFootballId: p.playerId, nameEn: p.playerName })),
+    ],
+    sport,
+    team.league,
+  );
+  const koName = (id: number, en: string) =>
+    playerNameResolved.get(id)?.ko ?? toKoreanPlayerName(en);
+
   return (
     <div>
       {/* 헤더 */}
@@ -300,7 +317,7 @@ export default async function TeamPage({ params }: Props) {
                       {injuries.map((p) => (
                         <tr key={p.playerId} title={p.reason}>
                           <td className="px-4 py-2.5 font-medium">
-                            {toKoreanPlayerName(p.playerName)}
+                            {koName(p.playerId, p.playerName)}
                           </td>
                           <td className="px-4 py-2.5 text-right text-xs text-neutral-500">
                             {translateReason(p.reason)}
@@ -332,7 +349,7 @@ export default async function TeamPage({ params }: Props) {
                       {keyPlayers.map((p) => (
                         <tr key={p.playerId}>
                           <td className="px-4 py-2.5 font-medium">
-                            {toKoreanPlayerName(p.playerName)}
+                            {koName(p.playerId, p.playerName)}
                           </td>
                           <td className="px-2 py-2.5 text-right tabular-nums font-bold">
                             {p.goals}

@@ -2,6 +2,7 @@
 
 import type { PredictMatch } from "./types";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { calcEloTable, getElo } from "./elo";
 import { buildScoreDistribution } from "./score-distribution";
 
@@ -179,26 +180,40 @@ export async function enrichContextWithApiFootball(
     const homeKey = getTeamKeyPlayers(allScorers, homeTeamName, 3);
     const awayKey = getTeamKeyPlayers(allScorers, awayTeamName, 3);
 
+    // Supabase + 코드 fallback 한 번에 batch 조회 (id 있는 모든 선수)
+    const resolved = await resolvePlayerNames(
+      [
+        ...homeInj.map((i) => ({ apiFootballId: i.playerId, nameEn: i.playerName })),
+        ...awayInj.map((i) => ({ apiFootballId: i.playerId, nameEn: i.playerName })),
+        ...homeKey.map((p) => ({ apiFootballId: p.playerId, nameEn: p.playerName })),
+        ...awayKey.map((p) => ({ apiFootballId: p.playerId, nameEn: p.playerName })),
+      ],
+      "soccer",
+      league,
+    );
+    const ko = (id: number, en: string) =>
+      resolved.get(id)?.ko ?? toKoreanPlayerName(en);
+
     return {
       ...context,
       injuries: {
         home: homeInj.map((i) => ({
-          name: toKoreanPlayerName(i.playerName),
+          name: ko(i.playerId, i.playerName),
           reason: i.reason,
         })),
         away: awayInj.map((i) => ({
-          name: toKoreanPlayerName(i.playerName),
+          name: ko(i.playerId, i.playerName),
           reason: i.reason,
         })),
       },
       keyPlayers: {
         home: homeKey.map((p) => ({
-          name: toKoreanPlayerName(p.playerName),
+          name: ko(p.playerId, p.playerName),
           goals: p.goals,
           assists: p.assists,
         })),
         away: awayKey.map((p) => ({
-          name: toKoreanPlayerName(p.playerName),
+          name: ko(p.playerId, p.playerName),
           goals: p.goals,
           assists: p.assists,
         })),

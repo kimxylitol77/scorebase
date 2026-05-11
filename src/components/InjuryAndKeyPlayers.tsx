@@ -11,6 +11,8 @@ import {
 } from "@/lib/sports/api-football-pro";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
+import { getSportFromLeague } from "@/lib/players/types";
 
 interface Props {
   league: string;
@@ -81,6 +83,23 @@ export default async function InjuryAndKeyPlayers({
   const homeKey = getTeamKeyPlayers(allScorers, homeTeamName, 3);
   const awayKey = getTeamKeyPlayers(allScorers, awayTeamName, 3);
 
+  // Supabase + 코드 fallback 한 번에 batch 조회
+  const sport = (() => {
+    try { return getSportFromLeague(league); } catch { return "soccer" as const; }
+  })();
+  const resolved = await resolvePlayerNames(
+    [
+      ...homeInj.map((i) => ({ apiFootballId: i.playerId, nameEn: i.playerName })),
+      ...awayInj.map((i) => ({ apiFootballId: i.playerId, nameEn: i.playerName })),
+      ...homeKey.map((p) => ({ apiFootballId: p.playerId, nameEn: p.playerName })),
+      ...awayKey.map((p) => ({ apiFootballId: p.playerId, nameEn: p.playerName })),
+    ],
+    sport,
+    league,
+  );
+  const ko = (id: number, en: string) =>
+    resolved.get(id)?.ko ?? toKoreanPlayerName(en);
+
   // 데이터 전혀 없으면 섹션 자체 숨김
   const hasAny =
     homeInj.length > 0 ||
@@ -109,7 +128,7 @@ export default async function InjuryAndKeyPlayers({
             <KeyPlayerCard
               teamName={toKoreanTeamName(homeTeamName)}
               players={homeKey.map((p) => ({
-                name: toKoreanPlayerName(p.playerName),
+                name: ko(p.playerId, p.playerName),
                 goals: p.goals,
                 assists: p.assists,
                 appearances: p.appearances,
@@ -119,7 +138,7 @@ export default async function InjuryAndKeyPlayers({
             <KeyPlayerCard
               teamName={toKoreanTeamName(awayTeamName)}
               players={awayKey.map((p) => ({
-                name: toKoreanPlayerName(p.playerName),
+                name: ko(p.playerId, p.playerName),
                 goals: p.goals,
                 assists: p.assists,
                 appearances: p.appearances,
@@ -140,7 +159,7 @@ export default async function InjuryAndKeyPlayers({
             <InjuryCard
               teamName={homeTeamName}
               players={homeInj.map((i) => ({
-                name: toKoreanPlayerName(i.playerName),
+                name: ko(i.playerId, i.playerName),
                 reasonKo: translateReason(i.reason),
                 reasonRaw: i.reason,
                 fixtureDate: i.fixtureDate,
@@ -150,7 +169,7 @@ export default async function InjuryAndKeyPlayers({
             <InjuryCard
               teamName={awayTeamName}
               players={awayInj.map((i) => ({
-                name: toKoreanPlayerName(i.playerName),
+                name: ko(i.playerId, i.playerName),
                 reasonKo: translateReason(i.reason),
                 reasonRaw: i.reason,
                 fixtureDate: i.fixtureDate,
