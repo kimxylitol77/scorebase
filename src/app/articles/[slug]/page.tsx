@@ -156,6 +156,7 @@ function buildSportsEventJsonLd(opts: {
     organizer: {
       "@type": "Organization",
       name: country?.name ? `${league} (${country.name})` : league,
+      url: `${siteUrl}/leagues/${league}`,
     },
     offers: {
       "@type": "Offer",
