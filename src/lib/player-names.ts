@@ -180,7 +180,6 @@ const RAW: Record<string, string> = {
   "Thomas Muller": "토마스 뮐러",
   "Michael Olise": "마이클 올리스",
   "Konrad Laimer": "콘라트 라이머",
-  "Luis Díaz": "루이스 디아스",
   // 도르트문트
   "Karim Adeyemi": "카림 아데예미",
   "Serhou Guirassy": "세르후 기라시",
@@ -190,13 +189,10 @@ const RAW: Record<string, string> = {
   "Niclas Füllkrug": "니클라스 퓔크루크",
   "Niclas Fullkrug": "니클라스 퓔크루크",
   // 레버쿠젠 / RB 라이프치히 / 슈투트가르트
-  "Florian Wirtz": "플로리안 비르츠",
   "Granit Xhaka": "그라니트 자카",
   "Patrik Schick": "파트리크 시크",
-  "Xavi Simons": "샤비 시몬스",
   "Lois Openda": "루아 오펜다",
   "Loïs Openda": "루아 오펜다",
-  "Benjamin Sesko": "벤야민 셰슈코",
   "Deniz Undav": "데니스 운다브",
 
   // ─── 세리에 A ───
@@ -211,7 +207,6 @@ const RAW: Record<string, string> = {
   // 유벤투스
   "Dušan Vlahović": "두샨 블라호비치",
   "Dusan Vlahovic": "두샨 블라호비치",
-  "Federico Chiesa": "페데리코 키에사",
   "Adrien Rabiot": "아드리앵 라비오",
   "Kenan Yıldız": "케난 일디즈",
   "Kenan Yildiz": "케난 일디즈",
@@ -224,7 +219,6 @@ const RAW: Record<string, string> = {
   "Khvicha Kvaratskhelia": "흐비차 크바라츠헬리아",
   "Stanislav Lobotka": "스타니슬라프 로보트카",
   "Scott McTominay": "스콧 맥토미니",
-  "Kevin De Bruyne": "케빈 더 브라위너",
   // AC밀란
   "Rafael Leão": "하파엘 레앙",
   "Rafael Leao": "하파엘 레앙",
