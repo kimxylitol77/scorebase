@@ -28,7 +28,7 @@ type FilterType = "ALL" | ArticleType;
 
 const VALID_TYPES: FilterType[] = ["ALL", "PREVIEW", "RECAP", "ANALYSIS"];
 
-// api-football Pro 부상자 데이터를 보유한 축구 리그만 '부상자명단' 탭 노출
+// 부상자 명단 페이지를 가진 리그 (축구 6개 + NBA/MLB/NHL ESPN)
 // UCL 은 소속 리그(EPL/라리가/...)와 중복이라 제외
 const SOCCER_INJURY_LEAGUES = new Set([
   "EPL",
@@ -37,6 +37,9 @@ const SOCCER_INJURY_LEAGUES = new Set([
   "SERIE_A",
   "LIGUE_1",
   "MLS",
+  "NBA",
+  "MLB",
+  "NHL",
 ]);
 
 const LEAGUE_INFO: Record<

@@ -15,13 +15,22 @@ import {
   API_FOOTBALL_LEAGUE_ID,
   type InjuryEntry,
 } from "@/lib/sports/api-football-pro";
+import {
+  fetchEspnInjuries,
+  getTeamEspnInjuries,
+} from "@/lib/sports/espn-injuries";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// UCL 은 소속 리그(EPL/라리가/...)와 중복이라 제외 — 5대 리그 + MLS 만
-const VALID = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS"] as const;
+// UCL 은 소속 리그(EPL/라리가/...)와 중복이라 제외
+const VALID = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
+  "NBA", "MLB", "NHL",
+] as const;
 type Lg = (typeof VALID)[number];
+const SOCCER: Lg[] = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS"];
+const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL"];
 
 const CANONICAL = "https://www.scorebase.kr";
 
@@ -115,6 +124,38 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
       "수아레스 부상",
       "인터 마이애미 부상자",
       "LAFC 부상자",
+    ],
+  },
+  NBA: {
+    krFull: "NBA",
+    krShort: "NBA",
+    enFull: "National Basketball Association",
+    starKeywords: [
+      "NBA 부상자", "NBA 부상자 명단",
+      "르브론 부상", "커리 부상", "듀란트 부상", "요키치 부상", "돈치치 부상",
+      "엠비드 부상", "테이텀 부상", "웸반야마 부상",
+      "레이커스 부상자", "워리어스 부상자", "셀틱스 부상자",
+    ],
+  },
+  MLB: {
+    krFull: "MLB",
+    krShort: "MLB",
+    enFull: "Major League Baseball",
+    starKeywords: [
+      "MLB 부상자", "메이저리그 부상자 명단",
+      "오타니 부상", "저지 부상", "베츠 부상", "소토 부상",
+      "김하성 부상", "김혜성 부상", "이정후 부상",
+      "다저스 부상자", "양키스 부상자",
+    ],
+  },
+  NHL: {
+    krFull: "NHL",
+    krShort: "NHL",
+    enFull: "National Hockey League",
+    starKeywords: [
+      "NHL 부상자", "NHL 부상자 명단",
+      "맥데이비드 부상", "드라이자이틀 부상", "매슈스 부상", "매키넌 부상", "크로즈비 부상",
+      "오일러스 부상자", "메이플리프스 부상자",
     ],
   },
 };
@@ -316,23 +357,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let fullSquadCount = 0;
   try {
     const teams = await prisma.team.findMany({ where: { league: upper } });
-    const hasKey = !!process.env.API_FOOTBALL_KEY;
-    if (hasKey && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0) {
-      const season = getApiFootballSeason(new Date(), upper);
-      const all = await fetchSeasonInjuries(upper, season);
-      let maxCount = 0;
-      let maxName = "";
-      for (const t of teams) {
-        const list = getTeamInjuries(all, t.name, undefined, 30);
-        totalInjuries += list.length;
-        if (list.length === 0) fullSquadCount++;
-        if (list.length > maxCount) {
-          maxCount = list.length;
-          maxName = toKoreanTeamName(t.name);
-        }
+    const isEspn = ESPN_LEAGUES.includes(upper);
+    const isSoccer = SOCCER.includes(upper);
+    let teamLists: Array<{ teamName: string; count: number }> = [];
+
+    if (isSoccer) {
+      if (process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0) {
+        const season = getApiFootballSeason(new Date(), upper);
+        const all = await fetchSeasonInjuries(upper, season);
+        teamLists = teams.map((t) => ({
+          teamName: t.name,
+          count: getTeamInjuries(all, t.name, undefined, 30).length,
+        }));
       }
-      if (maxCount > 0) topTeam = { name: maxName, count: maxCount };
+    } else if (isEspn) {
+      const all = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
+      teamLists = teams.map((t) => ({
+        teamName: t.name,
+        count: getTeamEspnInjuries(all, t.name, undefined, 30).length,
+      }));
     }
+
+    let maxCount = 0;
+    let maxName = "";
+    for (const tl of teamLists) {
+      totalInjuries += tl.count;
+      if (tl.count === 0) fullSquadCount++;
+      if (tl.count > maxCount) {
+        maxCount = tl.count;
+        maxName = toKoreanTeamName(tl.teamName);
+      }
+    }
+    if (maxCount > 0) topTeam = { name: maxName, count: maxCount };
   } catch {}
 
   const url = `${CANONICAL}/injuries/${upper}`;
@@ -440,12 +496,22 @@ export default async function InjuriesByLeague({
     }
   }
 
+  const isEspn = ESPN_LEAGUES.includes(upper);
+  const isSoccer = SOCCER.includes(upper);
+  const sportName: "soccer" | "basketball" | "baseball" | "hockey" =
+    upper === "NBA" ? "basketball" : upper === "MLB" ? "baseball" : upper === "NHL" ? "hockey" : "soccer";
+
   let allInjuries: InjuryEntry[] = [];
-  const hasKey = !!process.env.API_FOOTBALL_KEY;
-  if (hasKey && API_FOOTBALL_LEAGUE_ID[upper]) {
+  let allEspn: Awaited<ReturnType<typeof fetchEspnInjuries>> = [];
+  const hasKey = isSoccer ? !!process.env.API_FOOTBALL_KEY : true;
+  if (isSoccer && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
     try {
       const season = getApiFootballSeason(new Date(), upper);
       allInjuries = await fetchSeasonInjuries(upper, season);
+    } catch {}
+  } else if (isEspn) {
+    try {
+      allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
     } catch {}
   }
 
@@ -456,32 +522,53 @@ export default async function InjuriesByLeague({
     | Severity;
   const sort = sp.sort ?? "count_desc";
 
-  // 팀별 raw 부상자 + 빈 이름 가드
-  const rawByTeam = teams.map((t) => {
-    const raw = getTeamInjuries(allInjuries, t.name, undefined, 30).filter(
-      (i) => {
-        const ok = i.playerName && i.playerName.trim().length > 0;
-        if (!ok) {
-          console.warn(
-            `[Injuries] Skipped player with empty name: ${t.name}/${i.reason}`,
-          );
-        }
-        return ok;
-      },
-    );
+  // 팀별 raw 부상자 + 빈 이름 가드 (소스에 따라 fetch 분기)
+  type RawInjury = {
+    playerId: number;
+    playerName: string;
+    reason: string;
+    fixtureDate?: string;
+  };
+  const rawByTeam: Array<{ team: typeof teams[number]; raw: RawInjury[] }> = teams.map((t) => {
+    let raw: RawInjury[] = [];
+    if (isSoccer) {
+      raw = getTeamInjuries(allInjuries, t.name, undefined, 30).map((i) => ({
+        playerId: i.playerId,
+        playerName: i.playerName,
+        reason: i.reason,
+        fixtureDate: i.fixtureDate,
+      }));
+    } else if (isEspn) {
+      raw = getTeamEspnInjuries(allEspn, t.name, undefined, 30).map((i) => ({
+        playerId: i.playerId,
+        playerName: i.playerName,
+        reason: i.reason,
+        fixtureDate: i.fixtureDate,
+      }));
+    }
+    raw = raw.filter((i) => {
+      const ok = i.playerName && i.playerName.trim().length > 0;
+      if (!ok) {
+        console.warn(
+          `[Injuries] Skipped player with empty name: ${t.name}/${i.reason}`,
+        );
+      }
+      return ok;
+    });
     return { team: t, raw };
   });
 
-  // sport sanity 점검 (다른 종목 선수 ID 혼입 차단)
-  const allIds = rawByTeam
-    .flatMap((x) => x.raw.map((i) => i.playerId))
-    .filter((id) => typeof id === "number" && id > 0);
-  if (allIds.length > 0) {
-    try {
-      await assertSportConsistency(allIds, "soccer", upper);
-    } catch (e) {
-      console.error(`[Injuries] sport sanity 실패: ${(e as Error).message}`);
-      // 페이지는 계속 렌더 — 충돌 로그는 player_mapping_conflict_log 에 적재됨
+  // sport sanity 점검 (다른 종목 선수 ID 혼입 차단) — 축구만 (Supabase 매핑 보유)
+  if (isSoccer) {
+    const allIds = rawByTeam
+      .flatMap((x) => x.raw.map((i) => i.playerId))
+      .filter((id) => typeof id === "number" && id > 0);
+    if (allIds.length > 0) {
+      try {
+        await assertSportConsistency(allIds, "soccer", upper);
+      } catch (e) {
+        console.error(`[Injuries] sport sanity 실패: ${(e as Error).message}`);
+      }
     }
   }
 
@@ -492,13 +579,14 @@ export default async function InjuriesByLeague({
       nameEn: i.playerName,
     })),
   );
-  const resolved = await resolvePlayerNames(allPlayers, "soccer", upper);
+  const resolved = await resolvePlayerNames(allPlayers, sportName, upper);
 
   const byTeam = rawByTeam.map(({ team, raw }) => {
-    const enriched: EnrichedInjury[] = raw.map((i) => {
-      const r = resolved.get(i.playerId) ?? { ko: i.playerName };
+    const enriched: EnrichedInjury[] = raw.map((i, idx) => {
+      const key = i.playerId > 0 ? i.playerId : i.playerName;
+      const r = resolved.get(key) ?? { ko: i.playerName };
       return {
-        playerId: i.playerId,
+        playerId: i.playerId > 0 ? i.playerId : -(team.id * 1000 + idx),
         playerName: r.ko,
         reasonKo: translateReason(i.reason),
         reasonRaw: i.reason,
