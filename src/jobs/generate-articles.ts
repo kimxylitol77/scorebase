@@ -188,7 +188,7 @@ export async function runRecap(opts?: {
           : buildRecapPrompt({ match: normalized, context });
       const content = await generate(prompt, {
         system: SYSTEM_PROMPT,
-        maxTokens: 2500,
+        maxTokens: 4096,
         temperature: 0.6,
       });
 

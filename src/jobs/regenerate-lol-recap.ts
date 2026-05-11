@@ -66,7 +66,7 @@ export async function regenerateLolRecap(
   const prompt = buildLolRecapPromptV2(ctx);
   const content = await generate(prompt, {
     system: SYSTEM_PROMPT,
-    maxTokens: 2500,
+    maxTokens: 4096,
     temperature: 0.6,
   });
 
