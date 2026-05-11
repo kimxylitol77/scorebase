@@ -7,15 +7,25 @@ import { generate } from "@/lib/ai/openai";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
-import { fetchCurrentLolPatch, calcLckStandings } from "@/lib/sports/lol";
+import {
+  fetchCurrentLolPatch,
+  calcLckStandings,
+  discoverTeamRoster,
+  fetchBdlPlayerStats,
+  fetchBdlTeamStats,
+  fetchBdlChampionStats,
+  modelOneGameKills,
+  oneGameKillsOver,
+  oneGameHandicap,
+} from "@/lib/sports/lol";
 import {
   fetchLckRoster,
-  fetchPlayerSeasonStats,
   lpTeamNameByExternalId,
 } from "@/lib/sports/leaguepedia";
 import type {
   LolRosterPlayer,
   LolPlayerStatsLite,
+  LolChampionMeta,
 } from "@/prompts/match-preview";
 import { notifyDraftReady } from "@/lib/notify/telegram";
 import { titleDatePrefixKST } from "@/lib/format";
@@ -176,7 +186,7 @@ export async function runPreview(opts?: {
         } catch {}
       }
 
-      // LoL — 현재 패치 + LCK 정규 standings + Leaguepedia roster/stats + 게임 수 모델
+      // LoL — 현재 패치 + LCK 정규 standings + BDL 풍부 데이터 (rosters, KDA, 1게임 시장, 챔피언 메타)
       if (m.league === "LOL") {
         const patch = await fetchCurrentLolPatch();
         const lckMatches = leagueMatches[m.league] ?? [];
@@ -203,54 +213,190 @@ export async function runPreview(opts?: {
           };
         }
 
-        // Leaguepedia 로스터 + 선수 KDA — graceful fail (rate limit / 네트워크 실패 시 단락 생략)
+        // BDL team IDs — DB 의 Team.externalId 가 곧 BDL team.id (lol.ts collector 매핑)
+        const homeBdlId = Number(m.homeTeam.externalId);
+        const awayBdlId = Number(m.awayTeam.externalId);
+
+        // 1) 자동 로스터 추출 — 각 팀의 최근 finished 매치 여러 개 (BDL role 수집 일관되지 않음)
+        // 홈/원정 어디든 출전했으면 매치 ID 후보. discoverTeamRoster 가 매치별로 role 채워진 게임 찾음.
+        const recentHomeMatches = await prisma.match.findMany({
+          where: {
+            league: "LOL",
+            status: "FINISHED",
+            OR: [
+              { homeTeamId: m.homeTeamId },
+              { awayTeamId: m.homeTeamId },
+            ],
+          },
+          orderBy: { startTime: "desc" },
+          take: 5,
+          select: { externalId: true },
+        });
+        const recentAwayMatches = await prisma.match.findMany({
+          where: {
+            league: "LOL",
+            status: "FINISHED",
+            OR: [
+              { homeTeamId: m.awayTeamId },
+              { awayTeamId: m.awayTeamId },
+            ],
+          },
+          orderBy: { startTime: "desc" },
+          take: 5,
+          select: { externalId: true },
+        });
+
         let rosters: NonNullable<typeof context.lolMeta>["rosters"] | undefined;
         let playerStats: Record<string, LolPlayerStatsLite> | undefined;
         try {
-          const hLpName = lpTeamNameByExternalId(m.homeTeam.externalId);
-          const aLpName = lpTeamNameByExternalId(m.awayTeam.externalId);
-          if (hLpName && aLpName) {
-            const [hRoster, aRoster] = await Promise.all([
-              fetchLckRoster(hLpName),
-              fetchLckRoster(aLpName),
-            ]);
-            const toPrompt = (r: typeof hRoster): LolRosterPlayer[] =>
-              r.map((p) => ({
-                id: p.id,
-                nameEn: p.name,
-                nameKo: p.nameKo,
-                role: p.role,
-                country: p.country,
-              }));
-            rosters = { home: toPrompt(hRoster), away: toPrompt(aRoster) };
+          const [hDisc, aDisc] = await Promise.all([
+            recentHomeMatches.length
+              ? discoverTeamRoster(
+                  homeBdlId,
+                  recentHomeMatches.map((x) => x.externalId),
+                )
+              : Promise.resolve([]),
+            recentAwayMatches.length
+              ? discoverTeamRoster(
+                  awayBdlId,
+                  recentAwayMatches.map((x) => x.externalId),
+                )
+              : Promise.resolve([]),
+          ]);
 
-            // 선수 통계 — 호출 비용 큼. 양 팀 모두 10명 fetch 는 rate limit 위험.
-            // 일단 미드(라인 임팩트 큼) 양 팀만 시도 — 실패해도 graceful.
-            const homeMid = hRoster.find((p) => p.role === "Mid");
-            const awayMid = aRoster.find((p) => p.role === "Mid");
-            const stats: Record<string, LolPlayerStatsLite> = {};
-            const seasonLike = "LCK 2026%";
-            for (const p of [homeMid, awayMid].filter(Boolean) as typeof hRoster) {
-              try {
-                await new Promise((r) => setTimeout(r, 1500)); // 호출 간 sleep — rate limit 회피
-                const s = await fetchPlayerSeasonStats(p.id, seasonLike);
-                if (s)
-                  stats[p.id] = {
-                    games: s.games,
-                    kda: s.kda,
-                    topChampions: s.topChampions,
-                  };
-              } catch {
-                // 한 명 실패해도 나머지 진행
-              }
+          // BDL role 대문자 첫글자 정규화 ("mid" → "Mid")
+          const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+          const toRoster = (disc: typeof hDisc): LolRosterPlayer[] =>
+            disc.map((p) => ({
+              id: p.nickname,
+              bdlId: p.id,
+              role: cap(p.role) === "Bot" ? "Bot" : cap(p.role),
+              recentChampions: p.recentChampions,
+            }));
+          let hRoster = toRoster(hDisc);
+          let aRoster = toRoster(aDisc);
+
+          // 2) Leaguepedia 한국 본명 보강 — graceful fail
+          try {
+            const hLpName = lpTeamNameByExternalId(m.homeTeam.externalId);
+            const aLpName = lpTeamNameByExternalId(m.awayTeam.externalId);
+            const enrich = async (
+              roster: LolRosterPlayer[],
+              lpName: string | null,
+            ) => {
+              if (!lpName || roster.length === 0) return roster;
+              const lpRoster = await fetchLckRoster(lpName);
+              return roster.map((p) => {
+                const found = lpRoster.find(
+                  (lp) => lp.id.toLowerCase() === p.id.toLowerCase(),
+                );
+                if (!found) return p;
+                return {
+                  ...p,
+                  nameEn: found.name,
+                  nameKo: found.nameKo,
+                  country: found.country,
+                };
+              });
+            };
+            hRoster = await enrich(hRoster, hLpName);
+            aRoster = await enrich(aRoster, aLpName);
+          } catch {
+            // Leaguepedia 실패해도 BDL 닉네임 기반으로 진행
+          }
+
+          if (hRoster.length > 0 || aRoster.length > 0) {
+            rosters = { home: hRoster, away: aRoster };
+          }
+
+          // 3) 선수 시즌 stats — 양 팀 미드만 (호출 부담 줄임). 600/min 한도 안에서.
+          const homeMid = hRoster.find((p) => p.role === "Mid");
+          const awayMid = aRoster.find((p) => p.role === "Mid");
+          const stats: Record<string, LolPlayerStatsLite> = {};
+          for (const p of [homeMid, awayMid].filter(Boolean) as LolRosterPlayer[]) {
+            if (!p.bdlId) continue;
+            const games = await fetchBdlPlayerStats(p.bdlId, 30);
+            if (games.length === 0) continue;
+            let k = 0, d = 0, a = 0, cs = 0, dmg = 0, gpm = 0;
+            const champCount = new Map<string, number>();
+            for (const g of games) {
+              k += g.kills || 0;
+              d += g.deaths || 0;
+              a += g.assists || 0;
+              cs += g.creep_score ?? 0;
+              dmg += g.total_damage_dealt_to_champions ?? 0;
+              gpm += g.gold_per_min ?? 0;
+              if (g.champion)
+                champCount.set(
+                  g.champion.name,
+                  (champCount.get(g.champion.name) ?? 0) + 1,
+                );
             }
-            if (Object.keys(stats).length > 0) playerStats = stats;
+            stats[p.id] = {
+              games: games.length,
+              kda: d === 0 ? k + a : (k + a) / d,
+              avgCs: games.length ? cs / games.length : undefined,
+              avgDpm: games.length ? dmg / games.length : undefined,
+              avgGpm: games.length ? gpm / games.length : undefined,
+              topChampions: [...champCount.entries()]
+                .sort((x, y) => y[1] - x[1])
+                .slice(0, 3)
+                .map(([champion, games]) => ({ champion, games })),
+            };
+          }
+          if (Object.keys(stats).length > 0) playerStats = stats;
+        } catch (err) {
+          console.warn(
+            `[preview/LOL] BDL roster/stats fetch 실패 — 단락 생략:`,
+            (err as Error).message,
+          );
+        }
+
+        // 4) 1게임 단위 시장 — team_match_map_stats
+        let oneGameKillsMarket:
+          | NonNullable<typeof context.lolMeta>["oneGameKillsMarket"]
+          | undefined;
+        let oneGameHandicapMarket:
+          | NonNullable<typeof context.lolMeta>["oneGameHandicapMarket"]
+          | undefined;
+        try {
+          const [hTeamStats, aTeamStats] = await Promise.all([
+            fetchBdlTeamStats(homeBdlId, 30),
+            fetchBdlTeamStats(awayBdlId, 30),
+          ]);
+          const model = modelOneGameKills(hTeamStats, aTeamStats);
+          if (model) {
+            const ovr = oneGameKillsOver(model);
+            oneGameKillsMarket = {
+              line: ovr.line,
+              pOver: ovr.pOver,
+              sample: model.sample,
+              expectedTotal: model.expectedTotal,
+            };
+            oneGameHandicapMarket = oneGameHandicap(model);
           }
         } catch (err) {
           console.warn(
-            `[preview/LOL] Leaguepedia fetch 실패 — 단락 생략으로 진행:`,
+            `[preview/LOL] team_match_map_stats 실패:`,
             (err as Error).message,
           );
+        }
+
+        // 5) 챔피언 메타 — 글로벌 top 픽
+        let championMeta: LolChampionMeta[] | undefined;
+        try {
+          const champs = await fetchBdlChampionStats(15);
+          if (champs.length > 0) {
+            championMeta = champs.slice(0, 8).map((c) => ({
+              name: c.champion.name,
+              picksRate: c.picks_rate,
+              banRate: c.ban_rate,
+              winRate: c.win_rate,
+              kda: c.kda,
+            }));
+          }
+        } catch {
+          // ignore
         }
 
         context.lolMeta = {
@@ -278,6 +424,9 @@ export async function runPreview(opts?: {
           rosters,
           playerStats,
           gameCountMarket,
+          oneGameKillsMarket,
+          oneGameHandicapMarket,
+          championMeta,
         };
       }
 

@@ -3,20 +3,40 @@
 import type { NormalizedMatch } from "@/lib/sports/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 
-/** LoL 로스터 1인 — Leaguepedia Players 응답에서 추출 */
+/** LoL 로스터 1인 — BDL/Leaguepedia 양쪽 호환 */
 export interface LolRosterPlayer {
-  id: string; // 예: "Faker"
-  nameEn: string; // 예: "Lee Sang-hyeok"
-  nameKo?: string; // 예: "이상혁"
-  role: string; // Top | Jungle | Mid | Bot | Support
+  /** Leaguepedia ID (예: "Faker") 또는 BDL nickname */
+  id: string;
+  /** BDL player.id (정수) — playerStats 매핑용 */
+  bdlId?: number;
+  nameEn?: string; // 영문 본명 (예: "Lee Sang-hyeok")
+  nameKo?: string; // 한국 본명 (예: "이상혁") — Leaguepedia 있을 때만
+  role: string; // Top | Jungle | Mid | Bot | Support (대문자 첫글자)
   country?: string;
+  /** 최근 등장 챔피언 (BDL match_maps 기반) */
+  recentChampions?: string[];
 }
 
-/** 선수 시즌 통계 요약 */
+/** 선수 시즌 통계 요약 — BDL player_match_map_stats 집계 */
 export interface LolPlayerStatsLite {
   games: number;
   kda: number; // (K+A)/D (D=0 이면 K+A)
+  /** 평균 CS (전체 게임 합계 / 게임 수) */
+  avgCs?: number;
+  /** 평균 챔피언 피해량 */
+  avgDpm?: number;
+  /** 평균 분당 골드 */
+  avgGpm?: number;
   topChampions: Array<{ champion: string; games: number }>;
+}
+
+/** 챔피언 메타 — BDL champion_stats 의 글로벌 통계 */
+export interface LolChampionMeta {
+  name: string;
+  picksRate: number; // 0~1
+  banRate: number;
+  winRate: number;
+  kda: number;
 }
 
 export interface PreviewContext {
@@ -138,6 +158,21 @@ export interface PreviewContext {
       pOver: number; // 풀세트(3게임) 확률
       sample: number;
     };
+    /** 1게임 총 킬 OVER/UNDER — BDL team_match_map_stats 기반 */
+    oneGameKillsMarket?: {
+      line: number;
+      pOver: number;
+      sample: number;
+      expectedTotal: number;
+    };
+    /** 1게임 핸디캡 (킬 차이) — BDL 기반 */
+    oneGameHandicapMarket?: {
+      pick: "HOME" | "AWAY";
+      line: number;
+      prob: number;
+    };
+    /** 글로벌 챔피언 메타 top N (LCK 한정 X — BDL 미지원) */
+    championMeta?: LolChampionMeta[];
   };
   /** NHL 시작 골리 (api-web.nhle.com — NHL 만) */
   goalies?: {

@@ -233,6 +233,438 @@ export function calcLckStandings(
   return out;
 }
 
+/* =====================================================================
+ * BDL LoL — match_maps · player stats · team stats · champion meta
+ * tournament_roster 가 LCK 2026 시즌 데이터를 미보유라 매치 → 게임 → 선수 chain 으로 활성 5인 자동 추출.
+ * ===================================================================*/
+
+export interface BdlMatchMap {
+  id: number;
+  match_id: number;
+  game_number?: number;
+  winner_team?: { id: number; name: string } | null;
+  team1_id?: number;
+  team2_id?: number;
+}
+
+interface BdlListMeta {
+  next_cursor?: number | null;
+  per_page?: number;
+}
+
+interface BdlListResp<T> {
+  data: T[];
+  meta?: BdlListMeta;
+}
+
+/** 한 매치(시리즈)의 모든 게임. match_id 필수. */
+export async function fetchBdlMatchMaps(matchId: string | number): Promise<BdlMatchMap[]> {
+  try {
+    const { data } = await axios.get<BdlListResp<BdlMatchMap>>(
+      `${BASE}/match_maps`,
+      {
+        params: { match_id: matchId, per_page: 10 },
+        headers: authHeader(),
+        timeout: 12000,
+      },
+    );
+    return data.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export interface BdlPlayerMatchMapStat {
+  id: number;
+  match_map_id: number;
+  player: { id: number; nickname: string };
+  team: { id: number; name: string };
+  champion?: { id: number; name: string };
+  role: string; // "top" | "jungle" | "mid" | "bot" | "support"
+  level?: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  kill_participation?: number;
+  creep_score?: number;
+  gold_earned?: number;
+  gold_per_min?: number;
+  total_damage_dealt_to_champions?: number;
+}
+
+/** 단일 선수의 게임별 stats (player_id scalar 필수). */
+export async function fetchBdlPlayerStats(
+  playerId: number,
+  limit = 50,
+): Promise<BdlPlayerMatchMapStat[]> {
+  const all: BdlPlayerMatchMapStat[] = [];
+  let cursor: number | undefined;
+  for (let i = 0; i < 3 && all.length < limit; i++) {
+    try {
+      const params: Record<string, unknown> = {
+        player_id: playerId,
+        per_page: Math.min(100, limit - all.length),
+      };
+      if (cursor) params.cursor = cursor;
+      const { data } = await axios.get<BdlListResp<BdlPlayerMatchMapStat>>(
+        `${BASE}/player_match_map_stats`,
+        { params, headers: authHeader(), timeout: 12000 },
+      );
+      const rows = data.data ?? [];
+      all.push(...rows);
+      const nx = data.meta?.next_cursor ?? null;
+      if (!nx || rows.length === 0) break;
+      cursor = nx;
+    } catch {
+      break;
+    }
+  }
+  return all;
+}
+
+export interface BdlTeamMatchMapStat {
+  id: number;
+  match_map_id: number;
+  team: { id: number; name: string };
+  enemy_team: { id: number; name: string };
+  side?: number;
+  color?: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  creep_score?: number;
+  gold_earned?: number;
+  total_damage_dealt_to_champions?: number;
+  baron_kills?: number;
+  dragon_kills?: number;
+  herald_kills?: number;
+  first_blood?: number;
+  first_tower?: number;
+  first_baron?: number;
+  first_dragon?: number;
+}
+
+/** 팀의 게임별 통계 (team_id scalar 필수). */
+export async function fetchBdlTeamStats(
+  teamId: number,
+  limit = 60,
+): Promise<BdlTeamMatchMapStat[]> {
+  const all: BdlTeamMatchMapStat[] = [];
+  let cursor: number | undefined;
+  for (let i = 0; i < 3 && all.length < limit; i++) {
+    try {
+      const params: Record<string, unknown> = {
+        team_id: teamId,
+        per_page: Math.min(100, limit - all.length),
+      };
+      if (cursor) params.cursor = cursor;
+      const { data } = await axios.get<BdlListResp<BdlTeamMatchMapStat>>(
+        `${BASE}/team_match_map_stats`,
+        { params, headers: authHeader(), timeout: 12000 },
+      );
+      const rows = data.data ?? [];
+      all.push(...rows);
+      const nx = data.meta?.next_cursor ?? null;
+      if (!nx || rows.length === 0) break;
+      cursor = nx;
+    } catch {
+      break;
+    }
+  }
+  return all;
+}
+
+export interface BdlChampionStat {
+  id: number;
+  champion: { id: number; name: string };
+  games_count: number;
+  picks_rate: number;
+  win_rate: number;
+  ban_rate: number;
+  kda: number;
+  avg_damage_dealt_to_champions: number;
+  avg_gold_per_min: number;
+  avg_creep_score: number;
+}
+
+/** 글로벌 챔피언 메타 (LCK 한정 필터 없음 — BDL 응답 그대로). */
+export async function fetchBdlChampionStats(
+  limit = 20,
+): Promise<BdlChampionStat[]> {
+  try {
+    const { data } = await axios.get<BdlListResp<BdlChampionStat>>(
+      `${BASE}/champion_stats`,
+      {
+        params: { per_page: limit },
+        headers: authHeader(),
+        timeout: 12000,
+      },
+    );
+    // pick_rate 내림차순
+    return (data.data ?? [])
+      .filter((c) => c.games_count >= 100)
+      .sort((a, b) => b.picks_rate - a.picks_rate);
+  } catch {
+    return [];
+  }
+}
+
+/* =====================================================================
+ * 로스터 자동 추출 — 팀의 최근 LCK 매치 1개 → match_maps → player_match_map_stats
+ * 각 포지션 1명씩 추출 (가장 최근 게임 우선)
+ * ===================================================================*/
+
+export interface DiscoveredPlayer {
+  id: number;
+  nickname: string;
+  role: string;
+  recentChampions: string[];
+}
+
+/**
+ * 챔피언 → 라인 추정 매핑 (BDL role 필드가 null 일 때 fallback).
+ * LCK 자주 등장 챔피언 위주. 여러 라인 가능 챔피언은 가장 흔한 라인 1개.
+ */
+const CHAMPION_ROLE_HINT: Record<string, "top" | "jungle" | "mid" | "bot" | "support"> = {
+  // TOP
+  Aatrox: "top", Camille: "top", Darius: "top", Fiora: "top", Garen: "top",
+  Gnar: "top", Gragas: "top", Gwen: "top", Illaoi: "top", Irelia: "top",
+  Jax: "top", Jayce: "top", Kennen: "top", Kled: "top", "K'Sante": "top", KSante: "top",
+  Malphite: "top", Mordekaiser: "top", Nasus: "top", Ornn: "top", Poppy: "top",
+  Renekton: "top", Riven: "top", Sett: "top", Shen: "top", Singed: "top",
+  Sion: "top", Tahm: "top", "Tahm Kench": "top", TahmKench: "top",
+  Teemo: "top", Tryndamere: "top", Urgot: "top", Volibear: "top", Yorick: "top",
+  Ambessa: "top", Naafiri: "top",
+  // JUNGLE
+  Diana: "jungle", Ekko: "jungle", Elise: "jungle", Evelynn: "jungle",
+  Graves: "jungle", Hecarim: "jungle", Ivern: "jungle", "Jarvan IV": "jungle",
+  JarvanIV: "jungle", Karthus: "jungle", Khazix: "jungle", "Kha'Zix": "jungle",
+  KhaZix: "jungle", Kindred: "jungle", LeeSin: "jungle", "Lee Sin": "jungle",
+  Lillia: "jungle", Maokai: "jungle", "Master Yi": "jungle", MasterYi: "jungle",
+  Nidalee: "jungle", Nocturne: "jungle", Olaf: "jungle", Rammus: "jungle",
+  RekSai: "jungle", "Rek'Sai": "jungle", Rengar: "jungle", Sejuani: "jungle",
+  Shaco: "jungle", Skarner: "jungle", Trundle: "jungle", Udyr: "jungle",
+  Vi: "jungle", Viego: "jungle", Warwick: "jungle", Wukong: "jungle",
+  XinZhao: "jungle", "Xin Zhao": "jungle", Zac: "jungle",
+  // MID
+  Ahri: "mid", Akali: "mid", Akshan: "mid", Anivia: "mid", Annie: "mid",
+  AurelionSol: "mid", "Aurelion Sol": "mid", Azir: "mid", Cassiopeia: "mid",
+  Chogath: "mid", "Cho'Gath": "mid", ChoGath: "mid", Corki: "mid",
+  Fizz: "mid", Galio: "mid", Hwei: "mid", Kassadin: "mid", Katarina: "mid",
+  Leblanc: "mid", LeBlanc: "mid", Lissandra: "mid", Lux: "mid",
+  Malzahar: "mid", Neeko: "mid", Orianna: "mid", Qiyana: "mid",
+  Ryze: "mid", Sylas: "mid", Syndra: "mid", Taliyah: "mid",
+  TwistedFate: "mid", "Twisted Fate": "mid", Veigar: "mid", Vex: "mid",
+  Viktor: "mid", Vladimir: "mid", Xerath: "mid", Yasuo: "mid", Yone: "mid",
+  Zed: "mid", Ziggs: "mid", Zoe: "mid",
+  // BOT (ADC)
+  Aphelios: "bot", Ashe: "bot", Caitlyn: "bot", Draven: "bot", Ezreal: "bot",
+  Jhin: "bot", Jinx: "bot", "Kai'Sa": "bot", KaiSa: "bot", Kalista: "bot",
+  Kogmaw: "bot", "Kog'Maw": "bot", KogMaw: "bot", Lucian: "bot",
+  MissFortune: "bot", "Miss Fortune": "bot", Nilah: "bot", Samira: "bot",
+  Sivir: "bot", Smolder: "bot", Tristana: "bot", Twitch: "bot", Varus: "bot",
+  Vayne: "bot", Xayah: "bot", Zeri: "bot",
+  // SUPPORT
+  Alistar: "support", Bard: "support", Blitzcrank: "support", Braum: "support",
+  Janna: "support", Karma: "support", Leona: "support", Lulu: "support",
+  Milio: "support", Morgana: "support", Nami: "support", Nautilus: "support",
+  Pyke: "support", Rakan: "support", Rell: "support", Renata: "support",
+  "Renata Glasc": "support", Senna: "support", Seraphine: "support",
+  Soraka: "support", Taric: "support", Thresh: "support", Yuumi: "support",
+  Zilean: "support", Zyra: "support",
+};
+
+/**
+ * recentSeriesIds: 최근 finished 매치 ID 여러 개 (시리즈 ID — BDL externalId).
+ * BDL 매치별로 role 수집 일관되지 않아 — 매치마다 모든 game 의 player stats 를 훑음.
+ * role 있는 게임 우선, 없으면 champion → role 매핑으로 fallback. 5명 모두 발견 시 중단.
+ */
+export async function discoverTeamRoster(
+  teamBdlId: number,
+  recentSeriesIds: Array<string | number>,
+): Promise<DiscoveredPlayer[]> {
+  // 라인별 1명만 유지 (가장 자주 등장하는 플레이어). 챔피언 풀은 누적.
+  const byRole = new Map<
+    string,
+    { p: BdlPlayerMatchMapStat; champs: string[]; occurrences: number; role: string }
+  >();
+
+  outer: for (const sid of recentSeriesIds) {
+    if (byRole.size >= 5) break;
+    const maps = await fetchBdlMatchMaps(sid);
+    if (maps.length === 0) continue;
+
+    // BDL rate limit 회피 — 매치 사이 짧은 sleep
+    await new Promise((r) => setTimeout(r, 300));
+
+    for (const mp of maps) {
+      if (byRole.size >= 5) break outer;
+      try {
+        const { data } = await axios.get<BdlListResp<BdlPlayerMatchMapStat>>(
+          `${BASE}/player_match_map_stats`,
+          {
+            params: { match_map_id: mp.id, per_page: 20 },
+            headers: authHeader(),
+            timeout: 12000,
+          },
+        );
+        await new Promise((r) => setTimeout(r, 250));
+        const rows = data.data ?? [];
+        const teamRows = rows.filter((r) => r.team?.id === teamBdlId);
+        if (teamRows.length === 0) continue;
+
+        for (const r of teamRows) {
+          // role 결정: BDL 응답 우선, null 이면 champion 매핑 fallback
+          let role = r.role?.toLowerCase();
+          if (!role && r.champion?.name) {
+            role = CHAMPION_ROLE_HINT[r.champion.name]?.toLowerCase();
+          }
+          if (!role) continue;
+
+          const cur = byRole.get(role);
+          if (!cur) {
+            byRole.set(role, {
+              p: r,
+              champs: r.champion ? [r.champion.name] : [],
+              occurrences: 1,
+              role,
+            });
+          } else {
+            // 같은 라인에 등장한 다른 player → 더 자주 출전한 쪽 유지
+            if (cur.p.player.id === r.player.id) {
+              cur.occurrences += 1;
+              if (r.champion && !cur.champs.includes(r.champion.name)) {
+                cur.champs.push(r.champion.name);
+              }
+            } else {
+              // 다른 선수가 같은 라인 → 출전 빈도 더 많을 가능성 있는 경우 교체.
+              // 우선 첫 발견 우선 (LCK 활성 로스터는 거의 고정).
+            }
+          }
+        }
+      } catch {
+        // 다음 게임/매치
+      }
+    }
+  }
+
+  return [...byRole.values()].map((v) => ({
+    id: v.p.player.id,
+    nickname: v.p.player.nickname,
+    role: v.role,
+    recentChampions: v.champs.slice(0, 3),
+  }));
+}
+
+/* =====================================================================
+ * 1게임 단위 시장 — 팀 통계로 모델링
+ * ===================================================================*/
+
+export interface OneGameKillsModel {
+  /** 양 팀 1게임 평균 총 킬 합 */
+  expectedTotal: number;
+  /** 표준편차 (시즌 분포 std) */
+  totalStd: number;
+  /** 마진(home - away) 평균 */
+  expectedMargin: number;
+  marginStd: number;
+  /** 샘플 게임 수 */
+  sample: number;
+}
+
+/**
+ * team_match_map_stats 응답에서 양 팀의 1게임 통계 분포 계산.
+ * 1게임 총 킬 OU, 1게임 핸디캡 모델링용.
+ */
+export function modelOneGameKills(
+  homeStats: BdlTeamMatchMapStat[],
+  awayStats: BdlTeamMatchMapStat[],
+): OneGameKillsModel | null {
+  if (homeStats.length < 5 || awayStats.length < 5) return null;
+
+  // 각 게임의 총 킬 = 우리팀 kills + 상대팀 kills. 상대팀 kills는 응답에 없으므로
+  // homeStats 의 enemy 정보로 추정 — 못 받으면 우리팀 kills 의 2배 근사.
+  // 가장 단순: homeStats 의 kills 평균 × 2 ≈ 게임당 총 킬 (양 팀 비대칭이지만 시즌 평균은 비슷).
+  function mean(arr: number[]): number {
+    return arr.reduce((s, v) => s + v, 0) / arr.length;
+  }
+  function std(arr: number[], m: number): number {
+    return Math.sqrt(
+      arr.reduce((s, v) => s + (v - m) ** 2, 0) / Math.max(1, arr.length - 1),
+    );
+  }
+
+  const homeKills = homeStats.map((s) => s.kills);
+  const awayKills = awayStats.map((s) => s.kills);
+  const hMean = mean(homeKills);
+  const aMean = mean(awayKills);
+  const totalMean = hMean + aMean;
+  // 분산 합 ≈ Var(H) + Var(A) (독립 가정)
+  const hStd = std(homeKills, hMean);
+  const aStd = std(awayKills, aMean);
+  const totalStd = Math.sqrt(hStd ** 2 + aStd ** 2);
+
+  // 마진(home - away) 평균/분산도 동일 가정
+  const marginMean = hMean - aMean;
+  const marginStd = Math.sqrt(hStd ** 2 + aStd ** 2);
+
+  return {
+    expectedTotal: totalMean,
+    totalStd,
+    expectedMargin: marginMean,
+    marginStd,
+    sample: Math.min(homeStats.length, awayStats.length),
+  };
+}
+
+/** 표준정규 CDF (Abramowitz·Stegun 근사). */
+function normalCdf(x: number, mean: number, std: number): number {
+  const z = (x - mean) / std;
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989422804 * Math.exp((-z * z) / 2);
+  const p =
+    d *
+    t *
+    (0.3193815 +
+      t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? 1 - p : p;
+}
+
+/** 1게임 총 킬 OVER 확률 (line=expectedTotal 반올림 가까운 0.5단위). */
+export function oneGameKillsOver(
+  model: OneGameKillsModel,
+): { line: number; pOver: number } {
+  // line = expectedTotal 근사값을 0.5 끝으로 (예: 25.6 → 25.5)
+  const line = Math.round(model.expectedTotal * 2) / 2;
+  const pOver = 1 - normalCdf(line, model.expectedTotal, model.totalStd);
+  return {
+    line,
+    pOver: Math.max(0.05, Math.min(0.95, pOver)),
+  };
+}
+
+/** 1게임 핸디캡 (강팀 -line 이상). */
+export function oneGameHandicap(
+  model: OneGameKillsModel,
+): { pick: "HOME" | "AWAY"; line: number; prob: number } {
+  const line = 3.5; // LCK 1게임 핸디캡 기본 라인 — 킬 차이
+  const expectedMargin = model.expectedMargin;
+  const pHomeCovers =
+    1 - normalCdf(line, expectedMargin, model.marginStd);
+  const pAwayCovers = normalCdf(-line, expectedMargin, model.marginStd);
+  if (pHomeCovers >= pAwayCovers)
+    return {
+      pick: "HOME",
+      line,
+      prob: Math.max(0.05, Math.min(0.95, pHomeCovers)),
+    };
+  return {
+    pick: "AWAY",
+    line,
+    prob: Math.max(0.05, Math.min(0.95, pAwayCovers)),
+  };
+}
+
 export const lolCollector: MatchCollector = {
   league: "LOL",
   // day-loop fallback — 보통 collect.ts 가 fetchLolLckAll 로 special-case 처리.

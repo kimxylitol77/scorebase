@@ -8,6 +8,7 @@ import type {
   PreviewPromptInput,
   LolRosterPlayer,
   LolPlayerStatsLite,
+  LolChampionMeta,
 } from "./match-preview";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { championKoreanName } from "@/lib/sports/leaguepedia";
@@ -31,8 +32,15 @@ function rosterLine(label: string, players: LolRosterPlayer[]): string {
     (a, b) => order.indexOf(a.role) - order.indexOf(b.role),
   );
   const items = sorted.map((p) => {
-    const koPart = p.nameKo ? `, ${p.nameKo}` : "";
-    return `${ROLE_KO[p.role] ?? p.role} ${p.id}(${p.nameEn}${koPart})`;
+    // 표기: ID(영문본명, 한국본명) — 본명 없으면 ID 만
+    const inner: string[] = [];
+    if (p.nameEn) inner.push(p.nameEn);
+    if (p.nameKo) inner.push(p.nameKo);
+    const namePart = inner.length > 0 ? `(${inner.join(", ")})` : "";
+    const champs = p.recentChampions && p.recentChampions.length > 0
+      ? ` [최근: ${p.recentChampions.map(championKoreanName).join("·")}]`
+      : "";
+    return `${ROLE_KO[p.role] ?? p.role} ${p.id}${namePart}${champs}`;
   });
   return `- ${label}: ${items.join(" / ")}`;
 }
@@ -42,13 +50,28 @@ function statsLine(
   stats: LolPlayerStatsLite | undefined,
 ): string {
   if (!stats) return "";
+  const parts: string[] = [`${stats.games}경기 평균 KDA ${stats.kda.toFixed(2)}`];
+  if (stats.avgCs != null) parts.push(`CS ${stats.avgCs.toFixed(0)}`);
+  if (stats.avgDpm != null) parts.push(`DMG ${stats.avgDpm.toFixed(0)}`);
+  if (stats.avgGpm != null) parts.push(`GPM ${stats.avgGpm.toFixed(0)}`);
   const champs = stats.topChampions
-    .map(
-      (c) =>
-        `${championKoreanName(c.champion)}(${c.games}경기)`,
-    )
+    .map((c) => `${championKoreanName(c.champion)}(${c.games})`)
     .join(", ");
-  return `  · ${playerId} 시즌 ${stats.games}경기 평균 KDA ${stats.kda.toFixed(2)}${champs ? ` · 챔피언풀: ${champs}` : ""}`;
+  if (champs) parts.push(`챔피언풀: ${champs}`);
+  return `  · ${playerId} ${parts.join(" · ")}`;
+}
+
+function championMetaLine(meta: LolChampionMeta[]): string {
+  const top = meta
+    .slice(0, 6)
+    .map((c) => {
+      const pick = (c.picksRate * 100).toFixed(1);
+      const ban = (c.banRate * 100).toFixed(1);
+      const win = (c.winRate * 100).toFixed(1);
+      return `${championKoreanName(c.name)}(픽 ${pick}%·밴 ${ban}%·승률 ${win}%)`;
+    })
+    .join(", ");
+  return `- championMeta (글로벌 LoL 시즌 통계 top): ${top}`;
 }
 
 export function buildLolPreviewPrompt(input: PreviewPromptInput): string {
@@ -118,20 +141,39 @@ export function buildLolPreviewPrompt(input: PreviewPromptInput): string {
       `- gameCountMarket (Bo3 게임 수 OVER/UNDER ${g.line}): 풀세트(3게임) 확률 ${pct(g.pOver)} (정규시즌 ${g.sample}매치 빈도 기반)`,
     );
   }
-  // 로스터
+  // 1게임 총 킬 OVER/UNDER (BDL team_match_map_stats 분포 기반)
+  if (context.lolMeta?.oneGameKillsMarket) {
+    const k = context.lolMeta.oneGameKillsMarket;
+    ctxLines.push(
+      `- oneGameKillsMarket (1게임 총 킬 OVER/UNDER ${k.line}): OVER ${pct(k.pOver)} · 양 팀 평균 합 ${k.expectedTotal.toFixed(1)} 킬 (양 팀 ${k.sample}게임 분포 기반)`,
+    );
+  }
+  // 1게임 핸디캡 (킬 차이)
+  if (context.lolMeta?.oneGameHandicapMarket) {
+    const h = context.lolMeta.oneGameHandicapMarket;
+    const side = h.pick === "HOME" ? t1 : t2;
+    ctxLines.push(
+      `- oneGameHandicapMarket (1게임 킬 핸디캡 ${h.line}): ${side} -${h.line}킬 커버 확률 ${pct(h.prob)}`,
+    );
+  }
+  // 로스터 (BDL discoverRoster — 최근 출전 게임에서 추출)
   if (context.lolMeta?.rosters) {
     const r = context.lolMeta.rosters;
     if (r.home.length > 0) ctxLines.push(rosterLine(`rosters ${t1}`, r.home));
     if (r.away.length > 0) ctxLines.push(rosterLine(`rosters ${t2}`, r.away));
   }
-  // 선수 통계
+  // 선수 시즌 통계 (BDL player_match_map_stats 집계 — 양 팀 미드)
   if (context.lolMeta?.playerStats) {
     const ps = context.lolMeta.playerStats;
     const lines = Object.keys(ps).map((id) => statsLine(id, ps[id])).filter(Boolean);
     if (lines.length > 0) {
-      ctxLines.push("- playerStats (Leaguepedia ScoreboardPlayers 시즌 집계):");
+      ctxLines.push("- playerStats (BDL 시즌 집계, KDA·CS·DPM·GPM·챔피언풀):");
       ctxLines.push(...lines);
     }
+  }
+  // 챔피언 메타 (글로벌 BDL champion_stats)
+  if (context.lolMeta?.championMeta && context.lolMeta.championMeta.length > 0) {
+    ctxLines.push(championMetaLine(context.lolMeta.championMeta));
   }
 
   // 부재 데이터 명시 — GPT 가 할루시네이션 못 하도록.
@@ -146,12 +188,21 @@ export function buildLolPreviewPrompt(input: PreviewPromptInput): string {
   }
   if (!context.lolMeta?.playerStats) {
     absentLines.push(
-      "- player_stats (KDA·CS/min·DPM): (미수집 — 라인별 매치업에 통계 인용 금지)",
+      "- player_stats (KDA·CS·DPM·GPM): (미수집 — 라인별 매치업에 통계 인용 금지)",
+    );
+  }
+  if (!context.lolMeta?.championMeta) {
+    absentLines.push(
+      "- championMeta (글로벌 픽률·승률): (미수집 — '챔피언 픽·밴 예측' 단락 통째로 생략)",
+    );
+  }
+  if (!context.lolMeta?.oneGameKillsMarket) {
+    absentLines.push(
+      "- oneGameKillsMarket / oneGameHandicapMarket: (미수집 — 1게임 단위 시장 행 표에서 생략)",
     );
   }
   absentLines.push(
-    "- meta_context (1티어 챔피언 활용도·픽밴): (미수집 — '챔피언 픽·밴 예측' 단락 통째로 생략)",
-    "- market_odds: (미수집 — 시장 평균 컬럼은 표에서 통째로 제거)",
+    "- market_odds (베팅 사이트 implied): (미수집 — 시장 평균/차이 컬럼은 표에서 통째로 제거)",
   );
 
   return `# ROLE
@@ -182,16 +233,20 @@ LoL 매치 프리뷰(시리즈 단위)를 작성한다.
 
 ## 5라인 매치업
 입력 'rosters' 가 있을 때만 출력. 없으면 **이 단락 통째로 생략.**
-있을 때 정확히 다음 5라인 모두 출력 (생략 금지):
-- **TOP**: 양 팀 톱 라이너 ID(영문ID, 본명). playerStats 가 있으면 KDA·챔피언풀 1~2문장 비교.
-- **JGL**: 정글러 매치업.
-- **MID**: 미드 라이너 비교 — 임팩트가 가장 큰 라인. playerStats 우선 인용.
-- **ADC**: 봇 라이너.
-- **SUP**: 서포터 매치업.
-각 라인은 1~2문장. 선수 이름은 첫 등장만 풀 표기, 이후는 ID만.
+있을 때 양 팀에 존재하는 모든 라인(TOP/JGL/MID/ADC/SUP)을 굵게 라벨링하고 한 라인당 1~2문장:
+- **TOP**: 양 팀 톱 라이너 ID(영문본명, 한국본명). recentChampions 가 있으면 자주 사용한 챔피언 1~2개 한국 공식 표기로 인용.
+- **JGL**: 정글러 매치업. recentChampions 활용.
+- **MID**: 미드 라이너 비교 — 임팩트가 가장 큰 라인. playerStats 가 있으면 KDA·CS·DPM·GPM·챔피언풀을 비교해 한 라인 우세를 진단.
+- **ADC**: 봇 라이너. recentChampions 비교.
+- **SUP**: 서포터. recentChampions 비교.
+선수 이름 첫 등장 시 "ID(영문본명, 한국본명)" 형식. 본명이 입력에 없으면 ID만. 이후 등장은 ID만. **본문 전체에 최소 2명의 선수 ID(영문본명, 한국본명) 표기를 강제** — 단 본명 없으면 ID 자체로 1회씩 자연스럽게 호명.
 
 ## 챔피언 픽·밴 예측
-입력 'meta_context' 가 있을 때만 출력. 없으면 **이 단락 통째로 생략** (1티어 챔피언·밴 우선순위 추측 금지).
+입력 'championMeta' 가 있을 때만 출력. 없으면 **이 단락 통째로 생략.**
+championMeta 의 top 4~6 챔피언을 인용해:
+- 양 팀이 자주 픽하는 챔피언(recentChampions 와 교집합) → 양 팀 1티어 챔피언 풀
+- 픽률·밴률 높은 챔피언 1~2개 짚어 양 팀의 밴 우선순위 예측 (예: "양 팀 모두 X 챔피언이 1티어로 분류 — 밴 페이즈 초반 등장 가능성")
+- 챔피언명은 한국 공식 표기. 입력 메타에 없는 챔피언 만들어내지 마라.
 
 ## 시리즈 흐름 분석
 'recent_form', 'streak', 'trend', 'h2h' 를 종합해 1문단. 최근 5시리즈 결과, 평균 세트 카운트(BO3 기준 2-0 vs 2-1 비율), 맞대결 전적 비교. **"홈/원정", "경기당 득점", "강등권" 같은 비-LoL 용어 절대 사용 금지.** LCK 는 한 스튜디오 진행이라 홈/원정 의미 없음.
@@ -202,12 +257,13 @@ LoL 매치 프리뷰(시리즈 단위)를 작성한다.
 
 반드시 정확히 2컬럼 헤더로 시작 — 첫 줄: 파이프 시장 파이프 모델 추정 파이프, 둘째 줄: 파이프 --- 파이프 --- 파이프.
 
-행 (입력 데이터 있을 때만):
+행 (입력 데이터 있는 행만 출력):
 - "시리즈 승자" 행 — 항상 출력. 형식: ${t1} XX% / ${t2} XX%
-- "게임 수 OVER/UNDER 2.5 (Bo3)" 행 — 'gameCountMarket' 있을 때만. 형식: OVER XX% / UNDER YY% (XX는 입력 pOver를 정수 %로, YY = 100-XX)
-- **1게임 핸디캡, 1게임 총 킬 OVER/UNDER** 행 — 입력 데이터에 없으면 **표에서 통째로 제거**. 추측해서 채우지 마라.
+- "게임 수 OVER/UNDER 2.5 (Bo3)" 행 — 'gameCountMarket' 있을 때만. 형식: OVER XX% / UNDER YY% (XX = 입력 pOver, YY = 100-XX)
+- "1게임 총 킬 OVER/UNDER {line}" 행 — 'oneGameKillsMarket' 있을 때만. 형식: OVER XX% / UNDER YY% (line 은 입력값 그대로)
+- "1게임 킬 핸디캡 ±{line}" 행 — 'oneGameHandicapMarket' 있을 때만. 형식: {팀} -{line}킬 cover XX%
 
-표 행 수와 헤더 컬럼 수(2)가 반드시 일치. 헤더 1컬럼인데 데이터 행 2컬럼 같은 깨진 표 절대 출력 금지.
+표 행 수와 헤더 컬럼 수(2)가 반드시 일치. 헤더 1컬럼인데 데이터 행 2컬럼 같은 깨진 표 절대 출력 금지. 데이터 없는 행은 추측해서 채우지 마라.
 
 ## 시즌 함의
 LCK 정규 시즌 컨텍스트 — 플레이오프 진출 가능성, 스플릿 1위 경쟁, MSI/Worlds 시드 영향. 강등 관련 표현 금지 (LCK 강등제 없음). standings 가 있으면 순위·승점을 인용.
@@ -221,10 +277,14 @@ LCK 정규 시즌 컨텍스트 — 플레이오프 진출 가능성, 스플릿 1
 
 # HARD RULES
 - 데이터에 없는 사실 절대 추측 금지. 입력에 없는 선수 이름·챔피언명·KDA·패치 변경점 만들어내지 마라.
+- **본명 환상 금지**: rosters 데이터에서 선수의 "nameKo" 가 비어 있으면 본명 절대 만들어내지 마라. 예: "Kingen(김형주)" 같은 본명은 입력 rosters 의 nameKo 필드에 있을 때만 표기. 없으면 "Kingen" ID 만 적는다.
+- **한 라인에 한 선수**: rosters 의 같은 role 에 한 명만 존재. 양 팀의 같은 라인 선수가 같은 ID 면 데이터 오류 — 그 라인은 단락에서 생략. 양 팀에 다른 ID 만 매핑.
+- **rosters 한 쪽만 있을 때**: 한 팀의 rosters 만 있고 상대 팀은 없으면 5라인 매치업 단락 통째로 생략 (한 쪽만 분석하면 매치업 의미 없음).
+- **챔피언 픽·밴 단락**: championMeta 가 입력에 있으면 **반드시 출력**한다 (생략 금지). 단 양 팀 recentChampions 와 교차로 분석. 없는 챔피언 추가하지 마라.
 - 부재 단락은 통째로 생략 — 빈 단락 제목 출력 금지, "정보가 없습니다" 같은 채움 문구 금지.
 - "홈/원정", "득점/실점/골", "강등권", "xG", "xGA", "Net Rating", "Corsi", "선발 ERA" 등 비-LoL 용어 절대 금지.
 - 세트 점수는 "2-0", "2-1" 카운트 표기. "2득점" 같은 표현 금지.
-- 분량: 데이터 갭이 크면 600~900자, 풍부하면 1100~1300자. 채우려고 추측하지 마라.
+- 분량: 데이터 갭이 크면 600~900자, 풍부하면 1200~1500자. 채우려고 추측하지 마라.
 - 면책: 글 끝에 "본 분석은 통계 모델 기반 참고용이며, 베팅 권유가 아닙니다."
 
 # INPUT DATA
