@@ -264,13 +264,23 @@ export async function runPreview(opts?: {
               : Promise.resolve([]),
           ]);
 
-          // BDL role 대문자 첫글자 정규화 ("mid" → "Mid")
-          const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+          // BDL role 대문자 첫글자 정규화 ("mid" → "Mid", "jun" → "Jungle", "sup" → "Support", "adc" → "Bot")
+          const normRole = (r: string): string => {
+            const lo = r.toLowerCase();
+            if (lo === "top") return "Top";
+            if (lo.startsWith("jun") || lo === "jungle" || lo === "jg") return "Jungle";
+            if (lo === "mid" || lo === "middle") return "Mid";
+            if (lo === "adc" || lo === "bot" || lo === "ad carry") return "Bot";
+            if (lo.startsWith("sup")) return "Support";
+            return r.charAt(0).toUpperCase() + r.slice(1).toLowerCase();
+          };
           const toRoster = (disc: typeof hDisc): LolRosterPlayer[] =>
             disc.map((p) => ({
               id: p.nickname,
               bdlId: p.id,
-              role: cap(p.role) === "Bot" ? "Bot" : cap(p.role),
+              nameEn: p.nameEn, // BDL /players search 보강
+              role: normRole(p.role),
+              country: p.country,
               recentChampions: p.recentChampions,
             }));
           let hRoster = toRoster(hDisc);
@@ -399,6 +409,19 @@ export async function runPreview(opts?: {
           // ignore
         }
 
+        // Total Maps OU vig-free implied (oddsOver/oddsUnder 가 있을 때)
+        let totalMapsMarket: NonNullable<typeof context.lolMeta>["totalMapsMarket"] | undefined;
+        if (m.oddsTotalLine != null && m.oddsOver != null && m.oddsUnder != null) {
+          const pO = 1 / m.oddsOver;
+          const pU = 1 / m.oddsUnder;
+          const sum = pO + pU;
+          totalMapsMarket = {
+            line: m.oddsTotalLine,
+            overImplied: pO / sum,
+            underImplied: pU / sum,
+          };
+        }
+
         context.lolMeta = {
           patch: patch ?? undefined,
           standings:
@@ -427,6 +450,7 @@ export async function runPreview(opts?: {
           oneGameKillsMarket,
           oneGameHandicapMarket,
           championMeta,
+          totalMapsMarket,
         };
       }
 

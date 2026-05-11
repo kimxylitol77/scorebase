@@ -417,8 +417,50 @@ export async function fetchBdlChampionStats(
 export interface DiscoveredPlayer {
   id: number;
   nickname: string;
+  /** 영문 본명 (예: "Lee Sang-hyeok") — BDL /players search 응답에서 보강 */
+  nameEn?: string;
+  /** 국적 ISO 코드 또는 영문 국가명 */
+  country?: string;
   role: string;
   recentChampions: string[];
+}
+
+interface BdlPlayer {
+  id: number;
+  nickname: string;
+  first_name?: string;
+  last_name?: string;
+  country?: string;
+  team?: { id?: number; name?: string };
+}
+
+/** BDL /players?search=nickname → first_name/last_name 추출 (team.id 매칭). */
+async function fetchBdlPlayerName(
+  nickname: string,
+  teamBdlId: number,
+): Promise<{ nameEn?: string; country?: string }> {
+  try {
+    const { data } = await axios.get<BdlListResp<BdlPlayer>>(
+      `${BASE}/players`,
+      {
+        params: { search: nickname, per_page: 10 },
+        headers: authHeader(),
+        timeout: 10000,
+      },
+    );
+    const rows = data.data ?? [];
+    // 같은 닉네임의 여러 선수 — team.id 매치되는 것 선택
+    const found =
+      rows.find((r) => r.nickname === nickname && r.team?.id === teamBdlId) ??
+      rows.find((r) => r.nickname.toLowerCase() === nickname.toLowerCase() && r.team?.id === teamBdlId) ??
+      rows.find((r) => r.nickname === nickname);
+    if (!found) return {};
+    const parts = [found.first_name, found.last_name].filter(Boolean);
+    const nameEn = parts.length > 0 ? parts.join(" ").trim() : undefined;
+    return { nameEn, country: found.country };
+  } catch {
+    return {};
+  }
 }
 
 /**
@@ -548,12 +590,24 @@ export async function discoverTeamRoster(
     }
   }
 
-  return [...byRole.values()].map((v) => ({
-    id: v.p.player.id,
-    nickname: v.p.player.nickname,
-    role: v.role,
-    recentChampions: v.champs.slice(0, 3),
-  }));
+  // BDL /players search 로 본명/국적 보강 (5명 × 0.2s sleep ≈ 1초)
+  const out: DiscoveredPlayer[] = [];
+  for (const v of byRole.values()) {
+    await new Promise((r) => setTimeout(r, 200));
+    const { nameEn, country } = await fetchBdlPlayerName(
+      v.p.player.nickname,
+      teamBdlId,
+    );
+    out.push({
+      id: v.p.player.id,
+      nickname: v.p.player.nickname,
+      nameEn,
+      country,
+      role: v.role,
+      recentChampions: v.champs.slice(0, 3),
+    });
+  }
+  return out;
 }
 
 /* =====================================================================

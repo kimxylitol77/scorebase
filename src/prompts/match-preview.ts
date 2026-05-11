@@ -173,6 +173,12 @@ export interface PreviewContext {
     };
     /** 글로벌 챔피언 메타 top N (LCK 한정 X — BDL 미지원) */
     championMeta?: LolChampionMeta[];
+    /** Total Maps OVER/UNDER 시장 (베팅사 평균 vig-free implied) — OddsPapi 응답 기반 */
+    totalMapsMarket?: {
+      line: number; // 보통 2.5
+      overImplied: number; // 0~1
+      underImplied: number;
+    };
   };
   /** NHL 시작 골리 (api-web.nhle.com — NHL 만) */
   goalies?: {

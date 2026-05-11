@@ -74,6 +74,101 @@ function championMetaLine(meta: LolChampionMeta[]): string {
   return `- championMeta (글로벌 LoL 시즌 통계 top): ${top}`;
 }
 
+/**
+ * 모델 표 마크다운 직접 생성 (GPT 가 깨먹지 않게 prompt 에 그대로 박음).
+ * marketProb 있으면 4컬럼, 없으면 2컬럼.
+ */
+function buildPredictionTable(input: {
+  t1: string;
+  t2: string;
+  winProb?: { home: number; away: number };
+  marketProb?: { home: number; away: number };
+  gameCountMarket?: { line: number; pOver: number };
+  oneGameKillsMarket?: { line: number; pOver: number };
+  totalMapsMarket?: { line: number; overImplied: number; underImplied: number };
+}): string {
+  const { t1, t2, winProb, marketProb, gameCountMarket, oneGameKillsMarket, totalMapsMarket } = input;
+  if (!winProb) return "";
+  const pct100 = (p: number) => `${Math.round(p * 100)}%`;
+  const pctSigned = (n: number) => `${n >= 0 ? "+" : ""}${Math.round(n * 100)}%p`;
+
+  const has4Col = !!marketProb;
+  const header = has4Col
+    ? "| 시장 | 모델 추정 | 시장 평균 | 차이 |\n| --- | --- | --- | --- |"
+    : "| 시장 | 모델 추정 |\n| --- | --- |";
+
+  const rows: string[] = [];
+
+  // 시리즈 승자 — 항상 출력
+  if (has4Col) {
+    const gapHome = winProb.home - marketProb!.home;
+    const gapAway = winProb.away - marketProb!.away;
+    const dominantGap = Math.abs(gapHome) >= Math.abs(gapAway) ? gapHome : gapAway;
+    const dominantSide = Math.abs(gapHome) >= Math.abs(gapAway) ? t1 : t2;
+    rows.push(
+      `| 시리즈 승자 | ${t1} ${pct100(winProb.home)} / ${t2} ${pct100(winProb.away)} | ${t1} ${pct100(marketProb!.home)} / ${t2} ${pct100(marketProb!.away)} | ${pctSigned(dominantGap)} (${dominantSide}) |`,
+    );
+  } else {
+    rows.push(`| 시리즈 승자 | ${t1} ${pct100(winProb.home)} / ${t2} ${pct100(winProb.away)} |`);
+  }
+
+  // Bo3 게임 수 OU 2.5 — 모델 (가장 단순)
+  if (gameCountMarket) {
+    const over = gameCountMarket.pOver;
+    if (has4Col && totalMapsMarket) {
+      const gapOver = over - totalMapsMarket.overImplied;
+      rows.push(
+        `| 게임 수 OVER/UNDER ${gameCountMarket.line} (Bo3) | OVER ${pct100(over)} / UNDER ${pct100(1 - over)} | OVER ${pct100(totalMapsMarket.overImplied)} / UNDER ${pct100(totalMapsMarket.underImplied)} | ${pctSigned(gapOver)} (OVER) |`,
+      );
+    } else if (has4Col) {
+      rows.push(
+        `| 게임 수 OVER/UNDER ${gameCountMarket.line} (Bo3) | OVER ${pct100(over)} / UNDER ${pct100(1 - over)} | — | — |`,
+      );
+    } else {
+      rows.push(
+        `| 게임 수 OVER/UNDER ${gameCountMarket.line} (Bo3) | OVER ${pct100(over)} / UNDER ${pct100(1 - over)} |`,
+      );
+    }
+  } else if (has4Col && totalMapsMarket) {
+    // 모델 없어도 시장만 표기
+    rows.push(
+      `| 게임 수 OVER/UNDER ${totalMapsMarket.line} (Bo3) | — | OVER ${pct100(totalMapsMarket.overImplied)} / UNDER ${pct100(totalMapsMarket.underImplied)} | — |`,
+    );
+  }
+
+  // 1게임 총 킬 OU — 모델 있을 때만
+  if (oneGameKillsMarket) {
+    const cols = has4Col ? 4 : 2;
+    const cells = [
+      `1게임 총 킬 OVER/UNDER ${oneGameKillsMarket.line}`,
+      `OVER ${pct100(oneGameKillsMarket.pOver)} / UNDER ${pct100(1 - oneGameKillsMarket.pOver)}`,
+    ];
+    if (cols === 4) cells.push("—", "—");
+    rows.push(`| ${cells.join(" | ")} |`);
+  }
+
+  return `${header}\n${rows.join("\n")}`;
+}
+
+function buildValueBetLine(
+  t1: string,
+  t2: string,
+  winProb: { home: number; away: number },
+  marketProb: { home: number; away: number },
+): string | null {
+  const pct = (n: number) => `${Math.round(n * 100)}%`;
+  const gapHome = winProb.home - marketProb.home;
+  const gapAway = winProb.away - marketProb.away;
+  const THRESH = 0.05;
+  if (gapHome >= THRESH) {
+    return `✨ Value Bet — ${t1} 모델 ${pct(winProb.home)} vs 시장 평균 ${pct(marketProb.home)} (+${Math.round(gapHome * 100)}%p). 모델이 시장보다 자신감 큰 라인.`;
+  }
+  if (gapAway >= THRESH) {
+    return `✨ Value Bet — ${t2} 모델 ${pct(winProb.away)} vs 시장 평균 ${pct(marketProb.away)} (+${Math.round(gapAway * 100)}%p). 모델이 시장보다 자신감 큰 라인.`;
+  }
+  return null;
+}
+
 export function buildLolPreviewPrompt(input: PreviewPromptInput): string {
   const { match, context = {} } = input;
   const t1 = toKoreanTeamName(match.homeTeam.name);
@@ -176,6 +271,43 @@ export function buildLolPreviewPrompt(input: PreviewPromptInput): string {
     ctxLines.push(championMetaLine(context.lolMeta.championMeta));
   }
 
+  // 모델 표 미리 생성 — GPT 가 표 깨먹지 않게 prompt 에 그대로 박는다.
+  const predictionTable = buildPredictionTable({
+    t1,
+    t2,
+    winProb: context.winProb
+      ? { home: context.winProb.home, away: context.winProb.away }
+      : undefined,
+    marketProb: context.marketProb
+      ? { home: context.marketProb.home, away: context.marketProb.away }
+      : undefined,
+    gameCountMarket: context.lolMeta?.gameCountMarket
+      ? {
+          line: context.lolMeta.gameCountMarket.line,
+          pOver: context.lolMeta.gameCountMarket.pOver,
+        }
+      : undefined,
+    oneGameKillsMarket: context.lolMeta?.oneGameKillsMarket
+      ? {
+          line: context.lolMeta.oneGameKillsMarket.line,
+          pOver: context.lolMeta.oneGameKillsMarket.pOver,
+        }
+      : undefined,
+    totalMapsMarket: context.lolMeta?.totalMapsMarket
+      ? {
+          line: context.lolMeta.totalMapsMarket.line,
+          overImplied: context.lolMeta.totalMapsMarket.overImplied,
+          underImplied: context.lolMeta.totalMapsMarket.underImplied,
+        }
+      : undefined,
+  });
+
+  // Value Bet 한 줄 (marketProb 와 winProb 모두 있을 때, 5%p+ gap 있을 때만)
+  const valueBetLine =
+    context.marketProb && context.winProb
+      ? buildValueBetLine(t1, t2, context.winProb, context.marketProb)
+      : null;
+
   // 부재 데이터 명시 — GPT 가 할루시네이션 못 하도록.
   const absentLines: string[] = [];
   if (!context.lolMeta?.patch) {
@@ -252,21 +384,11 @@ championMeta 의 top 4~6 챔피언을 인용해:
 'recent_form', 'streak', 'trend', 'h2h' 를 종합해 1문단. 최근 5시리즈 결과, 평균 세트 카운트(BO3 기준 2-0 vs 2-1 비율), 맞대결 전적 비교. **"홈/원정", "경기당 득점", "강등권" 같은 비-LoL 용어 절대 사용 금지.** LCK 는 한 스튜디오 진행이라 홈/원정 의미 없음.
 
 ## 모델 관점 — 시리즈 예측 표
-**단락 제목 "## 모델 관점 — 시리즈 예측 표" 한 줄을 반드시 표 위에 출력**한다 (생략 금지).
-**일반 마크다운 표 사용 — 절대 백틱 3개(\`\`\`) 코드 블록으로 감싸지 마라.** GitHub Flavored Markdown 표 그대로.
+**아래 표를 정확히 그대로 이 단락 본문에 출력**하라 (한 글자도 수정 금지, 행 분리 금지, 코드 블록 \`\`\` 으로 감싸지 마라).
 
-**컬럼 수 결정**: marketProb 입력이 있으면 4컬럼 — "시장 / 모델 추정 / 시장 평균 / 차이". 없으면 2컬럼 — "시장 / 모델 추정". 헤더 컬럼 수와 모든 데이터 행 컬럼 수가 반드시 일치.
+${predictionTable || "(모델 데이터 없음 — 단락 통째로 생략)"}
 
-행 (입력 데이터 있는 행만 출력):
-- "시리즈 승자" 행 — 항상 출력. 모델 추정 형식: ${t1} XX% / ${t2} XX%. marketProb 있으면 시장 평균도 같은 형식, 차이는 +Xp (팀명) 형식.
-- "게임 수 OVER/UNDER 2.5 (Bo3)" 행 — 'gameCountMarket' 있을 때만. 형식: OVER XX% / UNDER YY%
-- "1게임 총 킬 OVER/UNDER {line}" 행 — 'oneGameKillsMarket' 있을 때만.
-- "1게임 킬 핸디캡 ±{line}" 행 — 'oneGameHandicapMarket' 있을 때만. {팀} -{line}킬 cover XX%
-
-표 행 수와 헤더 컬럼 수가 반드시 일치. 깨진 표 절대 출력 금지. 데이터 없는 행은 추측해서 채우지 마라.
-
-**marketProb 가 있을 때 본문 별도 줄**: Value Bet 후보가 컨텍스트에 표기되면 표 바로 아래에 한 줄로 강조:
-"✨ Value Bet — {팀} 모델 XX% vs 시장 평균 YY% (+Zp). 모델이 시장보다 자신감 큰 라인."
+${valueBetLine ? `\n표 바로 아래에 다음 한 줄을 그대로 출력:\n\n${valueBetLine}` : ""}
 
 ## 시즌 함의
 LCK 정규 시즌 컨텍스트 — 플레이오프 진출 가능성, 스플릿 1위 경쟁, MSI/Worlds 시드 영향. 강등 관련 표현 금지 (LCK 강등제 없음). standings 가 있으면 순위·승점을 인용.
