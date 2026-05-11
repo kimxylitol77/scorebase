@@ -19,7 +19,6 @@ import {
 import {
   fetchPinnacleLolMatches,
   fetchPinnacleMoneyline,
-  vigFreeProb,
   americanToDecimal,
 } from "@/lib/sports/pinnacle";
 import {
@@ -27,6 +26,11 @@ import {
   fetchCloudbetLckEvents,
   isCloudbetEnabled,
 } from "@/lib/sports/cloudbet";
+import {
+  fetchLolFixtures,
+  fetchLolFixtureOdds,
+  isOddsPapiEnabled,
+} from "@/lib/sports/oddspapi";
 
 export async function runFetchOdds(opts?: { leagues?: string[] }) {
   const leagues = opts?.leagues ?? ODDS_SUPPORTED_LEAGUES;
@@ -153,14 +157,54 @@ interface LolEventOdds {
   awayName: string;
   homeDecimal: number;
   awayDecimal: number;
-  source: "cloudbet" | "pinnacle";
+  /** Total Maps OU (Bo3 게임 수 OU, 보통 line=2.5) */
+  totalMaps?: {
+    line: number;
+    overDecimal: number;
+    underDecimal: number;
+  };
+  sample: number; // 평균에 들어간 북메이커 수
+  source: "oddspapi" | "cloudbet" | "pinnacle";
 }
 
 async function fetchLolEventOdds(): Promise<LolEventOdds[]> {
   const out: LolEventOdds[] = [];
 
-  // 1) Cloudbet primary (key 있을 때)
-  if (isCloudbetEnabled()) {
+  // 1) OddsPapi primary (LCK 공식 cover, 4 북메이커 평균)
+  if (isOddsPapiEnabled()) {
+    try {
+      const fixtures = await fetchLolFixtures();
+      console.log(`[odds/LOL] OddsPapi LCK fixtures ${fixtures.length}건`);
+      for (const fx of fixtures) {
+        const odds = await fetchLolFixtureOdds(fx.fixtureId);
+        if (!odds?.matchWinner) {
+          await new Promise((r) => setTimeout(r, 1000));
+          continue;
+        }
+        out.push({
+          homeName: fx.homeName,
+          awayName: fx.awayName,
+          homeDecimal: odds.matchWinner.homeDecimal,
+          awayDecimal: odds.matchWinner.awayDecimal,
+          totalMaps: odds.totalMaps
+            ? {
+                line: odds.totalMaps.line,
+                overDecimal: odds.totalMaps.overDecimal,
+                underDecimal: odds.totalMaps.underDecimal,
+              }
+            : undefined,
+          sample: odds.matchWinner.sample,
+          source: "oddspapi",
+        });
+        await new Promise((r) => setTimeout(r, 1000)); // rate limit 안전 (1 req/s)
+      }
+    } catch (err) {
+      console.warn(`[odds/LOL] OddsPapi 실패:`, (err as Error).message);
+    }
+  }
+
+  // 2) Cloudbet secondary (key 있을 때, OddsPapi 빈 응답이면)
+  if (out.length === 0 && isCloudbetEnabled()) {
     try {
       const comps = await fetchCloudbetLolCompetitions();
       const lck = comps.find(
@@ -174,6 +218,7 @@ async function fetchLolEventOdds(): Promise<LolEventOdds[]> {
             awayName: ev.awayName,
             homeDecimal: ev.homeDecimal,
             awayDecimal: ev.awayDecimal,
+            sample: 1,
             source: "cloudbet",
           });
         }
@@ -184,11 +229,10 @@ async function fetchLolEventOdds(): Promise<LolEventOdds[]> {
     }
   }
 
-  // 2) Pinnacle fallback (Cloudbet 결과 없거나 빈 경우 추가)
+  // 3) Pinnacle fallback (둘 다 빈 경우)
   if (out.length === 0) {
     try {
       const matches = await fetchPinnacleLolMatches();
-      // LCK 만 (또는 Korea Qualifier 등 한국팀 포함 가능성)
       const lcks = matches.filter((m) =>
         /LCK|Korea/i.test(m.league?.name ?? ""),
       );
@@ -206,9 +250,9 @@ async function fetchLolEventOdds(): Promise<LolEventOdds[]> {
           awayName: away,
           homeDecimal: americanToDecimal(ml.homeAm),
           awayDecimal: americanToDecimal(ml.awayAm),
+          sample: 1,
           source: "pinnacle",
         });
-        // rate limit 회피
         await new Promise((r) => setTimeout(r, 200));
       }
     } catch (err) {
@@ -280,18 +324,28 @@ async function fetchLolOdds(): Promise<number> {
           }
         : {};
 
+    // Total Maps OU (Bo3 게임 수) — oddsTotalLine/oddsOver/oddsUnder 필드 재활용
+    const totalMapsPatch = ev.totalMaps
+      ? {
+          oddsTotalLine: ev.totalMaps.line,
+          oddsOver: ev.totalMaps.overDecimal,
+          oddsUnder: ev.totalMaps.underDecimal,
+        }
+      : {};
+
     await prisma.match.update({
       where: { id: m.id },
       data: {
         marketHome: impliedHome,
         marketDraw: 0,
         marketAway: impliedAway,
-        marketBookmakers: 1, // Cloudbet 또는 Pinnacle 단일 source
+        marketBookmakers: ev.sample,
         marketUpdatedAt: new Date(),
         ...openingPatch,
         oddsHome: dh,
         oddsDraw: null,
         oddsAway: da,
+        ...totalMapsPatch,
       },
     });
     matched++;
