@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 import Markdown from "@/components/Markdown";
+import LolRecapBody from "@/components/lol-recap/LolRecapBody";
+import type { LolRecapContext } from "@/lib/sports/lol-recap-context";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
@@ -86,10 +88,13 @@ interface LolMetaInput {
   awayName: string;
   startTime: Date;
   content: string;
+  type: "PREVIEW" | "RECAP" | "ANALYSIS";
+  homeScore: number | null;
+  awayScore: number | null;
 }
 
 function buildLolMetadata(opts: LolMetaInput): { description: string; keywords: string[] } {
-  const { homeName, awayName, startTime, content } = opts;
+  const { homeName, awayName, startTime, content, type, homeScore, awayScore } = opts;
   const patch = extractLolPatch(content);
   const players = extractLolPlayerMentions(content);
   const dateStr = startTime.toLocaleString("ko-KR", {
@@ -97,9 +102,34 @@ function buildLolMetadata(opts: LolMetaInput): { description: string; keywords: 
     day: "numeric",
     timeZone: "Asia/Seoul",
   });
+
+  if (type === "RECAP") {
+    // RECAP — 끝난 매치 리뷰
+    const scoreStr =
+      homeScore != null && awayScore != null
+        ? `${homeScore}-${awayScore}`
+        : "결과";
+    const description = `${homeName} ${scoreStr} ${awayName} — ${dateStr} LCK 매치 리뷰. 게임별 MVP, 결정적 순간 타임라인, 시즌 함의 분석. 스코어베이스.`;
+    const keywords = [
+      "LCK 리뷰",
+      "LCK 결과",
+      "LCK 매치 리뷰",
+      `${homeName} vs ${awayName}`,
+      `${homeName} 경기 결과`,
+      `${awayName} 경기 결과`,
+      "LCK MVP",
+      "롤 매치 분석",
+      "LoL 결과",
+      ...players.flatMap((p) => [p.id, ...(p.nameKo ? [p.nameKo] : [])]),
+      "스코어베이스",
+      "Scorebase",
+    ];
+    return { description, keywords };
+  }
+
+  // PREVIEW (default)
   const patchPart = patch ? `${patch} 패치 메타 분석, ` : "";
   const description = `${homeName} vs ${awayName} — ${dateStr} LCK 매치 프리뷰. ${patchPart}5라인 매치업, 모델 승률 추정. 스코어베이스.`;
-
   const keywords = [
     "LCK",
     "LCK 일정",
@@ -248,10 +278,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: true,
       content: true,
       league: true,
+      type: true,
       publishedAt: true,
       match: {
         select: {
           startTime: true,
+          homeScore: true,
+          awayScore: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
         },
@@ -263,7 +296,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const url = `${SITE_URL}/articles/${slug}`;
   const isLol = LCK_LEAGUES.has(article.league);
 
-  // LoL 분기 — keywords 풍부화 + description 명시 패턴
+  // LoL 분기 — keywords 풍부화 + description 명시 패턴 (PREVIEW vs RECAP)
   let desc: string;
   let keywords: string[] | undefined;
   if (isLol && article.match) {
@@ -272,6 +305,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       awayName: toKoreanTeamName(article.match.awayTeam.name),
       startTime: article.match.startTime,
       content: article.content,
+      type: article.type as "PREVIEW" | "RECAP" | "ANALYSIS",
+      homeScore: article.match.homeScore,
+      awayScore: article.match.awayScore,
     });
     desc = lolMeta.description;
     keywords = lolMeta.keywords;
@@ -319,6 +355,18 @@ export default async function ArticlePage({ params }: Props) {
   const date = formatDateKo(article.publishedAt ?? article.createdAt);
   const url = `${SITE_URL}/articles/${slug}`;
   const desc = makeDescription(article.content);
+
+  // LoL RECAP — lolContext 있으면 카드 세트 렌더 (UI 컴포넌트 7종)
+  let lolRecapCtx: LolRecapContext | null = null;
+  const isLolRecap =
+    LCK_LEAGUES.has(article.league) && article.type === "RECAP";
+  if (isLolRecap && article.lolContext) {
+    try {
+      lolRecapCtx = JSON.parse(article.lolContext) as LolRecapContext;
+    } catch {
+      lolRecapCtx = null;
+    }
+  }
 
   // JSON-LD 구조화 데이터 (NewsArticle / SportsEvent)
   const jsonLd = {
@@ -462,7 +510,11 @@ export default async function ArticlePage({ params }: Props) {
         </div>
       )}
 
-      <Markdown>{article.content}</Markdown>
+      {lolRecapCtx ? (
+        <LolRecapBody content={article.content} ctx={lolRecapCtx} />
+      ) : (
+        <Markdown>{article.content}</Markdown>
+      )}
 
       {/* AI 작성 disclosure + 데이터 출처 */}
       <AiDisclosure league={article.league} type={article.type} />

@@ -189,6 +189,10 @@ model Article {
   evaluatedAt DateTime?
   correct     Boolean?  // null = 미평가, true/false = 평가됨
 
+  // LoL RECAP 전용 — 게임별 MVP/LVP·타임라인·시즌·다음 매치·Quote 카드 데이터.
+  // 페이지에서 JSON.parse 후 카드 컴포넌트에 prop 으로 전달.
+  lolContext  String?   // JSON serialized LolRecapContext
+
   match Match? @relation(fields: [matchId], references: [id])
 
   @@index([league, status])

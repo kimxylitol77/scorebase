@@ -176,6 +176,16 @@ export interface LckStanding {
   setsWon: number;
   setsLost: number;
   rank: number; // 1-based, 승률 > 세트 격차 순
+  /** 시즌 2-0 셧다운 횟수 (이긴 매치 중 2-0) */
+  twoZeroCount: number;
+  /** 2-0 으로 진 횟수 (받은 셧다운) */
+  twoZeroReceived: number;
+  /** 현재 연승 (연패면 0) */
+  winStreak: number;
+  /** 현재 연패 (연승이면 0) */
+  loseStreak: number;
+  /** 최근 5시리즈 결과 (가장 최근부터) */
+  recent5: Array<"W" | "L">;
 }
 
 interface StandingsInputMatch {
@@ -185,52 +195,172 @@ interface StandingsInputMatch {
   awayTeamId: number;
   homeScore: number | null;
   awayScore: number | null;
+  startTime: Date;
 }
 
-/** LCK FINISHED 매치들에서 정규 순위 집계 (시리즈 1승=1, 동률 시 세트 격차). */
+/** LCK FINISHED 매치들에서 정규 순위 집계 + 시즌 누적 지표 (2-0 셧다운·streak·recent5). */
 export function calcLckStandings(
   matches: StandingsInputMatch[],
 ): Map<number, LckStanding> {
-  const acc = new Map<number, Omit<LckStanding, "rank">>();
+  // 1단계: 팀별 결과 시계열 누적 (시간순)
+  interface TeamAccum {
+    teamId: number;
+    wins: number;
+    losses: number;
+    setsWon: number;
+    setsLost: number;
+    twoZeroCount: number;
+    twoZeroReceived: number;
+    /** 시간 desc 정렬용 — 가장 최근부터 W/L push */
+    results: Array<{ result: "W" | "L"; setDiff: number; at: Date }>;
+  }
+  const acc = new Map<number, TeamAccum>();
   function init(id: number) {
     if (!acc.has(id))
-      acc.set(id, { teamId: id, wins: 0, losses: 0, setsWon: 0, setsLost: 0 });
+      acc.set(id, {
+        teamId: id,
+        wins: 0,
+        losses: 0,
+        setsWon: 0,
+        setsLost: 0,
+        twoZeroCount: 0,
+        twoZeroReceived: 0,
+        results: [],
+      });
   }
-  for (const m of matches) {
-    if (m.league !== "LOL") continue;
-    if (m.status !== "FINISHED") continue;
-    if (m.homeScore === null || m.awayScore === null) continue;
+  const finishedMatches = matches
+    .filter(
+      (m) =>
+        m.league === "LOL" &&
+        m.status === "FINISHED" &&
+        m.homeScore !== null &&
+        m.awayScore !== null,
+    )
+    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+  for (const m of finishedMatches) {
     init(m.homeTeamId);
     init(m.awayTeamId);
     const h = acc.get(m.homeTeamId)!;
     const a = acc.get(m.awayTeamId)!;
-    h.setsWon += m.homeScore;
-    h.setsLost += m.awayScore;
-    a.setsWon += m.awayScore;
-    a.setsLost += m.homeScore;
-    if (m.homeScore > m.awayScore) {
+    const hs = m.homeScore!;
+    const as = m.awayScore!;
+    h.setsWon += hs;
+    h.setsLost += as;
+    a.setsWon += as;
+    a.setsLost += hs;
+    const isShutout = hs === 2 && as === 0;
+    const isReverseShutout = as === 2 && hs === 0;
+    if (hs > as) {
       h.wins += 1;
       a.losses += 1;
-    } else if (m.awayScore > m.homeScore) {
+      h.results.push({ result: "W", setDiff: hs - as, at: m.startTime });
+      a.results.push({ result: "L", setDiff: as - hs, at: m.startTime });
+      if (isShutout) {
+        h.twoZeroCount += 1;
+        a.twoZeroReceived += 1;
+      }
+    } else if (as > hs) {
       a.wins += 1;
       h.losses += 1;
+      h.results.push({ result: "L", setDiff: hs - as, at: m.startTime });
+      a.results.push({ result: "W", setDiff: as - hs, at: m.startTime });
+      if (isReverseShutout) {
+        a.twoZeroCount += 1;
+        h.twoZeroReceived += 1;
+      }
     }
-    // BO 시리즈는 동점 없음 — 동점 매치 자동 무시
   }
-  // 정렬 — 승률(승/총경기) 내림차순, 동률 시 세트 격차
+
+  // 2단계: 정렬 (승률 → 세트 격차)
   const sorted = [...acc.values()].sort((x, y) => {
     const wpx = x.wins + x.losses > 0 ? x.wins / (x.wins + x.losses) : 0;
     const wpy = y.wins + y.losses > 0 ? y.wins / (y.wins + y.losses) : 0;
     if (wpy !== wpx) return wpy - wpx;
-    const sdx = x.setsWon - x.setsLost;
-    const sdy = y.setsWon - y.setsLost;
-    return sdy - sdx;
+    return y.setsWon - y.setsLost - (x.setsWon - x.setsLost);
   });
+
+  // 3단계: streak + recent5 + rank
   const out = new Map<number, LckStanding>();
   for (let i = 0; i < sorted.length; i++) {
-    out.set(sorted[i].teamId, { ...sorted[i], rank: i + 1 });
+    const t = sorted[i];
+    const recentDesc = [...t.results].reverse(); // 가장 최근부터
+    const recent5 = recentDesc.slice(0, 5).map((r) => r.result);
+    // streak — 가장 최근부터 같은 결과 연속
+    let winStreak = 0;
+    let loseStreak = 0;
+    for (const r of recentDesc) {
+      if (r.result === "W") {
+        if (loseStreak > 0) break;
+        winStreak++;
+      } else {
+        if (winStreak > 0) break;
+        loseStreak++;
+      }
+    }
+    out.set(t.teamId, {
+      teamId: t.teamId,
+      wins: t.wins,
+      losses: t.losses,
+      setsWon: t.setsWon,
+      setsLost: t.setsLost,
+      twoZeroCount: t.twoZeroCount,
+      twoZeroReceived: t.twoZeroReceived,
+      winStreak,
+      loseStreak,
+      recent5,
+      rank: i + 1,
+    });
   }
   return out;
+}
+
+/* =====================================================================
+ * 한 팀의 다음 SCHEDULED 매치 1건 — RECAP 의 "다음 매치 미니 예고"용
+ * ===================================================================*/
+
+export interface NextMatchInfo {
+  matchExternalId: string; // BDL match id
+  startTime: Date;
+  opponentTeamExternalId: string;
+  /** "home" = teamId 가 홈 팀, "away" = 어웨이 */
+  homeAway: "home" | "away";
+}
+
+interface NextMatchInputMatch {
+  externalId: string;
+  startTime: Date;
+  status: string;
+  homeTeamId: number;
+  awayTeamId: number;
+  homeTeam: { externalId: string };
+  awayTeam: { externalId: string };
+}
+
+export function findNextMatchForTeam(
+  teamId: number,
+  schedule: NextMatchInputMatch[],
+): NextMatchInfo | null {
+  const now = Date.now();
+  const candidates = schedule
+    .filter(
+      (m) =>
+        m.status === "SCHEDULED" &&
+        m.startTime.getTime() > now &&
+        (m.homeTeamId === teamId || m.awayTeamId === teamId),
+    )
+    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  const next = candidates[0];
+  if (!next) return null;
+  const isHome = next.homeTeamId === teamId;
+  return {
+    matchExternalId: next.externalId,
+    startTime: next.startTime,
+    opponentTeamExternalId: isHome
+      ? next.awayTeam.externalId
+      : next.homeTeam.externalId,
+    homeAway: isHome ? "home" : "away",
+  };
 }
 
 /* =====================================================================
@@ -243,8 +373,14 @@ export interface BdlMatchMap {
   match_id: number;
   game_number?: number;
   winner_team?: { id: number; name: string } | null;
+  /** "loser" 형태로도 응답에 등장 */
+  loser?: { id: number; name: string } | null;
   team1_id?: number;
   team2_id?: number;
+  duration?: number; // seconds
+  status?: string; // "finished" | "upcoming"
+  begin_at?: string;
+  end_at?: string;
 }
 
 interface BdlListMeta {
