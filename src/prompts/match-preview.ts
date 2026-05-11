@@ -179,6 +179,11 @@ export interface PreviewContext {
       overImplied: number; // 0~1
       underImplied: number;
     };
+    /** RECAP 전용 — 모델 사전 예측 vs 실제 결과 */
+    recap?: {
+      predWinner?: string; // "HOME" | "AWAY"
+      predCorrect?: boolean;
+    };
   };
   /** NHL 시작 골리 (api-web.nhle.com — NHL 만) */
   goalies?: {

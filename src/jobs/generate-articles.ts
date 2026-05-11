@@ -6,6 +6,17 @@ import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/openai";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
+import { buildLolRecapPrompt } from "@/prompts/lol-recap";
+import {
+  fetchCurrentLolPatch,
+  calcLckStandings,
+  discoverTeamRoster,
+  fetchBdlPlayerStats,
+} from "@/lib/sports/lol";
+import type {
+  LolRosterPlayer,
+  LolPlayerStatsLite,
+} from "@/prompts/match-preview";
 import { notifyDraftReady } from "@/lib/notify/telegram";
 import { titleDatePrefixKST } from "@/lib/format";
 import {
@@ -128,6 +139,152 @@ export async function runRecap(opts?: {
         } catch {}
       }
 
+      // LoL — patch + standings + rosters/playerStats + predCorrect 결과 주입
+      if (m.league === "LOL") {
+        const patch = await fetchCurrentLolPatch();
+        const lckMatches = leagueMatches[m.league] ?? [];
+        const standings = calcLckStandings(lckMatches);
+        const homeStanding = standings.get(m.homeTeamId);
+        const awayStanding = standings.get(m.awayTeamId);
+
+        const homeBdlId = Number(m.homeTeam.externalId);
+        const awayBdlId = Number(m.awayTeam.externalId);
+
+        const recentHomeMatches = await prisma.match.findMany({
+          where: {
+            league: "LOL",
+            status: "FINISHED",
+            OR: [
+              { homeTeamId: m.homeTeamId },
+              { awayTeamId: m.homeTeamId },
+            ],
+          },
+          orderBy: { startTime: "desc" },
+          take: 5,
+          select: { externalId: true },
+        });
+        const recentAwayMatches = await prisma.match.findMany({
+          where: {
+            league: "LOL",
+            status: "FINISHED",
+            OR: [
+              { homeTeamId: m.awayTeamId },
+              { awayTeamId: m.awayTeamId },
+            ],
+          },
+          orderBy: { startTime: "desc" },
+          take: 5,
+          select: { externalId: true },
+        });
+
+        let rosters: NonNullable<typeof context.lolMeta>["rosters"] | undefined;
+        let playerStats: Record<string, LolPlayerStatsLite> | undefined;
+        try {
+          const [hDisc, aDisc] = await Promise.all([
+            recentHomeMatches.length
+              ? discoverTeamRoster(homeBdlId, recentHomeMatches.map((x) => x.externalId))
+              : Promise.resolve([]),
+            recentAwayMatches.length
+              ? discoverTeamRoster(awayBdlId, recentAwayMatches.map((x) => x.externalId))
+              : Promise.resolve([]),
+          ]);
+          const normRole = (r: string): string => {
+            const lo = r.toLowerCase();
+            if (lo === "top") return "Top";
+            if (lo.startsWith("jun") || lo === "jungle" || lo === "jg") return "Jungle";
+            if (lo === "mid" || lo === "middle") return "Mid";
+            if (lo === "adc" || lo === "bot" || lo === "ad carry") return "Bot";
+            if (lo.startsWith("sup")) return "Support";
+            return r.charAt(0).toUpperCase() + r.slice(1).toLowerCase();
+          };
+          const toRoster = (disc: typeof hDisc): LolRosterPlayer[] =>
+            disc.map((p) => ({
+              id: p.nickname,
+              bdlId: p.id,
+              nameEn: p.nameEn,
+              role: normRole(p.role),
+              country: p.country,
+              recentChampions: p.recentChampions,
+            }));
+          const hRoster = toRoster(hDisc);
+          const aRoster = toRoster(aDisc);
+          if (hRoster.length > 0 || aRoster.length > 0) {
+            rosters = { home: hRoster, away: aRoster };
+          }
+          // 미드 stats 만
+          const homeMid = hRoster.find((p) => p.role === "Mid");
+          const awayMid = aRoster.find((p) => p.role === "Mid");
+          const stats: Record<string, LolPlayerStatsLite> = {};
+          for (const p of [homeMid, awayMid].filter(Boolean) as LolRosterPlayer[]) {
+            if (!p.bdlId) continue;
+            const games = await fetchBdlPlayerStats(p.bdlId, 30);
+            if (games.length === 0) continue;
+            let k = 0, d = 0, a = 0, cs = 0, dmg = 0, gpm = 0;
+            const champCount = new Map<string, number>();
+            for (const g of games) {
+              k += g.kills || 0;
+              d += g.deaths || 0;
+              a += g.assists || 0;
+              cs += g.creep_score ?? 0;
+              dmg += g.total_damage_dealt_to_champions ?? 0;
+              gpm += g.gold_per_min ?? 0;
+              if (g.champion)
+                champCount.set(
+                  g.champion.name,
+                  (champCount.get(g.champion.name) ?? 0) + 1,
+                );
+            }
+            stats[p.id] = {
+              games: games.length,
+              kda: d === 0 ? k + a : (k + a) / d,
+              avgCs: games.length ? cs / games.length : undefined,
+              avgDpm: games.length ? dmg / games.length : undefined,
+              avgGpm: games.length ? gpm / games.length : undefined,
+              topChampions: [...champCount.entries()]
+                .sort((x, y) => y[1] - x[1])
+                .slice(0, 3)
+                .map(([champion, games]) => ({ champion, games })),
+            };
+          }
+          if (Object.keys(stats).length > 0) playerStats = stats;
+        } catch (err) {
+          console.warn(
+            `[recap/LOL] BDL roster/stats 실패 — 단락 생략:`,
+            (err as Error).message,
+          );
+        }
+
+        context.lolMeta = {
+          patch: patch ?? undefined,
+          standings:
+            homeStanding && awayStanding
+              ? {
+                  home: {
+                    rank: homeStanding.rank,
+                    wins: homeStanding.wins,
+                    losses: homeStanding.losses,
+                    setsWon: homeStanding.setsWon,
+                    setsLost: homeStanding.setsLost,
+                  },
+                  away: {
+                    rank: awayStanding.rank,
+                    wins: awayStanding.wins,
+                    losses: awayStanding.losses,
+                    setsWon: awayStanding.setsWon,
+                    setsLost: awayStanding.setsLost,
+                  },
+                  total: standings.size,
+                }
+              : undefined,
+          rosters,
+          playerStats,
+          recap: {
+            predWinner: m.predWinner ?? undefined,
+            predCorrect: m.predCorrect ?? undefined,
+          },
+        };
+      }
+
       const normalized: NormalizedMatch = {
         league: m.league as League,
         externalId: m.externalId,
@@ -148,10 +305,15 @@ export async function runRecap(opts?: {
         raw: m.raw ? JSON.parse(m.raw) : undefined,
       };
 
-      const content = await generate(
-        buildRecapPrompt({ match: normalized, context }),
-        { system: SYSTEM_PROMPT, maxTokens: 2500, temperature: 0.6 },
-      );
+      const prompt =
+        m.league === "LOL"
+          ? buildLolRecapPrompt({ match: normalized, context })
+          : buildRecapPrompt({ match: normalized, context });
+      const content = await generate(prompt, {
+        system: SYSTEM_PROMPT,
+        maxTokens: 2500,
+        temperature: 0.6,
+      });
 
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);

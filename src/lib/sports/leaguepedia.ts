@@ -185,6 +185,53 @@ export async function fetchPlayerSeasonStats(
 }
 
 /* =====================================================================
+ * LCK 팀 메타 — Leaguepedia Teams 테이블
+ * Name · Short · Image · Region 가져옴. League="LCK" 필터.
+ * ===================================================================*/
+
+export interface LckTeamMeta {
+  name: string; // 영문 팀명 (예: "T1")
+  short: string; // 축약 (예: "T1", "GEN", "HLE")
+  image?: string; // Leaguepedia 파일명 (예: "T1logo_square.png")
+  /** Leaguepedia Special:FilePath 로 변환된 직접 접근 URL */
+  imageUrl?: string;
+  region?: string; // 보통 "Korea"
+  league: string; // "LCK"
+}
+
+interface LpTeamsRow {
+  Name: string;
+  Short?: string;
+  Image?: string;
+  Region?: string;
+  League: string;
+}
+
+/** Leaguepedia 파일명 → 직접 접근 URL (Special:FilePath 자동 redirect) */
+function leaguepediaImageUrl(filename: string): string {
+  // 공백 → underscore (MediaWiki 컨벤션)
+  const safe = filename.trim().replace(/\s+/g, "_");
+  return `https://lol.fandom.com/wiki/Special:FilePath/${encodeURIComponent(safe)}`;
+}
+
+export async function fetchLckTeams(): Promise<LckTeamMeta[]> {
+  const rows = await cargoQuery<LpTeamsRow>({
+    tables: "Teams",
+    fields: "Name,Short,Image,Region,League",
+    where: 'League="LCK"',
+    limit: "30",
+  });
+  return rows.map((r) => ({
+    name: r.Name,
+    short: r.Short ?? r.Name,
+    image: r.Image,
+    imageUrl: r.Image ? leaguepediaImageUrl(r.Image) : undefined,
+    region: r.Region,
+    league: r.League,
+  }));
+}
+
+/* =====================================================================
  * 한국 팀명 매핑 — DB 한글 팀명 → Leaguepedia 영문 팀명
  * (lol.ts 의 LCK_TEAM_NAMES_KO 와 역방향)
  * ===================================================================*/
