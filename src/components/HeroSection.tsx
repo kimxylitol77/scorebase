@@ -33,11 +33,17 @@ export default function HeroSection() {
           <strong>FIFA 월드컵 2026</strong> — <strong>Elo 모델</strong>과{" "}
           <strong>멀티 AI</strong>가 매일 분석하는 글로벌 스포츠 데이터.
         </p>
-        <div className="hero-cta mt-8 flex flex-wrap gap-3">
-          <Link href="/predictions" className="btn-primary">
+        <div className="hero-cta mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3">
+          <Link
+            href="/predictions"
+            className="btn-primary w-full sm:w-auto justify-center"
+          >
             📊 시즌 예측 대시보드
           </Link>
-          <Link href="/leagues/EPL" className="btn-secondary">
+          <Link
+            href="/leagues/EPL"
+            className="btn-secondary w-full sm:w-auto justify-center"
+          >
             ⚽ 프리미어리그 인사이트
           </Link>
         </div>
