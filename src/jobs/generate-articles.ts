@@ -3,7 +3,7 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
-import { generate } from "@/lib/ai/openai";
+import { generate } from "@/lib/ai/claude";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
 import { buildLolRecapPromptV2 } from "@/prompts/lol-recap";

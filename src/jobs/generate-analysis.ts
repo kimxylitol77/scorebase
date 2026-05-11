@@ -5,7 +5,7 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
-import { generate } from "@/lib/ai/openai";
+import { generate } from "@/lib/ai/claude";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildSeasonAnalysisPrompt } from "@/prompts/season-analysis";
 import { buildWorldCupAnalysisPrompt } from "@/prompts/world-cup-analysis";

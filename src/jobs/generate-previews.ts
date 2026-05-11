@@ -3,7 +3,7 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
-import { generate } from "@/lib/ai/openai";
+import { generate } from "@/lib/ai/claude";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
