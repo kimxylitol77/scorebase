@@ -1,0 +1,603 @@
+{
+  "version": 1,
+  "generated_for": "Scorebase 선수 매핑 시드 — 톱 65명",
+  "notes": "축구 선수는 match-player-ids 로 api_football_id 매칭. NBA/MLB/NHL/KBO 는 별도 source.",
+  "players": [
+    {
+      "_group": "한국 선수 — 축구",
+      "name_en": "Heung-min Son",
+      "name_ko": "손흥민",
+      "name_ko_alt": ["손쏘니", "쏘니"],
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Tottenham",
+      "nationality": "KR"
+    },
+    {
+      "_group": "한국 선수 — 축구",
+      "name_en": "Hee-chan Hwang",
+      "name_ko": "황희찬",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Wolverhampton",
+      "nationality": "KR"
+    },
+    {
+      "_group": "한국 선수 — 축구",
+      "name_en": "Kang-In Lee",
+      "name_ko": "이강인",
+      "sport": "soccer",
+      "source_league": "LIGUE_1",
+      "team_hint": "Paris Saint Germain",
+      "nationality": "KR"
+    },
+    {
+      "_group": "한국 선수 — 축구",
+      "name_en": "Min-Jae Kim",
+      "name_ko": "김민재",
+      "sport": "soccer",
+      "source_league": "BUNDESLIGA",
+      "team_hint": "Bayern München",
+      "nationality": "KR"
+    },
+    {
+      "_group": "한국 선수 — 축구",
+      "name_en": "Jae-Sung Lee",
+      "name_ko": "이재성",
+      "sport": "soccer",
+      "source_league": "BUNDESLIGA",
+      "team_hint": "Mainz",
+      "nationality": "KR"
+    },
+    {
+      "_group": "한국 선수 — 축구",
+      "name_en": "Min-Hyeok Yang",
+      "name_ko": "양민혁",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Tottenham",
+      "nationality": "KR"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Erling Haaland",
+      "name_ko": "엘링 홀란",
+      "name_ko_alt": ["홀란"],
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Manchester City",
+      "nationality": "NO"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Mohamed Salah",
+      "name_ko": "모하메드 살라",
+      "name_ko_alt": ["살라"],
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Liverpool",
+      "nationality": "EG"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Virgil van Dijk",
+      "name_ko": "버질 반다이크",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Liverpool",
+      "nationality": "NL"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Bukayo Saka",
+      "name_ko": "부카요 사카",
+      "name_ko_alt": ["사카"],
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Arsenal",
+      "nationality": "EN"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Bruno Fernandes",
+      "name_ko": "브루누 페르난드스",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Manchester United",
+      "nationality": "PT"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Cole Palmer",
+      "name_ko": "콜 파머",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Chelsea",
+      "nationality": "EN"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Declan Rice",
+      "name_ko": "데클런 라이스",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Arsenal",
+      "nationality": "EN"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Phil Foden",
+      "name_ko": "필 포든",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Manchester City",
+      "nationality": "EN"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Kevin De Bruyne",
+      "name_ko": "케빈 더 브라위너",
+      "name_ko_alt": ["더 브라위너", "데 브라위너"],
+      "sport": "soccer",
+      "source_league": "SERIE_A",
+      "team_hint": "Napoli",
+      "nationality": "BE"
+    },
+    {
+      "_group": "EPL 슈퍼스타",
+      "name_en": "Trent Alexander-Arnold",
+      "name_ko": "트렌트 알렉산더아놀드",
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Real Madrid",
+      "nationality": "EN"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Kylian Mbappe",
+      "name_ko": "킬리안 음바페",
+      "name_ko_alt": ["음바페"],
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Real Madrid",
+      "nationality": "FR"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Vinicius Junior",
+      "name_ko": "비니시우스 주니오르",
+      "name_ko_alt": ["비니시우스"],
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Real Madrid",
+      "nationality": "BR"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Jude Bellingham",
+      "name_ko": "주드 벨링엄",
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Real Madrid",
+      "nationality": "EN"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Lamine Yamal",
+      "name_ko": "라민 야말",
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Barcelona",
+      "nationality": "ES"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Robert Lewandowski",
+      "name_ko": "로베르트 레반도프스키",
+      "name_ko_alt": ["레반도프스키"],
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Barcelona",
+      "nationality": "PL"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Pedri",
+      "name_ko": "페드리",
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Barcelona",
+      "nationality": "ES"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Antoine Griezmann",
+      "name_ko": "앙투안 그리즈만",
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Atletico Madrid",
+      "nationality": "FR"
+    },
+    {
+      "_group": "라리가 슈퍼스타",
+      "name_en": "Julian Alvarez",
+      "name_ko": "훌리안 알바레스",
+      "sport": "soccer",
+      "source_league": "LALIGA",
+      "team_hint": "Atletico Madrid",
+      "nationality": "AR"
+    },
+    {
+      "_group": "분데스리가 슈퍼스타",
+      "name_en": "Harry Kane",
+      "name_ko": "해리 케인",
+      "sport": "soccer",
+      "source_league": "BUNDESLIGA",
+      "team_hint": "Bayern München",
+      "nationality": "EN"
+    },
+    {
+      "_group": "분데스리가 슈퍼스타",
+      "name_en": "Jamal Musiala",
+      "name_ko": "자말 무시알라",
+      "sport": "soccer",
+      "source_league": "BUNDESLIGA",
+      "team_hint": "Bayern München",
+      "nationality": "DE"
+    },
+    {
+      "_group": "분데스리가 슈퍼스타",
+      "name_en": "Florian Wirtz",
+      "name_ko": "플로리안 비르츠",
+      "sport": "soccer",
+      "source_league": "EPL",
+      "team_hint": "Liverpool",
+      "nationality": "DE"
+    },
+    {
+      "_group": "분데스리가 슈퍼스타",
+      "name_en": "Joshua Kimmich",
+      "name_ko": "요수아 키미히",
+      "sport": "soccer",
+      "source_league": "BUNDESLIGA",
+      "team_hint": "Bayern München",
+      "nationality": "DE"
+    },
+    {
+      "_group": "분데스리가 슈퍼스타",
+      "name_en": "Serhou Guirassy",
+      "name_ko": "세르후 기라시",
+      "sport": "soccer",
+      "source_league": "BUNDESLIGA",
+      "team_hint": "Borussia Dortmund",
+      "nationality": "GN"
+    },
+    {
+      "_group": "세리에 A 슈퍼스타",
+      "name_en": "Lautaro Martinez",
+      "name_ko": "라우타로 마르티네스",
+      "sport": "soccer",
+      "source_league": "SERIE_A",
+      "team_hint": "Inter",
+      "nationality": "AR"
+    },
+    {
+      "_group": "세리에 A 슈퍼스타",
+      "name_en": "Khvicha Kvaratskhelia",
+      "name_ko": "흐비차 크바라츠헬리아",
+      "sport": "soccer",
+      "source_league": "LIGUE_1",
+      "team_hint": "Paris Saint Germain",
+      "nationality": "GE"
+    },
+    {
+      "_group": "세리에 A 슈퍼스타",
+      "name_en": "Romelu Lukaku",
+      "name_ko": "로멜루 루카쿠",
+      "sport": "soccer",
+      "source_league": "SERIE_A",
+      "team_hint": "Napoli",
+      "nationality": "BE"
+    },
+    {
+      "_group": "세리에 A 슈퍼스타",
+      "name_en": "Dusan Vlahovic",
+      "name_ko": "두샨 블라호비치",
+      "sport": "soccer",
+      "source_league": "SERIE_A",
+      "team_hint": "Juventus",
+      "nationality": "RS"
+    },
+    {
+      "_group": "세리에 A 슈퍼스타",
+      "name_en": "Rafael Leao",
+      "name_ko": "하파엘 레앙",
+      "sport": "soccer",
+      "source_league": "SERIE_A",
+      "team_hint": "AC Milan",
+      "nationality": "PT"
+    },
+    {
+      "_group": "리그 1 슈퍼스타",
+      "name_en": "Ousmane Dembele",
+      "name_ko": "우스만 뎀벨레",
+      "sport": "soccer",
+      "source_league": "LIGUE_1",
+      "team_hint": "Paris Saint Germain",
+      "nationality": "FR"
+    },
+    {
+      "_group": "리그 1 슈퍼스타",
+      "name_en": "Vitinha",
+      "name_ko": "비치냐",
+      "sport": "soccer",
+      "source_league": "LIGUE_1",
+      "team_hint": "Paris Saint Germain",
+      "nationality": "PT"
+    },
+    {
+      "_group": "리그 1 슈퍼스타",
+      "name_en": "Achraf Hakimi",
+      "name_ko": "아슈라프 하키미",
+      "sport": "soccer",
+      "source_league": "LIGUE_1",
+      "team_hint": "Paris Saint Germain",
+      "nationality": "MA"
+    },
+    {
+      "_group": "리그 1 슈퍼스타",
+      "name_en": "Bradley Barcola",
+      "name_ko": "브래들리 바르콜라",
+      "sport": "soccer",
+      "source_league": "LIGUE_1",
+      "team_hint": "Paris Saint Germain",
+      "nationality": "FR"
+    },
+    {
+      "_group": "MLS / Inter Miami",
+      "name_en": "Lionel Messi",
+      "name_ko": "리오넬 메시",
+      "name_ko_alt": ["메시"],
+      "sport": "soccer",
+      "source_league": "MLS",
+      "team_hint": "Inter Miami",
+      "nationality": "AR"
+    },
+    {
+      "_group": "MLS / Inter Miami",
+      "name_en": "Luis Suarez",
+      "name_ko": "루이스 수아레스",
+      "sport": "soccer",
+      "source_league": "MLS",
+      "team_hint": "Inter Miami",
+      "nationality": "UY"
+    },
+
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "LeBron James",
+      "name_ko": "르브론 제임스",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Los Angeles Lakers",
+      "nationality": "US"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Stephen Curry",
+      "name_ko": "스테판 커리",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Golden State Warriors",
+      "nationality": "US"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Kevin Durant",
+      "name_ko": "케빈 듀란트",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Phoenix Suns",
+      "nationality": "US"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Giannis Antetokounmpo",
+      "name_ko": "야니스 아데토쿤보",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Milwaukee Bucks",
+      "nationality": "GR"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Nikola Jokic",
+      "name_ko": "니콜라 요키치",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Denver Nuggets",
+      "nationality": "RS"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Luka Doncic",
+      "name_ko": "루카 돈치치",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Dallas Mavericks",
+      "nationality": "SI"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Jayson Tatum",
+      "name_ko": "제이슨 테이텀",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Boston Celtics",
+      "nationality": "US"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Joel Embiid",
+      "name_ko": "조엘 엠비드",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Philadelphia 76ers",
+      "nationality": "CM"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Shai Gilgeous-Alexander",
+      "name_ko": "셰이 길저스알렉산더",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "Oklahoma City Thunder",
+      "nationality": "CA"
+    },
+    {
+      "_group": "NBA 슈퍼스타",
+      "name_en": "Victor Wembanyama",
+      "name_ko": "빅터 웸반야마",
+      "sport": "basketball",
+      "source_league": "NBA",
+      "team_hint": "San Antonio Spurs",
+      "nationality": "FR"
+    },
+    {
+      "_group": "MLB 슈퍼스타",
+      "name_en": "Shohei Ohtani",
+      "name_ko": "오타니 쇼헤이",
+      "name_ko_alt": ["오타니"],
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "Los Angeles Dodgers",
+      "nationality": "JP"
+    },
+    {
+      "_group": "MLB 슈퍼스타",
+      "name_en": "Aaron Judge",
+      "name_ko": "에런 저지",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "New York Yankees",
+      "nationality": "US"
+    },
+    {
+      "_group": "MLB 슈퍼스타",
+      "name_en": "Mookie Betts",
+      "name_ko": "무키 베츠",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "Los Angeles Dodgers",
+      "nationality": "US"
+    },
+    {
+      "_group": "MLB 슈퍼스타",
+      "name_en": "Juan Soto",
+      "name_ko": "후안 소토",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "New York Mets",
+      "nationality": "DO"
+    },
+    {
+      "_group": "MLB 슈퍼스타",
+      "name_en": "Yordan Alvarez",
+      "name_ko": "요르단 알바레스",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "Houston Astros",
+      "nationality": "CU"
+    },
+    {
+      "_group": "MLB 슈퍼스타",
+      "name_en": "Yoshinobu Yamamoto",
+      "name_ko": "야마모토 요시노부",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "Los Angeles Dodgers",
+      "nationality": "JP"
+    },
+    {
+      "_group": "MLB — 한국 선수",
+      "name_en": "Ha-Seong Kim",
+      "name_ko": "김하성",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "Tampa Bay Rays",
+      "nationality": "KR"
+    },
+    {
+      "_group": "MLB — 한국 선수",
+      "name_en": "Hyeseong Kim",
+      "name_ko": "김혜성",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "Los Angeles Dodgers",
+      "nationality": "KR"
+    },
+    {
+      "_group": "MLB — 한국 선수",
+      "name_en": "Jung Hoo Lee",
+      "name_ko": "이정후",
+      "sport": "baseball",
+      "source_league": "MLB",
+      "team_hint": "San Francisco Giants",
+      "nationality": "KR"
+    },
+    {
+      "_group": "NHL 슈퍼스타",
+      "name_en": "Connor McDavid",
+      "name_ko": "코너 맥데이비드",
+      "sport": "hockey",
+      "source_league": "NHL",
+      "team_hint": "Edmonton Oilers",
+      "nationality": "CA"
+    },
+    {
+      "_group": "NHL 슈퍼스타",
+      "name_en": "Leon Draisaitl",
+      "name_ko": "레온 드라이자이틀",
+      "sport": "hockey",
+      "source_league": "NHL",
+      "team_hint": "Edmonton Oilers",
+      "nationality": "DE"
+    },
+    {
+      "_group": "NHL 슈퍼스타",
+      "name_en": "Auston Matthews",
+      "name_ko": "오스턴 매슈스",
+      "sport": "hockey",
+      "source_league": "NHL",
+      "team_hint": "Toronto Maple Leafs",
+      "nationality": "US"
+    },
+    {
+      "_group": "NHL 슈퍼스타",
+      "name_en": "Nathan MacKinnon",
+      "name_ko": "네이선 매키넌",
+      "sport": "hockey",
+      "source_league": "NHL",
+      "team_hint": "Colorado Avalanche",
+      "nationality": "CA"
+    },
+    {
+      "_group": "NHL 슈퍼스타",
+      "name_en": "Cale Makar",
+      "name_ko": "케일 마카",
+      "sport": "hockey",
+      "source_league": "NHL",
+      "team_hint": "Colorado Avalanche",
+      "nationality": "CA"
+    },
+    {
+      "_group": "NHL 슈퍼스타",
+      "name_en": "Sidney Crosby",
+      "name_ko": "시드니 크로즈비",
+      "sport": "hockey",
+      "source_league": "NHL",
+      "team_hint": "Pittsburgh Penguins",
+      "nationality": "CA"
+    }
+  ]
+}

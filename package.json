@@ -18,7 +18,10 @@
     "job:analysis": "tsx src/jobs/generate-analysis.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
     "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",
-    "scheduler": "tsx src/jobs/scheduler.ts"
+    "scheduler": "tsx src/jobs/scheduler.ts",
+    "players:match": "tsx scripts/match-player-ids.ts",
+    "players:apply": "tsx scripts/apply-player-seed.ts",
+    "players:seed": "npm run players:match && npm run players:apply"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
