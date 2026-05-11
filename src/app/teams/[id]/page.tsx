@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -77,9 +79,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const team = await prisma.team.findUnique({ where: { id: Number(id) } });
   if (!team) return { title: "팀을 찾을 수 없습니다" };
+  const ko = toKoreanTeamName(team.name);
   return {
-    title: `${team.name} — 시즌 통계·부상자·관련 기사`,
-    description: `${team.league} ${team.name} 팀의 시즌 통계, 최근 폼, 부상자 명단, 관련 기사를 한 페이지에 모았습니다.`,
+    title: `${ko} — 시즌 통계·부상자·관련 기사`,
+    description: `${team.league} ${ko}(${team.name}) 팀의 시즌 통계, 최근 폼, 부상자 명단, 관련 기사를 한 페이지에 모았습니다.`,
   };
 }
 
@@ -211,8 +214,9 @@ export default async function TeamPage({ params }: Props) {
                 )}
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-                {team.name}
+                {toKoreanTeamName(team.name)}
               </h1>
+              <div className="text-xs text-neutral-500 mt-1">{team.name}</div>
             </div>
           </div>
         </div>
@@ -296,7 +300,7 @@ export default async function TeamPage({ params }: Props) {
                       {injuries.map((p) => (
                         <tr key={p.playerId} title={p.reason}>
                           <td className="px-4 py-2.5 font-medium">
-                            {p.playerName}
+                            {toKoreanPlayerName(p.playerName)}
                           </td>
                           <td className="px-4 py-2.5 text-right text-xs text-neutral-500">
                             {translateReason(p.reason)}
@@ -328,7 +332,7 @@ export default async function TeamPage({ params }: Props) {
                       {keyPlayers.map((p) => (
                         <tr key={p.playerId}>
                           <td className="px-4 py-2.5 font-medium">
-                            {p.playerName}
+                            {toKoreanPlayerName(p.playerName)}
                           </td>
                           <td className="px-2 py-2.5 text-right tabular-nums font-bold">
                             {p.goals}
@@ -380,9 +384,10 @@ export default async function TeamPage({ params }: Props) {
                         <td className="px-2 py-3 font-medium">
                           <Link
                             href={`/teams/${opp.id}`}
-                            className="hover:underline"
+                            className="inline-flex items-center gap-2 hover:underline"
                           >
-                            {opp.name}
+                            <OppLogo src={opp.logoUrl} name={opp.name} />
+                            <span className="truncate">{toKoreanTeamName(opp.name)}</span>
                           </Link>
                         </td>
                         <td className="px-4 py-3 text-right text-xs">
@@ -434,9 +439,10 @@ export default async function TeamPage({ params }: Props) {
                         <td className="px-2 py-3 font-medium">
                           <Link
                             href={`/teams/${opp.id}`}
-                            className="hover:underline"
+                            className="inline-flex items-center gap-2 hover:underline"
                           >
-                            {opp.name}
+                            <OppLogo src={opp.logoUrl} name={opp.name} />
+                            <span className="truncate">{toKoreanTeamName(opp.name)}</span>
                           </Link>
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums font-bold">
@@ -461,7 +467,7 @@ export default async function TeamPage({ params }: Props) {
           <section>
             <SectionH
               title="관련 기사"
-              subtitle={`${team.name}이(가) 등장한 최근 기사`}
+              subtitle={`${toKoreanTeamName(team.name)}이(가) 등장한 최근 기사`}
             />
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {articles.map((a) => (
@@ -472,6 +478,34 @@ export default async function TeamPage({ params }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+function OppLogo({
+  src,
+  name,
+}: {
+  src?: string | null;
+  name: string;
+}) {
+  if (!src) {
+    return (
+      <span
+        aria-hidden
+        className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[9px] font-bold text-neutral-500"
+      >
+        {name.slice(0, 1).toUpperCase()}
+      </span>
+    );
+  }
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={src}
+      alt=""
+      className="w-5 h-5 object-contain shrink-0"
+      loading="lazy"
+    />
   );
 }
 
