@@ -15,9 +15,9 @@ export const revalidate = 3600;
 const CANONICAL = "https://www.scorebase.kr";
 
 export const metadata: Metadata = {
-  title: "스코어베이스 (Scorebase) — AI 데이터 분석 스포츠 미디어",
+  title: "스코어베이스 (Scorebase) — 통계 기반 AI 스포츠 분석",
   description:
-    "스코어베이스는 EPL·라리가·분데스리가·세리에A·NBA·MLB·NHL의 매치 프리뷰, 리뷰, 부상자 명단, Elo 레이팅 기반 매치 인사이트를 AI가 매일 자동 생성·업데이트하는 데이터 분석 스포츠 미디어입니다.",
+    "감이 아니라, 숫자로 보는 경기. EPL · 라리가 · 분데스리가 · 세리에A · 리그앙 · UCL · MLS · NBA · MLB · NHL — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터 미디어.",
   keywords: [
     "스코어베이스", "Scorebase",
     "AI 스포츠 분석", "AI 데이터 분석", "스포츠 데이터 분석",
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     url: CANONICAL,
     siteName: "스코어베이스",
-    title: "스코어베이스 — AI 데이터 분석 스포츠 미디어",
+    title: "스코어베이스 — 감이 아니라, 숫자로 보는 경기",
     description:
-      "EPL·NBA·MLB·NHL의 프리뷰·리뷰·부상자 명단·매치 인사이트를 AI가 매일 분석·업데이트",
+      "EPL · 라리가 · NBA · MLB · NHL — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터.",
     images: [
       {
         url: "/og-image.png",
@@ -49,8 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "스코어베이스 (Scorebase)",
-    description: "AI가 분석하는 EPL · NBA · MLB · NHL 프리뷰·리뷰·인사이트",
+    title: "스코어베이스 — 감이 아니라, 숫자로 보는 경기",
+    description:
+      "EPL · 라리가 · NBA · MLB · NHL — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터.",
     images: ["/og-image.png"],
   },
   robots: {

@@ -38,3 +38,23 @@ body {
   word-break: keep-all;
   overflow-wrap: break-word;
 }
+
+/* Hero — 통계 기반 메시지 강조용 그라디언트 + 취소선 */
+.hero-accent {
+  background: linear-gradient(90deg, #00d4ff 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.25));
+}
+.hero-accent-soft {
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+}
+.hero .lede {
+  line-height: 1.7;
+  word-break: keep-all;
+}
