@@ -17,6 +17,12 @@ export const STARTING_ELO = 1500;
 const K_FACTOR = 20;
 const HOME_ADVANTAGE_ELO = 100;
 
+// LoL/LCK 는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지가 무의미.
+function homeAdvantageFor(league: string): number {
+  if (league === "LOL") return 0;
+  return HOME_ADVANTAGE_ELO;
+}
+
 export interface EloTable {
   /** teamId → 현재 Elo 점수 */
   ratings: Map<number, number>;
@@ -53,8 +59,9 @@ export function calcEloTable(matches: PredictMatch[]): EloTable {
     const home = ratings.get(m.homeTeamId) ?? STARTING_ELO;
     const away = ratings.get(m.awayTeamId) ?? STARTING_ELO;
 
-    // 홈 어드밴티지 반영
-    const expHome = expectedScore(home + HOME_ADVANTAGE_ELO, away);
+    // 홈 어드밴티지 반영 (LoL은 0)
+    const ha = homeAdvantageFor(m.league);
+    const expHome = expectedScore(home + ha, away);
 
     let s: number;
     if (m.homeScore > m.awayScore) s = 1;
@@ -64,7 +71,7 @@ export function calcEloTable(matches: PredictMatch[]): EloTable {
     // FiveThirtyEight 스타일 MoV 가중치 — 점수 차이가 클수록 K 커짐
     // ln(|diff|+1) 로 diminishing return; eloDiff 큰 매치에서는 약화
     const goalDiff = Math.abs(m.homeScore - m.awayScore);
-    const eloDiffSigned = home + HOME_ADVANTAGE_ELO - away;
+    const eloDiffSigned = home + ha - away;
     const winnerEloDiff = s === 1 ? eloDiffSigned : -eloDiffSigned;
     const movMultiplier =
       Math.log(goalDiff + 1) * (2.2 / (Math.abs(winnerEloDiff) * 0.001 + 2.2));

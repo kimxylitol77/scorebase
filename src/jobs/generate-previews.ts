@@ -6,6 +6,17 @@ import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/openai";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
+import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
+import { fetchCurrentLolPatch, calcLckStandings } from "@/lib/sports/lol";
+import {
+  fetchLckRoster,
+  fetchPlayerSeasonStats,
+  lpTeamNameByExternalId,
+} from "@/lib/sports/leaguepedia";
+import type {
+  LolRosterPlayer,
+  LolPlayerStatsLite,
+} from "@/prompts/match-preview";
 import { notifyDraftReady } from "@/lib/notify/telegram";
 import { titleDatePrefixKST } from "@/lib/format";
 import {
@@ -165,6 +176,111 @@ export async function runPreview(opts?: {
         } catch {}
       }
 
+      // LoL — 현재 패치 + LCK 정규 standings + Leaguepedia roster/stats + 게임 수 모델
+      if (m.league === "LOL") {
+        const patch = await fetchCurrentLolPatch();
+        const lckMatches = leagueMatches[m.league] ?? [];
+        const standings = calcLckStandings(lckMatches);
+        const homeStanding = standings.get(m.homeTeamId);
+        const awayStanding = standings.get(m.awayTeamId);
+
+        // Bo3 게임 수 OVER/UNDER 2.5 — LCK 정규시즌 매치 결과 풀세트(3게임) 빈도
+        let gameCountMarket: NonNullable<typeof context.lolMeta>["gameCountMarket"] | undefined;
+        const fin = lckMatches.filter(
+          (x) =>
+            x.status === "FINISHED" &&
+            x.homeScore !== null &&
+            x.awayScore !== null,
+        );
+        if (fin.length >= 10) {
+          const fullSets = fin.filter(
+            (x) => (x.homeScore ?? 0) + (x.awayScore ?? 0) >= 3,
+          ).length;
+          gameCountMarket = {
+            line: 2.5,
+            pOver: fullSets / fin.length,
+            sample: fin.length,
+          };
+        }
+
+        // Leaguepedia 로스터 + 선수 KDA — graceful fail (rate limit / 네트워크 실패 시 단락 생략)
+        let rosters: NonNullable<typeof context.lolMeta>["rosters"] | undefined;
+        let playerStats: Record<string, LolPlayerStatsLite> | undefined;
+        try {
+          const hLpName = lpTeamNameByExternalId(m.homeTeam.externalId);
+          const aLpName = lpTeamNameByExternalId(m.awayTeam.externalId);
+          if (hLpName && aLpName) {
+            const [hRoster, aRoster] = await Promise.all([
+              fetchLckRoster(hLpName),
+              fetchLckRoster(aLpName),
+            ]);
+            const toPrompt = (r: typeof hRoster): LolRosterPlayer[] =>
+              r.map((p) => ({
+                id: p.id,
+                nameEn: p.name,
+                nameKo: p.nameKo,
+                role: p.role,
+                country: p.country,
+              }));
+            rosters = { home: toPrompt(hRoster), away: toPrompt(aRoster) };
+
+            // 선수 통계 — 호출 비용 큼. 양 팀 모두 10명 fetch 는 rate limit 위험.
+            // 일단 미드(라인 임팩트 큼) 양 팀만 시도 — 실패해도 graceful.
+            const homeMid = hRoster.find((p) => p.role === "Mid");
+            const awayMid = aRoster.find((p) => p.role === "Mid");
+            const stats: Record<string, LolPlayerStatsLite> = {};
+            const seasonLike = "LCK 2026%";
+            for (const p of [homeMid, awayMid].filter(Boolean) as typeof hRoster) {
+              try {
+                await new Promise((r) => setTimeout(r, 1500)); // 호출 간 sleep — rate limit 회피
+                const s = await fetchPlayerSeasonStats(p.id, seasonLike);
+                if (s)
+                  stats[p.id] = {
+                    games: s.games,
+                    kda: s.kda,
+                    topChampions: s.topChampions,
+                  };
+              } catch {
+                // 한 명 실패해도 나머지 진행
+              }
+            }
+            if (Object.keys(stats).length > 0) playerStats = stats;
+          }
+        } catch (err) {
+          console.warn(
+            `[preview/LOL] Leaguepedia fetch 실패 — 단락 생략으로 진행:`,
+            (err as Error).message,
+          );
+        }
+
+        context.lolMeta = {
+          patch: patch ?? undefined,
+          standings:
+            homeStanding && awayStanding
+              ? {
+                  home: {
+                    rank: homeStanding.rank,
+                    wins: homeStanding.wins,
+                    losses: homeStanding.losses,
+                    setsWon: homeStanding.setsWon,
+                    setsLost: homeStanding.setsLost,
+                  },
+                  away: {
+                    rank: awayStanding.rank,
+                    wins: awayStanding.wins,
+                    losses: awayStanding.losses,
+                    setsWon: awayStanding.setsWon,
+                    setsLost: awayStanding.setsLost,
+                  },
+                  total: standings.size,
+                }
+              : undefined,
+          rosters,
+          playerStats,
+          gameCountMarket,
+        };
+      }
+
       const normalized: NormalizedMatch = {
         league: m.league as League,
         externalId: m.externalId,
@@ -183,10 +299,15 @@ export async function runPreview(opts?: {
         raw: {},
       };
 
-      const content = await generate(
-        buildPreviewPrompt({ match: normalized, context }),
-        { system: SYSTEM_PROMPT, maxTokens: 2500, temperature: 0.6 },
-      );
+      const prompt =
+        m.league === "LOL"
+          ? buildLolPreviewPrompt({ match: normalized, context })
+          : buildPreviewPrompt({ match: normalized, context });
+      const content = await generate(prompt, {
+        system: SYSTEM_PROMPT,
+        maxTokens: 2500,
+        temperature: 0.6,
+      });
 
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);

@@ -29,6 +29,7 @@ const VALID = [
   "NHL",
   "MLB",
   "KBO",
+  "LOL",
 ] as const;
 type ValidLeague = (typeof VALID)[number];
 
@@ -123,6 +124,13 @@ const LEAGUE_INFO: Record<
     name: "KBO",
     subtitle: "한국프로야구 — 시즌 시뮬레이션",
     gradient: "from-blue-600 via-indigo-600 to-rose-500",
+    relegationCount: 0,
+    showDraw: false,
+  },
+  LOL: {
+    name: "LCK",
+    subtitle: "리그 오브 레전드 한국 — Elo 기반 매치 승률",
+    gradient: "from-rose-500 via-fuchsia-600 to-indigo-600",
     relegationCount: 0,
     showDraw: false,
   },

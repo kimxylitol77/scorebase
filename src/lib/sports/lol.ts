@@ -135,6 +135,104 @@ export async function fetchLolLckAll(): Promise<NormalizedMatch[]> {
     });
 }
 
+/* =====================================================================
+ * LoL 패치 버전 — Data Dragon 공식 versions API (캐시됨)
+ * ===================================================================*/
+
+const DDRAGON_VERSIONS = "https://ddragon.leagueoflegends.com/api/versions.json";
+
+let cachedPatch: { value: string; fetchedAt: number } | null = null;
+const PATCH_TTL_MS = 6 * 60 * 60 * 1000; // 6시간
+
+/** 현재 LoL 라이브 서버 패치 버전 (예: "16.9.1"). 실패 시 null. */
+export async function fetchCurrentLolPatch(): Promise<string | null> {
+  const now = Date.now();
+  if (cachedPatch && now - cachedPatch.fetchedAt < PATCH_TTL_MS) {
+    return cachedPatch.value;
+  }
+  try {
+    const { data } = await axios.get<string[]>(DDRAGON_VERSIONS, {
+      timeout: 8000,
+    });
+    if (Array.isArray(data) && data.length > 0) {
+      cachedPatch = { value: data[0], fetchedAt: now };
+      return data[0];
+    }
+  } catch {
+    // 네트워크 실패 시 stale 캐시라도 반환
+    if (cachedPatch) return cachedPatch.value;
+  }
+  return null;
+}
+
+/* =====================================================================
+ * LCK 정규 standings — DB 매치 결과로 시리즈 단위 win-loss 집계
+ * ===================================================================*/
+
+export interface LckStanding {
+  teamId: number;
+  wins: number;
+  losses: number;
+  setsWon: number;
+  setsLost: number;
+  rank: number; // 1-based, 승률 > 세트 격차 순
+}
+
+interface StandingsInputMatch {
+  league: string;
+  status: string;
+  homeTeamId: number;
+  awayTeamId: number;
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+/** LCK FINISHED 매치들에서 정규 순위 집계 (시리즈 1승=1, 동률 시 세트 격차). */
+export function calcLckStandings(
+  matches: StandingsInputMatch[],
+): Map<number, LckStanding> {
+  const acc = new Map<number, Omit<LckStanding, "rank">>();
+  function init(id: number) {
+    if (!acc.has(id))
+      acc.set(id, { teamId: id, wins: 0, losses: 0, setsWon: 0, setsLost: 0 });
+  }
+  for (const m of matches) {
+    if (m.league !== "LOL") continue;
+    if (m.status !== "FINISHED") continue;
+    if (m.homeScore === null || m.awayScore === null) continue;
+    init(m.homeTeamId);
+    init(m.awayTeamId);
+    const h = acc.get(m.homeTeamId)!;
+    const a = acc.get(m.awayTeamId)!;
+    h.setsWon += m.homeScore;
+    h.setsLost += m.awayScore;
+    a.setsWon += m.awayScore;
+    a.setsLost += m.homeScore;
+    if (m.homeScore > m.awayScore) {
+      h.wins += 1;
+      a.losses += 1;
+    } else if (m.awayScore > m.homeScore) {
+      a.wins += 1;
+      h.losses += 1;
+    }
+    // BO 시리즈는 동점 없음 — 동점 매치 자동 무시
+  }
+  // 정렬 — 승률(승/총경기) 내림차순, 동률 시 세트 격차
+  const sorted = [...acc.values()].sort((x, y) => {
+    const wpx = x.wins + x.losses > 0 ? x.wins / (x.wins + x.losses) : 0;
+    const wpy = y.wins + y.losses > 0 ? y.wins / (y.wins + y.losses) : 0;
+    if (wpy !== wpx) return wpy - wpx;
+    const sdx = x.setsWon - x.setsLost;
+    const sdy = y.setsWon - y.setsLost;
+    return sdy - sdx;
+  });
+  const out = new Map<number, LckStanding>();
+  for (let i = 0; i < sorted.length; i++) {
+    out.set(sorted[i].teamId, { ...sorted[i], rank: i + 1 });
+  }
+  return out;
+}
+
 export const lolCollector: MatchCollector = {
   league: "LOL",
   // day-loop fallback — 보통 collect.ts 가 fetchLolLckAll 로 special-case 처리.

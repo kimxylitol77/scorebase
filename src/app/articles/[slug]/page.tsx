@@ -50,12 +50,81 @@ function makeDescription(content: string): string {
     .slice(0, 160);
 }
 
+/** 본문에서 "ID(Eng, 한글)" 패턴의 선수 ID·본명 추출. 최대 maxPick개. */
+function extractLolPlayerMentions(
+  content: string,
+  maxPick = 6,
+): Array<{ id: string; nameKo?: string }> {
+  // 패턴: "페이커(Faker, 이상혁)" 또는 "Faker(Lee Sang-hyeok, 이상혁)" 또는 "Zeus(최우제)"
+  // 첫 등장만 잡으면 충분.
+  const re = /([A-Za-z][A-Za-z0-9.]{1,20})\s*\(([^)]+)\)/g;
+  const seen = new Map<string, string | undefined>();
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(content)) !== null) {
+    const id = m[1];
+    const inner = m[2];
+    // 한글 본명 추출
+    const koMatch = inner.match(/([가-힣]{2,4})/);
+    if (!seen.has(id)) {
+      seen.set(id, koMatch ? koMatch[1] : undefined);
+      if (seen.size >= maxPick) break;
+    }
+  }
+  return [...seen.entries()].map(([id, nameKo]) => ({ id, nameKo }));
+}
+
+/** 본문에서 패치 버전(16.9.1 류 X.Y.Z) 추출. 첫 매치만. */
+function extractLolPatch(content: string): string | undefined {
+  const m = content.match(/\b(\d{1,2}\.\d{1,2}(?:\.\d{1,2})?)\b/);
+  return m ? m[1] : undefined;
+}
+
+const LCK_LEAGUES = new Set(["LOL", "LCK"]);
+
+interface LolMetaInput {
+  homeName: string;
+  awayName: string;
+  startTime: Date;
+  content: string;
+}
+
+function buildLolMetadata(opts: LolMetaInput): { description: string; keywords: string[] } {
+  const { homeName, awayName, startTime, content } = opts;
+  const patch = extractLolPatch(content);
+  const players = extractLolPlayerMentions(content);
+  const dateStr = startTime.toLocaleString("ko-KR", {
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Seoul",
+  });
+  const patchPart = patch ? `${patch} 패치 메타 분석, ` : "";
+  const description = `${homeName} vs ${awayName} — ${dateStr} LCK 매치 프리뷰. ${patchPart}5라인 매치업, 모델 승률 추정. 스코어베이스.`;
+
+  const keywords = [
+    "LCK",
+    "LCK 일정",
+    "LCK 예측",
+    `${homeName} vs ${awayName}`,
+    homeName,
+    awayName,
+    "롤",
+    "리그 오브 레전드",
+    "롤 e스포츠 분석",
+    "롤드컵",
+    "LCK 프리뷰",
+    "LCK 매치업",
+    ...players.flatMap((p) => [p.id, ...(p.nameKo ? [p.nameKo] : [])]),
+  ];
+  return { description, keywords };
+}
+
 // 종목별 평균 매치 시간 (분) — endDate 추정용
 const MATCH_DURATION_MIN: Record<string, number> = {
   EPL: 110, LALIGA: 110, BUNDESLIGA: 110, SERIE_A: 110,
   LIGUE_1: 110, MLS: 110, UCL: 110, WORLD_CUP: 120,
   NBA: 150, NHL: 150,
   MLB: 180, KBO: 200,
+  LOL: 180, // BO3 시리즈 평균 약 3시간 (Bo5는 더 길지만 정규시즌은 Bo3)
 };
 
 // 리그별 홈 국가/지역 — Place location 의 addressCountry 보강
@@ -72,6 +141,7 @@ const LEAGUE_COUNTRY: Record<string, { name: string; code: string }> = {
   NHL:        { name: "United States", code: "US" },
   MLB:        { name: "United States", code: "US" },
   KBO:        { name: "South Korea",  code: "KR" },
+  LOL:        { name: "South Korea",  code: "KR" },
 };
 
 interface MatchForEvent {
@@ -174,16 +244,45 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await prisma.article.findUnique({
     where: { slug },
-    select: { title: true, content: true, league: true, publishedAt: true },
+    select: {
+      title: true,
+      content: true,
+      league: true,
+      publishedAt: true,
+      match: {
+        select: {
+          startTime: true,
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } },
+        },
+      },
+    },
   });
   if (!article) return { title: "기사를 찾을 수 없습니다" };
 
-  const desc = makeDescription(article.content);
   const url = `${SITE_URL}/articles/${slug}`;
+  const isLol = LCK_LEAGUES.has(article.league);
+
+  // LoL 분기 — keywords 풍부화 + description 명시 패턴
+  let desc: string;
+  let keywords: string[] | undefined;
+  if (isLol && article.match) {
+    const lolMeta = buildLolMetadata({
+      homeName: toKoreanTeamName(article.match.homeTeam.name),
+      awayName: toKoreanTeamName(article.match.awayTeam.name),
+      startTime: article.match.startTime,
+      content: article.content,
+    });
+    desc = lolMeta.description;
+    keywords = lolMeta.keywords;
+  } else {
+    desc = makeDescription(article.content);
+  }
 
   return {
     title: article.title,
     description: desc,
+    ...(keywords ? { keywords } : {}),
     alternates: { canonical: url },
     openGraph: {
       title: article.title,

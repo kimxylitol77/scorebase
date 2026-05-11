@@ -13,9 +13,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "NBA", "NHL", "MLB", "KBO",
     "LOL",
   ];
-  // predictions/[league] 페이지가 지원하는 리그만 (예측 모델 적용된 종목).
-  // LOL 은 매치 수집은 하지만 예측 모델은 없으므로 제외.
-  const PREDICTION_LEAGUES = ALL_LEAGUES.filter((l) => l !== "LOL");
 
   // 정적 페이지
   const staticPages: MetadataRoute.Sitemap = [
@@ -29,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily" as const,
       priority: 0.9,
     })),
-    ...PREDICTION_LEAGUES.map((lg) => ({
+    ...ALL_LEAGUES.map((lg) => ({
       url: `${base}/predictions/${lg}`,
       lastModified: now,
       changeFrequency: "hourly" as const,

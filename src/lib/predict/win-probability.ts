@@ -7,6 +7,12 @@
 
 const HOME_ADVANTAGE_ELO = 100;
 
+// LoL/LCK 는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지 무의미.
+function homeAdvantageFor(league: string): number {
+  if (league === "LOL") return 0;
+  return HOME_ADVANTAGE_ELO;
+}
+
 export interface WinProbConfig {
   /** 무승부 비중 (0=무승부 없음, 0.30=축구 일반) */
   drawWeight?: number;
@@ -39,6 +45,8 @@ const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
   NHL: NO_DRAW,
   MLB: NO_DRAW,
   KBO: NO_DRAW,
+  // e스포츠 — LCK 는 BO 시리즈라 시리즈 무승부 없음
+  LOL: NO_DRAW,
 };
 
 export function calcWinProbability(
@@ -48,7 +56,7 @@ export function calcWinProbability(
 ): WinProb {
   const cfg = DEFAULT_CONFIG[league] ?? DEFAULT_CONFIG.EPL;
 
-  const diff = eloAway - (eloHome + HOME_ADVANTAGE_ELO);
+  const diff = eloAway - (eloHome + homeAdvantageFor(league));
   // expHome = "홈이 이길 (또는 비겼을 때 절반의 무승부 점수를 가져갈) 기댓값"
   const expHome = 1 / (1 + Math.pow(10, diff / 400));
 

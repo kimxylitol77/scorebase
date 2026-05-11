@@ -3,6 +3,22 @@
 import type { NormalizedMatch } from "@/lib/sports/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 
+/** LoL 로스터 1인 — Leaguepedia Players 응답에서 추출 */
+export interface LolRosterPlayer {
+  id: string; // 예: "Faker"
+  nameEn: string; // 예: "Lee Sang-hyeok"
+  nameKo?: string; // 예: "이상혁"
+  role: string; // Top | Jungle | Mid | Bot | Support
+  country?: string;
+}
+
+/** 선수 시즌 통계 요약 */
+export interface LolPlayerStatsLite {
+  games: number;
+  kda: number; // (K+A)/D (D=0 이면 K+A)
+  topChampions: Array<{ champion: string; games: number }>;
+}
+
 export interface PreviewContext {
   /** Elo 레이팅 (양 팀) */
   elo?: { home: number; away: number };
@@ -98,6 +114,30 @@ export interface PreviewContext {
     draw: { opening: number; current: number };
     away: { opening: number; current: number };
     capturedAt?: Date;
+  };
+  /** LoL/LCK 전용 메타 (LOL 매치 전용) */
+  lolMeta?: {
+    /** Data Dragon 기준 현재 라이브 패치 (예: "16.9.1") */
+    patch?: string;
+    /** LCK 정규시즌 매치 결과 집계 standings */
+    standings?: {
+      home: { rank: number; wins: number; losses: number; setsWon: number; setsLost: number };
+      away: { rank: number; wins: number; losses: number; setsWon: number; setsLost: number };
+      total: number;
+    };
+    /** Leaguepedia Players 테이블 — 양 팀 5인 활성 로스터 */
+    rosters?: {
+      home: LolRosterPlayer[];
+      away: LolRosterPlayer[];
+    };
+    /** 선수 시즌 통계 (ScoreboardPlayers 집계) — playerId → stats */
+    playerStats?: Record<string, LolPlayerStatsLite>;
+    /** Bo3 게임 수 OVER/UNDER 2.5 — 풀세트 갈 확률 (시리즈 결과 분포 기반) */
+    gameCountMarket?: {
+      line: 2.5;
+      pOver: number; // 풀세트(3게임) 확률
+      sample: number;
+    };
   };
   /** NHL 시작 골리 (api-web.nhle.com — NHL 만) */
   goalies?: {
@@ -437,6 +477,7 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 - 야구(MLB/KBO): 선발투수 ERA·WHIP·팀 OPS, 핸디캡 = Run Line, OVER/UNDER 사용
 - 하키(NHL): xG·PP%·PK%, 핸디캡 = Puck Line, OVER/UNDER 사용
 - BTTS는 축구·하키에만 적용. 농구·야구는 BTTS 행을 표에서 생략.
+- LoL/LCK 매치는 이 프롬프트가 아닌 별도 LoL 전용 프롬프트로 처리됨 — 이 프롬프트에서는 LoL 입력을 받지 않는다.
 
 # ADVANCED STAT — 매치업 분석에 1줄 강제
 "매치업 분석" 단락 안에 종목별 핵심 어드밴스드 스탯 1개를 비교하는
