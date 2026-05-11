@@ -21,6 +21,7 @@ const LEAGUES_RIGHT: Array<{ code: string; label: string }> = [
 const SHORTCUTS: Array<{ href: string; label: string }> = [
   { href: "/predictions", label: "📊 시즌 예측 대시보드" },
   { href: "/predictions/accuracy", label: "🎯 적중률 보드" },
+  { href: "/injuries/EPL", label: "🩹 팀별 부상자 명단" },
   { href: "/about", label: "📡 방법론 · 데이터 흐름" },
   { href: "/notices", label: "📢 공지 · 패치노트" },
 ];
