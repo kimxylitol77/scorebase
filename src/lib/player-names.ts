@@ -443,25 +443,73 @@ for (const [en, ko] of Object.entries(RAW)) {
   LAST_NAME_MAP[lastEn] = ko;
 }
 
+// 충돌 흔한 성(서로 다른 한글값을 가진 동성이인) — last-name fallback 사용 금지
+const AMBIGUOUS_LAST_NAMES = new Set<string>();
+{
+  const lastToVals = new Map<string, Set<string>>();
+  for (const [en, ko] of Object.entries(RAW)) {
+    const tokens = normalize(en).split(/\s+/).filter(Boolean);
+    if (tokens.length < 2) continue;
+    const last = tokens[tokens.length - 1];
+    if (!last || last.endsWith(".")) continue;
+    if (!lastToVals.has(last)) lastToVals.set(last, new Set());
+    lastToVals.get(last)!.add(ko);
+  }
+  for (const [k, set] of lastToVals) {
+    if (set.size > 1) AMBIGUOUS_LAST_NAMES.add(k);
+  }
+  // 흔한 일반 성 — 한국에 알려진 1명만 등록돼도 동성이인 위험 크니 강제 제외
+  for (const s of [
+    "james",
+    "wilson",
+    "jones",
+    "moore",
+    "taylor",
+    "thomas",
+    "smith",
+    "white",
+    "miller",
+    "garcia",
+    "rodriguez",
+    "martinez",
+    "lopez",
+    "young",
+    "king",
+    "scott",
+    "green",
+    "hill",
+    "lee",
+    "hall",
+    "allen",
+    "wright",
+    "walker",
+    "perez",
+    "cook",
+    "morris",
+    "rogers",
+    "kim",
+    "park",
+    "lopez",
+    "ferguson",
+    "davies",
+    "evans",
+    "robinson",
+    "carter",
+  ]) {
+    AMBIGUOUS_LAST_NAMES.add(s);
+  }
+}
+
 const SHORT_NAME_RE = /^(?:[A-Za-z]\.\s*|[A-Za-z]\s+)([\wÀ-ſ'\-]+)$/;
 
 function tryLastName(name: string): string | null {
-  // "C. Doucoure" / "C Doucoure" / "C.Doucoure" 형태 매치
+  // 약식 표기 "C. Doucoure" 형태만 fallback — 풀네임은 정확 매치만 사용
+  // (예: "Reece James" 가 last name 'James' fallback 으로 르브론 제임스로 잘못 매핑되던 버그 차단)
   const m = name.trim().match(SHORT_NAME_RE);
-  if (m) {
-    const last = normalize(m[1]);
-    if (LAST_NAME_MAP[last]) return LAST_NAME_MAP[last];
-  }
-  // 입력이 성만 들어온 경우 ("Doucoure")
-  const tokens = normalize(name).split(/\s+/).filter(Boolean);
-  if (tokens.length === 1 && LAST_NAME_MAP[tokens[0]]) {
-    return LAST_NAME_MAP[tokens[0]];
-  }
-  // 입력이 풀네임이지만 매핑에 없는 경우, 마지막 토큰으로 성 매칭 시도
-  if (tokens.length >= 2) {
-    const last = tokens[tokens.length - 1];
-    if (LAST_NAME_MAP[last]) return LAST_NAME_MAP[last];
-  }
+  if (!m) return null;
+  const last = normalize(m[1]);
+  if (AMBIGUOUS_LAST_NAMES.has(last)) return null;
+  if (LAST_NAME_MAP[last]) return LAST_NAME_MAP[last];
   return null;
 }
 
