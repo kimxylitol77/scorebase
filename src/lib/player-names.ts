@@ -116,6 +116,8 @@ const RAW: Record<string, string> = {
   "Ismaila Sarr": "이스마일라 사르",
   "Jean-Philippe Mateta": "장필리프 마테타",
   "J. Mateta": "장필리프 마테타",
+  "Evann Guessand": "에반 게상",
+  "E. Guessand": "에반 게상",
 
   // 아스톤 빌라
   "Ollie Watkins": "올리 왓킨스",
