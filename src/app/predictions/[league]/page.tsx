@@ -10,6 +10,7 @@ import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export const dynamic = "force-dynamic";
 
@@ -162,6 +163,13 @@ export default async function LeaguePredictions({ params }: Props) {
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
   const teams = await prisma.team.findMany({ where: { league: upper } });
   const teamNameById = new Map(teams.map((t) => [t.id, t.name]));
+  const teamLogoById = new Map<number, string | null>(
+    teams.map((t) => [t.id, t.logoUrl ?? null]),
+  );
+  // 표시용 한글 이름 (월드컵 시드/Elo lookup 은 영문 그대로 써야 하므로 분리).
+  const teamKoNameById = new Map(
+    teams.map((t) => [t.id, toKoreanTeamName(t.name)]),
+  );
 
   // 시뮬레이션 실행
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
@@ -286,7 +294,7 @@ export default async function LeaguePredictions({ params }: Props) {
                   .filter((r) => r.champion >= 0.001)
                   .slice(0, 14)
                   .map((r) => ({
-                    name: r.teamName,
+                    name: toKoreanTeamName(r.teamName),
                     value: r.champion * 100,
                   }))}
               />
@@ -302,7 +310,7 @@ export default async function LeaguePredictions({ params }: Props) {
                   .filter((r) => r.final >= 0.005)
                   .sort((a, b) => b.final - a.final)
                   .slice(0, 14)
-                  .map((r) => ({ name: r.teamName, value: r.final * 100 }))}
+                  .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.final * 100 }))}
               />
             </section>
 
@@ -316,7 +324,7 @@ export default async function LeaguePredictions({ params }: Props) {
                   .filter((r) => r.sf >= 0.01)
                   .sort((a, b) => b.sf - a.sf)
                   .slice(0, 16)
-                  .map((r) => ({ name: r.teamName, value: r.sf * 100 }))}
+                  .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.sf * 100 }))}
               />
             </section>
 
@@ -341,7 +349,7 @@ export default async function LeaguePredictions({ params }: Props) {
                   .filter((r) => r.champion >= 0.001)
                   .slice(0, 12)
                   .map((r) => ({
-                    name: teamNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                    name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
                     value: r.champion * 100,
                   }))}
               />
@@ -359,7 +367,7 @@ export default async function LeaguePredictions({ params }: Props) {
                     .filter((r) => r.top4 >= 0.01)
                     .slice(0, 14)
                     .map((r) => ({
-                      name: teamNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                      name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
                       value: r.top4 * 100,
                     }))}
                 />
@@ -379,7 +387,7 @@ export default async function LeaguePredictions({ params }: Props) {
                     .sort((a, b) => b.relegation - a.relegation)
                     .slice(0, 8)
                     .map((r) => ({
-                      name: teamNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                      name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
                       value: r.relegation * 100,
                     }))}
                   variant="danger"
@@ -395,7 +403,8 @@ export default async function LeaguePredictions({ params }: Props) {
               />
               <ProjectionsTable
                 rows={mc.map((r) => ({
-                  name: teamNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                  name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                  logoUrl: teamLogoById.get(r.teamId) ?? null,
                   ...r,
                 }))}
               />
@@ -438,11 +447,27 @@ export default async function LeaguePredictions({ params }: Props) {
                           })}
                         </td>
                         <td className="px-2 py-2.5 text-right font-medium truncate">
-                          {m.homeTeam.name}
+                          <span className="inline-flex items-center gap-2 justify-end">
+                            <span className="truncate">
+                              {toKoreanTeamName(m.homeTeam.name)}
+                            </span>
+                            <PredTeamLogo
+                              src={m.homeTeam.logoUrl}
+                              name={m.homeTeam.name}
+                            />
+                          </span>
                         </td>
                         <td className="text-center text-xs text-neutral-400">vs</td>
                         <td className="px-2 py-2.5 font-medium truncate">
-                          {m.awayTeam.name}
+                          <span className="inline-flex items-center gap-2">
+                            <PredTeamLogo
+                              src={m.awayTeam.logoUrl}
+                              name={m.awayTeam.name}
+                            />
+                            <span className="truncate">
+                              {toKoreanTeamName(m.awayTeam.name)}
+                            </span>
+                          </span>
                         </td>
                         <td className="px-4 py-2.5">
                           <ProbBar wp={wp} hideDraw={!info.showDraw} />
@@ -549,6 +574,7 @@ function ProbBar({
 interface ProjectionRow {
   teamId: number;
   name: string;
+  logoUrl?: string | null;
   champion: number;
   top4: number;
   expectedPoints: number;
@@ -579,7 +605,12 @@ function ProjectionsTable({ rows }: { rows: ProjectionRow[] }) {
               <td className="px-3 py-2 font-bold text-neutral-400 tabular-nums">
                 {i + 1}
               </td>
-              <td className="px-3 py-2 font-medium truncate">{r.name}</td>
+              <td className="px-3 py-2 font-medium truncate">
+                <span className="inline-flex items-center gap-2">
+                  <PredTeamLogo src={r.logoUrl} name={r.name} />
+                  <span className="truncate">{r.name}</span>
+                </span>
+              </td>
               <td className="px-3 py-2 text-right tabular-nums text-neutral-500">
                 {r.currentPoints}
               </td>
@@ -610,6 +641,34 @@ interface WorldCupRow {
   final: number;
   champion: number;
   expectedPoints: number;
+}
+
+function PredTeamLogo({
+  src,
+  name,
+}: {
+  src?: string | null;
+  name: string;
+}) {
+  if (!src) {
+    return (
+      <span
+        aria-hidden
+        className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[9px] font-bold text-neutral-500"
+      >
+        {name.slice(0, 1).toUpperCase()}
+      </span>
+    );
+  }
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={src}
+      alt=""
+      className="w-5 h-5 object-contain shrink-0"
+      loading="lazy"
+    />
+  );
 }
 
 function WorldCupGroupTable({ rows }: { rows: WorldCupRow[] }) {

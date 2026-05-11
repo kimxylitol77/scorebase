@@ -9,6 +9,7 @@ import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 interface Props {
   league:
@@ -131,8 +132,10 @@ export default async function SeasonInsight({ league }: Props) {
     where: { league, id: { in: standings.rows.map((r) => r.teamId) } },
     select: { id: true, name: true },
   });
-  const teamName = (id: number) =>
-    teams.find((t) => t.id === id)?.name ?? `팀 ${id}`;
+  const teamName = (id: number) => {
+    const raw = teams.find((t) => t.id === id)?.name;
+    return raw ? toKoreanTeamName(raw) : `팀 ${id}`;
+  };
 
   const top1 = standings.rows[0];
   const top2 = standings.rows[1];

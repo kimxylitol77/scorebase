@@ -7,6 +7,7 @@ import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 type Lg =
   | "EPL"
@@ -124,7 +125,7 @@ export default async function SeasonInsightCard({ league }: Props) {
     where: { league, id: { in: standings.rows.map((r) => r.teamId) } },
     select: { id: true, name: true },
   });
-  const nameById = new Map(teams.map((t) => [t.id, t.name]));
+  const nameById = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name)]));
 
   const top1 = standings.rows[0];
 
