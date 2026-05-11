@@ -166,11 +166,16 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
   const pageNum = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
-  const where: { status: string; league: string; type?: string } = {
+  const where: Prisma.ArticleWhereInput = {
     status: "PUBLISHED",
     league: upper,
   };
   if (currentType !== "ALL") where.type = currentType;
+  // PREVIEW 는 다가오는(미래) 매치만 — 이미 끝난 매치의 PREVIEW 는 ALL/RECAP 에서 봄.
+  // (PREVIEW 글은 항상 match 관계가 있음)
+  if (currentType === "PREVIEW") {
+    where.match = { startTime: { gte: new Date() } };
+  }
 
   // 정렬: PREVIEW 는 다가오는 매치 순(가장 가까운 킥오프 먼저),
   // RECAP 은 최근 끝난 매치 순. ALL / ANALYSIS 는 발행순 유지.
