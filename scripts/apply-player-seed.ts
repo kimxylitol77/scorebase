@@ -4,7 +4,9 @@
 // 사용:
 //   npm run players:apply
 
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: ".env.local" });
+config(); // .env fallback
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";

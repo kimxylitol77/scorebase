@@ -4,7 +4,9 @@
 // 사용:
 //   npm run players:match
 
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: ".env.local" });
+config(); // .env fallback
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
@@ -12,6 +14,17 @@ const API_KEY = process.env.API_FOOTBALL_KEY;
 const BASE_URL = "https://v3.football.api-sports.io";
 const SEED_PATH = path.join(process.cwd(), "data/players-seed.json");
 const OUT_PATH = path.join(process.cwd(), "data/players-seed-matched.json");
+
+// api-football league ID — /players 호출 시 필수
+const LEAGUE_ID: Record<string, number> = {
+  EPL: 39,
+  LALIGA: 140,
+  BUNDESLIGA: 78,
+  SERIE_A: 135,
+  LIGUE_1: 61,
+  MLS: 253,
+  UCL: 2,
+};
 
 interface SeedPlayer {
   _group?: string;
@@ -56,7 +69,28 @@ interface ApiFootballPlayer {
   statistics: Array<{ team: { id: number; name: string }; league: { name: string } }>;
 }
 
-async function searchPlayers(name: string): Promise<ApiFootballPlayer[]> {
+/** api-football /players 는 search + (league | team) 필수, search 4글자 이상 */
+async function searchInLeague(
+  name: string,
+  leagueId: number,
+  season: number,
+): Promise<ApiFootballPlayer[]> {
+  if (name.length < 4) return [];
+  const url = new URL(`${BASE_URL}/players`);
+  url.searchParams.set("search", name);
+  url.searchParams.set("league", String(leagueId));
+  url.searchParams.set("season", String(season));
+  const res = await fetch(url.toString(), {
+    headers: { "x-apisports-key": API_KEY! },
+  });
+  if (!res.ok) return [];
+  const json = (await res.json()) as { response?: ApiFootballPlayer[] };
+  return json.response ?? [];
+}
+
+/** profiles 는 league 없이 search 가능 — broad fallback */
+async function searchProfiles(name: string): Promise<ApiFootballPlayer[]> {
+  if (name.length < 4) return [];
   const url = new URL(`${BASE_URL}/players/profiles`);
   url.searchParams.set("search", name);
   const res = await fetch(url.toString(), {
@@ -67,19 +101,12 @@ async function searchPlayers(name: string): Promise<ApiFootballPlayer[]> {
   return json.response ?? [];
 }
 
-async function searchWithTeam(
-  name: string,
-  season: number,
-): Promise<ApiFootballPlayer[]> {
-  const url = new URL(`${BASE_URL}/players`);
-  url.searchParams.set("search", name);
-  url.searchParams.set("season", String(season));
-  const res = await fetch(url.toString(), {
-    headers: { "x-apisports-key": API_KEY! },
-  });
-  if (!res.ok) return [];
-  const json = (await res.json()) as { response?: ApiFootballPlayer[] };
-  return json.response ?? [];
+/** "Heung-min Son" → ["Heung-min", "Son", "Heung", "min"] 등 분리 */
+function nameTokens(name: string): string[] {
+  return name
+    .split(/[\s-]+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 4);
 }
 
 function pickByTeam(
@@ -109,19 +136,39 @@ async function matchOne(seed: SeedPlayer): Promise<MatchedPlayer> {
   }
 
   const season = currentSeasonYear(seed.source_league);
+  const leagueId = LEAGUE_ID[seed.source_league];
   let candidates: ApiFootballPlayer[] = [];
-  try {
-    candidates = await searchWithTeam(seed.name_en, season);
-    if (candidates.length === 0) {
-      candidates = await searchPlayers(seed.name_en);
+
+  // 1) 전체 풀네임 + league
+  if (leagueId) {
+    try {
+      candidates = await searchInLeague(seed.name_en, leagueId, season);
+    } catch {}
+  }
+
+  // 2) 풀네임 fail → 토큰별로 league 검색 (한국 선수: "Son", "Heung-min" 분리)
+  if (candidates.length === 0 && leagueId) {
+    for (const tok of nameTokens(seed.name_en)) {
+      try {
+        candidates = await searchInLeague(tok, leagueId, season);
+        if (candidates.length > 0) break;
+        await sleep(150);
+      } catch {}
     }
-  } catch (e) {
-    return {
-      ...seed,
-      api_football_id: null,
-      match_confidence: "none",
-      match_note: `API 호출 실패: ${(e as Error).message}`,
-    };
+  }
+
+  // 3) league 검색 fail → profiles broad search
+  if (candidates.length === 0) {
+    try {
+      candidates = await searchProfiles(seed.name_en);
+    } catch (e) {
+      return {
+        ...seed,
+        api_football_id: null,
+        match_confidence: "none",
+        match_note: `API 호출 실패: ${(e as Error).message}`,
+      };
+    }
   }
 
   if (candidates.length === 0) {
