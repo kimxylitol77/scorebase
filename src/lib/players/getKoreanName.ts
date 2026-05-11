@@ -86,8 +86,8 @@ export async function getKoreanName(
   return { ko: en, en, source: null, isFallback: true };
 }
 
-interface BatchInput {
-  apiFootballId: number | null | undefined;
+export interface BatchInput {
+  apiFootballId?: number | null;
   nameEn: string;
   teamId?: number | null;
   teamNameEn?: string | null;

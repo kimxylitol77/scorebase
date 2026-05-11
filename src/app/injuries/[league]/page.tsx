@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { toKoreanPlayerName } from "@/lib/player-names";
+import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { calcStandings } from "@/lib/predict/standings";
 import type { PredictMatch } from "@/lib/predict/types";
 import {
@@ -414,16 +414,32 @@ export default async function InjuriesByLeague({
     | Severity;
   const sort = sp.sort ?? "count_desc";
 
-  // 팀별 부상자 enrich
-  const byTeam = teams.map((t) => {
-    const raw = getTeamInjuries(allInjuries, t.name, undefined, 30);
-    const enriched: EnrichedInjury[] = raw.map((i) => ({
-      playerId: i.playerId,
-      playerName: toKoreanPlayerName(i.playerName),
-      reasonKo: translateReason(i.reason),
-      reasonRaw: i.reason,
-      severity: classifySeverity(i.reason),
-    }));
+  // 팀별 raw 부상자 (한글 미적용)
+  const rawByTeam = teams.map((t) => ({
+    team: t,
+    raw: getTeamInjuries(allInjuries, t.name, undefined, 30),
+  }));
+
+  // 모든 선수 ID 모아서 Supabase batch 조회 (한 번에)
+  const allPlayers = rawByTeam.flatMap((x) =>
+    x.raw.map((i) => ({
+      apiFootballId: i.playerId,
+      nameEn: i.playerName,
+    })),
+  );
+  const resolved = await resolvePlayerNames(allPlayers, "soccer", upper);
+
+  const byTeam = rawByTeam.map(({ team, raw }) => {
+    const enriched: EnrichedInjury[] = raw.map((i) => {
+      const r = resolved.get(i.playerId) ?? { ko: i.playerName };
+      return {
+        playerId: i.playerId,
+        playerName: r.ko,
+        reasonKo: translateReason(i.reason),
+        reasonRaw: i.reason,
+        severity: classifySeverity(i.reason),
+      };
+    });
 
     // 필터 적용 (선수 검색 / 심각도)
     let filtered = enriched;
@@ -435,7 +451,7 @@ export default async function InjuriesByLeague({
     if (severityFilter !== "ALL") {
       filtered = filtered.filter((p) => p.severity === severityFilter);
     }
-    return { team: t, all: enriched, filtered };
+    return { team, all: enriched, filtered };
   });
 
   // 정렬
