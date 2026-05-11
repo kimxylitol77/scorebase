@@ -1,8 +1,13 @@
 // 메인 페이지 최상단 인트로 섹션.
 
+import Link from "next/link";
+
 export default function HeroSection() {
   return (
-    <section className="hero relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
+    <section
+      className="hero relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800"
+      aria-labelledby="hero-title"
+    >
       {/* 그라디언트 백드롭 */}
       <div
         aria-hidden
@@ -16,14 +21,26 @@ export default function HeroSection() {
         <p className="eyebrow text-[11px] font-semibold tracking-[0.2em] uppercase text-neutral-500 mb-4">
           통계 기반 AI 스포츠 분석
         </p>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05] tracking-tight">
+        <h1
+          id="hero-title"
+          className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05] tracking-tight"
+        >
           <span className="hero-accent-soft">감</span>이 아니라,{" "}
           <span className="hero-accent">숫자</span>로 보는 경기.
         </h1>
         <p className="lede mt-5 max-w-2xl text-base sm:text-lg text-neutral-600 dark:text-neutral-400">
-          EPL · 라리가 · 분데스 · NBA · MLB · NHL — <strong>Elo 모델</strong>과{" "}
+          EPL · 라리가 · 분데스 · <strong>KBO</strong> · NBA · MLB · NHL ·{" "}
+          <strong>FIFA 월드컵 2026</strong> — <strong>Elo 모델</strong>과{" "}
           <strong>멀티 AI</strong>가 매일 분석하는 글로벌 스포츠 데이터.
         </p>
+        <div className="hero-cta mt-8 flex flex-wrap gap-3">
+          <Link href="/predictions" className="btn-primary">
+            📊 시즌 예측 대시보드
+          </Link>
+          <Link href="/leagues/EPL" className="btn-secondary">
+            ⚽ 프리미어리그 인사이트
+          </Link>
+        </div>
       </div>
     </section>
   );

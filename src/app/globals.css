@@ -58,3 +58,46 @@ body {
   line-height: 1.7;
   word-break: keep-all;
 }
+
+/* CTA 버튼 — 다크 테마 기준, light 모드는 색상만 반전 */
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, transform 0.05s ease;
+}
+.btn-primary {
+  background: linear-gradient(90deg, #00d4ff 0%, #3b82f6 100%);
+  color: #0a0a0a;
+  border: 1px solid transparent;
+  box-shadow: 0 8px 24px -10px rgba(0, 212, 255, 0.5);
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+.btn-primary:active {
+  transform: translateY(1px);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.dark .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+:root:not(.dark) .btn-secondary {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.btn-secondary:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  color: #00d4ff;
+}

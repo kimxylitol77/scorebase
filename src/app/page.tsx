@@ -17,7 +17,7 @@ const CANONICAL = "https://www.scorebase.kr";
 export const metadata: Metadata = {
   title: "스코어베이스 (Scorebase) — 통계 기반 AI 스포츠 분석",
   description:
-    "감이 아니라, 숫자로 보는 경기. EPL · 라리가 · 분데스리가 · 세리에A · 리그앙 · UCL · MLS · NBA · MLB · NHL — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터 미디어.",
+    "감이 아니라, 숫자로 보는 경기. EPL · 라리가 · 분데스리가 · 세리에A · 리그앙 · UCL · MLS · KBO · NBA · MLB · NHL · FIFA 월드컵 2026 — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터 미디어.",
   keywords: [
     "스코어베이스", "Scorebase",
     "AI 스포츠 분석", "AI 데이터 분석", "스포츠 데이터 분석",
@@ -28,6 +28,8 @@ export const metadata: Metadata = {
     "라리가 순위", "분데스리가 순위", "세리에A 순위", "챔피언스리그 순위",
     "Elo 레이팅", "승률 예측", "시즌 예측", "경기 결과",
     "스포츠 미디어",
+    "KBO", "KBO 리그", "KBO 순위", "한국 프로야구",
+    "FIFA 월드컵", "월드컵 2026", "북중미 월드컵", "대한민국 월드컵",
   ],
   alternates: { canonical: CANONICAL },
   openGraph: {
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
     siteName: "스코어베이스",
     title: "스코어베이스 — 감이 아니라, 숫자로 보는 경기",
     description:
-      "EPL · 라리가 · NBA · MLB · NHL — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터.",
+      "EPL · 라리가 · 분데스 · KBO · NBA · MLB · NHL · FIFA 월드컵 2026 — Elo 모델과 멀티 AI가 매일 분석.",
     images: [
       {
         url: "/og-image.png",
@@ -51,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "스코어베이스 — 감이 아니라, 숫자로 보는 경기",
     description:
-      "EPL · 라리가 · NBA · MLB · NHL — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터.",
+      "EPL · 라리가 · 분데스 · KBO · NBA · MLB · NHL · FIFA 월드컵 2026 — Elo 모델과 멀티 AI가 매일 분석.",
     images: ["/og-image.png"],
   },
   robots: {
