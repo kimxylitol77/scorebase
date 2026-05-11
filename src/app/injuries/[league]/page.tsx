@@ -19,7 +19,7 @@ import {
   fetchEspnInjuries,
   getTeamEspnInjuries,
 } from "@/lib/sports/espn-injuries";
-import { fetchBalldontlieNbaInjuries } from "@/lib/sports/balldontlie-nba";
+import { fetchBalldontlieInjuries } from "@/lib/sports/balldontlie";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -508,17 +508,23 @@ export default async function InjuriesByLeague({
 
   let allInjuries: InjuryEntry[] = [];
   let allEspn: Awaited<ReturnType<typeof fetchEspnInjuries>> = [];
-  let allBdl: Awaited<ReturnType<typeof fetchBalldontlieNbaInjuries>> = [];
+  let allBdl: Awaited<ReturnType<typeof fetchBalldontlieInjuries>> = [];
   const hasKey = isSoccer ? !!process.env.API_FOOTBALL_KEY : true;
   if (isSoccer && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
     try {
       const season = getApiFootballSeason(new Date(), upper);
       allInjuries = await fetchSeasonInjuries(upper, season);
     } catch {}
-  } else if (upper === "NBA" && process.env.BALLDONTLIE_KEY) {
+  } else if (isEspn && process.env.BALLDONTLIE_KEY) {
     try {
-      allBdl = await fetchBalldontlieNbaInjuries();
+      allBdl = await fetchBalldontlieInjuries(upper as "NBA" | "MLB" | "NHL");
     } catch {}
+    // BALLDONTLIE 실패하면 ESPN fallback
+    if (allBdl.length === 0) {
+      try {
+        allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
+      } catch {}
+    }
   } else if (isEspn) {
     try {
       allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
@@ -550,7 +556,7 @@ export default async function InjuriesByLeague({
         reason: i.reason,
         fixtureDate: i.fixtureDate,
       }));
-    } else if (upper === "NBA" && allBdl.length > 0) {
+    } else if (isEspn && allBdl.length > 0) {
       raw = getTeamEspnInjuries(allBdl, t.name, undefined, 30).map((i) => ({
         playerId: i.playerId,
         playerName: i.playerName,
