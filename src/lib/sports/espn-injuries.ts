@@ -56,6 +56,41 @@ function extractAthleteId(athlete: EspnAthlete | undefined): number {
   return 0;
 }
 
+/** longComment 에서 부상 부위 키워드 추출 (BALLDONTLIE 없을 때 fallback 보강) */
+const BODY_PATTERNS: Array<{ re: RegExp; label: string }> = [
+  { re: /\b(?:lower body|lower-body)\b/i, label: "하체" },
+  { re: /\b(?:upper body|upper-body)\b/i, label: "상체" },
+  { re: /\b(?:torn (?:acl|mcl|pcl)|acl|mcl|pcl)\b/i, label: "무릎 인대" },
+  { re: /\b(?:knee)\b/i, label: "무릎" },
+  { re: /\b(?:hamstring)\b/i, label: "햄스트링" },
+  { re: /\b(?:ankle)\b/i, label: "발목" },
+  { re: /\b(?:groin)\b/i, label: "사타구니" },
+  { re: /\b(?:calf)\b/i, label: "종아리" },
+  { re: /\b(?:thigh|quadriceps?|quad)\b/i, label: "허벅지" },
+  { re: /\b(?:shoulder)\b/i, label: "어깨" },
+  { re: /\b(?:back)\b/i, label: "허리" },
+  { re: /\b(?:wrist)\b/i, label: "손목" },
+  { re: /\b(?:elbow)\b/i, label: "팔꿈치" },
+  { re: /\b(?:foot)\b/i, label: "발" },
+  { re: /\b(?:hand|finger)\b/i, label: "손" },
+  { re: /\b(?:hip)\b/i, label: "고관절" },
+  { re: /\b(?:achilles)\b/i, label: "아킬레스" },
+  { re: /\b(?:concussion|head)\b/i, label: "뇌진탕" },
+  { re: /\b(?:oblique)\b/i, label: "복사근" },
+  { re: /\b(?:abdom)/i, label: "복부" },
+  { re: /\b(?:rib)\b/i, label: "갈비뼈" },
+  { re: /\b(?:neck)\b/i, label: "목" },
+  { re: /\b(?:illness|sick|flu)\b/i, label: "질병" },
+];
+
+function extractBodyPart(text: string | undefined): string | null {
+  if (!text) return null;
+  for (const p of BODY_PATTERNS) {
+    if (p.re.test(text)) return p.label;
+  }
+  return null;
+}
+
 export async function fetchEspnInjuries(
   league: "NBA" | "MLB" | "NHL",
 ): Promise<EspnInjuryEntry[]> {
@@ -77,12 +112,19 @@ export async function fetchEspnInjuries(
       const athlete = inj.athlete;
       const name = athlete?.displayName ?? athlete?.shortName ?? "";
       if (!name) continue;
+      // longComment / shortComment 에서 부위 추출 시도
+      const bodyPart = extractBodyPart(
+        `${inj.longComment ?? ""} ${inj.shortComment ?? ""}`,
+      );
+      const status = inj.status ?? "Injured";
+      // reason 우선순위: 부위 영문(번역 매핑 통과 가능) > status
+      // 단 우리는 한글로 추출했으므로 reason 에 한글 부위가 들어가도록
+      const reason = bodyPart ?? status;
       out.push({
         playerId: extractAthleteId(athlete),
         playerName: name,
-        // 우리 페이지 reason → 한글 매핑 함수가 'Day-To-Day' 같은 영문도 처리하도록
-        reason: inj.status ?? inj.shortComment ?? "Injured",
-        status: inj.status ?? "Injured",
+        reason,
+        status,
         teamName,
         fixtureDate: inj.date,
       });
