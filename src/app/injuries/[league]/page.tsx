@@ -256,7 +256,6 @@ const REASON_KO: Record<string, string> = {
   "Restricted List": "제한 명단",
   "Suspended List": "출장 정지 명단",
   // MLB type + detail 결합 (side+type+detail = "Right Wrist Fracture")
-  Wrist: "손목",
   Forearm: "팔뚝",
   Elbow: "팔꿈치",
   Biceps: "이두근",
@@ -276,8 +275,6 @@ const REASON_KO: Record<string, string> = {
   Head: "머리",
   Face: "얼굴",
   // MLB detail (type 뒤)
-  Strain: "근육 파열",
-  Sprain: "염좌",
   Inflammation: "염증",
   Soreness: "통증",
   Tendinitis: "건염",
