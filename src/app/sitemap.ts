@@ -20,6 +20,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/notices`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/predictions`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
+    { url: `${base}/previews`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
+    ...["SOCCER", "BASEBALL", "BASKETBALL", "HOCKEY", "ESPORTS"].map((sport) => ({
+      url: `${base}/previews?sport=${sport}`,
+      lastModified: now,
+      changeFrequency: "hourly" as const,
+      priority: 0.85,
+    })),
     ...ALL_LEAGUES.map((lg) => ({
       url: `${base}/leagues/${lg}`,
       lastModified: now,
