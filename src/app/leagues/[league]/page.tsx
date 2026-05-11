@@ -326,9 +326,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      {/* 탭 */}
+      {/* 탭 — 모바일에서는 wrap 2줄, 태블릿+ 에서는 한 줄 가로 스크롤 */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 sticky top-16 bg-white/85 dark:bg-neutral-950/85 backdrop-blur z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 sm:gap-2 overflow-x-auto">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-x-1 sm:gap-x-2 gap-y-0 flex-wrap sm:flex-nowrap sm:overflow-x-auto">
           {VALID_TYPES.map((t) => {
             const active = t === currentType;
             const count = countMap.get(t) ?? 0;
@@ -340,7 +340,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               <Link
                 key={t}
                 href={href}
-                className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition ${
+                className={`px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition ${
                   active
                     ? "border-neutral-900 dark:border-white text-neutral-900 dark:text-white"
                     : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
@@ -363,7 +363,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           {SOCCER_INJURY_LEAGUES.has(upper) && (
             <Link
               href={`/injuries/${upper}`}
-              className="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+              className="px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
             >
               🩹 부상자명단
             </Link>
