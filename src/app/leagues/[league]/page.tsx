@@ -171,21 +171,13 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     league: upper,
   };
   if (currentType !== "ALL") where.type = currentType;
-  // PREVIEW 는 다가오는(미래) 매치만 — 이미 끝난 매치의 PREVIEW 는 ALL/RECAP 에서 봄.
-  // (PREVIEW 글은 항상 match 관계가 있음)
-  if (currentType === "PREVIEW") {
-    where.match = { startTime: { gte: new Date() } };
-  }
 
-  // 정렬: PREVIEW 는 다가오는 매치 순(가장 가까운 킥오프 먼저),
-  // RECAP 은 최근 끝난 매치 순. ALL / ANALYSIS 는 발행순 유지.
-  // match null 인 글(ANALYSIS 등)은 마지막으로 (nulls last) — 보조 publishedAt desc.
+  // 정렬: PREVIEW / RECAP 은 매치 킥오프 desc (큰 날짜 = 최근/미래가 위로).
+  // ALL / ANALYSIS 는 매치 없는 글(ANALYSIS) 도 섞이므로 발행순 유지.
   const articleOrderBy: Prisma.ArticleOrderByWithRelationInput[] =
-    currentType === "PREVIEW"
-      ? [{ match: { startTime: "asc" } }, { publishedAt: "desc" }]
-      : currentType === "RECAP"
-        ? [{ match: { startTime: "desc" } }, { publishedAt: "desc" }]
-        : [{ publishedAt: "desc" }];
+    currentType === "PREVIEW" || currentType === "RECAP"
+      ? [{ match: { startTime: "desc" } }, { publishedAt: "desc" }]
+      : [{ publishedAt: "desc" }];
 
   // 카운트는 type 별로 동시에 — 탭에 숫자 표시용
   const [articles, totalArticles, countsByType, accStats] = await Promise.all([
