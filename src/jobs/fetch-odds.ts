@@ -65,6 +65,16 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
         const btts = averageBtts(ev);
         const dc = averageDoubleChance(ev);
 
+        // 오프닝 odds — 매치당 한 번만 저장 (이미 있으면 미터치)
+        const openingPatch =
+          m.openingMarketHome == null
+            ? {
+                openingMarketHome: implied.home,
+                openingMarketDraw: implied.draw,
+                openingMarketAway: implied.away,
+                openingCapturedAt: new Date(),
+              }
+            : {};
         await prisma.match.update({
           where: { id: m.id },
           data: {
@@ -73,6 +83,7 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
             marketAway: implied.away,
             marketBookmakers: implied.consensus,
             marketUpdatedAt: new Date(),
+            ...openingPatch,
             // raw decimal odds (vig 미제거)
             oddsHome: h2h?.home ?? null,
             oddsDraw: h2h?.draw ?? null,

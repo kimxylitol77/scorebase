@@ -3,6 +3,18 @@
 import type { PredictMatch } from "./types";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { calcEloTable, getElo } from "./elo";
+import { buildScoreDistribution } from "./score-distribution";
+
+const SOCCER_LEAGUES = new Set([
+  "EPL",
+  "LALIGA",
+  "BUNDESLIGA",
+  "SERIE_A",
+  "LIGUE_1",
+  "MLS",
+  "UCL",
+  "WORLD_CUP",
+]);
 import { calcForm } from "./form";
 import { calcH2H } from "./h2h";
 import { calcStandings } from "./standings";
@@ -130,6 +142,12 @@ export function buildMatchContext(
       awayWins: h2h.awayTeamWins,
       total: h2h.total,
     },
+    topScores: SOCCER_LEAGUES.has(league)
+      ? buildScoreDistribution(
+          { home: wp.home, draw: wp.draw, away: wp.away },
+          league,
+        ).topScores
+      : undefined,
   };
 }
 

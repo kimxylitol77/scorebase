@@ -90,6 +90,15 @@ export interface PreviewContext {
       ip?: string;
     };
   };
+  /** Poisson 결합 5,000회 시뮬과 동등한 스코어 분포 — top 3 (축구만) */
+  topScores?: Array<{ home: number; away: number; prob: number }>;
+  /** 베팅 라인 움직임 — 오프닝 odds vs 현재 odds 변화 (implied 확률) */
+  lineMovement?: {
+    home: { opening: number; current: number };
+    draw: { opening: number; current: number };
+    away: { opening: number; current: number };
+    capturedAt?: Date;
+  };
   /** NHL 시작 골리 (api-web.nhle.com — NHL 만) */
   goalies?: {
     home?: {
@@ -272,6 +281,25 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
       ctxLines.push(`  → AI 모델과 시장 평균이 거의 일치 — 시장 합의 강함`);
     }
   }
+  if (context.topScores && context.topScores.length > 0) {
+    const line = context.topScores
+      .map((s) => `${s.home}-${s.away}(${(s.prob * 100).toFixed(1)}%)`)
+      .join(", ");
+    ctxLines.push(
+      `- 시뮬레이션 가장 흔한 스코어 TOP 3 (Poisson 결합 추정): ${line}`,
+    );
+  }
+  if (context.lineMovement) {
+    const lm = context.lineMovement;
+    const fmtPair = (label: string, p: { opening: number; current: number }) => {
+      const diff = Math.round((p.current - p.opening) * 1000) / 10; // %p, 소수 1자리
+      const sign = diff > 0 ? "+" : "";
+      return `${label} ${pct(p.opening)}→${pct(p.current)} (${sign}${diff}%p)`;
+    };
+    ctxLines.push(
+      `- 베팅 라인 움직임: ${fmtPair(home, lm.home)} / 무 ${fmtPair("", lm.draw).slice(1)} / ${fmtPair(away, lm.away)}`,
+    );
+  }
   if (context.attackDefense) {
     const ad = context.attackDefense;
     if (ad.home.attack || ad.home.defense || ad.away.attack || ad.away.defense) {
@@ -453,6 +481,14 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
     예) **📊 어드밴스드 스탯** — 맨시티 xG 1.9·xGA 1.0, 아스널 xG 1.7·xGA 0.9 (리그 평균 xG 1.4) — 슛 퀄리티는 비등, 수비 안정성은 아스널 우세.
   · 매치업 분석 H2 헤딩과 라벨이 중복되지 않게 반드시 "📊 어드밴스드 스탯" 라벨만 사용.
   · 축구의 경우 xG 단독은 무효 — xGA 동반 필수, 양 팀 모두.
+- **시뮬레이션 분포 1줄 — 축구 매치에만 필수.**
+  · 입력 데이터의 'topScores' 가 비어 있지 않으면 별도 한 줄로 마크다운 볼드 처리해서 추가.
+    형식 예시(별표 2개로 감싸기): 🎲 5,000회 시뮬 가장 흔한 스코어 — 2-1(8.2%), 1-1(7.8%), 2-0(7.1%)
+  · 수치는 입력값 그대로 인용 (값 변형 금지). 라벨 이모지 🎲 유지.
+- **베팅 라인 움직임 1줄 — 입력 'lineMovement' 가 있을 때만.**
+  · 별도 한 줄로 마크다운 볼드 처리.
+    형식 예시: 📈 라인 움직임 — 홈 38% → 41% (+3%p). 시장이 홈 쪽으로 이동 중.
+  · 수치는 입력값 그대로. 가장 변화 큰 outcome 1개를 부각.
 - H2H 패턴이 의미 있다면 짚는다. (없으면 생략)
 
 ## 핵심 변수 — 라인업·부상

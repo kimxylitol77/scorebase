@@ -79,6 +79,11 @@ model Match {
   marketAway      Float?
   marketUpdatedAt DateTime?
   marketBookmakers Int?  // odds 통합한 bookmaker 수
+  // 오프닝 odds — odds cron 이 매치 첫 fetch 시 한 번만 저장. 라인 움직임 추적용.
+  openingMarketHome Float?
+  openingMarketDraw Float?
+  openingMarketAway Float?
+  openingCapturedAt DateTime?
   // Value Bet — 우리 모델 prob > 시장 prob + 5%p
   valueGap        Float?  // model_pred - market_pred (양수 = 모델이 시장보다 자신감 큼)
   isValueBet      Boolean? // 5%p 이상 차이 + 모델 pick 와 같은 outcome

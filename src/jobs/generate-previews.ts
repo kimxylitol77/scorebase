@@ -107,6 +107,24 @@ export async function runPreview(opts?: {
         };
       }
 
+      // 베팅 라인 움직임 (오프닝 vs 현재) — 둘 다 있을 때만
+      if (
+        m.openingMarketHome != null &&
+        m.openingMarketAway != null &&
+        m.marketHome != null &&
+        m.marketAway != null
+      ) {
+        context.lineMovement = {
+          home: { opening: m.openingMarketHome, current: m.marketHome },
+          draw: {
+            opening: m.openingMarketDraw ?? 0,
+            current: m.marketDraw ?? 0,
+          },
+          away: { opening: m.openingMarketAway, current: m.marketAway },
+          capturedAt: m.openingCapturedAt ?? undefined,
+        };
+      }
+
       // 라인업 (api-football Pro)
       if (m.lineupHome && m.lineupAway) {
         try {
