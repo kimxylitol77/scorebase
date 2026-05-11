@@ -33,23 +33,35 @@ const STATUS_FILTERS = [
 ];
 
 interface Props {
-  searchParams: Promise<{ status?: string; league?: string }>;
+  searchParams: Promise<{ status?: string; league?: string; page?: string }>;
 }
+
+const PER_PAGE = 50;
 
 export default async function AdminArticles({ searchParams }: Props) {
   const sp = await searchParams;
   const statusFilter = sp.status ?? "ALL";
   const leagueFilter = sp.league ?? "ALL";
+  const pageNum = Math.max(1, Number(sp.page ?? "1") || 1);
 
   const where: Record<string, unknown> = {};
   if (statusFilter !== "ALL") where.status = statusFilter;
   if (leagueFilter !== "ALL") where.league = leagueFilter;
 
-  const articles = await prisma.article.findMany({
-    where,
-    orderBy: { id: "desc" },
-    take: 200,
-  });
+  const [totalCount, articles] = await Promise.all([
+    prisma.article.count({ where }),
+    prisma.article.findMany({
+      where,
+      orderBy: { id: "desc" },
+      skip: (pageNum - 1) * PER_PAGE,
+      take: PER_PAGE,
+    }),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
+  const currentPage = Math.min(pageNum, totalPages);
+  const baseQuery: Record<string, string> = {};
+  if (statusFilter !== "ALL") baseQuery.status = statusFilter;
+  if (leagueFilter !== "ALL") baseQuery.league = leagueFilter;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
@@ -188,10 +200,131 @@ export default async function AdminArticles({ searchParams }: Props) {
         </div>
       )}
 
-      <p className="text-xs text-neutral-500">
-        총 {articles.length}건 표시 (최대 200)
-      </p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <p className="text-xs text-neutral-500">
+          총 {totalCount}건 · {currentPage}/{totalPages} 페이지
+          {totalCount > 0 && (
+            <span className="ml-1 text-neutral-400">
+              ({(currentPage - 1) * PER_PAGE + 1}–
+              {(currentPage - 1) * PER_PAGE + articles.length})
+            </span>
+          )}
+        </p>
+        {totalPages > 1 && (
+          <Pagination
+            current={currentPage}
+            total={totalPages}
+            baseQuery={baseQuery}
+          />
+        )}
+      </div>
     </div>
+  );
+}
+
+function buildHref(baseQuery: Record<string, string>, page: number): string {
+  const params = new URLSearchParams(baseQuery);
+  if (page > 1) params.set("page", String(page));
+  const qs = params.toString();
+  return qs ? `/admin/articles?${qs}` : "/admin/articles";
+}
+
+function getPageRange(current: number, total: number): number[] {
+  // 현재 페이지 ±2 윈도우, 양 끝(1, total) 항상 포함.
+  // 사이 빈 구간은 호출부에서 "…" 처리.
+  const window = new Set<number>([1, total, current]);
+  for (let d = 1; d <= 2; d++) {
+    window.add(current - d);
+    window.add(current + d);
+  }
+  return Array.from(window)
+    .filter((p) => p >= 1 && p <= total)
+    .sort((a, b) => a - b);
+}
+
+function Pagination({
+  current,
+  total,
+  baseQuery,
+}: {
+  current: number;
+  total: number;
+  baseQuery: Record<string, string>;
+}) {
+  const pages = getPageRange(current, total);
+  return (
+    <nav
+      className="flex items-center gap-1 text-sm"
+      aria-label="페이지 이동"
+    >
+      <PageLink
+        href={current > 1 ? buildHref(baseQuery, current - 1) : null}
+        label="← 이전"
+      />
+      {pages.map((p, i) => {
+        const prev = pages[i - 1];
+        const gap = prev && p - prev > 1;
+        return (
+          <span key={p} className="flex items-center gap-1">
+            {gap && (
+              <span className="px-1.5 text-neutral-400" aria-hidden>
+                …
+              </span>
+            )}
+            <PageLink
+              href={p === current ? null : buildHref(baseQuery, p)}
+              label={String(p)}
+              active={p === current}
+            />
+          </span>
+        );
+      })}
+      <PageLink
+        href={current < total ? buildHref(baseQuery, current + 1) : null}
+        label="다음 →"
+      />
+    </nav>
+  );
+}
+
+function PageLink({
+  href,
+  label,
+  active = false,
+}: {
+  href: string | null;
+  label: string;
+  active?: boolean;
+}) {
+  const base =
+    "px-2.5 py-1 rounded-md text-xs font-medium tabular-nums transition";
+  if (active) {
+    return (
+      <span
+        className={`${base} bg-neutral-900 text-white dark:bg-white dark:text-neutral-900`}
+        aria-current="page"
+      >
+        {label}
+      </span>
+    );
+  }
+  if (!href) {
+    return (
+      <span
+        className={`${base} text-neutral-300 dark:text-neutral-600 cursor-not-allowed select-none`}
+        aria-disabled
+      >
+        {label}
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      className={`${base} bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700`}
+    >
+      {label}
+    </Link>
   );
 }
 

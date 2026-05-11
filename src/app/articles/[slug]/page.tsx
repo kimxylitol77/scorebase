@@ -9,6 +9,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { formatDateKo } from "@/lib/format";
 import { getExternalLinks } from "@/lib/external-links";
+import AdminEditLink from "@/components/AdminEditLink";
 
 export const dynamic = "force-dynamic";
 
@@ -285,13 +286,14 @@ export default async function ArticlePage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <Link
           href={`/leagues/${article.league}`}
           className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
         >
           ← {article.league}
         </Link>
+        <AdminEditLink articleId={article.id} />
       </div>
 
       <div className="flex items-center gap-2 text-sm mb-4 flex-wrap">
