@@ -253,17 +253,20 @@ championMeta 의 top 4~6 챔피언을 인용해:
 
 ## 모델 관점 — 시리즈 예측 표
 **단락 제목 "## 모델 관점 — 시리즈 예측 표" 한 줄을 반드시 표 위에 출력**한다 (생략 금지).
-**일반 마크다운 표 사용 — 절대 백틱 3개(\`\`\`) 코드 블록으로 감싸지 마라.** GitHub Flavored Markdown 표 그대로:
+**일반 마크다운 표 사용 — 절대 백틱 3개(\`\`\`) 코드 블록으로 감싸지 마라.** GitHub Flavored Markdown 표 그대로.
 
-반드시 정확히 2컬럼 헤더로 시작 — 첫 줄: 파이프 시장 파이프 모델 추정 파이프, 둘째 줄: 파이프 --- 파이프 --- 파이프.
+**컬럼 수 결정**: marketProb 입력이 있으면 4컬럼 — "시장 / 모델 추정 / 시장 평균 / 차이". 없으면 2컬럼 — "시장 / 모델 추정". 헤더 컬럼 수와 모든 데이터 행 컬럼 수가 반드시 일치.
 
 행 (입력 데이터 있는 행만 출력):
-- "시리즈 승자" 행 — 항상 출력. 형식: ${t1} XX% / ${t2} XX%
-- "게임 수 OVER/UNDER 2.5 (Bo3)" 행 — 'gameCountMarket' 있을 때만. 형식: OVER XX% / UNDER YY% (XX = 입력 pOver, YY = 100-XX)
-- "1게임 총 킬 OVER/UNDER {line}" 행 — 'oneGameKillsMarket' 있을 때만. 형식: OVER XX% / UNDER YY% (line 은 입력값 그대로)
-- "1게임 킬 핸디캡 ±{line}" 행 — 'oneGameHandicapMarket' 있을 때만. 형식: {팀} -{line}킬 cover XX%
+- "시리즈 승자" 행 — 항상 출력. 모델 추정 형식: ${t1} XX% / ${t2} XX%. marketProb 있으면 시장 평균도 같은 형식, 차이는 +Xp (팀명) 형식.
+- "게임 수 OVER/UNDER 2.5 (Bo3)" 행 — 'gameCountMarket' 있을 때만. 형식: OVER XX% / UNDER YY%
+- "1게임 총 킬 OVER/UNDER {line}" 행 — 'oneGameKillsMarket' 있을 때만.
+- "1게임 킬 핸디캡 ±{line}" 행 — 'oneGameHandicapMarket' 있을 때만. {팀} -{line}킬 cover XX%
 
-표 행 수와 헤더 컬럼 수(2)가 반드시 일치. 헤더 1컬럼인데 데이터 행 2컬럼 같은 깨진 표 절대 출력 금지. 데이터 없는 행은 추측해서 채우지 마라.
+표 행 수와 헤더 컬럼 수가 반드시 일치. 깨진 표 절대 출력 금지. 데이터 없는 행은 추측해서 채우지 마라.
+
+**marketProb 가 있을 때 본문 별도 줄**: Value Bet 후보가 컨텍스트에 표기되면 표 바로 아래에 한 줄로 강조:
+"✨ Value Bet — {팀} 모델 XX% vs 시장 평균 YY% (+Zp). 모델이 시장보다 자신감 큰 라인."
 
 ## 시즌 함의
 LCK 정규 시즌 컨텍스트 — 플레이오프 진출 가능성, 스플릿 1위 경쟁, MSI/Worlds 시드 영향. 강등 관련 표현 금지 (LCK 강등제 없음). standings 가 있으면 순위·승점을 인용.
