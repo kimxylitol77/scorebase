@@ -19,6 +19,7 @@ import {
   fetchEspnInjuries,
   getTeamEspnInjuries,
 } from "@/lib/sports/espn-injuries";
+import { fetchBalldontlieNbaInjuries } from "@/lib/sports/balldontlie-nba";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -338,6 +339,10 @@ interface EnrichedInjury {
   reasonKo: string;
   reasonRaw: string;
   severity: Severity;
+  /** BALLDONTLIE NBA — 부상 상세 설명 */
+  description?: string;
+  /** BALLDONTLIE NBA — 예상 복귀일 */
+  returnDate?: string;
 }
 
 interface Props {
@@ -503,11 +508,16 @@ export default async function InjuriesByLeague({
 
   let allInjuries: InjuryEntry[] = [];
   let allEspn: Awaited<ReturnType<typeof fetchEspnInjuries>> = [];
+  let allBdl: Awaited<ReturnType<typeof fetchBalldontlieNbaInjuries>> = [];
   const hasKey = isSoccer ? !!process.env.API_FOOTBALL_KEY : true;
   if (isSoccer && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
     try {
       const season = getApiFootballSeason(new Date(), upper);
       allInjuries = await fetchSeasonInjuries(upper, season);
+    } catch {}
+  } else if (upper === "NBA" && process.env.BALLDONTLIE_KEY) {
+    try {
+      allBdl = await fetchBalldontlieNbaInjuries();
     } catch {}
   } else if (isEspn) {
     try {
@@ -528,6 +538,8 @@ export default async function InjuriesByLeague({
     playerName: string;
     reason: string;
     fixtureDate?: string;
+    description?: string;
+    returnDate?: string;
   };
   const rawByTeam: Array<{ team: typeof teams[number]; raw: RawInjury[] }> = teams.map((t) => {
     let raw: RawInjury[] = [];
@@ -537,6 +549,15 @@ export default async function InjuriesByLeague({
         playerName: i.playerName,
         reason: i.reason,
         fixtureDate: i.fixtureDate,
+      }));
+    } else if (upper === "NBA" && allBdl.length > 0) {
+      raw = getTeamEspnInjuries(allBdl, t.name, undefined, 30).map((i) => ({
+        playerId: i.playerId,
+        playerName: i.playerName,
+        reason: i.reason,
+        fixtureDate: i.fixtureDate,
+        description: i.description,
+        returnDate: i.returnDate,
       }));
     } else if (isEspn) {
       raw = getTeamEspnInjuries(allEspn, t.name, undefined, 30).map((i) => ({
@@ -591,6 +612,8 @@ export default async function InjuriesByLeague({
         reasonKo: translateReason(i.reason),
         reasonRaw: i.reason,
         severity: classifySeverity(i.reason),
+        description: i.description,
+        returnDate: i.returnDate,
       };
     });
 
@@ -1168,21 +1191,33 @@ function TeamInjuryCard({
         {shown.map((p) => (
           <li
             key={p.playerId}
-            className="flex items-center justify-between gap-3 px-4 py-2"
+            className="px-4 py-2"
             title={p.reasonRaw}
           >
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span
-                className="inline-flex items-center justify-center w-5 h-5 text-[11px] shrink-0"
-                title={SEVERITY_META[p.severity].label}
-              >
-                {SEVERITY_META[p.severity].icon}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span
+                  className="inline-flex items-center justify-center w-5 h-5 text-[11px] shrink-0"
+                  title={SEVERITY_META[p.severity].label}
+                >
+                  {SEVERITY_META[p.severity].icon}
+                </span>
+                <span className="font-medium truncate">{p.playerName}</span>
+              </div>
+              <span className="text-xs text-neutral-500 shrink-0">
+                {p.reasonKo}
+                {p.returnDate && (
+                  <span className="ml-2 text-neutral-400">
+                    · 복귀 {new Date(p.returnDate).toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" })}
+                  </span>
+                )}
               </span>
-              <span className="font-medium truncate">{p.playerName}</span>
             </div>
-            <span className="text-xs text-neutral-500 shrink-0">
-              {p.reasonKo}
-            </span>
+            {p.description && (
+              <p className="mt-1 ml-7 text-[11px] text-neutral-500 leading-snug line-clamp-2">
+                {p.description}
+              </p>
+            )}
           </li>
         ))}
       </ul>
