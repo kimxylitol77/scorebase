@@ -262,7 +262,6 @@ function TeamInjuryCard({
           <Link
             href={`/teams/${teamId}`}
             className="font-bold truncate hover:underline"
-            onClick={(e) => e.stopPropagation()}
           >
             {toKoreanTeamName(teamName)}
           </Link>
