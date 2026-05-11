@@ -7,7 +7,7 @@ export const revalidate = 3600; // 1시간 ISR
 
 const LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
-  "NBA", "NHL", "MLB",
+  "NBA", "NHL", "MLB", "KBO", "LOL",
 ] as const;
 
 const LEAGUE_NAME: Record<string, string> = {
@@ -21,6 +21,8 @@ const LEAGUE_NAME: Record<string, string> = {
   NBA: "NBA",
   NHL: "NHL",
   MLB: "MLB",
+  KBO: "KBO",
+  LOL: "LCK",
 };
 
 const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
