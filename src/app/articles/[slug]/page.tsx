@@ -91,10 +91,12 @@ interface LolMetaInput {
   type: "PREVIEW" | "RECAP" | "ANALYSIS";
   homeScore: number | null;
   awayScore: number | null;
+  /** URL slug — type 외 추가 분기 단서 (lol-recap-* / lol-preview-*) */
+  slug: string;
 }
 
 function buildLolMetadata(opts: LolMetaInput): { description: string; keywords: string[] } {
-  const { homeName, awayName, startTime, content, type, homeScore, awayScore } = opts;
+  const { homeName, awayName, startTime, content, type, homeScore, awayScore, slug } = opts;
   const patch = extractLolPatch(content);
   const players = extractLolPlayerMentions(content);
   const dateStr = startTime.toLocaleString("ko-KR", {
@@ -103,7 +105,11 @@ function buildLolMetadata(opts: LolMetaInput): { description: string; keywords: 
     timeZone: "Asia/Seoul",
   });
 
-  if (type === "RECAP") {
+  // type + slug 둘 중 어느 하나라도 RECAP 신호면 RECAP 분기.
+  // (DB type 누락 케이스 + 캐시 안전 둘 다 대응)
+  const isRecap = type === "RECAP" || slug.startsWith("lol-recap");
+
+  if (isRecap) {
     // RECAP — 끝난 매치 리뷰
     const scoreStr =
       homeScore != null && awayScore != null
@@ -308,6 +314,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: article.type as "PREVIEW" | "RECAP" | "ANALYSIS",
       homeScore: article.match.homeScore,
       awayScore: article.match.awayScore,
+      slug,
     });
     desc = lolMeta.description;
     keywords = lolMeta.keywords;
