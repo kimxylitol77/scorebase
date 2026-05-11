@@ -226,7 +226,6 @@ const RAW: Record<string, string> = {
   "Theo Hernández": "테오 에르난데스",
   "Theo Hernandez": "테오 에르난데스",
   "Mike Maignan": "마이크 메냥",
-  "Tijjani Reijnders": "테이야니 레이너르스",
   "Tammy Abraham": "태미 에이브러햄",
   // AS로마
   "Paulo Dybala": "파울로 디발라",
