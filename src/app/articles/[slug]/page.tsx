@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/db";
 import Markdown from "@/components/Markdown";
-import LolRecapBody from "@/components/lol-recap/LolRecapBody";
-import type { LolRecapContext } from "@/lib/sports/lol-recap-context";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
@@ -363,17 +361,8 @@ export default async function ArticlePage({ params }: Props) {
   const url = `${SITE_URL}/articles/${slug}`;
   const desc = makeDescription(article.content);
 
-  // LoL RECAP — lolContext 있으면 카드 세트 렌더 (UI 컴포넌트 7종)
-  let lolRecapCtx: LolRecapContext | null = null;
-  const isLolRecap =
-    LCK_LEAGUES.has(article.league) && article.type === "RECAP";
-  if (isLolRecap && article.lolContext) {
-    try {
-      lolRecapCtx = JSON.parse(article.lolContext) as LolRecapContext;
-    } catch {
-      lolRecapCtx = null;
-    }
-  }
+  // LoL RECAP — 본문 안에 5라인 매치업·시즌·MVP 가 모두 들어있는 긴 Markdown 사용.
+  // lolContext 는 디버깅용으로 DB 에 저장만 하고 페이지에서 카드로 렌더링하지 않는다.
 
   // JSON-LD 구조화 데이터 (NewsArticle / SportsEvent)
   const jsonLd = {
@@ -517,11 +506,9 @@ export default async function ArticlePage({ params }: Props) {
         </div>
       )}
 
-      {lolRecapCtx ? (
-        <LolRecapBody content={article.content} ctx={lolRecapCtx} />
-      ) : (
-        <Markdown>{article.content}</Markdown>
-      )}
+      {/* LoL RECAP 본문은 길게 풀어쓴 Markdown (사용자 선호 — 카드 UI 대신 본문에 모든 정보 통합).
+          lolRecapCtx 가 있어도 본문 안에 5라인 매치업·시즌·MVP 가 다 들어있으므로 Markdown 만. */}
+      <Markdown>{article.content}</Markdown>
 
       {/* AI 작성 disclosure + 데이터 출처 */}
       <AiDisclosure league={article.league} type={article.type} />
