@@ -115,6 +115,69 @@ const RAW: Record<string, string> = {
   "Ismaïla Sarr": "이스마일라 사르",
   "Ismaila Sarr": "이스마일라 사르",
   "Jean-Philippe Mateta": "장필리프 마테타",
+  "J. Mateta": "장필리프 마테타",
+
+  // 아스톤 빌라
+  "Ollie Watkins": "올리 왓킨스",
+  "Morgan Rogers": "모건 로저스",
+  "Pau Torres": "파우 토레스",
+  "Ezri Konsa": "에즈리 콘사",
+  "Emiliano Martínez": "에밀리아노 마르티네스",
+  "Emiliano Martinez": "에밀리아노 마르티네스",
+  "Emi Martínez": "에밀리아노 마르티네스",
+  "Emi Martinez": "에밀리아노 마르티네스",
+  "John McGinn": "존 매긴",
+  "Youri Tielemans": "유리 틸레만스",
+  "Leon Bailey": "리언 베일리",
+  "Donyell Malen": "도니엘 말런",
+
+  // 뉴캐슬
+  "Alexander Isak": "알렉산데르 이사크",
+  "Bruno Guimarães": "브루누 기마랑이스",
+  "Bruno Guimaraes": "브루누 기마랑이스",
+  "Anthony Gordon": "앤서니 고든",
+  "Sven Botman": "스벤 보트만",
+  "Nick Pope": "닉 포프",
+  "Joelinton": "조엘린통",
+  "Sandro Tonali": "산드로 토날리",
+  "Kieran Trippier": "키런 트리피어",
+  "Fabian Schär": "파비안 셰어",
+  "Fabian Schar": "파비안 셰어",
+  "Sven Mislintat": "스벤 미슬린타트",
+  "Yoane Wissa": "요안 위사",
+
+  // 브라이턴
+  "Kaoru Mitoma": "미토마 카오루",
+  "Lewis Dunk": "루이스 던크",
+  "Carlos Baleba": "카를로스 발레바",
+  "Yankuba Minteh": "얀쿠바 민테",
+  "Bart Verbruggen": "바르트 페르브뤼헌",
+  "Pervis Estupiñán": "페르비스 에스투피냔",
+  "Pervis Estupinan": "페르비스 에스투피냔",
+  "Joao Pedro Junior": "주앙 페드루",
+
+  // 노팅엄
+  "Morgan Gibbs-White": "모건 깁스화이트",
+  "Chris Wood": "크리스 우드",
+  "Anthony Elanga": "앤서니 엘랑가",
+  "Murillo": "무릴루",
+  "Matz Sels": "마츠 셀스",
+
+  // 풀럼 / 브렌트포드 / 본머스
+  "Raúl Jiménez": "라울 히메네스",
+  "Raul Jimenez": "라울 히메네스",
+  "Antonee Robinson": "안토니 로빈슨",
+  "Adama Traoré": "아다마 트라오레",
+  "Adama Traore": "아다마 트라오레",
+  "Bernd Leno": "베른트 레노",
+  "Igor Thiago": "이고르 치아구",
+  "Mikkel Damsgaard": "미켈 담스고르",
+  "Antoine Semenyo": "앙투안 세메뇨",
+  "Marcus Tavernier": "마커스 태버니어",
+  "Justin Kluivert": "저스틴 클라위베르트",
+  "Dean Huijsen": "딘 후이센",
+  "Evanilson": "에바닐송",
+  "Dango Ouattara": "당고 우아타라",
 
   // ─── 라리가 — 빅3 + 슈퍼스타 ───
   // 레알 마드리드
@@ -137,7 +200,6 @@ const RAW: Record<string, string> = {
   "Arda Güler": "아르다 귈레르",
   "Arda Guler": "아르다 귈레르",
   "Trent Alexander Arnold": "트렌트 알렉산더아놀드",
-  "Dean Huijsen": "딘 후이센",
   "Álvaro Carreras": "알바로 카레라스",
   "Alvaro Carreras": "알바로 카레라스",
   // 바르셀로나
@@ -393,5 +455,9 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   if (RAW_NORMALIZED[normalized]) return RAW_NORMALIZED[normalized];
   const byLast = tryLastName(trimmed);
   if (byLast) return byLast;
-  return trimmed; // 매핑 없으면 영문 그대로 (LLM 이 외래어 표기 시도)
+  // 매핑 누락 — 빌드/잡 환경 stderr 로만 출력 (production 사이트 로그엔 안 남김)
+  if (process.env.NODE_ENV !== "production" || process.env.LOG_PLAYER_MISS) {
+    console.warn(`[player-names] 매핑 없음: "${trimmed}"`);
+  }
+  return trimmed;
 }
