@@ -28,40 +28,48 @@ function authHeader(): Record<string, string> {
   return key ? { Authorization: key } : {};
 }
 
+// BDL rate limit (429) 회피 — 점진 backoff 재시도.
+async function getWithRetry<T>(
+  url: string,
+  params: Record<string, unknown>,
+): Promise<T[]> {
+  const backoffs = [3000, 8000, 20000, 45000];
+  for (let attempt = 0; attempt <= backoffs.length; attempt++) {
+    try {
+      const { data } = await axios.get<{ data: T[] }>(url, {
+        params,
+        headers: authHeader(),
+        timeout: 12000,
+      });
+      return data.data ?? [];
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      if (status === 429 && attempt < backoffs.length) {
+        await new Promise((r) => setTimeout(r, backoffs[attempt]));
+        continue;
+      }
+      return [];
+    }
+  }
+  return [];
+}
+
 async function fetchPlayerStatsForMap(
   matchMapId: number,
 ): Promise<BdlPlayerMatchMapStat[]> {
-  try {
-    const { data } = await axios.get<{ data: BdlPlayerMatchMapStat[] }>(
-      `${BDL_BASE}/player_match_map_stats`,
-      {
-        params: { match_map_id: matchMapId, per_page: 20 },
-        headers: authHeader(),
-        timeout: 12000,
-      },
-    );
-    return data.data ?? [];
-  } catch {
-    return [];
-  }
+  return getWithRetry<BdlPlayerMatchMapStat>(
+    `${BDL_BASE}/player_match_map_stats`,
+    { match_map_id: matchMapId, per_page: 20 },
+  );
 }
 
 async function fetchTeamStatsForMap(
   matchMapId: number,
 ): Promise<BdlTeamMatchMapStat[]> {
-  try {
-    const { data } = await axios.get<{ data: BdlTeamMatchMapStat[] }>(
-      `${BDL_BASE}/team_match_map_stats`,
-      {
-        params: { match_map_id: matchMapId, per_page: 10 },
-        headers: authHeader(),
-        timeout: 12000,
-      },
-    );
-    return data.data ?? [];
-  } catch {
-    return [];
-  }
+  return getWithRetry<BdlTeamMatchMapStat>(
+    `${BDL_BASE}/team_match_map_stats`,
+    { match_map_id: matchMapId, per_page: 10 },
+  );
 }
 
 /* =====================================================================
@@ -202,7 +210,7 @@ export async function buildLolRecapContext(
   // 1) BDL 매치의 게임들 fetch
   const maps = await fetchBdlMatchMaps(match.externalId);
   const finishedMaps: BdlMatchMap[] = maps.filter(
-    (mp) => mp.winner_team && mp.winner_team.id,
+    (mp) => mp.winner && mp.winner.id,
   );
   // 게임 번호 오름차순
   finishedMaps.sort((a, b) => (a.game_number ?? 0) - (b.game_number ?? 0));
@@ -212,12 +220,12 @@ export async function buildLolRecapContext(
   const homeBdlTeamId = Number(match.homeTeam.externalId);
 
   for (const mp of finishedMaps) {
-    const [playerStats, teamStats] = await Promise.all([
-      fetchPlayerStatsForMap(mp.id),
-      fetchTeamStatsForMap(mp.id),
-    ]);
+    // BDL burst 제한 회피 — 순차 호출 + 호출 간 sleep 1.5s
+    const playerStats = await fetchPlayerStatsForMap(mp.id);
+    await new Promise((r) => setTimeout(r, 1500));
+    const teamStats = await fetchTeamStatsForMap(mp.id);
+    await new Promise((r) => setTimeout(r, 1500));
     if (playerStats.length === 0 || teamStats.length < 2) continue;
-    await new Promise((r) => setTimeout(r, 300)); // rate limit 회피
 
     // team_stats 양 팀 분리
     const t1Stat = teamStats.find((s) => s.team?.id === homeBdlTeamId);
@@ -226,7 +234,7 @@ export async function buildLolRecapContext(
 
     const durationSec = mp.duration ?? 1800;
     const winnerSide: "team1" | "team2" =
-      mp.winner_team?.id === homeBdlTeamId ? "team1" : "team2";
+      mp.winner?.id === homeBdlTeamId ? "team1" : "team2";
 
     // MVP/LVP 선정
     const teamKillsT1 = t1Stat.kills;

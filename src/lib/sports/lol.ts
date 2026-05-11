@@ -372,8 +372,8 @@ export interface BdlMatchMap {
   id: number;
   match_id: number;
   game_number?: number;
-  winner_team?: { id: number; name: string } | null;
-  /** "loser" 형태로도 응답에 등장 */
+  /** BDL 실제 응답 필드명 — winner / loser (winner_team 아님) */
+  winner?: { id: number; name: string } | null;
   loser?: { id: number; name: string } | null;
   team1_id?: number;
   team2_id?: number;

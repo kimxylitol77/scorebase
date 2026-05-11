@@ -80,28 +80,103 @@ function buildLineupTable(ctx: LolRecapContext): string {
   ].join("\n");
 }
 
+function sideLabel(side: string | undefined): string {
+  if (!side) return "";
+  const s = side.toLowerCase();
+  if (s.includes("blue")) return "블루";
+  if (s.includes("red")) return "레드";
+  return side;
+}
+
+function playerLine(p: LolRecapContext["games"][0]["players"][0]): string {
+  const star = getKoreanStarBy(p.playerName);
+  const idLabel = star
+    ? `${star.koreanName}(${star.nickname}, ${star.realName})`
+    : p.realName ? `${p.playerName}(${p.realName})` : p.playerName;
+  const champ = championKoreanName(p.champion);
+  const kp = p.killParticipation != null ? `, KP ${Math.round(p.killParticipation * 100)}%` : "";
+  const dmg = p.damageToChamps ? `, 데미지 ${(p.damageToChamps/1000).toFixed(1)}k` : "";
+  return `${idLabel}·${p.role}(${champ}, ${p.kills}/${p.deaths}/${p.assists}${kp}${dmg})`;
+}
+
 function buildGameSummaries(ctx: LolRecapContext): string {
   if (ctx.games.length === 0) return "(게임 단위 데이터 미수집)";
   const lines: string[] = [];
   for (const g of ctx.games) {
     const winner = g.winner === "team1" ? ctx.match.team1NameKo : ctx.match.team2NameKo;
-    const mvp = g.players.find((p) => p.isMvp);
     const minutes = Math.round(g.durationSec / 60);
-    const objs: string[] = [];
-    if (g.team1.firstBlood) objs.push(`퍼블=${ctx.match.team1NameKo}`);
-    else if (g.team2.firstBlood) objs.push(`퍼블=${ctx.match.team2NameKo}`);
+    const t1Side = sideLabel(g.team1.side);
+    const t2Side = sideLabel(g.team2.side);
+    const sideStr = t1Side && t2Side ? ` · 사이드: ${ctx.match.team1NameKo}=${t1Side}, ${ctx.match.team2NameKo}=${t2Side}` : "";
+
+    // 골드 격차
+    let goldStr = "";
+    if (g.team1.goldEarned != null && g.team2.goldEarned != null) {
+      const diff = g.team1.goldEarned - g.team2.goldEarned;
+      const diffSide = diff >= 0 ? ctx.match.team1NameKo : ctx.match.team2NameKo;
+      const diffK = (Math.abs(diff) / 1000).toFixed(1);
+      goldStr = ` · 골드 ${(g.team1.goldEarned/1000).toFixed(1)}k-${(g.team2.goldEarned/1000).toFixed(1)}k (${diffSide} +${diffK}k)`;
+    }
+
+    // 오브젝트 우선권
+    const firsts: string[] = [];
+    if (g.team1.firstBlood) firsts.push(`퍼블=${ctx.match.team1NameKo}`);
+    else if (g.team2.firstBlood) firsts.push(`퍼블=${ctx.match.team2NameKo}`);
+    if (g.team1.firstTower) firsts.push(`퍼타=${ctx.match.team1NameKo}`);
+    else if (g.team2.firstTower) firsts.push(`퍼타=${ctx.match.team2NameKo}`);
+    if (g.team1.firstDragon) firsts.push(`퍼드=${ctx.match.team1NameKo}`);
+    else if (g.team2.firstDragon) firsts.push(`퍼드=${ctx.match.team2NameKo}`);
+    if (g.team1.firstBaron) firsts.push(`퍼바=${ctx.match.team1NameKo}`);
+    else if (g.team2.firstBaron) firsts.push(`퍼바=${ctx.match.team2NameKo}`);
+    const firstsStr = firsts.length > 0 ? ` · ${firsts.join(", ")}` : "";
+
+    // 오브젝트 카운트
+    const objCounts: string[] = [];
     if ((g.team1.dragonKills ?? 0) > 0 || (g.team2.dragonKills ?? 0) > 0) {
-      objs.push(`드래곤 ${g.team1.dragonKills ?? 0}-${g.team2.dragonKills ?? 0}`);
+      objCounts.push(`드래곤 ${g.team1.dragonKills ?? 0}-${g.team2.dragonKills ?? 0}`);
+    }
+    if ((g.team1.heraldKills ?? 0) > 0 || (g.team2.heraldKills ?? 0) > 0) {
+      objCounts.push(`전령 ${g.team1.heraldKills ?? 0}-${g.team2.heraldKills ?? 0}`);
     }
     if ((g.team1.baronKills ?? 0) > 0 || (g.team2.baronKills ?? 0) > 0) {
-      objs.push(`바론 ${g.team1.baronKills ?? 0}-${g.team2.baronKills ?? 0}`);
+      objCounts.push(`바론 ${g.team1.baronKills ?? 0}-${g.team2.baronKills ?? 0}`);
     }
-    const objStr = objs.length > 0 ? ` · ${objs.join(", ")}` : "";
-    const mvpStr = mvp
-      ? ` · MVP ${getKoreanStarBy(mvp.playerName)?.koreanName ?? mvp.playerName}(${championKoreanName(mvp.champion)}, ${mvp.kills}/${mvp.deaths}/${mvp.assists})`
-      : "";
+    const objCountStr = objCounts.length > 0 ? ` · ${objCounts.join(", ")}` : "";
+
+    // MVP / LVP
+    const mvp = g.players.find((p) => p.isMvp);
+    const lvp = g.players.find((p) => p.isLvp);
+    const mvpStr = mvp ? `\n    · MVP: ${playerLine(mvp)}` : "";
+    const lvpStr = lvp ? `\n    · LVP: ${playerLine(lvp)}` : "";
+
+    // 핵심 활약 선수 (MVP·LVP 외 양 팀 KDA 상위 1명씩)
+    const top1 = g.players
+      .filter((p) => p.team === "team1" && !p.isMvp && !p.isLvp)
+      .sort((a, b) => b.kda - a.kda)[0];
+    const top2 = g.players
+      .filter((p) => p.team === "team2" && !p.isMvp && !p.isLvp)
+      .sort((a, b) => b.kda - a.kda)[0];
+    const topStr = [
+      top1 ? `\n    · ${ctx.match.team1NameKo} 핵심: ${playerLine(top1)}` : "",
+      top2 ? `\n    · ${ctx.match.team2NameKo} 핵심: ${playerLine(top2)}` : "",
+    ].join("");
+
+    // 타임라인 (핵심 이벤트 — 누가 가져갔는지 + 추정 시점)
+    let timelineStr = "";
+    if (g.timeline && g.timeline.length > 0) {
+      const events = g.timeline
+        .slice(0, 5)
+        .map((e) => {
+          const who = e.team === "team1" ? ctx.match.team1NameKo : ctx.match.team2NameKo;
+          const t = e.estimatedMinute != null ? `${e.estimatedMinute}분 ` : "";
+          return `${t}${e.labelKo}(${who})`;
+        })
+        .join(" → ");
+      if (events) timelineStr = `\n    · 흐름: ${events}`;
+    }
+
     lines.push(
-      `  - 게임 ${g.gameNumber}: ${winner} 승 (${g.team1.kills}-${g.team2.kills}, ${minutes}분)${objStr}${mvpStr}`,
+      `  - 게임 ${g.gameNumber}: ${winner} 승 (킬 ${g.team1.kills}-${g.team2.kills}, ${minutes}분)${sideStr}${goldStr}${firstsStr}${objCountStr}${mvpStr}${lvpStr}${topStr}${timelineStr}`,
     );
   }
   return lines.join("\n");
@@ -134,8 +209,8 @@ export function buildLolRecapPromptV2(ctx: LolRecapContext): string {
   );
   if (m.patch) ctxLines.push(`- patch: ${m.patch}`);
   ctxLines.push(`- quote_hint: ${ctx.quote.emoji} ${ctx.quote.body}`);
-  ctxLines.push(`- season ${m.team1NameKo}: ${s1.wins}승 ${s1.losses}패, ${s1.rank}위/${s1.total}팀, 2-0셧다운 ${s1.twoZeroCount}회, 최근 5시리즈 ${s1.recent5.join("-") || "—"}, 현재 ${t1Streak}`);
-  ctxLines.push(`- season ${m.team2NameKo}: ${s2.wins}승 ${s2.losses}패, ${s2.rank}위/${s2.total}팀, 2-0셧다운 ${s2.twoZeroCount}회, 최근 5시리즈 ${s2.recent5.join("-") || "—"}, 현재 ${t2Streak}`);
+  ctxLines.push(`- season ${m.team1NameKo}: ${s1.wins}승 ${s1.losses}패 (${s1.rank}위/${s1.total}팀), 세트 ${s1.setsWon}-${s1.setsLost}, 2-0셧다운 ${s1.twoZeroCount}회 / 2-0당함 ${s1.twoZeroReceived}회, 최근 5시리즈 ${s1.recent5.join("-") || "—"}, 현재 ${t1Streak}`);
+  ctxLines.push(`- season ${m.team2NameKo}: ${s2.wins}승 ${s2.losses}패 (${s2.rank}위/${s2.total}팀), 세트 ${s2.setsWon}-${s2.setsLost}, 2-0셧다운 ${s2.twoZeroCount}회 / 2-0당함 ${s2.twoZeroReceived}회, 최근 5시리즈 ${s2.recent5.join("-") || "—"}, 현재 ${t2Streak}`);
   ctxLines.push("- games:");
   ctxLines.push(gameSummaries);
   if (hasBothRosters && lineupTable) {
@@ -168,11 +243,17 @@ export function buildLolRecapPromptV2(ctx: LolRecapContext): string {
   }
   const idx = (n: number) => (hasBothRosters ? n : n - 1);
   sections.push(
-    `${idx(4)}) **\`## 시리즈 흐름\`** 헤더 + 세트별 흐름 2~3문장. 최근 5시리즈·streak·h2h 종합. 비-LoL 용어 ("홈/원정", "득점", "강등권") 절대 금지.`,
-    `${idx(5)}) **\`## 스코어베이스\`** 헤더 + 사전 모델 예측 vs 실제 결과 1~2문장 (quote_hint 인용 가능). 시장 평균 가능하면 짧게. "스코어베이스 모델은…", "스코어베이스 예측이…" 식으로 본문에서 사이트 이름을 한 번 자연스럽게 언급.`,
-    `${idx(6)}) **\`## 시즌 함의\`** 헤더 + ${winnerNameKo} ${winnerStd.wins}승 ${winnerStd.losses}패 ${winnerStd.rank}위, ${loserNameKo} ${loserStd.wins}승 ${loserStd.losses}패 ${loserStd.rank}위 인용. 플레이오프 시드 영향. "강등권" 금지 (LCK 강등제 없음).`,
-    `${idx(7)}) **마무리 단락 (헤더 없음)** — 매치 통계적 핵심 1~2문장. 다음 매치 있으면 자연스럽게 언급. 숫자 톤.`,
-    `${idx(8)}) **마지막 줄 면책** — 정확히: \`본 분석은 통계 모델 기반 참고용이며, 베팅 권유가 아닙니다.\``,
+    `${idx(4)}) **\`## 세트별 흐름\`** 헤더 + INPUT DATA games 의 각 게임을 **순서대로 한 단락씩** 분석. 게임 수만큼 문단을 만들되, 각 게임당 2~4문장:
+   - 사이드(블루/레드), 게임 시간, 킬 카운트, 골드 격차를 자연스럽게 본문에 녹임 (예: "블루 사이드 레드 사이드 ... 분 만에 골드 ...k 우위로")
+   - 핵심 오브젝트 우선권(퍼블·퍼타·퍼드·퍼바) 중 의미 있는 것 인용
+   - MVP / LVP / 핵심 활약 선수의 챔피언·KDA·KP·데미지 수치 적극 활용
+   - 타임라인 '흐름' 있으면 게임 전개 순서 묘사에 활용
+   - **추측·환상 금지** — INPUT 수치 그대로`,
+    `${idx(5)}) **\`## 시리즈 종합\`** 헤더 + 시리즈 전체 흐름 2~3문장. 최근 5시리즈·streak·세트 누적·h2h 종합. 비-LoL 용어 ("홈/원정", "득점", "강등권") 절대 금지.`,
+    `${idx(6)}) **\`## 스코어베이스\`** 헤더 + 사전 모델 예측 vs 실제 결과 1~2문장 (quote_hint 인용 가능). 시장 평균 가능하면 짧게. "스코어베이스 모델은…", "스코어베이스 예측이…" 식으로 본문에서 사이트 이름을 한 번 자연스럽게 언급.`,
+    `${idx(7)}) **\`## 시즌 함의\`** 헤더 + ${winnerNameKo} ${winnerStd.wins}승 ${winnerStd.losses}패 ${winnerStd.rank}위, ${loserNameKo} ${loserStd.wins}승 ${loserStd.losses}패 ${loserStd.rank}위 인용. 세트 득실·2-0 셧다운 횟수도 활용. 플레이오프 시드 영향. "강등권" 금지 (LCK 강등제 없음).`,
+    `${idx(8)}) **마무리 단락 (헤더 없음)** — 매치 통계적 핵심 1~2문장. 다음 매치 있으면 자연스럽게 언급. 숫자 톤.`,
+    `${idx(9)}) **마지막 줄 면책** — 정확히: \`본 분석은 통계 모델 기반 참고용이며, 베팅 권유가 아닙니다.\``,
   );
 
   return `# ROLE
@@ -196,6 +277,7 @@ LoL e스포츠 데이터 분석가 (Esports Wikis · Leaguepedia · OP.GG 수준
 6. 시즌 함의 — 정규시즌 순위·플레이오프 시드 (강등 표현 금지, LCK 강등제 없음)
 7. 도박 권유 표현 절대 금지
 8. 데이터에 없는 사실 추측 금지 — 본명·KDA·챔피언 만들지 마라
+9. **데이터 활용 적극성**: INPUT DATA games 의 사이드(블루/레드), 골드 격차, 오브젝트 우선권(퍼블·퍼타·퍼드·퍼바), 추가 드래곤/전령/바론 카운트, MVP/LVP/핵심 활약 선수의 KDA·KP·데미지·챔피언 — 가능한 한 많이 본문에 녹여 분석가 톤으로 풀어낸다. 단순 나열 X, 흐름과 의미를 함께 설명.
 
 # LoL 도메인 용어 매핑 (절대 준수)
 축구·야구식 표현을 LoL 식으로 바꿔 쓴다. 다음 매핑 표 그대로 적용:
@@ -215,7 +297,8 @@ LoL e스포츠 데이터 분석가 (Esports Wikis · Leaguepedia · OP.GG 수준
 
 # OUTPUT STRUCTURE
 다음 단락을 **위에서 아래 순서로**, **빠뜨리지 말고**, **추가하지 말고** 출력.
-**분량 ${hasBothRosters ? "1100~1500" : "900~1300"}자** (헤드라인·면책 제외).
+분량 제한 없음 — INPUT DATA 에 있는 수치·선수·오브젝트·타임라인을 **전문 분석가 톤으로 충분히 풀어내라**.
+단, 데이터에 없는 사실은 절대 만들지 마라 (수치 없는데 짐작 X · 본명 없는데 환상 X · 추측 형용사 X).
 
 ${sections.join("\n\n")}
 
