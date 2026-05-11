@@ -30,8 +30,9 @@ export default function HeroSection() {
         </h1>
         <p className="lede mt-5 max-w-2xl text-base sm:text-lg text-neutral-600 dark:text-neutral-400">
           EPL · 라리가 · 분데스 · <strong>KBO</strong> · NBA · MLB · NHL ·{" "}
-          <strong>FIFA 월드컵 2026</strong> — <strong>Elo 모델</strong>과{" "}
-          <strong>멀티 AI</strong>가 매일 분석하는 글로벌 스포츠 데이터.
+          <strong>FIFA 월드컵 2026</strong> · <strong>LCK</strong> —{" "}
+          <strong>Elo 모델</strong>과 <strong>멀티 AI</strong>가 매일 분석하는
+          글로벌 스포츠 데이터.
         </p>
         <div className="hero-cta mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3">
           <Link
