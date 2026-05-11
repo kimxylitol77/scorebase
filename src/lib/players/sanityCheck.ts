@@ -1,5 +1,4 @@
-import "server-only";
-
+// (server-only 는 supabase/admin 안에 위치)
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { Player, SportType } from "./types";
 

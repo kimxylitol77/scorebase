@@ -1,5 +1,4 @@
-import "server-only";
-
+// (server-only 는 supabase/admin 안에 위치 — cron 잡에서 직접 호출 가능)
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { DisplayName, Player, SportType } from "./types";
 

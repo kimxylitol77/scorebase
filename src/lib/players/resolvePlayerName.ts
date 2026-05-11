@@ -1,6 +1,5 @@
-import "server-only";
-
 // Hybrid 한글 표시명 resolver
+// (server-only 는 supabase/admin 에만 두고, 이 모듈은 cron 잡에서도 import 가능하게 한다)
 // 우선순위:
 //   1. Supabase players 테이블 (sport 강제 매칭, 정확)
 //   2. 코드 매핑 (src/lib/player-names.ts — last-name fallback 포함, 빠름)
