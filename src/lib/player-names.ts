@@ -109,7 +109,6 @@ const RAW: Record<string, string> = {
   "Borna Sosa": "보르나 소사",
   "Cheick Doucouré": "셰크 두쿠레",
   "Cheick Doucoure": "셰크 두쿠레",
-  "Conor Doucouré": "코너 두쿠레",
   "Eddie Nketiah": "에디 은케티아",
   "Daniel Muñoz": "다니엘 무뇨스",
   "Daniel Munoz": "다니엘 무뇨스",
@@ -350,6 +349,40 @@ const RAW_NORMALIZED: Record<string, string> = Object.fromEntries(
   Object.entries(RAW).map(([k, v]) => [normalize(k), v]),
 );
 
+// 성(last name) 기반 fallback — "C. Doucoure" 같은 약식 표기 대응.
+// 풀네임에서 마지막 토큰(성) 만 떼어내 키로, 매핑값(한글 풀네임)을 그대로 값으로.
+// 동성이인이 있으면 가장 마지막에 등록된 매핑이 우선 (현재 데이터 규모에선 충돌 거의 없음).
+const LAST_NAME_MAP: Record<string, string> = {};
+for (const [en, ko] of Object.entries(RAW)) {
+  const tokens = normalize(en).split(/\s+/).filter(Boolean);
+  if (tokens.length < 2) continue;
+  const lastEn = tokens[tokens.length - 1];
+  if (!lastEn || lastEn.endsWith(".")) continue;
+  LAST_NAME_MAP[lastEn] = ko;
+}
+
+const SHORT_NAME_RE = /^(?:[A-Za-z]\.\s*|[A-Za-z]\s+)([\wÀ-ſ'\-]+)$/;
+
+function tryLastName(name: string): string | null {
+  // "C. Doucoure" / "C Doucoure" / "C.Doucoure" 형태 매치
+  const m = name.trim().match(SHORT_NAME_RE);
+  if (m) {
+    const last = normalize(m[1]);
+    if (LAST_NAME_MAP[last]) return LAST_NAME_MAP[last];
+  }
+  // 입력이 성만 들어온 경우 ("Doucoure")
+  const tokens = normalize(name).split(/\s+/).filter(Boolean);
+  if (tokens.length === 1 && LAST_NAME_MAP[tokens[0]]) {
+    return LAST_NAME_MAP[tokens[0]];
+  }
+  // 입력이 풀네임이지만 매핑에 없는 경우, 마지막 토큰으로 성 매칭 시도
+  if (tokens.length >= 2) {
+    const last = tokens[tokens.length - 1];
+    if (LAST_NAME_MAP[last]) return LAST_NAME_MAP[last];
+  }
+  return null;
+}
+
 export function toKoreanPlayerName(name: string | undefined | null): string {
   if (!name) return "";
   const trimmed = name.trim();
@@ -358,5 +391,7 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   if (RAW_LOWER[lower]) return RAW_LOWER[lower];
   const normalized = normalize(trimmed);
   if (RAW_NORMALIZED[normalized]) return RAW_NORMALIZED[normalized];
+  const byLast = tryLastName(trimmed);
+  if (byLast) return byLast;
   return trimmed; // 매핑 없으면 영문 그대로 (LLM 이 외래어 표기 시도)
 }
