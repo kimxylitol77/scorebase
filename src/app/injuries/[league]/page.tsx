@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
+import { assertSportConsistency } from "@/lib/players/sanityCheck";
 import { calcStandings } from "@/lib/predict/standings";
 import type { PredictMatch } from "@/lib/predict/types";
 import {
@@ -119,7 +120,9 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
 };
 
 // ===== 사유 한글 번역 (보강) =====
+// 정확 매치 우선 → 부분 매치 → 한글 포함 시 원본 → "사유 미공개" fallback
 const REASON_KO: Record<string, string> = {
+  // 부위 (단어 단위)
   Hamstring: "햄스트링",
   Knee: "무릎",
   Ankle: "발목",
@@ -136,46 +139,85 @@ const REASON_KO: Record<string, string> = {
   Achilles: "아킬레스",
   Illness: "질병",
   Sick: "질병",
-  Suspended: "출장 정지",
-  Fitness: "컨디션",
   Muscle: "근육",
+  Toe: "발가락",
+  // "{부위} Injury" 형식 (api-football 최근 응답)
+  "Knee Injury": "무릎",
+  "Hamstring Injury": "햄스트링",
+  "Ankle Injury": "발목",
+  "Ankle/Foot Injury": "발목",
+  "Muscle Injury": "근육",
+  "Thigh Injury": "허벅지",
+  "Calf Injury": "종아리",
+  "Groin Injury": "사타구니",
+  "Shoulder Injury": "어깨",
+  "Hip Injury": "고관절",
+  "Back Injury": "허리",
+  "Foot Injury": "발",
+  "Toe Injury": "발가락",
+  "Wrist Injury": "손목",
+  // 골절·심각한 부상
   "Broken Bone": "골절",
   "Broken Leg": "다리 골절",
   "Broken collarbone": "쇄골 골절",
   Fracture: "골절",
   Hernia: "탈장",
   Wound: "외상",
-  "Cardiac problems": "심장 문제",
-  Toe: "발가락",
+  Bruise: "타박상",
+  Contusion: "타박상",
   Knock: "타박상",
+  "Cardiac problems": "심장 문제",
+  ACL: "전방 십자인대",
+  Ligament: "인대",
+  // 결장 사유 (부상 외)
+  Suspended: "출장 정지",
   "Yellow Cards": "경고 누적",
   "Red Card": "퇴장 누적",
+  "Red Cards": "퇴장 누적",
+  Inactive: "미출전 명단 제외",
+  "International duty": "국가대표 차출",
+  "Loan agreement": "임대 이적",
+  "Coach's decision": "감독 결정",
+  "Coach Decision": "감독 결정",
+  "Coachs decision": "감독 결정",
+  "Personal reasons": "개인 사정",
+  Personal: "개인 사정",
+  Doubtful: "출전 불투명",
+  Rest: "휴식",
+  Fitness: "컨디션",
+  // 일반
   Injury: "부상",
   injured: "부상",
+  Injured: "부상",
   Strain: "근육 파열",
   Sprain: "염좌",
   Cramp: "쥐",
   Surgery: "수술",
   Rehab: "재활",
-  Personal: "개인 사정",
-  "Coach Decision": "감독 결정",
-  "Coach's decision": "감독 결정",
-  Doubtful: "출전 불투명",
-  Rest: "휴식",
-  Inactive: "미출전 명단 제외",
-  "International duty": "국가대표 차출",
-  "Loan agreement": "임대 이적",
-  ACL: "전방 십자인대",
-  Ligament: "인대",
   other: "사유 미공개",
+  Other: "사유 미공개",
 };
 
 function translateReason(en: string): string {
   if (!en) return "사유 미공개";
+  const trimmed = en.trim();
+  if (!trimmed) return "사유 미공개";
+  // 1) 정확 매치
+  if (REASON_KO[trimmed]) return REASON_KO[trimmed];
+  const lower = trimmed.toLowerCase();
   for (const [k, v] of Object.entries(REASON_KO)) {
-    if (en.toLowerCase().includes(k.toLowerCase())) return v;
+    if (k.toLowerCase() === lower) return v;
   }
-  return en;
+  // 2) 부분 매치 (긴 키부터 시도)
+  const keys = Object.keys(REASON_KO).sort((a, b) => b.length - a.length);
+  for (const k of keys) {
+    if (lower.includes(k.toLowerCase())) return REASON_KO[k];
+  }
+  // 3) 한글 포함 → 이미 번역됨
+  if (/[가-힣]/.test(trimmed)) return trimmed;
+  // 4) fallback
+  console.warn(`[translateReason] Unknown reason: "${en}"`);
+  return "사유 미공개";
 }
 
 // ===== 심각도 분류 =====
@@ -414,11 +456,34 @@ export default async function InjuriesByLeague({
     | Severity;
   const sort = sp.sort ?? "count_desc";
 
-  // 팀별 raw 부상자 (한글 미적용)
-  const rawByTeam = teams.map((t) => ({
-    team: t,
-    raw: getTeamInjuries(allInjuries, t.name, undefined, 30),
-  }));
+  // 팀별 raw 부상자 + 빈 이름 가드
+  const rawByTeam = teams.map((t) => {
+    const raw = getTeamInjuries(allInjuries, t.name, undefined, 30).filter(
+      (i) => {
+        const ok = i.playerName && i.playerName.trim().length > 0;
+        if (!ok) {
+          console.warn(
+            `[Injuries] Skipped player with empty name: ${t.name}/${i.reason}`,
+          );
+        }
+        return ok;
+      },
+    );
+    return { team: t, raw };
+  });
+
+  // sport sanity 점검 (다른 종목 선수 ID 혼입 차단)
+  const allIds = rawByTeam
+    .flatMap((x) => x.raw.map((i) => i.playerId))
+    .filter((id) => typeof id === "number" && id > 0);
+  if (allIds.length > 0) {
+    try {
+      await assertSportConsistency(allIds, "soccer", upper);
+    } catch (e) {
+      console.error(`[Injuries] sport sanity 실패: ${(e as Error).message}`);
+      // 페이지는 계속 렌더 — 충돌 로그는 player_mapping_conflict_log 에 적재됨
+    }
+  }
 
   // 모든 선수 ID 모아서 Supabase batch 조회 (한 번에)
   const allPlayers = rawByTeam.flatMap((x) =>
