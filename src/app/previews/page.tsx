@@ -146,7 +146,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
             PREVIEW {current.key !== "ALL" ? `· ${current.label}` : ""}
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
-            🔮 프리뷰 모음
+            프리뷰 모음
           </h1>
           <p className="mt-3 text-neutral-600 dark:text-neutral-400 max-w-xl">
             축구 · 야구 · 농구 · 하키 · e스포츠 — 예정된 매치의 사전 분석·전망을
