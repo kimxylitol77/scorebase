@@ -22,6 +22,16 @@ import {
   fetchLckRoster,
   lpTeamNameByExternalId,
 } from "@/lib/sports/leaguepedia";
+import {
+  fetchKboStartersToday,
+  pickStartersForMatch as pickKboStarters,
+  type KboStarter,
+} from "@/lib/sports/kbo-starters";
+import {
+  fetchNpbStartersForMonth,
+  pickNpbStartersForMatch,
+  type NpbStarter,
+} from "@/lib/sports/npb-starters";
 import type {
   LolRosterPlayer,
   LolPlayerStatsLite,
@@ -80,6 +90,35 @@ export async function runPreview(opts?: {
   if (matches.length === 0) {
     await prisma.$disconnect();
     return;
+  }
+
+  // KBO/NPB 선발 투수 — 매 매치 fetch 부담 줄이려 잡 시작 시점에 한 번만.
+  let kboStarters: KboStarter[] = [];
+  let npbStarters: NpbStarter[] = [];
+  if (matches.some((m) => m.league === "KBO")) {
+    try {
+      kboStarters = await fetchKboStartersToday();
+      console.log(`[preview/KBO] 선발 투수 ${kboStarters.length}건 fetch (mykbo.statiz)`);
+    } catch (err) {
+      console.warn(`[preview/KBO] starters fetch 실패:`, (err as Error).message);
+    }
+  }
+  if (matches.some((m) => m.league === "NPB")) {
+    try {
+      const now = new Date();
+      const cm = now.getMonth() + 1;
+      const cy = now.getFullYear();
+      const nm = cm === 12 ? 1 : cm + 1;
+      const ny = cm === 12 ? cy + 1 : cy;
+      const [a, b] = await Promise.all([
+        fetchNpbStartersForMonth(cy, cm),
+        fetchNpbStartersForMonth(ny, nm),
+      ]);
+      npbStarters = [...a, ...b];
+      console.log(`[preview/NPB] 선발 투수 ${npbStarters.length}건 fetch (npb.jp ${cy}-${cm} + ${ny}-${nm})`);
+    } catch (err) {
+      console.warn(`[preview/NPB] starters fetch 실패:`, (err as Error).message);
+    }
   }
 
   const leagues = [...new Set(matches.map((m) => m.league))];
@@ -174,6 +213,28 @@ export async function runPreview(opts?: {
             away: m.awayStarter ? JSON.parse(m.awayStarter) : undefined,
           };
         } catch {}
+      }
+
+      // KBO 선발 투수 (mykbo.statiz.co.kr scraping — 시즌 stats 없음, 이름만)
+      if (m.league === "KBO" && kboStarters.length > 0) {
+        const p = pickKboStarters(kboStarters, m.homeTeam.name, m.awayTeam.name);
+        if (p) {
+          context.starters = {
+            home: { name: p.home.name },
+            away: { name: p.away.name },
+          };
+        }
+      }
+
+      // NPB 선발 투수 (npb.jp scraping — 시즌 stats 없음, 일본어 한자 이름만)
+      if (m.league === "NPB" && npbStarters.length > 0) {
+        const p = pickNpbStartersForMatch(npbStarters, m.homeTeam.name, m.awayTeam.name, m.startTime);
+        if (p) {
+          context.starters = {
+            home: { name: p.home.name },
+            away: { name: p.away.name },
+          };
+        }
       }
 
       // NHL 골리 (api-web.nhle.com)

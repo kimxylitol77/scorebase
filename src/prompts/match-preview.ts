@@ -279,8 +279,9 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
       side: NonNullable<typeof s>["home"] | NonNullable<typeof s>["away"],
     ) => {
       if (!side) return "선발 미정";
+      // hand 는 L/R 만 의미 — 없으면 표기 생략 (스위치 X)
       const handLabel =
-        side.hand === "L" ? "좌완" : side.hand === "R" ? "우완" : "스위치";
+        side.hand === "L" ? "좌완" : side.hand === "R" ? "우완" : "";
       const stats = [
         side.era != null ? `ERA ${side.era.toFixed(2)}` : null,
         side.whip != null ? `WHIP ${side.whip.toFixed(2)}` : null,
@@ -292,7 +293,8 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
       ]
         .filter(Boolean)
         .join(", ");
-      return `${side.name} (${handLabel}, ${stats})`;
+      const meta = [handLabel, stats].filter(Boolean).join(", ");
+      return meta ? `${side.name} (${meta})` : side.name;
     };
     ctxLines.push(`- 홈 선발: ${fmt(s?.home)}`);
     ctxLines.push(`- 원정 선발: ${fmt(s?.away)}`);
