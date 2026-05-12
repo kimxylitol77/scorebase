@@ -14,6 +14,7 @@ const LEAGUES_RIGHT: Array<{ code: string; label: string }> = [
   { code: "MLS", label: "MLS" },
   { code: "NBA", label: "NBA" },
   { code: "KBO", label: "⭐ KBO 리그" },
+  { code: "NPB", label: "NPB 리그" },
   { code: "MLB", label: "MLB" },
   { code: "NHL", label: "NHL" },
   { code: "LOL", label: "🎮 LCK" },
@@ -45,7 +46,7 @@ export default function Footer() {
           <p className="mt-3 text-white/60 leading-relaxed">
             EPL · 라리가 · 분데스 · 세리에A · 리그 1 · UCL · MLS
             <br />
-            KBO · NBA · MLB · NHL · FIFA 월드컵 2026 · LCK
+            KBO · NPB · NBA · MLB · NHL · FIFA 월드컵 2026 · LCK
           </p>
         </div>
 
