@@ -45,6 +45,8 @@ const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
   NHL: NO_DRAW,
   MLB: NO_DRAW,
   KBO: NO_DRAW,
+  // NPB 는 12회 무승부 제도 있지만 시즌 약 2~3% — 모델 단순화 위해 NO_DRAW.
+  NPB: NO_DRAW,
   // e스포츠 — LCK 는 BO 시리즈라 시리즈 무승부 없음
   LOL: NO_DRAW,
 };

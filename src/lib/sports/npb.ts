@@ -29,18 +29,25 @@ const TEAM_NAME_KO: Record<string, string> = {
   "Chunichi Dragons": "주니치 드래곤스",
   "Yakult Swallows": "도쿄 야쿠르트 스왈로스",
   "Tokyo Yakult Swallows": "도쿄 야쿠르트 스왈로스",
-  // 퍼시픽 리그
+  // 퍼시픽 리그 — api-sports 약자/풀네임 둘 다 매핑 (Fukuoka S. Hawks 등)
   "SoftBank Hawks": "후쿠오카 소프트뱅크 호크스",
   "Fukuoka SoftBank Hawks": "후쿠오카 소프트뱅크 호크스",
+  "Fukuoka S. Hawks": "후쿠오카 소프트뱅크 호크스",
   "Nippon Ham Fighters": "홋카이도 닛폰햄 파이터즈",
   "Hokkaido Nippon-Ham Fighters": "홋카이도 닛폰햄 파이터즈",
+  "Hokkaido N-H Fighters": "홋카이도 닛폰햄 파이터즈",
   "Chiba Lotte Marines": "지바 롯데 마린스",
   "Lotte Marines": "지바 롯데 마린스",
   "Orix Buffaloes": "오릭스 버팔로스",
   "Tohoku Rakuten Golden Eagles": "도호쿠 라쿠텐 골든이글스",
+  "Tohoku R.G. Eagles": "도호쿠 라쿠텐 골든이글스",
   "Rakuten Eagles": "도호쿠 라쿠텐 골든이글스",
   "Saitama Seibu Lions": "사이타마 세이부 라이온스",
   "Seibu Lions": "사이타마 세이부 라이온스",
+  // 센트럴 추가 약자 — Y. Yakult Swallows, T. Yakult Swallows 같은 형태 대응
+  "T. Yakult Swallows": "도쿄 야쿠르트 스왈로스",
+  "Y. DeNA BayStars": "요코하마 디엔에이 베이스타스",
+  "H.T. Carp": "히로시마 도요 카프",
 };
 const TEAM_NAME_KO_LOWER: Record<string, string> = Object.fromEntries(
   Object.entries(TEAM_NAME_KO).map(([k, v]) => [k.toLowerCase(), v]),
