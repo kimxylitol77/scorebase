@@ -59,6 +59,7 @@ export const LEAGUE_SPORT_MAP: Record<string, SportType> = {
   // 야구
   MLB: "baseball",
   KBO: "baseball",
+  NPB: "baseball",
   // 하키
   NHL: "hockey",
 };

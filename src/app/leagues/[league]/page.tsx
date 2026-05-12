@@ -20,6 +20,7 @@ const VALID_LEAGUES = [
   "NHL",
   "MLB",
   "KBO",
+  "NPB",
   "LOL",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
@@ -120,6 +121,13 @@ const LEAGUE_INFO: Record<
     gradient: "from-blue-600 via-indigo-600 to-rose-500",
     copy:
       "KIA·삼성·LG·두산·KT·SSG·롯데·한화·NC·키움 10팀이 144경기를 치르는 한국 프로야구. 매일 자동 업데이트되는 경기 결과·분석.",
+  },
+  NPB: {
+    name: "NPB 리그",
+    subtitle: "일본프로야구 (Nippon Professional Baseball)",
+    gradient: "from-red-600 via-rose-500 to-pink-500",
+    copy:
+      "센트럴 리그(요미우리·한신·요코하마·히로시마·주니치·야쿠르트)와 퍼시픽 리그(소프트뱅크·닛폰햄·롯데·오릭스·라쿠텐·세이부) 12팀의 매치 프리뷰·결과·분석.",
   },
   LOL: {
     name: "LCK",

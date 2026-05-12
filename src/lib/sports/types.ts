@@ -3,6 +3,7 @@
 
 export type League =
   | "KBO"
+  | "NPB" // 일본 프로야구 (api-sports baseball league id=2)
   | "EPL"
   | "NBA"
   | "NHL"

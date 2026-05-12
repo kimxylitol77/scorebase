@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ALL_LEAGUES = [
     "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
     "WORLD_CUP",
-    "NBA", "NHL", "MLB", "KBO",
+    "NBA", "NHL", "MLB", "KBO", "NPB",
     "LOL",
   ];
 

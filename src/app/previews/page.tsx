@@ -47,7 +47,7 @@ const SPORTS: SportCategory[] = [
     key: "BASEBALL",
     label: "야구",
     emoji: "⚾",
-    leagues: ["KBO", "MLB"],
+    leagues: ["KBO", "NPB", "MLB"],
     gradient: "from-emerald-500 via-green-600 to-teal-700",
   },
   {

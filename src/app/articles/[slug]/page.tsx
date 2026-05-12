@@ -157,7 +157,7 @@ const MATCH_DURATION_MIN: Record<string, number> = {
   EPL: 110, LALIGA: 110, BUNDESLIGA: 110, SERIE_A: 110,
   LIGUE_1: 110, MLS: 110, UCL: 110, WORLD_CUP: 120,
   NBA: 150, NHL: 150,
-  MLB: 180, KBO: 200,
+  MLB: 180, KBO: 200, NPB: 200,
   LOL: 180, // BO3 시리즈 평균 약 3시간 (Bo5는 더 길지만 정규시즌은 Bo3)
 };
 
@@ -175,6 +175,7 @@ const LEAGUE_COUNTRY: Record<string, { name: string; code: string }> = {
   NHL:        { name: "United States", code: "US" },
   MLB:        { name: "United States", code: "US" },
   KBO:        { name: "South Korea",  code: "KR" },
+  NPB:        { name: "Japan",        code: "JP" },
   LOL:        { name: "South Korea",  code: "KR" },
 };
 
@@ -592,6 +593,7 @@ const DATA_SOURCES_BY_LEAGUE: Record<string, string[]> = {
   // 야구
   MLB:        ["api-sports baseball Pro", "MLB Stats API (선발 투수)", "The Odds API"],
   KBO:        ["api-sports baseball Pro"],
+  NPB:        ["api-sports baseball Pro"],
   // 농구·하키
   NBA:        ["ESPN", "The Odds API"],
   NHL:        ["NHL 공식 API (api-web.nhle.com)", "ESPN", "The Odds API"],

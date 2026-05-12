@@ -31,6 +31,18 @@ export const EXTERNAL_SOURCES_BY_LEAGUE: Record<string, ExternalLink[]> = {
       display: "statiz.co.kr",
     },
   ],
+  NPB: [
+    {
+      label: "NPB 공식",
+      url: "https://npb.jp",
+      display: "npb.jp",
+    },
+    {
+      label: "시즌 통계 (영문)",
+      url: "https://www.baseball-reference.com/register/league.cgi?code=JPN-1",
+      display: "baseball-reference.com",
+    },
+  ],
 
   // 농구·하키
   NBA: [

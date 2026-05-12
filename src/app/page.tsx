@@ -526,6 +526,7 @@ function LeagueDirectory() {
     { href: "/leagues/MLS", flag: "🇺🇸", name: "MLS", sub: "북미" },
     { href: "/leagues/NBA", flag: "🏀", name: "NBA", sub: "미국 농구" },
     { href: "/leagues/KBO", flag: "🇰🇷", name: "KBO 리그", sub: "한국 프로야구" },
+    { href: "/leagues/NPB", flag: "🇯🇵", name: "NPB 리그", sub: "일본 프로야구" },
     { href: "/leagues/MLB", flag: "⚾", name: "MLB", sub: "메이저리그" },
     { href: "/leagues/NHL", flag: "🏒", name: "NHL", sub: "북미 아이스하키" },
     { href: "/leagues/LOL", flag: "🎮", name: "LCK", sub: "리그 오브 레전드 한국" },

@@ -29,6 +29,7 @@ const VALID = [
   "NHL",
   "MLB",
   "KBO",
+  "NPB",
   "LOL",
 ] as const;
 type ValidLeague = (typeof VALID)[number];
@@ -124,6 +125,13 @@ const LEAGUE_INFO: Record<
     name: "KBO",
     subtitle: "한국프로야구 — 시즌 시뮬레이션",
     gradient: "from-blue-600 via-indigo-600 to-rose-500",
+    relegationCount: 0,
+    showDraw: false,
+  },
+  NPB: {
+    name: "NPB",
+    subtitle: "일본프로야구 — 시즌 시뮬레이션",
+    gradient: "from-red-600 via-rose-500 to-pink-500",
     relegationCount: 0,
     showDraw: false,
   },
@@ -535,6 +543,7 @@ const TAB_LABEL: Record<string, string> = {
   NBA: "NBA",
   MLB: "MLB",
   KBO: "KBO",
+  NPB: "NPB",
   NHL: "NHL",
 };
 

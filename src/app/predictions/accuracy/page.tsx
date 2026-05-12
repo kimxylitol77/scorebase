@@ -7,7 +7,7 @@ export const revalidate = 3600; // 1시간 ISR
 
 const LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
-  "NBA", "NHL", "MLB", "KBO", "LOL",
+  "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
 ] as const;
 
 const LEAGUE_NAME: Record<string, string> = {
@@ -22,6 +22,7 @@ const LEAGUE_NAME: Record<string, string> = {
   NHL: "NHL",
   MLB: "MLB",
   KBO: "KBO",
+  NPB: "NPB",
   LOL: "LCK",
 };
 

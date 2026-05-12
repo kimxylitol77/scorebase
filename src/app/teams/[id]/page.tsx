@@ -39,6 +39,7 @@ const LEAGUE_GRADIENT: Record<string, string> = {
   NHL: "from-cyan-500 via-blue-600 to-indigo-700",
   MLB: "from-emerald-500 via-green-600 to-teal-700",
   KBO: "from-blue-600 via-cyan-500 to-teal-500",
+  NPB: "from-red-600 via-rose-500 to-pink-500",
 };
 
 const REASON_KO: Record<string, string> = {

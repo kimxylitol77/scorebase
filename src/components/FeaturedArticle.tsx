@@ -34,6 +34,7 @@ const LEAGUE_GRADIENT: Record<string, string> = {
   MLS: "from-red-600 via-slate-900 to-blue-700",
   UCL: "from-indigo-700 via-blue-600 to-cyan-500",
   KBO: "from-blue-600 via-cyan-500 to-teal-500",
+  NPB: "from-red-600 via-rose-500 to-pink-500",
 };
 
 function getLeadParagraph(markdown: string): string {

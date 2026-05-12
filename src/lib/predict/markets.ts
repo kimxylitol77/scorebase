@@ -68,6 +68,9 @@ const SPORT_PROFILE: Record<string, SportProfile> = {
   // 실측 평균 마진 -0.18 / std 4.83 — 홈 어드밴티지 사실상 없음, 분산 큼.
   // overLine 9.5 (장타 코스), homeBoost 1.0 (실측 반영), marginStd 4.5 (실측 근사).
   KBO: { overLine: 9.5, totalStd: 4.5, marginStd: 4.5, handicapLine: 1.5, homeBoost: 1.0 },
+  // NPB 일본 프로야구 — 평균 8~9런 시즌 (KBO 보다 낮음, MLB 와 유사).
+  // KBO 패턴 그대로 시작 후 실측 시즌 데이터로 조정 가능.
+  NPB: { overLine: 8.5, totalStd: 4.0, marginStd: 3.8, handicapLine: 1.5, homeBoost: 1.02 },
 };
 
 /* =====================================================================
@@ -264,7 +267,7 @@ export function predictTotalMarket(
   const profile = getSportProfile(league);
   if (!profile) return null;
   // 야구는 홈/원정 격차 + 최근 폼 영향 큼 — KBO·MLB 분리 사용
-  const isBaseball = league === "KBO" || league === "MLB";
+  const isBaseball = league === "KBO" || league === "MLB" || league === "NPB";
   const home = teamGoalAverages(matches, homeTeamId, asOf, {
     venue: isBaseball ? "home" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
@@ -309,7 +312,7 @@ export function predictHandicapMarket(
 } | null {
   const profile = getSportProfile(league);
   if (!profile) return null;
-  const isBaseball = league === "KBO" || league === "MLB";
+  const isBaseball = league === "KBO" || league === "MLB" || league === "NPB";
   const home = teamGoalAverages(matches, homeTeamId, asOf, {
     venue: isBaseball ? "home" : "all",
     recentBlend: isBaseball ? 0.4 : 0,
