@@ -42,6 +42,8 @@ const TEAM_NAME_KO: Record<string, string> = {
   "Tohoku Rakuten Golden Eagles": "도호쿠 라쿠텐 골든이글스",
   "Tohoku R.G. Eagles": "도호쿠 라쿠텐 골든이글스",
   "Rakuten Eagles": "도호쿠 라쿠텐 골든이글스",
+  "Rakuten Gold. Eagles": "도호쿠 라쿠텐 골든이글스",
+  "Rakuten Golden Eagles": "도호쿠 라쿠텐 골든이글스",
   "Saitama Seibu Lions": "사이타마 세이부 라이온스",
   "Seibu Lions": "사이타마 세이부 라이온스",
   // 센트럴 추가 약자 — Y. Yakult Swallows, T. Yakult Swallows 같은 형태 대응
