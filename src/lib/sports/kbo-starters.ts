@@ -8,15 +8,36 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
+import {
+  fetchKboPitcherIndex,
+  fetchKboPitcherStats,
+  findKboIdByName,
+  calcK9,
+  type KboPitcherIndexEntry,
+} from "./kbo-official";
 
 const MYKBO_URL = "https://mykbo.statiz.co.kr/minigame/?m=sp";
+
+export interface KboPitcherFullStats {
+  era?: number;
+  whip?: number;
+  k9?: number;
+  wins?: number;
+  losses?: number;
+  ip?: string;
+  k?: number;
+  bb?: number;
+  qs?: number;
+  avg?: number; // 피안타율
+  hr?: number;
+}
 
 export interface KboStarter {
   /** 화면상 팀 A (mykbo 순서 그대로 — home/away 보장 안 함, 매칭 단계에서 양 방향) */
   teamA: string; // 약칭 (예: "삼성")
   teamB: string;
-  pitcherA: { name: string; statizId?: number };
-  pitcherB: { name: string; statizId?: number };
+  pitcherA: { name: string; statizId?: number; kboId?: string; stats?: KboPitcherFullStats };
+  pitcherB: { name: string; statizId?: number; kboId?: string; stats?: KboPitcherFullStats };
 }
 
 // statiz 약칭 → 우리 DB Team.name (한국 정식명) 매핑.
@@ -116,6 +137,72 @@ export async function fetchKboStartersToday(): Promise<KboStarter[]> {
 }
 
 /**
+ * 위 starters 에 KBO 공식 사이트 (koreabaseball.com) 시즌 stats 보강.
+ * 한 번의 인덱스 fetch (모든 시즌 등재 투수) 후 각 선발 투수 stats fetch.
+ * 매핑 실패한 선수는 stats 없이 이름만 유지.
+ */
+export async function enrichKboStartersWithStats(
+  starters: KboStarter[],
+): Promise<KboStarter[]> {
+  if (starters.length === 0) return starters;
+  let index: KboPitcherIndexEntry[];
+  try {
+    index = await fetchKboPitcherIndex();
+  } catch (e) {
+    console.warn("[kbo-starters] KBO 공식 인덱스 fetch 실패:", (e as Error).message);
+    return starters;
+  }
+  if (index.length === 0) return starters;
+
+  const enrichOne = async (
+    p: KboStarter["pitcherA"],
+    teamHint?: string,
+  ): Promise<KboStarter["pitcherA"]> => {
+    const kboId = findKboIdByName(index, p.name, teamHint);
+    if (!kboId) return p;
+    try {
+      const st = await fetchKboPitcherStats(kboId);
+      if (!st) return { ...p, kboId };
+      const k9 = calcK9(st.k, st.ip);
+      return {
+        ...p,
+        kboId,
+        stats: {
+          era: st.era,
+          whip: st.whip,
+          k9: k9 ?? undefined,
+          wins: st.wins,
+          losses: st.losses,
+          ip: st.ip,
+          k: st.k,
+          bb: st.bb,
+          qs: st.qs,
+          avg: st.avg,
+          hr: st.hr,
+        },
+      };
+    } catch {
+      return { ...p, kboId };
+    }
+  };
+
+  const enriched: KboStarter[] = [];
+  for (const s of starters) {
+    const [a, b] = await Promise.all([
+      enrichOne(s.pitcherA, s.teamA),
+      // KBO 사이트 burst 회피 위해 살짝 sleep
+      new Promise<KboStarter["pitcherB"]>(async (resolve) => {
+        await new Promise((r) => setTimeout(r, 400));
+        resolve(await enrichOne(s.pitcherB, s.teamB));
+      }),
+    ]);
+    enriched.push({ ...s, pitcherA: a, pitcherB: b });
+    await new Promise((r) => setTimeout(r, 400));
+  }
+  return enriched;
+}
+
+/**
  * 매치의 양 팀 풀네임을 받아 양쪽 선발 투수를 매칭.
  * mykbo 의 teamA/teamB 순서는 home/away 보장 안 함 — 양 방향 매칭.
  */
@@ -123,7 +210,7 @@ export function pickStartersForMatch(
   starters: KboStarter[],
   homeName: string,
   awayName: string,
-): { home: { name: string; statizId?: number }; away: { name: string; statizId?: number } } | null {
+): { home: KboStarter["pitcherA"]; away: KboStarter["pitcherB"] } | null {
   for (const s of starters) {
     const fullA = kboAbbrToFullName(s.teamA);
     const fullB = kboAbbrToFullName(s.teamB);

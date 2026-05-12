@@ -24,6 +24,7 @@ import {
 } from "@/lib/sports/leaguepedia";
 import {
   fetchKboStartersToday,
+  enrichKboStartersWithStats,
   pickStartersForMatch as pickKboStarters,
   type KboStarter,
 } from "@/lib/sports/kbo-starters";
@@ -97,8 +98,12 @@ export async function runPreview(opts?: {
   let npbStarters: NpbStarter[] = [];
   if (matches.some((m) => m.league === "KBO")) {
     try {
-      kboStarters = await fetchKboStartersToday();
-      console.log(`[preview/KBO] 선발 투수 ${kboStarters.length}건 fetch (mykbo.statiz)`);
+      const raw = await fetchKboStartersToday();
+      console.log(`[preview/KBO] mykbo.statiz 선발 ${raw.length}건`);
+      // KBO 공식 (koreabaseball.com) 시즌 stats 보강 — ERA·WHIP·K/9·W-L·IP·QS·피안타율
+      kboStarters = await enrichKboStartersWithStats(raw);
+      const withStats = kboStarters.flatMap((s) => [s.pitcherA, s.pitcherB]).filter((p) => p.stats).length;
+      console.log(`[preview/KBO] 시즌 stats 보강: ${withStats}/${kboStarters.length * 2}명`);
     } catch (err) {
       console.warn(`[preview/KBO] starters fetch 실패:`, (err as Error).message);
     }
@@ -222,10 +227,21 @@ export async function runPreview(opts?: {
       if (m.league === "KBO" && kboStarters.length > 0 && kstNow === kstMatch) {
         const p = pickKboStarters(kboStarters, m.homeTeam.name, m.awayTeam.name);
         if (p) {
-          const homeJson = { name: p.home.name, pid: p.home.statizId };
-          const awayJson = { name: p.away.name, pid: p.away.statizId };
+          const buildJson = (side: typeof p.home) => ({
+            name: side.name,
+            pid: side.statizId,
+            era: side.stats?.era,
+            whip: side.stats?.whip,
+            k9: side.stats?.k9,
+            wins: side.stats?.wins,
+            losses: side.stats?.losses,
+            ip: side.stats?.ip,
+            gs: undefined as number | undefined,
+            // 추가 KBO 항목 (MlbStarterInfo 와 호환되지만 era/whip/k9/wins/losses/ip 가 핵심)
+          });
+          const homeJson = buildJson(p.home);
+          const awayJson = buildJson(p.away);
           context.starters = { home: homeJson, away: awayJson };
-          // Match 컬럼에도 저장 — MatchInsight 선발 카드 렌더링용
           await prisma.match.update({
             where: { id: m.id },
             data: {
