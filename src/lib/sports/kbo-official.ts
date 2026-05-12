@@ -262,8 +262,52 @@ export async function fetchKboPitcherRecent(kboId: string): Promise<KboPitcherRe
   return result;
 }
 
-/** 선수 이름 — PitcherDetail 페이지에서 추출. */
-export async function fetchKboPitcherName(kboId: string): Promise<{ name?: string; team?: string }> {
+export interface KboPitcherProfile {
+  name?: string;
+  team?: string;
+  number?: string;
+  birthday?: string; // "1999년 01월 21일"
+  age?: number;
+  position?: string; // "투수(우투우타)"
+  hand?: "L" | "R";
+  bats?: "L" | "R";
+  height?: string; // "193cm"
+  weight?: string; // "104kg"
+  career?: string;
+}
+
+function calcAge(birthday: string | undefined): number | undefined {
+  if (!birthday) return undefined;
+  const m = birthday.match(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})/);
+  if (!m) return undefined;
+  const by = Number(m[1]), bm = Number(m[2]), bd = Number(m[3]);
+  const today = new Date();
+  let age = today.getFullYear() - by;
+  const md = (today.getMonth() + 1) * 100 + today.getDate();
+  const bmd = bm * 100 + bd;
+  if (md < bmd) age--;
+  return age;
+}
+
+function parseHand(pos: string | undefined): "L" | "R" | undefined {
+  if (!pos) return undefined;
+  if (pos.includes("좌투")) return "L";
+  if (pos.includes("우투")) return "R";
+  return undefined;
+}
+
+function parseBats(pos: string | undefined): "L" | "R" | undefined {
+  if (!pos) return undefined;
+  if (pos.includes("좌타")) return "L";
+  if (pos.includes("우타")) return "R";
+  return undefined;
+}
+
+/**
+ * 선수 풀 프로필 — PitcherDetail .player_basic 영역 추출.
+ * 이름·팀·등번호·생년월일·나이·포지션(투/타)·신장·체중·경력.
+ */
+export async function fetchKboPitcherProfile(kboId: string): Promise<KboPitcherProfile> {
   const url = `${BASE}/Record/Player/PitcherDetail/Basic.aspx?playerId=${kboId}`;
   try {
     const r = await axios.get<string>(url, {
@@ -272,13 +316,15 @@ export async function fetchKboPitcherName(kboId: string): Promise<{ name?: strin
       responseType: "text",
     });
     const $ = cheerio.load(r.data);
-    // 선수 이름은 player_name 클래스 또는 h4
-    const nameRaw =
-      $(".player_info .name").text().trim() ||
-      $("h4").first().text().trim() ||
-      "";
-    const name = nameRaw.replace(/\s+/g, " ").trim() || undefined;
-    // 팀명은 stats table 의 첫 cell (위 fetchKboPitcherStats 의 team 과 동일)
+    const fields = new Map<string, string>();
+    $(".player_basic li").each((_, li) => {
+      const label = $(li).find("strong").text().replace(/[:：]/g, "").trim();
+      const value = $(li).find("span").text().trim();
+      if (label) fields.set(label, value);
+    });
+    const hw = fields.get("신장/체중") ?? "";
+    const [h, w] = hw.split("/").map((s) => s.trim());
+    // 팀명 — .player_basic 내부에 단독 노출 아니어서 stats table 의 팀명 cell fallback
     let team: string | undefined;
     $("table").each((_, t) => {
       const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
@@ -289,8 +335,25 @@ export async function fetchKboPitcherName(kboId: string): Promise<{ name?: strin
         if (i >= 0) team = cells[i] || undefined;
       }
     });
-    return { name, team };
+    const position = fields.get("포지션");
+    const birthday = fields.get("생년월일");
+    return {
+      name: fields.get("선수명") || undefined,
+      team,
+      number: fields.get("등번호") || undefined,
+      birthday,
+      age: calcAge(birthday),
+      position,
+      hand: parseHand(position),
+      bats: parseBats(position),
+      height: h || undefined,
+      weight: w || undefined,
+      career: fields.get("경력") || undefined,
+    };
   } catch {
     return {};
   }
 }
+
+/** 하위 호환 alias — fetchKboPitcherName 으로 import 한 곳이 있어서. */
+export const fetchKboPitcherName = fetchKboPitcherProfile;

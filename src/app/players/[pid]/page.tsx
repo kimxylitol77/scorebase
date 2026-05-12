@@ -13,7 +13,7 @@ import {
 import {
   fetchKboPitcherStats,
   fetchKboPitcherRecent,
-  fetchKboPitcherName,
+  fetchKboPitcherProfile,
   calcK9,
   type KboPitcherRecentGame,
 } from "@/lib/sports/kbo-official";
@@ -30,7 +30,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const { pid } = await params;
   const { league } = await searchParams;
   if (league === "KBO") {
-    const info = await fetchKboPitcherName(pid);
+    const info = await fetchKboPitcherProfile(pid);
     if (!info.name) return { title: "선수 미발견" };
     return {
       title: `${info.name} — KBO 선발 투수 통계`,
@@ -128,7 +128,7 @@ async function KboPlayerView({ pid }: { pid: string }) {
   const [statsRes, recent, profile] = await Promise.all([
     fetchKboPitcherStats(pid),
     fetchKboPitcherRecent(pid),
-    fetchKboPitcherName(pid),
+    fetchKboPitcherProfile(pid),
   ]);
   if (!profile.name && !statsRes) notFound();
   const stats = statsRes;
@@ -136,6 +136,12 @@ async function KboPlayerView({ pid }: { pid: string }) {
   const name = profile.name ?? "(이름 정보 없음)";
   const team = profile.team ?? stats?.team;
   const season = new Date().getUTCFullYear();
+  const handLabel =
+    profile.hand === "L" ? "좌완" : profile.hand === "R" ? "우완" : "";
+  const batsLabel =
+    profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
+  const handBatsLabel =
+    handLabel && batsLabel ? `${handLabel}/${batsLabel}` : (handLabel || batsLabel);
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -145,10 +151,30 @@ async function KboPlayerView({ pid }: { pid: string }) {
         </Link>
         <div className="flex items-baseline gap-3 flex-wrap">
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{name}</h1>
+          {handBatsLabel && (
+            <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
+              {handBatsLabel}
+            </span>
+          )}
+          {profile.age != null && (
+            <span className="text-sm text-neutral-500">{profile.age}세</span>
+          )}
+          {profile.number && (
+            <span className="text-sm text-neutral-500">{profile.number}</span>
+          )}
         </div>
         <div className="text-sm text-neutral-500">
-          {team ? `${team} · ` : ""}KBO 공식 (koreabaseball.com)
+          {team ? `${team} · ` : ""}
+          {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
+          KBO 공식 (koreabaseball.com)
         </div>
+        {(profile.birthday || profile.career) && (
+          <div className="text-xs text-neutral-500 space-y-0.5">
+            {profile.birthday && <div>생년월일: {profile.birthday}</div>}
+            {profile.career && <div>경력: {profile.career}</div>}
+            {profile.position && <div>포지션: {profile.position}</div>}
+          </div>
+        )}
       </header>
 
       {stats ? (
