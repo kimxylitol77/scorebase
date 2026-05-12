@@ -197,3 +197,100 @@ export function calcK9(k: number | undefined, ipStr: string | undefined): number
   if (k == null || innings == null || innings === 0) return undefined;
   return (k * 9) / innings;
 }
+
+export interface KboPitcherRecentGame {
+  date: string; // "05.06"
+  opponent: string; // "한화"
+  result?: "W" | "L" | "ND"; // 승/패/노디시즌
+  era?: number;
+  tbf?: number;
+  ip?: string;
+  h?: number;
+  hr?: number;
+  bb?: number;
+  hbp?: number;
+  k?: number;
+  r?: number;
+  er?: number;
+  avg?: number;
+}
+
+/**
+ * 최근 등판 game-by-game 추출. PitcherDetail.aspx 의 table 2.
+ * 시즌 합계 row 는 header 에 흡수되어 tbody 에 안 들어옴 — 그대로 잡힘.
+ */
+export async function fetchKboPitcherRecent(kboId: string): Promise<KboPitcherRecentGame[]> {
+  const url = `${BASE}/Record/Player/PitcherDetail/Basic.aspx?playerId=${kboId}`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, {
+      headers: HEADERS,
+      timeout: 12000,
+      responseType: "text",
+    });
+    html = r.data;
+  } catch {
+    return [];
+  }
+  const $ = cheerio.load(html);
+  const result: KboPitcherRecentGame[] = [];
+  $("table").each((_, t) => {
+    const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
+    if (!headers.includes("일자")) return;
+    $(t).find("tbody tr").each((_, tr) => {
+      const c = $(tr).find("td").map((_, td) => $(td).text().trim()).get();
+      if (c.length < 14) return;
+      const resultMap: Record<string, "W" | "L" | "ND"> = { 승: "W", 패: "L" };
+      result.push({
+        date: c[0],
+        opponent: c[1],
+        result: resultMap[c[2]] ?? "ND",
+        era: toNum(c[3]),
+        tbf: toNum(c[4]),
+        ip: c[5] || undefined,
+        h: toNum(c[6]),
+        hr: toNum(c[7]),
+        bb: toNum(c[8]),
+        hbp: toNum(c[9]),
+        k: toNum(c[10]),
+        r: toNum(c[11]),
+        er: toNum(c[12]),
+        avg: toNum(c[13]),
+      });
+    });
+  });
+  return result;
+}
+
+/** 선수 이름 — PitcherDetail 페이지에서 추출. */
+export async function fetchKboPitcherName(kboId: string): Promise<{ name?: string; team?: string }> {
+  const url = `${BASE}/Record/Player/PitcherDetail/Basic.aspx?playerId=${kboId}`;
+  try {
+    const r = await axios.get<string>(url, {
+      headers: HEADERS,
+      timeout: 10000,
+      responseType: "text",
+    });
+    const $ = cheerio.load(r.data);
+    // 선수 이름은 player_name 클래스 또는 h4
+    const nameRaw =
+      $(".player_info .name").text().trim() ||
+      $("h4").first().text().trim() ||
+      "";
+    const name = nameRaw.replace(/\s+/g, " ").trim() || undefined;
+    // 팀명은 stats table 의 첫 cell (위 fetchKboPitcherStats 의 team 과 동일)
+    let team: string | undefined;
+    $("table").each((_, t) => {
+      const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
+      if (!headers.includes("ERA")) return;
+      const cells = $(t).find("tbody tr").first().find("td").map((_, td) => $(td).text().trim()).get();
+      if (cells.length === headers.length) {
+        const i = headers.indexOf("팀명");
+        if (i >= 0) team = cells[i] || undefined;
+      }
+    });
+    return { name, team };
+  } catch {
+    return {};
+  }
+}

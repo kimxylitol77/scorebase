@@ -227,9 +227,12 @@ export async function runPreview(opts?: {
       if (m.league === "KBO" && kboStarters.length > 0 && kstNow === kstMatch) {
         const p = pickKboStarters(kboStarters, m.homeTeam.name, m.awayTeam.name);
         if (p) {
+          // pid 는 KBO 공식 playerId (없으면 statiz id fallback X — 클릭 시 우리
+          // /players/[pid]?league=KBO 페이지로 가야 하므로 KBO ID 필수).
+          // KBO ID 없으면 pid 자체 생략 → 카드에 plain text 표시.
           const buildJson = (side: typeof p.home) => ({
             name: side.name,
-            pid: side.statizId,
+            pid: side.kboId ? Number(side.kboId) : undefined,
             era: side.stats?.era,
             whip: side.stats?.whip,
             k9: side.stats?.k9,
@@ -237,7 +240,6 @@ export async function runPreview(opts?: {
             losses: side.stats?.losses,
             ip: side.stats?.ip,
             gs: undefined as number | undefined,
-            // 추가 KBO 항목 (MlbStarterInfo 와 호환되지만 era/whip/k9/wins/losses/ip 가 핵심)
           });
           const homeJson = buildJson(p.home);
           const awayJson = buildJson(p.away);

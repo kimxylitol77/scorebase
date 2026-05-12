@@ -1092,12 +1092,14 @@ function StarterCard({
           teamName={awayTeam}
           side="원정"
           highlight={awayBetterEra}
+          league={league}
         />
         <StarterPanel
           starter={home}
           teamName={homeTeam}
           side="홈"
           highlight={homeBetterEra}
+          league={league}
         />
       </div>
       {(home || away) && (home?.era != null || away?.era != null) && (
@@ -1115,11 +1117,13 @@ function StarterPanel({
   teamName,
   side,
   highlight,
+  league,
 }: {
   starter: MlbStarterInfo | null;
   teamName: string;
   side: "홈" | "원정";
   highlight: boolean;
+  league?: string;
 }) {
   if (!starter) {
     return (
@@ -1150,7 +1154,7 @@ function StarterPanel({
       </div>
       {starter.pid != null ? (
         <a
-          href={`/players/${starter.pid}`}
+          href={`/players/${starter.pid}${league === "KBO" ? "?league=KBO" : ""}`}
           className="mt-1 block font-semibold tracking-tight truncate hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
         >
           {starter.name}
