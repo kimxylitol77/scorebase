@@ -49,6 +49,10 @@
     {
       "path": "/api/cron/nhl-goalies",
       "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "0 8 * * *"
     }
   ]
 }

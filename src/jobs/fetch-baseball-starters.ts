@@ -1,0 +1,347 @@
+// KBO / NPB 선발 투수 매일 갱신 잡.
+//
+// 흐름:
+//   1) 향후 N일 KBO+NPB 매치 list (SCHEDULED) DB 에서 fetch
+//   2) KBO: mykbo.statiz today 만 → 오늘 매치만 처리
+//      NPB: npb.jp 월별 페이지에서 미래 며칠치 예고선발 → horizon 안 매치 처리
+//   3) 시즌 stats 보강 (KBO 공식)
+//   4) Match.homeStarter / awayStarter JSON 저장
+//   5) 신규/변경 매치는 PREVIEW article 본문도 재발행 (Claude generate)
+//
+// Vercel cron 호출: /api/cron/baseball-starters (1일 1회 매치 시작 전)
+
+import "@/lib/env";
+import { prisma } from "@/lib/db";
+import {
+  fetchKboStartersToday,
+  enrichKboStartersWithStats,
+  pickStartersForMatch as pickKboStarters,
+} from "@/lib/sports/kbo-starters";
+import {
+  fetchNpbStartersForMonth,
+  pickNpbStartersForMatch,
+  type NpbStarter,
+} from "@/lib/sports/npb-starters";
+import { generate } from "@/lib/ai/claude";
+import { SYSTEM_PROMPT } from "@/prompts/system";
+import { buildPreviewPrompt } from "@/prompts/match-preview";
+import {
+  buildMatchContext,
+  enrichContextWithApiFootball,
+} from "@/lib/predict/build-context";
+import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
+import type { PredictMatch } from "@/lib/predict/types";
+
+interface StarterJson {
+  name: string;
+  pid?: number;
+  era?: number;
+  whip?: number;
+  k9?: number;
+  wins?: number;
+  losses?: number;
+  ip?: string;
+}
+
+function jsonEq(a: string | null, b: string | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  try {
+    const x = JSON.parse(a) as StarterJson;
+    const y = JSON.parse(b) as StarterJson;
+    return x.name === y.name && x.pid === y.pid && x.era === y.era && x.whip === y.whip;
+  } catch {
+    return false;
+  }
+}
+
+export async function runFetchBaseballStarters(opts?: {
+  horizonDays?: number;
+  regenerateArticles?: boolean; // 기본 true — 변경 매치 PREVIEW 본문 재발행
+}) {
+  const horizonDays = opts?.horizonDays ?? 3;
+  const regenerateArticles = opts?.regenerateArticles ?? true;
+  const now = new Date();
+  const horizon = new Date(now.getTime() + horizonDays * 86400 * 1000);
+
+  console.log(`[starters] 시작 — horizon ${horizonDays}d, regen ${regenerateArticles}`);
+
+  // 1) 매치 list
+  const matches = await prisma.match.findMany({
+    where: {
+      league: { in: ["KBO", "NPB"] },
+      status: "SCHEDULED",
+      startTime: { gte: now, lte: horizon },
+    },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      articles: {
+        where: { type: "PREVIEW", status: "PUBLISHED" },
+        select: { id: true, slug: true, content: true },
+        take: 1,
+      },
+    },
+    orderBy: { startTime: "asc" },
+  });
+  console.log(`[starters] 대상 ${matches.length}건 (KBO+NPB)`);
+  if (matches.length === 0) return { updated: 0, regenerated: 0 };
+
+  // 2) starters 데이터 prefetch
+  const kboMatches = matches.filter((m) => m.league === "KBO");
+  const npbMatches = matches.filter((m) => m.league === "NPB");
+
+  // KBO — today 만
+  const todayKst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  let kboStarters: Awaited<ReturnType<typeof enrichKboStartersWithStats>> = [];
+  const kboTodayMatches = kboMatches.filter((m) => {
+    const kst = new Date(m.startTime.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    return kst === todayKst;
+  });
+  if (kboTodayMatches.length > 0) {
+    try {
+      const raw = await fetchKboStartersToday();
+      kboStarters = await enrichKboStartersWithStats(raw);
+      console.log(`[starters/KBO] mykbo ${raw.length}건 + 시즌 stats 보강`);
+    } catch (e) {
+      console.warn(`[starters/KBO] fetch 실패:`, (e as Error).message);
+    }
+  }
+
+  // NPB — 현재 월 + 다음 월
+  let npbStarters: NpbStarter[] = [];
+  if (npbMatches.length > 0) {
+    try {
+      const cm = now.getMonth() + 1;
+      const cy = now.getFullYear();
+      const nm = cm === 12 ? 1 : cm + 1;
+      const ny = cm === 12 ? cy + 1 : cy;
+      const [a, b] = await Promise.all([
+        fetchNpbStartersForMonth(cy, cm),
+        fetchNpbStartersForMonth(ny, nm),
+      ]);
+      npbStarters = [...a, ...b];
+      console.log(`[starters/NPB] npb.jp ${npbStarters.length}건`);
+    } catch (e) {
+      console.warn(`[starters/NPB] fetch 실패:`, (e as Error).message);
+    }
+  }
+
+  // 3) 매치별 update + 변경 감지
+  const changedMatchIds: number[] = [];
+  let updated = 0;
+
+  for (const m of matches) {
+    let newHomeJson: string | null = null;
+    let newAwayJson: string | null = null;
+
+    if (m.league === "KBO") {
+      // today 만 처리
+      const kst = new Date(m.startTime.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      if (kst !== todayKst || kboStarters.length === 0) continue;
+      const p = pickKboStarters(kboStarters, m.homeTeam.name, m.awayTeam.name);
+      if (!p) continue;
+      const build = (side: typeof p.home) => ({
+        name: side.name,
+        pid: side.kboId ? Number(side.kboId) : undefined,
+        era: side.stats?.era,
+        whip: side.stats?.whip,
+        k9: side.stats?.k9,
+        wins: side.stats?.wins,
+        losses: side.stats?.losses,
+        ip: side.stats?.ip,
+      });
+      newHomeJson = JSON.stringify(build(p.home));
+      newAwayJson = JSON.stringify(build(p.away));
+    } else if (m.league === "NPB") {
+      if (npbStarters.length === 0) continue;
+      const p = pickNpbStartersForMatch(npbStarters, m.homeTeam.name, m.awayTeam.name, m.startTime);
+      if (!p) continue;
+      newHomeJson = JSON.stringify({ name: p.home.name });
+      newAwayJson = JSON.stringify({ name: p.away.name });
+    }
+
+    if (!newHomeJson || !newAwayJson) continue;
+    // 변경 감지
+    const changed = !jsonEq(m.homeStarter, newHomeJson) || !jsonEq(m.awayStarter, newAwayJson);
+    await prisma.match.update({
+      where: { id: m.id },
+      data: {
+        homeStarter: newHomeJson,
+        awayStarter: newAwayJson,
+        startersUpdatedAt: new Date(),
+      },
+    });
+    updated++;
+    if (changed && m.articles.length > 0) {
+      changedMatchIds.push(m.id);
+    }
+  }
+  console.log(`[starters] update ${updated}건, 변경 매치(article 있음) ${changedMatchIds.length}건`);
+
+  // 4) 변경된 매치 PREVIEW 본문 재발행
+  let regenerated = 0;
+  if (regenerateArticles && changedMatchIds.length > 0) {
+    for (const mid of changedMatchIds) {
+      try {
+        await regenerateBaseballPreview(mid);
+        regenerated++;
+        console.log(`[starters] regen ✅ match #${mid}`);
+        await new Promise((r) => setTimeout(r, 1000)); // Claude rate limit 회피
+      } catch (e) {
+        console.warn(`[starters] regen ❌ match #${mid}:`, (e as Error).message);
+      }
+    }
+  }
+
+  return { updated, regenerated };
+}
+
+/**
+ * 단일 매치 PREVIEW article 본문 재발행 — 새 starters 가 반영된 상태에서.
+ */
+async function regenerateBaseballPreview(matchId: number): Promise<void> {
+  const m = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      articles: {
+        where: { type: "PREVIEW", status: "PUBLISHED" },
+        select: { id: true, slug: true },
+        take: 1,
+      },
+    },
+  });
+  if (!m || m.articles.length === 0) return;
+  const article = m.articles[0];
+
+  // context build — 같은 league matches 가져와서 buildMatchContext
+  const leagueMatches: PredictMatch[] = (
+    await prisma.match.findMany({
+      where: { league: m.league },
+      select: {
+        id: true,
+        league: true,
+        status: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+      },
+    })
+  ).map((x) => ({
+    id: x.id,
+    league: x.league,
+    homeTeamId: x.homeTeamId,
+    awayTeamId: x.awayTeamId,
+    status: x.status as MatchStatus,
+    homeScore: x.homeScore,
+    awayScore: x.awayScore,
+    startTime: x.startTime,
+  }));
+
+  const context = buildMatchContext(
+    leagueMatches,
+    m.league,
+    m.homeTeamId,
+    m.awayTeamId,
+    m.startTime,
+  );
+  // odds (있으면)
+  if (m.marketHome != null && m.marketAway != null) {
+    context.marketProb = {
+      home: m.marketHome,
+      draw: m.marketDraw ?? 0,
+      away: m.marketAway,
+      bookmakers: 0,
+    };
+  }
+  const normalized: NormalizedMatch = {
+    league: m.league as League,
+    externalId: m.externalId,
+    homeTeam: {
+      externalId: m.homeTeam.externalId,
+      name: m.homeTeam.name,
+      logoUrl: m.homeTeam.logoUrl ?? undefined,
+    },
+    awayTeam: {
+      externalId: m.awayTeam.externalId,
+      name: m.awayTeam.name,
+      logoUrl: m.awayTeam.logoUrl ?? undefined,
+    },
+    status: m.status as MatchStatus,
+    startTime: m.startTime,
+    raw: {},
+  };
+  // KBO/NPB 는 api-football 미지원 → 호출 안 함
+
+  // starters — Match 컬럼에서 다시 읽음 (방금 update 됐음)
+  if (m.homeStarter || m.awayStarter) {
+    try {
+      context.starters = {
+        home: m.homeStarter ? JSON.parse(m.homeStarter) : undefined,
+        away: m.awayStarter ? JSON.parse(m.awayStarter) : undefined,
+      };
+    } catch {}
+  }
+
+  // recentRecap (내부 링크 1개 — 발행 시점 흐름과 동일)
+  try {
+    const recapCutoff = new Date(Date.now() - 90 * 24 * 3600 * 1000);
+    const recentRecap = await prisma.article.findFirst({
+      where: {
+        type: "RECAP",
+        status: "PUBLISHED",
+        createdAt: { gte: recapCutoff },
+        match: {
+          OR: [
+            { homeTeamId: m.homeTeamId },
+            { awayTeamId: m.homeTeamId },
+            { homeTeamId: m.awayTeamId },
+            { awayTeamId: m.awayTeamId },
+          ],
+        },
+      },
+      orderBy: { publishedAt: "desc" },
+      select: { slug: true, title: true, match: { select: { homeTeamId: true, awayTeamId: true } } },
+    });
+    if (recentRecap && recentRecap.match) {
+      const isHome =
+        recentRecap.match.homeTeamId === m.homeTeamId ||
+        recentRecap.match.awayTeamId === m.homeTeamId;
+      context.recentRecap = {
+        slug: recentRecap.slug,
+        title: recentRecap.title,
+        teamSide: isHome ? "home" : "away",
+      };
+    }
+  } catch {}
+
+  const prompt = buildPreviewPrompt({ match: normalized, context });
+  const content = await generate(prompt, {
+    system: SYSTEM_PROMPT,
+    maxTokens: 4096,
+    temperature: 0.6,
+  });
+
+  // title 은 그대로 두거나 첫 줄로 갱신
+  const titleMatch = content.match(/^#\s+(.+)$/m);
+  const newTitle = titleMatch ? titleMatch[1].trim() : undefined;
+  await prisma.article.update({
+    where: { id: article.id },
+    data: {
+      content,
+      ...(newTitle ? { title: newTitle } : {}),
+      updatedAt: new Date(),
+    },
+  });
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runFetchBaseballStarters()
+    .then((r) => console.log(`[starters] 완료 — update ${r.updated} / regen ${r.regenerated}`))
+    .catch((e) => { console.error(e); process.exit(1); })
+    .finally(() => prisma.$disconnect());
+}

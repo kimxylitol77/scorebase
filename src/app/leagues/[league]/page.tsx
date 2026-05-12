@@ -216,6 +216,16 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       orderBy: articleOrderBy,
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
+      include: {
+        match: {
+          select: {
+            startersUpdatedAt: true,
+            homeStarter: true,
+            awayStarter: true,
+            startTime: true,
+          },
+        },
+      },
     }),
     prisma.article.count({ where }),
     prisma.article.groupBy({

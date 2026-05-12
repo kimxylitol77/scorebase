@@ -114,6 +114,16 @@ export default async function PreviewsPage({ searchParams }: Props) {
       orderBy: [{ match: { startTime: "desc" } }, { publishedAt: "desc" }],
       skip: (pageNum - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
+      include: {
+        match: {
+          select: {
+            startersUpdatedAt: true,
+            homeStarter: true,
+            awayStarter: true,
+            startTime: true,
+          },
+        },
+      },
     }),
     prisma.article.count({ where }),
     // 각 카테고리 카운트 (탭 옆 숫자)
