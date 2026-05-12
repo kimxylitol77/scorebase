@@ -215,14 +215,25 @@ export async function runPreview(opts?: {
         } catch {}
       }
 
-      // KBO 선발 투수 (mykbo.statiz.co.kr scraping — 시즌 stats 없음, 이름만)
-      if (m.league === "KBO" && kboStarters.length > 0) {
+      // KBO 선발 투수 (mykbo.statiz.co.kr scraping — today 만 제공)
+      // 매치가 KST 오늘이 아니면 skip (다른 날 매치에 같은 선발 잘못 매핑되는 것 방지)
+      const kstNow = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      const kstMatch = new Date(m.startTime.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      if (m.league === "KBO" && kboStarters.length > 0 && kstNow === kstMatch) {
         const p = pickKboStarters(kboStarters, m.homeTeam.name, m.awayTeam.name);
         if (p) {
-          context.starters = {
-            home: { name: p.home.name },
-            away: { name: p.away.name },
-          };
+          const homeJson = { name: p.home.name, pid: p.home.statizId };
+          const awayJson = { name: p.away.name, pid: p.away.statizId };
+          context.starters = { home: homeJson, away: awayJson };
+          // Match 컬럼에도 저장 — MatchInsight 선발 카드 렌더링용
+          await prisma.match.update({
+            where: { id: m.id },
+            data: {
+              homeStarter: JSON.stringify(homeJson),
+              awayStarter: JSON.stringify(awayJson),
+              startersUpdatedAt: new Date(),
+            },
+          }).catch(() => {});
         }
       }
 
@@ -230,10 +241,17 @@ export async function runPreview(opts?: {
       if (m.league === "NPB" && npbStarters.length > 0) {
         const p = pickNpbStartersForMatch(npbStarters, m.homeTeam.name, m.awayTeam.name, m.startTime);
         if (p) {
-          context.starters = {
-            home: { name: p.home.name },
-            away: { name: p.away.name },
-          };
+          const homeJson = { name: p.home.name };
+          const awayJson = { name: p.away.name };
+          context.starters = { home: homeJson, away: awayJson };
+          await prisma.match.update({
+            where: { id: m.id },
+            data: {
+              homeStarter: JSON.stringify(homeJson),
+              awayStarter: JSON.stringify(awayJson),
+              startersUpdatedAt: new Date(),
+            },
+          }).catch(() => {});
         }
       }
 

@@ -89,9 +89,9 @@ interface Props {
   };
 }
 
-/** MLB 선발 투수 정보 — DB JSON 에서 파싱 */
+/** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
 interface MlbStarterInfo {
-  pid: number;
+  pid?: number; // MLB Stats API player id (KBO statiz id 도 여기에 들어갈 수 있음)
   name: string;
   hand?: string;
   era?: number;
@@ -354,7 +354,9 @@ export default async function MatchInsight({ match }: Props) {
   // MLB 선발 투수 / NHL 골리 — 위에서 이미 parse 한 값 재사용
   const homeStarter = homeStarterEarly;
   const awayStarter = awayStarterEarly;
-  const hasStarters = match.league === "MLB" && (homeStarter || awayStarter);
+  const hasStarters =
+    (match.league === "MLB" || match.league === "KBO" || match.league === "NPB") &&
+    (homeStarter || awayStarter);
   const homeGoalie = homeGoalieEarly;
   const awayGoalie = awayGoalieEarly;
   const hasGoalies = match.league === "NHL" && (homeGoalie || awayGoalie);
@@ -406,13 +408,14 @@ export default async function MatchInsight({ match }: Props) {
         <span className="text-xs font-medium text-neutral-500">{summary}</span>
       </div>
 
-      {/* 선발 투수 (MLB) */}
+      {/* 선발 투수 (MLB · KBO · NPB) */}
       {hasStarters && (
         <StarterCard
           home={homeStarter}
           away={awayStarter}
           homeTeam={toKoreanTeamName(match.homeTeam.name)}
           awayTeam={toKoreanTeamName(match.awayTeam.name)}
+          league={match.league}
         />
       )}
 
@@ -1052,17 +1055,26 @@ function StarterCard({
   away,
   homeTeam,
   awayTeam,
+  league,
 }: {
   home: MlbStarterInfo | null;
   away: MlbStarterInfo | null;
   homeTeam: string;
   awayTeam: string;
+  league?: string;
 }) {
   // ERA 비교 — 낮은 쪽이 우세
   const homeBetterEra =
     home?.era != null && away?.era != null && home.era < away.era;
   const awayBetterEra =
     home?.era != null && away?.era != null && away.era < home.era;
+
+  const sourceLabel =
+    league === "KBO"
+      ? "statiz · 내프야"
+      : league === "NPB"
+        ? "NPB.jp · 공식 예고선발"
+        : "MLB Stats API · 시즌 누적";
 
   return (
     <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 space-y-3">
@@ -1071,7 +1083,7 @@ function StarterCard({
         <span>오늘의 선발 매치업</span>
         <span className="text-neutral-300 dark:text-neutral-700">·</span>
         <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
-          MLB Stats API · 시즌 누적
+          {sourceLabel}
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1119,7 +1131,10 @@ function StarterPanel({
   }
 
   const handLabel =
-    starter.hand === "L" ? "좌완" : starter.hand === "R" ? "우완" : "스위치";
+    starter.hand === "L" ? "좌완" : starter.hand === "R" ? "우완" : "";
+
+  const hasAnyStat =
+    starter.era != null || starter.whip != null || starter.k9 != null;
 
   return (
     <div
@@ -1131,19 +1146,27 @@ function StarterPanel({
     >
       <div className="flex items-center justify-between text-[11px] text-neutral-500">
         <span>{side} · {teamName}</span>
-        <span>{handLabel}</span>
+        {handLabel && <span>{handLabel}</span>}
       </div>
-      <a
-        href={`/players/${starter.pid}`}
-        className="mt-1 block font-semibold tracking-tight truncate hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
-      >
-        {starter.name}
-      </a>
-      <div className="mt-2 grid grid-cols-3 gap-1 text-center">
-        <StatCell label="ERA" value={fmtNum(starter.era, 2)} />
-        <StatCell label="WHIP" value={fmtNum(starter.whip, 2)} />
-        <StatCell label="K/9" value={fmtNum(starter.k9, 1)} />
-      </div>
+      {starter.pid != null ? (
+        <a
+          href={`/players/${starter.pid}`}
+          className="mt-1 block font-semibold tracking-tight truncate hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+        >
+          {starter.name}
+        </a>
+      ) : (
+        <div className="mt-1 font-semibold tracking-tight truncate">
+          {starter.name}
+        </div>
+      )}
+      {hasAnyStat && (
+        <div className="mt-2 grid grid-cols-3 gap-1 text-center">
+          <StatCell label="ERA" value={fmtNum(starter.era, 2)} />
+          <StatCell label="WHIP" value={fmtNum(starter.whip, 2)} />
+          <StatCell label="K/9" value={fmtNum(starter.k9, 1)} />
+        </div>
+      )}
       {(starter.wins != null ||
         starter.gs != null ||
         starter.ip != null) && (
