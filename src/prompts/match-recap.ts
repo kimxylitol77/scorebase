@@ -29,6 +29,12 @@ export interface RecapContext extends PreviewContext {
     redCards?: number;
     saves?: number;
   }>;
+  /** 양 팀 중 한 쪽의 다음 매치 PREVIEW 글 slug — 본문 내부 링크용 */
+  nextMatchPreview?: {
+    slug: string;
+    title: string;
+    teamSide: "home" | "away";
+  };
 }
 
 export interface RecapPromptInput {
@@ -134,6 +140,12 @@ export function buildRecapPrompt(input: RecapPromptInput): string {
       ctxLines.push(`- 경고/퇴장: 옐로 ${yc}장, 레드 ${rc}장`);
     }
   }
+  if (context.nextMatchPreview) {
+    const teamName = context.nextMatchPreview.teamSide === "home" ? home : away;
+    ctxLines.push(
+      `- nextMatchPreview (본문 마지막 마무리에 자연스럽게 한 문장으로 인용 — 마크다운 링크 1개): ${teamName} 의 다음 매치 프리뷰 "${context.nextMatchPreview.title}" → /articles/${context.nextMatchPreview.slug}`,
+    );
+  }
 
   return `다음 종료 경기에 대한 리뷰 기사를 작성해주세요.
 
@@ -149,14 +161,16 @@ export function buildRecapPrompt(input: RecapPromptInput): string {
 ${ctxLines.length ? ctxLines.join("\n") : "(없음)"}
 
 [작성 요구사항]
-- 800~1200자 분량
+- 분량 제한 없음 — 입력 ctxLines 의 모든 데이터(라인업·골 기록·매치 통계·사전 Elo·승률·폼·H2H·시즌 순위·공수 랭킹)를 적극적으로 본문에 녹여 분석가 톤으로 충분히 풀어내라
 - 제목은 결과를 직관적으로 (예: "리버풀, 시티에 2-1 승... 시즌 막판 추격전 본격화")
 - 리드(굵은 글씨)에 핵심 결과 한 줄 요약
 - H2 소제목 2~3개로 구성. 추천 구성:
-  · "결과 요약" (스코어와 의미)
-  · "흐름 분석" (사전 전망 vs 결과의 차이, 사전 통계가 적중했는지/이변이었는지)
+  · "결과 요약" (스코어와 의미 — 가능하면 핵심 골/유효슛/점유율 수치 인용)
+  · "흐름 분석" (사전 전망 vs 결과의 차이 — 사전 승률·Elo 격차 그대로 인용, 사전 통계가 적중했는지/이변이었는지)
   · "맥락과 시사점" (시즌 순위에 미치는 영향, 양 팀의 다음 과제)
+- 데이터 활용: 사전 승률은 "${home} N% / 무 M% / ${away} K%" 그대로 인용 → 실제 결과와 비교. 매치 통계는 양 팀 슛·점유율·정확도 수치를 본문에 짧게라도 녹인다. 사전 폼·Elo 격차도 단순 나열 X — 결과와의 관계를 한 줄로 풀어쓴다.
 - 마지막은 시즌 흐름·다음 경기 의미로 차분히 마무리.
+- ctxLines 의 nextMatchPreview 가 있으면, 마무리 뒤에 자연스러운 한 문장으로 마크다운 링크 1개 인용. 링크 텍스트는 nextMatchPreview.title 을 짧게 다듬어도 좋다.
 
 [중요 주의]
 - 골 시간, 득점자, 라인업, 부상 같은 컨텍스트에 없는 사실 절대 만들어내지 말 것.

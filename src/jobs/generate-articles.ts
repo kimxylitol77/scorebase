@@ -182,6 +182,49 @@ export async function runRecap(opts?: {
         raw: m.raw ? JSON.parse(m.raw) : undefined,
       };
 
+      // 본문 내부 링크 1개용 — 양 팀 중 한 쪽의 다음 SCHEDULED 매치에 발행된 PREVIEW 글.
+      // LoL 은 lolRecapCtx 안에 nextMatch.previewSlug 가 이미 들어가 있으므로, 일반 종목에만 채움.
+      if (m.league !== "LOL") {
+        try {
+          const horizon = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+          const upcoming = await prisma.match.findFirst({
+            where: {
+              league: m.league,
+              status: "SCHEDULED",
+              startTime: { gte: m.startTime, lte: horizon },
+              OR: [
+                { homeTeamId: m.homeTeamId },
+                { awayTeamId: m.homeTeamId },
+                { homeTeamId: m.awayTeamId },
+                { awayTeamId: m.awayTeamId },
+              ],
+              articles: { some: { type: "PREVIEW", status: "PUBLISHED" } },
+            },
+            orderBy: { startTime: "asc" },
+            select: {
+              homeTeamId: true,
+              awayTeamId: true,
+              articles: {
+                where: { type: "PREVIEW", status: "PUBLISHED" },
+                select: { slug: true, title: true },
+                take: 1,
+              },
+            },
+          });
+          if (upcoming?.articles[0]) {
+            const sameTeam =
+              upcoming.homeTeamId === m.homeTeamId || upcoming.awayTeamId === m.homeTeamId;
+            (context as RecapContext).nextMatchPreview = {
+              slug: upcoming.articles[0].slug,
+              title: upcoming.articles[0].title,
+              teamSide: sameTeam ? "home" : "away",
+            };
+          }
+        } catch (err) {
+          console.warn(`[recap] nextMatchPreview fetch 실패:`, (err as Error).message);
+        }
+      }
+
       const prompt =
         m.league === "LOL" && lolRecapCtx
           ? buildLolRecapPromptV2(lolRecapCtx)

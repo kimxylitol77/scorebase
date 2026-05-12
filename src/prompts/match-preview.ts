@@ -208,6 +208,12 @@ export interface PreviewContext {
       shutouts?: number;
     };
   };
+  /** 양 팀 중 가장 최근 RECAP 글 slug — 본문 내부 링크용 */
+  recentRecap?: {
+    slug: string;
+    title: string;
+    teamSide: "home" | "away";
+  };
 }
 
 export interface PreviewPromptInput {
@@ -456,6 +462,12 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
       ctxLines.push(`- 결장·부상 ${away}: ${fmt(context.injuries.away)}`);
     }
   }
+  if (context.recentRecap) {
+    const teamName = context.recentRecap.teamSide === "home" ? home : away;
+    ctxLines.push(
+      `- recentRecap (본문 내부 링크 1개 — 본문 마지막 마무리 직전에 자연스러운 한 문장으로 인용): ${teamName} 의 최근 매치 리뷰 "${context.recentRecap.title}" → /articles/${context.recentRecap.slug}`,
+    );
+  }
 
   return `# ROLE
 당신은 글로벌 스포츠 데이터 분석가다. ESPN Stats & Info, FiveThirtyEight,
@@ -502,7 +514,11 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
    대신 "추정", "예측", "기댓값", "통계적으로", "모델 관점에서".
 9. 단정 X, 신중한 표현: "~할 가능성이 높다", "~로 추정된다", "데이터는 ~를 시사한다".
 10. 팀명 첫 등장 시 한국어 + 영문 병기. 예: 아스널(Arsenal). 이후엔 한국어.
-11. **선수명도 한국 미디어 관행대로 한글 표기.** 첫 등장 시 한글(영문) 병기, 이후 한글만.
+11. **데이터 활용 적극성**: 입력 ctxLines 의 standings·elo·form·h2h·attack_defense·
+    home_away_strength·lineups·injuries·model_prediction·market_odds·fixtureStats·
+    topScores·lineMovement 모든 항목을 본문에 적극 녹여라. 표 안 수치만으로 끝내지 말고
+    "왜 그 숫자인지" 본문에서 한 문장씩 풀어준다. 단 데이터 없는 사실은 절대 만들지 마라.
+12. **선수명도 한국 미디어 관행대로 한글 표기.** 첫 등장 시 한글(영문) 병기, 이후 한글만.
     예: "Erling Haaland" → "엘링 홀란(Erling Haaland)" → 이후 "홀란".
     "Bukayo Saka" → "부카요 사카(Bukayo Saka)" → 이후 "사카".
     "Vinicius Junior" → "비니시우스 주니오르(Vinicius Junior)" → 이후 "비니시우스".
@@ -546,7 +562,9 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 - 수치만 던지지 말고 "리그 평균 대비 / 상대 대비" 비교를 함께.
 - 데이터 없으면 단락 생략(다른 비교 지표로 대체) — 추측 금지.
 
-# OUTPUT STRUCTURE (마크다운, 800~1100자)
+# OUTPUT STRUCTURE (마크다운)
+분량 제한 없음 — 입력 데이터 풍부한 만큼 분석가 톤으로 충분히 풀어내라.
+단 데이터에 없는 사실은 절대 만들지 마라.
 
 ## [헤드라인]
 한 줄. 핵심 변수 1개를 명시한 분석가 톤. 다음 패턴 중 택 1:
@@ -608,10 +626,15 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 ## 한 줄 마무리
 경기의 통계적 핵심을 한 문장으로 압축. "감이 아니라, 숫자가 말한다" 톤.
 
+(직후 — 입력 ctxLines 에 recentRecap 이 있을 때만)
+한 줄 추가: 해당 팀의 직전 매치 분석을 자연스럽게 한 문장으로 인용 + 마크다운 링크 1개.
+예) "${home} 의 직전 경기 분석은 [지난 매치 리뷰](/articles/{slug})에서 더 자세히 확인할 수 있다."
+링크 텍스트는 입력 recentRecap.title 을 활용하되 자연스럽게 짧게 다듬어도 좋다.
+
 # HARD RULES
 - 데이터에 없는 사실 절대 추측 금지. 데이터에 없으면 그 단락 생략.
 - 출처에 없는 선수 이름·기록 절대 만들어내지 마라(할루시네이션 금지).
-- 분량: 800~1100자 (헤드라인·표 제외).
+- 분량 제한 없음 — 데이터 풍부한 만큼 충분히 풀어내라.
 - 마지막에 면책: "본 분석은 통계 모델 기반 참고용이며, 베팅 권유가 아닙니다."
 
 # INPUT JSON 시작 →

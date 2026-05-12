@@ -94,8 +94,8 @@ function playerLine(p: LolRecapContext["games"][0]["players"][0]): string {
     ? `${star.koreanName}(${star.nickname}, ${star.realName})`
     : p.realName ? `${p.playerName}(${p.realName})` : p.playerName;
   const champ = championKoreanName(p.champion);
-  const kp = p.killParticipation != null ? `, KP ${Math.round(p.killParticipation * 100)}%` : "";
-  const dmg = p.damageToChamps ? `, 데미지 ${(p.damageToChamps/1000).toFixed(1)}k` : "";
+  const kp = p.kp != null ? `, KP ${Math.round(p.kp * 100)}%` : "";
+  const dmg = p.dpm ? `, DPM ${Math.round(p.dpm)}` : "";
   return `${idLabel}·${p.role}(${champ}, ${p.kills}/${p.deaths}/${p.assists}${kp}${dmg})`;
 }
 
@@ -217,14 +217,29 @@ export function buildLolRecapPromptV2(ctx: LolRecapContext): string {
     ctxLines.push("- 5라인 라인업 (게임 1·2 통합, 라인별 대표):");
     ctxLines.push(lineupTable);
   }
+  // 다음 매치 + (있다면) 발행된 PREVIEW slug — 본문 마무리에 마크다운 링크 1개 인용용
+  let nextPreviewLink: { teamName: string; slug: string; opponent: string } | null = null;
   if (ctx.nextMatch.team1) {
+    const nx = ctx.nextMatch.team1;
     ctxLines.push(
-      `- next ${m.team1NameKo}: ${ctx.nextMatch.team1.startDateIso.slice(5, 10)} vs ${ctx.nextMatch.team1.opponentNameKo}${ctx.nextMatch.team1.modelWinProb ? ` (시장 ${pct(ctx.nextMatch.team1.modelWinProb.home)})` : ""}`,
+      `- next ${m.team1NameKo}: ${nx.startDateIso.slice(5, 10)} vs ${nx.opponentNameKo}${nx.modelWinProb ? ` (시장 ${pct(nx.modelWinProb.home)})` : ""}${nx.previewSlug ? ` · preview=/articles/${nx.previewSlug}` : ""}`,
     );
+    if (nx.previewSlug && !nextPreviewLink) {
+      nextPreviewLink = { teamName: m.team1NameKo, slug: nx.previewSlug, opponent: nx.opponentNameKo };
+    }
   }
   if (ctx.nextMatch.team2) {
+    const nx = ctx.nextMatch.team2;
     ctxLines.push(
-      `- next ${m.team2NameKo}: ${ctx.nextMatch.team2.startDateIso.slice(5, 10)} vs ${ctx.nextMatch.team2.opponentNameKo}${ctx.nextMatch.team2.modelWinProb ? ` (시장 ${pct(ctx.nextMatch.team2.modelWinProb.home)})` : ""}`,
+      `- next ${m.team2NameKo}: ${nx.startDateIso.slice(5, 10)} vs ${nx.opponentNameKo}${nx.modelWinProb ? ` (시장 ${pct(nx.modelWinProb.home)})` : ""}${nx.previewSlug ? ` · preview=/articles/${nx.previewSlug}` : ""}`,
+    );
+    if (nx.previewSlug && !nextPreviewLink) {
+      nextPreviewLink = { teamName: m.team2NameKo, slug: nx.previewSlug, opponent: nx.opponentNameKo };
+    }
+  }
+  if (nextPreviewLink) {
+    ctxLines.push(
+      `- nextMatchPreviewLink (마무리 단락 안에 자연스러운 한 문장으로 인용 — 마크다운 링크 1개): ${nextPreviewLink.teamName} vs ${nextPreviewLink.opponent} 의 다음 매치 프리뷰 → /articles/${nextPreviewLink.slug}`,
     );
   }
   if (ctx.starPlayersInMatch.length > 0) {
@@ -252,7 +267,7 @@ export function buildLolRecapPromptV2(ctx: LolRecapContext): string {
     `${idx(5)}) **\`## 시리즈 종합\`** 헤더 + 시리즈 전체 흐름 2~3문장. 최근 5시리즈·streak·세트 누적·h2h 종합. 비-LoL 용어 ("홈/원정", "득점", "강등권") 절대 금지.`,
     `${idx(6)}) **\`## 스코어베이스\`** 헤더 + 사전 모델 예측 vs 실제 결과 1~2문장 (quote_hint 인용 가능). 시장 평균 가능하면 짧게. "스코어베이스 모델은…", "스코어베이스 예측이…" 식으로 본문에서 사이트 이름을 한 번 자연스럽게 언급.`,
     `${idx(7)}) **\`## 시즌 함의\`** 헤더 + ${winnerNameKo} ${winnerStd.wins}승 ${winnerStd.losses}패 ${winnerStd.rank}위, ${loserNameKo} ${loserStd.wins}승 ${loserStd.losses}패 ${loserStd.rank}위 인용. 세트 득실·2-0 셧다운 횟수도 활용. 플레이오프 시드 영향. "강등권" 금지 (LCK 강등제 없음).`,
-    `${idx(8)}) **마무리 단락 (헤더 없음)** — 매치 통계적 핵심 1~2문장. 다음 매치 있으면 자연스럽게 언급. 숫자 톤.`,
+    `${idx(8)}) **마무리 단락 (헤더 없음)** — 매치 통계적 핵심 1~2문장. 다음 매치 있으면 자연스럽게 언급. 숫자 톤. INPUT DATA 에 nextMatchPreviewLink 가 있으면 그 단락 안에 자연스러운 마크다운 링크 1개 인용 (예: "[T1의 다음 매치 프리뷰](/articles/{slug})").`,
     `${idx(9)}) **마지막 줄 면책** — 정확히: \`본 분석은 통계 모델 기반 참고용이며, 베팅 권유가 아닙니다.\``,
   );
 

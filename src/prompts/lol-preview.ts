@@ -270,6 +270,13 @@ export function buildLolPreviewPrompt(input: PreviewPromptInput): string {
   if (context.lolMeta?.championMeta && context.lolMeta.championMeta.length > 0) {
     ctxLines.push(championMetaLine(context.lolMeta.championMeta));
   }
+  // 양 팀 중 한 쪽의 최근 RECAP 글 — 본문 마무리에 마크다운 링크 1개 인용용
+  if (context.recentRecap) {
+    const teamName = context.recentRecap.teamSide === "home" ? t1 : t2;
+    ctxLines.push(
+      `- recentRecapLink (마무리 단락 안에 자연스러운 한 문장으로 인용 — 마크다운 링크 1개): ${teamName} 의 직전 매치 리뷰 "${context.recentRecap.title}" → /articles/${context.recentRecap.slug}`,
+    );
+  }
 
   // 모델 표 미리 생성 — GPT 가 표 깨먹지 않게 prompt 에 그대로 박는다.
   const predictionTable = buildPredictionTable({
@@ -415,6 +422,7 @@ LCK 정규 시즌 컨텍스트 — 플레이오프 진출 가능성, 스플릿 1
 
 ## 한 줄 마무리
 경기의 통계적 핵심을 한 문장으로 압축. 숫자 톤 유지.
+INPUT DATA 에 recentRecapLink 가 있으면 그 직후에 한 문장 추가 — 자연스러운 마크다운 링크 1개로 직전 매치 리뷰를 인용 (예: "[해당 팀의 직전 매치 리뷰](/articles/{slug})에서 더 자세한 분석을 확인할 수 있다.").
 
 # HARD RULES
 - 데이터에 없는 사실 절대 추측 금지. 입력에 없는 선수 이름·챔피언명·KDA·패치 변경점 만들어내지 마라.

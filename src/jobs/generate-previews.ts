@@ -472,6 +472,40 @@ export async function runPreview(opts?: {
         raw: {},
       };
 
+      // 본문 내부 링크 1개용 — 양 팀 중 가장 최근 발행된 RECAP 글 1개 (3개월 내).
+      try {
+        const recapCutoff = new Date(Date.now() - 90 * 24 * 3600 * 1000);
+        const recentRecap = await prisma.article.findFirst({
+          where: {
+            type: "RECAP",
+            status: "PUBLISHED",
+            createdAt: { gte: recapCutoff },
+            match: {
+              OR: [
+                { homeTeamId: m.homeTeamId },
+                { awayTeamId: m.homeTeamId },
+                { homeTeamId: m.awayTeamId },
+                { awayTeamId: m.awayTeamId },
+              ],
+            },
+          },
+          orderBy: { publishedAt: "desc" },
+          select: { slug: true, title: true, match: { select: { homeTeamId: true, awayTeamId: true } } },
+        });
+        if (recentRecap && recentRecap.match) {
+          const isHome =
+            recentRecap.match.homeTeamId === m.homeTeamId ||
+            recentRecap.match.awayTeamId === m.homeTeamId;
+          context.recentRecap = {
+            slug: recentRecap.slug,
+            title: recentRecap.title,
+            teamSide: isHome ? "home" : "away",
+          };
+        }
+      } catch (err) {
+        console.warn(`[preview] recentRecap fetch 실패:`, (err as Error).message);
+      }
+
       const prompt =
         m.league === "LOL"
           ? buildLolPreviewPrompt({ match: normalized, context })
