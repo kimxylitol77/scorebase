@@ -16,6 +16,8 @@ import {
   normalizeOddsTeamName,
   ODDS_SUPPORTED_LEAGUES,
 } from "@/lib/odds/odds-api";
+import { kboEnglishToKorean } from "@/lib/sports/kbo";
+import { npbEnglishToKorean } from "@/lib/sports/npb";
 import {
   fetchPinnacleLolMatches,
   fetchPinnacleMoneyline,
@@ -59,13 +61,19 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
         include: { homeTeam: true, awayTeam: true },
       });
 
+      // KBO/NPB 는 Odds API 응답이 영문, 우리 DB 가 한국명 → 변환 후 매칭
+      const localizeTeam = (s: string): string => {
+        if (league === "KBO") return kboEnglishToKorean(s);
+        if (league === "NPB") return npbEnglishToKorean(s);
+        return s;
+      };
       let matched = 0;
       for (const m of dbMatches) {
         const homeN = normalizeOddsTeamName(m.homeTeam.name);
         const awayN = normalizeOddsTeamName(m.awayTeam.name);
         const ev = events.find((e) => {
-          const eh = normalizeOddsTeamName(e.home_team);
-          const ea = normalizeOddsTeamName(e.away_team);
+          const eh = normalizeOddsTeamName(localizeTeam(e.home_team));
+          const ea = normalizeOddsTeamName(localizeTeam(e.away_team));
           return (
             (eh.includes(homeN) || homeN.includes(eh)) &&
             (ea.includes(awayN) || awayN.includes(ea))

@@ -54,6 +54,9 @@ const TEAM_NAME_KO: Record<string, string> = {
 const TEAM_NAME_KO_LOWER: Record<string, string> = Object.fromEntries(
   Object.entries(TEAM_NAME_KO).map(([k, v]) => [k.toLowerCase(), v]),
 );
+export function npbEnglishToKorean(name: string | undefined): string {
+  return toKorean(name);
+}
 function toKorean(name: string | undefined): string {
   if (!name) return "";
   return TEAM_NAME_KO_LOWER[name.toLowerCase()] ?? name;

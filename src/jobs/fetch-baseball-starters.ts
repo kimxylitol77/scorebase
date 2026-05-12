@@ -58,9 +58,11 @@ function jsonEq(a: string | null, b: string | null): boolean {
 export async function runFetchBaseballStarters(opts?: {
   horizonDays?: number;
   regenerateArticles?: boolean; // 기본 true — 변경 매치 PREVIEW 본문 재발행
+  forceRegen?: boolean; // true → 변경 감지 무시, 모든 매치 article 재발행
 }) {
   const horizonDays = opts?.horizonDays ?? 3;
   const regenerateArticles = opts?.regenerateArticles ?? true;
+  const forceRegen = opts?.forceRegen ?? false;
   const now = new Date();
   const horizon = new Date(now.getTime() + horizonDays * 86400 * 1000);
 
@@ -162,8 +164,11 @@ export async function runFetchBaseballStarters(opts?: {
     }
 
     if (!newHomeJson || !newAwayJson) continue;
-    // 변경 감지
-    const changed = !jsonEq(m.homeStarter, newHomeJson) || !jsonEq(m.awayStarter, newAwayJson);
+    // 변경 감지 (forceRegen 이면 항상 changed = true)
+    const changed =
+      forceRegen ||
+      !jsonEq(m.homeStarter, newHomeJson) ||
+      !jsonEq(m.awayStarter, newAwayJson);
     await prisma.match.update({
       where: { id: m.id },
       data: {
