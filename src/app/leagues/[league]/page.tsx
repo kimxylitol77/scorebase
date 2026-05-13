@@ -30,9 +30,9 @@ type FilterType = "ALL" | ArticleType;
 
 const VALID_TYPES: FilterType[] = ["ALL", "PREVIEW", "RECAP", "ANALYSIS"];
 
-// 부상자 명단 페이지를 가진 리그 (축구 6개 + NBA/MLB/NHL ESPN)
-// UCL 은 소속 리그(EPL/라리가/...)와 중복이라 제외
-const SOCCER_INJURY_LEAGUES = new Set([
+// 부상자 명단 페이지를 가진 리그 (축구 6 + NBA/MLB/NHL + KBO/NPB)
+// UCL 은 소속 리그(EPL/라리가/...)와 중복이라 제외, LoL 은 부상자 개념 부재
+const INJURY_LEAGUES = new Set([
   "EPL",
   "LALIGA",
   "BUNDESLIGA",
@@ -42,6 +42,8 @@ const SOCCER_INJURY_LEAGUES = new Set([
   "NBA",
   "MLB",
   "NHL",
+  "KBO",
+  "NPB",
 ]);
 
 const LEAGUE_INFO: Record<
@@ -377,8 +379,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               </Link>
             );
           })}
-          {/* 부상자명단 — 축구 7개 리그만 (api-football Pro 지원) */}
-          {SOCCER_INJURY_LEAGUES.has(upper) && (
+          {/* 부상자명단 — 축구 6 + NBA/MLB/NHL + KBO/NPB */}
+          {INJURY_LEAGUES.has(upper) && (
             <Link
               href={`/injuries/${upper}`}
               className="px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
