@@ -321,6 +321,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           startTime: true,
           homeScore: true,
           awayScore: true,
+          homeStarter: true,
+          awayStarter: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
         },
@@ -331,6 +333,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const url = `${SITE_URL}/articles/${slug}`;
   const isLol = LCK_LEAGUES.has(article.league);
+  const isBaseball =
+    article.league === "KBO" ||
+    article.league === "MLB" ||
+    article.league === "NPB";
 
   // LoL 분기 — keywords 풍부화 + description 명시 패턴 (PREVIEW vs RECAP)
   let desc: string;
@@ -348,6 +354,46 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
     desc = lolMeta.description;
     keywords = lolMeta.keywords;
+  } else if (isBaseball && article.match) {
+    // 야구 KBO/MLB/NPB — recap/preview 분기 + starter 이름 키워드
+    desc = makeDescription(article.content);
+    const homeName = toKoreanTeamName(article.match.homeTeam.name);
+    const awayName = toKoreanTeamName(article.match.awayTeam.name);
+    const isKbo = article.league === "KBO";
+    const isMlb = article.league === "MLB";
+    const isRecap = slug.includes("-recap-");
+    const baseKeywords = isRecap
+      ? [
+          `${homeName} vs ${awayName}`,
+          `${homeName} 경기 결과`,
+          `${awayName} 경기 결과`,
+          `${article.league} 리뷰`,
+          `${article.league} 결과`,
+          isKbo ? "프로야구 결과" : isMlb ? "MLB 결과" : "NPB 결과",
+        ]
+      : [
+          `${homeName} vs ${awayName} 예측`,
+          `${homeName} 선발 투수`,
+          `${awayName} 선발 투수`,
+          `${article.league} 프리뷰`,
+          `${article.league} 예측`,
+          isKbo ? "오늘 프로야구" : isMlb ? "오늘 MLB" : "오늘 NPB",
+        ];
+    const starterNames: string[] = [];
+    for (const raw of [article.match.homeStarter, article.match.awayStarter]) {
+      if (!raw) continue;
+      try {
+        const j = JSON.parse(raw) as { name?: string };
+        if (j.name) starterNames.push(`${j.name} 등판`);
+      } catch {}
+    }
+    keywords = [
+      ...baseKeywords,
+      ...starterNames,
+      "야구 분석",
+      "스코어베이스",
+      "Scorebase",
+    ];
   } else {
     desc = makeDescription(article.content);
   }

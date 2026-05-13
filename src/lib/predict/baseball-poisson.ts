@@ -55,6 +55,26 @@ const LEAGUE_AVG_ERA = 4.2;
 const INNINGS = 9;
 const STARTER_INNINGS_CUTOFF = 6; // 7회부터 불펜
 
+// 이닝별 득점 빈도 가중치 (양 팀 동일 적용).
+//
+// 야구 실데이터 패턴:
+// - 1~3회: 상위 타순(1~5번) 1순환 → 약간 높음
+// - 4~6회: 2순환 진입 + 선발 피로 누적 → 클린업 추가 기회
+// - 7회: 불펜 1차 (셋업 전 미들 릴리프) → 평균 수준에서 살짝 낮음
+// - 8회: 셋업맨 → 정예 투수 투입으로 낮아짐
+// - 9회: 마무리 → 가장 낮음
+const INNING_WEIGHTS: Record<number, number> = {
+  1: 1.05,
+  2: 1.1,
+  3: 0.9,
+  4: 1.0,
+  5: 1.05,
+  6: 1.1,
+  7: 0.9,
+  8: 0.8,
+  9: 0.75,
+};
+
 export function calculateInningScoreProbs(input: PoissonInput): PoissonOutput {
   const result: InningProb[] = [];
 
@@ -63,17 +83,19 @@ export function calculateInningScoreProbs(input: PoissonInput): PoissonOutput {
     const team1Era = useStarter ? input.team1StarterEra : input.team1BullpenEra;
     const team2Era = useStarter ? input.team2StarterEra : input.team2BullpenEra;
 
-    // λ = (시즌 평균/9) + (상대투수ERA - 리그평균ERA)/9 + 구장 + 폼
+    // λ = (시즌평균/9 × 이닝가중치) + (상대투수ERA - 리그평균ERA)/9 + 구장 + 폼
     // 상대 투수 ERA 가 리그 평균보다 낮으면 (좋은 투수) → 우리 득점 ↓
     // 상대 ERA 가 높으면 (나쁜 투수) → 우리 득점 ↑
+    // 이닝 가중치: 1~3 상위타순, 4~6 클린업+선발피로, 7~9 불펜 (셋업/마무리 점감)
+    const w = INNING_WEIGHTS[inning] ?? 1.0;
     const team1ExpRuns =
-      input.team1AvgRpg / 9 +
+      (input.team1AvgRpg / 9) * w +
       (team2Era - LEAGUE_AVG_ERA) / 9 +
       (input.parkFactor - 1) * 0.5 +
       input.team1RecentForm / 9;
 
     const team2ExpRuns =
-      input.team2AvgRpg / 9 +
+      (input.team2AvgRpg / 9) * w +
       (team1Era - LEAGUE_AVG_ERA) / 9 +
       (input.parkFactor - 1) * 0.5 +
       input.team2RecentForm / 9;
