@@ -57,6 +57,7 @@ import {
   buildMatchContext,
   enrichContextWithApiFootball,
 } from "@/lib/predict/build-context";
+import { enrichBaseballContext } from "@/lib/predict/baseball-context";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
 
@@ -381,6 +382,10 @@ export async function runPreview(opts?: {
           };
         } catch {}
       }
+
+      // 야구(KBO/MLB/NPB) Poisson 이닝별 득점 확률 — starter ERA + 시즌 RPG/RApg
+      // + 구장 + 최근 폼 으로 9이닝 분포 + Skellam 시뮬 승률.
+      context = enrichBaseballContext(context, m);
 
       // LoL — 현재 패치 + LCK 정규 standings + BDL 풍부 데이터 (rosters, KDA, 1게임 시장, 챔피언 메타)
       if (m.league === "LOL") {
@@ -730,6 +735,16 @@ export async function runPreview(opts?: {
             : "DRAW"
         : null;
 
+      // 야구(KBO/MLB/NPB) — InningScoreChart 렌더용 JSON 컨텍스트
+      const baseballCtx =
+        context.inningScoreProbs && context.totalExpectedRuns
+          ? {
+              inningScoreProbs: context.inningScoreProbs,
+              totalExpectedRuns: context.totalExpectedRuns,
+              winProbPoisson: context.winProbPoisson,
+            }
+          : null;
+
       const article = await prisma.article.create({
         data: {
           matchId: m.id,
@@ -744,6 +759,7 @@ export async function runPreview(opts?: {
           predDraw: wp?.draw ?? null,
           predAway: wp?.away ?? null,
           predWinner: predictedWinner,
+          baseballContext: baseballCtx ? JSON.stringify(baseballCtx) : null,
         },
       });
 

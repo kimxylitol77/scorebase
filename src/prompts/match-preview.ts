@@ -128,6 +128,24 @@ export interface PreviewContext {
   };
   /** Poisson 결합 5,000회 시뮬과 동등한 스코어 분포 — top 3 (축구만) */
   topScores?: Array<{ home: number; away: number; prob: number }>;
+  /** 야구(KBO/MLB/NPB) — 시즌 평균 RPG / RApg (calcStandings 기반) */
+  baseballStats?: {
+    home: { rpg: number; rapg: number; played: number };
+    away: { rpg: number; rapg: number; played: number };
+  };
+  /** 야구 이닝별 득점 확률 (Poisson) — KBO/MLB/NPB + 양 팀 starter ERA 있을 때 */
+  inningScoreProbs?: Array<{
+    inning: number;
+    team1RunProb: number[]; // [0, 1, 2, 3, 4+]
+    team2RunProb: number[];
+    team1ExpectedRuns: number;
+    team2ExpectedRuns: number;
+    pitcherFactor: "starter" | "bullpen";
+  }>;
+  /** 야구 누적 예상 득점 (9회 합계) */
+  totalExpectedRuns?: { team1: number; team2: number };
+  /** 야구 Poisson + Skellam 시뮬 승률 (team1=원정, team2=홈) */
+  winProbPoisson?: { team1: number; team2: number };
   /** 베팅 라인 움직임 — 오프닝 odds vs 현재 odds 변화 (implied 확률) */
   lineMovement?: {
     home: { opening: number; current: number };
@@ -271,6 +289,33 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     const ap = context.apiPrediction;
     ctxLines.push(
       `- API-Football 자체 예측 (외부 third opinion): ${home} ${pct(ap.homePct)} / 무 ${pct(ap.drawPct)} / ${away} ${pct(ap.awayPct)}${ap.advice ? ` · advice: ${ap.advice}` : ""}`,
+    );
+  }
+  // 야구(KBO/MLB/NPB) — 시즌 평균 + Poisson 모델 결과. 본문에서 수치 중복
+  // 나열 금지 (별도 InningScoreChart 카드로 노출됨).
+  if (context.baseballStats) {
+    ctxLines.push(
+      `- 시즌 평균 득실: ${home} RPG ${context.baseballStats.home.rpg.toFixed(2)} · RApg ${context.baseballStats.home.rapg.toFixed(2)} (${context.baseballStats.home.played}경기) / ${away} RPG ${context.baseballStats.away.rpg.toFixed(2)} · RApg ${context.baseballStats.away.rapg.toFixed(2)} (${context.baseballStats.away.played}경기)`,
+    );
+  }
+  if (context.totalExpectedRuns) {
+    ctxLines.push(
+      `- Poisson 모델 예상 득점: ${away}(원정) ${context.totalExpectedRuns.team1.toFixed(2)} · ${home}(홈) ${context.totalExpectedRuns.team2.toFixed(2)}`,
+    );
+  }
+  if (context.winProbPoisson) {
+    ctxLines.push(
+      `- Poisson+Skellam 승률: ${away}(원정) ${pct(context.winProbPoisson.team1)} · ${home}(홈) ${pct(context.winProbPoisson.team2)}`,
+    );
+  }
+  if (context.inningScoreProbs && context.inningScoreProbs.length === 9) {
+    // 본문에서 카드와 같은 수치 나열 막기 위해 prompt 에는 요약 정보만.
+    // 7회 이후 불펜 전환점이 핵심.
+    const bullpenStart =
+      context.inningScoreProbs.find((r) => r.pitcherFactor === "bullpen")
+        ?.inning ?? 7;
+    ctxLines.push(
+      `- 이닝별 득점 확률 카드 별도 표시 (${bullpenStart}회부터 불펜 전환). 본문에서는 이닝별 % 수치 나열 금지 — 흐름 해석에 집중.`,
     );
   }
   if (context.starters?.home || context.starters?.away) {

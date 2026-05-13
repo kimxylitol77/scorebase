@@ -15,6 +15,7 @@ import {
   enrichContextWithApiFootball,
   enrichRecapWithApiFootball,
 } from "@/lib/predict/build-context";
+import { enrichBaseballContext } from "@/lib/predict/baseball-context";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
 
@@ -149,6 +150,9 @@ export async function runRecap(opts?: {
           };
         } catch {}
       }
+      // 야구(KBO/NPB/MLB) Poisson 이닝별 득점 확률 — starter ERA + 시즌 RPG/RApg
+      // + 구장 + 최근 폼 으로 9이닝 분포 + Skellam 시뮬 승률 채움.
+      context = enrichBaseballContext(context, m);
 
       // API-Football fixture statistics (RECAP 강화)
       if (m.fixtureStats) {
@@ -277,6 +281,16 @@ export async function runRecap(opts?: {
         : `${prefix} ${rawTitle}`;
       const slug = buildSlug(m.league, m.id);
 
+      // 야구(KBO/MLB/NPB) 이닝별 득점 모델 결과 — UI InningScoreChart 렌더용
+      const baseballCtx =
+        context.inningScoreProbs && context.totalExpectedRuns
+          ? {
+              inningScoreProbs: context.inningScoreProbs,
+              totalExpectedRuns: context.totalExpectedRuns,
+              winProbPoisson: context.winProbPoisson,
+            }
+          : null;
+
       const article = await prisma.article.create({
         data: {
           matchId: m.id,
@@ -289,6 +303,7 @@ export async function runRecap(opts?: {
           publishedAt: autoPublish ? new Date() : null,
           // LoL RECAP — UI 카드 렌더링용 JSON 컨텍스트 저장
           lolContext: lolRecapCtx ? JSON.stringify(lolRecapCtx) : null,
+          baseballContext: baseballCtx ? JSON.stringify(baseballCtx) : null,
         },
       });
 

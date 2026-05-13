@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import Markdown from "@/components/Markdown";
+import InningScoreChart from "@/components/InningScoreChart";
+import type { InningProb } from "@/lib/predict/baseball-poisson";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
@@ -547,6 +549,30 @@ export default async function ArticlePage({ params }: Props) {
       <ExternalSources league={article.league} />
 
       {article.match && <MatchInsight match={article.match} />}
+
+      {/* 야구(KBO/MLB/NPB) — Poisson 이닝별 득점 확률 차트.
+          generate-articles / generate-previews 가 baseballContext JSON 저장. */}
+      {article.baseballContext && article.match && (() => {
+        try {
+          const bc = JSON.parse(article.baseballContext) as {
+            inningScoreProbs?: InningProb[];
+            totalExpectedRuns?: { team1: number; team2: number };
+            winProbPoisson?: { team1: number; team2: number };
+          };
+          if (!bc.inningScoreProbs || !bc.totalExpectedRuns) return null;
+          return (
+            <InningScoreChart
+              inningProbs={bc.inningScoreProbs}
+              awayName={toKoreanTeamName(article.match!.awayTeam.name)}
+              homeName={toKoreanTeamName(article.match!.homeTeam.name)}
+              totalExpectedRuns={bc.totalExpectedRuns}
+              winProb={bc.winProbPoisson}
+            />
+          );
+        } catch {
+          return null;
+        }
+      })()}
 
       {article.match && (
         <InjuryAndKeyPlayers

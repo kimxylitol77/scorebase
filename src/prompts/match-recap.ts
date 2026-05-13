@@ -140,6 +140,22 @@ export function buildRecapPrompt(input: RecapPromptInput): string {
         : "(미정)";
     ctxLines.push(`- 선발 투수: ${home} ${fmtS(s.home)} / ${away} ${fmtS(s.away)} — 시즌 성적 대비 이번 등판 결과 비교`);
   }
+  // 야구(KBO/MLB/NPB) Poisson 모델 — 사전 예상 득점 vs 실제 결과 비교용
+  if (context.totalExpectedRuns) {
+    ctxLines.push(
+      `- 사전 Poisson 모델 예상 득점: ${away}(원정) ${context.totalExpectedRuns.team1.toFixed(2)} · ${home}(홈) ${context.totalExpectedRuns.team2.toFixed(2)} — 실제 ${match.awayScore}-${match.homeScore} 와 차이 분석 (모델 hit/miss)`,
+    );
+  }
+  if (context.winProbPoisson) {
+    ctxLines.push(
+      `- 사전 Poisson+Skellam 승률: ${away} ${pct(context.winProbPoisson.team1)} · ${home} ${pct(context.winProbPoisson.team2)} — 모델이 어느 팀 우세로 봤는지`,
+    );
+  }
+  if (context.inningScoreProbs && context.inningScoreProbs.length === 9) {
+    ctxLines.push(
+      `- 이닝별 득점 확률 카드는 별도 표시. 본문에서는 카드와 같은 % 수치 나열 금지 — '6회 이후 불펜 전환점에서 흐름 바뀐 부분' 같은 분석적 해석에 집중.`,
+    );
+  }
   if (context.topScores && context.topScores.length > 0) {
     const ts = context.topScores
       .slice(0, 3)

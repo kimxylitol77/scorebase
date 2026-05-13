@@ -16,6 +16,7 @@ const SOCCER_LEAGUES = new Set([
   "UCL",
   "WORLD_CUP",
 ]);
+const BASEBALL_LEAGUES = new Set(["KBO", "MLB", "NPB"]);
 import { calcForm } from "./form";
 import { calcH2H } from "./h2h";
 import { calcStandings } from "./standings";
@@ -149,6 +150,26 @@ export function buildMatchContext(
           league,
         ).topScores
       : undefined,
+    // 야구(KBO/NPB/MLB) — 시즌 평균 득실점. Poisson 모델 input 으로 사용.
+    baseballStats:
+      BASEBALL_LEAGUES.has(league) &&
+      homeRow &&
+      awayRow &&
+      homeRow.played > 0 &&
+      awayRow.played > 0
+        ? {
+            home: {
+              rpg: homeRow.goalsFor / homeRow.played,
+              rapg: homeRow.goalsAgainst / homeRow.played,
+              played: homeRow.played,
+            },
+            away: {
+              rpg: awayRow.goalsFor / awayRow.played,
+              rapg: awayRow.goalsAgainst / awayRow.played,
+              played: awayRow.played,
+            },
+          }
+        : undefined,
   };
 }
 
