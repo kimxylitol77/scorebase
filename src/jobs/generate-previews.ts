@@ -31,8 +31,20 @@ import {
 import {
   fetchNpbStartersForMonth,
   pickNpbStartersForMatch,
+  jpPitcherToKorean,
   type NpbStarter,
 } from "@/lib/sports/npb-starters";
+import {
+  fetchKboInjuries,
+  getTeamKboInjuries,
+  type KboInjury,
+} from "@/lib/sports/kbo-injuries";
+import {
+  fetchNpbInjuries,
+  activeNpbInjuries,
+  getTeamNpbInjuries,
+  type NpbInjuryEntry,
+} from "@/lib/sports/npb-injuries";
 import type {
   LolRosterPlayer,
   LolPlayerStatsLite,
@@ -96,6 +108,9 @@ export async function runPreview(opts?: {
   // KBO/NPB 선발 투수 — 매 매치 fetch 부담 줄이려 잡 시작 시점에 한 번만.
   let kboStarters: KboStarter[] = [];
   let npbStarters: NpbStarter[] = [];
+  // KBO/NPB 부상자 — 시즌 단위 한 번 호출 후 매치별 양 팀 filter.
+  let kboInjuries: KboInjury[] = [];
+  let npbInjuries: NpbInjuryEntry[] = [];
   if (matches.some((m) => m.league === "KBO")) {
     try {
       const raw = await fetchKboStartersToday();
@@ -106,6 +121,12 @@ export async function runPreview(opts?: {
       console.log(`[preview/KBO] 시즌 stats 보강: ${withStats}/${kboStarters.length * 2}명`);
     } catch (err) {
       console.warn(`[preview/KBO] starters fetch 실패:`, (err as Error).message);
+    }
+    try {
+      kboInjuries = await fetchKboInjuries();
+      console.log(`[preview/KBO] 부상자/치료재활 ${kboInjuries.length}건 fetch`);
+    } catch (err) {
+      console.warn(`[preview/KBO] injuries fetch 실패:`, (err as Error).message);
     }
   }
   if (matches.some((m) => m.league === "NPB")) {
@@ -123,6 +144,13 @@ export async function runPreview(opts?: {
       console.log(`[preview/NPB] 선발 투수 ${npbStarters.length}건 fetch (npb.jp ${cy}-${cm} + ${ny}-${nm})`);
     } catch (err) {
       console.warn(`[preview/NPB] starters fetch 실패:`, (err as Error).message);
+    }
+    try {
+      const raw = await fetchNpbInjuries(30);
+      npbInjuries = activeNpbInjuries(raw);
+      console.log(`[preview/NPB] 1군 등록말소 (active) ${npbInjuries.length}건 fetch`);
+    } catch (err) {
+      console.warn(`[preview/NPB] injuries fetch 실패:`, (err as Error).message);
     }
   }
 
@@ -296,6 +324,49 @@ export async function runPreview(opts?: {
               startersUpdatedAt: new Date(),
             },
           }).catch(() => {});
+        }
+      }
+
+      // KBO 부상자 명단 + 치료·재활명단 → context.injuries (PREVIEW 본문 인용용)
+      if (m.league === "KBO" && kboInjuries.length > 0) {
+        const homeInj = getTeamKboInjuries(kboInjuries, m.homeTeam.name);
+        const awayInj = getTeamKboInjuries(kboInjuries, m.awayTeam.name);
+        if (homeInj.length > 0 || awayInj.length > 0) {
+          context.injuries = {
+            home: homeInj.map((i) => ({
+              name: i.position ? `${i.playerName}(${i.position})` : i.playerName,
+              reason: `${i.type} · ${i.duration}`,
+            })),
+            away: awayInj.map((i) => ({
+              name: i.position ? `${i.playerName}(${i.position})` : i.playerName,
+              reason: `${i.type} · ${i.duration}`,
+            })),
+          };
+        }
+      }
+
+      // NPB 1군 등록말소 → context.injuries
+      if (m.league === "NPB" && npbInjuries.length > 0) {
+        const npbDisplay = (jp: string) => {
+          const tokens = jp.split(/[\s　]+/).filter(Boolean);
+          if (tokens.length === 0) return jp;
+          const ko = jpPitcherToKorean(tokens[0]);
+          if (ko === tokens[0]) return jp;
+          return tokens.length > 1 ? `${ko} ${tokens.slice(1).join(" ")}` : ko;
+        };
+        const homeInj = getTeamNpbInjuries(npbInjuries, m.homeTeam.name);
+        const awayInj = getTeamNpbInjuries(npbInjuries, m.awayTeam.name);
+        if (homeInj.length > 0 || awayInj.length > 0) {
+          context.injuries = {
+            home: homeInj.map((i) => ({
+              name: npbDisplay(i.playerName),
+              reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+            })),
+            away: awayInj.map((i) => ({
+              name: npbDisplay(i.playerName),
+              reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+            })),
+          };
         }
       }
 

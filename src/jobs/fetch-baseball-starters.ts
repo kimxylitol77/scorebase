@@ -21,8 +21,20 @@ import {
   fetchNpbStartersForMonth,
   enrichNpbStartersWithStats,
   pickNpbStartersForMatch,
+  jpPitcherToKorean,
   type NpbStarter,
 } from "@/lib/sports/npb-starters";
+import {
+  fetchKboInjuries,
+  getTeamKboInjuries,
+  type KboInjury,
+} from "@/lib/sports/kbo-injuries";
+import {
+  fetchNpbInjuries,
+  activeNpbInjuries,
+  getTeamNpbInjuries,
+  type NpbInjuryEntry,
+} from "@/lib/sports/npb-injuries";
 import { generate } from "@/lib/ai/claude";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
@@ -201,12 +213,36 @@ export async function runFetchBaseballStarters(opts?: {
   console.log(`[starters] update ${updated}건, 변경 매치(article 있음) ${changedMatchIds.length}건`);
 
   // 4) 변경된 매치 PREVIEW 본문 재발행
+  //    부상자 데이터는 regen 전 한 번만 fetch 후 매치별 filter (KBO/NPB 분리).
+  let kboInjuries: KboInjury[] = [];
+  let npbInjuries: NpbInjuryEntry[] = [];
+  if (regenerateArticles && changedMatchIds.length > 0) {
+    const changedMatches = matches.filter((m) => changedMatchIds.includes(m.id));
+    if (changedMatches.some((m) => m.league === "KBO")) {
+      try {
+        kboInjuries = await fetchKboInjuries();
+        console.log(`[starters/KBO] 부상자 ${kboInjuries.length}건 fetch`);
+      } catch (e) {
+        console.warn(`[starters/KBO] injuries fetch 실패:`, (e as Error).message);
+      }
+    }
+    if (changedMatches.some((m) => m.league === "NPB")) {
+      try {
+        const raw = await fetchNpbInjuries(30);
+        npbInjuries = activeNpbInjuries(raw);
+        console.log(`[starters/NPB] 1군 등록말소 ${npbInjuries.length}건 fetch`);
+      } catch (e) {
+        console.warn(`[starters/NPB] injuries fetch 실패:`, (e as Error).message);
+      }
+    }
+  }
+
   let regenerated = 0;
   const failedRegens: number[] = [];
   if (regenerateArticles && changedMatchIds.length > 0) {
     for (const mid of changedMatchIds) {
       try {
-        await regenerateBaseballPreview(mid);
+        await regenerateBaseballPreview(mid, { kboInjuries, npbInjuries });
         regenerated++;
         console.log(`[starters] regen ✅ match #${mid}`);
         await new Promise((r) => setTimeout(r, 1000));
@@ -257,7 +293,7 @@ export async function runFetchBaseballStarters(opts?: {
     await new Promise((r) => setTimeout(r, 30000));
     for (const mid of failedRegens) {
       try {
-        await regenerateBaseballPreview(mid);
+        await regenerateBaseballPreview(mid, { kboInjuries, npbInjuries });
         regenerated++;
         console.log(`[starters] retry regen ✅ match #${mid}`);
         await new Promise((r) => setTimeout(r, 2000));
@@ -272,8 +308,12 @@ export async function runFetchBaseballStarters(opts?: {
 
 /**
  * 단일 매치 PREVIEW article 본문 재발행 — 새 starters 가 반영된 상태에서.
+ * 부상자(KBO/NPB) 데이터는 호출자가 한 번만 fetch 해서 전달 (매치마다 호출하면 낭비).
  */
-async function regenerateBaseballPreview(matchId: number): Promise<void> {
+async function regenerateBaseballPreview(
+  matchId: number,
+  opts?: { kboInjuries?: KboInjury[]; npbInjuries?: NpbInjuryEntry[] },
+): Promise<void> {
   const m = await prisma.match.findUnique({
     where: { id: matchId },
     include: {
@@ -358,6 +398,46 @@ async function regenerateBaseballPreview(matchId: number): Promise<void> {
         away: m.awayStarter ? JSON.parse(m.awayStarter) : undefined,
       };
     } catch {}
+  }
+
+  // KBO/NPB 부상자 → context.injuries
+  if (m.league === "KBO" && opts?.kboInjuries && opts.kboInjuries.length > 0) {
+    const homeInj = getTeamKboInjuries(opts.kboInjuries, m.homeTeam.name);
+    const awayInj = getTeamKboInjuries(opts.kboInjuries, m.awayTeam.name);
+    if (homeInj.length > 0 || awayInj.length > 0) {
+      context.injuries = {
+        home: homeInj.map((i) => ({
+          name: i.position ? `${i.playerName}(${i.position})` : i.playerName,
+          reason: `${i.type} · ${i.duration}`,
+        })),
+        away: awayInj.map((i) => ({
+          name: i.position ? `${i.playerName}(${i.position})` : i.playerName,
+          reason: `${i.type} · ${i.duration}`,
+        })),
+      };
+    }
+  } else if (m.league === "NPB" && opts?.npbInjuries && opts.npbInjuries.length > 0) {
+    const npbDisplay = (jp: string) => {
+      const tokens = jp.split(/[\s　]+/).filter(Boolean);
+      if (tokens.length === 0) return jp;
+      const ko = jpPitcherToKorean(tokens[0]);
+      if (ko === tokens[0]) return jp;
+      return tokens.length > 1 ? `${ko} ${tokens.slice(1).join(" ")}` : ko;
+    };
+    const homeInj = getTeamNpbInjuries(opts.npbInjuries, m.homeTeam.name);
+    const awayInj = getTeamNpbInjuries(opts.npbInjuries, m.awayTeam.name);
+    if (homeInj.length > 0 || awayInj.length > 0) {
+      context.injuries = {
+        home: homeInj.map((i) => ({
+          name: npbDisplay(i.playerName),
+          reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+        })),
+        away: awayInj.map((i) => ({
+          name: npbDisplay(i.playerName),
+          reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+        })),
+      };
+    }
   }
 
   // recentRecap (내부 링크 1개 — 발행 시점 흐름과 동일)
