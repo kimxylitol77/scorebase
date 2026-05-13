@@ -232,6 +232,8 @@ export default async function ScoresPage({ searchParams }: Props) {
                       key={m.id}
                       homeName={toKoreanTeamName(m.homeTeam.name)}
                       awayName={toKoreanTeamName(m.awayTeam.name)}
+                      homeLogo={m.homeTeam.logoUrl}
+                      awayLogo={m.awayTeam.logoUrl}
                       homeScore={m.homeScore}
                       awayScore={m.awayScore}
                       status={m.status}
@@ -262,9 +264,30 @@ export default async function ScoresPage({ searchParams }: Props) {
   );
 }
 
+function TeamLogo({ url, name }: { url: string | null; name: string }) {
+  if (url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt=""
+        className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0"
+        loading="lazy"
+      />
+    );
+  }
+  return (
+    <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-neutral-200 dark:bg-neutral-800 text-[10px] font-bold text-neutral-500 shrink-0">
+      {name.slice(0, 1)}
+    </span>
+  );
+}
+
 function MatchRow({
   homeName,
   awayName,
+  homeLogo,
+  awayLogo,
   homeScore,
   awayScore,
   status,
@@ -276,6 +299,8 @@ function MatchRow({
 }: {
   homeName: string;
   awayName: string;
+  homeLogo: string | null;
+  awayLogo: string | null;
   homeScore: number | null;
   awayScore: number | null;
   status: string;
@@ -313,14 +338,19 @@ function MatchRow({
           {statusBadge}
         </div>
         <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
-          <div className="min-w-0 text-right">
-            <div className="truncate font-medium">{awayName}</div>
-            {awayStarter && (
-              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-                선발 {awayStarter}
-              </div>
-            )}
+          {/* 원정팀 — 우측 정렬, 로고는 이름 오른쪽 (스코어 안쪽) */}
+          <div className="min-w-0 flex items-center gap-2 sm:gap-2.5 justify-end">
+            <div className="min-w-0 text-right">
+              <div className="truncate font-medium">{awayName}</div>
+              {awayStarter && (
+                <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+                  선발 {awayStarter}
+                </div>
+              )}
+            </div>
+            <TeamLogo url={awayLogo} name={awayName} />
           </div>
+          {/* 스코어 */}
           <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
             {homeScore != null && awayScore != null ? (
               <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
@@ -330,13 +360,17 @@ function MatchRow({
               <span className="text-neutral-300 dark:text-neutral-600">vs</span>
             )}
           </div>
-          <div className="min-w-0">
-            <div className="truncate font-medium">{homeName}</div>
-            {homeStarter && (
-              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-                선발 {homeStarter}
-              </div>
-            )}
+          {/* 홈팀 — 좌측 정렬, 로고는 이름 왼쪽 (스코어 안쪽) */}
+          <div className="min-w-0 flex items-center gap-2 sm:gap-2.5">
+            <TeamLogo url={homeLogo} name={homeName} />
+            <div className="min-w-0">
+              <div className="truncate font-medium">{homeName}</div>
+              {homeStarter && (
+                <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+                  선발 {homeStarter}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <span
