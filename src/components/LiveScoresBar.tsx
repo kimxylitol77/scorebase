@@ -33,9 +33,13 @@ export default function LiveScoresBar() {
 
   useEffect(() => {
     let alive = true;
+    // ?demo=1 검출 — useSearchParams 쓰면 layout 단에서 전체 페이지가 dynamic 강제됨.
+    // mount 후 window.location 으로 직접 파싱.
+    const demo = new URLSearchParams(window.location.search).get("demo") === "1";
+    const url = demo ? "/api/live/scores?demo=1" : "/api/live/scores";
     const fetchOnce = async () => {
       try {
-        const res = await fetch("/api/live/scores", { cache: "no-store" });
+        const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) return;
         const json: ApiResp = await res.json();
         if (!alive) return;
