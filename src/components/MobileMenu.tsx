@@ -21,28 +21,17 @@ interface Group {
 
 const GROUPS: Group[] = [
   {
-    label: "월드컵",
-    emoji: "🏆",
-    items: [
-      {
-        href: "/leagues/WORLD_CUP",
-        label: "FIFA 월드컵 2026",
-        desc: "북중미 6/11~",
-        icon: "⭐",
-      },
-    ],
-  },
-  {
     label: "축구",
     emoji: "⚽",
     items: [
+      { href: "/leagues/WORLD_CUP", label: "FIFA 월드컵 2026", desc: "북중미 6/11~", icon: "🏆" },
       { href: "/leagues/EPL", label: "프리미어리그", desc: "잉글랜드", icon: "⭐" },
+      { href: "/leagues/UCL", label: "챔피언스리그", desc: "유럽" },
       { href: "/leagues/LALIGA", label: "라리가", desc: "스페인" },
       { href: "/leagues/BUNDESLIGA", label: "분데스리가", desc: "독일" },
       { href: "/leagues/SERIE_A", label: "세리에 A", desc: "이탈리아" },
       { href: "/leagues/LIGUE_1", label: "리그 1", desc: "프랑스" },
       { href: "/leagues/MLS", label: "MLS", desc: "북미" },
-      { href: "/leagues/UCL", label: "챔피언스리그", desc: "유럽" },
     ],
   },
   {
