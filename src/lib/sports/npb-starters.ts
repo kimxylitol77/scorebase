@@ -14,13 +14,37 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
+import {
+  fetchNpbPlayerIndex,
+  fetchNpbPitcherStats,
+  findNpbPidByName,
+  type NpbPitcherStats,
+  type NpbPlayerIndexEntry,
+} from "./npb-official";
+
+export interface NpbStarterPitcher {
+  name: string; // 한글 음역 (UI 표시용)
+  nameJp: string; // 원어 한자/가타카나 (npb.jp 매칭용)
+  pid?: string; // npb.jp 8자리 pid (enrich 시 채워짐)
+  stats?: {
+    era?: number;
+    whip?: number;
+    k9?: number;
+    wins?: number;
+    losses?: number;
+    ip?: string;
+    k?: number;
+    bb?: number;
+    hra?: number;
+  };
+}
 
 export interface NpbStarter {
   date: Date; // KST 0시 기준 (npb.jp 는 JST = KST 와 동일 시간대)
   teamA: string; // 일본어 약칭 (예: "巨人")
   teamB: string;
-  pitcherA: string; // 한글 음역 (매핑 있으면) 또는 원어 (예: "도고" or "戸郷")
-  pitcherB: string;
+  pitcherA: NpbStarterPitcher;
+  pitcherB: NpbStarterPitcher;
 }
 
 /**
@@ -186,12 +210,86 @@ export async function fetchNpbStartersForMonth(year: number, month: number): Pro
       date: currentDate,
       teamA: matchup.teamA,
       teamB: matchup.teamB,
-      pitcherA: jpPitcherToKorean(pitchers.pitcherA),
-      pitcherB: jpPitcherToKorean(pitchers.pitcherB),
+      pitcherA: {
+        name: jpPitcherToKorean(pitchers.pitcherA),
+        nameJp: pitchers.pitcherA,
+      },
+      pitcherB: {
+        name: jpPitcherToKorean(pitchers.pitcherB),
+        nameJp: pitchers.pitcherB,
+      },
     });
   });
 
   return result;
+}
+
+/**
+ * 위 starters 에 npb.jp 의 pid + 시즌 stats 보강.
+ * roster 한 번 fetch (12팀 ~수백명) 후 각 선발 stats fetch.
+ * 한자 성으로 인덱스 매칭 — 동성이인 시 팀 hint 우선.
+ */
+export async function enrichNpbStartersWithStats(
+  starters: NpbStarter[],
+): Promise<NpbStarter[]> {
+  if (starters.length === 0) return starters;
+  let index: NpbPlayerIndexEntry[];
+  try {
+    index = await fetchNpbPlayerIndex();
+  } catch (e) {
+    console.warn("[npb-starters] roster index 실패:", (e as Error).message);
+    return starters;
+  }
+  if (index.length === 0) return starters;
+
+  // 같은 매치에 등장하는 선발 stats 캐시 (중복 fetch 회피)
+  const statsCache = new Map<string, NpbPitcherStats | null>();
+  const fetchStatsOnce = async (pid: string): Promise<NpbPitcherStats | null> => {
+    if (statsCache.has(pid)) return statsCache.get(pid) ?? null;
+    const s = await fetchNpbPitcherStats(pid);
+    statsCache.set(pid, s);
+    return s;
+  };
+
+  const enrichOne = async (
+    p: NpbStarterPitcher,
+    teamAbbr: string,
+  ): Promise<NpbStarterPitcher> => {
+    const hit = findNpbPidByName(index, p.nameJp, { abbr: teamAbbr });
+    if (!hit) return p;
+    const st = await fetchStatsOnce(hit.pid);
+    if (!st) return { ...p, pid: hit.pid };
+    return {
+      ...p,
+      pid: hit.pid,
+      stats: {
+        era: st.era,
+        whip: st.whip,
+        k9: st.k9,
+        wins: st.wins,
+        losses: st.losses,
+        ip: st.ip,
+        k: st.k,
+        bb: st.bb,
+        hra: st.hra,
+      },
+    };
+  };
+
+  const enriched: NpbStarter[] = [];
+  for (const s of starters) {
+    try {
+      const a = await enrichOne(s.pitcherA, s.teamA);
+      await new Promise((r) => setTimeout(r, 350));
+      const b = await enrichOne(s.pitcherB, s.teamB);
+      enriched.push({ ...s, pitcherA: a, pitcherB: b });
+      await new Promise((r) => setTimeout(r, 350));
+    } catch (e) {
+      console.warn(`[npb-starters] enrich 실패 ${s.teamA}-${s.teamB}:`, (e as Error).message);
+      enriched.push(s);
+    }
+  }
+  return enriched;
 }
 
 /**
@@ -203,7 +301,7 @@ export function pickNpbStartersForMatch(
   homeName: string,
   awayName: string,
   matchDateKst: Date,
-): { home: { name: string }; away: { name: string } } | null {
+): { home: NpbStarterPitcher; away: NpbStarterPitcher } | null {
   // KST 매치 시각 → KST 날짜 (yyyy-mm-dd) 로 정규화. s.date 는 UTC 0시 = 그 날 KST.
   const kstMs = matchDateKst.getTime() + 9 * 3600 * 1000;
   const dateStr = new Date(kstMs).toISOString().slice(0, 10);
@@ -214,10 +312,10 @@ export function pickNpbStartersForMatch(
     const fullB = npbAbbrToFullName(s.teamB);
     if (!fullA || !fullB) continue;
     if (fullA === homeName && fullB === awayName) {
-      return { home: { name: s.pitcherA }, away: { name: s.pitcherB } };
+      return { home: s.pitcherA, away: s.pitcherB };
     }
     if (fullA === awayName && fullB === homeName) {
-      return { home: { name: s.pitcherB }, away: { name: s.pitcherA } };
+      return { home: s.pitcherB, away: s.pitcherA };
     }
   }
   return null;

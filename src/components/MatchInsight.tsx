@@ -1173,7 +1173,9 @@ function StarterPanel({
       </div>
       {starter.pid != null ? (
         <a
-          href={`/players/${starter.pid}${league === "KBO" ? "?league=KBO" : ""}`}
+          href={`/players/${starter.pid}${
+            league === "KBO" ? "?league=KBO" : league === "NPB" ? "?league=NPB" : ""
+          }`}
           className="mt-1 block font-semibold tracking-tight truncate hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
         >
           {starter.name}

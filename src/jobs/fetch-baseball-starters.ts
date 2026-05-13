@@ -19,6 +19,7 @@ import {
 } from "@/lib/sports/kbo-starters";
 import {
   fetchNpbStartersForMonth,
+  enrichNpbStartersWithStats,
   pickNpbStartersForMatch,
   type NpbStarter,
 } from "@/lib/sports/npb-starters";
@@ -122,8 +123,13 @@ export async function runFetchBaseballStarters(opts?: {
         fetchNpbStartersForMonth(cy, cm),
         fetchNpbStartersForMonth(ny, nm),
       ]);
-      npbStarters = [...a, ...b];
-      console.log(`[starters/NPB] npb.jp ${npbStarters.length}건`);
+      const rawNpb = [...a, ...b];
+      console.log(`[starters/NPB] npb.jp ${rawNpb.length}건 fetch — pid + stats 보강 시작`);
+      npbStarters = await enrichNpbStartersWithStats(rawNpb);
+      const enrichedCount = npbStarters.filter(
+        (s) => s.pitcherA.pid || s.pitcherB.pid,
+      ).length;
+      console.log(`[starters/NPB] pid 매칭 ${enrichedCount}/${npbStarters.length}건`);
     } catch (e) {
       console.warn(`[starters/NPB] fetch 실패:`, (e as Error).message);
     }
@@ -159,8 +165,18 @@ export async function runFetchBaseballStarters(opts?: {
       if (npbStarters.length === 0) continue;
       const p = pickNpbStartersForMatch(npbStarters, m.homeTeam.name, m.awayTeam.name, m.startTime);
       if (!p) continue;
-      newHomeJson = JSON.stringify({ name: p.home.name });
-      newAwayJson = JSON.stringify({ name: p.away.name });
+      const buildNpb = (side: typeof p.home) => ({
+        name: side.name,
+        pid: side.pid ? Number(side.pid) : undefined,
+        era: side.stats?.era,
+        whip: side.stats?.whip,
+        k9: side.stats?.k9,
+        wins: side.stats?.wins,
+        losses: side.stats?.losses,
+        ip: side.stats?.ip,
+      });
+      newHomeJson = JSON.stringify(buildNpb(p.home));
+      newAwayJson = JSON.stringify(buildNpb(p.away));
     }
 
     if (!newHomeJson || !newAwayJson) continue;
