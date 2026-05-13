@@ -20,6 +20,38 @@ import {
   getTeamEspnInjuries,
 } from "@/lib/sports/espn-injuries";
 import { fetchBalldontlieInjuries } from "@/lib/sports/balldontlie";
+import {
+  fetchKboInjuries,
+  getTeamKboInjuries,
+  type KboInjury,
+} from "@/lib/sports/kbo-injuries";
+import {
+  fetchNpbInjuries,
+  activeNpbInjuries,
+  getTeamNpbInjuries,
+  type NpbInjuryEntry,
+} from "@/lib/sports/npb-injuries";
+import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
+
+function classifyKboDuration(
+  duration: string,
+  type: "부상자 명단" | "치료·재활명단",
+): "long" | "short" | "returning" {
+  if (type === "치료·재활명단") return "returning";
+  const m = duration.match(/(\d+)/);
+  if (!m) return "short";
+  const days = Number(m[1]);
+  if (days >= 30) return "long";
+  return "short";
+}
+
+function npbInjuryDisplayName(jpFullName: string): string {
+  const tokens = jpFullName.split(/[\s　]+/).filter(Boolean);
+  if (tokens.length === 0) return jpFullName;
+  const ko = jpPitcherToKorean(tokens[0]);
+  if (ko === tokens[0]) return jpFullName;
+  return tokens.length > 1 ? `${ko} ${tokens.slice(1).join(" ")}` : ko;
+}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,11 +59,12 @@ export const revalidate = 0;
 // UCL 은 소속 리그(EPL/라리가/...)와 중복이라 제외
 const VALID = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
-  "NBA", "MLB", "NHL",
+  "NBA", "MLB", "NHL", "KBO", "NPB",
 ] as const;
 type Lg = (typeof VALID)[number];
 const SOCCER: Lg[] = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS"];
 const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL"];
+const ASIAN_BB: Lg[] = ["KBO", "NPB"];
 
 const CANONICAL = "https://www.scorebase.kr";
 
@@ -157,6 +190,26 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
       "NHL 부상자", "NHL 부상자 명단",
       "맥데이비드 부상", "드라이자이틀 부상", "매슈스 부상", "매키넌 부상", "크로즈비 부상",
       "오일러스 부상자", "메이플리프스 부상자",
+    ],
+  },
+  KBO: {
+    krFull: "KBO 리그",
+    krShort: "KBO",
+    enFull: "Korea Baseball Organization",
+    starKeywords: [
+      "KBO 부상자", "KBO 부상자 명단",
+      "두산 부상자", "LG 부상자", "SSG 부상자", "한화 부상자",
+      "KIA 부상자", "롯데 부상자", "삼성 부상자",
+    ],
+  },
+  NPB: {
+    krFull: "NPB 일본프로야구",
+    krShort: "NPB",
+    enFull: "Nippon Professional Baseball",
+    starKeywords: [
+      "NPB 부상자", "일본프로야구 부상자",
+      "요미우리 부상자", "한신 부상자", "소프트뱅크 부상자",
+      "히로시마 부상자", "야쿠르트 부상자",
     ],
   },
 };
@@ -435,6 +488,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         teamName: t.name,
         count: getTeamEspnInjuries(all, t.name, undefined, 30).length,
       }));
+    } else if (upper === "KBO") {
+      const all = await fetchKboInjuries();
+      teamLists = teams.map((t) => ({
+        teamName: t.name,
+        count: getTeamKboInjuries(all, t.name).length,
+      }));
+    } else if (upper === "NPB") {
+      const raw = await fetchNpbInjuries(30);
+      const active = activeNpbInjuries(raw);
+      teamLists = teams.map((t) => ({
+        teamName: t.name,
+        count: getTeamNpbInjuries(active, t.name).length,
+      }));
     }
 
     let maxCount = 0;
@@ -451,9 +517,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {}
 
   const url = `${CANONICAL}/injuries/${upper}`;
-  const title = `${lm.krFull} 부상자 명단 2025-26 시즌${totalInjuries > 0 ? ` · 총 ${totalInjuries}명 결장` : ""} | 스코어베이스`;
+  const seasonLabel =
+    upper === "KBO" || upper === "NPB" || upper === "MLB"
+      ? `${new Date().getUTCFullYear()} 시즌`
+      : "2025-26 시즌";
+  const sourceLabel =
+    upper === "KBO"
+      ? "KBO 공식 (koreabaseball.com)"
+      : upper === "NPB"
+        ? "NPB 공식 (npb.jp)"
+        : "api-football Pro";
+  const title = `${lm.krFull} 부상자 명단 ${seasonLabel}${totalInjuries > 0 ? ` · 총 ${totalInjuries}명 결장` : ""} | 스코어베이스`;
   const description = totalInjuries > 0
-    ? `${lm.krFull} 전 팀 부상·결장 선수 ${totalInjuries}명 현황${topTeam ? `. 가장 많은 결장자 보유: ${topTeam.name}(${topTeam.count}명)` : ""}${fullSquadCount > 0 ? `. 풀스쿼드 팀 ${fullSquadCount}개` : ""}. 매일 업데이트 · 출처 api-football Pro.`
+    ? `${lm.krFull} 전 팀 부상·결장 선수 ${totalInjuries}명 현황${topTeam ? `. 가장 많은 결장자 보유: ${topTeam.name}(${topTeam.count}명)` : ""}${fullSquadCount > 0 ? `. 풀스쿼드 팀 ${fullSquadCount}개` : ""}. 매일 업데이트 · 출처 ${sourceLabel}.`
     : `${lm.krFull} 전 팀의 현재 부상·결장 선수 한 페이지 정리. 사유·심각도·복귀 가늠 — 매일 업데이트.`;
 
   return {
@@ -464,9 +540,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `${lm.krFull} 부상자 명단`,
       `${upper} 부상자`,
       `${lm.enFull} injuries`,
-      "축구 부상자",
+      SOCCER.includes(upper) ? "축구 부상자" : "야구 부상자",
       "스포츠 부상자 명단",
-      "2025-26 시즌 부상자",
+      `${seasonLabel} 부상자`,
       ...lm.starKeywords,
     ],
     alternates: { canonical: url },
@@ -557,12 +633,15 @@ export default async function InjuriesByLeague({
 
   const isEspn = ESPN_LEAGUES.includes(upper);
   const isSoccer = SOCCER.includes(upper);
+  const isAsianBb = ASIAN_BB.includes(upper);
   const sportName: "soccer" | "basketball" | "baseball" | "hockey" =
-    upper === "NBA" ? "basketball" : upper === "MLB" ? "baseball" : upper === "NHL" ? "hockey" : "soccer";
+    upper === "NBA" ? "basketball" : (upper === "MLB" || isAsianBb) ? "baseball" : upper === "NHL" ? "hockey" : "soccer";
 
   let allInjuries: InjuryEntry[] = [];
   let allEspn: Awaited<ReturnType<typeof fetchEspnInjuries>> = [];
   let allBdl: Awaited<ReturnType<typeof fetchBalldontlieInjuries>> = [];
+  let allKbo: KboInjury[] = [];
+  let allNpb: NpbInjuryEntry[] = [];
   const hasKey = isSoccer ? !!process.env.API_FOOTBALL_KEY : true;
   if (isSoccer && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
     try {
@@ -583,7 +662,31 @@ export default async function InjuriesByLeague({
     try {
       allEspn = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
     } catch {}
+  } else if (upper === "KBO") {
+    try {
+      allKbo = await fetchKboInjuries();
+    } catch (e) {
+      console.warn("[injuries/KBO] fetch 실패:", (e as Error).message);
+    }
+  } else if (upper === "NPB") {
+    try {
+      const raw = await fetchNpbInjuries(30);
+      allNpb = activeNpbInjuries(raw);
+    } catch (e) {
+      console.warn("[injuries/NPB] fetch 실패:", (e as Error).message);
+    }
   }
+
+  const seasonLabel =
+    isAsianBb || upper === "MLB"
+      ? `${new Date().getUTCFullYear()} 시즌`
+      : "2025-26 시즌";
+  const sourceLabel =
+    upper === "KBO"
+      ? "KBO 공식 (koreabaseball.com)"
+      : upper === "NPB"
+        ? "NPB 공식 (npb.jp)"
+        : "api-football Pro";
 
   // 검색·필터·정렬 파라미터
   const query = (sp.q ?? "").trim().toLowerCase();
@@ -592,7 +695,8 @@ export default async function InjuriesByLeague({
     | Severity;
   const sort = sp.sort ?? "count_desc";
 
-  // 팀별 raw 부상자 + 빈 이름 가드 (소스에 따라 fetch 분기)
+  // 팀별 raw 부상자 + 빈 이름 가드 (소스에 따라 fetch 분기).
+  // overrideKo / overrideSev 가 있으면 translate/classify 우회 (KBO/NPB 한글 데이터).
   type RawInjury = {
     playerId: number;
     playerName: string;
@@ -600,6 +704,8 @@ export default async function InjuriesByLeague({
     fixtureDate?: string;
     description?: string;
     returnDate?: string;
+    overrideKo?: string;
+    overrideSev?: Severity;
   };
   const rawByTeam: Array<{ team: typeof teams[number]; raw: RawInjury[] }> = teams.map((t) => {
     let raw: RawInjury[] = [];
@@ -625,6 +731,26 @@ export default async function InjuriesByLeague({
         playerName: i.playerName,
         reason: i.reason,
         fixtureDate: i.fixtureDate,
+      }));
+    } else if (upper === "KBO") {
+      const list = getTeamKboInjuries(allKbo, t.name);
+      raw = list.map((i, idx) => ({
+        playerId: -(t.id * 1000 + idx), // KBO API 가 player id 미노출
+        playerName: i.position ? `${i.playerName}(${i.position})` : i.playerName,
+        reason: `${i.type} · ${i.duration}`,
+        fixtureDate: i.date,
+        overrideKo: `${i.type} · ${i.duration}`,
+        overrideSev: classifyKboDuration(i.duration, i.type),
+      }));
+    } else if (upper === "NPB") {
+      const list = getTeamNpbInjuries(allNpb, t.name);
+      raw = list.map((i, idx) => ({
+        playerId: i.pid ? Number(i.pid) : -(t.id * 1000 + idx),
+        playerName: npbInjuryDisplayName(i.playerName),
+        reason: `1군 등록말소 · ${i.positionKo}`,
+        fixtureDate: i.date,
+        overrideKo: `1군 등록말소 · ${i.positionKo}`,
+        overrideSev: "short",
       }));
     }
     raw = raw.filter((i) => {
@@ -669,9 +795,9 @@ export default async function InjuriesByLeague({
       return {
         playerId: i.playerId > 0 ? i.playerId : -(team.id * 1000 + idx),
         playerName: r.ko,
-        reasonKo: translateReason(i.reason),
+        reasonKo: i.overrideKo ?? translateReason(i.reason),
         reasonRaw: i.reason,
-        severity: classifySeverity(i.reason),
+        severity: i.overrideSev ?? classifySeverity(i.reason),
         description: i.description,
         returnDate: i.returnDate,
       };
@@ -812,7 +938,7 @@ export default async function InjuriesByLeague({
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
           <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-neutral-500 mb-2">
-            Injuries · api-football Pro · 2025-26 시즌
+            Injuries · {sourceLabel} · {seasonLabel}
           </div>
           <div className="flex items-center gap-3 mb-2">
             <LeagueBadge league={upper} size="md" />
@@ -821,11 +947,14 @@ export default async function InjuriesByLeague({
             </h1>
           </div>
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            팀별 시즌 누적 부상·결장 선수. 사유는 영문 의학용어를 한글로 자동
-            번역, 심각도별 분류.
+            {isAsianBb
+              ? upper === "KBO"
+                ? "팀별 현재 부상자 명단 + 치료·재활명단. KBO 공식 등록 기준이라 사유는 공개되지 않고 기간(10일/15일/30일+)으로 심각도를 분류."
+                : "팀별 1군 등록말소 선수 (지난 30일 누적, 복귀자 제외). 일본은 부상자명단 공식 제도가 KBO/MLB 와 달라 '등록말소' = 1군 결장으로 표시."
+              : "팀별 시즌 누적 부상·결장 선수. 사유는 영문 의학용어를 한글로 자동 번역, 심각도별 분류."}
           </p>
           <p className="text-[11px] text-neutral-500 mt-1">
-            🕒 마지막 업데이트: {lastUpdatedKst} · 출처: api-football Pro
+            🕒 마지막 업데이트: {lastUpdatedKst} · 출처: {sourceLabel}
           </p>
         </div>
       </section>
@@ -1011,9 +1140,13 @@ export default async function InjuriesByLeague({
         )}
 
         <p className="text-[11px] text-neutral-500 leading-relaxed">
-          데이터: api-football Pro (시즌 누적 부상자) · 사유 한글 번역은
-          의학용어 매핑 기반. 본 명단은 참고용으로 실제 매치 라인업과 다를 수
-          있습니다.
+          데이터: {sourceLabel}
+          {isAsianBb
+            ? upper === "KBO"
+              ? " (시즌 부상자 명단 + 치료·재활명단). 사유는 KBO 가 공개하지 않으며 기간으로 심각도 분류."
+              : " (지난 30일 1군 등록말소 누적, 같은 선수가 재등록되면 자동 제외)."
+            : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
+          {" "}본 명단은 참고용으로 실제 매치 라인업과 다를 수 있습니다.
         </p>
       </div>
     </div>
