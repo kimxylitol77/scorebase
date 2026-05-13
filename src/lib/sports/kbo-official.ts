@@ -27,6 +27,12 @@ export interface KboPitcherIndexEntry {
 
 /**
  * 시즌 등재 투수 인덱스 — 한 번 호출로 시즌 전체 추출.
+ *
+ * 헤더 위치 기반으로 "선수명" / "팀명" 컬럼을 찾아 파싱한다. 컬럼 순서가
+ * 바뀌어도 깨지지 않음. 기존엔 `td.eq(1)` 을 팀명으로 가정했는데 실제
+ * 페이지 헤더는 ["순위","선수명","팀명",...] 라 td.eq(1) 이 선수명(a 태그
+ * 텍스트) 이었음 → team 필드에 이름이 들어가서 findKboIdByName 의 팀
+ * 힌트 매칭이 깨졌었다.
  */
 export async function fetchKboPitcherIndex(): Promise<KboPitcherIndexEntry[]> {
   const url = `${BASE}/Record/Player/PitcherBasic/Basic1.aspx`;
@@ -45,17 +51,26 @@ export async function fetchKboPitcherIndex(): Promise<KboPitcherIndexEntry[]> {
   const $ = cheerio.load(html);
   const result: KboPitcherIndexEntry[] = [];
   const seen = new Set<string>();
-  $("a[href*='playerId=']").each((_, a) => {
-    const href = $(a).attr("href") ?? "";
-    const m = href.match(/playerId=(\d+)/);
-    if (!m) return;
-    const kboId = m[1];
-    const name = $(a).text().trim();
-    if (!name || seen.has(kboId)) return;
-    seen.add(kboId);
-    // 팀명 — 같은 row 의 두 번째 td 시도
-    const team = $(a).closest("tr").find("td").eq(1).text().trim() || undefined;
-    result.push({ kboId, name, team });
+  $("table").each((_, t) => {
+    const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
+    const nameIdx = headers.indexOf("선수명");
+    const teamIdx = headers.indexOf("팀명");
+    if (nameIdx < 0) return; // 선수명 헤더 없는 테이블 skip
+    $(t).find("tbody tr").each((_, tr) => {
+      const tds = $(tr).find("td");
+      const a = tds.eq(nameIdx).find("a[href*='playerId=']").first();
+      if (!a.length) return;
+      const href = a.attr("href") ?? "";
+      const m = href.match(/playerId=(\d+)/);
+      if (!m) return;
+      const kboId = m[1];
+      const name = a.text().trim();
+      if (!name || seen.has(kboId)) return;
+      seen.add(kboId);
+      const team =
+        teamIdx >= 0 ? tds.eq(teamIdx).text().trim() || undefined : undefined;
+      result.push({ kboId, name, team });
+    });
   });
   return result;
 }
