@@ -122,6 +122,18 @@ export default function MobileMenu() {
             />
           </div>
 
+          {/* 라이브 진입점 — 최상단 */}
+          <Link
+            href="/scores"
+            className="flex items-center justify-center gap-2 w-full mb-3 px-4 py-3 rounded-xl border-2 border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-500/15 transition"
+          >
+            <span className="relative inline-flex w-2 h-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+            </span>
+            라이브 스코어
+          </Link>
+
           {/* 예측 진입점 강조 */}
           <Link
             href="/predictions"

@@ -79,12 +79,9 @@ export default function Header() {
 
         {/* 데스크탑 메뉴 */}
         <nav className="hidden sm:flex items-center gap-1 lg:gap-2 text-sm">
-          {CATEGORIES.map((c) => (
-            <CategoryDropdown key={c.label} {...c} />
-          ))}
           <Link
             href="/scores"
-            className="ml-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition whitespace-nowrap"
           >
             <span className="relative inline-flex w-1.5 h-1.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75 animate-ping" />
@@ -92,6 +89,9 @@ export default function Header() {
             </span>
             라이브
           </Link>
+          {CATEGORIES.map((c) => (
+            <CategoryDropdown key={c.label} {...c} />
+          ))}
           <Link
             href="/previews"
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
