@@ -296,7 +296,7 @@ export default async function LeaguePredictions({ params }: Props) {
         <PredTab l="NPB" active={"NPB" === upper} />
         <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">🏒</span>
         <PredTab l="NHL" active={"NHL" === upper} />
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">🎮</span>
+        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
         <PredTab l="LOL" active={"LOL" === upper} />
       </div>
 
