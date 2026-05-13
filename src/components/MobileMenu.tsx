@@ -44,6 +44,7 @@ const GROUPS: Group[] = [
     emoji: "⚾",
     items: [
       { href: "/leagues/KBO", label: "KBO 리그", desc: "한국 프로야구", icon: "⭐" },
+      { href: "/leagues/NPB", label: "NPB 리그", desc: "일본 프로야구" },
       { href: "/leagues/MLB", label: "MLB", desc: "메이저리그" },
     ],
   },
