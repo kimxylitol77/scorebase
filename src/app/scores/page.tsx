@@ -450,13 +450,13 @@ function MatchRow({
   );
 
   return (
-    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-3 sm:px-4 py-3 grid grid-cols-[5rem_1fr_5rem] sm:grid-cols-[6rem_1fr_6rem] gap-2 sm:gap-3 items-center text-sm">
+    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-2 sm:px-4 py-3 grid grid-cols-[3.5rem_1fr_4.5rem] sm:grid-cols-[6rem_1fr_6rem] gap-1.5 sm:gap-3 items-center text-sm">
       <div className="flex items-center justify-center">
         {statusBadge}
       </div>
-      <div className="min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
+      <div className="min-w-0 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-3 items-center">
         {/* 원정팀 */}
-        <div className="min-w-0 flex items-center gap-2 sm:gap-2.5 justify-end">
+        <div className="min-w-0 flex items-center gap-1.5 sm:gap-2.5 justify-end">
           <div className="min-w-0 text-right">
             <div className="truncate font-medium">{awayName}</div>
             {awayStarter && (
@@ -478,7 +478,7 @@ function MatchRow({
           )}
         </div>
         {/* 홈팀 */}
-        <div className="min-w-0 flex items-center gap-2 sm:gap-2.5">
+        <div className="min-w-0 flex items-center gap-1.5 sm:gap-2.5">
           <TeamLogo url={homeLogo} name={homeName} />
           <div className="min-w-0">
             <div className="truncate font-medium">{homeName}</div>
@@ -496,7 +496,7 @@ function MatchRow({
           <Link
             href={`/articles/${previewSlug}`}
             prefetch={false}
-            className="px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition whitespace-nowrap"
+            className="px-1.5 sm:px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition whitespace-nowrap"
           >
             프리뷰
           </Link>
@@ -505,7 +505,7 @@ function MatchRow({
           <Link
             href={`/articles/${recapSlug}`}
             prefetch={false}
-            className="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition whitespace-nowrap"
+            className="px-1.5 sm:px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition whitespace-nowrap"
           >
             리뷰
           </Link>
