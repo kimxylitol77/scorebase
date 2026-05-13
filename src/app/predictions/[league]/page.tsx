@@ -278,23 +278,20 @@ export default async function LeaguePredictions({ params }: Props) {
 
       {/* 리그 탭 (카테고리별 그룹) */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center gap-x-2 gap-y-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-1">🏆</span>
         <PredTab l="WORLD_CUP" active={"WORLD_CUP" === upper} />
         <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-1">⚽</span>
         {(
           ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL"] as const
         ).map((l) => (
           <PredTab key={l} l={l} active={l === upper} />
         ))}
         <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-1">🏀</span>
         <PredTab l="NBA" active={"NBA" === upper} />
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">⚾</span>
+        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
         <PredTab l="MLB" active={"MLB" === upper} />
         <PredTab l="KBO" active={"KBO" === upper} />
         <PredTab l="NPB" active={"NPB" === upper} />
-        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">🏒</span>
+        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
         <PredTab l="NHL" active={"NHL" === upper} />
         <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
         <PredTab l="LOL" active={"LOL" === upper} />
