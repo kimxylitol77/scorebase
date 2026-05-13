@@ -14,19 +14,19 @@ const LEAGUES_RIGHT: Array<{ code: string; label: string }> = [
   { code: "UCL", label: "챔피언스리그" },
   { code: "MLS", label: "MLS" },
   { code: "NBA", label: "NBA" },
-  { code: "KBO", label: "⭐ KBO 리그" },
+  { code: "KBO", label: "KBO 리그" },
   { code: "NPB", label: "NPB 리그" },
   { code: "MLB", label: "MLB" },
   { code: "NHL", label: "NHL" },
-  { code: "LOL", label: "🎮 LCK" },
+  { code: "LOL", label: "LCK" },
 ];
 
 const SHORTCUTS: Array<{ href: string; label: string }> = [
-  { href: "/predictions", label: "📊 시즌 예측 대시보드" },
-  { href: "/predictions/accuracy", label: "🎯 적중률 보드" },
-  { href: "/injuries/EPL", label: "🩹 팀별 부상자 명단" },
-  { href: "/about", label: "📡 방법론 · 데이터 흐름" },
-  { href: "/notices", label: "📢 공지 · 패치노트" },
+  { href: "/predictions", label: "시즌 예측 대시보드" },
+  { href: "/predictions/accuracy", label: "적중률 보드" },
+  { href: "/injuries/EPL", label: "팀별 부상자 명단" },
+  { href: "/about", label: "방법론 · 데이터 흐름" },
+  { href: "/notices", label: "공지 · 패치노트" },
 ];
 
 export default function Footer() {
