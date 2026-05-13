@@ -87,8 +87,6 @@ export default async function ScoresPage({ searchParams }: Props) {
   const leagues = leaguesForSport(sport);
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
-  const prev = new Date(day.getTime() - 24 * 3600 * 1000);
-  const next = new Date(day.getTime() + 24 * 3600 * 1000);
 
   const [matches, liveMatches] = await Promise.all([
     prisma.match.findMany({
@@ -214,22 +212,63 @@ export default async function ScoresPage({ searchParams }: Props) {
         })}
       </nav>
 
-      {/* 일자 nav */}
-      <div className="flex items-center justify-between text-sm">
-        <Link
-          href={`/scores?sport=${sport}&date=${dateQuery(prev)}`}
-          className="px-3 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
-        >
-          ← 어제
-        </Link>
-        <div className="font-semibold tabular-nums">{kstDateLabel(day)}</div>
-        <Link
-          href={`/scores?sport=${sport}&date=${dateQuery(next)}`}
-          className="px-3 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
-        >
-          내일 →
-        </Link>
-      </div>
+      {/* 일자 nav — 어제 ~ +5일 칩 7개 (네이버 스포츠 스타일) */}
+      <nav className="flex gap-1.5 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 [&::-webkit-scrollbar]:hidden">
+        {(() => {
+          const nowKst = new Date(Date.now() + 9 * 3600 * 1000);
+          const todayMidUtc = new Date(
+            Date.UTC(
+              nowKst.getUTCFullYear(),
+              nowKst.getUTCMonth(),
+              nowKst.getUTCDate(),
+              -9,
+            ),
+          );
+          const selectedDs = sp.date ?? dateQuery(day);
+          return Array.from({ length: 7 }, (_, i) => {
+            const offset = i - 1; // -1 (어제) ~ +5
+            const d = new Date(
+              todayMidUtc.getTime() + offset * 24 * 3600 * 1000,
+            );
+            const ds = dateQuery(d);
+            const active = ds === selectedDs;
+            const isToday = offset === 0;
+            const kst = new Date(d.getTime() + 9 * 3600 * 1000);
+            const mm = kst.getUTCMonth() + 1;
+            const dd = kst.getUTCDate();
+            const weekday = d.toLocaleDateString("ko-KR", {
+              timeZone: "Asia/Seoul",
+              weekday: "short",
+            });
+            return (
+              <Link
+                key={ds}
+                href={`/scores?sport=${sport}&date=${ds}`}
+                className={`shrink-0 min-w-[68px] sm:flex-1 inline-flex flex-col items-center px-3 py-2 rounded-lg text-xs whitespace-nowrap transition tabular-nums ${
+                  active
+                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-bold"
+                    : "bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 font-medium"
+                }`}
+              >
+                <span
+                  className={`text-[10px] h-[14px] leading-[14px] ${
+                    isToday
+                      ? active
+                        ? "opacity-80"
+                        : "text-rose-600 dark:text-rose-400 font-bold"
+                      : "opacity-0"
+                  }`}
+                >
+                  {isToday ? "오늘" : "—"}
+                </span>
+                <span className="mt-0.5">
+                  {mm}/{dd} ({weekday})
+                </span>
+              </Link>
+            );
+          });
+        })()}
+      </nav>
 
       {/* 리그 그룹 list */}
       {groups.length === 0 ? (
