@@ -11,7 +11,7 @@ interface Props {
   asLink?: boolean;
 }
 
-function Mark({ size = 28 }: { size?: number }) {
+export function Mark({ size = 28 }: { size?: number }) {
   return (
     <svg
       width={size}

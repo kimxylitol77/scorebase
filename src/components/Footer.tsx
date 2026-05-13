@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { Mark } from "./Logo";
 
 const LEAGUES_LEFT: Array<{ code: string; label: string }> = [
-  { code: "WORLD_CUP", label: "🏆 FIFA 월드컵 2026" },
+  { code: "WORLD_CUP", label: "FIFA 월드컵 2026" },
   { code: "EPL", label: "프리미어리그 (EPL)" },
   { code: "LALIGA", label: "라리가" },
   { code: "BUNDESLIGA", label: "분데스리가" },
@@ -34,7 +35,8 @@ export default function Footer() {
       <div className="site-footer__inner max-w-6xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10 text-sm">
         {/* 컬럼 1 — 브랜드 */}
         <div>
-          <h3 className="flex items-baseline gap-2 text-lg font-black tracking-tight text-white">
+          <h3 className="flex items-center gap-2 text-lg font-black tracking-tight text-white">
+            <Mark size={28} />
             스코어베이스
             <span className="text-sm font-semibold text-white/30">
               Scorebase
