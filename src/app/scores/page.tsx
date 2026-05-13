@@ -97,6 +97,18 @@ export default async function ScoresPage({ searchParams }: Props) {
     orderBy: { startTime: "asc" },
   });
 
+  // 야구 매치 starter JSON 파싱 — KBO/NPB/MLB 만 적용
+  function parseStarter(json: string | null): string | null {
+    if (!json) return null;
+    try {
+      const obj = JSON.parse(json) as { name?: string };
+      return obj.name?.trim() || null;
+    } catch {
+      return null;
+    }
+  }
+  const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
+
   // status 별로 어떤 article 을 우선할지 결정 — FINISHED 면 RECAP, 그 외 PREVIEW
   function pickArticleSlug(
     status: string,
@@ -214,6 +226,7 @@ export default async function ScoresPage({ searchParams }: Props) {
               <ul className="divide-y divide-neutral-100 dark:divide-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-950">
                 {list.map((m) => {
                   const slug = pickArticleSlug(m.status, m.articles);
+                  const isBaseball = BASEBALL_LEAGUES.has(m.league);
                   return (
                     <MatchRow
                       key={m.id}
@@ -227,6 +240,12 @@ export default async function ScoresPage({ searchParams }: Props) {
                         slug ? `/articles/${slug}` : `/leagues/${m.league}`
                       }
                       hasArticle={!!slug}
+                      homeStarter={
+                        isBaseball ? parseStarter(m.homeStarter) : null
+                      }
+                      awayStarter={
+                        isBaseball ? parseStarter(m.awayStarter) : null
+                      }
                     />
                   );
                 })}
@@ -252,6 +271,8 @@ function MatchRow({
   timeLabel,
   href,
   hasArticle,
+  homeStarter,
+  awayStarter,
 }: {
   homeName: string;
   awayName: string;
@@ -261,6 +282,8 @@ function MatchRow({
   timeLabel: string;
   href: string;
   hasArticle: boolean;
+  homeStarter?: string | null;
+  awayStarter?: string | null;
 }) {
   const isLive = status === "LIVE";
   const isFinished = status === "FINISHED";
@@ -290,7 +313,14 @@ function MatchRow({
           {statusBadge}
         </div>
         <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
-          <div className="text-right truncate font-medium">{awayName}</div>
+          <div className="min-w-0 text-right">
+            <div className="truncate font-medium">{awayName}</div>
+            {awayStarter && (
+              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+                선발 {awayStarter}
+              </div>
+            )}
+          </div>
           <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
             {homeScore != null && awayScore != null ? (
               <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
@@ -300,7 +330,14 @@ function MatchRow({
               <span className="text-neutral-300 dark:text-neutral-600">vs</span>
             )}
           </div>
-          <div className="truncate font-medium">{homeName}</div>
+          <div className="min-w-0">
+            <div className="truncate font-medium">{homeName}</div>
+            {homeStarter && (
+              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+                선발 {homeStarter}
+              </div>
+            )}
+          </div>
         </div>
         <span
           className={`hidden sm:inline-block shrink-0 text-[10px] font-medium ${
