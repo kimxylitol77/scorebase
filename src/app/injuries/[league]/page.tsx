@@ -750,9 +750,9 @@ export default async function InjuriesByLeague({
       raw = list.map((i, idx) => ({
         playerId: i.pid ? Number(i.pid) : -(t.id * 1000 + idx),
         playerName: npbInjuryDisplayName(i.playerName),
-        reason: `1군 등록말소 · ${i.positionKo}`,
+        reason: `1군 엔트리 제외 · ${i.positionKo}`,
         fixtureDate: i.date,
-        overrideKo: `1군 등록말소 · ${i.positionKo}`,
+        overrideKo: `1군 엔트리 제외 · ${i.positionKo}`,
         overrideSev: "short",
       }));
     }
@@ -953,7 +953,7 @@ export default async function InjuriesByLeague({
             {isAsianBb
               ? upper === "KBO"
                 ? "팀별 현재 부상자 명단 + 치료·재활명단. KBO 공식 등록 기준이라 사유는 공개되지 않고 기간(10일/15일/30일+)으로 심각도를 분류."
-                : "팀별 1군 등록말소 선수 (지난 30일 누적, 복귀자 제외). 일본은 부상자명단 공식 제도가 KBO/MLB 와 달라 '등록말소' = 1군 결장으로 표시."
+                : "팀별 1군 엔트리에서 빠진 선수 (지난 30일 누적, 복귀자 자동 제외). 일본 NPB 는 KBO/MLB 같은 별도 부상자 명단 제도가 없어 '出場選手登録抹消(출장 선수 등록 말소)' = 1군 결장으로 표시. 부상·재활·강등·컨디션 난조 등 사유는 구단이 공개하지 않음."
               : "팀별 시즌 누적 부상·결장 선수. 사유는 영문 의학용어를 한글로 자동 번역, 심각도별 분류."}
           </p>
           <p className="text-[11px] text-neutral-500 mt-1">
@@ -1147,7 +1147,7 @@ export default async function InjuriesByLeague({
           {isAsianBb
             ? upper === "KBO"
               ? " (시즌 부상자 명단 + 치료·재활명단). 사유는 KBO 가 공개하지 않으며 기간으로 심각도 분류."
-              : " (지난 30일 1군 등록말소 누적, 같은 선수가 재등록되면 자동 제외)."
+              : " (지난 30일간 1군 엔트리에서 빠진 누적 명단, 재등록된 선수는 자동 제외). 일본 NPB 는 별도 부상자 명단 제도가 없어 1군 엔트리 제외 = 결장으로 간주."
             : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
           {" "}본 명단은 참고용으로 실제 매치 라인업과 다를 수 있습니다.
         </p>

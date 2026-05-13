@@ -150,7 +150,7 @@ export async function runPreview(opts?: {
       const raw = await fetchNpbInjuries(30);
       const active = activeNpbInjuries(raw);
       npbInjuries = await enrichNpbInjuriesWithKorean(active);
-      console.log(`[preview/NPB] 1군 등록말소 (active) ${npbInjuries.length}건 + 한글 음역 보강`);
+      console.log(`[preview/NPB] 1군 엔트리 제외 (active) ${npbInjuries.length}건 + 한글 음역 보강`);
     } catch (err) {
       console.warn(`[preview/NPB] injuries fetch 실패:`, (err as Error).message);
     }
@@ -347,7 +347,7 @@ export async function runPreview(opts?: {
         }
       }
 
-      // NPB 1군 등록말소 → context.injuries
+      // NPB 1군 엔트리 제외 → context.injuries
       if (m.league === "NPB" && npbInjuries.length > 0) {
         const npbDisplay = (jp: string) => {
           const tokens = jp.split(/[\s　]+/).filter(Boolean);
@@ -362,11 +362,11 @@ export async function runPreview(opts?: {
           context.injuries = {
             home: homeInj.map((i) => ({
               name: npbDisplay(i.playerName),
-              reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+              reason: `1군 엔트리 제외(${i.date}) · ${i.positionKo}`,
             })),
             away: awayInj.map((i) => ({
               name: npbDisplay(i.playerName),
-              reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+              reason: `1군 엔트리 제외(${i.date}) · ${i.positionKo}`,
             })),
           };
         }

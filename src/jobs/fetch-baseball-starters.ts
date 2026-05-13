@@ -232,7 +232,7 @@ export async function runFetchBaseballStarters(opts?: {
         const raw = await fetchNpbInjuries(30);
         const active = activeNpbInjuries(raw);
         npbInjuries = await enrichNpbInjuriesWithKorean(active);
-        console.log(`[starters/NPB] 1군 등록말소 ${npbInjuries.length}건 + 한글 음역 보강`);
+        console.log(`[starters/NPB] 1군 엔트리 제외 ${npbInjuries.length}건 + 한글 음역 보강`);
       } catch (e) {
         console.warn(`[starters/NPB] injuries fetch 실패:`, (e as Error).message);
       }
@@ -432,11 +432,11 @@ async function regenerateBaseballPreview(
       context.injuries = {
         home: homeInj.map((i) => ({
           name: npbDisplay(i.playerName),
-          reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+          reason: `1군 엔트리 제외(${i.date}) · ${i.positionKo}`,
         })),
         away: awayInj.map((i) => ({
           name: npbDisplay(i.playerName),
-          reason: `1군 등록말소(${i.date}) · ${i.positionKo}`,
+          reason: `1군 엔트리 제외(${i.date}) · ${i.positionKo}`,
         })),
       };
     }
