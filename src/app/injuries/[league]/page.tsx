@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -1084,15 +1085,24 @@ export default async function InjuriesByLeague({
                   href={`/teams/${x.team.id}`}
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-sm hover:border-emerald-500/60 transition"
                 >
-                  {x.team.logoUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={x.team.logoUrl}
-                      alt=""
-                      className="w-4 h-4 object-contain"
-                      loading="lazy"
-                    />
-                  )}
+                  {x.team.logoUrl &&
+                    (x.team.logoUrl.includes("liquipedia.net") ? (
+                      <Image
+                        src={x.team.logoUrl}
+                        alt=""
+                        width={16}
+                        height={16}
+                        className="w-4 h-4 object-contain"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={x.team.logoUrl}
+                        alt=""
+                        className="w-4 h-4 object-contain"
+                        loading="lazy"
+                      />
+                    ))}
                   <span className="font-semibold text-emerald-700 dark:text-emerald-300">
                     {toKoreanTeamName(x.team.name)}
                   </span>
@@ -1298,13 +1308,23 @@ function TeamInjuryCard({
     <details className="injury-card group rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-900/40 hover:-translate-y-0.5 transition-transform">
       <summary className="list-none cursor-pointer flex items-start gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition select-none">
         {logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={logoUrl}
-            alt=""
-            className="w-9 h-9 object-contain shrink-0 mt-0.5"
-            loading="lazy"
-          />
+          logoUrl.includes("liquipedia.net") ? (
+            <Image
+              src={logoUrl}
+              alt=""
+              width={36}
+              height={36}
+              className="w-9 h-9 object-contain shrink-0 mt-0.5"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt=""
+              className="w-9 h-9 object-contain shrink-0 mt-0.5"
+              loading="lazy"
+            />
+          )
         ) : (
           <span className="inline-flex w-9 h-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-sm font-bold text-neutral-500 shrink-0">
             {teamName.slice(0, 1).toUpperCase()}

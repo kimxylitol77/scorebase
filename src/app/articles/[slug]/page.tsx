@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import Image from "next/image";
 import Markdown from "@/components/Markdown";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
@@ -579,7 +580,19 @@ export default async function ArticlePage({ params }: Props) {
 /** 팀 로고 — logoUrl 없으면 이니셜 마크로 폴백 */
 function TeamLogo({ src, name }: { src?: string | null; name: string }) {
   if (src) {
-    // 외부 이미지 — next/image 도메인 설정 부담 회피 위해 img 태그 사용
+    // Liquipedia (LCK 로고) 는 hotlink 차단으로 plain <img> 안 됨 →
+    // Next.js image optimizer 통과. 다른 CDN 은 hotlink 허용이라 그대로.
+    if (src.includes("liquipedia.net")) {
+      return (
+        <Image
+          src={src}
+          alt={`${name} 로고`}
+          width={64}
+          height={64}
+          className="w-14 h-14 sm:w-16 sm:h-16 object-contain bg-white rounded-md p-1.5 shadow-sm"
+        />
+      );
+    }
     // eslint-disable-next-line @next/next/no-img-element
     return (
       <img

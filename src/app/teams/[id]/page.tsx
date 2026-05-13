@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -212,16 +213,25 @@ export default async function TeamPage({ params }: Props) {
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            {team.logoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={team.logoUrl}
-                alt={team.name}
-                width={64}
-                height={64}
-                className="rounded-md bg-white p-1 shadow-sm"
-              />
-            )}
+            {team.logoUrl &&
+              (team.logoUrl.includes("liquipedia.net") ? (
+                <Image
+                  src={team.logoUrl}
+                  alt={team.name}
+                  width={64}
+                  height={64}
+                  className="rounded-md bg-white p-1 shadow-sm"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={team.logoUrl}
+                  alt={team.name}
+                  width={64}
+                  height={64}
+                  className="rounded-md bg-white p-1 shadow-sm"
+                />
+              ))}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <LeagueBadge league={team.league} />
@@ -514,6 +524,17 @@ function OppLogo({
       >
         {name.slice(0, 1).toUpperCase()}
       </span>
+    );
+  }
+  if (src.includes("liquipedia.net")) {
+    return (
+      <Image
+        src={src}
+        alt=""
+        width={20}
+        height={20}
+        className="w-5 h-5 object-contain shrink-0"
+      />
     );
   }
   return (

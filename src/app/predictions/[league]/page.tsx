@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -701,6 +702,18 @@ function PredTeamLogo({
       >
         {name.slice(0, 1).toUpperCase()}
       </span>
+    );
+  }
+  // Liquipedia (LCK 로고) hotlink 차단 우회 — Next.js image optimizer 통과
+  if (src.includes("liquipedia.net")) {
+    return (
+      <Image
+        src={src}
+        alt=""
+        width={20}
+        height={20}
+        className="w-5 h-5 object-contain shrink-0"
+      />
     );
   }
   return (
