@@ -153,17 +153,18 @@ export default async function ScoresPage({ searchParams }: Props) {
   });
 
   const totalCount = matches.length;
-  // 라이브는 외부 API 와 매칭된 매치 우선 (DB cron 보다 빠르게 반영)
-  const liveCount = matches.filter(
-    (m) =>
-      liveByExternalId.has(m.externalId) || m.status === "LIVE",
-  ).length;
-  const finishedCount = matches.filter(
-    (m) => m.status === "FINISHED" && !liveByExternalId.has(m.externalId),
-  ).length;
-  const scheduledCount = matches.filter(
-    (m) => m.status === "SCHEDULED" && !liveByExternalId.has(m.externalId),
-  ).length;
+  // Stale LIVE 보정 후 카운트 — row 와 동일한 effStatus 로직
+  function effStatusFor(m: { externalId: string; status: string; startTime: Date }): string {
+    if (liveByExternalId.has(m.externalId)) return "LIVE";
+    if (
+      m.status === "LIVE" &&
+      Date.now() - m.startTime.getTime() > 4 * 3600 * 1000
+    ) return "FINISHED";
+    return m.status;
+  }
+  const liveCount = matches.filter((m) => effStatusFor(m) === "LIVE").length;
+  const finishedCount = matches.filter((m) => effStatusFor(m) === "FINISHED").length;
+  const scheduledCount = matches.filter((m) => effStatusFor(m) === "SCHEDULED").length;
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
@@ -259,7 +260,19 @@ export default async function ScoresPage({ searchParams }: Props) {
                   const isBaseball = BASEBALL_LEAGUES.has(m.league);
                   // 외부 라이브 데이터로 status/score override (DB cron 사이클 보강)
                   const live = liveByExternalId.get(m.externalId);
-                  const effStatus = live ? "LIVE" : m.status;
+                  // Stale LIVE 보정: DB 가 LIVE 인데 외부 API 가 라이브로 안 잡고,
+                  // 매치 시작 후 4시간이 지났으면 사실상 종료로 본다.
+                  // (collect cron 사이클 간 시간에 stale 상태가 남는 케이스)
+                  const elapsedMs = Date.now() - m.startTime.getTime();
+                  const staleLive =
+                    !live &&
+                    m.status === "LIVE" &&
+                    elapsedMs > 4 * 3600 * 1000;
+                  const effStatus = live
+                    ? "LIVE"
+                    : staleLive
+                      ? "FINISHED"
+                      : m.status;
                   const effHomeScore = live ? live.homeScore : m.homeScore;
                   const effAwayScore = live ? live.awayScore : m.awayScore;
                   return (
