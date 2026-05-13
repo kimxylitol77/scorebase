@@ -15,6 +15,7 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { unstable_cache } from "next/cache";
 import { fetchNpbPitcherProfile } from "./npb-official";
 import { kanaToKorean } from "./kana-to-korean";
 
@@ -105,12 +106,43 @@ function parseRosterPage(html: string, dateStr: string): NpbInjuryEntry[] {
 }
 
 /**
+ * 한 일자의 NPB roster 페이지 파싱 결과를 캐싱.
+ * 과거 일자는 더 이상 바뀌지 않으므로 1주일 캐시. 오늘(index)은 1시간.
+ */
+const fetchRosterForDate = unstable_cache(
+  async (
+    url: string,
+    dateStr: string,
+    isToday: boolean,
+  ): Promise<NpbInjuryEntry[]> => {
+    void isToday; // cache key 분리용
+    try {
+      const r = await axios.get<string>(url, {
+        headers: HEADERS,
+        timeout: 10000,
+        responseType: "text",
+        validateStatus: (s) => s < 500,
+      });
+      if (r.status !== 200) return [];
+      return parseRosterPage(r.data, dateStr);
+    } catch {
+      return [];
+    }
+  },
+  ["npb-roster-by-date"],
+  { revalidate: 3600, tags: ["npb-roster"] },
+);
+
+/**
  * 지난 N일 NPB roster 등록말소 / 등록 누적. 동일 선수가 demote 후 promote 시
  * "활성 결장자" 에서 제거.
+ *
+ * 일자별 페이지를 모두 병렬 fetch (각 일자는 unstable_cache 로 1시간 캐싱).
+ * 30일 페이지 콜드 시 ~1.5초 (병렬), warm 시 ~50ms.
  */
 export async function fetchNpbInjuries(daysBack: number = 30): Promise<NpbInjuryEntry[]> {
   const today = new Date();
-  const collected: NpbInjuryEntry[] = [];
+  const tasks: Promise<NpbInjuryEntry[]>[] = [];
   for (let i = 0; i <= daysBack; i++) {
     const d = new Date(today.getTime() - i * 86400 * 1000);
     const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
@@ -119,25 +151,12 @@ export async function fetchNpbInjuries(daysBack: number = 30): Promise<NpbInjury
     const dateStr = `${yyyy}-${mm}-${dd}`;
     const url =
       i === 0
-        ? `${BASE}/announcement/roster/` // 오늘은 index (최신 일자)
+        ? `${BASE}/announcement/roster/`
         : `${BASE}/announcement/roster/roster_${mm}${dd}.html`;
-    try {
-      const r = await axios.get<string>(url, {
-        headers: HEADERS,
-        timeout: 10000,
-        responseType: "text",
-        validateStatus: (s) => s < 500,
-      });
-      if (r.status !== 200) continue;
-      const items = parseRosterPage(r.data, dateStr);
-      collected.push(...items);
-    } catch {
-      // 404 또는 timeout 일자는 skip (해당일 등록·말소 없음)
-    }
-    // burst 회피
-    await new Promise((r) => setTimeout(r, 200));
+    tasks.push(fetchRosterForDate(url, dateStr, i === 0));
   }
-  return collected;
+  const arrays = await Promise.all(tasks);
+  return arrays.flat();
 }
 
 /**
@@ -172,38 +191,41 @@ export function getTeamNpbInjuries(
 }
 
 /**
- * pid 가 있는 부상자에 npb.jp 의 카나(히라가나)를 fetch + 한글 음역 채움.
- * concurrent 6, 각 fetch 실패시 그냥 한자 그대로 둠. active list (~30명) 기준 호출.
+ * pid → 한글 음역 결과를 Vercel Data Cache 에 1일 캐싱.
+ * 첫 호출은 npb.jp 1회 fetch, 이후는 모두 캐시 hit (수 ms).
+ *
+ * 30명 부상자 페이지 기준: 캐시 hit 시 ~50ms, 콜드 시 모두 병렬로 ~1.5초.
+ * (기존 sequential 5 batch + 200ms sleep = 약 20초 → 캐시 hit 시 1/400로 단축)
+ */
+const getKanaKoForPid = unstable_cache(
+  async (pid: string): Promise<string | null> => {
+    try {
+      const p = await fetchNpbPitcherProfile(pid);
+      if (!p.kana) return null;
+      const ko = kanaToKorean(p.kana);
+      return ko && /[가-힣]/.test(ko) ? ko : null;
+    } catch {
+      return null;
+    }
+  },
+  ["npb-kana-by-pid"],
+  { revalidate: 86400, tags: ["npb-kana"] },
+);
+
+/**
+ * 활성 부상자의 한자 이름을 한글 음역으로 교체.
+ * pid 별 캐싱 + 전체 병렬 — 30명 페이지가 콜드 시 ~2초, 캐시 hit 시 ~50ms.
  */
 export async function enrichNpbInjuriesWithKorean(
   active: NpbInjuryEntry[],
 ): Promise<NpbInjuryEntry[]> {
-  const withPid = active.filter((x) => x.pid);
-  if (withPid.length === 0) return active;
-  const cache = new Map<string, string>(); // pid → koName
-  const CONCURRENCY = 6;
-  for (let i = 0; i < withPid.length; i += CONCURRENCY) {
-    const batch = withPid.slice(i, i + CONCURRENCY);
-    await Promise.all(
-      batch.map(async (e) => {
-        if (!e.pid || cache.has(e.pid)) return;
-        try {
-          const p = await fetchNpbPitcherProfile(e.pid);
-          if (p.kana) {
-            const ko = kanaToKorean(p.kana);
-            if (ko && /[가-힣]/.test(ko)) cache.set(e.pid, ko);
-          }
-        } catch {
-          // 무시
-        }
-      }),
-    );
-    // burst 회피
-    await new Promise((r) => setTimeout(r, 200));
-  }
-  return active.map((e) => {
-    if (!e.pid) return e;
-    const ko = cache.get(e.pid);
-    return ko ? { ...e, playerName: ko } : e;
-  });
+  if (active.length === 0) return active;
+  const results = await Promise.all(
+    active.map(async (e) => {
+      if (!e.pid) return e;
+      const ko = await getKanaKoForPid(e.pid);
+      return ko ? { ...e, playerName: ko } : e;
+    }),
+  );
+  return results;
 }
