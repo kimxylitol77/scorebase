@@ -42,12 +42,34 @@ const TYPE_BADGE: Record<
 const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 
+/**
+ * 본문 마크다운에서 검색·소셜 미리보기용 description 생성.
+ *
+ * SportsEvent JSON-LD 의 description 권장 길이는 200~500자 (Google Rich Results
+ * 가이드). 너무 짧으면 검증 reject 가능. NewsArticle 의 메타 description 도
+ * 같이 쓰므로 280자 정도가 SERP·SNS 미리보기·Rich Results 모두 만족.
+ *
+ * 마지막 한 글자 단위 cut 이 단어 잘림을 만드는 경우가 있어 문장 부호 직후로 한정.
+ */
 function makeDescription(content: string): string {
-  return content
-    .replace(/[#*_`>\[\]\(\)]/g, "")
+  const flat = content
+    .replace(/[#*_`>[\]()]/g, "")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 160);
+    .trim();
+  if (flat.length <= 280) return flat;
+  // 280자 이내에서 마지막 문장 종결 부호 우선 cut
+  const slice = flat.slice(0, 280);
+  const lastSentenceEnd = Math.max(
+    slice.lastIndexOf(". "),
+    slice.lastIndexOf("? "),
+    slice.lastIndexOf("! "),
+    slice.lastIndexOf("다. "),
+    slice.lastIndexOf("다."),
+  );
+  if (lastSentenceEnd >= 200) return slice.slice(0, lastSentenceEnd + 1);
+  // 종결 부호 없으면 띄어쓰기에서 cut
+  const lastSpace = slice.lastIndexOf(" ");
+  return lastSpace >= 200 ? slice.slice(0, lastSpace) + "…" : slice + "…";
 }
 
 /** 본문에서 "ID(Eng, 한글)" 패턴의 선수 ID·본명 추출. 최대 maxPick개. */
