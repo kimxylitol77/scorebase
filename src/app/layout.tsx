@@ -3,6 +3,7 @@ import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import LiveScoresBar from "@/components/LiveScoresBar";
 import PageViewTracker from "@/components/PageViewTracker";
 // import Chatbot from "@/components/Chatbot"; // 결제(크레딧) 이슈 해결 시까지 비활성
 
@@ -99,6 +100,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900">
         <PageViewTracker />
         <Header />
+        <LiveScoresBar />
         <main className="flex-1 w-full">{children}</main>
         <Footer />
         {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
