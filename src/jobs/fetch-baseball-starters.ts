@@ -186,20 +186,72 @@ export async function runFetchBaseballStarters(opts?: {
 
   // 4) 변경된 매치 PREVIEW 본문 재발행
   let regenerated = 0;
+  const failedRegens: number[] = [];
   if (regenerateArticles && changedMatchIds.length > 0) {
     for (const mid of changedMatchIds) {
       try {
         await regenerateBaseballPreview(mid);
         regenerated++;
         console.log(`[starters] regen ✅ match #${mid}`);
-        await new Promise((r) => setTimeout(r, 1000)); // Claude rate limit 회피
+        await new Promise((r) => setTimeout(r, 1000));
       } catch (e) {
         console.warn(`[starters] regen ❌ match #${mid}:`, (e as Error).message);
+        failedRegens.push(mid);
       }
     }
   }
 
-  return { updated, regenerated };
+  // 5) starter 확정 됐는데 PREVIEW 아직 없는 매치 → 신규 발행 (KBO/NPB 야구 흐름)
+  let newlyPublished = 0;
+  if (regenerateArticles) {
+    const newPublishMatches = matches.filter(
+      (m) => m.articles.length === 0 && (m.homeStarter || m.awayStarter || updated > 0),
+    );
+    // updated > 0 만으로는 부정확 — 매치별 starter 채워졌는지 다시 query
+    const fresh = await prisma.match.findMany({
+      where: {
+        league: { in: ["KBO", "NPB"] },
+        status: "SCHEDULED",
+        startTime: { gte: now, lte: horizon },
+        articles: { none: { type: "PREVIEW" } },
+        OR: [{ homeStarter: { not: null } }, { awayStarter: { not: null } }],
+      },
+      select: { id: true, league: true, homeTeam: true, awayTeam: true },
+    });
+    if (fresh.length > 0) {
+      console.log(`[starters] PREVIEW 미발행 + starter 확정 매치 ${fresh.length}건 → runPreview 호출`);
+      const { runPreview } = await import("./generate-previews");
+      const leagues = [...new Set(fresh.map((m) => m.league))];
+      for (const lg of leagues) {
+        try {
+          await runPreview({ autoPublish: true, league: lg, horizonDays, take: 20 });
+        } catch (e) {
+          console.warn(`[starters] ${lg} preview 발행 실패:`, (e as Error).message);
+        }
+      }
+      newlyPublished = fresh.length;
+    } else {
+      void newPublishMatches;
+    }
+  }
+
+  // 6) fail 매치 끝에 한 번 더 retry (30s sleep — API 회복 시간)
+  if (failedRegens.length > 0) {
+    console.log(`[starters] fail 매치 ${failedRegens.length}건 30초 후 재시도`);
+    await new Promise((r) => setTimeout(r, 30000));
+    for (const mid of failedRegens) {
+      try {
+        await regenerateBaseballPreview(mid);
+        regenerated++;
+        console.log(`[starters] retry regen ✅ match #${mid}`);
+        await new Promise((r) => setTimeout(r, 2000));
+      } catch (e) {
+        console.warn(`[starters] retry regen ❌ match #${mid}:`, (e as Error).message);
+      }
+    }
+  }
+
+  return { updated, regenerated, newlyPublished };
 }
 
 /**

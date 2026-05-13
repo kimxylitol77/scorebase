@@ -147,6 +147,32 @@ export async function runPreview(opts?: {
 
   for (const m of matches) {
     try {
+      // KBO/NPB 는 선발 투수 확정 후에만 PREVIEW 발행 (매치 당일 KST ~11시 게재).
+      // starter 매칭 실패 = 아직 확정 안 됨 → 다음 cron 까지 skip.
+      if (m.league === "KBO") {
+        const kstNow = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        const kstMatch = new Date(m.startTime.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        if (kstNow !== kstMatch || kboStarters.length === 0) {
+          console.log(`[preview/KBO] skip — starter 미확정: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
+          continue;
+        }
+        const p = pickKboStarters(kboStarters, m.homeTeam.name, m.awayTeam.name);
+        if (!p) {
+          console.log(`[preview/KBO] skip — starter 매칭 안 됨: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
+          continue;
+        }
+      }
+      if (m.league === "NPB") {
+        if (npbStarters.length === 0) {
+          console.log(`[preview/NPB] skip — starter 미확정: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
+          continue;
+        }
+        const p = pickNpbStartersForMatch(npbStarters, m.homeTeam.name, m.awayTeam.name, m.startTime);
+        if (!p) {
+          console.log(`[preview/NPB] skip — starter 매칭 안 됨: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
+          continue;
+        }
+      }
       let context = buildMatchContext(
         leagueMatches[m.league],
         m.league,

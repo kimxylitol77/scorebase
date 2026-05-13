@@ -337,17 +337,36 @@ export default async function MatchInsight({ match }: Props) {
     match.league === "KBO" ||
     match.league === "NPB" ||
     match.league === "LOL";
-  const dataSparse = eloTable.processed < 10;
+  const dataSparse = eloTable.processed < 5;
+  // sparse 라도 선발 투수 카드만은 표시 (KBO/NPB 시즌 초반 등)
+  const sparseHasStarters =
+    (match.league === "MLB" || match.league === "KBO" || match.league === "NPB") &&
+    (homeStarterEarly || awayStarterEarly);
 
   if (dataSparse) {
     return (
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 my-8 text-sm text-neutral-500">
-        <div className="font-semibold text-neutral-700 dark:text-neutral-200 mb-1">
-          📊 매치 인사이트
+      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-6 my-10 space-y-4">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">
+          <span className="text-base">📊</span>
+          <span>매치 인사이트</span>
+          <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
+            · 시즌 초반 데이터 누적 중 ({eloTable.processed}경기)
+          </span>
         </div>
-        분석에 필요한 과거 매치 데이터가 충분하지 않습니다 (현재{" "}
-        {eloTable.processed}경기). 시즌이 진행될수록 정확도가 올라갑니다.
-      </div>
+        {sparseHasStarters ? (
+          <StarterCard
+            home={homeStarterEarly}
+            away={awayStarterEarly}
+            homeTeam={toKoreanTeamName(match.homeTeam.name)}
+            awayTeam={toKoreanTeamName(match.awayTeam.name)}
+            league={match.league}
+          />
+        ) : (
+          <p className="text-sm text-neutral-500">
+            분석에 필요한 과거 매치 데이터가 충분하지 않습니다. 시즌이 진행될수록 정확도가 올라갑니다.
+          </p>
+        )}
+      </section>
     );
   }
 
