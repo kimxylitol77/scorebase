@@ -21,7 +21,8 @@
     "scheduler": "tsx src/jobs/scheduler.ts",
     "players:match": "tsx scripts/match-player-ids.ts",
     "players:apply": "tsx scripts/apply-player-seed.ts",
-    "players:seed": "npm run players:match && npm run players:apply"
+    "players:seed": "npm run players:match && npm run players:apply",
+    "poisson:test": "tsx scripts/test-poisson-model.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
