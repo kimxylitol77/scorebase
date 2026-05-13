@@ -323,6 +323,8 @@ export default async function ScoresPage({ searchParams }: Props) {
                       key={m.id}
                       homeName={toKoreanTeamName(m.homeTeam.name)}
                       awayName={toKoreanTeamName(m.awayTeam.name)}
+                      homeShortName={m.homeTeam.shortName ?? null}
+                      awayShortName={m.awayTeam.shortName ?? null}
                       homeLogo={m.homeTeam.logoUrl}
                       awayLogo={m.awayTeam.logoUrl}
                       homeScore={effHomeScore}
@@ -393,6 +395,8 @@ function TeamLogo({ url, name }: { url: string | null; name: string }) {
 function MatchRow({
   homeName,
   awayName,
+  homeShortName,
+  awayShortName,
   homeLogo,
   awayLogo,
   homeScore,
@@ -408,6 +412,8 @@ function MatchRow({
 }: {
   homeName: string;
   awayName: string;
+  homeShortName?: string | null;
+  awayShortName?: string | null;
   homeLogo: string | null;
   awayLogo: string | null;
   homeScore: number | null;
@@ -421,6 +427,10 @@ function MatchRow({
   homeStarter?: string | null;
   awayStarter?: string | null;
 }) {
+  // 모바일에선 shortName (예: 'NS', '두산', 'T1'), 데스크탑은 풀네임.
+  // shortName 없으면 풀네임 fallback.
+  const homeMobile = homeShortName || homeName;
+  const awayMobile = awayShortName || awayName;
   const hasArticle = !!(previewSlug || recapSlug);
   const isLive = status === "LIVE";
   const isFinished = status === "FINISHED";
@@ -458,7 +468,10 @@ function MatchRow({
         {/* 원정팀 */}
         <div className="min-w-0 flex items-center gap-1.5 sm:gap-2.5 justify-end">
           <div className="min-w-0 text-right">
-            <div className="truncate font-medium">{awayName}</div>
+            <div className="truncate font-medium">
+              <span className="sm:hidden">{awayMobile}</span>
+              <span className="hidden sm:inline">{awayName}</span>
+            </div>
             {awayStarter && (
               <div className="truncate text-[10px] text-neutral-500 mt-0.5">
                 선발 {awayStarter}
@@ -481,7 +494,10 @@ function MatchRow({
         <div className="min-w-0 flex items-center gap-1.5 sm:gap-2.5">
           <TeamLogo url={homeLogo} name={homeName} />
           <div className="min-w-0">
-            <div className="truncate font-medium">{homeName}</div>
+            <div className="truncate font-medium">
+              <span className="sm:hidden">{homeMobile}</span>
+              <span className="hidden sm:inline">{homeName}</span>
+            </div>
             {homeStarter && (
               <div className="truncate text-[10px] text-neutral-500 mt-0.5">
                 선발 {homeStarter}
