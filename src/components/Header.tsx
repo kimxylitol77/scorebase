@@ -83,8 +83,18 @@ export default function Header() {
             <CategoryDropdown key={c.label} {...c} />
           ))}
           <Link
-            href="/previews"
+            href="/scores"
             className="ml-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
+          >
+            <span className="relative inline-flex w-1.5 h-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500" />
+            </span>
+            라이브
+          </Link>
+          <Link
+            href="/previews"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
           >
             프리뷰
           </Link>
