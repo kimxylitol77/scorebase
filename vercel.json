@@ -28,11 +28,35 @@
     },
     {
       "path": "/api/cron/recap",
-      "schedule": "30 3 * * *"
+      "schedule": "30 13 * * *"
     },
     {
       "path": "/api/cron/recap",
       "schedule": "30 14 * * *"
+    },
+    {
+      "path": "/api/cron/recap",
+      "schedule": "30 15 * * *"
+    },
+    {
+      "path": "/api/cron/recap",
+      "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/recap",
+      "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron/recap",
+      "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/recap",
+      "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/recap",
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cron/evaluate",

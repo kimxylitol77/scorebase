@@ -114,6 +114,41 @@ export async function runRecap(opts?: {
           bookmakers: m.marketBookmakers ?? 0,
         };
       }
+      // 베팅 라인 움직임 (오프닝 vs 매치 직전) — 시장의 시선 변화 분석
+      if (
+        m.openingMarketHome != null &&
+        m.openingMarketAway != null &&
+        m.marketHome != null &&
+        m.marketAway != null
+      ) {
+        context.lineMovement = {
+          home: { opening: m.openingMarketHome, current: m.marketHome },
+          draw: {
+            opening: m.openingMarketDraw ?? 0,
+            current: m.marketDraw ?? 0,
+          },
+          away: { opening: m.openingMarketAway, current: m.marketAway },
+          capturedAt: m.openingCapturedAt ?? undefined,
+        };
+      }
+      // API-Football 자체 예측 (third opinion) — RECAP 에서 "모델 vs 시장 vs api-football" 3자 비교
+      if (m.apiPredHome != null && m.apiPredAway != null) {
+        context.apiPrediction = {
+          homePct: m.apiPredHome,
+          drawPct: m.apiPredDraw ?? 0,
+          awayPct: m.apiPredAway,
+          advice: m.apiPredAdvice ?? undefined,
+        };
+      }
+      // 선발 투수 (MLB/KBO/NPB) — 시즌 ERA 대비 이번 등판 결과 분석
+      if (m.homeStarter || m.awayStarter) {
+        try {
+          context.starters = {
+            home: m.homeStarter ? JSON.parse(m.homeStarter) : undefined,
+            away: m.awayStarter ? JSON.parse(m.awayStarter) : undefined,
+          };
+        } catch {}
+      }
 
       // API-Football fixture statistics (RECAP 강화)
       if (m.fixtureStats) {

@@ -74,8 +74,78 @@ export function buildRecapPrompt(input: RecapPromptInput): string {
   }
   if (context.winProb) {
     ctxLines.push(
-      `- 경기 전 통계 추정 승률: ${home} ${pct(context.winProb.home)} / 무 ${pct(context.winProb.draw)} / ${away} ${pct(context.winProb.away)}`,
+      `- 모델(Elo) 추정 승률: ${home} ${pct(context.winProb.home)} / 무 ${pct(context.winProb.draw)} / ${away} ${pct(context.winProb.away)}`,
     );
+  }
+  if (context.marketProb) {
+    ctxLines.push(
+      `- 베팅사이트 평균 implied 확률 (${context.marketProb.bookmakers}개사, vig 제거): ${home} ${pct(context.marketProb.home)} / 무 ${pct(context.marketProb.draw)} / ${away} ${pct(context.marketProb.away)} — 시장 예측 vs 실제 결과 비교에 활용`,
+    );
+  }
+  if (context.apiPrediction) {
+    ctxLines.push(
+      `- API-Football 자체 예측 (third opinion): ${home} ${context.apiPrediction.homePct}% / 무 ${context.apiPrediction.drawPct}% / ${away} ${context.apiPrediction.awayPct}%${context.apiPrediction.advice ? ` · advice: "${context.apiPrediction.advice}"` : ""}`,
+    );
+  }
+  if (context.lineMovement) {
+    const lm = context.lineMovement;
+    ctxLines.push(
+      `- 라인 움직임 (오프닝 → 현재 implied 확률): ${home} ${pct(lm.home.opening)}→${pct(lm.home.current)} / 무 ${pct(lm.draw.opening)}→${pct(lm.draw.current)} / ${away} ${pct(lm.away.opening)}→${pct(lm.away.current)} — 시장이 어느 쪽으로 기울었는지 풀어내기`,
+    );
+  }
+  if (context.streak) {
+    const s = context.streak;
+    const fmtS = (x: typeof s.home) =>
+      [
+        x.winning > 0 ? `${x.winning}연승` : null,
+        x.unbeaten > 0 && x.winning === 0 ? `${x.unbeaten}경기 무패` : null,
+        x.losing > 0 ? `${x.losing}연패` : null,
+      ].filter(Boolean).join(" · ") || "특별 흐름 없음";
+    ctxLines.push(
+      `- 경기 직전 흐름: ${home} ${fmtS(s.home)} / ${away} ${fmtS(s.away)}`,
+    );
+  }
+  if (context.trend) {
+    const t = context.trend;
+    ctxLines.push(
+      `- 최근 경기당 평균 득실/승점: ${home} ${t.home.gf.toFixed(2)}득/${t.home.ga.toFixed(2)}실/${t.home.ppg.toFixed(2)}점 · ${away} ${t.away.gf.toFixed(2)}득/${t.away.ga.toFixed(2)}실/${t.away.ppg.toFixed(2)}점 — 이번 경기 스코어와의 차이 분석`,
+    );
+  }
+  if (context.homeAway) {
+    const ha = context.homeAway;
+    ctxLines.push(
+      `- 홈/원정 split: ${home} 홈 ${ha.home.wins}-${ha.home.draws}-${ha.home.losses} (PPG ${ha.home.ppg.toFixed(2)}) / ${away} 원정 ${ha.away.wins}-${ha.away.draws}-${ha.away.losses} (PPG ${ha.away.ppg.toFixed(2)})`,
+    );
+  }
+  if (context.keyPlayers) {
+    const fmtKP = (l: Array<{ name: string; goals: number; assists: number }>) =>
+      l
+        .map(
+          (p) =>
+            `${p.name}(${p.goals}골${p.assists ? "·" + p.assists + "도움" : ""})`,
+        )
+        .join(", ");
+    if (context.keyPlayers.home.length > 0) {
+      ctxLines.push(`- 시즌 핵심 선수 ${home}: ${fmtKP(context.keyPlayers.home)} — 이번 경기 골 기여 여부 분석`);
+    }
+    if (context.keyPlayers.away.length > 0) {
+      ctxLines.push(`- 시즌 핵심 선수 ${away}: ${fmtKP(context.keyPlayers.away)}`);
+    }
+  }
+  if (context.starters) {
+    const s = context.starters;
+    const fmtS = (p?: typeof s.home) =>
+      p
+        ? `${p.name}${p.hand ? `(${p.hand}완)` : ""}${p.era != null ? " ERA " + p.era.toFixed(2) : ""}${p.whip != null ? " · WHIP " + p.whip.toFixed(2) : ""}${p.wins != null && p.losses != null ? ` · ${p.wins}-${p.losses}` : ""}`
+        : "(미정)";
+    ctxLines.push(`- 선발 투수: ${home} ${fmtS(s.home)} / ${away} ${fmtS(s.away)} — 시즌 성적 대비 이번 등판 결과 비교`);
+  }
+  if (context.topScores && context.topScores.length > 0) {
+    const ts = context.topScores
+      .slice(0, 3)
+      .map((s) => `${s.home}-${s.away}(${pct(s.prob)})`)
+      .join(", ");
+    ctxLines.push(`- 모델 확률 분포 top 3 스코어: ${ts} — 실제 ${match.homeScore}-${match.awayScore} 와 일치/근접 여부`);
   }
   if (context.fixtureStats && context.fixtureStats.length >= 2) {
     const h = context.fixtureStats.find((s) => s.teamName === home) ?? context.fixtureStats[0];
@@ -161,14 +231,21 @@ export function buildRecapPrompt(input: RecapPromptInput): string {
 ${ctxLines.length ? ctxLines.join("\n") : "(없음)"}
 
 [작성 요구사항]
-- 분량 제한 없음 — 입력 ctxLines 의 모든 데이터(라인업·골 기록·매치 통계·사전 Elo·승률·폼·H2H·시즌 순위·공수 랭킹)를 적극적으로 본문에 녹여 분석가 톤으로 충분히 풀어내라
+- 분량 1500~2200자 권장 (최소 1200자) — 입력 ctxLines 의 모든 데이터를 적극적으로 본문에 녹여 분석가 톤으로 충분히 풀어낸다. 단순 사실 나열 금지, 항상 "왜" 와 "그래서" 를 붙여라.
 - 제목은 결과를 직관적으로 (예: "리버풀, 시티에 2-1 승... 시즌 막판 추격전 본격화")
-- 리드(굵은 글씨)에 핵심 결과 한 줄 요약
-- H2 소제목 2~3개로 구성. 추천 구성:
-  · "결과 요약" (스코어와 의미 — 가능하면 핵심 골/유효슛/점유율 수치 인용)
-  · "흐름 분석" (사전 전망 vs 결과의 차이 — 사전 승률·Elo 격차 그대로 인용, 사전 통계가 적중했는지/이변이었는지)
-  · "맥락과 시사점" (시즌 순위에 미치는 영향, 양 팀의 다음 과제)
-- 데이터 활용: 사전 승률은 "${home} N% / 무 M% / ${away} K%" 그대로 인용 → 실제 결과와 비교. 매치 통계는 양 팀 슛·점유율·정확도 수치를 본문에 짧게라도 녹인다. 사전 폼·Elo 격차도 단순 나열 X — 결과와의 관계를 한 줄로 풀어쓴다.
+- 리드(굵은 글씨)에 핵심 결과 한 줄 요약 + 핵심 수치 1개 인용 (점유율·유효슛·골 시간 중 하나)
+- H2 소제목 3~5개로 구성. 가능한 섹션 (데이터 있으면 적극 활용):
+  · "결과와 핵심 장면" — 스코어 의미 + 골 시간·득점자·유효슛/점유율 인용
+  · "사전 예측 vs 실제" — 모델(Elo) 승률, 베팅사이트 평균 시장 확률, API-Football 예측 세 가지를 나란히 인용 → 실제 결과와 비교 → "시장도 ${home} 우세였는데 결과가 일치" / "모델은 ${home} 60% 였지만 실제론 무승부" 식으로
+  · "라인 움직임" (lineMovement 있을 때) — 베팅사 오프닝 vs 현재 라인이 어디로 기울었는지 → 결과와 연결 ("막판까지 ${away} 쪽으로 기울었지만 결국 ${home} 승")
+  · "흐름·핵심 선수" — 사전 연승/연패 흐름이 이어졌는지·끊겼는지, 시즌 핵심 선수 (keyPlayers) 가 골/도움 기여했는지, 야구라면 선발 투수 시즌 ERA 대비 이번 등판 결과
+  · "확률 분포 vs 실제 스코어" (topScores 있을 때) — 모델이 가장 가능성 높게 본 스코어 top 3 와 실제 비교
+  · "시즌 순위 의미·다음 경기" — 이 결과로 순위가 어떻게 변하는지, 양 팀의 다음 과제
+- 데이터 인용 가이드:
+  * 모델 승률·시장 implied 확률 → "%" 그대로 인용
+  * Elo 격차 → 점수 차로 표현 ("${home} +50 우위였는데...")
+  * 매치 통계 → 점유율·유효슛·정확도 둘 다 인용 (편향 X)
+  * 흐름(streak) → "${home} 5연승 째" 식으로 직관적
 - 마지막은 시즌 흐름·다음 경기 의미로 차분히 마무리.
 - ctxLines 의 nextMatchPreview 가 있으면, 마무리 뒤에 자연스러운 한 문장으로 마크다운 링크 1개 인용. 링크 텍스트는 nextMatchPreview.title 을 짧게 다듬어도 좋다.
 
