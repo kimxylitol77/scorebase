@@ -16,7 +16,6 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { unstable_cache } from "next/cache";
 import { ipToInnings } from "./kbo-official";
 
 const BASE = "https://npb.jp";
@@ -207,15 +206,10 @@ function parseInningCell(
 
 /**
  * 개별 투수 상세 페이지에서 가장 최근 시즌 stats 추출 + 직접 WHIP/K9 계산.
- * 1시간 캐시 — 시즌 stats 는 경기 끝나도 즉시 반영 안 됨.
+ * Raw — 페이지에서는 unstable_cache wrapper (npb-cache.ts) 통해 호출.
+ * cron 잡은 직접 호출 가능.
  */
-export const fetchNpbPitcherStats = unstable_cache(
-  fetchNpbPitcherStatsRaw,
-  ["npb-pitcher-stats"],
-  { revalidate: 3600, tags: ["npb-pitcher"] },
-);
-
-async function fetchNpbPitcherStatsRaw(pid: string): Promise<NpbPitcherStats | null> {
+export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats | null> {
   const url = `${BASE}/bis/players/${pid}.html`;
   let html: string;
   try {
@@ -337,15 +331,9 @@ function parseBatsJp(s: string | undefined): "L" | "R" | undefined {
  * 텍스트가 "11 中日ドラゴンズ 中西　聖輝 なかにし..." 통째로 들어옴.
  * → `li#pc_v_name` 로 정확히 한정.
  *
- * 프로필은 잘 안 바뀌므로 1일 캐시. 부상자 페이지의 카나 보강과 선수 페이지 모두 가속.
+ * Raw — 페이지에서는 unstable_cache wrapper (npb-cache.ts) 통해 호출.
  */
-export const fetchNpbPitcherProfile = unstable_cache(
-  fetchNpbPitcherProfileRaw,
-  ["npb-pitcher-profile"],
-  { revalidate: 86400, tags: ["npb-pitcher"] },
-);
-
-async function fetchNpbPitcherProfileRaw(pid: string): Promise<NpbPitcherProfile> {
+export async function fetchNpbPitcherProfile(pid: string): Promise<NpbPitcherProfile> {
   const url = `${BASE}/bis/players/${pid}.html`;
   try {
     const r = await axios.get<string>(url, {

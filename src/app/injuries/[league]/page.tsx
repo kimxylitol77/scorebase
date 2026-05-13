@@ -26,12 +26,13 @@ import {
   type KboInjury,
 } from "@/lib/sports/kbo-injuries";
 import {
-  fetchNpbInjuries,
-  activeNpbInjuries,
   getTeamNpbInjuries,
-  enrichNpbInjuriesWithKorean,
   type NpbInjuryEntry,
 } from "@/lib/sports/npb-injuries";
+import {
+  fetchActiveNpbInjuriesCached,
+  enrichNpbInjuriesWithKoreanCached,
+} from "@/lib/sports/npb-cache";
 import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
 
 function classifyKboDuration(
@@ -496,8 +497,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         count: getTeamKboInjuries(all, t.name).length,
       }));
     } else if (upper === "NPB") {
-      const raw = await fetchNpbInjuries(30);
-      const active = activeNpbInjuries(raw);
+      const active = await fetchActiveNpbInjuriesCached(30);
       teamLists = teams.map((t) => ({
         teamName: t.name,
         count: getTeamNpbInjuries(active, t.name).length,
@@ -671,10 +671,9 @@ export default async function InjuriesByLeague({
     }
   } else if (upper === "NPB") {
     try {
-      const raw = await fetchNpbInjuries(30);
-      const active = activeNpbInjuries(raw);
-      // 활성 부상자만 카나 → 한글 음역 보강 (보통 ~30명, 6 concurrent)
-      allNpb = await enrichNpbInjuriesWithKorean(active);
+      const active = await fetchActiveNpbInjuriesCached(30);
+      // 활성 부상자 한자 → 한글 음역 보강 (pid 별 unstable_cache 1d)
+      allNpb = await enrichNpbInjuriesWithKoreanCached(active);
     } catch (e) {
       console.warn("[injuries/NPB] fetch 실패:", (e as Error).message);
     }

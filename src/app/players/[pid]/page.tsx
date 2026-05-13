@@ -18,11 +18,11 @@ import {
   calcK9,
   type KboPitcherRecentGame,
 } from "@/lib/sports/kbo-official";
+import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import {
-  fetchNpbPitcherProfile,
-  fetchNpbPitcherStats,
-  npbTeamJpToKor,
-} from "@/lib/sports/npb-official";
+  fetchNpbPitcherProfileCached as fetchNpbPitcherProfile,
+  fetchNpbPitcherStatsCached as fetchNpbPitcherStats,
+} from "@/lib/sports/npb-cache";
 import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
 import { kanaToKorean } from "@/lib/sports/kana-to-korean";
 import { prisma } from "@/lib/db";
