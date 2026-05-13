@@ -161,22 +161,27 @@ const MATCH_DURATION_MIN: Record<string, number> = {
   LOL: 180, // BO3 시리즈 평균 약 3시간 (Bo5는 더 길지만 정규시즌은 Bo3)
 };
 
-// 리그별 홈 국가/지역 — Place location 의 addressCountry 보강
-const LEAGUE_COUNTRY: Record<string, { name: string; code: string }> = {
-  EPL:        { name: "England",      code: "GB" },
-  LALIGA:     { name: "Spain",        code: "ES" },
-  BUNDESLIGA: { name: "Germany",      code: "DE" },
-  SERIE_A:    { name: "Italy",        code: "IT" },
-  LIGUE_1:    { name: "France",       code: "FR" },
-  MLS:        { name: "United States", code: "US" },
-  UCL:        { name: "Europe",       code: "EU" },
-  WORLD_CUP:  { name: "USA / Canada / Mexico", code: "US" },
-  NBA:        { name: "United States", code: "US" },
-  NHL:        { name: "United States", code: "US" },
-  MLB:        { name: "United States", code: "US" },
-  KBO:        { name: "South Korea",  code: "KR" },
-  NPB:        { name: "Japan",        code: "JP" },
-  LOL:        { name: "South Korea",  code: "KR" },
+// 리그별 홈 국가/지역 + 대표 도시 — Place location 보강용.
+// Google Rich Results 의 SportsEvent 검증이 location.address 의 addressLocality 를
+// 도시명으로 기대하기 때문에, raw 에 venue.city 가 없으면 리그 대표 도시 사용.
+const LEAGUE_COUNTRY: Record<
+  string,
+  { name: string; code: string; defaultCity: string }
+> = {
+  EPL:        { name: "England",      code: "GB", defaultCity: "London" },
+  LALIGA:     { name: "Spain",        code: "ES", defaultCity: "Madrid" },
+  BUNDESLIGA: { name: "Germany",      code: "DE", defaultCity: "Berlin" },
+  SERIE_A:    { name: "Italy",        code: "IT", defaultCity: "Rome" },
+  LIGUE_1:    { name: "France",       code: "FR", defaultCity: "Paris" },
+  MLS:        { name: "United States", code: "US", defaultCity: "New York" },
+  UCL:        { name: "Europe",       code: "EU", defaultCity: "London" },
+  WORLD_CUP:  { name: "USA / Canada / Mexico", code: "US", defaultCity: "New York" },
+  NBA:        { name: "United States", code: "US", defaultCity: "New York" },
+  NHL:        { name: "United States", code: "US", defaultCity: "New York" },
+  MLB:        { name: "United States", code: "US", defaultCity: "New York" },
+  KBO:        { name: "South Korea",  code: "KR", defaultCity: "Seoul" },
+  NPB:        { name: "Japan",        code: "JP", defaultCity: "Tokyo" },
+  LOL:        { name: "South Korea",  code: "KR", defaultCity: "Seoul" },
 };
 
 interface MatchForEvent {
@@ -240,10 +245,11 @@ function buildSportsEventJsonLd(opts: {
     sport: league,
     location: {
       "@type": "Place",
-      name: venueName ?? `${home} 홈 경기장`,
+      name: venueName ?? `${home} Home Stadium`,
       address: {
         "@type": "PostalAddress",
-        addressLocality: venueCity ?? home,
+        streetAddress: venueName ?? `${home} Home Stadium`,
+        addressLocality: venueCity ?? country?.defaultCity ?? "Unknown",
         addressCountry: country?.code ?? "US",
       },
     },
