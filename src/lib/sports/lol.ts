@@ -18,19 +18,62 @@ const BASE = "https://api.balldontlie.io/lol/v1";
 // (한 시즌이 끝나면 매치 fetch 가 비게 되니까 시즌 전환 시 신경 써야 함)
 const LCK_TOURNAMENT_IDS = [324];
 
-// LCK 10팀 한글명 매핑 (BALLDONTLIE team id 기준).
-// 새 시즌에 팀 ID가 바뀌면 추가/수정.
-const LCK_TEAM_NAMES_KO: Record<string, { name: string; short: string }> = {
-  "1": { name: "T1", short: "T1" },
-  "2": { name: "Gen.G", short: "GEN" },
-  "7": { name: "한화생명e스포츠", short: "HLE" },
-  "8": { name: "KT 롤스터", short: "KT" },
-  "21": { name: "디플러스 기아", short: "DK" },
-  "35": { name: "BNK 피어엑스", short: "BFX" },
-  "62": { name: "농심 레드포스", short: "NS" },
-  "66": { name: "한진 브리온", short: "BRO" },
-  "320": { name: "DN SOOPers", short: "DNS" },
-  "321": { name: "DRX", short: "DRX" },
+// LCK 10팀 한글명 + 로고 매핑 (BALLDONTLIE team id 기준).
+// 새 시즌에 팀 ID가 바뀌면 추가/수정. logo URL 은 Liquipedia hotlink (600px).
+const LCK_TEAM_NAMES_KO: Record<
+  string,
+  { name: string; short: string; logo?: string }
+> = {
+  "1": {
+    name: "T1",
+    short: "T1",
+    logo: "https://liquipedia.net/commons/images/thumb/f/f0/T1_2019_full_allmode.png/600px-T1_2019_full_allmode.png",
+  },
+  "2": {
+    name: "Gen.G",
+    short: "GEN",
+    logo: "https://liquipedia.net/commons/images/thumb/0/07/Gen.G_Esports_2026_allmode.png/600px-Gen.G_Esports_2026_allmode.png",
+  },
+  "7": {
+    name: "한화생명e스포츠",
+    short: "HLE",
+    logo: "https://liquipedia.net/commons/images/thumb/e/e8/Hanwha_Life_Esports_lightmode.png/600px-Hanwha_Life_Esports_lightmode.png",
+  },
+  "8": {
+    name: "KT 롤스터",
+    short: "KT",
+    logo: "https://liquipedia.net/commons/images/thumb/8/81/Kt_Rolster_2026_full_lightmode.png/600px-Kt_Rolster_2026_full_lightmode.png",
+  },
+  "21": {
+    name: "디플러스 기아",
+    short: "DK",
+    logo: "https://liquipedia.net/commons/images/thumb/b/ba/Dplus_lightmode.png/600px-Dplus_lightmode.png",
+  },
+  "35": {
+    name: "BNK 피어엑스",
+    short: "BFX",
+    logo: "https://liquipedia.net/commons/images/thumb/a/a8/FEARX_2025_full_allmode.png/600px-FEARX_2025_full_allmode.png",
+  },
+  "62": {
+    name: "농심 레드포스",
+    short: "NS",
+    logo: "https://liquipedia.net/commons/images/thumb/d/d8/NS_Redforce_allmode.png/600px-NS_Redforce_allmode.png",
+  },
+  "66": {
+    name: "한진 브리온",
+    short: "BRO",
+    logo: "https://liquipedia.net/commons/images/thumb/8/8c/BRION_2023_full_lightmode.png/600px-BRION_2023_full_lightmode.png",
+  },
+  "320": {
+    name: "DN SOOPers",
+    short: "DNS",
+    logo: "https://liquipedia.net/commons/images/thumb/0/0e/DN_SOOPers_full_allmode.png/600px-DN_SOOPers_full_allmode.png",
+  },
+  "321": {
+    name: "DRX",
+    short: "DRX",
+    logo: "https://liquipedia.net/commons/images/thumb/0/0c/DRX_2026_lightmode.png/600px-DRX_2026_lightmode.png",
+  },
 };
 
 interface BdlTeam {
@@ -120,11 +163,13 @@ export async function fetchLolLckAll(): Promise<NormalizedMatch[]> {
           externalId: String(t1.id),
           name: t1Ko?.name ?? t1.name,
           shortName: t1Ko?.short,
+          logoUrl: t1Ko?.logo,
         },
         awayTeam: {
           externalId: String(t2.id),
           name: t2Ko?.name ?? t2.name,
           shortName: t2Ko?.short,
+          logoUrl: t2Ko?.logo,
         },
         homeScore: m.team1_score ?? undefined,
         awayScore: m.team2_score ?? undefined,
