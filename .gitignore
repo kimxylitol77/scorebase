@@ -49,3 +49,8 @@ prisma/migrations/
 
 # logs
 *.log
+
+# 사용자 작업 중 (chatbot) - 통째로 ready 될 때만 staging
+src/app/api/chat/
+src/components/Chatbot.tsx
+src/lib/chatbot/
