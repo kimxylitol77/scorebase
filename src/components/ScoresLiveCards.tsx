@@ -76,12 +76,17 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
           30초 자동 갱신
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+      {/* 모바일: 가로 swipe carousel (scroll-snap) / 데스크탑: 그리드 2~3열 */}
+      <div
+        className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory -mx-3 px-3 sm:mx-0 sm:px-0 pb-1 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+        role="region"
+        aria-label="라이브 매치 캐러셀"
+      >
         {filtered.map((m) => (
           <Link
             key={m.id}
             href={`/leagues/${m.league}`}
-            className="group flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 hover:border-rose-300 dark:hover:border-rose-500/40 transition"
+            className="group shrink-0 w-[80%] sm:w-auto snap-start flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 hover:border-rose-300 dark:hover:border-rose-500/40 transition"
             title={`${m.awayName} ${m.awayScore} - ${m.homeScore} ${m.homeName}`}
           >
             <span className="shrink-0 text-[10px] font-bold text-neutral-500 w-12">

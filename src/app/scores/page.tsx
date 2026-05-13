@@ -13,6 +13,7 @@ import {
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
+import LeagueBadge from "@/components/LeagueBadge";
 import ScoresLiveCards from "@/components/ScoresLiveCards";
 
 export const dynamic = "force-dynamic";
@@ -84,9 +85,28 @@ export default async function ScoresPage({ searchParams }: Props) {
       league: { in: leagues },
       startTime: { gte: day, lt: dayEnd },
     },
-    include: { homeTeam: true, awayTeam: true },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+      // 매치별 PREVIEW/RECAP article — 클릭 시 deep-link 용
+      articles: {
+        where: { status: "PUBLISHED" },
+        select: { slug: true, type: true },
+      },
+    },
     orderBy: { startTime: "asc" },
   });
+
+  // status 별로 어떤 article 을 우선할지 결정 — FINISHED 면 RECAP, 그 외 PREVIEW
+  function pickArticleSlug(
+    status: string,
+    arts: { slug: string; type: string }[],
+  ): string | null {
+    if (arts.length === 0) return null;
+    const preferType = status === "FINISHED" ? "RECAP" : "PREVIEW";
+    const preferred = arts.find((a) => a.type === preferType);
+    return (preferred ?? arts[0]).slug;
+  }
 
   // 리그별 그룹화 + 우선순위 정렬
   const byLeague = new Map<string, typeof matches>();
@@ -180,26 +200,36 @@ export default async function ScoresPage({ searchParams }: Props) {
               <div className="flex items-center justify-between mb-2">
                 <Link
                   href={`/leagues/${league}`}
-                  className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+                  className="inline-flex items-center gap-2 hover:opacity-80 transition"
                 >
-                  {LEAGUE_DISPLAY[league] ?? league}
+                  <LeagueBadge league={league} size="md" />
+                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">
+                    {LEAGUE_DISPLAY[league] ?? league}
+                  </span>
                 </Link>
                 <span className="text-[11px] text-neutral-400 tabular-nums">
                   {list.length}경기
                 </span>
               </div>
               <ul className="divide-y divide-neutral-100 dark:divide-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-950">
-                {list.map((m) => (
-                  <MatchRow
-                    key={m.id}
-                    homeName={toKoreanTeamName(m.homeTeam.name)}
-                    awayName={toKoreanTeamName(m.awayTeam.name)}
-                    homeScore={m.homeScore}
-                    awayScore={m.awayScore}
-                    status={m.status}
-                    timeLabel={kstHHmm(m.startTime)}
-                  />
-                ))}
+                {list.map((m) => {
+                  const slug = pickArticleSlug(m.status, m.articles);
+                  return (
+                    <MatchRow
+                      key={m.id}
+                      homeName={toKoreanTeamName(m.homeTeam.name)}
+                      awayName={toKoreanTeamName(m.awayTeam.name)}
+                      homeScore={m.homeScore}
+                      awayScore={m.awayScore}
+                      status={m.status}
+                      timeLabel={kstHHmm(m.startTime)}
+                      href={
+                        slug ? `/articles/${slug}` : `/leagues/${m.league}`
+                      }
+                      hasArticle={!!slug}
+                    />
+                  );
+                })}
               </ul>
             </section>
           ))}
@@ -220,6 +250,8 @@ function MatchRow({
   awayScore,
   status,
   timeLabel,
+  href,
+  hasArticle,
 }: {
   homeName: string;
   awayName: string;
@@ -227,6 +259,8 @@ function MatchRow({
   awayScore: number | null;
   status: string;
   timeLabel: string;
+  href: string;
+  hasArticle: boolean;
 }) {
   const isLive = status === "LIVE";
   const isFinished = status === "FINISHED";
@@ -246,22 +280,58 @@ function MatchRow({
   );
 
   return (
-    <li className="px-3 sm:px-4 py-3 flex items-center gap-3 sm:gap-4 text-sm">
-      <div className="shrink-0 w-12 sm:w-14 flex items-center justify-center">
-        {statusBadge}
-      </div>
-      <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
-        <div className="text-right truncate font-medium">{awayName}</div>
-        <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
-          {homeScore != null && awayScore != null ? (
-            <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
-              {awayScore} - {homeScore}
-            </span>
-          ) : (
-            <span className="text-neutral-300 dark:text-neutral-600">vs</span>
-          )}
+    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition">
+      <Link
+        href={href}
+        className="block px-3 sm:px-4 py-3 flex items-center gap-3 sm:gap-4 text-sm"
+        prefetch={false}
+      >
+        <div className="shrink-0 w-12 sm:w-14 flex items-center justify-center">
+          {statusBadge}
         </div>
-        <div className="truncate font-medium">{homeName}</div>
+        <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
+          <div className="text-right truncate font-medium">{awayName}</div>
+          <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
+            {homeScore != null && awayScore != null ? (
+              <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
+                {awayScore} - {homeScore}
+              </span>
+            ) : (
+              <span className="text-neutral-300 dark:text-neutral-600">vs</span>
+            )}
+          </div>
+          <div className="truncate font-medium">{homeName}</div>
+        </div>
+        <span
+          className={`hidden sm:inline-block shrink-0 text-[10px] font-medium ${
+            hasArticle
+              ? "text-blue-600 dark:text-blue-400"
+              : "text-neutral-300 dark:text-neutral-700"
+          }`}
+          title={hasArticle ? "글 보기" : "글 없음"}
+        >
+          {hasArticle ? "글 →" : "—"}
+        </span>
+      </Link>
+      {/* 데스크탑 호버 popover — 매치 메타 (시간 풀, 리그 풀명) */}
+      <div className="hidden sm:block pointer-events-none absolute z-20 left-1/2 -translate-x-1/2 top-full mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-lg px-3 py-2 text-xs whitespace-nowrap">
+          <div className="font-semibold text-neutral-900 dark:text-white">
+            {awayName} <span className="text-neutral-400">vs</span> {homeName}
+          </div>
+          <div className="mt-0.5 text-neutral-500">
+            {isLive
+              ? "● 진행 중"
+              : isFinished
+                ? `종료 · ${awayScore ?? 0} - ${homeScore ?? 0}`
+                : `예정 · KST ${timeLabel}`}
+            {hasArticle && (
+              <span className="ml-2 text-blue-600 dark:text-blue-400">
+                · 분석 글 있음
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </li>
   );
