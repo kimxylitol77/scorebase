@@ -293,8 +293,11 @@ export default async function LeaguePredictions({ params }: Props) {
         <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">⚾</span>
         <PredTab l="MLB" active={"MLB" === upper} />
         <PredTab l="KBO" active={"KBO" === upper} />
+        <PredTab l="NPB" active={"NPB" === upper} />
         <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">🏒</span>
         <PredTab l="NHL" active={"NHL" === upper} />
+        <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 ml-2 mr-1">🎮</span>
+        <PredTab l="LOL" active={"LOL" === upper} />
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 space-y-12">
@@ -545,6 +548,7 @@ const TAB_LABEL: Record<string, string> = {
   KBO: "KBO",
   NPB: "NPB",
   NHL: "NHL",
+  LOL: "LCK",
 };
 
 function PredTab({ l, active }: { l: string; active: boolean }) {
