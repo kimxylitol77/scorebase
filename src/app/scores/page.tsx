@@ -131,15 +131,15 @@ export default async function ScoresPage({ searchParams }: Props) {
   }
   const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
 
-  // status 별로 어떤 article 을 우선할지 결정 — FINISHED 면 RECAP, 그 외 PREVIEW
-  function pickArticleSlug(
-    status: string,
-    arts: { slug: string; type: string }[],
-  ): string | null {
-    if (arts.length === 0) return null;
-    const preferType = status === "FINISHED" ? "RECAP" : "PREVIEW";
-    const preferred = arts.find((a) => a.type === preferType);
-    return (preferred ?? arts[0]).slug;
+  // 매치별 PREVIEW / RECAP slug 분리 — 둘 다 있으면 row 우측에 각각 칩 노출.
+  function pickArticleSlugs(arts: { slug: string; type: string }[]): {
+    preview?: string;
+    recap?: string;
+  } {
+    return {
+      preview: arts.find((a) => a.type === "PREVIEW")?.slug,
+      recap: arts.find((a) => a.type === "RECAP")?.slug,
+    };
   }
 
   // 리그별 그룹화 + 우선순위 정렬
@@ -256,7 +256,7 @@ export default async function ScoresPage({ searchParams }: Props) {
               </div>
               <ul className="divide-y divide-neutral-100 dark:divide-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-950">
                 {list.map((m) => {
-                  const slug = pickArticleSlug(m.status, m.articles);
+                  const slugs = pickArticleSlugs(m.articles);
                   const isBaseball = BASEBALL_LEAGUES.has(m.league);
                   // 외부 라이브 데이터로 status/score override (DB cron 사이클 보강)
                   const live = liveByExternalId.get(m.externalId);
@@ -287,10 +287,9 @@ export default async function ScoresPage({ searchParams }: Props) {
                       status={effStatus}
                       timeLabel={kstHHmm(m.startTime)}
                       liveStatusLabel={live?.statusLabel ?? null}
-                      href={
-                        slug ? `/articles/${slug}` : `/leagues/${m.league}`
-                      }
-                      hasArticle={!!slug}
+                      league={m.league}
+                      previewSlug={slugs.preview}
+                      recapSlug={slugs.recap}
                       homeStarter={
                         isBaseball ? parseStarter(m.homeStarter) : null
                       }
@@ -342,8 +341,9 @@ function MatchRow({
   status,
   timeLabel,
   liveStatusLabel,
-  href,
-  hasArticle,
+  league,
+  previewSlug,
+  recapSlug,
   homeStarter,
   awayStarter,
 }: {
@@ -356,11 +356,13 @@ function MatchRow({
   status: string;
   timeLabel: string;
   liveStatusLabel?: string | null;
-  href: string;
-  hasArticle: boolean;
+  league: string;
+  previewSlug?: string;
+  recapSlug?: string;
   homeStarter?: string | null;
   awayStarter?: string | null;
 }) {
+  const hasArticle = !!(previewSlug || recapSlug);
   const isLive = status === "LIVE";
   const isFinished = status === "FINISHED";
   const statusBadge = isLive ? (
@@ -389,63 +391,78 @@ function MatchRow({
   );
 
   return (
-    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition">
-      <Link
-        href={href}
-        className="block px-3 sm:px-4 py-3 flex items-center gap-3 sm:gap-4 text-sm"
-        prefetch={false}
-      >
-        <div className="shrink-0 w-12 sm:w-14 flex items-center justify-center">
-          {statusBadge}
-        </div>
-        <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
-          {/* 원정팀 — 우측 정렬, 로고는 이름 오른쪽 (스코어 안쪽) */}
-          <div className="min-w-0 flex items-center gap-2 sm:gap-2.5 justify-end">
-            <div className="min-w-0 text-right">
-              <div className="truncate font-medium">{awayName}</div>
-              {awayStarter && (
-                <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-                  선발 {awayStarter}
-                </div>
-              )}
-            </div>
-            <TeamLogo url={awayLogo} name={awayName} />
-          </div>
-          {/* 스코어 */}
-          <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
-            {homeScore != null && awayScore != null ? (
-              <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
-                {awayScore} - {homeScore}
-              </span>
-            ) : (
-              <span className="text-neutral-300 dark:text-neutral-600">vs</span>
+    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-3 sm:px-4 py-3 flex items-center gap-3 sm:gap-4 text-sm">
+      <div className="shrink-0 w-12 sm:w-14 flex items-center justify-center">
+        {statusBadge}
+      </div>
+      <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
+        {/* 원정팀 */}
+        <div className="min-w-0 flex items-center gap-2 sm:gap-2.5 justify-end">
+          <div className="min-w-0 text-right">
+            <div className="truncate font-medium">{awayName}</div>
+            {awayStarter && (
+              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+                선발 {awayStarter}
+              </div>
             )}
           </div>
-          {/* 홈팀 — 좌측 정렬, 로고는 이름 왼쪽 (스코어 안쪽) */}
-          <div className="min-w-0 flex items-center gap-2 sm:gap-2.5">
-            <TeamLogo url={homeLogo} name={homeName} />
-            <div className="min-w-0">
-              <div className="truncate font-medium">{homeName}</div>
-              {homeStarter && (
-                <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-                  선발 {homeStarter}
-                </div>
-              )}
-            </div>
+          <TeamLogo url={awayLogo} name={awayName} />
+        </div>
+        {/* 스코어 */}
+        <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
+          {homeScore != null && awayScore != null ? (
+            <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
+              {awayScore} - {homeScore}
+            </span>
+          ) : (
+            <span className="text-neutral-300 dark:text-neutral-600">vs</span>
+          )}
+        </div>
+        {/* 홈팀 */}
+        <div className="min-w-0 flex items-center gap-2 sm:gap-2.5">
+          <TeamLogo url={homeLogo} name={homeName} />
+          <div className="min-w-0">
+            <div className="truncate font-medium">{homeName}</div>
+            {homeStarter && (
+              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+                선발 {homeStarter}
+              </div>
+            )}
           </div>
         </div>
-        <span
-          className={`hidden sm:inline-block shrink-0 text-[10px] font-medium ${
-            hasArticle
-              ? "text-blue-600 dark:text-blue-400"
-              : "text-neutral-300 dark:text-neutral-700"
-          }`}
-          title={hasArticle ? "글 보기" : "글 없음"}
-        >
-          {hasArticle ? "글 →" : "—"}
-        </span>
-      </Link>
-      {/* 데스크탑 호버 popover — 매치 메타 (시간 풀, 리그 풀명) */}
+      </div>
+      {/* 글 칩 — PREVIEW / RECAP 별도 (있는 것만) */}
+      <div className="shrink-0 flex items-center gap-1 sm:gap-1.5">
+        {previewSlug ? (
+          <Link
+            href={`/articles/${previewSlug}`}
+            prefetch={false}
+            className="px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition whitespace-nowrap"
+          >
+            프리뷰
+          </Link>
+        ) : null}
+        {recapSlug ? (
+          <Link
+            href={`/articles/${recapSlug}`}
+            prefetch={false}
+            className="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition whitespace-nowrap"
+          >
+            리뷰
+          </Link>
+        ) : null}
+        {!previewSlug && !recapSlug ? (
+          <Link
+            href={`/leagues/${league}`}
+            prefetch={false}
+            className="hidden sm:inline-block text-[10px] text-neutral-300 dark:text-neutral-700"
+            title="아직 글 없음"
+          >
+            —
+          </Link>
+        ) : null}
+      </div>
+      {/* 데스크탑 호버 popover */}
       <div className="hidden sm:block pointer-events-none absolute z-20 left-1/2 -translate-x-1/2 top-full mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-lg px-3 py-2 text-xs whitespace-nowrap">
           <div className="font-semibold text-neutral-900 dark:text-white">
@@ -459,7 +476,7 @@ function MatchRow({
                 : `예정 · KST ${timeLabel}`}
             {hasArticle && (
               <span className="ml-2 text-blue-600 dark:text-blue-400">
-                · 분석 글 있음
+                · {previewSlug && recapSlug ? "프리뷰 + 리뷰" : previewSlug ? "프리뷰" : "리뷰"} 있음
               </span>
             )}
           </div>
