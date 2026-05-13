@@ -383,9 +383,17 @@ async function regenerateBaseballPreview(matchId: number): Promise<void> {
     temperature: 0.6,
   });
 
-  // title 은 그대로 두거나 첫 줄로 갱신
+  // title 갱신 — [M/D] 날짜 prefix 강제. 이미 prefix 가 있으면 그대로.
+  const { titleDatePrefixKST } = await import("@/lib/format");
   const titleMatch = content.match(/^#\s+(.+)$/m);
-  const newTitle = titleMatch ? titleMatch[1].trim() : undefined;
+  const rawTitle = titleMatch ? titleMatch[1].trim() : undefined;
+  let newTitle = rawTitle;
+  if (rawTitle) {
+    const prefix = titleDatePrefixKST(m.startTime);
+    if (!/^\[\d{1,2}\/\d{1,2}\]/.test(rawTitle)) {
+      newTitle = `${prefix} ${rawTitle}`;
+    }
+  }
   await prisma.article.update({
     where: { id: article.id },
     data: {

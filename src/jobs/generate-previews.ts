@@ -641,7 +641,8 @@ export async function runPreview(opts?: {
 
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);
-      const title = rawTitle.startsWith("[")
+      // [M/D] 패턴 prefix 가 이미 있으면 OK, 그 외 [...] 형태로 시작해도 prefix 강제 추가.
+      const title = /^\[\d{1,2}\/\d{1,2}\]/.test(rawTitle)
         ? rawTitle
         : `${prefix} ${rawTitle}`;
       const slug = buildSlug(m.league, m.id);
