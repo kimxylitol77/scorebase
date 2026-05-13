@@ -43,10 +43,14 @@ export default function HeroSection() {
             📊 시즌 예측 대시보드
           </Link>
           <Link
-            href="/leagues/EPL"
-            className="btn-secondary w-full sm:w-auto justify-center"
+            href="/scores"
+            className="btn-secondary w-full sm:w-auto justify-center inline-flex items-center gap-2"
           >
-            ⚽ 프리미어리그 인사이트
+            <span className="relative inline-flex w-2 h-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+            </span>
+            스코어베이스 라이브스코어
           </Link>
           <Link
             href="/previews"
