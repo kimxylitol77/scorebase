@@ -305,6 +305,15 @@ function RecentUpdatesSection() {
   }> = [
     {
       tag: "NEW",
+      tone: "pink",
+      icon: "●",
+      title: "스코어베이스 라이브스코어",
+      body: "13개 리그 (EPL · KBO · NPB · MLB · NBA · NHL · UCL · LCK 등) 라이브 / 종료 / 예정 매치를 한 페이지에. 헤더 sticky bar 자동 노출 + 30초 갱신.",
+      href: "/scores",
+      cta: "라이브 스코어 보기",
+    },
+    {
+      tag: "NEW",
       tone: "amber",
       icon: "⭐",
       title: "AI Strong Pick · 65% 이상 자신 있는 픽",
