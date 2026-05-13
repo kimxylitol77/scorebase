@@ -27,6 +27,14 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // 외부 hotlink 차단되는 CDN 만 Next.js image optimizer 로 우회 (서버가 fetch
+  // 후 재제공 → 클라이언트 Referer 검사 회피). 다른 리그 (EPL/NBA/MLB/NPB/KBO)
+  // CDN 은 hotlink 허용해서 plain <img> 그대로 사용.
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "liquipedia.net" },
+    ],
+  },
   async headers() {
     return [
       {

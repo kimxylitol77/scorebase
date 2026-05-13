@@ -3,6 +3,7 @@
 // 라이브 매치는 ScoresLiveCards (client) 가 별도 polling.
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
@@ -353,6 +354,22 @@ export default async function ScoresPage({ searchParams }: Props) {
 
 function TeamLogo({ url, name }: { url: string | null; name: string }) {
   if (url) {
+    // Liquipedia (LCK 로고) 는 hotlink Referer 검사로 외부 사이트에서 직접
+    // 가져오지 못함 → Next.js image optimizer 통해 서버가 fetch 후 재제공.
+    // 다른 리그 CDN (ESPN/api-sports/football-data) 은 hotlink 허용해서
+    // plain <img> 로 직접 → image optimizer 비용/한도 안 씀.
+    if (url.includes("liquipedia.net")) {
+      return (
+        <Image
+          src={url}
+          alt=""
+          width={28}
+          height={28}
+          className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0"
+          unoptimized={false}
+        />
+      );
+    }
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
