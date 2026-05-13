@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import {
   SPORTS,
@@ -15,6 +16,15 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import LeagueBadge from "@/components/LeagueBadge";
 import ScoresLiveCards from "@/components/ScoresLiveCards";
+import { fetchAllLiveScores, type LiveMatch } from "@/lib/sports/live-scores";
+
+// 외부 API 라이브 매치 결과를 30초 캐시 — /scores SSR 시점에 호출되지만
+// 30초 동안은 캐시 hit, page 로딩 즉시.
+const fetchLiveCached = unstable_cache(
+  fetchAllLiveScores,
+  ["scores-page-live"],
+  { revalidate: 30, tags: ["live-scores"] },
+);
 
 export const dynamic = "force-dynamic";
 
@@ -80,22 +90,34 @@ export default async function ScoresPage({ searchParams }: Props) {
   const prev = new Date(day.getTime() - 24 * 3600 * 1000);
   const next = new Date(day.getTime() + 24 * 3600 * 1000);
 
-  const matches = await prisma.match.findMany({
-    where: {
-      league: { in: leagues },
-      startTime: { gte: day, lt: dayEnd },
-    },
-    include: {
-      homeTeam: true,
-      awayTeam: true,
-      // 매치별 PREVIEW/RECAP article — 클릭 시 deep-link 용
-      articles: {
-        where: { status: "PUBLISHED" },
-        select: { slug: true, type: true },
+  const [matches, liveMatches] = await Promise.all([
+    prisma.match.findMany({
+      where: {
+        league: { in: leagues },
+        startTime: { gte: day, lt: dayEnd },
       },
-    },
-    orderBy: { startTime: "asc" },
-  });
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        // 매치별 PREVIEW/RECAP article — 클릭 시 deep-link 용
+        articles: {
+          where: { status: "PUBLISHED" },
+          select: { slug: true, type: true },
+        },
+      },
+      orderBy: { startTime: "asc" },
+    }),
+    fetchLiveCached(),
+  ]);
+
+  // 외부 라이브 데이터 externalId 매핑 — DB Match.externalId 와 비교해서
+  // status=SCHEDULED 인데 실제론 진행 중인 매치를 LIVE 로 override.
+  const liveByExternalId = new Map<string, LiveMatch>();
+  for (const lm of liveMatches) {
+    // id 형식: "ab-180758", "af-12345", "bdlnba-9999" → 마지막 segment 가 externalId
+    const rawId = lm.id.replace(/^[a-z]+-/i, "");
+    liveByExternalId.set(rawId, lm);
+  }
 
   // 야구 매치 starter JSON 파싱 — KBO/NPB/MLB 만 적용
   function parseStarter(json: string | null): string | null {
@@ -131,9 +153,17 @@ export default async function ScoresPage({ searchParams }: Props) {
   });
 
   const totalCount = matches.length;
-  const liveCount = matches.filter((m) => m.status === "LIVE").length;
-  const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
-  const scheduledCount = matches.filter((m) => m.status === "SCHEDULED").length;
+  // 라이브는 외부 API 와 매칭된 매치 우선 (DB cron 보다 빠르게 반영)
+  const liveCount = matches.filter(
+    (m) =>
+      liveByExternalId.has(m.externalId) || m.status === "LIVE",
+  ).length;
+  const finishedCount = matches.filter(
+    (m) => m.status === "FINISHED" && !liveByExternalId.has(m.externalId),
+  ).length;
+  const scheduledCount = matches.filter(
+    (m) => m.status === "SCHEDULED" && !liveByExternalId.has(m.externalId),
+  ).length;
 
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
@@ -227,6 +257,11 @@ export default async function ScoresPage({ searchParams }: Props) {
                 {list.map((m) => {
                   const slug = pickArticleSlug(m.status, m.articles);
                   const isBaseball = BASEBALL_LEAGUES.has(m.league);
+                  // 외부 라이브 데이터로 status/score override (DB cron 사이클 보강)
+                  const live = liveByExternalId.get(m.externalId);
+                  const effStatus = live ? "LIVE" : m.status;
+                  const effHomeScore = live ? live.homeScore : m.homeScore;
+                  const effAwayScore = live ? live.awayScore : m.awayScore;
                   return (
                     <MatchRow
                       key={m.id}
@@ -234,10 +269,11 @@ export default async function ScoresPage({ searchParams }: Props) {
                       awayName={toKoreanTeamName(m.awayTeam.name)}
                       homeLogo={m.homeTeam.logoUrl}
                       awayLogo={m.awayTeam.logoUrl}
-                      homeScore={m.homeScore}
-                      awayScore={m.awayScore}
-                      status={m.status}
+                      homeScore={effHomeScore}
+                      awayScore={effAwayScore}
+                      status={effStatus}
                       timeLabel={kstHHmm(m.startTime)}
+                      liveStatusLabel={live?.statusLabel ?? null}
                       href={
                         slug ? `/articles/${slug}` : `/leagues/${m.league}`
                       }
@@ -292,6 +328,7 @@ function MatchRow({
   awayScore,
   status,
   timeLabel,
+  liveStatusLabel,
   href,
   hasArticle,
   homeStarter,
@@ -305,6 +342,7 @@ function MatchRow({
   awayScore: number | null;
   status: string;
   timeLabel: string;
+  liveStatusLabel?: string | null;
   href: string;
   hasArticle: boolean;
   homeStarter?: string | null;
@@ -313,9 +351,19 @@ function MatchRow({
   const isLive = status === "LIVE";
   const isFinished = status === "FINISHED";
   const statusBadge = isLive ? (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300">
-      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-      LIVE
+    <span
+      className="inline-flex flex-col items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300"
+      title={liveStatusLabel ?? "LIVE"}
+    >
+      <span className="inline-flex items-center gap-1">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+        LIVE
+      </span>
+      {liveStatusLabel && (
+        <span className="text-[9px] font-semibold opacity-80">
+          {liveStatusLabel}
+        </span>
+      )}
     </span>
   ) : isFinished ? (
     <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
