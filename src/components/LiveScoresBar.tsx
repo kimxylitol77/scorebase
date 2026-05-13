@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import LeagueBadge from "./LeagueBadge";
 
 interface LiveMatch {
   id: string;
@@ -90,9 +91,7 @@ export default function LiveScoresBar() {
                          border border-neutral-200 dark:border-neutral-800 transition"
               title={`${m.homeName} ${m.homeScore} - ${m.awayScore} ${m.awayName}`}
             >
-              <span className="text-[10px] font-bold text-neutral-500">
-                {m.leagueLabel}
-              </span>
+              <LeagueBadge league={m.league} size="sm" />
               <span className="font-semibold text-neutral-700 dark:text-neutral-300">
                 {m.awayShort}
               </span>

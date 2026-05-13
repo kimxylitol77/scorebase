@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { leaguesForSport, type SportCode } from "@/lib/sports/sport-leagues";
+import LeagueBadge from "./LeagueBadge";
 
 interface LiveMatch {
   id: string;
@@ -89,8 +90,8 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
             className="group shrink-0 w-[80%] sm:w-auto snap-start flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 hover:border-rose-300 dark:hover:border-rose-500/40 transition"
             title={`${m.awayName} ${m.awayScore} - ${m.homeScore} ${m.homeName}`}
           >
-            <span className="shrink-0 text-[10px] font-bold text-neutral-500 w-12">
-              {m.leagueLabel}
+            <span className="shrink-0">
+              <LeagueBadge league={m.league} size="sm" />
             </span>
             <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
               <div className="text-right truncate font-medium text-sm">
