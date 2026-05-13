@@ -19,8 +19,82 @@ export interface NpbStarter {
   date: Date; // KST 0시 기준 (npb.jp 는 JST = KST 와 동일 시간대)
   teamA: string; // 일본어 약칭 (예: "巨人")
   teamB: string;
-  pitcherA: string; // 일본어 (예: "戸郷")
+  pitcherA: string; // 한글 음역 (매핑 있으면) 또는 원어 (예: "도고" or "戸郷")
   pitcherB: string;
+}
+
+/**
+ * 일본 선수명 한글 음역 매핑 — NPB 선발 투수 자주 등장 선수.
+ * 매핑 없으면 원어 한자/가타카나 그대로 (모델이 본문에서 음역 시도).
+ * 한국 미디어 관행 표기 우선.
+ */
+const PITCHER_NAME_KO: Record<string, string> = {
+  // 5/12, 5/13 현재 등판 선수
+  "松本晴": "마쓰모토 하루",
+  "渡邉": "와타나베",
+  "戸郷": "도고",
+  "床田": "토코다",
+  "吉村": "요시무라",
+  "西勇": "니시",
+  "東": "아즈마",
+  "金丸": "카나마루",
+  "荘司": "쇼지",
+  "九里": "쿠리",
+  "伊藤": "이토",
+  "ジャクソン": "잭슨",
+  "則本": "노리모토",
+  "玉村": "타마무라",
+  "山野": "야마노",
+  "髙橋": "타카하시",
+  "島田": "시마다",
+  "中西": "나카니시",
+  "小島": "코지마",
+  "福島": "후쿠시마",
+  "藤原": "후지와라",
+  "髙橋光成": "타카하시 코나",
+  // 자주 등판하는 다른 에이스/주축 (운영 중 보강 가능)
+  "山本": "야마모토",
+  "山本由伸": "야마모토 요시노부",
+  "千賀": "센가",
+  "佐々木": "사사키",
+  "山田": "야마다",
+  "今永": "이마나가",
+  "森下": "모리시타",
+  "大瀬良": "오세라",
+  "西": "니시",
+  "石川": "이시카와",
+  "サイスニード": "사이스니드",
+  "メルセデス": "메르세데스",
+  "アンダーソン": "앤더슨",
+  "バウマン": "바우만",
+  "オースティン": "오스틴",
+  "ボー": "보",
+  "宮城": "미야기",
+  "山﨑福": "야마자키 후쿠",
+  "山﨑": "야마자키",
+  "上沢": "카미사와",
+  "種市": "타네이치",
+  "佐藤": "사토",
+  "美馬": "미마",
+  "石井": "이시이",
+  "高橋": "타카하시",
+  "今井": "이마이",
+  "平良": "타이라",
+  "森": "모리",
+  "村上": "무라카미",
+  "和田": "와다",
+  "石川柊太": "이시카와 슈타",
+  "東浜": "히가시하마",
+  "笠谷": "카사야",
+  "有原": "아리하라",
+  "モイネロ": "모이넬로",
+};
+
+/**
+ * 일본어 선발 투수명 → 한글 음역. 매핑 없으면 원어 그대로 반환.
+ */
+export function jpPitcherToKorean(name: string): string {
+  return PITCHER_NAME_KO[name.trim()] ?? name;
 }
 
 // 일본어 약칭 → 우리 DB Team.name (한국명) 매핑. npb.ts 의 한국명과 일치.
@@ -112,8 +186,8 @@ export async function fetchNpbStartersForMonth(year: number, month: number): Pro
       date: currentDate,
       teamA: matchup.teamA,
       teamB: matchup.teamB,
-      pitcherA: pitchers.pitcherA,
-      pitcherB: pitchers.pitcherB,
+      pitcherA: jpPitcherToKorean(pitchers.pitcherA),
+      pitcherB: jpPitcherToKorean(pitchers.pitcherB),
     });
   });
 
