@@ -33,6 +33,7 @@ import {
   fetchNpbInjuries,
   activeNpbInjuries,
   getTeamNpbInjuries,
+  enrichNpbInjuriesWithKorean,
   type NpbInjuryEntry,
 } from "@/lib/sports/npb-injuries";
 import { generate } from "@/lib/ai/claude";
@@ -229,8 +230,9 @@ export async function runFetchBaseballStarters(opts?: {
     if (changedMatches.some((m) => m.league === "NPB")) {
       try {
         const raw = await fetchNpbInjuries(30);
-        npbInjuries = activeNpbInjuries(raw);
-        console.log(`[starters/NPB] 1군 등록말소 ${npbInjuries.length}건 fetch`);
+        const active = activeNpbInjuries(raw);
+        npbInjuries = await enrichNpbInjuriesWithKorean(active);
+        console.log(`[starters/NPB] 1군 등록말소 ${npbInjuries.length}건 + 한글 음역 보강`);
       } catch (e) {
         console.warn(`[starters/NPB] injuries fetch 실패:`, (e as Error).message);
       }

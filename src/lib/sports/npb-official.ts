@@ -25,6 +25,28 @@ const HEADERS = {
   Accept: "text/html,application/xhtml+xml",
 } as const;
 
+// 일본어 팀 풀명 → 한국 정식명 (DB Team.name 과 일치).
+// 카드 / 프로필 표시용. og:title 에서 추출되는 표기에 맞춤.
+const NPB_TEAM_JP_TO_KOR: Record<string, string> = {
+  読売ジャイアンツ: "요미우리 자이언츠",
+  阪神タイガース: "한신 타이거스",
+  横浜DeNAベイスターズ: "요코하마 디엔에이 베이스타스",
+  広島東洋カープ: "히로시마 도요 카프",
+  中日ドラゴンズ: "주니치 드래곤스",
+  東京ヤクルトスワローズ: "도쿄 야쿠르트 스왈로스",
+  福岡ソフトバンクホークス: "후쿠오카 소프트뱅크 호크스",
+  北海道日本ハムファイターズ: "홋카이도 닛폰햄 파이터즈",
+  千葉ロッテマリーンズ: "지바 롯데 마린스",
+  "オリックス・バファローズ": "오릭스 버팔로스",
+  東北楽天ゴールデンイーグルス: "도호쿠 라쿠텐 골든이글스",
+  埼玉西武ライオンズ: "사이타마 세이부 라이온스",
+};
+
+export function npbTeamJpToKor(jp: string | undefined): string | undefined {
+  if (!jp) return undefined;
+  return NPB_TEAM_JP_TO_KOR[jp.trim()] ?? jp;
+}
+
 /**
  * 12팀 NPB team code. 페이지 URL: /bis/teams/rst_{code}.html
  * 한국 풀네임은 npb-starters.ts 의 NPB_ABBR_TO_NAME 과 일치.
@@ -300,7 +322,12 @@ function parseBatsJp(s: string | undefined): "L" | "R" | undefined {
 }
 
 /**
- * 선수 풀 프로필. og:title 의 (소속 팀) + 본문 표.
+ * 선수 풀 프로필. li#pc_v_name 등 4종 li + og:title (팀명) + 본문 표.
+ *
+ * 주의: 페이지에 `<div id="pc_v_name">` 컨테이너와 `<li id="pc_v_name">` 가
+ * 같은 id 를 공유함. cheerio 의 `$("#pc_v_name")` 는 div 까지 매칭되어
+ * 텍스트가 "11 中日ドラゴンズ 中西　聖輝 なかにし..." 통째로 들어옴.
+ * → `li#pc_v_name` 로 정확히 한정.
  */
 export async function fetchNpbPitcherProfile(pid: string): Promise<NpbPitcherProfile> {
   const url = `${BASE}/bis/players/${pid}.html`;
@@ -311,12 +338,15 @@ export async function fetchNpbPitcherProfile(pid: string): Promise<NpbPitcherPro
       responseType: "text",
     });
     const $ = cheerio.load(r.data);
-    const name = $("#pc_v_name").text().trim() || undefined;
-    const kana = $("#pc_v_kana").text().trim() || undefined;
-    // og:title 에서 (소속팀) 추출
+    const name = $("li#pc_v_name").text().trim() || undefined;
+    const kana = $("li#pc_v_kana").text().trim() || undefined;
+    // 팀명 — og:title 의 (소속팀) 우선, 못 찾으면 li#pc_v_team
     const og = $('meta[property="og:title"]').attr("content") ?? "";
     const teamMatch = og.match(/（(.+?)）/);
-    const team = teamMatch ? teamMatch[1] : undefined;
+    const team =
+      (teamMatch && teamMatch[1]) ||
+      $("li#pc_v_team").text().trim() ||
+      undefined;
     // 표: 投打 / 身長／体重 / 生年月日 (단일 표, th-td 순)
     const fields = new Map<string, string>();
     $("th").each((_, th) => {

@@ -29,6 +29,7 @@ import {
   fetchNpbInjuries,
   activeNpbInjuries,
   getTeamNpbInjuries,
+  enrichNpbInjuriesWithKorean,
   type NpbInjuryEntry,
 } from "@/lib/sports/npb-injuries";
 import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
@@ -671,7 +672,9 @@ export default async function InjuriesByLeague({
   } else if (upper === "NPB") {
     try {
       const raw = await fetchNpbInjuries(30);
-      allNpb = activeNpbInjuries(raw);
+      const active = activeNpbInjuries(raw);
+      // 활성 부상자만 카나 → 한글 음역 보강 (보통 ~30명, 6 concurrent)
+      allNpb = await enrichNpbInjuriesWithKorean(active);
     } catch (e) {
       console.warn("[injuries/NPB] fetch 실패:", (e as Error).message);
     }

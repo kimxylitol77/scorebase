@@ -15,6 +15,8 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { fetchNpbPitcherProfile } from "./npb-official";
+import { kanaToKorean } from "./kana-to-korean";
 
 const BASE = "https://npb.jp";
 const HEADERS = {
@@ -167,4 +169,41 @@ export function getTeamNpbInjuries(
   teamKor: string,
 ): NpbInjuryEntry[] {
   return active.filter((x) => x.teamKor === teamKor);
+}
+
+/**
+ * pid 가 있는 부상자에 npb.jp 의 카나(히라가나)를 fetch + 한글 음역 채움.
+ * concurrent 6, 각 fetch 실패시 그냥 한자 그대로 둠. active list (~30명) 기준 호출.
+ */
+export async function enrichNpbInjuriesWithKorean(
+  active: NpbInjuryEntry[],
+): Promise<NpbInjuryEntry[]> {
+  const withPid = active.filter((x) => x.pid);
+  if (withPid.length === 0) return active;
+  const cache = new Map<string, string>(); // pid → koName
+  const CONCURRENCY = 6;
+  for (let i = 0; i < withPid.length; i += CONCURRENCY) {
+    const batch = withPid.slice(i, i + CONCURRENCY);
+    await Promise.all(
+      batch.map(async (e) => {
+        if (!e.pid || cache.has(e.pid)) return;
+        try {
+          const p = await fetchNpbPitcherProfile(e.pid);
+          if (p.kana) {
+            const ko = kanaToKorean(p.kana);
+            if (ko && /[가-힣]/.test(ko)) cache.set(e.pid, ko);
+          }
+        } catch {
+          // 무시
+        }
+      }),
+    );
+    // burst 회피
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  return active.map((e) => {
+    if (!e.pid) return e;
+    const ko = cache.get(e.pid);
+    return ko ? { ...e, playerName: ko } : e;
+  });
 }

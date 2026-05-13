@@ -43,6 +43,7 @@ import {
   fetchNpbInjuries,
   activeNpbInjuries,
   getTeamNpbInjuries,
+  enrichNpbInjuriesWithKorean,
   type NpbInjuryEntry,
 } from "@/lib/sports/npb-injuries";
 import type {
@@ -147,8 +148,9 @@ export async function runPreview(opts?: {
     }
     try {
       const raw = await fetchNpbInjuries(30);
-      npbInjuries = activeNpbInjuries(raw);
-      console.log(`[preview/NPB] 1군 등록말소 (active) ${npbInjuries.length}건 fetch`);
+      const active = activeNpbInjuries(raw);
+      npbInjuries = await enrichNpbInjuriesWithKorean(active);
+      console.log(`[preview/NPB] 1군 등록말소 (active) ${npbInjuries.length}건 + 한글 음역 보강`);
     } catch (err) {
       console.warn(`[preview/NPB] injuries fetch 실패:`, (err as Error).message);
     }

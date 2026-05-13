@@ -21,8 +21,10 @@ import {
 import {
   fetchNpbPitcherProfile,
   fetchNpbPitcherStats,
+  npbTeamJpToKor,
 } from "@/lib/sports/npb-official";
 import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
+import { kanaToKorean } from "@/lib/sports/kana-to-korean";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -47,10 +49,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (league === "NPB") {
     const info = await fetchNpbPitcherProfile(pid);
     if (!info.name) return { title: "선수 미발견" };
-    const koName = npbDisplayName(info.name);
+    const koName = npbDisplayName(info.name, info.kana);
+    const teamKo = npbTeamJpToKor(info.team) ?? info.team ?? "NPB";
     return {
       title: `${koName} — NPB 선발 투수 통계`,
-      description: `${info.team ?? "NPB"} ${koName} 의 시즌 ERA·WHIP·IP·승패·최근 등판.`,
+      description: `${teamKo} ${koName} 의 시즌 ERA·WHIP·IP·승패·최근 등판.`,
     };
   }
   const id = Number(pid);
@@ -340,16 +343,21 @@ function fmtNum(n: number | undefined, dp: number): string {
  * ==========================================================*/
 
 /**
- * 한자 풀네임 "戸郷　翔征" → 한글 음역 "도고 翔征" (성만 매핑된 경우).
- * 매핑 없으면 원어 그대로.
+ * NPB 선수 표시명 — 카나(히라가나) 가 있으면 카나 → 한글 음역(전체).
+ * 카나 없으면 jpPitcherToKorean 의 성 매핑만 적용, 그것도 없으면 원어.
  */
-function npbDisplayName(jpFullName: string): string {
+function npbDisplayName(jpFullName: string, kana?: string): string {
+  if (kana) {
+    const ko = kanaToKorean(kana);
+    if (ko && /[가-힣]/.test(ko)) return ko;
+  }
   const tokens = jpFullName.split(/[\s　]+/).filter(Boolean);
   if (tokens.length === 0) return jpFullName;
-  const ko = jpPitcherToKorean(tokens[0]);
-  if (ko === tokens[0]) return jpFullName; // 매핑 실패 — 원어 그대로
-  // 성만 한글, 이름은 한자 그대로 (이름 음역 사전 부재)
-  return tokens.length > 1 ? `${ko} ${tokens.slice(1).join(" ")}` : ko;
+  const surnameKo = jpPitcherToKorean(tokens[0]);
+  if (surnameKo === tokens[0]) return jpFullName;
+  return tokens.length > 1
+    ? `${surnameKo} ${tokens.slice(1).join(" ")}`
+    : surnameKo;
 }
 
 interface NpbRecentGame {
@@ -427,12 +435,18 @@ async function NpbPlayerView({ pid }: { pid: string }) {
   ]);
   if (!profile.name && !stats) notFound();
   const season = stats?.season ?? new Date().getUTCFullYear();
-  const koName = profile.name ? npbDisplayName(profile.name) : "(이름 정보 없음)";
-  const recent = await fetchNpbRecentFromDb(pid, profile.team);
+  const koName = profile.name
+    ? npbDisplayName(profile.name, profile.kana)
+    : "(이름 정보 없음)";
+  const teamKo = npbTeamJpToKor(profile.team);
+  const recent = await fetchNpbRecentFromDb(pid, teamKo);
   const handLabel = profile.hand === "L" ? "좌완" : profile.hand === "R" ? "우완" : "";
   const batsLabel = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
   const handBatsLabel =
     handLabel && batsLabel ? `${handLabel}/${batsLabel}` : (handLabel || batsLabel);
+  const birthdayKo = profile.birthday
+    ? profile.birthday.replace(/年/, "년 ").replace(/月/, "월 ").replace(/日/, "일")
+    : undefined;
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -452,14 +466,19 @@ async function NpbPlayerView({ pid }: { pid: string }) {
           )}
         </div>
         <div className="text-sm text-neutral-500">
-          {profile.team ? `${profile.team} · ` : ""}
+          {teamKo ? `${teamKo} · ` : ""}
           {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
           NPB 공식 (npb.jp)
         </div>
-        {(profile.birthday || profile.kana || profile.name) && (
+        {(birthdayKo || profile.name) && (
           <div className="text-xs text-neutral-500 space-y-0.5">
-            {profile.name && <div>일본어 이름: {profile.name}{profile.kana ? ` (${profile.kana})` : ""}</div>}
-            {profile.birthday && <div>생년월일: {profile.birthday}</div>}
+            {profile.name && (
+              <div>
+                일본어 이름: {profile.name}
+                {profile.kana ? ` (${profile.kana})` : ""}
+              </div>
+            )}
+            {birthdayKo && <div>생년월일: {birthdayKo}</div>}
           </div>
         )}
       </header>
