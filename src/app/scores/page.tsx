@@ -94,6 +94,9 @@ export default async function ScoresPage({ searchParams }: Props) {
       where: {
         league: { in: leagues },
         startTime: { gte: day, lt: dayEnd },
+        // 연기/취소된 매치(POSTPONED)는 라이브 스코어에서 숨김 — 매치는
+        // DB 에 남기고(글 페이지에서는 접근 가능) 일자별 list 에서만 제외.
+        status: { not: "POSTPONED" },
       },
       include: {
         homeTeam: true,
