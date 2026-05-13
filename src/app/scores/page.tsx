@@ -391,11 +391,11 @@ function MatchRow({
   );
 
   return (
-    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-3 sm:px-4 py-3 flex items-center gap-3 sm:gap-4 text-sm">
-      <div className="shrink-0 w-12 sm:w-14 flex items-center justify-center">
+    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-3 sm:px-4 py-3 grid grid-cols-[5rem_1fr_5rem] sm:grid-cols-[6rem_1fr_6rem] gap-2 sm:gap-3 items-center text-sm">
+      <div className="flex items-center justify-center">
         {statusBadge}
       </div>
-      <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
+      <div className="min-w-0 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
         {/* 원정팀 */}
         <div className="min-w-0 flex items-center gap-2 sm:gap-2.5 justify-end">
           <div className="min-w-0 text-right">
@@ -432,7 +432,7 @@ function MatchRow({
         </div>
       </div>
       {/* 글 칩 — PREVIEW / RECAP 별도 (있는 것만) */}
-      <div className="shrink-0 flex items-center gap-1 sm:gap-1.5">
+      <div className="flex items-center justify-end gap-1 sm:gap-1.5">
         {previewSlug ? (
           <Link
             href={`/articles/${previewSlug}`}
