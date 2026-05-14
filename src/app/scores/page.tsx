@@ -14,7 +14,12 @@ import {
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { fetchAllLiveScores, type LiveMatch } from "@/lib/sports/live-scores";
+import {
+  fetchAllLiveScores,
+  fetchBaseballByDate,
+  type BaseballGameDetails,
+  type LiveMatch,
+} from "@/lib/sports/live-scores";
 import SportTabs from "@/components/scores/SportTabs";
 import DateSlider from "@/components/scores/DateSlider";
 import LeagueChips from "@/components/scores/LeagueChips";
@@ -29,6 +34,14 @@ const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
   ["scores-page-live"],
   { revalidate: 30, tags: ["live-scores"] },
+);
+
+// 일자별 야구 매치 innings (LIVE+FINISHED 모두) — 종료 매치 linescore 보강용.
+// 일자 별 cache key 분리, 60초 revalidate.
+const fetchBaseballByDateCached = unstable_cache(
+  fetchBaseballByDate,
+  ["scores-page-baseball-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
 );
 
 export const dynamic = "force-dynamic";
@@ -150,7 +163,13 @@ export default async function ScoresPage({ searchParams }: Props) {
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
 
-  const [matches, liveMatches] = await Promise.all([
+  // 야구 카테고리 (또는 전체) 일 때만 종료 매치용 innings 추가 fetch.
+  const needsBaseballDetails =
+    sport === "baseball" ||
+    sport === "all" ||
+    leagues.some((l) => BASEBALL_LEAGUES.has(l));
+
+  const [matches, liveMatches, baseballDetailsMap] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: leagues },
@@ -168,6 +187,9 @@ export default async function ScoresPage({ searchParams }: Props) {
       orderBy: { startTime: "asc" },
     }),
     fetchLiveCached(),
+    needsBaseballDetails
+      ? fetchBaseballByDateCached(dateStr)
+      : Promise.resolve(new Map<string, BaseballGameDetails>()),
   ]);
 
   // 외부 라이브 매치 ↔ DB 매치 매칭 (externalId 또는 league+이름)
@@ -257,17 +279,22 @@ export default async function ScoresPage({ searchParams }: Props) {
       awayStarter: isBaseball ? parseStarter(m.awayStarter) : null,
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
-      baseballLinescore:
-        isBaseball && live?.baseball
-          ? {
-              awayInnings: live.baseball.awayInnings,
-              homeInnings: live.baseball.homeInnings,
-              awayScore: live.awayScore,
-              homeScore: live.homeScore,
-              awayHits: live.baseball.awayHits,
-              homeHits: live.baseball.homeHits,
-              awayErrors: live.baseball.awayErrors,
-              homeErrors: live.baseball.homeErrors,
+      // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
+      // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
+      baseballLinescore: isBaseball
+        ? (() => {
+            const details =
+              live?.baseball ?? baseballDetailsMap.get(m.externalId);
+            if (!details) return null;
+            return {
+              awayInnings: details.awayInnings,
+              homeInnings: details.homeInnings,
+              awayScore: awayScore ?? 0,
+              homeScore: homeScore ?? 0,
+              awayHits: details.awayHits,
+              homeHits: details.homeHits,
+              awayErrors: details.awayErrors,
+              homeErrors: details.homeErrors,
               awayLabel: shortLabel(
                 m.awayTeam.shortName,
                 toKoreanTeamName(m.awayTeam.name),
@@ -276,8 +303,9 @@ export default async function ScoresPage({ searchParams }: Props) {
                 m.homeTeam.shortName,
                 toKoreanTeamName(m.homeTeam.name),
               ),
-            }
-          : null,
+            };
+          })()
+        : null,
       preview,
       recap,
       href,

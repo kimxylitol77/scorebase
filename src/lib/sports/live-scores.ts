@@ -247,6 +247,52 @@ function baseballStatusLabel(long: string, short?: string): string {
   return long || "LIVE";
 }
 
+/**
+ * 특정 일자(KST yyyy-mm-dd) 의 야구 매치 innings/H/E 만 반환.
+ * LIVE/FINISHED 둘 다 포함, NS(시작 전) 제외. /scores 페이지 종료 매치
+ * linescore 표시용 보강 데이터 (별도 fetch).
+ *
+ * Key: api-sports gameId (= 우리 Match.externalId).
+ */
+export interface BaseballGameDetails {
+  homeInnings: (number | null)[];
+  awayInnings: (number | null)[];
+  homeHits: number | null;
+  awayHits: number | null;
+  homeErrors: number | null;
+  awayErrors: number | null;
+}
+
+export async function fetchBaseballByDate(
+  date: string,
+): Promise<Map<string, BaseballGameDetails>> {
+  const out = new Map<string, BaseballGameDetails>();
+  const key = process.env.API_BASEBALL_KEY;
+  if (!key) return out;
+  try {
+    const data = await getJson<ABGameResp>(
+      `${AB_BASE}/games?date=${date}`,
+      { "x-apisports-key": key },
+    );
+    for (const g of data.response ?? []) {
+      const code = BB_LEAGUE_ID_TO_CODE[g.league.id];
+      if (!code) continue;
+      if (g.status.short === "NS") continue; // 시작 전은 데이터 없음
+      out.set(String(g.id), {
+        homeInnings: flattenInnings(g.scores.home.innings),
+        awayInnings: flattenInnings(g.scores.away.innings),
+        homeHits: g.scores.home.hits ?? null,
+        awayHits: g.scores.away.hits ?? null,
+        homeErrors: g.scores.home.errors ?? null,
+        awayErrors: g.scores.away.errors ?? null,
+      });
+    }
+  } catch (e) {
+    console.warn("[live-scores/baseball-by-date]", (e as Error).message);
+  }
+  return out;
+}
+
 export async function fetchBaseballLive(): Promise<LiveMatch[]> {
   const key = process.env.API_BASEBALL_KEY;
   if (!key) return [];
