@@ -326,7 +326,14 @@ export default async function ScoresPage({ searchParams }: Props) {
                   {list.length}경기
                 </span>
               </div>
-              <ul className="divide-y divide-neutral-100 dark:divide-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-950">
+              {/* sport === "baseball" 일 때만 박스 그리드 / 그 외는 기존 리스트 */}
+              <ul
+                className={
+                  sport === "baseball"
+                    ? "grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3"
+                    : "divide-y divide-neutral-100 dark:divide-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-950"
+                }
+              >
                 {list.map((m) => {
                   const slugs = pickArticleSlugs(m.articles);
                   const isBaseball = BASEBALL_LEAGUES.has(m.league);
@@ -359,31 +366,29 @@ export default async function ScoresPage({ searchParams }: Props) {
                             ? `/live/npb/${m.externalId}`
                             : null
                       : null;
-                  return (
-                    <MatchRow
-                      key={m.id}
-                      homeName={toKoreanTeamName(m.homeTeam.name)}
-                      awayName={toKoreanTeamName(m.awayTeam.name)}
-                      homeShortName={m.homeTeam.shortName ?? null}
-                      awayShortName={m.awayTeam.shortName ?? null}
-                      homeLogo={m.homeTeam.logoUrl}
-                      awayLogo={m.awayTeam.logoUrl}
-                      homeScore={effHomeScore}
-                      awayScore={effAwayScore}
-                      status={effStatus}
-                      timeLabel={kstHHmm(m.startTime)}
-                      liveStatusLabel={live?.statusLabel ?? null}
-                      league={m.league}
-                      previewSlug={slugs.preview}
-                      recapSlug={slugs.recap}
-                      liveDetailHref={liveDetailHref}
-                      homeStarter={
-                        isBaseball ? parseStarter(m.homeStarter) : null
-                      }
-                      awayStarter={
-                        isBaseball ? parseStarter(m.awayStarter) : null
-                      }
-                    />
+                  const cardProps = {
+                    homeName: toKoreanTeamName(m.homeTeam.name),
+                    awayName: toKoreanTeamName(m.awayTeam.name),
+                    homeShortName: m.homeTeam.shortName ?? null,
+                    awayShortName: m.awayTeam.shortName ?? null,
+                    homeLogo: m.homeTeam.logoUrl,
+                    awayLogo: m.awayTeam.logoUrl,
+                    homeScore: effHomeScore,
+                    awayScore: effAwayScore,
+                    status: effStatus,
+                    timeLabel: kstHHmm(m.startTime),
+                    liveStatusLabel: live?.statusLabel ?? null,
+                    league: m.league,
+                    previewSlug: slugs.preview,
+                    recapSlug: slugs.recap,
+                    liveDetailHref,
+                    homeStarter: isBaseball ? parseStarter(m.homeStarter) : null,
+                    awayStarter: isBaseball ? parseStarter(m.awayStarter) : null,
+                  };
+                  return sport === "baseball" ? (
+                    <BaseballMatchCard key={m.id} {...cardProps} />
+                  ) : (
+                    <MatchRow key={m.id} {...cardProps} />
                   );
                 })}
               </ul>
@@ -613,4 +618,176 @@ function MatchRow({
       </div>
     </li>
   );
+}
+
+/** 야구 카테고리용 박스 카드 — baseballpredict 스타일 좌우 대칭 레이아웃. */
+function BaseballMatchCard({
+  homeName,
+  awayName,
+  homeLogo,
+  awayLogo,
+  homeScore,
+  awayScore,
+  status,
+  timeLabel,
+  liveStatusLabel,
+  league,
+  previewSlug,
+  recapSlug,
+  liveDetailHref,
+  homeStarter,
+  awayStarter,
+}: {
+  homeName: string;
+  awayName: string;
+  homeShortName?: string | null;
+  awayShortName?: string | null;
+  homeLogo: string | null;
+  awayLogo: string | null;
+  homeScore: number | null;
+  awayScore: number | null;
+  status: string;
+  timeLabel: string;
+  liveStatusLabel?: string | null;
+  league: string;
+  previewSlug?: string;
+  recapSlug?: string;
+  liveDetailHref?: string | null;
+  homeStarter?: string | null;
+  awayStarter?: string | null;
+}) {
+  const isLive = status === "LIVE";
+  const isFinished = status === "FINISHED";
+  const isScheduled = !isLive && !isFinished;
+
+  const scoreNode =
+    homeScore != null && awayScore != null ? (
+      <>
+        <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
+          {awayScore}
+        </span>
+        <span className="mx-1 sm:mx-2 text-neutral-300 dark:text-neutral-700">
+          :
+        </span>
+        <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
+          {homeScore}
+        </span>
+      </>
+    ) : (
+      <span className="text-neutral-300 dark:text-neutral-600 text-2xl sm:text-3xl">
+        VS
+      </span>
+    );
+
+  const cardClass = `relative rounded-2xl border bg-white dark:bg-neutral-950 transition ${
+    isLive
+      ? "border-rose-200 dark:border-rose-500/30 shadow-sm hover:shadow-md"
+      : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700"
+  }`;
+
+  // LIVE 매치는 박스 자체가 라이브 상세 link, 그 외엔 정적 div
+  const inner = (
+    <>
+      {/* 헤더: 시간/상태 */}
+      <div className="flex items-center justify-between px-4 pt-3">
+        {isLive ? (
+          <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            LIVE
+            {liveStatusLabel && (
+              <span className="font-semibold opacity-90 tabular-nums">
+                · {liveStatusLabel}
+              </span>
+            )}
+          </span>
+        ) : isFinished ? (
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+            종료
+          </span>
+        ) : (
+          <span className="text-[11px] font-semibold text-neutral-500 tabular-nums">
+            {timeLabel}
+          </span>
+        )}
+        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+          {league}
+        </span>
+      </div>
+
+      {/* 본문: 좌-원정 / 중앙-점수 / 우-홈 */}
+      <div className="px-4 py-3 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
+        {/* 원정팀 */}
+        <div className="min-w-0 text-center">
+          <TeamLogo url={awayLogo} name={awayName} />
+          <div className="mt-1.5 truncate text-xs sm:text-sm font-bold">
+            {awayName}
+          </div>
+          {awayStarter && (
+            <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+              {awayStarter}
+            </div>
+          )}
+        </div>
+        {/* 점수 — LIVE 매치는 라이브 상세로 이동 */}
+        {liveDetailHref ? (
+          <Link
+            href={liveDetailHref}
+            prefetch={false}
+            aria-label="라이브 상세로 이동"
+            className="text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] inline-flex items-center justify-center hover:underline underline-offset-4 decoration-2"
+          >
+            {scoreNode}
+          </Link>
+        ) : (
+          <div className="text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem]">
+            {scoreNode}
+          </div>
+        )}
+        {/* 홈팀 */}
+        <div className="min-w-0 text-center">
+          <TeamLogo url={homeLogo} name={homeName} />
+          <div className="mt-1.5 truncate text-xs sm:text-sm font-bold">
+            {homeName}
+          </div>
+          {homeStarter && (
+            <div className="truncate text-[10px] text-neutral-500 mt-0.5">
+              {homeStarter}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 푸터: 프리뷰/리뷰 */}
+      {(previewSlug || recapSlug) && (
+        <div className="flex items-center justify-end gap-1.5 px-4 pb-3">
+          {previewSlug && (
+            <Link
+              href={`/articles/${previewSlug}`}
+              prefetch={false}
+              className="px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition"
+            >
+              프리뷰
+            </Link>
+          )}
+          {recapSlug && (
+            <Link
+              href={`/articles/${recapSlug}`}
+              prefetch={false}
+              className="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition"
+            >
+              리뷰
+            </Link>
+          )}
+        </div>
+      )}
+      {isScheduled && (
+        <div className="px-4 pb-3 text-center text-[10px] text-neutral-400">
+          KST {timeLabel} 시작
+        </div>
+      )}
+    </>
+  );
+
+  // 점수 영역 자체가 라이브 상세 link. 박스 다른 곳에는 프리뷰/리뷰 칩이 따로.
+  return <li className={cardClass}>{inner}</li>;
 }
