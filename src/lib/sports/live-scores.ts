@@ -184,12 +184,20 @@ function isBaseballLive(short: string, long: string): boolean {
   return /Inning|In Play|IP/i.test(long);
 }
 
-function baseballStatusLabel(long: string): string {
+function baseballStatusLabel(long: string, short?: string): string {
   // "Top 5th" / "Bottom 5th" → "5회 초" / "5회 말"
-  const m = long.match(/(Top|Bottom)\s+(\d+)(?:st|nd|rd|th)?/i);
-  if (m) {
-    const half = m[1].toLowerCase() === "top" ? "초" : "말";
-    return `${m[2]}회 ${half}`;
+  const halfMatch = long.match(/(Top|Bottom)\s+(\d+)(?:st|nd|rd|th)?/i);
+  if (halfMatch) {
+    const half = halfMatch[1].toLowerCase() === "top" ? "초" : "말";
+    return `${halfMatch[2]}회 ${half}`;
+  }
+  // API-Sports Baseball 패턴: long="Inning 8" → "8회"
+  const inning = long.match(/Inning\s+(\d+)/i);
+  if (inning) return `${inning[1]}회`;
+  // short code "IN8" → "8회" (fallback)
+  if (short) {
+    const sm = short.match(/^IN(\d+)$/i);
+    if (sm) return `${sm[1]}회`;
   }
   if (/half[\s-]?time|interruption|stretch/i.test(long)) return "중단";
   return long || "LIVE";
@@ -225,7 +233,7 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
           awayShort: shortName(g.teams.away.name),
           homeScore: g.scores.home.total ?? 0,
           awayScore: g.scores.away.total ?? 0,
-          statusLabel: baseballStatusLabel(g.status.long),
+          statusLabel: baseballStatusLabel(g.status.long, g.status.short),
           startTime: g.date,
         };
       })
