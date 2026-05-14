@@ -13,7 +13,11 @@ import BaseballLinescore, {
   type BaseballLinescoreData,
 } from "./BaseballLinescore";
 import SoccerGoals from "./SoccerGoals";
-import type { SoccerGoal } from "@/lib/sports/live-scores";
+import PeriodLinescore from "./PeriodLinescore";
+import type {
+  PeriodLinescore as PeriodLinescoreData,
+  SoccerGoal,
+} from "@/lib/sports/live-scores";
 import FavoriteStar from "./FavoriteStar";
 
 export interface MatchCardProps {
@@ -36,6 +40,8 @@ export interface MatchCardProps {
   baseballCtx?: BaseballContext | null;
   /** 야구 이닝별 점수 + H/E/R — 라이브/종료 매치에 표시 */
   baseballLinescore?: BaseballLinescoreData | null;
+  /** NBA 쿼터 / NHL 피리어드별 점수 — 라이브/종료 매치에 표시 */
+  periodLinescore?: PeriodLinescoreData | null;
   /** 축구 골 list (분 + 선수) — 라이브/종료 매치에 표시 */
   soccerGoals?: SoccerGoal[] | null;
   soccerCtx?: SoccerContext | null;
@@ -94,6 +100,7 @@ export default function MatchCard(props: MatchCardProps) {
     liveStatusLabel,
     baseballCtx,
     baseballLinescore,
+    periodLinescore,
     soccerGoals,
     soccerCtx,
     esportsCtx,
@@ -200,6 +207,18 @@ export default function MatchCard(props: MatchCardProps) {
           <BaseballLinescore data={baseballLinescore} />
         </div>
       )}
+      {(sport === "basketball" || sport === "hockey") &&
+        periodLinescore &&
+        (isLive || isFinished) && (
+          <div className="pt-1 border-t border-[var(--score-border)]">
+            <PeriodLinescore
+              data={periodLinescore}
+              sport={sport}
+              awayLabel={away.abbr ?? away.name}
+              homeLabel={home.abbr ?? home.name}
+            />
+          </div>
+        )}
       {isLive && sport === "baseball" && baseballCtx && (
         <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
           <BaseballMiniBoard ctx={baseballCtx} />

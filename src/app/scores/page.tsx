@@ -19,7 +19,9 @@ import {
   fetchBaseballByDate,
   fetchMlbByDate,
   fetchSoccerGoalsByDate,
+  fetchEspnPeriodLinescores,
   type BaseballGameDetails,
+  type PeriodLinescore as PeriodLinescoreData,
   type SoccerGoal,
   type LiveMatch,
 } from "@/lib/sports/live-scores";
@@ -56,6 +58,12 @@ const fetchMlbByDateCached = unstable_cache(
 const fetchSoccerGoalsByDateCached = unstable_cache(
   fetchSoccerGoalsByDate,
   ["scores-page-soccer-goals"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// NBA/NHL 쿼터/피리어드별 점수 — ESPN scoreboard linescores.
+const fetchPeriodsByDateCached = unstable_cache(
+  fetchEspnPeriodLinescores,
+  ["scores-page-period-linescores"],
   { revalidate: 60, tags: ["live-scores"] },
 );
 
@@ -188,8 +196,20 @@ export default async function ScoresPage({ searchParams }: Props) {
     sport === "soccer" ||
     sport === "all" ||
     leagues.some((l) => SOCCER_LEAGUES.has(l));
+  const needsNba =
+    sport === "basketball" || sport === "all" || leagues.includes("NBA");
+  const needsNhl =
+    sport === "hockey" || sport === "all" || leagues.includes("NHL");
 
-  const [matches, liveMatches, apiSportsDetails, mlbDetails, soccerGoalsMap] = await Promise.all([
+  const [
+    matches,
+    liveMatches,
+    apiSportsDetails,
+    mlbDetails,
+    soccerGoalsMap,
+    nbaPeriods,
+    nhlPeriods,
+  ] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: leagues },
@@ -216,7 +236,14 @@ export default async function ScoresPage({ searchParams }: Props) {
     needsSoccerGoals
       ? fetchSoccerGoalsByDateCached(dateStr, leagues)
       : Promise.resolve({} as Record<string, SoccerGoal[]>),
+    needsNba
+      ? fetchPeriodsByDateCached("basketball/nba", dateStr)
+      : Promise.resolve({} as Record<string, PeriodLinescoreData>),
+    needsNhl
+      ? fetchPeriodsByDateCached("hockey/nhl", dateStr)
+      : Promise.resolve({} as Record<string, PeriodLinescoreData>),
   ]);
+  const periodMap: Record<string, PeriodLinescoreData> = { ...nbaPeriods, ...nhlPeriods };
   // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
   const baseballDetailsMap: Record<string, BaseballGameDetails> = {
     ...apiSportsDetails,
@@ -311,6 +338,10 @@ export default async function ScoresPage({ searchParams }: Props) {
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
       soccerGoals: sport_ === "soccer" ? soccerGoalsMap[m.externalId] ?? null : null,
+      periodLinescore:
+        sport_ === "basketball" || sport_ === "hockey"
+          ? periodMap[m.externalId] ?? null
+          : null,
       // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
       // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
       baseballLinescore: isBaseball
@@ -446,6 +477,7 @@ export default async function ScoresPage({ searchParams }: Props) {
               liveStatusLabel: m.liveStatusLabel,
               baseballCtx: null,
               baseballLinescore: m.baseballLinescore,
+              periodLinescore: m.periodLinescore,
               soccerGoals: m.soccerGoals,
               soccerCtx: m.soccerCtx,
               esportsCtx: null,
@@ -516,6 +548,7 @@ type NormalizedMatch = {
   soccerCtx: SoccerContext | null;
   soccerGoals: SoccerGoal[] | null;
   baseballLinescore: BaseballLinescoreData | null;
+  periodLinescore: PeriodLinescoreData | null;
   preview?: string;
   recap?: string;
   href: string | null;
@@ -571,6 +604,7 @@ function renderCard(m: NormalizedMatch) {
       liveStatusLabel={m.liveStatusLabel}
       baseballCtx={null}
       baseballLinescore={m.baseballLinescore}
+      periodLinescore={m.periodLinescore}
       soccerGoals={m.soccerGoals}
       soccerCtx={m.soccerCtx}
       esportsCtx={null}

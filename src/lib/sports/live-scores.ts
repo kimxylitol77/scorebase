@@ -369,6 +369,81 @@ export async function fetchMlbByDate(
 }
 
 /* ============================================================
+ * NBA/NHL 쿼터/피리어드별 linescore — ESPN scoreboard
+ * ==========================================================*/
+export interface PeriodLinescore {
+  homePeriods: (number | null)[];
+  awayPeriods: (number | null)[];
+  homeScore: number;
+  awayScore: number;
+}
+
+/** sportPath: "basketball/nba" | "hockey/nhl" */
+export async function fetchEspnPeriodLinescores(
+  sportPath: string,
+  date: string,
+): Promise<Record<string, PeriodLinescore>> {
+  const out: Record<string, PeriodLinescore> = {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return out;
+  const ymd = date.replace(/-/g, "");
+  const prevYmd = (() => {
+    const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10).replace(/-/g, "");
+  })();
+  interface EspnComp {
+    homeAway: "home" | "away";
+    score: string | number;
+    linescores?: Array<{ value?: number; displayValue?: string; period?: number }>;
+  }
+  const fetchOne = async (ymdStr: string) => {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+      const res = await fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/scoreboard?dates=${ymdStr}`,
+        { signal: ctrl.signal, cache: "no-store" },
+      ).finally(() => clearTimeout(t));
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        events?: Array<{
+          id: string;
+          competitions?: Array<{
+            competitors?: EspnComp[];
+            status?: { type?: { name?: string } };
+          }>;
+        }>;
+      };
+      for (const ev of data.events ?? []) {
+        const comp = ev.competitions?.[0];
+        if (!comp) continue;
+        const status = comp.status?.type?.name ?? "";
+        if (/SCHEDULED|PRE/.test(status)) continue;
+        const home = comp.competitors?.find((c) => c.homeAway === "home");
+        const away = comp.competitors?.find((c) => c.homeAway === "away");
+        if (!home || !away) continue;
+        const toVal = (l: { value?: number; displayValue?: string }) =>
+          typeof l.value === "number"
+            ? l.value
+            : l.displayValue !== undefined
+              ? Number(l.displayValue)
+              : null;
+        out[ev.id] = {
+          homePeriods: (home.linescores ?? []).map(toVal),
+          awayPeriods: (away.linescores ?? []).map(toVal),
+          homeScore: Number(home.score) || 0,
+          awayScore: Number(away.score) || 0,
+        };
+      }
+    } catch (e) {
+      console.warn("[live-scores/espn-periods]", sportPath, (e as Error).message);
+    }
+  };
+  await Promise.all([fetchOne(ymd), fetchOne(prevYmd)]);
+  return out;
+}
+
+/* ============================================================
  * 축구 골 list — ESPN scoreboard 의 details (scoringPlay)
  * ==========================================================*/
 export interface SoccerGoal {

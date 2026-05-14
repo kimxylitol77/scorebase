@@ -62,6 +62,7 @@ export default function FavoriteMatches({ matches }: Props) {
             liveStatusLabel={m.liveStatusLabel}
             baseballCtx={m.baseballCtx}
             baseballLinescore={m.baseballLinescore}
+            periodLinescore={m.periodLinescore}
             soccerGoals={m.soccerGoals}
             soccerCtx={m.soccerCtx}
             esportsCtx={m.esportsCtx}
