@@ -9,6 +9,9 @@ import BaseballMiniBoard, {
 } from "./BaseballMiniBoard";
 import SoccerMiniBoard, { type SoccerContext } from "./SoccerMiniBoard";
 import EsportsMiniBoard, { type EsportsContext } from "./EsportsMiniBoard";
+import BaseballLinescore, {
+  type BaseballLinescoreData,
+} from "./BaseballLinescore";
 import FavoriteStar from "./FavoriteStar";
 
 export interface MatchCardProps {
@@ -29,6 +32,8 @@ export interface MatchCardProps {
   liveStatusLabel?: string | null;
   /** 종목별 라이브 컨텍스트 */
   baseballCtx?: BaseballContext | null;
+  /** 야구 이닝별 점수 + H/E/R — 라이브/종료 매치에 표시 */
+  baseballLinescore?: BaseballLinescoreData | null;
   soccerCtx?: SoccerContext | null;
   esportsCtx?: EsportsContext | null;
   /** 야구 선발투수 */
@@ -84,6 +89,7 @@ export default function MatchCard(props: MatchCardProps) {
     timeLabel,
     liveStatusLabel,
     baseballCtx,
+    baseballLinescore,
     soccerCtx,
     esportsCtx,
     homeStarter,
@@ -183,20 +189,29 @@ export default function MatchCard(props: MatchCardProps) {
         </div>
       </div>
 
-      {/* 종목별 mini board (라이브 시만) */}
-      {isLive && (sport === "baseball" || sport === "soccer" || sport === "esports") && (
+      {/* 종목별 mini board */}
+      {sport === "baseball" && baseballLinescore && (isLive || isFinished) && (
+        <div className="pt-1 border-t border-[var(--score-border)]">
+          <BaseballLinescore data={baseballLinescore} />
+        </div>
+      )}
+      {isLive && sport === "baseball" && baseballCtx && (
         <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
-          {sport === "baseball" && baseballCtx && (
-            <BaseballMiniBoard ctx={baseballCtx} />
-          )}
-          {sport === "soccer" && soccerCtx && <SoccerMiniBoard ctx={soccerCtx} />}
-          {sport === "esports" && esportsCtx && (
-            <EsportsMiniBoard
-              ctx={esportsCtx}
-              awayLabel={away.abbr ?? away.name}
-              homeLabel={home.abbr ?? home.name}
-            />
-          )}
+          <BaseballMiniBoard ctx={baseballCtx} />
+        </div>
+      )}
+      {isLive && sport === "soccer" && soccerCtx && (
+        <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
+          <SoccerMiniBoard ctx={soccerCtx} />
+        </div>
+      )}
+      {isLive && sport === "esports" && esportsCtx && (
+        <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
+          <EsportsMiniBoard
+            ctx={esportsCtx}
+            awayLabel={away.abbr ?? away.name}
+            homeLabel={home.abbr ?? home.name}
+          />
         </div>
       )}
 

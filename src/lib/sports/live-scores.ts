@@ -56,6 +56,16 @@ export interface LiveMatch {
   statusLabel: string;
   /** 정렬용 — 시작 시간 ISO. */
   startTime: string;
+  /** 야구 (KBO/NPB/MLB) 만 채워짐 — 이닝별 점수 + H/E/R 카드 미니 보드용. */
+  baseball?: {
+    /** 1~9 이닝 (+ extra) 점수 — null = 진행 안 됨 */
+    homeInnings: (number | null)[];
+    awayInnings: (number | null)[];
+    homeHits: number | null;
+    awayHits: number | null;
+    homeErrors: number | null;
+    awayErrors: number | null;
+  };
 }
 
 const LEAGUE_LABEL: Record<string, string> = {
@@ -184,10 +194,25 @@ interface ABGameResp {
       away: { name: string };
     };
     scores: {
-      home: { total: number | null };
-      away: { total: number | null };
+      home: ABSide;
+      away: ABSide;
     };
   }>;
+}
+interface ABSide {
+  total: number | null;
+  hits?: number | null;
+  errors?: number | null;
+  innings?: Record<string, number | null>;
+}
+
+/** "1"~"9" 키를 순서대로 + extra 배열로 변환 */
+function flattenInnings(innings?: Record<string, number | null>): (number | null)[] {
+  if (!innings) return [];
+  const out: (number | null)[] = [];
+  for (let i = 1; i <= 9; i++) out.push(innings[String(i)] ?? null);
+  if (innings.extra !== null && innings.extra !== undefined) out.push(innings.extra);
+  return out;
 }
 
 const BB_LEAGUE_ID_TO_CODE: Record<number, string> = {
@@ -245,6 +270,14 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
           id: `ab-${g.id}`,
           league: code,
           leagueLabel: LEAGUE_LABEL[code] ?? code,
+          baseball: {
+            homeInnings: flattenInnings(g.scores.home.innings),
+            awayInnings: flattenInnings(g.scores.away.innings),
+            homeHits: g.scores.home.hits ?? null,
+            awayHits: g.scores.away.hits ?? null,
+            homeErrors: g.scores.home.errors ?? null,
+            awayErrors: g.scores.away.errors ?? null,
+          },
           homeName: g.teams.home.name,
           awayName: g.teams.away.name,
           homeShort: shortName(g.teams.home.name),

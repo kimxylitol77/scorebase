@@ -23,6 +23,7 @@ import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
 import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
+import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescore";
 
 const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
@@ -243,6 +244,21 @@ export default async function ScoresPage({ searchParams }: Props) {
       awayStarter: isBaseball ? parseStarter(m.awayStarter) : null,
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
+      baseballLinescore:
+        isBaseball && live?.baseball
+          ? {
+              awayInnings: live.baseball.awayInnings,
+              homeInnings: live.baseball.homeInnings,
+              awayScore: live.awayScore,
+              homeScore: live.homeScore,
+              awayHits: live.baseball.awayHits,
+              homeHits: live.baseball.homeHits,
+              awayErrors: live.baseball.awayErrors,
+              homeErrors: live.baseball.homeErrors,
+              awayLabel: m.awayTeam.shortName ?? toKoreanTeamName(m.awayTeam.name),
+              homeLabel: m.homeTeam.shortName ?? toKoreanTeamName(m.homeTeam.name),
+            }
+          : null,
       preview,
       recap,
       href,
@@ -350,6 +366,7 @@ export default async function ScoresPage({ searchParams }: Props) {
               timeLabel: m.timeLabel,
               liveStatusLabel: m.liveStatusLabel,
               baseballCtx: null,
+              baseballLinescore: m.baseballLinescore,
               soccerCtx: m.soccerCtx,
               esportsCtx: null,
               homeStarter: m.homeStarter,
@@ -417,6 +434,7 @@ type NormalizedMatch = {
   homeStarter: string | null;
   awayStarter: string | null;
   soccerCtx: SoccerContext | null;
+  baseballLinescore: BaseballLinescoreData | null;
   preview?: string;
   recap?: string;
   href: string | null;
@@ -471,6 +489,7 @@ function renderCard(m: NormalizedMatch) {
       timeLabel={m.timeLabel}
       liveStatusLabel={m.liveStatusLabel}
       baseballCtx={null}
+      baseballLinescore={m.baseballLinescore}
       soccerCtx={m.soccerCtx}
       esportsCtx={null}
       homeStarter={m.homeStarter}
