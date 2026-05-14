@@ -444,7 +444,7 @@ function MatchRow({
         LIVE
       </span>
       {liveStatusLabel && (
-        <span className="text-[9px] font-semibold opacity-80">
+        <span className="text-[10px] font-semibold opacity-90 tabular-nums">
           {liveStatusLabel}
         </span>
       )}
