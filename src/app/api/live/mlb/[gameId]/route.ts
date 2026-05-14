@@ -57,7 +57,8 @@ interface EspnSummary {
           abbreviation?: string;
           logo?: string;
         };
-        linescores?: Array<{ value?: number }>;
+        // ESPN 은 displayValue (string) 로 제공. value 필드는 보통 없음.
+        linescores?: Array<{ value?: number; displayValue?: string }>;
       }>;
     }>;
   };
@@ -77,8 +78,17 @@ function normalize(data: EspnSummary): MlbLive | null {
   else if (/FINAL/.test(stateName)) status = "FINAL";
   else if (/DELAY|POSTPONED|RAIN/.test(stateName)) status = "DELAY";
 
-  const lsHome = home.linescores?.map((l) => l.value ?? null) ?? null;
-  const lsAway = away.linescores?.map((l) => l.value ?? null) ?? null;
+  // ESPN linescore: { displayValue: "3", hits, errors } — value 필드는 없음.
+  const toInning = (l: { value?: number; displayValue?: string }) => {
+    if (typeof l.value === "number") return l.value;
+    if (l.displayValue !== undefined) {
+      const n = Number(l.displayValue);
+      return Number.isFinite(n) ? n : null;
+    }
+    return null;
+  };
+  const lsHome = home.linescores?.map(toInning) ?? null;
+  const lsAway = away.linescores?.map(toInning) ?? null;
 
   const s = comp.situation;
   const situation: MlbLive["situation"] = s
