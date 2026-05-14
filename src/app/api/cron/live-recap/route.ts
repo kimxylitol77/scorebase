@@ -45,10 +45,13 @@ export async function GET(req: Request) {
   }
   const startedAt = Date.now();
   try {
-    // 1. 오늘 매치만 가볍게 collect — 종료 status/score 즉시 반영
+    // 1. 어제+오늘 매치 collect — 종료/LIVE status 즉시 반영
+    // pastDays=1 필수: MLB/NBA/NHL/MLS 같은 미국 종목은 ESPN 이 미국 일자
+    // 기준으로 등록 → KST 새벽~오전 매치가 ESPN scoreboard 의 '어제' 일자에
+    // 등록되어 있음. pastDays=0 이면 미국 매치 LIVE 갱신 누락.
     await runCollect({
       leagues: ALL_LEAGUES,
-      pastDays: 0,
+      pastDays: 1,
       futureDays: 0,
     });
     // 2. 그 자리에서 RECAP 발행 시도 (이미 RECAP 있는 매치는 자동 skip)
