@@ -101,15 +101,13 @@ export default function LiveScoresBar() {
   // null — 라이브 매치가 있을 때만 자리 차지).
   if (!loaded || matches.length === 0) return null;
 
-  // 매치 → 라이브 상세 페이지 URL. 야구 (KBO/NPB/MLB) 는 자체 라이브 페이지,
-  // LCK 은 lolesports 공식 redirect (in-game stats 외부), 외엔 리그 페이지.
+  // 매치 → 라이브 상세 페이지 URL. 야구 (KBO/NPB/MLB) 만 자체 라이브 페이지.
   // LiveMatch.id 는 "ab-180841" 같은 prefix 형식 → externalId 추출.
   function liveHref(m: LiveMatch): string {
     const rawId = m.id.replace(/^[a-z]+-/i, "");
     if (m.league === "KBO") return `/live/kbo/${rawId}`;
     if (m.league === "NPB") return `/live/npb/${rawId}`;
     if (m.league === "MLB") return `/live/mlb/${rawId}`;
-    if (m.league === "LOL") return "https://lolesports.com/ko-KR/live/lck";
     return `/leagues/${m.league}`;
   }
 
