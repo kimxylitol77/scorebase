@@ -245,19 +245,21 @@ export default async function LeaguePredictions({ params }: Props) {
     uclBracket = buildUclBracket(knockoutMatches);
   }
 
-  // NBA — 플레이오프 브라켓 (raw 의 series.type='playoff' 매치만)
+  // NBA/NHL — 플레이오프 브라켓 (raw 의 series.type='playoff' 매치만)
   const isNba = upper === "NBA";
-  let nbaBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
-  if (isNba) {
+  const isNhl = upper === "NHL";
+  const isUsPlayoff = isNba || isNhl;
+  let playoffBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
+  if (isUsPlayoff) {
     const recentMatches = await prisma.match.findMany({
       where: {
-        league: "NBA",
+        league: upper,
         startTime: { gte: new Date(Date.now() - 60 * 24 * 3600 * 1000) }, // 최근 60일
       },
       include: { homeTeam: true, awayTeam: true },
       orderBy: { startTime: "asc" },
     });
-    nbaBracket = getNbaPlayoffBracket(recentMatches);
+    playoffBracket = getNbaPlayoffBracket(recentMatches);
   }
 
   return (
@@ -397,14 +399,21 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* NBA — 플레이오프 브라켓 */}
-        {isNba && nbaBracket.length > 0 && (
+        {/* NBA/NHL — 플레이오프 브라켓 */}
+        {isUsPlayoff && playoffBracket.length > 0 && (
           <section>
             <Heading
-              title="NBA 플레이오프 브라켓"
-              subtitle="1라운드 → 컨퍼런스 세미 → 컨퍼런스 파이널 → 파이널 (BO7, 4선승)"
+              title={isNhl ? "NHL 플레이오프 브라켓" : "NBA 플레이오프 브라켓"}
+              subtitle={
+                isNhl
+                  ? "1라운드 → 2라운드 → 컨퍼런스 파이널 → 스탠리컵 파이널 (BO7, 4선승)"
+                  : "1라운드 → 컨퍼런스 세미 → 컨퍼런스 파이널 → 파이널 (BO7, 4선승)"
+              }
             />
-            <NbaPlayoffBracket series={nbaBracket} />
+            <NbaPlayoffBracket
+              series={playoffBracket}
+              league={isNhl ? "NHL" : "NBA"}
+            />
           </section>
         )}
 

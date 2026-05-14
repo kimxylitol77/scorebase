@@ -2,20 +2,24 @@
 // 4 컬럼 트리. 동/서 컨퍼런스 분리.
 
 import {
-  ROUND_LABEL,
   ROUND_ORDER,
+  getRoundLabel,
   groupByRound,
   type NbaPlayoffSeries,
+  type NbaRound,
 } from "@/lib/predict/nba-playoffs";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 interface Props {
   series: NbaPlayoffSeries[];
+  /** NBA / NHL — round 라벨 + 헤더 표시 분기 */
+  league?: "NBA" | "NHL";
 }
 
-export default function NbaPlayoffBracket({ series }: Props) {
+export default function NbaPlayoffBracket({ series, league = "NBA" }: Props) {
   const grouped = groupByRound(series);
   const total = ROUND_ORDER.reduce((s, r) => s + grouped[r].length, 0);
+  const labels = getRoundLabel(league);
   if (total === 0) {
     return (
       <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-10 text-center text-neutral-500 text-sm">
@@ -23,12 +27,14 @@ export default function NbaPlayoffBracket({ series }: Props) {
       </div>
     );
   }
+  const emoji = league === "NHL" ? "🏒" : "🏀";
+  const title = league === "NHL" ? "NHL 플레이오프 브라켓" : "NBA 플레이오프 브라켓";
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
       <header className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span aria-hidden>🏀</span>
-          <h3 className="font-bold text-sm sm:text-base">NBA 플레이오프 브라켓</h3>
+          <span aria-hidden>{emoji}</span>
+          <h3 className="font-bold text-sm sm:text-base">{title}</h3>
         </div>
         <span className="text-[10px] sm:text-[11px] text-neutral-500">
           BO7 · ESPN 실시간
@@ -42,6 +48,7 @@ export default function NbaPlayoffBracket({ series }: Props) {
               key={round}
               round={round}
               list={grouped[round]}
+              labels={labels}
             />
           ))}
         </div>
@@ -53,9 +60,11 @@ export default function NbaPlayoffBracket({ series }: Props) {
 function BracketColumn({
   round,
   list,
+  labels,
 }: {
-  round: keyof typeof ROUND_LABEL;
+  round: NbaRound;
   list: NbaPlayoffSeries[];
+  labels: Record<NbaRound, string>;
 }) {
   // 컨퍼런스별 정렬 (East / West / null=Finals)
   const east = list.filter((s) => s.conference === "EAST");
@@ -64,7 +73,7 @@ function BracketColumn({
   return (
     <div className="flex flex-col gap-2 w-[240px] sm:w-[260px] shrink-0">
       <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] text-neutral-500 text-center">
-        {ROUND_LABEL[round]}
+        {labels[round]}
       </div>
       <div className="flex flex-col gap-2">
         {east.length > 0 && (

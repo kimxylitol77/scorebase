@@ -35,6 +35,18 @@ export const ROUND_LABEL: Record<NbaRound, string> = {
   FINALS: "NBA 파이널",
 };
 
+/** NHL 용 라운드 라벨 (NBA 와 같은 round 키 재사용, 표시 명칭만 다름) */
+export const NHL_ROUND_LABEL: Record<NbaRound, string> = {
+  FIRST_ROUND: "1라운드",
+  CONF_SEMIS: "컨퍼런스 세미파이널",
+  CONF_FINALS: "컨퍼런스 파이널",
+  FINALS: "스탠리컵 파이널",
+};
+
+export function getRoundLabel(league: "NBA" | "NHL"): Record<NbaRound, string> {
+  return league === "NHL" ? NHL_ROUND_LABEL : ROUND_LABEL;
+}
+
 export interface NbaSeriesGame {
   matchId: number;
   date: Date;
@@ -109,12 +121,14 @@ function parseRawSeries(rawJson: string | null): SeriesInfoFromRaw | null {
 
 function parseRound(headline: string): NbaRound | null {
   const h = headline.toLowerCase();
-  if (/nba finals/.test(h)) return "FINALS";
-  // ESPN 패턴: "East Conference Finals" / "Conference Finals"
+  // 결승 — NBA Finals / Stanley Cup Final
+  if (/nba finals|stanley cup final/.test(h)) return "FINALS";
+  // 컨퍼런스 파이널 — "East Conference Finals" / "Conference Finals"
   if (/conf(?:erence)?\s+finals/.test(h)) return "CONF_FINALS";
-  // "East Semifinals" / "West Semifinals" (현재 ESPN 의 NBA semis 표기)
+  // 컨퍼런스 세미 — NBA "Semifinals" / NHL "2nd Round"
   if (/semifinals/.test(h)) return "CONF_SEMIS";
-  // ESPN 은 "1st Round" (숫자 + ordinal) 사용 — "first round" 영문 X
+  if (/2nd\s+round|second\s+round/.test(h)) return "CONF_SEMIS";
+  // 1라운드 — NBA/NHL 둘 다 "1st Round"
   if (/1st\s+round|first\s+round/.test(h)) return "FIRST_ROUND";
   return null;
 }
