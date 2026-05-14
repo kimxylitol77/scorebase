@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { COOKIE_NAME, readSessionCookie } from "@/lib/auth";
+import ActiveUsersBadge from "@/components/admin/ActiveUsersBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,7 @@ function AdminBar({ username }: { username: string }) {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
+          <ActiveUsersBadge />
           <span className="inline-flex items-center gap-1.5 text-xs">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span className="text-neutral-700 dark:text-neutral-300">
