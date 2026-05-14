@@ -213,11 +213,7 @@ export default function MatchCard(props: MatchCardProps) {
       {/* 축구 골 list — 라이브/종료 매치 모두 (있으면 표시) */}
       {sport === "soccer" && soccerGoals && soccerGoals.length > 0 && (
         <div className="border-t border-[var(--score-border)]">
-          <SoccerGoals
-            goals={soccerGoals}
-            awayLabel={away.abbr ?? away.name}
-            homeLabel={home.abbr ?? home.name}
-          />
+          <SoccerGoals goals={soccerGoals} />
         </div>
       )}
       {isLive && sport === "esports" && esportsCtx && (
