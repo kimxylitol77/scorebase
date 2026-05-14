@@ -436,16 +436,14 @@ function MatchRow({
   const isFinished = status === "FINISHED";
   const statusBadge = isLive ? (
     <span
-      className="inline-flex flex-col items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 whitespace-nowrap"
       title={liveStatusLabel ?? "LIVE"}
     >
-      <span className="inline-flex items-center gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-        LIVE
-      </span>
+      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+      <span>LIVE</span>
       {liveStatusLabel && (
-        <span className="text-[10px] font-semibold opacity-90 tabular-nums">
-          {liveStatusLabel}
+        <span className="font-semibold opacity-90 tabular-nums">
+          · {liveStatusLabel}
         </span>
       )}
     </span>
@@ -460,7 +458,7 @@ function MatchRow({
   );
 
   return (
-    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-2 sm:px-4 py-3 grid grid-cols-[3.5rem_1fr_4.5rem] sm:grid-cols-[6rem_1fr_6rem] gap-1.5 sm:gap-3 items-center text-sm">
+    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-2 sm:px-4 py-3 grid grid-cols-[4.5rem_1fr_4rem] sm:grid-cols-[6.5rem_1fr_6rem] gap-1.5 sm:gap-3 items-center text-sm">
       <div className="flex items-center justify-center">
         {statusBadge}
       </div>
