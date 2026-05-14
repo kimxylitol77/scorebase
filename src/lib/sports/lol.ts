@@ -37,7 +37,8 @@ const LCK_TEAM_NAMES_KO: Record<
   "7": {
     name: "한화생명e스포츠",
     short: "HLE",
-    logo: "https://liquipedia.net/commons/images/thumb/e/e8/Hanwha_Life_Esports_lightmode.png/600px-Hanwha_Life_Esports_lightmode.png",
+    // thumb/600px 썸네일은 캐시 누락(404) → 원본 PNG 직접 사용
+    logo: "https://liquipedia.net/commons/images/e/e8/Hanwha_Life_Esports_lightmode.png",
   },
   "8": {
     name: "KT 롤스터",
@@ -52,7 +53,8 @@ const LCK_TEAM_NAMES_KO: Record<
   "35": {
     name: "BNK 피어엑스",
     short: "BFX",
-    logo: "https://liquipedia.net/commons/images/thumb/a/a8/FEARX_2025_full_allmode.png/600px-FEARX_2025_full_allmode.png",
+    // thumb/600px 썸네일 캐시 누락 → 원본 PNG 직접 사용
+    logo: "https://liquipedia.net/commons/images/a/a8/FEARX_2025_full_allmode.png",
   },
   "62": {
     name: "농심 레드포스",
