@@ -118,15 +118,16 @@ export default async function ScoresPage({ searchParams }: Props) {
   const liveByExternalId = new Map<string, LiveMatch>();
   const liveByNameTime = new Map<string, LiveMatch>();
   function normalizeName(s: string): string {
-    // DB 측은 한글 (예: '클리블랜드 캐벌리어스'), API 측은 영문 (예: 'Cleveland
-    // Cavaliers') 인 케이스가 있어 (NBA/NHL), toKoreanTeamName 으로 양쪽 한국어 통일
-    // 후 정규화. (이미 한국어면 그대로 반환, 영문이면 한국어로 변환)
-    const ko = toKoreanTeamName(s);
-    return ko
-      .toLowerCase()
-      // 흔한 축구 suffix 제거 (DB 'Seattle Sounders FC' vs API 'Seattle Sounders' 등)
-      .replace(/\b(fc|sc|cf|united|club|esports|f\.c\.|s\.c\.)\b/g, "")
-      .replace(/[\s.·\-_]/g, "");
+    // 1) 영문 suffix 먼저 제거 (FC/SC 등) — toKoreanTeamName 매핑 키가 짧든
+    //    풀네임이든 동일 입력이 되도록 ('Seattle Sounders FC' / 'Seattle Sounders'
+    //    둘 다 'Seattle Sounders' 로 통일)
+    const stripped = s
+      .replace(/\s+(fc|sc|cf|united|club|esports|f\.c\.|s\.c\.)\s*$/gi, "")
+      .trim();
+    // 2) 영문 → 한국어 매핑 (NBA/NHL DB 가 '클리블랜드 캐벌리어스' 한글,
+    //    API 가 'Cleveland Cavaliers' 영문 — 양쪽 한국어 통일)
+    const ko = toKoreanTeamName(stripped);
+    return ko.toLowerCase().replace(/[\s.·\-_]/g, "");
   }
   for (const lm of liveMatches) {
     const rawId = lm.id.replace(/^[a-z]+-/i, "");
