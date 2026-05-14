@@ -4,9 +4,10 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LeagueBadge from "./LeagueBadge";
+import CountUp from "./CountUp";
 
 interface LiveMatch {
   id: string;
@@ -26,22 +27,36 @@ interface ApiResp {
   matches?: LiveMatch[];
 }
 
-const POLL_MS = 60_000;
+// 라이브 매치 있을 때 60초 · 없을 때 3분 · 탭 hidden 이면 일시정지.
+const POLL_LIVE_MS = 60_000;
+const POLL_IDLE_MS = 180_000;
 
 export default function LiveScoresBar() {
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [loaded, setLoaded] = useState(false);
+  // schedule() 안에서 항상 최신 matches.length 참조 위해 ref 동기화
+  const countRef = useRef(0);
+  countRef.current = matches.length;
 
   useEffect(() => {
     let alive = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    // 304 응답 절약 위해 마지막 ETag 보관
+    let lastEtag: string | null = null;
     // ?demo=1 검출 — useSearchParams 쓰면 layout 단에서 전체 페이지가 dynamic 강제됨.
     // mount 후 window.location 으로 직접 파싱.
     const demo = new URLSearchParams(window.location.search).get("demo") === "1";
     const url = demo ? "/api/live/scores?demo=1" : "/api/live/scores";
+
     const fetchOnce = async () => {
       try {
-        const res = await fetch(url, { cache: "no-store" });
+        const headers: HeadersInit = lastEtag ? { "if-none-match": lastEtag } : {};
+        const res = await fetch(url, { cache: "no-store", headers });
+        // 304 = 변경 없음 → state 유지
+        if (res.status === 304) return;
         if (!res.ok) return;
+        const etag = res.headers.get("etag");
+        if (etag) lastEtag = etag;
         const json: ApiResp = await res.json();
         if (!alive) return;
         setMatches(json.matches ?? []);
@@ -50,13 +65,34 @@ export default function LiveScoresBar() {
         // 실패 시 무시 — 다음 polling 에서 재시도
       }
     };
-    fetchOnce();
-    const id = setInterval(fetchOnce, POLL_MS);
+
+    // 다음 polling 예약 (라이브 매치 여부 + visibility 기준)
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      if (typeof document !== "undefined" && document.hidden) return; // 숨김 시 정지
+      const wait = countRef.current > 0 ? POLL_LIVE_MS : POLL_IDLE_MS;
+      timer = setTimeout(async () => {
+        await fetchOnce();
+        schedule();
+      }, wait);
+    };
+
+    fetchOnce().then(schedule);
+    const onVisibility = () => {
+      if (document.hidden) {
+        if (timer) clearTimeout(timer);
+      } else {
+        fetchOnce();
+        schedule();
+      }
+    };
     const onFocus = () => fetchOnce();
+    document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("focus", onFocus);
     return () => {
       alive = false;
-      clearInterval(id);
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("focus", onFocus);
     };
   }, []);
@@ -95,13 +131,16 @@ export default function LiveScoresBar() {
               <span className="font-semibold text-neutral-700 dark:text-neutral-300">
                 {m.awayShort}
               </span>
-              <span className="font-black tabular-nums text-neutral-900 dark:text-white">
-                {m.awayScore}
-              </span>
+              <CountUp
+                value={m.awayScore}
+                className="font-black tabular-nums text-neutral-900 dark:text-white"
+              />
               <span className="text-neutral-400">-</span>
-              <span className="font-black tabular-nums text-neutral-900 dark:text-white">
-                {m.homeScore}
-              </span>
+              <CountUp
+                value={m.homeScore}
+                className="font-black tabular-nums text-neutral-900 dark:text-white"
+              />
+              {/* 점수 동시 갱신 시 두 숫자 모두 부드럽게 카운트업 */}
               <span className="font-semibold text-neutral-700 dark:text-neutral-300">
                 {m.homeShort}
               </span>

@@ -10,7 +10,7 @@
 //
 // 호출 1회로 모든 리그 라이브 매치 정규화. Server-only.
 
-import axios from "axios";
+// Edge Runtime 호환을 위해 fetch 사용 (axios 제거).
 import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
 
 const AF_BASE = "https://v3.football.api-sports.io";
@@ -18,6 +18,26 @@ const AB_BASE = "https://v1.baseball.api-sports.io";
 const BDL_BASE = "https://api.balldontlie.io";
 
 const TIMEOUT = 8000;
+
+// axios 대체 — AbortController 로 timeout 구현.
+async function getJson<T>(
+  url: string,
+  headers: Record<string, string>,
+): Promise<T> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+  try {
+    const res = await fetch(url, {
+      headers,
+      cache: "no-store",
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return (await res.json()) as T;
+  } finally {
+    clearTimeout(t);
+  }
+}
 
 export interface LiveMatch {
   /** 고유 id (소스 prefix + 외부 id). */
@@ -118,11 +138,10 @@ export async function fetchSoccerLive(): Promise<LiveMatch[]> {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) return [];
   try {
-    const { data } = await axios.get<AFFixtureResp>(`${AF_BASE}/fixtures`, {
-      params: { live: "all" },
-      headers: { "x-apisports-key": key },
-      timeout: TIMEOUT,
-    });
+    const data = await getJson<AFFixtureResp>(
+      `${AF_BASE}/fixtures?live=all`,
+      { "x-apisports-key": key },
+    );
     return (data.response ?? [])
       .map((f): LiveMatch | null => {
         const code = AF_ID_TO_CODE[f.league.id];
@@ -213,11 +232,10 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
   const dd = String(kstNow.getUTCDate()).padStart(2, "0");
   const date = `${yyyy}-${mm}-${dd}`;
   try {
-    const { data } = await axios.get<ABGameResp>(`${AB_BASE}/games`, {
-      params: { date },
-      headers: { "x-apisports-key": key },
-      timeout: TIMEOUT,
-    });
+    const data = await getJson<ABGameResp>(
+      `${AB_BASE}/games?date=${date}`,
+      { "x-apisports-key": key },
+    );
     return (data.response ?? [])
       .map((g): LiveMatch | null => {
         const code = BB_LEAGUE_ID_TO_CODE[g.league.id];
@@ -296,9 +314,9 @@ export async function fetchNbaLive(): Promise<LiveMatch[]> {
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return [];
   try {
-    const { data } = await axios.get<{ data?: BdlNbaGame[] }>(
+    const data = await getJson<{ data?: BdlNbaGame[] }>(
       `${BDL_BASE}/nba/v1/games?${bdlBuildDates().toString()}`,
-      { headers: { Authorization: key }, timeout: TIMEOUT },
+      { Authorization: key },
     );
     return (data.data ?? [])
       .filter(isNbaLive)
@@ -332,9 +350,9 @@ export async function fetchNhlLive(): Promise<LiveMatch[]> {
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return [];
   try {
-    const { data } = await axios.get<{ data?: BdlNhlGame[] }>(
+    const data = await getJson<{ data?: BdlNhlGame[] }>(
       `${BDL_BASE}/nhl/v1/games?${bdlBuildDates().toString()}`,
-      { headers: { Authorization: key }, timeout: TIMEOUT },
+      { Authorization: key },
     );
     return (data.data ?? [])
       .filter(isNhlLive)

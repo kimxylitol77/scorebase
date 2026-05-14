@@ -348,6 +348,11 @@ export default async function ScoresPage({ searchParams }: Props) {
                       : m.status;
                   const effHomeScore = live ? live.homeScore : m.homeScore;
                   const effAwayScore = live ? live.awayScore : m.awayScore;
+                  // MLB 라이브 매치는 라이브 상세 페이지 link 추가
+                  const mlbLiveHref =
+                    m.league === "MLB" && effStatus === "LIVE"
+                      ? `/live/mlb/${m.externalId}`
+                      : null;
                   return (
                     <MatchRow
                       key={m.id}
@@ -365,6 +370,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                       league={m.league}
                       previewSlug={slugs.preview}
                       recapSlug={slugs.recap}
+                      mlbLiveHref={mlbLiveHref}
                       homeStarter={
                         isBaseball ? parseStarter(m.homeStarter) : null
                       }
@@ -437,6 +443,7 @@ function MatchRow({
   league,
   previewSlug,
   recapSlug,
+  mlbLiveHref,
   homeStarter,
   awayStarter,
 }: {
@@ -454,6 +461,7 @@ function MatchRow({
   league: string;
   previewSlug?: string;
   recapSlug?: string;
+  mlbLiveHref?: string | null;
   homeStarter?: string | null;
   awayStarter?: string | null;
 }) {
@@ -534,8 +542,18 @@ function MatchRow({
           </div>
         </div>
       </div>
-      {/* 글 칩 — PREVIEW / RECAP 별도 (있는 것만) */}
+      {/* 글 칩 — PREVIEW / RECAP / 라이브 상세 (있는 것만) */}
       <div className="flex items-center justify-end gap-1 sm:gap-1.5">
+        {mlbLiveHref ? (
+          <Link
+            href={mlbLiveHref}
+            prefetch={false}
+            className="inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-1 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition whitespace-nowrap"
+          >
+            <span className="w-1 h-1 rounded-full bg-rose-500 animate-pulse" />
+            라이브
+          </Link>
+        ) : null}
         {previewSlug ? (
           <Link
             href={`/articles/${previewSlug}`}

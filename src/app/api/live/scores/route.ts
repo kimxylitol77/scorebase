@@ -1,12 +1,12 @@
 // /api/live/scores — 모든 리그 라이브 매치 통합 endpoint.
-// Vercel Data Cache 30초 revalidate (서버 캐시) + 클라이언트 polling 60초.
+// Edge Runtime · CDN s-maxage 15초 + SWR 45초 · ETag/304 지원.
 // ?demo=1 으로 호출 시 가짜 매치 list 반환 (디자인 검증용, 캐시 X).
 
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchAllLiveScores, type LiveMatch } from "@/lib/sports/live-scores";
 
-export const runtime = "nodejs";
-export const revalidate = 30;
+export const runtime = "edge";
+export const revalidate = 15;
 
 const DEMO_MATCHES: LiveMatch[] = [
   {
@@ -89,6 +89,25 @@ const DEMO_MATCHES: LiveMatch[] = [
   },
 ];
 
+// 매치 list → 안정적 hash (점수/상태 바뀔 때만 변동)
+async function hashMatches(matches: LiveMatch[]): Promise<string> {
+  const sig = matches
+    .map(
+      (m) =>
+        `${m.id}:${m.homeScore}-${m.awayScore}:${m.statusLabel}`,
+    )
+    .sort()
+    .join("|");
+  const buf = await crypto.subtle.digest(
+    "SHA-1",
+    new TextEncoder().encode(sig),
+  );
+  // hex 16자만 — ETag 비교에 충분
+  return Array.from(new Uint8Array(buf).slice(0, 8))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export async function GET(req: NextRequest) {
   // ?demo=1 → 가짜 매치 (디자인 검증용)
   if (req.nextUrl.searchParams.get("demo") === "1") {
@@ -99,13 +118,24 @@ export async function GET(req: NextRequest) {
   }
   try {
     const matches = await fetchAllLiveScores();
+    const etag = `W/"${await hashMatches(matches)}"`;
+    const ifNoneMatch = req.headers.get("if-none-match");
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      // 변경 없음 → 빈 body 304 (트래픽 절약)
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: etag,
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
+        },
+      });
+    }
     return NextResponse.json(
       { matches, fetchedAt: new Date().toISOString() },
       {
         headers: {
-          // CDN 30초 캐시, stale-while-revalidate 60초 (캐시 만료 후에도
-          // 1분간 stale 응답을 즉시 주고 백그라운드에서 갱신)
-          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+          ETag: etag,
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
         },
       },
     );
