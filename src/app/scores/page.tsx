@@ -118,7 +118,11 @@ export default async function ScoresPage({ searchParams }: Props) {
   const liveByExternalId = new Map<string, LiveMatch>();
   const liveByNameTime = new Map<string, LiveMatch>();
   function normalizeName(s: string): string {
-    return s.toLowerCase().replace(/[\s.·\-_]/g, "");
+    return s
+      .toLowerCase()
+      // 흔한 축구 suffix 제거 (DB 'Seattle Sounders FC' vs API 'Seattle Sounders' 등)
+      .replace(/\b(fc|sc|cf|united|club|esports|f\.c\.|s\.c\.)\b/g, "")
+      .replace(/[\s.·\-_]/g, "");
   }
   for (const lm of liveMatches) {
     const rawId = lm.id.replace(/^[a-z]+-/i, "");
