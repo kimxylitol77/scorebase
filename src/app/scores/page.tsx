@@ -522,16 +522,28 @@ function MatchRow({
           </div>
           <TeamLogo url={awayLogo} name={awayName} />
         </div>
-        {/* 스코어 */}
-        <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
-          {homeScore != null && awayScore != null ? (
-            <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
-              {awayScore} - {homeScore}
-            </span>
-          ) : (
-            <span className="text-neutral-300 dark:text-neutral-600">vs</span>
-          )}
-        </div>
+        {/* 스코어 — LIVE 매치는 점수 클릭 시 라이브 상세 페이지로 이동 */}
+        {liveDetailHref ? (
+          <Link
+            href={liveDetailHref}
+            prefetch={false}
+            aria-label="라이브 상세로 이동"
+            className="text-center font-black tabular-nums tracking-tight min-w-[3rem] inline-flex items-center justify-center gap-1 text-rose-600 dark:text-rose-400 hover:underline underline-offset-2 decoration-2"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            {awayScore} - {homeScore}
+          </Link>
+        ) : (
+          <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
+            {homeScore != null && awayScore != null ? (
+              <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
+                {awayScore} - {homeScore}
+              </span>
+            ) : (
+              <span className="text-neutral-300 dark:text-neutral-600">vs</span>
+            )}
+          </div>
+        )}
         {/* 홈팀 */}
         <div className="min-w-0 flex items-center gap-1.5 sm:gap-2.5">
           <TeamLogo url={homeLogo} name={homeName} />
@@ -548,18 +560,8 @@ function MatchRow({
           </div>
         </div>
       </div>
-      {/* 글 칩 — PREVIEW / RECAP / 라이브 상세 (있는 것만) */}
+      {/* 글 칩 — PREVIEW / RECAP (있는 것만). 라이브 상세는 위 스코어 클릭. */}
       <div className="flex items-center justify-end gap-1 sm:gap-1.5">
-        {liveDetailHref ? (
-          <Link
-            href={liveDetailHref}
-            prefetch={false}
-            className="inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-1 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition whitespace-nowrap"
-          >
-            <span className="w-1 h-1 rounded-full bg-rose-500 animate-pulse" />
-            라이브
-          </Link>
-        ) : null}
         {previewSlug ? (
           <Link
             href={`/articles/${previewSlug}`}
