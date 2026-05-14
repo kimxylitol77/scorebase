@@ -145,10 +145,10 @@ export default function MatchCard(props: MatchCardProps) {
         </div>
       </div>
 
-      {/* 본문: 원정-점수-홈. 양쪽 팀이 점수 쪽으로 붙도록 정렬. */}
-      <div className="px-3.5 sm:px-4 py-3 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2 items-center">
-        {/* 원정 — 우측 (점수 쪽) 정렬 */}
-        <div className="min-w-0 flex flex-col items-end gap-1 text-right">
+      {/* 본문: 원정-점수-홈 */}
+      <div className="px-3.5 sm:px-4 py-3 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
+        {/* 원정 */}
+        <div className="min-w-0 flex flex-col items-center gap-1 text-center">
           <Logo url={away.logo} name={away.name} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
             {away.name}
@@ -159,8 +159,8 @@ export default function MatchCard(props: MatchCardProps) {
             </div>
           )}
         </div>
-        {/* 점수 — 가운데 */}
-        <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight px-1 ${scoreColor}`}>
+        {/* 점수 */}
+        <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] ${scoreColor}`}>
           {hasScore ? (
             <>
               {away.score}
@@ -175,8 +175,8 @@ export default function MatchCard(props: MatchCardProps) {
             </span>
           )}
         </div>
-        {/* 홈 — 좌측 (점수 쪽) 정렬 */}
-        <div className="min-w-0 flex flex-col items-start gap-1 text-left">
+        {/* 홈 */}
+        <div className="min-w-0 flex flex-col items-center gap-1 text-center">
           <Logo url={home.logo} name={home.name} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
             {home.name}
