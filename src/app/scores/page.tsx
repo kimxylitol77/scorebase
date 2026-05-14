@@ -127,17 +127,16 @@ export default async function ScoresPage({ searchParams }: Props) {
   for (const lm of liveMatches) {
     const rawId = lm.id.replace(/^[a-z]+-/i, "");
     liveByExternalId.set(rawId, lm);
-    // fallback key: league + UTC HH:MM + 정규화한 home/away 이름
-    const hm = lm.startTime.slice(11, 16);
+    // fallback key: league + 정규화 home/away 이름 (시간 제외 — BDL NBA 처럼
+    // startTime 이 date-only 인 경우도 대응. 같은 날 같은 두 팀 LIVE 동시 X 라 unique)
     const home = normalizeName(lm.homeName);
     const away = normalizeName(lm.awayName);
-    liveByNameTime.set(`${lm.league}|${hm}|${home}|${away}`, lm);
+    liveByNameTime.set(`${lm.league}|${home}|${away}`, lm);
   }
   function matchLive(m: { externalId: string; league: string; startTime: Date; homeTeam: { name: string }; awayTeam: { name: string } }): LiveMatch | undefined {
     const byId = liveByExternalId.get(m.externalId);
     if (byId) return byId;
-    const hm = m.startTime.toISOString().slice(11, 16);
-    const key = `${m.league}|${hm}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`;
+    const key = `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`;
     return liveByNameTime.get(key);
   }
 
