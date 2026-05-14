@@ -157,8 +157,12 @@ export default function BaseballLiveDetail({
   }
 
   const isLive = live.status === "LIVE";
-  const homeShort = homeAbbr || homeNameKo;
-  const awayShort = awayAbbr || awayNameKo;
+  // 약자 라인은 shortName 이 있고 풀명과 다를 때만. 같으면 풀명만 표시 (중복 제거)
+  const homeShort = homeAbbr && homeAbbr !== homeNameKo ? homeAbbr : null;
+  const awayShort = awayAbbr && awayAbbr !== awayNameKo ? awayAbbr : null;
+  // linescore 테이블 헤더용 — 약자 우선, 없으면 풀명
+  const homeLabel = homeShort ?? homeNameKo;
+  const awayLabel = awayShort ?? awayNameKo;
 
   // 이닝 칸 = max(home, away, 9). null 끝부분은 잘라서 진행 이닝까지만.
   const lsAway = live.linescore?.away ?? [];
@@ -197,9 +201,11 @@ export default function BaseballLiveDetail({
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           <div className="text-center">
             <TeamLogo url={awayLogo} name={awayNameKo} />
-            <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-              {awayShort}
-            </div>
+            {awayShort && (
+              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+                {awayShort}
+              </div>
+            )}
             <div className="font-bold truncate">{awayNameKo}</div>
             {awayStarter && (
               <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
@@ -222,9 +228,11 @@ export default function BaseballLiveDetail({
           </div>
           <div className="text-center">
             <TeamLogo url={homeLogo} name={homeNameKo} />
-            <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-              {homeShort}
-            </div>
+            {homeShort && (
+              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+                {homeShort}
+              </div>
+            )}
             <div className="font-bold truncate">{homeNameKo}</div>
             {homeStarter && (
               <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
@@ -264,7 +272,7 @@ export default function BaseballLiveDetail({
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
             <ScoreRow
-              label={awayShort}
+              label={awayLabel}
               line={lsAway}
               innings={innings}
               total={live.awayTeam.score}
@@ -272,7 +280,7 @@ export default function BaseballLiveDetail({
               errors={live.awayTeam.errors}
             />
             <ScoreRow
-              label={homeShort}
+              label={homeLabel}
               line={lsHome}
               innings={innings}
               total={live.homeTeam.score}
