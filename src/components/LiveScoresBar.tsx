@@ -101,6 +101,17 @@ export default function LiveScoresBar() {
   // null — 라이브 매치가 있을 때만 자리 차지).
   if (!loaded || matches.length === 0) return null;
 
+  // 매치 → 라이브 상세 페이지 URL. 야구 (KBO/NPB/MLB) 만 라이브 페이지 존재.
+  // LiveMatch.id 는 "ab-180841" 같은 prefix 형식 → externalId 추출.
+  function liveHref(m: LiveMatch): string {
+    const rawId = m.id.replace(/^[a-z]+-/i, "");
+    if (m.league === "KBO") return `/live/kbo/${rawId}`;
+    if (m.league === "NPB") return `/live/npb/${rawId}`;
+    if (m.league === "MLB") return `/live/mlb/${rawId}`;
+    // 다른 종목은 아직 라이브 상세 페이지 없음 → 리그 페이지 fallback
+    return `/leagues/${m.league}`;
+  }
+
   return (
     <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-neutral-950/95 backdrop-blur">
       <div className="max-w-6xl mx-auto px-2 sm:px-4">
@@ -121,7 +132,8 @@ export default function LiveScoresBar() {
           {matches.map((m) => (
             <Link
               key={m.id}
-              href={`/leagues/${m.league}`}
+              href={liveHref(m)}
+              prefetch={false}
               className="group shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs
                          bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800
                          border border-neutral-200 dark:border-neutral-800 transition"
