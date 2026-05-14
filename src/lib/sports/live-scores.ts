@@ -368,6 +368,115 @@ export async function fetchMlbByDate(
   return out;
 }
 
+/* ============================================================
+ * 축구 골 list — ESPN scoreboard 의 details (scoringPlay)
+ * ==========================================================*/
+export interface SoccerGoal {
+  /** "23'", "45+2'" 등 ESPN clock displayValue */
+  minute: string;
+  /** "home" | "away" */
+  side: "home" | "away";
+  player: string;
+  ownGoal: boolean;
+  penaltyKick: boolean;
+}
+
+/** 우리 League → ESPN soccer league path */
+const ESPN_SOCCER_PATH: Record<string, string> = {
+  LALIGA: "esp.1",
+  BUNDESLIGA: "ger.1",
+  SERIE_A: "ita.1",
+  LIGUE_1: "fra.1",
+  MLS: "usa.1",
+  UCL: "uefa.champions",
+  WORLD_CUP: "fifa.world",
+};
+
+/**
+ * 일자의 축구 매치별 골 list (LIVE+FINISHED 모두).
+ * key = ESPN game id (= 우리 Match.externalId).
+ * EPL 은 collector 가 football-data id 라 ESPN 매칭 X → 별도 처리.
+ */
+export async function fetchSoccerGoalsByDate(
+  date: string,
+  leagues: string[],
+): Promise<Record<string, SoccerGoal[]>> {
+  const out: Record<string, SoccerGoal[]> = {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return out;
+  const ymd = date.replace(/-/g, "");
+  const prevYmd = (() => {
+    const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10).replace(/-/g, "");
+  })();
+  const paths = leagues
+    .map((l) => ESPN_SOCCER_PATH[l])
+    .filter((p): p is string => !!p);
+  if (paths.length === 0) return out;
+
+  interface EspnSoccerEvent {
+    id: string;
+    competitions?: Array<{
+      competitors?: Array<{
+        homeAway: "home" | "away";
+        team?: { id?: string };
+      }>;
+      details?: Array<{
+        clock?: { displayValue?: string };
+        team?: { id?: string };
+        scoringPlay?: boolean;
+        ownGoal?: boolean;
+        penaltyKick?: boolean;
+        athletesInvolved?: Array<{ displayName?: string }>;
+      }>;
+    }>;
+  }
+
+  const fetchOne = async (path: string, ymdStr: string) => {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+      const res = await fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/soccer/${path}/scoreboard?dates=${ymdStr}`,
+        { signal: ctrl.signal, cache: "no-store" },
+      ).finally(() => clearTimeout(t));
+      if (!res.ok) return;
+      const data = (await res.json()) as { events?: EspnSoccerEvent[] };
+      for (const ev of data.events ?? []) {
+        const comp = ev.competitions?.[0];
+        if (!comp) continue;
+        const homeId = comp.competitors?.find((c) => c.homeAway === "home")?.team?.id;
+        const awayId = comp.competitors?.find((c) => c.homeAway === "away")?.team?.id;
+        const goals: SoccerGoal[] = [];
+        for (const d of comp.details ?? []) {
+          if (!d.scoringPlay) continue;
+          const teamId = d.team?.id;
+          const side: "home" | "away" =
+            teamId === homeId ? "home" : teamId === awayId ? "away" : "home";
+          // ownGoal 은 상대 팀 득점으로 표시 (ESPN team id 는 실제로 골 넣은 선수 팀)
+          const effectiveSide = d.ownGoal ? (side === "home" ? "away" : "home") : side;
+          goals.push({
+            minute: d.clock?.displayValue ?? "",
+            side: effectiveSide,
+            player: d.athletesInvolved?.[0]?.displayName ?? "",
+            ownGoal: !!d.ownGoal,
+            penaltyKick: !!d.penaltyKick,
+          });
+        }
+        if (goals.length > 0) out[ev.id] = goals;
+      }
+    } catch (e) {
+      console.warn("[live-scores/soccer-goals]", path, (e as Error).message);
+    }
+  };
+
+  // 각 리그 × 2일 (선택 일자 + 전날 — KST/UTC 차이 보정) 병렬
+  await Promise.all(
+    paths.flatMap((p) => [fetchOne(p, ymd), fetchOne(p, prevYmd)]),
+  );
+  return out;
+}
+
 export async function fetchBaseballLive(): Promise<LiveMatch[]> {
   const key = process.env.API_BASEBALL_KEY;
   if (!key) return [];

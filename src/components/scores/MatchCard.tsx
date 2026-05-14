@@ -12,6 +12,8 @@ import EsportsMiniBoard, { type EsportsContext } from "./EsportsMiniBoard";
 import BaseballLinescore, {
   type BaseballLinescoreData,
 } from "./BaseballLinescore";
+import SoccerGoals from "./SoccerGoals";
+import type { SoccerGoal } from "@/lib/sports/live-scores";
 import FavoriteStar from "./FavoriteStar";
 
 export interface MatchCardProps {
@@ -34,6 +36,8 @@ export interface MatchCardProps {
   baseballCtx?: BaseballContext | null;
   /** 야구 이닝별 점수 + H/E/R — 라이브/종료 매치에 표시 */
   baseballLinescore?: BaseballLinescoreData | null;
+  /** 축구 골 list (분 + 선수) — 라이브/종료 매치에 표시 */
+  soccerGoals?: SoccerGoal[] | null;
   soccerCtx?: SoccerContext | null;
   esportsCtx?: EsportsContext | null;
   /** 야구 선발투수 */
@@ -90,6 +94,7 @@ export default function MatchCard(props: MatchCardProps) {
     liveStatusLabel,
     baseballCtx,
     baseballLinescore,
+    soccerGoals,
     soccerCtx,
     esportsCtx,
     homeStarter,
@@ -203,6 +208,16 @@ export default function MatchCard(props: MatchCardProps) {
       {isLive && sport === "soccer" && soccerCtx && (
         <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
           <SoccerMiniBoard ctx={soccerCtx} />
+        </div>
+      )}
+      {/* 축구 골 list — 라이브/종료 매치 모두 (있으면 표시) */}
+      {sport === "soccer" && soccerGoals && soccerGoals.length > 0 && (
+        <div className="border-t border-[var(--score-border)]">
+          <SoccerGoals
+            goals={soccerGoals}
+            awayLabel={away.abbr ?? away.name}
+            homeLabel={home.abbr ?? home.name}
+          />
         </div>
       )}
       {isLive && sport === "esports" && esportsCtx && (

@@ -18,7 +18,9 @@ import {
   fetchAllLiveScores,
   fetchBaseballByDate,
   fetchMlbByDate,
+  fetchSoccerGoalsByDate,
   type BaseballGameDetails,
+  type SoccerGoal,
   type LiveMatch,
 } from "@/lib/sports/live-scores";
 import SportTabs from "@/components/scores/SportTabs";
@@ -48,6 +50,12 @@ const fetchBaseballByDateCached = unstable_cache(
 const fetchMlbByDateCached = unstable_cache(
   fetchMlbByDate,
   ["scores-page-mlb-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// 축구 골 list — ESPN scoreboard 의 details (scoringPlay). EPL 제외 7리그.
+const fetchSoccerGoalsByDateCached = unstable_cache(
+  fetchSoccerGoalsByDate,
+  ["scores-page-soccer-goals"],
   { revalidate: 60, tags: ["live-scores"] },
 );
 
@@ -175,8 +183,13 @@ export default async function ScoresPage({ searchParams }: Props) {
     sport === "baseball" ||
     sport === "all" ||
     leagues.some((l) => BASEBALL_LEAGUES.has(l));
+  // 축구 카테고리 (또는 전체) — 골 list fetch
+  const needsSoccerGoals =
+    sport === "soccer" ||
+    sport === "all" ||
+    leagues.some((l) => SOCCER_LEAGUES.has(l));
 
-  const [matches, liveMatches, apiSportsDetails, mlbDetails] = await Promise.all([
+  const [matches, liveMatches, apiSportsDetails, mlbDetails, soccerGoalsMap] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: leagues },
@@ -200,6 +213,9 @@ export default async function ScoresPage({ searchParams }: Props) {
     needsBaseballDetails && leagues.includes("MLB")
       ? fetchMlbByDateCached(dateStr)
       : Promise.resolve({} as Record<string, BaseballGameDetails>),
+    needsSoccerGoals
+      ? fetchSoccerGoalsByDateCached(dateStr, leagues)
+      : Promise.resolve({} as Record<string, SoccerGoal[]>),
   ]);
   // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
   const baseballDetailsMap: Record<string, BaseballGameDetails> = {
@@ -294,6 +310,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       awayStarter: isBaseball ? parseStarter(m.awayStarter) : null,
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
+      soccerGoals: sport_ === "soccer" ? soccerGoalsMap[m.externalId] ?? null : null,
       // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
       // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
       baseballLinescore: isBaseball
@@ -429,6 +446,7 @@ export default async function ScoresPage({ searchParams }: Props) {
               liveStatusLabel: m.liveStatusLabel,
               baseballCtx: null,
               baseballLinescore: m.baseballLinescore,
+              soccerGoals: m.soccerGoals,
               soccerCtx: m.soccerCtx,
               esportsCtx: null,
               homeStarter: m.homeStarter,
@@ -496,6 +514,7 @@ type NormalizedMatch = {
   homeStarter: string | null;
   awayStarter: string | null;
   soccerCtx: SoccerContext | null;
+  soccerGoals: SoccerGoal[] | null;
   baseballLinescore: BaseballLinescoreData | null;
   preview?: string;
   recap?: string;
@@ -552,6 +571,7 @@ function renderCard(m: NormalizedMatch) {
       liveStatusLabel={m.liveStatusLabel}
       baseballCtx={null}
       baseballLinescore={m.baseballLinescore}
+      soccerGoals={m.soccerGoals}
       soccerCtx={m.soccerCtx}
       esportsCtx={null}
       homeStarter={m.homeStarter}
