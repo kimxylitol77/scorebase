@@ -101,14 +101,15 @@ export default function LiveScoresBar() {
   // null — 라이브 매치가 있을 때만 자리 차지).
   if (!loaded || matches.length === 0) return null;
 
-  // 매치 → 라이브 상세 페이지 URL. 야구 (KBO/NPB/MLB) 만 라이브 페이지 존재.
+  // 매치 → 라이브 상세 페이지 URL. 야구 (KBO/NPB/MLB) 는 자체 라이브 페이지,
+  // LCK 은 lolesports 공식 redirect (in-game stats 외부), 외엔 리그 페이지.
   // LiveMatch.id 는 "ab-180841" 같은 prefix 형식 → externalId 추출.
   function liveHref(m: LiveMatch): string {
     const rawId = m.id.replace(/^[a-z]+-/i, "");
     if (m.league === "KBO") return `/live/kbo/${rawId}`;
     if (m.league === "NPB") return `/live/npb/${rawId}`;
     if (m.league === "MLB") return `/live/mlb/${rawId}`;
-    // 다른 종목은 아직 라이브 상세 페이지 없음 → 리그 페이지 fallback
+    if (m.league === "LOL") return "https://lolesports.com/ko-KR/live/lck";
     return `/leagues/${m.league}`;
   }
 
@@ -129,16 +130,37 @@ export default function LiveScoresBar() {
             </span>
             LIVE
           </span>
-          {matches.map((m) => (
-            <Link
-              key={m.id}
-              href={liveHref(m)}
-              prefetch={false}
-              className="group shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs
-                         bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800
-                         border border-neutral-200 dark:border-neutral-800 transition"
-              title={`${m.homeName} ${m.homeScore} - ${m.awayScore} ${m.awayName}`}
-            >
+          {matches.map((m) => {
+            const href = liveHref(m);
+            const isExternal = /^https?:\/\//i.test(href);
+            const chipCls =
+              "group shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs " +
+              "bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 " +
+              "border border-neutral-200 dark:border-neutral-800 transition";
+            const Wrap = isExternal
+              ? ({ children }: { children: React.ReactNode }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={chipCls}
+                    title={`${m.homeName} ${m.homeScore} - ${m.awayScore} ${m.awayName}`}
+                  >
+                    {children}
+                  </a>
+                )
+              : ({ children }: { children: React.ReactNode }) => (
+                  <Link
+                    href={href}
+                    prefetch={false}
+                    className={chipCls}
+                    title={`${m.homeName} ${m.homeScore} - ${m.awayScore} ${m.awayName}`}
+                  >
+                    {children}
+                  </Link>
+                );
+            return (
+              <Wrap key={m.id}>
               <LeagueBadge league={m.league} size="sm" />
               <span className="font-semibold text-neutral-700 dark:text-neutral-300">
                 {m.awayShort}
@@ -159,8 +181,9 @@ export default function LiveScoresBar() {
               <span className="ml-1 text-[10px] text-rose-600 dark:text-rose-400 font-semibold tabular-nums">
                 {m.statusLabel}
               </span>
-            </Link>
-          ))}
+              </Wrap>
+            );
+          })}
         </div>
       </div>
     </div>

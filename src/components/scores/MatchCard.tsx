@@ -259,12 +259,26 @@ export default function MatchCard(props: MatchCardProps) {
     </>
   );
 
+  // 외부 url 은 새 탭 + rel="noopener noreferrer". 내부는 Next/Link.
+  const isExternal = href != null && /^https?:\/\//i.test(href);
+
   return (
     <li className={`match-card ${isLive ? "live" : ""} list-none`}>
       {href ? (
-        <Link href={href} prefetch={false} className="card-link">
-          {body}
-        </Link>
+        isExternal ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card-link"
+          >
+            {body}
+          </a>
+        ) : (
+          <Link href={href} prefetch={false} className="card-link">
+            {body}
+          </Link>
+        )
       ) : (
         body
       )}
