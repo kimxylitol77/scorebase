@@ -24,17 +24,17 @@ export default function BaseballLinescore({ data }: Props) {
   const idx = Array.from({ length: innings }, (_, i) => i);
 
   return (
-    <div className="overflow-x-auto -mx-3.5 sm:-mx-4">
-      <table className="w-full min-w-full text-[10px] sm:text-[11px]">
+    <div className="overflow-x-auto px-3.5 sm:px-4">
+      <table className="w-full text-[10px] sm:text-[11px]">
         <thead>
           <tr className="text-neutral-400">
-            <th className="px-2 sm:px-3 py-1 text-left font-semibold w-10 sm:w-14">
+            <th className="py-1 pr-2 text-left font-semibold max-w-[88px] sm:max-w-[110px]">
               팀
             </th>
             {idx.map((i) => (
               <th
                 key={i}
-                className="px-1 py-1 text-center font-semibold tabular-nums"
+                className="px-1 py-1 text-center font-semibold tabular-nums w-5"
               >
                 {i + 1}
               </th>
@@ -43,9 +43,7 @@ export default function BaseballLinescore({ data }: Props) {
               R
             </th>
             <th className="px-1.5 py-1 text-center font-semibold">H</th>
-            <th className="px-1.5 py-1 text-center font-semibold pr-2 sm:pr-3">
-              E
-            </th>
+            <th className="py-1 pl-1.5 text-center font-semibold">E</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-100 dark:divide-neutral-900">
@@ -88,8 +86,8 @@ function Row({
 }) {
   return (
     <tr>
-      <td className="px-2 sm:px-3 py-1 font-semibold truncate text-neutral-700 dark:text-neutral-200">
-        {label}
+      <td className="py-1 pr-2 font-semibold text-neutral-700 dark:text-neutral-200 max-w-[88px] sm:max-w-[110px]">
+        <span className="block truncate">{label}</span>
       </td>
       {Array.from({ length: innings }, (_, i) => (
         <td
@@ -105,7 +103,7 @@ function Row({
       <td className="px-1.5 py-1 text-center tabular-nums text-neutral-500">
         {h ?? "-"}
       </td>
-      <td className="px-1.5 py-1 text-center tabular-nums text-neutral-500 pr-2 sm:pr-3">
+      <td className="py-1 pl-1.5 text-center tabular-nums text-neutral-500">
         {e ?? "-"}
       </td>
     </tr>
