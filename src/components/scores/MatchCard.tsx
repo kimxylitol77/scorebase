@@ -2,6 +2,7 @@
 // 모든 종목 공통, sport prop 으로 mini board 분기.
 
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import BaseballMiniBoard, {
   type BaseballContext,
@@ -38,6 +39,19 @@ export interface MatchCardProps {
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
   if (url) {
+    // Liquipedia (LCK 로고) 는 hotlink Referer 검사로 외부 직접 fetch 불가 →
+    // Next.js image optimizer 통해 서버가 fetch 후 재제공해야 표시됨.
+    if (url.includes("liquipedia.net")) {
+      return (
+        <Image
+          src={url}
+          alt=""
+          width={48}
+          height={48}
+          className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+        />
+      );
+    }
     // eslint-disable-next-line @next/next/no-img-element
     return (
       <img

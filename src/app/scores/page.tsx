@@ -209,17 +209,14 @@ export default async function ScoresPage({ searchParams }: Props) {
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
 
-    // LIVE 매치는 종목별 라이브 상세 link (있는 종목만), 외엔 글 우선
+    // 야구 매치 (KBO/NPB/MLB) 는 status 무관하게 항상 라이브 상세 페이지로.
+    // 그 외 종목은 글 (recap > preview) 우선.
     let href: string | null = null;
-    if (effStatus === "LIVE") {
-      if (m.league === "MLB") href = `/live/mlb/${m.externalId}`;
-      else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
-      else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
-    }
-    if (!href) {
-      if (recap) href = `/articles/${recap}`;
-      else if (preview) href = `/articles/${preview}`;
-    }
+    if (m.league === "MLB") href = `/live/mlb/${m.externalId}`;
+    else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
+    else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
+    else if (recap) href = `/articles/${recap}`;
+    else if (preview) href = `/articles/${preview}`;
 
     return {
       id: m.id,
