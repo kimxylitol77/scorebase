@@ -128,27 +128,87 @@ function SeriesCard({ series }: { series: NbaPlayoffSeries }) {
       : null;
   // BO7 → 4선승. 진행률 = max(wins) / 4
   const winsNeeded = Math.ceil(series.totalGames / 2);
+  // 실제 진행된 게임 (점수 있음) 만 필터
+  const playedGames = series.games.filter(
+    (g) => g.homeScore != null && g.awayScore != null,
+  );
 
   return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 px-2.5 py-2">
-      <TeamRow
-        team={series.team1}
-        isWinner={winner === "team1"}
-        isLeading={!winner && leading === "team1"}
-        winsNeeded={winsNeeded}
-      />
-      <div className="h-px bg-neutral-200 dark:bg-neutral-800 my-1.5" />
-      <TeamRow
-        team={series.team2}
-        isWinner={winner === "team2"}
-        isLeading={!winner && leading === "team2"}
-        winsNeeded={winsNeeded}
-      />
-      {series.summary && (
-        <div className="mt-1.5 text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
-          {series.summary}
+    <details className="group rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
+      <summary className="list-none cursor-pointer px-2.5 py-2 [&::-webkit-details-marker]:hidden">
+        <TeamRow
+          team={series.team1}
+          isWinner={winner === "team1"}
+          isLeading={!winner && leading === "team1"}
+          winsNeeded={winsNeeded}
+        />
+        <div className="h-px bg-neutral-200 dark:bg-neutral-800 my-1.5" />
+        <TeamRow
+          team={series.team2}
+          isWinner={winner === "team2"}
+          isLeading={!winner && leading === "team2"}
+          winsNeeded={winsNeeded}
+        />
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          {series.summary ? (
+            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
+              {series.summary}
+            </span>
+          ) : <span />}
+          {playedGames.length > 0 && (
+            <span className="text-[9px] text-neutral-400 group-open:hidden">
+              게임 ▾
+            </span>
+          )}
+        </div>
+      </summary>
+      {playedGames.length > 0 && (
+        <div className="border-t border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 space-y-1">
+          {playedGames.map((g, i) => (
+            <GameRow
+              key={i}
+              game={g}
+              team1Id={series.team1.id}
+              team1Short={series.team1.shortName ?? series.team1.name}
+              team2Short={series.team2.shortName ?? series.team2.name}
+              gameNumber={i + 1}
+            />
+          ))}
         </div>
       )}
+    </details>
+  );
+}
+
+function GameRow({
+  game,
+  team1Id,
+  team1Short,
+  team2Short,
+  gameNumber,
+}: {
+  game: NbaPlayoffSeries["games"][0];
+  team1Id: number;
+  team1Short: string;
+  team2Short: string;
+  gameNumber: number;
+}) {
+  // game.home/awayTeamId 가 team1 인지 team2 인지에 따라 매치업 표시
+  const team1IsHome = game.homeTeamId === team1Id;
+  const homeShort = team1IsHome ? team1Short : team2Short;
+  const awayShort = team1IsHome ? team2Short : team1Short;
+  const kst = new Date(game.date.getTime() + 9 * 3600 * 1000);
+  const dateLabel = `${String(kst.getUTCMonth() + 1).padStart(2, "0")}.${String(kst.getUTCDate()).padStart(2, "0")}`;
+  return (
+    <div className="flex items-center justify-between text-[11px] tabular-nums text-neutral-600 dark:text-neutral-300">
+      <span className="text-neutral-400 w-9 shrink-0">G{gameNumber}</span>
+      <span className="text-neutral-500 w-12 shrink-0">{dateLabel}</span>
+      <span className="flex-1 truncate text-center px-1">
+        {awayShort} - {homeShort}
+      </span>
+      <span className="font-mono font-bold tabular-nums w-12 text-right shrink-0">
+        {game.awayScore} - {game.homeScore}
+      </span>
     </div>
   );
 }
