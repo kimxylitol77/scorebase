@@ -19,6 +19,7 @@ import SportTabs from "@/components/scores/SportTabs";
 import DateSlider from "@/components/scores/DateSlider";
 import LeagueChips from "@/components/scores/LeagueChips";
 import MatchCard from "@/components/scores/MatchCard";
+import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
 import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
@@ -321,11 +322,42 @@ export default async function ScoresPage({ searchParams }: Props) {
         />
       )}
 
-      {/* 매치 list — 상태별 그룹 */}
+      {/* 매치 list — 상태별 그룹 + 즐겨찾기 섹션 */}
       {normalized.length === 0 ? (
         <EmptyState sport={sport} nextAvailable={nextAvailable} />
       ) : (
         <div className="space-y-6">
+          {/* 즐겨찾기 매치 (localStorage 기반, client) — 최상단 */}
+          <FavoriteMatches
+            matches={normalized.map((m) => ({
+              id: String(m.id),
+              sortKey:
+                m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
+              matchId: String(m.id),
+              sport: m.sport,
+              status:
+                m.status === "LIVE"
+                  ? "live"
+                  : m.status === "FINISHED"
+                    ? "finished"
+                    : m.status === "POSTPONED"
+                      ? "postponed"
+                      : "scheduled",
+              league: m.league,
+              leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
+              home: m.home,
+              away: m.away,
+              timeLabel: m.timeLabel,
+              liveStatusLabel: m.liveStatusLabel,
+              baseballCtx: null,
+              soccerCtx: m.soccerCtx,
+              esportsCtx: null,
+              homeStarter: m.homeStarter,
+              awayStarter: m.awayStarter,
+              href: m.href,
+              actions: actionsFor(m),
+            }))}
+          />
           {liveList.length > 0 && (
             <Section title="🔴 진행 중" count={liveList.length}>
               {liveList.map((m) => renderCard(m))}
@@ -373,7 +405,7 @@ function Section({
   );
 }
 
-function renderCard(m: {
+type NormalizedMatch = {
   id: string | number;
   sport: string;
   league: string;
@@ -388,7 +420,35 @@ function renderCard(m: {
   preview?: string;
   recap?: string;
   href: string | null;
-}) {
+};
+
+function actionsFor(m: NormalizedMatch) {
+  if (!m.preview && !m.recap) return null;
+  return (
+    <>
+      {m.preview && (
+        <Link
+          href={`/articles/${m.preview}`}
+          prefetch={false}
+          className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
+        >
+          프리뷰
+        </Link>
+      )}
+      {m.recap && (
+        <Link
+          href={`/articles/${m.recap}`}
+          prefetch={false}
+          className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition"
+        >
+          리뷰
+        </Link>
+      )}
+    </>
+  );
+}
+
+function renderCard(m: NormalizedMatch) {
   const statusKey: "scheduled" | "live" | "finished" | "postponed" =
     m.status === "LIVE"
       ? "live"
@@ -398,33 +458,10 @@ function renderCard(m: {
           ? "postponed"
           : "scheduled";
 
-  const actions =
-    m.preview || m.recap ? (
-      <>
-        {m.preview && (
-          <Link
-            href={`/articles/${m.preview}`}
-            prefetch={false}
-            className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
-          >
-            프리뷰
-          </Link>
-        )}
-        {m.recap && (
-          <Link
-            href={`/articles/${m.recap}`}
-            prefetch={false}
-            className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition"
-          >
-            리뷰
-          </Link>
-        )}
-      </>
-    ) : null;
-
   return (
     <MatchCard
       key={String(m.id)}
+      matchId={m.id}
       sport={m.sport}
       status={statusKey}
       league={m.league}
@@ -439,7 +476,7 @@ function renderCard(m: {
       homeStarter={m.homeStarter}
       awayStarter={m.awayStarter}
       href={m.href}
-      actions={actions}
+      actions={actionsFor(m)}
     />
   );
 }

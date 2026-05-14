@@ -9,8 +9,11 @@ import BaseballMiniBoard, {
 } from "./BaseballMiniBoard";
 import SoccerMiniBoard, { type SoccerContext } from "./SoccerMiniBoard";
 import EsportsMiniBoard, { type EsportsContext } from "./EsportsMiniBoard";
+import FavoriteStar from "./FavoriteStar";
 
 export interface MatchCardProps {
+  /** localStorage 즐겨찾기 식별자 (DB Match.id) */
+  matchId?: string | number;
   /** "baseball" | "soccer" | "basketball" | "hockey" | "esports" */
   sport: string;
   status: "scheduled" | "live" | "finished" | "postponed";
@@ -71,6 +74,7 @@ function Logo({ url, name }: { url?: string | null; name: string }) {
 
 export default function MatchCard(props: MatchCardProps) {
   const {
+    matchId,
     sport,
     status,
     league,
@@ -122,12 +126,17 @@ export default function MatchCard(props: MatchCardProps) {
   // 메인 body — 점수 / 로고 / 팀명
   const body = (
     <>
-      {/* 헤더: 상태 + 리그 */}
-      <div className="flex items-center justify-between px-3.5 sm:px-4 pt-3">
+      {/* 헤더: 상태 + 리그 + 즐겨찾기 */}
+      <div className="flex items-center justify-between gap-2 px-3.5 sm:px-4 pt-2.5">
         {statusNode}
-        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-          {leagueLabel ?? league}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            {leagueLabel ?? league}
+          </span>
+          {matchId != null && (
+            <FavoriteStar matchId={String(matchId)} className="-mr-1.5" />
+          )}
+        </div>
       </div>
 
       {/* 본문: 원정-점수-홈 */}
