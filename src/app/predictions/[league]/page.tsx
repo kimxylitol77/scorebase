@@ -15,6 +15,7 @@ import UclBracket from "@/components/UclBracket";
 import { buildUclBracket } from "@/lib/predict/ucl-bracket";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
+import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 export const dynamic = "force-dynamic";
@@ -250,6 +251,7 @@ export default async function LeaguePredictions({ params }: Props) {
   const isNhl = upper === "NHL";
   const isUsPlayoff = isNba || isNhl;
   let playoffBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
+  let playoffWinProbs: ReturnType<typeof simulatePlayoff> = [];
   if (isUsPlayoff) {
     const recentMatches = await prisma.match.findMany({
       where: {
@@ -260,6 +262,14 @@ export default async function LeaguePredictions({ params }: Props) {
       orderBy: { startTime: "asc" },
     });
     playoffBracket = getNbaPlayoffBracket(recentMatches);
+    // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo
+    if (playoffBracket.length > 0 && !isWorldCup) {
+      const eloMap: Record<number, number> = {};
+      for (const [tid, rating] of elo.ratings) eloMap[tid] = rating;
+      playoffWinProbs = simulatePlayoff(playoffBracket, eloMap, {
+        iterations: 5000,
+      });
+    }
   }
 
   return (
@@ -414,6 +424,71 @@ export default async function LeaguePredictions({ params }: Props) {
               series={playoffBracket}
               league={isNhl ? "NHL" : "NBA"}
             />
+          </section>
+        )}
+
+        {/* NBA/NHL — 플레이오프 우승 시뮬레이션 (Monte Carlo 5000회) */}
+        {isUsPlayoff && playoffWinProbs.length > 0 && (
+          <section>
+            <Heading
+              title={isNhl ? "스탠리컵 우승 확률" : "NBA 우승 확률"}
+              subtitle="진행 중 시리즈 잔여 + 미시작 라운드 Monte Carlo 5,000회 (Elo 기반)"
+            />
+            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400">
+                  <tr className="border-b border-neutral-200 dark:border-neutral-800">
+                    <th className="text-left px-3 py-2 font-medium">팀</th>
+                    <th className="text-right px-2 py-2 font-medium hidden sm:table-cell">컨파</th>
+                    <th className="text-right px-2 py-2 font-medium">결승</th>
+                    <th className="text-right px-3 py-2 font-medium">우승</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                  {playoffWinProbs.filter((p) => p.champion >= 0.001 || p.confFinals >= 0.05).map((p) => (
+                    <tr key={p.teamId} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition">
+                      <td className="px-3 py-2 flex items-center gap-2 min-w-0">
+                        <span
+                          className={`text-[9px] font-bold px-1 rounded ${
+                            p.conference === "EAST"
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+                              : "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300"
+                          }`}
+                        >
+                          {p.conference === "EAST" ? "동" : "서"}
+                        </span>
+                        {p.logoUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                        )}
+                        <span className="truncate font-medium">
+                          {p.shortName || toKoreanTeamName(p.teamName)}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">
+                        {(p.confFinals * 100).toFixed(0)}%
+                      </td>
+                      <td className="px-2 py-2 text-right tabular-nums text-neutral-700 dark:text-neutral-300">
+                        {(p.finals * 100).toFixed(0)}%
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <span
+                          className={`inline-block tabular-nums font-bold ${
+                            p.champion >= 0.2
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : p.champion >= 0.05
+                                ? "text-neutral-900 dark:text-white"
+                                : "text-neutral-400"
+                          }`}
+                        >
+                          {(p.champion * 100).toFixed(1)}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         )}
 
