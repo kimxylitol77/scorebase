@@ -265,8 +265,9 @@ export interface BaseballGameDetails {
 
 export async function fetchBaseballByDate(
   date: string,
-): Promise<Map<string, BaseballGameDetails>> {
-  const out = new Map<string, BaseballGameDetails>();
+): Promise<Record<string, BaseballGameDetails>> {
+  // unstable_cache 가 Map 을 직렬화 못 함 → plain object 로 반환.
+  const out: Record<string, BaseballGameDetails> = {};
   const key = process.env.API_BASEBALL_KEY;
   if (!key) return out;
   try {
@@ -277,15 +278,15 @@ export async function fetchBaseballByDate(
     for (const g of data.response ?? []) {
       const code = BB_LEAGUE_ID_TO_CODE[g.league.id];
       if (!code) continue;
-      if (g.status.short === "NS") continue; // 시작 전은 데이터 없음
-      out.set(String(g.id), {
+      if (g.status.short === "NS") continue;
+      out[String(g.id)] = {
         homeInnings: flattenInnings(g.scores.home.innings),
         awayInnings: flattenInnings(g.scores.away.innings),
         homeHits: g.scores.home.hits ?? null,
         awayHits: g.scores.away.hits ?? null,
         homeErrors: g.scores.home.errors ?? null,
         awayErrors: g.scores.away.errors ?? null,
-      });
+      };
     }
   } catch (e) {
     console.warn("[live-scores/baseball-by-date]", (e as Error).message);

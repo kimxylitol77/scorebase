@@ -189,7 +189,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     fetchLiveCached(),
     needsBaseballDetails
       ? fetchBaseballByDateCached(dateStr)
-      : Promise.resolve(new Map<string, BaseballGameDetails>()),
+      : Promise.resolve({} as Record<string, BaseballGameDetails>),
   ]);
 
   // 외부 라이브 매치 ↔ DB 매치 매칭 (externalId 또는 league+이름)
@@ -284,7 +284,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       baseballLinescore: isBaseball
         ? (() => {
             const details =
-              live?.baseball ?? baseballDetailsMap.get(m.externalId);
+              live?.baseball ?? baseballDetailsMap[m.externalId];
             if (!details) return null;
             return {
               awayInnings: details.awayInnings,
