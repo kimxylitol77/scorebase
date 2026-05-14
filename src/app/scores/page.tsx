@@ -101,6 +101,19 @@ function parseStarter(json: string | null): string | null {
     return null;
   }
 }
+
+/** 카드 linescore 등 좁은 곳의 팀 약칭. shortName 우선, 없으면 한글 첫 단어
+ *  (4자 cap), 영문은 첫 단어 또는 4자. */
+function shortLabel(shortName: string | null, koName: string): string {
+  if (shortName && shortName.trim()) return shortName.trim();
+  if (/[가-힣]/.test(koName)) {
+    const first = koName.split(/\s+/)[0];
+    return first.length > 4 ? first.slice(0, 4) : first;
+  }
+  const tokens = koName.split(/\s+/).filter(Boolean);
+  if (tokens.length >= 2 && tokens[0].length <= 4) return tokens[0];
+  return koName.slice(0, 4);
+}
 // "전반 38'", "후반 67'", "HT" 등에서 minute / half short 추출
 function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
   if (!statusLabel) return null;
@@ -255,8 +268,14 @@ export default async function ScoresPage({ searchParams }: Props) {
               homeHits: live.baseball.homeHits,
               awayErrors: live.baseball.awayErrors,
               homeErrors: live.baseball.homeErrors,
-              awayLabel: m.awayTeam.shortName ?? toKoreanTeamName(m.awayTeam.name),
-              homeLabel: m.homeTeam.shortName ?? toKoreanTeamName(m.homeTeam.name),
+              awayLabel: shortLabel(
+                m.awayTeam.shortName,
+                toKoreanTeamName(m.awayTeam.name),
+              ),
+              homeLabel: shortLabel(
+                m.homeTeam.shortName,
+                toKoreanTeamName(m.homeTeam.name),
+              ),
             }
           : null,
       preview,
