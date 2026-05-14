@@ -394,10 +394,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {/* 글 목록 */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         {articles.length === 0 ? (
-          <p className="text-neutral-500 py-12 text-center">
-            아직 {info.name} {TAB_LABEL[currentType].replace(/^\W+\s*/, "")}{" "}
-            기사가 없습니다.
-          </p>
+          <EmptyArticles league={upper} type={currentType} leagueName={info.name} />
         ) : (
           <>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -584,5 +581,123 @@ function AccPill({
         ({rate.correct}/{rate.evaluated})
       </span>
     </Link>
+  );
+}
+
+/** 글 0건 일 때 안내 — 종목·리그·탭에 따라 센스 있게 분기. */
+function EmptyArticles({
+  league,
+  type,
+  leagueName,
+}: {
+  league: string;
+  type: FilterType;
+  leagueName: string;
+}) {
+  const isBaseball = league === "KBO" || league === "NPB";
+  const isPreview = type === "PREVIEW";
+  const isRecap = type === "RECAP";
+  const isAnalysis = type === "ANALYSIS";
+
+  const tabLabel = TAB_LABEL[type].replace(/^\W+\s*/, "");
+
+  // 야구 + 프리뷰: 선발 라인업 안내
+  if (isBaseball && isPreview) {
+    return (
+      <div className="rounded-2xl border border-dashed border-blue-300/40 dark:border-blue-500/30 bg-blue-50/30 dark:bg-blue-500/5 px-6 py-12 text-center space-y-3">
+        <div className="text-3xl">⚾</div>
+        <h3 className="text-base font-bold text-blue-700 dark:text-blue-300">
+          선발 발표 후 자동 등록됩니다
+        </h3>
+        <p className="text-sm text-neutral-500 leading-relaxed max-w-md mx-auto">
+          {leagueName} 프리뷰는 양팀 선발투수가 확정되어야 작성됩니다.
+          <br />
+          보통 경기 당일 오전 ~ 오후 사이 라인업이 발표되면
+          <br />
+          최신 폼·구장 환경·예측 모델 통합해 자동 발행됩니다.
+        </p>
+        <p className="text-[11px] text-neutral-400 pt-2">
+          ⏱ 매일 KST 07:30 · 23:00 자동 갱신
+        </p>
+      </div>
+    );
+  }
+
+  // 야구 + 리뷰: 경기 종료 후 안내
+  if (isBaseball && isRecap) {
+    return (
+      <div className="rounded-2xl border border-dashed border-emerald-300/40 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5 px-6 py-12 text-center space-y-3">
+        <div className="text-3xl">📊</div>
+        <h3 className="text-base font-bold text-emerald-700 dark:text-emerald-300">
+          경기 종료 직후 자동 등록됩니다
+        </h3>
+        <p className="text-sm text-neutral-500 leading-relaxed max-w-md mx-auto">
+          {leagueName} 리뷰는 경기가 끝나는 즉시 박스스코어와 이닝별 흐름을
+          분석해 작성됩니다.
+        </p>
+        <p className="text-[11px] text-neutral-400 pt-2">
+          ⏱ 종료 후 약 10~30분 이내 발행
+        </p>
+      </div>
+    );
+  }
+
+  // 일반 프리뷰: 라인업·odds 안내
+  if (isPreview) {
+    return (
+      <div className="rounded-2xl border border-dashed border-blue-300/40 dark:border-blue-500/30 bg-blue-50/30 dark:bg-blue-500/5 px-6 py-12 text-center space-y-3">
+        <div className="text-3xl">🔮</div>
+        <h3 className="text-base font-bold text-blue-700 dark:text-blue-300">
+          매치업 확정 후 자동 등록됩니다
+        </h3>
+        <p className="text-sm text-neutral-500 leading-relaxed max-w-md mx-auto">
+          {leagueName} 프리뷰는 라이브 라인업과 시장 odds 가 확정되는 시점에
+          자동 작성됩니다. 부상·최근 폼·예측 모델까지 통합 분석.
+        </p>
+        <p className="text-[11px] text-neutral-400 pt-2">
+          ⏱ 매일 KST 07:30 · 23:00 자동 갱신
+        </p>
+      </div>
+    );
+  }
+
+  if (isRecap) {
+    return (
+      <div className="rounded-2xl border border-dashed border-emerald-300/40 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5 px-6 py-12 text-center space-y-3">
+        <div className="text-3xl">📝</div>
+        <h3 className="text-base font-bold text-emerald-700 dark:text-emerald-300">
+          경기 종료 후 자동 등록됩니다
+        </h3>
+        <p className="text-sm text-neutral-500 leading-relaxed max-w-md mx-auto">
+          {leagueName} 리뷰는 경기 종료 직후 결과·KPI·핵심 장면을 정리해
+          발행됩니다.
+        </p>
+      </div>
+    );
+  }
+
+  if (isAnalysis) {
+    return (
+      <div className="rounded-2xl border border-dashed border-violet-300/40 dark:border-violet-500/30 bg-violet-50/30 dark:bg-violet-500/5 px-6 py-12 text-center space-y-3">
+        <div className="text-3xl">📈</div>
+        <h3 className="text-base font-bold text-violet-700 dark:text-violet-300">
+          시즌 분석은 매주 월요일 발행
+        </h3>
+        <p className="text-sm text-neutral-500 leading-relaxed max-w-md mx-auto">
+          {leagueName} 시즌 트렌드·팀별 심층 분석은 매주 KST 월요일 오전에
+          업데이트됩니다.
+        </p>
+      </div>
+    );
+  }
+
+  // ALL fallback
+  return (
+    <div className="rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800 px-6 py-12 text-center space-y-2">
+      <div className="text-3xl">📭</div>
+      <p className="text-neutral-500">
+        아직 {leagueName} {tabLabel} 글이 없습니다.
+      </p>
+    </div>
   );
 }
