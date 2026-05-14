@@ -13,6 +13,8 @@ import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
 import UclBracket from "@/components/UclBracket";
 import { buildUclBracket } from "@/lib/predict/ucl-bracket";
+import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
+import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 export const dynamic = "force-dynamic";
@@ -243,6 +245,21 @@ export default async function LeaguePredictions({ params }: Props) {
     uclBracket = buildUclBracket(knockoutMatches);
   }
 
+  // NBA — 플레이오프 브라켓 (raw 의 series.type='playoff' 매치만)
+  const isNba = upper === "NBA";
+  let nbaBracket: ReturnType<typeof getNbaPlayoffBracket> = [];
+  if (isNba) {
+    const recentMatches = await prisma.match.findMany({
+      where: {
+        league: "NBA",
+        startTime: { gte: new Date(Date.now() - 60 * 24 * 3600 * 1000) }, // 최근 60일
+      },
+      include: { homeTeam: true, awayTeam: true },
+      orderBy: { startTime: "asc" },
+    });
+    nbaBracket = getNbaPlayoffBracket(recentMatches);
+  }
+
   return (
     <div>
       {/* 히어로 */}
@@ -377,6 +394,17 @@ export default async function LeaguePredictions({ params }: Props) {
               subtitle="16강 → 8강 → 4강 → 결승 (2-leg 합산 진출)"
             />
             <UclBracket series={uclBracket} />
+          </section>
+        )}
+
+        {/* NBA — 플레이오프 브라켓 */}
+        {isNba && nbaBracket.length > 0 && (
+          <section>
+            <Heading
+              title="NBA 플레이오프 브라켓"
+              subtitle="1라운드 → 컨퍼런스 세미 → 컨퍼런스 파이널 → 파이널 (BO7, 4선승)"
+            />
+            <NbaPlayoffBracket series={nbaBracket} />
           </section>
         )}
 
