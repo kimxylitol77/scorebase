@@ -39,6 +39,28 @@ interface Props {
   /** 약자 (LG, 두산 등) — DB Team.shortName */
   homeAbbr?: string | null;
   awayAbbr?: string | null;
+  /** 팀 로고 URL (DB Team.logoUrl) */
+  homeLogo?: string | null;
+  awayLogo?: string | null;
+}
+
+function TeamLogo({ url, name }: { url?: string | null; name: string }) {
+  if (url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={url}
+        alt=""
+        className="w-12 h-12 sm:w-16 sm:h-16 object-contain mx-auto mb-1"
+        loading="lazy"
+      />
+    );
+  }
+  return (
+    <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-1 rounded-full bg-neutral-100 dark:bg-neutral-900 inline-flex items-center justify-center text-base font-bold text-neutral-400">
+      {name.slice(0, 1)}
+    </div>
+  );
 }
 
 const POLL_LIVE_MS = 15_000;
@@ -53,6 +75,8 @@ export default function BaseballLiveDetail({
   awayStarter,
   homeAbbr,
   awayAbbr,
+  homeLogo,
+  awayLogo,
 }: Props) {
   const [live, setLive] = useState<BaseballLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -171,7 +195,8 @@ export default function BaseballLiveDetail({
           )}
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <div className="text-right">
+          <div className="text-center">
+            <TeamLogo url={awayLogo} name={awayNameKo} />
             <div className="text-xs sm:text-sm font-semibold text-neutral-500">
               {awayShort}
             </div>
@@ -195,7 +220,8 @@ export default function BaseballLiveDetail({
               className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
             />
           </div>
-          <div>
+          <div className="text-center">
+            <TeamLogo url={homeLogo} name={homeNameKo} />
             <div className="text-xs sm:text-sm font-semibold text-neutral-500">
               {homeShort}
             </div>

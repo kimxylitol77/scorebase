@@ -83,6 +83,8 @@ export default async function NpbLivePage({ params }: Props) {
         awayNameKo={awayKo}
         homeAbbr={match.homeTeam.shortName ?? null}
         awayAbbr={match.awayTeam.shortName ?? null}
+        homeLogo={match.homeTeam.logoUrl ?? null}
+        awayLogo={match.awayTeam.logoUrl ?? null}
         homeStarter={parseStarter(match.homeStarter)}
         awayStarter={parseStarter(match.awayStarter)}
       />

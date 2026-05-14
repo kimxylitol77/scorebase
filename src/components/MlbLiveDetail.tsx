@@ -7,6 +7,25 @@
 import { useEffect, useRef, useState } from "react";
 import CountUp from "./CountUp";
 
+function TeamLogo({ url, name }: { url?: string | null; name: string }) {
+  if (url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={url}
+        alt=""
+        className="w-12 h-12 sm:w-16 sm:h-16 object-contain mx-auto mb-1"
+        loading="lazy"
+      />
+    );
+  }
+  return (
+    <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-1 rounded-full bg-neutral-100 dark:bg-neutral-900 inline-flex items-center justify-center text-base font-bold text-neutral-400">
+      {name.slice(0, 1)}
+    </div>
+  );
+}
+
 interface MlbLive {
   status: "PRE" | "LIVE" | "FINAL" | "DELAY";
   statusLabel: string;
@@ -144,7 +163,8 @@ export default function MlbLiveDetail({ gameId, homeNameKo, awayNameKo }: Props)
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           {/* 원정팀 */}
-          <div className="text-right">
+          <div className="text-center">
+            <TeamLogo url={live.awayTeam.logo} name={awayLabel} />
             <div className="text-xs sm:text-sm font-semibold text-neutral-500">
               {live.awayTeam.abbreviation}
             </div>
@@ -164,7 +184,8 @@ export default function MlbLiveDetail({ gameId, homeNameKo, awayNameKo }: Props)
             />
           </div>
           {/* 홈팀 */}
-          <div>
+          <div className="text-center">
+            <TeamLogo url={live.homeTeam.logo} name={homeLabel} />
             <div className="text-xs sm:text-sm font-semibold text-neutral-500">
               {live.homeTeam.abbreviation}
             </div>
