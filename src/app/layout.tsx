@@ -85,10 +85,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* 다크모드 FOUC 방지 — React hydration 전에 동기 실행 */}
+        {/* 다크모드 FOUC 방지 — React hydration 전에 동기 실행.
+            html element 에 inline style 로 background/color 를 직접 set 해서
+            CSS bundle 도착 전에도 dark 색이 즉시 적용되게 한다. CSS var 룰
+            (globals.css html { background: var(--background) }) 가 그 뒤 paint
+            에서 동일 값으로 덮어쓰니 깜빡임 없음. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var s=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=t==='dark'||(t!=='light'&&s);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var s=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=t==='dark'||(t!=='light'&&s);var h=document.documentElement;if(d){h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}else{h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}}catch(e){}})();`,
           }}
         />
         {/* Pretendard — 한국어 본문에 최적화된 변폭 폰트 */}
