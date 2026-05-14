@@ -1,0 +1,178 @@
+// /api/live/baseball/[gameId] — KBO/NPB/MLB 공용 api-sports Baseball 정규화.
+// api-sports `/games?id={id}` 응답 → 이닝별 linescore + H/E/R + 점수 + 상태.
+// 베이스 상황·볼카운트·현재 투수/타자는 api-sports 미제공 (안 A 범위).
+// Edge runtime · ETag/304 · CDN 15s + SWR 45s.
+
+import { NextResponse, type NextRequest } from "next/server";
+
+export const runtime = "edge";
+
+const AB_BASE = "https://v1.baseball.api-sports.io";
+const TIMEOUT = 8000;
+
+export interface BaseballLive {
+  status: "PRE" | "LIVE" | "FINAL" | "DELAY";
+  statusLabel: string; // "Inning 6" / "Finished" / "Not Started"
+  /** 이닝별 점수 (1~9 + extra) — null = 아직 진행 안 됨 */
+  linescore: { home: (number | null)[]; away: (number | null)[] } | null;
+  homeTeam: {
+    name: string;
+    score: number;
+    hits: number | null;
+    errors: number | null;
+  };
+  awayTeam: {
+    name: string;
+    score: number;
+    hits: number | null;
+    errors: number | null;
+  };
+  league: { id: number; name: string };
+}
+
+interface ABGameDetail {
+  response?: Array<{
+    id: number;
+    date: string;
+    status: { short: string; long: string };
+    league: { id: number; name: string };
+    teams: {
+      home: { name: string };
+      away: { name: string };
+    };
+    scores: {
+      home: BaseballSide;
+      away: BaseballSide;
+    };
+  }>;
+}
+
+interface BaseballSide {
+  hits: number | null;
+  errors: number | null;
+  innings: Record<string, number | null>;
+  total: number | null;
+}
+
+function pickStatus(short: string, long: string): BaseballLive["status"] {
+  if (["FT", "POST", "AOT"].includes(short)) return "FINAL";
+  if (short === "NS") return "PRE";
+  if (["CANC", "PST"].includes(short)) return "DELAY";
+  if (/halt|delay|interruption|rain/i.test(long)) return "DELAY";
+  return "LIVE";
+}
+
+/** "1"~"9" 키를 순서대로 + extra (있을 때만) 배열로 변환 */
+function flattenInnings(innings: Record<string, number | null>): (number | null)[] {
+  const result: (number | null)[] = [];
+  // 정규 9이닝
+  for (let i = 1; i <= 9; i++) {
+    result.push(innings[String(i)] ?? null);
+  }
+  // 연장 — extra 가 숫자면 추가 (단일 칸)
+  if (innings.extra !== null && innings.extra !== undefined) {
+    result.push(innings.extra);
+  }
+  return result;
+}
+
+function normalize(data: ABGameDetail): BaseballLive | null {
+  const g = data.response?.[0];
+  if (!g) return null;
+  return {
+    status: pickStatus(g.status.short, g.status.long),
+    statusLabel: g.status.long,
+    linescore: {
+      home: flattenInnings(g.scores.home.innings),
+      away: flattenInnings(g.scores.away.innings),
+    },
+    homeTeam: {
+      name: g.teams.home.name,
+      score: g.scores.home.total ?? 0,
+      hits: g.scores.home.hits,
+      errors: g.scores.home.errors,
+    },
+    awayTeam: {
+      name: g.teams.away.name,
+      score: g.scores.away.total ?? 0,
+      hits: g.scores.away.hits,
+      errors: g.scores.away.errors,
+    },
+    league: g.league,
+  };
+}
+
+async function hashLive(live: BaseballLive): Promise<string> {
+  const sig = [
+    live.status,
+    live.statusLabel,
+    live.homeTeam.score,
+    live.awayTeam.score,
+    live.homeTeam.hits,
+    live.awayTeam.hits,
+    live.linescore?.home.join(","),
+    live.linescore?.away.join(","),
+  ].join("|");
+  const buf = await crypto.subtle.digest(
+    "SHA-1",
+    new TextEncoder().encode(sig),
+  );
+  return Array.from(new Uint8Array(buf).slice(0, 8))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function GET(
+  req: NextRequest,
+  ctx: { params: Promise<{ gameId: string }> },
+) {
+  const { gameId } = await ctx.params;
+  if (!/^\d+$/.test(gameId)) {
+    return NextResponse.json({ error: "invalid game id" }, { status: 400 });
+  }
+  const key = process.env.API_BASEBALL_KEY;
+  if (!key) {
+    return NextResponse.json({ error: "missing key" }, { status: 200 });
+  }
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+  try {
+    const res = await fetch(`${AB_BASE}/games?id=${gameId}`, {
+      headers: { "x-apisports-key": key },
+      signal: ctrl.signal,
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = (await res.json()) as ABGameDetail;
+    const live = normalize(data);
+    if (!live) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+    const etag = `W/"${await hashLive(live)}"`;
+    if (req.headers.get("if-none-match") === etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: etag,
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
+        },
+      });
+    }
+    return NextResponse.json(
+      { live, fetchedAt: new Date().toISOString() },
+      {
+        headers: {
+          ETag: etag,
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
+        },
+      },
+    );
+  } catch (e) {
+    return NextResponse.json(
+      { error: (e as Error).message },
+      { status: 200 },
+    );
+  } finally {
+    clearTimeout(t);
+  }
+}

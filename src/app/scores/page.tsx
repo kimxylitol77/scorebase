@@ -348,10 +348,16 @@ export default async function ScoresPage({ searchParams }: Props) {
                       : m.status;
                   const effHomeScore = live ? live.homeScore : m.homeScore;
                   const effAwayScore = live ? live.awayScore : m.awayScore;
-                  // MLB 라이브 매치는 라이브 상세 페이지 link 추가
-                  const mlbLiveHref =
-                    m.league === "MLB" && effStatus === "LIVE"
-                      ? `/live/mlb/${m.externalId}`
+                  // 라이브 상세 페이지 link (MLB/KBO/NPB) — externalId 로 deep-link
+                  const liveDetailHref =
+                    effStatus === "LIVE"
+                      ? m.league === "MLB"
+                        ? `/live/mlb/${m.externalId}`
+                        : m.league === "KBO"
+                          ? `/live/kbo/${m.externalId}`
+                          : m.league === "NPB"
+                            ? `/live/npb/${m.externalId}`
+                            : null
                       : null;
                   return (
                     <MatchRow
@@ -370,7 +376,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                       league={m.league}
                       previewSlug={slugs.preview}
                       recapSlug={slugs.recap}
-                      mlbLiveHref={mlbLiveHref}
+                      liveDetailHref={liveDetailHref}
                       homeStarter={
                         isBaseball ? parseStarter(m.homeStarter) : null
                       }
@@ -443,7 +449,7 @@ function MatchRow({
   league,
   previewSlug,
   recapSlug,
-  mlbLiveHref,
+  liveDetailHref,
   homeStarter,
   awayStarter,
 }: {
@@ -461,7 +467,7 @@ function MatchRow({
   league: string;
   previewSlug?: string;
   recapSlug?: string;
-  mlbLiveHref?: string | null;
+  liveDetailHref?: string | null;
   homeStarter?: string | null;
   awayStarter?: string | null;
 }) {
@@ -544,9 +550,9 @@ function MatchRow({
       </div>
       {/* 글 칩 — PREVIEW / RECAP / 라이브 상세 (있는 것만) */}
       <div className="flex items-center justify-end gap-1 sm:gap-1.5">
-        {mlbLiveHref ? (
+        {liveDetailHref ? (
           <Link
-            href={mlbLiveHref}
+            href={liveDetailHref}
             prefetch={false}
             className="inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-1 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition whitespace-nowrap"
           >
