@@ -112,13 +112,29 @@ export default async function ScoresPage({ searchParams }: Props) {
     fetchLiveCached(),
   ]);
 
-  // 외부 라이브 데이터 externalId 매핑 — DB Match.externalId 와 비교해서
-  // status=SCHEDULED 인데 실제론 진행 중인 매치를 LIVE 로 override.
+  // 외부 라이브 데이터 매칭 — externalId 우선, 안 되면 이름+시간 fallback.
+  // 우리 collector 는 ESPN ID 쓰는데 (MLB/NBA/NHL/MLS) 라이브 API 는 API-Sports/BDL/
+  // API-Football ID 라 다른 시스템 → externalId 만으로는 매칭 실패. NPB 만 같은 ID 시스템.
   const liveByExternalId = new Map<string, LiveMatch>();
+  const liveByNameTime = new Map<string, LiveMatch>();
+  function normalizeName(s: string): string {
+    return s.toLowerCase().replace(/[\s.·\-_]/g, "");
+  }
   for (const lm of liveMatches) {
-    // id 형식: "ab-180758", "af-12345", "bdlnba-9999" → 마지막 segment 가 externalId
     const rawId = lm.id.replace(/^[a-z]+-/i, "");
     liveByExternalId.set(rawId, lm);
+    // fallback key: league + UTC HH:MM + 정규화한 home/away 이름
+    const hm = lm.startTime.slice(11, 16);
+    const home = normalizeName(lm.homeName);
+    const away = normalizeName(lm.awayName);
+    liveByNameTime.set(`${lm.league}|${hm}|${home}|${away}`, lm);
+  }
+  function matchLive(m: { externalId: string; league: string; startTime: Date; homeTeam: { name: string }; awayTeam: { name: string } }): LiveMatch | undefined {
+    const byId = liveByExternalId.get(m.externalId);
+    if (byId) return byId;
+    const hm = m.startTime.toISOString().slice(11, 16);
+    const key = `${m.league}|${hm}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`;
+    return liveByNameTime.get(key);
   }
 
   // 야구 매치 starter JSON 파싱 — KBO/NPB/MLB 만 적용
@@ -302,7 +318,8 @@ export default async function ScoresPage({ searchParams }: Props) {
                   const slugs = pickArticleSlugs(m.articles);
                   const isBaseball = BASEBALL_LEAGUES.has(m.league);
                   // 외부 라이브 데이터로 status/score override (DB cron 사이클 보강)
-                  const live = liveByExternalId.get(m.externalId);
+                  // matchLive 가 externalId 우선, 안 되면 league+시작시간+이름 fallback
+                  const live = matchLive(m);
                   // Stale LIVE 보정: DB 가 LIVE 인데 외부 API 가 라이브로 안 잡고,
                   // 매치 시작 후 4시간이 지났으면 사실상 종료로 본다.
                   // (collect cron 사이클 간 시간에 stale 상태가 남는 케이스)
