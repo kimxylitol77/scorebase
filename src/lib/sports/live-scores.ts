@@ -294,6 +294,80 @@ export async function fetchBaseballByDate(
   return out;
 }
 
+/**
+ * ESPN MLB scoreboard 로부터 일자별 매치 innings/H/E 반환.
+ * MLB 는 우리 collector 가 ESPN id 를 externalId 로 쓰므로 api-sports 와
+ * 별개 경로. KST yyyy-mm-dd → ESPN yyyymmdd 변환 (단, ESPN 은 UTC 기준이라
+ * 동시에 전날도 조회해 합침).
+ */
+export async function fetchMlbByDate(
+  date: string,
+): Promise<Record<string, BaseballGameDetails>> {
+  const out: Record<string, BaseballGameDetails> = {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return out;
+  const ymd = date.replace(/-/g, "");
+  // 어제도 같이 조회 — KST 가 UTC 보다 +9h 라 KST 오전 매치가 ESPN 전날에 속함
+  const prevYmd = (() => {
+    const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10).replace(/-/g, "");
+  })();
+  const fetchOne = async (ymdStr: string) => {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+      const res = await fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=${ymdStr}`,
+        { signal: ctrl.signal, cache: "no-store" },
+      ).finally(() => clearTimeout(t));
+      if (!res.ok) return;
+      interface EspnComp {
+        homeAway: "home" | "away";
+        score: string | number;
+        hits?: number;
+        errors?: number;
+        linescores?: Array<{ value?: number; displayValue?: string }>;
+      }
+      const data = (await res.json()) as {
+        events?: Array<{
+          id: string;
+          competitions?: Array<{
+            competitors?: EspnComp[];
+            status?: { type?: { name?: string } };
+          }>;
+        }>;
+      };
+      for (const ev of data.events ?? []) {
+        const comp = ev.competitions?.[0];
+        if (!comp) continue;
+        const status = comp.status?.type?.name ?? "";
+        if (/SCHEDULED|PRE/.test(status)) continue; // 시작 전은 skip
+        const home = comp.competitors?.find((c) => c.homeAway === "home");
+        const away = comp.competitors?.find((c) => c.homeAway === "away");
+        if (!home || !away) continue;
+        const toInning = (l: { value?: number; displayValue?: string }) =>
+          typeof l.value === "number"
+            ? l.value
+            : l.displayValue !== undefined
+              ? Number(l.displayValue)
+              : null;
+        out[ev.id] = {
+          homeInnings: (home.linescores ?? []).map(toInning),
+          awayInnings: (away.linescores ?? []).map(toInning),
+          homeHits: home.hits ?? null,
+          awayHits: away.hits ?? null,
+          homeErrors: home.errors ?? null,
+          awayErrors: away.errors ?? null,
+        };
+      }
+    } catch (e) {
+      console.warn("[live-scores/mlb-by-date]", (e as Error).message);
+    }
+  };
+  await Promise.all([fetchOne(ymd), fetchOne(prevYmd)]);
+  return out;
+}
+
 export async function fetchBaseballLive(): Promise<LiveMatch[]> {
   const key = process.env.API_BASEBALL_KEY;
   if (!key) return [];

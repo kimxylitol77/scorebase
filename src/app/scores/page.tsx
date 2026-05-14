@@ -17,6 +17,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import {
   fetchAllLiveScores,
   fetchBaseballByDate,
+  fetchMlbByDate,
   type BaseballGameDetails,
   type LiveMatch,
 } from "@/lib/sports/live-scores";
@@ -41,6 +42,12 @@ const fetchLiveCached = unstable_cache(
 const fetchBaseballByDateCached = unstable_cache(
   fetchBaseballByDate,
   ["scores-page-baseball-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// MLB 는 ESPN 기반 collector 라 externalId = ESPN game id. api-sports 와 별도 fetch.
+const fetchMlbByDateCached = unstable_cache(
+  fetchMlbByDate,
+  ["scores-page-mlb-by-date"],
   { revalidate: 60, tags: ["live-scores"] },
 );
 
@@ -169,7 +176,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     sport === "all" ||
     leagues.some((l) => BASEBALL_LEAGUES.has(l));
 
-  const [matches, liveMatches, baseballDetailsMap] = await Promise.all([
+  const [matches, liveMatches, apiSportsDetails, mlbDetails] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: leagues },
@@ -190,7 +197,15 @@ export default async function ScoresPage({ searchParams }: Props) {
     needsBaseballDetails
       ? fetchBaseballByDateCached(dateStr)
       : Promise.resolve({} as Record<string, BaseballGameDetails>),
+    needsBaseballDetails && leagues.includes("MLB")
+      ? fetchMlbByDateCached(dateStr)
+      : Promise.resolve({} as Record<string, BaseballGameDetails>),
   ]);
+  // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
+  const baseballDetailsMap: Record<string, BaseballGameDetails> = {
+    ...apiSportsDetails,
+    ...mlbDetails,
+  };
 
   // 외부 라이브 매치 ↔ DB 매치 매칭 (externalId 또는 league+이름)
   const liveByExternalId = new Map<string, LiveMatch>();
