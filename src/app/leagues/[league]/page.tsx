@@ -616,9 +616,6 @@ function EmptyArticles({
           <br />
           최신 폼·구장 환경·예측 모델 통합해 자동 발행됩니다.
         </p>
-        <p className="text-[11px] text-neutral-400 pt-2">
-          ⏱ 매일 KST 07:30 · 23:00 자동 갱신
-        </p>
       </div>
     );
   }
@@ -653,9 +650,6 @@ function EmptyArticles({
         <p className="text-sm text-neutral-500 leading-relaxed max-w-md mx-auto">
           {leagueName} 프리뷰는 라이브 라인업과 시장 odds 가 확정되는 시점에
           자동 작성됩니다. 부상·최근 폼·예측 모델까지 통합 분석.
-        </p>
-        <p className="text-[11px] text-neutral-400 pt-2">
-          ⏱ 매일 KST 07:30 · 23:00 자동 갱신
         </p>
       </div>
     );
