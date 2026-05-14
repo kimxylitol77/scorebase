@@ -25,25 +25,24 @@ export default function BaseballLinescore({ data }: Props) {
 
   return (
     <div className="overflow-x-auto px-3.5 sm:px-4">
-      <table className="w-full text-[10px] sm:text-[11px]">
+      {/* w-full 제거 → 컬럼이 컨텐츠에 맞게 좁게 붙음. 글자 한 단계 크게. */}
+      <table className="text-xs sm:text-sm">
         <thead>
           <tr className="text-neutral-400">
-            <th className="py-1 pr-2 text-left font-semibold max-w-[88px] sm:max-w-[110px]">
-              팀
-            </th>
+            <th className="py-1.5 pr-3 text-left font-semibold">팀</th>
             {idx.map((i) => (
               <th
                 key={i}
-                className="px-1 py-1 text-center font-semibold tabular-nums w-5"
+                className="px-1.5 py-1.5 text-center font-semibold tabular-nums"
               >
                 {i + 1}
               </th>
             ))}
-            <th className="px-1.5 py-1 text-center font-bold text-neutral-700 dark:text-neutral-200 border-l border-neutral-200/60 dark:border-neutral-800">
+            <th className="px-2 py-1.5 text-center font-bold text-neutral-700 dark:text-neutral-200 border-l border-neutral-200/60 dark:border-neutral-800">
               R
             </th>
-            <th className="px-1.5 py-1 text-center font-semibold">H</th>
-            <th className="py-1 pl-1.5 text-center font-semibold">E</th>
+            <th className="px-2 py-1.5 text-center font-semibold">H</th>
+            <th className="py-1.5 pl-2 text-center font-semibold">E</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-100 dark:divide-neutral-900">
@@ -86,24 +85,24 @@ function Row({
 }) {
   return (
     <tr>
-      <td className="py-1 pr-2 font-semibold text-neutral-700 dark:text-neutral-200 max-w-[88px] sm:max-w-[110px]">
-        <span className="block truncate">{label}</span>
+      <td className="py-1.5 pr-3 font-semibold text-neutral-700 dark:text-neutral-200 whitespace-nowrap">
+        {label}
       </td>
       {Array.from({ length: innings }, (_, i) => (
         <td
           key={i}
-          className="px-1 py-1 text-center tabular-nums text-neutral-600 dark:text-neutral-400"
+          className="px-1.5 py-1.5 text-center tabular-nums text-neutral-600 dark:text-neutral-400"
         >
           {line[i] ?? "-"}
         </td>
       ))}
-      <td className="px-1.5 py-1 text-center font-black tabular-nums border-l border-neutral-200/60 dark:border-neutral-800 text-neutral-900 dark:text-white">
+      <td className="px-2 py-1.5 text-center font-black tabular-nums border-l border-neutral-200/60 dark:border-neutral-800 text-neutral-900 dark:text-white">
         {r}
       </td>
-      <td className="px-1.5 py-1 text-center tabular-nums text-neutral-500">
+      <td className="px-2 py-1.5 text-center tabular-nums text-neutral-500">
         {h ?? "-"}
       </td>
-      <td className="py-1 pl-1.5 text-center tabular-nums text-neutral-500">
+      <td className="py-1.5 pl-2 text-center tabular-nums text-neutral-500">
         {e ?? "-"}
       </td>
     </tr>
