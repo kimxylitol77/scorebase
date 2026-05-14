@@ -24,6 +24,7 @@
     { "path": "/api/cron/recap", "schedule": "0 5 * * *" },
     { "path": "/api/cron/evaluate", "schedule": "0 15 * * *" },
     { "path": "/api/cron/analysis", "schedule": "0 0 * * 1" },
+    { "path": "/api/cron/cleanup-ghost", "schedule": "30 19 * * *" },
     { "path": "/api/cron/mlb-starters", "schedule": "0 12 * * *" },
     { "path": "/api/cron/nhl-goalies", "schedule": "30 12 * * *" },
     { "path": "/api/cron/baseball-starters", "schedule": "30 1 * * *" },
