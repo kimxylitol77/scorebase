@@ -25,29 +25,30 @@ export interface KboPitcherIndexEntry {
   team?: string; // 팀명 (있으면)
 }
 
-/**
- * 시즌 등재 투수 인덱스 — 한 번 호출로 시즌 전체 추출.
- *
- * 헤더 위치 기반으로 "선수명" / "팀명" 컬럼을 찾아 파싱한다. 컬럼 순서가
- * 바뀌어도 깨지지 않음. 기존엔 `td.eq(1)` 을 팀명으로 가정했는데 실제
- * 페이지 헤더는 ["순위","선수명","팀명",...] 라 td.eq(1) 이 선수명(a 태그
- * 텍스트) 이었음 → team 필드에 이름이 들어가서 findKboIdByName 의 팀
- * 힌트 매칭이 깨졌었다.
- */
-export async function fetchKboPitcherIndex(): Promise<KboPitcherIndexEntry[]> {
-  const url = `${BASE}/Record/Player/PitcherBasic/Basic1.aspx`;
-  let html: string;
-  try {
-    const r = await axios.get<string>(url, {
-      headers: HEADERS,
-      timeout: 15000,
-      responseType: "text",
-    });
-    html = r.data;
-  } catch (e) {
-    console.warn("[kbo-official] index fetch 실패:", (e as Error).message);
-    return [];
-  }
+// KBO 10팀 코드 (PitcherBasic.aspx ddlTeam form value)
+const KBO_TEAM_CODES = [
+  "KT", "LG", "SS", "SK", "OB", "HT", "HH", "NC", "LT", "WO",
+] as const;
+const SEASON_DEFAULT = String(new Date().getFullYear());
+
+/** GET 응답 HTML 에서 ASP.NET hidden state 추출 */
+function extractHidden(html: string): {
+  viewState: string;
+  viewStateGenerator: string;
+  eventValidation: string;
+} {
+  const $ = cheerio.load(html);
+  return {
+    viewState: $('input[name="__VIEWSTATE"]').attr("value") ?? "",
+    viewStateGenerator:
+      $('input[name="__VIEWSTATEGENERATOR"]').attr("value") ?? "",
+    eventValidation:
+      $('input[name="__EVENTVALIDATION"]').attr("value") ?? "",
+  };
+}
+
+/** 테이블에서 선수 list 파싱 — 헤더 위치 기반 (선수명/팀명 컬럼 안전 추출) */
+function parseKboPitcherTable(html: string): KboPitcherIndexEntry[] {
   const $ = cheerio.load(html);
   const result: KboPitcherIndexEntry[] = [];
   const seen = new Set<string>();
@@ -55,13 +56,12 @@ export async function fetchKboPitcherIndex(): Promise<KboPitcherIndexEntry[]> {
     const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
     const nameIdx = headers.indexOf("선수명");
     const teamIdx = headers.indexOf("팀명");
-    if (nameIdx < 0) return; // 선수명 헤더 없는 테이블 skip
+    if (nameIdx < 0) return;
     $(t).find("tbody tr").each((_, tr) => {
       const tds = $(tr).find("td");
       const a = tds.eq(nameIdx).find("a[href*='playerId=']").first();
       if (!a.length) return;
-      const href = a.attr("href") ?? "";
-      const m = href.match(/playerId=(\d+)/);
+      const m = (a.attr("href") ?? "").match(/playerId=(\d+)/);
       if (!m) return;
       const kboId = m[1];
       const name = a.text().trim();
@@ -73,6 +73,95 @@ export async function fetchKboPitcherIndex(): Promise<KboPitcherIndexEntry[]> {
     });
   });
   return result;
+}
+
+/** 한 팀의 등재 투수 — ASP.NET POST + ddlTeam 변경 이벤트로 규정이닝 무관 전체 추출 */
+async function fetchKboPitcherIndexForTeam(
+  team: string,
+  season = SEASON_DEFAULT,
+): Promise<KboPitcherIndexEntry[]> {
+  const url = `${BASE}/Record/Player/PitcherBasic/Basic1.aspx`;
+  // 1) GET — 세션 쿠키 + viewstate 확보
+  const getRes = await axios.get<string>(url, {
+    headers: HEADERS,
+    timeout: 15000,
+    responseType: "text",
+  });
+  const setCookie = (getRes.headers["set-cookie"] ?? []).join("; ");
+  const cookie = setCookie
+    .split(/,\s*(?=[^;]+=)/)
+    .map((c) => c.split(";")[0])
+    .join("; ");
+  const hidden = extractHidden(getRes.data);
+
+  // 2) POST — ddlTeam 변경 이벤트 시뮬레이션
+  const body = new URLSearchParams({
+    __EVENTTARGET:
+      "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlTeam$ddlTeam",
+    __EVENTARGUMENT: "",
+    __LASTFOCUS: "",
+    __VIEWSTATE: hidden.viewState,
+    __VIEWSTATEGENERATOR: hidden.viewStateGenerator,
+    __EVENTVALIDATION: hidden.eventValidation,
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSeason$ddlSeason":
+      season,
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSeries$ddlSeries":
+      "0",
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlTeam$ddlTeam":
+      team,
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSituation$ddlSituation":
+      "",
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$ddlSituationDetail$ddlSituationDetail":
+      "",
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$hfPage": "1",
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$hfOrderByCol":
+      "ERA_RT",
+    "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$hfOrderBy": "ASC",
+  });
+
+  const postRes = await axios.post<string>(url, body.toString(), {
+    headers: {
+      ...HEADERS,
+      "Content-Type": "application/x-www-form-urlencoded",
+      Referer: url,
+      Origin: BASE,
+      Cookie: cookie,
+    },
+    timeout: 15000,
+    responseType: "text",
+  });
+  return parseKboPitcherTable(postRes.data);
+}
+
+/**
+ * 시즌 등재 투수 전체 인덱스 — 10팀 순회 합산.
+ *
+ * KBO 공식 사이트의 PitcherBasic.aspx 는 GET 단독으로는 규정이닝 충족
+ * 24명만 반환. ASP.NET POST + ddlTeam=<팀코드> 이벤트로 변경하면 그 팀
+ * 등재 투수 전체 (외국인/신예 포함, 보통 17~27명) 반환. 10팀 순회로 약
+ * 200명+ 추출 (직렬 호출 ~13초, KBO 서버 부담 회피).
+ */
+export async function fetchKboPitcherIndex(
+  season = SEASON_DEFAULT,
+): Promise<KboPitcherIndexEntry[]> {
+  const merged: KboPitcherIndexEntry[] = [];
+  const seen = new Set<string>();
+  for (const team of KBO_TEAM_CODES) {
+    try {
+      const list = await fetchKboPitcherIndexForTeam(team, season);
+      for (const p of list) {
+        if (seen.has(p.kboId)) continue;
+        seen.add(p.kboId);
+        merged.push(p);
+      }
+    } catch (e) {
+      console.warn(
+        `[kbo-official] team=${team} index 실패:`,
+        (e as Error).message,
+      );
+    }
+  }
+  return merged;
 }
 
 export interface KboPitcherStats {
