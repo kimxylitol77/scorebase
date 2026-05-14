@@ -34,6 +34,7 @@ import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
 import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
 import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescore";
+import type { EsportsContext } from "@/components/scores/EsportsMiniBoard";
 
 const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
@@ -338,6 +339,14 @@ export default async function ScoresPage({ searchParams }: Props) {
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
       soccerGoals: sport_ === "soccer" ? soccerGoalsMap[m.externalId] ?? null : null,
+      esportsCtx:
+        sport_ === "esports" && live?.esports
+          ? ({
+              bestOf: live.esports.bestOf,
+              currentGame: live.esports.currentGame,
+              series: live.esports.series,
+            } as EsportsContext)
+          : null,
       periodLinescore:
         sport_ === "basketball" || sport_ === "hockey"
           ? periodMap[m.externalId] ?? null
@@ -480,7 +489,7 @@ export default async function ScoresPage({ searchParams }: Props) {
               periodLinescore: m.periodLinescore,
               soccerGoals: m.soccerGoals,
               soccerCtx: m.soccerCtx,
-              esportsCtx: null,
+              esportsCtx: m.esportsCtx,
               homeStarter: m.homeStarter,
               awayStarter: m.awayStarter,
               href: m.href,
@@ -547,6 +556,7 @@ type NormalizedMatch = {
   awayStarter: string | null;
   soccerCtx: SoccerContext | null;
   soccerGoals: SoccerGoal[] | null;
+  esportsCtx: EsportsContext | null;
   baseballLinescore: BaseballLinescoreData | null;
   periodLinescore: PeriodLinescoreData | null;
   preview?: string;
@@ -607,7 +617,7 @@ function renderCard(m: NormalizedMatch) {
       periodLinescore={m.periodLinescore}
       soccerGoals={m.soccerGoals}
       soccerCtx={m.soccerCtx}
-      esportsCtx={null}
+      esportsCtx={m.esportsCtx}
       homeStarter={m.homeStarter}
       awayStarter={m.awayStarter}
       href={m.href}

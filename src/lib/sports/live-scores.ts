@@ -66,6 +66,13 @@ export interface LiveMatch {
     homeErrors: number | null;
     awayErrors: number | null;
   };
+  /** LoL/LCK 시리즈 정보 — BALLDONTLIE bo_type + team scores. */
+  esports?: {
+    bestOf: 3 | 5;
+    /** 현재 진행 중인 게임 번호 (1부터). 시리즈가 끝났으면 마지막 게임 번호. */
+    currentGame: number;
+    series: { home: number; away: number };
+  };
 }
 
 const LEAGUE_LABEL: Record<string, string> = {
@@ -82,6 +89,7 @@ const LEAGUE_LABEL: Record<string, string> = {
   MLB: "MLB",
   NBA: "NBA",
   NHL: "NHL",
+  LOL: "LCK",
 };
 
 // API-Football fixture league_id → 우리 코드 (역매핑)
@@ -721,16 +729,81 @@ export async function fetchNhlLive(): Promise<LiveMatch[]> {
 }
 
 /* ============================================================
+ * LoL / LCK — BALLDONTLIE /lol/v1/matches
+ * ==========================================================*/
+const LCK_TOURNAMENT_ID = 324;
+
+interface BdlLolMatch {
+  id: number;
+  tournament: { id: number; name: string };
+  team1: { id: number; name: string };
+  team2: { id: number; name: string };
+  team1_score: number;
+  team2_score: number;
+  bo_type: number; // 3 or 5
+  status: string; // "upcoming" | "current" | "finished"
+  start_date: string;
+}
+
+function lolStatusLabel(match: BdlLolMatch): string {
+  const t = match.team1_score + match.team2_score;
+  return `${t + 1}게임`;
+}
+
+export async function fetchLolLive(): Promise<LiveMatch[]> {
+  const key = process.env.BALLDONTLIE_KEY;
+  if (!key) return [];
+  // 오늘 KST 일자
+  const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
+  const date = kstNow.toISOString().slice(0, 10);
+  try {
+    const data = await getJson<{ data?: BdlLolMatch[] }>(
+      `${BDL_BASE}/lol/v1/matches?dates[]=${date}&tournament_ids[]=${LCK_TOURNAMENT_ID}`,
+      { Authorization: key },
+    );
+    return (data.data ?? [])
+      .filter((m) => m.status === "current")
+      .map((m): LiveMatch => {
+        // BALLDONTLIE team1 = home, team2 = away (DB 매칭 검증 완료)
+        const bestOf: 3 | 5 = m.bo_type === 5 ? 5 : 3;
+        const totalGames = m.team1_score + m.team2_score;
+        return {
+          id: `bdllol-${m.id}`,
+          league: "LOL",
+          leagueLabel: LEAGUE_LABEL.LOL ?? "LCK",
+          homeName: m.team1.name,
+          awayName: m.team2.name,
+          homeShort: m.team1.name.slice(0, 4),
+          awayShort: m.team2.name.slice(0, 4),
+          homeScore: m.team1_score,
+          awayScore: m.team2_score,
+          statusLabel: lolStatusLabel(m),
+          startTime: m.start_date,
+          esports: {
+            bestOf,
+            currentGame: totalGames + 1,
+            series: { home: m.team1_score, away: m.team2_score },
+          },
+        };
+      });
+  } catch (e) {
+    console.warn("[live-scores/lol]", (e as Error).message);
+    return [];
+  }
+}
+
+/* ============================================================
  * 통합 — 모든 소스 병렬 fetch + 정렬
  * ==========================================================*/
 export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
-  const [soccer, baseball, nba, nhl] = await Promise.all([
+  const [soccer, baseball, nba, nhl, lol] = await Promise.all([
     fetchSoccerLive(),
     fetchBaseballLive(),
     fetchNbaLive(),
     fetchNhlLive(),
+    fetchLolLive(),
   ]);
-  const all = [...soccer, ...baseball, ...nba, ...nhl];
+  const all = [...soccer, ...baseball, ...nba, ...nhl, ...lol];
   // 정렬 — 가장 최근 시작 매치 우선
   all.sort((a, b) => b.startTime.localeCompare(a.startTime));
   return all;
