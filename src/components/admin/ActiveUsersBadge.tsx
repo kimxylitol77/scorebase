@@ -57,12 +57,21 @@ export default function ActiveUsersBadge() {
     };
   }, []);
 
-  if (!stat) return null;
+  // 로딩 중 (stat null) — placeholder
+  if (!stat) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-neutral-100 dark:bg-neutral-800 text-neutral-500 font-medium animate-pulse">
+        <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
+        <span>접속 중…</span>
+      </span>
+    );
+  }
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-emerald-100/70 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-medium"
-      title={`최근 5분: ${stat.active5m}명 · ${stat.pv5m}PV\n최근 1분: ${stat.active1m}명 · ${stat.pv1m}PV`}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-emerald-100/70 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-medium cursor-help"
+      title={`최근 5분: ${stat.active5m}명 · ${stat.pv5m} PV
+최근 1분: ${stat.active1m}명 · ${stat.pv1m} PV`}
     >
       <span className="relative inline-flex w-1.5 h-1.5">
         <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
@@ -70,6 +79,9 @@ export default function ActiveUsersBadge() {
       </span>
       <span className="font-bold tabular-nums">{stat.active5m}</span>
       <span className="opacity-70">접속 중</span>
+      <span className="opacity-50 text-[10px] tabular-nums ml-0.5">
+        (1m: {stat.active1m})
+      </span>
     </span>
   );
 }
