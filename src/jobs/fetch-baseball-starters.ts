@@ -39,6 +39,7 @@ import {
 import { generate } from "@/lib/ai/claude";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
+import { enrichBaseballContext } from "@/lib/predict/baseball-context";
 import {
   buildMatchContext,
   enrichContextWithApiFootball,
@@ -474,7 +475,10 @@ async function regenerateBaseballPreview(
     }
   } catch {}
 
-  const prompt = buildPreviewPrompt({ match: normalized, context });
+  // 야구 Poisson 모델 — starter ERA 채워진 후 시점이라 여기서 정상 동작
+  const ctxWithBaseball = enrichBaseballContext(context, m);
+
+  const prompt = buildPreviewPrompt({ match: normalized, context: ctxWithBaseball });
   const content = await generate(prompt, {
     system: SYSTEM_PROMPT,
     maxTokens: 4096,
@@ -492,11 +496,25 @@ async function regenerateBaseballPreview(
       newTitle = `${prefix} ${rawTitle}`;
     }
   }
+
+  // 야구 baseballContext (InningScoreChart 렌더용 JSON) 도 함께 저장
+  const baseballCtx =
+    ctxWithBaseball.inningScoreProbs && ctxWithBaseball.totalExpectedRuns
+      ? {
+          inningScoreProbs: ctxWithBaseball.inningScoreProbs,
+          totalExpectedRuns: ctxWithBaseball.totalExpectedRuns,
+          winProbPoisson: ctxWithBaseball.winProbPoisson,
+        }
+      : null;
+
   await prisma.article.update({
     where: { id: article.id },
     data: {
       content,
       ...(newTitle ? { title: newTitle } : {}),
+      ...(baseballCtx
+        ? { baseballContext: JSON.stringify(baseballCtx) }
+        : {}),
       updatedAt: new Date(),
     },
   });
