@@ -81,18 +81,22 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistMono.variable} h-full antialiased`}
+      // 핵심: SSR HTML 부터 dark class + dark inline style. 사용자가 명시적으로
+      // localStorage.theme='light' 설정한 경우에만 client script 가 제거.
+      // 이렇게 하면 첫 paint 가 무조건 dark — light 모드 사용자만 한 번 깜빡임.
+      className={`dark ${geistMono.variable} h-full antialiased`}
+      style={{
+        backgroundColor: "#0a0a0a",
+        color: "#ededed",
+        colorScheme: "dark",
+      }}
       suppressHydrationWarning
     >
       <head>
-        {/* 다크모드 FOUC 방지 — React hydration 전에 동기 실행.
-            html element 에 inline style 로 background/color 를 직접 set 해서
-            CSS bundle 도착 전에도 dark 색이 즉시 적용되게 한다. CSS var 룰
-            (globals.css html { background: var(--background) }) 가 그 뒤 paint
-            에서 동일 값으로 덮어쓰니 깜빡임 없음. */}
+        {/* light 모드 사용자만 dark 제거 (localStorage 명시 또는 OS prefers light) */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var s=window.matchMedia('(prefers-color-scheme: dark)').matches;var d=t==='dark'||(t!=='light'&&s);var h=document.documentElement;if(d){h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}else{h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var prefersLight=t==='light'||(t!=='dark'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);if(prefersLight){var h=document.documentElement;h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}}catch(e){}})();`,
           }}
         />
         {/* Pretendard — 한국어 본문에 최적화된 변폭 폰트 */}
