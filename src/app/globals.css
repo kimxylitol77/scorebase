@@ -356,6 +356,186 @@ body {
   border-color: white;
 }
 
+/* ============================================================
+ * Match Insight Sidebar — 베팅 앱 스타일 시각 + 미디어 톤 텍스트
+ * ==========================================================*/
+:root {
+  --insight-bg-base: #071019;
+  --insight-bg-card: rgba(15, 23, 42, 0.92);
+  --insight-bg-elev: #0b1220;
+  --insight-border: rgba(255, 255, 255, 0.06);
+  --insight-border-cyan: rgba(59, 130, 246, 0.35);
+  --insight-border-success: rgba(34, 197, 94, 0.35);
+
+  --insight-text: #f8fafc;
+  --insight-text-2: #cbd5e1;
+  --insight-text-3: #94a3b8;
+
+  --insight-cyan: #60a5fa;
+  --insight-cyan-soft: rgba(59, 130, 246, 0.14);
+  --insight-success: #22c55e;
+  --insight-success-soft: rgba(34, 197, 94, 0.12);
+  --insight-gold: #facc15;
+
+  --insight-glow-success: 0 0 35px rgba(34, 197, 94, 0.12),
+    0 8px 30px rgba(0, 0, 0, 0.35);
+  --insight-glow-cyan: 0 0 20px rgba(59, 130, 246, 0.12);
+  --insight-shadow-green: 0 0 20px rgba(34, 197, 94, 0.35);
+  --insight-shadow-yellow: 0 0 16px rgba(250, 204, 21, 0.3);
+}
+
+.insight-shell {
+  position: relative;
+  background: linear-gradient(180deg, var(--insight-bg-base) 0%, #0f172a 100%);
+  border: 1px solid var(--insight-border);
+  border-radius: 18px;
+  color: var(--insight-text);
+  padding: 18px;
+  overflow: hidden;
+}
+.insight-shell::before {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.22) 0%,
+    transparent 60%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.insight-card {
+  background: var(--insight-bg-card);
+  border: 1px solid var(--insight-border);
+  border-radius: 14px;
+  padding: 14px;
+}
+.insight-card.glow-success {
+  border-color: var(--insight-border-success);
+  box-shadow: var(--insight-glow-success);
+}
+.insight-card.glow-soft {
+  border-color: rgba(34, 197, 94, 0.18);
+}
+
+.insight-big-number {
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.insight-big-number.green {
+  color: var(--insight-success);
+  text-shadow: var(--insight-shadow-green);
+}
+.insight-big-number.gold {
+  color: var(--insight-gold);
+  text-shadow: var(--insight-shadow-yellow);
+}
+
+.insight-match-name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--insight-text);
+}
+
+.insight-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.insight-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.insight-bar-fill.cyan {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.45);
+}
+.insight-bar-fill.green {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.45);
+}
+.insight-bar-fill.gray {
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.6),
+    rgba(148, 163, 184, 0.85)
+  );
+}
+
+.insight-tab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--insight-border);
+  background: transparent;
+  color: var(--insight-text-3);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.insight-tab:hover {
+  color: var(--insight-text-2);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.insight-tab.active {
+  color: var(--insight-cyan);
+  border-color: var(--insight-border-cyan);
+  background: var(--insight-cyan-soft);
+  box-shadow: var(--insight-glow-cyan);
+}
+
+.insight-badge-strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--insight-success-soft);
+  color: var(--insight-success);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.insight-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+.insight-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--insight-border);
+  color: var(--insight-text-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
 /* 리그 필터 칩 */
 .league-chip {
   display: inline-flex;
