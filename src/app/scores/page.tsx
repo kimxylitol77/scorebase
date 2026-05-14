@@ -1,9 +1,8 @@
-// /scores — 라이브/종료/예정 통합 스코어 페이지.
-// 종목 탭 (전체·축구·야구·농구·하키·e스포츠) + 일자 nav (어제·오늘·내일) + 리그 그룹화.
-// 라이브 매치는 ScoresLiveCards (client) 가 별도 polling.
+// /scores — 라이브/종료/예정 통합 스코어 페이지 (named.com 스타일 박스 카드).
+// 구조: SportTabs → DateSlider → LeagueChips → MatchCard 그리드 (LIVE→예정→종료 그룹).
+// LIVE 매치 있으면 LiveRefresher 가 30초마다 router.refresh().
 
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
@@ -15,12 +14,15 @@ import {
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
-import LeagueBadge from "@/components/LeagueBadge";
-import ScoresLiveCards from "@/components/ScoresLiveCards";
 import { fetchAllLiveScores, type LiveMatch } from "@/lib/sports/live-scores";
+import SportTabs from "@/components/scores/SportTabs";
+import DateSlider from "@/components/scores/DateSlider";
+import LeagueChips from "@/components/scores/LeagueChips";
+import MatchCard from "@/components/scores/MatchCard";
+import EmptyState from "@/components/scores/EmptyState";
+import LiveRefresher from "@/components/scores/LiveRefresher";
+import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
 
-// 외부 API 라이브 매치 결과를 30초 캐시 — /scores SSR 시점에 호출되지만
-// 30초 동안은 캐시 hit, page 로딩 즉시.
 const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
   ["scores-page-live"],
@@ -30,41 +32,48 @@ const fetchLiveCached = unstable_cache(
 export const dynamic = "force-dynamic";
 
 interface Props {
-  searchParams: Promise<{ date?: string; sport?: string }>;
+  searchParams: Promise<{ date?: string; sport?: string; league?: string }>;
 }
 
-export const metadata: Metadata = {
-  title: "라이브 스코어 — 모든 리그 실시간",
-  description:
-    "EPL · KBO · NPB · MLB · NBA · NHL · UCL · LCK 13개 리그의 라이브 / 종료 / 예정 매치를 한 페이지에. 30초 자동 갱신.",
-  alternates: { canonical: "https://www.scorebase.kr/scores" },
-};
+const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
+const SOCCER_LEAGUES = new Set([
+  "EPL",
+  "LALIGA",
+  "BUNDESLIGA",
+  "SERIE_A",
+  "LIGUE_1",
+  "MLS",
+  "UCL",
+  "WORLD_CUP",
+]);
+
+function sportFromLeague(league: string): string {
+  if (BASEBALL_LEAGUES.has(league)) return "baseball";
+  if (SOCCER_LEAGUES.has(league)) return "soccer";
+  if (league === "NBA") return "basketball";
+  if (league === "NHL") return "hockey";
+  if (league === "LOL") return "esports";
+  return "other";
+}
 
 function parseKstDate(s: string | undefined): Date {
   if (s && /^\d{4}-\d{2}-\d{2}$/.test(s)) {
     return new Date(`${s}T00:00:00+09:00`);
   }
-  // 오늘 (KST 자정)
   const nowKst = new Date(Date.now() + 9 * 3600 * 1000);
   return new Date(
     Date.UTC(
       nowKst.getUTCFullYear(),
       nowKst.getUTCMonth(),
       nowKst.getUTCDate(),
-      -9, // KST 0시 = UTC 전날 15시 → KST 자정을 UTC 로 변환
+      -9,
     ),
   );
 }
-
-function kstDateLabel(d: Date): string {
-  return d.toLocaleDateString("ko-KR", {
-    timeZone: "Asia/Seoul",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
+function dateQuery(d: Date): string {
+  const k = new Date(d.getTime() + 9 * 3600 * 1000);
+  return k.toISOString().slice(0, 10);
 }
-
 function kstHHmm(d: Date): string {
   return d.toLocaleTimeString("ko-KR", {
     timeZone: "Asia/Seoul",
@@ -73,35 +82,69 @@ function kstHHmm(d: Date): string {
     hour12: false,
   });
 }
+function kstDateLabel(d: Date): string {
+  return d.toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  });
+}
+function parseStarter(json: string | null): string | null {
+  if (!json) return null;
+  try {
+    const obj = JSON.parse(json) as { name?: string };
+    return obj.name?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+// "전반 38'", "후반 67'", "HT" 등에서 minute / half short 추출
+function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
+  if (!statusLabel) return null;
+  if (/^HT$/i.test(statusLabel)) return { halfLabel: "HT", minute: 45 };
+  const m = statusLabel.match(/(전반|후반|연장|LIVE)\s*(\d+)/);
+  if (m) {
+    const half =
+      m[1] === "전반" ? "1H" : m[1] === "후반" ? "2H" : m[1] === "연장" ? "ET" : "LIVE";
+    return { halfLabel: half, minute: parseInt(m[2], 10) };
+  }
+  return { halfLabel: statusLabel };
+}
 
-function dateQuery(d: Date): string {
-  // KST 기준 yyyy-mm-dd
-  const k = new Date(d.getTime() + 9 * 3600 * 1000);
-  return k.toISOString().slice(0, 10);
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const sp = await searchParams;
+  const sportCode = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "all") as SportCode;
+  const sportLabel = SPORTS.find((s) => s.code === sportCode)?.label ?? "전체";
+  const day = parseKstDate(sp.date);
+  const dateStr = kstDateLabel(day);
+  return {
+    title: `${dateStr} ${sportLabel} 라이브 스코어 · 일정 — 스코어베이스`,
+    description: `${dateStr} ${sportLabel} 경기 일정·라이브 스코어·종료 결과. KBO·NPB·MLB·EPL·NBA·LCK 통합. 30초 자동 갱신.`,
+    alternates: { canonical: `https://www.scorebase.kr/scores?sport=${sportCode}&date=${dateQuery(day)}` },
+  };
 }
 
 export default async function ScoresPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const sport = (
-    SPORTS.find((s) => s.code === sp.sport)?.code ?? "all"
-  ) as SportCode;
-  const leagues = leaguesForSport(sport);
+  const sport = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "all") as SportCode;
+  const leaguesAll = leaguesForSport(sport);
+  const leagueFilter = sp.league && leaguesAll.includes(sp.league) ? sp.league : null;
+  const leagues = leagueFilter ? [leagueFilter] : leaguesAll;
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
+  const dateStr = sp.date ?? dateQuery(day);
 
   const [matches, liveMatches] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: leagues },
         startTime: { gte: day, lt: dayEnd },
-        // 연기/취소된 매치(POSTPONED)는 라이브 스코어에서 숨김 — 매치는
-        // DB 에 남기고(글 페이지에서는 접근 가능) 일자별 list 에서만 제외.
         status: { not: "POSTPONED" },
       },
       include: {
         homeTeam: true,
         awayTeam: true,
-        // 매치별 PREVIEW/RECAP article — 클릭 시 deep-link 용
         articles: {
           where: { status: "PUBLISHED" },
           select: { slug: true, type: true },
@@ -112,18 +155,13 @@ export default async function ScoresPage({ searchParams }: Props) {
     fetchLiveCached(),
   ]);
 
-  // 외부 라이브 데이터 매칭 — externalId 우선, 안 되면 이름+시간 fallback.
-  // 우리 collector 는 ESPN ID 쓰는데 (MLB/NBA/NHL/MLS) 라이브 API 는 API-Sports/BDL/
-  // API-Football ID 라 다른 시스템 → externalId 만으로는 매칭 실패. NPB 만 같은 ID 시스템.
+  // 외부 라이브 매치 ↔ DB 매치 매칭 (externalId 또는 league+이름)
   const liveByExternalId = new Map<string, LiveMatch>();
-  const liveByNameTime = new Map<string, LiveMatch>();
+  const liveByNameKey = new Map<string, LiveMatch>();
   function normalizeName(s: string): string {
-    // 1) 영문 suffix 먼저 제거 (FC/SC 등) — 풀/짧은 이름 동일화
     const stripped = s
       .replace(/\s+(fc|sc|cf|united|club|esports|f\.c\.|s\.c\.)\s*$/gi, "")
       .trim();
-    // 2) toKoreanTeamName 매핑 시도. 매핑 실패 시 점 뒤 공백 정규화 후 재시도
-    //    ('St.Louis Cardinals' vs 'St. Louis Cardinals' 차이 흡수)
     let ko = toKoreanTeamName(stripped);
     if (ko === stripped) {
       const spaced = stripped.replace(/\./g, ". ").replace(/\s+/g, " ").trim();
@@ -137,657 +175,277 @@ export default async function ScoresPage({ searchParams }: Props) {
   for (const lm of liveMatches) {
     const rawId = lm.id.replace(/^[a-z]+-/i, "");
     liveByExternalId.set(rawId, lm);
-    // fallback key: league + 정규화 home/away 이름 (시간 제외 — BDL NBA 처럼
-    // startTime 이 date-only 인 경우도 대응. 같은 날 같은 두 팀 LIVE 동시 X 라 unique)
-    const home = normalizeName(lm.homeName);
-    const away = normalizeName(lm.awayName);
-    liveByNameTime.set(`${lm.league}|${home}|${away}`, lm);
+    liveByNameKey.set(
+      `${lm.league}|${normalizeName(lm.homeName)}|${normalizeName(lm.awayName)}`,
+      lm,
+    );
   }
-  function matchLive(m: { externalId: string; league: string; startTime: Date; homeTeam: { name: string }; awayTeam: { name: string } }): LiveMatch | undefined {
-    const byId = liveByExternalId.get(m.externalId);
-    if (byId) return byId;
-    const key = `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`;
-    return liveByNameTime.get(key);
+  function matchLive(m: {
+    externalId: string;
+    league: string;
+    startTime: Date;
+    homeTeam: { name: string };
+    awayTeam: { name: string };
+  }): LiveMatch | undefined {
+    return (
+      liveByExternalId.get(m.externalId) ??
+      liveByNameKey.get(
+        `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
+      )
+    );
   }
 
-  // 야구 매치 starter JSON 파싱 — KBO/NPB/MLB 만 적용
-  function parseStarter(json: string | null): string | null {
-    if (!json) return null;
-    try {
-      const obj = JSON.parse(json) as { name?: string };
-      return obj.name?.trim() || null;
-    } catch {
-      return null;
+  // 매치 → 정규화 (sport 분기 + 라이브 보강)
+  const normalized = matches.map((m) => {
+    const live = matchLive(m);
+    const elapsedMs = Date.now() - m.startTime.getTime();
+    const staleLive =
+      !live && m.status === "LIVE" && elapsedMs > 4 * 3600 * 1000;
+    const effStatus = live ? "LIVE" : staleLive ? "FINISHED" : m.status;
+    const homeScore = live ? live.homeScore : m.homeScore;
+    const awayScore = live ? live.awayScore : m.awayScore;
+    const sport_ = sportFromLeague(m.league);
+    const isBaseball = BASEBALL_LEAGUES.has(m.league);
+    const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
+    const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
+
+    // LIVE 매치는 종목별 라이브 상세 link (있는 종목만), 외엔 글 우선
+    let href: string | null = null;
+    if (effStatus === "LIVE") {
+      if (m.league === "MLB") href = `/live/mlb/${m.externalId}`;
+      else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
+      else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
     }
-  }
-  const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
+    if (!href) {
+      if (recap) href = `/articles/${recap}`;
+      else if (preview) href = `/articles/${preview}`;
+    }
 
-  // 매치별 PREVIEW / RECAP slug 분리 — 둘 다 있으면 row 우측에 각각 칩 노출.
-  function pickArticleSlugs(arts: { slug: string; type: string }[]): {
-    preview?: string;
-    recap?: string;
-  } {
     return {
-      preview: arts.find((a) => a.type === "PREVIEW")?.slug,
-      recap: arts.find((a) => a.type === "RECAP")?.slug,
+      id: m.id,
+      sport: sport_,
+      league: m.league,
+      status: effStatus as "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED",
+      home: {
+        name: toKoreanTeamName(m.homeTeam.name),
+        abbr: m.homeTeam.shortName,
+        logo: m.homeTeam.logoUrl,
+        score: homeScore,
+      },
+      away: {
+        name: toKoreanTeamName(m.awayTeam.name),
+        abbr: m.awayTeam.shortName,
+        logo: m.awayTeam.logoUrl,
+        score: awayScore,
+      },
+      startTime: m.startTime,
+      timeLabel: kstHHmm(m.startTime),
+      liveStatusLabel: live?.statusLabel ?? null,
+      homeStarter: isBaseball ? parseStarter(m.homeStarter) : null,
+      awayStarter: isBaseball ? parseStarter(m.awayStarter) : null,
+      soccerCtx:
+        sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
+      preview,
+      recap,
+      href,
     };
-  }
-
-  // 리그별 그룹화 + 우선순위 정렬
-  const byLeague = new Map<string, typeof matches>();
-  for (const m of matches) {
-    if (!byLeague.has(m.league)) byLeague.set(m.league, []);
-    byLeague.get(m.league)!.push(m);
-  }
-  const groups = [...byLeague.entries()].sort(([a], [b]) => {
-    return (LEAGUE_ORDER[a] ?? 99) - (LEAGUE_ORDER[b] ?? 99);
   });
 
-  const totalCount = matches.length;
-  // Stale LIVE 보정 후 카운트 — row 와 동일한 effStatus 로직
-  function effStatusFor(m: { externalId: string; status: string; startTime: Date }): string {
-    if (liveByExternalId.has(m.externalId)) return "LIVE";
-    if (
-      m.status === "LIVE" &&
-      Date.now() - m.startTime.getTime() > 4 * 3600 * 1000
-    ) return "FINISHED";
-    return m.status;
+  // 상태 그룹화
+  const liveList = normalized.filter((m) => m.status === "LIVE");
+  const scheduledList = normalized.filter((m) => m.status === "SCHEDULED");
+  const finishedList = normalized.filter((m) => m.status === "FINISHED");
+
+  // 라이브 카운트 (종목 탭 dot 표시용)
+  const liveCounts: Partial<Record<SportCode, number>> = {};
+  for (const m of liveList) {
+    const sCode = SPORTS.find((s) => s.leagues.includes(m.league))?.code;
+    if (sCode) liveCounts[sCode] = (liveCounts[sCode] ?? 0) + 1;
+    liveCounts.all = (liveCounts.all ?? 0) + 1;
   }
-  const liveCount = matches.filter((m) => effStatusFor(m) === "LIVE").length;
-  const finishedCount = matches.filter((m) => effStatusFor(m) === "FINISHED").length;
-  const scheduledCount = matches.filter((m) => effStatusFor(m) === "SCHEDULED").length;
+
+  // 빈 상태 → 가까운 가용 일자 lookup (±7일 내)
+  let nextAvailable: { date: string; label: string } | null = null;
+  if (normalized.length === 0) {
+    const rangeStart = new Date(day.getTime() - 7 * 24 * 3600 * 1000);
+    const rangeEnd = new Date(day.getTime() + 7 * 24 * 3600 * 1000);
+    const nearby = await prisma.match.findFirst({
+      where: {
+        league: { in: leagues },
+        startTime: { gte: rangeStart, lt: rangeEnd, not: day },
+      },
+      orderBy: { startTime: "asc" },
+      select: { startTime: true },
+    });
+    if (nearby) {
+      const nd = new Date(nearby.startTime);
+      nextAvailable = {
+        date: dateQuery(new Date(nd.getTime() - (nd.getTime() % (24 * 3600 * 1000)))),
+        label: kstDateLabel(nd),
+      };
+    }
+  }
+
+  const extraQuery = leagueFilter ? `&league=${leagueFilter}` : "";
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4">
       {/* 헤더 */}
-      <header className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-          라이브 스코어
-        </h1>
-        <p className="text-sm text-neutral-500">
-          {kstDateLabel(day)} · 총 {totalCount}경기
-          {liveCount > 0 && (
-            <span className="ml-2 text-rose-600 dark:text-rose-400 font-semibold">
-              ● LIVE {liveCount}
-            </span>
-          )}
-          {finishedCount > 0 && (
-            <span className="ml-2 text-neutral-400">종료 {finishedCount}</span>
-          )}
-          {scheduledCount > 0 && (
-            <span className="ml-2 text-neutral-400">예정 {scheduledCount}</span>
-          )}
-        </p>
+      <header className="flex items-end justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            라이브 스코어
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-500">
+            {kstDateLabel(day)} · 총 {normalized.length}경기
+            {liveList.length > 0 && (
+              <span className="ml-2 text-rose-600 dark:text-rose-400 font-semibold">
+                ● LIVE {liveList.length}
+              </span>
+            )}
+          </p>
+        </div>
+        <LiveRefresher liveCount={liveList.length} />
       </header>
 
-      {/* 라이브 매치 (외부 API 실시간 스코어) */}
-      <ScoresLiveCards sport={sport} />
-
       {/* 종목 탭 */}
-      <nav className="flex gap-1 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 [&::-webkit-scrollbar]:hidden">
-        {SPORTS.map((s) => {
-          const active = s.code === sport;
-          const dateStr = sp.date ?? dateQuery(day);
-          return (
-            <Link
-              key={s.code}
-              href={`/scores?sport=${s.code}&date=${dateStr}`}
-              className={`shrink-0 inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
-                active
-                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-              }`}
-            >
-              <span aria-hidden>{s.emoji}</span>
-              {s.label}
-            </Link>
-          );
-        })}
-      </nav>
+      <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />
 
-      {/* 일자 nav — 어제 ~ +5일 칩 7개 (네이버 스포츠 스타일) */}
-      <nav className="flex gap-1.5 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 [&::-webkit-scrollbar]:hidden">
-        {(() => {
-          const nowKst = new Date(Date.now() + 9 * 3600 * 1000);
-          const todayMidUtc = new Date(
-            Date.UTC(
-              nowKst.getUTCFullYear(),
-              nowKst.getUTCMonth(),
-              nowKst.getUTCDate(),
-              -9,
-            ),
-          );
-          const selectedDs = sp.date ?? dateQuery(day);
-          return Array.from({ length: 7 }, (_, i) => {
-            const offset = i - 1; // -1 (어제) ~ +5
-            const d = new Date(
-              todayMidUtc.getTime() + offset * 24 * 3600 * 1000,
-            );
-            const ds = dateQuery(d);
-            const active = ds === selectedDs;
-            const isToday = offset === 0;
-            const kst = new Date(d.getTime() + 9 * 3600 * 1000);
-            const mm = kst.getUTCMonth() + 1;
-            const dd = kst.getUTCDate();
-            const weekday = d.toLocaleDateString("ko-KR", {
-              timeZone: "Asia/Seoul",
-              weekday: "short",
-            });
-            return (
-              <Link
-                key={ds}
-                href={`/scores?sport=${sport}&date=${ds}`}
-                className={`shrink-0 min-w-[68px] sm:flex-1 inline-flex flex-col items-center px-3 py-2 rounded-lg text-xs whitespace-nowrap transition tabular-nums ${
-                  active
-                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-bold"
-                    : "bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 font-medium"
-                }`}
-              >
-                <span
-                  className={`text-[10px] h-[14px] leading-[14px] ${
-                    isToday
-                      ? active
-                        ? "opacity-80"
-                        : "text-rose-600 dark:text-rose-400 font-bold"
-                      : "opacity-0"
-                  }`}
-                >
-                  {isToday ? "오늘" : "—"}
-                </span>
-                <span className="mt-0.5">
-                  {mm}/{dd} ({weekday})
-                </span>
-              </Link>
-            );
-          });
-        })()}
-      </nav>
+      {/* 일자 슬라이더 */}
+      <DateSlider selectedDate={dateStr} sport={sport} extraQuery={extraQuery} />
 
-      {/* 리그 그룹 list */}
-      {groups.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-10 text-center text-neutral-500 text-sm">
-          이 날짜 / 종목 조합엔 매치가 없습니다.
-        </div>
+      {/* 리그 필터 (해당 종목 리그가 2개 이상일 때만) */}
+      {leaguesAll.length > 1 && (
+        <LeagueChips
+          leagues={leaguesAll}
+          activeLeague={leagueFilter}
+          sport={sport}
+          date={dateStr}
+        />
+      )}
+
+      {/* 매치 list — 상태별 그룹 */}
+      {normalized.length === 0 ? (
+        <EmptyState sport={sport} nextAvailable={nextAvailable} />
       ) : (
-        <div className="space-y-5">
-          {groups.map(([league, list]) => (
-            <section key={league}>
-              <div className="flex items-center justify-between mb-2">
-                <Link
-                  href={`/leagues/${league}`}
-                  className="inline-flex items-center gap-2 hover:opacity-80 transition"
-                >
-                  <LeagueBadge league={league} size="md" />
-                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">
-                    {LEAGUE_DISPLAY[league] ?? league}
-                  </span>
-                </Link>
-                <span className="text-[11px] text-neutral-400 tabular-nums">
-                  {list.length}경기
-                </span>
-              </div>
-              {/* sport === "baseball" 일 때만 박스 그리드 / 그 외는 기존 리스트 */}
-              <ul
-                className={
-                  sport === "baseball"
-                    ? "grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3"
-                    : "divide-y divide-neutral-100 dark:divide-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-950"
-                }
-              >
-                {list.map((m) => {
-                  const slugs = pickArticleSlugs(m.articles);
-                  const isBaseball = BASEBALL_LEAGUES.has(m.league);
-                  // 외부 라이브 데이터로 status/score override (DB cron 사이클 보강)
-                  // matchLive 가 externalId 우선, 안 되면 league+시작시간+이름 fallback
-                  const live = matchLive(m);
-                  // Stale LIVE 보정: DB 가 LIVE 인데 외부 API 가 라이브로 안 잡고,
-                  // 매치 시작 후 4시간이 지났으면 사실상 종료로 본다.
-                  // (collect cron 사이클 간 시간에 stale 상태가 남는 케이스)
-                  const elapsedMs = Date.now() - m.startTime.getTime();
-                  const staleLive =
-                    !live &&
-                    m.status === "LIVE" &&
-                    elapsedMs > 4 * 3600 * 1000;
-                  const effStatus = live
-                    ? "LIVE"
-                    : staleLive
-                      ? "FINISHED"
-                      : m.status;
-                  const effHomeScore = live ? live.homeScore : m.homeScore;
-                  const effAwayScore = live ? live.awayScore : m.awayScore;
-                  // 라이브 상세 페이지 link (MLB/KBO/NPB) — externalId 로 deep-link
-                  const liveDetailHref =
-                    effStatus === "LIVE"
-                      ? m.league === "MLB"
-                        ? `/live/mlb/${m.externalId}`
-                        : m.league === "KBO"
-                          ? `/live/kbo/${m.externalId}`
-                          : m.league === "NPB"
-                            ? `/live/npb/${m.externalId}`
-                            : null
-                      : null;
-                  const cardProps = {
-                    homeName: toKoreanTeamName(m.homeTeam.name),
-                    awayName: toKoreanTeamName(m.awayTeam.name),
-                    homeShortName: m.homeTeam.shortName ?? null,
-                    awayShortName: m.awayTeam.shortName ?? null,
-                    homeLogo: m.homeTeam.logoUrl,
-                    awayLogo: m.awayTeam.logoUrl,
-                    homeScore: effHomeScore,
-                    awayScore: effAwayScore,
-                    status: effStatus,
-                    timeLabel: kstHHmm(m.startTime),
-                    liveStatusLabel: live?.statusLabel ?? null,
-                    league: m.league,
-                    previewSlug: slugs.preview,
-                    recapSlug: slugs.recap,
-                    liveDetailHref,
-                    homeStarter: isBaseball ? parseStarter(m.homeStarter) : null,
-                    awayStarter: isBaseball ? parseStarter(m.awayStarter) : null,
-                  };
-                  return sport === "baseball" ? (
-                    <BaseballMatchCard key={m.id} {...cardProps} />
-                  ) : (
-                    <MatchRow key={m.id} {...cardProps} />
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
+        <div className="space-y-6">
+          {liveList.length > 0 && (
+            <Section title="🔴 진행 중" count={liveList.length}>
+              {liveList.map((m) => renderCard(m))}
+            </Section>
+          )}
+          {scheduledList.length > 0 && (
+            <Section title="⏳ 예정" count={scheduledList.length}>
+              {scheduledList.map((m) => renderCard(m))}
+            </Section>
+          )}
+          {finishedList.length > 0 && (
+            <Section title="✅ 종료" count={finishedList.length}>
+              {finishedList.map((m) => renderCard(m))}
+            </Section>
+          )}
         </div>
       )}
 
       <p className="text-[11px] text-neutral-500 leading-relaxed pt-2">
-        ⓘ 라이브 스코어는 30초 자동 갱신. 종료·예정 매치는 우리 매치 DB 의 일자별 일정.
+        ⓘ 라이브 매치는 30초 간격으로 자동 갱신. 베이스 상황·볼카운트 등 KBO/NPB 상세는 외부 라이브 데이터 미제공으로 표시되지 않습니다.
       </p>
     </div>
   );
 }
 
-function TeamLogo({ url, name }: { url: string | null; name: string }) {
-  if (url) {
-    // Liquipedia (LCK 로고) 는 hotlink Referer 검사로 외부 사이트에서 직접
-    // 가져오지 못함 → Next.js image optimizer 통해 서버가 fetch 후 재제공.
-    // 다른 리그 CDN (ESPN/api-sports/football-data) 은 hotlink 허용해서
-    // plain <img> 로 직접 → image optimizer 비용/한도 안 씀.
-    if (url.includes("liquipedia.net")) {
-      return (
-        <Image
-          src={url}
-          alt=""
-          width={28}
-          height={28}
-          className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0"
-          unoptimized={false}
-        />
-      );
-    }
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={url}
-        alt=""
-        className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0"
-        loading="lazy"
-      />
-    );
-  }
+function Section({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count: number;
+  children: React.ReactNode;
+}) {
   return (
-    <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-neutral-200 dark:bg-neutral-800 text-[10px] font-bold text-neutral-500 shrink-0">
-      {name.slice(0, 1)}
-    </span>
+    <section>
+      <div className="flex items-center justify-between mb-2.5 px-1">
+        <h2 className="text-sm font-bold tracking-tight">{title}</h2>
+        <span className="text-[11px] text-neutral-400 tabular-nums">
+          {count}경기
+        </span>
+      </div>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</ul>
+    </section>
   );
 }
 
-function MatchRow({
-  homeName,
-  awayName,
-  homeShortName,
-  awayShortName,
-  homeLogo,
-  awayLogo,
-  homeScore,
-  awayScore,
-  status,
-  timeLabel,
-  liveStatusLabel,
-  league,
-  previewSlug,
-  recapSlug,
-  liveDetailHref,
-  homeStarter,
-  awayStarter,
-}: {
-  homeName: string;
-  awayName: string;
-  homeShortName?: string | null;
-  awayShortName?: string | null;
-  homeLogo: string | null;
-  awayLogo: string | null;
-  homeScore: number | null;
-  awayScore: number | null;
-  status: string;
-  timeLabel: string;
-  liveStatusLabel?: string | null;
+function renderCard(m: {
+  id: string | number;
+  sport: string;
   league: string;
-  previewSlug?: string;
-  recapSlug?: string;
-  liveDetailHref?: string | null;
-  homeStarter?: string | null;
-  awayStarter?: string | null;
+  status: "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED";
+  home: { name: string; abbr?: string | null; logo?: string | null; score: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score: number | null };
+  timeLabel: string;
+  liveStatusLabel: string | null;
+  homeStarter: string | null;
+  awayStarter: string | null;
+  soccerCtx: SoccerContext | null;
+  preview?: string;
+  recap?: string;
+  href: string | null;
 }) {
-  // 모바일에선 shortName (예: 'NS', '두산', 'T1'), 데스크탑은 풀네임.
-  // shortName 없으면 풀네임 fallback.
-  const homeMobile = homeShortName || homeName;
-  const awayMobile = awayShortName || awayName;
-  const hasArticle = !!(previewSlug || recapSlug);
-  const isLive = status === "LIVE";
-  const isFinished = status === "FINISHED";
-  const statusBadge = isLive ? (
-    <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 whitespace-nowrap"
-      title={liveStatusLabel ?? "LIVE"}
-    >
-      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
-      <span>LIVE</span>
-      {liveStatusLabel && (
-        <span className="font-semibold opacity-90 tabular-nums">
-          · {liveStatusLabel}
-        </span>
-      )}
-    </span>
-  ) : isFinished ? (
-    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-      종료
-    </span>
-  ) : (
-    <span className="text-[11px] font-medium text-neutral-400 tabular-nums">
-      {timeLabel}
-    </span>
-  );
+  const statusKey: "scheduled" | "live" | "finished" | "postponed" =
+    m.status === "LIVE"
+      ? "live"
+      : m.status === "FINISHED"
+        ? "finished"
+        : m.status === "POSTPONED"
+          ? "postponed"
+          : "scheduled";
 
-  return (
-    <li className="group relative hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition px-2 sm:px-4 py-3 grid grid-cols-[4.5rem_1fr_4rem] sm:grid-cols-[6.5rem_1fr_6rem] gap-1.5 sm:gap-3 items-center text-sm">
-      <div className="flex items-center justify-center">
-        {statusBadge}
-      </div>
-      <div className="min-w-0 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-3 items-center">
-        {/* 원정팀 */}
-        <div className="min-w-0 flex items-center gap-1.5 sm:gap-2.5 justify-end">
-          <div className="min-w-0 text-right">
-            <div className="truncate font-medium">
-              <span className="sm:hidden">{awayMobile}</span>
-              <span className="hidden sm:inline">{awayName}</span>
-            </div>
-            {awayStarter && (
-              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-                선발 {awayStarter}
-              </div>
-            )}
-          </div>
-          <TeamLogo url={awayLogo} name={awayName} />
-        </div>
-        {/* 스코어 — LIVE 매치는 점수 클릭 시 라이브 상세 페이지로 이동 */}
-        {liveDetailHref ? (
+  const actions =
+    m.preview || m.recap ? (
+      <>
+        {m.preview && (
           <Link
-            href={liveDetailHref}
+            href={`/articles/${m.preview}`}
             prefetch={false}
-            aria-label="라이브 상세로 이동"
-            className="text-center font-black tabular-nums tracking-tight min-w-[3rem] inline-flex items-center justify-center gap-1 text-rose-600 dark:text-rose-400 hover:underline underline-offset-2 decoration-2"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-            {awayScore} - {homeScore}
-          </Link>
-        ) : (
-          <div className="text-center font-black tabular-nums tracking-tight min-w-[3rem]">
-            {homeScore != null && awayScore != null ? (
-              <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
-                {awayScore} - {homeScore}
-              </span>
-            ) : (
-              <span className="text-neutral-300 dark:text-neutral-600">vs</span>
-            )}
-          </div>
-        )}
-        {/* 홈팀 */}
-        <div className="min-w-0 flex items-center gap-1.5 sm:gap-2.5">
-          <TeamLogo url={homeLogo} name={homeName} />
-          <div className="min-w-0">
-            <div className="truncate font-medium">
-              <span className="sm:hidden">{homeMobile}</span>
-              <span className="hidden sm:inline">{homeName}</span>
-            </div>
-            {homeStarter && (
-              <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-                선발 {homeStarter}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      {/* 글 칩 — PREVIEW / RECAP (있는 것만). 라이브 상세는 위 스코어 클릭. */}
-      <div className="flex items-center justify-end gap-1 sm:gap-1.5">
-        {previewSlug ? (
-          <Link
-            href={`/articles/${previewSlug}`}
-            prefetch={false}
-            className="px-1.5 sm:px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition whitespace-nowrap"
+            className="px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition"
           >
             프리뷰
           </Link>
-        ) : null}
-        {recapSlug ? (
+        )}
+        {m.recap && (
           <Link
-            href={`/articles/${recapSlug}`}
+            href={`/articles/${m.recap}`}
             prefetch={false}
-            className="px-1.5 sm:px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition whitespace-nowrap"
+            className="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition"
           >
             리뷰
           </Link>
-        ) : null}
-        {!previewSlug && !recapSlug ? (
-          <Link
-            href={`/leagues/${league}`}
-            prefetch={false}
-            className="hidden sm:inline-block text-[10px] text-neutral-300 dark:text-neutral-700"
-            title="아직 글 없음"
-          >
-            —
-          </Link>
-        ) : null}
-      </div>
-      {/* 데스크탑 호버 popover */}
-      <div className="hidden sm:block pointer-events-none absolute z-20 left-1/2 -translate-x-1/2 top-full mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-lg px-3 py-2 text-xs whitespace-nowrap">
-          <div className="font-semibold text-neutral-900 dark:text-white">
-            {awayName} <span className="text-neutral-400">vs</span> {homeName}
-          </div>
-          <div className="mt-0.5 text-neutral-500">
-            {isLive
-              ? "● 진행 중"
-              : isFinished
-                ? `종료 · ${awayScore ?? 0} - ${homeScore ?? 0}`
-                : `예정 · KST ${timeLabel}`}
-            {hasArticle && (
-              <span className="ml-2 text-blue-600 dark:text-blue-400">
-                · {previewSlug && recapSlug ? "프리뷰 + 리뷰" : previewSlug ? "프리뷰" : "리뷰"} 있음
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </li>
-  );
-}
-
-/** 야구 카테고리용 박스 카드 — baseballpredict 스타일 좌우 대칭 레이아웃. */
-function BaseballMatchCard({
-  homeName,
-  awayName,
-  homeLogo,
-  awayLogo,
-  homeScore,
-  awayScore,
-  status,
-  timeLabel,
-  liveStatusLabel,
-  league,
-  previewSlug,
-  recapSlug,
-  liveDetailHref,
-  homeStarter,
-  awayStarter,
-}: {
-  homeName: string;
-  awayName: string;
-  homeShortName?: string | null;
-  awayShortName?: string | null;
-  homeLogo: string | null;
-  awayLogo: string | null;
-  homeScore: number | null;
-  awayScore: number | null;
-  status: string;
-  timeLabel: string;
-  liveStatusLabel?: string | null;
-  league: string;
-  previewSlug?: string;
-  recapSlug?: string;
-  liveDetailHref?: string | null;
-  homeStarter?: string | null;
-  awayStarter?: string | null;
-}) {
-  const isLive = status === "LIVE";
-  const isFinished = status === "FINISHED";
-  const isScheduled = !isLive && !isFinished;
-
-  const scoreNode =
-    homeScore != null && awayScore != null ? (
-      <>
-        <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
-          {awayScore}
-        </span>
-        <span className="mx-1 sm:mx-2 text-neutral-300 dark:text-neutral-700">
-          :
-        </span>
-        <span className={isLive ? "text-rose-600 dark:text-rose-400" : ""}>
-          {homeScore}
-        </span>
+        )}
       </>
-    ) : (
-      <span className="text-neutral-300 dark:text-neutral-600 text-2xl sm:text-3xl">
-        VS
-      </span>
-    );
+    ) : null;
 
-  const cardClass = `relative rounded-2xl border bg-white dark:bg-neutral-950 transition ${
-    isLive
-      ? "border-rose-200 dark:border-rose-500/30 shadow-sm hover:shadow-md"
-      : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700"
-  }`;
-
-  // LIVE 매치는 박스 자체가 라이브 상세 link, 그 외엔 정적 div
-  const inner = (
-    <>
-      {/* 헤더: 시간/상태 */}
-      <div className="flex items-center justify-between px-4 pt-3">
-        {isLive ? (
-          <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-            LIVE
-            {liveStatusLabel && (
-              <span className="font-semibold opacity-90 tabular-nums">
-                · {liveStatusLabel}
-              </span>
-            )}
-          </span>
-        ) : isFinished ? (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-            종료
-          </span>
-        ) : (
-          <span className="text-[11px] font-semibold text-neutral-500 tabular-nums">
-            {timeLabel}
-          </span>
-        )}
-        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-          {league}
-        </span>
-      </div>
-
-      {/* 본문: 좌-원정 / 중앙-점수 / 우-홈 */}
-      <div className="px-4 py-3 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
-        {/* 원정팀 */}
-        <div className="min-w-0 text-center">
-          <TeamLogo url={awayLogo} name={awayName} />
-          <div className="mt-1.5 truncate text-xs sm:text-sm font-bold">
-            {awayName}
-          </div>
-          {awayStarter && (
-            <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-              {awayStarter}
-            </div>
-          )}
-        </div>
-        {/* 점수 — LIVE 매치는 라이브 상세로 이동 */}
-        {liveDetailHref ? (
-          <Link
-            href={liveDetailHref}
-            prefetch={false}
-            aria-label="라이브 상세로 이동"
-            className="text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] inline-flex items-center justify-center hover:underline underline-offset-4 decoration-2"
-          >
-            {scoreNode}
-          </Link>
-        ) : (
-          <div className="text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem]">
-            {scoreNode}
-          </div>
-        )}
-        {/* 홈팀 */}
-        <div className="min-w-0 text-center">
-          <TeamLogo url={homeLogo} name={homeName} />
-          <div className="mt-1.5 truncate text-xs sm:text-sm font-bold">
-            {homeName}
-          </div>
-          {homeStarter && (
-            <div className="truncate text-[10px] text-neutral-500 mt-0.5">
-              {homeStarter}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 푸터: 프리뷰/리뷰 */}
-      {(previewSlug || recapSlug) && (
-        <div className="flex items-center justify-end gap-1.5 px-4 pb-3">
-          {previewSlug && (
-            <Link
-              href={`/articles/${previewSlug}`}
-              prefetch={false}
-              className="px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition"
-            >
-              프리뷰
-            </Link>
-          )}
-          {recapSlug && (
-            <Link
-              href={`/articles/${recapSlug}`}
-              prefetch={false}
-              className="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition"
-            >
-              리뷰
-            </Link>
-          )}
-        </div>
-      )}
-      {isScheduled && (
-        <div className="px-4 pb-3 text-center text-[10px] text-neutral-400">
-          KST {timeLabel} 시작
-        </div>
-      )}
-    </>
+  return (
+    <MatchCard
+      key={String(m.id)}
+      sport={m.sport}
+      status={statusKey}
+      league={m.league}
+      leagueLabel={LEAGUE_DISPLAY[m.league] ?? m.league}
+      home={m.home}
+      away={m.away}
+      timeLabel={m.timeLabel}
+      liveStatusLabel={m.liveStatusLabel}
+      baseballCtx={null}
+      soccerCtx={m.soccerCtx}
+      esportsCtx={null}
+      homeStarter={m.homeStarter}
+      awayStarter={m.awayStarter}
+      href={m.href}
+      actions={actions}
+    />
   );
-
-  // 점수 영역 자체가 라이브 상세 link. 박스 다른 곳에는 프리뷰/리뷰 칩이 따로.
-  return <li className={cardClass}>{inner}</li>;
 }
+
+// LEAGUE_ORDER import 유지 (LEAGUE_DISPLAY 와 함께 sport-leagues 에서 export됨)
+void LEAGUE_ORDER;

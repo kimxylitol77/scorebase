@@ -128,3 +128,247 @@ body {
 .site-footer__bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
+
+/* ============================================================
+ * /scores 매치 카드 (named.com 스타일, dark 톤 + cyan 액센트)
+ * ==========================================================*/
+:root {
+  --score-bg-card: #ffffff;
+  --score-bg-card-hover: #f8fafc;
+  --score-border: rgba(0, 0, 0, 0.08);
+  --score-border-hover: rgba(0, 212, 255, 0.5);
+  --score-text-muted: #6b6b6b;
+}
+.dark {
+  --score-bg-card: #141414;
+  --score-bg-card-hover: #1c1c1c;
+  --score-border: rgba(255, 255, 255, 0.08);
+  --score-border-hover: rgba(0, 212, 255, 0.45);
+  --score-text-muted: #a3a3a3;
+}
+
+.match-card {
+  background: var(--score-bg-card);
+  border: 1px solid var(--score-border);
+  border-radius: 12px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s,
+    box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.match-card:hover {
+  background: var(--score-bg-card-hover);
+  border-color: var(--score-border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.08);
+}
+.match-card.live {
+  border-left: 3px solid #ef4444;
+}
+.match-card.live::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.04) 0%,
+    transparent 30%
+  );
+  pointer-events: none;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.status-badge.live {
+  background: #ef4444;
+  color: white;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+.status-badge.scheduled {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+.dark .status-badge.scheduled {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+}
+.status-badge.finished {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--score-text-muted);
+}
+.dark .status-badge.finished {
+  background: rgba(255, 255, 255, 0.06);
+}
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* 베이스 다이아몬드 — BaseballMiniBoard */
+.baseball-diamond {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+.baseball-diamond .base {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--score-border);
+  border: 1.5px solid var(--score-text-muted);
+  transform: rotate(45deg);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.baseball-diamond .base.occupied {
+  background: #00d4ff;
+  border-color: #00d4ff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.55);
+}
+.baseball-diamond .base.b1 {
+  right: 4px;
+  top: 50%;
+  margin-top: -6px;
+}
+.baseball-diamond .base.b2 {
+  left: 50%;
+  top: 4px;
+  margin-left: -6px;
+}
+.baseball-diamond .base.b3 {
+  left: 4px;
+  top: 50%;
+  margin-top: -6px;
+}
+.baseball-diamond .base.home {
+  left: 50%;
+  bottom: 4px;
+  margin-left: -6px;
+  opacity: 0.55;
+}
+
+/* 카드 클릭 시 cursor — 전체 link 인 카드 */
+.match-card a.card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 스켈레톤 */
+.skeleton-card {
+  background: linear-gradient(
+    90deg,
+    var(--score-bg-card) 0%,
+    var(--score-bg-card-hover) 50%,
+    var(--score-bg-card) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border: 1px solid var(--score-border);
+  border-radius: 12px;
+  height: 132px;
+}
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* DateSlider pill */
+.date-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+  padding: 8px 14px;
+  border-radius: 24px;
+  background: var(--score-bg-card);
+  border: 1px solid var(--score-border);
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.date-pill:hover {
+  border-color: var(--score-border-hover);
+}
+.date-pill.active {
+  background: linear-gradient(135deg, #00d4ff 0%, #3b82f6 100%);
+  color: white;
+  border-color: transparent;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.25);
+}
+.date-pill.today:not(.active) {
+  border-color: rgba(0, 212, 255, 0.5);
+  color: #00d4ff;
+}
+
+/* SportTabs pill */
+.sport-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--score-bg-card);
+  border: 1px solid var(--score-border);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sport-tab:hover {
+  border-color: var(--score-border-hover);
+}
+.sport-tab.active {
+  background: #0a0a0a;
+  color: white;
+  border-color: #0a0a0a;
+  font-weight: 700;
+}
+.dark .sport-tab.active {
+  background: white;
+  color: #0a0a0a;
+  border-color: white;
+}
+
+/* 리그 필터 칩 */
+.league-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--score-border);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.league-chip:hover {
+  border-color: var(--score-border-hover);
+}
+.league-chip.active {
+  border-color: #00d4ff;
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.08);
+}
