@@ -573,7 +573,8 @@ export default async function LeaguePredictions({ params }: Props) {
               title="다가오는 경기 — 승률 추정"
               subtitle={`다음 ${horizonDays}일 SCHEDULED 매치`}
             />
-            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+            {/* 데스크탑: 테이블 */}
+            <div className="hidden sm:block rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
                   <tr>
@@ -591,7 +592,7 @@ export default async function LeaguePredictions({ params }: Props) {
                     const wp = calcWinProbability(homeElo, awayElo, upper);
                     return (
                       <tr key={m.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
-                        <td className="px-4 py-2.5 text-xs text-neutral-500 tabular-nums">
+                        <td className="px-4 py-2.5 text-xs text-neutral-500 tabular-nums whitespace-nowrap">
                           {m.startTime.toLocaleString("ko-KR", {
                             month: "2-digit",
                             day: "2-digit",
@@ -631,6 +632,49 @@ export default async function LeaguePredictions({ params }: Props) {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* 모바일: 카드 layout */}
+            <div className="sm:hidden rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800 overflow-hidden">
+              {upcoming.map((m) => {
+                const homeElo = getElo(elo, m.homeTeamId);
+                const awayElo = getElo(elo, m.awayTeamId);
+                const wp = calcWinProbability(homeElo, awayElo, upper);
+                const kst = new Date(m.startTime.getTime() + 9 * 3600 * 1000);
+                const dateLabel = `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
+                const timeLabel = `${String(kst.getUTCHours()).padStart(2, "0")}:${String(kst.getUTCMinutes()).padStart(2, "0")}`;
+                return (
+                  <div key={m.id} className="px-3 py-3 space-y-2">
+                    <div className="text-[11px] text-neutral-500 tabular-nums whitespace-nowrap">
+                      {dateLabel} · {timeLabel}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="flex items-center gap-1.5 min-w-0 flex-1 justify-end font-medium">
+                        <span className="truncate">
+                          {toKoreanTeamName(m.homeTeam.name)}
+                        </span>
+                        <PredTeamLogo
+                          src={m.homeTeam.logoUrl}
+                          name={m.homeTeam.name}
+                        />
+                      </span>
+                      <span className="text-[10px] text-neutral-400 shrink-0">
+                        vs
+                      </span>
+                      <span className="flex items-center gap-1.5 min-w-0 flex-1 font-medium">
+                        <PredTeamLogo
+                          src={m.awayTeam.logoUrl}
+                          name={m.awayTeam.name}
+                        />
+                        <span className="truncate">
+                          {toKoreanTeamName(m.awayTeam.name)}
+                        </span>
+                      </span>
+                    </div>
+                    <ProbBar wp={wp} hideDraw={!info.showDraw} />
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
