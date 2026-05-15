@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
+import SoccerGoals from "./scores/SoccerGoals";
 
 interface PeriodLinescore {
   homePeriods: (number | null)[];
@@ -46,6 +47,8 @@ interface Props {
   /** SSR 단에서 본 초기 점수 (라이브 데이터 도착 전 placeholder) */
   initialHomeScore?: number | null;
   initialAwayScore?: number | null;
+  /** DB Match.status — 라이브 API 가 매치 못 찾을 때 fallback (종료된 매치 등) */
+  initialStatus?: "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED";
 }
 
 const POLL_LIVE_MS = 20_000;
@@ -62,6 +65,7 @@ export default function SportLiveDetail({
   awayLogoUrl,
   initialHomeScore,
   initialAwayScore,
+  initialStatus,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -123,18 +127,23 @@ export default function SportLiveDetail({
     };
   }, [gameId, league]);
 
-  // SSR placeholder — 첫 fetch 도착 전엔 DB 점수만 표시
+  // SSR placeholder — 첫 fetch 도착 전엔 DB 점수/상태만 표시
   const isLive = live?.status === "LIVE";
-  const isFinal = live?.status === "FINAL";
+  const isFinal =
+    live?.status === "FINAL" ||
+    // 라이브 API 에 매치 없고 DB 가 FINISHED 면 종료된 경기로 간주
+    (loaded && live?.status !== "LIVE" && initialStatus === "FINISHED");
   const homeScore = live?.homeScore ?? initialHomeScore ?? null;
   const awayScore = live?.awayScore ?? initialAwayScore ?? null;
   const statusBadge = !loaded
-    ? "LOADING"
+    ? initialStatus === "FINISHED" ? "종료" : "LOADING"
     : isLive
       ? `LIVE${live?.statusLabel ? ` · ${live.statusLabel}` : ""}`
       : isFinal
         ? "종료"
-        : (live?.statusLabel || "예정");
+        : initialStatus === "POSTPONED"
+          ? "연기"
+          : (live?.statusLabel || "예정");
 
   return (
     <div className="space-y-4">
@@ -188,13 +197,16 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 축구 — 골 이벤트 */}
+      {/* 축구 — 골 (라이브스코어 카드와 동일한 2-컬럼 away/home 레이아웃) */}
       {live?.soccerGoals && live.soccerGoals.length > 0 && (
-        <GoalEvents
-          goals={live.soccerGoals}
-          homeNameKo={homeNameKo}
-          awayNameKo={awayNameKo}
-        />
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 py-2">
+          <div className="px-3.5 sm:px-4 pt-2 pb-1 flex items-center justify-between text-[10px] font-bold tracking-wider uppercase text-neutral-400">
+            <span className="truncate">{awayNameKo}</span>
+            <span>⚽ 골</span>
+            <span className="truncate text-right">{homeNameKo}</span>
+          </div>
+          <SoccerGoals goals={live.soccerGoals} />
+        </div>
       )}
 
       {/* 데이터 없음 안내 */}
@@ -311,43 +323,3 @@ function PeriodTable({
   );
 }
 
-function GoalEvents({
-  goals,
-  homeNameKo,
-  awayNameKo,
-}: {
-  goals: SoccerGoal[];
-  homeNameKo: string;
-  awayNameKo: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
-      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-3">
-        ⚽ 골 ({goals.length})
-      </div>
-      <ul className="space-y-2 text-sm">
-        {goals.map((g, i) => (
-          <li key={i} className="flex items-center gap-3">
-            <span className="text-xs tabular-nums text-neutral-500 w-12 text-right">
-              {g.minute}
-            </span>
-            <span className="text-xs font-bold w-20 truncate">
-              {g.side === "home" ? homeNameKo : awayNameKo}
-            </span>
-            <span className="font-medium truncate flex-1">{g.player}</span>
-            {g.ownGoal && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                자책
-              </span>
-            )}
-            {g.penaltyKick && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                PK
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}

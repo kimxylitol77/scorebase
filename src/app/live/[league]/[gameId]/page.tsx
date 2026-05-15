@@ -186,6 +186,7 @@ export default async function GenericLivePage({ params }: Props) {
         awayLogoUrl={match.awayTeam.logoUrl ?? null}
         initialHomeScore={match.homeScore}
         initialAwayScore={match.awayScore}
+        initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
       />
 
       {lg === "NHL" && (homeGoalie || awayGoalie) && (
