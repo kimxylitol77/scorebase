@@ -249,6 +249,148 @@ export async function fetchPitcherRecent(
     .slice(0, limit);
 }
 
+/* ============================================================
+ * 타자 — 시즌 stats + 최근 game log (Player Page 용)
+ * ==========================================================*/
+
+export interface HitterProfile {
+  pid: number;
+  name: string;
+  bats?: string; // L | R | S
+  throws?: string;
+  age?: number;
+  birthCity?: string;
+  birthCountry?: string;
+  team?: string;
+  position?: string; // OF, 1B, 2B, ...
+  /** 시즌 누적 타격 통계 */
+  season?: {
+    games?: number;
+    avg?: string;
+    hr?: number;
+    rbi?: number;
+    sb?: number;
+    obp?: string;
+    slg?: string;
+    ops?: string;
+    hits?: number;
+    runs?: number;
+    doubles?: number;
+    triples?: number;
+    so?: number;
+    bb?: number;
+    pa?: number;
+    ab?: number;
+  };
+}
+
+export interface HitterRecentGame {
+  date: string;
+  isHome: boolean;
+  opponent: string;
+  ab: number;
+  h: number;
+  hr: number;
+  rbi: number;
+  r: number;
+  so: number;
+  bb: number;
+  sb: number;
+  avg: string;
+}
+
+export async function fetchHitterProfile(
+  personId: number,
+  season: number,
+): Promise<HitterProfile | null> {
+  const { data } = await client.get(`/people/${personId}`, {
+    params: {
+      hydrate: `stats(group=hitting,type=season,season=${season}),currentTeam`,
+    },
+  });
+  const p = data?.people?.[0];
+  if (!p) return null;
+  const profile: HitterProfile = {
+    pid: personId,
+    name: p.fullName,
+    bats: p.batSide?.code,
+    throws: p.pitchHand?.code,
+    age: p.currentAge,
+    birthCity: p.birthCity,
+    birthCountry: p.birthCountry,
+    team: p.currentTeam?.name,
+    position: p.primaryPosition?.abbreviation,
+  };
+  for (const grp of p.stats ?? []) {
+    if (grp?.group?.displayName === "hitting") {
+      const split = grp.splits?.[0];
+      const s = split?.stat ?? {};
+      profile.season = {
+        games: s.gamesPlayed,
+        avg: s.avg,
+        hr: s.homeRuns,
+        rbi: s.rbi,
+        sb: s.stolenBases,
+        obp: s.obp,
+        slg: s.slg,
+        ops: s.ops,
+        hits: s.hits,
+        runs: s.runs,
+        doubles: s.doubles,
+        triples: s.triples,
+        so: s.strikeOuts,
+        bb: s.baseOnBalls,
+        pa: s.plateAppearances,
+        ab: s.atBats,
+      };
+      break;
+    }
+  }
+  return profile;
+}
+
+export async function fetchHitterRecent(
+  personId: number,
+  season: number,
+  limit = 10,
+): Promise<HitterRecentGame[]> {
+  const { data } = await client.get(`/people/${personId}`, {
+    params: { hydrate: `stats(group=hitting,type=gameLog,season=${season})` },
+  });
+  const p = data?.people?.[0];
+  if (!p) return [];
+  const out: HitterRecentGame[] = [];
+  for (const grp of p.stats ?? []) {
+    if (grp?.group?.displayName === "hitting") {
+      const splits = grp.splits ?? [];
+      for (const sp of splits) {
+        const s = sp.stat ?? {};
+        out.push({
+          date: sp.date,
+          isHome: !!sp.isHome,
+          opponent: sp.opponent?.name ?? "?",
+          ab: s.atBats ?? 0,
+          h: s.hits ?? 0,
+          hr: s.homeRuns ?? 0,
+          rbi: s.rbi ?? 0,
+          r: s.runs ?? 0,
+          so: s.strikeOuts ?? 0,
+          bb: s.baseOnBalls ?? 0,
+          sb: s.stolenBases ?? 0,
+          avg: s.avg ?? "—",
+        });
+      }
+      break;
+    }
+  }
+  return out.sort((a, b) => b.date.localeCompare(a.date)).slice(0, limit);
+}
+
+/** MLB Stats API person id → 헤드샷 URL. */
+export function mlbHeadshotUrl(pid: number): string {
+  return `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${pid}/headshot/67/current`;
+}
+
 /**
  * 한 매치의 선발 투수 정보를 전체 (이름·ID + 시즌 통계) fetch.
  * homeStarter / awayStarter 가 둘 다 미정이면 null.

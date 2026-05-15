@@ -9,7 +9,12 @@ import type { Metadata } from "next";
 import {
   fetchPitcherProfile,
   fetchPitcherRecent,
+  fetchHitterProfile,
+  fetchHitterRecent,
+  mlbHeadshotUrl,
   type PitcherRecentGame,
+  type HitterRecentGame,
+  type HitterProfile,
 } from "@/lib/sports/mlb-stats-api";
 import {
   fetchKboPitcherStats,
@@ -73,10 +78,22 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (league === "KBO") return <KboPlayerView pid={pid} />;
   if (league === "NPB") return <NpbPlayerView pid={pid} />;
 
-  // MLB (default)
+  // MLB (default) — 타자/투수 분기. fetchHitterProfile 한 번으로 person 정보 + position 받음.
   const id = Number(pid);
   if (!Number.isFinite(id)) notFound();
   const season = new Date().getUTCFullYear();
+
+  // primaryPosition 으로 분기
+  const hitterFirst = await fetchHitterProfile(id, season);
+  if (!hitterFirst) notFound();
+  const isPitcher = hitterFirst.position === "P";
+
+  if (!isPitcher) {
+    // === 타자 view ===
+    return renderMlbHitterView(hitterFirst, await fetchHitterRecent(id, season, 10), season);
+  }
+
+  // === 투수 view ===
   const [profile, recent] = await Promise.all([
     fetchPitcherProfile(id, season),
     fetchPitcherRecent(id, season, 10),
@@ -86,6 +103,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const handLabel =
     profile.hand === "L" ? "좌완" : profile.hand === "R" ? "우완" : "스위치";
   const s = profile.season;
+  const photoUrl = mlbHeadshotUrl(id);
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -93,14 +111,26 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         <Link href="/leagues/MLB" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
           ← MLB
         </Link>
-        <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{profile.name}</h1>
-          <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">{handLabel}</span>
-          {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
-        </div>
-        <div className="text-sm text-neutral-500">
-          {profile.team ? `${profile.team} · ` : ""}
-          {profile.birthCity}{profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoUrl}
+            alt={profile.name}
+            width={96}
+            height={96}
+            className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+          />
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{profile.name}</h1>
+              <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">{handLabel}</span>
+              {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {profile.team ? `${profile.team} · ` : ""}
+              {profile.birthCity}{profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
+            </div>
+          </div>
         </div>
       </header>
 
@@ -562,5 +592,135 @@ function NpbRecentGames({ games }: { games: NpbRecentGame[] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+/* ============================================================
+ * MLB 타자 view (외야수·내야수·포수)
+ * ==========================================================*/
+
+function renderMlbHitterView(
+  profile: HitterProfile,
+  recent: HitterRecentGame[],
+  season: number,
+) {
+  const photoUrl = mlbHeadshotUrl(profile.pid);
+  const batsLabel =
+    profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : profile.bats === "S" ? "스위치" : "";
+  const s = profile.season;
+  return (
+    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <header className="space-y-3">
+        <Link href="/leagues/MLB" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+          ← MLB
+        </Link>
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoUrl}
+            alt={profile.name}
+            width={96}
+            height={96}
+            className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+          />
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{profile.name}</h1>
+              {batsLabel && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
+                  {batsLabel}
+                </span>
+              )}
+              {profile.position && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                  {profile.position}
+                </span>
+              )}
+              {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {profile.team ? `${profile.team} · ` : ""}
+              {profile.birthCity}
+              {profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {s ? (
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+            {season} 시즌 누적
+          </h2>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <Stat label="타율" value={s.avg ?? "—"} accent />
+            <Stat label="OPS" value={s.ops ?? "—"} accent />
+            <Stat label="HR" value={s.hr != null ? String(s.hr) : "—"} />
+            <Stat label="RBI" value={s.rbi != null ? String(s.rbi) : "—"} />
+            <Stat label="SB" value={s.sb != null ? String(s.sb) : "—"} />
+            <Stat label="경기" value={s.games != null ? String(s.games) : "—"} />
+            <Stat label="OBP" value={s.obp ?? "—"} />
+            <Stat label="SLG" value={s.slg ?? "—"} />
+            <Stat label="H" value={s.hits != null ? String(s.hits) : "—"} />
+            <Stat label="2B" value={s.doubles != null ? String(s.doubles) : "—"} />
+            <Stat label="BB" value={s.bb != null ? String(s.bb) : "—"} />
+            <Stat label="SO" value={s.so != null ? String(s.so) : "—"} />
+          </div>
+        </section>
+      ) : (
+        <p className="text-sm text-neutral-500">{season} 시즌 타격 통계가 아직 없습니다.</p>
+      )}
+
+      <section>
+        <h2 className="text-lg font-semibold mb-3">최근 경기 ({recent.length})</h2>
+        {recent.length === 0 ? (
+          <p className="text-sm text-neutral-500">{season} 경기 기록이 없습니다.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                <tr>
+                  <th className="text-left px-3 py-2 font-medium">일자</th>
+                  <th className="text-left px-3 py-2 font-medium">상대</th>
+                  <th className="text-right px-2 py-2 font-medium">AB</th>
+                  <th className="text-right px-2 py-2 font-medium">H</th>
+                  <th className="text-right px-2 py-2 font-medium">HR</th>
+                  <th className="text-right px-2 py-2 font-medium">RBI</th>
+                  <th className="text-right px-2 py-2 font-medium">R</th>
+                  <th className="text-right px-2 py-2 font-medium">BB</th>
+                  <th className="text-right px-2 py-2 font-medium">SO</th>
+                  <th className="text-right px-2 py-2 font-medium">SB</th>
+                  <th className="text-right px-3 py-2 font-medium">AVG</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {recent.map((g, i) => (
+                  <tr key={i}>
+                    <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{g.date}</td>
+                    <td className="px-3 py-2 truncate">
+                      {g.isHome ? "vs " : "@ "}
+                      {g.opponent}
+                    </td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.ab}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.h}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.hr}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.rbi}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.r}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.bb}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.so}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.sb}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-semibold">{g.avg}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <p className="text-[11px] text-neutral-500 leading-relaxed">
+        ⓘ 데이터 출처: MLB 공식 Stats API (statsapi.mlb.com). 시즌 누적은 매 경기 후 업데이트됩니다.
+      </p>
+    </article>
   );
 }
