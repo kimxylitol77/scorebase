@@ -166,7 +166,7 @@ function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
-  const sportCode = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "all") as SportCode;
+  const sportCode = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "soccer") as SportCode;
   const sportLabel = SPORTS.find((s) => s.code === sportCode)?.label ?? "전체";
   const day = parseKstDate(sp.date);
   const dateStr = kstDateLabel(day);
@@ -179,7 +179,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function ScoresPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const sport = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "all") as SportCode;
+  const sport = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "soccer") as SportCode;
   const leaguesAll = leaguesForSport(sport);
   const leagueFilter = sp.league && leaguesAll.includes(sp.league) ? sp.league : null;
   const leagues = leagueFilter ? [leagueFilter] : leaguesAll;

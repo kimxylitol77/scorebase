@@ -10,17 +10,14 @@ interface SportMeta {
   leagues: string[]; // 우리 League 코드 (대문자)
 }
 
+// 모든 리그 묶음 — `all` 처리용 (URL 호환성, sportTab 노출 X)
+const ALL_LEAGUES = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "KBO", "NPB", "MLB",
+  "NBA", "NHL", "LOL",
+];
+
 export const SPORTS: SportMeta[] = [
-  {
-    code: "all",
-    label: "전체",
-    emoji: "🌐",
-    leagues: [
-      "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
-      "KBO", "NPB", "MLB",
-      "NBA", "NHL", "LOL",
-    ],
-  },
   {
     code: "soccer",
     label: "축구",
@@ -54,7 +51,8 @@ export const SPORTS: SportMeta[] = [
 ];
 
 export function leaguesForSport(code: SportCode): string[] {
-  return SPORTS.find((s) => s.code === code)?.leagues ?? SPORTS[0].leagues;
+  if (code === "all") return ALL_LEAGUES;
+  return SPORTS.find((s) => s.code === code)?.leagues ?? ALL_LEAGUES;
 }
 
 export const LEAGUE_DISPLAY: Record<string, string> = {
