@@ -238,9 +238,11 @@ function TeamCol({
   const inner = (
     <>
       {logo ? (
+        // Liquipedia 가 scorebase.kr referer 를 hotlink 차단 → Next.js image proxy
+        // 경유로 referer 우회. /scores 와 동일 패턴.
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={logo}
+          src={`/_next/image?url=${encodeURIComponent(logo)}&w=128&q=75`}
           alt=""
           className="w-12 h-12 sm:w-16 sm:h-16 object-contain mx-auto mb-1.5"
           loading="lazy"

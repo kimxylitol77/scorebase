@@ -312,7 +312,20 @@ export default async function ScoresPage({ searchParams }: Props) {
     else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
     else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
     else if (m.league === "LOL") href = `/live/lol/${m.externalId}`;
-    else if (recap) href = `/articles/${recap}`;
+    else if (
+      m.league === "NBA" ||
+      m.league === "NHL" ||
+      m.league === "EPL" ||
+      m.league === "LALIGA" ||
+      m.league === "BUNDESLIGA" ||
+      m.league === "SERIE_A" ||
+      m.league === "LIGUE_1" ||
+      m.league === "MLS" ||
+      m.league === "UCL" ||
+      m.league === "WORLD_CUP"
+    ) {
+      href = `/live/${m.league}/${m.externalId}`;
+    } else if (recap) href = `/articles/${recap}`;
     else if (preview) href = `/articles/${preview}`;
 
     return {
