@@ -558,8 +558,10 @@ async function fetchAllLolStatsForPlayer(
   let cursor: number | undefined;
   for (let i = 0; i < 10; i++) {
     try {
+      // BDL `/lol/v1/player_match_map_stats` 가 player_ids[] 필터를 무시함.
+      // player_id (단수) 만 적용됨 — 단수 사용.
       const url = new URL(`${BDL_LOL}/player_match_map_stats`);
-      url.searchParams.set("player_ids[]", String(playerId));
+      url.searchParams.set("player_id", String(playerId));
       url.searchParams.set("tournament_ids[]", String(LCK_TID));
       url.searchParams.set("dates[]", dateFrom);
       url.searchParams.set("per_page", "100");
