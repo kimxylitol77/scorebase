@@ -490,3 +490,175 @@ export async function fetchNbaPlayerRecentGames(
     return [];
   }
 }
+
+// ===== LCK 선수 페이지 (/players/[id]?league=LOL) =====
+
+const BDL_LOL = "https://api.balldontlie.io/lol/v1";
+const LCK_TID = 324;
+
+export interface LolPlayerStats {
+  playerId: number;
+  nickname: string;
+  team?: string;
+  matches: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  kda: number;
+  csAvg: number;
+  goldAvg: number;
+  damageAvg: number;
+  wardsAvg: number;
+  killsAvg: number;
+  deathsAvg: number;
+  assistsAvg: number;
+  /** 가장 자주 본 role */
+  primaryRole?: string;
+  /** 챔피언 pick 상위 5종 */
+  topChampions: Array<{ name: string; picks: number; wins?: number }>;
+}
+
+export interface LolMatchRow {
+  matchMapId: number;
+  champion: string;
+  role?: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  cs: number;
+  gold: number;
+  damage: number;
+  wards: number;
+}
+
+interface BdlLolStatRow {
+  match_map_id: number;
+  player: { id: number; nickname: string };
+  team?: { id: number; name: string };
+  champion?: { id: number; name: string };
+  role?: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  creep_score: number;
+  gold_earned: number;
+  total_damage_dealt_to_champions: number;
+  wards_placed: number;
+}
+
+/** LCK 시즌 (올해 매치 stats) — pagination. */
+async function fetchAllLolStatsForPlayer(
+  playerId: number,
+  season: number,
+): Promise<BdlLolStatRow[]> {
+  const key = process.env.BALLDONTLIE_KEY;
+  if (!key) return [];
+  const dateFrom = `${season}-01-01`;
+  const all: BdlLolStatRow[] = [];
+  let cursor: number | undefined;
+  for (let i = 0; i < 10; i++) {
+    try {
+      const url = new URL(`${BDL_LOL}/player_match_map_stats`);
+      url.searchParams.set("player_ids[]", String(playerId));
+      url.searchParams.set("tournament_ids[]", String(LCK_TID));
+      url.searchParams.set("dates[]", dateFrom);
+      url.searchParams.set("per_page", "100");
+      if (cursor) url.searchParams.set("cursor", String(cursor));
+      const r = await fetch(url.toString(), {
+        headers: { Authorization: key },
+        cache: "no-store",
+      });
+      if (!r.ok) break;
+      const d = (await r.json()) as {
+        data: BdlLolStatRow[];
+        meta?: { next_cursor?: number };
+      };
+      all.push(...d.data);
+      if (!d.meta?.next_cursor) break;
+      cursor = d.meta.next_cursor;
+    } catch {
+      break;
+    }
+  }
+  return all;
+}
+
+export async function fetchLolPlayerSeason(
+  playerId: number,
+  season: number,
+): Promise<{ stats: LolPlayerStats | null; recent: LolMatchRow[] }> {
+  const rows = await fetchAllLolStatsForPlayer(playerId, season);
+  if (rows.length === 0) return { stats: null, recent: [] };
+  const first = rows[0];
+  // 챔피언 pick 집계
+  const champCount = new Map<string, number>();
+  // role 집계
+  const roleCount = new Map<string, number>();
+  // team 집계
+  const teamCount = new Map<string, number>();
+  let k = 0, d = 0, a = 0, cs = 0, gold = 0, dmg = 0, wards = 0;
+  for (const s of rows) {
+    k += s.kills ?? 0;
+    d += s.deaths ?? 0;
+    a += s.assists ?? 0;
+    cs += s.creep_score ?? 0;
+    gold += s.gold_earned ?? 0;
+    dmg += s.total_damage_dealt_to_champions ?? 0;
+    wards += s.wards_placed ?? 0;
+    if (s.champion?.name) {
+      champCount.set(s.champion.name, (champCount.get(s.champion.name) ?? 0) + 1);
+    }
+    if (s.role) {
+      roleCount.set(s.role, (roleCount.get(s.role) ?? 0) + 1);
+    }
+    if (s.team?.name) {
+      teamCount.set(s.team.name, (teamCount.get(s.team.name) ?? 0) + 1);
+    }
+  }
+  const matches = rows.length;
+  const kda = d === 0 ? k + a : (k + a) / d;
+  const primaryRole = [...roleCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const team = [...teamCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const topChampions = [...champCount.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, picks]) => ({ name, picks }));
+
+  // 최근 5경기 (match_map_id 큰 순)
+  const recentSorted = [...rows].sort((a, b) => b.match_map_id - a.match_map_id).slice(0, 5);
+  const recent: LolMatchRow[] = recentSorted.map((s) => ({
+    matchMapId: s.match_map_id,
+    champion: s.champion?.name ?? "?",
+    role: s.role,
+    kills: s.kills ?? 0,
+    deaths: s.deaths ?? 0,
+    assists: s.assists ?? 0,
+    cs: s.creep_score ?? 0,
+    gold: s.gold_earned ?? 0,
+    damage: s.total_damage_dealt_to_champions ?? 0,
+    wards: s.wards_placed ?? 0,
+  }));
+
+  return {
+    stats: {
+      playerId,
+      nickname: first.player.nickname,
+      team,
+      matches,
+      kills: k,
+      deaths: d,
+      assists: a,
+      kda,
+      csAvg: cs / matches,
+      goldAvg: gold / matches,
+      damageAvg: dmg / matches,
+      wardsAvg: wards / matches,
+      killsAvg: k / matches,
+      deathsAvg: d / matches,
+      assistsAvg: a / matches,
+      primaryRole,
+      topChampions,
+    },
+    recent,
+  };
+}
