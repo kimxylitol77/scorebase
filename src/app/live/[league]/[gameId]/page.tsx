@@ -10,9 +10,9 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
-import TeamFormInsight from "@/components/TeamFormInsight";
-import { calcForm } from "@/lib/predict/form";
-import type { PredictMatch } from "@/lib/predict/types";
+import MatchHeadToHead from "@/components/MatchHeadToHead";
+import MatchArticleLinks from "@/components/MatchArticleLinks";
+import { fetchMatchExtras } from "@/lib/live/match-extras";
 
 const SOCCER_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
@@ -93,51 +93,24 @@ export default async function GenericLivePage({ params }: Props) {
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
+  const homeShort = match.homeTeam.shortName || homeKo;
+  const awayShort = match.awayTeam.shortName || awayKo;
   const label = LEAGUE_LABEL[lg] ?? lg;
 
-  // 최근 5경기 폼 — 같은 리그의 FINISHED 매치만 조회 (지난 60일)
-  const since = new Date(match.startTime.getTime() - 60 * 24 * 3600 * 1000);
-  const recentMatches = await prisma.match.findMany({
-    where: {
-      league: lg,
-      status: "FINISHED",
-      startTime: { gte: since, lt: match.startTime },
-      OR: [
-        { homeTeamId: match.homeTeam.id },
-        { awayTeamId: match.homeTeam.id },
-        { homeTeamId: match.awayTeam.id },
-        { awayTeamId: match.awayTeam.id },
-      ],
-    },
-    select: {
-      id: true,
-      league: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
-      status: true,
-    },
-    orderBy: { startTime: "desc" },
-    take: 60,
-  });
-  const formMatches: PredictMatch[] = recentMatches.map((m) => ({
-    id: m.id,
-    league: m.league,
-    homeTeamId: m.homeTeamId,
-    awayTeamId: m.awayTeamId,
-    homeScore: m.homeScore,
-    awayScore: m.awayScore,
-    startTime: m.startTime,
-    status: m.status as PredictMatch["status"],
-  }));
-  const homeForm = calcForm(formMatches, match.homeTeam.id, match.startTime, 5);
-  const awayForm = calcForm(formMatches, match.awayTeam.id, match.startTime, 5);
+  const extras = await fetchMatchExtras(match);
 
   // NHL 골리 (다른 리그는 null)
   const homeGoalie = lg === "NHL" ? parseGoalie(match.homeGoalie) : null;
   const awayGoalie = lg === "NHL" ? parseGoalie(match.awayGoalie) : null;
+
+  const isSoccer = SOCCER_LEAGUES.has(lg);
+  const scoreLabel = isSoccer
+    ? { for: "평균득점", against: "평균실점" }
+    : lg === "NHL"
+      ? { for: "평균득점", against: "평균실점" }
+      : lg === "NBA"
+        ? { for: "평균득점", against: "평균실점" }
+        : { for: "평균득점", against: "평균실점" };
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -174,6 +147,11 @@ export default async function GenericLivePage({ params }: Props) {
           {label} · 라이브 스코어 · 20초 자동 갱신
         </p>
       </header>
+      <MatchArticleLinks
+        previewSlug={extras.previewSlug}
+        recapSlug={extras.recapSlug}
+        matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+      />
 
       <SportLiveDetail
         gameId={gameId}
@@ -198,14 +176,17 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
-      <TeamFormInsight
-        homeForm={homeForm}
-        awayForm={awayForm}
-        homeTeamName={homeKo}
-        awayTeamName={awayKo}
+      <MatchHeadToHead
+        homeShortName={homeShort}
+        awayShortName={awayShort}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
-        hasDraw={SOCCER_LEAGUES.has(lg)}
+        h2hHome={extras.h2hHome}
+        homeStanding={extras.homeStanding}
+        awayStanding={extras.awayStanding}
+        totalTeams={extras.totalTeams}
+        hasDraw={isSoccer}
+        scoreLabel={scoreLabel}
       />
     </div>
   );

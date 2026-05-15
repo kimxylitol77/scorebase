@@ -7,9 +7,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LolLiveDetail from "@/components/LolLiveDetail";
-import TeamFormInsight from "@/components/TeamFormInsight";
-import { calcForm } from "@/lib/predict/form";
-import type { PredictMatch } from "@/lib/predict/types";
+import MatchHeadToHead from "@/components/MatchHeadToHead";
+import MatchArticleLinks from "@/components/MatchArticleLinks";
+import { fetchMatchExtras } from "@/lib/live/match-extras";
 
 export const dynamic = "force-dynamic";
 
@@ -49,47 +49,11 @@ export default async function LolLivePage({ params }: Props) {
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
+  const homeShort = match.homeTeam.shortName || homeKo;
+  const awayShort = match.awayTeam.shortName || awayKo;
   const date = kstDate(match.startTime);
 
-  // 최근 5경기 폼 (LCK 시즌 매치 — 60일)
-  const since = new Date(match.startTime.getTime() - 60 * 24 * 3600 * 1000);
-  const recentMatches = await prisma.match.findMany({
-    where: {
-      league: "LOL",
-      status: "FINISHED",
-      startTime: { gte: since, lt: match.startTime },
-      OR: [
-        { homeTeamId: match.homeTeam.id },
-        { awayTeamId: match.homeTeam.id },
-        { homeTeamId: match.awayTeam.id },
-        { awayTeamId: match.awayTeam.id },
-      ],
-    },
-    select: {
-      id: true,
-      league: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
-      status: true,
-    },
-    orderBy: { startTime: "desc" },
-    take: 60,
-  });
-  const formMatches: PredictMatch[] = recentMatches.map((m) => ({
-    id: m.id,
-    league: m.league,
-    homeTeamId: m.homeTeamId,
-    awayTeamId: m.awayTeamId,
-    homeScore: m.homeScore,
-    awayScore: m.awayScore,
-    startTime: m.startTime,
-    status: m.status as PredictMatch["status"],
-  }));
-  const homeForm = calcForm(formMatches, match.homeTeam.id, match.startTime, 5);
-  const awayForm = calcForm(formMatches, match.awayTeam.id, match.startTime, 5);
+  const extras = await fetchMatchExtras(match);
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -126,6 +90,11 @@ export default async function LolLivePage({ params }: Props) {
           LCK · 시리즈 점수 자동 갱신
         </p>
       </header>
+      <MatchArticleLinks
+        previewSlug={extras.previewSlug}
+        recapSlug={extras.recapSlug}
+        matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+      />
       <LolLiveDetail
         matchId={Number(matchId)}
         date={date}
@@ -136,13 +105,16 @@ export default async function LolLivePage({ params }: Props) {
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
       />
-      <TeamFormInsight
-        homeForm={homeForm}
-        awayForm={awayForm}
-        homeTeamName={homeKo}
-        awayTeamName={awayKo}
+      <MatchHeadToHead
+        homeShortName={homeShort}
+        awayShortName={awayShort}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
+        h2hHome={extras.h2hHome}
+        homeStanding={extras.homeStanding}
+        awayStanding={extras.awayStanding}
+        totalTeams={extras.totalTeams}
+        scoreLabel={{ for: "평균 게임 승", against: "평균 게임 패" }}
       />
     </div>
   );

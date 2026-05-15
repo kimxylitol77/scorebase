@@ -11,9 +11,9 @@ import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
-import TeamFormInsight from "@/components/TeamFormInsight";
-import { calcForm } from "@/lib/predict/form";
-import type { PredictMatch } from "@/lib/predict/types";
+import MatchHeadToHead from "@/components/MatchHeadToHead";
+import MatchArticleLinks from "@/components/MatchArticleLinks";
+import { fetchMatchExtras } from "@/lib/live/match-extras";
 
 export const dynamic = "force-dynamic";
 
@@ -68,54 +68,17 @@ export default async function NpbLivePage({ params }: Props) {
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
+  const homeShort = match.homeTeam.shortName || homeKo;
+  const awayShort = match.awayTeam.shortName || awayKo;
 
   const homeStarterFull = parseStarterFull(match.homeStarter);
   const awayStarterFull = parseStarterFull(match.awayStarter);
   // NPB 사진은 npb.jp scraping 필요 — pid 있으면 SSR 단에서 fetch
-  const [homeStarterPhoto, awayStarterPhoto] = await Promise.all([
+  const [homeStarterPhoto, awayStarterPhoto, extras] = await Promise.all([
     homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
     awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
+    fetchMatchExtras(match),
   ]);
-
-  // 최근 5경기 폼
-  const since = new Date(match.startTime.getTime() - 60 * 24 * 3600 * 1000);
-  const recentMatches = await prisma.match.findMany({
-    where: {
-      league: "NPB",
-      status: "FINISHED",
-      startTime: { gte: since, lt: match.startTime },
-      OR: [
-        { homeTeamId: match.homeTeam.id },
-        { awayTeamId: match.homeTeam.id },
-        { homeTeamId: match.awayTeam.id },
-        { awayTeamId: match.awayTeam.id },
-      ],
-    },
-    select: {
-      id: true,
-      league: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
-      status: true,
-    },
-    orderBy: { startTime: "desc" },
-    take: 60,
-  });
-  const formMatches: PredictMatch[] = recentMatches.map((m) => ({
-    id: m.id,
-    league: m.league,
-    homeTeamId: m.homeTeamId,
-    awayTeamId: m.awayTeamId,
-    homeScore: m.homeScore,
-    awayScore: m.awayScore,
-    startTime: m.startTime,
-    status: m.status as PredictMatch["status"],
-  }));
-  const homeForm = calcForm(formMatches, match.homeTeam.id, match.startTime, 5);
-  const awayForm = calcForm(formMatches, match.awayTeam.id, match.startTime, 5);
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -152,6 +115,11 @@ export default async function NpbLivePage({ params }: Props) {
           NPB · 라이브 스코어 · 15초 자동 갱신
         </p>
       </header>
+      <MatchArticleLinks
+        previewSlug={extras.previewSlug}
+        recapSlug={extras.recapSlug}
+        matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+      />
       <BaseballLiveDetail
         gameId={gameId}
         league="NPB"
@@ -175,13 +143,15 @@ export default async function NpbLivePage({ params }: Props) {
         homeStarterPhoto={homeStarterPhoto ?? null}
         awayStarterPhoto={awayStarterPhoto ?? null}
       />
-      <TeamFormInsight
-        homeForm={homeForm}
-        awayForm={awayForm}
-        homeTeamName={homeKo}
-        awayTeamName={awayKo}
+      <MatchHeadToHead
+        homeShortName={homeShort}
+        awayShortName={awayShort}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
+        h2hHome={extras.h2hHome}
+        homeStanding={extras.homeStanding}
+        awayStanding={extras.awayStanding}
+        totalTeams={extras.totalTeams}
       />
     </div>
   );
