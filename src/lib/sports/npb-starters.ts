@@ -21,6 +21,7 @@ import {
   type NpbPitcherStats,
   type NpbPlayerIndexEntry,
 } from "./npb-official";
+import { kanaToKorean } from "./kana-to-korean";
 
 export interface NpbStarterPitcher {
   name: string; // 한글 음역 (UI 표시용)
@@ -122,13 +123,30 @@ const PITCHER_NAME_KO: Record<string, string> = {
   "ウレーニャ": "우레냐",
   "ジェリー": "제리",
   "マラー": "마라",
+  // 5/15 라이브 스코어 누락 보강
+  "早川": "하야카와",
+  "髙島": "타카시마",
+  "井上": "이노우에",
+  "達": "타쓰",
+  "ロング": "롱",
 };
 
 /**
- * 일본어 선발 투수명 → 한글 음역. 매핑 없으면 원어 그대로 반환.
+ * 일본어 선발 투수명 → 한글 음역.
+ *   1) PITCHER_NAME_KO 직접 매핑 (한자 성 우선)
+ *   2) 카타카나만 있는 외국인은 kanaToKorean 자동 음역
+ *   3) 그래도 일본어 잔존하면 원어 그대로 (UI 에서 fallback 표시용)
  */
 export function jpPitcherToKorean(name: string): string {
-  return PITCHER_NAME_KO[name.trim()] ?? name;
+  const trimmed = name.trim();
+  const direct = PITCHER_NAME_KO[trimmed];
+  if (direct) return direct;
+  // 카타카나/히라가나만 있으면 자동 음역 (외국인 선수)
+  if (/^[぀-ゟ゠-ヿー・\s]+$/.test(trimmed)) {
+    const ko = kanaToKorean(trimmed);
+    if (ko && ko !== trimmed) return ko;
+  }
+  return trimmed;
 }
 
 // 일본어 약칭 → 우리 DB Team.name (한국명) 매핑. npb.ts 의 한국명과 일치.
