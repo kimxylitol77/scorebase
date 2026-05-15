@@ -7,6 +7,10 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
+import BaseballPreMatchInsight, {
+  type StarterInfo,
+} from "@/components/BaseballPreMatchInsight";
+import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +23,15 @@ function parseStarter(json: string | null): string | null {
   try {
     const obj = JSON.parse(json) as { name?: string };
     return obj.name?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function parseStarterFull(json: string | null): StarterInfo | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as StarterInfo;
   } catch {
     return null;
   }
@@ -52,6 +65,14 @@ export default async function NpbLivePage({ params }: Props) {
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
+
+  const homeStarterFull = parseStarterFull(match.homeStarter);
+  const awayStarterFull = parseStarterFull(match.awayStarter);
+  // NPB 사진은 npb.jp scraping 필요 — pid 있으면 SSR 단에서 fetch
+  const [homeStarterPhoto, awayStarterPhoto] = await Promise.all([
+    homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
+    awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -101,6 +122,15 @@ export default async function NpbLivePage({ params }: Props) {
         awayStarter={parseStarter(match.awayStarter)}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
+      />
+      <BaseballPreMatchInsight
+        league="NPB"
+        homeStarter={homeStarterFull}
+        awayStarter={awayStarterFull}
+        homeTeamName={homeKo}
+        awayTeamName={awayKo}
+        homeStarterPhoto={homeStarterPhoto ?? null}
+        awayStarterPhoto={awayStarterPhoto ?? null}
       />
     </div>
   );

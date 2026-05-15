@@ -8,6 +8,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
+import BaseballPreMatchInsight, {
+  type StarterInfo,
+} from "@/components/BaseballPreMatchInsight";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +23,15 @@ function parseStarter(json: string | null): string | null {
   try {
     const obj = JSON.parse(json) as { name?: string };
     return obj.name?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function parseStarterFull(json: string | null): StarterInfo | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as StarterInfo;
   } catch {
     return null;
   }
@@ -102,6 +114,13 @@ export default async function KboLivePage({ params }: Props) {
         awayStarter={parseStarter(match.awayStarter)}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
+      />
+      <BaseballPreMatchInsight
+        league="KBO"
+        homeStarter={parseStarterFull(match.homeStarter)}
+        awayStarter={parseStarterFull(match.awayStarter)}
+        homeTeamName={homeKo}
+        awayTeamName={awayKo}
       />
     </div>
   );

@@ -11,6 +11,24 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import MlbLiveDetail from "@/components/MlbLiveDetail";
+import BaseballPreMatchInsight, {
+  type StarterInfo,
+} from "@/components/BaseballPreMatchInsight";
+import { toKoreanPlayerName } from "@/lib/player-names";
+
+function parseStarterFull(json: string | null): StarterInfo | null {
+  if (!json) return null;
+  try {
+    const obj = JSON.parse(json) as StarterInfo;
+    if (obj.name) {
+      const ko = toKoreanPlayerName(obj.name);
+      if (ko) obj.name = ko;
+    }
+    return obj;
+  } catch {
+    return null;
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -161,6 +179,13 @@ export default async function MlbLivePage({ params }: Props) {
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}
         awayLogoUrl={match.awayTeam.logoUrl ?? null}
+      />
+      <BaseballPreMatchInsight
+        league="MLB"
+        homeStarter={parseStarterFull(match.homeStarter)}
+        awayStarter={parseStarterFull(match.awayStarter)}
+        homeTeamName={homeKo}
+        awayTeamName={awayKo}
       />
     </div>
   );
