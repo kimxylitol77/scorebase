@@ -24,6 +24,11 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
+import {
+  fetchNpbPlayerIndex,
+  findNpbPidByName,
+  type NpbPlayerIndexEntry,
+} from "@/lib/sports/npb-official";
 
 const TOP_N = 10;
 
@@ -545,6 +550,23 @@ function findColIdx(headers: string[], targets: string[]): number {
   return -1;
 }
 
+/** npb.jp 의 player profile 에서 사진 URL (p.npb.jp/players_photo/...) 추출. */
+async function fetchNpbPhotoUrl(pid: string): Promise<string | undefined> {
+  try {
+    const r = await fetch(`https://npb.jp/bis/players/${pid}.html`, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(10000),
+      cache: "no-store",
+    });
+    if (!r.ok) return undefined;
+    const html = await r.text();
+    const m = html.match(/<img[^>]*src="(https?:\/\/p\.npb\.jp\/players_photo\/[^"]+)"/i);
+    return m?.[1];
+  } catch {
+    return undefined;
+  }
+}
+
 async function runNpb(season: number) {
   const summary: Record<string, number> = {};
   const batRows: NpbStatRow[] = [];
@@ -555,6 +577,22 @@ async function runNpb(season: number) {
   for (const p of NPB_PIT_PAGES) {
     pitRows.push(...(await fetchNpbTable(p.url.replace("{Y}", String(season)))));
   }
+  // 12팀 roster 인덱스 (한자 → pid 매칭용)
+  let npbIndex: NpbPlayerIndexEntry[] = [];
+  try {
+    npbIndex = await fetchNpbPlayerIndex();
+  } catch (e) {
+    console.warn("[leaders/npb] roster index 실패:", (e as Error).message);
+  }
+  const photoCache = new Map<string, string | undefined>();
+  const getPhoto = async (pid: string): Promise<string | undefined> => {
+    if (photoCache.has(pid)) return photoCache.get(pid);
+    const url = await fetchNpbPhotoUrl(pid);
+    photoCache.set(pid, url);
+    // burst 회피
+    await new Promise((r) => setTimeout(r, 200));
+    return url;
+  };
 
   const upsertCat = async (
     rows: NpbStatRow[],
@@ -585,15 +623,21 @@ async function runNpb(season: number) {
         teamRaw.includes(abbr.replace(/[()]/g, ""))
       )?.[1] ?? teamRaw;
       const playerKo = npbPlayerToKorean(e.row.player);
+      // pid 매칭 → photo URL
+      const cleanedName = e.row.player.replace(/[（(].+?[）)]/g, "").trim();
+      const idx = npbIndex.length > 0 ? findNpbPidByName(npbIndex, cleanedName) : null;
+      const photoUrl = idx ? await getPhoto(idx.pid) : undefined;
       await upsertLeader({
         league: "NPB",
         category: code,
         rank: i + 1,
         playerName: playerKo,
         playerNameEn: e.row.player,
+        externalId: idx?.pid,
         teamName: teamKo,
         value: e.value,
         unit,
+        photoUrl,
         season: String(season),
       });
     }

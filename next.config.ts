@@ -33,6 +33,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "liquipedia.net" },
+      // 시즌 리더보드 선수 사진 source
+      { protocol: "https", hostname: "media.api-sports.io" }, // 축구 (API-Football)
+      { protocol: "https", hostname: "assets.nhle.com" }, // NHL 공식
+      { protocol: "https", hostname: "img.mlbstatic.com" }, // MLB Stats API
+      { protocol: "https", hostname: "p.npb.jp" }, // NPB 공식
+      { protocol: "https", hostname: "cdn.nba.com" }, // NBA (BDL id 매칭 불가 — placeholder만)
     ],
   },
   async headers() {
