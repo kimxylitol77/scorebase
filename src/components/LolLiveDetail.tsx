@@ -4,6 +4,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import CountUp from "./CountUp";
 
 interface LolLive {
@@ -27,6 +28,9 @@ interface Props {
   awayNameKo: string;
   homeLogo?: string | null;
   awayLogo?: string | null;
+  /** DB Team.id — 팀명/로고 클릭 시 /teams/{id} 이동 */
+  homeTeamId?: number;
+  awayTeamId?: number;
 }
 
 const POLL_LIVE_MS = 30_000;
@@ -39,6 +43,8 @@ export default function LolLiveDetail({
   awayNameKo,
   homeLogo,
   awayLogo,
+  homeTeamId,
+  awayTeamId,
 }: Props) {
   const [live, setLive] = useState<LolLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -148,7 +154,7 @@ export default function LolLiveDetail({
           )}
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <TeamCol logo={awayLogo} name={awayNameKo} />
+          <TeamCol logo={awayLogo} name={awayNameKo} teamId={awayTeamId} />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
             <CountUp
               value={live.awayScore}
@@ -162,7 +168,7 @@ export default function LolLiveDetail({
               className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
             />
           </div>
-          <TeamCol logo={homeLogo} name={homeNameKo} />
+          <TeamCol logo={homeLogo} name={homeNameKo} teamId={homeTeamId} />
         </div>
       </div>
 
@@ -220,9 +226,17 @@ export default function LolLiveDetail({
   );
 }
 
-function TeamCol({ logo, name }: { logo?: string | null; name: string }) {
-  return (
-    <div className="text-center">
+function TeamCol({
+  logo,
+  name,
+  teamId,
+}: {
+  logo?: string | null;
+  name: string;
+  teamId?: number;
+}) {
+  const inner = (
+    <>
       {logo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -237,8 +251,19 @@ function TeamCol({ logo, name }: { logo?: string | null; name: string }) {
         </div>
       )}
       <div className="font-bold truncate">{name}</div>
-    </div>
+    </>
   );
+  if (teamId != null) {
+    return (
+      <Link
+        href={`/teams/${teamId}`}
+        className="text-center block hover:opacity-80 transition"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="text-center">{inner}</div>;
 }
 
 function SeriesRow({

@@ -65,7 +65,19 @@ export default async function LolLivePage({ params }: Props) {
       </nav>
       <header>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-          {awayKo} <span className="text-neutral-400">vs</span> {homeKo}
+          <Link
+            href={`/teams/${match.awayTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {awayKo}
+          </Link>{" "}
+          <span className="text-neutral-400">vs</span>{" "}
+          <Link
+            href={`/teams/${match.homeTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {homeKo}
+          </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
           LCK · 시리즈 점수 자동 갱신
@@ -78,6 +90,8 @@ export default async function LolLivePage({ params }: Props) {
         awayNameKo={awayKo}
         homeLogo={match.homeTeam.logoUrl ?? null}
         awayLogo={match.awayTeam.logoUrl ?? null}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
       />
     </div>
   );

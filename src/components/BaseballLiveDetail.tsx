@@ -5,6 +5,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import CountUp from "./CountUp";
 
 interface BaseballLive {
@@ -42,6 +43,9 @@ interface Props {
   /** 팀 로고 URL (DB Team.logoUrl) */
   homeLogo?: string | null;
   awayLogo?: string | null;
+  /** DB Team.id — 팀명/로고 클릭 시 /teams/{id} 이동 */
+  homeTeamId?: number;
+  awayTeamId?: number;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -66,6 +70,26 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
 const POLL_LIVE_MS = 15_000;
 const POLL_FINAL_MS = 60_000;
 
+function TeamWrap({
+  teamId,
+  children,
+}: {
+  teamId?: number;
+  children: React.ReactNode;
+}) {
+  if (teamId != null) {
+    return (
+      <Link
+        href={`/teams/${teamId}`}
+        className="text-center block hover:opacity-80 transition"
+      >
+        {children}
+      </Link>
+    );
+  }
+  return <div className="text-center">{children}</div>;
+}
+
 export default function BaseballLiveDetail({
   gameId,
   league,
@@ -77,6 +101,8 @@ export default function BaseballLiveDetail({
   awayAbbr,
   homeLogo,
   awayLogo,
+  homeTeamId,
+  awayTeamId,
 }: Props) {
   const [live, setLive] = useState<BaseballLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -199,7 +225,7 @@ export default function BaseballLiveDetail({
           )}
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <div className="text-center">
+          <TeamWrap teamId={awayTeamId}>
             <TeamLogo url={awayLogo} name={awayNameKo} />
             {awayShort && (
               <div className="text-xs sm:text-sm font-semibold text-neutral-500">
@@ -212,7 +238,7 @@ export default function BaseballLiveDetail({
                 선발 {awayStarter}
               </div>
             )}
-          </div>
+          </TeamWrap>
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
             <CountUp
               value={live.awayTeam.score}
@@ -226,7 +252,7 @@ export default function BaseballLiveDetail({
               className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
             />
           </div>
-          <div className="text-center">
+          <TeamWrap teamId={homeTeamId}>
             <TeamLogo url={homeLogo} name={homeNameKo} />
             {homeShort && (
               <div className="text-xs sm:text-sm font-semibold text-neutral-500">
@@ -239,7 +265,7 @@ export default function BaseballLiveDetail({
                 선발 {homeStarter}
               </div>
             )}
-          </div>
+          </TeamWrap>
         </div>
       </div>
 

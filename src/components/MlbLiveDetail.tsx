@@ -5,6 +5,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import CountUp from "./CountUp";
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -24,6 +25,41 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
       {name.slice(0, 1)}
     </div>
   );
+}
+
+function TeamBlock({
+  teamId,
+  logo,
+  fallbackLogo,
+  abbr,
+  name,
+}: {
+  teamId?: number;
+  logo?: string | null;
+  fallbackLogo?: string | null;
+  abbr: string;
+  name: string;
+}) {
+  const inner = (
+    <>
+      <TeamLogo url={logo ?? fallbackLogo} name={name} />
+      <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+        {abbr}
+      </div>
+      <div className="font-bold truncate">{name}</div>
+    </>
+  );
+  if (teamId != null) {
+    return (
+      <Link
+        href={`/teams/${teamId}`}
+        className="text-center block hover:opacity-80 transition"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="text-center">{inner}</div>;
 }
 
 interface MlbLive {
@@ -50,12 +86,26 @@ interface Props {
   /** 한글 팀명 매핑 (toKoreanTeamName 결과를 SSR 단에서 미리 받아옴) */
   homeNameKo?: string;
   awayNameKo?: string;
+  /** DB Team.id — 팀명/로고 클릭 시 /teams/{id} 이동 */
+  homeTeamId?: number;
+  awayTeamId?: number;
+  /** DB Team.logoUrl — ESPN 응답에 logo 누락 시 fallback */
+  homeLogoUrl?: string | null;
+  awayLogoUrl?: string | null;
 }
 
 const POLL_LIVE_MS = 10_000;
 const POLL_FINAL_MS = 60_000;
 
-export default function MlbLiveDetail({ gameId, homeNameKo, awayNameKo }: Props) {
+export default function MlbLiveDetail({
+  gameId,
+  homeNameKo,
+  awayNameKo,
+  homeTeamId,
+  awayTeamId,
+  homeLogoUrl,
+  awayLogoUrl,
+}: Props) {
   const [live, setLive] = useState<MlbLive | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -163,13 +213,13 @@ export default function MlbLiveDetail({ gameId, homeNameKo, awayNameKo }: Props)
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           {/* 원정팀 */}
-          <div className="text-center">
-            <TeamLogo url={live.awayTeam.logo} name={awayLabel} />
-            <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-              {live.awayTeam.abbreviation}
-            </div>
-            <div className="font-bold truncate">{awayLabel}</div>
-          </div>
+          <TeamBlock
+            teamId={awayTeamId}
+            logo={live.awayTeam.logo}
+            fallbackLogo={awayLogoUrl}
+            abbr={live.awayTeam.abbreviation}
+            name={awayLabel}
+          />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
             <CountUp
               value={live.awayTeam.score}
@@ -184,13 +234,13 @@ export default function MlbLiveDetail({ gameId, homeNameKo, awayNameKo }: Props)
             />
           </div>
           {/* 홈팀 */}
-          <div className="text-center">
-            <TeamLogo url={live.homeTeam.logo} name={homeLabel} />
-            <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-              {live.homeTeam.abbreviation}
-            </div>
-            <div className="font-bold truncate">{homeLabel}</div>
-          </div>
+          <TeamBlock
+            teamId={homeTeamId}
+            logo={live.homeTeam.logo}
+            fallbackLogo={homeLogoUrl}
+            abbr={live.homeTeam.abbreviation}
+            name={homeLabel}
+          />
         </div>
       </div>
 

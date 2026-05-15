@@ -71,7 +71,19 @@ export default async function KboLivePage({ params }: Props) {
       </nav>
       <header>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-          {awayKo} <span className="text-neutral-400">vs</span> {homeKo}
+          <Link
+            href={`/teams/${match.awayTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {awayKo}
+          </Link>{" "}
+          <span className="text-neutral-400">vs</span>{" "}
+          <Link
+            href={`/teams/${match.homeTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {homeKo}
+          </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
           KBO · 라이브 스코어 · 15초 자동 갱신
@@ -88,6 +100,8 @@ export default async function KboLivePage({ params }: Props) {
         awayLogo={match.awayTeam.logoUrl ?? null}
         homeStarter={parseStarter(match.homeStarter)}
         awayStarter={parseStarter(match.awayStarter)}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
       />
     </div>
   );

@@ -134,7 +134,19 @@ export default async function MlbLivePage({ params }: Props) {
 
       <header>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-          {awayKo} <span className="text-neutral-400">vs</span> {homeKo}
+          <Link
+            href={`/teams/${match.awayTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {awayKo}
+          </Link>{" "}
+          <span className="text-neutral-400">vs</span>{" "}
+          <Link
+            href={`/teams/${match.homeTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {homeKo}
+          </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
           MLB · 라이브 스코어 · 10초 자동 갱신
@@ -145,6 +157,10 @@ export default async function MlbLivePage({ params }: Props) {
         gameId={gameId}
         homeNameKo={homeKo}
         awayNameKo={awayKo}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        homeLogoUrl={match.homeTeam.logoUrl ?? null}
+        awayLogoUrl={match.awayTeam.logoUrl ?? null}
       />
     </div>
   );
