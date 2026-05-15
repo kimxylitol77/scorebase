@@ -7,6 +7,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LolLiveDetail from "@/components/LolLiveDetail";
+import TeamFormInsight from "@/components/TeamFormInsight";
+import { calcForm } from "@/lib/predict/form";
+import type { PredictMatch } from "@/lib/predict/types";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +50,46 @@ export default async function LolLivePage({ params }: Props) {
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
   const date = kstDate(match.startTime);
+
+  // 최근 5경기 폼 (LCK 시즌 매치 — 60일)
+  const since = new Date(match.startTime.getTime() - 60 * 24 * 3600 * 1000);
+  const recentMatches = await prisma.match.findMany({
+    where: {
+      league: "LOL",
+      status: "FINISHED",
+      startTime: { gte: since, lt: match.startTime },
+      OR: [
+        { homeTeamId: match.homeTeam.id },
+        { awayTeamId: match.homeTeam.id },
+        { homeTeamId: match.awayTeam.id },
+        { awayTeamId: match.awayTeam.id },
+      ],
+    },
+    select: {
+      id: true,
+      league: true,
+      homeTeamId: true,
+      awayTeamId: true,
+      homeScore: true,
+      awayScore: true,
+      startTime: true,
+      status: true,
+    },
+    orderBy: { startTime: "desc" },
+    take: 60,
+  });
+  const formMatches: PredictMatch[] = recentMatches.map((m) => ({
+    id: m.id,
+    league: m.league,
+    homeTeamId: m.homeTeamId,
+    awayTeamId: m.awayTeamId,
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    startTime: m.startTime,
+    status: m.status as PredictMatch["status"],
+  }));
+  const homeForm = calcForm(formMatches, match.homeTeam.id, match.startTime, 5);
+  const awayForm = calcForm(formMatches, match.awayTeam.id, match.startTime, 5);
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -90,6 +133,14 @@ export default async function LolLivePage({ params }: Props) {
         awayNameKo={awayKo}
         homeLogo={match.homeTeam.logoUrl ?? null}
         awayLogo={match.awayTeam.logoUrl ?? null}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+      />
+      <TeamFormInsight
+        homeForm={homeForm}
+        awayForm={awayForm}
+        homeTeamName={homeKo}
+        awayTeamName={awayKo}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
       />

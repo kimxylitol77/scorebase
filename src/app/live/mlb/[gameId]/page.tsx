@@ -15,6 +15,9 @@ import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import TeamFormInsight from "@/components/TeamFormInsight";
+import { calcForm } from "@/lib/predict/form";
+import type { PredictMatch } from "@/lib/predict/types";
 
 function parseStarterFull(json: string | null): StarterInfo | null {
   if (!json) return null;
@@ -134,6 +137,46 @@ export default async function MlbLivePage({ params }: Props) {
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
 
+  // 최근 5경기 폼
+  const since = new Date(match.startTime.getTime() - 60 * 24 * 3600 * 1000);
+  const recentMatches = await prisma.match.findMany({
+    where: {
+      league: "MLB",
+      status: "FINISHED",
+      startTime: { gte: since, lt: match.startTime },
+      OR: [
+        { homeTeamId: match.homeTeam.id },
+        { awayTeamId: match.homeTeam.id },
+        { homeTeamId: match.awayTeam.id },
+        { awayTeamId: match.awayTeam.id },
+      ],
+    },
+    select: {
+      id: true,
+      league: true,
+      homeTeamId: true,
+      awayTeamId: true,
+      homeScore: true,
+      awayScore: true,
+      startTime: true,
+      status: true,
+    },
+    orderBy: { startTime: "desc" },
+    take: 60,
+  });
+  const formMatches: PredictMatch[] = recentMatches.map((m) => ({
+    id: m.id,
+    league: m.league,
+    homeTeamId: m.homeTeamId,
+    awayTeamId: m.awayTeamId,
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    startTime: m.startTime,
+    status: m.status as PredictMatch["status"],
+  }));
+  const homeForm = calcForm(formMatches, match.homeTeam.id, match.startTime, 5);
+  const awayForm = calcForm(formMatches, match.awayTeam.id, match.startTime, 5);
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -186,6 +229,14 @@ export default async function MlbLivePage({ params }: Props) {
         awayStarter={parseStarterFull(match.awayStarter)}
         homeTeamName={homeKo}
         awayTeamName={awayKo}
+      />
+      <TeamFormInsight
+        homeForm={homeForm}
+        awayForm={awayForm}
+        homeTeamName={homeKo}
+        awayTeamName={awayKo}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
       />
     </div>
   );

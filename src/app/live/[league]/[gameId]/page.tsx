@@ -9,6 +9,23 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
+import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
+import TeamFormInsight from "@/components/TeamFormInsight";
+import { calcForm } from "@/lib/predict/form";
+import type { PredictMatch } from "@/lib/predict/types";
+
+const SOCCER_LEAGUES = new Set([
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+]);
+
+function parseGoalie(json: string | null): GoalieInfo | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as GoalieInfo;
+  } catch {
+    return null;
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +95,50 @@ export default async function GenericLivePage({ params }: Props) {
   const awayKo = toKoreanTeamName(match.awayTeam.name);
   const label = LEAGUE_LABEL[lg] ?? lg;
 
+  // 최근 5경기 폼 — 같은 리그의 FINISHED 매치만 조회 (지난 60일)
+  const since = new Date(match.startTime.getTime() - 60 * 24 * 3600 * 1000);
+  const recentMatches = await prisma.match.findMany({
+    where: {
+      league: lg,
+      status: "FINISHED",
+      startTime: { gte: since, lt: match.startTime },
+      OR: [
+        { homeTeamId: match.homeTeam.id },
+        { awayTeamId: match.homeTeam.id },
+        { homeTeamId: match.awayTeam.id },
+        { awayTeamId: match.awayTeam.id },
+      ],
+    },
+    select: {
+      id: true,
+      league: true,
+      homeTeamId: true,
+      awayTeamId: true,
+      homeScore: true,
+      awayScore: true,
+      startTime: true,
+      status: true,
+    },
+    orderBy: { startTime: "desc" },
+    take: 60,
+  });
+  const formMatches: PredictMatch[] = recentMatches.map((m) => ({
+    id: m.id,
+    league: m.league,
+    homeTeamId: m.homeTeamId,
+    awayTeamId: m.awayTeamId,
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    startTime: m.startTime,
+    status: m.status as PredictMatch["status"],
+  }));
+  const homeForm = calcForm(formMatches, match.homeTeam.id, match.startTime, 5);
+  const awayForm = calcForm(formMatches, match.awayTeam.id, match.startTime, 5);
+
+  // NHL 골리 (다른 리그는 null)
+  const homeGoalie = lg === "NHL" ? parseGoalie(match.homeGoalie) : null;
+  const awayGoalie = lg === "NHL" ? parseGoalie(match.awayGoalie) : null;
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -125,6 +186,25 @@ export default async function GenericLivePage({ params }: Props) {
         awayLogoUrl={match.awayTeam.logoUrl ?? null}
         initialHomeScore={match.homeScore}
         initialAwayScore={match.awayScore}
+      />
+
+      {lg === "NHL" && (homeGoalie || awayGoalie) && (
+        <NhlGoalieInsight
+          homeGoalie={homeGoalie}
+          awayGoalie={awayGoalie}
+          homeTeamName={homeKo}
+          awayTeamName={awayKo}
+        />
+      )}
+
+      <TeamFormInsight
+        homeForm={homeForm}
+        awayForm={awayForm}
+        homeTeamName={homeKo}
+        awayTeamName={awayKo}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        hasDraw={SOCCER_LEAGUES.has(lg)}
       />
     </div>
   );
