@@ -55,9 +55,15 @@ body {
   filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.25));
 }
 .hero-accent-soft {
-  color: rgba(255, 255, 255, 0.4);
+  /* light 모드 — 흰 배경 위에서 보이도록 어두운 회색 */
+  color: rgba(0, 0, 0, 0.35);
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(0, 0, 0, 0.25);
+}
+.dark .hero-accent-soft {
+  /* dark 모드 — 검은 배경 위에서 보이도록 흰색 반투명 */
+  color: rgba(255, 255, 255, 0.4);
   text-decoration-color: rgba(255, 255, 255, 0.25);
 }
 .hero .lede {
