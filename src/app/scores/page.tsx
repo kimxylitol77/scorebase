@@ -268,7 +268,15 @@ export default async function ScoresPage({ searchParams }: Props) {
     }
     return ko.toLowerCase().replace(/[\s.·\-_]/g, "");
   }
-  for (const lm of liveMatches) {
+  // 라이브 매치를 페이지의 KST 일자로 필터 — 다른 날짜 매치가 같은 팀명으로 false-match 되는 것 방지.
+  // (예: 5/15 한화-KT 라이브 데이터가 5/16 한화-KT DB 매치에 잘못 붙어 "진행 중" 으로 보이던 버그)
+  const liveForThisDay = liveMatches.filter((lm) => {
+    const kstDate = new Date(new Date(lm.startTime).getTime() + 9 * 3600 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    return kstDate === dateStr;
+  });
+  for (const lm of liveForThisDay) {
     const rawId = lm.id.replace(/^[a-z]+-/i, "");
     liveByExternalId.set(rawId, lm);
     liveByNameKey.set(
