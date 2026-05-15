@@ -461,3 +461,147 @@ export async function fetchKboPitcherProfile(kboId: string): Promise<KboPitcherP
 
 /** 하위 호환 alias — fetchKboPitcherName 으로 import 한 곳이 있어서. */
 export const fetchKboPitcherName = fetchKboPitcherProfile;
+
+/* ============================================================
+ * 타자 (Hitter) — /Record/Player/HitterDetail/Basic.aspx
+ * ==========================================================*/
+
+export interface KboHitterProfile extends KboPitcherProfile {
+  // 같은 .player_basic 구조 — KBO 페이지가 hitter/pitcher 동일 layout
+}
+
+export interface KboHitterStats {
+  team?: string;
+  avg?: string; // 타율
+  g?: number;
+  pa?: number;
+  ab?: number;
+  r?: number;
+  h?: number;
+  d2b?: number; // 2루타
+  d3b?: number;
+  hr?: number;
+  tb?: number;
+  rbi?: number;
+  sac?: number;
+  sf?: number;
+  bb?: number;
+  ibb?: number;
+  hbp?: number;
+  so?: number;
+  gdp?: number;
+  slg?: string;
+  obp?: string;
+  e?: number;
+  sb?: number;
+}
+
+/** KBO 선수 사진 URL (네이버 CDN). pitcher/hitter 공통. */
+export function kboPhotoUrl(playerId: string | number): string {
+  const y = new Date().getUTCFullYear();
+  return `https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/middle/${y}/${playerId}.jpg`;
+}
+
+/** HitterDetail/Basic + Basic2 의 시즌 누적 합쳐서 반환. */
+export async function fetchKboHitterStats(
+  kboId: string,
+): Promise<KboHitterStats | null> {
+  const url = `${BASE}/Record/Player/HitterDetail/Basic.aspx?playerId=${kboId}`;
+  try {
+    const r = await axios.get<string>(url, {
+      headers: HEADERS,
+      timeout: 10000,
+      responseType: "text",
+    });
+    const $ = cheerio.load(r.data);
+    // 페이지 상단 2 개 표 (table[0]·table[1]) 가 시즌 누적
+    const out: KboHitterStats = {};
+    const tables = $("#tabAvg, .tData, table").toArray();
+    // 휴리스틱 — 헤더에 AVG/HR/RBI 같은 hitter 컬럼이 있는 표 찾기
+    for (const t of tables) {
+      const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
+      if (headers.length < 4) continue;
+      if (!headers.some((h) => /AVG|HR|RBI|OBP|SLG|H$|^G$|^AB$/.test(h))) continue;
+      const cells = $(t).find("tbody tr").first().find("td").map((_, td) => $(td).text().trim()).get();
+      if (cells.length !== headers.length) continue;
+      const get = (h: string) => {
+        const idx = headers.indexOf(h);
+        return idx >= 0 ? cells[idx] : undefined;
+      };
+      const num = (v: string | undefined) => {
+        if (!v) return undefined;
+        const n = parseFloat(v);
+        return Number.isFinite(n) ? n : undefined;
+      };
+      const map: Record<string, keyof KboHitterStats> = {
+        팀명: "team", AVG: "avg", G: "g", PA: "pa", AB: "ab", R: "r", H: "h",
+        "2B": "d2b", "3B": "d3b", HR: "hr", TB: "tb", RBI: "rbi", SAC: "sac",
+        SF: "sf", BB: "bb", IBB: "ibb", HBP: "hbp", SO: "so", GDP: "gdp",
+        SLG: "slg", OBP: "obp", E: "e", SB: "sb",
+      };
+      for (const [h, key] of Object.entries(map)) {
+        const v = get(h);
+        if (v == null) continue;
+        // 문자열로 둘 항목 (team / avg / slg / obp)
+        if (key === "team" || key === "avg" || key === "slg" || key === "obp") {
+          (out as Record<string, string | undefined>)[key as string] = v;
+        } else {
+          (out as Record<string, number | undefined>)[key as string] = num(v);
+        }
+      }
+    }
+    return Object.keys(out).length > 0 ? out : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Hitter profile (.player_basic li) — pitcher 와 동일 layout. */
+export async function fetchKboHitterProfile(
+  kboId: string,
+): Promise<KboHitterProfile> {
+  const url = `${BASE}/Record/Player/HitterDetail/Basic.aspx?playerId=${kboId}`;
+  try {
+    const r = await axios.get<string>(url, {
+      headers: HEADERS,
+      timeout: 10000,
+      responseType: "text",
+    });
+    const $ = cheerio.load(r.data);
+    const fields = new Map<string, string>();
+    $(".player_basic li").each((_, li) => {
+      const label = $(li).find("strong").text().replace(/[:：]/g, "").trim();
+      const value = $(li).find("span").text().trim();
+      if (label) fields.set(label, value);
+    });
+    const hw = fields.get("신장/체중") ?? "";
+    const [h, w] = hw.split("/").map((s) => s.trim());
+    let team: string | undefined;
+    $("table").each((_, t) => {
+      const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
+      if (!headers.some((x) => /AVG|H$|HR|RBI/.test(x))) return;
+      const cells = $(t).find("tbody tr").first().find("td").map((_, td) => $(td).text().trim()).get();
+      if (cells.length === headers.length) {
+        const i = headers.indexOf("팀명");
+        if (i >= 0) team = cells[i] || undefined;
+      }
+    });
+    const position = fields.get("포지션");
+    const birthday = fields.get("생년월일");
+    return {
+      name: fields.get("선수명") || undefined,
+      team,
+      number: fields.get("등번호") || undefined,
+      birthday,
+      age: calcAge(birthday),
+      position,
+      hand: parseHand(position),
+      bats: parseBats(position),
+      height: h || undefined,
+      weight: w || undefined,
+      career: fields.get("경력") || undefined,
+    };
+  } catch {
+    return {};
+  }
+}

@@ -378,3 +378,118 @@ export async function fetchNpbPitcherProfile(pid: string): Promise<NpbPitcherPro
     return { pid };
   }
 }
+
+/* ============================================================
+ * 타자 (Hitter) — #tablefix_b · pid 페이지 동일
+ * ==========================================================*/
+
+export interface NpbHitterStats {
+  pid: string;
+  season: number;
+  team?: string;
+  g?: number; // 試合
+  pa?: number; // 打席
+  ab?: number; // 打数
+  runs?: number; // 得点
+  hits?: number; // 安打
+  d2b?: number; // 二塁打
+  d3b?: number; // 三塁打
+  hr?: number; // 本塁打
+  tb?: number; // 塁打
+  rbi?: number; // 打点
+  sb?: number; // 盗塁
+  cs?: number; // 盗塁刺
+  sh?: number; // 犠打
+  sf?: number; // 犠飛
+  bb?: number; // 四球
+  ibb?: number; // 敬遠 / 故意四球
+  hbp?: number; // 死球
+  so?: number; // 三振
+  gdp?: number; // 併殺打
+  avg?: number; // 打率
+  slg?: number; // 長打率
+  obp?: number; // 出塁率
+  ops?: number;
+}
+
+export async function fetchNpbHitterStats(pid: string): Promise<NpbHitterStats | null> {
+  const url = `${BASE}/bis/players/${pid}.html`;
+  try {
+    const r = await axios.get<string>(url, {
+      headers: HEADERS,
+      timeout: 12000,
+      responseType: "text",
+    });
+    const $ = cheerio.load(r.data);
+    const table = $("#tablefix_b").first();
+    if (table.length === 0) return null;
+    const headers = table.find("thead th").map((_, th) => $(th).text().trim()).get();
+    if (headers.length === 0) {
+      // thead 가 없으면 첫 row 의 th 로 fallback
+      table
+        .find("tr").first().find("th")
+        .each((_, th) => {
+          headers.push($(th).text().trim());
+        });
+    }
+    const rows = table.find("tbody tr.registerStats");
+    if (rows.length === 0) return null;
+    const lastRow = rows.last();
+    const cells = lastRow.find("> td");
+    if (cells.length !== headers.length) return null;
+    const get = (label: string): string | undefined => {
+      const i = headers.indexOf(label);
+      if (i < 0) return undefined;
+      return cells.eq(i).text().trim() || undefined;
+    };
+    const season = Number(get("年度")) || new Date().getUTCFullYear();
+    const team = get("所属球団")?.replace(/\s+/g, "");
+    return {
+      pid,
+      season,
+      team,
+      g: toNum(get("試合")),
+      pa: toNum(get("打席")),
+      ab: toNum(get("打数")),
+      runs: toNum(get("得点")),
+      hits: toNum(get("安打")),
+      d2b: toNum(get("二塁打")),
+      d3b: toNum(get("三塁打")),
+      hr: toNum(get("本塁打")),
+      tb: toNum(get("塁打")),
+      rbi: toNum(get("打点")),
+      sb: toNum(get("盗塁")),
+      cs: toNum(get("盗塁刺")),
+      sh: toNum(get("犠打")),
+      sf: toNum(get("犠飛")),
+      bb: toNum(get("四球")),
+      ibb: toNum(get("敬遠")) ?? toNum(get("故意四球")) ?? toNum(get("故意四")),
+      hbp: toNum(get("死球")),
+      so: toNum(get("三振")),
+      gdp: toNum(get("併殺打")),
+      avg: toNum(get("打率")),
+      slg: toNum(get("長打率")),
+      obp: toNum(get("出塁率")),
+      ops: toNum(get("OPS")),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** NPB player photo URL — pid 매칭된 선수의 npb.jp profile page 에서 추출. */
+export async function fetchNpbPhotoUrl(pid: string): Promise<string | undefined> {
+  try {
+    const r = await fetch(`${BASE}/bis/players/${pid}.html`, {
+      headers: { "User-Agent": HEADERS["User-Agent"] },
+      signal: AbortSignal.timeout(10000),
+      cache: "no-store",
+    });
+    if (!r.ok) return undefined;
+    const html = await r.text();
+    const m = html.match(/<img[^>]*src="(https?:\/\/p\.npb\.jp\/players_photo\/[^"]+)"/i);
+    return m?.[1];
+  } catch {
+    return undefined;
+  }
+}

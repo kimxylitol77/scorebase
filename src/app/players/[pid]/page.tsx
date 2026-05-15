@@ -20,8 +20,13 @@ import {
   fetchKboPitcherStats,
   fetchKboPitcherRecent,
   fetchKboPitcherProfile,
+  fetchKboHitterStats,
+  fetchKboHitterProfile,
+  kboPhotoUrl,
   calcK9,
   type KboPitcherRecentGame,
+  type KboHitterStats,
+  type KboHitterProfile,
 } from "@/lib/sports/kbo-official";
 import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
@@ -45,6 +50,12 @@ import {
   fetchNpbPitcherProfileCached as fetchNpbPitcherProfile,
   fetchNpbPitcherStatsCached as fetchNpbPitcherStats,
 } from "@/lib/sports/npb-cache";
+import {
+  fetchNpbHitterStats,
+  fetchNpbPhotoUrl,
+  type NpbHitterStats,
+  type NpbPitcherProfile,
+} from "@/lib/sports/npb-official";
 import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
 import { kanaToKorean } from "@/lib/sports/kana-to-korean";
 import { prisma } from "@/lib/db";
@@ -201,6 +212,15 @@ export default async function PlayerPage({ params, searchParams }: Props) {
  * KBO 투수 view — koreabaseball.com PitcherDetail.aspx scraping
  * ==========================================================*/
 async function KboPlayerView({ pid }: { pid: string }) {
+  // 1) 타자 stats 시도 — 데이터 있으면 hitter view (선수 페이지 layout 은 hitter/pitcher 동일)
+  const hitter = await fetchKboHitterStats(pid);
+  // 핵심 hitter stats (avg/hr/rbi 등) 가 들어있으면 타자로 판단
+  if (hitter && (hitter.avg != null || hitter.hr != null || hitter.h != null)) {
+    const profile = await fetchKboHitterProfile(pid);
+    return renderKboHitterView(pid, profile, hitter);
+  }
+
+  // 2) 기존 투수 view
   const [statsRes, recent, profile] = await Promise.all([
     fetchKboPitcherStats(pid),
     fetchKboPitcherRecent(pid),
@@ -225,24 +245,36 @@ async function KboPlayerView({ pid }: { pid: string }) {
         <Link href="/leagues/KBO" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
           ← KBO 리그
         </Link>
-        <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{name}</h1>
-          {handBatsLabel && (
-            <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
-              {handBatsLabel}
-            </span>
-          )}
-          {profile.age != null && (
-            <span className="text-sm text-neutral-500">{profile.age}세</span>
-          )}
-          {profile.number && (
-            <span className="text-sm text-neutral-500">{profile.number}</span>
-          )}
-        </div>
-        <div className="text-sm text-neutral-500">
-          {team ? `${team} · ` : ""}
-          {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
-          KBO 공식 (koreabaseball.com)
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={kboPhotoUrl(pid)}
+            alt={name}
+            width={96}
+            height={96}
+            className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+          />
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{name}</h1>
+              {handBatsLabel && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
+                  {handBatsLabel}
+                </span>
+              )}
+              {profile.age != null && (
+                <span className="text-sm text-neutral-500">{profile.age}세</span>
+              )}
+              {profile.number && (
+                <span className="text-sm text-neutral-500">{profile.number}</span>
+              )}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {team ? `${team} · ` : ""}
+              {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
+              KBO 공식 (koreabaseball.com)
+            </div>
+          </div>
         </div>
         {(profile.birthday || profile.career) && (
           <div className="text-xs text-neutral-500 space-y-0.5">
@@ -485,6 +517,14 @@ async function fetchNpbRecentFromDb(
 }
 
 async function NpbPlayerView({ pid }: { pid: string }) {
+  // 1) 타자 stats 시도 — 데이터 있으면 hitter view
+  const hitter = await fetchNpbHitterStats(pid);
+  if (hitter && (hitter.avg != null || hitter.hr != null || hitter.hits != null)) {
+    const hitterProfile = await fetchNpbPitcherProfile(pid); // 동일 profile 구조
+    const photo = await fetchNpbPhotoUrl(pid);
+    return renderNpbHitterView(pid, hitterProfile, hitter, photo);
+  }
+
   const [profile, stats] = await Promise.all([
     fetchNpbPitcherProfile(pid),
     fetchNpbPitcherStats(pid),
@@ -504,27 +544,45 @@ async function NpbPlayerView({ pid }: { pid: string }) {
     ? profile.birthday.replace(/年/, "년 ").replace(/月/, "월 ").replace(/日/, "일")
     : undefined;
 
+  const photoUrl = await fetchNpbPhotoUrl(pid);
+
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       <header className="space-y-3">
         <Link href="/leagues/NPB" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
           ← NPB 리그
         </Link>
-        <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{koName}</h1>
-          {handBatsLabel && (
-            <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
-              {handBatsLabel}
-            </span>
+        <div className="flex items-center gap-4 flex-wrap">
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={koName}
+              width={96}
+              height={96}
+              className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
           )}
-          {profile.age != null && (
-            <span className="text-sm text-neutral-500">{profile.age}세</span>
-          )}
-        </div>
-        <div className="text-sm text-neutral-500">
-          {teamKo ? `${teamKo} · ` : ""}
-          {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
-          NPB 공식 (npb.jp)
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{koName}</h1>
+              {handBatsLabel && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
+                  {handBatsLabel}
+                </span>
+              )}
+              {profile.age != null && (
+                <span className="text-sm text-neutral-500">{profile.age}세</span>
+              )}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {teamKo ? `${teamKo} · ` : ""}
+              {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
+              NPB 공식 (npb.jp)
+            </div>
+          </div>
         </div>
         {(birthdayKo || profile.name) && (
           <div className="text-xs text-neutral-500 space-y-0.5">
@@ -1140,6 +1198,177 @@ async function renderNhlPlayerView(pid: string) {
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
         ⓘ 데이터 출처: NHL 공식 API (api-web.nhle.com).
+      </p>
+    </article>
+  );
+}
+
+/* ============================================================
+ * KBO 타자 view
+ * ==========================================================*/
+
+function renderKboHitterView(
+  pid: string,
+  profile: KboHitterProfile,
+  stats: KboHitterStats,
+) {
+  const name = profile.name ?? "(이름 정보 없음)";
+  const team = profile.team ?? stats.team;
+  const handBatsLabel = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
+  const season = new Date().getUTCFullYear();
+  return (
+    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <header className="space-y-3">
+        <Link href="/leagues/KBO" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+          ← KBO 리그
+        </Link>
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={kboPhotoUrl(pid)}
+            alt={name}
+            width={96}
+            height={96}
+            className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+          />
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{name}</h1>
+              {handBatsLabel && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
+                  {handBatsLabel}
+                </span>
+              )}
+              {profile.position && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                  {profile.position.replace(/\(.+\)/, "").trim()}
+                </span>
+              )}
+              {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
+              {profile.number && <span className="text-sm text-neutral-500">{profile.number}</span>}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {team ? `${team} · ` : ""}
+              {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
+              KBO 공식 (koreabaseball.com)
+            </div>
+          </div>
+        </div>
+        {(profile.birthday || profile.career) && (
+          <div className="text-xs text-neutral-500 space-y-0.5">
+            {profile.birthday && <div>생년월일: {profile.birthday}</div>}
+            {profile.career && <div>경력: {profile.career}</div>}
+          </div>
+        )}
+      </header>
+
+      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+          {season} 시즌 누적
+        </h2>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          <Stat label="타율" value={stats.avg ?? "—"} accent />
+          <Stat label="OPS" value={stats.obp && stats.slg ? (parseFloat(stats.obp) + parseFloat(stats.slg)).toFixed(3) : "—"} accent />
+          <Stat label="HR" value={stats.hr != null ? String(stats.hr) : "—"} />
+          <Stat label="RBI" value={stats.rbi != null ? String(stats.rbi) : "—"} />
+          <Stat label="SB" value={stats.sb != null ? String(stats.sb) : "—"} />
+          <Stat label="경기" value={stats.g != null ? String(stats.g) : "—"} />
+          <Stat label="OBP" value={stats.obp ?? "—"} />
+          <Stat label="SLG" value={stats.slg ?? "—"} />
+          <Stat label="H" value={stats.h != null ? String(stats.h) : "—"} />
+          <Stat label="2B" value={stats.d2b != null ? String(stats.d2b) : "—"} />
+          <Stat label="BB" value={stats.bb != null ? String(stats.bb) : "—"} />
+          <Stat label="SO" value={stats.so != null ? String(stats.so) : "—"} />
+        </div>
+      </section>
+
+      <p className="text-[11px] text-neutral-500 leading-relaxed">
+        ⓘ 데이터 출처: KBO 공식 (koreabaseball.com). 시즌 누적은 매 경기 후 업데이트됩니다.
+      </p>
+    </article>
+  );
+}
+
+/* ============================================================
+ * NPB 타자 view
+ * ==========================================================*/
+
+function renderNpbHitterView(
+  pid: string,
+  profile: NpbPitcherProfile,
+  stats: NpbHitterStats,
+  photoUrl: string | undefined,
+) {
+  const koName = profile.name ? npbDisplayName(profile.name, profile.kana) : "(이름 정보 없음)";
+  const teamKo = npbTeamJpToKor(profile.team);
+  const batsLabel = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
+  const ops = stats.obp != null && stats.slg != null ? (stats.obp + stats.slg).toFixed(3) : "—";
+  return (
+    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <header className="space-y-3">
+        <Link href="/leagues/NPB" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+          ← NPB 리그
+        </Link>
+        <div className="flex items-center gap-4 flex-wrap">
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={koName}
+              width={96}
+              height={96}
+              className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
+          )}
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{koName}</h1>
+              {batsLabel && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
+                  {batsLabel}
+                </span>
+              )}
+              {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {teamKo ? `${teamKo} · ` : ""}
+              {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
+              NPB 공식 (npb.jp)
+            </div>
+            {profile.name && (
+              <div className="text-[11px] text-neutral-400">
+                일본어 이름: {profile.name}
+                {profile.kana ? ` (${profile.kana})` : ""}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+          {stats.season} 시즌 누적
+        </h2>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          <Stat label="타율" value={stats.avg != null ? stats.avg.toFixed(3) : "—"} accent />
+          <Stat label="OPS" value={ops} accent />
+          <Stat label="HR" value={stats.hr != null ? String(stats.hr) : "—"} />
+          <Stat label="RBI" value={stats.rbi != null ? String(stats.rbi) : "—"} />
+          <Stat label="SB" value={stats.sb != null ? String(stats.sb) : "—"} />
+          <Stat label="경기" value={stats.g != null ? String(stats.g) : "—"} />
+          <Stat label="OBP" value={stats.obp != null ? stats.obp.toFixed(3) : "—"} />
+          <Stat label="SLG" value={stats.slg != null ? stats.slg.toFixed(3) : "—"} />
+          <Stat label="H" value={stats.hits != null ? String(stats.hits) : "—"} />
+          <Stat label="2B" value={stats.d2b != null ? String(stats.d2b) : "—"} />
+          <Stat label="BB" value={stats.bb != null ? String(stats.bb) : "—"} />
+          <Stat label="SO" value={stats.so != null ? String(stats.so) : "—"} />
+        </div>
+      </section>
+
+      <p className="text-[11px] text-neutral-500 leading-relaxed">
+        ⓘ 데이터 출처: NPB 공식 (npb.jp). 시즌 누적은 매 경기 후 업데이트됩니다.
       </p>
     </article>
   );
