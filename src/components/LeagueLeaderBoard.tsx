@@ -7,9 +7,12 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-// /players/[pid] 페이지가 view 를 가진 리그 (현재 KBO·NPB·MLB).
-// 다른 리그는 view 가 없어 링크 비활성화.
-const PLAYER_PAGE_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
+// /players/[pid] 페이지가 view 를 가진 리그.
+// 축구 8개 + KBO + NPB + MLB + NBA + NHL (LOL 만 제외 — Phase 3)
+const PLAYER_PAGE_LEAGUES = new Set([
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "KBO", "NPB", "MLB", "NBA", "NHL",
+]);
 
 function playerHref(league: string, externalId: string | null): string | null {
   if (!externalId || !PLAYER_PAGE_LEAGUES.has(league)) return null;

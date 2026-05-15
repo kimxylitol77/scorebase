@@ -199,6 +199,144 @@ export async function fetchSeasonTopScorers(
   }
 }
 
+// ===== 선수 상세 페이지 (/players/[pid]?league=EPL 등) =====
+
+export interface SoccerPlayerProfile {
+  pid: number;
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  age?: number;
+  nationality?: string;
+  height?: string;
+  weight?: string;
+  injured?: boolean;
+  photoUrl?: string;
+  birthDate?: string;
+  birthPlace?: string;
+  birthCountry?: string;
+  position?: string;
+  team?: string;
+  teamLogoUrl?: string;
+  /** 시즌별 stats — 리그/대회별 분리되어 들어있을 수 있음. 합산된 main league 항목만 표시 권장. */
+  stats: SoccerPlayerSeasonStat[];
+}
+
+export interface SoccerPlayerSeasonStat {
+  leagueName: string;
+  teamName: string;
+  position?: string;
+  appearances?: number;
+  lineups?: number;
+  minutes?: number;
+  rating?: string;
+  goals?: number;
+  assists?: number;
+  shotsTotal?: number;
+  shotsOn?: number;
+  passesTotal?: number;
+  passesKey?: number;
+  passesAccuracy?: number;
+  tacklesTotal?: number;
+  tacklesBlocks?: number;
+  tacklesInterceptions?: number;
+  duelsTotal?: number;
+  duelsWon?: number;
+  dribblesAttempts?: number;
+  dribblesSuccess?: number;
+  foulsCommitted?: number;
+  foulsDrawn?: number;
+  yellowCards?: number;
+  redCards?: number;
+  penaltyScored?: number;
+  penaltyMissed?: number;
+}
+
+export async function fetchSoccerPlayerProfile(
+  playerId: number,
+  season: number,
+): Promise<SoccerPlayerProfile | null> {
+  try {
+    const { data } = await client().get("/players", {
+      params: { id: playerId, season },
+    });
+    const r = data?.response?.[0];
+    if (!r) return null;
+    const p = r.player ?? {};
+    const stats: SoccerPlayerSeasonStat[] = (r.statistics ?? []).map((s: Record<string, unknown>) => {
+      const team = (s.team as Record<string, unknown>) ?? {};
+      const league = (s.league as Record<string, unknown>) ?? {};
+      const games = (s.games as Record<string, unknown>) ?? {};
+      const goals = (s.goals as Record<string, unknown>) ?? {};
+      const shots = (s.shots as Record<string, unknown>) ?? {};
+      const passes = (s.passes as Record<string, unknown>) ?? {};
+      const tackles = (s.tackles as Record<string, unknown>) ?? {};
+      const duels = (s.duels as Record<string, unknown>) ?? {};
+      const dribbles = (s.dribbles as Record<string, unknown>) ?? {};
+      const fouls = (s.fouls as Record<string, unknown>) ?? {};
+      const cards = (s.cards as Record<string, unknown>) ?? {};
+      const penalty = (s.penalty as Record<string, unknown>) ?? {};
+      return {
+        leagueName: (league.name as string) ?? "",
+        teamName: (team.name as string) ?? "",
+        position: games.position as string | undefined,
+        appearances: games.appearences as number | undefined,
+        lineups: games.lineups as number | undefined,
+        minutes: games.minutes as number | undefined,
+        rating: games.rating as string | undefined,
+        goals: goals.total as number | undefined,
+        assists: goals.assists as number | undefined,
+        shotsTotal: shots.total as number | undefined,
+        shotsOn: shots.on as number | undefined,
+        passesTotal: passes.total as number | undefined,
+        passesKey: passes.key as number | undefined,
+        passesAccuracy: passes.accuracy as number | undefined,
+        tacklesTotal: tackles.total as number | undefined,
+        tacklesBlocks: tackles.blocks as number | undefined,
+        tacklesInterceptions: tackles.interceptions as number | undefined,
+        duelsTotal: duels.total as number | undefined,
+        duelsWon: duels.won as number | undefined,
+        dribblesAttempts: dribbles.attempts as number | undefined,
+        dribblesSuccess: dribbles.success as number | undefined,
+        foulsCommitted: fouls.committed as number | undefined,
+        foulsDrawn: fouls.drawn as number | undefined,
+        yellowCards: cards.yellow as number | undefined,
+        redCards: cards.red as number | undefined,
+        penaltyScored: penalty.scored as number | undefined,
+        penaltyMissed: penalty.missed as number | undefined,
+      };
+    });
+    // 메인 league = 가장 많은 게임 출장 — 첫 번째로 정렬
+    stats.sort((a, b) => (b.appearances ?? 0) - (a.appearances ?? 0));
+    const main = stats[0];
+    const birth = (p.birth ?? {}) as Record<string, unknown>;
+    return {
+      pid: p.id as number,
+      name: (p.name as string) ?? "",
+      firstName: p.firstname as string | undefined,
+      lastName: p.lastname as string | undefined,
+      age: p.age as number | undefined,
+      nationality: p.nationality as string | undefined,
+      height: p.height as string | undefined,
+      weight: p.weight as string | undefined,
+      injured: p.injured as boolean | undefined,
+      photoUrl: p.photo as string | undefined,
+      birthDate: birth.date as string | undefined,
+      birthPlace: birth.place as string | undefined,
+      birthCountry: birth.country as string | undefined,
+      position: main?.position,
+      team: main?.teamName,
+      stats,
+    };
+  } catch (e) {
+    console.warn(
+      "[api-football-pro] fetchSoccerPlayerProfile 실패:",
+      (e as Error).message,
+    );
+    return null;
+  }
+}
+
 // ===== 시즌 리그 리더보드 (LeagueLeaderBoard 용) =====
 // /players/topassists, /players/topyellowcards, /players/topredcards
 // 응답 구조는 topscorers 와 동일 — statistics[0] 에 각 stat.

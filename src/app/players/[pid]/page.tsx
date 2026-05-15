@@ -24,6 +24,23 @@ import {
   type KboPitcherRecentGame,
 } from "@/lib/sports/kbo-official";
 import { npbTeamJpToKor } from "@/lib/sports/npb-official";
+import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
+import {
+  fetchNbaPlayer,
+  fetchNbaSeasonAverages,
+  fetchNbaPlayerRecentGames,
+  type NbaPlayerProfile,
+  type NbaSeasonAverages,
+  type NbaGameStat,
+} from "@/lib/sports/balldontlie";
+import {
+  fetchNhlPlayerLanding,
+  fetchNhlPlayerGameLog,
+  type NhlPlayerLanding,
+  type NhlPlayerGameLog,
+} from "@/lib/sports/nhl-api";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import {
   fetchNpbPitcherProfileCached as fetchNpbPitcherProfile,
   fetchNpbPitcherStatsCached as fetchNpbPitcherStats,
@@ -77,6 +94,15 @@ export default async function PlayerPage({ params, searchParams }: Props) {
 
   if (league === "KBO") return <KboPlayerView pid={pid} />;
   if (league === "NPB") return <NpbPlayerView pid={pid} />;
+  if (league === "NBA") return renderNbaPlayerView(pid);
+  if (league === "NHL") return renderNhlPlayerView(pid);
+  // 축구 8개 리그
+  if (
+    league &&
+    ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP"].includes(league)
+  ) {
+    return renderSoccerPlayerView(pid, league);
+  }
 
   // MLB (default) — 타자/투수 분기. fetchHitterProfile 한 번으로 person 정보 + position 받음.
   const id = Number(pid);
@@ -720,6 +746,400 @@ function renderMlbHitterView(
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
         ⓘ 데이터 출처: MLB 공식 Stats API (statsapi.mlb.com). 시즌 누적은 매 경기 후 업데이트됩니다.
+      </p>
+    </article>
+  );
+}
+
+/* ============================================================
+ * 축구 선수 view (API-Football)
+ * ==========================================================*/
+
+async function renderSoccerPlayerView(pid: string, league: string) {
+  const id = Number(pid);
+  if (!Number.isFinite(id)) notFound();
+  const now = new Date();
+  const m = now.getUTCMonth() + 1;
+  const season = m >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+  const profile = await fetchSoccerPlayerProfile(id, season);
+  if (!profile) notFound();
+
+  const nameKo = toKoreanPlayerName(profile.name) || profile.name;
+  const main = profile.stats[0];
+  const teamKo = main ? (toKoreanTeamName(main.teamName) || main.teamName) : "";
+
+  return (
+    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <header className="space-y-3">
+        <Link
+          href={`/leagues/${league}`}
+          className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+        >
+          ← {league}
+        </Link>
+        <div className="flex items-center gap-4 flex-wrap">
+          {profile.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.photoUrl}
+              alt={nameKo}
+              width={96}
+              height={96}
+              className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
+          )}
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{nameKo}</h1>
+              {profile.position && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                  {profile.position}
+                </span>
+              )}
+              {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {teamKo ? `${teamKo} · ` : ""}
+              {profile.nationality ?? ""}
+              {profile.height ? ` · ${profile.height}cm` : ""}
+              {profile.weight ? ` · ${profile.weight}kg` : ""}
+            </div>
+            <div className="text-[11px] text-neutral-400">
+              API-Football · {season}-{String(season + 1).slice(2)} 시즌
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {main && (
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+            {main.leagueName} 시즌 누적
+          </h2>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <Stat label="출장" value={String(main.appearances ?? "—")} accent />
+            <Stat label="득점" value={String(main.goals ?? 0)} accent />
+            <Stat label="도움" value={String(main.assists ?? 0)} />
+            <Stat label="평점" value={main.rating ? Number(main.rating).toFixed(2) : "—"} />
+            <Stat label="분" value={String(main.minutes ?? "—")} />
+            <Stat label="선발" value={String(main.lineups ?? "—")} />
+            <Stat label="슛/유효" value={`${main.shotsTotal ?? "—"}/${main.shotsOn ?? "—"}`} />
+            <Stat label="패스" value={String(main.passesTotal ?? "—")} />
+            <Stat label="키패스" value={String(main.passesKey ?? "—")} />
+            <Stat label="태클" value={String(main.tacklesTotal ?? "—")} />
+            <Stat label="🟨" value={String(main.yellowCards ?? 0)} />
+            <Stat label="🟥" value={String(main.redCards ?? 0)} />
+          </div>
+        </section>
+      )}
+
+      {profile.stats.length > 1 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">대회별 stats ({profile.stats.length})</h2>
+          <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                <tr>
+                  <th className="text-left px-3 py-2 font-medium">대회</th>
+                  <th className="text-left px-3 py-2 font-medium">팀</th>
+                  <th className="text-right px-2 py-2 font-medium">경기</th>
+                  <th className="text-right px-2 py-2 font-medium">득점</th>
+                  <th className="text-right px-2 py-2 font-medium">도움</th>
+                  <th className="text-right px-2 py-2 font-medium">분</th>
+                  <th className="text-right px-3 py-2 font-medium">평점</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {profile.stats.map((s, i) => (
+                  <tr key={i}>
+                    <td className="px-3 py-2 truncate max-w-[200px]">{s.leagueName}</td>
+                    <td className="px-3 py-2 truncate max-w-[160px]">
+                      {toKoreanTeamName(s.teamName) || s.teamName}
+                    </td>
+                    <td className="px-2 py-2 text-right tabular-nums">{s.appearances ?? "—"}</td>
+                    <td className="px-2 py-2 text-right tabular-nums font-semibold">{s.goals ?? 0}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{s.assists ?? 0}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{s.minutes ?? "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {s.rating ? Number(s.rating).toFixed(2) : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <p className="text-[11px] text-neutral-500 leading-relaxed">
+        ⓘ 데이터 출처: API-Football (api-sports.io). 시즌 stats 는 매일 자동 갱신됩니다.
+      </p>
+    </article>
+  );
+}
+
+/* ============================================================
+ * NBA 선수 view (BALLDONTLIE)
+ * ==========================================================*/
+
+async function renderNbaPlayerView(pid: string) {
+  const id = Number(pid);
+  if (!Number.isFinite(id)) notFound();
+  const now = new Date();
+  const m = now.getUTCMonth() + 1;
+  const season = m >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+  const [profile, avg, recent] = await Promise.all([
+    fetchNbaPlayer(id),
+    fetchNbaSeasonAverages(id, season),
+    fetchNbaPlayerRecentGames(id, season, 10),
+  ]);
+  if (!profile) notFound();
+  const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+  const nameKo = toKoreanPlayerName(fullName) || fullName;
+  const teamKo = profile.team ? toKoreanTeamName(profile.team.fullName) || profile.team.fullName : "";
+  return (
+    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <header className="space-y-3">
+        <Link href="/leagues/NBA" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+          ← NBA
+        </Link>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-2xl font-bold text-neutral-400">
+            {profile.firstName[0]}{profile.lastName[0]}
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{nameKo}</h1>
+              {profile.position && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                  {profile.position}
+                </span>
+              )}
+              {profile.jerseyNumber && <span className="text-sm text-neutral-500">#{profile.jerseyNumber}</span>}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {teamKo ? `${teamKo} · ` : ""}
+              {profile.height ? `${profile.height} · ` : ""}
+              {profile.weight ? `${profile.weight} lbs` : ""}
+              {profile.country ? ` · ${profile.country}` : ""}
+            </div>
+            <div className="text-[11px] text-neutral-400">
+              BALLDONTLIE · {season} 시즌
+              {profile.draftYear ? ` · ${profile.draftYear} 드래프트 ${profile.draftRound}R ${profile.draftNumber}순위` : ""}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {avg ? (
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+            {season} 시즌 평균 ({avg.gamesPlayed}경기)
+          </h2>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <Stat label="PTS" value={avg.pts.toFixed(1)} accent />
+            <Stat label="REB" value={avg.reb.toFixed(1)} accent />
+            <Stat label="AST" value={avg.ast.toFixed(1)} accent />
+            <Stat label="STL" value={avg.stl.toFixed(1)} />
+            <Stat label="BLK" value={avg.blk.toFixed(1)} />
+            <Stat label="MIN" value={avg.min} />
+            <Stat label="FG%" value={(avg.fgPct * 100).toFixed(1)} />
+            <Stat label="3P%" value={(avg.fg3Pct * 100).toFixed(1)} />
+            <Stat label="FT%" value={(avg.ftPct * 100).toFixed(1)} />
+            <Stat label="TO" value={avg.turnover.toFixed(1)} />
+            <Stat label="OREB" value={avg.oreb.toFixed(1)} />
+            <Stat label="DREB" value={avg.dreb.toFixed(1)} />
+          </div>
+        </section>
+      ) : (
+        <p className="text-sm text-neutral-500">{season} 시즌 통계가 없습니다.</p>
+      )}
+
+      <section>
+        <h2 className="text-lg font-semibold mb-3">최근 경기 ({recent.length})</h2>
+        {recent.length === 0 ? (
+          <p className="text-sm text-neutral-500">{season} 경기 기록이 없습니다.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                <tr>
+                  <th className="text-left px-3 py-2 font-medium">일자</th>
+                  <th className="text-left px-2 py-2 font-medium">매치</th>
+                  <th className="text-right px-2 py-2 font-medium">MIN</th>
+                  <th className="text-right px-2 py-2 font-medium">PTS</th>
+                  <th className="text-right px-2 py-2 font-medium">REB</th>
+                  <th className="text-right px-2 py-2 font-medium">AST</th>
+                  <th className="text-right px-2 py-2 font-medium">STL</th>
+                  <th className="text-right px-2 py-2 font-medium">BLK</th>
+                  <th className="text-right px-3 py-2 font-medium">+/-</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {recent.map((g) => (
+                  <tr key={g.id}>
+                    <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{g.game?.date?.slice(0, 10) ?? "—"}</td>
+                    <td className="px-2 py-2 truncate">
+                      {g.game ? `${g.game.visitorTeam.abbr} ${g.game.visitorTeamScore} - ${g.game.homeTeamScore} ${g.game.homeTeam.abbr}` : "—"}
+                    </td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.min}</td>
+                    <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.pts}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.reb}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.ast}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.stl}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.blk}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{g.plusMinus ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <p className="text-[11px] text-neutral-500 leading-relaxed">
+        ⓘ 데이터 출처: BALLDONTLIE NBA API.
+      </p>
+    </article>
+  );
+}
+
+/* ============================================================
+ * NHL 선수 view (NHL 공식 API)
+ * ==========================================================*/
+
+async function renderNhlPlayerView(pid: string) {
+  const id = Number(pid);
+  if (!Number.isFinite(id)) notFound();
+  const profile = await fetchNhlPlayerLanding(id);
+  if (!profile) notFound();
+  const now = new Date();
+  const m = now.getUTCMonth() + 1;
+  const seasonStart = m >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+  const seasonStr = `${seasonStart}${seasonStart + 1}`;
+  const recent = await fetchNhlPlayerGameLog(id, seasonStr, 2, 10);
+  const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+  const nameKo = toKoreanPlayerName(fullName) || fullName;
+  const teamKo = profile.teamFullName ? toKoreanTeamName(profile.teamFullName) || profile.teamFullName : "";
+  const isGoalie = profile.position === "G";
+  const f = profile.featured ?? {};
+  return (
+    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <header className="space-y-3">
+        <Link href="/leagues/NHL" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+          ← NHL
+        </Link>
+        <div className="flex items-center gap-4 flex-wrap">
+          {profile.headshot ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.headshot}
+              alt={nameKo}
+              width={96}
+              height={96}
+              className="rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
+          )}
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{nameKo}</h1>
+              {profile.position && (
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                  {profile.position}
+                </span>
+              )}
+              {profile.jerseyNumber != null && <span className="text-sm text-neutral-500">#{profile.jerseyNumber}</span>}
+            </div>
+            <div className="text-sm text-neutral-500">
+              {teamKo ? `${teamKo} · ` : ""}
+              {profile.shootsCatches ? `${profile.shootsCatches} · ` : ""}
+              {profile.birthCountry ?? ""}
+            </div>
+            <div className="text-[11px] text-neutral-400">
+              NHL 공식 API · {seasonStart}-{String(seasonStart + 1).slice(2)} 시즌
+              {profile.draftYear ? ` · ${profile.draftYear} 드래프트 ${profile.draftOverall}순위` : ""}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+          {seasonStart} 시즌 누적
+        </h2>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          {isGoalie ? (
+            <>
+              <Stat label="W-L-OT" value={`${f.wins ?? 0}-${f.losses ?? 0}-${f.otLosses ?? 0}`} accent />
+              <Stat label="SV%" value={f.savePctg != null ? f.savePctg.toFixed(3) : "—"} accent />
+              <Stat label="GAA" value={f.goalsAgainstAvg != null ? f.goalsAgainstAvg.toFixed(2) : "—"} accent />
+              <Stat label="SHO" value={String(f.shutouts ?? 0)} />
+              <Stat label="GP" value={String(f.gamesPlayed ?? 0)} />
+            </>
+          ) : (
+            <>
+              <Stat label="G" value={String(f.goals ?? 0)} accent />
+              <Stat label="A" value={String(f.assists ?? 0)} accent />
+              <Stat label="PTS" value={String(f.points ?? 0)} accent />
+              <Stat label="+/-" value={String(f.plusMinus ?? "—")} />
+              <Stat label="PIM" value={String(f.pim ?? 0)} />
+              <Stat label="GP" value={String(f.gamesPlayed ?? 0)} />
+              <Stat label="SOG" value={String(f.shots ?? 0)} />
+              <Stat label="PP G" value={String(f.powerPlayGoals ?? 0)} />
+              <Stat label="SH G" value={String(f.shorthandedGoals ?? 0)} />
+              <Stat label="GW G" value={String(f.gameWinningGoals ?? 0)} />
+            </>
+          )}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-3">최근 경기 ({recent.length})</h2>
+        {recent.length === 0 ? (
+          <p className="text-sm text-neutral-500">시즌 경기 기록이 없습니다.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                <tr>
+                  <th className="text-left px-3 py-2 font-medium">일자</th>
+                  <th className="text-left px-2 py-2 font-medium">상대</th>
+                  <th className="text-right px-2 py-2 font-medium">G</th>
+                  <th className="text-right px-2 py-2 font-medium">A</th>
+                  <th className="text-right px-2 py-2 font-medium">PTS</th>
+                  <th className="text-right px-2 py-2 font-medium">+/-</th>
+                  <th className="text-right px-2 py-2 font-medium">SOG</th>
+                  <th className="text-right px-3 py-2 font-medium">TOI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {recent.map((g, i) => (
+                  <tr key={i}>
+                    <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{g.gameDate}</td>
+                    <td className="px-2 py-2 truncate">
+                      {g.homeRoadFlag === "H" ? "vs " : "@ "}
+                      {g.opponentAbbrev}
+                    </td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.goals}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.assists}</td>
+                    <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.points}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.plusMinus ?? "—"}</td>
+                    <td className="px-2 py-2 text-right tabular-nums">{g.shots}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{g.toi}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <p className="text-[11px] text-neutral-500 leading-relaxed">
+        ⓘ 데이터 출처: NHL 공식 API (api-web.nhle.com).
       </p>
     </article>
   );

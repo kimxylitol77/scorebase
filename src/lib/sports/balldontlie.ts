@@ -207,3 +207,286 @@ export async function fetchBalldontlieInjuries(
   if (league === "MLB") return fetchMlb(key);
   return [];
 }
+
+// ===== NBA 선수 페이지 (/players/[id]?league=NBA) =====
+
+const BDL_NBA = "https://api.balldontlie.io/nba/v1";
+
+export interface NbaPlayerProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  position?: string;
+  height?: string;
+  weight?: string;
+  jerseyNumber?: string;
+  college?: string;
+  country?: string;
+  draftYear?: number;
+  draftRound?: number;
+  draftNumber?: number;
+  team?: { id: number; fullName: string; city: string; name: string; abbr: string };
+}
+
+export interface NbaSeasonAverages {
+  season: number;
+  gamesPlayed: number;
+  min: string;
+  pts: number;
+  ast: number;
+  reb: number;
+  oreb: number;
+  dreb: number;
+  stl: number;
+  blk: number;
+  turnover: number;
+  pf: number;
+  fgm: number;
+  fga: number;
+  fgPct: number;
+  fg3m: number;
+  fg3a: number;
+  fg3Pct: number;
+  ftm: number;
+  fta: number;
+  ftPct: number;
+}
+
+export interface NbaGameStat {
+  id: number;
+  min: string;
+  pts: number;
+  ast: number;
+  reb: number;
+  stl: number;
+  blk: number;
+  turnover: number;
+  fgm: number;
+  fga: number;
+  fg3m: number;
+  fg3a: number;
+  ftm: number;
+  fta: number;
+  plusMinus?: number;
+  game?: {
+    id: number;
+    date: string;
+    homeTeam: { abbr: string; fullName: string };
+    visitorTeam: { abbr: string; fullName: string };
+    homeTeamScore: number;
+    visitorTeamScore: number;
+  };
+}
+
+interface BdlNbaPlayerResp {
+  data?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    position?: string;
+    height?: string;
+    weight?: string;
+    jersey_number?: string;
+    college?: string;
+    country?: string;
+    draft_year?: number;
+    draft_round?: number;
+    draft_number?: number;
+    team?: {
+      id: number;
+      full_name: string;
+      city: string;
+      name: string;
+      abbreviation: string;
+    };
+  };
+}
+
+export async function fetchNbaPlayer(id: number): Promise<NbaPlayerProfile | null> {
+  const key = process.env.BALLDONTLIE_KEY;
+  if (!key) return null;
+  try {
+    const r = await fetch(`${BDL_NBA}/players/${id}`, {
+      headers: { Authorization: key },
+      cache: "no-store",
+    });
+    if (!r.ok) return null;
+    const j = (await r.json()) as BdlNbaPlayerResp;
+    const d = j.data;
+    if (!d) return null;
+    return {
+      id: d.id,
+      firstName: d.first_name,
+      lastName: d.last_name,
+      position: d.position,
+      height: d.height,
+      weight: d.weight,
+      jerseyNumber: d.jersey_number,
+      college: d.college,
+      country: d.country,
+      draftYear: d.draft_year,
+      draftRound: d.draft_round,
+      draftNumber: d.draft_number,
+      team: d.team
+        ? {
+            id: d.team.id,
+            fullName: d.team.full_name,
+            city: d.team.city,
+            name: d.team.name,
+            abbr: d.team.abbreviation,
+          }
+        : undefined,
+    };
+  } catch (e) {
+    console.warn("[bdl] nba player 실패:", (e as Error).message);
+    return null;
+  }
+}
+
+export async function fetchNbaSeasonAverages(
+  playerId: number,
+  season: number,
+): Promise<NbaSeasonAverages | null> {
+  const key = process.env.BALLDONTLIE_KEY;
+  if (!key) return null;
+  try {
+    const r = await fetch(
+      `${BDL_NBA}/season_averages?player_id=${playerId}&season=${season}`,
+      { headers: { Authorization: key }, cache: "no-store" },
+    );
+    if (!r.ok) return null;
+    interface AvgRow {
+      season: number;
+      games_played: number;
+      min: string;
+      pts: number;
+      ast: number;
+      reb: number;
+      oreb: number;
+      dreb: number;
+      stl: number;
+      blk: number;
+      turnover: number;
+      pf: number;
+      fgm: number;
+      fga: number;
+      fg_pct: number;
+      fg3m: number;
+      fg3a: number;
+      fg3_pct: number;
+      ftm: number;
+      fta: number;
+      ft_pct: number;
+    }
+    const j = (await r.json()) as { data?: AvgRow[] };
+    const d = j.data?.[0];
+    if (!d) return null;
+    return {
+      season: d.season,
+      gamesPlayed: d.games_played,
+      min: d.min,
+      pts: d.pts,
+      ast: d.ast,
+      reb: d.reb,
+      oreb: d.oreb,
+      dreb: d.dreb,
+      stl: d.stl,
+      blk: d.blk,
+      turnover: d.turnover,
+      pf: d.pf,
+      fgm: d.fgm,
+      fga: d.fga,
+      fgPct: d.fg_pct,
+      fg3m: d.fg3m,
+      fg3a: d.fg3a,
+      fg3Pct: d.fg3_pct,
+      ftm: d.ftm,
+      fta: d.fta,
+      ftPct: d.ft_pct,
+    };
+  } catch (e) {
+    console.warn("[bdl] nba avg 실패:", (e as Error).message);
+    return null;
+  }
+}
+
+export async function fetchNbaPlayerRecentGames(
+  playerId: number,
+  season: number,
+  limit = 10,
+): Promise<NbaGameStat[]> {
+  const key = process.env.BALLDONTLIE_KEY;
+  if (!key) return [];
+  try {
+    const r = await fetch(
+      `${BDL_NBA}/stats?player_ids[]=${playerId}&seasons[]=${season}&per_page=${limit}`,
+      { headers: { Authorization: key }, cache: "no-store" },
+    );
+    if (!r.ok) return [];
+    interface StatRow {
+      id: number;
+      min: string;
+      pts: number;
+      ast: number;
+      reb: number;
+      stl: number;
+      blk: number;
+      turnover: number;
+      fgm: number;
+      fga: number;
+      fg3m: number;
+      fg3a: number;
+      ftm: number;
+      fta: number;
+      plus_minus?: number;
+      game?: {
+        id: number;
+        date: string;
+        home_team?: { abbreviation: string; full_name: string };
+        visitor_team?: { abbreviation: string; full_name: string };
+        home_team_score: number;
+        visitor_team_score: number;
+      };
+    }
+    const j = (await r.json()) as { data?: StatRow[] };
+    const rows: NbaGameStat[] = (j.data ?? []).map((s) => ({
+      id: s.id,
+      min: s.min,
+      pts: s.pts,
+      ast: s.ast,
+      reb: s.reb,
+      stl: s.stl,
+      blk: s.blk,
+      turnover: s.turnover,
+      fgm: s.fgm,
+      fga: s.fga,
+      fg3m: s.fg3m,
+      fg3a: s.fg3a,
+      ftm: s.ftm,
+      fta: s.fta,
+      plusMinus: s.plus_minus,
+      game: s.game
+        ? {
+            id: s.game.id,
+            date: s.game.date,
+            homeTeam: {
+              abbr: s.game.home_team?.abbreviation ?? "",
+              fullName: s.game.home_team?.full_name ?? "",
+            },
+            visitorTeam: {
+              abbr: s.game.visitor_team?.abbreviation ?? "",
+              fullName: s.game.visitor_team?.full_name ?? "",
+            },
+            homeTeamScore: s.game.home_team_score,
+            visitorTeamScore: s.game.visitor_team_score,
+          }
+        : undefined,
+    }));
+    // 최근 순
+    rows.sort((a, b) => (b.game?.date ?? "").localeCompare(a.game?.date ?? ""));
+    return rows;
+  } catch (e) {
+    console.warn("[bdl] nba games 실패:", (e as Error).message);
+    return [];
+  }
+}

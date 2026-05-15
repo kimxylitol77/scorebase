@@ -239,3 +239,176 @@ export async function fetchGoalieGameLog(
     decision: g.decision,
   }));
 }
+
+// ===== NHL 선수 페이지 (/players/[id]?league=NHL) =====
+
+export interface NhlPlayerLanding {
+  pid: number;
+  firstName: string;
+  lastName: string;
+  position?: string; // C / L / R / D / G
+  jerseyNumber?: number;
+  headshot?: string;
+  heroImage?: string;
+  heightCm?: number;
+  weightKg?: number;
+  birthDate?: string;
+  birthCity?: string;
+  birthCountry?: string;
+  shootsCatches?: string;
+  teamId?: number;
+  teamAbbr?: string;
+  teamFullName?: string;
+  draftYear?: number;
+  draftRound?: number;
+  draftOverall?: number;
+  /** 시즌 누적 (skater 또는 goalie) */
+  featured?: NhlFeaturedStats;
+  career?: NhlCareerTotals;
+}
+
+export interface NhlFeaturedStats {
+  /** skater: goals/assists/points/plusMinus/pim/gameWinningGoals/otGoals/ppGoals/shGoals/shots/sog */
+  /** goalie: gamesPlayed/wins/losses/otLosses/savePctg/goalsAgainstAvg/shutouts */
+  [key: string]: number | undefined;
+}
+
+export interface NhlCareerTotals {
+  gamesPlayed?: number;
+  goals?: number;
+  assists?: number;
+  points?: number;
+  plusMinus?: number;
+  shots?: number;
+  pim?: number;
+  shootingPctg?: number;
+  // goalie
+  wins?: number;
+  losses?: number;
+  shutouts?: number;
+  savePctg?: number;
+  goalsAgainstAvg?: number;
+}
+
+export interface NhlPlayerGameLog {
+  gameDate: string;
+  homeRoadFlag: "H" | "R";
+  opponentAbbrev: string;
+  teamAbbrev: string;
+  goals: number;
+  assists: number;
+  points: number;
+  plusMinus?: number;
+  shots: number;
+  pim: number;
+  toi: string; // "16:32"
+}
+
+interface RawNhlLanding {
+  playerId: number;
+  firstName?: { default?: string };
+  lastName?: { default?: string };
+  position?: string;
+  sweaterNumber?: number;
+  headshot?: string;
+  heroImage?: string;
+  heightInCentimeters?: number;
+  weightInKilograms?: number;
+  birthDate?: string;
+  birthCity?: { default?: string };
+  birthCountry?: string;
+  shootsCatches?: string;
+  currentTeamId?: number;
+  currentTeamAbbrev?: string;
+  fullTeamName?: { default?: string };
+  draftDetails?: { year?: number; round?: number; overallPick?: number };
+  featuredStats?: { regularSeason?: { subSeason?: Record<string, number> } };
+  careerTotals?: { regularSeason?: Record<string, number> };
+}
+
+export async function fetchNhlPlayerLanding(
+  pid: number,
+): Promise<NhlPlayerLanding | null> {
+  try {
+    const r = await fetch(`${BASE_URL}/player/${pid}/landing`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) return null;
+    const d = (await r.json()) as RawNhlLanding;
+    if (!d.playerId) return null;
+    const featured = d.featuredStats?.regularSeason?.subSeason ?? {};
+    const career = d.careerTotals?.regularSeason ?? {};
+    return {
+      pid: d.playerId,
+      firstName: d.firstName?.default ?? "",
+      lastName: d.lastName?.default ?? "",
+      position: d.position,
+      jerseyNumber: d.sweaterNumber,
+      headshot: d.headshot,
+      heroImage: d.heroImage,
+      heightCm: d.heightInCentimeters,
+      weightKg: d.weightInKilograms,
+      birthDate: d.birthDate,
+      birthCity: d.birthCity?.default,
+      birthCountry: d.birthCountry,
+      shootsCatches: d.shootsCatches,
+      teamId: d.currentTeamId,
+      teamAbbr: d.currentTeamAbbrev,
+      teamFullName: d.fullTeamName?.default,
+      draftYear: d.draftDetails?.year,
+      draftRound: d.draftDetails?.round,
+      draftOverall: d.draftDetails?.overallPick,
+      featured,
+      career: career as NhlCareerTotals,
+    };
+  } catch (e) {
+    console.warn("[nhl] landing 실패:", (e as Error).message);
+    return null;
+  }
+}
+
+export async function fetchNhlPlayerGameLog(
+  pid: number,
+  season: string,
+  gameType: 2 | 3 = 2, // 2=정규, 3=플레이오프
+  limit = 10,
+): Promise<NhlPlayerGameLog[]> {
+  try {
+    const r = await fetch(
+      `${BASE_URL}/player/${pid}/game-log/${season}/${gameType}`,
+      { cache: "no-store", signal: AbortSignal.timeout(10000) },
+    );
+    if (!r.ok) return [];
+    interface Row {
+      gameDate: string;
+      homeRoadFlag: "H" | "R";
+      opponentAbbrev: string;
+      teamAbbrev: string;
+      goals: number;
+      assists: number;
+      points: number;
+      plusMinus?: number;
+      shots?: number;
+      pim?: number;
+      toi?: string;
+    }
+    const d = (await r.json()) as { gameLog?: Row[] };
+    return (d.gameLog ?? []).slice(0, limit).map((g) => ({
+      gameDate: g.gameDate,
+      homeRoadFlag: g.homeRoadFlag,
+      opponentAbbrev: g.opponentAbbrev,
+      teamAbbrev: g.teamAbbrev,
+      goals: g.goals,
+      assists: g.assists,
+      points: g.points,
+      plusMinus: g.plusMinus,
+      shots: g.shots ?? 0,
+      pim: g.pim ?? 0,
+      toi: g.toi ?? "—",
+    }));
+  } catch (e) {
+    console.warn("[nhl] game log 실패:", (e as Error).message);
+    return [];
+  }
+}
