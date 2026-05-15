@@ -23,6 +23,7 @@ import {
 } from "@/lib/sports/api-football-pro";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 
 const TOP_N = 10;
 
@@ -322,6 +323,10 @@ async function runMlb(season: number) {
       };
       const leaders = data.leagueLeaders?.[0]?.leaders ?? [];
       for (const l of leaders.slice(0, TOP_N)) {
+        // MLB Stats API 의 person id → 공식 헤드샷 URL 패턴 (213px)
+        const photoUrl = l.person.id
+          ? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${l.person.id}/headshot/67/current`
+          : undefined;
         await upsertLeader({
           league: "MLB",
           category: c.code,
@@ -332,6 +337,7 @@ async function runMlb(season: number) {
           teamName: toKoreanTeamName(l.team?.name ?? "") || l.team?.name || "",
           value: parseFloat(l.value),
           unit: c.unit,
+          photoUrl,
           season: String(season),
         });
       }
@@ -578,11 +584,13 @@ async function runNpb(season: number) {
       const teamKo = Object.entries(NPB_TEAM_JP_TO_KOR).find(([abbr]) =>
         teamRaw.includes(abbr.replace(/[()]/g, ""))
       )?.[1] ?? teamRaw;
+      const playerKo = npbPlayerToKorean(e.row.player);
       await upsertLeader({
         league: "NPB",
         category: code,
         rank: i + 1,
-        playerName: e.row.player,
+        playerName: playerKo,
+        playerNameEn: e.row.player,
         teamName: teamKo,
         value: e.value,
         unit,

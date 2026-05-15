@@ -5,6 +5,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+
+// /players/[pid] 페이지가 view 를 가진 리그 (현재 KBO·NPB·MLB).
+// 다른 리그는 view 가 없어 링크 비활성화.
+const PLAYER_PAGE_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
+
+function playerHref(league: string, externalId: string | null): string | null {
+  if (!externalId || !PLAYER_PAGE_LEAGUES.has(league)) return null;
+  if (league === "MLB") return `/players/${externalId}`;
+  return `/players/${externalId}?league=${league}`;
+}
 
 export interface LeaderRow {
   rank: number;
@@ -130,45 +141,71 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory }: Pr
 
       {/* 표 */}
       <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-        {rows.map((r) => (
-          <div
-            key={r.rank}
-            className="flex items-center gap-3 px-3 sm:px-4 py-2.5"
-          >
-            <span className="w-6 text-center text-xs font-bold tabular-nums text-neutral-400 shrink-0">
-              {r.rank}
-            </span>
-            {r.photoUrl ? (
-              <Image
-                src={r.photoUrl}
-                alt={r.playerName}
-                width={36}
-                height={36}
-                className="rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800"
-                unoptimized
-              />
-            ) : (
-              <span className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold truncate">{r.playerName}</div>
-              <div className="text-[11px] text-neutral-500 truncate">
-                {r.teamName}
-                {r.appearances != null && r.appearances > 0
-                  ? ` · ${r.appearances}경기`
-                  : ""}
-              </div>
-            </div>
-            <div className="text-right shrink-0">
-              <div className="text-lg sm:text-xl font-black tabular-nums">
-                {decimals > 0 ? r.value.toFixed(decimals) : Math.round(r.value)}
-              </div>
-              {r.unit && (
-                <div className="text-[10px] text-neutral-500 -mt-0.5">{r.unit}</div>
+        {rows.map((r) => {
+          const href = playerHref(league, r.externalId);
+          const Wrap = href
+            ? ({ children }: { children: React.ReactNode }) => (
+                <Link
+                  href={href}
+                  prefetch={false}
+                  className="flex items-center gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition"
+                >
+                  {children}
+                </Link>
+              )
+            : ({ children }: { children: React.ReactNode }) => (
+                <div className="flex items-center gap-3 px-3 sm:px-4 py-2.5">
+                  {children}
+                </div>
+              );
+          return (
+            <Wrap key={r.rank}>
+              <span className="w-6 text-center text-xs font-bold tabular-nums text-neutral-400 shrink-0">
+                {r.rank}
+              </span>
+              {r.photoUrl ? (
+                <Image
+                  src={r.photoUrl}
+                  alt={r.playerName}
+                  width={36}
+                  height={36}
+                  className="rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800"
+                  unoptimized
+                />
+              ) : (
+                <span className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-[10px] text-neutral-400">
+                  {r.playerName.slice(0, 1)}
+                </span>
               )}
-            </div>
-          </div>
-        ))}
+              <div className="min-w-0 flex-1">
+                <div
+                  className={`text-sm font-semibold truncate ${href ? "group-hover:text-blue-600" : ""}`}
+                >
+                  {r.playerName}
+                </div>
+                <div className="text-[11px] text-neutral-500 truncate">
+                  {r.teamName}
+                  {r.appearances != null && r.appearances > 0
+                    ? ` · ${r.appearances}경기`
+                    : ""}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-lg sm:text-xl font-black tabular-nums">
+                  {decimals > 0 ? r.value.toFixed(decimals) : Math.round(r.value)}
+                </div>
+                {r.unit && (
+                  <div className="text-[10px] text-neutral-500 -mt-0.5">
+                    {r.unit}
+                  </div>
+                )}
+              </div>
+              {href && (
+                <span className="text-neutral-300 dark:text-neutral-600 text-xs shrink-0">›</span>
+              )}
+            </Wrap>
+          );
+        })}
       </div>
 
       <div className="px-3 sm:px-4 py-2 text-[11px] text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/40 border-t border-neutral-200 dark:border-neutral-800">
