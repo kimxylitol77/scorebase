@@ -1,12 +1,17 @@
 // /api/live/scores — 모든 리그 라이브 매치 통합 endpoint.
-// Edge Runtime · CDN s-maxage 15초 + SWR 45초 · ETag/304 지원.
+// Edge Runtime · 매 요청 새로 평가 (dynamic) · CDN 짧은 캐시 + ETag/304 지원.
 // ?demo=1 으로 호출 시 가짜 매치 list 반환 (디자인 검증용, 캐시 X).
+//
+// 캐시 정책 (2026-05-15 fix):
+//   force-dynamic + s-maxage=10 + must-revalidate.
+//   기존 revalidate=15 + stale-while-revalidate=45 조합이 빈 응답을 영구 캐시하던
+//   이슈 (etag W/"empty hash" 가 SWR 동안 무한 유지) 해결.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchAllLiveScores, type LiveMatch } from "@/lib/sports/live-scores";
 
 export const runtime = "edge";
-export const revalidate = 15;
+export const dynamic = "force-dynamic";
 
 const DEMO_MATCHES: LiveMatch[] = [
   {
@@ -118,7 +123,13 @@ export async function GET(req: NextRequest) {
   }
   try {
     const matches = await fetchAllLiveScores();
-    const etag = `W/"${await hashMatches(matches)}"`;
+    // 빈 응답에 시간 토큰 섞어 CDN 영구 캐시 회피 (10초 단위로 etag 회전)
+    const baseHash = await hashMatches(matches);
+    const etagBody =
+      matches.length === 0
+        ? `${baseHash}-${Math.floor(Date.now() / 10_000)}`
+        : baseHash;
+    const etag = `W/"${etagBody}"`;
     const ifNoneMatch = req.headers.get("if-none-match");
     if (ifNoneMatch && ifNoneMatch === etag) {
       // 변경 없음 → 빈 body 304 (트래픽 절약)
@@ -126,7 +137,7 @@ export async function GET(req: NextRequest) {
         status: 304,
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
+          "Cache-Control": "public, s-maxage=10, must-revalidate",
         },
       });
     }
@@ -135,7 +146,7 @@ export async function GET(req: NextRequest) {
       {
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
+          "Cache-Control": "public, s-maxage=10, must-revalidate",
         },
       },
     );
