@@ -150,6 +150,7 @@ export function getTeamInjuries(
 export interface TopScorerEntry {
   playerId: number;
   playerName: string;
+  photoUrl?: string;
   teamId: number;
   teamName: string;
   goals: number;
@@ -179,6 +180,7 @@ export async function fetchSeasonTopScorers(
       return {
         playerId: r.player?.id,
         playerName: r.player?.name ?? "",
+        photoUrl: r.player?.photo,
         teamId: stat.team?.id,
         teamName: stat.team?.name ?? "",
         goals: stat.goals?.total ?? 0,
