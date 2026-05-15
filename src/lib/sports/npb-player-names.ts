@@ -117,6 +117,15 @@ const NPB_PLAYER_KO: Record<string, string> = {
   "度会隆輝": "와타라이 류키",
   "水野達稀": "미즈노 타쓰키",
   "坂倉将吾": "사카쿠라 쇼고",
+  // 5/15 PREVIEW 본문 보강
+  "田中将大": "다나카 마사히로",
+  "中山礼都": "나카야마 라이토",
+  "伊勢大夢": "이세 다이무",
+  "石田健大": "이시다 켄타",
+  // 5/15 본문 잔존 — 팀명/단일 given 이름
+  "中日ドラゴンズ": "주니치 드래곤스",
+  "高島大翔": "타카시마 히로토",
+  "愛斗": "아이토",
 };
 
 /**
@@ -139,7 +148,10 @@ export function npbPlayerToKorean(jpName: string): string {
     if (ko && ko !== compact) return ko;
   }
   // 한자 성만 알면 — 성+이름 토큰 분리 시도
-  // 일본 한자 이름은 보통 성 2자 + 이름 2~3자. 첫 2자를 성으로 시도.
+  // 일본 한자 이름은 보통 성 2자 + 이름 2~3자. 첫 2자/1자 순으로 성 매핑.
+  // 단일 글자 토큰 (柳·達 등) 도 지원하기 위해 전체 토큰부터 시도.
+  const koFull = jpPitcherToKorean(compact);
+  if (koFull !== compact) return koFull;
   if (compact.length >= 2) {
     const surname2 = compact.slice(0, 2);
     const ko2 = jpPitcherToKorean(surname2);
