@@ -7,11 +7,49 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   fetchAllLiveScores,
   fetchEspnPeriodLinescores,
+  fetchEspnSummary,
   fetchSoccerGoalsByDate,
   type LiveMatch,
+  type MatchSummary,
   type PeriodLinescore,
   type SoccerGoal,
 } from "@/lib/sports/live-scores";
+
+// ESPN team-stat name → 한국어 라벨 (sportPath 별)
+const NBA_STATS = [
+  { name: "fieldGoalPct", label: "FG%" },
+  { name: "threePointFieldGoalPct", label: "3P%" },
+  { name: "freeThrowPct", label: "FT%" },
+  { name: "totalRebounds", label: "리바" },
+  { name: "assists", label: "어시" },
+  { name: "steals", label: "스틸" },
+  { name: "blocks", label: "블락" },
+  { name: "turnovers", label: "턴오버" },
+];
+const NHL_STATS = [
+  { name: "powerPlayPct", label: "PP%" },
+  { name: "penaltyKillPct", label: "PK%" },
+  { name: "avgGoals", label: "평균득점" },
+  { name: "avgShots", label: "평균슛" },
+];
+const SOCCER_STATS = [
+  { name: "possessionPct", label: "점유율" },
+  { name: "totalShots", label: "슛" },
+  { name: "shotsOnTarget", label: "유효슛" },
+  { name: "totalCorners", label: "코너" },
+  { name: "foulsCommitted", label: "파울" },
+  { name: "wonCorners", label: "코너" },
+];
+const ESPN_SOCCER_PATH: Record<string, string> = {
+  EPL: "soccer/eng.1",
+  LALIGA: "soccer/esp.1",
+  BUNDESLIGA: "soccer/ger.1",
+  SERIE_A: "soccer/ita.1",
+  LIGUE_1: "soccer/fra.1",
+  MLS: "soccer/usa.1",
+  UCL: "soccer/uefa.champions",
+  WORLD_CUP: "soccer/fifa.world",
+};
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -37,6 +75,8 @@ interface MatchLive {
   periodLinescore?: PeriodLinescore | null;
   /** 축구 — 골 이벤트 list */
   soccerGoals?: SoccerGoal[] | null;
+  /** NBA/NHL/축구 — 팀 stats + leaders + 라이브 승률 곡선 */
+  summary?: MatchSummary | null;
 }
 
 function kstDate(d: Date = new Date()): string {
@@ -48,6 +88,8 @@ async function hashLive(live: MatchLive): Promise<string> {
     live.periodLinescore?.homePeriods.join(",") ?? ""
   }|${live.periodLinescore?.awayPeriods.join(",") ?? ""}|${
     (live.soccerGoals ?? []).map((g) => `${g.minute}-${g.side}`).join(";")
+  }|${live.summary?.homeStats.map((s) => s.value).join(",") ?? ""}|${
+    live.summary?.winProbabilityHome?.length ?? 0
   }`;
   const buf = await crypto.subtle.digest(
     "SHA-1",
@@ -85,8 +127,13 @@ export async function GET(
 
   if (league === "NBA" || league === "NHL") {
     const sportPath = league === "NBA" ? "basketball/nba" : "hockey/nhl";
-    const periods = await fetchEspnPeriodLinescores(sportPath, date);
+    const statsList = league === "NBA" ? NBA_STATS : NHL_STATS;
+    const [periods, summary] = await Promise.all([
+      fetchEspnPeriodLinescores(sportPath, date),
+      fetchEspnSummary(sportPath, gameId, statsList),
+    ]);
     out.periodLinescore = periods[gameId] ?? null;
+    out.summary = summary;
     // ESPN 에 종료된 매치 점수도 포함 → live 가 없으면 FINAL 로 간주
     if (!live && out.periodLinescore) {
       out.status = "FINAL";
@@ -94,8 +141,15 @@ export async function GET(
       out.awayScore = out.periodLinescore.awayScore;
     }
   } else if (SOCCER_LEAGUES.has(league)) {
-    const goalsMap = await fetchSoccerGoalsByDate(date, [league]);
+    const espnPath = ESPN_SOCCER_PATH[league];
+    const [goalsMap, summary] = await Promise.all([
+      fetchSoccerGoalsByDate(date, [league]),
+      espnPath
+        ? fetchEspnSummary(espnPath, gameId, SOCCER_STATS)
+        : Promise.resolve(null),
+    ]);
     out.soccerGoals = goalsMap[gameId] ?? null;
+    out.summary = summary;
   } else {
     return NextResponse.json(
       { error: "unsupported league (use /api/live/{lol,mlb,baseball})" },

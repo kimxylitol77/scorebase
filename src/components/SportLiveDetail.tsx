@@ -23,6 +23,24 @@ interface SoccerGoal {
   penaltyKick: boolean;
 }
 
+interface MatchTeamStat {
+  label: string;
+  value: string;
+  raw: number;
+}
+interface TeamLeader {
+  category: string;
+  playerName: string;
+  displayValue: string;
+}
+interface MatchSummary {
+  homeStats: MatchTeamStat[];
+  awayStats: MatchTeamStat[];
+  homeLeaders: TeamLeader[];
+  awayLeaders: TeamLeader[];
+  winProbabilityHome?: number[];
+}
+
 interface MatchLive {
   status: "LIVE" | "FINAL" | "PRE" | "UNKNOWN";
   statusLabel: string;
@@ -30,6 +48,7 @@ interface MatchLive {
   awayScore: number | null;
   periodLinescore?: PeriodLinescore | null;
   soccerGoals?: SoccerGoal[] | null;
+  summary?: MatchSummary | null;
 }
 
 interface Props {
@@ -209,14 +228,202 @@ export default function SportLiveDetail({
         </div>
       )}
 
+      {/* 라이브 승률 곡선 (NBA/NHL — ESPN winprobability) */}
+      {live?.summary?.winProbabilityHome && live.summary.winProbabilityHome.length > 1 && (
+        <WinProbabilityChart
+          values={live.summary.winProbabilityHome}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+        />
+      )}
+
+      {/* 팀 stats 비교 */}
+      {live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
+        <TeamStatCompare
+          summary={live.summary}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+        />
+      )}
+
+      {/* 양 팀 leaders */}
+      {live?.summary && (live.summary.homeLeaders.length > 0 || live.summary.awayLeaders.length > 0) && (
+        <TeamLeaders
+          summary={live.summary}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+        />
+      )}
+
       {/* 데이터 없음 안내 */}
-      {loaded && !live?.periodLinescore && (!live?.soccerGoals || live.soccerGoals.length === 0) && (
+      {loaded && !live?.periodLinescore && !live?.summary && (!live?.soccerGoals || live.soccerGoals.length === 0) && (
         <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-3 sm:p-4 text-xs text-neutral-500">
           ⓘ {league === "NBA" || league === "NHL"
             ? "쿼터/피리어드 별 점수 데이터를 가져오지 못했습니다."
             : "골 이벤트 데이터가 아직 없거나 외부 데이터 소스에서 미제공 상태입니다."}
         </div>
       )}
+    </div>
+  );
+}
+
+function TeamStatCompare({
+  summary,
+  homeNameKo,
+  awayNameKo,
+}: {
+  summary: MatchSummary;
+  homeNameKo: string;
+  awayNameKo: string;
+}) {
+  // home/away 같은 label 짝맞춤
+  const labels = new Set([
+    ...summary.homeStats.map((s) => s.label),
+    ...summary.awayStats.map((s) => s.label),
+  ]);
+  const rows = [...labels].map((label) => ({
+    label,
+    home: summary.homeStats.find((s) => s.label === label),
+    away: summary.awayStats.find((s) => s.label === label),
+  }));
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-2">
+      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-2">
+        팀 stats 비교
+      </div>
+      {rows.map(({ label, home, away }) => {
+        const homeBetter =
+          home && away && home.raw > away.raw && Number.isFinite(home.raw) && Number.isFinite(away.raw);
+        const awayBetter =
+          home && away && away.raw > home.raw && Number.isFinite(home.raw) && Number.isFinite(away.raw);
+        return (
+          <div
+            key={label}
+            className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-sm py-1"
+          >
+            <div className={`text-right tabular-nums font-bold ${awayBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
+              {away?.value ?? "—"}
+            </div>
+            <div className="text-[11px] text-neutral-500 text-center px-2 whitespace-nowrap min-w-[60px]">
+              {label}
+            </div>
+            <div className={`text-left tabular-nums font-bold ${homeBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
+              {home?.value ?? "—"}
+            </div>
+          </div>
+        );
+      })}
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center pt-2 border-t border-neutral-100 dark:border-neutral-800">
+        <div className="text-right text-[11px] text-neutral-500 truncate">{awayNameKo}</div>
+        <div className="text-[10px] text-neutral-400 px-2">팀</div>
+        <div className="text-left text-[11px] text-neutral-500 truncate">{homeNameKo}</div>
+      </div>
+    </div>
+  );
+}
+
+function TeamLeaders({
+  summary,
+  homeNameKo,
+  awayNameKo,
+}: {
+  summary: MatchSummary;
+  homeNameKo: string;
+  awayNameKo: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
+      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-3">
+        🌟 양 팀 주요 선수
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <LeaderCol teamName={awayNameKo} side="원정" leaders={summary.awayLeaders} />
+        <LeaderCol teamName={homeNameKo} side="홈" leaders={summary.homeLeaders} />
+      </div>
+    </div>
+  );
+}
+
+function LeaderCol({
+  teamName,
+  side,
+  leaders,
+}: {
+  teamName: string;
+  side: "홈" | "원정";
+  leaders: TeamLeader[];
+}) {
+  if (leaders.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-3 py-3 text-sm">
+        <div className="text-[11px] text-neutral-500">{side} · {teamName}</div>
+        <div className="mt-1 text-neutral-400">데이터 없음</div>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-3">
+      <div className="text-[11px] text-neutral-500 mb-2">{side} · {teamName}</div>
+      <ul className="space-y-1.5 text-sm">
+        {leaders.map((l, i) => (
+          <li key={i} className="flex items-center justify-between gap-2">
+            <span className="text-[11px] text-neutral-500 truncate w-16">{l.category}</span>
+            <span className="font-semibold truncate flex-1">{l.playerName}</span>
+            <span className="tabular-nums text-xs text-neutral-700 dark:text-neutral-300 shrink-0">
+              {l.displayValue}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function WinProbabilityChart({
+  values,
+  homeNameKo,
+  awayNameKo,
+}: {
+  values: number[];
+  homeNameKo: string;
+  awayNameKo: string;
+}) {
+  const last = values[values.length - 1];
+  const homePct = Math.round(last * 100);
+  const awayPct = 100 - homePct;
+  // SVG path — width=100, height=40
+  const w = 100;
+  const h = 40;
+  const points = values
+    .map((v, i) => {
+      const x = (i / Math.max(1, values.length - 1)) * w;
+      const y = h - v * h;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
+      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-2">
+        📈 승률 추이 (라이브)
+      </div>
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+        className="w-full h-16 mb-2"
+      >
+        <line x1="0" y1={h / 2} x2={w} y2={h / 2} stroke="currentColor" strokeWidth="0.3" className="text-neutral-300 dark:text-neutral-700" strokeDasharray="1 1" />
+        <polyline points={points} fill="none" strokeWidth="1" className="stroke-rose-500" />
+      </svg>
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div className="text-left">
+          <span className="text-[11px] text-neutral-500">{awayNameKo}</span>
+          <div className="font-bold tabular-nums text-blue-600 dark:text-blue-400">{awayPct}%</div>
+        </div>
+        <div className="text-right">
+          <span className="text-[11px] text-neutral-500">{homeNameKo}</span>
+          <div className="font-bold tabular-nums text-rose-600 dark:text-rose-400">{homePct}%</div>
+        </div>
+      </div>
     </div>
   );
 }

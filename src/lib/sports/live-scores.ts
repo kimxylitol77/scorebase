@@ -452,6 +452,144 @@ export async function fetchEspnPeriodLinescores(
 }
 
 /* ============================================================
+ * NBA/NHL/MLB 매치 detail summary — ESPN summary endpoint.
+ * 팀 stats + 양 팀 top scorer + 라이브 승률 (NBA/NHL).
+ * sportPath: "basketball/nba" | "hockey/nhl" | "baseball/mlb"
+ * ==========================================================*/
+
+export interface MatchTeamStat {
+  /** 명칭 (FG%, REB, AST 등) — UI 그대로 표시 */
+  label: string;
+  /** "39", "10-33", ".397" 등 source 가 준 representation */
+  value: string;
+  /** 정렬용 raw 숫자 (없으면 -Infinity) */
+  raw: number;
+}
+
+export interface TeamLeader {
+  category: string;
+  playerName: string;
+  displayValue: string;
+}
+
+export interface MatchSummary {
+  homeStats: MatchTeamStat[];
+  awayStats: MatchTeamStat[];
+  homeLeaders: TeamLeader[];
+  awayLeaders: TeamLeader[];
+  /** ESPN winprobability — 마지막 100개 plays 까지 추출 */
+  winProbabilityHome?: number[];
+}
+
+interface EspnStatRaw {
+  name: string;
+  displayName?: string;
+  abbreviation?: string;
+  displayValue: string;
+  value?: number;
+}
+interface EspnTeamBoxRaw {
+  team: { id?: string; abbreviation?: string };
+  statistics: EspnStatRaw[];
+}
+interface EspnLeaderCat {
+  name: string;
+  displayName: string;
+  leaders: Array<{
+    displayValue: string;
+    athlete?: { displayName?: string; shortName?: string };
+  }>;
+}
+interface EspnTeamLeaderRaw {
+  team: { id?: string; abbreviation?: string };
+  leaders: EspnLeaderCat[];
+}
+interface EspnSummaryRaw {
+  boxscore?: { teams?: EspnTeamBoxRaw[] };
+  leaders?: EspnTeamLeaderRaw[];
+  winprobability?: Array<{ homeWinPercentage?: number }>;
+}
+
+/** NBA/NHL/MLB 통합 — 팀 stats / leaders / 승률 곡선. */
+export async function fetchEspnSummary(
+  sportPath: string,
+  eventId: string,
+  /** ESPN team-level 매핑: stat name 화이트리스트 (UI 표시용) */
+  statWhitelist: Array<{ name: string; label: string }>,
+): Promise<MatchSummary | null> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+    const res = await fetch(
+      `https://site.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${eventId}`,
+      { signal: ctrl.signal, cache: "no-store" },
+    ).finally(() => clearTimeout(t));
+    if (!res.ok) return null;
+    const data = (await res.json()) as EspnSummaryRaw;
+
+    const teams = data.boxscore?.teams ?? [];
+    const teamLeadersAll = data.leaders ?? [];
+    // ESPN 은 [0]=away, [1]=home (NBA/NHL/MLB 모두 동일)
+    const awayBox = teams[0];
+    const homeBox = teams[1];
+
+    function pickStats(box: EspnTeamBoxRaw | undefined): MatchTeamStat[] {
+      if (!box) return [];
+      const out: MatchTeamStat[] = [];
+      for (const wl of statWhitelist) {
+        const s = box.statistics.find((x) => x.name === wl.name);
+        if (!s) continue;
+        const raw = s.value ?? Number(s.displayValue.replace(/[^\d.-]/g, ""));
+        out.push({
+          label: wl.label,
+          value: s.displayValue,
+          raw: Number.isFinite(raw) ? raw : -Infinity,
+        });
+      }
+      return out;
+    }
+
+    function pickLeaders(box: EspnTeamLeaderRaw | undefined): TeamLeader[] {
+      if (!box) return [];
+      const out: TeamLeader[] = [];
+      for (const cat of box.leaders ?? []) {
+        // 첫 번째 선수만 (top scorer 등)
+        const top = cat.leaders?.[0];
+        if (!top) continue;
+        const name =
+          top.athlete?.shortName ?? top.athlete?.displayName ?? "—";
+        out.push({
+          category: cat.displayName,
+          playerName: name,
+          displayValue: top.displayValue,
+        });
+      }
+      return out.slice(0, 4); // 최대 4 카테고리
+    }
+
+    return {
+      homeStats: pickStats(homeBox),
+      awayStats: pickStats(awayBox),
+      // teamLeaders 는 [0]=away, [1]=home 보장 안 됨 — team.id 매칭
+      homeLeaders: pickLeaders(
+        teamLeadersAll.find((l) => l.team.id === homeBox?.team.id),
+      ),
+      awayLeaders: pickLeaders(
+        teamLeadersAll.find((l) => l.team.id === awayBox?.team.id),
+      ),
+      winProbabilityHome: (data.winprobability ?? [])
+        .map((w) => (typeof w.homeWinPercentage === "number" ? w.homeWinPercentage : NaN))
+        .filter((n) => Number.isFinite(n))
+        // 너무 길면 마지막 100개로 sampling
+        .slice(-100),
+    };
+  } catch (e) {
+    console.warn("[live-scores/espn-summary]", sportPath, eventId, (e as Error).message);
+    return null;
+  }
+}
+
+/* ============================================================
  * 축구 골 list — ESPN scoreboard 의 details (scoringPlay)
  * ==========================================================*/
 export interface SoccerGoal {
