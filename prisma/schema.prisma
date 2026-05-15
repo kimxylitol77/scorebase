@@ -203,3 +203,27 @@ model Article {
   @@index([publishedAt])
   @@index([type, evaluatedAt])
 }
+
+// 시즌 리그 리더보드 — 득점·도움·카드 (축구), PTS·AST·REB (NBA),
+// ERA·홈런·타율 (야구) 등. cron 이 매일 fetch 해서 upsert.
+model LeagueLeader {
+  id           Int      @id @default(autoincrement())
+  league       String   // EPL · LALIGA · NBA · KBO · NPB · MLB · NHL · LOL ...
+  category     String   // GOAL · ASSIST · YELLOW · RED · PTS · AST · REB · ERA · BA · HR · K · SAVE · KDA · CS ...
+  rank         Int      // 1 시작
+  playerName   String   // 표시용 (한글 변환 시도)
+  playerNameEn String?  // 원문 (영문)
+  externalId   String?  // 외부 API 의 player id (선수 페이지 link 용)
+  teamName     String   // 표시용
+  teamShort    String?
+  value        Float    // 골수 · 도움 · 카드 · ERA · 타율 등
+  unit         String?  // "득점" · "도움" · "ERA" 등 짧은 라벨 (UI 표시용)
+  appearances  Int?     // 출장수 (축구) / 경기수 (야구 등)
+  photoUrl     String?  // 선수 사진 (외부 API 제공 시)
+  season       String   // "2025-26" (축구) · "2026" (야구 등)
+  fetchedAt    DateTime @default(now())
+
+  @@unique([league, category, rank, season])
+  @@index([league, season])
+  @@index([league, category])
+}

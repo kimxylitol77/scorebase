@@ -197,6 +197,80 @@ export async function fetchSeasonTopScorers(
   }
 }
 
+// ===== 시즌 리그 리더보드 (LeagueLeaderBoard 용) =====
+// /players/topassists, /players/topyellowcards, /players/topredcards
+// 응답 구조는 topscorers 와 동일 — statistics[0] 에 각 stat.
+
+export interface PlayerLeaderEntry {
+  playerId: number;
+  playerName: string;
+  photoUrl?: string;
+  teamId: number;
+  teamName: string;
+  value: number; // goals · assists · yellow · red
+  appearances: number;
+}
+
+async function fetchPlayersLeaderboard(
+  endpoint: "/players/topscorers" | "/players/topassists" | "/players/topyellowcards" | "/players/topredcards",
+  league: string,
+  season: number,
+  extract: (stat: Record<string, unknown>) => number,
+): Promise<PlayerLeaderEntry[]> {
+  const lid = API_FOOTBALL_LEAGUE_ID[league];
+  if (!lid) return [];
+  try {
+    const { data } = await client().get(endpoint, {
+      params: { league: lid, season },
+    });
+    return (data?.response ?? []).map((r: Record<string, unknown>) => {
+      const player = (r.player ?? {}) as Record<string, unknown>;
+      const stat = ((r.statistics as unknown[])?.[0] ?? {}) as Record<string, unknown>;
+      const team = (stat.team ?? {}) as Record<string, unknown>;
+      const games = (stat.games ?? {}) as Record<string, unknown>;
+      return {
+        playerId: player.id as number,
+        playerName: (player.name as string) ?? "",
+        photoUrl: player.photo as string | undefined,
+        teamId: team.id as number,
+        teamName: (team.name as string) ?? "",
+        value: extract(stat) ?? 0,
+        appearances: (games.appearences as number) ?? 0,
+      };
+    });
+  } catch (e) {
+    console.warn(`[api-football-pro] ${endpoint} 실패:`, (e as Error).message);
+    return [];
+  }
+}
+
+export async function fetchTopAssists(league: string, season: number) {
+  return fetchPlayersLeaderboard(
+    "/players/topassists",
+    league,
+    season,
+    (s) => ((s.goals as Record<string, unknown>)?.assists as number) ?? 0,
+  );
+}
+
+export async function fetchTopYellowCards(league: string, season: number) {
+  return fetchPlayersLeaderboard(
+    "/players/topyellowcards",
+    league,
+    season,
+    (s) => ((s.cards as Record<string, unknown>)?.yellow as number) ?? 0,
+  );
+}
+
+export async function fetchTopRedCards(league: string, season: number) {
+  return fetchPlayersLeaderboard(
+    "/players/topredcards",
+    league,
+    season,
+    (s) => ((s.cards as Record<string, unknown>)?.red as number) ?? 0,
+  );
+}
+
 /** 특정 팀의 시즌 득점 핵심 선수 Top N */
 export function getTeamKeyPlayers(
   all: TopScorerEntry[],

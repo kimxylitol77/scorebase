@@ -17,6 +17,7 @@ import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
+import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
 
 export const dynamic = "force-dynamic";
 
@@ -270,6 +271,30 @@ export default async function LeaguePredictions({ params }: Props) {
         iterations: 5000,
       });
     }
+  }
+
+  // 시즌 리더보드 (DB cron 잡이 매일 채움). 카테고리별 그룹화.
+  const leaderRowsRaw = await prisma.leagueLeader.findMany({
+    where: { league: upper },
+    orderBy: [{ category: "asc" }, { rank: "asc" }],
+    take: 200,
+  });
+  const leaderSeason = leaderRowsRaw[0]?.season ?? "";
+  const leaderRowsByCategory: Record<string, LeaderRow[]> = {};
+  for (const r of leaderRowsRaw) {
+    if (!leaderRowsByCategory[r.category]) leaderRowsByCategory[r.category] = [];
+    leaderRowsByCategory[r.category].push({
+      rank: r.rank,
+      playerName: r.playerName,
+      playerNameEn: r.playerNameEn,
+      teamName: r.teamName,
+      teamShort: r.teamShort,
+      value: r.value,
+      unit: r.unit,
+      appearances: r.appearances,
+      photoUrl: r.photoUrl,
+      externalId: r.externalId,
+    });
   }
 
   return (
@@ -676,6 +701,21 @@ export default async function LeaguePredictions({ params }: Props) {
                 );
               })}
             </div>
+          </section>
+        )}
+
+        {/* 시즌 리더보드 — 득점/도움/카드 (축구), 향후 종목별 카테고리 확장 */}
+        {leaderRowsRaw.length > 0 && (
+          <section>
+            <Heading
+              title="시즌 리더보드"
+              subtitle={`${leaderSeason} 시즌 · TOP 10 (매일 자동 갱신)`}
+            />
+            <LeagueLeaderBoard
+              league={upper}
+              season={leaderSeason}
+              rowsByCategory={leaderRowsByCategory}
+            />
           </section>
         )}
 
