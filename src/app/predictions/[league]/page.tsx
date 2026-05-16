@@ -376,15 +376,17 @@ export default async function LeaguePredictions({ params }: Props) {
                 title="우승 확률"
                 subtitle="48개국 5,000회 토너먼트 시뮬레이션 (시드 Elo 기반)"
               />
-              <MonteCarloBar
-                data={wc
-                  .filter((r) => r.champion >= 0.001)
-                  .slice(0, 14)
-                  .map((r) => ({
-                    name: toKoreanTeamName(r.teamName),
-                    value: r.champion * 100,
-                  }))}
-              />
+              <div className="sm:max-w-xl">
+                <MonteCarloBar
+                  data={wc
+                    .filter((r) => r.champion >= 0.001)
+                    .slice(0, 14)
+                    .map((r) => ({
+                      name: toKoreanTeamName(r.teamName),
+                      value: r.champion * 100,
+                    }))}
+                />
+              </div>
             </section>
 
             <section>
@@ -392,13 +394,15 @@ export default async function LeaguePredictions({ params }: Props) {
                 title="결승 진출 확률"
                 subtitle="우승 또는 준우승할 가능성"
               />
-              <MonteCarloBar
-                data={wc
-                  .filter((r) => r.final >= 0.005)
-                  .sort((a, b) => b.final - a.final)
-                  .slice(0, 14)
-                  .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.final * 100 }))}
-              />
+              <div className="sm:max-w-xl">
+                <MonteCarloBar
+                  data={wc
+                    .filter((r) => r.final >= 0.005)
+                    .sort((a, b) => b.final - a.final)
+                    .slice(0, 14)
+                    .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.final * 100 }))}
+                />
+              </div>
             </section>
 
             <section>
@@ -406,13 +410,15 @@ export default async function LeaguePredictions({ params }: Props) {
                 title="4강 진출 확률"
                 subtitle="준결승 진출 가능성"
               />
-              <MonteCarloBar
-                data={wc
-                  .filter((r) => r.sf >= 0.01)
-                  .sort((a, b) => b.sf - a.sf)
-                  .slice(0, 16)
-                  .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.sf * 100 }))}
-              />
+              <div className="sm:max-w-xl">
+                <MonteCarloBar
+                  data={wc
+                    .filter((r) => r.sf >= 0.01)
+                    .sort((a, b) => b.sf - a.sf)
+                    .slice(0, 16)
+                    .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.sf * 100 }))}
+                />
+              </div>
             </section>
 
             <section>
@@ -528,15 +534,17 @@ export default async function LeaguePredictions({ params }: Props) {
             {/* 우승 확률 */}
             <section>
               <Heading title="우승 확률" subtitle="시즌 종료 시점 1위 차지 가능성" />
-              <MonteCarloBar
-                data={mc
-                  .filter((r) => r.champion >= 0.001)
-                  .slice(0, 12)
-                  .map((r) => ({
-                    name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
-                    value: r.champion * 100,
-                  }))}
-              />
+              <div className="sm:max-w-xl">
+                <MonteCarloBar
+                  data={mc
+                    .filter((r) => r.champion >= 0.001)
+                    .slice(0, 12)
+                    .map((r) => ({
+                      name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                      value: r.champion * 100,
+                    }))}
+                />
+              </div>
             </section>
 
             {/* 챔스(Top 4) 확률 */}
@@ -546,15 +554,17 @@ export default async function LeaguePredictions({ params }: Props) {
                   title="Top 4 (UCL) 진출 확률"
                   subtitle="시즌 종료 시점 4위 이상"
                 />
-                <MonteCarloBar
-                  data={mc
-                    .filter((r) => r.top4 >= 0.01)
-                    .slice(0, 14)
-                    .map((r) => ({
-                      name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
-                      value: r.top4 * 100,
-                    }))}
-                />
+                <div className="sm:max-w-xl">
+                  <MonteCarloBar
+                    data={mc
+                      .filter((r) => r.top4 >= 0.01)
+                      .slice(0, 14)
+                      .map((r) => ({
+                        name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                        value: r.top4 * 100,
+                      }))}
+                  />
+                </div>
               </section>
             )}
 
@@ -565,17 +575,19 @@ export default async function LeaguePredictions({ params }: Props) {
                   title={`강등 확률 (하위 ${info.relegationCount}팀)`}
                   subtitle="시즌 종료 시점 강등권"
                 />
-                <MonteCarloBar
-                  data={mc
-                    .filter((r) => r.relegation >= 0.005)
-                    .sort((a, b) => b.relegation - a.relegation)
-                    .slice(0, 8)
-                    .map((r) => ({
-                      name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
-                      value: r.relegation * 100,
-                    }))}
-                  variant="danger"
-                />
+                <div className="sm:max-w-xl">
+                  <MonteCarloBar
+                    data={mc
+                      .filter((r) => r.relegation >= 0.005)
+                      .sort((a, b) => b.relegation - a.relegation)
+                      .slice(0, 8)
+                      .map((r) => ({
+                        name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                        value: r.relegation * 100,
+                      }))}
+                    variant="danger"
+                  />
+                </div>
               </section>
             )}
 
