@@ -219,6 +219,7 @@ export default async function GenericLivePage({ params }: Props) {
         previewSlug={extras.previewSlug}
         recapSlug={extras.recapSlug}
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+        league={lg}
       />
 
       <SportLiveDetail

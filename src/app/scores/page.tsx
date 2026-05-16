@@ -404,25 +404,14 @@ export default async function ScoresPage({ searchParams }: Props) {
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
 
-    // 야구 (KBO/NPB/MLB) 와 LOL 은 자체 라이브 상세 페이지로.
-    // 그 외 종목은 글 (recap > preview) 우선.
+    // 모든 매치 → 라이브 상세 페이지로 (점수판 클릭 시 매치 detail 우선).
+    // KBO/NPB/MLB/LOL 은 전용 라우트, NBA/NHL/축구 (36 리그) 는 /live/{league}/{externalId}.
     let href: string | null = null;
     if (m.league === "MLB") href = `/live/mlb/${m.externalId}`;
     else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
     else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
     else if (m.league === "LOL") href = `/live/lol/${m.externalId}`;
-    else if (
-      m.league === "NBA" ||
-      m.league === "NHL" ||
-      m.league === "EPL" ||
-      m.league === "LALIGA" ||
-      m.league === "BUNDESLIGA" ||
-      m.league === "SERIE_A" ||
-      m.league === "LIGUE_1" ||
-      m.league === "MLS" ||
-      m.league === "UCL" ||
-      m.league === "WORLD_CUP"
-    ) {
+    else if (m.league === "NBA" || m.league === "NHL" || SOCCER_LEAGUES.has(m.league)) {
       href = `/live/${m.league}/${m.externalId}`;
     } else if (recap) href = `/articles/${recap}`;
     else if (preview) href = `/articles/${preview}`;
@@ -783,7 +772,7 @@ function SoccerRowLayout({
               timeLabel={m.timeLabel}
               liveStatusLabel={m.liveStatusLabel}
               soccerCtx={m.soccerCtx}
-              soccerGoals={m.soccerGoals}
+              soccerGoals={null}
               recentGoalSide={m.recentGoalSide ?? null}
               href={m.href}
             />
