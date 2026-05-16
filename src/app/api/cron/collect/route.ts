@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import type { League } from "@/lib/sports/types";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const ALL_LEAGUES: League[] = [
   "EPL",
@@ -61,12 +61,23 @@ export async function GET(req: Request) {
   if (!authorized(req)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
+  // ?leagues=K_LEAGUE_1,J1_LEAGUE,... — 부분 수집 (Vercel Hobby 60초 한도 회피용 batch).
+  // ?pastDays=N&futureDays=N — 일자 범위 조정 (수동 backfill 용).
+  const url = new URL(req.url);
+  const leaguesParam = url.searchParams.get("leagues");
+  const pastDaysParam = url.searchParams.get("pastDays");
+  const futureDaysParam = url.searchParams.get("futureDays");
+  const leagues = leaguesParam
+    ? (leaguesParam.split(",").filter(Boolean) as League[])
+    : ALL_LEAGUES;
+  const pastDays = pastDaysParam ? parseInt(pastDaysParam) : 2;
+  const futureDays = futureDaysParam ? parseInt(futureDaysParam) : 7;
   try {
     // 어제 + 오늘 + 향후 7일 매치 일정/스코어 수집
     // pastDays=2: 어제 시작·오늘 새벽 끝난 매치의 score/status 보정 (RECAP 잡 트리거에 필수)
     // futureDays=7: 미래 SCHEDULED 매치도 채워서 PREVIEW 잡이 잡아갈 수 있게 함
-    await runCollect({ leagues: ALL_LEAGUES, pastDays: 2, futureDays: 7 });
-    return NextResponse.json({ ok: true });
+    await runCollect({ leagues, pastDays, futureDays });
+    return NextResponse.json({ ok: true, leagues: leagues.length });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
