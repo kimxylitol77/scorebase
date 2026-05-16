@@ -318,12 +318,25 @@ export default async function ScoresPage({ searchParams }: Props) {
     homeTeam: { name: string };
     awayTeam: { name: string };
   }): LiveMatch | undefined {
-    return (
+    const exact =
       liveByExternalId.get(m.externalId) ??
       liveByNameKey.get(
         `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
-      )
-    );
+      );
+    if (exact) return exact;
+    // substring fallback — api-football "Urawa" vs DB "Urawa Red Diamonds" 등
+    // 양쪽 normalize 후 둘 중 한쪽이 다른쪽 포함하면 매치로 간주.
+    const dbHome = normalizeName(m.homeTeam.name);
+    const dbAway = normalizeName(m.awayTeam.name);
+    for (const lm of liveForThisDay) {
+      if (lm.league !== m.league) continue;
+      const lh = normalizeName(lm.homeName);
+      const la = normalizeName(lm.awayName);
+      const homeOk = lh.includes(dbHome) || dbHome.includes(lh);
+      const awayOk = la.includes(dbAway) || dbAway.includes(la);
+      if (homeOk && awayOk) return lm;
+    }
+    return undefined;
   }
 
   // 매치 → 정규화 (sport 분기 + 라이브 보강)
