@@ -331,25 +331,27 @@ export default async function LeaguePredictions({ params }: Props) {
         </div>
       </section>
 
-      {/* 리그 탭 (카테고리별 그룹) */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center gap-x-2 gap-y-2">
-        <PredTab l="WORLD_CUP" active={"WORLD_CUP" === upper} />
-        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
-        {(
-          ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL"] as const
-        ).map((l) => (
-          <PredTab key={l} l={l} active={l === upper} />
-        ))}
-        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
-        <PredTab l="NBA" active={"NBA" === upper} />
-        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
-        <PredTab l="MLB" active={"MLB" === upper} />
-        <PredTab l="KBO" active={"KBO" === upper} />
-        <PredTab l="NPB" active={"NPB" === upper} />
-        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
-        <PredTab l="NHL" active={"NHL" === upper} />
-        <span className="mx-2 text-neutral-300 dark:text-neutral-700">|</span>
-        <PredTab l="LOL" active={"LOL" === upper} />
+      {/* 리그 탭 — 모바일: 가로 스크롤 한 줄, 데스크탑: wrap. 카테고리별 색 구분자 점. */}
+      <div className="max-w-6xl mx-auto py-4 sm:py-6">
+        <div className="flex sm:flex-wrap items-center gap-x-1.5 gap-y-2 overflow-x-auto px-4 sm:px-6 scrollbar-hide whitespace-nowrap">
+          <PredTab l="WORLD_CUP" active={"WORLD_CUP" === upper} />
+          <CategoryDot />
+          {(
+            ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL"] as const
+          ).map((l) => (
+            <PredTab key={l} l={l} active={l === upper} />
+          ))}
+          <CategoryDot />
+          <PredTab l="NBA" active={"NBA" === upper} />
+          <CategoryDot />
+          <PredTab l="MLB" active={"MLB" === upper} />
+          <PredTab l="KBO" active={"KBO" === upper} />
+          <PredTab l="NPB" active={"NPB" === upper} />
+          <CategoryDot />
+          <PredTab l="NHL" active={"NHL" === upper} />
+          <CategoryDot />
+          <PredTab l="LOL" active={"LOL" === upper} />
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 space-y-12">
@@ -764,7 +766,7 @@ function PredTab({ l, active }: { l: string; active: boolean }) {
   return (
     <Link
       href={`/predictions/${l}`}
-      className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+      className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition ${
         active
           ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
           : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
@@ -772,6 +774,16 @@ function PredTab({ l, active }: { l: string; active: boolean }) {
     >
       {TAB_LABEL[l] ?? l}
     </Link>
+  );
+}
+
+// 카테고리 (축구/농구/야구/하키/이스포츠) 간 시각적 구분자 — 작은 점
+function CategoryDot() {
+  return (
+    <span
+      aria-hidden
+      className="shrink-0 mx-1 inline-block w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700"
+    />
   );
 }
 
