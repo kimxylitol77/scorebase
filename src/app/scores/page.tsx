@@ -21,6 +21,7 @@ import {
   fetchMlbByDate,
   fetchSoccerGoalsByDate,
   fetchEspnPeriodLinescores,
+  soccerGoalsPairKey,
   type BaseballGameDetails,
   type PeriodLinescore as PeriodLinescoreData,
   type SoccerGoal,
@@ -383,7 +384,15 @@ export default async function ScoresPage({ searchParams }: Props) {
         : null,
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
-      soccerGoals: sport_ === "soccer" ? soccerGoalsMap[m.externalId] ?? null : null,
+      // ESPN event id 매칭 + team-name fallback (EPL 등 DB externalId ≠ ESPN id)
+      soccerGoals:
+        sport_ === "soccer"
+          ? soccerGoalsMap[m.externalId] ??
+            soccerGoalsMap[
+              soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)
+            ] ??
+            null
+          : null,
       esportsCtx:
         sport_ === "esports" && live?.esports
           ? ({

@@ -669,6 +669,7 @@ export interface SoccerGoal {
 
 /** 우리 League → ESPN soccer league path */
 const ESPN_SOCCER_PATH: Record<string, string> = {
+  EPL: "eng.1",
   LALIGA: "esp.1",
   BUNDESLIGA: "ger.1",
   SERIE_A: "ita.1",
@@ -683,6 +684,15 @@ const ESPN_SOCCER_PATH: Record<string, string> = {
  * key = ESPN game id (= 우리 Match.externalId).
  * EPL 은 collector 가 football-data id 라 ESPN 매칭 X → 별도 처리.
  */
+/** 축구 골 lookup 용 team-name pair 키 — ESPN id 와 DB externalId 가 다른 케이스
+ *  (EPL 등 API-Football fixture id ≠ ESPN event id) 매핑용.
+ *  ESPN 과 우리 DB 가 home/away 표기가 서로 다를 수 있으니 sorted 순서로 만들어 양방향 매칭. */
+export function soccerGoalsPairKey(teamA: string, teamB: string): string {
+  const n = (s: string) => s.toLowerCase().replace(/[\s.·\-_]/g, "");
+  const sorted = [n(teamA), n(teamB)].sort();
+  return `__name__${sorted[0]}__${sorted[1]}`;
+}
+
 export async function fetchSoccerGoalsByDate(
   date: string,
   leagues: string[],
@@ -705,7 +715,7 @@ export async function fetchSoccerGoalsByDate(
     competitions?: Array<{
       competitors?: Array<{
         homeAway: "home" | "away";
-        team?: { id?: string };
+        team?: { id?: string; displayName?: string; shortDisplayName?: string };
       }>;
       details?: Array<{
         clock?: { displayValue?: string };
@@ -731,8 +741,10 @@ export async function fetchSoccerGoalsByDate(
       for (const ev of data.events ?? []) {
         const comp = ev.competitions?.[0];
         if (!comp) continue;
-        const homeId = comp.competitors?.find((c) => c.homeAway === "home")?.team?.id;
-        const awayId = comp.competitors?.find((c) => c.homeAway === "away")?.team?.id;
+        const home = comp.competitors?.find((c) => c.homeAway === "home");
+        const away = comp.competitors?.find((c) => c.homeAway === "away");
+        const homeId = home?.team?.id;
+        const awayId = away?.team?.id;
         const goals: SoccerGoal[] = [];
         for (const d of comp.details ?? []) {
           if (!d.scoringPlay) continue;
@@ -749,7 +761,15 @@ export async function fetchSoccerGoalsByDate(
             penaltyKick: !!d.penaltyKick,
           });
         }
-        if (goals.length > 0) out[ev.id] = goals;
+        if (goals.length > 0) {
+          // ESPN event id 키 (1차 매칭) + team-name pair 키 (fallback — DB externalId ≠ ESPN id 인 EPL 등 매핑용)
+          out[ev.id] = goals;
+          const awayName = away?.team?.displayName ?? away?.team?.shortDisplayName;
+          const homeName = home?.team?.displayName ?? home?.team?.shortDisplayName;
+          if (awayName && homeName) {
+            out[soccerGoalsPairKey(awayName, homeName)] = goals;
+          }
+        }
       }
     } catch (e) {
       console.warn("[live-scores/soccer-goals]", path, (e as Error).message);

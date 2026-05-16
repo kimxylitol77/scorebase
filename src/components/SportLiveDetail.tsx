@@ -57,6 +57,9 @@ interface Props {
   /** 한글 팀명 */
   homeNameKo: string;
   awayNameKo: string;
+  /** DB 영문 팀명 (ESPN displayName 매칭용 — soccer goals fallback) */
+  homeNameEn?: string;
+  awayNameEn?: string;
   /** DB Team.id — 클릭 시 /teams/{id} 이동 */
   homeTeamId?: number;
   awayTeamId?: number;
@@ -78,6 +81,8 @@ export default function SportLiveDetail({
   league,
   homeNameKo,
   awayNameKo,
+  homeNameEn,
+  awayNameEn,
   homeTeamId,
   awayTeamId,
   homeLogoUrl,
@@ -101,8 +106,14 @@ export default function SportLiveDetail({
         const headers: HeadersInit = lastEtag
           ? { "if-none-match": lastEtag }
           : {};
+        // 축구는 영문 team name 도 query 로 전달 — ESPN id ≠ DB externalId 인 EPL 등
+        // soccer goals lookup name-pair fallback 용.
+        const nameParams =
+          homeNameEn && awayNameEn
+            ? `&away=${encodeURIComponent(awayNameEn)}&home=${encodeURIComponent(homeNameEn)}`
+            : "";
         const res = await fetch(
-          `/api/live/match/${gameId}?league=${encodeURIComponent(league)}`,
+          `/api/live/match/${gameId}?league=${encodeURIComponent(league)}${nameParams}`,
           { cache: "no-store", headers },
         );
         if (res.status === 304) return;
@@ -144,7 +155,7 @@ export default function SportLiveDetail({
       if (timer) clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [gameId, league]);
+  }, [gameId, league, homeNameEn, awayNameEn]);
 
   // SSR placeholder — 첫 fetch 도착 전엔 DB 점수/상태만 표시
   const isLive = live?.status === "LIVE";

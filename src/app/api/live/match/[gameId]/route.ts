@@ -9,6 +9,7 @@ import {
   fetchEspnPeriodLinescores,
   fetchEspnSummary,
   fetchSoccerGoalsByDate,
+  soccerGoalsPairKey,
   type LiveMatch,
   type MatchSummary,
   type PeriodLinescore,
@@ -51,7 +52,9 @@ const ESPN_SOCCER_PATH: Record<string, string> = {
   WORLD_CUP: "soccer/fifa.world",
 };
 
-export const runtime = "edge";
+// edge runtime 에선 fetchSoccerGoalsByDate (AbortController/setTimeout)
+// 가 빈 응답 반환하던 케이스가 있어 nodejs runtime 으로 고정.
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SOCCER_LEAGUES = new Set([
@@ -142,13 +145,23 @@ export async function GET(
     }
   } else if (SOCCER_LEAGUES.has(league)) {
     const espnPath = ESPN_SOCCER_PATH[league];
+    // 클라이언트가 영문 team name 을 query 로 보내옴 (edge runtime 이라 prisma 미사용).
+    // ESPN event id 매칭 실패 시 name pair fallback 용.
+    const awayName = req.nextUrl.searchParams.get("away") ?? "";
+    const homeName = req.nextUrl.searchParams.get("home") ?? "";
     const [goalsMap, summary] = await Promise.all([
       fetchSoccerGoalsByDate(date, [league]),
       espnPath
         ? fetchEspnSummary(espnPath, gameId, SOCCER_STATS)
         : Promise.resolve(null),
     ]);
-    out.soccerGoals = goalsMap[gameId] ?? null;
+    // 1차: ESPN event id 매칭
+    let goals = goalsMap[gameId] ?? null;
+    // 2차 fallback: team name pair (EPL 등 DB externalId ≠ ESPN id 보정)
+    if (!goals && awayName && homeName) {
+      goals = goalsMap[soccerGoalsPairKey(awayName, homeName)] ?? null;
+    }
+    out.soccerGoals = goals;
     out.summary = summary;
   } else {
     return NextResponse.json(

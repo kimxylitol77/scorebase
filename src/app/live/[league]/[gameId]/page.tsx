@@ -158,6 +158,8 @@ export default async function GenericLivePage({ params }: Props) {
         league={lg}
         homeNameKo={homeKo}
         awayNameKo={awayKo}
+        homeNameEn={match.homeTeam.name}
+        awayNameEn={match.awayTeam.name}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}
