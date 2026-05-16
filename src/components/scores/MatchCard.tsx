@@ -241,36 +241,8 @@ export default function MatchCard(props: MatchCardProps) {
         </div>
       </div>
 
-      {/* 본문: 원정-점수-홈 */}
+      {/* 본문: 홈-점수-원정 (한국 컨벤션 + SoccerLiveRow/리스트와 통일) */}
       <div className="px-3.5 sm:px-4 py-3 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
-        {/* 원정 */}
-        <div className="min-w-0 flex flex-col items-center gap-1 text-center">
-          <Logo url={away.logo} name={away.name} />
-          <div className="truncate text-xs sm:text-sm font-bold w-full">
-            {away.name}
-          </div>
-          {awayStarter && (
-            <div className="truncate text-[10px] text-neutral-500 w-full">
-              {awayStarter}
-            </div>
-          )}
-        </div>
-        {/* 점수 */}
-        <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] ${scoreColor}`}>
-          {hasScore ? (
-            <>
-              {away.score}
-              <span className="mx-1 sm:mx-1.5 text-neutral-300 dark:text-neutral-700 font-thin">
-                :
-              </span>
-              {home.score}
-            </>
-          ) : (
-            <span className="text-base font-bold text-neutral-300 dark:text-neutral-600">
-              VS
-            </span>
-          )}
-        </div>
         {/* 홈 */}
         <div className="min-w-0 flex flex-col items-center gap-1 text-center">
           <Logo url={home.logo} name={home.name} />
@@ -280,6 +252,34 @@ export default function MatchCard(props: MatchCardProps) {
           {homeStarter && (
             <div className="truncate text-[10px] text-neutral-500 w-full">
               {homeStarter}
+            </div>
+          )}
+        </div>
+        {/* 점수 */}
+        <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] ${scoreColor}`}>
+          {hasScore ? (
+            <>
+              {home.score}
+              <span className="mx-1 sm:mx-1.5 text-neutral-300 dark:text-neutral-700 font-thin">
+                :
+              </span>
+              {away.score}
+            </>
+          ) : (
+            <span className="text-base font-bold text-neutral-300 dark:text-neutral-600">
+              VS
+            </span>
+          )}
+        </div>
+        {/* 원정 */}
+        <div className="min-w-0 flex flex-col items-center gap-1 text-center">
+          <Logo url={away.logo} name={away.name} />
+          <div className="truncate text-xs sm:text-sm font-bold w-full">
+            {away.name}
+          </div>
+          {awayStarter && (
+            <div className="truncate text-[10px] text-neutral-500 w-full">
+              {awayStarter}
             </div>
           )}
         </div>
