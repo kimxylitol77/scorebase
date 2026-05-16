@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
+import LiveOddsCard from "./live/LiveOddsCard";
 
 interface PeriodLinescore {
   homePeriods: (number | null)[];
@@ -41,6 +42,19 @@ interface MatchSummary {
   winProbabilityHome?: number[];
 }
 
+interface LiveOdds {
+  h2h: { home: number; draw: number | null; away: number } | null;
+  totals: { line: number; over: number; under: number } | null;
+  spread: {
+    line: number;
+    pick: "HOME" | "AWAY";
+    homeOdds: number;
+    awayOdds: number;
+  } | null;
+  bookmakers: number;
+  fetchedAt: number;
+}
+
 interface MatchLive {
   status: "LIVE" | "FINAL" | "PRE" | "UNKNOWN";
   statusLabel: string;
@@ -49,6 +63,7 @@ interface MatchLive {
   periodLinescore?: PeriodLinescore | null;
   soccerGoals?: SoccerGoal[] | null;
   summary?: MatchSummary | null;
+  liveOdds?: LiveOdds | null;
 }
 
 interface Props {
@@ -299,6 +314,16 @@ export default function SportLiveDetail({
           values={live.summary.winProbabilityHome}
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
+        />
+      )}
+
+      {/* 라이브 배당 (The Odds API 1분 갱신) */}
+      {live?.liveOdds && (
+        <LiveOddsCard
+          odds={live.liveOdds}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+          hasDraw={league !== "NBA" && league !== "NHL" && league !== "MLB" && league !== "KBO" && league !== "NPB"}
         />
       )}
 

@@ -16,6 +16,7 @@ import {
   type SoccerGoal,
 } from "@/lib/sports/live-scores";
 import { fetchSoccerLiveStats } from "@/lib/live/soccer-live-stats";
+import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 
 // ESPN team-stat name → 한국어 라벨 (sportPath 별)
 const NBA_STATS = [
@@ -85,6 +86,8 @@ interface MatchLive {
   soccerGoals?: SoccerGoal[] | null;
   /** NBA/NHL/축구 — 팀 stats + leaders + 라이브 승률 곡선 */
   summary?: MatchSummary | null;
+  /** The Odds API — 1분 폴링 라이브 odds (h2h / O-U / 핸디캡) */
+  liveOdds?: LiveOddsSnapshot | null;
 }
 
 function kstDate(d: Date = new Date()): string {
@@ -92,13 +95,17 @@ function kstDate(d: Date = new Date()): string {
 }
 
 async function hashLive(live: MatchLive): Promise<string> {
+  const o = live.liveOdds;
+  const oddsSig = o
+    ? `${o.h2h?.home ?? ""}/${o.h2h?.away ?? ""}/${o.totals?.line ?? ""}/${o.totals?.over ?? ""}/${o.spread?.line ?? ""}`
+    : "";
   const sig = `${live.status}|${live.homeScore}|${live.awayScore}|${live.statusLabel}|${
     live.periodLinescore?.homePeriods.join(",") ?? ""
   }|${live.periodLinescore?.awayPeriods.join(",") ?? ""}|${
     (live.soccerGoals ?? []).map((g) => `${g.minute}-${g.side}`).join(";")
   }|${live.summary?.homeStats.map((s) => s.value).join(",") ?? ""}|${
     live.summary?.winProbabilityHome?.length ?? 0
-  }`;
+  }|${oddsSig}`;
   const buf = await crypto.subtle.digest(
     "SHA-1",
     new TextEncoder().encode(sig),
@@ -126,12 +133,20 @@ export async function GET(
   });
 
   const date = kstDate();
+  const awayName = req.nextUrl.searchParams.get("away") ?? "";
+  const homeName = req.nextUrl.searchParams.get("home") ?? "";
   const out: MatchLive = {
     status: live ? "LIVE" : "UNKNOWN",
     statusLabel: live?.statusLabel ?? "",
     homeScore: live?.homeScore ?? null,
     awayScore: live?.awayScore ?? null,
   };
+
+  // 라이브 odds — The Odds API 가 지원하는 리그면 1분 캐시 호출
+  // (라이브 매치 + 가까운 예정 매치 모두 응답 — odds 변동 흐름 표시)
+  if (isLiveOddsSupported(league) && awayName && homeName) {
+    out.liveOdds = await fetchLiveOdds(league, awayName, homeName);
+  }
 
   if (league === "NBA" || league === "NHL") {
     const sportPath = league === "NBA" ? "basketball/nba" : "hockey/nhl";
@@ -150,10 +165,6 @@ export async function GET(
     }
   } else if (SOCCER_LEAGUES.has(league)) {
     const espnPath = ESPN_SOCCER_PATH[league];
-    // 클라이언트가 영문 team name 을 query 로 보내옴 (edge runtime 이라 prisma 미사용).
-    // ESPN event id 매칭 실패 시 name pair fallback 용.
-    const awayName = req.nextUrl.searchParams.get("away") ?? "";
-    const homeName = req.nextUrl.searchParams.get("home") ?? "";
     // 축구 stats — api-football 우선 (possession/슛/코너/xG/카드 등 풍부),
     // 없으면 ESPN summary fallback. leaders / winProb 는 항상 ESPN 에서.
     const [goalsMap, espnSummary, afStats] = await Promise.all([

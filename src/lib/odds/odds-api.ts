@@ -5,8 +5,9 @@ import axios from "axios";
 
 const BASE = "https://api.the-odds-api.com/v4";
 
-// 우리 League 코드 → Odds API sport key 매핑
-const SPORT_KEY: Record<string, string> = {
+// 우리 League 코드 → Odds API sport key 매핑.
+// AFC_CL 은 The Odds API 가 미지원 → 라이브 odds 미제공.
+export const SPORT_KEY: Record<string, string> = {
   EPL: "soccer_epl",
   LALIGA: "soccer_spain_la_liga",
   BUNDESLIGA: "soccer_germany_bundesliga",
@@ -14,6 +15,7 @@ const SPORT_KEY: Record<string, string> = {
   LIGUE_1: "soccer_france_ligue_one",
   MLS: "soccer_usa_mls",
   UCL: "soccer_uefa_champs_league",
+  J1_LEAGUE: "soccer_japan_j_league",
   NBA: "basketball_nba",
   NHL: "icehockey_nhl",
   MLB: "baseball_mlb",
