@@ -209,6 +209,33 @@ function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
   return { halfLabel: statusLabel };
 }
 
+/** goal.minute ("67'" / "45+2'") 에서 분 추출 — 추가시간 포함 합. */
+function parseGoalMinute(minute: string): number {
+  const m = minute.match(/(\d+)(?:\+(\d+))?/);
+  if (!m) return 0;
+  return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) : 0);
+}
+
+/**
+ * 라이브 매치의 최근 1분 내 골 측 판정.
+ * - statusLabel 의 elapsed (전반/후반 N') 와 골 minute 차이 ≤ 1 → recent
+ * - 가장 최근 골의 side 반환 (없으면 null)
+ */
+function findRecentGoalSide(
+  statusLabel: string | null | undefined,
+  goals: SoccerGoal[] | null,
+): "home" | "away" | null {
+  if (!goals || goals.length === 0) return null;
+  const status = parseSoccerStatus(statusLabel);
+  const elapsed = status?.minute;
+  if (typeof elapsed !== "number") return null;
+  // 가장 최근 시각의 골 (분 + 추가시간 기준)
+  const sorted = [...goals].sort((a, b) => parseGoalMinute(b.minute) - parseGoalMinute(a.minute));
+  const latest = sorted[0];
+  if (elapsed - parseGoalMinute(latest.minute) <= 1) return latest.side;
+  return null;
+}
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
   const sportCode = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "soccer") as SportCode;
@@ -436,6 +463,16 @@ export default async function ScoresPage({ searchParams }: Props) {
               soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)
             ] ??
             null
+          : null,
+      // 라이브 매치 한정: 최근 1분 내 골 발생 측 (점수 셀 노란 highlight)
+      recentGoalSide:
+        sport_ === "soccer" && effStatus === "LIVE" && live
+          ? findRecentGoalSide(
+              live.statusLabel,
+              soccerGoalsMap[m.externalId] ??
+                soccerGoalsMap[soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)] ??
+                null,
+            )
           : null,
       esportsCtx:
         sport_ === "esports" && live?.esports
@@ -705,6 +742,7 @@ function SoccerRowLayout({
         awayShort={m.away.abbr ?? m.away.name}
         previewSlug={m.preview ?? null}
         recapSlug={m.recap ?? null}
+        recentGoalSide={m.recentGoalSide ?? null}
         href={m.href}
       />
     );
@@ -746,6 +784,7 @@ function SoccerRowLayout({
               liveStatusLabel={m.liveStatusLabel}
               soccerCtx={m.soccerCtx}
               soccerGoals={m.soccerGoals}
+              recentGoalSide={m.recentGoalSide ?? null}
               href={m.href}
             />
           ))}
@@ -810,6 +849,8 @@ type NormalizedMatch = {
   awayStarter: string | null;
   soccerCtx: SoccerContext | null;
   soccerGoals: SoccerGoal[] | null;
+  /** 라이브 매치 최근 1분 내 골 발생 측 — 점수 셀 노란 highlight 용 */
+  recentGoalSide?: "home" | "away" | null;
   esportsCtx: EsportsContext | null;
   baseballCtx: BaseballContext | null;
   baseballLinescore: BaseballLinescoreData | null;

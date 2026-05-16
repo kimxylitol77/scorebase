@@ -56,6 +56,8 @@ export interface MatchCardProps {
   href?: string | null;
   /** 우측 액션 (프리뷰/리뷰 칩 등) */
   actions?: ReactNode;
+  /** 축구 라이브 — 최근 1분 내 골 측 (점수 셀 노란 ring + pulse) */
+  recentGoalSide?: "home" | "away" | null;
 }
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
@@ -111,6 +113,7 @@ export default function MatchCard(props: MatchCardProps) {
     awayStarter,
     href,
     actions,
+    recentGoalSide,
   } = props;
 
   const isLive = status === "live";
@@ -255,8 +258,10 @@ export default function MatchCard(props: MatchCardProps) {
             </div>
           )}
         </div>
-        {/* 점수 */}
-        <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] ${scoreColor}`}>
+        {/* 점수 — 라이브 최근 골 시 노란 ring + pulse */}
+        <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] px-2 py-1 rounded-md ${scoreColor} ${
+          recentGoalSide ? "ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
+        }`}>
           {hasScore ? (
             <>
               {home.score}

@@ -32,6 +32,8 @@ export interface SoccerLiveRowProps {
   previewSlug?: string | null;
   /** RECAP 글 slug — 있으면 R 아이콘 */
   recapSlug?: string | null;
+  /** 최근 1분 내 골 측 — 점수 셀 노란 ring + pulse */
+  recentGoalSide?: "home" | "away" | null;
   href?: string | null;
 }
 
@@ -70,6 +72,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayShort,
     previewSlug,
     recapSlug,
+    recentGoalSide,
     href,
   } = props;
 
@@ -128,9 +131,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <TeamLogo url={home.logo} name={home.name} />
       </div>
 
-      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip */}
+      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip / 라이브 최근 골 → 노란 ring */}
       <div
-        className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group"
+        className={`relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group ${
+          recentGoalSide ? "rounded-md ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
+        }`}
       >
         {hasScore ? (
           <>
