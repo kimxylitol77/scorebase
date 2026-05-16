@@ -710,9 +710,60 @@ function SoccerRowLayout({
     );
   };
 
+  // 모바일용 — MatchCard 그룹 헤더 + 2칸 grid
+  const mobileGroup = (
+    title: string,
+    count: number,
+    list: NormalizedMatch[],
+    titleColor: string,
+  ) =>
+    list.length > 0 && (
+      <section className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h3 className={`text-[12px] font-bold ${titleColor}`}>
+            {title} ({count})
+          </h3>
+        </div>
+        <ul className="grid grid-cols-2 gap-2">
+          {list.map((m) => (
+            <MatchCard
+              key={String(m.id)}
+              matchId={m.id}
+              sport={m.sport}
+              status={
+                m.status === "LIVE"
+                  ? "live"
+                  : m.status === "FINISHED"
+                    ? "finished"
+                    : m.status === "POSTPONED"
+                      ? "postponed"
+                      : "scheduled"
+              }
+              league={m.league}
+              home={m.home}
+              away={m.away}
+              timeLabel={m.timeLabel}
+              liveStatusLabel={m.liveStatusLabel}
+              soccerCtx={m.soccerCtx}
+              soccerGoals={m.soccerGoals}
+              href={m.href}
+            />
+          ))}
+        </ul>
+      </section>
+    );
+
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-x-auto">
+      {/* 모바일 — 2칸 카드 grid (한눈에) */}
+      <div className="md:hidden space-y-4">
+        {mobileGroup("● 진행 중", liveList.length, liveList, "text-rose-600 dark:text-rose-500")}
+        {mobileGroup("⏳ 예정", scheduledList.length, scheduledList, "text-neutral-500 dark:text-neutral-400")}
+        {mobileGroup("✅ 종료", finishedList.length, finishedList, "text-neutral-500")}
+      </div>
+
+      {/* 데스크탑 — named.com 스타일 row table */}
+      <div className="hidden md:block rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-x-auto">
         {/* 하단 pb-32 — 마지막 row 의 GoalsTooltip (점수 hover 시 양 팀 골 list) 가 컨테이너 끝에서 잘리지 않게 ~3행 분량 여백 확보 */}
         <div className="min-w-[860px] px-4 pt-1 pb-32">
           <SoccerLiveRowHeader />
