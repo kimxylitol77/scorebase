@@ -666,12 +666,12 @@ function SoccerRowLayout({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-x-auto">
+      <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-x-auto">
         <div className="min-w-[860px] px-4 py-1">
           <SoccerLiveRowHeader />
           {liveList.length > 0 && (
             <>
-              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-rose-500">
+              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-rose-600 dark:text-rose-500">
                 ● 진행 중 ({liveList.length})
               </div>
               {liveList.map(renderRow)}
@@ -679,7 +679,7 @@ function SoccerRowLayout({
           )}
           {scheduledList.length > 0 && (
             <>
-              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-neutral-400">
+              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
                 ⏳ 예정 ({scheduledList.length})
               </div>
               {scheduledList.map(renderRow)}

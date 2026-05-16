@@ -88,7 +88,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
   const rowContent = (
     <div
-      className="grid items-center gap-3 px-0 py-2 text-sm transition hover:bg-white/[0.02]"
+      className="grid items-center gap-3 px-0 py-2 text-sm transition hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
       style={{
         gridTemplateColumns:
           "110px 64px 80px minmax(0,1fr) auto minmax(0,1fr) 56px 32px",
@@ -104,7 +104,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       </div>
 
       {/* 2. KST 시간 */}
-      <div className="text-[12px] text-neutral-400 tabular-nums">
+      <div className="text-[12px] text-neutral-600 dark:text-neutral-400 tabular-nums">
         {timeLabel}
       </div>
 
@@ -113,7 +113,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
       {/* 4. 홈팀 (우측 정렬 + 로고 옆에) */}
       <div className="flex items-center justify-end gap-1.5 min-w-0">
-        <span className="truncate text-right text-[13px] text-neutral-200">
+        <span className="truncate text-right text-[13px] text-neutral-800 dark:text-neutral-200">
           {home.name}
         </span>
         <TeamLogo url={home.logo} name={home.name} />
@@ -126,9 +126,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             <span
               className={
                 homeWin
-                  ? "text-rose-400"
+                  ? "text-rose-600 dark:text-rose-400"
                   : isFinished || isLive
-                    ? "text-neutral-300"
+                    ? "text-neutral-700 dark:text-neutral-300"
                     : "text-neutral-500"
               }
             >
@@ -138,9 +138,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             <span
               className={
                 awayWin
-                  ? "text-rose-400"
+                  ? "text-rose-600 dark:text-rose-400"
                   : isFinished || isLive
-                    ? "text-neutral-300"
+                    ? "text-neutral-700 dark:text-neutral-300"
                     : "text-neutral-500"
               }
             >
@@ -155,13 +155,13 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       {/* 6. 원정팀 (좌측 정렬 + 로고 옆에) */}
       <div className="flex items-center gap-1.5 min-w-0">
         <TeamLogo url={away.logo} name={away.name} />
-        <span className="truncate text-[13px] text-neutral-200">
+        <span className="truncate text-[13px] text-neutral-800 dark:text-neutral-200">
           {away.name}
         </span>
       </div>
 
       {/* 7. 전반 점수 */}
-      <div className="text-center text-[11px] text-neutral-500 tabular-nums">
+      <div className="text-center text-[11px] text-neutral-500 dark:text-neutral-500 tabular-nums">
         {firstHalfText}
       </div>
 
@@ -176,7 +176,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
   const isExternal = /^https?:\/\//i.test(href);
   return (
-    <div className="border-b border-white/5">
+    <div className="border-b border-neutral-200 dark:border-white/5">
       {isExternal ? (
         <a href={href} target="_blank" rel="noopener noreferrer" className="block">
           {rowContent}
@@ -194,7 +194,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 export function SoccerLiveRowHeader() {
   return (
     <div
-      className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-white/10"
+      className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
           "110px 64px 80px minmax(0,1fr) auto minmax(0,1fr) 56px 32px",
