@@ -24,6 +24,8 @@ const ALL_LEAGUES: League[] = [
   "LIGUE_1",
   "MLS",
   "UCL",
+  "J1_LEAGUE",
+  "AFC_CL",
   "NBA",
   "NHL",
   "MLB",
