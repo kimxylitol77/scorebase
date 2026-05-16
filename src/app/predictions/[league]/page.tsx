@@ -684,36 +684,37 @@ export default async function LeaguePredictions({ params }: Props) {
                     <div className="text-[11px] text-neutral-500 tabular-nums whitespace-nowrap">
                       {dateLabel} · {timeLabel}
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
+                    {/* 홈팀(왼쪽 끝) - vs(가운데) - 원정팀(오른쪽 끝) — ProbBar 좌우 끝과 정렬 */}
+                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
                       <Link
                         href={`/teams/${m.homeTeam.id}`}
-                        className="flex items-center gap-1.5 min-w-0 flex-1 justify-end font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+                        className="flex items-center gap-1.5 min-w-0 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition justify-start"
                       >
-                        <span className="truncate">
-                          {toKoreanTeamName(m.homeTeam.name)}
-                        </span>
                         <PredTeamLogo
                           src={m.homeTeam.logoUrl}
                           name={m.homeTeam.name}
                         />
+                        <span className="truncate">
+                          {toKoreanTeamName(m.homeTeam.name)}
+                        </span>
                       </Link>
-                      <span className="text-[10px] text-neutral-400 shrink-0">
+                      <span className="text-[10px] text-neutral-400 shrink-0 px-1">
                         vs
                       </span>
                       <Link
                         href={`/teams/${m.awayTeam.id}`}
-                        className="flex items-center gap-1.5 min-w-0 flex-1 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+                        className="flex items-center gap-1.5 min-w-0 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition justify-end text-right"
                       >
+                        <span className="truncate">
+                          {toKoreanTeamName(m.awayTeam.name)}
+                        </span>
                         <PredTeamLogo
                           src={m.awayTeam.logoUrl}
                           name={m.awayTeam.name}
                         />
-                        <span className="truncate">
-                          {toKoreanTeamName(m.awayTeam.name)}
-                        </span>
                       </Link>
                     </div>
-                    <ProbBar wp={wp} hideDraw={!info.showDraw} />
+                    <ProbBar wp={wp} hideDraw={!info.showDraw} fullWidth />
                   </div>
                 );
               })}
@@ -805,15 +806,22 @@ function Heading({
 function ProbBar({
   wp,
   hideDraw,
+  fullWidth,
 }: {
   wp: { home: number; draw: number; away: number };
   hideDraw: boolean;
+  /** true 면 max-width 제거 — 모바일 카드에서 카드 전체 너비 사용 */
+  fullWidth?: boolean;
 }) {
   const h = Math.round(wp.home * 100);
   const d = hideDraw ? 0 : Math.round(wp.draw * 100);
   const a = 100 - h - d;
   return (
-    <div className="flex h-5 rounded overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700 max-w-[280px]">
+    <div
+      className={`flex h-5 rounded overflow-hidden ring-1 ring-neutral-200 dark:ring-neutral-700 ${
+        fullWidth ? "w-full" : "max-w-[280px]"
+      }`}
+    >
       <div
         className="bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center"
         style={{ width: `${h}%` }}
