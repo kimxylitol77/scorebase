@@ -15,6 +15,7 @@ import {
   type PeriodLinescore,
   type SoccerGoal,
 } from "@/lib/sports/live-scores";
+import { fetchSoccerLiveStats } from "@/lib/live/soccer-live-stats";
 
 // ESPN team-stat name → 한국어 라벨 (sportPath 별)
 const NBA_STATS = [
@@ -50,6 +51,8 @@ const ESPN_SOCCER_PATH: Record<string, string> = {
   MLS: "soccer/usa.1",
   UCL: "soccer/uefa.champions",
   WORLD_CUP: "soccer/fifa.world",
+  J1_LEAGUE: "soccer/jpn.1",
+  AFC_CL: "soccer/afc.champions",
 };
 
 // edge runtime 에선 fetchSoccerGoalsByDate (AbortController/setTimeout)
@@ -151,11 +154,14 @@ export async function GET(
     // ESPN event id 매칭 실패 시 name pair fallback 용.
     const awayName = req.nextUrl.searchParams.get("away") ?? "";
     const homeName = req.nextUrl.searchParams.get("home") ?? "";
-    const [goalsMap, summary] = await Promise.all([
+    // 축구 stats — api-football 우선 (possession/슛/코너/xG/카드 등 풍부),
+    // 없으면 ESPN summary fallback. leaders / winProb 는 항상 ESPN 에서.
+    const [goalsMap, espnSummary, afStats] = await Promise.all([
       fetchSoccerGoalsByDate(date, [league]),
       espnPath
         ? fetchEspnSummary(espnPath, gameId, SOCCER_STATS)
         : Promise.resolve(null),
+      fetchSoccerLiveStats(league, date, awayName, homeName),
     ]);
     // 1차: ESPN event id 매칭
     let goals = goalsMap[gameId] ?? null;
@@ -164,7 +170,18 @@ export async function GET(
       goals = goalsMap[soccerGoalsPairKey(awayName, homeName)] ?? null;
     }
     out.soccerGoals = goals;
-    out.summary = summary;
+    // api-football stats 가 있으면 ESPN stats 덮어쓰고, ESPN summary 의 leaders/winProb 는 유지.
+    if (afStats && (afStats.homeStats.length > 0 || afStats.awayStats.length > 0)) {
+      out.summary = {
+        homeStats: afStats.homeStats,
+        awayStats: afStats.awayStats,
+        homeLeaders: espnSummary?.homeLeaders ?? [],
+        awayLeaders: espnSummary?.awayLeaders ?? [],
+        winProbabilityHome: espnSummary?.winProbabilityHome,
+      };
+    } else {
+      out.summary = espnSummary;
+    }
   } else {
     return NextResponse.json(
       { error: "unsupported league (use /api/live/{lol,mlb,baseball})" },
