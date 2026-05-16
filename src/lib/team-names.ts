@@ -842,6 +842,27 @@ const RAW: Record<string, string> = {
   // 분데스리가 풀네임 alias
   "1. FC Heidenheim 1846": "하이덴하임",
   "1.FC Heidenheim 1846": "하이덴하임",
+
+  // EPL/UCL short alias
+  "Brighton Hove": "브라이턴",
+  "Brighton": "브라이턴",
+  "Nottingham": "노팅엄 포레스트",
+
+  // 사우디 spelling 변형
+  "Al-Fayha": "알 파이하",
+  "Al Fayha": "알 파이하",
+  "Al Taawon": "알 타아운",
+  "Al-Taawon": "알 타아운",
+
+  // 세리에 B
+  "Sudtirol": "쥐드티롤",
+  "Südtirol": "쥐드티롤",
+  "FC Sudtirol": "쥐드티롤",
+  "Bari": "바리",
+  "SSC Bari": "바리",
+
+  // 스코틀랜드 추가
+  "Falkirk": "팔커크",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
