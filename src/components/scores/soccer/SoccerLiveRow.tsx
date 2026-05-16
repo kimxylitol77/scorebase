@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
 import FavoriteStar from "../FavoriteStar";
+import type { SoccerGoal } from "@/lib/sports/live-scores";
 
 export interface SoccerLiveRowProps {
   matchId: string | number;
@@ -21,6 +22,11 @@ export interface SoccerLiveRowProps {
   /** 전반 점수 — 데이터 없으면 null */
   homeFirstHalf?: number | null;
   awayFirstHalf?: number | null;
+  /** 골 list — 종료 매치 hover tooltip 용 */
+  soccerGoals?: SoccerGoal[] | null;
+  /** 팀 약칭 라벨 — tooltip 안에 표시 */
+  homeShort?: string;
+  awayShort?: string;
   href?: string | null;
 }
 
@@ -56,6 +62,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayScore,
     homeFirstHalf,
     awayFirstHalf,
+    soccerGoals,
+    homeShort,
+    awayShort,
     href,
   } = props;
 
@@ -119,8 +128,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <TeamLogo url={home.logo} name={home.name} />
       </div>
 
-      {/* 5. 점수 */}
-      <div className="text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2">
+      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip */}
+      <div
+        className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group"
+      >
         {hasScore ? (
           <>
             <span
@@ -146,6 +157,13 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             >
               {awayScore}
             </span>
+            {isFinished && soccerGoals && soccerGoals.length > 0 && (
+              <GoalsTooltip
+                goals={soccerGoals}
+                homeLabel={homeShort ?? home.name}
+                awayLabel={awayShort ?? away.name}
+              />
+            )}
           </>
         ) : (
           <span className="text-neutral-500 text-[11px] font-medium">vs</span>
@@ -186,6 +204,101 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           {rowContent}
         </Link>
       )}
+    </div>
+  );
+}
+
+/** 종료 매치 점수 hover 시 표시되는 골 list tooltip. */
+function GoalsTooltip({
+  goals,
+  homeLabel,
+  awayLabel,
+}: {
+  goals: SoccerGoal[];
+  homeLabel: string;
+  awayLabel: string;
+}) {
+  const parseMinute = (s: string): number => {
+    const m = s.match(/(\d+)(?:\+(\d+))?/);
+    if (!m) return 0;
+    return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) : 0);
+  };
+  const homeGoals = goals
+    .filter((g) => g.side === "home")
+    .sort((a, b) => parseMinute(a.minute) - parseMinute(b.minute));
+  const awayGoals = goals
+    .filter((g) => g.side === "away")
+    .sort((a, b) => parseMinute(a.minute) - parseMinute(b.minute));
+
+  return (
+    <div
+      role="tooltip"
+      className="absolute left-1/2 top-full z-30 -translate-x-1/2 mt-1 min-w-[260px] hidden group-hover:block pointer-events-none"
+    >
+      <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 dark:shadow-black/50 p-2.5 text-left">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 pb-1 border-b border-neutral-200 dark:border-white/10 truncate">
+            {homeLabel}
+          </div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 pb-1 border-b border-neutral-200 dark:border-white/10 truncate text-right">
+            {awayLabel}
+          </div>
+          {/* 좌측 컬럼 — 홈팀 골 */}
+          <div className="space-y-1">
+            {homeGoals.length === 0 && (
+              <div className="text-neutral-400 text-[10px]">—</div>
+            )}
+            {homeGoals.map((g, i) => (
+              <div
+                key={`h${i}`}
+                className="flex items-center gap-1.5 text-neutral-800 dark:text-neutral-200 truncate"
+              >
+                <span className="text-[10px] tabular-nums text-neutral-500 shrink-0 w-8">
+                  {g.minute}
+                </span>
+                <span className="truncate">{g.player || "—"}</span>
+                {g.penaltyKick && (
+                  <span className="text-[9px] text-neutral-400 shrink-0">
+                    PK
+                  </span>
+                )}
+                {g.ownGoal && (
+                  <span className="text-[9px] text-neutral-400 shrink-0">
+                    자책
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+          {/* 우측 컬럼 — 원정팀 골 */}
+          <div className="space-y-1 text-right">
+            {awayGoals.length === 0 && (
+              <div className="text-neutral-400 text-[10px]">—</div>
+            )}
+            {awayGoals.map((g, i) => (
+              <div
+                key={`a${i}`}
+                className="flex items-center justify-end gap-1.5 text-neutral-800 dark:text-neutral-200 truncate"
+              >
+                {g.ownGoal && (
+                  <span className="text-[9px] text-neutral-400 shrink-0">
+                    자책
+                  </span>
+                )}
+                {g.penaltyKick && (
+                  <span className="text-[9px] text-neutral-400 shrink-0">
+                    PK
+                  </span>
+                )}
+                <span className="truncate">{g.player || "—"}</span>
+                <span className="text-[10px] tabular-nums text-neutral-500 shrink-0 w-8 text-left">
+                  {g.minute}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
