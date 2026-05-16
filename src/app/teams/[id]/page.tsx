@@ -41,6 +41,11 @@ const LEAGUE_GRADIENT: Record<string, string> = {
   MLB: "from-emerald-500 via-green-600 to-teal-700",
   KBO: "from-blue-600 via-cyan-500 to-teal-500",
   NPB: "from-red-600 via-rose-500 to-pink-500",
+  // 신규 — 아시아 축구
+  K_LEAGUE_1: "from-blue-700 via-blue-500 to-sky-400", // 한국 국가대표 블루
+  K_LEAGUE_2: "from-blue-500 via-sky-400 to-cyan-300",
+  J1_LEAGUE: "from-pink-600 via-rose-500 to-red-500", // 사쿠라 핑크
+  AFC_CL: "from-orange-600 via-red-500 to-amber-500",
 };
 
 const REASON_KO: Record<string, string> = {

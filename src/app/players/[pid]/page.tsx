@@ -94,7 +94,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   }
   // 축구/NBA/NHL/LOL 등은 metadata 단에서는 generic title 만 반환 (본문에서 별도 fetch).
   // MLB API 로 잘못 fetch 해 404 → 페이지 전체 500 으로 떨어지던 버그 fix.
-  const SOCCER_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP"];
+  const SOCCER_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "AFC_CL"];
   if (league && (SOCCER_LEAGUES.includes(league) || ["NBA", "NHL", "LOL"].includes(league))) {
     return {
       title: `선수 — ${league}`,
@@ -128,7 +128,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   // 축구 8개 리그
   if (
     league &&
-    ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP"].includes(league)
+    ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "AFC_CL"].includes(league)
   ) {
     return renderSoccerPlayerView(pid, league);
   }

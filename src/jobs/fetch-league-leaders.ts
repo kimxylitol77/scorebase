@@ -91,12 +91,18 @@ async function clearOldRanks(
 
 const SOCCER_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "AFC_CL",
 ];
 
-function currentSoccerSeason(): { season: number; label: string } {
+/** 리그별 시즌 — 달력 연도 리그 (MLS/J1/K1/K2/AFC) vs 유럽 7-6월. */
+function currentSoccerSeason(league: string): { season: number; label: string } {
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;
+  const calendarYearLeagues = ["MLS", "J1_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP"];
+  if (calendarYearLeagues.includes(league)) {
+    return { season: y, label: String(y) };
+  }
   const startYear = m >= 7 ? y : y - 1;
   return { season: startYear, label: `${startYear}-${String(startYear + 1).slice(2)}` };
 }
@@ -137,9 +143,11 @@ async function syncSoccerCategory(
 }
 
 async function runSoccer() {
-  const { season, label } = currentSoccerSeason();
   const result: Record<string, Record<string, number>> = {};
+  let lastLabel = "";
   for (const lg of SOCCER_LEAGUES) {
+    const { season, label } = currentSoccerSeason(lg);
+    lastLabel = label;
     result[lg] = {};
     try {
       result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
@@ -150,7 +158,7 @@ async function runSoccer() {
       console.warn(`[league-leaders/${lg}]`, (e as Error).message);
     }
   }
-  return { season: label, result };
+  return { season: lastLabel, result };
 }
 
 /* ============================================================
