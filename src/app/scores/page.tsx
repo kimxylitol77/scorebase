@@ -34,6 +34,9 @@ import MatchCard from "@/components/scores/MatchCard";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
+import SoccerLiveRow, {
+  SoccerLiveRowHeader,
+} from "@/components/scores/soccer/SoccerLiveRow";
 import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
 import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescore";
 import type { BaseballContext } from "@/components/scores/BaseballMiniBoard";
@@ -561,20 +564,31 @@ export default async function ScoresPage({ searchParams }: Props) {
               actions: actionsFor(m),
             }))}
           />
-          {liveList.length > 0 && (
-            <Section title="🔴 진행 중" count={liveList.length}>
-              {liveList.map((m) => renderCard(m))}
-            </Section>
-          )}
-          {scheduledList.length > 0 && (
-            <Section title="⏳ 예정" count={scheduledList.length}>
-              {scheduledList.map((m) => renderCard(m))}
-            </Section>
-          )}
-          {finishedList.length > 0 && (
-            <Section title="✅ 종료" count={finishedList.length}>
-              {finishedList.map((m) => renderCard(m))}
-            </Section>
+          {/* 축구 카테고리 — named.com 스타일 row layout */}
+          {sport === "soccer" ? (
+            <SoccerRowLayout
+              liveList={liveList}
+              scheduledList={scheduledList}
+              finishedList={finishedList}
+            />
+          ) : (
+            <>
+              {liveList.length > 0 && (
+                <Section title="🔴 진행 중" count={liveList.length}>
+                  {liveList.map((m) => renderCard(m))}
+                </Section>
+              )}
+              {scheduledList.length > 0 && (
+                <Section title="⏳ 예정" count={scheduledList.length}>
+                  {scheduledList.map((m) => renderCard(m))}
+                </Section>
+              )}
+              {finishedList.length > 0 && (
+                <Section title="✅ 종료" count={finishedList.length}>
+                  {finishedList.map((m) => renderCard(m))}
+                </Section>
+              )}
+            </>
           )}
         </div>
       )}
@@ -605,6 +619,83 @@ function Section({
       </div>
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</ul>
     </section>
+  );
+}
+
+/** 축구 row layout — named.com 스타일 한 줄 매치 표. */
+function SoccerRowLayout({
+  liveList,
+  scheduledList,
+  finishedList,
+}: {
+  liveList: NormalizedMatch[];
+  scheduledList: NormalizedMatch[];
+  finishedList: NormalizedMatch[];
+}) {
+  const renderRow = (m: NormalizedMatch) => {
+    const statusKey: "scheduled" | "live" | "finished" | "postponed" =
+      m.status === "LIVE"
+        ? "live"
+        : m.status === "FINISHED"
+          ? "finished"
+          : m.status === "POSTPONED"
+            ? "postponed"
+            : "scheduled";
+    return (
+      <SoccerLiveRow
+        key={String(m.id)}
+        matchId={m.id}
+        league={m.league}
+        status={statusKey}
+        timeLabel={m.timeLabel}
+        liveStatusLabel={m.liveStatusLabel}
+        home={{
+          name: m.home.name,
+          logo: m.home.logo ?? null,
+        }}
+        away={{
+          name: m.away.name,
+          logo: m.away.logo ?? null,
+        }}
+        homeScore={m.home.score}
+        awayScore={m.away.score}
+        href={m.href}
+      />
+    );
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-x-auto">
+        <div className="min-w-[860px] px-4 py-1">
+          <SoccerLiveRowHeader />
+          {liveList.length > 0 && (
+            <>
+              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-rose-500">
+                ● 진행 중 ({liveList.length})
+              </div>
+              {liveList.map(renderRow)}
+            </>
+          )}
+          {scheduledList.length > 0 && (
+            <>
+              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-neutral-400">
+                ⏳ 예정 ({scheduledList.length})
+              </div>
+              {scheduledList.map(renderRow)}
+            </>
+          )}
+          {finishedList.length > 0 && (
+            <>
+              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-neutral-500">
+                ✅ 종료 ({finishedList.length})
+              </div>
+              {finishedList.map(renderRow)}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
