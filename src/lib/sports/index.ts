@@ -55,6 +55,23 @@ export const collectors: Record<League, MatchCollector> = {
   LIGUE_2: buildApiFootballCollector("LIGUE_2"),
   // 세계 클럽 대회
   CLUB_WORLD_CUP: buildApiFootballCollector("CLUB_WORLD_CUP"),
+  // 아시아 추가
+  AFC_CL_TWO: buildApiFootballCollector("AFC_CL_TWO"),
+  AFC_U23: buildApiFootballCollector("AFC_U23"),
+  CSL: buildApiFootballCollector("CSL"),
+  A_LEAGUE: buildApiFootballCollector("A_LEAGUE"),
+  // 유럽 추가
+  EREDIVISIE: buildApiFootballCollector("EREDIVISIE"),
+  PRIMEIRA_LIGA: buildApiFootballCollector("PRIMEIRA_LIGA"),
+  SUPER_LIG: buildApiFootballCollector("SUPER_LIG"),
+  JUPILER_PL: buildApiFootballCollector("JUPILER_PL"),
+  SPL: buildApiFootballCollector("SPL"),
+  GREEK_SL: buildApiFootballCollector("GREEK_SL"),
+  // 북중남미 추가
+  BRASILEIRAO: buildApiFootballCollector("BRASILEIRAO"),
+  LIGA_MX: buildApiFootballCollector("LIGA_MX"),
+  COPA_LIB: buildApiFootballCollector("COPA_LIB"),
+  COPA_SUD: buildApiFootballCollector("COPA_SUD"),
 };
 
 export {

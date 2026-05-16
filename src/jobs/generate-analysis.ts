@@ -41,6 +41,20 @@ const RELEGATION_BY_LEAGUE: Record<string, number> = {
   SERIE_B: 3,
   LIGUE_2: 2,
   CLUB_WORLD_CUP: 0,
+  AFC_CL_TWO: 0,
+  AFC_U23: 0,
+  CSL: 2,
+  A_LEAGUE: 1,
+  EREDIVISIE: 1,
+  PRIMEIRA_LIGA: 2,
+  SUPER_LIG: 4,
+  JUPILER_PL: 0,
+  SPL: 2,
+  GREEK_SL: 2,
+  BRASILEIRAO: 4,
+  LIGA_MX: 0,
+  COPA_LIB: 0,
+  COPA_SUD: 0,
 };
 
 function extractTitle(md: string): string {

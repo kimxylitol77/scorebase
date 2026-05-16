@@ -278,7 +278,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         ? strongArr.filter((m) => m.predCorrect).length / strongArr.length
         : 0,
   };
-  const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL","WORLD_CUP","K_LEAGUE_1","K_LEAGUE_2","J1_LEAGUE","J2_LEAGUE","AFC_CL","SAUDI_PL","UEL","UECL","CHAMPIONSHIP","LALIGA_2","BUNDESLIGA_2","SERIE_B","LIGUE_2","CLUB_WORLD_CUP"].includes(upper);
+  const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL","WORLD_CUP","K_LEAGUE_1","K_LEAGUE_2","J1_LEAGUE","J2_LEAGUE","AFC_CL","AFC_CL_TWO","AFC_U23","SAUDI_PL","UEL","UECL","CHAMPIONSHIP","LALIGA_2","BUNDESLIGA_2","SERIE_B","LIGUE_2","EREDIVISIE","PRIMEIRA_LIGA","SUPER_LIG","JUPILER_PL","SPL","GREEK_SL","BRASILEIRAO","LIGA_MX","COPA_LIB","COPA_SUD","CSL","A_LEAGUE","CLUB_WORLD_CUP"].includes(upper);
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);

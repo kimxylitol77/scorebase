@@ -91,19 +91,26 @@ async function clearOldRanks(
 
 const SOCCER_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
-  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL",
   "UEL", "UECL",
   "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
+  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
+  "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD",
+  "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
 ];
 
-/** 리그별 시즌 — 달력 연도 (MLS/J/K/AFC) vs 유럽 7-6월. CLUB_WORLD_CUP 은 단일 대회 (2025). */
+/** 리그별 시즌. 단일 대회 → 마지막 개최 연도, 달력 연도 vs 유럽 8-5월 시즌. */
 function currentSoccerSeason(league: string): { season: number; label: string } {
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;
-  const calendarYearLeagues = ["MLS", "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP"];
+  const calendarYearLeagues = [
+    "MLS", "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP",
+    "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
+  ];
   if (league === "CLUB_WORLD_CUP") return { season: 2025, label: "2025" };
+  if (league === "AFC_U23") return { season: 2025, label: "2025" };
   if (calendarYearLeagues.includes(league)) {
     return { season: y, label: String(y) };
   }

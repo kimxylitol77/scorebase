@@ -58,6 +58,23 @@ const LEAGUE_GRADIENT: Record<string, string> = {
   SERIE_B: "from-blue-500 via-sky-400 to-emerald-400",
   LIGUE_2: "from-blue-800 via-indigo-700 to-blue-500",
   CLUB_WORLD_CUP: "from-yellow-500 via-amber-400 to-orange-400",
+  // 아시아 추가
+  AFC_CL_TWO: "from-orange-400 via-amber-300 to-yellow-300",
+  AFC_U23: "from-indigo-700 via-purple-600 to-violet-500",
+  CSL: "from-red-700 via-rose-600 to-amber-400",
+  A_LEAGUE: "from-yellow-500 via-amber-500 to-emerald-500",
+  // 유럽 추가
+  EREDIVISIE: "from-orange-600 via-amber-500 to-red-500", // 네덜란드 오렌지
+  PRIMEIRA_LIGA: "from-emerald-700 via-green-600 to-red-600", // 포르투갈
+  SUPER_LIG: "from-red-600 via-rose-500 to-red-700", // 터키
+  JUPILER_PL: "from-yellow-500 via-black to-red-600", // 벨기에
+  SPL: "from-blue-800 via-indigo-700 to-sky-600", // 스코틀랜드
+  GREEK_SL: "from-blue-700 via-sky-500 to-blue-400", // 그리스
+  // 북중남미 추가
+  BRASILEIRAO: "from-yellow-500 via-emerald-500 to-blue-700", // 브라질
+  LIGA_MX: "from-emerald-700 via-green-600 to-red-600", // 멕시코
+  COPA_LIB: "from-blue-900 via-indigo-700 to-yellow-500",
+  COPA_SUD: "from-orange-600 via-amber-500 to-yellow-400",
 };
 
 const REASON_KO: Record<string, string> = {

@@ -16,9 +16,12 @@ import { fetchMatchExtras } from "@/lib/live/match-extras";
 
 const SOCCER_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
-  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL",
   "UEL", "UECL",
   "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
+  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
+  "LIGA_MX", "BRASILEIRAO", "COPA_LIB", "COPA_SUD",
+  "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
 ]);
 
@@ -49,6 +52,8 @@ const SUPPORTED = new Set([
   "J1_LEAGUE",
   "J2_LEAGUE",
   "AFC_CL",
+  "AFC_CL_TWO",
+  "AFC_U23",
   "SAUDI_PL",
   "UEL",
   "UECL",
@@ -57,6 +62,18 @@ const SUPPORTED = new Set([
   "BUNDESLIGA_2",
   "SERIE_B",
   "LIGUE_2",
+  "EREDIVISIE",
+  "PRIMEIRA_LIGA",
+  "SUPER_LIG",
+  "JUPILER_PL",
+  "SPL",
+  "GREEK_SL",
+  "BRASILEIRAO",
+  "LIGA_MX",
+  "COPA_LIB",
+  "COPA_SUD",
+  "CSL",
+  "A_LEAGUE",
   "CLUB_WORLD_CUP",
 ]);
 
@@ -85,6 +102,20 @@ const LEAGUE_LABEL: Record<string, string> = {
   SERIE_B: "세리에 B",
   LIGUE_2: "리그 2",
   CLUB_WORLD_CUP: "FIFA 클럽 월드컵",
+  AFC_CL_TWO: "AFC 챔피언스리그 2",
+  AFC_U23: "AFC U23 아시안컵",
+  CSL: "중국 슈퍼리그",
+  A_LEAGUE: "A-리그",
+  EREDIVISIE: "에레디비시",
+  PRIMEIRA_LIGA: "프리메이라 리가",
+  SUPER_LIG: "쉬페르 리그",
+  JUPILER_PL: "주피러 프로 리그",
+  SPL: "스코틀랜드 프리미어십",
+  GREEK_SL: "그리스 슈퍼리그",
+  BRASILEIRAO: "브라질 세리에 A",
+  LIGA_MX: "리가 MX",
+  COPA_LIB: "코파 리베르타도레스",
+  COPA_SUD: "코파 수다메리카나",
 };
 
 interface Props {

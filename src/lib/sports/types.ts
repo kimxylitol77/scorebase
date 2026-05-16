@@ -33,7 +33,24 @@ export type League =
   | "SERIE_B" // 이탈리아 세리에 B — api-football
   | "LIGUE_2" // 프랑스 리그 2 — api-football
   // 세계 클럽 대회
-  | "CLUB_WORLD_CUP"; // FIFA 클럽 월드컵 — api-football
+  | "CLUB_WORLD_CUP" // FIFA 클럽 월드컵 — api-football
+  // 신규 — 아시아 추가
+  | "AFC_CL_TWO" // AFC 챔피언스리그 2 — api-football
+  | "AFC_U23" // AFC U23 아시안컵 — api-football
+  | "CSL" // 중국 슈퍼리그 — api-football
+  | "A_LEAGUE" // 호주 A-리그 — api-football
+  // 유럽 추가
+  | "EREDIVISIE" // 네덜란드 에레디비시
+  | "PRIMEIRA_LIGA" // 포르투갈 프리메이라
+  | "SUPER_LIG" // 터키 쉬페르 리그
+  | "JUPILER_PL" // 벨기에 주피러 프로 리그
+  | "SPL" // 스코틀랜드 프리미어십
+  | "GREEK_SL" // 그리스 슈퍼 리그 1
+  // 북중남미 추가
+  | "BRASILEIRAO" // 브라질 세리에 A
+  | "LIGA_MX" // 멕시코 리가 MX
+  | "COPA_LIB" // CONMEBOL 코파 리베르타도레스
+  | "COPA_SUD"; // CONMEBOL 코파 수다메리카나
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -59,6 +76,20 @@ export const SOCCER_LEAGUES = [
   "SERIE_B",
   "LIGUE_2",
   "CLUB_WORLD_CUP",
+  "AFC_CL_TWO",
+  "AFC_U23",
+  "CSL",
+  "A_LEAGUE",
+  "EREDIVISIE",
+  "PRIMEIRA_LIGA",
+  "SUPER_LIG",
+  "JUPILER_PL",
+  "SPL",
+  "GREEK_SL",
+  "BRASILEIRAO",
+  "LIGA_MX",
+  "COPA_LIB",
+  "COPA_SUD",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -74,6 +105,20 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "SERIE_B",
   "LIGUE_2",
   "CLUB_WORLD_CUP",
+  "AFC_CL_TWO",
+  "AFC_U23",
+  "CSL",
+  "A_LEAGUE",
+  "EREDIVISIE",
+  "PRIMEIRA_LIGA",
+  "SUPER_LIG",
+  "JUPILER_PL",
+  "SPL",
+  "GREEK_SL",
+  "BRASILEIRAO",
+  "LIGA_MX",
+  "COPA_LIB",
+  "COPA_SUD",
 ];
 
 export type MatchStatus =

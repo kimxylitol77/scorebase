@@ -33,6 +33,20 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   SERIE_B: 136,
   LIGUE_2: 62,
   CLUB_WORLD_CUP: 15,
+  AFC_CL_TWO: 18,
+  AFC_U23: 532,
+  CSL: 169,
+  A_LEAGUE: 188,
+  EREDIVISIE: 88,
+  PRIMEIRA_LIGA: 94,
+  SUPER_LIG: 203,
+  JUPILER_PL: 144,
+  SPL: 179,
+  GREEK_SL: 197,
+  BRASILEIRAO: 71,
+  LIGA_MX: 262,
+  COPA_LIB: 13,
+  COPA_SUD: 11,
 };
 
 interface CacheEntry<T> {
