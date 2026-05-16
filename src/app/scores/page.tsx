@@ -34,6 +34,7 @@ import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
 import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
 import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescore";
+import type { BaseballContext } from "@/components/scores/BaseballMiniBoard";
 import type { EsportsContext } from "@/components/scores/EsportsMiniBoard";
 
 const fetchLiveCached = unstable_cache(
@@ -400,6 +401,17 @@ export default async function ScoresPage({ searchParams }: Props) {
             };
           })()
         : null,
+      // 라이브 야구 컨텍스트 (베이스/아웃/회·말) — ESPN MLB 만 채워짐 (KBO/NPB 는 ESPN 데이터 없음).
+      baseballCtx: isBaseball
+        ? baseballDetailsMap[m.externalId]?.ctx
+          ? ({
+              inning: baseballDetailsMap[m.externalId].ctx!.inning ?? undefined,
+              half: baseballDetailsMap[m.externalId].ctx!.half,
+              outs: baseballDetailsMap[m.externalId].ctx!.outs,
+              bases: baseballDetailsMap[m.externalId].ctx!.bases,
+            } satisfies BaseballContext)
+          : null
+        : null,
       preview,
       recap,
       href,
@@ -506,7 +518,7 @@ export default async function ScoresPage({ searchParams }: Props) {
               away: m.away,
               timeLabel: m.timeLabel,
               liveStatusLabel: m.liveStatusLabel,
-              baseballCtx: null,
+              baseballCtx: m.baseballCtx,
               baseballLinescore: m.baseballLinescore,
               periodLinescore: m.periodLinescore,
               soccerGoals: m.soccerGoals,
@@ -579,6 +591,7 @@ type NormalizedMatch = {
   soccerCtx: SoccerContext | null;
   soccerGoals: SoccerGoal[] | null;
   esportsCtx: EsportsContext | null;
+  baseballCtx: BaseballContext | null;
   baseballLinescore: BaseballLinescoreData | null;
   periodLinescore: PeriodLinescoreData | null;
   preview?: string;
@@ -634,7 +647,7 @@ function renderCard(m: NormalizedMatch) {
       away={m.away}
       timeLabel={m.timeLabel}
       liveStatusLabel={m.liveStatusLabel}
-      baseballCtx={null}
+      baseballCtx={m.baseballCtx}
       baseballLinescore={m.baseballLinescore}
       periodLinescore={m.periodLinescore}
       soccerGoals={m.soccerGoals}

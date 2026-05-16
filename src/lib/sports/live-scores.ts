@@ -269,6 +269,15 @@ export interface BaseballGameDetails {
   awayHits: number | null;
   homeErrors: number | null;
   awayErrors: number | null;
+  /** 라이브 컨텍스트 — ESPN MLB scoreboard situation 에서 파싱. KBO/NPB 는 미제공. */
+  ctx?: {
+    inning: number | null;
+    half: "top" | "bottom" | null;
+    outs: number | null;
+    bases: [boolean, boolean, boolean] | null;
+    pitcher: string | null;
+    batter: string | null;
+  };
 }
 
 export async function fetchBaseballByDate(
@@ -336,20 +345,34 @@ export async function fetchMlbByDate(
         errors?: number;
         linescores?: Array<{ value?: number; displayValue?: string }>;
       }
+      interface EspnSituation {
+        balls?: number;
+        strikes?: number;
+        outs?: number;
+        onFirst?: boolean;
+        onSecond?: boolean;
+        onThird?: boolean;
+        pitcher?: { athlete?: { displayName?: string; shortName?: string } };
+        batter?: { athlete?: { displayName?: string; shortName?: string } };
+      }
       const data = (await res.json()) as {
         events?: Array<{
           id: string;
           competitions?: Array<{
             competitors?: EspnComp[];
-            status?: { type?: { name?: string } };
+            status?: {
+              period?: number;
+              type?: { name?: string; detail?: string; state?: string };
+            };
+            situation?: EspnSituation;
           }>;
         }>;
       };
       for (const ev of data.events ?? []) {
         const comp = ev.competitions?.[0];
         if (!comp) continue;
-        const status = comp.status?.type?.name ?? "";
-        if (/SCHEDULED|PRE/.test(status)) continue; // 시작 전은 skip
+        const statusName = comp.status?.type?.name ?? "";
+        if (/SCHEDULED|PRE/.test(statusName)) continue; // 시작 전은 skip
         const home = comp.competitors?.find((c) => c.homeAway === "home");
         const away = comp.competitors?.find((c) => c.homeAway === "away");
         if (!home || !away) continue;
@@ -359,6 +382,39 @@ export async function fetchMlbByDate(
             : l.displayValue !== undefined
               ? Number(l.displayValue)
               : null;
+        // 라이브 매치만 ctx 채움 (FINAL/POSTPONED 는 situation 없거나 stale)
+        const isLive = comp.status?.type?.state === "in";
+        const detail = comp.status?.type?.detail ?? "";
+        const halfMatch = detail.match(/^(Top|Bottom|Mid|End)\s+/i);
+        const half: "top" | "bottom" | null =
+          halfMatch?.[1].toLowerCase() === "top"
+            ? "top"
+            : halfMatch?.[1].toLowerCase() === "bottom"
+              ? "bottom"
+              : null;
+        const inning = comp.status?.period ?? null;
+        const sit = comp.situation;
+        const ctx =
+          isLive && sit
+            ? {
+                inning,
+                half,
+                outs: typeof sit.outs === "number" ? sit.outs : null,
+                bases: [
+                  !!sit.onFirst,
+                  !!sit.onSecond,
+                  !!sit.onThird,
+                ] as [boolean, boolean, boolean],
+                pitcher:
+                  sit.pitcher?.athlete?.displayName ??
+                  sit.pitcher?.athlete?.shortName ??
+                  null,
+                batter:
+                  sit.batter?.athlete?.displayName ??
+                  sit.batter?.athlete?.shortName ??
+                  null,
+              }
+            : undefined;
         out[ev.id] = {
           homeInnings: (home.linescores ?? []).map(toInning),
           awayInnings: (away.linescores ?? []).map(toInning),
@@ -366,6 +422,7 @@ export async function fetchMlbByDate(
           awayHits: away.hits ?? null,
           homeErrors: home.errors ?? null,
           awayErrors: away.errors ?? null,
+          ctx,
         };
       }
     } catch (e) {

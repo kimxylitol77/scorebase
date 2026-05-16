@@ -12,6 +12,7 @@ import EsportsMiniBoard, { type EsportsContext } from "./EsportsMiniBoard";
 import BaseballLinescore, {
   type BaseballLinescoreData,
 } from "./BaseballLinescore";
+import BaseballLiveCard from "./baseball/BaseballLiveCard";
 import SoccerGoals from "./SoccerGoals";
 import PeriodLinescore from "./PeriodLinescore";
 import type {
@@ -114,6 +115,27 @@ export default function MatchCard(props: MatchCardProps) {
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
   const hasScore = home.score != null && away.score != null;
+
+  // 야구 LIVE 매치는 전용 카드 (가로 통합 디자인 — 다이아몬드 + 이닝 박스)
+  if (sport === "baseball" && isLive) {
+    return (
+      <BaseballLiveCard
+        matchId={matchId}
+        league={league}
+        leagueLabel={leagueLabel}
+        home={home}
+        away={away}
+        timeLabel={timeLabel}
+        liveStatusLabel={liveStatusLabel}
+        baseballLinescore={baseballLinescore}
+        baseballCtx={baseballCtx}
+        homeStarter={homeStarter}
+        awayStarter={awayStarter}
+        href={href}
+        actions={actions}
+      />
+    );
+  }
 
   const statusNode = isPostponed ? (
     <span className="status-badge finished">연기</span>

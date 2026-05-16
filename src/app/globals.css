@@ -189,6 +189,40 @@ body {
   pointer-events: none;
 }
 
+/* 야구 LIVE 카드 — 초록 글로우 보더 */
+.match-card.baseball-live-card {
+  border-left: none;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  box-shadow:
+    0 0 24px rgba(34, 197, 94, 0.08),
+    0 8px 30px rgba(0, 0, 0, 0.4);
+}
+.match-card.baseball-live-card::before {
+  display: none;
+}
+.match-card.baseball-live-card:hover {
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow:
+    0 0 32px rgba(34, 197, 94, 0.15),
+    0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+/* LIVE 펄스 (배지 안의 빨간 점) */
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+.live-dot {
+  animation: livePulse 1.4s ease-in-out infinite;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
