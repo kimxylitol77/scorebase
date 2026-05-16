@@ -48,7 +48,7 @@ function client() {
 }
 
 // ───── fixture id 캐시 ─────
-interface FixtureInfo {
+export interface FixtureInfo {
   id: number;
   homeTeamId: number;
   awayTeamId: number;
@@ -64,7 +64,7 @@ function fixtureCacheKey(league: string, dateKst: string, away: string, home: st
   return `${league}|${dateKst}|${away.toLowerCase()}|${home.toLowerCase()}`;
 }
 
-async function resolveFixture(
+export async function resolveFixture(
   league: string,
   dateKst: string,
   awayName: string,

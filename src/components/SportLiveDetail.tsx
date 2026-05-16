@@ -8,6 +8,7 @@ import Link from "next/link";
 import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
+import SoccerFormation from "./live/SoccerFormation";
 
 interface PeriodLinescore {
   homePeriods: (number | null)[];
@@ -55,6 +56,24 @@ interface LiveOdds {
   fetchedAt: number;
 }
 
+interface FormationPlayer {
+  number: number | null;
+  name: string;
+  pos: "G" | "D" | "M" | "F" | null;
+  grid: string | null;
+}
+interface TeamLineup {
+  teamName: string;
+  formation: string | null;
+  coach: string | null;
+  startXI: FormationPlayer[];
+  substitutes: FormationPlayer[];
+}
+interface SoccerLineups {
+  home: TeamLineup;
+  away: TeamLineup;
+}
+
 interface MatchLive {
   status: "LIVE" | "FINAL" | "PRE" | "UNKNOWN";
   statusLabel: string;
@@ -64,6 +83,7 @@ interface MatchLive {
   soccerGoals?: SoccerGoal[] | null;
   summary?: MatchSummary | null;
   liveOdds?: LiveOdds | null;
+  soccerLineups?: SoccerLineups | null;
 }
 
 interface Props {
@@ -324,6 +344,16 @@ export default function SportLiveDetail({
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
           hasDraw={league !== "NBA" && league !== "NHL" && league !== "MLB" && league !== "KBO" && league !== "NPB"}
+        />
+      )}
+
+      {/* 축구 선발 라인업 + 포메이션 */}
+      {live?.soccerLineups && (
+        <SoccerFormation
+          home={live.soccerLineups.home}
+          away={live.soccerLineups.away}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
         />
       )}
 
