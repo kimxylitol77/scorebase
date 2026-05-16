@@ -42,12 +42,12 @@ export default function Logo({
   const inner = (
     <span className="inline-flex items-center gap-2">
       <Mark size={26} />
-      <span className="inline-flex items-baseline gap-1.5">
-        <span className="text-xl sm:text-[22px] font-black tracking-tight leading-none text-neutral-900 dark:text-white">
+      <span className="flex flex-col leading-none">
+        <span className="text-xl sm:text-[22px] font-black tracking-tight text-neutral-900 dark:text-white">
           Scorebase
         </span>
         {variant === "default" && (
-          <span className="hidden md:inline text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">
+          <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 mt-0.5">
             Sports&nbsp;Daily
           </span>
         )}

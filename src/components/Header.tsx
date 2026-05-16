@@ -9,7 +9,6 @@ interface SubItem {
   href: string;
   label: string;
   desc?: string;
-  icon?: string;
 }
 
 interface CategoryDef {
@@ -20,8 +19,8 @@ interface CategoryDef {
 }
 
 const SOCCER_LEAGUES: SubItem[] = [
-  { href: "/leagues/WORLD_CUP", label: "FIFA 월드컵 2026", desc: "북중미 · 6/11 개막", icon: "🏆" },
-  { href: "/leagues/EPL", label: "프리미어리그 (EPL)", desc: "잉글랜드", icon: "⭐" },
+  { href: "/leagues/WORLD_CUP", label: "FIFA 월드컵 2026", desc: "북중미 · 6/11 개막" },
+  { href: "/leagues/EPL", label: "프리미어리그 (EPL)", desc: "잉글랜드" },
   { href: "/leagues/UCL", label: "챔피언스리그", desc: "유럽" },
   { href: "/leagues/LALIGA", label: "라리가", desc: "스페인" },
   { href: "/leagues/BUNDESLIGA", label: "분데스리가", desc: "독일" },
@@ -33,31 +32,33 @@ const SOCCER_LEAGUES: SubItem[] = [
 const CATEGORIES: CategoryDef[] = [
   { label: "축구", href: "/leagues/EPL", items: SOCCER_LEAGUES },
   {
-    label: "농구",
-    href: "/leagues/NBA",
-    items: [{ href: "/leagues/NBA", label: "NBA", desc: "미국" }],
-  },
-  {
     label: "야구",
     href: "/leagues/KBO",
     items: [
-      { href: "/leagues/KBO", label: "KBO 리그", desc: "한국 프로야구", icon: "⭐" },
+      { href: "/leagues/KBO", label: "KBO 리그", desc: "한국 프로야구" },
       { href: "/leagues/NPB", label: "NPB 리그", desc: "일본 프로야구" },
       { href: "/leagues/MLB", label: "MLB", desc: "메이저리그" },
     ],
   },
   {
-    label: "하키",
-    href: "/leagues/NHL",
-    items: [{ href: "/leagues/NHL", label: "NHL", desc: "북미" }],
+    label: "농구",
+    href: "/leagues/NBA",
+    items: [{ href: "/leagues/NBA", label: "NBA", desc: "미국" }],
   },
   {
-    label: "e스포츠",
-    href: "/leagues/LOL",
+    label: "기타종목",
+    href: "/leagues/NHL",
     items: [
-      { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국", icon: "🎮" },
+      { href: "/leagues/NHL", label: "NHL", desc: "북미 아이스하키" },
+      { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국" },
     ],
   },
+];
+
+const ARTICLE_ITEMS: SubItem[] = [
+  { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
+  { href: "/predictions", label: "예측", desc: "Monte Carlo 시즌 시뮬레이션" },
+  { href: "/notices", label: "공지", desc: "사이트 공지 · 패치노트" },
 ];
 
 export default function Header() {
@@ -76,31 +77,16 @@ export default function Header() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75 animate-ping" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500" />
             </span>
-            라이브
+            라이브 스코어
           </Link>
           {CATEGORIES.map((c) => (
             <CategoryDropdown key={c.label} {...c} />
           ))}
-          <Link
+          <CategoryDropdown
+            label="프리뷰 리뷰"
             href="/previews"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
-          >
-            프리뷰
-          </Link>
-          <Link
-            href="/predictions"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 transition shadow-sm shadow-blue-500/20 whitespace-nowrap"
-          >
-            <span aria-hidden>📊</span>
-            <span className="hidden lg:inline">예측</span>
-          </Link>
-          <Link
-            href="/notices"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
-          >
-            <span aria-hidden>📢</span>
-            <span className="hidden lg:inline">공지</span>
-          </Link>
+            items={ARTICLE_ITEMS}
+          />
 
           {/* 검색 + 다크모드 (데스크탑) */}
           <div className="hidden md:block ml-2">
@@ -157,9 +143,6 @@ function CategoryDropdown({ label, href, items }: CategoryDef) {
                 href={it.href}
                 className="flex items-start gap-2.5 px-2.5 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-900 transition"
               >
-                <span className="text-base leading-none mt-0.5 w-4 text-amber-500">
-                  {it.icon ?? ""}
-                </span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-semibold text-neutral-900 dark:text-white">
                     {it.label}
