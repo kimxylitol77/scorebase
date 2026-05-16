@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
+import BaseballWpaChart from "./live/BaseballWpaChart";
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
   if (url) {
@@ -76,6 +77,13 @@ interface LiveOdds {
   fetchedAt: number;
 }
 
+interface WpaPoint {
+  inning: number;
+  homeWP: number;
+  homeScore: number;
+  awayScore: number;
+}
+
 interface MlbLive {
   status: "PRE" | "LIVE" | "FINAL" | "DELAY";
   statusLabel: string;
@@ -83,6 +91,7 @@ interface MlbLive {
   homeTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
   awayTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
   liveOdds?: LiveOdds | null;
+  wpaSeries?: WpaPoint[] | null;
   situation: {
     balls: number | null;
     strikes: number | null;
@@ -421,6 +430,15 @@ export default function MlbLiveDetail({
           </div>
         )}
       </div>
+
+      {/* 라이브 승률 곡선 (WPA — Poisson 모델) */}
+      {live.wpaSeries && live.wpaSeries.length > 1 && (
+        <BaseballWpaChart
+          series={live.wpaSeries}
+          homeNameKo={homeNameKo ?? live.homeTeam.name}
+          awayNameKo={awayNameKo ?? live.awayTeam.name}
+        />
+      )}
 
       {/* 라이브 배당 (The Odds API 1분 갱신) */}
       {live.liveOdds && (

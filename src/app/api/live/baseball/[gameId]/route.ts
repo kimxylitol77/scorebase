@@ -5,6 +5,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
+import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
 
 // nodejs runtime — fetchLiveOdds 가 fetch 로 동작하지만 일관성 위해 nodejs 고정
 // (edge 도 호환되지만 baseball 응답 크지 않으니 안전한 쪽 선택)
@@ -40,6 +41,7 @@ export interface BaseballLive {
   };
   league: { id: number; name: string };
   liveOdds?: LiveOddsSnapshot | null;
+  wpaSeries?: WpaPoint[] | null;
 }
 
 interface ABGameDetail {
@@ -119,6 +121,7 @@ async function hashLive(live: BaseballLive): Promise<string> {
   const oddsSig = o
     ? `${o.h2h?.home ?? ""}/${o.h2h?.away ?? ""}/${o.totals?.line ?? ""}/${o.totals?.over ?? ""}/${o.spread?.line ?? ""}`
     : "";
+  const lastWp = live.wpaSeries?.[live.wpaSeries.length - 1]?.homeWP;
   const sig = [
     live.status,
     live.statusLabel,
@@ -129,6 +132,7 @@ async function hashLive(live: BaseballLive): Promise<string> {
     live.linescore?.home.join(","),
     live.linescore?.away.join(","),
     oddsSig,
+    lastWp?.toFixed(3),
   ].join("|");
   const buf = await crypto.subtle.digest(
     "SHA-1",
@@ -172,6 +176,16 @@ export async function GET(
         ourLeague,
         live.awayTeam.name,
         live.homeTeam.name,
+      );
+    }
+    // WPA 곡선 — 이닝별 누적 점수 기반 Poisson 시뮬
+    // 리그별 평균 이닝 득점: KBO 0.53, NPB 0.44, MLB 0.49
+    if (live.linescore) {
+      const lambda = ourLeague === "KBO" ? 0.53 : ourLeague === "NPB" ? 0.44 : 0.49;
+      live.wpaSeries = computeBaseballWpa(
+        live.linescore.away,
+        live.linescore.home,
+        { lambdaPerInning: lambda },
       );
     }
     const etag = `W/"${await hashLive(live)}"`;

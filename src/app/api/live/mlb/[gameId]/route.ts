@@ -4,6 +4,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
+import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
 
 // nodejs runtime — fetchLiveOdds (fetch 기반) 통합용
 export const runtime = "nodejs";
@@ -19,6 +20,7 @@ export interface MlbLive {
   homeTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
   awayTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
   liveOdds?: LiveOddsSnapshot | null;
+  wpaSeries?: WpaPoint[] | null;
   situation: {
     balls: number | null;
     strikes: number | null;
@@ -156,6 +158,7 @@ async function hashLive(live: MlbLive): Promise<string> {
     live.situation?.pitcherName,
     live.situation?.lastPlay,
     oddsSig,
+    live.wpaSeries?.[live.wpaSeries.length - 1]?.homeWP?.toFixed(3),
   ].join("|");
   const buf = await crypto.subtle.digest(
     "SHA-1",
@@ -192,6 +195,12 @@ export async function GET(
     }
     // 라이브 odds — MLB 활성 active=true
     live.liveOdds = await fetchLiveOdds("MLB", live.awayTeam.name, live.homeTeam.name);
+    // WPA 곡선 — MLB 평균 이닝 득점 ~0.49
+    if (live.linescore) {
+      live.wpaSeries = computeBaseballWpa(live.linescore.away, live.linescore.home, {
+        lambdaPerInning: 0.49,
+      });
+    }
     const etag = `W/"${await hashLive(live)}"`;
     if (req.headers.get("if-none-match") === etag) {
       return new NextResponse(null, {

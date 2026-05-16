@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
+import BaseballWpaChart from "./live/BaseballWpaChart";
 
 interface LiveOdds {
   h2h: { home: number; draw: number | null; away: number } | null;
@@ -20,6 +21,13 @@ interface LiveOdds {
   } | null;
   bookmakers: number;
   fetchedAt: number;
+}
+
+interface WpaPoint {
+  inning: number;
+  homeWP: number;
+  homeScore: number;
+  awayScore: number;
 }
 
 interface BaseballLive {
@@ -40,6 +48,7 @@ interface BaseballLive {
   };
   league: { id: number; name: string };
   liveOdds?: LiveOdds | null;
+  wpaSeries?: WpaPoint[] | null;
 }
 
 interface Props {
@@ -397,6 +406,15 @@ export default function BaseballLiveDetail({
           </table>
         </div>
       </div>
+
+      {/* 라이브 승률 곡선 (WPA — Poisson 모델) */}
+      {live.wpaSeries && live.wpaSeries.length > 1 && (
+        <BaseballWpaChart
+          series={live.wpaSeries}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+        />
+      )}
 
       {/* 라이브 배당 (The Odds API 1분 갱신) */}
       {live.liveOdds && (
