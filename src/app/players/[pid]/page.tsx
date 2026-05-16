@@ -92,14 +92,28 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       description: `${teamKo} ${koName} 의 시즌 ERA·WHIP·IP·승패·최근 등판.`,
     };
   }
+  // 축구/NBA/NHL/LOL 등은 metadata 단에서는 generic title 만 반환 (본문에서 별도 fetch).
+  // MLB API 로 잘못 fetch 해 404 → 페이지 전체 500 으로 떨어지던 버그 fix.
+  const SOCCER_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP"];
+  if (league && (SOCCER_LEAGUES.includes(league) || ["NBA", "NHL", "LOL"].includes(league))) {
+    return {
+      title: `선수 — ${league}`,
+      description: `${league} 선수 프로필 · 통계 · 최근 경기.`,
+    };
+  }
   const id = Number(pid);
   if (!Number.isFinite(id)) return { title: "Not Found" };
-  const profile = await fetchPitcherProfile(id, new Date().getUTCFullYear());
-  if (!profile) return { title: "선수 미발견" };
-  return {
-    title: `${profile.name} — MLB 선발 투수 통계`,
-    description: `${profile.team ?? ""} ${profile.name} 의 ${new Date().getUTCFullYear()} 시즌 ERA·WHIP·K/9·최근 등판 결과.`,
-  };
+  // MLB fetchPitcherProfile 이 404 throw 가능 — 잘못된 pid 면 generic metadata 로 fallback.
+  try {
+    const profile = await fetchPitcherProfile(id, new Date().getUTCFullYear());
+    if (!profile) return { title: "선수 미발견" };
+    return {
+      title: `${profile.name} — MLB 선발 투수 통계`,
+      description: `${profile.team ?? ""} ${profile.name} 의 ${new Date().getUTCFullYear()} 시즌 ERA·WHIP·K/9·최근 등판 결과.`,
+    };
+  } catch {
+    return { title: "선수 미발견" };
+  }
 }
 
 export default async function PlayerPage({ params, searchParams }: Props) {
