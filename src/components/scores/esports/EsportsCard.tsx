@@ -4,6 +4,7 @@
 // 예정: 매치업 + KST 시간만.
 
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import type { EsportsContext } from "../EsportsMiniBoard";
 import FavoriteStar from "../FavoriteStar";
@@ -24,6 +25,19 @@ export interface EsportsCardProps {
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
   if (url) {
+    // Liquipedia (LCK 로고) 는 hotlink Referer 검사로 외부 직접 fetch 불가 →
+    // Next.js image optimizer 통해 서버가 fetch 후 재제공해야 표시됨.
+    if (url.includes("liquipedia.net")) {
+      return (
+        <Image
+          src={url}
+          alt=""
+          width={44}
+          height={44}
+          className="w-10 h-10 sm:w-11 sm:h-11 object-contain"
+        />
+      );
+    }
     // eslint-disable-next-line @next/next/no-img-element
     return (
       <img
