@@ -6,6 +6,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { calcStandings } from "@/lib/predict/standings";
+import { getRecentForm } from "@/lib/predict/recent-form";
+import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
@@ -107,6 +109,7 @@ export default async function StandingsPage({ params }: Props) {
               <th className="text-center py-2 px-2 font-semibold w-12">득점</th>
               <th className="text-center py-2 px-2 font-semibold w-12">실점</th>
               <th className="text-center py-2 px-2 font-semibold w-12">득실</th>
+              <th className="text-center py-2 px-2 font-semibold w-20 hidden sm:table-cell">최근 5</th>
               <th className="text-right py-2 pr-3 pl-2 font-semibold w-12">승점</th>
             </tr>
           </thead>
@@ -147,6 +150,9 @@ export default async function StandingsPage({ params }: Props) {
                   <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300">{r.goalsAgainst}</td>
                   <td className={`text-center py-2 px-2 tabular-nums font-semibold ${gd > 0 ? "text-emerald-600 dark:text-emerald-400" : gd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
                     {gd > 0 ? `+${gd}` : gd}
+                  </td>
+                  <td className="text-center py-2 px-2 hidden sm:table-cell">
+                    <RecentFormDots form={getRecentForm(matches, r.teamId, 5)} size="sm" />
                   </td>
                   <td className="text-right py-2 pr-3 pl-2 tabular-nums font-black text-base">{r.points}</td>
                 </tr>
