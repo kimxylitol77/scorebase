@@ -784,7 +784,136 @@ export async function fetchSoccerGoalsByDate(
   await Promise.all(
     paths.flatMap((p) => [fetchOne(p, ymd), fetchOne(p, prevYmd)]),
   );
+
+  // K_LEAGUE_1/K_LEAGUE_2 — ESPN 미커버 → api-football 로 별도 fetch.
+  // /fixtures?date= 로 fixture id list → 각 /fixtures/events 호출 (goal 만 필터).
+  const afLeagues = leagues
+    .map((l) => ({ code: l, afId: API_FOOTBALL_LEAGUE_ID[l] }))
+    .filter((x): x is { code: string; afId: number } =>
+      Boolean(x.afId) && (x.code === "K_LEAGUE_1" || x.code === "K_LEAGUE_2"),
+    );
+  const afKey = process.env.API_FOOTBALL_KEY;
+  if (afLeagues.length > 0 && afKey) {
+    await Promise.all(
+      afLeagues.map(async ({ afId }) => {
+        try {
+          const year = parseInt(date.slice(0, 4));
+          const { fixtures: list } = await fetchAfFixturesAround(
+            afId,
+            year,
+            date,
+            afKey,
+          );
+          await Promise.all(
+            list.map(async (fx) => {
+              const raws = await fetchAfGoalRawsForFixture(fx.id, afKey);
+              if (raws.length === 0) return;
+              const goals: SoccerGoal[] = raws.map((r) => ({
+                minute: r.minute,
+                side: r.teamId === fx.homeId ? "home" : "away",
+                player: r.player,
+                ownGoal: r.ownGoal,
+                penaltyKick: r.penaltyKick,
+              }));
+              out[String(fx.id)] = goals;
+              if (fx.homeName && fx.awayName) {
+                out[soccerGoalsPairKey(fx.awayName, fx.homeName)] = goals;
+              }
+            }),
+          );
+        } catch (e) {
+          console.warn("[live-scores/k-league-goals]", afId, (e as Error).message);
+        }
+      }),
+    );
+  }
+
   return out;
+}
+
+interface AfFixtureLite {
+  id: number;
+  homeId: number;
+  awayId: number;
+  homeName: string;
+  awayName: string;
+}
+
+async function fetchAfFixturesAround(
+  leagueId: number,
+  season: number,
+  dateKst: string,
+  key: string,
+): Promise<{ fixtures: AfFixtureLite[] }> {
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+  const base = new Date(`${dateKst}T00:00:00Z`);
+  const prev = new Date(base);
+  prev.setUTCDate(prev.getUTCDate() - 1);
+  const next = new Date(base);
+  next.setUTCDate(next.getUTCDate() + 1);
+  const params = new URLSearchParams({
+    league: String(leagueId),
+    season: String(season),
+    from: ymd(prev),
+    to: ymd(next),
+  });
+  const res = await fetch(`${AF_BASE}/fixtures?${params.toString()}`, {
+    headers: { "x-apisports-key": key },
+    cache: "no-store",
+  });
+  if (!res.ok) return { fixtures: [] };
+  const data = (await res.json()) as {
+    response?: Array<{
+      fixture: { id: number };
+      teams: { home: { id: number; name: string }; away: { id: number; name: string } };
+    }>;
+  };
+  return {
+    fixtures: (data.response ?? []).map((f) => ({
+      id: f.fixture.id,
+      homeId: f.teams.home.id,
+      awayId: f.teams.away.id,
+      homeName: f.teams.home.name,
+      awayName: f.teams.away.name,
+    })),
+  };
+}
+
+interface AfGoalRaw {
+  minute: string;
+  teamId: number;
+  player: string;
+  ownGoal: boolean;
+  penaltyKick: boolean;
+}
+
+async function fetchAfGoalRawsForFixture(
+  fixtureId: number,
+  key: string,
+): Promise<AfGoalRaw[]> {
+  const res = await fetch(`${AF_BASE}/fixtures/events?fixture=${fixtureId}`, {
+    headers: { "x-apisports-key": key },
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as {
+    response?: Array<{
+      time: { elapsed: number; extra?: number | null };
+      team: { id: number };
+      player: { name?: string };
+      type: string;
+      detail: string;
+    }>;
+  };
+  return (data.response ?? [])
+    .filter((e) => e.type?.toLowerCase() === "goal")
+    .map((e) => ({
+      minute: `${e.time.elapsed}${e.time.extra ? `+${e.time.extra}` : ""}'`,
+      teamId: e.team?.id,
+      player: e.player?.name ?? "",
+      ownGoal: e.detail === "Own Goal",
+      penaltyKick: e.detail === "Penalty",
+    }));
 }
 
 export async function fetchBaseballLive(): Promise<LiveMatch[]> {
