@@ -4,11 +4,22 @@
 // Edge runtime · ETag/304 · CDN 15s + SWR 45s.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 
-export const runtime = "edge";
+// nodejs runtime — fetchLiveOdds 가 fetch 로 동작하지만 일관성 위해 nodejs 고정
+// (edge 도 호환되지만 baseball 응답 크지 않으니 안전한 쪽 선택)
+export const runtime = "nodejs";
 
 const AB_BASE = "https://v1.baseball.api-sports.io";
 const TIMEOUT = 8000;
+
+// api-sports baseball league.id → 우리 League 코드
+// (The Odds API SPORT_KEY 매칭용)
+const LEAGUE_BY_AB_ID: Record<number, "KBO" | "NPB" | "MLB"> = {
+  5: "KBO",
+  2: "NPB",
+  1: "MLB",
+};
 
 export interface BaseballLive {
   status: "PRE" | "LIVE" | "FINAL" | "DELAY";
@@ -28,6 +39,7 @@ export interface BaseballLive {
     errors: number | null;
   };
   league: { id: number; name: string };
+  liveOdds?: LiveOddsSnapshot | null;
 }
 
 interface ABGameDetail {
@@ -103,6 +115,10 @@ function normalize(data: ABGameDetail): BaseballLive | null {
 }
 
 async function hashLive(live: BaseballLive): Promise<string> {
+  const o = live.liveOdds;
+  const oddsSig = o
+    ? `${o.h2h?.home ?? ""}/${o.h2h?.away ?? ""}/${o.totals?.line ?? ""}/${o.totals?.over ?? ""}/${o.spread?.line ?? ""}`
+    : "";
   const sig = [
     live.status,
     live.statusLabel,
@@ -112,6 +128,7 @@ async function hashLive(live: BaseballLive): Promise<string> {
     live.awayTeam.hits,
     live.linescore?.home.join(","),
     live.linescore?.away.join(","),
+    oddsSig,
   ].join("|");
   const buf = await crypto.subtle.digest(
     "SHA-1",
@@ -147,6 +164,15 @@ export async function GET(
     const live = normalize(data);
     if (!live) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+    // 라이브 odds — KBO/NPB/MLB 모두 The Odds API 지원 (활성 active=true 확인 완료)
+    const ourLeague = LEAGUE_BY_AB_ID[live.league.id];
+    if (ourLeague) {
+      live.liveOdds = await fetchLiveOdds(
+        ourLeague,
+        live.awayTeam.name,
+        live.homeTeam.name,
+      );
     }
     const etag = `W/"${await hashLive(live)}"`;
     if (req.headers.get("if-none-match") === etag) {

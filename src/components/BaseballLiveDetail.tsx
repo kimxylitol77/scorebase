@@ -7,6 +7,20 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
+import LiveOddsCard from "./live/LiveOddsCard";
+
+interface LiveOdds {
+  h2h: { home: number; draw: number | null; away: number } | null;
+  totals: { line: number; over: number; under: number } | null;
+  spread: {
+    line: number;
+    pick: "HOME" | "AWAY";
+    homeOdds: number;
+    awayOdds: number;
+  } | null;
+  bookmakers: number;
+  fetchedAt: number;
+}
 
 interface BaseballLive {
   status: "PRE" | "LIVE" | "FINAL" | "DELAY";
@@ -25,6 +39,7 @@ interface BaseballLive {
     errors: number | null;
   };
   league: { id: number; name: string };
+  liveOdds?: LiveOdds | null;
 }
 
 interface Props {
@@ -382,6 +397,16 @@ export default function BaseballLiveDetail({
           </table>
         </div>
       </div>
+
+      {/* 라이브 배당 (The Odds API 1분 갱신) */}
+      {live.liveOdds && (
+        <LiveOddsCard
+          odds={live.liveOdds}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+          hasDraw={false}
+        />
+      )}
 
       {/* 베이스/볼카운트 미제공 안내 + 공식 링크 */}
       {isLive && (

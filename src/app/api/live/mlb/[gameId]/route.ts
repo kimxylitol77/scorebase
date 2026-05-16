@@ -3,8 +3,10 @@
 // Edge runtime · 캐시 10초 + SWR 30 · ETag 지원.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 
-export const runtime = "edge";
+// nodejs runtime — fetchLiveOdds (fetch 기반) 통합용
+export const runtime = "nodejs";
 
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb";
 const TIMEOUT = 8000;
@@ -16,6 +18,7 @@ export interface MlbLive {
   linescore: { home: (number | null)[]; away: (number | null)[] } | null;
   homeTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
   awayTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
+  liveOdds?: LiveOddsSnapshot | null;
   situation: {
     balls: number | null;
     strikes: number | null;
@@ -134,6 +137,10 @@ function normalize(data: EspnSummary): MlbLive | null {
 }
 
 async function hashLive(live: MlbLive): Promise<string> {
+  const o = live.liveOdds;
+  const oddsSig = o
+    ? `${o.h2h?.home ?? ""}/${o.h2h?.away ?? ""}/${o.totals?.line ?? ""}/${o.totals?.over ?? ""}/${o.spread?.line ?? ""}`
+    : "";
   const sig = [
     live.status,
     live.statusLabel,
@@ -148,6 +155,7 @@ async function hashLive(live: MlbLive): Promise<string> {
     live.situation?.batterName,
     live.situation?.pitcherName,
     live.situation?.lastPlay,
+    oddsSig,
   ].join("|");
   const buf = await crypto.subtle.digest(
     "SHA-1",
@@ -182,6 +190,8 @@ export async function GET(
     if (!live) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
+    // 라이브 odds — MLB 활성 active=true
+    live.liveOdds = await fetchLiveOdds("MLB", live.awayTeam.name, live.homeTeam.name);
     const etag = `W/"${await hashLive(live)}"`;
     if (req.headers.get("if-none-match") === etag) {
       return new NextResponse(null, {

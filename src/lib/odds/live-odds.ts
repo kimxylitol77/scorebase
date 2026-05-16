@@ -6,10 +6,7 @@
 //   2) fetchEventOdds(league, eventId) → /events/{id}/odds 호출
 // 캐시: event_id 4시간 (게임 시간 내내 유효), odds 60초 (1분 폴링)
 
-import axios from "axios";
 import { SPORT_KEY, normalizeOddsTeamName } from "@/lib/odds/odds-api";
-import { kboEnglishToKorean } from "@/lib/sports/kbo";
-import { npbEnglishToKorean } from "@/lib/sports/npb";
 
 const BASE = "https://api.the-odds-api.com/v4";
 
@@ -66,14 +63,10 @@ function eventCacheKey(league: string, away: string, home: string): string {
   return `${league}|${away.toLowerCase()}|${home.toLowerCase()}`;
 }
 
-function localizeTeam(league: string, name: string): string {
-  if (league === "KBO") return kboEnglishToKorean(name);
-  if (league === "NPB") return npbEnglishToKorean(name);
-  return name;
-}
-
-function teamMatch(league: string, oddsName: string, ourName: string): boolean {
-  const a = normalizeOddsTeamName(localizeTeam(league, oddsName));
+// 라이브 odds 호출자는 (영문) team name 을 직접 넘김 — api-sports baseball/api-football 응답 그대로.
+// Odds API 도 영문이라 둘 다 normalize 후 단순 substring 매칭.
+function teamMatch(oddsName: string, ourName: string): boolean {
+  const a = normalizeOddsTeamName(oddsName);
   const b = normalizeOddsTeamName(ourName);
   if (!a || !b) return false;
   return a.includes(b) || b.includes(a);
@@ -93,18 +86,26 @@ export async function resolveOddsEventId(
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) return null;
   try {
-    const { data } = await axios.get<RawEvent[]>(
-      `${BASE}/sports/${sportKey}/events`,
-      { params: { apiKey }, timeout: 10_000, validateStatus: (s) => s < 500 },
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    const res = await fetch(
+      `${BASE}/sports/${sportKey}/events?apiKey=${encodeURIComponent(apiKey)}`,
+      { signal: ctrl.signal, cache: "no-store" },
     );
+    clearTimeout(timer);
+    if (!res.ok) {
+      eventCache.set(key, { id: null, at: Date.now() });
+      return null;
+    }
+    const data = (await res.json()) as RawEvent[];
     if (!Array.isArray(data)) {
       eventCache.set(key, { id: null, at: Date.now() });
       return null;
     }
     const match = data.find(
       (e) =>
-        teamMatch(league, e.home_team, homeName) &&
-        teamMatch(league, e.away_team, awayName),
+        teamMatch(e.home_team, homeName) &&
+        teamMatch(e.away_team, awayName),
     );
     const id = match?.id ?? null;
     eventCache.set(key, { id, at: Date.now() });
@@ -244,19 +245,24 @@ async function fetchEventOdds(
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) return null;
   try {
-    const { data } = await axios.get<RawEvent>(
-      `${BASE}/sports/${sportKey}/events/${eventId}/odds`,
-      {
-        params: {
-          apiKey,
-          regions: "us,eu",
-          markets: "h2h,totals,spreads",
-          oddsFormat: "decimal",
-        },
-        timeout: 10_000,
-        validateStatus: (s) => s < 500,
-      },
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    const params = new URLSearchParams({
+      apiKey,
+      regions: "us,eu",
+      markets: "h2h,totals,spreads",
+      oddsFormat: "decimal",
+    });
+    const res = await fetch(
+      `${BASE}/sports/${sportKey}/events/${eventId}/odds?${params.toString()}`,
+      { signal: ctrl.signal, cache: "no-store" },
     );
+    clearTimeout(timer);
+    if (!res.ok) {
+      oddsCache.set(cacheKey, { snapshot: null, at: Date.now() });
+      return null;
+    }
+    const data = (await res.json()) as RawEvent;
     if (!data || typeof data !== "object" || !data.id) {
       oddsCache.set(cacheKey, { snapshot: null, at: Date.now() });
       return null;

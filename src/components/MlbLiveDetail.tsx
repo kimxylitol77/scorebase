@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
+import LiveOddsCard from "./live/LiveOddsCard";
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
   if (url) {
@@ -62,12 +63,26 @@ function TeamBlock({
   return <div className="text-center">{inner}</div>;
 }
 
+interface LiveOdds {
+  h2h: { home: number; draw: number | null; away: number } | null;
+  totals: { line: number; over: number; under: number } | null;
+  spread: {
+    line: number;
+    pick: "HOME" | "AWAY";
+    homeOdds: number;
+    awayOdds: number;
+  } | null;
+  bookmakers: number;
+  fetchedAt: number;
+}
+
 interface MlbLive {
   status: "PRE" | "LIVE" | "FINAL" | "DELAY";
   statusLabel: string;
   linescore: { home: (number | null)[]; away: (number | null)[] } | null;
   homeTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
   awayTeam: { id: string; name: string; abbreviation: string; score: number; logo?: string };
+  liveOdds?: LiveOdds | null;
   situation: {
     balls: number | null;
     strikes: number | null;
@@ -406,6 +421,16 @@ export default function MlbLiveDetail({
           </div>
         )}
       </div>
+
+      {/* 라이브 배당 (The Odds API 1분 갱신) */}
+      {live.liveOdds && (
+        <LiveOddsCard
+          odds={live.liveOdds}
+          homeNameKo={homeNameKo ?? live.homeTeam.name}
+          awayNameKo={awayNameKo ?? live.awayTeam.name}
+          hasDraw={false}
+        />
+      )}
     </div>
   );
 }
