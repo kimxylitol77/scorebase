@@ -603,14 +603,21 @@ export default async function LeaguePredictions({ params }: Props) {
               title="다가오는 경기 — 승률 추정"
               subtitle={`다음 ${horizonDays}일 SCHEDULED 매치`}
             />
-            {/* 데스크탑: 테이블 */}
+            {/* 데스크탑: 테이블 — table-fixed + 컬럼 너비 재분배로 좌우 벌어짐 fix */}
             <div className="hidden sm:block rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-fixed">
+                <colgroup>
+                  <col className="w-32" />
+                  <col />
+                  <col className="w-10" />
+                  <col />
+                  <col className="w-[44%]" />
+                </colgroup>
                 <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
                   <tr>
                     <th className="text-left px-4 py-2.5 font-medium">일시</th>
                     <th className="text-right px-2 py-2.5 font-medium">홈</th>
-                    <th className="text-center px-2 py-2.5 font-medium w-10"></th>
+                    <th className="text-center px-1 py-2.5 font-medium"></th>
                     <th className="text-left px-2 py-2.5 font-medium">원정</th>
                     <th className="text-left px-4 py-2.5 font-medium">승률 (홈/무/원정)</th>
                   </tr>
@@ -631,10 +638,10 @@ export default async function LeaguePredictions({ params }: Props) {
                             timeZone: "Asia/Seoul",
                           })}
                         </td>
-                        <td className="px-2 py-2.5 text-right font-medium truncate">
+                        <td className="px-2 py-2.5 font-medium">
                           <Link
                             href={`/teams/${m.homeTeam.id}`}
-                            className="inline-flex items-center gap-2 justify-end hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            className="flex items-center gap-2 justify-end hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition min-w-0"
                           >
                             <span className="truncate">
                               {toKoreanTeamName(m.homeTeam.name)}
@@ -646,10 +653,10 @@ export default async function LeaguePredictions({ params }: Props) {
                           </Link>
                         </td>
                         <td className="text-center text-xs text-neutral-400">vs</td>
-                        <td className="px-2 py-2.5 font-medium truncate">
+                        <td className="px-2 py-2.5 font-medium">
                           <Link
                             href={`/teams/${m.awayTeam.id}`}
-                            className="inline-flex items-center gap-2 hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            className="flex items-center gap-2 hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition min-w-0"
                           >
                             <PredTeamLogo
                               src={m.awayTeam.logoUrl}
@@ -661,7 +668,7 @@ export default async function LeaguePredictions({ params }: Props) {
                           </Link>
                         </td>
                         <td className="px-4 py-2.5">
-                          <ProbBar wp={wp} hideDraw={!info.showDraw} />
+                          <ProbBar wp={wp} hideDraw={!info.showDraw} fullWidth />
                         </td>
                       </tr>
                     );
