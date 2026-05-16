@@ -1,6 +1,10 @@
 // /scores 축구 row 레이아웃 — named.com 스타일 한 줄 매치.
-// 구조 (데스크탑): [리그배지 110px] [시간] [상태] [홈팀 →] [점수] [← 원정팀] [전반] [관심]
+// 구조 (데스크탑): [리그배지 110px] [시간] [상태] [홈팀 →] [점수] [← 원정팀] [글] [관심]
 // 다크 디폴트. 모바일은 카드 layout (별도 처리) — 이 컴포넌트는 데스크탑 row 전용.
+//
+// client component — 글 아이콘 onClick stopPropagation 위해 (외부 row Link 와 nested).
+
+"use client";
 
 import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
@@ -19,14 +23,15 @@ export interface SoccerLiveRowProps {
   away: { name: string; logo?: string | null; teamId?: number };
   homeScore: number | null;
   awayScore: number | null;
-  /** 전반 점수 — 데이터 없으면 null */
-  homeFirstHalf?: number | null;
-  awayFirstHalf?: number | null;
   /** 골 list — 종료 매치 hover tooltip 용 */
   soccerGoals?: SoccerGoal[] | null;
   /** 팀 약칭 라벨 — tooltip 안에 표시 */
   homeShort?: string;
   awayShort?: string;
+  /** PREVIEW 글 slug — 있으면 P 아이콘 */
+  previewSlug?: string | null;
+  /** RECAP 글 slug — 있으면 R 아이콘 */
+  recapSlug?: string | null;
   href?: string | null;
 }
 
@@ -60,11 +65,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     away,
     homeScore,
     awayScore,
-    homeFirstHalf,
-    awayFirstHalf,
     soccerGoals,
     homeShort,
     awayShort,
+    previewSlug,
+    recapSlug,
     href,
   } = props;
 
@@ -89,11 +94,6 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   ) : (
     <span className="text-[11px] text-neutral-500">예정</span>
   );
-
-  const firstHalfText =
-    homeFirstHalf != null && awayFirstHalf != null
-      ? `${awayFirstHalf}-${homeFirstHalf}`
-      : "-";
 
   const rowContent = (
     <div
@@ -178,9 +178,30 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         </span>
       </div>
 
-      {/* 7. 전반 점수 */}
-      <div className="text-center text-[11px] text-neutral-500 dark:text-neutral-500 tabular-nums">
-        {firstHalfText}
+      {/* 7. 글 (프리뷰/리뷰) — 있을 때만 아이콘 표시 */}
+      <div className="flex items-center justify-center gap-1">
+        {previewSlug && (
+          <Link
+            href={`/articles/${previewSlug}`}
+            prefetch={false}
+            onClick={(e) => e.stopPropagation()}
+            title="프리뷰"
+            className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
+          >
+            P
+          </Link>
+        )}
+        {recapSlug && (
+          <Link
+            href={`/articles/${recapSlug}`}
+            prefetch={false}
+            onClick={(e) => e.stopPropagation()}
+            title="리뷰"
+            className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition"
+          >
+            R
+          </Link>
+        )}
       </div>
 
       {/* 8. 관심 별표 */}
@@ -319,7 +340,7 @@ export function SoccerLiveRowHeader() {
       <div className="text-right">홈팀</div>
       <div className="text-center px-2">점수</div>
       <div>원정팀</div>
-      <div className="text-center">전반</div>
+      <div className="text-center">글</div>
       <div className="text-center">관심</div>
     </div>
   );

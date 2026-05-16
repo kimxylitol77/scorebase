@@ -679,6 +679,8 @@ function SoccerRowLayout({
         soccerGoals={m.soccerGoals}
         homeShort={m.home.abbr ?? m.home.name}
         awayShort={m.away.abbr ?? m.away.name}
+        previewSlug={m.preview ?? null}
+        recapSlug={m.recap ?? null}
         href={m.href}
       />
     );
