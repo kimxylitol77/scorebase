@@ -824,6 +824,24 @@ const RAW: Record<string, string> = {
   "FC Juárez": "FC 후아레스",
   "Atletico San Luis": "아틀레티코 산 루이스",
   "Atlético San Luis": "아틀레티코 산 루이스",
+
+  // CSL 추가
+  "Shenyang Urban": "선양 어반",
+  "Chongqing Tongliang Long": "충칭 퉁량 룽",
+  "Chongqing Tongliangloong": "충칭 퉁량 룽",
+
+  // 라리가 2 (세군다) 추가
+  "Real Sociedad II": "레알 소시에다드 B",
+  "Real Sociedad B": "레알 소시에다드 B",
+  "Mirandes": "미란데스",
+  "CD Mirandes": "미란데스",
+  "AD Ceuta FC": "AD 세우타",
+  "Ceuta": "AD 세우타",
+  "AD Ceuta": "AD 세우타",
+
+  // 분데스리가 풀네임 alias
+  "1. FC Heidenheim 1846": "하이덴하임",
+  "1.FC Heidenheim 1846": "하이덴하임",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
