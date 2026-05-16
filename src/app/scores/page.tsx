@@ -34,6 +34,7 @@ import MatchCard from "@/components/scores/MatchCard";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
+import SoccerCompactCard from "@/components/scores/soccer/SoccerCompactCard";
 import SoccerLiveRow, {
   SoccerLiveRowHeader,
 } from "@/components/scores/soccer/SoccerLiveRow";
@@ -752,31 +753,52 @@ function SoccerRowLayout({
           </h3>
         </div>
         <ul className="grid grid-cols-2 gap-2">
-          {list.map((m) => (
-            <MatchCard
-              key={String(m.id)}
-              matchId={m.id}
-              sport={m.sport}
-              status={
-                m.status === "LIVE"
-                  ? "live"
-                  : m.status === "FINISHED"
-                    ? "finished"
-                    : m.status === "POSTPONED"
-                      ? "postponed"
-                      : "scheduled"
-              }
-              league={m.league}
-              home={m.home}
-              away={m.away}
-              timeLabel={m.timeLabel}
-              liveStatusLabel={m.liveStatusLabel}
-              soccerCtx={m.soccerCtx}
-              soccerGoals={null}
-              recentGoalSide={m.recentGoalSide ?? null}
-              href={m.href}
-            />
-          ))}
+          {list.map((m) => {
+            const statusKey =
+              m.status === "LIVE"
+                ? "live"
+                : m.status === "FINISHED"
+                  ? "finished"
+                  : m.status === "POSTPONED"
+                    ? "postponed"
+                    : "scheduled";
+            // 축구 — 야구 박스 스타일 (세로 한 줄에 한 팀)
+            if (m.sport === "soccer") {
+              return (
+                <SoccerCompactCard
+                  key={String(m.id)}
+                  matchId={m.id}
+                  league={m.league}
+                  status={statusKey}
+                  timeLabel={m.timeLabel}
+                  liveStatusLabel={m.liveStatusLabel}
+                  home={m.home}
+                  away={m.away}
+                  previewSlug={m.preview ?? null}
+                  recapSlug={m.recap ?? null}
+                  recentGoalSide={m.recentGoalSide ?? null}
+                  href={m.href}
+                />
+              );
+            }
+            return (
+              <MatchCard
+                key={String(m.id)}
+                matchId={m.id}
+                sport={m.sport}
+                status={statusKey}
+                league={m.league}
+                home={m.home}
+                away={m.away}
+                timeLabel={m.timeLabel}
+                liveStatusLabel={m.liveStatusLabel}
+                soccerCtx={m.soccerCtx}
+                soccerGoals={null}
+                recentGoalSide={m.recentGoalSide ?? null}
+                href={m.href}
+              />
+            );
+          })}
         </ul>
       </section>
     );
