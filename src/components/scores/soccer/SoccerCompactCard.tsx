@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
+import { teamColor } from "@/lib/team-colors";
 import FavoriteStar from "../FavoriteStar";
 
 interface Props {
@@ -74,8 +75,13 @@ export default function SoccerCompactCard(props: Props) {
       ? "text-neutral-500"
       : "text-neutral-500";
 
+  const homeColor = teamColor(home.name);
+
   const cardBody = (
-    <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
+    <div
+      className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden border-l-[3px]"
+      style={homeColor ? { borderLeftColor: homeColor } : undefined}
+    >
       {/* 헤더: 리그 배지 + 상태/시간 */}
       <div
         className="flex items-center justify-between gap-1 px-2 py-1"
