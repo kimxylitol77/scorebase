@@ -687,7 +687,8 @@ function SoccerRowLayout({
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-x-auto">
-        <div className="min-w-[860px] px-4 py-1">
+        {/* 하단 pb-32 — 마지막 row 의 GoalsTooltip (점수 hover 시 양 팀 골 list) 가 컨테이너 끝에서 잘리지 않게 ~3행 분량 여백 확보 */}
+        <div className="min-w-[860px] px-4 pt-1 pb-32">
           <SoccerLiveRowHeader />
           {liveList.length > 0 && (
             <>
