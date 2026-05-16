@@ -814,22 +814,25 @@ async function runLol(season: number) {
  * Entry
  * ==========================================================*/
 
-export async function runFetchLeagueLeaders() {
+export async function runFetchLeagueLeaders(opts?: {
+  sport?: "soccer" | "baseball" | "basketball" | "hockey" | "esports";
+}) {
+  const sport = opts?.sport;
   const now = new Date();
   const yearNow = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;
-  // NBA 시즌은 가을(10월) 시작 — 1~8월이면 직전 시즌이 진행 중
   const nbaSeason = m >= 9 ? yearNow : yearNow - 1;
-  // NHL 시즌도 가을 시작 (라벨용)
   const nhlSeasonStartYear = m >= 9 ? yearNow : yearNow - 1;
   const nhlSeasonLabel = `${nhlSeasonStartYear}-${String(nhlSeasonStartYear + 1).slice(2)}`;
   const summary: Record<string, unknown> = {};
-  summary.soccer = await runSoccer();
-  summary.nba = await runNba(nbaSeason);
-  summary.nhl = await runNhl(nhlSeasonLabel);
-  summary.mlb = await runMlb(yearNow);
-  summary.kbo = await runKbo(yearNow);
-  summary.npb = await runNpb(yearNow);
-  summary.lol = await runLol(yearNow);
+  if (!sport || sport === "soccer") summary.soccer = await runSoccer();
+  if (!sport || sport === "basketball") summary.nba = await runNba(nbaSeason);
+  if (!sport || sport === "hockey") summary.nhl = await runNhl(nhlSeasonLabel);
+  if (!sport || sport === "baseball") {
+    summary.mlb = await runMlb(yearNow);
+    summary.kbo = await runKbo(yearNow);
+    summary.npb = await runNpb(yearNow);
+  }
+  if (!sport || sport === "esports") summary.lol = await runLol(yearNow);
   return summary;
 }

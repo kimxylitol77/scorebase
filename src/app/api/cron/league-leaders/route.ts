@@ -19,8 +19,17 @@ export async function GET(req: Request) {
   if (!authorized(req)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
+  // ?sport=soccer|baseball|basketball|hockey|esports — 부분 처리 (Vercel 함수 한도 회피)
+  const url = new URL(req.url);
+  const sport = url.searchParams.get("sport") as
+    | "soccer"
+    | "baseball"
+    | "basketball"
+    | "hockey"
+    | "esports"
+    | null;
   try {
-    const result = await runFetchLeagueLeaders();
+    const result = await runFetchLeagueLeaders({ sport: sport ?? undefined });
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json(

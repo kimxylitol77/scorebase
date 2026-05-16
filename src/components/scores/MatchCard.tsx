@@ -258,9 +258,9 @@ export default function MatchCard(props: MatchCardProps) {
             </div>
           )}
         </div>
-        {/* 점수 — 라이브 최근 골 시 노란 ring + pulse */}
+        {/* 점수 — 라이브 최근 골 시 사이안 ring + pulse */}
         <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] px-2 py-1 rounded-md ${scoreColor} ${
-          recentGoalSide ? "ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
+          recentGoalSide ? "ring-2 ring-cyan-400 bg-cyan-100/40 dark:bg-cyan-500/15 animate-pulse" : ""
         }`}>
           {hasScore ? (
             <>
