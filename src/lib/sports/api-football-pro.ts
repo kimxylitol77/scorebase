@@ -19,6 +19,8 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   MLS: 253,
   UCL: 2,
   WORLD_CUP: 1, // FIFA World Cup
+  J1_LEAGUE: 98,
+  AFC_CL: 17, // AFC Champions League Elite
 };
 
 interface CacheEntry<T> {

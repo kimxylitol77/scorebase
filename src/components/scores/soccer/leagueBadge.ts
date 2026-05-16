@@ -21,7 +21,7 @@ const LEAGUE_BADGES: Record<string, LeagueBadgeStyle> = {
   UCL: { label: "챔피언스리그", bg: "#0a3978", fg: "#ffffff" },
   WORLD_CUP: { label: "월드컵 2026", bg: "#7e1d23", fg: "#ffffff" },
   // 신규 — 아시아 축구
-  J1_LEAGUE: { label: "J1 리그", bg: "#c8102e", fg: "#ffffff" },
+  J1_LEAGUE: { label: "J1 리그", bg: "#e91e63", fg: "#ffffff" }, // 사쿠라 핑크
   AFC_CL: { label: "AFC 챔스", bg: "#ff6600", fg: "#ffffff" },
 };
 
