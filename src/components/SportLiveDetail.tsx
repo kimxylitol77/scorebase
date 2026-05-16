@@ -9,6 +9,7 @@ import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
 import SoccerFormation from "./live/SoccerFormation";
+import SoccerEventsTimeline from "./live/SoccerEventsTimeline";
 
 interface PeriodLinescore {
   homePeriods: (number | null)[];
@@ -74,6 +75,16 @@ interface SoccerLineups {
   away: TeamLineup;
 }
 
+interface SoccerEventItem {
+  minute: number;
+  extra: number;
+  type: "goal" | "card" | "subst" | "var";
+  detail: string;
+  side: "home" | "away";
+  playerName: string | null;
+  assistName: string | null;
+}
+
 interface MatchLive {
   status: "LIVE" | "FINAL" | "PRE" | "UNKNOWN";
   statusLabel: string;
@@ -84,6 +95,7 @@ interface MatchLive {
   summary?: MatchSummary | null;
   liveOdds?: LiveOdds | null;
   soccerLineups?: SoccerLineups | null;
+  soccerEvents?: SoccerEventItem[] | null;
 }
 
 interface Props {
@@ -352,6 +364,15 @@ export default function SportLiveDetail({
         <SoccerFormation
           home={live.soccerLineups.home}
           away={live.soccerLineups.away}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+        />
+      )}
+
+      {/* 축구 이벤트 타임라인 (골/카드/교체) */}
+      {live?.soccerEvents && live.soccerEvents.length > 0 && (
+        <SoccerEventsTimeline
+          events={live.soccerEvents}
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
         />

@@ -1,0 +1,119 @@
+// 축구 이벤트 타임라인 — 골 / 카드 / 교체 / VAR.
+// 가운데 분 표시, away 왼쪽 / home 오른쪽 분할.
+// 최신 이벤트가 상단.
+
+interface SoccerEvent {
+  minute: number;
+  extra: number;
+  type: "goal" | "card" | "subst" | "var";
+  detail: string;
+  side: "home" | "away";
+  playerName: string | null;
+  assistName: string | null;
+}
+
+interface Props {
+  events: SoccerEvent[];
+  homeNameKo: string;
+  awayNameKo: string;
+}
+
+function iconAndLabel(ev: SoccerEvent): { icon: string; label: string; color: string } {
+  if (ev.type === "goal") {
+    if (ev.detail === "Own Goal") return { icon: "⚽", label: "자책골", color: "text-rose-600" };
+    if (ev.detail === "Penalty") return { icon: "⚽", label: "PK 골", color: "text-emerald-600" };
+    if (ev.detail === "Missed Penalty") return { icon: "✕", label: "PK 실축", color: "text-neutral-500" };
+    return { icon: "⚽", label: "골", color: "text-emerald-600" };
+  }
+  if (ev.type === "card") {
+    if (/red/i.test(ev.detail) && !/yellow/i.test(ev.detail))
+      return { icon: "🟥", label: "레드카드", color: "text-rose-600" };
+    if (/second\s*yellow/i.test(ev.detail))
+      return { icon: "🟨🟥", label: "경고 누적 퇴장", color: "text-rose-600" };
+    return { icon: "🟨", label: "옐로카드", color: "text-amber-600" };
+  }
+  if (ev.type === "subst") return { icon: "🔄", label: "교체", color: "text-blue-600" };
+  return { icon: "📺", label: "VAR", color: "text-purple-600" };
+}
+
+function shortName(name: string | null): string {
+  if (!name) return "—";
+  if (/[가-힣]/.test(name)) return name.length > 8 ? name.slice(0, 8) : name;
+  const parts = name.split(/\s+/);
+  if (parts.length <= 1) return name;
+  return `${parts[0][0]}. ${parts[parts.length - 1]}`;
+}
+
+function timeLabel(ev: SoccerEvent): string {
+  if (ev.extra > 0) return `${ev.minute}+${ev.extra}'`;
+  return `${ev.minute}'`;
+}
+
+export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo }: Props) {
+  if (events.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+          이벤트 타임라인
+        </div>
+        <div className="text-[10px] text-neutral-400">{events.length}건</div>
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-1 items-center text-[10px] font-bold uppercase tracking-wider text-neutral-400 pb-2 border-b border-neutral-100 dark:border-neutral-800">
+        <div className="text-right truncate">{awayNameKo}</div>
+        <div className="px-2">분</div>
+        <div className="text-left truncate">{homeNameKo}</div>
+      </div>
+
+      <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
+        {events.map((ev, i) => {
+          const meta = iconAndLabel(ev);
+          const playerStr = `${meta.icon} ${shortName(ev.playerName)}${
+            ev.type === "subst" && ev.assistName
+              ? ` ↔ ${shortName(ev.assistName)}`
+              : ""
+          }`;
+          const detail = (
+            <div className={`text-[11px] ${meta.color} font-medium leading-tight`}>
+              {meta.label}
+              {ev.assistName && ev.type === "goal" && (
+                <span className="text-neutral-400"> · 어시 {shortName(ev.assistName)}</span>
+              )}
+            </div>
+          );
+          return (
+            <li
+              key={i}
+              className="grid grid-cols-[1fr_auto_1fr] gap-1 items-start py-2 text-sm"
+            >
+              {/* AWAY 칸 */}
+              <div className="text-right space-y-0.5">
+                {ev.side === "away" && (
+                  <>
+                    <div className="font-bold tabular-nums">{playerStr}</div>
+                    {detail}
+                  </>
+                )}
+              </div>
+              {/* 가운데 분 */}
+              <div className="px-2 text-xs tabular-nums font-bold text-neutral-500 min-w-[44px] text-center">
+                {timeLabel(ev)}
+              </div>
+              {/* HOME 칸 */}
+              <div className="text-left space-y-0.5">
+                {ev.side === "home" && (
+                  <>
+                    <div className="font-bold tabular-nums">{playerStr}</div>
+                    {detail}
+                  </>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
