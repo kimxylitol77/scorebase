@@ -21,7 +21,6 @@ interface CategoryDef {
 const SOCCER_LEAGUES: SubItem[] = [
   { href: "/leagues/WORLD_CUP", label: "FIFA 월드컵 2026", desc: "북중미 · 6/11 개막" },
   { href: "/leagues/K_LEAGUE_1", label: "K리그 1", desc: "한국 1부" },
-  { href: "/leagues/K_LEAGUE_2", label: "K리그 2", desc: "한국 2부" },
   { href: "/leagues/J1_LEAGUE", label: "J1 리그", desc: "일본 1부" },
   { href: "/leagues/AFC_CL", label: "AFC 챔피언스리그", desc: "아시아" },
   { href: "/leagues/EPL", label: "프리미어리그 (EPL)", desc: "잉글랜드" },
