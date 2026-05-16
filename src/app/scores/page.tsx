@@ -241,11 +241,17 @@ export default async function ScoresPage({ searchParams }: Props) {
       orderBy: { startTime: "asc" },
     }),
     fetchLiveCached(),
+    // fetch 가 실패하면 throw → unstable_cache 가 빈 응답 캐싱 안 함.
+    // 이 페이지 렌더는 빈 결과로 계속 — catch 해서 빈 객체로 대체.
     needsBaseballDetails
-      ? fetchBaseballByDateCached(dateStr)
+      ? fetchBaseballByDateCached(dateStr).catch(
+          () => ({}) as Record<string, BaseballGameDetails>,
+        )
       : Promise.resolve({} as Record<string, BaseballGameDetails>),
     needsBaseballDetails && leagues.includes("MLB")
-      ? fetchMlbByDateCached(dateStr)
+      ? fetchMlbByDateCached(dateStr).catch(
+          () => ({}) as Record<string, BaseballGameDetails>,
+        )
       : Promise.resolve({} as Record<string, BaseballGameDetails>),
     needsSoccerGoals
       ? fetchSoccerGoalsByDateCached(dateStr, leagues)

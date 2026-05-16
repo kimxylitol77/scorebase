@@ -307,6 +307,8 @@ export async function fetchBaseballByDate(
     }
   } catch (e) {
     console.warn("[live-scores/baseball-by-date]", (e as Error).message);
+    // throw 해서 unstable_cache 가 실패 응답을 캐싱하지 않도록 함.
+    throw e;
   }
   return out;
 }
@@ -427,9 +429,15 @@ export async function fetchMlbByDate(
       }
     } catch (e) {
       console.warn("[live-scores/mlb-by-date]", (e as Error).message);
+      throw e;
     }
   };
-  await Promise.all([fetchOne(ymd), fetchOne(prevYmd)]);
+  // 한쪽이 빈 응답일 수 있으니 allSettled — 둘 다 실패한 경우에만 throw.
+  const results = await Promise.allSettled([fetchOne(ymd), fetchOne(prevYmd)]);
+  const allRejected = results.every((r) => r.status === "rejected");
+  if (allRejected && Object.keys(out).length === 0) {
+    throw new Error("[mlb-by-date] all fetches failed — not caching empty result");
+  }
   return out;
 }
 
