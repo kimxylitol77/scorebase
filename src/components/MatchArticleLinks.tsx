@@ -11,13 +11,10 @@ interface Props {
   league?: string;
 }
 
-// 축구만 부상자 명단 link 노출 (다른 종목 라이브 페이지는 영향 X — league prop 안 받음)
+// /injuries/[league] page 의 VALID 와 동일 — 실제 부상자 페이지가 있는 리그만 link 노출.
+// 신규 리그 (K1/J1/SAUDI/EREDIVISIE 등) 는 페이지 없으니 link 제거해 404 방지.
 const INJURY_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
-  "K_LEAGUE_1", "J1_LEAGUE", "SAUDI_PL",
-  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
-  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
-  "BRASILEIRAO", "LIGA_MX",
 ]);
 
 export default function MatchArticleLinks({
