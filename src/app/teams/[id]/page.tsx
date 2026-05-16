@@ -7,6 +7,7 @@ import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
 import { toKoreanTeamName } from "@/lib/team-names";
 import TeamFollowButton from "@/components/teams/TeamFollowButton";
+import TransfersSection from "@/components/teams/TransfersSection";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { getSportFromLeague } from "@/lib/players/types";
@@ -527,6 +528,9 @@ export default async function TeamPage({ params }: Props) {
             </div>
           </section>
         )}
+
+        {/* 최근 이적 (api-football 지원 리그만, client-side fetch 1시간 캐시) */}
+        <TransfersSection teamId={team.id} />
 
         {/* 관련 기사 */}
         {articles.length > 0 && (
