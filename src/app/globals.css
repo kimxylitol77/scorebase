@@ -189,22 +189,39 @@ body {
   pointer-events: none;
 }
 
-/* 야구 LIVE 카드 — 초록 글로우 보더 */
-.match-card.baseball-live-card {
+/* 종목별 LIVE 카드 — 초록 글로우 보더 (야구/농구/하키/LOL 공통) */
+.match-card.baseball-live-card,
+.match-card.basketball-live-card,
+.match-card.hockey-live-card,
+.match-card.esports-live-card {
   border-left: none;
   border: 1px solid rgba(34, 197, 94, 0.35);
   box-shadow:
     0 0 24px rgba(34, 197, 94, 0.08),
     0 8px 30px rgba(0, 0, 0, 0.4);
 }
-.match-card.baseball-live-card::before {
+.match-card.baseball-live-card::before,
+.match-card.basketball-live-card::before,
+.match-card.hockey-live-card::before,
+.match-card.esports-live-card::before {
   display: none;
 }
-.match-card.baseball-live-card:hover {
+.match-card.baseball-live-card:hover,
+.match-card.basketball-live-card:hover,
+.match-card.hockey-live-card:hover,
+.match-card.esports-live-card:hover {
   border-color: rgba(34, 197, 94, 0.6);
   box-shadow:
     0 0 32px rgba(34, 197, 94, 0.15),
     0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+/* 종료 카드 — 살짝 어둡게 (희미하게) */
+.match-card.match-card-finished {
+  opacity: 0.85;
+}
+.match-card.match-card-finished:hover {
+  opacity: 1;
 }
 
 /* LIVE 펄스 (배지 안의 빨간 점) */

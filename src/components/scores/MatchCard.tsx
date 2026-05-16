@@ -4,17 +4,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
-import BaseballMiniBoard, {
+import {
   type BaseballContext,
 } from "./BaseballMiniBoard";
 import SoccerMiniBoard, { type SoccerContext } from "./SoccerMiniBoard";
-import EsportsMiniBoard, { type EsportsContext } from "./EsportsMiniBoard";
-import BaseballLinescore, {
+import { type EsportsContext } from "./EsportsMiniBoard";
+import {
   type BaseballLinescoreData,
 } from "./BaseballLinescore";
 import BaseballLiveCard from "./baseball/BaseballLiveCard";
+import BasketballCard from "./basketball/BasketballCard";
+import HockeyCard from "./hockey/HockeyCard";
+import EsportsCard from "./esports/EsportsCard";
 import SoccerGoals from "./SoccerGoals";
-import PeriodLinescore from "./PeriodLinescore";
 import type {
   PeriodLinescore as PeriodLinescoreData,
   SoccerGoal,
@@ -116,11 +118,12 @@ export default function MatchCard(props: MatchCardProps) {
   const isPostponed = status === "postponed";
   const hasScore = home.score != null && away.score != null;
 
-  // 야구 LIVE 매치는 전용 카드 (가로 통합 디자인 — 다이아몬드 + 이닝 박스)
-  if (sport === "baseball" && isLive) {
+  // 야구 (KBO/NPB/MLB) — LIVE/종료/예정 모두 통합 카드
+  if (sport === "baseball") {
     return (
       <BaseballLiveCard
         matchId={matchId}
+        status={status}
         league={league}
         leagueLabel={leagueLabel}
         home={home}
@@ -136,6 +139,65 @@ export default function MatchCard(props: MatchCardProps) {
       />
     );
   }
+
+  // 농구 (NBA)
+  if (sport === "basketball") {
+    return (
+      <BasketballCard
+        matchId={matchId}
+        status={status}
+        league={league}
+        leagueLabel={leagueLabel}
+        home={home}
+        away={away}
+        timeLabel={timeLabel}
+        liveStatusLabel={liveStatusLabel}
+        periodLinescore={periodLinescore}
+        href={href}
+        actions={actions}
+      />
+    );
+  }
+
+  // 하키 (NHL)
+  if (sport === "hockey") {
+    return (
+      <HockeyCard
+        matchId={matchId}
+        status={status}
+        league={league}
+        leagueLabel={leagueLabel}
+        home={home}
+        away={away}
+        timeLabel={timeLabel}
+        liveStatusLabel={liveStatusLabel}
+        periodLinescore={periodLinescore}
+        href={href}
+        actions={actions}
+      />
+    );
+  }
+
+  // e스포츠 (LCK/LOL)
+  if (sport === "esports") {
+    return (
+      <EsportsCard
+        matchId={matchId}
+        status={status}
+        league={league}
+        leagueLabel={leagueLabel}
+        home={home}
+        away={away}
+        timeLabel={timeLabel}
+        liveStatusLabel={liveStatusLabel}
+        esportsCtx={esportsCtx}
+        href={href}
+        actions={actions}
+      />
+    );
+  }
+
+  // ----- 이하는 축구만 (기존 디자인 유지) -----
 
   const statusNode = isPostponed ? (
     <span className="status-badge finished">연기</span>
@@ -223,47 +285,16 @@ export default function MatchCard(props: MatchCardProps) {
         </div>
       </div>
 
-      {/* 종목별 mini board */}
-      {sport === "baseball" && baseballLinescore && (isLive || isFinished) && (
-        <div className="pt-1 border-t border-[var(--score-border)]">
-          <BaseballLinescore data={baseballLinescore} />
-        </div>
-      )}
-      {(sport === "basketball" || sport === "hockey") &&
-        periodLinescore &&
-        (isLive || isFinished) && (
-          <div className="pt-1 border-t border-[var(--score-border)]">
-            <PeriodLinescore
-              data={periodLinescore}
-              sport={sport}
-              awayLabel={away.abbr ?? away.name}
-              homeLabel={home.abbr ?? home.name}
-            />
-          </div>
-        )}
-      {isLive && sport === "baseball" && baseballCtx && (
-        <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
-          <BaseballMiniBoard ctx={baseballCtx} />
-        </div>
-      )}
-      {isLive && sport === "soccer" && soccerCtx && (
+      {/* 축구 라이브 컨텍스트 */}
+      {isLive && soccerCtx && (
         <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
           <SoccerMiniBoard ctx={soccerCtx} />
         </div>
       )}
       {/* 축구 골 list — 라이브/종료 매치 모두 (있으면 표시) */}
-      {sport === "soccer" && soccerGoals && soccerGoals.length > 0 && (
+      {soccerGoals && soccerGoals.length > 0 && (
         <div className="border-t border-[var(--score-border)]">
           <SoccerGoals goals={soccerGoals} />
-        </div>
-      )}
-      {isLive && sport === "esports" && esportsCtx && (
-        <div className="px-3.5 sm:px-4 pb-2 pt-1 border-t border-[var(--score-border)]">
-          <EsportsMiniBoard
-            ctx={esportsCtx}
-            awayLabel={away.abbr ?? away.name}
-            homeLabel={home.abbr ?? home.name}
-          />
         </div>
       )}
 
