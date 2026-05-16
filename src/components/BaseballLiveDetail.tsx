@@ -201,29 +201,73 @@ export default function BaseballLiveDetail({
       : "https://baseball.yahoo.co.jp/npb/";
   const officialLabel = league === "KBO" ? "KBO 공식" : "Yahoo Sports JP";
 
+  // Scorebase LiveCard v2 — 우세팀 강조 색상
+  const awayScore = live.awayTeam.score;
+  const homeScore = live.homeTeam.score;
+  const isFinished = !isLive && live.status === "FINAL";
+  const awayWin = isFinished && awayScore > homeScore;
+  const homeWin = isFinished && homeScore > awayScore;
+  const liveLead = isLive && awayScore !== homeScore;
+  const liveAwayLead = liveLead && awayScore > homeScore;
+  const liveHomeLead = liveLead && homeScore > awayScore;
+
+  const inningMatch = live.statusLabel.match(/(\d+)\s*회\s*(초|말)?/);
+  const currentInning = inningMatch ? parseInt(inningMatch[1], 10) : null;
+  const halfKo = inningMatch?.[2] ?? null;
+  const inningText = currentInning ? `${currentInning}회 ${halfKo ?? ""}`.trim() : null;
+
   return (
     <div className="space-y-4">
-      {/* 상단 스코어 보드 */}
-      <div className="rounded-2xl border border-rose-200 dark:border-rose-500/20 bg-gradient-to-br from-rose-50/50 to-white dark:from-rose-500/10 dark:to-neutral-950 p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-3">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold ${
-              isLive
-                ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300"
-                : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
-            }`}
-          >
-            {isLive && (
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+      {/* Scorebase LiveCard v2 — 통합 스코어보드 카드 */}
+      <div
+        className={`rounded-xl p-4 sm:p-5 space-y-3 ${
+          isLive ? "match-card baseball-live-card" : "match-card"
+        }`}
+        style={{ position: "relative", overflow: "hidden" }}
+      >
+        {/* 헤더 — LIVE/종료 배지 + 회/말 */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {isLive ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+                style={{ background: "rgba(239,68,68,.18)", color: "#fca5a5" }}
+              >
+                <span
+                  className="live-dot inline-block w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: "#ef4444",
+                    boxShadow: "0 0 6px rgba(239,68,68,.8)",
+                  }}
+                />
+                LIVE
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+                style={{ background: "rgba(255,255,255,.06)", color: "#94a3b8" }}
+              >
+                {isFinished ? "종료" : live.statusLabel || "—"}
+              </span>
             )}
-            {isLive ? `LIVE · ${live.statusLabel}` : live.statusLabel || "—"}
-          </span>
-          {isLive && (
-            <span className="text-[10px] text-rose-600/70 dark:text-rose-400/70">
-              15초 자동 갱신
+            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              {league}
             </span>
+            {isLive && inningText && (
+              <span
+                className="text-[11px] font-bold tabular-nums"
+                style={{ color: "#22c55e" }}
+              >
+                {inningText}
+              </span>
+            )}
+          </div>
+          {isLive && (
+            <span className="text-[10px] text-neutral-500">15초 자동 갱신</span>
           )}
         </div>
+
+        {/* 양팀 + 점수 */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           <TeamWrap teamId={awayTeamId}>
             <TeamLogo url={awayLogo} name={awayNameKo} />
@@ -240,17 +284,29 @@ export default function BaseballLiveDetail({
             )}
           </TeamWrap>
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
-            <CountUp
-              value={live.awayTeam.score}
-              className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
-            />
-            <span className="mx-1.5 sm:mx-3 text-neutral-300 dark:text-neutral-700">
-              :
+            <span
+              style={{
+                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  awayWin || liveAwayLead
+                    ? "0 0 14px rgba(34,197,94,.45)"
+                    : "none",
+              }}
+            >
+              <CountUp value={awayScore} />
             </span>
-            <CountUp
-              value={live.homeTeam.score}
-              className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
-            />
+            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
+            <span
+              style={{
+                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  homeWin || liveHomeLead
+                    ? "0 0 14px rgba(34,197,94,.45)"
+                    : "none",
+              }}
+            >
+              <CountUp value={homeScore} />
+            </span>
           </div>
           <TeamWrap teamId={homeTeamId}>
             <TeamLogo url={homeLogo} name={homeNameKo} />
@@ -267,59 +323,76 @@ export default function BaseballLiveDetail({
             )}
           </TeamWrap>
         </div>
-      </div>
 
-      {/* 이닝별 linescore + R/H/E */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-x-auto">
-        <table className="min-w-full text-xs sm:text-sm">
-          <thead className="bg-neutral-50 dark:bg-neutral-900">
-            <tr>
-              <th className="px-3 py-2 text-left font-bold text-neutral-500">
-                팀
-              </th>
-              {Array.from({ length: innings }, (_, i) => (
-                <th
-                  key={i}
-                  className="px-2 py-2 text-center font-bold text-neutral-500 tabular-nums"
-                >
-                  {i + 1}
+        {/* 이닝 박스 + R/H/E */}
+        <div className="overflow-x-auto -mx-1 px-1">
+          <table className="text-[11px] sm:text-xs w-full min-w-[360px]">
+            <thead>
+              <tr className="text-neutral-500">
+                <th className="text-left font-semibold py-1 pr-2 w-10">팀</th>
+                {Array.from({ length: innings }, (_, i) => {
+                  const isCur =
+                    isLive && currentInning != null && i + 1 === currentInning;
+                  return (
+                    <th
+                      key={i}
+                      className="text-center font-semibold py-1 px-0 tabular-nums"
+                      style={{
+                        color: isCur ? "#22c55e" : "#475569",
+                        fontWeight: isCur ? 600 : 500,
+                      }}
+                    >
+                      {i + 1}
+                    </th>
+                  );
+                })}
+                <th className="text-center font-bold py-1 pl-2 pr-1 tabular-nums text-neutral-200">
+                  R
                 </th>
-              ))}
-              <th className="px-2 py-2 text-center font-black text-neutral-900 dark:text-white border-l border-neutral-200 dark:border-neutral-800">
-                R
-              </th>
-              <th className="px-2 py-2 text-center font-bold text-neutral-500">
-                H
-              </th>
-              <th className="px-2 py-2 text-center font-bold text-neutral-500">
-                E
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            <ScoreRow
-              label={awayLabel}
-              line={lsAway}
-              innings={innings}
-              total={live.awayTeam.score}
-              hits={live.awayTeam.hits}
-              errors={live.awayTeam.errors}
-            />
-            <ScoreRow
-              label={homeLabel}
-              line={lsHome}
-              innings={innings}
-              total={live.homeTeam.score}
-              hits={live.homeTeam.hits}
-              errors={live.homeTeam.errors}
-            />
-          </tbody>
-        </table>
+                <th className="text-center font-semibold py-1 px-1 tabular-nums">
+                  H
+                </th>
+                <th className="text-center font-semibold py-1 pl-1 tabular-nums">
+                  E
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <ScoreRow
+                label={awayLabel}
+                line={lsAway}
+                innings={innings}
+                currentInning={isLive ? currentInning : null}
+                total={awayScore}
+                hits={live.awayTeam.hits}
+                errors={live.awayTeam.errors}
+                win={awayWin || liveAwayLead}
+              />
+              <ScoreRow
+                label={homeLabel}
+                line={lsHome}
+                innings={innings}
+                currentInning={isLive ? currentInning : null}
+                total={homeScore}
+                hits={live.homeTeam.hits}
+                errors={live.homeTeam.errors}
+                win={homeWin || liveHomeLead}
+              />
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* 베이스/볼카운트 미제공 안내 + 공식 링크 */}
       {isLive && (
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 p-3 sm:p-4 text-xs text-neutral-600 dark:text-neutral-400 flex flex-wrap items-center justify-between gap-2">
+        <div
+          className="rounded-xl p-3 sm:p-4 text-xs flex flex-wrap items-center justify-between gap-2"
+          style={{
+            background: "rgba(255,255,255,.02)",
+            border: "1px solid rgba(255,255,255,.06)",
+            color: "#94a3b8",
+          }}
+        >
           <span>
             ⓘ {league} 는 베이스 상황·볼카운트·현재 투수/타자가 제공되지 않습니다.
             상세 라이브는 공식 페이지에서 확인 가능합니다.
@@ -328,7 +401,12 @@ export default function BaseballLiveDetail({
             href={officialUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-700 hover:border-rose-300 dark:hover:border-rose-500/40 font-semibold text-neutral-700 dark:text-neutral-300 transition whitespace-nowrap"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md font-semibold whitespace-nowrap transition"
+            style={{
+              background: "rgba(34,197,94,.1)",
+              border: "1px solid rgba(34,197,94,.3)",
+              color: "#86efac",
+            }}
           >
             {officialLabel} →
           </a>
@@ -342,35 +420,56 @@ function ScoreRow({
   label,
   line,
   innings,
+  currentInning,
   total,
   hits,
   errors,
+  win,
 }: {
   label: string;
   line: (number | null)[];
   innings: number;
+  currentInning: number | null;
   total: number;
   hits: number | null;
   errors: number | null;
+  win: boolean;
 }) {
   return (
     <tr>
-      <td className="px-3 py-2 font-semibold whitespace-nowrap">{label}</td>
-      {Array.from({ length: innings }, (_, i) => (
-        <td
-          key={i}
-          className="px-2 py-2 text-center tabular-nums text-neutral-700 dark:text-neutral-300"
-        >
-          {line[i] ?? "-"}
-        </td>
-      ))}
-      <td className="px-2 py-2 text-center font-black tabular-nums border-l border-neutral-200 dark:border-neutral-800">
+      <td className="py-1 pr-2 font-bold text-neutral-300 whitespace-nowrap">
+        {label}
+      </td>
+      {Array.from({ length: innings }, (_, i) => {
+        const v = line[i];
+        const isCur = currentInning != null && i + 1 === currentInning;
+        return (
+          <td
+            key={i}
+            className="text-center tabular-nums py-1 px-0"
+            style={{
+              background: isCur ? "rgba(34,197,94,.1)" : "transparent",
+              borderRadius: isCur ? 4 : 0,
+              color: v == null ? "#334155" : "#cbd5e1",
+            }}
+          >
+            {v ?? "·"}
+          </td>
+        );
+      })}
+      <td
+        className="text-center font-black py-1 pl-2 pr-1 tabular-nums"
+        style={{
+          color: win ? "#22c55e" : "#cbd5e1",
+          textShadow: win ? "0 0 8px rgba(34,197,94,.45)" : "none",
+        }}
+      >
         {total}
       </td>
-      <td className="px-2 py-2 text-center tabular-nums text-neutral-500">
+      <td className="text-center py-1 px-1 tabular-nums text-neutral-400">
         {hits ?? "-"}
       </td>
-      <td className="px-2 py-2 text-center tabular-nums text-neutral-500">
+      <td className="text-center py-1 pl-1 tabular-nums text-neutral-400">
         {errors ?? "-"}
       </td>
     </tr>

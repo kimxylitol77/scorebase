@@ -126,47 +126,85 @@ export default function LolLiveDetail({
   const isFinal = live.status === "FINAL";
   const slots = Array.from({ length: live.bestOf }, (_, i) => i + 1);
 
+  // Scorebase LiveCard v2 — 우세팀 강조
+  const awayWin = isFinal && live.awayScore > live.homeScore;
+  const homeWin = isFinal && live.homeScore > live.awayScore;
+  const liveLead = isLive && live.awayScore !== live.homeScore;
+  const liveAwayLead = liveLead && live.awayScore > live.homeScore;
+  const liveHomeLead = liveLead && live.homeScore > live.awayScore;
+
   return (
     <div className="space-y-4">
-      {/* 상단 점수 보드 */}
-      <div className="rounded-2xl border border-rose-200 dark:border-rose-500/20 bg-gradient-to-br from-rose-50/50 to-white dark:from-rose-500/10 dark:to-neutral-950 p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-3">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold ${
-              isLive
-                ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300"
-                : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
-            }`}
-          >
-            {isLive && (
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+      {/* Scorebase LiveCard v2 — 통합 스코어보드 카드 */}
+      <div
+        className={`rounded-xl p-4 sm:p-5 space-y-3 match-card ${isLive ? "esports-live-card" : ""}`}
+        style={{ position: "relative", overflow: "hidden" }}
+      >
+        {/* 헤더 */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {isLive ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+                style={{ background: "rgba(239,68,68,.18)", color: "#fca5a5" }}
+              >
+                <span
+                  className="live-dot inline-block w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: "#ef4444",
+                    boxShadow: "0 0 6px rgba(239,68,68,.8)",
+                  }}
+                />
+                LIVE
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+                style={{ background: "rgba(255,255,255,.06)", color: "#94a3b8" }}
+              >
+                {isFinal ? "종료" : `BO${live.bestOf} · 예정`}
+              </span>
             )}
-            {isLive
-              ? `LIVE · BO${live.bestOf} · ${live.currentGame}게임`
-              : isFinal
-                ? "종료"
-                : `BO${live.bestOf} · 예정`}
-          </span>
-          {isLive && (
-            <span className="text-[10px] text-rose-600/70 dark:text-rose-400/70">
-              30초 자동 갱신
+            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              LCK
             </span>
+            {isLive && (
+              <span
+                className="text-[11px] font-bold tabular-nums"
+                style={{ color: "#22c55e" }}
+              >
+                {live.currentGame}게임
+              </span>
+            )}
+          </div>
+          {isLive && (
+            <span className="text-[10px] text-neutral-500">30초 자동 갱신</span>
           )}
         </div>
+
+        {/* 양팀 + 점수 */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           <TeamCol logo={awayLogo} name={awayNameKo} teamId={awayTeamId} />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
-            <CountUp
-              value={live.awayScore}
-              className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
-            />
-            <span className="mx-1.5 sm:mx-3 text-neutral-300 dark:text-neutral-700">
-              :
+            <span
+              style={{
+                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  awayWin || liveAwayLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+              }}
+            >
+              <CountUp value={live.awayScore} />
             </span>
-            <CountUp
-              value={live.homeScore}
-              className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
-            />
+            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
+            <span
+              style={{
+                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  homeWin || liveHomeLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+              }}
+            >
+              <CountUp value={live.homeScore} />
+            </span>
           </div>
           <TeamCol logo={homeLogo} name={homeNameKo} teamId={homeTeamId} />
         </div>

@@ -15,13 +15,13 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
       <img
         src={url}
         alt=""
-        className="w-12 h-12 sm:w-16 sm:h-16 object-contain mx-auto mb-1"
+        className="w-12 h-12 sm:w-14 sm:h-14 object-contain mx-auto mb-1"
         loading="lazy"
       />
     );
   }
   return (
-    <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-1 rounded-full bg-neutral-100 dark:bg-neutral-900 inline-flex items-center justify-center text-base font-bold text-neutral-400">
+    <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-1 rounded-full bg-white/5 inline-flex items-center justify-center text-base font-bold text-neutral-400">
       {name.slice(0, 1)}
     </div>
   );
@@ -188,31 +188,79 @@ export default function MlbLiveDetail({
   const homeLabel = homeNameKo ?? live.homeTeam.name;
   const isLive = live.status === "LIVE";
 
+  // Scorebase LiveCard v2 — 우세팀 강조 색상 계산
+  const awayScore = live.awayTeam.score;
+  const homeScore = live.homeTeam.score;
+  const isFinished = live.status === "FINAL";
+  const awayWin = isFinished && awayScore > homeScore;
+  const homeWin = isFinished && homeScore > awayScore;
+  const liveLead = isLive && awayScore !== homeScore;
+  const liveAwayLead = liveLead && awayScore > homeScore;
+  const liveHomeLead = liveLead && homeScore > awayScore;
+
+  // statusLabel ("5회 초"/"5회 말") → inning + half 파싱
+  const inningMatch = live.statusLabel.match(/(\d+)\s*회\s*(초|말)?/);
+  const currentInning = inningMatch ? parseInt(inningMatch[1], 10) : null;
+  const halfKo = inningMatch?.[2] ?? null;
+  const inningText = currentInning ? `${currentInning}회 ${halfKo ?? ""}`.trim() : null;
+
+  const innings = live.linescore
+    ? Math.max(9, live.linescore.away.length, live.linescore.home.length)
+    : 9;
+
   return (
     <div className="space-y-4">
-      {/* 상단 스코어 보드 */}
-      <div className="rounded-2xl border border-rose-200 dark:border-rose-500/20 bg-gradient-to-br from-rose-50/50 to-white dark:from-rose-500/10 dark:to-neutral-950 p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-3">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold ${
-              isLive
-                ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300"
-                : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
-            }`}
-          >
-            {isLive && (
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+      {/* Scorebase LiveCard v2 — 통합 스코어보드 카드 */}
+      <div
+        className={`rounded-xl p-4 sm:p-5 space-y-3 ${
+          isLive ? "match-card baseball-live-card" : "match-card"
+        }`}
+        style={{ position: "relative", overflow: "hidden" }}
+      >
+        {/* 헤더 — LIVE 배지 + 회/말 + 자동 갱신 */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {isLive ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+                style={{ background: "rgba(239,68,68,.18)", color: "#fca5a5" }}
+              >
+                <span
+                  className="live-dot inline-block w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: "#ef4444",
+                    boxShadow: "0 0 6px rgba(239,68,68,.8)",
+                  }}
+                />
+                LIVE
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
+                style={{ background: "rgba(255,255,255,.06)", color: "#94a3b8" }}
+              >
+                {isFinished ? "종료" : live.statusLabel || "—"}
+              </span>
             )}
-            {isLive ? `LIVE · ${live.statusLabel}` : live.statusLabel || "—"}
-          </span>
-          {isLive && (
-            <span className="text-[10px] text-rose-600/70 dark:text-rose-400/70">
-              10초 자동 갱신
+            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              MLB
             </span>
+            {isLive && inningText && (
+              <span
+                className="text-[11px] font-bold tabular-nums"
+                style={{ color: "#22c55e" }}
+              >
+                {inningText}
+              </span>
+            )}
+          </div>
+          {isLive && (
+            <span className="text-[10px] text-neutral-500">10초 자동 갱신</span>
           )}
         </div>
+
+        {/* 양팀 + 점수 */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          {/* 원정팀 */}
           <TeamBlock
             teamId={awayTeamId}
             logo={live.awayTeam.logo}
@@ -221,19 +269,26 @@ export default function MlbLiveDetail({
             name={awayLabel}
           />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
-            <CountUp
-              value={live.awayTeam.score}
-              className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
-            />
-            <span className="mx-1.5 sm:mx-3 text-neutral-300 dark:text-neutral-700">
-              :
+            <span
+              style={{
+                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  awayWin || liveAwayLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+              }}
+            >
+              <CountUp value={awayScore} />
             </span>
-            <CountUp
-              value={live.homeTeam.score}
-              className={isLive ? "text-rose-600 dark:text-rose-400" : ""}
-            />
+            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
+            <span
+              style={{
+                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  homeWin || liveHomeLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+              }}
+            >
+              <CountUp value={homeScore} />
+            </span>
           </div>
-          {/* 홈팀 */}
           <TeamBlock
             teamId={homeTeamId}
             logo={live.homeTeam.logo}
@@ -242,116 +297,166 @@ export default function MlbLiveDetail({
             name={homeLabel}
           />
         </div>
-      </div>
 
-      {/* 라이브 일 때만: 베이스 + 카운트 + 투수/타자 */}
-      {isLive && live.situation && (
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
-          <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 sm:gap-6 items-center">
-            <div className="flex items-center gap-4 justify-center">
-              <BaseDiamond
-                onFirst={live.situation.onFirst}
-                onSecond={live.situation.onSecond}
-                onThird={live.situation.onThird}
-              />
-              <CountIndicator
-                balls={live.situation.balls ?? 0}
-                strikes={live.situation.strikes ?? 0}
-                outs={live.situation.outs ?? 0}
-              />
-            </div>
-            <div className="space-y-2 text-sm">
-              {live.situation.pitcherName && (
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                    투수
-                  </span>
-                  <div className="font-semibold">{live.situation.pitcherName}</div>
-                </div>
-              )}
-              {live.situation.batterName && (
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                    타자
-                  </span>
-                  <div className="font-semibold">{live.situation.batterName}</div>
-                </div>
-              )}
-              {live.situation.lastPlay && (
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
-                    마지막 플레이
-                  </span>
-                  <div className="text-neutral-700 dark:text-neutral-300 text-xs leading-relaxed">
-                    {live.situation.lastPlay}
+        {/* 상황 박스 (LIVE 만) — 다이아몬드 + B/S/O + 투수/타자 */}
+        {isLive && live.situation && (
+          <div
+            className="rounded-lg px-3 py-2.5 sm:px-4 sm:py-3"
+            style={{
+              background: "rgba(255,255,255,.02)",
+              border: "1px solid rgba(255,255,255,.06)",
+            }}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-3 sm:gap-5 items-center">
+              <div className="flex items-center gap-4 justify-center">
+                <BaseDiamond
+                  onFirst={live.situation.onFirst}
+                  onSecond={live.situation.onSecond}
+                  onThird={live.situation.onThird}
+                />
+                <CountIndicator
+                  balls={live.situation.balls ?? 0}
+                  strikes={live.situation.strikes ?? 0}
+                  outs={live.situation.outs ?? 0}
+                />
+              </div>
+              <div className="space-y-1.5 text-sm">
+                {live.situation.pitcherName && (
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                      투수
+                    </span>
+                    <div className="font-semibold">
+                      {live.situation.pitcherName}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+                {live.situation.batterName && (
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                      타자
+                    </span>
+                    <div className="font-semibold">
+                      {live.situation.batterName}
+                    </div>
+                  </div>
+                )}
+                {live.situation.lastPlay && (
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
+                      마지막 플레이
+                    </span>
+                    <div className="text-neutral-700 dark:text-neutral-300 text-xs leading-relaxed">
+                      {live.situation.lastPlay}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 이닝별 linescore */}
-      {live.linescore && live.linescore.home.length > 0 && (
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-x-auto">
-          <table className="min-w-full text-xs sm:text-sm">
-            <thead className="bg-neutral-50 dark:bg-neutral-900">
-              <tr>
-                <th className="px-3 py-2 text-left font-bold text-neutral-500">
-                  팀
-                </th>
-                {live.linescore.away.map((_, i) => (
-                  <th
-                    key={i}
-                    className="px-2 py-2 text-center font-bold text-neutral-500 tabular-nums"
-                  >
-                    {i + 1}
+        {/* 이닝 박스 (LIVE/종료) */}
+        {live.linescore && live.linescore.home.length > 0 && (
+          <div className="overflow-x-auto -mx-1 px-1">
+            <table className="text-[11px] sm:text-xs w-full min-w-[360px]">
+              <thead>
+                <tr className="text-neutral-500">
+                  <th className="text-left font-semibold py-1 pr-2 w-10">팀</th>
+                  {Array.from({ length: innings }, (_, i) => {
+                    const isCur =
+                      isLive && currentInning != null && i + 1 === currentInning;
+                    return (
+                      <th
+                        key={i}
+                        className="text-center font-semibold py-1 px-0 tabular-nums"
+                        style={{
+                          color: isCur ? "#22c55e" : "#475569",
+                          fontWeight: isCur ? 600 : 500,
+                        }}
+                      >
+                        {i + 1}
+                      </th>
+                    );
+                  })}
+                  <th className="text-center font-bold py-1 pl-2 pr-1 tabular-nums text-neutral-200">
+                    R
                   </th>
-                ))}
-                <th className="px-3 py-2 text-center font-black text-neutral-900 dark:text-white">
-                  R
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-              <tr>
-                <td className="px-3 py-2 font-semibold">
-                  {live.awayTeam.abbreviation}
-                </td>
-                {live.linescore.away.map((v, i) => (
-                  <td
-                    key={i}
-                    className="px-2 py-2 text-center tabular-nums text-neutral-700 dark:text-neutral-300"
-                  >
-                    {v ?? "-"}
-                  </td>
-                ))}
-                <td className="px-3 py-2 text-center font-black tabular-nums">
-                  {live.awayTeam.score}
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-2 font-semibold">
-                  {live.homeTeam.abbreviation}
-                </td>
-                {live.linescore.home.map((v, i) => (
-                  <td
-                    key={i}
-                    className="px-2 py-2 text-center tabular-nums text-neutral-700 dark:text-neutral-300"
-                  >
-                    {v ?? "-"}
-                  </td>
-                ))}
-                <td className="px-3 py-2 text-center font-black tabular-nums">
-                  {live.homeTeam.score}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+                </tr>
+              </thead>
+              <tbody>
+                <BoxRow
+                  label={live.awayTeam.abbreviation}
+                  line={live.linescore.away}
+                  innings={innings}
+                  currentInning={isLive ? currentInning : null}
+                  total={awayScore}
+                  win={awayWin || liveAwayLead}
+                />
+                <BoxRow
+                  label={live.homeTeam.abbreviation}
+                  line={live.linescore.home}
+                  innings={innings}
+                  currentInning={isLive ? currentInning : null}
+                  total={homeScore}
+                  win={homeWin || liveHomeLead}
+                />
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+function BoxRow({
+  label,
+  line,
+  innings,
+  currentInning,
+  total,
+  win,
+}: {
+  label: string;
+  line: (number | null)[];
+  innings: number;
+  currentInning: number | null;
+  total: number;
+  win: boolean;
+}) {
+  return (
+    <tr>
+      <td className="py-1 pr-2 font-bold text-neutral-300 whitespace-nowrap">
+        {label}
+      </td>
+      {Array.from({ length: innings }, (_, i) => {
+        const v = line[i];
+        const isCur = currentInning != null && i + 1 === currentInning;
+        return (
+          <td
+            key={i}
+            className="text-center tabular-nums py-1 px-0"
+            style={{
+              background: isCur ? "rgba(34,197,94,.1)" : "transparent",
+              borderRadius: isCur ? 4 : 0,
+              color: v == null ? "#334155" : "#cbd5e1",
+            }}
+          >
+            {v ?? "·"}
+          </td>
+        );
+      })}
+      <td
+        className="text-center font-black py-1 pl-2 pr-1 tabular-nums"
+        style={{
+          color: win ? "#22c55e" : "#cbd5e1",
+          textShadow: win ? "0 0 8px rgba(34,197,94,.45)" : "none",
+        }}
+      >
+        {total}
+      </td>
+    </tr>
   );
 }
 
@@ -365,8 +470,9 @@ function BaseDiamond({
   onSecond: boolean;
   onThird: boolean;
 }) {
-  const active = "fill-rose-500 stroke-rose-600";
-  const inactive = "fill-neutral-200 stroke-neutral-400 dark:fill-neutral-800 dark:stroke-neutral-600";
+  // Scorebase LiveCard v2 — cyan glow 베이스
+  const active = "fill-cyan-500 stroke-cyan-300";
+  const inactive = "fill-white/5 stroke-white/20";
   return (
     <svg
       viewBox="0 0 80 80"
