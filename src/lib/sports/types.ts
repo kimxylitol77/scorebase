@@ -15,7 +15,10 @@ export type League =
   | "MLS"
   | "UCL"
   | "WORLD_CUP" // 2026 FIFA 북중미 월드컵
-  | "LOL"; // LCK (League of Legends Champions Korea) — e스포츠
+  | "LOL" // LCK (League of Legends Champions Korea) — e스포츠
+  // 신규 — 아시아 축구 (ESPN scoreboard)
+  | "J1_LEAGUE" // J1 리그 (일본 1부 축구)
+  | "AFC_CL"; // AFC 챔피언스리그 엘리트
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -27,6 +30,8 @@ export const SOCCER_LEAGUES = [
   "MLS",
   "UCL",
   "WORLD_CUP",
+  "J1_LEAGUE",
+  "AFC_CL",
 ] as const satisfies readonly League[];
 
 export type MatchStatus =

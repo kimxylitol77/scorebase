@@ -13,6 +13,7 @@ interface SportMeta {
 // 모든 리그 묶음 — `all` 처리용 (URL 호환성, sportTab 노출 X)
 const ALL_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "J1_LEAGUE", "AFC_CL",
   "KBO", "NPB", "MLB",
   "NBA", "NHL", "LOL",
 ];
@@ -22,7 +23,11 @@ export const SPORTS: SportMeta[] = [
     code: "soccer",
     label: "축구",
     emoji: "⚽",
-    leagues: ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP"],
+    leagues: [
+      "AFC_CL",
+      "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "MLS",
+      "J1_LEAGUE", "WORLD_CUP",
+    ],
   },
   {
     code: "baseball",
@@ -64,6 +69,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   MLS: "MLS",
   UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵 2026",
+  J1_LEAGUE: "J1 리그",
+  AFC_CL: "AFC 챔피언스리그",
   KBO: "KBO 리그",
   NPB: "NPB 일본프로야구",
   MLB: "메이저리그",
@@ -77,6 +84,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   KBO: 0,
   NPB: 1,
   MLB: 2,
+  AFC_CL: 7,
   EPL: 10,
   UCL: 11,
   LALIGA: 12,
@@ -84,7 +92,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   SERIE_A: 14,
   LIGUE_1: 15,
   MLS: 16,
-  WORLD_CUP: 17,
+  J1_LEAGUE: 17,
+  WORLD_CUP: 18,
   NBA: 20,
   NHL: 21,
   LOL: 30,

@@ -20,6 +20,9 @@ const LEAGUE_BADGES: Record<string, LeagueBadgeStyle> = {
   MLS: { label: "MLS", bg: "#003b5c", fg: "#ffffff" },
   UCL: { label: "챔피언스리그", bg: "#0a3978", fg: "#ffffff" },
   WORLD_CUP: { label: "월드컵 2026", bg: "#7e1d23", fg: "#ffffff" },
+  // 신규 — 아시아 축구
+  J1_LEAGUE: { label: "J1 리그", bg: "#c8102e", fg: "#ffffff" },
+  AFC_CL: { label: "AFC 챔스", bg: "#ff6600", fg: "#ffffff" },
 };
 
 const DEFAULT_BADGE: LeagueBadgeStyle = {

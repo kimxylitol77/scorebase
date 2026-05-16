@@ -95,18 +95,26 @@ function addDays(yyyymmdd: string, delta: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+// --all 시 수집할 리그 list. 매 30분 cron 에서 호출되니 부하 고려해 list 직접 명시.
+const ALL_LEAGUES: League[] = [
+  "KBO", "NPB", "MLB",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+  "J1_LEAGUE", "AFC_CL",
+  "NBA", "NHL", "LOL",
+];
+
 function parseArgs(): { leagues: League[]; date: string } {
   const args = process.argv.slice(2);
   let date = todayKST();
   let leagues: League[] = [];
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--all") leagues = ["KBO", "EPL", "NBA"];
+    if (args[i] === "--all") leagues = ALL_LEAGUES;
     else if (args[i] === "--league") leagues = [args[++i] as League];
     else if (args[i] === "--date") date = args[++i];
   }
 
-  if (leagues.length === 0) leagues = ["KBO", "EPL", "NBA"];
+  if (leagues.length === 0) leagues = ALL_LEAGUES;
   return { leagues, date };
 }
 

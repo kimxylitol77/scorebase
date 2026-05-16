@@ -16,6 +16,7 @@ import { fetchMatchExtras } from "@/lib/live/match-extras";
 
 const SOCCER_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "J1_LEAGUE", "AFC_CL",
 ]);
 
 function parseGoalie(json: string | null): GoalieInfo | null {
@@ -40,6 +41,8 @@ const SUPPORTED = new Set([
   "MLS",
   "UCL",
   "WORLD_CUP",
+  "J1_LEAGUE",
+  "AFC_CL",
 ]);
 
 const LEAGUE_LABEL: Record<string, string> = {
@@ -53,6 +56,8 @@ const LEAGUE_LABEL: Record<string, string> = {
   MLS: "MLS",
   UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵",
+  J1_LEAGUE: "J1 리그",
+  AFC_CL: "AFC 챔피언스리그",
 };
 
 interface Props {

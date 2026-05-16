@@ -25,6 +25,8 @@ export const SOCCER_LEAGUE_CODES: Partial<Record<League, string>> = {
   LIGUE_1: "fra.1",
   MLS: "usa.1",
   UCL: "uefa.champions",
+  J1_LEAGUE: "jpn.1",
+  AFC_CL: "afc.champions",
 };
 
 interface EspnTeam {

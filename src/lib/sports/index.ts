@@ -36,6 +36,9 @@ export const collectors: Record<League, MatchCollector> = {
   KBO: kboCollector,
   NPB: npbCollector,
   LOL: lolCollector,
+  // 신규 — 아시아 축구 (ESPN scoreboard)
+  J1_LEAGUE: buildSoccerCollector("J1_LEAGUE"),
+  AFC_CL: buildSoccerCollector("AFC_CL"),
 };
 
 export {

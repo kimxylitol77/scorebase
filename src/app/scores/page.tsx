@@ -90,6 +90,8 @@ const SOCCER_LEAGUES = new Set([
   "MLS",
   "UCL",
   "WORLD_CUP",
+  "J1_LEAGUE",
+  "AFC_CL",
 ]);
 
 function sportFromLeague(league: string): string {

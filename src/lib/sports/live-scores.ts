@@ -677,6 +677,8 @@ const ESPN_SOCCER_PATH: Record<string, string> = {
   MLS: "usa.1",
   UCL: "uefa.champions",
   WORLD_CUP: "fifa.world",
+  J1_LEAGUE: "jpn.1",
+  AFC_CL: "afc.champions",
 };
 
 /**

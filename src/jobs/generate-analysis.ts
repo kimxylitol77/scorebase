@@ -25,6 +25,10 @@ const RELEGATION_BY_LEAGUE: Record<string, number> = {
   NHL: 0,
   MLB: 0,
   KBO: 0,
+  NPB: 0,
+  LOL: 0,
+  J1_LEAGUE: 3,
+  AFC_CL: 0,
 };
 
 function extractTitle(md: string): string {
@@ -57,9 +61,14 @@ export async function runAnalysis() {
     "LIGUE_1",
     "MLS",
     "UCL",
+    "J1_LEAGUE",
+    "AFC_CL",
     "NBA",
     "NHL",
     "MLB",
+    "KBO",
+    "NPB",
+    "LOL",
   ] as const;
   const thisWeek = isoWeek(new Date());
 
