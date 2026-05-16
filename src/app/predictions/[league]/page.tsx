@@ -486,9 +486,12 @@ export default async function LeaguePredictions({ params }: Props) {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
                         )}
-                        <span className="truncate font-medium">
+                        <Link
+                          href={`/teams/${p.teamId}`}
+                          className="truncate font-medium hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+                        >
                           {p.shortName || toKoreanTeamName(p.teamName)}
-                        </span>
+                        </Link>
                       </td>
                       <td className="px-2 py-2 text-right tabular-nums text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">
                         {(p.confFinals * 100).toFixed(0)}%
@@ -627,7 +630,10 @@ export default async function LeaguePredictions({ params }: Props) {
                           })}
                         </td>
                         <td className="px-2 py-2.5 text-right font-medium truncate">
-                          <span className="inline-flex items-center gap-2 justify-end">
+                          <Link
+                            href={`/teams/${m.homeTeam.id}`}
+                            className="inline-flex items-center gap-2 justify-end hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+                          >
                             <span className="truncate">
                               {toKoreanTeamName(m.homeTeam.name)}
                             </span>
@@ -635,11 +641,14 @@ export default async function LeaguePredictions({ params }: Props) {
                               src={m.homeTeam.logoUrl}
                               name={m.homeTeam.name}
                             />
-                          </span>
+                          </Link>
                         </td>
                         <td className="text-center text-xs text-neutral-400">vs</td>
                         <td className="px-2 py-2.5 font-medium truncate">
-                          <span className="inline-flex items-center gap-2">
+                          <Link
+                            href={`/teams/${m.awayTeam.id}`}
+                            className="inline-flex items-center gap-2 hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+                          >
                             <PredTeamLogo
                               src={m.awayTeam.logoUrl}
                               name={m.awayTeam.name}
@@ -647,7 +656,7 @@ export default async function LeaguePredictions({ params }: Props) {
                             <span className="truncate">
                               {toKoreanTeamName(m.awayTeam.name)}
                             </span>
-                          </span>
+                          </Link>
                         </td>
                         <td className="px-4 py-2.5">
                           <ProbBar wp={wp} hideDraw={!info.showDraw} />
@@ -674,7 +683,10 @@ export default async function LeaguePredictions({ params }: Props) {
                       {dateLabel} · {timeLabel}
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="flex items-center gap-1.5 min-w-0 flex-1 justify-end font-medium">
+                      <Link
+                        href={`/teams/${m.homeTeam.id}`}
+                        className="flex items-center gap-1.5 min-w-0 flex-1 justify-end font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+                      >
                         <span className="truncate">
                           {toKoreanTeamName(m.homeTeam.name)}
                         </span>
@@ -682,11 +694,14 @@ export default async function LeaguePredictions({ params }: Props) {
                           src={m.homeTeam.logoUrl}
                           name={m.homeTeam.name}
                         />
-                      </span>
+                      </Link>
                       <span className="text-[10px] text-neutral-400 shrink-0">
                         vs
                       </span>
-                      <span className="flex items-center gap-1.5 min-w-0 flex-1 font-medium">
+                      <Link
+                        href={`/teams/${m.awayTeam.id}`}
+                        className="flex items-center gap-1.5 min-w-0 flex-1 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition"
+                      >
                         <PredTeamLogo
                           src={m.awayTeam.logoUrl}
                           name={m.awayTeam.name}
@@ -694,7 +709,7 @@ export default async function LeaguePredictions({ params }: Props) {
                         <span className="truncate">
                           {toKoreanTeamName(m.awayTeam.name)}
                         </span>
-                      </span>
+                      </Link>
                     </div>
                     <ProbBar wp={wp} hideDraw={!info.showDraw} />
                   </div>
