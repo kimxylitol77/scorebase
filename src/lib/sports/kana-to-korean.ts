@@ -47,6 +47,13 @@ const YOON: Record<string, string> = {
   りゃ: "랴", りゅ: "류", りょ: "료",
   ふぁ: "파", ふぃ: "피", ふぇ: "페", ふぉ: "포",
   ヴァ: "바", ヴィ: "비", ヴェ: "베", ヴォ: "보",
+  // 외래어 합성 카나 — wi/we/wo/swe/twi 등 (Whitley → ウィットリー → 휘틀리 등)
+  うぁ: "와", うぃ: "위", うぇ: "웨", うぉ: "워",
+  くぁ: "콰", くぃ: "퀴", くぇ: "퀘", くぉ: "쿼",
+  ぐぁ: "과", ぐぃ: "귀", ぐぇ: "궤", ぐぉ: "궈",
+  すぃ: "시", ずぃ: "지",
+  てぃ: "티", でぃ: "디", とぅ: "투", どぅ: "두",
+  いぇ: "예",
 };
 const YOON_HEAD: Record<string, string> = {
   きゃ: "갸", きゅ: "규", きょ: "교",
@@ -68,10 +75,13 @@ function kataToHira(s: string): string {
 export function kanaToKorean(input: string): string {
   if (!input) return "";
   // 가타카나 → 히라가나, 장음 제거
-  let s = kataToHira(input).replace(/ー/g, "");
+  const s = kataToHira(input).replace(/ー/g, "");
   // ・ → 단어 구분 (성/이름 separator)
   const tokens = s.split(/[・\s　]+/).filter(Boolean);
-  return tokens.map(translateToken).join(" ");
+  const out = tokens.map(translateToken).join(" ");
+  // 부분 변환 실패 — 결과에 일본 카나 잔존 시 원문 반환 (깨진 표시 방지).
+  if (/[぀-ゟ゠-ヿ]/.test(out)) return input;
+  return out;
 }
 
 function translateToken(token: string): string {

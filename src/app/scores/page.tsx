@@ -14,6 +14,7 @@ import {
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import {
   fetchAllLiveScores,
   fetchBaseballByDate,
@@ -138,6 +139,17 @@ function parseStarter(json: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+/** NPB 매치의 starter 이름을 한국어로 음역. 다른 리그는 원문 유지.
+ *  깨진 변환 (한국어 + 일본 카나 혼합) 감지 시 starter 숨김.
+ */
+function localizeStarter(name: string | null, league: string): string | null {
+  if (!name) return null;
+  if (league !== "NPB") return name;
+  // 깨진 mid-conversion 결과 — 한국어 + 일본 카나 mix 시 숨김.
+  if (/[가-힣]/.test(name) && /[぀-ゟ゠-ヿ]/.test(name)) return null;
+  return npbPlayerToKorean(name);
 }
 
 /** 카드 linescore 등 좁은 곳의 팀 약칭. shortName 우선, 없으면 한글 첫 단어
@@ -357,8 +369,12 @@ export default async function ScoresPage({ searchParams }: Props) {
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
       liveStatusLabel: live?.statusLabel ?? null,
-      homeStarter: isBaseball ? parseStarter(m.homeStarter) : null,
-      awayStarter: isBaseball ? parseStarter(m.awayStarter) : null,
+      homeStarter: isBaseball
+        ? localizeStarter(parseStarter(m.homeStarter), m.league)
+        : null,
+      awayStarter: isBaseball
+        ? localizeStarter(parseStarter(m.awayStarter), m.league)
+        : null,
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
       soccerGoals: sport_ === "soccer" ? soccerGoalsMap[m.externalId] ?? null : null,
