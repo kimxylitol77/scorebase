@@ -40,12 +40,21 @@ function parseStarterFull(json: string | null): StarterInfo | null {
   }
 }
 
+// prisma 호출 — DB 연결 실패 (P1001) 시 null 반환해 dev 환경 에러 오버레이 방지.
+async function findKboMatch(gameId: string) {
+  try {
+    return await prisma.match.findFirst({
+      where: { externalId: gameId, league: "KBO" },
+      include: { homeTeam: true, awayTeam: true },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { gameId } = await params;
-  const match = await prisma.match.findFirst({
-    where: { externalId: gameId, league: "KBO" },
-    include: { homeTeam: true, awayTeam: true },
-  });
+  const match = await findKboMatch(gameId);
   if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
   const home = toKoreanTeamName(match.homeTeam.name);
   const away = toKoreanTeamName(match.awayTeam.name);
@@ -60,10 +69,7 @@ export default async function KboLivePage({ params }: Props) {
   const { gameId } = await params;
   if (!/^\d+$/.test(gameId)) notFound();
 
-  const match = await prisma.match.findFirst({
-    where: { externalId: gameId, league: "KBO" },
-    include: { homeTeam: true, awayTeam: true },
-  });
+  const match = await findKboMatch(gameId);
   if (!match) notFound();
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);

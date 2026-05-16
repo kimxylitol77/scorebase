@@ -39,7 +39,33 @@ export interface MatchExtras {
 const H2H_MAX = 5;
 const FORM_DAYS = 60;
 
+/** 매치 추가 데이터 (폼/standings/H2H/article slug).
+ *  DB 연결 실패 (P1001 등) 시 모든 필드 비어있는 fallback 반환 — dev 환경 에러 오버레이 방지. */
 export async function fetchMatchExtras(match: {
+  id: number;
+  league: string;
+  startTime: Date;
+  homeTeam: { id: number };
+  awayTeam: { id: number };
+}): Promise<MatchExtras> {
+  try {
+    return await fetchMatchExtrasInner(match);
+  } catch {
+    const emptyForm = { results: [], wins: 0, draws: 0, losses: 0 };
+    return {
+      homeForm: emptyForm,
+      awayForm: emptyForm,
+      homeStanding: null,
+      awayStanding: null,
+      totalTeams: 0,
+      h2hHome: { results: [], wins: 0, draws: 0, losses: 0 },
+      previewSlug: null,
+      recapSlug: null,
+    };
+  }
+}
+
+async function fetchMatchExtrasInner(match: {
   id: number;
   league: string;
   startTime: Date;

@@ -42,10 +42,15 @@ interface Props {
 type FoundMatch = Awaited<ReturnType<typeof findEspnMatch>>;
 
 async function findEspnMatch(gameId: string) {
-  return prisma.match.findFirst({
-    where: { externalId: gameId, league: "MLB" },
-    include: { homeTeam: true, awayTeam: true },
-  });
+  // DB 연결 실패 (P1001) 시 null 반환 — dev 환경 에러 오버레이 방지.
+  try {
+    return await prisma.match.findFirst({
+      where: { externalId: gameId, league: "MLB" },
+      include: { homeTeam: true, awayTeam: true },
+    });
+  } catch {
+    return null;
+  }
 }
 
 /** api-sports baseball id 로 받은 gameId 를 우리 DB MLB Match 로 변환. */

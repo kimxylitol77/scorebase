@@ -21,12 +21,21 @@ function kstDate(d: Date): string {
   return new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
+// prisma 호출 — DB 연결 실패 (P1001) 시 null 반환해 dev 환경 에러 오버레이 방지.
+async function findLolMatch(matchId: string) {
+  try {
+    return await prisma.match.findFirst({
+      where: { externalId: matchId, league: "LOL" },
+      include: { homeTeam: true, awayTeam: true },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { matchId } = await params;
-  const match = await prisma.match.findFirst({
-    where: { externalId: matchId, league: "LOL" },
-    include: { homeTeam: true, awayTeam: true },
-  });
+  const match = await findLolMatch(matchId);
   if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
   const home = toKoreanTeamName(match.homeTeam.name);
   const away = toKoreanTeamName(match.awayTeam.name);
@@ -41,10 +50,7 @@ export default async function LolLivePage({ params }: Props) {
   const { matchId } = await params;
   if (!/^\d+$/.test(matchId)) notFound();
 
-  const match = await prisma.match.findFirst({
-    where: { externalId: matchId, league: "LOL" },
-    include: { homeTeam: true, awayTeam: true },
-  });
+  const match = await findLolMatch(matchId);
   if (!match) notFound();
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
