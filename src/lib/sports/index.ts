@@ -41,7 +41,20 @@ export const collectors: Record<League, MatchCollector> = {
   J1_LEAGUE: buildSoccerCollector("J1_LEAGUE"), // ESPN scoreboard
   AFC_CL: buildSoccerCollector("AFC_CL"), // ESPN scoreboard
   K_LEAGUE_1: buildApiFootballCollector("K_LEAGUE_1"), // api-football (ESPN 미커버)
-  K_LEAGUE_2: buildApiFootballCollector("K_LEAGUE_2"), // api-football (ESPN 미커버)
+  K_LEAGUE_2: buildApiFootballCollector("K_LEAGUE_2"),
+  J2_LEAGUE: buildApiFootballCollector("J2_LEAGUE"),
+  SAUDI_PL: buildApiFootballCollector("SAUDI_PL"),
+  // 유럽 컵
+  UEL: buildApiFootballCollector("UEL"),
+  UECL: buildApiFootballCollector("UECL"),
+  // 유럽 메이저 2부
+  CHAMPIONSHIP: buildApiFootballCollector("CHAMPIONSHIP"),
+  LALIGA_2: buildApiFootballCollector("LALIGA_2"),
+  BUNDESLIGA_2: buildApiFootballCollector("BUNDESLIGA_2"),
+  SERIE_B: buildApiFootballCollector("SERIE_B"),
+  LIGUE_2: buildApiFootballCollector("LIGUE_2"),
+  // 세계 클럽 대회
+  CLUB_WORLD_CUP: buildApiFootballCollector("CLUB_WORLD_CUP"),
 };
 
 export {

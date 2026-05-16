@@ -77,7 +77,17 @@ const SOCCER_LEAGUES = new Set([
   "K_LEAGUE_1",
   "K_LEAGUE_2",
   "J1_LEAGUE",
+  "J2_LEAGUE",
   "AFC_CL",
+  "SAUDI_PL",
+  "UEL",
+  "UECL",
+  "CHAMPIONSHIP",
+  "LALIGA_2",
+  "BUNDESLIGA_2",
+  "SERIE_B",
+  "LIGUE_2",
+  "CLUB_WORLD_CUP",
 ]);
 
 interface MatchLive {

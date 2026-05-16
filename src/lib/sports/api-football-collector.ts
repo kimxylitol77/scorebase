@@ -44,16 +44,23 @@ interface ApiFixture {
   goals: { home: number | null; away: number | null };
 }
 
-/** date 가 속한 시즌 연도 — K리그/J리그/MLS 등 달력 연도, 유럽은 7월~6월. */
+/** date 가 속한 시즌 연도 — 달력 연도 vs 유럽 7월~6월 vs 단일 토너먼트. */
 function seasonFor(league: League, date: string): number {
   const year = parseInt(date.slice(0, 4));
   const month = parseInt(date.slice(5, 7));
-  const european: League[] = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL"];
+  // 유럽 8월~5월 시즌 (1부 + 2부 + 컵 + 사우디)
+  const european: League[] = [
+    "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL",
+    "UEL", "UECL",
+    "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
+    "SAUDI_PL",
+  ];
   if ((european as readonly string[]).includes(league)) {
     return month >= 7 ? year : year - 1;
   }
   if (league === "WORLD_CUP") return 2026;
-  return year; // K_LEAGUE_1/2, J1_LEAGUE, MLS, AFC_CL — 달력 연도
+  if (league === "CLUB_WORLD_CUP") return 2025; // 다음 대회 시작 시 업데이트
+  return year; // K1/K2, J1/J2, MLS, AFC_CL — 달력 연도
 }
 
 function toNormalized(league: League, f: ApiFixture): NormalizedMatch {

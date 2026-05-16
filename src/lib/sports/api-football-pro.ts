@@ -20,9 +20,19 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   UCL: 2,
   WORLD_CUP: 1, // FIFA World Cup
   J1_LEAGUE: 98,
+  J2_LEAGUE: 99,
   AFC_CL: 17, // AFC Champions League Elite
   K_LEAGUE_1: 292,
   K_LEAGUE_2: 293,
+  SAUDI_PL: 307,
+  UEL: 3,
+  UECL: 848,
+  CHAMPIONSHIP: 40,
+  LALIGA_2: 141,
+  BUNDESLIGA_2: 79,
+  SERIE_B: 136,
+  LIGUE_2: 62,
+  CLUB_WORLD_CUP: 15,
 };
 
 interface CacheEntry<T> {

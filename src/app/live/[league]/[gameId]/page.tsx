@@ -16,7 +16,10 @@ import { fetchMatchExtras } from "@/lib/live/match-extras";
 
 const SOCCER_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
-  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "AFC_CL",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
+  "UEL", "UECL",
+  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
+  "CLUB_WORLD_CUP",
 ]);
 
 function parseGoalie(json: string | null): GoalieInfo | null {
@@ -44,7 +47,17 @@ const SUPPORTED = new Set([
   "K_LEAGUE_1",
   "K_LEAGUE_2",
   "J1_LEAGUE",
+  "J2_LEAGUE",
   "AFC_CL",
+  "SAUDI_PL",
+  "UEL",
+  "UECL",
+  "CHAMPIONSHIP",
+  "LALIGA_2",
+  "BUNDESLIGA_2",
+  "SERIE_B",
+  "LIGUE_2",
+  "CLUB_WORLD_CUP",
 ]);
 
 const LEAGUE_LABEL: Record<string, string> = {
@@ -61,7 +74,17 @@ const LEAGUE_LABEL: Record<string, string> = {
   K_LEAGUE_1: "K리그 1",
   K_LEAGUE_2: "K리그 2",
   J1_LEAGUE: "J1 리그",
+  J2_LEAGUE: "J2 리그",
   AFC_CL: "AFC 챔피언스리그",
+  SAUDI_PL: "사우디 프로 리그",
+  UEL: "유로파 리그",
+  UECL: "유로파 컨퍼런스",
+  CHAMPIONSHIP: "잉글랜드 챔피언십",
+  LALIGA_2: "라리가 2",
+  BUNDESLIGA_2: "분데스리가 2",
+  SERIE_B: "세리에 B",
+  LIGUE_2: "리그 2",
+  CLUB_WORLD_CUP: "FIFA 클럽 월드컵",
 };
 
 interface Props {

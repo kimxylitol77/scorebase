@@ -16,11 +16,24 @@ export type League =
   | "UCL"
   | "WORLD_CUP" // 2026 FIFA 북중미 월드컵
   | "LOL" // LCK (League of Legends Champions Korea) — e스포츠
-  // 신규 — 아시아 축구
+  // 아시아 축구
   | "K_LEAGUE_1" // K리그 1 (한국 1부) — api-football
-  | "K_LEAGUE_2" // K리그 2 (한국 2부) — api-football (PREVIEW/RECAP 미생성)
-  | "J1_LEAGUE" // J1 리그 (일본 1부 축구) — ESPN
-  | "AFC_CL"; // AFC 챔피언스리그 엘리트 — ESPN
+  | "K_LEAGUE_2" // K리그 2 (한국 2부) — api-football
+  | "J1_LEAGUE" // J1 리그 (일본 1부) — ESPN
+  | "J2_LEAGUE" // J2 리그 (일본 2부) — api-football
+  | "AFC_CL" // AFC 챔피언스리그 엘리트 — ESPN
+  | "SAUDI_PL" // 사우디 프로 리그 — api-football
+  // 유럽 컵
+  | "UEL" // UEFA 유로파 리그 — api-football
+  | "UECL" // UEFA 유로파 컨퍼런스 — api-football
+  // 유럽 메이저 2부
+  | "CHAMPIONSHIP" // 잉글랜드 챔피언십 — api-football
+  | "LALIGA_2" // 스페인 라리가 2 — api-football
+  | "BUNDESLIGA_2" // 독일 분데스리가 2 — api-football
+  | "SERIE_B" // 이탈리아 세리에 B — api-football
+  | "LIGUE_2" // 프랑스 리그 2 — api-football
+  // 세계 클럽 대회
+  | "CLUB_WORLD_CUP"; // FIFA 클럽 월드컵 — api-football
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -35,11 +48,33 @@ export const SOCCER_LEAGUES = [
   "K_LEAGUE_1",
   "K_LEAGUE_2",
   "J1_LEAGUE",
+  "J2_LEAGUE",
   "AFC_CL",
+  "SAUDI_PL",
+  "UEL",
+  "UECL",
+  "CHAMPIONSHIP",
+  "LALIGA_2",
+  "BUNDESLIGA_2",
+  "SERIE_B",
+  "LIGUE_2",
+  "CLUB_WORLD_CUP",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
-export const NO_ARTICLE_LEAGUES: readonly League[] = ["K_LEAGUE_2"];
+export const NO_ARTICLE_LEAGUES: readonly League[] = [
+  "K_LEAGUE_2",
+  "J2_LEAGUE",
+  "SAUDI_PL",
+  "UEL",
+  "UECL",
+  "CHAMPIONSHIP",
+  "LALIGA_2",
+  "BUNDESLIGA_2",
+  "SERIE_B",
+  "LIGUE_2",
+  "CLUB_WORLD_CUP",
+];
 
 export type MatchStatus =
   | "SCHEDULED" // 예정

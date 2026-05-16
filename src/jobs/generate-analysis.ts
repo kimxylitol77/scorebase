@@ -28,8 +28,19 @@ const RELEGATION_BY_LEAGUE: Record<string, number> = {
   NPB: 0,
   LOL: 0,
   K_LEAGUE_1: 2,
+  K_LEAGUE_2: 2,
   J1_LEAGUE: 3,
+  J2_LEAGUE: 3,
   AFC_CL: 0,
+  SAUDI_PL: 2,
+  UEL: 0,
+  UECL: 0,
+  CHAMPIONSHIP: 3,
+  LALIGA_2: 4,
+  BUNDESLIGA_2: 3,
+  SERIE_B: 3,
+  LIGUE_2: 2,
+  CLUB_WORLD_CUP: 0,
 };
 
 function extractTitle(md: string): string {
