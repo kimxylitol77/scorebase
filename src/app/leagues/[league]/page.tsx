@@ -22,6 +22,38 @@ const VALID_LEAGUES = [
   "KBO",
   "NPB",
   "LOL",
+  // 신규 — 아시아 (K1/J1/AFC 글 자동생성, K2/J2 등은 수집만)
+  "K_LEAGUE_1",
+  "K_LEAGUE_2",
+  "J1_LEAGUE",
+  "J2_LEAGUE",
+  "AFC_CL",
+  "AFC_CL_TWO",
+  "AFC_U23",
+  "SAUDI_PL",
+  // 유럽 컵 / 2부
+  "UEL",
+  "UECL",
+  "CHAMPIONSHIP",
+  "LALIGA_2",
+  "BUNDESLIGA_2",
+  "SERIE_B",
+  "LIGUE_2",
+  "EREDIVISIE",
+  "PRIMEIRA_LIGA",
+  "SUPER_LIG",
+  "JUPILER_PL",
+  "SPL",
+  "GREEK_SL",
+  // 북중남미
+  "BRASILEIRAO",
+  "LIGA_MX",
+  "COPA_LIB",
+  "COPA_SUD",
+  // 기타
+  "CSL",
+  "A_LEAGUE",
+  "CLUB_WORLD_CUP",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 
@@ -44,12 +76,29 @@ const INJURY_LEAGUES = new Set([
   "NHL",
   "KBO",
   "NPB",
+  // 신규 — api-football 부상자 endpoint 지원
+  "K_LEAGUE_1",
+  "J1_LEAGUE",
+  "SAUDI_PL",
+  "EREDIVISIE",
+  "PRIMEIRA_LIGA",
+  "SUPER_LIG",
+  "JUPILER_PL",
+  "SPL",
+  "GREEK_SL",
+  "CHAMPIONSHIP",
+  "LALIGA_2",
+  "BUNDESLIGA_2",
+  "SERIE_B",
+  "LIGUE_2",
+  "BRASILEIRAO",
+  "LIGA_MX",
 ]);
 
-const LEAGUE_INFO: Record<
+const LEAGUE_INFO: Partial<Record<
   ValidLeague,
   { name: string; subtitle: string; gradient: string; copy: string }
-> = {
+>> = {
   EPL: {
     name: "프리미어리그",
     subtitle: "English Premier League",
@@ -138,6 +187,74 @@ const LEAGUE_INFO: Record<
     copy:
       "T1·Gen.G·한화생명·KT·디플러스 기아·DRX·BNK 피어엑스·한진 브리온·농심 레드포스·DN SOOPers 10팀이 격돌하는 한국 LoL 1부 리그. 정규 스플릿부터 플레이오프·MSI·Worlds까지 매치 일정과 결과.",
   },
+  K_LEAGUE_1: {
+    name: "K리그 1",
+    subtitle: "한국 프로축구 1부",
+    gradient: "from-blue-700 via-blue-500 to-sky-400",
+    copy:
+      "울산 HD·전북 현대·포항 스틸러스·FC 서울·강원 FC·수원 삼성·대구 FC·제주 SK·광주 FC·대전 하나·인천 유나이티드·김천 상무 등 한국 프로축구 1부의 매치 프리뷰·결과·분석.",
+  },
+  K_LEAGUE_2: {
+    name: "K리그 2",
+    subtitle: "한국 프로축구 2부",
+    gradient: "from-blue-500 via-sky-400 to-cyan-300",
+    copy: "한국 프로축구 2부 — 1부 승강 PO 대상 13팀의 정규시즌 매치 일정·결과 (수집만, 글 자동생성 X).",
+  },
+  J1_LEAGUE: {
+    name: "J1 리그",
+    subtitle: "일본 프로축구 1부 (Meiji Yasuda J1 League)",
+    gradient: "from-pink-600 via-rose-500 to-red-500",
+    copy:
+      "우라와 레드 다이아몬즈·요코하마 F. 마리노스·카시마 앤틀러스·FC 도쿄·감바 오사카·세레소 오사카·비셀 고베·산프레체 히로시마·가와사키 프론탈레 등 일본 프로축구 1부의 매치 프리뷰·결과·분석. 2월~12월 시즌.",
+  },
+  AFC_CL: {
+    name: "AFC 챔피언스리그 엘리트",
+    subtitle: "AFC Champions League Elite",
+    gradient: "from-orange-600 via-red-500 to-amber-500",
+    copy:
+      "아시아 최강 클럽을 가리는 AFC 챔피언스리그 엘리트. 한국·일본·중국·사우디·이란·UAE·태국 등 아시아 24개 클럽이 조별예선·녹아웃 단계를 거쳐 우승을 다툰다.",
+  },
+};
+
+/** LEAGUE_INFO 미정의 신규 리그를 위한 fallback — sport-leagues LEAGUE_DISPLAY 기반 generic. */
+function buildLeagueInfo(code: string): { name: string; subtitle: string; gradient: string; copy: string } {
+  const explicit = LEAGUE_INFO[code as ValidLeague];
+  if (explicit) return explicit;
+  // dynamic import 대신 LEAGUE_DISPLAY 직접 require (server component 이므로 OK)
+  const name = LEAGUE_DISPLAY_FALLBACK[code] ?? code;
+  return {
+    name,
+    subtitle: name,
+    gradient: "from-slate-600 via-slate-700 to-slate-900",
+    copy: `${name} 의 매치 프리뷰·결과·분석.`,
+  };
+}
+
+const LEAGUE_DISPLAY_FALLBACK: Record<string, string> = {
+  J2_LEAGUE: "J2 리그",
+  AFC_CL_TWO: "AFC 챔피언스리그 2",
+  AFC_U23: "AFC U23 아시안컵",
+  SAUDI_PL: "사우디 프로 리그",
+  UEL: "유로파 리그",
+  UECL: "유로파 컨퍼런스 리그",
+  CHAMPIONSHIP: "잉글랜드 챔피언십",
+  LALIGA_2: "라리가 2",
+  BUNDESLIGA_2: "분데스리가 2",
+  SERIE_B: "세리에 B",
+  LIGUE_2: "리그 2",
+  EREDIVISIE: "에레디비시 (네덜란드)",
+  PRIMEIRA_LIGA: "프리메이라 리가 (포르투갈)",
+  SUPER_LIG: "쉬페르 리그 (터키)",
+  JUPILER_PL: "주피러 프로 리그 (벨기에)",
+  SPL: "스코틀랜드 프리미어십",
+  GREEK_SL: "그리스 슈퍼리그",
+  BRASILEIRAO: "브라질 세리에 A",
+  LIGA_MX: "리가 MX (멕시코)",
+  COPA_LIB: "코파 리베르타도레스",
+  COPA_SUD: "코파 수다메리카나",
+  CSL: "중국 슈퍼리그",
+  A_LEAGUE: "A-리그 (호주)",
+  CLUB_WORLD_CUP: "FIFA 클럽 월드컵",
 };
 
 const TAB_LABEL: Record<FilterType, string> = {
@@ -171,7 +288,7 @@ export async function generateMetadata({
   if (!VALID_LEAGUES.includes(upper as ValidLeague)) {
     return { title: "Not Found" };
   }
-  const info = LEAGUE_INFO[upper as ValidLeague];
+  const info = buildLeagueInfo(upper);
   const type = (sp.type?.toUpperCase() ?? "ALL") as FilterType;
   const validType = VALID_TYPES.includes(type) ? type : "ALL";
   const titleSuffix =
@@ -189,7 +306,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const upper = league.toUpperCase();
   if (!VALID_LEAGUES.includes(upper as ValidLeague)) notFound();
-  const info = LEAGUE_INFO[upper as ValidLeague];
+  const info = buildLeagueInfo(upper);
 
   const requested = (sp.type?.toUpperCase() ?? "ALL") as FilterType;
   const currentType: FilterType = VALID_TYPES.includes(requested)
