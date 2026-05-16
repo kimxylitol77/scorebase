@@ -16,9 +16,11 @@ export type League =
   | "UCL"
   | "WORLD_CUP" // 2026 FIFA 북중미 월드컵
   | "LOL" // LCK (League of Legends Champions Korea) — e스포츠
-  // 신규 — 아시아 축구 (ESPN scoreboard)
-  | "J1_LEAGUE" // J1 리그 (일본 1부 축구)
-  | "AFC_CL"; // AFC 챔피언스리그 엘리트
+  // 신규 — 아시아 축구
+  | "K_LEAGUE_1" // K리그 1 (한국 1부) — api-football
+  | "K_LEAGUE_2" // K리그 2 (한국 2부) — api-football (PREVIEW/RECAP 미생성)
+  | "J1_LEAGUE" // J1 리그 (일본 1부 축구) — ESPN
+  | "AFC_CL"; // AFC 챔피언스리그 엘리트 — ESPN
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -30,9 +32,14 @@ export const SOCCER_LEAGUES = [
   "MLS",
   "UCL",
   "WORLD_CUP",
+  "K_LEAGUE_1",
+  "K_LEAGUE_2",
   "J1_LEAGUE",
   "AFC_CL",
 ] as const satisfies readonly League[];
+
+/** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
+export const NO_ARTICLE_LEAGUES: readonly League[] = ["K_LEAGUE_2"];
 
 export type MatchStatus =
   | "SCHEDULED" // 예정

@@ -5,6 +5,7 @@ import { nbaCollectorEspn } from "./espn-nba";
 import { nhlCollectorEspn } from "./espn-nhl";
 import { mlbCollectorEspn } from "./espn-mlb";
 import { buildSoccerCollector } from "./espn-soccer";
+import { buildApiFootballCollector } from "./api-football-collector";
 import { kboCollector } from "./kbo";
 import { npbCollector } from "./npb";
 import { worldCupCollector } from "./world-cup";
@@ -36,9 +37,11 @@ export const collectors: Record<League, MatchCollector> = {
   KBO: kboCollector,
   NPB: npbCollector,
   LOL: lolCollector,
-  // 신규 — 아시아 축구 (ESPN scoreboard)
-  J1_LEAGUE: buildSoccerCollector("J1_LEAGUE"),
-  AFC_CL: buildSoccerCollector("AFC_CL"),
+  // 신규 — 아시아 축구
+  J1_LEAGUE: buildSoccerCollector("J1_LEAGUE"), // ESPN scoreboard
+  AFC_CL: buildSoccerCollector("AFC_CL"), // ESPN scoreboard
+  K_LEAGUE_1: buildApiFootballCollector("K_LEAGUE_1"), // api-football (ESPN 미커버)
+  K_LEAGUE_2: buildApiFootballCollector("K_LEAGUE_2"), // api-football (ESPN 미커버)
 };
 
 export {

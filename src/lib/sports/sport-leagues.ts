@@ -13,7 +13,7 @@ interface SportMeta {
 // 모든 리그 묶음 — `all` 처리용 (URL 호환성, sportTab 노출 X)
 const ALL_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
-  "J1_LEAGUE", "AFC_CL",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "AFC_CL",
   "KBO", "NPB", "MLB",
   "NBA", "NHL", "LOL",
 ];
@@ -24,7 +24,7 @@ export const SPORTS: SportMeta[] = [
     label: "축구",
     emoji: "⚽",
     leagues: [
-      "AFC_CL",
+      "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL",
       "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "MLS",
       "J1_LEAGUE", "WORLD_CUP",
     ],
@@ -69,6 +69,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   MLS: "MLS",
   UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵 2026",
+  K_LEAGUE_1: "K리그 1",
+  K_LEAGUE_2: "K리그 2",
   J1_LEAGUE: "J1 리그",
   AFC_CL: "AFC 챔피언스리그",
   KBO: "KBO 리그",
@@ -84,6 +86,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   KBO: 0,
   NPB: 1,
   MLB: 2,
+  K_LEAGUE_1: 5,
+  K_LEAGUE_2: 6,
   AFC_CL: 7,
   EPL: 10,
   UCL: 11,

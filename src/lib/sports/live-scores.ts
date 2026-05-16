@@ -677,6 +677,8 @@ const ESPN_SOCCER_PATH: Record<string, string> = {
   MLS: "usa.1",
   UCL: "uefa.champions",
   WORLD_CUP: "fifa.world",
+  K_LEAGUE_1: "kor.1", // ESPN 미커버지만 fallback 시도용 (400 응답이면 빈 결과)
+  K_LEAGUE_2: "kor.2",
   J1_LEAGUE: "jpn.1",
   AFC_CL: "afc.champions",
 };

@@ -55,6 +55,7 @@ const ESPN_SOCCER_PATH: Record<string, string> = {
   MLS: "soccer/usa.1",
   UCL: "soccer/uefa.champions",
   WORLD_CUP: "soccer/fifa.world",
+  // K1/K2 는 ESPN 미커버 — ESPN summary 대신 api-football 만 사용
   J1_LEAGUE: "soccer/jpn.1",
   AFC_CL: "soccer/afc.champions",
 };
@@ -73,6 +74,8 @@ const SOCCER_LEAGUES = new Set([
   "MLS",
   "UCL",
   "WORLD_CUP",
+  "K_LEAGUE_1",
+  "K_LEAGUE_2",
   "J1_LEAGUE",
   "AFC_CL",
 ]);

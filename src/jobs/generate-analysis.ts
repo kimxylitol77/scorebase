@@ -27,6 +27,7 @@ const RELEGATION_BY_LEAGUE: Record<string, number> = {
   KBO: 0,
   NPB: 0,
   LOL: 0,
+  K_LEAGUE_1: 2,
   J1_LEAGUE: 3,
   AFC_CL: 0,
 };
@@ -61,6 +62,7 @@ export async function runAnalysis() {
     "LIGUE_1",
     "MLS",
     "UCL",
+    "K_LEAGUE_1",
     "J1_LEAGUE",
     "AFC_CL",
     "NBA",

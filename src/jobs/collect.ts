@@ -99,7 +99,7 @@ function addDays(yyyymmdd: string, delta: number): string {
 const ALL_LEAGUES: League[] = [
   "KBO", "NPB", "MLB",
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
-  "J1_LEAGUE", "AFC_CL",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "AFC_CL",
   "NBA", "NHL", "LOL",
 ];
 

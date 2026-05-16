@@ -90,6 +90,8 @@ const SOCCER_LEAGUES = new Set([
   "MLS",
   "UCL",
   "WORLD_CUP",
+  "K_LEAGUE_1",
+  "K_LEAGUE_2",
   "J1_LEAGUE",
   "AFC_CL",
 ]);
