@@ -331,9 +331,9 @@ export default async function LeaguePredictions({ params }: Props) {
         </div>
       </section>
 
-      {/* 리그 탭 — 모바일: 가로 스크롤 한 줄, 데스크탑: wrap. 카테고리별 색 구분자 점. */}
-      <div className="max-w-6xl mx-auto py-4 sm:py-6">
-        <div className="flex sm:flex-wrap items-center gap-x-1.5 gap-y-2 overflow-x-auto px-4 sm:px-6 scrollbar-hide whitespace-nowrap">
+      {/* 리그 탭 — 한 화면에 모두 보이게 flex-wrap (모바일도 옆으로 스크롤 없이) */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 sm:gap-x-1.5 sm:gap-y-2">
           <PredTab l="WORLD_CUP" active={"WORLD_CUP" === upper} />
           <CategoryDot />
           {(
@@ -766,7 +766,7 @@ function PredTab({ l, active }: { l: string; active: boolean }) {
   return (
     <Link
       href={`/predictions/${l}`}
-      className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition ${
+      className={`shrink-0 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition ${
         active
           ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
           : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
@@ -858,7 +858,7 @@ function ProjectionsTable({ rows }: { rows: ProjectionRow[] }) {
           <tr>
             <th className="text-left px-3 py-2 font-medium w-10">#</th>
             <th className="text-left px-3 py-2 font-medium">팀</th>
-            <th className="text-right px-3 py-2 font-medium">현재 승점</th>
+            <th className="text-right px-3 py-2 font-medium">승점</th>
             <th className="text-right px-3 py-2 font-medium">예상 승점</th>
             <th className="text-right px-3 py-2 font-medium">우승 %</th>
           </tr>
