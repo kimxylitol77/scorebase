@@ -531,6 +531,20 @@ const RAW: Record<string, string> = {
   "Yokohama FC": "요코하마 FC",
   "Shimizu S-Pulse": "시미즈 S펄스",
 
+  // 추가 — 분데스리가 영문 변형 + LCK + 한국 K2 / J2 잔여
+  // ("Hamburger SV"/"1. FC Köln"/"FC Köln" 은 위에 이미 매핑 있음)
+  "Hamburg SV": "함부르크",
+  "HSV": "함부르크",
+  "FC Cologne": "쾰른",
+  "Cologne": "쾰른",
+  "Mito Hollyhock": "미토 홀리호크",
+  "Tokyo Verdy 1969": "도쿄 베르디",
+  "Verdy": "도쿄 베르디",
+  "Gen.G": "젠지",
+  "Gen.G eSports": "젠지",
+  "Ibiza": "이비사",
+  "UD Ibiza": "이비사",
+
   // AFC 챔피언스리그 — 자주 등장하는 아시아 클럽 (자국 매핑 보강)
   "Al Hilal": "알 힐랄",
   "Al Nassr": "알 나스르",
