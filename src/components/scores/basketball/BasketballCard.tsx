@@ -1,4 +1,4 @@
-// /scores 농구 (NBA) 매치 카드 — LIVE/종료/예정 통합.
+// /scores 농구 (NBA) 매치 카드 — Scorebase LiveCard v2.
 // LIVE: 큰 쿼터/클럭 컨텍스트 박스 + 쿼터별 점수 표 (1Q-4Q + T).
 // 종료: 쿼터별 점수 표만.
 // 예정: 매치업 + KST 시간만.

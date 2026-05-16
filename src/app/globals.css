@@ -189,7 +189,8 @@ body {
   pointer-events: none;
 }
 
-/* 종목별 LIVE 카드 — 초록 글로우 보더 (야구/농구/하키/LOL 공통) */
+/* Scorebase LiveCard v2 — 종목별 LIVE 카드 (야구/농구/하키/LOL 공통)
+   다크 카드 + 초록 글로우 보더 + 종목별 컨텍스트 박스 + 라인스코어 */
 .match-card.baseball-live-card,
 .match-card.basketball-live-card,
 .match-card.hockey-live-card,

@@ -1,4 +1,4 @@
-// /scores 하키 (NHL) 매치 카드 — LIVE/종료/예정 통합.
+// /scores 하키 (NHL) 매치 카드 — Scorebase LiveCard v2.
 // LIVE: 큰 피리어드/클럭 컨텍스트 + 피리어드별 점수 (P1-P3 + OT/SO + T).
 // 종료: 피리어드별 점수만.
 // 예정: 매치업 + KST 시간만.

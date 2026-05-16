@@ -1,4 +1,4 @@
-// /scores e스포츠 (LCK/LOL) 매치 카드 — LIVE/종료/예정 통합.
+// /scores e스포츠 (LCK/LOL) 매치 카드 — Scorebase LiveCard v2.
 // LIVE: 큰 BO 시리즈 박스 + 게임별 점 표시.
 // 종료: 시리즈 결과만.
 // 예정: 매치업 + KST 시간만.
