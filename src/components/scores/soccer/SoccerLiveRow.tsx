@@ -157,7 +157,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             >
               {awayScore}
             </span>
-            {isFinished && soccerGoals && soccerGoals.length > 0 && (
+            {(isFinished || isLive) && soccerGoals && soccerGoals.length > 0 && (
               <GoalsTooltip
                 goals={soccerGoals}
                 homeLabel={homeShort ?? home.name}
