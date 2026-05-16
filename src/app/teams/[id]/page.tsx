@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
 import { toKoreanTeamName } from "@/lib/team-names";
+import TeamFollowButton from "@/components/teams/TeamFollowButton";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { getSportFromLeague } from "@/lib/players/types";
@@ -279,6 +280,9 @@ export default async function TeamPage({ params }: Props) {
                 {toKoreanTeamName(team.name)}
               </h1>
               <div className="text-xs text-neutral-500 mt-1">{team.name}</div>
+              <div className="mt-3">
+                <TeamFollowButton teamId={team.id} />
+              </div>
             </div>
           </div>
         </div>
