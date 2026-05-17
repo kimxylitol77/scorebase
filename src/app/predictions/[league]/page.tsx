@@ -224,8 +224,25 @@ export default async function LeaguePredictions({ params }: Props) {
       startTime: true,
     },
   });
-  const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
-  const teams = await prisma.team.findMany({ where: { league: upper } });
+  // NBA — 정규 30팀만 화이트리스트 (DB 에 친선·올스타·국제 팀 9개 섞여 있어 시뮬 노이즈 제거)
+  const NBA_REGULAR_30 = new Set([
+    "TOR","MIA","NY","CHI","BKN","IND","BOS","HOU","PHI","GS",
+    "LAL","CHA","DET","WSH","ATL","CLE","NO","ORL","MIL","SA",
+    "DAL","DEN","OKC","MIN","UTAH","MEM","POR","LAC","SAC","PHX",
+  ]);
+  const rawTeams = await prisma.team.findMany({ where: { league: upper } });
+  const teams =
+    upper === "NBA"
+      ? rawTeams.filter((t) => t.shortName && NBA_REGULAR_30.has(t.shortName))
+      : rawTeams;
+  // NBA 매치도 30팀 간 매치만 (올스타전·국제 친선 제외)
+  const validTeamIds = new Set(teams.map((t) => t.id));
+  const matches: PredictMatch[] =
+    upper === "NBA"
+      ? dbMatches
+          .filter((m) => validTeamIds.has(m.homeTeamId) && validTeamIds.has(m.awayTeamId))
+          .map((m) => ({ ...m }))
+      : dbMatches.map((m) => ({ ...m }));
   const teamNameById = new Map(teams.map((t) => [t.id, t.name]));
   const teamLogoById = new Map<number, string | null>(
     teams.map((t) => [t.id, t.logoUrl ?? null]),

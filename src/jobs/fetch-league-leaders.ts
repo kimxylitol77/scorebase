@@ -198,6 +198,10 @@ async function runNba(season: number) {
     teamById.set(t.id, { fullName: t.full_name, abbr: t.abbreviation });
   }
 
+  // ESPN roster API 로 선수 이름 → headshot URL 매핑 build (NBA 30팀).
+  // BDL 응답에 photo URL 없어 외부 source 필요. ESPN 무료, 안정적.
+  const photoByName = await buildEspnNbaPhotoMap();
+
   for (const cat of NBA_CATS) {
     try {
       const r = await fetch(
@@ -231,6 +235,7 @@ async function runNba(season: number) {
           unit: cat.unit,
           appearances: d.games_played,
           season: String(season),
+          photoUrl: photoByName.get(fullName.toLowerCase()),
         });
       }
       await clearOldRanks("NBA", cat.code, String(season), top.length);
@@ -240,6 +245,52 @@ async function runNba(season: number) {
     }
   }
   return { season: String(season), result: summary };
+}
+
+/**
+ * ESPN NBA 30팀 roster 를 모두 fetch 해서 displayName(소문자) → headshot URL 매핑 반환.
+ * 한 번 호출 = 30개 HTTP 요청, ~3초. cron 1회/일이라 비용 무시 가능.
+ */
+async function buildEspnNbaPhotoMap(): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  try {
+    const teamsRes = await fetch(
+      "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams",
+      { cache: "no-store" },
+    );
+    if (!teamsRes.ok) return out;
+    const teamsJson = (await teamsRes.json()) as {
+      sports?: Array<{ leagues?: Array<{ teams?: Array<{ team: { id: string } }> }> }>;
+    };
+    const teamIds = teamsJson.sports?.[0]?.leagues?.[0]?.teams?.map((t) => t.team.id) ?? [];
+    await Promise.all(
+      teamIds.map(async (tid) => {
+        try {
+          const r = await fetch(
+            `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${tid}/roster`,
+            { cache: "no-store" },
+          );
+          if (!r.ok) return;
+          const j = (await r.json()) as {
+            athletes?: Array<{
+              displayName?: string;
+              headshot?: { href?: string };
+            }>;
+          };
+          for (const a of j.athletes ?? []) {
+            const name = a.displayName?.trim().toLowerCase();
+            const url = a.headshot?.href;
+            if (name && url) out.set(name, url);
+          }
+        } catch (e) {
+          console.warn(`[leaders/nba] ESPN roster ${tid}`, (e as Error).message);
+        }
+      }),
+    );
+  } catch (e) {
+    console.warn("[leaders/nba] ESPN teams fetch", (e as Error).message);
+  }
+  return out;
 }
 
 /* ============================================================

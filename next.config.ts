@@ -39,6 +39,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "img.mlbstatic.com" }, // MLB Stats API
       { protocol: "https", hostname: "p.npb.jp" }, // NPB 공식
       { protocol: "https", hostname: "cdn.nba.com" }, // NBA (BDL id 매칭 불가 — placeholder만)
+      { protocol: "https", hostname: "a.espncdn.com" }, // NBA headshot (ESPN roster fetch 후 매핑)
     ],
   },
   async headers() {
