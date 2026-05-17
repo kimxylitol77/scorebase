@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_URL } from "@/lib/site-url";
 
-const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 
 export const metadata: Metadata = {

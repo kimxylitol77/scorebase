@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import { formatDateKo } from "@/lib/format";
 import { getExternalLinks } from "@/lib/external-links";
 import AdminEditLink from "@/components/AdminEditLink";
+import { SITE_URL } from "@/lib/site-url";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +43,6 @@ const TYPE_BADGE: Record<
   },
 };
 
-const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 
 /**

@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LiveScoresBar from "@/components/LiveScoresBar";
 import PageViewTracker from "@/components/PageViewTracker";
+import { SITE_URL } from "@/lib/site-url";
 // import Chatbot from "@/components/Chatbot"; // 결제(크레딧) 이슈 해결 시까지 비활성
 
 // 한글 콘텐츠가 메인이므로 본문 sans 는 Pretendard 를 우선.
@@ -14,8 +15,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
 });
-
-const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   title: {
