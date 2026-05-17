@@ -290,20 +290,10 @@ export default function SportLiveDetail({
           )}
         </div>
 
-        {/* 양팀 + 점수 */}
+        {/* 양팀 + 점수 — home 좌측 / away 우측 (한국 축구·야구 미디어 관행) */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} />
+          <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
-            <span
-              style={{
-                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
-                textShadow:
-                  awayWin || liveAwayLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
-              }}
-            >
-              <CountUp value={a} />
-            </span>
-            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
             <span
               style={{
                 color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
@@ -313,8 +303,18 @@ export default function SportLiveDetail({
             >
               <CountUp value={h} />
             </span>
+            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
+            <span
+              style={{
+                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  awayWin || liveAwayLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+              }}
+            >
+              <CountUp value={a} />
+            </span>
           </div>
-          <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} />
+          <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} />
         </div>
       </div>
 
@@ -328,13 +328,13 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 축구 — 골 (라이브스코어 카드와 동일한 2-컬럼 away/home 레이아웃) */}
+      {/* 축구 — 골 (스코어 카드와 동일하게 home 좌측 / away 우측) */}
       {live?.soccerGoals && live.soccerGoals.length > 0 && (
         <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 py-2">
           <div className="px-3.5 sm:px-4 pt-2 pb-1 flex items-center justify-between text-[10px] font-bold tracking-wider uppercase text-neutral-400">
-            <span className="truncate">{awayNameKo}</span>
+            <span className="truncate">{homeNameKo}</span>
             <span>⚽ 골</span>
-            <span className="truncate text-right">{homeNameKo}</span>
+            <span className="truncate text-right">{awayNameKo}</span>
           </div>
           <SoccerGoals goals={live.soccerGoals} />
         </div>
@@ -442,22 +442,22 @@ function TeamStatCompare({
             key={label}
             className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-sm py-1"
           >
-            <div className={`text-right tabular-nums font-bold ${awayBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
-              {away?.value ?? "—"}
+            <div className={`text-right tabular-nums font-bold ${homeBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
+              {home?.value ?? "—"}
             </div>
             <div className="text-[11px] text-neutral-500 text-center px-2 whitespace-nowrap min-w-[60px]">
               {label}
             </div>
-            <div className={`text-left tabular-nums font-bold ${homeBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
-              {home?.value ?? "—"}
+            <div className={`text-left tabular-nums font-bold ${awayBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
+              {away?.value ?? "—"}
             </div>
           </div>
         );
       })}
       <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center pt-2 border-t border-neutral-100 dark:border-neutral-800">
-        <div className="text-right text-[11px] text-neutral-500 truncate">{awayNameKo}</div>
+        <div className="text-right text-[11px] text-neutral-500 truncate">{homeNameKo}</div>
         <div className="text-[10px] text-neutral-400 px-2">팀</div>
-        <div className="text-left text-[11px] text-neutral-500 truncate">{homeNameKo}</div>
+        <div className="text-left text-[11px] text-neutral-500 truncate">{awayNameKo}</div>
       </div>
     </div>
   );
@@ -478,8 +478,8 @@ function TeamLeaders({
         🌟 양 팀 주요 선수
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <LeaderCol teamName={awayNameKo} side="원정" leaders={summary.awayLeaders} />
         <LeaderCol teamName={homeNameKo} side="홈" leaders={summary.homeLeaders} />
+        <LeaderCol teamName={awayNameKo} side="원정" leaders={summary.awayLeaders} />
       </div>
     </div>
   );
@@ -557,12 +557,12 @@ function WinProbabilityChart({
       </svg>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div className="text-left">
-          <span className="text-[11px] text-neutral-500">{awayNameKo}</span>
-          <div className="font-bold tabular-nums text-blue-600 dark:text-blue-400">{awayPct}%</div>
-        </div>
-        <div className="text-right">
           <span className="text-[11px] text-neutral-500">{homeNameKo}</span>
           <div className="font-bold tabular-nums text-rose-600 dark:text-rose-400">{homePct}%</div>
+        </div>
+        <div className="text-right">
+          <span className="text-[11px] text-neutral-500">{awayNameKo}</span>
+          <div className="font-bold tabular-nums text-blue-600 dark:text-blue-400">{awayPct}%</div>
         </div>
       </div>
     </div>
@@ -647,15 +647,6 @@ function PeriodTable({
           </thead>
           <tbody>
             <tr className="border-t border-neutral-100 dark:border-neutral-800">
-              <td className="py-1.5 font-semibold truncate max-w-[120px]">{awayNameKo}</td>
-              {Array.from({ length: cols }, (_, i) => (
-                <td key={i} className="text-center px-1.5 sm:px-2">
-                  {linescore.awayPeriods[i] ?? "—"}
-                </td>
-              ))}
-              <td className="text-right pl-2 font-bold">{linescore.awayScore}</td>
-            </tr>
-            <tr className="border-t border-neutral-100 dark:border-neutral-800">
               <td className="py-1.5 font-semibold truncate max-w-[120px]">{homeNameKo}</td>
               {Array.from({ length: cols }, (_, i) => (
                 <td key={i} className="text-center px-1.5 sm:px-2">
@@ -663,6 +654,15 @@ function PeriodTable({
                 </td>
               ))}
               <td className="text-right pl-2 font-bold">{linescore.homeScore}</td>
+            </tr>
+            <tr className="border-t border-neutral-100 dark:border-neutral-800">
+              <td className="py-1.5 font-semibold truncate max-w-[120px]">{awayNameKo}</td>
+              {Array.from({ length: cols }, (_, i) => (
+                <td key={i} className="text-center px-1.5 sm:px-2">
+                  {linescore.awayPeriods[i] ?? "—"}
+                </td>
+              ))}
+              <td className="text-right pl-2 font-bold">{linescore.awayScore}</td>
             </tr>
           </tbody>
         </table>

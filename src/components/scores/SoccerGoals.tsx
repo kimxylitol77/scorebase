@@ -1,6 +1,6 @@
 // 매치 카드 mini board 영역 — 축구 골 list.
-// 좌(원정) / 우(홈) 2-컬럼 grid 시간 순. 각 골은 자기 side 에만 표시
-// (다른 컬럼은 빈 cell). away 는 우측 정렬, home 은 좌측 정렬 — 점수 쪽으로 모임.
+// 좌(홈) / 우(원정) 2-컬럼 grid 시간 순. 각 골은 자기 side 에만 표시
+// (다른 컬럼은 빈 cell). home 은 우측 정렬, away 는 좌측 정렬 — 점수 쪽으로 모임.
 
 import type { SoccerGoal } from "@/lib/sports/live-scores";
 
@@ -29,7 +29,7 @@ export default function SoccerGoals({ goals }: Props) {
   return (
     <div className="px-3.5 sm:px-4 py-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
       {sorted.map((g, i) =>
-        g.side === "away" ? (
+        g.side === "home" ? (
           <div
             key={i}
             className="col-start-1 flex items-center justify-end gap-1.5 truncate"
