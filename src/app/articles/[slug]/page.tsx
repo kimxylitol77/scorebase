@@ -402,6 +402,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: article.title,
     description: desc,
     ...(keywords ? { keywords } : {}),
+    authors: [{ name: "스코어베이스 데이터 분석팀", url: SITE_URL }],
     alternates: { canonical: url },
     openGraph: {
       title: article.title,
@@ -411,6 +412,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: SITE_NAME,
       locale: "ko_KR",
       publishedTime: article.publishedAt?.toISOString(),
+      modifiedTime: article.publishedAt?.toISOString(),
+      authors: ["스코어베이스 데이터 분석팀"],
       section: article.league,
     },
     twitter: {
@@ -420,6 +423,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     other: {
       "article:section": article.league,
+      "article:author": "스코어베이스 데이터 분석팀",
     },
   };
 }
@@ -443,13 +447,19 @@ export default async function ArticlePage({ params }: Props) {
   // lolContext 는 디버깅용으로 DB 에 저장만 하고 페이지에서 카드로 렌더링하지 않는다.
 
   // JSON-LD 구조화 데이터 (NewsArticle / SportsEvent)
+  // image: 글마다 다른 동적 OG (opengraph-image.tsx) 를 가리키게 변경 — Google News rich result 차별화.
+  // author: publisher 와 분리해서 "분석팀"으로 명시 — 콘텐츠 가치 신호 강화.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: article.title,
     description: desc,
-    image: [`${SITE_URL}/og-image.png`],
-    author: { "@type": "Organization", name: SITE_NAME },
+    image: [`${SITE_URL}/articles/${slug}/opengraph-image`],
+    author: {
+      "@type": "Organization",
+      name: "스코어베이스 데이터 분석팀",
+      url: SITE_URL,
+    },
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,

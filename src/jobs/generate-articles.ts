@@ -3,7 +3,7 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
-import { generate } from "@/lib/ai/claude";
+import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildRecapPrompt, type RecapContext } from "@/prompts/match-recap";
 import { buildLolRecapPromptV2 } from "@/prompts/lol-recap";
@@ -271,11 +271,13 @@ export async function runRecap(opts?: {
         m.league === "LOL" && lolRecapCtx
           ? buildLolRecapPromptV2(lolRecapCtx)
           : buildRecapPrompt({ match: normalized, context });
-      const content = await generate(prompt, {
+      const content = await generateWithMinLength(prompt, {
         system: SYSTEM_PROMPT,
         maxTokens: 4096,
         temperature: 0.6,
+        label: `recap ${m.league}#${m.id}`,
       });
+      if (!content) continue; // 길이 미달 — DB INSERT 스킵
 
       const rawTitle = extractTitle(content);
       const prefix = titleDatePrefixKST(m.startTime);
