@@ -1,7 +1,8 @@
 // 축구 포메이션 다이어그램 — 양 팀 startXI 를 한 piano 의 위/아래 절반에 plot.
 // API-Football `grid="row:col"` 좌표 (row 1 = own goal, col 1 = 오른쪽).
 //
-// 레이아웃: 세로 피치 (높이 720) — 위 360 = away, 아래 360 = home.
+// 레이아웃: 세로 피치 (높이 720) — 위 360 = home, 아래 360 = away.
+// 헤더 / 후보 list 도 home 좌측 / away 우측 (사이트 전반 home 좌측 통일 규칙).
 // 양 팀 모두 GK 가 본인 골대 (각 끝) 에 위치, 공격수가 중앙선에 가까움.
 
 interface FormationPlayer {
@@ -42,8 +43,9 @@ function parseGrid(grid: string | null): { row: number; col: number } | null {
  * - row 가 클수록 공격 방향 (중앙선 가까움)
  * - col 1 = 오른쪽 → x 큰 값, col N = 왼쪽 → x 작은 값
  *
- * `side` 가 "home" 이면 아래 half (y = HALF_H 시작), GK 는 맨 아래 (PITCH_H).
- * `side` 가 "away" 이면 위 half (y = 0 시작), GK 는 맨 위 (0).
+ * `side` 가 "home" 이면 위 half (y = 0 시작), GK 는 맨 위 (0).
+ * `side` 가 "away" 이면 아래 half (y = HALF_H 시작), GK 는 맨 아래 (PITCH_H).
+ * (사이트 전반 "home 좌측 / 위" 통일 규칙)
  */
 function gridToXY(
   grid: { row: number; col: number },
@@ -58,11 +60,11 @@ function gridToXY(
   const rowPct = maxRow > 1 ? (grid.row - 1) / (maxRow - 1) : 0.5;
   let y: number;
   if (side === "home") {
-    // home 아래 half — row 1 가 PITCH_H (맨 아래), row maxRow 가 HALF_H + 30
-    y = PITCH_H - 40 - rowPct * (HALF_H - 60);
-  } else {
-    // away 위 half — row 1 가 0 + 40, row maxRow 가 HALF_H - 30
+    // home 위 half — row 1 가 0 + 40 (맨 위), row maxRow 가 HALF_H - 30
     y = 40 + rowPct * (HALF_H - 60);
+  } else {
+    // away 아래 half — row 1 가 PITCH_H - 40, row maxRow 가 HALF_H + 30
+    y = PITCH_H - 40 - rowPct * (HALF_H - 60);
   }
   return { x, y };
 }
@@ -116,13 +118,13 @@ export default function SoccerFormation({ home, away, homeNameKo, awayNameKo }: 
 
       <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center text-sm">
         <div className="text-right">
-          <div className="font-bold truncate">{awayNameKo}</div>
-          <div className="text-xs text-neutral-500">{away.formation ?? "—"}</div>
+          <div className="font-bold truncate">{homeNameKo}</div>
+          <div className="text-xs text-neutral-500">{home.formation ?? "—"}</div>
         </div>
         <div className="text-[10px] text-neutral-400 px-2">vs</div>
         <div className="text-left">
-          <div className="font-bold truncate">{homeNameKo}</div>
-          <div className="text-xs text-neutral-500">{home.formation ?? "—"}</div>
+          <div className="font-bold truncate">{awayNameKo}</div>
+          <div className="text-xs text-neutral-500">{away.formation ?? "—"}</div>
         </div>
       </div>
 
@@ -139,29 +141,29 @@ export default function SoccerFormation({ home, away, homeNameKo, awayNameKo }: 
           <line x1={4} y1={HALF_H} x2={PITCH_W - 4} y2={HALF_H} stroke="#fff" strokeWidth={2} opacity={0.5} />
           {/* 중앙 원 */}
           <circle cx={PITCH_W / 2} cy={HALF_H} r={50} fill="none" stroke="#fff" strokeWidth={2} opacity={0.5} />
-          {/* 페널티 박스 — 위 (away) */}
+          {/* 페널티 박스 — 위 (home) */}
           <rect x={PITCH_W * 0.2} y={0} width={PITCH_W * 0.6} height={PITCH_H * 0.13} fill="none" stroke="#fff" strokeWidth={2} opacity={0.5} />
-          {/* 페널티 박스 — 아래 (home) */}
+          {/* 페널티 박스 — 아래 (away) */}
           <rect x={PITCH_W * 0.2} y={PITCH_H * 0.87} width={PITCH_W * 0.6} height={PITCH_H * 0.13} fill="none" stroke="#fff" strokeWidth={2} opacity={0.5} />
 
-          {/* away players (위 half) — 파란색 */}
-          {awayPlayers.map(({ player, x, y }, i) => (
-            <PlayerDot key={`a-${i}`} x={x} y={y} number={player.number} name={player.name} color="#1d4ed8" />
-          ))}
-          {/* home players (아래 half) — 빨간색 */}
+          {/* home players (위 half) — 빨간색 */}
           {homePlayers.map(({ player, x, y }, i) => (
             <PlayerDot key={`h-${i}`} x={x} y={y} number={player.number} name={player.name} color="#dc2626" />
+          ))}
+          {/* away players (아래 half) — 파란색 */}
+          {awayPlayers.map(({ player, x, y }, i) => (
+            <PlayerDot key={`a-${i}`} x={x} y={y} number={player.number} name={player.name} color="#1d4ed8" />
           ))}
         </svg>
       </div>
 
-      {/* 후보 (subs) 간략 list */}
+      {/* 후보 (subs) 간략 list — home 좌측 / away 우측 */}
       {(home.substitutes.length > 0 || away.substitutes.length > 0) && (
         <div className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-100 dark:border-neutral-800 text-[11px]">
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 mb-1">{awayNameKo} 후보</div>
+            <div className="text-[10px] uppercase font-bold text-neutral-400 mb-1">{homeNameKo} 후보</div>
             <ul className="space-y-0.5 text-neutral-600 dark:text-neutral-400">
-              {away.substitutes.slice(0, 7).map((p, i) => (
+              {home.substitutes.slice(0, 7).map((p, i) => (
                 <li key={i} className="truncate">
                   <span className="tabular-nums">#{p.number ?? "—"}</span> {shortName(p.name)}
                   <span className="text-neutral-400"> ({p.pos ?? "—"})</span>
@@ -170,9 +172,9 @@ export default function SoccerFormation({ home, away, homeNameKo, awayNameKo }: 
             </ul>
           </div>
           <div>
-            <div className="text-[10px] uppercase font-bold text-neutral-400 mb-1">{homeNameKo} 후보</div>
+            <div className="text-[10px] uppercase font-bold text-neutral-400 mb-1">{awayNameKo} 후보</div>
             <ul className="space-y-0.5 text-neutral-600 dark:text-neutral-400">
-              {home.substitutes.slice(0, 7).map((p, i) => (
+              {away.substitutes.slice(0, 7).map((p, i) => (
                 <li key={i} className="truncate">
                   <span className="tabular-nums">#{p.number ?? "—"}</span> {shortName(p.name)}
                   <span className="text-neutral-400"> ({p.pos ?? "—"})</span>

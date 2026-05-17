@@ -61,10 +61,11 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo }:
         <div className="text-[10px] text-neutral-400">{events.length}건</div>
       </div>
 
+      {/* home 좌측 / away 우측 — 사이트 전반 home 좌측 통일 규칙 */}
       <div className="grid grid-cols-[1fr_auto_1fr] gap-1 items-center text-[10px] font-bold uppercase tracking-wider text-neutral-400 pb-2 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="text-right truncate">{awayNameKo}</div>
+        <div className="text-right truncate">{homeNameKo}</div>
         <div className="px-2">분</div>
-        <div className="text-left truncate">{homeNameKo}</div>
+        <div className="text-left truncate">{awayNameKo}</div>
       </div>
 
       <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -88,9 +89,9 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo }:
               key={i}
               className="grid grid-cols-[1fr_auto_1fr] gap-1 items-start py-2 text-sm"
             >
-              {/* AWAY 칸 */}
+              {/* HOME 칸 */}
               <div className="text-right space-y-0.5">
-                {ev.side === "away" && (
+                {ev.side === "home" && (
                   <>
                     <div className="font-bold tabular-nums">{playerStr}</div>
                     {detail}
@@ -101,9 +102,9 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo }:
               <div className="px-2 text-xs tabular-nums font-bold text-neutral-500 min-w-[44px] text-center">
                 {timeLabel(ev)}
               </div>
-              {/* HOME 칸 */}
+              {/* AWAY 칸 */}
               <div className="text-left space-y-0.5">
-                {ev.side === "home" && (
+                {ev.side === "away" && (
                   <>
                     <div className="font-bold tabular-nums">{playerStr}</div>
                     {detail}
