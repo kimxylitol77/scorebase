@@ -291,47 +291,8 @@ export default function BaseballLiveDetail({
           )}
         </div>
 
-        {/* 양팀 + 점수 */}
+        {/* 양팀 + 점수 — home 좌측 통일 */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <TeamWrap teamId={awayTeamId}>
-            <TeamLogo url={awayLogo} name={awayNameKo} />
-            {awayShort && (
-              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-                {awayShort}
-              </div>
-            )}
-            <div className="font-bold truncate">{awayNameKo}</div>
-            {awayStarter && (
-              <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
-                선발 {awayStarter}
-              </div>
-            )}
-          </TeamWrap>
-          <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
-            <span
-              style={{
-                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
-                textShadow:
-                  awayWin || liveAwayLead
-                    ? "0 0 14px rgba(34,197,94,.45)"
-                    : "none",
-              }}
-            >
-              <CountUp value={awayScore} />
-            </span>
-            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
-            <span
-              style={{
-                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
-                textShadow:
-                  homeWin || liveHomeLead
-                    ? "0 0 14px rgba(34,197,94,.45)"
-                    : "none",
-              }}
-            >
-              <CountUp value={homeScore} />
-            </span>
-          </div>
           <TeamWrap teamId={homeTeamId}>
             <TeamLogo url={homeLogo} name={homeNameKo} />
             {homeShort && (
@@ -343,6 +304,45 @@ export default function BaseballLiveDetail({
             {homeStarter && (
               <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
                 선발 {homeStarter}
+              </div>
+            )}
+          </TeamWrap>
+          <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
+            <span
+              style={{
+                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  homeWin || liveHomeLead
+                    ? "0 0 14px rgba(34,197,94,.45)"
+                    : "none",
+              }}
+            >
+              <CountUp value={homeScore} />
+            </span>
+            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
+            <span
+              style={{
+                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  awayWin || liveAwayLead
+                    ? "0 0 14px rgba(34,197,94,.45)"
+                    : "none",
+              }}
+            >
+              <CountUp value={awayScore} />
+            </span>
+          </div>
+          <TeamWrap teamId={awayTeamId}>
+            <TeamLogo url={awayLogo} name={awayNameKo} />
+            {awayShort && (
+              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+                {awayShort}
+              </div>
+            )}
+            <div className="font-bold truncate">{awayNameKo}</div>
+            {awayStarter && (
+              <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
+                선발 {awayStarter}
               </div>
             )}
           </TeamWrap>
@@ -382,16 +382,7 @@ export default function BaseballLiveDetail({
               </tr>
             </thead>
             <tbody>
-              <ScoreRow
-                label={awayLabel}
-                line={lsAway}
-                innings={innings}
-                currentInning={isLive ? currentInning : null}
-                total={awayScore}
-                hits={live.awayTeam.hits}
-                errors={live.awayTeam.errors}
-                win={awayWin || liveAwayLead}
-              />
+              {/* home 위 / away 아래 — 사이트 home 좌측·상단 통일 규칙 */}
               <ScoreRow
                 label={homeLabel}
                 line={lsHome}
@@ -401,6 +392,16 @@ export default function BaseballLiveDetail({
                 hits={live.homeTeam.hits}
                 errors={live.homeTeam.errors}
                 win={homeWin || liveHomeLead}
+              />
+              <ScoreRow
+                label={awayLabel}
+                line={lsAway}
+                innings={innings}
+                currentInning={isLive ? currentInning : null}
+                total={awayScore}
+                hits={live.awayTeam.hits}
+                errors={live.awayTeam.errors}
+                win={awayWin || liveAwayLead}
               />
             </tbody>
           </table>
