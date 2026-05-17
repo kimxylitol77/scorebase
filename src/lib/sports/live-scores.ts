@@ -574,6 +574,16 @@ interface EspnSummaryRaw {
   boxscore?: { teams?: EspnTeamBoxRaw[] };
   leaders?: EspnTeamLeaderRaw[];
   winprobability?: Array<{ homeWinPercentage?: number }>;
+  // header.competitions[0].competitors 의 homeAway 로 home/away 정확히 식별
+  // (NBA/NHL/MLB 는 boxscore.teams[0]=away 관례지만 soccer 는 [0]=home 인 경우 있음)
+  header?: {
+    competitions?: Array<{
+      competitors?: Array<{
+        homeAway: "home" | "away";
+        team?: { id?: string };
+      }>;
+    }>;
+  };
 }
 
 /** NBA/NHL/MLB 통합 — 팀 stats / leaders / 승률 곡선. */
@@ -595,9 +605,19 @@ export async function fetchEspnSummary(
 
     const teams = data.boxscore?.teams ?? [];
     const teamLeadersAll = data.leaders ?? [];
-    // ESPN 은 [0]=away, [1]=home (NBA/NHL/MLB 모두 동일)
-    const awayBox = teams[0];
-    const homeBox = teams[1];
+    // header.competitions[0].competitors 의 homeAway 로 home/away team.id 식별.
+    // (NBA/NHL/MLB 는 boxscore.teams[0]=away, soccer 는 [0]=home 인 경우 있어
+    //  index 대신 명시적 homeAway 매칭이 안전 — 예전 MLS 매치에서 home/away
+    //  leaders 가 swap 되어 LAFC 선수가 Nashville 자리에 표시되던 버그 fix.)
+    const competitors = data.header?.competitions?.[0]?.competitors ?? [];
+    const homeTeamId = competitors.find((c) => c.homeAway === "home")?.team?.id;
+    const awayTeamId = competitors.find((c) => c.homeAway === "away")?.team?.id;
+    const homeBox =
+      (homeTeamId && teams.find((t) => t.team?.id === homeTeamId)) ||
+      teams[1]; // fallback to legacy NBA/NHL/MLB convention
+    const awayBox =
+      (awayTeamId && teams.find((t) => t.team?.id === awayTeamId)) ||
+      teams[0];
 
     function pickStats(box: EspnTeamBoxRaw | undefined): MatchTeamStat[] {
       if (!box) return [];
