@@ -12,6 +12,7 @@
 
 // Edge Runtime 호환을 위해 fetch 사용 (axios 제거).
 import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 const AF_BASE = "https://v3.football.api-sports.io";
 const AB_BASE = "https://v1.baseball.api-sports.io";
@@ -621,8 +622,17 @@ export async function fetchEspnSummary(
         // 첫 번째 선수만 (top scorer 등)
         const top = cat.leaders?.[0];
         if (!top) continue;
+        // displayName(풀네임)을 한글 매핑 우선 → 매핑 누락 시 shortName 시도 → 그것도 안 되면 영문 그대로
+        const fullName = top.athlete?.displayName ?? "";
+        const shortNm = top.athlete?.shortName ?? "";
+        const koFromFull = fullName ? toKoreanPlayerName(fullName) : "";
+        const koFromShort = shortNm ? toKoreanPlayerName(shortNm) : "";
         const name =
-          top.athlete?.shortName ?? top.athlete?.displayName ?? "—";
+          (koFromFull && koFromFull !== fullName ? koFromFull : "") ||
+          (koFromShort && koFromShort !== shortNm ? koFromShort : "") ||
+          shortNm ||
+          fullName ||
+          "—";
         out.push({
           category: cat.displayName,
           playerName: name,

@@ -6,6 +6,7 @@ import { K_LEAGUE_PLAYER_NAMES_KO } from "./sports/k-league-player-names";
 import { J_LEAGUE_PLAYER_NAMES_KO } from "./sports/j-league-player-names";
 import { NBA_PLAYER_NAMES_KO } from "./sports/nba-player-names";
 import { MLS_PLAYER_NAMES_KO } from "./sports/mls-player-names";
+import { ESPN_LEADER_NAMES_KO } from "./sports/espn-leader-names";
 
 const RAW: Record<string, string> = {
   // ─── EPL — Big 6 + 한국 선수 + 슈퍼스타 ───
@@ -521,11 +522,12 @@ function tryLastName(name: string): string | null {
 export function toKoreanPlayerName(name: string | undefined | null): string {
   if (!name) return "";
   const trimmed = name.trim();
-  // 리그별 전용 사전 우선 lookup — API-Football roman / BDL 표기 매핑
+  // 리그별 전용 사전 우선 lookup — API-Football roman / BDL / ESPN 표기 매핑
   if (K_LEAGUE_PLAYER_NAMES_KO[trimmed]) return K_LEAGUE_PLAYER_NAMES_KO[trimmed];
   if (J_LEAGUE_PLAYER_NAMES_KO[trimmed]) return J_LEAGUE_PLAYER_NAMES_KO[trimmed];
   if (NBA_PLAYER_NAMES_KO[trimmed]) return NBA_PLAYER_NAMES_KO[trimmed];
   if (MLS_PLAYER_NAMES_KO[trimmed]) return MLS_PLAYER_NAMES_KO[trimmed];
+  if (ESPN_LEADER_NAMES_KO[trimmed]) return ESPN_LEADER_NAMES_KO[trimmed];
   if (RAW[trimmed]) return RAW[trimmed];
   const lower = trimmed.toLowerCase();
   if (RAW_LOWER[lower]) return RAW_LOWER[lower];
