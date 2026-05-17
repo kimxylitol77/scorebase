@@ -678,6 +678,34 @@ export default async function ScoresPage({ searchParams }: Props) {
       <p className="text-[11px] text-neutral-500 leading-relaxed pt-2">
         ⓘ 라이브 매치는 30초 간격으로 자동 갱신. 베이스 상황·볼카운트 등 KBO/NPB 상세는 외부 라이브 데이터 미제공으로 표시되지 않습니다.
       </p>
+
+      <section className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
+        <h2 className="text-base sm:text-lg font-bold tracking-tight">
+          오늘의 라이브스코어 및 스포츠 분석
+        </h2>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          오늘 진행되는 EPL, MLB, NBA, KBO 주요 경기의 라이브스코어와 실시간 경기 데이터를 제공합니다.
+        </p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          경기 전{" "}
+          <Link href="/previews" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            프리뷰
+          </Link>{" "}
+          분석과 종료 후{" "}
+          <Link href="/predictions" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            리뷰
+          </Link>{" "}
+          콘텐츠를 통해 회원들이 경기 흐름과 핵심 데이터를 한눈에 확인할 수 있습니다.{" "}
+          <Link href="/injuries" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            부상자 명단
+          </Link>
+          과{" "}
+          <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            리그별 분석
+          </Link>
+          도 함께 제공됩니다.
+        </p>
+      </section>
     </div>
   );
 }
