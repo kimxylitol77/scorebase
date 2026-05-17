@@ -48,14 +48,15 @@ interface ApiFixture {
 function seasonFor(league: League, date: string): number {
   const year = parseInt(date.slice(0, 4));
   const month = parseInt(date.slice(5, 7));
-  // 유럽 8월~5월 시즌 (1부 + 2부 + 컵 + 사우디 + 호주 A-리그 + 멕시코 Liga MX + AFC 챔스 Two)
+  // 유럽 8월~5월 시즌 (1부 + 2부 + 컵 + 사우디 + 호주 A-리그 + 멕시코 Liga MX + AFC 챔스 Elite/Two)
+  // AFC_CL Elite: 2025 시즌 = 2025-08-12 ~ 2026-04-25 (유럽 스타일로 운영)
   const european: League[] = [
     "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL",
     "UEL", "UECL",
     "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
     "SAUDI_PL",
     "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
-    "A_LEAGUE", "LIGA_MX", "AFC_CL_TWO",
+    "A_LEAGUE", "LIGA_MX", "AFC_CL", "AFC_CL_TWO",
   ];
   if ((european as readonly string[]).includes(league)) {
     return month >= 7 ? year : year - 1;
@@ -63,7 +64,7 @@ function seasonFor(league: League, date: string): number {
   if (league === "WORLD_CUP") return 2026;
   if (league === "CLUB_WORLD_CUP") return 2025; // 다음 대회 시작 시 업데이트
   if (league === "AFC_U23") return 2025; // 다음 대회 ~2027
-  return year; // K1/K2, J1/J2, MLS, AFC_CL, BRASILEIRAO, COPA_LIB/SUD, CSL — 달력 연도
+  return year; // K1/K2, J1/J2, MLS, BRASILEIRAO, COPA_LIB/SUD, CSL — 달력 연도
 }
 
 function toNormalized(league: League, f: ApiFixture): NormalizedMatch {
