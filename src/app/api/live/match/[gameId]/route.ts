@@ -9,6 +9,7 @@ import {
   fetchEspnPeriodLinescores,
   fetchEspnSummary,
   fetchSoccerGoalsByDate,
+  findEspnSoccerEventIdByTeams,
   soccerGoalsPairKey,
   type LiveMatch,
   type MatchSummary,
@@ -221,13 +222,20 @@ export async function GET(
     }
   } else if (SOCCER_LEAGUES.has(league)) {
     const espnPath = ESPN_SOCCER_PATH[league];
+    // EPL collector 가 football-data id 를 externalId 로 저장 → 그 id 가 ESPN 의
+    // 다른 매치 (브라질 세리에A 등) id 와 충돌해서 fetchEspnSummary 가 잘못된 매치
+    // 데이터 반환하던 버그. ESPN scoreboard 에서 팀명 매칭으로 진짜 ESPN id 찾고
+    // 그걸로 summary 호출. 매칭 실패 시 summary skip (잘못된 데이터 노출보다 안전).
+    const espnEventId = espnPath && awayName && homeName
+      ? await findEspnSoccerEventIdByTeams(league, date, homeName, awayName)
+      : null;
     // 축구 stats — api-football 우선 (possession/슛/코너/xG/카드 등 풍부),
     // 없으면 ESPN summary fallback. leaders / winProb 는 항상 ESPN 에서.
     // lineups (포메이션) 2분 캐시, events (골/카드/교체) 30초 캐시.
     const [goalsMap, espnSummary, afStats, lineups, events] = await Promise.all([
       fetchSoccerGoalsByDate(date, [league]),
-      espnPath
-        ? fetchEspnSummary(espnPath, gameId, SOCCER_STATS)
+      espnPath && espnEventId
+        ? fetchEspnSummary(espnPath, espnEventId, SOCCER_STATS)
         : Promise.resolve(null),
       fetchSoccerLiveStats(league, date, awayName, homeName),
       fetchSoccerLineups(league, date, awayName, homeName),

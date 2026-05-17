@@ -707,6 +707,74 @@ export function soccerGoalsPairKey(teamA: string, teamB: string): string {
   return `__name__${sorted[0]}__${sorted[1]}`;
 }
 
+/**
+ * ESPN soccer scoreboard 에서 home/away 팀명 매칭으로 ESPN event id 찾기.
+ *
+ * 배경: EPL 은 collector 가 football-data id 를 externalId 로 저장하는데,
+ * 그 id 가 ESPN 의 다른 매치 (브라질 세리에A 등) id 와 충돌하는 경우가 있어
+ * `fetchEspnSummary(espnPath, gameId)` 호출 시 완전히 다른 매치 데이터를 받음.
+ * 이 helper 로 ESPN scoreboard 에서 팀명 매칭해서 진짜 ESPN id 찾고,
+ * 그 id 로 summary 호출하면 정확한 데이터.
+ *
+ * 매칭 실패 (ESPN 에 매치 없음) 시 null → 호출자는 summary fetch skip.
+ */
+export async function findEspnSoccerEventIdByTeams(
+  league: string,
+  date: string,
+  homeName: string,
+  awayName: string,
+): Promise<string | null> {
+  const path = ESPN_SOCCER_PATH[league];
+  if (!path || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const ymd = date.replace(/-/g, "");
+  const prevYmd = (() => {
+    const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10).replace(/-/g, "");
+  })();
+  const norm = (s: string) => s.toLowerCase().replace(/[\s.·\-_]/g, "");
+  const hKey = norm(homeName);
+  const aKey = norm(awayName);
+  for (const ymdStr of [ymd, prevYmd]) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+      const res = await fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/soccer/${path}/scoreboard?dates=${ymdStr}`,
+        { signal: ctrl.signal, cache: "no-store" },
+      ).finally(() => clearTimeout(t));
+      if (!res.ok) continue;
+      const data = (await res.json()) as {
+        events?: Array<{
+          id: string;
+          competitions?: Array<{
+            competitors?: Array<{
+              homeAway: "home" | "away";
+              team?: { displayName?: string; shortDisplayName?: string };
+            }>;
+          }>;
+        }>;
+      };
+      for (const ev of data.events ?? []) {
+        const comp = ev.competitions?.[0];
+        if (!comp) continue;
+        const home = comp.competitors?.find((c) => c.homeAway === "home")?.team;
+        const away = comp.competitors?.find((c) => c.homeAway === "away")?.team;
+        const homeN = norm(home?.displayName ?? home?.shortDisplayName ?? "");
+        const awayN = norm(away?.displayName ?? away?.shortDisplayName ?? "");
+        if (!homeN || !awayN) continue;
+        // 양방향 substring 매칭 (DB 와 ESPN 의 팀명 표기 차이 흡수)
+        const homeOk = homeN.includes(hKey) || hKey.includes(homeN);
+        const awayOk = awayN.includes(aKey) || aKey.includes(awayN);
+        if (homeOk && awayOk) return ev.id;
+      }
+    } catch (e) {
+      console.warn("[live-scores/findEspnSoccerEventId]", path, (e as Error).message);
+    }
+  }
+  return null;
+}
+
 export async function fetchSoccerGoalsByDate(
   date: string,
   leagues: string[],
