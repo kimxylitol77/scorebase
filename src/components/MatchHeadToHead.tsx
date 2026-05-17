@@ -146,37 +146,39 @@ function StatBar({
 
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-4 items-center text-sm py-1.5">
+      {/* HOME 좌측 */}
       <div className="flex items-center gap-2 justify-end">
-        <div
-          className={`tabular-nums font-bold ${
-            awayBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"
-          }`}
-        >
-          {awayValue}
-        </div>
-        <div className="w-16 sm:w-24 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${awayBetter ? "bg-rose-500" : "bg-neutral-400 dark:bg-neutral-600"}`}
-            style={{ width: `${awayPct}%`, marginLeft: "auto", float: "right" }}
-          />
-        </div>
-      </div>
-      <div className="text-[11px] text-neutral-500 text-center px-2 whitespace-nowrap">
-        {label}
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-16 sm:w-24 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${homeBetter ? "bg-rose-500" : "bg-neutral-400 dark:bg-neutral-600"}`}
-            style={{ width: `${homePct}%` }}
-          />
-        </div>
         <div
           className={`tabular-nums font-bold ${
             homeBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"
           }`}
         >
           {homeValue}
+        </div>
+        <div className="w-16 sm:w-24 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${homeBetter ? "bg-rose-500" : "bg-neutral-400 dark:bg-neutral-600"}`}
+            style={{ width: `${homePct}%`, marginLeft: "auto", float: "right" }}
+          />
+        </div>
+      </div>
+      <div className="text-[11px] text-neutral-500 text-center px-2 whitespace-nowrap">
+        {label}
+      </div>
+      {/* AWAY 우측 */}
+      <div className="flex items-center gap-2">
+        <div className="w-16 sm:w-24 h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${awayBetter ? "bg-rose-500" : "bg-neutral-400 dark:bg-neutral-600"}`}
+            style={{ width: `${awayPct}%` }}
+          />
+        </div>
+        <div
+          className={`tabular-nums font-bold ${
+            awayBetter ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"
+          }`}
+        >
+          {awayValue}
         </div>
       </div>
     </div>
@@ -212,27 +214,8 @@ export default function MatchHeadToHead({
 
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-4">
-      {/* 상단 — 팀명 + H2H */}
+      {/* 상단 — 팀명 + H2H (home 좌측 통일) */}
       <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-4 items-start">
-        <div className="text-center space-y-2">
-          <Link
-            href={`/teams/${awayTeamId}`}
-            className="block text-lg sm:text-xl font-black tracking-tight hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition truncate"
-          >
-            {awayShortName}
-          </Link>
-          <H2HSummary h2h={h2hHome} perspective="away" hasDraw={hasDraw} />
-          <div className="flex justify-center">
-            <H2HDots results={h2hHome.results} perspective="away" hasDraw={hasDraw} />
-          </div>
-        </div>
-        <div className="text-center pt-1 space-y-1">
-          <div className="text-base font-black text-neutral-300 dark:text-neutral-700">
-            VS
-          </div>
-          <div className="text-[11px] text-neutral-500">상대전적</div>
-          <div className="text-[11px] text-neutral-500">최근 {h2hHome.results.length}경기</div>
-        </div>
         <div className="text-center space-y-2">
           <Link
             href={`/teams/${homeTeamId}`}
@@ -245,30 +228,49 @@ export default function MatchHeadToHead({
             <H2HDots results={h2hHome.results} perspective="home" hasDraw={hasDraw} />
           </div>
         </div>
+        <div className="text-center pt-1 space-y-1">
+          <div className="text-base font-black text-neutral-300 dark:text-neutral-700">
+            VS
+          </div>
+          <div className="text-[11px] text-neutral-500">상대전적</div>
+          <div className="text-[11px] text-neutral-500">최근 {h2hHome.results.length}경기</div>
+        </div>
+        <div className="text-center space-y-2">
+          <Link
+            href={`/teams/${awayTeamId}`}
+            className="block text-lg sm:text-xl font-black tracking-tight hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition truncate"
+          >
+            {awayShortName}
+          </Link>
+          <H2HSummary h2h={h2hHome} perspective="away" hasDraw={hasDraw} />
+          <div className="flex justify-center">
+            <H2HDots results={h2hHome.results} perspective="away" hasDraw={hasDraw} />
+          </div>
+        </div>
       </div>
 
-      {/* 하단 — 시즌 비교 */}
+      {/* 하단 — 시즌 비교 (home 좌측 통일) */}
       {(homeStanding || awayStanding) && (
         <div className="border-t border-neutral-100 dark:border-neutral-800 pt-3 space-y-1">
           <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-4 items-center text-sm py-1.5">
             <div className="text-right tabular-nums font-bold text-neutral-700 dark:text-neutral-300">
-              {awayStanding ? fmtRank(awayStanding.position, totalTeams) : "—"}
+              {homeStanding ? fmtRank(homeStanding.position, totalTeams) : "—"}
             </div>
             <CenterLabel>리그순위</CenterLabel>
             <div className="text-left tabular-nums font-bold text-neutral-700 dark:text-neutral-300">
-              {homeStanding ? fmtRank(homeStanding.position, totalTeams) : "—"}
+              {awayStanding ? fmtRank(awayStanding.position, totalTeams) : "—"}
             </div>
           </div>
           <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-4 items-center text-sm py-1.5">
             <div className="text-right tabular-nums font-bold text-neutral-700 dark:text-neutral-300">
-              {awayStanding
-                ? `${awayStanding.wins}승${hasDraw ? ` ${awayStanding.draws}무` : ""} ${awayStanding.losses}패`
+              {homeStanding
+                ? `${homeStanding.wins}승${hasDraw ? ` ${homeStanding.draws}무` : ""} ${homeStanding.losses}패`
                 : "—"}
             </div>
             <CenterLabel>시즌성적</CenterLabel>
             <div className="text-left tabular-nums font-bold text-neutral-700 dark:text-neutral-300">
-              {homeStanding
-                ? `${homeStanding.wins}승${hasDraw ? ` ${homeStanding.draws}무` : ""} ${homeStanding.losses}패`
+              {awayStanding
+                ? `${awayStanding.wins}승${hasDraw ? ` ${awayStanding.draws}무` : ""} ${awayStanding.losses}패`
                 : "—"}
             </div>
           </div>
