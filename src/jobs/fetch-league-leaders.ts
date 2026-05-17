@@ -446,10 +446,11 @@ const KBO_PITCHER_CATS = [
   { col: "SV", code: "SAVE", unit: "세이브", decimals: 0, ord: "DESC" },
 ] as const;
 
-/** KBO 페이지의 hitter/pitcher 기본 표 — class="tData01 tt". */
+/** KBO 페이지의 hitter/pitcher 기본 표 — class="tData01 tt".
+ *  player anchor 의 `playerId={id}` 도 함께 추출 (사진 URL 빌드용). */
 async function fetchKboTable(
   url: string,
-): Promise<Array<{ rank: number; player: string; team: string; cells: Record<string, string> }>> {
+): Promise<Array<{ rank: number; player: string; team: string; playerId: string | null; cells: Record<string, string> }>> {
   try {
     const r = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -466,18 +467,24 @@ async function fetchKboTable(
     table.find("tr").first().find("th").each((_, th) => {
       headers.push($(th).text().trim());
     });
-    const rows: Array<{ rank: number; player: string; team: string; cells: Record<string, string> }> = [];
+    const rows: Array<{ rank: number; player: string; team: string; playerId: string | null; cells: Record<string, string> }> = [];
     table.find("tr").slice(1).each((_, tr) => {
-      const tds = $(tr).find("td").map((_, td) => $(td).text().trim()).get();
+      const $tr = $(tr);
+      const tds = $tr.find("td").map((_, td) => $(td).text().trim()).get();
       if (tds.length < 4) return;
       const cells: Record<string, string> = {};
       for (let i = 0; i < headers.length && i < tds.length; i++) {
         cells[headers[i]] = tds[i];
       }
+      // 선수명 셀 안의 anchor href 에서 playerId 추출
+      const href = $tr.find("a[href*='playerId=']").first().attr("href") ?? "";
+      const idMatch = href.match(/playerId=(\d+)/);
+      const playerId = idMatch ? idMatch[1] : null;
       rows.push({
         rank: parseInt(tds[0], 10) || 0,
         player: cells["선수명"] ?? tds[1] ?? "",
         team: cells["팀명"] ?? tds[2] ?? "",
+        playerId,
         cells,
       });
     });
@@ -486,6 +493,12 @@ async function fetchKboTable(
     console.warn(`[leaders/kbo] ${url}`, (e as Error).message);
     return [];
   }
+}
+
+/** KBO 공식 선수 사진 CDN URL (네이버 클라우드 edge). */
+function kboPhotoUrl(playerId: string | null | undefined, season: number): string | undefined {
+  if (!playerId) return undefined;
+  return `https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/middle/${season}/${playerId}.jpg`;
 }
 
 async function runKbo(season: number) {
@@ -533,6 +546,8 @@ async function runKbo(season: number) {
           value: e.value,
           unit: c.unit,
           season: String(season),
+          externalId: e.row.playerId ?? undefined,
+          photoUrl: kboPhotoUrl(e.row.playerId, season),
         });
       }
       await clearOldRanks("KBO", c.code, String(season), top.length);
