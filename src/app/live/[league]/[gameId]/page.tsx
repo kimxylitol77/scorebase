@@ -144,8 +144,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const away = toKoreanTeamName(match.awayTeam.name);
   const label = LEAGUE_LABEL[lg] ?? lg;
   return {
-    title: `${away} vs ${home} 라이브 — ${label}`,
-    description: `${away} vs ${home} ${label} 라이브 스코어 · 쿼터/피리어드 별 점수 또는 골 이벤트.`,
+    title: `${home} vs ${away} 라이브 — ${label}`,
+    description: `${home} vs ${away} ${label} 라이브 스코어 · 쿼터/피리어드 별 점수 또는 골 이벤트.`,
     alternates: { canonical: `https://www.scorebase.kr/live/${lg}/${gameId}` },
   };
 }
@@ -192,23 +192,23 @@ export default async function GenericLivePage({ params }: Props) {
         </Link>
         <span>›</span>
         <span className="text-neutral-700 dark:text-neutral-300 truncate">
-          {awayKo} vs {homeKo}
+          {homeKo} vs {awayKo}
         </span>
       </nav>
       <header>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
           <Link
-            href={`/teams/${match.awayTeam.id}`}
-            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
-          >
-            {awayKo}
-          </Link>{" "}
-          <span className="text-neutral-400">vs</span>{" "}
-          <Link
             href={`/teams/${match.homeTeam.id}`}
             className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
           >
             {homeKo}
+          </Link>{" "}
+          <span className="text-neutral-400">vs</span>{" "}
+          <Link
+            href={`/teams/${match.awayTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {awayKo}
           </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
