@@ -252,6 +252,34 @@ export default async function PreviewsPage({ searchParams }: Props) {
             )}
           </>
         )}
+
+        <section className="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight">
+            오늘의 경기 프리뷰 및 매치업 분석
+          </h2>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            EPL, MLB, NBA, KBO 등 주요 리그의 경기 시작 전 매치업 분석·예상 라인업·Elo 레이팅·H2H 상대 전적을 데이터 기반으로 정리한 프리뷰 콘텐츠입니다.
+          </p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            경기 진행은{" "}
+            <Link href="/scores" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              라이브스코어
+            </Link>
+            에서, 경기 종료 후 결과는{" "}
+            <Link href="/predictions" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              리뷰
+            </Link>
+            에서 확인할 수 있습니다. 함께{" "}
+            <Link href="/injuries" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              부상자 명단
+            </Link>
+            과{" "}
+            <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              리그별 분석
+            </Link>
+            도 참고하세요.
+          </p>
+        </section>
       </div>
     </div>
   );

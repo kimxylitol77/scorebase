@@ -284,6 +284,39 @@ export default async function Home() {
 
         {/* ───── FAQ ───── */}
         <FaqSection />
+
+        {/* ───── 사이트 내 주요 섹션 안내 (SEO + internal linking) ───── */}
+        <section className="pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight">
+            라이브스코어부터 시즌 예측까지 — 데이터 스포츠 미디어
+          </h2>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            스코어베이스는 EPL, 라리가, 분데스리가, 세리에 A, MLB, NBA, NHL, KBO, NPB 등 주요 리그의 실시간 라이브스코어와 경기 데이터를 한 곳에서 제공하는 스포츠 미디어입니다. Elo 레이팅·Monte Carlo 시뮬레이션·H2H 상대 전적으로 매 경기의 흐름과 시즌 전망을 데이터 기반으로 정리합니다.
+          </p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            오늘 경기는{" "}
+            <Link href="/scores" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              라이브스코어
+            </Link>
+            , 경기 전 분석은{" "}
+            <Link href="/previews" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              프리뷰
+            </Link>
+            , 종료 후 결과는{" "}
+            <Link href="/predictions" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              리뷰
+            </Link>
+            에서 확인할 수 있습니다.{" "}
+            <Link href="/injuries" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              부상자 명단
+            </Link>
+            과{" "}
+            <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              리그별 분석
+            </Link>
+            은 매일 자동 갱신됩니다.
+          </p>
+        </section>
       </div>
     </div>
   );

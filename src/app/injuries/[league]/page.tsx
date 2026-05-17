@@ -1160,6 +1160,34 @@ export default async function InjuriesByLeague({
             : " (시즌 누적 부상자) · 사유 한글 번역은 의학용어 매핑 기반."}
           {" "}본 명단은 참고용으로 실제 매치 라인업과 다를 수 있습니다.
         </p>
+
+        <section className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight">
+            {lm.krFull} 부상자 명단 및 결장자 분석
+          </h2>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            {lm.krFull}의 팀별 부상자·결장자 명단을 실시간으로 정리해 제공합니다. 부상 부위·사유·심각도 분류로 라인업에 미치는 영향을 한눈에 확인할 수 있습니다.
+          </p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            실시간 경기 진행은{" "}
+            <Link href="/scores" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              라이브스코어
+            </Link>
+            에서, 경기 전 매치업 분석은{" "}
+            <Link href="/previews" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              프리뷰
+            </Link>
+            에서, 종료 후 결과는{" "}
+            <Link href="/predictions" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              리뷰
+            </Link>
+            에서 확인할 수 있습니다.{" "}
+            <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              리그별 분석
+            </Link>
+            도 함께 참고하세요.
+          </p>
+        </section>
       </div>
     </div>
   );
