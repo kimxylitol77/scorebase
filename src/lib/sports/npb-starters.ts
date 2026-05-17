@@ -214,6 +214,15 @@ export function jpPitcherToKorean(name: string): string {
   const trimmed = name.trim();
   const direct = PITCHER_NAME_KO[trimmed];
   if (direct) return direct;
+  // 한자 풀네임 (예: "髙橋宏") 매핑 실패 시 성(앞 2-3자) prefix 매핑 시도
+  const surnameMatch = trimmed.match(/^([㐀-鿿]{2,3})/);
+  if (surnameMatch) {
+    for (let len = surnameMatch[1].length; len >= 2; len--) {
+      const sn = trimmed.slice(0, len);
+      const ko = PITCHER_NAME_KO[sn];
+      if (ko) return ko;
+    }
+  }
   // 카타카나/히라가나만 있으면 자동 음역 (외국인 선수)
   if (/^[぀-ゟ゠-ヿー・\s]+$/.test(trimmed)) {
     const ko = kanaToKorean(trimmed);

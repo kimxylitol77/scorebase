@@ -130,7 +130,14 @@ export function findNpbPidByName(
   let candidates = index.filter(
     (e) => e.surname === norm || e.fullName === norm,
   );
-  // 2) 외국인 가타카나 부분일치 fallback
+  // 2) starter 가 풀네임 형태 ("髙橋宏") — surname 으로 시작 + 다음 글자가 이름 첫 글자
+  if (candidates.length === 0) {
+    candidates = index.filter(
+      (e) => e.surname.length >= 2 && norm.startsWith(e.surname) &&
+        e.fullName.replace(/[\s　]+/g, "").startsWith(norm.slice(0, Math.min(norm.length, e.fullName.replace(/[\s　]+/g, "").length))),
+    );
+  }
+  // 3) 외국인 가타카나 부분일치 fallback
   if (candidates.length === 0) {
     candidates = index.filter(
       (e) => e.surname.startsWith(norm) || e.fullName.includes(norm),
