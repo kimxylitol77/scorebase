@@ -50,13 +50,14 @@ export default function LiveOddsCard({ odds, homeNameKo, awayNameKo, hasDraw }: 
         </div>
       </div>
 
+      {/* 사이트 전반 home 좌측 통일 — 1X2 / 핸디캡 모두 home 이 좌측 칸 */}
       {h2h && (
         <div className="space-y-1">
           <div className="text-[10px] text-neutral-500">{hasDraw ? "승무패 (1X2)" : "승부 (머니라인)"}</div>
           <div className={`grid ${hasDraw && h2h.draw != null ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
-            <OddsCell label={awayNameKo} value={h2h.away} />
-            {hasDraw && h2h.draw != null && <OddsCell label="무" value={h2h.draw} />}
             <OddsCell label={homeNameKo} value={h2h.home} />
+            {hasDraw && h2h.draw != null && <OddsCell label="무" value={h2h.draw} />}
+            <OddsCell label={awayNameKo} value={h2h.away} />
           </div>
         </div>
       )}
@@ -78,12 +79,12 @@ export default function LiveOddsCard({ odds, homeNameKo, awayNameKo, hasDraw }: 
           </div>
           <div className="grid grid-cols-2 gap-2">
             <OddsCell
-              label={spread.pick === "AWAY" ? `${awayNameKo} -${spread.line}` : `${awayNameKo} +${spread.line}`}
-              value={spread.awayOdds}
-            />
-            <OddsCell
               label={spread.pick === "HOME" ? `${homeNameKo} -${spread.line}` : `${homeNameKo} +${spread.line}`}
               value={spread.homeOdds}
+            />
+            <OddsCell
+              label={spread.pick === "AWAY" ? `${awayNameKo} -${spread.line}` : `${awayNameKo} +${spread.line}`}
+              value={spread.awayOdds}
             />
           </div>
         </div>
