@@ -36,6 +36,12 @@ const VALID = [
   "KBO",
   "NPB",
   "LOL",
+  // 2026-05-17 — 한국·아시아 5개 리그 추가 (DB 50건+)
+  "K_LEAGUE_1",
+  "K_LEAGUE_2",
+  "J1_LEAGUE",
+  "J2_LEAGUE",
+  "AFC_CL",
 ] as const;
 type ValidLeague = (typeof VALID)[number];
 
@@ -146,6 +152,41 @@ const LEAGUE_INFO: Record<
     gradient: "from-rose-500 via-fuchsia-600 to-indigo-600",
     relegationCount: 0,
     showDraw: false,
+  },
+  K_LEAGUE_1: {
+    name: "K리그1",
+    subtitle: "K League 1 — 시즌 시뮬레이션",
+    gradient: "from-red-600 via-blue-600 to-slate-900",
+    relegationCount: 1,
+    showDraw: true,
+  },
+  K_LEAGUE_2: {
+    name: "K리그2",
+    subtitle: "K League 2 — 시즌 시뮬레이션",
+    gradient: "from-slate-600 via-blue-700 to-red-600",
+    relegationCount: 0,
+    showDraw: true,
+  },
+  J1_LEAGUE: {
+    name: "J1리그",
+    subtitle: "J1 League — 시즌 시뮬레이션",
+    gradient: "from-red-600 via-rose-500 to-pink-500",
+    relegationCount: 3,
+    showDraw: true,
+  },
+  J2_LEAGUE: {
+    name: "J2리그",
+    subtitle: "J2 League — 시즌 시뮬레이션",
+    gradient: "from-pink-500 via-rose-400 to-amber-400",
+    relegationCount: 2,
+    showDraw: true,
+  },
+  AFC_CL: {
+    name: "AFC 챔피언스리그 엘리트",
+    subtitle: "AFC Champions League Elite — Elo 기반 매치 승률",
+    gradient: "from-emerald-600 via-teal-600 to-cyan-500",
+    relegationCount: 0,
+    showDraw: true,
   },
 };
 
