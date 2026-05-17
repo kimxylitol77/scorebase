@@ -38,8 +38,8 @@ export const collectors: Record<League, MatchCollector> = {
   NPB: npbCollector,
   LOL: lolCollector,
   // 신규 — 아시아 축구
-  J1_LEAGUE: buildSoccerCollector("J1_LEAGUE"), // ESPN scoreboard
-  AFC_CL: buildSoccerCollector("AFC_CL"), // ESPN scoreboard
+  J1_LEAGUE: buildApiFootballCollector("J1_LEAGUE"), // api-football (ESPN 80일 백필 timeout 회피)
+  AFC_CL: buildApiFootballCollector("AFC_CL"), // api-football 통일
   K_LEAGUE_1: buildApiFootballCollector("K_LEAGUE_1"), // api-football (ESPN 미커버)
   K_LEAGUE_2: buildApiFootballCollector("K_LEAGUE_2"),
   J2_LEAGUE: buildApiFootballCollector("J2_LEAGUE"),
