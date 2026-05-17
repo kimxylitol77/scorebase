@@ -57,70 +57,70 @@ const LEAGUE_INFO: Record<
 > = {
   EPL: {
     name: "프리미어리그",
-    subtitle: "English Premier League — 시즌 시뮬레이션",
+    subtitle: "잉글랜드 프리미어리그 — 시즌 시뮬레이션",
     gradient: "from-purple-600 via-fuchsia-500 to-pink-500",
     relegationCount: 3,
     showDraw: true,
   },
   NBA: {
     name: "NBA",
-    subtitle: "National Basketball Association — 시즌 시뮬레이션",
+    subtitle: "미국 프로농구 — 시즌 시뮬레이션",
     gradient: "from-orange-500 via-amber-500 to-yellow-500",
     relegationCount: 0,
     showDraw: false,
   },
   NHL: {
     name: "NHL",
-    subtitle: "National Hockey League — 시즌 시뮬레이션",
+    subtitle: "북미 아이스하키 — 시즌 시뮬레이션",
     gradient: "from-cyan-500 via-blue-600 to-indigo-700",
     relegationCount: 0,
     showDraw: false,
   },
   MLB: {
     name: "MLB",
-    subtitle: "Major League Baseball — 시즌 시뮬레이션",
+    subtitle: "메이저리그 베이스볼 — 시즌 시뮬레이션",
     gradient: "from-emerald-500 via-green-600 to-teal-700",
     relegationCount: 0,
     showDraw: false,
   },
   LALIGA: {
     name: "라리가",
-    subtitle: "La Liga — 시즌 시뮬레이션",
+    subtitle: "스페인 라리가 — 시즌 시뮬레이션",
     gradient: "from-amber-500 via-red-600 to-yellow-500",
     relegationCount: 3,
     showDraw: true,
   },
   BUNDESLIGA: {
     name: "분데스리가",
-    subtitle: "Bundesliga — 시즌 시뮬레이션",
+    subtitle: "독일 분데스리가 — 시즌 시뮬레이션",
     gradient: "from-yellow-400 via-red-600 to-slate-900",
     relegationCount: 3,
     showDraw: true,
   },
   SERIE_A: {
     name: "세리에 A",
-    subtitle: "Serie A — 시즌 시뮬레이션",
+    subtitle: "이탈리아 세리에 A — 시즌 시뮬레이션",
     gradient: "from-sky-500 via-blue-700 to-emerald-600",
     relegationCount: 3,
     showDraw: true,
   },
   LIGUE_1: {
     name: "리그 1",
-    subtitle: "Ligue 1 — 시즌 시뮬레이션",
+    subtitle: "프랑스 리그 1 — 시즌 시뮬레이션",
     gradient: "from-blue-700 via-rose-600 to-indigo-600",
     relegationCount: 2,
     showDraw: true,
   },
   MLS: {
     name: "MLS",
-    subtitle: "Major League Soccer — 시즌 시뮬레이션",
+    subtitle: "미국·캐나다 메이저리그 사커 — 시즌 시뮬레이션",
     gradient: "from-red-600 via-slate-900 to-blue-700",
     relegationCount: 0,
     showDraw: true,
   },
   UCL: {
     name: "챔피언스리그",
-    subtitle: "UEFA Champions League — 시즌 시뮬레이션",
+    subtitle: "유럽 챔피언스리그 — 시즌 시뮬레이션",
     gradient: "from-indigo-700 via-blue-600 to-cyan-500",
     relegationCount: 0,
     showDraw: true,
@@ -155,35 +155,35 @@ const LEAGUE_INFO: Record<
   },
   K_LEAGUE_1: {
     name: "K리그1",
-    subtitle: "K League 1 — 시즌 시뮬레이션",
+    subtitle: "한국 프로축구 1부 — 시즌 시뮬레이션",
     gradient: "from-red-600 via-blue-600 to-slate-900",
     relegationCount: 1,
     showDraw: true,
   },
   K_LEAGUE_2: {
     name: "K리그2",
-    subtitle: "K League 2 — 시즌 시뮬레이션",
+    subtitle: "한국 프로축구 2부 — 시즌 시뮬레이션",
     gradient: "from-slate-600 via-blue-700 to-red-600",
     relegationCount: 0,
     showDraw: true,
   },
   J1_LEAGUE: {
     name: "J1리그",
-    subtitle: "J1 League — 시즌 시뮬레이션",
+    subtitle: "일본 프로축구 1부 — 시즌 시뮬레이션",
     gradient: "from-red-600 via-rose-500 to-pink-500",
     relegationCount: 3,
     showDraw: true,
   },
   J2_LEAGUE: {
     name: "J2리그",
-    subtitle: "J2 League — 시즌 시뮬레이션",
+    subtitle: "일본 프로축구 2부 — 시즌 시뮬레이션",
     gradient: "from-pink-500 via-rose-400 to-amber-400",
     relegationCount: 2,
     showDraw: true,
   },
   AFC_CL: {
     name: "AFC 챔피언스리그 엘리트",
-    subtitle: "AFC Champions League Elite — Elo 기반 매치 승률",
+    subtitle: "아시아 챔피언스리그 엘리트 — Elo 기반 매치 승률",
     gradient: "from-emerald-600 via-teal-600 to-cyan-500",
     relegationCount: 0,
     showDraw: true,
@@ -197,7 +197,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase();
-  if (!VALID.includes(upper as ValidLeague)) return { title: "Not Found" };
+  if (!VALID.includes(upper as ValidLeague)) return { title: "찾을 수 없음" };
   const info = LEAGUE_INFO[upper as ValidLeague];
   return {
     title: `${info.name} 예측`,
@@ -377,17 +377,23 @@ export default async function LeaguePredictions({ params }: Props) {
         <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 sm:gap-x-1.5 sm:gap-y-2">
           <PredTab l="WORLD_CUP" active={"WORLD_CUP" === upper} />
           <CategoryDot />
+          {/* 축구 — 한국 시청자 우선 (한국·아시아 → 유럽 → 북미) */}
           {(
-            ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL"] as const
+            [
+              "K_LEAGUE_1", "K_LEAGUE_2",
+              "J1_LEAGUE", "J2_LEAGUE",
+              "AFC_CL",
+              "UCL", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
+            ] as const
           ).map((l) => (
             <PredTab key={l} l={l} active={l === upper} />
           ))}
           <CategoryDot />
           <PredTab l="NBA" active={"NBA" === upper} />
           <CategoryDot />
-          <PredTab l="MLB" active={"MLB" === upper} />
           <PredTab l="KBO" active={"KBO" === upper} />
           <PredTab l="NPB" active={"NPB" === upper} />
+          <PredTab l="MLB" active={"MLB" === upper} />
           <CategoryDot />
           <PredTab l="NHL" active={"NHL" === upper} />
           <CategoryDot />
@@ -821,6 +827,11 @@ const TAB_LABEL: Record<string, string> = {
   NPB: "NPB",
   NHL: "NHL",
   LOL: "LCK",
+  K_LEAGUE_1: "K리그1",
+  K_LEAGUE_2: "K리그2",
+  J1_LEAGUE: "J1",
+  J2_LEAGUE: "J2",
+  AFC_CL: "ACL 엘리트",
 };
 
 function PredTab({ l, active }: { l: string; active: boolean }) {
