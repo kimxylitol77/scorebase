@@ -161,21 +161,22 @@ export default function LiveScoresBar() {
             return (
               <Wrap key={m.id}>
               <LeagueBadge league={m.league} size="sm" />
+              {/* home 좌측 통일 — 사이트 전반 규칙 */}
               <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                {m.awayShort}
+                {m.homeShort}
               </span>
-              <CountUp
-                value={m.awayScore}
-                className="font-black tabular-nums text-neutral-900 dark:text-white"
-              />
-              <span className="text-neutral-400">-</span>
               <CountUp
                 value={m.homeScore}
                 className="font-black tabular-nums text-neutral-900 dark:text-white"
               />
+              <span className="text-neutral-400">-</span>
+              <CountUp
+                value={m.awayScore}
+                className="font-black tabular-nums text-neutral-900 dark:text-white"
+              />
               {/* 점수 동시 갱신 시 두 숫자 모두 부드럽게 카운트업 */}
               <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                {m.homeShort}
+                {m.awayShort}
               </span>
               <span className="ml-1 text-[10px] text-rose-600 dark:text-rose-400 font-semibold tabular-nums">
                 {m.statusLabel}
