@@ -49,6 +49,19 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // apex (scorebase.kr) → www (www.scorebase.kr) 강제 영구 redirect.
+  // Vercel 의 자동 redirect 는 307 (임시) 라 SEO 색인 권한 이전이 약함.
+  // 여기서 명시적 permanent: true → 308 응답 (HTTP/1.1 308 ≈ 301, Google 영구로 처리).
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "scorebase.kr" }],
+        destination: "https://www.scorebase.kr/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
