@@ -699,8 +699,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       position: i + 1,
       item: {
         "@type": "SportsEvent",
-        // home 좌측 통일 — 노출 텍스트도 home 먼저
-        name: `${m.home.name} vs ${m.away.name}`,
+        name: `${m.away.name} vs ${m.home.name}`,
         startDate: m.startTime.toISOString(),
         sport: SPORT_NAMES_EN[m.sport] ?? "Sports",
         homeTeam: { "@type": "SportsTeam", name: m.home.name },

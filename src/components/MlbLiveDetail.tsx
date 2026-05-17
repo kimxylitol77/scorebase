@@ -283,26 +283,16 @@ export default function MlbLiveDetail({
           )}
         </div>
 
-        {/* 양팀 + 점수 — home 좌측 통일 */}
+        {/* 양팀 + 점수 */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           <TeamBlock
-            teamId={homeTeamId}
-            logo={live.homeTeam.logo}
-            fallbackLogo={homeLogoUrl}
-            abbr={live.homeTeam.abbreviation}
-            name={homeLabel}
+            teamId={awayTeamId}
+            logo={live.awayTeam.logo}
+            fallbackLogo={awayLogoUrl}
+            abbr={live.awayTeam.abbreviation}
+            name={awayLabel}
           />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
-            <span
-              style={{
-                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
-                textShadow:
-                  homeWin || liveHomeLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
-              }}
-            >
-              <CountUp value={homeScore} />
-            </span>
-            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
             <span
               style={{
                 color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
@@ -312,13 +302,23 @@ export default function MlbLiveDetail({
             >
               <CountUp value={awayScore} />
             </span>
+            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
+            <span
+              style={{
+                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
+                textShadow:
+                  homeWin || liveHomeLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+              }}
+            >
+              <CountUp value={homeScore} />
+            </span>
           </div>
           <TeamBlock
-            teamId={awayTeamId}
-            logo={live.awayTeam.logo}
-            fallbackLogo={awayLogoUrl}
-            abbr={live.awayTeam.abbreviation}
-            name={awayLabel}
+            teamId={homeTeamId}
+            logo={live.homeTeam.logo}
+            fallbackLogo={homeLogoUrl}
+            abbr={live.homeTeam.abbreviation}
+            name={homeLabel}
           />
         </div>
 
@@ -409,15 +409,6 @@ export default function MlbLiveDetail({
                 </tr>
               </thead>
               <tbody>
-                {/* home 위 / away 아래 — 사이트 home 좌측·상단 통일 규칙 */}
-                <BoxRow
-                  label={live.homeTeam.abbreviation}
-                  line={live.linescore.home}
-                  innings={innings}
-                  currentInning={isLive ? currentInning : null}
-                  total={homeScore}
-                  win={homeWin || liveHomeLead}
-                />
                 <BoxRow
                   label={live.awayTeam.abbreviation}
                   line={live.linescore.away}
@@ -425,6 +416,14 @@ export default function MlbLiveDetail({
                   currentInning={isLive ? currentInning : null}
                   total={awayScore}
                   win={awayWin || liveAwayLead}
+                />
+                <BoxRow
+                  label={live.homeTeam.abbreviation}
+                  line={live.linescore.home}
+                  innings={innings}
+                  currentInning={isLive ? currentInning : null}
+                  total={homeScore}
+                  win={homeWin || liveHomeLead}
                 />
               </tbody>
             </table>

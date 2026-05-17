@@ -46,15 +46,6 @@ export default function BaseballLinescore({ data }: Props) {
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-100 dark:divide-neutral-900">
-          {/* home 위 / away 아래 — 사이트 home 좌측·상단 통일 규칙 */}
-          <Row
-            label={data.homeLabel}
-            line={data.homeInnings}
-            innings={innings}
-            r={data.homeScore}
-            h={data.homeHits}
-            e={data.homeErrors}
-          />
           <Row
             label={data.awayLabel}
             line={data.awayInnings}
@@ -62,6 +53,14 @@ export default function BaseballLinescore({ data }: Props) {
             r={data.awayScore}
             h={data.awayHits}
             e={data.awayErrors}
+          />
+          <Row
+            label={data.homeLabel}
+            line={data.homeInnings}
+            innings={innings}
+            r={data.homeScore}
+            h={data.homeHits}
+            e={data.homeErrors}
           />
         </tbody>
       </table>
