@@ -39,6 +39,41 @@ export interface MatchExtras {
 const H2H_MAX = 5;
 const FORM_DAYS = 60;
 
+// 유럽 축구 — 8월 시작 ~ 다음 해 5월 종료 시즌.
+const EUROPEAN_SOCCER_LEAGUES = new Set([
+  "EPL", "LALIGA", "LALIGA_2", "BUNDESLIGA", "BUNDESLIGA_2",
+  "SERIE_A", "SERIE_B", "LIGUE_1", "LIGUE_2",
+  "UCL", "UEL", "UECL", "CHAMPIONSHIP",
+  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
+]);
+
+/**
+ * 리그별 정확한 시즌 시작 날짜 계산.
+ *
+ * - 유럽 축구: 8월 1일 시작 (예: 2025-26 시즌 = 2025-08-01 ~ 2026-05-31).
+ *   match.startTime 이 8월 이전(1~7월)이면 작년 8월이 시즌 시작.
+ * - NBA/NHL: 10월 1일 시작 (예: 2025-26 시즌 = 2025-10-01 ~ 2026-06-30).
+ *   1~9월이면 작년 10월이 시즌 시작.
+ * - 그 외 (KBO/NPB/MLB/K_LEAGUE/J_LEAGUE/MLS/AFC_CL/LOL/WORLD_CUP):
+ *   1년 단위 → 1월 1일.
+ *
+ * 이전엔 모든 리그가 1월 1일로 하드코딩되어 유럽 축구의 시즌 후반(1~5월) 매치만
+ * standings 에 반영되던 버그 (예: EPL 맨유 실제 3위인데 페이지에 2위로 표시).
+ */
+function seasonStartFor(league: string, refDate: Date): Date {
+  const y = refDate.getUTCFullYear();
+  const m = refDate.getUTCMonth(); // 0=Jan
+  if (EUROPEAN_SOCCER_LEAGUES.has(league)) {
+    const startYear = m >= 7 ? y : y - 1; // 8월(idx 7) 이후면 올해
+    return new Date(Date.UTC(startYear, 7, 1));
+  }
+  if (league === "NBA" || league === "NHL") {
+    const startYear = m >= 9 ? y : y - 1; // 10월(idx 9) 이후면 올해
+    return new Date(Date.UTC(startYear, 9, 1));
+  }
+  return new Date(Date.UTC(y, 0, 1));
+}
+
 /** 매치 추가 데이터 (폼/standings/H2H/article slug).
  *  DB 연결 실패 (P1001 등) 시 모든 필드 비어있는 fallback 반환 — dev 환경 에러 오버레이 방지. */
 export async function fetchMatchExtras(match: {
@@ -73,8 +108,8 @@ async function fetchMatchExtrasInner(match: {
   awayTeam: { id: number };
 }): Promise<MatchExtras> {
   const since = new Date(match.startTime.getTime() - FORM_DAYS * 24 * 3600 * 1000);
-  // 시즌 standings 는 같은 시즌 모든 매치 필요 — 시즌 시작 ~ now
-  const seasonStart = new Date(Date.UTC(match.startTime.getUTCFullYear(), 0, 1));
+  // 시즌 standings 는 같은 시즌 모든 매치 필요 — 리그별 정확한 시즌 시작 적용.
+  const seasonStart = seasonStartFor(match.league, match.startTime);
 
   const [recentForForm, allSeason, h2hMatches, articles] = await Promise.all([
     // 폼 — 양 팀 최근 60일 매치
