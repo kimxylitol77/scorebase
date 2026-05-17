@@ -2,6 +2,9 @@
 // api-football / ESPN 응답이 영문이라 UI/LLM 입력 시에만 한글로 변환.
 // 외래어 표기법 + 한국 스포츠 미디어 굳어진 표기 우선.
 
+import { K_LEAGUE_PLAYER_NAMES_KO } from "./sports/k-league-player-names";
+import { J_LEAGUE_PLAYER_NAMES_KO } from "./sports/j-league-player-names";
+
 const RAW: Record<string, string> = {
   // ─── EPL — Big 6 + 한국 선수 + 슈퍼스타 ───
   // 아스널
@@ -516,6 +519,9 @@ function tryLastName(name: string): string | null {
 export function toKoreanPlayerName(name: string | undefined | null): string {
   if (!name) return "";
   const trimmed = name.trim();
+  // K리그 / J리그 전용 사전 우선 lookup — API-Football roman 표기 ("Lee Ho-Jae" 등) 매핑
+  if (K_LEAGUE_PLAYER_NAMES_KO[trimmed]) return K_LEAGUE_PLAYER_NAMES_KO[trimmed];
+  if (J_LEAGUE_PLAYER_NAMES_KO[trimmed]) return J_LEAGUE_PLAYER_NAMES_KO[trimmed];
   if (RAW[trimmed]) return RAW[trimmed];
   const lower = trimmed.toLowerCase();
   if (RAW_LOWER[lower]) return RAW_LOWER[lower];
