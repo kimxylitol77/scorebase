@@ -11,7 +11,22 @@ import { fetchEplRange } from "@/lib/sports/football-data";
 import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
 import { fetchLolLckAll } from "@/lib/sports/lol";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
 import type { League, NormalizedMatch } from "@/lib/sports/types";
+
+/**
+ * NPB 팀의 경우 normalized.shortName 이 비어있어도 한국 미디어 통용 약자로 자동 set.
+ * (API-Sports Baseball 응답에 shortName 미제공 → 매핑 사전 fallback)
+ */
+function resolveShortName(league: string, normalized: string | null | undefined, fullName: string): string | null {
+  if (normalized) return normalized;
+  if (league === "NPB") {
+    const ko = toKoreanTeamName(fullName);
+    return NPB_TEAM_SHORT_NAMES[ko] ?? NPB_TEAM_SHORT_NAMES[fullName] ?? null;
+  }
+  return null;
+}
 
 // 팀 이름 정규화 — football-data 와 ESPN 의 팀명 표기 차이 흡수
 // (예: "Manchester City FC" ↔ "Manchester City", "Tottenham Hotspur" ↔ "Tottenham")
@@ -124,20 +139,22 @@ function parseArgs(): { leagues: League[]; date: string } {
 }
 
 async function upsertMatch(m: NormalizedMatch) {
+  const homeShort = resolveShortName(m.league, m.homeTeam.shortName, m.homeTeam.name);
+  const awayShort = resolveShortName(m.league, m.awayTeam.shortName, m.awayTeam.name);
   const homeTeam = await prisma.team.upsert({
     where: {
       league_externalId: { league: m.league, externalId: m.homeTeam.externalId },
     },
     update: {
       name: m.homeTeam.name,
-      shortName: m.homeTeam.shortName ?? null,
+      shortName: homeShort,
       logoUrl: m.homeTeam.logoUrl ?? null,
     },
     create: {
       league: m.league,
       externalId: m.homeTeam.externalId,
       name: m.homeTeam.name,
-      shortName: m.homeTeam.shortName ?? null,
+      shortName: homeShort,
       logoUrl: m.homeTeam.logoUrl ?? null,
     },
   });
@@ -147,14 +164,14 @@ async function upsertMatch(m: NormalizedMatch) {
     },
     update: {
       name: m.awayTeam.name,
-      shortName: m.awayTeam.shortName ?? null,
+      shortName: awayShort,
       logoUrl: m.awayTeam.logoUrl ?? null,
     },
     create: {
       league: m.league,
       externalId: m.awayTeam.externalId,
       name: m.awayTeam.name,
-      shortName: m.awayTeam.shortName ?? null,
+      shortName: awayShort,
       logoUrl: m.awayTeam.logoUrl ?? null,
     },
   });
