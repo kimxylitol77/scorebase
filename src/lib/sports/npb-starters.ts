@@ -180,11 +180,35 @@ const PITCHER_NAME_KO: Record<string, string> = {
   "北山": "키타야마",
 };
 
+function hasHan(s: string): boolean {
+  return /[㐀-鿿]/.test(s);
+}
+
+/**
+ * npb.jp 선수 페이지의 히라가나 풀네임 (예: "とごう・しょうせい") →
+ * starter 표기 토큰 수에 맞춘 한글 음역.
+ *   - nameJp 가 성만 (1토큰) 이면 kana 의 첫 토큰만 사용 ("도고")
+ *   - 풀네임 (2토큰) 이면 처음 2토큰 ("도고 쇼세이")
+ *   - 음역 결과에 한자/카나가 잔존하면 실패로 간주 (null 반환)
+ */
+function transliterateFromKana(kana: string, nameJp: string): string | null {
+  const ko = kanaToKorean(kana);
+  if (!ko) return null;
+  const koTokens = ko.split(/\s+/).filter(Boolean);
+  if (koTokens.length === 0) return null;
+  const jpTokens = nameJp.trim().split(/[\s　]+/).filter(Boolean);
+  const n = Math.min(Math.max(jpTokens.length, 1), koTokens.length);
+  const result = koTokens.slice(0, n).join(" ");
+  if (/[぀-ヿ㐀-鿿]/.test(result)) return null;
+  return result;
+}
+
 /**
  * 일본어 선발 투수명 → 한글 음역.
  *   1) PITCHER_NAME_KO 직접 매핑 (한자 성 우선)
  *   2) 카타카나만 있는 외국인은 kanaToKorean 자동 음역
  *   3) 그래도 일본어 잔존하면 원어 그대로 (UI 에서 fallback 표시용)
+ *      → enrichNpbStartersWithStats 단계에서 npb.jp 가나 음역으로 추가 보강.
  */
 export function jpPitcherToKorean(name: string): string {
   const trimmed = name.trim();
@@ -335,9 +359,14 @@ export async function enrichNpbStartersWithStats(
     const hit = findNpbPidByName(index, p.nameJp, { abbr: teamAbbr });
     if (!hit) return p;
     const st = await fetchStatsOnce(hit.pid);
-    if (!st) return { ...p, pid: hit.pid };
+    // 한자 잔존 (PITCHER_NAME_KO 매핑 없음) → kana 음역 fallback
+    const name = hasHan(p.name) && st?.kana
+      ? (transliterateFromKana(st.kana, p.nameJp) ?? p.name)
+      : p.name;
+    if (!st) return { ...p, name, pid: hit.pid };
     return {
       ...p,
+      name,
       pid: hit.pid,
       stats: {
         era: st.era,

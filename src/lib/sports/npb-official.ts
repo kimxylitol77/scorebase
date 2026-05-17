@@ -152,6 +152,7 @@ export function findNpbPidByName(
 export interface NpbPitcherStats {
   pid: string;
   season: number; // 가장 최근 시즌
+  kana?: string; // 히라가나 풀네임 ("とごう・しょうせい") — starter 자동 음역 fallback
   team?: string; // 일본어 약칭 (예: "読売")
   g?: number; // 登板
   wins?: number;
@@ -242,6 +243,7 @@ export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats
   };
   const season = Number(get("年度")) || new Date().getUTCFullYear();
   const teamRaw = get("所属球団")?.replace(/\s+/g, "") || undefined;
+  const kana = $("li#pc_v_kana").text().trim() || undefined;
   const ip = parseInningCell(cells.eq(ipIdx));
   const innings = ipToInnings(ip);
   const bb = toNum(get("四球"));
@@ -256,6 +258,7 @@ export async function fetchNpbPitcherStats(pid: string): Promise<NpbPitcherStats
   return {
     pid,
     season,
+    kana,
     team: teamRaw,
     g: toNum(get("登板")),
     wins: toNum(get("勝利")),
