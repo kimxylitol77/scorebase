@@ -240,13 +240,27 @@ function findRecentGoalSide(
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
   const sportCode = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "soccer") as SportCode;
-  const sportLabel = SPORTS.find((s) => s.code === sportCode)?.label ?? "전체";
   const day = parseKstDate(sp.date);
-  const dateStr = kstDateLabel(day);
   return {
-    title: `${dateStr} ${sportLabel} 라이브 스코어 · 일정 — 스코어베이스`,
-    description: `${dateStr} ${sportLabel} 경기 일정·라이브 스코어·종료 결과. KBO·NPB·MLB·EPL·NBA·LCK 통합. 30초 자동 갱신.`,
+    title: {
+      absolute: "라이브스코어 | 축구 농구 야구 실시간스코어 - 스코어베이스",
+    },
+    description:
+      "축구, 야구, 농구 라이브스코어 및 실시간 경기결과 제공. 해외축구 EPL, MLB, NBA 경기 데이터를 빠르게 확인하세요.",
     alternates: { canonical: `https://www.scorebase.kr/scores?sport=${sportCode}&date=${dateQuery(day)}` },
+    openGraph: {
+      title: "라이브스코어 | 축구 농구 야구 실시간스코어 - 스코어베이스",
+      description:
+        "축구, 야구, 농구 라이브스코어 및 실시간 경기결과 제공. 해외축구 EPL, MLB, NBA 경기 데이터를 빠르게 확인하세요.",
+      url: `https://www.scorebase.kr/scores?sport=${sportCode}&date=${dateQuery(day)}`,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "라이브스코어 | 축구 농구 야구 실시간스코어 - 스코어베이스",
+      description:
+        "축구, 야구, 농구 라이브스코어 및 실시간 경기결과 제공. 해외축구 EPL, MLB, NBA 경기 데이터를 빠르게 확인하세요.",
+    },
   };
 }
 
