@@ -332,12 +332,15 @@ export default async function LeaguePredictions({ params }: Props) {
   }
 
   // 시즌 리더보드 (DB cron 잡이 매일 채움). 카테고리별 그룹화.
-  const leaderRowsRaw = await prisma.leagueLeader.findMany({
+  // 한 리그에 여러 시즌 데이터가 누적될 수 있어 최신 시즌만 표시 (중복 노출 방지 — 예: MLS L. Messi 2025-26 + 2026 두 번).
+  const allLeaderRows = await prisma.leagueLeader.findMany({
     where: { league: upper },
-    orderBy: [{ category: "asc" }, { rank: "asc" }],
-    take: 200,
+    orderBy: [{ season: "desc" }, { category: "asc" }, { rank: "asc" }],
+    take: 400,
   });
-  const leaderSeason = leaderRowsRaw[0]?.season ?? "";
+  const latestSeason = allLeaderRows[0]?.season ?? "";
+  const leaderRowsRaw = allLeaderRows.filter((r) => r.season === latestSeason);
+  const leaderSeason = latestSeason;
   const leaderRowsByCategory: Record<string, LeaderRow[]> = {};
   for (const r of leaderRowsRaw) {
     if (!leaderRowsByCategory[r.category]) leaderRowsByCategory[r.category] = [];
