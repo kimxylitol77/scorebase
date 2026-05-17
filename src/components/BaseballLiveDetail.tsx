@@ -334,11 +334,10 @@ export default function BaseballLiveDetail({
           </div>
           <TeamWrap teamId={homeTeamId}>
             <TeamLogo url={homeLogo} name={homeNameKo} />
-            {homeShort && (
-              <div className="text-xs sm:text-sm font-semibold text-neutral-500">
-                {homeShort}
-              </div>
-            )}
+            <div className="text-xs sm:text-sm font-semibold text-neutral-500">
+              {homeShort ?? ""}
+              <span className="ml-1" title="홈 팀">🏠</span>
+            </div>
             <div className="font-bold truncate">{homeNameKo}</div>
             {homeStarter && (
               <div className="text-[10px] text-neutral-400 mt-0.5 truncate">
@@ -393,7 +392,7 @@ export default function BaseballLiveDetail({
                 win={awayWin || liveAwayLead}
               />
               <ScoreRow
-                label={homeLabel}
+                label={`🏠 ${homeLabel}`}
                 line={lsHome}
                 innings={innings}
                 currentInning={isLive ? currentInning : null}

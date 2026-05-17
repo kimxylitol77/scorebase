@@ -55,7 +55,7 @@ export default function BaseballLinescore({ data }: Props) {
             e={data.awayErrors}
           />
           <Row
-            label={data.homeLabel}
+            label={`🏠 ${data.homeLabel}`}
             line={data.homeInnings}
             innings={innings}
             r={data.homeScore}

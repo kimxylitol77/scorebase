@@ -35,18 +35,21 @@ function TeamBlock({
   fallbackLogo,
   abbr,
   name,
+  isHome,
 }: {
   teamId?: number;
   logo?: string | null;
   fallbackLogo?: string | null;
   abbr: string;
   name: string;
+  isHome?: boolean;
 }) {
   const inner = (
     <>
       <TeamLogo url={logo ?? fallbackLogo} name={name} />
       <div className="text-xs sm:text-sm font-semibold text-neutral-500">
         {abbr}
+        {isHome && <span className="ml-1" title="홈 팀">🏠</span>}
       </div>
       <div className="font-bold truncate">{name}</div>
     </>
@@ -319,6 +322,7 @@ export default function MlbLiveDetail({
             fallbackLogo={homeLogoUrl}
             abbr={live.homeTeam.abbreviation}
             name={homeLabel}
+            isHome
           />
         </div>
 
@@ -418,7 +422,7 @@ export default function MlbLiveDetail({
                   win={awayWin || liveAwayLead}
                 />
                 <BoxRow
-                  label={live.homeTeam.abbreviation}
+                  label={`🏠 ${live.homeTeam.abbreviation}`}
                   line={live.linescore.home}
                   innings={innings}
                   currentInning={isLive ? currentInning : null}

@@ -215,7 +215,10 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
 
         <div className="min-w-0 flex items-center gap-2 justify-end text-right">
           <div className="min-w-0">
-            <div className="truncate text-xs sm:text-sm font-bold">{home.name}</div>
+            <div className="truncate text-xs sm:text-sm font-bold">
+              <span className="mr-0.5" title="홈 팀">🏠</span>
+              {home.name}
+            </div>
             {homeStarter && (
               <div className="truncate text-[10px] text-neutral-500">투수 {homeStarter}</div>
             )}
