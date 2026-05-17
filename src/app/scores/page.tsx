@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
+import { SITE_URL } from "@/lib/site-url";
 import {
   SPORTS,
   leaguesForSport,
@@ -237,29 +238,124 @@ function findRecentGoalSide(
   return null;
 }
 
+// SEO: 종목별 한글/영문 라벨 + 키워드.
+// 검색량 (월): "라이브 스코어"·"라이브스코어" 각 183만, "스포츠중계" 67만(+83%),
+// "야구 중계" 13.5만(+83%), "라이브 스포츠" 1.8만(+124%), "KBO 일정" 1.2만 — 합산 250만+.
+const SPORT_NAMES_KO: Record<string, string> = {
+  all: "스포츠",
+  soccer: "축구",
+  baseball: "야구",
+  basketball: "농구",
+  hockey: "하키",
+  esports: "e스포츠",
+};
+const SPORT_NAMES_EN: Record<string, string> = {
+  all: "Sports",
+  soccer: "Soccer",
+  baseball: "Baseball",
+  basketball: "Basketball",
+  hockey: "Ice Hockey",
+  esports: "Esports",
+};
+const SPORT_LEAGUE_BLURB: Record<string, string> = {
+  all: "축구·야구·농구·하키·e스포츠 14개 리그",
+  soccer: "K리그·EPL·라리가·분데스·세리에A·UCL·UEL·MLS",
+  baseball: "KBO·NPB·MLB",
+  basketball: "NBA",
+  hockey: "NHL",
+  esports: "LCK·롤드컵",
+};
+const COMMON_HIGH_VOLUME_KEYWORDS = [
+  "라이브 스코어",
+  "라이브스코어",
+  "실시간 스코어",
+  "스포츠중계",
+  "라이브 스포츠",
+  "스포츠 스코어",
+  "오늘 경기 일정",
+  "스포츠 일정",
+];
+const SPORT_KEYWORDS: Record<string, string[]> = {
+  all: [
+    "오늘 경기", "오늘 스포츠", "스포츠 라이브", "전 종목 라이브 스코어",
+  ],
+  soccer: [
+    "축구 라이브 스코어", "축구 중계", "축구 일정", "오늘 축구",
+    "EPL 라이브", "프리미어리그 일정", "K리그 일정", "J리그 일정",
+    "UCL 라이브", "AFC 챔피언스리그",
+  ],
+  baseball: [
+    "야구 라이브 스코어", "야구 중계", "오늘 야구",
+    "KBO 라이브", "KBO 일정", "KBO 라이브 스코어",
+    "MLB 라이브", "NPB 라이브", "프로야구 일정", "프로야구 중계", "오늘 KBO",
+  ],
+  basketball: [
+    "농구 라이브 스코어", "NBA 라이브", "NBA 일정", "오늘 NBA", "KBL 라이브",
+  ],
+  hockey: [
+    "하키 라이브 스코어", "NHL 라이브", "NHL 일정",
+  ],
+  esports: [
+    "LCK 라이브", "LCK 일정", "LCK 스코어",
+    "롤 라이브", "롤드컵 일정", "e스포츠 라이브",
+  ],
+};
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
   const sportCode = (SPORTS.find((s) => s.code === sp.sport)?.code ?? "soccer") as SportCode;
   const day = parseKstDate(sp.date);
+  const dateStr = dateQuery(day);
+  const dateKo = kstDateLabel(day); // "5월 17일 (일)"
+  const sportKo = SPORT_NAMES_KO[sportCode] ?? "스포츠";
+  const leagueBlurb = SPORT_LEAGUE_BLURB[sportCode] ?? "주요 리그";
+  const leagueQ = sp.league ? `&league=${sp.league}` : "";
+  const url = `${SITE_URL}/scores?sport=${sportCode}&date=${dateStr}${leagueQ}`;
+
+  const title = `${dateKo} ${sportKo} 라이브 스코어 · 일정 · 결과 — 스코어베이스`;
+  const description =
+    `${dateKo} ${sportKo} 경기 일정·라이브 스코어·종료 결과. ` +
+    `${leagueBlurb} 통합. Elo 모델 승률 추정·Value Bet·30초 자동 갱신. 스코어베이스.`;
+
+  const keywords = [
+    `${dateKo} ${sportKo}`,
+    `${sportKo} 라이브 스코어`,
+    `${sportKo} 일정`,
+    `오늘 ${sportKo}`,
+    ...COMMON_HIGH_VOLUME_KEYWORDS,
+    ...(SPORT_KEYWORDS[sportCode] ?? []),
+    "스코어베이스", "Scorebase",
+  ];
+
+  // 종목별 OG 이미지가 아직 없어서 기본 /og-image.png 폴백.
+  const ogImage = "/og-image.png";
+
   return {
-    title: {
-      absolute: "라이브스코어 | 축구 농구 야구 실시간스코어 - 스코어베이스",
-    },
-    description:
-      "축구, 야구, 농구 라이브스코어 및 실시간 경기결과 제공. 해외축구 EPL, MLB, NBA 경기 데이터를 빠르게 확인하세요.",
-    alternates: { canonical: `https://www.scorebase.kr/scores?sport=${sportCode}&date=${dateQuery(day)}` },
+    title: { absolute: title },
+    description,
+    keywords,
+    alternates: { canonical: url },
     openGraph: {
-      title: "라이브스코어 | 축구 농구 야구 실시간스코어 - 스코어베이스",
-      description:
-        "축구, 야구, 농구 라이브스코어 및 실시간 경기결과 제공. 해외축구 EPL, MLB, NBA 경기 데이터를 빠르게 확인하세요.",
-      url: `https://www.scorebase.kr/scores?sport=${sportCode}&date=${dateQuery(day)}`,
+      title,
+      description,
+      url,
+      siteName: "스코어베이스",
+      locale: "ko_KR",
       type: "website",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${dateKo} ${sportKo} 라이브 스코어 — 스코어베이스`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "라이브스코어 | 축구 농구 야구 실시간스코어 - 스코어베이스",
-      description:
-        "축구, 야구, 농구 라이브스코어 및 실시간 경기결과 제공. 해외축구 EPL, MLB, NBA 경기 데이터를 빠르게 확인하세요.",
+      title,
+      description,
+      images: [ogImage],
     },
   };
 }
@@ -571,8 +667,62 @@ export default async function ScoresPage({ searchParams }: Props) {
 
   const extraQuery = leagueFilter ? `&league=${leagueFilter}` : "";
 
+  // SEO 동적 값 — generateMetadata 와 일치시킴.
+  const sportKo = SPORT_NAMES_KO[sport] ?? "스포츠";
+  const dateKo = kstDateLabel(day);
+  const leagueBlurb = SPORT_LEAGUE_BLURB[sport] ?? "주요 리그";
+  const pageUrl = `${SITE_URL}/scores?sport=${sport}&date=${dateStr}${extraQuery}`;
+
+  // JSON-LD: BreadcrumbList — 홈 → 라이브 스코어 → 종목 · 일자
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "라이브 스코어", item: `${SITE_URL}/scores` },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `${sportKo} · ${dateKo}`,
+        item: pageUrl,
+      },
+    ],
+  };
+  // JSON-LD: ItemList (SportsEvent up to 20) — 검색 결과 rich snippet
+  const itemListLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${dateKo} ${sportKo} 라이브 스코어 · 일정 · 결과`,
+    numberOfItems: normalized.length,
+    itemListElement: normalized.slice(0, 20).map((m, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "SportsEvent",
+        name: `${m.away.name} vs ${m.home.name}`,
+        startDate: m.startTime.toISOString(),
+        sport: SPORT_NAMES_EN[m.sport] ?? "Sports",
+        homeTeam: { "@type": "SportsTeam", name: m.home.name },
+        awayTeam: { "@type": "SportsTeam", name: m.away.name },
+        ...(m.href ? { url: `${SITE_URL}${m.href}` } : {}),
+      },
+    })),
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4">
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+      {normalized.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }}
+        />
+      )}
+
       {/* 헤더 */}
       <header className="flex items-end justify-between gap-3">
         <div className="space-y-1">
@@ -580,7 +730,7 @@ export default async function ScoresPage({ searchParams }: Props) {
             라이브 스코어
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500">
-            {kstDateLabel(day)} · 총 {normalized.length}경기
+            {dateKo} · 총 {normalized.length}경기
             {liveList.length > 0 && (
               <span className="ml-2 text-rose-600 dark:text-rose-400 font-semibold">
                 ● LIVE {liveList.length}
@@ -590,6 +740,17 @@ export default async function ScoresPage({ searchParams }: Props) {
         </div>
         <LiveRefresher liveCount={liveList.length} />
       </header>
+
+      {/* SEO 친화 보조 텍스트 (H1 직후) — 검색 키워드 자연 포함 */}
+      <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+        {dateKo} {sportKo} 라이브 스코어·경기 일정·종료 결과를 한곳에서 확인하세요.
+        {" "}{leagueBlurb} 통합, Elo 모델 승률 추정, 30초 자동 갱신.
+        {normalized.length === 0 && (
+          <span className="block mt-1 text-neutral-500">
+            해당 일자에 경기가 없습니다. 인접한 일자를 확인해 보세요.
+          </span>
+        )}
+      </p>
 
       {/* 종목 탭 */}
       <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />
