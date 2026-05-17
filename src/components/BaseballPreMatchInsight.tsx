@@ -103,14 +103,7 @@ export default function BaseballPreMatchInsight({
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <StarterPanel
-          starter={awayStarter}
-          teamName={awayTeamName}
-          side="원정"
-          highlight={!!awayBetterEra}
-          league={league}
-          photo={photoFor(league, awayStarter?.pid, awayStarterPhoto)}
-        />
+        {/* home 좌측 / away 우측 — 사용자 요청 (이전엔 원정 좌측 / 홈 우측) */}
         <StarterPanel
           starter={homeStarter}
           teamName={homeTeamName}
@@ -118,6 +111,14 @@ export default function BaseballPreMatchInsight({
           highlight={!!homeBetterEra}
           league={league}
           photo={photoFor(league, homeStarter?.pid, homeStarterPhoto)}
+        />
+        <StarterPanel
+          starter={awayStarter}
+          teamName={awayTeamName}
+          side="원정"
+          highlight={!!awayBetterEra}
+          league={league}
+          photo={photoFor(league, awayStarter?.pid, awayStarterPhoto)}
         />
       </div>
       {(homeStarter?.era != null || awayStarter?.era != null) && (
