@@ -160,14 +160,14 @@ export function fetchFootballMatchPlayerStats(
 }
 
 /**
- * H2H — 두 팀 history + future + goal_distribution.
- * URL 미확정 — 추정: /v1/football/match/h2h/detail 또는 /h2h
+ * H2H (Match analysis) — 두 팀 history + future + goal_distribution.
+ * URL 확정: /v1/football/match/analysis. Rate: 60 req/min. 30일 이내 매치만.
  */
 export function fetchFootballH2H(
   matchId: string,
 ): Promise<TSFootballH2HResponse> {
   return thesportsGet<TSFootballH2HResponse>(
-    "/v1/football/match/h2h/detail", // PLACEHOLDER
+    "/v1/football/match/analysis",
     { uuid: matchId },
   );
 }
