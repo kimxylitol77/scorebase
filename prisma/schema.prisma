@@ -15,17 +15,30 @@ datasource db {
 // 팀 정보
 model Team {
   id         Int      @id @default(autoincrement())
-  league     String // KBO | EPL | NBA
+  league     String // KBO | EPL | NBA | NHL | MLB | LALIGA | BUNDESLIGA | SERIE_A | LIGUE_1 | MLS | UCL | WORLD_CUP
   externalId String // 외부 API 의 팀 ID
   name       String
   shortName  String?
   logoUrl    String?
+
+  // 예측 시스템 — Elo 레이팅 (FiveThirtyEight 방식, 신규 팀 1500 시드)
+  eloRating  Float   @default(1500)
+
+  // 메타 정보 (cron 으로 점진 백필 — 모두 nullable)
+  country    String?  // "England" | "South Korea" | "United States" ...
+  city       String?  // "Manchester" | "Seoul" | "New York"
+  venue      String?  // 홈 구장 이름 (예: "Old Trafford")
+  founded    Int?     // 창단 연도
+  coach      String?  // 현 감독/매니저 이름
+
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
   homeMatches Match[] @relation("HomeTeam")
   awayMatches Match[] @relation("AwayTeam")
 
   @@unique([league, externalId])
+  @@index([league, eloRating])
 }
 
 // 경기 정보
