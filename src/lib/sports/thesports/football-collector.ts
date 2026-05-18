@@ -10,6 +10,14 @@ import type {
   TSFootballMatchDiaryResponse,
   TSFootballMatch,
   TSFootballTeamMeta,
+  TSFootballLineupResponse,
+  TSFootballMatchTeamStatsResponse,
+  TSFootballMatchPlayerStatsResponse,
+  TSFootballH2HResponse,
+  TSFootballStandingsResponse,
+  TSFootballSeasonTeamStatResponse,
+  TSFootballSeasonPlayerStatResponse,
+  TSFootballSeasonShooterResponse,
 } from "./football-types";
 import {
   TS_FOOTBALL_COMPETITION_ID,
@@ -105,4 +113,105 @@ function mapFootballStatus(statusId: number): NormalizedMatch["status"] {
   // 추정 — 예정/연기
   if (statusId === 9 || statusId === 10) return "POSTPONED";
   return "SCHEDULED";
+}
+
+// ============================================================
+// 추가 endpoint 메서드 — 매치 상세 페이지용
+// ============================================================
+
+/**
+ * 단일 경기 라인업 — formation + x/y 좌표 + rating + incidents + injury.
+ * URL 확정: /v1/football/match/lineup/detail
+ * Rate: 120 req/min. 최근 30일 매치만.
+ */
+export function fetchFootballLineup(
+  matchId: string,
+): Promise<TSFootballLineupResponse> {
+  return thesportsGet<TSFootballLineupResponse>(
+    "/v1/football/match/lineup/detail",
+    { uuid: matchId },
+  );
+}
+
+/**
+ * 경기팀 통계 (매치 단위).
+ * URL 미확정 — 영업 받기 대기. 추정: /v1/football/match/stats/detail
+ */
+export function fetchFootballMatchTeamStats(
+  matchId: string,
+): Promise<TSFootballMatchTeamStatsResponse> {
+  return thesportsGet<TSFootballMatchTeamStatsResponse>(
+    "/v1/football/match/stats/detail", // PLACEHOLDER
+    { uuid: matchId },
+  );
+}
+
+/**
+ * 경기 선수 통계 (매치 단위).
+ * URL 미확정 — 추정: /v1/football/match/player_stats/detail
+ */
+export function fetchFootballMatchPlayerStats(
+  matchId: string,
+): Promise<TSFootballMatchPlayerStatsResponse> {
+  return thesportsGet<TSFootballMatchPlayerStatsResponse>(
+    "/v1/football/match/player_stats/detail", // PLACEHOLDER
+    { uuid: matchId },
+  );
+}
+
+/**
+ * H2H — 두 팀 history + future + goal_distribution.
+ * URL 미확정 — 추정: /v1/football/match/h2h/detail 또는 /h2h
+ */
+export function fetchFootballH2H(
+  matchId: string,
+): Promise<TSFootballH2HResponse> {
+  return thesportsGet<TSFootballH2HResponse>(
+    "/v1/football/match/h2h/detail", // PLACEHOLDER
+    { uuid: matchId },
+  );
+}
+
+/**
+ * 시즌 순위 (최신 시즌).
+ * URL 미확정 — 추정: /v1/football/season/recent/standings/detail
+ * season_id 필요 (results[].season_id 에서 추출).
+ */
+export function fetchFootballStandings(
+  seasonId: string,
+): Promise<TSFootballStandingsResponse> {
+  return thesportsGet<TSFootballStandingsResponse>(
+    "/v1/football/season/recent/standings/detail", // PLACEHOLDER
+    { uuid: seasonId },
+  );
+}
+
+/** 시즌별 팀 통계 — URL 확정 */
+export function fetchFootballSeasonTeamStat(
+  seasonId: string,
+): Promise<TSFootballSeasonTeamStatResponse> {
+  return thesportsGet<TSFootballSeasonTeamStatResponse>(
+    "/v1/football/season/recent/team/stat",
+    { uuid: seasonId },
+  );
+}
+
+/** 시즌별 선수 통계 — URL 확정 */
+export function fetchFootballSeasonPlayerStat(
+  seasonId: string,
+): Promise<TSFootballSeasonPlayerStatResponse> {
+  return thesportsGet<TSFootballSeasonPlayerStatResponse>(
+    "/v1/football/season/recent/player/stat",
+    { uuid: seasonId },
+  );
+}
+
+/** 시즌 득점왕 — URL 확정 */
+export function fetchFootballSeasonShooter(
+  seasonId: string,
+): Promise<TSFootballSeasonShooterResponse> {
+  return thesportsGet<TSFootballSeasonShooterResponse>(
+    "/v1/football/season/recent/shooter/stat",
+    { uuid: seasonId },
+  );
 }
