@@ -803,6 +803,148 @@ const RAW: Record<string, string> = {
   "Denis Bouanga": "드니 부앙가",
   "Germán Berterame": "헤르만 베르테라메",
   "German Berterame": "헤르만 베르테라메",
+
+  // ===== Serie B (이탈리아 2부) — 2025-26 핵심 선수 =====
+  // Palermo
+  "Matteo Brunori": "마테오 브루노리",
+  "Brunori": "마테오 브루노리",
+  "Roberto Insigne": "로베르토 인시녜",
+  "Joel Pohjanpalo": "요엘 포흐얀팔로",
+  "Pohjanpalo": "요엘 포흐얀팔로",
+  "Claudio Gomes": "클라우디오 고메스",
+  "Salvatore Sirigu": "살바토레 시리구",
+  // Sampdoria
+  "Massimo Coda": "마시모 코다",
+  "Pedro Pereyra": "페드로 페레이라",
+  "Gennaro Tutino": "젠나로 투티노",
+  "Tutino": "젠나로 투티노",
+  "Emil Audero": "에밀 아우데로",
+  // Cremonese
+  "Pinamonti": "안드레아 피나몬티",
+  "Federico Bonazzoli": "페데리코 보나졸리",
+  "Bonazzoli": "페데리코 보나졸리",
+  "Franco Vázquez": "프란코 바스케스",
+  "Franco Vazquez": "프란코 바스케스",
+  // Cesena
+  "Cristian Shpendi": "크리스티안 슈펜디",
+  "Shpendi": "크리스티안 슈펜디",
+  // Modena
+  "Gabriele Zappa": "가브리엘레 차파",
+  "Antonio Palumbo": "안토니오 팔룸보",
+  // Bari
+  "Mehdi Dorval": "메흐디 도르발",
+  "Nicola Bellomo": "니콜라 벨로모",
+  // Brescia
+  "Andrea Cistana": "안드레아 치스타나",
+  "Dimitri Bisoli": "디미트리 비솔리",
+  // Spezia
+  "Salvatore Esposito": "살바토레 에스포시토",
+  "Pio Esposito": "피오 에스포시토",
+  "Francesco Pio Esposito": "프란체스코 피오 에스포시토",
+  "Antonio Candela": "안토니오 칸델라",
+  // Sudtirol
+  "Tommaso Berra": "톰마소 베라",
+  "Daniele Casiraghi": "다니엘레 카시라기",
+  // Frosinone
+  "Marco Brescianini": "마르코 브레시아니니",
+  "Matija Šverko": "마티야 슈베르코",
+  "Caleb Okoli": "칼렙 오콜리",
+  // Salernitana
+  "Boulaye Dia": "불라예 디아",
+  "Loum Tchaouna": "룸 차우나",
+  // Pisa
+  "Lorenzo Lucca": "로렌초 루카",
+  "Marius Marin": "마리우스 마린",
+  "Stefano Moreo": "스테파노 모레오",
+  // Reggiana
+  "Manuel Marras": "마누엘 마라스",
+  "Cedric Gondo": "세드릭 곤도",
+  // Carrarese
+  "Federico Melegoni": "페데리코 멜레고니",
+  // Mantova
+  "Alessandro Mancuso": "알레산드로 만쿠소",
+  // Juve Stabia
+  "Andrea Adorante": "안드레아 아도란테",
+  // Catanzaro
+  "Pietro Iemmello": "피에트로 옘멜로",
+  "Iemmello": "피에트로 옘멜로",
+  // Cosenza
+  "Tommaso D'Orazio": "톰마소 도라치오",
+  // Avellino
+  "Gabriele Gori": "가브리엘레 고리",
+  // Empoli
+  "Lorenzo Colombo": "로렌초 콜롬보",
+
+  // ===== LaLiga 2 (스페인 2부) — 2025-26 핵심 선수 =====
+  // Sporting Gijon
+  "Juan Otero": "후안 오테로",
+  "Gaspar Campos": "가스파르 캄포스",
+  "Dubasin": "두바신",
+  // Zaragoza
+  "Iván Azón": "이반 아손",
+  "Ivan Azon": "이반 아손",
+  // Real Oviedo
+  "Salomón Rondón": "살로몬 론돈",
+  "Salomon Rondon": "살로몬 론돈",
+  "Alemão": "알레망",
+  "Alemao": "알레망",
+  "Aarón Escandell": "아아론 에스칸델",
+  // Granada
+  "Lucas Boyé": "루카스 보예",
+  "Lucas Boye": "루카스 보예",
+  "Bryan Zaragoza": "브라이언 사라고사",
+  "Famara Diédhiou": "파마라 디에디우",
+  "Famara Diedhiou": "파마라 디에디우",
+  // Cádiz
+  "Christopher Ramos": "크리스토페르 라모스",
+  "Brian Ocampo": "브라이언 오캄포",
+  // Levante
+  "Iván Romero": "이반 로메로",
+  "Ivan Romero": "이반 로메로",
+  "Carlos Álvarez": "카를로스 알바레스",
+  "Carlos Alvarez": "카를로스 알바레스",
+  "Roger Brugué": "로제르 브루게",
+  "Roger Brugue": "로제르 브루게",
+  // Racing Santander
+  "Andrés Martín": "안드레스 마르틴",
+  "Andres Martin": "안드레스 마르틴",
+  "Íñigo Vicente": "이니고 비센테",
+  "Inigo Vicente": "이니고 비센테",
+  "Juan Carlos Arana": "후안 카를로스 아라나",
+  // Mirandes
+  "Carlos Martín": "카를로스 마르틴",
+  "Hugo Rincón": "우고 린콘",
+  // Almería
+  "Adrián Embarba": "아드리안 엠바르바",
+  "Adrian Embarba": "아드리안 엠바르바",
+  "Luis Suárez": "루이스 수아레스",
+  "Luis Suarez": "루이스 수아레스",
+  "Léo Baptistão": "레오 바프티스탕",
+  "Leo Baptistao": "레오 바프티스탕",
+  // Burgos
+  "Fer Niño": "페르 니뇨",
+  "Fer Nino": "페르 니뇨",
+  // Cartagena
+  "Ortuño": "오르투뇨",
+  "Ortuno": "오르투뇨",
+  // Eibar
+  "Stoichkov": "스토이치코프",
+  "Jon Bautista": "욘 바우티스타",
+  // Eldense
+  "Joan Femenías": "조안 페메니아스",
+  // Huesca
+  "Enric Gallego": "엔리크 가예고",
+  // Albacete
+  "Higinio Marín": "이히니오 마린",
+  "Higinio Marin": "이히니오 마린",
+  // Castellón
+  "Mamadou Sylla": "마마두 시야",
+  // Córdoba
+  "Antonio Casas": "안토니오 카사스",
+  // Málaga
+  "Dioni Villalba": "디오니 비얄바",
+  // Racing Ferrol
+  "Jon Karrikaburu": "욘 카리카부루",
 };
 
 const RAW_LOWER: Record<string, string> = Object.fromEntries(
