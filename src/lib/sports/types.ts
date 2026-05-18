@@ -58,7 +58,18 @@ export type League =
   | "LIGA_I" // 루마니아 Liga I (1부)
   | "SWISS_SL" // 스위스 슈퍼 리그 (1부)
   | "CHALLENGE_LEAGUE" // 스위스 챌린지 리그 (2부)
-  | "ARMENIA_PL"; // 아르메니아 Premier League (1부)
+  | "ARMENIA_PL" // 아르메니아 Premier League (1부)
+  // 유럽 Tier 1·2 추가 (8월~5월)
+  | "AUSTRIA_BL" // 오스트리아 분데스리가 (1부)
+  | "CZECH_L" // 체코 Czech Liga (1부)
+  | "HNL" // 크로아티아 HNL (1부)
+  | "UKRAINE_PL" // 우크라이나 Premier League (1부)
+  | "HUNGARY_NB1" // 헝가리 NB I (1부)
+  | "SERBIA_SL" // 세르비아 Super Liga (1부)
+  | "SLOVAKIA_SL" // 슬로바키아 Super Liga (1부)
+  | "SLOVENIA_SNL" // 슬로베니아 1. SNL (1부)
+  | "CYPRUS_1D" // 키프로스 1. Division (1부)
+  | "DENMARK_SL"; // 덴마크 Superliga (1부)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -105,6 +116,16 @@ export const SOCCER_LEAGUES = [
   "SWISS_SL",
   "CHALLENGE_LEAGUE",
   "ARMENIA_PL",
+  "AUSTRIA_BL",
+  "CZECH_L",
+  "HNL",
+  "UKRAINE_PL",
+  "HUNGARY_NB1",
+  "SERBIA_SL",
+  "SLOVAKIA_SL",
+  "SLOVENIA_SNL",
+  "CYPRUS_1D",
+  "DENMARK_SL",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -141,6 +162,16 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "SWISS_SL",
   "CHALLENGE_LEAGUE",
   "ARMENIA_PL",
+  "AUSTRIA_BL",
+  "CZECH_L",
+  "HNL",
+  "UKRAINE_PL",
+  "HUNGARY_NB1",
+  "SERBIA_SL",
+  "SLOVAKIA_SL",
+  "SLOVENIA_SNL",
+  "CYPRUS_1D",
+  "DENMARK_SL",
 ];
 
 export type MatchStatus =

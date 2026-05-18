@@ -80,6 +80,17 @@ export const collectors: Record<League, MatchCollector> = {
   SWISS_SL: buildApiFootballCollector("SWISS_SL"),
   CHALLENGE_LEAGUE: buildApiFootballCollector("CHALLENGE_LEAGUE"),
   ARMENIA_PL: buildApiFootballCollector("ARMENIA_PL"),
+  // 유럽 Tier 1·2 (8월~5월)
+  AUSTRIA_BL: buildApiFootballCollector("AUSTRIA_BL"),
+  CZECH_L: buildApiFootballCollector("CZECH_L"),
+  HNL: buildApiFootballCollector("HNL"),
+  UKRAINE_PL: buildApiFootballCollector("UKRAINE_PL"),
+  HUNGARY_NB1: buildApiFootballCollector("HUNGARY_NB1"),
+  SERBIA_SL: buildApiFootballCollector("SERBIA_SL"),
+  SLOVAKIA_SL: buildApiFootballCollector("SLOVAKIA_SL"),
+  SLOVENIA_SNL: buildApiFootballCollector("SLOVENIA_SNL"),
+  CYPRUS_1D: buildApiFootballCollector("CYPRUS_1D"),
+  DENMARK_SL: buildApiFootballCollector("DENMARK_SL"),
 };
 
 export {

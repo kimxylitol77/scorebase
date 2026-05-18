@@ -55,6 +55,17 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   SWISS_SL: 207, // 스위스 1부 (Super League)
   CHALLENGE_LEAGUE: 208, // 스위스 2부
   ARMENIA_PL: 342, // 아르메니아 1부
+  // 유럽 Tier 1·2 (8월~5월)
+  AUSTRIA_BL: 218, // 오스트리아 분데스리가
+  CZECH_L: 345, // 체코 1부
+  HNL: 210, // 크로아티아 HNL
+  UKRAINE_PL: 333, // 우크라이나 프리미어
+  HUNGARY_NB1: 271, // 헝가리 NB I
+  SERBIA_SL: 286, // 세르비아 슈퍼리가
+  SLOVAKIA_SL: 332, // 슬로바키아 슈퍼리가
+  SLOVENIA_SNL: 373, // 슬로베니아 1. SNL
+  CYPRUS_1D: 318, // 키프로스 1부
+  DENMARK_SL: 119, // 덴마크 슈페르리가
 };
 
 interface CacheEntry<T> {
