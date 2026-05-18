@@ -5,7 +5,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 const AF_BASE = "https://v3.football.api-sports.io";
 const TIMEOUT = 8000;

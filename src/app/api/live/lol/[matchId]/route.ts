@@ -5,6 +5,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 const BDL_BASE = "https://api.balldontlie.io";
 const LCK_TOURNAMENT_ID = 324;

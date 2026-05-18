@@ -66,5 +66,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticPages, ...articlePages, ...noticePages];
+  // 라이브 매치 페이지 (최근 30일 종료 + 예정 14일 + 진행 중)
+  const liveWindow = {
+    past: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+    future: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000),
+  };
+  const matches = await prisma.match.findMany({
+    where: {
+      league: { in: ALL_LEAGUES },
+      startTime: { gte: liveWindow.past, lte: liveWindow.future },
+      status: { in: ["SCHEDULED", "LIVE", "FINISHED"] },
+    },
+    select: { league: true, externalId: true, status: true, startTime: true, updatedAt: true },
+    orderBy: { startTime: "desc" },
+    take: 5000,
+  });
+
+  const livePages: MetadataRoute.Sitemap = matches.map((m) => {
+    const lg = m.league.toLowerCase();
+    // MLB/KBO/NPB/LOL = 전용 라우트, 나머지(NBA/NHL/축구) = [league] 동적 라우트
+    const slug = m.league === "LOL" ? "lol" : lg;
+    const segment = ["mlb", "kbo", "npb", "lol"].includes(slug) ? slug : lg;
+    return {
+      url: `${base}/live/${segment}/${m.externalId}`,
+      lastModified: m.updatedAt ?? m.startTime,
+      changeFrequency: m.status === "LIVE" ? "hourly" : m.status === "SCHEDULED" ? "daily" : "weekly",
+      priority: m.status === "LIVE" ? 0.85 : m.status === "SCHEDULED" ? 0.75 : 0.6,
+    };
+  });
+
+  return [...staticPages, ...articlePages, ...noticePages, ...livePages];
 }
