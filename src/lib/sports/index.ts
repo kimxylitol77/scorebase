@@ -96,6 +96,15 @@ export const collectors: Record<League, MatchCollector> = {
   BOSNIA_PL: buildApiFootballCollector("BOSNIA_PL"),
   ALBANIA_SL: buildApiFootballCollector("ALBANIA_SL"),
   MOLDOVA_SL: buildApiFootballCollector("MOLDOVA_SL"),
+  // 북유럽 (봄~가을 시즌)
+  ELITESERIEN: buildApiFootballCollector("ELITESERIEN"),
+  NORWAY_1L: buildApiFootballCollector("NORWAY_1L"),
+  ALLSVENSKAN: buildApiFootballCollector("ALLSVENSKAN"),
+  SUPERETTAN: buildApiFootballCollector("SUPERETTAN"),
+  VEIKKAUSLIIGA: buildApiFootballCollector("VEIKKAUSLIIGA"),
+  YKKONEN: buildApiFootballCollector("YKKONEN"),
+  URVALSDEILD: buildApiFootballCollector("URVALSDEILD"),
+  ICELAND_1L: buildApiFootballCollector("ICELAND_1L"),
 };
 
 export {

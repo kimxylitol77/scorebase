@@ -71,6 +71,15 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   BOSNIA_PL: 315, // 보스니아 Premijer Liga (8~5월)
   ALBANIA_SL: 310, // 알바니아 Superliga (8~5월)
   MOLDOVA_SL: 394, // 몰도바 Super Liga (8~5월)
+  // 북유럽 (봄~가을 시즌, default seasonFor 처리)
+  ELITESERIEN: 103, // 노르웨이 1부 (3~11월)
+  NORWAY_1L: 104, // 노르웨이 2부
+  ALLSVENSKAN: 113, // 스웨덴 1부 (3~11월)
+  SUPERETTAN: 114, // 스웨덴 2부
+  VEIKKAUSLIIGA: 244, // 핀란드 1부 (4~10월)
+  YKKONEN: 245, // 핀란드 2부
+  URVALSDEILD: 164, // 아이슬란드 1부 (5~9월)
+  ICELAND_1L: 165, // 아이슬란드 2부
 };
 
 interface CacheEntry<T> {

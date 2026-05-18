@@ -74,7 +74,16 @@ export type League =
   | "IRELAND_PD" // 아일랜드 Premier Division (1부, 2~11월 봄~가을)
   | "BOSNIA_PL" // 보스니아 Premijer Liga (1부, 8~5월)
   | "ALBANIA_SL" // 알바니아 Superliga (1부, 8~5월)
-  | "MOLDOVA_SL"; // 몰도바 Super Liga (1부, 8~5월)
+  | "MOLDOVA_SL" // 몰도바 Super Liga (1부, 8~5월)
+  // 북유럽 (봄~가을 시즌, 3~11월 또는 5~9월)
+  | "ELITESERIEN" // 노르웨이 Eliteserien (1부)
+  | "NORWAY_1L" // 노르웨이 1. Division (2부)
+  | "ALLSVENSKAN" // 스웨덴 Allsvenskan (1부)
+  | "SUPERETTAN" // 스웨덴 Superettan (2부)
+  | "VEIKKAUSLIIGA" // 핀란드 Veikkausliiga (1부)
+  | "YKKONEN" // 핀란드 Ykkönen (2부)
+  | "URVALSDEILD" // 아이슬란드 Úrvalsdeild (1부)
+  | "ICELAND_1L"; // 아이슬란드 1. Deild (2부)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -135,6 +144,14 @@ export const SOCCER_LEAGUES = [
   "BOSNIA_PL",
   "ALBANIA_SL",
   "MOLDOVA_SL",
+  "ELITESERIEN",
+  "NORWAY_1L",
+  "ALLSVENSKAN",
+  "SUPERETTAN",
+  "VEIKKAUSLIIGA",
+  "YKKONEN",
+  "URVALSDEILD",
+  "ICELAND_1L",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -185,6 +202,14 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "BOSNIA_PL",
   "ALBANIA_SL",
   "MOLDOVA_SL",
+  "ELITESERIEN",
+  "NORWAY_1L",
+  "ALLSVENSKAN",
+  "SUPERETTAN",
+  "VEIKKAUSLIIGA",
+  "YKKONEN",
+  "URVALSDEILD",
+  "ICELAND_1L",
 ];
 
 export type MatchStatus =
