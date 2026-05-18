@@ -1531,6 +1531,161 @@ const RAW: Record<string, string> = {
   "Franculino Dju": "프랑쿨리누 주",
   "Clayton Silva": "클레이튼 실바",
   "Heriberto Tavares": "에리베르투 타바레스",
+  // ===== AFC CL Two 2025-26 =====
+  // 동남아·인도·중앙아시아 핵심. 확신 가능 인물만.
+  // ─── 태국 국가대표·BG 빠툼·부리람 ───
+  "Theerathon Bunmathan": "티라톤 분마탄",
+  "T. Bunmathan": "티라톤 분마탄",
+  "Chanathip Songkrasin": "차나티프 송끄라신",
+  "C. Songkrasin": "차나티프 송끄라신",
+  "Supachok Sarachat": "수파촉 사라찻",
+  "S. Sarachat": "수파촉 사라찻",
+  "Suphanat Mueanta": "수파낫 무엔타",
+  "S. Mueanta": "수파낫 무엔타",
+  "Sarach Yooyen": "사랏 유옌",
+  // ─── 인도 국가대표·ISL ───
+  "Sunil Chhetri": "수닐 체트리",
+  "S. Chhetri": "수닐 체트리",
+  "Sandesh Jhingan": "산데시 진간",
+  "S. Jhingan": "산데시 진간",
+  "Gurpreet Singh Sandhu": "구르프리트 싱 산두",
+  "Anirudh Thapa": "아니루드 타파",
+  "Manvir Singh": "만비르 싱",
+  "Sahal Abdul Samad": "사할 압둘 사마드",
+  // ─── 인도네시아 ───
+  "Marselino Ferdinan": "마르셀리노 페르디난",
+  "M. Ferdinan": "마르셀리노 페르디난",
+  "Pratama Arhan": "프라타마 아르한",
+  "P. Arhan": "프라타마 아르한",
+  "Egy Maulana Vikri": "에기 마울라나 비크리",
+  // ─── 베트남 ───
+  "Nguyễn Quang Hải": "응우옌 꽝 하이",
+  "Nguyen Quang Hai": "응우옌 꽝 하이",
+  "Quang Hai": "응우옌 꽝 하이",
+  // ─── 우즈베키스탄 (파흐타코르·나사프) ───
+  "Eldor Shomurodov": "엘도르 쇼무로도프",
+  "E. Shomurodov": "엘도르 쇼무로도프",
+  "Abbosbek Fayzullaev": "아보스벡 파이줄라예프",
+  // ─── 사우디·ACL Two ───
+  // (Al-Hilal·Al-Nassr 핵심은 기존 매핑 다수 — Cristiano Ronaldo·Neymar 등)
+  // 추가 ACL Two 무대 인물:
+  "Salem Al-Dawsari": "살렘 알다우사리",
+  "Salem Al Dawsari": "살렘 알다우사리",
+  "S. Al-Dawsari": "살렘 알다우사리",
+
+  // ===== AFC U23 아시안컵 =====
+  // 한국 U-23 — 본 대회 출전 가능성 + 확신 가능한 인물만.
+  "Lee Young-jun": "이영준",
+  "Lee Youngjun": "이영준",
+  "Y. Lee (U23)": "이영준",
+  "Jung Sang-bin": "정상빈",
+  "Jung Sangbin": "정상빈",
+  "Sang-bin Jung": "정상빈",
+  "Hong Yun-sang": "홍윤상",
+  "Hong Yunsang": "홍윤상",
+  "Yun-sang Hong": "홍윤상",
+  "Kang Sung-jin": "강성진",
+  "Kang Sungjin": "강성진",
+  "Sung-jin Kang": "강성진",
+  "Eom Ji-sung": "엄지성",
+  "Eom Jisung": "엄지성",
+  "Ji-sung Eom": "엄지성",
+  "Lee Han-beom": "이한범",
+  "Lee Hanbeom": "이한범",
+  "Han-beom Lee": "이한범",
+
+  // ===== 코파 리베르타도레스 / 수다메리카나 =====
+  // 브라질 세히 A 선수는 기존 매핑 다수 (Vinícius Jr·Rodrygo 는 별개 — 유럽).
+  // 아르헨티나·우루과이·콜롬비아·칠레·에콰도르 핵심.
+  // ─── 아르헨티나 ───
+  "Miguel Borja": "미겔 보르하",
+  "M. Borja": "미겔 보르하",
+  "Sebastián Driussi": "세바스티안 드리우시",
+  "Sebastian Driussi": "세바스티안 드리우시",
+  "S. Driussi": "세바스티안 드리우시",
+  "Maximiliano Salas": "막시밀리아노 살라스",
+  // (Adam Bareiro 는 기존 매핑)
+  "Cristian Medina": "크리스티안 메디나",
+  "Equi Fernández": "에키 페르난데스",
+  "Equi Fernandez": "에키 페르난데스",
+  "Edinson Cavani": "에딘손 카바니",
+  "E. Cavani": "에딘손 카바니",
+  "Carlos Tevez": "카를로스 테베스",
+  "Carlos Tévez": "카를로스 테베스",
+  "Marcos Rojo": "마르코스 로호",
+  "M. Rojo": "마르코스 로호",
+  "Leandro Paredes": "레안드로 파레데스",
+  "L. Paredes": "레안드로 파레데스",
+  "Nahuel Molina": "나우엘 몰리나",
+  // (Cristian Romero 는 기존 매핑)
+  "C. Romero": "크리스티안 로메로",
+  // ─── 우루과이 ───
+  "Luis Suárez (Uruguay)": "루이스 수아레스",
+  "Maxi Gómez": "막시 고메스",
+  "Maxi Gomez": "막시 고메스",
+  "M. Gómez": "막시 고메스",
+  "Diego Forlán": "디에고 포를란",
+  "Diego Forlan": "디에고 포를란",
+  "D. Forlán": "디에고 포를란",
+  "Sebastián Coates": "세바스티안 코아테스",
+  "Sebastian Coates": "세바스티안 코아테스",
+  "Nahitan Nández": "나이탄 난데스",
+  "Nahitan Nandez": "나이탄 난데스",
+  "Diego Godín": "디에고 고딘",
+  "Diego Godin": "디에고 고딘",
+  "Rodrigo Bentancur": "로드리고 벤탕쿠르",
+  "R. Bentancur": "로드리고 벤탕쿠르",
+  // (Darwin Núñez/Nunez 는 기존 매핑)
+  // ─── 콜롬비아 ───
+  "Radamel Falcao": "라다멜 팔카오",
+  "R. Falcao": "라다멜 팔카오",
+  "Falcao García": "라다멜 팔카오",
+  "Juan Cuadrado": "후안 쿠아드라도",
+  "J. Cuadrado": "후안 쿠아드라도",
+  "Diego Valoyes": "디에고 발로예스",
+  "D. Valoyes": "디에고 발로예스",
+  "Jhon Arias": "존 아리아스",
+  "Jhon Córdoba": "존 코르도바",
+  "Jhon Cordoba": "존 코르도바",
+  "David Ospina": "다비드 오스피나",
+  "D. Ospina": "다비드 오스피나",
+  "Wilmar Barrios": "윌마르 바리오스",
+  "Mateus Uribe": "마테우스 우리베",
+  "Luis Fernando Muriel": "루이스 무리엘",
+  "Luis Muriel": "루이스 무리엘",
+  // ─── 칠레 ───
+  "Arturo Vidal": "아르투로 비달",
+  "A. Vidal": "아르투로 비달",
+  "Alexis Sánchez": "알렉시스 산체스",
+  "Alexis Sanchez": "알렉시스 산체스",
+  "A. Sánchez": "알렉시스 산체스",
+  "Claudio Bravo": "클라우디오 브라보",
+  "C. Bravo": "클라우디오 브라보",
+  "Gary Medel": "게리 메델",
+  "G. Medel": "게리 메델",
+  "Eduardo Vargas": "에두아르도 바르가스",
+  "E. Vargas": "에두아르도 바르가스",
+  // ─── 파라과이 ───
+  "Antonio Sanabria": "안토니오 사나브리아",
+  "A. Sanabria": "안토니오 사나브리아",
+  "Miguel Almirón": "미겔 알미론",
+  "Miguel Almiron": "미겔 알미론",
+  "M. Almirón": "미겔 알미론",
+  // ─── 페루 ───
+  "Paolo Guerrero": "파올로 게레로",
+  "P. Guerrero": "파올로 게레로",
+  "Gianluca Lapadula": "잔루카 라파둘라",
+  // ─── 에콰도르 ───
+  "Enner Valencia": "에네르 발렌시아",
+  "E. Valencia": "에네르 발렌시아",
+  // (Moisés/Moises Caicedo 는 기존 매핑)
+  // ─── 브라질 (코파 무대 핵심·기존 매핑 없는 인물) ───
+  "Hulk": "훌크",
+  "Hulk Paraíba": "훌크",
+  "Jonathan Calleri": "조나탄 카예리",
+  "J. Calleri": "조나탄 카예리",
+  "Pedro Raul": "페드루 하울",
+  "Pedro Raúl": "페드루 하울",
 };
 
 const RAW_LOWER: Record<string, string> = Object.fromEntries(
