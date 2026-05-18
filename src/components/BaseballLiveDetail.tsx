@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
@@ -336,7 +336,7 @@ export default function BaseballLiveDetail({
             <TeamLogo url={homeLogo} name={homeNameKo} />
             <div className="text-xs sm:text-sm font-semibold text-neutral-500">
               {homeShort ?? ""}
-              <span className="ml-1" title="홈 팀">🏠</span>
+              <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 ml-1">홈</span>
             </div>
             <div className="font-bold truncate">{homeNameKo}</div>
             {homeStarter && (
@@ -392,7 +392,12 @@ export default function BaseballLiveDetail({
                 win={awayWin || liveAwayLead}
               />
               <ScoreRow
-                label={`🏠 ${homeLabel}`}
+                label={
+                  <>
+                    <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>
+                    {homeLabel}
+                  </>
+                }
                 line={lsHome}
                 innings={innings}
                 currentInning={isLive ? currentInning : null}
@@ -468,7 +473,7 @@ function ScoreRow({
   errors,
   win,
 }: {
-  label: string;
+  label: ReactNode;
   line: (number | null)[];
   innings: number;
   currentInning: number | null;

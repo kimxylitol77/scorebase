@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
@@ -49,7 +49,7 @@ function TeamBlock({
       <TeamLogo url={logo ?? fallbackLogo} name={name} />
       <div className="text-xs sm:text-sm font-semibold text-neutral-500">
         {abbr}
-        {isHome && <span className="ml-1" title="홈 팀">🏠</span>}
+        {isHome && <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 ml-1">홈</span>}
       </div>
       <div className="font-bold truncate">{name}</div>
     </>
@@ -422,7 +422,12 @@ export default function MlbLiveDetail({
                   win={awayWin || liveAwayLead}
                 />
                 <BoxRow
-                  label={`🏠 ${live.homeTeam.abbreviation}`}
+                  label={
+                    <>
+                      <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>
+                      {live.homeTeam.abbreviation}
+                    </>
+                  }
                   line={live.linescore.home}
                   innings={innings}
                   currentInning={isLive ? currentInning : null}
@@ -465,7 +470,7 @@ function BoxRow({
   total,
   win,
 }: {
-  label: string;
+  label: ReactNode;
   line: (number | null)[];
   innings: number;
   currentInning: number | null;

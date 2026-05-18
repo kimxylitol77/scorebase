@@ -1,6 +1,10 @@
-// 일자 슬라이더 — 어제 ~ +5일. 오늘 강조 (cyan 그라데이션).
+"use client";
+
+// 일자 슬라이더 — -5일 ~ +5일 (총 11일). 오늘 강조 (cyan 그라데이션).
+// 선택된 일자 버튼은 마운트 후 자동으로 가로 중앙으로 스크롤된다.
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 interface Props {
   /** 선택된 일자 yyyy-mm-dd */
@@ -22,6 +26,17 @@ export default function DateSlider({
   sport,
   extraQuery = "",
 }: Props) {
+  const activeRef = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    // 선택된 일자 버튼 → 가로 중앙으로 스크롤. 페이지 세로 스크롤은 건드리지 않음.
+    activeRef.current?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [selectedDate]);
+
   const nowKst = new Date(Date.now() + 9 * 3600 * 1000);
   const todayMidUtc = new Date(
     Date.UTC(
@@ -37,8 +52,8 @@ export default function DateSlider({
       className="flex gap-1.5 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 [&::-webkit-scrollbar]:hidden"
       aria-label="일자 슬라이더"
     >
-      {Array.from({ length: 7 }, (_, i) => {
-        const offset = i - 1; // -1 (어제) ~ +5
+      {Array.from({ length: 11 }, (_, i) => {
+        const offset = i - 5; // -5 (5일 전) ~ +5 (5일 후)
         const d = new Date(todayMidUtc.getTime() + offset * 24 * 3600 * 1000);
         const ds = dateQuery(d);
         const isToday = offset === 0;
@@ -56,6 +71,7 @@ export default function DateSlider({
         return (
           <Link
             key={ds}
+            ref={active ? activeRef : undefined}
             href={`/scores?sport=${sport}&date=${ds}${extraQuery}`}
             className={cls}
           >
