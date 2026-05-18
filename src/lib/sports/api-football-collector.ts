@@ -62,6 +62,7 @@ function seasonFor(league: League, date: string): number {
     "BOSNIA_PL", "ALBANIA_SL", "MOLDOVA_SL", // Tier 3 (아일랜드는 봄~가을 → default 분기로 처리)
     "EGYPT_PL", "ISRAEL_PL", "INDIA_ISL", "INDONESIA_L1",
     "UAE_PL", "QATAR_SL", "MOROCCO_BP", "SOUTHAFRICA_PSL", // 아시아·중동·아프리카 (8~5월)
+    "SINGAPORE_PL", // API가 시즌을 시작 연도로 표기 (3월~10월 시즌인데 "2025" 표기)
     "A_LEAGUE", "LIGA_MX", "AFC_CL", "AFC_CL_TWO",
   ];
   if ((european as readonly string[]).includes(league)) {
