@@ -11,7 +11,7 @@ interface SportMeta {
 }
 
 // 모든 리그 묶음 — `all` 처리용 (URL 호환성, sportTab 노출 X)
-const ALL_LEAGUES = [
+export const ALL_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL",
   "UEL", "UECL",

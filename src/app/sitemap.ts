@@ -1,19 +1,13 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
+import { ALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 // 자동 생성되는 sitemap.xml
 // 검색 엔진(Google, 네이버 등)에 사이트 구조를 알려준다.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = SITE_URL;
   const now = new Date();
-
-  const ALL_LEAGUES = [
-    "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
-    "WORLD_CUP",
-    "NBA", "NHL", "MLB", "KBO", "NPB",
-    "LOL",
-  ];
 
   // 정적 페이지
   const staticPages: MetadataRoute.Sitemap = [
