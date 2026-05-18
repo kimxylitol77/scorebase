@@ -3,9 +3,19 @@
 // (다른 컬럼은 빈 cell). home 은 우측 정렬, away 는 좌측 정렬 — 점수 쪽으로 모임.
 
 import type { SoccerGoal } from "@/lib/sports/live-scores";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 interface Props {
   goals: SoccerGoal[];
+}
+
+/** ESPN/api-football scorer 이름 한글화. 미등록은 영문 그대로. */
+function localizeScorer(player: string | null | undefined): string {
+  if (!player) return "—";
+  const trimmed = player.trim();
+  if (!trimmed) return "—";
+  if (/[가-힣]/.test(trimmed)) return trimmed;
+  return toKoreanPlayerName(trimmed) || trimmed;
 }
 
 function icon(g: SoccerGoal): string {
@@ -35,7 +45,7 @@ export default function SoccerGoals({ goals }: Props) {
             className="col-start-1 flex items-center justify-end gap-1.5 truncate"
           >
             <span className="font-medium truncate text-neutral-700 dark:text-neutral-300">
-              {g.player || "—"}
+              {localizeScorer(g.player)}
             </span>
             {g.penaltyKick && (
               <span className="text-[10px] text-neutral-400">PK</span>
@@ -68,7 +78,7 @@ export default function SoccerGoals({ goals }: Props) {
               <span className="text-[10px] text-neutral-400">자책</span>
             )}
             <span className="font-medium truncate text-neutral-700 dark:text-neutral-300">
-              {g.player || "—"}
+              {localizeScorer(g.player)}
             </span>
           </div>
         ),

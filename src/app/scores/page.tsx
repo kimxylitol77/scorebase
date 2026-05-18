@@ -16,6 +16,7 @@ import {
 } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import {
   fetchAllLiveScores,
   fetchBaseballByDate,
@@ -175,15 +176,20 @@ function parseStarter(json: string | null): string | null {
   }
 }
 
-/** NPB 매치의 starter 이름을 한국어로 음역. 다른 리그는 원문 유지.
- *  깨진 변환 (한국어 + 일본 카나 혼합) 감지 시 starter 숨김.
+/** 매치 starter 이름 한글화.
+ *  - NPB: 카나 → 한국어 음역 (npbPlayerToKorean). 한국어 + 카나 혼합 깨짐 감지 시 숨김.
+ *  - MLB/KBO 등: player-names 사전 lookup (toKoreanPlayerName). 미등록은 영문 그대로.
  */
 function localizeStarter(name: string | null, league: string): string | null {
   if (!name) return null;
-  if (league !== "NPB") return name;
-  // 깨진 mid-conversion 결과 — 한국어 + 일본 카나 mix 시 숨김.
-  if (/[가-힣]/.test(name) && /[぀-ゟ゠-ヿ]/.test(name)) return null;
-  return npbPlayerToKorean(name);
+  if (league === "NPB") {
+    // 깨진 mid-conversion 결과 — 한국어 + 일본 카나 mix 시 숨김.
+    if (/[가-힣]/.test(name) && /[぀-ゟ゠-ヿ]/.test(name)) return null;
+    return npbPlayerToKorean(name);
+  }
+  // 이미 한글이면 그대로
+  if (/[가-힣]/.test(name)) return name;
+  return toKoreanPlayerName(name) || name;
 }
 
 /** 카드 linescore 등 좁은 곳의 팀 약칭. shortName 우선, 없으면 한글 첫 단어
