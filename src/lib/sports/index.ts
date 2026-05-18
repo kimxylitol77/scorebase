@@ -105,6 +105,13 @@ export const collectors: Record<League, MatchCollector> = {
   YKKONEN: buildApiFootballCollector("YKKONEN"),
   URVALSDEILD: buildApiFootballCollector("URVALSDEILD"),
   ICELAND_1L: buildApiFootballCollector("ICELAND_1L"),
+  // 남미 추가
+  CHILE_PD: buildApiFootballCollector("CHILE_PD"),
+  CHILE_PB: buildApiFootballCollector("CHILE_PB"),
+  ECUADOR_LP: buildApiFootballCollector("ECUADOR_LP"),
+  COLOMBIA_PA: buildApiFootballCollector("COLOMBIA_PA"),
+  PERU_PD: buildApiFootballCollector("PERU_PD"),
+  VENEZUELA_PD: buildApiFootballCollector("VENEZUELA_PD"),
 };
 
 export {

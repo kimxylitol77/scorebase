@@ -80,6 +80,13 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   YKKONEN: 245, // 핀란드 2부
   URVALSDEILD: 164, // 아이슬란드 1부 (5~9월)
   ICELAND_1L: 165, // 아이슬란드 2부
+  // 남미 추가 (달력 연도 시즌)
+  CHILE_PD: 265, // 칠레 1부
+  CHILE_PB: 266, // 칠레 2부
+  ECUADOR_LP: 242, // 에콰도르 Liga Pro
+  COLOMBIA_PA: 239, // 콜롬비아 1부
+  PERU_PD: 281, // 페루 1부
+  VENEZUELA_PD: 299, // 베네수엘라 1부
 };
 
 interface CacheEntry<T> {

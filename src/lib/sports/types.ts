@@ -83,7 +83,14 @@ export type League =
   | "VEIKKAUSLIIGA" // 핀란드 Veikkausliiga (1부)
   | "YKKONEN" // 핀란드 Ykkönen (2부)
   | "URVALSDEILD" // 아이슬란드 Úrvalsdeild (1부)
-  | "ICELAND_1L"; // 아이슬란드 1. Deild (2부)
+  | "ICELAND_1L" // 아이슬란드 1. Deild (2부)
+  // 남미 추가 (달력 연도 시즌)
+  | "CHILE_PD" // 칠레 Primera División (1부)
+  | "CHILE_PB" // 칠레 Primera B (2부)
+  | "ECUADOR_LP" // 에콰도르 Liga Pro (1부)
+  | "COLOMBIA_PA" // 콜롬비아 Primera A (1부)
+  | "PERU_PD" // 페루 Primera División (1부)
+  | "VENEZUELA_PD"; // 베네수엘라 Primera División (1부)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -152,6 +159,12 @@ export const SOCCER_LEAGUES = [
   "YKKONEN",
   "URVALSDEILD",
   "ICELAND_1L",
+  "CHILE_PD",
+  "CHILE_PB",
+  "ECUADOR_LP",
+  "COLOMBIA_PA",
+  "PERU_PD",
+  "VENEZUELA_PD",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -210,6 +223,12 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "YKKONEN",
   "URVALSDEILD",
   "ICELAND_1L",
+  "CHILE_PD",
+  "CHILE_PB",
+  "ECUADOR_LP",
+  "COLOMBIA_PA",
+  "PERU_PD",
+  "VENEZUELA_PD",
 ];
 
 export type MatchStatus =
