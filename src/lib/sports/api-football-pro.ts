@@ -87,6 +87,19 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   COLOMBIA_PA: 239, // 콜롬비아 1부
   PERU_PD: 281, // 페루 1부
   VENEZUELA_PD: 299, // 베네수엘라 1부
+  // 기타 (아시아·중동·아프리카·북미 보강)
+  EGYPT_PL: 233, // 이집트 1부 (8~5월)
+  ISRAEL_PL: 383, // 이스라엘 Ligat Ha'al (8~5월) — 382는 2부 Liga Leumit
+  INDIA_ISL: 323, // 인도 ISL (9~5월)
+  VIETNAM_VL1: 340, // 베트남 V.League 1
+  INDONESIA_L1: 274, // 인도네시아 Liga 1 (8~5월)
+  SINGAPORE_PL: 368, // 싱가포르 Premier (달력)
+  UAE_PL: 301, // UAE Pro (8~5월)
+  QATAR_SL: 305, // 카타르 Stars (8~5월)
+  MOROCCO_BP: 200, // 모로코 Botola Pro (9~5월)
+  SOUTHAFRICA_PSL: 288, // 남아공 PSL (8~5월)
+  USA_USL_CH: 255, // USL Championship (3~10월)
+  CANADA_PL: 479, // Canadian Premier (4~10월)
 };
 
 interface CacheEntry<T> {

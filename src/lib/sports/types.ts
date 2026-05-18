@@ -90,7 +90,20 @@ export type League =
   | "ECUADOR_LP" // 에콰도르 Liga Pro (1부)
   | "COLOMBIA_PA" // 콜롬비아 Primera A (1부)
   | "PERU_PD" // 페루 Primera División (1부)
-  | "VENEZUELA_PD"; // 베네수엘라 Primera División (1부)
+  | "VENEZUELA_PD" // 베네수엘라 Primera División (1부)
+  // 기타 (아시아·중동·아프리카·북미 보강)
+  | "EGYPT_PL" // 이집트 Premier League (8~5월)
+  | "ISRAEL_PL" // 이스라엘 Ligat Ha'al (8~5월)
+  | "INDIA_ISL" // 인도 ISL (9~5월)
+  | "VIETNAM_VL1" // 베트남 V.League 1 (8~6월, 달력 표기)
+  | "INDONESIA_L1" // 인도네시아 Liga 1 (8~5월)
+  | "SINGAPORE_PL" // 싱가포르 Premier League (달력)
+  | "UAE_PL" // UAE Pro League (8~5월)
+  | "QATAR_SL" // 카타르 Stars League (8~5월)
+  | "MOROCCO_BP" // 모로코 Botola Pro (9~5월)
+  | "SOUTHAFRICA_PSL" // 남아공 PSL (8~5월)
+  | "USA_USL_CH" // USL Championship (3~10월)
+  | "CANADA_PL"; // Canadian Premier League (4~10월)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -165,6 +178,18 @@ export const SOCCER_LEAGUES = [
   "COLOMBIA_PA",
   "PERU_PD",
   "VENEZUELA_PD",
+  "EGYPT_PL",
+  "ISRAEL_PL",
+  "INDIA_ISL",
+  "VIETNAM_VL1",
+  "INDONESIA_L1",
+  "SINGAPORE_PL",
+  "UAE_PL",
+  "QATAR_SL",
+  "MOROCCO_BP",
+  "SOUTHAFRICA_PSL",
+  "USA_USL_CH",
+  "CANADA_PL",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -229,6 +254,18 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "COLOMBIA_PA",
   "PERU_PD",
   "VENEZUELA_PD",
+  "EGYPT_PL",
+  "ISRAEL_PL",
+  "INDIA_ISL",
+  "VIETNAM_VL1",
+  "INDONESIA_L1",
+  "SINGAPORE_PL",
+  "UAE_PL",
+  "QATAR_SL",
+  "MOROCCO_BP",
+  "SOUTHAFRICA_PSL",
+  "USA_USL_CH",
+  "CANADA_PL",
 ];
 
 export type MatchStatus =

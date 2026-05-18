@@ -112,6 +112,19 @@ export const collectors: Record<League, MatchCollector> = {
   COLOMBIA_PA: buildApiFootballCollector("COLOMBIA_PA"),
   PERU_PD: buildApiFootballCollector("PERU_PD"),
   VENEZUELA_PD: buildApiFootballCollector("VENEZUELA_PD"),
+  // 기타 (아시아·중동·아프리카·북미 보강)
+  EGYPT_PL: buildApiFootballCollector("EGYPT_PL"),
+  ISRAEL_PL: buildApiFootballCollector("ISRAEL_PL"),
+  INDIA_ISL: buildApiFootballCollector("INDIA_ISL"),
+  VIETNAM_VL1: buildApiFootballCollector("VIETNAM_VL1"),
+  INDONESIA_L1: buildApiFootballCollector("INDONESIA_L1"),
+  SINGAPORE_PL: buildApiFootballCollector("SINGAPORE_PL"),
+  UAE_PL: buildApiFootballCollector("UAE_PL"),
+  QATAR_SL: buildApiFootballCollector("QATAR_SL"),
+  MOROCCO_BP: buildApiFootballCollector("MOROCCO_BP"),
+  SOUTHAFRICA_PSL: buildApiFootballCollector("SOUTHAFRICA_PSL"),
+  USA_USL_CH: buildApiFootballCollector("USA_USL_CH"),
+  CANADA_PL: buildApiFootballCollector("CANADA_PL"),
 };
 
 export {
