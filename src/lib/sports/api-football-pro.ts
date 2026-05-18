@@ -47,6 +47,14 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   LIGA_MX: 262,
   COPA_LIB: 13,
   COPA_SUD: 11,
+  // 유럽 추가 (8월~5월 시즌)
+  EKSTRAKLASA: 106, // 폴란드 1부
+  POLAND_1L: 107, // 폴란드 2부 (I Liga)
+  BULGARIA_PL: 172, // 불가리아 1부 (First League)
+  LIGA_I: 283, // 루마니아 1부
+  SWISS_SL: 207, // 스위스 1부 (Super League)
+  CHALLENGE_LEAGUE: 208, // 스위스 2부
+  ARMENIA_PL: 342, // 아르메니아 1부
 };
 
 interface CacheEntry<T> {

@@ -50,7 +50,15 @@ export type League =
   | "BRASILEIRAO" // 브라질 세리에 A
   | "LIGA_MX" // 멕시코 리가 MX
   | "COPA_LIB" // CONMEBOL 코파 리베르타도레스
-  | "COPA_SUD"; // CONMEBOL 코파 수다메리카나
+  | "COPA_SUD" // CONMEBOL 코파 수다메리카나
+  // 유럽 + 동유럽 (8월~5월 시즌)
+  | "EKSTRAKLASA" // 폴란드 에크스트라클라사 (1부)
+  | "POLAND_1L" // 폴란드 I Liga (2부)
+  | "BULGARIA_PL" // 불가리아 First League (1부)
+  | "LIGA_I" // 루마니아 Liga I (1부)
+  | "SWISS_SL" // 스위스 슈퍼 리그 (1부)
+  | "CHALLENGE_LEAGUE" // 스위스 챌린지 리그 (2부)
+  | "ARMENIA_PL"; // 아르메니아 Premier League (1부)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -90,6 +98,13 @@ export const SOCCER_LEAGUES = [
   "LIGA_MX",
   "COPA_LIB",
   "COPA_SUD",
+  "EKSTRAKLASA",
+  "POLAND_1L",
+  "BULGARIA_PL",
+  "LIGA_I",
+  "SWISS_SL",
+  "CHALLENGE_LEAGUE",
+  "ARMENIA_PL",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -119,6 +134,13 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "LIGA_MX",
   "COPA_LIB",
   "COPA_SUD",
+  "EKSTRAKLASA",
+  "POLAND_1L",
+  "BULGARIA_PL",
+  "LIGA_I",
+  "SWISS_SL",
+  "CHALLENGE_LEAGUE",
+  "ARMENIA_PL",
 ];
 
 export type MatchStatus =

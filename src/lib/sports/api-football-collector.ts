@@ -56,6 +56,7 @@ function seasonFor(league: League, date: string): number {
     "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
     "SAUDI_PL",
     "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
+    "EKSTRAKLASA", "POLAND_1L", "BULGARIA_PL", "LIGA_I", "SWISS_SL", "CHALLENGE_LEAGUE", "ARMENIA_PL",
     "A_LEAGUE", "LIGA_MX", "AFC_CL", "AFC_CL_TWO",
   ];
   if ((european as readonly string[]).includes(league)) {
