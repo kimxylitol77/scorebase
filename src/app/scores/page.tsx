@@ -724,7 +724,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       )}
 
       {/* 헤더 */}
-      <header className="flex items-end justify-between gap-3">
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
             라이브 스코어
@@ -1017,8 +1017,8 @@ function SoccerRowLayout({
 
       {/* 데스크탑 — named.com 스타일 row table */}
       <div className="hidden md:block rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-x-auto">
-        {/* 하단 pb-32 — 마지막 row 의 GoalsTooltip (점수 hover 시 양 팀 골 list) 가 컨테이너 끝에서 잘리지 않게 ~3행 분량 여백 확보 */}
-        <div className="min-w-[860px] px-4 pt-1 pb-32">
+        {/* 하단 pb-16 — 마지막 row 의 GoalsTooltip (점수 hover 시 양 팀 골 list) 가 컨테이너 끝에서 잘리지 않게 여백 확보 */}
+        <div className="min-w-[860px] px-4 pt-1 pb-16">
           <SoccerLiveRowHeader />
           {liveList.length > 0 && (
             <>

@@ -172,7 +172,7 @@ function TeamRow({
       <span
         className={`tabular-nums text-[15px] font-black min-w-[20px] text-right ${
           highlight
-            ? "px-1 rounded ring-2 ring-cyan-400 bg-cyan-100/40 dark:bg-cyan-500/15 animate-pulse"
+            ? "px-1 rounded ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse"
             : ""
         } ${
           win

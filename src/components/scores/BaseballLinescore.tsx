@@ -1,6 +1,8 @@
 // 매치 카드 안에 들어가는 컴팩트 이닝별 점수 표 (1~9 + R H E).
 // SoccerMiniBoard / EsportsMiniBoard 와 같은 위치 (카드 하단 mini board 영역).
 
+import type { ReactNode } from "react";
+
 export interface BaseballLinescoreData {
   awayInnings: (number | null)[];
   homeInnings: (number | null)[];
@@ -55,7 +57,12 @@ export default function BaseballLinescore({ data }: Props) {
             e={data.awayErrors}
           />
           <Row
-            label={`🏠 ${data.homeLabel}`}
+            label={
+              <>
+                <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>
+                {data.homeLabel}
+              </>
+            }
             line={data.homeInnings}
             innings={innings}
             r={data.homeScore}
@@ -76,7 +83,7 @@ function Row({
   h,
   e,
 }: {
-  label: string;
+  label: ReactNode;
   line: (number | null)[];
   innings: number;
   r: number;

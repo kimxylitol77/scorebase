@@ -149,7 +149,13 @@ function StarterPanel({
     return (
       <div className="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-3 py-3 text-sm">
         <div className="text-[11px] text-neutral-500">
-          {side === "홈" ? "🏠 홈" : "원정"} · {teamName}
+          {side === "홈" ? (
+            <>
+              <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>홈
+            </>
+          ) : (
+            "원정"
+          )} · {teamName}
         </div>
         <div className="mt-1 text-neutral-400">선발 미정</div>
       </div>
@@ -184,7 +190,13 @@ function StarterPanel({
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between text-[11px] text-neutral-500">
             <span className="truncate">
-              {side === "홈" ? "🏠 홈" : "원정"} · {teamName}
+              {side === "홈" ? (
+                <>
+                  <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>홈
+                </>
+              ) : (
+                "원정"
+              )} · {teamName}
             </span>
             {handLabel && <span className="shrink-0">{handLabel}</span>}
           </div>
