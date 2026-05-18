@@ -17,6 +17,7 @@ import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
 
 export const dynamic = "force-dynamic";
@@ -344,11 +345,14 @@ export default async function LeaguePredictions({ params }: Props) {
   const leaderRowsByCategory: Record<string, LeaderRow[]> = {};
   for (const r of leaderRowsRaw) {
     if (!leaderRowsByCategory[r.category]) leaderRowsByCategory[r.category] = [];
+    // 한글 변환 — DB 에 영문으로 들어와 있는 행은 사전 lookup. 이미 한글이면 그대로.
+    const localizedPlayer = toKoreanPlayerName(r.playerName);
+    const localizedTeam = toKoreanTeamName(r.teamName);
     leaderRowsByCategory[r.category].push({
       rank: r.rank,
-      playerName: r.playerName,
-      playerNameEn: r.playerNameEn,
-      teamName: r.teamName,
+      playerName: localizedPlayer,
+      playerNameEn: r.playerNameEn ?? r.playerName,
+      teamName: localizedTeam,
       teamShort: r.teamShort,
       value: r.value,
       unit: r.unit,

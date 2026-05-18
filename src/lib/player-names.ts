@@ -673,6 +673,57 @@ const RAW: Record<string, string> = {
   "Wes Parsons": "웨스 파슨스",
   "Yoenis Cespedes": "요에니스 세스페데스",
   "Daniel Mengden": "다니엘 멩든",
+
+  // ===== MLB Season Leaderboard (BA / HR / RBI / ERA / WIN / K) =====
+  // /predictions/MLB 시즌 리더보드 영문 노출 fix. 한국 미디어 통용 표기.
+  // 이미 위쪽에 등록된 인물 (Imanaga·Sasaki·Lindor·Olson·Riley·Suárez·deGrom·Kershaw·Morton 등) 은 중복 방지로 skip.
+  // BA TOP 10 (요르단 알바레스 제외 9명)
+  "Otto Lopez": "오토 로페스",
+  "Otto López": "오토 로페스",
+  "Ildemaro Vargas": "일데마로 바르가스",
+  "Shea Langeliers": "셰아 랭글리어스",
+  "Brandon Marsh": "브랜던 마시",
+  "Riley Greene": "라일리 그린",
+  "Nick Gonzales": "닉 곤잘레스",
+  "Xavier Edwards": "자비에르 에드워즈",
+  "Luis Arraez": "루이스 아라에스",
+  "Luis Arráez": "루이스 아라에스",
+  "Troy Johnston": "트로이 존스턴",
+  // 타자 (HR / RBI 후보)
+  "Kyle Schwarber": "카일 슈와버",
+  "Vladimir Guerrero": "블라디미르 게레로 주니어",
+  "Cal Raleigh": "칼 롤리",
+  "Eugenio Suárez": "에우헤니오 수아레스",
+  "Eugenio Suarez": "에우헤니오 수아레스",
+  "Adolis García": "아돌리스 가르시아",
+  "Adolis Garcia": "아돌리스 가르시아",
+  "Salvador Perez": "살바도르 페레스",
+  "Salvador Pérez": "살바도르 페레스",
+  "Marcell Ozuna": "마르셀 오수나",
+  "Jose Altuve": "호세 알투베",
+  "José Altuve": "호세 알투베",
+  "Corey Seager": "코리 시거",
+  "Anthony Santander": "앤서니 산탄데르",
+  "Brent Rooker": "브렌트 루커",
+  "Willy Adames": "윌리 아다메스",
+  "Ketel Marte": "케텔 마르테",
+  "Christian Walker": "크리스천 워커",
+  "Christian Yelich": "크리스천 옐리치",
+  "Ronald Acuña": "로날드 아쿠냐 주니어",
+  "Ronald Acuna": "로날드 아쿠냐 주니어",
+  "Bryan Reynolds": "브라이언 레이놀즈",
+  "Ozzie Albies": "오지 알비스",
+  "Wyatt Langford": "와이엇 랭포드",
+  "Jackson Merrill": "잭슨 메릴",
+  "Jackson Holliday": "잭슨 할리데이",
+  "James Wood": "제임스 우드",
+  // 투수 (ERA / WIN / K 추가)
+  "Hunter Greene": "헌터 그린",
+  "Carlos Rodón": "카를로스 로돈",
+  "Carlos Rodon": "카를로스 로돈",
+  "MacKenzie Gore": "매켄지 고어",
+  "Christopher Sánchez": "크리스토퍼 산체스",
+  "Christopher Sanchez": "크리스토퍼 산체스",
 };
 
 const RAW_LOWER: Record<string, string> = Object.fromEntries(
