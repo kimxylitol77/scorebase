@@ -69,7 +69,12 @@ export type League =
   | "SLOVAKIA_SL" // 슬로바키아 Super Liga (1부)
   | "SLOVENIA_SNL" // 슬로베니아 1. SNL (1부)
   | "CYPRUS_1D" // 키프로스 1. Division (1부)
-  | "DENMARK_SL"; // 덴마크 Superliga (1부)
+  | "DENMARK_SL" // 덴마크 Superliga (1부)
+  // 유럽 Tier 3 추가
+  | "IRELAND_PD" // 아일랜드 Premier Division (1부, 2~11월 봄~가을)
+  | "BOSNIA_PL" // 보스니아 Premijer Liga (1부, 8~5월)
+  | "ALBANIA_SL" // 알바니아 Superliga (1부, 8~5월)
+  | "MOLDOVA_SL"; // 몰도바 Super Liga (1부, 8~5월)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -126,6 +131,10 @@ export const SOCCER_LEAGUES = [
   "SLOVENIA_SNL",
   "CYPRUS_1D",
   "DENMARK_SL",
+  "IRELAND_PD",
+  "BOSNIA_PL",
+  "ALBANIA_SL",
+  "MOLDOVA_SL",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -172,6 +181,10 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "SLOVENIA_SNL",
   "CYPRUS_1D",
   "DENMARK_SL",
+  "IRELAND_PD",
+  "BOSNIA_PL",
+  "ALBANIA_SL",
+  "MOLDOVA_SL",
 ];
 
 export type MatchStatus =

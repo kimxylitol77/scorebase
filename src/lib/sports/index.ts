@@ -91,6 +91,11 @@ export const collectors: Record<League, MatchCollector> = {
   SLOVENIA_SNL: buildApiFootballCollector("SLOVENIA_SNL"),
   CYPRUS_1D: buildApiFootballCollector("CYPRUS_1D"),
   DENMARK_SL: buildApiFootballCollector("DENMARK_SL"),
+  // 유럽 Tier 3
+  IRELAND_PD: buildApiFootballCollector("IRELAND_PD"),
+  BOSNIA_PL: buildApiFootballCollector("BOSNIA_PL"),
+  ALBANIA_SL: buildApiFootballCollector("ALBANIA_SL"),
+  MOLDOVA_SL: buildApiFootballCollector("MOLDOVA_SL"),
 };
 
 export {

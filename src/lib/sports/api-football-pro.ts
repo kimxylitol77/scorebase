@@ -66,6 +66,11 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   SLOVENIA_SNL: 373, // 슬로베니아 1. SNL
   CYPRUS_1D: 318, // 키프로스 1부
   DENMARK_SL: 119, // 덴마크 슈페르리가
+  // 유럽 Tier 3
+  IRELAND_PD: 357, // 아일랜드 Premier Division (2~11월 봄~가을)
+  BOSNIA_PL: 315, // 보스니아 Premijer Liga (8~5월)
+  ALBANIA_SL: 310, // 알바니아 Superliga (8~5월)
+  MOLDOVA_SL: 394, // 몰도바 Super Liga (8~5월)
 };
 
 interface CacheEntry<T> {

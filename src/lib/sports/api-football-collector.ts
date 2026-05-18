@@ -59,6 +59,7 @@ function seasonFor(league: League, date: string): number {
     "EKSTRAKLASA", "POLAND_1L", "BULGARIA_PL", "LIGA_I", "SWISS_SL", "CHALLENGE_LEAGUE", "ARMENIA_PL",
     "AUSTRIA_BL", "CZECH_L", "HNL", "UKRAINE_PL", "HUNGARY_NB1",
     "SERBIA_SL", "SLOVAKIA_SL", "SLOVENIA_SNL", "CYPRUS_1D", "DENMARK_SL",
+    "BOSNIA_PL", "ALBANIA_SL", "MOLDOVA_SL", // Tier 3 (아일랜드는 봄~가을 → default 분기로 처리)
     "A_LEAGUE", "LIGA_MX", "AFC_CL", "AFC_CL_TWO",
   ];
   if ((european as readonly string[]).includes(league)) {
