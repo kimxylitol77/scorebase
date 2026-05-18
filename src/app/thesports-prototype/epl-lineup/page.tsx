@@ -71,15 +71,15 @@ export default async function EPLLineupPage() {
 
       {r && (
         <>
-          <div className="flex items-center justify-around mb-4 py-3 bg-neutral-100 rounded">
+          <div className="flex items-center justify-around mb-4 py-4 bg-neutral-100 dark:bg-neutral-800 rounded">
             <div className="text-center">
-              <div className="text-xs uppercase text-neutral-500">HOME</div>
-              <div className="text-2xl font-bold">{r.home_formation || "—"}</div>
+              <div className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1">HOME</div>
+              <div className="text-3xl font-black text-neutral-900 dark:text-white">{r.home_formation || "—"}</div>
             </div>
-            <div className="text-sm text-neutral-400">VS</div>
+            <div className="text-base font-bold text-neutral-400 dark:text-neutral-500">VS</div>
             <div className="text-center">
-              <div className="text-xs uppercase text-neutral-500">AWAY</div>
-              <div className="text-2xl font-bold">{r.away_formation || "—"}</div>
+              <div className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1">AWAY</div>
+              <div className="text-3xl font-black text-neutral-900 dark:text-white">{r.away_formation || "—"}</div>
             </div>
           </div>
 
