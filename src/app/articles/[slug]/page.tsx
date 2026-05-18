@@ -186,28 +186,8 @@ const MATCH_DURATION_MIN: Record<string, number> = {
   LOL: 180, // BO3 시리즈 평균 약 3시간 (Bo5는 더 길지만 정규시즌은 Bo3)
 };
 
-// 리그별 홈 국가/지역 + 대표 도시 — Place location 보강용.
-// Google Rich Results 의 SportsEvent 검증이 location.address 의 addressLocality 를
-// 도시명으로 기대하기 때문에, raw 에 venue.city 가 없으면 리그 대표 도시 사용.
-const LEAGUE_COUNTRY: Record<
-  string,
-  { name: string; code: string; defaultCity: string }
-> = {
-  EPL:        { name: "England",      code: "GB", defaultCity: "London" },
-  LALIGA:     { name: "Spain",        code: "ES", defaultCity: "Madrid" },
-  BUNDESLIGA: { name: "Germany",      code: "DE", defaultCity: "Berlin" },
-  SERIE_A:    { name: "Italy",        code: "IT", defaultCity: "Rome" },
-  LIGUE_1:    { name: "France",       code: "FR", defaultCity: "Paris" },
-  MLS:        { name: "United States", code: "US", defaultCity: "New York" },
-  UCL:        { name: "Europe",       code: "EU", defaultCity: "London" },
-  WORLD_CUP:  { name: "USA / Canada / Mexico", code: "US", defaultCity: "New York" },
-  NBA:        { name: "United States", code: "US", defaultCity: "New York" },
-  NHL:        { name: "United States", code: "US", defaultCity: "New York" },
-  MLB:        { name: "United States", code: "US", defaultCity: "New York" },
-  KBO:        { name: "South Korea",  code: "KR", defaultCity: "Seoul" },
-  NPB:        { name: "Japan",        code: "JP", defaultCity: "Tokyo" },
-  LOL:        { name: "South Korea",  code: "KR", defaultCity: "Seoul" },
-};
+// 리그별 country/city 매핑 + location 빌더는 공통 helper 로 이동.
+import { LEAGUE_COUNTRY, buildSportsEventLocation } from "@/lib/seo/sports-event-location";
 
 interface MatchForEvent {
   homeTeam: { name: string };
@@ -235,23 +215,6 @@ function buildSportsEventJsonLd(opts: {
   const end = new Date(start.getTime() + durationMin * 60 * 1000);
   const country = LEAGUE_COUNTRY[league];
 
-  // 매치 raw JSON 안에 venue 정보가 있으면 추출 (api-football / api-baseball 등)
-  let venueName: string | undefined;
-  let venueCity: string | undefined;
-  if (match.raw) {
-    try {
-      const r = JSON.parse(match.raw);
-      // api-football: fixture.venue.{name, city}
-      // api-baseball: 보통 없음
-      // football-data: 매치 객체에 venue (string)
-      venueName =
-        r?.fixture?.venue?.name ??
-        r?.venue?.name ??
-        (typeof r?.venue === "string" ? r.venue : undefined);
-      venueCity = r?.fixture?.venue?.city ?? r?.venue?.city;
-    } catch {}
-  }
-
   return {
     "@context": "https://schema.org",
     "@type": "SportsEvent",
@@ -268,16 +231,7 @@ function buildSportsEventJsonLd(opts: {
           : "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     sport: league,
-    location: {
-      "@type": "Place",
-      name: venueName ?? `${home} Home Stadium`,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: venueName ?? `${home} Home Stadium`,
-        addressLocality: venueCity ?? country?.defaultCity ?? "Unknown",
-        addressCountry: country?.code ?? "US",
-      },
-    },
+    location: buildSportsEventLocation({ league, homeName: home, rawMatch: match.raw }),
     homeTeam: { "@type": "SportsTeam", name: home },
     awayTeam: { "@type": "SportsTeam", name: away },
     competitor: [

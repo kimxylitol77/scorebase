@@ -17,6 +17,7 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { buildSportsEventLocation } from "@/lib/seo/sports-event-location";
 import {
   fetchAllLiveScores,
   fetchBaseballByDate,
@@ -708,6 +709,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         name: `${m.away.name} vs ${m.home.name}`,
         startDate: m.startTime.toISOString(),
         sport: SPORT_NAMES_EN[m.sport] ?? "Sports",
+        location: buildSportsEventLocation({ league: m.league, homeName: m.home.name }),
         homeTeam: { "@type": "SportsTeam", name: m.home.name },
         awayTeam: { "@type": "SportsTeam", name: m.away.name },
         ...(m.href ? { url: `${SITE_URL}${m.href}` } : {}),
