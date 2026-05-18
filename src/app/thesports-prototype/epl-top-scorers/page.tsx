@@ -23,13 +23,7 @@ export default async function EPLTopScorersPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <header className="mb-6">
-        <h1 className="text-3xl font-black tracking-tight">EPL 득점왕 (TheSports prototype)</h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          데이터 소스: TheSports.com /v1/football/season/recent/shooter/stat
-        </p>
-        <p className="text-xs text-neutral-400 mt-1">
-          ⚠️ Trial 검증용. Production 사용 시 fixed IP worker 필수.
-        </p>
+        <h1 className="text-3xl font-black tracking-tight">EPL 득점왕</h1>
       </header>
 
       {error && (
