@@ -1073,6 +1073,58 @@ const RAW: Record<string, string> = {
   "Vasco": "바스쿠 다 가마",
   "CR Vasco da Gama": "바스쿠 다 가마",
   "Santos FC": "산투스",
+
+  // ===== 신규 누락 보강 (2026-05 사용자 보고) =====
+  // LaLiga / LaLiga 2 — 액센트 변형 + 승강 팀
+  "Alavés": "알라베스",
+  "Alaves": "알라베스",
+  "Deportivo Alavés": "알라베스",
+  "Deportivo Alaves": "알라베스",
+  "Sporting Gijon": "스포르팅 히혼",
+  "Sporting Gijón": "스포르팅 히혼",
+  "Sporting de Gijón": "스포르팅 히혼",
+  "Real Sporting": "스포르팅 히혼",
+  "Zaragoza": "사라고사",
+  "Real Zaragoza": "사라고사",
+
+  // 쉬페르 리그 (터키)
+  "Kocaelispor": "코자엘리스포르",
+  "Gençlerbirliği": "겐체르비를리이",
+  "Gençlerbirliği S.K.": "겐체르비를리이",
+  "Genclerbirligi": "겐체르비를리이",
+  "Eyüpspor": "에위프스포르",
+
+  // Serie B (이탈리아 2부)
+  "Palermo": "팔레르모",
+  "Palermo FC": "팔레르모",
+  "Catanzaro": "카탄차로",
+  "US Catanzaro": "카탄차로",
+
+  // Brasileirao 변형 / 누락
+  "Atletico Paranaense": "아틀레치쿠 파라나엔시",
+  "Club Athletico Paranaense": "아틀레치쿠 파라나엔시",
+  "Chapecoense": "샤페코엔시",
+  "Chapecoense-sc": "샤페코엔시",
+  "Associação Chapecoense de Futebol": "샤페코엔시",
+  "Remo": "헤모",
+  "Clube do Remo": "헤모",
+
+  // Liga MX 변형 (기존 매핑에 alias 추가)
+  "CF Pachuca": "파추카",
+  "Club Pachuca": "파추카",
+  "U.N.A.M. - Pumas": "푸마스",
+  "UNAM Pumas": "푸마스",
+  "Club Universidad Nacional": "푸마스",
+  "América": "클루브 아메리카",
+  "CF Monterrey": "몬테레이",
+  "Deportivo Toluca": "톨루카",
+  "Club Tijuana": "티후아나",
+  "Atlas FC": "아틀라스",
+  "Club León": "레온",
+  "Club Necaxa": "네카사",
+  "Mazatlan FC": "마사틀란",
+  "Club Puebla": "푸에블라",
+  "Juárez": "후아레스",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.

@@ -2,6 +2,8 @@
 // 가운데 분 표시, away 왼쪽 / home 오른쪽 분할.
 // 최신 이벤트가 상단.
 
+import { toKoreanPlayerName } from "@/lib/player-names";
+
 interface SoccerEvent {
   minute: number;
   extra: number;
@@ -10,6 +12,15 @@ interface SoccerEvent {
   side: "home" | "away";
   playerName: string | null;
   assistName: string | null;
+}
+
+/** 한글이면 그대로, 영문이면 사전 lookup. 미등록은 영문 fallback. */
+function localizeName(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+  if (/[가-힣]/.test(trimmed)) return trimmed;
+  return toKoreanPlayerName(trimmed) || trimmed;
 }
 
 interface Props {
@@ -71,16 +82,18 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo }:
       <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
         {events.map((ev, i) => {
           const meta = iconAndLabel(ev);
-          const playerStr = `${meta.icon} ${shortName(ev.playerName)}${
-            ev.type === "subst" && ev.assistName
-              ? ` ↔ ${shortName(ev.assistName)}`
+          const playerKo = localizeName(ev.playerName);
+          const assistKo = localizeName(ev.assistName);
+          const playerStr = `${meta.icon} ${shortName(playerKo)}${
+            ev.type === "subst" && assistKo
+              ? ` ↔ ${shortName(assistKo)}`
               : ""
           }`;
           const detail = (
             <div className={`text-[11px] ${meta.color} font-medium leading-tight`}>
               {meta.label}
-              {ev.assistName && ev.type === "goal" && (
-                <span className="text-neutral-400"> · 어시 {shortName(ev.assistName)}</span>
+              {assistKo && ev.type === "goal" && (
+                <span className="text-neutral-400"> · 어시 {shortName(assistKo)}</span>
               )}
             </div>
           );
