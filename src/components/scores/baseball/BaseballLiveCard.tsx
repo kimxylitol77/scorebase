@@ -251,13 +251,16 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         </div>
       )}
 
-      {/* 이닝 박스 (LIVE/종료) */}
+      {/* 이닝 박스 (LIVE/종료) — 모바일: 스크롤바 숨김 + min-w 제거 */}
       {ls && (isLive || isFinished) && (
-        <div className="overflow-x-auto -mx-1 px-1">
-          <table className="text-[11px] sm:text-xs w-full min-w-[360px]">
+        <div
+          className="overflow-x-auto -mx-1 px-1 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none" }}
+        >
+          <table className="text-[11px] sm:text-xs w-full sm:min-w-[360px]">
             <thead>
               <tr className="text-neutral-500">
-                <th className="text-left font-semibold py-1 pr-2 w-10">팀</th>
+                <th className="text-left font-semibold py-1 pr-1.5 sm:pr-2 w-9 sm:w-10">팀</th>
                 {inningIdx.map((i) => {
                   const isCurrent = isLive && inning != null && i + 1 === inning;
                   return (
@@ -273,11 +276,11 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
                     </th>
                   );
                 })}
-                <th className="text-center font-bold py-1 pl-2 pr-1 tabular-nums text-neutral-200">
+                <th className="text-center font-bold py-1 pl-1.5 sm:pl-2 pr-0.5 sm:pr-1 tabular-nums text-neutral-200">
                   R
                 </th>
-                <th className="text-center font-semibold py-1 px-1 tabular-nums">H</th>
-                <th className="text-center font-semibold py-1 pl-1 tabular-nums">E</th>
+                <th className="text-center font-semibold py-1 px-0.5 sm:px-1 tabular-nums">H</th>
+                <th className="text-center font-semibold py-1 pl-0.5 sm:pl-1 tabular-nums">E</th>
               </tr>
             </thead>
             <tbody>
@@ -364,7 +367,7 @@ function BoxRow({
 }) {
   return (
     <tr>
-      <td className="py-1 pr-2 font-bold text-neutral-300 whitespace-nowrap">
+      <td className="py-1 pr-1.5 sm:pr-2 font-bold text-neutral-300 whitespace-nowrap">
         {label}
       </td>
       {Array.from({ length: innings }, (_, i) => {
@@ -385,7 +388,7 @@ function BoxRow({
         );
       })}
       <td
-        className="text-center font-black py-1 pl-2 pr-1 tabular-nums"
+        className="text-center font-black py-1 pl-1.5 sm:pl-2 pr-0.5 sm:pr-1 tabular-nums"
         style={{
           color: win ? "#22c55e" : "#cbd5e1",
           textShadow: win ? "0 0 8px rgba(34,197,94,.45)" : "none",
@@ -393,10 +396,10 @@ function BoxRow({
       >
         {r}
       </td>
-      <td className="text-center py-1 px-1 tabular-nums text-neutral-400">
+      <td className="text-center py-1 px-0.5 sm:px-1 tabular-nums text-neutral-400">
         {h ?? "-"}
       </td>
-      <td className="text-center py-1 pl-1 tabular-nums text-neutral-400">
+      <td className="text-center py-1 pl-0.5 sm:pl-1 tabular-nums text-neutral-400">
         {e ?? "-"}
       </td>
     </tr>
