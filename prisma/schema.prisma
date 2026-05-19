@@ -257,3 +257,14 @@ model TheSportsMatchCache {
 
   @@index([tsMatchId])
 }
+
+/// TheSports season/recent/table/detail 응답을 league별로 캐싱.
+/// Lightsail worker 가 1시간 주기로 POST /api/internal/thesports-standings 로 갱신.
+/// Vercel serverless IP 가 ts whitelist 미포함이라 page server-side fetch 불가 → DB 우회.
+model TheSportsStandingsCache {
+  league      String   @id              // 우리 league code (EPL, LALIGA, ...)
+  tsSeasonId  String                    // ts season uuid
+  payload     Json                      // {promotions, tables} — TSFootballSeasonStandingsResponse.results
+  fetchedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

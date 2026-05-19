@@ -1,42 +1,27 @@
-// /standings/[league] 페이지에서 ts 시즌 순위표 사용.
+// /standings/[league] 페이지가 사용하는 ts 시즌 순위표 helper.
 //
-// 1) league-id-mapping.json 에서 league code → tsSeasonId 조회
-// 2) season/recent/table/detail?uuid={season_id} fetch
-// 3) team-id-mapping.json 으로 ts_team_id → 우리 DB team.id 역매핑
-// 4) 미매핑된 ts 팀 제거 (외국인 wildcard 등 가짜 row)
+// 흐름:
+//   1) Lightsail worker (standings-poller.js) 가 1시간 주기로 78개 리그 ts API fetch
+//   2) POST /api/internal/thesports-standings → TheSportsStandingsCache row upsert
+//   3) 이 helper 가 cache row 조회 → 우리 team.id 역매핑 후 반환
 //
-// IP whitelist: Vercel serverless 동적 IP 차단 → Lightsail worker 가 1시간마다
-// /api/internal/thesports-standings POST 로 push 하는 방식이 production 안전.
-// (이번 commit 은 server-side 호출 — production 가능 여부는 Vercel egress IP 확인 후 결정.)
+// Vercel serverless IP 는 ts whitelist 미포함 → 직접 fetch 불가, 반드시 DB cache 경유.
+//
+// cache miss 또는 stale (4h+) 시 null 반환 → caller (page) 가 DB-from-matches calcStandings fallback.
 
 import { readFileSync } from "fs";
 import path from "path";
-import { fetchFootballSeasonStandings } from "./client";
+import { prisma } from "@/lib/db";
 import type { TSFootballStandingsRow, TSFootballSeasonStandingsResponse } from "./football-types";
 
-interface LeagueMap {
-  code: string;
-  tsId: string;
-  tsSeasonId?: string;
-}
 interface TeamMap {
   ourId: number;
   tsId: string;
 }
 
-let cachedLeagueMap: Map<string, string> | null = null; // league_code → tsSeasonId
-let cachedReverseTeamMap: Map<string, number> | null = null; // tsTeamId → ourId
+const STALE_AFTER_MS = 4 * 60 * 60 * 1000; // 4 hours
 
-function loadLeagueMap(): Map<string, string> {
-  if (cachedLeagueMap) return cachedLeagueMap;
-  const file = path.join(process.cwd(), "src/lib/sports/thesports/league-id-mapping.json");
-  const leagues: LeagueMap[] = JSON.parse(readFileSync(file, "utf-8"));
-  cachedLeagueMap = new Map();
-  for (const l of leagues) {
-    if (l.tsSeasonId) cachedLeagueMap.set(l.code, l.tsSeasonId);
-  }
-  return cachedLeagueMap;
-}
+let cachedReverseTeamMap: Map<string, number> | null = null;
 
 function loadReverseTeamMap(): Map<string, number> {
   if (cachedReverseTeamMap) return cachedReverseTeamMap;
@@ -61,37 +46,48 @@ export interface MappedStandings {
     stage_id: string;
     rows: MappedStandingsRow[];
   }>;
+  /** worker 마지막 갱신 시각 (UI 표시용) */
+  fetchedAt: Date;
 }
 
 /**
- * league_code 의 ts 시즌 순위표 → 우리 team.id 매핑된 형태로 반환.
- * @returns null 이면 ts standing 없음 (tsSeasonId 미매핑 or fetch 실패) → caller 가 fallback (DB calc) 사용.
+ * Lightsail worker 가 push 한 cache row 에서 ts 순위표 → 우리 team.id 매핑된 형태로 반환.
+ * @returns null = cache miss / stale / DB 오류 → caller 가 calcStandings fallback
  */
 export async function fetchStandingsForLeague(leagueCode: string): Promise<MappedStandings | null> {
-  const seasonId = loadLeagueMap().get(leagueCode);
-  if (!seasonId) return null;
-
-  let resp: TSFootballSeasonStandingsResponse;
+  let row: { tsSeasonId: string; payload: unknown; updatedAt: Date } | null;
   try {
-    resp = await fetchFootballSeasonStandings(seasonId);
+    row = await prisma.theSportsStandingsCache.findUnique({
+      where: { league: leagueCode },
+      select: { tsSeasonId: true, payload: true, updatedAt: true },
+    });
   } catch (e) {
-    console.warn(`[ts-standings] ${leagueCode} fetch fail: ${(e as Error).message}`);
+    console.warn(`[ts-standings] DB read fail (${leagueCode}): ${(e as Error).message}`);
     return null;
   }
+  if (!row) return null;
+
+  // stale 체크 (4h+) — worker 죽었거나 오프시즌이면 fallback
+  const ageMs = Date.now() - row.updatedAt.getTime();
+  if (ageMs > STALE_AFTER_MS) return null;
+
+  const payload = row.payload as TSFootballSeasonStandingsResponse["results"];
+  if (!payload?.tables) return null;
 
   const reverseTeam = loadReverseTeamMap();
-  const tables = (resp.results.tables ?? []).map((t) => ({
+  const tables = (payload.tables ?? []).map((t) => ({
     id: t.id,
     conference: t.conference,
     group: t.group,
     stage_id: t.stage_id,
-    rows: (t.rows ?? []).map((r) => ({
+    rows: (t.rows ?? []).map((r: TSFootballStandingsRow) => ({
       ...r,
       ourTeamId: reverseTeam.get(r.team_id) ?? null,
     })),
   }));
   return {
-    promotions: resp.results.promotions ?? [],
+    promotions: payload.promotions ?? [],
     tables,
+    fetchedAt: row.updatedAt,
   };
 }

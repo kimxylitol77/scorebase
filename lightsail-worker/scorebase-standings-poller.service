@@ -1,0 +1,16 @@
+[Unit]
+Description=Scorebase TheSports Football Season Standings Poller (1h)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/standings-poller.js
+Restart=always
+RestartSec=30
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/standings-poller.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/standings-poller.err
+
+[Install]
+WantedBy=multi-user.target
