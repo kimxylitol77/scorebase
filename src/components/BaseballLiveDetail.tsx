@@ -452,16 +452,17 @@ export default function BaseballLiveDetail({
           />
           {(live.liveContext.good != null || live.liveContext.bad != null) && (
             <div className="flex items-center gap-3 text-xs text-neutral-300">
-              {live.liveContext.bad != null && (
-                <span>
-                  <span className="text-neutral-500 mr-1">S</span>
-                  <span className="tabular-nums font-bold">{live.liveContext.bad}</span>
-                </span>
-              )}
+              {/* TheSports 공식 문서: good=Strikes, bad=Non-Strikes(Balls) */}
               {live.liveContext.good != null && (
                 <span>
-                  <span className="text-neutral-500 mr-1">B</span>
+                  <span className="text-neutral-500 mr-1">S</span>
                   <span className="tabular-nums font-bold">{live.liveContext.good}</span>
+                </span>
+              )}
+              {live.liveContext.bad != null && (
+                <span>
+                  <span className="text-neutral-500 mr-1">B</span>
+                  <span className="tabular-nums font-bold">{live.liveContext.bad}</span>
                 </span>
               )}
             </div>
