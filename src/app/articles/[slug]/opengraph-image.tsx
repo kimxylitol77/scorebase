@@ -6,28 +6,14 @@
 
 import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs"; // Prisma 직접 호출 위해 nodejs (edge 도 가능하지만 Neon adapter 필요)
 export const alt = "Scorebase";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const LEAGUE_LABEL: Record<string, string> = {
-  EPL: "프리미어리그",
-  LALIGA: "라리가",
-  BUNDESLIGA: "분데스리가",
-  SERIE_A: "세리에 A",
-  LIGUE_1: "리그 1",
-  MLS: "MLS",
-  UCL: "챔피언스리그",
-  WORLD_CUP: "FIFA 월드컵 2026",
-  KBO: "KBO 리그",
-  NPB: "NPB 일본프로야구",
-  MLB: "메이저리그",
-  NBA: "NBA",
-  NHL: "NHL",
-  LOL: "LCK",
-};
+// 리그 라벨은 LEAGUE_DISPLAY (sport-leagues.ts) 단일 출처 사용.
 
 const LEAGUE_GRADIENT: Record<string, [string, string]> = {
   EPL: ["#6d28d9", "#4c1d95"],
@@ -72,7 +58,7 @@ export default async function Image({
   }
 
   const [g1, g2] = LEAGUE_GRADIENT[article.league] ?? ["#1f2937", "#0f172a"];
-  const leagueLabel = LEAGUE_LABEL[article.league] ?? article.league;
+  const leagueLabel = LEAGUE_DISPLAY[article.league] ?? article.league;
   const typeLabel = TYPE_LABEL[article.type] ?? article.type;
   const m = article.match;
 

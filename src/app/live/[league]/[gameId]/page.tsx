@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
@@ -77,46 +78,7 @@ const SUPPORTED = new Set([
   "CLUB_WORLD_CUP",
 ]);
 
-const LEAGUE_LABEL: Record<string, string> = {
-  NBA: "NBA",
-  NHL: "NHL",
-  EPL: "EPL",
-  LALIGA: "라리가",
-  BUNDESLIGA: "분데스리가",
-  SERIE_A: "세리에 A",
-  LIGUE_1: "리그 1",
-  MLS: "MLS",
-  UCL: "챔피언스리그",
-  WORLD_CUP: "FIFA 월드컵",
-  K_LEAGUE_1: "K리그 1",
-  K_LEAGUE_2: "K리그 2",
-  J1_LEAGUE: "J1 리그",
-  J2_LEAGUE: "J2 리그",
-  AFC_CL: "AFC 챔피언스리그",
-  SAUDI_PL: "사우디 프로 리그",
-  UEL: "유로파 리그",
-  UECL: "유로파 컨퍼런스",
-  CHAMPIONSHIP: "잉글랜드 챔피언십",
-  LALIGA_2: "라리가 2",
-  BUNDESLIGA_2: "분데스리가 2",
-  SERIE_B: "세리에 B",
-  LIGUE_2: "리그 2",
-  CLUB_WORLD_CUP: "FIFA 클럽 월드컵",
-  AFC_CL_TWO: "AFC 챔피언스리그 2",
-  AFC_U23: "AFC U23 아시안컵",
-  CSL: "중국 슈퍼리그",
-  A_LEAGUE: "A-리그",
-  EREDIVISIE: "에레디비시",
-  PRIMEIRA_LIGA: "프리메이라 리가",
-  SUPER_LIG: "쉬페르 리그",
-  JUPILER_PL: "주피러 프로 리그",
-  SPL: "스코틀랜드 프리미어십",
-  GREEK_SL: "그리스 슈퍼리그",
-  BRASILEIRAO: "브라질 세리에 A",
-  LIGA_MX: "리가 MX",
-  COPA_LIB: "코파 리베르타도레스",
-  COPA_SUD: "코파 수다메리카나",
-};
+// 리그 라벨은 LEAGUE_DISPLAY (sport-leagues.ts) 단일 출처 사용 — 사이드바와 통일.
 
 interface Props {
   params: Promise<{ league: string; gameId: string }>;
@@ -142,7 +104,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
   const home = toKoreanTeamName(match.homeTeam.name);
   const away = toKoreanTeamName(match.awayTeam.name);
-  const label = LEAGUE_LABEL[lg] ?? lg;
+  const label = LEAGUE_DISPLAY[lg] ?? lg;
   return {
     title: `${home} vs ${away} 라이브 — ${label}`,
     description: `${home} vs ${away} ${label} 라이브 스코어 · 쿼터/피리어드 별 점수 또는 골 이벤트.`,
@@ -163,7 +125,7 @@ export default async function GenericLivePage({ params }: Props) {
   const awayKo = toKoreanTeamName(match.awayTeam.name);
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
-  const label = LEAGUE_LABEL[lg] ?? lg;
+  const label = LEAGUE_DISPLAY[lg] ?? lg;
 
   const extras = await fetchMatchExtras(match);
 
