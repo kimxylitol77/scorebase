@@ -11,6 +11,8 @@ import { LEAGUE_DISPLAY, SPORTS } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
+import SoccerH2HCard from "@/components/scores/soccer/SoccerH2HCard";
+import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -40,6 +42,14 @@ const SUPPORTED = new Set([
 ]);
 
 // 리그 라벨은 LEAGUE_DISPLAY (sport-leagues.ts) 단일 출처 사용 — 사이드바와 통일.
+
+// 우리 Team.id → TheSports team_id 매핑 (server-side lookup)
+const TEAM_ID_MAP: Map<number, string> = new Map(
+  (teamIdMapping as Array<{ ourId: number; tsId: string }>).map((t) => [t.ourId, t.tsId]),
+);
+function tsTeamId(ourTeamId: number): string | null {
+  return TEAM_ID_MAP.get(ourTeamId) ?? null;
+}
 
 interface Props {
   params: Promise<{ league: string; gameId: string }>;
@@ -161,17 +171,35 @@ export default async function GenericLivePage({ params }: Props) {
         initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
       />
 
-      {/* TheSports 골 분포 카드 (축구만, cache 있을 때) */}
+      {/* TheSports 카드 (축구만, cache 있을 때) */}
       {isSoccer && match.theSportsCache?.analysis && (() => {
-        const analysis = match.theSportsCache.analysis as { goal_distribution?: { home: unknown; away: unknown } };
+        const analysis = match.theSportsCache.analysis as {
+          goal_distribution?: { home: unknown; away: unknown };
+          history?: { vs?: unknown[] };
+        };
         const gd = analysis.goal_distribution;
-        if (!gd || !gd.home || !gd.away) return null;
+        const h2h = analysis.history?.vs ?? [];
+        const homeTsId = tsTeamId(match.homeTeam.id);
+        const awayTsId = tsTeamId(match.awayTeam.id);
         return (
-          <SoccerGoalDistributionCard
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-            data={gd as Parameters<typeof SoccerGoalDistributionCard>[0]["data"]}
-          />
+          <>
+            {gd && gd.home && gd.away && (
+              <SoccerGoalDistributionCard
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+                data={gd as Parameters<typeof SoccerGoalDistributionCard>[0]["data"]}
+              />
+            )}
+            {h2h.length > 0 && (
+              <SoccerH2HCard
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+                homeTsTeamId={homeTsId}
+                awayTsTeamId={awayTsId}
+                history={h2h}
+              />
+            )}
+          </>
         );
       })()}
 
