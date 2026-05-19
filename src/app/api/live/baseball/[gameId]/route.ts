@@ -6,6 +6,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
+import { baseballStatusLabel } from "@/lib/sports/live-scores";
 
 // nodejs runtime — fetchLiveOdds 가 fetch 로 동작하지만 일관성 위해 nodejs 고정
 // (edge 도 호환되지만 baseball 응답 크지 않으니 안전한 쪽 선택)
@@ -95,7 +96,7 @@ function normalize(data: ABGameDetail): BaseballLive | null {
   if (!g) return null;
   return {
     status: pickStatus(g.status.short, g.status.long),
-    statusLabel: g.status.long,
+    statusLabel: baseballStatusLabel(g.status.long, g.status.short),
     linescore: {
       home: flattenInnings(g.scores.home.innings),
       away: flattenInnings(g.scores.away.innings),

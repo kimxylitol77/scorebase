@@ -237,7 +237,7 @@ function isBaseballLive(short: string, long: string): boolean {
   return /Inning|In Play|IP/i.test(long);
 }
 
-function baseballStatusLabel(long: string, short?: string): string {
+export function baseballStatusLabel(long: string, short?: string): string {
   // "Top 5th" / "Bottom 5th" → "5회 초" / "5회 말"
   const halfMatch = long.match(/(Top|Bottom)\s+(\d+)(?:st|nd|rd|th)?/i);
   if (halfMatch) {
