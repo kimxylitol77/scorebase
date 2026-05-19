@@ -2131,15 +2131,45 @@ const RAW_LOWER: Record<string, string> = Object.fromEntries(
 
 const STRIP_RE = /\s+(fc|cf|sc|afc|ac|cfc|club|football club)\.?$/i;
 
-export function toKoreanTeamName(name: string | undefined | null): string {
+// 동음이의 클럽 (Al Ittihad = 사우디 SAUDI_PL / 이집트 EGYPT_PL / ...)
+// league 인자가 주어지면 글로벌 RAW 보다 우선 적용.
+const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
+  EGYPT_PL: {
+    "Al Ittihad": "이티하드 알렉산드리아",
+    "Al-Ittihad": "이티하드 알렉산드리아",
+    "Ittihad Alexandria": "이티하드 알렉산드리아",
+  },
+};
+
+const RAW_BY_LEAGUE_LOWER: Record<string, Record<string, string>> = Object.fromEntries(
+  Object.entries(RAW_BY_LEAGUE).map(([lg, m]) => [
+    lg,
+    Object.fromEntries(Object.entries(m).map(([k, v]) => [k.toLowerCase(), v])),
+  ]),
+);
+
+export function toKoreanTeamName(
+  name: string | undefined | null,
+  league?: string,
+): string {
   if (!name) return "";
   const trimmed = name.trim();
-  if (RAW[trimmed]) return RAW[trimmed];
   const lower = trimmed.toLowerCase();
-  if (RAW_LOWER[lower]) return RAW_LOWER[lower];
   const stripped = trimmed.replace(STRIP_RE, "").trim();
-  if (RAW[stripped]) return RAW[stripped];
   const strippedLower = stripped.toLowerCase();
+
+  if (league) {
+    const lgMap = RAW_BY_LEAGUE[league];
+    const lgLowerMap = RAW_BY_LEAGUE_LOWER[league];
+    if (lgMap?.[trimmed]) return lgMap[trimmed];
+    if (lgLowerMap?.[lower]) return lgLowerMap[lower];
+    if (lgMap?.[stripped]) return lgMap[stripped];
+    if (lgLowerMap?.[strippedLower]) return lgLowerMap[strippedLower];
+  }
+
+  if (RAW[trimmed]) return RAW[trimmed];
+  if (RAW_LOWER[lower]) return RAW_LOWER[lower];
+  if (RAW[stripped]) return RAW[stripped];
   if (RAW_LOWER[strippedLower]) return RAW_LOWER[strippedLower];
   return trimmed;
 }

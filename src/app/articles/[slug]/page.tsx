@@ -297,8 +297,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let keywords: string[] | undefined;
   if (isLol && article.match) {
     const lolMeta = buildLolMetadata({
-      homeName: toKoreanTeamName(article.match.homeTeam.name),
-      awayName: toKoreanTeamName(article.match.awayTeam.name),
+      homeName: toKoreanTeamName(article.match.homeTeam.name, article.league),
+      awayName: toKoreanTeamName(article.match.awayTeam.name, article.league),
       startTime: article.match.startTime,
       content: article.content,
       type: article.type as "PREVIEW" | "RECAP" | "ANALYSIS",
@@ -311,8 +311,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } else if (isBaseball && article.match) {
     // 야구 KBO/MLB/NPB — recap/preview 분기 + starter 이름 키워드
     desc = makeDescription(article.content);
-    const homeName = toKoreanTeamName(article.match.homeTeam.name);
-    const awayName = toKoreanTeamName(article.match.awayTeam.name);
+    const homeName = toKoreanTeamName(article.match.homeTeam.name, article.league);
+    const awayName = toKoreanTeamName(article.match.awayTeam.name, article.league);
     const isKbo = article.league === "KBO";
     const isMlb = article.league === "MLB";
     const isRecap = slug.includes("-recap-");
@@ -514,7 +514,7 @@ export default async function ArticlePage({ params }: Props) {
                 name={article.match.homeTeam.name}
               />
               <div className="mt-2 font-semibold text-sm sm:text-base group-hover:underline truncate max-w-full">
-                {toKoreanTeamName(article.match.homeTeam.name)}
+                {toKoreanTeamName(article.match.homeTeam.name, article.league)}
               </div>
               <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 font-medium">
                 🏠 홈
@@ -538,7 +538,7 @@ export default async function ArticlePage({ params }: Props) {
                 name={article.match.awayTeam.name}
               />
               <div className="mt-2 font-semibold text-sm sm:text-base group-hover:underline truncate max-w-full">
-                {toKoreanTeamName(article.match.awayTeam.name)}
+                {toKoreanTeamName(article.match.awayTeam.name, article.league)}
               </div>
               <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 font-medium">
                 ✈ 원정
@@ -573,8 +573,8 @@ export default async function ArticlePage({ params }: Props) {
           return (
             <InningScoreChart
               inningProbs={bc.inningScoreProbs}
-              awayName={toKoreanTeamName(article.match!.awayTeam.name)}
-              homeName={toKoreanTeamName(article.match!.homeTeam.name)}
+              awayName={toKoreanTeamName(article.match!.awayTeam.name, article.league)}
+              homeName={toKoreanTeamName(article.match!.homeTeam.name, article.league)}
               totalExpectedRuns={bc.totalExpectedRuns}
               winProb={bc.winProbPoisson}
             />

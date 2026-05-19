@@ -119,7 +119,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const team = await prisma.team.findUnique({ where: { id: Number(id) } });
   if (!team) return { title: "팀을 찾을 수 없습니다" };
-  const ko = toKoreanTeamName(team.name);
+  const ko = toKoreanTeamName(team.name, team.league);
   return {
     title: `${ko} — 시즌 통계·부상자·관련 기사`,
     description: `${team.league} ${ko}(${team.name}) 팀의 시즌 통계, 최근 폼, 부상자 명단, 관련 기사를 한 페이지에 모았습니다.`,
@@ -278,7 +278,7 @@ export default async function TeamPage({ params }: Props) {
                 )}
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-                {toKoreanTeamName(team.name)}
+                {toKoreanTeamName(team.name, team.league)}
               </h1>
               <div className="text-xs text-neutral-500 mt-1">{team.name}</div>
               <div className="mt-3">
@@ -454,7 +454,7 @@ export default async function TeamPage({ params }: Props) {
                             className="inline-flex items-center gap-2 hover:underline"
                           >
                             <OppLogo src={opp.logoUrl} name={opp.name} />
-                            <span className="truncate">{toKoreanTeamName(opp.name)}</span>
+                            <span className="truncate">{toKoreanTeamName(opp.name, m.league)}</span>
                           </Link>
                         </td>
                         <td className="px-4 py-3 text-right text-xs">
@@ -509,7 +509,7 @@ export default async function TeamPage({ params }: Props) {
                             className="inline-flex items-center gap-2 hover:underline"
                           >
                             <OppLogo src={opp.logoUrl} name={opp.name} />
-                            <span className="truncate">{toKoreanTeamName(opp.name)}</span>
+                            <span className="truncate">{toKoreanTeamName(opp.name, m.league)}</span>
                           </Link>
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums font-bold">
@@ -537,7 +537,7 @@ export default async function TeamPage({ params }: Props) {
           <section>
             <SectionH
               title="관련 기사"
-              subtitle={`${toKoreanTeamName(team.name)}이(가) 등장한 최근 기사`}
+              subtitle={`${toKoreanTeamName(team.name, team.league)}이(가) 등장한 최근 기사`}
             />
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {articles.map((a) => (

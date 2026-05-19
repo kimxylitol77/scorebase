@@ -75,8 +75,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!SUPPORTED.has(lg)) return { title: "라이브 매치를 찾을 수 없습니다" };
   const match = await findMatch(lg, gameId);
   if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
-  const home = toKoreanTeamName(match.homeTeam.name);
-  const away = toKoreanTeamName(match.awayTeam.name);
+  const home = toKoreanTeamName(match.homeTeam.name, lg);
+  const away = toKoreanTeamName(match.awayTeam.name, lg);
   const label = LEAGUE_DISPLAY[lg] ?? lg;
   return {
     title: `${home} vs ${away} 라이브 — ${label}`,
@@ -94,8 +94,8 @@ export default async function GenericLivePage({ params }: Props) {
   const match = await findMatch(lg, gameId);
   if (!match) notFound();
 
-  const homeKo = toKoreanTeamName(match.homeTeam.name);
-  const awayKo = toKoreanTeamName(match.awayTeam.name);
+  const homeKo = toKoreanTeamName(match.homeTeam.name, lg);
+  const awayKo = toKoreanTeamName(match.awayTeam.name, lg);
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
   const label = LEAGUE_DISPLAY[lg] ?? lg;

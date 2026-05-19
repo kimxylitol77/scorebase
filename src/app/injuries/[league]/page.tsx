@@ -512,7 +512,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       if (tl.count === 0) fullSquadCount++;
       if (tl.count > maxCount) {
         maxCount = tl.count;
-        maxName = toKoreanTeamName(tl.teamName);
+        maxName = toKoreanTeamName(tl.teamName, upper);
       }
     }
     if (maxCount > 0) topTeam = { name: maxName, count: maxCount };
@@ -822,8 +822,8 @@ export default async function InjuriesByLeague({
   // 정렬
   byTeam.sort((a, b) => {
     if (sort === "alpha") {
-      return toKoreanTeamName(a.team.name).localeCompare(
-        toKoreanTeamName(b.team.name),
+      return toKoreanTeamName(a.team.name, upper).localeCompare(
+        toKoreanTeamName(b.team.name, upper),
         "ko",
       );
     }
@@ -911,7 +911,7 @@ export default async function InjuriesByLeague({
       position: i + 1,
       item: {
         "@type": "SportsTeam",
-        name: toKoreanTeamName(x.team.name),
+        name: toKoreanTeamName(x.team.name, upper),
         alternateName: x.team.name,
         url: `${CANONICAL}/teams/${x.team.id}`,
       },
@@ -1008,7 +1008,7 @@ export default async function InjuriesByLeague({
               label="영향 큰 팀 TOP 3"
               value={top3.length > 0 ? `${top3[0].all.length}명` : "—"}
               subtle={top3
-                .map((x) => toKoreanTeamName(x.team.name))
+                .map((x) => toKoreanTeamName(x.team.name, upper))
                 .join(" · ")}
             />
             <StatCard
@@ -1034,7 +1034,7 @@ export default async function InjuriesByLeague({
                 <>
                   , 가장 많은 결장자를 보유한 팀은{" "}
                   <strong>
-                    {toKoreanTeamName(top3[0].team.name)}({top3[0].all.length}
+                    {toKoreanTeamName(top3[0].team.name, upper)}({top3[0].all.length}
                     명)
                   </strong>
                 </>
@@ -1045,7 +1045,7 @@ export default async function InjuriesByLeague({
                   <strong>
                     {fullSquadTeams
                       .slice(0, 3)
-                      .map((x) => toKoreanTeamName(x.team.name))
+                      .map((x) => toKoreanTeamName(x.team.name, upper))
                       .join(", ")}
                     {fullSquadTeams.length > 3 &&
                       ` 외 ${fullSquadTeams.length - 3}팀`}
@@ -1104,7 +1104,7 @@ export default async function InjuriesByLeague({
                       />
                     ))}
                   <span className="font-semibold text-emerald-700 dark:text-emerald-300">
-                    {toKoreanTeamName(x.team.name)}
+                    {toKoreanTeamName(x.team.name, upper)}
                   </span>
                 </Link>
               ))}
@@ -1140,6 +1140,7 @@ export default async function InjuriesByLeague({
                   teamId={team.id}
                   teamName={team.name}
                   logoUrl={team.logoUrl}
+                  league={upper}
                   rank={standings.byTeam.get(team.id)?.position}
                   nextMatch={nextMatchByTeam.get(team.id)}
                   all={all}
@@ -1294,6 +1295,7 @@ function TeamInjuryCard({
   teamId,
   teamName,
   logoUrl,
+  league,
   rank,
   nextMatch,
   all,
@@ -1303,6 +1305,7 @@ function TeamInjuryCard({
   teamId: number;
   teamName: string;
   logoUrl: string | null;
+  league: string;
   rank?: number;
   nextMatch?: {
     startTime: Date;
@@ -1364,7 +1367,7 @@ function TeamInjuryCard({
               href={`/teams/${teamId}`}
               className="font-bold truncate hover:underline"
             >
-              {toKoreanTeamName(teamName)}
+              {toKoreanTeamName(teamName, league)}
             </Link>
             {rank && (
               <span className="text-[11px] text-neutral-500">
@@ -1379,7 +1382,7 @@ function TeamInjuryCard({
                 {" · "}
                 <span title={nextMatch.startTime.toISOString()}>
                   다음 경기 {nextMatch.isHome ? "vs" : "@"}{" "}
-                  {toKoreanTeamName(nextMatch.oppName)},{" "}
+                  {toKoreanTeamName(nextMatch.oppName, league)},{" "}
                   {nextMatch.startTime.toLocaleDateString("ko-KR", {
                     month: "2-digit",
                     day: "2-digit",

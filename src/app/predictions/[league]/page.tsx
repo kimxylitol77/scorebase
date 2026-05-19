@@ -250,7 +250,7 @@ export default async function LeaguePredictions({ params }: Props) {
   );
   // 표시용 한글 이름 (월드컵 시드/Elo lookup 은 영문 그대로 써야 하므로 분리).
   const teamKoNameById = new Map(
-    teams.map((t) => [t.id, toKoreanTeamName(t.name)]),
+    teams.map((t) => [t.id, toKoreanTeamName(t.name, upper)]),
   );
 
   // 시뮬레이션 실행
@@ -347,7 +347,7 @@ export default async function LeaguePredictions({ params }: Props) {
     if (!leaderRowsByCategory[r.category]) leaderRowsByCategory[r.category] = [];
     // 한글 변환 — DB 에 영문으로 들어와 있는 행은 사전 lookup. 이미 한글이면 그대로.
     const localizedPlayer = toKoreanPlayerName(r.playerName);
-    const localizedTeam = toKoreanTeamName(r.teamName);
+    const localizedTeam = toKoreanTeamName(r.teamName, upper);
     leaderRowsByCategory[r.category].push({
       rank: r.rank,
       playerName: localizedPlayer,
@@ -453,7 +453,7 @@ export default async function LeaguePredictions({ params }: Props) {
                     .filter((r) => r.champion >= 0.001)
                     .slice(0, 14)
                     .map((r) => ({
-                      name: toKoreanTeamName(r.teamName),
+                      name: toKoreanTeamName(r.teamName, upper),
                       value: r.champion * 100,
                     }))}
                 />
@@ -471,7 +471,7 @@ export default async function LeaguePredictions({ params }: Props) {
                     .filter((r) => r.final >= 0.005)
                     .sort((a, b) => b.final - a.final)
                     .slice(0, 14)
-                    .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.final * 100 }))}
+                    .map((r) => ({ name: toKoreanTeamName(r.teamName, upper), value: r.final * 100 }))}
                 />
               </div>
             </section>
@@ -487,7 +487,7 @@ export default async function LeaguePredictions({ params }: Props) {
                     .filter((r) => r.sf >= 0.01)
                     .sort((a, b) => b.sf - a.sf)
                     .slice(0, 16)
-                    .map((r) => ({ name: toKoreanTeamName(r.teamName), value: r.sf * 100 }))}
+                    .map((r) => ({ name: toKoreanTeamName(r.teamName, upper), value: r.sf * 100 }))}
                 />
               </div>
             </section>
@@ -569,7 +569,7 @@ export default async function LeaguePredictions({ params }: Props) {
                           href={`/teams/${p.teamId}`}
                           className="truncate font-medium hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
                         >
-                          {p.shortName || toKoreanTeamName(p.teamName)}
+                          {p.shortName || toKoreanTeamName(p.teamName, upper)}
                         </Link>
                       </td>
                       <td className="px-2 py-2 text-right tabular-nums text-neutral-600 dark:text-neutral-400 hidden sm:table-cell">
@@ -727,7 +727,7 @@ export default async function LeaguePredictions({ params }: Props) {
                             className="flex items-center gap-2 justify-end hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition min-w-0"
                           >
                             <span className="truncate">
-                              {toKoreanTeamName(m.homeTeam.name)}
+                              {toKoreanTeamName(m.homeTeam.name, upper)}
                             </span>
                             <PredTeamLogo
                               src={m.homeTeam.logoUrl}
@@ -746,7 +746,7 @@ export default async function LeaguePredictions({ params }: Props) {
                               name={m.awayTeam.name}
                             />
                             <span className="truncate">
-                              {toKoreanTeamName(m.awayTeam.name)}
+                              {toKoreanTeamName(m.awayTeam.name, upper)}
                             </span>
                           </Link>
                         </td>
@@ -785,7 +785,7 @@ export default async function LeaguePredictions({ params }: Props) {
                           name={m.homeTeam.name}
                         />
                         <span className="truncate">
-                          {toKoreanTeamName(m.homeTeam.name)}
+                          {toKoreanTeamName(m.homeTeam.name, upper)}
                         </span>
                       </Link>
                       <span className="text-[10px] text-neutral-400 shrink-0 px-1">
@@ -796,7 +796,7 @@ export default async function LeaguePredictions({ params }: Props) {
                         className="flex items-center gap-1.5 min-w-0 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition justify-end text-right"
                       >
                         <span className="truncate">
-                          {toKoreanTeamName(m.awayTeam.name)}
+                          {toKoreanTeamName(m.awayTeam.name, upper)}
                         </span>
                         <PredTeamLogo
                           src={m.awayTeam.logoUrl}
@@ -1091,7 +1091,7 @@ function WorldCupGroupTable({ rows }: { rows: WorldCupRow[] }) {
                 >
                   <span className="flex-1 truncate">
                     {isKorea ? "🇰🇷 " : ""}
-                    {toKoreanTeamName(r.teamName)}
+                    {toKoreanTeamName(r.teamName, "WORLD_CUP")}
                   </span>
                   <span className="text-xs tabular-nums text-neutral-500">
                     {r.expectedPoints.toFixed(1)}점

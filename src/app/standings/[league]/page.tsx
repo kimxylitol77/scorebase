@@ -117,7 +117,7 @@ export default async function StandingsPage({ params }: Props) {
             {standings.rows.map((r) => {
               const t = teamMap.get(r.teamId);
               if (!t) return null;
-              const ko = toKoreanTeamName(t.name);
+              const ko = toKoreanTeamName(t.name, upper);
               const gd = r.goalDiff;
               return (
                 <tr

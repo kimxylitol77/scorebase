@@ -521,13 +521,13 @@ export default async function ScoresPage({ searchParams }: Props) {
       league: m.league,
       status: effStatus as "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED",
       home: {
-        name: toKoreanTeamName(m.homeTeam.name),
+        name: toKoreanTeamName(m.homeTeam.name, m.league),
         abbr: m.homeTeam.shortName,
         logo: m.homeTeam.logoUrl,
         score: homeScore,
       },
       away: {
-        name: toKoreanTeamName(m.awayTeam.name),
+        name: toKoreanTeamName(m.awayTeam.name, m.league),
         abbr: m.awayTeam.shortName,
         logo: m.awayTeam.logoUrl,
         score: awayScore,
@@ -592,11 +592,11 @@ export default async function ScoresPage({ searchParams }: Props) {
               homeErrors: details.homeErrors,
               awayLabel: shortLabel(
                 m.awayTeam.shortName,
-                toKoreanTeamName(m.awayTeam.name),
+                toKoreanTeamName(m.awayTeam.name, m.league),
               ),
               homeLabel: shortLabel(
                 m.homeTeam.shortName,
-                toKoreanTeamName(m.homeTeam.name),
+                toKoreanTeamName(m.homeTeam.name, m.league),
               ),
             };
           })()

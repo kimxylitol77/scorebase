@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     take: 5000,
   });
   for (const t of allTeams) {
-    const ko = toKoreanTeamName(t.name);
+    const ko = toKoreanTeamName(t.name, t.league);
     if (ko !== t.name && ko.toLowerCase().includes(qLower)) {
       if (!teamCandidates.find((x) => x.id === t.id)) {
         teamCandidates.push(t);
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   }
 
   const teamItems: Item[] = teamCandidates.slice(0, 8).map((t) => {
-    const ko = toKoreanTeamName(t.name);
+    const ko = toKoreanTeamName(t.name, t.league);
     return {
       type: "team",
       id: t.id,
