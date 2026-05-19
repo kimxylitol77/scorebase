@@ -57,3 +57,6 @@ src/lib/chatbot/
 
 # 로컬 dev 도구 (preview 등)
 .claude/
+
+# TheSports 일회성 dump 데이터 (크기 큼, 재실행 가능)
+/data/thesports-translations/
