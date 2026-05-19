@@ -2215,6 +2215,12 @@ const RAW: Record<string, string> = {
   "Guayaquil City FC": "과야킬 시티 FC",
   "Guayaquil City": "과야킬 시티 FC",
   "Orense SC": "오렌세 SC",
+
+  // ===== UCL 16강 노출 누락 (2026-05-19) =====
+  "Bodø/Glimt": "보되/글림트",
+  "Bodo/Glimt": "보되/글림트",
+  "FK Bodø/Glimt": "보되/글림트",
+  "FK Bodo/Glimt": "보되/글림트",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.

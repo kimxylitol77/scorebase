@@ -1798,6 +1798,46 @@ const RAW: Record<string, string> = {
   "Awer Mabil": "아워 마빌",
   "Mitch Duke": "미치 듀크",
   "Brandon Borrello": "브랜던 보렐로",
+
+  // ===== /predictions 리더보드 누락 (2026-05-19) =====
+  // NHL 리더보드
+  "Matt Boldy": "매트 볼디",
+  "Brett Howden": "브렛 하우든",
+  "Pavel Dorofeyev": "파벨 도로페예프",
+  "Logan Stankoven": "로건 스탠코븐",
+  "Brandon Hagel": "브랜든 헤이글",
+  "Alex Newhook": "알렉스 뉴훅",
+  "Jason Robertson": "제이슨 로버트슨",
+  "Beckett Sennecke": "베킷 세네크",
+
+  // EPL 리더보드
+  "Thiago": "치아구",
+  "Dominic Calvert-Lewin": "도미닉 칼버트-루윈",
+  "D. Calvert-Lewin": "도미닉 칼버트-루윈",
+  "Danny Welbeck": "대니 웰벡",
+  "D. Welbeck": "대니 웰벡",
+  "Evan Kroupi": "에브안 크루피",
+  "E. Kroupi": "에브안 크루피",
+
+  // LALIGA 리더보드
+  "Vedat Muriqi": "베다트 무리치",
+  "V. Muriqi": "베다트 무리치",
+  "Ante Budimir": "안테 부디미르",
+  "A. Budimir": "안테 부디미르",
+  "Borja Iglesias": "보르하 이글레시아스",
+  "Alexander Sørloth": "알렉산데르 쇠를로트",
+  "A. Sørloth": "알렉산데르 쇠를로트",
+  "Alexander Sorloth": "알렉산데르 쇠를로트",
+
+  // UCL 리더보드 (Julián Álvarez/Luis Díaz 풀명은 상단에 이미 존재, alias 만 추가)
+  "J. Álvarez": "훌리안 알바레스",
+  "L. Díaz": "루이스 디아스",
+  "Jens Petter Hauge": "옌스 페테르 하우게",
+  "J. Hauge": "옌스 페테르 하우게",
+
+  // NPB Romaji
+  "Kaito Muramatsu": "무라마쓰 카이토",
+  "Muku Ota": "오타 무쿠",
 };
 
 const RAW_LOWER: Record<string, string> = Object.fromEntries(

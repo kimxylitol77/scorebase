@@ -22,6 +22,22 @@ import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoar
 
 export const dynamic = "force-dynamic";
 
+/**
+ * NBA/NHL 플레이오프 미정 매치업 placeholder ("TBD", "TTBD", "Sabres/Canadiens" 등) 처리.
+ * 사전에 매핑된 진짜 팀명 (Bodø/Glimt 처럼 슬래시 포함된 정상 클럽) 은 그대로 변환.
+ */
+function displayTeamName(name: string | undefined | null, league?: string): string {
+  if (!name) return "[미정]";
+  const trimmed = name.trim();
+  if (/^(TBD|TTBD|TBDT)$/i.test(trimmed)) return "[미정]";
+  const ko = toKoreanTeamName(trimmed, league);
+  // 사전 변환 성공 시 그대로 (Bodø/Glimt → 보되/글림트 등)
+  if (ko !== trimmed) return ko;
+  // 변환 실패 + slash placeholder 패턴 → 미정 처리
+  if (/\//.test(trimmed)) return "[미정]";
+  return trimmed;
+}
+
 const VALID = [
   "EPL",
   "LALIGA",
@@ -727,7 +743,7 @@ export default async function LeaguePredictions({ params }: Props) {
                             className="flex items-center gap-2 justify-end hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition min-w-0"
                           >
                             <span className="truncate">
-                              {toKoreanTeamName(m.homeTeam.name, upper)}
+                              {displayTeamName(m.homeTeam.name, upper)}
                             </span>
                             <PredTeamLogo
                               src={m.homeTeam.logoUrl}
@@ -746,7 +762,7 @@ export default async function LeaguePredictions({ params }: Props) {
                               name={m.awayTeam.name}
                             />
                             <span className="truncate">
-                              {toKoreanTeamName(m.awayTeam.name, upper)}
+                              {displayTeamName(m.awayTeam.name, upper)}
                             </span>
                           </Link>
                         </td>
@@ -785,7 +801,7 @@ export default async function LeaguePredictions({ params }: Props) {
                           name={m.homeTeam.name}
                         />
                         <span className="truncate">
-                          {toKoreanTeamName(m.homeTeam.name, upper)}
+                          {displayTeamName(m.homeTeam.name, upper)}
                         </span>
                       </Link>
                       <span className="text-[10px] text-neutral-400 shrink-0 px-1">
@@ -796,7 +812,7 @@ export default async function LeaguePredictions({ params }: Props) {
                         className="flex items-center gap-1.5 min-w-0 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition justify-end text-right"
                       >
                         <span className="truncate">
-                          {toKoreanTeamName(m.awayTeam.name, upper)}
+                          {displayTeamName(m.awayTeam.name, upper)}
                         </span>
                         <PredTeamLogo
                           src={m.awayTeam.logoUrl}
