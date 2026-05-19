@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { LEAGUE_DISPLAY, SPORTS } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
+import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -49,7 +50,7 @@ async function findMatch(league: string, gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league },
-      include: { homeTeam: true, awayTeam: true },
+      include: { homeTeam: true, awayTeam: true, theSportsCache: true },
     });
   } catch {
     return null;
@@ -159,6 +160,20 @@ export default async function GenericLivePage({ params }: Props) {
         initialAwayScore={match.awayScore}
         initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
       />
+
+      {/* TheSports 골 분포 카드 (축구만, cache 있을 때) */}
+      {isSoccer && match.theSportsCache?.analysis && (() => {
+        const analysis = match.theSportsCache.analysis as { goal_distribution?: { home: unknown; away: unknown } };
+        const gd = analysis.goal_distribution;
+        if (!gd || !gd.home || !gd.away) return null;
+        return (
+          <SoccerGoalDistributionCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            data={gd as Parameters<typeof SoccerGoalDistributionCard>[0]["data"]}
+          />
+        );
+      })()}
 
       {lg === "NHL" && (homeGoalie || awayGoalie) && (
         <NhlGoalieInsight

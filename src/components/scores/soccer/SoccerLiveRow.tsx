@@ -81,7 +81,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
 
-  const hasScore = homeScore != null && awayScore != null;
+  // SCHEDULED 매치는 score 무시 — collector 잔여 데이터로 미래 매치에 점수 표시되는 버그 회피
+  const hasScore = (isLive || isFinished) && homeScore != null && awayScore != null;
   const homeWin = hasScore && homeScore! > awayScore!;
   const awayWin = hasScore && awayScore! > homeScore!;
 

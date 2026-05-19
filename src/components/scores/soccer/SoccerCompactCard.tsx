@@ -58,7 +58,8 @@ export default function SoccerCompactCard(props: Props) {
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
-  const hasScore = home.score != null && away.score != null;
+  // SCHEDULED 매치는 score 무시 (collector 잔여 데이터로 미래 매치에 점수 표시되는 버그 회피)
+  const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   const homeWin = hasScore && home.score! > away.score!;
   const awayWin = hasScore && away.score! > home.score!;
 
