@@ -434,3 +434,128 @@ export interface TSFootballSeasonShooterResponse {
     updated_at: number;
   }>;
 }
+
+// ============================================================
+// 2026-05-19 신규 4개 endpoint — 영업 답변 후 확정
+// ============================================================
+
+/** 풀타임 team stats — named fields */
+export interface TSFootballTeamStatsRow {
+  team_id: string;
+  goals: number;
+  penalty: number;
+  assists: number;
+  red_cards: number;
+  yellow_cards: number;
+  shots: number;
+  shots_on_target: number;
+  dribble?: number;
+  dribble_succ?: number;
+  clearances?: number;
+  blocked_shots?: number;
+  interceptions?: number;
+  tackles?: number;
+  passes: number;
+  passes_accuracy?: number;
+  key_passes?: number;
+  crosses?: number;
+  crosses_accuracy?: number;
+  long_balls?: number;
+  long_balls_accuracy?: number;
+  duels?: number;
+  duels_won?: number;
+  possession?: number;
+  fouls?: number;
+  offsides?: number;
+  corners?: number;
+  [key: string]: string | number | undefined;
+}
+
+/** Match team statistics — /v1/football/match/team_stats/list (변경된 매치 list) */
+export interface TSFootballMatchTeamStatsListResponse {
+  code: number;
+  results: Array<{
+    id: string; // match_id
+    stats: TSFootballTeamStatsRow[]; // home + away 2개
+  }>;
+}
+
+/** Match player statistics — /v1/football/match/player_stats/list */
+export interface TSFootballMatchPlayerStatsListResponse {
+  code: number;
+  results: Array<{
+    id: string;
+    player_stats: Array<{
+      player_id: string;
+      team_id: string;
+      stats: Record<string, number>;
+    }>;
+  }>;
+}
+
+/**
+ * Match team half-time statistics — /v1/football/match/half/team_stats/list
+ * 응답: `{id, p1: {stat_type_id: [home, away]}, p2?: {...}}`
+ * stat_type_id 는 docs Status Code → "Team Statistics" 참조.
+ */
+export interface TSFootballMatchHalfTeamStatsListResponse {
+  code: number;
+  results: Array<{
+    id: string;
+    p1?: Record<string, [number, number]>;
+    p2?: Record<string, [number, number]>;
+  }>;
+}
+
+/** Season standings row — 풀 + 홈/원정 split */
+export interface TSFootballStandingsRow {
+  team_id: string;
+  promotion_id?: string;
+  points: number;
+  position: number;
+  deduct_points: number;
+  note?: string;
+  total: number;
+  won: number;
+  draw: number;
+  loss: number;
+  goals: number;
+  goals_against: number;
+  goal_diff: number;
+  home_points: number;
+  home_position: number;
+  home_total: number;
+  home_won: number;
+  home_draw: number;
+  home_loss: number;
+  home_goals: number;
+  home_goals_against: number;
+  home_goal_diff: number;
+  away_points: number;
+  away_position: number;
+  away_total: number;
+  away_won: number;
+  away_draw: number;
+  away_loss: number;
+  away_goals: number;
+  away_goals_against: number;
+  away_goal_diff: number;
+  updated_at: number;
+}
+
+/** Season standings — /v1/football/season/recent/table/detail?uuid={season_id} */
+export interface TSFootballSeasonStandingsResponse {
+  code: number;
+  results: {
+    /** UCL/UEL/ECL 진출권, 강등권 등 라벨 + 색상 */
+    promotions: Array<{ id: string; name: string; color: string }>;
+    /** 일반 리그 = 1개 table, 컵 (그룹) = 여러 table */
+    tables: Array<{
+      id: string;
+      conference: string;
+      group: number;
+      stage_id: string;
+      rows: TSFootballStandingsRow[];
+    }>;
+  };
+}

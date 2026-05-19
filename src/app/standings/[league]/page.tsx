@@ -11,6 +11,7 @@ import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,12 @@ export default async function StandingsPage({ params }: Props) {
   if (!VALID.has(upper)) notFound();
   const name = LEAGUE_DISPLAY[upper] ?? upper;
 
-  // 시즌 매치 — 완료된 것만 사용해서 순위 계산
+  // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
+  // 2차: DB FINISHED 매치 기반 calcStandings fallback
+  const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper);
+  const tsStandings = isSoccerLeague ? await fetchStandingsForLeague(upper) : null;
+
+  // 시즌 매치 (recent form dots 용 + fallback 계산용)
   const matches = await prisma.match.findMany({
     where: { league: upper },
     select: {
@@ -58,17 +64,68 @@ export default async function StandingsPage({ params }: Props) {
       startTime: true,
     },
   });
-  if (matches.length === 0) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-black tracking-tight mb-2">{name} 순위표</h1>
-        <p className="text-sm text-neutral-500">시즌 매치 데이터가 아직 수집되지 않았습니다.</p>
-      </div>
-    );
+
+  // 데이터 source 분기
+  let rows: Array<{
+    position: number;
+    teamId: number;
+    played: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDiff: number;
+    points: number;
+    promotionColor?: string;
+    promotionName?: string;
+  }>;
+  let source: "ts" | "calc" = "calc";
+
+  if (tsStandings && tsStandings.tables.length > 0) {
+    // ts 결과 사용 — 첫 번째 table (일반 리그) 의 rows
+    const promoMap = new Map(tsStandings.promotions.map((p) => [p.id, p]));
+    const tsRows = tsStandings.tables[0].rows
+      .filter((r) => r.ourTeamId != null) // 미매핑 ts 팀 제거
+      .map((r) => {
+        const promo = r.promotion_id ? promoMap.get(r.promotion_id) : undefined;
+        return {
+          position: r.position,
+          teamId: r.ourTeamId!,
+          played: r.total,
+          wins: r.won,
+          draws: r.draw,
+          losses: r.loss,
+          goalsFor: r.goals,
+          goalsAgainst: r.goals_against,
+          goalDiff: r.goal_diff,
+          points: r.points,
+          promotionColor: promo?.color,
+          promotionName: promo?.name,
+        };
+      })
+      .sort((a, b) => a.position - b.position);
+    if (tsRows.length > 0) {
+      rows = tsRows;
+      source = "ts";
+    }
   }
 
-  const standings = calcStandings(matches);
-  const teamIds = standings.rows.map((r) => r.teamId);
+  if (source === "calc") {
+    if (matches.length === 0) {
+      return (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+          <h1 className="text-2xl font-black tracking-tight mb-2">{name} 순위표</h1>
+          <p className="text-sm text-neutral-500">시즌 매치 데이터가 아직 수집되지 않았습니다.</p>
+        </div>
+      );
+    }
+    const calc = calcStandings(matches);
+    rows = calc.rows.map((r) => ({ ...r, promotionColor: undefined, promotionName: undefined }));
+  }
+
+  // 팀 DB lookup
+  const teamIds = rows!.map((r) => r.teamId);
   const teams = await prisma.team.findMany({
     where: { id: { in: teamIds } },
     select: { id: true, name: true, shortName: true, logoUrl: true },
@@ -92,7 +149,7 @@ export default async function StandingsPage({ params }: Props) {
       <header>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name} 순위표</h1>
         <p className="text-sm text-neutral-500 mt-1">
-          {standings.rows.length}팀 · 시즌 진행 중 · 매일 자동 갱신
+          {rows!.length}팀 · 시즌 진행 중 · {source === "ts" ? "TheSports 실시간 갱신" : "FINISHED 매치 기반 계산"}
         </p>
       </header>
 
@@ -114,7 +171,7 @@ export default async function StandingsPage({ params }: Props) {
             </tr>
           </thead>
           <tbody>
-            {standings.rows.map((r) => {
+            {rows!.map((r) => {
               const t = teamMap.get(r.teamId);
               if (!t) return null;
               const ko = toKoreanTeamName(t.name, upper);
@@ -123,6 +180,8 @@ export default async function StandingsPage({ params }: Props) {
                 <tr
                   key={r.teamId}
                   className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition"
+                  style={r.promotionColor ? { boxShadow: `inset 3px 0 0 0 ${r.promotionColor}` } : undefined}
+                  title={r.promotionName || undefined}
                 >
                   <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">
                     {r.position}

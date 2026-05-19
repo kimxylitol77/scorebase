@@ -94,3 +94,67 @@ export function fetchBaseballUniqueTournaments(
     { page },
   );
 }
+
+// ============================================================
+// Football — 2026-05-19 신규 4개 endpoint (영업 답변 후 확정)
+// ============================================================
+
+import type {
+  TSFootballMatchPlayerStatsListResponse,
+  TSFootballMatchTeamStatsListResponse,
+  TSFootballMatchHalfTeamStatsListResponse,
+  TSFootballSeasonStandingsResponse,
+} from "./football-types";
+
+/**
+ * 변경된 player stats list (delta, 직전 120초).
+ * Suggested poll: 1min/time.
+ * Docs: Match player statistics.
+ */
+export function fetchFootballMatchPlayerStatsList(): Promise<TSFootballMatchPlayerStatsListResponse> {
+  return thesportsGet<TSFootballMatchPlayerStatsListResponse>(
+    "/v1/football/match/player_stats/list",
+    {},
+  );
+}
+
+/**
+ * 변경된 team stats list (delta, 직전 120초) — 풀타임 named fields.
+ * Suggested poll: 1min/time.
+ * Docs: Match team statistics.
+ */
+export function fetchFootballMatchTeamStatsList(): Promise<TSFootballMatchTeamStatsListResponse> {
+  return thesportsGet<TSFootballMatchTeamStatsListResponse>(
+    "/v1/football/match/team_stats/list",
+    {},
+  );
+}
+
+/**
+ * 변경된 half-time team stats list (delta) — `{p1: {stat_type_id: [home, away]}}` 구조.
+ * Suggested poll: 1min/time.
+ * Docs: Match team half-time statistics.
+ */
+export function fetchFootballMatchHalfTeamStatsList(): Promise<TSFootballMatchHalfTeamStatsListResponse> {
+  return thesportsGet<TSFootballMatchHalfTeamStatsListResponse>(
+    "/v1/football/match/half/team_stats/list",
+    {},
+  );
+}
+
+/**
+ * 시즌 순위표 (현재 시즌만, restriction: newest season).
+ * Rate limit: 120 req/min.
+ * Docs: Season standing(newest season).
+ *
+ * @param seasonId 우리 league_code → ts season_id 매핑 (`league-id-mapping.json` 추후 확장)
+ * @returns `{promotions, tables}` — tables[].rows[] = team 순위 + 풀/홈/원정 split
+ */
+export function fetchFootballSeasonStandings(
+  seasonId: string,
+): Promise<TSFootballSeasonStandingsResponse> {
+  return thesportsGet<TSFootballSeasonStandingsResponse>(
+    "/v1/football/season/recent/table/detail",
+    { uuid: seasonId },
+  );
+}
