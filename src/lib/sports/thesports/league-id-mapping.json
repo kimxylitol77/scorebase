@@ -1,0 +1,492 @@
+[
+  {
+    "code": "AFC_CL",
+    "ourLabel": "AFC 챔피언스리그",
+    "tsId": "9dn1m1ghjpmoepl",
+    "tsEn": "AFC Champions League",
+    "tsKo": "AFC 챔피언스리그"
+  },
+  {
+    "code": "AFC_CL_TWO",
+    "ourLabel": "AFC 챔피언스리그 2",
+    "tsId": "56ypq3nh7pdmd7o",
+    "tsEn": "AFC Champions League Two",
+    "tsKo": "AFC 챔피언스리그 2"
+  },
+  {
+    "code": "AFC_U23",
+    "ourLabel": "AFC U23 아시안컵",
+    "tsId": "kn54qllhldqvy9d",
+    "tsEn": "AFC U23 Asian Cup",
+    "tsKo": "U23 AFC 선수권"
+  },
+  {
+    "code": "ALBANIA_SL",
+    "ourLabel": "알바니아 슈페르리가",
+    "tsId": "gx7lm7phxem2wdk",
+    "tsEn": "Albanian Super league",
+    "tsKo": "알바니아 슈퍼 리그"
+  },
+  {
+    "code": "ALLSVENSKAN",
+    "ourLabel": "스웨덴 알스벤스칸",
+    "tsId": "l965mkyhg0r1ge4",
+    "tsEn": "Sweden Allsvenskan",
+    "tsKo": "스웨덴 알스벤스칸"
+  },
+  {
+    "code": "ARMENIA_PL",
+    "ourLabel": "아르메니아 프리미어 리그",
+    "tsId": "vl7oqdehx3r510j",
+    "tsEn": "Armenian Premier League",
+    "tsKo": "아르메니아 프리미어 리그"
+  },
+  {
+    "code": "AUSTRIA_BL",
+    "ourLabel": "오스트리아 분데스리가",
+    "tsId": "yl5ergphyvr8k0o",
+    "tsEn": "Austrian Bundesliga",
+    "tsKo": "오스트리아 분데스리가"
+  },
+  {
+    "code": "BOSNIA_PL",
+    "ourLabel": "보스니아 프리미어",
+    "tsId": "j1l4rjnhnvm7vx5",
+    "tsEn": "Bosnia and Herzegovina Premier League",
+    "tsKo": "보스니아 헤르체고비나 프리미어 리그"
+  },
+  {
+    "code": "BULGARIA_PL",
+    "ourLabel": "불가리아 퍼스트 리그",
+    "tsId": "kn54qllhn0qvy9d",
+    "tsEn": "Bulgarian First League",
+    "tsKo": "불가리아 제1 리그"
+  },
+  {
+    "code": "BUNDESLIGA",
+    "ourLabel": "분데스리가",
+    "tsId": "gy0or5jhg6qwzv3",
+    "tsEn": "Bundesliga",
+    "tsKo": "분데스리가"
+  },
+  {
+    "code": "BUNDESLIGA_2",
+    "ourLabel": "분데스리가 2",
+    "tsId": "kn54qllhjzqvy9d",
+    "tsEn": "German Bundesliga 2",
+    "tsKo": "분데스리가 2부리그"
+  },
+  {
+    "code": "CANADA_PL",
+    "ourLabel": "캐나다 프리미어 리그",
+    "tsId": "4zp5rzghxp0q82w",
+    "tsEn": "Canadian Premier League",
+    "tsKo": "캐나다 축구 리그"
+  },
+  {
+    "code": "CHAMPIONSHIP",
+    "ourLabel": "잉글랜드 챔피언십",
+    "tsId": "9k82rekhvgrepzj",
+    "tsEn": "UEFA Europe Beach Soccer Championship",
+    "tsKo": "유럽 해변 축구 선수권 대회"
+  },
+  {
+    "code": "CHILE_PB",
+    "ourLabel": "칠레 프리메라 B",
+    "tsId": "l965mkyhdgr1ge4",
+    "tsEn": "CHI Liga de Ascenso",
+    "tsKo": "칠레 프리메라 B"
+  },
+  {
+    "code": "CHILE_PD",
+    "ourLabel": "칠레 프리메라 디비시온",
+    "tsId": "jednm9whyeryox8",
+    "tsEn": "CHI Liga de Primera",
+    "tsKo": "프리메라 디비전 데 칠레"
+  },
+  {
+    "code": "CLUB_WORLD_CUP",
+    "ourLabel": "FIFA 클럽 월드컵",
+    "tsId": "7jednm9wh0ryox8",
+    "tsEn": "FIFA Club World Cup(old)",
+    "tsKo": "클럽 월드컵"
+  },
+  {
+    "code": "COLOMBIA_PA",
+    "ourLabel": "콜롬비아 프리메라 A",
+    "tsId": "56ypq3nhyymd7oj",
+    "tsEn": "Categoría Primera A",
+    "tsKo": "콜롬비아 프리메라 아"
+  },
+  {
+    "code": "COPA_LIB",
+    "ourLabel": "코파 리베르타도레스",
+    "tsId": "v2y8m4zhe6ql074",
+    "tsEn": "CONMEBOL Copa Libertadores",
+    "tsKo": "CONMEBOL 리베르타도레스"
+  },
+  {
+    "code": "COPA_SUD",
+    "ourLabel": "코파 수다메리카나",
+    "tsId": "56ypq3nhpkmd7oj",
+    "tsEn": "CONMEBOL Copa Sudamericana",
+    "tsKo": "코파 수다메리카나"
+  },
+  {
+    "code": "CSL",
+    "ourLabel": "중국 슈퍼리그",
+    "tsId": "9k82rekh52repzj",
+    "tsEn": "Chinese Football Super League",
+    "tsKo": "슈퍼리그"
+  },
+  {
+    "code": "CYPRUS_1D",
+    "ourLabel": "키프로스 1부",
+    "tsId": "9k82rekh2orepzj",
+    "tsEn": "Cypriot First Division",
+    "tsKo": "키프로스 제1 리그"
+  },
+  {
+    "code": "CZECH_L",
+    "ourLabel": "체코 1부",
+    "tsId": "j1l4rjnhl0m7vx5",
+    "tsEn": "Czech Chance Liga",
+    "tsKo": "체코 제1 리그"
+  },
+  {
+    "code": "DENMARK_SL",
+    "ourLabel": "덴마크 슈페르리가",
+    "tsId": "4zp5rzgh0eq82w1",
+    "tsEn": "Danish Superliga",
+    "tsKo": "덴마크 수페르리가"
+  },
+  {
+    "code": "ECUADOR_LP",
+    "ourLabel": "에콰도르 리가 프로",
+    "tsId": "9vjxm8ghdnr6odg",
+    "tsEn": "LigaPro Serie A",
+    "tsKo": "에콰도르 세리이 A"
+  },
+  {
+    "code": "EGYPT_PL",
+    "ourLabel": "이집트 프리미어 리그",
+    "tsId": "56ypq3nh01nmd7o",
+    "tsEn": "Egyptian Premier League",
+    "tsKo": "이집트 프리미어 리그"
+  },
+  {
+    "code": "EKSTRAKLASA",
+    "ourLabel": "에크스트라클라사",
+    "tsId": "vl7oqdeh3lr510j",
+    "tsEn": "PKO Bank Polski EKSTRAKLASA",
+    "tsKo": "폴란드 에크스트라클라사"
+  },
+  {
+    "code": "ELITESERIEN",
+    "ourLabel": "노르웨이 엘리테세리엔",
+    "tsId": "gy0or5jhj6qwzv3",
+    "tsEn": "Norwegian Eliteserien",
+    "tsKo": "노르웨이 엘리테리엔"
+  },
+  {
+    "code": "EPL",
+    "ourLabel": "프리미어리그",
+    "tsId": "jednm9whz0ryox8",
+    "tsEn": "English Premier League",
+    "tsKo": "프리미어리그"
+  },
+  {
+    "code": "GREEK_SL",
+    "ourLabel": "그리스 슈퍼리그",
+    "tsId": "e4wyrn4hoeq86pv",
+    "tsEn": "Greek Super League",
+    "tsKo": "그리스 슈퍼리그"
+  },
+  {
+    "code": "HNL",
+    "ourLabel": "크로아티아 HNL",
+    "tsId": "gx7lm7pho13m2wd",
+    "tsEn": "Croatian First Football League",
+    "tsKo": "프르바 NL"
+  },
+  {
+    "code": "HUNGARY_NB1",
+    "ourLabel": "헝가리 NB I",
+    "tsId": "kn54qllh70qvy9d",
+    "tsEn": "Hungary Fizz Liga",
+    "tsKo": "헝가리 보르소디 리가"
+  },
+  {
+    "code": "ICELAND_1L",
+    "ourLabel": "아이슬란드 1부 데일드",
+    "tsId": "d23xmvkhplqg8ny",
+    "tsEn": "Iceland 1. Deild Karla",
+    "tsKo": "아이슬란드 Deild 1 Karla"
+  },
+  {
+    "code": "INDIA_ISL",
+    "ourLabel": "인도 슈퍼 리그",
+    "tsId": "d23xmvkh3k8qg8n",
+    "tsEn": "Indian Super League",
+    "tsKo": "인디안 슈퍼 리그"
+  },
+  {
+    "code": "IRELAND_PD",
+    "ourLabel": "아일랜드 프리미어",
+    "tsId": "9vjxm8gh3lr6odg",
+    "tsEn": "Ireland Premier Division",
+    "tsKo": "아일랜드 프리미어 디비전"
+  },
+  {
+    "code": "ISRAEL_PL",
+    "ourLabel": "이스라엘 리가트 하알",
+    "tsId": "kdj2ryoh7eq1zpg",
+    "tsEn": "Israel Premier League",
+    "tsKo": "이스라엘 프리미어 리그"
+  },
+  {
+    "code": "J1_LEAGUE",
+    "ourLabel": "J1 리그",
+    "tsId": "z318q66hl1qo9jd",
+    "tsEn": "Japanese J1 League",
+    "tsKo": "일본 J1 리그"
+  },
+  {
+    "code": "J2_LEAGUE",
+    "ourLabel": "J2 리그",
+    "tsId": "9dn1m1gh6gmoepl",
+    "tsEn": "Japanese J2 League",
+    "tsKo": "일본 J2 리그"
+  },
+  {
+    "code": "JUPILER_PL",
+    "ourLabel": "주피러 프로 리그",
+    "tsId": "9vjxm8gh22r6odg",
+    "tsEn": "Belgian Pro League",
+    "tsKo": "쥬필러 리그"
+  },
+  {
+    "code": "K_LEAGUE_1",
+    "ourLabel": "K리그 1",
+    "tsId": "gy0or5jhlxgqwzv",
+    "tsEn": "Korean K League 1",
+    "tsKo": "K리그 1"
+  },
+  {
+    "code": "K_LEAGUE_2",
+    "ourLabel": "K리그 2",
+    "tsId": "kn54qllh25dqvy9",
+    "tsEn": "Korean K League 2",
+    "tsKo": "코리아 K 리그 2"
+  },
+  {
+    "code": "LALIGA",
+    "ourLabel": "라리가",
+    "tsId": "vl7oqdehlyr510j",
+    "tsEn": "Spanish La Liga",
+    "tsKo": "스페인 라리가"
+  },
+  {
+    "code": "LALIGA_2",
+    "ourLabel": "라리가 2",
+    "tsId": "v2y8m4zhzjql074",
+    "tsEn": "Spanish Segunda División RFEF",
+    "tsKo": "스페인 세군다 페데라시온 리그"
+  },
+  {
+    "code": "LIGA_I",
+    "ourLabel": "루마니아 리가 I",
+    "tsId": "kdj2ryohe2q1zpg",
+    "tsEn": "Romanian Super Liga",
+    "tsKo": "루마니아 리가 1"
+  },
+  {
+    "code": "LIGA_MX",
+    "ourLabel": "리가 MX",
+    "tsId": "9k82rekhp6repzj",
+    "tsEn": "Mexico Liga MX",
+    "tsKo": "멕시코 리가 MX"
+  },
+  {
+    "code": "LIGUE_1",
+    "ourLabel": "리그 1",
+    "tsId": "yl5ergphnzr8k0o",
+    "tsEn": "French Ligue 1",
+    "tsKo": "리그 1"
+  },
+  {
+    "code": "LIGUE_2",
+    "ourLabel": "리그 2",
+    "tsId": "kjw2r09hw8rz84o",
+    "tsEn": "French Ligue 2",
+    "tsKo": "프랑스 리그 2"
+  },
+  {
+    "code": "MLS",
+    "ourLabel": "MLS",
+    "tsId": "kn54qllhg2qvy9d",
+    "tsEn": "United States Major League Soccer",
+    "tsKo": "USA 메이저 리그 사커"
+  },
+  {
+    "code": "MOLDOVA_SL",
+    "ourLabel": "몰도바 슈페르리가",
+    "tsId": "e4wyrn4hw7q86pv",
+    "tsEn": "Moldovan Super Liga",
+    "tsKo": "몰도바 슈퍼 리그"
+  },
+  {
+    "code": "MOROCCO_BP",
+    "ourLabel": "모로코 보톨라 프로",
+    "tsId": "z318q66hokoqo9j",
+    "tsEn": "The Botola Pro",
+    "tsKo": "모로코 보톨라 리그"
+  },
+  {
+    "code": "NORWAY_1L",
+    "ourLabel": "노르웨이 1부 디비전",
+    "tsId": "gpxwrxlh73ryk0j",
+    "tsEn": "Norwegian 1.Divisjon",
+    "tsKo": "노르웨이 제1 분단"
+  },
+  {
+    "code": "PERU_PD",
+    "ourLabel": "페루 프리메라 디비시온",
+    "tsId": "vl7oqdehwxr510j",
+    "tsEn": "Peruvian Liga 1",
+    "tsKo": "페루 리가 1"
+  },
+  {
+    "code": "POLAND_1L",
+    "ourLabel": "폴란드 I 리가",
+    "tsId": "kdj2ryohx2q1zpg",
+    "tsEn": "Poland Liga 1",
+    "tsKo": "폴란드 리가 1"
+  },
+  {
+    "code": "SAUDI_PL",
+    "ourLabel": "사우디 프로 리그",
+    "tsId": "j1l4rjnh66nm7vx",
+    "tsEn": "Saudi Professional League",
+    "tsKo": "사우디 프로페셔널리그"
+  },
+  {
+    "code": "SERBIA_SL",
+    "ourLabel": "세르비아 슈퍼리가",
+    "tsId": "yl5ergphk2r8k0o",
+    "tsEn": "Serbian Mozzart Bet Superliga",
+    "tsKo": "세르비아 슈퍼 리가"
+  },
+  {
+    "code": "SERIE_A",
+    "ourLabel": "세리에 A",
+    "tsId": "4zp5rzghp5q82w1",
+    "tsEn": "Italian Serie A",
+    "tsKo": "세리에 A"
+  },
+  {
+    "code": "SERIE_B",
+    "ourLabel": "세리에 B",
+    "tsId": "j1l4rjnhx9m7vx5",
+    "tsEn": "Italian Serie B",
+    "tsKo": "세리에 B"
+  },
+  {
+    "code": "SINGAPORE_PL",
+    "ourLabel": "싱가포르 프리미어 리그",
+    "tsId": "9vjxm8gh4g9r6od",
+    "tsEn": "Singapore Premier League",
+    "tsKo": "싱가포르 프리미어 리그"
+  },
+  {
+    "code": "SPL",
+    "ourLabel": "스코틀랜드 프리미어십",
+    "tsId": "p4jwq2gh1gm0veo",
+    "tsEn": "Scottish Premiership",
+    "tsKo": "스코틀랜드 프리미어십"
+  },
+  {
+    "code": "SUPER_LIG",
+    "ourLabel": "쉬페르 리그",
+    "tsId": "8y39mp1h6jmojxg",
+    "tsEn": "Turkish Super League",
+    "tsKo": "쉬페르리그"
+  },
+  {
+    "code": "SUPERETTAN",
+    "ourLabel": "스웨덴 수페레탄",
+    "tsId": "8y39mp1hk8mojxg",
+    "tsEn": "Sweden Superettan",
+    "tsKo": "스웨덴 수퍼에탄"
+  },
+  {
+    "code": "UCL",
+    "ourLabel": "챔피언스리그",
+    "tsId": "z8yomo4h7wq0j6l",
+    "tsEn": "UEFA Champions League",
+    "tsKo": "챔피언스리그"
+  },
+  {
+    "code": "UECL",
+    "ourLabel": "유로파 컨퍼런스",
+    "tsId": "p4jwq2gh754m0ve",
+    "tsEn": "UEFA Europa Conference League",
+    "tsKo": "UEFA 유로파 컨퍼런스 리그"
+  },
+  {
+    "code": "UEL",
+    "ourLabel": "유로파 리그",
+    "tsId": "56ypq3nh0xmd7oj",
+    "tsEn": "UEFA Europa League",
+    "tsKo": "유로파리그"
+  },
+  {
+    "code": "UKRAINE_PL",
+    "ourLabel": "우크라이나 프리미어 리그",
+    "tsId": "gx7lm7ph7jm2wdk",
+    "tsEn": "Ukrainian Premier League",
+    "tsKo": "우크라이나 프리미어 리그"
+  },
+  {
+    "code": "URVALSDEILD",
+    "ourLabel": "아이슬란드 우르발스데일드",
+    "tsId": "kn54qllhp3qvy9d",
+    "tsEn": "Iceland Besta-deild karla",
+    "tsKo": "아이슬란드 베스타 데일드 카를라"
+  },
+  {
+    "code": "USA_USL_CH",
+    "ourLabel": "USL 챔피언십",
+    "tsId": "d23xmvkh1oqg8ny",
+    "tsEn": "USL Championship",
+    "tsKo": "미국 축구 리그"
+  },
+  {
+    "code": "VEIKKAUSLIIGA",
+    "ourLabel": "핀란드 베이카우슬리가",
+    "tsId": "z8yomo4h92q0j6l",
+    "tsEn": "Finnish Veikkausliiga",
+    "tsKo": "핀란드 베이카우스리가"
+  },
+  {
+    "code": "VENEZUELA_PD",
+    "ourLabel": "베네수엘라 프리메라 디비시온",
+    "tsId": "gx7lm7phy4m2wdk",
+    "tsEn": "Venezuela Primera Division",
+    "tsKo": "베네수엘라 프리메라 디비전"
+  },
+  {
+    "code": "WORLD_CUP",
+    "ourLabel": "FIFA 월드컵 2026",
+    "tsId": "kp3glrw7hwqdyjv",
+    "tsEn": "FIFA World Cup",
+    "tsKo": "월드컵"
+  },
+  {
+    "code": "YKKONEN",
+    "ourLabel": "핀란드 위쾨넨",
+    "tsId": "56ypq3nhgwmd7oj",
+    "tsEn": "Finnish Ykkosliiga",
+    "tsKo": "핀란드 제1 리그"
+  }
+]
