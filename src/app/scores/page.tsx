@@ -700,8 +700,8 @@ export default async function ScoresPage({ searchParams }: Props) {
     })),
   };
 
-  // 축구 페이지는 좌측 사이드바를 위해 더 넓은 컨테이너 사용
-  const containerMaxW = sport === "soccer" ? "max-w-7xl" : "max-w-6xl";
+  // 모든 종목 동일 max-w-6xl (헤더와 일치) — 사이드바 + 메인이 그 안에 fit
+  const containerMaxW = "max-w-6xl";
 
   // 축구 상태 필터 — 표시할 매치 결정
   const showLive = sport !== "soccer" || statusFilter === "all" || statusFilter === "live";

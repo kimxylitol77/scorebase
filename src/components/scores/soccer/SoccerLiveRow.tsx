@@ -104,7 +104,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       className="grid items-center gap-3 px-0 py-2 text-sm transition hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
       style={{
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,260px) auto minmax(0,260px) 48px 28px",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px",
       }}
     >
       {/* 1. 리그 배지 */}
@@ -337,7 +337,7 @@ export function SoccerLiveRowHeader() {
       className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,260px) auto minmax(0,260px) 48px 28px",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px",
       }}
     >
       <div className="text-center">리그명</div>
