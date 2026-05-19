@@ -32,6 +32,55 @@ export interface MlbLive {
     pitcherName: string | null;
     lastPlay: string | null;
   } | null;
+  /** 선발 라인업 1~9번 타순 (홈/원정) */
+  lineups?: {
+    home: MlbBatter[];
+    away: MlbBatter[];
+  } | null;
+  /** 양 팀 통계 비교 (안타/홈런/실책/병살 등) */
+  teamStats?: {
+    home: MlbTeamStats;
+    away: MlbTeamStats;
+  } | null;
+}
+
+export interface MlbBatter {
+  /** 1~9 타순 */
+  order: number;
+  name: string;
+  position: string; // "C", "1B", "2B", "SS" 등
+  /** "1-3" (3타수 1안타) */
+  hitsAtBats: string;
+  runs: number;
+  hits: number;
+  rbis: number;
+  homeRuns: number;
+  walks: number;
+  strikeouts: number;
+  avg: string;
+}
+
+export interface MlbTeamStats {
+  /** 안타 */
+  hits: number;
+  /** 홈런 */
+  homeRuns: number;
+  /** 실책 */
+  errors: number;
+  /** 병살 */
+  doublePlays: number;
+  /** 삼진 (타격) */
+  strikeouts: number;
+  /** 볼넷 */
+  walks: number;
+  /** 잔루 */
+  leftOnBase: number;
+  /** 사구 */
+  hitByPitch: number;
+  /** 도루실패 */
+  caughtStealing: number;
+  /** 어시 */
+  assists: number;
 }
 
 // ESPN summary는 매우 큰 응답이지만 우리가 필요한 필드는 한정 — 좁은 타입 선언.
@@ -64,6 +113,41 @@ interface EspnSummary {
         };
         // ESPN 은 displayValue (string) 로 제공. value 필드는 보통 없음.
         linescores?: Array<{ value?: number; displayValue?: string }>;
+      }>;
+    }>;
+  };
+  boxscore?: {
+    /** 팀별 통계 그룹 (batting/pitching/fielding) */
+    teams?: Array<{
+      homeAway: "home" | "away";
+      team?: { abbreviation?: string };
+      statistics?: Array<{
+        name?: string; // "batting", "pitching", "fielding"
+        stats?: Array<{ name?: string; displayValue?: string }>;
+      }>;
+      details?: Array<{
+        name?: string; // "battingDetails", "pitchingDetails", "baserunningDetails"
+        stats?: Array<{ name?: string; displayValue?: string }>;
+      }>;
+    }>;
+    /** 팀별 선수 통계 (batting/pitching 그룹) */
+    players?: Array<{
+      team?: { abbreviation?: string; id?: string };
+      homeAway?: "home" | "away";
+      statistics?: Array<{
+        type?: string; // "batting", "pitching"
+        keys?: string[];
+        athletes?: Array<{
+          athlete?: {
+            id?: string;
+            shortName?: string;
+            displayName?: string;
+            position?: { abbreviation?: string };
+          };
+          stats?: string[]; // keys 와 동일 순서
+          starter?: boolean;
+          batterRotation?: number; // 타순 (1~9)
+        }>;
       }>;
     }>;
   };
@@ -110,6 +194,10 @@ function normalize(data: EspnSummary): MlbLive | null {
       }
     : null;
 
+  // boxscore → lineups + teamStats 추출
+  const lineups = extractLineups(data.boxscore, home.team?.abbreviation, away.team?.abbreviation);
+  const teamStats = extractTeamStats(data.boxscore, home.team?.abbreviation, away.team?.abbreviation);
+
   return {
     status,
     statusLabel: comp.status?.type?.shortDetail ?? "",
@@ -135,7 +223,96 @@ function normalize(data: EspnSummary): MlbLive | null {
       logo: away.team?.logo,
     },
     situation,
+    lineups,
+    teamStats,
   };
+}
+
+/** boxscore.players → 선발 라인업 (1~9번 타순) 양 팀 */
+function extractLineups(
+  boxscore: EspnSummary["boxscore"],
+  homeAbbr?: string,
+  awayAbbr?: string,
+): MlbLive["lineups"] {
+  if (!boxscore?.players || !homeAbbr || !awayAbbr) return null;
+  const extract = (abbr: string): MlbBatter[] => {
+    const teamSection = boxscore.players?.find((p) => p.team?.abbreviation === abbr);
+    if (!teamSection) return [];
+    const batting = teamSection.statistics?.find((g) => g.type === "batting");
+    if (!batting?.athletes || !batting.keys) return [];
+    const keys = batting.keys;
+    // keys: ['hits-atBats', 'atBats', 'runs', 'hits', 'RBIs', 'homeRuns', 'walks', 'strikeouts', 'pitches', 'avg']
+    const idx = (k: string) => keys.indexOf(k);
+    const iHA = idx("hits-atBats");
+    const iR = idx("runs");
+    const iH = idx("hits");
+    const iRBI = idx("RBIs");
+    const iHR = idx("homeRuns");
+    const iBB = idx("walks");
+    const iK = idx("strikeouts");
+    const iAvg = idx("avg");
+    const starters = batting.athletes
+      .filter((a) => a.starter !== false) // starter true 또는 undefined (기본)
+      .slice(0, 9);
+    return starters.map((a, i) => ({
+      order: a.batterRotation ?? i + 1,
+      name: a.athlete?.shortName ?? a.athlete?.displayName ?? "?",
+      position: a.athlete?.position?.abbreviation ?? "",
+      hitsAtBats: a.stats?.[iHA] ?? "0-0",
+      runs: Number(a.stats?.[iR]) || 0,
+      hits: Number(a.stats?.[iH]) || 0,
+      rbis: Number(a.stats?.[iRBI]) || 0,
+      homeRuns: Number(a.stats?.[iHR]) || 0,
+      walks: Number(a.stats?.[iBB]) || 0,
+      strikeouts: Number(a.stats?.[iK]) || 0,
+      avg: a.stats?.[iAvg] ?? ".000",
+    }));
+  };
+  return { home: extract(homeAbbr), away: extract(awayAbbr) };
+}
+
+/** boxscore.teams → 양 팀 통계 (안타/홈런/실책/병살 등) */
+function extractTeamStats(
+  boxscore: EspnSummary["boxscore"],
+  homeAbbr?: string,
+  awayAbbr?: string,
+): MlbLive["teamStats"] {
+  if (!boxscore?.teams || !homeAbbr || !awayAbbr) return null;
+  const extract = (side: "home" | "away"): MlbTeamStats => {
+    const team = boxscore.teams?.find((t) => t.homeAway === side);
+    if (!team) {
+      return {
+        hits: 0, homeRuns: 0, errors: 0, doublePlays: 0,
+        strikeouts: 0, walks: 0, leftOnBase: 0, hitByPitch: 0,
+        caughtStealing: 0, assists: 0,
+      };
+    }
+    const findStat = (groupName: string, statName: string): number => {
+      const g = team.statistics?.find((s) => s.name === groupName);
+      const v = g?.stats?.find((s) => s.name === statName)?.displayValue;
+      return Number(v) || 0;
+    };
+    const findDetail = (detailName: string, statName: string): number => {
+      const d = team.details?.find((x) => x.name === detailName);
+      const v = d?.stats?.find((s) => s.name === statName)?.displayValue;
+      // displayValue 가 "3" 같은 숫자 or "Baldwin (1, 2nd...)" 같은 텍스트일 수 있음
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+    return {
+      hits: findStat("batting", "hits"),
+      homeRuns: findStat("batting", "homeRuns") || (findStat("pitching", "homeRuns")), // batting 우선
+      errors: findStat("fielding", "errors"),
+      doublePlays: findStat("fielding", "doublePlays"),
+      strikeouts: findStat("batting", "strikeouts"),
+      walks: findStat("batting", "walks") || findStat("batting", "baseOnBalls"),
+      leftOnBase: findDetail("battingDetails", "teamLOB"),
+      hitByPitch: findStat("batting", "hitByPitch"),
+      caughtStealing: 0,
+      assists: findStat("fielding", "assists"),
+    };
+  };
+  return { home: extract("home"), away: extract("away") };
 }
 
 async function hashLive(live: MlbLive): Promise<string> {

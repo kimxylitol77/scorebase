@@ -87,6 +87,33 @@ interface WpaPoint {
   awayScore: number;
 }
 
+interface MlbBatter {
+  order: number;
+  name: string;
+  position: string;
+  hitsAtBats: string;
+  runs: number;
+  hits: number;
+  rbis: number;
+  homeRuns: number;
+  walks: number;
+  strikeouts: number;
+  avg: string;
+}
+
+interface MlbTeamStats {
+  hits: number;
+  homeRuns: number;
+  errors: number;
+  doublePlays: number;
+  strikeouts: number;
+  walks: number;
+  leftOnBase: number;
+  hitByPitch: number;
+  caughtStealing: number;
+  assists: number;
+}
+
 interface MlbLive {
   status: "PRE" | "LIVE" | "FINAL" | "DELAY";
   statusLabel: string;
@@ -106,6 +133,8 @@ interface MlbLive {
     pitcherName: string | null;
     lastPlay: string | null;
   } | null;
+  lineups?: { home: MlbBatter[]; away: MlbBatter[] } | null;
+  teamStats?: { home: MlbTeamStats; away: MlbTeamStats } | null;
 }
 
 interface Props {
@@ -449,6 +478,35 @@ export default function MlbLiveDetail({
         />
       )}
 
+      {/* 양 팀 통계 비교 (안타/홈런/실책/병살 등) */}
+      {live.teamStats && (
+        <TeamStatsCompare
+          home={live.teamStats.home}
+          away={live.teamStats.away}
+          homeNameKo={homeNameKo ?? live.homeTeam.name}
+          awayNameKo={awayNameKo ?? live.awayTeam.name}
+        />
+      )}
+
+      {/* WPA 승률 차트 */}
+      {live.wpaSeries && live.wpaSeries.length > 1 && (
+        <WpaChart
+          series={live.wpaSeries}
+          homeNameKo={homeNameKo ?? live.homeTeam.name}
+          awayNameKo={awayNameKo ?? live.awayTeam.name}
+        />
+      )}
+
+      {/* 선발 라인업 (1~9번 타순, 양 팀) */}
+      {live.lineups && (live.lineups.home.length > 0 || live.lineups.away.length > 0) && (
+        <LineupCard
+          home={live.lineups.home}
+          away={live.lineups.away}
+          homeNameKo={homeNameKo ?? live.homeTeam.name}
+          awayNameKo={awayNameKo ?? live.awayTeam.name}
+        />
+      )}
+
       {/* 라이브 배당 (The Odds API 1분 갱신) */}
       {live.liveOdds && (
         <LiveOddsCard
@@ -459,6 +517,185 @@ export default function MlbLiveDetail({
         />
       )}
     </div>
+  );
+}
+
+/** 양 팀 통계 비교 카드 (안타/홈런/실책/병살 등) */
+function TeamStatsCompare({
+  home, away, homeNameKo, awayNameKo,
+}: {
+  home: MlbTeamStats;
+  away: MlbTeamStats;
+  homeNameKo: string;
+  awayNameKo: string;
+}) {
+  const rows: Array<{ label: string; key: keyof MlbTeamStats }> = [
+    { label: "안타", key: "hits" },
+    { label: "홈런", key: "homeRuns" },
+    { label: "볼넷", key: "walks" },
+    { label: "삼진", key: "strikeouts" },
+    { label: "실책", key: "errors" },
+    { label: "병살", key: "doublePlays" },
+    { label: "잔루", key: "leftOnBase" },
+    { label: "사구", key: "hitByPitch" },
+  ];
+  return (
+    <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 sm:p-4">
+      <h3 className="text-sm font-bold mb-3 text-neutral-700 dark:text-neutral-200">
+        팀 통계
+      </h3>
+      <div className="space-y-2">
+        {rows.map((r) => {
+          const a = away[r.key];
+          const h = home[r.key];
+          const max = Math.max(a, h, 1);
+          return (
+            <div key={r.key} className="flex items-center gap-2 text-xs sm:text-sm">
+              <div className="w-10 text-right tabular-nums font-bold">{a}</div>
+              <div className="flex-1 flex items-center gap-1">
+                <div className="flex-1 h-2 bg-neutral-100 dark:bg-neutral-800 rounded-l overflow-hidden flex justify-end">
+                  <div className="h-full bg-blue-400 dark:bg-blue-500" style={{ width: `${(a / max) * 100}%` }} />
+                </div>
+                <div className="text-[10px] uppercase font-bold text-neutral-500 w-12 text-center">{r.label}</div>
+                <div className="flex-1 h-2 bg-neutral-100 dark:bg-neutral-800 rounded-r overflow-hidden">
+                  <div className="h-full bg-red-400 dark:bg-red-500" style={{ width: `${(h / max) * 100}%` }} />
+                </div>
+              </div>
+              <div className="w-10 text-left tabular-nums font-bold">{h}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-3 text-[10px] uppercase tracking-wider text-neutral-500">
+        <span className="text-blue-600 dark:text-blue-400 font-bold">{awayNameKo}</span>
+        <span className="text-red-600 dark:text-red-400 font-bold">{homeNameKo}</span>
+      </div>
+    </section>
+  );
+}
+
+/** WPA 승률 차트 (SVG line graph) */
+function WpaChart({
+  series, homeNameKo, awayNameKo,
+}: {
+  series: WpaPoint[];
+  homeNameKo: string;
+  awayNameKo: string;
+}) {
+  const W = 600;
+  const H = 120;
+  const PAD = 8;
+  const n = series.length;
+  if (n < 2) return null;
+  // homeWP 0~1 → SVG y (0 = top = 100% home win, H = bottom = 0%)
+  const xAt = (i: number) => PAD + (i / (n - 1)) * (W - PAD * 2);
+  const yAt = (wp: number) => PAD + (1 - Math.max(0, Math.min(1, wp))) * (H - PAD * 2);
+  const pts = series.map((p, i) => `${xAt(i)},${yAt(p.homeWP)}`).join(" ");
+  const last = series[series.length - 1];
+  const homeWinPct = Math.round((last?.homeWP ?? 0.5) * 100);
+  const awayWinPct = 100 - homeWinPct;
+  return (
+    <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 sm:p-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-bold text-neutral-700 dark:text-neutral-200">
+          승률 변화
+        </h3>
+        <div className="text-xs text-neutral-500">
+          <span className="text-blue-600 dark:text-blue-400 font-bold">{awayNameKo} {awayWinPct}%</span>
+          <span className="mx-2">vs</span>
+          <span className="text-red-600 dark:text-red-400 font-bold">{homeNameKo} {homeWinPct}%</span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 160 }}>
+        {/* 50% 기준선 */}
+        <line x1={PAD} y1={H / 2} x2={W - PAD} y2={H / 2} stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
+        {/* away 영역 (위쪽 = away 승) */}
+        <polygon
+          points={`${PAD},${PAD} ${pts} ${W - PAD},${PAD}`}
+          fill="rgb(96 165 250 / 0.15)"
+        />
+        {/* home 영역 (아래쪽 = home 승) */}
+        <polygon
+          points={`${PAD},${H - PAD} ${pts} ${W - PAD},${H - PAD}`}
+          fill="rgb(248 113 113 / 0.15)"
+        />
+        {/* 라인 */}
+        <polyline
+          points={pts}
+          fill="none"
+          stroke="rgb(168 85 247)"
+          strokeWidth="1.5"
+        />
+        {/* 라벨 */}
+        <text x={PAD} y={PAD + 8} fontSize="9" fill="rgb(96 165 250)" fontWeight="bold">
+          {awayNameKo} 우세
+        </text>
+        <text x={PAD} y={H - PAD - 2} fontSize="9" fill="rgb(248 113 113)" fontWeight="bold">
+          {homeNameKo} 우세
+        </text>
+      </svg>
+    </section>
+  );
+}
+
+/** 선발 라인업 (1~9번 타순 양 팀) */
+function LineupCard({
+  home, away, homeNameKo, awayNameKo,
+}: {
+  home: MlbBatter[];
+  away: MlbBatter[];
+  homeNameKo: string;
+  awayNameKo: string;
+}) {
+  return (
+    <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 sm:p-4">
+      <h3 className="text-sm font-bold mb-3 text-neutral-700 dark:text-neutral-200">
+        선발 라인업
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          ["away", awayNameKo, away],
+          ["home", homeNameKo, home],
+        ].map(([side, label, list]) => (
+          <div key={side as string}>
+            <div className={`text-[11px] uppercase tracking-wider font-bold mb-2 ${
+              side === "away" ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"
+            }`}>
+              {label as string}
+            </div>
+            <table className="w-full text-[11px] sm:text-xs">
+              <thead>
+                <tr className="text-neutral-500">
+                  <th className="text-left py-1 px-1 w-6">#</th>
+                  <th className="text-left py-1 pl-1">선수</th>
+                  <th className="text-center py-1 px-1 w-12">타석</th>
+                  <th className="text-center py-1 px-1 w-8">H</th>
+                  <th className="text-center py-1 px-1 w-8">HR</th>
+                  <th className="text-center py-1 px-1 w-8">BB</th>
+                  <th className="text-center py-1 px-1 w-8">K</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(list as MlbBatter[]).map((b) => (
+                  <tr key={`${side}-${b.order}-${b.name}`} className="border-t border-neutral-100 dark:border-neutral-800">
+                    <td className="py-1 px-1 text-neutral-400 font-bold tabular-nums">{b.order}</td>
+                    <td className="py-1 pl-1">
+                      <span className="font-medium">{b.name}</span>
+                      <span className="ml-1 text-[10px] text-neutral-500">{b.position}</span>
+                    </td>
+                    <td className="text-center tabular-nums text-neutral-600">{b.hitsAtBats}</td>
+                    <td className="text-center tabular-nums font-bold">{b.hits}</td>
+                    <td className="text-center tabular-nums">{b.homeRuns || ""}</td>
+                    <td className="text-center tabular-nums">{b.walks || ""}</td>
+                    <td className="text-center tabular-nums text-neutral-500">{b.strikeouts || ""}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
