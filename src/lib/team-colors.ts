@@ -233,9 +233,22 @@ const RAW: Record<string, string> = {
   "몬테레이": "#003DA5",
 };
 
-/** 팀명 → brand 컬러 hex (없으면 null). 영문/한글 둘 다 시도. */
+/** 팀명 → brand 컬러 hex (없으면 hash 기반 자동 생성).
+ *  매핑이 있는 메이저 팀(EPL·LALIGA 등)은 진짜 brand 색,
+ *  없는 팀은 팀명 해시 → HSL 자동 색상 (같은 팀명은 항상 같은 색).
+ *  채도 60%·명도 45% 로 너무 흐릿하지도 너무 형광스럽지도 않게 유지.
+ */
 export function teamColor(name: string | null | undefined): string | null {
   if (!name) return null;
   const trimmed = name.trim();
-  return RAW[trimmed] ?? null;
+  const brand = RAW[trimmed];
+  if (brand) return brand;
+  // hash → HSL
+  let hash = 0;
+  for (let i = 0; i < trimmed.length; i++) {
+    hash = (hash * 31 + trimmed.charCodeAt(i)) | 0;
+  }
+  const hue = Math.abs(hash) % 360;
+  // 명도 55% · 채도 70% — 다크/라이트 배경 모두에서 잘 보임
+  return `hsl(${hue}, 70%, 55%)`;
 }

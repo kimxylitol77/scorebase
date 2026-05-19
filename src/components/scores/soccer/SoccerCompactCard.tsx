@@ -6,6 +6,7 @@
 
 import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
+import { teamColor } from "@/lib/team-colors";
 
 interface Props {
   matchId: string | number;
@@ -93,8 +94,14 @@ export default function SoccerCompactCard(props: Props) {
             : "text-neutral-700 dark:text-neutral-300"
     }`;
 
+  const homeColor = teamColor(home.name);
+  const awayColor = teamColor(away.name);
+
   const row = (
-    <div className="flex items-center gap-2 px-2 py-2 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
+    <div
+      className="flex items-center gap-2 px-2 py-2 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors border-l-[3px]"
+      style={homeColor ? { borderLeftColor: homeColor } : undefined}
+    >
       {/* ★ */}
       <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavoriteStar matchId={String(matchId)} />
@@ -108,12 +115,26 @@ export default function SoccerCompactCard(props: Props) {
       {/* 팀 2줄 */}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="flex items-center gap-1.5 min-w-0">
+          {homeColor && (
+            <span
+              className="inline-block w-1 h-3 rounded-sm shrink-0"
+              style={{ background: homeColor }}
+              aria-hidden
+            />
+          )}
           <TeamLogo url={home.logo} name={home.name} />
           <span className={teamNameClass(hasScore && !homeWin && !isLive)}>
             {home.name}
           </span>
         </div>
         <div className="flex items-center gap-1.5 min-w-0">
+          {awayColor && (
+            <span
+              className="inline-block w-1 h-3 rounded-sm shrink-0"
+              style={{ background: awayColor }}
+              aria-hidden
+            />
+          )}
           <TeamLogo url={away.logo} name={away.name} />
           <span className={teamNameClass(hasScore && !awayWin && !isLive)}>
             {away.name}
