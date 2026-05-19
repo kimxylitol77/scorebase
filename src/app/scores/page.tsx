@@ -33,6 +33,10 @@ import {
 import SportTabs from "@/components/scores/SportTabs";
 import DateSlider from "@/components/scores/DateSlider";
 import LeagueChips from "@/components/scores/LeagueChips";
+import SoccerStatusTabs, {
+  type SoccerStatusFilter,
+} from "@/components/scores/SoccerStatusTabs";
+import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import MatchCard from "@/components/scores/MatchCard";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
@@ -81,48 +85,20 @@ const fetchPeriodsByDateCached = unstable_cache(
 export const dynamic = "force-dynamic";
 
 interface Props {
-  searchParams: Promise<{ date?: string; sport?: string; league?: string }>;
+  searchParams: Promise<{
+    date?: string;
+    sport?: string;
+    league?: string;
+    /** soccer 전용 — all | live | scheduled | finished */
+    status?: string;
+  }>;
 }
 
 const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
-const SOCCER_LEAGUES = new Set([
-  "EPL",
-  "LALIGA",
-  "BUNDESLIGA",
-  "SERIE_A",
-  "LIGUE_1",
-  "MLS",
-  "UCL",
-  "WORLD_CUP",
-  "K_LEAGUE_1",
-  "K_LEAGUE_2",
-  "J1_LEAGUE",
-  "J2_LEAGUE",
-  "AFC_CL",
-  "AFC_CL_TWO",
-  "AFC_U23",
-  "SAUDI_PL",
-  "UEL",
-  "UECL",
-  "CHAMPIONSHIP",
-  "LALIGA_2",
-  "BUNDESLIGA_2",
-  "SERIE_B",
-  "LIGUE_2",
-  "EREDIVISIE",
-  "PRIMEIRA_LIGA",
-  "SUPER_LIG",
-  "JUPILER_PL",
-  "SPL",
-  "GREEK_SL",
-  "BRASILEIRAO",
-  "LIGA_MX",
-  "COPA_LIB",
-  "COPA_SUD",
-  "CSL",
-  "A_LEAGUE",
-  "CLUB_WORLD_CUP",
-]);
+// SPORTS 정의에서 soccer 리그를 그대로 사용 — 추가 리그 (CHILE_PB, POLAND_1L 등) 동기화 자동 반영
+const SOCCER_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
+);
 
 function sportFromLeague(league: string): string {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
@@ -373,6 +349,11 @@ export default async function ScoresPage({ searchParams }: Props) {
   const leaguesAll = leaguesForSport(sport);
   const leagueFilter = sp.league && leaguesAll.includes(sp.league) ? sp.league : null;
   const leagues = leagueFilter ? [leagueFilter] : leaguesAll;
+  // 축구 전용 상태 필터 (다른 종목엔 무시)
+  const statusFilter: SoccerStatusFilter =
+    sport === "soccer" && (sp.status === "live" || sp.status === "scheduled" || sp.status === "finished")
+      ? sp.status
+      : "all";
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
@@ -672,7 +653,9 @@ export default async function ScoresPage({ searchParams }: Props) {
     }
   }
 
-  const extraQuery = leagueFilter ? `&league=${leagueFilter}` : "";
+  const extraQuery =
+    (leagueFilter ? `&league=${leagueFilter}` : "") +
+    (statusFilter !== "all" ? `&status=${statusFilter}` : "");
 
   // SEO 동적 값 — generateMetadata 와 일치시킴.
   const sportKo = SPORT_NAMES_KO[sport] ?? "스포츠";
@@ -717,8 +700,20 @@ export default async function ScoresPage({ searchParams }: Props) {
     })),
   };
 
+  // 축구 페이지는 좌측 사이드바를 위해 더 넓은 컨테이너 사용
+  const containerMaxW = sport === "soccer" ? "max-w-7xl" : "max-w-6xl";
+
+  // 축구 상태 필터 — 표시할 매치 결정
+  const showLive = sport !== "soccer" || statusFilter === "all" || statusFilter === "live";
+  const showScheduled = sport !== "soccer" || statusFilter === "all" || statusFilter === "scheduled";
+  const showFinished = sport !== "soccer" || statusFilter === "all" || statusFilter === "finished";
+  const visibleLive = showLive ? liveList : [];
+  const visibleScheduled = showScheduled ? scheduledList : [];
+  const visibleFinished = showFinished ? finishedList : [];
+  const visibleCount = visibleLive.length + visibleScheduled.length + visibleFinished.length;
+
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4">
+    <div className={`${containerMaxW} mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4`}>
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
@@ -766,64 +761,130 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} sport={sport} extraQuery={extraQuery} />
 
-      {/* 리그 필터 (해당 종목 리그가 2개 이상일 때만) */}
-      {leaguesAll.length > 1 && (
-        <LeagueChips
-          leagues={leaguesAll}
-          activeLeague={leagueFilter}
-          sport={sport}
-          date={dateStr}
-        />
-      )}
-
-      {/* 매치 list — 상태별 그룹 + 즐겨찾기 섹션 */}
-      {normalized.length === 0 ? (
-        <EmptyState sport={sport} nextAvailable={nextAvailable} />
-      ) : (
-        <div className="space-y-6">
-          {/* 즐겨찾기 매치 (localStorage 기반, client) — 최상단 */}
-          <FavoriteMatches
-            matches={normalized.map((m) => ({
-              id: String(m.id),
-              sortKey:
-                m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
-              matchId: String(m.id),
-              sport: m.sport,
-              status:
-                m.status === "LIVE"
-                  ? "live"
-                  : m.status === "FINISHED"
-                    ? "finished"
-                    : m.status === "POSTPONED"
-                      ? "postponed"
-                      : "scheduled",
-              league: m.league,
-              leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
-              home: m.home,
-              away: m.away,
-              timeLabel: m.timeLabel,
-              liveStatusLabel: m.liveStatusLabel,
-              baseballCtx: m.baseballCtx,
-              baseballLinescore: m.baseballLinescore,
-              periodLinescore: m.periodLinescore,
-              soccerGoals: m.soccerGoals,
-              soccerCtx: m.soccerCtx,
-              esportsCtx: m.esportsCtx,
-              homeStarter: m.homeStarter,
-              awayStarter: m.awayStarter,
-              href: m.href,
-              actions: actionsFor(m),
-            }))}
+      {/* 축구: 사이드바 + 컨텐츠 2-col / 다른 종목: 기존 그대로 */}
+      {sport === "soccer" ? (
+        <div className="flex gap-6">
+          <SoccerLeagueSidebar
+            leagues={leaguesAll}
+            activeLeague={leagueFilter}
+            date={dateStr}
+            status={statusFilter}
           />
-          {/* 축구 카테고리 — named.com 스타일 row layout */}
-          {sport === "soccer" ? (
-            <SoccerRowLayout
-              liveList={liveList}
-              scheduledList={scheduledList}
-              finishedList={finishedList}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* 상태 탭 — 전체/라이브/예정/종료 */}
+            <SoccerStatusTabs
+              active={statusFilter}
+              counts={{
+                all: normalized.length,
+                live: liveList.length,
+                scheduled: scheduledList.length,
+                finished: finishedList.length,
+              }}
+              date={dateStr}
+              league={leagueFilter}
             />
+
+            {/* 매치 list */}
+            {normalized.length === 0 ? (
+              <EmptyState sport={sport} nextAvailable={nextAvailable} />
+            ) : visibleCount === 0 ? (
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-5 py-10 text-center text-sm text-neutral-500">
+                선택한 상태에 해당하는 경기가 없습니다.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <FavoriteMatches
+                  matches={normalized.map((m) => ({
+                    id: String(m.id),
+                    sortKey:
+                      m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
+                    matchId: String(m.id),
+                    sport: m.sport,
+                    status:
+                      m.status === "LIVE"
+                        ? "live"
+                        : m.status === "FINISHED"
+                          ? "finished"
+                          : m.status === "POSTPONED"
+                            ? "postponed"
+                            : "scheduled",
+                    league: m.league,
+                    leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
+                    home: m.home,
+                    away: m.away,
+                    timeLabel: m.timeLabel,
+                    liveStatusLabel: m.liveStatusLabel,
+                    baseballCtx: m.baseballCtx,
+                    baseballLinescore: m.baseballLinescore,
+                    periodLinescore: m.periodLinescore,
+                    soccerGoals: m.soccerGoals,
+                    soccerCtx: m.soccerCtx,
+                    esportsCtx: m.esportsCtx,
+                    homeStarter: m.homeStarter,
+                    awayStarter: m.awayStarter,
+                    href: m.href,
+                    actions: actionsFor(m),
+                  }))}
+                />
+                <SoccerRowLayout
+                  liveList={visibleLive}
+                  scheduledList={visibleScheduled}
+                  finishedList={visibleFinished}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* 리그 필터 (해당 종목 리그가 2개 이상일 때만) */}
+          {leaguesAll.length > 1 && (
+            <LeagueChips
+              leagues={leaguesAll}
+              activeLeague={leagueFilter}
+              sport={sport}
+              date={dateStr}
+            />
+          )}
+
+          {/* 매치 list */}
+          {normalized.length === 0 ? (
+            <EmptyState sport={sport} nextAvailable={nextAvailable} />
           ) : (
-            <>
+            <div className="space-y-6">
+              <FavoriteMatches
+                matches={normalized.map((m) => ({
+                  id: String(m.id),
+                  sortKey:
+                    m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
+                  matchId: String(m.id),
+                  sport: m.sport,
+                  status:
+                    m.status === "LIVE"
+                      ? "live"
+                      : m.status === "FINISHED"
+                        ? "finished"
+                        : m.status === "POSTPONED"
+                          ? "postponed"
+                          : "scheduled",
+                  league: m.league,
+                  leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
+                  home: m.home,
+                  away: m.away,
+                  timeLabel: m.timeLabel,
+                  liveStatusLabel: m.liveStatusLabel,
+                  baseballCtx: m.baseballCtx,
+                  baseballLinescore: m.baseballLinescore,
+                  periodLinescore: m.periodLinescore,
+                  soccerGoals: m.soccerGoals,
+                  soccerCtx: m.soccerCtx,
+                  esportsCtx: m.esportsCtx,
+                  homeStarter: m.homeStarter,
+                  awayStarter: m.awayStarter,
+                  href: m.href,
+                  actions: actionsFor(m),
+                }))}
+              />
               {liveList.length > 0 && (
                 <Section title="🔴 진행 중" count={liveList.length}>
                   {liveList.map((m) => renderCard(m))}
@@ -839,9 +900,9 @@ export default async function ScoresPage({ searchParams }: Props) {
                   {finishedList.map((m) => renderCard(m))}
                 </Section>
               )}
-            </>
+            </div>
           )}
-        </div>
+        </>
       )}
 
       <p className="text-[11px] text-neutral-500 leading-relaxed pt-2">
@@ -963,7 +1024,7 @@ function SoccerRowLayout({
             {title} ({count})
           </h3>
         </div>
-        <ul className="grid grid-cols-2 gap-2">
+        <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
           {list.map((m) => {
             const statusKey =
               m.status === "LIVE"

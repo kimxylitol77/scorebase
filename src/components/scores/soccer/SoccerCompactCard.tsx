@@ -1,13 +1,10 @@
-// 모바일 2칸 grid 용 축구 카드 — 야구 박스 스타일 (세로 한 줄에 한 팀).
-// 헤더: 리그 배지 + 시간/상태
-// 본문: away (로고 이름 점수) / home (로고 이름 점수)
-// 푸터: P/R 아이콘 + 즐겨찾기
+// 모바일 1행 축구 row — AiScore 스타일.
+// [★] [시간/상태] [홈 로고+이름 / 어웨이 로고+이름] [홈 점수 / 어웨이 점수]
+// 컨테이너에서 divide-y 처리 — row 자체엔 border 없음.
 
 "use client";
 
 import Link from "next/link";
-import { getLeagueBadge } from "./leagueBadge";
-import { teamColor } from "@/lib/team-colors";
 import FavoriteStar from "../FavoriteStar";
 
 interface Props {
@@ -29,10 +26,17 @@ interface Props {
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />;
+    return (
+      <img
+        src={url}
+        alt=""
+        className="w-4 h-4 object-contain shrink-0"
+        loading="lazy"
+      />
+    );
   }
   return (
-    <span className="w-5 h-5 inline-flex items-center justify-center text-[10px] font-bold text-neutral-400 bg-white/5 rounded-full shrink-0">
+    <span className="w-4 h-4 inline-flex items-center justify-center text-[9px] font-bold text-neutral-400 bg-white/5 rounded-full shrink-0">
       {name.slice(0, 1)}
     </span>
   );
@@ -41,19 +45,15 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
 export default function SoccerCompactCard(props: Props) {
   const {
     matchId,
-    league,
     status,
     timeLabel,
     liveStatusLabel,
     home,
     away,
-    previewSlug,
-    recapSlug,
     recentGoalSide,
     href,
   } = props;
 
-  const badge = getLeagueBadge(league);
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
@@ -61,129 +61,94 @@ export default function SoccerCompactCard(props: Props) {
   const homeWin = hasScore && home.score! > away.score!;
   const awayWin = hasScore && away.score! > home.score!;
 
-  // 상태 텍스트
-  const statusText = isLive
+  // 좌측 시간/상태 라벨 — 라이브: 분, 종료: "종료", 예정: 시간
+  const leftPrimary = isLive
     ? liveStatusLabel || "LIVE"
     : isPostponed
       ? "연기"
       : isFinished
         ? "종료"
         : timeLabel;
-  const statusColor = isLive
-    ? "text-rose-500"
+  const leftClass = isLive
+    ? "text-rose-500 font-bold"
     : isFinished
       ? "text-neutral-500"
-      : "text-neutral-500";
+      : "text-neutral-700 dark:text-neutral-300";
 
-  const homeColor = teamColor(home.name);
+  const teamNameClass = (lost: boolean) =>
+    `flex-1 truncate text-[13px] font-semibold ${
+      lost
+        ? "text-neutral-500 dark:text-neutral-500"
+        : "text-neutral-900 dark:text-neutral-100"
+    }`;
 
-  const cardBody = (
-    <div
-      className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden border-l-[3px]"
-      style={homeColor ? { borderLeftColor: homeColor } : undefined}
-    >
-      {/* 헤더: 리그 배지 + 상태/시간 */}
-      <div
-        className="flex items-center justify-between gap-1 px-2 py-1"
-        style={{ background: badge.bg, color: badge.fg }}
-      >
-        <span className="text-[10px] font-bold tracking-wider truncate">{badge.label}</span>
-        <span className={`text-[10px] font-bold tabular-nums whitespace-nowrap ${isLive ? "" : "opacity-80"}`}>
-          {statusText}
-        </span>
-      </div>
+  const scoreClass = (win: boolean, lost: boolean) =>
+    `tabular-nums text-[14px] font-bold leading-tight ${
+      isLive
+        ? "text-rose-600 dark:text-rose-400"
+        : win
+          ? "text-neutral-900 dark:text-neutral-100"
+          : lost
+            ? "text-neutral-500"
+            : "text-neutral-700 dark:text-neutral-300"
+    }`;
 
-      {/* 본문: away 위, home 아래 (한 줄에 한 팀, 풀네임 truncate) */}
-      <div className="px-2 py-2 space-y-1">
-        <TeamRow
-          team={away}
-          win={awayWin}
-          highlight={recentGoalSide === "away"}
-          dim={hasScore && !awayWin && !isLive}
-        />
-        <TeamRow
-          team={home}
-          win={homeWin}
-          highlight={recentGoalSide === "home"}
-          dim={hasScore && !homeWin && !isLive}
-        />
-      </div>
-
-      {/* 푸터: P/R 글 아이콘 + 즐겨찾기 (별도 시간 표시 X — 헤더에 있음) */}
-      <div className="flex items-center justify-between px-2 py-1.5 border-t border-neutral-100 dark:border-white/5">
-        <div className="flex items-center gap-1">
-          {previewSlug && (
-            <Link
-              href={`/articles/${previewSlug}`}
-              prefetch={false}
-              onClick={(e) => e.stopPropagation()}
-              title="프리뷰"
-              className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
-            >
-              P
-            </Link>
-          )}
-          {recapSlug && (
-            <Link
-              href={`/articles/${recapSlug}`}
-              prefetch={false}
-              onClick={(e) => e.stopPropagation()}
-              title="리뷰"
-              className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
-            >
-              R
-            </Link>
-          )}
-        </div>
+  const row = (
+    <div className="flex items-center gap-2 px-2 py-2 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
+      {/* ★ */}
+      <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavoriteStar matchId={String(matchId)} />
       </div>
+
+      {/* 시간/상태 — 한 줄, 가운데 정렬, 폭 고정 */}
+      <div className={`shrink-0 w-12 text-center text-[11px] leading-tight ${leftClass}`}>
+        {leftPrimary}
+      </div>
+
+      {/* 팀 2줄 */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <TeamLogo url={home.logo} name={home.name} />
+          <span className={teamNameClass(hasScore && !homeWin && !isLive)}>
+            {home.name}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <TeamLogo url={away.logo} name={away.name} />
+          <span className={teamNameClass(hasScore && !awayWin && !isLive)}>
+            {away.name}
+          </span>
+        </div>
+      </div>
+
+      {/* 점수 2줄 */}
+      <div className="shrink-0 w-7 flex flex-col items-end gap-1">
+        <span
+          className={`${scoreClass(homeWin, hasScore && !homeWin)} ${
+            recentGoalSide === "home"
+              ? "px-1 rounded ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse"
+              : ""
+          }`}
+        >
+          {home.score ?? "-"}
+        </span>
+        <span
+          className={`${scoreClass(awayWin, hasScore && !awayWin)} ${
+            recentGoalSide === "away"
+              ? "px-1 rounded ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse"
+              : ""
+          }`}
+        >
+          {away.score ?? "-"}
+        </span>
+      </div>
     </div>
   );
 
-  if (!href) return cardBody;
+  if (!href) return row;
   return (
     <Link href={href} prefetch={false} className="block">
-      {cardBody}
+      {row}
     </Link>
-  );
-}
-
-function TeamRow({
-  team,
-  win,
-  highlight,
-  dim,
-}: {
-  team: { name: string; logo?: string | null; score: number | null };
-  win: boolean;
-  highlight: boolean;
-  dim: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5 min-w-0">
-      <TeamLogo url={team.logo} name={team.name} />
-      <span
-        className={`flex-1 truncate text-[13px] font-bold ${
-          dim ? "text-neutral-500 dark:text-neutral-500" : "text-neutral-900 dark:text-neutral-100"
-        }`}
-      >
-        {team.name}
-      </span>
-      <span
-        className={`tabular-nums text-[15px] font-black min-w-[20px] text-right ${
-          highlight
-            ? "px-1 rounded ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse"
-            : ""
-        } ${
-          win
-            ? "text-rose-600 dark:text-rose-400"
-            : dim
-              ? "text-neutral-500"
-              : "text-neutral-800 dark:text-neutral-200"
-        }`}
-      >
-        {team.score ?? "-"}
-      </span>
-    </div>
   );
 }

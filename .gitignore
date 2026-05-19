@@ -54,3 +54,6 @@ prisma/migrations/
 src/app/api/chat/
 src/components/Chatbot.tsx
 src/lib/chatbot/
+
+# 로컬 dev 도구 (preview 등)
+.claude/
