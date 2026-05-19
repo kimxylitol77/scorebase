@@ -85,6 +85,16 @@ async function clearOldRanks(
   });
 }
 
+/** 다른 시즌 레이블로 저장된 잔존 행 제거 (NHL "2026-27" 같은 stale 시즌). */
+async function clearStaleSeasons(league: string, currentSeason: string) {
+  const res = await prisma.leagueLeader.deleteMany({
+    where: { league, season: { not: currentSeason } },
+  });
+  if (res.count > 0) {
+    console.log(`[leaders/${league}] removed ${res.count} stale rows (season !== ${currentSeason})`);
+  }
+}
+
 /* ============================================================
  * 축구 7개 리그 (API-Football)
  * ==========================================================*/
@@ -184,9 +194,10 @@ const NBA_CATS = [
   { stat: "blk", code: "BLK", unit: "블록" },
 ] as const;
 
-async function runNba(season: number) {
+async function runNba(seasonStartYear: number) {
   const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return { season: String(season), result: {} };
+  const seasonLabel = `${seasonStartYear}-${String(seasonStartYear + 1).slice(2)}`;
+  if (!key) return { season: seasonLabel, result: {} };
   const summary: Record<string, number> = {};
   // 30팀 lookup
   const teamsRes = await fetch(`https://api.balldontlie.io/nba/v1/teams?per_page=50`, {
@@ -205,7 +216,7 @@ async function runNba(season: number) {
   for (const cat of NBA_CATS) {
     try {
       const r = await fetch(
-        `https://api.balldontlie.io/nba/v1/leaders?season=${season}&stat_type=${cat.stat}`,
+        `https://api.balldontlie.io/nba/v1/leaders?season=${seasonStartYear}&stat_type=${cat.stat}`,
         { headers: { Authorization: key }, cache: "no-store" },
       );
       if (!r.ok) continue;
@@ -234,17 +245,18 @@ async function runNba(season: number) {
           value: d.value,
           unit: cat.unit,
           appearances: d.games_played,
-          season: String(season),
+          season: seasonLabel,
           photoUrl: photoByName.get(fullName.toLowerCase()),
         });
       }
-      await clearOldRanks("NBA", cat.code, String(season), top.length);
+      await clearOldRanks("NBA", cat.code, seasonLabel, top.length);
       summary[cat.code] = top.length;
     } catch (e) {
       console.warn(`[leaders/nba] ${cat.stat}`, (e as Error).message);
     }
   }
-  return { season: String(season), result: summary };
+  await clearStaleSeasons("NBA", seasonLabel);
+  return { season: seasonLabel, result: summary };
 }
 
 /**
@@ -361,6 +373,7 @@ async function runNhl(seasonLabel: string) {
   };
   await fetchOne("skater", NHL_SKATER_CATS);
   await fetchOne("goalie", NHL_GOALIE_CATS);
+  await clearStaleSeasons("NHL", seasonLabel);
   return { season: seasonLabel, result: summary };
 }
 
@@ -748,6 +761,22 @@ async function runNpb(season: number) {
 
 const LCK_TOURNAMENT_ID = 324;
 
+// LCK 1군 10팀 화이트리스트 (BDL 응답 team.name 정확 매치).
+// 2부/Academy/Youth/Challengers + 해외 리그 (LPL/LEC/LJL/VCS/PCS) 제외 목적.
+// 후원사 명칭 변경 가능성 대비 alias 포함.
+const LCK_TEAM_WHITELIST = new Set([
+  "T1",
+  "Gen.G",
+  "KT Rolster",
+  "Hanwha Life Esports",
+  "Dplus KIA",
+  "Hanjin BRION", "BRION", "OK BRION",
+  "BNK FearX", "BNK FEARX",
+  "DRX",
+  "Nongshim RedForce", "NongShim RedForce",
+  "Kwangdong Freecs", "DN Freecs", "DNF",
+]);
+
 interface LolMatchMapStat {
   player: { id: number; nickname: string };
   team: { id: number; name: string };
@@ -825,11 +854,13 @@ async function runLol(season: number) {
     byPlayer.set(s.player.id, cur);
   }
 
-  // 평균 stats 계산 (최소 3게임 이상 출전)
+  // 평균 stats 계산 (최소 3게임 이상 + LCK 1군 화이트리스트만)
   type Row = { id: number; nickname: string; team: string; kda: number; cs: number; killsAvg: number; games: number };
   const rows: Row[] = [];
+  let droppedNonLck = 0;
   for (const [id, v] of byPlayer) {
     if (v.games < 3) continue;
+    if (!LCK_TEAM_WHITELIST.has(v.team)) { droppedNonLck++; continue; }
     const kda = v.deaths === 0 ? v.kills + v.assists : (v.kills + v.assists) / v.deaths;
     rows.push({
       id,
@@ -840,6 +871,9 @@ async function runLol(season: number) {
       killsAvg: v.kills / v.games,
       games: v.games,
     });
+  }
+  if (droppedNonLck > 0) {
+    console.log(`[leaders/lol] dropped ${droppedNonLck} non-LCK players (Academy/Youth/해외 리그)`);
   }
 
   const writeCat = async (
@@ -873,6 +907,7 @@ async function runLol(season: number) {
   await writeCat("KDA", "KDA", "kda", 2);
   await writeCat("CS", "CS", "cs", 1);
   await writeCat("KILL", "킬/경기", "killsAvg", 1);
+  await clearStaleSeasons("LOL", String(season));
   return { season: String(season), result: summary };
 }
 
@@ -887,8 +922,10 @@ export async function runFetchLeagueLeaders(opts?: {
   const now = new Date();
   const yearNow = now.getUTCFullYear();
   const m = now.getUTCMonth() + 1;
-  const nbaSeason = m >= 9 ? yearNow : yearNow - 1;
-  const nhlSeasonStartYear = m >= 9 ? yearNow : yearNow - 1;
+  // NBA/NHL split 시즌 start year — 7월부터 다음 시즌으로 간주 (preseason 시작).
+  // m=7..12 → year, m=1..6 → year-1.
+  const nbaSeason = m >= 7 ? yearNow : yearNow - 1;
+  const nhlSeasonStartYear = m >= 7 ? yearNow : yearNow - 1;
   const nhlSeasonLabel = `${nhlSeasonStartYear}-${String(nhlSeasonStartYear + 1).slice(2)}`;
   const summary: Record<string, unknown> = {};
   if (!sport || sport === "soccer") summary.soccer = await runSoccer();

@@ -61,7 +61,9 @@ const RAW: Record<string, string> = {
   "Hugo Ekitike": "위고 에키티케",
   "Federico Chiesa": "페데리코 키에사",
   // 맨시티
-  "Erling Haaland": "엘링 홀란",
+  "Erling Haaland": "엘링 홀란드",
+  "Erling Braut Haaland": "엘링 홀란드",
+  "E. Haaland": "엘링 홀란드",
   "Kevin De Bruyne": "케빈 더 브라위너",
   "Phil Foden": "필 포든",
   "Bernardo Silva": "베르나르두 실바",
