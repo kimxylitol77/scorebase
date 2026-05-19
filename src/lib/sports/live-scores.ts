@@ -13,6 +13,7 @@
 // Edge Runtime 호환을 위해 fetch 사용 (axios 제거).
 import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 const AF_BASE = "https://v3.football.api-sports.io";
 const AB_BASE = "https://v1.baseball.api-sports.io";
@@ -98,18 +99,20 @@ const AF_ID_TO_CODE: Record<number, string> = Object.fromEntries(
   Object.entries(API_FOOTBALL_LEAGUE_ID).map(([k, v]) => [v, k]),
 );
 
-function shortName(name: string): string {
-  // 영문 풀명 → 약칭 (첫 단어 또는 처음 3글자)
+function shortName(name: string, league?: string): string {
   if (!name) return "";
-  // 한글 약칭은 보통 첫 단어가 곧 약칭 (예: "삼성 라이온즈" → "삼성")
-  if (/[가-힣]/.test(name)) {
-    const first = name.split(/\s+/)[0];
+  // 영문 풀명이면 한글 사전 통과 먼저 (EGYPT_PL "Al Ittihad" → "이티하드 알렉산드리아" → "이티하드")
+  const localized = toKoreanTeamName(name, league);
+  const display = localized !== name ? localized : name;
+  // 한글 약칭은 첫 단어가 곧 약칭 (예: "삼성 라이온즈" → "삼성")
+  if (/[가-힣]/.test(display)) {
+    const first = display.split(/\s+/)[0];
     return first.length > 4 ? first.slice(0, 4) : first;
   }
-  // 영문: 토큰 첫 단어 또는 3 letters
-  const tokens = name.split(/\s+/).filter(Boolean);
+  // 영문: 토큰 첫 단어 또는 4 letters
+  const tokens = display.split(/\s+/).filter(Boolean);
   if (tokens.length >= 2 && tokens[0].length <= 4) return tokens[0];
-  return name.slice(0, 4);
+  return display.slice(0, 4);
 }
 
 /* ============================================================
@@ -171,8 +174,8 @@ export async function fetchSoccerLive(): Promise<LiveMatch[]> {
           leagueLabel: LEAGUE_LABEL[code] ?? code,
           homeName: f.teams.home.name,
           awayName: f.teams.away.name,
-          homeShort: shortName(f.teams.home.name),
-          awayShort: shortName(f.teams.away.name),
+          homeShort: shortName(f.teams.home.name, code),
+          awayShort: shortName(f.teams.away.name, code),
           homeScore: f.goals.home ?? 0,
           awayScore: f.goals.away ?? 0,
           statusLabel: soccerStatusLabel(
@@ -1047,8 +1050,8 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
           },
           homeName: g.teams.home.name,
           awayName: g.teams.away.name,
-          homeShort: shortName(g.teams.home.name),
-          awayShort: shortName(g.teams.away.name),
+          homeShort: shortName(g.teams.home.name, code),
+          awayShort: shortName(g.teams.away.name, code),
           homeScore: g.scores.home.total ?? 0,
           awayScore: g.scores.away.total ?? 0,
           statusLabel: baseballStatusLabel(g.status.long, g.status.short),
