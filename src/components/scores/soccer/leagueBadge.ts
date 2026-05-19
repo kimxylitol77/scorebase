@@ -1,6 +1,8 @@
 // /scores 축구 row 레이아웃 — 리그별 컬러 배지 매핑.
 // named.com 스타일: 좌측 110px 컬러 박스 + 리그명 (흰색 텍스트, 작고 굵게)
 
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+
 export interface LeagueBadgeStyle {
   /** 줄여 쓰는 라벨 (110px 한 줄에 들어가도록) */
   label: string;
@@ -54,12 +56,19 @@ const LEAGUE_BADGES: Record<string, LeagueBadgeStyle> = {
   COPA_SUD: { label: "수다메리카나", bg: "#f47b20", fg: "#ffffff" },
 };
 
-const DEFAULT_BADGE: LeagueBadgeStyle = {
-  label: "기타",
-  bg: "#475569",
-  fg: "#ffffff",
-};
-
 export function getLeagueBadge(league: string): LeagueBadgeStyle {
-  return LEAGUE_BADGES[league] ?? { ...DEFAULT_BADGE, label: league };
+  const explicit = LEAGUE_BADGES[league];
+  if (explicit) return explicit;
+  // 매핑 없는 리그: 리그 코드 hash → HSL 자동 생성.
+  // 채도 65% · 명도 30% — 배지 배경이라 진한 톤.
+  let hash = 0;
+  for (let i = 0; i < league.length; i++) {
+    hash = (hash * 31 + league.charCodeAt(i)) | 0;
+  }
+  const hue = Math.abs(hash) % 360;
+  return {
+    label: LEAGUE_DISPLAY[league] ?? league,
+    bg: `hsl(${hue}, 65%, 30%)`,
+    fg: "#ffffff",
+  };
 }
