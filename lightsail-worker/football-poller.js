@@ -1,18 +1,18 @@
-// football-poller.js — TheSports football match analysis 수집 → Scorebase API 로 전송
+// football-poller.js — TheSports football match data 수집 → Scorebase API 로 전송
 // 1분 주기.
 //
-// 흐름:
-//   1. GET /api/internal/football-matches-with-ts-mapping?days=2 — 매칭된 매치 list
-//   2. TheSports /v1/football/match/diary 로 매치 list (오늘 + 내일) 받아서 ts_match_id 식별
-//   3. 매칭된 매치별 /v1/football/match/analysis 호출
-//   4. POST /api/internal/thesports-cache — analysis JSON 저장
+// 매치별 fetch 데이터:
+//   - 모든 매칭 매치: analysis (h2h, history, goal_distribution)
+//   - LIVE 매치 (coverage.mlive=1): detail_live (stats, incidents, tlive)
+//   - LIVE + coverage.lineup=1 매치: lineup/detail (formation, players)
 //
-// 매칭 알고리즘:
-//   diary 매치 (home_team_id + away_team_id + match_time) ≈ 우리 매치 (home.tsTeamId + away.tsTeamId + startTime ± 1시간)
+// Rate limit 안전:
+//   - 매치당 최대 3회 API 호출 (analysis · detail_live · lineup)
+//   - 회당 최대 20매치 처리 → 60회 호출 / 1분 = 1초당 1회 페이스
+//   - LIVE 매치 우선 (timing 민감)
 //
 // 환경변수 (/home/ubuntu/.env):
-//   THESPORTS_USER, THESPORTS_SECRET
-//   SITE_URL (예: https://www.scorebase.kr 또는 localhost dev), INTERNAL_API_TOKEN
+//   THESPORTS_USER, THESPORTS_SECRET, SITE_URL, INTERNAL_API_TOKEN
 
 require("dotenv").config({ path: "/home/ubuntu/.env" });
 const axios = require("axios");
@@ -23,6 +23,7 @@ const TS_SECRET = process.env.THESPORTS_SECRET;
 const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
 const POLL_INTERVAL_MS = 60_000;
+const MAX_MATCHES_PER_POLL = 20;
 
 if (!TS_USER || !TS_SECRET) {
   console.error("❌ THESPORTS_USER / THESPORTS_SECRET missing");
@@ -35,7 +36,19 @@ if (!TOKEN) {
 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 
-// 우리 매치 list (매핑 hint 포함) fetch.
+// TheSports status_id 의미 (검증된 코드):
+//   1 = 예정 (scheduled / not started)
+//   2~7 = 진행 중 (LIVE — 전반·HT·후반·OT·PK 등)
+//   8 = 종료 (finished)
+//   9 = 연기
+//   10 = 취소
+//   11 = 중단
+//   12 = 후반전 시작 전 등 (사례별)
+//   13 = 무관중 등
+function isLiveStatus(id) {
+  return id >= 2 && id <= 7;
+}
+
 async function fetchOurMatches() {
   const { data } = await axios.get(`${SITE_URL}/api/internal/football-matches-with-ts-mapping`, {
     params: { days: 2 },
@@ -45,7 +58,6 @@ async function fetchOurMatches() {
   return data.matches || [];
 }
 
-// TheSports match/diary 응답.
 async function fetchTsDiary() {
   const { data } = await axios.get(`${TS_BASE}/v1/football/match/diary`, {
     params: { user: TS_USER, secret: TS_SECRET, tsp: Math.floor(Date.now() / 1000) },
@@ -54,17 +66,44 @@ async function fetchTsDiary() {
   return data.results || [];
 }
 
-// TheSports analysis 응답.
 async function fetchTsAnalysis(tsMatchId) {
-  const { data } = await axios.get(`${TS_BASE}/v1/football/match/analysis`, {
-    params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
-    timeout: 30_000,
-  });
-  return data.results || null;
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/analysis`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
+      timeout: 30_000,
+    });
+    return data.results || null;
+  } catch {
+    return null;
+  }
 }
 
-// 매칭: 우리 매치 1개 ↔ ts diary 매치 list.
-// 양 팀 ts_team_id + 시작 시간 ± 90분 일치.
+async function fetchTsDetailLive(tsMatchId) {
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/detail_live`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
+      timeout: 30_000,
+    });
+    return data.results || null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchTsLineup(tsMatchId) {
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/lineup/detail`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
+      timeout: 30_000,
+    });
+    const r = data.results;
+    // empty object 면 lineup 미제공
+    return r && typeof r === "object" && Object.keys(r).length > 0 ? r : null;
+  } catch {
+    return null;
+  }
+}
+
 function matchToTsMatch(our, tsDiary) {
   const ourTime = new Date(our.startTime).getTime() / 1000;
   return tsDiary.find((ts) => {
@@ -78,11 +117,10 @@ function matchToTsMatch(our, tsDiary) {
   });
 }
 
-// upsert cache.
-async function postCache(matchId, tsMatchId, analysis) {
+async function postCache(matchId, tsMatchId, payload) {
   await axios.post(
     `${SITE_URL}/api/internal/thesports-cache`,
-    { matchId, tsMatchId, analysis },
+    { matchId, tsMatchId, ...payload },
     { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 30_000 },
   );
 }
@@ -90,44 +128,71 @@ async function postCache(matchId, tsMatchId, analysis) {
 async function poll() {
   const ts = new Date().toISOString();
   try {
-    const ourMatches = await fetchOurMatches();
-    const tsDiary = await fetchTsDiary();
+    const [ourMatches, tsDiary] = await Promise.all([fetchOurMatches(), fetchTsDiary()]);
     console.log(`[${ts}] ⚽ our=${ourMatches.length} | ts_diary=${tsDiary.length}`);
 
-    let matched = 0;
+    // 1. 매칭
+    const pairs = [];
+    for (const our of ourMatches) {
+      const tsMatch = matchToTsMatch(our, tsDiary);
+      if (tsMatch) pairs.push({ our, ts: tsMatch });
+    }
+    console.log(`    매칭됨: ${pairs.length}/${ourMatches.length}`);
+
+    // 2. LIVE 매치 우선 정렬 (timing 민감)
+    pairs.sort((a, b) => {
+      const aLive = isLiveStatus(a.ts.status_id) ? 0 : 1;
+      const bLive = isLiveStatus(b.ts.status_id) ? 0 : 1;
+      return aLive - bLive;
+    });
+    const slice = pairs.slice(0, MAX_MATCHES_PER_POLL);
+
     let cached = 0;
-    let skipped = 0;
+    let liveCount = 0;
+    let lineupCount = 0;
     let errors = 0;
 
-    // PoC: 처음 5개만 처리 (rate limit + 안전)
-    for (const our of ourMatches.slice(0, 5)) {
-      const tsMatch = matchToTsMatch(our, tsDiary);
-      if (!tsMatch) {
-        skipped++;
-        continue;
-      }
-      matched++;
+    // 3. 각 매치 처리
+    for (const { our, ts: tsMatch } of slice) {
       try {
+        const payload = {};
+
+        // 모든 매치: analysis (h2h, goal_distribution)
         const analysis = await fetchTsAnalysis(tsMatch.id);
-        if (analysis) {
-          await postCache(our.matchId, tsMatch.id, analysis);
-          cached++;
-          console.log(
-            `    ✓ matchId=${our.matchId} (${our.away.name} @ ${our.home.name}) tsMatchId=${tsMatch.id}`,
-          );
+        if (analysis) payload.analysis = analysis;
+
+        // LIVE 매치 + coverage.mlive=1: detail_live
+        if (isLiveStatus(tsMatch.status_id) && tsMatch.coverage?.mlive === 1) {
+          liveCount++;
+          const detailLive = await fetchTsDetailLive(tsMatch.id);
+          if (detailLive) payload.detailLive = detailLive;
         }
+
+        // coverage.lineup=1: lineup/detail (예정·LIVE 매치)
+        if (tsMatch.coverage?.lineup === 1) {
+          const lineup = await fetchTsLineup(tsMatch.id);
+          if (lineup) {
+            payload.lineup = lineup;
+            lineupCount++;
+          }
+        }
+
+        if (Object.keys(payload).length === 0) continue;
+
+        await postCache(our.matchId, tsMatch.id, payload);
+        cached++;
       } catch (e) {
         errors++;
         console.error(`    ✗ matchId=${our.matchId}: ${e.message}`);
       }
     }
 
-    console.log(`    summary: matched=${matched} cached=${cached} skipped=${skipped} errors=${errors}`);
+    console.log(`    summary: cached=${cached}/${slice.length}, live=${liveCount}, lineup=${lineupCount}, errors=${errors}`);
   } catch (err) {
     console.error(`[${ts}] ❌ poll error: ${err.message}`);
   }
 }
 
-console.log(`🚀 football-poller started (interval=${POLL_INTERVAL_MS}ms, site=${SITE_URL})`);
-poll(); // 즉시 1회
+console.log(`🚀 football-poller started (interval=${POLL_INTERVAL_MS}ms, max=${MAX_MATCHES_PER_POLL}/poll, site=${SITE_URL})`);
+poll();
 setInterval(poll, POLL_INTERVAL_MS);
