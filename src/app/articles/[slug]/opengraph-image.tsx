@@ -55,10 +55,11 @@ const TYPE_LABEL: Record<string, string> = {
 export default async function Image({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   const article = await prisma.article.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       match: {
         include: { homeTeam: true, awayTeam: true },
