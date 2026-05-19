@@ -1739,7 +1739,7 @@ const RAW: Record<string, string> = {
   "Shandong": "산둥 타이산",
   "Wuhan Sanzhen": "우한 싼전",
   "Henan Songshan Longmen FC": "허난 쑹산",
-  "Henan FC": "허난 쑹산",
+  "Henan FC": "허난 송산 룽먼",
   "Henan Songshan": "허난 쑹산",
   "Tianjin Tigers": "톈진 진먼후",
   "Tianjin Tiger": "톈진 진먼후",
@@ -1809,7 +1809,7 @@ const RAW: Record<string, string> = {
   "Rudar Prijedor": "루다르 프리예도르",
   // ─── BULGARIA_PL (TheSports 보강 10) ───
   "Botev Plovdiv": "보테프 플로브디프",
-  "Botev Vratsa": "보테브 브라트사",
+  "Botev Vratsa": "보테프 브라차",
   "Cherno More Varna": "체르노 모어 바르나",
   "CSKA Sofia": "CSKA 소피아",
   "Levski Sofia": "PFC 레프스키 소피아",
@@ -1972,7 +1972,7 @@ const RAW: Record<string, string> = {
   "Hapoel Haifa": "하포엘 하이파",
   "Hapoel Petah Tikva": "하포엘 페타 티카",
   "Hapoel Tel Aviv": "하포엘 텔 아비브",
-  "Ironi Tiberias": "아이러니 티베리아스",
+  "Ironi Tiberias": "이로니 티베리아스",
   "Maccabi Haifa": "마카비 하이파",
   "Maccabi Netanya": "네타냐",
   "Maccabi Tel Aviv": "마카비 텔 아비브",
@@ -2121,6 +2121,100 @@ const RAW: Record<string, string> = {
   "South Africa": "남아공",
   // ─── YKKONEN (TheSports 보강 1) ───
   "Tampere United": "탐페레 유나이티드",
+
+  // ===== 2026-05-19 scores 페이지 발견 누락 =====
+  // INDIA_ISL
+  "NorthEast United": "노스이스트 유나이티드",
+  "NorthEast United FC": "노스이스트 유나이티드",
+  "Mohammedan": "모하메단 SC",
+  "Mohammedan SC": "모하메단 SC",
+  // CSL — 누락 클럽 + 옛 이름 alias
+  "Sichuan Jiuniu": "쓰촨 주뉴",
+  "Dalian Zhixing": "다롄 즈싱",
+  "Tianjin Teda": "톈진 진먼후",
+  "Tianjin TEDA": "톈진 진먼후",
+  "Henan Jianye": "허난 송산 룽먼",
+  "Qingdao Youth Island": "칭다오 청춘다오",
+  // ARMENIA_PL
+  "Gandzasar": "간자사르",
+  "Gandzasar Kapan": "간자사르 카판",
+  "Pyunik Yerevan": "푸니크 예레반",
+  "Pyunik": "푸니크 예레반",
+  // POLAND (Ekstraklasa / I 리가)
+  "Puszcza Niepołomice": "푸슈차 니에포워미체",
+  "Puszcza Niepolomice": "푸슈차 니에포워미체",
+  "ŁKS Łódź": "LKS 우치",
+  "LKS Lodz": "LKS 우치",
+  "Nieciecza": "니에치에차",
+  "Bruk-Bet Termalica": "브룩벳 테르말리차",
+  // BULGARIA First League
+  "Dobrudzha": "도브루자",
+  "Montana": "몬타나 FC",
+  "FC Montana": "몬타나 FC",
+  "Beroe": "베로에",
+  "Beroe Stara Zagora": "베로에",
+  // EGYPT_PL
+  "El Mokawloon": "알 모카울룬",
+  "Al Mokawloon": "알 모카울룬",
+  "Arab Contractors": "알 모카울룬",
+  "Wadi Degla": "와디 데글라",
+  "Ghazl El Mehalla": "가즐 알 마할라",
+  "Ghazl El Mahalla": "가즐 알 마할라",
+  // ISRAEL_PL
+  "Ironi Kiryat Shmona": "이로니 키르야트 슈모나",
+  "Hapoel Ironi Kiryat Shmona": "이로니 키르야트 슈모나",
+  "Ashdod": "MS 아슈도드",
+  "M.S. Ashdod": "MS 아슈도드",
+  "Bnei Sakhnin": "브네이 사크닌",
+  "Maccabi Bnei Raina": "마카비 브네이 라이나",
+  "Hapoel Katamon": "하포엘 예루살렘",
+  "Hapoel Katamon Jerusalem": "하포엘 예루살렘",
+  // SWEDEN (Allsvenskan / Superettan)
+  "Oddevold": "오데볼드 IS",
+  "Oddevold IS": "오데볼드 IS",
+  "Orebro SK": "외레브로 SK",
+  "Örebro SK": "외레브로 SK",
+  "Djurgardens IF": "유르고르덴 IF",
+  "Djurgården": "유르고르덴 IF",
+  "Sirius": "IK 시리우스",
+  "IK Sirius": "IK 시리우스",
+  "Orgryte IS": "외르그뤼테 IS",
+  "Örgryte": "외르그뤼테 IS",
+  // ROMANIA Liga I
+  "Unirea Slobozia": "우니레아 슬로보지아",
+  "Uta Arad": "UTA 아라드",
+  "UTA Arad": "UTA 아라드",
+  "Oţelul": "오첼룰 갈라치",
+  "Otelul Galati": "오첼룰 갈라치",
+  "AFC Hermannstadt": "헤르만슈타트",
+  "Hermannstadt": "헤르만슈타트",
+  // SWITZERLAND Super League
+  "FC Aarau": "FC 아라우",
+  "Aarau": "FC 아라우",
+  "Grasshoppers": "그라스호퍼스",
+  "Grasshopper Club Zürich": "그라스호퍼스",
+  // LALIGA_2
+  "Leganes": "CD 레가네스",
+  "Leganés": "CD 레가네스",
+  "CD Leganés": "CD 레가네스",
+  // IRELAND PD
+  "Waterford": "워터퍼드 FC",
+  "Waterford FC": "워터퍼드 FC",
+  // ICELAND 1부
+  "Leiknir R.": "레이크니르 R.",
+  "Leiknir Reykjavik": "레이크니르 R.",
+  "HK Kopavogur": "HK 코파보구르",
+  "HK Kópavogur": "HK 코파보구르",
+  "Njardvik": "UMF 냐르드빅",
+  "Njarðvík": "UMF 냐르드빅",
+  "Grotta": "그로타 KS",
+  "Grótta": "그로타 KS",
+  // CHILE Primera B
+  "Deportes Iquique": "데포르테스 이키케",
+  // ECUADOR LigaPro
+  "Guayaquil City FC": "과야킬 시티 FC",
+  "Guayaquil City": "과야킬 시티 FC",
+  "Orense SC": "오렌세 SC",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
