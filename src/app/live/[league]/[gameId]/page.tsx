@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, SPORTS } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
@@ -15,16 +15,10 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 
-const SOCCER_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
-  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL",
-  "UEL", "UECL",
-  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
-  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
-  "LIGA_MX", "BRASILEIRAO", "COPA_LIB", "COPA_SUD",
-  "CSL", "A_LEAGUE",
-  "CLUB_WORLD_CUP",
-]);
+// 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
+const SOCCER_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
+);
 
 function parseGoalie(json: string | null): GoalieInfo | null {
   if (!json) return null;
@@ -37,45 +31,11 @@ function parseGoalie(json: string | null): GoalieInfo | null {
 
 export const dynamic = "force-dynamic";
 
+// 지원 리그 — 모든 축구 + NBA/NHL (MLB/KBO/NPB/LOL 은 자체 라우트)
 const SUPPORTED = new Set([
   "NBA",
   "NHL",
-  "EPL",
-  "LALIGA",
-  "BUNDESLIGA",
-  "SERIE_A",
-  "LIGUE_1",
-  "MLS",
-  "UCL",
-  "WORLD_CUP",
-  "K_LEAGUE_1",
-  "K_LEAGUE_2",
-  "J1_LEAGUE",
-  "J2_LEAGUE",
-  "AFC_CL",
-  "AFC_CL_TWO",
-  "AFC_U23",
-  "SAUDI_PL",
-  "UEL",
-  "UECL",
-  "CHAMPIONSHIP",
-  "LALIGA_2",
-  "BUNDESLIGA_2",
-  "SERIE_B",
-  "LIGUE_2",
-  "EREDIVISIE",
-  "PRIMEIRA_LIGA",
-  "SUPER_LIG",
-  "JUPILER_PL",
-  "SPL",
-  "GREEK_SL",
-  "BRASILEIRAO",
-  "LIGA_MX",
-  "COPA_LIB",
-  "COPA_SUD",
-  "CSL",
-  "A_LEAGUE",
-  "CLUB_WORLD_CUP",
+  ...(SPORTS.find((s) => s.code === "soccer")?.leagues ?? []),
 ]);
 
 // 리그 라벨은 LEAGUE_DISPLAY (sport-leagues.ts) 단일 출처 사용 — 사이드바와 통일.
