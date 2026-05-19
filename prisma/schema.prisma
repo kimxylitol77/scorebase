@@ -146,6 +146,7 @@ model Match {
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]
+  theSportsCache TheSportsMatchCache?
 
   @@unique([league, externalId])
   @@index([league, startTime])
@@ -239,4 +240,20 @@ model LeagueLeader {
   @@unique([league, category, rank, season])
   @@index([league, season])
   @@index([league, category])
+}
+
+// TheSports.com football match cache — Lightsail worker 가 1분 주기 fetch.
+// detail_live (stats·incidents·tlive), lineup/detail (formation·선수 list), analysis (h2h·goal_distribution) 셋을 JSON 으로 저장.
+model TheSportsMatchCache {
+  id          Int      @id @default(autoincrement())
+  matchId     Int      @unique
+  tsMatchId   String
+  detailLive  Json?
+  lineup      Json?
+  analysis    Json?
+  fetchedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([tsMatchId])
 }

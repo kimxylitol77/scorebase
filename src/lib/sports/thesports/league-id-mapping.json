@@ -1,5 +1,12 @@
 [
   {
+    "code": "A_LEAGUE",
+    "ourLabel": "A-리그",
+    "tsId": "9k82rekhvz2repz",
+    "tsEn": "Australia A-League",
+    "tsKo": "오스트레일리아 A리그"
+  },
+  {
     "code": "AFC_CL",
     "ourLabel": "AFC 챔피언스리그",
     "tsId": "9dn1m1ghjpmoepl",
@@ -56,6 +63,13 @@
     "tsKo": "보스니아 헤르체고비나 프리미어 리그"
   },
   {
+    "code": "BRASILEIRAO",
+    "ourLabel": "브라질 세리에 A",
+    "tsId": "4zp5rzgh9zq82w1",
+    "tsEn": "Brazilian Serie A",
+    "tsKo": "세리에 A"
+  },
+  {
     "code": "BULGARIA_PL",
     "ourLabel": "불가리아 퍼스트 리그",
     "tsId": "kn54qllhn0qvy9d",
@@ -84,11 +98,18 @@
     "tsKo": "캐나다 축구 리그"
   },
   {
+    "code": "CHALLENGE_LEAGUE",
+    "ourLabel": "스위스 챌린지 리그",
+    "tsId": "56ypq3nheemd7oj",
+    "tsEn": "Switzerland Challenge League",
+    "tsKo": "스위스 챌린지 리그"
+  },
+  {
     "code": "CHAMPIONSHIP",
     "ourLabel": "잉글랜드 챔피언십",
-    "tsId": "9k82rekhvgrepzj",
-    "tsEn": "UEFA Europe Beach Soccer Championship",
-    "tsKo": "유럽 해변 축구 선수권 대회"
+    "tsId": "l965mkyh32r1ge4",
+    "tsEn": "English Football League Championship",
+    "tsKo": "챔피언쉽"
   },
   {
     "code": "CHILE_PB",
@@ -196,6 +217,13 @@
     "tsKo": "프리미어리그"
   },
   {
+    "code": "EREDIVISIE",
+    "ourLabel": "에레디비시",
+    "tsId": "vl7oqdeheyr510j",
+    "tsEn": "Netherlands Eredivisie",
+    "tsKo": "네덜란드 에레디비시"
+  },
+  {
     "code": "GREEK_SL",
     "ourLabel": "그리스 슈퍼리그",
     "tsId": "e4wyrn4hoeq86pv",
@@ -229,6 +257,13 @@
     "tsId": "d23xmvkh3k8qg8n",
     "tsEn": "Indian Super League",
     "tsKo": "인디안 슈퍼 리그"
+  },
+  {
+    "code": "INDONESIA_L1",
+    "ourLabel": "인도네시아 리가 1",
+    "tsId": "56ypq3nhz53md7o",
+    "tsEn": "Indonesian Super League",
+    "tsKo": "인도네시아 리가 1"
   },
   {
     "code": "IRELAND_PD",
@@ -364,6 +399,20 @@
     "tsKo": "폴란드 리가 1"
   },
   {
+    "code": "PRIMEIRA_LIGA",
+    "ourLabel": "프리메이라 리가",
+    "tsId": "9vjxm8ghx2r6odg",
+    "tsEn": "Portuguese Primera Liga",
+    "tsKo": "포르투갈 프리메라 리가"
+  },
+  {
+    "code": "QATAR_SL",
+    "ourLabel": "카타르 스타스 리그",
+    "tsId": "e4wyrn4h8ejq86p",
+    "tsEn": "Qatar Stars League",
+    "tsKo": "QSL"
+  },
+  {
     "code": "SAUDI_PL",
     "ourLabel": "사우디 프로 리그",
     "tsId": "j1l4rjnh66nm7vx",
@@ -399,6 +448,27 @@
     "tsKo": "싱가포르 프리미어 리그"
   },
   {
+    "code": "SLOVAKIA_SL",
+    "ourLabel": "슬로바키아 슈퍼리가",
+    "tsId": "p3glrw7h33qdyjv",
+    "tsEn": "Slovak Nike liga",
+    "tsKo": "스로바키아 니케 리가"
+  },
+  {
+    "code": "SLOVENIA_SNL",
+    "ourLabel": "슬로베니아 1. SNL",
+    "tsId": "p4jwq2ghgom0veo",
+    "tsEn": "Slovenia 1.Liga",
+    "tsKo": "슬로베니아 리가1"
+  },
+  {
+    "code": "SOUTHAFRICA_PSL",
+    "ourLabel": "남아공 PSL",
+    "tsId": "p4jwq2gh472m0ve",
+    "tsEn": "South Africa Premier Soccer League",
+    "tsKo": "대한민국 프리미어 리그"
+  },
+  {
     "code": "SPL",
     "ourLabel": "스코틀랜드 프리미어십",
     "tsId": "p4jwq2gh1gm0veo",
@@ -418,6 +488,20 @@
     "tsId": "8y39mp1hk8mojxg",
     "tsEn": "Sweden Superettan",
     "tsKo": "스웨덴 수퍼에탄"
+  },
+  {
+    "code": "SWISS_SL",
+    "ourLabel": "스위스 슈퍼리그",
+    "tsId": "z8yomo4hx9q0j6l",
+    "tsEn": "Switzerland Super League",
+    "tsKo": "스위스 슈퍼리그"
+  },
+  {
+    "code": "UAE_PL",
+    "ourLabel": "UAE 프로 리그",
+    "tsId": "v2y8m4zh3jgql07",
+    "tsEn": "United Arab Emirates Adnoc Pro-League",
+    "tsKo": "아랍 에미리트 연합 프로 리그"
   },
   {
     "code": "UCL",
@@ -474,6 +558,13 @@
     "tsId": "gx7lm7phy4m2wdk",
     "tsEn": "Venezuela Primera Division",
     "tsKo": "베네수엘라 프리메라 디비전"
+  },
+  {
+    "code": "VIETNAM_VL1",
+    "ourLabel": "베트남 V-리그 1",
+    "tsId": "p4jwq2gh4xwm0ve",
+    "tsEn": "Vietnam National Champion League",
+    "tsKo": "베트남 나셔널 챔피언 리그"
   },
   {
     "code": "WORLD_CUP",
