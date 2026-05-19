@@ -7,6 +7,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
 import { baseballStatusLabel } from "@/lib/sports/live-scores";
+import { prisma } from "@/lib/db";
 
 // nodejs runtime — fetchLiveOdds 가 fetch 로 동작하지만 일관성 위해 nodejs 고정
 // (edge 도 호환되지만 baseball 응답 크지 않으니 안전한 쪽 선택)
@@ -43,6 +44,13 @@ export interface BaseballLive {
   league: { id: number; name: string };
   liveOdds?: LiveOddsSnapshot | null;
   wpaSeries?: WpaPoint[] | null;
+  /** TheSports detail_live.extra — KBO/NPB 베이스/볼카운트 (cache 있을 때만) */
+  liveContext?: {
+    bases: string; // "000"~"111"
+    outs: number;  // 0~2
+    good: number | null;
+    bad: number | null;
+  } | null;
 }
 
 interface ABGameDetail {
@@ -188,6 +196,32 @@ export async function GET(
         live.linescore.home,
         { lambdaPerInning: lambda },
       );
+    }
+    // TheSports detail_live.extra — KBO/NPB 베이스/볼카운트 (cache 있으면)
+    if (live.status === "LIVE") {
+      try {
+        const ourMatch = await prisma.match.findFirst({
+          where: { externalId: gameId },
+          select: { id: true },
+        });
+        if (ourMatch) {
+          const cache = await prisma.theSportsMatchCache.findUnique({
+            where: { matchId: ourMatch.id },
+            select: { detailLive: true },
+          });
+          const dl = cache?.detailLive as { extra?: { base?: string; out?: number; good?: number; bad?: number } } | null;
+          if (dl?.extra) {
+            live.liveContext = {
+              bases: typeof dl.extra.base === "string" ? dl.extra.base : "000",
+              outs: typeof dl.extra.out === "number" ? dl.extra.out : 0,
+              good: typeof dl.extra.good === "number" ? dl.extra.good : null,
+              bad: typeof dl.extra.bad === "number" ? dl.extra.bad : null,
+            };
+          }
+        }
+      } catch {
+        // cache 조회 실패는 ignore — 다른 데이터는 정상 응답
+      }
     }
     const etag = `W/"${await hashLive(live)}"`;
     if (req.headers.get("if-none-match") === etag) {

@@ -9,6 +9,7 @@ import Link from "next/link";
 import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
 import BaseballWpaChart from "./live/BaseballWpaChart";
+import BaseballDiamond from "./scores/baseball/BaseballDiamond";
 
 interface LiveOdds {
   h2h: { home: number; draw: number | null; away: number } | null;
@@ -33,6 +34,12 @@ interface WpaPoint {
 interface BaseballLive {
   status: "PRE" | "LIVE" | "FINAL" | "DELAY";
   statusLabel: string;
+  liveContext?: {
+    bases: string;
+    outs: number;
+    good: number | null;
+    bad: number | null;
+  } | null;
   linescore: { home: (number | null)[]; away: (number | null)[] } | null;
   homeTeam: {
     name: string;
@@ -430,8 +437,40 @@ export default function BaseballLiveDetail({
         />
       )}
 
-      {/* 베이스/볼카운트 미제공 안내 + 공식 링크 */}
-      {isLive && (
+      {/* 베이스 다이아몬드 — TheSports detail_live.extra cache 있을 때만 */}
+      {isLive && live.liveContext && (
+        <div
+          className="rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3"
+          style={{
+            background: "rgba(255,255,255,.02)",
+            border: "1px solid rgba(255,255,255,.06)",
+          }}
+        >
+          <BaseballDiamond
+            bases={live.liveContext.bases}
+            outs={live.liveContext.outs}
+          />
+          {(live.liveContext.good != null || live.liveContext.bad != null) && (
+            <div className="flex items-center gap-3 text-xs text-neutral-300">
+              {live.liveContext.bad != null && (
+                <span>
+                  <span className="text-neutral-500 mr-1">S</span>
+                  <span className="tabular-nums font-bold">{live.liveContext.bad}</span>
+                </span>
+              )}
+              {live.liveContext.good != null && (
+                <span>
+                  <span className="text-neutral-500 mr-1">B</span>
+                  <span className="tabular-nums font-bold">{live.liveContext.good}</span>
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* cache 없을 때 fallback — 공식 페이지 안내 */}
+      {isLive && !live.liveContext && (
         <div
           className="rounded-xl p-3 sm:p-4 text-xs flex flex-wrap items-center justify-between gap-2"
           style={{
@@ -441,8 +480,7 @@ export default function BaseballLiveDetail({
           }}
         >
           <span>
-            ⓘ {league} 는 베이스 상황·볼카운트·현재 투수/타자가 제공되지 않습니다.
-            상세 라이브는 공식 페이지에서 확인 가능합니다.
+            ⓘ 베이스 상황·볼카운트는 곧 표시됩니다. 상세 라이브는 공식 페이지에서 확인 가능합니다.
           </span>
           <a
             href={officialUrl}
