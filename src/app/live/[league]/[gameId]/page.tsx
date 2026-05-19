@@ -12,6 +12,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
 import SoccerH2HCard from "@/components/scores/soccer/SoccerH2HCard";
+import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
+import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -172,17 +174,34 @@ export default async function GenericLivePage({ params }: Props) {
       />
 
       {/* TheSports 카드 (축구만, cache 있을 때) */}
-      {isSoccer && match.theSportsCache?.analysis && (() => {
-        const analysis = match.theSportsCache.analysis as {
+      {isSoccer && match.theSportsCache && (() => {
+        const cache = match.theSportsCache;
+        const analysis = cache.analysis as {
           goal_distribution?: { home: unknown; away: unknown };
           history?: { vs?: unknown[] };
-        };
-        const gd = analysis.goal_distribution;
-        const h2h = analysis.history?.vs ?? [];
+        } | null;
+        const lineup = cache.lineup as Parameters<typeof SoccerLineupSvg>[0]["data"] | null;
+        const detailLive = cache.detailLive as { stats?: Array<{ type: number; home: number; away: number }> } | null;
+        const gd = analysis?.goal_distribution;
+        const h2h = analysis?.history?.vs ?? [];
         const homeTsId = tsTeamId(match.homeTeam.id);
         const awayTsId = tsTeamId(match.awayTeam.id);
         return (
           <>
+            {detailLive?.stats && detailLive.stats.length > 0 && (
+              <SoccerLiveStatsCard
+                stats={detailLive.stats}
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+              />
+            )}
+            {lineup && lineup.lineup && (
+              <SoccerLineupSvg
+                data={lineup}
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+              />
+            )}
             {gd && gd.home && gd.away && (
               <SoccerGoalDistributionCard
                 homeNameKo={homeKo}
