@@ -7,6 +7,7 @@
 import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
 import { teamColor } from "@/lib/team-colors";
+import { getLeagueBadge } from "./leagueBadge";
 
 interface Props {
   matchId: string | number;
@@ -46,6 +47,7 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
 export default function SoccerCompactCard(props: Props) {
   const {
     matchId,
+    league,
     status,
     timeLabel,
     liveStatusLabel,
@@ -54,6 +56,7 @@ export default function SoccerCompactCard(props: Props) {
     recentGoalSide,
     href,
   } = props;
+  const badge = getLeagueBadge(league);
 
   const isLive = status === "live";
   const isFinished = status === "finished";
@@ -108,9 +111,12 @@ export default function SoccerCompactCard(props: Props) {
         <FavoriteStar matchId={String(matchId)} />
       </div>
 
-      {/* 시간/상태 — 한 줄, 가운데 정렬, 폭 고정 */}
-      <div className={`shrink-0 w-12 text-center text-[11px] leading-tight ${leftClass}`}>
-        {leftPrimary}
+      {/* 시간/상태 + 리그명 — 2줄, 가운데 정렬, 폭 확장 (리그명 노출) */}
+      <div className="shrink-0 w-16 text-center leading-tight">
+        <div className={`text-[11px] ${leftClass}`}>{leftPrimary}</div>
+        <div className="text-[9px] font-semibold text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+          {badge.label}
+        </div>
       </div>
 
       {/* 팀 2줄 */}
