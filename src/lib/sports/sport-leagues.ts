@@ -30,6 +30,8 @@ export const ALL_LEAGUES = [
   "USA_USL_CH", "CANADA_PL",
   "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
+  "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+  "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
   "KBO", "NPB", "MLB",
   "NBA", "NHL", "LOL",
 ];
@@ -62,6 +64,9 @@ export const SPORTS: SportMeta[] = [
       "USA_USL_CH", "CANADA_PL",
       "CSL", "A_LEAGUE", "SAUDI_PL",
       "CLUB_WORLD_CUP", "WORLD_CUP",
+      // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC
+      "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+      "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
     ],
   },
   {
@@ -179,6 +184,16 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   LIGA_MX: "리가 MX",
   COPA_LIB: "코파 리베르타도레스",
   COPA_SUD: "코파 수다메리카나",
+  FA_CUP: "FA컵",
+  EFL_CUP: "카라바오 컵",
+  COPA_DEL_REY: "코파 델 레이",
+  COPPA_ITALIA: "코파 이탈리아",
+  DFB_POKAL: "DFB-포칼",
+  COUPE_DE_FRANCE: "쿠프 드 프랑스",
+  KFA_CUP: "KFA컵",
+  EMPEROR_CUP: "천황배",
+  CONCACAF_CCUP: "CONCACAF 챔피언스컵",
+  AFC_CUP: "AFC컵",
   KBO: "KBO 리그",
   NPB: "NPB 일본프로야구",
   MLB: "메이저리그",
@@ -275,6 +290,17 @@ export const LEAGUE_ORDER: Record<string, number> = {
   SAUDI_PL: 16.5,
   CLUB_WORLD_CUP: 17,
   WORLD_CUP: 18,
+  // 컵 대회 — 각 자국 리그 그룹 바로 뒤 (소수점 .6~.7 대 활용)
+  KFA_CUP: 5.5, // K리그 바로 다음
+  EMPEROR_CUP: 8.5, // J리그 다음
+  AFC_CUP: 7.8, // AFC_CL_TWO 다음
+  FA_CUP: 10.1, // EPL 다음 — 컵 노출 우선
+  EFL_CUP: 10.2,
+  COPA_DEL_REY: 12.1, // LALIGA 다음
+  DFB_POKAL: 13.1, // BUNDESLIGA 다음
+  COPPA_ITALIA: 14.1, // SERIE_A 다음
+  COUPE_DE_FRANCE: 15.1, // LIGUE_1 다음
+  CONCACAF_CCUP: 16.05, // MLS 다음
   NBA: 20,
   NHL: 21,
   LOL: 30,

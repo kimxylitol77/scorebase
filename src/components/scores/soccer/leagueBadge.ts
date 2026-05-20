@@ -54,6 +54,17 @@ const LEAGUE_BADGES: Record<string, LeagueBadgeStyle> = {
   LIGA_MX: { label: "리가 MX", bg: "#006847", fg: "#ffffff" }, // 멕시코 녹
   COPA_LIB: { label: "리베르타도레스", bg: "#193f7c", fg: "#ffffff" },
   COPA_SUD: { label: "수다메리카나", bg: "#f47b20", fg: "#ffffff" },
+  // 컵 대회 (자국 리그 톤 변형)
+  FA_CUP: { label: "FA컵", bg: "#5b2d8f", fg: "#ffffff" },
+  EFL_CUP: { label: "카라바오", bg: "#8a4ec7", fg: "#ffffff" },
+  COPA_DEL_REY: { label: "코파 델 레이", bg: "#a8121b", fg: "#ffd700" }, // 스페인 적금
+  COPPA_ITALIA: { label: "코파 이탈리아", bg: "#005ba6", fg: "#ffffff" },
+  DFB_POKAL: { label: "DFB-포칼", bg: "#a30007", fg: "#fdca0e" }, // 독일 적황
+  COUPE_DE_FRANCE: { label: "쿠프 프랑스", bg: "#1a2c5e", fg: "#ffffff" },
+  KFA_CUP: { label: "KFA컵", bg: "#0a3a78", fg: "#ffffff" },
+  EMPEROR_CUP: { label: "천황배", bg: "#bf0030", fg: "#ffffff" }, // 일장기 적
+  CONCACAF_CCUP: { label: "CONCACAF", bg: "#2e7d32", fg: "#fbc02d" }, // 녹+금
+  AFC_CUP: { label: "AFC컵", bg: "#ffa040", fg: "#1a1a1a" },
 };
 
 export function getLeagueBadge(league: string): LeagueBadgeStyle {

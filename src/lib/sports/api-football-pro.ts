@@ -100,6 +100,17 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   SOUTHAFRICA_PSL: 288, // 남아공 PSL (8~5월)
   USA_USL_CH: 255, // USL Championship (3~10월)
   CANADA_PL: 479, // Canadian Premier (4~10월)
+  // 컵 대회 (2026-05-20 추가)
+  FA_CUP: 45, // 잉글랜드 FA Cup
+  EFL_CUP: 48, // 잉글랜드 EFL Cup / Carabao Cup
+  COPA_DEL_REY: 143, // 스페인 코파 델 레이
+  COPPA_ITALIA: 137, // 이탈리아 코파 이탈리아
+  DFB_POKAL: 81, // 독일 DFB-Pokal
+  COUPE_DE_FRANCE: 66, // 프랑스 쿠프 드 프랑스
+  KFA_CUP: 366, // 한국 FA컵
+  EMPEROR_CUP: 290, // 일본 천황배
+  CONCACAF_CCUP: 16, // CONCACAF Champions Cup
+  AFC_CUP: 18, // AFC Cup (3부 클럽 대회). Elite 는 17 (AFC_CL).
 };
 
 interface CacheEntry<T> {
@@ -775,7 +786,7 @@ export async function fetchUpcomingFixtures(
 /** 시즌 시작 연도 — api-football 형식 */
 export function getApiFootballSeason(date: Date, league: string): number {
   const m = date.getMonth();
-  // EPL/유럽은 8월~5월 시즌
+  // EPL/유럽은 8월~5월 시즌 — 자국 컵 대회 (FA Cup, Copa del Rey 등) 도 같은 시즌 표기
   if (
     [
       "EPL",
@@ -784,12 +795,20 @@ export function getApiFootballSeason(date: Date, league: string): number {
       "SERIE_A",
       "LIGUE_1",
       "UCL",
+      // 유럽 자국 컵
+      "FA_CUP",
+      "EFL_CUP",
+      "COPA_DEL_REY",
+      "COPPA_ITALIA",
+      "DFB_POKAL",
+      "COUPE_DE_FRANCE",
     ].includes(league)
   ) {
     return m >= 7 ? date.getFullYear() : date.getFullYear() - 1;
   }
   // 월드컵은 4년마다 단일 토너먼트. 다음 대회 = 2026 (북중미)
   if (league === "WORLD_CUP") return 2026;
-  // MLS 는 단일 연도
+  // KFA Cup / 천황배 / CONCACAF / AFC Cup 은 달력 연도 시즌
+  // MLS 단일 연도와 동일 처리 — default 로 fall-through
   return date.getFullYear();
 }

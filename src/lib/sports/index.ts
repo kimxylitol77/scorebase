@@ -131,6 +131,17 @@ export const collectors: Record<League, MatchCollector> = {
   SOUTHAFRICA_PSL: buildApiFootballCollector("SOUTHAFRICA_PSL"),
   USA_USL_CH: buildApiFootballCollector("USA_USL_CH"),
   CANADA_PL: buildApiFootballCollector("CANADA_PL"),
+  // 컵 대회 10개 (2026-05-20 추가) — api-football fixtures
+  FA_CUP: buildApiFootballCollector("FA_CUP"),
+  EFL_CUP: buildApiFootballCollector("EFL_CUP"),
+  COPA_DEL_REY: buildApiFootballCollector("COPA_DEL_REY"),
+  COPPA_ITALIA: buildApiFootballCollector("COPPA_ITALIA"),
+  DFB_POKAL: buildApiFootballCollector("DFB_POKAL"),
+  COUPE_DE_FRANCE: buildApiFootballCollector("COUPE_DE_FRANCE"),
+  KFA_CUP: buildApiFootballCollector("KFA_CUP"),
+  EMPEROR_CUP: buildApiFootballCollector("EMPEROR_CUP"),
+  CONCACAF_CCUP: buildApiFootballCollector("CONCACAF_CCUP"),
+  AFC_CUP: buildApiFootballCollector("AFC_CUP"),
 };
 
 export {

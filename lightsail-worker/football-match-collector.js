@@ -55,6 +55,9 @@ const SKIP_LEAGUES = new Set([
   "A_LEAGUE", "CZECH_L", "JUPILER_PL", "CANADA_PL", "INDIA_ISL",
   "BULGARIA_PL", "BOSNIA_PL", "VIETNAM_VL1", "VEIKKAUSLIIGA",
   "SLOVENIA_SNL", "VENEZUELA_PD",
+  // 컵 대회 10개 (2026-05-20 추가) — api-football 이 cover
+  "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+  "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
 ]);
 
 // TheSports football status_id (검증):

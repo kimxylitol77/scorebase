@@ -54,6 +54,17 @@ const VALID_LEAGUES = [
   "CSL",
   "A_LEAGUE",
   "CLUB_WORLD_CUP",
+  // 컵 대회 10개 (2026-05-20)
+  "FA_CUP",
+  "EFL_CUP",
+  "COPA_DEL_REY",
+  "COPPA_ITALIA",
+  "DFB_POKAL",
+  "COUPE_DE_FRANCE",
+  "KFA_CUP",
+  "EMPEROR_CUP",
+  "CONCACAF_CCUP",
+  "AFC_CUP",
 ] as const;
 type ValidLeague = (typeof VALID_LEAGUES)[number];
 

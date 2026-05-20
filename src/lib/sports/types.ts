@@ -103,7 +103,18 @@ export type League =
   | "MOROCCO_BP" // 모로코 Botola Pro (9~5월)
   | "SOUTHAFRICA_PSL" // 남아공 PSL (8~5월)
   | "USA_USL_CH" // USL Championship (3~10월)
-  | "CANADA_PL"; // Canadian Premier League (4~10월)
+  | "CANADA_PL" // Canadian Premier League (4~10월)
+  // 컵 대회 (2026-05-20 추가)
+  | "FA_CUP" // 잉글랜드 FA Cup — api-football
+  | "EFL_CUP" // 잉글랜드 EFL Cup / 카라바오 컵 — api-football
+  | "COPA_DEL_REY" // 스페인 코파 델 레이 — api-football
+  | "COPPA_ITALIA" // 이탈리아 코파 이탈리아 — api-football
+  | "DFB_POKAL" // 독일 DFB-Pokal — api-football
+  | "COUPE_DE_FRANCE" // 프랑스 쿠프 드 프랑스 — api-football
+  | "KFA_CUP" // 한국 FA컵 — api-football
+  | "EMPEROR_CUP" // 일본 천황배 — api-football
+  | "CONCACAF_CCUP" // CONCACAF Champions Cup — api-football
+  | "AFC_CUP"; // AFC Cup (3부 클럽 대회) — api-football
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -190,6 +201,16 @@ export const SOCCER_LEAGUES = [
   "SOUTHAFRICA_PSL",
   "USA_USL_CH",
   "CANADA_PL",
+  "FA_CUP",
+  "EFL_CUP",
+  "COPA_DEL_REY",
+  "COPPA_ITALIA",
+  "DFB_POKAL",
+  "COUPE_DE_FRANCE",
+  "KFA_CUP",
+  "EMPEROR_CUP",
+  "CONCACAF_CCUP",
+  "AFC_CUP",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -266,6 +287,11 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "SOUTHAFRICA_PSL",
   "USA_USL_CH",
   "CANADA_PL",
+  // 컵 LOW — 매치 수집만, 글 자동 생성 X
+  "COUPE_DE_FRANCE",
+  "EMPEROR_CUP",
+  "CONCACAF_CCUP",
+  "AFC_CUP",
 ];
 
 export type MatchStatus =
