@@ -73,13 +73,13 @@ function buildSlug(league: string, matchId: number): string {
 export async function runPreview(opts?: {
   autoPublish?: boolean;
   league?: string;
-  /** 기본 3일. 더 좁히고 싶을 때 1·2일 등 직접 지정 가능. */
+  /** 기본 5일. 시즌 마지막 라운드 (EPL 5/24 등) 같은 4-5일 후 매치 cover. */
   horizonDays?: number;
   take?: number;
 }) {
   const autoPublish = opts?.autoPublish ?? true;
   const onlyLeague = opts?.league;
-  const horizonDays = opts?.horizonDays ?? 3;
+  const horizonDays = opts?.horizonDays ?? 5;
   const take = opts?.take ?? 40;
   console.log(
     `[preview] 시작 — autoPublish=${autoPublish}, league=${onlyLeague ?? "ALL"}, horizon=${horizonDays}d, take=${take}`,
