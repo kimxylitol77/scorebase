@@ -24,6 +24,7 @@ import {
   fetchMlbByDate,
   fetchSoccerGoalsByDate,
   fetchEspnPeriodLinescores,
+  extractNbaUltraPeriodsFromRaw,
   soccerGoalsPairKey,
   type BaseballGameDetails,
   type PeriodLinescore as PeriodLinescoreData,
@@ -428,6 +429,14 @@ export default async function ScoresPage({ searchParams }: Props) {
       : Promise.resolve({} as Record<string, PeriodLinescoreData>),
   ]);
   const periodMap: Record<string, PeriodLinescoreData> = { ...nbaPeriods, ...nhlPeriods };
+  // NBA Ultra (api-sports) 매치는 ESPN ID 가 아니라 ESPN linescore 조회 안 됨.
+  // Match.raw 의 NBA Ultra response 에 linescore 가 이미 있으므로 그걸 parse 해서 merge.
+  for (const m of matches) {
+    if (m.league !== "NBA") continue;
+    if (periodMap[m.externalId]) continue;
+    const parsed = extractNbaUltraPeriodsFromRaw(m.raw);
+    if (parsed) periodMap[m.externalId] = parsed;
+  }
   // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
   const baseballDetailsMap: Record<string, BaseballGameDetails> = {
     ...apiSportsDetails,

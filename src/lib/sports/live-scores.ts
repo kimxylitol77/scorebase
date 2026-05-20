@@ -455,6 +455,41 @@ export interface PeriodLinescore {
   awayScore: number;
 }
 
+/**
+ * NBA Ultra (api-sports nba/v2 `/games?id=X`) 응답에서 linescore 추출.
+ * 우리 collector 가 Match.raw 에 NBA Ultra games response 저장하므로 외부 fetch 없이 parse.
+ * 형식: { scores: { home: { linescore: ["23","23","23","32","14"], points: 115 },
+ *                 visitors: { linescore: [...], points: 104 } } }
+ * 마지막 element 는 OT (있는 경우만).
+ */
+export function extractNbaUltraPeriodsFromRaw(rawJson: string | null | undefined): PeriodLinescore | null {
+  if (!rawJson) return null;
+  try {
+    const data = JSON.parse(rawJson) as {
+      scores?: {
+        home?: { linescore?: string[]; points?: number };
+        visitors?: { linescore?: string[]; points?: number };
+      };
+    };
+    const home = data.scores?.home?.linescore;
+    const away = data.scores?.visitors?.linescore;
+    if (!Array.isArray(home) || !Array.isArray(away)) return null;
+    if (home.length === 0 && away.length === 0) return null;
+    const toN = (s: string) => {
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    };
+    return {
+      homePeriods: home.map(toN),
+      awayPeriods: away.map(toN),
+      homeScore: data.scores?.home?.points ?? 0,
+      awayScore: data.scores?.visitors?.points ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** sportPath: "basketball/nba" | "hockey/nhl" */
 export async function fetchEspnPeriodLinescores(
   sportPath: string,
