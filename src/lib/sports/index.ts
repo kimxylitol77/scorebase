@@ -2,6 +2,7 @@ import { eplCollector as eplCollectorApiFootball } from "./api-football";
 import { eplCollectorViaFootballData } from "./football-data";
 import { nbaCollector as nbaCollectorMSF } from "./mysportsfeeds";
 import { nbaCollectorEspn } from "./espn-nba";
+import { nbaCollectorApiSports } from "./api-nba-collector";
 import { nhlCollectorEspn } from "./espn-nhl";
 import { mlbCollectorEspn } from "./espn-mlb";
 import { buildSoccerCollector } from "./espn-soccer";
@@ -16,9 +17,14 @@ const eplCollector: MatchCollector = process.env.FOOTBALL_DATA_KEY
   ? eplCollectorViaFootballData
   : eplCollectorApiFootball;
 
-const nbaCollector: MatchCollector =
-  process.env.MYSPORTSFEEDS_USER &&
-  process.env.MYSPORTSFEEDS_USER !== "your_username"
+// NBA collector 우선순위:
+//   1) API-Sports NBA Ultra (API_FOOTBALL_KEY 활성) — 정식 30팀만, TBD placeholder 없음, 풍부한 metadata
+//   2) MySportsFeeds (legacy, USER 환경변수 활성 시)
+//   3) ESPN free fallback (TBD placeholder 등 edge case 존재)
+const nbaCollector: MatchCollector = process.env.API_FOOTBALL_KEY
+  ? nbaCollectorApiSports
+  : process.env.MYSPORTSFEEDS_USER &&
+      process.env.MYSPORTSFEEDS_USER !== "your_username"
     ? nbaCollectorMSF
     : nbaCollectorEspn;
 
