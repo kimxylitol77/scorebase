@@ -188,6 +188,8 @@ async function upsertMatch(m: NormalizedMatch) {
       league_externalId: { league: m.league, externalId: m.externalId },
     },
     update: {
+      homeTeamId: homeTeam.id,
+      awayTeamId: awayTeam.id,
       homeScore: m.homeScore ?? null,
       awayScore: m.awayScore ?? null,
       status: m.status,
