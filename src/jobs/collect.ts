@@ -139,6 +139,13 @@ function parseArgs(): { leagues: League[]; date: string } {
 }
 
 async function upsertMatch(m: NormalizedMatch) {
+  // TBD placeholder skip — NBA/NHL 컨퍼런스 파이널 차기 라운드 매치업 미정 시 ESPN 이
+  // "TBD vs TBD" 로 placeholder 매치 제공. 실제 매치업 확정 시 별도 매치로 등장하므로
+  // placeholder 는 DB 에 저장 안 함 (페이지 노출 방지 + LIVE 잘못된 status 회피).
+  const TBD_RE = /^(TBD|TTBD|TBDT)$/i;
+  if (TBD_RE.test(m.homeTeam.name) || TBD_RE.test(m.awayTeam.name)) {
+    return;
+  }
   const homeShort = resolveShortName(m.league, m.homeTeam.shortName, m.homeTeam.name);
   const awayShort = resolveShortName(m.league, m.awayTeam.shortName, m.awayTeam.name);
   const homeTeam = await prisma.team.upsert({
