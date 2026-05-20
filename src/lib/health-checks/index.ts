@@ -175,32 +175,73 @@ async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
 // 4. leagueLeader.teamName 이 해당 리그 team 화이트리스트에 있는지
 //    예: LOL=LCK 인데 외부 리그 팀명 노출 시 HIGH
 // ──────────────────────────────────────────────────────────────
+// 컨티넨탈/하위 컵 — 자국 리그 팀 출전이 정상이므로 valid set 매칭이 의미 없음 → 체크 자체 skip.
+const CONTINENTAL_CUP_LEAGUES = new Set([
+  "UCL",
+  "UEL",
+  "UECL",
+  "AFC_CL",
+  "AFC_CL_TWO",
+  "AFC_U23",
+  "WORLD_CUP",
+  "CLUB_WORLD_CUP",
+  "COPA_LIB",
+  "COPA_SUD",
+]);
+
+function teamNameMatchesValid(name: string, validNames: Set<string>): boolean {
+  if (validNames.has(name)) return true;
+  // substring 양방향 매칭 — leader "Sabres" ⊂ DB "Buffalo Sabres", leader "Inter Miami" ⊂ DB "Inter Miami CF".
+  // 너무 짧은 토큰 (1 글자) 우연 매칭 방지.
+  if (name.length < 2) return false;
+  for (const n of validNames) {
+    if (n.length < 2) continue;
+    if (n.includes(name) || name.includes(n)) return true;
+  }
+  return false;
+}
+
 async function checkLeaderboardLeagueConsistency(): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const leaders = await prisma.leagueLeader.findMany({
     select: { league: true, teamName: true, playerName: true, rank: true, category: true, season: true },
   });
   if (leaders.length === 0) return out;
-  // 리그별로 우리 사이트가 인지하는 한국어 팀명 set 구성.
-  const teams = await prisma.team.findMany({ select: { league: true, name: true } });
+
+  // 리그별 최신 season 만 — MLS 처럼 [2026, 2025-26] 동시 존재 시 옛 시즌 row false-positive 회피.
+  const latestSeasonByLeague = new Map<string, string>();
+  for (const r of leaders) {
+    const cur = latestSeasonByLeague.get(r.league);
+    if (!cur || r.season > cur) latestSeasonByLeague.set(r.league, r.season);
+  }
+
+  // 리그별로 우리 사이트가 인지하는 팀명 set 구성 (원문 + 한국어 + shortName).
+  const teams = await prisma.team.findMany({ select: { league: true, name: true, shortName: true } });
   const byLeague = new Map<string, Set<string>>();
   for (const t of teams) {
-    const ko = toKoreanTeamName(t.name, t.league);
     if (!byLeague.has(t.league)) byLeague.set(t.league, new Set());
-    byLeague.get(t.league)!.add(ko);
-    byLeague.get(t.league)!.add(t.name);
+    const set = byLeague.get(t.league)!;
+    set.add(t.name);
+    set.add(toKoreanTeamName(t.name, t.league));
+    if (t.shortName && t.shortName.trim().length > 0) set.add(t.shortName);
   }
+
   // 리그별 mismatch 개수 카운트
   const mismatchByLeague = new Map<string, { total: number; samples: string[] }>();
   for (const r of leaders) {
+    if (CONTINENTAL_CUP_LEAGUES.has(r.league)) continue;
+    if (r.season !== latestSeasonByLeague.get(r.league)) continue;
     const validNames = byLeague.get(r.league);
-    if (!validNames || validNames.size === 0) continue; // 팀 데이터 없으면 skip
-    if (!validNames.has(r.teamName) && !validNames.has(toKoreanTeamName(r.teamName, r.league))) {
-      const e = mismatchByLeague.get(r.league) ?? { total: 0, samples: [] };
-      e.total++;
-      if (e.samples.length < 3) e.samples.push(`${r.playerName} (${r.teamName})`);
-      mismatchByLeague.set(r.league, e);
-    }
+    if (!validNames || validNames.size === 0) continue;
+    // 양방향 시도: 원문 teamName + 한국어 변환
+    const koTeam = toKoreanTeamName(r.teamName, r.league);
+    if (teamNameMatchesValid(r.teamName, validNames)) continue;
+    if (koTeam !== r.teamName && teamNameMatchesValid(koTeam, validNames)) continue;
+
+    const e = mismatchByLeague.get(r.league) ?? { total: 0, samples: [] };
+    e.total++;
+    if (e.samples.length < 3) e.samples.push(`${r.playerName} (${r.teamName})`);
+    mismatchByLeague.set(r.league, e);
   }
   for (const [league, info] of mismatchByLeague) {
     out.push({
@@ -299,7 +340,10 @@ async function checkTeamNameMissingRate(now: Date): Promise<HealthFinding[]> {
     const e = counts.get(t.league) ?? { total: 0, missing: 0, samples: new Set<string>() };
     e.total++;
     const ko = toKoreanTeamName(t.name, t.league);
-    if (ko === t.name && /^[A-Za-z]/.test(t.name)) {
+    // "NC 다이노스" / "LG 트윈스" / "BNK 피어엑스" / "T1" 처럼 영문 약자 포함 한글 팀명을 잘못 잡지 않도록
+    // 한글이 포함되어 있으면 사이트 인지 팀으로 간주.
+    const hasHangul = /[가-힯]/.test(t.name);
+    if (ko === t.name && !hasHangul) {
       e.missing++;
       if (e.samples.size < 5) e.samples.add(t.name);
     }
@@ -516,9 +560,9 @@ async function checkPageViewAnomaly(now: Date): Promise<HealthFinding[]> {
     yesterdayEnd.setUTCDate(yesterdayEnd.getUTCDate() + 1);
     const pv = (prisma as unknown as Record<string, { count?: (args: unknown) => Promise<number> }>).pageView;
     if (!pv || !pv.count) return out;
-    const yesterday = await pv.count({ where: { createdAt: { gte: yesterdayStart, lt: yesterdayEnd } } } as never);
+    const yesterday = await pv.count({ where: { ts: { gte: yesterdayStart, lt: yesterdayEnd } } } as never);
     const weekStart = new Date(yesterdayStart.getTime() - 7 * 24 * 3600 * 1000);
-    const week = await pv.count({ where: { createdAt: { gte: weekStart, lt: yesterdayStart } } } as never);
+    const week = await pv.count({ where: { ts: { gte: weekStart, lt: yesterdayStart } } } as never);
     const avg = week / 7;
     if (avg < 10) return out; // 표본 부족
     const ratio = yesterday / avg;
