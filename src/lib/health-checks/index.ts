@@ -743,6 +743,66 @@ async function checkEvaluationGap(now: Date): Promise<HealthFinding[]> {
 }
 
 // ──────────────────────────────────────────────────────────────
+// 18. 중복 매치 — 같은 league + 같은 시각 (시간 단위) + 같은 팀 조합으로 row 가 2개 이상이면 finding.
+//     원인: 보통 TheSports collector + api-football/ESPN collector 가 같은 매치를 다른 externalId 로 동시 수집.
+//     /scores 페이지에 같은 매치가 두 번 표시되는 증상.
+// ──────────────────────────────────────────────────────────────
+async function checkDuplicateMatches(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const past = new Date(now.getTime() - 1 * 24 * 3600 * 1000);
+  const future = new Date(now.getTime() + 14 * 24 * 3600 * 1000);
+  const matches = await prisma.match.findMany({
+    where: {
+      startTime: { gte: past, lte: future },
+      status: { in: ["SCHEDULED", "LIVE"] },
+    },
+    select: {
+      id: true,
+      league: true,
+      externalId: true,
+      startTime: true,
+      homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
+    },
+  });
+
+  const groups = new Map<string, { league: string; ids: number[]; teamKey: string; startTime: Date }>();
+  for (const m of matches) {
+    const hour = m.startTime.toISOString().slice(0, 13); // YYYY-MM-DDTHH
+    const teamKey = [m.homeTeam.name, m.awayTeam.name].sort().join("|");
+    const key = `${m.league}__${hour}__${teamKey}`;
+    const g = groups.get(key);
+    if (g) {
+      g.ids.push(m.id);
+    } else {
+      groups.set(key, { league: m.league, ids: [m.id], teamKey, startTime: m.startTime });
+    }
+  }
+
+  const byLeague = new Map<string, { count: number; samples: string[] }>();
+  for (const g of groups.values()) {
+    if (g.ids.length < 2) continue;
+    const e = byLeague.get(g.league) ?? { count: 0, samples: [] };
+    e.count++;
+    if (e.samples.length < 3) {
+      e.samples.push(`${g.teamKey} @ ${g.startTime.toISOString().slice(0, 16)}`);
+    }
+    byLeague.set(g.league, e);
+  }
+
+  for (const [league, info] of byLeague) {
+    out.push({
+      category: "duplicate-match",
+      key: league,
+      severity: info.count >= 5 ? "HIGH" : "MED",
+      message: `${league} 중복 매치 ${info.count}건 — 예: ${info.samples.join(", ")}`,
+      metadata: info,
+    });
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
 // 메인 — 모든 체크 직렬 실행 + 에러는 finding 으로 변환
 // ──────────────────────────────────────────────────────────────
 const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> }> = [
@@ -763,6 +823,7 @@ const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> 
   { name: "notice-stale", fn: checkNoticeFreshness },
   { name: "nhl-goalie-coverage", fn: checkNhlGoalieCoverage },
   { name: "evaluation-gap", fn: checkEvaluationGap },
+  { name: "duplicate-match", fn: checkDuplicateMatches },
 ];
 
 export async function runHealthChecks(): Promise<HealthFinding[]> {
