@@ -39,11 +39,38 @@ async function tsGet<T>(p: string, params: Record<string, string | number> = {})
   return r.json() as Promise<T>;
 }
 
+// NPB 12팀 inline 매핑 (team-names.ts 에 J리그 클럽만 있고 야구 NPB 클럽 없음)
+const NPB_EN_TO_KO: Record<string, string> = {
+  "Hanshin Tigers": "한신 타이거스",
+  "Chunichi Dragons": "주니치 드래곤스",
+  "Hiroshima Carp": "히로시마 도요 카프",
+  "Hiroshima Toyo Carp": "히로시마 도요 카프",
+  "Yokohama BayStars": "요코하마 디엔에이 베이스타스",
+  "Yokohama DeNA BayStars": "요코하마 디엔에이 베이스타스",
+  "Hokkaido Nippon-Ham Fighters": "홋카이도 닛폰햄 파이터즈",
+  "Tohoku Rakuten Golden Eagles": "도호쿠 라쿠텐 골든이글스",
+  "Orix Buffaloes": "오릭스 버팔로스",
+  "Fukuoka SoftBank Hawks": "후쿠오카 소프트뱅크 호크스",
+  "Fukuoka Softbank Hawks": "후쿠오카 소프트뱅크 호크스",
+  "Saitama Seibu Lions": "사이타마 세이부 라이온스",
+  "Seibu Lions": "사이타마 세이부 라이온스",
+  "Chiba Lotte Marines": "지바 롯데 마린스",
+  "Tokyo Yakult Swallows": "도쿄 야쿠르트 스왈로스",
+  "Yakult Swallows": "도쿄 야쿠르트 스왈로스",
+  "Yomiuri Giants": "요미우리 자이언츠",
+};
+
+function toKo(name: string): string {
+  // NPB inline 우선, 다음 team-names.ts (축구 위주)
+  return NPB_EN_TO_KO[name] ?? toKoreanTeamName(name) ?? "";
+}
+
 function norm(s: string): string {
   return s
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    // NFC 로 한글 완성형 유지 (NFD 분해하면 가-힣 정규식이 자모 매치 못 함)
+    .normalize("NFC")
+    .replace(/[̀-ͯ]/g, "") // 라틴 악센트만 제거
     .replace(/[^\w가-힣\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -109,38 +136,57 @@ async function main() {
   const mapped: Array<{ ourId: number; ourName: string; ourLeague: string; ourExternalId: string; tsId: string; tsName: string; tsKo?: string; matchType: string }> = [];
   const unmatched: typeof ourTeams = [];
 
+  // 같은 ts team 이 여러 우리 team 에 중복 매칭되는 것 방지 — 한 번 사용된 tsId 는 풀에서 제외
+  const usedTsIds = new Set<string>();
+
   for (const ot of ourTeams) {
-    const candidates = tsInfo.filter((t) => t.league === ot.league);
+    const candidates = tsInfo.filter((t) => t.league === ot.league && !usedTsIds.has(t.tsId));
     const ourNorm = norm(ot.name);
     const ourShort = ot.shortName ? norm(ot.shortName) : "";
     const ourKo = norm(toKoreanTeamName(ot.name) || "");
 
+    // 빈 string vs 빈 string 매칭 방지 헬퍼 — 한쪽이라도 비어있으면 false
+    const eqNonEmpty = (a: string, b: string) => a !== "" && b !== "" && a === b;
+
     let hit: typeof tsInfo[number] | undefined;
     let matchType = "exact";
 
-    // 1) ts.name == our.name (영문 매칭)
-    hit = candidates.find((t) => norm(t.name) === ourNorm);
+    // 1) ts.name == our.name (영문 vs 영문)
+    hit = candidates.find((t) => eqNonEmpty(norm(t.name), ourNorm));
     if (!hit) {
-      hit = candidates.find((t) => norm(t.short) === ourNorm);
+      hit = candidates.find((t) => eqNonEmpty(norm(t.short), ourNorm));
       if (hit) matchType = "exact-short";
     }
     if (!hit && ourShort) {
-      hit = candidates.find((t) => norm(t.name) === ourShort || norm(t.short) === ourShort);
+      hit = candidates.find((t) => eqNonEmpty(norm(t.name), ourShort) || eqNonEmpty(norm(t.short), ourShort));
       if (hit) matchType = "ourShort";
     }
     if (!hit && ourKo) {
-      // 한국어 변환 후 매칭 (ts 가 한국어 응답할 수도)
-      hit = candidates.find((t) => norm(t.name) === ourKo || norm(t.short) === ourKo);
+      // ts 영문 → 한글 변환 후 우리 한글 (ourNorm) / ourKo 와 매칭
+      hit = candidates.find((t) => {
+        const tKo = norm(toKo(t.name));
+        return eqNonEmpty(tKo, ourNorm) || eqNonEmpty(tKo, ourKo);
+      });
       if (hit) matchType = "ko";
     }
-    if (!hit) {
-      // partial — substring 양방향
+    if (!hit && ourNorm) {
+      // ts 영문 → 한글 변환 후 substring 양방향 (마지막 fallback)
+      hit = candidates.find((t) => {
+        const tKo = norm(toKo(t.name));
+        if (!tKo) return false;
+        return tKo.includes(ourNorm) || ourNorm.includes(tKo);
+      });
+      if (hit) matchType = "partial-ko";
+    }
+    if (!hit && ourNorm) {
       hit = candidates.find((t) => {
         const tn = norm(t.name);
-        return tn && (tn.includes(ourNorm) || ourNorm.includes(tn));
+        return tn !== "" && (tn.includes(ourNorm) || ourNorm.includes(tn));
       });
       if (hit) matchType = "partial";
     }
+
+    if (hit) usedTsIds.add(hit.tsId);
 
     if (hit) {
       mapped.push({

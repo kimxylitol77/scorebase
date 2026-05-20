@@ -6,7 +6,7 @@
     "ourExternalId": "95",
     "tsId": "z318q63spnoqo9j",
     "tsName": "NC Dinos",
-    "matchType": "partial"
+    "matchType": "ko"
   },
   {
     "ourId": 3815,
@@ -15,7 +15,7 @@
     "ourExternalId": "88",
     "tsId": "gx7lm7xsenxr2wd",
     "tsName": "Doosan Bears",
-    "matchType": "exact-short"
+    "matchType": "ko"
   },
   {
     "ourId": 972,
@@ -292,18 +292,18 @@
     "ourName": "한화 이글스",
     "ourLeague": "KBO",
     "ourExternalId": "89",
-    "tsId": "gx7lm7xsenxr2wd",
-    "tsName": "Doosan Bears",
-    "matchType": "exact-short"
+    "tsId": "4zp5rzvs9x9q82w",
+    "tsName": "Hanwha Eagles",
+    "matchType": "ko"
   },
   {
     "ourId": 3817,
     "ourName": "롯데 자이언츠",
     "ourLeague": "KBO",
     "ourExternalId": "94",
-    "tsId": "gx7lm7xsenxr2wd",
-    "tsName": "Doosan Bears",
-    "matchType": "exact-short"
+    "tsId": "9vjxm8ws62em6od",
+    "tsName": "Lotte Giants",
+    "matchType": "ko"
   },
   {
     "ourId": 3821,
@@ -312,7 +312,7 @@
     "ourExternalId": "90",
     "tsId": "yl5ergxs6yeq8k0",
     "tsName": "KIA Tigers",
-    "matchType": "partial"
+    "matchType": "ko"
   },
   {
     "ourId": 3814,
@@ -321,16 +321,16 @@
     "ourExternalId": "93",
     "tsId": "9k82re4s46zqepz",
     "tsName": "LG Twins",
-    "matchType": "partial"
+    "matchType": "ko"
   },
   {
     "ourId": 3816,
     "ourName": "키움 히어로즈",
     "ourLeague": "KBO",
     "ourExternalId": "92",
-    "tsId": "gx7lm7xsenxr2wd",
-    "tsName": "Doosan Bears",
-    "matchType": "exact-short"
+    "tsId": "9vjxm8ws69em6od",
+    "tsName": "Kiwoom Heroes",
+    "matchType": "ko"
   },
   {
     "ourId": 3822,
@@ -339,16 +339,16 @@
     "ourExternalId": "647",
     "tsId": "p4jwq26sj7wr0ve",
     "tsName": "SSG Landers",
-    "matchType": "partial"
+    "matchType": "ko"
   },
   {
     "ourId": 3820,
     "ourName": "삼성 라이온즈",
     "ourLeague": "KBO",
     "ourExternalId": "97",
-    "tsId": "gx7lm7xsenxr2wd",
-    "tsName": "Doosan Bears",
-    "matchType": "exact-short"
+    "tsId": "8y39mpzsn17qojx",
+    "tsName": "Samsung Lions",
+    "matchType": "ko"
   },
   {
     "ourId": 3818,
@@ -357,106 +357,106 @@
     "ourExternalId": "91",
     "tsId": "jednm98s4e3ryox",
     "tsName": "KT Wiz Suwon",
-    "matchType": "partial"
+    "matchType": "ko"
   },
   {
     "ourId": 23330,
     "ourName": "한신 타이거스",
     "ourLeague": "NPB",
     "ourExternalId": "58",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "kjw2r06sv7wrz84",
+    "tsName": "Hanshin Tigers",
+    "matchType": "ko"
   },
   {
     "ourId": 23334,
     "ourName": "주니치 드래곤스",
     "ourLeague": "NPB",
     "ourExternalId": "56",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "yl5ergxs6egq8k0",
+    "tsName": "Chunichi Dragons",
+    "matchType": "ko"
   },
   {
     "ourId": 23332,
     "ourName": "히로시마 도요 카프",
     "ourLeague": "NPB",
     "ourExternalId": "59",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "p4jwq26sj62r0ve",
+    "tsName": "Hiroshima Carp",
+    "matchType": "ko"
   },
   {
     "ourId": 23333,
     "ourName": "요코하마 디엔에이 베이스타스",
     "ourLeague": "NPB",
     "ourExternalId": "65",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "kdj2ryvs04dr1zp",
+    "tsName": "Yokohama BayStars",
+    "matchType": "ko"
   },
   {
     "ourId": 23338,
     "ourName": "홋카이도 닛폰햄 파이터즈",
     "ourLeague": "NPB",
     "ourExternalId": "60",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "kjw2r06sv9wrz84",
+    "tsName": "Hokkaido Nippon-Ham Fighters",
+    "matchType": "ko"
   },
   {
     "ourId": 23335,
     "ourName": "도호쿠 라쿠텐 골든이글스",
     "ourLeague": "NPB",
     "ourExternalId": "62",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "j1l4rj7s0knr7vx",
+    "tsName": "Tohoku Rakuten Golden Eagles",
+    "matchType": "ko"
   },
   {
     "ourId": 23336,
     "ourName": "오릭스 버팔로스",
     "ourLeague": "NPB",
     "ourExternalId": "61",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "v2y8m46s9xnrl07",
+    "tsName": "Orix Buffaloes",
+    "matchType": "ko"
   },
   {
     "ourId": 23339,
     "ourName": "후쿠오카 소프트뱅크 호크스",
     "ourLeague": "NPB",
     "ourExternalId": "57",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "gy0or56skj5mwzv",
+    "tsName": "Fukuoka SoftBank Hawks",
+    "matchType": "ko"
   },
   {
     "ourId": 23340,
     "ourName": "사이타마 세이부 라이온스",
     "ourLeague": "NPB",
     "ourExternalId": "63",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "9k82re4s41zqepz",
+    "tsName": "Seibu Lions",
+    "matchType": "ko"
   },
   {
     "ourId": 23337,
     "ourName": "지바 롯데 마린스",
     "ourLeague": "NPB",
     "ourExternalId": "55",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "e4wyrnzsn4jr86p",
+    "tsName": "Chiba Lotte Marines",
+    "matchType": "ko"
   },
   {
     "ourId": 23329,
     "ourName": "도쿄 야쿠르트 스왈로스",
     "ourLeague": "NPB",
     "ourExternalId": "64",
-    "tsId": "jednm98s463ryox",
-    "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "tsId": "4zp5rzvs929q82w",
+    "tsName": "Yakult Swallows",
+    "matchType": "ko"
   },
   {
     "ourId": 23331,
@@ -465,6 +465,6 @@
     "ourExternalId": "66",
     "tsId": "jednm98s463ryox",
     "tsName": "Yomiuri Giants",
-    "matchType": "exact-short"
+    "matchType": "ko"
   }
 ]
