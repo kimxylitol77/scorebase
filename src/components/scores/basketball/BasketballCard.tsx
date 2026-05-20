@@ -211,11 +211,11 @@ export default function BasketballCard(props: BasketballCardProps) {
 
       {/* 쿼터별 점수 (LIVE/종료) */}
       {data && (isLive || isFinished) && (
-        <div className="overflow-x-auto -mx-1 px-1">
-          <table className="text-[11px] sm:text-xs w-full min-w-[300px]">
+        <div className="-mx-1 px-1">
+          <table className="text-[11px] sm:text-xs w-full table-fixed">
             <thead>
               <tr className="text-neutral-500">
-                <th className="text-left font-semibold py-1 pr-2 w-10">팀</th>
+                <th className="text-left font-semibold py-1 pr-1 w-9">팀</th>
                 {periodIdx.map((i) => {
                   const isCurrent = isLive && quarter != null && i + 1 === quarter;
                   return (
