@@ -749,12 +749,13 @@ async function checkEvaluationGap(now: Date): Promise<HealthFinding[]> {
 // ──────────────────────────────────────────────────────────────
 async function checkDuplicateMatches(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
-  const past = new Date(now.getTime() - 1 * 24 * 3600 * 1000);
+  const past = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
   const future = new Date(now.getTime() + 14 * 24 * 3600 * 1000);
+  // status 무관 — collector 전환 (ESPN → API-Sports 등) 이후 한쪽이 stale LIVE 로 남고
+  // 다른쪽이 FINISHED 인 케이스도 cover. POSTPONED 등은 정상 1개라 영향 없음.
   const matches = await prisma.match.findMany({
     where: {
       startTime: { gte: past, lte: future },
-      status: { in: ["SCHEDULED", "LIVE"] },
     },
     select: {
       id: true,
