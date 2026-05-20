@@ -440,6 +440,32 @@ export default async function ScoresPage({ searchParams }: Props) {
     const parsed = extractNbaUltraPeriodsFromRaw(m.raw);
     if (parsed) periodMap[m.externalId] = parsed;
   }
+
+  // KBO/NPB LIVE 매치의 베이스/아웃 컨텍스트 — TheSportsMatchCache 에서 보강
+  // (api-sports baseball 은 KBO/NPB ctx 미제공)
+  const baseballCacheCtx = new Map<string, { bases: [boolean, boolean, boolean]; outs: number | null }>();
+  const baseballLiveDbIds = matches
+    .filter((m) => (m.league === "KBO" || m.league === "NPB") && m.status === "LIVE")
+    .map((m) => m.id);
+  if (baseballLiveDbIds.length > 0) {
+    const caches = await prisma.theSportsMatchCache.findMany({
+      where: { matchId: { in: baseballLiveDbIds } },
+      select: { matchId: true, detailLive: true },
+    });
+    const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
+    for (const c of caches) {
+      const dl = c.detailLive as { extra?: { base?: string; out?: number } } | null;
+      if (!dl?.extra) continue;
+      const baseStr =
+        typeof dl.extra.base === "string" && /^[01]{3}$/.test(dl.extra.base) ? dl.extra.base : "000";
+      const ext = idToExt.get(c.matchId);
+      if (!ext) continue;
+      baseballCacheCtx.set(ext, {
+        bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
+        outs: typeof dl.extra.out === "number" ? dl.extra.out : null,
+      });
+    }
+  }
   // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
   const baseballDetailsMap: Record<string, BaseballGameDetails> = {
     ...apiSportsDetails,
@@ -619,16 +645,30 @@ export default async function ScoresPage({ searchParams }: Props) {
             };
           })()
         : null,
-      // 라이브 야구 컨텍스트 (베이스/아웃/회·말) — ESPN MLB 만 채워짐 (KBO/NPB 는 ESPN 데이터 없음).
+      // 라이브 야구 컨텍스트 (베이스/아웃/회·말).
+      // KBO/NPB: TheSportsMatchCache (baseballCacheCtx) 우선 — ESPN MLB 는 baseballDetailsMap.ctx.
       baseballCtx: isBaseball
-        ? baseballDetailsMap[m.externalId]?.ctx
-          ? ({
-              inning: baseballDetailsMap[m.externalId].ctx!.inning ?? undefined,
-              half: baseballDetailsMap[m.externalId].ctx!.half,
-              outs: baseballDetailsMap[m.externalId].ctx!.outs,
-              bases: baseballDetailsMap[m.externalId].ctx!.bases,
-            } satisfies BaseballContext)
-          : null
+        ? (() => {
+            const cached = baseballCacheCtx.get(m.externalId);
+            if (cached) {
+              return {
+                inning: undefined,
+                half: null,
+                outs: cached.outs,
+                bases: cached.bases,
+              } satisfies BaseballContext;
+            }
+            const mlb = baseballDetailsMap[m.externalId]?.ctx;
+            if (mlb) {
+              return {
+                inning: mlb.inning ?? undefined,
+                half: mlb.half,
+                outs: mlb.outs,
+                bases: mlb.bases,
+              } satisfies BaseballContext;
+            }
+            return null;
+          })()
         : null,
       preview,
       recap,
