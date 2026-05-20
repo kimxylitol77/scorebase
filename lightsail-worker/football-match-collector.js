@@ -31,6 +31,24 @@ if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 const MAP_FILE = path.join(__dirname, "league-id-mapping.json");
 
+// 기존 source (ESPN / api-football) 가 충분히 cover 하는 리그 — TheSports duplicate 회피.
+// minor 리그 (cyprus/iceland/venezuela/vietnam/...) 만 ts collector 가 push.
+const SKIP_LEAGUES = new Set([
+  // 메이저 6
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
+  // 컨티넨탈 컵
+  "UCL", "UEL", "UECL",
+  "AFC_CL", "AFC_CL_TWO", "AFC_U23",
+  "WORLD_CUP", "CLUB_WORLD_CUP",
+  "COPA_LIB", "COPA_SUD",
+  // 영국 2부 + 메이저 2부 (api-football)
+  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
+  // 아시아 (api-football)
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "SAUDI_PL",
+  // 기타 메이저
+  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG",
+]);
+
 // TheSports football status_id (검증):
 //   1 = scheduled, 2~7 = LIVE 단계, 8 = finished, 9 = postponed, 10 = cancelled, 11 = interrupted
 function mapStatus(id) {
@@ -91,6 +109,7 @@ async function poll() {
       seen.add(m.id);
       const ourLeague = compToCode.get(m.competition_id);
       if (!ourLeague) continue; // 우리 매핑 없는 리그
+      if (SKIP_LEAGUES.has(ourLeague)) continue; // ESPN/api-football 이 cover — duplicate 회피
       if (!m.home_team_id || !m.away_team_id) continue;
       batch.push({
         league: ourLeague,
