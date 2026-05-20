@@ -14,6 +14,7 @@ import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDis
 import SoccerH2HCard from "@/components/scores/soccer/SoccerH2HCard";
 import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
+import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -182,18 +183,30 @@ export default async function GenericLivePage({ params }: Props) {
         } | null;
         const lineup = cache.lineup as Parameters<typeof SoccerLineupSvg>[0]["data"] | null;
         const detailLive = cache.detailLive as { stats?: Array<{ type: number; home: number; away: number }> } | null;
+        const teamStats = cache.teamStats as Parameters<typeof SoccerTeamStatsCard>[0]["teamStats"] | null;
         const gd = analysis?.goal_distribution;
         const h2h = analysis?.history?.vs ?? [];
         const homeTsId = tsTeamId(match.homeTeam.id);
         const awayTsId = tsTeamId(match.awayTeam.id);
+        // teamStats (named fields v3) 우선, fallback 으로 detailLive.stats (type-coded)
         return (
           <>
-            {detailLive?.stats && detailLive.stats.length > 0 && (
-              <SoccerLiveStatsCard
-                stats={detailLive.stats}
+            {teamStats && Array.isArray(teamStats) && teamStats.length >= 2 ? (
+              <SoccerTeamStatsCard
+                teamStats={teamStats}
                 homeNameKo={homeKo}
                 awayNameKo={awayKo}
+                homeTsTeamId={homeTsId}
+                awayTsTeamId={awayTsId}
               />
+            ) : (
+              detailLive?.stats && detailLive.stats.length > 0 && (
+                <SoccerLiveStatsCard
+                  stats={detailLive.stats}
+                  homeNameKo={homeKo}
+                  awayNameKo={awayKo}
+                />
+              )
             )}
             {lineup && lineup.lineup && (
               <SoccerLineupSvg

@@ -15,6 +15,10 @@ interface Body {
   detailLive?: unknown;
   lineup?: unknown;
   analysis?: unknown;
+  /** Match team statistics — match/team_stats/list 의 stats[] */
+  teamStats?: unknown;
+  /** Match player statistics — match/player_stats/list 의 player_stats[] */
+  playerStats?: unknown;
 }
 
 function unauthorized(msg = "Unauthorized") {
@@ -43,11 +47,13 @@ export async function POST(req: NextRequest) {
   if (!exists) return NextResponse.json({ error: "match not found" }, { status: 404 });
 
   // upsert — 매치당 1 row
-  // detailLive/lineup/analysis 는 undefined 면 갱신 안 함 (부분 update)
+  // 모든 JSON 필드는 undefined 면 갱신 안 함 (부분 update)
   const data: Record<string, unknown> = { tsMatchId: body.tsMatchId };
   if (body.detailLive !== undefined) data.detailLive = body.detailLive as object;
   if (body.lineup !== undefined) data.lineup = body.lineup as object;
   if (body.analysis !== undefined) data.analysis = body.analysis as object;
+  if (body.teamStats !== undefined) data.teamStats = body.teamStats as object;
+  if (body.playerStats !== undefined) data.playerStats = body.playerStats as object;
 
   const cache = await prisma.theSportsMatchCache.upsert({
     where: { matchId: body.matchId },
@@ -57,6 +63,8 @@ export async function POST(req: NextRequest) {
       detailLive: (body.detailLive ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       lineup: (body.lineup ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       analysis: (body.analysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      teamStats: (body.teamStats ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      playerStats: (body.playerStats ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     },
     update: data,
     select: { id: true, matchId: true, updatedAt: true },
