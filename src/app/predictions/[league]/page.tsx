@@ -19,6 +19,9 @@ import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
+import TeamFormBadges from "@/components/predictions/TeamFormBadges";
+import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
+import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
 
 export const dynamic = "force-dynamic";
 
@@ -304,6 +307,71 @@ export default async function LeaguePredictions({ params }: Props) {
     orderBy: { startTime: "asc" },
     take: 12,
   });
+
+  // 최근 5경기 폼 (W/D/L) — 각 팀별. FINISHED 매치만, 최신 → 과거 정렬 후 5건 cut.
+  // 표시는 과거 → 최신 (좌→우) 순으로 reverse.
+  const formByTeamId = new Map<number, Array<{ result: "W" | "D" | "L"; startTime: Date }>>();
+  {
+    const finished = matches
+      .filter((m) => m.status === "FINISHED" && m.homeScore != null && m.awayScore != null)
+      .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+    for (const m of finished) {
+      const hs = m.homeScore as number;
+      const as_ = m.awayScore as number;
+      const homeRes: "W" | "D" | "L" = hs > as_ ? "W" : hs < as_ ? "L" : "D";
+      const awayRes: "W" | "D" | "L" = as_ > hs ? "W" : as_ < hs ? "L" : "D";
+      const ha = formByTeamId.get(m.homeTeamId) ?? [];
+      if (ha.length < 5) {
+        ha.push({ result: homeRes, startTime: m.startTime });
+        formByTeamId.set(m.homeTeamId, ha);
+      }
+      const aa = formByTeamId.get(m.awayTeamId) ?? [];
+      if (aa.length < 5) {
+        aa.push({ result: awayRes, startTime: m.startTime });
+        formByTeamId.set(m.awayTeamId, aa);
+      }
+    }
+    // 표시 순서 — 과거 → 최신 (위에서 최신부터 push 됐으므로 reverse)
+    for (const [k, v] of formByTeamId) formByTeamId.set(k, v.reverse());
+  }
+
+  // 이번 주 빅매치 — 상위 3팀의 직접 대결 매치만 추출 (mc 결과 기준).
+  // mc 가 비어있으면 (시뮬 안 됨) 빈 배열.
+  const top3TeamIds = new Set<number>(
+    mc
+      .slice()
+      .sort((a, b) => a.expectedPosition - b.expectedPosition)
+      .slice(0, 3)
+      .map((r) => r.teamId),
+  );
+  const top3RankById = new Map<number, number>();
+  {
+    const sorted = mc
+      .slice()
+      .sort((a, b) => a.expectedPosition - b.expectedPosition);
+    for (let i = 0; i < sorted.length; i++) top3RankById.set(sorted[i].teamId, i + 1);
+  }
+  const keyMatches = upcoming
+    .filter(
+      (m) =>
+        top3TeamIds.has(m.homeTeamId) && top3TeamIds.has(m.awayTeamId),
+    )
+    .map((m) => {
+      const homeElo = getElo(elo, m.homeTeamId);
+      const awayElo = getElo(elo, m.awayTeamId);
+      const wp = calcWinProbability(homeElo, awayElo, upper);
+      return {
+        id: m.id,
+        startTime: m.startTime,
+        homeName: displayTeamName(m.homeTeam.name, upper),
+        awayName: displayTeamName(m.awayTeam.name, upper),
+        homeRank: top3RankById.get(m.homeTeamId) ?? 0,
+        awayRank: top3RankById.get(m.awayTeamId) ?? 0,
+        homeWp: wp.home,
+        awayWp: wp.away,
+        href: `/live/${upper}/${m.externalId ?? m.id}`,
+      };
+    });
 
   // 월드컵은 클럽 매치 데이터가 없으니 시드 Elo 를 직접 사용
   const elo = isWorldCup
@@ -682,7 +750,7 @@ export default async function LeaguePredictions({ params }: Props) {
             <section>
               <Heading
                 title="예상 최종 순위"
-                subtitle="평균 승점 · 평균 순위"
+                subtitle="평균 승점 · 평균 순위 · 최근 5경기"
               />
               <ProjectionsTable
                 rows={mc.map((r) => ({
@@ -690,9 +758,22 @@ export default async function LeaguePredictions({ params }: Props) {
                   logoUrl: teamLogoById.get(r.teamId) ?? null,
                   ...r,
                 }))}
+                top4Cutoff={
+                  // UCL 진출권 4팀 — 무승부 있는 (축구) + 강등 있는 (1부) 리그만 노출.
+                  info.showDraw && info.relegationCount > 0 ? 4 : 0
+                }
+                relegationCount={info.relegationCount}
+                formByTeamId={formByTeamId}
               />
             </section>
           </>
+        )}
+
+        {/* 이번 주 빅매치 — 상위 3팀 직접 대결 강조 (해당 매치 있을 때만) */}
+        {keyMatches.length > 0 && (
+          <section>
+            <KeyMatchPreview matches={keyMatches} />
+          </section>
         )}
 
         {/* 다가오는 경기 */}
@@ -726,6 +807,15 @@ export default async function LeaguePredictions({ params }: Props) {
                     const homeElo = getElo(elo, m.homeTeamId);
                     const awayElo = getElo(elo, m.awayTeamId);
                     const wp = calcWinProbability(homeElo, awayElo, upper);
+                    const marketProbs: [number, number, number] | null =
+                      m.marketHome != null && m.marketAway != null
+                        ? [m.marketHome, m.marketDraw ?? 0, m.marketAway]
+                        : null;
+                    const modelProbs: [number, number, number] = [
+                      wp.home,
+                      wp.draw ?? 0,
+                      wp.away,
+                    ];
                     return (
                       <tr key={m.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
                         <td className="px-4 py-2.5 text-xs text-neutral-500 tabular-nums whitespace-nowrap">
@@ -767,7 +857,15 @@ export default async function LeaguePredictions({ params }: Props) {
                           </Link>
                         </td>
                         <td className="px-4 py-2.5">
-                          <ProbBar wp={wp} hideDraw={!info.showDraw} fullWidth />
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex-1 min-w-0">
+                              <ProbBar wp={wp} hideDraw={!info.showDraw} fullWidth />
+                            </div>
+                            <ValueBetIndicator
+                              modelProbs={modelProbs}
+                              marketProbs={marketProbs}
+                            />
+                          </div>
                         </td>
                       </tr>
                     );
@@ -785,10 +883,25 @@ export default async function LeaguePredictions({ params }: Props) {
                 const kst = new Date(m.startTime.getTime() + 9 * 3600 * 1000);
                 const dateLabel = `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
                 const timeLabel = `${String(kst.getUTCHours()).padStart(2, "0")}:${String(kst.getUTCMinutes()).padStart(2, "0")}`;
+                const marketProbs: [number, number, number] | null =
+                  m.marketHome != null && m.marketAway != null
+                    ? [m.marketHome, m.marketDraw ?? 0, m.marketAway]
+                    : null;
+                const modelProbs: [number, number, number] = [
+                  wp.home,
+                  wp.draw ?? 0,
+                  wp.away,
+                ];
                 return (
                   <div key={m.id} className="px-3 py-3 space-y-2">
-                    <div className="text-[11px] text-neutral-500 tabular-nums whitespace-nowrap">
-                      {dateLabel} · {timeLabel}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-[11px] text-neutral-500 tabular-nums whitespace-nowrap">
+                        {dateLabel} · {timeLabel}
+                      </div>
+                      <ValueBetIndicator
+                        modelProbs={modelProbs}
+                        marketProbs={marketProbs}
+                      />
                     </div>
                     {/* 홈팀(왼쪽 끝) - vs(가운데) - 원정팀(오른쪽 끝) — ProbBar 좌우 끝과 정렬 */}
                     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
@@ -969,7 +1082,24 @@ interface ProjectionRow {
   currentPosition: number;
 }
 
-function ProjectionsTable({ rows }: { rows: ProjectionRow[] }) {
+interface ProjectionsTableProps {
+  rows: ProjectionRow[];
+  /** UCL 권 진출 라인 (Top N) — N 이 0보다 크면 상위 N 행 emerald 배경. EPL/라리가/분데스 등 = 4. */
+  top4Cutoff?: number;
+  /** 강등 라인 (하위 N 팀). 0보다 크면 하위 N 행 rose 배경. */
+  relegationCount?: number;
+  /** teamId → 최근 5경기 W/D/L. */
+  formByTeamId?: Map<number, Array<{ result: "W" | "D" | "L"; startTime: Date }>>;
+}
+
+function ProjectionsTable({
+  rows,
+  top4Cutoff = 0,
+  relegationCount = 0,
+  formByTeamId,
+}: ProjectionsTableProps) {
+  const total = rows.length;
+  const relegationStartIdx = relegationCount > 0 ? total - relegationCount : total;
   return (
     <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
       <table className="w-full text-sm">
@@ -977,41 +1107,78 @@ function ProjectionsTable({ rows }: { rows: ProjectionRow[] }) {
           <tr>
             <th className="text-left px-3 py-2 font-medium w-10">#</th>
             <th className="text-left px-3 py-2 font-medium">팀</th>
+            <th className="text-left px-3 py-2 font-medium hidden sm:table-cell w-32">최근 5</th>
             <th className="text-right px-3 py-2 font-medium">승점</th>
             <th className="text-right px-3 py-2 font-medium">예상 승점</th>
             <th className="text-right px-3 py-2 font-medium">우승 %</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-          {rows.map((r, i) => (
-            <tr
-              key={r.teamId}
-              className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50"
-            >
-              <td className="px-3 py-2 font-bold text-neutral-400 tabular-nums">
-                {i + 1}
-              </td>
-              <td className="px-3 py-2 font-medium truncate">
-                <span className="inline-flex items-center gap-2">
-                  <PredTeamLogo src={r.logoUrl} name={r.name} />
-                  <span className="truncate">{r.name}</span>
-                </span>
-              </td>
-              <td className="px-3 py-2 text-right tabular-nums text-neutral-500">
-                {r.currentPoints}
-              </td>
-              <td className="px-3 py-2 text-right tabular-nums font-semibold">
-                {r.expectedPoints.toFixed(1)}
-              </td>
-              <td className="px-3 py-2 text-right tabular-nums">
-                {r.champion >= 0.001
-                  ? `${(r.champion * 100).toFixed(1)}%`
-                  : "<0.1%"}
-              </td>
-            </tr>
-          ))}
+          {rows.map((r, i) => {
+            const isTop4 = top4Cutoff > 0 && i < top4Cutoff;
+            const isRelegation = relegationCount > 0 && i >= relegationStartIdx;
+            // 행 배경 (PO 권 emerald / 강등권 rose). hover 효과는 유지.
+            const rowBg = isTop4
+              ? "bg-emerald-50/60 dark:bg-emerald-500/5 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+              : isRelegation
+              ? "bg-rose-50/60 dark:bg-rose-500/5 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+              : "hover:bg-neutral-50 dark:hover:bg-neutral-900/50";
+            // 좌측 # 셀에 작은 색띠 (왼쪽 경계선 강조).
+            const rankAccent = isTop4
+              ? "border-l-2 border-emerald-500"
+              : isRelegation
+              ? "border-l-2 border-rose-500"
+              : "border-l-2 border-transparent";
+            const form = formByTeamId?.get(r.teamId) ?? [];
+            return (
+              <tr key={r.teamId} className={rowBg}>
+                <td
+                  className={`px-3 py-2 font-bold text-neutral-400 tabular-nums ${rankAccent}`}
+                >
+                  {i + 1}
+                </td>
+                <td className="px-3 py-2 font-medium truncate">
+                  <span className="inline-flex items-center gap-2">
+                    <PredTeamLogo src={r.logoUrl} name={r.name} />
+                    <span className="truncate">{r.name}</span>
+                  </span>
+                </td>
+                <td className="px-3 py-2 hidden sm:table-cell">
+                  <TeamFormBadges form={form} />
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums text-neutral-500">
+                  {r.currentPoints}
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums font-semibold">
+                  {r.expectedPoints.toFixed(1)}
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {r.champion >= 0.001
+                    ? `${(r.champion * 100).toFixed(1)}%`
+                    : "<0.1%"}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
+      {/* 범례 — top4 / 강등권이 있을 때만 표시 */}
+      {(top4Cutoff > 0 || relegationCount > 0) && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 text-[11px] text-neutral-500">
+          {top4Cutoff > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3 rounded bg-emerald-500/30 border-l-2 border-emerald-500" />
+              <span>Top {top4Cutoff} (UCL 권)</span>
+            </span>
+          )}
+          {relegationCount > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3 rounded bg-rose-500/30 border-l-2 border-rose-500" />
+              <span>강등권 (하위 {relegationCount}팀)</span>
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
