@@ -47,6 +47,14 @@ const SKIP_LEAGUES = new Set([
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "SAUDI_PL",
   // 기타 메이저
   "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG",
+  // duplicate-match 헬스체크 가 잡은 31 리그 (2026-05-20) — api-football 도 cover 하고 있음.
+  "USA_USL_CH", "CSL", "SOUTHAFRICA_PSL", "EKSTRAKLASA", "BRASILEIRAO",
+  "NORWAY_1L", "EGYPT_PL", "ECUADOR_LP", "INDONESIA_L1", "URVALSDEILD",
+  "IRELAND_PD", "ISRAEL_PL", "CYPRUS_1D", "ICELAND_1L", "LIGA_I",
+  "CHILE_PD", "PERU_PD", "CHILE_PB", "ELITESERIEN", "UKRAINE_PL",
+  "A_LEAGUE", "CZECH_L", "JUPILER_PL", "CANADA_PL", "INDIA_ISL",
+  "BULGARIA_PL", "BOSNIA_PL", "VIETNAM_VL1", "VEIKKAUSLIIGA",
+  "SLOVENIA_SNL", "VENEZUELA_PD",
 ]);
 
 // TheSports football status_id (검증):
