@@ -387,6 +387,12 @@ export default async function ScoresPage({ searchParams }: Props) {
         league: { in: leagues },
         startTime: { gte: day, lt: dayEnd },
         status: { not: "POSTPONED" },
+        // TBD placeholder 매치 영구 제외 (NBA/NHL 컨퍼런스 파이널 차기 라운드 미정 등).
+        // status=LIVE 로 잘못 cron update 되더라도 페이지에선 항상 hide.
+        AND: [
+          { homeTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
+          { awayTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
+        ],
       },
       include: {
         homeTeam: true,
