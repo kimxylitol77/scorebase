@@ -355,11 +355,11 @@ export default function BaseballLiveDetail({
         </div>
 
         {/* 이닝 박스 + R/H/E */}
-        <div className="overflow-x-auto -mx-1 px-1">
-          <table className="text-[11px] sm:text-xs w-full min-w-[360px]">
+        <div className="-mx-1 px-1">
+          <table className="text-[11px] sm:text-xs w-full table-fixed">
             <thead>
               <tr className="text-neutral-500">
-                <th className="text-left font-semibold py-1 pr-2 w-10">팀</th>
+                <th className="text-left font-semibold py-1 pr-1 w-9">팀</th>
                 {Array.from({ length: innings }, (_, i) => {
                   const isCur =
                     isLive && currentInning != null && i + 1 === currentInning;
