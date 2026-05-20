@@ -1838,6 +1838,37 @@ const RAW: Record<string, string> = {
   // NPB Romaji
   "Kaito Muramatsu": "무라마쓰 카이토",
   "Muku Ota": "오타 무쿠",
+
+  // ===== MLB 선발투수 26명 (2026-05-20 /scores 발견 누락) =====
+  "Aaron Civale": "에런 시발레",
+  "Ben Brown": "벤 브라운",
+  "Braxton Garrett": "브랙스턴 개럿",
+  "Chase Burns": "체이스 번스",
+  "Emerson Hancock": "에머슨 핸콕",
+  "Foster Griffin": "포스터 그리핀",
+  "Griffin Jax": "그리핀 잭스",
+  "Jack Kochanowicz": "잭 코카노위츠",
+  "Jack Leiter": "잭 라이터",
+  "Jacob Misiorowski": "제이콥 미시오로프스키",
+  "Keider Montero": "케이더 몬테로",
+  "Kris Bubic": "크리스 부빅",
+  "Kyle Bradish": "카일 브래디시",
+  "Kyle Freeland": "카일 프릴랜드",
+  "Lance McCullers Jr.": "랜스 매컬러스 주니어",
+  "Lance McCullers": "랜스 매컬러스 주니어",
+  "Martín Pérez": "마르틴 페레스",
+  "Martin Perez": "마르틴 페레스",
+  "Matthew Liberatore": "매튜 리베라토레",
+  "Merrill Kelly": "메릴 켈리",
+  "Mitch Keller": "미치 켈러",
+  "Nolan McLean": "놀란 매클린",
+  "Parker Messick": "파커 메식",
+  "Randy Vásquez": "랜디 바스케스",
+  "Randy Vasquez": "랜디 바스케스",
+  "Sean Burke": "션 버크",
+  "Tyler Mahle": "타일러 메일리",
+  "Will Warren": "윌 워런",
+  "Zebby Matthews": "제비 매튜스",
 };
 
 const RAW_LOWER: Record<string, string> = Object.fromEntries(
