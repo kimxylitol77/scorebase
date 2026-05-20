@@ -66,6 +66,12 @@ function AdminBar({ username }: { username: string }) {
           >
             접속자 통계
           </Link>
+          <Link
+            href="/admin/health"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            사이트 상태
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">

@@ -1,0 +1,741 @@
+// Health-check 봇 — 매일 06:30 KST cron 이 모든 체크 함수를 직렬 실행.
+// 발견된 issue 는 HealthCheck DB row 로 insert + HIGH 는 텔레그램 전송.
+
+import { prisma } from "@/lib/db";
+import type { HealthFinding } from "./types";
+import { toKoreanPlayerName } from "@/lib/player-names";
+import { toKoreanTeamName } from "@/lib/team-names";
+
+// ──────────────────────────────────────────────────────────────
+// 1. 시즌 표기 — NHL / NBA / EPL / LALIGA / BUNDESLIGA / SERIE_A / LIGUE_1
+//    리더보드 season 컬럼이 비현실적이면 HIGH.
+// ──────────────────────────────────────────────────────────────
+function expectedSeasonForLeague(league: string, now: Date): string[] {
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth() + 1; // 1~12
+  switch (league) {
+    case "NHL":
+    case "NBA": {
+      // 10~12월 시작 → (y)-(y+1) 시즌. 1~6월 = (y-1)-(y) 시즌. 7~9월 = 시즌 무관 (offseason).
+      if (m >= 10) return [`${y}-${String(y + 1).slice(2)}`, `${y}-${y + 1}`];
+      if (m <= 6) return [`${y - 1}-${String(y).slice(2)}`, `${y - 1}-${y}`];
+      return [`${y - 1}-${String(y).slice(2)}`, `${y - 1}-${y}`, `${y}-${String(y + 1).slice(2)}`];
+    }
+    case "EPL":
+    case "LALIGA":
+    case "BUNDESLIGA":
+    case "SERIE_A":
+    case "LIGUE_1":
+    case "UCL":
+    case "UEL":
+    case "EREDIVISIE":
+    case "PRIMEIRA_LIGA": {
+      // 8월 시작 → (y)-(y+1). 1~6월 = (y-1)-(y).
+      if (m >= 8) return [`${y}-${String(y + 1).slice(2)}`, `${y}-${y + 1}`];
+      return [`${y - 1}-${String(y).slice(2)}`, `${y - 1}-${y}`];
+    }
+    case "KBO":
+    case "NPB":
+    case "MLB":
+    case "K_LEAGUE_1":
+    case "K_LEAGUE_2":
+    case "J1_LEAGUE":
+    case "J2_LEAGUE":
+    case "MLS":
+    case "BRASILEIRAO":
+    case "LOL":
+      return [`${y}`];
+    default:
+      return [`${y}`, `${y - 1}`, `${y - 1}-${String(y).slice(2)}`, `${y}-${String(y + 1).slice(2)}`];
+  }
+}
+
+async function checkSeasonLabels(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const distinct = await prisma.leagueLeader.groupBy({
+    by: ["league", "season"],
+    _count: { _all: true },
+  });
+  // 리그별 최신 season 만 사용 (page.tsx 와 동일 로직).
+  const byLeague = new Map<string, string>();
+  for (const row of distinct) {
+    const prev = byLeague.get(row.league);
+    if (!prev || row.season.localeCompare(prev) > 0) byLeague.set(row.league, row.season);
+  }
+  for (const [league, season] of byLeague) {
+    const expected = expectedSeasonForLeague(league, now);
+    if (!expected.includes(season)) {
+      out.push({
+        category: "season-label",
+        key: league,
+        severity: "HIGH",
+        message: `${league} 리더보드 시즌 = "${season}" — 예상 ${expected.join(" / ")}`,
+        metadata: { actual: season, expected },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 2. 매치 카운트 — 시즌 진행도 대비 비현실적 큰/작은 수치
+// ──────────────────────────────────────────────────────────────
+async function checkMatchCounts(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  // (league, 정규시즌 총 매치, 시즌 시작 월, 시즌 끝 월) — 12월 = 12 표기.
+  const SCHEDULE: Array<{ league: string; total: number; startMonth: number; endMonth: number }> = [
+    { league: "EPL", total: 380, startMonth: 8, endMonth: 5 },
+    { league: "LALIGA", total: 380, startMonth: 8, endMonth: 5 },
+    { league: "BUNDESLIGA", total: 306, startMonth: 8, endMonth: 5 },
+    { league: "SERIE_A", total: 380, startMonth: 8, endMonth: 5 },
+    { league: "LIGUE_1", total: 306, startMonth: 8, endMonth: 5 },
+    { league: "KBO", total: 720, startMonth: 3, endMonth: 10 },
+    { league: "NPB", total: 858, startMonth: 3, endMonth: 10 },
+    { league: "MLB", total: 2430, startMonth: 3, endMonth: 10 },
+    { league: "NBA", total: 1230, startMonth: 10, endMonth: 4 },
+    { league: "NHL", total: 1312, startMonth: 10, endMonth: 4 },
+    { league: "MLS", total: 510, startMonth: 2, endMonth: 12 },
+  ];
+  const m = now.getUTCMonth() + 1;
+  for (const cfg of SCHEDULE) {
+    // 진행도 계산 — 시즌이 같은 해 안에 끝나는지(KBO/MLB), 두 해에 걸치는지(EPL)에 따라 다름.
+    let progress: number;
+    if (cfg.startMonth <= cfg.endMonth) {
+      // 같은 해 — 3월 시작 ~ 10월 끝.
+      if (m < cfg.startMonth) progress = 0;
+      else if (m > cfg.endMonth) progress = 1;
+      else progress = (m - cfg.startMonth + 1) / (cfg.endMonth - cfg.startMonth + 1);
+    } else {
+      // 두 해 — 8월 시작 ~ 5월 끝.
+      if (m >= cfg.startMonth) progress = (m - cfg.startMonth + 1) / 10;
+      else if (m <= cfg.endMonth) progress = (12 - cfg.startMonth + m + 1) / 10;
+      else progress = 1; // 6~7월 = 비시즌
+    }
+    const expected = Math.round(progress * cfg.total);
+    const finished = await prisma.match.count({
+      where: { league: cfg.league, status: "FINISHED" },
+    });
+    // ±50% 또는 100경기 이상 차이면 경고.
+    const tolerance = Math.max(100, cfg.total * 0.25);
+    const diff = Math.abs(finished - expected);
+    if (diff > tolerance) {
+      out.push({
+        category: "match-count",
+        key: cfg.league,
+        severity: diff > tolerance * 2 ? "HIGH" : "MED",
+        message: `${cfg.league} FINISHED ${finished}경기 — 예상 ${expected} (진행도 ${(progress * 100).toFixed(0)}%, 차 ${diff})`,
+        metadata: { finished, expected, progress, tolerance },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 3. SCHEDULED freshness — 시즌 중 리그에 다음 7일 SCHEDULED 매치가 0이면 경고
+// ──────────────────────────────────────────────────────────────
+async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const horizon = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+  const LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "KBO", "NPB", "MLB", "NBA", "NHL", "MLS"];
+  for (const league of LEAGUES) {
+    const cnt = await prisma.match.count({
+      where: { league, status: "SCHEDULED", startTime: { gte: now, lte: horizon } },
+    });
+    // FINISHED 매치가 최근에 있었으면 시즌 중 — SCHEDULED 가 0 이면 cron 이 future fixtures 갱신 누락.
+    const recentFinished = await prisma.match.count({
+      where: {
+        league,
+        status: "FINISHED",
+        startTime: { gte: new Date(now.getTime() - 14 * 24 * 3600 * 1000), lte: now },
+      },
+    });
+    if (recentFinished > 0 && cnt === 0) {
+      out.push({
+        category: "scheduled-freshness",
+        key: league,
+        severity: "HIGH",
+        message: `${league} 시즌 중인데 다음 7일 SCHEDULED 매치 0건 (최근 14일 FINISHED ${recentFinished}건)`,
+        metadata: { scheduled7d: 0, recentFinished14d: recentFinished },
+      });
+    } else if (recentFinished > 5 && cnt < 3) {
+      out.push({
+        category: "scheduled-freshness",
+        key: league,
+        severity: "MED",
+        message: `${league} 다음 7일 SCHEDULED ${cnt}건 (보통보다 적음)`,
+        metadata: { scheduled7d: cnt, recentFinished14d: recentFinished },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 4. leagueLeader.teamName 이 해당 리그 team 화이트리스트에 있는지
+//    예: LOL=LCK 인데 외부 리그 팀명 노출 시 HIGH
+// ──────────────────────────────────────────────────────────────
+async function checkLeaderboardLeagueConsistency(): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const leaders = await prisma.leagueLeader.findMany({
+    select: { league: true, teamName: true, playerName: true, rank: true, category: true, season: true },
+  });
+  if (leaders.length === 0) return out;
+  // 리그별로 우리 사이트가 인지하는 한국어 팀명 set 구성.
+  const teams = await prisma.team.findMany({ select: { league: true, name: true } });
+  const byLeague = new Map<string, Set<string>>();
+  for (const t of teams) {
+    const ko = toKoreanTeamName(t.name, t.league);
+    if (!byLeague.has(t.league)) byLeague.set(t.league, new Set());
+    byLeague.get(t.league)!.add(ko);
+    byLeague.get(t.league)!.add(t.name);
+  }
+  // 리그별 mismatch 개수 카운트
+  const mismatchByLeague = new Map<string, { total: number; samples: string[] }>();
+  for (const r of leaders) {
+    const validNames = byLeague.get(r.league);
+    if (!validNames || validNames.size === 0) continue; // 팀 데이터 없으면 skip
+    if (!validNames.has(r.teamName) && !validNames.has(toKoreanTeamName(r.teamName, r.league))) {
+      const e = mismatchByLeague.get(r.league) ?? { total: 0, samples: [] };
+      e.total++;
+      if (e.samples.length < 3) e.samples.push(`${r.playerName} (${r.teamName})`);
+      mismatchByLeague.set(r.league, e);
+    }
+  }
+  for (const [league, info] of mismatchByLeague) {
+    out.push({
+      category: "leaderboard-consistency",
+      key: league,
+      severity: info.total >= 3 ? "HIGH" : "MED",
+      message: `${league} 리더보드에 외부 리그 추정 선수 ${info.total}명 — 예: ${info.samples.join(", ")}`,
+      metadata: info,
+    });
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 5. 영문 선수 노출 비율 — 최근 14일 Match 의 lineup/starter JSON 에서 fullName 추출 → 사전 매핑 통과율
+// ──────────────────────────────────────────────────────────────
+async function checkPlayerNameMissingRate(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const since = new Date(now.getTime() - 14 * 24 * 3600 * 1000);
+  const matches = await prisma.match.findMany({
+    where: { startTime: { gte: since }, status: { in: ["FINISHED", "LIVE", "SCHEDULED"] } },
+    select: { league: true, lineupHome: true, lineupAway: true, homeStarter: true, awayStarter: true },
+    take: 500,
+  });
+  const counts = new Map<string, { total: number; missing: number; samples: Set<string> }>();
+  const walk = (obj: unknown, league: string): void => {
+    if (!obj) return;
+    if (typeof obj === "string") return;
+    if (Array.isArray(obj)) {
+      for (const item of obj) walk(item, league);
+      return;
+    }
+    if (typeof obj === "object") {
+      for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+        if ((k === "name" || k === "fullName" || k === "player") && typeof v === "string" && /^[A-Za-z]/.test(v)) {
+          const e = counts.get(league) ?? { total: 0, missing: 0, samples: new Set<string>() };
+          e.total++;
+          const ko = toKoreanPlayerName(v);
+          if (ko === v.trim()) {
+            e.missing++;
+            if (e.samples.size < 5) e.samples.add(v);
+          }
+          counts.set(league, e);
+        } else if (v && typeof v === "object") {
+          walk(v, league);
+        }
+      }
+    }
+  };
+  for (const m of matches) {
+    for (const field of ["lineupHome", "lineupAway", "homeStarter", "awayStarter"] as const) {
+      const raw = m[field];
+      if (!raw) continue;
+      try {
+        const obj = JSON.parse(raw);
+        walk(obj, m.league);
+      } catch {
+        /* ignore parse error */
+      }
+    }
+  }
+  for (const [league, e] of counts) {
+    if (e.total < 10) continue; // 표본 부족
+    const rate = e.missing / e.total;
+    if (rate > 0.2) {
+      out.push({
+        category: "player-name-missing",
+        key: league,
+        severity: rate > 0.4 ? "HIGH" : "MED",
+        message: `${league} 영문 선수 노출 비율 ${(rate * 100).toFixed(0)}% (${e.missing}/${e.total}) — 예: ${Array.from(e.samples).slice(0, 3).join(", ")}`,
+        metadata: { rate, missing: e.missing, total: e.total, samples: Array.from(e.samples) },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 6. 영문 팀명 노출 비율 — Match 의 homeTeam/awayTeam.name 통과율
+// ──────────────────────────────────────────────────────────────
+async function checkTeamNameMissingRate(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+  const teams = await prisma.team.findMany({
+    where: {
+      OR: [
+        { homeMatches: { some: { startTime: { gte: since } } } },
+        { awayMatches: { some: { startTime: { gte: since } } } },
+      ],
+    },
+    select: { league: true, name: true },
+    take: 1000,
+  });
+  const counts = new Map<string, { total: number; missing: number; samples: Set<string> }>();
+  for (const t of teams) {
+    const e = counts.get(t.league) ?? { total: 0, missing: 0, samples: new Set<string>() };
+    e.total++;
+    const ko = toKoreanTeamName(t.name, t.league);
+    if (ko === t.name && /^[A-Za-z]/.test(t.name)) {
+      e.missing++;
+      if (e.samples.size < 5) e.samples.add(t.name);
+    }
+    counts.set(t.league, e);
+  }
+  for (const [league, e] of counts) {
+    if (e.total < 3) continue;
+    const rate = e.missing / e.total;
+    if (rate > 0.15) {
+      out.push({
+        category: "team-name-missing",
+        key: league,
+        severity: rate > 0.3 ? "HIGH" : "MED",
+        message: `${league} 영문 팀명 노출 ${(rate * 100).toFixed(0)}% (${e.missing}/${e.total}) — ${Array.from(e.samples).slice(0, 3).join(", ")}`,
+        metadata: { rate, missing: e.missing, total: e.total, samples: Array.from(e.samples) },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 7. 적중률 — 1X2 / OU / 핸디 / BTTS / DC. 임계 50% 이하 = MED, 40% 이하 = HIGH
+// ──────────────────────────────────────────────────────────────
+async function checkAccuracy(): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  // 최근 30일 평가된 매치
+  const since = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+  const FIELDS: Array<{ name: string; field: "predCorrect" | "predOverCorrect" | "predHcCorrect" | "predBttsCorrect" | "predDcCorrect" }> = [
+    { name: "1X2", field: "predCorrect" },
+    { name: "OU", field: "predOverCorrect" },
+    { name: "핸디", field: "predHcCorrect" },
+    { name: "BTTS", field: "predBttsCorrect" },
+    { name: "DC", field: "predDcCorrect" },
+  ];
+  const LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "KBO", "MLB", "NBA", "NHL"];
+  for (const league of LEAGUES) {
+    for (const { name, field } of FIELDS) {
+      const rows = await prisma.match.findMany({
+        where: {
+          league,
+          startTime: { gte: since },
+          status: "FINISHED",
+          NOT: { [field]: null },
+        },
+        select: { [field]: true },
+      });
+      if (rows.length < 20) continue;
+      const correct = rows.filter((r) => (r as Record<string, unknown>)[field] === true).length;
+      const rate = correct / rows.length;
+      if (rate < 0.5) {
+        out.push({
+          category: "accuracy",
+          key: `${league}-${name}`,
+          severity: rate < 0.4 ? "HIGH" : "MED",
+          message: `${league} ${name} 적중률 ${(rate * 100).toFixed(0)}% (${correct}/${rows.length}) — 30일`,
+          metadata: { rate, correct, total: rows.length },
+        });
+      }
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 8. Article 생성 cadence — 어제 PREVIEW / RECAP 글이 N건 이상 생성됐는지
+// ──────────────────────────────────────────────────────────────
+async function checkArticleCadence(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const yesterdayStart = new Date(now);
+  yesterdayStart.setUTCHours(0, 0, 0, 0);
+  yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
+  const yesterdayEnd = new Date(yesterdayStart);
+  yesterdayEnd.setUTCDate(yesterdayEnd.getUTCDate() + 1);
+  for (const type of ["PREVIEW", "RECAP"] as const) {
+    const cnt = await prisma.article.count({
+      where: {
+        type,
+        publishedAt: { gte: yesterdayStart, lt: yesterdayEnd },
+      },
+    });
+    // 7일 평균 대비 비교
+    const week = await prisma.article.count({
+      where: {
+        type,
+        publishedAt: {
+          gte: new Date(yesterdayStart.getTime() - 7 * 24 * 3600 * 1000),
+          lt: yesterdayStart,
+        },
+      },
+    });
+    const avg = week / 7;
+    if (cnt === 0 && avg >= 3) {
+      out.push({
+        category: "article-cadence",
+        key: type,
+        severity: "HIGH",
+        message: `${type} 글 어제 0건 (최근 7일 평균 ${avg.toFixed(1)}건/일) — cron 실패 의심`,
+        metadata: { yesterday: cnt, weeklyAvg: avg },
+      });
+    } else if (cnt < avg * 0.3 && avg >= 3) {
+      out.push({
+        category: "article-cadence",
+        key: type,
+        severity: "MED",
+        message: `${type} 글 어제 ${cnt}건 (평균 ${avg.toFixed(1)}건/일의 30% 미만)`,
+        metadata: { yesterday: cnt, weeklyAvg: avg },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 9. starter coverage (KBO/MLB) + goalie coverage (NHL)
+// ──────────────────────────────────────────────────────────────
+async function checkStarterCoverage(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const horizon = new Date(now.getTime() + 24 * 3600 * 1000);
+  for (const league of ["KBO", "MLB", "NPB"]) {
+    const total = await prisma.match.count({
+      where: { league, status: "SCHEDULED", startTime: { gte: now, lte: horizon } },
+    });
+    if (total < 5) continue;
+    const withStarter = await prisma.match.count({
+      where: {
+        league,
+        status: "SCHEDULED",
+        startTime: { gte: now, lte: horizon },
+        NOT: [{ homeStarter: null }, { awayStarter: null }],
+      },
+    });
+    const rate = withStarter / total;
+    if (rate < 0.5) {
+      out.push({
+        category: "starter-coverage",
+        key: league,
+        severity: rate < 0.2 ? "HIGH" : "MED",
+        message: `${league} 오늘 매치 starter 매핑 ${withStarter}/${total} (${(rate * 100).toFixed(0)}%)`,
+        metadata: { league, withStarter, total, rate },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 10. cron lag — Match.updatedAt 최신 시각이 12시간 초과면 collect 잡 lag 의심
+// ──────────────────────────────────────────────────────────────
+async function checkCronLag(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const latest = await prisma.match.findFirst({
+    orderBy: { updatedAt: "desc" },
+    select: { updatedAt: true },
+  });
+  if (!latest) return out;
+  const lagHours = (now.getTime() - latest.updatedAt.getTime()) / (3600 * 1000);
+  if (lagHours > 12) {
+    out.push({
+      category: "cron-lag",
+      key: "collect",
+      severity: lagHours > 24 ? "HIGH" : "MED",
+      message: `Match 테이블 최근 업데이트 ${lagHours.toFixed(1)}h 전 — collect 잡 lag 의심`,
+      metadata: { lagHours, latestUpdate: latest.updatedAt.toISOString() },
+    });
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 11. odds coverage — 다가오는 매치의 market odds 채워진 비율
+// ──────────────────────────────────────────────────────────────
+async function checkOddsCoverage(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const horizon = new Date(now.getTime() + 3 * 24 * 3600 * 1000);
+  for (const league of ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLB", "NBA", "NHL", "KBO"]) {
+    const total = await prisma.match.count({
+      where: { league, status: "SCHEDULED", startTime: { gte: now, lte: horizon } },
+    });
+    if (total < 3) continue;
+    const withOdds = await prisma.match.count({
+      where: {
+        league,
+        status: "SCHEDULED",
+        startTime: { gte: now, lte: horizon },
+        NOT: [{ marketHome: null }, { marketAway: null }],
+      },
+    });
+    const rate = withOdds / total;
+    if (rate < 0.5) {
+      out.push({
+        category: "odds-coverage",
+        key: league,
+        severity: rate < 0.2 ? "MED" : "LOW",
+        message: `${league} 다음 3일 매치 odds 매핑 ${withOdds}/${total} (${(rate * 100).toFixed(0)}%)`,
+        metadata: { withOdds, total, rate },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 12. PageView 분석 — 어제 페이지뷰가 평소의 30% 미만이면 트래픽 이상
+// ──────────────────────────────────────────────────────────────
+async function checkPageViewAnomaly(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  // 모델이 PageView 라는 가정 — 실제 schema 에 없으면 skip.
+  try {
+    const yesterdayStart = new Date(now);
+    yesterdayStart.setUTCHours(0, 0, 0, 0);
+    yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
+    const yesterdayEnd = new Date(yesterdayStart);
+    yesterdayEnd.setUTCDate(yesterdayEnd.getUTCDate() + 1);
+    const pv = (prisma as unknown as Record<string, { count?: (args: unknown) => Promise<number> }>).pageView;
+    if (!pv || !pv.count) return out;
+    const yesterday = await pv.count({ where: { createdAt: { gte: yesterdayStart, lt: yesterdayEnd } } } as never);
+    const weekStart = new Date(yesterdayStart.getTime() - 7 * 24 * 3600 * 1000);
+    const week = await pv.count({ where: { createdAt: { gte: weekStart, lt: yesterdayStart } } } as never);
+    const avg = week / 7;
+    if (avg < 10) return out; // 표본 부족
+    const ratio = yesterday / avg;
+    if (ratio < 0.3) {
+      out.push({
+        category: "pageview-anomaly",
+        key: "site",
+        severity: "MED",
+        message: `어제 PV ${yesterday} — 7일 평균 ${avg.toFixed(0)}의 ${(ratio * 100).toFixed(0)}% (이상 저조)`,
+        metadata: { yesterday, weeklyAvg: avg, ratio },
+      });
+    }
+  } catch {
+    /* schema 없으면 skip */
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 13. odds 시장과 모델 우승 차이 이상 — value bet 이 너무 많으면 모델 mis-calibration
+// ──────────────────────────────────────────────────────────────
+async function checkModelMarketDeviation(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const horizon = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+  const rows = await prisma.match.findMany({
+    where: {
+      status: "SCHEDULED",
+      startTime: { gte: now, lte: horizon },
+      NOT: [{ marketHome: null }, { predHome: null }],
+    },
+    select: { league: true, marketHome: true, predHome: true, marketAway: true, predAway: true },
+    take: 200,
+  });
+  const byLeague = new Map<string, { large: number; total: number }>();
+  for (const r of rows) {
+    const e = byLeague.get(r.league) ?? { large: 0, total: 0 };
+    e.total++;
+    const dh = Math.abs((r.predHome ?? 0) - (r.marketHome ?? 0));
+    const da = Math.abs((r.predAway ?? 0) - (r.marketAway ?? 0));
+    if (Math.max(dh, da) > 0.15) e.large++; // 15%p 이상 차이
+    byLeague.set(r.league, e);
+  }
+  for (const [league, e] of byLeague) {
+    if (e.total < 10) continue;
+    const rate = e.large / e.total;
+    if (rate > 0.4) {
+      out.push({
+        category: "model-market-deviation",
+        key: league,
+        severity: "MED",
+        message: `${league} 모델 vs 시장 차이 15%p+ 매치 ${(rate * 100).toFixed(0)}% (${e.large}/${e.total}) — 모델 mis-calibration 의심`,
+        metadata: { rate, large: e.large, total: e.total },
+      });
+    }
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 14. ghost team — 매치는 있지만 Team 테이블에 등록 안 된 teamId
+// ──────────────────────────────────────────────────────────────
+async function checkGhostTeams(): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const teamIds = new Set((await prisma.team.findMany({ select: { id: true } })).map((t) => t.id));
+  const recent = await prisma.match.findMany({
+    where: { startTime: { gte: new Date(Date.now() - 30 * 24 * 3600 * 1000) } },
+    select: { homeTeamId: true, awayTeamId: true, league: true },
+    take: 2000,
+  });
+  const ghosts = new Map<string, Set<number>>();
+  for (const m of recent) {
+    for (const tid of [m.homeTeamId, m.awayTeamId]) {
+      if (!teamIds.has(tid)) {
+        const s = ghosts.get(m.league) ?? new Set<number>();
+        s.add(tid);
+        ghosts.set(m.league, s);
+      }
+    }
+  }
+  for (const [league, set] of ghosts) {
+    out.push({
+      category: "ghost-team",
+      key: league,
+      severity: set.size > 5 ? "HIGH" : "MED",
+      message: `${league} 매치 참조 teamId ${set.size}개가 Team 테이블에 없음 — Ghost 매치 의심`,
+      metadata: { league, ghostCount: set.size, sampleIds: Array.from(set).slice(0, 10) },
+    });
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 15. Notice 신선도 — 마지막 NOTICE 가 30일 초과면 LOW (운영 활성도 지표)
+// ──────────────────────────────────────────────────────────────
+async function checkNoticeFreshness(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  try {
+    const latest = await prisma.notice.findFirst({
+      orderBy: { publishedAt: "desc" },
+      select: { publishedAt: true, title: true },
+    });
+    if (!latest) return out;
+    const ageDays = (now.getTime() - latest.publishedAt.getTime()) / (24 * 3600 * 1000);
+    if (ageDays > 30) {
+      out.push({
+        category: "notice-stale",
+        key: "site",
+        severity: "LOW",
+        message: `최근 Notice "${latest.title}" — ${ageDays.toFixed(0)}일 전 (30일 초과)`,
+        metadata: { ageDays, title: latest.title },
+      });
+    }
+  } catch {
+    /* Notice 모델 없으면 skip */
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 16. NHL goalie coverage — 시즌 중 NHL 매치 의 goalie 매핑
+// ──────────────────────────────────────────────────────────────
+async function checkNhlGoalieCoverage(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const horizon = new Date(now.getTime() + 24 * 3600 * 1000);
+  const total = await prisma.match.count({
+    where: { league: "NHL", status: "SCHEDULED", startTime: { gte: now, lte: horizon } },
+  });
+  if (total < 3) return out;
+  const withGoalie = await prisma.match.count({
+    where: {
+      league: "NHL",
+      status: "SCHEDULED",
+      startTime: { gte: now, lte: horizon },
+      NOT: [{ homeGoalie: null }, { awayGoalie: null }],
+    },
+  });
+  const rate = withGoalie / total;
+  if (rate < 0.5) {
+    out.push({
+      category: "goalie-coverage-nhl",
+      key: "NHL",
+      severity: rate < 0.2 ? "MED" : "LOW",
+      message: `NHL 오늘 매치 goalie 매핑 ${withGoalie}/${total} (${(rate * 100).toFixed(0)}%)`,
+      metadata: { withGoalie, total, rate },
+    });
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 17. predCorrect null 비율 (FINISHED 매치인데 평가 안 됨)
+// ──────────────────────────────────────────────────────────────
+async function checkEvaluationGap(now: Date): Promise<HealthFinding[]> {
+  const out: HealthFinding[] = [];
+  const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+  const total = await prisma.match.count({
+    where: { status: "FINISHED", startTime: { gte: since, lte: now }, NOT: { predHome: null } },
+  });
+  if (total < 20) return out;
+  const evaluated = await prisma.match.count({
+    where: {
+      status: "FINISHED",
+      startTime: { gte: since, lte: now },
+      NOT: [{ predHome: null }, { predCorrect: null }],
+    },
+  });
+  const rate = evaluated / total;
+  if (rate < 0.9) {
+    out.push({
+      category: "evaluation-gap",
+      key: "predCorrect",
+      severity: rate < 0.7 ? "HIGH" : "MED",
+      message: `최근 7일 FINISHED 매치 ${total}건 중 평가 ${evaluated}건 (${(rate * 100).toFixed(0)}%) — evaluate cron 누락 의심`,
+      metadata: { total, evaluated, rate },
+    });
+  }
+  return out;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 메인 — 모든 체크 직렬 실행 + 에러는 finding 으로 변환
+// ──────────────────────────────────────────────────────────────
+const CHECKS: Array<{ name: string; fn: (now: Date) => Promise<HealthFinding[]> }> = [
+  { name: "season-labels", fn: checkSeasonLabels },
+  { name: "match-counts", fn: checkMatchCounts },
+  { name: "scheduled-freshness", fn: checkScheduledFreshness },
+  { name: "leaderboard-consistency", fn: async () => checkLeaderboardLeagueConsistency() },
+  { name: "player-name-missing", fn: checkPlayerNameMissingRate },
+  { name: "team-name-missing", fn: checkTeamNameMissingRate },
+  { name: "accuracy", fn: async () => checkAccuracy() },
+  { name: "article-cadence", fn: checkArticleCadence },
+  { name: "starter-coverage", fn: checkStarterCoverage },
+  { name: "cron-lag", fn: checkCronLag },
+  { name: "odds-coverage", fn: checkOddsCoverage },
+  { name: "pageview-anomaly", fn: checkPageViewAnomaly },
+  { name: "model-market-deviation", fn: checkModelMarketDeviation },
+  { name: "ghost-team", fn: async () => checkGhostTeams() },
+  { name: "notice-stale", fn: checkNoticeFreshness },
+  { name: "nhl-goalie-coverage", fn: checkNhlGoalieCoverage },
+  { name: "evaluation-gap", fn: checkEvaluationGap },
+];
+
+export async function runHealthChecks(): Promise<HealthFinding[]> {
+  const now = new Date();
+  const all: HealthFinding[] = [];
+  for (const c of CHECKS) {
+    try {
+      const findings = await c.fn(now);
+      all.push(...findings);
+    } catch (e) {
+      all.push({
+        category: "check-error",
+        key: c.name,
+        severity: "MED",
+        message: `[${c.name}] 체크 자체 실패: ${e instanceof Error ? e.message : String(e)}`,
+      });
+    }
+  }
+  return all;
+}
