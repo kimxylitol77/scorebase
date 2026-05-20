@@ -390,9 +390,12 @@ export default async function ScoresPage({ searchParams }: Props) {
         status: { not: "POSTPONED" },
         // TBD placeholder 매치 영구 제외 (NBA/NHL 컨퍼런스 파이널 차기 라운드 미정 등).
         // status=LIVE 로 잘못 cron update 되더라도 페이지에선 항상 hide.
+        // "Sabres/Canadiens" 같은 슬래시 포함 placeholder (NHL 다음 라운드 미정) 도 제외.
         AND: [
           { homeTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
           { awayTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
+          { homeTeam: { is: { name: { not: { contains: "/" } } } } },
+          { awayTeam: { is: { name: { not: { contains: "/" } } } } },
         ],
       },
       include: {
