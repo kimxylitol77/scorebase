@@ -370,8 +370,9 @@ async function checkTeamNameMissingRate(now: Date): Promise<HealthFinding[]> {
 // ──────────────────────────────────────────────────────────────
 async function checkAccuracy(): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
-  // 최근 30일 평가된 매치
-  const since = new Date(Date.now() - 30 * 24 * 3600 * 1000);
+  // 최근 60일 평가된 매치 — 30일은 표본 부족 + 시즌 막바지 이변으로 false-positive 발생
+  // (예: SERIE_A 30일 37% → 60일 44% → 90일 48% 정상화. 시즌 전체 42%).
+  const since = new Date(Date.now() - 60 * 24 * 3600 * 1000);
   const FIELDS: Array<{ name: string; field: "predCorrect" | "predOverCorrect" | "predHcCorrect" | "predBttsCorrect" | "predDcCorrect" }> = [
     { name: "1X2", field: "predCorrect" },
     { name: "OU", field: "predOverCorrect" },
@@ -391,15 +392,20 @@ async function checkAccuracy(): Promise<HealthFinding[]> {
         },
         select: { [field]: true },
       });
-      if (rows.length < 20) continue;
+      if (rows.length < 30) continue; // 표본 너무 적으면 noise — 30건 미만 skip
       const correct = rows.filter((r) => (r as Record<string, unknown>)[field] === true).length;
       const rate = correct / rows.length;
-      if (rate < 0.5) {
+      // 1X2 는 3-way 분류라 baseline 모델도 40-50% 대 — 임계 완화.
+      // OU/BTTS 는 2-way 라 50% 가 random, 45% 미만이면 신호.
+      const isTwoWay = name === "OU" || name === "BTTS" || name === "DC";
+      const highT = isTwoWay ? 0.42 : 0.35;
+      const medT = isTwoWay ? 0.48 : 0.42;
+      if (rate < medT) {
         out.push({
           category: "accuracy",
           key: `${league}-${name}`,
-          severity: rate < 0.4 ? "HIGH" : "MED",
-          message: `${league} ${name} 적중률 ${(rate * 100).toFixed(0)}% (${correct}/${rows.length}) — 30일`,
+          severity: rate < highT ? "HIGH" : "MED",
+          message: `${league} ${name} 적중률 ${(rate * 100).toFixed(0)}% (${correct}/${rows.length}) — 60일`,
           metadata: { rate, correct, total: rows.length },
         });
       }
