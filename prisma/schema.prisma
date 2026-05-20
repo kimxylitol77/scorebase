@@ -274,3 +274,19 @@ model TheSportsStandingsCache {
   fetchedAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+/// 데일리 health-check 봇 결과. 매일 06:30 KST cron 이 약 15개 체크 함수 실행 → row insert.
+/// severity HIGH 발견 시 텔레그램 알림. /admin/health 페이지에서 시각화.
+model HealthCheck {
+  id        Int      @id @default(autoincrement())
+  runAt     DateTime @default(now())          // 체크 실행 시각
+  severity  String                              // "HIGH" | "MED" | "LOW" | "OK"
+  category  String                              // 체크 카테고리 (season-label · match-count · accuracy 등)
+  key       String                              // 세부 키 (예: "NHL" / "MLB" / "EPL")
+  message   String                              // 사람이 읽을 메시지 (예: "NHL 리더보드 시즌 = 2026-27 (미래 시즌)")
+  metadata  Json?                               // 자유 데이터 (실제 값 · 기대 값 · 카운트 등)
+
+  @@index([runAt])
+  @@index([severity, runAt])
+  @@index([category, runAt])
+}
