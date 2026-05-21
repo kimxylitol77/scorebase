@@ -133,6 +133,21 @@ async function fetchTsPlayerStatsList() {
   }
 }
 
+// match/half/team_stats/list — 직전 120s 변경된 매치의 하프타임 team stats
+// 응답 구조: results[].stats = { p1: { stat_type_id: [home, away] }, p2: { ... } }
+// p1 = 전반, p2 = 후반 (TheSports half-time stat 표기)
+async function fetchTsHalfTeamStatsList() {
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/half/team_stats/list`, {
+      params: { user: TS_USER, secret: TS_SECRET },
+      timeout: 30_000,
+    });
+    return Array.isArray(data.results) ? data.results : [];
+  } catch {
+    return [];
+  }
+}
+
 function matchToTsMatch(our, tsDiary) {
   const ourTime = new Date(our.startTime).getTime() / 1000;
   return tsDiary.find((ts) => {
@@ -157,13 +172,14 @@ async function postCache(matchId, tsMatchId, payload) {
 async function poll() {
   const ts = new Date().toISOString();
   try {
-    const [ourMatches, tsDiary, tsTeamStatsList, tsPlayerStatsList] = await Promise.all([
+    const [ourMatches, tsDiary, tsTeamStatsList, tsPlayerStatsList, tsHalfTeamStatsList] = await Promise.all([
       fetchOurMatches(),
       fetchTsDiary(),
       fetchTsTeamStatsList(),
       fetchTsPlayerStatsList(),
+      fetchTsHalfTeamStatsList(),
     ]);
-    console.log(`[${ts}] ⚽ our=${ourMatches.length} | ts_diary=${tsDiary.length} | team_stats_changed=${tsTeamStatsList.length} | player_stats_changed=${tsPlayerStatsList.length}`);
+    console.log(`[${ts}] ⚽ our=${ourMatches.length} | ts_diary=${tsDiary.length} | team_stats_changed=${tsTeamStatsList.length} | player_stats_changed=${tsPlayerStatsList.length} | half_team_stats_changed=${tsHalfTeamStatsList.length}`);
 
     // 1. 매칭
     const pairs = [];
@@ -200,8 +216,21 @@ async function poll() {
         console.error(`    ✗ playerStats matchId=${ourMatchId}: ${e.message}`);
       }
     }
-    if (teamStatsPushed + playerStatsPushed > 0) {
-      console.log(`    delta cached: teamStats=${teamStatsPushed} playerStats=${playerStatsPushed}`);
+    let halfStatsPushed = 0;
+    for (const r of tsHalfTeamStatsList) {
+      const ourMatchId = tsIdToOurId.get(r.id);
+      // 응답 stats 필드는 stat (단수) 또는 stats (복수) 일 수 있음 — 양쪽 처리
+      const payload = r.stats ?? r.stat ?? null;
+      if (!ourMatchId || !payload) continue;
+      try {
+        await postCache(ourMatchId, r.id, { halfTeamStats: payload });
+        halfStatsPushed++;
+      } catch (e) {
+        console.error(`    ✗ halfTeamStats matchId=${ourMatchId}: ${e.message}`);
+      }
+    }
+    if (teamStatsPushed + playerStatsPushed + halfStatsPushed > 0) {
+      console.log(`    delta cached: teamStats=${teamStatsPushed} playerStats=${playerStatsPushed} halfTeamStats=${halfStatsPushed}`);
     }
 
     // 2. LIVE 매치 우선 정렬 (timing 민감)

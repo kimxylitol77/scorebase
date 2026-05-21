@@ -19,6 +19,9 @@ interface Body {
   teamStats?: unknown;
   /** Match player statistics — match/player_stats/list 의 player_stats[] */
   playerStats?: unknown;
+  /** Match team half-time statistics — match/half/team_stats/list 응답
+   *  구조: { p1: { stat_type_id: [home, away] }, ... } */
+  halfTeamStats?: unknown;
 }
 
 function unauthorized(msg = "Unauthorized") {
@@ -54,6 +57,7 @@ export async function POST(req: NextRequest) {
   if (body.analysis !== undefined) data.analysis = body.analysis as object;
   if (body.teamStats !== undefined) data.teamStats = body.teamStats as object;
   if (body.playerStats !== undefined) data.playerStats = body.playerStats as object;
+  if (body.halfTeamStats !== undefined) data.halfTeamStats = body.halfTeamStats as object;
 
   const cache = await prisma.theSportsMatchCache.upsert({
     where: { matchId: body.matchId },
@@ -65,6 +69,7 @@ export async function POST(req: NextRequest) {
       analysis: (body.analysis ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       teamStats: (body.teamStats ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       playerStats: (body.playerStats ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      halfTeamStats: (body.halfTeamStats ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     },
     update: data,
     select: { id: true, matchId: true, updatedAt: true },
