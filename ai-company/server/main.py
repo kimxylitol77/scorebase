@@ -25,8 +25,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from autogen_agentchat.agents import AssistantAgent
-from autogen_agentchat.teams import SelectorGroupChat
-from autogen_agentchat.conditions import TextMentionTermination, MaxMessageTermination
+from autogen_agentchat.teams import RoundRobinGroupChat
+from autogen_agentchat.conditions import MaxMessageTermination
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from autogen_core.models import ModelInfo
 
@@ -71,37 +71,28 @@ def load_agents() -> tuple[list[AssistantAgent], dict[str, dict[str, str]]]:
     return agents, meta
 
 
-# 한국어 selector prompt — 다양한 페르소나 발언 유도 (default 영어는 한국어 흐름 약함)
-SELECTOR_PROMPT = """다음 발언자 1명을 선택하시오. 한국어 회의를 자연스럽게 이끌어야 한다.
-
-[참가자 역할]
-{roles}
-
-[지금까지의 대화]
-{history}
-
-[선택 규칙]
-- 회의 초반·중반: PM(김프로) 외 6명에게 골고루 기회. 같은 사람이 연속 X.
-- PM(김프로)은 다른 5명 이상이 발언한 후에만 다시 발언 (결론 정리 단계).
-- 미션과 가장 관련 깊은 전문 영역의 페르소나 우선 (예: 검색 관련 → 박세오).
-- 충돌 의견 있으면 QA(최큐에이)에게 위험 점검 기회.
-
-[참가자 id 목록] {participants}
-
-응답: 다음 발언자 id 하나만 (예: "seo" 또는 "designer"). 다른 텍스트 없이."""
+# RoundRobin 발언 순서 — PM 이 마지막 (결론 단계)
+# 14B 가 SelectorGroupChat 에서 "회의 종료" 토큰을 첫 발언에 echo 하는 패턴 해결.
+# 정확히 N 메시지 (= 페르소나 수) 후 강제 종료, 키워드 의존 X.
+ROUND_ROBIN_ORDER = ["seo", "dev", "designer", "marketing", "analyst", "qa", "pm"]
 
 
-def make_team() -> tuple[SelectorGroupChat, dict[str, dict[str, str]]]:
+def make_team() -> tuple[RoundRobinGroupChat, dict[str, dict[str, str]]]:
     """매 회의마다 새 team 인스턴스 생성 (state 격리)."""
     agents, meta = load_agents()
-    # 7명 팀 — 한 사이클 + α 위해 18 메시지 한도 (3명 시는 12로 충분했음)
-    termination = TextMentionTermination("회의 종료") | MaxMessageTermination(18)
-    team = SelectorGroupChat(
-        participants=agents,
-        model_client=make_client(),
+    # id → agent map 으로 ROUND_ROBIN_ORDER 적용
+    by_id = {a.name: a for a in agents}
+    ordered = [by_id[id_] for id_ in ROUND_ROBIN_ORDER if id_ in by_id]
+    # 누락된 페르소나도 끝에 추가 (yaml 새로 추가했을 때 안전)
+    extras = [a for a in agents if a.name not in ROUND_ROBIN_ORDER]
+    if extras:
+        ordered.extend(extras)
+
+    # 정확히 N 메시지 (= 참가자 수) 후 종료
+    termination = MaxMessageTermination(len(ordered))
+    team = RoundRobinGroupChat(
+        participants=ordered,
         termination_condition=termination,
-        allow_repeated_speaker=False,
-        selector_prompt=SELECTOR_PROMPT,
     )
     return team, meta
 

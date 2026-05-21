@@ -111,7 +111,7 @@ export default function Home() {
         )}
         {status === 'done' && (
           <div className="mt-6 p-3 bg-green-50 text-green-700 text-sm rounded-lg">
-            ✅ 회의 종료 {stopReason && `· ${stopReason}`}
+            ✅ 회의 종료 — 전원 발언 + PM 결론 완료
           </div>
         )}
         {status === 'error' && (
