@@ -1,6 +1,6 @@
 # AI 회사 — 자율 회의 멀티 에이전트
 
-PM · SEO · 개발자 3명 페르소나가 미션 받으면 자율 회의 (AutoGen GroupChat).
+7명 페르소나 (PM · SEO · 개발자 · 마케터 · 디자이너 · 분석가 · QA) 가 미션 받으면 자율 회의 (AutoGen GroupChat).
 
 ## 스택
 - **Backend**: FastAPI + AutoGen 0.4 + OpenAI 호환 endpoint (Ollama)
@@ -87,8 +87,8 @@ system_message: |                # 페르소나 정의
 ## Phase 진행도
 
 - ✅ **Phase 0**: 환경 셋업 (venv, AutoGen, Redis, Next.js boot)
-- ✅ **Phase 1**: MVP — 3명 자율 회의 (이 README)
-- ⏳ **Phase 2**: 7명 풀팀 (디자인/마케팅/분석가/QA 추가)
+- ✅ **Phase 1**: MVP — 3명 자율 회의
+- ✅ **Phase 2**: 풀팀 7명 (PM/SEO/개발/마케팅/디자인/분석가/QA) + 프롬프트 강화
 - ⏳ **Phase 3**: 슬랙 UI (채널/DM/스레드/멘션)
 - ⏳ **Phase 4**: 도구 통합 (Canva MCP / scorebase repo / KeywordTool)
 - ⏳ **Phase 5**: 페르소나별 장기 기억 (벡터 DB)

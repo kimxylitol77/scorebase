@@ -18,6 +18,10 @@ const AVATAR: Record<string, string> = {
   pm: '👔',
   seo: '🔍',
   dev: '💻',
+  marketing: '📢',
+  designer: '🎨',
+  analyst: '📊',
+  qa: '🛡️',
 }
 
 export default function Home() {
@@ -65,7 +69,7 @@ export default function Home() {
       <div className="max-w-3xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-2">🏢 AI 회사 회의방</h1>
         <p className="text-sm text-slate-500 mb-6">
-          PM · SEO · 개발자 3명이 자율 회의합니다.
+          PM · SEO · 개발자 · 마케터 · 디자이너 · 분석가 · QA 7명이 자율 회의합니다.
         </p>
 
         <div className="flex gap-2 mb-6 sticky top-2 z-10">

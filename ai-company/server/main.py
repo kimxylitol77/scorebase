@@ -74,7 +74,8 @@ def load_agents() -> tuple[list[AssistantAgent], dict[str, dict[str, str]]]:
 def make_team() -> tuple[SelectorGroupChat, dict[str, dict[str, str]]]:
     """매 회의마다 새 team 인스턴스 생성 (state 격리)."""
     agents, meta = load_agents()
-    termination = TextMentionTermination("회의 종료") | MaxMessageTermination(12)
+    # 7명 팀 — 한 사이클 + α 위해 18 메시지 한도 (3명 시는 12로 충분했음)
+    termination = TextMentionTermination("회의 종료") | MaxMessageTermination(18)
     team = SelectorGroupChat(
         participants=agents,
         model_client=make_client(),
