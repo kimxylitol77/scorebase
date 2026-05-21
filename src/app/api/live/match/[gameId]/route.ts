@@ -220,6 +220,60 @@ export async function GET(
       out.homeScore = out.periodLinescore.homeScore;
       out.awayScore = out.periodLinescore.awayScore;
     }
+  } else if (league === "WNBA") {
+    // WNBA — api-sports basketball v1 의 raw 응답에서 쿼터 점수 추출.
+    // collector 가 externalId = api-sports game.id 로 저장하므로 ESPN id 와 매칭 안 됨.
+    // /games 응답 scores.{home,away}.{quarter_1..4, over_time, total} 사용.
+    const { prisma } = await import("@/lib/db");
+    const dbMatch = await prisma.match.findFirst({
+      where: { externalId: gameId, league: "WNBA" },
+      select: { raw: true, homeScore: true, awayScore: true, status: true },
+    });
+    if (dbMatch?.raw) {
+      try {
+        const raw = JSON.parse(dbMatch.raw) as {
+          scores?: {
+            home?: { quarter_1?: number | null; quarter_2?: number | null; quarter_3?: number | null; quarter_4?: number | null; over_time?: number | null; total?: number | null };
+            away?: { quarter_1?: number | null; quarter_2?: number | null; quarter_3?: number | null; quarter_4?: number | null; over_time?: number | null; total?: number | null };
+          };
+        };
+        const hs = raw?.scores?.home;
+        const as_ = raw?.scores?.away;
+        if (hs && as_) {
+          const homePeriods: (number | null)[] = [
+            hs.quarter_1 ?? null,
+            hs.quarter_2 ?? null,
+            hs.quarter_3 ?? null,
+            hs.quarter_4 ?? null,
+          ];
+          const awayPeriods: (number | null)[] = [
+            as_.quarter_1 ?? null,
+            as_.quarter_2 ?? null,
+            as_.quarter_3 ?? null,
+            as_.quarter_4 ?? null,
+          ];
+          // OT — 둘 중 하나라도 있으면 표시
+          if (hs.over_time != null || as_.over_time != null) {
+            homePeriods.push(hs.over_time ?? null);
+            awayPeriods.push(as_.over_time ?? null);
+          }
+          out.periodLinescore = {
+            homePeriods,
+            awayPeriods,
+            homeScore: hs.total ?? dbMatch.homeScore ?? 0,
+            awayScore: as_.total ?? dbMatch.awayScore ?? 0,
+          };
+          // 우리 DB 가 FINISHED 면 FINAL 로 마크 (live 폴링 결과 없어도)
+          if (!live && dbMatch.status === "FINISHED") {
+            out.status = "FINAL";
+            out.homeScore = out.periodLinescore.homeScore;
+            out.awayScore = out.periodLinescore.awayScore;
+          }
+        }
+      } catch (e) {
+        console.warn("[live/match] WNBA raw parse failed:", (e as Error).message);
+      }
+    }
   } else if (SOCCER_LEAGUES.has(league)) {
     const espnPath = ESPN_SOCCER_PATH[league];
     // EPL collector 가 football-data id 를 externalId 로 저장 → 그 id 가 ESPN 의
