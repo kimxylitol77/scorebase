@@ -63,9 +63,14 @@ export const revalidate = 0;
 const VALID = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
   "NBA", "MLB", "NHL", "KBO", "NPB",
+  // 2026-05-21 추가 — api-football 부상자 endpoint cover
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
 ] as const;
 type Lg = (typeof VALID)[number];
-const SOCCER: Lg[] = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS"];
+const SOCCER: Lg[] = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
+];
 const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL"];
 const ASIAN_BB: Lg[] = ["KBO", "NPB"];
 
@@ -213,6 +218,58 @@ const LEAGUE_META: Record<Lg, LeagueMeta> = {
       "NPB 부상자", "일본프로야구 부상자",
       "요미우리 부상자", "한신 부상자", "소프트뱅크 부상자",
       "히로시마 부상자", "야쿠르트 부상자",
+    ],
+  },
+  K_LEAGUE_1: {
+    krFull: "K리그 1",
+    krShort: "K리그1",
+    enFull: "K League 1",
+    starKeywords: [
+      "K리그 부상자", "K리그1 부상자",
+      "울산 부상자", "전북 부상자", "FC서울 부상자", "수원 삼성 부상자",
+    ],
+  },
+  K_LEAGUE_2: {
+    krFull: "K리그 2",
+    krShort: "K리그2",
+    enFull: "K League 2",
+    starKeywords: [
+      "K리그2 부상자", "K리그 2부 부상자",
+    ],
+  },
+  J1_LEAGUE: {
+    krFull: "J1리그",
+    krShort: "J1",
+    enFull: "J1 League",
+    starKeywords: [
+      "J리그 부상자", "J1 부상자",
+      "가시마 부상자", "우라와 부상자", "요코하마 마리노스 부상자",
+    ],
+  },
+  J2_LEAGUE: {
+    krFull: "J2리그",
+    krShort: "J2",
+    enFull: "J2 League",
+    starKeywords: [
+      "J2 부상자", "J리그 2부 부상자",
+    ],
+  },
+  AFC_CL: {
+    krFull: "AFC 챔피언스리그 엘리트",
+    krShort: "ACL 엘리트",
+    enFull: "AFC Champions League Elite",
+    starKeywords: [
+      "AFC 챔피언스리그 부상자", "ACL 부상자",
+      "아시아 챔스 부상자",
+    ],
+  },
+  SAUDI_PL: {
+    krFull: "사우디 프로 리그",
+    krShort: "SPL",
+    enFull: "Saudi Pro League",
+    starKeywords: [
+      "사우디 프로 리그 부상자", "호날두 부상", "벤제마 부상", "네이마르 부상",
+      "알 나스르 부상자", "알 힐랄 부상자", "알 이티하드 부상자",
     ],
   },
 };
