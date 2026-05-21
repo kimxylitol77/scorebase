@@ -71,6 +71,26 @@ def load_agents() -> tuple[list[AssistantAgent], dict[str, dict[str, str]]]:
     return agents, meta
 
 
+# 한국어 selector prompt — 다양한 페르소나 발언 유도 (default 영어는 한국어 흐름 약함)
+SELECTOR_PROMPT = """다음 발언자 1명을 선택하시오. 한국어 회의를 자연스럽게 이끌어야 한다.
+
+[참가자 역할]
+{roles}
+
+[지금까지의 대화]
+{history}
+
+[선택 규칙]
+- 회의 초반·중반: PM(김프로) 외 6명에게 골고루 기회. 같은 사람이 연속 X.
+- PM(김프로)은 다른 5명 이상이 발언한 후에만 다시 발언 (결론 정리 단계).
+- 미션과 가장 관련 깊은 전문 영역의 페르소나 우선 (예: 검색 관련 → 박세오).
+- 충돌 의견 있으면 QA(최큐에이)에게 위험 점검 기회.
+
+[참가자 id 목록] {participants}
+
+응답: 다음 발언자 id 하나만 (예: "seo" 또는 "designer"). 다른 텍스트 없이."""
+
+
 def make_team() -> tuple[SelectorGroupChat, dict[str, dict[str, str]]]:
     """매 회의마다 새 team 인스턴스 생성 (state 격리)."""
     agents, meta = load_agents()
@@ -81,6 +101,7 @@ def make_team() -> tuple[SelectorGroupChat, dict[str, dict[str, str]]]:
         model_client=make_client(),
         termination_condition=termination,
         allow_repeated_speaker=False,
+        selector_prompt=SELECTOR_PROMPT,
     )
     return team, meta
 
