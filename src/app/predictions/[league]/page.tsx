@@ -62,6 +62,7 @@ const VALID = [
   "J1_LEAGUE",
   "J2_LEAGUE",
   "AFC_CL",
+  "WNBA", // 2026-05-21 — 미국 여자 농구 (api-sports basketball v1, league=13)
 ] as const;
 type ValidLeague = (typeof VALID)[number];
 
@@ -207,6 +208,13 @@ const LEAGUE_INFO: Record<
     gradient: "from-emerald-600 via-teal-600 to-cyan-500",
     relegationCount: 0,
     showDraw: true,
+  },
+  WNBA: {
+    name: "WNBA",
+    subtitle: "미국 여자 프로농구 — 시즌 시뮬레이션",
+    gradient: "from-amber-400 via-orange-500 to-pink-500",
+    relegationCount: 0,
+    showDraw: false,
   },
 };
 
@@ -498,6 +506,7 @@ export default async function LeaguePredictions({ params }: Props) {
           ))}
           <CategoryDot />
           <PredTab l="NBA" active={"NBA" === upper} />
+          <PredTab l="WNBA" active={"WNBA" === upper} />
           <CategoryDot />
           <PredTab l="KBO" active={"KBO" === upper} />
           <PredTab l="NPB" active={"NPB" === upper} />
@@ -985,6 +994,7 @@ const TAB_LABEL: Record<string, string> = {
   J1_LEAGUE: "J1",
   J2_LEAGUE: "J2",
   AFC_CL: "ACL 엘리트",
+  WNBA: "WNBA",
 };
 
 function PredTab({ l, active }: { l: string; active: boolean }) {

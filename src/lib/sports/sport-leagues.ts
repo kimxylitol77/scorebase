@@ -79,7 +79,7 @@ export const SPORTS: SportMeta[] = [
     code: "basketball",
     label: "농구",
     emoji: "🏀",
-    leagues: ["NBA"],
+    leagues: ["NBA", "WNBA"],
   },
   {
     code: "hockey",
@@ -198,6 +198,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   NPB: "NPB 일본프로야구",
   MLB: "메이저리그",
   NBA: "NBA",
+  WNBA: "WNBA",
   NHL: "NHL",
   LOL: "LCK",
 };

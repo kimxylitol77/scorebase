@@ -22,6 +22,7 @@ interface Props {
 const VALID = new Set<string>([
   ...SOCCER_LEAGUES,
   "NBA",
+  "WNBA",
   "NHL",
   "KBO",
   "NPB",

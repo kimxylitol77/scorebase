@@ -38,6 +38,7 @@ const LEAGUES: LeagueCard[] = [
   { code: "MLS", name: "MLS", subtitle: "북미 축구", flag: "🇺🇸", gradient: "from-red-600 via-slate-900 to-blue-700" },
   { code: "WORLD_CUP", name: "FIFA 월드컵 2026", subtitle: "미국·캐나다·멕시코", flag: "🌎", gradient: "from-amber-500 via-rose-500 to-fuchsia-600" },
   { code: "NBA", name: "NBA", subtitle: "미국 농구", flag: "🏀", gradient: "from-orange-500 via-amber-500 to-yellow-500" },
+  { code: "WNBA", name: "WNBA", subtitle: "미국 여자 농구", flag: "🏀", gradient: "from-amber-400 via-orange-500 to-pink-500" },
   { code: "MLB", name: "MLB", subtitle: "메이저리그", flag: "⚾", gradient: "from-emerald-500 via-green-600 to-teal-700" },
   { code: "NHL", name: "NHL", subtitle: "북미 아이스하키", flag: "🏒", gradient: "from-cyan-500 via-blue-600 to-indigo-700" },
 ];
