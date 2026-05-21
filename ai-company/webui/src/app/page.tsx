@@ -9,7 +9,7 @@ type AgentMsg = {
   role: string
   content: string
 }
-type DoneMsg = { type: 'done'; stop_reason: string }
+type DoneMsg = { type: 'done'; stop_reason: string; session_id?: string; saved_path?: string }
 type SessionEnd = { type: 'session_end' }
 type ErrorMsg = { type: 'error'; message: string }
 type WsMsg = AgentMsg | DoneMsg | SessionEnd | ErrorMsg
@@ -29,6 +29,8 @@ export default function Home() {
   const [messages, setMessages] = useState<AgentMsg[]>([])
   const [status, setStatus] = useState<'idle' | 'running' | 'done' | 'error'>('idle')
   const [stopReason, setStopReason] = useState('')
+  const [savedSessionId, setSavedSessionId] = useState<string | null>(null)
+  const [savedPath, setSavedPath] = useState<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const endRef = useRef<HTMLDivElement | null>(null)
 
@@ -40,6 +42,8 @@ export default function Home() {
     if (!mission.trim() || status === 'running') return
     setMessages([])
     setStopReason('')
+    setSavedSessionId(null)
+    setSavedPath(null)
     setStatus('running')
 
     const host = window.location.hostname
@@ -54,6 +58,8 @@ export default function Home() {
       } else if (msg.type === 'done') {
         setStatus('done')
         setStopReason(msg.stop_reason)
+        if (msg.session_id) setSavedSessionId(msg.session_id)
+        if (msg.saved_path) setSavedPath(msg.saved_path)
       } else if (msg.type === 'error') {
         setStatus('error')
         setStopReason(msg.message)
@@ -110,8 +116,24 @@ export default function Home() {
           <div className="mt-6 text-slate-500 text-sm">⏳ 회의 진행 중... (각 발언당 3~10초 소요)</div>
         )}
         {status === 'done' && (
-          <div className="mt-6 p-3 bg-green-50 text-green-700 text-sm rounded-lg">
-            ✅ 회의 종료 — 전원 발언 + PM 결론 완료
+          <div className="mt-6 p-3 bg-green-50 text-green-700 text-sm rounded-lg space-y-1">
+            <div>✅ 회의 종료 — 전원 발언 + PM 결론 완료</div>
+            {savedSessionId && (
+              <div className="text-xs text-green-600">
+                💾 저장됨: <code className="bg-green-100 px-1 rounded">{savedSessionId}</code>
+                {savedPath && <span className="ml-2 text-green-500/80">({savedPath})</span>}
+              </div>
+            )}
+            <div className="text-xs text-green-600 pt-1">
+              <a
+                href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8000/sessions`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-green-800"
+              >
+                📜 이전 회의 list 보기 (REST API)
+              </a>
+            </div>
           </div>
         )}
         {status === 'error' && (

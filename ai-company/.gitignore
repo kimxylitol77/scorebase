@@ -8,5 +8,8 @@ webui/node_modules/
 webui/.next/
 webui/out/
 
+# 회의 기록 (로컬 only — 큰 텍스트, 개인 데이터)
+data/sessions/
+
 *.log
 .DS_Store

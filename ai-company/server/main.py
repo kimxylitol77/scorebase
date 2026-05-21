@@ -17,11 +17,14 @@ ai-company FastAPI 서버 — AutoGen GroupChat 멀티 에이전트 회의 (Phas
 """
 
 import asyncio
+import json
+import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from autogen_agentchat.agents import AssistantAgent
@@ -31,6 +34,21 @@ from autogen_ext.models.openai import OpenAIChatCompletionClient
 from autogen_core.models import ModelInfo
 
 AGENTS_DIR = Path(__file__).parent.parent / "agents"
+SESSIONS_DIR = Path(__file__).parent.parent / "data" / "sessions"
+SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def save_session(session: dict[str, Any]) -> Path:
+    """회의 1건을 JSON 파일로 저장. data/sessions/YYYY-MM-DD/{id}.json"""
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    date_dir = SESSIONS_DIR / date_str
+    date_dir.mkdir(parents=True, exist_ok=True)
+    file_path = date_dir / f"{session['id']}.json"
+    file_path.write_text(
+        json.dumps(session, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return file_path
 
 
 def make_client(model: str = "qwen2.5:14b") -> OpenAIChatCompletionClient:
@@ -112,6 +130,51 @@ async def list_agents():
     return meta
 
 
+@app.get("/sessions")
+async def list_sessions(limit: int = 50):
+    """모든 회의 list (최신순). 파일 시스템 기반 — JSON 파일을 mtime 으로 정렬."""
+    files: list[Path] = []
+    if SESSIONS_DIR.exists():
+        for date_dir in sorted(SESSIONS_DIR.iterdir(), reverse=True):
+            if not date_dir.is_dir():
+                continue
+            files.extend(sorted(date_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True))
+            if len(files) >= limit:
+                break
+    files = files[:limit]
+    sessions = []
+    for f in files:
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            sessions.append(
+                {
+                    "id": data.get("id"),
+                    "started_at": data.get("started_at"),
+                    "ended_at": data.get("ended_at"),
+                    "mission": data.get("mission", "")[:120],
+                    "message_count": len(data.get("messages", [])),
+                    "stop_reason": data.get("stop_reason"),
+                }
+            )
+        except Exception:
+            continue
+    return {"sessions": sessions, "total": len(sessions)}
+
+
+@app.get("/sessions/{session_id}")
+async def get_session(session_id: str):
+    """단일 회의 전체 (메시지 포함)."""
+    # 모든 date dir 에서 검색 (파일명 = session_id.json)
+    if SESSIONS_DIR.exists():
+        for date_dir in sorted(SESSIONS_DIR.iterdir(), reverse=True):
+            if not date_dir.is_dir():
+                continue
+            candidate = date_dir / f"{session_id}.json"
+            if candidate.exists():
+                return json.loads(candidate.read_text(encoding="utf-8"))
+    raise HTTPException(status_code=404, detail=f"session {session_id} not found")
+
+
 @app.websocket("/ws")
 async def ws_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -125,9 +188,19 @@ async def ws_endpoint(websocket: WebSocket):
             team, meta = make_team()
             task = (
                 f"미션: {mission}\n\n"
-                "각자 의견을 짧게 내고, PM이 종합해서 결론을 정리하면 "
-                "마지막 메시지에 '회의 종료'라고 명시하시오."
+                "각자 의견을 짧게 내고, PM이 종합해서 결론을 정리하시오."
             )
+
+            # ── 세션 시작 — 회의 기록 buffer
+            session_id = uuid.uuid4().hex[:10]
+            session: dict[str, Any] = {
+                "id": session_id,
+                "started_at": datetime.now().isoformat(),
+                "mission": mission,
+                "messages": [],
+                "ended_at": None,
+                "stop_reason": None,
+            }
 
             async for event in team.run_stream(task=task):
                 # ── DEBUG: 모든 event type 로그 (회의 본문 안 뜨는 원인 추적)
@@ -144,7 +217,7 @@ async def ws_endpoint(websocket: WebSocket):
 
                 # ── TaskResult (최종) — messages list + stop_reason 가짐
                 if hasattr(event, "stop_reason") and not hasattr(event, "source"):
-                    # 혹시 messages list 안에 우리가 놓친 게 있으면 emit
+                    # 혹시 messages list 안에 우리가 놓친 게 있으면 emit + buffer 에 저장
                     msgs = getattr(event, "messages", None)
                     if msgs:
                         for m in msgs:
@@ -152,17 +225,25 @@ async def ws_endpoint(websocket: WebSocket):
                             m_content = getattr(m, "content", None)
                             if m_src and m_content and m_src != "user":
                                 meta_m = meta.get(m_src, {"display_name": str(m_src), "role": ""})
-                                print(f"[event/fallback] {m_src}: {str(m_content)[:60]}", flush=True)
-                                await websocket.send_json({
+                                msg_obj = {
                                     "type": "agent_message",
                                     "id": str(m_src),
                                     "display_name": meta_m["display_name"],
                                     "role": meta_m["role"],
                                     "content": str(m_content),
-                                })
+                                }
+                                session["messages"].append({**msg_obj, "at": datetime.now().isoformat()})
+                                print(f"[event/fallback] {m_src}: {str(m_content)[:60]}", flush=True)
+                                await websocket.send_json(msg_obj)
+                    stop_reason = str(getattr(event, "stop_reason", "")) or "max_messages"
+                    session["ended_at"] = datetime.now().isoformat()
+                    session["stop_reason"] = stop_reason
+                    saved_path = save_session(session)
                     payload = {
                         "type": "done",
-                        "stop_reason": str(getattr(event, "stop_reason", "")) or "max_messages",
+                        "stop_reason": stop_reason,
+                        "session_id": session_id,
+                        "saved_path": str(saved_path.relative_to(SESSIONS_DIR.parent.parent)),
                     }
                 # ── 메시지 이벤트 — source + content 가짐
                 elif src_attr is not None and content_attr is not None:
@@ -170,13 +251,15 @@ async def ws_endpoint(websocket: WebSocket):
                         continue
                     src = str(src_attr)
                     m = meta.get(src, {"display_name": src, "role": ""})
-                    payload = {
+                    msg_obj = {
                         "type": "agent_message",
                         "id": src,
                         "display_name": m["display_name"],
                         "role": m["role"],
                         "content": str(content_attr),
                     }
+                    session["messages"].append({**msg_obj, "at": datetime.now().isoformat()})
+                    payload = msg_obj
 
                 if payload is not None:
                     await websocket.send_json(payload)
