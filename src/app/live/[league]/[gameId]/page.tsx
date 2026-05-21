@@ -37,9 +37,10 @@ function parseGoalie(json: string | null): GoalieInfo | null {
 
 export const dynamic = "force-dynamic";
 
-// 지원 리그 — 모든 축구 + NBA/NHL (MLB/KBO/NPB/LOL 은 자체 라우트)
+// 지원 리그 — 모든 축구 + NBA/WNBA/NHL (MLB/KBO/NPB/LOL 은 자체 라우트)
 const SUPPORTED = new Set([
   "NBA",
+  "WNBA", // 2026-05-21 추가 — DB 데이터 기반 정적 표시. 라이브 폴링은 follow-up (api-sports↔ESPN id 매핑 필요)
   "NHL",
   ...(SPORTS.find((s) => s.code === "soccer")?.leagues ?? []),
 ]);

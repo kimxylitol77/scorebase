@@ -235,7 +235,7 @@ export default function SportLiveDetail({
 
   // 종목별 LIVE 카드 클래스 (border glow 색)
   const liveCardClass =
-    league === "NBA"
+    league === "NBA" || league === "WNBA"
       ? "basketball-live-card"
       : league === "NHL"
         ? "hockey-live-card"
@@ -399,7 +399,7 @@ export default function SportLiveDetail({
       {/* 데이터 없음 안내 */}
       {loaded && !live?.periodLinescore && !live?.summary && (!live?.soccerGoals || live.soccerGoals.length === 0) && (
         <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-3 sm:p-4 text-xs text-neutral-500">
-          ⓘ {league === "NBA" || league === "NHL"
+          ⓘ {league === "NBA" || league === "WNBA" || league === "NHL"
             ? "쿼터/피리어드 별 점수 데이터를 가져오지 못했습니다."
             : "골 이벤트 데이터가 아직 없거나 외부 데이터 소스에서 미제공 상태입니다."}
         </div>
