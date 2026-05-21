@@ -311,6 +311,23 @@ const RAW: Record<string, string> = {
   "Utah Jazz": "유타 재즈",
   "Washington Wizards": "워싱턴 위저즈",
 
+  // ─── WNBA (2026 season — 15팀, "W" suffix 는 api-sports 응답 형식) ───
+  "Atlanta Dream W": "애틀랜타 드림",
+  "Chicago Sky W": "시카고 스카이",
+  "Connecticut Sun W": "코네티컷 선",
+  "Dallas Wings W": "댈러스 윙스",
+  "Golden State Valkyries W": "골든스테이트 발키리스",
+  "Indiana Fever W": "인디애나 피버",
+  "Las Vegas Aces W": "라스베이거스 에이시스",
+  "Los Angeles Sparks W": "LA 스파크스",
+  "Minnesota Lynx W": "미네소타 링스",
+  "New York Liberty W": "뉴욕 리버티",
+  "Phoenix Mercury W": "피닉스 머큐리",
+  "Portland Fire W": "포틀랜드 파이어",
+  "Seattle Storm W": "시애틀 스톰",
+  "Toronto Tempo W": "토론토 템포",
+  "Washington Mystics W": "워싱턴 미스틱스",
+
   // ─── NHL ───
   "Anaheim Ducks": "애너하임 덕스",
   "Boston Bruins": "보스턴 브루인스",
