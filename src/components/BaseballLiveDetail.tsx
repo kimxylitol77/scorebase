@@ -10,6 +10,9 @@ import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
 import BaseballWpaChart from "./live/BaseballWpaChart";
 import BaseballDiamond from "./scores/baseball/BaseballDiamond";
+import LiveCommentaryBox, {
+  type LiveCommentaryData,
+} from "./live/LiveCommentaryBox";
 
 interface LiveOdds {
   h2h: { home: number; draw: number | null; away: number } | null;
@@ -77,6 +80,8 @@ interface Props {
   /** DB Team.id — 팀명/로고 클릭 시 /teams/{id} 이동 */
   homeTeamId?: number;
   awayTeamId?: number;
+  /** Ollama (Mac mini) 생성 라이브 코멘터리 — 데이터 없으면 미표시 */
+  liveCommentary?: LiveCommentaryData | null;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -134,6 +139,7 @@ export default function BaseballLiveDetail({
   awayLogo,
   homeTeamId,
   awayTeamId,
+  liveCommentary = null,
 }: Props) {
   const [live, setLive] = useState<BaseballLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -450,6 +456,9 @@ export default function BaseballLiveDetail({
             bases={live.liveContext.bases}
             outs={live.liveContext.outs}
           />
+          {liveCommentary && (
+            <LiveCommentaryBox {...liveCommentary} variant="inline" />
+          )}
           {(live.liveContext.good != null || live.liveContext.bad != null) && (
             <div className="flex items-center gap-3 text-xs text-neutral-300">
               {/* TheSports 공식 문서: good=Strikes, bad=Non-Strikes(Balls) */}

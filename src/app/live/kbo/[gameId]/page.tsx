@@ -45,7 +45,7 @@ async function findKboMatch(gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league: "KBO" },
-      include: { homeTeam: true, awayTeam: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
     });
   } catch {
     return null;
@@ -132,6 +132,15 @@ export default async function KboLivePage({ params }: Props) {
         awayStarter={parseStarter(match.awayStarter)}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
+        liveCommentary={
+          match.liveCommentary
+            ? {
+                matchSummary: match.liveCommentary.matchSummary,
+                summaryAt: match.liveCommentary.summaryAt,
+                scoreSnapshot: match.liveCommentary.scoreSnapshot,
+              }
+            : null
+        }
       />
       <BaseballPreMatchInsight
         league="KBO"
