@@ -360,6 +360,17 @@ export default async function ScoresPage({ searchParams }: Props) {
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
 
+  // "오늘" 디폴트 (날짜 미선택) 일 때만 어제 + 오늘 + 내일 한 번에 표시 (7m 스타일).
+  // KST 자정 직후에도 시차 매치 (북미 야구·축구) 누락 안 됨.
+  // 사용자가 명시적 날짜 클릭하면 그날만.
+  const isDefaultToday = !sp.date;
+  const rangeStart = isDefaultToday
+    ? new Date(day.getTime() - 24 * 3600 * 1000)
+    : day;
+  const rangeEnd = isDefaultToday
+    ? new Date(day.getTime() + 48 * 3600 * 1000)
+    : dayEnd;
+
   // 야구 카테고리 (또는 전체) 일 때만 종료 매치용 innings 추가 fetch.
   const needsBaseballDetails =
     sport === "baseball" ||
@@ -387,7 +398,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     prisma.match.findMany({
       where: {
         league: { in: leagues },
-        startTime: { gte: day, lt: dayEnd },
+        startTime: { gte: rangeStart, lt: rangeEnd },
         status: { not: "POSTPONED" },
         // TBD placeholder 매치 영구 제외 (NBA/NHL 컨퍼런스 파이널 차기 라운드 미정 등).
         // status=LIVE 로 잘못 cron update 되더라도 페이지에선 항상 hide.
