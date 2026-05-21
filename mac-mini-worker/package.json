@@ -1,0 +1,13 @@
+{
+  "name": "scorebase-mac-mini-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mac mini Ollama 워커 — scorebase 라이브 코멘터리 생성",
+  "scripts": {
+    "narrator": "node match-narrator.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0"
+  }
+}
