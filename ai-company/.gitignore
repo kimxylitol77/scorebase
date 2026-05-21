@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+
+webui/node_modules/
+webui/.next/
+webui/out/
+
+*.log
+.DS_Store
