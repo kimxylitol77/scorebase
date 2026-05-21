@@ -24,6 +24,12 @@ interface Body {
   title: string;
   message: string;
   metadata?: Record<string, unknown>;
+  /** 사용자 친화 추가 필드 (옵션) — 사용자가 알아듣기 쉬운 알림 */
+  what?: string;          // 📍 무엇이 문제인가
+  when?: string;          // ⏰ 언제부터
+  impact?: string;        // 💥 사용자/사이트 영향
+  cause?: string;         // 🔍 원인
+  action?: string;        // ➡️ 다음 확인할 곳
 }
 
 const SEV_EMOJI: Record<string, string> = {
@@ -31,6 +37,13 @@ const SEV_EMOJI: Record<string, string> = {
   WARN: "⚠️",
   HIGH: "🚨",
   CRIT: "🔥",
+};
+
+const SEV_LABEL_KO: Record<string, string> = {
+  INFO: "안내",
+  WARN: "주의",
+  HIGH: "긴급",
+  CRIT: "치명",
 };
 
 function unauthorized(msg = "Unauthorized") {
@@ -57,20 +70,41 @@ export async function POST(req: NextRequest) {
   }
 
   const emoji = SEV_EMOJI[body.severity] ?? "ℹ️";
-  const lines = [
-    `${emoji} <b>${body.title}</b>`,
-    ``,
-    body.message,
-    ``,
-    `<code>[${body.severity}] ${body.source}</code>`,
-  ];
-  if (body.metadata && Object.keys(body.metadata).length > 0) {
-    const items = Object.entries(body.metadata)
-      .slice(0, 5)
-      .map(([k, v]) => `  ${k}: <code>${String(v).slice(0, 80)}</code>`)
-      .join("\n");
-    lines.push("", items);
+  const sevKo = SEV_LABEL_KO[body.severity] ?? body.severity;
+
+  // ── 사용자 친화 메시지 빌더 ──
+  // 가능하면 what/when/impact/cause/action 5요소로 구성
+  // 폴백: 기존 message 그대로
+  const lines: string[] = [`${emoji} <b>${body.title}</b>`];
+
+  // what/when/impact/cause/action 중 하나라도 있으면 구조화
+  const hasStructured =
+    body.what || body.when || body.impact || body.cause || body.action;
+
+  if (hasStructured) {
+    lines.push("");
+    if (body.what) lines.push(`📍 <b>무엇</b>: ${body.what}`);
+    if (body.when) lines.push(`⏰ <b>언제</b>: ${body.when}`);
+    if (body.impact) lines.push(`💥 <b>영향</b>: ${body.impact}`);
+    if (body.cause) lines.push(`🔍 <b>원인</b>: ${body.cause}`);
+    if (body.action) {
+      lines.push("");
+      lines.push(`➡️ <b>확인</b>: ${body.action}`);
+    }
+    // 부가 설명 message 가 있으면 맨 끝에
+    if (body.message && body.message !== body.title) {
+      lines.push("");
+      lines.push(`<i>${body.message}</i>`);
+    }
+  } else {
+    // 기존 호환 — message 그대로
+    lines.push("");
+    lines.push(body.message);
   }
+
+  // 출처 (꼬리표) — 디버그 용도, 작게
+  lines.push("");
+  lines.push(`<code>[${sevKo}] ${body.source}</code>`);
 
   await sendTelegram(lines.join("\n"));
   return NextResponse.json({ ok: true });

@@ -30,12 +30,13 @@ if (!TOKEN) {
 const headers = { Authorization: `Bearer ${TOKEN}` };
 
 // 체크할 endpoint list — 200 OK + 응답시간 측정
+// koName: 사용자 친화 한국어 이름. impact: 다운 시 사용자에게 미치는 영향.
 const ENDPOINTS = [
-  { name: "scores",       path: "/scores",        expect: 200 },
-  { name: "predictions",  path: "/predictions",   expect: 200 },
-  { name: "live-api",     path: "/api/live/scores", expect: 200 },
-  { name: "admin-health", path: "/admin/health",  expect: 200 },
-  { name: "home",         path: "/",              expect: 200 },
+  { name: "scores",       path: "/scores",          expect: 200, koName: "스코어 페이지",     impact: "방문자가 라이브 스코어 못 봄" },
+  { name: "predictions",  path: "/predictions",     expect: 200, koName: "예측 페이지",       impact: "방문자가 시즌 예측 못 봄" },
+  { name: "live-api",     path: "/api/live/scores", expect: 200, koName: "라이브 스코어 API", impact: "스코어 페이지 자동 갱신 멈춤" },
+  { name: "admin-health", path: "/admin/health",    expect: 200, koName: "헬스체크 대시보드", impact: "운영자가 사이트 상태 점검 불가" },
+  { name: "home",         path: "/",                expect: 200, koName: "메인 페이지",       impact: "방문자가 사이트 입장 불가" },
 ];
 
 // 연속 실패 카운트 (endpoint name → count)
@@ -58,16 +59,28 @@ async function sendHeartbeat() {
   }
 }
 
-async function notify(severity, title, message, metadata) {
+async function notify(payload) {
+  // payload = { severity, title, message?, what?, when?, impact?, cause?, action?, metadata? }
   try {
     await axios.post(
       `${SITE}/api/internal/notify`,
-      { source: WORKER_NAME, severity, title, message, metadata },
+      { source: WORKER_NAME, ...payload },
       { headers, timeout: 10_000 },
     );
   } catch (e) {
     console.error(`✗ notify fail: ${e.message}`);
   }
+}
+
+function fmtCause(r) {
+  if (r.error) {
+    if (r.error.includes("timeout") || r.error.includes("ECONN")) return "응답 없음 (30초 초과)";
+    if (r.error.includes("ENOTFOUND")) return "DNS 조회 실패";
+    return r.error.slice(0, 100);
+  }
+  if (r.status >= 500) return `서버 오류 (${r.status})`;
+  if (r.status >= 400) return `요청 오류 (${r.status})`;
+  return `예상 status 아님 (${r.status})`;
 }
 
 async function checkEndpoint(ep) {
@@ -101,40 +114,57 @@ async function poll() {
       const next = prev + 1;
       failCount.set(ep.name, next);
       console.log(`  ✗ ${label} status=${r.status} dur=${r.dur}ms err=${r.error ?? "-"} fail=${next}/2`);
+
+      const cause = fmtCause(r);
+      const when = next >= 2
+        ? `약 ${next * 5}분 전부터 (${next}회 연속)`
+        : "방금 (1회)";
+
       if (next >= FAIL_THRESHOLD) {
-        await notify(
-          "HIGH",
-          `${ep.name} ${next}회 연속 실패`,
-          `${ep.path} 응답 비정상.`,
-          { status: r.status, dur_ms: r.dur, error: r.error ?? "—" },
-        );
+        await notify({
+          severity: "HIGH",
+          title: `${ep.koName} 응답 없음`,
+          what: `${ep.koName} (${ep.path})`,
+          when,
+          impact: ep.impact,
+          cause,
+          action: "scorebase.kr/admin/health 또는 Vercel logs 점검",
+        });
       } else {
-        await notify(
-          "WARN",
-          `${ep.name} 1회 실패`,
-          `${ep.path} 일시 오류 감지.`,
-          { status: r.status, dur_ms: r.dur, error: r.error ?? "—" },
-        );
+        await notify({
+          severity: "WARN",
+          title: `${ep.koName} 일시 오류`,
+          what: `${ep.koName} (${ep.path})`,
+          when,
+          impact: "방문자 일부 영향 가능",
+          cause,
+          action: "5분 후 다시 확인 — 계속되면 점검",
+        });
       }
     } else {
       // 정상 — 카운트 리셋
       if (failCount.get(ep.name)) {
-        await notify(
-          "INFO",
-          `${ep.name} 복구됨`,
-          `${ep.path} 정상 응답 복귀.`,
-          { dur_ms: r.dur },
-        );
+        await notify({
+          severity: "INFO",
+          title: `${ep.koName} 복구됨`,
+          what: `${ep.koName} (${ep.path})`,
+          when: "방금",
+          impact: "정상 응답 복귀",
+          cause: `응답 ${r.dur}ms`,
+        });
       }
       failCount.set(ep.name, 0);
       console.log(`  ✓ ${label} ${r.dur}ms${isSlow ? " ⏳SLOW" : ""}`);
       if (isSlow) {
-        await notify(
-          "WARN",
-          `${ep.name} 느림`,
-          `${ep.path} ${r.dur}ms (임계 ${SLOW_THRESHOLD_MS}ms)`,
-          { dur_ms: r.dur },
-        );
+        await notify({
+          severity: "WARN",
+          title: `${ep.koName} 느림`,
+          what: `${ep.koName} (${ep.path})`,
+          when: "방금",
+          impact: "방문자 체감 속도 ↓ (10초+ 대기)",
+          cause: `응답 ${r.dur}ms (정상 1~3초)`,
+          action: "DB pool 또는 Vercel function 부하 확인",
+        });
       }
     }
   }
