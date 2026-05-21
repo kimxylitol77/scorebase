@@ -147,6 +147,7 @@ model Match {
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]
   theSportsCache TheSportsMatchCache?
+  liveCommentary LiveCommentary?
 
   @@unique([league, externalId])
   @@index([league, startTime])
@@ -273,6 +274,31 @@ model TheSportsStandingsCache {
   payload     Json                      // {promotions, tables} — TSFootballSeasonStandingsResponse.results
   fetchedAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+/// Ollama (Mac mini, Qwen 2.5 14B) 가 생성한 라이브 매치 코멘터리 캐시.
+/// 후보 1 — eventComments: 이벤트별 1줄 자연어 (JSON 배열).
+/// 후보 2 — matchSummary: 매치 진행 상황 박스 (3-4문장, ~5분 주기 갱신).
+/// 매치당 1 row, Mac mini worker 가 POST /api/internal/live-commentary 로 upsert.
+model LiveCommentary {
+  matchId       Int      @id
+  league        String                              // index — 리그별 dashboard 필터
+  /// 이벤트별 1줄 (JSON array): [{key, comment, at}, ...]
+  /// key = 이벤트 고유 해시 (예: "goal-78-rashford-home")
+  eventComments Json?
+  /// 매치 진행 상황 박스 (3-4문장)
+  matchSummary  String?
+  /// 매치 요약 마지막 생성 시각 — stale 판단용
+  summaryAt     DateTime?
+  /// 마지막 요약 생성 시점 컨텍스트 ("2:1 78'" 등) — UI 표시 + stale 판단용
+  scoreSnapshot String?
+  /// 생성 모델 (변경 시 추적). ex) "ollama-qwen2.5-14b" / "claude-sonnet-4-5"
+  model         String   @default("ollama-qwen2.5-14b")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  match         Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([league, updatedAt])
 }
 
 /// 데일리 health-check 봇 결과. 매일 06:30 KST cron 이 약 15개 체크 함수 실행 → row insert.
