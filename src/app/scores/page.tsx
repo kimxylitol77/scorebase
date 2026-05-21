@@ -360,16 +360,11 @@ export default async function ScoresPage({ searchParams }: Props) {
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
 
-  // "오늘" 디폴트 (날짜 미선택) 일 때만 어제 + 오늘 + 내일 한 번에 표시 (7m 스타일).
-  // KST 자정 직후에도 시차 매치 (북미 야구·축구) 누락 안 됨.
-  // 사용자가 명시적 날짜 클릭하면 그날만.
-  const isDefaultToday = !sp.date;
-  const rangeStart = isDefaultToday
-    ? new Date(day.getTime() - 24 * 3600 * 1000)
-    : day;
-  const rangeEnd = isDefaultToday
-    ? new Date(day.getTime() + 48 * 3600 * 1000)
-    : dayEnd;
+  // 7m 스타일 — 선택 일자 기준 어제 + 그날 + 내일 한 번에 표시.
+  // KST 자정 boundary 시차 매치 (북미 야구/축구) 누락 회피.
+  // DateSlider 로 일자 이동해도 동일 ±1일 윈도우 (자연스러운 navigation).
+  const rangeStart = new Date(day.getTime() - 24 * 3600 * 1000);
+  const rangeEnd = new Date(day.getTime() + 48 * 3600 * 1000);
 
   // 야구 카테고리 (또는 전체) 일 때만 종료 매치용 innings 추가 fetch.
   const needsBaseballDetails =
