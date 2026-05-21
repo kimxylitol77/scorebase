@@ -56,7 +56,7 @@ def make_client(model: str = "qwen2.5:14b") -> OpenAIChatCompletionClient:
     return OpenAIChatCompletionClient(
         model=model,
         base_url="http://localhost:11434/v1",
-        api_key="ollama",  # Ollama 는 키 무시, 더미값 필수
+        api_key="ollama",
         model_info=ModelInfo(
             vision=False,
             function_calling=True,
@@ -187,8 +187,13 @@ async def ws_endpoint(websocket: WebSocket):
             mission = data.get("mission", "")
             team, meta = make_team()
             task = (
-                f"미션: {mission}\n\n"
-                "각자 의견을 짧게 내고, PM이 종합해서 결론을 정리하시오."
+                "⚠️ 회의 규칙 (엄수):\n"
+                "1. **한국어로만** 응답. 중국어/영어/일본어 단어 섞지 마라.\n"
+                "2. **너 자신의 발언 1개만** 작성. 절대 다른 페르소나 답변을 만들지 마라.\n"
+                "3. 답변은 2-3문장. 짧게.\n"
+                "4. 미션과 무관한 주제 (차량/번호판/관련 없는 기능) 절대 언급 X.\n"
+                "5. 자기 페르소나의 전문 영역에서만 발언.\n\n"
+                f"미션: {mission}"
             )
 
             # ── 세션 시작 — 회의 기록 buffer
