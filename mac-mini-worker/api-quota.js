@@ -9,8 +9,9 @@
 // 같은 키 (API_FOOTBALL_KEY) 가 4개 host 공통. host 별 한도 별도.
 // 80% 도달 → WARN, 95% → HIGH.
 
-require("dotenv").config({ path: require("path").resolve(__dirname, "../.env.local") });
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
 const os = require("os");

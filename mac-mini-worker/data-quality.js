@@ -7,8 +7,11 @@
 //
 // 텔레그램 알림 — 사용자 친화 5요소 (무엇/언제/영향/원인/확인).
 
-require("dotenv").config({ path: require("path").resolve(__dirname, "../.env.local") });
-require("dotenv").config(); // mac-mini-worker/.env 도 (override)
+const path = require("path");
+// 1. mac-mini-worker/.env 우선 (개별 봇 설정)
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+// 2. ../.env.local fallback (override X — 이미 있으면 유지)
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
 const os = require("os");

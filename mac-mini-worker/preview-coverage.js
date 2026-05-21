@@ -11,8 +11,9 @@
 //   - 누락 5건 이상 → HIGH
 //   - 야구 투수 미확정 카운트는 참고로 표시 (정상 — 알림 안 함)
 
-require("dotenv").config({ path: require("path").resolve(__dirname, "../.env.local") });
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
 const os = require("os");

@@ -14,8 +14,9 @@
 //   - liveNullSince[matchId] = 처음 null 발견 timestamp
 //   - lastScore[matchId] = { score: "1-0", at: timestamp }
 
-require("dotenv").config({ path: require("path").resolve(__dirname, "../.env.local") });
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
 const os = require("os");

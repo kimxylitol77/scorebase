@@ -22,7 +22,12 @@
 //   OLLAMA_MODEL        — 기본 qwen2.5:14b
 //   LEAGUES             — 기본 KBO (콤마구분 가능: "KBO,NPB,MLB")
 
-require("dotenv").config();
+const path = require("path");
+// 1. mac-mini-worker/.env 우선 (개별 봇 설정)
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+// 2. ../.env.local fallback (scorebase 키 자동 활용)
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
+
 const axios = require("axios");
 const os = require("os");
 

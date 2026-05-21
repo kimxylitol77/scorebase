@@ -11,7 +11,10 @@
 //   cd ~/dev/scorebase/mac-mini-worker
 //   node endpoint-monitor.js
 
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
+
 const axios = require("axios");
 const os = require("os");
 
