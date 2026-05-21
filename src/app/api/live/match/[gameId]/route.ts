@@ -221,13 +221,22 @@ export async function GET(
       out.awayScore = out.periodLinescore.awayScore;
     }
   } else if (league === "WNBA") {
-    // WNBA — api-sports basketball v1 의 raw 응답에서 쿼터 점수 추출.
+    // WNBA — api-sports basketball v1 의 raw 응답에서 쿼터 점수 + stats 추출.
     // collector 가 externalId = api-sports game.id 로 저장하므로 ESPN id 와 매칭 안 됨.
     // /games 응답 scores.{home,away}.{quarter_1..4, over_time, total} 사용.
+    // /games/statistics/teams + /players 로 박스스코어 + 리더 추가 (live + finished).
     const { prisma } = await import("@/lib/db");
+    const { fetchWnbaGameStats } = await import("@/lib/sports/api-wnba-stats");
     const dbMatch = await prisma.match.findFirst({
       where: { externalId: gameId, league: "WNBA" },
-      select: { raw: true, homeScore: true, awayScore: true, status: true },
+      select: {
+        raw: true,
+        homeScore: true,
+        awayScore: true,
+        status: true,
+        homeTeam: { select: { externalId: true } },
+        awayTeam: { select: { externalId: true } },
+      },
     });
     if (dbMatch?.raw) {
       try {
@@ -272,6 +281,23 @@ export async function GET(
         }
       } catch (e) {
         console.warn("[live/match] WNBA raw parse failed:", (e as Error).message);
+      }
+    }
+
+    // 박스스코어 + 리더 — api-sports basketball v1 /games/statistics 호출
+    if (dbMatch?.homeTeam.externalId && dbMatch?.awayTeam.externalId) {
+      const stats = await fetchWnbaGameStats(
+        gameId,
+        dbMatch.homeTeam.externalId,
+        dbMatch.awayTeam.externalId,
+      );
+      if (stats) {
+        out.summary = {
+          homeStats: stats.homeStats,
+          awayStats: stats.awayStats,
+          homeLeaders: stats.homeLeaders,
+          awayLeaders: stats.awayLeaders,
+        };
       }
     }
   } else if (SOCCER_LEAGUES.has(league)) {
