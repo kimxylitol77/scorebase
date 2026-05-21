@@ -35,6 +35,9 @@ export interface SoccerLiveRowProps {
   /** 최근 1분 내 골 측 — 점수 셀 노란 ring + pulse */
   recentGoalSide?: "home" | "away" | null;
   href?: string | null;
+  /** 리그 순위 (TheSportsStandingsCache 기반) — 팀명 옆 [14] 표시. null 이면 미표시 */
+  homePosition?: number | null;
+  awayPosition?: number | null;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -74,6 +77,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     recapSlug,
     recentGoalSide,
     href,
+    homePosition,
+    awayPosition,
   } = props;
 
   const badge = getLeagueBadge(league);
@@ -124,10 +129,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       {/* 3. 상태 */}
       <div>{statusNode}</div>
 
-      {/* 4. 홈팀 (우측 정렬 + 로고 옆에) */}
+      {/* 4. 홈팀 (우측 정렬 + 로고 옆에) — [순위] 는 팀명 오른쪽 작은 번호 */}
       <div className="flex items-center justify-end gap-1.5 min-w-0">
         <span className="truncate text-right text-[13px] text-neutral-800 dark:text-neutral-200">
           {home.name}
+          {homePosition != null && (
+            <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+              [{homePosition}]
+            </span>
+          )}
         </span>
         <TeamLogo url={home.logo} name={home.name} />
       </div>
@@ -176,11 +186,16 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         )}
       </div>
 
-      {/* 6. 원정팀 (좌측 정렬 + 로고 옆에) */}
+      {/* 6. 원정팀 (좌측 정렬 + 로고 옆에) — [순위] 는 팀명 오른쪽 */}
       <div className="flex items-center gap-1.5 min-w-0">
         <TeamLogo url={away.logo} name={away.name} />
         <span className="truncate text-[13px] text-neutral-800 dark:text-neutral-200">
           {away.name}
+          {awayPosition != null && (
+            <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+              [{awayPosition}]
+            </span>
+          )}
         </span>
       </div>
 

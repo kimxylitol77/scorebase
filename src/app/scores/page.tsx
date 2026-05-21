@@ -15,6 +15,7 @@ import {
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { buildSportsEventLocation } from "@/lib/seo/sports-event-location";
@@ -533,6 +534,18 @@ export default async function ScoresPage({ searchParams }: Props) {
     return undefined;
   }
 
+  // TheSports standings — 카드 팀명 옆 [순위] 표시용. 축구 리그만 prefetch.
+  const soccerLeaguesInPage = Array.from(
+    new Set(
+      matches
+        .filter((m) => (SPORTS.find((s) => s.code === "soccer")?.leagues ?? []).includes(m.league))
+        .map((m) => m.league),
+    ),
+  );
+  const standingsByLeague = soccerLeaguesInPage.length > 0
+    ? await getStandingsForLeagues(soccerLeaguesInPage)
+    : new Map<string, Map<number, number>>();
+
   // 매치 → 정규화 (sport 분기 + 라이브 보강)
   const normalized = matches.map((m) => {
     const live = matchLive(m);
@@ -569,12 +582,16 @@ export default async function ScoresPage({ searchParams }: Props) {
         abbr: m.homeTeam.shortName,
         logo: m.homeTeam.logoUrl,
         score: homeScore,
+        teamId: m.homeTeamId,
+        position: standingsByLeague.get(m.league)?.get(m.homeTeamId) ?? null,
       },
       away: {
         name: toKoreanTeamName(m.awayTeam.name, m.league),
         abbr: m.awayTeam.shortName,
         logo: m.awayTeam.logoUrl,
         score: awayScore,
+        teamId: m.awayTeamId,
+        position: standingsByLeague.get(m.league)?.get(m.awayTeamId) ?? null,
       },
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
@@ -1064,6 +1081,8 @@ function SoccerRowLayout({
         recapSlug={m.recap ?? null}
         recentGoalSide={m.recentGoalSide ?? null}
         href={m.href}
+        homePosition={m.home.position ?? null}
+        awayPosition={m.away.position ?? null}
       />
     );
   };
@@ -1182,8 +1201,8 @@ type NormalizedMatch = {
   sport: string;
   league: string;
   status: "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED";
-  home: { name: string; abbr?: string | null; logo?: string | null; score: number | null };
-  away: { name: string; abbr?: string | null; logo?: string | null; score: number | null };
+  home: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null };
   timeLabel: string;
   liveStatusLabel: string | null;
   homeStarter: string | null;
