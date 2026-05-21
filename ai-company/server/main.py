@@ -130,25 +130,52 @@ async def ws_endpoint(websocket: WebSocket):
             )
 
             async for event in team.run_stream(task=task):
+                # ── DEBUG: 모든 event type 로그 (회의 본문 안 뜨는 원인 추적)
+                event_type = type(event).__name__
+                src_attr = getattr(event, "source", None)
+                content_attr = getattr(event, "content", None)
+                print(
+                    f"[event] type={event_type} source={src_attr} "
+                    f"content_len={len(str(content_attr)) if content_attr else 0}",
+                    flush=True,
+                )
+
                 payload: dict[str, Any] | None = None
-                # 메시지 이벤트
-                if hasattr(event, "source") and hasattr(event, "content"):
-                    src = getattr(event, "source", "")
-                    if src in ("user", ""):
+
+                # ── TaskResult (최종) — messages list + stop_reason 가짐
+                if hasattr(event, "stop_reason") and not hasattr(event, "source"):
+                    # 혹시 messages list 안에 우리가 놓친 게 있으면 emit
+                    msgs = getattr(event, "messages", None)
+                    if msgs:
+                        for m in msgs:
+                            m_src = getattr(m, "source", None)
+                            m_content = getattr(m, "content", None)
+                            if m_src and m_content and m_src != "user":
+                                meta_m = meta.get(m_src, {"display_name": str(m_src), "role": ""})
+                                print(f"[event/fallback] {m_src}: {str(m_content)[:60]}", flush=True)
+                                await websocket.send_json({
+                                    "type": "agent_message",
+                                    "id": str(m_src),
+                                    "display_name": meta_m["display_name"],
+                                    "role": meta_m["role"],
+                                    "content": str(m_content),
+                                })
+                    payload = {
+                        "type": "done",
+                        "stop_reason": str(getattr(event, "stop_reason", "")) or "max_messages",
+                    }
+                # ── 메시지 이벤트 — source + content 가짐
+                elif src_attr is not None and content_attr is not None:
+                    if src_attr in ("user", ""):
                         continue
+                    src = str(src_attr)
                     m = meta.get(src, {"display_name": src, "role": ""})
                     payload = {
                         "type": "agent_message",
                         "id": src,
                         "display_name": m["display_name"],
                         "role": m["role"],
-                        "content": str(event.content),
-                    }
-                # 종료 이벤트
-                elif hasattr(event, "stop_reason"):
-                    payload = {
-                        "type": "done",
-                        "stop_reason": getattr(event, "stop_reason", "") or "max_messages",
+                        "content": str(content_attr),
                     }
 
                 if payload is not None:
