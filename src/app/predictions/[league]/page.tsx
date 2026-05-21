@@ -343,6 +343,12 @@ export default async function LeaguePredictions({ params }: Props) {
     for (const [k, v] of formByTeamId) formByTeamId.set(k, v.reverse());
   }
 
+  // 월드컵은 클럽 매치 데이터가 없으니 시드 Elo 를 직접 사용.
+  // (keyMatches 가 .map callback 에서 참조하므로 keyMatches 정의 전에 선언 — TDZ 회피).
+  const elo = isWorldCup
+    ? buildWorldCupSeedTable(teamNameById)
+    : calcEloTable(matches);
+
   // 이번 주 빅매치 — 상위 3팀의 직접 대결 매치만 추출 (mc 결과 기준).
   // mc 가 비어있으면 (시뮬 안 됨) 빈 배열.
   const top3TeamIds = new Set<number>(
@@ -380,11 +386,6 @@ export default async function LeaguePredictions({ params }: Props) {
         href: `/live/${upper}/${m.externalId ?? m.id}`,
       };
     });
-
-  // 월드컵은 클럽 매치 데이터가 없으니 시드 Elo 를 직접 사용
-  const elo = isWorldCup
-    ? buildWorldCupSeedTable(teamNameById)
-    : calcEloTable(matches);
 
   // UCL — knockout-stage 브래킷 빌드 (raw 필요해 별도 fetch)
   const isUcl = upper === "UCL";
