@@ -328,6 +328,36 @@ const RAW: Record<string, string> = {
   "Toronto Tempo W": "토론토 템포",
   "Washington Mystics W": "워싱턴 미스틱스",
 
+  // ─── 축구 추가 (2026-05-21) — Ollama 14B/32B 가 멀티스크립트 혼입·hallucination
+  //                                   해서 정확한 한국 미디어 표기 직접 추가.
+  // 독일 분데스리가 2 — 잔여 6팀
+  "FC Schalke 04": "FC 샬케 04",
+  "Fortuna Düsseldorf": "포르투나 뒤셀도르프",
+  "Hertha BSC": "헤르타 BSC",
+  "Preußen Münster": "프로이센 뮌스터",
+  "Rot-Weiß Essen": "로트바이스 에센",
+  "VfL Bochum": "VfL 보훔",
+  // 벨기에 주피러 — 잔여 2팀
+  "St. Truiden": "신트트라위던",
+  "Lommel United": "롬멜 SK",
+  // 스페인 라리가 2
+  "Valladolid": "바야돌리드",
+  // 포르투갈 프리메이라
+  "Guimaraes": "기마랑이스",
+  "Torreense": "토헨세",
+  // 터키 쉬페르
+  "Fatih Karagümrük": "파티흐 카라귀므뤼크",
+  // 호주 A-리그
+  "Auckland": "오클랜드 FC",
+  // 중국 슈퍼리그
+  "Hangzhou Greentown": "항저우 뤼청",
+  "Qingdao Jonoon": "칭다오 종눈",
+  // 사우디 프로 리그
+  "Al Najma": "알 나즈마",
+  "Al-Hazm": "알 하즘",
+  "Al-Qadisiyah FC": "알 카디시야",
+  "NEOM": "네옴 SC",
+
   // ─── NHL ───
   "Anaheim Ducks": "애너하임 덕스",
   "Boston Bruins": "보스턴 브루인스",
