@@ -119,9 +119,15 @@ export default function SoccerCompactCard(props: Props) {
         </div>
       </div>
 
-      {/* 팀 2줄 */}
+      {/* 팀 2줄 — 최근 골 측 row flash (7m 스타일) */}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div
+          className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
+            recentGoalSide === "home"
+              ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+              : ""
+          }`}
+        >
           {homeColor && (
             <span
               className="inline-block w-1 h-3 rounded-sm shrink-0"
@@ -133,8 +139,19 @@ export default function SoccerCompactCard(props: Props) {
           <span className={teamNameClass(hasScore && !homeWin && !isLive)}>
             {home.name}
           </span>
+          {recentGoalSide === "home" && (
+            <span className="ml-auto text-[9px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+              ⚽
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div
+          className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
+            recentGoalSide === "away"
+              ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+              : ""
+          }`}
+        >
           {awayColor && (
             <span
               className="inline-block w-1 h-3 rounded-sm shrink-0"
@@ -146,6 +163,11 @@ export default function SoccerCompactCard(props: Props) {
           <span className={teamNameClass(hasScore && !awayWin && !isLive)}>
             {away.name}
           </span>
+          {recentGoalSide === "away" && (
+            <span className="ml-auto text-[9px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+              ⚽
+            </span>
+          )}
         </div>
       </div>
 

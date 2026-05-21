@@ -129,8 +129,19 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       {/* 3. 상태 */}
       <div>{statusNode}</div>
 
-      {/* 4. 홈팀 (우측 정렬 + 로고 옆에) — [순위] 는 팀명 오른쪽 작은 번호 */}
-      <div className="flex items-center justify-end gap-1.5 min-w-0">
+      {/* 4. 홈팀 (우측 정렬 + 로고 옆에) — [순위] + 최근 골 시 row flash (7m 스타일) */}
+      <div
+        className={`flex items-center justify-end gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
+          recentGoalSide === "home"
+            ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+            : ""
+        }`}
+      >
+        {recentGoalSide === "home" && (
+          <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+            ⚽ GOAL
+          </span>
+        )}
         <span className="truncate text-right text-[13px] text-neutral-800 dark:text-neutral-200">
           {home.name}
           {homePosition != null && (
@@ -186,8 +197,14 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         )}
       </div>
 
-      {/* 6. 원정팀 (좌측 정렬 + 로고 옆에) — [순위] 는 팀명 오른쪽 */}
-      <div className="flex items-center gap-1.5 min-w-0">
+      {/* 6. 원정팀 (좌측 정렬 + 로고 옆에) — 최근 골 시 row flash */}
+      <div
+        className={`flex items-center gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
+          recentGoalSide === "away"
+            ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+            : ""
+        }`}
+      >
         <TeamLogo url={away.logo} name={away.name} />
         <span className="truncate text-[13px] text-neutral-800 dark:text-neutral-200">
           {away.name}
@@ -197,6 +214,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             </span>
           )}
         </span>
+        {recentGoalSide === "away" && (
+          <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+            ⚽ GOAL
+          </span>
+        )}
       </div>
 
       {/* 7. 글 (프리뷰/리뷰) — 있을 때만 아이콘 표시 */}
