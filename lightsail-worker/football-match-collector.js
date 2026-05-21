@@ -58,6 +58,8 @@ const SKIP_LEAGUES = new Set([
   // 컵 대회 10개 (2026-05-20 추가) — api-football 이 cover
   "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+  // 2026-05-21 추가 — /scores 에서 중복 노출 발견된 4 리그 (api-football 도 cover)
+  "GREEK_SL", "SUPERETTAN", "POLAND_1L", "ALLSVENSKAN",
 ]);
 
 // TheSports football status_id (검증):
