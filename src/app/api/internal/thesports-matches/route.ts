@@ -97,6 +97,7 @@ export async function POST(req: NextRequest) {
   const teamMap = body.sport === "football" ? loadFootballReverse() : loadBaseballReverse();
   let upserted = 0;
   let skippedNoTeam = 0;
+  let skippedDuplicate = 0;
 
   for (const m of body.matches) {
     const homeId = teamMap.get(m.tsHomeTeamId);
@@ -108,6 +109,31 @@ export async function POST(req: NextRequest) {
     // externalId prefix "ts:" 로 ESPN/API-Sports 와 namespace 분리 — duplicate 방지
     const externalId = `ts:${m.tsMatchId}`;
     try {
+      // ── 근본 dedup: 같은 매치를 다른 source (api-football/ESPN) 가 이미 등록했는지 체크.
+      // SKIP_LEAGUES (worker 단) 가 누락한 리그도 여기서 차단 — worker 재배포 안 해도 효과.
+      // 조건: 같은 league + 시각 ±90분 + 팀 IDs (양방향) + externalId 가 ts: 아님.
+      // 이미 ts: 매치 있으면 update path (where 절) 로 흘러가니 skip 필요 없음.
+      const startMs = new Date(m.startTime).getTime();
+      const existingNonTs = await prisma.match.findFirst({
+        where: {
+          league: m.league,
+          startTime: {
+            gte: new Date(startMs - 90 * 60 * 1000),
+            lte: new Date(startMs + 90 * 60 * 1000),
+          },
+          OR: [
+            { homeTeamId: homeId, awayTeamId: awayId },
+            { homeTeamId: awayId, awayTeamId: homeId },
+          ],
+          NOT: { externalId: { startsWith: "ts:" } },
+        },
+        select: { id: true, externalId: true },
+      });
+      if (existingNonTs) {
+        skippedDuplicate++;
+        continue;
+      }
+
       await prisma.match.upsert({
         where: { league_externalId: { league: m.league, externalId } },
         update: {
@@ -139,6 +165,7 @@ export async function POST(req: NextRequest) {
     ok: true,
     upserted,
     skippedNoTeam,
+    skippedDuplicate,
     received: body.matches.length,
   });
 }
