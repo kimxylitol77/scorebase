@@ -60,3 +60,6 @@ src/lib/chatbot/
 
 # TheSports 일회성 dump 데이터 (크기 큼, 재실행 가능)
 /data/thesports-translations/
+
+# Ollama 번역 제안 출력 (검토 후 team-names.ts/player-names.ts 로 paste)
+/data/translations/
