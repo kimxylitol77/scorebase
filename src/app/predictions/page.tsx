@@ -35,6 +35,8 @@ const LEAGUES: LeagueCard[] = [
   { code: "SERIE_A", name: "세리에 A", subtitle: "이탈리아", flag: "🇮🇹", gradient: "from-green-600 via-white to-red-600" },
   { code: "LIGUE_1", name: "리그 1", subtitle: "프랑스", flag: "🇫🇷", gradient: "from-blue-700 via-rose-600 to-indigo-600" },
   { code: "UCL", name: "챔피언스리그", subtitle: "유럽", flag: "🏆", gradient: "from-indigo-700 via-blue-600 to-cyan-500" },
+  { code: "UEL", name: "유로파리그", subtitle: "유럽 2부 클럽", flag: "🏆", gradient: "from-orange-600 via-amber-500 to-yellow-500" },
+  { code: "UECL", name: "유로파 컨퍼런스", subtitle: "유럽 3부 클럽", flag: "🏆", gradient: "from-emerald-600 via-green-500 to-lime-500" },
   { code: "MLS", name: "MLS", subtitle: "북미 축구", flag: "🇺🇸", gradient: "from-red-600 via-slate-900 to-blue-700" },
   { code: "WORLD_CUP", name: "FIFA 월드컵 2026", subtitle: "미국·캐나다·멕시코", flag: "🌎", gradient: "from-amber-500 via-rose-500 to-fuchsia-600" },
   { code: "NBA", name: "NBA", subtitle: "미국 농구", flag: "🏀", gradient: "from-orange-500 via-amber-500 to-yellow-500" },

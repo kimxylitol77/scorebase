@@ -63,6 +63,8 @@ const VALID = [
   "J2_LEAGUE",
   "AFC_CL",
   "WNBA", // 2026-05-21 — 미국 여자 농구 (api-sports basketball v1, league=13)
+  "UEL", // UEFA 유로파 리그 — 2026-05-21 추가
+  "UECL", // UEFA 유로파 컨퍼런스 — 2026-05-21 추가
 ] as const;
 type ValidLeague = (typeof VALID)[number];
 
@@ -215,6 +217,20 @@ const LEAGUE_INFO: Record<
     gradient: "from-amber-400 via-orange-500 to-pink-500",
     relegationCount: 0,
     showDraw: false,
+  },
+  UEL: {
+    name: "유로파리그",
+    subtitle: "UEFA 유로파리그 — 시즌 시뮬레이션",
+    gradient: "from-orange-600 via-amber-500 to-yellow-500",
+    relegationCount: 0,
+    showDraw: true,
+  },
+  UECL: {
+    name: "유로파 컨퍼런스",
+    subtitle: "UEFA 유로파 컨퍼런스 리그 — 시즌 시뮬레이션",
+    gradient: "from-emerald-600 via-green-500 to-lime-500",
+    relegationCount: 0,
+    showDraw: true,
   },
 };
 
@@ -500,7 +516,7 @@ export default async function LeaguePredictions({ params }: Props) {
               "K_LEAGUE_1", "K_LEAGUE_2",
               "J1_LEAGUE", "J2_LEAGUE",
               "AFC_CL",
-              "UCL", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
+              "UCL", "UEL", "UECL", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
             ] as const
           ).map((l) => (
             <PredTab key={l} l={l} active={l === upper} />
@@ -996,6 +1012,8 @@ const TAB_LABEL: Record<string, string> = {
   J2_LEAGUE: "J2",
   AFC_CL: "ACL 엘리트",
   WNBA: "WNBA",
+  UEL: "유로파",
+  UECL: "유로파 컨퍼런스",
 };
 
 function PredTab({ l, active }: { l: string; active: boolean }) {
