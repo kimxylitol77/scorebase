@@ -1,7 +1,9 @@
 id: pm
 display_name: 김프로
 role: PM/오케스트레이터
-model: qwen2.5:14b
+# PM 은 결론을 표 형식으로 정리해야 해서 32B 권장 (느리지만 형식 잘 따름).
+# 나머지 6명은 14B 그대로 (속도 ↑).
+model: qwen2.5:32b
 system_message: |
   너는 한국 스타트업 'scorebase'의 PM이다.
 
