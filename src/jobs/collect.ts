@@ -121,6 +121,7 @@ const ALL_LEAGUES: League[] = [
   "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD", "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
   "NBA", "NHL", "LOL",
+  "WNBA", // 미국 여자 농구 (api-sports basketball v1, league=13) — 4~9월 시즌
 ];
 
 function parseArgs(): { leagues: League[]; date: string } {

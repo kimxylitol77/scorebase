@@ -114,7 +114,9 @@ export type League =
   | "KFA_CUP" // 한국 FA컵 — api-football
   | "EMPEROR_CUP" // 일본 천황배 — api-football
   | "CONCACAF_CCUP" // CONCACAF Champions Cup — api-football
-  | "AFC_CUP"; // AFC Cup (3부 클럽 대회) — api-football
+  | "AFC_CUP" // AFC Cup (3부 클럽 대회) — api-football
+  // 농구 — 여자 (2026-05-21 추가)
+  | "WNBA"; // WNBA (미국 여자 농구) — api-sports basketball v1, league=13. 시즌 4~9월
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [

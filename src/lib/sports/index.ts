@@ -3,6 +3,7 @@ import { eplCollectorViaFootballData } from "./football-data";
 import { nbaCollector as nbaCollectorMSF } from "./mysportsfeeds";
 import { nbaCollectorEspn } from "./espn-nba";
 import { nbaCollectorApiSports } from "./api-nba-collector";
+import { wnbaCollectorApiSports } from "./api-wnba-collector";
 import { nhlCollectorEspn } from "./espn-nhl";
 import { mlbCollectorEspn } from "./espn-mlb";
 import { buildSoccerCollector } from "./espn-soccer";
@@ -142,6 +143,8 @@ export const collectors: Record<League, MatchCollector> = {
   EMPEROR_CUP: buildApiFootballCollector("EMPEROR_CUP"),
   CONCACAF_CCUP: buildApiFootballCollector("CONCACAF_CCUP"),
   AFC_CUP: buildApiFootballCollector("AFC_CUP"),
+  // 농구 — 여자 (2026-05-21 추가) — api-sports basketball v1, league=13
+  WNBA: wnbaCollectorApiSports,
 };
 
 export {
