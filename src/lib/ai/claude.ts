@@ -36,13 +36,15 @@ function isTransient(err: unknown): boolean {
 
 /**
  * 단발 텍스트 생성. 기사 초안 작성에 사용.
- * 일시 에러는 점진 backoff retry (3회 — 5s / 10s / 20s).
+ * 일시 에러는 점진 backoff retry (5회 — 5s / 10s / 20s / 40s / 80s, ±20% jitter).
+ * 총 최대 대기 ~155s — 529 overloaded burst 통과용 (2026-05-21 확장).
+ * cron maxDuration 300s 의 1/2 미만 — 매치 1건 fail 후에도 다른 매치 처리 여유.
  */
 export async function generate(
   prompt: string,
   opts: GenerateOptions = {},
 ): Promise<string> {
-  const backoffs = [5000, 10000, 20000];
+  const backoffs = [5000, 10000, 20000, 40000, 80000];
   let lastErr: unknown;
   for (let attempt = 0; attempt <= backoffs.length; attempt++) {
     try {
@@ -63,8 +65,15 @@ export async function generate(
     } catch (err) {
       lastErr = err;
       if (attempt >= backoffs.length || !isTransient(err)) throw err;
-      const wait = backoffs[attempt];
-      console.warn(`[claude] retry ${attempt + 1}/${backoffs.length} after ${wait}ms — ${(err as Error).message?.slice(0, 100)}`);
+      // ±20% jitter — 동시 529 폭주 시 retry 충돌 회피
+      const base = backoffs[attempt];
+      const jitter = base * 0.2 * (Math.random() * 2 - 1);
+      const wait = Math.max(1000, Math.round(base + jitter));
+      const status = (err as { status?: number }).status;
+      const tag = status ? `${status}` : "net";
+      console.warn(
+        `[claude] retry ${attempt + 1}/${backoffs.length} (${tag}) after ${wait}ms — ${(err as Error).message?.slice(0, 120)}`,
+      );
       await new Promise((r) => setTimeout(r, wait));
     }
   }
