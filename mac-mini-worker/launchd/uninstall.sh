@@ -10,6 +10,7 @@ BOTS=(
   "com.scorebase.data-quality"
   "com.scorebase.api-quota"
   "com.scorebase.preview-coverage"
+  "com.scorebase.live-scores-watcher"
 )
 
 for bot in "${BOTS[@]}"; do
@@ -29,6 +30,7 @@ pkill -f endpoint-monitor 2>/dev/null || true
 pkill -f data-quality 2>/dev/null || true
 pkill -f api-quota 2>/dev/null || true
 pkill -f preview-coverage 2>/dev/null || true
+pkill -f live-scores-watcher 2>/dev/null || true
 
 echo ""
 echo "✓ 5 봇 모두 중지 + 등록 해제"

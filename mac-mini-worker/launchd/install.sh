@@ -18,6 +18,7 @@ BOTS=(
   "com.scorebase.data-quality"
   "com.scorebase.api-quota"
   "com.scorebase.preview-coverage"
+  "com.scorebase.live-scores-watcher"
 )
 
 # Node 경로 자동 감지 (brew 위치 따라 다름)
