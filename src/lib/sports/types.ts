@@ -220,8 +220,8 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "K_LEAGUE_2",
   "J2_LEAGUE",
   "SAUDI_PL",
-  "UEL",
-  "UECL",
+  // 2026-05-21 사용자 결정 — UEL/UECL PREVIEW/RECAP 자동 생성 활성화
+  // (이전: NO_ARTICLE_LEAGUES 에 포함 → 제거)
   "CHAMPIONSHIP",
   "LALIGA_2",
   "BUNDESLIGA_2",
