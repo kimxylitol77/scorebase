@@ -31,6 +31,11 @@ function timeAgoKo(at: Date | string): string {
   return `${hr}시간 전`;
 }
 
+/** Mac mini worker 가 멈춘 뒤 STALE_MS 이상 지나면 코멘터리를 숨김.
+ * 사용자에게 옛날 상황 (예: 1시간 전 9회) 보여주는 걸 방지.
+ * 기본 10분 — match-narrator worker 5분 주기 기준 2 사이클 누락 시 hide. */
+const STALE_MS = 10 * 60 * 1000;
+
 export default function LiveCommentaryBox({
   matchSummary,
   summaryAt,
@@ -38,6 +43,12 @@ export default function LiveCommentaryBox({
   variant = "default",
 }: Props): ReactElement | null {
   if (!matchSummary?.trim()) return null;
+
+  // stale 자동 숨김 — Mac mini 다운/Wi-Fi 끊김 시 fault tolerance
+  if (summaryAt) {
+    const at = typeof summaryAt === "string" ? new Date(summaryAt) : summaryAt;
+    if (Date.now() - at.getTime() > STALE_MS) return null;
+  }
 
   const meta = (
     <div className="text-[10px] sm:text-xs text-neutral-500 flex items-center gap-1.5 flex-wrap">

@@ -276,6 +276,19 @@ model TheSportsStandingsCache {
   updatedAt   DateTime @updatedAt
 }
 
+/// 외부 워커 (Mac mini, Lightsail 등) 의 heartbeat. 워커가 5분마다 POST.
+/// Vercel cron 이 매 10분 lastAt 체크 — 30분+ 무응답 시 텔레그램 알림.
+/// 다중 워커 식별 위해 name 을 PK 로 사용 (ex: "mac-mini-match-narrator").
+model BotHeartbeat {
+  name       String    @id              // 워커 식별자
+  lastAt     DateTime  @default(now())  // 마지막 ping
+  metadata   Json?                      // 호스트명, 버전, 부가 정보
+  notifiedAt DateTime?                  // 마지막 down 알림 발송 시각 (중복 알림 방지)
+  createdAt  DateTime  @default(now())
+
+  @@index([lastAt])
+}
+
 /// Ollama (Mac mini, Qwen 2.5 14B) 가 생성한 라이브 매치 코멘터리 캐시.
 /// 후보 1 — eventComments: 이벤트별 1줄 자연어 (JSON 배열).
 /// 후보 2 — matchSummary: 매치 진행 상황 박스 (3-4문장, ~5분 주기 갱신).

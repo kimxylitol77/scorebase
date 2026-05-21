@@ -37,6 +37,7 @@
     { "path": "/api/cron/baseball-starters", "schedule": "0 5 * * *" },
     { "path": "/api/cron/baseball-starters", "schedule": "0 8 * * *" },
     { "path": "/api/cron/league-leaders", "schedule": "0 20 * * *" },
-    { "path": "/api/cron/health-check", "schedule": "30 21 * * *" }
+    { "path": "/api/cron/health-check", "schedule": "30 21 * * *" },
+    { "path": "/api/cron/bot-heartbeat-check", "schedule": "*/10 * * * *" }
   ]
 }
