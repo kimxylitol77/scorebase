@@ -5,7 +5,10 @@
   "description": "Mac mini Ollama 워커 — scorebase 라이브 코멘터리 + 모니터링 봇",
   "scripts": {
     "narrator": "node match-narrator.js",
-    "endpoint-monitor": "node endpoint-monitor.js"
+    "endpoint-monitor": "node endpoint-monitor.js",
+    "data-quality": "node data-quality.js",
+    "api-quota": "node api-quota.js",
+    "preview-coverage": "node preview-coverage.js"
   },
   "dependencies": {
     "axios": "^1.7.0",
