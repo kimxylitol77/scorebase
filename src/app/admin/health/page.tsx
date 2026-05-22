@@ -114,43 +114,106 @@ function formatInterval(ms: number): string {
   return `${Math.round(ms / 86400_000)}일`;
 }
 
+// 카테고리별 한 줄 진단 — recentCritical 의 category/message 를 사람이 읽을 문장으로
+function categoryInsight(
+  category: string,
+  message: string,
+  metadata: Record<string, unknown> | null | undefined,
+): { headline: string; action: string } {
+  const md = metadata ?? {};
+  switch (category) {
+    case "route-guardian": {
+      const bad404 = (md as { bad404?: number }).bad404 ?? 0;
+      const samples = ((md as { sample404?: string[] }).sample404 ?? []).slice(0, 3);
+      const headline = bad404 > 0
+        ? `사이트에 ${bad404}개 깨진 URL 발견 — 방문자/검색엔진 영향`
+        : message;
+      const sampleHint = samples.length > 0 ? `\n   예: ${samples.join(", ")}` : "";
+      return {
+        headline: `🔗 ${headline}${sampleHint}`,
+        action: bad404 > 0 ? "→ sitemap 또는 라우트 정리 필요 (가장 많은 prefix 부터)" : "",
+      };
+    }
+    case "stale-cleanup": {
+      const marked = (md as { marked?: number }).marked ?? 0;
+      return {
+        headline: `🧹 stale 매치 ${marked}건 자동 정리`,
+        action: marked > 5 ? "→ collector 누락 여부 점검 권장" : "",
+      };
+    }
+    case "match-count":
+    case "match_count":
+      return { headline: `📉 매치 수 이상 — ${message}`, action: "→ collector 로그 점검" };
+    case "season-label":
+      return { headline: `🏷️ 시즌 라벨 불일치 — ${message}`, action: "→ league 메타데이터 확인" };
+    case "accuracy":
+      return { headline: `🎯 예측 정확도 이상 — ${message}`, action: "→ 모델 재훈련 또는 데이터 점검" };
+    case "ai-review":
+      return { headline: `🤖 AI 리뷰 — ${message}`, action: "→ 발행 검수" };
+    default:
+      return { headline: `📌 ${category}: ${message}`, action: "" };
+  }
+}
+
 function buildAiVerdict(s: {
   okCount: number;
   lagCount: number;
   downCount: number;
   staleMarked: number;
+  staleByLeague: Record<string, number> | null;
   criticalSeverity: string | null;
+  criticalCategory: string | null;
+  criticalMessage: string | null;
+  criticalMetadata: Record<string, unknown> | null;
+  totalBots: number;
 }): { text: string; tone: "ok" | "warn" | "down" } {
   const lines: string[] = [];
   let tone: "ok" | "warn" | "down" = "ok";
 
+  // 1) 봇 상태 — 다양한 표현
   if (s.downCount > 0) {
     tone = "down";
-    lines.push(`⚠️ ${s.downCount}봇 다운 — Mac mini launchctl 확인 필요`);
+    lines.push(`⚠️ 봇 ${s.downCount}/${s.totalBots} 다운 — Mac mini launchctl + 로그 확인 필요`);
   } else if (s.lagCount > 0) {
     tone = "warn";
-    lines.push(`⏰ ${s.lagCount}봇 지연 — 로그 확인 권장`);
+    lines.push(`⏰ 봇 ${s.lagCount}/${s.totalBots} 지연 응답 — 봇 로그에서 timeout/예외 확인`);
   } else if (s.okCount > 0) {
-    lines.push(`✅ ${s.okCount}봇 정상 작동`);
+    lines.push(`✅ 운영 봇 ${s.okCount}대 전부 정상 ping (Mac mini 자동 시작 OK)`);
+  } else {
+    lines.push(`⚠️ 등록된 봇 없음 — heartbeat 시스템 점검 필요`);
+    tone = "warn";
   }
 
+  // 2) stale 매치
   if (s.staleMarked > 0) {
     if (tone === "ok") tone = "warn";
-    lines.push(`🧹 최근 stale 매치 ${s.staleMarked}건 자동 정리됨`);
+    const leaguePart = s.staleByLeague
+      ? " (" +
+        Object.entries(s.staleByLeague)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([l, n]) => `${l} ${n}`)
+          .join(", ") +
+        ")"
+      : "";
+    lines.push(`🧹 stale SCHEDULED ${s.staleMarked}건 자동 정리됨${leaguePart}`);
+  }
+
+  // 3) 가장 시급한 finding — 카테고리별 맞춤
+  if (s.criticalSeverity && s.criticalCategory && s.criticalMessage) {
+    const insight = categoryInsight(s.criticalCategory, s.criticalMessage, s.criticalMetadata);
+    if (s.criticalSeverity === "HIGH") {
+      tone = "down";
+      lines.push(`\n🚨 즉시 점검 [HIGH]`);
+    } else {
+      if (tone === "ok") tone = "warn";
+      lines.push(`\n📋 검토 권장 [MED]`);
+    }
+    lines.push(insight.headline);
+    if (insight.action) lines.push(insight.action);
   } else {
-    lines.push(`🧹 stale 매치 없음`);
-  }
-
-  if (s.criticalSeverity === "HIGH") {
-    tone = "down";
-    lines.push(`🚨 HIGH finding — 즉시 점검`);
-  } else if (s.criticalSeverity === "MED") {
-    if (tone === "ok") tone = "warn";
-    lines.push(`📋 MED finding — 검토 권장`);
-  }
-
-  if (lines.length === 1) {
-    lines.push(`현재 사이트 상태: 양호`);
+    // 시급 finding 없음 — 한 줄로 안심 메시지
+    lines.push(`\n✨ 시급한 finding 없음 — 사이트 상태 양호`);
   }
 
   return { text: lines.join("\n"), tone };
@@ -331,12 +394,21 @@ export default async function HealthPage() {
   }
 
   // 4) 스코어베이스 AI 종합 (우측, 마지막)
+  const staleMd = (latestStale?.metadata ?? null) as
+    | { marked?: number; byLeague?: Record<string, number> }
+    | null;
   const aiVerdict = buildAiVerdict({
     okCount,
     lagCount,
     downCount,
-    staleMarked: ((latestStale?.metadata as { marked?: number })?.marked ?? 0),
+    totalBots: bots.length,
+    staleMarked: staleMd?.marked ?? 0,
+    staleByLeague: staleMd?.byLeague ?? null,
     criticalSeverity: recentCritical?.severity ?? null,
+    criticalCategory: recentCritical?.category ?? null,
+    criticalMessage: recentCritical?.message ?? null,
+    criticalMetadata:
+      (recentCritical?.metadata as Record<string, unknown> | null | undefined) ?? null,
   });
   chat.push({
     side: "ai",

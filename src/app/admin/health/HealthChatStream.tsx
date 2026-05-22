@@ -21,7 +21,7 @@ function fmtKstShort(iso: string): string {
 
 export default function HealthChatStream({ messages }: { messages: ChatMessage[] }) {
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.02] p-3 sm:p-4 space-y-2.5">
+    <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.02] p-4 sm:p-6 space-y-4 sm:space-y-5">
       {messages.map((m, i) => (
         <ChatBubble key={i} msg={m} />
       ))}
@@ -43,16 +43,16 @@ function ChatBubble({ msg }: { msg: ChatMessage }) {
     "bg-white dark:bg-white/[0.04] text-neutral-800 dark:text-neutral-200 border-neutral-200 dark:border-white/10";
   return (
     <div className={`flex ${isAi ? "justify-end" : "justify-start"}`}>
-      <div className="max-w-[85%] sm:max-w-[75%] flex flex-col gap-0.5">
+      <div className="max-w-[90%] sm:max-w-[80%] flex flex-col gap-1">
         <div
-          className={`text-[10px] text-neutral-500 px-1 flex items-center gap-1 ${isAi ? "justify-end" : "justify-start"}`}
+          className={`text-[11px] text-neutral-500 px-1 flex items-center gap-1.5 ${isAi ? "justify-end" : "justify-start"}`}
         >
           <span className="font-semibold">{msg.name}</span>
           <span className="text-neutral-400">·</span>
           <span className="tabular-nums">{fmtKstShort(msg.at)}</span>
         </div>
         <div
-          className={`rounded-2xl px-3 py-2 text-[13px] sm:text-sm leading-relaxed border ${
+          className={`rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 text-sm sm:text-[15px] leading-relaxed border ${
             isAi ? aiBg : botBg
           } ${msg.tone ? `ring-1 ${toneRing[msg.tone]}` : ""} ${isAi ? "rounded-tr-sm" : "rounded-tl-sm"}`}
         >
