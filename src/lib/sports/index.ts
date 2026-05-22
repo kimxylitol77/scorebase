@@ -145,6 +145,30 @@ export const collectors: Record<League, MatchCollector> = {
   AFC_CUP: buildApiFootballCollector("AFC_CUP"),
   // 농구 — 여자 (2026-05-21 추가) — api-sports basketball v1, league=13
   WNBA: wnbaCollectorApiSports,
+  // ── 축구 23개 신규 (2026-05-22) — 모두 api-football 통합 ──
+  K3_LEAGUE: buildApiFootballCollector("K3_LEAGUE"),
+  K4_LEAGUE: buildApiFootballCollector("K4_LEAGUE"),
+  J3_LEAGUE: buildApiFootballCollector("J3_LEAGUE"),
+  THAI_L1: buildApiFootballCollector("THAI_L1"),
+  VIETNAM_VL2: buildApiFootballCollector("VIETNAM_VL2"),
+  ARGENTINA_PL: buildApiFootballCollector("ARGENTINA_PL"),
+  URUGUAY_PD: buildApiFootballCollector("URUGUAY_PD"),
+  PARAGUAY_PD: buildApiFootballCollector("PARAGUAY_PD"),
+  BOLIVIA_PD: buildApiFootballCollector("BOLIVIA_PD"),
+  AFCON: buildApiFootballCollector("AFCON"),
+  UEFA_NL: buildApiFootballCollector("UEFA_NL"),
+  WC_QUAL: buildApiFootballCollector("WC_QUAL"),
+  EURO_QUAL: buildApiFootballCollector("EURO_QUAL"),
+  CONCACAF_GOLD: buildApiFootballCollector("CONCACAF_GOLD"),
+  INTL_FRIENDLY: buildApiFootballCollector("INTL_FRIENDLY"),
+  U20_WC: buildApiFootballCollector("U20_WC"),
+  U17_WC: buildApiFootballCollector("U17_WC"),
+  OLYMPICS_FOOTBALL: buildApiFootballCollector("OLYMPICS_FOOTBALL"),
+  WSL: buildApiFootballCollector("WSL"),
+  NWSL: buildApiFootballCollector("NWSL"),
+  WK_LEAGUE: buildApiFootballCollector("WK_LEAGUE"),
+  UEFA_WCL: buildApiFootballCollector("UEFA_WCL"),
+  A_LEAGUE_W: buildApiFootballCollector("A_LEAGUE_W"),
 };
 
 export {

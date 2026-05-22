@@ -64,6 +64,8 @@ function seasonFor(league: League, date: string): number {
     "UAE_PL", "QATAR_SL", "MOROCCO_BP", "SOUTHAFRICA_PSL", // 아시아·중동·아프리카 (8~5월)
     "SINGAPORE_PL", // API가 시즌을 시작 연도로 표기 (3월~10월 시즌인데 "2025" 표기)
     "A_LEAGUE", "LIGA_MX", "AFC_CL", "AFC_CL_TWO",
+    // 신규 — 유럽 시즌 (8~5월)
+    "THAI_L1", "WSL", "UEFA_WCL", "A_LEAGUE_W", "UEFA_NL", "EURO_QUAL",
   ];
   if ((european as readonly string[]).includes(league)) {
     return month >= 7 ? year : year - 1;
@@ -71,7 +73,17 @@ function seasonFor(league: League, date: string): number {
   if (league === "WORLD_CUP") return 2026;
   if (league === "CLUB_WORLD_CUP") return 2025; // 다음 대회 시작 시 업데이트
   if (league === "AFC_U23") return 2025; // 다음 대회 ~2027
-  return year; // K1/K2, J1/J2, MLS, BRASILEIRAO, COPA_LIB/SUD, CSL — 달력 연도
+  // 토너 단발성 — 매년/격년 업데이트
+  if (league === "AFCON") return 2025;
+  if (league === "CONCACAF_GOLD") return 2025;
+  if (league === "U20_WC") return 2025;
+  if (league === "U17_WC") return 2025;
+  if (league === "OLYMPICS_FOOTBALL") return 2024;
+  // 다년 예선 — 현재 cycle (2026 WC, 2028 Euro)
+  if (league === "WC_QUAL") return 2026;
+  return year; // K1/K2/K3/K4, J1/J2/J3, MLS, BRASILEIRAO, COPA_LIB/SUD, CSL,
+                // NWSL, WK_LEAGUE, VIETNAM_VL2, ARGENTINA_PL, URUGUAY/PARAGUAY/BOLIVIA_PD,
+                // INTL_FRIENDLY 등 달력 연도
 }
 
 function toNormalized(league: League, f: ApiFixture): NormalizedMatch {

@@ -116,7 +116,36 @@ export type League =
   | "CONCACAF_CCUP" // CONCACAF Champions Cup — api-football
   | "AFC_CUP" // AFC Cup (3부 클럽 대회) — api-football
   // 농구 — 여자 (2026-05-21 추가)
-  | "WNBA"; // WNBA (미국 여자 농구) — api-sports basketball v1, league=13. 시즌 4~9월
+  | "WNBA" // WNBA (미국 여자 농구) — api-sports basketball v1, league=13. 시즌 4~9월
+  // ── 축구 23개 추가 (2026-05-22 — 네임드/7m 격차 해소) ──
+  // 한국 + 일본 하부
+  | "K3_LEAGUE" // K3 리그
+  | "K4_LEAGUE" // K4 리그
+  | "J3_LEAGUE" // J3 리그
+  // 동남아
+  | "THAI_L1" // 태국 1부
+  | "VIETNAM_VL2" // 베트남 V.League 2
+  // 남미
+  | "ARGENTINA_PL" // 아르헨티나 Liga Profesional
+  | "URUGUAY_PD" // 우루과이 Primera División
+  | "PARAGUAY_PD" // 파라과이 Primera División
+  | "BOLIVIA_PD" // 볼리비아 División Profesional
+  // 국가대표 토너 / 예선 / 친선
+  | "AFCON" // Africa Cup of Nations
+  | "UEFA_NL" // UEFA Nations League
+  | "WC_QUAL" // 월드컵 예선 (지역 묶음)
+  | "EURO_QUAL" // 유로 예선
+  | "CONCACAF_GOLD" // CONCACAF 골드컵
+  | "INTL_FRIENDLY" // 국가대표 친선 (A매치)
+  | "U20_WC" // U-20 월드컵
+  | "U17_WC" // U-17 월드컵
+  | "OLYMPICS_FOOTBALL" // 올림픽 축구
+  // 여자 축구
+  | "WSL" // 잉글랜드 여자 슈퍼리그
+  | "NWSL" // 미국 NWSL
+  | "WK_LEAGUE" // 한국 WK리그
+  | "UEFA_WCL" // UEFA 여자 챔피언스리그
+  | "A_LEAGUE_W"; // 호주 A-리그 여자
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -213,6 +242,30 @@ export const SOCCER_LEAGUES = [
   "EMPEROR_CUP",
   "CONCACAF_CCUP",
   "AFC_CUP",
+  // 신규 23개 (2026-05-22)
+  "K3_LEAGUE",
+  "K4_LEAGUE",
+  "J3_LEAGUE",
+  "THAI_L1",
+  "VIETNAM_VL2",
+  "ARGENTINA_PL",
+  "URUGUAY_PD",
+  "PARAGUAY_PD",
+  "BOLIVIA_PD",
+  "AFCON",
+  "UEFA_NL",
+  "WC_QUAL",
+  "EURO_QUAL",
+  "CONCACAF_GOLD",
+  "INTL_FRIENDLY",
+  "U20_WC",
+  "U17_WC",
+  "OLYMPICS_FOOTBALL",
+  "WSL",
+  "NWSL",
+  "WK_LEAGUE",
+  "UEFA_WCL",
+  "A_LEAGUE_W",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */

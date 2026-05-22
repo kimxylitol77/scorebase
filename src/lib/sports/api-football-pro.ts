@@ -111,6 +111,36 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   EMPEROR_CUP: 290, // 일본 천황배
   CONCACAF_CCUP: 16, // CONCACAF Champions Cup
   AFC_CUP: 18, // AFC Cup (3부 클럽 대회). Elite 는 17 (AFC_CL).
+  // ───── 신규 추가 (2026-05-22, 23개) ─────
+  // ID 일부는 api-football 공식 docs 기반 추정 — 실 검증 후 확정 (collector
+  // 첫 호출 시 매치 0건이면 id 보정 필요).
+  // 한국 하부 + 일본 J3 + 동남아 추가
+  K3_LEAGUE: 766, // K3 리그
+  K4_LEAGUE: 767, // K4 리그
+  J3_LEAGUE: 100, // J3 리그
+  THAI_L1: 296, // Thai League 1
+  VIETNAM_VL2: 341, // V.League 2
+  // 남미 추가
+  ARGENTINA_PL: 128, // Liga Profesional
+  URUGUAY_PD: 268, // Primera División
+  PARAGUAY_PD: 284, // Primera División
+  BOLIVIA_PD: 344, // División Profesional
+  // 국가대표 토너 / 예선 / 친선
+  AFCON: 6, // Africa Cup of Nations
+  UEFA_NL: 5, // UEFA Nations League
+  WC_QUAL: 32, // World Cup Qualifying — UEFA (32), 다른 지역 id 별개
+  EURO_QUAL: 960, // Euro Qualifying
+  CONCACAF_GOLD: 22, // CONCACAF Gold Cup
+  INTL_FRIENDLY: 10, // International Friendlies
+  U20_WC: 38, // FIFA U-20 World Cup
+  U17_WC: 488, // FIFA U-17 World Cup
+  OLYMPICS_FOOTBALL: 480, // Olympic Football (남자)
+  // 여자 축구
+  WSL: 44, // FA Women's Super League
+  NWSL: 254, // NWSL
+  WK_LEAGUE: 783, // 한국 WK리그
+  UEFA_WCL: 525, // UEFA Women's Champions League
+  A_LEAGUE_W: 191, // A-League Women
 };
 
 interface CacheEntry<T> {
