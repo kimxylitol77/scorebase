@@ -27,75 +27,65 @@ interface Props {
 
 const LEAGUE_INFO: Record<
   Props["league"],
-  { name: string; subtitle: string; gradient: string; relegationCount: number; showDraw: boolean }
+  { name: string; subtitle: string; relegationCount: number; showDraw: boolean }
 > = {
   EPL: {
     name: "프리미어리그",
     subtitle: "English Premier League · 2025-26 시즌",
-    gradient: "from-purple-600 via-fuchsia-500 to-pink-500",
     relegationCount: 3,
     showDraw: true,
   },
   NBA: {
     name: "NBA",
     subtitle: "National Basketball Association · 2025-26 시즌",
-    gradient: "from-orange-500 via-amber-500 to-yellow-500",
     relegationCount: 0,
     showDraw: false,
   },
   NHL: {
     name: "NHL",
     subtitle: "National Hockey League · 2025-26 시즌",
-    gradient: "from-cyan-500 via-blue-600 to-indigo-700",
     relegationCount: 0,
     showDraw: false,
   },
   MLB: {
     name: "MLB",
     subtitle: "Major League Baseball · 2026 시즌",
-    gradient: "from-emerald-500 via-green-600 to-teal-700",
     relegationCount: 0,
     showDraw: false,
   },
   LALIGA: {
     name: "라리가",
     subtitle: "La Liga · 2025-26 시즌",
-    gradient: "from-amber-500 via-red-600 to-yellow-500",
     relegationCount: 3,
     showDraw: true,
   },
   BUNDESLIGA: {
     name: "분데스리가",
     subtitle: "Bundesliga · 2025-26 시즌",
-    gradient: "from-yellow-400 via-red-600 to-slate-900",
     relegationCount: 3,
     showDraw: true,
   },
   SERIE_A: {
     name: "세리에 A",
     subtitle: "Serie A · 2025-26 시즌",
-    gradient: "from-sky-500 via-blue-700 to-emerald-600",
     relegationCount: 3,
     showDraw: true,
   },
   LIGUE_1: {
     name: "리그 1",
     subtitle: "Ligue 1 · 2025-26 시즌",
-    gradient: "from-blue-700 via-rose-600 to-indigo-600",
     relegationCount: 2,
     showDraw: true,
   },
   MLS: {
     name: "MLS",
     subtitle: "Major League Soccer · 2026 시즌",
-    gradient: "from-red-600 via-slate-900 to-blue-700",
     relegationCount: 0,
     showDraw: true,
   },
   UCL: {
     name: "챔피언스리그",
     subtitle: "UEFA Champions League · 2025-26",
-    gradient: "from-indigo-700 via-blue-600 to-cyan-500",
     relegationCount: 0,
     showDraw: true,
   },
@@ -198,17 +188,17 @@ export default async function SeasonInsight({ league }: Props) {
       : 0;
 
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-      {/* 컬러 헤더 */}
-      <div className={`relative bg-gradient-to-r ${info.gradient} p-6 text-white`}>
-        <div className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">
+    <section className="overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+      {/* 헤더 */}
+      <div className="border-b border-black/5 px-6 pt-6 pb-5 dark:border-white/10">
+        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-white/45">
           {info.subtitle}
         </div>
         <div className="mt-1 flex items-baseline justify-between">
-          <h2 className="text-2xl sm:text-3xl font-black">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
             {info.name} 인사이트
           </h2>
-          <div className="text-xs opacity-80 tabular-nums">
+          <div className="text-xs tabular-nums text-zinc-500 dark:text-white/45">
             {finishedCount} / {totalRounds}경기 진행
           </div>
         </div>
@@ -332,17 +322,17 @@ export default async function SeasonInsight({ league }: Props) {
         </div>
 
         {/* 액션 링크 */}
-        <div className="flex flex-wrap gap-2 pt-3 border-t border-neutral-200 dark:border-neutral-800">
+        <div className="flex flex-wrap gap-2 border-t border-black/5 pt-3 dark:border-white/10">
           <LeagueBadge league={league} />
           <Link
             href={`/predictions/${league}`}
-            className="ml-auto text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:underline"
+            className="ml-auto text-sm font-semibold text-zinc-700 hover:underline dark:text-white/70"
           >
             전체 시즌 예측 →
           </Link>
           <Link
             href={`/leagues/${league}`}
-            className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:underline"
+            className="text-sm font-semibold text-zinc-700 hover:underline dark:text-white/70"
           >
             {info.name} 기사 →
           </Link>
@@ -362,13 +352,15 @@ function Stat({
   subtle?: string;
 }) {
   return (
-    <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 p-3">
-      <div className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+    <div className="rounded-xl bg-zinc-50 p-3 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+      <div className="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-white/45">
         {label}
       </div>
-      <div className="mt-0.5 text-sm font-bold truncate">{value}</div>
+      <div className="mt-0.5 truncate text-sm font-semibold text-zinc-950 dark:text-white">
+        {value}
+      </div>
       {subtle && (
-        <div className="text-[11px] text-neutral-500 tabular-nums">
+        <div className="text-[11px] tabular-nums text-zinc-500 dark:text-white/45">
           {subtle}
         </div>
       )}
