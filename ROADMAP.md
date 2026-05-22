@@ -129,3 +129,13 @@
 
 ## 🚦 진행 로그
 - 2026-05-21: ROADMAP 초안 생성. AI 회사 트랙 신규 추가
+- 2026-05-22: 대량 PR push
+  - **AI 회사 Phase 1+2** 완료 (RoundRobin 7명, PM 32B, JSON 자동 저장)
+  - **Mac mini 운영 봇 6종** 완료 (launchd 자동 시작, 사용자 친화 알림)
+  - **WNBA 추가** (api-sports basketball league=13, 6 PR — predictions/standings/live UI + 쿼터 점수 + boxscore)
+  - **UEL/UECL 예측 페이지** + PREVIEW 자동 활성화
+  - **scorebase UI 개선**: 매치 카드 [순위], 골 row flash (7m 스타일), 어제+오늘+내일 윈도우
+  - **TheSports 중복 매치 근본 fix** (API 단 dedup) + half_team_stats endpoint 통합
+  - **Anthropic retry** 강화 (3→5회 + jitter)
+  - **/injuries** K리그/J리그/AFC/사우디 6 리그 추가
+  - **축구 팀명 한글 매핑** 19개 직접 추가 (Ollama 14B/32B 한계 확인 → Claude or 직접)
