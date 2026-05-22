@@ -43,11 +43,16 @@ const OLLAMA = (() => {
 })();
 const MODEL = process.env.OLLAMA_MODEL || "qwen2.5:14b";
 const LEAGUES = (process.env.LEAGUES || "KBO,NPB,MLB").split(",").map((s) => s.trim());
+// LLM provider — "anthropic" (Haiku) 또는 "ollama" (Qwen). 기본 anthropic.
+const LLM_PROVIDER = (process.env.LLM_PROVIDER || "anthropic").toLowerCase();
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 
 const WORKER_NAME = "mac-mini-match-narrator";
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5분 주기
 const SUMMARY_TTL_MS = 5 * 60 * 1000; // 직전 summary 5분 이내면 skip
 const OLLAMA_TIMEOUT_MS = 180_000; // 14B 추론 최대 3분 허용
+const ANTHROPIC_TIMEOUT_MS = 30_000;
 
 if (!TOKEN) {
   console.error("❌ INTERNAL_API_TOKEN 미설정 — .env 확인");
@@ -71,7 +76,12 @@ async function sendHeartbeat() {
       `${SCOREBASE}/api/internal/bot-heartbeat`,
       {
         name: WORKER_NAME,
-        metadata: { host: os.hostname(), model: MODEL, leagues: LEAGUES },
+        metadata: {
+          host: os.hostname(),
+          provider: LLM_PROVIDER,
+          model: LLM_PROVIDER === "anthropic" ? ANTHROPIC_MODEL : MODEL,
+          leagues: LEAGUES,
+        },
       },
       { headers, timeout: 10_000 },
     );
@@ -111,8 +121,27 @@ function buildPrompt(match) {
 `;
 }
 
-async function generateSummary(match) {
-  const prompt = buildPrompt(match);
+async function generateAnthropic(prompt) {
+  const { data } = await axios.post(
+    "https://api.anthropic.com/v1/messages",
+    {
+      model: ANTHROPIC_MODEL,
+      max_tokens: 400,
+      messages: [{ role: "user", content: prompt }],
+    },
+    {
+      timeout: ANTHROPIC_TIMEOUT_MS,
+      headers: {
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+    },
+  );
+  return data?.content?.[0]?.text?.trim() ?? null;
+}
+
+async function generateOllama(prompt) {
   const { data } = await axios.post(
     `${OLLAMA}/v1/chat/completions`,
     {
@@ -124,6 +153,15 @@ async function generateSummary(match) {
     { timeout: OLLAMA_TIMEOUT_MS },
   );
   return data.choices?.[0]?.message?.content?.trim() ?? null;
+}
+
+async function generateSummary(match) {
+  const prompt = buildPrompt(match);
+  if (LLM_PROVIDER === "anthropic") {
+    if (!ANTHROPIC_KEY) throw new Error("ANTHROPIC_API_KEY 미설정");
+    return await generateAnthropic(prompt);
+  }
+  return await generateOllama(prompt);
 }
 
 function makeScoreSnapshot(m) {
@@ -138,7 +176,7 @@ async function postCommentary(match, summary, snapshot) {
       league: match.league,
       matchSummary: summary,
       scoreSnapshot: snapshot,
-      model: `ollama-${MODEL}`,
+      model: LLM_PROVIDER === "anthropic" ? `anthropic-${ANTHROPIC_MODEL}` : `ollama-${MODEL}`,
     },
     { headers, timeout: 30_000 },
   );
@@ -207,7 +245,11 @@ async function runOnce() {
 async function main() {
   console.log(`▶ ${WORKER_NAME} 시작`);
   console.log(`   site=${SCOREBASE}`);
-  console.log(`   ollama=${OLLAMA} model=${MODEL}`);
+  if (LLM_PROVIDER === "anthropic") {
+    console.log(`   provider=anthropic model=${ANTHROPIC_MODEL} key=${ANTHROPIC_KEY ? "set" : "MISSING"}`);
+  } else {
+    console.log(`   provider=ollama host=${OLLAMA} model=${MODEL}`);
+  }
   console.log(`   leagues=${LEAGUES.join(",")}`);
   console.log(`   refresh=${REFRESH_INTERVAL_MS / 1000}s, ttl=${SUMMARY_TTL_MS / 1000}s`);
 
