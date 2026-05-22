@@ -70,6 +70,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       league: { in: ALL_LEAGUES },
       startTime: { gte: liveWindow.past, lte: liveWindow.future },
       status: { in: ["SCHEDULED", "LIVE", "FINISHED"] },
+      // 콜론(":") 포함 externalId 는 Next.js URL 라우팅이 매칭 못 함 (TheSports
+      // 의 "ts:xxx" 패턴). sitemap 에 등록하면 검색엔진/봇이 404 만남 → 제외.
+      NOT: { externalId: { contains: ":" } },
     },
     select: { league: true, externalId: true, status: true, startTime: true, updatedAt: true },
     orderBy: { startTime: "desc" },
