@@ -13,6 +13,7 @@ import {
   type BaseballLinescoreData,
 } from "./BaseballLinescore";
 import BaseballLiveCard from "./baseball/BaseballLiveCard";
+import type { LiveCommentaryData } from "../live/LiveCommentaryBox";
 import BasketballCard from "./basketball/BasketballCard";
 import HockeyCard from "./hockey/HockeyCard";
 import EsportsCard from "./esports/EsportsCard";
@@ -58,6 +59,8 @@ export interface MatchCardProps {
   actions?: ReactNode;
   /** 축구 라이브 — 최근 1분 내 골 측 (점수 셀 노란 ring + pulse) */
   recentGoalSide?: "home" | "away" | null;
+  /** Ollama (Mac mini) 생성 라이브 코멘터리 — LIVE 야구 카드에 표시 */
+  liveCommentary?: LiveCommentaryData | null;
 }
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
@@ -114,6 +117,7 @@ export default function MatchCard(props: MatchCardProps) {
     href,
     actions,
     recentGoalSide,
+    liveCommentary,
   } = props;
 
   const isLive = status === "live";
@@ -139,6 +143,7 @@ export default function MatchCard(props: MatchCardProps) {
         awayStarter={awayStarter}
         href={href}
         actions={actions}
+        liveCommentary={liveCommentary}
       />
     );
   }

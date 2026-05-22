@@ -70,6 +70,7 @@ export default function FavoriteMatches({ matches }: Props) {
             awayStarter={m.awayStarter}
             href={m.href}
             actions={m.actions}
+            liveCommentary={m.liveCommentary}
           />
         ))}
       </ul>

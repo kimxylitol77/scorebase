@@ -17,7 +17,7 @@ export interface LiveCommentaryData {
 }
 
 interface Props extends LiveCommentaryData {
-  variant?: "default" | "inline";
+  variant?: "default" | "inline" | "card";
 }
 
 function timeAgoKo(at: Date | string): string {
@@ -68,6 +68,16 @@ export default function LiveCommentaryBox({
           {matchSummary}
         </p>
       </div>
+    );
+  }
+
+  // /scores 매치 카드 안 — 좁은 공간, 2줄 클램프 + 컴팩트 라벨
+  if (variant === "card") {
+    return (
+      <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-snug line-clamp-2 px-0.5">
+        <span className="font-semibold text-neutral-600 dark:text-neutral-300">AI ·</span>{" "}
+        {matchSummary}
+      </p>
     );
   }
 

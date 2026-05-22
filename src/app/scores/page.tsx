@@ -444,6 +444,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           where: { status: "PUBLISHED" },
           select: { slug: true, type: true },
         },
+        liveCommentary: true,
       },
       orderBy: { startTime: "asc" },
     }),
@@ -725,6 +726,14 @@ export default async function ScoresPage({ searchParams }: Props) {
             return null;
           })()
         : null,
+      liveCommentary:
+        isBaseball && m.liveCommentary
+          ? {
+              matchSummary: m.liveCommentary.matchSummary,
+              summaryAt: m.liveCommentary.summaryAt,
+              scoreSnapshot: m.liveCommentary.scoreSnapshot,
+            }
+          : null,
       preview,
       recap,
       href,
@@ -944,6 +953,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                     awayStarter: m.awayStarter,
                     href: m.href,
                     actions: actionsFor(m),
+                    liveCommentary: m.liveCommentary,
                   }))}
                 />
                 <SoccerRowLayout
@@ -1260,6 +1270,11 @@ type NormalizedMatch = {
   baseballCtx: BaseballContext | null;
   baseballLinescore: BaseballLinescoreData | null;
   periodLinescore: PeriodLinescoreData | null;
+  liveCommentary: {
+    matchSummary: string | null;
+    summaryAt: Date | string | null;
+    scoreSnapshot: string | null;
+  } | null;
   preview?: string;
   recap?: string;
   href: string | null;
@@ -1323,6 +1338,7 @@ function renderCard(m: NormalizedMatch) {
       awayStarter={m.awayStarter}
       href={m.href}
       actions={actionsFor(m)}
+      liveCommentary={m.liveCommentary}
     />
   );
 }

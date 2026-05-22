@@ -10,6 +10,9 @@ import type { BaseballContext } from "../BaseballMiniBoard";
 import FavoriteStar from "../FavoriteStar";
 import BaseDiamond from "./BaseDiamond";
 import OutCount from "./OutCount";
+import LiveCommentaryBox, {
+  type LiveCommentaryData,
+} from "../../live/LiveCommentaryBox";
 
 export interface BaseballLiveCardProps {
   matchId?: string | number;
@@ -26,6 +29,8 @@ export interface BaseballLiveCardProps {
   awayStarter?: string | null;
   href?: string | null;
   actions?: ReactNode;
+  /** Ollama (Mac mini) 생성 라이브 코멘터리 — LIVE 매치에만 표시 */
+  liveCommentary?: LiveCommentaryData | null;
 }
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
@@ -75,6 +80,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
     awayStarter,
     href,
     actions,
+    liveCommentary,
   } = props;
 
   const isLive = status === "live";
@@ -314,6 +320,10 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         <div className="text-center text-[11px] text-neutral-400 tabular-nums">
           KST {timeLabel}
         </div>
+      )}
+
+      {isLive && liveCommentary && (
+        <LiveCommentaryBox {...liveCommentary} variant="card" />
       )}
 
       {actions && (
