@@ -360,11 +360,12 @@ export default async function ScoresPage({ searchParams }: Props) {
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
 
-  // 7m 스타일 — 선택 일자 기준 어제 + 그날 + 내일 한 번에 표시.
-  // KST 자정 boundary 시차 매치 (북미 야구/축구) 누락 회피.
-  // DateSlider 로 일자 이동해도 동일 ±1일 윈도우 (자연스러운 navigation).
-  const rangeStart = new Date(day.getTime() - 24 * 3600 * 1000);
-  const rangeEnd = new Date(day.getTime() + 48 * 3600 * 1000);
+  // 축구만 ±1일 윈도우 — KST 자정 boundary 시차 매치 (유럽/북미) 누락 회피.
+  // 야구/농구/하키/롤은 선택 일자만 표시 (자정 시차 영향 적고 일자별 보기 깔끔).
+  const soccerRangeStart = new Date(day.getTime() - 24 * 3600 * 1000);
+  const soccerRangeEnd = new Date(day.getTime() + 48 * 3600 * 1000);
+  const soccerWindow = { gte: soccerRangeStart, lt: soccerRangeEnd };
+  const dayWindow = { gte: day, lt: dayEnd };
 
   // 야구 카테고리 (또는 전체) 일 때만 종료 매치용 innings 추가 fetch.
   const needsBaseballDetails =
@@ -392,8 +393,6 @@ export default async function ScoresPage({ searchParams }: Props) {
   ] = await Promise.all([
     prisma.match.findMany({
       where: {
-        league: { in: leagues },
-        startTime: { gte: rangeStart, lt: rangeEnd },
         status: { not: "POSTPONED" },
         // TBD placeholder 매치 영구 제외 (NBA/NHL 컨퍼런스 파이널 차기 라운드 미정 등).
         // status=LIVE 로 잘못 cron update 되더라도 페이지에선 항상 hide.
@@ -404,6 +403,28 @@ export default async function ScoresPage({ searchParams }: Props) {
           { homeTeam: { is: { name: { not: { contains: "/" } } } } },
           { awayTeam: { is: { name: { not: { contains: "/" } } } } },
         ],
+        // 축구만 ±1일 윈도우, 그 외 종목은 선택 일자만.
+        // "all" 탭은 OR 로 분기, 단일 종목/리그 탭은 단일 윈도우.
+        ...(sport === "all" && !leagueFilter
+          ? {
+              OR: [
+                {
+                  league: { in: leagues.filter((l) => SOCCER_LEAGUES.has(l)) },
+                  startTime: soccerWindow,
+                },
+                {
+                  league: { in: leagues.filter((l) => !SOCCER_LEAGUES.has(l)) },
+                  startTime: dayWindow,
+                },
+              ],
+            }
+          : {
+              league: { in: leagues },
+              startTime:
+                (leagueFilter ? SOCCER_LEAGUES.has(leagueFilter) : sport === "soccer")
+                  ? soccerWindow
+                  : dayWindow,
+            }),
       },
       include: {
         homeTeam: true,
