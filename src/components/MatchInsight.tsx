@@ -345,11 +345,10 @@ export default async function MatchInsight({ match }: Props) {
 
   if (dataSparse) {
     return (
-      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-6 my-10 space-y-4">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">
-          <span className="text-base">📊</span>
+      <section className="my-10 space-y-4 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-zinc-500 dark:text-white/45">
           <span>매치 인사이트</span>
-          <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
+          <span className="text-[10px] font-medium normal-case tracking-normal text-zinc-400 dark:text-white/35">
             · 시즌 초반 데이터 누적 중 ({eloTable.processed}경기)
           </span>
         </div>
@@ -403,28 +402,31 @@ export default async function MatchInsight({ match }: Props) {
     })();
 
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-6 my-10 space-y-8">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-base">📊</span>
-          <h3 className="font-bold tracking-tight">매치 인사이트</h3>
+    <section className="my-10 space-y-8 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-bold tracking-tight text-zinc-950 dark:text-white">
+            매치 인사이트
+          </h3>
           {isStrongPick && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-sm">
-              ⭐ Strong Pick
+            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
+              Strong Pick
             </span>
           )}
           {isValueBet && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm">
-              💎 Value Bet
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-300/30">
+              Value Bet
             </span>
           )}
           {marketBlended && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800">
-              📈 시장 odds 반영
+            <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700 ring-1 ring-black/5 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10">
+              시장 odds 반영
             </span>
           )}
         </div>
-        <span className="text-xs font-medium text-neutral-500">{summary}</span>
+        <span className="text-xs font-medium text-zinc-500 dark:text-white/45">
+          {summary}
+        </span>
       </div>
 
       {/* 선발 투수 (MLB · KBO · NPB) */}
@@ -465,7 +467,7 @@ export default async function MatchInsight({ match }: Props) {
             goalsAgainst: homeRow.goalsAgainst,
             attackRank: homeAttackRank,
             defenseRank: homeDefenseRank,
-            splitLabel: "🏠 홈",
+            splitLabel: "홈",
             splitPlayed: homeHA.home.played,
             splitWins: homeHA.home.wins,
             splitDraws: homeHA.home.draws,
@@ -494,7 +496,7 @@ export default async function MatchInsight({ match }: Props) {
             goalsAgainst: awayRow.goalsAgainst,
             attackRank: awayAttackRank,
             defenseRank: awayDefenseRank,
-            splitLabel: "✈ 원정",
+            splitLabel: "원정",
             splitPlayed: awayHA.away.played,
             splitWins: awayHA.away.wins,
             splitDraws: awayHA.away.draws,
@@ -719,8 +721,16 @@ export default async function MatchInsight({ match }: Props) {
             leagueAvgGA={leagueAvgGA}
           />
           <div className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
-            오른쪽 위로 갈수록 좋음. 점선은 리그 평균. 🟦 {toKoreanTeamName(match.homeTeam.name)},{" "}
-            🟥 {toKoreanTeamName(match.awayTeam.name)}
+            오른쪽 위로 갈수록 좋음. 점선은 리그 평균.{" "}
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-sm bg-blue-500" />
+              {toKoreanTeamName(match.homeTeam.name)}
+            </span>
+            ,{" "}
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-sm bg-rose-500" />
+              {toKoreanTeamName(match.awayTeam.name)}
+            </span>
           </div>
         </Section>
       )}
@@ -766,7 +776,7 @@ function Section({
 }) {
   return (
     <div>
-      <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-white/45">
         {title}
       </div>
       {children}
@@ -781,17 +791,15 @@ function dcPickLabel(pick: DcPick, homeName: string, awayName: string): string {
   return "무승부 제외";
 }
 
+const TONE_CARD =
+  "bg-zinc-50 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10";
+
 const TONE_CLASSES = {
-  blue:
-    "border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-950/30",
-  emerald:
-    "border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/30",
-  orange:
-    "border-orange-200 dark:border-orange-900/40 bg-orange-50/60 dark:bg-orange-950/30",
-  pink:
-    "border-pink-200 dark:border-pink-900/40 bg-pink-50/60 dark:bg-pink-950/30",
-  violet:
-    "border-violet-200 dark:border-violet-900/40 bg-violet-50/60 dark:bg-violet-950/30",
+  blue: TONE_CARD,
+  emerald: TONE_CARD,
+  orange: TONE_CARD,
+  pink: TONE_CARD,
+  violet: TONE_CARD,
 } as const;
 const TONE_TEXT = {
   blue: "text-blue-700 dark:text-blue-300",
@@ -961,17 +969,17 @@ function MarketCompareTable({
 
   return (
     <div>
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+      <div className="overflow-hidden rounded-[1rem] ring-1 ring-black/5 dark:ring-white/10">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-[11px] uppercase tracking-wider text-neutral-500">
+          <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500 dark:bg-white/[0.04] dark:text-white/45">
             <tr>
-              <th className="text-left px-3 py-2 font-semibold">결과</th>
-              <th className="text-right px-3 py-2 font-semibold">AI 모델</th>
-              <th className="text-right px-3 py-2 font-semibold">시장</th>
-              <th className="text-right px-3 py-2 font-semibold">차이</th>
+              <th className="px-3 py-2 text-left font-semibold">결과</th>
+              <th className="px-3 py-2 text-right font-semibold">AI 모델</th>
+              <th className="px-3 py-2 text-right font-semibold">시장</th>
+              <th className="px-3 py-2 text-right font-semibold">차이</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          <tbody className="divide-y divide-black/5 dark:divide-white/10">
             {rows.map((r) => {
               const gap = r.model - r.market;
               const isValue = gap >= 0.05;
@@ -1000,7 +1008,6 @@ function MarketCompareTable({
                     >
                       {gap > 0 ? "+" : ""}
                       {Math.round(gap * 100)}%p
-                      {isValue && " ✨"}
                     </span>
                   </td>
                 </tr>
@@ -1009,9 +1016,9 @@ function MarketCompareTable({
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-[11px] text-neutral-500">
-        시장 평균 = {bookmakers}개 베팅사이트 odds(vig 제거) · ✨ = AI 가 시장보다
-        5%p+ 자신 있는 결과 (Value Bet 후보)
+      <p className="mt-2 text-[11px] text-zinc-500 dark:text-white/45">
+        시장 평균 = {bookmakers}개 베팅사이트 odds(vig 제거) · 초록 표시 = AI 가
+        시장보다 5%p+ 자신 있는 결과 (Value Bet 후보)
       </p>
     </div>
   );
@@ -1034,7 +1041,7 @@ function MarketCard({
 }) {
   return (
     <div
-      className={`rounded-xl border ${TONE_CLASSES[tone]} p-3.5 flex flex-col gap-1.5`}
+      className={`flex flex-col gap-1.5 rounded-[1rem] p-3.5 ${TONE_CLASSES[tone]}`}
     >
       <div className="flex items-center justify-between">
         <div className={`text-[11px] font-semibold uppercase tracking-wider ${TONE_TEXT[tone]}`}>
@@ -1042,25 +1049,25 @@ function MarketCard({
         </div>
         {isFinished && correct !== null && (
           <span
-            className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+            className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
               correct
                 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                 : "bg-rose-500/15 text-rose-700 dark:text-rose-400"
             }`}
           >
-            {correct ? "✓ 적중" : "✗ 빗나감"}
+            {correct ? "적중" : "빗나감"}
           </span>
         )}
       </div>
-      <div className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+      <div className="truncate text-sm font-bold text-zinc-950 dark:text-white">
         {pick}
       </div>
       <div className="flex items-baseline gap-1.5">
-        <span className="text-2xl font-bold tabular-nums">
+        <span className="text-2xl font-bold tabular-nums text-zinc-950 dark:text-white">
           {Math.round(prob * 100)}
-          <span className="text-sm text-neutral-500">%</span>
+          <span className="text-sm text-zinc-500 dark:text-white/45">%</span>
         </span>
-        <span className="text-[10px] text-neutral-500">추정 확률</span>
+        <span className="text-[10px] text-zinc-500 dark:text-white/45">추정 확률</span>
       </div>
     </div>
   );
@@ -1096,12 +1103,11 @@ function StarterCard({
         : "MLB Stats API · 시즌 누적";
 
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 space-y-3">
-      <div className="flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-neutral-500">
-        <span>⚾</span>
+    <div className="space-y-3 rounded-[1rem] bg-zinc-50 p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-zinc-500 dark:text-white/45">
         <span>오늘의 선발 매치업</span>
-        <span className="text-neutral-300 dark:text-neutral-700">·</span>
-        <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
+        <span className="text-zinc-300 dark:text-white/20">·</span>
+        <span className="text-[10px] font-medium normal-case tracking-normal text-zinc-400 dark:text-white/35">
           {sourceLabel}
         </span>
       </div>
@@ -1146,9 +1152,9 @@ function StarterPanel({
 }) {
   if (!starter) {
     return (
-      <div className="rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 px-3 py-3 text-sm">
-        <div className="text-[11px] text-neutral-500">{side} · {teamName}</div>
-        <div className="mt-1 text-neutral-400">선발 미정</div>
+      <div className="rounded-[0.75rem] border border-dashed border-zinc-300 px-3 py-3 text-sm dark:border-white/15">
+        <div className="text-[11px] text-zinc-500 dark:text-white/45">{side} · {teamName}</div>
+        <div className="mt-1 text-zinc-400 dark:text-white/35">선발 미정</div>
       </div>
     );
   }
@@ -1161,13 +1167,13 @@ function StarterPanel({
 
   return (
     <div
-      className={`rounded-lg border px-3 py-3 ${
+      className={`rounded-[0.875rem] px-3 py-3 ring-1 ${
         highlight
-          ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-500/5"
-          : "border-neutral-200 dark:border-neutral-800"
+          ? "bg-emerald-500/5 ring-emerald-500/30 dark:bg-emerald-500/10 dark:ring-emerald-400/30"
+          : "ring-black/5 dark:ring-white/10"
       }`}
     >
-      <div className="flex items-center justify-between text-[11px] text-neutral-500">
+      <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-white/45">
         <span>{side} · {teamName}</span>
         {handLabel && <span>{handLabel}</span>}
       </div>
@@ -1228,9 +1234,11 @@ function StarterPanel({
 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded bg-neutral-50 dark:bg-neutral-900 px-1 py-1.5">
-      <div className="text-[10px] text-neutral-500">{label}</div>
-      <div className="text-sm font-bold tabular-nums">{value}</div>
+    <div className="rounded-md bg-white px-1 py-1.5 ring-1 ring-black/5 dark:bg-white/[0.06] dark:ring-white/10">
+      <div className="text-[10px] text-zinc-500 dark:text-white/45">{label}</div>
+      <div className="text-sm font-bold tabular-nums text-zinc-950 dark:text-white">
+        {value}
+      </div>
     </div>
   );
 }
@@ -1260,12 +1268,11 @@ function GoalieCard({
     home?.gaa != null && away?.gaa != null && away.gaa < home.gaa;
 
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 space-y-3">
-      <div className="flex items-center gap-2 text-xs font-bold tracking-[0.18em] uppercase text-neutral-500">
-        <span>🏒</span>
+    <div className="space-y-3 rounded-[1rem] bg-zinc-50 p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-zinc-500 dark:text-white/45">
         <span>예상 시작 골리</span>
-        <span className="text-neutral-300 dark:text-neutral-700">·</span>
-        <span className="text-[10px] font-medium normal-case tracking-normal text-neutral-400">
+        <span className="text-zinc-300 dark:text-white/20">·</span>
+        <span className="text-[10px] font-medium normal-case tracking-normal text-zinc-400 dark:text-white/35">
           NHL 공식 API · 시즌 best goalie
         </span>
       </div>
@@ -1317,13 +1324,13 @@ function GoaliePanel({
 
   return (
     <div
-      className={`rounded-lg border px-3 py-3 ${
+      className={`rounded-[0.875rem] px-3 py-3 ring-1 ${
         highlight
-          ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/40 dark:bg-emerald-500/5"
-          : "border-neutral-200 dark:border-neutral-800"
+          ? "bg-emerald-500/5 ring-emerald-500/30 dark:bg-emerald-500/10 dark:ring-emerald-400/30"
+          : "ring-black/5 dark:ring-white/10"
       }`}
     >
-      <div className="flex items-center justify-between text-[11px] text-neutral-500">
+      <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-white/45">
         <span>
           {side} · {teamName}
         </span>
