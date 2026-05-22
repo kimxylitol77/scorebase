@@ -397,11 +397,16 @@ export default async function ScoresPage({ searchParams }: Props) {
         // TBD placeholder 매치 영구 제외 (NBA/NHL 컨퍼런스 파이널 차기 라운드 미정 등).
         // status=LIVE 로 잘못 cron update 되더라도 페이지에선 항상 hide.
         // "Sabres/Canadiens" 같은 슬래시 포함 placeholder (NHL 다음 라운드 미정) 도 제외.
+        // 선택 일자 이전(어제)의 FINISHED 매치 제외 — 이미 끝난 어제 경기는 노출 X.
+        // 자정 boundary 라이브/예정 매치는 유지 (status != FINISHED).
         AND: [
           { homeTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
           { awayTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
           { homeTeam: { is: { name: { not: { contains: "/" } } } } },
           { awayTeam: { is: { name: { not: { contains: "/" } } } } },
+          {
+            NOT: { status: "FINISHED", startTime: { lt: day } },
+          },
         ],
         // 축구만 ±1일 윈도우, 그 외 종목은 선택 일자만.
         // "all" 탭은 OR 로 분기, 단일 종목/리그 탭은 단일 윈도우.
@@ -1206,7 +1211,7 @@ function SoccerRowLayout({
       <div className="md:hidden space-y-4">
         {groups.map((g) => (
           <section key={g.day} className="space-y-2">
-            <div className="rounded-md bg-blue-700 text-white text-center text-[12px] font-bold py-1.5 tabular-nums">
+            <div className="rounded-md border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-center text-[12px] font-bold py-1.5 tabular-nums">
               {g.label}
             </div>
             <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
@@ -1223,7 +1228,7 @@ function SoccerRowLayout({
           <SoccerLiveRowHeader />
           {groups.map((g) => (
             <div key={g.day}>
-              <div className="bg-blue-700 text-white text-center text-[13px] font-bold py-1.5 my-2 rounded-md tabular-nums">
+              <div className="border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-center text-[13px] font-bold py-1.5 my-2 rounded-md tabular-nums">
                 {g.label}
               </div>
               {g.items.map(renderRow)}
