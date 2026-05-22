@@ -188,7 +188,7 @@ export default async function SeasonInsight({ league }: Props) {
       : 0;
 
   return (
-    <section className="overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+    <section className="flex h-full flex-col overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       {/* 헤더 */}
       <div className="border-b border-black/5 px-6 pt-6 pb-5 dark:border-white/10">
         <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-white/45">
@@ -205,7 +205,7 @@ export default async function SeasonInsight({ league }: Props) {
       </div>
 
       {/* 본문 */}
-      <div className="p-6 space-y-5">
+      <div className="flex flex-1 flex-col space-y-5 p-6">
         {/* 분석 글 — 자연 한국어 문장 */}
         <div className="prose prose-neutral dark:prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-strong:text-neutral-900 dark:prose-strong:text-white">
           <p>
@@ -322,7 +322,7 @@ export default async function SeasonInsight({ league }: Props) {
         </div>
 
         {/* 액션 링크 */}
-        <div className="flex flex-wrap gap-2 border-t border-black/5 pt-3 dark:border-white/10">
+        <div className="mt-auto flex flex-wrap gap-2 border-t border-black/5 pt-3 dark:border-white/10">
           <LeagueBadge league={league} />
           <Link
             href={`/predictions/${league}`}
