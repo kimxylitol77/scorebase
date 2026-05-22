@@ -5,6 +5,8 @@
 import { K_LEAGUE_PLAYER_NAMES_KO } from "./sports/k-league-player-names";
 import { J_LEAGUE_PLAYER_NAMES_KO } from "./sports/j-league-player-names";
 import { NBA_PLAYER_NAMES_KO } from "./sports/nba-player-names";
+import { NBA_PLAYER_NAMES_WIKI_KO } from "./sports/nba-player-names-wiki";
+import { MLB_PLAYER_NAMES_KO } from "./sports/mlb-player-names";
 import { MLS_PLAYER_NAMES_KO } from "./sports/mls-player-names";
 import { ESPN_LEADER_NAMES_KO } from "./sports/espn-leader-names";
 
@@ -1980,6 +1982,8 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   if (K_LEAGUE_PLAYER_NAMES_KO[trimmed]) return K_LEAGUE_PLAYER_NAMES_KO[trimmed];
   if (J_LEAGUE_PLAYER_NAMES_KO[trimmed]) return J_LEAGUE_PLAYER_NAMES_KO[trimmed];
   if (NBA_PLAYER_NAMES_KO[trimmed]) return NBA_PLAYER_NAMES_KO[trimmed];
+  if (NBA_PLAYER_NAMES_WIKI_KO[trimmed]) return NBA_PLAYER_NAMES_WIKI_KO[trimmed];
+  if (MLB_PLAYER_NAMES_KO[trimmed]) return MLB_PLAYER_NAMES_KO[trimmed];
   if (MLS_PLAYER_NAMES_KO[trimmed]) return MLS_PLAYER_NAMES_KO[trimmed];
   if (ESPN_LEADER_NAMES_KO[trimmed]) return ESPN_LEADER_NAMES_KO[trimmed];
   if (RAW[trimmed]) return RAW[trimmed];
