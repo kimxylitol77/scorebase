@@ -40,7 +40,7 @@ export default function HeroSection() {
             href="/predictions"
             className="btn-primary w-full sm:w-auto justify-center"
           >
-            📊 시즌 예측 대시보드
+            시즌 예측 대시보드
           </Link>
           <Link
             href="/scores"
