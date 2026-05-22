@@ -34,7 +34,13 @@ const os = require("os");
 // ── config ────────────────────────────────────────────────────
 const SCOREBASE = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
-const OLLAMA = process.env.OLLAMA_HOST || "http://localhost:11434";
+// launchd 환경에 Ollama 앱이 OLLAMA_HOST=0.0.0.0:11434 (listen 주소) 를 미리 set 해놓는
+// 경우 있음 — 스킴 보강 + 0.0.0.0 (outbound 불가) 을 localhost 로 정규화.
+const OLLAMA = (() => {
+  const raw = process.env.OLLAMA_HOST || "http://localhost:11434";
+  const withScheme = /^https?:\/\//.test(raw) ? raw : `http://${raw}`;
+  return withScheme.replace(/^https?:\/\/0\.0\.0\.0(?=[:/]|$)/, "http://localhost");
+})();
 const MODEL = process.env.OLLAMA_MODEL || "qwen2.5:14b";
 const LEAGUES = (process.env.LEAGUES || "KBO,NPB,MLB").split(",").map((s) => s.trim());
 
