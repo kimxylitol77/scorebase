@@ -18,6 +18,7 @@ const BOT_INTERVAL_MS: Record<string, number> = {
   "mac-mini-match-narrator": 5 * 60 * 1000,
   "mac-mini-endpoint-monitor": 5 * 60 * 1000,
   "mac-mini-live-scores-watcher": 60 * 1000,
+  "mac-mini-live-scores": 60 * 1000,
   "mac-mini-data-quality": 15 * 60 * 1000,
   "mac-mini-api-quota": 30 * 60 * 1000,
   "mac-mini-preview-coverage": 30 * 60 * 1000,

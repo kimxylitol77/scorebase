@@ -56,6 +56,11 @@ const BOT_META: Record<
     intervalMs: 60 * 1000,
     role: "1분 주기 라이브 데이터 sanity check",
   },
+  "mac-mini-live-scores": {
+    ko: "라이브 스코어 감시",
+    intervalMs: 60 * 1000,
+    role: "1분 주기 라이브 데이터 sanity check",
+  },
   "mac-mini-data-quality": {
     ko: "데이터 품질",
     intervalMs: 15 * 60 * 1000,
@@ -239,12 +244,12 @@ export default async function HealthPage() {
   // 채팅 messages 생성 — 좌측 = 봇 보고, 우측 = AI 종합
   const chat: ChatMessage[] = [];
 
-  // 1) 각 봇이 한 줄씩 보고 (정상은 묶어서 요약)
+  // 1) 각 봇이 한 줄씩 보고 (정상은 묶어서 요약). BOT_META 누락 봇도 fallback 표시.
+  const metaOf = (name: string) =>
+    BOT_META[name] ?? { ko: name, intervalMs: 60 * 60 * 1000, role: "(미등록)" };
   if (downCount > 0 || lagCount > 0) {
-    // 다운/지연 봇만 개별 메시지
     for (const b of bots) {
-      const meta = BOT_META[b.name];
-      if (!meta) continue;
+      const meta = metaOf(b.name);
       const age = Date.now() - b.lastAt.getTime();
       const s = botStatus(age, meta.intervalMs);
       if (s.label === "정상") continue;
@@ -258,12 +263,10 @@ export default async function HealthPage() {
       });
     }
   }
-  // 정상 봇은 한 묶음
   if (okCount > 0) {
     const okBots = bots
       .map((b) => {
-        const meta = BOT_META[b.name];
-        if (!meta) return null;
+        const meta = metaOf(b.name);
         const age = Date.now() - b.lastAt.getTime();
         const s = botStatus(age, meta.intervalMs);
         return s.label === "정상" ? meta.ko : null;
@@ -272,8 +275,18 @@ export default async function HealthPage() {
     chat.push({
       side: "bot",
       name: `정상 작동 ${okCount}봇`,
-      text: okBots.join(" · "),
+      text: okBots.length > 0 ? okBots.join(" · ") : `${okCount}개 봇 정상`,
       tone: "ok",
+      at: new Date().toISOString(),
+    });
+  }
+  // 봇 자체가 0개면 fallback 안내
+  if (bots.length === 0) {
+    chat.push({
+      side: "bot",
+      name: "heartbeat 시스템",
+      text: "등록된 봇이 없습니다. Mac mini launchd 또는 internal heartbeat 호출 확인 필요.",
+      tone: "warn",
       at: new Date().toISOString(),
     });
   }
