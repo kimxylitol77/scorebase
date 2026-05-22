@@ -493,46 +493,46 @@ export default async function ArticlePage({ params }: Props) {
       </div>
 
       {article.match && (
-        <div className="mb-8 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 sm:p-6 bg-neutral-50 dark:bg-neutral-900">
+        <div className="mb-8 rounded-[1.5rem] sm:rounded-[2rem] bg-zinc-100 p-5 sm:p-6 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
             {/* 홈 팀 */}
             <Link
               href={`/teams/${article.match.homeTeam.id}`}
-              className="group flex flex-col items-center text-center hover:opacity-90 transition"
+              className="group flex flex-col items-center text-center transition hover:opacity-90"
             >
               <TeamLogo
                 src={article.match.homeTeam.logoUrl}
                 name={article.match.homeTeam.name}
               />
-              <div className="mt-2 font-semibold text-sm sm:text-base group-hover:underline truncate max-w-full">
+              <div className="mt-2 max-w-full truncate text-sm font-semibold group-hover:underline sm:text-base">
                 {toKoreanTeamName(article.match.homeTeam.name, article.league)}
               </div>
-              <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 font-medium">
-                🏠 홈
+              <div className="mt-0.5 text-[10px] font-medium text-zinc-500 sm:text-xs dark:text-white/45">
+                홈
               </div>
             </Link>
 
             {/* 스코어 */}
-            <div className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight whitespace-nowrap">
+            <div className="whitespace-nowrap text-3xl font-semibold tabular-nums tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
               {article.match.homeScore ?? "-"}
-              <span className="text-neutral-400 mx-2 sm:mx-3">:</span>
+              <span className="mx-2 text-zinc-400 sm:mx-3 dark:text-white/30">:</span>
               {article.match.awayScore ?? "-"}
             </div>
 
             {/* 원정 팀 */}
             <Link
               href={`/teams/${article.match.awayTeam.id}`}
-              className="group flex flex-col items-center text-center hover:opacity-90 transition"
+              className="group flex flex-col items-center text-center transition hover:opacity-90"
             >
               <TeamLogo
                 src={article.match.awayTeam.logoUrl}
                 name={article.match.awayTeam.name}
               />
-              <div className="mt-2 font-semibold text-sm sm:text-base group-hover:underline truncate max-w-full">
+              <div className="mt-2 max-w-full truncate text-sm font-semibold group-hover:underline sm:text-base">
                 {toKoreanTeamName(article.match.awayTeam.name, article.league)}
               </div>
-              <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 font-medium">
-                ✈ 원정
+              <div className="mt-0.5 text-[10px] font-medium text-zinc-500 sm:text-xs dark:text-white/45">
+                원정
               </div>
             </Link>
           </div>
@@ -673,25 +673,22 @@ function AiDisclosure({ league, type }: { league: string; type: string }) {
     type === "PREVIEW" ? "프리뷰" : type === "RECAP" ? "리뷰" : "분석";
 
   return (
-    <aside className="mt-8 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30 px-5 py-4 text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-      <div className="flex items-start gap-2">
-        <span className="text-base leading-none mt-0.5">🤖</span>
-        <div className="space-y-1">
-          <p>
-            <strong className="text-neutral-700 dark:text-neutral-300">
-              AI · 데이터 협업 작성
-            </strong>{" "}
-            본 {typeLabel} 글은 데이터 분석 모델(Elo 레이팅 · Monte Carlo
-            시뮬레이션 · 마켓 odds blending)과 AI(OpenAI gpt-4o-mini)가
-            협업해 작성됐으며, 운영진의 모니터링 하에 발행됩니다.
-          </p>
-          <p>
-            <strong className="text-neutral-700 dark:text-neutral-300">데이터 출처</strong>
-            {" — "}
-            {sources.join(" · ")}. 모든 통계는 매치 시점 기준으로
-            계산되며 결과는 모델 추정치로 베팅 결과를 보장하지 않습니다.
-          </p>
-        </div>
+    <aside className="mt-8 rounded-[1.25rem] bg-zinc-100 px-5 py-4 text-xs leading-relaxed text-zinc-600 ring-1 ring-black/5 dark:bg-white/[0.04] dark:text-white/55 dark:ring-white/10">
+      <div className="space-y-1">
+        <p>
+          <strong className="text-zinc-900 dark:text-white">
+            AI · 데이터 협업 작성
+          </strong>{" "}
+          본 {typeLabel} 글은 데이터 분석 모델(Elo 레이팅 · Monte Carlo
+          시뮬레이션 · 마켓 odds blending)과 AI(OpenAI gpt-4o-mini)가
+          협업해 작성됐으며, 운영진의 모니터링 하에 발행됩니다.
+        </p>
+        <p>
+          <strong className="text-zinc-900 dark:text-white">데이터 출처</strong>
+          {" — "}
+          {sources.join(" · ")}. 모든 통계는 매치 시점 기준으로
+          계산되며 결과는 모델 추정치로 베팅 결과를 보장하지 않습니다.
+        </p>
       </div>
     </aside>
   );
@@ -706,21 +703,16 @@ function ExternalSources({ league }: { league: string }) {
   if (links.length === 0) return null;
 
   return (
-    <aside className="mt-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-5 py-4 text-xs">
-      <div className="flex items-start gap-2">
-        <span className="text-base leading-none mt-0.5">🔗</span>
-        <div className="flex-1">
-          <div className="text-neutral-500 dark:text-neutral-400 font-medium mb-1.5">
-            참고 출처
-          </div>
-          <ul className="space-y-1">
-            {links.map((l) => (
-              <li key={l.url} className="flex items-center gap-2 leading-relaxed">
-                <span className="text-neutral-400">·</span>
-                <span className="text-neutral-600 dark:text-neutral-400">
-                  {l.label}
-                </span>
-                <span className="text-neutral-300 dark:text-neutral-700">—</span>
+    <aside className="mt-3 rounded-[1.25rem] bg-white px-5 py-4 text-xs shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+      <div className="mb-1.5 font-medium text-zinc-500 dark:text-white/45">
+        참고 출처
+      </div>
+      <ul className="space-y-1">
+        {links.map((l) => (
+          <li key={l.url} className="flex items-center gap-2 leading-relaxed">
+            <span className="text-zinc-400 dark:text-white/35">·</span>
+            <span className="text-zinc-600 dark:text-white/70">{l.label}</span>
+            <span className="text-zinc-300 dark:text-white/20">—</span>
                 <a
                   href={l.url}
                   target="_blank"
@@ -744,12 +736,10 @@ function ExternalSources({ league }: { league: string }) {
                       strokeLinejoin="round"
                     />
                   </svg>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+            </a>
+          </li>
+        ))}
+      </ul>
     </aside>
   );
 }
