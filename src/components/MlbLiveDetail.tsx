@@ -435,11 +435,6 @@ export default function MlbLiveDetail({
           </div>
         )}
 
-        {/* Pitch-by-Pitch / At-Bat 결과 timeline (LIVE 만) */}
-        {isLive && live.plays && live.plays.length > 0 && (
-          <PlayByPlayBox plays={live.plays} />
-        )}
-
         {/* 이닝 박스 (LIVE/종료) */}
         {live.linescore && live.linescore.home.length > 0 && (
           <div className="-mx-1 px-1">
@@ -493,6 +488,11 @@ export default function MlbLiveDetail({
               </tbody>
             </table>
           </div>
+        )}
+
+        {/* Pitch-by-Pitch / At-Bat 결과 timeline (LIVE 만) — 이닝 박스 아래 */}
+        {isLive && live.plays && live.plays.length > 0 && (
+          <PlayByPlayBox plays={live.plays} />
         )}
       </div>
 
