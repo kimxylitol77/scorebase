@@ -16,7 +16,10 @@ export const metadata: Metadata = {
 };
 
 interface LeagueCard {
+  /** 카드 전체 클릭 시 이동할 primary 리그 (다중 리그 카드는 첫번째) */
   code: string;
+  /** 카드에 함께 표시할 리그들 (1개 또는 2개). 단독 리그면 [code] */
+  codes?: Array<{ code: string; label: string }>;
   name: string;
   subtitle: string;
   flag: string;
@@ -24,12 +27,31 @@ interface LeagueCard {
 }
 
 // 한국 시청자 우선 정렬 — 한국·아시아 → 유럽 → 북미.
+// K1+K2, J1+J2 는 한 카드에 묶음 (mini standings 두 섹션).
 const LEAGUES: LeagueCard[] = [
-  { code: "K_LEAGUE_1", name: "K리그1", subtitle: "한국 1부", flag: "🇰🇷", gradient: "from-red-600 via-blue-600 to-slate-900" },
-  { code: "K_LEAGUE_2", name: "K리그2", subtitle: "한국 2부", flag: "🇰🇷", gradient: "from-slate-600 via-blue-700 to-red-600" },
+  {
+    code: "K_LEAGUE_1",
+    codes: [
+      { code: "K_LEAGUE_1", label: "K리그1" },
+      { code: "K_LEAGUE_2", label: "K리그2" },
+    ],
+    name: "K리그",
+    subtitle: "한국 프로축구 1·2부",
+    flag: "🇰🇷",
+    gradient: "from-red-600 via-blue-600 to-slate-900",
+  },
   { code: "KBO", name: "KBO 리그", subtitle: "한국 프로야구", flag: "🇰🇷", gradient: "from-blue-600 via-indigo-600 to-rose-500" },
-  { code: "J1_LEAGUE", name: "J1리그", subtitle: "일본 1부", flag: "🇯🇵", gradient: "from-red-600 via-rose-500 to-pink-500" },
-  { code: "J2_LEAGUE", name: "J2리그", subtitle: "일본 2부", flag: "🇯🇵", gradient: "from-pink-500 via-rose-400 to-amber-400" },
+  {
+    code: "J1_LEAGUE",
+    codes: [
+      { code: "J1_LEAGUE", label: "J1리그" },
+      { code: "J2_LEAGUE", label: "J2리그" },
+    ],
+    name: "J리그",
+    subtitle: "일본 프로축구 1·2부",
+    flag: "🇯🇵",
+    gradient: "from-red-600 via-rose-500 to-pink-500",
+  },
   { code: "NPB", name: "NPB 리그", subtitle: "일본 프로야구", flag: "🇯🇵", gradient: "from-red-600 via-rose-500 to-pink-500" },
   { code: "AFC_CL", name: "AFC 챔스 엘리트", subtitle: "아시아 최상위 클럽", flag: "🌏", gradient: "from-emerald-600 via-teal-600 to-cyan-500" },
   { code: "LOL", name: "LCK", subtitle: "리그 오브 레전드 한국", flag: "🎮", gradient: "from-rose-500 via-fuchsia-600 to-indigo-600" },
@@ -57,9 +79,14 @@ interface TopThreeEntry {
 }
 
 async function fetchTop3Map(): Promise<Map<string, TopThreeEntry[]>> {
-  const codes = LEAGUES.map((l) => l.code);
+  // 단일 + 다중 카드 모두 cover — 각 카드의 codes (or [code]) 모두 fetch
+  const allCodes = new Set<string>();
+  for (const lg of LEAGUES) {
+    if (lg.codes) for (const c of lg.codes) allCodes.add(c.code);
+    else allCodes.add(lg.code);
+  }
   const results = await Promise.all(
-    codes.map(async (league) => {
+    Array.from(allCodes).map(async (league) => {
       const rows = await getFullStandings(league);
       if (rows.length === 0) return [league, [] as TopThreeEntry[]] as const;
       const top3 = rows.slice(0, 3);
@@ -104,49 +131,83 @@ export default async function PredictionsRoot() {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {LEAGUES.map((lg) => {
-          const top3 = top3Map.get(lg.code) ?? [];
+          const subList = lg.codes ?? [{ code: lg.code, label: lg.name }];
+          const isMulti = subList.length > 1;
           return (
-            <Link
+            <div
               key={lg.code}
-              href={`/predictions/${lg.code}`}
-              className="group rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 hover:-translate-y-0.5 hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-sm transition-all relative overflow-hidden"
+              className="rounded-xl border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors relative overflow-hidden"
             >
               <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${lg.gradient}`} />
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl">{lg.flag}</span>
-                <h3 className="text-lg font-bold tracking-tight group-hover:underline underline-offset-4 decoration-2">
-                  {lg.name}
-                </h3>
-              </div>
-              <div className="mt-1 text-xs text-neutral-500">{lg.subtitle}</div>
-              {top3.length > 0 ? (
-                <div className="mt-3 space-y-1">
-                  {top3.map((t) => (
-                    <div key={t.teamId} className="flex items-center justify-between gap-2 text-xs">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="font-bold text-neutral-400 tabular-nums w-4 text-center">
-                          {t.position}
-                        </span>
-                        <span className="truncate text-neutral-700 dark:text-neutral-300">
-                          {t.name}
-                        </span>
-                      </div>
-                      <span className="tabular-nums font-semibold text-neutral-500 shrink-0">
-                        {t.points}p
-                      </span>
+              <Link href={`/predictions/${lg.code}`} className="block group p-5 pb-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl">{lg.flag}</span>
+                  <h3 className="text-lg font-bold tracking-tight group-hover:underline underline-offset-4 decoration-2">
+                    {lg.name}
+                  </h3>
+                </div>
+                <div className="mt-1 text-xs text-neutral-500">{lg.subtitle}</div>
+              </Link>
+              <div className={`px-5 pb-5 space-y-3 ${isMulti ? "" : ""}`}>
+                {subList.map((sub, idx) => {
+                  const top3 = top3Map.get(sub.code) ?? [];
+                  return (
+                    <div
+                      key={sub.code}
+                      className={
+                        idx > 0
+                          ? "pt-3 border-t border-neutral-100 dark:border-white/[0.06]"
+                          : ""
+                      }
+                    >
+                      {isMulti && (
+                        <Link
+                          href={`/predictions/${sub.code}`}
+                          className="flex items-center justify-between gap-2 text-[11px] font-bold text-neutral-700 dark:text-neutral-300 hover:underline mb-1.5"
+                        >
+                          <span>{sub.label}</span>
+                          <span className="text-neutral-400 group-hover:translate-x-0.5">→</span>
+                        </Link>
+                      )}
+                      {top3.length > 0 ? (
+                        <div className="space-y-1">
+                          {top3.map((t) => (
+                            <div
+                              key={t.teamId}
+                              className="flex items-center justify-between gap-2 text-xs"
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-bold text-neutral-400 tabular-nums w-4 text-center">
+                                  {t.position}
+                                </span>
+                                <span className="truncate text-neutral-700 dark:text-neutral-300">
+                                  {t.name}
+                                </span>
+                              </div>
+                              <span className="tabular-nums font-semibold text-neutral-500 shrink-0">
+                                {t.points}p
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-neutral-400 italic">
+                          순위 데이터 수집 대기 중
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-3 text-[11px] text-neutral-400 italic">
-                  순위 데이터 수집 대기 중
-                </div>
-              )}
-              <div className="mt-4 text-xs font-medium text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200 transition flex items-center gap-1">
-                시즌 예측 보기
-                <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                  );
+                })}
+                {!isMulti && (
+                  <Link
+                    href={`/predictions/${lg.code}`}
+                    className="block text-xs font-medium text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition mt-1"
+                  >
+                    시즌 예측 보기 →
+                  </Link>
+                )}
               </div>
-            </Link>
+            </div>
           );
         })}
       </section>
