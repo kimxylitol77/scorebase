@@ -5,6 +5,13 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { toKoreanTeamName } from "@/lib/team-names";
+import {
+  SPORTS,
+  LEAGUE_DISPLAY,
+  COUNTRY_BY_LEAGUE,
+  COUNTRY_FLAG,
+  COUNTRY_ORDER,
+} from "@/lib/sports/sport-leagues";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 600;
@@ -109,8 +116,93 @@ async function fetchTop3Map(): Promise<Map<string, TopThreeEntry[]>> {
   return new Map(results);
 }
 
+interface CountryStandingsRow {
+  league: string;
+  leagueDisplay: string;
+  top3: TopThreeEntry[];
+}
+
+interface CountryStandingsGroup {
+  country: string;
+  flag: string;
+  leagues: CountryStandingsRow[];
+}
+
+async function fetchCountryStandings(): Promise<CountryStandingsGroup[]> {
+  // 모든 SOCCER 리그 — sport-leagues.SPORTS 의 soccer 항목
+  const soccer = SPORTS.find((s) => s.code === "soccer");
+  if (!soccer) return [];
+  // 컵 대회는 standings 없음 — 제외
+  const skipCups = new Set([
+    "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+    "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+  ]);
+  const leagues = soccer.leagues.filter((l) => !skipCups.has(l));
+
+  // 병렬 fetch (모든 리그 Top 3)
+  const fetched = await Promise.all(
+    leagues.map(async (league) => {
+      const rows = await getFullStandings(league);
+      if (rows.length === 0) return { league, top3: [] as TopThreeEntry[] };
+      const top3 = rows.slice(0, 3);
+      const teams = await prisma.team.findMany({
+        where: { id: { in: top3.map((r) => r.teamId) } },
+        select: { id: true, name: true },
+      });
+      const nameById = new Map(teams.map((t) => [t.id, t.name]));
+      return {
+        league,
+        top3: top3.map((r) => ({
+          position: r.position,
+          teamId: r.teamId,
+          name: toKoreanTeamName(nameById.get(r.teamId) ?? `Team ${r.teamId}`, league),
+          points: r.points,
+        })),
+      };
+    }),
+  );
+
+  // 국가별 그룹화
+  const byCountry = new Map<string, CountryStandingsRow[]>();
+  for (const f of fetched) {
+    if (f.top3.length === 0) continue; // 데이터 없는 리그 제외
+    const country = COUNTRY_BY_LEAGUE[f.league] ?? "기타";
+    if (!byCountry.has(country)) byCountry.set(country, []);
+    byCountry.get(country)!.push({
+      league: f.league,
+      leagueDisplay: LEAGUE_DISPLAY[f.league] ?? f.league,
+      top3: f.top3,
+    });
+  }
+
+  // 정렬 — COUNTRY_ORDER 우선, 그 외 한국어 가나다순
+  const groups: CountryStandingsGroup[] = [];
+  const seen = new Set<string>();
+  for (const country of COUNTRY_ORDER) {
+    if (byCountry.has(country)) {
+      groups.push({
+        country,
+        flag: COUNTRY_FLAG[country] ?? "🌐",
+        leagues: byCountry.get(country)!,
+      });
+      seen.add(country);
+    }
+  }
+  // ORDER 외 국가 — 가나다순
+  for (const [country, leagues] of Array.from(byCountry.entries()).sort()) {
+    if (seen.has(country)) continue;
+    groups.push({
+      country,
+      flag: COUNTRY_FLAG[country] ?? "🌐",
+      leagues,
+    });
+  }
+  return groups;
+}
+
 export default async function PredictionsRoot() {
   const top3Map = await fetchTop3Map();
+  const countryGroups = await fetchCountryStandings();
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
       <header className="space-y-2">
@@ -211,6 +303,84 @@ export default async function PredictionsRoot() {
           );
         })}
       </section>
+
+      {/* 국가별 리그 순위 — 모든 SOCCER 리그 standings (api-football 캐시) */}
+      {countryGroups.length > 0 && (
+        <section className="space-y-5 pt-6 border-t border-neutral-200 dark:border-neutral-800">
+          <header className="space-y-1">
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight">
+              🌍 국가별 리그 순위
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-500">
+              전 세계 축구 리그의 현재 순위 (Top 3) — 국가별 정렬. 리그명 클릭 시 상세 시즌 예측.
+            </p>
+            {/* 국가 anchor 빠른 이동 */}
+            <nav className="flex flex-wrap gap-1.5 pt-2 text-[11px]">
+              {countryGroups.map((g) => (
+                <a
+                  key={g.country}
+                  href={`#country-${g.country}`}
+                  className="px-2 py-1 rounded-md border border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition"
+                >
+                  {g.flag} {g.country}
+                </a>
+              ))}
+            </nav>
+          </header>
+
+          <div className="space-y-6">
+            {countryGroups.map((g) => (
+              <div key={g.country} id={`country-${g.country}`} className="space-y-2">
+                <h3 className="text-sm sm:text-base font-bold flex items-center gap-2 sticky top-0 bg-white dark:bg-neutral-950 py-1.5 z-10">
+                  <span className="text-lg">{g.flag}</span>
+                  <span>{g.country}</span>
+                  <span className="text-xs font-normal text-neutral-400">
+                    {g.leagues.length}개 리그
+                  </span>
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {g.leagues.map((l) => (
+                    <Link
+                      key={l.league}
+                      href={`/predictions/${l.league}`}
+                      className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] px-3 py-2 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors"
+                    >
+                      <div className="flex items-baseline justify-between gap-2 mb-1">
+                        <span className="text-sm font-bold truncate">
+                          {l.leagueDisplay}
+                        </span>
+                        <span className="text-[10px] text-neutral-400 shrink-0">
+                          →
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        {l.top3.map((t) => (
+                          <div
+                            key={t.teamId}
+                            className="flex items-center justify-between gap-2 text-[11px] sm:text-xs"
+                          >
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="font-bold text-neutral-400 tabular-nums w-3 text-center">
+                                {t.position}
+                              </span>
+                              <span className="truncate text-neutral-700 dark:text-neutral-300">
+                                {t.name}
+                              </span>
+                            </div>
+                            <span className="tabular-nums font-semibold text-neutral-500 shrink-0">
+                              {t.points}p
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
         <h2 className="text-base sm:text-lg font-bold tracking-tight">
