@@ -109,6 +109,119 @@ export async function getStandingsPositions(
   return positionByOurTeamId;
 }
 
+export interface StandingsRow {
+  teamId: number;
+  position: number;
+  points: number;
+  won: number;
+  draw: number;
+  loss: number;
+  goalsFor?: number;
+  goalsAgainst?: number;
+  goalDiff?: number;
+}
+
+const fullCache = new Map<string, { fetchedAt: number; rows: StandingsRow[] }>();
+
+/**
+ * 리그의 full standings rows (순위/승점/승무패 등) 반환.
+ * 우선 api-football → fallback TheSports.
+ * 반환: position asc 정렬된 row 배열. cache 없으면 빈 배열.
+ */
+export async function getFullStandings(league: string): Promise<StandingsRow[]> {
+  const now = Date.now();
+  const hit = fullCache.get(league);
+  if (hit && now - hit.fetchedAt < CACHE_TTL_MS) return hit.rows;
+
+  const out: StandingsRow[] = [];
+  const seen = new Set<number>();
+
+  // 1) api-football
+  const af = await prisma.apiFootballStandingsCache.findUnique({
+    where: { league },
+    select: { rows: true },
+  });
+  if (af) {
+    interface AfRow {
+      teamExternalId: string;
+      position: number;
+      points: number;
+      won: number;
+      draw: number;
+      loss: number;
+    }
+    const rows = (af.rows as unknown as AfRow[]) ?? [];
+    if (rows.length > 0) {
+      const externalIds = rows.map((r) => r.teamExternalId);
+      const teams = await prisma.team.findMany({
+        where: { league, externalId: { in: externalIds } },
+        select: { id: true, externalId: true },
+      });
+      const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
+      for (const r of rows) {
+        const ourId = extToOurId.get(r.teamExternalId);
+        if (ourId != null && !seen.has(ourId)) {
+          seen.add(ourId);
+          out.push({
+            teamId: ourId,
+            position: r.position,
+            points: r.points,
+            won: r.won,
+            draw: r.draw,
+            loss: r.loss,
+          });
+        }
+      }
+    }
+  }
+
+  // 2) TheSports fallback
+  if (out.length === 0) {
+    const ts = await prisma.theSportsStandingsCache.findUnique({
+      where: { league },
+      select: { payload: true },
+    });
+    if (ts) {
+      interface TsRow {
+        team_id?: string;
+        position?: number;
+        points?: number;
+        won?: number;
+        draw?: number;
+        loss?: number;
+        goals?: [number, number] | { for?: number; against?: number };
+        goal_diff?: number;
+      }
+      const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[] }> };
+      for (const t of payload?.tables ?? []) {
+        for (const r of t.rows ?? []) {
+          if (!r.team_id || r.position == null) continue;
+          const ourId = TS_TO_OUR_TEAM_ID.get(r.team_id);
+          if (ourId == null || seen.has(ourId)) continue;
+          seen.add(ourId);
+          const gf = Array.isArray(r.goals) ? r.goals[0] : r.goals?.for;
+          const ga = Array.isArray(r.goals) ? r.goals[1] : r.goals?.against;
+          out.push({
+            teamId: ourId,
+            position: r.position,
+            points: r.points ?? 0,
+            won: r.won ?? 0,
+            draw: r.draw ?? 0,
+            loss: r.loss ?? 0,
+            goalsFor: gf,
+            goalsAgainst: ga,
+            goalDiff: r.goal_diff,
+          });
+        }
+      }
+    }
+  }
+
+  out.sort((a, b) => a.position - b.position);
+  fullCache.set(league, { fetchedAt: now, rows: out });
+  return out;
+}
+
 /**
  * 여러 리그의 standings 를 병렬 prefetch.
  * /scores 페이지처럼 한 화면에 여러 리그 매치가 섞여 있을 때 사용.

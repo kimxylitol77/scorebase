@@ -13,6 +13,7 @@ import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
 import UclBracket from "@/components/UclBracket";
 import { buildUclBracket } from "@/lib/predict/ucl-bracket";
+import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
@@ -303,6 +304,10 @@ export default async function LeaguePredictions({ params }: Props) {
   // 월드컵은 외부 시드 Elo 를 쓰므로 finished 0 이어도 시뮬 가능
   const isWorldCup = upper === "WORLD_CUP";
   const canSimulate = isWorldCup ? teams.length >= 32 : finishedCount >= 20;
+
+  // 외부 standings (api-football 우선, TheSports fallback) — 실제 리그 순위 ↔ Elo 예측 비교용.
+  const externalStandings = await getFullStandings(upper);
+  const externalPosByTeamId = new Map(externalStandings.map((s) => [s.teamId, s.position]));
 
   let mc: ReturnType<typeof runMonteCarlo> = [];
   let wc: ReturnType<typeof simulateWorldCup> = [];
@@ -772,6 +777,21 @@ export default async function LeaguePredictions({ params }: Props) {
               </section>
             )}
 
+            {/* 현재 순위 vs Elo 예측 비교 — 외부 standings 데이터 있을 때 */}
+            {externalStandings.length > 0 && (
+              <section>
+                <Heading
+                  title="현재 순위 vs Elo 예측"
+                  subtitle="실제 순위와 우리 모델의 예상 최종 순위 비교 — 큰 격차는 상승/하락 후보"
+                />
+                <CurrentVsPredictionCard
+                  externalStandings={externalStandings}
+                  mc={mc}
+                  teamKoNameById={teamKoNameById}
+                />
+              </section>
+            )}
+
             {/* 예상 최종 순위 표 */}
             <section>
               <Heading
@@ -783,6 +803,7 @@ export default async function LeaguePredictions({ params }: Props) {
                   name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
                   logoUrl: teamLogoById.get(r.teamId) ?? null,
                   ...r,
+                  currentPosition: externalPosByTeamId.get(r.teamId) ?? r.currentPosition,
                 }))}
                 top4Cutoff={
                   // UCL 진출권 4팀 — 무승부 있는 (축구) + 강등 있는 (1부) 리그만 노출.
@@ -1325,6 +1346,121 @@ function WorldCupGroupTable({ rows }: { rows: WorldCupRow[] }) {
           </ul>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** 현재 standings 와 Elo 예측 비교 — Top 5 + 격차 가장 큰 5팀 (상승/하락 후보).
+ *  좌측 = 현재 순위, 중앙 = Δ (예측 - 현재), 우측 = Elo 예측 순위. */
+function CurrentVsPredictionCard({
+  externalStandings,
+  mc,
+  teamKoNameById,
+}: {
+  externalStandings: Array<{ teamId: number; position: number; points: number }>;
+  mc: Array<{ teamId: number; expectedPosition: number; expectedPoints: number }>;
+  teamKoNameById: Map<number, string>;
+}) {
+  const mcByTeamId = new Map(mc.map((r) => [r.teamId, r]));
+  // 격차 = 현재 순위 - 예측 순위. + 면 우리가 더 높게 예상 (상승), - 면 낮게 (하락).
+  type Row = {
+    teamId: number;
+    name: string;
+    currentPos: number;
+    predictedPos: number | null;
+    delta: number | null;
+  };
+  const rows: Row[] = externalStandings.map((s) => {
+    const m = mcByTeamId.get(s.teamId);
+    const predicted = m ? Math.round(m.expectedPosition * 10) / 10 : null;
+    return {
+      teamId: s.teamId,
+      name: teamKoNameById.get(s.teamId) ?? `Team ${s.teamId}`,
+      currentPos: s.position,
+      predictedPos: predicted,
+      delta: predicted == null ? null : s.position - predicted,
+    };
+  });
+
+  const top5 = rows.slice(0, 5);
+  // 격차 큰 (상승/하락 후보) 5팀 — top5 와 중복 제외, |delta| desc
+  const movers = rows
+    .filter((r) => !top5.includes(r) && r.delta != null && Math.abs(r.delta) >= 1.5)
+    .sort((a, b) => Math.abs(b.delta!) - Math.abs(a.delta!))
+    .slice(0, 5);
+
+  const renderRow = (r: Row, idx: number) => {
+    const d = r.delta;
+    const deltaColor =
+      d == null
+        ? "text-neutral-400"
+        : d > 0.8
+          ? "text-emerald-600 dark:text-emerald-400"
+          : d < -0.8
+            ? "text-rose-600 dark:text-rose-400"
+            : "text-neutral-500";
+    const deltaText =
+      d == null ? "—" : d === 0 ? "±0" : `${d > 0 ? "+" : ""}${d.toFixed(1)}`;
+    return (
+      <tr
+        key={r.teamId}
+        className={idx % 2 === 0 ? "bg-neutral-50/50 dark:bg-white/[0.02]" : ""}
+      >
+        <td className="px-3 py-2 text-sm tabular-nums font-bold text-neutral-700 dark:text-neutral-300 w-12">
+          {r.currentPos}
+        </td>
+        <td className="px-3 py-2 text-sm font-medium truncate">{r.name}</td>
+        <td className={`px-3 py-2 text-sm tabular-nums font-bold text-center ${deltaColor}`}>
+          {deltaText}
+        </td>
+        <td className="px-3 py-2 text-sm tabular-nums text-neutral-600 dark:text-neutral-400 w-16 text-right">
+          {r.predictedPos == null ? "—" : r.predictedPos.toFixed(1)}
+        </td>
+      </tr>
+    );
+  };
+
+  return (
+    <div className="grid sm:grid-cols-2 gap-4">
+      <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-hidden">
+        <div className="px-3 py-2 text-xs font-bold border-b border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04]">
+          상위 5팀 — 우승 경쟁
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[11px] text-neutral-500 dark:text-neutral-400">
+              <th className="px-3 py-1.5 text-left font-semibold">현재</th>
+              <th className="px-3 py-1.5 text-left font-semibold">팀</th>
+              <th className="px-3 py-1.5 text-center font-semibold">Δ</th>
+              <th className="px-3 py-1.5 text-right font-semibold">예측</th>
+            </tr>
+          </thead>
+          <tbody>{top5.map(renderRow)}</tbody>
+        </table>
+      </div>
+
+      <div className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-hidden">
+        <div className="px-3 py-2 text-xs font-bold border-b border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.04]">
+          격차 큰 팀 — 상승·하락 후보
+        </div>
+        {movers.length === 0 ? (
+          <div className="px-3 py-6 text-xs text-neutral-500 text-center">
+            현재 순위와 예측이 모두 1.5계단 이내 — 큰 변동 없음
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                <th className="px-3 py-1.5 text-left font-semibold">현재</th>
+                <th className="px-3 py-1.5 text-left font-semibold">팀</th>
+                <th className="px-3 py-1.5 text-center font-semibold">Δ</th>
+                <th className="px-3 py-1.5 text-right font-semibold">예측</th>
+              </tr>
+            </thead>
+            <tbody>{movers.map(renderRow)}</tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
