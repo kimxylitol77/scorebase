@@ -4,14 +4,10 @@ import {
   Activity,
   ArrowRight,
   BarChart3,
-  Bot,
   ChevronRight,
   Dice5,
-  FileText,
-  HeartPulse,
   Radio,
   Satellite,
-  Search,
   Sparkles,
   Star,
   Target,
@@ -423,61 +419,48 @@ function UpdateCard({ item }: { item: UpdateItem }) {
 }
 
 function FeaturesSection() {
-  const items: Array<{
-    Icon: React.ComponentType<{ className?: string }>;
-    title: string;
-    body: React.ReactNode;
-  }> = [
+  const items: Array<{ href: string; title: string; body: React.ReactNode }> = [
     {
-      Icon: FileText,
-      title: "경기 프리뷰",
+      href: "/scores",
+      title: "라이브스코어",
       body: (
         <>
-          경기 시작 전, Elo 레이팅과 최근 폼·홈 원정 강도를 종합한{" "}
-          <strong className="text-zinc-950 dark:text-white">
-            매치 프리뷰
-          </strong>
-          로 양 팀의 강점과 추정 승률을 미리 확인하세요.
+          13개 리그의{" "}
+          <strong className="text-zinc-950 dark:text-white">실시간 점수·진행 상태</strong>
+          를 한 페이지에. 라이브 / 종료 / 예정 매치를 자동 분류해 보여줍니다.
         </>
       ),
     },
     {
-      Icon: Search,
-      title: "경기 리뷰",
+      href: "/predictions",
+      title: "시즌 예측 대시보드",
       body: (
         <>
-          경기 종료 직후 자동 발행되는{" "}
-          <strong className="text-zinc-950 dark:text-white">
-            스포츠 리뷰
-          </strong>
-          가 결과·핵심 장면·통계 흐름·다음 경기 영향까지 한 번에 정리합니다.
+          Elo 레이팅 + Monte Carlo 1,000회 시뮬레이션으로 산출한{" "}
+          <strong className="text-zinc-950 dark:text-white">우승·플레이오프·강등 확률</strong>
+          을 19개 리그별로 확인합니다.
         </>
       ),
     },
     {
-      Icon: HeartPulse,
+      href: "/previews",
+      title: "프리뷰 모음",
+      body: (
+        <>
+          경기 시작 전, 양 팀 전력·최근 폼·홈 원정 강도를 종합한{" "}
+          <strong className="text-zinc-950 dark:text-white">매치 프리뷰</strong>
+          를 매일 자동 발행합니다.
+        </>
+      ),
+    },
+    {
+      href: "/injuries",
       title: "부상자 명단",
       body: (
         <>
           팀별{" "}
-          <strong className="text-zinc-950 dark:text-white">
-            부상자 명단
-          </strong>
-          과 결장 영향도를 추적해 매치 결과를 좌우하는 변수를 미리 파악할 수
-          있게 합니다.
-        </>
-      ),
-    },
-    {
-      Icon: Bot,
-      title: "AI 스포츠 경기 심층 분석",
-      body: (
-        <>
-          Elo 레이팅·시즌 시뮬레이션·H2H 전적 데이터를 결합한{" "}
-          <strong className="text-zinc-950 dark:text-white">
-            AI 매치 인사이트
-          </strong>
-          로 데이터 기반 관전을 돕습니다.
+          <strong className="text-zinc-950 dark:text-white">부상자 / 결장 명단</strong>
+          과 매치 영향도를 추적해 결과를 좌우하는 변수를 미리 파악합니다.
         </>
       ),
     },
@@ -489,19 +472,23 @@ function FeaturesSection() {
         subtitle="공인 데이터 소스에서 Elo · 시뮬레이션 · AI 스포츠 경기 심층 분석까지"
       />
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map(({ Icon, title, body }) => (
-          <article
+        {items.map(({ href, title, body }) => (
+          <Link
             key={title}
-            className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
+            href={href}
+            className="group flex flex-col rounded-[1.5rem] sm:rounded-[2rem] bg-zinc-100 p-5 ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:bg-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10 dark:hover:bg-white/[0.07]"
           >
-            <Icon className="mb-5 h-7 w-7 text-zinc-900 dark:text-white" />
             <h3 className="mb-2 text-base font-semibold tracking-tight text-zinc-950 dark:text-white">
               {title}
             </h3>
-            <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
+            <p className="flex-1 text-sm leading-relaxed text-zinc-600 dark:text-white/55">
               {body}
             </p>
-          </article>
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition group-hover:text-zinc-950 dark:text-white/70 dark:group-hover:text-white">
+              바로가기
+              <ArrowRight className="h-3 w-3" />
+            </span>
+          </Link>
         ))}
       </div>
     </section>
