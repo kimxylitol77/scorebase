@@ -5,6 +5,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 // nodejs runtime — fetchLiveOdds (fetch 기반) 통합용
 export const runtime = "nodejs";
@@ -44,6 +45,11 @@ export interface MlbLive {
   } | null;
   /** 최근 pitch/at-bat plays — 마지막 50개. timeline UI 용 */
   plays?: MlbPlay[];
+  /** 양 팀 선발 투수 (boxscore pitching.athletes 중 starter=true 첫 entry) */
+  startingPitchers?: {
+    home: string | null;
+    away: string | null;
+  };
 }
 
 export interface MlbPlay {
@@ -228,6 +234,11 @@ function normalize(data: EspnSummary): MlbLive | null {
   const lineups = extractLineups(data.boxscore, home.team?.abbreviation, away.team?.abbreviation);
   const teamStats = extractTeamStats(data.boxscore, home.team?.abbreviation, away.team?.abbreviation);
   const plays = extractPlays(data.plays);
+  const startingPitchers = extractStartingPitchers(
+    data,
+    home.team?.abbreviation,
+    away.team?.abbreviation,
+  );
 
   return {
     status,
@@ -257,7 +268,46 @@ function normalize(data: EspnSummary): MlbLive | null {
     lineups,
     teamStats,
     plays,
+    startingPitchers,
   };
+}
+
+/** ESPN summary → 양 팀 선발 투수.
+ *  1순위: boxscore.players[].statistics[type=pitching].athletes[].starter=true 첫 entry
+ *  2순위: header.competitions[0].competitors[].probables[].athlete.displayName (예정/조기 매치)
+ */
+function extractStartingPitchers(
+  data: EspnSummary,
+  homeAbbr?: string,
+  awayAbbr?: string,
+): { home: string | null; away: string | null } {
+  const out = { home: null as string | null, away: null as string | null };
+  // 1) boxscore
+  for (const team of data.boxscore?.players ?? []) {
+    const abbr = team.team?.abbreviation;
+    const side: "home" | "away" | null =
+      abbr && abbr === homeAbbr ? "home" : abbr && abbr === awayAbbr ? "away" : null;
+    if (!side) continue;
+    const pitching = team.statistics?.find((g) => g.type === "pitching");
+    if (!pitching) continue;
+    const starter = pitching.athletes?.find((a) => a.starter !== false);
+    const name = starter?.athlete?.displayName?.trim();
+    if (name) out[side] = toKoreanPlayerName(name);
+  }
+  // 2) probables fallback
+  if (!out.home || !out.away) {
+    type Probable = { athlete?: { displayName?: string } };
+    type WithProbables = { homeAway?: "home" | "away"; probables?: Probable[] };
+    const competitors = (data.header?.competitions?.[0]?.competitors ?? []) as WithProbables[];
+    for (const c of competitors) {
+      const side = c.homeAway;
+      if (side !== "home" && side !== "away") continue;
+      if (out[side]) continue;
+      const name = c.probables?.[0]?.athlete?.displayName?.trim();
+      if (name) out[side] = toKoreanPlayerName(name);
+    }
+  }
+  return out;
 }
 
 /** ESPN plays → 한국어 라벨링 + 최근 N개. at-bat 결과·이닝 전환·득점 plays 중심.
@@ -456,6 +506,8 @@ async function hashLive(live: MlbLive): Promise<string> {
     live.wpaSeries?.[live.wpaSeries.length - 1]?.homeWP?.toFixed(3),
     live.plays?.length,
     live.plays?.[live.plays.length - 1]?.id,
+    live.startingPitchers?.home,
+    live.startingPitchers?.away,
   ].join("|");
   const buf = await crypto.subtle.digest(
     "SHA-1",

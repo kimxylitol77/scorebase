@@ -139,6 +139,7 @@ interface MlbLive {
   lineups?: { home: MlbBatter[]; away: MlbBatter[] } | null;
   teamStats?: { home: MlbTeamStats; away: MlbTeamStats } | null;
   plays?: MlbPlay[];
+  startingPitchers?: { home: string | null; away: string | null };
 }
 
 interface MlbPlay {
@@ -373,6 +374,32 @@ export default function MlbLiveDetail({
             isHome
           />
         </div>
+
+        {/* 선발 투수 — ESPN boxscore.pitching.starter (DB 누락 fallback) */}
+        {live.startingPitchers && (live.startingPitchers.home || live.startingPitchers.away) && (
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 text-center text-[11px] sm:text-xs text-neutral-500">
+            <div>
+              {live.startingPitchers.away ? (
+                <>
+                  <span className="text-neutral-600 dark:text-neutral-400">선발 </span>
+                  <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                    {live.startingPitchers.away}
+                  </span>
+                </>
+              ) : null}
+            </div>
+            <div>
+              {live.startingPitchers.home ? (
+                <>
+                  <span className="text-neutral-600 dark:text-neutral-400">선발 </span>
+                  <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+                    {live.startingPitchers.home}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          </div>
+        )}
 
         {/* 상황 박스 (LIVE 만) — 다이아몬드 + B/S/O + 투수/타자 */}
         {isLive && live.situation && (
