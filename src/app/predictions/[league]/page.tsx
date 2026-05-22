@@ -23,6 +23,8 @@ import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoar
 import TeamFormBadges from "@/components/predictions/TeamFormBadges";
 import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
 import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
+import StandingsOnlyView from "@/components/StandingsOnlyView";
+import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 export const dynamic = "force-dynamic";
 
@@ -242,7 +244,14 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase();
-  if (!VALID.includes(upper as ValidLeague)) return { title: "찾을 수 없음" };
+  if (!VALID.includes(upper as ValidLeague)) {
+    // ALL_LEAGUES 에는 있지만 VALID 에 없는 신규 리그 → standings-only fallback
+    if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
+      const name = LEAGUE_DISPLAY[upper] ?? upper;
+      return { title: `${name} 순위`, description: `${name} 현재 시즌 순위표.` };
+    }
+    return { title: "찾을 수 없음" };
+  }
   const info = LEAGUE_INFO[upper as ValidLeague];
   return {
     title: `${info.name} 예측`,
@@ -253,7 +262,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function LeaguePredictions({ params }: Props) {
   const { league } = await params;
   const upper = league.toUpperCase();
-  if (!VALID.includes(upper as ValidLeague)) notFound();
+  if (!VALID.includes(upper as ValidLeague)) {
+    // ALL_LEAGUES 안에 있으면 순위표만 보여주는 fallback (Elo/예측 데이터 준비 전)
+    if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
+      return <StandingsOnlyView league={upper} />;
+    }
+    notFound();
+  }
   const info = LEAGUE_INFO[upper as ValidLeague];
 
   const dbMatches = await prisma.match.findMany({

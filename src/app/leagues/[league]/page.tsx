@@ -4,6 +4,8 @@ import ArticleCard from "@/components/ArticleCard";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import StandingsOnlyView from "@/components/StandingsOnlyView";
+import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 export const dynamic = "force-dynamic";
 
@@ -297,6 +299,10 @@ export async function generateMetadata({
   const sp = await searchParams;
   const upper = league.toUpperCase();
   if (!VALID_LEAGUES.includes(upper as ValidLeague)) {
+    if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
+      const name = LEAGUE_DISPLAY[upper] ?? upper;
+      return { title: `${name} 순위`, description: `${name} 현재 시즌 순위표.` };
+    }
     return { title: "Not Found" };
   }
   const info = buildLeagueInfo(upper);
@@ -316,7 +322,13 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const { league } = await params;
   const sp = await searchParams;
   const upper = league.toUpperCase();
-  if (!VALID_LEAGUES.includes(upper as ValidLeague)) notFound();
+  if (!VALID_LEAGUES.includes(upper as ValidLeague)) {
+    // ALL_LEAGUES 안에 있으면 순위표만 (글 카드는 데이터 적어서 fallback 제공 안 함)
+    if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
+      return <StandingsOnlyView league={upper} />;
+    }
+    notFound();
+  }
   const info = buildLeagueInfo(upper);
 
   const requested = (sp.type?.toUpperCase() ?? "ALL") as FilterType;
