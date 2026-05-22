@@ -223,13 +223,27 @@ export async function GET(
         // cache 조회 실패는 ignore — 다른 데이터는 정상 응답
       }
     }
+    // 라이브 점수 → DB upsert (cron 30분 갭 회피, SSR/list 페이지도 fresh)
+    // best-effort: 실패해도 응답에 영향 없음
+    if (live.status === "LIVE" || live.status === "FINAL") {
+      prisma.match
+        .updateMany({
+          where: { externalId: gameId },
+          data: {
+            homeScore: live.homeTeam.score,
+            awayScore: live.awayTeam.score,
+            status: live.status === "FINAL" ? "FINISHED" : "LIVE",
+          },
+        })
+        .catch(() => {});
+    }
     const etag = `W/"${await hashLive(live)}"`;
     if (req.headers.get("if-none-match") === etag) {
       return new NextResponse(null, {
         status: 304,
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
+          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=15",
         },
       });
     }
@@ -238,7 +252,7 @@ export async function GET(
       {
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=45",
+          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=15",
         },
       },
     );
