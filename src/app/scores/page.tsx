@@ -145,17 +145,6 @@ function kstDateLabel(d: Date): string {
     weekday: "short",
   });
 }
-function kstFullDateLabel(d: Date): string {
-  const k = new Date(d.getTime() + 9 * 3600 * 1000);
-  const y = k.getUTCFullYear();
-  const m = String(k.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(k.getUTCDate()).padStart(2, "0");
-  const weekday = d.toLocaleDateString("ko-KR", {
-    timeZone: "Asia/Seoul",
-    weekday: "short",
-  });
-  return `${y}년 ${m}월 ${dd}일 (${weekday})`;
-}
 function parseStarter(json: string | null): string | null {
   if (!json) return null;
   try {
@@ -883,13 +872,6 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} sport={sport} extraQuery={extraQuery} />
 
-      {/* 축구 전용 — 선택 일자 풀 포맷 바 (yyyy년mm월dd일 (요일)) */}
-      {sport === "soccer" && (
-        <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.03] px-4 py-2.5 text-sm sm:text-base font-bold tabular-nums text-neutral-800 dark:text-neutral-200">
-          {kstFullDateLabel(day)}
-        </div>
-      )}
-
       {/* 축구: 사이드바 + 컨텐츠 2-col / 다른 종목: 기존 그대로 */}
       {sport === "soccer" ? (
         <div className="flex gap-6">
@@ -1142,109 +1124,111 @@ function SoccerRowLayout({
     );
   };
 
-  // 모바일용 — MatchCard 그룹 헤더 + 2칸 grid
-  const mobileGroup = (
-    title: string,
-    count: number,
-    list: NormalizedMatch[],
-    titleColor: string,
-  ) =>
-    list.length > 0 && (
-      <section className="space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <h3 className={`text-[12px] font-bold ${titleColor}`}>
-            {title} ({count})
-          </h3>
-        </div>
-        <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
-          {list.map((m) => {
-            const statusKey =
-              m.status === "LIVE"
-                ? "live"
-                : m.status === "FINISHED"
-                  ? "finished"
-                  : m.status === "POSTPONED"
-                    ? "postponed"
-                    : "scheduled";
-            // 축구 — 야구 박스 스타일 (세로 한 줄에 한 팀)
-            if (m.sport === "soccer") {
-              return (
-                <SoccerCompactCard
-                  key={String(m.id)}
-                  matchId={m.id}
-                  league={m.league}
-                  status={statusKey}
-                  timeLabel={m.timeLabel}
-                  liveStatusLabel={m.liveStatusLabel}
-                  home={m.home}
-                  away={m.away}
-                  previewSlug={m.preview ?? null}
-                  recapSlug={m.recap ?? null}
-                  recentGoalSide={m.recentGoalSide ?? null}
-                  href={m.href}
-                />
-              );
-            }
-            return (
-              <MatchCard
-                key={String(m.id)}
-                matchId={m.id}
-                sport={m.sport}
-                status={statusKey}
-                league={m.league}
-                home={m.home}
-                away={m.away}
-                timeLabel={m.timeLabel}
-                liveStatusLabel={m.liveStatusLabel}
-                soccerCtx={m.soccerCtx}
-                soccerGoals={null}
-                recentGoalSide={m.recentGoalSide ?? null}
-                href={m.href}
-              />
-            );
-          })}
-        </ul>
-      </section>
+  // 7mkr 스타일 — startTime asc 정렬, KST 자정 boundary 에 일자 헤더 inline 삽입
+  const all = [...liveList, ...scheduledList, ...finishedList].sort(
+    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
+  );
+  const dayKey = (d: Date): string =>
+    new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const dayLabel = (d: Date): string => {
+    const k = new Date(d.getTime() + 9 * 3600 * 1000);
+    const y = k.getUTCFullYear();
+    const mm = String(k.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(k.getUTCDate()).padStart(2, "0");
+    const weekday = d.toLocaleDateString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      weekday: "short",
+    });
+    return `${y}년${mm}월${dd}일(${weekday})`;
+  };
+
+  const mobileCardFor = (m: NormalizedMatch) => {
+    const statusKey =
+      m.status === "LIVE"
+        ? "live"
+        : m.status === "FINISHED"
+          ? "finished"
+          : m.status === "POSTPONED"
+            ? "postponed"
+            : "scheduled";
+    if (m.sport === "soccer") {
+      return (
+        <SoccerCompactCard
+          key={String(m.id)}
+          matchId={m.id}
+          league={m.league}
+          status={statusKey}
+          timeLabel={m.timeLabel}
+          liveStatusLabel={m.liveStatusLabel}
+          home={m.home}
+          away={m.away}
+          previewSlug={m.preview ?? null}
+          recapSlug={m.recap ?? null}
+          recentGoalSide={m.recentGoalSide ?? null}
+          href={m.href}
+        />
+      );
+    }
+    return (
+      <MatchCard
+        key={String(m.id)}
+        matchId={m.id}
+        sport={m.sport}
+        status={statusKey}
+        league={m.league}
+        home={m.home}
+        away={m.away}
+        timeLabel={m.timeLabel}
+        liveStatusLabel={m.liveStatusLabel}
+        soccerCtx={m.soccerCtx}
+        soccerGoals={null}
+        recentGoalSide={m.recentGoalSide ?? null}
+        href={m.href}
+      />
     );
+  };
+
+  // 일자별 그룹 [ [day, matches[]] ]
+  const groups: Array<{ day: string; label: string; items: NormalizedMatch[] }> = [];
+  for (const m of all) {
+    const k = dayKey(m.startTime);
+    const last = groups[groups.length - 1];
+    if (last && last.day === k) {
+      last.items.push(m);
+    } else {
+      groups.push({ day: k, label: dayLabel(m.startTime), items: [m] });
+    }
+  }
 
   return (
     <div className="space-y-5">
-      {/* 모바일 — 2칸 카드 grid (한눈에) */}
+      {/* 모바일 — 일자 헤더 + compact card list */}
       <div className="md:hidden space-y-4">
-        {mobileGroup("● 진행 중", liveList.length, liveList, "text-rose-600 dark:text-rose-500")}
-        {mobileGroup("⏳ 예정", scheduledList.length, scheduledList, "text-neutral-500 dark:text-neutral-400")}
-        {mobileGroup("✅ 종료", finishedList.length, finishedList, "text-neutral-500")}
+        {groups.map((g) => (
+          <section key={g.day} className="space-y-2">
+            <div className="rounded-md bg-blue-700 text-white text-center text-[12px] font-bold py-1.5 tabular-nums">
+              {g.label}
+            </div>
+            <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
+              {g.items.map((m) => mobileCardFor(m))}
+            </ul>
+          </section>
+        ))}
       </div>
 
-      {/* 데스크탑 — named.com 스타일 row table */}
+      {/* 데스크탑 — 일자 헤더 inline + row table */}
       <div className="hidden md:block rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-x-auto">
-        {/* 하단 pb-16 — 마지막 row 의 GoalsTooltip (점수 hover 시 양 팀 골 list) 가 컨테이너 끝에서 잘리지 않게 여백 확보 */}
+        {/* 하단 pb-16 — 마지막 row 의 GoalsTooltip 여백 */}
         <div className="min-w-[860px] px-4 pt-1 pb-16">
           <SoccerLiveRowHeader />
-          {liveList.length > 0 && (
-            <>
-              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-rose-600 dark:text-rose-500">
-                ● 진행 중 ({liveList.length})
+          {groups.map((g) => (
+            <div key={g.day}>
+              <div className="bg-blue-700 text-white text-center text-[13px] font-bold py-1.5 my-2 rounded-md tabular-nums">
+                {g.label}
               </div>
-              {liveList.map(renderRow)}
-            </>
-          )}
-          {scheduledList.length > 0 && (
-            <>
-              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
-                ⏳ 예정 ({scheduledList.length})
-              </div>
-              {scheduledList.map(renderRow)}
-            </>
-          )}
-          {finishedList.length > 0 && (
-            <>
-              <div className="px-0 pt-3 pb-1 text-[11px] font-bold text-neutral-500">
-                ✅ 종료 ({finishedList.length})
-              </div>
-              {finishedList.map(renderRow)}
-            </>
-          )}
+              {g.items.map(renderRow)}
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -1275,6 +1259,7 @@ type NormalizedMatch = {
     summaryAt: Date | string | null;
     scoreSnapshot: string | null;
   } | null;
+  startTime: Date;
   preview?: string;
   recap?: string;
   href: string | null;
