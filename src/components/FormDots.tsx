@@ -1,36 +1,33 @@
-// 최근 경기 결과를 점으로 표시 (W: 초록, D: 회색, L: 빨강).
-// 가장 최근 경기가 오른쪽.
+// 최근 경기 결과를 점으로 표시 (W/D/L). 가장 최근 경기가 오른쪽.
 
 import type { FormResult } from "@/lib/predict/types";
 
 interface Props {
-  results: FormResult[]; // 최신순 (왼쪽 = 가장 최근). 우리는 시각상 가장 최근이 오른쪽이므로 reverse.
+  results: FormResult[]; // 최신순 (왼쪽 = 가장 최근). 시각상 가장 최근이 오른쪽이므로 reverse.
+  size?: "sm" | "md";
 }
 
-const COLORS: Record<FormResult, string> = {
-  W: "bg-emerald-500",
-  D: "bg-neutral-300 dark:bg-neutral-600",
-  L: "bg-red-500",
+const STYLES: Record<FormResult, string> = {
+  W: "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-400/15 dark:text-emerald-300 dark:ring-emerald-300/30",
+  D: "bg-zinc-100 text-zinc-500 ring-zinc-300 dark:bg-white/10 dark:text-white/65 dark:ring-white/15",
+  L: "bg-rose-500/15 text-rose-700 ring-rose-500/30 dark:bg-rose-400/15 dark:text-rose-300 dark:ring-rose-300/30",
 };
 
-const LABELS: Record<FormResult, string> = {
-  W: "승",
-  D: "무",
-  L: "패",
-};
+const LABELS: Record<FormResult, string> = { W: "승", D: "무", L: "패" };
 
-export default function FormDots({ results }: Props) {
+export default function FormDots({ results, size = "sm" }: Props) {
   if (results.length === 0) {
-    return <span className="text-xs text-neutral-400">데이터 부족</span>;
+    return <span className="text-xs text-zinc-400 dark:text-white/35">데이터 부족</span>;
   }
+  const dim = size === "md" ? "h-8 w-8 text-xs" : "h-5 w-5 text-[10px]";
   // 시각상 오래된 → 최근 (왼쪽 → 오른쪽)
   const visualOrder = [...results].reverse();
   return (
-    <div className="inline-flex items-center gap-1">
+    <div className="inline-flex items-center gap-1.5">
       {visualOrder.map((r, i) => (
         <span
           key={i}
-          className={`w-5 h-5 rounded-full ${COLORS[r]} flex items-center justify-center text-[10px] font-bold text-white`}
+          className={`inline-flex items-center justify-center rounded-full font-bold ring-1 ${dim} ${STYLES[r]}`}
           title={LABELS[r]}
         >
           {r}

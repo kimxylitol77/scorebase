@@ -492,52 +492,74 @@ export default async function ArticlePage({ params }: Props) {
         <span className="text-neutral-500">{date}</span>
       </div>
 
-      {article.match && (
-        <div className="mb-8 rounded-[1.5rem] sm:rounded-[2rem] bg-zinc-100 p-5 sm:p-6 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
-            {/* 홈 팀 */}
-            <Link
-              href={`/teams/${article.match.homeTeam.id}`}
-              className="group flex flex-col items-center text-center transition hover:opacity-90"
-            >
-              <TeamLogo
-                src={article.match.homeTeam.logoUrl}
-                name={article.match.homeTeam.name}
-              />
-              <div className="mt-2 max-w-full truncate text-sm font-semibold group-hover:underline sm:text-base">
-                {toKoreanTeamName(article.match.homeTeam.name, article.league)}
-              </div>
-              <div className="mt-0.5 text-[10px] font-medium text-zinc-500 sm:text-xs dark:text-white/45">
-                홈
-              </div>
-            </Link>
-
-            {/* 스코어 */}
-            <div className="whitespace-nowrap text-3xl font-semibold tabular-nums tracking-tight text-zinc-950 sm:text-4xl dark:text-white">
-              {article.match.homeScore ?? "-"}
-              <span className="mx-2 text-zinc-400 sm:mx-3 dark:text-white/30">:</span>
-              {article.match.awayScore ?? "-"}
+      {article.match && (() => {
+        const hs = article.match.homeScore;
+        const as = article.match.awayScore;
+        const hasScore = hs != null && as != null;
+        const statusLabel = hasScore
+          ? hs! > as!
+            ? "홈 승"
+            : hs! < as!
+              ? "원정 승"
+              : "무승부"
+          : "예정";
+        const scoreBadge = hasScore ? "FT" : "예정";
+        return (
+          <div className="mb-8 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-zinc-100 p-5 sm:p-7 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+            <div className="mb-5 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-white/45">
+              <span>Final Score</span>
+              <span>{statusLabel}</span>
             </div>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
+              {/* 홈 팀 */}
+              <Link
+                href={`/teams/${article.match.homeTeam.id}`}
+                className="group flex flex-col items-center text-center transition hover:opacity-90"
+              >
+                <TeamLogo
+                  src={article.match.homeTeam.logoUrl}
+                  name={article.match.homeTeam.name}
+                />
+                <div className="mt-2 max-w-full truncate text-sm font-semibold group-hover:underline sm:text-base">
+                  {toKoreanTeamName(article.match.homeTeam.name, article.league)}
+                </div>
+                <div className="mt-0.5 text-[10px] font-medium text-zinc-500 sm:text-xs dark:text-white/45">
+                  홈
+                </div>
+              </Link>
 
-            {/* 원정 팀 */}
-            <Link
-              href={`/teams/${article.match.awayTeam.id}`}
-              className="group flex flex-col items-center text-center transition hover:opacity-90"
-            >
-              <TeamLogo
-                src={article.match.awayTeam.logoUrl}
-                name={article.match.awayTeam.name}
-              />
-              <div className="mt-2 max-w-full truncate text-sm font-semibold group-hover:underline sm:text-base">
-                {toKoreanTeamName(article.match.awayTeam.name, article.league)}
+              {/* 스코어 + 상태 배지 */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="whitespace-nowrap text-4xl font-semibold tabular-nums tracking-tight text-zinc-950 sm:text-5xl dark:text-white">
+                  {hs ?? "-"}
+                  <span className="mx-2 text-zinc-400 sm:mx-3 dark:text-white/30">:</span>
+                  {as ?? "-"}
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-zinc-900 shadow-sm ring-1 ring-black/5 dark:bg-white dark:text-black">
+                  {scoreBadge}
+                </span>
               </div>
-              <div className="mt-0.5 text-[10px] font-medium text-zinc-500 sm:text-xs dark:text-white/45">
-                원정
-              </div>
-            </Link>
+
+              {/* 원정 팀 */}
+              <Link
+                href={`/teams/${article.match.awayTeam.id}`}
+                className="group flex flex-col items-center text-center transition hover:opacity-90"
+              >
+                <TeamLogo
+                  src={article.match.awayTeam.logoUrl}
+                  name={article.match.awayTeam.name}
+                />
+                <div className="mt-2 max-w-full truncate text-sm font-semibold group-hover:underline sm:text-base">
+                  {toKoreanTeamName(article.match.awayTeam.name, article.league)}
+                </div>
+                <div className="mt-0.5 text-[10px] font-medium text-zinc-500 sm:text-xs dark:text-white/45">
+                  원정
+                </div>
+              </Link>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* LoL RECAP 본문은 길게 풀어쓴 Markdown (사용자 선호 — 카드 UI 대신 본문에 모든 정보 통합).
           lolRecapCtx 가 있어도 본문 안에 5라인 매치업·시즌·MVP 가 다 들어있으므로 Markdown 만. */}
