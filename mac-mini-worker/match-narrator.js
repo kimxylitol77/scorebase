@@ -180,6 +180,15 @@ async function runOnce() {
         continue;
       }
 
+      // Qwen 중국어 혼입 차단 — 한자 (CJK) 5자 이상이면 reject, DB 저장 skip
+      const cjk = summary.match(/[一-鿿]/g);
+      if ((cjk?.length ?? 0) >= 5) {
+        console.warn(
+          `${logPrefix()}   ✗ ${label} 중국어 혼입 (한자 ${cjk.length}자) — skip`,
+        );
+        continue;
+      }
+
       const snapshot = makeScoreSnapshot(m);
       await postCommentary(m, summary, snapshot);
       const dur = Date.now() - t0;

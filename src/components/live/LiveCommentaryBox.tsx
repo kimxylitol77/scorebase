@@ -36,6 +36,12 @@ function timeAgoKo(at: Date | string): string {
  * 기본 10분 — match-narrator worker 5분 주기 기준 2 사이클 누락 시 hide. */
 const STALE_MS = 10 * 60 * 1000;
 
+/** Qwen 한국어 한계 — 한자 (CJK) 5자 이상 들어가면 중국어 혼입으로 간주, hide. */
+function hasChineseContamination(text: string): boolean {
+  const cjk = text.match(/[一-鿿]/g);
+  return (cjk?.length ?? 0) >= 5;
+}
+
 export default function LiveCommentaryBox({
   matchSummary,
   summaryAt,
@@ -43,6 +49,9 @@ export default function LiveCommentaryBox({
   variant = "default",
 }: Props): ReactElement | null {
   if (!matchSummary?.trim()) return null;
+
+  // 중국어 혼입 차단 — Qwen 출력이 한자로 나오는 경우 무조건 숨김
+  if (hasChineseContamination(matchSummary)) return null;
 
   // stale 자동 숨김 — Mac mini 다운/Wi-Fi 끊김 시 fault tolerance
   if (summaryAt) {
