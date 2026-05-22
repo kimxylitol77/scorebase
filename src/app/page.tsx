@@ -1,5 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  Activity,
+  ArrowRight,
+  BarChart3,
+  Bot,
+  ChevronRight,
+  Dice5,
+  FileText,
+  HeartPulse,
+  Radio,
+  Satellite,
+  Search,
+  Sparkles,
+  Star,
+  Target,
+  Trophy,
+} from "lucide-react";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
 import FeaturedArticle from "@/components/FeaturedArticle";
@@ -178,10 +195,8 @@ export default async function Home() {
       <HeroSection />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-16">
-        {/* ───── 핵심 가치 4가지 — SEO 키워드 자연 노출 ───── */}
         <FeaturesSection />
 
-        {/* ───── 최근 업데이트 — 사이트 차별화 노출 ───── */}
         <RecentUpdatesSection />
 
         {!hasAny && <EmptyState />}
@@ -210,7 +225,6 @@ export default async function Home() {
           </section>
         )}
 
-        {/* 시즌 인사이트 — 모든 리그 컴팩트 카드 + 핵심 2개 풀카드 */}
         <section>
           <SectionHeading
             title="시즌 인사이트 — Elo 기반 우승 확률"
@@ -219,7 +233,6 @@ export default async function Home() {
             hrefLabel="예측 대시보드"
           />
 
-          {/* 컴팩트 카드 — 모든 리그 */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
             <SeasonInsightCard league="EPL" />
             <SeasonInsightCard league="LALIGA" />
@@ -233,7 +246,6 @@ export default async function Home() {
             <SeasonInsightCard league="NHL" />
           </div>
 
-          {/* 풀카드 — 가장 풍부한 EPL/MLB 깊은 분석 */}
           <div className="grid md:grid-cols-2 gap-5 items-start">
             <SeasonInsight league="EPL" />
             <SeasonInsight league="MLB" />
@@ -276,16 +288,12 @@ export default async function Home() {
           />
         )}
 
-        {/* ───── 리그별 빠른 진입 ───── */}
         <LeagueDirectory />
 
-        {/* ───── 데이터 방법론 (E-E-A-T 신호) ───── */}
         <MethodologySection />
 
-        {/* ───── FAQ ───── */}
         <FaqSection />
 
-        {/* ───── 사이트 내 주요 섹션 안내 (SEO + internal linking) ───── */}
         <section className="pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
           <h2 className="text-base sm:text-lg font-bold tracking-tight">
             라이브스코어부터 시즌 예측까지 — 데이터 스포츠 미디어
@@ -323,23 +331,23 @@ export default async function Home() {
 }
 
 // ============================================================
-// 새 섹션 컴포넌트
+// 섹션 컴포넌트
 // ============================================================
 
+type UpdateItem = {
+  tag: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
+};
+
 function RecentUpdatesSection() {
-  const items: Array<{
-    tag: string;
-    tone: keyof typeof UPDATE_TONES;
-    icon: string;
-    title: string;
-    body: string;
-    href: string;
-    cta: string;
-  }> = [
+  const items: UpdateItem[] = [
     {
       tag: "NEW",
-      tone: "pink",
-      icon: "●",
+      Icon: Radio,
       title: "스코어베이스 라이브스코어",
       body: "13개 리그 (EPL · KBO · NPB · MLB · NBA · NHL · UCL · LCK 등) 라이브 / 종료 / 예정 매치를 한 페이지에.",
       href: "/scores",
@@ -347,8 +355,7 @@ function RecentUpdatesSection() {
     },
     {
       tag: "NEW",
-      tone: "amber",
-      icon: "⭐",
+      Icon: Star,
       title: "AI Strong Pick · 65% 이상 자신 있는 픽",
       body: "모델이 강하게 찍은 매치만 따로 추적 — NBA 62%, NHL 61%, MLB 52% 적중. 전체 평균 대비 +13%p 리프트.",
       href: "/predictions/accuracy",
@@ -356,17 +363,15 @@ function RecentUpdatesSection() {
     },
     {
       tag: "NEW",
-      tone: "emerald",
-      icon: "✨",
+      Icon: Sparkles,
       title: "베팅사이트 odds vs AI 모델 비교",
-      body: "글마다 8개 베팅사이트 평균 implied 확률을 우리 모델과 나란히 표시. 모델이 시장보다 5%p+ 자신 있는 결과는 ✨ Value Bet 으로 강조.",
+      body: "글마다 8개 베팅사이트 평균 implied 확률을 우리 모델과 나란히 표시. 모델이 시장보다 5%p+ 자신 있는 결과는 Value Bet 으로 강조.",
       href: "/predictions/accuracy",
       cta: "Value Bet 통계",
     },
     {
       tag: "UPGRADE",
-      tone: "blue",
-      icon: "🎯",
+      Icon: Target,
       title: "예측 시장 5종 동시 추적",
       body: "1X2 · 더블 찬스 · OVER/UNDER · 핸디캡 · BTTS — 종목별 자동 적용. 1,233매치 백테스트 기준 적중률 투명 공개.",
       href: "/predictions/accuracy",
@@ -374,8 +379,7 @@ function RecentUpdatesSection() {
     },
     {
       tag: "UPGRADE",
-      tone: "violet",
-      icon: "📊",
+      Icon: BarChart3,
       title: "통계 모델 정밀화",
       body: "Elo 마진 가중치(MoV) + 축구 핸디캡 Skellam 분포 적용. 골 차이가 큰 매치는 Elo 변동이 더 크고, 핸디캡 정확도도 안정.",
       href: "/about",
@@ -385,7 +389,7 @@ function RecentUpdatesSection() {
   return (
     <section aria-labelledby="updates-title">
       <SectionHeading
-        title="🆕 최근 업데이트 · 사이트 차별화"
+        title="최근 업데이트 · 사이트 차별화"
         subtitle="단순 결과 정리에서 한 발 더 — 데이터로 검증하고 시장과 비교합니다"
       />
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -397,93 +401,52 @@ function RecentUpdatesSection() {
   );
 }
 
-const UPDATE_TONES = {
-  amber: {
-    border: "border-amber-300/60 dark:border-amber-700/40",
-    bg: "bg-gradient-to-br from-amber-50/80 to-orange-50/80 dark:from-amber-950/40 dark:to-orange-950/30",
-    tag: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-    cta: "text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200",
-  },
-  emerald: {
-    border: "border-emerald-300/60 dark:border-emerald-700/40",
-    bg: "bg-gradient-to-br from-emerald-50/80 to-teal-50/80 dark:from-emerald-950/40 dark:to-teal-950/30",
-    tag: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-    cta: "text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-200",
-  },
-  blue: {
-    border: "border-blue-300/60 dark:border-blue-700/40",
-    bg: "bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-950/40 dark:to-indigo-950/30",
-    tag: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
-    cta: "text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-200",
-  },
-  violet: {
-    border: "border-violet-300/60 dark:border-violet-700/40",
-    bg: "bg-gradient-to-br from-violet-50/80 to-fuchsia-50/80 dark:from-violet-950/40 dark:to-fuchsia-950/30",
-    tag: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
-    cta: "text-violet-700 dark:text-violet-400 hover:text-violet-900 dark:hover:text-violet-200",
-  },
-  pink: {
-    border: "border-pink-300/60 dark:border-pink-700/40",
-    bg: "bg-gradient-to-br from-pink-50/80 to-rose-50/80 dark:from-pink-950/40 dark:to-rose-950/30",
-    tag: "bg-pink-500/15 text-pink-700 dark:text-pink-400",
-    cta: "text-pink-700 dark:text-pink-400 hover:text-pink-900 dark:hover:text-pink-200",
-  },
-} as const;
-
-function UpdateCard({
-  item,
-}: {
-  item: {
-    tag: string;
-    tone: keyof typeof UPDATE_TONES;
-    icon: string;
-    title: string;
-    body: string;
-    href: string;
-    cta: string;
-  };
-}) {
-  const t = UPDATE_TONES[item.tone];
+function UpdateCard({ item }: { item: UpdateItem }) {
+  const Icon = item.Icon;
+  const tagTone =
+    item.tag === "NEW"
+      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500/20"
+      : "bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/20";
   return (
-    <article
-      className={`rounded-2xl border ${t.border} ${t.bg} p-5 flex flex-col`}
-    >
-      <div className="flex items-center gap-2 mb-3">
+    <article className="group flex flex-col rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
+      <div className="mb-4 flex items-center gap-2">
         <span
-          className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${t.tag}`}
+          className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tagTone}`}
         >
           {item.tag}
         </span>
-        <span className="text-xl" aria-hidden>
-          {item.icon}
-        </span>
+        <Icon className="h-5 w-5 text-zinc-700 dark:text-white/80" />
       </div>
-      <h3 className="font-bold text-base text-neutral-900 dark:text-white mb-2 leading-snug">
+      <h3 className="mb-2 text-base font-semibold leading-snug tracking-tight text-zinc-950 dark:text-white">
         {item.title}
       </h3>
-      <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed flex-1 mb-4">
+      <p className="mb-4 flex-1 text-sm leading-relaxed text-zinc-600 dark:text-white/55">
         {item.body}
       </p>
       <Link
         href={item.href}
-        className={`inline-flex items-center gap-1 text-xs font-semibold ${t.cta} transition`}
+        className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
       >
         {item.cta}
-        <span aria-hidden>→</span>
+        <ArrowRight className="h-3 w-3" />
       </Link>
     </article>
   );
 }
 
 function FeaturesSection() {
-  const items = [
+  const items: Array<{
+    Icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    body: React.ReactNode;
+  }> = [
     {
-      icon: "📝",
+      Icon: FileText,
       title: "경기 프리뷰",
       body: (
         <>
           경기 시작 전, Elo 레이팅과 최근 폼·홈 원정 강도를 종합한{" "}
-          <strong className="text-neutral-900 dark:text-white">
+          <strong className="text-zinc-950 dark:text-white">
             매치 프리뷰
           </strong>
           로 양 팀의 강점과 추정 승률을 미리 확인하세요.
@@ -491,12 +454,12 @@ function FeaturesSection() {
       ),
     },
     {
-      icon: "🔍",
+      Icon: Search,
       title: "경기 리뷰",
       body: (
         <>
           경기 종료 직후 자동 발행되는{" "}
-          <strong className="text-neutral-900 dark:text-white">
+          <strong className="text-zinc-950 dark:text-white">
             스포츠 리뷰
           </strong>
           가 결과·핵심 장면·통계 흐름·다음 경기 영향까지 한 번에 정리합니다.
@@ -504,12 +467,12 @@ function FeaturesSection() {
       ),
     },
     {
-      icon: "🏥",
+      Icon: HeartPulse,
       title: "부상자 명단",
       body: (
         <>
           팀별{" "}
-          <strong className="text-neutral-900 dark:text-white">
+          <strong className="text-zinc-950 dark:text-white">
             부상자 명단
           </strong>
           과 결장 영향도를 추적해 매치 결과를 좌우하는 변수를 미리 파악할 수
@@ -518,12 +481,12 @@ function FeaturesSection() {
       ),
     },
     {
-      icon: "🤖",
+      Icon: Bot,
       title: "AI 스포츠 경기 심층 분석",
       body: (
         <>
           Elo 레이팅·시즌 시뮬레이션·H2H 전적 데이터를 결합한{" "}
-          <strong className="text-neutral-900 dark:text-white">
+          <strong className="text-zinc-950 dark:text-white">
             AI 매치 인사이트
           </strong>
           로 데이터 기반 관전을 돕습니다.
@@ -537,18 +500,18 @@ function FeaturesSection() {
         title="스코어베이스가 매일 분석하는 4가지"
         subtitle="공인 데이터 소스에서 Elo · 시뮬레이션 · AI 스포츠 경기 심층 분석까지"
       />
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {items.map((it) => (
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map(({ Icon, title, body }) => (
           <article
-            key={it.title}
-            className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5 hover:border-neutral-300 dark:hover:border-neutral-700 transition"
+            key={title}
+            className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
           >
-            <div className="text-2xl mb-3" aria-hidden>
-              {it.icon}
-            </div>
-            <h3 className="text-base font-semibold mb-2">{it.title}</h3>
-            <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-              {it.body}
+            <Icon className="mb-5 h-7 w-7 text-zinc-900 dark:text-white" />
+            <h3 className="mb-2 text-base font-semibold tracking-tight text-zinc-950 dark:text-white">
+              {title}
+            </h3>
+            <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
+              {body}
             </p>
           </article>
         ))}
@@ -559,19 +522,19 @@ function FeaturesSection() {
 
 function LeagueDirectory() {
   const tiles = [
-    { href: "/leagues/EPL", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", name: "프리미어리그", sub: "EPL · 잉글랜드" },
-    { href: "/leagues/LALIGA", flag: "🇪🇸", name: "라리가", sub: "스페인" },
-    { href: "/leagues/BUNDESLIGA", flag: "🇩🇪", name: "분데스리가", sub: "독일" },
-    { href: "/leagues/SERIE_A", flag: "🇮🇹", name: "세리에 A", sub: "이탈리아" },
-    { href: "/leagues/LIGUE_1", flag: "🇫🇷", name: "리그 1", sub: "프랑스" },
-    { href: "/leagues/UCL", flag: "🏆", name: "챔피언스리그", sub: "유럽" },
-    { href: "/leagues/MLS", flag: "🇺🇸", name: "MLS", sub: "북미" },
-    { href: "/leagues/NBA", flag: "🏀", name: "NBA", sub: "미국 농구" },
-    { href: "/leagues/KBO", flag: "🇰🇷", name: "KBO 리그", sub: "한국 프로야구" },
-    { href: "/leagues/NPB", flag: "🇯🇵", name: "NPB 리그", sub: "일본 프로야구" },
-    { href: "/leagues/MLB", flag: "⚾", name: "MLB", sub: "메이저리그" },
-    { href: "/leagues/NHL", flag: "🏒", name: "NHL", sub: "북미 아이스하키" },
-    { href: "/leagues/LOL", flag: "🎮", name: "LCK", sub: "리그 오브 레전드 한국" },
+    { href: "/leagues/EPL", name: "프리미어리그", sub: "EPL · 잉글랜드" },
+    { href: "/leagues/LALIGA", name: "라리가", sub: "스페인" },
+    { href: "/leagues/BUNDESLIGA", name: "분데스리가", sub: "독일" },
+    { href: "/leagues/SERIE_A", name: "세리에 A", sub: "이탈리아" },
+    { href: "/leagues/LIGUE_1", name: "리그 1", sub: "프랑스" },
+    { href: "/leagues/UCL", name: "챔피언스리그", sub: "유럽" },
+    { href: "/leagues/MLS", name: "MLS", sub: "북미" },
+    { href: "/leagues/NBA", name: "NBA", sub: "미국 농구" },
+    { href: "/leagues/KBO", name: "KBO 리그", sub: "한국 프로야구" },
+    { href: "/leagues/NPB", name: "NPB 리그", sub: "일본 프로야구" },
+    { href: "/leagues/MLB", name: "MLB", sub: "메이저리그" },
+    { href: "/leagues/NHL", name: "NHL", sub: "북미 아이스하키" },
+    { href: "/leagues/LOL", name: "LCK", sub: "리그 오브 레전드 한국" },
   ];
   return (
     <section aria-labelledby="leagues-title">
@@ -583,52 +546,46 @@ function LeagueDirectory() {
       {/* 월드컵 강조 카드 — 개막 임박 */}
       <Link
         href="/leagues/WORLD_CUP"
-        className="group relative block mb-3 overflow-hidden rounded-2xl border border-amber-300 dark:border-amber-500/30"
+        className="group relative mb-4 block overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       >
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600 opacity-90" />
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 text-white">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <span className="text-4xl leading-none drop-shadow" aria-hidden>
-              🏆
-            </span>
-            <div>
-              <div className="text-[11px] font-bold tracking-[0.25em] uppercase opacity-80">
-                FIFA World Cup 2026 · LIVE SOON
-              </div>
-              <div className="text-lg sm:text-xl font-black tracking-tight">
-                북중미 월드컵 — 6/11 개막
-              </div>
-              <div className="text-xs sm:text-sm opacity-90 mt-0.5">
-                🇰🇷 한국 첫 경기 6/12 11:00 KST vs 체코 · 우승 후보·조별 통과 확률 보러가기
-              </div>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_60%)]" />
+        <div className="flex flex-col gap-3 px-5 py-5 text-white sm:flex-row sm:items-center sm:gap-5">
+          <Trophy className="h-9 w-9 shrink-0 drop-shadow" aria-hidden />
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.25em] opacity-85">
+              FIFA World Cup 2026 · LIVE SOON
+            </div>
+            <div className="text-lg font-semibold tracking-tight sm:text-xl">
+              북중미 월드컵 — 6/11 개막
+            </div>
+            <div className="mt-0.5 text-xs opacity-90 sm:text-sm">
+              한국 첫 경기 6/12 11:00 KST vs 체코 · 우승 후보·조별 통과 확률 보러가기
             </div>
           </div>
-          <div className="sm:ml-auto flex items-center gap-2 text-sm font-semibold">
+          <div className="flex items-center gap-2 text-sm font-semibold sm:ml-auto">
             <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
               예측 / 매치 / 분석
             </span>
-            <span aria-hidden className="transition group-hover:translate-x-1">
-              →
-            </span>
+            <ChevronRight
+              className="h-4 w-4 transition group-hover:translate-x-1"
+              aria-hidden
+            />
           </div>
         </div>
       </Link>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {tiles.map((t) => (
           <Link
             key={t.href}
             href={t.href}
-            className="group flex flex-col items-start gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
+            className="group flex flex-col items-start gap-1 rounded-[1.25rem] bg-white px-4 py-3 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
           >
-            <span className="text-xl leading-none" aria-hidden>
-              {t.flag}
-            </span>
-            <strong className="text-sm font-semibold text-neutral-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+            <strong className="text-sm font-semibold tracking-tight text-zinc-950 transition group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
               {t.name}
             </strong>
-            <small className="text-[11px] text-neutral-500">{t.sub}</small>
+            <small className="text-[11px] text-zinc-500 dark:text-white/45">{t.sub}</small>
           </Link>
         ))}
       </div>
@@ -637,19 +594,23 @@ function LeagueDirectory() {
 }
 
 function MethodologySection() {
-  const items = [
+  const items: Array<{
+    Icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    body: string;
+  }> = [
     {
-      icon: "📡",
+      Icon: Satellite,
       title: "데이터 출처",
       body: "football-data.org, ESPN 등 공인 스포츠 데이터 소스를 정규화하여 경기 결과·통계·일정을 매일 수집합니다.",
     },
     {
-      icon: "📊",
+      Icon: BarChart3,
       title: "Elo 레이팅",
       body: "팀별 강도를 정량화하는 Elo 레이팅을 매 경기 갱신해 매치 승률 추정의 기준으로 활용합니다.",
     },
     {
-      icon: "🎲",
+      Icon: Dice5,
       title: "시즌 시뮬레이션",
       body: "남은 일정을 Monte Carlo 방식으로 반복 시뮬레이션해 우승·강등·플레이오프 진출 확률을 산출합니다.",
     },
@@ -662,18 +623,18 @@ function MethodologySection() {
         href="/about"
         hrefLabel="자세히 보기"
       />
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((it) => (
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map(({ Icon, title, body }) => (
           <div
-            key={it.title}
-            className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5"
+            key={title}
+            className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none"
           >
-            <div className="text-xl mb-2" aria-hidden>
-              {it.icon}
-            </div>
-            <h3 className="text-sm font-semibold mb-2">{it.title}</h3>
-            <p className="text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
-              {it.body}
+            <Icon className="mb-4 h-6 w-6 text-zinc-900 dark:text-white" />
+            <h3 className="mb-2 text-sm font-semibold tracking-tight text-zinc-950 dark:text-white">
+              {title}
+            </h3>
+            <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-white/55">
+              {body}
             </p>
           </div>
         ))}
@@ -708,18 +669,18 @@ function FaqSection() {
         {faqs.map((f) => (
           <details
             key={f.q}
-            className="group rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 open:border-neutral-300 dark:open:border-neutral-700 transition"
+            className="group rounded-[1.25rem] bg-white p-4 shadow-sm ring-1 ring-black/5 transition open:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none"
           >
-            <summary className="flex items-center justify-between gap-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden font-semibold text-sm">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-zinc-950 dark:text-white [&::-webkit-details-marker]:hidden">
               <span>{f.q}</span>
               <span
-                className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-lg leading-none text-neutral-400 group-open:rotate-45 transition-transform duration-200 select-none"
+                className="inline-flex h-6 w-6 shrink-0 select-none items-center justify-center rounded-full text-lg leading-none text-zinc-400 transition-transform duration-200 group-open:rotate-45 dark:text-white/40"
                 aria-hidden
               >
                 +
               </span>
             </summary>
-            <p className="mt-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+            <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-white/55">
               {f.a}
             </p>
           </details>
@@ -755,7 +716,7 @@ function LeagueShelf({
         subtitle={subtitle}
         href={`/leagues/${league}`}
       />
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {articles.map((a) => (
           <ArticleCard key={a.id} article={a} variant="compact" />
         ))}
@@ -766,12 +727,14 @@ function LeagueShelf({
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-12 text-center">
-      <p className="text-lg font-semibold">아직 발행된 기사가 없습니다</p>
-      <p className="mt-2 text-sm text-neutral-500">
+    <div className="rounded-[1.5rem] sm:rounded-[2rem] border border-dashed border-zinc-300 p-12 text-center dark:border-white/15">
+      <Activity className="mx-auto mb-3 h-6 w-6 text-zinc-400 dark:text-white/40" />
+      <p className="text-lg font-semibold text-zinc-950 dark:text-white">
+        아직 발행된 기사가 없습니다
+      </p>
+      <p className="mt-2 text-sm text-zinc-500 dark:text-white/50">
         잠시 후 자동 생성된 기사가 표시될 예정입니다.
       </p>
     </div>
   );
 }
-
