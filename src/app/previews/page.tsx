@@ -1,6 +1,5 @@
 // 종목별 PREVIEW 글 모음 페이지.
-// 사용자 요청: 축구·야구·농구·하키·e스포츠 카테고리 탭으로 프리뷰만 모아 보기.
-// 기존 /leagues/[league] 페이지는 그대로 유지.
+// 축구·야구·농구·하키·e스포츠 카테고리 탭으로 프리뷰만 모아 보기.
 
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -14,23 +13,14 @@ export const dynamic = "force-dynamic";
 interface SportCategory {
   key: "ALL" | "SOCCER" | "BASEBALL" | "BASKETBALL" | "HOCKEY" | "ESPORTS";
   label: string;
-  emoji: string;
   leagues: string[]; // 빈 배열 = 전체
-  gradient: string;
 }
 
 const SPORTS: SportCategory[] = [
-  {
-    key: "ALL",
-    label: "전체",
-    emoji: "🌐",
-    leagues: [],
-    gradient: "from-blue-500 via-purple-500 to-pink-500",
-  },
+  { key: "ALL", label: "전체", leagues: [] },
   {
     key: "SOCCER",
     label: "축구",
-    emoji: "⚽",
     leagues: [
       "EPL",
       "LALIGA",
@@ -41,36 +31,11 @@ const SPORTS: SportCategory[] = [
       "UCL",
       "WORLD_CUP",
     ],
-    gradient: "from-purple-600 via-fuchsia-500 to-pink-500",
   },
-  {
-    key: "BASEBALL",
-    label: "야구",
-    emoji: "⚾",
-    leagues: ["KBO", "NPB", "MLB"],
-    gradient: "from-emerald-500 via-green-600 to-teal-700",
-  },
-  {
-    key: "BASKETBALL",
-    label: "농구",
-    emoji: "🏀",
-    leagues: ["NBA"],
-    gradient: "from-orange-500 via-amber-500 to-yellow-500",
-  },
-  {
-    key: "HOCKEY",
-    label: "하키",
-    emoji: "🏒",
-    leagues: ["NHL"],
-    gradient: "from-cyan-500 via-blue-600 to-indigo-700",
-  },
-  {
-    key: "ESPORTS",
-    label: "e스포츠",
-    emoji: "🎮",
-    leagues: ["LOL"],
-    gradient: "from-rose-500 via-fuchsia-600 to-indigo-600",
-  },
+  { key: "BASEBALL", label: "야구", leagues: ["KBO", "NPB", "MLB"] },
+  { key: "BASKETBALL", label: "농구", leagues: ["NBA"] },
+  { key: "HOCKEY", label: "하키", leagues: ["NHL"] },
+  { key: "ESPORTS", label: "e스포츠", leagues: ["LOL"] },
 ];
 
 const PAGE_SIZE = 24;
@@ -126,7 +91,6 @@ export default async function PreviewsPage({ searchParams }: Props) {
       },
     }),
     prisma.article.count({ where }),
-    // 각 카테고리 카운트 (탭 옆 숫자)
     Promise.all(
       SPORTS.map(async (s) => {
         const w: Prisma.ArticleWhereInput = {
@@ -144,30 +108,23 @@ export default async function PreviewsPage({ searchParams }: Props) {
 
   return (
     <div>
-      {/* 히어로 */}
-      <section className="relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
-        <div
-          className={`absolute inset-0 -z-10 bg-gradient-to-br ${current.gradient} opacity-10 dark:opacity-15`}
-        />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-14">
-          <div
-            className={`inline-block bg-gradient-to-br ${current.gradient} bg-clip-text text-transparent text-xs font-bold tracking-[0.2em] uppercase mb-2`}
-          >
-            PREVIEW {current.key !== "ALL" ? `· ${current.label}` : ""}
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
-            프리뷰 모음
-          </h1>
-          <p className="mt-3 text-neutral-600 dark:text-neutral-400 max-w-xl">
-            축구 · 야구 · 농구 · 하키 · e스포츠 — 예정된 매치의 사전 분석·전망을
-            한 곳에서.
-          </p>
+      {/* Hero */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-8">
+        <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-medium text-zinc-700 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/70">
+          PREVIEW {current.key !== "ALL" ? `· ${current.label}` : ""}
         </div>
+        <h1 className="mt-5 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.04em] leading-[1.05] text-zinc-950 dark:text-white">
+          프리뷰 모음
+        </h1>
+        <p className="mt-4 max-w-xl text-base sm:text-lg text-zinc-600 dark:text-white/55">
+          축구 · 야구 · 농구 · 하키 · e스포츠 — 예정된 매치의 사전 분석·전망을
+          한 곳에서.
+        </p>
       </section>
 
       {/* 종목 탭 */}
-      <div className="border-b border-neutral-200 dark:border-neutral-800 sticky top-16 bg-white/85 dark:bg-neutral-950/85 backdrop-blur z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-x-1 sm:gap-x-2 gap-y-0 flex-wrap sm:flex-nowrap sm:overflow-x-auto">
+      <div className="sticky top-16 z-10 border-b border-black/5 bg-white/85 backdrop-blur dark:border-white/10 dark:bg-[#0a0a0a]/85">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-1 gap-y-0 px-4 sm:flex-nowrap sm:gap-x-2 sm:overflow-x-auto sm:px-6">
           {SPORTS.map((s) => {
             const active = s.key === current.key;
             const count = countMap.get(s.key) ?? 0;
@@ -176,21 +133,18 @@ export default async function PreviewsPage({ searchParams }: Props) {
               <Link
                 key={s.key}
                 href={href}
-                className={`px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition ${
+                className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition sm:px-4 ${
                   active
-                    ? "border-neutral-900 dark:border-white text-neutral-900 dark:text-white"
-                    : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                    ? "border-zinc-900 text-zinc-950 dark:border-white dark:text-white"
+                    : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <span className="mr-1.5" aria-hidden>
-                  {s.emoji}
-                </span>
                 {s.label}
                 <span
                   className={`ml-1.5 text-xs tabular-nums ${
                     active
-                      ? "text-neutral-500"
-                      : "text-neutral-400 dark:text-neutral-600"
+                      ? "text-zinc-500 dark:text-white/55"
+                      : "text-zinc-400 dark:text-white/35"
                   }`}
                 >
                   {count}
@@ -202,20 +156,21 @@ export default async function PreviewsPage({ searchParams }: Props) {
       </div>
 
       {/* 글 목록 */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
         {articles.length === 0 ? (
-          <p className="text-neutral-500 py-12 text-center">
-            아직 발행된 프리뷰가 없습니다.
-          </p>
+          <div className="rounded-[1.5rem] sm:rounded-[2rem] border border-dashed border-zinc-300 p-12 text-center dark:border-white/15">
+            <p className="text-sm text-zinc-500 dark:text-white/50">
+              아직 발행된 프리뷰가 없습니다.
+            </p>
+          </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {articles.map((a) => (
                 <ArticleCard key={a.id} article={a} />
               ))}
             </div>
 
-            {/* 페이지네이션 */}
             {totalPages > 1 && (
               <nav
                 aria-label="페이지네이션"
@@ -228,12 +183,12 @@ export default async function PreviewsPage({ searchParams }: Props) {
                         ? `/previews?page=${pageNum - 1}`
                         : `/previews?sport=${current.key}&page=${pageNum - 1}`
                     }
-                    className="px-3 py-2 text-sm rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
                   >
                     ← 이전
                   </Link>
                 )}
-                <span className="px-4 py-2 text-sm text-neutral-500">
+                <span className="px-4 py-2 text-sm tabular-nums text-zinc-500 dark:text-white/45">
                   {pageNum} / {totalPages}
                 </span>
                 {pageNum < totalPages && (
@@ -243,7 +198,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
                         ? `/previews?page=${pageNum + 1}`
                         : `/previews?sport=${current.key}&page=${pageNum + 1}`
                     }
-                    className="px-3 py-2 text-sm rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
                   >
                     다음 →
                   </Link>
@@ -253,28 +208,28 @@ export default async function PreviewsPage({ searchParams }: Props) {
           </>
         )}
 
-        <section className="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
-          <h2 className="text-base sm:text-lg font-bold tracking-tight">
+        <section className="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-black/5 dark:border-white/10 space-y-3">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-white">
             오늘의 경기 프리뷰 및 매치업 분석
           </h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
             EPL, MLB, NBA, KBO 등 주요 리그의 경기 시작 전 매치업 분석·예상 라인업·Elo 레이팅·H2H 상대 전적을 데이터 기반으로 정리한 프리뷰 콘텐츠입니다.
           </p>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
             경기 진행은{" "}
-            <Link href="/scores" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <Link href="/scores" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
               라이브스코어
             </Link>
             에서, 경기 종료 후 결과는{" "}
-            <Link href="/predictions" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <Link href="/predictions" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
               리뷰
             </Link>
             에서 확인할 수 있습니다. 함께{" "}
-            <Link href="/injuries" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <Link href="/injuries" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
               부상자 명단
             </Link>
             과{" "}
-            <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <Link href="/standings" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
               리그별 분석
             </Link>
             도 참고하세요.
