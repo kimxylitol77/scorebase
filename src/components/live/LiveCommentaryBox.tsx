@@ -71,11 +71,10 @@ export default function LiveCommentaryBox({
     );
   }
 
-  // /scores 매치 카드 안 — 좁은 공간, 2줄 클램프 + 컴팩트 라벨
+  // /scores 야구 카드 — 다이아몬드 옆 빈 공간. 라벨 없이 본문만, 3줄 클램프
   if (variant === "card") {
     return (
-      <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 leading-snug line-clamp-2 px-0.5">
-        <span className="font-semibold text-neutral-600 dark:text-neutral-300">AI ·</span>{" "}
+      <p className="flex-1 min-w-0 text-[11px] sm:text-xs text-neutral-300 dark:text-neutral-300 leading-snug line-clamp-3">
         {matchSummary}
       </p>
     );

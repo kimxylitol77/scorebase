@@ -233,17 +233,17 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         </div>
       </div>
 
-      {/* 상황 박스 (LIVE 만) */}
+      {/* 상황 박스 (LIVE 만) — 다이아몬드 + 주자/아웃 + 우측 빈 공간엔 AI 코멘터리 */}
       {isLive && (
         <div
-          className="rounded-lg px-3 py-2.5 flex items-center justify-between gap-3"
+          className="rounded-lg px-3 py-2.5 flex items-center gap-3"
           style={{
             background: "rgba(255,255,255,.02)",
             border: "1px solid rgba(255,255,255,.06)",
           }}
         >
           <BaseDiamond bases={bases} size={64} />
-          <div className="flex-1 min-w-0">
+          <div className="shrink-0">
             <div className="text-[11px] text-neutral-500 mb-1">
               {bases ? basesText(bases) : "주자 정보 없음"}
             </div>
@@ -254,6 +254,9 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
               </span>
             </div>
           </div>
+          {liveCommentary && (
+            <LiveCommentaryBox {...liveCommentary} variant="card" />
+          )}
         </div>
       )}
 
@@ -320,10 +323,6 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         <div className="text-center text-[11px] text-neutral-400 tabular-nums">
           KST {timeLabel}
         </div>
-      )}
-
-      {isLive && liveCommentary && (
-        <LiveCommentaryBox {...liveCommentary} variant="card" />
       )}
 
       {actions && (
