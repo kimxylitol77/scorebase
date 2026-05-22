@@ -234,7 +234,7 @@ export default async function Home() {
             <SeasonInsightCard league="NHL" />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5 items-start">
+          <div className="grid md:grid-cols-2 gap-5">
             <SeasonInsight league="EPL" />
             <SeasonInsight league="MLB" />
           </div>
