@@ -145,6 +145,17 @@ function kstDateLabel(d: Date): string {
     weekday: "short",
   });
 }
+function kstFullDateLabel(d: Date): string {
+  const k = new Date(d.getTime() + 9 * 3600 * 1000);
+  const y = k.getUTCFullYear();
+  const m = String(k.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(k.getUTCDate()).padStart(2, "0");
+  const weekday = d.toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    weekday: "short",
+  });
+  return `${y}년 ${m}월 ${dd}일 (${weekday})`;
+}
 function parseStarter(json: string | null): string | null {
   if (!json) return null;
   try {
@@ -862,6 +873,13 @@ export default async function ScoresPage({ searchParams }: Props) {
 
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} sport={sport} extraQuery={extraQuery} />
+
+      {/* 축구 전용 — 선택 일자 풀 포맷 바 (yyyy년mm월dd일 (요일)) */}
+      {sport === "soccer" && (
+        <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/[0.03] px-4 py-2.5 text-sm sm:text-base font-bold tabular-nums text-neutral-800 dark:text-neutral-200">
+          {kstFullDateLabel(day)}
+        </div>
+      )}
 
       {/* 축구: 사이드바 + 컨텐츠 2-col / 다른 종목: 기존 그대로 */}
       {sport === "soccer" ? (
