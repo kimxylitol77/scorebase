@@ -32,6 +32,61 @@ const SEVERITY_COLOR: Record<string, { bg: string; text: string; emoji: string; 
   },
 };
 
+// 봇별 예상 주기 (ms). lastAt 이 expected × 2 넘으면 지연, × 4 넘으면 다운.
+const BOT_META: Record<
+  string,
+  { ko: string; intervalMs: number; role: string }
+> = {
+  "mac-mini-match-narrator": {
+    ko: "AI 라이브 코멘터리",
+    intervalMs: 5 * 60 * 1000,
+    role: "Ollama/Haiku 매치 진행 박스 생성",
+  },
+  "mac-mini-endpoint-monitor": {
+    ko: "엔드포인트 헬스 체크",
+    intervalMs: 5 * 60 * 1000,
+    role: "5개 핵심 페이지 응답 감시",
+  },
+  "mac-mini-live-scores-watcher": {
+    ko: "라이브 스코어 감시",
+    intervalMs: 60 * 1000,
+    role: "1분 주기 라이브 데이터 sanity check",
+  },
+  "mac-mini-data-quality": {
+    ko: "데이터 품질",
+    intervalMs: 15 * 60 * 1000,
+    role: "LIVE 점수 null + TBD 팀명 감시",
+  },
+  "mac-mini-api-quota": {
+    ko: "API 한도 감시",
+    intervalMs: 30 * 60 * 1000,
+    role: "4개 외부 API 사용량 알림",
+  },
+  "mac-mini-preview-coverage": {
+    ko: "PREVIEW 커버리지",
+    intervalMs: 30 * 60 * 1000,
+    role: "PREVIEW 누락 + 야구 투수 확정 분기",
+  },
+  "mac-mini-weekly-player-names": {
+    ko: "주간 선수명 사전 보강",
+    intervalMs: 7 * 24 * 60 * 60 * 1000,
+    role: "네이버 → MLB 선수명 사전 자동 PR",
+  },
+};
+
+function botStatus(ageMs: number, intervalMs: number) {
+  if (ageMs <= intervalMs * 2) return { label: "정상", color: "emerald" };
+  if (ageMs <= intervalMs * 4) return { label: "지연", color: "amber" };
+  return { label: "다운", color: "rose" };
+}
+
+function fmtAge(ms: number): string {
+  if (ms < 60_000) return `${Math.round(ms / 1000)}초 전`;
+  if (ms < 3600_000) return `${Math.round(ms / 60_000)}분 전`;
+  if (ms < 86400_000) return `${(ms / 3600_000).toFixed(1)}시간 전`;
+  return `${Math.round(ms / 86400_000)}일 전`;
+}
+
 function fmtKstDate(d: Date): string {
   const kst = new Date(d.getTime() + 9 * 3600 * 1000);
   return `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, "0")}-${String(kst.getUTCDate()).padStart(2, "0")}`;
@@ -90,6 +145,11 @@ export default async function HealthPage() {
     where: { category: "stale-cleanup" },
     orderBy: { runAt: "desc" },
     take: 10,
+  });
+
+  // 봇 heartbeat — 모든 워커
+  const bots = await prisma.botHeartbeat.findMany({
+    orderBy: { lastAt: "desc" },
   });
 
   // 그룹화 — severity 순
@@ -238,6 +298,86 @@ export default async function HealthPage() {
           </table>
         </div>
       </section>
+
+      {/* 봇 heartbeat 카드 grid */}
+      {bots.length > 0 && (
+        <section>
+          <h2 className="text-lg font-bold border-b border-neutral-200 dark:border-neutral-800 pb-2 mb-3">
+            🤖 봇 heartbeat
+          </h2>
+          <p className="text-xs text-neutral-500 mb-3">
+            각 워커의 마지막 ping 시각. 예상 주기 × 2 초과 시 지연, × 4 초과 시 다운.
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {bots.map((b) => {
+              const meta = BOT_META[b.name] ?? {
+                ko: b.name,
+                intervalMs: 60 * 60 * 1000,
+                role: "(미등록 봇)",
+              };
+              const ageMs = Date.now() - b.lastAt.getTime();
+              const status = botStatus(ageMs, meta.intervalMs);
+              const colorMap: Record<string, { bg: string; text: string; border: string }> = {
+                emerald: {
+                  bg: "bg-emerald-50 dark:bg-emerald-500/10",
+                  text: "text-emerald-700 dark:text-emerald-400",
+                  border: "border-emerald-200 dark:border-emerald-500/30",
+                },
+                amber: {
+                  bg: "bg-amber-50 dark:bg-amber-500/10",
+                  text: "text-amber-700 dark:text-amber-400",
+                  border: "border-amber-200 dark:border-amber-500/30",
+                },
+                rose: {
+                  bg: "bg-rose-50 dark:bg-rose-500/10",
+                  text: "text-rose-700 dark:text-rose-400",
+                  border: "border-rose-200 dark:border-rose-500/30",
+                },
+              };
+              const c = colorMap[status.color];
+              const md = (b.metadata ?? {}) as {
+                host?: string;
+                provider?: string;
+                model?: string;
+                leagues?: string[];
+              };
+              return (
+                <div
+                  key={b.name}
+                  className={`rounded-lg border ${c.border} ${c.bg} p-3 space-y-1.5`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-bold truncate">{meta.ko}</h3>
+                    <span className={`text-[11px] font-bold ${c.text} shrink-0`}>
+                      ● {status.label}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                    {meta.role}
+                  </div>
+                  <div className="flex items-center justify-between text-xs tabular-nums">
+                    <span className="text-neutral-700 dark:text-neutral-300">
+                      {fmtAge(ageMs)}
+                    </span>
+                    <span className="text-neutral-500">
+                      주기 {fmtAge(meta.intervalMs)}
+                    </span>
+                  </div>
+                  {(md.provider || md.model) && (
+                    <div className="text-[10px] text-neutral-500 truncate">
+                      {md.provider && <span>{md.provider}</span>}
+                      {md.model && <span> · {md.model}</span>}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-neutral-400 font-mono truncate">
+                    {b.name}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* stale 매치 자동 정리 이력 */}
       {staleCleanups.length > 0 && (
