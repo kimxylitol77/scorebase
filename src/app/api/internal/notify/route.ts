@@ -62,9 +62,23 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
-  if (!body.source || !body.severity || !body.title || !body.message) {
+  if (!body.source || !body.severity || !body.title) {
     return NextResponse.json(
-      { error: "source/severity/title/message required" },
+      { error: "source/severity/title required" },
+      { status: 400 },
+    );
+  }
+  // message 옵션 — 5요소 (what/when/impact/cause/action) 중 하나라도 있으면 OK
+  const hasAny =
+    body.message ||
+    body.what ||
+    body.when ||
+    body.impact ||
+    body.cause ||
+    body.action;
+  if (!hasAny) {
+    return NextResponse.json(
+      { error: "message or what/when/impact/cause/action required" },
       { status: 400 },
     );
   }
