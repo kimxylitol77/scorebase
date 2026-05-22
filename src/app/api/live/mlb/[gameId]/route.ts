@@ -42,6 +42,25 @@ export interface MlbLive {
     home: MlbTeamStats;
     away: MlbTeamStats;
   } | null;
+  /** 최근 pitch/at-bat plays — 마지막 50개. timeline UI 용 */
+  plays?: MlbPlay[];
+}
+
+export interface MlbPlay {
+  id: string;
+  /** "Ball" | "Foul Ball" | "Strike Looking" | "Single" | "Play Result" | "Start Inning" 등 */
+  typeText: string;
+  /** ESPN 의 type.type slug — "ball" | "foul-ball" | "play-result" 등 */
+  typeSlug: string;
+  /** 영문 원문 ("Pitch 1 : Strike 1 Foul" 또는 "Clement doubled to left.") */
+  text: string;
+  /** 우리가 변환한 한국어 (가능한 경우만, 없으면 null) */
+  textKo: string | null;
+  /** "1st Inning" → "1회 초/말" */
+  periodLabel: string;
+  awayScore: number;
+  homeScore: number;
+  scoringPlay: boolean;
 }
 
 export interface MlbBatter {
@@ -83,8 +102,19 @@ export interface MlbTeamStats {
   assists: number;
 }
 
+interface EspnPlay {
+  id?: string;
+  type?: { id?: string; text?: string; type?: string };
+  text?: string;
+  awayScore?: number;
+  homeScore?: number;
+  period?: { type?: string; number?: number; displayValue?: string };
+  scoringPlay?: boolean;
+}
+
 // ESPN summary는 매우 큰 응답이지만 우리가 필요한 필드는 한정 — 좁은 타입 선언.
 interface EspnSummary {
+  plays?: EspnPlay[];
   header?: {
     competitions?: Array<{
       status?: {
@@ -197,6 +227,7 @@ function normalize(data: EspnSummary): MlbLive | null {
   // boxscore → lineups + teamStats 추출
   const lineups = extractLineups(data.boxscore, home.team?.abbreviation, away.team?.abbreviation);
   const teamStats = extractTeamStats(data.boxscore, home.team?.abbreviation, away.team?.abbreviation);
+  const plays = extractPlays(data.plays);
 
   return {
     status,
@@ -225,7 +256,94 @@ function normalize(data: EspnSummary): MlbLive | null {
     situation,
     lineups,
     teamStats,
+    plays,
   };
+}
+
+/** ESPN plays → 한국어 라벨링 + 최근 N개. at-bat 결과·이닝 전환·득점 plays 중심.
+ *  Ball/Strike/Foul 같은 pitch-by-pitch 도 포함 (전체 timeline). */
+function extractPlays(raw: EspnPlay[] | undefined): MlbPlay[] {
+  if (!raw || raw.length === 0) return [];
+  // 빈 text 제외 (End Batter/Pitcher 등). 마지막 60개만 응답 — 응답 크기 절약.
+  const filtered = raw.filter((p) => (p.text ?? "").trim().length > 0);
+  return filtered.slice(-60).map((p) => ({
+    id: String(p.id ?? ""),
+    typeText: p.type?.text ?? "",
+    typeSlug: p.type?.type ?? "",
+    text: p.text ?? "",
+    textKo: koreanizePlay(p),
+    periodLabel: koreanPeriod(p.period),
+    awayScore: p.awayScore ?? 0,
+    homeScore: p.homeScore ?? 0,
+    scoringPlay: !!p.scoringPlay,
+  }));
+}
+
+/** "1st Inning Top" → "1회 초", "8th Inning" + period.type "Bottom" → "8회 말" */
+function koreanPeriod(p: EspnPlay["period"]): string {
+  if (!p) return "";
+  const n = p.number;
+  if (typeof n !== "number") return p.displayValue ?? "";
+  const half = p.type === "Top" ? "초" : p.type === "Bottom" ? "말" : "";
+  return half ? `${n}회 ${half}` : `${n}회`;
+}
+
+/** ESPN play 한국어 변환 — 핵심 동사/카운트 매핑. 매칭 실패 시 null. */
+function koreanizePlay(p: EspnPlay): string | null {
+  const text = (p.text ?? "").trim();
+  if (!text) return null;
+  const slug = p.type?.type ?? "";
+
+  // pitch-by-pitch — "Pitch N : Strike 1 Foul" / "Ball 1" 형태
+  const pitchMatch = text.match(/^Pitch\s+(\d+)\s*:\s*(.+)$/i);
+  if (pitchMatch) {
+    const n = pitchMatch[1];
+    const rest = pitchMatch[2];
+    let body = rest;
+    body = body.replace(/Strike\s+(\d+)\s+Foul/i, "스트라이크 $1 파울");
+    body = body.replace(/Strike\s+(\d+)\s+Looking/i, "스트라이크 $1 (선구)");
+    body = body.replace(/Strike\s+(\d+)\s+Swinging/i, "스트라이크 $1 (헛스윙)");
+    body = body.replace(/Ball\s+In\s+Play/i, "타격");
+    body = body.replace(/Ball\s+(\d+)/i, "볼 $1");
+    return `${n}구 · ${body}`;
+  }
+
+  // 이닝 전환
+  if (slug === "start-inning") return text.replace(/Top of the (\d+).*/i, "$1회 초 시작").replace(/Bottom of the (\d+).*/i, "$1회 말 시작");
+  if (slug === "end-inning") return null;
+
+  // 새 타석 — "Pitcher X pitches to Y" → "투수 X → 타자 Y"
+  const matchup = text.match(/^(.+?)\s+pitches to\s+(.+)$/i);
+  if (matchup) return `투수 ${matchup[1]} → 타자 ${matchup[2]}`;
+
+  // at-bat 결과 동사 매핑
+  let r = text;
+  r = r.replace(/struck out swinging/gi, "헛스윙 삼진");
+  r = r.replace(/struck out looking/gi, "스탠딩 삼진");
+  r = r.replace(/struck out/gi, "삼진");
+  r = r.replace(/homered/gi, "홈런");
+  r = r.replace(/tripled/gi, "3루타");
+  r = r.replace(/doubled/gi, "2루타");
+  r = r.replace(/singled/gi, "안타");
+  r = r.replace(/walked/gi, "볼넷");
+  r = r.replace(/hit by pitch/gi, "사구");
+  r = r.replace(/grounded out/gi, "땅볼 아웃");
+  r = r.replace(/flied out/gi, "플라이 아웃");
+  r = r.replace(/lined out/gi, "라인드라이브 아웃");
+  r = r.replace(/popped out/gi, "팝업 아웃");
+  r = r.replace(/\sto left\b/gi, " (좌)");
+  r = r.replace(/\sto right\b/gi, " (우)");
+  r = r.replace(/\sto center\b/gi, " (중)");
+  r = r.replace(/\sto shortstop\b/gi, " (유격수)");
+  r = r.replace(/\sto first\b/gi, " (1루수)");
+  r = r.replace(/\sto second\b/gi, " (2루수)");
+  r = r.replace(/\sto third\b/gi, " (3루수)");
+  r = r.replace(/\sto pitcher\b/gi, " (투수)");
+  r = r.replace(/\sto catcher\b/gi, " (포수)");
+  r = r.replace(/\sscored\b/gi, " 득점");
+  r = r.replace(/\sadvanced to\s+/gi, " 진루 → ");
+  if (r !== text) return r;
+  return null;
 }
 
 /** boxscore.players → 선발 라인업 (1~9번 타순) 양 팀 */
@@ -336,6 +454,8 @@ async function hashLive(live: MlbLive): Promise<string> {
     live.situation?.lastPlay,
     oddsSig,
     live.wpaSeries?.[live.wpaSeries.length - 1]?.homeWP?.toFixed(3),
+    live.plays?.length,
+    live.plays?.[live.plays.length - 1]?.id,
   ].join("|");
   const buf = await crypto.subtle.digest(
     "SHA-1",

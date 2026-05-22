@@ -138,6 +138,19 @@ interface MlbLive {
   } | null;
   lineups?: { home: MlbBatter[]; away: MlbBatter[] } | null;
   teamStats?: { home: MlbTeamStats; away: MlbTeamStats } | null;
+  plays?: MlbPlay[];
+}
+
+interface MlbPlay {
+  id: string;
+  typeText: string;
+  typeSlug: string;
+  text: string;
+  textKo: string | null;
+  periodLabel: string;
+  awayScore: number;
+  homeScore: number;
+  scoringPlay: boolean;
 }
 
 interface Props {
@@ -420,6 +433,11 @@ export default function MlbLiveDetail({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Pitch-by-Pitch / At-Bat 결과 timeline (LIVE 만) */}
+        {isLive && live.plays && live.plays.length > 0 && (
+          <PlayByPlayBox plays={live.plays} />
         )}
 
         {/* 이닝 박스 (LIVE/종료) */}
@@ -861,5 +879,99 @@ function CountIndicator({
         ))}
       </div>
     </div>
+  );
+}
+
+function PlayByPlayBox({ plays }: { plays: MlbPlay[] }) {
+  // 최근 → 위. 같은 이닝 내 plays 묶음. 핵심 type 만 표시
+  // (Ball/Strike/Foul/Play Result/Start Inning/Start Batter)
+  const KEEP = new Set([
+    "ball",
+    "strike-looking",
+    "strike-swinging",
+    "foul-ball",
+    "play-result",
+    "start-inning",
+    "start-batter-pitcher",
+    "single",
+    "double",
+    "triple",
+    "home-run",
+    "ground-out",
+    "fly-out",
+    "line-out",
+    "pop-out",
+    "strikeout",
+    "walk",
+    "hit-by-pitch",
+  ]);
+  const filtered = plays.filter(
+    (p) => KEEP.has(p.typeSlug) || p.scoringPlay,
+  );
+  const reversed = [...filtered].reverse();
+
+  return (
+    <div className="rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 space-y-2"
+      style={{
+        background: "rgba(255,255,255,.02)",
+        border: "1px solid rgba(255,255,255,.06)",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs sm:text-sm font-bold tracking-tight">
+          실시간 중계
+        </h3>
+        <span className="text-[10px] text-neutral-500">
+          최근 {Math.min(reversed.length, 40)}개
+        </span>
+      </div>
+      <ul className="max-h-80 overflow-y-auto space-y-1 pr-1 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-neutral-700/50">
+        {reversed.slice(0, 40).map((p) => (
+          <PlayRow key={p.id} play={p} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PlayRow({ play }: { play: MlbPlay }) {
+  const isInning = play.typeSlug === "start-inning";
+  const isResult = play.typeSlug === "play-result" || play.scoringPlay;
+  const isMatchup = play.typeSlug === "start-batter-pitcher";
+
+  if (isInning) {
+    return (
+      <li className="flex items-center gap-2 pt-1.5">
+        <div className="h-px flex-1 bg-neutral-200 dark:bg-white/10" />
+        <span className="text-[11px] font-bold text-neutral-500 tabular-nums">
+          {play.textKo ?? play.periodLabel}
+        </span>
+        <div className="h-px flex-1 bg-neutral-200 dark:bg-white/10" />
+      </li>
+    );
+  }
+  if (isMatchup) {
+    return (
+      <li className="flex items-baseline gap-2 text-[11px] sm:text-xs pt-1">
+        <span className="text-neutral-500 tabular-nums shrink-0">▸</span>
+        <span className="font-semibold text-neutral-700 dark:text-neutral-300 truncate">
+          {play.textKo ?? play.text}
+        </span>
+      </li>
+    );
+  }
+  return (
+    <li
+      className={`flex items-start gap-2 text-[11px] sm:text-xs leading-relaxed ${
+        isResult ? "font-semibold text-neutral-800 dark:text-neutral-200" : "text-neutral-500 dark:text-neutral-400"
+      }`}
+    >
+      <span className="text-[10px] tabular-nums text-neutral-400 dark:text-neutral-500 shrink-0 w-10">
+        {play.awayScore}-{play.homeScore}
+      </span>
+      <span className={`flex-1 ${isResult ? "" : "truncate"}`}>
+        {play.textKo ?? play.text}
+      </span>
+    </li>
   );
 }
