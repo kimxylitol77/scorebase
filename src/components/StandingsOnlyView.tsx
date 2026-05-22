@@ -80,7 +80,24 @@ export default async function StandingsOnlyView({ league }: Props) {
                 return (
                   <tr key={r.teamId} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
                     <td className="px-3 py-2 text-right tabular-nums font-semibold text-neutral-500">{r.position}</td>
-                    <td className="px-3 py-2 truncate">{r.teamName}</td>
+                    <td className="px-3 py-2 truncate">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {r.logoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={r.logoUrl}
+                            alt=""
+                            width={24}
+                            height={24}
+                            loading="lazy"
+                            className="w-6 h-6 object-contain shrink-0 bg-white rounded-sm"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-sm bg-neutral-200 dark:bg-neutral-700 shrink-0" />
+                        )}
+                        <span className="truncate">{r.teamName}</span>
+                      </div>
+                    </td>
                     <td className="px-2 py-2 text-right tabular-nums">{played}</td>
                     <td className="px-2 py-2 text-right tabular-nums">{r.won}</td>
                     <td className="px-2 py-2 text-right tabular-nums">{r.draw}</td>
