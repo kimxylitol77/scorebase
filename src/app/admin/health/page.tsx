@@ -2,6 +2,7 @@
 // 오늘 issue 카드 + 최근 7일 추세 + 카테고리별 분포.
 
 import { prisma } from "@/lib/db";
+import BotHeartbeatTable, { type BotRow } from "./BotHeartbeatTable";
 
 export const dynamic = "force-dynamic";
 
@@ -152,6 +153,35 @@ export default async function HealthPage() {
     orderBy: { lastAt: "desc" },
   });
 
+  // table 용 정규화 row
+  const botRows: BotRow[] = bots.map((b) => {
+    const meta = BOT_META[b.name] ?? {
+      ko: b.name,
+      intervalMs: 60 * 60 * 1000,
+      role: "(미등록 봇)",
+    };
+    const ageMs = Date.now() - b.lastAt.getTime();
+    const status = botStatus(ageMs, meta.intervalMs);
+    const md = (b.metadata ?? {}) as {
+      host?: string;
+      provider?: string;
+      model?: string;
+    };
+    return {
+      name: b.name,
+      ko: meta.ko,
+      role: meta.role,
+      status: status.label as BotRow["status"],
+      statusColor: status.color as BotRow["statusColor"],
+      lastAtIso: b.lastAt.toISOString(),
+      ageMs,
+      intervalMs: meta.intervalMs,
+      provider: md.provider ?? null,
+      model: md.model ?? null,
+      host: md.host ?? null,
+    };
+  });
+
   // 그룹화 — severity 순
   type FindingRow = (typeof latestFindings)[number];
   const findingsBySev: Record<string, FindingRow[]> = { HIGH: [], MED: [], LOW: [], OK: [] };
@@ -299,7 +329,7 @@ export default async function HealthPage() {
         </div>
       </section>
 
-      {/* 봇 heartbeat 카드 grid */}
+      {/* 봇 heartbeat 카드 grid + sortable table */}
       {bots.length > 0 && (
         <section>
           <h2 className="text-lg font-bold border-b border-neutral-200 dark:border-neutral-800 pb-2 mb-3">
@@ -307,7 +337,12 @@ export default async function HealthPage() {
           </h2>
           <p className="text-xs text-neutral-500 mb-3">
             각 워커의 마지막 ping 시각. 예상 주기 × 2 초과 시 지연, × 4 초과 시 다운.
+            아래 표 헤더 클릭해서 정렬.
           </p>
+
+          <div className="mb-4">
+            <BotHeartbeatTable rows={botRows} />
+          </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {bots.map((b) => {
               const meta = BOT_META[b.name] ?? {
