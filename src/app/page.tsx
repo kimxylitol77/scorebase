@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
-import FeaturedArticle from "@/components/FeaturedArticle";
 import HeroSection from "@/components/HeroSection";
 import SectionHeading from "@/components/SectionHeading";
 import SeasonInsight from "@/components/SeasonInsight";
@@ -165,7 +164,7 @@ export default async function Home() {
     prisma.article.findMany({
       where: { status: "PUBLISHED" },
       orderBy: { publishedAt: "desc" },
-      take: 13,
+      take: 12,
     }),
     getArticlesByLeague("EPL", 3),
     getArticlesByLeague("NBA", 3),
@@ -173,8 +172,7 @@ export default async function Home() {
     getArticlesByLeague("MLB", 3),
   ]);
 
-  const featured = latest[0];
-  const restLatest = latest.slice(1, 7);
+  const restLatest = latest.slice(0, 6);
   const hasAny = latest.length > 0;
 
   return (
@@ -200,16 +198,6 @@ export default async function Home() {
         <RecentUpdatesSection />
 
         {!hasAny && <EmptyState />}
-
-        {featured && (
-          <section>
-            <SectionHeading
-              title="오늘의 픽"
-              subtitle="가장 최근에 발행된 매치 프리뷰·리뷰"
-            />
-            <FeaturedArticle article={featured} />
-          </section>
-        )}
 
         {restLatest.length > 0 && (
           <section>
