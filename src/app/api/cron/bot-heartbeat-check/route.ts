@@ -9,8 +9,27 @@ import { sendTelegram } from "@/lib/notify/telegram";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-const STALE_MS = 30 * 60 * 1000;   // 30분 이상 무응답 → down 판단
+const DEFAULT_STALE_MS = 30 * 60 * 1000;   // 기본 30분 무응답 → down
 const RENOTIFY_MS = 60 * 60 * 1000; // 1시간마다만 재알림 (중복 방지)
+
+// 봇별 expected interval (ms) — interval × 4 초과 시 down 판단.
+// 봇이 자체 주기가 길면 (예: weekly) 그에 맞춰 임계값 늘림.
+const BOT_INTERVAL_MS: Record<string, number> = {
+  "mac-mini-match-narrator": 5 * 60 * 1000,
+  "mac-mini-endpoint-monitor": 5 * 60 * 1000,
+  "mac-mini-live-scores-watcher": 60 * 1000,
+  "mac-mini-data-quality": 15 * 60 * 1000,
+  "mac-mini-api-quota": 30 * 60 * 1000,
+  "mac-mini-preview-coverage": 30 * 60 * 1000,
+  "mac-mini-weekly-player-names": 7 * 24 * 60 * 60 * 1000,
+};
+
+function staleThreshold(name: string): number {
+  const interval = BOT_INTERVAL_MS[name];
+  if (!interval) return DEFAULT_STALE_MS;
+  // interval × 4 가 down 판단 — 최소 30분, 최대 14일.
+  return Math.max(DEFAULT_STALE_MS, Math.min(interval * 4, 14 * 24 * 60 * 60 * 1000));
+}
 
 function authOK(req: Request): boolean {
   const sec = process.env.CRON_SECRET;
@@ -37,7 +56,7 @@ export async function GET(req: Request) {
   const now = Date.now();
   const rows = await prisma.botHeartbeat.findMany();
 
-  const stale = rows.filter((r) => now - r.lastAt.getTime() > STALE_MS);
+  const stale = rows.filter((r) => now - r.lastAt.getTime() > staleThreshold(r.name));
   const toAlert = stale.filter(
     (r) => !r.notifiedAt || now - r.notifiedAt.getTime() > RENOTIFY_MS,
   );
