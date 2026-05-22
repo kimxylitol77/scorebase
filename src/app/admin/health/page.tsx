@@ -3,6 +3,9 @@
 
 import { prisma } from "@/lib/db";
 import BotHeartbeatTable, { type BotRow } from "./BotHeartbeatTable";
+import HealthChatStream, { type ChatMessage } from "./HealthChatStream";
+
+const AI_NAME = "스코어베이스 AI";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +91,61 @@ function fmtAge(ms: number): string {
   return `${Math.round(ms / 86400_000)}일 전`;
 }
 
+function formatRelativeAge(ms: number): string {
+  if (ms < 60_000) return `${Math.round(ms / 1000)}초`;
+  if (ms < 3600_000) return `${Math.round(ms / 60_000)}분`;
+  if (ms < 86400_000) return `${(ms / 3600_000).toFixed(1)}시간`;
+  return `${Math.round(ms / 86400_000)}일`;
+}
+
+function formatInterval(ms: number): string {
+  if (ms < 3600_000) return `${Math.round(ms / 60_000)}분`;
+  if (ms < 86400_000) return `${Math.round(ms / 3600_000)}시간`;
+  return `${Math.round(ms / 86400_000)}일`;
+}
+
+function buildAiVerdict(s: {
+  okCount: number;
+  lagCount: number;
+  downCount: number;
+  staleMarked: number;
+  criticalSeverity: string | null;
+}): { text: string; tone: "ok" | "warn" | "down" } {
+  const lines: string[] = [];
+  let tone: "ok" | "warn" | "down" = "ok";
+
+  if (s.downCount > 0) {
+    tone = "down";
+    lines.push(`⚠️ ${s.downCount}봇 다운 — Mac mini launchctl 확인 필요`);
+  } else if (s.lagCount > 0) {
+    tone = "warn";
+    lines.push(`⏰ ${s.lagCount}봇 지연 — 로그 확인 권장`);
+  } else if (s.okCount > 0) {
+    lines.push(`✅ ${s.okCount}봇 정상 작동`);
+  }
+
+  if (s.staleMarked > 0) {
+    if (tone === "ok") tone = "warn";
+    lines.push(`🧹 최근 stale 매치 ${s.staleMarked}건 자동 정리됨`);
+  } else {
+    lines.push(`🧹 stale 매치 없음`);
+  }
+
+  if (s.criticalSeverity === "HIGH") {
+    tone = "down";
+    lines.push(`🚨 HIGH finding — 즉시 점검`);
+  } else if (s.criticalSeverity === "MED") {
+    if (tone === "ok") tone = "warn";
+    lines.push(`📋 MED finding — 검토 권장`);
+  }
+
+  if (lines.length === 1) {
+    lines.push(`현재 사이트 상태: 양호`);
+  }
+
+  return { text: lines.join("\n"), tone };
+}
+
 function fmtKstDate(d: Date): string {
   const kst = new Date(d.getTime() + 9 * 3600 * 1000);
   return `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, "0")}-${String(kst.getUTCDate()).padStart(2, "0")}`;
@@ -153,6 +211,123 @@ export default async function HealthPage() {
     orderBy: { lastAt: "desc" },
   });
 
+  // 봇 상태 통계 (채팅 요약용)
+  let okCount = 0;
+  let lagCount = 0;
+  let downCount = 0;
+  for (const b of bots) {
+    const meta = BOT_META[b.name] ?? { intervalMs: 60 * 60 * 1000 };
+    const age = Date.now() - b.lastAt.getTime();
+    const s = botStatus(age, meta.intervalMs);
+    if (s.label === "정상") okCount++;
+    else if (s.label === "지연") lagCount++;
+    else downCount++;
+  }
+
+  // 최근 stale-cleanup 1건 (있으면 요약 메시지 + Haiku 진단)
+  const latestStale = await prisma.healthCheck.findFirst({
+    where: { category: "stale-cleanup" },
+    orderBy: { runAt: "desc" },
+  });
+
+  // 최근 HIGH/MED finding 1건
+  const recentCritical = await prisma.healthCheck.findFirst({
+    where: { severity: { in: ["HIGH", "MED"] }, category: { not: "stale-cleanup" } },
+    orderBy: { runAt: "desc" },
+  });
+
+  // 채팅 messages 생성 — 좌측 = 봇 보고, 우측 = AI 종합
+  const chat: ChatMessage[] = [];
+
+  // 1) 각 봇이 한 줄씩 보고 (정상은 묶어서 요약)
+  if (downCount > 0 || lagCount > 0) {
+    // 다운/지연 봇만 개별 메시지
+    for (const b of bots) {
+      const meta = BOT_META[b.name];
+      if (!meta) continue;
+      const age = Date.now() - b.lastAt.getTime();
+      const s = botStatus(age, meta.intervalMs);
+      if (s.label === "정상") continue;
+      const tone: ChatMessage["tone"] = s.label === "다운" ? "down" : "warn";
+      chat.push({
+        side: "bot",
+        name: meta.ko,
+        text: `마지막 ping ${fmtKstDateTime(b.lastAt)} KST (${formatRelativeAge(age)} 전). 예상 주기 ${formatInterval(meta.intervalMs)}.\n→ ${s.label}`,
+        tone,
+        at: b.lastAt.toISOString(),
+      });
+    }
+  }
+  // 정상 봇은 한 묶음
+  if (okCount > 0) {
+    const okBots = bots
+      .map((b) => {
+        const meta = BOT_META[b.name];
+        if (!meta) return null;
+        const age = Date.now() - b.lastAt.getTime();
+        const s = botStatus(age, meta.intervalMs);
+        return s.label === "정상" ? meta.ko : null;
+      })
+      .filter(Boolean);
+    chat.push({
+      side: "bot",
+      name: `정상 작동 ${okCount}봇`,
+      text: okBots.join(" · "),
+      tone: "ok",
+      at: new Date().toISOString(),
+    });
+  }
+
+  // 2) stale-cleanup 최근 보고
+  if (latestStale) {
+    const md = (latestStale.metadata ?? {}) as {
+      marked?: number;
+      diagnosis?: string;
+      byLeague?: Record<string, number>;
+    };
+    if ((md.marked ?? 0) > 0) {
+      const byLeague = md.byLeague
+        ? Object.entries(md.byLeague)
+            .map(([l, n]) => `${l} ${n}`)
+            .join(" · ")
+        : "";
+      chat.push({
+        side: "bot",
+        name: "stale-cleanup",
+        text: `stale SCHEDULED ${md.marked}건 자동 POSTPONED 처리.\n리그: ${byLeague}${md.diagnosis ? "\n\n🤖 진단:\n" + md.diagnosis : ""}`,
+        tone: "warn",
+        at: latestStale.runAt.toISOString(),
+      });
+    }
+  }
+
+  // 3) 최근 HIGH/MED finding 1건
+  if (recentCritical) {
+    chat.push({
+      side: "bot",
+      name: `health-check (${recentCritical.category})`,
+      text: `[${recentCritical.severity}] ${recentCritical.message}`,
+      tone: recentCritical.severity === "HIGH" ? "down" : "warn",
+      at: recentCritical.runAt.toISOString(),
+    });
+  }
+
+  // 4) 스코어베이스 AI 종합 (우측, 마지막)
+  const aiVerdict = buildAiVerdict({
+    okCount,
+    lagCount,
+    downCount,
+    staleMarked: ((latestStale?.metadata as { marked?: number })?.marked ?? 0),
+    criticalSeverity: recentCritical?.severity ?? null,
+  });
+  chat.push({
+    side: "ai",
+    name: AI_NAME,
+    text: aiVerdict.text,
+    tone: aiVerdict.tone,
+    at: new Date().toISOString(),
+  });
+
   // table 용 정규화 row
   const botRows: BotRow[] = bots.map((b) => {
     const meta = BOT_META[b.name] ?? {
@@ -208,6 +383,14 @@ export default async function HealthPage() {
           </button>
         </form>
       </header>
+
+      {/* 채팅 흐름 — 봇 보고 + AI 종합 (페이지 최상단 우선 노출) */}
+      <section>
+        <h2 className="text-lg font-bold border-b border-neutral-200 dark:border-neutral-800 pb-2 mb-3">
+          💬 오늘의 점검 보고
+        </h2>
+        <HealthChatStream messages={chat} />
+      </section>
 
       {/* 요약 카드 4개 */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
