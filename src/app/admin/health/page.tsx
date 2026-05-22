@@ -85,6 +85,13 @@ export default async function HealthPage() {
   }
   const topCategories = Array.from(byCategory.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
+  // stale-cleanup 최근 10건 — 봇이 자동 정리한 매치 + Haiku 진단
+  const staleCleanups = await prisma.healthCheck.findMany({
+    where: { category: "stale-cleanup" },
+    orderBy: { runAt: "desc" },
+    take: 10,
+  });
+
   // 그룹화 — severity 순
   type FindingRow = (typeof latestFindings)[number];
   const findingsBySev: Record<string, FindingRow[]> = { HIGH: [], MED: [], LOW: [], OK: [] };
@@ -231,6 +238,84 @@ export default async function HealthPage() {
           </table>
         </div>
       </section>
+
+      {/* stale 매치 자동 정리 이력 */}
+      {staleCleanups.length > 0 && (
+        <section>
+          <h2 className="text-lg font-bold border-b border-neutral-200 dark:border-neutral-800 pb-2 mb-3">
+            🧹 stale 매치 자동 정리 (cleanup-stale-scheduled)
+          </h2>
+          <p className="text-xs text-neutral-500 mb-3">
+            시작 + 12h 지났는데 SCHEDULED 인 매치를 자동 POSTPONED 처리. 4시간 주기.
+            처리 시 Haiku 가 원인 진단.
+          </p>
+          <div className="space-y-3">
+            {staleCleanups.map((c) => {
+              const md = (c.metadata ?? {}) as {
+                marked?: number;
+                byLeague?: Record<string, number>;
+                diagnosis?: string | null;
+                sample?: Array<{ league: string; source: string; teams: string; startTime: string }>;
+              };
+              const sevColor =
+                c.severity === "HIGH"
+                  ? "text-rose-600"
+                  : c.severity === "MED"
+                    ? "text-amber-600"
+                    : c.severity === "LOW"
+                      ? "text-neutral-600"
+                      : "text-emerald-600";
+              return (
+                <div
+                  key={c.id}
+                  className="rounded-lg border border-neutral-200 dark:border-neutral-800 p-3 space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className={`font-bold ${sevColor}`}>[{c.severity}]</span>
+                    <span className="font-medium flex-1 truncate">{c.message}</span>
+                    <span className="text-xs text-neutral-500 tabular-nums shrink-0">
+                      {fmtKstDateTime(c.runAt)} KST
+                    </span>
+                  </div>
+                  {md.byLeague && Object.keys(md.byLeague).length > 0 && (
+                    <div className="text-xs text-neutral-600 dark:text-neutral-400">
+                      <span className="font-semibold">리그별:</span>{" "}
+                      {Object.entries(md.byLeague)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([l, n]) => `${l} ${n}`)
+                        .join(" · ")}
+                    </div>
+                  )}
+                  {md.sample && md.sample.length > 0 && (
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-neutral-500 hover:text-neutral-700">
+                        sample {md.sample.length}건 보기
+                      </summary>
+                      <ul className="mt-1.5 space-y-0.5 pl-3 font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
+                        {md.sample.map((s, i) => (
+                          <li key={i}>
+                            {s.startTime.slice(5, 16)} · {s.league} ({s.source}) · {s.teams}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                  {md.diagnosis && (
+                    <div className="rounded bg-neutral-50 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10 p-2 text-xs leading-relaxed">
+                      <div className="font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                        🤖 Haiku 진단
+                      </div>
+                      <pre className="whitespace-pre-wrap text-neutral-600 dark:text-neutral-400 font-sans">
+                        {md.diagnosis}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 카테고리 분포 */}
       {topCategories.length > 0 && (
