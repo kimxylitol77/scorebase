@@ -36,7 +36,7 @@ const SCOREBASE = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
 const OLLAMA = process.env.OLLAMA_HOST || "http://localhost:11434";
 const MODEL = process.env.OLLAMA_MODEL || "qwen2.5:14b";
-const LEAGUES = (process.env.LEAGUES || "KBO").split(",").map((s) => s.trim());
+const LEAGUES = (process.env.LEAGUES || "KBO,NPB,MLB").split(",").map((s) => s.trim());
 
 const WORKER_NAME = "mac-mini-match-narrator";
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5분 주기

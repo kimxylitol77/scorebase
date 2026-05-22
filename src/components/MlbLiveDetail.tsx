@@ -9,6 +9,9 @@ import Link from "next/link";
 import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
 import BaseballWpaChart from "./live/BaseballWpaChart";
+import LiveCommentaryBox, {
+  type LiveCommentaryData,
+} from "./live/LiveCommentaryBox";
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
   if (url) {
@@ -148,6 +151,8 @@ interface Props {
   /** DB Team.logoUrl — ESPN 응답에 logo 누락 시 fallback */
   homeLogoUrl?: string | null;
   awayLogoUrl?: string | null;
+  /** Ollama (Mac mini) 생성 라이브 코멘터리 — 데이터 없으면 미표시 */
+  liveCommentary?: LiveCommentaryData | null;
 }
 
 const POLL_LIVE_MS = 10_000;
@@ -161,6 +166,7 @@ export default function MlbLiveDetail({
   awayTeamId,
   homeLogoUrl,
   awayLogoUrl,
+  liveCommentary = null,
 }: Props) {
   const [live, setLive] = useState<MlbLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -407,6 +413,9 @@ export default function MlbLiveDetail({
                       {live.situation.lastPlay}
                     </div>
                   </div>
+                )}
+                {liveCommentary && (
+                  <LiveCommentaryBox {...liveCommentary} variant="inline" />
                 )}
               </div>
             </div>

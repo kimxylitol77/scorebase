@@ -46,7 +46,7 @@ async function findEspnMatch(gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league: "MLB" },
-      include: { homeTeam: true, awayTeam: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
     });
   } catch {
     return null;
@@ -88,7 +88,7 @@ async function findByApiSportsId(gameId: string): Promise<FoundMatch | null> {
         homeTeam: { name: g.teams.home.name },
         awayTeam: { name: g.teams.away.name },
       },
-      include: { homeTeam: true, awayTeam: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
     });
     if (m) return m;
     // 2) 마지막 토큰 (= 팀명) contains fallback
@@ -102,7 +102,7 @@ async function findByApiSportsId(gameId: string): Promise<FoundMatch | null> {
         homeTeam: { name: { contains: homeTok } },
         awayTeam: { name: { contains: awayTok } },
       },
-      include: { homeTeam: true, awayTeam: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
     });
     return m;
   } catch {
@@ -195,6 +195,15 @@ export default async function MlbLivePage({ params }: Props) {
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}
         awayLogoUrl={match.awayTeam.logoUrl ?? null}
+        liveCommentary={
+          match.liveCommentary
+            ? {
+                matchSummary: match.liveCommentary.matchSummary,
+                summaryAt: match.liveCommentary.summaryAt,
+                scoreSnapshot: match.liveCommentary.scoreSnapshot,
+              }
+            : null
+        }
       />
       <BaseballPreMatchInsight
         league="MLB"
