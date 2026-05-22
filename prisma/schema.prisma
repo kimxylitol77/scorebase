@@ -281,6 +281,17 @@ model TheSportsStandingsCache {
   updatedAt   DateTime @updatedAt
 }
 
+/// api-football /standings 응답을 normalized 저장.
+/// row.teamExternalId = api-football team id = 우리 Team.externalId (api-football 기반 리그).
+/// 매핑 dictionary 없이 바로 Team.externalId 로 join 가능 — TheSports mapping 누락 회피.
+model ApiFootballStandingsCache {
+  league    String   @id
+  season    Int
+  rows      Json     @default("[]") // [{teamExternalId, position, points, won, draw, loss, group?}, ...]
+  fetchedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 /// 외부 워커 (Mac mini, Lightsail 등) 의 heartbeat. 워커가 5분마다 POST.
 /// Vercel cron 이 매 10분 lastAt 체크 — 30분+ 무응답 시 텔레그램 알림.
 /// 다중 워커 식별 위해 name 을 PK 로 사용 (ex: "mac-mini-match-narrator").
