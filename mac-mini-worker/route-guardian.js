@@ -5,8 +5,13 @@
 //   1) heartbeat POST
 //   2) sitemap.xml 가져와서 등재된 URL 전수 검사
 //   3) 홈에서 시작해 내부 링크 BFS (sitemap 누락 라우트 + dead link 발견)
-//   4) 응답 분류: 404 / soft 404 ("This page could not be found") / 5xx / OK
-//   5) 결과 텔레그램 전체 보고 (404 0건이어도 보고)
+//   4) 응답 분류: HTTP status code 기반 (404 / 5xx / 4xx / 네트워크오류 / OK)
+//   5) 결과 텔레그램 전체 보고 + HealthCheck DB row insert (/admin/health 에 표시)
+//
+// 참고: soft 404 검출은 안 함 — Next.js 가 모든 페이지 RSC payload 에
+// notFound 라우트 정의를 inline 해서 "This page could not be found" 문자열이
+// 정상 페이지에도 항상 매치됨. notFound() 는 정확히 HTTP 404 반환하므로
+// status code 만으로 충분.
 //
 // 실행 (Mac mini):
 //   cd ~/dev/scorebase/mac-mini-worker
@@ -27,7 +32,6 @@ const REQ_TIMEOUT_MS = 20_000;
 const CONCURRENCY = 5;           // 동시 fetch 수 (Vercel function 부하 고려)
 const BFS_MAX_URLS = 500;        // BFS 최대 탐색 URL
 const BFS_MAX_DEPTH = 3;
-const SOFT_404_MARKER = "This page could not be found"; // Next.js 기본 not-found 문구
 
 if (!TOKEN) {
   console.error("❌ INTERNAL_API_TOKEN 미설정 — .env 확인");
@@ -61,6 +65,19 @@ async function notify(payload) {
     );
   } catch (e) {
     console.error(`✗ notify fail: ${e.message}`);
+  }
+}
+
+// /admin/health 대시보드에 노출되도록 HealthCheck row 1개 insert
+async function postHealthFinding(payload) {
+  try {
+    await axios.post(
+      `${SITE}/api/internal/health-finding`,
+      payload,
+      { headers, timeout: 10_000 },
+    );
+  } catch (e) {
+    console.error(`✗ health-finding fail: ${e.message}`);
   }
 }
 
@@ -117,12 +134,10 @@ async function checkUrl(url) {
     const dur = Date.now() - t0;
     const status = res.status;
     const body = typeof res.data === "string" ? res.data : "";
-    const isSoft404 = status === 200 && body.includes(SOFT_404_MARKER);
     let kind = "ok";
     if (status === 404) kind = "404";
     else if (status >= 500) kind = "5xx";
     else if (status >= 400) kind = "4xx";
-    else if (isSoft404) kind = "soft404";
     return { url, status, dur, kind, body };
   } catch (e) {
     return { url, status: 0, dur: Date.now() - t0, kind: "error", error: e.message };
@@ -218,17 +233,16 @@ async function runOnce() {
 
   // ── 분류 ──
   const bad404 = all.filter((r) => r.kind === "404");
-  const softs = all.filter((r) => r.kind === "soft404");
   const errs5xx = all.filter((r) => r.kind === "5xx");
   const errs4xx = all.filter((r) => r.kind === "4xx");
   const errsNet = all.filter((r) => r.kind === "error");
   const oks = all.filter((r) => r.kind === "ok");
 
-  console.log(`\n  결과: OK ${oks.length} / 404 ${bad404.length} / soft404 ${softs.length} / 5xx ${errs5xx.length} / 4xx ${errs4xx.length} / net ${errsNet.length}`);
+  console.log(`\n  결과: OK ${oks.length} / 404 ${bad404.length} / 5xx ${errs5xx.length} / 4xx ${errs4xx.length} / net ${errsNet.length}`);
 
-  // ── 텔레그램 보고 ──
-  const totalBad = bad404.length + softs.length + errs5xx.length + errsNet.length;
-  const severity = bad404.length + softs.length + errs5xx.length > 0 ? "HIGH" : errs4xx.length > 0 ? "WARN" : "INFO";
+  // ── 텔레그램 보고 + DB finding insert ──
+  const totalBad = bad404.length + errs5xx.length + errsNet.length;
+  const severity = bad404.length + errs5xx.length > 0 ? "HIGH" : errs4xx.length > 0 ? "WARN" : "INFO";
 
   const sampleList = (arr, max = 8) =>
     arr
@@ -240,11 +254,22 @@ async function runOnce() {
   lines.push(`📊 검사: ${all.length}개 (sitemap ${sitemapResults.length} + BFS ${bfsResults.length})`);
   lines.push(`✅ 정상: ${oks.length}`);
   if (bad404.length) lines.push(`🚨 404: ${bad404.length}건\n${sampleList(bad404)}`);
-  if (softs.length) lines.push(`🟡 soft 404: ${softs.length}건\n${sampleList(softs)}`);
   if (errs5xx.length) lines.push(`🔥 5xx: ${errs5xx.length}건\n${sampleList(errs5xx)}`);
   if (errs4xx.length) lines.push(`⚠️ 기타 4xx: ${errs4xx.length}건\n${sampleList(errs4xx, 5)}`);
   if (errsNet.length) lines.push(`📡 네트워크 오류: ${errsNet.length}건\n${sampleList(errsNet, 5)}`);
 
+  const stats = {
+    total: all.length,
+    ok: oks.length,
+    bad404: bad404.length,
+    err5xx: errs5xx.length,
+    err4xx: errs4xx.length,
+    netErr: errsNet.length,
+    sample404: bad404.slice(0, 30).map((r) => r.url.replace(SITE, "")),
+    sample5xx: errs5xx.slice(0, 10).map((r) => r.url.replace(SITE, "")),
+  };
+
+  // 텔레그램 알림
   await notify({
     severity,
     title: totalBad === 0 ? "라우트 점검 정상" : `라우트 점검 — 문제 ${totalBad}건`,
@@ -256,16 +281,20 @@ async function runOnce() {
     cause: totalBad === 0 ? "—" : "스킴 변경/매치 삭제/링크 오타 등 추정",
     action: totalBad === 0 ? "—" : "위 URL 들 직접 확인 후 sitemap 또는 라우트 수정",
     message: lines.join("\n\n"),
-    metadata: {
-      total: all.length,
-      ok: oks.length,
-      bad404: bad404.length,
-      soft404: softs.length,
-      err5xx: errs5xx.length,
-      err4xx: errs4xx.length,
-      netErr: errsNet.length,
-      sample404: bad404.slice(0, 30).map((r) => r.url),
-    },
+    metadata: stats,
+  });
+
+  // /admin/health 채팅에 노출되도록 HealthCheck row insert
+  // severity 매핑: HIGH alert → HIGH finding, WARN → MED, INFO → OK
+  const findingSeverity = severity === "HIGH" ? "HIGH" : severity === "WARN" ? "MED" : "OK";
+  await postHealthFinding({
+    category: "route-guardian",
+    severity: findingSeverity,
+    key: `crawl-${all.length}`,
+    message: totalBad === 0
+      ? `사이트 ${all.length}개 URL 모두 정상`
+      : `404 ${bad404.length}건${errs5xx.length ? ` · 5xx ${errs5xx.length}건` : ""}${errsNet.length ? ` · 네트워크 오류 ${errsNet.length}건` : ""} 발견`,
+    metadata: stats,
   });
 
   console.log(`[${tsKst()}] ◀ route-guardian 완료\n`);
