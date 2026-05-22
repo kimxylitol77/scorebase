@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# uninstall.sh — 5 봇 launchd 등록 해제
+# uninstall.sh — 7 봇 launchd 등록 해제
 
 set -e
 TARGET_DIR="$HOME/Library/LaunchAgents"
@@ -11,6 +11,7 @@ BOTS=(
   "com.scorebase.api-quota"
   "com.scorebase.preview-coverage"
   "com.scorebase.live-scores-watcher"
+  "com.scorebase.route-guardian"
 )
 
 for bot in "${BOTS[@]}"; do
@@ -31,6 +32,7 @@ pkill -f data-quality 2>/dev/null || true
 pkill -f api-quota 2>/dev/null || true
 pkill -f preview-coverage 2>/dev/null || true
 pkill -f live-scores-watcher 2>/dev/null || true
+pkill -f route-guardian 2>/dev/null || true
 
 echo ""
-echo "✓ 5 봇 모두 중지 + 등록 해제"
+echo "✓ 7 봇 모두 중지 + 등록 해제"

@@ -9,7 +9,8 @@
     "data-quality": "node data-quality.js",
     "api-quota": "node api-quota.js",
     "preview-coverage": "node preview-coverage.js",
-    "live-scores-watcher": "node live-scores-watcher.js"
+    "live-scores-watcher": "node live-scores-watcher.js",
+    "route-guardian": "node route-guardian.js"
   },
   "dependencies": {
     "axios": "^1.7.0",

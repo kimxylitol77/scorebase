@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh — Mac mini launchd 등록 (5 봇 모두)
+# install.sh — Mac mini launchd 등록 (7 봇 모두)
 # 부팅 시 자동 시작 + 크래시 시 자동 재시작 (KeepAlive)
 #
 # 사용:
@@ -19,6 +19,7 @@ BOTS=(
   "com.scorebase.api-quota"
   "com.scorebase.preview-coverage"
   "com.scorebase.live-scores-watcher"
+  "com.scorebase.route-guardian"
 )
 
 # Node 경로 자동 감지 (brew 위치 따라 다름)
@@ -33,7 +34,7 @@ echo "✓ node: $NODE_PATH"
 USER_HOME="$HOME"
 
 echo ""
-echo "▶ 5 봇 launchd 등록"
+echo "▶ 7 봇 launchd 등록"
 echo ""
 
 for bot in "${BOTS[@]}"; do
@@ -63,5 +64,5 @@ echo "▶ 등록된 봇 확인"
 launchctl list | grep -E "scorebase\." | awk '{ printf "  [%s] %s\n", $1, $3 }'
 
 echo ""
-echo "▶ 로그 위치 — tail -f /tmp/{match-narrator,endpoint-monitor,data-quality,api-quota,preview-coverage}.log"
+echo "▶ 로그 위치 — tail -f /tmp/{match-narrator,endpoint-monitor,data-quality,api-quota,preview-coverage,live-scores-watcher,route-guardian}.log"
 echo "▶ 중지: bash uninstall.sh"

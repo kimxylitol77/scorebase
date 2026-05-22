@@ -81,6 +81,11 @@ const BOT_META: Record<
     intervalMs: 7 * 24 * 60 * 60 * 1000,
     role: "네이버 → MLB 선수명 사전 자동 PR",
   },
+  "mac-mini-route-guardian": {
+    ko: "라우트 가디언",
+    intervalMs: 24 * 60 * 60 * 1000,
+    role: "sitemap 전수 + 홈 BFS 크롤로 404/soft 404/5xx 감시",
+  },
 };
 
 function botStatus(ageMs: number, intervalMs: number) {
