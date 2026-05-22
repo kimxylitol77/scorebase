@@ -39,7 +39,7 @@ export default function MatchArticleLinks({
           href={`/articles/${recapSlug}`}
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition"
         >
-          📝 경기 리뷰 보기
+          경기 리뷰 보기
         </Link>
       )}
       {showPreview && (

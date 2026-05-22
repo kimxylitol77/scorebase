@@ -272,8 +272,8 @@ const LEAGUE_DISPLAY_FALLBACK: Record<string, string> = {
 
 const TAB_LABEL: Record<FilterType, string> = {
   ALL: "전체",
-  RECAP: "📝 리뷰",
-  PREVIEW: "🔮 프리뷰",
+  RECAP: "리뷰",
+  PREVIEW: "프리뷰",
   ANALYSIS: "📊 분석",
 };
 
@@ -783,7 +783,6 @@ function EmptyArticles({
   if (isPreview) {
     return (
       <div className="rounded-2xl border border-dashed border-blue-300/40 dark:border-blue-500/30 bg-blue-50/30 dark:bg-blue-500/5 px-6 py-12 text-center space-y-3">
-        <div className="text-3xl">🔮</div>
         <h3 className="text-base font-bold text-blue-700 dark:text-blue-300">
           매치업 확정 후 자동 등록됩니다
         </h3>
@@ -798,7 +797,6 @@ function EmptyArticles({
   if (isRecap) {
     return (
       <div className="rounded-2xl border border-dashed border-emerald-300/40 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5 px-6 py-12 text-center space-y-3">
-        <div className="text-3xl">📝</div>
         <h3 className="text-base font-bold text-emerald-700 dark:text-emerald-300">
           경기 종료 후 자동 등록됩니다
         </h3>
