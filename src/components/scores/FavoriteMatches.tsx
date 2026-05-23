@@ -14,6 +14,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import MatchCard, { type MatchCardProps } from "./MatchCard";
 import LeagueBadge from "../LeagueBadge";
+import FavoriteStar from "./FavoriteStar";
 import { useFavorites } from "./useFavorites";
 import { playChime, unlockAudio } from "@/lib/sound/chime";
 import {
@@ -324,34 +325,67 @@ function CompactRow({ match }: { match: MatchEntry }) {
         ? "text-amber-600 dark:text-amber-400"
         : "text-neutral-500 tabular-nums";
 
-  const content = (
-    <div className="grid grid-cols-[160px_1fr_auto_1fr] sm:grid-cols-[200px_1fr_auto_1fr] items-center gap-2 sm:gap-3 px-3 py-2 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
-      {/* 1. 좌측: 리그 + 시간/상태 (고정 폭) */}
-      <div className="flex items-center gap-2 min-w-0">
+  // 모바일/데스크탑 동일 6컬럼 grid: [리그][시간][홈팀][점수][어웨이팀][⭐]
+  // 컬럼 사이 미세한 vertical divider 로 "리그 | 시간 | 팀 | 점수 | 팀 | ⭐" 시각.
+  const cellBorder = "border-r border-neutral-200/70 dark:border-neutral-800";
+  const gridCls =
+    "grid grid-cols-[56px_44px_1fr_auto_1fr_32px] sm:grid-cols-[72px_56px_1fr_auto_1fr_36px] " +
+    "items-stretch py-1.5 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition";
+
+  // 1~5 셀은 Link 안에 (한 번에 클릭 → 매치 라우팅). 6번 별표 셀은 Link 밖에
+  // 별도로 (nested interactive 회피, 별표만 누르면 해제).
+  // Link 의 contents 디스플레이로 자식 div 들이 li 의 grid item 으로 직접 배치.
+  const navCells = (
+    <>
+      {/* 1. 리그 뱃지 */}
+      <div className={`flex items-center justify-center px-1.5 ${cellBorder}`}>
         <LeagueBadge league={match.league} size="sm" />
-        <span className={`shrink-0 text-[11px] ${statusColor}`}>{statusText}</span>
       </div>
-      {/* 2. 홈팀 — 우측 정렬 (점수 칼럼 옆에 붙도록) */}
-      <span className="truncate text-right text-neutral-800 dark:text-neutral-200 font-medium">
-        {match.home.name}
-      </span>
-      {/* 3. 점수 — row 마다 동일 가로 위치 (외부 그리드 auto 칼럼) */}
-      <span className="font-black tabular-nums text-center min-w-[3.5rem] text-neutral-900 dark:text-white">
-        {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
-      </span>
-      {/* 4. 어웨이팀 — 좌측 정렬 */}
-      <span className="truncate text-neutral-800 dark:text-neutral-200 font-medium">
-        {match.away.name}
-      </span>
-    </div>
+      {/* 2. 시간/상태 */}
+      <div className={`flex items-center justify-center px-1 ${cellBorder}`}>
+        <span className={`text-[10px] sm:text-[11px] ${statusColor} text-center leading-tight`}>
+          {statusText}
+        </span>
+      </div>
+      {/* 3. 홈팀 (우측 정렬, truncate) */}
+      <div className={`flex items-center justify-end pr-2 sm:pr-3 min-w-0 ${cellBorder}`}>
+        <span className="truncate text-[12px] text-neutral-800 dark:text-neutral-200 font-medium">
+          {match.home.name}
+        </span>
+      </div>
+      {/* 4. 점수 — row 간 동일 가로 위치 */}
+      <div className={`flex items-center justify-center px-1 ${cellBorder}`}>
+        <span className="font-black tabular-nums text-[12px] sm:text-[13px] text-neutral-900 dark:text-white whitespace-nowrap">
+          {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
+        </span>
+      </div>
+      {/* 5. 어웨이팀 (좌측 정렬, truncate) */}
+      <div className={`flex items-center justify-start pl-2 sm:pl-3 min-w-0 ${cellBorder}`}>
+        <span className="truncate text-[12px] text-neutral-800 dark:text-neutral-200 font-medium">
+          {match.away.name}
+        </span>
+      </div>
+    </>
   );
 
-  if (!match.href) return <li>{content}</li>;
   return (
-    <li>
-      <Link href={match.href} prefetch={false} className="block">
-        {content}
-      </Link>
+    <li className={gridCls}>
+      {match.href ? (
+        <Link
+          href={match.href}
+          prefetch={false}
+          className="contents"
+          aria-label={`${match.home.name} ${match.home.score ?? ""} - ${match.away.score ?? ""} ${match.away.name}`}
+        >
+          {navCells}
+        </Link>
+      ) : (
+        navCells
+      )}
+      {/* 6. 즐겨찾기 별표 — Link 밖. 클릭 시 그 매치만 해제 */}
+      <div className="flex items-center justify-center">
+        <FavoriteStar matchId={match.id} />
+      </div>
     </li>
   );
 }
