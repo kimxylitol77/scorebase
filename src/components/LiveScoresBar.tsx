@@ -10,6 +10,11 @@ import LeagueBadge from "./LeagueBadge";
 import CountUp from "./CountUp";
 import { playChime } from "@/lib/sound/chime";
 import { SOUND_STORAGE_KEY, SOUND_CHANGE_EVENT } from "./LiveSoundToggle";
+import { FAV_EVENT_NAME, readFavIds } from "./scores/useFavorites";
+import {
+  FAV_SOUND_STORAGE_KEY,
+  FAV_SOUND_CHANGE_EVENT,
+} from "@/lib/sound/fav-sound";
 
 interface LiveMatch {
   id: string;
@@ -39,6 +44,11 @@ export default function LiveScoresBar() {
   // 사운드 ON/OFF — LiveSoundToggle 컴포넌트가 localStorage + custom event 로 갱신.
   // 점수 감지 useEffect 가 매번 ref 읽음.
   const soundOnRef = useRef(false);
+  // 즐겨찾기 전용 사운드 — FavoriteMatches 의 자체 토글이 켜면 전체 사운드와
+  // 무관하게 fav 매치만 chime. 전체 사운드 ON 이라도 favOnly 가 우선.
+  const favSoundOnRef = useRef(false);
+  // 즐겨찾기 매치 ids — useFavorites 의 localStorage 와 sync. 점수 감지 시 매칭.
+  const favIdsRef = useRef<Set<string>>(new Set());
   // 직전 cycle 의 점수 snapshot — 변화 감지용
   const prevScoresRef = useRef<Map<string, string>>(new Map());
   // schedule() 안에서 항상 최신 matches.length 참조 위해 ref 동기화
@@ -104,44 +114,68 @@ export default function LiveScoresBar() {
     };
   }, []);
 
-  // 사운드 상태 동기화 — LiveSoundToggle 가 localStorage + custom event 발행.
-  // init + storage event (다른 탭) + custom event (같은 탭 토글) 모두 수신.
+  // 사운드 상태 + 즐겨찾기 ids 동기화 — 모두 localStorage + custom event 기반.
   useEffect(() => {
     try {
       soundOnRef.current = localStorage.getItem(SOUND_STORAGE_KEY) === "1";
+      favSoundOnRef.current = localStorage.getItem(FAV_SOUND_STORAGE_KEY) === "1";
+      favIdsRef.current = readFavIds();
     } catch {
       // ignore
     }
     const onStorage = (e: StorageEvent) => {
       if (e.key === SOUND_STORAGE_KEY) soundOnRef.current = e.newValue === "1";
+      else if (e.key === FAV_SOUND_STORAGE_KEY) favSoundOnRef.current = e.newValue === "1";
+      else if (e.key === "scorebase:fav-matches") favIdsRef.current = readFavIds();
     };
-    const onCustom = (e: Event) => {
+    const onSoundCustom = (e: Event) => {
       const ce = e as CustomEvent<{ soundOn: boolean }>;
       if (typeof ce.detail?.soundOn === "boolean") soundOnRef.current = ce.detail.soundOn;
     };
+    const onFavSoundCustom = (e: Event) => {
+      const ce = e as CustomEvent<{ soundOn: boolean }>;
+      if (typeof ce.detail?.soundOn === "boolean") favSoundOnRef.current = ce.detail.soundOn;
+    };
+    const onFavChanged = () => {
+      favIdsRef.current = readFavIds();
+    };
     window.addEventListener("storage", onStorage);
-    window.addEventListener(SOUND_CHANGE_EVENT, onCustom);
+    window.addEventListener(SOUND_CHANGE_EVENT, onSoundCustom);
+    window.addEventListener(FAV_SOUND_CHANGE_EVENT, onFavSoundCustom);
+    window.addEventListener(FAV_EVENT_NAME, onFavChanged);
     return () => {
       window.removeEventListener("storage", onStorage);
-      window.removeEventListener(SOUND_CHANGE_EVENT, onCustom);
+      window.removeEventListener(SOUND_CHANGE_EVENT, onSoundCustom);
+      window.removeEventListener(FAV_SOUND_CHANGE_EVENT, onFavSoundCustom);
+      window.removeEventListener(FAV_EVENT_NAME, onFavChanged);
     };
   }, []);
 
   // 점수 변화 감지 → chime
   // - 첫 로드 시점에는 prev 가 비어있어 chime 안 울림 (= 페이지 진입 즉시 알림 X)
-  // - 직전 cycle 의 점수가 다르면 chime
+  // - favSoundOn 이 우선: 켜져 있으면 fav 매치 변화만 chime (다른 매치 무시).
+  //   꺼져 있으면 soundOn (전체) 확인.
   useEffect(() => {
     const newMap = new Map<string, string>();
-    let scored = false;
+    let anyChanged = false;
+    let favChanged = false;
     for (const m of matches) {
       const key = `${m.homeScore}-${m.awayScore}`;
       newMap.set(m.id, key);
       const prev = prevScoresRef.current.get(m.id);
-      if (prev && prev !== key) scored = true;
+      if (prev && prev !== key) {
+        anyChanged = true;
+        if (favIdsRef.current.has(m.id)) favChanged = true;
+      }
     }
     const isFirstLoad = prevScoresRef.current.size === 0;
     prevScoresRef.current = newMap;
-    if (scored && !isFirstLoad && soundOnRef.current) {
+    if (isFirstLoad) return;
+    if (favSoundOnRef.current) {
+      // 즐겨찾기 사운드 ON — fav 매치만 chime, 다른 매치 무시
+      if (favChanged) playChime();
+    } else if (soundOnRef.current && anyChanged) {
+      // 전체 사운드 ON — 어느 매치든 chime
       playChime();
     }
   }, [matches]);

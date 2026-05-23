@@ -55,7 +55,20 @@ export function useFavorites() {
     setIds(new Set(cur));
   }, []);
 
+  const clear = useCallback(() => {
+    writeIds(new Set());
+    setIds(new Set());
+  }, []);
+
   const isFav = useCallback((id: string) => ids.has(id), [ids]);
 
-  return { ids, isFav, toggle, mounted };
+  return { ids, isFav, toggle, clear, mounted };
+}
+
+// 다른 컴포넌트 (LiveScoresBar 등) 가 React hook 없이 localStorage 의
+// 즐겨찾기 ids 만 빠르게 읽을 때 사용. event listener 도 같이 export.
+export const FAV_STORAGE_KEY = STORAGE_KEY;
+export const FAV_EVENT_NAME = EVENT_NAME;
+export function readFavIds(): Set<string> {
+  return readIds();
 }
