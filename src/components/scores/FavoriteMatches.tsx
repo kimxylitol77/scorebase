@@ -301,7 +301,9 @@ function IconSvg({ icon }: { icon: "compact" | "large" | "sound-on" | "sound-off
   );
 }
 
-// 한 줄 compact row — 한번에 많은 매치 훑어보기 용. 시간/리그/팀명/점수/상태.
+// 한 줄 compact row — 한번에 많은 매치 훑어보기 용.
+// 레이아웃: [리그뱃지 + 시간/상태]  |  홈팀  점수  어웨이팀
+// 좌측 그룹은 고정 폭, 매치 본문은 가운데 영역에서 flex justify-center.
 function CompactRow({ match }: { match: MatchEntry }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
@@ -323,22 +325,24 @@ function CompactRow({ match }: { match: MatchEntry }) {
         : "text-neutral-500 tabular-nums";
 
   const content = (
-    <div className="flex items-center gap-2 px-3 py-2 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
-      <LeagueBadge league={match.league} size="sm" />
-      <div className="flex-1 grid grid-cols-[1fr_auto_1fr] gap-2 items-center min-w-0">
+    <div className="grid grid-cols-[160px_1fr] sm:grid-cols-[200px_1fr] items-center gap-3 px-3 py-2 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
+      {/* 좌측: 리그 + 시간/상태 (고정 폭) */}
+      <div className="flex items-center gap-2 min-w-0">
+        <LeagueBadge league={match.league} size="sm" />
+        <span className={`shrink-0 text-[11px] ${statusColor}`}>{statusText}</span>
+      </div>
+      {/* 가운데: 매치 본문 (홈 - 점수 - 어웨이, 그리드 가운데 정렬) */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 max-w-md mx-auto w-full">
         <span className="truncate text-right text-neutral-800 dark:text-neutral-200 font-medium">
           {match.home.name}
         </span>
-        <span className="font-black tabular-nums text-center min-w-[2.5rem] text-neutral-900 dark:text-white">
+        <span className="font-black tabular-nums text-center min-w-[3rem] text-neutral-900 dark:text-white">
           {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
         </span>
         <span className="truncate text-neutral-800 dark:text-neutral-200 font-medium">
           {match.away.name}
         </span>
       </div>
-      <span className={`shrink-0 w-16 text-right text-[11px] ${statusColor}`}>
-        {statusText}
-      </span>
     </div>
   );
 
