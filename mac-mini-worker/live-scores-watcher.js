@@ -6,9 +6,14 @@
 //   1. /api/live/scores 응답 시간 (5초+ WARN, 15초+ HIGH)
 //   2. status ≠ 200 (즉시 HIGH)
 //   3. LIVE 인데 score null (10분+ 지속 시 HIGH)
-//   4. 같은 score 30분+ 변화 없음 (LIVE 인데 정지 — collector 멈춤 의심)
+//   4. 같은 score 90분+ 변화 없음 (단, 0-0 은 제외 — 무득점 완주 흔함)
 //   5. (옵션) 라이브 매치 0건 — "있어야 하는 시간대" 판단 어려워 skip
 //   6. 응답 JSON 깨짐 (matches 배열 없음)
+//
+// 2026-05-23 noise reduction:
+//   - WARN 30분 알림 제거 (본문에 "정상 가능"이라 적혀있던 false alarm)
+//   - 0-0 매치 stuck 추적 제외 (축구 무득점 90분 완주 케이스가 흔함)
+//   - HIGH 60분 → 90분 (정규 경기 종료 시간 + 마진)
 //
 // 상태 메모리 (앱 재시작 시 reset, 단기간 트래킹 OK):
 //   - liveNullSince[matchId] = 처음 null 발견 timestamp
@@ -29,8 +34,7 @@ const REQ_TIMEOUT_MS = 20_000;
 const SLOW_WARN_MS = 5_000;
 const SLOW_HIGH_MS = 15_000;
 const NULL_HIGH_MS = 10 * 60 * 1000;    // LIVE null 10분 지속 → HIGH
-const STUCK_WARN_MS = 30 * 60 * 1000;   // 같은 score 30분 → WARN
-const STUCK_HIGH_MS = 60 * 60 * 1000;   // 같은 score 1시간 → HIGH
+const STUCK_HIGH_MS = 90 * 60 * 1000;   // 같은 score 90분 → HIGH (정규 종료 시간 + 마진)
 
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN 미설정"); process.exit(1); }
 const headers = { Authorization: `Bearer ${TOKEN}` };
@@ -196,11 +200,16 @@ async function poll() {
     console.log(`  ⚠ LIVE null ${liveNullNow.length}건 (10분 미만, 관찰 중)`);
   }
 
-  // 7. 같은 score N분+ 정지 (LIVE 인데 갱신 멈춤)
-  const stuckWarn = [];
+  // 7. 같은 score 90분+ 정지 (LIVE 인데 갱신 멈춤)
+  //    0-0 은 제외 — 무득점 90분 완주 매치 흔함 (특히 청소년·마이너 리그)
   const stuckHigh = [];
   for (const m of liveMatches) {
     if (m.homeScore == null || m.awayScore == null) continue;
+    // 0-0 매치는 stuck 추적 안 함 (false alarm 본질적 원인)
+    if (m.homeScore === 0 && m.awayScore === 0) {
+      lastScore.delete(m.id);
+      continue;
+    }
     const scoreStr = `${m.homeScore}-${m.awayScore}`;
     const prev = lastScore.get(m.id);
     if (!prev || prev.score !== scoreStr) {
@@ -209,27 +218,17 @@ async function poll() {
     }
     const stuck = now - prev.at;
     if (stuck > STUCK_HIGH_MS) stuckHigh.push({ ...m, stuckMs: stuck });
-    else if (stuck > STUCK_WARN_MS) stuckWarn.push({ ...m, stuckMs: stuck });
   }
 
   if (stuckHigh.length > 0) {
     await notify({
       severity: "HIGH",
-      title: `LIVE 점수 1시간+ 변화 없음 ${stuckHigh.length}건`,
+      title: `LIVE 점수 90분+ 변화 없음 ${stuckHigh.length}건`,
       what: describeMatches(stuckHigh),
-      when: "1시간+ 전부터",
+      when: "90분+ 전부터",
       impact: "LIVE 표시인데 실제는 종료된 매치 가능 (status 누락)",
       cause: "collector 의 status 업데이트 또는 score fetch 실패",
       action: "DB Match.updatedAt + status 직접 확인 (해당 league cron)",
-    });
-  } else if (stuckWarn.length > 0) {
-    await notify({
-      severity: "WARN",
-      title: `LIVE 점수 30분+ 변화 없음 ${stuckWarn.length}건`,
-      what: describeMatches(stuckWarn),
-      when: "30분 전부터",
-      impact: "참고 — 정상 무득점 (0-0 90분) 케이스 일 수도",
-      cause: "LIVE 표시 + 점수 정지 — 일반적 또는 collector 멈춤",
     });
   }
 

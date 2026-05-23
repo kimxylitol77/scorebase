@@ -46,7 +46,7 @@ function Logo({ url, name }: { url?: string | null; name: string }) {
     );
   }
   return (
-    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/5 inline-flex items-center justify-center text-sm font-bold text-neutral-400">
+    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-neutral-100 dark:bg-white/5 inline-flex items-center justify-center text-sm font-bold text-neutral-500 dark:text-neutral-400">
       {name.slice(0, 1)}
     </div>
   );
@@ -130,24 +130,15 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
       LIVE
     </span>
   ) : isFinished ? (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
-      style={{ background: "rgba(255,255,255,.06)", color: "#94a3b8" }}
-    >
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-neutral-100 dark:bg-white/[.06] text-neutral-500 dark:text-slate-400">
       종료
     </span>
   ) : isPostponed ? (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider"
-      style={{ background: "rgba(255,255,255,.06)", color: "#94a3b8" }}
-    >
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider bg-neutral-100 dark:bg-white/[.06] text-neutral-500 dark:text-slate-400">
       연기
     </span>
   ) : (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider tabular-nums"
-      style={{ background: "rgba(59,130,246,.12)", color: "#60a5fa" }}
-    >
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider tabular-nums bg-sky-100 dark:bg-blue-500/[.12] text-sky-700 dark:text-blue-400">
       {timeLabel}
     </span>
   );
@@ -158,18 +149,20 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {statusBadge}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             {leagueLabel ?? league}
           </span>
           {isLive && inningText && (
-            <span className="text-[11px] font-bold tabular-nums" style={{ color: "#22c55e" }}>
+            <span className="text-[11px] font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
               {inningText}
             </span>
           )}
         </div>
         <div className="flex items-center gap-1.5">
           {!isScheduled && (
-            <span className="text-[10px] text-neutral-500 tabular-nums">{timeLabel}</span>
+            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+              {timeLabel}
+            </span>
           )}
           {matchId != null && <FavoriteStar matchId={String(matchId)} className="-mr-1" />}
         </div>
@@ -180,9 +173,13 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         <div className="min-w-0 flex items-center gap-2">
           <Logo url={away.logo} name={away.name} />
           <div className="min-w-0">
-            <div className="truncate text-xs sm:text-sm font-bold">{away.name}</div>
+            <div className="truncate text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
+              {away.name}
+            </div>
             {awayStarter && (
-              <div className="truncate text-[10px] text-neutral-500">투수 {awayStarter}</div>
+              <div className="truncate text-[10px] text-neutral-500 dark:text-neutral-500">
+                투수 {awayStarter}
+              </div>
             )}
           </div>
         </div>
@@ -191,42 +188,56 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
           {hasScore ? (
             <>
               <span
-                style={{
-                  color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
-                  textShadow:
-                    awayWin || liveAwayLead
-                      ? "0 0 12px rgba(34,197,94,.45)"
-                      : "none",
-                }}
+                className={
+                  awayWin || liveAwayLead
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-neutral-900 dark:text-slate-200"
+                }
+                style={
+                  awayWin || liveAwayLead
+                    ? { textShadow: "0 0 12px rgba(34,197,94,.35)" }
+                    : undefined
+                }
               >
                 {awayScore}
               </span>
-              <span className="mx-1.5 text-neutral-500 font-thin">:</span>
+              <span className="mx-1.5 text-neutral-300 dark:text-neutral-600 font-thin">
+                :
+              </span>
               <span
-                style={{
-                  color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
-                  textShadow:
-                    homeWin || liveHomeLead
-                      ? "0 0 12px rgba(34,197,94,.45)"
-                      : "none",
-                }}
+                className={
+                  homeWin || liveHomeLead
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-neutral-900 dark:text-slate-200"
+                }
+                style={
+                  homeWin || liveHomeLead
+                    ? { textShadow: "0 0 12px rgba(34,197,94,.35)" }
+                    : undefined
+                }
               >
                 {homeScore}
               </span>
             </>
           ) : (
-            <span className="text-base font-bold text-neutral-500">VS</span>
+            <span className="text-base font-bold text-neutral-400 dark:text-neutral-500">
+              VS
+            </span>
           )}
         </div>
 
         <div className="min-w-0 flex items-center gap-2 justify-end text-right">
           <div className="min-w-0">
-            <div className="truncate text-xs sm:text-sm font-bold">
-              <span className="inline-block rounded bg-zinc-700 text-xs text-zinc-200 px-1.5 py-0.5 mr-1">홈</span>
+            <div className="truncate text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
+              <span className="inline-block rounded bg-neutral-200 text-neutral-700 dark:bg-zinc-700 dark:text-zinc-200 text-xs px-1.5 py-0.5 mr-1">
+                홈
+              </span>
               {home.name}
             </div>
             {homeStarter && (
-              <div className="truncate text-[10px] text-neutral-500">투수 {homeStarter}</div>
+              <div className="truncate text-[10px] text-neutral-500 dark:text-neutral-500">
+                투수 {homeStarter}
+              </div>
             )}
           </div>
           <Logo url={home.logo} name={home.name} />
@@ -235,21 +246,15 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
 
       {/* 상황 박스 (LIVE 만) — 다이아몬드 + 주자/아웃 + 우측 빈 공간엔 AI 코멘터리 */}
       {isLive && (
-        <div
-          className="rounded-lg px-3 py-2.5 flex items-center gap-3"
-          style={{
-            background: "rgba(255,255,255,.02)",
-            border: "1px solid rgba(255,255,255,.06)",
-          }}
-        >
+        <div className="rounded-xl px-3 py-2.5 flex items-center gap-3 bg-neutral-50 border border-neutral-200/80 dark:bg-white/[.02] dark:border-white/[.06]">
           <BaseDiamond bases={bases} size={64} />
           <div className="shrink-0">
-            <div className="text-[11px] text-neutral-500 mb-1">
+            <div className="text-[11px] text-neutral-500 dark:text-neutral-500 mb-1">
               {bases ? basesText(bases) : "주자 정보 없음"}
             </div>
             <div className="flex items-center gap-2">
               <OutCount outs={outs} />
-              <span className="text-[11px] text-neutral-400 tabular-nums">
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums">
                 {outs != null ? `${outs}아웃` : "아웃 -"}
               </span>
             </div>
@@ -268,24 +273,24 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         >
           <table className="text-[11px] sm:text-xs w-full sm:min-w-[360px]">
             <thead>
-              <tr className="text-neutral-500">
+              <tr className="text-neutral-500 dark:text-neutral-500">
                 <th className="text-left font-semibold py-1 pr-1.5 sm:pr-2 w-9 sm:w-10">팀</th>
                 {inningIdx.map((i) => {
                   const isCurrent = isLive && inning != null && i + 1 === inning;
                   return (
                     <th
                       key={i}
-                      className="text-center font-semibold py-1 px-0 tabular-nums"
-                      style={{
-                        color: isCurrent ? "#22c55e" : "#475569",
-                        fontWeight: isCurrent ? 600 : 500,
-                      }}
+                      className={`text-center py-1 px-0 tabular-nums ${
+                        isCurrent
+                          ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                          : "text-neutral-400 dark:text-slate-600 font-medium"
+                      }`}
                     >
                       {i + 1}
                     </th>
                   );
                 })}
-                <th className="text-center font-bold py-1 pl-1.5 sm:pl-2 pr-0.5 sm:pr-1 tabular-nums text-neutral-200">
+                <th className="text-center font-bold py-1 pl-1.5 sm:pl-2 pr-0.5 sm:pr-1 tabular-nums text-neutral-700 dark:text-neutral-200">
                   R
                 </th>
                 <th className="text-center font-semibold py-1 px-0.5 sm:px-1 tabular-nums">H</th>
@@ -376,39 +381,42 @@ function BoxRow({
 }) {
   return (
     <tr>
-      <td className="py-1 pr-1.5 sm:pr-2 font-bold text-neutral-300 whitespace-nowrap">
+      <td className="py-1 pr-1.5 sm:pr-2 font-bold text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
         {label}
       </td>
       {Array.from({ length: innings }, (_, i) => {
         const v = line[i];
         const isCurrent = currentInning != null && i + 1 === currentInning;
+        const filled = v != null;
         return (
           <td
             key={i}
-            className="text-center tabular-nums py-1 px-0"
-            style={{
-              background: isCurrent ? "rgba(34,197,94,.1)" : "transparent",
-              borderRadius: isCurrent ? 4 : 0,
-              color: v == null ? "#334155" : "#cbd5e1",
-            }}
+            className={`text-center tabular-nums py-1 px-0 ${
+              isCurrent ? "bg-emerald-500/10 rounded" : ""
+            } ${
+              filled
+                ? "text-neutral-700 dark:text-slate-200"
+                : "text-neutral-300 dark:text-slate-700"
+            }`}
           >
             {v ?? "·"}
           </td>
         );
       })}
       <td
-        className="text-center font-black py-1 pl-1.5 sm:pl-2 pr-0.5 sm:pr-1 tabular-nums"
-        style={{
-          color: win ? "#22c55e" : "#cbd5e1",
-          textShadow: win ? "0 0 8px rgba(34,197,94,.45)" : "none",
-        }}
+        className={`text-center font-black py-1 pl-1.5 sm:pl-2 pr-0.5 sm:pr-1 tabular-nums ${
+          win
+            ? "text-emerald-600 dark:text-emerald-400"
+            : "text-neutral-800 dark:text-slate-200"
+        }`}
+        style={win ? { textShadow: "0 0 8px rgba(34,197,94,.35)" } : undefined}
       >
         {r}
       </td>
-      <td className="text-center py-1 px-0.5 sm:px-1 tabular-nums text-neutral-400">
+      <td className="text-center py-1 px-0.5 sm:px-1 tabular-nums text-neutral-500 dark:text-neutral-400">
         {h ?? "-"}
       </td>
-      <td className="text-center py-1 pl-0.5 sm:pl-1 tabular-nums text-neutral-400">
+      <td className="text-center py-1 pl-0.5 sm:pl-1 tabular-nums text-neutral-500 dark:text-neutral-400">
         {e ?? "-"}
       </td>
     </tr>
