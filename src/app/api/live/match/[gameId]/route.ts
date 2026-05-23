@@ -342,10 +342,12 @@ export async function GET(
     } else {
       out.summary = espnSummary;
     }
-    // TheSports football-poller cache 의 score 보강 — ESPN 30-60s 갱신 vs poller 1분.
-    // monotonic max(ESPN, cache) — 점수 증가만, 더 큰 값 안전.
-    // cache.detailLive.score 형식: [match_id, status_id, home_arr, away_arr, ts, '']
-    // home_arr[0] = current home score, away_arr[0] = current away score
+    // TheSports football fast-poller cache 의 score 보강 — fast-poller 2초 cycle.
+    // monotonic max(ESPN, cache.score[regular], cache.score[overtime], incidents.last) — 점수 증가만, 더 큰 값 안전.
+    // cache.detailLive.score 형식 (docs):
+    //   [match_id, status, home_arr[7], away_arr[7], kick_off_ts, '']
+    //   home_arr[0]=regular time score, [5]=overtime (regular 포함)
+    // incidents[].home_score / away_score = 골 시점 누적 score (가장 fresh).
     if (out.status === "LIVE") {
       try {
         const { prisma: db } = await import("@/lib/db");
@@ -358,19 +360,39 @@ export async function GET(
             where: { matchId: ourMatch.id },
             select: { detailLive: true },
           });
-          const dl = cache?.detailLive as { score?: unknown[] } | null;
+          const dl = cache?.detailLive as {
+            score?: unknown[];
+            incidents?: Array<{ home_score?: number; away_score?: number }>;
+          } | null;
+          let tsHome = -1;
+          let tsAway = -1;
+          // (1) score array [home_regular, away_regular, home_ot, away_ot]
           const arr = Array.isArray(dl?.score) ? dl.score : null;
           if (arr && arr.length >= 4 && Array.isArray(arr[2]) && Array.isArray(arr[3])) {
             const homeArr = arr[2] as unknown[];
             const awayArr = arr[3] as unknown[];
-            const tsHome = Number(homeArr[0]);
-            const tsAway = Number(awayArr[0]);
-            if (Number.isFinite(tsHome) && (out.homeScore == null || tsHome > out.homeScore)) {
-              out.homeScore = tsHome;
+            const homeReg = Number(homeArr[0]);
+            const homeOt = Number(homeArr[5]); // 연장전 (regular 포함)
+            const awayReg = Number(awayArr[0]);
+            const awayOt = Number(awayArr[5]);
+            tsHome = Math.max(tsHome, Number.isFinite(homeReg) ? homeReg : -1, Number.isFinite(homeOt) ? homeOt : -1);
+            tsAway = Math.max(tsAway, Number.isFinite(awayReg) ? awayReg : -1, Number.isFinite(awayOt) ? awayOt : -1);
+          }
+          // (2) incidents 마지막 entry score — 가장 fresh source
+          if (Array.isArray(dl?.incidents)) {
+            for (const inc of dl.incidents) {
+              const h = typeof inc?.home_score === "number" ? inc.home_score : -1;
+              const a = typeof inc?.away_score === "number" ? inc.away_score : -1;
+              if (h > tsHome) tsHome = h;
+              if (a > tsAway) tsAway = a;
             }
-            if (Number.isFinite(tsAway) && (out.awayScore == null || tsAway > out.awayScore)) {
-              out.awayScore = tsAway;
-            }
+          }
+          // monotonic max(ESPN, cache)
+          if (tsHome >= 0 && (out.homeScore == null || tsHome > out.homeScore)) {
+            out.homeScore = tsHome;
+          }
+          if (tsAway >= 0 && (out.awayScore == null || tsAway > out.awayScore)) {
+            out.awayScore = tsAway;
           }
         }
       } catch {
