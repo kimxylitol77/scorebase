@@ -244,6 +244,7 @@ export async function GET(
         headers: {
           ETag: etag,
           "Cache-Control": "public, s-maxage=2, stale-while-revalidate=10",
+          "Vercel-CDN-Cache-Control": "max-age=2",
         },
       });
     }
@@ -253,6 +254,7 @@ export async function GET(
         headers: {
           ETag: etag,
           "Cache-Control": "public, s-maxage=2, stale-while-revalidate=10",
+          "Vercel-CDN-Cache-Control": "max-age=2",
         },
       },
     );

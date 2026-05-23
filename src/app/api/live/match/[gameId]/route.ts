@@ -63,8 +63,11 @@ const ESPN_SOCCER_PATH: Record<string, string> = {
 
 // edge runtime 에선 fetchSoccerGoalsByDate (AbortController/setTimeout)
 // 가 빈 응답 반환하던 케이스가 있어 nodejs runtime 으로 고정.
+//
+// 2026-05-23: force-dynamic 제거. Next.js 가 force-dynamic 일 때 응답의
+// s-maxage 를 strip → CDN 캐시 비활성화. 응답 cache-control 만으로 CDN 5초
+// 캐시 활성화하여 클라이언트 polling 함수 호출 ~90% 감소.
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 const SOCCER_LEAGUES = new Set([
   "EPL",
@@ -413,6 +416,7 @@ export async function GET(
       headers: {
         ETag: etag,
         "Cache-Control": "public, s-maxage=5, must-revalidate",
+        "Vercel-CDN-Cache-Control": "max-age=5",
       },
     });
   }
@@ -422,6 +426,7 @@ export async function GET(
       headers: {
         ETag: etag,
         "Cache-Control": "public, s-maxage=5, must-revalidate",
+        "Vercel-CDN-Cache-Control": "max-age=5",
       },
     },
   );

@@ -1,17 +1,20 @@
 // /api/live/scores — 모든 리그 라이브 매치 통합 endpoint.
-// Edge Runtime · 매 요청 새로 평가 (dynamic) · CDN 짧은 캐시 + ETag/304 지원.
+// Edge Runtime · 응답 헤더 기반 CDN 캐시 + ETag/304 지원.
 // ?demo=1 으로 호출 시 가짜 매치 list 반환 (디자인 검증용, 캐시 X).
 //
-// 캐시 정책 (2026-05-15 fix):
-//   force-dynamic + s-maxage=10 + must-revalidate.
-//   기존 revalidate=15 + stale-while-revalidate=45 조합이 빈 응답을 영구 캐시하던
-//   이슈 (etag W/"empty hash" 가 SWR 동안 무한 유지) 해결.
+// 캐시 정책 (2026-05-23 fix):
+//   응답 헤더의 Cache-Control: public, s-maxage=10, must-revalidate 만 사용.
+//   `dynamic = "force-dynamic"` 은 Next.js 가 s-maxage 를 strip 해서 CDN 캐시
+//   비활성화 → 매 polling 마다 함수 호출 (0.5초). force-dynamic 제거 후 응답
+//   헤더가 그대로 전달되어 CDN 이 10초간 캐시 → 함수 호출 ~90% 감소.
+//   빈 응답 영구 캐시 회피는 etag 시간 토큰 (hashMatches 의 빈 응답 분기) 으로 cover.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchAllLiveScores, type LiveMatch } from "@/lib/sports/live-scores";
 
 export const runtime = "edge";
-export const dynamic = "force-dynamic";
+// dynamic / revalidate 미명시 — fetchAllLiveScores 의 외부 API fetch 로 Next.js
+// 가 자동 dynamic 추론. 응답 cache-control 만으로 CDN 캐시 제어.
 
 const DEMO_MATCHES: LiveMatch[] = [
   {
@@ -138,6 +141,9 @@ export async function GET(req: NextRequest) {
         headers: {
           ETag: etag,
           "Cache-Control": "public, s-maxage=10, must-revalidate",
+          // Vercel CDN 전용 — Next.js 가 표준 Cache-Control 의 s-maxage 를 strip 해도
+          // Vercel 은 이 헤더를 우선 적용하므로 CDN 캐시 10초 활성 보장.
+          "Vercel-CDN-Cache-Control": "max-age=10",
         },
       });
     }
@@ -147,6 +153,9 @@ export async function GET(req: NextRequest) {
         headers: {
           ETag: etag,
           "Cache-Control": "public, s-maxage=10, must-revalidate",
+          // Vercel CDN 전용 — Next.js 가 표준 Cache-Control 의 s-maxage 를 strip 해도
+          // Vercel 은 이 헤더를 우선 적용하므로 CDN 캐시 10초 활성 보장.
+          "Vercel-CDN-Cache-Control": "max-age=10",
         },
       },
     );
