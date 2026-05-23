@@ -15,6 +15,7 @@ import teamIdMapping from "./team-id-mapping.json";
 interface TeamIdEntry {
   ourId: number;
   tsId: string;
+  ourLeague: string;
 }
 
 interface StandingsTable {
@@ -32,10 +33,16 @@ interface StandingsPayload {
   tables?: StandingsTable[];
 }
 
-// ts team_id → our Team.id (모듈 로드 시 한 번 만 변환)
-const TS_TO_OUR_TEAM_ID = new Map<string, number>(
-  (teamIdMapping as TeamIdEntry[]).map((e) => [e.tsId, e.ourId]),
-);
+// ts team_id → our Team.id — league 별로 분리.
+// 같은 tsId 가 UCL/UEL 등 컵대회 entry 와 정규 리그 entry 양쪽에 있으면 단일 Map 에서 충돌.
+// (예: Real Madrid LALIGA ourId=1 + UCL ourId=506 같은 tsId → UCL 가 덮어쓰기 → LALIGA standings 매핑 실패)
+const TS_TO_OUR_BY_LEAGUE = new Map<string, Map<string, number>>();
+for (const e of teamIdMapping as TeamIdEntry[]) {
+  if (!TS_TO_OUR_BY_LEAGUE.has(e.ourLeague)) {
+    TS_TO_OUR_BY_LEAGUE.set(e.ourLeague, new Map());
+  }
+  TS_TO_OUR_BY_LEAGUE.get(e.ourLeague)!.set(e.tsId, e.ourId);
+}
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 interface CachedPositions {
@@ -93,10 +100,11 @@ export async function getStandingsPositions(
   });
   if (ts) {
     const payload = ts.payload as unknown as StandingsPayload;
+    const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
     for (const t of payload?.tables ?? []) {
       for (const r of t.rows ?? []) {
         if (!r.team_id || r.position == null) continue;
-        const ourId = TS_TO_OUR_TEAM_ID.get(r.team_id);
+        const ourId = leagueMap?.get(r.team_id);
         if (ourId != null && !positionByOurTeamId.has(ourId)) {
           positionByOurTeamId.set(ourId, r.position);
         }
@@ -193,10 +201,11 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
         goal_diff?: number;
       }
       const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[] }> };
+      const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
       for (const t of payload?.tables ?? []) {
         for (const r of t.rows ?? []) {
           if (!r.team_id || r.position == null) continue;
-          const ourId = TS_TO_OUR_TEAM_ID.get(r.team_id);
+          const ourId = leagueMap?.get(r.team_id);
           if (ourId == null || seen.has(ourId)) continue;
           seen.add(ourId);
           const gf = Array.isArray(r.goals) ? r.goals[0] : r.goals?.for;
