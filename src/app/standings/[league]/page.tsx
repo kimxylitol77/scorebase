@@ -180,7 +180,8 @@ export default async function StandingsPage({ params }: Props) {
               return (
                 <tr
                   key={r.teamId}
-                  className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition"
+                  id={`team-${r.teamId}`}
+                  className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24 transition"
                   style={r.promotionColor ? { boxShadow: `inset 3px 0 0 0 ${r.promotionColor}` } : undefined}
                   title={r.promotionName || undefined}
                 >

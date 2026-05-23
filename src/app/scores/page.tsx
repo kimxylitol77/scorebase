@@ -1109,10 +1109,12 @@ function SoccerRowLayout({
         home={{
           name: m.home.name,
           logo: m.home.logo ?? null,
+          teamId: m.home.teamId,
         }}
         away={{
           name: m.away.name,
           logo: m.away.logo ?? null,
+          teamId: m.away.teamId,
         }}
         homeScore={m.home.score}
         awayScore={m.away.score}

@@ -7,6 +7,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getLeagueBadge } from "./leagueBadge";
 import FavoriteStar from "../FavoriteStar";
 import type { SoccerGoal } from "@/lib/sports/live-scores";
@@ -81,6 +82,16 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayPosition,
   } = props;
 
+  const router = useRouter();
+  const goToStandings = (teamId: number | undefined) => (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const hash = teamId != null ? `#team-${teamId}` : "";
+    router.push(`/standings/${league}${hash}`);
+  };
+
   const badge = getLeagueBadge(league);
   const isLive = status === "live";
   const isFinished = status === "finished";
@@ -145,9 +156,14 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <span className="truncate text-right text-[13px] text-neutral-800 dark:text-neutral-200">
           {home.name}
           {homePosition != null && (
-            <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+            <button
+              type="button"
+              onClick={goToStandings(home.teamId)}
+              title={`${home.name} 리그 순위 보기`}
+              className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+            >
               [{homePosition}]
-            </span>
+            </button>
           )}
         </span>
         <TeamLogo url={home.logo} name={home.name} />
@@ -209,9 +225,14 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <span className="truncate text-[13px] text-neutral-800 dark:text-neutral-200">
           {away.name}
           {awayPosition != null && (
-            <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+            <button
+              type="button"
+              onClick={goToStandings(away.teamId)}
+              title={`${away.name} 리그 순위 보기`}
+              className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+            >
               [{awayPosition}]
-            </span>
+            </button>
           )}
         </span>
         {recentGoalSide === "away" && (
