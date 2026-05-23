@@ -10,7 +10,7 @@ const tags =
   "KBO, 순위, 예측, 가을야구, 와일드카드, AI 시뮬레이션, Elo, 몬테카를로, 포스트시즌";
 
 // 본문 HTML — 첨부 템플릿 기반 + 이미지의 실제 순위(2026-05-23)로 교체.
-const content = `<article style="max-width:820px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo',sans-serif;color:#1a1a1a;line-height:1.75;">
+const content = `<article style="max-width:820px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo',sans-serif;line-height:1.75;">
 
   <p style="font-size:1.05em;color:#374151;">
     2026 KBO 리그가 후반부로 접어들면서 <strong>가을야구(포스트시즌) 진출 경쟁</strong>이 치열해지고 있습니다.
@@ -19,7 +19,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
     이 글에서는 현재 KBO 순위표부터 AI가 예측한 최종 순위, 5위 와일드카드 경쟁 구도, 잔여 경기 핵심 매치업까지 데이터로 정리합니다.
   </p>
 
-  <p style="font-size:0.85em;color:#9ca3af;border-left:3px solid #06b6d4;padding-left:12px;margin:20px 0;">
+  <p style="font-size:0.85em;color:inherit;opacity:0.7;border-left:3px solid #06b6d4;padding-left:12px;margin:20px 0;">
     🕒 마지막 업데이트: 2026년 5월 23일 · 데이터 출처: KBO 공식 기록 · 모델: Scorebase Elo + 몬테카를로 시뮬레이션
   </p>
 
@@ -97,7 +97,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
         <td style="padding:10px 8px;text-align:center;">5.0</td>
       </tr>
       <tr style="border-bottom:1px solid #e5e7eb;">
-        <td style="padding:10px 8px;text-align:center;color:#6b7280;">6</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;">6</td>
         <td style="padding:10px 8px;">KT 위즈</td>
         <td style="padding:10px 8px;text-align:center;">57</td>
         <td style="padding:10px 8px;text-align:center;">27</td>
@@ -107,7 +107,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
         <td style="padding:10px 8px;text-align:center;">6.5</td>
       </tr>
       <tr style="border-bottom:1px solid #e5e7eb;">
-        <td style="padding:10px 8px;text-align:center;color:#6b7280;">7</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;">7</td>
         <td style="padding:10px 8px;">NC 다이노스</td>
         <td style="padding:10px 8px;text-align:center;">56</td>
         <td style="padding:10px 8px;text-align:center;">25</td>
@@ -117,7 +117,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
         <td style="padding:10px 8px;text-align:center;">8.0</td>
       </tr>
       <tr style="border-bottom:1px solid #e5e7eb;">
-        <td style="padding:10px 8px;text-align:center;color:#6b7280;">8</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;">8</td>
         <td style="padding:10px 8px;">KIA 타이거즈</td>
         <td style="padding:10px 8px;text-align:center;">57</td>
         <td style="padding:10px 8px;text-align:center;">24</td>
@@ -127,7 +127,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
         <td style="padding:10px 8px;text-align:center;">9.5</td>
       </tr>
       <tr style="border-bottom:1px solid #e5e7eb;">
-        <td style="padding:10px 8px;text-align:center;color:#6b7280;">9</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;">9</td>
         <td style="padding:10px 8px;">두산 베어스</td>
         <td style="padding:10px 8px;text-align:center;">57</td>
         <td style="padding:10px 8px;text-align:center;">23</td>
@@ -137,7 +137,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
         <td style="padding:10px 8px;text-align:center;">10.5</td>
       </tr>
       <tr>
-        <td style="padding:10px 8px;text-align:center;color:#6b7280;">10</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;">10</td>
         <td style="padding:10px 8px;">키움 히어로즈</td>
         <td style="padding:10px 8px;text-align:center;">57</td>
         <td style="padding:10px 8px;text-align:center;">16</td>
@@ -149,7 +149,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
     </tbody>
   </table>
   </div>
-  <p style="font-size:0.85em;color:#6b7280;">
+  <p style="font-size:0.85em;color:inherit;">
     🟢 초록 음영 = 가을야구 진출권(5위 이내) · 게임차는 1위 기준
   </p>
 
@@ -210,32 +210,32 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
       </tr>
       <tr style="border-bottom:1px solid #e5e7eb;">
         <td style="padding:10px 8px;">NC 다이노스</td>
-        <td style="padding:10px 8px;text-align:center;color:#9ca3af;">23%</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;opacity:0.7;">23%</td>
         <td style="padding:10px 8px;text-align:center;">2%</td>
         <td style="padding:10px 8px;text-align:center;">7위</td>
       </tr>
       <tr style="border-bottom:1px solid #e5e7eb;">
         <td style="padding:10px 8px;">KIA 타이거즈</td>
-        <td style="padding:10px 8px;text-align:center;color:#9ca3af;">14%</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;opacity:0.7;">14%</td>
         <td style="padding:10px 8px;text-align:center;">1%</td>
         <td style="padding:10px 8px;text-align:center;">8위</td>
       </tr>
       <tr style="border-bottom:1px solid #e5e7eb;">
         <td style="padding:10px 8px;">두산 베어스</td>
-        <td style="padding:10px 8px;text-align:center;color:#9ca3af;">9%</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;opacity:0.7;">9%</td>
         <td style="padding:10px 8px;text-align:center;">&lt;1%</td>
         <td style="padding:10px 8px;text-align:center;">9위</td>
       </tr>
       <tr>
         <td style="padding:10px 8px;">키움 히어로즈</td>
-        <td style="padding:10px 8px;text-align:center;color:#9ca3af;">1%</td>
+        <td style="padding:10px 8px;text-align:center;color:inherit;opacity:0.7;">1%</td>
         <td style="padding:10px 8px;text-align:center;">&lt;1%</td>
         <td style="padding:10px 8px;text-align:center;">10위</td>
       </tr>
     </tbody>
   </table>
   </div>
-  <p style="font-size:0.85em;color:#6b7280;">
+  <p style="font-size:0.85em;color:inherit;">
     🟢 70%+ 진출 유력 · 🟡 40~60% 5위 경쟁 · ⚪ 40% 미만 · 5,000회 몬테카를로 시뮬레이션 기준
   </p>
 
@@ -296,7 +296,7 @@ const content = `<article style="max-width:820px;margin:0 auto;font-family:-appl
   </p>
 
   <div style="margin:36px 0;padding:16px 20px;background:#f8fafc;border-radius:12px;border:1px solid #e5e7eb;">
-    <p style="margin:0;font-size:0.88em;color:#6b7280;">
+    <p style="margin:0;font-size:0.88em;color:inherit;">
       ⓘ 본 콘텐츠는 통계 모델 기반의 데이터 분석이며, 도박·베팅과 무관한 정보 제공 목적입니다.
       모든 확률은 추정치로 실제 결과와 다를 수 있습니다.
     </p>
