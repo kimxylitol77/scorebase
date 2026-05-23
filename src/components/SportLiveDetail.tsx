@@ -120,7 +120,7 @@ interface Props {
   initialStatus?: "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED";
 }
 
-const POLL_LIVE_MS = 10_000;
+const POLL_LIVE_MS = 5_000;
 const POLL_IDLE_MS = 60_000;
 
 export default function SportLiveDetail({

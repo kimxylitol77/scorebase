@@ -149,7 +149,7 @@ export default async function GenericLivePage({ params }: Props) {
           </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
-          {label} · 라이브 스코어 · 10초 자동 갱신
+          {label} · 라이브 스코어 · 5초 자동 갱신
         </p>
       </header>
       <MatchArticleLinks
