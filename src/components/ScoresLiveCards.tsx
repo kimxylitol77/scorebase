@@ -11,6 +11,7 @@ import { leaguesForSport, type SportCode } from "@/lib/sports/sport-leagues";
 import LeagueBadge from "./LeagueBadge";
 import CountUp from "./CountUp";
 import LiveEventsPanel from "./LiveEventsPanel";
+import { playChime, unlockAudio } from "@/lib/sound/chime";
 
 interface LiveMatch {
   id: string;
@@ -30,11 +31,19 @@ interface LiveMatch {
 const POLL_LIVE_MS = 15_000;
 const POLL_IDLE_MS = 180_000;
 
+const SOUND_STORAGE_KEY = "scorebase-live-sound";
+
 export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [loaded, setLoaded] = useState(false);
   // 어느 카드를 펼쳤는지 (events panel) — 한 번에 한 카드만 expand
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // 점수 변화 사운드 ON/OFF (localStorage 저장)
+  const [soundOn, setSoundOn] = useState(false);
+  const soundOnRef = useRef(false);
+  soundOnRef.current = soundOn;
+  // 직전 cycle 의 점수 snapshot — 변화 감지용
+  const prevScoresRef = useRef<Map<string, string>>(new Map());
   const countRef = useRef(0);
   countRef.current = matches.length;
 
@@ -95,6 +104,52 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
     };
   }, []);
 
+  // 사운드 설정 init (localStorage)
+  useEffect(() => {
+    try {
+      setSoundOn(localStorage.getItem(SOUND_STORAGE_KEY) === "1");
+    } catch {
+      // SSR 또는 localStorage 비활성 환경 — ignore
+    }
+  }, []);
+
+  // 점수 변화 감지 → chime
+  // - 첫 로드 시점에는 prev 가 비어있어 chime 안 울림 (= 페이지 진입 시 점수 발표 X)
+  // - 같은 매치 ID 의 점수가 직전 cycle 과 다르면 chime
+  useEffect(() => {
+    const filtered = matches.filter((m) =>
+      new Set(leaguesForSport(sport)).has(m.league),
+    );
+    const newMap = new Map<string, string>();
+    let scored = false;
+    for (const m of filtered) {
+      const key = `${m.homeScore}-${m.awayScore}`;
+      newMap.set(m.id, key);
+      const prev = prevScoresRef.current.get(m.id);
+      if (prev && prev !== key) scored = true;
+    }
+    const isFirstLoad = prevScoresRef.current.size === 0;
+    prevScoresRef.current = newMap;
+    if (scored && !isFirstLoad && soundOnRef.current) {
+      playChime();
+    }
+  }, [matches, sport]);
+
+  function toggleSound() {
+    const next = !soundOn;
+    setSoundOn(next);
+    try {
+      localStorage.setItem(SOUND_STORAGE_KEY, next ? "1" : "0");
+    } catch {
+      // ignore
+    }
+    if (next) {
+      // 첫 ON 시점에 user gesture 안에서 AudioContext 활성화 + sample chime
+      unlockAudio();
+      playChime();
+    }
+  }
+
   if (!loaded) return null;
   const allowed = new Set(leaguesForSport(sport));
   const filtered = matches.filter((m) => allowed.has(m.league));
@@ -112,9 +167,40 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
           </span>
           진행 중 {filtered.length}경기
         </h2>
-        <span className="text-[10px] text-rose-600/70 dark:text-rose-400/70 tabular-nums">
-          15초 자동 갱신
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleSound}
+            aria-pressed={soundOn}
+            aria-label={soundOn ? "점수 변화 사운드 끄기" : "점수 변화 사운드 켜기"}
+            title={soundOn ? "점수 변화 사운드 ON" : "점수 변화 사운드 OFF"}
+            className={`inline-flex items-center justify-center w-6 h-6 rounded-md transition ${
+              soundOn
+                ? "text-rose-600 dark:text-rose-400 bg-rose-100/60 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25"
+                : "text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+            }`}
+          >
+            {soundOn ? (
+              // 🔔 알림 켬
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+              </svg>
+            ) : (
+              // 🔕 알림 끔 (사선)
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
+                <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
+                <path d="M18 8a6 6 0 0 0-9.33-5" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            )}
+          </button>
+          <span className="text-[10px] text-rose-600/70 dark:text-rose-400/70 tabular-nums">
+            15초 자동 갱신
+          </span>
+        </div>
       </div>
       {/* 모바일: 가로 swipe carousel (scroll-snap) / 데스크탑: 그리드 2~3열 */}
       <div
