@@ -117,10 +117,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
   const rowContent = (
     <div
-      className="grid mx-auto items-center gap-3 px-0 py-2 text-sm transition hover:bg-neutral-100 dark:hover:bg-white/[0.03] w-fit"
+      className="grid items-center gap-3 px-0 py-2 text-sm transition hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
       style={{
         gridTemplateColumns:
-          "100px 50px 60px 14rem auto 14rem 48px 28px",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px",
       }}
     >
       {/* 1. 리그 배지 */}
@@ -283,11 +283,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     </div>
   );
 
-  if (!href) return <div className="mx-auto max-w-5xl">{rowContent}</div>;
+  if (!href) return rowContent;
 
   const isExternal = /^https?:\/\//i.test(href);
   return (
-    <div className="mx-auto max-w-5xl border-b border-neutral-200 dark:border-white/5">
+    <div className="border-b border-neutral-200 dark:border-white/5">
       {isExternal ? (
         <a href={href} target="_blank" rel="noopener noreferrer" className="block">
           {rowContent}
@@ -400,10 +400,10 @@ function GoalsTooltip({
 export function SoccerLiveRowHeader() {
   return (
     <div
-      className="grid w-fit mx-auto items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
+      className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
-          "100px 50px 60px 14rem auto 14rem 48px 28px",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px",
       }}
     >
       <div className="text-center">리그명</div>

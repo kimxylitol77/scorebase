@@ -1218,7 +1218,7 @@ function SoccerRowLayout({
     </div>
   );
   const dateHeaderDesktop = (label: string) => (
-    <div className="mx-auto max-w-5xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-center text-[13px] font-bold py-1.5 my-2 rounded-md tabular-nums">
+    <div className="border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-center text-[13px] font-bold py-1.5 my-2 rounded-md tabular-nums">
       {label}
     </div>
   );
