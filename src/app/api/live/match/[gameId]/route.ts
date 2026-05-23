@@ -342,6 +342,41 @@ export async function GET(
     } else {
       out.summary = espnSummary;
     }
+    // TheSports football-poller cache 의 score 보강 — ESPN 30-60s 갱신 vs poller 1분.
+    // monotonic max(ESPN, cache) — 점수 증가만, 더 큰 값 안전.
+    // cache.detailLive.score 형식: [match_id, status_id, home_arr, away_arr, ts, '']
+    // home_arr[0] = current home score, away_arr[0] = current away score
+    if (out.status === "LIVE") {
+      try {
+        const { prisma: db } = await import("@/lib/db");
+        const ourMatch = await db.match.findFirst({
+          where: { externalId: gameId, league },
+          select: { id: true },
+        });
+        if (ourMatch) {
+          const cache = await db.theSportsMatchCache.findUnique({
+            where: { matchId: ourMatch.id },
+            select: { detailLive: true },
+          });
+          const dl = cache?.detailLive as { score?: unknown[] } | null;
+          const arr = Array.isArray(dl?.score) ? dl.score : null;
+          if (arr && arr.length >= 4 && Array.isArray(arr[2]) && Array.isArray(arr[3])) {
+            const homeArr = arr[2] as unknown[];
+            const awayArr = arr[3] as unknown[];
+            const tsHome = Number(homeArr[0]);
+            const tsAway = Number(awayArr[0]);
+            if (Number.isFinite(tsHome) && (out.homeScore == null || tsHome > out.homeScore)) {
+              out.homeScore = tsHome;
+            }
+            if (Number.isFinite(tsAway) && (out.awayScore == null || tsAway > out.awayScore)) {
+              out.awayScore = tsAway;
+            }
+          }
+        }
+      } catch {
+        // cache 조회 실패는 ignore — ESPN 데이터만 응답
+      }
+    }
   } else {
     return NextResponse.json(
       { error: "unsupported league (use /api/live/{lol,mlb,baseball})" },
