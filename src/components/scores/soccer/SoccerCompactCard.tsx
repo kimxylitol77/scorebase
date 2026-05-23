@@ -124,7 +124,7 @@ export default function SoccerCompactCard(props: Props) {
         <div
           className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
             recentGoalSide === "home"
-              ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+              ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
               : ""
           }`}
         >
@@ -136,11 +136,17 @@ export default function SoccerCompactCard(props: Props) {
             />
           )}
           <TeamLogo url={home.logo} name={home.name} />
-          <span className={teamNameClass(hasScore && !homeWin && !isLive)}>
+          <span
+            className={
+              recentGoalSide === "home"
+                ? "truncate text-[13px] font-bold text-emerald-800 dark:text-emerald-200"
+                : teamNameClass(hasScore && !homeWin && !isLive)
+            }
+          >
             {home.name}
           </span>
           {recentGoalSide === "home" && (
-            <span className="ml-auto text-[9px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+            <span className="ml-auto text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
               ⚽
             </span>
           )}
@@ -148,7 +154,7 @@ export default function SoccerCompactCard(props: Props) {
         <div
           className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
             recentGoalSide === "away"
-              ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+              ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
               : ""
           }`}
         >
@@ -160,11 +166,17 @@ export default function SoccerCompactCard(props: Props) {
             />
           )}
           <TeamLogo url={away.logo} name={away.name} />
-          <span className={teamNameClass(hasScore && !awayWin && !isLive)}>
+          <span
+            className={
+              recentGoalSide === "away"
+                ? "truncate text-[13px] font-bold text-emerald-800 dark:text-emerald-200"
+                : teamNameClass(hasScore && !awayWin && !isLive)
+            }
+          >
             {away.name}
           </span>
           {recentGoalSide === "away" && (
-            <span className="ml-auto text-[9px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+            <span className="ml-auto text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
               ⚽
             </span>
           )}
@@ -176,7 +188,7 @@ export default function SoccerCompactCard(props: Props) {
         <span
           className={`${scoreClass(homeWin, hasScore && !homeWin)} ${
             recentGoalSide === "home"
-              ? "px-1 rounded ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse"
+              ? "px-1 rounded ring-2 ring-emerald-500 bg-emerald-100/50 dark:bg-emerald-500/20 animate-pulse"
               : ""
           }`}
         >
@@ -185,7 +197,7 @@ export default function SoccerCompactCard(props: Props) {
         <span
           className={`${scoreClass(awayWin, hasScore && !awayWin)} ${
             recentGoalSide === "away"
-              ? "px-1 rounded ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse"
+              ? "px-1 rounded ring-2 ring-emerald-500 bg-emerald-100/50 dark:bg-emerald-500/20 animate-pulse"
               : ""
           }`}
         >

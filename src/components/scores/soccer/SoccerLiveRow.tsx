@@ -144,16 +144,22 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       <div
         className={`flex items-center justify-end gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
           recentGoalSide === "home"
-            ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+            ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
             : ""
         }`}
       >
         {recentGoalSide === "home" && (
-          <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+          <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
             ⚽ GOAL
           </span>
         )}
-        <span className="truncate text-right text-[13px] text-neutral-800 dark:text-neutral-200">
+        <span
+          className={`truncate text-right text-[13px] ${
+            recentGoalSide === "home"
+              ? "text-emerald-800 dark:text-emerald-200 font-bold"
+              : "text-neutral-800 dark:text-neutral-200"
+          }`}
+        >
           {home.name}
           {homePosition != null && (
             <button
@@ -169,10 +175,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <TeamLogo url={home.logo} name={home.name} />
       </div>
 
-      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip / 라이브 최근 골 → 앰버 ring */}
+      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip / 라이브 최근 골 → emerald ring */}
       <div
         className={`relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group ${
-          recentGoalSide ? "rounded-md ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
+          recentGoalSide ? "rounded-md ring-2 ring-emerald-500 bg-emerald-100/50 dark:bg-emerald-500/20 animate-pulse" : ""
         }`}
       >
         {hasScore ? (
@@ -217,12 +223,18 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       <div
         className={`flex items-center gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
           recentGoalSide === "away"
-            ? "bg-amber-300/40 dark:bg-amber-400/25 ring-1 ring-amber-400 animate-pulse"
+            ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
             : ""
         }`}
       >
         <TeamLogo url={away.logo} name={away.name} />
-        <span className="truncate text-[13px] text-neutral-800 dark:text-neutral-200">
+        <span
+          className={`truncate text-[13px] ${
+            recentGoalSide === "away"
+              ? "text-emerald-800 dark:text-emerald-200 font-bold"
+              : "text-neutral-800 dark:text-neutral-200"
+          }`}
+        >
           {away.name}
           {awayPosition != null && (
             <button
@@ -236,7 +248,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           )}
         </span>
         {recentGoalSide === "away" && (
-          <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 animate-pulse whitespace-nowrap">
+          <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
             ⚽ GOAL
           </span>
         )}
