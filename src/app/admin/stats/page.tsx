@@ -59,17 +59,17 @@ export default async function StatsPage({ searchParams }: Props) {
   const [recent30Raw, recent24Raw, rangeRaw, totalAll] = await Promise.all([
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
-      select: { ts: true, path: true, userAgent: true },
+      select: { ts: true, path: true, userAgent: true, sessionId: true },
       take: 100000,
     }),
     prisma.pageView.findMany({
       where: { ts: { gte: last24h } },
-      select: { ts: true, userAgent: true },
+      select: { ts: true, userAgent: true, sessionId: true },
       take: 20000,
     }),
     prisma.pageView.findMany({
       where: rangeWhere,
-      select: { ts: true, path: true, userAgent: true },
+      select: { ts: true, path: true, userAgent: true, sessionId: true },
       take: rangeTake,
       orderBy: { ts: "desc" },
     }),
@@ -77,7 +77,12 @@ export default async function StatsPage({ searchParams }: Props) {
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
-  type Row = { ts: Date; path: string; userAgent: string | null };
+  type Row = {
+    ts: Date;
+    path: string;
+    userAgent: string | null;
+    sessionId: string | null;
+  };
   const humans30: Row[] = [];
   const bots30: Array<Row & { botCategory: BotCategory; botName: string }> = [];
   for (const r of recent30Raw) {
@@ -97,9 +102,24 @@ export default async function StatsPage({ searchParams }: Props) {
     rows.filter((r) =>
       to ? r.ts >= from && r.ts < to : r.ts >= from,
     ).length;
-  const humanToday = filterRange(humans30 as Row[], today00KST);
-  const humanYesterday = filterRange(humans30 as Row[], yesterday00KST, today00KST);
-  const humanRangeCount = humansRange.length;
+  // unique sessionId 카운트 — 같은 방문자 여러 PV 도 1로 카운트
+  const uniqueRange = (rows: Row[], from: Date, to?: Date) => {
+    const ids = new Set<string>();
+    for (const r of rows) {
+      if (r.ts < from) continue;
+      if (to && r.ts >= to) continue;
+      if (r.sessionId) ids.add(r.sessionId);
+    }
+    return ids.size;
+  };
+  const humanTodayPV = filterRange(humans30 as Row[], today00KST);
+  const humanTodayUnique = uniqueRange(humans30 as Row[], today00KST);
+  const humanYesterdayPV = filterRange(humans30 as Row[], yesterday00KST, today00KST);
+  const humanYesterdayUnique = uniqueRange(humans30 as Row[], yesterday00KST, today00KST);
+  const humanRangePV = humansRange.length;
+  const humanRangeUnique = new Set(
+    humansRange.map((r) => r.sessionId).filter(Boolean) as string[],
+  ).size;
   const botToday = filterRange(bots30 as Row[], today00KST);
   const botYesterday = filterRange(bots30 as Row[], yesterday00KST, today00KST);
   const botRangeCount = botsRange.length;
@@ -225,9 +245,22 @@ export default async function StatsPage({ searchParams }: Props) {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <KpiCard label="누적 PV (전체 — 사람+봇)" value={totalAll} />
-          <KpiCard label="오늘" value={humanToday} accent />
-          <KpiCard label="어제" value={humanYesterday} />
-          <KpiCard label={rangeLabel} value={humanRangeCount} />
+          <KpiCard
+            label="오늘 방문자"
+            value={humanTodayUnique}
+            sub={`PV ${humanTodayPV.toLocaleString()}`}
+            accent
+          />
+          <KpiCard
+            label="어제 방문자"
+            value={humanYesterdayUnique}
+            sub={`PV ${humanYesterdayPV.toLocaleString()}`}
+          />
+          <KpiCard
+            label={`${rangeLabel} 방문자`}
+            value={humanRangeUnique}
+            sub={`PV ${humanRangePV.toLocaleString()}`}
+          />
         </div>
 
         <SectionCard title="디바이스 분포" subtitle={rangeLabel}>
@@ -454,11 +487,13 @@ function KpiCard({
   value,
   accent,
   suffix,
+  sub,
 }: {
   label: string;
   value: number;
   accent?: boolean;
   suffix?: string;
+  sub?: string;
 }) {
   return (
     <div
@@ -477,6 +512,11 @@ function KpiCard({
           <span className="text-base font-bold text-neutral-500">{suffix}</span>
         )}
       </div>
+      {sub && (
+        <div className="mt-0.5 text-[11px] text-neutral-500 tabular-nums">
+          {sub}
+        </div>
+      )}
     </div>
   );
 }

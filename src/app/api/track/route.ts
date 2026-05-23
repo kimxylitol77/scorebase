@@ -14,6 +14,11 @@ export async function POST(req: Request) {
     if (!path || path.startsWith("/admin") || path.startsWith("/api")) {
       return NextResponse.json({ ok: true, skipped: true });
     }
+    // sessionId — 클라이언트 localStorage 의 random ID. unique 방문자 카운트 용.
+    const sessionId =
+      typeof body.sessionId === "string" && body.sessionId.length <= 64
+        ? body.sessionId
+        : null;
 
     const h = await headers();
     await prisma.pageView.create({
@@ -21,6 +26,7 @@ export async function POST(req: Request) {
         path: path.slice(0, MAX_PATH),
         userAgent: h.get("user-agent")?.slice(0, MAX_HEADER) ?? null,
         referrer: h.get("referer")?.slice(0, MAX_HEADER) ?? null,
+        sessionId,
       },
     });
     return NextResponse.json({ ok: true });

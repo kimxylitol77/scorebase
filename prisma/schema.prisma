@@ -162,9 +162,13 @@ model PageView {
   ts        DateTime @default(now())
   userAgent String?
   referrer  String?
+  /// localStorage 발급 random ID — unique 방문자 (사람) 카운트 용. 2026-05-23 추가.
+  /// 기존 row 는 null. 새 PV 부터 채워짐.
+  sessionId String?
 
   @@index([ts])
   @@index([path])
+  @@index([sessionId])
 }
 
 // 공지사항 / 패치노트 / 메인터넌스 안내

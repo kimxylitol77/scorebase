@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LiveScoresBar from "@/components/LiveScoresBar";
 import PageViewTracker from "@/components/PageViewTracker";
+import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site-url";
 // import Chatbot from "@/components/Chatbot"; // 결제(크레딧) 이슈 해결 시까지 비활성
 
@@ -118,6 +119,7 @@ export default async function RootLayout({
         <main className="flex-1 w-full">{children}</main>
         <Footer />
         {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
+        <Analytics />
       </body>
     </html>
   );
