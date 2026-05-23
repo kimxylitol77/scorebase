@@ -495,19 +495,38 @@ export default async function ArticlePage({ params }: Props) {
       {article.match && (() => {
         const hs = article.match.homeScore;
         const as = article.match.awayScore;
+        const matchStatus = article.match.status;
+        const isFinished = matchStatus === "FINISHED";
+        const isLive = matchStatus === "LIVE";
+        const isPostponed = matchStatus === "POSTPONED";
         const hasScore = hs != null && as != null;
-        const statusLabel = hasScore
-          ? hs! > as!
-            ? "홈 승"
-            : hs! < as!
-              ? "원정 승"
-              : "무승부"
-          : "예정";
-        const scoreBadge = hasScore ? "FT" : "예정";
+
+        // FT 는 "Full Time = 종료" — FINISHED 상태일 때만 표기.
+        // LIVE 는 "진행 중", 그 외는 "예정" / "연기".
+        let statusLabel: string;
+        let scoreBadge: string;
+        let boxTitle: string;
+        if (isFinished && hasScore) {
+          statusLabel = hs! > as! ? "홈 승" : hs! < as! ? "원정 승" : "무승부";
+          scoreBadge = "FT";
+          boxTitle = "Final Score";
+        } else if (isLive) {
+          statusLabel = "진행 중";
+          scoreBadge = "LIVE";
+          boxTitle = "Live";
+        } else if (isPostponed) {
+          statusLabel = "연기";
+          scoreBadge = "연기";
+          boxTitle = "Postponed";
+        } else {
+          statusLabel = "예정";
+          scoreBadge = "예정";
+          boxTitle = "Kickoff";
+        }
         return (
           <div className="mb-8 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-zinc-100 p-5 sm:p-7 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
             <div className="mb-5 flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-white/45">
-              <span>Final Score</span>
+              <span>{boxTitle}</span>
               <span>{statusLabel}</span>
             </div>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
@@ -535,7 +554,19 @@ export default async function ArticlePage({ params }: Props) {
                   <span className="mx-2 text-zinc-400 sm:mx-3 dark:text-white/30">:</span>
                   {as ?? "-"}
                 </div>
-                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-zinc-900 shadow-sm ring-1 ring-black/5 dark:bg-white dark:text-black">
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-bold shadow-sm ring-1 ${
+                    isLive
+                      ? "bg-rose-500 text-white ring-rose-400/60 animate-pulse"
+                      : "bg-white text-zinc-900 ring-black/5 dark:bg-white dark:text-black"
+                  }`}
+                >
+                  {isLive && (
+                    <span className="relative mr-1 inline-flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/70" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
+                  )}
                   {scoreBadge}
                 </span>
               </div>
