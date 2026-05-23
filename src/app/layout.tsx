@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -72,30 +73,33 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // SSR 단에 cookie 의 theme 읽어 className 결정 — flash 완전 제거.
+  // cookie 없으면 default dark (사이트 기본 dark mode).
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("theme")?.value;
+  const isDark = themeCookie !== "light"; // 'light' 명시 외에는 모두 dark
   return (
     <html
       lang="ko"
-      // 핵심: SSR HTML 부터 dark class + dark inline style. 사용자가 명시적으로
-      // localStorage.theme='light' 설정한 경우에만 client script 가 제거.
-      // 이렇게 하면 첫 paint 가 무조건 dark — light 모드 사용자만 한 번 깜빡임.
-      className={`dark ${geistMono.variable} h-full antialiased`}
-      style={{
-        backgroundColor: "#0a0a0a",
-        color: "#ededed",
-        colorScheme: "dark",
-      }}
+      className={`${isDark ? "dark " : ""}${geistMono.variable} h-full antialiased`}
+      style={
+        isDark
+          ? { backgroundColor: "#0a0a0a", color: "#ededed", colorScheme: "dark" }
+          : { backgroundColor: "#ffffff", color: "#0a0a0a", colorScheme: "light" }
+      }
       suppressHydrationWarning
     >
       <head>
-        {/* light 모드 사용자만 dark 제거 (localStorage 명시 또는 OS prefers light) */}
+        {/* cookie 없는 첫 방문자 대응: localStorage 의 theme 또는 OS prefers-color-scheme 따라
+            cookie 동기화 (다음 새로고침부터 SSR 가 cookie 인식). 동시에 첫 paint 도 맞춤. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var prefersLight=t==='light'||(t!=='dark'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);if(prefersLight){var h=document.documentElement;h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}}catch(e){}})();`,
+            __html: `(function(){try{var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);if(c){return;}var t=localStorage.getItem('theme');var wantLight=t==='light'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);var theme=wantLight?'light':'dark';document.cookie='theme='+theme+'; path=/; max-age=31536000; SameSite=Lax';var h=document.documentElement;if(wantLight){h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}else{h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}}catch(e){}})();`,
           }}
         />
         {/* Pretendard — 한국어 본문에 최적화된 변폭 폰트 */}

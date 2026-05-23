@@ -22,8 +22,20 @@ export default function ThemeToggle({ variant = "icon" }: Props) {
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.classList.toggle("dark", next === "dark");
+    // dark/light 별 background/color 도 함께 갱신 — flash 방지 (다음 새로고침 SSR 도 cookie 인식)
+    const h = document.documentElement;
+    if (next === "dark") {
+      h.style.backgroundColor = "#0a0a0a";
+      h.style.color = "#ededed";
+      h.style.colorScheme = "dark";
+    } else {
+      h.style.backgroundColor = "#ffffff";
+      h.style.color = "#0a0a0a";
+      h.style.colorScheme = "light";
+    }
     try {
       localStorage.setItem("theme", next);
+      document.cookie = `theme=${next}; path=/; max-age=31536000; SameSite=Lax`;
     } catch {}
     setTheme(next);
   }
