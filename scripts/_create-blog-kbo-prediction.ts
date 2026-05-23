@@ -9,8 +9,14 @@ const excerpt =
 const tags =
   "KBO, 순위, 예측, 가을야구, 와일드카드, AI 시뮬레이션, Elo, 몬테카를로, 포스트시즌";
 
+const thumbnailUrl = "/blog/kbo-ranking-2026-05-23.png";
+
 // 본문 HTML — 첨부 템플릿 기반 + 이미지의 실제 순위(2026-05-23)로 교체.
 const content = `<article style="max-width:820px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo',sans-serif;line-height:1.75;">
+
+  <figure style="margin:0 0 28px;">
+    <img src="/blog/kbo-ranking-2026-05-23.png" alt="KBO 순위표 (2026-05-23 기준)" style="width:100%;height:auto;border-radius:12px;display:block;" loading="lazy" />
+  </figure>
 
   <p style="font-size:1.05em;color:#374151;">
     2026 KBO 리그가 후반부로 접어들면서 <strong>가을야구(포스트시즌) 진출 경쟁</strong>이 치열해지고 있습니다.
@@ -319,10 +325,10 @@ async function main() {
   const created = existing
     ? await prisma.blog.update({
         where: { slug },
-        data: { title, excerpt, content, tags, publishedAt: now },
+        data: { title, excerpt, content, tags, thumbnailUrl, publishedAt: now },
       })
     : await prisma.blog.create({
-        data: { title, slug, excerpt, content, tags, thumbnailUrl: null, publishedAt: now },
+        data: { title, slug, excerpt, content, tags, thumbnailUrl, publishedAt: now },
       });
   console.log(`✅ Blog ${existing ? "갱신" : "생성"}: id=${created.id} slug=${created.slug}`);
   console.log(`URL: https://www.scorebase.kr/blog/${created.slug}`);
