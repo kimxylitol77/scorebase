@@ -27,8 +27,8 @@ interface ApiResp {
   matches?: LiveMatch[];
 }
 
-// 라이브 매치 있을 때 60초 · 없을 때 3분 · 탭 hidden 이면 일시정지.
-const POLL_LIVE_MS = 60_000;
+// 라이브 매치 있을 때 20초 · 없을 때 3분 · 탭 hidden 이면 일시정지.
+const POLL_LIVE_MS = 20_000;
 const POLL_IDLE_MS = 180_000;
 
 export default function LiveScoresBar() {

@@ -26,8 +26,8 @@ interface LiveMatch {
   startTime: string;
 }
 
-// 라이브 매치 있을 때 30초 · 없을 때 3분 · 탭 hidden 정지.
-const POLL_LIVE_MS = 30_000;
+// 라이브 매치 있을 때 15초 · 없을 때 3분 · 탭 hidden 정지.
+const POLL_LIVE_MS = 15_000;
 const POLL_IDLE_MS = 180_000;
 
 export default function ScoresLiveCards({ sport }: { sport: SportCode }) {

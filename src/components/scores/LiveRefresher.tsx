@@ -11,7 +11,7 @@ interface Props {
   liveCount: number;
 }
 
-const POLL_MS = 30_000;
+const POLL_MS = 15_000;
 
 export default function LiveRefresher({ liveCount }: Props) {
   const router = useRouter();

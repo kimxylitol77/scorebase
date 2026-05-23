@@ -103,7 +103,7 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
   );
 }
 
-const POLL_LIVE_MS = 5_000;
+const POLL_LIVE_MS = 2_000;
 const POLL_FINAL_MS = 60_000;
 
 function TeamWrap({

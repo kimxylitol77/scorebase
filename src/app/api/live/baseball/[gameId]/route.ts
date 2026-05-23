@@ -243,7 +243,7 @@ export async function GET(
         status: 304,
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=15",
+          "Cache-Control": "public, s-maxage=2, stale-while-revalidate=10",
         },
       });
     }
@@ -252,7 +252,7 @@ export async function GET(
       {
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=15",
+          "Cache-Control": "public, s-maxage=2, stale-while-revalidate=10",
         },
       },
     );
