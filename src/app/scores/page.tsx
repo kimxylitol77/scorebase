@@ -361,7 +361,11 @@ export default async function ScoresPage({ searchParams }: Props) {
   const leagues = leagueFilter ? [leagueFilter] : leaguesAll;
   // 축구 전용 상태 필터 (다른 종목엔 무시)
   const statusFilter: SoccerStatusFilter =
-    sport === "soccer" && (sp.status === "live" || sp.status === "scheduled" || sp.status === "finished")
+    sport === "soccer" &&
+    (sp.status === "live" ||
+      sp.status === "scheduled" ||
+      sp.status === "finished" ||
+      sp.status === "postponed")
       ? sp.status
       : "all";
   const day = parseKstDate(sp.date);
@@ -401,7 +405,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   ] = await Promise.all([
     prisma.match.findMany({
       where: {
-        status: { not: "POSTPONED" },
+        // POSTPONED 매치도 노출 — 축구 "연기" 탭에서 표시 (2026-05-23).
         // TBD placeholder 매치 영구 제외 (NBA/NHL 컨퍼런스 파이널 차기 라운드 미정 등).
         // status=LIVE 로 잘못 cron update 되더라도 페이지에선 항상 hide.
         // "Sabres/Canadiens" 같은 슬래시 포함 placeholder (NHL 다음 라운드 미정) 도 제외.
@@ -768,6 +772,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   const finishedList = normalized.filter(
     (m) => m.status === "FINISHED" && m.startTime.getTime() >= day.getTime(),
   );
+  // 연기 섹션 — POSTPONED 매치. cleanup-stale-scheduled cron 으로 자동 처리되는 매치도 포함.
+  const postponedList = normalized.filter((m) => m.status === "POSTPONED");
 
   // 라이브 카운트 (종목 탭 dot 표시용)
   const liveCounts: Partial<Record<SportCode, number>> = {};
@@ -858,10 +864,13 @@ export default async function ScoresPage({ searchParams }: Props) {
     (sport !== "soccer" || statusFilter === "all" || statusFilter === "live");
   const showScheduled = sport !== "soccer" || statusFilter === "all" || statusFilter === "scheduled";
   const showFinished = sport !== "soccer" || statusFilter === "all" || statusFilter === "finished";
+  const showPostponed = sport !== "soccer" || statusFilter === "all" || statusFilter === "postponed";
   const visibleLive = showLive ? liveList : [];
   const visibleScheduled = showScheduled ? scheduledList : [];
   const visibleFinished = showFinished ? finishedList : [];
-  const visibleCount = visibleLive.length + visibleScheduled.length + visibleFinished.length;
+  const visiblePostponed = showPostponed ? postponedList : [];
+  const visibleCount =
+    visibleLive.length + visibleScheduled.length + visibleFinished.length + visiblePostponed.length;
 
   return (
     <div className={`${containerMaxW} mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4`}>
@@ -923,6 +932,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 live: liveList.length,
                 scheduled: scheduledList.length,
                 finished: finishedList.length,
+                postponed: postponedList.length,
               }}
               date={dateStr}
               league={leagueFilter}
@@ -975,6 +985,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   liveList={visibleLive}
                   scheduledList={visibleScheduled}
                   finishedList={visibleFinished}
+                  postponedList={visiblePostponed}
                 />
               </div>
             )}
@@ -1044,6 +1055,11 @@ export default async function ScoresPage({ searchParams }: Props) {
                   {finishedList.map((m) => renderCard(m))}
                 </Section>
               )}
+              {postponedList.length > 0 && (
+                <Section title="🚫 연기" count={postponedList.length}>
+                  {postponedList.map((m) => renderCard(m))}
+                </Section>
+              )}
             </div>
           )}
         </>
@@ -1111,10 +1127,12 @@ function SoccerRowLayout({
   liveList,
   scheduledList,
   finishedList,
+  postponedList,
 }: {
   liveList: NormalizedMatch[];
   scheduledList: NormalizedMatch[];
   finishedList: NormalizedMatch[];
+  postponedList: NormalizedMatch[];
 }) {
   const renderRow = (m: NormalizedMatch) => {
     const statusKey: "scheduled" | "live" | "finished" | "postponed" =
@@ -1165,6 +1183,7 @@ function SoccerRowLayout({
   const liveSorted = [...liveList].sort(byStartThenLeague);
   const scheduledSorted = [...scheduledList].sort(byStartThenLeague);
   const finishedSorted = [...finishedList].sort(byStartThenLeague);
+  const postponedSorted = [...postponedList].sort(byStartThenLeague);
   const dayKey = (d: Date): string =>
     new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   const dayLabel = (d: Date): string => {
@@ -1192,6 +1211,7 @@ function SoccerRowLayout({
   };
   const scheduledGroups = dayGroupsOf(scheduledSorted);
   const finishedGroups = dayGroupsOf(finishedSorted);
+  const postponedGroups = dayGroupsOf(postponedSorted);
 
   const mobileCardFor = (m: NormalizedMatch) => {
     const statusKey =
@@ -1295,6 +1315,19 @@ function SoccerRowLayout({
             ))}
           </section>
         )}
+        {postponedGroups.length > 0 && (
+          <section className="space-y-2">
+            {statusHeader(`🚫 연기 (${postponedSorted.length})`, "text-amber-600 dark:text-amber-500", "sm")}
+            {postponedGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderMobile(g.label)}
+                <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
+                  {g.items.map((m) => mobileCardFor(m))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        )}
       </div>
 
       {/* 데스크탑 — row table */}
@@ -1328,6 +1361,19 @@ function SoccerRowLayout({
                 ✅ 종료
               </div>
               {finishedGroups.map((g) => (
+                <div key={g.day}>
+                  {dateHeaderDesktop(g.label)}
+                  {g.items.map(renderRow)}
+                </div>
+              ))}
+            </>
+          )}
+          {postponedGroups.length > 0 && (
+            <>
+              <div className="px-0 pt-3 pb-1 text-[12px] font-bold text-amber-600 dark:text-amber-500">
+                🚫 연기 ({postponedSorted.length})
+              </div>
+              {postponedGroups.map((g) => (
                 <div key={g.day}>
                   {dateHeaderDesktop(g.label)}
                   {g.items.map(renderRow)}

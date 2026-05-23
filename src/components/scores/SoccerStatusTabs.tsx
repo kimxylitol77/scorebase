@@ -3,11 +3,11 @@
 
 import Link from "next/link";
 
-export type SoccerStatusFilter = "all" | "live" | "scheduled" | "finished";
+export type SoccerStatusFilter = "all" | "live" | "scheduled" | "finished" | "postponed";
 
 interface Props {
   active: SoccerStatusFilter;
-  counts: { all: number; live: number; scheduled: number; finished: number };
+  counts: { all: number; live: number; scheduled: number; finished: number; postponed: number };
   /** 일자 유지용 */
   date: string;
   /** 리그 필터 유지용 (선택) */
@@ -29,11 +29,12 @@ export default function SoccerStatusTabs({ active, counts, date, league }: Props
     { key: "live", label: "라이브", count: counts.live },
     { key: "scheduled", label: "예정", count: counts.scheduled },
     { key: "finished", label: "종료", count: counts.finished },
+    { key: "postponed", label: "연기", count: counts.postponed },
   ];
 
   return (
     <nav
-      className="grid grid-cols-4 gap-1.5 sm:flex sm:gap-2 sm:overflow-x-auto sm:[&::-webkit-scrollbar]:hidden"
+      className="grid grid-cols-5 gap-1.5 sm:flex sm:gap-2 sm:overflow-x-auto sm:[&::-webkit-scrollbar]:hidden"
       aria-label="경기 상태 필터"
     >
       {items.map((item) => {
