@@ -300,7 +300,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const title = `${dateKo} ${sportKo} 라이브 스코어 · 일정 · 결과 — 스코어베이스`;
   const description =
     `${dateKo} ${sportKo} 경기 일정·라이브 스코어·종료 결과. ` +
-    `${leagueBlurb} 통합. Elo 모델 승률 추정·Value Bet·30초 자동 갱신. 스코어베이스.`;
+    `${leagueBlurb} 통합. Elo 모델 승률 추정·Value Bet·15초 자동 갱신. 스코어베이스.`;
 
   const keywords = [
     `${dateKo} ${sportKo}`,
@@ -863,7 +863,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* SEO 친화 보조 텍스트 (H1 직후) — 검색 키워드 자연 포함 */}
       <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
         {dateKo} {sportKo} 라이브 스코어·경기 일정·종료 결과를 한곳에서 확인하세요.
-        {" "}{leagueBlurb} 통합, Elo 모델 승률 추정, 30초 자동 갱신.
+        {" "}{leagueBlurb} 통합, Elo 모델 승률 추정, 15초 자동 갱신.
         {normalized.length === 0 && (
           <span className="block mt-1 text-neutral-500">
             해당 일자에 경기가 없습니다. 인접한 일자를 확인해 보세요.
@@ -1023,7 +1023,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       )}
 
       <p className="text-[11px] text-neutral-500 leading-relaxed pt-2">
-        ⓘ 라이브 매치는 30초 간격으로 자동 갱신. 베이스 상황·볼카운트 등 KBO/NPB 상세는 외부 라이브 데이터 미제공으로 표시되지 않습니다.
+        ⓘ 목록은 15초 자동 갱신. 매치 상세 페이지는 TheSports 라이브 푸시로 평균 2-3초 갱신 (KBO·NPB·MLB 베이스 상황·볼카운트 포함).
       </p>
 
       <section className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">

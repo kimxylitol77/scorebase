@@ -1,4 +1,4 @@
-// LIVE 매치가 있으면 30초마다 router.refresh() — SSR 매치 데이터 갱신.
+// LIVE 매치가 있으면 15초마다 router.refresh() — SSR 매치 데이터 갱신.
 // document.hidden 일 때 정지, 사용자가 토글로 ON/OFF.
 
 "use client";
@@ -48,7 +48,7 @@ export default function LiveRefresher({ liveCount }: Props) {
         onChange={(e) => setEnabled(e.target.checked)}
         className="w-3.5 h-3.5 accent-[#00d4ff] cursor-pointer"
       />
-      <span>30초 자동 갱신</span>
+      <span>15초 자동 갱신</span>
     </label>
   );
 }

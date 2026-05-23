@@ -113,7 +113,7 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
           진행 중 {filtered.length}경기
         </h2>
         <span className="text-[10px] text-rose-600/70 dark:text-rose-400/70 tabular-nums">
-          30초 자동 갱신
+          15초 자동 갱신
         </span>
       </div>
       {/* 모바일: 가로 swipe carousel (scroll-snap) / 데스크탑: 그리드 2~3열 */}

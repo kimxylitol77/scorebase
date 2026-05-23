@@ -179,7 +179,7 @@ export default async function MlbLivePage({ params }: Props) {
           </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
-          MLB · 라이브 스코어 · 10초 자동 갱신
+          MLB · 라이브 스코어 · 라이브 푸시 (평균 2-3초)
         </p>
       </header>
       <MatchArticleLinks

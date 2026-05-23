@@ -118,7 +118,7 @@ export default async function NpbLivePage({ params }: Props) {
           </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
-          NPB · 라이브 스코어 · 15초 자동 갱신
+          NPB · 라이브 스코어 · 라이브 푸시 (평균 2-3초)
         </p>
       </header>
       <MatchArticleLinks
