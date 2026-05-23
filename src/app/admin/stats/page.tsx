@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { DailyArea, HourlyBar } from "@/components/charts/StatsChart";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
+import { detectDevice, DEVICE_LABEL, type DeviceType } from "@/lib/device-detect";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,27 @@ function hourKey(d: Date) {
   return String(kst.getUTCHours()).padStart(2, "0");
 }
 
-export default async function StatsPage() {
+type Range = "7d" | "30d" | "all";
+
+const RANGE_LABEL: Record<Range, string> = {
+  "7d": "최근 7일",
+  "30d": "최근 30일",
+  "all": "전체",
+};
+
+function parseRange(v: string | string[] | undefined): Range {
+  if (v === "30d" || v === "all") return v;
+  return "7d";
+}
+
+interface Props {
+  searchParams: Promise<{ range?: string }>;
+}
+
+export default async function StatsPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const range = parseRange(sp.range);
+
   const now = new Date();
   const last30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -25,8 +47,16 @@ export default async function StatsPage() {
   const today00KST = new Date(dayKey(now) + "T00:00:00+09:00");
   const yesterday00KST = new Date(today00KST.getTime() - 24 * 60 * 60 * 1000);
 
+  // 기간 선택용 — 인기 페이지/봇 TOP/디바이스 분포 / KPI 의 main range
+  // 7d → 30000 take 한도. 30d → 100000. all → 200000 (DB 부담 회피)
+  const rangeWhere =
+    range === "all"
+      ? {}
+      : { ts: { gte: range === "30d" ? last30 : last7 } };
+  const rangeTake = range === "all" ? 200000 : range === "30d" ? 100000 : 30000;
+
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
-  const [recent30Raw, recent24Raw, recent7Raw, totalAll] = await Promise.all([
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll] = await Promise.all([
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true },
@@ -38,14 +68,15 @@ export default async function StatsPage() {
       take: 20000,
     }),
     prisma.pageView.findMany({
-      where: { ts: { gte: last7 } },
+      where: rangeWhere,
       select: { ts: true, path: true, userAgent: true },
-      take: 30000,
+      take: rangeTake,
+      orderBy: { ts: "desc" },
     }),
     prisma.pageView.count(),
   ]);
 
-  // 사람 vs 봇 분리 (recent30 기준)
+  // 사람 vs 봇 분리 (recent30 기준 — 차트용)
   type Row = { ts: Date; path: string; userAgent: string | null };
   const humans30: Row[] = [];
   const bots30: Array<Row & { botCategory: BotCategory; botName: string }> = [];
@@ -57,8 +88,9 @@ export default async function StatsPage() {
       humans30.push(r);
     }
   }
-  const humans7 = recent7Raw.filter((r) => !detectBot(r.userAgent).isBot);
-  const bots7 = recent7Raw.filter((r) => detectBot(r.userAgent).isBot);
+  // 기간 선택 범위에서 사람/봇 분리
+  const humansRange = rangeRaw.filter((r) => !detectBot(r.userAgent).isBot);
+  const botsRange = rangeRaw.filter((r) => detectBot(r.userAgent).isBot);
 
   // KPI 계산 헬퍼
   const filterRange = (rows: Row[], from: Date, to?: Date) =>
@@ -67,12 +99,12 @@ export default async function StatsPage() {
     ).length;
   const humanToday = filterRange(humans30 as Row[], today00KST);
   const humanYesterday = filterRange(humans30 as Row[], yesterday00KST, today00KST);
-  const human7d = humans7.length;
+  const humanRangeCount = humansRange.length;
   const botToday = filterRange(bots30 as Row[], today00KST);
   const botYesterday = filterRange(bots30 as Row[], yesterday00KST, today00KST);
-  const bot7d = bots7.length;
+  const botRangeCount = botsRange.length;
 
-  // 일별 — 사람 기준 30일
+  // 일별 — 사람 기준 30일 (차트는 30일 고정 — 시각화 일관성)
   const humanDayBuckets = new Map<string, number>();
   const botDayBuckets = new Map<string, number>();
   for (let i = 29; i >= 0; i--) {
@@ -99,7 +131,7 @@ export default async function StatsPage() {
     views: v,
   }));
 
-  // 24시간 시간대 — 사람 기준
+  // 24시간 시간대 — 사람 기준 (24h 고정)
   const humanHourBuckets = new Map<string, number>();
   for (let h = 0; h < 24; h++)
     humanHourBuckets.set(String(h).padStart(2, "0"), 0);
@@ -112,19 +144,41 @@ export default async function StatsPage() {
     views: v,
   }));
 
-  // 인기 페이지 (사람만, 7일)
+  // 디바이스 분포 (사람만, 선택 기간) — 모바일/태블릿/데스크탑
+  const deviceCount = new Map<DeviceType, number>();
+  deviceCount.set("mobile", 0);
+  deviceCount.set("tablet", 0);
+  deviceCount.set("desktop", 0);
+  for (const r of humansRange) {
+    const d = detectDevice(r.userAgent);
+    deviceCount.set(d.type, (deviceCount.get(d.type) ?? 0) + 1);
+  }
+  const deviceTotal =
+    (deviceCount.get("mobile") ?? 0) +
+    (deviceCount.get("tablet") ?? 0) +
+    (deviceCount.get("desktop") ?? 0);
+  const deviceData = (["mobile", "tablet", "desktop"] as DeviceType[]).map((t) => {
+    const count = deviceCount.get(t) ?? 0;
+    return {
+      type: t,
+      count,
+      pct: deviceTotal > 0 ? Math.round((count / deviceTotal) * 100) : 0,
+    };
+  });
+
+  // 인기 페이지 (사람만, 선택 기간)
   const humanPathCount = new Map<string, number>();
-  for (const r of humans7) {
+  for (const r of humansRange) {
     humanPathCount.set(r.path, (humanPathCount.get(r.path) ?? 0) + 1);
   }
   const topHumanPaths = Array.from(humanPathCount.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
 
-  // 봇 카테고리별 합계 (7일)
+  // 봇 카테고리별 합계 (선택 기간)
   const botCatCount = new Map<BotCategory, number>();
   const botNameCount = new Map<string, { count: number; category: BotCategory }>();
-  for (const r of bots7) {
+  for (const r of botsRange) {
     const info = detectBot(r.userAgent);
     if (!info.isBot || !info.category || !info.name) continue;
     botCatCount.set(info.category, (botCatCount.get(info.category) ?? 0) + 1);
@@ -142,12 +196,13 @@ export default async function StatsPage() {
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 12);
 
-  const totalBots = bots7.length;
-  const totalHumans = humans7.length;
-  const botRatio7d =
+  const totalBots = botsRange.length;
+  const totalHumans = humansRange.length;
+  const botRatio =
     totalBots + totalHumans > 0
       ? Math.round((totalBots / (totalBots + totalHumans)) * 100)
       : 0;
+  const rangeLabel = RANGE_LABEL[range];
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
@@ -157,6 +212,7 @@ export default async function StatsPage() {
           페이지뷰(PV) 기준. 관리자 영역(/admin) 은 트래킹 제외. 봇과 사람을
           User-Agent 로 분리해서 표시합니다.
         </p>
+        <RangeSelector active={range} />
       </header>
 
       {/* === 사람 트래픽 === */}
@@ -171,8 +227,43 @@ export default async function StatsPage() {
           <KpiCard label="누적 PV (전체 — 사람+봇)" value={totalAll} />
           <KpiCard label="오늘" value={humanToday} accent />
           <KpiCard label="어제" value={humanYesterday} />
-          <KpiCard label="최근 7일" value={human7d} />
+          <KpiCard label={rangeLabel} value={humanRangeCount} />
         </div>
+
+        <SectionCard title="디바이스 분포" subtitle={rangeLabel}>
+          {deviceTotal === 0 ? (
+            <EmptyHint />
+          ) : (
+            <ul className="grid grid-cols-3 gap-3">
+              {deviceData.map((d) => {
+                const meta = DEVICE_LABEL[d.type];
+                return (
+                  <li
+                    key={d.type}
+                    className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 text-center bg-white dark:bg-neutral-950"
+                  >
+                    <div className="text-3xl">{meta.emoji}</div>
+                    <div className="mt-1 text-xs font-medium text-neutral-500">
+                      {meta.label}
+                    </div>
+                    <div className="mt-1 text-2xl font-black tabular-nums">
+                      {d.count.toLocaleString()}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
+                      {d.pct}%
+                    </div>
+                    <div className="mt-2 h-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500"
+                        style={{ width: `${d.pct}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </SectionCard>
 
         <SectionCard title="최근 30일 PV" subtitle="일별 합계">
           {humans30.length === 0 ? (
@@ -190,7 +281,7 @@ export default async function StatsPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="인기 페이지" subtitle="최근 7일">
+        <SectionCard title="인기 페이지" subtitle={rangeLabel}>
           {topHumanPaths.length === 0 ? (
             <EmptyHint />
           ) : (
@@ -242,13 +333,13 @@ export default async function StatsPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <KpiCard label="봇 비율 (7일)" value={botRatio7d} suffix="%" />
+          <KpiCard label={`봇 비율 (${rangeLabel})`} value={botRatio} suffix="%" />
           <KpiCard label="봇 오늘" value={botToday} accent />
           <KpiCard label="봇 어제" value={botYesterday} />
-          <KpiCard label="봇 최근 7일" value={bot7d} />
+          <KpiCard label={`봇 ${rangeLabel}`} value={botRangeCount} />
         </div>
 
-        <SectionCard title="봇 카테고리 분포 (7일)" subtitle="유형별 합계">
+        <SectionCard title={`봇 카테고리 분포 (${rangeLabel})`} subtitle="유형별 합계">
           {totalBots === 0 ? (
             <EmptyHint message="봇 트래픽이 잡히지 않았습니다." />
           ) : (
@@ -285,7 +376,7 @@ export default async function StatsPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="봇 TOP 12 (7일)" subtitle="이름별 PV">
+        <SectionCard title={`봇 TOP 12 (${rangeLabel})`} subtitle="이름별 PV">
           {topBots.length === 0 ? (
             <EmptyHint />
           ) : (
@@ -327,7 +418,33 @@ export default async function StatsPage() {
         ⓘ 봇 분류는 User-Agent 헤더로 휴리스틱 판별 — 100% 정확하진 않으나
         주요 검색엔진·AI 크롤러는 정확히 잡습니다. 우리 사이트 SEO·AI 노출
         모니터링 용도로 활용 가능 (예: GPTBot 빈도 ↑ = ChatGPT 답변에 인용 가능성).
+        디바이스 분포는 iPadOS 13+ Safari 가 desktop UA 와 동일해서 일부 iPad 가 데스크탑으로 잡힐 수 있습니다.
       </p>
+    </div>
+  );
+}
+
+function RangeSelector({ active }: { active: Range }) {
+  const ranges: Range[] = ["7d", "30d", "all"];
+  return (
+    <div className="mt-4 inline-flex rounded-lg border border-neutral-200 dark:border-neutral-800 p-0.5 bg-neutral-50 dark:bg-neutral-900">
+      {ranges.map((r) => {
+        const isActive = r === active;
+        return (
+          <Link
+            key={r}
+            href={r === "7d" ? "/admin/stats" : `/admin/stats?range=${r}`}
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
+              isActive
+                ? "bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm"
+                : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+            }`}
+            prefetch={false}
+          >
+            {RANGE_LABEL[r]}
+          </Link>
+        );
+      })}
     </div>
   );
 }
