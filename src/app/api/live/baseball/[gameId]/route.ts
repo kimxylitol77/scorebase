@@ -8,6 +8,7 @@ import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
 import { baseballStatusLabel } from "@/lib/sports/live-scores";
 import { prisma } from "@/lib/db";
+import { convertCacheToBaseballLive } from "@/lib/sports/thesports/baseball-live";
 
 // nodejs runtime — fetchLiveOdds 가 fetch 로 동작하지만 일관성 위해 nodejs 고정
 // (edge 도 호환되지만 baseball 응답 크지 않으니 안전한 쪽 선택)
@@ -160,25 +161,77 @@ export async function GET(
   if (!/^\d+$/.test(gameId)) {
     return NextResponse.json({ error: "invalid game id" }, { status: 400 });
   }
-  const key = process.env.API_BASEBALL_KEY;
-  if (!key) {
-    return NextResponse.json({ error: "missing key" }, { status: 200 });
-  }
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT);
   try {
-    const res = await fetch(`${AB_BASE}/games?id=${gameId}`, {
-      headers: { "x-apisports-key": key },
-      signal: ctrl.signal,
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = (await res.json()) as ABGameDetail;
-    const live = normalize(data);
-    if (!live) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
+    // === 1차: TheSports cache 우선 시도 — api-sports 일일 한도 7500 회피 ===
+    // cache 는 Lightsail baseball-poller (1분 주기) + baseball-ws-subscriber
+    // (MQTT 1-2초 push) 로 채워짐. KBO/NPB/MLB cover.
+    let live: BaseballLive | null = null;
+    let cacheHit = false;
+    try {
+      const ourMatch = await prisma.match.findFirst({
+        where: { externalId: gameId },
+        select: {
+          id: true,
+          league: true,
+          status: true,
+          homeScore: true,
+          awayScore: true,
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } },
+        },
+      });
+      if (
+        ourMatch &&
+        (ourMatch.league === "KBO" ||
+          ourMatch.league === "NPB" ||
+          ourMatch.league === "MLB")
+      ) {
+        const cache = await prisma.theSportsMatchCache.findUnique({
+          where: { matchId: ourMatch.id },
+          select: { detailLive: true },
+        });
+        if (cache?.detailLive) {
+          const converted = convertCacheToBaseballLive({
+            detailLive: cache.detailLive,
+            dbStatus: ourMatch.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED",
+            dbHomeScore: ourMatch.homeScore,
+            dbAwayScore: ourMatch.awayScore,
+            homeName: ourMatch.homeTeam.name,
+            awayName: ourMatch.awayTeam.name,
+            league: ourMatch.league as "KBO" | "NPB" | "MLB",
+          });
+          if (converted) {
+            live = converted as BaseballLive;
+            cacheHit = true;
+          }
+        }
+      }
+    } catch {
+      // cache 조회 실패는 ignore — api-sports fallback
     }
-    // 라이브 odds — KBO/NPB/MLB 모두 The Odds API 지원 (활성 active=true 확인 완료)
+
+    // === 2차: api-sports fallback (cache miss 또는 변환 실패 시) ===
+    if (!live) {
+      const key = process.env.API_BASEBALL_KEY;
+      if (!key) {
+        return NextResponse.json({ error: "missing key" }, { status: 200 });
+      }
+      const res = await fetch(`${AB_BASE}/games?id=${gameId}`, {
+        headers: { "x-apisports-key": key },
+        signal: ctrl.signal,
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as ABGameDetail;
+      live = normalize(data);
+      if (!live) {
+        return NextResponse.json({ error: "not found" }, { status: 404 });
+      }
+    }
+
+    // 라이브 odds — KBO/NPB/MLB 모두 The Odds API 지원
     const ourLeague = LEAGUE_BY_AB_ID[live.league.id];
     if (ourLeague) {
       live.liveOdds = await fetchLiveOdds(
@@ -197,45 +250,49 @@ export async function GET(
         { lambdaPerInning: lambda },
       );
     }
-    // TheSports detail_live.extra — KBO/NPB 베이스/볼카운트 (cache 있으면)
-    if (live.status === "LIVE") {
-      try {
-        const ourMatch = await prisma.match.findFirst({
-          where: { externalId: gameId },
-          select: { id: true },
-        });
-        if (ourMatch) {
-          const cache = await prisma.theSportsMatchCache.findUnique({
-            where: { matchId: ourMatch.id },
-            select: { detailLive: true },
+    // cache miss 인 경우만 TheSports cache 의 extra 보강 + DB upsert.
+    // cache hit 일 때는 변환 helper 가 이미 liveContext 채움 + DB 가 source.
+    if (!cacheHit) {
+      // TheSports detail_live.extra — KBO/NPB 베이스/볼카운트 (cache 있으면)
+      if (live.status === "LIVE") {
+        try {
+          const ourMatch = await prisma.match.findFirst({
+            where: { externalId: gameId },
+            select: { id: true },
           });
-          const dl = cache?.detailLive as { extra?: { base?: string; out?: number; good?: number; bad?: number } } | null;
-          if (dl?.extra) {
-            live.liveContext = {
-              bases: typeof dl.extra.base === "string" ? dl.extra.base : "000",
-              outs: typeof dl.extra.out === "number" ? dl.extra.out : 0,
-              good: typeof dl.extra.good === "number" ? dl.extra.good : null,
-              bad: typeof dl.extra.bad === "number" ? dl.extra.bad : null,
-            };
+          if (ourMatch) {
+            const cache = await prisma.theSportsMatchCache.findUnique({
+              where: { matchId: ourMatch.id },
+              select: { detailLive: true },
+            });
+            const dl = cache?.detailLive as { extra?: { base?: string; out?: number; good?: number; bad?: number } } | null;
+            if (dl?.extra) {
+              live.liveContext = {
+                bases: typeof dl.extra.base === "string" ? dl.extra.base : "000",
+                outs: typeof dl.extra.out === "number" ? dl.extra.out : 0,
+                good: typeof dl.extra.good === "number" ? dl.extra.good : null,
+                bad: typeof dl.extra.bad === "number" ? dl.extra.bad : null,
+              };
+            }
           }
+        } catch {
+          // cache 조회 실패는 ignore — 다른 데이터는 정상 응답
         }
-      } catch {
-        // cache 조회 실패는 ignore — 다른 데이터는 정상 응답
       }
-    }
-    // 라이브 점수 → DB upsert (cron 30분 갭 회피, SSR/list 페이지도 fresh)
-    // best-effort: 실패해도 응답에 영향 없음
-    if (live.status === "LIVE" || live.status === "FINAL") {
-      prisma.match
-        .updateMany({
-          where: { externalId: gameId },
-          data: {
-            homeScore: live.homeTeam.score,
-            awayScore: live.awayTeam.score,
-            status: live.status === "FINAL" ? "FINISHED" : "LIVE",
-          },
-        })
-        .catch(() => {});
+      // 라이브 점수 → DB upsert (cron 갭 회피, SSR/list 페이지도 fresh)
+      // best-effort: 실패해도 응답에 영향 없음
+      if (live.status === "LIVE" || live.status === "FINAL") {
+        prisma.match
+          .updateMany({
+            where: { externalId: gameId },
+            data: {
+              homeScore: live.homeTeam.score,
+              awayScore: live.awayTeam.score,
+              status: live.status === "FINAL" ? "FINISHED" : "LIVE",
+            },
+          })
+          .catch(() => {});
+      }
     }
     const etag = `W/"${await hashLive(live)}"`;
     if (req.headers.get("if-none-match") === etag) {
