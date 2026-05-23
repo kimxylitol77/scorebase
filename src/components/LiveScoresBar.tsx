@@ -8,7 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LeagueBadge from "./LeagueBadge";
 import CountUp from "./CountUp";
-import { playChime, unlockAudio } from "@/lib/sound/chime";
+import { playChime } from "@/lib/sound/chime";
+import { SOUND_STORAGE_KEY, SOUND_CHANGE_EVENT } from "./LiveSoundToggle";
 
 interface LiveMatch {
   id: string;
@@ -32,15 +33,12 @@ interface ApiResp {
 const POLL_LIVE_MS = 5_000;
 const POLL_IDLE_MS = 180_000;
 
-const SOUND_STORAGE_KEY = "scorebase-live-sound";
-
 export default function LiveScoresBar() {
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [loaded, setLoaded] = useState(false);
-  // 점수 변화 사운드 ON/OFF (localStorage 저장)
-  const [soundOn, setSoundOn] = useState(false);
+  // 사운드 ON/OFF — LiveSoundToggle 컴포넌트가 localStorage + custom event 로 갱신.
+  // 점수 감지 useEffect 가 매번 ref 읽음.
   const soundOnRef = useRef(false);
-  soundOnRef.current = soundOn;
   // 직전 cycle 의 점수 snapshot — 변화 감지용
   const prevScoresRef = useRef<Map<string, string>>(new Map());
   // schedule() 안에서 항상 최신 matches.length 참조 위해 ref 동기화
@@ -106,13 +104,27 @@ export default function LiveScoresBar() {
     };
   }, []);
 
-  // 사운드 설정 init (localStorage)
+  // 사운드 상태 동기화 — LiveSoundToggle 가 localStorage + custom event 발행.
+  // init + storage event (다른 탭) + custom event (같은 탭 토글) 모두 수신.
   useEffect(() => {
     try {
-      setSoundOn(localStorage.getItem(SOUND_STORAGE_KEY) === "1");
+      soundOnRef.current = localStorage.getItem(SOUND_STORAGE_KEY) === "1";
     } catch {
-      // SSR 또는 localStorage 비활성 환경 — ignore
+      // ignore
     }
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === SOUND_STORAGE_KEY) soundOnRef.current = e.newValue === "1";
+    };
+    const onCustom = (e: Event) => {
+      const ce = e as CustomEvent<{ soundOn: boolean }>;
+      if (typeof ce.detail?.soundOn === "boolean") soundOnRef.current = ce.detail.soundOn;
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(SOUND_CHANGE_EVENT, onCustom);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(SOUND_CHANGE_EVENT, onCustom);
+    };
   }, []);
 
   // 점수 변화 감지 → chime
@@ -133,21 +145,6 @@ export default function LiveScoresBar() {
       playChime();
     }
   }, [matches]);
-
-  function toggleSound() {
-    const next = !soundOn;
-    setSoundOn(next);
-    try {
-      localStorage.setItem(SOUND_STORAGE_KEY, next ? "1" : "0");
-    } catch {
-      // ignore
-    }
-    if (next) {
-      // 첫 ON 시점에 user gesture 안에서 AudioContext 활성화 + sample chime
-      unlockAudio();
-      playChime();
-    }
-  }
 
   // 첫 로딩 전 또는 매치 0건이면 렌더 자체 안 함 (CLS 방지 위해 SSR 시점에도
   // null — 라이브 매치가 있을 때만 자리 차지).
@@ -181,34 +178,6 @@ export default function LiveScoresBar() {
             </span>
             LIVE
           </span>
-          {/* 점수 변화 사운드 토글 — 기본 OFF, localStorage 저장 */}
-          <button
-            type="button"
-            onClick={toggleSound}
-            aria-pressed={soundOn}
-            aria-label={soundOn ? "점수 변화 사운드 끄기" : "점수 변화 사운드 켜기"}
-            title={soundOn ? "점수 변화 사운드 ON" : "점수 변화 사운드 OFF"}
-            className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md transition ${
-              soundOn
-                ? "text-rose-600 dark:text-rose-400 bg-rose-100/60 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25"
-                : "text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
-            }`}
-          >
-            {soundOn ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-              </svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                <path d="M18.63 13A17.89 17.89 0 0 1 18 8" />
-                <path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14" />
-                <path d="M18 8a6 6 0 0 0-9.33-5" />
-                <line x1="1" y1="1" x2="23" y2="23" />
-              </svg>
-            )}
-          </button>
           {matches.map((m) => {
             const href = liveHref(m);
             const isExternal = /^https?:\/\//i.test(href);

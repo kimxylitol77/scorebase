@@ -50,6 +50,7 @@ import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
 import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescore";
 import type { BaseballContext } from "@/components/scores/BaseballMiniBoard";
 import type { EsportsContext } from "@/components/scores/EsportsMiniBoard";
+import LiveSoundToggle from "@/components/LiveSoundToggle";
 
 const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
@@ -892,13 +893,14 @@ export default async function ScoresPage({ searchParams }: Props) {
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
             라이브 스코어
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500">
-            {dateKo} · 총 {normalized.length}경기
+          <p className="text-xs sm:text-sm text-neutral-500 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+            <span>{dateKo} · 총 {normalized.length}경기</span>
             {liveList.length > 0 && (
-              <span className="ml-2 text-rose-600 dark:text-rose-400 font-semibold">
+              <span className="text-rose-600 dark:text-rose-400 font-semibold">
                 ● LIVE {liveList.length}
               </span>
             )}
+            {liveList.length > 0 && <LiveSoundToggle />}
           </p>
         </div>
         <LiveRefresher liveCount={liveList.length} />
