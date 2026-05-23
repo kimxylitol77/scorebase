@@ -22,6 +22,10 @@ interface Body {
   /** Match team half-time statistics — match/half/team_stats/list 응답
    *  구조: { p1: { stat_type_id: [home, away] }, ... } */
   halfTeamStats?: unknown;
+  /** football fast-poller 가 detailLive 에서 추출한 score — DB.Match 도 함께 update.
+   *  /scores 목록 SSR 이 즉시 fresh 받도록. */
+  homeScore?: number;
+  awayScore?: number;
 }
 
 function unauthorized(msg = "Unauthorized") {
@@ -75,5 +79,28 @@ export async function POST(req: NextRequest) {
     select: { id: true, matchId: true, updatedAt: true },
   });
 
-  return NextResponse.json({ ok: true, cache });
+  // football fast-poller 가 score 보냈으면 Match 의 homeScore/awayScore 도 동시 update.
+  // /scores 목록 SSR 이 즉시 fresh 받음. monotonic max — 점수 줄어들지 않게 안전망.
+  let matchUpdated = false;
+  if (typeof body.homeScore === "number" && typeof body.awayScore === "number") {
+    try {
+      const current = await prisma.match.findUnique({
+        where: { id: body.matchId },
+        select: { homeScore: true, awayScore: true },
+      });
+      const newHome = Math.max(body.homeScore, current?.homeScore ?? -1);
+      const newAway = Math.max(body.awayScore, current?.awayScore ?? -1);
+      if (newHome !== current?.homeScore || newAway !== current?.awayScore) {
+        await prisma.match.update({
+          where: { id: body.matchId },
+          data: { homeScore: newHome, awayScore: newAway },
+        });
+        matchUpdated = true;
+      }
+    } catch {
+      // Match update 실패 ignore — cache 는 이미 저장
+    }
+  }
+
+  return NextResponse.json({ ok: true, cache, matchUpdated });
 }

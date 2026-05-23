@@ -75,11 +75,16 @@ async function fetchDetailLiveAll() {
   }
 }
 
-async function pushCache(matchId, tsMatchId, detailLive) {
+async function pushCache(matchId, tsMatchId, detailLive, homeScore, awayScore) {
   try {
+    const body = { matchId, tsMatchId, detailLive };
+    if (typeof homeScore === "number" && typeof awayScore === "number") {
+      body.homeScore = homeScore;
+      body.awayScore = awayScore;
+    }
     await axios.post(
       `${SITE_URL}/api/internal/thesports-cache`,
-      { matchId, tsMatchId, detailLive },
+      body,
       { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 8_000 },
     );
     return true;
@@ -87,6 +92,36 @@ async function pushCache(matchId, tsMatchId, detailLive) {
     return false;
   }
 }
+
+// detailLive 응답에서 현재 score 추출 — docs 기반.
+// score = [match_id, status, home_arr[7], away_arr[7], kick_off_ts, '']
+//   home_arr[0] = regular time, [5] = overtime (regular 포함)
+// incidents[].home_score = 골 시점 누적 (가장 fresh)
+function extractScore(item) {
+  let h = 0, a = 0;
+  let hasData = false;
+  const arr = item?.score;
+  if (Array.isArray(arr) && arr.length >= 4 && Array.isArray(arr[2]) && Array.isArray(arr[3])) {
+    const homeArr = arr[2], awayArr = arr[3];
+    const hReg = Number(homeArr[0]) || 0;
+    const hOt = Number(homeArr[5]) || 0;
+    const aReg = Number(awayArr[0]) || 0;
+    const aOt = Number(awayArr[5]) || 0;
+    h = Math.max(hReg, hOt);
+    a = Math.max(aReg, aOt);
+    hasData = true;
+  }
+  if (Array.isArray(item?.incidents)) {
+    for (const inc of item.incidents) {
+      if (typeof inc?.home_score === "number" && inc.home_score > h) { h = inc.home_score; hasData = true; }
+      if (typeof inc?.away_score === "number" && inc.away_score > a) { a = inc.away_score; hasData = true; }
+    }
+  }
+  return hasData ? [h, a] : [null, null];
+}
+
+// 중복 POST 방지 — 매치별 마지막 저장 hash. score/incidents/stats 변화 없으면 skip.
+const lastSavedHash = new Map();
 
 let totalReceived = 0;
 let totalPushed = 0;
@@ -106,6 +141,7 @@ async function poll() {
   totalReceived += results.length;
 
   // 매핑된 매치만 cache POST (병렬 — Lightsail-Vercel 왕복 8초 이내)
+  // diff cache: score/incidents/stats 변화 없으면 skip (Vercel function 호출 부담 절감)
   const updates = [];
   for (const item of results) {
     if (!item?.id) continue;
@@ -114,9 +150,15 @@ async function poll() {
       totalSkipped++;
       continue;
     }
-    // detailLive 부분 — score/incidents/stats/tlive 만. analysis/lineup 은 별도 cycle.
-    // POST endpoint 가 detailLive 통째 replace 라 detail_live REST 응답 그대로 보냄.
-    updates.push(pushCache(matchId, item.id, item));
+    const [homeScore, awayScore] = extractScore(item);
+    const incidentsLen = Array.isArray(item.incidents) ? item.incidents.length : 0;
+    const statsLen = Array.isArray(item.stats) ? item.stats.length : 0;
+    const tliveLen = Array.isArray(item.tlive) ? item.tlive.length : 0;
+    const hash = `${homeScore}|${awayScore}|${incidentsLen}|${statsLen}|${tliveLen}`;
+    const prev = lastSavedHash.get(matchId);
+    if (prev === hash) continue;
+    lastSavedHash.set(matchId, hash);
+    updates.push(pushCache(matchId, item.id, item, homeScore, awayScore));
   }
   const settled = await Promise.allSettled(updates);
   for (const r of settled) {
