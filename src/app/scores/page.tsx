@@ -205,8 +205,10 @@ function parseGoalMinute(minute: string): number {
 
 /**
  * 라이브 매치의 최근 1분 내 골 측 판정.
- * - statusLabel 의 elapsed (전반/후반 N') 와 골 minute 차이 ≤ 1 → recent
+ * - statusLabel 의 elapsed (전반/후반 N') 와 골 minute 차이 ≤ 2 → recent
  * - 가장 최근 골의 side 반환 (없으면 null)
+ * - 2026-05-23: 1분 → 2분으로 늘림. LiveRefresher 15초 refresh 의 타이밍 miss
+ *   회피 (1분 highlight 가 짧아 사용자가 못 보고 지나치던 케이스).
  */
 function findRecentGoalSide(
   statusLabel: string | null | undefined,
@@ -219,7 +221,7 @@ function findRecentGoalSide(
   // 가장 최근 시각의 골 (분 + 추가시간 기준)
   const sorted = [...goals].sort((a, b) => parseGoalMinute(b.minute) - parseGoalMinute(a.minute));
   const latest = sorted[0];
-  if (elapsed - parseGoalMinute(latest.minute) <= 1) return latest.side;
+  if (elapsed - parseGoalMinute(latest.minute) <= 2) return latest.side;
   return null;
 }
 
