@@ -63,6 +63,7 @@ const ARTICLE_ITEMS: SubItem[] = [
   { href: "/predictions", label: "예측", desc: "Monte Carlo 시즌 시뮬레이션" },
   { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   { href: "/notices", label: "공지", desc: "사이트 공지 · 패치노트" },
+  { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
 ];
 
 export default function Header() {
