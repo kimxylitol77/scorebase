@@ -325,67 +325,146 @@ function CompactRow({ match }: { match: MatchEntry }) {
         ? "text-amber-600 dark:text-amber-400"
         : "text-neutral-500 tabular-nums";
 
-  // 모바일/데스크탑 동일 6컬럼 grid: [리그][시간][홈팀][점수][어웨이팀][⭐]
-  // 컬럼 사이 미세한 vertical divider 로 "리그 | 시간 | 팀 | 점수 | 팀 | ⭐" 시각.
-  const cellBorder = "border-r border-neutral-200/70 dark:border-neutral-800";
-  const gridCls =
-    "grid grid-cols-[56px_44px_1fr_auto_1fr_32px] sm:grid-cols-[72px_56px_1fr_auto_1fr_36px] " +
-    "items-stretch py-1.5 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition";
+  // 모바일: 기존 6컬럼 compact grid (사용자 요청: 그대로 유지)
+  // 데스크탑(sm+): SoccerLiveRow 와 동일 9컬럼 grid → 점수/별표 컬럼이
+  //              메인 진행 중 섹션과 세로로 정렬됨 (사용자 빨간선 정렬 요구).
+  // 두 layout 을 별도 div 로 분리 (sm:hidden / hidden sm:grid).
 
-  // 1~5 셀은 Link 안에 (한 번에 클릭 → 매치 라우팅). 6번 별표 셀은 Link 밖에
-  // 별도로 (nested interactive 회피, 별표만 누르면 해제).
-  // Link 의 contents 디스플레이로 자식 div 들이 li 의 grid item 으로 직접 배치.
-  const navCells = (
+  return (
+    <li>
+      {/* ───── 모바일 (sm 미만) ───── */}
+      <div className="sm:hidden grid grid-cols-[56px_44px_1fr_auto_1fr_32px] items-stretch py-1.5 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
+        {match.href ? (
+          <Link
+            href={match.href}
+            prefetch={false}
+            className="contents"
+            aria-label={`${match.home.name} ${match.home.score ?? ""} - ${match.away.score ?? ""} ${match.away.name}`}
+          >
+            <MobileCells match={match} statusText={statusText} statusColor={statusColor} hasScore={hasScore} />
+          </Link>
+        ) : (
+          <MobileCells match={match} statusText={statusText} statusColor={statusColor} hasScore={hasScore} />
+        )}
+        <div className="flex items-center justify-center">
+          <FavoriteStar matchId={match.id} />
+        </div>
+      </div>
+
+      {/* ───── 데스크탑 (sm+) — SoccerLiveRow 와 동일 grid ───── */}
+      <div
+        className="hidden sm:grid items-center gap-3 py-2 text-[13px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition"
+        style={{
+          gridTemplateColumns:
+            "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,154px)",
+        }}
+      >
+        {match.href ? (
+          <Link
+            href={match.href}
+            prefetch={false}
+            className="contents"
+            aria-label={`${match.home.name} ${match.home.score ?? ""} - ${match.away.score ?? ""} ${match.away.name}`}
+          >
+            <DesktopCells match={match} statusText={statusText} statusColor={statusColor} hasScore={hasScore} />
+          </Link>
+        ) : (
+          <DesktopCells match={match} statusText={statusText} statusColor={statusColor} hasScore={hasScore} />
+        )}
+        {/* 8번: 관심 (별표) */}
+        <div className="flex items-center justify-center">
+          <FavoriteStar matchId={match.id} />
+        </div>
+        {/* 9번: 우측 spacer (메인 SoccerLiveRow 와 정확히 정렬) */}
+        <div />
+      </div>
+    </li>
+  );
+}
+
+// 모바일 6컬럼 cells (1=리그, 2=시간/상태, 3=홈, 4=점수, 5=어웨이)
+function MobileCells({
+  match,
+  statusText,
+  statusColor,
+  hasScore,
+}: {
+  match: MatchEntry;
+  statusText: string;
+  statusColor: string;
+  hasScore: boolean;
+}) {
+  const cellBorder = "border-r border-neutral-200/70 dark:border-neutral-800";
+  return (
     <>
-      {/* 1. 리그 뱃지 */}
       <div className={`flex items-center justify-center px-1.5 ${cellBorder}`}>
         <LeagueBadge league={match.league} size="sm" />
       </div>
-      {/* 2. 시간/상태 */}
       <div className={`flex items-center justify-center px-1 ${cellBorder}`}>
-        <span className={`text-[10px] sm:text-[11px] ${statusColor} text-center leading-tight`}>
+        <span className={`text-[10px] ${statusColor} text-center leading-tight`}>
           {statusText}
         </span>
       </div>
-      {/* 3. 홈팀 (우측 정렬, truncate) */}
-      <div className={`flex items-center justify-end pr-2 sm:pr-3 min-w-0 ${cellBorder}`}>
+      <div className={`flex items-center justify-end pr-2 min-w-0 ${cellBorder}`}>
         <span className="truncate text-[12px] text-neutral-800 dark:text-neutral-200 font-medium">
           {match.home.name}
         </span>
       </div>
-      {/* 4. 점수 — row 간 동일 가로 위치 */}
       <div className={`flex items-center justify-center px-1 ${cellBorder}`}>
-        <span className="font-black tabular-nums text-[12px] sm:text-[13px] text-neutral-900 dark:text-white whitespace-nowrap">
+        <span className="font-black tabular-nums text-[12px] text-neutral-900 dark:text-white whitespace-nowrap">
           {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
         </span>
       </div>
-      {/* 5. 어웨이팀 (좌측 정렬, truncate) */}
-      <div className={`flex items-center justify-start pl-2 sm:pl-3 min-w-0 ${cellBorder}`}>
+      <div className={`flex items-center justify-start pl-2 min-w-0 ${cellBorder}`}>
         <span className="truncate text-[12px] text-neutral-800 dark:text-neutral-200 font-medium">
           {match.away.name}
         </span>
       </div>
     </>
   );
+}
 
+// 데스크탑 cells (SoccerLiveRow 와 동일 7컬럼 — 1리그, 2시간, 3상태, 4홈, 5점수, 6어웨이, 7글)
+// 별표(8) + spacer(9) 는 외부에서 직접 배치.
+function DesktopCells({
+  match,
+  statusText,
+  statusColor,
+  hasScore,
+}: {
+  match: MatchEntry;
+  statusText: string;
+  statusColor: string;
+  hasScore: boolean;
+}) {
   return (
-    <li className={gridCls}>
-      {match.href ? (
-        <Link
-          href={match.href}
-          prefetch={false}
-          className="contents"
-          aria-label={`${match.home.name} ${match.home.score ?? ""} - ${match.away.score ?? ""} ${match.away.name}`}
-        >
-          {navCells}
-        </Link>
-      ) : (
-        navCells
-      )}
-      {/* 6. 즐겨찾기 별표 — Link 밖. 클릭 시 그 매치만 해제 */}
-      <div className="flex items-center justify-center">
-        <FavoriteStar matchId={match.id} />
+    <>
+      {/* 1. 리그 뱃지 (110px) */}
+      <div className="flex items-center justify-center min-w-0">
+        <LeagueBadge league={match.league} size="sm" />
       </div>
-    </li>
+      {/* 2. 시간 (56px) */}
+      <div className="text-[11px] text-neutral-500 tabular-nums">
+        {match.timeLabel}
+      </div>
+      {/* 3. 상태 (64px) */}
+      <div className={`text-[11px] ${statusColor}`}>
+        {statusText}
+      </div>
+      {/* 4. 홈팀 (1fr, 우측 정렬) */}
+      <div className="truncate text-right text-neutral-800 dark:text-neutral-200 font-medium">
+        {match.home.name}
+      </div>
+      {/* 5. 점수 (auto) — SoccerLiveRow 와 동일 위치 */}
+      <div className="text-center font-black tabular-nums text-[14px] text-neutral-900 dark:text-white whitespace-nowrap px-2">
+        {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
+      </div>
+      {/* 6. 원정팀 (1fr, 좌측 정렬) */}
+      <div className="truncate text-neutral-800 dark:text-neutral-200 font-medium">
+        {match.away.name}
+      </div>
+      {/* 7. 글 (48px) — 비움 (즐겨찾기 row 는 글 link 안 보임) */}
+      <div />
+    </>
   );
 }
