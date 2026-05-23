@@ -26,6 +26,10 @@ const headers = { Authorization: `Bearer ${TOKEN}` };
 
 const TBD_PATTERN = /\b(TBD|TTBD|TBDT)\b/i;
 const SLASH_PATTERN = /\//; // "Sabres/Canadiens" 같은 미정 placeholder
+// 슬래시 체크는 NBA/NHL 만 — 페로 제도 합병팀 (EB/Streymur II), 한국 컵
+// 합병 (NSÍ II vs EB/Streymur II in KFA_CUP) 등 실제 슬래시 팀명이
+// false positive 로 잡히던 문제 해결 (2026-05-23).
+const SLASH_CHECK_LEAGUES = new Set(["NBA", "NHL"]);
 
 function tsKst() { return new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }); }
 
@@ -74,7 +78,10 @@ async function poll() {
   const tbdTeams = matches.filter(m => {
     const h = m.homeName ?? "";
     const a = m.awayName ?? "";
-    return TBD_PATTERN.test(h) || TBD_PATTERN.test(a) || SLASH_PATTERN.test(h) || SLASH_PATTERN.test(a);
+    if (TBD_PATTERN.test(h) || TBD_PATTERN.test(a)) return true;
+    // 슬래시 체크는 NBA/NHL 만 — 다른 리그는 실제 합병팀명일 가능성
+    if (SLASH_CHECK_LEAGUES.has(m.league) && (SLASH_PATTERN.test(h) || SLASH_PATTERN.test(a))) return true;
+    return false;
   });
 
   // 시작시각 30분+ 지났는데 라이브 표시 안 됨 (SCHEDULED) — statusLabel 로 판단 어려움.

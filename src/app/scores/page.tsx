@@ -410,8 +410,19 @@ export default async function ScoresPage({ searchParams }: Props) {
         AND: [
           { homeTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
           { awayTeam: { is: { name: { notIn: ["TBD", "TTBD", "TBDT"] } } } },
-          { homeTeam: { is: { name: { not: { contains: "/" } } } } },
-          { awayTeam: { is: { name: { not: { contains: "/" } } } } },
+          // 슬래시 포함 팀명 hide — NBA/NHL placeholder ("Sabres/Canadiens" 다음 라운드 미정)
+          // 만 hide. 페로 제도/도서 국가 합병팀 (EB/Streymur II 등) 은 실제 클럽이라 노출.
+          {
+            OR: [
+              { league: { notIn: ["NBA", "NHL"] } },
+              {
+                AND: [
+                  { homeTeam: { is: { name: { not: { contains: "/" } } } } },
+                  { awayTeam: { is: { name: { not: { contains: "/" } } } } },
+                ],
+              },
+            ],
+          },
           {
             NOT: { status: "FINISHED", startTime: { lt: day } },
           },
