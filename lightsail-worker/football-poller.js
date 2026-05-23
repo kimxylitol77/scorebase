@@ -26,7 +26,9 @@ const TS_USER = process.env.THESPORTS_USER;
 const TS_SECRET = process.env.THESPORTS_SECRET;
 const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
-const POLL_INTERVAL_MS = 60_000;
+// detail_live (score/incidents/stats/tlive) 는 football-fast-poller (2s cycle) 가 담당.
+// 이 worker 는 analysis/lineup 등 느린 데이터만 5분 cycle 로 갱신.
+const POLL_INTERVAL_MS = 5 * 60_000;
 const MAX_MATCHES_PER_POLL = 20;
 
 if (!TS_USER || !TS_SECRET) {
@@ -73,18 +75,6 @@ async function fetchTsDiary() {
 async function fetchTsAnalysis(tsMatchId) {
   try {
     const { data } = await axios.get(`${TS_BASE}/v1/football/match/analysis`, {
-      params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
-      timeout: 30_000,
-    });
-    return data.results || null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchTsDetailLive(tsMatchId) {
-  try {
-    const { data } = await axios.get(`${TS_BASE}/v1/football/match/detail_live`, {
       params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
       timeout: 30_000,
     });
@@ -242,7 +232,6 @@ async function poll() {
     const slice = pairs.slice(0, MAX_MATCHES_PER_POLL);
 
     let cached = 0;
-    let liveCount = 0;
     let lineupCount = 0;
     let errors = 0;
 
@@ -255,12 +244,7 @@ async function poll() {
         const analysis = await fetchTsAnalysis(tsMatch.id);
         if (analysis) payload.analysis = analysis;
 
-        // LIVE 매치 + coverage.mlive=1: detail_live
-        if (isLiveStatus(tsMatch.status_id) && tsMatch.coverage?.mlive === 1) {
-          liveCount++;
-          const detailLive = await fetchTsDetailLive(tsMatch.id);
-          if (detailLive) payload.detailLive = detailLive;
-        }
+        // detail_live (score/incidents/stats/tlive) 는 football-fast-poller 가 2초 cycle 로 담당 — 여기서 제거.
 
         // coverage.lineup=1: lineup/detail (예정·LIVE 매치)
         if (tsMatch.coverage?.lineup === 1) {
@@ -281,7 +265,7 @@ async function poll() {
       }
     }
 
-    console.log(`    summary: cached=${cached}/${slice.length}, live=${liveCount}, lineup=${lineupCount}, errors=${errors}`);
+    console.log(`    summary: cached=${cached}/${slice.length}, lineup=${lineupCount}, errors=${errors}`);
   } catch (err) {
     console.error(`[${ts}] ❌ poll error: ${err.message}`);
   }

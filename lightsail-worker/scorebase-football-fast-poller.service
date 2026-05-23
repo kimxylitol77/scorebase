@@ -1,0 +1,17 @@
+[Unit]
+Description=Scorebase TheSports Football Fast Poller (detail_live 2s cycle)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/football-fast-poller.js
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/football-fast-poller.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/football-fast-poller.err
+
+[Install]
+WantedBy=multi-user.target
