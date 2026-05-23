@@ -67,6 +67,12 @@ function AdminBar({ username }: { username: string }) {
             블로그
           </Link>
           <Link
+            href="/admin/links"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            🔗 링크
+          </Link>
+          <Link
             href="/admin/stats"
             className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
           >
