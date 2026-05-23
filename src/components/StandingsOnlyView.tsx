@@ -78,7 +78,11 @@ export default async function StandingsOnlyView({ league }: Props) {
                 const played = r.won + r.draw + r.loss;
                 const gd = r.goalDiff ?? (r.goalsFor != null && r.goalsAgainst != null ? r.goalsFor - r.goalsAgainst : null);
                 return (
-                  <tr key={r.teamId} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
+                  <tr
+                    key={r.teamId}
+                    id={`team-${r.teamId}`}
+                    className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24"
+                  >
                     <td className="px-3 py-2 text-right tabular-nums font-semibold text-neutral-500">{r.position}</td>
                     <td className="px-3 py-2 truncate">
                       <div className="flex items-center gap-2 min-w-0">

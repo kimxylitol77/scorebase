@@ -1196,7 +1196,11 @@ function ProjectionsTable({
               : "border-l-2 border-transparent";
             const form = formByTeamId?.get(r.teamId) ?? [];
             return (
-              <tr key={r.teamId} className={rowBg}>
+              <tr
+                key={r.teamId}
+                id={`team-${r.teamId}`}
+                className={`${rowBg} target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24`}
+              >
                 <td
                   className={`px-3 py-2 font-bold text-neutral-400 tabular-nums ${rankAccent}`}
                 >
@@ -1419,7 +1423,8 @@ function CurrentVsPredictionCard({
     return (
       <tr
         key={r.teamId}
-        className={idx % 2 === 0 ? "bg-neutral-50/50 dark:bg-white/[0.02]" : ""}
+        id={`team-${r.teamId}`}
+        className={`${idx % 2 === 0 ? "bg-neutral-50/50 dark:bg-white/[0.02]" : ""} target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24`}
       >
         <td className="px-3 py-2 text-sm tabular-nums font-bold text-neutral-700 dark:text-neutral-300 w-12">
           {r.currentPos}

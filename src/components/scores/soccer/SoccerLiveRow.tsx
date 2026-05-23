@@ -89,7 +89,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     e.preventDefault();
     e.stopPropagation();
     const hash = teamId != null ? `#team-${teamId}` : "";
-    router.push(`/standings/${league}${hash}`);
+    router.push(`/predictions/${league}${hash}`);
   };
 
   const badge = getLeagueBadge(league);
