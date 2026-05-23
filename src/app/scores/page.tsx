@@ -1132,15 +1132,12 @@ function SoccerRowLayout({
   };
 
   // 7msport 스타일 — status 우선 정렬: LIVE 모음 위 → 예정 (일자별) → 종료 (일자별)
-  const liveSorted = [...liveList].sort(
-    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
-  );
-  const scheduledSorted = [...scheduledList].sort(
-    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
-  );
-  const finishedSorted = [...finishedList].sort(
-    (a, b) => a.startTime.getTime() - b.startTime.getTime(),
-  );
+  // 같은 startTime 매치는 league secondary sort → J1 끼리, J2 끼리, EPL 끼리 자동 묶임.
+  const byStartThenLeague = (a: NormalizedMatch, b: NormalizedMatch) =>
+    a.startTime.getTime() - b.startTime.getTime() || a.league.localeCompare(b.league);
+  const liveSorted = [...liveList].sort(byStartThenLeague);
+  const scheduledSorted = [...scheduledList].sort(byStartThenLeague);
+  const finishedSorted = [...finishedList].sort(byStartThenLeague);
   const dayKey = (d: Date): string =>
     new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   const dayLabel = (d: Date): string => {
