@@ -1221,22 +1221,8 @@ function SoccerRowLayout({
     </div>
   );
   const dateHeaderDesktop = (label: string) => (
-    <div className="border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] py-1.5 my-2 rounded-md">
-      {/* SoccerLiveRow grid 와 동일 컬럼 — 홈팀(4) + 점수(5) + 원정팀(6) span 에 가운데 정렬 → vs 위치와 일치 */}
-      <div
-        className="grid items-center gap-3"
-        style={{
-          gridTemplateColumns:
-            "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px",
-        }}
-      >
-        <div
-          style={{ gridColumn: "4 / 7" }}
-          className="text-center text-[13px] font-bold tabular-nums text-neutral-700 dark:text-neutral-200"
-        >
-          {label}
-        </div>
-      </div>
+    <div className="border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-center text-[13px] font-bold py-1.5 my-2 rounded-md tabular-nums">
+      {label}
     </div>
   );
   const statusHeader = (label: string, color: string, size: "sm" | "md") => (
