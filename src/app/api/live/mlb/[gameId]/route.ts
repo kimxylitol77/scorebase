@@ -3,6 +3,7 @@
 // Edge runtime · 캐시 10초 + SWR 30 · ETag 지원.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { prisma } from "@/lib/db";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -550,13 +551,86 @@ export async function GET(
         lambdaPerInning: 0.49,
       });
     }
+    // TheSports MQTT push cache — ESPN 5-15s 갱신 vs MQTT 1-2s push.
+    // score: monotonic max(ESPN, MQTT) — 점수는 증가만 → 더 큰 값 사용 안전.
+    // extra: base/out/balls/strikes — ESPN situation 보강 (없으면 default 채움).
+    if (live.status === "LIVE") {
+      try {
+        const ourMatch = await prisma.match.findFirst({
+          where: { externalId: gameId },
+          select: { id: true },
+        });
+        if (ourMatch) {
+          const cache = await prisma.theSportsMatchCache.findUnique({
+            where: { matchId: ourMatch.id },
+            select: { detailLive: true },
+          });
+          const dl = cache?.detailLive as {
+            extra?: { base?: string; out?: number; good?: number; bad?: number };
+            score?: unknown[];
+          } | null;
+          // score: ft = [away, home] — MQTT 가 ESPN 보다 fresh 시 max 갱신
+          const scoreObj = Array.isArray(dl?.score) && dl.score.length >= 4
+            ? (dl.score[3] as { ft?: string[] } | undefined)
+            : undefined;
+          if (scoreObj?.ft && scoreObj.ft.length === 2) {
+            const tsAway = parseInt(scoreObj.ft[0] ?? "0", 10);
+            const tsHome = parseInt(scoreObj.ft[1] ?? "0", 10);
+            if (Number.isFinite(tsAway) && tsAway > live.awayTeam.score) {
+              live.awayTeam.score = tsAway;
+            }
+            if (Number.isFinite(tsHome) && tsHome > live.homeTeam.score) {
+              live.homeTeam.score = tsHome;
+            }
+          }
+          // extra: base/out/balls/strikes 보강
+          if (dl?.extra) {
+            const situ = live.situation ?? {
+              balls: null,
+              strikes: null,
+              outs: null,
+              onFirst: false,
+              onSecond: false,
+              onThird: false,
+              batterName: null,
+              pitcherName: null,
+              lastPlay: null,
+            };
+            if (typeof dl.extra.base === "string" && dl.extra.base.length === 3) {
+              situ.onFirst = dl.extra.base[0] === "1";
+              situ.onSecond = dl.extra.base[1] === "1";
+              situ.onThird = dl.extra.base[2] === "1";
+            }
+            if (typeof dl.extra.out === "number") situ.outs = dl.extra.out;
+            if (typeof dl.extra.good === "number") situ.strikes = dl.extra.good;
+            if (typeof dl.extra.bad === "number") situ.balls = dl.extra.bad;
+            live.situation = situ;
+          }
+        }
+      } catch {
+        // cache 조회 실패는 ignore — ESPN 데이터만으로 응답
+      }
+    }
+    // 라이브 점수 → DB upsert (cron 갭 회피, /scores 목록도 fresh)
+    if (live.status === "LIVE" || live.status === "FINAL") {
+      prisma.match
+        .updateMany({
+          where: { externalId: gameId },
+          data: {
+            homeScore: live.homeTeam.score,
+            awayScore: live.awayTeam.score,
+            status: live.status === "FINAL" ? "FINISHED" : "LIVE",
+          },
+        })
+        .catch(() => {});
+    }
     const etag = `W/"${await hashLive(live)}"`;
     if (req.headers.get("if-none-match") === etag) {
       return new NextResponse(null, {
         status: 304,
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=15",
+          "Cache-Control": "public, s-maxage=2, stale-while-revalidate=10",
         },
       });
     }
@@ -565,7 +639,7 @@ export async function GET(
       {
         headers: {
           ETag: etag,
-          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=15",
+          "Cache-Control": "public, s-maxage=2, stale-while-revalidate=10",
         },
       },
     );
