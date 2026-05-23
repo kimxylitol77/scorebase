@@ -751,7 +751,12 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 상태 그룹화
   const liveList = normalized.filter((m) => m.status === "LIVE");
   const scheduledList = normalized.filter((m) => m.status === "SCHEDULED");
-  const finishedList = normalized.filter((m) => m.status === "FINISHED");
+  // 종료 섹션 — effStatus=FINISHED 이면서 startTime 이 선택 일자(KST 자정) 이후인 매치만.
+  // 어제 LIVE 로 stuck 되었다가 staleLive 로 FINISHED 변환된 매치 (collector cron 누락 케이스)
+  // 가 오늘 종료 섹션에 노출되는 문제 방지. 자정 boundary 매치는 startTime >= day 라 OK.
+  const finishedList = normalized.filter(
+    (m) => m.status === "FINISHED" && m.startTime.getTime() >= day.getTime(),
+  );
 
   // 라이브 카운트 (종목 탭 dot 표시용)
   const liveCounts: Partial<Record<SportCode, number>> = {};
