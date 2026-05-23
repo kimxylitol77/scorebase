@@ -36,9 +36,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  // 발행된 글
+  // 발행된 글 — 최근 60일만 (Google 색인 quota 우선순위)
+  const articleHorizon = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
   const articles = await prisma.article.findMany({
-    where: { status: "PUBLISHED" },
+    where: {
+      status: "PUBLISHED",
+      OR: [
+        { publishedAt: { gte: articleHorizon } },
+        { updatedAt: { gte: articleHorizon } },
+      ],
+    },
     select: { slug: true, publishedAt: true, updatedAt: true },
   });
 
@@ -60,10 +67,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  // 라이브 매치 페이지 (최근 30일 종료 + 예정 14일 + 진행 중)
+  // 라이브 매치 페이지 (최근 14일 종료 + 예정 7일 + 진행 중) — Google 색인 quota 우선순위
   const liveWindow = {
-    past: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-    future: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000),
+    past: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+    future: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
   };
   const matches = await prisma.match.findMany({
     where: {
@@ -76,7 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     select: { league: true, externalId: true, status: true, startTime: true, updatedAt: true },
     orderBy: { startTime: "desc" },
-    take: 5000,
+    take: 2500,
   });
 
   const livePages: MetadataRoute.Sitemap = matches.map((m) => {
