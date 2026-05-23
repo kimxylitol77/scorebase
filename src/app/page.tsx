@@ -20,6 +20,7 @@ import {
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
+import HomeFocusCards from "@/components/HomeFocusCards";
 import SectionHeading from "@/components/SectionHeading";
 import SeasonInsight from "@/components/SeasonInsight";
 import SeasonInsightCard from "@/components/SeasonInsightCard";
@@ -191,6 +192,8 @@ export default async function Home() {
       />
 
       <HeroSection />
+
+      <HomeFocusCards />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-16">
         <FeaturesSection />

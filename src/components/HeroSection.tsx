@@ -1,6 +1,4 @@
-// 메인 페이지 최상단 인트로 섹션.
-
-import Link from "next/link";
+// 메인 페이지 최상단 인트로 섹션. 글씨만 — 4개 진입 카드는 HomeFocusCards 분리.
 
 export default function HeroSection() {
   return (
@@ -35,36 +33,6 @@ export default function HeroSection() {
           <strong>Elo 모델</strong>과 <strong>멀티 AI</strong>가 매일 분석하는
           글로벌 스포츠 데이터.
         </p>
-        <div className="hero-cta mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3">
-          <Link
-            href="/predictions"
-            className="btn-primary w-full sm:w-auto justify-center"
-          >
-            시즌 예측 대시보드
-          </Link>
-          <Link
-            href="/scores"
-            className="btn-secondary w-full sm:w-auto justify-center inline-flex items-center gap-2"
-          >
-            <span className="relative inline-flex w-2 h-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
-            </span>
-            스코어베이스 라이브스코어
-          </Link>
-          <Link
-            href="/previews"
-            className="btn-secondary w-full sm:w-auto justify-center"
-          >
-            프리뷰 모음
-          </Link>
-          <Link
-            href="/injuries"
-            className="btn-secondary w-full sm:w-auto justify-center"
-          >
-            부상자 명단
-          </Link>
-        </div>
       </div>
     </section>
   );
