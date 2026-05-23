@@ -1,0 +1,28 @@
+# /etc/logrotate.d/scorebase-worker
+# Scorebase Lightsail worker logs (5개 service) — daily rotation, 7일 보관, gzip 압축.
+#
+# copytruncate 가 핵심: worker process 가 log file handle 잡고 있어 file move 하면
+# 새 file 로 안 씀. copytruncate 는 file 자체 keep + 0 bytes truncate → process
+# restart 불필요.
+#
+# 적용:
+#   sudo cp logrotate-scorebase-worker /etc/logrotate.d/scorebase-worker
+#   sudo chown root:root /etc/logrotate.d/scorebase-worker
+#   sudo chmod 644 /etc/logrotate.d/scorebase-worker
+# 즉시 test:
+#   sudo logrotate -d /etc/logrotate.d/scorebase-worker     # dry run
+#   sudo logrotate -f /etc/logrotate.d/scorebase-worker     # 강제 1회
+
+/home/ubuntu/scorebase-worker/logs/*.log
+/home/ubuntu/scorebase-worker/logs/*.err
+{
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    create 0644 ubuntu ubuntu
+    su ubuntu ubuntu
+}
