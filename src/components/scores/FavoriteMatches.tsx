@@ -325,24 +325,24 @@ function CompactRow({ match }: { match: MatchEntry }) {
         : "text-neutral-500 tabular-nums";
 
   const content = (
-    <div className="grid grid-cols-[160px_1fr] sm:grid-cols-[200px_1fr] items-center gap-3 px-3 py-2 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
-      {/* 좌측: 리그 + 시간/상태 (고정 폭) */}
+    <div className="grid grid-cols-[160px_1fr_auto_1fr] sm:grid-cols-[200px_1fr_auto_1fr] items-center gap-2 sm:gap-3 px-3 py-2 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
+      {/* 1. 좌측: 리그 + 시간/상태 (고정 폭) */}
       <div className="flex items-center gap-2 min-w-0">
         <LeagueBadge league={match.league} size="sm" />
         <span className={`shrink-0 text-[11px] ${statusColor}`}>{statusText}</span>
       </div>
-      {/* 가운데: 매치 본문 (홈 - 점수 - 어웨이, 그리드 가운데 정렬) */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 max-w-md mx-auto w-full">
-        <span className="truncate text-right text-neutral-800 dark:text-neutral-200 font-medium">
-          {match.home.name}
-        </span>
-        <span className="font-black tabular-nums text-center min-w-[3rem] text-neutral-900 dark:text-white">
-          {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
-        </span>
-        <span className="truncate text-neutral-800 dark:text-neutral-200 font-medium">
-          {match.away.name}
-        </span>
-      </div>
+      {/* 2. 홈팀 — 우측 정렬 (점수 칼럼 옆에 붙도록) */}
+      <span className="truncate text-right text-neutral-800 dark:text-neutral-200 font-medium">
+        {match.home.name}
+      </span>
+      {/* 3. 점수 — row 마다 동일 가로 위치 (외부 그리드 auto 칼럼) */}
+      <span className="font-black tabular-nums text-center min-w-[3.5rem] text-neutral-900 dark:text-white">
+        {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
+      </span>
+      {/* 4. 어웨이팀 — 좌측 정렬 */}
+      <span className="truncate text-neutral-800 dark:text-neutral-200 font-medium">
+        {match.away.name}
+      </span>
     </div>
   );
 
