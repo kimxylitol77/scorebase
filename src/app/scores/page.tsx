@@ -362,6 +362,12 @@ export default async function ScoresPage({ searchParams }: Props) {
   const leaguesAll = leaguesForSport(sport);
   const leagueFilter = sp.league && leaguesAll.includes(sp.league) ? sp.league : null;
   const leagues = leagueFilter ? [leagueFilter] : leaguesAll;
+  // prisma query 용 — sport 탭 무관 모든 종목 매치 가져옴 (FavoriteMatches 가
+  // 다른 종목 즐겨찾기도 표시하도록). leagueFilter 일 때만 그 리그 한정.
+  // 메인 그리드 표시 시 sportFilteredNormalized 로 sport 별 filter.
+  const leaguesForQuery = leagueFilter
+    ? [leagueFilter]
+    : leaguesForSport("all");
   // 축구 전용 상태 필터 (다른 종목엔 무시)
   const statusFilter: SoccerStatusFilter =
     sport === "soccer" &&
@@ -435,26 +441,31 @@ export default async function ScoresPage({ searchParams }: Props) {
           },
         ],
         // 축구만 ±1일 윈도우, 그 외 종목은 선택 일자만.
-        // "all" 탭은 OR 로 분기, 단일 종목/리그 탭은 단일 윈도우.
-        ...(sport === "all" && !leagueFilter
+        // leagueFilter 가 있으면 단일 리그 단일 window, 없으면 모든 종목 OR.
+        // sport tab 과 무관하게 모든 종목 매치 가져옴 — FavoriteMatches 가
+        // sport tab 무관 모든 종목 fav 표시하기 위해 (2026-05-23 변경).
+        ...(leagueFilter
           ? {
+              league: leagueFilter,
+              startTime: SOCCER_LEAGUES.has(leagueFilter)
+                ? soccerWindow
+                : dayWindow,
+            }
+          : {
               OR: [
                 {
-                  league: { in: leagues.filter((l) => SOCCER_LEAGUES.has(l)) },
+                  league: {
+                    in: leaguesForQuery.filter((l) => SOCCER_LEAGUES.has(l)),
+                  },
                   startTime: soccerWindow,
                 },
                 {
-                  league: { in: leagues.filter((l) => !SOCCER_LEAGUES.has(l)) },
+                  league: {
+                    in: leaguesForQuery.filter((l) => !SOCCER_LEAGUES.has(l)),
+                  },
                   startTime: dayWindow,
                 },
               ],
-            }
-          : {
-              league: { in: leagues },
-              startTime:
-                (leagueFilter ? SOCCER_LEAGUES.has(leagueFilter) : sport === "soccer")
-                  ? soccerWindow
-                  : dayWindow,
             }),
       },
       include: {
@@ -606,7 +617,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     : new Map<string, Map<number, number>>();
 
   // 매치 → 정규화 (sport 분기 + 라이브 보강)
-  const normalized = matches.map((m) => {
+  const normalizedAll = matches.map((m) => {
     const live = matchLive(m);
     const elapsedMs = Date.now() - m.startTime.getTime();
     const staleLive =
@@ -766,7 +777,12 @@ export default async function ScoresPage({ searchParams }: Props) {
     };
   });
 
-  // 상태 그룹화
+  // normalizedAll = 모든 종목 매치 (FavoriteMatches 용 — sport tab 무관 fav 표시).
+  // normalized = 현재 sport 의 리그만 — 메인 그리드 / 상태 섹션 / 헤더 카운트 용.
+  const sportLeagueSet = new Set(leaguesForSport(sport));
+  const normalized = normalizedAll.filter((m) => sportLeagueSet.has(m.league));
+
+  // 상태 그룹화 — sport 별 filtered 기반
   const liveList = normalized.filter((m) => m.status === "LIVE");
   const scheduledList = normalized.filter((m) => m.status === "SCHEDULED");
   // 종료 섹션 — effStatus=FINISHED 이면서 startTime 이 선택 일자(KST 자정) 이후인 매치만.
@@ -952,7 +968,7 @@ export default async function ScoresPage({ searchParams }: Props) {
             ) : (
               <div className="space-y-6">
                 <FavoriteMatches
-                  matches={normalized.map((m) => ({
+                  matches={normalizedAll.map((m) => ({
                     id: String(m.id),
                     sortKey:
                       m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
@@ -1012,7 +1028,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           ) : (
             <div className="space-y-6">
               <FavoriteMatches
-                matches={normalized.map((m) => ({
+                matches={normalizedAll.map((m) => ({
                   id: String(m.id),
                   sortKey:
                     m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
