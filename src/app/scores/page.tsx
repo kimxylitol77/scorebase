@@ -620,8 +620,19 @@ export default async function ScoresPage({ searchParams }: Props) {
   const normalizedAll = matches.map((m) => {
     const live = matchLive(m);
     const elapsedMs = Date.now() - m.startTime.getTime();
+    const sport_ = sportFromLeague(m.league);
+    // sport 별 staleLive 임계 — 정규 경기 시간 + 적당 마진.
+    // 축구: 90+추가시간 = ~2h → 2.5h 후 staleLive (DB.status=LIVE 인데 라이브
+    // API 응답에 없으면 종료로 간주). 야간 매치가 cron 갭 (KST 22:00 ~ 다음날
+    // 11:30) 안에서도 페이지에 자동 종료 표시. (2026-05-23)
+    const staleThresholdMs =
+      sport_ === "soccer" ? 2.5 * 3600 * 1000
+      : sport_ === "basketball" ? 3 * 3600 * 1000
+      : sport_ === "hockey" ? 3.5 * 3600 * 1000
+      : sport_ === "esports" ? 6 * 3600 * 1000
+      : 4 * 3600 * 1000; // baseball (12회 연장 가능) 기본
     const staleLive =
-      !live && m.status === "LIVE" && elapsedMs > 4 * 3600 * 1000;
+      !live && m.status === "LIVE" && elapsedMs > staleThresholdMs;
     const effStatus = live ? "LIVE" : staleLive ? "FINISHED" : m.status;
     // monotonic max(live, DB.Match) — TheSports MQTT/fast-poller 가 채운 DB 가 live (api-sports 15-30s) 보다 fresh 한 경우 그쪽 사용.
     // 점수는 단방향 증가 — 더 큰 값이 안전.
@@ -631,7 +642,6 @@ export default async function ScoresPage({ searchParams }: Props) {
     const dbA = m.awayScore;
     const homeScore = liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH);
     const awayScore = liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA);
-    const sport_ = sportFromLeague(m.league);
     const isBaseball = BASEBALL_LEAGUES.has(m.league);
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
