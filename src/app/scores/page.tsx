@@ -314,11 +314,20 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   // 종목별 OG 이미지가 아직 없어서 기본 /og-image.png 폴백.
   const ogImage = "/og-image.png";
 
+  // thin content noindex — 오늘 date 외, league/status filter 적용된 URL 은 Google 색인 제외.
+  // 검색 가치 = sport 별 base URL (예: /scores?sport=soccer). 나머지는 duplicate signal.
+  const todayKstStr = dateQuery(new Date());
+  const isThin =
+    (sp.date && dateStr !== todayKstStr) ||
+    Boolean(sp.league) ||
+    (sp.status !== undefined && sp.status !== "all");
+
   return {
     title: { absolute: title },
     description,
     keywords,
     alternates: { canonical: url },
+    ...(isThin && { robots: { index: false, follow: true } }),
     openGraph: {
       title,
       description,
