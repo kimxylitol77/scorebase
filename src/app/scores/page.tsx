@@ -38,7 +38,6 @@ import LeagueChips from "@/components/scores/LeagueChips";
 import SoccerStatusTabs, {
   type SoccerStatusFilter,
 } from "@/components/scores/SoccerStatusTabs";
-import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import MatchCard from "@/components/scores/MatchCard";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
@@ -877,16 +876,9 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} sport={sport} extraQuery={extraQuery} />
 
-      {/* 축구: 사이드바 + 컨텐츠 2-col / 다른 종목: 기존 그대로 */}
+      {/* 축구: 사이드바 제거 — 매치 list 만 가운데 정렬 / 다른 종목: 기존 그대로 */}
       {sport === "soccer" ? (
-        <div className="flex gap-6">
-          <SoccerLeagueSidebar
-            leagues={leaguesAll}
-            activeLeague={leagueFilter}
-            date={dateStr}
-            status={statusFilter}
-          />
-          <div className="flex-1 min-w-0 space-y-4">
+        <div className="space-y-4">
             {/* 상태 탭 — 전체/라이브/예정/종료 */}
             <SoccerStatusTabs
               active={statusFilter}
@@ -950,7 +942,6 @@ export default async function ScoresPage({ searchParams }: Props) {
                 />
               </div>
             )}
-          </div>
         </div>
       ) : (
         <>

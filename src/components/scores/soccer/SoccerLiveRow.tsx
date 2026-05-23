@@ -122,7 +122,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         // 좌측 fixed (110+56+64=230) vs 우측 fixed (48+28=76) 비대칭으로 vs/점수가 우측 쏠림.
         // 우측에 154px spacer 컬럼 추가 → vs 가 row 가운데 정렬 (날짜 header 와 일치).
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,322px)",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,154px)",
       }}
     >
       {/* 1. 리그 배지 */}
@@ -405,7 +405,7 @@ export function SoccerLiveRowHeader() {
       className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,322px)",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,154px)",
       }}
     >
       <div className="text-center">리그명</div>
