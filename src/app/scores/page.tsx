@@ -594,8 +594,14 @@ export default async function ScoresPage({ searchParams }: Props) {
     const staleLive =
       !live && m.status === "LIVE" && elapsedMs > 4 * 3600 * 1000;
     const effStatus = live ? "LIVE" : staleLive ? "FINISHED" : m.status;
-    const homeScore = live ? live.homeScore : m.homeScore;
-    const awayScore = live ? live.awayScore : m.awayScore;
+    // monotonic max(live, DB.Match) — TheSports MQTT/fast-poller 가 채운 DB 가 live (api-sports 15-30s) 보다 fresh 한 경우 그쪽 사용.
+    // 점수는 단방향 증가 — 더 큰 값이 안전.
+    const liveH = live?.homeScore;
+    const liveA = live?.awayScore;
+    const dbH = m.homeScore;
+    const dbA = m.awayScore;
+    const homeScore = liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH);
+    const awayScore = liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA);
     const sport_ = sportFromLeague(m.league);
     const isBaseball = BASEBALL_LEAGUES.has(m.league);
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
