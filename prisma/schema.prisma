@@ -181,6 +181,22 @@ model Notice {
   @@index([type, publishedAt])
 }
 
+// SEO 키워드 타깃 블로그 글 (사용자 직접 작성)
+model Blog {
+  id           Int      @id @default(autoincrement())
+  title        String
+  slug         String   @unique
+  excerpt      String?  // meta description / 목록 한 줄 소개
+  content      String   // Markdown 본문
+  tags         String?  // 쉼표 구분 키워드 (SEO meta keywords)
+  thumbnailUrl String?  // OG image / 목록 썸네일
+  publishedAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([publishedAt])
+}
+
 // AI 가 생성한 기사
 model Article {
   id          Int       @id @default(autoincrement())
