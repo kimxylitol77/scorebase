@@ -819,7 +819,12 @@ export default async function ScoresPage({ searchParams }: Props) {
   const containerMaxW = "max-w-6xl";
 
   // 축구 상태 필터 — 표시할 매치 결정
-  const showLive = sport !== "soccer" || statusFilter === "all" || statusFilter === "live";
+  // 오늘 KST 아닌 다른 날짜 선택 시 LIVE 섹션 숨김 (LIVE 는 현재 시점 매치 — 미래/과거 일자에선 의미 없음)
+  const todayKstStr = dateQuery(new Date());
+  const isToday = dateStr === todayKstStr;
+  const showLive =
+    isToday &&
+    (sport !== "soccer" || statusFilter === "all" || statusFilter === "live");
   const showScheduled = sport !== "soccer" || statusFilter === "all" || statusFilter === "scheduled";
   const showFinished = sport !== "soccer" || statusFilter === "all" || statusFilter === "finished";
   const visibleLive = showLive ? liveList : [];
@@ -993,7 +998,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   actions: actionsFor(m),
                 }))}
               />
-              {liveList.length > 0 && (
+              {isToday && liveList.length > 0 && (
                 <Section title="🔴 진행 중" count={liveList.length}>
                   {liveList.map((m) => renderCard(m))}
                 </Section>
@@ -1122,8 +1127,8 @@ function SoccerRowLayout({
     );
   };
 
-  // 7msport 스타일 — status 우선 정렬: LIVE 모음 위 → 예정 (일자별) → 종료 (일자별)
-  // 같은 startTime 매치는 league secondary sort → J1 끼리, J2 끼리, EPL 끼리 자동 묶임.
+  // 정렬 — startTime 우선, 같은 시간이면 league 알파벳 (KBO → MLB → NPB / J1 → J2 등).
+  // 동시간 KBO 매치가 맨 위 (사용자: 국야 위로).
   const byStartThenLeague = (a: NormalizedMatch, b: NormalizedMatch) =>
     a.startTime.getTime() - b.startTime.getTime() || a.league.localeCompare(b.league);
   const liveSorted = [...liveList].sort(byStartThenLeague);
