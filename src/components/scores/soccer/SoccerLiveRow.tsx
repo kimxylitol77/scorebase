@@ -175,12 +175,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <TeamLogo url={home.logo} name={home.name} />
       </div>
 
-      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip / 라이브 최근 골 → emerald ring */}
-      <div
-        className={`relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group ${
-          recentGoalSide ? "rounded-md ring-2 ring-emerald-500 bg-emerald-100/50 dark:bg-emerald-500/20 animate-pulse" : ""
-        }`}
-      >
+      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip. 골 강조는 팀 칸에만 (점수 칸 제외) */}
+      <div className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group">
         {hasScore ? (
           <>
             <span

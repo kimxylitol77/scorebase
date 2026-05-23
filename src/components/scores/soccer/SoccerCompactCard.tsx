@@ -183,23 +183,13 @@ export default function SoccerCompactCard(props: Props) {
         </div>
       </div>
 
-      {/* 점수 2줄 */}
+      {/* 점수 2줄 — 골 강조는 팀 칸에만, 점수 칸 제외 */}
       <div className="shrink-0 w-7 flex flex-col items-end gap-1">
-        <span
-          className={`${scoreClass(homeWin, hasScore && !homeWin)} ${
-            recentGoalSide === "home"
-              ? "px-1 rounded ring-2 ring-emerald-500 bg-emerald-100/50 dark:bg-emerald-500/20 animate-pulse"
-              : ""
-          }`}
-        >
+        <span className={scoreClass(homeWin, hasScore && !homeWin)}>
           {home.score ?? "-"}
         </span>
         <span
-          className={`${scoreClass(awayWin, hasScore && !awayWin)} ${
-            recentGoalSide === "away"
-              ? "px-1 rounded ring-2 ring-emerald-500 bg-emerald-100/50 dark:bg-emerald-500/20 animate-pulse"
-              : ""
-          }`}
+          className={scoreClass(awayWin, hasScore && !awayWin)}
         >
           {away.score ?? "-"}
         </span>
