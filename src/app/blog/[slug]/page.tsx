@@ -102,7 +102,16 @@ export default async function BlogDetailPage({ params }: Props) {
         )}
       </header>
 
-      <Markdown>{b.content}</Markdown>
+      {/* content 가 HTML(<article ... > 시작) 이면 그대로 렌더, 아니면 Markdown.
+          admin 본인이 작성하므로 XSS 위험 없다고 가정. */}
+      {/^\s*<(article|div|section|p|h[1-6])\b/i.test(b.content) ? (
+        <div
+          className="blog-html prose prose-neutral dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: b.content }}
+        />
+      ) : (
+        <Markdown>{b.content}</Markdown>
+      )}
     </main>
   );
 }
