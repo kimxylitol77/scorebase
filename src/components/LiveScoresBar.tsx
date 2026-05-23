@@ -33,9 +33,15 @@ interface ApiResp {
 const POLL_LIVE_MS = 5_000;
 const POLL_IDLE_MS = 180_000;
 
+type GoalSide = "home" | "away" | "both";
+const GOAL_HIGHLIGHT_MS = 5_000;
+
 export default function LiveScoresBar() {
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [loaded, setLoaded] = useState(false);
+  // 골 넣은 팀 색깔 강조 — 매치 id → 어느 쪽 (home/away/both) 득점했는지
+  // 5초 뒤 자동 해제. setTimeout 으로 관리.
+  const [recentGoals, setRecentGoals] = useState<Map<string, GoalSide>>(new Map());
   // 사운드 ON/OFF — LiveSoundToggle 컴포넌트가 localStorage + custom event 로 갱신.
   // 점수 감지 useEffect 가 매번 ref 읽음.
   const soundOnRef = useRef(false);
@@ -127,22 +133,52 @@ export default function LiveScoresBar() {
     };
   }, []);
 
-  // 점수 변화 감지 → chime
-  // - 첫 로드 시점에는 prev 가 비어있어 chime 안 울림 (= 페이지 진입 즉시 알림 X)
-  // - 직전 cycle 의 점수가 다르면 chime
+  // 점수 변화 감지 → chime + 골 측 색깔 강조
+  // - 첫 로드 시점에는 prev 가 비어있어 trigger 안 됨 (= 페이지 진입 즉시 알림 X)
+  // - 직전 cycle 의 점수가 다르면 어느 쪽이 득점했는지 detect → 5초 색깔 강조
   useEffect(() => {
     const newMap = new Map<string, string>();
+    const newGoals = new Map<string, GoalSide>();
     let scored = false;
     for (const m of matches) {
       const key = `${m.homeScore}-${m.awayScore}`;
       newMap.set(m.id, key);
       const prev = prevScoresRef.current.get(m.id);
-      if (prev && prev !== key) scored = true;
+      if (prev && prev !== key) {
+        scored = true;
+        const [prevHomeStr, prevAwayStr] = prev.split("-");
+        const prevHome = parseInt(prevHomeStr, 10);
+        const prevAway = parseInt(prevAwayStr, 10);
+        const homeUp = m.homeScore > prevHome;
+        const awayUp = m.awayScore > prevAway;
+        if (homeUp && awayUp) newGoals.set(m.id, "both");
+        else if (homeUp) newGoals.set(m.id, "home");
+        else if (awayUp) newGoals.set(m.id, "away");
+        // 점수 감소 (정정 등) 는 무시 — 색깔 변화 안 함
+      }
     }
     const isFirstLoad = prevScoresRef.current.size === 0;
     prevScoresRef.current = newMap;
     if (scored && !isFirstLoad && soundOnRef.current) {
       playChime();
+    }
+    // 골 색깔 강조 — 첫 로드는 skip, 그 외 변화 시 5초 highlight
+    if (newGoals.size > 0 && !isFirstLoad) {
+      setRecentGoals((prev) => {
+        const next = new Map(prev);
+        for (const [id, side] of newGoals) next.set(id, side);
+        return next;
+      });
+      for (const id of newGoals.keys()) {
+        setTimeout(() => {
+          setRecentGoals((prev) => {
+            if (!prev.has(id)) return prev;
+            const next = new Map(prev);
+            next.delete(id);
+            return next;
+          });
+        }, GOAL_HIGHLIGHT_MS);
+      }
     }
   }, [matches]);
 
@@ -181,6 +217,9 @@ export default function LiveScoresBar() {
           {matches.map((m) => {
             const href = liveHref(m);
             const isExternal = /^https?:\/\//i.test(href);
+            const goalSide = recentGoals.get(m.id);
+            const homeGoal = goalSide === "home" || goalSide === "both";
+            const awayGoal = goalSide === "away" || goalSide === "both";
             const chipCls =
               "group shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs " +
               "bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 " +
@@ -207,24 +246,33 @@ export default function LiveScoresBar() {
                     {children}
                   </Link>
                 );
+            // 골 측 색깔: emerald (득점 강조) — 5초 후 자동 복귀. transition-colors 로 부드럽게.
+            const teamColor = (scored: boolean) =>
+              scored
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-neutral-700 dark:text-neutral-300";
+            const scoreColor = (scored: boolean) =>
+              scored
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-neutral-900 dark:text-white";
             return (
               <Wrap key={m.id}>
               <LeagueBadge league={m.league} size="sm" />
               {/* home 좌측 통일 — 사이트 전반 규칙 */}
-              <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+              <span className={`font-semibold transition-colors duration-300 ${teamColor(homeGoal)}`}>
                 {m.homeShort}
               </span>
               <CountUp
                 value={m.homeScore}
-                className="font-black tabular-nums text-neutral-900 dark:text-white"
+                className={`font-black tabular-nums transition-colors duration-300 ${scoreColor(homeGoal)}`}
               />
               <span className="text-neutral-400">-</span>
               <CountUp
                 value={m.awayScore}
-                className="font-black tabular-nums text-neutral-900 dark:text-white"
+                className={`font-black tabular-nums transition-colors duration-300 ${scoreColor(awayGoal)}`}
               />
               {/* 점수 동시 갱신 시 두 숫자 모두 부드럽게 카운트업 */}
-              <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+              <span className={`font-semibold transition-colors duration-300 ${teamColor(awayGoal)}`}>
                 {m.awayShort}
               </span>
               <span className="ml-1 text-[10px] text-rose-600 dark:text-rose-400 font-semibold tabular-nums">
