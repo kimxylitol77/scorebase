@@ -122,6 +122,10 @@ const ALL_LEAGUES: League[] = [
   "CLUB_WORLD_CUP",
   "NBA", "NHL", "LOL",
   "WNBA", // 미국 여자 농구 (api-sports basketball v1, league=13) — 4~9월 시즌
+  // stale-cleanup 알림 발견 12개 리그 추가 (2026-05-23) — cron 미호출로 SCHEDULED 자동 POSTPONED 발생
+  "URVALSDEILD", "IRELAND_PD", "ICELAND_1L", "SLOVENIA_SNL",
+  "HNL", "ALLSVENSKAN", "EGYPT_PL", "AUSTRIA_BL",
+  "LIGA_I", "SERBIA_SL", "CHILE_PD", "PERU_PD",
 ];
 
 function parseArgs(): { leagues: League[]; date: string } {
