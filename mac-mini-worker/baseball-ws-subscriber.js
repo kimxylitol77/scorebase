@@ -45,8 +45,9 @@ async function refreshMapping(force = false) {
 }
 
 // baseball MQTT score 메시지에서 현재 점수 추출.
-// 형식 (docs/memory): score = ["match_id", status, half, {ft:[away,home], p1:[...], ...}]
-// ft[0] = away, ft[1] = home.
+// 형식: score = ["match_id", status, half, {ft:[home,away], p1:[...], ...}]
+// ft[0] = home, ft[1] = away. (2026-05-24 네이버 KBO 5경기 검증 — NC vs KT cache=[3,8]
+// 와 실제 KT 4 NC 8 비교, 키움 vs LG cache=[3,4] 와 LG 3 키움 4 비교 등 5건 모두 일치)
 function extractBaseballScore(item) {
   const arr = item?.score;
   if (!Array.isArray(arr) || arr.length < 4) return [null, null];
@@ -54,8 +55,8 @@ function extractBaseballScore(item) {
   if (!scores || typeof scores !== "object") return [null, null];
   const ft = scores.ft;
   if (!Array.isArray(ft) || ft.length < 2) return [null, null];
-  const away = parseInt(String(ft[0]), 10);
-  const home = parseInt(String(ft[1]), 10);
+  const home = parseInt(String(ft[0]), 10);
+  const away = parseInt(String(ft[1]), 10);
   if (!Number.isFinite(home) || !Number.isFinite(away)) return [null, null];
   return [home, away]; // [homeScore, awayScore]
 }

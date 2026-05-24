@@ -569,13 +569,14 @@ export async function GET(
             extra?: { base?: string; out?: number; good?: number; bad?: number };
             score?: unknown[];
           } | null;
-          // score: ft = [away, home] — MQTT 가 ESPN 보다 fresh 시 max 갱신
+          // score: ft = [home, away] — MQTT 가 ESPN 보다 fresh 시 max 갱신
+          // (2026-05-24 네이버 KBO 5경기 검증으로 [home, away] 확정)
           const scoreObj = Array.isArray(dl?.score) && dl.score.length >= 4
             ? (dl.score[3] as { ft?: string[] } | undefined)
             : undefined;
           if (scoreObj?.ft && scoreObj.ft.length === 2) {
-            const tsAway = parseInt(scoreObj.ft[0] ?? "0", 10);
-            const tsHome = parseInt(scoreObj.ft[1] ?? "0", 10);
+            const tsHome = parseInt(scoreObj.ft[0] ?? "0", 10);
+            const tsAway = parseInt(scoreObj.ft[1] ?? "0", 10);
             if (Number.isFinite(tsAway) && tsAway > live.awayTeam.score) {
               live.awayTeam.score = tsAway;
             }

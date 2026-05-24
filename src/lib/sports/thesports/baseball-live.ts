@@ -18,9 +18,14 @@
 //     players: { home: [...], away: [...] }  (옵션)
 //   }
 //
-// ft = [away, home] 순서 — ws-subscriber 의 extractBaseballScore 와 일치, 종료된
-// KIA(3) vs SSG(2) 매치 ft=["3","2"] 와 DB.Match(home=2, away=3) 비교로 확정.
-// pN = [away, home] 동일.
+// ft = [home, away] 순서 (2026-05-24 네이버 KBO 5경기 검증 확정):
+//   - NC vs KT 수원: cache.ft=["3","8"], 네이버=KT(home) 4, NC(away) 8 → ft[0]=home, ft[1]=away
+//   - 키움 vs LG 잠실: cache.ft=["3","4"], 네이버=LG(home) 3, 키움(away) 4 → 일치
+//   - 두산 vs 한화 대전: cache.ft=["5","2"], 네이버=한화(home) 5, 두산(away) 2 → 일치
+//   - 삼성 vs 롯데 사직: cache.ft=["0","10"], 네이버=롯데(home) 0, 삼성(away) 10 → 일치
+// pN = [home, away] 동일.
+// (이전 commit 97a5f02 의 [away, home] 정정은 KIA vs SSG 한 케이스만 보고 잘못 결론.
+//  사실 그 매치는 DB.home/away team 매핑 자체가 거꾸로 들어와서 그렇게 보였던 것.)
 
 import type { MatchStatus } from "../types";
 
@@ -105,9 +110,9 @@ export function convertCacheToBaseballLive(opts: {
   const ft = sObj.ft;
   if (!Array.isArray(ft) || ft.length !== 2) return null;
 
-  // 점수 (ft = [away, home])
-  const awayScore = parseSc(ft[0]) ?? 0;
-  const homeScore = parseSc(ft[1]) ?? 0;
+  // 점수 (ft = [home, away])
+  const homeScore = parseSc(ft[0]) ?? 0;
+  const awayScore = parseSc(ft[1]) ?? 0;
 
   // cache vs DB 점수 일치 검증 — 불일치 시 cache stale 로 판단, fallback 유도.
   // DB 점수 null (예정 매치) 인 경우는 검증 skip (cache 가 사실상 source).
@@ -117,7 +122,7 @@ export function convertCacheToBaseballLive(opts: {
     }
   }
 
-  // 이닝별 — p1, p2, ..., p20 까지 탐색 (pN = [away, home])
+  // 이닝별 — p1, p2, ..., p20 까지 탐색 (pN = [home, away])
   const homeInnings: (number | null)[] = [];
   const awayInnings: (number | null)[] = [];
   let maxInning = 0;
@@ -125,15 +130,15 @@ export function convertCacheToBaseballLive(opts: {
     const p = sObj[`p${i}` as `p${number}`];
     if (!p) continue;
     maxInning = i;
-    awayInnings.push(parseSc(p[0]));
-    homeInnings.push(parseSc(p[1]));
+    homeInnings.push(parseSc(p[0]));
+    awayInnings.push(parseSc(p[1]));
   }
 
-  // hits / errors ([away, home])
-  const hitsAway = sObj.h ? parseSc(sObj.h[0]) : null;
-  const hitsHome = sObj.h ? parseSc(sObj.h[1]) : null;
-  const errAway = sObj.e ? parseSc(sObj.e[0]) : null;
-  const errHome = sObj.e ? parseSc(sObj.e[1]) : null;
+  // hits / errors ([home, away])
+  const hitsHome = sObj.h ? parseSc(sObj.h[0]) : null;
+  const hitsAway = sObj.h ? parseSc(sObj.h[1]) : null;
+  const errHome = sObj.e ? parseSc(sObj.e[0]) : null;
+  const errAway = sObj.e ? parseSc(sObj.e[1]) : null;
 
   // status / label — DB.Match.status 우선
   // halfTopBot = score[2] (1=top/초, 2=bottom/말 추정)
