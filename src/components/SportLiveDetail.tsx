@@ -118,6 +118,9 @@ interface Props {
   initialAwayScore?: number | null;
   /** DB Match.status — 라이브 API 가 매치 못 찾을 때 fallback (종료된 매치 등) */
   initialStatus?: "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED";
+  /** 리그 순위 (TheSports standings) — 팀명 옆 [N] 표시. 클릭 시 새창에서 /predictions/{league} */
+  homePosition?: number | null;
+  awayPosition?: number | null;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -137,6 +140,8 @@ export default function SportLiveDetail({
   initialHomeScore,
   initialAwayScore,
   initialStatus,
+  homePosition,
+  awayPosition,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -292,7 +297,7 @@ export default function SportLiveDetail({
 
         {/* 양팀 + 점수 — home 좌측 / away 우측 (한국 축구·야구 미디어 관행) */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} />
+          <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} position={homePosition} league={league} />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
             <span
               style={{
@@ -314,7 +319,7 @@ export default function SportLiveDetail({
               <CountUp value={a} />
             </span>
           </div>
-          <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} />
+          <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} position={awayPosition} league={league} />
         </div>
       </div>
 
@@ -573,11 +578,32 @@ function TeamBlock({
   teamId,
   logo,
   name,
+  position,
+  league,
 }: {
   teamId?: number;
   logo?: string | null;
   name: string;
+  position?: number | null;
+  league?: string;
 }) {
+  const nameWithPosition = (
+    <div className="font-bold truncate">
+      {name}
+      {position != null && league && (
+        <a
+          href={`/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          title={`${name} 리그 순위 보기 (새창)`}
+          className="ml-1 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+        >
+          [{position}]
+        </a>
+      )}
+    </div>
+  );
   const inner = (
     <>
       {logo ? (
@@ -594,7 +620,7 @@ function TeamBlock({
           {name.slice(0, 1)}
         </div>
       )}
-      <div className="font-bold truncate">{name}</div>
+      {nameWithPosition}
     </>
   );
   if (teamId != null) {

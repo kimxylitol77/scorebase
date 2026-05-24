@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { LEAGUE_DISPLAY, SPORTS } from "@/lib/sports/sport-leagues";
+import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
@@ -105,6 +106,12 @@ export default async function GenericLivePage({ params }: Props) {
 
   const extras = await fetchMatchExtras(match);
 
+  // 양 팀 리그 순위 — TheSports standings cache 기반. fetch 실패/매핑 누락 시 null.
+  const standingsRows = await getFullStandings(lg).catch(() => []);
+  const positionByTeamId = new Map(standingsRows.map((r) => [r.teamId, r.position]));
+  const homePosition = positionByTeamId.get(match.homeTeam.id) ?? null;
+  const awayPosition = positionByTeamId.get(match.awayTeam.id) ?? null;
+
   // NHL 골리 (다른 리그는 null)
   const homeGoalie = lg === "NHL" ? parseGoalie(match.homeGoalie) : null;
   const awayGoalie = lg === "NHL" ? parseGoalie(match.awayGoalie) : null;
@@ -174,6 +181,8 @@ export default async function GenericLivePage({ params }: Props) {
         initialHomeScore={match.homeScore}
         initialAwayScore={match.awayScore}
         initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
+        homePosition={homePosition}
+        awayPosition={awayPosition}
       />
 
       {/* TheSports 카드 (축구만, cache 있을 때) */}

@@ -51,7 +51,7 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
       <img
         src={url}
         alt=""
-        className="w-5 h-5 object-contain shrink-0"
+        className="h-5 w-auto max-w-[2.5rem] object-contain shrink-0"
         loading="lazy"
       />
     );
@@ -339,7 +339,13 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           {rowContent}
         </a>
       ) : (
-        <Link href={href} prefetch={false} className="block">
+        <Link
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          prefetch={false}
+          className="block"
+        >
           {rowContent}
         </Link>
       )}
