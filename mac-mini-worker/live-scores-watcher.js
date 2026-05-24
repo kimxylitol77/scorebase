@@ -31,8 +31,11 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 const WORKER_NAME = "mac-mini-live-scores";
 const POLL_MS = 60 * 1000; // 1분
 const REQ_TIMEOUT_MS = 20_000;
-const SLOW_WARN_MS = 5_000;
-const SLOW_HIGH_MS = 15_000;
+// Vercel function cold start (~1.5s) + 외부 API 일시 지연 시 5-8s 가능 (outlier).
+// CDN HIT 시 평균 0.5초라 8초 넘기면 실제 stale, 20초+ 면 함수 문제.
+// 2026-05-23: false alarm noise 줄이기 위해 5→8s, 15→20s.
+const SLOW_WARN_MS = 8_000;
+const SLOW_HIGH_MS = 20_000;
 const NULL_HIGH_MS = 10 * 60 * 1000;    // LIVE null 10분 지속 → HIGH
 const STUCK_HIGH_MS = 90 * 60 * 1000;   // 같은 score 90분 → HIGH (정규 종료 시간 + 마진)
 

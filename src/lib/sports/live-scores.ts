@@ -1053,12 +1053,76 @@ async function fetchAfGoalRawsForFixture(
 }
 
 /**
- * 야구 (KBO/NPB/MLB) 라이브 매치 — TheSports cache 우선.
+ * ESPN MLB scoreboard LIVE — TheSports cache 가 stale 한 경우 (Lightsail
+ * subscriber 멈춤 등) 의 안전망. MLB collector 가 ESPN id 사용하므로 id 호환.
+ */
+async function fetchEspnMlbLive(): Promise<LiveMatch[]> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(
+      "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard",
+      { signal: ctrl.signal, headers: { "User-Agent": "scorebase/1.0" } },
+    );
+    clearTimeout(t);
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      events?: Array<{
+        id: string;
+        date: string;
+        status?: { type?: { name?: string; shortDetail?: string } };
+        competitions?: Array<{
+          competitors?: Array<{
+            homeAway?: string;
+            team?: { displayName?: string; name?: string; abbreviation?: string };
+            score?: string;
+          }>;
+        }>;
+      }>;
+    };
+    const live: LiveMatch[] = [];
+    for (const e of data.events ?? []) {
+      const name = e.status?.type?.name ?? "";
+      if (name !== "STATUS_IN_PROGRESS" && name !== "STATUS_DELAYED") continue;
+      const comp = e.competitions?.[0];
+      const competitors = comp?.competitors ?? [];
+      const home = competitors.find((c) => c.homeAway === "home");
+      const away = competitors.find((c) => c.homeAway === "away");
+      if (!home?.team || !away?.team) continue;
+      const homeName = home.team.displayName ?? home.team.name ?? "?";
+      const awayName = away.team.displayName ?? away.team.name ?? "?";
+      live.push({
+        id: `mlb-${e.id}`, // ESPN id 직접 — Match.externalId 호환
+        league: "MLB",
+        leagueLabel: LEAGUE_LABEL.MLB ?? "MLB",
+        homeName,
+        awayName,
+        homeShort: home.team.abbreviation ?? shortName(homeName, "MLB"),
+        awayShort: away.team.abbreviation ?? shortName(awayName, "MLB"),
+        homeScore: parseInt(home.score ?? "0", 10) || 0,
+        awayScore: parseInt(away.score ?? "0", 10) || 0,
+        statusLabel: e.status?.type?.shortDetail ?? "LIVE",
+        startTime: e.date ?? new Date().toISOString(),
+        baseball: undefined,
+      });
+    }
+    return live;
+  } catch (e) {
+    console.warn("[live-scores/mlb-espn-fallback]", (e as Error).message);
+    return [];
+  }
+}
+
+/**
+ * 야구 (KBO/NPB/MLB) 라이브 매치 — TheSports cache 우선 + ESPN MLB fallback.
  *
  * 2026-05-24 변경: api-sports baseball → TheSports cache.
  * - api-sports 가 MLB LIVE status 갱신 안 함 (Not Started 로 stuck) → 0건 응답
  * - TheSports MQTT subscriber + baseball-poller 가 detailLive cache 1-2초 주기 갱신
  * - cache.updatedAt > now - 5분 = 진행 중 매치 (FINISHED 매치는 push 안 옴)
+ *
+ * 2026-05-24 추가: TheSports cache 가 stale (Lightsail 멈춤 등) 일 때 MLB 만 ESPN
+ * scoreboard fallback. KBO/NPB 는 ESPN 미커버라 어쩔 수 없이 cache 기다림.
  *
  * /api/live/baseball/[gameId] 의 cache 우선 전환 (e470fc9) 과 일관.
  */

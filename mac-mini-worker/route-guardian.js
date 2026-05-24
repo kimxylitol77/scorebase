@@ -32,6 +32,10 @@ const REQ_TIMEOUT_MS = 20_000;
 const CONCURRENCY = 5;           // 동시 fetch 수 (Vercel function 부하 고려)
 const BFS_MAX_URLS = 500;        // BFS 최대 탐색 URL
 const BFS_MAX_DEPTH = 3;
+// 속도 임계 — checkUrl 의 dur (ms) 기준. CDN HIT 평균 0.5초, MISS 1-2초, cold 3-5초.
+// 3초+ 느림, 8초+ 매우 느림 (방문자 체감 큰 지연).
+const SLOW_WARN_MS = 3_000;
+const SLOW_HIGH_MS = 8_000;
 
 if (!TOKEN) {
   console.error("❌ INTERNAL_API_TOKEN 미설정 — .env 확인");
@@ -238,25 +242,55 @@ async function runOnce() {
   const errsNet = all.filter((r) => r.kind === "error");
   const oks = all.filter((r) => r.kind === "ok");
 
+  // ── 속도 통계 (OK 응답만 — 에러는 timeout 으로 max dur 일 수 있어 제외) ──
+  const okDurs = oks.map((r) => r.dur).filter((d) => Number.isFinite(d)).sort((a, b) => a - b);
+  const avgMs = okDurs.length > 0
+    ? Math.round(okDurs.reduce((s, d) => s + d, 0) / okDurs.length)
+    : 0;
+  const p50Ms = okDurs.length > 0 ? okDurs[Math.floor(okDurs.length * 0.5)] : 0;
+  const p95Ms = okDurs.length > 0 ? okDurs[Math.floor(okDurs.length * 0.95)] : 0;
+  const slowWarn = oks
+    .filter((r) => r.dur >= SLOW_WARN_MS && r.dur < SLOW_HIGH_MS)
+    .sort((a, b) => b.dur - a.dur);
+  const slowHigh = oks
+    .filter((r) => r.dur >= SLOW_HIGH_MS)
+    .sort((a, b) => b.dur - a.dur);
+
   console.log(`\n  결과: OK ${oks.length} / 404 ${bad404.length} / 5xx ${errs5xx.length} / 4xx ${errs4xx.length} / net ${errsNet.length}`);
+  console.log(`  속도: avg ${avgMs}ms · p50 ${p50Ms}ms · p95 ${p95Ms}ms · 느림(${SLOW_WARN_MS}ms+) ${slowWarn.length}건 · 매우느림(${SLOW_HIGH_MS}ms+) ${slowHigh.length}건`);
 
   // ── 텔레그램 보고 + DB finding insert ──
   const totalBad = bad404.length + errs5xx.length + errsNet.length;
-  const severity = bad404.length + errs5xx.length > 0 ? "HIGH" : errs4xx.length > 0 ? "WARN" : "INFO";
+  const severity =
+    bad404.length + errs5xx.length > 0 || slowHigh.length > 0
+      ? "HIGH"
+      : errs4xx.length > 0 || slowWarn.length > 0
+        ? "WARN"
+        : "INFO";
 
   const sampleList = (arr, max = 8) =>
     arr
       .slice(0, max)
       .map((r) => `• ${r.url.replace(SITE, "")} (${r.status || "ERR"}, src=${r.src})`)
       .join("\n");
+  const slowList = (arr, max = 8) =>
+    arr
+      .slice(0, max)
+      .map((r) => `• ${r.dur}ms — ${r.url.replace(SITE, "")}`)
+      .join("\n");
 
   const lines = [];
   lines.push(`📊 검사: ${all.length}개 (sitemap ${sitemapResults.length} + BFS ${bfsResults.length})`);
   lines.push(`✅ 정상: ${oks.length}`);
+  lines.push(`⏱ 속도: avg ${avgMs}ms · p50 ${p50Ms}ms · p95 ${p95Ms}ms`);
   if (bad404.length) lines.push(`🚨 404: ${bad404.length}건\n${sampleList(bad404)}`);
   if (errs5xx.length) lines.push(`🔥 5xx: ${errs5xx.length}건\n${sampleList(errs5xx)}`);
   if (errs4xx.length) lines.push(`⚠️ 기타 4xx: ${errs4xx.length}건\n${sampleList(errs4xx, 5)}`);
   if (errsNet.length) lines.push(`📡 네트워크 오류: ${errsNet.length}건\n${sampleList(errsNet, 5)}`);
+  if (slowHigh.length)
+    lines.push(`🐢 매우 느림 (${SLOW_HIGH_MS}ms+): ${slowHigh.length}건\n${slowList(slowHigh)}`);
+  if (slowWarn.length)
+    lines.push(`🐌 느림 (${SLOW_WARN_MS}-${SLOW_HIGH_MS}ms): ${slowWarn.length}건\n${slowList(slowWarn, 5)}`);
 
   const stats = {
     total: all.length,
@@ -265,35 +299,60 @@ async function runOnce() {
     err5xx: errs5xx.length,
     err4xx: errs4xx.length,
     netErr: errsNet.length,
+    timing: { avgMs, p50Ms, p95Ms, slowWarn: slowWarn.length, slowHigh: slowHigh.length },
     sample404: bad404.slice(0, 30).map((r) => r.url.replace(SITE, "")),
     sample5xx: errs5xx.slice(0, 10).map((r) => r.url.replace(SITE, "")),
+    sampleSlow: [...slowHigh, ...slowWarn]
+      .slice(0, 20)
+      .map((r) => ({ url: r.url.replace(SITE, ""), dur: r.dur })),
   };
 
   // 텔레그램 알림
+  const totalIssues = totalBad + slowHigh.length + slowWarn.length;
+  const title =
+    totalBad > 0
+      ? `라우트 점검 — 깨진 페이지 ${totalBad}건`
+      : slowHigh.length > 0
+        ? `라우트 점검 — 매우 느린 페이지 ${slowHigh.length}건`
+        : slowWarn.length > 0
+          ? `라우트 점검 — 느린 페이지 ${slowWarn.length}건`
+          : "라우트 점검 정상";
   await notify({
     severity,
-    title: totalBad === 0 ? "라우트 점검 정상" : `라우트 점검 — 문제 ${totalBad}건`,
-    what: `sitemap 전수 + 홈 BFS 크롤`,
+    title,
+    what: `sitemap 전수 + 홈 BFS 크롤 + 응답 속도`,
     when: tsKst(),
-    impact: totalBad === 0
-      ? "사이트 모든 URL 정상 응답"
-      : `방문자/검색엔진이 ${totalBad}개 URL에서 깨진 페이지 만남`,
-    cause: totalBad === 0 ? "—" : "스킴 변경/매치 삭제/링크 오타 등 추정",
-    action: totalBad === 0 ? "—" : "위 URL 들 직접 확인 후 sitemap 또는 라우트 수정",
+    impact:
+      totalBad > 0
+        ? `방문자/검색엔진이 ${totalBad}개 URL에서 깨진 페이지 만남`
+        : slowHigh.length > 0
+          ? `방문자가 ${slowHigh.length}개 페이지에서 ${SLOW_HIGH_MS / 1000}s+ 지연 체감`
+          : "사이트 모든 URL 정상 응답",
+    cause: totalBad === 0 && totalIssues === 0
+      ? "—"
+      : "스킴 변경/매치 삭제/cold start/외부 API 지연 등 추정",
+    action: totalIssues === 0 ? "—" : "위 URL 들 직접 확인 후 sitemap·라우트·캐시 수정",
     message: lines.join("\n\n"),
     metadata: stats,
   });
 
   // /admin/health 채팅에 노출되도록 HealthCheck row insert
-  // severity 매핑: HIGH alert → HIGH finding, WARN → MED, INFO → OK
   const findingSeverity = severity === "HIGH" ? "HIGH" : severity === "WARN" ? "MED" : "OK";
+  const findingMessage =
+    totalBad === 0 && slowHigh.length === 0 && slowWarn.length === 0
+      ? `사이트 ${all.length}개 URL 모두 정상 (avg ${avgMs}ms)`
+      : [
+          totalBad > 0 ? `404 ${bad404.length}건${errs5xx.length ? ` · 5xx ${errs5xx.length}건` : ""}${errsNet.length ? ` · 네트워크 ${errsNet.length}건` : ""}` : null,
+          slowHigh.length > 0 ? `매우느림 ${slowHigh.length}건` : null,
+          slowWarn.length > 0 ? `느림 ${slowWarn.length}건` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ") + ` (avg ${avgMs}ms, p95 ${p95Ms}ms)`;
   await postHealthFinding({
     category: "route-guardian",
     severity: findingSeverity,
     key: `crawl-${all.length}`,
-    message: totalBad === 0
-      ? `사이트 ${all.length}개 URL 모두 정상`
-      : `404 ${bad404.length}건${errs5xx.length ? ` · 5xx ${errs5xx.length}건` : ""}${errsNet.length ? ` · 네트워크 오류 ${errsNet.length}건` : ""} 발견`,
+    message: findingMessage,
     metadata: stats,
   });
 
