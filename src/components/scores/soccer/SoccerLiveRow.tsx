@@ -7,7 +7,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { getLeagueBadge } from "./leagueBadge";
 import FavoriteStar from "../FavoriteStar";
 import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
@@ -88,14 +87,16 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayFirst,
   } = props;
 
-  const router = useRouter();
   const goToStandings = (teamId: number | undefined) => (
     e: React.MouseEvent<HTMLButtonElement>,
   ) => {
     e.preventDefault();
     e.stopPropagation();
     const hash = teamId != null ? `#team-${teamId}` : "";
-    router.push(`/predictions/${league}${hash}`);
+    // 새창에서 열기 — row 의 Link href 와 충돌 안 하도록 window.open 사용
+    if (typeof window !== "undefined") {
+      window.open(`/predictions/${league}${hash}`, "_blank", "noopener,noreferrer");
+    }
   };
 
   const badge = getLeagueBadge(league);
@@ -131,14 +132,18 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,154px)",
       }}
     >
-      {/* 1. 리그 배지 */}
-      <div
-        className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate"
+      {/* 1. 리그 배지 — 클릭 시 새창에서 리그 순위 페이지 */}
+      <a
+        href={`/predictions/${league}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate hover:opacity-80 transition"
         style={{ background: badge.bg, color: badge.fg }}
-        title={badge.label}
+        title={`${badge.label} 리그 순위 보기 (새창)`}
       >
         {badge.label}
-      </div>
+      </a>
 
       {/* 2. KST 시간 */}
       <div className="text-[12px] text-neutral-600 dark:text-neutral-400 tabular-nums">
