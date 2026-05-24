@@ -59,6 +59,8 @@ const KIND_LABEL = {
   inning_missing: "⚾ 이닝 정보 누락",
   cache_db_mismatch: "🔀 cache vs DB 불일치",
   stale_live: "⏸ 라이브 갱신 멈춤",
+  standings_stale: "🏆 순위 cache stale",
+  standings_mismatch: "⚠️ 순위 source 불일치",
 };
 
 const KIND_CAUSE = {
@@ -66,13 +68,17 @@ const KIND_CAUSE = {
   inning_missing: "ws-subscriber MQTT 수신 끊김 또는 mapping cache 누락",
   cache_db_mismatch: "ft 인덱싱 가정 오류 또는 monotonic max 부작용",
   stale_live: "collector/ws-subscriber 멈춤 또는 외부 API 응답 stuck",
+  standings_stale: "Lightsail standings-poller 죽음 또는 Vercel standings-collect cron 실패",
+  standings_mismatch: "두 source 중 하나가 stale — fresh source 우선순위 확인",
 };
 
 const KIND_ACTION = {
   score_drift: "mapBaseballStatus 코드 + Match.status 직접 확인",
   inning_missing: "/tmp/baseball-ws-subscriber.log + ts-baseball-mapping endpoint",
-  cache_db_mismatch: "convertCacheToBaseballLive 의 ft[0]=away, ft[1]=home 가정 검증",
+  cache_db_mismatch: "convertCacheToBaseballLive 의 ft[0]=home, ft[1]=away 가정 검증",
   stale_live: "Vercel cron 로그 + baseball-poller.log + baseball-ws-subscriber.log",
+  standings_stale: "Lightsail: sudo systemctl status scorebase-standings-poller / Vercel cron: /api/cron/standings-collect 로그",
+  standings_mismatch: "src/lib/sports/thesports/standings-helper.ts 의 source 우선순위 확인",
 };
 
 async function poll() {
