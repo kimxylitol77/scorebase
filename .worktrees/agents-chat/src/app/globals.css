@@ -1,0 +1,642 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* class-based 다크모드 — html.dark 일 때 활성화 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
+    sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+/* html · body 모두 background 적용 — 첫 paint 가 어디서 시작되든 dark 가
+   즉시 보이게. inline script (layout.tsx) 가 html.style 로도 한 번 더 set. */
+html {
+  background: var(--background);
+  color: var(--foreground);
+}
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss03", "cv01"; /* Pretendard 의 한글 가독성 향상 */
+  text-rendering: optimizeLegibility;
+}
+
+/* 본문 한글 줄간격은 약간 넉넉하게 */
+.prose {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* Hero — 통계 기반 메시지 강조용 그라디언트 + 취소선 */
+.hero-accent {
+  background: linear-gradient(90deg, #00d4ff 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.25));
+}
+.hero-accent-soft {
+  /* light 모드 — 흰 배경 위에서 보이도록 어두운 회색 */
+  color: rgba(0, 0, 0, 0.35);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(0, 0, 0, 0.25);
+}
+.dark .hero-accent-soft {
+  /* dark 모드 — 검은 배경 위에서 보이도록 흰색 반투명 */
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+}
+.hero .lede {
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* CTA 버튼 — 다크 테마 기준, light 모드는 색상만 반전 */
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, transform 0.05s ease;
+}
+.btn-primary {
+  background: linear-gradient(90deg, #00d4ff 0%, #3b82f6 100%);
+  color: #0a0a0a;
+  border: 1px solid transparent;
+  box-shadow: 0 8px 24px -10px rgba(0, 212, 255, 0.5);
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+.btn-primary:active {
+  transform: translateY(1px);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.dark .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+:root:not(.dark) .btn-secondary {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.btn-secondary:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+  color: #00d4ff;
+}
+
+/* Footer — 다크 톤 hard-code (사이트 액센트 #00d4ff 와 통일) */
+.site-footer {
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.site-footer__heading {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.01em;
+}
+.site-footer__link {
+  display: inline-block;
+  transition: color 0.15s ease;
+}
+.site-footer__link:hover {
+  color: #00d4ff;
+}
+.site-footer__notice {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.site-footer__bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ============================================================
+ * /scores 매치 카드 (named.com 스타일, dark 톤 + cyan 액센트)
+ * ==========================================================*/
+:root {
+  --score-bg-card: #ffffff;
+  --score-bg-card-hover: #f8fafc;
+  --score-border: rgba(0, 0, 0, 0.08);
+  --score-border-hover: rgba(0, 212, 255, 0.5);
+  --score-text-muted: #6b6b6b;
+}
+.dark {
+  --score-bg-card: #141414;
+  --score-bg-card-hover: #1c1c1c;
+  --score-border: rgba(255, 255, 255, 0.08);
+  --score-border-hover: rgba(0, 212, 255, 0.45);
+  --score-text-muted: #a3a3a3;
+}
+
+.match-card {
+  background: var(--score-bg-card);
+  border: 1px solid var(--score-border);
+  border-radius: 12px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s,
+    box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.match-card:hover {
+  background: var(--score-bg-card-hover);
+  border-color: var(--score-border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 212, 255, 0.08);
+}
+.match-card.live {
+  border-left: 3px solid #ef4444;
+}
+.match-card.live::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.04) 0%,
+    transparent 30%
+  );
+  pointer-events: none;
+}
+
+/* Scorebase LiveCard v2 — 종목별 LIVE 카드 (야구/농구/하키/LOL 공통)
+   다크 카드 + 초록 글로우 보더 + 종목별 컨텍스트 박스 + 라인스코어 */
+.match-card.baseball-live-card,
+.match-card.basketball-live-card,
+.match-card.hockey-live-card,
+.match-card.esports-live-card {
+  border-left: none;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  box-shadow:
+    0 0 24px rgba(34, 197, 94, 0.08),
+    0 8px 30px rgba(0, 0, 0, 0.4);
+}
+.match-card.baseball-live-card::before,
+.match-card.basketball-live-card::before,
+.match-card.hockey-live-card::before,
+.match-card.esports-live-card::before {
+  display: none;
+}
+.match-card.baseball-live-card:hover,
+.match-card.basketball-live-card:hover,
+.match-card.hockey-live-card:hover,
+.match-card.esports-live-card:hover {
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow:
+    0 0 32px rgba(34, 197, 94, 0.15),
+    0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+/* 종료 카드 — 살짝 어둡게 (희미하게) */
+.match-card.match-card-finished {
+  opacity: 0.85;
+}
+.match-card.match-card-finished:hover {
+  opacity: 1;
+}
+
+/* 가로 스크롤바 숨기기 — 모바일 리그 탭 등에서 사용 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* LIVE 펄스 (배지 안의 빨간 점) */
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+.live-dot {
+  animation: livePulse 1.4s ease-in-out infinite;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.status-badge.live {
+  background: #ef4444;
+  color: white;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+.status-badge.scheduled {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+}
+.dark .status-badge.scheduled {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+}
+.status-badge.finished {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--score-text-muted);
+}
+.dark .status-badge.finished {
+  background: rgba(255, 255, 255, 0.06);
+}
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* 베이스 다이아몬드 — BaseballMiniBoard */
+.baseball-diamond {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+.baseball-diamond .base {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--score-border);
+  border: 1.5px solid var(--score-text-muted);
+  transform: rotate(45deg);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.baseball-diamond .base.occupied {
+  background: #00d4ff;
+  border-color: #00d4ff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.55);
+}
+.baseball-diamond .base.b1 {
+  right: 4px;
+  top: 50%;
+  margin-top: -6px;
+}
+.baseball-diamond .base.b2 {
+  left: 50%;
+  top: 4px;
+  margin-left: -6px;
+}
+.baseball-diamond .base.b3 {
+  left: 4px;
+  top: 50%;
+  margin-top: -6px;
+}
+.baseball-diamond .base.home {
+  left: 50%;
+  bottom: 4px;
+  margin-left: -6px;
+  opacity: 0.55;
+}
+
+/* 카드 클릭 시 cursor — 전체 link 인 카드 */
+.match-card a.card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 스켈레톤 */
+.skeleton-card {
+  background: linear-gradient(
+    90deg,
+    var(--score-bg-card) 0%,
+    var(--score-bg-card-hover) 50%,
+    var(--score-bg-card) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border: 1px solid var(--score-border);
+  border-radius: 12px;
+  height: 132px;
+}
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* DateSlider pill */
+.date-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+  padding: 6px 8px;
+  border-radius: 20px;
+  background: var(--score-bg-card);
+  border: 1px solid var(--score-border);
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-size: 11px;
+  line-height: 1.2;
+}
+@media (min-width: 640px) {
+  .date-pill {
+    min-width: 60px;
+    padding: 8px 14px;
+    border-radius: 24px;
+    font-size: 12px;
+  }
+}
+.date-pill:hover {
+  border-color: var(--score-border-hover);
+}
+.date-pill.active {
+  background: linear-gradient(135deg, #00d4ff 0%, #3b82f6 100%);
+  color: white;
+  border-color: transparent;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.25);
+}
+.date-pill.today:not(.active) {
+  border-color: rgba(0, 212, 255, 0.5);
+  color: #00d4ff;
+}
+
+/* SportTabs pill */
+.sport-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--score-bg-card);
+  border: 1px solid var(--score-border);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+@media (min-width: 640px) {
+  .sport-tab {
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+.sport-tab:hover {
+  border-color: var(--score-border-hover);
+}
+.sport-tab.active {
+  background: #0a0a0a;
+  color: white;
+  border-color: #0a0a0a;
+  font-weight: 700;
+}
+.dark .sport-tab.active {
+  background: white;
+  color: #0a0a0a;
+  border-color: white;
+}
+
+/* ============================================================
+ * Match Insight Sidebar — 베팅 앱 스타일 시각 + 미디어 톤 텍스트
+ * ==========================================================*/
+:root {
+  --insight-bg-base: #071019;
+  --insight-bg-card: rgba(15, 23, 42, 0.92);
+  --insight-bg-elev: #0b1220;
+  --insight-border: rgba(255, 255, 255, 0.06);
+  --insight-border-cyan: rgba(59, 130, 246, 0.35);
+  --insight-border-success: rgba(34, 197, 94, 0.35);
+
+  --insight-text: #f8fafc;
+  --insight-text-2: #cbd5e1;
+  --insight-text-3: #94a3b8;
+
+  --insight-cyan: #60a5fa;
+  --insight-cyan-soft: rgba(59, 130, 246, 0.14);
+  --insight-success: #22c55e;
+  --insight-success-soft: rgba(34, 197, 94, 0.12);
+  --insight-gold: #facc15;
+
+  --insight-glow-success: 0 0 35px rgba(34, 197, 94, 0.12),
+    0 8px 30px rgba(0, 0, 0, 0.35);
+  --insight-glow-cyan: 0 0 20px rgba(59, 130, 246, 0.12);
+  --insight-shadow-green: 0 0 20px rgba(34, 197, 94, 0.35);
+  --insight-shadow-yellow: 0 0 16px rgba(250, 204, 21, 0.3);
+}
+
+.insight-shell {
+  position: relative;
+  background: linear-gradient(180deg, var(--insight-bg-base) 0%, #0f172a 100%);
+  border: 1px solid var(--insight-border);
+  border-radius: 18px;
+  color: var(--insight-text);
+  padding: 18px;
+  overflow: hidden;
+}
+.insight-shell::before {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.22) 0%,
+    transparent 60%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.insight-card {
+  background: var(--insight-bg-card);
+  border: 1px solid var(--insight-border);
+  border-radius: 14px;
+  padding: 14px;
+}
+.insight-card.glow-success {
+  border-color: var(--insight-border-success);
+  box-shadow: var(--insight-glow-success);
+}
+.insight-card.glow-soft {
+  border-color: rgba(34, 197, 94, 0.18);
+}
+
+.insight-big-number {
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.insight-big-number.green {
+  color: var(--insight-success);
+  text-shadow: var(--insight-shadow-green);
+}
+.insight-big-number.gold {
+  color: var(--insight-gold);
+  text-shadow: var(--insight-shadow-yellow);
+}
+
+.insight-match-name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--insight-text);
+}
+
+.insight-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.insight-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.insight-bar-fill.cyan {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.45);
+}
+.insight-bar-fill.green {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.45);
+}
+.insight-bar-fill.gray {
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.6),
+    rgba(148, 163, 184, 0.85)
+  );
+}
+
+.insight-tab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--insight-border);
+  background: transparent;
+  color: var(--insight-text-3);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.insight-tab:hover {
+  color: var(--insight-text-2);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.insight-tab.active {
+  color: var(--insight-cyan);
+  border-color: var(--insight-border-cyan);
+  background: var(--insight-cyan-soft);
+  box-shadow: var(--insight-glow-cyan);
+}
+
+.insight-badge-strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--insight-success-soft);
+  color: var(--insight-success);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.insight-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+.insight-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--insight-border);
+  color: var(--insight-text-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 리그 필터 칩 */
+.league-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--score-border);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.league-chip:hover {
+  border-color: var(--score-border-hover);
+}
+.league-chip.active {
+  border-color: #00d4ff;
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.08);
+}

@@ -24,12 +24,14 @@ import {
   fetchBaseballByDate,
   fetchMlbByDate,
   fetchSoccerGoalsByDate,
+  fetchSoccerCardsByDate,
   fetchEspnPeriodLinescores,
   extractNbaUltraPeriodsFromRaw,
   soccerGoalsPairKey,
   type BaseballGameDetails,
   type PeriodLinescore as PeriodLinescoreData,
   type SoccerGoal,
+  type SoccerCard,
   type LiveMatch,
 } from "@/lib/sports/live-scores";
 import SportTabs from "@/components/scores/SportTabs";
@@ -75,6 +77,13 @@ const fetchMlbByDateCached = unstable_cache(
 const fetchSoccerGoalsByDateCached = unstable_cache(
   fetchSoccerGoalsByDate,
   ["scores-page-soccer-goals"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// 축구 카드 list (옐로/레드) — ESPN scoreboard details. goals 와 같은 endpoint
+// 호출이지만 별도 cache key 라 Next.js fetch dedupe 활용.
+const fetchSoccerCardsByDateCached = unstable_cache(
+  fetchSoccerCardsByDate,
+  ["scores-page-soccer-cards"],
   { revalidate: 60, tags: ["live-scores"] },
 );
 // NBA/NHL 쿼터/피리어드별 점수 — ESPN scoreboard linescores.
@@ -409,6 +418,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     apiSportsDetails,
     mlbDetails,
     soccerGoalsMap,
+    soccerCardsMap,
     nbaPeriods,
     nhlPeriods,
   ] = await Promise.all([
@@ -495,6 +505,9 @@ export default async function ScoresPage({ searchParams }: Props) {
     needsSoccerGoals
       ? fetchSoccerGoalsByDateCached(dateStr, leagues)
       : Promise.resolve({} as Record<string, SoccerGoal[]>),
+    needsSoccerGoals
+      ? fetchSoccerCardsByDateCached(dateStr, leagues)
+      : Promise.resolve({} as Record<string, SoccerCard[]>),
     needsNba
       ? fetchPeriodsByDateCached("basketball/nba", dateStr)
       : Promise.resolve({} as Record<string, PeriodLinescoreData>),
@@ -734,6 +747,14 @@ export default async function ScoresPage({ searchParams }: Props) {
         sport_ === "soccer"
           ? soccerGoalsMap[m.externalId] ??
             soccerGoalsMap[
+              soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)
+            ] ??
+            null
+          : null,
+      soccerCards:
+        sport_ === "soccer"
+          ? soccerCardsMap[m.externalId] ??
+            soccerCardsMap[
               soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)
             ] ??
             null
@@ -1262,6 +1283,7 @@ function SoccerRowLayout({
         homeScore={m.home.score}
         awayScore={m.away.score}
         soccerGoals={m.soccerGoals}
+        soccerCards={m.soccerCards}
         homeShort={m.home.abbr ?? m.home.name}
         awayShort={m.away.abbr ?? m.away.name}
         previewSlug={m.preview ?? null}
@@ -1500,6 +1522,7 @@ type NormalizedMatch = {
   awayStarter: string | null;
   soccerCtx: SoccerContext | null;
   soccerGoals: SoccerGoal[] | null;
+  soccerCards: SoccerCard[] | null;
   /** 라이브 매치 최근 1분 내 골 발생 측 — 점수 셀 노란 highlight 용 */
   recentGoalSide?: "home" | "away" | null;
   esportsCtx: EsportsContext | null;

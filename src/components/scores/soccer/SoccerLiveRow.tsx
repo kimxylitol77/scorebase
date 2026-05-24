@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getLeagueBadge } from "./leagueBadge";
 import FavoriteStar from "../FavoriteStar";
-import type { SoccerGoal } from "@/lib/sports/live-scores";
+import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
 
 export interface SoccerLiveRowProps {
   matchId: string | number;
@@ -26,6 +26,8 @@ export interface SoccerLiveRowProps {
   awayScore: number | null;
   /** 골 list — 종료 매치 hover tooltip 용 */
   soccerGoals?: SoccerGoal[] | null;
+  /** 옐로/레드 카드 list — 골 tooltip 안에 같이 표시 */
+  soccerCards?: SoccerCard[] | null;
   /** 팀 약칭 라벨 — tooltip 안에 표시 */
   homeShort?: string;
   awayShort?: string;
@@ -74,6 +76,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     homeScore,
     awayScore,
     soccerGoals,
+    soccerCards,
     homeShort,
     awayShort,
     previewSlug,
@@ -222,13 +225,16 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             >
               {awayFirst ? homeScore : awayScore}
             </span>
-            {(isFinished || isLive) && soccerGoals && soccerGoals.length > 0 && (
-              <GoalsTooltip
-                goals={soccerGoals}
-                homeLabel={homeShort ?? home.name}
-                awayLabel={awayShort ?? away.name}
-              />
-            )}
+            {(isFinished || isLive) &&
+              ((soccerGoals && soccerGoals.length > 0) ||
+                (soccerCards && soccerCards.length > 0)) && (
+                <GoalsTooltip
+                  goals={soccerGoals ?? []}
+                  cards={soccerCards ?? []}
+                  homeLabel={homeShort ?? home.name}
+                  awayLabel={awayShort ?? away.name}
+                />
+              )}
           </>
         ) : (
           <span className="text-neutral-500 text-[11px] font-medium">vs</span>
@@ -335,13 +341,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   );
 }
 
-/** 종료 매치 점수 hover 시 표시되는 골 list tooltip. */
+/** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip. */
 function GoalsTooltip({
   goals,
+  cards,
   homeLabel,
   awayLabel,
 }: {
   goals: SoccerGoal[];
+  cards: SoccerCard[];
   homeLabel: string;
   awayLabel: string;
 }) {
@@ -356,11 +364,28 @@ function GoalsTooltip({
   const awayGoals = goals
     .filter((g) => g.side === "away")
     .sort((a, b) => parseMinute(a.minute) - parseMinute(b.minute));
+  const homeCards = cards
+    .filter((c) => c.side === "home")
+    .sort((a, b) => parseMinute(a.minute) - parseMinute(b.minute));
+  const awayCards = cards
+    .filter((c) => c.side === "away")
+    .sort((a, b) => parseMinute(a.minute) - parseMinute(b.minute));
+
+  const CardBadge = ({ kind }: { kind: "yellow" | "red" }) => (
+    <span
+      className="inline-block w-2 h-3 rounded-sm shrink-0"
+      style={{
+        background: kind === "yellow" ? "#facc15" : "#dc2626",
+        boxShadow: "0 0 0 1px rgba(0,0,0,0.15)",
+      }}
+      aria-label={kind === "yellow" ? "옐로카드" : "레드카드"}
+    />
+  );
 
   return (
     <div
       role="tooltip"
-      className="absolute left-1/2 top-full z-30 -translate-x-1/2 mt-1 min-w-[260px] hidden group-hover:block pointer-events-none"
+      className="absolute left-1/2 top-full z-30 -translate-x-1/2 mt-1 min-w-[280px] hidden group-hover:block pointer-events-none"
     >
       <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 dark:shadow-black/50 p-2.5 text-left">
         <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
@@ -383,16 +408,13 @@ function GoalsTooltip({
                 <span className="text-[10px] tabular-nums text-neutral-500 shrink-0 w-8">
                   {g.minute}
                 </span>
+                <span className="shrink-0" aria-label="골">⚽</span>
                 <span className="truncate">{g.player || "—"}</span>
                 {g.penaltyKick && (
-                  <span className="text-[9px] text-neutral-400 shrink-0">
-                    PK
-                  </span>
+                  <span className="text-[9px] text-neutral-400 shrink-0">PK</span>
                 )}
                 {g.ownGoal && (
-                  <span className="text-[9px] text-neutral-400 shrink-0">
-                    자책
-                  </span>
+                  <span className="text-[9px] text-neutral-400 shrink-0">자책</span>
                 )}
               </div>
             ))}
@@ -408,16 +430,13 @@ function GoalsTooltip({
                 className="flex items-center justify-end gap-1.5 text-neutral-800 dark:text-neutral-200 truncate"
               >
                 {g.ownGoal && (
-                  <span className="text-[9px] text-neutral-400 shrink-0">
-                    자책
-                  </span>
+                  <span className="text-[9px] text-neutral-400 shrink-0">자책</span>
                 )}
                 {g.penaltyKick && (
-                  <span className="text-[9px] text-neutral-400 shrink-0">
-                    PK
-                  </span>
+                  <span className="text-[9px] text-neutral-400 shrink-0">PK</span>
                 )}
                 <span className="truncate">{g.player || "—"}</span>
+                <span className="shrink-0" aria-label="골">⚽</span>
                 <span className="text-[10px] tabular-nums text-neutral-500 shrink-0 w-8 text-left">
                   {g.minute}
                 </span>
@@ -425,6 +444,40 @@ function GoalsTooltip({
             ))}
           </div>
         </div>
+
+        {/* 카드 섹션 — 옐로/레드 */}
+        {(homeCards.length > 0 || awayCards.length > 0) && (
+          <div className="mt-2 pt-2 border-t border-neutral-200 dark:border-white/10 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+            <div className="space-y-1">
+              {homeCards.map((c, i) => (
+                <div
+                  key={`hc${i}`}
+                  className="flex items-center gap-1.5 text-neutral-800 dark:text-neutral-200 truncate"
+                >
+                  <span className="text-[10px] tabular-nums text-neutral-500 shrink-0 w-8">
+                    {c.minute}
+                  </span>
+                  <CardBadge kind={c.kind} />
+                  <span className="truncate">{c.player || "—"}</span>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-1 text-right">
+              {awayCards.map((c, i) => (
+                <div
+                  key={`ac${i}`}
+                  className="flex items-center justify-end gap-1.5 text-neutral-800 dark:text-neutral-200 truncate"
+                >
+                  <span className="truncate">{c.player || "—"}</span>
+                  <CardBadge kind={c.kind} />
+                  <span className="text-[10px] tabular-nums text-neutral-500 shrink-0 w-8 text-left">
+                    {c.minute}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

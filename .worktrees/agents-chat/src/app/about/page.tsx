@@ -1,0 +1,135 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SITE_URL } from "@/lib/site-url";
+
+const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
+
+export const metadata: Metadata = {
+  title: "Scorebase 소개 — 데이터로 보는 글로벌 스포츠",
+  description:
+    "Scorebase는 EPL · 라리가 · 분데스리가 · 세리에 A · 리그 1 · MLS · 챔피언스리그 · NBA · NHL · MLB 의 경기 결과·프리뷰·시즌 분석을 데이터 기반으로 정리하는 미디어입니다. football-data.org 와 ESPN 의 공식 데이터를 사용하며, Elo 레이팅과 Monte Carlo 시뮬레이션으로 시즌 우승·강등 확률을 추정합니다.",
+  alternates: { canonical: `${SITE_URL}/about` },
+  openGraph: {
+    title: "Scorebase 소개",
+    description:
+      "데이터로 보는 EPL · NBA · MLB · NHL · 라리가 · 분데스리가 등 글로벌 스포츠.",
+    url: `${SITE_URL}/about`,
+  },
+};
+
+export default function AboutPage() {
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon.png`,
+    description:
+      "EPL · NBA · MLB · NHL · 유럽 5대 리그 · 챔피언스리그 · MLS 의 경기 결과·프리뷰·시즌 시뮬레이션을 데이터 기반으로 매일 자동 정리하는 스포츠 미디어.",
+    sameAs: [],
+    foundingDate: "2026",
+  };
+  return (
+    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
+
+      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
+        Scorebase 소개
+      </h1>
+      <p className="text-neutral-500 dark:text-neutral-400 mb-10">
+        데이터로 보는 글로벌 스포츠 미디어
+      </p>
+
+      <section className="prose dark:prose-invert max-w-none">
+        <h2>우리가 다루는 리그</h2>
+        <p>
+          Scorebase 는 다음 리그의 경기 결과·프리뷰·시즌 분석을 매일 자동으로
+          정리합니다.
+        </p>
+        <ul>
+          <li>
+            <strong>축구</strong> ·{" "}
+            <Link href="/leagues/EPL">프리미어리그(EPL)</Link>,{" "}
+            <Link href="/leagues/LALIGA">라리가</Link>,{" "}
+            <Link href="/leagues/BUNDESLIGA">분데스리가</Link>,{" "}
+            <Link href="/leagues/SERIE_A">세리에 A</Link>,{" "}
+            <Link href="/leagues/LIGUE_1">리그 1</Link>,{" "}
+            <Link href="/leagues/MLS">MLS</Link>,{" "}
+            <Link href="/leagues/UCL">UEFA 챔피언스리그</Link>
+          </li>
+          <li>
+            <strong>야구</strong> · <Link href="/leagues/MLB">MLB</Link>
+          </li>
+          <li>
+            <strong>농구</strong> · <Link href="/leagues/NBA">NBA</Link>
+          </li>
+          <li>
+            <strong>아이스하키</strong> · <Link href="/leagues/NHL">NHL</Link>
+          </li>
+        </ul>
+
+        <h2>데이터 출처</h2>
+        <p>
+          모든 경기 데이터는 공식 소스로부터 매시간 수집됩니다.
+        </p>
+        <ul>
+          <li>
+            <strong>EPL</strong> — football-data.org (공식 라이선스 API)
+          </li>
+          <li>
+            <strong>그 외 축구 리그·NBA·NHL·MLB</strong> — ESPN 공개 scoreboard
+            API
+          </li>
+        </ul>
+
+        <h2>분석 방법론</h2>
+        <h3>Elo 레이팅</h3>
+        <p>
+          각 팀의 실력을 단일 숫자로 표현하는 Elo 레이팅을 시즌 시작 시 1500점
+          기준으로 계산합니다. 매 경기 결과에 따라 레이팅이 갱신되며, 홈
+          어드밴티지는 약 60-100점 보정됩니다.
+        </p>
+        <h3>Monte Carlo 시뮬레이션</h3>
+        <p>
+          남은 일정을 1,000~3,000회 시뮬레이션해 우승·강등·플레이오프 진출
+          확률을 추정합니다. 각 시뮬레이션은 두 팀의 Elo 차이를 로지스틱 함수에
+          통과시켜 승·무·패 확률을 산출하고, 전체 시즌을 가상으로 완주합니다.
+        </p>
+        <h3>승률 추정</h3>
+        <p>
+          개별 경기 승률은 Elo 차이 + 홈 어드밴티지 + 최근 5경기 폼 보정으로
+          계산합니다.
+        </p>
+
+        <h2>AI 글 작성 정책</h2>
+        <p>
+          프리뷰·리캡 기사는 위 데이터(시즌 순위·Elo·H2H·최근 폼·홈/원정
+          기록)를 컨텍스트로 받은 LLM 이 한국어로 자연스럽게 정리합니다. 자동
+          생성된 모든 글은 실제 통계와 일치하는지 데이터 검증을 거쳐
+          발행됩니다.
+        </p>
+        <p>
+          시즌 종합 분석 글은 Monte Carlo 결과를 바탕으로 주 1회 자동 작성되며,
+          숫자는 모두 시뮬레이션과 통계에서 직접 산출된 값입니다.
+        </p>
+
+        <h2>업데이트 주기</h2>
+        <ul>
+          <li>경기 결과 수집 — 매일 KST 07:00</li>
+          <li>프리뷰 자동 생성 — 매일 KST 07:30</li>
+          <li>리캡 자동 생성 — 매일 KST 23:00</li>
+          <li>시즌 종합 분석 — 매주 월요일 KST 09:00</li>
+        </ul>
+
+        <h2>문의</h2>
+        <p>
+          데이터 오류·사실관계 정정·제휴 문의는 사이트 관리자에게 직접 전달
+          부탁드립니다.
+        </p>
+      </section>
+    </main>
+  );
+}

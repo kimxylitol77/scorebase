@@ -1,0 +1,525 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { prisma } from "@/lib/db";
+import LeagueBadge from "@/components/LeagueBadge";
+
+export const revalidate = 3600; // 1시간 ISR
+
+const LEAGUES = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+  "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
+] as const;
+
+const LEAGUE_NAME: Record<string, string> = {
+  EPL: "프리미어리그",
+  LALIGA: "라리가",
+  BUNDESLIGA: "분데스리가",
+  SERIE_A: "세리에 A",
+  LIGUE_1: "리그 1",
+  MLS: "MLS",
+  UCL: "챔피언스리그",
+  NBA: "NBA",
+  NHL: "NHL",
+  MLB: "MLB",
+  KBO: "KBO",
+  NPB: "NPB",
+  LOL: "LCK",
+};
+
+const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
+
+export const metadata: Metadata = {
+  title: "AI 적중률 — 리그별 예측 정확도",
+  description:
+    "스코어베이스 AI 가 Elo 레이팅 기반으로 추정한 매치 결과의 적중률. EPL · 라리가 · 분데스리가 · NBA · MLB · NHL 등 리그별 예측 정확도와 표본 수를 데이터로 공개합니다.",
+  alternates: { canonical: `${SITE_URL}/predictions/accuracy` },
+  openGraph: {
+    title: "AI 적중률 보드 — Scorebase",
+    description: "리그별 AI 매치 예측 적중률을 데이터로 공개",
+    url: `${SITE_URL}/predictions/accuracy`,
+  },
+};
+
+interface MarketRate {
+  evaluated: number;
+  correct: number;
+  rate: number;
+}
+interface LeagueStat {
+  league: string;
+  isSoccer: boolean;
+  oneXTwo: MarketRate;
+  dc: MarketRate;
+  over: MarketRate;
+  hc: MarketRate;
+  btts: MarketRate;
+  /** 1X2 가장 높은 확률 65%+ 인 매치만의 적중률 (AI Strong Pick) */
+  strong: MarketRate;
+  recent10: MarketRate;
+}
+
+const SOCCER = new Set([
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+]);
+
+function rateOf(arr: Array<{ ok: boolean | null }>): MarketRate {
+  const evaluated = arr.filter((x) => x.ok !== null).length;
+  const correct = arr.filter((x) => x.ok === true).length;
+  return {
+    evaluated,
+    correct,
+    rate: evaluated > 0 ? correct / evaluated : 0,
+  };
+}
+
+async function statForLeague(league: string): Promise<LeagueStat> {
+  const all = await prisma.match.findMany({
+    where: { league, predCorrect: { not: null } },
+    select: {
+      predCorrect: true,
+      predHome: true,
+      predDraw: true,
+      predAway: true,
+      predDcCorrect: true,
+      predOverCorrect: true,
+      predHcCorrect: true,
+      predBttsCorrect: true,
+      startTime: true,
+    },
+    orderBy: { startTime: "desc" },
+  });
+
+  const oneXTwo = rateOf(all.map((m) => ({ ok: m.predCorrect })));
+  const dc = rateOf(all.map((m) => ({ ok: m.predDcCorrect })));
+  const over = rateOf(all.map((m) => ({ ok: m.predOverCorrect })));
+  const hc = rateOf(all.map((m) => ({ ok: m.predHcCorrect })));
+  const btts = rateOf(all.map((m) => ({ ok: m.predBttsCorrect })));
+
+  // AI Strong Pick — 가장 높은 확률 65% 이상
+  const strong = all
+    .filter((m) => {
+      const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
+      return top >= 0.65;
+    })
+    .map((m) => ({ ok: m.predCorrect }));
+  const recent10 = all.slice(0, 10).map((m) => ({ ok: m.predCorrect }));
+
+  return {
+    league,
+    isSoccer: SOCCER.has(league),
+    oneXTwo,
+    dc,
+    over,
+    hc,
+    btts,
+    strong: rateOf(strong),
+    recent10: rateOf(recent10),
+  };
+}
+
+export default async function AccuracyPage() {
+  const [stats, valueBet] = await Promise.all([
+    Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
+    valueBetStats(),
+  ]);
+  const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
+  const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
+  const overallRate = totalEvaluated > 0 ? totalCorrect / totalEvaluated : 0;
+
+  // 축구 시장 전체 평균
+  const soccerStats = stats.filter((s) => s.isSoccer);
+  const dcTotal = soccerStats.reduce((s, x) => s + x.dc.evaluated, 0);
+  const dcCorrect = soccerStats.reduce((s, x) => s + x.dc.correct, 0);
+  const bttsTotal = soccerStats.reduce((s, x) => s + x.btts.evaluated, 0);
+  const bttsCorrect = soccerStats.reduce((s, x) => s + x.btts.correct, 0);
+
+  // OVER/UNDER + 핸디캡 — 모든 종목 합산
+  const overTotal = stats.reduce((s, x) => s + x.over.evaluated, 0);
+  const overCorrect = stats.reduce((s, x) => s + x.over.correct, 0);
+  const hcTotal = stats.reduce((s, x) => s + x.hc.evaluated, 0);
+  const hcCorrect = stats.reduce((s, x) => s + x.hc.correct, 0);
+
+  // 정렬 — DC 적중률 높은 순 (축구 우선)
+  const sorted = [...stats]
+    .filter((s) => s.oneXTwo.evaluated > 0)
+    .sort((a, b) => b.oneXTwo.rate - a.oneXTwo.rate);
+
+  return (
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <header className="mb-10">
+        <p className="text-sm text-neutral-500 mb-2">데이터 분석</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
+          AI 적중률 보드
+        </h1>
+        <p className="text-neutral-600 dark:text-neutral-400">
+          Elo 레이팅 + 홈 어드밴티지 + 최근 폼 기반 매치 결과 예측의 실제
+          적중률입니다. 종료된 모든 매치를 시점 기준으로 백테스트하여 산출.
+        </p>
+      </header>
+
+      {/* AI Strong Pick — 65%+ 고신뢰 픽만의 적중률 (마케팅 강조) */}
+      <StrongPickHero stats={stats} overallTotal={totalEvaluated} overallCorrect={totalCorrect} />
+
+      {/* Value Bet — 시장 odds 데이터 있을 때만 */}
+      {valueBet && <ValueBetCard data={valueBet} />}
+
+      {/* 전체 시장별 요약 — 5개 카드 */}
+      <section className="mb-10 grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <SummaryCard
+          label="결과 (1X2)"
+          subtitle="홈 / 무 / 원정"
+          rate={overallRate}
+          correct={totalCorrect}
+          total={totalEvaluated}
+          gradient="from-blue-500 to-purple-500"
+        />
+        <SummaryCard
+          label="더블 찬스"
+          subtitle="축구 · 무 흡수"
+          rate={dcTotal > 0 ? dcCorrect / dcTotal : 0}
+          correct={dcCorrect}
+          total={dcTotal}
+          gradient="from-emerald-500 to-cyan-500"
+        />
+        <SummaryCard
+          label="OVER/UNDER"
+          subtitle="모든 종목 · 총득점"
+          rate={overTotal > 0 ? overCorrect / overTotal : 0}
+          correct={overCorrect}
+          total={overTotal}
+          gradient="from-orange-500 to-red-500"
+        />
+        <SummaryCard
+          label="핸디캡"
+          subtitle="모든 종목 · 마진"
+          rate={hcTotal > 0 ? hcCorrect / hcTotal : 0}
+          correct={hcCorrect}
+          total={hcTotal}
+          gradient="from-violet-500 to-fuchsia-500"
+        />
+        <SummaryCard
+          label="BTTS"
+          subtitle="축구 · 양 팀 득점"
+          rate={bttsTotal > 0 ? bttsCorrect / bttsTotal : 0}
+          correct={bttsCorrect}
+          total={bttsTotal}
+          gradient="from-pink-500 to-rose-500"
+        />
+      </section>
+
+      <p className="mb-8 text-xs text-neutral-500 leading-relaxed">
+        무작위 baseline: 1X2 ≈ 33%, DC/OVER/BTTS ≈ 50%. 위 수치가 그보다 높을수록
+        모델이 통계적 신호를 잡고 있다고 해석할 수 있습니다. 도박·베팅 권유는 아니며,
+        모든 수치는 데이터 모델의 후행 검증 결과입니다.
+      </p>
+
+      {/* 리그별 카드 */}
+      <section className="mb-10">
+        <h2 className="text-lg font-semibold mb-4">리그별 적중률</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sorted.map((s) => (
+            <LeagueCard key={s.league} stat={s} />
+          ))}
+        </div>
+        {stats.some((s) => s.oneXTwo.evaluated === 0) && (
+          <p className="mt-4 text-xs text-neutral-500">
+            데이터 부족 리그는 표시 생략됨 (백테스트 평가 매치 0건).
+          </p>
+        )}
+      </section>
+
+      {/* 방법론 박스 */}
+      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6">
+        <h2 className="text-base font-semibold mb-3">계산 방법</h2>
+        <ul className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2 list-disc pl-5">
+          <li>
+            각 매치 시점 기준으로 그 이전까지의 데이터(Elo, 폼, 홈/원정 split,
+            상대 전적, 평균 득/실점)만 사용해 확률을 추정합니다 — 미래 데이터
+            오염 없음.
+          </li>
+          <li>
+            <strong>1X2</strong>: 홈 승 / 무 / 원정 승 중 가장 높은 확률을 선택.
+          </li>
+          <li>
+            <strong>DC (Double Chance)</strong>: "홈 승 또는 무" / "원정 승 또는
+            무" / "홈 승 또는 원정 승" 중 가장 높은 합 선택. 무승부 변수가 큰
+            축구에서 정확도가 크게 올라갑니다.
+          </li>
+          <li>
+            <strong>OVER/UNDER</strong>: 종목별 기준선 (축구 2.5골 · NBA 220.5점
+            · NHL 5.5골 · MLB 8.5점) 기준으로 양 팀 평균 득/실점에서 기대
+            총득점을 추정 → Normal CDF 로 P(OVER) 산출.
+          </li>
+          <li>
+            <strong>핸디캡 (Asian Handicap / Spread)</strong>: 종목별 line (축구
+            -0.5 · NBA -5.5 · NHL -1.5 · MLB -1.5) 으로 강팀이 그 차이 이상으로
+            이길 확률. 마진의 Normal 분포 가정.
+          </li>
+          <li>
+            <strong>BTTS (Both Teams To Score)</strong>: 축구 전용. Poisson 으로
+            양 팀이 각각 한 골 이상 기록할 확률 산출 (P(0골) 보수).
+          </li>
+          <li>
+            <strong>강한 예측</strong> = 1X2 가장 높은 확률이 60% 이상인 매치만의
+            적중률.
+          </li>
+          <li>
+            <strong>최근 10경기</strong> = 가장 최근에 끝난 10경기 1X2 적중률.
+            모델이 현재 시즌 흐름을 잘 따라가고 있는지 가늠.
+          </li>
+        </ul>
+      </section>
+
+      <p className="mt-6 text-xs text-neutral-500 text-center">
+        <Link href="/about" className="underline hover:text-neutral-900 dark:hover:text-white">
+          전체 방법론
+        </Link>
+        {" · "}
+        <Link href="/predictions" className="underline hover:text-neutral-900 dark:hover:text-white">
+          시즌 예측 대시보드
+        </Link>
+      </p>
+    </main>
+  );
+}
+
+async function valueBetStats() {
+  const all = await prisma.match.findMany({
+    where: { isValueBet: true, predCorrect: { not: null } },
+    select: { predCorrect: true, valueGap: true, league: true },
+  });
+  if (all.length === 0) return null;
+  const correct = all.filter((m) => m.predCorrect).length;
+  const avgGap =
+    all.reduce((s, m) => s + (m.valueGap ?? 0), 0) / all.length;
+  return {
+    total: all.length,
+    correct,
+    rate: correct / all.length,
+    avgGap,
+  };
+}
+
+function ValueBetCard({
+  data,
+}: {
+  data: { total: number; correct: number; rate: number; avgGap: number };
+}) {
+  return (
+    <section className="mb-8 rounded-2xl border border-emerald-300 dark:border-emerald-700/40 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-cyan-950/30 p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-2">
+            <span aria-hidden>✨</span>
+            <span>Value Bet · 시장보다 자신 있는 픽</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            AI 모델이 시장보다 5%p+ 자신 있던 매치 적중률
+          </h2>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            베팅사이트 평균 odds 대비 우리 모델이 더 자신 있게 찍은 결과만
+            추려본 통계 — 시장이 놓친 신호를 모델이 잡았는가
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-5xl sm:text-6xl font-black tracking-tight tabular-nums bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+            {Math.round(data.rate * 100)}%
+          </div>
+          <div className="text-[11px] text-neutral-500 mt-1 tabular-nums">
+            {data.correct}/{data.total} · 평균 차이{" "}
+            <span className="font-bold text-emerald-700 dark:text-emerald-300">
+              +{Math.round(data.avgGap * 100)}%p
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StrongPickHero({
+  stats,
+  overallTotal,
+  overallCorrect,
+}: {
+  stats: LeagueStat[];
+  overallTotal: number;
+  overallCorrect: number;
+}) {
+  const sTotal = stats.reduce((s, x) => s + x.strong.evaluated, 0);
+  const sCorrect = stats.reduce((s, x) => s + x.strong.correct, 0);
+  const sRate = sTotal > 0 ? sCorrect / sTotal : 0;
+  const overallRate = overallTotal > 0 ? overallCorrect / overallTotal : 0;
+  const lift = sRate - overallRate;
+  if (sTotal < 30) return null;
+
+  // 리그별 Strong 적중률 top 3
+  const topLeagues = [...stats]
+    .filter((s) => s.strong.evaluated >= 5)
+    .sort((a, b) => b.strong.rate - a.strong.rate)
+    .slice(0, 3);
+
+  return (
+    <section className="mb-8 rounded-2xl border border-amber-300 dark:border-amber-700/40 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-yellow-950/30 p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">
+            <span aria-hidden>⭐</span>
+            <span>AI Strong Pick</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            모델이 자신 있게 찍은 경기 적중률
+          </h2>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            1X2 가장 높은 확률 65% 이상인 매치만 — 모델이 명확한 신호를 잡은
+            경기들
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-5xl sm:text-6xl font-black tracking-tight tabular-nums bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+            {Math.round(sRate * 100)}%
+          </div>
+          <div className="text-[11px] text-neutral-500 mt-1 tabular-nums">
+            {sCorrect.toLocaleString()} / {sTotal.toLocaleString()} · 전체 평균 대비{" "}
+            <span className={lift > 0 ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-rose-600 dark:text-rose-400 font-bold"}>
+              {lift > 0 ? "+" : ""}
+              {Math.round(lift * 100)}%p
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {topLeagues.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          {topLeagues.map((lg) => (
+            <div
+              key={lg.league}
+              className="rounded-xl bg-white/60 dark:bg-neutral-950/40 backdrop-blur px-3 py-2"
+            >
+              <div className="text-[10px] text-neutral-500 mb-0.5">
+                {LEAGUE_NAME[lg.league] ?? lg.league}
+              </div>
+              <div className="text-lg font-bold tabular-nums">
+                {Math.round(lg.strong.rate * 100)}%
+              </div>
+              <div className="text-[10px] text-neutral-500 tabular-nums">
+                {lg.strong.correct}/{lg.strong.evaluated}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SummaryCard({
+  label,
+  subtitle,
+  rate,
+  correct,
+  total,
+  gradient,
+}: {
+  label: string;
+  subtitle: string;
+  rate: number;
+  correct: number;
+  total: number;
+  gradient: string;
+}) {
+  if (total === 0) return null;
+  const pct = Math.round(rate * 100);
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5">
+      <p className="text-xs text-neutral-500">{label}</p>
+      <p className="text-[10px] text-neutral-400 mt-0.5 mb-3">{subtitle}</p>
+      <div className="flex items-baseline gap-2 mb-3">
+        <span
+          className={`text-4xl font-bold tracking-tight tabular-nums bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}
+        >
+          {pct}%
+        </span>
+      </div>
+      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-2">
+        <div
+          className={`h-full bg-gradient-to-r ${gradient} rounded-full`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="text-[11px] text-neutral-500 tabular-nums">
+        {correct.toLocaleString()} / {total.toLocaleString()} 적중
+      </p>
+    </div>
+  );
+}
+
+function LeagueCard({ stat }: { stat: LeagueStat }) {
+  const pct = Math.round(stat.oneXTwo.rate * 100);
+  return (
+    <Link
+      href={`/leagues/${stat.league}`}
+      className="block rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5 hover:border-neutral-300 dark:hover:border-neutral-700 transition"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <LeagueBadge league={stat.league} />
+          <span className="text-sm font-semibold">
+            {LEAGUE_NAME[stat.league] ?? stat.league}
+          </span>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold tabular-nums">
+            {pct}
+            <span className="text-sm text-neutral-500">%</span>
+          </div>
+          <div className="text-[10px] text-neutral-400">1X2</div>
+        </div>
+      </div>
+
+      {/* 1X2 메인 막대 */}
+      <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
+        <div
+          className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      {/* 시장별 chip — 축구는 4개, 그 외는 OVER + 핸디캡만 */}
+      {stat.isSoccer ? (
+        <div className="grid grid-cols-4 gap-1.5 text-[11px]">
+          <MarketChip label="DC" rate={stat.dc} />
+          <MarketChip label="OVER" rate={stat.over} />
+          <MarketChip label="HC" rate={stat.hc} />
+          <MarketChip label="BTTS" rate={stat.btts} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2 text-[11px]">
+          <MarketChip label="OVER" rate={stat.over} />
+          <MarketChip label="HC" rate={stat.hc} />
+          <div>
+            <div className="text-neutral-400">최근 10</div>
+            <div className="font-mono text-neutral-700 dark:text-neutral-300 text-sm font-bold">
+              {stat.recent10.evaluated > 0
+                ? `${Math.round(stat.recent10.rate * 100)}%`
+                : "—"}
+            </div>
+          </div>
+        </div>
+      )}
+    </Link>
+  );
+}
+
+function MarketChip({ label, rate }: { label: string; rate: MarketRate }) {
+  if (rate.evaluated === 0) return <div />;
+  const pct = Math.round(rate.rate * 100);
+  return (
+    <div className="rounded-lg bg-neutral-100 dark:bg-neutral-900 px-2 py-1.5">
+      <div className="text-[10px] text-neutral-500">{label}</div>
+      <div className="font-bold tabular-nums text-neutral-900 dark:text-white text-sm">
+        {pct}%
+      </div>
+    </div>
+  );
+}

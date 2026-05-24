@@ -387,6 +387,7 @@ function CompactRow({ match }: { match: MatchEntry }) {
           homeScore={match.home.score ?? null}
           awayScore={match.away.score ?? null}
           soccerGoals={match.soccerGoals}
+          soccerCards={match.soccerCards ?? null}
           homeShort={match.home.abbr ?? undefined}
           awayShort={match.away.abbr ?? undefined}
           previewSlug={match.preview ?? null}

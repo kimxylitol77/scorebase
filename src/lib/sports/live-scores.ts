@@ -735,6 +735,15 @@ export interface SoccerGoal {
   penaltyKick: boolean;
 }
 
+/** 축구 카드 (옐로/레드) — ESPN scoreboard details 의 yellowCard/redCard / api-football events 의 type="Card" */
+export interface SoccerCard {
+  minute: string;
+  side: "home" | "away";
+  player: string;
+  /** "yellow" | "red" — second-yellow 는 red 로 표시 */
+  kind: "yellow" | "red";
+}
+
 /** 우리 League → ESPN soccer league path */
 const ESPN_SOCCER_PATH: Record<string, string> = {
   EPL: "eng.1",
@@ -963,6 +972,104 @@ export async function fetchSoccerGoalsByDate(
       }),
     );
   }
+
+  return out;
+}
+
+/**
+ * 일자의 축구 매치별 카드 list (옐로/레드). ESPN scoreboard details 의
+ * yellowCard/redCard field 활용. fetchSoccerGoalsByDate 와 같은 endpoint
+ * 호출하지만 page.tsx 가 unstable_cache 로 wrap 하므로 ESPN 호출 중복은
+ * Next.js fetch dedupe 또는 unstable_cache 가 흡수.
+ * K_LEAGUE 등 api-football 리그 카드는 후속 (현재는 ESPN 만).
+ */
+export async function fetchSoccerCardsByDate(
+  date: string,
+  leagues: string[],
+): Promise<Record<string, SoccerCard[]>> {
+  const out: Record<string, SoccerCard[]> = {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return out;
+  const ymd = date.replace(/-/g, "");
+  const prevYmd = (() => {
+    const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10).replace(/-/g, "");
+  })();
+  const paths = leagues
+    .map((l) => ESPN_SOCCER_PATH[l])
+    .filter((p): p is string => !!p);
+  if (paths.length === 0) return out;
+
+  interface EspnSoccerEvent {
+    id: string;
+    competitions?: Array<{
+      competitors?: Array<{
+        homeAway: "home" | "away";
+        team?: { id?: string; displayName?: string; shortDisplayName?: string };
+      }>;
+      details?: Array<{
+        clock?: { displayValue?: string };
+        team?: { id?: string };
+        yellowCard?: boolean;
+        redCard?: boolean;
+        type?: { id?: string; text?: string };
+        athletesInvolved?: Array<{ displayName?: string }>;
+      }>;
+    }>;
+  }
+
+  const fetchOne = async (path: string, ymdStr: string) => {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), TIMEOUT);
+      const res = await fetch(
+        `https://site.api.espn.com/apis/site/v2/sports/soccer/${path}/scoreboard?dates=${ymdStr}`,
+        { signal: ctrl.signal, cache: "no-store" },
+      ).finally(() => clearTimeout(t));
+      if (!res.ok) return;
+      const data = (await res.json()) as { events?: EspnSoccerEvent[] };
+      for (const ev of data.events ?? []) {
+        const comp = ev.competitions?.[0];
+        if (!comp) continue;
+        const home = comp.competitors?.find((c) => c.homeAway === "home");
+        const away = comp.competitors?.find((c) => c.homeAway === "away");
+        const homeId = home?.team?.id;
+        const awayId = away?.team?.id;
+        const cards: SoccerCard[] = [];
+        for (const d of comp.details ?? []) {
+          const isYellow =
+            !!d.yellowCard || /yellow.*card/i.test(d.type?.text ?? "");
+          const isRed =
+            !!d.redCard || /red.*card/i.test(d.type?.text ?? "");
+          if (!isYellow && !isRed) continue;
+          const teamId = d.team?.id;
+          const side: "home" | "away" =
+            teamId === homeId ? "home" : teamId === awayId ? "away" : "home";
+          cards.push({
+            minute: d.clock?.displayValue ?? "",
+            side,
+            player: d.athletesInvolved?.[0]?.displayName ?? "",
+            // second yellow → red 로 표시 (UI 단순화)
+            kind: isRed ? "red" : "yellow",
+          });
+        }
+        if (cards.length > 0) {
+          out[ev.id] = cards;
+          const awayName = away?.team?.displayName ?? away?.team?.shortDisplayName;
+          const homeName = home?.team?.displayName ?? home?.team?.shortDisplayName;
+          if (awayName && homeName) {
+            out[soccerGoalsPairKey(awayName, homeName)] = cards;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[live-scores/soccer-cards]", path, (e as Error).message);
+    }
+  };
+
+  await Promise.all(
+    paths.flatMap((p) => [fetchOne(p, ymd), fetchOne(p, prevYmd)]),
+  );
 
   return out;
 }

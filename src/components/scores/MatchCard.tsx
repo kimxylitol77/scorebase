@@ -21,6 +21,7 @@ import SoccerGoals from "./SoccerGoals";
 import type {
   PeriodLinescore as PeriodLinescoreData,
   SoccerGoal,
+  SoccerCard,
 } from "@/lib/sports/live-scores";
 import FavoriteStar from "./FavoriteStar";
 
@@ -48,6 +49,7 @@ export interface MatchCardProps {
   periodLinescore?: PeriodLinescoreData | null;
   /** 축구 골 list (분 + 선수) — 라이브/종료 매치에 표시 */
   soccerGoals?: SoccerGoal[] | null;
+  soccerCards?: SoccerCard[] | null;
   soccerCtx?: SoccerContext | null;
   esportsCtx?: EsportsContext | null;
   /** 야구 선발투수 */

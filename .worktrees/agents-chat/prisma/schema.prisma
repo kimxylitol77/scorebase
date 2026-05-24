@@ -1,0 +1,315 @@
+// ====================================================
+// Scorebase DB Schema
+// 운영: PostgreSQL (Neon)
+// ====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 팀 정보
+model Team {
+  id         Int      @id @default(autoincrement())
+  league     String // KBO | EPL | NBA | NHL | MLB | LALIGA | BUNDESLIGA | SERIE_A | LIGUE_1 | MLS | UCL | WORLD_CUP
+  externalId String // 외부 API 의 팀 ID
+  name       String
+  shortName  String?
+  logoUrl    String?
+
+  // 예측 시스템 — Elo 레이팅 (FiveThirtyEight 방식, 신규 팀 1500 시드)
+  eloRating  Float   @default(1500)
+
+  // 메타 정보 (cron 으로 점진 백필 — 모두 nullable)
+  country    String?  // "England" | "South Korea" | "United States" ...
+  city       String?  // "Manchester" | "Seoul" | "New York"
+  venue      String?  // 홈 구장 이름 (예: "Old Trafford")
+  founded    Int?     // 창단 연도
+  coach      String?  // 현 감독/매니저 이름
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+
+  @@unique([league, externalId])
+  @@index([league, eloRating])
+}
+
+// 경기 정보
+model Match {
+  id         Int      @id @default(autoincrement())
+  league     String // KBO | EPL | NBA
+  externalId String // 외부 API 의 경기 ID
+  homeTeamId Int
+  awayTeamId Int
+  homeScore  Int?
+  awayScore  Int?
+  status     String // SCHEDULED | LIVE | FINISHED | POSTPONED
+  startTime  DateTime
+  raw        String? // 원본 JSON (디버깅/재가공용)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // 적중률 백테스트 — 매치 시점 기준 추정 (PREVIEW 글 유무와 무관하게 모든 매치 대상)
+  // 1X2 (Money Line / 1X2)
+  predHome   Float?
+  predDraw   Float?
+  predAway   Float?
+  predWinner String? // "HOME" | "DRAW" | "AWAY"
+  predCorrect Boolean? // 매치 종료 후 actual 과 일치 여부
+
+  // Double Chance (축구 전용 — 무승부 흡수형 시장)
+  predDcPick    String?  // "1X" | "X2" | "12"
+  predDcProb    Float?
+  predDcCorrect Boolean?
+
+  // OVER/UNDER 2.5 골 (축구 전용 — Poisson 모델 기반)
+  predOverProb    Float?  // OVER 2.5 확률
+  predOverPick    String? // "OVER" | "UNDER"
+  predOverCorrect Boolean?
+
+  // BTTS (Both Teams To Score, 축구 전용)
+  predBttsProb    Float?
+  predBttsPick    String? // "YES" | "NO"
+  predBttsCorrect Boolean?
+
+  // 핸디캡 (Asian Handicap / Spread) — 종목별 line 다름
+  // 축구 -0.5 / NBA -5.5 / NHL -1.5 / MLB -1.5
+  predHcLine     Float?
+  predHcPick     String?  // "HOME" | "AWAY" — 핸디캡 받는 쪽
+  predHcProb     Float?
+  predHcCorrect  Boolean?
+
+  // The Odds API 시장 odds (1X2, vig 제거된 implied probability)
+  marketHome      Float?
+  marketDraw      Float?
+  marketAway      Float?
+  marketUpdatedAt DateTime?
+  marketBookmakers Int?  // odds 통합한 bookmaker 수
+  // 오프닝 odds — odds cron 이 매치 첫 fetch 시 한 번만 저장. 라인 움직임 추적용.
+  openingMarketHome Float?
+  openingMarketDraw Float?
+  openingMarketAway Float?
+  openingCapturedAt DateTime?
+  // Value Bet — 우리 모델 prob > 시장 prob + 5%p
+  valueGap        Float?  // model_pred - market_pred (양수 = 모델이 시장보다 자신감 큼)
+  isValueBet      Boolean? // 5%p 이상 차이 + 모델 pick 와 같은 outcome
+
+  // Raw decimal odds (베팅사이트 평균, vig 미제거 — 표시용)
+  oddsHome        Float?  // 1X2 home 배당
+  oddsDraw        Float?  // 1X2 draw
+  oddsAway        Float?  // 1X2 away
+  oddsTotalLine   Float?  // OVER/UNDER 기준선 (예: 2.5)
+  oddsOver        Float?  // OVER 배당
+  oddsUnder       Float?  // UNDER 배당
+  oddsHcLine      Float?  // 시장 핸디캡 line (강팀 -line)
+  oddsHcHome      Float?  // 핸디캡 home 배당
+  oddsHcAway      Float?  // 핸디캡 away 배당
+  oddsBttsYes     Float?  // BTTS YES 배당 (축구)
+  oddsBttsNo      Float?  // BTTS NO 배당
+  oddsDc1X        Float?  // 더블 찬스 홈승 OR 무
+  oddsDc12        Float?  // 더블 찬스 홈승 OR 원정승 (무 제외)
+  oddsDcX2        Float?  // 더블 찬스 무 OR 원정승
+
+  // API-Football Pro 통합 (축구만)
+  apiFixtureId    Int?     // api-football fixture ID — 한 번 매칭 후 재사용
+  lineupHome      String?  // 라인업 JSON (formation, startXI, coach)
+  lineupAway      String?
+  lineupUpdatedAt DateTime?
+  fixtureStats    String?  // 슛/패스/점유율 등 JSON ([{teamId, ...}, ...])
+  // API-Football 자체 예측 (third opinion)
+  apiPredHome     Float?
+  apiPredDraw     Float?
+  apiPredAway     Float?
+  apiPredWinner   String?  // "HOME" | "DRAW" | "AWAY"
+  apiPredAdvice   String?  // raw advice text (예: "Combo : Tottenham or draw and -2.5 goals")
+  apiPredCorrect  Boolean?
+
+  // MLB Stats API — 선발 투수 (MLB 만, 매치 직전 publish)
+  // 한 줄 JSON 으로 저장 — { name, pid, era, whip, k9, wins, losses, gs, ip, hand }
+  homeStarter        String?
+  awayStarter        String?
+  startersUpdatedAt  DateTime?
+
+  // NHL 공식 API — 시작 골리 (NHL 만)
+  // JSON: { pid, name, gaa, savePctg, wins, losses, otLosses, gamesPlayed, shutouts }
+  homeGoalie         String?
+  awayGoalie         String?
+  goaliesUpdatedAt   DateTime?
+
+  homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  articles Article[]
+  theSportsCache TheSportsMatchCache?
+
+  @@unique([league, externalId])
+  @@index([league, startTime])
+  @@index([status])
+  @@index([league, predCorrect])
+}
+
+// 페이지뷰 트래킹 — 단순 카운트 + 시간대별 그래프용
+model PageView {
+  id        Int      @id @default(autoincrement())
+  path      String
+  ts        DateTime @default(now())
+  userAgent String?
+  referrer  String?
+
+  @@index([ts])
+  @@index([path])
+}
+
+// 공지사항 / 패치노트 / 메인터넌스 안내
+model Notice {
+  id          Int      @id @default(autoincrement())
+  type        String   // "CHANGELOG" | "NOTICE" | "MAINTENANCE"
+  title       String
+  slug        String   @unique
+  content     String // Markdown
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type, publishedAt])
+}
+
+// AI 가 생성한 기사
+model Article {
+  id          Int       @id @default(autoincrement())
+  matchId     Int?
+  type        String // PREVIEW | RECAP | ANALYSIS
+  league      String
+  title       String
+  slug        String    @unique
+  content     String // Markdown
+  status      String // DRAFT | PENDING_REVIEW | APPROVED | PUBLISHED | REJECTED
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // PREVIEW 한정: 글 작성 시점에 추정한 승률 + 가장 높은 확률의 결과
+  // (적중률 통계용 — match 종료 후 evaluate 잡이 actualWinner/correct 채움)
+  predHome    Float?    // 0~1
+  predDraw    Float?    // 0~1
+  predAway    Float?    // 0~1
+  predWinner  String?   // "HOME" | "DRAW" | "AWAY"
+  evaluatedAt DateTime?
+  correct     Boolean?  // null = 미평가, true/false = 평가됨
+
+  // LoL RECAP 전용 — 게임별 MVP/LVP·타임라인·시즌·다음 매치·Quote 카드 데이터.
+  // 페이지에서 JSON.parse 후 카드 컴포넌트에 prop 으로 전달.
+  lolContext  String?   // JSON serialized LolRecapContext
+
+  // 야구(KBO/MLB/NPB) PREVIEW/RECAP — 이닝별 득점 확률 + 총 예상 득점 + 모델
+  // 승률 (Poisson + Skellam). 페이지에서 JSON.parse 후 InningScoreChart 렌더.
+  baseballContext String? // JSON: { inningScoreProbs, totalExpectedRuns, winProbPoisson }
+
+  match Match? @relation(fields: [matchId], references: [id])
+
+  @@index([league, status])
+  @@index([publishedAt])
+  @@index([type, evaluatedAt])
+}
+
+// 시즌 리그 리더보드 — 득점·도움·카드 (축구), PTS·AST·REB (NBA),
+// ERA·홈런·타율 (야구) 등. cron 이 매일 fetch 해서 upsert.
+model LeagueLeader {
+  id           Int      @id @default(autoincrement())
+  league       String   // EPL · LALIGA · NBA · KBO · NPB · MLB · NHL · LOL ...
+  category     String   // GOAL · ASSIST · YELLOW · RED · PTS · AST · REB · ERA · BA · HR · K · SAVE · KDA · CS ...
+  rank         Int      // 1 시작
+  playerName   String   // 표시용 (한글 변환 시도)
+  playerNameEn String?  // 원문 (영문)
+  externalId   String?  // 외부 API 의 player id (선수 페이지 link 용)
+  teamName     String   // 표시용
+  teamShort    String?
+  value        Float    // 골수 · 도움 · 카드 · ERA · 타율 등
+  unit         String?  // "득점" · "도움" · "ERA" 등 짧은 라벨 (UI 표시용)
+  appearances  Int?     // 출장수 (축구) / 경기수 (야구 등)
+  photoUrl     String?  // 선수 사진 (외부 API 제공 시)
+  season       String   // "2025-26" (축구) · "2026" (야구 등)
+  fetchedAt    DateTime @default(now())
+
+  @@unique([league, category, rank, season])
+  @@index([league, season])
+  @@index([league, category])
+}
+
+// TheSports.com football match cache — Lightsail worker 가 1분 주기 fetch.
+// detail_live (stats·incidents·tlive), lineup/detail (formation·선수 list), analysis (h2h·goal_distribution) 셋을 JSON 으로 저장.
+model TheSportsMatchCache {
+  id          Int      @id @default(autoincrement())
+  matchId     Int      @unique
+  tsMatchId   String
+  detailLive  Json?
+  lineup      Json?
+  analysis    Json?
+  /// Match team statistics — /v1/football/match/team_stats/list 의 stats[] (home + away named fields).
+  /// 2026-05-20 추가, worker v3 1분 주기 push.
+  teamStats   Json?
+  /// Match player statistics — /v1/football/match/player_stats/list 의 player_stats[].
+  /// 선수별 boxscore (goals/shots/passes/...).
+  playerStats Json?
+  fetchedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([tsMatchId])
+}
+
+/// TheSports season/recent/table/detail 응답을 league별로 캐싱.
+/// Lightsail worker 가 1시간 주기로 POST /api/internal/thesports-standings 로 갱신.
+/// Vercel serverless IP 가 ts whitelist 미포함이라 page server-side fetch 불가 → DB 우회.
+model TheSportsStandingsCache {
+  league      String   @id              // 우리 league code (EPL, LALIGA, ...)
+  tsSeasonId  String                    // ts season uuid
+  payload     Json                      // {promotions, tables} — TSFootballSeasonStandingsResponse.results
+  fetchedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// 데일리 health-check 봇 결과. 매일 06:30 KST cron 이 약 15개 체크 함수 실행 → row insert.
+/// severity HIGH 발견 시 텔레그램 알림. /admin/health 페이지에서 시각화.
+model HealthCheck {
+  id        Int      @id @default(autoincrement())
+  runAt     DateTime @default(now())          // 체크 실행 시각
+  severity  String                              // "HIGH" | "MED" | "LOW" | "OK"
+  category  String                              // 체크 카테고리 (season-label · match-count · accuracy 등)
+  key       String                              // 세부 키 (예: "NHL" / "MLB" / "EPL")
+  message   String                              // 사람이 읽을 메시지 (예: "NHL 리더보드 시즌 = 2026-27 (미래 시즌)")
+  metadata  Json?                               // 자유 데이터 (실제 값 · 기대 값 · 카운트 등)
+
+  @@index([runAt])
+  @@index([severity, runAt])
+  @@index([category, runAt])
+}
+
+/// /admin/agents — 5개 페르소나 (법률·마케팅·디자인·프로그램·SEO) 채팅 기록.
+/// 페르소나별로 conversation 1개를 유지 (계속 이어지는 대화). 새 conversation 시작 가능.
+model AgentMessage {
+  id        Int      @id @default(autoincrement())
+  /// 페르소나 키: "legal" | "marketing" | "design" | "engineering" | "seo"
+  persona   String
+  /// 같은 페르소나 안의 conversation 세션 ID (기본 = "default" — 단일 long-running 대화)
+  sessionId String   @default("default")
+  /// 역할: "user" | "assistant" | "system"
+  role      String
+  /// 메시지 본문 (Markdown 가능)
+  content   String   @db.Text
+  /// 사용한 모델 (예: "claude-3-5-sonnet-latest" / "gpt-4o-mini" / "qwen2.5:14b")
+  model     String?
+  /// OpenAI/Anthropic 사용 토큰 — 비용 추적용
+  inputTokens  Int?
+  outputTokens Int?
+  createdAt DateTime @default(now())
+
+  @@index([persona, sessionId, createdAt])
+  @@index([createdAt])
+}
