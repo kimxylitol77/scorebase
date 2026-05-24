@@ -633,7 +633,20 @@ export default async function ScoresPage({ searchParams }: Props) {
       : 4 * 3600 * 1000; // baseball (12회 연장 가능) 기본
     const staleLive =
       !live && m.status === "LIVE" && elapsedMs > staleThresholdMs;
-    const effStatus = live ? "LIVE" : staleLive ? "FINISHED" : m.status;
+    // staleScheduled — DB.status=SCHEDULED 인데 시작 시간 + 임계 지남.
+    // 외부 API (api-football 등) 가 매치 status 업데이트 안 보내서 SCHEDULED stuck.
+    // cleanup-stale-scheduled cron 이 12h 후 POSTPONED 처리하지만 그 사이 페이지에
+    // 잘못된 "예정" 표시. 라이브 API 응답에도 없으면 (= 외부 데이터 stale 확정)
+    // 페이지에서 hide 처리 (POSTPONED 와 동급).
+    const staleScheduled =
+      !live && m.status === "SCHEDULED" && elapsedMs > staleThresholdMs;
+    const effStatus = live
+      ? "LIVE"
+      : staleLive
+        ? "FINISHED"
+        : staleScheduled
+          ? "POSTPONED"
+          : m.status;
     // monotonic max(live, DB.Match) — TheSports MQTT/fast-poller 가 채운 DB 가 live (api-sports 15-30s) 보다 fresh 한 경우 그쪽 사용.
     // 점수는 단방향 증가 — 더 큰 값이 안전.
     const liveH = live?.homeScore;
