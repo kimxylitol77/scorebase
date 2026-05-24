@@ -128,7 +128,13 @@ export default function PredictionsView({ top3, countryGroups }: ViewProps) {
                         className="group relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:hover:bg-white/[0.06] dark:shadow-none"
                       >
                         <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${lg.gradient}`} />
-                        <Link href={`/predictions/${lg.code}`} className="block p-5 pb-3">
+                        <Link
+                          href={`/predictions/${lg.code}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          prefetch={false}
+                          className="block p-5 pb-3"
+                        >
                           <h4 className="text-lg font-semibold tracking-tight text-zinc-950 group-hover:underline underline-offset-4 decoration-2 dark:text-white">
                             {lg.name}
                           </h4>
@@ -150,6 +156,9 @@ export default function PredictionsView({ top3, countryGroups }: ViewProps) {
                                 {isMulti && (
                                   <Link
                                     href={`/predictions/${sub.code}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    prefetch={false}
                                     className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold text-zinc-700 hover:underline dark:text-white/70"
                                   >
                                     <span>{sub.label}</span>
@@ -188,6 +197,9 @@ export default function PredictionsView({ top3, countryGroups }: ViewProps) {
                           {!isMulti && (
                             <Link
                               href={`/predictions/${lg.code}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              prefetch={false}
                               className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-zinc-400 transition hover:text-zinc-900 dark:text-white/40 dark:hover:text-white"
                             >
                               시즌 예측 보기 <ChevronRight className="h-3 w-3" />
@@ -241,6 +253,9 @@ export default function PredictionsView({ top3, countryGroups }: ViewProps) {
                     <Link
                       key={l.league}
                       href={`/predictions/${l.league}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      prefetch={false}
                       className="rounded-[1.25rem] bg-white px-4 py-3 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
                     >
                       <div className="mb-2 flex items-baseline justify-between gap-2">
