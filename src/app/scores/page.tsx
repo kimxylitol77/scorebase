@@ -23,11 +23,10 @@ import {
   fetchAllLiveScores,
   fetchBaseballByDate,
   fetchMlbByDate,
-  fetchSoccerGoalsByDate,
-  fetchSoccerCardsByDate,
   fetchEspnPeriodLinescores,
   extractNbaUltraPeriodsFromRaw,
-  soccerGoalsPairKey,
+  tsIncidentsToGoals,
+  tsIncidentsToCards,
   type BaseballGameDetails,
   type PeriodLinescore as PeriodLinescoreData,
   type SoccerGoal,
@@ -73,19 +72,7 @@ const fetchMlbByDateCached = unstable_cache(
   ["scores-page-mlb-by-date"],
   { revalidate: 60, tags: ["live-scores"] },
 );
-// 축구 골 list — ESPN scoreboard 의 details (scoringPlay). EPL 제외 7리그.
-const fetchSoccerGoalsByDateCached = unstable_cache(
-  fetchSoccerGoalsByDate,
-  ["scores-page-soccer-goals"],
-  { revalidate: 60, tags: ["live-scores"] },
-);
-// 축구 카드 list (옐로/레드) — ESPN scoreboard details. goals 와 같은 endpoint
-// 호출이지만 별도 cache key 라 Next.js fetch dedupe 활용.
-const fetchSoccerCardsByDateCached = unstable_cache(
-  fetchSoccerCardsByDate,
-  ["scores-page-soccer-cards"],
-  { revalidate: 60, tags: ["live-scores"] },
-);
+// (축구 골/카드는 ESPN 미사용 — TheSportsMatchCache.detailLive.incidents 에서 직접 추출)
 // NBA/NHL 쿼터/피리어드별 점수 — ESPN scoreboard linescores.
 const fetchPeriodsByDateCached = unstable_cache(
   fetchEspnPeriodLinescores,
@@ -417,8 +404,6 @@ export default async function ScoresPage({ searchParams }: Props) {
     liveMatches,
     apiSportsDetails,
     mlbDetails,
-    soccerGoalsMap,
-    soccerCardsMap,
     nbaPeriods,
     nhlPeriods,
   ] = await Promise.all([
@@ -502,12 +487,6 @@ export default async function ScoresPage({ searchParams }: Props) {
           () => ({}) as Record<string, BaseballGameDetails>,
         )
       : Promise.resolve({} as Record<string, BaseballGameDetails>),
-    needsSoccerGoals
-      ? fetchSoccerGoalsByDateCached(dateStr, leagues)
-      : Promise.resolve({} as Record<string, SoccerGoal[]>),
-    needsSoccerGoals
-      ? fetchSoccerCardsByDateCached(dateStr, leagues)
-      : Promise.resolve({} as Record<string, SoccerCard[]>),
     needsNba
       ? fetchPeriodsByDateCached("basketball/nba", dateStr)
       : Promise.resolve({} as Record<string, PeriodLinescoreData>),
@@ -523,6 +502,32 @@ export default async function ScoresPage({ searchParams }: Props) {
     if (periodMap[m.externalId]) continue;
     const parsed = extractNbaUltraPeriodsFromRaw(m.raw);
     if (parsed) periodMap[m.externalId] = parsed;
+  }
+
+  // 축구 매치의 골/카드 — TheSportsMatchCache.detailLive.incidents 에서 직접 추출.
+  // ESPN scoreboard 대비 장점: (1) MQTT push 라 1분 내 fresh, (2) TheSports cover
+  // 모든 축구 리그 자동 적용 (이전 ESPN 12 리그 한정), (3) match.id 직접 키라 EPL 같은
+  // ext id 불일치/팀명 normalize 문제 없음.
+  const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
+  const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
+  if (needsSoccerGoals) {
+    const soccerMatchIds = matches
+      .filter((m) => SOCCER_LEAGUES.has(m.league))
+      .map((m) => m.id);
+    if (soccerMatchIds.length > 0) {
+      const caches = await prisma.theSportsMatchCache.findMany({
+        where: { matchId: { in: soccerMatchIds } },
+        select: { matchId: true, detailLive: true },
+      });
+      for (const c of caches) {
+        const dl = c.detailLive as { incidents?: unknown } | null;
+        if (!dl?.incidents) continue;
+        const goals = tsIncidentsToGoals(dl.incidents);
+        const cards = tsIncidentsToCards(dl.incidents);
+        if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
+        if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
+      }
+    }
   }
 
   // KBO/NPB/MLB LIVE 매치의 베이스/아웃 컨텍스트 — TheSportsMatchCache 에서 보강.
@@ -742,31 +747,15 @@ export default async function ScoresPage({ searchParams }: Props) {
         : null,
       soccerCtx:
         sport_ === "soccer" && live ? parseSoccerStatus(live.statusLabel) : null,
-      // ESPN event id 매칭 + team-name fallback (EPL 등 DB externalId ≠ ESPN id)
-      soccerGoals:
-        sport_ === "soccer"
-          ? soccerGoalsMap[m.externalId] ??
-            soccerGoalsMap[
-              soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)
-            ] ??
-            null
-          : null,
-      soccerCards:
-        sport_ === "soccer"
-          ? soccerCardsMap[m.externalId] ??
-            soccerCardsMap[
-              soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)
-            ] ??
-            null
-          : null,
-      // 라이브 매치 한정: 최근 1분 내 골 발생 측 (점수 셀 노란 highlight)
+      // TheSports cache 의 incidents 에서 추출 — match.id 직접 키.
+      soccerGoals: sport_ === "soccer" ? soccerGoalsByMatchId.get(m.id) ?? null : null,
+      soccerCards: sport_ === "soccer" ? soccerCardsByMatchId.get(m.id) ?? null : null,
+      // 라이브 매치 한정: 최근 골 발생 측 (점수 셀 emerald flash)
       recentGoalSide:
         sport_ === "soccer" && effStatus === "LIVE" && live
           ? findRecentGoalSide(
               live.statusLabel,
-              soccerGoalsMap[m.externalId] ??
-                soccerGoalsMap[soccerGoalsPairKey(m.awayTeam.name, m.homeTeam.name)] ??
-                null,
+              soccerGoalsByMatchId.get(m.id) ?? null,
             )
           : null,
       esportsCtx:

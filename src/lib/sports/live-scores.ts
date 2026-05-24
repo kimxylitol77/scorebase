@@ -744,6 +744,69 @@ export interface SoccerCard {
   kind: "yellow" | "red";
 }
 
+/**
+ * TheSports match cache 의 detailLive.incidents 배열을 SoccerGoal[] / SoccerCard[] 로 변환.
+ *
+ * incidents type 코드 (관찰 기반):
+ *   1 = 골 (home_score/away_score 변동)
+ *   3 = 카드 (reason_type=1 옐로 가정)
+ *   4 = 레드 카드 추정 (드물어 미관측 — 보수적으로 score 변동 없는 type=4 만 red)
+ *   9 = 교체, 11 = 하프타임, 17 = 다른 골 종류(페널티 추정), 19 = 추가시간
+ *
+ * 변동 score 있는 incident 는 모두 골로 매핑 (type 무관 — 페널티/own goal 포함 정확).
+ * position: 1 = home, 2 = away.
+ *
+ * ESPN scoreboard 보다 fresh (TheSports MQTT push 기반) + cover 리그 더 넓음
+ * (TheSports 가 cover 하는 모든 축구 리그 자동 적용).
+ */
+export function tsIncidentsToGoals(
+  incidents: unknown,
+): SoccerGoal[] {
+  if (!Array.isArray(incidents)) return [];
+  const out: SoccerGoal[] = [];
+  for (const raw of incidents) {
+    const i = raw as Record<string, unknown>;
+    // 골 = home_score 또는 away_score 가 정의된 incident
+    const hs = i.home_score;
+    const as = i.away_score;
+    if (typeof hs !== "number" && typeof as !== "number") continue;
+    const side: "home" | "away" = i.position === 1 ? "home" : "away";
+    const time = typeof i.time === "number" ? i.time : 0;
+    const addTime = typeof i.add_time === "number" ? i.add_time : null;
+    const minute = addTime != null ? `${time}+${addTime}'` : `${time}'`;
+    out.push({
+      minute,
+      side,
+      player: typeof i.player_name === "string" ? i.player_name : "",
+      ownGoal: false, // TheSports 에 own goal flag 없음 — 추후 보강
+      penaltyKick: i.type === 17, // 추정 (관찰 기반)
+    });
+  }
+  return out;
+}
+
+export function tsIncidentsToCards(
+  incidents: unknown,
+): SoccerCard[] {
+  if (!Array.isArray(incidents)) return [];
+  const out: SoccerCard[] = [];
+  for (const raw of incidents) {
+    const i = raw as Record<string, unknown>;
+    if (i.type !== 3 && i.type !== 4) continue;
+    const side: "home" | "away" = i.position === 1 ? "home" : "away";
+    const time = typeof i.time === "number" ? i.time : 0;
+    const addTime = typeof i.add_time === "number" ? i.add_time : null;
+    const minute = addTime != null ? `${time}+${addTime}'` : `${time}'`;
+    out.push({
+      minute,
+      side,
+      player: typeof i.player_name === "string" ? i.player_name : "",
+      kind: i.type === 4 ? "red" : "yellow",
+    });
+  }
+  return out;
+}
+
 /** 우리 League → ESPN soccer league path */
 const ESPN_SOCCER_PATH: Record<string, string> = {
   EPL: "eng.1",
