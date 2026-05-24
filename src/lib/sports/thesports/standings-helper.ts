@@ -144,83 +144,85 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
   const out: StandingsRow[] = [];
   const seen = new Set<number>();
 
-  // 1) api-football
-  const af = await prisma.apiFootballStandingsCache.findUnique({
+  // 1) TheSports 우선 — Lightsail standings-poller 1시간 주기로 fresh.
+  //    (이전: api-football 우선이었으나 1일 1회 cron 이라 19h+ stale 자주 발생,
+  //     2026-05-25 사용자 EPL 순위 틀림 보고로 swap.)
+  const ts = await prisma.theSportsStandingsCache.findUnique({
     where: { league },
-    select: { rows: true },
+    select: { payload: true },
   });
-  if (af) {
-    interface AfRow {
-      teamExternalId: string;
-      position: number;
-      points: number;
-      won: number;
-      draw: number;
-      loss: number;
+  if (ts) {
+    interface TsRow {
+      team_id?: string;
+      position?: number;
+      points?: number;
+      won?: number;
+      draw?: number;
+      loss?: number;
+      goals?: [number, number] | { for?: number; against?: number };
+      goal_diff?: number;
     }
-    const rows = (af.rows as unknown as AfRow[]) ?? [];
-    if (rows.length > 0) {
-      const externalIds = rows.map((r) => r.teamExternalId);
-      const teams = await prisma.team.findMany({
-        where: { league, externalId: { in: externalIds } },
-        select: { id: true, externalId: true },
-      });
-      const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
-      for (const r of rows) {
-        const ourId = extToOurId.get(r.teamExternalId);
-        if (ourId != null && !seen.has(ourId)) {
-          seen.add(ourId);
-          out.push({
-            teamId: ourId,
-            position: r.position,
-            points: r.points,
-            won: r.won,
-            draw: r.draw,
-            loss: r.loss,
-          });
-        }
+    const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[] }> };
+    const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
+    for (const t of payload?.tables ?? []) {
+      for (const r of t.rows ?? []) {
+        if (!r.team_id || r.position == null) continue;
+        const ourId = leagueMap?.get(r.team_id);
+        if (ourId == null || seen.has(ourId)) continue;
+        seen.add(ourId);
+        const gf = Array.isArray(r.goals) ? r.goals[0] : r.goals?.for;
+        const ga = Array.isArray(r.goals) ? r.goals[1] : r.goals?.against;
+        out.push({
+          teamId: ourId,
+          position: r.position,
+          points: r.points ?? 0,
+          won: r.won ?? 0,
+          draw: r.draw ?? 0,
+          loss: r.loss ?? 0,
+          goalsFor: gf,
+          goalsAgainst: ga,
+          goalDiff: r.goal_diff,
+        });
       }
     }
   }
 
-  // 2) TheSports fallback
+  // 2) api-football fallback — TheSports 매핑 누락 리그/팀 보강.
   if (out.length === 0) {
-    const ts = await prisma.theSportsStandingsCache.findUnique({
+    const af = await prisma.apiFootballStandingsCache.findUnique({
       where: { league },
-      select: { payload: true },
+      select: { rows: true },
     });
-    if (ts) {
-      interface TsRow {
-        team_id?: string;
-        position?: number;
-        points?: number;
-        won?: number;
-        draw?: number;
-        loss?: number;
-        goals?: [number, number] | { for?: number; against?: number };
-        goal_diff?: number;
+    if (af) {
+      interface AfRow {
+        teamExternalId: string;
+        position: number;
+        points: number;
+        won: number;
+        draw: number;
+        loss: number;
       }
-      const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[] }> };
-      const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
-      for (const t of payload?.tables ?? []) {
-        for (const r of t.rows ?? []) {
-          if (!r.team_id || r.position == null) continue;
-          const ourId = leagueMap?.get(r.team_id);
-          if (ourId == null || seen.has(ourId)) continue;
-          seen.add(ourId);
-          const gf = Array.isArray(r.goals) ? r.goals[0] : r.goals?.for;
-          const ga = Array.isArray(r.goals) ? r.goals[1] : r.goals?.against;
-          out.push({
-            teamId: ourId,
-            position: r.position,
-            points: r.points ?? 0,
-            won: r.won ?? 0,
-            draw: r.draw ?? 0,
-            loss: r.loss ?? 0,
-            goalsFor: gf,
-            goalsAgainst: ga,
-            goalDiff: r.goal_diff,
-          });
+      const rows = (af.rows as unknown as AfRow[]) ?? [];
+      if (rows.length > 0) {
+        const externalIds = rows.map((r) => r.teamExternalId);
+        const teams = await prisma.team.findMany({
+          where: { league, externalId: { in: externalIds } },
+          select: { id: true, externalId: true },
+        });
+        const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
+        for (const r of rows) {
+          const ourId = extToOurId.get(r.teamExternalId);
+          if (ourId != null && !seen.has(ourId)) {
+            seen.add(ourId);
+            out.push({
+              teamId: ourId,
+              position: r.position,
+              points: r.points,
+              won: r.won,
+              draw: r.draw,
+              loss: r.loss,
+            });
+          }
         }
       }
     }
