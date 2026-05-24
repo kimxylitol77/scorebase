@@ -54,8 +54,11 @@ const cache = new Map<string, CachedPositions>();
 /**
  * 리그 코드 (EPL/LALIGA/SERIE_A/...) 의 standings 에서 팀별 순위 추출.
  * 우선순위:
- *   1) api-football standings (DB ApiFootballStandingsCache) — 매핑 자동 (Team.externalId join)
- *   2) TheSports standings (TS team_id 매핑 dictionary 통과)
+ *   1) TheSports standings — Lightsail standings-poller 1h 주기로 fresh
+ *      (이전: api-football 우선이었으나 EPL Team.externalId 와 api-football
+ *       teamExternalId 가 다른 source 라 95% 매칭 실패 + 잘못된 매칭 결과,
+ *       2026-05-25 swap. /standings 페이지의 getFullStandings 와 동일 우선순위.)
+ *   2) api-football fallback — TheSports 매핑 누락 팀 보강 (덮어쓰기 X)
  * 반환: Map<our Team.id, position(1-based)>. cache 없으면 null.
  */
 export async function getStandingsPositions(
@@ -69,7 +72,24 @@ export async function getStandingsPositions(
 
   const positionByOurTeamId = new Map<number, number>();
 
-  // 1) api-football — 우선 (정확, 매핑 dictionary 불필요)
+  // 1) TheSports 우선 — ts team_id → ourId 변환
+  const ts = await prisma.theSportsStandingsCache.findUnique({
+    where: { league },
+    select: { payload: true },
+  });
+  if (ts) {
+    const payload = ts.payload as unknown as StandingsPayload;
+    const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
+    for (const t of payload?.tables ?? []) {
+      for (const r of t.rows ?? []) {
+        if (!r.team_id || r.position == null) continue;
+        const ourId = leagueMap?.get(r.team_id);
+        if (ourId != null) positionByOurTeamId.set(ourId, r.position);
+      }
+    }
+  }
+
+  // 2) api-football fallback — TheSports 누락 팀만 보강
   const af = await prisma.apiFootballStandingsCache.findUnique({
     where: { league },
     select: { rows: true },
@@ -88,23 +108,6 @@ export async function getStandingsPositions(
       const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
       for (const r of rows) {
         const ourId = extToOurId.get(r.teamExternalId);
-        if (ourId != null) positionByOurTeamId.set(ourId, r.position);
-      }
-    }
-  }
-
-  // 2) TheSports fallback — api-football 누락 팀 보강 (덮어쓰기 X)
-  const ts = await prisma.theSportsStandingsCache.findUnique({
-    where: { league },
-    select: { payload: true },
-  });
-  if (ts) {
-    const payload = ts.payload as unknown as StandingsPayload;
-    const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
-    for (const t of payload?.tables ?? []) {
-      for (const r of t.rows ?? []) {
-        if (!r.team_id || r.position == null) continue;
-        const ourId = leagueMap?.get(r.team_id);
         if (ourId != null && !positionByOurTeamId.has(ourId)) {
           positionByOurTeamId.set(ourId, r.position);
         }

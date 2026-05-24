@@ -1797,7 +1797,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 110153,
+    "ourId": 176430,
     "ourName": "FC Tokyo",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "3384",
@@ -1827,7 +1827,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 110154,
+    "ourId": 176426,
     "ourName": "Yokohama F. Marinos",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7116",
@@ -1857,7 +1857,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 110155,
+    "ourId": 176431,
     "ourName": "Kashiwa Reysol",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7476",
@@ -2026,7 +2026,7 @@
     "matchType": "ko-fallback+comp"
   },
   {
-    "ourId": 110150,
+    "ourId": 176439,
     "ourName": "Mito Hollyhock",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "131701",
@@ -2750,7 +2750,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 116546,
+    "ourId": 176421,
     "ourName": "Kyoto Sanga",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "21361",
@@ -2800,7 +2800,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 116547,
+    "ourId": 176420,
     "ourName": "Sanfrecce Hiroshima",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7114",
@@ -2919,7 +2919,7 @@
     "matchType": "ko-fallback+comp"
   },
   {
-    "ourId": 116544,
+    "ourId": 176435,
     "ourName": "Cerezo Osaka",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7109",
@@ -2978,7 +2978,7 @@
     "matchType": "ko-fallback+comp"
   },
   {
-    "ourId": 116539,
+    "ourId": 176422,
     "ourName": "Vissel Kobe",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7477",
@@ -2998,7 +2998,7 @@
     "matchType": "exact"
   },
   {
-    "ourId": 116541,
+    "ourId": 176433,
     "ourName": "Shimizu S-Pulse",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7104",
@@ -3028,7 +3028,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 116548,
+    "ourId": 176438,
     "ourName": "Kawasaki Frontale",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7112",
@@ -3048,7 +3048,7 @@
     "matchType": "exact"
   },
   {
-    "ourId": 116549,
+    "ourId": 176424,
     "ourName": "Machida Zelvia",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "22167",
@@ -3058,7 +3058,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 116545,
+    "ourId": 176437,
     "ourName": "Nagoya Grampus",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7108",
@@ -3107,7 +3107,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 116562,
+    "ourId": 176423,
     "ourName": "Avispa Fukuoka",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7107",
@@ -3127,7 +3127,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 116538,
+    "ourId": 176434,
     "ourName": "V-Varen Nagasaki",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "19001",
@@ -3137,7 +3137,7 @@
     "matchType": "exact+comp"
   },
   {
-    "ourId": 116540,
+    "ourId": 176436,
     "ourName": "Fagiano Okayama",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "22522",
@@ -4114,7 +4114,7 @@
     "matchType": "exact"
   },
   {
-    "ourId": 160273,
+    "ourId": 176432,
     "ourName": "Gamba Osaka",
     "ourLeague": "J1_LEAGUE",
     "ourExternalId": "7102",
