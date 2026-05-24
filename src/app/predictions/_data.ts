@@ -50,39 +50,8 @@ export const LEAGUES: LeagueCard[] = [
   { code: "UECL", name: "유로파 컨퍼런스", subtitle: "유럽 3부 클럽", gradient: "from-emerald-600 via-green-500 to-lime-500", sport: "축구" },
   { code: "MLS", name: "MLS", subtitle: "북미 축구", gradient: "from-red-600 via-slate-900 to-blue-700", sport: "축구" },
   { code: "WORLD_CUP", name: "FIFA 월드컵 2026", subtitle: "미국·캐나다·멕시코", gradient: "from-amber-500 via-rose-500 to-fuchsia-600", sport: "축구" },
-
-  // 2026-05-24 추가 — 잉글랜드 EFL 시리즈 확장
-  {
-    code: "CHAMPIONSHIP",
-    codes: [
-      { code: "CHAMPIONSHIP", label: "챔피언십" },
-      { code: "LEAGUE_ONE", label: "리그 원" },
-      { code: "LEAGUE_TWO", label: "리그 투" },
-      { code: "NATIONAL_LEAGUE", label: "내셔널 리그" },
-    ],
-    name: "EFL · 잉글랜드 2~5부",
-    subtitle: "Championship · League One · Two · National League",
-    gradient: "from-purple-700 via-violet-600 to-indigo-600",
-    sport: "축구",
-  },
-  {
-    code: "SPL",
-    codes: [
-      { code: "SPL", label: "프리미어십" },
-      { code: "SCOT_CHAMPIONSHIP", label: "챔피언십" },
-      { code: "SCOT_LEAGUE_ONE", label: "리그 원" },
-      { code: "SCOT_LEAGUE_TWO", label: "리그 투" },
-    ],
-    name: "스코티시 풋볼",
-    subtitle: "Premiership · Championship · League 1·2",
-    gradient: "from-sky-700 via-blue-600 to-indigo-700",
-    sport: "축구",
-  },
-  { code: "RPL", name: "러시아 프리미어리그", subtitle: "Russian Premier League", gradient: "from-red-700 via-rose-600 to-amber-500", sport: "축구" },
-  { code: "ALGERIA_L1", name: "알제리 리그 1", subtitle: "Ligue Professionnelle 1", gradient: "from-emerald-700 via-green-600 to-red-600", sport: "축구" },
-  { code: "GHANA_PL", name: "가나 프리미어리그", subtitle: "Ghana Premier League", gradient: "from-red-600 via-yellow-500 to-emerald-600", sport: "축구" },
-  { code: "SVENSKA_CUPEN", name: "스벤스카 컵", subtitle: "스웨덴 컵 (Svenska Cupen)", gradient: "from-blue-600 via-sky-500 to-yellow-400", sport: "축구" },
-  { code: "ARG_PRIMERA_NACIONAL", name: "프리메라 나시오날", subtitle: "아르헨티나 2부", gradient: "from-sky-500 via-blue-600 to-slate-700", sport: "축구" },
+  // 2026-05-24 추가 11개 리그 (League Two/Scot/RPL/Algeria/Ghana/Svenska Cupen/Primera Nacional 등)
+  // 는 카드 grid 에서 제외 — 국가별 리그 순위 섹션 (fetchCountryStandings) 에만 표시.
 
   // ── 야구 ──
   { code: "KBO", name: "KBO 리그", subtitle: "한국 프로야구", gradient: "from-blue-600 via-indigo-600 to-rose-500", sport: "야구" },
