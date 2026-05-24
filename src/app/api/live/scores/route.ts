@@ -12,7 +12,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchAllLiveScores, type LiveMatch } from "@/lib/sports/live-scores";
 
-export const runtime = "edge";
+// 2026-05-24: edge → nodejs. fetchBaseballLive() 가 prisma 호출 (TheSports cache
+// 기반) 로 변경되어 edge 호환 X. Soccer/NBA/NHL/LOL 은 외부 fetch 로 edge OK 였지만
+// 한 함수만 다른 runtime 분리 어려움. CDN 캐시 (s-maxage=10) 가 cold start 영향 흡수.
+export const runtime = "nodejs";
 // dynamic / revalidate 미명시 — fetchAllLiveScores 의 외부 API fetch 로 Next.js
 // 가 자동 dynamic 추론. 응답 cache-control 만으로 CDN 캐시 제어.
 

@@ -1052,50 +1052,121 @@ async function fetchAfGoalRawsForFixture(
     }));
 }
 
+/**
+ * 야구 (KBO/NPB/MLB) 라이브 매치 — TheSports cache 우선.
+ *
+ * 2026-05-24 변경: api-sports baseball → TheSports cache.
+ * - api-sports 가 MLB LIVE status 갱신 안 함 (Not Started 로 stuck) → 0건 응답
+ * - TheSports MQTT subscriber + baseball-poller 가 detailLive cache 1-2초 주기 갱신
+ * - cache.updatedAt > now - 5분 = 진행 중 매치 (FINISHED 매치는 push 안 옴)
+ *
+ * /api/live/baseball/[gameId] 의 cache 우선 전환 (e470fc9) 과 일관.
+ */
 export async function fetchBaseballLive(): Promise<LiveMatch[]> {
-  const key = process.env.API_BASEBALL_KEY;
-  if (!key) return [];
-  // KST 기준 "오늘" 매치. UTC 자정에 걸쳐 KST 일자가 바뀌므로 KST 날짜 직접.
-  const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
-  const yyyy = kstNow.getUTCFullYear();
-  const mm = String(kstNow.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(kstNow.getUTCDate()).padStart(2, "0");
-  const date = `${yyyy}-${mm}-${dd}`;
+  const { prisma } = await import("@/lib/db");
+  const cutoff = new Date(Date.now() - 5 * 60 * 1000); // 최근 5분 cache push
   try {
-    const data = await getJson<ABGameResp>(
-      `${AB_BASE}/games?date=${date}`,
-      { "x-apisports-key": key },
-    );
-    return (data.response ?? [])
-      .map((g): LiveMatch | null => {
-        const code = BB_LEAGUE_ID_TO_CODE[g.league.id];
-        if (!code) return null;
-        if (!isBaseballLive(g.status.short, g.status.long)) return null;
-        return {
-          id: `ab-${g.id}`,
-          league: code,
-          leagueLabel: LEAGUE_LABEL[code] ?? code,
-          baseball: {
-            homeInnings: flattenInnings(g.scores.home.innings),
-            awayInnings: flattenInnings(g.scores.away.innings),
-            homeHits: g.scores.home.hits ?? null,
-            awayHits: g.scores.away.hits ?? null,
-            homeErrors: g.scores.home.errors ?? null,
-            awayErrors: g.scores.away.errors ?? null,
+    const rows = await prisma.theSportsMatchCache.findMany({
+      where: {
+        updatedAt: { gte: cutoff },
+        match: {
+          league: { in: ["KBO", "NPB", "MLB"] },
+          status: { not: "FINISHED" },
+        },
+      },
+      include: {
+        match: {
+          select: {
+            externalId: true,
+            league: true,
+            startTime: true,
+            homeScore: true,
+            awayScore: true,
+            homeTeam: { select: { name: true } },
+            awayTeam: { select: { name: true } },
           },
-          homeName: g.teams.home.name,
-          awayName: g.teams.away.name,
-          homeShort: shortName(g.teams.home.name, code),
-          awayShort: shortName(g.teams.away.name, code),
-          homeScore: g.scores.home.total ?? 0,
-          awayScore: g.scores.away.total ?? 0,
-          statusLabel: baseballStatusLabel(g.status.long, g.status.short),
-          startTime: g.date,
-        };
-      })
-      .filter((m): m is LiveMatch => m !== null);
+        },
+      },
+      take: 50,
+    });
+
+    return rows.map((c): LiveMatch => {
+      const m = c.match;
+      const dl = c.detailLive as
+        | {
+            score?: [string, number, number, Record<string, unknown>];
+            extra?: { good?: number; bad?: number; base?: string; out?: number };
+          }
+        | null;
+      const scoreArr = dl?.score;
+      const scoreObj =
+        Array.isArray(scoreArr) && scoreArr.length >= 4
+          ? (scoreArr[3] as Record<string, [string, string] | undefined>)
+          : null;
+
+      // 점수 — cache.ft 우선, 없으면 DB
+      let homeScore = m.homeScore ?? 0;
+      let awayScore = m.awayScore ?? 0;
+      const ft = scoreObj?.ft;
+      if (Array.isArray(ft) && ft.length === 2) {
+        const h = parseInt(ft[0], 10);
+        const a = parseInt(ft[1], 10);
+        if (Number.isFinite(h)) homeScore = h;
+        if (Number.isFinite(a)) awayScore = a;
+      }
+
+      // 이닝별 — pN 추출
+      const homeInnings: (number | null)[] = [];
+      const awayInnings: (number | null)[] = [];
+      let maxInning = 0;
+      if (scoreObj) {
+        for (let i = 1; i <= 20; i++) {
+          const p = scoreObj[`p${i}`];
+          if (!p) continue;
+          maxInning = i;
+          homeInnings.push(p[0] === "X" || !p[0] ? null : parseInt(p[0], 10));
+          awayInnings.push(p[1] === "X" || !p[1] ? null : parseInt(p[1], 10));
+        }
+      }
+
+      // statusLabel — 이닝 + half (score[2] 1=초, 2=말)
+      const halfTopBot = Array.isArray(scoreArr) ? scoreArr[2] : null;
+      const halfKo = halfTopBot === 2 ? "말" : halfTopBot === 1 ? "초" : "";
+      const statusLabel =
+        maxInning > 0 ? `${maxInning}회 ${halfKo}`.trim() : "LIVE";
+
+      // hits / errors
+      const hitsHome = scoreObj?.h?.[0] ? parseInt(scoreObj.h[0], 10) : null;
+      const hitsAway = scoreObj?.h?.[1] ? parseInt(scoreObj.h[1], 10) : null;
+      const errHome = scoreObj?.e?.[0] ? parseInt(scoreObj.e[0], 10) : null;
+      const errAway = scoreObj?.e?.[1] ? parseInt(scoreObj.e[1], 10) : null;
+
+      const code = m.league as "KBO" | "NPB" | "MLB";
+
+      return {
+        id: `ab-${m.externalId}`, // 기존 prefix 유지 (페이지 매칭 호환)
+        league: code,
+        leagueLabel: LEAGUE_LABEL[code] ?? code,
+        homeName: m.homeTeam.name,
+        awayName: m.awayTeam.name,
+        homeShort: shortName(m.homeTeam.name, code),
+        awayShort: shortName(m.awayTeam.name, code),
+        homeScore,
+        awayScore,
+        statusLabel,
+        startTime: m.startTime.toISOString(),
+        baseball: {
+          homeInnings: maxInning > 0 ? homeInnings : [],
+          awayInnings: maxInning > 0 ? awayInnings : [],
+          homeHits: Number.isFinite(hitsHome) ? hitsHome : null,
+          awayHits: Number.isFinite(hitsAway) ? hitsAway : null,
+          homeErrors: Number.isFinite(errHome) ? errHome : null,
+          awayErrors: Number.isFinite(errAway) ? errAway : null,
+        },
+      };
+    });
   } catch (e) {
-    console.warn("[live-scores/baseball]", (e as Error).message);
+    console.warn("[live-scores/baseball-ts]", (e as Error).message);
     return [];
   }
 }
