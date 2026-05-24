@@ -82,24 +82,55 @@ export async function GET(req: NextRequest) {
   }
 
   const cutoff = new Date(Date.now() - STALE_HOURS * 3600 * 1000);
+
+  // 1) stale LIVE 매치 처리 (시작 + 6h+ 지났는데 LIVE) — data-sanity 봇 알림 제거
+  //    점수 있으면 FINISHED, 없으면 POSTPONED.
+  const liveCutoff = new Date(Date.now() - 6 * 3600 * 1000);
+  const staleLive = await prisma.match.findMany({
+    where: { status: "LIVE", startTime: { lt: liveCutoff } },
+    include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+  });
+  let liveFinished = 0;
+  let livePostponed = 0;
+  for (const m of staleLive) {
+    const hasScore = m.homeScore != null && m.awayScore != null;
+    const newStatus: "FINISHED" | "POSTPONED" = hasScore ? "FINISHED" : "POSTPONED";
+    await prisma.match.update({ where: { id: m.id }, data: { status: newStatus } });
+    if (newStatus === "FINISHED") liveFinished++; else livePostponed++;
+  }
+
+  // 2) stale SCHEDULED 매치 처리 (기존 로직)
   const stale = await prisma.match.findMany({
     where: { status: "SCHEDULED", startTime: { lt: cutoff } },
     include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
     orderBy: { startTime: "asc" },
   });
 
-  if (stale.length === 0) {
+  if (stale.length === 0 && staleLive.length === 0) {
     // OK row 도 남김 — /admin/health 에서 "정상 동작 중" 확인 가능
     await prisma.healthCheck.create({
       data: {
         severity: "OK",
         category: "stale-cleanup",
         key: "summary",
-        message: "stale SCHEDULED 매치 없음 — 모든 cron 정상",
+        message: "stale SCHEDULED/LIVE 매치 없음 — 모든 cron 정상",
         metadata: { marked: 0, staleHours: STALE_HOURS },
       },
     });
-    return NextResponse.json({ ok: true, marked: 0 });
+    return NextResponse.json({ ok: true, marked: 0, liveFinished: 0, livePostponed: 0 });
+  }
+  if (stale.length === 0) {
+    // LIVE 만 정리된 케이스 — telegram 알림 + 조용히 종료
+    await prisma.healthCheck.create({
+      data: {
+        severity: liveFinished + livePostponed >= 5 ? "MED" : "LOW",
+        category: "stale-cleanup",
+        key: "live-summary",
+        message: `stale LIVE ${staleLive.length}건 정리 (FINISHED ${liveFinished} / POSTPONED ${livePostponed})`,
+        metadata: { liveFinished, livePostponed, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, teams: `${m.awayTeam.name} vs ${m.homeTeam.name}` })) },
+      },
+    });
+    return NextResponse.json({ ok: true, marked: 0, liveFinished, livePostponed });
   }
 
   await prisma.match.updateMany({
