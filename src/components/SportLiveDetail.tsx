@@ -121,6 +121,8 @@ interface Props {
   /** 리그 순위 (TheSports standings) — 팀명 옆 [N] 표시. 클릭 시 새창에서 /predictions/{league} */
   homePosition?: number | null;
   awayPosition?: number | null;
+  /** 우리 Elo 모델 예측 확률 (0~1) — 라이브 배당 카드의 implied 와 비교해 value % 표시 */
+  eloPrediction?: { home: number; draw?: number | null; away: number } | null;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -142,6 +144,7 @@ export default function SportLiveDetail({
   initialStatus,
   homePosition,
   awayPosition,
+  eloPrediction,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -361,6 +364,7 @@ export default function SportLiveDetail({
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
           hasDraw={league !== "NBA" && league !== "NHL" && league !== "MLB" && league !== "KBO" && league !== "NPB"}
+          eloPrediction={eloPrediction}
         />
       )}
 

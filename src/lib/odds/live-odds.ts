@@ -25,6 +25,12 @@ export interface LiveOddsSnapshot {
     awayOdds: number;
   } | null;
   bookmakers: number; // 평균에 들어간 북메이커 수
+  /** 북메이커별 raw odds — UI 의 접기 펼치기에서 표시. h2h 만 있고 totals/spread 없는 BM 도 포함 */
+  bookmakerList: Array<{
+    key: string;
+    title: string;
+    h2h: { home: number; draw: number | null; away: number } | null;
+  }>;
   fetchedAt: number; // epoch ms
   source: "the-odds-api";
 }
@@ -275,6 +281,21 @@ async function fetchEventOdds(
       oddsCache.set(cacheKey, { snapshot: null, at: Date.now() });
       return null;
     }
+    // 북메이커별 h2h 추출 — 표 표시용. odds 큰 순으로 정렬은 UI 단에서.
+    const bookmakerList: LiveOddsSnapshot["bookmakerList"] = [];
+    for (const b of data.bookmakers ?? []) {
+      const m = b.markets.find((x) => x.key === "h2h");
+      if (!m) continue;
+      const home = m.outcomes.find((o) => o.name === data.home_team)?.price;
+      const away = m.outcomes.find((o) => o.name === data.away_team)?.price;
+      const drawO = m.outcomes.find((o) => o.name === "Draw")?.price;
+      if (typeof home !== "number" || typeof away !== "number") continue;
+      bookmakerList.push({
+        key: b.key,
+        title: b.title,
+        h2h: { home, away, draw: typeof drawO === "number" ? drawO : null },
+      });
+    }
     const snapshot: LiveOddsSnapshot = {
       homeTeam: data.home_team,
       awayTeam: data.away_team,
@@ -282,6 +303,7 @@ async function fetchEventOdds(
       totals,
       spread,
       bookmakers,
+      bookmakerList,
       fetchedAt: Date.now(),
       source: "the-odds-api",
     };

@@ -183,6 +183,11 @@ export default async function GenericLivePage({ params }: Props) {
         initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
         homePosition={homePosition}
         awayPosition={awayPosition}
+        eloPrediction={
+          match.predHome != null && match.predAway != null
+            ? { home: match.predHome, draw: match.predDraw ?? null, away: match.predAway }
+            : null
+        }
       />
 
       {/* TheSports 카드 (축구만, cache 있을 때) */}
