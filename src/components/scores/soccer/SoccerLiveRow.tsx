@@ -167,24 +167,24 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               </span>
             )}
             <span
-              className={`truncate text-right text-[13px] ${
+              className={`truncate text-right text-[13px] min-w-0 ${
                 isFlash
                   ? "text-emerald-800 dark:text-emerald-200 font-bold"
                   : "text-neutral-800 dark:text-neutral-200"
               }`}
             >
               {team.name}
-              {position != null && (
-                <button
-                  type="button"
-                  onClick={goToStandings(team.teamId)}
-                  title={`${team.name} 리그 순위 보기`}
-                  className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
-                >
-                  [{position}]
-                </button>
-              )}
             </span>
+            {position != null && (
+              <button
+                type="button"
+                onClick={goToStandings(team.teamId)}
+                title={`${team.name} 리그 순위 보기`}
+                className="shrink-0 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+              >
+                [{position}]
+              </button>
+            )}
             {showHomeBadge && (
               <span className="shrink-0 text-[9px] font-bold tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/15 rounded px-1 py-px">
                 홈
@@ -257,24 +257,24 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               </span>
             )}
             <span
-              className={`truncate text-[13px] ${
+              className={`truncate text-[13px] min-w-0 ${
                 isFlash
                   ? "text-emerald-800 dark:text-emerald-200 font-bold"
                   : "text-neutral-800 dark:text-neutral-200"
               }`}
             >
               {team.name}
-              {position != null && (
-                <button
-                  type="button"
-                  onClick={goToStandings(team.teamId)}
-                  title={`${team.name} 리그 순위 보기`}
-                  className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
-                >
-                  [{position}]
-                </button>
-              )}
             </span>
+            {position != null && (
+              <button
+                type="button"
+                onClick={goToStandings(team.teamId)}
+                title={`${team.name} 리그 순위 보기`}
+                className="shrink-0 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+              >
+                [{position}]
+              </button>
+            )}
             {isFlash && (
               <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
                 ⚽ GOAL
