@@ -17,7 +17,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
-const STALE_LIVE_MS = 15 * 60 * 1000;
+// 30분 — football-poller 5분 주기 + ws-subscriber 푸시 빈도가 마이너 리그에서
+// 낮을 수 있어 15분 → 30분 으로 완화 (false positive 감소, 2026-05-25).
+const STALE_LIVE_MS = 30 * 60 * 1000;
 
 type IssueKind =
   | "score_drift"
