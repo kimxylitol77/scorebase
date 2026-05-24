@@ -105,7 +105,7 @@ function normalizeFootballMatch(
  * 5/17 sample 본 status_id=8 (종료). docs Status Code 페이지 확인 필요.
  * 임시 매핑 — 화요일 라이브 매치 받으면 진행 중 코드 검증 후 정정.
  */
-function mapFootballStatus(statusId: number): NormalizedMatch["status"] {
+export function mapFootballStatus(statusId: number): NormalizedMatch["status"] {
   // 8 = 종료된 매치 (5/17 sample 검증)
   if (statusId === 8) return "FINISHED";
   // 추정 — 진행 중 매치 코드 (1~7 정도?)

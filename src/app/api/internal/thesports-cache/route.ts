@@ -5,9 +5,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { mapFootballStatus } from "@/lib/sports/thesports/football-collector";
+import { mapBaseballStatus } from "@/lib/sports/thesports/status-codes";
+import type { MatchStatus } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Match.status 단조 progression 가드 — FINISHED → SCHEDULED 같은 역행 차단.
+// 단 POSTPONED 는 어디서나 진입 가능 (matchday cancel 케이스).
+const STATUS_RANK: Record<MatchStatus, number> = {
+  SCHEDULED: 0,
+  LIVE: 1,
+  FINISHED: 2,
+  POSTPONED: 2,
+};
+
+const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
 
 interface Body {
   matchId: number;        // 우리 Match.id
@@ -79,22 +93,52 @@ export async function POST(req: NextRequest) {
     select: { id: true, matchId: true, updatedAt: true },
   });
 
+  // detailLive.score[1] = TheSports status_id. sport 별 mapping 으로 우리 MatchStatus 추출.
+  // (2026-05-24 옵션 A: cache → Match 동기화 — api-football cron 누락 매치도 worker push 로
+  //  status 자동 갱신. 단조 progression 가드로 역행 차단.)
+  const scoreArr = (body.detailLive as { score?: unknown[] } | null)?.score;
+  const tsStatusId =
+    Array.isArray(scoreArr) && typeof scoreArr[1] === "number"
+      ? (scoreArr[1] as number)
+      : null;
+
   // football fast-poller 가 score 보냈으면 Match 의 homeScore/awayScore 도 동시 update.
-  // /scores 목록 SSR 이 즉시 fresh 받음. monotonic max — 점수 줄어들지 않게 안전망.
+  // status 도 함께 (cache → Match 동기화). monotonic max — 점수 줄어들지 않게 안전망.
   let matchUpdated = false;
-  if (typeof body.homeScore === "number" && typeof body.awayScore === "number") {
+  const needScoreUpdate =
+    typeof body.homeScore === "number" && typeof body.awayScore === "number";
+  if (needScoreUpdate || tsStatusId != null) {
     try {
       const current = await prisma.match.findUnique({
         where: { id: body.matchId },
-        select: { homeScore: true, awayScore: true },
+        select: { homeScore: true, awayScore: true, status: true, league: true },
       });
-      const newHome = Math.max(body.homeScore, current?.homeScore ?? -1);
-      const newAway = Math.max(body.awayScore, current?.awayScore ?? -1);
-      if (newHome !== current?.homeScore || newAway !== current?.awayScore) {
-        await prisma.match.update({
-          where: { id: body.matchId },
-          data: { homeScore: newHome, awayScore: newAway },
-        });
+      const updateData: { homeScore?: number; awayScore?: number; status?: MatchStatus } = {};
+
+      if (needScoreUpdate && current) {
+        const newHome = Math.max(body.homeScore!, current.homeScore ?? -1);
+        const newAway = Math.max(body.awayScore!, current.awayScore ?? -1);
+        if (newHome !== current.homeScore) updateData.homeScore = newHome;
+        if (newAway !== current.awayScore) updateData.awayScore = newAway;
+      }
+
+      if (tsStatusId != null && current) {
+        const sport = BASEBALL_LEAGUES.has(current.league) ? "baseball" : "football";
+        const mapped =
+          sport === "baseball"
+            ? mapBaseballStatus(tsStatusId)
+            : mapFootballStatus(tsStatusId);
+        // 단조 progression — FINISHED 에서 LIVE/SCHEDULED 로 역행 안 함.
+        // POSTPONED 는 어디서나 진입 허용 (matchday cancel).
+        const currentRank = STATUS_RANK[current.status as MatchStatus] ?? 0;
+        const newRank = STATUS_RANK[mapped];
+        if (mapped !== current.status && (newRank >= currentRank || mapped === "POSTPONED")) {
+          updateData.status = mapped;
+        }
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await prisma.match.update({ where: { id: body.matchId }, data: updateData });
         matchUpdated = true;
       }
     } catch {
