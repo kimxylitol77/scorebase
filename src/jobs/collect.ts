@@ -188,6 +188,48 @@ async function upsertMatch(m: NormalizedMatch) {
     },
   });
 
+  // === Dedup 가드 (2026-05-24): 다른 source / 다른 externalId 로 들어온 같은 매치 차단 ===
+  // 조건: 같은 league + startTime ±30분 + 동일 두 팀 페어 (home/away 양방향) + 다른 externalId.
+  // 새 row 생성 X → 기존 row 의 score/status/startTime 만 update. homeTeamId/awayTeamId 유지
+  // (Article·Prediction 등 dependents 연결 보호). home/away 방향 다르면 score swap.
+  //
+  // 원인 예: 같은 LALIGA Barcelona vs Valencia 매치를 api-football fixture_id=748519 와
+  // 다른 source 의 매치 id 로 두 row 생성 — chain collector / 시즌 변경 / 다른 fixture id
+  // 응답 등 케이스. 매번 cron 마다 dup 누적되던 패턴 차단.
+  const dedupWindow = 30 * 60 * 1000;
+  const existing = await prisma.match.findFirst({
+    where: {
+      league: m.league,
+      externalId: { not: m.externalId },
+      startTime: {
+        gte: new Date(m.startTime.getTime() - dedupWindow),
+        lte: new Date(m.startTime.getTime() + dedupWindow),
+      },
+      OR: [
+        { homeTeamId: homeTeam.id, awayTeamId: awayTeam.id },
+        { homeTeamId: awayTeam.id, awayTeamId: homeTeam.id },
+      ],
+    },
+    select: { id: true, externalId: true, homeTeamId: true },
+  });
+
+  if (existing) {
+    const sameDirection = existing.homeTeamId === homeTeam.id;
+    console.log(
+      `[upsertMatch/dedup] ${m.league} new=${m.externalId} ≈ existing=${existing.externalId} (matchId=${existing.id}) — update only`,
+    );
+    await prisma.match.update({
+      where: { id: existing.id },
+      data: {
+        homeScore: sameDirection ? (m.homeScore ?? null) : (m.awayScore ?? null),
+        awayScore: sameDirection ? (m.awayScore ?? null) : (m.homeScore ?? null),
+        status: m.status,
+        startTime: m.startTime,
+      },
+    });
+    return;
+  }
+
   await prisma.match.upsert({
     where: {
       league_externalId: { league: m.league, externalId: m.externalId },
