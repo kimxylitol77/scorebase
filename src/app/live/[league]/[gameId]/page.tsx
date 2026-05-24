@@ -195,6 +195,20 @@ export default async function GenericLivePage({ params }: Props) {
         oddsHistory={oddsHistory}
       />
 
+      {/* 팀명 + 최근경기 (상대전적) — 점수 카드 바로 아래로 (사용자 우선순위 2026-05-24) */}
+      <MatchHeadToHead
+        homeShortName={homeShort}
+        awayShortName={awayShort}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        h2hHome={extras.h2hHome}
+        homeStanding={extras.homeStanding}
+        awayStanding={extras.awayStanding}
+        totalTeams={extras.totalTeams}
+        hasDraw={isSoccer}
+        scoreLabel={scoreLabel}
+      />
+
       {/* TheSports 카드 (축구만, cache 있을 때) */}
       {isSoccer && match.theSportsCache && (() => {
         const cache = match.theSportsCache;
@@ -273,18 +287,6 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
-      <MatchHeadToHead
-        homeShortName={homeShort}
-        awayShortName={awayShort}
-        homeTeamId={match.homeTeam.id}
-        awayTeamId={match.awayTeam.id}
-        h2hHome={extras.h2hHome}
-        homeStanding={extras.homeStanding}
-        awayStanding={extras.awayStanding}
-        totalTeams={extras.totalTeams}
-        hasDraw={isSoccer}
-        scoreLabel={scoreLabel}
-      />
     </div>
   );
 }

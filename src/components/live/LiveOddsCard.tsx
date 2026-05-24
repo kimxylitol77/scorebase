@@ -138,26 +138,33 @@ export default function LiveOddsCard({
     .sort((a, b) => a.title.localeCompare(b.title));
 
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-3">
+    <div className="rounded-[28px] bg-neutral-100/70 dark:bg-white/[0.04] ring-1 ring-black/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),0_8px_32px_-8px_rgba(0,0,0,0.6)] backdrop-blur-xl p-5 sm:p-6 space-y-5">
+      {/* 헤더 — 라이브 dot + 라벨 */}
       <div className="flex items-center justify-between">
-        <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-          라이브 배당 (1분 갱신)
+        <div className="flex items-center gap-2">
+          <span className="relative inline-flex w-2 h-2">
+            <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-60" />
+            <span className="relative inline-block w-2 h-2 rounded-full bg-rose-500" />
+          </span>
+          <span className="text-[13px] font-semibold tracking-tight text-neutral-900 dark:text-white">
+            라이브 배당
+          </span>
         </div>
-        <div className="text-[10px] text-neutral-400">
-          {bookmakers}개 북메이커 평균 · {timeAgo(fetchedAt)}
+        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums">
+          {bookmakers}곳 평균 · {timeAgo(fetchedAt)}
         </div>
       </div>
 
       {/* 1X2 — implied % + Elo 비교 */}
       {h2h && (
-        <div className="space-y-1.5">
-          <div className="flex items-baseline justify-between">
-            <div className="text-[10px] text-neutral-500">
-              {hasDraw ? "승무패 (1X2)" : "승부 (머니라인)"}
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between px-1">
+            <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+              {hasDraw ? "승무패" : "머니라인"}
             </div>
             {vig != null && (
-              <div className="text-[10px] text-neutral-400">
-                vig {(vig * 100).toFixed(1)}%
+              <div className="text-[10px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+                마진 {(vig * 100).toFixed(1)}%
               </div>
             )}
           </div>
@@ -198,28 +205,27 @@ export default function LiveOddsCard({
       )}
 
       {totals && (
-        <div className="space-y-1">
-          <div className="text-[10px] text-neutral-500">
-            총득점 OVER/UNDER (기준 {totals.line})
+        <div className="space-y-2">
+          <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 px-1">
+            총득점 <span className="text-neutral-400 dark:text-neutral-500">· 기준 {totals.line}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <OddsCell label={`O ${totals.line}`} value={totals.over} />
-            <OddsCell label={`U ${totals.line}`} value={totals.under} />
+            <OddsCell label={`오버 ${totals.line}`} value={totals.over} />
+            <OddsCell label={`언더 ${totals.line}`} value={totals.under} />
           </div>
         </div>
       )}
 
       {spread && (
-        <div className="space-y-1">
-          <div className="text-[10px] text-neutral-500">
-            핸디캡 (
-            {spread.pick === "HOME" ? homeNameKo : awayNameKo} -{spread.line})
+        <div className="space-y-2">
+          <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 px-1">
+            핸디캡 <span className="text-neutral-400 dark:text-neutral-500">· {spread.pick === "HOME" ? homeNameKo : awayNameKo} −{spread.line}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <OddsCell
               label={
                 spread.pick === "HOME"
-                  ? `${homeNameKo} -${spread.line}`
+                  ? `${homeNameKo} −${spread.line}`
                   : `${homeNameKo} +${spread.line}`
               }
               value={spread.homeOdds}
@@ -227,7 +233,7 @@ export default function LiveOddsCard({
             <OddsCell
               label={
                 spread.pick === "AWAY"
-                  ? `${awayNameKo} -${spread.line}`
+                  ? `${awayNameKo} −${spread.line}`
                   : `${awayNameKo} +${spread.line}`
               }
               value={spread.awayOdds}
@@ -238,9 +244,11 @@ export default function LiveOddsCard({
 
       {/* Sparkline — 30 snapshot 시계열 (최대 3h) */}
       {oddsHistory && oddsHistory.length >= 2 && (
-        <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
+        <div className="rounded-2xl bg-white/70 dark:bg-white/[0.03] ring-1 ring-black/5 dark:ring-white/5 p-4 space-y-2.5">
           <div className="flex items-baseline justify-between">
-            <div className="text-[10px] text-neutral-500">배당 흐름 (최근 {oddsHistory.length}개 snapshot)</div>
+            <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+              배당 흐름 · {oddsHistory.length}개 snapshot
+            </div>
             <SparklineLegend
               hasDraw={hasDraw}
               homeNameKo={homeNameKo}
@@ -255,46 +263,46 @@ export default function LiveOddsCard({
 
       {/* 북메이커별 표 — 펼치기 */}
       {sortedBMs.length > 0 && (
-        <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
+        <div>
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="w-full flex items-center justify-between text-[11px] text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition"
+            className="w-full flex items-center justify-between rounded-full bg-white/60 dark:bg-white/[0.05] hover:bg-white dark:hover:bg-white/[0.08] ring-1 ring-black/5 dark:ring-white/10 px-4 py-2.5 text-[12px] font-medium text-neutral-700 dark:text-neutral-300 transition"
           >
-            <span>
-              북메이커별 1X2 비교 ({sortedBMs.length}개)
+            <span>북메이커별 비교 · {sortedBMs.length}곳</span>
+            <span className={`text-neutral-400 transition-transform ${expanded ? "rotate-180" : ""}`}>
+              ⌃
             </span>
-            <span className={`transition-transform ${expanded ? "rotate-180" : ""}`}>▼</span>
           </button>
           {expanded && (
-            <div className="mt-2 overflow-x-auto">
-              <table className="w-full text-[11px] tabular-nums">
+            <div className="mt-2 overflow-x-auto rounded-2xl bg-white/60 dark:bg-white/[0.03] ring-1 ring-black/5 dark:ring-white/5 p-3">
+              <table className="w-full text-[12px] tabular-nums">
                 <thead>
-                  <tr className="text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
-                    <th className="text-left py-1.5 pr-2 font-normal">북메이커</th>
-                    <th className="text-right py-1.5 px-1 font-normal w-12">홈</th>
-                    {hasDraw && <th className="text-right py-1.5 px-1 font-normal w-12">무</th>}
-                    <th className="text-right py-1.5 px-1 font-normal w-12">원정</th>
+                  <tr className="text-neutral-400 dark:text-neutral-500 border-b border-black/5 dark:border-white/5">
+                    <th className="text-left py-2 pr-2 font-medium">북메이커</th>
+                    <th className="text-right py-2 px-1.5 font-medium w-14">홈</th>
+                    {hasDraw && <th className="text-right py-2 px-1.5 font-medium w-14">무</th>}
+                    <th className="text-right py-2 px-1.5 font-medium w-14">원정</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sortedBMs.map((b) => (
                     <tr
                       key={b.key}
-                      className="border-b border-neutral-50 dark:border-neutral-900/50"
+                      className="border-b border-black/5 dark:border-white/5 last:border-b-0"
                     >
-                      <td className="py-1.5 pr-2 truncate text-neutral-700 dark:text-neutral-300">
+                      <td className="py-2 pr-2 truncate text-neutral-700 dark:text-neutral-200">
                         {b.title}
                       </td>
-                      <td className="text-right py-1.5 px-1 font-semibold">
+                      <td className="text-right py-2 px-1.5 font-semibold text-neutral-900 dark:text-white">
                         {fmt(b.h2h?.home)}
                       </td>
                       {hasDraw && (
-                        <td className="text-right py-1.5 px-1">
+                        <td className="text-right py-2 px-1.5 text-neutral-600 dark:text-neutral-300">
                           {fmt(b.h2h?.draw ?? null)}
                         </td>
                       )}
-                      <td className="text-right py-1.5 px-1 font-semibold">
+                      <td className="text-right py-2 px-1.5 font-semibold text-neutral-900 dark:text-white">
                         {fmt(b.h2h?.away)}
                       </td>
                     </tr>
@@ -317,9 +325,13 @@ function OddsCell({
   value: number | null | undefined;
 }) {
   return (
-    <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 px-3 py-2 flex flex-col items-center">
-      <div className="text-[11px] text-neutral-500 truncate max-w-full">{label}</div>
-      <div className="text-base font-bold tabular-nums">{fmt(value)}</div>
+    <div className="rounded-2xl bg-white/80 dark:bg-white/[0.06] ring-1 ring-black/5 dark:ring-white/10 px-4 py-3.5 flex flex-col items-center gap-1">
+      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate max-w-full">
+        {label}
+      </div>
+      <div className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-white">
+        {fmt(value)}
+      </div>
     </div>
   );
 }
@@ -341,19 +353,41 @@ function OddsCellRich({
   valueColor: string;
   valueText: string;
 }) {
+  const hasValueBadge = eloPct != null && valueText !== "";
   return (
-    <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 px-3 py-2 flex flex-col items-center">
-      <div className="text-[11px] text-neutral-500 truncate max-w-full">{label}</div>
-      <div className="text-base font-bold tabular-nums">{fmt(value)}</div>
-      <div className="text-[9px] text-neutral-400 tabular-nums">
-        배당사 {implied != null ? `${(implied * 100).toFixed(0)}%` : "—"}
-      </div>
-      {eloPct != null && (
-        <div className="text-[9px] tabular-nums flex items-baseline gap-1">
-          <span className="text-neutral-400">Elo {(eloPct * 100).toFixed(0)}%</span>
-          <span className={`font-bold ${valueColor}`}>{valueText}</span>
-        </div>
+    <div className="rounded-2xl bg-white/80 dark:bg-white/[0.06] ring-1 ring-black/5 dark:ring-white/10 px-3 py-3 flex flex-col items-center gap-1 relative">
+      {/* value 배지 — 셀 우측 상단 */}
+      {hasValueBadge && (
+        <span
+          className={`absolute top-2 right-2 text-[9px] font-bold tabular-nums rounded-full px-1.5 py-0.5 ${
+            valueColor.includes("emerald")
+              ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+              : valueColor.includes("rose")
+                ? "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300"
+                : "bg-neutral-100 dark:bg-white/10 text-neutral-500 dark:text-neutral-400"
+          }`}
+        >
+          {valueText}
+        </span>
       )}
+      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate max-w-full">
+        {label}
+      </div>
+      <div className="text-2xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-white">
+        {fmt(value)}
+      </div>
+      <div className="flex items-center gap-2 text-[10px] tabular-nums mt-0.5">
+        {implied != null && (
+          <span className="text-neutral-400 dark:text-neutral-500">
+            배당사 <span className="font-semibold text-neutral-600 dark:text-neutral-300">{(implied * 100).toFixed(0)}%</span>
+          </span>
+        )}
+        {eloPct != null && (
+          <span className="text-neutral-400 dark:text-neutral-500">
+            모델 <span className="font-semibold text-neutral-600 dark:text-neutral-300">{(eloPct * 100).toFixed(0)}%</span>
+          </span>
+        )}
+      </div>
     </div>
   );
 }
