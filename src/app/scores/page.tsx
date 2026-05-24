@@ -390,10 +390,10 @@ export default async function ScoresPage({ searchParams }: Props) {
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
 
-  // 축구만 ±1일 윈도우 — KST 자정 boundary 시차 매치 (유럽/북미) 누락 회피.
-  // 야구/농구/하키/롤은 선택 일자만 표시 (자정 시차 영향 적고 일자별 보기 깔끔).
-  const soccerRangeStart = new Date(day.getTime() - 24 * 3600 * 1000);
-  const soccerRangeEnd = new Date(day.getTime() + 48 * 3600 * 1000);
+  // 축구는 KST 자정 boundary 매치 (UCL/EPL 새벽 매치) 만 추가 cover —
+  // -1h ~ +25h 윈도우로 전날 21시 매치 등은 정확히 제외 (2026-05-24 사용자 보고).
+  const soccerRangeStart = new Date(day.getTime() - 1 * 3600 * 1000);
+  const soccerRangeEnd = new Date(day.getTime() + 25 * 3600 * 1000);
   const soccerWindow = { gte: soccerRangeStart, lt: soccerRangeEnd };
   const dayWindow = { gte: day, lt: dayEnd };
 
