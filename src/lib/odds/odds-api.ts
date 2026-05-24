@@ -22,6 +22,36 @@ export const SPORT_KEY: Record<string, string> = {
   // KBO/NPB — The Odds API 무료 plan 에서도 active=true 확인 (2026-05).
   KBO: "baseball_kbo",
   NPB: "baseball_npb",
+  // 2026-05-24 추가 — /v4/sports?all=true 로 검증된 active soccer 23개
+  EREDIVISIE: "soccer_netherlands_eredivisie",
+  SPL: "soccer_spl",
+  UECL: "soccer_uefa_europa_conference_league",
+  WORLD_CUP: "soccer_fifa_world_cup",
+  // 유럽 2부
+  CHAMPIONSHIP: "soccer_england_championship",
+  LEAGUE_ONE: "soccer_england_league1",
+  LEAGUE_TWO: "soccer_england_league2",
+  BUNDESLIGA_2: "soccer_germany_bundesliga2",
+  SERIE_B: "soccer_italy_serie_b",
+  LALIGA_2: "soccer_spain_segunda_division",
+  // 유럽 기타 1부
+  AUSTRIA_BL: "soccer_austria_bundesliga",
+  JUPILER_PL: "soccer_belgium_first_div",
+  IRELAND_PD: "soccer_league_of_ireland",
+  // 북유럽
+  ELITESERIEN: "soccer_norway_eliteserien",
+  ALLSVENSKAN: "soccer_sweden_allsvenskan",
+  SUPERETTAN: "soccer_sweden_superettan",
+  VEIKKAUSLIIGA: "soccer_finland_veikkausliiga",
+  // 남미 + 멕시코
+  ARGENTINA_PL: "soccer_argentina_primera_division",
+  BRASILEIRAO: "soccer_brazil_campeonato",
+  CHILE_PD: "soccer_chile_campeonato",
+  LIGA_MX: "soccer_mexico_ligamx",
+  COPA_LIB: "soccer_conmebol_copa_libertadores",
+  COPA_SUD: "soccer_conmebol_copa_sudamericana",
+  // 아시아
+  CSL: "soccer_china_superleague",
 };
 
 interface OddsApiOutcome {
