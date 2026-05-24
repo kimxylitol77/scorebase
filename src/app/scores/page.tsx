@@ -512,11 +512,20 @@ export default async function ScoresPage({ searchParams }: Props) {
     if (parsed) periodMap[m.externalId] = parsed;
   }
 
-  // KBO/NPB LIVE 매치의 베이스/아웃 컨텍스트 — TheSportsMatchCache 에서 보강
-  // (api-sports baseball 은 KBO/NPB ctx 미제공)
+  // KBO/NPB/MLB LIVE 매치의 베이스/아웃 컨텍스트 — TheSportsMatchCache 에서 보강.
+  // MLB 도 동일한 TheSports MQTT push (extra.base/out) 가 들어오므로 KBO/NPB 와 같은 경로 사용.
+  // ESPN summary 폴백 (baseballDetailsMap) 은 cache miss 시에만 — ESPN 은 매치 종료 직후
+  // situation 을 비워버려 "주자 정보 없음" 표시되는 문제 (2026-05-24 fix).
   const baseballCacheCtx = new Map<string, { bases: [boolean, boolean, boolean]; outs: number | null }>();
+  // DB.status === "LIVE" 만 보면 collector cron 이 SCHEDULED → LIVE 갱신 안 한 매치
+  // (특히 MLB ESPN collector 갭) 가 cache 조회에서 빠짐. cache 의 detailLive 가 5분
+  // 이내면 실제 진행 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
   const baseballLiveDbIds = matches
-    .filter((m) => (m.league === "KBO" || m.league === "NPB") && m.status === "LIVE")
+    .filter(
+      (m) =>
+        (m.league === "KBO" || m.league === "NPB" || m.league === "MLB") &&
+        m.status !== "FINISHED",
+    )
     .map((m) => m.id);
   if (baseballLiveDbIds.length > 0) {
     const caches = await prisma.theSportsMatchCache.findMany({
@@ -576,19 +585,36 @@ export default async function ScoresPage({ searchParams }: Props) {
       lm,
     );
   }
+  // 더블헤더 — 같은 league + 두 팀 페어 + 같은 KST 일자에 2경기 이상이면 name fallback 금지.
+  // 이름만으로는 1차전 (FINISHED) 과 2차전 (LIVE) 라이브 데이터 구분 불가 → 종료된 1차전이
+  // 2차전 라이브 데이터를 받아 effStatus=LIVE 로 잘못 표시되고 ctx 는 비어서 "주자 정보 없음"
+  // 표시되는 버그. externalId 정확 매치만 허용. (2026-05-24 fix — STL@CIN 더블헤더)
+  const dhPairKey = (league: string, homeTeamId: number, awayTeamId: number, startTime: Date) =>
+    `${league}|${[homeTeamId, awayTeamId].sort((a, b) => a - b).join("-")}|${dateQuery(startTime)}`;
+  const dhPairCount = new Map<string, number>();
+  for (const m of matches) {
+    const k = dhPairKey(m.league, m.homeTeamId, m.awayTeamId, m.startTime);
+    dhPairCount.set(k, (dhPairCount.get(k) ?? 0) + 1);
+  }
+
   function matchLive(m: {
     externalId: string;
     league: string;
     startTime: Date;
+    homeTeamId: number;
+    awayTeamId: number;
     homeTeam: { name: string };
     awayTeam: { name: string };
   }): LiveMatch | undefined {
-    const exact =
-      liveByExternalId.get(m.externalId) ??
-      liveByNameKey.get(
-        `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
-      );
-    if (exact) return exact;
+    const byExt = liveByExternalId.get(m.externalId);
+    if (byExt) return byExt;
+    const isDoubleHeader =
+      (dhPairCount.get(dhPairKey(m.league, m.homeTeamId, m.awayTeamId, m.startTime)) ?? 0) > 1;
+    if (isDoubleHeader) return undefined; // name fallback 금지
+    const byName = liveByNameKey.get(
+      `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
+    );
+    if (byName) return byName;
     // substring fallback — api-football "Urawa" vs DB "Urawa Red Diamonds" 등
     // 양쪽 normalize 후 둘 중 한쪽이 다른쪽 포함하면 매치로 간주.
     const dbHome = normalizeName(m.homeTeam.name);
@@ -797,8 +823,30 @@ export default async function ScoresPage({ searchParams }: Props) {
       preview,
       recap,
       href,
+      doubleHeader: null as { index: number; total: number } | null,
     };
   });
+
+  // 더블헤더 감지 — 같은 league + 두 팀 페어 + 같은 KST 일자에 2경기 이상.
+  // 시작 시간 순서로 1, 2 번호 부여. MLB 정규 더블헤더 + KBO/NPB 가능성 모두 대응.
+  const dhBuckets = new Map<string, (typeof normalizedAll)[number][]>();
+  for (const m of normalizedAll) {
+    const pair = [m.home.teamId, m.away.teamId].sort((a, b) => a - b).join("-");
+    const key = `${m.league}|${pair}|${dateQuery(m.startTime)}`;
+    let bucket = dhBuckets.get(key);
+    if (!bucket) {
+      bucket = [];
+      dhBuckets.set(key, bucket);
+    }
+    bucket.push(m);
+  }
+  for (const bucket of dhBuckets.values()) {
+    if (bucket.length < 2) continue;
+    bucket.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    bucket.forEach((m, i) => {
+      m.doubleHeader = { index: i + 1, total: bucket.length };
+    });
+  }
 
   // normalizedAll = 모든 종목 매치 (FavoriteMatches 용 — sport tab 무관 fav 표시).
   // normalized = 현재 sport 의 리그만 — 메인 그리드 / 상태 섹션 / 헤더 카운트 용.
@@ -1022,6 +1070,9 @@ export default async function ScoresPage({ searchParams }: Props) {
                     href: m.href,
                     actions: actionsFor(m),
                     liveCommentary: m.liveCommentary,
+                    preview: m.preview,
+                    recap: m.recap,
+                    recentGoalSide: m.recentGoalSide ?? null,
                   }))}
                 />
                 <SoccerRowLayout
@@ -1081,6 +1132,10 @@ export default async function ScoresPage({ searchParams }: Props) {
                   awayStarter: m.awayStarter,
                   href: m.href,
                   actions: actionsFor(m),
+                  liveCommentary: m.liveCommentary,
+                  preview: m.preview,
+                  recap: m.recap,
+                  recentGoalSide: m.recentGoalSide ?? null,
                 }))}
               />
               {isToday && liveList.length > 0 && (
@@ -1298,6 +1353,7 @@ function SoccerRowLayout({
         soccerGoals={null}
         recentGoalSide={m.recentGoalSide ?? null}
         href={m.href}
+        doubleHeader={m.doubleHeader}
       />
     );
   };
@@ -1458,6 +1514,7 @@ type NormalizedMatch = {
   preview?: string;
   recap?: string;
   href: string | null;
+  doubleHeader: { index: number; total: number } | null;
 };
 
 function actionsFor(m: NormalizedMatch) {
@@ -1519,6 +1576,7 @@ function renderCard(m: NormalizedMatch) {
       href={m.href}
       actions={actionsFor(m)}
       liveCommentary={m.liveCommentary}
+      doubleHeader={m.doubleHeader}
     />
   );
 }

@@ -1101,7 +1101,10 @@ async function fetchEspnMlbLive(): Promise<LiveMatch[]> {
         awayShort: away.team.abbreviation ?? shortName(awayName, "MLB"),
         homeScore: parseInt(home.score ?? "0", 10) || 0,
         awayScore: parseInt(away.score ?? "0", 10) || 0,
-        statusLabel: e.status?.type?.shortDetail ?? "LIVE",
+        // ESPN shortDetail 영어 ("Top 3rd") 를 한국어 이닝 표기로 변환. 없으면 "1회 초" default.
+        statusLabel: e.status?.type?.shortDetail
+          ? baseballStatusLabel(e.status.type.shortDetail)
+          : "1회 초",
         startTime: e.date ?? new Date().toISOString(),
         baseball: undefined,
       });
@@ -1194,10 +1197,14 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
       }
 
       // statusLabel — 이닝 + half (score[2] 1=초, 2=말)
+      // 매치 시작 직후 (cache 에 이닝 데이터 아직 push 안 옴) 에도 "LIVE" 대신
+      // 이닝 표기로 통일 — half 정보 있으면 그대로, 없으면 "1회 초" 로 추정 (시작 직후 가정).
       const halfTopBot = Array.isArray(scoreArr) ? scoreArr[2] : null;
       const halfKo = halfTopBot === 2 ? "말" : halfTopBot === 1 ? "초" : "";
       const statusLabel =
-        maxInning > 0 ? `${maxInning}회 ${halfKo}`.trim() : "LIVE";
+        maxInning > 0
+          ? `${maxInning}회 ${halfKo}`.trim()
+          : `1회 ${halfKo || "초"}`;
 
       // hits / errors
       const hitsHome = scoreObj?.h?.[0] ? parseInt(scoreObj.h[0], 10) : null;

@@ -61,6 +61,8 @@ export interface MatchCardProps {
   recentGoalSide?: "home" | "away" | null;
   /** Ollama (Mac mini) 생성 라이브 코멘터리 — LIVE 야구 카드에 표시 */
   liveCommentary?: LiveCommentaryData | null;
+  /** 같은 두 팀이 같은 날 2경기 이상일 때 (예: MLB 더블헤더) — 1차전/2차전 라벨 표시용 */
+  doubleHeader?: { index: number; total: number } | null;
 }
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
@@ -118,6 +120,7 @@ export default function MatchCard(props: MatchCardProps) {
     actions,
     recentGoalSide,
     liveCommentary,
+    doubleHeader,
   } = props;
 
   const isLive = status === "live";
@@ -144,6 +147,7 @@ export default function MatchCard(props: MatchCardProps) {
         href={href}
         actions={actions}
         liveCommentary={liveCommentary}
+        doubleHeader={doubleHeader}
       />
     );
   }

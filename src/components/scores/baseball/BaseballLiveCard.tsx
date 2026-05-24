@@ -31,6 +31,8 @@ export interface BaseballLiveCardProps {
   actions?: ReactNode;
   /** Ollama (Mac mini) 생성 라이브 코멘터리 — LIVE 매치에만 표시 */
   liveCommentary?: LiveCommentaryData | null;
+  /** 같은 두 팀이 같은 날 2경기 이상일 때 (MLB 더블헤더) — 1차전/2차전 배지 */
+  doubleHeader?: { index: number; total: number } | null;
 }
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
@@ -81,6 +83,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
     href,
     actions,
     liveCommentary,
+    doubleHeader,
   } = props;
 
   const isLive = status === "live";
@@ -152,6 +155,14 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
           <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             {leagueLabel ?? league}
           </span>
+          {doubleHeader && (
+            <span
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400"
+              title={`더블헤더 ${doubleHeader.index}차전 (총 ${doubleHeader.total}경기)`}
+            >
+              DH {doubleHeader.index}
+            </span>
+          )}
           {isLive && inningText && (
             <span className="text-[11px] font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
               {inningText}
