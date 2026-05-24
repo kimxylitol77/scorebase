@@ -141,6 +141,21 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   WK_LEAGUE: 783, // 한국 WK리그
   UEFA_WCL: 525, // UEFA Women's Champions League
   A_LEAGUE_W: 191, // A-League Women
+  // ───── 2026-05-24 추가 (4개) ─────
+  // ID 는 api-football 공식 docs 기반 — collector 첫 호출 시 매치 0건이면 id 보정 필요.
+  SUI_CUP: 209, // 스위스컵 (8~5월)
+  LEAGUE_ONE: 41, // 잉글랜드 League One (3부, 8~5월)
+  LATVIA_VL: 365, // 라트비아 비르슬리가 (1부, 봄~가을)
+  BELARUS_PL: 116, // 벨라루스 프리미어 리그 (1부, 봄~가을)
+  // ───── 2026-05-24 추가 (2차, 8개) ─────
+  ESTONIA_ML: 327, // 에스토니아 Meistriliiga (봄~가을)
+  LITHUANIA_AL: 362, // 리투아니아 A Lyga (봄~가을)
+  LEVAIN_CUP: 291, // 일본 J리그컵 / 르베인 컵 (달력, 3~10월)
+  KAZAKHSTAN_PL: 389, // 카자흐스탄 Premier (봄~가을)
+  GEORGIA_EL: 329, // 조지아 Erovnuli Liga (봄~가을)
+  AZERBAIJAN_PL: 419, // 아제르바이잔 Premier (8~5월)
+  EREDIVISIE_2: 89, // 네덜란드 Eerste Divisie (2부, 8~5월)
+  PRIMEIRA_LIGA_2: 95, // 포르투갈 Liga Portugal 2 (2부, 8~5월)
 };
 
 interface CacheEntry<T> {

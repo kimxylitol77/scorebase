@@ -44,6 +44,11 @@ export const ALL_LEAGUES = [
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
   "KBO", "NPB", "MLB",
   "NBA", "NHL", "LOL",
+  // 2026-05-24 추가
+  "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
+  // 2026-05-24 추가 (2차, 8개)
+  "ESTONIA_ML", "LITHUANIA_AL", "LEVAIN_CUP", "KAZAKHSTAN_PL",
+  "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
 ];
 
 export const SPORTS: SportMeta[] = [
@@ -82,9 +87,15 @@ export const SPORTS: SportMeta[] = [
       "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
       // 여자 축구
       "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
-      // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC
+      // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC + 스위스
       "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
       "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+      "SUI_CUP",
+      // 2026-05-24 추가 — 잉글랜드 3부 + 발트/동유럽
+      "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
+      // 2026-05-24 추가 (2차) — 발트/CIS + 일본컵 + 네덜란드/포르투갈 2부
+      "ESTONIA_ML", "LITHUANIA_AL", "LEVAIN_CUP", "KAZAKHSTAN_PL",
+      "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
     ],
   },
   {
@@ -243,6 +254,20 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   WNBA: "WNBA",
   NHL: "NHL",
   LOL: "LCK",
+  // 2026-05-24 추가
+  SUI_CUP: "스위스컵",
+  LEAGUE_ONE: "잉글랜드 리그 원",
+  LATVIA_VL: "라트비아 비르슬리가",
+  BELARUS_PL: "벨라루스 프리미어",
+  // 2026-05-24 추가 (2차)
+  ESTONIA_ML: "에스토니아 메이스트리리가",
+  LITHUANIA_AL: "리투아니아 A 리가",
+  LEVAIN_CUP: "르베인 컵",
+  KAZAKHSTAN_PL: "카자흐스탄 프리미어",
+  GEORGIA_EL: "조지아 에로브눌리",
+  AZERBAIJAN_PL: "아제르바이잔 프리미어",
+  EREDIVISIE_2: "에이르스터 디비시",
+  PRIMEIRA_LIGA_2: "포르투갈 리가 2",
 };
 
 /** 정렬 우선순위 (낮을수록 위) — KBO/NPB 한국 시청자 우선 */
@@ -344,6 +369,20 @@ export const LEAGUE_ORDER: Record<string, number> = {
   COPPA_ITALIA: 14.1, // SERIE_A 다음
   COUPE_DE_FRANCE: 15.1, // LIGUE_1 다음
   CONCACAF_CCUP: 16.05, // MLS 다음
+  // 2026-05-24 추가
+  LEAGUE_ONE: 10.6, // CHAMPIONSHIP 다음 (EFL 3부)
+  SUI_CUP: 15.865, // SWISS_SL 옆
+  LATVIA_VL: 15.911, // 발트해 — 봄~가을 그룹
+  BELARUS_PL: 15.912,
+  // 2026-05-24 추가 (2차)
+  EREDIVISIE_2: 15.61, // EREDIVISIE 옆 (네덜란드 2부)
+  PRIMEIRA_LIGA_2: 15.66, // PRIMEIRA_LIGA 옆 (포르투갈 2부)
+  LEVAIN_CUP: 8.6, // J리그 + EMPEROR_CUP 다음 (J리그컵)
+  ESTONIA_ML: 15.913, // 발트 — LATVIA_VL/BELARUS_PL 옆
+  LITHUANIA_AL: 15.914,
+  GEORGIA_EL: 15.915, // CIS 봄~가을
+  AZERBAIJAN_PL: 15.916,
+  KAZAKHSTAN_PL: 16.66, // 아시아·중동 그룹
   NBA: 20,
   NHL: 21,
   LOL: 30,
@@ -484,6 +523,20 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   U17_WC: "국제",
   OLYMPICS_FOOTBALL: "국제",
   UEFA_WCL: "국제",
+  // 2026-05-24 추가
+  SUI_CUP: "스위스",
+  LEAGUE_ONE: "잉글랜드",
+  LATVIA_VL: "라트비아",
+  BELARUS_PL: "벨라루스",
+  // 2026-05-24 추가 (2차)
+  ESTONIA_ML: "에스토니아",
+  LITHUANIA_AL: "리투아니아",
+  LEVAIN_CUP: "일본",
+  KAZAKHSTAN_PL: "카자흐스탄",
+  GEORGIA_EL: "조지아",
+  AZERBAIJAN_PL: "아제르바이잔",
+  EREDIVISIE_2: "네덜란드",
+  PRIMEIRA_LIGA_2: "포르투갈",
 };
 
 /** 국가명 → 국기 유니코드 이모지. "국제"는 지구본. */
@@ -553,6 +606,15 @@ export const COUNTRY_FLAG: Record<string, string> = {
   파라과이: "🇵🇾",
   볼리비아: "🇧🇴",
   태국: "🇹🇭",
+  // 2026-05-24 추가
+  라트비아: "🇱🇻",
+  벨라루스: "🇧🇾",
+  // 2026-05-24 추가 (2차)
+  에스토니아: "🇪🇪",
+  리투아니아: "🇱🇹",
+  카자흐스탄: "🇰🇿",
+  조지아: "🇬🇪",
+  아제르바이잔: "🇦🇿",
 };
 
 /** 국가 정렬 순서 — 국제·대한민국·일본 우선, 나머지 A–Z (한국어 가나다순). */
@@ -590,6 +652,12 @@ export const COUNTRY_ORDER: string[] = [
   "보스니아",
   "알바니아",
   "몰도바",
+  "라트비아",
+  "리투아니아",
+  "에스토니아",
+  "벨라루스",
+  "조지아",
+  "아제르바이잔",
   "노르웨이",
   "스웨덴",
   "핀란드",
@@ -615,5 +683,6 @@ export const COUNTRY_ORDER: string[] = [
   "인도네시아",
   "싱가포르",
   "중국",
+  "카자흐스탄",
   "호주",
 ];

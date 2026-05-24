@@ -145,7 +145,21 @@ export type League =
   | "NWSL" // 미국 NWSL
   | "WK_LEAGUE" // 한국 WK리그
   | "UEFA_WCL" // UEFA 여자 챔피언스리그
-  | "A_LEAGUE_W"; // 호주 A-리그 여자
+  | "A_LEAGUE_W" // 호주 A-리그 여자
+  // ── 신규 (2026-05-24) ──
+  | "SUI_CUP" // 스위스컵 (8~5월)
+  | "LEAGUE_ONE" // 잉글랜드 League One (3부, 8~5월)
+  | "LATVIA_VL" // 라트비아 비르슬리가 (1부, 봄~가을)
+  | "BELARUS_PL" // 벨라루스 프리미어 리그 (1부, 봄~가을)
+  // ── 신규 (2026-05-24, 2차) ──
+  | "ESTONIA_ML" // 에스토니아 Meistriliiga (1부, 봄~가을)
+  | "LITHUANIA_AL" // 리투아니아 A Lyga (1부, 봄~가을)
+  | "LEVAIN_CUP" // 일본 J리그컵 / 르베인 컵 (달력, 3~10월)
+  | "KAZAKHSTAN_PL" // 카자흐스탄 프리미어리그 (1부, 봄~가을)
+  | "GEORGIA_EL" // 조지아 Erovnuli Liga (1부, 봄~가을)
+  | "AZERBAIJAN_PL" // 아제르바이잔 프리미어리그 (1부, 8~5월)
+  | "EREDIVISIE_2" // 네덜란드 Eerste Divisie (2부, 8~5월)
+  | "PRIMEIRA_LIGA_2"; // 포르투갈 Liga Portugal 2 (2부, 8~5월)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -266,6 +280,20 @@ export const SOCCER_LEAGUES = [
   "WK_LEAGUE",
   "UEFA_WCL",
   "A_LEAGUE_W",
+  // 2026-05-24 추가
+  "SUI_CUP",
+  "LEAGUE_ONE",
+  "LATVIA_VL",
+  "BELARUS_PL",
+  // 2026-05-24 추가 (2차)
+  "ESTONIA_ML",
+  "LITHUANIA_AL",
+  "LEVAIN_CUP",
+  "KAZAKHSTAN_PL",
+  "GEORGIA_EL",
+  "AZERBAIJAN_PL",
+  "EREDIVISIE_2",
+  "PRIMEIRA_LIGA_2",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
@@ -353,6 +381,20 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "EMPEROR_CUP",
   "CONCACAF_CCUP",
   "AFC_CUP",
+  // 2026-05-24 추가 — 매치 수집만
+  "SUI_CUP",
+  "LEAGUE_ONE",
+  "LATVIA_VL",
+  "BELARUS_PL",
+  // 2026-05-24 추가 (2차) — 매치 수집만
+  "ESTONIA_ML",
+  "LITHUANIA_AL",
+  "LEVAIN_CUP",
+  "KAZAKHSTAN_PL",
+  "GEORGIA_EL",
+  "AZERBAIJAN_PL",
+  "EREDIVISIE_2",
+  "PRIMEIRA_LIGA_2",
 ];
 
 export type MatchStatus =

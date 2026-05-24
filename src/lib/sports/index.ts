@@ -169,6 +169,20 @@ export const collectors: Record<League, MatchCollector> = {
   WK_LEAGUE: buildApiFootballCollector("WK_LEAGUE"),
   UEFA_WCL: buildApiFootballCollector("UEFA_WCL"),
   A_LEAGUE_W: buildApiFootballCollector("A_LEAGUE_W"),
+  // 2026-05-24 추가 (4개)
+  SUI_CUP: buildApiFootballCollector("SUI_CUP"),
+  LEAGUE_ONE: buildApiFootballCollector("LEAGUE_ONE"),
+  LATVIA_VL: buildApiFootballCollector("LATVIA_VL"),
+  BELARUS_PL: buildApiFootballCollector("BELARUS_PL"),
+  // 2026-05-24 추가 (2차, 8개)
+  ESTONIA_ML: buildApiFootballCollector("ESTONIA_ML"),
+  LITHUANIA_AL: buildApiFootballCollector("LITHUANIA_AL"),
+  LEVAIN_CUP: buildApiFootballCollector("LEVAIN_CUP"),
+  KAZAKHSTAN_PL: buildApiFootballCollector("KAZAKHSTAN_PL"),
+  GEORGIA_EL: buildApiFootballCollector("GEORGIA_EL"),
+  AZERBAIJAN_PL: buildApiFootballCollector("AZERBAIJAN_PL"),
+  EREDIVISIE_2: buildApiFootballCollector("EREDIVISIE_2"),
+  PRIMEIRA_LIGA_2: buildApiFootballCollector("PRIMEIRA_LIGA_2"),
 };
 
 export {

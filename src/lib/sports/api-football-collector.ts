@@ -66,6 +66,10 @@ function seasonFor(league: League, date: string): number {
     "A_LEAGUE", "LIGA_MX", "AFC_CL", "AFC_CL_TWO",
     // 신규 — 유럽 시즌 (8~5월)
     "THAI_L1", "WSL", "UEFA_WCL", "A_LEAGUE_W", "UEFA_NL", "EURO_QUAL",
+    // 2026-05-24 추가 — 유럽 8~5월 시즌
+    "SUI_CUP", "LEAGUE_ONE",
+    // 2026-05-24 (2차) — 유럽 8~5월 시즌
+    "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
   ];
   if ((european as readonly string[]).includes(league)) {
     return month >= 7 ? year : year - 1;
