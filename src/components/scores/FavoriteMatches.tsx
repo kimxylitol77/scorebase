@@ -240,7 +240,7 @@ export default function FavoriteMatches({ matches }: Props) {
                 {list.map(renderMatchLarge)}
               </ul>
             ) : (
-              <ul className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800">
+              <ul className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 divide-y divide-neutral-100 dark:divide-neutral-800">
                 {list.map((m) => (
                   <CompactRow key={m.id} match={m} />
                 ))}

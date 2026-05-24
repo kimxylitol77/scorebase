@@ -1453,7 +1453,7 @@ function SoccerRowLayout({
       </div>
 
       {/* 데스크탑 — row table */}
-      <div className="hidden md:block rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-x-auto">
+      <div className="hidden md:block rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02]">
         <div className="min-w-[860px] px-4 pt-1 pb-16">
           <SoccerLiveRowHeader />
           {liveSorted.length > 0 && (

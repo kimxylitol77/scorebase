@@ -204,8 +204,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         );
       })()}
 
-      {/* 5. 점수 — awayFirst=true 면 away score 좌측 / home score 우측 */}
-      <div className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group">
+      {/* 5. 점수 — awayFirst=true 면 away score 좌측 / home score 우측. hover 시 z-50 으로 tooltip 이 다른 row 위로 */}
+      <div className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group hover:z-50">
         {hasScore ? (
           <>
             <span
@@ -391,7 +391,7 @@ function GoalsTooltip({
   return (
     <div
       role="tooltip"
-      className="absolute left-1/2 top-full z-30 -translate-x-1/2 mt-1 min-w-[280px] hidden group-hover:block pointer-events-none"
+      className="absolute left-1/2 top-full z-50 -translate-x-1/2 mt-1 min-w-[280px] hidden group-hover:block pointer-events-none"
     >
       <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 dark:shadow-black/50 p-2.5 text-left">
         <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
