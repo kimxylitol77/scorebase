@@ -116,8 +116,15 @@ export async function POST(req: NextRequest) {
       const updateData: { homeScore?: number; awayScore?: number; status?: MatchStatus } = {};
 
       if (needScoreUpdate && current) {
-        const newHome = Math.max(body.homeScore!, current.homeScore ?? -1);
-        const newAway = Math.max(body.awayScore!, current.awayScore ?? -1);
+        // 야구는 챌린지/판정 정정으로 점수 감소 가능 → ws-subscriber 의 fresh ft 그대로 set.
+        // 축구는 monotonic max 유지 (점수 감소 시나리오 거의 없음 + race 안전망).
+        const isBaseball = BASEBALL_LEAGUES.has(current.league);
+        const newHome = isBaseball
+          ? body.homeScore!
+          : Math.max(body.homeScore!, current.homeScore ?? -1);
+        const newAway = isBaseball
+          ? body.awayScore!
+          : Math.max(body.awayScore!, current.awayScore ?? -1);
         if (newHome !== current.homeScore) updateData.homeScore = newHome;
         if (newAway !== current.awayScore) updateData.awayScore = newAway;
       }

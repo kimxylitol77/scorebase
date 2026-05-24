@@ -18,8 +18,9 @@
 //     players: { home: [...], away: [...] }  (옵션)
 //   }
 //
-// ft = [home, away] 순서 (검증: KBO 181647 5:2 매치 ft=["5","2"] 와 DB.Match 일치)
-// pN = [home, away] 동일.
+// ft = [away, home] 순서 — ws-subscriber 의 extractBaseballScore 와 일치, 종료된
+// KIA(3) vs SSG(2) 매치 ft=["3","2"] 와 DB.Match(home=2, away=3) 비교로 확정.
+// pN = [away, home] 동일.
 
 import type { MatchStatus } from "../types";
 
@@ -104,9 +105,9 @@ export function convertCacheToBaseballLive(opts: {
   const ft = sObj.ft;
   if (!Array.isArray(ft) || ft.length !== 2) return null;
 
-  // 점수 (ft = [home, away])
-  const homeScore = parseSc(ft[0]) ?? 0;
-  const awayScore = parseSc(ft[1]) ?? 0;
+  // 점수 (ft = [away, home])
+  const awayScore = parseSc(ft[0]) ?? 0;
+  const homeScore = parseSc(ft[1]) ?? 0;
 
   // cache vs DB 점수 일치 검증 — 불일치 시 cache stale 로 판단, fallback 유도.
   // DB 점수 null (예정 매치) 인 경우는 검증 skip (cache 가 사실상 source).
@@ -116,7 +117,7 @@ export function convertCacheToBaseballLive(opts: {
     }
   }
 
-  // 이닝별 — p1, p2, ..., p20 까지 탐색
+  // 이닝별 — p1, p2, ..., p20 까지 탐색 (pN = [away, home])
   const homeInnings: (number | null)[] = [];
   const awayInnings: (number | null)[] = [];
   let maxInning = 0;
@@ -124,15 +125,15 @@ export function convertCacheToBaseballLive(opts: {
     const p = sObj[`p${i}` as `p${number}`];
     if (!p) continue;
     maxInning = i;
-    homeInnings.push(parseSc(p[0]));
-    awayInnings.push(parseSc(p[1]));
+    awayInnings.push(parseSc(p[0]));
+    homeInnings.push(parseSc(p[1]));
   }
 
-  // hits / errors ([home, away])
-  const hitsHome = sObj.h ? parseSc(sObj.h[0]) : null;
-  const hitsAway = sObj.h ? parseSc(sObj.h[1]) : null;
-  const errHome = sObj.e ? parseSc(sObj.e[0]) : null;
-  const errAway = sObj.e ? parseSc(sObj.e[1]) : null;
+  // hits / errors ([away, home])
+  const hitsAway = sObj.h ? parseSc(sObj.h[0]) : null;
+  const hitsHome = sObj.h ? parseSc(sObj.h[1]) : null;
+  const errAway = sObj.e ? parseSc(sObj.e[0]) : null;
+  const errHome = sObj.e ? parseSc(sObj.e[1]) : null;
 
   // status / label — DB.Match.status 우선
   // halfTopBot = score[2] (1=top/초, 2=bottom/말 추정)
