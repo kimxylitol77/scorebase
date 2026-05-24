@@ -20,6 +20,7 @@ import { fetchSoccerLiveStats } from "@/lib/live/soccer-live-stats";
 import { fetchSoccerLineups, type MatchLineups } from "@/lib/live/soccer-lineups";
 import { fetchSoccerEvents, type SoccerEvent } from "@/lib/live/soccer-events";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
+import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { fetchNbaLiveStats } from "@/lib/sports/api-nba";
 
 // ESPN team-stat name → 한국어 라벨 (sportPath 별)
@@ -191,6 +192,8 @@ export async function GET(
   // (라이브 매치 + 가까운 예정 매치 모두 응답 — odds 변동 흐름 표시)
   if (isLiveOddsSupported(league) && awayName && homeName) {
     out.liveOdds = await fetchLiveOdds(league, awayName, homeName);
+    // 시계열 저장 (1분 dedup, fire-and-forget)
+    if (out.liveOdds) void saveOddsSnapshot(gameId, league, out.liveOdds);
   }
 
   if (league === "NBA" || league === "NHL") {

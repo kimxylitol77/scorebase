@@ -5,6 +5,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
+import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
 import { baseballStatusLabel } from "@/lib/sports/live-scores";
 import { prisma } from "@/lib/db";
@@ -239,6 +240,7 @@ export async function GET(
         live.awayTeam.name,
         live.homeTeam.name,
       );
+      if (live.liveOdds) void saveOddsSnapshot(gameId, ourLeague, live.liveOdds);
     }
     // WPA 곡선 — 이닝별 누적 점수 기반 Poisson 시뮬
     // 리그별 평균 이닝 득점: KBO 0.53, NPB 0.44, MLB 0.49

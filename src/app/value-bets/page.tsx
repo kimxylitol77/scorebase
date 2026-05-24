@@ -1,0 +1,261 @@
+// /value-bets — Elo 예측 vs 배당사 implied 비교 → value > +5% 매치 list.
+// SSR — 1분 revalidate. 데이터 source: Match.predHome/predDraw/predAway + 최근 OddsSnapshot.
+
+import type { Metadata } from "next";
+import Link from "next/link";
+import { prisma } from "@/lib/db";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { toKoreanTeamName } from "@/lib/team-names";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: "밸류 베트 — Elo 예측 vs 배당사 비교",
+  description:
+    "Scorebase Elo 모델 예측이 배당사 implied 확률보다 5% 이상 높은 매치 list. value bet 발굴 + 시즌별 적중률 추적.",
+};
+
+const MIN_VALUE_PCT = 5; // value ≥ +5% 매치만 list
+const HORIZON_DAYS = 3;
+
+interface ValueBet {
+  matchId: number;
+  league: string;
+  externalId: string;
+  startTime: Date;
+  homeName: string;
+  awayName: string;
+  status: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  bestSide: "HOME" | "DRAW" | "AWAY";
+  valuePct: number;
+  eloPct: number;
+  impliedPct: number;
+  odds: number;
+}
+
+async function fetchValueBets(): Promise<ValueBet[]> {
+  const now = new Date();
+  const horizon = new Date(now.getTime() + HORIZON_DAYS * 24 * 3600 * 1000);
+  // 1) Elo 예측 있는 SCHEDULED/LIVE 매치
+  const matches = await prisma.match.findMany({
+    where: {
+      status: { in: ["SCHEDULED", "LIVE"] },
+      startTime: { gte: new Date(now.getTime() - 3 * 3600 * 1000), lte: horizon },
+      predHome: { not: null },
+      predAway: { not: null },
+    },
+    include: { homeTeam: true, awayTeam: true },
+    take: 500,
+  });
+  if (matches.length === 0) return [];
+
+  // 2) 각 매치의 최근 OddsSnapshot 1개 (raw query — distinct on)
+  const matchIds = matches.map((m) => m.id);
+  const snapshots: Array<{
+    matchId: number;
+    homeOdds: number;
+    drawOdds: number | null;
+    awayOdds: number;
+  }> = await prisma.$queryRawUnsafe(`
+    SELECT DISTINCT ON ("matchId") "matchId", "homeOdds", "drawOdds", "awayOdds"
+    FROM "OddsSnapshot"
+    WHERE "matchId" = ANY($1::int[])
+    ORDER BY "matchId", "fetchedAt" DESC
+  `, matchIds);
+  const snapByMatch = new Map(snapshots.map((s) => [s.matchId, s]));
+
+  // 3) value 계산
+  const bets: ValueBet[] = [];
+  for (const m of matches) {
+    const snap = snapByMatch.get(m.id);
+    if (!snap) continue;
+    const iH = 1 / snap.homeOdds;
+    const iA = 1 / snap.awayOdds;
+    const iD = snap.drawOdds != null ? 1 / snap.drawOdds : 0;
+    const totalI = iH + iA + iD;
+    if (totalI <= 0) continue;
+    const implH = iH / totalI;
+    const implD = iD > 0 ? iD / totalI : null;
+    const implA = iA / totalI;
+
+    const valH = (m.predHome! - implH) * 100;
+    const valA = (m.predAway! - implA) * 100;
+    const valD =
+      m.predDraw != null && implD != null ? (m.predDraw - implD) * 100 : -Infinity;
+
+    let bestSide: "HOME" | "DRAW" | "AWAY" = "HOME";
+    let bestValue = valH;
+    let bestElo = m.predHome!;
+    let bestImpl = implH;
+    let bestOdds = snap.homeOdds;
+    if (valD > bestValue) {
+      bestSide = "DRAW";
+      bestValue = valD;
+      bestElo = m.predDraw!;
+      bestImpl = implD!;
+      bestOdds = snap.drawOdds!;
+    }
+    if (valA > bestValue) {
+      bestSide = "AWAY";
+      bestValue = valA;
+      bestElo = m.predAway!;
+      bestImpl = implA;
+      bestOdds = snap.awayOdds;
+    }
+    if (bestValue < MIN_VALUE_PCT) continue;
+    bets.push({
+      matchId: m.id,
+      league: m.league,
+      externalId: m.externalId,
+      startTime: m.startTime,
+      homeName: toKoreanTeamName(m.homeTeam.name, m.league),
+      awayName: toKoreanTeamName(m.awayTeam.name, m.league),
+      status: m.status,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      bestSide,
+      valuePct: bestValue,
+      eloPct: bestElo,
+      impliedPct: bestImpl,
+      odds: bestOdds,
+    });
+  }
+  return bets.sort((a, b) => b.valuePct - a.valuePct);
+}
+
+function leagueDetailHref(league: string, externalId: string): string {
+  if (league === "KBO") return `/live/kbo/${externalId}`;
+  if (league === "NPB") return `/live/npb/${externalId}`;
+  if (league === "MLB") return `/live/mlb/${externalId}`;
+  if (league === "LOL") return `/live/lol/${externalId}`;
+  return `/live/${league}/${externalId}`;
+}
+
+function fmtKstTime(d: Date): string {
+  return d.toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function sideLabel(side: "HOME" | "DRAW" | "AWAY", home: string, away: string): string {
+  if (side === "HOME") return home;
+  if (side === "AWAY") return away;
+  return "무";
+}
+
+export default async function ValueBetsPage() {
+  const bets = await fetchValueBets();
+
+  return (
+    <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <header className="space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+          💎 밸류 베트
+        </h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          Scorebase Elo 모델 예측 확률이 배당사 implied 보다 <strong>+{MIN_VALUE_PCT}% 이상</strong> 높은 매치만 표시.
+          <br className="hidden sm:block" />
+          value % 큰 순 정렬. 향후 {HORIZON_DAYS}일 안 SCHEDULED/LIVE 매치 대상.
+        </p>
+        <div className="text-[11px] text-neutral-400">
+          ⓘ 베팅 권유 X — 모델 cross-check 용. 종료된 매치는 적중률 보드 별도 페이지에서.
+        </div>
+      </header>
+
+      {bets.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-10 text-center">
+          <div className="text-sm text-neutral-500">
+            현재 value ≥ +{MIN_VALUE_PCT}% 매치 없음.
+          </div>
+          <div className="mt-2 text-[11px] text-neutral-400">
+            배당사 implied 가 우리 Elo 와 비슷한 상태 — 시장이 효율적. 새 매치 들어오면 자동 표시.
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
+          <div className="hidden md:grid grid-cols-[100px_90px_minmax(0,1fr)_70px_120px_80px] gap-3 px-4 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-100 dark:border-neutral-800">
+            <div>리그</div>
+            <div>시간</div>
+            <div>매치</div>
+            <div className="text-center">픽</div>
+            <div className="text-center">Elo vs 배당사</div>
+            <div className="text-right">Value</div>
+          </div>
+          <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
+            {bets.map((b) => (
+              <li key={b.matchId}>
+                <Link
+                  href={leagueDetailHref(b.league, b.externalId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  prefetch={false}
+                  className="block px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition"
+                >
+                  <div className="md:hidden space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-neutral-500">
+                      <span>{LEAGUE_DISPLAY[b.league] ?? b.league}</span>
+                      <span>{fmtKstTime(b.startTime)}</span>
+                    </div>
+                    <div className="text-sm font-medium truncate">
+                      {b.homeName} <span className="text-neutral-400">vs</span> {b.awayName}
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-rose-600 dark:text-rose-400 font-bold">
+                        {sideLabel(b.bestSide, b.homeName, b.awayName)} @ {b.odds.toFixed(2)}
+                      </span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-black tabular-nums">
+                        +{b.valuePct.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="hidden md:grid grid-cols-[100px_90px_minmax(0,1fr)_70px_120px_80px] gap-3 items-center text-sm">
+                    <div className="text-[11px] text-neutral-600 dark:text-neutral-400 truncate">
+                      {LEAGUE_DISPLAY[b.league] ?? b.league}
+                    </div>
+                    <div className="text-[11px] text-neutral-500 tabular-nums">
+                      {fmtKstTime(b.startTime)}
+                    </div>
+                    <div className="truncate">
+                      <span className="font-medium">{b.homeName}</span>
+                      <span className="text-neutral-400 mx-1.5">vs</span>
+                      <span className="font-medium">{b.awayName}</span>
+                      {b.status === "LIVE" && (
+                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">
+                          LIVE {b.homeScore ?? "-"}:{b.awayScore ?? "-"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <div className="text-rose-600 dark:text-rose-400 font-bold text-[13px]">
+                        {sideLabel(b.bestSide, b.homeName, b.awayName)}
+                      </div>
+                      <div className="text-[10px] text-neutral-500 tabular-nums">
+                        @ {b.odds.toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="text-center text-[11px] tabular-nums text-neutral-600 dark:text-neutral-400">
+                      <span className="font-bold">{(b.eloPct * 100).toFixed(0)}%</span>
+                      <span className="text-neutral-400 mx-1">vs</span>
+                      <span>{(b.impliedPct * 100).toFixed(0)}%</span>
+                    </div>
+                    <div className="text-right text-emerald-600 dark:text-emerald-400 font-black tabular-nums text-base">
+                      +{b.valuePct.toFixed(1)}%
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </main>
+  );
+}

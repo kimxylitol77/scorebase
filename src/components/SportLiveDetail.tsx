@@ -123,6 +123,8 @@ interface Props {
   awayPosition?: number | null;
   /** 우리 Elo 모델 예측 확률 (0~1) — 라이브 배당 카드의 implied 와 비교해 value % 표시 */
   eloPrediction?: { home: number; draw?: number | null; away: number } | null;
+  /** 라이브 배당 시계열 — sparkline 차트용. 오래된→최신 순. */
+  oddsHistory?: Array<{ fetchedAt: number; home: number; draw: number | null; away: number }>;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -145,6 +147,7 @@ export default function SportLiveDetail({
   homePosition,
   awayPosition,
   eloPrediction,
+  oddsHistory,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -365,6 +368,7 @@ export default function SportLiveDetail({
           awayNameKo={awayNameKo}
           hasDraw={league !== "NBA" && league !== "NHL" && league !== "MLB" && league !== "KBO" && league !== "NPB"}
           eloPrediction={eloPrediction}
+          oddsHistory={oddsHistory}
         />
       )}
 

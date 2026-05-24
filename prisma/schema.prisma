@@ -147,6 +147,7 @@ model Match {
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]
   theSportsCache TheSportsMatchCache?
+  oddsSnapshots  OddsSnapshot[]
   liveCommentary LiveCommentary?
 
   @@unique([league, externalId])
@@ -364,4 +365,21 @@ model HealthCheck {
   @@index([runAt])
   @@index([severity, runAt])
   @@index([category, runAt])
+}
+
+/// 라이브 배당 시계열 — The Odds API h2h (1X2) 평균 odds snapshot.
+/// /api/live/* route 가 fetchLiveOdds 후 자동 upsert (1분 1 row, 같은 분 중복 skip).
+/// 사용처: 매치 디테일 페이지 sparkline + /value-bets 페이지 + line movement 분석.
+model OddsSnapshot {
+  id          Int      @id @default(autoincrement())
+  matchId     Int                                  // 우리 Match.id
+  fetchedAt   DateTime @default(now())             // snapshot 시각 (분 단위 unique)
+  homeOdds    Float                                // h2h home decimal odds (평균)
+  drawOdds    Float?                               // h2h draw (축구만, 야구/농구는 null)
+  awayOdds    Float
+  bookmakers  Int                                  // 평균에 들어간 북메이커 수
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, fetchedAt])
+  @@index([fetchedAt])
 }

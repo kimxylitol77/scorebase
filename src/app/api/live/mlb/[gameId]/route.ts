@@ -5,6 +5,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { fetchLiveOdds, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
+import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { computeBaseballWpa, type WpaPoint } from "@/lib/live/baseball-wpa";
 import { toKoreanPlayerName } from "@/lib/player-names";
 
@@ -545,6 +546,7 @@ export async function GET(
     }
     // 라이브 odds — MLB 활성 active=true
     live.liveOdds = await fetchLiveOdds("MLB", live.awayTeam.name, live.homeTeam.name);
+    if (live.liveOdds) void saveOddsSnapshot(gameId, "MLB", live.liveOdds);
     // WPA 곡선 — MLB 평균 이닝 득점 ~0.49
     if (live.linescore) {
       live.wpaSeries = computeBaseballWpa(live.linescore.away, live.linescore.home, {

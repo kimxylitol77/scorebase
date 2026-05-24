@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { LEAGUE_DISPLAY, SPORTS } from "@/lib/sports/sport-leagues";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { getOddsHistory } from "@/lib/odds/snapshot-store";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
@@ -112,6 +113,9 @@ export default async function GenericLivePage({ params }: Props) {
   const homePosition = positionByTeamId.get(match.homeTeam.id) ?? null;
   const awayPosition = positionByTeamId.get(match.awayTeam.id) ?? null;
 
+  // 라이브 배당 시계열 — 최근 30 snapshot (sparkline). 매치 없으면 빈 배열.
+  const oddsHistory = await getOddsHistory(match.id).catch(() => []);
+
   // NHL 골리 (다른 리그는 null)
   const homeGoalie = lg === "NHL" ? parseGoalie(match.homeGoalie) : null;
   const awayGoalie = lg === "NHL" ? parseGoalie(match.awayGoalie) : null;
@@ -188,6 +192,7 @@ export default async function GenericLivePage({ params }: Props) {
             ? { home: match.predHome, draw: match.predDraw ?? null, away: match.predAway }
             : null
         }
+        oddsHistory={oddsHistory}
       />
 
       {/* TheSports 카드 (축구만, cache 있을 때) */}

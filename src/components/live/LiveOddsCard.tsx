@@ -26,6 +26,13 @@ interface LiveOdds {
   fetchedAt: number;
 }
 
+interface OddsHistoryPoint {
+  fetchedAt: number;
+  home: number;
+  draw: number | null;
+  away: number;
+}
+
 interface Props {
   odds: LiveOdds;
   homeNameKo: string;
@@ -37,6 +44,8 @@ interface Props {
     draw?: number | null;
     away: number;
   } | null;
+  /** 시계열 — sparkline 차트용 (오래된→최신). 비어있으면 차트 미표시 */
+  oddsHistory?: OddsHistoryPoint[];
 }
 
 function fmt(v: number | null | undefined): string {
@@ -83,6 +92,7 @@ export default function LiveOddsCard({
   awayNameKo,
   hasDraw,
   eloPrediction,
+  oddsHistory,
 }: Props) {
   const { h2h, totals, spread, bookmakers, bookmakerList, fetchedAt } = odds;
   const [expanded, setExpanded] = useState(false);
@@ -226,6 +236,23 @@ export default function LiveOddsCard({
         </div>
       )}
 
+      {/* Sparkline — 30 snapshot 시계열 (최대 3h) */}
+      {oddsHistory && oddsHistory.length >= 2 && (
+        <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
+          <div className="flex items-baseline justify-between">
+            <div className="text-[10px] text-neutral-500">배당 흐름 (최근 {oddsHistory.length}개 snapshot)</div>
+            <SparklineLegend
+              hasDraw={hasDraw}
+              homeNameKo={homeNameKo}
+              awayNameKo={awayNameKo}
+              first={oddsHistory[0]}
+              last={oddsHistory[oddsHistory.length - 1]}
+            />
+          </div>
+          <Sparklines points={oddsHistory} hasDraw={hasDraw} />
+        </div>
+      )}
+
       {/* 북메이커별 표 — 펼치기 */}
       {sortedBMs.length > 0 && (
         <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
@@ -327,6 +354,91 @@ function OddsCellRich({
           <span className={`font-bold ${valueColor}`}>{valueText}</span>
         </div>
       )}
+    </div>
+  );
+}
+
+/** 1X2 sparkline — home/draw/away 3 라인 (draw 는 hasDraw 일 때만). y축 = odds (역수 = implied %) */
+function Sparklines({ points, hasDraw }: { points: OddsHistoryPoint[]; hasDraw?: boolean }) {
+  const W = 280;
+  const H = 56;
+  const pad = 4;
+  const n = points.length;
+  if (n < 2) return null;
+
+  // y 범위 — 전체 odds (home + away + draw if any) min/max
+  const allOdds: number[] = [];
+  for (const p of points) {
+    allOdds.push(p.home, p.away);
+    if (hasDraw && p.draw != null) allOdds.push(p.draw);
+  }
+  const minY = Math.min(...allOdds);
+  const maxY = Math.max(...allOdds);
+  const rangeY = maxY - minY || 1;
+  const xOf = (i: number) => pad + (i / (n - 1)) * (W - pad * 2);
+  const yOf = (v: number) => pad + (1 - (v - minY) / rangeY) * (H - pad * 2);
+  const path = (key: "home" | "draw" | "away") =>
+    points
+      .map((p, i) => {
+        const v = key === "draw" ? p.draw : p[key];
+        if (v == null) return "";
+        return `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yOf(v).toFixed(1)}`;
+      })
+      .filter(Boolean)
+      .join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-14" preserveAspectRatio="none">
+      {/* home 라인 — rose */}
+      <path d={path("home")} fill="none" stroke="#f43f5e" strokeWidth="1.5" />
+      {/* draw 라인 — gray (축구만) */}
+      {hasDraw && <path d={path("draw")} fill="none" stroke="#94a3b8" strokeWidth="1.2" strokeDasharray="3,2" />}
+      {/* away 라인 — blue */}
+      <path d={path("away")} fill="none" stroke="#3b82f6" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function SparklineLegend({
+  hasDraw,
+  homeNameKo,
+  awayNameKo,
+  first,
+  last,
+}: {
+  hasDraw?: boolean;
+  homeNameKo: string;
+  awayNameKo: string;
+  first: OddsHistoryPoint;
+  last: OddsHistoryPoint;
+}) {
+  const arrow = (a: number, b: number) => {
+    const diff = b - a;
+    if (Math.abs(diff) < 0.05) return { txt: "→", color: "text-neutral-400" };
+    return diff < 0
+      ? { txt: "↓", color: "text-emerald-600 dark:text-emerald-400" } // odds 내려감 = 확률 ↑
+      : { txt: "↑", color: "text-rose-600 dark:text-rose-400" };
+  };
+  const h = arrow(first.home, last.home);
+  const a = arrow(first.away, last.away);
+  return (
+    <div className="flex items-center gap-2 text-[9px]">
+      <span className="flex items-center gap-1">
+        <span className="inline-block w-2 h-0.5 bg-rose-500" />
+        <span className="truncate max-w-[60px]">{homeNameKo}</span>
+        <span className={`font-bold ${h.color}`}>{h.txt}</span>
+      </span>
+      {hasDraw && (
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-2 h-0.5 bg-neutral-400 border-dashed" />
+          <span>무</span>
+        </span>
+      )}
+      <span className="flex items-center gap-1">
+        <span className="inline-block w-2 h-0.5 bg-blue-500" />
+        <span className="truncate max-w-[60px]">{awayNameKo}</span>
+        <span className={`font-bold ${a.color}`}>{a.txt}</span>
+      </span>
     </div>
   );
 }
