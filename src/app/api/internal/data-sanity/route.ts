@@ -109,16 +109,20 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const baseballIds = matches
-    .filter((m) => BASEBALL_LEAGUES.has(m.league))
-    .map((m) => m.id);
-  const caches = baseballIds.length
+  // 모든 LIVE 매치의 ts cache 조회 — 축구 stale_live false positive 방지용
+  // (점수 변동 없으면 Match.updatedAt 안 갱신되지만 ts cache 는 계속 fresh).
+  // 야구 검사도 같은 caches 사용 (BASEBALL_LEAGUES 만 select 후 처리).
+  const allIds = matches.map((m) => m.id);
+  const caches = allIds.length
     ? await prisma.theSportsMatchCache.findMany({
-        where: { matchId: { in: baseballIds } },
+        where: { matchId: { in: allIds } },
         select: { matchId: true, detailLive: true, updatedAt: true },
       })
     : [];
   const cacheByMatchId = new Map(caches.map((c) => [c.matchId, c]));
+  const baseballIds = matches
+    .filter((m) => BASEBALL_LEAGUES.has(m.league))
+    .map((m) => m.id);
 
   const issues: Issue[] = [];
 
@@ -131,15 +135,22 @@ export async function GET(req: NextRequest) {
       away: m.awayTeam.name,
     };
 
-    // 4. stale_live — 모든 sport
+    // 4. stale_live — 모든 sport. Match.updatedAt 은 점수 변동시에만 갱신되어
+    // 골 없는 30분+ 라이브에서 false positive 가 남. ts cache.updatedAt 이 더
+    // 최근이면 그쪽으로 fresh 판정 (cache poll 은 점수 변동과 무관하게 갱신).
     if (m.status === "LIVE") {
-      const ageMs = now - m.updatedAt.getTime();
+      const cacheUpdatedAt = cacheByMatchId.get(m.id)?.updatedAt;
+      const lastUpdate =
+        cacheUpdatedAt && cacheUpdatedAt > m.updatedAt
+          ? cacheUpdatedAt
+          : m.updatedAt;
+      const ageMs = now - lastUpdate.getTime();
       if (ageMs > STALE_LIVE_MS) {
         issues.push({
           ...matchInfo,
           kind: "stale_live",
           severity: "HIGH",
-          detail: `LIVE 상태인데 ${Math.round(ageMs / 60000)}분 동안 update 없음`,
+          detail: `LIVE 상태인데 ${Math.round(ageMs / 60000)}분 동안 update 없음 (Match + ts cache 둘 다 stale)`,
         });
       }
     }
