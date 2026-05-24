@@ -56,6 +56,25 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+// 팀 이름 normalize 비교 — Team 테이블 중복 row(같은 팀이 source 별 2~4 row) 때문에
+// standings_mismatch 비교에서 ourId 직접 비교 못 함. 영문/한글 외 모든 문자 제거 +
+// 일반 club prefix/suffix(FC/CF/AC/SC/CD/RCD/SV/Club) 제거 후 양쪽 substring 매칭.
+function normalizeTeamName(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\b(fc|cf|ac|afc|sc|cd|rcd|sv|ss|ssc|nk|hsv|fk|club)\b/g, "")
+    .replace(/[^a-z0-9가-힣]/g, "");
+}
+function sameTeamName(a: string, b: string): boolean {
+  const na = normalizeTeamName(a);
+  const nb = normalizeTeamName(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  // "Barcelona" ⊂ "FC Barcelona", "Kashima" ⊂ "Kashima Antlers"
+  if (na.length >= 4 && nb.length >= 4 && (na.includes(nb) || nb.includes(na))) return true;
+  return false;
+}
+
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") ?? "";
   if (!process.env.INTERNAL_API_TOKEN) return unauthorized();
@@ -241,7 +260,14 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 6. 두 source 의 1위 팀 비교 — 한쪽 stale 면 다름
+    // 6. 두 source 의 1위 팀 비교 — 한쪽 stale 면 다름.
+    //
+    // ourId 직접 비교 X — 두 가지 false positive 원인:
+    //   (a) team-id-mapping.json 의 entry 는 ourLeague 가 LIGUE_1 같은 정규 리그만
+    //       — UEL/UECL standings 의 ts team_id 를 찾으면 LIGUE_1 ourId 가 반환됨
+    //       → 검사 league(UEL) vs 매핑 ourLeague(LIGUE_1) 다르면 skip.
+    //   (b) 같은 팀이 우리 Team 테이블에 source 별로 중복 row (예: LALIGA Barcelona 4개)
+    //       → ourId 가 달라도 이름 같으면 동일 팀으로 판정.
     if (ts && af) {
       const tsPayload = ts.payload as unknown as {
         tables?: Array<{ rows?: Array<{ position?: number; team_id?: string }> }>;
@@ -253,21 +279,28 @@ export async function GET(req: NextRequest) {
       const tsTop = tsPayload?.tables?.[0]?.rows?.find((r) => r.position === 1);
       const afTop = afRows?.find?.((r) => r.position === 1);
       if (tsTop?.team_id && afTop?.teamExternalId) {
-        // tsId 와 afId 는 다른 system 이라 직접 비교 불가 →
-        // 양쪽 모두 우리 Team.id 로 매핑 후 비교.
         const tsMapping = await import("@/lib/sports/thesports/team-id-mapping.json")
-          .then((m) => m.default as Array<{ ourId: number; tsId: string }>);
-        const tsOurId = tsMapping.find((t) => t.tsId === tsTop.team_id)?.ourId;
+          .then((m) => m.default as Array<{ ourId: number; tsId: string; ourLeague: string }>);
+        const tsEntry = tsMapping.find((t) => t.tsId === tsTop.team_id);
+        // (a) cross-league mapping — UEL 검사인데 ts mapping 이 LIGUE_1 Lyon 반환 → skip
+        if (tsEntry && tsEntry.ourLeague !== league) continue;
+        const tsTeam = tsEntry
+          ? await prisma.team.findUnique({
+              where: { id: tsEntry.ourId },
+              select: { id: true, name: true },
+            })
+          : null;
         const afTeam = await prisma.team.findFirst({
           where: { league, externalId: afTop.teamExternalId },
           select: { id: true, name: true },
         });
-        if (tsOurId != null && afTeam && tsOurId !== afTeam.id) {
+        // (b) 이름 normalize 비교 — Team 중복 row 무시
+        if (tsTeam && afTeam && !sameTeamName(tsTeam.name, afTeam.name)) {
           issues.push({
             ...placeholderInfo(league),
             kind: "standings_mismatch",
             severity: "HIGH",
-            detail: `TheSports 1위(team.id ${tsOurId}) ≠ api-football 1위(${afTeam.name}, id ${afTeam.id}) — 한쪽 stale 확정`,
+            detail: `TheSports 1위(${tsTeam.name}) ≠ api-football 1위(${afTeam.name}) — 한쪽 stale 확정`,
           });
         }
       }
