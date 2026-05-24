@@ -395,6 +395,7 @@ function CompactRow({ match }: { match: MatchEntry }) {
           href={match.href ?? null}
           homePosition={match.home.position ?? null}
           awayPosition={match.away.position ?? null}
+          awayFirst={match.league === "KBO" || match.league === "NPB" || match.league === "MLB"}
         />
       </div>
     </li>

@@ -1270,6 +1270,7 @@ function SoccerRowLayout({
         href={m.href}
         homePosition={m.home.position ?? null}
         awayPosition={m.away.position ?? null}
+        awayFirst={BASEBALL_LEAGUES.has(m.league)}
       />
     );
   };

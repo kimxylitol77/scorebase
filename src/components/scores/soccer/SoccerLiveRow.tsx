@@ -39,6 +39,8 @@ export interface SoccerLiveRowProps {
   /** 리그 순위 (TheSportsStandingsCache 기반) — 팀명 옆 [14] 표시. null 이면 미표시 */
   homePosition?: number | null;
   awayPosition?: number | null;
+  /** true 면 원정팀 좌측 / 홈팀 우측 표시 + 홈팀 옆에 "홈" 마크 (야구 미디어 관행) */
+  awayFirst?: boolean;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -80,6 +82,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     href,
     homePosition,
     awayPosition,
+    awayFirst,
   } = props;
 
   const router = useRouter();
@@ -142,67 +145,82 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       {/* 3. 상태 */}
       <div>{statusNode}</div>
 
-      {/* 4. 홈팀 (우측 정렬 + 로고 옆에) — [순위] + 최근 골 시 row flash (7m 스타일) */}
-      <div
-        className={`flex items-center justify-end gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
-          recentGoalSide === "home"
-            ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
-            : ""
-        }`}
-      >
-        {recentGoalSide === "home" && (
-          <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
-            ⚽ GOAL
-          </span>
-        )}
-        <span
-          className={`truncate text-right text-[13px] ${
-            recentGoalSide === "home"
-              ? "text-emerald-800 dark:text-emerald-200 font-bold"
-              : "text-neutral-800 dark:text-neutral-200"
-          }`}
-        >
-          {home.name}
-          {homePosition != null && (
-            <button
-              type="button"
-              onClick={goToStandings(home.teamId)}
-              title={`${home.name} 리그 순위 보기`}
-              className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+      {/* 4. 좌측 팀 (우측 정렬 + 로고 옆) — awayFirst=true 면 원정팀, 아니면 홈팀 */}
+      {(() => {
+        const leftSide = awayFirst ? "away" : "home";
+        const team = awayFirst ? away : home;
+        const position = awayFirst ? awayPosition : homePosition;
+        const isFlash = recentGoalSide === leftSide;
+        const showHomeBadge = awayFirst === false ? false : false;
+        // 좌측은 awayFirst 인 경우 원정 → "홈" 배지 안 붙음
+        return (
+          <div
+            className={`flex items-center justify-end gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
+              isFlash
+                ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
+                : ""
+            }`}
+          >
+            {isFlash && (
+              <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
+                ⚽ GOAL
+              </span>
+            )}
+            <span
+              className={`truncate text-right text-[13px] ${
+                isFlash
+                  ? "text-emerald-800 dark:text-emerald-200 font-bold"
+                  : "text-neutral-800 dark:text-neutral-200"
+              }`}
             >
-              [{homePosition}]
-            </button>
-          )}
-        </span>
-        <TeamLogo url={home.logo} name={home.name} />
-      </div>
+              {team.name}
+              {position != null && (
+                <button
+                  type="button"
+                  onClick={goToStandings(team.teamId)}
+                  title={`${team.name} 리그 순위 보기`}
+                  className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+                >
+                  [{position}]
+                </button>
+              )}
+            </span>
+            {showHomeBadge && (
+              <span className="shrink-0 text-[9px] font-bold tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/15 rounded px-1 py-px">
+                홈
+              </span>
+            )}
+            <TeamLogo url={team.logo} name={team.name} />
+          </div>
+        );
+      })()}
 
-      {/* 5. 점수 — 종료 매치 + 골 있으면 hover tooltip. 골 강조는 팀 칸에만 (점수 칸 제외) */}
+      {/* 5. 점수 — awayFirst=true 면 away score 좌측 / home score 우측 */}
       <div className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group">
         {hasScore ? (
           <>
             <span
               className={
-                homeWin
+                (awayFirst ? awayWin : homeWin)
                   ? "text-rose-600 dark:text-rose-400"
                   : isFinished || isLive
                     ? "text-neutral-700 dark:text-neutral-300"
                     : "text-neutral-500"
               }
             >
-              {homeScore}
+              {awayFirst ? awayScore : homeScore}
             </span>
             <span className="mx-1 text-neutral-500">-</span>
             <span
               className={
-                awayWin
+                (awayFirst ? homeWin : awayWin)
                   ? "text-rose-600 dark:text-rose-400"
                   : isFinished || isLive
                     ? "text-neutral-700 dark:text-neutral-300"
                     : "text-neutral-500"
               }
             >
-              {awayScore}
+              {awayFirst ? homeScore : awayScore}
             </span>
             {(isFinished || isLive) && soccerGoals && soccerGoals.length > 0 && (
               <GoalsTooltip
@@ -217,40 +235,54 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         )}
       </div>
 
-      {/* 6. 원정팀 (좌측 정렬 + 로고 옆에) — 최근 골 시 row flash */}
-      <div
-        className={`flex items-center gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
-          recentGoalSide === "away"
-            ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
-            : ""
-        }`}
-      >
-        <TeamLogo url={away.logo} name={away.name} />
-        <span
-          className={`truncate text-[13px] ${
-            recentGoalSide === "away"
-              ? "text-emerald-800 dark:text-emerald-200 font-bold"
-              : "text-neutral-800 dark:text-neutral-200"
-          }`}
-        >
-          {away.name}
-          {awayPosition != null && (
-            <button
-              type="button"
-              onClick={goToStandings(away.teamId)}
-              title={`${away.name} 리그 순위 보기`}
-              className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+      {/* 6. 우측 팀 (좌측 정렬 + 로고 옆) — awayFirst=true 면 홈팀("홈" 배지), 아니면 원정팀 */}
+      {(() => {
+        const rightSide = awayFirst ? "home" : "away";
+        const team = awayFirst ? home : away;
+        const position = awayFirst ? homePosition : awayPosition;
+        const isFlash = recentGoalSide === rightSide;
+        const showHomeBadge = awayFirst === true;
+        return (
+          <div
+            className={`flex items-center gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
+              isFlash
+                ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
+                : ""
+            }`}
+          >
+            <TeamLogo url={team.logo} name={team.name} />
+            {showHomeBadge && (
+              <span className="shrink-0 text-[9px] font-bold tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/15 rounded px-1 py-px">
+                홈
+              </span>
+            )}
+            <span
+              className={`truncate text-[13px] ${
+                isFlash
+                  ? "text-emerald-800 dark:text-emerald-200 font-bold"
+                  : "text-neutral-800 dark:text-neutral-200"
+              }`}
             >
-              [{awayPosition}]
-            </button>
-          )}
-        </span>
-        {recentGoalSide === "away" && (
-          <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
-            ⚽ GOAL
-          </span>
-        )}
-      </div>
+              {team.name}
+              {position != null && (
+                <button
+                  type="button"
+                  onClick={goToStandings(team.teamId)}
+                  title={`${team.name} 리그 순위 보기`}
+                  className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
+                >
+                  [{position}]
+                </button>
+              )}
+            </span>
+            {isFlash && (
+              <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
+                ⚽ GOAL
+              </span>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 7. 글 (프리뷰/리뷰) — 있을 때만 아이콘 표시 */}
       <div className="flex items-center justify-center gap-1">
