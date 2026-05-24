@@ -156,6 +156,17 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   AZERBAIJAN_PL: 419, // 아제르바이잔 Premier (8~5월)
   EREDIVISIE_2: 89, // 네덜란드 Eerste Divisie (2부, 8~5월)
   PRIMEIRA_LIGA_2: 95, // 포르투갈 Liga Portugal 2 (2부, 8~5월)
+  // ───── 2026-05-24 추가 (3차) — TheSports 업그레이드 후 검증 ─────
+  LEAGUE_TWO: 42, // 잉글랜드 EFL League Two (4부, 8~5월)
+  NATIONAL_LEAGUE: 43, // 잉글랜드 National League (5부, 8~5월)
+  SCOT_CHAMPIONSHIP: 181, // 스코티시 챔피언십 (2부, 8~5월)
+  SCOT_LEAGUE_ONE: 182, // 스코티시 리그 1 (3부, 8~5월)
+  SCOT_LEAGUE_TWO: 183, // 스코티시 리그 2 (4부, 8~5월)
+  RPL: 235, // 러시아 프리미어리그 (8~5월)
+  ALGERIA_L1: 186, // 알제리 리그 프로페시오넬 1 (8~5월)
+  SVENSKA_CUPEN: 109, // 스벤스카 컵 (스웨덴 컵, 2~6월) — 달력연도
+  GHANA_PL: 240, // 가나 프리미어리그 (9~5월)
+  ARG_PRIMERA_NACIONAL: 131, // 아르헨티나 프리메라 나시오날 (2부, 달력연도)
 };
 
 interface CacheEntry<T> {

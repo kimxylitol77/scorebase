@@ -657,5 +657,93 @@
     "tsEn": "Finnish Ykkosliiga",
     "tsKo": "핀란드 제1 리그",
     "tsSeasonId": "2y8m4zh30gpql07"
+  },
+  {
+    "code": "LEAGUE_ONE",
+    "ourLabel": "잉글랜드 리그 원",
+    "tsId": "8y39mp1hjzmojxg",
+    "tsEn": "EFL League One",
+    "tsKo": "잉글랜드 리그 원",
+    "tsSeasonId": "gpxwrxlhd12ryk0"
+  },
+  {
+    "code": "LEAGUE_TWO",
+    "ourLabel": "잉글랜드 리그 투",
+    "tsId": "9k82rekhygrepzj",
+    "tsEn": "EFL League Two",
+    "tsKo": "잉글랜드 리그 투",
+    "tsSeasonId": "p3glrw7hd10qdyj"
+  },
+  {
+    "code": "NATIONAL_LEAGUE",
+    "ourLabel": "잉글랜드 내셔널리그",
+    "tsId": "z318q66hv8qo9jd",
+    "tsEn": "National League",
+    "tsKo": "잉글랜드 내셔널리그",
+    "tsSeasonId": "gy0or5jh71wqwzv"
+  },
+  {
+    "code": "SCOT_CHAMPIONSHIP",
+    "ourLabel": "스코티시 챔피언십",
+    "tsId": "jednm9wheoryox8",
+    "tsEn": "Scottish Championship",
+    "tsKo": "스코티시 챔피언십",
+    "tsSeasonId": "z318q66hl40qo9j"
+  },
+  {
+    "code": "SCOT_LEAGUE_ONE",
+    "ourLabel": "스코티시 리그 원",
+    "tsId": "8y39mp1h98mojxg",
+    "tsEn": "Scottish League One",
+    "tsKo": "스코티시 리그 원",
+    "tsSeasonId": "z8yomo4hn20q0j6"
+  },
+  {
+    "code": "SCOT_LEAGUE_TWO",
+    "ourLabel": "스코티시 리그 투",
+    "tsId": "l965mkyhz0r1ge4",
+    "tsEn": "Scottish League Two",
+    "tsKo": "스코티시 리그 투",
+    "tsSeasonId": "p3glrw7hdj0qdyj"
+  },
+  {
+    "code": "RPL",
+    "ourLabel": "러시아 프리미어리그",
+    "tsId": "8y39mp1hwxmojxg",
+    "tsEn": "Russian Premier League",
+    "tsKo": "러시아 프리미어리그",
+    "tsSeasonId": "jednm9wh1zjryox"
+  },
+  {
+    "code": "ALGERIA_L1",
+    "ourLabel": "알제리 리그 1",
+    "tsId": "kdj2ryohk2dq1zp",
+    "tsEn": "Algerian Ligue Professionnelle 1",
+    "tsKo": "알제리 리그 1",
+    "tsSeasonId": "gx7lm7ph476m2wd"
+  },
+  {
+    "code": "SVENSKA_CUPEN",
+    "ourLabel": "스벤스카 컵",
+    "tsId": "z318q66h7yqo9jd",
+    "tsEn": "Svenska Cupen",
+    "tsKo": "스벤스카 컵",
+    "tsSeasonId": "dj2ryohkvg4q1zp"
+  },
+  {
+    "code": "GHANA_PL",
+    "ourLabel": "가나 프리미어리그",
+    "tsId": "z318q66howkqo9j",
+    "tsEn": "Ghana Premier League",
+    "tsKo": "가나 프리미어리그",
+    "tsSeasonId": "gx7lm7ph42pm2wd"
+  },
+  {
+    "code": "ARG_PRIMERA_NACIONAL",
+    "ourLabel": "아르헨티나 프리메라 나시오날",
+    "tsId": "p3glrw7hevqdyjv",
+    "tsEn": "Primera Nacional",
+    "tsKo": "아르헨티나 프리메라 나시오날",
+    "tsSeasonId": "vjxm8gh4vvwr6od"
   }
 ]

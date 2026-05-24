@@ -51,6 +51,18 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   BRASILEIRAO: "4zp5rzgh9zq82w1",
   PERU_PD: "vl7oqdehwxr510j",
   USA_USL_CH: "d23xmvkh1oqg8ny",
+  // 2026-05-24 추가 (3차) — match/recent/list 988 매치 분석으로 식별
+  LEAGUE_ONE: "8y39mp1hjzmojxg",
+  LEAGUE_TWO: "9k82rekhygrepzj",
+  NATIONAL_LEAGUE: "z318q66hv8qo9jd",
+  SCOT_CHAMPIONSHIP: "jednm9wheoryox8",
+  SCOT_LEAGUE_ONE: "8y39mp1h98mojxg",
+  SCOT_LEAGUE_TWO: "l965mkyhz0r1ge4",
+  RPL: "8y39mp1hwxmojxg",
+  ALGERIA_L1: "kdj2ryohk2dq1zp",
+  SVENSKA_CUPEN: "z318q66h7yqo9jd",
+  GHANA_PL: "z318q66howkqo9j",
+  ARG_PRIMERA_NACIONAL: "p3glrw7hevqdyjv",
 };
 
 /**

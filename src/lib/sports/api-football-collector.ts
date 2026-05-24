@@ -70,6 +70,10 @@ function seasonFor(league: League, date: string): number {
     "SUI_CUP", "LEAGUE_ONE",
     // 2026-05-24 (2차) — 유럽 8~5월 시즌
     "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
+    // 2026-05-24 (3차) — 8~5월 시즌. ARG_PRIMERA_NACIONAL/SVENSKA_CUPEN 은 달력연도라 default 분기 사용
+    "LEAGUE_TWO", "NATIONAL_LEAGUE",
+    "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
+    "RPL", "ALGERIA_L1", "GHANA_PL",
   ];
   if ((european as readonly string[]).includes(league)) {
     return month >= 7 ? year : year - 1;

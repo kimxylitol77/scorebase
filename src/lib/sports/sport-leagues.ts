@@ -49,6 +49,11 @@ export const ALL_LEAGUES = [
   // 2026-05-24 추가 (2차, 8개)
   "ESTONIA_ML", "LITHUANIA_AL", "LEVAIN_CUP", "KAZAKHSTAN_PL",
   "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
+  // 2026-05-24 추가 (3차, 10개) — TheSports 업그레이드 후
+  "LEAGUE_TWO", "NATIONAL_LEAGUE",
+  "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
+  "RPL", "ALGERIA_L1",
+  "SVENSKA_CUPEN", "GHANA_PL", "ARG_PRIMERA_NACIONAL",
 ];
 
 export const SPORTS: SportMeta[] = [
@@ -96,6 +101,11 @@ export const SPORTS: SportMeta[] = [
       // 2026-05-24 추가 (2차) — 발트/CIS + 일본컵 + 네덜란드/포르투갈 2부
       "ESTONIA_ML", "LITHUANIA_AL", "LEVAIN_CUP", "KAZAKHSTAN_PL",
       "GEORGIA_EL", "AZERBAIJAN_PL", "EREDIVISIE_2", "PRIMEIRA_LIGA_2",
+      // 2026-05-24 추가 (3차) — TheSports 업그레이드 후 검증된 10개
+      "LEAGUE_TWO", "NATIONAL_LEAGUE",
+      "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
+      "RPL", "ALGERIA_L1",
+      "SVENSKA_CUPEN", "GHANA_PL", "ARG_PRIMERA_NACIONAL",
     ],
   },
   {
@@ -268,6 +278,17 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   AZERBAIJAN_PL: "아제르바이잔 프리미어",
   EREDIVISIE_2: "에이르스터 디비시",
   PRIMEIRA_LIGA_2: "포르투갈 리가 2",
+  // 2026-05-24 추가 (3차)
+  LEAGUE_TWO: "잉글랜드 리그 투",
+  NATIONAL_LEAGUE: "잉글랜드 내셔널리그",
+  SCOT_CHAMPIONSHIP: "스코티시 챔피언십",
+  SCOT_LEAGUE_ONE: "스코티시 리그 원",
+  SCOT_LEAGUE_TWO: "스코티시 리그 투",
+  RPL: "러시아 프리미어리그",
+  ALGERIA_L1: "알제리 리그 1",
+  SVENSKA_CUPEN: "스벤스카 컵",
+  GHANA_PL: "가나 프리미어리그",
+  ARG_PRIMERA_NACIONAL: "아르헨티나 프리메라 나시오날",
 };
 
 /** 정렬 우선순위 (낮을수록 위) — KBO/NPB 한국 시청자 우선 */
@@ -383,6 +404,17 @@ export const LEAGUE_ORDER: Record<string, number> = {
   GEORGIA_EL: 15.915, // CIS 봄~가을
   AZERBAIJAN_PL: 15.916,
   KAZAKHSTAN_PL: 16.66, // 아시아·중동 그룹
+  // 2026-05-24 추가 (3차)
+  LEAGUE_TWO: 10.7, // LEAGUE_ONE 다음 (EFL 4부)
+  NATIONAL_LEAGUE: 10.8, // LEAGUE_TWO 다음 (5부)
+  SCOT_CHAMPIONSHIP: 10.91, // SPL 다음 (스코틀랜드 2부)
+  SCOT_LEAGUE_ONE: 10.92,
+  SCOT_LEAGUE_TWO: 10.93,
+  RPL: 15.99, // 러시아 — 동유럽 그룹
+  SVENSKA_CUPEN: 15.71, // 스웨덴 ALLSVENSKAN 옆 (컵)
+  ALGERIA_L1: 16.71, // 아프리카 — MOROCCO_BP 옆
+  GHANA_PL: 16.72,
+  ARG_PRIMERA_NACIONAL: 16.91, // 아르헨티나 — ARGENTINA_PL 다음
   NBA: 20,
   NHL: 21,
   LOL: 30,
@@ -537,6 +569,17 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   AZERBAIJAN_PL: "아제르바이잔",
   EREDIVISIE_2: "네덜란드",
   PRIMEIRA_LIGA_2: "포르투갈",
+  // 2026-05-24 추가 (3차)
+  LEAGUE_TWO: "잉글랜드",
+  NATIONAL_LEAGUE: "잉글랜드",
+  SCOT_CHAMPIONSHIP: "스코틀랜드",
+  SCOT_LEAGUE_ONE: "스코틀랜드",
+  SCOT_LEAGUE_TWO: "스코틀랜드",
+  RPL: "러시아",
+  ALGERIA_L1: "알제리",
+  SVENSKA_CUPEN: "스웨덴",
+  GHANA_PL: "가나",
+  ARG_PRIMERA_NACIONAL: "아르헨티나",
 };
 
 /** 국가명 → 국기 유니코드 이모지. "국제"는 지구본. */
@@ -615,6 +658,10 @@ export const COUNTRY_FLAG: Record<string, string> = {
   카자흐스탄: "🇰🇿",
   조지아: "🇬🇪",
   아제르바이잔: "🇦🇿",
+  // 2026-05-24 추가 (3차)
+  러시아: "🇷🇺",
+  알제리: "🇩🇿",
+  가나: "🇬🇭",
 };
 
 /** 국가 정렬 순서 — 국제·대한민국·일본 우선, 나머지 A–Z (한국어 가나다순). */

@@ -183,6 +183,17 @@ export const collectors: Record<League, MatchCollector> = {
   AZERBAIJAN_PL: buildApiFootballCollector("AZERBAIJAN_PL"),
   EREDIVISIE_2: buildApiFootballCollector("EREDIVISIE_2"),
   PRIMEIRA_LIGA_2: buildApiFootballCollector("PRIMEIRA_LIGA_2"),
+  // 2026-05-24 추가 (3차) — TheSports cover. api-football 도 있으면 매치 보강.
+  LEAGUE_TWO: buildApiFootballCollector("LEAGUE_TWO"),
+  NATIONAL_LEAGUE: buildApiFootballCollector("NATIONAL_LEAGUE"),
+  SCOT_CHAMPIONSHIP: buildApiFootballCollector("SCOT_CHAMPIONSHIP"),
+  SCOT_LEAGUE_ONE: buildApiFootballCollector("SCOT_LEAGUE_ONE"),
+  SCOT_LEAGUE_TWO: buildApiFootballCollector("SCOT_LEAGUE_TWO"),
+  RPL: buildApiFootballCollector("RPL"),
+  ALGERIA_L1: buildApiFootballCollector("ALGERIA_L1"),
+  SVENSKA_CUPEN: buildApiFootballCollector("SVENSKA_CUPEN"),
+  GHANA_PL: buildApiFootballCollector("GHANA_PL"),
+  ARG_PRIMERA_NACIONAL: buildApiFootballCollector("ARG_PRIMERA_NACIONAL"),
 };
 
 export {

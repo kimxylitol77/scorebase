@@ -159,7 +159,18 @@ export type League =
   | "GEORGIA_EL" // 조지아 Erovnuli Liga (1부, 봄~가을)
   | "AZERBAIJAN_PL" // 아제르바이잔 프리미어리그 (1부, 8~5월)
   | "EREDIVISIE_2" // 네덜란드 Eerste Divisie (2부, 8~5월)
-  | "PRIMEIRA_LIGA_2"; // 포르투갈 Liga Portugal 2 (2부, 8~5월)
+  | "PRIMEIRA_LIGA_2" // 포르투갈 Liga Portugal 2 (2부, 8~5월)
+  // 2026-05-24 (3차) — TheSports 업그레이드 후 추가
+  | "LEAGUE_TWO" // 잉글랜드 League Two (4부, 8~5월)
+  | "NATIONAL_LEAGUE" // 잉글랜드 내셔널리그 (5부, 8~5월)
+  | "SCOT_CHAMPIONSHIP" // 스코티시 챔피언십 (2부, 8~5월)
+  | "SCOT_LEAGUE_ONE" // 스코티시 리그1 (3부, 8~5월)
+  | "SCOT_LEAGUE_TWO" // 스코티시 리그2 (4부, 8~5월)
+  | "RPL" // 러시아 프리미어리그 (1부, 8~5월)
+  | "ALGERIA_L1" // 알제리 리그 프로페시오넬 1 (1부, 8~5월)
+  | "SVENSKA_CUPEN" // 스벤스카 컵 (스웨덴 컵, 2~6월)
+  | "GHANA_PL" // 가나 프리미어리그 (1부, 9~5월)
+  | "ARG_PRIMERA_NACIONAL"; // 아르헨티나 프리메라 나시오날 (2부, 달력)
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
