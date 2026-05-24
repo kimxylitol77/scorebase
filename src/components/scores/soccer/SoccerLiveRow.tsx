@@ -126,10 +126,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     <div
       className="grid items-center gap-3 px-0 py-2 text-sm transition hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
       style={{
-        // 좌측 fixed (110+56+64=230) vs 우측 fixed (48+28=76) 비대칭으로 vs/점수가 우측 쏠림.
+        // 좌측 fixed (110+56+64=230) vs 우측 fixed (28+48=76) 비대칭으로 vs/점수가 우측 쏠림.
         // 우측에 154px spacer 컬럼 추가 → vs 가 row 가운데 정렬 (날짜 header 와 일치).
+        // 7=관심(28px), 8=글(48px) — 사용자 요청으로 위치 swap (2026-05-24)
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,154px)",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 28px 48px minmax(0,154px)",
       }}
     >
       {/* 1. 리그 배지 — 클릭 시 새창에서 리그 순위 페이지 */}
@@ -295,7 +296,12 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         );
       })()}
 
-      {/* 7. 글 (프리뷰/리뷰) — 있을 때만 아이콘 표시 */}
+      {/* 7. 관심 별표 (위치 swap — 글보다 우선 노출) */}
+      <div className="flex justify-center">
+        <FavoriteStar matchId={String(matchId)} />
+      </div>
+
+      {/* 8. 글 (프리뷰/리뷰) — 있을 때만 아이콘 표시 */}
       <div className="flex items-center justify-center gap-1">
         {previewSlug && (
           <Link
@@ -319,11 +325,6 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             R
           </Link>
         )}
-      </div>
-
-      {/* 8. 관심 별표 */}
-      <div className="flex justify-center">
-        <FavoriteStar matchId={String(matchId)} />
       </div>
     </div>
   );
@@ -495,7 +496,7 @@ export function SoccerLiveRowHeader() {
       className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 48px 28px minmax(0,154px)",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 28px 48px minmax(0,154px)",
       }}
     >
       <div className="text-center">리그명</div>
@@ -504,8 +505,8 @@ export function SoccerLiveRowHeader() {
       <div className="text-right">홈팀</div>
       <div className="text-center px-2">점수</div>
       <div>원정팀</div>
-      <div className="text-center">글</div>
       <div className="text-center">관심</div>
+      <div className="text-center">글</div>
     </div>
   );
 }
