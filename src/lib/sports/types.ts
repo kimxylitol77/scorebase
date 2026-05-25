@@ -417,6 +417,32 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "AZERBAIJAN_PL",
   "EREDIVISIE_2",
   "PRIMEIRA_LIGA_2",
+  // 2026-05-25 사용자 결정 — 한국 사용자 수요 낮은 카테고리 일괄 제외
+  // 매치 수집은 유지, PREVIEW/RECAP 자동 생성만 X.
+  // 여자 축구 5
+  "NWSL",
+  "WSL",
+  "UEFA_WCL",
+  "A_LEAGUE_W",
+  "WK_LEAGUE",
+  // 청소년 토너 6
+  "UEFA_U17",
+  "UEFA_U19",
+  "UEFA_U21",
+  "UEFA_U21_Q",
+  "U20_WC",
+  "U17_WC",
+  // 아시아 하위 5
+  "K3_LEAGUE",
+  "K4_LEAGUE",
+  "J3_LEAGUE",
+  "THAI_L1",
+  "VIETNAM_VL2",
+  // 남미 하위 4
+  "URUGUAY_PD",
+  "PARAGUAY_PD",
+  "BOLIVIA_PD",
+  "ARG_PRIMERA_NACIONAL",
 ];
 
 export type MatchStatus =
