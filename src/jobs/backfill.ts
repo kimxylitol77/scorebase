@@ -9,7 +9,8 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
-import { collectors } from "@/lib/sports";
+import { collectors, getPrimarySource } from "@/lib/sports";
+import { resolveTeamId } from "@/lib/sports/team-resolver";
 import { fetchEplRange } from "@/lib/sports/football-data";
 import type { League, NormalizedMatch } from "@/lib/sports/types";
 
@@ -41,35 +42,22 @@ function parseArgs() {
 }
 
 async function upsertMatch(m: NormalizedMatch) {
-  const homeTeam = await prisma.team.upsert({
-    where: { league_externalId: { league: m.league, externalId: m.homeTeam.externalId } },
-    update: {
-      name: m.homeTeam.name,
-      shortName: m.homeTeam.shortName ?? null,
-      logoUrl: m.homeTeam.logoUrl ?? null,
-    },
-    create: {
-      league: m.league,
-      externalId: m.homeTeam.externalId,
-      name: m.homeTeam.name,
-      shortName: m.homeTeam.shortName ?? null,
-      logoUrl: m.homeTeam.logoUrl ?? null,
-    },
+  const source = getPrimarySource(m.league);
+  const homeTeamId = await resolveTeamId({
+    league: m.league,
+    source,
+    externalId: m.homeTeam.externalId,
+    name: m.homeTeam.name,
+    shortName: m.homeTeam.shortName ?? null,
+    logoUrl: m.homeTeam.logoUrl ?? null,
   });
-  const awayTeam = await prisma.team.upsert({
-    where: { league_externalId: { league: m.league, externalId: m.awayTeam.externalId } },
-    update: {
-      name: m.awayTeam.name,
-      shortName: m.awayTeam.shortName ?? null,
-      logoUrl: m.awayTeam.logoUrl ?? null,
-    },
-    create: {
-      league: m.league,
-      externalId: m.awayTeam.externalId,
-      name: m.awayTeam.name,
-      shortName: m.awayTeam.shortName ?? null,
-      logoUrl: m.awayTeam.logoUrl ?? null,
-    },
+  const awayTeamId = await resolveTeamId({
+    league: m.league,
+    source,
+    externalId: m.awayTeam.externalId,
+    name: m.awayTeam.name,
+    shortName: m.awayTeam.shortName ?? null,
+    logoUrl: m.awayTeam.logoUrl ?? null,
   });
   await prisma.match.upsert({
     where: { league_externalId: { league: m.league, externalId: m.externalId } },
@@ -83,8 +71,8 @@ async function upsertMatch(m: NormalizedMatch) {
     create: {
       league: m.league,
       externalId: m.externalId,
-      homeTeamId: homeTeam.id,
-      awayTeamId: awayTeam.id,
+      homeTeamId,
+      awayTeamId,
       homeScore: m.homeScore ?? null,
       awayScore: m.awayScore ?? null,
       status: m.status,

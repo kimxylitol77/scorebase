@@ -18,8 +18,8 @@
 //   }
 //
 // 흐름:
-//   1) team-id-mapping.json (football) 또는 baseball-team-id-mapping.json reverse map 으로
-//      tsTeamId → 우리 Team.id resolve. 미매핑이면 매치 skip.
+//   1) DB TeamSourceId (source='thesports') 우선 lookup. 없으면 mapping JSON fallback.
+//      미매핑이면 매치 skip.
 //   2) league + tsMatchId 가 externalId 로 match upsert.
 
 import { readFileSync } from "fs";
@@ -45,30 +45,62 @@ interface Body {
   matches: MatchPayload[];
 }
 
-interface TeamMap { ourId: number; tsId: string }
+interface TeamMapEntry { ourId: number; tsId: string }
 
-// 모듈 캐시 — 호출당 파일 읽기 회피
-let cachedFootballMap: Map<string, number> | null = null;
-let cachedBaseballMap: Map<string, number> | null = null;
+// JSON fallback — DB TeamSourceId 미커버 ts entry 보완용.
+let cachedFootballJsonMap: Map<string, number> | null = null;
+let cachedBaseballJsonMap: Map<string, number> | null = null;
 
-function loadFootballReverse(): Map<string, number> {
-  if (cachedFootballMap) return cachedFootballMap;
+function loadFootballJsonReverse(): Map<string, number> {
+  if (cachedFootballJsonMap) return cachedFootballJsonMap;
   const file = path.join(process.cwd(), "src/lib/sports/thesports/team-id-mapping.json");
-  const arr: TeamMap[] = JSON.parse(readFileSync(file, "utf-8"));
-  cachedFootballMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
-  return cachedFootballMap;
+  try {
+    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
+    cachedFootballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
+  } catch {
+    cachedFootballJsonMap = new Map();
+  }
+  return cachedFootballJsonMap;
 }
 
-function loadBaseballReverse(): Map<string, number> {
-  if (cachedBaseballMap) return cachedBaseballMap;
+function loadBaseballJsonReverse(): Map<string, number> {
+  if (cachedBaseballJsonMap) return cachedBaseballJsonMap;
   const file = path.join(process.cwd(), "src/lib/sports/thesports/baseball-team-id-mapping.json");
   try {
-    const arr: TeamMap[] = JSON.parse(readFileSync(file, "utf-8"));
-    cachedBaseballMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
+    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
+    cachedBaseballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
   } catch {
-    cachedBaseballMap = new Map();
+    cachedBaseballJsonMap = new Map();
   }
-  return cachedBaseballMap;
+  return cachedBaseballJsonMap;
+}
+
+/** 이번 batch 의 tsTeamId 들을 한 번에 TeamSourceId 에서 fetch — Map<"league|ext", teamId>. */
+async function loadDbMapForBatch(
+  matches: MatchPayload[],
+): Promise<Map<string, number>> {
+  const byLeague = new Map<string, Set<string>>();
+  for (const m of matches) {
+    if (!byLeague.has(m.league)) byLeague.set(m.league, new Set());
+    byLeague.get(m.league)!.add(m.tsHomeTeamId);
+    byLeague.get(m.league)!.add(m.tsAwayTeamId);
+  }
+  const result = new Map<string, number>();
+  for (const [league, exts] of byLeague) {
+    if (exts.size === 0) continue;
+    const rows = await prisma.teamSourceId.findMany({
+      where: {
+        league,
+        source: "thesports",
+        externalId: { in: [...exts] },
+      },
+      select: { externalId: true, teamId: true },
+    });
+    for (const r of rows) {
+      result.set(`${league}|${r.externalId}`, r.teamId);
+    }
+  }
+  return result;
 }
 
 function unauthorized(msg = "Unauthorized") {
@@ -94,14 +126,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "matches array required" }, { status: 400 });
   }
 
-  const teamMap = body.sport === "football" ? loadFootballReverse() : loadBaseballReverse();
+  // DB TeamSourceId 우선 lookup (league + source='thesports' + tsTeamId)
+  const dbMap = await loadDbMapForBatch(body.matches);
+  // JSON fallback — DB 에 없는 ts entry 보완
+  const jsonMap =
+    body.sport === "football"
+      ? loadFootballJsonReverse()
+      : loadBaseballJsonReverse();
+
+  function resolveTsTeamId(league: string, tsTeamId: string): number | undefined {
+    return dbMap.get(`${league}|${tsTeamId}`) ?? jsonMap.get(tsTeamId);
+  }
+
   let upserted = 0;
   let skippedNoTeam = 0;
   let skippedDuplicate = 0;
 
   for (const m of body.matches) {
-    const homeId = teamMap.get(m.tsHomeTeamId);
-    const awayId = teamMap.get(m.tsAwayTeamId);
+    const homeId = resolveTsTeamId(m.league, m.tsHomeTeamId);
+    const awayId = resolveTsTeamId(m.league, m.tsAwayTeamId);
     if (!homeId || !awayId) {
       skippedNoTeam++;
       continue;

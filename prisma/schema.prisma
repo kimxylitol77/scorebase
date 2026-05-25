@@ -36,9 +36,30 @@ model Team {
 
   homeMatches Match[] @relation("HomeTeam")
   awayMatches Match[] @relation("AwayTeam")
+  sourceIds   TeamSourceId[]
 
   @@unique([league, externalId])
   @@index([league, eloRating])
+}
+
+/// 외부 source 별 팀 ID 매핑. (league, source, externalId) → canonical Team.id.
+/// 같은 팀이 source 별로 다른 ext id 를 가질 때 row 양산을 막기 위해 도입 (2026-05-25).
+/// source 값: 'thesports' | 'api-football' | 'espn' | 'balldontlie'
+///          | 'api-sports' | 'football-data' | 'kbo' | 'npb' | 'legacy'
+model TeamSourceId {
+  id         Int      @id @default(autoincrement())
+  league     String
+  source     String
+  externalId String
+  teamId     Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([league, source, externalId])
+  @@index([teamId])
+  @@index([league, source])
 }
 
 // 경기 정보

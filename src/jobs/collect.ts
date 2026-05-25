@@ -6,7 +6,8 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
-import { collectors } from "@/lib/sports";
+import { collectors, getPrimarySource } from "@/lib/sports";
+import { resolveTeamId } from "@/lib/sports/team-resolver";
 import { fetchEplRange } from "@/lib/sports/football-data";
 import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
@@ -153,40 +154,25 @@ async function upsertMatch(m: NormalizedMatch) {
   }
   const homeShort = resolveShortName(m.league, m.homeTeam.shortName, m.homeTeam.name);
   const awayShort = resolveShortName(m.league, m.awayTeam.shortName, m.awayTeam.name);
-  const homeTeam = await prisma.team.upsert({
-    where: {
-      league_externalId: { league: m.league, externalId: m.homeTeam.externalId },
-    },
-    update: {
-      name: m.homeTeam.name,
-      shortName: homeShort,
-      logoUrl: m.homeTeam.logoUrl ?? null,
-    },
-    create: {
-      league: m.league,
-      externalId: m.homeTeam.externalId,
-      name: m.homeTeam.name,
-      shortName: homeShort,
-      logoUrl: m.homeTeam.logoUrl ?? null,
-    },
+  const source = getPrimarySource(m.league);
+  const homeTeamId = await resolveTeamId({
+    league: m.league,
+    source,
+    externalId: m.homeTeam.externalId,
+    name: m.homeTeam.name,
+    shortName: homeShort,
+    logoUrl: m.homeTeam.logoUrl ?? null,
   });
-  const awayTeam = await prisma.team.upsert({
-    where: {
-      league_externalId: { league: m.league, externalId: m.awayTeam.externalId },
-    },
-    update: {
-      name: m.awayTeam.name,
-      shortName: awayShort,
-      logoUrl: m.awayTeam.logoUrl ?? null,
-    },
-    create: {
-      league: m.league,
-      externalId: m.awayTeam.externalId,
-      name: m.awayTeam.name,
-      shortName: awayShort,
-      logoUrl: m.awayTeam.logoUrl ?? null,
-    },
+  const awayTeamId = await resolveTeamId({
+    league: m.league,
+    source,
+    externalId: m.awayTeam.externalId,
+    name: m.awayTeam.name,
+    shortName: awayShort,
+    logoUrl: m.awayTeam.logoUrl ?? null,
   });
+  const homeTeam = { id: homeTeamId };
+  const awayTeam = { id: awayTeamId };
 
   // === Dedup 가드 (2026-05-24): 다른 source / 다른 externalId 로 들어온 같은 매치 차단 ===
   // 조건: 같은 league + startTime ±30분 + 동일 두 팀 페어 (home/away 양방향) + 다른 externalId.

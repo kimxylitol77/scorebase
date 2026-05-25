@@ -23,7 +23,10 @@ const TARGET_LEAGUES = ["LALIGA", "J1_LEAGUE"];
 function normalizeTeamName(s) {
   return s
     .toLowerCase()
-    .replace(/\b(fc|cf|ac|afc|sc|cd|rcd|sv|ss|ssc|nk|hsv|fk|club|de|el)\b/g, "")
+    .replace(
+      /\b(fc|cf|ac|afc|sc|cd|rcd|sv|ss|ssc|nk|hsv|fk|club|de|el|ca|hotspur|wanderers)\b/g,
+      "",
+    )
     .replace(/[^a-z0-9가-힣]/g, "");
 }
 
@@ -122,12 +125,48 @@ async function main() {
             });
             console.log(`  ↪ id=${d.id} → ${canonical.id}: home ${home.count}, away ${away.count} 이전`);
           }
+          // TeamSourceId 이전 — (league, source, externalId) 가 canonical 에 없으면 teamId update.
+          // 있으면 그대로 두고 Team delete 시 FK CASCADE 로 정리됨.
+          const dupSources = await tx.teamSourceId.findMany({
+            where: { teamId: d.id },
+            select: { id: true, league: true, source: true, externalId: true },
+          });
+          let migrated = 0;
+          let dropped = 0;
+          for (const ts of dupSources) {
+            const conflict = await tx.teamSourceId.findUnique({
+              where: {
+                league_source_externalId: {
+                  league: ts.league,
+                  source: ts.source,
+                  externalId: ts.externalId,
+                },
+              },
+              select: { id: true, teamId: true },
+            });
+            if (conflict && conflict.teamId === canonical.id) {
+              // canonical 에 이미 같은 mapping 있음 — d 의 row 는 cascade 로 사라짐
+              dropped++;
+              continue;
+            }
+            // canonical 에 없는 mapping → teamId 이전
+            await tx.teamSourceId.update({
+              where: { id: ts.id },
+              data: { teamId: canonical.id },
+            });
+            migrated++;
+          }
+          if (dupSources.length > 0) {
+            console.log(
+              `  ↪ TeamSourceId: ${migrated} 이전, ${dropped} cascade drop (id=${d.id})`,
+            );
+          }
           await tx.team.delete({ where: { id: d.id } });
           console.log(`  ✗ del id=${d.id}`);
         }
       }
     },
-    { timeout: 60_000 },
+    { timeout: 120_000 },
   );
 
   // mapping JSON 갱신

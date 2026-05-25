@@ -208,3 +208,41 @@ export {
   lolCollector,
 };
 export * from "./types";
+
+// 리그 → primary collector source. collect.ts / backfill.ts 의 Team upsert 가
+// resolveTeamId(league, source, ...) 호출 시 source 결정에 사용.
+// 추가 source (ts-matches route 의 'thesports', live API 의 'api-sports' 등) 는
+// 해당 호출 시점에 직접 source 명시.
+const SOCCER_ESPN_LEAGUES: ReadonlyArray<string> = [
+  "LALIGA",
+  "BUNDESLIGA",
+  "SERIE_A",
+  "LIGUE_1",
+  "MLS",
+  "UCL",
+];
+
+export function getPrimarySource(league: League): string {
+  if (league === "EPL") {
+    return process.env.FOOTBALL_DATA_KEY ? "football-data" : "api-football";
+  }
+  if (league === "NBA") {
+    if (process.env.API_FOOTBALL_KEY) return "api-sports";
+    if (
+      process.env.MYSPORTSFEEDS_USER &&
+      process.env.MYSPORTSFEEDS_USER !== "your_username"
+    )
+      return "mysportsfeeds";
+    return "espn";
+  }
+  if (league === "NHL") return "espn";
+  if (league === "MLB") return "espn";
+  if (league === "WNBA") return "api-sports";
+  if (league === "KBO") return "kbo";
+  if (league === "NPB") return "npb";
+  if (league === "LOL") return "leaguepedia";
+  if (league === "WORLD_CUP") return "world-cup";
+  if (SOCCER_ESPN_LEAGUES.includes(league)) return "espn";
+  // 그 외 축구 리그는 모두 buildApiFootballCollector
+  return "api-football";
+}

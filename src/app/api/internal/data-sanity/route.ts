@@ -290,28 +290,76 @@ export async function GET(req: NextRequest) {
       const tsTop = tsPayload?.tables?.[0]?.rows?.find((r) => r.position === 1);
       const afTop = afRows?.find?.((r) => r.position === 1);
       if (tsTop?.team_id && afTop?.teamExternalId) {
-        const tsMapping = await import("@/lib/sports/thesports/team-id-mapping.json")
-          .then((m) => m.default as Array<{ ourId: number; tsId: string; ourLeague: string }>);
-        const tsEntry = tsMapping.find((t) => t.tsId === tsTop.team_id);
-        // (a) cross-league mapping — UEL 검사인데 ts mapping 이 LIGUE_1 Lyon 반환 → skip
-        if (tsEntry && tsEntry.ourLeague !== league) continue;
-        const tsTeam = tsEntry
-          ? await prisma.team.findUnique({
-              where: { id: tsEntry.ourId },
-              select: { id: true, name: true },
-            })
-          : null;
-        const afTeam = await prisma.team.findFirst({
-          where: { league, externalId: afTop.teamExternalId },
-          select: { id: true, name: true },
-        });
-        // (b) 이름 normalize 비교 — Team 중복 row 무시
-        if (tsTeam && afTeam && !sameTeamName(tsTeam.name, afTeam.name)) {
+        // TeamSourceId 로 ts 1위 / af 1위 의 canonical teamId 를 각각 조회.
+        // 같으면 같은 팀 (정상), 다르면 standings stale.
+        const [tsMap, afMap] = await Promise.all([
+          prisma.teamSourceId.findUnique({
+            where: {
+              league_source_externalId: {
+                league,
+                source: "thesports",
+                externalId: tsTop.team_id,
+              },
+            },
+            select: { teamId: true },
+          }),
+          prisma.teamSourceId.findUnique({
+            where: {
+              league_source_externalId: {
+                league,
+                source: "api-football",
+                externalId: afTop.teamExternalId,
+              },
+            },
+            select: { teamId: true },
+          }),
+        ]);
+
+        // (a) 어느 한 쪽 mapping 누락 → cross-league mapping 가능성 + Team 이름 fallback 비교.
+        if (!tsMap || !afMap) {
+          // ts mapping JSON 의 cross-league 검사는 유지 (UEL 검사 시 LIGUE_1 mapping 반환 케이스).
+          const tsMapping = await import("@/lib/sports/thesports/team-id-mapping.json")
+            .then((m) => m.default as Array<{ ourId: number; tsId: string; ourLeague: string }>);
+          const tsEntry = tsMapping.find((t) => t.tsId === tsTop.team_id);
+          if (tsEntry && tsEntry.ourLeague !== league) continue;
+          const tsTeam = tsEntry
+            ? await prisma.team.findUnique({
+                where: { id: tsEntry.ourId },
+                select: { id: true, name: true },
+              })
+            : null;
+          const afTeam = await prisma.team.findFirst({
+            where: { league, externalId: afTop.teamExternalId },
+            select: { id: true, name: true },
+          });
+          if (tsTeam && afTeam && !sameTeamName(tsTeam.name, afTeam.name)) {
+            issues.push({
+              ...placeholderInfo(league),
+              kind: "standings_mismatch",
+              severity: "HIGH",
+              detail: `TheSports 1위(${tsTeam.name}) ≠ api-football 1위(${afTeam.name}) — 한쪽 stale 확정`,
+            });
+          }
+          continue;
+        }
+
+        // (b) TeamSourceId 둘 다 hit — teamId 비교가 정답.
+        if (tsMap.teamId !== afMap.teamId) {
+          const [tsTeam, afTeam] = await Promise.all([
+            prisma.team.findUnique({
+              where: { id: tsMap.teamId },
+              select: { name: true },
+            }),
+            prisma.team.findUnique({
+              where: { id: afMap.teamId },
+              select: { name: true },
+            }),
+          ]);
           issues.push({
             ...placeholderInfo(league),
             kind: "standings_mismatch",
             severity: "HIGH",
-            detail: `TheSports 1위(${tsTeam.name}) ≠ api-football 1위(${afTeam.name}) — 한쪽 stale 확정`,
+            detail: `TheSports 1위(${tsTeam?.name ?? "?"}) ≠ api-football 1위(${afTeam?.name ?? "?"}) — 한쪽 stale 확정`,
           });
         }
       }
