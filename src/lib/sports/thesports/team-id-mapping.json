@@ -11324,5 +11324,797 @@
     "tsName": "Chicago Red Stars Women",
     "matchType": "fuzzy",
     "tsVenueId": "yl5ergphv0pr8k0"
+  },
+  {
+    "ourId": 111525,
+    "ourName": "Cheongju",
+    "ourLeague": "K_LEAGUE_2",
+    "ourExternalId": "7061",
+    "tsId": "x7lm7phk7d8m2wd",
+    "tsName": "Chungbuk Cheongju FC",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 111527,
+    "ourName": "Gimpo Citizen",
+    "ourLeague": "K_LEAGUE_2",
+    "ourExternalId": "7078",
+    "tsId": "6ypq3nh50o2md7o",
+    "tsName": "Gimpo FC",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 116473,
+    "ourName": "Suwon City FC",
+    "ourLeague": "K_LEAGUE_2",
+    "ourExternalId": "2756",
+    "tsId": "23xmvkh3yopqg8n",
+    "tsName": "Suwon Football Club",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 111523,
+    "ourName": "Yongin City",
+    "ourLeague": "K_LEAGUE_2",
+    "ourExternalId": "9171",
+    "tsId": "965mkyhzwgwr1ge",
+    "tsName": "Yongin FC",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 599774,
+    "ourName": "Burundi",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1528",
+    "tsId": "zp5rzghj23vq82w",
+    "tsName": "Burundi",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 3694,
+    "ourName": "Cape Verde Islands",
+    "ourLeague": "WORLD_CUP",
+    "ourExternalId": "1533",
+    "tsId": "9vjxm8ghdpdr6od",
+    "tsName": "Cape Verde",
+    "matchType": "intl-sweep+alias"
+  },
+  {
+    "ourId": 599529,
+    "ourName": "Kazakhstan",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1095",
+    "tsId": "p3glrw7h2wnqdyj",
+    "tsName": "Kazakhstan",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599530,
+    "ourName": "Comoros",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1524",
+    "tsId": "l7oqdehnxynr510",
+    "tsName": "Comoros",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599531,
+    "ourName": "Singapore",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1546",
+    "tsId": "3glrw7hwk9zqdyj",
+    "tsName": "Singapore",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599534,
+    "ourName": "Serbia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "14",
+    "tsId": "9k82rekhd7prepz",
+    "tsName": "Serbia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599536,
+    "ourName": "Armenia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1094",
+    "tsId": "9vjxm8gh167r6od",
+    "tsName": "Armenia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599538,
+    "ourName": "Palestine",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1562",
+    "tsId": "gx7lm7ph463m2wd",
+    "tsName": "Palestine",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599545,
+    "ourName": "Nigeria",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "19",
+    "tsId": "v2y8m4zhlo0ql07",
+    "tsName": "Nigeria",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599546,
+    "ourName": "India",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1537",
+    "tsId": "l965mkyhdk8r1ge",
+    "tsName": "India",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599547,
+    "ourName": "Jamaica",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "2385",
+    "tsId": "v2y8m4zho4oql07",
+    "tsName": "Jamaica",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599548,
+    "ourName": "Zimbabwe",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1522",
+    "tsId": "965mkyh73wer1ge",
+    "tsName": "Zimbabwe",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599563,
+    "ourName": "Guatemala",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "5161",
+    "tsId": "z8yomo4hpwjq0j6",
+    "tsName": "Guatemala",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599564,
+    "ourName": "Bolivia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "2381",
+    "tsId": "9vjxm8gh6jer6od",
+    "tsName": "Bolivia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599580,
+    "ourName": "China",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1566",
+    "tsId": "d23xmvkh147qg8n",
+    "tsName": "China",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599621,
+    "ourName": "Iceland",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "18",
+    "tsId": "gpxwrxlh8zwryk0",
+    "tsName": "Iceland",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599631,
+    "ourName": "Trinidad and Tobago",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "5168",
+    "tsId": "kn54qllh6peqvy9",
+    "tsName": "Trinidad and Tobago",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599642,
+    "ourName": "Kyrgyzstan",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1554",
+    "tsId": "dj2ryohkv8xq1zp",
+    "tsName": "Kyrgyzstan",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599643,
+    "ourName": "Equatorial Guinea",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1521",
+    "tsId": "4zp5rzghv3wq82w",
+    "tsName": "Equatorial Guinea",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599650,
+    "ourName": "Bangladesh",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1560",
+    "tsId": "x7lm7phkkjnm2wd",
+    "tsName": "Bangladesh",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599653,
+    "ourName": "Moldova",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1114",
+    "tsId": "56ypq3nhylpmd7o",
+    "tsName": "Moldova",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599655,
+    "ourName": "Georgia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1104",
+    "tsId": "vjxm8gh4v0xr6od",
+    "tsName": "Georgia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599656,
+    "ourName": "Israel",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1116",
+    "tsId": "v2y8m4zh2ylql07",
+    "tsName": "Israel",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599657,
+    "ourName": "Cyprus",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1106",
+    "tsId": "kjw2r09hzx2rz84",
+    "tsName": "Cyprus",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599658,
+    "ourName": "Belarus",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1100",
+    "tsId": "kn54qllh62wqvy9",
+    "tsName": "Belarus",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599678,
+    "ourName": "Guinea",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1509",
+    "tsId": "d23xmvkh72kqg8n",
+    "tsName": "Guinea",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599685,
+    "ourName": "Russia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "4",
+    "tsId": "gy0or5jh7ewqwzv",
+    "tsName": "Russia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599686,
+    "ourName": "Nicaragua",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "5164",
+    "tsId": "k82rekhvw49repz",
+    "tsName": "Nicaragua",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599689,
+    "ourName": "Montenegro",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1109",
+    "tsId": "y39mp1h30zdmojx",
+    "tsName": "Montenegro",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599690,
+    "ourName": "Andorra",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1110",
+    "tsId": "8y39mp1hg6omojx",
+    "tsName": "Andorra",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599697,
+    "ourName": "Costa Rica",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "29",
+    "tsId": "kdj2ryoholnq1zp",
+    "tsName": "Costa Rica",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599700,
+    "ourName": "Greece",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1117",
+    "tsId": "vl7oqdehp4gr510",
+    "tsName": "Greece",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599717,
+    "ourName": "Malawi",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1495",
+    "tsId": "kdj2ryohze2q1zp",
+    "tsName": "Malawi",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599721,
+    "ourName": "San Marino",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1115",
+    "tsId": "z318q66h5kyqo9j",
+    "tsName": "San Marino",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599722,
+    "ourName": "Madagascar",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1490",
+    "tsId": "jw2r09hl0y4rz84",
+    "tsName": "Madagascar",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599724,
+    "ourName": "Peru",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "30",
+    "tsId": "9dn1m1gh6kkmoep",
+    "tsName": "Peru",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599725,
+    "ourName": "Botswana",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1520",
+    "tsId": "d23xmvkhjpdqg8n",
+    "tsName": "Botswana",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599728,
+    "ourName": "Hungary",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "769",
+    "tsId": "vl7oqdehk7er510",
+    "tsName": "Hungary",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599729,
+    "ourName": "Slovenia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1091",
+    "tsId": "kn54qllholdqvy9",
+    "tsName": "Slovenia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599732,
+    "ourName": "Burkina Faso",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1502",
+    "tsId": "4zp5rzghelgq82w",
+    "tsName": "Burkina Faso",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599753,
+    "ourName": "Honduras",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "4672",
+    "tsId": "4zp5rzghvzyq82w",
+    "tsName": "Honduras",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599754,
+    "ourName": "Wales",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "767",
+    "tsId": "ednm9whk0w2ryox",
+    "tsName": "Wales",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599755,
+    "ourName": "Northern Ireland",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "771",
+    "tsId": "gpxwrxlh8g5ryk0",
+    "tsName": "Northern Ireland",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599756,
+    "ourName": "Ukraine",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "772",
+    "tsId": "jednm9whj29ryox",
+    "tsName": "Ukraine",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599757,
+    "ourName": "Albania",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "778",
+    "tsId": "4zp5rzgh9j9q82w",
+    "tsName": "Albania",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599758,
+    "ourName": "Slovakia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "773",
+    "tsId": "z318q66h916qo9j",
+    "tsName": "Slovakia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599759,
+    "ourName": "Romania",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "774",
+    "tsId": "56ypq3nh912md7o",
+    "tsName": "Romania",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599761,
+    "ourName": "FYR Macedonia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1105",
+    "tsId": "kn54qllhyopqvy9",
+    "tsName": "North Macedonia",
+    "matchType": "intl-sweep+alias"
+  },
+  {
+    "ourId": 599762,
+    "ourName": "Gambia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1492",
+    "tsId": "y39mp1h3987mojx",
+    "tsName": "Gambia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599784,
+    "ourName": "Mongolia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "5534",
+    "tsId": "l7oqdehnowdr510",
+    "tsName": "Mongolia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599787,
+    "ourName": "Kosovo",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1111",
+    "tsId": "dj2ryohke43q1zp",
+    "tsName": "Kosovo",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599789,
+    "ourName": "Poland",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "24",
+    "tsId": "e4wyrn4hnngq86p",
+    "tsName": "Poland",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599790,
+    "ourName": "Finland",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1099",
+    "tsId": "9vjxm8ghoz9r6od",
+    "tsName": "Finland",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599791,
+    "ourName": "Tajikistan",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1536",
+    "tsId": "l7oqdehny72r510",
+    "tsName": "Tajikistan",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599792,
+    "ourName": "Malta",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1112",
+    "tsId": "gx7lm7ph6edm2wd",
+    "tsName": "Malta",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599793,
+    "ourName": "Bulgaria",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1103",
+    "tsId": "p3glrw7h5j7qdyj",
+    "tsName": "Bulgaria",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599797,
+    "ourName": "Philippines",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1555",
+    "tsId": "gx7lm7ph18nm2wd",
+    "tsName": "Philippines",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599799,
+    "ourName": "Kenya",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1511",
+    "tsId": "vjxm8gh4v65r6od",
+    "tsName": "Kenya",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599800,
+    "ourName": "Gibraltar",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1093",
+    "tsId": "1l4rjnh65l8m7vx",
+    "tsName": "Gibraltar",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599801,
+    "ourName": "British Virgin Islands",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8168",
+    "tsId": "y39mp1h36nkmojx",
+    "tsName": "British Virgin Islands",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599802,
+    "ourName": "Denmark",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "21",
+    "tsId": "8y39mp1hnlgmojx",
+    "tsName": "Denmark",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599805,
+    "ourName": "Luxembourg",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1102",
+    "tsId": "gy0or5jhkl5qwzv",
+    "tsName": "Luxembourg",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599806,
+    "ourName": "Italy",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "768",
+    "tsId": "56ypq3nh290md7o",
+    "tsName": "Italy",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599807,
+    "ourName": "Dominican Republic",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "5532",
+    "tsId": "8yomo4h74ovq0j6",
+    "tsName": "Dominican Republic",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599808,
+    "ourName": "El Salvador",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "5159",
+    "tsId": "kn54qllhg9xqvy9",
+    "tsName": "El Salvador",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599809,
+    "ourName": "Cambodia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1543",
+    "tsId": "z318q66hekxqo9j",
+    "tsName": "Cambodia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599810,
+    "ourName": "Bhutan",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1540",
+    "tsId": "l5ergphokggr8k0",
+    "tsName": "Bhutan",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599813,
+    "ourName": "Liechtenstein",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1107",
+    "tsId": "9vjxm8ghd4kr6od",
+    "tsName": "Liechtenstein",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599814,
+    "ourName": "Syria",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1565",
+    "tsId": "x7lm7phkk1em2wd",
+    "tsName": "Syria",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599815,
+    "ourName": "Angola",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1529",
+    "tsId": "j1l4rjnhvx7m7vx",
+    "tsName": "Angola",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599816,
+    "ourName": "Hong Kong",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "4460",
+    "tsId": "kn54qllhgjlqvy9",
+    "tsName": "Hong Kong",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599817,
+    "ourName": "Thailand",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1564",
+    "tsId": "gy0or5jhyg2qwzv",
+    "tsName": "Thailand",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599818,
+    "ourName": "Kuwait",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1570",
+    "tsId": "ednm9whk855ryox",
+    "tsName": "Kuwait",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599819,
+    "ourName": "Indonesia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1571",
+    "tsId": "jednm9whywwryox",
+    "tsName": "Indonesia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599820,
+    "ourName": "Oman",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1552",
+    "tsId": "9k82rekh714repz",
+    "tsName": "Oman",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599821,
+    "ourName": "Azerbaijan",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1096",
+    "tsId": "d23xmvkhj3zqg8n",
+    "tsName": "Azerbaijan",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599822,
+    "ourName": "Bahrain",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1547",
+    "tsId": "l965mkyhx53r1ge",
+    "tsName": "Bahrain",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599823,
+    "ourName": "Myanmar",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1556",
+    "tsId": "9dn1m1gh6llmoep",
+    "tsName": "Myanmar",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599824,
+    "ourName": "Ethiopia",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1506",
+    "tsId": "k82rekhv82vrepz",
+    "tsName": "Ethiopia",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599826,
+    "ourName": "Rwanda",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1514",
+    "tsId": "9k82rekhpgjrepz",
+    "tsName": "Rwanda",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599828,
+    "ourName": "Chile",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "2383",
+    "tsId": "gx7lm7phykvm2wd",
+    "tsName": "Chile",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599829,
+    "ourName": "Venezuela",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "2379",
+    "tsId": "jednm9wh18lryox",
+    "tsName": "Venezuela",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599830,
+    "ourName": "Aruba",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8167",
+    "tsId": "ednm9whkw4gryox",
+    "tsName": "Aruba",
+    "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599831,
+    "ourName": "Central African Republic",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1527",
+    "tsId": "dj2ryohkx0yq1zp",
+    "tsName": "Central African Republic",
+    "matchType": "intl-sweep"
   }
 ]
