@@ -74,6 +74,7 @@ function seasonFor(league: string, year: number, month: number): number {
   if (league === "CLUB_WORLD_CUP") return 2025;
   if (league === "AFC_U23") return 2025;
   if (league === "AFCON" || league === "CONCACAF_GOLD" || league === "U20_WC" || league === "U17_WC") return 2025;
+  if (league === "UEFA_U21_Q" || league === "UEFA_U21" || league === "UEFA_U19" || league === "UEFA_U17") return 2025;
   if (league === "OLYMPICS_FOOTBALL") return 2024;
   return year;
 }

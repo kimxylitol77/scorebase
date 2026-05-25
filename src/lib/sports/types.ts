@@ -140,6 +140,10 @@ export type League =
   | "INTL_FRIENDLY" // 국가대표 친선 (A매치)
   | "U20_WC" // U-20 월드컵
   | "U17_WC" // U-17 월드컵
+  | "UEFA_U21_Q" // UEFA U21 챔피언십 예선
+  | "UEFA_U21" // UEFA U21 챔피언십 본선
+  | "UEFA_U19" // UEFA U19 챔피언십
+  | "UEFA_U17" // UEFA U17 챔피언십
   | "OLYMPICS_FOOTBALL" // 올림픽 축구
   // 여자 축구
   | "WSL" // 잉글랜드 여자 슈퍼리그
@@ -287,6 +291,10 @@ export const SOCCER_LEAGUES = [
   "INTL_FRIENDLY",
   "U20_WC",
   "U17_WC",
+  "UEFA_U21_Q",
+  "UEFA_U21",
+  "UEFA_U19",
+  "UEFA_U17",
   "OLYMPICS_FOOTBALL",
   "WSL",
   "NWSL",

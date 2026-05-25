@@ -37,6 +37,7 @@ export const ALL_LEAGUES = [
   // 국가대표 토너 / 예선 / 친선
   "AFCON", "UEFA_NL", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
   "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
+  "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
   // 여자 축구
   "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
   // 컵 대회
@@ -90,6 +91,7 @@ export const SPORTS: SportMeta[] = [
       // 국가대표 토너 / 예선 / 친선
       "AFCON", "UEFA_NL", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
       "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
+      "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
       // 여자 축구
       "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
       // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC + 스위스
@@ -251,6 +253,10 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   INTL_FRIENDLY: "국가대표 친선",
   U20_WC: "U-20 월드컵",
   U17_WC: "U-17 월드컵",
+  UEFA_U21_Q: "UEFA U21 챔피언십 예선",
+  UEFA_U21: "UEFA U21 챔피언십",
+  UEFA_U19: "UEFA U19 챔피언십",
+  UEFA_U17: "UEFA U17 챔피언십",
   OLYMPICS_FOOTBALL: "올림픽 축구",
   WSL: "WSL (잉글랜드 여자)",
   NWSL: "NWSL (미국 여자)",
@@ -379,6 +385,13 @@ export const LEAGUE_ORDER: Record<string, number> = {
   SAUDI_PL: 16.5,
   CLUB_WORLD_CUP: 17,
   WORLD_CUP: 18,
+  // 청소년 대표 — WORLD_CUP 다음 그룹
+  UEFA_U21_Q: 18.1,
+  UEFA_U21: 18.2,
+  UEFA_U19: 18.3,
+  UEFA_U17: 18.4,
+  U20_WC: 18.5,
+  U17_WC: 18.6,
   // 컵 대회 — 각 자국 리그 그룹 바로 뒤 (소수점 .6~.7 대 활용)
   KFA_CUP: 5.5, // K리그 바로 다음
   EMPEROR_CUP: 8.5, // J리그 다음
@@ -572,6 +585,10 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   INTL_FRIENDLY: "국제",
   U20_WC: "국제",
   U17_WC: "국제",
+  UEFA_U21_Q: "국제",
+  UEFA_U21: "국제",
+  UEFA_U19: "국제",
+  UEFA_U17: "국제",
   OLYMPICS_FOOTBALL: "국제",
   UEFA_WCL: "국제",
   // 2026-05-24 추가

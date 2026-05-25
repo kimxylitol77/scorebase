@@ -133,8 +133,13 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   EURO_QUAL: 960, // Euro Qualifying
   CONCACAF_GOLD: 22, // CONCACAF Gold Cup
   INTL_FRIENDLY: 10, // International Friendlies
-  U20_WC: 38, // FIFA U-20 World Cup
-  U17_WC: 488, // FIFA U-17 World Cup
+  U20_WC: 490, // FIFA U-20 World Cup (2026-05-25 정정: 이전 38 은 UEFA U21)
+  U17_WC: 587, // FIFA U-17 World Cup (2026-05-25 정정: 이전 488 은 독일 U19 Bundesliga)
+  // 청소년 대표 (2026-05-25 추가)
+  UEFA_U21_Q: 850, // UEFA U21 Championship - Qualification
+  UEFA_U21: 38, // UEFA U21 Championship (본선)
+  UEFA_U19: 493, // UEFA U19 Championship
+  UEFA_U17: 921, // UEFA U17 Championship
   OLYMPICS_FOOTBALL: 480, // Olympic Football (남자)
   // 여자 축구
   WSL: 44, // FA Women's Super League

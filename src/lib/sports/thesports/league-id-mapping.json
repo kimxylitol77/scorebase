@@ -871,6 +871,38 @@
     "tsSeasonId": "v2y8m4zh22lql07"
   },
   {
+    "code": "UEFA_U21_Q",
+    "ourLabel": "UEFA U21 챔피언십 예선",
+    "tsId": "gx7lm7pho0m2wdk",
+    "tsEn": "UEFA European U21 Championship qualification",
+    "tsKo": "UEFA U21 챔피언십 예선",
+    "tsSeasonId": ""
+  },
+  {
+    "code": "UEFA_U21",
+    "ourLabel": "UEFA U21 챔피언십",
+    "tsId": "kn54qllhejqvy9d",
+    "tsEn": "UEFA European U21 Football Championship",
+    "tsKo": "UEFA U21 챔피언십",
+    "tsSeasonId": ""
+  },
+  {
+    "code": "UEFA_U19",
+    "ourLabel": "UEFA U19 챔피언십",
+    "tsId": "d23xmvkhoxqg8ny",
+    "tsEn": "UEFA European U19 Football Championship",
+    "tsKo": "UEFA U19 챔피언십",
+    "tsSeasonId": ""
+  },
+  {
+    "code": "UEFA_U17",
+    "ourLabel": "UEFA U17 챔피언십",
+    "tsId": "j1l4rjnh12m7vx5",
+    "tsEn": "UEFA European U17 Football Championship",
+    "tsKo": "UEFA U17 챔피언십",
+    "tsSeasonId": ""
+  },
+  {
     "code": "UEFA_WCL",
     "ourLabel": "여자 챔피언스리그",
     "tsId": "4zp5rzgh72q82w1",

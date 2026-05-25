@@ -86,6 +86,11 @@ function seasonFor(league: League, date: string): number {
   if (league === "CONCACAF_GOLD") return 2025;
   if (league === "U20_WC") return 2025;
   if (league === "U17_WC") return 2025;
+  // 청소년 유럽 대회 (2026-05-25 추가) — 격년/연 단발 토너. 다음 대회 시작 시 업데이트.
+  if (league === "UEFA_U21_Q") return 2025; // U21 Euro 2027 예선
+  if (league === "UEFA_U21") return 2025;
+  if (league === "UEFA_U19") return 2025;
+  if (league === "UEFA_U17") return 2025;
   if (league === "OLYMPICS_FOOTBALL") return 2024;
   // 다년 예선 — 현재 cycle (2026 WC, 2028 Euro)
   if (league === "WC_QUAL") return 2026;
