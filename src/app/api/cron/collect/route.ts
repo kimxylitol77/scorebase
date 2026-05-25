@@ -13,7 +13,7 @@ export const maxDuration = 300;
 //
 // 미커버 16 (api-football collector 계속 사용): EFL_CUP, SUI_CUP, UEFA_NL,
 // INTL_FRIENDLY, EURO_QUAL, BELARUS_PL, K3/K4_LEAGUE, PARAGUAY_PD, VIETNAM_VL2,
-// A_LEAGUE_W, OLYMPICS_FOOTBALL, KFA_CUP, BRASILEIRAO_2(매핑 추가 후 ts cover) 등.
+// A_LEAGUE_W, OLYMPICS_FOOTBALL, KFA_CUP(id 294 활성화 2026-05-25), BRASILEIRAO_2 등.
 //
 // 야구/농구/하키 등 비-축구 리그는 TS_COVERED 에 없으므로 filter 통과 — 영향 X.
 const TS_COVERED = new Set(

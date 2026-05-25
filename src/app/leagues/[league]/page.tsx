@@ -63,7 +63,7 @@ const VALID_LEAGUES = [
   "COPPA_ITALIA",
   "DFB_POKAL",
   "COUPE_DE_FRANCE",
-  // "KFA_CUP" 비활성화 (2026-05-25)
+  "KFA_CUP",
   "EMPEROR_CUP",
   "CONCACAF_CCUP",
   "AFC_CUP",
@@ -338,9 +338,14 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
   const pageNum = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
+  // WORLD_CUP 페이지는 친선(INTL_FRIENDLY) 글도 함께 노출 — 예선/대비전 컨텍스트.
+  // (글 카드의 leagueDisplay 는 article.league 기준이라 친선 글은 "친선" 라벨 유지.)
+  const leagueFilter: Prisma.StringFilter | string =
+    upper === "WORLD_CUP" ? { in: ["WORLD_CUP", "INTL_FRIENDLY"] } : upper;
+
   const where: Prisma.ArticleWhereInput = {
     status: "PUBLISHED",
-    league: upper,
+    league: leagueFilter,
   };
   if (currentType !== "ALL") where.type = currentType;
 
@@ -372,7 +377,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     prisma.article.count({ where }),
     prisma.article.groupBy({
       by: ["type"],
-      where: { status: "PUBLISHED", league: upper },
+      where: { status: "PUBLISHED", league: leagueFilter },
       _count: { _all: true },
     }),
     // AI 적중률 미니 — 백테스트 결과 기준

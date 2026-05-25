@@ -41,7 +41,7 @@ export const ALL_LEAGUES = [
   "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
   // 컵 대회
   "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
-  "COUPE_DE_FRANCE", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", // KFA_CUP 비활성화 (2026-05-25)
+  "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
   "KBO", "NPB", "MLB",
   "NBA", "NHL", "LOL",
   // 2026-05-24 추가
@@ -94,7 +94,7 @@ export const SPORTS: SportMeta[] = [
       "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
       // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC + 스위스
       "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
-      "COUPE_DE_FRANCE", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", // KFA_CUP 비활성화 (2026-05-25)
+      "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
       "SUI_CUP",
       // 2026-05-24 추가 — 잉글랜드 3부 + 발트/동유럽
       "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
