@@ -76,16 +76,16 @@ function Marker({
   return (
     <g transform={`translate(${cx} ${cy})`}>
       <circle
-        r={3.2}
+        r={2.6}
         fill={positionColor(player.position)}
         stroke="#fff"
-        strokeWidth={0.5}
+        strokeWidth={0.4}
       />
       <text
         x={0}
-        y={1}
+        y={0.9}
         textAnchor="middle"
-        fontSize={3}
+        fontSize={2.4}
         fontWeight={700}
         fill="#fff"
       >
@@ -93,9 +93,9 @@ function Marker({
       </text>
       <text
         x={0}
-        y={7.5}
+        y={5.6}
         textAnchor="middle"
-        fontSize={2.6}
+        fontSize={2.2}
         fontWeight={600}
         fill="#e2e8f0"
       >
@@ -104,9 +104,9 @@ function Marker({
       {rating != null && rating > 0 && (
         <text
           x={0}
-          y={-4.5}
+          y={-3.8}
           textAnchor="middle"
-          fontSize={2.5}
+          fontSize={2.1}
           fontWeight={700}
           fill={rating >= 7 ? "#86efac" : rating >= 6 ? "#fde68a" : "#fca5a5"}
         >
@@ -149,8 +149,8 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo }: Props)
         </div>
       </div>
 
-      {/* SVG 필드 */}
-      <div className="rounded-lg overflow-hidden" style={{ background: "linear-gradient(180deg, #047857 0%, #065f46 50%, #047857 100%)" }}>
+      {/* SVG 필드 — max-w 로 desktop 큰 화면에서도 적정 크기 유지 (2026-05-25) */}
+      <div className="rounded-lg overflow-hidden mx-auto max-w-md sm:max-w-lg" style={{ background: "linear-gradient(180deg, #047857 0%, #065f46 50%, #047857 100%)" }}>
         <svg viewBox="0 0 100 100" className="w-full">
           {/* 필드 line */}
           <rect x={2} y={2} width={96} height={96} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth={0.4} />
