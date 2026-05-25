@@ -265,6 +265,30 @@ export default async function GenericLivePage({ params }: Props) {
                 trend={trend}
                 homeNameKo={homeKo}
                 awayNameKo={awayKo}
+                homeScore={match.homeScore}
+                awayScore={match.awayScore}
+                goals={
+                  detailLive
+                    ? (() => {
+                        const incs = (detailLive as { incidents?: unknown }).incidents;
+                        if (!Array.isArray(incs)) return null;
+                        return incs
+                          .filter((i: Record<string, unknown>) =>
+                            typeof i.home_score === "number" || typeof i.away_score === "number",
+                          )
+                          .map((i: Record<string, unknown>) => ({
+                            minute:
+                              typeof i.add_time === "number"
+                                ? `${i.time}+${i.add_time}'`
+                                : `${i.time}'`,
+                            side: (i.position === 1 ? "home" : "away") as "home" | "away",
+                            player: typeof i.player_name === "string" ? i.player_name : "",
+                            ownGoal: false,
+                            penaltyKick: i.type === 17,
+                          }));
+                      })()
+                    : null
+                }
               />
             )}
             {lineup && lineup.lineup && (
