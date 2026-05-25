@@ -26,6 +26,10 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import { getVenueByOurTeamId } from "@/lib/sports/thesports/venues";
+import { fetchMatchPrediction, fetchTeamSeasonStats } from "@/lib/sports/api-football-extras";
+import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
+import MatchPredictionsCard from "@/components/live/MatchPredictionsCard";
+import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -124,6 +128,24 @@ export default async function GenericLivePage({ params }: Props) {
   const awayGoalie = lg === "NHL" ? parseGoalie(match.awayGoalie) : null;
 
   const isSoccer = SOCCER_LEAGUES.has(lg);
+
+  // api-football /predictions + /teams/statistics — 친선·예선처럼 리그 standings
+  // 없는 매치의 정보 빈약 보완. fetch native cache 로 호출 부담 최소화.
+  const afLeagueId = isSoccer ? API_FOOTBALL_LEAGUE_ID[lg] : undefined;
+  const afSeason = match.startTime.getUTCFullYear();
+  const homeAfExtId = isSoccer ? match.homeTeam.externalId : null;
+  const awayAfExtId = isSoccer ? match.awayTeam.externalId : null;
+  const [matchPrediction, homeAfStats, awayAfStats] = isSoccer
+    ? await Promise.all([
+        fetchMatchPrediction(gameId).catch(() => null),
+        afLeagueId && homeAfExtId
+          ? fetchTeamSeasonStats(parseInt(homeAfExtId, 10), afLeagueId, afSeason).catch(() => null)
+          : Promise.resolve(null),
+        afLeagueId && awayAfExtId
+          ? fetchTeamSeasonStats(parseInt(awayAfExtId, 10), afLeagueId, afSeason).catch(() => null)
+          : Promise.resolve(null),
+      ])
+    : [null, null, null];
   // 홈팀 구장 — TheSports venue mapping. 매핑 없으면 null (카드 hide).
   const venue = isSoccer ? getVenueByOurTeamId(match.homeTeam.id) : null;
   const scoreLabel = isSoccer
@@ -216,6 +238,25 @@ export default async function GenericLivePage({ params }: Props) {
 
       {/* 경기 정보 — 홈팀 구장 (축구만, mapping 있을 때) */}
       {isSoccer && venue && <SoccerVenueCard venue={venue} />}
+
+      {/* 매치 예측 (api-football) — 친선·예선 매치에서 특히 의미 큼 */}
+      {isSoccer && matchPrediction && (
+        <MatchPredictionsCard
+          prediction={matchPrediction}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+        />
+      )}
+
+      {/* 시즌 통계 — 한쪽이라도 있으면 표시 */}
+      {isSoccer && (homeAfStats || awayAfStats) && (
+        <TeamSeasonStatsCard
+          home={homeAfStats}
+          away={awayAfStats}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+        />
+      )}
 
       {/* TheSports 카드 (축구만, cache 있을 때) */}
       {isSoccer && match.theSportsCache && (() => {
