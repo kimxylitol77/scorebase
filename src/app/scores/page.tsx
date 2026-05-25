@@ -538,40 +538,20 @@ export default async function ScoresPage({ searchParams }: Props) {
     }
   }
 
-  // 축구 매치의 골/카드 — TheSportsMatchCache.detailLive.incidents 에서 직접 추출.
-  // ESPN scoreboard 대비 장점: (1) MQTT push 라 1분 내 fresh, (2) TheSports cover
-  // 모든 축구 리그 자동 적용 (이전 ESPN 12 리그 한정), (3) match.id 직접 키라 EPL 같은
-  // ext id 불일치/팀명 normalize 문제 없음.
+  // TheSportsMatchCache 한 번에 조회 — 축구 골/카드(incidents) + 야구 베이스/아웃(extra)
+  // 두 source 동시 사용. 이전: soccer + baseball 별도 두 round-trip → 합쳐서 한 round-trip
+  // (~50-100ms 단축 + Neon pool 사용량 절약).
+  //
+  // 야구 baseballLiveDbIds 는 DB.status === "LIVE" 만 보면 SCHEDULED → LIVE 미갱신 매치
+  // (특히 MLB ESPN collector 갭) 가 빠짐. cache 의 detailLive 가 5분 이내면 실제 진행
+  // 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
   const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
-  if (needsSoccerGoals) {
-    const soccerMatchIds = matches
-      .filter((m) => SOCCER_LEAGUES.has(m.league))
-      .map((m) => m.id);
-    if (soccerMatchIds.length > 0) {
-      const caches = await prisma.theSportsMatchCache.findMany({
-        where: { matchId: { in: soccerMatchIds } },
-        select: { matchId: true, detailLive: true },
-      });
-      for (const c of caches) {
-        const dl = c.detailLive as { incidents?: unknown } | null;
-        if (!dl?.incidents) continue;
-        const goals = tsIncidentsToGoals(dl.incidents);
-        const cards = tsIncidentsToCards(dl.incidents);
-        if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
-        if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
-      }
-    }
-  }
-
-  // KBO/NPB/MLB LIVE 매치의 베이스/아웃 컨텍스트 — TheSportsMatchCache 에서 보강.
-  // MLB 도 동일한 TheSports MQTT push (extra.base/out) 가 들어오므로 KBO/NPB 와 같은 경로 사용.
-  // ESPN summary 폴백 (baseballDetailsMap) 은 cache miss 시에만 — ESPN 은 매치 종료 직후
-  // situation 을 비워버려 "주자 정보 없음" 표시되는 문제 (2026-05-24 fix).
   const baseballCacheCtx = new Map<string, { bases: [boolean, boolean, boolean]; outs: number | null }>();
-  // DB.status === "LIVE" 만 보면 collector cron 이 SCHEDULED → LIVE 갱신 안 한 매치
-  // (특히 MLB ESPN collector 갭) 가 cache 조회에서 빠짐. cache 의 detailLive 가 5분
-  // 이내면 실제 진행 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
+
+  const soccerMatchIds = needsSoccerGoals
+    ? matches.filter((m) => SOCCER_LEAGUES.has(m.league)).map((m) => m.id)
+    : [];
   const baseballLiveDbIds = matches
     .filter(
       (m) =>
@@ -579,23 +559,42 @@ export default async function ScoresPage({ searchParams }: Props) {
         m.status !== "FINISHED",
     )
     .map((m) => m.id);
-  if (baseballLiveDbIds.length > 0) {
+  const cacheIds = Array.from(new Set([...soccerMatchIds, ...baseballLiveDbIds]));
+
+  if (cacheIds.length > 0) {
     const caches = await prisma.theSportsMatchCache.findMany({
-      where: { matchId: { in: baseballLiveDbIds } },
+      where: { matchId: { in: cacheIds } },
       select: { matchId: true, detailLive: true },
     });
+    const soccerIdSet = new Set(soccerMatchIds);
+    const baseballIdSet = new Set(baseballLiveDbIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
-      const dl = c.detailLive as { extra?: { base?: string; out?: number } } | null;
-      if (!dl?.extra) continue;
-      const baseStr =
-        typeof dl.extra.base === "string" && /^[01]{3}$/.test(dl.extra.base) ? dl.extra.base : "000";
-      const ext = idToExt.get(c.matchId);
-      if (!ext) continue;
-      baseballCacheCtx.set(ext, {
-        bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
-        outs: typeof dl.extra.out === "number" ? dl.extra.out : null,
-      });
+      const dl = c.detailLive as
+        | { incidents?: unknown; extra?: { base?: string; out?: number } }
+        | null;
+      if (!dl) continue;
+      // 축구 골/카드
+      if (soccerIdSet.has(c.matchId) && dl.incidents) {
+        const goals = tsIncidentsToGoals(dl.incidents);
+        const cards = tsIncidentsToCards(dl.incidents);
+        if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
+        if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
+      }
+      // 야구 베이스/아웃
+      if (baseballIdSet.has(c.matchId) && dl.extra) {
+        const baseStr =
+          typeof dl.extra.base === "string" && /^[01]{3}$/.test(dl.extra.base)
+            ? dl.extra.base
+            : "000";
+        const ext = idToExt.get(c.matchId);
+        if (ext) {
+          baseballCacheCtx.set(ext, {
+            bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
+            outs: typeof dl.extra.out === "number" ? dl.extra.out : null,
+          });
+        }
+      }
     }
   }
   // 두 source 합침 — externalId key 가 source 별 ID 시스템이라 충돌 X.
