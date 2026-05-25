@@ -8,18 +8,15 @@ import {
   fetchAllLiveScores,
   fetchEspnPeriodLinescores,
   fetchEspnSummary,
-  fetchSoccerGoalsByDate,
-  findEspnSoccerEventIdByTeams,
-  soccerGoalsPairKey,
   type LiveMatch,
   type MatchSummary,
   type PeriodLinescore,
   type SoccerGoal,
 } from "@/lib/sports/live-scores";
-import { fetchSoccerLiveStats } from "@/lib/live/soccer-live-stats";
-// fetchSoccerLineups 제거 (2026-05-25) — TheSports cache.lineup 로 일원화.
-// page.tsx 의 SoccerLineupSvg 가 ts cache 직접 사용. SoccerFormation 호출도 제거됨.
-import { fetchSoccerEvents, type SoccerEvent } from "@/lib/live/soccer-events";
+// Phase 1 (2026-05-25): 축구의 ESPN summary + api-football events/stats/goals/lineups
+// 모두 제거. TheSports cache.detailLive 로 일원화 (page.tsx 가 직접 cache 조회).
+// fetchEspnSummary 는 NBA/NHL/MLB 에서 여전히 사용 (keep).
+import type { SoccerEvent } from "@/lib/live/soccer-events";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { fetchNbaLiveStats } from "@/lib/sports/api-nba";
@@ -49,22 +46,9 @@ const SOCCER_STATS = [
   { name: "foulsCommitted", label: "파울" },
   { name: "wonCorners", label: "코너" },
 ];
-const ESPN_SOCCER_PATH: Record<string, string> = {
-  EPL: "soccer/eng.1",
-  LALIGA: "soccer/esp.1",
-  BUNDESLIGA: "soccer/ger.1",
-  SERIE_A: "soccer/ita.1",
-  LIGUE_1: "soccer/fra.1",
-  MLS: "soccer/usa.1",
-  UCL: "soccer/uefa.champions",
-  WORLD_CUP: "soccer/fifa.world",
-  // K1/K2 는 ESPN 미커버 — ESPN summary 대신 api-football 만 사용
-  J1_LEAGUE: "soccer/jpn.1",
-  AFC_CL: "soccer/afc.champions",
-};
+// ESPN_SOCCER_PATH 제거 (2026-05-25 Phase 1) — 축구는 TheSports cache 만 사용.
 
-// edge runtime 에선 fetchSoccerGoalsByDate (AbortController/setTimeout)
-// 가 빈 응답 반환하던 케이스가 있어 nodejs runtime 으로 고정.
+// runtime 고정 — nodejs.
 //
 // 2026-05-23: force-dynamic 제거. Next.js 가 force-dynamic 일 때 응답의
 // s-maxage 를 strip → CDN 캐시 비활성화. 응답 cache-control 만으로 CDN 5초
@@ -306,45 +290,17 @@ export async function GET(
       }
     }
   } else if (SOCCER_LEAGUES.has(league)) {
-    const espnPath = ESPN_SOCCER_PATH[league];
-    // EPL collector 가 football-data id 를 externalId 로 저장 → 그 id 가 ESPN 의
-    // 다른 매치 (브라질 세리에A 등) id 와 충돌해서 fetchEspnSummary 가 잘못된 매치
-    // 데이터 반환하던 버그. ESPN scoreboard 에서 팀명 매칭으로 진짜 ESPN id 찾고
-    // 그걸로 summary 호출. 매칭 실패 시 summary skip (잘못된 데이터 노출보다 안전).
-    const espnEventId = espnPath && awayName && homeName
-      ? await findEspnSoccerEventIdByTeams(league, date, homeName, awayName)
-      : null;
-    // 축구 stats — api-football 우선 (possession/슛/코너/xG/카드 등 풍부),
-    // 없으면 ESPN summary fallback. leaders / winProb 는 항상 ESPN 에서.
-    // lineups 제거 (TheSports cache 로 일원화). events (골/카드/교체) 30초 캐시.
-    const [goalsMap, espnSummary, afStats, events] = await Promise.all([
-      fetchSoccerGoalsByDate(date, [league]),
-      espnPath && espnEventId
-        ? fetchEspnSummary(espnPath, espnEventId, SOCCER_STATS)
-        : Promise.resolve(null),
-      fetchSoccerLiveStats(league, date, awayName, homeName),
-      fetchSoccerEvents(league, date, awayName, homeName),
-    ]);
-    out.soccerEvents = events;
-    // 1차: ESPN event id 매칭
-    let goals = goalsMap[gameId] ?? null;
-    // 2차 fallback: team name pair (EPL 등 DB externalId ≠ ESPN id 보정)
-    if (!goals && awayName && homeName) {
-      goals = goalsMap[soccerGoalsPairKey(awayName, homeName)] ?? null;
-    }
-    out.soccerGoals = goals;
-    // api-football stats 가 있으면 ESPN stats 덮어쓰고, ESPN summary 의 leaders/winProb 는 유지.
-    if (afStats && (afStats.homeStats.length > 0 || afStats.awayStats.length > 0)) {
-      out.summary = {
-        homeStats: afStats.homeStats,
-        awayStats: afStats.awayStats,
-        homeLeaders: espnSummary?.homeLeaders ?? [],
-        awayLeaders: espnSummary?.awayLeaders ?? [],
-        winProbabilityHome: espnSummary?.winProbabilityHome,
-      };
-    } else {
-      out.summary = espnSummary;
-    }
+    // 2026-05-25 (Phase 1): ESPN summary + api-football events/stats/goals 호출 모두 제거.
+    // 데이터 source 를 TheSports cache.detailLive 로 일원화.
+    // page.tsx 가 직접 TheSportsMatchCache 에서 stats / halfTeamStats / incidents 읽음.
+    // 사용자 화면 영향:
+    //   - soccerEvents 타임라인 카드: 데이터 빔 (page.tsx 의 cache.incidents 로 별도 가능)
+    //   - soccerGoals: 빔 (페이지 cache 기반)
+    //   - summary (stats/leaders/winProb): 빔 (cache.stats 가 SoccerLiveStatsCard 로 대체)
+    // Phase 2~4 (collector/standings/부상자) 는 별도 진행.
+    out.soccerEvents = null;
+    out.soccerGoals = null;
+    out.summary = null;
     // TheSports football fast-poller cache 의 score 보강 — fast-poller 2초 cycle.
     // monotonic max(ESPN, cache.score[regular], cache.score[overtime], incidents.last) — 점수 증가만, 더 큰 값 안전.
     // cache.detailLive.score 형식 (docs):
