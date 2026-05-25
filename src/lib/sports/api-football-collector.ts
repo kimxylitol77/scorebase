@@ -120,13 +120,15 @@ function toNormalized(league: League, f: ApiFixture): NormalizedMatch {
  * 일자별 fixtures fetch (KST date 기준 ±0일 — collector 호출자가 pastDays/futureDays 로 반복).
  */
 export function buildApiFootballCollector(league: League): MatchCollector {
+  // league id 미등록 시 collector 등록은 허용 (module load 안 깨짐),
+  // fetchByDate 호출 시점에만 throw — sport-leagues skip list 로 호출 자체가 안 일어남.
   const leagueId = API_FOOTBALL_LEAGUE_ID[league];
-  if (!leagueId) {
-    throw new Error(`api-football league id 미등록: ${league}`);
-  }
   return {
     league,
     async fetchByDate(date: string): Promise<NormalizedMatch[]> {
+      if (!leagueId) {
+        throw new Error(`api-football league id 미등록: ${league}`);
+      }
       const season = seasonFor(league, date);
       const { data } = await client().get("/fixtures", {
         params: { league: leagueId, season, date },

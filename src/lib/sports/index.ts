@@ -140,6 +140,8 @@ export const collectors: Record<League, MatchCollector> = {
   COPPA_ITALIA: buildApiFootballCollector("COPPA_ITALIA"),
   DFB_POKAL: buildApiFootballCollector("DFB_POKAL"),
   COUPE_DE_FRANCE: buildApiFootballCollector("COUPE_DE_FRANCE"),
+  // KFA_CUP 비활성화 (2026-05-25) — api-football league id 미확정.
+  // collector 등록은 유지하되 fetch 시점에 throw (호출은 SPORTS skip list 로 차단됨).
   KFA_CUP: buildApiFootballCollector("KFA_CUP"),
   EMPEROR_CUP: buildApiFootballCollector("EMPEROR_CUP"),
   CONCACAF_CCUP: buildApiFootballCollector("CONCACAF_CCUP"),
