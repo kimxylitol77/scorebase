@@ -12,21 +12,43 @@ export interface TeamStatRow {
   decimal: boolean;
 }
 
-// 확정된 stat_id 만 라벨링. 미확정은 표시 안 함 (라벨 "?" 도 정보 가치 낮음).
-// 추가 검증 후 점진 확장.
+// stat_id 매핑은 2026-05-25 KBO/NPB/MLB 28 매치 cache 와 statsapi.mlb.com
+// boxscore cross-check 로 확정.
+//   601 = H (안타) — cache vs API hits 13/17 match (나머지는 cache stale)
+//   602 = E (실책) — fielding errors 14/17 match
+//   603 = 2B (2루타) — MLB only, 13/17 match
+//   604 = 3B (3루타) — MLB only, 16/17 match
+//   605 = HR (홈런) — 13/17 match
+//   606 = RBI (타점) — 13/17 match (R 와 종종 1점 차이로 구분됨)
+//   608 = BB (볼넷) — 13/17 match
+//   609 = SO (삼진) — 13/17 match
+//   610 = SB (도루) — 14/17 match
+//   611 = AB (타석) — 13/17 match
+//   612 = AVG (타율) — 28/28 H/AB 산식 일치
+// 607 만 미확정 (단일 stat candidate 매칭 0/17). 라벨 제외.
 const TEAM_STAT_LABEL: Record<number, { label: string; decimal: boolean }> = {
   601: { label: "안타 (H)", decimal: false },
+  602: { label: "실책 (E)", decimal: false },
+  603: { label: "2루타", decimal: false },
+  604: { label: "3루타", decimal: false },
+  605: { label: "홈런 (HR)", decimal: false },
+  606: { label: "타점 (RBI)", decimal: false },
+  608: { label: "볼넷 (BB)", decimal: false },
+  609: { label: "삼진 (SO)", decimal: false },
+  610: { label: "도루 (SB)", decimal: false },
   611: { label: "타석 (AB)", decimal: false },
   612: { label: "타율 (AVG)", decimal: true },
-  // 추정 — 다른 stat_id 매핑 확정 시 여기 추가.
-  // 602: HR, 605: E, 608: BB, 609: SO 가능성 — 별도 검증 후 라벨.
 };
 
-const TEAM_STAT_ORDER = [611, 601, 612];
+// 박스스코어 일반 순서 (KBO/네이버 스타일): AB, H, HR, RBI, BB, SO, SB, 2B, 3B, E, AVG
+const TEAM_STAT_ORDER = [611, 601, 605, 606, 608, 609, 610, 603, 604, 602, 612];
 
 /**
- * detail_live.stats (array of [phase, [[stat_id, away, home], ...]]) 에서
+ * detail_live.stats (array of [phase, [[stat_id, home, away], ...]]) 에서
  * phase 0 의 라벨링된 행만 추출.
+ *
+ * row 순서 = [stat_id, home, away] (2026-05-25 statsapi.mlb.com boxscore 와
+ * 17 MLB 매치 cross-check 로 확정. row[1] = home, row[2] = away).
  */
 export function extractTeamStats(stats: unknown): TeamStatRow[] {
   if (!Array.isArray(stats)) return [];
@@ -37,9 +59,9 @@ export function extractTeamStats(stats: unknown): TeamStatRow[] {
   const rowsById = new Map<number, [number, number]>();
   for (const row of phase0[1] as unknown[]) {
     if (!Array.isArray(row) || row.length < 3) continue;
-    const [id, away, home] = row;
+    const [id, home, away] = row;
     if (typeof id === "number") {
-      rowsById.set(id, [Number(away), Number(home)]);
+      rowsById.set(id, [Number(home), Number(away)]);
     }
   }
   const out: TeamStatRow[] = [];
@@ -47,7 +69,7 @@ export function extractTeamStats(stats: unknown): TeamStatRow[] {
     const v = rowsById.get(id);
     const meta = TEAM_STAT_LABEL[id];
     if (!v || !meta) continue;
-    out.push({ statId: id, label: meta.label, away: v[0], home: v[1], decimal: meta.decimal });
+    out.push({ statId: id, label: meta.label, home: v[0], away: v[1], decimal: meta.decimal });
   }
   return out;
 }
