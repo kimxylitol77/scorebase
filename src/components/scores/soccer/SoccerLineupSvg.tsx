@@ -149,8 +149,9 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo }: Props)
         </div>
       </div>
 
-      {/* SVG 필드 — max-w 로 desktop 큰 화면에서도 적정 크기 유지 (2026-05-25) */}
-      <div className="rounded-lg overflow-hidden mx-auto max-w-md sm:max-w-lg" style={{ background: "linear-gradient(180deg, #047857 0%, #065f46 50%, #047857 100%)" }}>
+      {/* SVG 필드 — max-w 더 줄임 (2026-05-25) — laptop 한 화면 fit 보장.
+          사용자 신고: max-w-lg (512px) 여전히 위/아래 양 팀 한 화면 안 들어와 "두 라인업" 인식. */}
+      <div className="rounded-lg overflow-hidden mx-auto max-w-xs sm:max-w-sm" style={{ background: "linear-gradient(180deg, #047857 0%, #065f46 50%, #047857 100%)" }}>
         <svg viewBox="0 0 100 100" className="w-full">
           {/* 필드 line */}
           <rect x={2} y={2} width={96} height={96} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth={0.4} />
