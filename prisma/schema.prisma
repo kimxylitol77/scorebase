@@ -305,6 +305,11 @@ model TheSportsMatchCache {
   /// 전반 점수 (p1 의 goals stat_type_id) + 전반 슛/점유 등 표시 용도.
   /// 2026-05-21 추가, worker v3+ 1분 주기 push.
   halfTeamStats Json?
+  /// Match momentum trend — /v1/football/match/trend/detail 응답.
+  /// 구조: { count, per, data: [[전반 분당 값], [후반 분당 값]] }
+  /// 값 -100~+100 (home 양수, away 음수, 1분 단위 momentum).
+  /// 2026-05-25 추가, Lightsail football-poller v3+ 5분 cycle 갱신.
+  trend       Json?
   fetchedAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)

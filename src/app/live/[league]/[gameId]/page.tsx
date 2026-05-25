@@ -18,6 +18,7 @@ import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
 import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeStatsCard";
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
+import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -220,6 +221,7 @@ export default async function GenericLivePage({ params }: Props) {
         const detailLive = cache.detailLive as { stats?: Array<{ type: number; home: number; away: number }> } | null;
         const teamStats = cache.teamStats as Parameters<typeof SoccerTeamStatsCard>[0]["teamStats"] | null;
         const halfTeamStats = cache.halfTeamStats as Parameters<typeof SoccerHalfTimeStatsCard>[0]["halfTeamStats"] | null;
+        const trend = cache.trend as Parameters<typeof MatchTrendChart>[0]["trend"] | null;
         const gd = analysis?.goal_distribution;
         const h2h = analysis?.history?.vs ?? [];
         const homeTsId = tsTeamId(match.homeTeam.id);
@@ -247,6 +249,13 @@ export default async function GenericLivePage({ params }: Props) {
             {halfTeamStats && (halfTeamStats.p1 || halfTeamStats.p2 || halfTeamStats.ft) && (
               <SoccerHalfTimeStatsCard
                 halfTeamStats={halfTeamStats}
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+              />
+            )}
+            {trend && Array.isArray(trend.data) && trend.data.length > 0 && (
+              <MatchTrendChart
+                trend={trend}
                 homeNameKo={homeKo}
                 awayNameKo={awayKo}
               />

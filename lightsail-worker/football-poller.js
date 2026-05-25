@@ -5,6 +5,7 @@
 //   - 모든 매칭 매치: analysis (h2h, history, goal_distribution)
 //   - LIVE 매치 (coverage.mlive=1): detail_live (stats, incidents, tlive)
 //   - LIVE + coverage.lineup=1 매치: lineup/detail (formation, players)
+//   - LIVE/종료 매치 (status_id 2~8): trend/detail (momentum 분당 값)
 //
 // delta poll (매 poll 1회씩, 전체 매치):
 //   - match/team_stats/list — 직전 120s 변경된 풀타임 team stats
@@ -93,6 +94,22 @@ async function fetchTsLineup(tsMatchId) {
     const r = data.results;
     // empty object 면 lineup 미제공
     return r && typeof r === "object" && Object.keys(r).length > 0 ? r : null;
+  } catch {
+    return null;
+  }
+}
+
+// match/trend/detail — momentum 1분 단위 값 (-100~+100). LIVE + 종료 모두 의미 있음.
+// 응답: { count, per, data: [[전반 분당 값들], [후반 분당 값들]] }
+async function fetchTsTrend(tsMatchId) {
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/trend/detail`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId },
+      timeout: 30_000,
+    });
+    const r = data.results;
+    if (!r || !Array.isArray(r.data) || r.data.length === 0) return null;
+    return r;
   } catch {
     return null;
   }
@@ -253,6 +270,13 @@ async function poll() {
             payload.lineup = lineup;
             lineupCount++;
           }
+        }
+
+        // trend: LIVE 또는 종료 매치만 (예정 매치는 데이터 없음).
+        // status_id 2~8 = 진행 중 또는 종료.
+        if (tsMatch.status_id >= 2 && tsMatch.status_id <= 8) {
+          const trend = await fetchTsTrend(tsMatch.id);
+          if (trend) payload.trend = trend;
         }
 
         if (Object.keys(payload).length === 0) continue;
