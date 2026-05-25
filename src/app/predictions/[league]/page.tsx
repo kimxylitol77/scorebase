@@ -311,6 +311,24 @@ export default async function LeaguePredictions({ params }: Props) {
   const teamKoNameById = new Map(
     teams.map((t) => [t.id, toKoreanTeamName(t.name, upper)]),
   );
+  // 일부 매치는 cross-league (UCL/UEL 등) Team row 가 박혀 있어
+  // league filter 만으로는 lookup 이 빠진다. orphan ID 도 보강 로드.
+  const orphanIds = new Set<number>();
+  for (const m of dbMatches) {
+    if (!teamNameById.has(m.homeTeamId)) orphanIds.add(m.homeTeamId);
+    if (!teamNameById.has(m.awayTeamId)) orphanIds.add(m.awayTeamId);
+  }
+  if (orphanIds.size > 0) {
+    const orphanTeams = await prisma.team.findMany({
+      where: { id: { in: Array.from(orphanIds) } },
+      select: { id: true, name: true, logoUrl: true },
+    });
+    for (const t of orphanTeams) {
+      teamNameById.set(t.id, t.name);
+      teamLogoById.set(t.id, t.logoUrl ?? null);
+      teamKoNameById.set(t.id, toKoreanTeamName(t.name, upper));
+    }
+  }
 
   // 시뮬레이션 실행
   const finishedCount = matches.filter((m) => m.status === "FINISHED").length;
