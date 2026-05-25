@@ -2052,6 +2052,24 @@
     "matchType": "exact"
   },
   {
+    "ourId": 111529,
+    "ourName": "Paju Citizen",
+    "ourLeague": "K_LEAGUE_2",
+    "ourExternalId": "7098",
+    "tsId": "y0or5jhlodoqwzv",
+    "tsName": "Paju Frontier FC",
+    "matchType": "manual+rename"
+  },
+  {
+    "ourId": 175600,
+    "ourName": "Suwon Bluewings",
+    "ourLeague": "K_LEAGUE_2",
+    "ourExternalId": "2765",
+    "tsId": "v2y8m4zhdy2ql07",
+    "tsName": "Suwon Samsung Bluewings",
+    "matchType": "manual+alias"
+  },
+  {
     "ourId": 115878,
     "ourName": "SHANGHAI SIPG",
     "ourLeague": "CSL",
