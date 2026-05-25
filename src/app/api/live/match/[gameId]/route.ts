@@ -17,7 +17,8 @@ import {
   type SoccerGoal,
 } from "@/lib/sports/live-scores";
 import { fetchSoccerLiveStats } from "@/lib/live/soccer-live-stats";
-import { fetchSoccerLineups, type MatchLineups } from "@/lib/live/soccer-lineups";
+// fetchSoccerLineups 제거 (2026-05-25) — TheSports cache.lineup 로 일원화.
+// page.tsx 의 SoccerLineupSvg 가 ts cache 직접 사용. SoccerFormation 호출도 제거됨.
 import { fetchSoccerEvents, type SoccerEvent } from "@/lib/live/soccer-events";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
@@ -124,7 +125,7 @@ interface MatchLive {
   /** The Odds API — 1분 폴링 라이브 odds (h2h / O-U / 핸디캡) */
   liveOdds?: LiveOddsSnapshot | null;
   /** 축구 — startXI + formation + grid 좌표 */
-  soccerLineups?: MatchLineups | null;
+  // soccerLineups 제거 — TheSports cache 의 lineup 직접 사용.
   /** 축구 — 골/카드/교체 이벤트 타임라인 (최신 우선) */
   soccerEvents?: SoccerEvent[] | null;
 }
@@ -138,10 +139,8 @@ async function hashLive(live: MatchLive): Promise<string> {
   const oddsSig = o
     ? `${o.h2h?.home ?? ""}/${o.h2h?.away ?? ""}/${o.totals?.line ?? ""}/${o.totals?.over ?? ""}/${o.spread?.line ?? ""}`
     : "";
-  const lu = live.soccerLineups;
-  const luSig = lu
-    ? `${lu.home.formation ?? ""}|${lu.home.startXI.length}|${lu.away.formation ?? ""}|${lu.away.startXI.length}`
-    : "";
+  // soccerLineups 제거 — etag signature 도 제거
+  const luSig = "";
   const evSig = (live.soccerEvents ?? [])
     .map((e) => `${e.minute}-${e.extra}-${e.type}-${e.side}`)
     .join(";");
@@ -317,17 +316,15 @@ export async function GET(
       : null;
     // 축구 stats — api-football 우선 (possession/슛/코너/xG/카드 등 풍부),
     // 없으면 ESPN summary fallback. leaders / winProb 는 항상 ESPN 에서.
-    // lineups (포메이션) 2분 캐시, events (골/카드/교체) 30초 캐시.
-    const [goalsMap, espnSummary, afStats, lineups, events] = await Promise.all([
+    // lineups 제거 (TheSports cache 로 일원화). events (골/카드/교체) 30초 캐시.
+    const [goalsMap, espnSummary, afStats, events] = await Promise.all([
       fetchSoccerGoalsByDate(date, [league]),
       espnPath && espnEventId
         ? fetchEspnSummary(espnPath, espnEventId, SOCCER_STATS)
         : Promise.resolve(null),
       fetchSoccerLiveStats(league, date, awayName, homeName),
-      fetchSoccerLineups(league, date, awayName, homeName),
       fetchSoccerEvents(league, date, awayName, homeName),
     ]);
-    out.soccerLineups = lineups;
     out.soccerEvents = events;
     // 1차: ESPN event id 매칭
     let goals = goalsMap[gameId] ?? null;

@@ -8,7 +8,7 @@ import Link from "next/link";
 import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
-import SoccerFormation from "./live/SoccerFormation";
+// SoccerFormation 제거 (2026-05-25) — TheSports lineup 으로 일원화, SoccerLineupSvg 만 사용.
 import SoccerEventsTimeline from "./live/SoccerEventsTimeline";
 
 interface PeriodLinescore {
@@ -372,15 +372,8 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 축구 선발 라인업 + 포메이션 */}
-      {live?.soccerLineups && (
-        <SoccerFormation
-          home={live.soccerLineups.home}
-          away={live.soccerLineups.away}
-          homeNameKo={homeNameKo}
-          awayNameKo={awayNameKo}
-        />
-      )}
+      {/* 축구 선발 라인업 — TheSports cache 의 lineup 을 page.tsx 에서 SoccerLineupSvg 로 별도 렌더.
+          중복 방지를 위해 여기서는 api-football 기반 SoccerFormation 호출 안 함 (2026-05-25). */}
 
       {/* 축구 이벤트 타임라인 (골/카드/교체) */}
       {live?.soccerEvents && live.soccerEvents.length > 0 && (
