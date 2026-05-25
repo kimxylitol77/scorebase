@@ -31,35 +31,17 @@ if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 const MAP_FILE = path.join(__dirname, "league-id-mapping.json");
 
-// 기존 source (ESPN / api-football) 가 충분히 cover 하는 리그 — TheSports duplicate 회피.
-// minor 리그 (cyprus/iceland/venezuela/vietnam/...) 만 ts collector 가 push.
+// 이전: 60+ 리그 SKIP — 매치 중복 방지가 목적. 부작용으로 TheSportsMatchCache row 자체가
+// 안 만들어져 GoalsTooltip (score hover) 가 메이저 외 리그에서 안 떴음 (2026-05-25 보고).
+//
+// 2026-05-25 변경: 거의 모든 리그에 대해 ts collector 가 매치 push. server endpoint
+// /api/internal/thesports-matches 가 skippedDuplicate 분기에서 매치 row 는 안 만들고
+// cache row + tsMatchId 만 연결 — fast-poller 가 incidents 채움. 매치 중복 X.
+//
+// SKIP 유지 = ts 가 incidents 데이터 부실한 국가대표/특수 대회만.
 const SKIP_LEAGUES = new Set([
-  // 메이저 6
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
-  // 컨티넨탈 컵
-  "UCL", "UEL", "UECL",
-  "AFC_CL", "AFC_CL_TWO", "AFC_U23",
-  "WORLD_CUP", "CLUB_WORLD_CUP",
-  "COPA_LIB", "COPA_SUD",
-  // 영국 2부 + 메이저 2부 (api-football)
-  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
-  // 아시아 (api-football)
-  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "SAUDI_PL",
-  // 기타 메이저
-  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG",
-  // duplicate-match 헬스체크 가 잡은 31 리그 (2026-05-20) — api-football 도 cover 하고 있음.
-  "USA_USL_CH", "CSL", "SOUTHAFRICA_PSL", "EKSTRAKLASA", "BRASILEIRAO",
-  "NORWAY_1L", "EGYPT_PL", "ECUADOR_LP", "INDONESIA_L1", "URVALSDEILD",
-  "IRELAND_PD", "ISRAEL_PL", "CYPRUS_1D", "ICELAND_1L", "LIGA_I",
-  "CHILE_PD", "PERU_PD", "CHILE_PB", "ELITESERIEN", "UKRAINE_PL",
-  "A_LEAGUE", "CZECH_L", "JUPILER_PL", "CANADA_PL", "INDIA_ISL",
-  "BULGARIA_PL", "BOSNIA_PL", "VIETNAM_VL1", "VEIKKAUSLIIGA",
-  "SLOVENIA_SNL", "VENEZUELA_PD",
-  // 컵 대회 10개 (2026-05-20 추가) — api-football 이 cover
-  "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
-  "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
-  // 2026-05-21 추가 — /scores 에서 중복 노출 발견된 4 리그 (api-football 도 cover)
-  "GREEK_SL", "SUPERETTAN", "POLAND_1L", "ALLSVENSKAN",
+  "WORLD_CUP", "CLUB_WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL",
+  "INTL_FRIENDLY", "AFCON", "CONCACAF_GOLD",
 ]);
 
 // TheSports football status_id (검증):

@@ -174,6 +174,22 @@ export async function POST(req: NextRequest) {
       });
       if (existingNonTs) {
         skippedDuplicate++;
+        // SKIP_LEAGUES (api-football 이 매치 row 만드는 리그) 매치도 fast-poller 가
+        // detail_live 의 incidents/score 채울 수 있게 ts cache row 만 만든다.
+        // 매치 row 는 api-football 것 유지 — 중복 안 만듦.
+        try {
+          await prisma.theSportsMatchCache.upsert({
+            where: { matchId: existingNonTs.id },
+            update: { tsMatchId: m.tsMatchId },
+            create: {
+              matchId: existingNonTs.id,
+              tsMatchId: m.tsMatchId,
+              detailLive: {},
+            },
+          });
+        } catch (e) {
+          // schema FK 또는 unique 충돌 silent — 다음 cycle 에서 재시도
+        }
         continue;
       }
 
