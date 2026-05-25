@@ -22,7 +22,10 @@ const TS_USER = process.env.THESPORTS_USER;
 const TS_SECRET = process.env.THESPORTS_SECRET;
 const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
-const POLL_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+// 2026-05-25 Phase B: 1h → 10분 (사용자 화면 [순위] 실시간 정확).
+// 89 leagues × 6/hour = 534 호출/hour = 8.9/min, TS 분당 120 한도 안. CALL_GAP 250ms
+// 유지로 burst 방지.
+const POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const CALL_GAP_MS = 250;
 
 if (!TS_USER || !TS_SECRET) {
