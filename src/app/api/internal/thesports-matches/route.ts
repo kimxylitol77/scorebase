@@ -162,6 +162,39 @@ export async function POST(req: NextRequest) {
     const homeId = resolveTsTeamId(m.league, m.tsHomeTeamId);
     const awayId = resolveTsTeamId(m.league, m.tsAwayTeamId);
     if (!homeId || !awayId) {
+      // ts team mapping 없음 — 매치 row 못 만듦. 다만 같은 league + 시각 ±90분 안에
+      // non-ts 매치 (api-football/ESPN 가 만든 매치) 가 unique 하면 ts cache 만 연결.
+      // 그러면 fast-poller 가 그 매치 incidents/score 채워 GoalsTooltip 활성.
+      // 2026-05-25: 50% 매치 cache 누락 (사용자 신고 hover tooltip 안 뜸) 해소.
+      try {
+        const startMs = new Date(m.startTime).getTime();
+        const candidates = await prisma.match.findMany({
+          where: {
+            league: m.league,
+            startTime: {
+              gte: new Date(startMs - 90 * 60 * 1000),
+              lte: new Date(startMs + 90 * 60 * 1000),
+            },
+            NOT: { externalId: { startsWith: "ts-" } },
+          },
+          select: { id: true },
+        });
+        // unique candidate (= 같은 시각 매치 1개만) 일 때만 안전하게 매핑.
+        // EPL 시즌 마지막 라운드 10경기 동시 같은 케이스는 모호해서 skip.
+        if (candidates.length === 1) {
+          await prisma.theSportsMatchCache.upsert({
+            where: { matchId: candidates[0].id },
+            update: { tsMatchId: m.tsMatchId },
+            create: {
+              matchId: candidates[0].id,
+              tsMatchId: m.tsMatchId,
+              detailLive: {},
+            },
+          });
+        }
+      } catch {
+        // silent — 다음 cycle 재시도
+      }
       skippedNoTeam++;
       continue;
     }
