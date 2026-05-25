@@ -28,6 +28,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
+
+// 팀 이름 normalize 비교 (Team 중복 row 대응 — LALIGA Barcelona 4 row 같은 케이스).
+function normalizeTeamName(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\b(fc|cf|ac|afc|sc|cd|rcd|sv|ss|ssc|nk|hsv|fk|club)\b/g, "")
+    .replace(/[^a-z0-9가-힣]/g, "");
+}
+function sameTeamName(a: string, b: string): boolean {
+  const na = normalizeTeamName(a);
+  const nb = normalizeTeamName(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  if (na.length >= 4 && nb.length >= 4 && (na.includes(nb) || nb.includes(na))) return true;
+  return false;
+}
 export const dynamic = "force-dynamic";
 
 interface MatchPayload {
@@ -157,7 +173,7 @@ export async function POST(req: NextRequest) {
       // 조건: 같은 league + 시각 ±90분 + 팀 IDs (양방향) + externalId 가 ts: 아님.
       // 이미 ts: 매치 있으면 update path (where 절) 로 흘러가니 skip 필요 없음.
       const startMs = new Date(m.startTime).getTime();
-      const existingNonTs = await prisma.match.findFirst({
+      let existingNonTs = await prisma.match.findFirst({
         where: {
           league: m.league,
           startTime: {
@@ -172,6 +188,36 @@ export async function POST(req: NextRequest) {
         },
         select: { id: true, externalId: true },
       });
+
+      // fallback: team-id 매칭 실패 시 이름 normalize 매칭. Team 중복 row 케이스
+      // (LALIGA Barcelona 4 row, EPL Team.externalId 시스템 mismatch) 잡음. 2026-05-25.
+      if (!existingNonTs) {
+        const homeTeam = await prisma.team.findUnique({ where: { id: homeId }, select: { name: true } });
+        const awayTeam = await prisma.team.findUnique({ where: { id: awayId }, select: { name: true } });
+        if (homeTeam && awayTeam) {
+          const candidates = await prisma.match.findMany({
+            where: {
+              league: m.league,
+              startTime: {
+                gte: new Date(startMs - 90 * 60 * 1000),
+                lte: new Date(startMs + 90 * 60 * 1000),
+              },
+              NOT: { externalId: { startsWith: "ts:" } },
+            },
+            select: {
+              id: true,
+              externalId: true,
+              homeTeam: { select: { name: true } },
+              awayTeam: { select: { name: true } },
+            },
+          });
+          existingNonTs = candidates.find((c) =>
+            (sameTeamName(c.homeTeam.name, homeTeam.name) && sameTeamName(c.awayTeam.name, awayTeam.name)) ||
+            (sameTeamName(c.homeTeam.name, awayTeam.name) && sameTeamName(c.awayTeam.name, homeTeam.name)),
+          ) ?? null;
+        }
+      }
+
       if (existingNonTs) {
         skippedDuplicate++;
         // SKIP_LEAGUES (api-football 이 매치 row 만드는 리그) 매치도 fast-poller 가
