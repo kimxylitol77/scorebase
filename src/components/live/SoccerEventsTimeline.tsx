@@ -1,7 +1,10 @@
 // 축구 이벤트 타임라인 — 골 / 카드 / 교체 / VAR.
+// 사용자 toggle — 정렬(시간순/역시간순) + 필터(전체/카드/교체).
 // 가운데 분 표시, away 왼쪽 / home 오른쪽 분할.
-// 최신 이벤트가 상단.
 
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { toKoreanPlayerName } from "@/lib/player-names";
 
@@ -87,16 +90,80 @@ function timeLabel(ev: SoccerEvent): string {
   return `${ev.minute}'`;
 }
 
+type FilterKind = "all" | "card" | "subst" | "var";
+
 export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, playerLogoById }: Props) {
+  // 정렬: chrono(시간 오름차순) / latest(시간 내림차순 — 기본)
+  const [chrono, setChrono] = useState(false);
+  const [filter, setFilter] = useState<FilterKind>("all");
+
   if (events.length === 0) return null;
 
+  const filtered = events.filter((e) => filter === "all" || e.type === filter);
+  const sorted = [...filtered].sort((a, b) => {
+    const av = a.minute * 100 + a.extra;
+    const bv = b.minute * 100 + b.extra;
+    return chrono ? av - bv : bv - av;
+  });
+
+  const counts = {
+    all: events.length,
+    card: events.filter((e) => e.type === "card").length,
+    subst: events.filter((e) => e.type === "subst").length,
+    var: events.filter((e) => e.type === "var").length,
+  };
+
+  const FilterButton = ({ kind, label }: { kind: FilterKind; label: string }) => {
+    const count = counts[kind];
+    if (count === 0 && kind !== "all") return null;
+    return (
+      <button
+        type="button"
+        onClick={() => setFilter(kind)}
+        className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
+          filter === kind
+            ? "bg-blue-500 text-white"
+            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        }`}
+      >
+        {label} {count > 0 && <span className="opacity-70">{count}</span>}
+      </button>
+    );
+  };
+
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-2">
-      <div className="flex items-center justify-between">
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-3">
+      <div className="flex items-center justify-between gap-2">
         <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
           이벤트 타임라인
         </div>
-        <div className="text-[10px] text-neutral-400">{events.length}건</div>
+        {/* 정렬 toggle */}
+        <button
+          type="button"
+          onClick={() => setChrono(!chrono)}
+          className="flex items-center gap-1.5 text-[11px] text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200"
+        >
+          <span>{chrono ? "시간순" : "최신순"}</span>
+          <span
+            className={`relative inline-block w-7 h-4 rounded-full transition ${
+              chrono ? "bg-blue-500" : "bg-neutral-300 dark:bg-neutral-700"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition ${
+                chrono ? "left-3.5" : "left-0.5"
+              }`}
+            />
+          </span>
+        </button>
+      </div>
+
+      {/* 필터 칩 */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <FilterButton kind="all" label="전체" />
+        <FilterButton kind="card" label="카드" />
+        <FilterButton kind="subst" label="교체" />
+        <FilterButton kind="var" label="VAR" />
       </div>
 
       {/* home 좌측 / away 우측 — 사이트 전반 home 좌측 통일 규칙 */}
@@ -107,7 +174,7 @@ export default function SoccerEventsTimeline({ events, homeNameKo, awayNameKo, p
       </div>
 
       <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
-        {events.map((ev, i) => {
+        {sorted.map((ev, i) => {
           const meta = iconAndLabel(ev);
           const playerKo = localizeName(ev.playerName);
           const assistKo = localizeName(ev.assistName);

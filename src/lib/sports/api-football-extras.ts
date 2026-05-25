@@ -7,6 +7,26 @@
 
 const BASE_URL = "https://v3.football.api-sports.io";
 
+/**
+ * api-football /fixtures?id=X — fixture 메타 (round 등) 만 추출.
+ * cache: 3600s (round 는 변동 없음).
+ */
+export async function fetchFixtureRound(fixtureId: string | number): Promise<string | null> {
+  const key = process.env.API_FOOTBALL_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch(`${BASE_URL}/fixtures?id=${fixtureId}`, {
+      headers: { "x-apisports-key": key },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { response?: Array<{ league?: { round?: string } }> };
+    return data.response?.[0]?.league?.round ?? null;
+  } catch {
+    return null;
+  }
+}
+
 interface AfPredictionsResponse {
   response: Array<{
     predictions: {

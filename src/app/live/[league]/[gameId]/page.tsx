@@ -26,11 +26,12 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import { getVenueByOurTeamId } from "@/lib/sports/thesports/venues";
-import { fetchMatchPrediction, fetchTeamSeasonStats } from "@/lib/sports/api-football-extras";
+import { fetchMatchPrediction, fetchTeamSeasonStats, fetchFixtureRound } from "@/lib/sports/api-football-extras";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import MatchPredictionsCard from "@/components/live/MatchPredictionsCard";
 import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
 import UpcomingFixturesCard, { type UpcomingFixture } from "@/components/live/UpcomingFixturesCard";
+import KickoffCountdown from "@/components/live/KickoffCountdown";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -136,7 +137,7 @@ export default async function GenericLivePage({ params }: Props) {
   const afSeason = match.startTime.getUTCFullYear();
   const homeAfExtId = isSoccer ? match.homeTeam.externalId : null;
   const awayAfExtId = isSoccer ? match.awayTeam.externalId : null;
-  const [matchPrediction, homeAfStats, awayAfStats] = isSoccer
+  const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer
     ? await Promise.all([
         fetchMatchPrediction(gameId).catch(() => null),
         afLeagueId && homeAfExtId
@@ -145,8 +146,9 @@ export default async function GenericLivePage({ params }: Props) {
         afLeagueId && awayAfExtId
           ? fetchTeamSeasonStats(parseInt(awayAfExtId, 10), afLeagueId, afSeason).catch(() => null)
           : Promise.resolve(null),
+        fetchFixtureRound(gameId).catch(() => null),
       ])
-    : [null, null, null];
+    : [null, null, null, null];
 
   // 양 팀 다음 경기 — 우리 DB 의 SCHEDULED 매치 가까운 2개씩.
   // 같은 리그 외 컵·국가대표 매치도 cover 위해 league filter 없이 query.
@@ -249,8 +251,15 @@ export default async function GenericLivePage({ params }: Props) {
             {awayKo}
           </Link>
         </h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          {label} · 라이브 스코어 · 5초 자동 갱신
+        <p className="text-sm text-neutral-500 mt-1 flex items-center gap-2 flex-wrap">
+          <span>{label}</span>
+          {fixtureRound && (
+            <span className="text-neutral-400">· {fixtureRound}</span>
+          )}
+          <span className="text-neutral-400">· 라이브 스코어 · 5초 자동 갱신</span>
+          {match.status === "SCHEDULED" && (
+            <KickoffCountdown kickoffIso={match.startTime.toISOString()} />
+          )}
         </p>
       </header>
       <MatchArticleLinks
