@@ -16,6 +16,8 @@ import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
+import LiveOddsCard from "@/components/live/LiveOddsCard";
+import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +81,10 @@ export default async function KboLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const extras = await fetchMatchExtras(match);
+  const [extras, baseballOdds] = await Promise.all([
+    fetchMatchExtras(match),
+    loadBaseballOdds(match.id),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -144,6 +149,20 @@ export default async function KboLivePage({ params }: Props) {
             : null
         }
       />
+      {baseballOdds ? (
+        <LiveOddsCard
+          odds={baseballOdds.odds}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          hasDraw={false}
+          oddsHistory={baseballOdds.history.map((p) => ({
+            fetchedAt: p.fetchedAt,
+            home: p.home,
+            draw: null,
+            away: p.away,
+          }))}
+        />
+      ) : null}
       <BaseballPreMatchInsight
         league="KBO"
         homeStarter={parseStarterFull(match.homeStarter)}

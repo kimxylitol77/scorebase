@@ -16,6 +16,8 @@ import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
+import LiveOddsCard from "@/components/live/LiveOddsCard";
+import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 
 export const dynamic = "force-dynamic";
 
@@ -82,10 +84,11 @@ export default async function NpbLivePage({ params }: Props) {
   const homeStarterFull = parseStarterFull(match.homeStarter);
   const awayStarterFull = parseStarterFull(match.awayStarter);
   // NPB 사진은 npb.jp scraping 필요 — pid 있으면 SSR 단에서 fetch
-  const [homeStarterPhoto, awayStarterPhoto, extras] = await Promise.all([
+  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds] = await Promise.all([
     homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
     awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
     fetchMatchExtras(match),
+    loadBaseballOdds(match.id),
   ]);
 
   return (
@@ -151,6 +154,20 @@ export default async function NpbLivePage({ params }: Props) {
             : null
         }
       />
+      {baseballOdds ? (
+        <LiveOddsCard
+          odds={baseballOdds.odds}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          hasDraw={false}
+          oddsHistory={baseballOdds.history.map((p) => ({
+            fetchedAt: p.fetchedAt,
+            home: p.home,
+            draw: null,
+            away: p.away,
+          }))}
+        />
+      ) : null}
       <BaseballPreMatchInsight
         league="NPB"
         homeStarter={homeStarterFull}

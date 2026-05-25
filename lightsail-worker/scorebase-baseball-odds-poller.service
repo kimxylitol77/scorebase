@@ -1,0 +1,16 @@
+[Unit]
+Description=Scorebase TheSports Baseball Odds History Poller
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/baseball-odds-poller.js
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/baseball-odds-poller.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/baseball-odds-poller.err
+
+[Install]
+WantedBy=multi-user.target

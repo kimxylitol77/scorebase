@@ -169,6 +169,7 @@ model Match {
   articles Article[]
   theSportsCache TheSportsMatchCache?
   oddsSnapshots  OddsSnapshot[]
+  tsBaseballOdds TsBaseballOddsHistory[]
   liveCommentary LiveCommentary?
 
   @@unique([league, externalId])
@@ -408,4 +409,27 @@ model OddsSnapshot {
 
   @@index([matchId, fetchedAt])
   @@index([fetchedAt])
+}
+
+/// TheSports baseball odds history — `/v1/baseball/odds/history` 응답의 시계열 row.
+/// kind = "eu" (머니라인), "asia" (런라인/핸디캡), "bs" (오버언더).
+/// row 구조: [ts, v1, mid, v2, status] — eu: (home, draw=0, away), asia: (home, line, away), bs: (over, line, under).
+/// Lightsail worker (baseball-odds-poller) 가 60초 cycle 로 fetch → /api/internal/save-baseball-odds upsert.
+/// 페이지 SSR 이 (matchId, kind="eu", companyId="2") 최근 30~50 row → sparkline.
+model TsBaseballOddsHistory {
+  id        BigInt   @id @default(autoincrement())
+  matchId   Int
+  companyId String           // 예: "2" (Bet365). source 분리 위해 raw 보존.
+  kind      String           // "eu" | "asia" | "bs"
+  ts        Int              // unix sec — TheSports 응답의 첫 컬럼
+  v1        Float            // eu: home / asia: home / bs: over
+  mid       Float?           // eu: draw (야구는 0) / asia: handicap line / bs: total line
+  v2        Float            // eu: away / asia: away / bs: under
+  status    Int      @default(0)
+  createdAt DateTime @default(now())
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, companyId, kind, ts])
+  @@index([matchId, kind, ts])
+  @@index([matchId, ts])
 }
