@@ -220,7 +220,55 @@ export default async function GenericLivePage({ params }: Props) {
     }
   }
 
+  // SportsEvent JSON-LD — 검색 rich snippet + AI 인용 source.
+  // 라이브/종료 매치 모두 발행 — eventStatus 분기로 의미 명확.
+  const eventStatusByMatch =
+    match.status === "FINISHED"
+      ? "https://schema.org/EventCompleted"
+      : match.status === "LIVE"
+        ? "https://schema.org/EventInProgress"
+        : match.status === "POSTPONED"
+          ? "https://schema.org/EventPostponed"
+          : "https://schema.org/EventScheduled";
+  const sportsEventLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: `${homeKo} vs ${awayKo}`,
+    description: `${homeKo} 대 ${awayKo} ${label} ${fixtureRound ? `· ${fixtureRound} ` : ""}라이브 스코어 + 골 이벤트 + 라인업.`,
+    startDate: match.startTime.toISOString(),
+    eventStatus: eventStatusByMatch,
+    sport: isSoccer ? "Soccer" : lg === "NBA" || lg === "WNBA" ? "Basketball" : lg === "NHL" ? "Ice Hockey" : "Sports",
+    homeTeam: {
+      "@type": "SportsTeam",
+      name: homeKo,
+      ...(match.homeTeam.logoUrl ? { logo: match.homeTeam.logoUrl } : {}),
+    },
+    awayTeam: {
+      "@type": "SportsTeam",
+      name: awayKo,
+      ...(match.awayTeam.logoUrl ? { logo: match.awayTeam.logoUrl } : {}),
+    },
+    ...(venue
+      ? {
+          location: {
+            "@type": "Place",
+            name: venue.name,
+            ...(venue.city ? { address: venue.city } : {}),
+          },
+        }
+      : {}),
+    organizer: { "@type": "SportsOrganization", name: label },
+    url: `https://www.scorebase.kr/live/${lg}/${gameId}`,
+    isAccessibleForFree: true,
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(sportsEventLd) }}
+      />
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores" className="hover:underline">
@@ -451,5 +499,6 @@ export default async function GenericLivePage({ params }: Props) {
       )}
 
     </div>
+    </>
   );
 }
