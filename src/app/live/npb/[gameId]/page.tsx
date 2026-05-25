@@ -14,6 +14,8 @@ import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
+import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +47,7 @@ async function findNpbMatch(gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league: "NPB" },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
     });
   } catch {
     return null;
@@ -168,6 +170,21 @@ export default async function NpbLivePage({ params }: Props) {
         awayStanding={extras.awayStanding}
         totalTeams={extras.totalTeams}
       />
+
+      {match.theSportsCache?.detailLive ? (
+        <>
+          <BaseballTeamStatsCard
+            stats={(match.theSportsCache.detailLive as { stats?: unknown }).stats}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+          />
+          <BaseballBoxscoreCard
+            players={(match.theSportsCache.detailLive as { players?: unknown }).players}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

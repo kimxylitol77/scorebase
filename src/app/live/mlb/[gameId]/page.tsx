@@ -18,6 +18,8 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
+import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
 
 function parseStarterFull(json: string | null): StarterInfo | null {
   if (!json) return null;
@@ -46,7 +48,7 @@ async function findEspnMatch(gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league: "MLB" },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
     });
   } catch {
     return null;
@@ -88,7 +90,7 @@ async function findByApiSportsId(gameId: string): Promise<FoundMatch | null> {
         homeTeam: { name: g.teams.home.name },
         awayTeam: { name: g.teams.away.name },
       },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
     });
     if (m) return m;
     // 2) 마지막 토큰 (= 팀명) contains fallback
@@ -102,7 +104,7 @@ async function findByApiSportsId(gameId: string): Promise<FoundMatch | null> {
         homeTeam: { name: { contains: homeTok } },
         awayTeam: { name: { contains: awayTok } },
       },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
     });
     return m;
   } catch {
@@ -222,6 +224,21 @@ export default async function MlbLivePage({ params }: Props) {
         awayStanding={extras.awayStanding}
         totalTeams={extras.totalTeams}
       />
+
+      {match.theSportsCache?.detailLive ? (
+        <>
+          <BaseballTeamStatsCard
+            stats={(match.theSportsCache.detailLive as { stats?: unknown }).stats}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+          />
+          <BaseballBoxscoreCard
+            players={(match.theSportsCache.detailLive as { players?: unknown }).players}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

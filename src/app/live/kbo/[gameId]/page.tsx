@@ -14,6 +14,8 @@ import BaseballPreMatchInsight, {
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
+import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +47,7 @@ async function findKboMatch(gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league: "KBO" },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
     });
   } catch {
     return null;
@@ -159,6 +161,22 @@ export default async function KboLivePage({ params }: Props) {
         awayStanding={extras.awayStanding}
         totalTeams={extras.totalTeams}
       />
+
+      {/* TheSports cache 기반 — 팀 스탯 + 박스스코어 (확정된 stat_id 만 표시) */}
+      {match.theSportsCache?.detailLive ? (
+        <>
+          <BaseballTeamStatsCard
+            stats={(match.theSportsCache.detailLive as { stats?: unknown }).stats}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+          />
+          <BaseballBoxscoreCard
+            players={(match.theSportsCache.detailLive as { players?: unknown }).players}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+          />
+        </>
+      ) : null}
     </div>
   );
 }
