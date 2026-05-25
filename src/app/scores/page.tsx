@@ -469,14 +469,35 @@ export default async function ScoresPage({ searchParams }: Props) {
               ],
             }),
       },
-      include: {
-        homeTeam: true,
-        awayTeam: true,
+      // include → select 로 좁힘 — Match.raw (큰 JSON, NBA Ultra 만 필요)
+      // + Team 의 elo/country/venue 등 미사용 컬럼 + prediction 필드 fetch 제외.
+      // payload 60% 감소 + SSR latency 0.5-1s 단축 예상.
+      select: {
+        id: true,
+        league: true,
+        externalId: true,
+        status: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+        updatedAt: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        homeStarter: true,
+        awayStarter: true,
+        homeTeam: {
+          select: { id: true, name: true, externalId: true, shortName: true, logoUrl: true },
+        },
+        awayTeam: {
+          select: { id: true, name: true, externalId: true, shortName: true, logoUrl: true },
+        },
         articles: {
           where: { status: "PUBLISHED" },
           select: { slug: true, type: true },
         },
-        liveCommentary: true,
+        liveCommentary: {
+          select: { eventComments: true, matchSummary: true, summaryAt: true, scoreSnapshot: true },
+        },
       },
       orderBy: { startTime: "asc" },
     }),
@@ -503,11 +524,18 @@ export default async function ScoresPage({ searchParams }: Props) {
   const periodMap: Record<string, PeriodLinescoreData> = { ...nbaPeriods, ...nhlPeriods };
   // NBA Ultra (api-sports) 매치는 ESPN ID 가 아니라 ESPN linescore 조회 안 됨.
   // Match.raw 의 NBA Ultra response 에 linescore 가 이미 있으므로 그걸 parse 해서 merge.
-  for (const m of matches) {
-    if (m.league !== "NBA") continue;
-    if (periodMap[m.externalId]) continue;
-    const parsed = extractNbaUltraPeriodsFromRaw(m.raw);
-    if (parsed) periodMap[m.externalId] = parsed;
+  // raw 는 큰 JSON 이라 메인 matches select 에서 제외 — NBA 만 별도 fetch (시즌 중 max 15-20 매치, cost 작음).
+  const nbaMatchIds = matches.filter((m) => m.league === "NBA").map((m) => m.id);
+  if (nbaMatchIds.length > 0) {
+    const nbaRaws = await prisma.match.findMany({
+      where: { id: { in: nbaMatchIds } },
+      select: { id: true, raw: true, externalId: true },
+    });
+    for (const r of nbaRaws) {
+      if (periodMap[r.externalId]) continue;
+      const parsed = extractNbaUltraPeriodsFromRaw(r.raw);
+      if (parsed) periodMap[r.externalId] = parsed;
+    }
   }
 
   // 축구 매치의 골/카드 — TheSportsMatchCache.detailLive.incidents 에서 직접 추출.
