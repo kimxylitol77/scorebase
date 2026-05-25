@@ -30,6 +30,7 @@ import { fetchMatchPrediction, fetchTeamSeasonStats } from "@/lib/sports/api-foo
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import MatchPredictionsCard from "@/components/live/MatchPredictionsCard";
 import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
+import UpcomingFixturesCard, { type UpcomingFixture } from "@/components/live/UpcomingFixturesCard";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -146,6 +147,54 @@ export default async function GenericLivePage({ params }: Props) {
           : Promise.resolve(null),
       ])
     : [null, null, null];
+
+  // 양 팀 다음 경기 — 우리 DB 의 SCHEDULED 매치 가까운 2개씩.
+  // 같은 리그 외 컵·국가대표 매치도 cover 위해 league filter 없이 query.
+  const upcomingNow = match.startTime;
+  const [homeUpcoming, awayUpcoming] = isSoccer
+    ? await Promise.all([
+        prisma.match.findMany({
+          where: {
+            OR: [{ homeTeamId: match.homeTeam.id }, { awayTeamId: match.homeTeam.id }],
+            status: "SCHEDULED",
+            startTime: { gt: upcomingNow },
+            NOT: { id: match.id },
+          },
+          select: {
+            id: true, league: true, externalId: true, startTime: true,
+            homeTeamId: true, awayTeamId: true,
+            homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+          },
+          orderBy: { startTime: "asc" },
+          take: 2,
+        }),
+        prisma.match.findMany({
+          where: {
+            OR: [{ homeTeamId: match.awayTeam.id }, { awayTeamId: match.awayTeam.id }],
+            status: "SCHEDULED",
+            startTime: { gt: upcomingNow },
+            NOT: { id: match.id },
+          },
+          select: {
+            id: true, league: true, externalId: true, startTime: true,
+            homeTeamId: true, awayTeamId: true,
+            homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+          },
+          orderBy: { startTime: "asc" },
+          take: 2,
+        }),
+      ])
+    : [[], []];
+  const homeUpcomingF: UpcomingFixture[] = homeUpcoming.map((m) => ({
+    matchId: m.id, league: m.league, externalId: m.externalId, startTime: m.startTime,
+    homeName: m.homeTeam.name, awayName: m.awayTeam.name,
+    perspective: m.homeTeamId === match.homeTeam.id ? "home" : "away",
+  }));
+  const awayUpcomingF: UpcomingFixture[] = awayUpcoming.map((m) => ({
+    matchId: m.id, league: m.league, externalId: m.externalId, startTime: m.startTime,
+    homeName: m.homeTeam.name, awayName: m.awayTeam.name,
+    perspective: m.homeTeamId === match.awayTeam.id ? "home" : "away",
+  }));
   // 홈팀 구장 — TheSports venue mapping. 매핑 없으면 null (카드 hide).
   const venue = isSoccer ? getVenueByOurTeamId(match.homeTeam.id) : null;
   const scoreLabel = isSoccer
@@ -269,6 +318,16 @@ export default async function GenericLivePage({ params }: Props) {
           away={awayAfStats}
           homeNameKo={homeKo}
           awayNameKo={awayKo}
+        />
+      )}
+
+      {/* 양 팀 다음 경기 — DB SCHEDULED 매치 가까운 2개씩 */}
+      {isSoccer && (homeUpcomingF.length > 0 || awayUpcomingF.length > 0) && (
+        <UpcomingFixturesCard
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          homeUpcoming={homeUpcomingF}
+          awayUpcoming={awayUpcomingF}
         />
       )}
 
