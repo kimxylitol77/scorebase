@@ -797,5 +797,173 @@
     "tsId": "4zp5rzghvzq82w1",
     "tsEn": "United States Women's National Soccer League",
     "tsKo": "미국 NWSL"
+  },
+  {
+    "code": "COPA_DEL_REY",
+    "ourLabel": "코파 델 레이",
+    "tsId": "gpxwrxlhzzryk0j",
+    "tsEn": "Copa del Rey",
+    "tsKo": "코파 델 레이",
+    "tsSeasonId": "kjw2r09h8dorz84"
+  },
+  {
+    "code": "COPPA_ITALIA",
+    "ourLabel": "코파 이탈리아",
+    "tsId": "9k82rekho4repzj",
+    "tsEn": "Coppa Italia",
+    "tsKo": "코파 이탈리아",
+    "tsSeasonId": "p3glrw7hdynqdyj"
+  },
+  {
+    "code": "COUPE_DE_FRANCE",
+    "ourLabel": "쿠프 드 프랑스",
+    "tsId": "56ypq3nh1wmd7oj",
+    "tsEn": "Coupe de France",
+    "tsKo": "쿠프 드 프랑스",
+    "tsSeasonId": "p4jwq2ghljem0ve"
+  },
+  {
+    "code": "DFB_POKAL",
+    "ourLabel": "DFB 포칼",
+    "tsId": "l965mkyhn0r1ge4",
+    "tsEn": "DFB Pokal",
+    "tsKo": "DFB 포칼",
+    "tsSeasonId": "p3glrw7hdw0qdyj"
+  },
+  {
+    "code": "EMPEROR_CUP",
+    "ourLabel": "천황배",
+    "tsId": "gpxwrxlhgpgryk0",
+    "tsEn": "Japanese Emperor's Cup",
+    "tsKo": "일본 천황배",
+    "tsSeasonId": "l5ergpho0k9r8k0"
+  },
+  {
+    "code": "LEVAIN_CUP",
+    "ourLabel": "르베인컵",
+    "tsId": "z8yomo4hnnq0j6l",
+    "tsEn": "YBC Levain Cup",
+    "tsKo": "YBC 르베인컵",
+    "tsSeasonId": "56ypq3nh278md7o"
+  },
+  {
+    "code": "CONCACAF_CCUP",
+    "ourLabel": "CONCACAF 챔피언스 컵",
+    "tsId": "gpxwrxlh0nryk0j",
+    "tsEn": "CONCACAF Champions Cup",
+    "tsKo": "CONCACAF 챔피언스 컵",
+    "tsSeasonId": "l5ergpho00or8k0"
+  },
+  {
+    "code": "U17_WC",
+    "ourLabel": "FIFA U-17 월드컵",
+    "tsId": "yvl7oqdehwr510j",
+    "tsEn": "FIFA U17 World Cup",
+    "tsKo": "FIFA U-17 월드컵",
+    "tsSeasonId": "jw2r09hl4nprz84"
+  },
+  {
+    "code": "U20_WC",
+    "ourLabel": "FIFA U-20 월드컵",
+    "tsId": "xz318q66h8qo9jd",
+    "tsEn": "FIFA U20 World Cup",
+    "tsKo": "FIFA U-20 월드컵",
+    "tsSeasonId": "v2y8m4zh22lql07"
+  },
+  {
+    "code": "UEFA_WCL",
+    "ourLabel": "여자 챔피언스리그",
+    "tsId": "4zp5rzgh72q82w1",
+    "tsEn": "UEFA Women's Champions League",
+    "tsKo": "여자 챔피언스리그",
+    "tsSeasonId": "l965mkyhpepr1ge"
+  },
+  {
+    "code": "AZERBAIJAN_PL",
+    "ourLabel": "아제르바이잔 프리미어",
+    "tsId": "9k82rekhjorepzj",
+    "tsEn": "Azerbaijan Premier League",
+    "tsKo": "아제르바이잔 프리미어",
+    "tsSeasonId": "kn54qllhv1lqvy9"
+  },
+  {
+    "code": "EREDIVISIE_2",
+    "ourLabel": "에레디비시 2",
+    "tsId": "kdj2ryohdkq1zpg",
+    "tsEn": "Netherlands Eerste Divisie",
+    "tsKo": "네덜란드 에르스터 디비시",
+    "tsSeasonId": "v2y8m4zhlj8ql07"
+  },
+  {
+    "code": "J3_LEAGUE",
+    "ourLabel": "J3 리그",
+    "tsId": "vl7oqdeh7pr510j",
+    "tsEn": "Japanese J3 League",
+    "tsKo": "J3 리그",
+    "tsSeasonId": "vl7oqdehv31r510"
+  },
+  {
+    "code": "KAZAKHSTAN_PL",
+    "ourLabel": "카자흐스탄 프리미어",
+    "tsId": "kn54qllh40qvy9d",
+    "tsEn": "Kazakhstan Premier League",
+    "tsKo": "카자흐스탄 프리미어",
+    "tsSeasonId": "8yomo4h7e96q0j6"
+  },
+  {
+    "code": "PRIMEIRA_LIGA_2",
+    "ourLabel": "리가 포르투갈 2",
+    "tsId": "gx7lm7phpnm2wdk",
+    "tsEn": "Liga Portugal 2",
+    "tsKo": "리가 포르투갈 2",
+    "tsSeasonId": "z318q66hlk0qo9j"
+  },
+  {
+    "code": "FA_CUP",
+    "ourLabel": "FA컵",
+    "tsId": "9vjxm8gh8gr6odg",
+    "tsEn": "FA Cup",
+    "tsKo": "FA컵",
+    "tsSeasonId": "l965mkyhp2er1ge"
+  },
+  {
+    "code": "AFCON",
+    "ourLabel": "아프리카 네이션스컵",
+    "tsId": "z8yomo4h70vq0j6",
+    "tsEn": "CAF Africa Cup of Nations",
+    "tsKo": "아프리카 네이션스컵",
+    "tsSeasonId": "y39mp1h3v00mojx"
+  },
+  {
+    "code": "AFC_CUP",
+    "ourLabel": "AFC컵",
+    "tsId": "e4wyrn4h3xq86pv",
+    "tsEn": "AFC Cup",
+    "tsKo": "AFC컵",
+    "tsSeasonId": "p3glrw7h83zqdyj"
+  },
+  {
+    "code": "CONCACAF_GOLD",
+    "ourLabel": "CONCACAF 골드컵",
+    "tsId": "z8yomo4h61q0j6l",
+    "tsEn": "CONCACAF Gold Cup",
+    "tsKo": "CONCACAF 골드컵",
+    "tsSeasonId": "gx7lm7phlegm2wd"
+  },
+  {
+    "code": "BRASILEIRAO_2",
+    "ourLabel": "브라질 세리에 B",
+    "tsId": "j1l4rjnh0xm7vx5",
+    "tsEn": "Brazilian Serie B",
+    "tsKo": "브라질 세리에 B",
+    "tsSeasonId": "x7lm7phkgp1m2wd"
+  },
+  {
+    "code": "THAI_L1",
+    "ourLabel": "태국 1부",
+    "tsId": "kn54qllh2xpqvy9",
+    "tsEn": "Thai League 1",
+    "tsKo": "태국 1부",
+    "tsSeasonId": "p3glrw7hdl5qdyj"
   }
 ]
