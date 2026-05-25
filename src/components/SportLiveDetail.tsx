@@ -10,7 +10,7 @@ import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
 // SoccerFormation 제거 (2026-05-25) — TheSports lineup 으로 일원화, SoccerLineupSvg 만 사용.
 import SoccerEventsTimeline from "./live/SoccerEventsTimeline";
-import VarIncidentsCard from "./live/VarIncidentsCard";
+import SoccerGoalsCard from "./live/SoccerGoalsCard";
 import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
 
 interface PeriodLinescore {
@@ -382,22 +382,25 @@ export default function SportLiveDetail({
       {/* 축구 선발 라인업 — TheSports cache 의 lineup 을 page.tsx 에서 SoccerLineupSvg 로 별도 렌더.
           중복 방지를 위해 여기서는 api-football 기반 SoccerFormation 호출 안 함 (2026-05-25). */}
 
-      {/* 축구 이벤트 타임라인 (골/카드/교체) */}
+      {/* GOALS — BeSoccer 스타일 (시간 + 골/어시 + 선수 사진) */}
       {live?.soccerEvents && live.soccerEvents.length > 0 && (
-        <SoccerEventsTimeline
+        <SoccerGoalsCard
           events={live.soccerEvents}
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
+          homeLogoUrl={homeLogoUrl ?? null}
+          awayLogoUrl={awayLogoUrl ?? null}
           playerLogoById={playerLogoById}
         />
       )}
 
-      {/* VAR 판정 — incidents type=28 이 있을 때만 */}
-      {live?.soccerEvents && live.soccerEvents.length > 0 && (
-        <VarIncidentsCard
-          events={live.soccerEvents}
+      {/* 이벤트 타임라인 (카드 / 교체 — 골은 위 GOALS 카드로 분리) */}
+      {live?.soccerEvents && live.soccerEvents.filter((e) => e.type !== "goal").length > 0 && (
+        <SoccerEventsTimeline
+          events={live.soccerEvents.filter((e) => e.type !== "goal")}
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
+          playerLogoById={playerLogoById}
         />
       )}
 
