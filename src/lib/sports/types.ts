@@ -443,6 +443,17 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "PARAGUAY_PD",
   "BOLIVIA_PD",
   "ARG_PRIMERA_NACIONAL",
+  // 아프리카 2
+  "ALGERIA_L1",
+  "GHANA_PL",
+  // 유럽 컵·하위 + 러시아 7
+  "SVENSKA_CUPEN",
+  "LEAGUE_TWO",
+  "NATIONAL_LEAGUE",
+  "SCOT_CHAMPIONSHIP",
+  "SCOT_LEAGUE_ONE",
+  "SCOT_LEAGUE_TWO",
+  "RPL",
 ];
 
 export type MatchStatus =
