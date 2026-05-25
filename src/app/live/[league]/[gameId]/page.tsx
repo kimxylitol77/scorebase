@@ -156,6 +156,19 @@ export default async function GenericLivePage({ params }: Props) {
         ? { for: "평균득점", against: "평균실점" }
         : { for: "평균득점", against: "평균실점" };
 
+  // 이벤트 타임라인 아바타용 player photo map — TheSports lineup cache 의 home/away
+  // 객체 (index 키 0..N) 의 each player.logo (md5 hash URL) 추출.
+  const playerLogoById: Record<string, string> = {};
+  if (isSoccer && match.theSportsCache?.lineup) {
+    const lu = (match.theSportsCache.lineup as { lineup?: { home?: Record<string, { id?: string; logo?: string }>; away?: Record<string, { id?: string; logo?: string }> } }).lineup;
+    for (const side of [lu?.home, lu?.away]) {
+      if (!side) continue;
+      for (const p of Object.values(side)) {
+        if (p?.id && p?.logo) playerLogoById[p.id] = p.logo;
+      }
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -220,6 +233,7 @@ export default async function GenericLivePage({ params }: Props) {
             : null
         }
         oddsHistory={oddsHistory}
+        playerLogoById={playerLogoById}
       />
 
       {/* 팀명 + 최근경기 (상대전적) — 점수 카드 바로 아래로 (사용자 우선순위 2026-05-24) */}

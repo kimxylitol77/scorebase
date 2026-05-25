@@ -52,6 +52,7 @@ import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescor
 import type { BaseballContext } from "@/components/scores/BaseballMiniBoard";
 import type { EsportsContext } from "@/components/scores/EsportsMiniBoard";
 import LiveSoundToggle from "@/components/LiveSoundToggle";
+import PopularMatchesWidget from "@/components/scores/PopularMatchesWidget";
 
 const fetchLiveCached = unstable_cache(
   fetchAllLiveScores,
@@ -1048,6 +1049,9 @@ export default async function ScoresPage({ searchParams }: Props) {
           </span>
         )}
       </p>
+
+      {/* 인기 매치 (최근 24h PageView 기준 top 5) */}
+      <PopularMatchesWidget />
 
       {/* 종목 탭 */}
       <SportTabs activeSport={sport} liveCounts={liveCounts} date={dateStr} />

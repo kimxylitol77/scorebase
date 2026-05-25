@@ -818,6 +818,10 @@ export interface SoccerEvent {
   side: "home" | "away";
   playerName: string | null;
   assistName: string | null;
+  /** TheSports player id (사진 매핑용). incidents 의 player_id (교체는 in_player_id). */
+  playerId: string | null;
+  /** 어시스트/교체-OUT 선수의 ts player id. */
+  assistId: string | null;
 }
 
 /**
@@ -846,15 +850,18 @@ export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
     const extra = typeof i.add_time === "number" ? i.add_time : 0;
     const side: "home" | "away" = i.position === 1 ? "home" : "away";
     const playerName = typeof i.player_name === "string" ? i.player_name : null;
+    const playerId = typeof i.player_id === "string" ? i.player_id : null;
 
     let type: SoccerEvent["type"];
     let detail: string;
     let assistName: string | null = null;
+    let assistId: string | null = null;
 
     if (t === 1) {
       type = "goal";
       detail = "Normal Goal";
       assistName = typeof i.assist1_name === "string" ? i.assist1_name : null;
+      assistId = typeof i.assist1_id === "string" ? i.assist1_id : null;
     } else if (t === 17) {
       type = "goal";
       detail = "Penalty";
@@ -875,8 +882,8 @@ export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
       // ts 의 교체는 in/out 둘 다 있음 → playerName = in 선수, assistName = out 선수 (api-football 호환)
       const inName = typeof i.in_player_name === "string" ? i.in_player_name : null;
       const outName = typeof i.out_player_name === "string" ? i.out_player_name : null;
-      // playerName 슬롯에 in (신규 투입) — 표시에서 "IN: xxx" 로 강조
-      // assistName 슬롯에 out (교체된 선수) — 표시에서 "OUT: yyy"
+      const inId = typeof i.in_player_id === "string" ? i.in_player_id : null;
+      const outId = typeof i.out_player_id === "string" ? i.out_player_id : null;
       detail = "Substitution";
       out.push({
         minute: time,
@@ -886,6 +893,8 @@ export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
         side,
         playerName: inName,
         assistName: outName,
+        playerId: inId,
+        assistId: outId,
       });
       continue;
     } else if (t === 28) {
@@ -898,7 +907,7 @@ export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
       continue; // 19, 11, 12, 26, 27, 15, 16 등 — skip
     }
 
-    out.push({ minute: time, extra, type, detail, side, playerName, assistName });
+    out.push({ minute: time, extra, type, detail, side, playerName, assistName, playerId, assistId });
   }
   // 최신 위로 정렬 (extra 포함)
   out.sort((a, b) => (b.minute * 100 + b.extra) - (a.minute * 100 + a.extra));

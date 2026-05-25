@@ -10,6 +10,8 @@ import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
 // SoccerFormation 제거 (2026-05-25) — TheSports lineup 으로 일원화, SoccerLineupSvg 만 사용.
 import SoccerEventsTimeline from "./live/SoccerEventsTimeline";
+import VarIncidentsCard from "./live/VarIncidentsCard";
+import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
 
 interface PeriodLinescore {
   homePeriods: (number | null)[];
@@ -83,6 +85,8 @@ interface SoccerEventItem {
   side: "home" | "away";
   playerName: string | null;
   assistName: string | null;
+  playerId?: string | null;
+  assistId?: string | null;
 }
 
 interface MatchLive {
@@ -125,6 +129,8 @@ interface Props {
   eloPrediction?: { home: number; draw?: number | null; away: number } | null;
   /** 라이브 배당 시계열 — sparkline 차트용. 오래된→최신 순. */
   oddsHistory?: Array<{ fetchedAt: number; home: number; draw: number | null; away: number }>;
+  /** TheSports player id → photo URL (lineup cache 에서 page.tsx 가 추출). 이벤트 타임라인 아바타용. */
+  playerLogoById?: Record<string, string>;
 }
 
 const POLL_LIVE_MS = 5_000;
@@ -148,6 +154,7 @@ export default function SportLiveDetail({
   awayPosition,
   eloPrediction,
   oddsHistory,
+  playerLogoById,
 }: Props) {
   const [live, setLive] = useState<MatchLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -381,6 +388,26 @@ export default function SportLiveDetail({
           events={live.soccerEvents}
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
+          playerLogoById={playerLogoById}
+        />
+      )}
+
+      {/* VAR 판정 — incidents type=28 이 있을 때만 */}
+      {live?.soccerEvents && live.soccerEvents.length > 0 && (
+        <VarIncidentsCard
+          events={live.soccerEvents}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+        />
+      )}
+
+      {/* 교체 영향 — 교체 후 ±10분 안 같은팀 골 매칭 */}
+      {live?.soccerEvents && live.soccerEvents.length > 0 && (
+        <SubstitutionImpactCard
+          events={live.soccerEvents}
+          homeNameKo={homeNameKo}
+          awayNameKo={awayNameKo}
+          playerLogoById={playerLogoById}
         />
       )}
 
