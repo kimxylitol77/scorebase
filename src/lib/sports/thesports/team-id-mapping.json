@@ -9676,5 +9676,707 @@
     "tsName": "Racing Club de Avellaneda",
     "tsKo": "레이싱 클럽",
     "matchType": "exact-amb"
+  },
+  {
+    "ourId": 599485,
+    "ourName": "Estudiantes de Rio Cuarto",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "2424",
+    "tsId": "pxwrxlh177kryk0",
+    "tsName": "Estudiantes Rio Cuarto",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599486,
+    "ourName": "Argentinos JRS",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "458",
+    "tsId": "e4wyrn4h1wxq86p",
+    "tsName": "Argentinos Juniors",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599487,
+    "ourName": "Sarmiento Junin",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "474",
+    "tsId": "z318q66hd9eqo9j",
+    "tsName": "Sarmiento Junin",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599458,
+    "ourName": "Aldosivi",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "463",
+    "tsId": "gpxwrxlho01ryk0",
+    "tsName": "Aldosivi Mar del Plata",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599459,
+    "ourName": "Defensa Y Justicia",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "442",
+    "tsId": "8y39mp1h8xnmojx",
+    "tsName": "Defensa Y Justicia",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599460,
+    "ourName": "Union Santa Fe",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "441",
+    "tsId": "k82rekhvojwrepz",
+    "tsName": "Club Atlético Unión",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599461,
+    "ourName": "Platense",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "1064",
+    "tsId": "318q66howpvqo9j",
+    "tsName": "CA Platense",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599462,
+    "ourName": "Banfield",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "449",
+    "tsId": "p3glrw7hevlqdyj",
+    "tsName": "Banfield",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599463,
+    "ourName": "Huracan",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "445",
+    "tsId": "23xmvkh3995qg8n",
+    "tsName": "CA Huracan",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599464,
+    "ourName": "Instituto Cordoba",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "478",
+    "tsId": "gx7lm7ph40vm2wd",
+    "tsName": "Instituto de Córdoba",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599465,
+    "ourName": "Velez Sarsfield",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "438",
+    "tsId": "8y39mp1h8zjmojx",
+    "tsName": "Velez Sarsfield",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599466,
+    "ourName": "Central Cordoba de Santiago",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "1065",
+    "tsId": "1l4rjnh152jm7vx",
+    "tsName": "Central Cordoba SDE",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599467,
+    "ourName": "Gimnasia M.",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "1066",
+    "tsId": "yl5ergphjd4r8k0",
+    "tsName": "Gimnasia La Plata",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599468,
+    "ourName": "San Lorenzo",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "460",
+    "tsId": "gpxwrxlh836ryk0",
+    "tsName": "San Lorenzo",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599469,
+    "ourName": "Lanus",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "446",
+    "tsId": "kjw2r09hz42rz84",
+    "tsName": "Club Atlético Lanús",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599470,
+    "ourName": "Independiente",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "453",
+    "tsId": "p3glrw7h517qdyj",
+    "tsName": "CA Independiente",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599471,
+    "ourName": "Estudiantes L.P.",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "450",
+    "tsId": "gx7lm7pheg8m2wd",
+    "tsName": "Estudiantes La Plata",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599472,
+    "ourName": "Talleres Cordoba",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "456",
+    "tsId": "965mkyh7gl3r1ge",
+    "tsName": "Talleres Cordoba",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599473,
+    "ourName": "Newells Old Boys",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "457",
+    "tsId": "kn54qllhyn2qvy9",
+    "tsName": "Club Atlético Newell's Old Boys",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599474,
+    "ourName": "Independ. Rivadavia",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "473",
+    "tsId": "n54qllh2np4qvy9",
+    "tsName": "Independiente Rivadavia",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599475,
+    "ourName": "Atletico Tucuman",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "455",
+    "tsId": "n54qllh2gjpqvy9",
+    "tsName": "Atletico Tucuman",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599476,
+    "ourName": "Barracas Central",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "2432",
+    "tsId": "vjxm8ghgj2nr6od",
+    "tsName": "Barracas Central",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599477,
+    "ourName": "River Plate",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "435",
+    "tsId": "56ypq3nhop0md7o",
+    "tsName": "River Plate",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599478,
+    "ourName": "Gimnasia L.P.",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "434",
+    "tsId": "jw2r09hlkldrz84",
+    "tsName": "Gimnasia y Esgrima de Mendoza",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599479,
+    "ourName": "Racing Club",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "436",
+    "tsId": "j1l4rjnhp9xm7vx",
+    "tsName": "Racing Club de Avellaneda",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599480,
+    "ourName": "Rosario Central",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "437",
+    "tsId": "z8yomo4hoxyq0j6",
+    "tsName": "Rosario Central",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599481,
+    "ourName": "Belgrano Cordoba",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "440",
+    "tsId": "vl7oqdehzxxr510",
+    "tsName": "Belgrano",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599482,
+    "ourName": "Boca Juniors",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "451",
+    "tsId": "z8yomo4hj31q0j6",
+    "tsName": "Boca Juniors",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599483,
+    "ourName": "Deportivo Riestra",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "476",
+    "tsId": "dn1m1ghe83zmoep",
+    "tsName": "Deportivo Riestra",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599484,
+    "ourName": "Tigre",
+    "ourLeague": "ARGENTINA_PL",
+    "ourExternalId": "452",
+    "tsId": "v2y8m4zhd7dql07",
+    "tsName": "Club Atletico Tigre",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599504,
+    "ourName": "Bolívar",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3702",
+    "tsId": "56ypq3nhoo0md7o",
+    "tsName": "Bolivar",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599505,
+    "ourName": "Real Oruro",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "20252",
+    "tsId": "6ypq3nhllldmd7o",
+    "tsName": "Real Oruro",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599506,
+    "ourName": "Independiente Petrolero",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "15702",
+    "tsId": "4wyrn4hdo39q86p",
+    "tsName": "Independiente Petrolero",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599507,
+    "ourName": "Nacional Potosí",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3706",
+    "tsId": "vjxm8ghgv93r6od",
+    "tsName": "Nacional Potosi",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599508,
+    "ourName": "Blooming",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3701",
+    "tsId": "n54qllh2j8gqvy9",
+    "tsName": "Blooming",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599509,
+    "ourName": "Guabirá",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3704",
+    "tsId": "23xmvkh3y9nqg8n",
+    "tsName": "Club Guabira",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599510,
+    "ourName": "Always Ready",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3700",
+    "tsId": "jw2r09hny7vrz84",
+    "tsName": "Always Ready",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599511,
+    "ourName": "Real Tomayapo",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "15708",
+    "tsId": "y0or5jhey0nqwzv",
+    "tsName": "Real Tomayapo",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599512,
+    "ourName": "Real Potosí",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3708",
+    "tsId": "l7oqdehn9p4r510",
+    "tsName": "Real Potosi",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599513,
+    "ourName": "Aurora",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3637",
+    "tsId": "vjxm8gh4e7zr6od",
+    "tsName": "Aurora",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599514,
+    "ourName": "San Antonio Bulo Bulo",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "17760",
+    "tsId": "4jwq2ghx8vgm0ve",
+    "tsName": "San Antonio Bulo Bulo",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599515,
+    "ourName": "Oriente Petrolero",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3707",
+    "tsId": "jw2r09hl3zlrz84",
+    "tsName": "Oriente Petrolero",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599516,
+    "ourName": "Gualberto Villarroel SJ",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "22266",
+    "tsId": "318q66hjg68qo9j",
+    "tsName": "Gualberto Villarroel Deportivo San José",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599517,
+    "ourName": "ABB",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "17743",
+    "tsId": "vjxm8ghpdxlr6od",
+    "tsName": "Academia del Balompié Boliviano",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599518,
+    "ourName": "Universitario de Vinto",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "17762",
+    "tsId": "k82rekhyy15repz",
+    "tsName": "Universitario De Vinto",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599519,
+    "ourName": "The Strongest",
+    "ourLeague": "BOLIVIA_PD",
+    "ourExternalId": "3711",
+    "tsId": "kn54qllhv8yqvy9",
+    "tsName": "The Strongest",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599488,
+    "ourName": "Albion FC",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2378",
+    "tsId": "dn1m1ghno2vmoep",
+    "tsName": "Albion FC",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599489,
+    "ourName": "Liverpool Montevideo",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2358",
+    "tsId": "x7lm7phkp28m2wd",
+    "tsName": "Liverpool URU",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599490,
+    "ourName": "Wanderers",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2360",
+    "tsId": "9vjxm8ghzggr6od",
+    "tsName": "Montevideo Wanderers FC",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599491,
+    "ourName": "Defensor Sporting",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2350",
+    "tsId": "8y39mp1hlxkmojx",
+    "tsName": "Defensor Sporting Montevideo",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599492,
+    "ourName": "Progreso",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2363",
+    "tsId": "vjxm8ghg6g0r6od",
+    "tsName": "Club Atletico Progreso",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599493,
+    "ourName": "Central Espanol",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2368",
+    "tsId": "zp5rzghj05kq82w",
+    "tsName": "Central Espanol",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599494,
+    "ourName": "Penarol",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2348",
+    "tsId": "l7oqdehnnoyr510",
+    "tsName": "CA Penarol",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599495,
+    "ourName": "Atletico Torque",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2365",
+    "tsId": "y0or5jh4njpqwzv",
+    "tsName": "Montevideo City Torque",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599496,
+    "ourName": "Juventud",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2353",
+    "tsId": "x7lm7phkpnwm2wd",
+    "tsName": "CA Juventud",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599497,
+    "ourName": "Cerro Largo",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2369",
+    "tsId": "k82rekhv7lyrepz",
+    "tsName": "Cerro Largo",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599498,
+    "ourName": "Racing Montevideo",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2359",
+    "tsId": "x7lm7phkdnom2wd",
+    "tsName": "Racing Club Montevideo",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599499,
+    "ourName": "Deportivo Maldonado",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2370",
+    "tsId": "zp5rzghjevlq82w",
+    "tsName": "Deportivo Maldonado",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599500,
+    "ourName": "Boston River",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2361",
+    "tsId": "y39mp1h33exmojx",
+    "tsName": "Boston River",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599501,
+    "ourName": "Club Nacional",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2356",
+    "tsId": "k82rekhv9xprepz",
+    "tsName": "Nacional Montevideo",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599502,
+    "ourName": "Cerro",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2362",
+    "tsId": "vjxm8gh442gr6od",
+    "tsName": "Cerro Montevideo",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599503,
+    "ourName": "Danubio",
+    "ourLeague": "URUGUAY_PD",
+    "ourExternalId": "2352",
+    "tsId": "kdj2ryoh678q1zp",
+    "tsName": "Danubio FC",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599846,
+    "ourName": "Washington Spirit W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "3005",
+    "tsId": "y39mp1h5j5jmojx",
+    "tsName": "Washington Spirit Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599847,
+    "ourName": "Portland Thorns W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "3001",
+    "tsId": "ednm9wh9z9kryox",
+    "tsName": "Portland Thorns FC Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599848,
+    "ourName": "Boston Legacy W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "27377",
+    "tsId": "l7oqdeh19o3r510",
+    "tsName": "Boston Legacy W",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599849,
+    "ourName": "NJ/NY Gotham FC W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "3003",
+    "tsId": "6ypq3nh0pj3md7o",
+    "tsName": "Gotham FC Women",
+    "matchType": "synonym"
+  },
+  {
+    "ourId": 599850,
+    "ourName": "Kansas City W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "16487",
+    "tsId": "1l4rjnhx51zm7vx",
+    "tsName": "Kansas City Current Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599851,
+    "ourName": "Utah Royals W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "3004",
+    "tsId": "4wyrn4hd9pvq86p",
+    "tsName": "Utah Royals Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599852,
+    "ourName": "Bay FC W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "22943",
+    "tsId": "x7lm7ph968ym2wd",
+    "tsName": "Bay FC (w)",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599853,
+    "ourName": "Denver Summit W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "27378",
+    "tsId": "8yomo4hz6pnq0j6",
+    "tsName": "Denver Summit W",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 599854,
+    "ourName": "North Carolina Courage W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "2999",
+    "tsId": "y0or5jh4k1vqwzv",
+    "tsName": "North Carolina Courage Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599855,
+    "ourName": "Racing Louisville W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "16488",
+    "tsId": "4jwq2ghxpkxm0ve",
+    "tsName": "Racing Louisville Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599856,
+    "ourName": "San Diego Wave W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "18451",
+    "tsId": "318q66hjzp9qo9j",
+    "tsName": "San Diego Wave Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599857,
+    "ourName": "Houston Dash W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "2998",
+    "tsId": "1l4rjnh1z6vm7vx",
+    "tsName": "Houston Dash Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599858,
+    "ourName": "Orlando Pride W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "3000",
+    "tsId": "ednm9wh924eryox",
+    "tsName": "Orlando Pride Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599859,
+    "ourName": "Seattle Reign FC W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "3002",
+    "tsId": "vjxm8ghxgk4r6od",
+    "tsName": "Seattle Reign (W)",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599860,
+    "ourName": "Angel City W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "18450",
+    "tsId": "k82rekh3z47repz",
+    "tsName": "Angel City FC Women",
+    "matchType": "fuzzy"
+  },
+  {
+    "ourId": 599861,
+    "ourName": "Chicago Red Stars W",
+    "ourLeague": "NWSL",
+    "ourExternalId": "2997",
+    "tsId": "pxwrxlhgdvgryk0",
+    "tsName": "Chicago Red Stars Women",
+    "matchType": "fuzzy"
   }
 ]

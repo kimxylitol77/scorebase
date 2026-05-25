@@ -62,7 +62,13 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   ALGERIA_L1: "kdj2ryohk2dq1zp",
   SVENSKA_CUPEN: "z318q66h7yqo9jd",
   GHANA_PL: "z318q66howkqo9j",
-  ARG_PRIMERA_NACIONAL: "p3glrw7hevqdyjv",
+  // 2026-05-25 추가 (남미 3개 + NWSL) — ts diary discovery 로 확정
+  // ARG_PRIMERA_NACIONAL 은 이전에 p3glrw7hevqdyjv 로 잘못 매핑돼 있었음 (실제는 1부 = ARGENTINA_PL).
+  // ARG_PRIMERA_NACIONAL 진짜 ID 는 별도 발굴 필요.
+  ARGENTINA_PL: "p3glrw7hevqdyjv",
+  BOLIVIA_PD: "kn54qllh02qvy9d",
+  URUGUAY_PD: "v2y8m4zhydql074",
+  NWSL: "4zp5rzghvzq82w1",
 };
 
 /**

@@ -771,11 +771,31 @@
     "tsSeasonId": "gx7lm7ph42pm2wd"
   },
   {
-    "code": "ARG_PRIMERA_NACIONAL",
-    "ourLabel": "아르헨티나 프리메라 나시오날",
+    "code": "ARGENTINA_PL",
+    "ourLabel": "아르헨티나 리가 프로페시오날",
     "tsId": "p3glrw7hevqdyjv",
-    "tsEn": "Primera Nacional",
-    "tsKo": "아르헨티나 프리메라 나시오날",
-    "tsSeasonId": "vjxm8gh4vvwr6od"
+    "tsEn": "Argentine Division 1",
+    "tsKo": "아르헨티나 1부"
+  },
+  {
+    "code": "BOLIVIA_PD",
+    "ourLabel": "볼리비아 디비시온 프로페시오날",
+    "tsId": "kn54qllh02qvy9d",
+    "tsEn": "Bolivian Primera Division",
+    "tsKo": "볼리비아 1부"
+  },
+  {
+    "code": "URUGUAY_PD",
+    "ourLabel": "우루과이 프리메라 디비시온",
+    "tsId": "v2y8m4zhydql074",
+    "tsEn": "Uruguay Primera Division",
+    "tsKo": "우루과이 1부"
+  },
+  {
+    "code": "NWSL",
+    "ourLabel": "NWSL",
+    "tsId": "4zp5rzghvzq82w1",
+    "tsEn": "United States Women's National Soccer League",
+    "tsKo": "미국 NWSL"
   }
 ]
