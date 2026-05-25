@@ -399,7 +399,15 @@ export default async function GenericLivePage({ params }: Props) {
         const detailLive = cache.detailLive as { stats?: Array<{ type: number; home: number; away: number }> } | null;
         const teamStats = cache.teamStats as Parameters<typeof SoccerTeamStatsCard>[0]["teamStats"] | null;
         const halfTeamStats = cache.halfTeamStats as Parameters<typeof SoccerHalfTimeStatsCard>[0]["halfTeamStats"] | null;
-        const trend = cache.trend as Parameters<typeof MatchTrendChart>[0]["trend"] | null;
+        // LIVE 매치인데 cache 가 10분 이상 stale 이면 trend 도 옛 데이터일 가능성 큼 →
+        // 90분 분량 momentum 이 미리 그려져 진행 분과 불일치. stale 가드 후 hide.
+        // (FINISHED 매치는 어차피 더이상 갱신 X 라 stale 무관.)
+        const trendStale =
+          match.status === "LIVE" &&
+          cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
+        const trend = trendStale
+          ? null
+          : (cache.trend as Parameters<typeof MatchTrendChart>[0]["trend"] | null);
         const gd = analysis?.goal_distribution;
         const h2h = analysis?.history?.vs ?? [];
         const homeTsId = tsTeamId(match.homeTeam.id);
