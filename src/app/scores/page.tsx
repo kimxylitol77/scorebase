@@ -201,10 +201,12 @@ function parseGoalMinute(minute: string): number {
 
 /**
  * 라이브 매치의 최근 1분 내 골 측 판정.
- * - statusLabel 의 elapsed (전반/후반 N') 와 골 minute 차이 ≤ 2 → recent
+ * - statusLabel 의 elapsed (전반/후반 N') 와 골 minute 차이 가 0~2분 사이 → recent
  * - 가장 최근 골의 side 반환 (없으면 null)
- * - 2026-05-23: 1분 → 2분으로 늘림. LiveRefresher 15초 refresh 의 타이밍 miss
- *   회피 (1분 highlight 가 짧아 사용자가 못 보고 지나치던 케이스).
+ * - 2026-05-23: 1분 → 2분으로 늘림. LiveRefresher 15초 refresh 의 타이밍 miss 회피.
+ * - 2026-05-25: 음수 통과 버그 fix (elapsed=70, 골 73분이면 -3 ≤ 2 통과해 영구 flash).
+ *   ts incidents 기반에서 cache 가 goals 영구 저장이라 매치 끝까지 깜빡임 지속됐음.
+ *   추가: halfLabel === "FT" 또는 elapsed >= 90 같은 종료 임박 매치도 flash 차단.
  */
 function findRecentGoalSide(
   statusLabel: string | null | undefined,
@@ -214,10 +216,14 @@ function findRecentGoalSide(
   const status = parseSoccerStatus(statusLabel);
   const elapsed = status?.minute;
   if (typeof elapsed !== "number") return null;
+  // 종료/FT 또는 statusLabel 자체에 FT 가 보이면 flash X
+  if (status?.halfLabel === "FT" || /FT|종료|FINISHED/i.test(statusLabel ?? "")) return null;
   // 가장 최근 시각의 골 (분 + 추가시간 기준)
   const sorted = [...goals].sort((a, b) => parseGoalMinute(b.minute) - parseGoalMinute(a.minute));
   const latest = sorted[0];
-  if (elapsed - parseGoalMinute(latest.minute) <= 2) return latest.side;
+  const diff = elapsed - parseGoalMinute(latest.minute);
+  // 0 ~ 2분 사이만 recent. 음수(= 골이 elapsed 보다 미래 = cache stale 또는 종료) 차단.
+  if (diff >= 0 && diff <= 2) return latest.side;
   return null;
 }
 
