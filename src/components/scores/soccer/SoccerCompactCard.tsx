@@ -8,6 +8,7 @@ import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
 import { teamColor } from "@/lib/team-colors";
 import { getLeagueBadge } from "./leagueBadge";
+import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 
 interface Props {
   matchId: string | number;
@@ -57,6 +58,7 @@ export default function SoccerCompactCard(props: Props) {
     href,
   } = props;
   const badge = getLeagueBadge(league);
+  const flag = getLeagueFlag(league);
 
   const isLive = status === "live";
   const isFinished = status === "finished";
@@ -115,6 +117,7 @@ export default function SoccerCompactCard(props: Props) {
       <div className="shrink-0 w-16 text-center leading-tight">
         <div className={`text-[11px] ${leftClass}`}>{leftPrimary}</div>
         <div className="text-[9px] font-semibold text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
+          {flag && <span className="mr-0.5" aria-hidden>{flag}</span>}
           {badge.label}
         </div>
       </div>

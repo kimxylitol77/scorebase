@@ -41,7 +41,7 @@ export const ALL_LEAGUES = [
   "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
   // 컵 대회
   "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
-  "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+  "COUPE_DE_FRANCE", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", // KFA_CUP 비활성화 (2026-05-25)
   "KBO", "NPB", "MLB",
   "NBA", "NHL", "LOL",
   // 2026-05-24 추가
@@ -94,7 +94,7 @@ export const SPORTS: SportMeta[] = [
       "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
       // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC + 스위스
       "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
-      "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
+      "COUPE_DE_FRANCE", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP", // KFA_CUP 비활성화 (2026-05-25)
       "SUI_CUP",
       // 2026-05-24 추가 — 잉글랜드 3부 + 발트/동유럽
       "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
@@ -526,10 +526,29 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   AFC_CL: "국제",
   AFC_CL_TWO: "국제",
   AFC_U23: "국제",
+  AFC_CUP: "국제",
+  CONCACAF_CCUP: "국제",
   COPA_LIB: "국제",
   COPA_SUD: "국제",
   CLUB_WORLD_CUP: "국제",
   WORLD_CUP: "국제",
+  // 자국 컵 — 리그와 동일 국가
+  FA_CUP: "잉글랜드",
+  EFL_CUP: "잉글랜드",
+  COPA_DEL_REY: "스페인",
+  COPPA_ITALIA: "이탈리아",
+  DFB_POKAL: "독일",
+  COUPE_DE_FRANCE: "프랑스",
+  KFA_CUP: "대한민국",
+  EMPEROR_CUP: "일본",
+  // 야구·농구·하키·e스포츠
+  KBO: "대한민국",
+  NPB: "일본",
+  MLB: "미국",
+  NBA: "미국",
+  WNBA: "미국",
+  NHL: "미국",
+  LOL: "대한민국",
   // 신규 추가 (23개)
   K3_LEAGUE: "대한민국",
   K4_LEAGUE: "대한민국",
@@ -663,6 +682,13 @@ export const COUNTRY_FLAG: Record<string, string> = {
   알제리: "🇩🇿",
   가나: "🇬🇭",
 };
+
+/** 리그 코드 → 국기 emoji (없으면 빈 문자열). UI 라벨 옆 표시용. */
+export function getLeagueFlag(league: string): string {
+  const country = COUNTRY_BY_LEAGUE[league];
+  if (!country) return "";
+  return COUNTRY_FLAG[country] ?? "";
+}
 
 /** 국가 정렬 순서 — 국제·대한민국·일본 우선, 나머지 A–Z (한국어 가나다순). */
 export const COUNTRY_ORDER: string[] = [

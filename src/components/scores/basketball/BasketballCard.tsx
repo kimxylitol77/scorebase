@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { PeriodLinescore as PeriodData } from "@/lib/sports/live-scores";
 import FavoriteStar from "../FavoriteStar";
+import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 
 export interface BasketballCardProps {
   matchId?: string | number;
@@ -134,6 +135,9 @@ export default function BasketballCard(props: BasketballCardProps) {
         <div className="flex items-center gap-2">
           {statusBadge}
           <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            {getLeagueFlag(league) && (
+              <span className="mr-1 normal-case" aria-hidden>{getLeagueFlag(league)}</span>
+            )}
             {leagueLabel ?? league}
           </span>
           {isLive && quarterText && (

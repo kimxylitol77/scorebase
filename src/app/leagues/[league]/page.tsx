@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
-import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +63,7 @@ const VALID_LEAGUES = [
   "COPPA_ITALIA",
   "DFB_POKAL",
   "COUPE_DE_FRANCE",
-  "KFA_CUP",
+  // "KFA_CUP" 비활성화 (2026-05-25)
   "EMPEROR_CUP",
   "CONCACAF_CCUP",
   "AFC_CUP",
@@ -440,6 +440,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             {info.subtitle}
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
+            {getLeagueFlag(upper) && (
+              <span className="mr-2 align-middle" aria-hidden>{getLeagueFlag(upper)}</span>
+            )}
             {info.name}
             {currentType !== "ALL" && (
               <span className="ml-3 text-2xl sm:text-3xl text-neutral-400 font-bold">

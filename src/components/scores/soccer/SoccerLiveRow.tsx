@@ -8,6 +8,7 @@
 
 import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
+import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import FavoriteStar from "../FavoriteStar";
 import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
 
@@ -100,6 +101,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   };
 
   const badge = getLeagueBadge(league);
+  const flag = getLeagueFlag(league);
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
@@ -143,6 +145,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         style={{ background: badge.bg, color: badge.fg }}
         title={`${badge.label} 리그 순위 보기 (새창)`}
       >
+        {flag && <span className="mr-0.5" aria-hidden>{flag}</span>}
         {badge.label}
       </a>
 
