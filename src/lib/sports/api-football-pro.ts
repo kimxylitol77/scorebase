@@ -108,7 +108,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   COPPA_ITALIA: 137, // 이탈리아 코파 이탈리아
   DFB_POKAL: 81, // 독일 DFB-Pokal
   COUPE_DE_FRANCE: 66, // 프랑스 쿠프 드 프랑스
-  KFA_CUP: 294, // 한국 FA컵 (366 은 Faroe-Islands 1.Deild 였음)
+  // KFA_CUP 비활성화: 검증 후 재활성화. 정답 ID 는 294 (366 은 Faroe 1.Deild).
   EMPEROR_CUP: 290, // 일본 천황배
   CONCACAF_CCUP: 16, // CONCACAF Champions Cup
   AFC_CUP: 18, // AFC Cup (3부 클럽 대회). Elite 는 17 (AFC_CL).
