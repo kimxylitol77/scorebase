@@ -355,6 +355,9 @@ export async function GET(req: NextRequest) {
               select: { name: true },
             }),
           ]);
+          // 같은 팀인데 Team 테이블에 두 row 양산 케이스 (J1 Kashima 116543↔176429 등) →
+          // 진짜 stale 이 아니라 dedup 필요. 이름 normalize 매칭되면 skip + 별도 신호로 분류.
+          if (tsTeam && afTeam && sameTeamName(tsTeam.name, afTeam.name)) continue;
           issues.push({
             ...placeholderInfo(league),
             kind: "standings_mismatch",
