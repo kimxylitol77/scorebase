@@ -48,6 +48,7 @@ export type League =
   | "GREEK_SL" // 그리스 슈퍼 리그 1
   // 북중남미 추가
   | "BRASILEIRAO" // 브라질 세리에 A
+  | "BRASILEIRAO_2" // 브라질 세리에 B
   | "LIGA_MX" // 멕시코 리가 MX
   | "COPA_LIB" // CONMEBOL 코파 리베르타도레스
   | "COPA_SUD" // CONMEBOL 코파 수다메리카나
@@ -207,6 +208,7 @@ export const SOCCER_LEAGUES = [
   "SPL",
   "GREEK_SL",
   "BRASILEIRAO",
+  "BRASILEIRAO_2",
   "LIGA_MX",
   "COPA_LIB",
   "COPA_SUD",
@@ -331,6 +333,7 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "SPL",
   "GREEK_SL",
   "BRASILEIRAO",
+  "BRASILEIRAO_2",
   "LIGA_MX",
   "COPA_LIB",
   "COPA_SUD",

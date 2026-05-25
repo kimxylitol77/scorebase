@@ -46,6 +46,7 @@ export const SPORT_KEY: Record<string, string> = {
   // 남미 + 멕시코
   ARGENTINA_PL: "soccer_argentina_primera_division",
   BRASILEIRAO: "soccer_brazil_campeonato",
+  BRASILEIRAO_2: "soccer_brazil_serie_b",
   CHILE_PD: "soccer_chile_campeonato",
   LIGA_MX: "soccer_mexico_ligamx",
   COPA_LIB: "soccer_conmebol_copa_libertadores",

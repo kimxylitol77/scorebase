@@ -44,6 +44,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   SPL: 179,
   GREEK_SL: 197,
   BRASILEIRAO: 71,
+  BRASILEIRAO_2: 72, // 브라질 세리에 B
   LIGA_MX: 262,
   COPA_LIB: 13,
   COPA_SUD: 11,

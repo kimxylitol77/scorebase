@@ -76,6 +76,7 @@ export const collectors: Record<League, MatchCollector> = {
   GREEK_SL: buildApiFootballCollector("GREEK_SL"),
   // 북중남미 추가
   BRASILEIRAO: buildApiFootballCollector("BRASILEIRAO"),
+  BRASILEIRAO_2: buildApiFootballCollector("BRASILEIRAO_2"),
   LIGA_MX: buildApiFootballCollector("LIGA_MX"),
   COPA_LIB: buildApiFootballCollector("COPA_LIB"),
   COPA_SUD: buildApiFootballCollector("COPA_SUD"),
