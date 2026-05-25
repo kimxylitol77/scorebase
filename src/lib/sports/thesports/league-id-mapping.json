@@ -775,28 +775,32 @@
     "ourLabel": "아르헨티나 리가 프로페시오날",
     "tsId": "p3glrw7hevqdyjv",
     "tsEn": "Argentine Division 1",
-    "tsKo": "아르헨티나 1부"
+    "tsKo": "아르헨티나 1부",
+    "tsSeasonId": "vjxm8gh4vvwr6od"
   },
   {
     "code": "BOLIVIA_PD",
     "ourLabel": "볼리비아 디비시온 프로페시오날",
     "tsId": "kn54qllh02qvy9d",
     "tsEn": "Bolivian Primera Division",
-    "tsKo": "볼리비아 1부"
+    "tsKo": "볼리비아 1부",
+    "tsSeasonId": "k82rekhvzwwrepz"
   },
   {
     "code": "URUGUAY_PD",
     "ourLabel": "우루과이 프리메라 디비시온",
     "tsId": "v2y8m4zhydql074",
     "tsEn": "Uruguay Primera Division",
-    "tsKo": "우루과이 1부"
+    "tsKo": "우루과이 1부",
+    "tsSeasonId": "y0or5jhlxgvqwzv"
   },
   {
     "code": "NWSL",
     "ourLabel": "NWSL",
     "tsId": "4zp5rzghvzq82w1",
     "tsEn": "United States Women's National Soccer League",
-    "tsKo": "미국 NWSL"
+    "tsKo": "미국 NWSL",
+    "tsSeasonId": "318q66hoz2xqo9j"
   },
   {
     "code": "COPA_DEL_REY",
@@ -876,7 +880,7 @@
     "tsId": "gx7lm7pho0m2wdk",
     "tsEn": "UEFA European U21 Championship qualification",
     "tsKo": "UEFA U21 챔피언십 예선",
-    "tsSeasonId": ""
+    "tsSeasonId": "yl5ergphzzxr8k0"
   },
   {
     "code": "UEFA_U21",
@@ -884,7 +888,7 @@
     "tsId": "kn54qllhejqvy9d",
     "tsEn": "UEFA European U21 Football Championship",
     "tsKo": "UEFA U21 챔피언십",
-    "tsSeasonId": ""
+    "tsSeasonId": "l5ergpho0l7r8k0"
   },
   {
     "code": "UEFA_U19",
@@ -892,7 +896,7 @@
     "tsId": "d23xmvkhoxqg8ny",
     "tsEn": "UEFA European U19 Football Championship",
     "tsKo": "UEFA U19 챔피언십",
-    "tsSeasonId": ""
+    "tsSeasonId": "kdj2ryoh8elq1zp"
   },
   {
     "code": "UEFA_U17",
