@@ -438,7 +438,8 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "J3_LEAGUE",
   "THAI_L1",
   "VIETNAM_VL2",
-  // 남미 하위 4
+  // 남미 1·2부 5
+  "ARGENTINA_PL",
   "URUGUAY_PD",
   "PARAGUAY_PD",
   "BOLIVIA_PD",
