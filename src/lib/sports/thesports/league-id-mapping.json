@@ -965,5 +965,45 @@
     "tsEn": "Thai League 1",
     "tsKo": "태국 1부",
     "tsSeasonId": "p3glrw7hdl5qdyj"
+  },
+  {
+    "code": "EFL_CUP",
+    "ourLabel": "EFL컵",
+    "tsId": "gx7lm7phw0m2wdk",
+    "tsEn": "English Football League Cup",
+    "tsKo": "EFL컵 / 카라바오컵",
+    "tsSeasonId": "l965mkyhp7xr1ge"
+  },
+  {
+    "code": "SUI_CUP",
+    "ourLabel": "스위스 컵",
+    "tsId": "p3glrw7h63qdyjv",
+    "tsEn": "Switzerland Cup",
+    "tsKo": "스위스 컵",
+    "tsSeasonId": "gy0or5jh73wqwzv"
+  },
+  {
+    "code": "INTL_FRIENDLY",
+    "ourLabel": "국가대표 친선",
+    "tsId": "jednm9whk0ryox8",
+    "tsEn": "International Friendly",
+    "tsKo": "국가대표 친선",
+    "tsSeasonId": "d23xmvkh77yqg8n"
+  },
+  {
+    "code": "BELARUS_PL",
+    "ourLabel": "벨라루스 프리미어",
+    "tsId": "z8yomo4h39q0j6l",
+    "tsEn": "Belarusian Premier League",
+    "tsKo": "벨라루스 프리미어",
+    "tsSeasonId": "3glrw7hwkl2qdyj"
+  },
+  {
+    "code": "PARAGUAY_PD",
+    "ourLabel": "파라과이 프리메라",
+    "tsId": "yl5ergphx4r8k0o",
+    "tsEn": "Paraguayan Primera Division",
+    "tsKo": "파라과이 프리메라",
+    "tsSeasonId": "9dn1m1gh666moep"
   }
 ]

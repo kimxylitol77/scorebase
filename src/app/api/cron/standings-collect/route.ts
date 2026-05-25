@@ -7,6 +7,17 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
+import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
+
+// Phase 4 (2026-05-25): TheSports standings-poller 가 cover 하는 리그는
+// api-football standings 호출 skip. ts standings-poller (Lightsail) 가 1h
+// 주기로 TheSportsStandingsCache 채움. getFullStandings/getStandingsPositions
+// 가 ts 우선 사용 (commit 091c42d). api-football quota 큰 절약.
+const TS_STANDINGS_COVERED = new Set(
+  (tsLeagueMap as Array<{ code: string; tsSeasonId?: string }>)
+    .filter((e) => e.tsSeasonId)
+    .map((e) => e.code),
+);
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -128,7 +139,9 @@ export async function GET(req: NextRequest) {
 
   const out: { ok: number; skip: number; fail: string[] } = { ok: 0, skip: 0, fail: [] };
   const leagues = (SOCCER_LEAGUES as readonly string[]).filter(
-    (l) => API_FOOTBALL_LEAGUE_ID[l as keyof typeof API_FOOTBALL_LEAGUE_ID],
+    (l) =>
+      API_FOOTBALL_LEAGUE_ID[l as keyof typeof API_FOOTBALL_LEAGUE_ID] &&
+      !TS_STANDINGS_COVERED.has(l), // Phase 4: ts cover 리그 skip
   );
 
   for (const league of leagues) {
