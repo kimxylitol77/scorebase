@@ -807,6 +807,104 @@ export function tsIncidentsToCards(
   return out;
 }
 
+/**
+ * SoccerEvent shape — events 타임라인 카드용. api-football events 의 형식과 호환.
+ */
+export interface SoccerEvent {
+  minute: number;
+  extra: number;
+  type: "goal" | "card" | "subst" | "var";
+  detail: string;
+  side: "home" | "away";
+  playerName: string | null;
+  assistName: string | null;
+}
+
+/**
+ * ts cache.detailLive.incidents → SoccerEvent[] (타임라인 카드용).
+ *
+ * type 매핑 (production 500 cache sample 검증):
+ *   1   = 골 (assist1_name) → Normal Goal
+ *   17  = 페널티 골 → Penalty
+ *   8   = 추가시간 골 (add_time 동반) → Normal Goal
+ *   29  = 연장 골 (time>=91) → Extra Time Goal
+ *   3   = 옐로 (reason_type=1) → Yellow Card
+ *   4   = 레드 (reason_type=9 등) → Red Card
+ *   9   = 교체 (in/out_player_name + reason_type) → Substitution
+ *   28  = VAR (var_reason + var_result) → VAR
+ *   30  = PK shootout → Penalty Shootout
+ *   19/11/12/26/27/15/16 = 시각 표시 / 미확정 — skip.
+ */
+export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
+  if (!Array.isArray(incidents)) return [];
+  const out: SoccerEvent[] = [];
+  for (const raw of incidents) {
+    const i = raw as Record<string, unknown>;
+    const t = i.type;
+    if (typeof t !== "number") continue;
+    const time = typeof i.time === "number" ? i.time : 0;
+    const extra = typeof i.add_time === "number" ? i.add_time : 0;
+    const side: "home" | "away" = i.position === 1 ? "home" : "away";
+    const playerName = typeof i.player_name === "string" ? i.player_name : null;
+
+    let type: SoccerEvent["type"];
+    let detail: string;
+    let assistName: string | null = null;
+
+    if (t === 1) {
+      type = "goal";
+      detail = "Normal Goal";
+      assistName = typeof i.assist1_name === "string" ? i.assist1_name : null;
+    } else if (t === 17) {
+      type = "goal";
+      detail = "Penalty";
+    } else if (t === 8) {
+      type = "goal";
+      detail = "Normal Goal";
+    } else if (t === 29) {
+      type = "goal";
+      detail = "Extra Time Goal";
+    } else if (t === 3) {
+      type = "card";
+      detail = "Yellow Card";
+    } else if (t === 4) {
+      type = "card";
+      detail = "Red Card";
+    } else if (t === 9) {
+      type = "subst";
+      // ts 의 교체는 in/out 둘 다 있음 → playerName = in 선수, assistName = out 선수 (api-football 호환)
+      const inName = typeof i.in_player_name === "string" ? i.in_player_name : null;
+      const outName = typeof i.out_player_name === "string" ? i.out_player_name : null;
+      // playerName 슬롯에 in (신규 투입) — 표시에서 "IN: xxx" 로 강조
+      // assistName 슬롯에 out (교체된 선수) — 표시에서 "OUT: yyy"
+      detail = "Substitution";
+      out.push({
+        minute: time,
+        extra,
+        type,
+        detail,
+        side,
+        playerName: inName,
+        assistName: outName,
+      });
+      continue;
+    } else if (t === 28) {
+      type = "var";
+      detail = "VAR";
+    } else if (t === 30) {
+      type = "goal";
+      detail = "Penalty Shootout";
+    } else {
+      continue; // 19, 11, 12, 26, 27, 15, 16 등 — skip
+    }
+
+    out.push({ minute: time, extra, type, detail, side, playerName, assistName });
+  }
+  // 최신 위로 정렬 (extra 포함)
+  out.sort((a, b) => (b.minute * 100 + b.extra) - (a.minute * 100 + a.extra));
+  return out;
+}
+
 /** 우리 League → ESPN soccer league path */
 const ESPN_SOCCER_PATH: Record<string, string> = {
   EPL: "eng.1",

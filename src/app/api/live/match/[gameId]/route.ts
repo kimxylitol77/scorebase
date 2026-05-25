@@ -290,17 +290,34 @@ export async function GET(
       }
     }
   } else if (SOCCER_LEAGUES.has(league)) {
-    // 2026-05-25 (Phase 1): ESPN summary + api-football events/stats/goals 호출 모두 제거.
+    // 2026-05-25 Phase 1+2: ESPN summary + api-football events/stats/goals 호출 제거.
     // 데이터 source 를 TheSports cache.detailLive 로 일원화.
-    // page.tsx 가 직접 TheSportsMatchCache 에서 stats / halfTeamStats / incidents 읽음.
-    // 사용자 화면 영향:
-    //   - soccerEvents 타임라인 카드: 데이터 빔 (page.tsx 의 cache.incidents 로 별도 가능)
-    //   - soccerGoals: 빔 (페이지 cache 기반)
-    //   - summary (stats/leaders/winProb): 빔 (cache.stats 가 SoccerLiveStatsCard 로 대체)
-    // Phase 2~4 (collector/standings/부상자) 는 별도 진행.
-    out.soccerEvents = null;
+    // Phase 2: events 타임라인을 cache.detailLive.incidents 에서 직접 추출.
     out.soccerGoals = null;
     out.summary = null;
+    out.soccerEvents = null;
+
+    try {
+      const { prisma: db } = await import("@/lib/db");
+      const ourMatch = await db.match.findFirst({
+        where: { externalId: gameId, league },
+        select: { id: true },
+      });
+      if (ourMatch) {
+        const cache = await db.theSportsMatchCache.findUnique({
+          where: { matchId: ourMatch.id },
+          select: { detailLive: true },
+        });
+        const dl = cache?.detailLive as { incidents?: unknown } | null;
+        if (dl?.incidents) {
+          const { tsIncidentsToEvents } = await import("@/lib/sports/live-scores");
+          const events = tsIncidentsToEvents(dl.incidents);
+          if (events.length > 0) out.soccerEvents = events;
+        }
+      }
+    } catch (e) {
+      console.warn("[live/match] ts events 추출 fail:", (e as Error).message);
+    }
     // TheSports football fast-poller cache 의 score 보강 — fast-poller 2초 cycle.
     // monotonic max(ESPN, cache.score[regular], cache.score[overtime], incidents.last) — 점수 증가만, 더 큰 값 안전.
     // cache.detailLive.score 형식 (docs):
