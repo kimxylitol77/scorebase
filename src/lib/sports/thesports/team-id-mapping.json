@@ -3450,10 +3450,10 @@
     "ourName": "FC Andorra",
     "ourLeague": "LALIGA_2",
     "ourExternalId": "8157",
-    "tsId": "8y39mp1hg6omojx",
-    "tsName": "Andorra",
-    "tsKo": "안도라",
-    "matchType": "exact-amb"
+    "tsId": "l7oqdeh6463r510",
+    "tsName": "Andorra CF",
+    "tsKo": "FC 안도라",
+    "matchType": "manual"
   },
   {
     "ourId": 119107,
