@@ -72,6 +72,40 @@ export interface PreviewContext {
   };
   /** 상대 전적 */
   h2h?: { homeWins: number; draws: number; awayWins: number; total: number };
+  /** TheSports analysis 기반 확장 history — 모든 대회 포함 H2H 매치별 detail
+   *  + 양 팀 최근 경기 (모든 대회) + 시간대별 골 분포 (시즌 누적).
+   *  우리 DB Match (cover 리그 한정) 보다 풍부 — 친선·컵·유로파 H2H 포함. */
+  tsHistory?: {
+    h2h: Array<{
+      date: string;
+      /** 그 경기에서 우리 home 팀이 home 으로 출전했나? */
+      ourHomeWasHome: boolean;
+      ourHomeScore: number;
+      ourAwayScore: number;
+      result: "W" | "D" | "L";
+      season?: string;
+    }>;
+    homeRecent: Array<{
+      date: string;
+      wasHome: boolean;
+      teamScore: number;
+      opponentScore: number;
+      result: "W" | "D" | "L";
+      season?: string;
+    }>;
+    awayRecent: Array<{
+      date: string;
+      wasHome: boolean;
+      teamScore: number;
+      opponentScore: number;
+      result: "W" | "D" | "L";
+      season?: string;
+    }>;
+    goalBuckets?: {
+      home: { scored: number[]; conceded: number[]; matches: number };
+      away: { scored: number[]; conceded: number[]; matches: number };
+    };
+  };
   /** 부상자 명단 (api-football Pro 보강) */
   injuries?: {
     home: Array<{ name: string; reason?: string }>;
@@ -479,6 +513,58 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     ctxLines.push(
       `- 상대 전적 (최근 ${context.h2h.total}경기): ${home} ${context.h2h.homeWins}승 · ${context.h2h.draws}무 · ${away} ${context.h2h.awayWins}승`,
     );
+  }
+  if (context.tsHistory) {
+    const th = context.tsHistory;
+    if (th.h2h.length > 0) {
+      const items = th.h2h
+        .map((mm) => {
+          const venue = mm.ourHomeWasHome ? "H" : "A";
+          const season = mm.season ? ` [${mm.season}]` : "";
+          return `${mm.date}(${venue}) ${mm.ourHomeScore}-${mm.ourAwayScore} ${mm.result}${season}`;
+        })
+        .join(" / ");
+      const w = th.h2h.filter((mm) => mm.result === "W").length;
+      const d = th.h2h.filter((mm) => mm.result === "D").length;
+      const l = th.h2h.filter((mm) => mm.result === "L").length;
+      ctxLines.push(
+        `- 확장 H2H (모든 대회 포함, ${home} 기준 ${w}승 ${d}무 ${l}패): ${items}`,
+      );
+    }
+    const formatRecent = (list: typeof th.homeRecent) =>
+      list
+        .map((mm) => {
+          const venue = mm.wasHome ? "H" : "A";
+          return `${mm.date}(${venue}) ${mm.teamScore}-${mm.opponentScore} ${mm.result}`;
+        })
+        .join(" / ");
+    if (th.homeRecent.length > 0) {
+      const w = th.homeRecent.filter((mm) => mm.result === "W").length;
+      const d = th.homeRecent.filter((mm) => mm.result === "D").length;
+      const l = th.homeRecent.filter((mm) => mm.result === "L").length;
+      ctxLines.push(
+        `- ${home} 최근 ${th.homeRecent.length}경기 (모든 대회, ${w}승 ${d}무 ${l}패): ${formatRecent(th.homeRecent)}`,
+      );
+    }
+    if (th.awayRecent.length > 0) {
+      const w = th.awayRecent.filter((mm) => mm.result === "W").length;
+      const d = th.awayRecent.filter((mm) => mm.result === "D").length;
+      const l = th.awayRecent.filter((mm) => mm.result === "L").length;
+      ctxLines.push(
+        `- ${away} 최근 ${th.awayRecent.length}경기 (모든 대회, ${w}승 ${d}무 ${l}패): ${formatRecent(th.awayRecent)}`,
+      );
+    }
+    if (th.goalBuckets) {
+      const labels = ["1-15", "16-30", "31-45", "46-60", "61-75", "76-90"];
+      const fmt = (arr: number[]) =>
+        labels.map((lb, i) => `${lb}분 ${arr[i] ?? 0}골`).join(", ");
+      ctxLines.push(
+        `- ${home} 시간대별 골 (시즌 ${th.goalBuckets.home.matches}경기): 득점 [${fmt(th.goalBuckets.home.scored)}] / 실점 [${fmt(th.goalBuckets.home.conceded)}]`,
+      );
+      ctxLines.push(
+        `- ${away} 시간대별 골 (시즌 ${th.goalBuckets.away.matches}경기): 득점 [${fmt(th.goalBuckets.away.scored)}] / 실점 [${fmt(th.goalBuckets.away.conceded)}]`,
+      );
+    }
   }
   if (context.keyPlayers) {
     const fmt = (

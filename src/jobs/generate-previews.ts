@@ -60,6 +60,39 @@ import {
 import { enrichBaseballContext } from "@/lib/predict/baseball-context";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
+import { parseTsAnalysisForPreview } from "@/lib/sports/thesports/preview-analysis";
+import { readFileSync } from "fs";
+import path from "path";
+
+const TS_SOCCER_LEAGUES = new Set([
+  "EPL",
+  "LALIGA",
+  "BUNDESLIGA",
+  "SERIE_A",
+  "LIGUE_1",
+  "MLS",
+  "UCL",
+  "WORLD_CUP",
+]);
+
+let _tsTeamMap: Map<number, string> | null = null;
+function loadTsTeamMap(): Map<number, string> {
+  if (_tsTeamMap) return _tsTeamMap;
+  try {
+    const f = path.join(
+      process.cwd(),
+      "src/lib/sports/thesports/team-id-mapping.json",
+    );
+    const arr = JSON.parse(readFileSync(f, "utf-8")) as Array<{
+      ourId: number;
+      tsId: string;
+    }>;
+    _tsTeamMap = new Map(arr.map((x) => [x.ourId, x.tsId]));
+  } catch {
+    _tsTeamMap = new Map();
+  }
+  return _tsTeamMap;
+}
 
 function extractTitle(markdown: string): string {
   const m = markdown.match(/^#\s+(.+)$/m);
@@ -221,6 +254,35 @@ export async function runPreview(opts?: {
         m.awayTeam.name,
         m.startTime,
       );
+
+      // TheSports analysis 보강 (축구만) — 모든 대회 H2H + 양 팀 최근 7경기 + 시간대별 골 분포.
+      // Lightsail football-poller 가 SCHEDULED 매치 포함 5분 주기로 TheSportsMatchCache.analysis 갱신.
+      if (TS_SOCCER_LEAGUES.has(m.league)) {
+        try {
+          const tm = loadTsTeamMap();
+          const homeTsId = tm.get(m.homeTeamId);
+          const awayTsId = tm.get(m.awayTeamId);
+          if (homeTsId && awayTsId) {
+            const cache = await prisma.theSportsMatchCache.findUnique({
+              where: { matchId: m.id },
+              select: { analysis: true },
+            });
+            if (cache?.analysis) {
+              const parsed = parseTsAnalysisForPreview(
+                cache.analysis,
+                homeTsId,
+                awayTsId,
+                7,
+              );
+              if (parsed) context.tsHistory = parsed;
+            }
+          }
+        } catch (err) {
+          console.warn(
+            `[preview/tsHistory] ${m.league}#${m.id}: ${(err as Error).message}`,
+          );
+        }
+      }
 
       // 시장 odds 가 저장돼 있으면 context 에 주입 → 프롬프트에서 Value Bet 자동 강조
       if (m.marketHome != null && m.marketAway != null) {
