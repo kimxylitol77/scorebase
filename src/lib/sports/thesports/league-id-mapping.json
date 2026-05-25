@@ -253,6 +253,22 @@
     "tsSeasonId": "yl5ergphgo0r8k0"
   },
   {
+    "code": "ESTONIA_ML",
+    "ourLabel": "에스토니아 메이스트리리가",
+    "tsId": "jednm9whokryox8",
+    "tsEn": "Estonian Premium Liiga",
+    "tsKo": "에스토니아 프리미엄 리그",
+    "tsSeasonId": "l5ergpho0nlr8k0"
+  },
+  {
+    "code": "GEORGIA_EL",
+    "ourLabel": "조지아 에로브눌리 리가",
+    "tsId": "jednm9whpkryox8",
+    "tsEn": "Georgia Erovnuli Liga",
+    "tsKo": "조지아 에로브눌리 리가",
+    "tsSeasonId": "y0or5jhlxedqwzv"
+  },
+  {
     "code": "GREEK_SL",
     "ourLabel": "그리스 슈퍼리그",
     "tsId": "e4wyrn4hoeq86pv",
@@ -372,6 +388,14 @@
     "tsSeasonId": "gpxwrxlhdz5ryk0"
   },
   {
+    "code": "LATVIA_VL",
+    "ourLabel": "라트비아 비르슬리가",
+    "tsId": "vl7oqdeholr510j",
+    "tsEn": "Latvian Higher League",
+    "tsKo": "라트비아 비르슬리가",
+    "tsSeasonId": "n54qllh25dvqvy9"
+  },
+  {
     "code": "LIGA_I",
     "ourLabel": "루마니아 리가 I",
     "tsId": "kdj2ryohe2q1zpg",
@@ -402,6 +426,14 @@
     "tsEn": "French Ligue 2",
     "tsKo": "프랑스 리그 2",
     "tsSeasonId": "gx7lm7ph407m2wd"
+  },
+  {
+    "code": "LITHUANIA_AL",
+    "ourLabel": "리투아니아 A 리가",
+    "tsId": "9vjxm8ghllr6odg",
+    "tsEn": "Lithuanian A Lyga",
+    "tsKo": "리투아니아 A 리가",
+    "tsSeasonId": "2y8m4zh3047ql07"
   },
   {
     "code": "MLS",
