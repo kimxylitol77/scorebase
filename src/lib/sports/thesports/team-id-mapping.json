@@ -12116,5 +12116,215 @@
     "tsId": "dj2ryohkx0yq1zp",
     "tsName": "Central African Republic",
     "matchType": "intl-sweep"
+  },
+  {
+    "ourId": 599775,
+    "ourName": "Greece U18",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "19070",
+    "tsId": "6ypq3nh5z36md7o",
+    "tsName": "Greece U18",
+    "tsKo": "그리스 U18",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599771,
+    "ourName": "England U18",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "21466",
+    "tsId": "e4wyrn4h3goq86p",
+    "tsName": "England U18",
+    "tsKo": "잉글랜드 U18",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599760,
+    "ourName": "Rep. Of Ireland",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "776",
+    "tsId": "9dn1m1ghzz5moep",
+    "tsName": "Ireland",
+    "tsKo": "아일랜드",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599776,
+    "ourName": "Mexico W U17",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "12513",
+    "tsId": "zp5rzghjzy4q82w",
+    "tsName": "Mexico U17 Women",
+    "tsKo": "멕시코 U17 여",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599777,
+    "ourName": "England U17",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "17949",
+    "tsId": "3glrw7hwkl2qdyj",
+    "tsName": "England U17",
+    "tsKo": "잉글랜드 U17",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599781,
+    "ourName": "Croatia U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8186",
+    "tsId": "p3glrw7h8pzqdyj",
+    "tsName": "Croatia U21",
+    "tsKo": "크로아티아 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599782,
+    "ourName": "Greece U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8198",
+    "tsId": "9vjxm8gh1wxr6od",
+    "tsName": "Greece U21",
+    "tsKo": "그리스 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599788,
+    "ourName": "Cyprus U18",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "23256",
+    "tsId": "gx7lm7ph4vkm2wd",
+    "tsName": "Cyprus U18",
+    "tsKo": "키프로스 U18",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599798,
+    "ourName": "Guam",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8119",
+    "tsId": "3glrw7hw7lyqdyj",
+    "tsName": "Guam Island",
+    "tsKo": "괌도 섬",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599520,
+    "ourName": "Qatar U20",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "10300",
+    "tsId": "gy0or5jhk0pqwzv",
+    "tsName": "Qatar U20",
+    "tsKo": "카타르 U20",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599803,
+    "ourName": "Portugal U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8216",
+    "tsId": "9vjxm8ghy1wr6od",
+    "tsName": "Portugal U21",
+    "tsKo": "포르투갈 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599804,
+    "ourName": "Northern Ireland U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8213",
+    "tsId": "j1l4rjnhvygm7vx",
+    "tsName": "Northern Ireland U21",
+    "tsKo": "북아일랜드 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599811,
+    "ourName": "Moldova U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8209",
+    "tsId": "l965mkyhd15r1ge",
+    "tsName": "Moldova U21",
+    "tsKo": "몰도바 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599812,
+    "ourName": "Malta U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8208",
+    "tsId": "9k82rekh79grepz",
+    "tsName": "Malta U21",
+    "tsKo": "말타 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599786,
+    "ourName": "Czech Republic",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "770",
+    "tsId": "56ypq3nhy07md7o",
+    "tsName": "Czechia",
+    "tsKo": "체코",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599825,
+    "ourName": "Republic of Ireland U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8217",
+    "tsId": "9vjxm8ghd5pr6od",
+    "tsName": "Ireland U21",
+    "tsKo": "아일랜드 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599827,
+    "ourName": "Cayman Islands",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8169",
+    "tsId": "23xmvkh30dlqg8n",
+    "tsName": "Cayman Islands",
+    "tsKo": "케이맨 제도",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599832,
+    "ourName": "Georgia U21",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "8195",
+    "tsId": "2y8m4zh30poql07",
+    "tsName": "Georgia U21",
+    "tsKo": "조지아 U21",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 599645,
+    "ourName": "Congo DR",
+    "ourLeague": "INTL_FRIENDLY",
+    "ourExternalId": "1508",
+    "tsId": "j1l4rjnho2em7vx",
+    "tsName": "Democratic Republic of the Congo",
+    "tsKo": "콩고민주공화국",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 3672,
+    "ourName": "Czech Republic",
+    "ourLeague": "WORLD_CUP",
+    "ourExternalId": "770",
+    "tsId": "56ypq3nhy07md7o",
+    "tsName": "Czechia",
+    "tsKo": "체코",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 3710,
+    "ourName": "Congo DR",
+    "ourLeague": "WORLD_CUP",
+    "ourExternalId": "1508",
+    "tsId": "j1l4rjnho2em7vx",
+    "tsName": "Democratic Republic of the Congo",
+    "tsKo": "콩고민주공화국",
+    "matchType": "cross-ref"
   }
 ]
