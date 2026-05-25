@@ -18,12 +18,14 @@ import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
 import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeStatsCard";
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
+import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import { getVenueByOurTeamId } from "@/lib/sports/thesports/venues";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -122,6 +124,8 @@ export default async function GenericLivePage({ params }: Props) {
   const awayGoalie = lg === "NHL" ? parseGoalie(match.awayGoalie) : null;
 
   const isSoccer = SOCCER_LEAGUES.has(lg);
+  // 홈팀 구장 — TheSports venue mapping. 매핑 없으면 null (카드 hide).
+  const venue = isSoccer ? getVenueByOurTeamId(match.homeTeam.id) : null;
   const scoreLabel = isSoccer
     ? { for: "평균득점", against: "평균실점" }
     : lg === "NHL"
@@ -209,6 +213,9 @@ export default async function GenericLivePage({ params }: Props) {
         hasDraw={isSoccer}
         scoreLabel={scoreLabel}
       />
+
+      {/* 경기 정보 — 홈팀 구장 (축구만, mapping 있을 때) */}
+      {isSoccer && venue && <SoccerVenueCard venue={venue} />}
 
       {/* TheSports 카드 (축구만, cache 있을 때) */}
       {isSoccer && match.theSportsCache && (() => {
