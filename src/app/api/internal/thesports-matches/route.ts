@@ -165,12 +165,14 @@ export async function POST(req: NextRequest) {
       skippedNoTeam++;
       continue;
     }
-    // externalId prefix "ts:" 로 ESPN/API-Sports 와 namespace 분리 — duplicate 방지
-    const externalId = `ts:${m.tsMatchId}`;
+    // externalId prefix "ts-" 로 ESPN/API-Sports 와 namespace 분리 — duplicate 방지.
+    // 2026-05-25: ":" → "-" 변경 — Next.js dynamic route segment 가 URL 안 ":" 처리
+    // 못해 /live/[league]/[gameId] 페이지 404 됐던 문제 fix.
+    const externalId = `ts-${m.tsMatchId}`;
     try {
       // ── 근본 dedup: 같은 매치를 다른 source (api-football/ESPN) 가 이미 등록했는지 체크.
       // SKIP_LEAGUES (worker 단) 가 누락한 리그도 여기서 차단 — worker 재배포 안 해도 효과.
-      // 조건: 같은 league + 시각 ±90분 + 팀 IDs (양방향) + externalId 가 ts: 아님.
+      // 조건: 같은 league + 시각 ±90분 + 팀 IDs (양방향) + externalId 가 ts- 아님.
       // 이미 ts: 매치 있으면 update path (where 절) 로 흘러가니 skip 필요 없음.
       const startMs = new Date(m.startTime).getTime();
       let existingNonTs = await prisma.match.findFirst({
@@ -184,7 +186,7 @@ export async function POST(req: NextRequest) {
             { homeTeamId: homeId, awayTeamId: awayId },
             { homeTeamId: awayId, awayTeamId: homeId },
           ],
-          NOT: { externalId: { startsWith: "ts:" } },
+          NOT: { externalId: { startsWith: "ts-" } },
         },
         select: { id: true, externalId: true },
       });
@@ -202,7 +204,7 @@ export async function POST(req: NextRequest) {
                 gte: new Date(startMs - 90 * 60 * 1000),
                 lte: new Date(startMs + 90 * 60 * 1000),
               },
-              NOT: { externalId: { startsWith: "ts:" } },
+              NOT: { externalId: { startsWith: "ts-" } },
             },
             select: {
               id: true,

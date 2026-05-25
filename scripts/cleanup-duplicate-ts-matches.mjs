@@ -40,7 +40,7 @@ async function main() {
   console.log(`▶ ts: 중복 매치 cleanup (${APPLY ? "APPLY" : "dry-run"})\n`);
 
   const tsMatches = await prisma.match.findMany({
-    where: { externalId: { startsWith: "ts:" } },
+    where: { externalId: { startsWith: "ts-" } },
     select: {
       id: true,
       league: true,
@@ -71,7 +71,7 @@ async function main() {
               gte: new Date(startMs - 90 * 60 * 1000),
               lte: new Date(startMs + 90 * 60 * 1000),
             },
-            NOT: { externalId: { startsWith: "ts:" } },
+            NOT: { externalId: { startsWith: "ts-" } },
           },
           select: {
             id: true,
