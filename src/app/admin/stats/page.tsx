@@ -195,6 +195,51 @@ export default async function StatsPage({ searchParams }: Props) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
 
+  // === AI 크롤러 전용 분석 (ChatGPT/Claude/Perplexity 등) ===
+  // bots30 / botsRange 안에서 category === "ai" 만 추출 → KPI + top paths + 일별.
+  const aiBots30 = bots30.filter((r) => r.botCategory === "ai");
+  const aiBotsRange = botsRange.filter((r) => detectBot(r.userAgent).category === "ai");
+  const aiTodayPV = aiBots30.filter((r) => r.ts >= today00KST).length;
+  const aiYesterdayPV = aiBots30.filter(
+    (r) => r.ts >= yesterday00KST && r.ts < today00KST,
+  ).length;
+  const aiLast24hPV = aiBots30.filter((r) => r.ts >= last24h).length;
+  const aiRangePV = aiBotsRange.length;
+  // 일별 PV (최근 30일)
+  const aiDailyBuckets = new Map<string, number>();
+  const allDays30 = new Set<string>();
+  {
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today00KST.getTime() - i * 24 * 60 * 60 * 1000);
+      allDays30.add(dayKey(d));
+    }
+  }
+  for (const day of allDays30) aiDailyBuckets.set(day, 0);
+  for (const r of aiBots30) {
+    const k = dayKey(r.ts);
+    aiDailyBuckets.set(k, (aiDailyBuckets.get(k) ?? 0) + 1);
+  }
+  const aiDailyData = Array.from(aiDailyBuckets.entries())
+    .map(([day, views]) => ({ day, date: shortDay(new Date(day + "T12:00:00Z")), views }))
+    .sort((a, b) => a.day.localeCompare(b.day))
+    .map(({ date, views }) => ({ date, views }));
+  // AI bot 별 PV (이름별)
+  const aiBotByName = new Map<string, number>();
+  for (const r of aiBotsRange) {
+    const info = detectBot(r.userAgent);
+    if (!info.name) continue;
+    aiBotByName.set(info.name, (aiBotByName.get(info.name) ?? 0) + 1);
+  }
+  const aiTopBots = Array.from(aiBotByName.entries()).sort((a, b) => b[1] - a[1]);
+  // AI bot 이 본 top paths
+  const aiPathCount = new Map<string, number>();
+  for (const r of aiBotsRange) {
+    aiPathCount.set(r.path, (aiPathCount.get(r.path) ?? 0) + 1);
+  }
+  const aiTopPaths = Array.from(aiPathCount.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15);
+
   // 봇 카테고리별 합계 (선택 기간)
   const botCatCount = new Map<BotCategory, number>();
   const botNameCount = new Map<string, { count: number; category: BotCategory }>();
@@ -355,11 +400,108 @@ export default async function StatsPage({ searchParams }: Props) {
         </SectionCard>
       </section>
 
-      {/* === 봇 트래픽 === */}
+      {/* === AI 크롤러 전용 (ChatGPT/Claude/Perplexity 등) === */}
       <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-2 pt-6">
           <span className="text-base">🤖</span>
-          <h2 className="text-lg font-bold tracking-tight">봇 트래픽</h2>
+          <h2 className="text-lg font-bold tracking-tight">AI 크롤러</h2>
+          <span className="text-xs text-neutral-500">
+            (GPTBot · ClaudeBot · PerplexityBot · Google-Extended · Applebot 등)
+          </span>
+        </div>
+
+        {/* KPI — 오늘/어제/24h/기간 */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <KpiCard label="오늘 AI PV" value={aiTodayPV} accent sub="ChatGPT·Claude 등" />
+          <KpiCard label="어제 AI PV" value={aiYesterdayPV} sub="비교 baseline" />
+          <KpiCard label="최근 24시간" value={aiLast24hPV} sub="rolling window" />
+          <KpiCard label={`${rangeLabel} AI PV`} value={aiRangePV} sub="기간 합계" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SectionCard title="AI 봇별 PV" subtitle={rangeLabel}>
+            {aiTopBots.length === 0 ? (
+              <EmptyHint message="AI 크롤러 방문이 아직 없습니다. 색인되면 GPTBot/ClaudeBot 등이 잡힙니다." />
+            ) : (
+              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {aiTopBots.map(([name, count], i) => {
+                  const max = aiTopBots[0][1];
+                  const pct = max > 0 ? (count / max) * 100 : 0;
+                  return (
+                    <li key={name} className="py-2.5 flex items-center gap-3 text-sm">
+                      <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
+                        {i + 1}
+                      </span>
+                      <span className="font-medium truncate max-w-[50%]">{name}</span>
+                      <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="tabular-nums text-neutral-600 dark:text-neutral-300 font-semibold w-12 text-right">
+                        {count}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </SectionCard>
+
+          <SectionCard title="AI 봇이 본 페이지 TOP 15" subtitle={rangeLabel}>
+            {aiTopPaths.length === 0 ? (
+              <EmptyHint />
+            ) : (
+              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {aiTopPaths.map(([path, count], i) => {
+                  const max = aiTopPaths[0][1];
+                  const pct = max > 0 ? (count / max) * 100 : 0;
+                  return (
+                    <li key={path} className="py-2 flex items-center gap-3 text-xs">
+                      <span className="w-5 text-right tabular-nums text-neutral-400 font-bold">
+                        {i + 1}
+                      </span>
+                      <Link
+                        href={path}
+                        target="_blank"
+                        className="font-mono truncate max-w-[55%] hover:underline text-emerald-700 dark:text-emerald-400"
+                      >
+                        {path}
+                      </Link>
+                      <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                        <div className="h-full bg-emerald-400/80" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
+                        {count}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </SectionCard>
+        </div>
+
+        <SectionCard title="최근 30일 AI 봇 PV" subtitle="일별 합계 — 인용·색인 추세">
+          {aiBots30.length === 0 ? (
+            <EmptyHint />
+          ) : (
+            <DailyArea data={aiDailyData} />
+          )}
+        </SectionCard>
+
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          ⓘ AI 크롤러가 우리 사이트를 fetch 하면 ChatGPT/Claude/Perplexity 답변에 인용될
+          가능성이 높아집니다. <code>llms.txt</code> + SportsEvent JSON-LD 가 색인 품질에 영향.
+        </p>
+      </section>
+
+      {/* === 봇 트래픽 (전체) === */}
+      <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">🕷</span>
+          <h2 className="text-lg font-bold tracking-tight">전체 봇 트래픽</h2>
           <span className="text-xs text-neutral-500">
             검색엔진 / AI 크롤러 / SNS 미리보기 / 모니터 등
           </span>
