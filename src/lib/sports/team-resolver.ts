@@ -5,6 +5,11 @@
 //
 // resolveTeamId 순서:
 //   1) TeamSourceId.findUnique 로 직접 매핑
+//   1.5) cross-league lookup: 같은 (source, externalId) 가 다른 league 에 매핑되어 있고
+//        normalize name 도 일치하면 그 canonical Team 재사용 → 새 mapping row 만 추가.
+//        클럽컵(UCL/UEL/UECL/COPA_LIB 등) 진출팀이 도메스틱+컵 양쪽 row 로 양산되는
+//        패턴 차단. name 가드는 같은 ID 가 다른 팀을 가리키는 케이스(예: Barcelona vs
+//        Barcelona SC) 오매핑 방지.
 //   2) 같은 league 안에서 normalize name 일치하는 기존 Team 찾기 → 매핑 추가
 //   3) 새 Team + TeamSourceId 동시 생성 (Team.externalId collision 시 기존 row 재사용)
 
@@ -53,8 +58,40 @@ export async function resolveTeamId(args: ResolveTeamArgs): Promise<number> {
     return mapped.teamId;
   }
 
-  // 2) name fuzzy match (같은 league 안에서 normalize 일치)
   const norm = normalizeTeamName(name);
+
+  // 1.5) cross-league lookup — 같은 (source, externalId) 가 다른 league 에 이미 매핑돼 있고
+  //      그 Team 의 normalize name 이 일치하면 재사용. 클럽컵 진출 팀 row 양산 방지.
+  if (norm) {
+    const otherLeagueMaps = await prisma.teamSourceId.findMany({
+      where: { source, externalId, NOT: { league } },
+      select: { teamId: true, team: { select: { id: true, name: true } } },
+    });
+    const canonical = otherLeagueMaps.find(
+      (m) => normalizeTeamName(m.team.name) === norm,
+    );
+    if (canonical) {
+      await prisma.teamSourceId
+        .create({
+          data: { league, source, externalId, teamId: canonical.teamId },
+        })
+        .catch((e: unknown) => {
+          const code = (e as { code?: string })?.code;
+          if (code !== "P2002") throw e;
+        });
+      await prisma.team.update({
+        where: { id: canonical.teamId },
+        data: {
+          name,
+          shortName: shortName ?? undefined,
+          logoUrl: logoUrl ?? undefined,
+        },
+      });
+      return canonical.teamId;
+    }
+  }
+
+  // 2) name fuzzy match (같은 league 안에서 normalize 일치)
   if (norm) {
     const candidates = await prisma.team.findMany({
       where: { league },

@@ -54,7 +54,17 @@ export function buildTheSportsFootballCollector(
       for (const m of resp.results) {
         if (m.competition_id !== compId) continue;
         const normalized = normalizeFootballMatch(m, teamMap);
-        if (normalized) matches.push(normalized);
+        if (!normalized) continue;
+        // safety net — normalize 결과 league 가 builder league 와 다르면 skip.
+        // TS_FOOTBALL_LEAGUE_BY_COMPETITION 매핑 충돌/오류로 클럽컵 진출팀 매치가
+        // 도메스틱 league row 에 잘못 binding 되는 사고 방지.
+        if (normalized.league !== league) {
+          console.warn(
+            `[ts-football] league mismatch skip: expected=${league} got=${normalized.league} comp=${m.competition_id} match=${m.id}`,
+          );
+          continue;
+        }
+        matches.push(normalized);
       }
       return matches;
     },
