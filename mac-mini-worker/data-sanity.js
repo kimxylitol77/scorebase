@@ -75,7 +75,7 @@ const KIND_CAUSE = {
 const KIND_ACTION = {
   score_drift: "mapBaseballStatus 코드 + Match.status 직접 확인",
   inning_missing: "/tmp/baseball-ws-subscriber.log + ts-baseball-mapping endpoint",
-  cache_db_mismatch: "convertCacheToBaseballLive 의 ft[0]=home, ft[1]=away 가정 검증",
+  cache_db_mismatch: "convertCacheToBaseballLive 의 ft[0]=away, ft[1]=home 가정 검증 (메모리 feedback_thesports_baseball_indexing.md)",
   stale_live: "Vercel cron 로그 + baseball-poller.log + baseball-ws-subscriber.log",
   standings_stale: "Lightsail: sudo systemctl status scorebase-standings-poller / Vercel cron: /api/cron/standings-collect 로그",
   standings_mismatch: "src/lib/sports/thesports/standings-helper.ts 의 source 우선순위 확인",
