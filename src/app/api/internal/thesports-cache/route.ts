@@ -67,13 +67,25 @@ export async function POST(req: NextRequest) {
   }
 
   // 우리 Match 존재 확인 + 기존 cache 의 detailLive 가져오기 (merge 용)
-  const existing = await prisma.theSportsMatchCache.findUnique({
-    where: { matchId: body.matchId },
-    select: { matchId: true, detailLive: true },
-  });
-  if (!existing) {
-    const exists = await prisma.match.findUnique({ where: { id: body.matchId }, select: { id: true } });
-    if (!exists) return NextResponse.json({ error: "match not found" }, { status: 404 });
+  const [existing, currentMatch] = await Promise.all([
+    prisma.theSportsMatchCache.findUnique({
+      where: { matchId: body.matchId },
+      select: { matchId: true, detailLive: true },
+    }),
+    prisma.match.findUnique({
+      where: { id: body.matchId },
+      select: { id: true, homeScore: true, awayScore: true, status: true, league: true },
+    }),
+  ]);
+  if (!currentMatch) return NextResponse.json({ error: "match not found" }, { status: 404 });
+
+  // POSTPONED 매치는 worker push 전부 무시 — cache.updatedAt freshness false positive 방지.
+  // baseball-poller / ws-subscriber 가 우천 연기 후에도 detailLive 를 계속 push 해
+  // LiveScoresBar 가 stale 라이브로 오인하는 케이스 차단 (2026-05-27 한화 vs NC 사고).
+  // 운영자가 POSTPONED 를 풀거나 api-football cron 이 재편성된 매치로 새 row 만들면
+  // 그때부터 다시 라이브 데이터 받기 시작.
+  if (currentMatch.status === "POSTPONED") {
+    return NextResponse.json({ ok: true, skipped: "postponed" });
   }
 
   // upsert — 매치당 1 row
@@ -127,37 +139,33 @@ export async function POST(req: NextRequest) {
     typeof body.homeScore === "number" && typeof body.awayScore === "number";
   if (needScoreUpdate || tsStatusId != null) {
     try {
-      const current = await prisma.match.findUnique({
-        where: { id: body.matchId },
-        select: { homeScore: true, awayScore: true, status: true, league: true },
-      });
       const updateData: { homeScore?: number; awayScore?: number; status?: MatchStatus } = {};
 
-      if (needScoreUpdate && current) {
+      if (needScoreUpdate) {
         // 야구는 챌린지/판정 정정으로 점수 감소 가능 → ws-subscriber 의 fresh ft 그대로 set.
         // 축구는 monotonic max 유지 (점수 감소 시나리오 거의 없음 + race 안전망).
-        const isBaseball = BASEBALL_LEAGUES.has(current.league);
+        const isBaseball = BASEBALL_LEAGUES.has(currentMatch.league);
         const newHome = isBaseball
           ? body.homeScore!
-          : Math.max(body.homeScore!, current.homeScore ?? -1);
+          : Math.max(body.homeScore!, currentMatch.homeScore ?? -1);
         const newAway = isBaseball
           ? body.awayScore!
-          : Math.max(body.awayScore!, current.awayScore ?? -1);
-        if (newHome !== current.homeScore) updateData.homeScore = newHome;
-        if (newAway !== current.awayScore) updateData.awayScore = newAway;
+          : Math.max(body.awayScore!, currentMatch.awayScore ?? -1);
+        if (newHome !== currentMatch.homeScore) updateData.homeScore = newHome;
+        if (newAway !== currentMatch.awayScore) updateData.awayScore = newAway;
       }
 
-      if (tsStatusId != null && current) {
-        const sport = BASEBALL_LEAGUES.has(current.league) ? "baseball" : "football";
+      if (tsStatusId != null) {
+        const sport = BASEBALL_LEAGUES.has(currentMatch.league) ? "baseball" : "football";
         const mapped =
           sport === "baseball"
             ? mapBaseballStatus(tsStatusId)
             : mapFootballStatus(tsStatusId);
         // 단조 progression — FINISHED 에서 LIVE/SCHEDULED 로 역행 안 함.
         // POSTPONED 는 어디서나 진입 허용 (matchday cancel).
-        const currentRank = STATUS_RANK[current.status as MatchStatus] ?? 0;
+        const currentRank = STATUS_RANK[currentMatch.status as MatchStatus] ?? 0;
         const newRank = STATUS_RANK[mapped];
-        if (mapped !== current.status && (newRank >= currentRank || mapped === "POSTPONED")) {
+        if (mapped !== currentMatch.status && (newRank >= currentRank || mapped === "POSTPONED")) {
           updateData.status = mapped;
         }
       }
