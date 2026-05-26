@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const STALE_HOURS = 12;
+const STALE_HOURS = 6;
 
 // 리그 → data source 매핑 (Haiku 진단 prompt 용 + 알림 hint)
 const SOURCE_HINT: Record<string, string> = {
