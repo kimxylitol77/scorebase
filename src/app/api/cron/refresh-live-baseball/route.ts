@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { runFetchMlbStartersLive } from "@/jobs/fetch-mlb-starters";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -43,6 +44,17 @@ export async function GET(req: Request) {
     }),
   );
 
+  // MLB 라이브 매치의 선발 투수 보강 — schedule probable 이 늦은 팀의 actual 채움.
+  // homeStarter/awayStarter 한쪽이라도 null 인 LIVE 매치만 처리하므로 보통 0~2회 호출.
+  let mlbStarters: Awaited<ReturnType<typeof runFetchMlbStartersLive>> | null = null;
+  if (matches.some((m) => m.league === "MLB")) {
+    try {
+      mlbStarters = await runFetchMlbStartersLive();
+    } catch (e) {
+      console.warn("[refresh-live-baseball] MLB starters live 실패:", (e as Error).message);
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     total: matches.length,
@@ -52,5 +64,6 @@ export async function GET(req: Request) {
       acc[m.league] = (acc[m.league] ?? 0) + 1;
       return acc;
     }, {}),
+    mlbStarters,
   });
 }

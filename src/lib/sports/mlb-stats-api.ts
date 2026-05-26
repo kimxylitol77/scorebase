@@ -54,6 +54,8 @@ export interface MlbScheduledGame {
   awayTeamName: string;
   homeStarter?: MlbStarter;
   awayStarter?: MlbStarter;
+  /** MLB Stats API abstractGameState — "Preview" | "Live" | "Final". boxscore fallback 분기용 */
+  abstractGameState?: string;
 }
 
 /**
@@ -86,10 +88,36 @@ export async function fetchMlbScheduleWithStarters(
         awayStarter: g.teams.away.probablePitcher
           ? { pid: g.teams.away.probablePitcher.id, name: g.teams.away.probablePitcher.fullName }
           : undefined,
+        abstractGameState: g.status?.abstractGameState,
       });
     }
   }
   return out;
+}
+
+/**
+ * 매치 시작 후 actual 선발 투수 — boxscore endpoint.
+ * schedule 의 probablePitcher 가 미정/지연된 팀(예: 텍사스)에 대한 fallback.
+ *
+ * pitchers 배열은 등판 순서이므로 [0] = 선발. 한 쪽이라도 비어있으면 그 쪽만 undefined.
+ * (예: 경기 직전 호출 시 home 만 채워졌을 수 있음)
+ */
+export async function fetchMlbBoxscoreStarters(gamePk: number): Promise<{
+  home?: { pid: number; name: string };
+  away?: { pid: number; name: string };
+}> {
+  const { data } = await client.get(`/game/${gamePk}/boxscore`);
+  const result: { home?: { pid: number; name: string }; away?: { pid: number; name: string } } = {};
+  for (const side of ["home", "away"] as const) {
+    const t = data?.teams?.[side];
+    const pitchers: number[] = t?.pitchers ?? [];
+    const pid = pitchers[0];
+    if (!pid) continue;
+    const player = t?.players?.[`ID${pid}`];
+    const name: string | undefined = player?.person?.fullName;
+    if (name) result[side] = { pid, name };
+  }
+  return result;
 }
 
 /** 한 선수의 시즌 피칭 통계 + 던지는 손. */

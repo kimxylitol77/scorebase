@@ -13,8 +13,10 @@
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import {
+  fetchMlbBoxscoreStarters,
   fetchMlbScheduleWithStarters,
   fetchPitcherStats,
+  type MlbScheduledGame,
   type MlbStarter,
 } from "@/lib/sports/mlb-stats-api";
 
@@ -33,6 +35,28 @@ function normName(s: string): string {
     .toLowerCase()
     .replace(/\b(the|fc|cf|club)\b/g, "")
     .replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * 매치 시작 후 schedule probable 이 비어있는 쪽을 boxscore 의 actual 로 보강.
+ * matched 객체를 mutate. fetch 실패 시 그대로 둠.
+ */
+async function fillMissingFromBoxscore(matched: MlbScheduledGame): Promise<void> {
+  if (matched.homeStarter && matched.awayStarter) return;
+  try {
+    const box = await fetchMlbBoxscoreStarters(matched.gamePk);
+    if (!matched.homeStarter && box.home) {
+      matched.homeStarter = { pid: box.home.pid, name: box.home.name };
+    }
+    if (!matched.awayStarter && box.away) {
+      matched.awayStarter = { pid: box.away.pid, name: box.away.name };
+    }
+  } catch (e) {
+    console.warn(
+      `[mlb-starters] gamePk ${matched.gamePk} boxscore 실패:`,
+      (e as Error).message,
+    );
+  }
 }
 
 export async function runFetchMlbStarters(opts?: {
@@ -99,7 +123,16 @@ export async function runFetchMlbStarters(opts?: {
       });
       if (!matched) continue;
 
-      // 선발 투수 미정 매치는 일단 빈 값으로 저장 (재시도 표시)
+      // LIVE/FINISHED 매치 — schedule probable 이 비어 있으면 boxscore 의 actual 로 보강
+      // (텍사스 등 발표 늦은 팀 케이스. 예: match #128507 home=null → Kumar Rocker)
+      if (
+        (matched.abstractGameState === "Live" || matched.abstractGameState === "Final") &&
+        (!matched.homeStarter || !matched.awayStarter)
+      ) {
+        await fillMissingFromBoxscore(matched);
+      }
+
+      // 선발 투수 미정 매치는 일단 스킵 (재시도 표시)
       if (!matched.homeStarter && !matched.awayStarter) {
         noStarter++;
         continue;
@@ -143,6 +176,104 @@ export async function runFetchMlbStarters(opts?: {
     `[mlb-starters] 완료 — 갱신 ${updated} / 스킵 ${skipped} / 선발미정 ${noStarter}`,
   );
   return { updated, skipped, noStarter };
+}
+
+/**
+ * 라이브 매치 전용 빠른 보강 — refresh-live-baseball cron 에서 호출.
+ *
+ * daily 잡(`runFetchMlbStarters`)은 schedule probable 만 사용. 매치 시작 직전/직후
+ * 발표되는 텍사스류 투수는 daily 사이클 사이에 채워지지 않아 라이브 페이지에 null 잔재.
+ * 여기선 status=LIVE 인 MLB 매치만 보고, homeStarter 또는 awayStarter 가 null 이면
+ * boxscore endpoint 에서 actual 선발 pid → ERA/WHIP/K9 까지 한 번에 갱신.
+ */
+export async function runFetchMlbStartersLive() {
+  const liveMatches = await prisma.match.findMany({
+    where: { league: "MLB", status: "LIVE" },
+    include: { homeTeam: true, awayTeam: true },
+  });
+  if (liveMatches.length === 0) return { live: 0, updated: 0, missing: 0 };
+
+  // 매치 시작 날짜별 schedule 캐싱 (보통 1~2일)
+  const dates = new Set<string>();
+  for (const m of liveMatches) dates.add(m.startTime.toISOString().slice(0, 10));
+
+  const scheduleByDate = new Map<string, MlbScheduledGame[]>();
+  for (const d of dates) {
+    try {
+      scheduleByDate.set(d, await fetchMlbScheduleWithStarters(d));
+    } catch (e) {
+      console.warn(`[mlb-starters/live] ${d} schedule 실패:`, (e as Error).message);
+    }
+  }
+
+  const season = new Date().getUTCFullYear();
+  let updated = 0;
+  let missing = 0;
+
+  for (const dbm of liveMatches) {
+    const missingHome = !dbm.homeStarter;
+    const missingAway = !dbm.awayStarter;
+    if (!missingHome && !missingAway) continue;
+
+    const dKey = dbm.startTime.toISOString().slice(0, 10);
+    const games = scheduleByDate.get(dKey) ?? [];
+    const matched = games.find((sg) => {
+      const homeOk =
+        normName(sg.homeTeamName).includes(normName(dbm.homeTeam.name)) ||
+        normName(dbm.homeTeam.name).includes(normName(sg.homeTeamName));
+      const awayOk =
+        normName(sg.awayTeamName).includes(normName(dbm.awayTeam.name)) ||
+        normName(dbm.awayTeam.name).includes(normName(sg.awayTeamName));
+      return homeOk && awayOk;
+    });
+    if (!matched) {
+      missing++;
+      continue;
+    }
+
+    await fillMissingFromBoxscore(matched);
+
+    let homeStarter: MlbStarter | undefined;
+    let awayStarter: MlbStarter | undefined;
+    try {
+      if (missingHome && matched.homeStarter) {
+        const stats = await fetchPitcherStats(matched.homeStarter.pid, season);
+        homeStarter = { ...matched.homeStarter, ...stats };
+      }
+      if (missingAway && matched.awayStarter) {
+        const stats = await fetchPitcherStats(matched.awayStarter.pid, season);
+        awayStarter = { ...matched.awayStarter, ...stats };
+      }
+    } catch (e) {
+      console.warn(
+        `[mlb-starters/live] match #${dbm.id} 통계 fetch 실패:`,
+        (e as Error).message,
+      );
+      continue;
+    }
+
+    if (!homeStarter && !awayStarter) {
+      missing++;
+      continue;
+    }
+
+    // 비어 있지 않던 쪽은 보존 — 필요한 컬럼만 부분 update
+    await prisma.match.update({
+      where: { id: dbm.id },
+      data: {
+        ...(homeStarter ? { homeStarter: JSON.stringify(homeStarter) } : {}),
+        ...(awayStarter ? { awayStarter: JSON.stringify(awayStarter) } : {}),
+        startersUpdatedAt: new Date(),
+      },
+    });
+    updated++;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+
+  console.log(
+    `[mlb-starters/live] live=${liveMatches.length} updated=${updated} missing=${missing}`,
+  );
+  return { live: liveMatches.length, updated, missing };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
