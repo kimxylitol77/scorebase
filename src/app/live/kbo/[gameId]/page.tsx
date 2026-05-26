@@ -18,6 +18,7 @@ import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
+import { buildPlayerNameMap } from "@/lib/sports/thesports/baseball-player-names";
 
 export const dynamic = "force-dynamic";
 
@@ -81,9 +82,12 @@ export default async function KboLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const [extras, baseballOdds] = await Promise.all([
+  const [extras, baseballOdds, playerNameById] = await Promise.all([
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
+    buildPlayerNameMap(
+      (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players,
+    ),
   ]);
 
   return (
@@ -125,6 +129,7 @@ export default async function KboLivePage({ params }: Props) {
         previewSlug={extras.previewSlug}
         recapSlug={extras.recapSlug}
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+        league="KBO"
       />
       <BaseballLiveDetail
         gameId={gameId}
@@ -193,6 +198,7 @@ export default async function KboLivePage({ params }: Props) {
             players={(match.theSportsCache.detailLive as { players?: unknown }).players}
             homeNameKo={homeKo}
             awayNameKo={awayKo}
+            playerNameById={playerNameById}
           />
         </>
       ) : null}

@@ -15,7 +15,16 @@ interface Props {
 // 신규 리그 (K1/J1/SAUDI/EREDIVISIE 등) 는 페이지 없으니 link 제거해 404 방지.
 const INJURY_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
+  "NBA", "MLB", "NHL", "KBO", "NPB",
 ]);
+
+// 리그별 부상자 라벨 — '{리그} 부상자 명단' 형식.
+const INJURY_LABEL: Record<string, string> = {
+  EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가",
+  SERIE_A: "세리에 A", LIGUE_1: "리그 1", MLS: "MLS",
+  NBA: "NBA", MLB: "MLB", NHL: "NHL",
+  KBO: "KBO", NPB: "NPB",
+};
 
 export default function MatchArticleLinks({
   previewSlug,
@@ -47,7 +56,7 @@ export default function MatchArticleLinks({
           href={`/articles/${previewSlug}`}
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition"
         >
-          📊 경기 프리뷰 보기
+          경기 프리뷰 보기
         </Link>
       )}
       {previewAsRef && (
@@ -55,7 +64,7 @@ export default function MatchArticleLinks({
           href={`/articles/${previewSlug}`}
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 transition"
         >
-          📊 프리뷰
+          프리뷰
         </Link>
       )}
       {showInjury && (
@@ -63,7 +72,7 @@ export default function MatchArticleLinks({
           href={`/injuries/${league}`}
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25 transition"
         >
-          🩹 부상자 명단
+          {(INJURY_LABEL[league!] ?? league)} 부상자 명단
         </Link>
       )}
     </div>

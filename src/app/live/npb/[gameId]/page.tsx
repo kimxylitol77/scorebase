@@ -18,6 +18,7 @@ import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
+import { buildPlayerNameMap } from "@/lib/sports/thesports/baseball-player-names";
 
 export const dynamic = "force-dynamic";
 
@@ -84,11 +85,14 @@ export default async function NpbLivePage({ params }: Props) {
   const homeStarterFull = parseStarterFull(match.homeStarter);
   const awayStarterFull = parseStarterFull(match.awayStarter);
   // NPB 사진은 npb.jp scraping 필요 — pid 있으면 SSR 단에서 fetch
-  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds] = await Promise.all([
+  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds, playerNameById] = await Promise.all([
     homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
     awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
+    buildPlayerNameMap(
+      (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players,
+    ),
   ]);
 
   return (
@@ -130,6 +134,7 @@ export default async function NpbLivePage({ params }: Props) {
         previewSlug={extras.previewSlug}
         recapSlug={extras.recapSlug}
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+        league="NPB"
       />
       <BaseballLiveDetail
         gameId={gameId}
@@ -199,6 +204,7 @@ export default async function NpbLivePage({ params }: Props) {
             players={(match.theSportsCache.detailLive as { players?: unknown }).players}
             homeNameKo={homeKo}
             awayNameKo={awayKo}
+            playerNameById={playerNameById}
           />
         </>
       ) : null}

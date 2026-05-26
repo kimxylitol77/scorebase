@@ -22,6 +22,7 @@ import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
+import { buildPlayerNameMap } from "@/lib/sports/thesports/baseball-player-names";
 
 function parseStarterFull(json: string | null): StarterInfo | null {
   if (!json) return null;
@@ -148,9 +149,12 @@ export default async function MlbLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const [extras, baseballOdds] = await Promise.all([
+  const [extras, baseballOdds, playerNameById] = await Promise.all([
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
+    buildPlayerNameMap(
+      (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players,
+    ),
   ]);
 
   return (
@@ -188,21 +192,12 @@ export default async function MlbLivePage({ params }: Props) {
         <p className="text-sm text-neutral-500 mt-1">
           MLB · 라이브 스코어 · 라이브 푸시 (평균 2-3초)
         </p>
-        {/* 부상자 명단 link — 매치 직전 결장 확인용. /injuries/MLB 페이지로 빠른 이동. */}
-        <div className="mt-2 flex flex-wrap gap-2">
-          <Link
-            href="/injuries/MLB"
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/40 text-xs font-medium text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition"
-          >
-            <span>🏥</span>
-            <span>MLB 부상자 명단</span>
-          </Link>
-        </div>
       </header>
       <MatchArticleLinks
         previewSlug={extras.previewSlug}
         recapSlug={extras.recapSlug}
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+        league="MLB"
       />
       <MlbLiveDetail
         gameId={gameId}
@@ -265,6 +260,7 @@ export default async function MlbLivePage({ params }: Props) {
             players={(match.theSportsCache.detailLive as { players?: unknown }).players}
             homeNameKo={homeKo}
             awayNameKo={awayKo}
+            playerNameById={playerNameById}
           />
         </>
       ) : null}
