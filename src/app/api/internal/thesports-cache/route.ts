@@ -66,14 +66,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "matchId(number) + tsMatchId(string) required" }, { status: 400 });
   }
 
-  // 우리 Match 존재 확인
-  const exists = await prisma.match.findUnique({ where: { id: body.matchId }, select: { id: true } });
-  if (!exists) return NextResponse.json({ error: "match not found" }, { status: 404 });
+  // 우리 Match 존재 확인 + 기존 cache 의 detailLive 가져오기 (merge 용)
+  const existing = await prisma.theSportsMatchCache.findUnique({
+    where: { matchId: body.matchId },
+    select: { matchId: true, detailLive: true },
+  });
+  if (!existing) {
+    const exists = await prisma.match.findUnique({ where: { id: body.matchId }, select: { id: true } });
+    if (!exists) return NextResponse.json({ error: "match not found" }, { status: 404 });
+  }
 
   // upsert — 매치당 1 row
   // 모든 JSON 필드는 undefined 면 갱신 안 함 (부분 update)
   const data: Record<string, unknown> = { tsMatchId: body.tsMatchId };
-  if (body.detailLive !== undefined) data.detailLive = body.detailLive as object;
+  // detailLive 는 통째 replace 대신 기존 키들과 merge — ws-subscriber 가 partial
+  // delta (extra 만 / score 만 등) 푸시할 때 다른 키 (score/stats/players) 보존 위해.
+  // football fast-poller 처럼 전체 응답 푸시도 동일 merge 결과로 안전.
+  if (body.detailLive !== undefined) {
+    const cur = (existing?.detailLive as Record<string, unknown> | null) ?? {};
+    const incoming = (body.detailLive as Record<string, unknown> | null) ?? {};
+    data.detailLive = { ...cur, ...incoming };
+  }
   if (body.lineup !== undefined) data.lineup = body.lineup as object;
   if (body.analysis !== undefined) data.analysis = body.analysis as object;
   if (body.teamStats !== undefined) data.teamStats = body.teamStats as object;
