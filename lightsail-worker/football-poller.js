@@ -65,12 +65,30 @@ async function fetchOurMatches() {
   return data.matches || [];
 }
 
+// TheSports diary 는 tsp 기준 KST 자정 ± 윈도우의 매치만 반환한다.
+// 종료 직후 매치는 다음 KST 자정 이후엔 어제 tsp 의 diary 에서만 보이므로
+// [-1day, 0, +1day] 3개 tsp 의 results 를 합쳐 dedup 한다.
 async function fetchTsDiary() {
-  const { data } = await axios.get(`${TS_BASE}/v1/football/match/diary`, {
-    params: { user: TS_USER, secret: TS_SECRET, tsp: Math.floor(Date.now() / 1000) },
-    timeout: 30_000,
-  });
-  return data.results || [];
+  const nowSec = Math.floor(Date.now() / 1000);
+  const DAY = 86_400;
+  const tsps = [nowSec - DAY, nowSec, nowSec + DAY];
+  const responses = await Promise.allSettled(
+    tsps.map((tsp) =>
+      axios.get(`${TS_BASE}/v1/football/match/diary`, {
+        params: { user: TS_USER, secret: TS_SECRET, tsp },
+        timeout: 30_000,
+      }),
+    ),
+  );
+  const byId = new Map();
+  for (const res of responses) {
+    if (res.status !== "fulfilled") continue;
+    const results = res.value?.data?.results || [];
+    for (const r of results) {
+      if (r?.id && !byId.has(r.id)) byId.set(r.id, r);
+    }
+  }
+  return [...byId.values()];
 }
 
 async function fetchTsAnalysis(tsMatchId) {
@@ -155,7 +173,15 @@ async function fetchTsHalfTeamStatsList() {
   }
 }
 
-function matchToTsMatch(our, tsDiary) {
+// 두 단계 매칭:
+//   strict: competition + 양 팀 ts_id 정확 일치 + ±150분 (시간대 30분~1시간 오프셋 흡수)
+//   fallback: competition + 한쪽 team_id 만 일치 + ±90분 윈도우, 후보가 unique 일 때만
+//   fallback 은 ts side 에서 한쪽 팀의 ts_team_id 가 시즌 새로 발급된 경우를 흡수
+//   (시즌마다 ts team id 새로 발급 — feedback_ts_team_id_seasonal 패턴)
+const STRICT_WINDOW_SEC = 9000; // ±150분
+const FALLBACK_WINDOW_SEC = 5400; // ±90분 (보수적)
+
+function matchToTsMatchStrict(our, tsDiary) {
   const ourTime = new Date(our.startTime).getTime() / 1000;
   return tsDiary.find((ts) => {
     if (ts.competition_id !== our.tsCompetitionId) return false;
@@ -164,8 +190,29 @@ function matchToTsMatch(our, tsDiary) {
       (ts.home_team_id === our.away.tsTeamId && ts.away_team_id === our.home.tsTeamId);
     if (!sameTeams) return false;
     const diff = Math.abs((ts.match_time || 0) - ourTime);
-    return diff < 5400; // 90분
+    return diff < STRICT_WINDOW_SEC;
   });
+}
+
+function matchToTsMatchFallback(our, tsDiary) {
+  if (!our.home.tsTeamId || !our.away.tsTeamId) return null;
+  const ourTime = new Date(our.startTime).getTime() / 1000;
+  const ourTeamSet = new Set([our.home.tsTeamId, our.away.tsTeamId]);
+  const candidates = tsDiary.filter((ts) => {
+    if (ts.competition_id !== our.tsCompetitionId) return false;
+    const hit = ourTeamSet.has(ts.home_team_id) || ourTeamSet.has(ts.away_team_id);
+    if (!hit) return false;
+    const diff = Math.abs((ts.match_time || 0) - ourTime);
+    return diff < FALLBACK_WINDOW_SEC;
+  });
+  if (candidates.length !== 1) return null; // unique 일 때만 안전하게 채택
+  const cand = candidates[0];
+  // outdated team_id 정보 추출 (mapping audit log 용)
+  const ourHas = (id) => ourTeamSet.has(id);
+  const outdated = [];
+  if (!ourHas(cand.home_team_id)) outdated.push({ side: "home", tsId: cand.home_team_id, ourName: ourTeamSet.has(our.home.tsTeamId) ? null : our.home.name });
+  if (!ourHas(cand.away_team_id)) outdated.push({ side: "away", tsId: cand.away_team_id, ourName: ourTeamSet.has(our.away.tsTeamId) ? null : our.away.name });
+  return { tsMatch: cand, outdated };
 }
 
 async function postCache(matchId, tsMatchId, payload) {
@@ -188,13 +235,41 @@ async function poll() {
     ]);
     console.log(`[${ts}] ⚽ our=${ourMatches.length} | ts_diary=${tsDiary.length} | team_stats_changed=${tsTeamStatsList.length} | player_stats_changed=${tsPlayerStatsList.length} | half_team_stats_changed=${tsHalfTeamStatsList.length}`);
 
-    // 1. 매칭
+    // 1. 매칭 — strict 먼저, 실패 시 fallback (한쪽 team_id 만 일치 + unique)
     const pairs = [];
+    let strictCount = 0;
+    let fallbackCount = 0;
+    const outdatedTeamLog = [];
     for (const our of ourMatches) {
-      const tsMatch = matchToTsMatch(our, tsDiary);
-      if (tsMatch) pairs.push({ our, ts: tsMatch });
+      const strict = matchToTsMatchStrict(our, tsDiary);
+      if (strict) {
+        pairs.push({ our, ts: strict });
+        strictCount++;
+        continue;
+      }
+      const fb = matchToTsMatchFallback(our, tsDiary);
+      if (fb) {
+        pairs.push({ our, ts: fb.tsMatch });
+        fallbackCount++;
+        if (fb.outdated.length > 0) {
+          outdatedTeamLog.push({
+            league: our.league,
+            matchId: our.matchId,
+            home: { name: our.home.name, ourTsId: our.home.tsTeamId },
+            away: { name: our.away.name, ourTsId: our.away.tsTeamId },
+            tsMatch: { home_team_id: fb.tsMatch.home_team_id, away_team_id: fb.tsMatch.away_team_id },
+            outdated: fb.outdated,
+          });
+        }
+      }
     }
-    console.log(`    매칭됨: ${pairs.length}/${ourMatches.length}`);
+    console.log(`    매칭됨: ${pairs.length}/${ourMatches.length} (strict=${strictCount}, fallback=${fallbackCount})`);
+    if (outdatedTeamLog.length > 0) {
+      console.log(`    ⚠ outdated ts_team_id 의심 (mapping audit 필요): ${outdatedTeamLog.length}건`);
+      for (const o of outdatedTeamLog.slice(0, 5)) {
+        console.log(`      ${o.league} matchId=${o.matchId} ${o.home.name}(${o.home.ourTsId}) vs ${o.away.name}(${o.away.ourTsId}) → ts ${o.tsMatch.home_team_id} vs ${o.tsMatch.away_team_id}`);
+      }
+    }
 
     // 매칭된 tsMatchId → ourMatchId 역매핑 (delta stats 처리용)
     const tsIdToOurId = new Map();
