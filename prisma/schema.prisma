@@ -446,6 +446,8 @@ model TheSportsPlayer {
   teamId    String?                   // ts team_id — 팀 변경 시 갱신
   sport     String                    // "KBO" | "NPB" | "MLB"
   position  String?                   // ts position (P/C/1B/...)
+  /** 선수 사진 URL. KBO: KBO_IMAGE/person/middle/{year}/{P_ID}.jpg, NPB: npb.jp/players_photo, MLB: mlbstatic headshot */
+  photoUrl  String?
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 

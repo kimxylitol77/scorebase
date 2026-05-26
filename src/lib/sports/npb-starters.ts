@@ -178,6 +178,9 @@ const PITCHER_NAME_KO: Record<string, string> = {
   "前田": "마에다",
   "藤井": "후지이",
   "北山": "키타야마",
+  // 5/27 라이브 누락 보강
+  "曽谷": "소야",
+  "曽谷龍平": "소야 류헤이",
 };
 
 function hasHan(s: string): boolean {
