@@ -1415,7 +1415,10 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
         updatedAt: { gte: cutoff },
         match: {
           league: { in: ["KBO", "NPB", "MLB"] },
-          status: { not: "FINISHED" },
+          // 2026-05-27 fix: POSTPONED 매치가 LIVE 로 표시되는 false positive 회피.
+          // worker 가 stale detailLive 를 계속 upsert 해 updatedAt 만 갱신되는 케이스
+          // (예: 우천 연기 후에도 cache push 지속) — Match.status 정답에 한정.
+          status: "LIVE",
         },
       },
       include: {
