@@ -762,8 +762,10 @@ async function runNpb(season: number) {
 const LCK_TOURNAMENT_ID = 324;
 
 // LCK 1군 10팀 화이트리스트 (BDL 응답 team.name 정확 매치).
-// 2부/Academy/Youth/Challengers + 해외 리그 (LPL/LEC/LJL/VCS/PCS) 제외 목적.
-// 후원사 명칭 변경 가능성 대비 alias 포함.
+// BDL 의 player_match_map_stats endpoint 는 `tournament_ids[]` 필터를 무시해서
+// LEC/LJL/KeSPA Cup 등 외부 토너먼트 stat 까지 새므로 client-side 화이트리스트로 차단.
+// 2026 시즌 LCK 정규 10팀: T1 · Gen.G · KT · HLE · Dplus KIA · BNK FearX · NS · BRO · DN SOOPers · DRX.
+// (Kwangdong Freecs / DN Freecs / DNF 는 후원사 변경 전 명칭이거나 KeSPA Cup 잔여 stat — 통과시키면 안 됨)
 const LCK_TEAM_WHITELIST = new Set([
   "T1",
   "Gen.G",
@@ -774,7 +776,7 @@ const LCK_TEAM_WHITELIST = new Set([
   "BNK FearX", "BNK FEARX",
   "DRX",
   "Nongshim RedForce", "NongShim RedForce",
-  "Kwangdong Freecs", "DN Freecs", "DNF",
+  "DN SOOPers",
 ]);
 
 interface LolMatchMapStat {
