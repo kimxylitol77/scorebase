@@ -18,7 +18,7 @@ import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
-import { buildPlayerNameMap } from "@/lib/sports/thesports/baseball-player-names";
+import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 
 export const dynamic = "force-dynamic";
 
@@ -82,12 +82,13 @@ export default async function KboLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const [extras, baseballOdds, playerNameById] = await Promise.all([
+  const detailLivePlayers =
+    (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
+  const [extras, baseballOdds, playerNameById, playerPhotoById] = await Promise.all([
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
-    buildPlayerNameMap(
-      (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players,
-    ),
+    buildPlayerNameMap(detailLivePlayers),
+    buildPlayerPhotoMap(detailLivePlayers),
   ]);
 
   const detailLive = match.theSportsCache?.detailLive as
@@ -190,6 +191,7 @@ export default async function KboLivePage({ params }: Props) {
         batterColumns={batterColumns}
         pitcherColumns={pitcherColumns}
         playerNameById={playerNameById}
+        playerPhotoById={playerPhotoById}
         tsDetailStats={detailLive?.stats}
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}

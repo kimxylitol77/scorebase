@@ -18,7 +18,7 @@ import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
-import { buildPlayerNameMap } from "@/lib/sports/thesports/baseball-player-names";
+import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 
 export const dynamic = "force-dynamic";
 
@@ -84,16 +84,18 @@ export default async function NpbLivePage({ params }: Props) {
 
   const homeStarterFull = parseStarterFull(match.homeStarter);
   const awayStarterFull = parseStarterFull(match.awayStarter);
+  const detailLivePlayers =
+    (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
   // NPB 사진은 npb.jp scraping 필요 — pid 있으면 SSR 단에서 fetch
-  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds, playerNameById] = await Promise.all([
-    homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
-    awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
-    fetchMatchExtras(match),
-    loadBaseballOdds(match.id),
-    buildPlayerNameMap(
-      (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players,
-    ),
-  ]);
+  const [homeStarterPhoto, awayStarterPhoto, extras, baseballOdds, playerNameById, playerPhotoById] =
+    await Promise.all([
+      homeStarterFull?.pid ? fetchNpbPhotoUrl(String(homeStarterFull.pid)) : Promise.resolve(undefined),
+      awayStarterFull?.pid ? fetchNpbPhotoUrl(String(awayStarterFull.pid)) : Promise.resolve(undefined),
+      fetchMatchExtras(match),
+      loadBaseballOdds(match.id),
+      buildPlayerNameMap(detailLivePlayers),
+      buildPlayerPhotoMap(detailLivePlayers),
+    ]);
 
   const detailLive = match.theSportsCache?.detailLive as
     | { players?: unknown; stats?: unknown; score?: unknown[] }
@@ -197,6 +199,7 @@ export default async function NpbLivePage({ params }: Props) {
         batterColumns={batterColumns}
         pitcherColumns={pitcherColumns}
         playerNameById={playerNameById}
+        playerPhotoById={playerPhotoById}
         tsDetailStats={detailLive?.stats}
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}

@@ -44,3 +44,27 @@ export async function buildPlayerNameMap(
     return {};
   }
 }
+
+/**
+ * detailLive.players 의 모든 player id → photoUrl 매핑.
+ * photoUrl 없는 player 는 결과에 미포함.
+ */
+export async function buildPlayerPhotoMap(
+  players: unknown,
+): Promise<Record<string, string>> {
+  const ids = extractIds(players);
+  if (ids.length === 0) return {};
+  try {
+    const rows = await prisma.theSportsPlayer.findMany({
+      where: { id: { in: ids }, photoUrl: { not: null } },
+      select: { id: true, photoUrl: true },
+    });
+    const map: Record<string, string> = {};
+    for (const r of rows) {
+      if (r.photoUrl) map[r.id] = r.photoUrl;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}

@@ -63,6 +63,8 @@ interface Props {
   pitcherColumns: PlayerStatLabel[];
   /** ts player_id → 한글/영문 이름 매핑. miss 시 id slice. */
   playerNameById: Record<string, string>;
+  /** ts player_id → 사진 URL. miss 시 이니셜 fallback. */
+  playerPhotoById?: Record<string, string>;
   /** TheSports detail_live.stats (phase 0 등) — 팀 스탯 카드 source */
   tsDetailStats?: unknown;
   /** 라이브 배당 + 시계열 (SSR) */
@@ -89,6 +91,7 @@ export default function BaseballBoxscoreTabs({
   batterColumns,
   pitcherColumns,
   playerNameById,
+  playerPhotoById,
   tsDetailStats,
   initialOdds,
   wpaSeries,
@@ -124,6 +127,7 @@ export default function BaseballBoxscoreTabs({
   const sideRows = side === "home" ? playerStats.home : playerStats.away;
   const koName = (pid: string) =>
     playerNameById[pid] ?? `#${pid.slice(-4)}`;
+  const koPhoto = (pid: string) => playerPhotoById?.[pid];
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
@@ -169,6 +173,7 @@ export default function BaseballBoxscoreTabs({
             rows={sideRows.filter((r) => r.role === "batter")}
             columns={batterColumns}
             koName={koName}
+            koPhoto={koPhoto}
             roleLabel="타자"
           />
         ) : activeTab === "pitching" ? (
@@ -176,6 +181,7 @@ export default function BaseballBoxscoreTabs({
             rows={sideRows.filter((r) => r.role === "pitcher")}
             columns={pitcherColumns}
             koName={koName}
+            koPhoto={koPhoto}
             roleLabel="투수"
           />
         ) : activeTab === "ts-stats" && tsDetailStats ? (
@@ -222,11 +228,13 @@ function StatTable({
   rows,
   columns,
   koName,
+  koPhoto,
   roleLabel,
 }: {
   rows: PlayerStatRow[];
   columns: PlayerStatLabel[];
   koName: (pid: string) => string;
+  koPhoto: (pid: string) => string | undefined;
   roleLabel: string;
 }) {
   if (rows.length === 0) {
@@ -260,13 +268,33 @@ function StatTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((p) => (
+          {rows.map((p) => {
+            const photo = koPhoto(p.playerId);
+            const name = koName(p.playerId);
+            return (
             <tr
               key={p.playerId}
               className="border-b border-neutral-100 dark:border-neutral-900"
             >
-              <td className="py-1.5 pr-2 truncate max-w-[140px]">
-                <span className="font-medium">{koName(p.playerId)}</span>
+              <td className="py-1.5 pr-2">
+                <div className="flex items-center gap-2 max-w-[160px]">
+                  {photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={photo}
+                      alt={name}
+                      width={28}
+                      height={28}
+                      loading="lazy"
+                      className="w-7 h-7 rounded-full object-cover bg-neutral-100 dark:bg-neutral-900 shrink-0"
+                    />
+                  ) : (
+                    <span className="w-7 h-7 rounded-full bg-neutral-100 dark:bg-neutral-900 shrink-0 inline-flex items-center justify-center text-[10px] font-bold text-neutral-400">
+                      {name.charAt(0)}
+                    </span>
+                  )}
+                  <span className="font-medium truncate">{name}</span>
+                </div>
               </td>
               {columns.map((c) => (
                 <td
@@ -277,7 +305,8 @@ function StatTable({
                 </td>
               ))}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>
