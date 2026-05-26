@@ -14,7 +14,7 @@ import { fetchWorldCupAll } from "@/lib/sports/world-cup";
 import { fetchLolLckAll } from "@/lib/sports/lol";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
-import type { League, NormalizedMatch } from "@/lib/sports/types";
+import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
 
 /**
  * NPB 팀의 경우 normalized.shortName 이 비어있어도 한국 미디어 통용 약자로 자동 set.
@@ -144,6 +144,19 @@ function parseArgs(): { leagues: League[]; date: string } {
   return { leagues, date };
 }
 
+// Match.status 보호 규칙 — collector 가 cron 마다 status 를 덮어쓰는 패턴 안전망.
+// FINISHED 만 강력 보호 (점수 확정 후 새 응답으로 LIVE/SCHEDULED 역행 차단).
+// POSTPONED 는 어디서나 탈출 가능 — api-sports 가 PST 잘못 응답 후 곧바로 Scheduled
+// 로 복귀하는 케이스 자동 복구 (2026-05-25, 2026-05-27 NBA/WNBA stale POSTPONED 사고
+// 패턴: 진단/수동 fix 스크립트 불필요).
+function mergeStatus(
+  existing: MatchStatus | null | undefined,
+  incoming: MatchStatus,
+): MatchStatus {
+  if (existing === "FINISHED") return "FINISHED";
+  return incoming;
+}
+
 async function upsertMatch(m: NormalizedMatch) {
   // TBD placeholder skip — NBA/NHL 컨퍼런스 파이널 차기 라운드 매치업 미정 시 ESPN 이
   // "TBD vs TBD" 로 placeholder 매치 제공. 실제 매치업 확정 시 별도 매치로 등장하므로
@@ -196,7 +209,7 @@ async function upsertMatch(m: NormalizedMatch) {
         { homeTeamId: awayTeam.id, awayTeamId: homeTeam.id },
       ],
     },
-    select: { id: true, externalId: true, homeTeamId: true },
+    select: { id: true, externalId: true, homeTeamId: true, status: true },
   });
 
   if (existing) {
@@ -209,12 +222,20 @@ async function upsertMatch(m: NormalizedMatch) {
       data: {
         homeScore: sameDirection ? (m.homeScore ?? null) : (m.awayScore ?? null),
         awayScore: sameDirection ? (m.awayScore ?? null) : (m.homeScore ?? null),
-        status: m.status,
+        status: mergeStatus(existing.status as MatchStatus, m.status),
         startTime: m.startTime,
       },
     });
     return;
   }
+
+  // upsert update 분기의 status 보호 — 같은 league+externalId 의 기존 row 가 FINISHED 면
+  // 새 응답이 LIVE/SCHEDULED 라도 status 유지. POSTPONED 는 incoming 으로 자유 갱신.
+  const current = await prisma.match.findUnique({
+    where: { league_externalId: { league: m.league, externalId: m.externalId } },
+    select: { status: true },
+  });
+  const mergedStatus = mergeStatus(current?.status as MatchStatus | undefined, m.status);
 
   await prisma.match.upsert({
     where: {
@@ -225,7 +246,7 @@ async function upsertMatch(m: NormalizedMatch) {
       awayTeamId: awayTeam.id,
       homeScore: m.homeScore ?? null,
       awayScore: m.awayScore ?? null,
-      status: m.status,
+      status: mergedStatus,
       startTime: m.startTime,
       raw: JSON.stringify(m.raw),
     },
