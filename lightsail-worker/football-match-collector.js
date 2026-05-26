@@ -7,7 +7,7 @@
 //   3) 매핑된 competition 매치만 필터 + status_id → 우리 status 변환
 //   4) POST {SITE_URL}/api/internal/thesports-matches (Bearer auth)
 //
-// rate limit: 매 호출 1회 (5일 sweep = 5회/h, 매우 안전)
+// rate limit: 매 호출 1회 (9일 sweep = 9회/h, 매우 안전)
 //
 // 환경변수 (/home/ubuntu/.env):
 //   THESPORTS_USER, THESPORTS_SECRET, SITE_URL, INTERNAL_API_TOKEN
@@ -23,7 +23,10 @@ const TS_SECRET = process.env.THESPORTS_SECRET;
 const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
 const POLL_INTERVAL_MS = 60 * 60 * 1000; // 1h
-const SWEEP_DAYS = [-1, 0, 1, 2, 3]; // 어제 ~ 3일 후
+// 어제 ~ +7일 (1주일). 종전 +3 은 K리그/MLS 처럼 라운드 간격 1주일인 리그의
+// 다음 라운드를 sweep edge 에서 놓치는 경우 있었음 (2026-05-27 K_LEAGUE_1+MLS
+// 다음 7d SCHEDULED 0 알림 발생). 시즌 중 리그는 다음 라운드를 무조건 잡도록 +7 확장.
+const SWEEP_DAYS = [-1, 0, 1, 2, 3, 4, 5, 6, 7];
 
 if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); }
@@ -118,7 +121,7 @@ async function poll() {
       });
     }
   }
-  console.log(`    수집 ${batch.length}건 (5일 sweep, unique)`);
+  console.log(`    수집 ${batch.length}건 (${SWEEP_DAYS.length}일 sweep, unique)`);
 
   // 100건씩 분할 POST
   const CHUNK = 100;
