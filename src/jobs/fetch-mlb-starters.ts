@@ -40,7 +40,9 @@ export async function runFetchMlbStarters(opts?: {
   refreshHours?: number;
 }) {
   const days = opts?.daysAhead ?? 4;
-  const refreshHours = opts?.refreshHours ?? 24;
+  // 24h → 6h 단축 — MLB Stats API probablePitcher 가 매치 직전 (수 시간 전)
+  // 에 발표되는 케이스 많아 매번 fresh fetch 가 의미 큼. 24h 캐시는 너무 stale.
+  const refreshHours = opts?.refreshHours ?? 6;
   console.log(
     `[mlb-starters] 시작 — 향후 ${days}일, refresh ${refreshHours}h`,
   );
