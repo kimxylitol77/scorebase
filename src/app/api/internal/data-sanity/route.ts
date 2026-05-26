@@ -201,24 +201,27 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 3. cache_db_mismatch — cache.ft = [away, home] (메모리 feedback_thesports_baseball_indexing.md).
-    // 이전 주석/코드가 [home, away] 로 잘못 가정해 false positive 발사한 적 있음.
-    // production 검증 (Houston vs Texas 128507): DB home=4 away=0, cache ft=["0","4"] → ft[0]=away.
+    // 3. cache_db_mismatch — ft 인덱싱이 매치마다 다른 케이스 발견됨 (2026-05-26):
+    //   128507: ft=[away, home] (Houston 0, Texas 4)
+    //   128506: ft=[home, away] (San Diego 0, Philadelphia 3)
+    // Lightsail baseball-ws + baseball-poller 두 source 가 cache 에 동시 push 하면서
+    // 인덱싱 가정 다른 race condition 의심. DB 는 ESPN 과 일치 (정상).
+    // → 양방향 검증: 어느 한 인덱싱이라도 DB 와 매칭되면 OK. 진짜 mismatch 만 알림.
     const ft = scoreArr[3]?.ft;
     if (Array.isArray(ft) && ft.length === 2 && m.homeScore != null && m.awayScore != null) {
-      const cacheAway = parseInt(ft[0], 10);
-      const cacheHome = parseInt(ft[1], 10);
-      if (
-        Number.isFinite(cacheHome) &&
-        Number.isFinite(cacheAway) &&
-        (cacheHome !== m.homeScore || cacheAway !== m.awayScore)
-      ) {
-        issues.push({
-          ...matchInfo,
-          kind: "cache_db_mismatch",
-          severity: "HIGH",
-          detail: `cache ft=[${cacheAway},${cacheHome}] (away,home) vs DB home=${m.homeScore} away=${m.awayScore} 불일치`,
-        });
+      const a = parseInt(ft[0], 10);
+      const b = parseInt(ft[1], 10);
+      if (Number.isFinite(a) && Number.isFinite(b)) {
+        const matchAH = a === m.awayScore && b === m.homeScore; // [away, home]
+        const matchHA = a === m.homeScore && b === m.awayScore; // [home, away]
+        if (!matchAH && !matchHA) {
+          issues.push({
+            ...matchInfo,
+            kind: "cache_db_mismatch",
+            severity: "HIGH",
+            detail: `cache ft=[${a},${b}] vs DB home=${m.homeScore} away=${m.awayScore} 양방향 모두 불일치`,
+          });
+        }
       }
     }
   }

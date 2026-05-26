@@ -433,3 +433,21 @@ model TsBaseballOddsHistory {
   @@index([matchId, kind, ts])
   @@index([matchId, ts])
 }
+
+/// TheSports player dictionary — 야구 (KBO/NPB/MLB) 박스스코어 선수 이름 매핑.
+/// detail_live.players[].id (해시) → name / nameKo 변환을 위한 캐시.
+/// Lightsail worker (ts-baseball-players-cron) 가 매일 1회 team 별 player/list iterate 후 upsert.
+/// nameKo 는 적재 시점에 toKoreanPlayerName 으로 한 번 계산 (dictionary 매칭 안 되면 영문).
+model TheSportsPlayer {
+  id        String   @id              // ts player id (해시)
+  name      String                    // 영문 풀네임 (ts player.name)
+  nameKo    String?                   // toKoreanPlayerName 결과, dictionary miss 시 null
+  shortName String?                   // ts player.short_name (lastname only 일 때 많음)
+  teamId    String?                   // ts team_id — 팀 변경 시 갱신
+  sport     String                    // "KBO" | "NPB" | "MLB"
+  position  String?                   // ts position (P/C/1B/...)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([sport, teamId])
+}
