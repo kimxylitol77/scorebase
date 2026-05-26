@@ -263,15 +263,20 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 5b. api-football stale (26h+)
+    // 5b. api-football stale (26h+).
+    // Phase 4 (2026-05-25): TS standings-poller 가 cover 하는 리그는 af cache
+    // 갱신 안 함 (cron 이 skip) → af 가 영구 stale 인 게 정상. ts 가 fresh 이면
+    // 우리 시스템이 ts 우선 사용하므로 af stale 무관 → skip.
     if (af) {
       const ageMs = now - af.updatedAt.getTime();
-      if (ageMs > STANDINGS_AF_STALE_MS) {
+      const tsAge = ts ? now - ts.updatedAt.getTime() : Infinity;
+      const tsFresh = tsAge < STANDINGS_TS_STALE_MS;
+      if (ageMs > STANDINGS_AF_STALE_MS && !tsFresh) {
         issues.push({
           ...placeholderInfo(league),
           kind: "standings_stale",
           severity: ageMs > 48 * 3600 * 1000 ? "HIGH" : "WARN",
-          detail: `api-football standings ${Math.round(ageMs / 3600000)}h stale (cron 1d/회인데 fail 의심)`,
+          detail: `api-football standings ${Math.round(ageMs / 3600000)}h stale + ts 도 stale (양쪽 source 죽음 의심)`,
         });
       }
     }
