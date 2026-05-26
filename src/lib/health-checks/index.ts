@@ -134,15 +134,38 @@ async function checkMatchCounts(now: Date): Promise<HealthFinding[]> {
 // ──────────────────────────────────────────────────────────────
 // 3. SCHEDULED freshness — 시즌 중 리그에 다음 7일 SCHEDULED 매치가 0이면 경고
 // ──────────────────────────────────────────────────────────────
+// 시즌 종료 후 자연스러운 0건을 false positive 로 잡지 않도록 리그별 endMonth 정의.
+// 마지막 FINISHED 가 endMonth 의 15일 이후 + 현재 같은 endMonth 이면 시즌 막바지 자연 0건 (suppress).
+// 또는 현재 시각이 명확히 비시즌 month 면 suppress.
+const SEASON_END_MONTH: Record<string, number> = {
+  EPL: 5, LALIGA: 5, BUNDESLIGA: 5, SERIE_A: 5, LIGUE_1: 5,
+  UCL: 5, UEL: 5, UECL: 5,
+  NBA: 6, NHL: 6,
+  KBO: 11, NPB: 11, MLB: 11, MLS: 12,
+  K_LEAGUE_1: 11, K_LEAGUE_2: 11, J1_LEAGUE: 11, J2_LEAGUE: 11,
+};
+const OFFSEASON_MONTHS: Record<string, Set<number>> = {
+  EPL: new Set([6, 7]), LALIGA: new Set([6, 7]), BUNDESLIGA: new Set([6, 7]),
+  SERIE_A: new Set([6, 7]), LIGUE_1: new Set([6, 7]),
+  KBO: new Set([12, 1, 2]), NPB: new Set([12, 1, 2]), MLB: new Set([12, 1, 2]),
+  K_LEAGUE_1: new Set([12, 1, 2]), K_LEAGUE_2: new Set([12, 1, 2]),
+  J1_LEAGUE: new Set([12, 1]), J2_LEAGUE: new Set([12, 1]),
+  MLS: new Set([12, 1]),
+  NBA: new Set([7, 8, 9]), NHL: new Set([7, 8, 9]),
+};
+
 async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const horizon = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
   const LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "KBO", "NPB", "MLB", "NBA", "NHL", "MLS"];
+  const currentMonth = now.getUTCMonth() + 1;
   for (const league of LEAGUES) {
+    // 비시즌 month 면 자연 0건 — suppress
+    if (OFFSEASON_MONTHS[league]?.has(currentMonth)) continue;
+
     const cnt = await prisma.match.count({
       where: { league, status: "SCHEDULED", startTime: { gte: now, lte: horizon } },
     });
-    // FINISHED 매치가 최근에 있었으면 시즌 중 — SCHEDULED 가 0 이면 cron 이 future fixtures 갱신 누락.
     const recentFinished = await prisma.match.count({
       where: {
         league,
@@ -150,6 +173,23 @@ async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
         startTime: { gte: new Date(now.getTime() - 14 * 24 * 3600 * 1000), lte: now },
       },
     });
+
+    // 시즌 종료 직후 grace — 마지막 FINISHED 가 endMonth 의 15일 이후 + 현재도 같은 endMonth 면
+    // 다음 시즌 일정 (보통 다음 startMonth 의 fixtures 발표 후) 까지 자연 0건. suppress.
+    const endM = SEASON_END_MONTH[league];
+    if (endM != null && currentMonth === endM) {
+      const lastFinished = await prisma.match.findFirst({
+        where: { league, status: "FINISHED" },
+        orderBy: { startTime: "desc" },
+        select: { startTime: true },
+      });
+      if (lastFinished) {
+        const lastM = lastFinished.startTime.getUTCMonth() + 1;
+        const lastD = lastFinished.startTime.getUTCDate();
+        if (lastM === endM && lastD >= 15) continue; // 시즌 막 종료
+      }
+    }
+
     if (recentFinished > 0 && cnt === 0) {
       out.push({
         category: "scheduled-freshness",
@@ -335,8 +375,16 @@ async function checkTeamNameMissingRate(now: Date): Promise<HealthFinding[]> {
     select: { league: true, name: true },
     take: 1000,
   });
+  // 정해진 매치업 미정 / 올스타 / placeholder 팀 — 사용자 노출 자체가 정상이므로 missing 비율에서 제외.
+  // NBA playoff TBD, NBA All-Star Team Stars/Stripes/World, 기타 임시 placeholder.
+  const PLACEHOLDER_TEAM_NAMES = new Set([
+    "TBD",
+    "Team Stars", "Team Stripes", "World",
+    "Team LeBron", "Team Durant", "Team Giannis",
+  ]);
   const counts = new Map<string, { total: number; missing: number; samples: Set<string> }>();
   for (const t of teams) {
+    if (PLACEHOLDER_TEAM_NAMES.has(t.name)) continue;
     const e = counts.get(t.league) ?? { total: 0, missing: 0, samples: new Set<string>() };
     e.total++;
     const ko = toKoreanTeamName(t.name, t.league);
