@@ -14,9 +14,9 @@ import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
-import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
-import LiveOddsCard from "@/components/live/LiveOddsCard";
+import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
+import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
+import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { buildPlayerNameMap } from "@/lib/sports/thesports/baseball-player-names";
 
@@ -95,6 +95,16 @@ export default async function NpbLivePage({ params }: Props) {
     ),
   ]);
 
+  const detailLive = match.theSportsCache?.detailLive as
+    | { players?: unknown; stats?: unknown; score?: unknown[] }
+    | null;
+  const playerStats = detailLive?.players
+    ? extractPlayerStats(detailLive.players)
+    : { home: [], away: [] };
+  const batterColumns = playerStatColumns("batter");
+  const pitcherColumns = playerStatColumns("pitcher");
+  const wpaSeries = computeWpaFromDetailLive(detailLive);
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -159,20 +169,6 @@ export default async function NpbLivePage({ params }: Props) {
             : null
         }
       />
-      {baseballOdds ? (
-        <LiveOddsCard
-          odds={baseballOdds.odds}
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-          hasDraw={false}
-          oddsHistory={baseballOdds.history.map((p) => ({
-            fetchedAt: p.fetchedAt,
-            home: p.home,
-            draw: null,
-            away: p.away,
-          }))}
-        />
-      ) : null}
       <BaseballPreMatchInsight
         league="NPB"
         homeStarter={homeStarterFull}
@@ -193,21 +189,39 @@ export default async function NpbLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
       />
 
-      {match.theSportsCache?.detailLive ? (
-        <>
-          <BaseballTeamStatsCard
-            stats={(match.theSportsCache.detailLive as { stats?: unknown }).stats}
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-          />
-          <BaseballBoxscoreCard
-            players={(match.theSportsCache.detailLive as { players?: unknown }).players}
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-            playerNameById={playerNameById}
-          />
-        </>
-      ) : null}
+      {/* 통합 5탭 카드 (타자/투수/팀스탯/배당/승률) — KBO/NPB 공통 */}
+      <BaseballBoxscoreTabs
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        playerStats={playerStats}
+        batterColumns={batterColumns}
+        pitcherColumns={pitcherColumns}
+        playerNameById={playerNameById}
+        tsDetailStats={detailLive?.stats}
+        initialOdds={baseballOdds}
+        wpaSeries={wpaSeries}
+      />
     </div>
   );
+}
+
+/** TheSports detailLive.score → linescore → computeBaseballWpa. NPB 평균 이닝 득점 ~0.45. */
+function computeWpaFromDetailLive(
+  detailLive: { score?: unknown[] } | null,
+): Array<{ inning: number; homeWP: number; homeScore: number; awayScore: number }> | null {
+  if (!detailLive?.score || !Array.isArray(detailLive.score) || detailLive.score.length < 4) {
+    return null;
+  }
+  const sObj = detailLive.score[3] as Record<string, [string, string] | undefined>;
+  if (!sObj || typeof sObj !== "object") return null;
+  const homeInn: (number | null)[] = [];
+  const awayInn: (number | null)[] = [];
+  for (let i = 1; i <= 12; i++) {
+    const p = sObj[`p${i}`];
+    if (!Array.isArray(p) || p.length !== 2) break;
+    homeInn.push(parseInt(p[0], 10) || 0);
+    awayInn.push(parseInt(p[1], 10) || 0);
+  }
+  if (homeInn.length < 2) return null;
+  return computeBaseballWpa(awayInn, homeInn, { lambdaPerInning: 0.45 });
 }
