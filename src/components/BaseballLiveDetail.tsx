@@ -433,15 +433,8 @@ export default function BaseballLiveDetail({
         />
       )}
 
-      {/* 라이브 배당 (The Odds API 1분 갱신) */}
-      {live.liveOdds && (
-        <LiveOddsCard
-          odds={live.liveOdds}
-          homeNameKo={homeNameKo}
-          awayNameKo={awayNameKo}
-          hasDraw={false}
-        />
-      )}
+      {/* 라이브 배당 — page.tsx 에서 TheSports baseball odds 시계열 카드 표시
+          (2026-05-26 사용자 결정). 여기서 The Odds API 카드는 중복이라 제거. */}
 
       {/* 베이스 다이아몬드 — TheSports detail_live.extra cache 있을 때만 */}
       {isLive && live.liveContext && (

@@ -64,6 +64,9 @@ function renderTable(
 export default function BaseballBoxscoreCard({ players, homeNameKo, awayNameKo, playerNameById }: Props) {
   const { home, away } = extractPlayerStats(players);
   if (home.length === 0 && away.length === 0) return null;
+  // TheSports player id → name 매핑이 없으면 ID slice 만 표시 — 사용자 가치 낮음.
+  // 매핑 없을 때 카드 자체 hide (별도 task 로 MLB Stats API boxscore name 매칭).
+  if (!playerNameById || Object.keys(playerNameById).length === 0) return null;
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-3 sm:p-4 space-y-4">
       <header className="flex items-center justify-between">
