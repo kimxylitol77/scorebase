@@ -419,6 +419,252 @@ export function mlbHeadshotUrl(pid: number): string {
   return `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${pid}/headshot/67/current`;
 }
 
+/* ============================================================
+ * Full Boxscore — 라인업 + 박스스코어 탭용
+ * 우리 DB 매치 (ESPN game id) → MLB Stats gamePk → boxscore
+ * ==========================================================*/
+
+/**
+ * 우리 DB 매치 startTime + 팀명 → MLB Stats API gamePk.
+ * schedule API 1회 hit. 매칭 실패 시 null.
+ */
+export async function findMlbGamePk(
+  dateISO: string,
+  homeTeamName: string,
+  awayTeamName: string,
+): Promise<number | null> {
+  const day = dateISO.slice(0, 10);
+  try {
+    const { data } = await client.get("/schedule", {
+      params: { sportId: 1, date: day },
+    });
+    const games: ScheduleGame[] = [];
+    for (const d of data?.dates ?? []) {
+      for (const g of (d.games ?? []) as ScheduleGame[]) games.push(g);
+    }
+    // 1) 영문 풀네임 정확 매칭
+    let m = games.find(
+      (g) =>
+        g.teams.home.team.name === homeTeamName &&
+        g.teams.away.team.name === awayTeamName,
+    );
+    if (m) return m.gamePk;
+    // 2) contains 양방향
+    const homeLc = homeTeamName.toLowerCase();
+    const awayLc = awayTeamName.toLowerCase();
+    m = games.find((g) => {
+      const h = g.teams.home.team.name.toLowerCase();
+      const a = g.teams.away.team.name.toLowerCase();
+      return (
+        (h.includes(homeLc) || homeLc.includes(h)) &&
+        (a.includes(awayLc) || awayLc.includes(a))
+      );
+    });
+    if (m) return m.gamePk;
+    // 3) 마지막 토큰 (팀명) 매칭 — "LA Dodgers" ↔ "Los Angeles Dodgers"
+    const homeTok = homeTeamName.split(/\s+/).slice(-1)[0]?.toLowerCase();
+    const awayTok = awayTeamName.split(/\s+/).slice(-1)[0]?.toLowerCase();
+    if (!homeTok || !awayTok) return null;
+    m = games.find((g) => {
+      const h = g.teams.home.team.name.toLowerCase();
+      const a = g.teams.away.team.name.toLowerCase();
+      return h.includes(homeTok) && a.includes(awayTok);
+    });
+    return m?.gamePk ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export interface MlbBoxBatter {
+  pid: number;
+  name: string;
+  /** 1~9 (선발 라인업). 대타/대수비는 null. */
+  order: number | null;
+  /** 선발 = true, 교체 = false */
+  isStarter: boolean;
+  position: string;
+  ab: number;
+  r: number;
+  h: number;
+  rbi: number;
+  bb: number;
+  so: number;
+  hr: number;
+  /** ".322" 형태 */
+  avgGame: string;
+  // 시즌 누적
+  seasonAvg: string;
+  seasonHr: number;
+  seasonRbi: number;
+  seasonOps: string;
+}
+
+export interface MlbBoxPitcher {
+  pid: number;
+  name: string;
+  isStarter: boolean;
+  ip: string;
+  h: number;
+  r: number;
+  er: number;
+  bb: number;
+  so: number;
+  hr: number;
+  pitchCount?: number;
+  // 시즌
+  seasonEra: string;
+  seasonWhip: string;
+  seasonW: number;
+  seasonL: number;
+}
+
+export interface MlbFullBoxscoreSide {
+  batters: MlbBoxBatter[];
+  pitchers: MlbBoxPitcher[];
+}
+
+export interface MlbFullBoxscore {
+  gamePk: number;
+  home: MlbFullBoxscoreSide;
+  away: MlbFullBoxscoreSide;
+}
+
+interface BoxPlayer {
+  person?: { id?: number; fullName?: string };
+  position?: { abbreviation?: string };
+  /** "100" = 1번 선발, "101" = 1번 교체. 100 단위. 없으면 라인업 외. */
+  battingOrder?: string;
+  stats?: {
+    batting?: Record<string, number | string | undefined>;
+    pitching?: Record<string, number | string | undefined>;
+  };
+  seasonStats?: {
+    batting?: Record<string, number | string | undefined>;
+    pitching?: Record<string, number | string | undefined>;
+  };
+}
+
+interface BoxTeam {
+  battingOrder?: number[];
+  pitchers?: number[];
+  players?: Record<string, BoxPlayer>;
+}
+
+function num(v: unknown): number {
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+}
+
+function str(v: unknown, fallback = "-"): string {
+  if (v == null || v === "") return fallback;
+  return String(v);
+}
+
+function extractSide(team: BoxTeam | undefined): MlbFullBoxscoreSide {
+  if (!team || !team.players) return { batters: [], pitchers: [] };
+  const players = team.players;
+  const batterIds = team.battingOrder ?? [];
+  const batterIdSet = new Set(batterIds);
+  const pitcherIds = team.pitchers ?? [];
+
+  const batters: MlbBoxBatter[] = [];
+  // 1) 선발 라인업 — battingOrder 배열 순서
+  for (let i = 0; i < batterIds.length; i++) {
+    const p = players[`ID${batterIds[i]}`];
+    if (!p) continue;
+    batters.push(toBatter(p, i + 1, true));
+  }
+  // 2) 대타/대수비 — players 중 battingOrder 가 있고 set 에 없는 사람
+  for (const key of Object.keys(players)) {
+    const p = players[key];
+    const pid = p.person?.id;
+    if (!pid || batterIdSet.has(pid)) continue;
+    const bo = p.battingOrder;
+    if (!bo) continue;
+    batters.push(toBatter(p, null, false));
+  }
+
+  const pitchers: MlbBoxPitcher[] = [];
+  for (let i = 0; i < pitcherIds.length; i++) {
+    const p = players[`ID${pitcherIds[i]}`];
+    if (!p) continue;
+    pitchers.push(toPitcher(p, i === 0));
+  }
+
+  return { batters, pitchers };
+}
+
+function toBatter(
+  p: BoxPlayer,
+  order: number | null,
+  isStarter: boolean,
+): MlbBoxBatter {
+  const g = p.stats?.batting ?? {};
+  const s = p.seasonStats?.batting ?? {};
+  return {
+    pid: p.person?.id ?? 0,
+    name: p.person?.fullName ?? "?",
+    order,
+    isStarter,
+    position: p.position?.abbreviation ?? "",
+    ab: num(g.atBats),
+    r: num(g.runs),
+    h: num(g.hits),
+    rbi: num(g.rbi),
+    bb: num(g.baseOnBalls),
+    so: num(g.strikeOuts),
+    hr: num(g.homeRuns),
+    avgGame: str(g.avg, ".000"),
+    seasonAvg: str(s.avg, ".000"),
+    seasonHr: num(s.homeRuns),
+    seasonRbi: num(s.rbi),
+    seasonOps: str(s.ops, "-"),
+  };
+}
+
+function toPitcher(p: BoxPlayer, isStarter: boolean): MlbBoxPitcher {
+  const g = p.stats?.pitching ?? {};
+  const s = p.seasonStats?.pitching ?? {};
+  return {
+    pid: p.person?.id ?? 0,
+    name: p.person?.fullName ?? "?",
+    isStarter,
+    ip: str(g.inningsPitched, "0.0"),
+    h: num(g.hits),
+    r: num(g.runs),
+    er: num(g.earnedRuns),
+    bb: num(g.baseOnBalls),
+    so: num(g.strikeOuts),
+    hr: num(g.homeRuns),
+    pitchCount: g.numberOfPitches != null ? num(g.numberOfPitches) : undefined,
+    seasonEra: str(s.era, "-"),
+    seasonWhip: str(s.whip, "-"),
+    seasonW: num(s.wins),
+    seasonL: num(s.losses),
+  };
+}
+
+/** 전체 박스스코어 (라인업 + 타자/투수 게임 통계 + 시즌 통계). */
+export async function fetchMlbFullBoxscore(
+  gamePk: number,
+): Promise<MlbFullBoxscore | null> {
+  try {
+    const { data } = await client.get(`/game/${gamePk}/boxscore`);
+    return {
+      gamePk,
+      home: extractSide(data?.teams?.home),
+      away: extractSide(data?.teams?.away),
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * 한 매치의 선발 투수 정보를 전체 (이름·ID + 시즌 통계) fetch.
  * homeStarter / awayStarter 가 둘 다 미정이면 null.

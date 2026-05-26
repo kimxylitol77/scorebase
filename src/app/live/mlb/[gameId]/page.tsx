@@ -18,11 +18,13 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
-import BaseballBoxscoreCard from "@/components/live/BaseballBoxscoreCard";
-import LiveOddsCard from "@/components/live/LiveOddsCard";
+import MlbBoxscoreTabs from "@/components/live/MlbBoxscoreTabs";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
-import { buildPlayerNameMap } from "@/lib/sports/thesports/baseball-player-names";
+import {
+  fetchMlbFullBoxscore,
+  findMlbGamePk,
+  type MlbFullBoxscore,
+} from "@/lib/sports/mlb-stats-api";
 
 function parseStarterFull(json: string | null): StarterInfo | null {
   if (!json) return null;
@@ -149,13 +151,12 @@ export default async function MlbLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const [extras, baseballOdds, playerNameById] = await Promise.all([
+  const [extras, baseballOdds, mlbBoxscore] = await Promise.all([
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
-    buildPlayerNameMap(
-      (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players,
-    ),
+    fetchInitialMlbBoxscore(match),
   ]);
+  const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -217,20 +218,6 @@ export default async function MlbLivePage({ params }: Props) {
             : null
         }
       />
-      {baseballOdds ? (
-        <LiveOddsCard
-          odds={baseballOdds.odds}
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-          hasDraw={false}
-          oddsHistory={baseballOdds.history.map((p) => ({
-            fetchedAt: p.fetchedAt,
-            home: p.home,
-            draw: null,
-            away: p.away,
-          }))}
-        />
-      ) : null}
       <BaseballPreMatchInsight
         league="MLB"
         homeStarter={parseStarterFull(match.homeStarter)}
@@ -249,21 +236,53 @@ export default async function MlbLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
       />
 
-      {match.theSportsCache?.detailLive ? (
-        <>
-          <BaseballTeamStatsCard
-            stats={(match.theSportsCache.detailLive as { stats?: unknown }).stats}
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-          />
-          <BaseballBoxscoreCard
-            players={(match.theSportsCache.detailLive as { players?: unknown }).players}
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-            playerNameById={playerNameById}
-          />
-        </>
-      ) : null}
+      {/* 네이버 스타일 7탭 통합 카드 — 라인업/타자/투수/팀통계(ESPN)/팀스탯(TS)/배당/승률 */}
+      <MlbBoxscoreTabs
+        gameId={gameId}
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        initialBoxscore={mlbBoxscore}
+        initialStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+        playerNameKoBy={playerNameKoBy}
+        tsDetailStats={
+          (match.theSportsCache?.detailLive as { stats?: unknown } | null)?.stats
+        }
+        initialOdds={baseballOdds}
+      />
     </div>
   );
+}
+
+/** SSR: ESPN game id → schedule gamePk lookup → full boxscore.
+ *  실패는 null — 클라이언트가 API 라우트로 재시도. */
+async function fetchInitialMlbBoxscore(
+  match: NonNullable<FoundMatch>,
+): Promise<MlbFullBoxscore | null> {
+  try {
+    const gamePk = await findMlbGamePk(
+      match.startTime.toISOString(),
+      match.homeTeam.name,
+      match.awayTeam.name,
+    );
+    if (!gamePk) return null;
+    return await fetchMlbFullBoxscore(gamePk);
+  } catch {
+    return null;
+  }
+}
+
+/** boxscore 안의 모든 선수에 대해 영문 → 한글 매핑 (있는 경우만). */
+function buildMlbPlayerNameKoMap(box: MlbFullBoxscore): Record<number, string> {
+  const out: Record<number, string> = {};
+  for (const side of [box.home, box.away]) {
+    for (const b of side.batters) {
+      const ko = toKoreanPlayerName(b.name);
+      if (ko && ko !== b.name) out[b.pid] = ko;
+    }
+    for (const p of side.pitchers) {
+      const ko = toKoreanPlayerName(p.name);
+      if (ko && ko !== p.name) out[p.pid] = ko;
+    }
+  }
+  return out;
 }
