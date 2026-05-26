@@ -106,13 +106,14 @@ function buildSlug(league: string, matchId: number): string {
 export async function runPreview(opts?: {
   autoPublish?: boolean;
   league?: string;
-  /** 기본 5일. 시즌 마지막 라운드 (EPL 5/24 등) 같은 4-5일 후 매치 cover. */
+  /** 기본 2일. 5/26 GSC 노출 99% 급락 진단 — sitemap URL 폭증 차단 위해 5 → 2 단축.
+   *  먼 미래 PREVIEW 는 라인업/폼 변동 커서 모델 신뢰도 낮음. 단축이 quality 향상. */
   horizonDays?: number;
   take?: number;
 }) {
   const autoPublish = opts?.autoPublish ?? true;
   const onlyLeague = opts?.league;
-  const horizonDays = opts?.horizonDays ?? 5;
+  const horizonDays = opts?.horizonDays ?? 2;
   const take = opts?.take ?? 40;
   console.log(
     `[preview] 시작 — autoPublish=${autoPublish}, league=${onlyLeague ?? "ALL"}, horizon=${horizonDays}d, take=${take}`,
