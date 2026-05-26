@@ -8,7 +8,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
 import LiveOddsCard from "./live/LiveOddsCard";
-import BaseballWpaChart from "./live/BaseballWpaChart";
 import BaseballDiamond from "./scores/baseball/BaseballDiamond";
 import LiveCommentaryBox, {
   type LiveCommentaryData,
@@ -424,17 +423,7 @@ export default function BaseballLiveDetail({
         </div>
       </div>
 
-      {/* 라이브 승률 곡선 (WPA — Poisson 모델) */}
-      {live.wpaSeries && live.wpaSeries.length > 1 && (
-        <BaseballWpaChart
-          series={live.wpaSeries}
-          homeNameKo={homeNameKo}
-          awayNameKo={awayNameKo}
-        />
-      )}
-
-      {/* 라이브 배당 — page.tsx 에서 TheSports baseball odds 시계열 카드 표시
-          (2026-05-26 사용자 결정). 여기서 The Odds API 카드는 중복이라 제거. */}
+      {/* 라이브 승률 곡선 / 라이브 배당 — page.tsx 의 BaseballBoxscoreTabs 카드로 이동 */}
 
       {/* 베이스 다이아몬드 — TheSports detail_live.extra cache 있을 때만 */}
       {isLive && live.liveContext && (
