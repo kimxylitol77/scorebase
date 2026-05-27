@@ -6,6 +6,10 @@
 // EPL 은 externalId 가 football-data id 라 ESPN 검증 불가 — 제외 (별도 잡 가능).
 // KBO/NPB 는 api-sports Baseball — 별도 잡.
 // LOL 은 BALLDONTLIE — 별도 잡.
+//
+// 가드 (2026-05-27): 매치 시작 시각 -2h 이내는 ghost 판정 skip.
+// 시작 직전 ESPN 등록 lag 으로 일시 404 가 나오는 케이스 (5/25 + 5/27 NBA/NHL
+// false POSTPONED 사고) 차단. 시작 후엔 등록되어 있어야 정상.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
@@ -80,11 +84,14 @@ export async function GET(req: NextRequest) {
   const rangeStart = new Date(now.getTime() - 24 * 3600 * 1000);
   const rangeEnd = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
 
+  // 가드: 시작 -2h 이내 매치는 ghost 판정 skip (ESPN 등록 lag false positive).
+  // startTime < now-2h 인 매치만 (= 시작 시각이 2시간 이상 과거인 매치) 검사.
+  const ghostCheckCutoff = new Date(now.getTime() - 2 * 3600 * 1000);
   const matches = await prisma.match.findMany({
     where: {
       league: { in: Object.keys(ESPN_PATH) },
       status: { in: ["SCHEDULED", "LIVE"] },
-      startTime: { gte: rangeStart, lt: rangeEnd },
+      startTime: { gte: rangeStart, lt: ghostCheckCutoff },
     },
     include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
   });
