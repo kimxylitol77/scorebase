@@ -10,6 +10,7 @@ import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
+import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -171,15 +172,23 @@ export default async function NpbLivePage({ params }: Props) {
             : null
         }
       />
-      <BaseballPreMatchInsight
-        league="NPB"
-        homeStarter={homeStarterFull}
-        awayStarter={awayStarterFull}
-        homeTeamName={homeKo}
-        awayTeamName={awayKo}
-        homeStarterPhoto={homeStarterPhoto ?? null}
-        awayStarterPhoto={awayStarterPhoto ?? null}
-      />
+      {match.status === "SCHEDULED" ? (
+        <BaseballPreviewInsight
+          match={match}
+          league="NPB"
+          baseballContext={null}
+        />
+      ) : (
+        <BaseballPreMatchInsight
+          league="NPB"
+          homeStarter={homeStarterFull}
+          awayStarter={awayStarterFull}
+          homeTeamName={homeKo}
+          awayTeamName={awayKo}
+          homeStarterPhoto={homeStarterPhoto ?? null}
+          awayStarterPhoto={awayStarterPhoto ?? null}
+        />
+      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}

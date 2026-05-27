@@ -14,6 +14,7 @@ import MlbLiveDetail from "@/components/MlbLiveDetail";
 import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
+import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -218,13 +219,21 @@ export default async function MlbLivePage({ params }: Props) {
             : null
         }
       />
-      <BaseballPreMatchInsight
-        league="MLB"
-        homeStarter={parseStarterFull(match.homeStarter)}
-        awayStarter={parseStarterFull(match.awayStarter)}
-        homeTeamName={homeKo}
-        awayTeamName={awayKo}
-      />
+      {match.status === "SCHEDULED" ? (
+        <BaseballPreviewInsight
+          match={match}
+          league="MLB"
+          baseballContext={null}
+        />
+      ) : (
+        <BaseballPreMatchInsight
+          league="MLB"
+          homeStarter={parseStarterFull(match.homeStarter)}
+          awayStarter={parseStarterFull(match.awayStarter)}
+          homeTeamName={homeKo}
+          awayTeamName={awayKo}
+        />
+      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}

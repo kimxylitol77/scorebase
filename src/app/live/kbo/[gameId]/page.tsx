@@ -11,6 +11,7 @@ import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
+import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
@@ -165,13 +166,21 @@ export default async function KboLivePage({ params }: Props) {
             : null
         }
       />
-      <BaseballPreMatchInsight
-        league="KBO"
-        homeStarter={parseStarterFull(match.homeStarter)}
-        awayStarter={parseStarterFull(match.awayStarter)}
-        homeTeamName={homeKo}
-        awayTeamName={awayKo}
-      />
+      {match.status === "SCHEDULED" ? (
+        <BaseballPreviewInsight
+          match={match}
+          league="KBO"
+          baseballContext={null}
+        />
+      ) : (
+        <BaseballPreMatchInsight
+          league="KBO"
+          homeStarter={parseStarterFull(match.homeStarter)}
+          awayStarter={parseStarterFull(match.awayStarter)}
+          homeTeamName={homeKo}
+          awayTeamName={awayKo}
+        />
+      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}
