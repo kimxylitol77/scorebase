@@ -89,30 +89,46 @@ export async function getStandingsPositions(
     }
   }
 
-  // 2) api-football fallback — TheSports 누락 팀만 보강
-  const af = await prisma.apiFootballStandingsCache.findUnique({
-    where: { league },
-    select: { rows: true },
-  });
-  if (af) {
-    const rows = (af.rows as unknown as Array<{
-      teamExternalId: string;
-      position: number;
-    }>) ?? [];
-    if (rows.length > 0) {
-      const externalIds = rows.map((r) => r.teamExternalId);
-      const teams = await prisma.team.findMany({
-        where: { league, externalId: { in: externalIds } },
-        select: { id: true, externalId: true },
-      });
-      const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
-      for (const r of rows) {
-        const ourId = extToOurId.get(r.teamExternalId);
-        if (ourId != null && !positionByOurTeamId.has(ourId)) {
-          positionByOurTeamId.set(ourId, r.position);
+  // 2) api-football / api-baseball fallback — TheSports 누락 팀만 보강.
+  // 야구 (CPBL/KBO/NPB/MLB/LMB) 는 TeamSourceId(api-baseball) 2차 lookup.
+  // 전체 try-catch — 2026-05-27 production /predictions 500 사고 (DB row 가 어떤
+  // path 에서 throw, local 정상). 한 league fail 해도 다른 league 정상 + 페이지 살림.
+  try {
+    const af = await prisma.apiFootballStandingsCache.findUnique({
+      where: { league },
+      select: { rows: true },
+    });
+    if (af) {
+      const rows = (af.rows as unknown as Array<{
+        teamExternalId: string;
+        position: number;
+      }>) ?? [];
+      if (rows.length > 0) {
+        const externalIds = rows.map((r) => r.teamExternalId);
+        const isBaseball = ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(league);
+        const teams = await prisma.team.findMany({
+          where: { league, externalId: { in: externalIds } },
+          select: { id: true, externalId: true },
+        });
+        const extToOurId = new Map<string, number>();
+        for (const t of teams) extToOurId.set(t.externalId, t.id);
+        if (isBaseball) {
+          const sourceIds = await prisma.teamSourceId.findMany({
+            where: { league, source: "api-baseball", externalId: { in: externalIds } },
+            select: { teamId: true, externalId: true },
+          });
+          for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
+        }
+        for (const r of rows) {
+          const ourId = extToOurId.get(r.teamExternalId);
+          if (ourId != null && !positionByOurTeamId.has(ourId)) {
+            positionByOurTeamId.set(ourId, r.position);
+          }
         }
       }
     }
+  } catch (e) {
+    console.warn(`[standings-helper] af fallback fail league=${league}:`, (e as Error).message);
   }
 
   if (positionByOurTeamId.size === 0) return null;
@@ -190,44 +206,59 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
     }
   }
 
-  // 2) api-football fallback — TheSports 매핑 누락 리그/팀 보강.
+  // 2) api-football / api-baseball fallback — TheSports 매핑 누락 리그/팀 보강.
+  // 전체 try-catch — 2026-05-27 production 500 사고. 야구는 TeamSourceId 2차 lookup.
   if (out.length === 0) {
-    const af = await prisma.apiFootballStandingsCache.findUnique({
-      where: { league },
-      select: { rows: true },
-    });
-    if (af) {
-      interface AfRow {
-        teamExternalId: string;
-        position: number;
-        points: number;
-        won: number;
-        draw: number;
-        loss: number;
-      }
-      const rows = (af.rows as unknown as AfRow[]) ?? [];
-      if (rows.length > 0) {
-        const externalIds = rows.map((r) => r.teamExternalId);
-        const teams = await prisma.team.findMany({
-          where: { league, externalId: { in: externalIds } },
-          select: { id: true, externalId: true },
-        });
-        const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
-        for (const r of rows) {
-          const ourId = extToOurId.get(r.teamExternalId);
-          if (ourId != null && !seen.has(ourId)) {
-            seen.add(ourId);
-            out.push({
-              teamId: ourId,
-              position: r.position,
-              points: r.points,
-              won: r.won,
-              draw: r.draw,
-              loss: r.loss,
+    try {
+      const af = await prisma.apiFootballStandingsCache.findUnique({
+        where: { league },
+        select: { rows: true },
+      });
+      if (af) {
+        interface AfRow {
+          teamExternalId: string;
+          position: number;
+          // 축구=number, 야구=object (TheSports payload). number 만 통과.
+          points: number | { for?: number; against?: number };
+          won: number;
+          draw?: number;
+          loss: number;
+        }
+        const rows = (af.rows as unknown as AfRow[]) ?? [];
+        if (rows.length > 0) {
+          const externalIds = rows.map((r) => r.teamExternalId);
+          const isBaseball = ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(league);
+          const teams = await prisma.team.findMany({
+            where: { league, externalId: { in: externalIds } },
+            select: { id: true, externalId: true },
+          });
+          const extToOurId = new Map<string, number>();
+          for (const t of teams) extToOurId.set(t.externalId, t.id);
+          if (isBaseball) {
+            const sourceIds = await prisma.teamSourceId.findMany({
+              where: { league, source: "api-baseball", externalId: { in: externalIds } },
+              select: { teamId: true, externalId: true },
             });
+            for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
+          }
+          for (const r of rows) {
+            const ourId = extToOurId.get(r.teamExternalId);
+            if (ourId != null && !seen.has(ourId)) {
+              seen.add(ourId);
+              out.push({
+                teamId: ourId,
+                position: r.position,
+                points: typeof r.points === "number" ? r.points : (r.won ?? 0),
+                won: r.won ?? 0,
+                draw: r.draw ?? 0,
+                loss: r.loss ?? 0,
+              });
+            }
           }
         }
       }
+    } catch (e) {
+      console.warn(`[standings-helper] getFullStandings af fallback fail league=${league}:`, (e as Error).message);
     }
   }
 
