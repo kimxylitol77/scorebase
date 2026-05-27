@@ -30,15 +30,17 @@ const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 const TEAM_MAP_FILE = path.join(__dirname, "baseball-team-id-mapping.json");
 
 // TheSports baseball status_id — src/lib/sports/thesports/status-codes.ts 의
-// mapBaseballStatus 와 단일 진실 통일 (2026-05-27 LMB FINISHED→SCHEDULED revert 사고).
+// mapBaseballStatus 와 단일 진실 통일 (2026-05-27 status_id=1 LIVE 오매핑 사고).
+//   0, 1 = SCHEDULED (Not Started)
 //   100 = FINISHED
-//   1~99 = LIVE
+//   2~99 = LIVE (이닝 진행)
 //   400대 = LIVE (이닝/half 세부)
 //   200대 = SCHEDULED
 //   300대 = POSTPONED
 function mapStatus(id) {
+  if (id === 0 || id === 1) return "SCHEDULED";
   if (id === 100) return "FINISHED";
-  if (id >= 1 && id < 100) return "LIVE";
+  if (id >= 2 && id < 100) return "LIVE";
   if (id >= 400 && id < 500) return "LIVE";
   if (id >= 200 && id < 300) return "SCHEDULED";
   if (id >= 300 && id < 400) return "POSTPONED";

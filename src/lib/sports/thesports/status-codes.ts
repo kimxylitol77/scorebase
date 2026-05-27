@@ -1,16 +1,18 @@
 // TheSports 야구 status_id → 우리 MatchStatus 매핑.
 //
-// 검증 (2026-05-18 → 2026-05-24):
+// 검증 (2026-05-18 → 2026-05-27):
+//   0, 1 = 시작 전 (Not Started) — 5/27 CPBL/LMB 미시작 매치 59건 + 5/28 미래 매치
 //   100 = 종료 (FT)
-//   1~99 = 이닝/플레이 진행
-//   415/417/418 = LIVE 진행 (2026-05-24 KBO 5경기 cache score[1] 관측)
+//   415/417/418/432~437 = LIVE 진행 (KBO + CPBL cache score[1] 관측)
 //   400대 전반을 LIVE 로 통합 (이닝/half 별 세부 코드 추정)
+//   14, 19 = 과거 매치 일부 (취소/포기 추정, 소수)
 
 import type { MatchStatus } from "../types";
 
 export function mapBaseballStatus(statusId: number): MatchStatus {
+  if (statusId === 0 || statusId === 1) return "SCHEDULED"; // Not Started
   if (statusId === 100) return "FINISHED";
-  if (statusId >= 1 && statusId < 100) return "LIVE";
+  if (statusId >= 2 && statusId < 100) return "LIVE";
   if (statusId >= 400 && statusId < 500) return "LIVE";
   if (statusId >= 200 && statusId < 300) return "SCHEDULED";
   if (statusId >= 300 && statusId < 400) return "POSTPONED";
