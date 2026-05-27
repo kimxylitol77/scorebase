@@ -1,7 +1,9 @@
-// /live/[league]/[gameId] — NBA / NHL / 축구 (EPL·LALIGA·... 8개 리그) 라이브 상세.
+// /live/[league]/[gameId] — NBA / NHL / 축구 + 9개 야구 리그 (CPBL/WBC/.../LMB) 라이브 상세.
 // MLB/KBO/NPB/LOL 은 자체 라우트 (/live/{mlb,kbo,npb,lol}/[gameId]) 가 우선 매칭됨.
 //
-// gameId = Match.externalId (NBA/NHL = ESPN id, 축구 = api-football fixture id 등).
+// gameId = Match.externalId
+//   NBA/NHL = ESPN id, 축구 = api-football fixture id,
+//   야구 9개 리그 = TheSports ts-{tsMatchId} (thesports-matches route 가 prefix 부여).
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -26,6 +28,12 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import BaseballLiveDetail from "@/components/BaseballLiveDetail";
+import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
+import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
+import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
+import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
+import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
 import { getVenueByOurTeamId } from "@/lib/sports/thesports/venues";
 import { fetchMatchPrediction, fetchTeamSeasonStats, fetchFixtureRound } from "@/lib/sports/api-football-extras";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
@@ -37,6 +45,10 @@ import KickoffCountdown from "@/components/live/KickoffCountdown";
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
+);
+// 야구 리그 — KBO/NPB/MLB 는 자체 라우트가 우선이므로 실제로는 9개 (CPBL/WBC/.../LMB) 만 매칭
+const BASEBALL_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "baseball")?.leagues ?? [],
 );
 
 function parseGoalie(json: string | null): GoalieInfo | null {
@@ -50,12 +62,13 @@ function parseGoalie(json: string | null): GoalieInfo | null {
 
 export const dynamic = "force-dynamic";
 
-// 지원 리그 — 모든 축구 + NBA/WNBA/NHL (MLB/KBO/NPB/LOL 은 자체 라우트)
+// 지원 리그 — 모든 축구 + NBA/WNBA/NHL + 모든 야구 (KBO/NPB/MLB/LOL 은 자체 라우트 우선)
 const SUPPORTED = new Set([
   "NBA",
   "WNBA", // 2026-05-21 추가 — DB 데이터 기반 정적 표시. 라이브 폴링은 follow-up (api-sports↔ESPN id 매핑 필요)
   "NHL",
   ...(SPORTS.find((s) => s.code === "soccer")?.leagues ?? []),
+  ...(SPORTS.find((s) => s.code === "baseball")?.leagues ?? []),
 ]);
 
 // 리그 라벨은 LEAGUE_DISPLAY (sport-leagues.ts) 단일 출처 사용 — 사이드바와 통일.
@@ -114,6 +127,11 @@ export default async function GenericLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
   const label = LEAGUE_DISPLAY[lg] ?? lg;
+
+  // ── 야구 9개 리그 (CPBL/WBC/.../LMB) — KBO 라우트 패턴 재사용. 축구/NBA fetch skip 위해 early branch.
+  if (BASEBALL_LEAGUES.has(lg)) {
+    return renderBaseballPage({ match, lg, gameId, homeKo, awayKo, homeShort, awayShort, label });
+  }
 
   const extras = await fetchMatchExtras(match);
 
@@ -511,4 +529,139 @@ export default async function GenericLivePage({ params }: Props) {
     </div>
     </>
   );
+}
+
+// ── 야구 9개 리그 (CPBL/WBC/WBSC_PREMIER_12/ASIAN_GAMES_BB/OLYMPICS_BB/
+//    KBO_FUTURES/NPB_MINOR/CARIBBEAN_SERIES/LMB) — KBO 라우트와 동일한 컴포넌트 사용.
+//    KBO/NPB/MLB 는 자체 라우트가 우선 매칭되므로 여기 도달하지 않음.
+async function renderBaseballPage(args: {
+  match: NonNullable<Awaited<ReturnType<typeof findMatch>>>;
+  lg: string;
+  gameId: string;
+  homeKo: string;
+  awayKo: string;
+  homeShort: string;
+  awayShort: string;
+  label: string;
+}) {
+  const { match, lg, gameId, homeKo, awayKo, homeShort, awayShort, label } = args;
+  const detailLivePlayers =
+    (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
+  const [extras, baseballOdds, playerNameById, playerPhotoById] = await Promise.all([
+    fetchMatchExtras(match),
+    loadBaseballOdds(match.id),
+    buildPlayerNameMap(detailLivePlayers),
+    buildPlayerPhotoMap(detailLivePlayers),
+  ]);
+  const detailLive = match.theSportsCache?.detailLive as
+    | { players?: unknown; stats?: unknown; score?: unknown[] }
+    | null;
+  const playerStats = detailLive?.players
+    ? extractPlayerStats(detailLive.players)
+    : { home: [], away: [] };
+  const batterColumns = playerStatColumns("batter");
+  const pitcherColumns = playerStatColumns("pitcher");
+  const wpaSeries = computeWpaFromDetailLive(detailLive);
+
+  return (
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores" className="hover:underline">
+          라이브 스코어
+        </Link>
+        <span>›</span>
+        <Link href={`/leagues/${lg}`} className="hover:underline">
+          {label}
+        </Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300 truncate">
+          {awayKo} vs {homeKo}
+        </span>
+      </nav>
+      <header>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+          <Link
+            href={`/teams/${match.awayTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {awayKo}
+          </Link>{" "}
+          <span className="text-neutral-400">vs</span>{" "}
+          <Link
+            href={`/teams/${match.homeTeam.id}`}
+            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+          >
+            {homeKo}
+          </Link>
+        </h1>
+        <p className="text-sm text-neutral-500 mt-1">
+          {label} · 라이브 스코어 · 라이브 푸시 (평균 2-3초)
+        </p>
+      </header>
+      <MatchArticleLinks
+        previewSlug={extras.previewSlug}
+        recapSlug={extras.recapSlug}
+        matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+        league={lg}
+      />
+      <BaseballLiveDetail
+        gameId={gameId}
+        league={lg}
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        homeAbbr={match.homeTeam.shortName ?? null}
+        awayAbbr={match.awayTeam.shortName ?? null}
+        homeLogo={match.homeTeam.logoUrl ?? null}
+        awayLogo={match.awayTeam.logoUrl ?? null}
+        homeStarter={null}
+        awayStarter={null}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        liveCommentary={null}
+      />
+      <MatchHeadToHead
+        homeShortName={homeShort}
+        awayShortName={awayShort}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        h2hHome={extras.h2hHome}
+        homeStanding={extras.homeStanding}
+        awayStanding={extras.awayStanding}
+        totalTeams={extras.totalTeams}
+      />
+      <BaseballBoxscoreTabs
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        playerStats={playerStats}
+        batterColumns={batterColumns}
+        pitcherColumns={pitcherColumns}
+        playerNameById={playerNameById}
+        playerPhotoById={playerPhotoById}
+        tsDetailStats={detailLive?.stats}
+        initialOdds={baseballOdds}
+        wpaSeries={wpaSeries}
+      />
+    </div>
+  );
+}
+
+/** TheSports detailLive.score → linescore → computeBaseballWpa. 평균 이닝 득점 ~0.45. */
+function computeWpaFromDetailLive(
+  detailLive: { score?: unknown[] } | null,
+): Array<{ inning: number; homeWP: number; homeScore: number; awayScore: number }> | null {
+  if (!detailLive?.score || !Array.isArray(detailLive.score) || detailLive.score.length < 4) {
+    return null;
+  }
+  const sObj = detailLive.score[3] as Record<string, [string, string] | undefined>;
+  if (!sObj || typeof sObj !== "object") return null;
+  const homeInn: (number | null)[] = [];
+  const awayInn: (number | null)[] = [];
+  for (let i = 1; i <= 12; i++) {
+    const p = sObj[`p${i}`];
+    if (!Array.isArray(p) || p.length !== 2) break;
+    homeInn.push(parseInt(p[0], 10) || 0);
+    awayInn.push(parseInt(p[1], 10) || 0);
+  }
+  if (homeInn.length < 2) return null;
+  return computeBaseballWpa(awayInn, homeInn, { lambdaPerInning: 0.45 });
 }

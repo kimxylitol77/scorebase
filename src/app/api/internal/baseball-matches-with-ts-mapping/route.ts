@@ -1,6 +1,6 @@
 // GET /api/internal/baseball-matches-with-ts-mapping?days=1
 // Lightsail baseball-poller 가 매칭 hint 받는 endpoint.
-// 응답: 우리 야구 매치 list (KBO/NPB/MLB) + 각 팀의 TheSports team id (매핑 있는 경우만).
+// 응답: 우리 야구 매치 list (12개 리그) + 각 팀의 TheSports team id (매핑 있는 경우만).
 //
 // Bearer auth: env INTERNAL_API_TOKEN.
 
@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { readFileSync } from "fs";
 import path from "path";
+import { SPORTS } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,9 +51,11 @@ export async function GET(req: NextRequest) {
 
   const teamMap = loadTeamMap();
 
+  // baseball 리그 단일 출처 — sport-leagues.ts (KBO/NPB/MLB + 9개 확장)
+  const baseballLeagues = SPORTS.find((s) => s.code === "baseball")?.leagues ?? [];
   const matches = await prisma.match.findMany({
     where: {
-      league: { in: ["KBO", "NPB", "MLB"] },
+      league: { in: baseballLeagues },
       startTime: { gte: start, lt: end },
       status: { in: ["SCHEDULED", "LIVE"] },
     },

@@ -466,5 +466,239 @@
     "tsId": "jednm98s463ryox",
     "tsName": "Yomiuri Giants",
     "matchType": "ko"
+  },
+  {
+    "ourId": 607733,
+    "ourName": "Fubon Guardians",
+    "ourLeague": "CPBL",
+    "ourExternalId": "l965mk5sx1jm1ge",
+    "tsId": "l965mk5sx1jm1ge",
+    "tsName": "Fubon Guardians",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607734,
+    "ourName": "TSG Hawks",
+    "ourLeague": "CPBL",
+    "ourExternalId": "n54ql2s25d9omvy",
+    "tsId": "n54ql2s25d9omvy",
+    "tsName": "TSG Hawks",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607735,
+    "ourName": "Wei Chuan Dragons",
+    "ourLeague": "CPBL",
+    "ourExternalId": "kn54ql2s61wmvy9",
+    "tsId": "kn54ql2s61wmvy9",
+    "tsName": "Wei Chuan Dragons",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607736,
+    "ourName": "Uni Lions",
+    "ourLeague": "CPBL",
+    "ourExternalId": "vl7oqdoskd1m510",
+    "tsId": "vl7oqdoskd1m510",
+    "tsName": "Uni Lions",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607737,
+    "ourName": "Chinatrust Brothers",
+    "ourLeague": "CPBL",
+    "ourExternalId": "d23xmv7sj9emg8n",
+    "tsId": "d23xmv7sj9emg8n",
+    "tsName": "Chinatrust Brothers",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607738,
+    "ourName": "Rakuten Monkeys",
+    "ourLeague": "CPBL",
+    "ourExternalId": "d23xmv7sj4zmg8n",
+    "tsId": "d23xmv7sj4zmg8n",
+    "tsName": "Rakuten Monkeys",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607739,
+    "ourName": "Quintana Roo",
+    "ourLeague": "LMB",
+    "ourExternalId": "9dn1m16sdzproep",
+    "tsId": "9dn1m16sdzproep",
+    "tsName": "Quintana Roo",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607740,
+    "ourName": "Leones de Yucatan",
+    "ourLeague": "LMB",
+    "ourExternalId": "l965mk5s9xgm1ge",
+    "tsId": "l965mk5s9xgm1ge",
+    "tsName": "Leones de Yucatan",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607741,
+    "ourName": "Campeche",
+    "ourLeague": "LMB",
+    "ourExternalId": "kjw2r06sdv5rz84",
+    "tsId": "kjw2r06sdv5rz84",
+    "tsName": "Campeche",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607742,
+    "ourName": "Diablos Rojos",
+    "ourLeague": "LMB",
+    "ourExternalId": "z318q63sdpgqo9j",
+    "tsId": "z318q63sdpgqo9j",
+    "tsName": "Diablos Rojos",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607743,
+    "ourName": "Chihuahua",
+    "ourLeague": "LMB",
+    "ourExternalId": "j1l4rj7spoxr7vx",
+    "tsId": "j1l4rj7spoxr7vx",
+    "tsName": "Chihuahua",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607744,
+    "ourName": "Jalisco",
+    "ourLeague": "LMB",
+    "ourExternalId": "d23xmv7sjd8mg8n",
+    "tsId": "d23xmv7sjd8mg8n",
+    "tsName": "Jalisco",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607745,
+    "ourName": "Puebla",
+    "ourLeague": "LMB",
+    "ourExternalId": "v2y8m46sd9drl07",
+    "tsId": "v2y8m46sd9drl07",
+    "tsName": "Puebla",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607746,
+    "ourName": "Oaxaca",
+    "ourLeague": "LMB",
+    "ourExternalId": "yl5ergxsj64q8k0",
+    "tsId": "yl5ergxsj64q8k0",
+    "tsName": "Oaxaca",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607747,
+    "ourName": "Caliente de Durango",
+    "ourLeague": "LMB",
+    "ourExternalId": "x7lm7xskgvkgr2w",
+    "tsId": "x7lm7xskgvkgr2w",
+    "tsName": "Caliente de Durango",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607748,
+    "ourName": "Toros de Tijuana",
+    "ourLeague": "LMB",
+    "ourExternalId": "9k82re4sd46qepz",
+    "tsId": "9k82re4sd46qepz",
+    "tsName": "Toros de Tijuana",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607749,
+    "ourName": "Aguascalientes",
+    "ourLeague": "LMB",
+    "ourExternalId": "z8yomoysjooq0j6",
+    "tsId": "z8yomoysjooq0j6",
+    "tsName": "Aguascalientes",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607750,
+    "ourName": "Monclova",
+    "ourLeague": "LMB",
+    "ourExternalId": "jednm98sl4eryox",
+    "tsId": "jednm98sl4eryox",
+    "tsName": "Monclova",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607751,
+    "ourName": "Leon",
+    "ourLeague": "LMB",
+    "ourExternalId": "kdj2ryvs309r1zp",
+    "tsId": "kdj2ryvs309r1zp",
+    "tsName": "Leon",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607752,
+    "ourName": "Veracruz",
+    "ourLeague": "LMB",
+    "ourExternalId": "gy0or56sdyxmwzv",
+    "tsId": "gy0or56sdyxmwzv",
+    "tsName": "Veracruz",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607753,
+    "ourName": "Monterrey",
+    "ourLeague": "LMB",
+    "ourExternalId": "8y39mpzs8npqojx",
+    "tsId": "8y39mpzs8npqojx",
+    "tsName": "Monterrey",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607754,
+    "ourName": "Dos Laredos",
+    "ourLeague": "LMB",
+    "ourExternalId": "p3glrw5se5vrdyj",
+    "tsId": "p3glrw5se5vrdyj",
+    "tsName": "Dos Laredos",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607755,
+    "ourName": "Saltillo",
+    "ourLeague": "LMB",
+    "ourExternalId": "e4wyrnzs1nxr86p",
+    "tsId": "e4wyrnzs1nxr86p",
+    "tsName": "Saltillo",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607756,
+    "ourName": "Laguna",
+    "ourLeague": "LMB",
+    "ourExternalId": "gpxwrxgswo4myk0",
+    "tsId": "gpxwrxgswo4myk0",
+    "tsName": "Laguna",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607757,
+    "ourName": "Olmecas de Tabasco",
+    "ourLeague": "LMB",
+    "ourExternalId": "vl7oqdoszkxm510",
+    "tsId": "vl7oqdoszkxm510",
+    "tsName": "Olmecas de Tabasco",
+    "matchType": "ts-only"
+  },
+  {
+    "ourId": 607758,
+    "ourName": "Queretaro",
+    "ourLeague": "LMB",
+    "ourExternalId": "318q63sozjz8qo9",
+    "tsId": "318q63sozjz8qo9",
+    "tsName": "Queretaro",
+    "matchType": "ts-only"
   }
 ]

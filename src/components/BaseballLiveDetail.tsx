@@ -62,8 +62,8 @@ interface BaseballLive {
 
 interface Props {
   gameId: string;
-  /** "KBO" | "NPB" — 외부 라이브 링크 분기 */
-  league: "KBO" | "NPB";
+  /** 리그 코드 — "KBO" | "NPB" 일 때만 외부 라이브 링크 분기, 그 외 (CPBL/WBC/...) 는 link hide */
+  league: string;
   /** 한글 팀명 (SSR 단에서 toKoreanTeamName 결과) */
   homeNameKo: string;
   awayNameKo: string;
@@ -231,11 +231,15 @@ export default function BaseballLiveDetail({
   const lsHome = live.linescore?.home ?? [];
   const innings = Math.max(9, lsAway.length, lsHome.length);
 
+  // 외부 공식 페이지 링크 — KBO/NPB 만. 9개 신규 리그는 hide (null).
   const officialUrl =
     league === "KBO"
       ? "https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx"
-      : "https://baseball.yahoo.co.jp/npb/";
-  const officialLabel = league === "KBO" ? "KBO 공식" : "Yahoo Sports JP";
+      : league === "NPB"
+        ? "https://baseball.yahoo.co.jp/npb/"
+        : null;
+  const officialLabel =
+    league === "KBO" ? "KBO 공식" : league === "NPB" ? "Yahoo Sports JP" : null;
 
   // Scorebase LiveCard v2 — 우세팀 강조 색상
   const awayScore = live.awayTeam.score;
@@ -472,21 +476,24 @@ export default function BaseballLiveDetail({
           }}
         >
           <span>
-            ⓘ 베이스 상황·볼카운트는 곧 표시됩니다. 상세 라이브는 공식 페이지에서 확인 가능합니다.
+            ⓘ 베이스 상황·볼카운트는 곧 표시됩니다.
+            {officialUrl && " 상세 라이브는 공식 페이지에서 확인 가능합니다."}
           </span>
-          <a
-            href={officialUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md font-semibold whitespace-nowrap transition"
-            style={{
-              background: "rgba(34,197,94,.1)",
-              border: "1px solid rgba(34,197,94,.3)",
-              color: "#86efac",
-            }}
-          >
-            {officialLabel} →
-          </a>
+          {officialUrl && (
+            <a
+              href={officialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md font-semibold whitespace-nowrap transition"
+              style={{
+                background: "rgba(34,197,94,.1)",
+                border: "1px solid rgba(34,197,94,.3)",
+                color: "#86efac",
+              }}
+            >
+              {officialLabel} →
+            </a>
+          )}
         </div>
       )}
     </div>

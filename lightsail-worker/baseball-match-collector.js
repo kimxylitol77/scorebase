@@ -20,7 +20,8 @@ const TS_SECRET = process.env.THESPORTS_SECRET;
 const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
 const POLL_INTERVAL_MS = 30 * 60 * 1000; // 30min
-const SWEEP_DAYS = [-1, 0, 1, 2];
+// ±5일 sweep — WBC/Olympic 같은 단기 토너먼트는 일정 변동 잦음. 그 외 정규 시즌은 ±2 이면 충분.
+const SWEEP_DAYS = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
 
 if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); }
@@ -41,12 +42,22 @@ function mapStatus(id) {
   return "SCHEDULED";
 }
 
-// competition_id → 우리 league code (KBO/NPB/MLB)
-// 메모리: KBO=56ypq36s0o9qd7o, NPB=9k82re4svpxqepz, MLB=z8yomoys7olq0j6
+// competition_id → 우리 league code
+// 12개 야구 리그 cover (2026-05-27 9개 확장)
 const COMP_TO_LEAGUE = {
   "56ypq36s0o9qd7o": "KBO",
   "9k82re4svpxqepz": "NPB",
   "z8yomoys7olq0j6": "MLB",
+  // 신규 9개 — types.ts TS_BASEBALL_TOURNAMENT_ID 동일
+  "gpxwrxgsgw0myk0": "CPBL",
+  "yl5ergxs3k8q8k0": "WBC",
+  "kjw2r06sn56rz84": "WBSC_PREMIER_12",
+  "gy0or56slylmwzv": "ASIAN_GAMES_BB",
+  "l5ergxsov0kq8k0": "OLYMPICS_BB",
+  "p3glrw5sweerdyj": "KBO_FUTURES",
+  "9dn1m16s4y2roep": "NPB_MINOR",
+  "8y39mpzs3gwqojx": "CARIBBEAN_SERIES",
+  "l965mk5s7x1m1ge": "LMB",
 };
 
 async function fetchDiary(tsp) {

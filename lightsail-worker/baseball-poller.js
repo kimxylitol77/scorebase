@@ -1,5 +1,5 @@
 // baseball-poller.js — TheSports baseball detail_live → Scorebase API 로 cache POST.
-// 1분 주기. KBO/NPB/MLB LIVE 매치만 cover.
+// 1분 주기. 12개 야구 리그 LIVE 매치 cover (endpoint 가 league filter 단일 출처).
 //
 // 매핑 흐름 (diary 와 detail_live 의 id system 이 거의 겹치지 않음 → match/list lookup):
 //   1) Scorebase /api/internal/baseball-matches-with-ts-mapping → 우리 매치 list + tsTeamId

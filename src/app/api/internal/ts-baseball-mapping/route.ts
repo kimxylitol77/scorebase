@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { SPORTS } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,8 +20,10 @@ export async function GET(req: NextRequest) {
   if (!process.env.INTERNAL_API_TOKEN) return unauthorized();
   if (auth !== expected) return unauthorized();
 
+  // baseball 리그 단일 출처 — sport-leagues.ts (KBO/NPB/MLB + 9개 확장)
+  const baseballLeagues = SPORTS.find((s) => s.code === "baseball")?.leagues ?? [];
   const rows = await prisma.theSportsMatchCache.findMany({
-    where: { match: { league: { in: ["KBO", "NPB", "MLB"] } } },
+    where: { match: { league: { in: baseballLeagues } } },
     select: { tsMatchId: true, matchId: true },
   });
   const mapping: Record<string, number> = {};
