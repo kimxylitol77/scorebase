@@ -111,17 +111,28 @@ export default function BaseballBoxscoreTabs({
   const hasOdds = !!initialOdds?.odds;
   const hasWpa = !!(wpaSeries && wpaSeries.length >= 2);
 
+  // 시작 전 매치는 라이브 데이터 없음. 카드 자체는 띄우고 각 탭에 안내.
+  // 단 배당이 없으면 모든 탭 비어있는 상태 — 그 경우만 hide.
   const tabs: { key: TabKey; label: string; enabled: boolean; withTeamToggle: boolean }[] = [
-    { key: "batting", label: "타자 기록", enabled: hasBatters, withTeamToggle: true },
-    { key: "pitching", label: "투수 기록", enabled: hasPitchers, withTeamToggle: true },
-    { key: "ts-stats", label: "팀 스탯", enabled: hasTsStats, withTeamToggle: false },
+    { key: "batting", label: "타자 기록", enabled: true, withTeamToggle: true },
+    { key: "pitching", label: "투수 기록", enabled: true, withTeamToggle: true },
+    { key: "ts-stats", label: "팀 스탯", enabled: true, withTeamToggle: false },
     { key: "odds", label: "라이브 배당", enabled: hasOdds, withTeamToggle: false },
-    { key: "wpa", label: "승률 곡선", enabled: hasWpa, withTeamToggle: false },
+    { key: "wpa", label: "승률 곡선", enabled: true, withTeamToggle: false },
   ];
 
   const visibleTabs = tabs.filter((t) => t.enabled);
   if (visibleTabs.length === 0) return null;
-  const activeTab = visibleTabs.find((t) => t.key === tab)?.key ?? visibleTabs[0].key;
+  // default 탭: 데이터 있는 첫 탭 (없으면 첫 visible)
+  const dataAvailable: Record<TabKey, boolean> = {
+    batting: hasBatters,
+    pitching: hasPitchers,
+    "ts-stats": hasTsStats,
+    odds: hasOdds,
+    wpa: hasWpa,
+  };
+  const desiredTab = dataAvailable[tab] ? tab : visibleTabs.find((t) => dataAvailable[t.key])?.key ?? visibleTabs[0].key;
+  const activeTab = desiredTab;
   const currentTabInfo = tabs.find((t) => t.key === activeTab)!;
 
   const sideRows = side === "home" ? playerStats.home : playerStats.away;
@@ -184,14 +195,20 @@ export default function BaseballBoxscoreTabs({
             koPhoto={koPhoto}
             roleLabel="투수"
           />
-        ) : activeTab === "ts-stats" && tsDetailStats ? (
-          <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">
-            <BaseballTeamStatsCard
-              stats={tsDetailStats}
-              homeNameKo={homeNameKo}
-              awayNameKo={awayNameKo}
-            />
-          </div>
+        ) : activeTab === "ts-stats" ? (
+          tsDetailStats ? (
+            <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">
+              <BaseballTeamStatsCard
+                stats={tsDetailStats}
+                homeNameKo={homeNameKo}
+                awayNameKo={awayNameKo}
+              />
+            </div>
+          ) : (
+            <p className="text-center text-xs text-neutral-500 py-6">
+              매치 시작 후 팀 스탯이 표시됩니다.
+            </p>
+          )
         ) : activeTab === "odds" && initialOdds?.odds ? (
           <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none [&>section]:bg-transparent">
             <LiveOddsCard
@@ -212,12 +229,18 @@ export default function BaseballBoxscoreTabs({
                 }))}
             />
           </div>
-        ) : activeTab === "wpa" && wpaSeries ? (
-          <BaseballWpaChart
-            series={wpaSeries}
-            homeNameKo={homeNameKo}
-            awayNameKo={awayNameKo}
-          />
+        ) : activeTab === "wpa" ? (
+          wpaSeries && wpaSeries.length >= 2 ? (
+            <BaseballWpaChart
+              series={wpaSeries}
+              homeNameKo={homeNameKo}
+              awayNameKo={awayNameKo}
+            />
+          ) : (
+            <p className="text-center text-xs text-neutral-500 py-6">
+              매치 시작 후 이닝별 승률 곡선이 표시됩니다.
+            </p>
+          )
         ) : null}
       </div>
     </section>
