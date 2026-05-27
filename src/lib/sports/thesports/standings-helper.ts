@@ -169,7 +169,9 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
     interface TsRow {
       team_id?: string;
       position?: number;
-      points?: number;
+      // points: 축구=number (승점), 야구=object {for, against} (run 합) — JSX render
+      // object 시 throw → number 만 통과 (commit 29687d8 후속 /predictions 500 사고).
+      points?: number | { for?: number; against?: number };
       won?: number;
       draw?: number;
       loss?: number;
@@ -186,10 +188,11 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
         seen.add(ourId);
         const gf = Array.isArray(r.goals) ? r.goals[0] : r.goals?.for;
         const ga = Array.isArray(r.goals) ? r.goals[1] : r.goals?.against;
+        const pointsNum = typeof r.points === "number" ? r.points : (r.won ?? 0);
         out.push({
           teamId: ourId,
           position: r.position,
-          points: r.points ?? 0,
+          points: pointsNum,
           won: r.won ?? 0,
           draw: r.draw ?? 0,
           loss: r.loss ?? 0,
