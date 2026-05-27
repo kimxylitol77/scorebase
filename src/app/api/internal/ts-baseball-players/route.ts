@@ -35,6 +35,7 @@ interface IncomingPlayer {
   // 선수) 에서도 sport 명시로 upsert 가능.
   nameKo?: string;
   sport?: string;
+  photoUrl?: string;
 }
 
 interface Body {
@@ -109,6 +110,8 @@ export async function POST(req: NextRequest) {
           ...(p.team_id ? { teamId: p.team_id } : {}),
           sport,
           position: p.position ?? null,
+          // photoUrl 는 명시 제공 시만 update — 기존 채워진 사진 덮어쓰지 않도록.
+          ...(p.photoUrl ? { photoUrl: p.photoUrl } : {}),
         },
       });
       upserted++;

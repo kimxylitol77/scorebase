@@ -28,6 +28,9 @@ const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-2025100
 const LEAGUE = "KBO";
 const DAYS = 7;
 const BATCH = 50;
+const KBO_SEARCH_URL = "https://www.koreabaseball.com/ws/Controls.asmx/GetSearchPlayer";
+const KBO_PHOTO_BASE = "https://6ptotvmi5753.edge.naverncp.com/KBO_IMAGE/person/middle";
+const KBO_PHOTO_YEAR = new Date().getFullYear();
 
 if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); }
@@ -119,6 +122,56 @@ async function haikuTranslate(batch) {
   }
 }
 
+// KBO 공식 선수 검색.
+//   1차: nameKo 전체 검색
+//   2차 (외국인 cover): last token (성, "오스틴 딘" → "오스틴" / "치리노스")
+//   3차: first token
+async function searchKboPlayer(nameKo) {
+  const tryName = async (q) => {
+    try {
+      const { data } = await axios.post(
+        KBO_SEARCH_URL,
+        new URLSearchParams({ name: q }).toString(),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "User-Agent": "Mozilla/5.0",
+            Referer: "https://www.koreabaseball.com/Player/Search.aspx",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          timeout: 10_000,
+        },
+      );
+      if (data?.code !== "100") return null;
+      const now = data?.now || [];
+      if (now.length === 0) return null;
+      const exact = now.find((p) => p.P_NM === q);
+      return exact || now[0];
+    } catch {
+      return null;
+    }
+  };
+  let hit = await tryName(nameKo);
+  if (hit) return hit;
+  const tokens = nameKo.trim().split(/\s+/);
+  if (tokens.length > 1) {
+    hit = await tryName(tokens[tokens.length - 1]);
+    if (hit) return hit;
+    hit = await tryName(tokens[0]);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+async function verifyPhotoUrl(url) {
+  try {
+    const res = await axios.head(url, { timeout: 8_000 });
+    return res.status >= 200 && res.status < 300;
+  } catch {
+    return false;
+  }
+}
+
 async function postPlayersUpsert(players) {
   const { data } = await axios.post(
     `${SITE_URL}/api/internal/ts-baseball-players`,
@@ -144,12 +197,13 @@ async function main() {
   const ts0 = new Date().toISOString();
   console.log(`[${ts0}] 🚀 kbo-player-names-cron start (league=${LEAGUE}, days=${DAYS})`);
 
-  // 1) missing/nameKoNull ids
-  const { missingIds, nameKoNullIds, totalIds } = await fetchMissingIds();
+  // 1) missing/nameKoNull/photoUrlNull ids
+  const { missingIds, nameKoNullIds, photoUrlNullIds, totalIds } = await fetchMissingIds();
   const todo = Array.from(new Set([...missingIds, ...nameKoNullIds]));
-  console.log(`  total=${totalIds}, missing=${missingIds.length}, nameKoNull=${nameKoNullIds.length}, todo=${todo.length}`);
-  if (todo.length === 0) {
-    await bootHeartbeat({ totalIds, todo: 0, upserted: 0 });
+  const photoTodo = photoUrlNullIds || [];
+  console.log(`  total=${totalIds}, missing=${missingIds.length}, nameKoNull=${nameKoNullIds.length}, photoUrlNull=${photoTodo.length}, todoNames=${todo.length}`);
+  if (todo.length === 0 && photoTodo.length === 0) {
+    await bootHeartbeat({ totalIds, todoNames: 0, photoTodo: 0, upserted: 0 });
     console.log(`◀ 매핑 대상 없음. 종료`);
     return;
   }
@@ -208,12 +262,63 @@ async function main() {
   }
   console.log(`  ✓ upserted ${totalUp}`);
 
+  // 5) photo enrich — KBO 공식 API 로 nameKo 검색 + photo HEAD verify + upsert.
+  //    todo: photoUrlNull (이전부터 photo 없는 player) + 방금 새로 ko 채운 player 들도 동일 후보.
+  const photoCandidates = [
+    ...photoTodo,
+    ...records.filter((r) => enToKo[r.name]).map((r) => ({ id: r.id, nameKo: enToKo[r.name] })),
+  ];
+  // dedup by id
+  const photoMap = new Map();
+  for (const p of photoCandidates) if (p.nameKo) photoMap.set(p.id, p);
+  const photoList = [...photoMap.values()];
+  console.log(`  ▶ photo enrich (${photoList.length}건)`);
+  let photoHit = 0, photoUp = 0;
+  const photoPayload = [];
+  for (let i = 0; i < photoList.length; i++) {
+    const { id, nameKo } = photoList[i];
+    const hit = await searchKboPlayer(nameKo);
+    if (!hit) {
+      if ((i + 1) % 20 === 0) console.log(`    ${i + 1}/${photoList.length} search miss (last: ${nameKo})`);
+      continue;
+    }
+    photoHit++;
+    const url = `${KBO_PHOTO_BASE}/${KBO_PHOTO_YEAR}/${hit.P_ID}.jpg`;
+    const ok = await verifyPhotoUrl(url);
+    if (!ok) continue;
+    // nameKo 도 같이 보냄 — endpoint upsert update branch 가 photoUrl 만 변경.
+    // name 필드는 endpoint 가 require 하므로 dummy 라도 보내야. 기존 row 에서 update 시 보존.
+    photoPayload.push({ id, name: nameKo, nameKo, sport: LEAGUE, photoUrl: url });
+    if (photoPayload.length >= 50) {
+      try {
+        const r = await postPlayersUpsert(photoPayload);
+        photoUp += r.upserted || 0;
+      } catch (e) {
+        console.error(`    ✗ photo upsert: ${e.message}`);
+      }
+      photoPayload.length = 0;
+    }
+    await new Promise((res) => setTimeout(res, 80));
+  }
+  if (photoPayload.length > 0) {
+    try {
+      const r = await postPlayersUpsert(photoPayload);
+      photoUp += r.upserted || 0;
+    } catch (e) {
+      console.error(`    ✗ photo upsert final: ${e.message}`);
+    }
+  }
+  console.log(`  ✓ photo search hit ${photoHit}/${photoList.length}, upserted ${photoUp}`);
+
   await bootHeartbeat({
     totalIds,
-    todo: todo.length,
+    todoNames: todo.length,
+    photoTodo: photoTodo.length,
     enHit: records.length,
     koMapped: Object.keys(enToKo).length,
-    upserted: totalUp,
+    namesUpserted: totalUp,
+    photoSearchHit: photoHit,
+    photoUpserted: photoUp,
   });
   console.log(`◀ 종료`);
 }

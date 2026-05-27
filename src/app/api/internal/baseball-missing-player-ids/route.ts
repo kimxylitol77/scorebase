@@ -66,15 +66,18 @@ export async function GET(req: NextRequest) {
 
   const existing = await prisma.theSportsPlayer.findMany({
     where: { id: { in: [...allIds] } },
-    select: { id: true, nameKo: true },
+    select: { id: true, nameKo: true, photoUrl: true },
   });
-  const existingMap = new Map(existing.map((r) => [r.id, r.nameKo]));
+  const existingMap = new Map(existing.map((r) => [r.id, r]));
 
   const missingIds: string[] = [];
   const nameKoNullIds: string[] = [];
+  const photoUrlNullIds: Array<{ id: string; nameKo: string }> = [];
   for (const id of allIds) {
-    if (!existingMap.has(id)) missingIds.push(id);
-    else if (!existingMap.get(id)) nameKoNullIds.push(id);
+    const r = existingMap.get(id);
+    if (!r) missingIds.push(id);
+    else if (!r.nameKo) nameKoNullIds.push(id);
+    else if (!r.photoUrl) photoUrlNullIds.push({ id, nameKo: r.nameKo });
   }
 
   return NextResponse.json({
@@ -83,5 +86,6 @@ export async function GET(req: NextRequest) {
     totalIds: allIds.size,
     missingIds,
     nameKoNullIds,
+    photoUrlNullIds,
   });
 }
