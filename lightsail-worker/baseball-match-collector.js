@@ -116,18 +116,27 @@ async function poll() {
       if (!league) continue;
       if (!m.home_team_id || !m.away_team_id) continue;
       if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) continue;
-      // scores 필드 — baseball 응답에서 한 번 더 확인 필요. 일단 home_scores/away_scores 시도.
-      const hs = Array.isArray(m.home_scores) ? m.home_scores[0] : (m.home_score ?? undefined);
-      const as = Array.isArray(m.away_scores) ? m.away_scores[0] : (m.away_score ?? undefined);
+      const status = mapStatus(m.status_id);
+      // diary 응답 scores.ft = [ts_away_str, ts_home_str] (string array).
+      // endpoint 가 tsHomeTeamId → our.homeTeamId 그대로 매핑하므로 swap 불필요 —
+      // homeScore = ts.home (ft[1]), awayScore = ts.away (ft[0]).
+      // SCHEDULED 매치는 ft=["0","0"] 라도 무의미하므로 안 보냄 (raw=null 유지).
+      let hs, as;
+      if ((status === "LIVE" || status === "FINISHED") && m.scores && Array.isArray(m.scores.ft) && m.scores.ft.length >= 2) {
+        const tsHome = parseInt(String(m.scores.ft[1]), 10);
+        const tsAway = parseInt(String(m.scores.ft[0]), 10);
+        if (Number.isFinite(tsHome)) hs = tsHome;
+        if (Number.isFinite(tsAway)) as = tsAway;
+      }
       batch.push({
         league,
         tsMatchId: m.id,
         tsHomeTeamId: m.home_team_id,
         tsAwayTeamId: m.away_team_id,
         startTime: new Date((m.match_time || 0) * 1000).toISOString(),
-        status: mapStatus(m.status_id),
-        homeScore: typeof hs === "number" ? hs : undefined,
-        awayScore: typeof as === "number" ? as : undefined,
+        status,
+        homeScore: hs,
+        awayScore: as,
       });
     }
   }
