@@ -234,21 +234,16 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 3. cache_db_mismatch — ft 인덱싱이 매치마다 다른 케이스 발견됨 (2026-05-26):
-    //   128507: ft=[away, home] (Houston 0, Texas 4)
-    //   128506: ft=[home, away] (San Diego 0, Philadelphia 3)
-    // Lightsail baseball-ws + baseball-poller 두 source 가 cache 에 동시 push 하면서
-    // 인덱싱 가정 다른 race condition 의심. DB 는 ESPN 과 일치 (정상).
-    // → 양방향 검증: 어느 한 인덱싱이라도 DB 와 매칭되면 OK. 진짜 mismatch 만 알림.
-    // → 추가 (2026-05-27): cache 가 DB 보다 신선한데 5분 이내 차이면 sync lag 가능성
-    //   (KBO #2223 ft=[1,1] vs DB 1-0 case — 4분 안에 자동 sync 됨). 5분+ stale 만 alert.
+    // 3. cache_db_mismatch — ft = [home, away] 단일 인덱싱 (2026-05-27 CPBL 정정).
+    // 양방향 검증은 race condition 이전엔 안전망 였으나, 워커 ft 인덱싱 통일 후엔
+    // 진짜 정합성만 확인. 단 sync lag (cache 신선 + Match stale) 5분 이내는 skip.
     const ft = scoreArr[3]?.ft;
     if (Array.isArray(ft) && ft.length === 2 && m.homeScore != null && m.awayScore != null) {
       const a = parseInt(ft[0], 10);
       const b = parseInt(ft[1], 10);
       if (Number.isFinite(a) && Number.isFinite(b)) {
-        const matchAH = a === m.awayScore && b === m.homeScore; // [away, home]
-        const matchHA = a === m.homeScore && b === m.awayScore; // [home, away]
+        const matchAH = a === m.awayScore && b === m.homeScore; // [away, home] — 옛 호환
+        const matchHA = a === m.homeScore && b === m.awayScore; // [home, away] — 정답
         if (!matchAH && !matchHA) {
           const cacheUpd = cache?.updatedAt?.getTime() ?? 0;
           const matchUpd = m.updatedAt.getTime();

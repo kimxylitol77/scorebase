@@ -73,7 +73,8 @@ async function postCache(matchId, tsMatchId, detailLive, scoreObj) {
 }
 
 // raw detail_live entry.score = [tsMatchId, statusId, half, scoresObj]
-// scoresObj.ft = [ts_away, ts_home] 일관 (cache 인덱싱 메모리: feedback_thesports_baseball_indexing).
+// scoresObj.ft = [ts_home, ts_away] — 2026-05-27 CPBL Wei Chuan vs Fubon 사용자 화면
+// swap 사고로 정정 확정. baseball-live.ts 의 KBO 5매치 네이버 검증과 일치 ([home, away]).
 // swap=true 면 ts_home == our_away → 우리 관점에서 뒤집어 반환.
 function extractScore(entry, swap) {
   const arr = entry?.score;
@@ -82,8 +83,8 @@ function extractScore(entry, swap) {
   if (!scores || typeof scores !== "object") return null;
   const ft = scores.ft;
   if (!Array.isArray(ft) || ft.length < 2) return null;
-  const tsAway = parseInt(String(ft[0]), 10);
-  const tsHome = parseInt(String(ft[1]), 10);
+  const tsHome = parseInt(String(ft[0]), 10);
+  const tsAway = parseInt(String(ft[1]), 10);
   if (!Number.isFinite(tsAway) || !Number.isFinite(tsHome)) return null;
   return swap
     ? { homeScore: tsAway, awayScore: tsHome }

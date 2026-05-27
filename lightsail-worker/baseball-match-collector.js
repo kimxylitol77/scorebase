@@ -117,14 +117,13 @@ async function poll() {
       if (!m.home_team_id || !m.away_team_id) continue;
       if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) continue;
       const status = mapStatus(m.status_id);
-      // diary 응답 scores.ft = [ts_away_str, ts_home_str] (string array).
-      // endpoint 가 tsHomeTeamId → our.homeTeamId 그대로 매핑하므로 swap 불필요 —
-      // homeScore = ts.home (ft[1]), awayScore = ts.away (ft[0]).
-      // SCHEDULED 매치는 ft=["0","0"] 라도 무의미하므로 안 보냄 (raw=null 유지).
+      // diary 응답 scores.ft = [ts_home_str, ts_away_str] — 2026-05-27 CPBL 검증 정정.
+      // baseball-live.ts 의 KBO 5매치 네이버 검증과 일치 ([home, away]).
+      // endpoint 가 tsHomeTeamId → our.homeTeamId 그대로 매핑하므로 swap 불필요.
       let hs, as;
       if ((status === "LIVE" || status === "FINISHED") && m.scores && Array.isArray(m.scores.ft) && m.scores.ft.length >= 2) {
-        const tsHome = parseInt(String(m.scores.ft[1]), 10);
-        const tsAway = parseInt(String(m.scores.ft[0]), 10);
+        const tsHome = parseInt(String(m.scores.ft[0]), 10);
+        const tsAway = parseInt(String(m.scores.ft[1]), 10);
         if (Number.isFinite(tsHome)) hs = tsHome;
         if (Number.isFinite(tsAway)) as = tsAway;
       }

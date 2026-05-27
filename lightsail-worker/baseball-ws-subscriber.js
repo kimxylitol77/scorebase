@@ -45,7 +45,8 @@ async function refreshMapping(force = false) {
 }
 
 // baseball MQTT score 메시지에서 현재 점수 추출.
-// raw ft = [ts_away, ts_home] 일관 (메모리: feedback_thesports_baseball_indexing).
+// raw ft = [ts_home, ts_away] — 2026-05-27 CPBL swap 사고로 정정.
+// baseball-live.ts 의 KBO 5매치 네이버 검증 ([home, away]) 과 일치.
 // swap=true 면 ts_home == our_away → 우리 관점에서 뒤집어 반환.
 function extractBaseballScore(item, swap) {
   const arr = item?.score;
@@ -54,8 +55,8 @@ function extractBaseballScore(item, swap) {
   if (!scores || typeof scores !== "object") return [null, null];
   const ft = scores.ft;
   if (!Array.isArray(ft) || ft.length < 2) return [null, null];
-  const tsAway = parseInt(String(ft[0]), 10);
-  const tsHome = parseInt(String(ft[1]), 10);
+  const tsHome = parseInt(String(ft[0]), 10);
+  const tsAway = parseInt(String(ft[1]), 10);
   if (!Number.isFinite(tsHome) || !Number.isFinite(tsAway)) return [null, null];
   return swap ? [tsAway, tsHome] : [tsHome, tsAway]; // [homeScore, awayScore]
 }
