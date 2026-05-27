@@ -45,9 +45,14 @@ async function refreshMapping(force = false) {
 }
 
 // baseball MQTT score 메시지에서 현재 점수 추출.
-// 형식 (docs + memory feedback_thesports_baseball_indexing.md): ft=[away, home].
-// 2026-05-26 production 재검증: Houston away=0/Texas home=4, cache ft=["0","4"] →
-// ft[0]=away. 이전 주석 "ft[0]=home" 은 오류 (Lightsail ws-subscriber 와 sync).
+// 형식 (검증 확정 2026-05-27): ft=[home, away].
+//
+// 검증: MLB 매치 4jwq26sg8wv9r0v (Boston home @ Atlanta away, "Top 6th") 의
+//   cache.ft=["2","5"], p6=[0,3]. 6회 초 = away 공격 → p6 의 away 점수 위치는
+//   index 1 (=3). 따라서 [home, away] = p6[0]=0 (Boston 6회말 미시작), p6[1]=3
+//   (Atlanta 6회초 3점). ft 도 동일 인덱싱 → [home=2 Boston, away=5 Atlanta] = ESPN 일치.
+// baseball-live.ts (KBO 검증) 와 sync. 이전 "ft[0]=away" 주석은 Houston/Texas
+//   sample 의 home/away 식별 오인. cache_db_mismatch 알림 (Atlanta vs Boston) 의 원인.
 function extractBaseballScore(item) {
   const arr = item?.score;
   if (!Array.isArray(arr) || arr.length < 4) return [null, null];
@@ -55,8 +60,8 @@ function extractBaseballScore(item) {
   if (!scores || typeof scores !== "object") return [null, null];
   const ft = scores.ft;
   if (!Array.isArray(ft) || ft.length < 2) return [null, null];
-  const away = parseInt(String(ft[0]), 10);
-  const home = parseInt(String(ft[1]), 10);
+  const home = parseInt(String(ft[0]), 10);
+  const away = parseInt(String(ft[1]), 10);
   if (!Number.isFinite(home) || !Number.isFinite(away)) return [null, null];
   return [home, away]; // [homeScore, awayScore]
 }
