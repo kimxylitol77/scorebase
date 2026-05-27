@@ -831,6 +831,26 @@ export async function runPreview(opts?: {
         },
       });
 
+      // Match 의 predHome/Draw/Away 도 같이 update — /value-bets, /scores 등
+      // SSR 페이지가 Match.predHome 직접 참조 (Article 안 join 비용 X).
+      // 사용자 진단 (NPB 12554): Article PUBLISHED 였지만 Match.predHome=null
+      // → value-bets/Elo 비교 카드 안 보이는 원인.
+      if (wp) {
+        await prisma.match
+          .update({
+            where: { id: m.id },
+            data: {
+              predHome: wp.home,
+              predDraw: wp.draw,
+              predAway: wp.away,
+              predWinner: predictedWinner,
+            },
+          })
+          .catch((e) => {
+            console.warn(`[preview] Match predict update fail m#${m.id}: ${(e as Error).message}`);
+          });
+      }
+
       console.log(
         `[preview] ✅ #${article.id} ${m.league} ${m.homeTeam.name} vs ${m.awayTeam.name}: ${title}`,
       );
