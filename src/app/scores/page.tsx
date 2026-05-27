@@ -1576,13 +1576,13 @@ function actionsFor(m: NormalizedMatch) {
   if (!m.preview && !m.recap) return null;
   return (
     <>
-      {m.preview && (
+      {m.preview && m.href && (
         <Link
-          href={`/articles/${m.preview}`}
+          href={m.href}
           prefetch={false}
           className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
         >
-          프리뷰
+          AI 예측
         </Link>
       )}
       {m.recap && (
