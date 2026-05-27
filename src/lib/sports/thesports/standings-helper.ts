@@ -90,9 +90,8 @@ export async function getStandingsPositions(
   }
 
   // 2) api-football / api-baseball fallback — TheSports 누락 팀만 보강.
-  // 야구는 ApiFootballStandingsCache 에 baseball-standings cron 으로 저장된 rows 활용.
-  // 단 teamExternalId 가 api-baseball team id 라 Team.externalId (TheSports id) 와
-  // 일치 안 함 → TeamSourceId(source='api-baseball') 로 2차 fallback.
+  // 야구 리그만 TeamSourceId(api-baseball) 2차 lookup (132 축구 league × 추가 query 로
+  // Vercel function timeout 사고 방지 — 2026-05-27 /predictions 500).
   const af = await prisma.apiFootballStandingsCache.findUnique({
     where: { league },
     select: { rows: true },
@@ -104,19 +103,20 @@ export async function getStandingsPositions(
     }>) ?? [];
     if (rows.length > 0) {
       const externalIds = rows.map((r) => r.teamExternalId);
-      const [teamsByExt, sourceIds] = await Promise.all([
-        prisma.team.findMany({
-          where: { league, externalId: { in: externalIds } },
-          select: { id: true, externalId: true },
-        }),
-        prisma.teamSourceId.findMany({
-          where: { league, source: "api-baseball", externalId: { in: externalIds } },
-          select: { teamId: true, externalId: true },
-        }),
-      ]);
+      const isBaseball = ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(league);
+      const teamsByExt = await prisma.team.findMany({
+        where: { league, externalId: { in: externalIds } },
+        select: { id: true, externalId: true },
+      });
       const extToOurId = new Map<string, number>();
       for (const t of teamsByExt) extToOurId.set(t.externalId, t.id);
-      for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
+      if (isBaseball) {
+        const sourceIds = await prisma.teamSourceId.findMany({
+          where: { league, source: "api-baseball", externalId: { in: externalIds } },
+          select: { teamId: true, externalId: true },
+        });
+        for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
+      }
       for (const r of rows) {
         const ourId = extToOurId.get(r.teamExternalId);
         if (ourId != null && !positionByOurTeamId.has(ourId)) {
@@ -218,23 +218,22 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
       }
       const rows = (af.rows as unknown as AfRow[]) ?? [];
       if (rows.length > 0) {
-        // Team.externalId 직접 + TeamSourceId(api-baseball) 둘 다 lookup.
-        // 야구 (CPBL/KBO/NPB/MLB) 는 ApiFootballStandingsCache 의 teamExternalId 가
-        // api-baseball id 라 Team.externalId (TheSports/공식) 와 다름.
+        // 야구만 TeamSourceId(api-baseball) 2차 lookup (축구 132 league 추가 query timeout 방지).
         const externalIds = rows.map((r) => r.teamExternalId);
-        const [teamsByExt, sourceIds] = await Promise.all([
-          prisma.team.findMany({
-            where: { league, externalId: { in: externalIds } },
-            select: { id: true, externalId: true },
-          }),
-          prisma.teamSourceId.findMany({
-            where: { league, source: "api-baseball", externalId: { in: externalIds } },
-            select: { teamId: true, externalId: true },
-          }),
-        ]);
+        const isBaseball = ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(league);
+        const teamsByExt = await prisma.team.findMany({
+          where: { league, externalId: { in: externalIds } },
+          select: { id: true, externalId: true },
+        });
         const extToOurId = new Map<string, number>();
         for (const t of teamsByExt) extToOurId.set(t.externalId, t.id);
-        for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
+        if (isBaseball) {
+          const sourceIds = await prisma.teamSourceId.findMany({
+            where: { league, source: "api-baseball", externalId: { in: externalIds } },
+            select: { teamId: true, externalId: true },
+          });
+          for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
+        }
         for (const r of rows) {
           const ourId = extToOurId.get(r.teamExternalId);
           if (ourId != null && !seen.has(ourId)) {
