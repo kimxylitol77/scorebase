@@ -7,7 +7,12 @@
 //
 // 실행: tsx scripts/build-kbo-player-names-haiku.ts 30
 // 환경변수: ANTHROPIC_API_KEY, THESPORTS_USER, THESPORTS_SECRET (필수)
+// mac-mini cron 은 weekly-player-names.sh 가 .env.local 미리 source 후 호출하므로 자동 inherit.
+// 로컬/Vercel function 직접 실행시도 cover 하도록 dotenv 명시 — .env.local 우선, fallback .env.
 
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config(); // .env fallback (override 안 함)
 import { PrismaClient } from "@prisma/client";
 
 const DAYS = parseInt(process.argv[2] ?? "30", 10);
