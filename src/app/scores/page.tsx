@@ -732,13 +732,22 @@ export default async function ScoresPage({ searchParams }: Props) {
           : m.status;
     // monotonic max(live, DB.Match) — TheSports MQTT/fast-poller 가 채운 DB 가 live (api-sports 15-30s) 보다 fresh 한 경우 그쪽 사용.
     // 점수는 단방향 증가 — 더 큰 값이 안전.
+    //
+    // ⚠️ 야구 예외 (2026-05-27 화면 5:5/5:5/5:5/7:7 동점 사고):
+    // 야구는 live API (api-baseball) 와 DB (TheSports cache→Match sync) 의 home/away
+    // perspective 가 swap 될 수 있음. Math.max 로 비교하면 양 팀 점수가 같은 max 값으로
+    // 합쳐져 동점 표시. DB 는 cache→Match sync 가 swap 처리 후 정확 → 야구는 DB 만 사용.
     const liveH = live?.homeScore;
     const liveA = live?.awayScore;
     const dbH = m.homeScore;
     const dbA = m.awayScore;
-    const homeScore = liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH);
-    const awayScore = liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA);
     const isBaseball = BASEBALL_LEAGUES.has(m.league);
+    const homeScore = isBaseball
+      ? (dbH ?? liveH ?? null)
+      : (liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH));
+    const awayScore = isBaseball
+      ? (dbA ?? liveA ?? null)
+      : (liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA));
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
 
