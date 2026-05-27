@@ -38,6 +38,7 @@ type IssueKind =
   | "inning_missing"
   | "cache_db_mismatch"
   | "stale_live"
+  | "future_live"
   | "standings_stale"
   | "standings_mismatch";
 
@@ -134,6 +135,19 @@ export async function GET(req: NextRequest) {
       home: m.homeTeam.name,
       away: m.awayTeam.name,
     };
+
+    // 4b. future_live — startTime 이 미래 (now + 1h+) 인데 status=LIVE 인 stuck 매치.
+    // 2026-05-27 NPB #328161 (5/31 시작) 발견. TheSports status_id=0/1 이 잘못 LIVE 매핑됐던
+    // 잔재 또는 status update path 에 미래 매치 가드 누락. 즉시 SCHEDULED 으로 롤백 필요.
+    if (m.status === "LIVE" && m.startTime.getTime() > now + 3600 * 1000) {
+      issues.push({
+        ...matchInfo,
+        kind: "future_live",
+        severity: "HIGH",
+        detail: `startTime=${m.startTime.toISOString().slice(0,16)} (${Math.round((m.startTime.getTime() - now) / 3600000)}h 후) 인데 status=LIVE — 즉시 SCHEDULED 롤백`,
+      });
+      continue;
+    }
 
     // 4. stale_live — 모든 sport. Match.updatedAt 은 점수 변동시에만 갱신되어
     // 골 없는 30분+ 라이브에서 false positive 가 남. ts cache.updatedAt 이 더
