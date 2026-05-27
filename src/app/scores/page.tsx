@@ -36,6 +36,7 @@ import {
 import SportTabs from "@/components/scores/SportTabs";
 import DateSlider from "@/components/scores/DateSlider";
 import LeagueChips from "@/components/scores/LeagueChips";
+import LeagueDropdown from "@/components/scores/LeagueDropdown";
 import SoccerStatusTabs, {
   type SoccerStatusFilter,
 } from "@/components/scores/SoccerStatusTabs";
@@ -1129,15 +1130,23 @@ export default async function ScoresPage({ searchParams }: Props) {
         </div>
       ) : (
         <>
-          {/* 리그 필터 (해당 종목 리그가 2개 이상일 때만) */}
-          {leaguesAll.length > 1 && (
-            <LeagueChips
-              leagues={leaguesAll}
-              activeLeague={leagueFilter}
-              sport={sport}
-              date={dateStr}
-            />
-          )}
+          {/* 리그 필터 — 야구 (12+ 리그) 는 드롭다운, 그 외는 가로 chip */}
+          {leaguesAll.length > 1 &&
+            (sport === "baseball" ? (
+              <LeagueDropdown
+                leagues={leaguesAll}
+                activeLeague={leagueFilter}
+                sport={sport}
+                date={dateStr}
+              />
+            ) : (
+              <LeagueChips
+                leagues={leaguesAll}
+                activeLeague={leagueFilter}
+                sport={sport}
+                date={dateStr}
+              />
+            ))}
 
           {/* 매치 list */}
           {normalized.length === 0 ? (
