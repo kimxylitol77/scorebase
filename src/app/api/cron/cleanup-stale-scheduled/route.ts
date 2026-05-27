@@ -225,8 +225,11 @@ export async function GET(req: NextRequest) {
       verifyKept.push(m);
       continue;
     }
-    // verify 대상 아님 또는 응답 없음 — 기존 동작 (POSTPONED)
-    toPostpone.push(m);
+    // verify 응답 없음 — 외부 status 확인 실패. 임의 POSTPONED 금지, SCHEDULED 유지.
+    // 2026-05-27 LMB/BUNDESLIGA_2/URVALSDEILD 일괄 false positive 재발 방지.
+    // SOURCE_HINT 미등록 리그 (LMB/NBA/NHL/MLB 등) 도 동일하게 keep — destructive 봇은
+    // 외부 verify 가 가능한 리그에만 POSTPONED 처리.
+    verifyKept.push(m);
   }
 
   if (stale.length === 0 && staleLive.length === 0) {
