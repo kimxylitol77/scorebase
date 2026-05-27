@@ -1572,17 +1572,32 @@ type NormalizedMatch = {
   doubleHeader: { index: number; total: number } | null;
 };
 
+// 야구 라인업 cover 리그 — MLB 만 풍부한 boxscore 라인업 (MLB Stats API).
+// KBO/NPB/CPBL/LMB 등은 라인업 미커버 (TheSports squad 정도, 풍부 X).
+const BASEBALL_LINEUP_LEAGUES = new Set(["MLB"]);
+
 function actionsFor(m: NormalizedMatch) {
-  if (!m.preview && !m.recap) return null;
+  const showAi = !!m.href; // 모든 매치 — 라이브 페이지의 매치 인사이트 5탭 진입
+  const showLineup = !!m.href && BASEBALL_LINEUP_LEAGUES.has(m.league);
+  if (!showAi && !m.recap && !showLineup) return null;
   return (
     <>
-      {m.preview && m.href && (
+      {showAi && (
         <Link
-          href={m.href}
+          href={m.href!}
           prefetch={false}
           className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
         >
           AI 예측
+        </Link>
+      )}
+      {showLineup && (
+        <Link
+          href={m.href!}
+          prefetch={false}
+          className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition"
+        >
+          라인업
         </Link>
       )}
       {m.recap && (
