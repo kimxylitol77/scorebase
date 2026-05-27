@@ -274,16 +274,35 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
+      // 단조 progression 가드 — 30분 주기 collector 가 detail_live 의 stale/wrong
+      // status (e.g. baseball 100 = FINISHED 인데 구버전 mapper 가 SCHEDULED 로 잘못
+      // 매핑한 케이스) 로 fresh FINISHED 매치를 SCHEDULED 로 revert + score null
+      // 덮어쓰는 사고 차단 (2026-05-27 LMB 5/27 매치 매 30분 revert).
+      // POSTPONED 는 어디서나 진입 허용 (matchday cancel).
+      const STATUS_RANK = { SCHEDULED: 0, LIVE: 1, FINISHED: 2, POSTPONED: 2 } as const;
+      const existing = await prisma.match.findUnique({
+        where: { league_externalId: { league: m.league, externalId } },
+        select: { status: true, homeScore: true, awayScore: true },
+      });
+      const incomingRank = STATUS_RANK[m.status];
+      const allowStatus =
+        !existing ||
+        m.status === "POSTPONED" ||
+        incomingRank >= (STATUS_RANK[existing.status as keyof typeof STATUS_RANK] ?? 0);
+      // score 가 null/undefined 로 들어오면 기존 값 보존 (cache 로 채워진 fresh score
+      // 덮어쓰지 않게). 명시적 숫자만 update.
+      const updateData: Record<string, unknown> = {
+        homeTeamId: homeId,
+        awayTeamId: awayId,
+        startTime: new Date(m.startTime),
+      };
+      if (allowStatus) updateData.status = m.status;
+      if (typeof m.homeScore === "number") updateData.homeScore = m.homeScore;
+      if (typeof m.awayScore === "number") updateData.awayScore = m.awayScore;
+
       await prisma.match.upsert({
         where: { league_externalId: { league: m.league, externalId } },
-        update: {
-          homeTeamId: homeId,
-          awayTeamId: awayId,
-          homeScore: m.homeScore ?? null,
-          awayScore: m.awayScore ?? null,
-          status: m.status,
-          startTime: new Date(m.startTime),
-        },
+        update: updateData,
         create: {
           league: m.league,
           externalId,
