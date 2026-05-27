@@ -1,25 +1,29 @@
 // src/lib/predictionEngine.ts
 // 모든 종목 (야구/농구/하키/축구) 공통 AI 승률 예측 wrapper.
-// 기존 src/lib/predict/* 28개 모듈을 sport-agnostic 한 단일 entry 로 통합.
+//
+// 두 가지 entry:
+//   1) predictMatch(input)    — 순수 함수. 호출 측이 sport/home/away 데이터 준비.
+//                               UI / 테스트 / 다른 source 통합에 자유.
+//   2) predictMatchById(id)   — DB 조회 + 기존 src/lib/predict/* 모듈 활용해서
+//                               input 자동 빌드 후 predictMatch 호출.
+//
+// 사용 예 (사용자 요청 시그니처):
+//   const pred = predictMatch({
+//     sport: "baseball",
+//     home: { name, elo: 1520, recentForm: 0.6, injuryImpact: 0, starterRating: 55, bullpenFatigue: 0.2 },
+//     away: { name, elo: 1480, recentForm: 0.4, injuryImpact: 0.1, starterRating: 48, bullpenFatigue: 0.5 },
+//     odds: { home: 0.55, away: 0.42 },
+//   });
 //
 // 핵심 정책:
-//   1. confidence < 58 → NO_PICK (베팅 가치 없음 시그널)
-//   2. 종목별 시그널 분기 — baseball: 선발 ERA / 불펜 fatigue,
-//      hockey: 골리 GAA, basketball/football: Elo + 최근폼 + 부상
-//   3. market odds (배당) 가 있으면 0.4 weight 로 blend (시장 신호 반영)
-//   4. reason chip — 큰 영향 시그널 3개만 노출 (Elo / 최근폼 / 선발 등)
-//   5. validatePredictionDisplay — LIVE score 와 예측 방향 충돌 시 hide
-//      (예: LIVE 5-1 인데 pick=AWAY 면 표시 X — 사용자 신뢰도 보호)
-//
-// 사용:
-//   const pred = await predictMatch(matchId);
-//   if (!pred || pred.pick === "NO_PICK") return null;
-//   const { show, reason } = validatePredictionDisplay(pred, match);
-//   if (!show) return null;
-//   // pred.probHome, pred.pick, pred.confidence, pred.reasons 표시
+//   - confidence < 58 → NO_PICK (베팅 가치 없음 시그널)
+//   - 종목별 시그널 분기: baseball=선발/불펜, hockey=골리, basketball=부상, football=전체
+//   - market odds 가 있으면 0.4 weight 로 blend (시장 신호 반영)
+//   - reason chip — 영향 큰 시그널 3개만 노출
+//   - validatePredictionDisplay — LIVE score 와 pick 방향 충돌 시 hide
 
 import { prisma } from "@/lib/db";
-import { calcEloTable, getElo, STARTING_ELO } from "./predict/elo";
+import { calcEloTable, getElo } from "./predict/elo";
 import { calcWinProbability, type WinProb } from "./predict/win-probability";
 import { blendWithMarket, type MarketProb } from "./predict/market-blend";
 import { calcRecentTrend } from "./predict/recent-trend";
@@ -38,8 +42,40 @@ const FOOTBALL_LEAGUES_DRAW = new Set([
 export type SportKind = "baseball" | "basketball" | "hockey" | "football" | "other";
 export type PredictionPick = "HOME" | "AWAY" | "DRAW" | "NO_PICK";
 
+/**
+ * 종목 무관 한 팀의 사이드 입력. fallback 가능한 값은 caller 가 ?? 기본값 처리.
+ */
+export interface TeamInput {
+  name: string;
+  /** 0~3000 Elo rating. 기본 1500 권장. */
+  elo: number;
+  /** 0~1. 최근 폼 정규화 (1=전승, 0=전패). 평균 0.5. */
+  recentForm?: number;
+  /** 0~1. 부상자 영향 (0=정상, 1=주축 전부 결장). 축구/농구. */
+  injuryImpact?: number;
+  /** 야구 선발투수 rating 0~100. 50 = league avg. ERA 낮을수록 ↑. */
+  starterRating?: number;
+  /** 야구 불펜 fatigue 0~1. 0=쉼, 1=완전 소진. */
+  bullpenFatigue?: number;
+  /** 하키 골리 rating 0~100. 50 = league avg. SV% 높을수록 ↑. */
+  goalieRating?: number;
+}
+
+/**
+ * 한 매치 입력. 배당 (odds.home + odds.away = 1 권장) optional.
+ */
+export interface PredictionInput {
+  sport: SportKind;
+  /** 리그 코드 — Elo 휴리스틱의 draw weight 등에 사용. 기본 sport 별 fallback. */
+  league?: string;
+  home: TeamInput;
+  away: TeamInput;
+  /** 시장 합의 확률 (남은 vig 제거 권장). 없으면 blend skip. */
+  odds?: { home: number; away: number; draw?: number };
+}
+
 export interface PredictionReason {
-  /** 짧은 라벨 (UI chip) — 예: "ELO 우위", "최근 폼", "선발 ERA", "골리 SV%" */
+  /** UI chip 라벨 — 예: "ELO 우위", "최근 폼", "선발 ERA", "골리 SV%", "배당 일치" */
   tag: string;
   /** 1-2문장 설명 */
   detail: string;
@@ -48,7 +84,6 @@ export interface PredictionReason {
 }
 
 export interface PredictionResult {
-  matchId: number;
   sport: SportKind;
   league: string;
   /** 0~1 확률 — 합 1 (정규화 완료) */
@@ -61,11 +96,13 @@ export interface PredictionResult {
   confidence: number;
   /** 추천 이유 chip 최대 3개, 영향 큰 순 */
   reasons: PredictionReason[];
-  /** confidence gate 통과 여부 (false 면 pick=NO_PICK) */
+  /** confidence gate 통과 여부 */
   passed: boolean;
-  /** 사용된 시그널 list — 디버그/로그용 */
+  /** 사용된 시그널 list — 디버그/로그 */
   signalsUsed: string[];
 }
+
+// ── helpers ─────────────────────────────────────────────────────
 
 function classifySport(league: string): SportKind {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
@@ -73,6 +110,14 @@ function classifySport(league: string): SportKind {
   if (HOCKEY_LEAGUES.has(league)) return "hockey";
   if (FOOTBALL_LEAGUES_DRAW.has(league)) return "football";
   return "other";
+}
+
+function defaultLeagueFor(sport: SportKind): string {
+  if (sport === "baseball") return "MLB";
+  if (sport === "basketball") return "NBA";
+  if (sport === "hockey") return "NHL";
+  if (sport === "football") return "EPL";
+  return "EPL";
 }
 
 function normalizeProbs(p: WinProb): WinProb {
@@ -87,35 +132,221 @@ function pickFromProbs(p: WinProb): { pick: "HOME" | "AWAY" | "DRAW"; prob: numb
   return { pick: "DRAW", prob: p.draw };
 }
 
+function clamp01(n: number): number {
+  return Math.max(0, Math.min(1, n));
+}
+
+// ── core: 순수 함수 ──────────────────────────────────────────────
+
 /**
- * 매치 1건 예측. DB 에서 시즌 매치 + 사이드 데이터 조회 후 종목별 모델 적용.
- *
- * 성능: per-call ~50~150ms (시즌 매치 수에 비례). 다량 호출 시 batch 처리 권장.
+ * 한 매치 예측. DB 의존성 없는 순수 함수.
+ * 호출 측이 모든 시그널 데이터 준비. 테스트 + 다른 source 통합 자유.
  */
-export async function predictMatch(matchId: number): Promise<PredictionResult | null> {
+export function predictMatch(input: PredictionInput): PredictionResult {
+  const { sport, home, away, odds } = input;
+  const league = input.league ?? defaultLeagueFor(sport);
+  const signalsUsed: string[] = [];
+  const reasons: PredictionReason[] = [];
+
+  // ── 1. Elo 기반 base (모든 종목 공통) ─────────────────
+  let probs = calcWinProbability(home.elo, away.elo, league);
+  probs = normalizeProbs(probs);
+  signalsUsed.push("elo");
+
+  const eloDiff = home.elo - away.elo;
+  if (Math.abs(eloDiff) >= 50) {
+    reasons.push({
+      tag: "ELO 우위",
+      detail: `${eloDiff > 0 ? home.name : away.name} Elo ${Math.abs(Math.round(eloDiff))}점 우위 (${Math.round(home.elo)} vs ${Math.round(away.elo)})`,
+      weight: Math.abs(eloDiff) >= 100 ? "high" : "med",
+    });
+  }
+
+  // ── 2. 최근 폼 (입력 있으면) ────────────────────────────
+  // recentForm 차이 0.2+ → ~10% 확률 shift 효과
+  if (home.recentForm != null && away.recentForm != null) {
+    const formDiff = home.recentForm - away.recentForm;
+    if (Math.abs(formDiff) >= 0.15) {
+      const shift = formDiff * 0.15; // max ±15%
+      probs = {
+        home: clamp01(probs.home + shift),
+        draw: probs.draw,
+        away: clamp01(probs.away - shift),
+      };
+      probs = normalizeProbs(probs);
+      signalsUsed.push("recent_form");
+      reasons.push({
+        tag: "최근 폼",
+        detail: `${formDiff > 0 ? home.name : away.name} 최근 폼 우위 (${(home.recentForm * 100).toFixed(0)} vs ${(away.recentForm * 100).toFixed(0)})`,
+        weight: Math.abs(formDiff) >= 0.3 ? "high" : "med",
+      });
+    }
+  }
+
+  // ── 3. 부상 (입력 있으면, 종목 무관) ───────────────────
+  // injuryImpact 0~1 — 큰 쪽이 약화. 0.2+ 격차에만 반영.
+  if (home.injuryImpact != null && away.injuryImpact != null) {
+    const injDiff = away.injuryImpact - home.injuryImpact; // away 부상 많으면 + (홈 유리)
+    if (Math.abs(injDiff) >= 0.2) {
+      const shift = injDiff * 0.12;
+      probs = {
+        home: clamp01(probs.home + shift),
+        draw: probs.draw,
+        away: clamp01(probs.away - shift),
+      };
+      probs = normalizeProbs(probs);
+      signalsUsed.push("injury");
+      reasons.push({
+        tag: "부상자",
+        detail: `${injDiff > 0 ? away.name : home.name} 부상 영향 큼 (${(home.injuryImpact * 100).toFixed(0)}% vs ${(away.injuryImpact * 100).toFixed(0)}%)`,
+        weight: Math.abs(injDiff) >= 0.4 ? "high" : "low",
+      });
+    }
+  }
+
+  // ── 4. 종목별 시그널 분기 ────────────────────────────────
+  if (sport === "baseball") {
+    // 선발투수 rating 차이 — 50 평균, 5+ 차이면 반영
+    if (home.starterRating != null && away.starterRating != null) {
+      const diff = home.starterRating - away.starterRating;
+      if (Math.abs(diff) >= 5) {
+        const shift = (diff / 100) * 0.5; // max ±20% 효과
+        probs = {
+          home: clamp01(probs.home + shift),
+          draw: probs.draw,
+          away: clamp01(probs.away - shift),
+        };
+        probs = normalizeProbs(probs);
+        signalsUsed.push("starter");
+        reasons.push({
+          tag: "선발투수",
+          detail: `${diff > 0 ? home.name : away.name} 선발 우위 (rating ${home.starterRating} vs ${away.starterRating})`,
+          weight: Math.abs(diff) >= 15 ? "high" : "med",
+        });
+      }
+    }
+    // 불펜 fatigue — 큰 쪽이 약화
+    if (home.bullpenFatigue != null && away.bullpenFatigue != null) {
+      const diff = away.bullpenFatigue - home.bullpenFatigue;
+      if (Math.abs(diff) >= 0.3) {
+        const shift = diff * 0.08;
+        probs = {
+          home: clamp01(probs.home + shift),
+          draw: probs.draw,
+          away: clamp01(probs.away - shift),
+        };
+        probs = normalizeProbs(probs);
+        signalsUsed.push("bullpen");
+        reasons.push({
+          tag: "불펜 피로도",
+          detail: `${diff > 0 ? away.name : home.name} 불펜 소진 큼 (${(home.bullpenFatigue * 100).toFixed(0)}% vs ${(away.bullpenFatigue * 100).toFixed(0)}%)`,
+          weight: "low",
+        });
+      }
+    }
+  } else if (sport === "hockey") {
+    // 골리 rating
+    if (home.goalieRating != null && away.goalieRating != null) {
+      const diff = home.goalieRating - away.goalieRating;
+      if (Math.abs(diff) >= 5) {
+        const shift = (diff / 100) * 0.4;
+        probs = {
+          home: clamp01(probs.home + shift),
+          draw: probs.draw,
+          away: clamp01(probs.away - shift),
+        };
+        probs = normalizeProbs(probs);
+        signalsUsed.push("goalie");
+        reasons.push({
+          tag: "골리",
+          detail: `${diff > 0 ? home.name : away.name} 골리 우위 (rating ${home.goalieRating} vs ${away.goalieRating})`,
+          weight: Math.abs(diff) >= 15 ? "high" : "med",
+        });
+      }
+    }
+  }
+
+  // ── 5. 시장 배당 blend ─────────────────────────────────
+  if (odds && typeof odds.home === "number" && typeof odds.away === "number") {
+    const market: MarketProb = {
+      home: odds.home,
+      draw: odds.draw ?? 0,
+      away: odds.away,
+    };
+    const blended = blendWithMarket(probs, market, { marketWeight: 0.4 });
+    if (blended.blended) {
+      probs = normalizeProbs({
+        home: blended.home,
+        draw: blended.draw,
+        away: blended.away,
+      });
+      signalsUsed.push("market_blend");
+      const ourPick = pickFromProbs(probs);
+      const marketPick = market.home > market.away ? "HOME" : "AWAY";
+      if (ourPick.pick === marketPick) {
+        reasons.push({
+          tag: "배당흐름 일치",
+          detail: `시장 배당과 동일 방향 — 신뢰도 보강`,
+          weight: "med",
+        });
+      }
+    }
+  }
+
+  // ── 6. pick + confidence + NO_PICK gate ────────────────
+  const final = pickFromProbs(probs);
+  const confidence = Math.round(final.prob * 100);
+  const passed = confidence >= CONFIDENCE_GATE;
+
+  // reason chip 최대 3개 — high → med → low 순
+  reasons.sort((a, b) => {
+    const order: Record<string, number> = { high: 0, med: 1, low: 2 };
+    return order[a.weight] - order[b.weight];
+  });
+  const topReasons = reasons.slice(0, 3);
+
+  return {
+    sport,
+    league,
+    probHome: probs.home,
+    probDraw: probs.draw,
+    probAway: probs.away,
+    pick: passed ? final.pick : "NO_PICK",
+    confidence,
+    reasons: topReasons,
+    passed,
+    signalsUsed,
+  };
+}
+
+// ── DB wrapper ──────────────────────────────────────────────────
+
+/**
+ * matchId 만 받아서 DB 에서 시즌 데이터 + 사이드 신호 자동 빌드 후 predictMatch.
+ * Elo + 최근 폼 (calcRecentTrend) 자동 계산.
+ * 선발투수 / 골리 / 부상 source 통합은 향후 Phase 3.
+ */
+export async function predictMatchById(matchId: number): Promise<PredictionResult | null> {
   const match = await prisma.match.findUnique({
     where: { id: matchId },
     select: {
       id: true,
       league: true,
-      status: true,
       homeTeamId: true,
       awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
       startTime: true,
       marketHome: true,
       marketDraw: true,
       marketAway: true,
+      homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
     },
   });
   if (!match) return null;
 
   const sport = classifySport(match.league);
-  const signalsUsed: string[] = [];
-  const reasons: PredictionReason[] = [];
 
-  // ── 1. Elo (모든 종목 공통) ─────────────────────────────
+  // 시즌 매치 (1년 window)
   const seasonMatches = await prisma.match.findMany({
     where: {
       league: match.league,
@@ -138,151 +369,76 @@ export async function predictMatch(matchId: number): Promise<PredictionResult | 
       startTime: true,
     },
   });
-  const eloTable = calcEloTable(seasonMatches as PredictMatch[]);
+  const seasonMatchesTyped = seasonMatches as PredictMatch[];
+
+  // Elo
+  const eloTable = calcEloTable(seasonMatchesTyped);
   const eloHome = getElo(eloTable, match.homeTeamId);
   const eloAway = getElo(eloTable, match.awayTeamId);
-  const eloDiff = eloHome - eloAway;
-  signalsUsed.push("elo");
 
-  let probs: WinProb = calcWinProbability(eloHome, eloAway, match.league);
-  probs = normalizeProbs(probs);
-
-  if (Math.abs(eloDiff) >= 50) {
-    reasons.push({
-      tag: "ELO 우위",
-      detail: `${eloDiff > 0 ? "홈" : "어웨이"}팀 Elo ${Math.abs(Math.round(eloDiff))}점 우위 (${eloHome.toFixed(0)} vs ${eloAway.toFixed(0)})`,
-      weight: Math.abs(eloDiff) >= 100 ? "high" : "med",
-    });
-  }
-
-  // ── 2. 최근 폼 / trend (모든 종목 공통) ───────────────────
-  // calcRecentTrend 는 single team 기준 (ppg, avgGoalsFor 등). 두 팀 각각 호출.
+  // 최근 폼 — ppg 0~3 → 0~1 정규화 (3=전승 ppg)
+  let homeForm: number | undefined;
+  let awayForm: number | undefined;
   try {
-    const homeTrend = calcRecentTrend(
-      seasonMatches as PredictMatch[],
-      match.homeTeamId,
-      match.startTime,
-    );
-    const awayTrend = calcRecentTrend(
-      seasonMatches as PredictMatch[],
-      match.awayTeamId,
-      match.startTime,
-    );
-    signalsUsed.push("recent_trend");
-    const ppgDiff = homeTrend.ppg - awayTrend.ppg;
-    // ppg 격차 0.6+ (예: 2.0 vs 1.4) — 의미 있는 최근 폼 차이
-    if (Math.abs(ppgDiff) >= 0.6 && homeTrend.matches >= 3 && awayTrend.matches >= 3) {
-      reasons.push({
-        tag: "최근 폼",
-        detail: `최근 ${Math.min(homeTrend.matches, awayTrend.matches)}경기 ${ppgDiff > 0 ? "홈팀" : "어웨이팀"} 평균 승점 우위 (${homeTrend.ppg.toFixed(1)} vs ${awayTrend.ppg.toFixed(1)})`,
-        weight: Math.abs(ppgDiff) >= 1.0 ? "high" : "med",
-      });
-    }
+    const ht = calcRecentTrend(seasonMatchesTyped, match.homeTeamId, match.startTime);
+    const at = calcRecentTrend(seasonMatchesTyped, match.awayTeamId, match.startTime);
+    if (ht.matches >= 3) homeForm = clamp01(ht.ppg / 3);
+    if (at.matches >= 3) awayForm = clamp01(at.ppg / 3);
   } catch {
-    // trend 실패 시 silent (시즌 첫 매치 등)
+    // silent
   }
 
-  // ── 3. 종목별 분기 — 선발투수 / 골리 / (향후) 부상 ───────
-  if (sport === "baseball") {
-    // 선발투수 ERA — baseball-context 의 starters 정보 (별도 cron 으로 fetch)
-    // 현재 자동 조회 path 가 PreviewContext 통해서만 가능. starter signal 은
-    // 별도 fetch 인프라 (fetch-baseball-starters cron) 가 있으면 활용.
-    // 일단 시그널 미적용 — 향후 PR2 에서 starter fetch 추가.
-    signalsUsed.push("baseball_base");
-    // 불펜 fatigue — 직전 3경기 평균 불펜 이닝 수 (placeholder, 데이터 source 미정)
-  } else if (sport === "hockey") {
-    // 골리 GAA / SV% — goalie 정보 fetch 위치 없음. 향후 NHL roster 통합 시 적용.
-    signalsUsed.push("hockey_base");
-  } else if (sport === "basketball") {
-    // 부상 — 현재 cron 없음. 향후 BALLDONTLIE / api-basketball 부상 endpoint 통합.
-    signalsUsed.push("basketball_base");
-  } else if (sport === "football") {
-    signalsUsed.push("football_base");
-  }
+  const odds =
+    typeof match.marketHome === "number" && typeof match.marketAway === "number"
+      ? {
+          home: match.marketHome,
+          away: match.marketAway,
+          draw: typeof match.marketDraw === "number" ? match.marketDraw : undefined,
+        }
+      : undefined;
 
-  // ── 4. 시장 배당 blend (있으면) ───────────────────────────
-  if (
-    typeof match.marketHome === "number" &&
-    typeof match.marketAway === "number"
-  ) {
-    const market: MarketProb = {
-      home: match.marketHome,
-      draw: typeof match.marketDraw === "number" ? match.marketDraw : 0,
-      away: match.marketAway,
-    };
-    const blended = blendWithMarket(probs, market, { marketWeight: 0.4 });
-    if (blended.blended) {
-      probs = normalizeProbs({ home: blended.home, draw: blended.draw, away: blended.away });
-      signalsUsed.push("market_blend");
-      // 시장과 우리 예측이 크게 다르면 reason 추가
-      const ourPick = pickFromProbs(probs);
-      const marketPick = market.home > market.away ? "HOME" : "AWAY";
-      if (ourPick.pick === marketPick) {
-        reasons.push({
-          tag: "배당흐름 일치",
-          detail: `시장 배당과 동일 방향 — 신뢰도 보강`,
-          weight: "med",
-        });
-      }
-    }
-  }
-
-  // ── 5. pick + confidence + NO_PICK gate ─────────────────
-  const final = pickFromProbs(probs);
-  const confidence = Math.round(final.prob * 100);
-  const passed = confidence >= CONFIDENCE_GATE;
-
-  // reason chip 최대 3개 — high → med → low 순
-  reasons.sort((a, b) => {
-    const order: Record<string, number> = { high: 0, med: 1, low: 2 };
-    return order[a.weight] - order[b.weight];
-  });
-  const topReasons = reasons.slice(0, 3);
-
-  return {
-    matchId,
+  return predictMatch({
     sport,
     league: match.league,
-    probHome: probs.home,
-    probDraw: probs.draw,
-    probAway: probs.away,
-    pick: passed ? final.pick : "NO_PICK",
-    confidence,
-    reasons: topReasons,
-    passed,
-    signalsUsed,
-  };
+    home: {
+      name: match.homeTeam.name,
+      elo: eloHome,
+      recentForm: homeForm,
+      // 선발/골리/부상 — Phase 3 source 통합 시 채움
+    },
+    away: {
+      name: match.awayTeam.name,
+      elo: eloAway,
+      recentForm: awayForm,
+    },
+    odds,
+  });
 }
+
+// ── 검증 / 요약 ──────────────────────────────────────────────────
 
 /**
  * 예측을 사용자 UI 에 표시할지 검증.
- * 핵심 사고: LIVE 매치에서 예측 (예: HOME 65%) 인데 현재 LIVE score 가 반대로 큰 격차 (1-5 AWAY 우세)
- * 면 표시하지 않음. 사용자가 "예측 틀렸네" 인식하지 않게 보호.
- * narrator 의 score validation 과 같은 원칙.
+ * LIVE 매치에서 score 격차가 큰데 pick 이 반대 방향이면 hide.
+ * narrator 의 score validation 과 같은 원칙 — 사용자 신뢰도 보호.
  */
 export function validatePredictionDisplay(
   pred: PredictionResult,
   match: { status: string; homeScore: number | null; awayScore: number | null },
 ): { show: boolean; reason?: string } {
   if (pred.pick === "NO_PICK") return { show: false, reason: "NO_PICK" };
-
-  // SCHEDULED — 항상 show
   if (match.status === "SCHEDULED") return { show: true };
 
-  // FINISHED / LIVE — 현재 score 와 pick 방향 비교
   const hs = match.homeScore ?? 0;
   const as_ = match.awayScore ?? 0;
   const diff = hs - as_;
 
-  // 점수 차 큰 매치 (종목별 임계)
-  const sport = pred.sport;
   let bigDiff = 2; // football
-  if (sport === "baseball") bigDiff = 4;
-  if (sport === "basketball") bigDiff = 10;
-  if (sport === "hockey") bigDiff = 3;
+  if (pred.sport === "baseball") bigDiff = 4;
+  if (pred.sport === "basketball") bigDiff = 10;
+  if (pred.sport === "hockey") bigDiff = 3;
 
   if (Math.abs(diff) >= bigDiff) {
-    // pick 이 큰 격차 반대 방향이면 hide
     if (diff > 0 && pred.pick === "AWAY") {
       return { show: false, reason: `LIVE 홈팀 ${diff}점 우세인데 pick=AWAY (반대 방향)` };
     }
@@ -290,14 +446,14 @@ export function validatePredictionDisplay(
       return { show: false, reason: `LIVE 어웨이팀 ${Math.abs(diff)}점 우세인데 pick=HOME (반대 방향)` };
     }
   }
-
   return { show: true };
 }
 
-/**
- * 한 줄 사람이 읽는 요약. UI 또는 로그용.
- */
-export function summarizePrediction(pred: PredictionResult, homeName: string, awayName: string): string {
+export function summarizePrediction(
+  pred: PredictionResult,
+  homeName: string,
+  awayName: string,
+): string {
   if (pred.pick === "NO_PICK") {
     return `예측 보류 (신뢰도 ${pred.confidence}% — gate ${CONFIDENCE_GATE} 미달)`;
   }
