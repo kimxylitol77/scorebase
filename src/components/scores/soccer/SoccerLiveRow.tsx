@@ -12,6 +12,18 @@ import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import FavoriteStar from "../FavoriteStar";
 import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
 
+// TheSports football-poller 가 lineup.detail 풍부 cover 하는 리그.
+// 메모리 [project_thesports_trial] 의 라이브 데이터 cover 현황 참고 — 메이저 + 한국/일본 + AFC.
+const LINEUP_LEAGUES = new Set([
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
+  "UCL", "UEL", "UECL",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE",
+  "AFC_CL", "AFC_CL_TWO", "AFC_U23",
+  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
+  "EREDIVISIE", "PRIMEIRA_LIGA", "MLS", "BRASILEIRAO", "LIGA_MX",
+  "INDIA_ISL", "SAUDI_PL",
+]);
+
 export interface SoccerLiveRowProps {
   matchId: string | number;
   league: string;
@@ -304,17 +316,28 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <FavoriteStar matchId={String(matchId)} />
       </div>
 
-      {/* 8. 글 (프리뷰/리뷰) — 있을 때만 아이콘 표시 */}
+      {/* 8. 정보 — AI 매치 인사이트 + 라인업 cover 리그 + 리뷰 글 (있을 때) */}
       <div className="flex items-center justify-center gap-1">
-        {previewSlug && (
+        {href && (
           <Link
-            href={`/articles/${previewSlug}`}
+            href={href}
             prefetch={false}
             onClick={(e) => e.stopPropagation()}
-            title="프리뷰"
-            className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
+            title="AI 매치 인사이트"
+            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
           >
-            P
+            AI
+          </Link>
+        )}
+        {href && LINEUP_LEAGUES.has(league) && (
+          <Link
+            href={href}
+            prefetch={false}
+            onClick={(e) => e.stopPropagation()}
+            title="라인업 (TheSports cover)"
+            className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition"
+          >
+            L
           </Link>
         )}
         {recapSlug && (
@@ -515,7 +538,7 @@ export function SoccerLiveRowHeader() {
       <div className="text-center px-2">점수</div>
       <div>원정팀</div>
       <div className="text-center">관심</div>
-      <div className="text-center">글</div>
+      <div className="text-center">정보</div>
     </div>
   );
 }
