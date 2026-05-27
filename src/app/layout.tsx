@@ -103,6 +103,14 @@ export default async function RootLayout({
             __html: `(function(){try{var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);if(c){return;}var t=localStorage.getItem('theme');var wantLight=t==='light'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);var theme=wantLight?'light':'dark';document.cookie='theme='+theme+'; path=/; max-age=31536000; SameSite=Lax';var h=document.documentElement;if(wantLight){h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}else{h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}}catch(e){}})();`,
           }}
         />
+        {/* Google Tag Manager — production 만 (dev/local 트래픽 제외) */}
+        {process.env.NODE_ENV === "production" && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WC48R8J8');`,
+            }}
+          />
+        )}
         {/* Pretendard — 한국어 본문에 최적화된 변폭 폰트 */}
         <link
           rel="stylesheet"
@@ -113,6 +121,17 @@ export default async function RootLayout({
           (--background/--foreground) 로 처리. inline script 가 html.dark 를 paint
           전에 set 하면 CSS var 가 바로 dark 값으로 적용된다. */}
       <body className="min-h-full flex flex-col selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900">
+        {/* Google Tag Manager noscript fallback — JS 차단 환경 페이지뷰 보정 */}
+        {process.env.NODE_ENV === "production" && (
+          <noscript>
+            <iframe
+              src="https://www.googletagmanager.com/ns.html?id=GTM-WC48R8J8"
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
         <PageViewTracker />
         <Header />
         <LiveScoresBar />
