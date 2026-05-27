@@ -499,6 +499,11 @@ export default async function ScoresPage({ searchParams }: Props) {
         liveCommentary: {
           select: { eventComments: true, matchSummary: true, summaryAt: true, scoreSnapshot: true },
         },
+        // AI 승률 예측 — predict-match endpoint 가 cache write. UI 카드 chip 용.
+        predHome: true,
+        predDraw: true,
+        predAway: true,
+        predWinner: true,
       },
       orderBy: { startTime: "asc" },
     }),

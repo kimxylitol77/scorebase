@@ -100,6 +100,32 @@ async function fetchLiveMatches() {
   return data.matches || [];
 }
 
+// predictionEngine 결과 fetch. NO_PICK 또는 null 이면 caller 가 LLM 호출 skip + 고정 문구.
+async function fetchPrediction(matchId) {
+  try {
+    const { data } = await axios.get(`${SCOREBASE}/api/internal/predict-match`, {
+      params: { id: matchId },
+      headers,
+      timeout: 15_000,
+    });
+    return data?.prediction ?? null;
+  } catch (e) {
+    console.error(`${logPrefix()}   ⚠ predict fetch fail matchId=${matchId}:`, e.message);
+    return null;
+  }
+}
+
+// pick 정보 한국어 라벨 (prompt + fixed 문구용)
+function pickLabel(pred, homeName, awayName) {
+  if (!pred) return null;
+  if (pred.pick === "HOME") return homeName;
+  if (pred.pick === "AWAY") return awayName;
+  if (pred.pick === "DRAW") return "무승부";
+  return null;
+}
+
+const NO_PICK_FIXED_SUMMARY = "현재 경기는 확신도가 낮아 추천에서 제외되었습니다.";
+
 // 리그 → 종목 분류 (prompt sport-aware 분기용).
 const BASEBALL_LEAGUES = new Set([
   "KBO", "NPB", "MLB", "CPBL", "LMB",
@@ -157,7 +183,7 @@ function scoreFactLine(match) {
   return `현재 ${match.awayName} ${as_} - ${hs} ${match.homeName} → 어웨이팀 ${match.awayName} 이 ${as_ - hs}점 앞섭니다.`;
 }
 
-function buildPrompt(match) {
+function buildPrompt(match, prediction) {
   const home = match.homeName;
   const away = match.awayName;
   const hs = match.homeScore ?? 0;
@@ -165,6 +191,17 @@ function buildPrompt(match) {
   const sport = sportOf(match.league);
   const vocab = SPORT_VOCAB[sport];
   const factLine = scoreFactLine(match);
+
+  // prediction 이 PICK 이면 prompt 에 inject — LLM 이 AI 분석과 같은 방향으로 작성.
+  let predictionBlock = "";
+  if (prediction && prediction.pick !== "NO_PICK") {
+    const teamLabel = pickLabel(prediction, home, away) ?? prediction.pick;
+    const reasonText = (prediction.reasons || [])
+      .slice(0, 3)
+      .map((r) => `- ${r.tag}: ${r.detail}`)
+      .join("\n");
+    predictionBlock = `\n[AI 승률 예측 — 분석에 반영]\n- 추천: ${teamLabel} (확신도 ${prediction.confidence}%)\n- 확률: 홈 ${Math.round(prediction.probHome * 100)}% / 어웨이 ${Math.round(prediction.probAway * 100)}%${prediction.probDraw > 0.01 ? ` / 무 ${Math.round(prediction.probDraw * 100)}%` : ""}\n- 주요 이유:\n${reasonText || "  (시그널 부족)"}\n분석 문구는 이 예측과 일관된 톤으로 작성. 예측 반대 방향 강조 금지.\n`;
+  }
 
   return `너는 한국 ${vocab.sport} 라이브 캐스터다. 다음 ${match.league} 매치의 현재 상황을 한국어 3-4문장으로 분석하시오.
 
@@ -177,7 +214,7 @@ ${factLine}
 - 사용 가능한 용어: ${vocab.allow}
 - 절대 사용 금지: ${vocab.ban}
 다른 종목 용어를 한 단어라도 섞으면 답변을 reject 합니다.
-
+${predictionBlock}
 [지침]
 - 데이터 기반, 추측·hallucination 금지
 - "지금" 시점의 긴장감·흐름·다음 변수 포함
@@ -190,6 +227,35 @@ ${factLine}
 - 홈: ${home} (${hs}점)
 - 스코어: ${away} ${as_} - ${hs} ${home}
 `;
+}
+
+// summary 가 predictionEngine 의 pick 과 반대 방향 강조하면 reject.
+// 휴리스틱: ban 단어 + "앞서가" 같은 양상 단어 기준. 단순하지만 명백한 mismatch catch.
+function validatePredictionConsistency(summary, match, prediction) {
+  if (!prediction || prediction.pick === "NO_PICK") return { ok: true };
+  const home = match.homeName;
+  const away = match.awayName;
+  const text = summary;
+
+  // 양 팀 이름이 "주도" / "리드" / "앞서" / "장악" / "우위" 같은 강조 단어와 함께 등장하는지
+  const POSITIVE = ["주도", "리드", "앞서", "장악", "우위", "압도", "우세"];
+  function teamHasPositive(team) {
+    const idx = text.indexOf(team);
+    if (idx === -1) return false;
+    const window = text.slice(idx, Math.min(text.length, idx + 60));
+    return POSITIVE.some((p) => window.includes(p));
+  }
+  const homePositive = teamHasPositive(home);
+  const awayPositive = teamHasPositive(away);
+
+  // pick=HOME 인데 away 만 positive 면 mismatch
+  if (prediction.pick === "HOME" && awayPositive && !homePositive) {
+    return { ok: false, reason: `pred=HOME 인데 summary 가 ${away} 우세 강조` };
+  }
+  if (prediction.pick === "AWAY" && homePositive && !awayPositive) {
+    return { ok: false, reason: `pred=AWAY 인데 summary 가 ${home} 우세 강조` };
+  }
+  return { ok: true };
 }
 
 // 생성된 summary 가 (a) ban 용어 포함 또는 (b) 점수 격차 hallucination 이면 reject.
@@ -250,8 +316,8 @@ async function generateOllama(prompt) {
   return data.choices?.[0]?.message?.content?.trim() ?? null;
 }
 
-async function generateSummary(match) {
-  const prompt = buildPrompt(match);
+async function generateSummary(match, prediction) {
+  const prompt = buildPrompt(match, prediction);
   if (LLM_PROVIDER === "anthropic") {
     if (!ANTHROPIC_KEY) throw new Error("ANTHROPIC_API_KEY 미설정");
     return await generateAnthropic(prompt);
@@ -312,7 +378,18 @@ async function runOnce() {
       }
 
       const t0 = Date.now();
-      let summary = await generateSummary(m);
+
+      // predictionEngine 먼저 호출 — NO_PICK 이면 LLM skip + 고정 문구만 저장.
+      // PICK 이면 결과를 buildPrompt 에 inject → LLM 이 예측과 일관된 분석 작성.
+      const prediction = await fetchPrediction(m.matchId);
+      if (prediction && prediction.pick === "NO_PICK") {
+        await postCommentary(m, NO_PICK_FIXED_SUMMARY, currentSnap);
+        const dur = Date.now() - t0;
+        console.log(`${logPrefix()}   ⊘ ${label} NO_PICK (conf ${prediction.confidence}%) → 고정 문구 (${dur}ms)`);
+        continue;
+      }
+
+      let summary = await generateSummary(m, prediction);
       if (!summary) {
         console.warn(`${logPrefix()}   ⚠ empty ${label}`);
         continue;
@@ -329,12 +406,25 @@ async function runOnce() {
 
       // 종목 용어 leak + score 격차 hallucination 검증. 실패 시 1회 재시도 후 reject.
       let validation = validateSummary(summary, m);
+      // prediction 과 summary 의 추천 방향 일관성 추가 검증 — 예측이 HOME 인데 summary 가
+      // away 우세로 쓰여있으면 사용자 혼란. (간단 휴리스틱: 팀명 첫 등장 위치 비교).
+      if (validation.ok && prediction && prediction.pick !== "NO_PICK") {
+        const consistency = validatePredictionConsistency(summary, m, prediction);
+        if (!consistency.ok) validation = consistency;
+      }
       if (!validation.ok) {
         console.warn(`${logPrefix()}   ⚠ ${label} validation fail: ${validation.reason} — retry`);
-        const retry = await generateSummary(m);
+        const retry = await generateSummary(m, prediction);
         if (retry) {
-          validation = validateSummary(retry, m);
-          if (validation.ok) summary = retry;
+          let retryV = validateSummary(retry, m);
+          if (retryV.ok && prediction && prediction.pick !== "NO_PICK") {
+            const rc = validatePredictionConsistency(retry, m, prediction);
+            if (!rc.ok) retryV = rc;
+          }
+          if (retryV.ok) {
+            summary = retry;
+            validation = retryV;
+          }
         }
         if (!validation.ok) {
           console.warn(`${logPrefix()}   ✗ ${label} retry 후 여전히 실패: ${validation.reason} — skip DB 저장`);
@@ -344,8 +434,11 @@ async function runOnce() {
 
       await postCommentary(m, summary, currentSnap);
       const dur = Date.now() - t0;
+      const predTag = prediction && prediction.pick !== "NO_PICK"
+        ? ` [pred=${prediction.pick} ${prediction.confidence}%]`
+        : "";
       console.log(
-        `${logPrefix()}   ✓ ${label} (${dur}ms): ${summary.slice(0, 60).replace(/\n/g, " ")}...`,
+        `${logPrefix()}   ✓ ${label}${predTag} (${dur}ms): ${summary.slice(0, 60).replace(/\n/g, " ")}...`,
       );
     } catch (e) {
       console.error(`${logPrefix()}   ✗ ${label}:`, e.message);
