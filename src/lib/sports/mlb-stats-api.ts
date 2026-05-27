@@ -426,51 +426,70 @@ export function mlbHeadshotUrl(pid: number): string {
 
 /**
  * 우리 DB 매치 startTime + 팀명 → MLB Stats API gamePk.
- * schedule API 1회 hit. 매칭 실패 시 null.
+ *
+ * Timezone: UTC 일자 ≠ MLB schedule (ET) 일자.
+ * ET 늦은 저녁 (UTC 새벽) 매치를 UTC day 로만 lookup 하면 다음날 schedule 에 빠지고,
+ * 같은 두 팀의 다른 시리즈 매치 gamePk 가 잡혀 boxscore 빈 응답이 됨.
+ * → ±1 day range 로 schedule fetch + startTime 와 가장 가까운 gamePk 선택.
  */
 export async function findMlbGamePk(
   dateISO: string,
   homeTeamName: string,
   awayTeamName: string,
 ): Promise<number | null> {
-  const day = dateISO.slice(0, 10);
+  const refTs = new Date(dateISO).getTime();
+  const prev = new Date(refTs - 86400_000).toISOString().slice(0, 10);
+  const next = new Date(refTs + 86400_000).toISOString().slice(0, 10);
   try {
     const { data } = await client.get("/schedule", {
-      params: { sportId: 1, date: day },
+      params: { sportId: 1, startDate: prev, endDate: next },
     });
     const games: ScheduleGame[] = [];
     for (const d of data?.dates ?? []) {
       for (const g of (d.games ?? []) as ScheduleGame[]) games.push(g);
     }
-    // 1) 영문 풀네임 정확 매칭
-    let m = games.find(
+    if (games.length === 0) return null;
+
+    // 후보 1) 영문 풀네임 정확 매칭
+    let candidates = games.filter(
       (g) =>
         g.teams.home.team.name === homeTeamName &&
         g.teams.away.team.name === awayTeamName,
     );
-    if (m) return m.gamePk;
-    // 2) contains 양방향
-    const homeLc = homeTeamName.toLowerCase();
-    const awayLc = awayTeamName.toLowerCase();
-    m = games.find((g) => {
-      const h = g.teams.home.team.name.toLowerCase();
-      const a = g.teams.away.team.name.toLowerCase();
-      return (
-        (h.includes(homeLc) || homeLc.includes(h)) &&
-        (a.includes(awayLc) || awayLc.includes(a))
-      );
+    // 후보 2) contains 양방향
+    if (candidates.length === 0) {
+      const homeLc = homeTeamName.toLowerCase();
+      const awayLc = awayTeamName.toLowerCase();
+      candidates = games.filter((g) => {
+        const h = g.teams.home.team.name.toLowerCase();
+        const a = g.teams.away.team.name.toLowerCase();
+        return (
+          (h.includes(homeLc) || homeLc.includes(h)) &&
+          (a.includes(awayLc) || awayLc.includes(a))
+        );
+      });
+    }
+    // 후보 3) 마지막 토큰 매칭
+    if (candidates.length === 0) {
+      const homeTok = homeTeamName.split(/\s+/).slice(-1)[0]?.toLowerCase();
+      const awayTok = awayTeamName.split(/\s+/).slice(-1)[0]?.toLowerCase();
+      if (homeTok && awayTok) {
+        candidates = games.filter((g) => {
+          const h = g.teams.home.team.name.toLowerCase();
+          const a = g.teams.away.team.name.toLowerCase();
+          return h.includes(homeTok) && a.includes(awayTok);
+        });
+      }
+    }
+    if (candidates.length === 0) return null;
+
+    // 후보 중 startTime 과 가장 가까운 gameDate 선택 (doubleheader / 시리즈 분기).
+    candidates.sort((a, b) => {
+      const da = Math.abs(new Date(a.gameDate).getTime() - refTs);
+      const db = Math.abs(new Date(b.gameDate).getTime() - refTs);
+      return da - db;
     });
-    if (m) return m.gamePk;
-    // 3) 마지막 토큰 (팀명) 매칭 — "LA Dodgers" ↔ "Los Angeles Dodgers"
-    const homeTok = homeTeamName.split(/\s+/).slice(-1)[0]?.toLowerCase();
-    const awayTok = awayTeamName.split(/\s+/).slice(-1)[0]?.toLowerCase();
-    if (!homeTok || !awayTok) return null;
-    m = games.find((g) => {
-      const h = g.teams.home.team.name.toLowerCase();
-      const a = g.teams.away.team.name.toLowerCase();
-      return h.includes(homeTok) && a.includes(awayTok);
-    });
-    return m?.gamePk ?? null;
+    return candidates[0].gamePk;
   } catch {
     return null;
   }
