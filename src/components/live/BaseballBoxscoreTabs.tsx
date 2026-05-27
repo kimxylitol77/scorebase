@@ -1,4 +1,5 @@
-// KBO / NPB 야구 통합 탭 카드 (5탭: 타자/투수/팀스탯/배당/승률).
+// KBO / NPB 야구 통합 탭 카드 (4탭: 타자/투수/배당/승률).
+// "팀 스탯" 은 MatchInsight 의 teamStatsContent 탭으로 흡수됨 (BaseballTeamStatsCard).
 // 데이터 source: TheSports detailLive (players + stats) + linescore + baseballOdds.
 //
 // MLB 와 달리:
@@ -12,7 +13,6 @@
 "use client";
 
 import { useState } from "react";
-import BaseballTeamStatsCard from "./BaseballTeamStatsCard";
 import BaseballWpaChart from "./BaseballWpaChart";
 import LiveOddsCard from "./LiveOddsCard";
 
@@ -65,8 +65,6 @@ interface Props {
   playerNameById: Record<string, string>;
   /** ts player_id → 사진 URL. miss 시 이니셜 fallback. */
   playerPhotoById?: Record<string, string>;
-  /** TheSports detail_live.stats (phase 0 등) — 팀 스탯 카드 source */
-  tsDetailStats?: unknown;
   /** 라이브 배당 + 시계열 (SSR) */
   initialOdds?: {
     odds: LiveOdds;
@@ -76,7 +74,7 @@ interface Props {
   wpaSeries?: WpaPoint[] | null;
 }
 
-type TabKey = "batting" | "pitching" | "ts-stats" | "odds" | "wpa";
+type TabKey = "batting" | "pitching" | "odds" | "wpa";
 
 function fmt(v: number | undefined, decimal: boolean): string {
   if (v == null) return "-";
@@ -92,7 +90,6 @@ export default function BaseballBoxscoreTabs({
   pitcherColumns,
   playerNameById,
   playerPhotoById,
-  tsDetailStats,
   initialOdds,
   wpaSeries,
 }: Props) {
@@ -107,7 +104,6 @@ export default function BaseballBoxscoreTabs({
     playerStats.home.some((p) => p.role === "pitcher") ||
     playerStats.away.some((p) => p.role === "pitcher")
   );
-  const hasTsStats = !!tsDetailStats;
   const hasOdds = !!initialOdds?.odds;
   const hasWpa = !!(wpaSeries && wpaSeries.length >= 2);
 
@@ -116,7 +112,6 @@ export default function BaseballBoxscoreTabs({
   const tabs: { key: TabKey; label: string; enabled: boolean; withTeamToggle: boolean }[] = [
     { key: "batting", label: "타자 기록", enabled: true, withTeamToggle: true },
     { key: "pitching", label: "투수 기록", enabled: true, withTeamToggle: true },
-    { key: "ts-stats", label: "팀 스탯", enabled: true, withTeamToggle: false },
     { key: "odds", label: "라이브 배당", enabled: hasOdds, withTeamToggle: false },
     { key: "wpa", label: "승률 곡선", enabled: true, withTeamToggle: false },
   ];
@@ -127,7 +122,6 @@ export default function BaseballBoxscoreTabs({
   const dataAvailable: Record<TabKey, boolean> = {
     batting: hasBatters,
     pitching: hasPitchers,
-    "ts-stats": hasTsStats,
     odds: hasOdds,
     wpa: hasWpa,
   };
@@ -195,20 +189,6 @@ export default function BaseballBoxscoreTabs({
             koPhoto={koPhoto}
             roleLabel="투수"
           />
-        ) : activeTab === "ts-stats" ? (
-          tsDetailStats ? (
-            <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">
-              <BaseballTeamStatsCard
-                stats={tsDetailStats}
-                homeNameKo={homeNameKo}
-                awayNameKo={awayNameKo}
-              />
-            </div>
-          ) : (
-            <p className="text-center text-xs text-neutral-500 py-6">
-              매치 시작 후 팀 스탯이 표시됩니다.
-            </p>
-          )
         ) : activeTab === "odds" && initialOdds?.odds ? (
           <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none [&>section]:bg-transparent">
             <LiveOddsCard

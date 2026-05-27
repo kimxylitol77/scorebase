@@ -1,9 +1,10 @@
 // MLB 매치 상세 통합 탭 — 네이버 스타일.
-// 7탭: 라인업 / 타자 기록 / 투수 기록 / 팀 통계 / 팀 스탯 / 라이브 배당 / 승률 곡선.
+// 6탭: 중계 / 라인업 / 타자 기록 / 투수 기록 / 팀 스탯(TS) / 라이브 배당 / 승률 곡선.
+// "팀 통계" (ESPN) 는 MatchInsight 의 teamStatsContent 탭으로 흡수됨 (MlbTeamStatsLive).
 //
 // Polling 2개:
 //  - /api/live/mlb-boxscore — boxscore (라인업/타자/투수) 30초
-//  - /api/live/mlb         — ESPN summary (팀 통계, WPA, odds) 2초 (live), 60초 (final)
+//  - /api/live/mlb         — ESPN summary (WPA, odds) 30초
 //
 // 정적 props (SSR):
 //  - initialBoxscore
@@ -64,19 +65,6 @@ interface Boxscore {
   away: { batters: BoxBatter[]; pitchers: BoxPitcher[] };
 }
 
-interface MlbTeamStats {
-  hits: number;
-  homeRuns: number;
-  errors: number;
-  doublePlays: number;
-  strikeouts: number;
-  walks: number;
-  leftOnBase: number;
-  hitByPitch: number;
-  caughtStealing: number;
-  assists: number;
-}
-
 interface WpaPoint {
   inning: number;
   homeWP: number;
@@ -111,7 +99,6 @@ interface OddsHistoryPoint {
 
 interface MlbLiveResponse {
   live?: {
-    teamStats?: { home: MlbTeamStats; away: MlbTeamStats } | null;
     wpaSeries?: WpaPoint[] | null;
     liveOdds?: LiveOdds | null;
   };
@@ -158,7 +145,6 @@ type TabKey =
   | "lineup"
   | "batting"
   | "pitching"
-  | "team-stats"
   | "ts-stats"
   | "odds"
   | "wpa";
@@ -181,10 +167,6 @@ export default function MlbBoxscoreTabs({
   initialOdds,
 }: Props) {
   const [box, setBox] = useState<Boxscore | null>(initialBoxscore ?? null);
-  const [teamStats, setTeamStats] = useState<{
-    home: MlbTeamStats;
-    away: MlbTeamStats;
-  } | null>(null);
   const [wpaSeries, setWpaSeries] = useState<WpaPoint[] | null>(null);
   const [liveOdds, setLiveOdds] = useState<LiveOdds | null>(
     initialOdds?.odds ?? null,
@@ -243,7 +225,6 @@ export default function MlbBoxscoreTabs({
         if (e) etag = e;
         const j: MlbLiveResponse = await res.json();
         if (!alive || !j.live) return;
-        if (j.live.teamStats) setTeamStats(j.live.teamStats);
         if (j.live.wpaSeries) setWpaSeries(j.live.wpaSeries);
         if (j.live.liveOdds) setLiveOdds(j.live.liveOdds);
       } catch {
@@ -297,7 +278,6 @@ export default function MlbBoxscoreTabs({
   const hasPbp = !!(pbp?.plays && pbp.plays.length > 0);
   const hasLineup = !!(box?.home.batters.length || box?.away.batters.length);
   const hasPitchers = !!(box?.home.pitchers.length || box?.away.pitchers.length);
-  const hasTeamStats = !!teamStats;
   const hasTsStats = !!tsDetailStats;
   const hasOdds = !!liveOdds;
   const hasWpa = !!(wpaSeries && wpaSeries.length >= 2);
@@ -307,7 +287,6 @@ export default function MlbBoxscoreTabs({
     { key: "lineup", label: "라인업", enabled: hasLineup, withTeamToggle: true },
     { key: "batting", label: "타자 기록", enabled: hasLineup, withTeamToggle: true },
     { key: "pitching", label: "투수 기록", enabled: hasPitchers, withTeamToggle: true },
-    { key: "team-stats", label: "팀 통계", enabled: hasTeamStats, withTeamToggle: false },
     { key: "ts-stats", label: "팀 스탯", enabled: hasTsStats, withTeamToggle: false },
     { key: "odds", label: "라이브 배당", enabled: hasOdds, withTeamToggle: false },
     { key: "wpa", label: "승률 곡선", enabled: hasWpa, withTeamToggle: false },
@@ -378,13 +357,6 @@ export default function MlbBoxscoreTabs({
           <BattingTable batters={team.batters} koName={koName} />
         ) : activeTab === "pitching" && team ? (
           <PitchingTable pitchers={team.pitchers} koName={koName} />
-        ) : activeTab === "team-stats" && teamStats ? (
-          <TeamStatsCompare
-            home={teamStats.home}
-            away={teamStats.away}
-            homeNameKo={homeNameKo}
-            awayNameKo={awayNameKo}
-          />
         ) : activeTab === "ts-stats" && tsDetailStats ? (
           <EmbedBaseballTeamStats
             stats={tsDetailStats}
@@ -613,72 +585,7 @@ function PitchingTable({
   );
 }
 
-/* ---------- 탭 4: 팀 통계 (ESPN) — 양 팀 막대 bar 비교 ---------- */
-
-function TeamStatsCompare({
-  home,
-  away,
-  homeNameKo,
-  awayNameKo,
-}: {
-  home: MlbTeamStats;
-  away: MlbTeamStats;
-  homeNameKo: string;
-  awayNameKo: string;
-}) {
-  const rows: Array<{ label: string; key: keyof MlbTeamStats }> = [
-    { label: "안타", key: "hits" },
-    { label: "홈런", key: "homeRuns" },
-    { label: "볼넷", key: "walks" },
-    { label: "삼진", key: "strikeouts" },
-    { label: "실책", key: "errors" },
-    { label: "병살", key: "doublePlays" },
-    { label: "잔루", key: "leftOnBase" },
-    { label: "사구", key: "hitByPitch" },
-  ];
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-[10px] uppercase tracking-wider text-neutral-500 mb-1">
-        <span className="text-blue-600 dark:text-blue-400 font-bold">
-          {awayNameKo}
-        </span>
-        <span className="text-rose-600 dark:text-rose-400 font-bold">
-          {homeNameKo}
-        </span>
-      </div>
-      {rows.map((r) => {
-        const a = away[r.key];
-        const h = home[r.key];
-        const max = Math.max(a, h, 1);
-        return (
-          <div key={r.key} className="flex items-center gap-2 text-xs">
-            <div className="w-8 text-right tabular-nums font-bold">{a}</div>
-            <div className="flex-1 flex items-center gap-1">
-              <div className="flex-1 h-2 bg-neutral-100 dark:bg-neutral-900 rounded-l overflow-hidden flex justify-end">
-                <div
-                  className="h-full bg-blue-400 dark:bg-blue-500"
-                  style={{ width: `${(a / max) * 100}%` }}
-                />
-              </div>
-              <div className="text-[10px] font-bold text-neutral-500 w-10 text-center">
-                {r.label}
-              </div>
-              <div className="flex-1 h-2 bg-neutral-100 dark:bg-neutral-900 rounded-r overflow-hidden">
-                <div
-                  className="h-full bg-rose-400 dark:bg-rose-500"
-                  style={{ width: `${(h / max) * 100}%` }}
-                />
-              </div>
-            </div>
-            <div className="w-8 text-left tabular-nums font-bold">{h}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ---------- 탭 5 / 6: 외부 카드 임베드 (border 한 겹 제거) ---------- */
+/* ---------- 탭: 외부 카드 임베드 (border 한 겹 제거) ---------- */
 
 function EmbedBaseballTeamStats(props: {
   stats: unknown;

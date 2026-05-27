@@ -15,6 +15,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
+import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
@@ -182,7 +183,7 @@ export default async function NpbLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
       />
 
-      {/* 통합 5탭 카드 (타자/투수/팀스탯/배당/승률) — KBO/NPB 공통 */}
+      {/* 통합 4탭 카드 (타자/투수/배당/승률) — KBO/NPB 공통. 팀 스탯은 MatchInsight 탭으로. */}
       <BaseballBoxscoreTabs
         homeNameKo={homeKo}
         awayNameKo={awayKo}
@@ -191,12 +192,22 @@ export default async function NpbLivePage({ params }: Props) {
         pitcherColumns={pitcherColumns}
         playerNameById={playerNameById}
         playerPhotoById={playerPhotoById}
-        tsDetailStats={detailLive?.stats}
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
       <MatchInsight
         match={match}
+        teamStatsContent={
+          detailLive?.stats ? (
+            <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">
+              <BaseballTeamStatsCard
+                stats={detailLive.stats}
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+              />
+            </div>
+          ) : null
+        }
         liveOddsContent={
           baseballOdds?.odds ? (
             <LiveOddsCard

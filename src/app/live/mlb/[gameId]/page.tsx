@@ -19,6 +19,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import MlbBoxscoreTabs from "@/components/live/MlbBoxscoreTabs";
+import MlbTeamStatsLive from "@/components/live/MlbTeamStatsLive";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import {
   fetchMlbFullBoxscore,
@@ -244,6 +245,13 @@ export default async function MlbLivePage({ params }: Props) {
       />
       <MatchInsight
         match={match}
+        teamStatsContent={
+          <MlbTeamStatsLive
+            gameId={gameId}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+          />
+        }
         liveOddsContent={
           baseballOdds?.odds ? (
             <LiveOddsCard

@@ -637,7 +637,6 @@ async function renderBaseballPage(args: {
         pitcherColumns={pitcherColumns}
         playerNameById={playerNameById}
         playerPhotoById={playerPhotoById}
-        tsDetailStats={detailLive?.stats}
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
