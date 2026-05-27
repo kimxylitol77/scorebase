@@ -658,6 +658,7 @@ body {
 }
 .league-chip.active {
   border-color: #00d4ff;
-  color: #00d4ff;
-  background: rgba(0, 212, 255, 0.08);
+  color: #0a0a0a;
+  background: #00d4ff;
+  font-weight: 600;
 }

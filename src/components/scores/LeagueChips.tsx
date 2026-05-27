@@ -22,10 +22,12 @@ export default function LeagueChips({
 }: Props) {
   if (leagues.length <= 1) return null;
   const baseHref = `/scores?sport=${sport}&date=${date}`;
+  // 좌우 fade gradient 로 가로 스크롤 가능함을 시각적으로 hint — 모바일에서 12+ 리그 한 줄에
+  // 다 안 보일 때 사용자가 "세로 list" 로 오인하지 않게.
   return (
     <nav
-      className="flex gap-1.5 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 [&::-webkit-scrollbar]:hidden"
-      aria-label="리그 필터"
+      className="relative flex gap-1.5 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 py-1 [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent_0,black_12px,black_calc(100%-12px),transparent_100%)] sm:[mask-image:none]"
+      aria-label="리그 필터 (가로 스크롤)"
     >
       <Link
         href={baseHref}
