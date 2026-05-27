@@ -355,7 +355,7 @@ function CompactRow({ match }: { match: MatchEntry }) {
   return (
     <li>
       {/* ───── 모바일 (sm 미만) ───── */}
-      <div className="sm:hidden grid grid-cols-[56px_44px_1fr_auto_1fr_32px] items-stretch py-1.5 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
+      <div className="sm:hidden grid grid-cols-[56px_44px_1fr_56px_1fr_32px] items-stretch py-1.5 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition">
         {match.href ? (
           <Link
             href={match.href}
