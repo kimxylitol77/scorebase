@@ -101,12 +101,14 @@ async function fetchLiveMatches() {
 }
 
 // predictionEngine 결과 fetch. NO_PICK 또는 null 이면 caller 가 LLM 호출 skip + 고정 문구.
+// timeout 30s — Vercel cold start + 시즌 매치 query (1년 window) 가 첫 호출 시 길어짐.
+// 같은 cycle 내 second+ 매치는 function instance 재사용으로 빠름.
 async function fetchPrediction(matchId) {
   try {
     const { data } = await axios.get(`${SCOREBASE}/api/internal/predict-match`, {
       params: { id: matchId },
       headers,
-      timeout: 15_000,
+      timeout: 30_000,
     });
     return data?.prediction ?? null;
   } catch (e) {
