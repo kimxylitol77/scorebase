@@ -5,6 +5,7 @@ import InningScoreChart from "@/components/InningScoreChart";
 import type { InningProb } from "@/lib/predict/baseball-poisson";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
+import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
 import RelatedArticles from "@/components/RelatedArticles";
 import { notFound } from "next/navigation";
@@ -591,6 +592,20 @@ export default async function ArticlePage({ params }: Props) {
           </div>
         );
       })()}
+
+      {/* 야구 PREVIEW — 매치 인사이트 통합 5탭 카드 (선발/시즌/최근5/H2H/AI예측).
+          본문 위에 두어 핵심 데이터를 먼저 노출 (네이버 야구 스타일). */}
+      {article.type === "PREVIEW" &&
+        article.match &&
+        (article.league === "KBO" ||
+          article.league === "NPB" ||
+          article.league === "MLB") && (
+          <BaseballPreviewInsight
+            match={article.match}
+            league={article.league as "KBO" | "NPB" | "MLB"}
+            baseballContext={article.baseballContext ?? null}
+          />
+        )}
 
       {/* LoL RECAP 본문은 길게 풀어쓴 Markdown (사용자 선호 — 카드 UI 대신 본문에 모든 정보 통합).
           lolRecapCtx 가 있어도 본문 안에 5라인 매치업·시즌·MVP 가 다 들어있으므로 Markdown 만. */}
