@@ -410,7 +410,7 @@ function LineupList({
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <Link
-                href={`/players/mlb/${b.pid}`}
+                href={`/players/${b.pid}`}
                 className="text-sm font-semibold truncate hover:underline"
               >
                 {koName(b.pid, b.name)}
@@ -489,7 +489,7 @@ function BattingTable({
                   </span>
                   <Headshot pid={b.pid} alt={b.name} size="sm" />
                   <Link
-                    href={`/players/mlb/${b.pid}`}
+                    href={`/players/${b.pid}`}
                     className="font-medium truncate hover:underline max-w-[120px]"
                   >
                     {koName(b.pid, b.name)}
@@ -557,7 +557,7 @@ function PitchingTable({
                 <div className="flex items-center gap-1.5">
                   <Headshot pid={p.pid} alt={p.name} size="sm" />
                   <Link
-                    href={`/players/mlb/${p.pid}`}
+                    href={`/players/${p.pid}`}
                     className="font-medium truncate hover:underline max-w-[120px]"
                   >
                     {koName(p.pid, p.name)}
