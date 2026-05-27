@@ -26,6 +26,33 @@ export const metadata: Metadata = {
     "19개 리그 시즌 시뮬레이션 — Monte Carlo 1,000회 기반 우승·플레이오프·강등 확률. K리그1·K리그2·J1·J2·AFC 챔스 엘리트·KBO·NPB·MLB·EPL·LCK 등.",
 };
 
+// 한 league fetch — throw 면 빈 결과 반환 (전체 page 500 방지).
+// 2026-05-27 /predictions 500 사고: standings-helper 의 새 baseball cache row
+// 처리 중 일부 league 가 throw → Promise.all 전체 reject → 페이지 죽음.
+async function safeFetchTop3(
+  league: string,
+): Promise<TopThreeEntry[]> {
+  try {
+    const rows = await getFullStandings(league);
+    if (rows.length === 0) return [];
+    const top3 = rows.slice(0, 3);
+    const teams = await prisma.team.findMany({
+      where: { id: { in: top3.map((r) => r.teamId) } },
+      select: { id: true, name: true },
+    });
+    const nameById = new Map(teams.map((t) => [t.id, t.name]));
+    return top3.map((r) => ({
+      position: r.position,
+      teamId: r.teamId,
+      name: toKoreanTeamName(nameById.get(r.teamId) ?? `Team ${r.teamId}`, league),
+      points: r.points,
+    }));
+  } catch (e) {
+    console.warn(`[predictions] fetchTop3 fail league=${league}:`, (e as Error).message);
+    return [];
+  }
+}
+
 async function fetchTop3Map(): Promise<Record<string, TopThreeEntry[]>> {
   const allCodes = new Set<string>();
   for (const lg of LEAGUES) {
@@ -34,23 +61,8 @@ async function fetchTop3Map(): Promise<Record<string, TopThreeEntry[]>> {
   }
   const results = await Promise.all(
     Array.from(allCodes).map(async (league) => {
-      const rows = await getFullStandings(league);
-      if (rows.length === 0) return [league, [] as TopThreeEntry[]] as const;
-      const top3 = rows.slice(0, 3);
-      const teams = await prisma.team.findMany({
-        where: { id: { in: top3.map((r) => r.teamId) } },
-        select: { id: true, name: true },
-      });
-      const nameById = new Map(teams.map((t) => [t.id, t.name]));
-      return [
-        league,
-        top3.map((r) => ({
-          position: r.position,
-          teamId: r.teamId,
-          name: toKoreanTeamName(nameById.get(r.teamId) ?? `Team ${r.teamId}`, league),
-          points: r.points,
-        })),
-      ] as const;
+      const top3 = await safeFetchTop3(league);
+      return [league, top3] as const;
     }),
   );
   return Object.fromEntries(results);
@@ -67,23 +79,8 @@ async function fetchCountryStandings(): Promise<CountryStandingsGroup[]> {
 
   const fetched = await Promise.all(
     leagues.map(async (league) => {
-      const rows = await getFullStandings(league);
-      if (rows.length === 0) return { league, top3: [] as TopThreeEntry[] };
-      const top3 = rows.slice(0, 3);
-      const teams = await prisma.team.findMany({
-        where: { id: { in: top3.map((r) => r.teamId) } },
-        select: { id: true, name: true },
-      });
-      const nameById = new Map(teams.map((t) => [t.id, t.name]));
-      return {
-        league,
-        top3: top3.map((r) => ({
-          position: r.position,
-          teamId: r.teamId,
-          name: toKoreanTeamName(nameById.get(r.teamId) ?? `Team ${r.teamId}`, league),
-          points: r.points,
-        })),
-      };
+      const top3 = await safeFetchTop3(league);
+      return { league, top3 };
     }),
   );
 
