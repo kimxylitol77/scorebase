@@ -89,9 +89,7 @@ export async function getStandingsPositions(
     }
   }
 
-  // 2) api-football / api-baseball fallback — TheSports 누락 팀만 보강.
-  // 야구 리그만 TeamSourceId(api-baseball) 2차 lookup (132 축구 league × 추가 query 로
-  // Vercel function timeout 사고 방지 — 2026-05-27 /predictions 500).
+  // 2) api-football fallback — TheSports 누락 팀만 보강
   const af = await prisma.apiFootballStandingsCache.findUnique({
     where: { league },
     select: { rows: true },
@@ -103,20 +101,11 @@ export async function getStandingsPositions(
     }>) ?? [];
     if (rows.length > 0) {
       const externalIds = rows.map((r) => r.teamExternalId);
-      const isBaseball = ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(league);
-      const teamsByExt = await prisma.team.findMany({
+      const teams = await prisma.team.findMany({
         where: { league, externalId: { in: externalIds } },
         select: { id: true, externalId: true },
       });
-      const extToOurId = new Map<string, number>();
-      for (const t of teamsByExt) extToOurId.set(t.externalId, t.id);
-      if (isBaseball) {
-        const sourceIds = await prisma.teamSourceId.findMany({
-          where: { league, source: "api-baseball", externalId: { in: externalIds } },
-          select: { teamId: true, externalId: true },
-        });
-        for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
-      }
+      const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
       for (const r of rows) {
         const ourId = extToOurId.get(r.teamExternalId);
         if (ourId != null && !positionByOurTeamId.has(ourId)) {
@@ -169,9 +158,7 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
     interface TsRow {
       team_id?: string;
       position?: number;
-      // points: 축구=number (승점), 야구=object {for, against} (run 합) — JSX render
-      // object 시 throw → number 만 통과 (commit 29687d8 후속 /predictions 500 사고).
-      points?: number | { for?: number; against?: number };
+      points?: number;
       won?: number;
       draw?: number;
       loss?: number;
@@ -188,11 +175,10 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
         seen.add(ourId);
         const gf = Array.isArray(r.goals) ? r.goals[0] : r.goals?.for;
         const ga = Array.isArray(r.goals) ? r.goals[1] : r.goals?.against;
-        const pointsNum = typeof r.points === "number" ? r.points : (r.won ?? 0);
         out.push({
           teamId: ourId,
           position: r.position,
-          points: pointsNum,
+          points: r.points ?? 0,
           won: r.won ?? 0,
           draw: r.draw ?? 0,
           loss: r.loss ?? 0,
@@ -221,22 +207,12 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
       }
       const rows = (af.rows as unknown as AfRow[]) ?? [];
       if (rows.length > 0) {
-        // 야구만 TeamSourceId(api-baseball) 2차 lookup (축구 132 league 추가 query timeout 방지).
         const externalIds = rows.map((r) => r.teamExternalId);
-        const isBaseball = ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(league);
-        const teamsByExt = await prisma.team.findMany({
+        const teams = await prisma.team.findMany({
           where: { league, externalId: { in: externalIds } },
           select: { id: true, externalId: true },
         });
-        const extToOurId = new Map<string, number>();
-        for (const t of teamsByExt) extToOurId.set(t.externalId, t.id);
-        if (isBaseball) {
-          const sourceIds = await prisma.teamSourceId.findMany({
-            where: { league, source: "api-baseball", externalId: { in: externalIds } },
-            select: { teamId: true, externalId: true },
-          });
-          for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
-        }
+        const extToOurId = new Map(teams.map((t) => [t.externalId, t.id]));
         for (const r of rows) {
           const ourId = extToOurId.get(r.teamExternalId);
           if (ourId != null && !seen.has(ourId)) {
@@ -246,7 +222,7 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
               position: r.position,
               points: r.points,
               won: r.won,
-              draw: r.draw ?? 0,
+              draw: r.draw,
               loss: r.loss,
             });
           }
