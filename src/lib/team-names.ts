@@ -454,6 +454,24 @@ const RAW: Record<string, string> = {
   "CTBC Brothers": "중신 브라더스",
   "Rakuten Monkeys": "라쿠텐 몽키스",
 
+  // ─── LMB (멕시코 야구, 20팀 — Monterrey/Leon/Puebla/Queretaro 는 멕시코 축구 섹션에서 이미 동일 한글로 매핑) ───
+  "Quintana Roo": "킨타나로오",
+  "Leones de Yucatan": "유카탄",
+  "Campeche": "캄페체",
+  "Diablos Rojos": "디아블로스 로호스",
+  "Chihuahua": "치와와",
+  "Jalisco": "할리스코",
+  "Oaxaca": "오악사카",
+  "Caliente de Durango": "두랑고",
+  "Toros de Tijuana": "티후아나",
+  "Aguascalientes": "아과스칼리엔테스",
+  "Monclova": "몬클로바",
+  "Veracruz": "베라크루스",
+  "Dos Laredos": "도스 라레도스",
+  "Saltillo": "살티요",
+  "Laguna": "라구나",
+  "Olmecas de Tabasco": "타바스코",
+
   // ─── 월드컵 진출국 (편의 — 한글 국가명) ───
   "South Korea": "대한민국",
   "Korea Republic": "대한민국",
@@ -1456,7 +1474,6 @@ const RAW: Record<string, string> = {
   "Club de Fútbol Monterrey": "몬테레이",
   "Club Toluca": "톨루카",
   "Toluca FC": "톨루카",
-  "Diablos Rojos": "톨루카",
   "Xolos": "티후아나",
   "Club Xolos": "티후아나",
   "Xolos de Tijuana": "티후아나",
