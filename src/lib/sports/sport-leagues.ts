@@ -44,6 +44,9 @@ export const ALL_LEAGUES = [
   "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
   "KBO", "NPB", "MLB",
+  // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
+  "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
+  "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
   "NBA", "NHL", "LOL",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
@@ -114,7 +117,11 @@ export const SPORTS: SportMeta[] = [
     code: "baseball",
     label: "야구",
     emoji: "⚾",
-    leagues: ["KBO", "NPB", "MLB"],
+    leagues: [
+      "KBO", "NPB", "MLB",
+      "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
+      "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
+    ],
   },
   {
     code: "basketball",
@@ -266,6 +273,16 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   KBO: "KBO 리그",
   NPB: "NPB 일본프로야구",
   MLB: "메이저리그",
+  // 2026-05-27 야구 9개 확장
+  CPBL: "CPBL 대만프로야구",
+  WBC: "WBC 월드베이스볼클래식",
+  WBSC_PREMIER_12: "WBSC 프리미어 12",
+  ASIAN_GAMES_BB: "아시안게임 야구",
+  OLYMPICS_BB: "올림픽 야구",
+  KBO_FUTURES: "KBO 퓨처스리그",
+  NPB_MINOR: "NPB 2군",
+  CARIBBEAN_SERIES: "카리브 시리즈",
+  LMB: "멕시칸 리그",
   NBA: "NBA",
   WNBA: "WNBA",
   NHL: "NHL",
@@ -300,8 +317,17 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
 /** 정렬 우선순위 (낮을수록 위) — KBO/NPB 한국 시청자 우선 */
 export const LEAGUE_ORDER: Record<string, number> = {
   KBO: 0,
+  KBO_FUTURES: 0.5,
   NPB: 1,
+  NPB_MINOR: 1.5,
   MLB: 2,
+  CPBL: 2.5,
+  WBC: 2.6,
+  WBSC_PREMIER_12: 2.65,
+  ASIAN_GAMES_BB: 2.7,
+  OLYMPICS_BB: 2.75,
+  LMB: 2.8,
+  CARIBBEAN_SERIES: 2.85,
   K_LEAGUE_1: 5,
   K_LEAGUE_2: 6,
   AFC_CL: 7,
@@ -556,8 +582,18 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   EMPEROR_CUP: "일본",
   // 야구·농구·하키·e스포츠
   KBO: "대한민국",
+  KBO_FUTURES: "대한민국",
   NPB: "일본",
+  NPB_MINOR: "일본",
   MLB: "미국",
+  CPBL: "대만",
+  LMB: "멕시코",
+  // 국제 야구 토너먼트
+  WBC: "국제",
+  WBSC_PREMIER_12: "국제",
+  ASIAN_GAMES_BB: "국제",
+  OLYMPICS_BB: "국제",
+  CARIBBEAN_SERIES: "국제",
   NBA: "미국",
   WNBA: "미국",
   NHL: "미국",
@@ -678,6 +714,7 @@ export const COUNTRY_FLAG: Record<string, string> = {
   인도네시아: "🇮🇩",
   싱가포르: "🇸🇬",
   중국: "🇨🇳",
+  대만: "🇹🇼",
   호주: "🇦🇺",
   // 신규
   아르헨티나: "🇦🇷",
@@ -777,6 +814,8 @@ export const COUNTRY_ORDER: string[] = [
   "인도네시아",
   "싱가포르",
   "중국",
+  "대만",
   "카자흐스탄",
   "호주",
+  "멕시코",
 ];

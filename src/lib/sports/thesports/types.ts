@@ -199,11 +199,20 @@ export interface TSPlayer {
   updated_at: number;
 }
 
-/** TheSports 야구 unique_tournament_id 상수 — 2026-05-18 trial 검증 */
+/** TheSports 야구 unique_tournament_id 상수 — 2026-05-18 trial 검증 + 2026-05-27 9개 확장. */
 export const TS_BASEBALL_TOURNAMENT_ID = {
   KBO: "56ypq36s0o9qd7o",
   NPB: "9k82re4svpxqepz",
   MLB: "z8yomoys7olq0j6",
+  CPBL: "gpxwrxgsgw0myk0",
+  WBC: "yl5ergxs3k8q8k0",
+  WBSC_PREMIER_12: "kjw2r06sn56rz84",
+  ASIAN_GAMES_BB: "gy0or56slylmwzv",
+  OLYMPICS_BB: "l5ergxsov0kq8k0",
+  KBO_FUTURES: "p3glrw5sweerdyj",
+  NPB_MINOR: "9dn1m16s4y2roep",
+  CARIBBEAN_SERIES: "8y39mpzs3gwqojx",
+  LMB: "l965mk5s7x1m1ge",
 } as const;
 
 export type TSBaseballLeague = keyof typeof TS_BASEBALL_TOURNAMENT_ID;
