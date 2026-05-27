@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LolLiveDetail from "@/components/LolLiveDetail";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
+import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 
@@ -122,6 +123,7 @@ export default async function LolLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
         scoreLabel={{ for: "평균 게임 승", against: "평균 게임 패" }}
       />
+      <MatchInsight match={match} />
     </div>
   );
 }

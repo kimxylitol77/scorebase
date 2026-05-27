@@ -11,6 +11,7 @@ import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
 import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
+import MatchInsight from "@/components/MatchInsight";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -213,6 +214,7 @@ export default async function NpbLivePage({ params }: Props) {
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
+      <MatchInsight match={match} />
     </div>
   );
 }

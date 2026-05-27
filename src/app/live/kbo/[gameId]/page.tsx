@@ -12,6 +12,7 @@ import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
 import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
+import MatchInsight from "@/components/MatchInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
@@ -205,6 +206,7 @@ export default async function KboLivePage({ params }: Props) {
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
+      <MatchInsight match={match} />
     </div>
   );
 }

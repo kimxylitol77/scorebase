@@ -23,6 +23,7 @@ import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
+import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import { getVenueByOurTeamId } from "@/lib/sports/thesports/venues";
@@ -506,6 +507,7 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
+      <MatchInsight match={match} />
     </div>
     </>
   );

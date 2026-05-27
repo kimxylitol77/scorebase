@@ -15,6 +15,7 @@ import BaseballPreMatchInsight, {
   type StarterInfo,
 } from "@/components/BaseballPreMatchInsight";
 import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
+import MatchInsight from "@/components/MatchInsight";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -258,6 +259,7 @@ export default async function MlbLivePage({ params }: Props) {
         }
         initialOdds={baseballOdds}
       />
+      <MatchInsight match={match} />
     </div>
   );
 }
