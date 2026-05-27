@@ -30,6 +30,11 @@ interface IncomingPlayer {
   short_name?: string;
   team_id?: string;
   position?: string;
+  // 확장 (2026-05-27): Lightsail kbo-player-names-cron 가 Anthropic 음역 결과 직접 명시.
+  // team_id 빈/누락 매핑 케이스 (TheSports player/list?uuid 응답이 team_id="" 인 KBO 신규
+  // 선수) 에서도 sport 명시로 upsert 가능.
+  nameKo?: string;
+  sport?: string;
 }
 
 interface Body {
@@ -66,19 +71,23 @@ export async function POST(req: NextRequest) {
       skippedNoTeam++;
       continue;
     }
-    if (!p.team_id) {
-      skippedNoTeam++;
-      continue;
-    }
-    const sport = TS_TEAM_TO_SPORT.get(p.team_id);
+    // sport: incoming 명시 > team_id 매핑. 둘 다 없으면 skip.
+    const sport = p.sport ?? (p.team_id ? TS_TEAM_TO_SPORT.get(p.team_id) : undefined);
     if (!sport) {
-      skippedOtherSport++;
+      // team_id 없고 sport 명시도 없으면 skipNoTeam, team_id 있는데 매핑 miss 면 otherSport
+      if (!p.team_id) skippedNoTeam++;
+      else skippedOtherSport++;
       continue;
     }
-    // dictionary miss 시 toKoreanPlayerName 은 원문 반환 → 영문이면 nameKo 도 영문이 되어
-    // 의미 없음. 한글 char 가 포함된 경우에만 nameKo 저장 (= dictionary hit 한 경우만).
-    const converted = toKoreanPlayerName(p.name);
-    const nameKo = /[가-힣]/.test(converted) ? converted : null;
+    // nameKo 우선순위: incoming 명시 (Anthropic 음역) > toKoreanPlayerName dictionary > null.
+    // dictionary miss 시 toKoreanPlayerName 은 원문 반환 → 영문 그대로면 nameKo null 처리.
+    let nameKo: string | null = null;
+    if (p.nameKo && /[가-힣]/.test(p.nameKo)) {
+      nameKo = p.nameKo;
+    } else {
+      const converted = toKoreanPlayerName(p.name);
+      if (/[가-힣]/.test(converted)) nameKo = converted;
+    }
     try {
       await prisma.theSportsPlayer.upsert({
         where: { id: p.id },
@@ -87,15 +96,17 @@ export async function POST(req: NextRequest) {
           name: p.name,
           nameKo,
           shortName: p.short_name ?? null,
-          teamId: p.team_id,
+          teamId: p.team_id || null,
           sport,
           position: p.position ?? null,
         },
         update: {
           name: p.name,
-          nameKo,
+          // nameKo 는 명시 제공 시만 update — 기존 채워진 한글이 덮어쓰이지 않도록.
+          ...(nameKo ? { nameKo } : {}),
           shortName: p.short_name ?? null,
-          teamId: p.team_id,
+          // team_id 가 빈 응답 (player/list?uuid) 이면 기존 teamId 보존.
+          ...(p.team_id ? { teamId: p.team_id } : {}),
           sport,
           position: p.position ?? null,
         },

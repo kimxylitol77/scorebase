@@ -1,0 +1,10 @@
+[Unit]
+Description=Scorebase KBO Player Names — 매일 03:00 KST (18:00 UTC)
+
+[Timer]
+OnCalendar=*-*-* 18:00:00
+Persistent=true
+Unit=scorebase-kbo-player-names.service
+
+[Install]
+WantedBy=timers.target
