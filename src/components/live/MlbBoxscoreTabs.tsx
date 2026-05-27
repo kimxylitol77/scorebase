@@ -511,17 +511,18 @@ function BattingTable({
               className="border-b border-neutral-100 dark:border-neutral-900"
             >
               <td className="py-1.5 pr-2">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-[10px] tabular-nums text-neutral-400 w-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] tabular-nums text-neutral-400 w-3 shrink-0">
                     {b.order ?? ""}
                   </span>
+                  <Headshot pid={b.pid} alt={b.name} size="sm" />
                   <Link
                     href={`/players/mlb/${b.pid}`}
                     className="font-medium truncate hover:underline max-w-[120px]"
                   >
                     {koName(b.pid, b.name)}
                   </Link>
-                  <span className="text-[10px] text-neutral-500">
+                  <span className="text-[10px] text-neutral-500 shrink-0">
                     {b.position}
                   </span>
                 </div>
@@ -581,7 +582,8 @@ function PitchingTable({
               className="border-b border-neutral-100 dark:border-neutral-900"
             >
               <td className="py-1.5 pr-2">
-                <div className="flex items-baseline gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Headshot pid={p.pid} alt={p.name} size="sm" />
                   <Link
                     href={`/players/mlb/${p.pid}`}
                     className="font-medium truncate hover:underline max-w-[120px]"
@@ -589,7 +591,7 @@ function PitchingTable({
                     {koName(p.pid, p.name)}
                   </Link>
                   {p.isStarter ? (
-                    <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400">
+                    <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 shrink-0">
                       SP
                     </span>
                   ) : null}
@@ -1087,16 +1089,29 @@ function pitchShortLabel(p: PbpPlay): string {
   }
 }
 
-function Headshot({ pid, alt }: { pid: number; alt: string }) {
+function Headshot({
+  pid,
+  alt,
+  size = "md",
+}: {
+  pid: number;
+  alt: string;
+  size?: "sm" | "md";
+}) {
+  const dim = size === "sm" ? 28 : 40;
+  const cls =
+    size === "sm"
+      ? "w-7 h-7 rounded-full object-cover bg-neutral-100 dark:bg-neutral-900 shrink-0"
+      : "w-10 h-10 rounded-full object-cover bg-neutral-100 dark:bg-neutral-900 shrink-0";
   // eslint-disable-next-line @next/next/no-img-element
   return (
     <img
       src={headshotUrl(pid)}
       alt={alt}
-      width={40}
-      height={40}
+      width={dim}
+      height={dim}
       loading="lazy"
-      className="w-10 h-10 rounded-full object-cover bg-neutral-100 dark:bg-neutral-900 shrink-0"
+      className={cls}
     />
   );
 }
