@@ -37,12 +37,10 @@ export async function GET(req: NextRequest) {
   }
 
   const since = new Date(Date.now() - days * 86400 * 1000);
+  // theSportsCache relation filter (`isNot: null`) 가 Prisma 6 nullable 1:1 에서
+  // 매치 0건 반환하는 사고 — 그냥 league+startTime 으로 fetch 후 in-memory skip.
   const matches = await prisma.match.findMany({
-    where: {
-      league,
-      startTime: { gte: since },
-      theSportsCache: { isNot: null },
-    },
+    where: { league, startTime: { gte: since } },
     select: { theSportsCache: { select: { detailLive: true } } },
   });
 
