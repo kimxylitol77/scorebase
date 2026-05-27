@@ -949,43 +949,66 @@ function BatterCardView({ card }: { card: BatterCard }) {
   const hasPitches = card.pitches.length > 0;
   return (
     <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
-      {/* 헤더 — 타자명 + 결과 */}
+      {/* 헤더 — 타자명 + 결과. 모바일 좁은 width 에서 이름 1글자 truncate 방지:
+          이름/타석 라벨/chevron 은 한 줄, 결과는 새 줄 (모바일) / 한 줄 (sm+) */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full px-3 sm:px-4 py-2.5 flex items-baseline gap-2 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
+        className="w-full px-3 sm:px-4 py-2.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
       >
-        <span className="text-base font-bold truncate">{card.batter}</span>
-        <span className="text-xs text-neutral-500 shrink-0">타석</span>
-        <div className="flex-1" />
+        <div className="flex items-center sm:items-baseline gap-2">
+          <span className="text-base font-bold truncate min-w-0 shrink">
+            {card.batter}
+          </span>
+          <span className="text-xs text-neutral-500 shrink-0">타석</span>
+          {/* desktop: 같은 줄 결과 */}
+          {card.resultText ? (
+            <span
+              className={`hidden sm:inline-block text-xs font-semibold truncate flex-1 text-right ${
+                card.resultIsScoring
+                  ? "text-rose-600 dark:text-rose-400"
+                  : "text-neutral-700 dark:text-neutral-300"
+              }`}
+            >
+              {card.resultText}
+            </span>
+          ) : (
+            <span className="hidden sm:inline-block text-xs text-neutral-400 flex-1 text-right">
+              진행 중…
+            </span>
+          )}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`shrink-0 text-neutral-400 transition-transform ml-auto sm:ml-0 ${
+              open ? "rotate-180" : ""
+            }`}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+        {/* mobile: 새 줄 결과 */}
         {card.resultText ? (
-          <span
-            className={`text-xs font-semibold truncate ${
+          <div
+            className={`sm:hidden text-xs font-semibold mt-1 ${
               card.resultIsScoring
                 ? "text-rose-600 dark:text-rose-400"
                 : "text-neutral-700 dark:text-neutral-300"
             }`}
           >
             {card.resultText}
-          </span>
+          </div>
         ) : (
-          <span className="text-xs text-neutral-400">진행 중…</span>
+          <div className="sm:hidden text-xs text-neutral-400 mt-1">
+            진행 중…
+          </div>
         )}
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`shrink-0 text-neutral-400 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
       </button>
       {/* body — pitches + pickoffs */}
       {open && hasPitches ? (
