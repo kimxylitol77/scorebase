@@ -316,8 +316,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         <FavoriteStar matchId={String(matchId)} />
       </div>
 
-      {/* 8. 정보 — AI 매치 인사이트 + 라인업 cover 리그 + 리뷰 글 (있을 때) */}
-      <div className="flex items-center justify-center gap-1">
+      {/* 8. 정보 — AI 매치 인사이트 + 라인업 cover 리그 + 리뷰 글 (있을 때).
+          justify-start 로 AI 칩 위치를 row 마다 동일하게 고정 (칩 개수에 따라 흔들리지 않게). */}
+      <div className="flex items-center justify-start gap-1">
         {href && (
           <Link
             href={href}
@@ -335,7 +336,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             prefetch={false}
             onClick={(e) => e.stopPropagation()}
             title="라인업 (TheSports cover)"
-            className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition"
+            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition"
           >
             L
           </Link>
@@ -346,7 +347,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             prefetch={false}
             onClick={(e) => e.stopPropagation()}
             title="리뷰"
-            className="inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition"
+            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition"
           >
             R
           </Link>
