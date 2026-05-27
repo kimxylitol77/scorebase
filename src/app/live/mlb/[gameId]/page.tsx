@@ -11,11 +11,9 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import MlbLiveDetail from "@/components/MlbLiveDetail";
-import BaseballPreMatchInsight, {
-  type StarterInfo,
-} from "@/components/BaseballPreMatchInsight";
-import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
+import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
+import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -220,21 +218,6 @@ export default async function MlbLivePage({ params }: Props) {
             : null
         }
       />
-      {match.status === "SCHEDULED" ? (
-        <BaseballPreviewInsight
-          match={match}
-          league="MLB"
-          baseballContext={null}
-        />
-      ) : (
-        <BaseballPreMatchInsight
-          league="MLB"
-          homeStarter={parseStarterFull(match.homeStarter)}
-          awayStarter={parseStarterFull(match.awayStarter)}
-          homeTeamName={homeKo}
-          awayTeamName={awayKo}
-        />
-      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}
@@ -259,7 +242,20 @@ export default async function MlbLivePage({ params }: Props) {
         }
         initialOdds={baseballOdds}
       />
-      <MatchInsight match={match} />
+      <MatchInsight
+        match={match}
+        liveOddsContent={
+          baseballOdds?.odds ? (
+            <LiveOddsCard
+              odds={baseballOdds.odds}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              hasDraw={false}
+              oddsHistory={baseballOdds.history}
+            />
+          ) : null
+        }
+      />
     </div>
   );
 }

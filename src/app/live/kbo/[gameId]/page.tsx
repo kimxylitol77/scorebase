@@ -8,11 +8,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
-import BaseballPreMatchInsight, {
-  type StarterInfo,
-} from "@/components/BaseballPreMatchInsight";
-import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
+import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
+import LiveOddsCard from "@/components/live/LiveOddsCard";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
@@ -167,21 +165,6 @@ export default async function KboLivePage({ params }: Props) {
             : null
         }
       />
-      {match.status === "SCHEDULED" ? (
-        <BaseballPreviewInsight
-          match={match}
-          league="KBO"
-          baseballContext={null}
-        />
-      ) : (
-        <BaseballPreMatchInsight
-          league="KBO"
-          homeStarter={parseStarterFull(match.homeStarter)}
-          awayStarter={parseStarterFull(match.awayStarter)}
-          homeTeamName={homeKo}
-          awayTeamName={awayKo}
-        />
-      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}
@@ -206,7 +189,20 @@ export default async function KboLivePage({ params }: Props) {
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
-      <MatchInsight match={match} />
+      <MatchInsight
+        match={match}
+        liveOddsContent={
+          baseballOdds?.odds ? (
+            <LiveOddsCard
+              odds={baseballOdds.odds}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              hasDraw={false}
+              oddsHistory={baseballOdds.history}
+            />
+          ) : null
+        }
+      />
     </div>
   );
 }

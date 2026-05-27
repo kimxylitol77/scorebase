@@ -7,11 +7,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
-import BaseballPreMatchInsight, {
-  type StarterInfo,
-} from "@/components/BaseballPreMatchInsight";
-import BaseballPreviewInsight from "@/components/BaseballPreviewInsight";
+import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
+import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -173,23 +171,6 @@ export default async function NpbLivePage({ params }: Props) {
             : null
         }
       />
-      {match.status === "SCHEDULED" ? (
-        <BaseballPreviewInsight
-          match={match}
-          league="NPB"
-          baseballContext={null}
-        />
-      ) : (
-        <BaseballPreMatchInsight
-          league="NPB"
-          homeStarter={homeStarterFull}
-          awayStarter={awayStarterFull}
-          homeTeamName={homeKo}
-          awayTeamName={awayKo}
-          homeStarterPhoto={homeStarterPhoto ?? null}
-          awayStarterPhoto={awayStarterPhoto ?? null}
-        />
-      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}
@@ -214,7 +195,20 @@ export default async function NpbLivePage({ params }: Props) {
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
-      <MatchInsight match={match} />
+      <MatchInsight
+        match={match}
+        liveOddsContent={
+          baseballOdds?.odds ? (
+            <LiveOddsCard
+              odds={baseballOdds.odds}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              hasDraw={false}
+              oddsHistory={baseballOdds.history}
+            />
+          ) : null
+        }
+      />
     </div>
   );
 }

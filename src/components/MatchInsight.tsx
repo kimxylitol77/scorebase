@@ -42,6 +42,7 @@ import {
 } from "@/lib/predict/goalie-adjust";
 import { blendWithMarket } from "@/lib/predict/market-blend";
 import type { PredictMatch } from "@/lib/predict/types";
+import type { ReactNode } from "react";
 import FormDots from "./FormDots";
 import EloMeter from "./EloMeter";
 import WinProbDonut from "./charts/WinProbDonut";
@@ -49,6 +50,7 @@ import EloTrendChart from "./charts/EloTrendChart";
 import SeasonFormHeatmap from "./charts/SeasonFormHeatmap";
 import GoalScatter from "./charts/GoalScatter";
 import TeamMatchup from "./TeamMatchup";
+import MatchInsightTabs from "./MatchInsightTabs";
 
 interface Props {
   match: {
@@ -87,6 +89,11 @@ interface Props {
     awayGoalie?: string | null;
     goaliesUpdatedAt?: Date | null;
   };
+  /** 라이브 페이지에서 sport 별 팀 통계 카드 prop 으로 주입 (탭 자동 추가).
+      ESPN team statistics (MLB) / TheSports detailLive.stats (KBO/NPB) / SoccerTeamStatsCard 등 */
+  teamStatsContent?: ReactNode;
+  /** 라이브 배당 카드 prop (탭 자동 추가) — LiveOddsCard 또는 같은 데이터 카드 */
+  liveOddsContent?: ReactNode;
 }
 
 /** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
@@ -135,7 +142,11 @@ function parseGoalie(s?: string | null): NhlGoalieInfo | null {
   }
 }
 
-export default async function MatchInsight({ match }: Props) {
+export default async function MatchInsight({
+  match,
+  teamStatsContent,
+  liveOddsContent,
+}: Props) {
   const dbMatches = await prisma.match.findMany({
     where: { league: match.league },
     select: {
@@ -401,35 +412,9 @@ export default async function MatchInsight({ match }: Props) {
       return ourTopProb - (marketTopProb ?? 0) >= 0.05;
     })();
 
-  return (
-    <section className="my-10 space-y-8 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-bold tracking-tight text-zinc-950 dark:text-white">
-            매치 인사이트
-          </h3>
-          {isStrongPick && (
-            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
-              Strong Pick
-            </span>
-          )}
-          {isValueBet && (
-            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-300/30">
-              Value Bet
-            </span>
-          )}
-          {marketBlended && (
-            <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700 ring-1 ring-black/5 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10">
-              시장 odds 반영
-            </span>
-          )}
-        </div>
-        <span className="text-xs font-medium text-zinc-500 dark:text-white/45">
-          {summary}
-        </span>
-      </div>
-
-      {/* 선발 투수 (MLB · KBO · NPB) */}
+  // === 통합 탭 카드 (네이버 스타일) 용 sections 변수화 ===
+  const startersContent = (hasStarters || hasGoalies) ? (
+    <>
       {hasStarters && (
         <StarterCard
           home={homeStarter}
@@ -439,8 +424,6 @@ export default async function MatchInsight({ match }: Props) {
           league={match.league}
         />
       )}
-
-      {/* 골리 (NHL) */}
       {hasGoalies && (
         <GoalieCard
           home={homeGoalie}
@@ -449,120 +432,136 @@ export default async function MatchInsight({ match }: Props) {
           awayTeam={toKoreanTeamName(match.awayTeam.name)}
         />
       )}
+    </>
+  ) : null;
 
-      {/* 0) 팀 전력 — 양 팀 마주보기 통합 비교 (시즌·홈원정·최근·흐름) */}
-      {homeRow && awayRow && (
-        <TeamMatchup
-          showDraw={!hideDraw}
-          home={{
-            name: toKoreanTeamName(match.homeTeam.name),
-            form: homeForm.results,
-            position: homeRow.position,
-            totalTeams: totalTeams,
-            played: homeRow.played,
-            wins: homeRow.wins,
-            draws: homeRow.draws,
-            losses: homeRow.losses,
-            goalsFor: homeRow.goalsFor,
-            goalsAgainst: homeRow.goalsAgainst,
-            attackRank: homeAttackRank,
-            defenseRank: homeDefenseRank,
-            splitLabel: "홈",
-            splitPlayed: homeHA.home.played,
-            splitWins: homeHA.home.wins,
-            splitDraws: homeHA.home.draws,
-            splitLosses: homeHA.home.losses,
-            splitPpg: homeHA.home.ppg,
-            recentMatches: homeTrend.matches,
-            recentAvgFor: homeTrend.avgGoalsFor,
-            recentAvgAgainst: homeTrend.avgGoalsAgainst,
-            recentPpg: homeTrend.ppg,
-            winningRun: homeStreak.winningRun,
-            unbeatenRun: homeStreak.unbeatenRun,
-            losingRun: homeStreak.losingRun,
-            cleanSheetsLast5: homeStreak.cleanSheetsLast5,
-            failedToScoreLast5: homeStreak.failedToScoreLast5,
-          }}
-          away={{
-            name: toKoreanTeamName(match.awayTeam.name),
-            form: awayForm.results,
-            position: awayRow.position,
-            totalTeams: totalTeams,
-            played: awayRow.played,
-            wins: awayRow.wins,
-            draws: awayRow.draws,
-            losses: awayRow.losses,
-            goalsFor: awayRow.goalsFor,
-            goalsAgainst: awayRow.goalsAgainst,
-            attackRank: awayAttackRank,
-            defenseRank: awayDefenseRank,
-            splitLabel: "원정",
-            splitPlayed: awayHA.away.played,
-            splitWins: awayHA.away.wins,
-            splitDraws: awayHA.away.draws,
-            splitLosses: awayHA.away.losses,
-            splitPpg: awayHA.away.ppg,
-            recentMatches: awayTrend.matches,
-            recentAvgFor: awayTrend.avgGoalsFor,
-            recentAvgAgainst: awayTrend.avgGoalsAgainst,
-            recentPpg: awayTrend.ppg,
-            winningRun: awayStreak.winningRun,
-            unbeatenRun: awayStreak.unbeatenRun,
-            losingRun: awayStreak.losingRun,
-            cleanSheetsLast5: awayStreak.cleanSheetsLast5,
-            failedToScoreLast5: awayStreak.failedToScoreLast5,
-          }}
+  const matchupSubsections: React.ReactNode[] = [];
+  if (homeRow && awayRow) {
+    matchupSubsections.push(
+      <TeamMatchup
+        key="tm"
+        showDraw={!hideDraw}
+        home={{
+          name: toKoreanTeamName(match.homeTeam.name),
+          form: homeForm.results,
+          position: homeRow.position,
+          totalTeams: totalTeams,
+          played: homeRow.played,
+          wins: homeRow.wins,
+          draws: homeRow.draws,
+          losses: homeRow.losses,
+          goalsFor: homeRow.goalsFor,
+          goalsAgainst: homeRow.goalsAgainst,
+          attackRank: homeAttackRank,
+          defenseRank: homeDefenseRank,
+          splitLabel: "홈",
+          splitPlayed: homeHA.home.played,
+          splitWins: homeHA.home.wins,
+          splitDraws: homeHA.home.draws,
+          splitLosses: homeHA.home.losses,
+          splitPpg: homeHA.home.ppg,
+          recentMatches: homeTrend.matches,
+          recentAvgFor: homeTrend.avgGoalsFor,
+          recentAvgAgainst: homeTrend.avgGoalsAgainst,
+          recentPpg: homeTrend.ppg,
+          winningRun: homeStreak.winningRun,
+          unbeatenRun: homeStreak.unbeatenRun,
+          losingRun: homeStreak.losingRun,
+          cleanSheetsLast5: homeStreak.cleanSheetsLast5,
+          failedToScoreLast5: homeStreak.failedToScoreLast5,
+        }}
+        away={{
+          name: toKoreanTeamName(match.awayTeam.name),
+          form: awayForm.results,
+          position: awayRow.position,
+          totalTeams: totalTeams,
+          played: awayRow.played,
+          wins: awayRow.wins,
+          draws: awayRow.draws,
+          losses: awayRow.losses,
+          goalsFor: awayRow.goalsFor,
+          goalsAgainst: awayRow.goalsAgainst,
+          attackRank: awayAttackRank,
+          defenseRank: awayDefenseRank,
+          splitLabel: "원정",
+          splitPlayed: awayHA.away.played,
+          splitWins: awayHA.away.wins,
+          splitDraws: awayHA.away.draws,
+          splitLosses: awayHA.away.losses,
+          splitPpg: awayHA.away.ppg,
+          recentMatches: awayTrend.matches,
+          recentAvgFor: awayTrend.avgGoalsFor,
+          recentAvgAgainst: awayTrend.avgGoalsAgainst,
+          recentPpg: awayTrend.ppg,
+          winningRun: awayStreak.winningRun,
+          unbeatenRun: awayStreak.unbeatenRun,
+          losingRun: awayStreak.losingRun,
+          cleanSheetsLast5: awayStreak.cleanSheetsLast5,
+          failedToScoreLast5: awayStreak.failedToScoreLast5,
+        }}
+      />,
+    );
+  }
+
+  // matchup 탭에 시즌 폼 + 공격 vs 수비 도 같이
+  const matchupContent = matchupSubsections.length > 0 ? (
+    <div className="space-y-6">{matchupSubsections}</div>
+  ) : null;
+
+  // 옛 sequential return 부터 시작 — 아래 markup 은 더 이상 렌더되지 않지만
+  // 변수 capture 와 인덱싱이 같은 scope 이므로 그대로 유지하면 비효율. 통째 교체.
+  // === 시즌 폼 + 공격 vs 수비 — 팀 전력 탭에 함께 묶기 ===
+  if (homeSeasonForm.length > 0 || awaySeasonForm.length > 0) {
+    matchupSubsections.push(
+      <Section key="form" title="시즌 폼">
+        <div className="space-y-4">
+          {homeSeasonForm.length > 0 && (
+            <SeasonFormHeatmap
+              name={toKoreanTeamName(match.homeTeam.name)}
+              cells={homeSeasonForm}
+            />
+          )}
+          {awaySeasonForm.length > 0 && (
+            <SeasonFormHeatmap
+              name={toKoreanTeamName(match.awayTeam.name)}
+              cells={awaySeasonForm}
+            />
+          )}
+        </div>
+      </Section>,
+    );
+  }
+  if (scatterPoints.length >= 5) {
+    matchupSubsections.push(
+      <Section key="scatter" title="공격 vs 수비 (시즌 평균)">
+        <GoalScatter
+          points={scatterPoints}
+          leagueAvgGF={leagueAvgGF}
+          leagueAvgGA={leagueAvgGA}
         />
-      )}
+        <div className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
+          오른쪽 위로 갈수록 좋음. 점선은 리그 평균.{" "}
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-sm bg-blue-500" />
+            {toKoreanTeamName(match.homeTeam.name)}
+          </span>
+          ,{" "}
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-sm bg-rose-500" />
+            {toKoreanTeamName(match.awayTeam.name)}
+          </span>
+        </div>
+      </Section>,
+    );
+  }
+  const matchupContentFinal =
+    matchupSubsections.length > 0 ? (
+      <div className="space-y-6">{matchupSubsections}</div>
+    ) : null;
 
-      {/* 0.5) 시장 odds 비교 — odds API 데이터가 있을 때만 */}
-      {match.marketHome != null && match.marketAway != null && (
-        <Section title="AI 모델 vs 시장 odds">
-          <MarketCompareTable
-            modelHome={winProb.home}
-            modelDraw={winProb.draw}
-            modelAway={winProb.away}
-            marketHome={match.marketHome}
-            marketDraw={match.marketDraw ?? null}
-            marketAway={match.marketAway}
-            homeName={toKoreanTeamName(match.homeTeam.name)}
-            awayName={toKoreanTeamName(match.awayTeam.name)}
-            bookmakers={match.marketBookmakers ?? 0}
-            hideDraw={hideDraw}
-          />
-        </Section>
-      )}
-
-      {/* 0.6) 베팅사이트 평균 배당 (decimal odds) — UI 참고용 */}
-      {(match.oddsHome ||
-        match.oddsOver ||
-        match.oddsHcHome ||
-        match.oddsBttsYes ||
-        match.oddsDc1X) && (
-        <Section title="베팅사이트 평균 배당">
-          <OddsTable
-            homeName={toKoreanTeamName(match.homeTeam.name)}
-            awayName={toKoreanTeamName(match.awayTeam.name)}
-            oddsHome={match.oddsHome ?? null}
-            oddsDraw={match.oddsDraw ?? null}
-            oddsAway={match.oddsAway ?? null}
-            oddsTotalLine={match.oddsTotalLine ?? null}
-            oddsOver={match.oddsOver ?? null}
-            oddsUnder={match.oddsUnder ?? null}
-            oddsHcLine={match.oddsHcLine ?? null}
-            oddsHcHome={match.oddsHcHome ?? null}
-            oddsHcAway={match.oddsHcAway ?? null}
-            oddsBttsYes={match.oddsBttsYes ?? null}
-            oddsBttsNo={match.oddsBttsNo ?? null}
-            oddsDc1X={match.oddsDc1X ?? null}
-            oddsDc12={match.oddsDc12 ?? null}
-            oddsDcX2={match.oddsDcX2 ?? null}
-            hideDraw={hideDraw}
-          />
-        </Section>
-      )}
-
-      {/* 1) 승률 도넛 */}
+  // === AI 예측 탭 — 항상 표시 ===
+  const predictContent = (
+    <div className="space-y-6">
       <Section title="승률 추정">
         <WinProbDonut
           homeProb={winProb.home}
@@ -573,8 +572,6 @@ export default async function MatchInsight({ match }: Props) {
           hideDraw={hideDraw}
         />
       </Section>
-
-      {/* 1.5) AI 예측 종합 — 종목별 시장 카드 */}
       <Section title={isFinished ? "AI 예측 종합 · 결과 비교" : "AI 예측 종합"}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MarketCard
@@ -600,7 +597,11 @@ export default async function MatchInsight({ match }: Props) {
           {dc && (
             <MarketCard
               label="더블 찬스"
-              pick={dcPickLabel(dc.pick, toKoreanTeamName(match.homeTeam.name), toKoreanTeamName(match.awayTeam.name))}
+              pick={dcPickLabel(
+                dc.pick,
+                toKoreanTeamName(match.homeTeam.name),
+                toKoreanTeamName(match.awayTeam.name),
+              )}
               prob={dc.prob}
               correct={dcOk}
               isFinished={isFinished}
@@ -610,7 +611,11 @@ export default async function MatchInsight({ match }: Props) {
           {total && ovPick && (
             <MarketCard
               label={`OVER ${total.line}`}
-              pick={ovPick === "OVER" ? `OVER (${total.line}+)` : `UNDER (${total.line}-)`}
+              pick={
+                ovPick === "OVER"
+                  ? `OVER (${total.line}+)`
+                  : `UNDER (${total.line}-)`
+              }
               prob={ovPick === "OVER" ? total.pOver : 1 - total.pOver}
               correct={ovOk}
               isFinished={isFinished}
@@ -643,12 +648,11 @@ export default async function MatchInsight({ match }: Props) {
             {total &&
               `기대 총득점 ${total.expectedTotal.toFixed(1)} · 기준선 ${total.line}`}
             {total && hc && " · "}
-            {hc && `기대 마진 ${hc.expectedMargin >= 0 ? "+" : ""}${hc.expectedMargin.toFixed(1)}`}
+            {hc &&
+              `기대 마진 ${hc.expectedMargin >= 0 ? "+" : ""}${hc.expectedMargin.toFixed(1)}`}
           </p>
         )}
       </Section>
-
-      {/* 2) Elo + 변천사 */}
       <Section title="Elo 레이팅">
         <div className="space-y-3 mb-4">
           <EloMeter
@@ -663,107 +667,186 @@ export default async function MatchInsight({ match }: Props) {
           />
         </div>
         {homeHistory.length > 1 && awayHistory.length > 1 && (
-          <div className="mt-2 text-xs text-neutral-500 mb-1">시즌 추이</div>
-        )}
-        {homeHistory.length > 1 && awayHistory.length > 1 && (
-          <EloTrendChart
-            homeSeries={{
-              name: toKoreanTeamName(match.homeTeam.name),
-              color: "#3b82f6",
-              points: homeHistory.map((h, i) => ({
-                index: i,
-                date: h.date.toISOString().slice(0, 10),
-                rating: h.rating,
-              })),
-            }}
-            awaySeries={{
-              name: toKoreanTeamName(match.awayTeam.name),
-              color: "#f43f5e",
-              points: awayHistory.map((h, i) => ({
-                index: i,
-                date: h.date.toISOString().slice(0, 10),
-                rating: h.rating,
-              })),
-            }}
-          />
+          <>
+            <div className="mt-2 text-xs text-neutral-500 mb-1">시즌 추이</div>
+            <EloTrendChart
+              homeSeries={{
+                name: toKoreanTeamName(match.homeTeam.name),
+                color: "#3b82f6",
+                points: homeHistory.map((h, i) => ({
+                  index: i,
+                  date: h.date.toISOString().slice(0, 10),
+                  rating: h.rating,
+                })),
+              }}
+              awaySeries={{
+                name: toKoreanTeamName(match.awayTeam.name),
+                color: "#f43f5e",
+                points: awayHistory.map((h, i) => ({
+                  index: i,
+                  date: h.date.toISOString().slice(0, 10),
+                  rating: h.rating,
+                })),
+              }}
+            />
+          </>
         )}
       </Section>
+      <p className="text-[11px] text-neutral-500 leading-relaxed pt-2 border-t border-neutral-200 dark:border-neutral-800">
+        ⓘ Elo 레이팅 + 홈 어드밴티지 기반 통계 추정치입니다. 실제 경기 양상과
+        다를 수 있습니다. (데이터셋 {eloTable.processed}경기 기준)
+      </p>
+    </div>
+  );
 
-      {/* 최근 5경기 폼 / 시즌 순위 / 홈원정 / Streak / 최근 5평균
-          → 모두 위쪽 TeamMatchup 한 섹션으로 통합됨 */}
-
-      {/* 4) 시즌 폼 히트맵 */}
-      {(homeSeasonForm.length > 0 || awaySeasonForm.length > 0) && (
-        <Section title="시즌 폼">
-          <div className="space-y-4">
-            {homeSeasonForm.length > 0 && (
-              <SeasonFormHeatmap
-                name={toKoreanTeamName(match.homeTeam.name)}
-                cells={homeSeasonForm}
-              />
-            )}
-            {awaySeasonForm.length > 0 && (
-              <SeasonFormHeatmap
-                name={toKoreanTeamName(match.awayTeam.name)}
-                cells={awaySeasonForm}
-              />
-            )}
-          </div>
-        </Section>
-      )}
-
-      {/* 5) 득실점 산점도 */}
-      {scatterPoints.length >= 5 && (
-        <Section title="공격 vs 수비 (시즌 평균)">
-          <GoalScatter
-            points={scatterPoints}
-            leagueAvgGF={leagueAvgGF}
-            leagueAvgGA={leagueAvgGA}
-          />
-          <div className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
-            오른쪽 위로 갈수록 좋음. 점선은 리그 평균.{" "}
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-sm bg-blue-500" />
-              {toKoreanTeamName(match.homeTeam.name)}
+  // === 상대 전적 탭 ===
+  const h2hContent =
+    h2h.total > 0 ? (
+      <Section title={`상대 전적 (최근 ${Math.min(h2h.total, 10)}경기)`}>
+        <div className="flex items-center gap-3 text-sm">
+          <span className="font-semibold text-blue-600 dark:text-blue-400">
+            {toKoreanTeamName(match.homeTeam.name)} {h2h.homeTeamWins}승
+          </span>
+          <span className="text-neutral-400">·</span>
+          <span className="text-neutral-500">{h2h.draws}무</span>
+          <span className="text-neutral-400">·</span>
+          <span className="font-semibold text-rose-600 dark:text-rose-400">
+            {toKoreanTeamName(match.awayTeam.name)} {h2h.awayTeamWins}승
+          </span>
+          {h2h.recentForHome.length > 0 && (
+            <span className="ml-auto">
+              <FormDots results={h2h.recentForHome} />
             </span>
-            ,{" "}
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-sm bg-rose-500" />
-              {toKoreanTeamName(match.awayTeam.name)}
-            </span>
-          </div>
-        </Section>
-      )}
+          )}
+        </div>
+      </Section>
+    ) : null;
 
-      {/* 6) 상대 전적 */}
-      {h2h.total > 0 && (
-        <Section title={`상대 전적 (최근 ${Math.min(h2h.total, 10)}경기)`}>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="font-semibold text-blue-600 dark:text-blue-400">
-              {toKoreanTeamName(match.homeTeam.name)} {h2h.homeTeamWins}승
-            </span>
-            <span className="text-neutral-400">·</span>
-            <span className="text-neutral-500">{h2h.draws}무</span>
-            <span className="text-neutral-400">·</span>
-            <span className="font-semibold text-rose-600 dark:text-rose-400">
-              {toKoreanTeamName(match.awayTeam.name)} {h2h.awayTeamWins}승
-            </span>
-            {h2h.recentForHome.length > 0 && (
-              <span className="ml-auto">
-                <FormDots results={h2h.recentForHome} />
-              </span>
-            )}
-          </div>
-        </Section>
-      )}
-
-      <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800">
-        <p className="text-[11px] text-neutral-500 leading-relaxed">
-          ⓘ Elo 레이팅 + 홈 어드밴티지 기반 통계 추정치입니다. 실제 경기
-          양상과 다를 수 있습니다. (데이터셋 {eloTable.processed}경기 기준)
-        </p>
+  // === 시장 odds 탭 ===
+  const hasMarketCompare =
+    match.marketHome != null && match.marketAway != null;
+  const hasOddsTable = !!(
+    match.oddsHome ||
+    match.oddsOver ||
+    match.oddsHcHome ||
+    match.oddsBttsYes ||
+    match.oddsDc1X
+  );
+  const marketContent =
+    hasMarketCompare || hasOddsTable ? (
+      <div className="space-y-6">
+        {hasMarketCompare && (
+          <Section title="AI 모델 vs 시장 odds">
+            <MarketCompareTable
+              modelHome={winProb.home}
+              modelDraw={winProb.draw}
+              modelAway={winProb.away}
+              marketHome={match.marketHome!}
+              marketDraw={match.marketDraw ?? null}
+              marketAway={match.marketAway!}
+              homeName={toKoreanTeamName(match.homeTeam.name)}
+              awayName={toKoreanTeamName(match.awayTeam.name)}
+              bookmakers={match.marketBookmakers ?? 0}
+              hideDraw={hideDraw}
+            />
+          </Section>
+        )}
+        {hasOddsTable && (
+          <Section title="베팅사이트 평균 배당">
+            <OddsTable
+              homeName={toKoreanTeamName(match.homeTeam.name)}
+              awayName={toKoreanTeamName(match.awayTeam.name)}
+              oddsHome={match.oddsHome ?? null}
+              oddsDraw={match.oddsDraw ?? null}
+              oddsAway={match.oddsAway ?? null}
+              oddsTotalLine={match.oddsTotalLine ?? null}
+              oddsOver={match.oddsOver ?? null}
+              oddsUnder={match.oddsUnder ?? null}
+              oddsHcLine={match.oddsHcLine ?? null}
+              oddsHcHome={match.oddsHcHome ?? null}
+              oddsHcAway={match.oddsHcAway ?? null}
+              oddsBttsYes={match.oddsBttsYes ?? null}
+              oddsBttsNo={match.oddsBttsNo ?? null}
+              oddsDc1X={match.oddsDc1X ?? null}
+              oddsDc12={match.oddsDc12 ?? null}
+              oddsDcX2={match.oddsDcX2 ?? null}
+              hideDraw={hideDraw}
+            />
+          </Section>
+        )}
       </div>
-    </section>
+    ) : null;
+
+  const headerBadges = (
+    <>
+      {isStrongPick && (
+        <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
+          Strong Pick
+        </span>
+      )}
+      {isValueBet && (
+        <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-300/30">
+          Value Bet
+        </span>
+      )}
+      {marketBlended && (
+        <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700 ring-1 ring-black/5 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10">
+          시장 odds 반영
+        </span>
+      )}
+    </>
+  );
+
+  return (
+    <MatchInsightTabs
+      headerLabel="매치 인사이트"
+      headerBadges={headerBadges}
+      headerSummary={summary}
+      tabs={[
+        {
+          key: "starters",
+          label: hasGoalies ? "선발 골리" : "선발 매치업",
+          enabled: !!startersContent,
+          content: startersContent,
+        },
+        {
+          key: "matchup",
+          label: "팀 전력",
+          enabled: !!matchupContentFinal,
+          content: matchupContentFinal,
+        },
+        {
+          key: "team-stats",
+          label: "팀 통계",
+          enabled: !!teamStatsContent,
+          content: teamStatsContent ?? null,
+        },
+        {
+          key: "predict",
+          label: "AI 예측",
+          enabled: true,
+          content: predictContent,
+        },
+        {
+          key: "h2h",
+          label: "상대 전적",
+          enabled: !!h2hContent,
+          content: h2hContent,
+        },
+        {
+          key: "odds",
+          label: "라이브 배당",
+          enabled: !!liveOddsContent,
+          content: liveOddsContent ?? null,
+        },
+        {
+          key: "market",
+          label: "시장 odds",
+          enabled: !!marketContent,
+          content: marketContent,
+        },
+      ]}
+    />
   );
 }
 
