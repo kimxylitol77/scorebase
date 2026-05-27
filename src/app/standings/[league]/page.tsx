@@ -27,6 +27,7 @@ const VALID = new Set<string>([
   "KBO",
   "NPB",
   "MLB",
+  "CPBL",
 ]);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

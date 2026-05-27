@@ -687,7 +687,9 @@ export default async function ScoresPage({ searchParams }: Props) {
     return undefined;
   }
 
-  // TheSports standings — 카드 팀명 옆 [순위] 표시용. 축구 리그만 prefetch.
+  // TheSports + api-baseball standings — 카드 팀명 옆 [순위] 표시용.
+  // 축구 (TheSports) + 야구 (api-baseball) 둘 다 prefetch. 야구는 ApiFootballStandingsCache 에
+  // baseball-standings cron 으로 저장된 rows 활용 (standings-helper 의 fallback path).
   const soccerLeaguesInPage = Array.from(
     new Set(
       matches
@@ -695,8 +697,16 @@ export default async function ScoresPage({ searchParams }: Props) {
         .map((m) => m.league),
     ),
   );
-  const standingsByLeague = soccerLeaguesInPage.length > 0
-    ? await getStandingsForLeagues(soccerLeaguesInPage)
+  const baseballLeaguesInPage = Array.from(
+    new Set(
+      matches
+        .filter((m) => ["KBO", "NPB", "MLB", "CPBL"].includes(m.league))
+        .map((m) => m.league),
+    ),
+  );
+  const leaguesToFetch = [...soccerLeaguesInPage, ...baseballLeaguesInPage];
+  const standingsByLeague = leaguesToFetch.length > 0
+    ? await getStandingsForLeagues(leaguesToFetch)
     : new Map<string, Map<number, number>>();
 
   // 매치 → 정규화 (sport 분기 + 라이브 보강)

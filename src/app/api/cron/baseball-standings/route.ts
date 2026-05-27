@@ -83,12 +83,14 @@ export async function GET(req: NextRequest) {
       continue;
     }
     // ApiFootballStandingsCache 형식에 맞춰 가벼운 rows 로 변환.
+    // draw=0 명시 (야구는 무승부 거의 없음, 호출 측이 draw undefined 가정으로 깨지지 않게).
     const lightRows = rows.map((r) => ({
       position: r.position,
       teamExternalId: r.team?.id ? String(r.team.id) : null,
       teamName: r.team?.name,
       points: r.points,
       won: r.games?.win?.total ?? 0,
+      draw: 0,
       loss: r.games?.lose?.total ?? 0,
     }));
     try {
