@@ -37,6 +37,8 @@ type IssueKind =
   | "score_drift"
   | "inning_missing"
   | "cache_db_mismatch"
+  | "cache_inner_inconsistent"
+  | "finished_no_score"
   | "stale_live"
   | "future_live"
   | "standings_stale"
@@ -89,8 +91,10 @@ export async function GET(req: NextRequest) {
       OR: [
         { status: "LIVE" },
         {
+          // 활성 야구 리그 5개 — KBO/NPB/MLB + 2026-05-27 추가 CPBL/LMB.
+          // FINISHED 인데 score=null 사고 (collector score path 누락) 도 catch.
           AND: [
-            { league: { in: ["KBO", "NPB", "MLB"] } },
+            { league: { in: ["KBO", "NPB", "MLB", "CPBL", "LMB"] } },
             { startTime: { gte: new Date(now - 12 * 3600 * 1000), lte: new Date(now + 6 * 3600 * 1000) } },
           ],
         },
@@ -185,6 +189,21 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // 1b. finished_no_score — 야구 FINISHED 인데 점수 null.
+    // 2026-05-27 CPBL/LMB FINISHED 24건 score=null 발견 (collector score 추출 path 누락).
+    // KBO/NPB/MLB 는 live poller 가 채워서 안 드러나지만 baseball-poller silent hang 시 동일 패턴.
+    if (
+      m.status === "FINISHED" &&
+      (m.homeScore == null || m.awayScore == null)
+    ) {
+      issues.push({
+        ...matchInfo,
+        kind: "finished_no_score",
+        severity: "HIGH",
+        detail: `FINISHED 인데 점수=${m.homeScore ?? "null"}:${m.awayScore ?? "null"} — collector score path 또는 ws-subscriber sync 누락`,
+      });
+    }
+
     if (m.status !== "LIVE") continue;
 
     const cache = cacheByMatchId.get(m.id);
@@ -235,17 +254,52 @@ export async function GET(req: NextRequest) {
           const matchUpd = m.updatedAt.getTime();
           const syncLagMs = cacheUpd > matchUpd ? cacheUpd - matchUpd : 0;
           const SYNC_GRACE_MS = 5 * 60 * 1000;
-          if (syncLagMs < SYNC_GRACE_MS) {
-            // cache 가 더 신선하고 lag 5분 이내 — sync 진행 중일 가능성. 다음 cycle 재검증.
-            continue;
+          if (syncLagMs >= SYNC_GRACE_MS) {
+            issues.push({
+              ...matchInfo,
+              kind: "cache_db_mismatch",
+              severity: "HIGH",
+              detail: `cache ft=[${a},${b}] vs DB home=${m.homeScore} away=${m.awayScore} 양방향 모두 불일치 (sync lag ${Math.round(syncLagMs / 60000)}분)`,
+            });
           }
-          issues.push({
-            ...matchInfo,
-            kind: "cache_db_mismatch",
-            severity: "HIGH",
-            detail: `cache ft=[${a},${b}] vs DB home=${m.homeScore} away=${m.awayScore} 양방향 모두 불일치 (sync lag ${Math.round(syncLagMs / 60000)}분)`,
-          });
+          // sync 진행 중이라도 cache 내부 정합성은 별도 검사 진행 (아래 4번).
         }
+      }
+    }
+
+    // 4. cache_inner_inconsistent — 야구 LIVE 의 cache.detailLive.score 내부 정합성.
+    // p1~p12 (각 이닝 [away, home]) 합산이 ft 와 다르면 TheSports push 일부 누락 의심
+    // (예: 1점차 매치인데 한 이닝 push 빠져서 sum 이 ft 보다 작음).
+    // sumAway = sum(p_i[0]), sumHome = sum(p_i[1]). ft=[away, home] vs [sumAway, sumHome] 비교.
+    const fullScore = scoreArr[3] as { [k: string]: unknown } | undefined;
+    if (fullScore && Array.isArray(ft) && ft.length === 2) {
+      let sumAway = 0;
+      let sumHome = 0;
+      let hasInning = false;
+      for (let i = 1; i <= 12; i++) {
+        const p = fullScore["p" + i];
+        if (Array.isArray(p) && p.length === 2) {
+          hasInning = true;
+          const a = parseInt(String(p[0]), 10);
+          const b = parseInt(String(p[1]), 10);
+          if (Number.isFinite(a)) sumAway += a;
+          if (Number.isFinite(b)) sumHome += b;
+        }
+      }
+      const ftAway = parseInt(ft[0], 10);
+      const ftHome = parseInt(ft[1], 10);
+      if (
+        hasInning &&
+        Number.isFinite(ftAway) &&
+        Number.isFinite(ftHome) &&
+        (ftAway !== sumAway || ftHome !== sumHome)
+      ) {
+        issues.push({
+          ...matchInfo,
+          kind: "cache_inner_inconsistent",
+          severity: "WARN",
+          detail: `cache ft=[${ftAway},${ftHome}] vs 이닝 합=[${sumAway},${sumHome}] 불일치 (TheSports push 일부 누락 — 이닝 표시 vs 총점 mismatch 위험)`,
+        });
       }
     }
   }

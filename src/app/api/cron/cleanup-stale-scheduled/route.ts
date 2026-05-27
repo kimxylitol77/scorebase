@@ -171,6 +171,23 @@ export async function GET(req: NextRequest) {
     if (newStatus === "FINISHED") liveFinished++; else livePostponed++;
   }
 
+  // 1b) future_live 매치 자동 롤백 — startTime 이 미래 (now + 1h+) 인데 status=LIVE.
+  // 2026-05-27 NPB #328161 (5/31 시작) 발견. TheSports status_id=0/1 LIVE 잘못 매핑 잔재.
+  // status=SCHEDULED + score null 로 즉시 강제 복원 (data-sanity future_live 알림 자동 해소).
+  const futureLiveCutoff = new Date(Date.now() + 60 * 60 * 1000);
+  const futureLive = await prisma.match.findMany({
+    where: { status: "LIVE", startTime: { gt: futureLiveCutoff } },
+    select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+  });
+  let futureLiveRolledBack = 0;
+  if (futureLive.length > 0) {
+    await prisma.match.updateMany({
+      where: { id: { in: futureLive.map((m) => m.id) } },
+      data: { status: "SCHEDULED", homeScore: null, awayScore: null },
+    });
+    futureLiveRolledBack = futureLive.length;
+  }
+
   // 2) stale SCHEDULED 매치 처리
   //    api-football cover 리그는 fixture status 외부 verify → 잘못된 POSTPONED 차단.
   const stale = await prisma.match.findMany({
