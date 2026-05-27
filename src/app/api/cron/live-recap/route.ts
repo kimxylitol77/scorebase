@@ -83,7 +83,10 @@ export async function GET(req: Request) {
       futureDays: 0,
     });
     // 2. 그 자리에서 RECAP 발행 시도 (이미 RECAP 있는 매치는 자동 skip)
-    await runRecap();
+    // 자동 발행 일시 중단 (2026-05-27 SEO 진단) — collect 는 유지, runRecap 만 skip.
+    if (process.env.GENERATE_DISABLED !== "1") {
+      await runRecap();
+    }
     return NextResponse.json({
       ok: true,
       elapsedMs: Date.now() - startedAt,
