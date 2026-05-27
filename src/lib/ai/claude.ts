@@ -12,7 +12,10 @@ export const claude = new Anthropic({
 
 // 모델명은 .env 에서 주입. 미설정 시 기본값 사용.
 // 최신 모델 목록: https://docs.anthropic.com/en/docs/about-claude/models
-export const CLAUDE_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5";
+// 기본 모델 haiku-4-5: 2026-05-27 sonnet large output (NPB 8KB prompt + maxTokens 4096)
+// 가 180s+ stuck 케이스 발견 → cron 4번 모두 0건 처리. haiku 는 동일 prompt 10s 내 응답.
+// 글 quality 차이 vs 처리 가능성 균형 — env 로 override 가능.
+export const CLAUDE_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 
 export interface GenerateOptions {
   system?: string;
@@ -26,11 +29,13 @@ export interface GenerateOptions {
  */
 function isTransient(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
-  const e = err as { status?: number; code?: string; message?: string };
+  const e = err as { status?: number; code?: string; message?: string; name?: string };
   if (e.status === 408 || e.status === 429 || e.status === 529) return true;
   if (e.status != null && e.status >= 500 && e.status < 600) return true;
+  // AbortController abort (per-attempt wall-clock timeout) — transient 로 retry
+  if (e.name === "AbortError") return true;
   const msg = (e.message ?? "").toLowerCase();
-  if (msg.includes("connection") || msg.includes("network") || msg.includes("timeout") || msg.includes("econn")) return true;
+  if (msg.includes("connection") || msg.includes("network") || msg.includes("timeout") || msg.includes("econn") || msg.includes("aborted")) return true;
   return false;
 }
 
@@ -44,25 +49,36 @@ export async function generate(
   prompt: string,
   opts: GenerateOptions = {},
 ): Promise<string> {
-  const backoffs = [5000, 10000, 20000, 40000, 80000];
+  // 8KB+ prompt + maxTokens 4096 인 NPB/MLB 매치 1건 sonnet generate 가 90~150s
+  // 걸리는 케이스 흔함 (2026-05-27 진단). cron maxDuration 300s 안에 1-2 매치
+  // 처리 + 일시 hang 회피 위해 backoff 짧게 + per-attempt 180s.
+  const backoffs = [3000, 8000];
+  const ATTEMPT_TIMEOUT_MS = 180_000;
   let lastErr: unknown;
   for (let attempt = 0; attempt <= backoffs.length; attempt++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ATTEMPT_TIMEOUT_MS);
     try {
-      const response = await claude.messages.create({
-        model: CLAUDE_MODEL,
-        max_tokens: opts.maxTokens ?? 4096,
-        temperature: opts.temperature ?? 0.7,
-        system: opts.system,
-        messages: [{ role: "user", content: prompt }],
-      });
+      const response = await claude.messages.create(
+        {
+          model: CLAUDE_MODEL,
+          max_tokens: opts.maxTokens ?? 4096,
+          temperature: opts.temperature ?? 0.7,
+          system: opts.system,
+          messages: [{ role: "user", content: prompt }],
+        },
+        { signal: ctrl.signal, timeout: ATTEMPT_TIMEOUT_MS },
+      );
       const textBlocks = response.content
         .filter((b): b is Anthropic.TextBlock => b.type === "text")
         .map((b) => b.text);
       if (textBlocks.length === 0) {
         throw new Error("Claude 응답에 텍스트 블록이 없습니다.");
       }
+      clearTimeout(t);
       return textBlocks.join("\n");
     } catch (err) {
+      clearTimeout(t);
       lastErr = err;
       if (attempt >= backoffs.length || !isTransient(err)) throw err;
       // ±20% jitter — 동시 529 폭주 시 retry 충돌 회피
@@ -70,7 +86,8 @@ export async function generate(
       const jitter = base * 0.2 * (Math.random() * 2 - 1);
       const wait = Math.max(1000, Math.round(base + jitter));
       const status = (err as { status?: number }).status;
-      const tag = status ? `${status}` : "net";
+      const aborted = (err as { name?: string }).name === "AbortError";
+      const tag = aborted ? "timeout" : status ? `${status}` : "net";
       console.warn(
         `[claude] retry ${attempt + 1}/${backoffs.length} (${tag}) after ${wait}ms — ${(err as Error).message?.slice(0, 120)}`,
       );
