@@ -17,7 +17,8 @@ import {
   type TopThreeEntry,
 } from "./_data";
 
-export const dynamic = "force-dynamic";
+// force-dynamic + revalidate 동시 export 는 Next.js 충돌 → 500 (2026-05-27).
+// revalidate 만 사용 (ISR 10분, 사용자 의도 유지).
 export const revalidate = 600;
 
 export const metadata: Metadata = {
