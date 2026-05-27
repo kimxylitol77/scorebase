@@ -24,11 +24,15 @@ export async function GET(req: NextRequest) {
   const baseballLeagues = SPORTS.find((s) => s.code === "baseball")?.leagues ?? [];
   const rows = await prisma.theSportsMatchCache.findMany({
     where: { match: { league: { in: baseballLeagues } } },
-    select: { tsMatchId: true, matchId: true },
+    select: { tsMatchId: true, matchId: true, detailLive: true },
   });
-  const mapping: Record<string, number> = {};
+  // swap 플래그는 baseball-poller 가 cache.detailLive._swap 에 합성한 값.
+  // ws-subscriber 가 raw ft=[ts_away,ts_home] 를 우리 home/away 관점으로 변환하는 데 사용.
+  const mapping: Record<string, { matchId: number; swap: boolean }> = {};
   for (const r of rows) {
-    if (r.tsMatchId) mapping[r.tsMatchId] = r.matchId;
+    if (!r.tsMatchId) continue;
+    const dl = r.detailLive as { _swap?: boolean } | null;
+    mapping[r.tsMatchId] = { matchId: r.matchId, swap: dl?._swap === true };
   }
   return NextResponse.json({ count: rows.length, mapping });
 }

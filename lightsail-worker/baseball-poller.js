@@ -59,12 +59,35 @@ async function fetchTsMatchMeta(tsMatchId) {
   };
 }
 
-async function postCache(matchId, tsMatchId, detailLive) {
+async function postCache(matchId, tsMatchId, detailLive, scoreObj) {
+  const body = { matchId, tsMatchId, detailLive };
+  if (scoreObj) {
+    body.homeScore = scoreObj.homeScore;
+    body.awayScore = scoreObj.awayScore;
+  }
   await axios.post(
     `${SITE_URL}/api/internal/thesports-cache`,
-    { matchId, tsMatchId, detailLive },
+    body,
     { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 30_000 },
   );
+}
+
+// raw detail_live entry.score = [tsMatchId, statusId, half, scoresObj]
+// scoresObj.ft = [ts_away, ts_home] 일관 (cache 인덱싱 메모리: feedback_thesports_baseball_indexing).
+// swap=true 면 ts_home == our_away → 우리 관점에서 뒤집어 반환.
+function extractScore(entry, swap) {
+  const arr = entry?.score;
+  if (!Array.isArray(arr) || arr.length < 4) return null;
+  const scores = arr[3];
+  if (!scores || typeof scores !== "object") return null;
+  const ft = scores.ft;
+  if (!Array.isArray(ft) || ft.length < 2) return null;
+  const tsAway = parseInt(String(ft[0]), 10);
+  const tsHome = parseInt(String(ft[1]), 10);
+  if (!Number.isFinite(tsAway) || !Number.isFinite(tsHome)) return null;
+  return swap
+    ? { homeScore: tsAway, awayScore: tsHome }
+    : { homeScore: tsHome, awayScore: tsAway };
 }
 
 // detail_live 의 ts match id → metadata 캐시 (process 살아있는 동안 reuse).
@@ -93,7 +116,8 @@ function findOurMatch(ourMatches, meta) {
     if (tsStart && Math.abs(tsStart - ourStart) > 3 * 3600 * 1000) continue;
     const same = meta.homeTeamId === our.home.tsTeamId && meta.awayTeamId === our.away.tsTeamId;
     const swap = meta.homeTeamId === our.away.tsTeamId && meta.awayTeamId === our.home.tsTeamId;
-    if (same || swap) return our.matchId;
+    if (same) return { matchId: our.matchId, swap: false };
+    if (swap) return { matchId: our.matchId, swap: true };
   }
   return null;
 }
@@ -140,11 +164,15 @@ async function poll() {
     } else {
       cacheHits++;
     }
-    const ourMatchId = findOurMatch(ourMatches, meta);
-    if (!ourMatchId) continue;
+    const matchInfo = findOurMatch(ourMatches, meta);
+    if (!matchInfo) continue;
     mappedFound++;
     try {
-      await postCache(ourMatchId, entry.id, entry);
+      // cache.detailLive._swap 합성 → ts-baseball-mapping endpoint 가 ws-subscriber 에 swap 정보 전달용.
+      // route 의 detailLive merge 가 보존, ws-subscriber 의 partial push 후에도 살아남음.
+      const detailLive = { ...entry, _swap: matchInfo.swap };
+      const scoreObj = extractScore(entry, matchInfo.swap);
+      await postCache(matchInfo.matchId, entry.id, detailLive, scoreObj);
       pushed++;
     } catch (e) {
       console.error(`    ✗ cache POST id=${entry.id}: ${e.message}`);
