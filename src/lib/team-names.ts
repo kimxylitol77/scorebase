@@ -454,18 +454,20 @@ const RAW: Record<string, string> = {
   "CTBC Brothers": "중신 브라더스",
   "Rakuten Monkeys": "라쿠텐 몽키스",
 
-  // ─── LMB (멕시코 야구, 20팀 — Monterrey/Leon/Puebla/Queretaro 는 멕시코 축구 섹션에서 이미 동일 한글로 매핑) ───
-  "Quintana Roo": "킨타나로오",
+  // ─── LMB (멕시코 야구, 20팀 — flashscore.co.kr 표기 기준) ───
+  // Monterrey/Puebla/Queretaro 는 멕시코 축구 섹션에서 동일 한글로 매핑 재활용.
+  // Leon 은 축구 Club León("레온") 과 충돌하므로 RAW_BY_LEAGUE.LMB 에서 별도 처리.
+  "Quintana Roo": "퀸타나 로",
   "Leones de Yucatan": "유카탄",
   "Campeche": "캄페체",
   "Diablos Rojos": "디아블로스 로호스",
-  "Chihuahua": "치와와",
+  "Chihuahua": "치우아우아",
   "Jalisco": "할리스코",
   "Oaxaca": "오악사카",
-  "Caliente de Durango": "두랑고",
-  "Toros de Tijuana": "티후아나",
+  "Caliente de Durango": "칼리엔테 데 두란고",
+  "Toros de Tijuana": "토로스 데 티후아나",
   "Aguascalientes": "아과스칼리엔테스",
-  "Monclova": "몬클로바",
+  "Monclova": "몽클로바",
   "Veracruz": "베라크루스",
   "Dos Laredos": "도스 라레도스",
   "Saltillo": "살티요",
@@ -2327,6 +2329,13 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Al Ittihad": "이티하드 알렉산드리아",
     "Al-Ittihad": "이티하드 알렉산드리아",
     "Ittihad Alexandria": "이티하드 알렉산드리아",
+  },
+  // LMB Leon 야구팀: 글로벌 "Leon": "레온" (멕시코 축구 Club León) 과 충돌해 league scope 로 분리.
+  LMB: {
+    "Leon": "브라보스 데 레온",
+    "León": "브라보스 데 레온",
+    "Bravos de Leon": "브라보스 데 레온",
+    "Bravos de León": "브라보스 데 레온",
   },
 };
 
