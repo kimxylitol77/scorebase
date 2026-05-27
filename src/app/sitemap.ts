@@ -36,11 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  // 발행된 글 — 최근 60일만 (Google 색인 quota 우선순위)
+  // 발행된 글 — 최근 60일만 (Google 색인 quota 우선순위).
+  // PREVIEW + RECAP 은 AI 자동 발행 = scaled content abuse 회피 위해 sitemap 제외.
+  // article page 자체에도 robots noindex 적용됨 (이중 차단).
   const articleHorizon = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
   const articles = await prisma.article.findMany({
     where: {
       status: "PUBLISHED",
+      type: { notIn: ["PREVIEW", "RECAP"] },
       OR: [
         { publishedAt: { gte: articleHorizon } },
         { updatedAt: { gte: articleHorizon } },
