@@ -118,9 +118,18 @@ async function fetchCountryStandings(): Promise<CountryStandingsGroup[]> {
 }
 
 export default async function PredictionsRoot() {
-  const [top3, countryGroups] = await Promise.all([
-    fetchTop3Map(),
-    fetchCountryStandings(),
-  ]);
+  // 한 fetch fail 해도 페이지 살리기. 빈 prop 으로 render.
+  let top3: Record<string, TopThreeEntry[]> = {};
+  let countryGroups: CountryStandingsGroup[] = [];
+  try {
+    top3 = await fetchTop3Map();
+  } catch (e) {
+    console.error("[predictions] fetchTop3Map fail:", (e as Error).message);
+  }
+  try {
+    countryGroups = await fetchCountryStandings();
+  } catch (e) {
+    console.error("[predictions] fetchCountryStandings fail:", (e as Error).message);
+  }
   return <PredictionsView top3={top3} countryGroups={countryGroups} />;
 }
