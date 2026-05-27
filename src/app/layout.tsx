@@ -103,13 +103,23 @@ export default async function RootLayout({
             __html: `(function(){try{var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);if(c){return;}var t=localStorage.getItem('theme');var wantLight=t==='light'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);var theme=wantLight?'light':'dark';document.cookie='theme='+theme+'; path=/; max-age=31536000; SameSite=Lax';var h=document.documentElement;if(wantLight){h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}else{h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}}catch(e){}})();`,
           }}
         />
-        {/* Google Tag Manager — production 만 (dev/local 트래픽 제외) */}
+        {/* Google Tag Manager + GA4 gtag.js — production 만 (dev/local 트래픽 제외).
+            주의: GTM 안에서 G-0KRD0WVQNC GA4 Configuration Tag 를 publish 하지 말 것
+            (gtag.js 와 중복 측정 → 페이지뷰 2배). gtag.js 단독으로 GA4 트래킹. */}
         {process.env.NODE_ENV === "production" && (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WC48R8J8');`,
-            }}
-          />
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WC48R8J8');`,
+              }}
+            />
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-0KRD0WVQNC" />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-0KRD0WVQNC');`,
+              }}
+            />
+          </>
         )}
         {/* Pretendard — 한국어 본문에 최적화된 변폭 폰트 */}
         <link
