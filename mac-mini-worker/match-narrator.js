@@ -42,7 +42,8 @@ const OLLAMA = (() => {
   return withScheme.replace(/^https?:\/\/0\.0\.0\.0(?=[:/]|$)/, "http://localhost");
 })();
 const MODEL = process.env.OLLAMA_MODEL || "qwen2.5:14b";
-const LEAGUES = (process.env.LEAGUES || "KBO,NPB,MLB").split(",").map((s) => s.trim());
+// 야구 5리그 (2026-05-27 CPBL/LMB 확장 포함). 추후 농구/축구 cover 시 env 로 override.
+const LEAGUES = (process.env.LEAGUES || "KBO,NPB,MLB,CPBL,LMB").split(",").map((s) => s.trim());
 // LLM provider — "anthropic" (Haiku) 또는 "ollama" (Qwen). 기본 anthropic.
 const LLM_PROVIDER = (process.env.LLM_PROVIDER || "anthropic").toLowerCase();
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
@@ -99,26 +100,120 @@ async function fetchLiveMatches() {
   return data.matches || [];
 }
 
+// 리그 → 종목 분류 (prompt sport-aware 분기용).
+const BASEBALL_LEAGUES = new Set([
+  "KBO", "NPB", "MLB", "CPBL", "LMB",
+  "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES",
+  "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
+]);
+const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
+const HOCKEY_LEAGUES = new Set(["NHL"]);
+const ESPORTS_LEAGUES = new Set(["LOL"]);
+
+function sportOf(league) {
+  if (BASEBALL_LEAGUES.has(league)) return "baseball";
+  if (BASKETBALL_LEAGUES.has(league)) return "basketball";
+  if (HOCKEY_LEAGUES.has(league)) return "hockey";
+  if (ESPORTS_LEAGUES.has(league)) return "esports";
+  return "football";
+}
+
+// 종목별 어휘 규칙 — LLM 이 잘못된 종목 용어 (예: 야구에 "선제골") 섞는 사고 차단.
+// 답변 본문에 이 단어가 나오면 후처리에서 reject (post-gen 검증).
+const SPORT_VOCAB = {
+  baseball: {
+    allow: "득점, 이닝, 회초/회말, 타선, 타자, 주자, 투수, 선발, 불펜, 수비, 도루, 안타, 홈런, 볼넷, 삼진",
+    ban: "골, 선제골, 어시스트, 미드필더, 공격수, 수비수, 골키퍼, 중원, 킥오프, 전반, 후반, PK, 페널티킥",
+    sport: "야구",
+  },
+  basketball: {
+    allow: "득점, 쿼터, 어시스트, 리바운드, 3점, 자유투, 페인트존, 트랜지션, 파울, 턴오버",
+    ban: "골, 선제골, 미드필더, 공격수, 수비수, 골키퍼, 중원, 킥오프, 전반, 후반, PK, 이닝, 타자, 투수, 주자, 안타, 홈런",
+    sport: "농구",
+  },
+  hockey: {
+    allow: "득점, 골, 어시스트, 피리어드, 파워플레이, 페널티 박스, 세이브, 슛, 페이스오프",
+    ban: "이닝, 타자, 투수, 안타, 홈런, 중원, 미드필더, 쿼터",
+    sport: "아이스하키",
+  },
+  football: {
+    allow: "골, 어시스트, 미드필더, 공격수, 수비수, 골키퍼, 중원, 점유율, 전반, 후반, PK, 코너킥, 프리킥",
+    ban: "이닝, 타자, 투수, 주자, 안타, 홈런, 볼넷, 삼진, 쿼터, 리바운드, 피리어드",
+    sport: "축구",
+  },
+  esports: {
+    allow: "킬, 어시스트, 데스, 라인전, 한타, 오브젝트, 드래곤, 바론, 미드, 정글, 서포터",
+    ban: "이닝, 타자, 골, 미드필더, 쿼터, 피리어드",
+    sport: "e스포츠",
+  },
+};
+
+// score 결정론적 비교 문구 — LLM 의 score 격차 hallucination 차단용 prepend.
+function scoreFactLine(match) {
+  const hs = match.homeScore ?? 0;
+  const as_ = match.awayScore ?? 0;
+  if (hs === as_) return `현재 ${as_}-${hs} 동점.`;
+  if (hs > as_) return `현재 ${match.awayName} ${as_} - ${hs} ${match.homeName} → 홈팀 ${match.homeName} 이 ${hs - as_}점 앞섭니다.`;
+  return `현재 ${match.awayName} ${as_} - ${hs} ${match.homeName} → 어웨이팀 ${match.awayName} 이 ${as_ - hs}점 앞섭니다.`;
+}
+
 function buildPrompt(match) {
   const home = match.homeName;
   const away = match.awayName;
   const hs = match.homeScore ?? 0;
   const as_ = match.awayScore ?? 0;
+  const sport = sportOf(match.league);
+  const vocab = SPORT_VOCAB[sport];
+  const factLine = scoreFactLine(match);
 
-  return `너는 한국 스포츠 라이브 캐스터다. 다음 ${match.league} 매치의 현재 상황을 한국어 3-4문장으로 분석하시오.
+  return `너는 한국 ${vocab.sport} 라이브 캐스터다. 다음 ${match.league} 매치의 현재 상황을 한국어 3-4문장으로 분석하시오.
+
+[필수 사실 — 절대 변경 금지]
+${factLine}
+스코어 격차를 다르게 쓰면 안 됨. 위 문장 그대로 사용하거나 동일한 점수차로만 표현하시오.
+
+[종목]
+이 매치는 ${vocab.sport} 입니다.
+- 사용 가능한 용어: ${vocab.allow}
+- 절대 사용 금지: ${vocab.ban}
+다른 종목 용어를 한 단어라도 섞으면 답변을 reject 합니다.
 
 [지침]
 - 데이터 기반, 추측·hallucination 금지
 - "지금" 시점의 긴장감·흐름·다음 변수 포함
-- 짧고 강렬하게. 통계 인용 시 정확하게.
+- 짧고 강렬하게 (3-4문장)
 - 답은 본문만 (인사·해설자 멘트 X)
 
 [매치 정보]
-- 리그: ${match.league}
+- 리그: ${match.league} (${vocab.sport})
 - 어웨이: ${away} (${as_}점)
 - 홈: ${home} (${hs}점)
 - 스코어: ${away} ${as_} - ${hs} ${home}
 `;
+}
+
+// 생성된 summary 가 (a) ban 용어 포함 또는 (b) 점수 격차 hallucination 이면 reject.
+function validateSummary(summary, match) {
+  const sport = sportOf(match.league);
+  const vocab = SPORT_VOCAB[sport];
+  const banList = vocab.ban.split(",").map((s) => s.trim()).filter(Boolean);
+  const leaked = banList.filter((t) => summary.includes(t));
+  if (leaked.length > 0) {
+    return { ok: false, reason: `금지 용어 leak: ${leaked.join(", ")}` };
+  }
+  // 점수 격차 hallucination — "N점" 패턴 추출 후 실제 diff 와 비교
+  const hs = match.homeScore ?? 0;
+  const as_ = match.awayScore ?? 0;
+  const actualDiff = Math.abs(hs - as_);
+  const diffMatches = [...summary.matchAll(/(\d+)\s*점\s*(?:차이?|리드|앞서|뒤지|차로)/g)];
+  for (const m of diffMatches) {
+    const claimed = parseInt(m[1], 10);
+    // 격차가 실제와 다르면 (단 0 인 동점은 lenient — 동점일 때 LLM 이 "0점차" 안 쓰는 게 자연)
+    if (Number.isFinite(claimed) && claimed !== actualDiff) {
+      return { ok: false, reason: `점수 격차 hallucination: "${claimed}점" (실제 ${actualDiff}점)` };
+    }
+  }
+  return { ok: true };
 }
 
 async function generateAnthropic(prompt) {
@@ -200,19 +295,24 @@ async function runOnce() {
 
   for (const m of matches) {
     const label = `${m.awayName} vs ${m.homeName} (matchId=${m.matchId})`;
+    const currentSnap = makeScoreSnapshot(m);
     try {
-      // TTL skip
-      if (m.lastSummaryAt) {
+      // TTL skip — 단, score 가 바뀌었으면 force regenerate (stale commentary 차단).
+      // 2026-05-27 사용자 신고: "LG 6:6 롯데인데 'LG 4점 리드'" 같은 score 변동 후 stale 문제.
+      if (m.lastSummaryAt && m.lastScoreSnapshot === currentSnap) {
         const age = Date.now() - new Date(m.lastSummaryAt).getTime();
         if (age < SUMMARY_TTL_MS) {
           const ageS = Math.round(age / 1000);
-          console.log(`${logPrefix()}   ↩ skip ${label} (${ageS}s 전 생성)`);
+          console.log(`${logPrefix()}   ↩ skip ${label} (${ageS}s 전 생성, score 동일)`);
           continue;
         }
       }
+      if (m.lastScoreSnapshot && m.lastScoreSnapshot !== currentSnap) {
+        console.log(`${logPrefix()}   🔄 regenerate ${label} (score ${m.lastScoreSnapshot} → ${currentSnap})`);
+      }
 
       const t0 = Date.now();
-      const summary = await generateSummary(m);
+      let summary = await generateSummary(m);
       if (!summary) {
         console.warn(`${logPrefix()}   ⚠ empty ${label}`);
         continue;
@@ -227,8 +327,22 @@ async function runOnce() {
         continue;
       }
 
-      const snapshot = makeScoreSnapshot(m);
-      await postCommentary(m, summary, snapshot);
+      // 종목 용어 leak + score 격차 hallucination 검증. 실패 시 1회 재시도 후 reject.
+      let validation = validateSummary(summary, m);
+      if (!validation.ok) {
+        console.warn(`${logPrefix()}   ⚠ ${label} validation fail: ${validation.reason} — retry`);
+        const retry = await generateSummary(m);
+        if (retry) {
+          validation = validateSummary(retry, m);
+          if (validation.ok) summary = retry;
+        }
+        if (!validation.ok) {
+          console.warn(`${logPrefix()}   ✗ ${label} retry 후 여전히 실패: ${validation.reason} — skip DB 저장`);
+          continue;
+        }
+      }
+
+      await postCommentary(m, summary, currentSnap);
       const dur = Date.now() - t0;
       console.log(
         `${logPrefix()}   ✓ ${label} (${dur}ms): ${summary.slice(0, 60).replace(/\n/g, " ")}...`,
