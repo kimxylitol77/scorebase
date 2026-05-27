@@ -207,6 +207,8 @@ export async function GET(req: NextRequest) {
     // Lightsail baseball-ws + baseball-poller 두 source 가 cache 에 동시 push 하면서
     // 인덱싱 가정 다른 race condition 의심. DB 는 ESPN 과 일치 (정상).
     // → 양방향 검증: 어느 한 인덱싱이라도 DB 와 매칭되면 OK. 진짜 mismatch 만 알림.
+    // → 추가 (2026-05-27): cache 가 DB 보다 신선한데 5분 이내 차이면 sync lag 가능성
+    //   (KBO #2223 ft=[1,1] vs DB 1-0 case — 4분 안에 자동 sync 됨). 5분+ stale 만 alert.
     const ft = scoreArr[3]?.ft;
     if (Array.isArray(ft) && ft.length === 2 && m.homeScore != null && m.awayScore != null) {
       const a = parseInt(ft[0], 10);
@@ -215,11 +217,19 @@ export async function GET(req: NextRequest) {
         const matchAH = a === m.awayScore && b === m.homeScore; // [away, home]
         const matchHA = a === m.homeScore && b === m.awayScore; // [home, away]
         if (!matchAH && !matchHA) {
+          const cacheUpd = cache?.updatedAt?.getTime() ?? 0;
+          const matchUpd = m.updatedAt.getTime();
+          const syncLagMs = cacheUpd > matchUpd ? cacheUpd - matchUpd : 0;
+          const SYNC_GRACE_MS = 5 * 60 * 1000;
+          if (syncLagMs < SYNC_GRACE_MS) {
+            // cache 가 더 신선하고 lag 5분 이내 — sync 진행 중일 가능성. 다음 cycle 재검증.
+            continue;
+          }
           issues.push({
             ...matchInfo,
             kind: "cache_db_mismatch",
             severity: "HIGH",
-            detail: `cache ft=[${a},${b}] vs DB home=${m.homeScore} away=${m.awayScore} 양방향 모두 불일치`,
+            detail: `cache ft=[${a},${b}] vs DB home=${m.homeScore} away=${m.awayScore} 양방향 모두 불일치 (sync lag ${Math.round(syncLagMs / 60000)}분)`,
           });
         }
       }
