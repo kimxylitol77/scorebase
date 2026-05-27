@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
 import {
   SPORTS,
+  BASEBALL_LEAGUES,
   leaguesForSport,
   LEAGUE_DISPLAY,
   LEAGUE_ORDER,
@@ -93,7 +94,6 @@ interface Props {
   }>;
 }
 
-const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
 // SPORTS 정의에서 soccer 리그를 그대로 사용 — 추가 리그 (CHILE_PB, POLAND_1L 등) 동기화 자동 반영
 const SOCCER_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],

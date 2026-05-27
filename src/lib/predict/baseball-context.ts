@@ -11,7 +11,9 @@ import type { PreviewContext } from "@/prompts/match-preview";
 import { calculateInningScoreProbs } from "./baseball-poisson";
 import { getParkFactor } from "./park-factors";
 
-export const BASEBALL_LEAGUES = new Set(["KBO", "MLB", "NPB"]);
+// Poisson + park factor 모델 적용 가능한 야구 리그 (시즌 평균 RPG/RApg + 구장 데이터 보유).
+// 마이너/국제 대회는 데이터 부족으로 enrich skip.
+const POISSON_BASEBALL_LEAGUES = new Set(["KBO", "MLB", "NPB"]);
 
 interface BaseballMatchLite {
   id: number;
@@ -26,7 +28,7 @@ export function enrichBaseballContext(
   match: BaseballMatchLite,
 ): PreviewContext {
   if (
-    !BASEBALL_LEAGUES.has(match.league) ||
+    !POISSON_BASEBALL_LEAGUES.has(match.league) ||
     !context.baseballStats ||
     context.starters?.home?.era == null ||
     context.starters?.away?.era == null

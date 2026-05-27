@@ -13,11 +13,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { NO_ARTICLE_LEAGUES } from "@/lib/sports/types";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
 
 function unauthorized(msg = "Unauthorized") {
   return NextResponse.json({ error: msg }, { status: 401 });

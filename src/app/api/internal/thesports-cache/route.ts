@@ -7,6 +7,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { mapFootballStatus } from "@/lib/sports/thesports/football-collector";
 import { mapBaseballStatus } from "@/lib/sports/thesports/status-codes";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { MatchStatus } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
@@ -20,8 +21,6 @@ const STATUS_RANK: Record<MatchStatus, number> = {
   FINISHED: 2,
   POSTPONED: 2,
 };
-
-const BASEBALL_LEAGUES = new Set(["KBO", "NPB", "MLB"]);
 
 interface Body {
   matchId: number;        // 우리 Match.id

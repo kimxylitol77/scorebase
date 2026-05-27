@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY, SPORTS } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -48,11 +48,6 @@ import KickoffCountdown from "@/components/live/KickoffCountdown";
 const SOCCER_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
 );
-// 야구 리그 — KBO/NPB/MLB 는 자체 라우트가 우선이므로 실제로는 9개 (CPBL/WBC/.../LMB) 만 매칭
-const BASEBALL_LEAGUES = new Set(
-  SPORTS.find((s) => s.code === "baseball")?.leagues ?? [],
-);
-
 function parseGoalie(json: string | null): GoalieInfo | null {
   if (!json) return null;
   try {

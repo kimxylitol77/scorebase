@@ -16,7 +16,7 @@ const SOCCER_LEAGUES = new Set([
   "UCL",
   "WORLD_CUP",
 ]);
-const BASEBALL_LEAGUES = new Set(["KBO", "MLB", "NPB"]);
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { calcForm } from "./form";
 import { calcH2H } from "./h2h";
 import { calcStandings } from "./standings";

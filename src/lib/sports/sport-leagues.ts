@@ -143,6 +143,14 @@ export const SPORTS: SportMeta[] = [
   },
 ];
 
+// 야구 리그 집합 — SPORTS.baseball.leagues 단일 진실에서 빌드.
+// 8군데에 중복 정의돼 있던 inline set 통합 (2026-05-27 LMB POSTPONED 오표시 사고).
+// 마이너 리그(LMB/CPBL/KBO_FUTURES 등) 누락 시 thesports-cache 가 야구를 축구로
+// 잘못 분류해 status_id 매핑 실패 → SCHEDULED stuck.
+export const BASEBALL_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "baseball")?.leagues ?? [],
+);
+
 export function leaguesForSport(code: SportCode): string[] {
   if (code === "all") return ALL_LEAGUES;
   return SPORTS.find((s) => s.code === code)?.leagues ?? ALL_LEAGUES;
