@@ -867,6 +867,22 @@ export default async function ScoresPage({ searchParams }: Props) {
               matchSummary: m.liveCommentary.matchSummary,
               summaryAt: m.liveCommentary.summaryAt,
               scoreSnapshot: m.liveCommentary.scoreSnapshot,
+              // AI 승률 예측 chip — predictionEngine 결과 (commit 7e9a349).
+              // predHome 있는데 predWinner=null 이면 NO_PICK → chip 숨김 + 본문에 고정 문구 표시.
+              prediction:
+                m.predHome != null
+                  ? {
+                      pick: (m.predWinner as "HOME" | "AWAY" | "DRAW" | null) ?? null,
+                      probHome: m.predHome,
+                      probDraw: m.predDraw,
+                      probAway: m.predAway,
+                      homeName: m.homeTeam.name,
+                      awayName: m.awayTeam.name,
+                    }
+                  : null,
+              homeScore: m.homeScore,
+              awayScore: m.awayScore,
+              sport: "baseball" as const,
             }
           : null,
       preview,

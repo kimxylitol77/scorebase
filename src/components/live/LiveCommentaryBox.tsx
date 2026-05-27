@@ -14,10 +14,46 @@ export interface LiveCommentaryData {
   matchSummary: string | null;
   summaryAt: Date | string | null;
   scoreSnapshot: string | null;
+  /** predictionEngine 결과 (Match.predHome/Away/Winner). UI chip 표시 + score 검증.
+   *  predWinner=null + predHome 있음 → NO_PICK (LiveCommentaryBox 가 chip 생략).
+   *  모든 값 null → prediction 미생성 (chip 안 보임). */
+  prediction?: {
+    pick: "HOME" | "AWAY" | "DRAW" | null;
+    probHome: number | null;
+    probDraw?: number | null;
+    probAway: number | null;
+    homeName?: string;
+    awayName?: string;
+  } | null;
+  /** Match 현재 score (예측 vs LIVE score 격차 검증용) */
+  homeScore?: number | null;
+  awayScore?: number | null;
+  sport?: "baseball" | "basketball" | "hockey" | "football" | "esports" | "other";
 }
 
 interface Props extends LiveCommentaryData {
   variant?: "default" | "inline" | "card";
+}
+
+/** 예측 chip 표시 여부 — LIVE score 격차가 pick 과 반대면 hide (사용자 신뢰도 보호).
+ *  predictionEngine.validatePredictionDisplay 와 같은 원칙. */
+function shouldShowPredictionChip(
+  pick: "HOME" | "AWAY" | "DRAW" | null,
+  homeScore: number | null | undefined,
+  awayScore: number | null | undefined,
+  sport: string | undefined,
+): boolean {
+  if (!pick || pick === "DRAW") return false;
+  if (homeScore == null || awayScore == null) return true;
+  const diff = homeScore - awayScore;
+  let bigDiff = 2;
+  if (sport === "baseball") bigDiff = 4;
+  if (sport === "basketball") bigDiff = 10;
+  if (sport === "hockey") bigDiff = 3;
+  if (Math.abs(diff) < bigDiff) return true;
+  if (diff > 0 && pick === "AWAY") return false;
+  if (diff < 0 && pick === "HOME") return false;
+  return true;
 }
 
 function timeAgoKo(at: Date | string): string {
@@ -46,6 +82,10 @@ export default function LiveCommentaryBox({
   matchSummary,
   summaryAt,
   scoreSnapshot,
+  prediction,
+  homeScore,
+  awayScore,
+  sport,
   variant = "default",
 }: Props): ReactElement | null {
   if (!matchSummary?.trim()) return null;
@@ -59,10 +99,37 @@ export default function LiveCommentaryBox({
     if (Date.now() - at.getTime() > STALE_MS) return null;
   }
 
+  // 예측 chip — pick 있고 score 와 큰 충돌 없을 때만. predHome 있는데 pick=null 이면 NO_PICK 라 chip 숨김.
+  const showChip = prediction
+    ? shouldShowPredictionChip(prediction.pick, homeScore, awayScore, sport)
+    : false;
+  const chipTeam = prediction?.pick === "HOME"
+    ? prediction.homeName
+    : prediction?.pick === "AWAY"
+      ? prediction.awayName
+      : null;
+  const chipPct = showChip && prediction
+    ? Math.round(
+        ((prediction.pick === "HOME"
+          ? prediction.probHome
+          : prediction.probAway) ?? 0) * 100,
+      )
+    : 0;
+  const predChip = showChip && chipTeam && chipPct >= 58 ? (
+    <span
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-semibold"
+      style={{ background: "rgba(59,130,246,.12)", color: "#93c5fd" }}
+      title={`AI 승률 예측 — ${chipTeam} ${chipPct}%`}
+    >
+      🎯 {chipTeam} {chipPct}%
+    </span>
+  ) : null;
+
   const meta = (
     <div className="text-[10px] sm:text-xs text-neutral-500 flex items-center gap-1.5 flex-wrap">
       <span className="font-semibold">🤖 AI 코멘터리</span>
       {scoreSnapshot && <span className="text-neutral-600">· {scoreSnapshot}</span>}
+      {predChip}
       {summaryAt && (
         <span className="text-neutral-600 ml-auto">{timeAgoKo(summaryAt)}</span>
       )}
@@ -80,12 +147,15 @@ export default function LiveCommentaryBox({
     );
   }
 
-  // /scores 야구 카드 — 다이아몬드 옆 빈 공간. 라벨 없이 본문만, 3줄 클램프
+  // /scores 야구 카드 — 다이아몬드 옆 빈 공간. chip + 본문 3줄 클램프.
   if (variant === "card") {
     return (
-      <p className="flex-1 min-w-0 text-[11px] sm:text-xs text-neutral-300 dark:text-neutral-300 leading-snug line-clamp-3">
-        {matchSummary}
-      </p>
+      <div className="flex-1 min-w-0">
+        {predChip && <div className="mb-1">{predChip}</div>}
+        <p className="text-[11px] sm:text-xs text-neutral-300 dark:text-neutral-300 leading-snug line-clamp-3">
+          {matchSummary}
+        </p>
+      </div>
     );
   }
 

@@ -232,14 +232,23 @@ ${predictionBlock}
 }
 
 // summary 가 predictionEngine 의 pick 과 반대 방향 강조하면 reject.
-// 휴리스틱: ban 단어 + "앞서가" 같은 양상 단어 기준. 단순하지만 명백한 mismatch catch.
+// 단, 다음 케이스는 score 우선 자연스러우니 SKIP (사용자 화면 일관성 보호):
+//   - confidence < 70 (낮은 확신도): 거의 5:5 매치라 LLM 이 score 따라가도 OK
+//   - 현재 LIVE score 가 pick 과 이미 반대 방향 (격차 있음): score 묘사가 우선
+// 즉 "확신도 높은 prediction + score 도 같은 방향" 일 때만 strict 적용.
 function validatePredictionConsistency(summary, match, prediction) {
   if (!prediction || prediction.pick === "NO_PICK") return { ok: true };
+  if ((prediction.confidence ?? 0) < 70) return { ok: true };
+  // LIVE score 가 prediction 과 이미 반대 방향이면 score 우선 (LLM 이 그쪽 묘사 자연)
+  const hs = match.homeScore ?? 0;
+  const as_ = match.awayScore ?? 0;
+  const diff = hs - as_;
+  if (prediction.pick === "HOME" && diff < 0) return { ok: true };
+  if (prediction.pick === "AWAY" && diff > 0) return { ok: true };
+
   const home = match.homeName;
   const away = match.awayName;
   const text = summary;
-
-  // 양 팀 이름이 "주도" / "리드" / "앞서" / "장악" / "우위" 같은 강조 단어와 함께 등장하는지
   const POSITIVE = ["주도", "리드", "앞서", "장악", "우위", "압도", "우세"];
   function teamHasPositive(team) {
     const idx = text.indexOf(team);
@@ -249,13 +258,11 @@ function validatePredictionConsistency(summary, match, prediction) {
   }
   const homePositive = teamHasPositive(home);
   const awayPositive = teamHasPositive(away);
-
-  // pick=HOME 인데 away 만 positive 면 mismatch
   if (prediction.pick === "HOME" && awayPositive && !homePositive) {
-    return { ok: false, reason: `pred=HOME 인데 summary 가 ${away} 우세 강조` };
+    return { ok: false, reason: `pred=HOME (${prediction.confidence}%) 인데 summary 가 ${away} 우세 강조` };
   }
   if (prediction.pick === "AWAY" && homePositive && !awayPositive) {
-    return { ok: false, reason: `pred=AWAY 인데 summary 가 ${home} 우세 강조` };
+    return { ok: false, reason: `pred=AWAY (${prediction.confidence}%) 인데 summary 가 ${home} 우세 강조` };
   }
   return { ok: true };
 }
