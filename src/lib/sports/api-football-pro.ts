@@ -156,7 +156,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // ───── 2026-05-24 추가 (2차, 8개) ─────
   ESTONIA_ML: 329, // 에스토니아 Meistriliiga (봄~가을) — 2026-05-25 수정 (이전 327 은 조지아)
   LITHUANIA_AL: 362, // 리투아니아 A Lyga (봄~가을)
-  LEVAIN_CUP: 291, // 일본 J리그컵 / 르베인 컵 (달력, 3~10월)
+  LEVAIN_CUP: 101, // 일본 J-League Cup / 르베인 컵 (3~10월). 2026-05-27 정정: 이전 291 은 이란 Azadegan League — 사용자 화면 LiveScoresBar 에 이란 매치 표시 사고.
   KAZAKHSTAN_PL: 389, // 카자흐스탄 Premier (봄~가을)
   GEORGIA_EL: 327, // 조지아 Erovnuli Liga (봄~가을) — 2026-05-25 수정 (이전 329 는 에스토니아)
   AZERBAIJAN_PL: 419, // 아제르바이잔 Premier (8~5월)
