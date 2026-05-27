@@ -442,6 +442,18 @@ const RAW: Record<string, string> = {
   "NC Dinos": "NC 다이노스",
   "Kiwoom Heroes": "키움 히어로즈",
 
+  // ─── CPBL (대만 프로야구, 6팀) ───
+  "Fubon Guardians": "푸방 가디언스",
+  "Wei Chuan Dragons": "웨이취엔 드래곤스",
+  "TSG Hawks": "TSG 호크스",
+  "Taira TSG Hawks": "TSG 호크스",
+  "Uni Lions": "유니 라이온스",
+  "Uni-President 7-Eleven Lions": "유니 라이온스",
+  "Uni-President Lions": "유니 라이온스",
+  "Chinatrust Brothers": "중신 브라더스",
+  "CTBC Brothers": "중신 브라더스",
+  "Rakuten Monkeys": "라쿠텐 몽키스",
+
   // ─── 월드컵 진출국 (편의 — 한글 국가명) ───
   "South Korea": "대한민국",
   "Korea Republic": "대한민국",

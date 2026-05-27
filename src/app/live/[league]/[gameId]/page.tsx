@@ -31,6 +31,7 @@ import { fetchMatchExtras } from "@/lib/live/match-extras";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
+import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
@@ -641,13 +642,29 @@ async function renderBaseballPage(args: {
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
-      {detailLive?.stats ? (
-        <BaseballTeamStatsCard
-          stats={detailLive.stats}
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-        />
-      ) : null}
+      <MatchInsight
+        match={match}
+        teamStatsContent={
+          detailLive?.stats ? (
+            <BaseballTeamStatsCard
+              stats={detailLive.stats}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+            />
+          ) : null
+        }
+        liveOddsContent={
+          baseballOdds?.odds ? (
+            <LiveOddsCard
+              odds={baseballOdds.odds}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              hasDraw={false}
+              oddsHistory={baseballOdds.history}
+            />
+          ) : null
+        }
+      />
     </div>
   );
 }
