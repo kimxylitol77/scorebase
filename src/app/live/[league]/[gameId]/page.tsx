@@ -32,6 +32,7 @@ import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
+import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
@@ -531,6 +532,30 @@ export default async function GenericLivePage({ params }: Props) {
               homeNameKo={homeKo}
               awayNameKo={awayKo}
             />
+          ) : (lg === "NHL" || lg === "IIHF_WC") &&
+            match.theSportsCache?.detailLive ? (
+            (() => {
+              // 하키 cache.detailLive.stats = [[periodIdx, [[statId,home,away],...]], ...].
+              // periodIdx===0 = Match 전체. statId 매핑은 HockeyTeamStatsCard.
+              const dl = match.theSportsCache.detailLive as {
+                stats?: Array<[number, Array<[number, number, number]>]>;
+              };
+              const ms =
+                dl.stats?.find((s) => s[0] === 0)?.[1] ?? dl.stats?.[0]?.[1];
+              if (!ms || ms.length === 0) return undefined;
+              const rows = ms.map(([statId, home, away]) => ({
+                statId,
+                home,
+                away,
+              }));
+              return (
+                <HockeyTeamStatsCard
+                  rows={rows}
+                  homeNameKo={homeKo}
+                  awayNameKo={awayKo}
+                />
+              );
+            })()
           ) : undefined
         }
       />
