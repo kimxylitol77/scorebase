@@ -6,8 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { mapFootballStatus } from "@/lib/sports/thesports/football-collector";
-import { mapBaseballStatus, mapIceHockeyStatus } from "@/lib/sports/thesports/status-codes";
-import { BASEBALL_LEAGUES, HOCKEY_LEAGUES } from "@/lib/sports/sport-leagues";
+import { mapBaseballStatus, mapIceHockeyStatus, mapBasketballStatus } from "@/lib/sports/thesports/status-codes";
+import { BASEBALL_LEAGUES, HOCKEY_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { MatchStatus } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
@@ -159,7 +159,9 @@ export async function POST(req: NextRequest) {
           ? mapBaseballStatus(tsStatusId)
           : HOCKEY_LEAGUES.has(currentMatch.league)
             ? mapIceHockeyStatus(tsStatusId)
-            : mapFootballStatus(tsStatusId);
+            : BASKETBALL_LEAGUES.has(currentMatch.league)
+              ? mapBasketballStatus(tsStatusId)
+              : mapFootballStatus(tsStatusId);
         // 단조 progression — FINISHED 에서 LIVE/SCHEDULED 로 역행 안 함.
         // POSTPONED 는 어디서나 진입 허용 (matchday cancel).
         const currentRank = STATUS_RANK[currentMatch.status as MatchStatus] ?? 0;

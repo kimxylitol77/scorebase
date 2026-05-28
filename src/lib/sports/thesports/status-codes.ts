@@ -42,3 +42,20 @@ export function mapIceHockeyStatus(statusId: number): MatchStatus {
   // 0/1/15/99 + 미지 코드 → SCHEDULED (보수: 가짜 LIVE/FINISHED 방지)
   return "SCHEDULED";
 }
+
+// TheSports basketball status_id → 우리 MatchStatus.
+// docs 표 (2026-05-28 사용자 제공). 야구/하키와 또 다름.
+//   SCHEDULED: 0(Abnormal), 1(Not started), 15(TBD)
+//   LIVE:      2~9 (Q1~Q4 섹션/종료 + Overtime), 11(Interrupt), 13(Extension)
+//   FINISHED:  10(End), 14(Cut in half)
+//   POSTPONED: 12(Cancel)
+const BASKETBALL_LIVE = new Set([2, 3, 4, 5, 6, 7, 8, 9, 11, 13]);
+const BASKETBALL_FINISHED = new Set([10, 14]);
+
+export function mapBasketballStatus(statusId: number): MatchStatus {
+  if (BASKETBALL_FINISHED.has(statusId)) return "FINISHED";
+  if (BASKETBALL_LIVE.has(statusId)) return "LIVE";
+  if (statusId === 12) return "POSTPONED";
+  // 0/1/15 + 미지 → SCHEDULED
+  return "SCHEDULED";
+}

@@ -6,6 +6,8 @@ export type League =
   | "NPB" // 일본 프로야구 (api-sports baseball league id=2)
   | "EPL"
   | "NBA"
+  | "KBL" // 한국프로농구 (TheSports basketball)
+  | "WKBL" // 한국여자프로농구 (TheSports basketball)
   | "NHL"
   | "IIHF_WC" // IIHF 아이스하키 세계선수권 (국가대표, TheSports ice_hockey)
   | "MLB"

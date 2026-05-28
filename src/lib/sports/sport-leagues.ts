@@ -47,7 +47,7 @@ export const ALL_LEAGUES = [
   // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
-  "NBA", "NHL", "IIHF_WC", "LOL",
+  "NBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -127,7 +127,7 @@ export const SPORTS: SportMeta[] = [
     code: "basketball",
     label: "농구",
     emoji: "🏀",
-    leagues: ["NBA", "WNBA"],
+    leagues: ["NBA", "WNBA", "KBL", "WKBL"],
   },
   {
     code: "hockey",
@@ -155,6 +155,11 @@ export const BASEBALL_LEAGUES = new Set(
 // thesports-cache 가 mapIceHockeyStatus 분기에 사용. predictionEngine 의 inline set 도 이걸로 통합 가능.
 export const HOCKEY_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "hockey")?.leagues ?? [],
+);
+
+// 농구 리그 집합 — SPORTS.basketball.leagues 단일 진실. thesports-cache 가 mapBasketballStatus 분기에 사용.
+export const BASKETBALL_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "basketball")?.leagues ?? [],
 );
 
 export function leaguesForSport(code: SportCode): string[] {
@@ -301,6 +306,8 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   WNBA: "WNBA",
   NHL: "NHL",
   IIHF_WC: "세계선수권",
+  KBL: "KBL",
+  WKBL: "WKBL",
   LOL: "LCK",
   // 2026-05-24 추가
   SUI_CUP: "스위스컵",
@@ -472,6 +479,8 @@ export const LEAGUE_ORDER: Record<string, number> = {
   NBA: 20,
   NHL: 21,
   IIHF_WC: 22,
+  KBL: 23,
+  WKBL: 24,
   LOL: 30,
 };
 
@@ -614,6 +623,8 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   WNBA: "미국",
   NHL: "미국",
   IIHF_WC: "국제",
+  KBL: "대한민국",
+  WKBL: "대한민국",
   LOL: "대한민국",
   // 신규 추가 (23개)
   K3_LEAGUE: "대한민국",

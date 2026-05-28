@@ -33,8 +33,10 @@ export const collectors: Record<League, MatchCollector> = {
   EPL: eplCollector,
   NBA: nbaCollector,
   NHL: nhlCollectorEspn,
-  // IIHF_WC: 매치 소스는 Lightsail ice-hockey worker (Vercel collect 안 함) — 타입 충족용 no-op.
+  // IIHF_WC / KBL / WKBL: 매치 소스는 Lightsail TheSports worker (Vercel collect 안 함) — 타입 충족용 no-op.
   IIHF_WC: { league: "IIHF_WC", async fetchByDate() { return []; } },
+  KBL: { league: "KBL", async fetchByDate() { return []; } },
+  WKBL: { league: "WKBL", async fetchByDate() { return []; } },
   MLB: mlbCollectorEspn,
   LALIGA: buildSoccerCollector("LALIGA"),
   BUNDESLIGA: buildSoccerCollector("BUNDESLIGA"),

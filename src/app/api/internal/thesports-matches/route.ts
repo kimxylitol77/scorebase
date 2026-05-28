@@ -57,7 +57,7 @@ interface MatchPayload {
   awayScore?: number;
 }
 interface Body {
-  sport: "football" | "baseball" | "ice_hockey";
+  sport: "football" | "baseball" | "ice_hockey" | "basketball";
   matches: MatchPayload[];
 }
 
@@ -67,6 +67,7 @@ interface TeamMapEntry { ourId: number; tsId: string }
 let cachedFootballJsonMap: Map<string, number> | null = null;
 let cachedBaseballJsonMap: Map<string, number> | null = null;
 let cachedIceHockeyJsonMap: Map<string, number> | null = null;
+let cachedBasketballJsonMap: Map<string, number> | null = null;
 
 function loadFootballJsonReverse(): Map<string, number> {
   if (cachedFootballJsonMap) return cachedFootballJsonMap;
@@ -102,6 +103,18 @@ function loadIceHockeyJsonReverse(): Map<string, number> {
     cachedIceHockeyJsonMap = new Map();
   }
   return cachedIceHockeyJsonMap;
+}
+
+function loadBasketballJsonReverse(): Map<string, number> {
+  if (cachedBasketballJsonMap) return cachedBasketballJsonMap;
+  const file = path.join(process.cwd(), "src/lib/sports/thesports/basketball-team-id-mapping.json");
+  try {
+    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
+    cachedBasketballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
+  } catch {
+    cachedBasketballJsonMap = new Map();
+  }
+  return cachedBasketballJsonMap;
 }
 
 /** 이번 batch 의 tsTeamId 들을 한 번에 TeamSourceId 에서 fetch — Map<"league|ext", teamId>. */
@@ -148,8 +161,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
-  if (body.sport !== "football" && body.sport !== "baseball" && body.sport !== "ice_hockey") {
-    return NextResponse.json({ error: "sport must be football | baseball | ice_hockey" }, { status: 400 });
+  if (body.sport !== "football" && body.sport !== "baseball" && body.sport !== "ice_hockey" && body.sport !== "basketball") {
+    return NextResponse.json({ error: "sport must be football | baseball | ice_hockey | basketball" }, { status: 400 });
   }
   if (!Array.isArray(body.matches)) {
     return NextResponse.json({ error: "matches array required" }, { status: 400 });
@@ -163,7 +176,9 @@ export async function POST(req: NextRequest) {
       ? loadFootballJsonReverse()
       : body.sport === "baseball"
         ? loadBaseballJsonReverse()
-        : loadIceHockeyJsonReverse();
+        : body.sport === "ice_hockey"
+          ? loadIceHockeyJsonReverse()
+          : loadBasketballJsonReverse();
 
   function resolveTsTeamId(league: string, tsTeamId: string): number | undefined {
     return dbMap.get(`${league}|${tsTeamId}`) ?? jsonMap.get(tsTeamId);
