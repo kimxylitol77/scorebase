@@ -38,12 +38,33 @@ const TYPE_LABEL: Record<string, string> = {
   ANALYSIS: "분석",
 };
 
+// OG 이미지는 글 발행 후 거의 고정 — CDN 에 길게 캐시해 GSC 대량 크롤 시
+// DB 조회/렌더 재실행을 막는다 (2026-05-18 부하성 5xx 재발 방지).
+const CACHE_HEADERS = {
+  "Cache-Control":
+    "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+};
+
 export default async function Image({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  try {
+    return await renderImage(slug);
+  } catch (e) {
+    // DB/렌더 에러를 5xx 로 흘리지 않고 기본 카드로 흡수 (GSC coverage 5xx 방지).
+    // 에러는 일시적(DB pool 소진/cold start)일 수 있어 짧게만 캐시 → 다음 크롤에 정상 재생성.
+    console.warn("[opengraph-image] render fail:", slug, (e as Error).message);
+    return new ImageResponse(<DefaultCard />, {
+      ...size,
+      headers: { "Cache-Control": "public, max-age=60" },
+    });
+  }
+}
+
+async function renderImage(slug: string) {
   const article = await prisma.article.findUnique({
     where: { slug },
     include: {
@@ -54,7 +75,7 @@ export default async function Image({
   });
 
   if (!article) {
-    return new ImageResponse(<DefaultCard />, { ...size });
+    return new ImageResponse(<DefaultCard />, { ...size, headers: CACHE_HEADERS });
   }
 
   const [g1, g2] = LEAGUE_GRADIENT[article.league] ?? ["#1f2937", "#0f172a"];
@@ -222,7 +243,7 @@ export default async function Image({
         </div>
       </div>
     ),
-    { ...size },
+    { ...size, headers: CACHE_HEADERS },
   );
 }
 
