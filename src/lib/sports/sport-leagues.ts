@@ -133,7 +133,7 @@ export const SPORTS: SportMeta[] = [
     code: "hockey",
     label: "하키",
     emoji: "🏒",
-    leagues: ["NHL"],
+    leagues: ["NHL", "IIHF_WC"],
   },
   {
     code: "esports",
@@ -300,6 +300,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   NBA: "NBA",
   WNBA: "WNBA",
   NHL: "NHL",
+  IIHF_WC: "세계선수권",
   LOL: "LCK",
   // 2026-05-24 추가
   SUI_CUP: "스위스컵",
@@ -470,6 +471,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   ARG_PRIMERA_NACIONAL: 16.91, // 아르헨티나 — ARGENTINA_PL 다음
   NBA: 20,
   NHL: 21,
+  IIHF_WC: 22,
   LOL: 30,
 };
 
@@ -611,6 +613,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   NBA: "미국",
   WNBA: "미국",
   NHL: "미국",
+  IIHF_WC: "국제",
   LOL: "대한민국",
   // 신규 추가 (23개)
   K3_LEAGUE: "대한민국",

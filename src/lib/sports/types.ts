@@ -7,6 +7,7 @@ export type League =
   | "EPL"
   | "NBA"
   | "NHL"
+  | "IIHF_WC" // IIHF 아이스하키 세계선수권 (국가대표, TheSports ice_hockey)
   | "MLB"
   | "LALIGA"
   | "BUNDESLIGA"

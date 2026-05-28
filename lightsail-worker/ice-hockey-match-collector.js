@@ -28,9 +28,10 @@ if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 const TEAM_MAP_FILE = path.join(__dirname, "ice-hockey-team-id-mapping.json");
 
-// unique_tournament_id → 우리 league code. (NHL 만. 추후 KHL/SHL 등 확장 시 추가)
+// unique_tournament_id → 우리 league code. (추후 KHL/SHL 등 확장 시 추가)
 const COMP_TO_LEAGUE = {
   "gx7lm78b45nq2wd": "NHL",
+  "56ypq3vbxgerd7o": "IIHF_WC", // IIHF 세계선수권 (국가대표)
 };
 
 // TheSports ice_hockey status_id — src/lib/sports/thesports/status-codes.ts 의

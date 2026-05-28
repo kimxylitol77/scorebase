@@ -286,5 +286,149 @@
     "tsId": "8yomodbgw74q0j6",
     "tsName": "Chicago Blackhawks",
     "matchType": "name"
+  },
+  {
+    "ourId": 607759,
+    "ourName": "Austria",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "318q6wbwzkymo9j",
+    "tsId": "318q6wbwzkymo9j",
+    "tsName": "Austria",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607760,
+    "ourName": "Great Britain",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "8yomodbgw87q0j6",
+    "tsId": "8yomodbgw87q0j6",
+    "tsName": "Great Britain",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607761,
+    "ourName": "USA",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "3glrwdb7kloqdyj",
+    "tsId": "3glrwdb7kloqdyj",
+    "tsName": "USA",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607762,
+    "ourName": "Sweden",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "zp5rzyb5yx2q82w",
+    "tsId": "zp5rzyb5yx2q82w",
+    "tsName": "Sweden",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607763,
+    "ourName": "Denmark",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "23xmv0b8vgprg8n",
+    "tsId": "23xmv0b8vgprg8n",
+    "tsName": "Denmark",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607764,
+    "ourName": "Switzerland",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "965mknb2jy5m1ge",
+    "tsId": "965mknb2jy5m1ge",
+    "tsName": "Switzerland",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607765,
+    "ourName": "Germany",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "ednm95b2j76ryox",
+    "tsId": "ednm95b2j76ryox",
+    "tsName": "Germany",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607766,
+    "ourName": "Czech Republic",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "n54ql0b75jjqvy9",
+    "tsId": "n54ql0b75jjqvy9",
+    "tsName": "Czech Republic",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607767,
+    "ourName": "Hungary",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "ednm95b78doryox",
+    "tsId": "ednm95b78doryox",
+    "tsName": "Hungary",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607768,
+    "ourName": "Latvia",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "vjxm87blv22r6od",
+    "tsId": "vjxm87blv22r6od",
+    "tsName": "Latvia",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607769,
+    "ourName": "Norway",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "y0or5xbnx06mwzv",
+    "tsId": "y0or5xbnx06mwzv",
+    "tsName": "Norway",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607770,
+    "ourName": "Canada",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "6ypq3vb364wrd7o",
+    "tsId": "6ypq3vb364wrd7o",
+    "tsName": "Canada",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607771,
+    "ourName": "Slovakia",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "4jwq2lbz8eer0ve",
+    "tsId": "4jwq2lbz8eer0ve",
+    "tsName": "Slovakia",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607772,
+    "ourName": "Finland",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "23xmv0b8v4xrg8n",
+    "tsId": "23xmv0b8v4xrg8n",
+    "tsName": "Finland",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607773,
+    "ourName": "Italy",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "pxwrx0b5p2zryk0",
+    "tsId": "pxwrx0b5p2zryk0",
+    "tsName": "Italy",
+    "matchType": "national"
+  },
+  {
+    "ourId": 607774,
+    "ourName": "Slovenia",
+    "ourLeague": "IIHF_WC",
+    "ourExternalId": "n54ql0b75kzqvy9",
+    "tsId": "n54ql0b75kzqvy9",
+    "tsName": "Slovenia",
+    "matchType": "national"
   }
 ]
