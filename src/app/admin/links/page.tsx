@@ -50,6 +50,7 @@ const CATEGORIES: Category[] = [
     emoji: "🤖",
     links: [
       { name: "Anthropic Console", url: "https://console.anthropic.com/", desc: "Claude API · usage", ext: true },
+      { name: "Anthropic API Keys (발급/회전)", url: "https://console.anthropic.com/settings/keys", desc: "ANTHROPIC_API_KEY 발급 · 노출 시 재발급(회전)", ext: true },
       { name: "Google AI Studio (Gemini)", url: "https://aistudio.google.com/apikey", desc: "Gemini API key", ext: true },
       { name: "Telegram BotFather", url: "https://t.me/BotFather", desc: "scorebase_health_bot 관리 · 토큰 회전", ext: true },
     ],
