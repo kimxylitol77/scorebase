@@ -64,7 +64,43 @@ export function playChime(): void {
  */
 export function unlockAudio(): void {
   const c = getContext();
-  if (c && c.state === "suspended") {
+  if (!c) return;
+  if (c.state === "suspended") {
     c.resume().catch(() => {});
   }
+  // iOS Safari — resume() 만으로 부족할 때가 있어 무음 buffer 를 한 번 재생해야
+  // AudioContext 가 확실히 unlock 된다 (well-known iOS unlock trick).
+  try {
+    const buf = c.createBuffer(1, 1, 22050);
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.connect(c.destination);
+    src.start(0);
+  } catch {
+    // ignore
+  }
+}
+
+// armAudioUnlock 중복 등록 방지 플래그 (모듈 전역 — 여러 컴포넌트가 호출해도 1회만).
+let unlockArmed = false;
+
+/**
+ * 페이지 로드 시점에 사운드 토글이 이미 ON 인 경우 대비.
+ * 브라우저 자동재생 정책상 AudioContext.resume() 은 user gesture 핸들러 안에서만
+ * 허용되므로, 새로고침/재방문 후엔 polling 의 playChime() 만으로 unlock 이 안 된다.
+ * → 사용자의 첫 클릭/터치/키 입력 한 번에 unlockAudio() 를 호출하도록 리스너를 건다.
+ * 한 번 unlock 되면 리스너 제거.
+ */
+export function armAudioUnlock(): void {
+  if (typeof window === "undefined" || unlockArmed) return;
+  unlockArmed = true;
+  const handler = () => {
+    unlockAudio();
+    window.removeEventListener("pointerdown", handler);
+    window.removeEventListener("keydown", handler);
+    window.removeEventListener("touchstart", handler);
+  };
+  window.addEventListener("pointerdown", handler);
+  window.addEventListener("keydown", handler);
+  window.addEventListener("touchstart", handler);
 }

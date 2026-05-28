@@ -11,7 +11,7 @@ import { leaguesForSport, type SportCode } from "@/lib/sports/sport-leagues";
 import LeagueBadge from "./LeagueBadge";
 import CountUp from "./CountUp";
 import LiveEventsPanel from "./LiveEventsPanel";
-import { playChime, unlockAudio } from "@/lib/sound/chime";
+import { playChime, unlockAudio, armAudioUnlock } from "@/lib/sound/chime";
 
 interface LiveMatch {
   id: string;
@@ -107,7 +107,11 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
   // 사운드 설정 init (localStorage)
   useEffect(() => {
     try {
-      setSoundOn(localStorage.getItem(SOUND_STORAGE_KEY) === "1");
+      const on = localStorage.getItem(SOUND_STORAGE_KEY) === "1";
+      setSoundOn(on);
+      // 이미 ON 상태로 로드된 경우 — 첫 user gesture 에 AudioContext unlock 예약
+      // (자동재생 정책상 새로고침 후엔 클릭 한 번 있어야 소리가 남)
+      if (on) armAudioUnlock();
     } catch {
       // SSR 또는 localStorage 비활성 환경 — ignore
     }

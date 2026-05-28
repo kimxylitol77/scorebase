@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LeagueBadge from "./LeagueBadge";
 import CountUp from "./CountUp";
-import { playChime } from "@/lib/sound/chime";
+import { playChime, armAudioUnlock } from "@/lib/sound/chime";
 import { SOUND_STORAGE_KEY, SOUND_CHANGE_EVENT } from "./LiveSoundToggle";
 import { FAV_EVENT_NAME, readFavIds } from "./scores/useFavorites";
 import {
@@ -120,6 +120,9 @@ export default function LiveScoresBar() {
       soundOnRef.current = localStorage.getItem(SOUND_STORAGE_KEY) === "1";
       favSoundOnRef.current = localStorage.getItem(FAV_SOUND_STORAGE_KEY) === "1";
       favIdsRef.current = readFavIds();
+      // 사운드가 이미 ON 인 채로 로드된 경우 — 첫 user gesture 에 AudioContext unlock
+      // 예약 (자동재생 정책상 새로고침 후엔 클릭 한 번 있어야 점수 chime 이 남).
+      if (soundOnRef.current || favSoundOnRef.current) armAudioUnlock();
     } catch {
       // ignore
     }
