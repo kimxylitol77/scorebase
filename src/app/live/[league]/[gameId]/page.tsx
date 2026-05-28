@@ -536,21 +536,22 @@ export default async function GenericLivePage({ params }: Props) {
             match.theSportsCache?.detailLive ? (
             (() => {
               // 하키 cache.detailLive.stats = [[periodIdx, [[statId,home,away],...]], ...].
-              // periodIdx===0 = Match 전체. statId 매핑은 HockeyTeamStatsCard.
+              // periodIdx 0=전체, 1~3=P1~P3, 4=OT, 5=SO. 탭은 HockeyTeamStatsCard 가 처리.
               const dl = match.theSportsCache.detailLive as {
                 stats?: Array<[number, Array<[number, number, number]>]>;
               };
-              const ms =
-                dl.stats?.find((s) => s[0] === 0)?.[1] ?? dl.stats?.[0]?.[1];
-              if (!ms || ms.length === 0) return undefined;
-              const rows = ms.map(([statId, home, away]) => ({
-                statId,
-                home,
-                away,
+              if (!dl.stats || dl.stats.length === 0) return undefined;
+              const periods = dl.stats.map(([idx, statRows]) => ({
+                idx,
+                rows: statRows.map(([statId, home, away]) => ({
+                  statId,
+                  home,
+                  away,
+                })),
               }));
               return (
                 <HockeyTeamStatsCard
-                  rows={rows}
+                  periods={periods}
                   homeNameKo={homeKo}
                   awayNameKo={awayKo}
                 />
