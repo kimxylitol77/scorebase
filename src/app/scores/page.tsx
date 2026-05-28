@@ -105,7 +105,7 @@ function sportFromLeague(league: string): string {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
   if (SOCCER_LEAGUES.has(league)) return "soccer";
   if (league === "NBA") return "basketball";
-  if (league === "NHL") return "hockey";
+  if (HOCKEY_LEAGUES.has(league)) return "hockey"; // NHL + IIHF_WC (이전엔 NHL 만 → IIHF_WC 가 "other" 한 줄로 빠짐)
   if (league === "LOL") return "esports";
   return "other";
 }
