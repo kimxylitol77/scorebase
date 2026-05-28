@@ -131,7 +131,6 @@ async function main() {
       "MLS",
       "UCL",
       "NBA",
-      "NHL",
       "MLB",
       "KBO",
     ];

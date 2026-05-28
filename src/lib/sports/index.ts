@@ -249,7 +249,7 @@ export function getPrimarySource(league: League): string {
       return "mysportsfeeds";
     return "espn";
   }
-  if (league === "NHL") return "espn";
+  if (league === "NHL") return "thesports";
   if (league === "MLB") return "espn";
   if (league === "WNBA") return "api-sports";
   if (league === "KBO") return "kbo";
