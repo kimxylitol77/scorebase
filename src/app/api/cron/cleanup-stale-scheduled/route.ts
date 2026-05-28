@@ -11,6 +11,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { League } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
@@ -248,9 +249,25 @@ export async function GET(req: NextRequest) {
       verifyKept.push(m);
       continue;
     }
+    // 야구 리그 — api-football verify 불가. collector 가 score 는 넣었지만 status sync
+    // 를 누락한 케이스 보강 (2026-05-28 #2218 KBO 5/26 종료인데 SCHEDULED 50h 방치).
+    // 야구는 시작 +6h 면 무조건 종료/연기 → 점수가 들어와 있으면 FINISHED 로 정정.
+    // 점수가 없으면 우천연기/미시작 가능성 → keep (destructive 회피, 안전).
+    if (BASEBALL_LEAGUES.has(m.league as League)) {
+      if (m.homeScore != null && m.awayScore != null) {
+        await prisma.match.update({
+          where: { id: m.id },
+          data: { status: "FINISHED" },
+        });
+        verifiedFinished.push(m);
+        continue;
+      }
+      verifyKept.push(m);
+      continue;
+    }
     // verify 응답 없음 — 외부 status 확인 실패. 임의 POSTPONED 금지, SCHEDULED 유지.
     // 2026-05-27 LMB/BUNDESLIGA_2/URVALSDEILD 일괄 false positive 재발 방지.
-    // SOURCE_HINT 미등록 리그 (LMB/NBA/NHL/MLB 등) 도 동일하게 keep — destructive 봇은
+    // SOURCE_HINT 미등록 리그 (NBA/NHL 등) 도 동일하게 keep — destructive 봇은
     // 외부 verify 가 가능한 리그에만 POSTPONED 처리.
     verifyKept.push(m);
   }
@@ -310,7 +327,10 @@ export async function GET(req: NextRequest) {
     .map((m) => {
       const v = verifyMap.get(m.externalId);
       const tag = verifiedFinished.includes(m) ? "FT" : "LIVE";
-      return `  [${tag}] ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} (api-football ${v?.short ?? "?"})`;
+      const src = BASEBALL_LEAGUES.has(m.league as League)
+        ? "TheSports score"
+        : `api-football ${v?.short ?? "?"}`;
+      return `  [${tag}] ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} (${src})`;
     })
     .join("\n");
 
