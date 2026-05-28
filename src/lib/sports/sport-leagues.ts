@@ -151,6 +151,12 @@ export const BASEBALL_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "baseball")?.leagues ?? [],
 );
 
+// 하키 리그 집합 — SPORTS.hockey.leagues 단일 진실에서 빌드 (inline hardcode 금지).
+// thesports-cache 가 mapIceHockeyStatus 분기에 사용. predictionEngine 의 inline set 도 이걸로 통합 가능.
+export const HOCKEY_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "hockey")?.leagues ?? [],
+);
+
 export function leaguesForSport(code: SportCode): string[] {
   if (code === "all") return ALL_LEAGUES;
   return SPORTS.find((s) => s.code === code)?.leagues ?? ALL_LEAGUES;

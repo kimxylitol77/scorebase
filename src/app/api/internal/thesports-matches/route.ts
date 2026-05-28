@@ -57,7 +57,7 @@ interface MatchPayload {
   awayScore?: number;
 }
 interface Body {
-  sport: "football" | "baseball";
+  sport: "football" | "baseball" | "ice_hockey";
   matches: MatchPayload[];
 }
 
@@ -66,6 +66,7 @@ interface TeamMapEntry { ourId: number; tsId: string }
 // JSON fallback — DB TeamSourceId 미커버 ts entry 보완용.
 let cachedFootballJsonMap: Map<string, number> | null = null;
 let cachedBaseballJsonMap: Map<string, number> | null = null;
+let cachedIceHockeyJsonMap: Map<string, number> | null = null;
 
 function loadFootballJsonReverse(): Map<string, number> {
   if (cachedFootballJsonMap) return cachedFootballJsonMap;
@@ -89,6 +90,18 @@ function loadBaseballJsonReverse(): Map<string, number> {
     cachedBaseballJsonMap = new Map();
   }
   return cachedBaseballJsonMap;
+}
+
+function loadIceHockeyJsonReverse(): Map<string, number> {
+  if (cachedIceHockeyJsonMap) return cachedIceHockeyJsonMap;
+  const file = path.join(process.cwd(), "src/lib/sports/thesports/ice-hockey-team-id-mapping.json");
+  try {
+    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
+    cachedIceHockeyJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
+  } catch {
+    cachedIceHockeyJsonMap = new Map();
+  }
+  return cachedIceHockeyJsonMap;
 }
 
 /** 이번 batch 의 tsTeamId 들을 한 번에 TeamSourceId 에서 fetch — Map<"league|ext", teamId>. */
@@ -135,8 +148,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
-  if (body.sport !== "football" && body.sport !== "baseball") {
-    return NextResponse.json({ error: "sport must be football | baseball" }, { status: 400 });
+  if (body.sport !== "football" && body.sport !== "baseball" && body.sport !== "ice_hockey") {
+    return NextResponse.json({ error: "sport must be football | baseball | ice_hockey" }, { status: 400 });
   }
   if (!Array.isArray(body.matches)) {
     return NextResponse.json({ error: "matches array required" }, { status: 400 });
@@ -148,7 +161,9 @@ export async function POST(req: NextRequest) {
   const jsonMap =
     body.sport === "football"
       ? loadFootballJsonReverse()
-      : loadBaseballJsonReverse();
+      : body.sport === "baseball"
+        ? loadBaseballJsonReverse()
+        : loadIceHockeyJsonReverse();
 
   function resolveTsTeamId(league: string, tsTeamId: string): number | undefined {
     return dbMap.get(`${league}|${tsTeamId}`) ?? jsonMap.get(tsTeamId);
