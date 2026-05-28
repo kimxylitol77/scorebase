@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -31,6 +31,7 @@ import { fetchMatchExtras } from "@/lib/live/match-extras";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
+import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
@@ -521,7 +522,18 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
-      <MatchInsight match={match} />
+      <MatchInsight
+        match={match}
+        teamStatsContent={
+          BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
+            <BasketballTeamStatsCard
+              detailLive={match.theSportsCache.detailLive}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+            />
+          ) : undefined
+        }
+      />
     </div>
     </>
   );
