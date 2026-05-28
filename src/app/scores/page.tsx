@@ -558,6 +558,12 @@ export default async function ScoresPage({ searchParams }: Props) {
     outs: number | null;
     inning: number | null;
     half: "top" | "bottom" | null;
+    awayInnings: (number | null)[];
+    homeInnings: (number | null)[];
+    awayHits: number | null;
+    homeHits: number | null;
+    awayErrors: number | null;
+    homeErrors: number | null;
   }>();
 
   const soccerMatchIds = needsSoccerGoals
@@ -598,7 +604,9 @@ export default async function ScoresPage({ searchParams }: Props) {
         if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
         if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
       }
-      // 야구 베이스/아웃 + 이닝/half
+      // 야구 베이스/아웃 + 이닝/half + 이닝별 점수표 (linescore).
+      // cache.detailLive.score[3] 의 p_i = [tsHome, tsAway] (commit f25de7a 정정).
+      // _swap=true 면 ts perspective 가 우리와 반대 → 우리 home/away 로 변환.
       if (baseballIdSet.has(c.matchId)) {
         const extraBase = dl.extra?.base;
         const baseStr =
@@ -606,18 +614,48 @@ export default async function ScoresPage({ searchParams }: Props) {
             ? extraBase
             : "000";
         const ext = idToExt.get(c.matchId);
-        // inning 추정 — cache.score[3].p1~p12 중 마지막 entry 가 현재 이닝.
-        // (TheSports 가 진행 중 이닝까지 p_i 채움). half = score[2] (1=초/2=말 추정).
+        const swap = (dl as { _swap?: boolean })?._swap === true;
         let inning: number | null = null;
         let half: "top" | "bottom" | null = null;
+        const awayInnings: (number | null)[] = [];
+        const homeInnings: (number | null)[] = [];
+        let awayHits: number | null = null;
+        let homeHits: number | null = null;
+        let awayErrors: number | null = null;
+        let homeErrors: number | null = null;
         if (Array.isArray(dl.score) && dl.score.length >= 4) {
           const sObj = dl.score[3] as Record<string, [string, string] | undefined>;
-          for (let i = 12; i >= 1; i--) {
-            if (Array.isArray(sObj?.["p" + i])) { inning = i; break; }
+          for (let i = 1; i <= 12; i++) {
+            const p = sObj?.["p" + i];
+            if (!Array.isArray(p) || p.length < 2) continue;
+            inning = i;
+            const tsHome = parseInt(String(p[0]), 10);
+            const tsAway = parseInt(String(p[1]), 10);
+            if (swap) {
+              homeInnings.push(Number.isFinite(tsAway) ? tsAway : null);
+              awayInnings.push(Number.isFinite(tsHome) ? tsHome : null);
+            } else {
+              homeInnings.push(Number.isFinite(tsHome) ? tsHome : null);
+              awayInnings.push(Number.isFinite(tsAway) ? tsAway : null);
+            }
           }
           const h = dl.score[2];
           if (h === 1) half = "top";
           else if (h === 2) half = "bottom";
+          const hits = sObj?.h;
+          if (Array.isArray(hits) && hits.length >= 2) {
+            const th = parseInt(String(hits[0]), 10);
+            const ta = parseInt(String(hits[1]), 10);
+            homeHits = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
+            awayHits = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
+          }
+          const errs = sObj?.e;
+          if (Array.isArray(errs) && errs.length >= 2) {
+            const th = parseInt(String(errs[0]), 10);
+            const ta = parseInt(String(errs[1]), 10);
+            homeErrors = Number.isFinite(swap ? ta : th) ? (swap ? ta : th) : null;
+            awayErrors = Number.isFinite(swap ? th : ta) ? (swap ? th : ta) : null;
+          }
         }
         if (ext) {
           baseballCacheCtx.set(ext, {
@@ -625,6 +663,12 @@ export default async function ScoresPage({ searchParams }: Props) {
             outs: typeof dl.extra?.out === "number" ? dl.extra.out : null,
             inning,
             half,
+            awayInnings,
+            homeInnings,
+            awayHits,
+            homeHits,
+            awayErrors,
+            homeErrors,
           });
         }
       }
@@ -852,25 +896,49 @@ export default async function ScoresPage({ searchParams }: Props) {
         ? (() => {
             const details =
               live?.baseball ?? baseballDetailsMap[m.externalId];
-            if (!details) return null;
-            return {
-              awayInnings: details.awayInnings,
-              homeInnings: details.homeInnings,
-              awayScore: awayScore ?? 0,
-              homeScore: homeScore ?? 0,
-              awayHits: details.awayHits,
-              homeHits: details.homeHits,
-              awayErrors: details.awayErrors,
-              homeErrors: details.homeErrors,
-              awayLabel: shortLabel(
-                m.awayTeam.shortName,
-                toKoreanTeamName(m.awayTeam.name, m.league),
-              ),
-              homeLabel: shortLabel(
-                m.homeTeam.shortName,
-                toKoreanTeamName(m.homeTeam.name, m.league),
-              ),
-            };
+            // ESPN/api-baseball 우선, 없으면 TheSports cache (KBO/NPB/CPBL/LMB) fallback.
+            if (details) {
+              return {
+                awayInnings: details.awayInnings,
+                homeInnings: details.homeInnings,
+                awayScore: awayScore ?? 0,
+                homeScore: homeScore ?? 0,
+                awayHits: details.awayHits,
+                homeHits: details.homeHits,
+                awayErrors: details.awayErrors,
+                homeErrors: details.homeErrors,
+                awayLabel: shortLabel(
+                  m.awayTeam.shortName,
+                  toKoreanTeamName(m.awayTeam.name, m.league),
+                ),
+                homeLabel: shortLabel(
+                  m.homeTeam.shortName,
+                  toKoreanTeamName(m.homeTeam.name, m.league),
+                ),
+              };
+            }
+            const cached = baseballCacheCtx.get(m.externalId);
+            if (cached && (cached.awayInnings.length > 0 || cached.homeInnings.length > 0)) {
+              return {
+                awayInnings: cached.awayInnings,
+                homeInnings: cached.homeInnings,
+                awayScore: awayScore ?? 0,
+                homeScore: homeScore ?? 0,
+                awayHits: cached.awayHits,
+                homeHits: cached.homeHits,
+                awayErrors: cached.awayErrors,
+                homeErrors: cached.homeErrors,
+                awayLabel: shortLabel(
+                  m.awayTeam.shortName,
+                  toKoreanTeamName(m.awayTeam.name, m.league),
+                ),
+                homeLabel: shortLabel(
+                  m.homeTeam.shortName,
+                  toKoreanTeamName(m.homeTeam.name, m.league),
+                ),
+              };
+            }
+            return null;
           })()
         : null,
       // 라이브 야구 컨텍스트 (베이스/아웃/회·말).
