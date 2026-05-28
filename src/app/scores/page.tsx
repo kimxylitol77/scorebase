@@ -110,6 +110,34 @@ function sportFromLeague(league: string): string {
   return "other";
 }
 
+// ice_hockey status_id → 진행 피리어드 라벨 (IIHF_WC 등 live statusLabel 이 없을 때
+// HockeyCard 의 피리어드 표시·하이라이트용). parsePeriod("2P") 호환 형식.
+// 코드표: 30/31/32=P1/P2/P3, 331/332=인터미션, 6/10=OT, 8/13=SO, 17=중단.
+function iceHockeyLiveLabel(statusId: number): string | null {
+  switch (statusId) {
+    case 30:
+      return "1P";
+    case 31:
+      return "2P";
+    case 32:
+      return "3P";
+    case 331:
+      return "1P 인터미션";
+    case 332:
+      return "2P 인터미션";
+    case 6:
+    case 10:
+      return "OT";
+    case 8:
+    case 13:
+      return "SO";
+    case 17:
+      return "중단";
+    default:
+      return null;
+  }
+}
+
 function parseKstDate(s: string | undefined): Date {
   if (s && /^\d{4}-\d{2}-\d{2}$/.test(s)) {
     return new Date(`${s}T00:00:00+09:00`);
@@ -564,6 +592,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
   // 하키 (특히 IIHF_WC) 피리어드 점수표 — ESPN periodMap 에 없는 매치는 cache 에서 추출.
   const hockeyPeriodByMatchId = new Map<number, PeriodLinescoreData>();
+  // 하키 진행 피리어드 라벨 (IIHF 등 live statusLabel 없을 때 cache status_id 로 생성)
+  const hockeyStatusLabelByMatchId = new Map<number, string>();
   // 농구 (WNBA/KBL/WKBL) 쿼터 점수표 — NBA 는 ESPN periodMap 사용, 나머지는 ESPN 미지원이라 cache 에서 추출.
   const basketballPeriodByMatchId = new Map<number, PeriodLinescoreData>();
   const baseballCacheCtx = new Map<string, {
@@ -645,6 +675,9 @@ export default async function ScoresPage({ searchParams }: Props) {
       // IIHF_WC 는 ESPN periodMap 없어 여기서 추출 (commit 검증: ft=[home,away] 우리 관점 일치).
       // _swap 키 있으면 ts perspective 반대 → home/away 반전 (야구 패턴 동일).
       if (hockeyIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
+        // status_id (score[1]) → 진행 피리어드 라벨 (IIHF live statusLabel 없을 때 대체)
+        const plabel = iceHockeyLiveLabel(Number(dl.score[1]));
+        if (plabel) hockeyStatusLabelByMatchId.set(c.matchId, plabel);
         const sObj = dl.score[3] as Record<string, unknown>;
         const swap = (dl as { _swap?: boolean })?._swap === true;
         const homePeriods: (number | null)[] = [];
@@ -978,7 +1011,11 @@ export default async function ScoresPage({ searchParams }: Props) {
       },
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
-      liveStatusLabel: live?.statusLabel ?? null,
+      liveStatusLabel:
+        live?.statusLabel ??
+        (sport_ === "hockey"
+          ? hockeyStatusLabelByMatchId.get(m.id) ?? null
+          : null),
       homeStarter: isBaseball
         ? localizeStarter(parseStarter(m.homeStarter), m.league)
         : null,

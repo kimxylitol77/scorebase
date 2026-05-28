@@ -191,22 +191,18 @@ export default function HockeyCard(props: HockeyCardProps) {
         </div>
       </div>
 
-      {isLive && (
+      {/* 진행 상태 — 피리어드/경과 시간이 있을 때만. 빈 막대(—) 박스 노출 방지. */}
+      {isLive && (periodText || clock) && (
         <div
-          className="rounded-lg px-3 py-3 text-center"
+          className="rounded-lg px-3 py-2 text-center"
           style={{
             background: "rgba(255,255,255,.02)",
             border: "1px solid rgba(255,255,255,.06)",
           }}
         >
-          <div className="text-[11px] text-neutral-500 mb-0.5">
-            {periodText ? `피리어드 ${period}` : "진행 중"}
-          </div>
-          <div
-            className="text-2xl font-black tabular-nums"
-            style={{ color: clock ? "#22c55e" : "#94a3b8" }}
-          >
-            {clock ?? "—"}
+          <div className="text-sm font-black tabular-nums" style={{ color: "#22c55e" }}>
+            {periodText ? `${period}피리어드` : "진행 중"}
+            {clock ? ` · ${clock}` : ""}
           </div>
         </div>
       )}
