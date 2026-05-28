@@ -26,8 +26,15 @@ import { readFileSync } from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { HOCKEY_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
+
+// TS 단일 소스 리그 (ESPN/api-sports cut 됨) — dedup 경로에서 기존 매치 status/score 도 TS 로 갱신.
+// 축구/야구는 api-football/ESPN 이 아직 status owner 라 제외 (cache 만 링크).
+function isTsSoleSource(league: string): boolean {
+  return HOCKEY_LEAGUES.has(league) || BASKETBALL_LEAGUES.has(league);
+}
 
 // 팀 이름 normalize 비교 (Team 중복 row 대응 — LALIGA Barcelona 4 row 같은 케이스).
 function normalizeTeamName(s: string): string {
@@ -298,6 +305,25 @@ export async function POST(req: NextRequest) {
               detailLive: {},
             },
           });
+          // TS 단일소스 리그(NBA/WNBA/NHL 등 — ESPN/api-sports cut)는 기존 매치 status/score 도
+          // TS 로 동기화. dedup-link 만 하면 끝난 경기가 SCHEDULED 로 stuck → /scores "연기" 오표시.
+          // 축구/야구는 api-football/ESPN 이 owner 라 skip. 단조 가드(역행 차단, POSTPONED 예외).
+          if (isTsSoleSource(m.league)) {
+            const RANK = { SCHEDULED: 0, LIVE: 1, FINISHED: 2, POSTPONED: 2 } as const;
+            const cur = await prisma.match.findUnique({
+              where: { id: existingNonTs.id },
+              select: { status: true, homeScore: true, awayScore: true },
+            });
+            if (cur) {
+              const upd: Record<string, unknown> = {};
+              const allow = m.status === "POSTPONED" ||
+                RANK[m.status] >= (RANK[cur.status as keyof typeof RANK] ?? 0);
+              if (allow && m.status !== cur.status) upd.status = m.status;
+              if (typeof m.homeScore === "number" && m.homeScore !== cur.homeScore) upd.homeScore = m.homeScore;
+              if (typeof m.awayScore === "number" && m.awayScore !== cur.awayScore) upd.awayScore = m.awayScore;
+              if (Object.keys(upd).length) await prisma.match.update({ where: { id: existingNonTs.id }, data: upd });
+            }
+          }
         } catch (e) {
           // schema FK 또는 unique 충돌 silent — 다음 cycle 에서 재시도
         }
