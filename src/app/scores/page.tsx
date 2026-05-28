@@ -444,28 +444,35 @@ export default async function ScoresPage({ searchParams }: Props) {
             NOT: { status: "FINISHED", startTime: { lt: day } },
           },
         ],
-        // 축구만 ±1일 윈도우, 그 외 종목은 선택 일자만.
+        // 축구 + 하키는 ±1일 윈도우(soccerWindow), 그 외 종목은 선택 일자만(dayWindow).
+        // 하키(IIHF_WC 등)는 KST 자정 직전(23:20) 시작해 자정을 넘겨 진행하는 경기가
+        // 많아, dayWindow 면 "오늘" 탭에서 빠짐 → 축구와 동일 자정 boundary 윈도우 적용.
         // leagueFilter 가 있으면 단일 리그 단일 window, 없으면 모든 종목 OR.
         // sport tab 과 무관하게 모든 종목 매치 가져옴 — FavoriteMatches 가
         // sport tab 무관 모든 종목 fav 표시하기 위해 (2026-05-23 변경).
         ...(leagueFilter
           ? {
               league: leagueFilter,
-              startTime: SOCCER_LEAGUES.has(leagueFilter)
-                ? soccerWindow
-                : dayWindow,
+              startTime:
+                SOCCER_LEAGUES.has(leagueFilter) || HOCKEY_LEAGUES.has(leagueFilter)
+                  ? soccerWindow
+                  : dayWindow,
             }
           : {
               OR: [
                 {
                   league: {
-                    in: leaguesForQuery.filter((l) => SOCCER_LEAGUES.has(l)),
+                    in: leaguesForQuery.filter(
+                      (l) => SOCCER_LEAGUES.has(l) || HOCKEY_LEAGUES.has(l),
+                    ),
                   },
                   startTime: soccerWindow,
                 },
                 {
                   league: {
-                    in: leaguesForQuery.filter((l) => !SOCCER_LEAGUES.has(l)),
+                    in: leaguesForQuery.filter(
+                      (l) => !SOCCER_LEAGUES.has(l) && !HOCKEY_LEAGUES.has(l),
+                    ),
                   },
                   startTime: dayWindow,
                 },
