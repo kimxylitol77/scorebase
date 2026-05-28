@@ -555,6 +555,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
   const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
+  // 하키 (특히 IIHF_WC) 피리어드 점수표 — ESPN periodMap 에 없는 매치는 cache 에서 추출.
+  const hockeyPeriodByMatchId = new Map<number, PeriodLinescoreData>();
   const baseballCacheCtx = new Map<string, {
     bases: [boolean, boolean, boolean];
     outs: number | null;
@@ -580,7 +582,14 @@ export default async function ScoresPage({ searchParams }: Props) {
         m.status !== "FINISHED",
     )
     .map((m) => m.id);
-  const cacheIds = Array.from(new Set([...soccerMatchIds, ...baseballLiveDbIds]));
+  // 하키 (NHL/IIHF_WC) — IIHF_WC 는 ESPN periodMap 에 없어 cache.score 에서 피리어드 추출.
+  // SCHEDULED 제외 (피리어드 없음). NHL 은 ESPN 우선 + cache fallback.
+  const hockeyMatchIds = matches
+    .filter((m) => HOCKEY_LEAGUES.has(m.league) && m.status !== "SCHEDULED")
+    .map((m) => m.id);
+  const cacheIds = Array.from(
+    new Set([...soccerMatchIds, ...baseballLiveDbIds, ...hockeyMatchIds]),
+  );
 
   if (cacheIds.length > 0) {
     const caches = await prisma.theSportsMatchCache.findMany({
@@ -589,6 +598,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     });
     const soccerIdSet = new Set(soccerMatchIds);
     const baseballIdSet = new Set(baseballLiveDbIds);
+    const hockeyIdSet = new Set(hockeyMatchIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
       const dl = c.detailLive as
@@ -605,6 +615,48 @@ export default async function ScoresPage({ searchParams }: Props) {
         const cards = tsIncidentsToCards(dl.incidents);
         if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
         if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
+      }
+      // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
+      // IIHF_WC 는 ESPN periodMap 없어 여기서 추출 (commit 검증: ft=[home,away] 우리 관점 일치).
+      // _swap 키 있으면 ts perspective 반대 → home/away 반전 (야구 패턴 동일).
+      if (hockeyIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
+        const sObj = dl.score[3] as Record<string, unknown>;
+        const swap = (dl as { _swap?: boolean })?._swap === true;
+        const homePeriods: (number | null)[] = [];
+        const awayPeriods: (number | null)[] = [];
+        for (let i = 1; i <= 9; i++) {
+          const p = sObj?.["p" + i];
+          if (!Array.isArray(p) || p.length < 2) continue;
+          const h = Number(p[0]);
+          const a = Number(p[1]);
+          const hv = Number.isFinite(h) ? h : null;
+          const av = Number.isFinite(a) ? a : null;
+          homePeriods.push(swap ? av : hv);
+          awayPeriods.push(swap ? hv : av);
+        }
+        if (homePeriods.length > 0) {
+          const ft = sObj?.["ft"];
+          const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
+          const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
+          const sum = (arr: (number | null)[]) =>
+            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
+          const hScore = Number.isFinite(ftH)
+            ? swap
+              ? Number(ftA)
+              : ftH
+            : sum(homePeriods);
+          const aScore = Number.isFinite(ftA)
+            ? swap
+              ? Number(ftH)
+              : ftA
+            : sum(awayPeriods);
+          hockeyPeriodByMatchId.set(c.matchId, {
+            homePeriods,
+            awayPeriods,
+            homeScore: hScore,
+            awayScore: aScore,
+          });
+        }
       }
       // 야구 베이스/아웃 + 이닝/half + 이닝별 점수표 (linescore).
       // cache.detailLive.score[3] 의 p_i = [tsHome, tsAway] (commit f25de7a 정정).
@@ -894,7 +946,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           : null,
       periodLinescore:
         sport_ === "basketball" || sport_ === "hockey"
-          ? periodMap[m.externalId] ?? null
+          ? periodMap[m.externalId] ?? hockeyPeriodByMatchId.get(m.id) ?? null
           : null,
       // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
       // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
