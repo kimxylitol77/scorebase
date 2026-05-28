@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
+import ScoreboardHeader from "@/components/ScoreboardHeader";
 import Footer from "@/components/Footer";
 import LiveScoresBar from "@/components/LiveScoresBar";
 import PageViewTracker from "@/components/PageViewTracker";
@@ -84,6 +85,12 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const themeCookie = cookieStore.get("theme")?.value;
   const isDark = themeCookie !== "light"; // 'light' 명시 외에는 모두 dark
+
+  // 스코어보드.kr — 라이브 스코어 전용 도메인. scorebase 메인 헤더/푸터 대신
+  // 전용 간소 헤더만 노출 (메인과 똑같아 보이지 않게). 한글 도메인 punycode 매칭.
+  const host = ((await headers()).get("host") || "").toLowerCase();
+  const isScoreboard =
+    host.includes("xn--hy1bm7m1yevrd8pq") || host.includes("스코어보드");
   return (
     <html
       lang="ko"
@@ -143,10 +150,16 @@ export default async function RootLayout({
           </noscript>
         )}
         <PageViewTracker />
-        <Header />
-        <LiveScoresBar />
+        {isScoreboard ? (
+          <ScoreboardHeader />
+        ) : (
+          <>
+            <Header />
+            <LiveScoresBar />
+          </>
+        )}
         <main className="flex-1 w-full">{children}</main>
-        <Footer />
+        {!isScoreboard && <Footer />}
         {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
         <Analytics />
       </body>
