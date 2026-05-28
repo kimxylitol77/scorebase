@@ -279,13 +279,17 @@ body {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.5);
   }
-  20% {
+  12% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1.05);
   }
+  60% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1.18);
+  }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1.6);
+    transform: translate(-50%, -50%) scale(1.7);
   }
 }
 .score-halo-burst {
@@ -304,7 +308,7 @@ body {
   );
   z-index: -1;
   pointer-events: none;
-  animation: scoreHalo 1.5s ease-out forwards;
+  animation: scoreHalo 3.2s ease-out forwards;
 }
 @media (prefers-reduced-motion: reduce) {
   .score-halo-burst {
