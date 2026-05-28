@@ -1,0 +1,151 @@
+// ice-hockey-match-collector.js — TheSports ice_hockey match/diary → Scorebase API push
+// 30분 주기. NHL 매치 자동 수집 (스케줄 + 점수).
+//
+// 흐름:
+//   1) ice-hockey-team-id-mapping.json 로드 → tsTeamId 화이트리스트
+//   2) match/diary?date=YYYYMMDD ±5일 sweep (UTC date)
+//   3) unique_tournament_id 로 우리 league 분류 (NHL) + 매핑된 팀 매치만
+//   4) POST {SITE_URL}/api/internal/thesports-matches (sport: ice_hockey)
+//
+// 환경변수 (/home/ubuntu/.env): THESPORTS_USER, THESPORTS_SECRET, SITE_URL, INTERNAL_API_TOKEN
+
+require("dotenv").config({ path: "/home/ubuntu/.env" });
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+
+const TS_BASE = "https://api.thesports.com";
+const TS_USER = process.env.THESPORTS_USER;
+const TS_SECRET = process.env.THESPORTS_SECRET;
+const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
+const TOKEN = process.env.INTERNAL_API_TOKEN;
+const POLL_INTERVAL_MS = 30 * 60 * 1000; // 30min
+const SWEEP_DAYS = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+
+if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }
+if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); }
+
+const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
+const TEAM_MAP_FILE = path.join(__dirname, "ice-hockey-team-id-mapping.json");
+
+// unique_tournament_id → 우리 league code. (NHL 만. 추후 KHL/SHL 등 확장 시 추가)
+const COMP_TO_LEAGUE = {
+  "gx7lm78b45nq2wd": "NHL",
+};
+
+// TheSports ice_hockey status_id — src/lib/sports/thesports/status-codes.ts 의
+// mapIceHockeyStatus 와 단일 진실 통일 (docs 표 2026-05-28).
+const HOCKEY_LIVE = new Set([30, 331, 31, 332, 32, 6, 10, 8, 13, 17]);
+const HOCKEY_FINISHED = new Set([100, 105, 110, 19]);
+const HOCKEY_POSTPONED = new Set([14, 16]);
+function mapStatus(id) {
+  if (HOCKEY_FINISHED.has(id)) return "FINISHED";
+  if (HOCKEY_LIVE.has(id)) return "LIVE";
+  if (HOCKEY_POSTPONED.has(id)) return "POSTPONED";
+  return "SCHEDULED"; // 0/1/15/99 + 미지
+}
+
+// scores: ft(정규)/p*(피리어드)/ot(연장, 정규 포함)/ap(승부치기, 연장 포함) — 전부 [home, away].
+// 최종 점수 = ap ?? ot ?? ft.
+function finalScore(scores) {
+  if (!scores || typeof scores !== "object") return null;
+  const arr = scores.ap || scores.ot || scores.ft;
+  if (!Array.isArray(arr) || arr.length < 2) return null;
+  const h = parseInt(String(arr[0]), 10);
+  const a = parseInt(String(arr[1]), 10);
+  if (!Number.isFinite(h) || !Number.isFinite(a)) return null;
+  return { homeScore: h, awayScore: a };
+}
+
+async function fetchDiary(ymd) {
+  const { data } = await axios.get(`${TS_BASE}/v1/ice_hockey/match/diary`, {
+    params: { user: TS_USER, secret: TS_SECRET, date: ymd },
+    timeout: 30_000,
+  });
+  return Array.isArray(data.results) ? data.results : [];
+}
+
+async function postBatch(matches) {
+  if (matches.length === 0) return { ok: true, upserted: 0, skippedNoTeam: 0 };
+  const res = await axios.post(
+    `${SITE_URL}/api/internal/thesports-matches`,
+    { sport: "ice_hockey", matches },
+    { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 60_000 },
+  );
+  if (!res.data || res.data.ok !== true) {
+    throw new Error(`unexpected: ${JSON.stringify(res.data).slice(0, 120)}`);
+  }
+  return res.data;
+}
+
+function ymdUTC(offsetDays) {
+  const d = new Date(Date.now() + offsetDays * 86400_000);
+  return d.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
+async function poll() {
+  const ts = new Date().toISOString();
+  let teamMap;
+  try {
+    teamMap = JSON.parse(fs.readFileSync(TEAM_MAP_FILE, "utf-8"));
+  } catch (e) {
+    console.error(`[${ts}] ❌ team map load fail: ${e.message} — ice-hockey-team-id-mapping.json 필요`);
+    return;
+  }
+  const tsIdSet = new Set(teamMap.map((t) => t.tsId));
+  console.log(`[${ts}] 🏒 ice-hockey-match-collector start — ${tsIdSet.size} mapped teams`);
+
+  const seen = new Set();
+  const batch = [];
+  for (const offset of SWEEP_DAYS) {
+    let raw;
+    try {
+      raw = await fetchDiary(ymdUTC(offset));
+    } catch (e) {
+      console.error(`    ✗ diary offset=${offset}: ${e.message}`);
+      continue;
+    }
+    for (const m of raw) {
+      if (!m.id || seen.has(m.id)) continue;
+      seen.add(m.id);
+      const league = COMP_TO_LEAGUE[m.unique_tournament_id];
+      if (!league) continue;
+      if (!m.home_team_id || !m.away_team_id) continue;
+      if (!tsIdSet.has(m.home_team_id) || !tsIdSet.has(m.away_team_id)) continue;
+      const status = mapStatus(m.status_id);
+      let hs, as;
+      if (status === "LIVE" || status === "FINISHED") {
+        const sc = finalScore(m.scores);
+        if (sc) { hs = sc.homeScore; as = sc.awayScore; }
+      }
+      batch.push({
+        league,
+        tsMatchId: m.id,
+        tsHomeTeamId: m.home_team_id,
+        tsAwayTeamId: m.away_team_id,
+        startTime: new Date((m.match_time || 0) * 1000).toISOString(),
+        status,
+        homeScore: hs,
+        awayScore: as,
+      });
+    }
+  }
+  console.log(`    수집 ${batch.length}건`);
+
+  const CHUNK = 100;
+  let totalUp = 0, totalSkip = 0;
+  for (let i = 0; i < batch.length; i += CHUNK) {
+    try {
+      const r = await postBatch(batch.slice(i, i + CHUNK));
+      totalUp += r.upserted;
+      totalSkip += r.skippedNoTeam;
+    } catch (e) {
+      console.error(`    ✗ batch ${i}: ${e.message}`);
+    }
+  }
+  console.log(`    summary: upserted=${totalUp} skippedNoTeam=${totalSkip}`);
+}
+
+console.log(`🚀 ice-hockey-match-collector started (interval=${POLL_INTERVAL_MS / 1000}s, site=${SITE_URL})`);
+poll();
+setInterval(poll, POLL_INTERVAL_MS);

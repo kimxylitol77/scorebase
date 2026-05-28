@@ -1,0 +1,16 @@
+[Unit]
+Description=Scorebase TheSports Ice Hockey Match Collector (30min diary sweep, NHL)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/scorebase-worker
+ExecStart=/usr/bin/node /home/ubuntu/scorebase-worker/src/ice-hockey-match-collector.js
+Restart=always
+RestartSec=30
+StandardOutput=append:/home/ubuntu/scorebase-worker/logs/ice-hockey-match-collector.log
+StandardError=append:/home/ubuntu/scorebase-worker/logs/ice-hockey-match-collector.err
+
+[Install]
+WantedBy=multi-user.target
