@@ -10,6 +10,8 @@ import { SITE_URL } from "@/lib/site-url";
 import {
   SPORTS,
   BASEBALL_LEAGUES,
+  BASKETBALL_LEAGUES,
+  HOCKEY_LEAGUES,
   leaguesForSport,
   LEAGUE_DISPLAY,
   LEAGUE_ORDER,
@@ -830,7 +832,11 @@ export default async function ScoresPage({ searchParams }: Props) {
     else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
     else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
     else if (m.league === "LOL") href = `/live/lol/${m.externalId}`;
-    else if (m.league === "NBA" || m.league === "NHL" || SOCCER_LEAGUES.has(m.league)) {
+    else if (
+      BASKETBALL_LEAGUES.has(m.league) || // NBA/WNBA/KBL/WKBL
+      HOCKEY_LEAGUES.has(m.league) ||      // NHL/IIHF_WC
+      SOCCER_LEAGUES.has(m.league)
+    ) {
       href = `/live/${m.league}/${m.externalId}`;
     } else if (recap) href = `/articles/${recap}`;
     else if (preview) href = `/articles/${preview}`;
