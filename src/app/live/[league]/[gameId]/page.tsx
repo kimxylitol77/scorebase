@@ -63,7 +63,7 @@ export const dynamic = "force-dynamic";
 const SUPPORTED = new Set([
   "NBA",
   "WNBA", // 2026-05-21 추가 — DB 데이터 기반 정적 표시. 라이브 폴링은 follow-up (api-sports↔ESPN id 매핑 필요)
-  "NHL",
+  ...(SPORTS.find((s) => s.code === "hockey")?.leagues ?? []), // NHL + IIHF_WC
   ...(SPORTS.find((s) => s.code === "soccer")?.leagues ?? []),
   ...(SPORTS.find((s) => s.code === "baseball")?.leagues ?? []),
 ]);
@@ -253,7 +253,7 @@ export default async function GenericLivePage({ params }: Props) {
     description: `${homeKo} 대 ${awayKo} ${label} ${fixtureRound ? `· ${fixtureRound} ` : ""}라이브 스코어 + 골 이벤트 + 라인업.`,
     startDate: match.startTime.toISOString(),
     eventStatus: eventStatusByMatch,
-    sport: isSoccer ? "Soccer" : lg === "NBA" || lg === "WNBA" ? "Basketball" : lg === "NHL" ? "Ice Hockey" : "Sports",
+    sport: isSoccer ? "Soccer" : lg === "NBA" || lg === "WNBA" ? "Basketball" : lg === "NHL" || lg === "IIHF_WC" ? "Ice Hockey" : "Sports",
     homeTeam: {
       "@type": "SportsTeam",
       name: homeKo,
