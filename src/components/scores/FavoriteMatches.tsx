@@ -17,6 +17,7 @@ import SoccerLiveRow from "./soccer/SoccerLiveRow";
 import LeagueBadge from "../LeagueBadge";
 import FavoriteStar from "./FavoriteStar";
 import { useFavorites } from "./useFavorites";
+import { useScoreFlash } from "./useScoreFlash";
 import { playChime, unlockAudio } from "@/lib/sound/chime";
 import {
   FAV_SOUND_STORAGE_KEY,
@@ -397,6 +398,7 @@ function CompactRow({ match }: { match: MatchEntry }) {
           homePosition={match.home.position ?? null}
           awayPosition={match.away.position ?? null}
           awayFirst={match.league === "KBO" || match.league === "NPB" || match.league === "MLB"}
+          enableScoreFlash={match.sport === "baseball"}
         />
       </div>
     </li>
@@ -416,6 +418,13 @@ function MobileCells({
   hasScore: boolean;
 }) {
   const cellBorder = "border-r border-neutral-200/70 dark:border-neutral-800";
+  // 야구 LIVE 매치만 — 득점 시 점수 숫자 뒤 halo flash.
+  const flashEnabled = match.sport === "baseball" && match.status === "live";
+  const { awayPing, homePing } = useScoreFlash(
+    match.away.score ?? 0,
+    match.home.score ?? 0,
+    flashEnabled,
+  );
   return (
     <>
       <div className={`flex items-center justify-center px-1.5 ${cellBorder}`}>
@@ -433,7 +442,25 @@ function MobileCells({
       </div>
       <div className={`flex items-center justify-center px-1 ${cellBorder}`}>
         <span className="font-black tabular-nums text-[12px] text-neutral-900 dark:text-white whitespace-nowrap">
-          {hasScore ? `${match.home.score} - ${match.away.score}` : "vs"}
+          {hasScore ? (
+            <>
+              <span className="relative isolate inline-block">
+                {homePing > 0 && (
+                  <span key={homePing} className="score-halo-burst" aria-hidden />
+                )}
+                {match.home.score}
+              </span>
+              <span className="mx-1 text-neutral-400">-</span>
+              <span className="relative isolate inline-block">
+                {awayPing > 0 && (
+                  <span key={awayPing} className="score-halo-burst" aria-hidden />
+                )}
+                {match.away.score}
+              </span>
+            </>
+          ) : (
+            "vs"
+          )}
         </span>
       </div>
       <div className={`flex items-center justify-start pl-2 min-w-0 ${cellBorder}`}>

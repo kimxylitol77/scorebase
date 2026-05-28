@@ -10,6 +10,7 @@ import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import FavoriteStar from "../FavoriteStar";
+import { useScoreFlash } from "../useScoreFlash";
 import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
 
 // TheSports football-poller 가 lineup.detail 풍부 cover 하는 리그.
@@ -55,6 +56,9 @@ export interface SoccerLiveRowProps {
   awayPosition?: number | null;
   /** true 면 원정팀 좌측 / 홈팀 우측 표시 + 홈팀 옆에 "홈" 마크 (야구 미디어 관행) */
   awayFirst?: boolean;
+  /** true 면 점수 증가 시 득점한 팀 숫자 뒤에 halo flash (야구 compact 행 전용).
+      축구는 recentGoalSide 로 이미 골 임팩트 효과가 있어 켜지 않음. */
+  enableScoreFlash?: boolean;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -98,6 +102,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     homePosition,
     awayPosition,
     awayFirst,
+    enableScoreFlash,
   } = props;
 
   const goToStandings = (teamId: number | undefined) => (
@@ -117,6 +122,16 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
+
+  // 야구 compact 행 — 득점 시 점수 숫자 뒤 halo (enableScoreFlash + LIVE 일 때만).
+  const { awayPing, homePing } = useScoreFlash(
+    awayScore ?? 0,
+    homeScore ?? 0,
+    !!enableScoreFlash && isLive,
+  );
+  // 좌/우 표시 순서는 awayFirst 에 따라 바뀜 — 좌측 숫자의 ping 을 골라준다.
+  const leftPing = awayFirst ? awayPing : homePing;
+  const rightPing = awayFirst ? homePing : awayPing;
 
   // SCHEDULED 매치는 score 무시 — collector 잔여 데이터로 미래 매치에 점수 표시되는 버그 회피
   const hasScore = (isLive || isFinished) && homeScore != null && awayScore != null;
@@ -224,26 +239,32 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         {hasScore ? (
           <>
             <span
-              className={
+              className={`relative isolate inline-block ${
                 (awayFirst ? awayWin : homeWin)
                   ? "text-rose-600 dark:text-rose-400"
                   : isFinished || isLive
                     ? "text-neutral-700 dark:text-neutral-300"
                     : "text-neutral-500"
-              }
+              }`}
             >
+              {leftPing > 0 && (
+                <span key={leftPing} className="score-halo-burst" aria-hidden />
+              )}
               {awayFirst ? awayScore : homeScore}
             </span>
             <span className="mx-1 text-neutral-500">-</span>
             <span
-              className={
+              className={`relative isolate inline-block ${
                 (awayFirst ? homeWin : awayWin)
                   ? "text-rose-600 dark:text-rose-400"
                   : isFinished || isLive
                     ? "text-neutral-700 dark:text-neutral-300"
                     : "text-neutral-500"
-              }
+              }`}
             >
+              {rightPing > 0 && (
+                <span key={rightPing} className="score-halo-burst" aria-hidden />
+              )}
               {awayFirst ? homeScore : awayScore}
             </span>
             {(isFinished || isLive) &&

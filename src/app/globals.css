@@ -271,6 +271,47 @@ body {
   animation: livePulse 1.4s ease-in-out infinite;
 }
 
+/* 득점 순간 점수 칸 배경 광채(halo) — BaseballScore (LIVE 야구 카드).
+   득점한 팀 숫자 뒤에서 amber/orange 빛이 확 퍼졌다 사라짐. 리드팀 emerald
+   글로우와 색이 구분됨. z-index:-1 + 부모 .isolate 로 숫자 텍스트 뒤에 깔림. */
+@keyframes scoreHalo {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.6);
+  }
+}
+.score-halo-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.4em;
+  height: 2.4em;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    rgba(251, 191, 36, 0.9) 0%,
+    rgba(249, 115, 22, 0.5) 45%,
+    transparent 72%
+  );
+  z-index: -1;
+  pointer-events: none;
+  animation: scoreHalo 1.5s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .score-halo-burst {
+    animation-duration: 1ms;
+  }
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;

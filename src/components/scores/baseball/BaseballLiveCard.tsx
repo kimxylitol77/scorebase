@@ -10,6 +10,7 @@ import type { BaseballContext } from "../BaseballMiniBoard";
 import FavoriteStar from "../FavoriteStar";
 import BaseDiamond from "./BaseDiamond";
 import OutCount from "./OutCount";
+import BaseballScore from "./BaseballScore";
 import LiveCommentaryBox, {
   type LiveCommentaryData,
 } from "../../live/LiveCommentaryBox";
@@ -197,39 +198,13 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
 
         <div className="text-center font-black tabular-nums tracking-tight text-2xl sm:text-3xl">
           {hasScore ? (
-            <>
-              <span
-                className={
-                  awayWin || liveAwayLead
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-neutral-900 dark:text-slate-200"
-                }
-                style={
-                  awayWin || liveAwayLead
-                    ? { textShadow: "0 0 12px rgba(34,197,94,.35)" }
-                    : undefined
-                }
-              >
-                {awayScore}
-              </span>
-              <span className="mx-1.5 text-neutral-300 dark:text-neutral-600 font-thin">
-                :
-              </span>
-              <span
-                className={
-                  homeWin || liveHomeLead
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-neutral-900 dark:text-slate-200"
-                }
-                style={
-                  homeWin || liveHomeLead
-                    ? { textShadow: "0 0 12px rgba(34,197,94,.35)" }
-                    : undefined
-                }
-              >
-                {homeScore}
-              </span>
-            </>
+            <BaseballScore
+              awayScore={awayScore}
+              homeScore={homeScore}
+              awayHighlight={awayWin || liveAwayLead}
+              homeHighlight={homeWin || liveHomeLead}
+              isLive={isLive}
+            />
           ) : (
             <span className="text-base font-bold text-neutral-400 dark:text-neutral-500">
               VS
