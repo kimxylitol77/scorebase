@@ -5,8 +5,25 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const COOKIE_NAME = "admin_session";
 
+// 스코어보드.kr — 라이브 스코어 전용 도메인. scorebase 와 같은 Vercel 앱을 공유하되
+// host 로 분기해 루트 접속 시 /scores 화면을 보여준다 (URL 은 스코어보드.kr 유지).
+// 한글 도메인은 브라우저가 punycode(xn--) 로 host 헤더 전송 → 둘 다 매칭.
+const SCOREBOARD_HOSTS = ["스코어보드.kr", "xn--hy1bm7m1yevrd8pq.kr"];
+
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
+
+  // 스코어보드.kr 루트 → /scores 내용으로 rewrite (scorebase.kr 은 영향 없음).
+  if (path === "/") {
+    const host = (req.headers.get("host") || "").toLowerCase();
+    if (SCOREBOARD_HOSTS.some((h) => host.includes(h))) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/scores";
+      return NextResponse.rewrite(url);
+    }
+    return NextResponse.next();
+  }
+
   if (!path.startsWith("/admin")) return NextResponse.next();
 
   // 로그인 페이지는 통과
@@ -25,5 +42,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: "/admin/:path*",
+  matcher: ["/admin/:path*", "/"],
 };
