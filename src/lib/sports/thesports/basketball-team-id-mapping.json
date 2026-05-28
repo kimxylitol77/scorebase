@@ -556,5 +556,23 @@
     "tsId": "jednm9kty6dryox",
     "tsName": "KB Stars",
     "matchType": "created"
+  },
+  {
+    "ourId": 552,
+    "ourName": "LA Clippers",
+    "ourLeague": "NBA",
+    "ourExternalId": "12",
+    "tsId": "d23xmv1tzy3mg8n",
+    "tsName": "Los Angeles Clippers",
+    "matchType": "alias"
+  },
+  {
+    "ourId": 607791,
+    "ourName": "Houston Rockets",
+    "ourLeague": "NBA",
+    "ourExternalId": "kn54ql7ty45rvy9",
+    "tsId": "kn54ql7ty45rvy9",
+    "tsName": "Houston Rockets",
+    "matchType": "created"
   }
 ]

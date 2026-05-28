@@ -244,18 +244,11 @@ export function getPrimarySource(league: League): string {
   if (league === "EPL") {
     return process.env.FOOTBALL_DATA_KEY ? "football-data" : "api-football";
   }
-  if (league === "NBA") {
-    if (process.env.API_FOOTBALL_KEY) return "api-sports";
-    if (
-      process.env.MYSPORTSFEEDS_USER &&
-      process.env.MYSPORTSFEEDS_USER !== "your_username"
-    )
-      return "mysportsfeeds";
-    return "espn";
-  }
+  if (league === "NBA") return "thesports";
   if (league === "NHL") return "thesports";
   if (league === "MLB") return "espn";
-  if (league === "WNBA") return "api-sports";
+  if (league === "WNBA") return "thesports";
+  if (league === "KBL" || league === "WKBL") return "thesports";
   if (league === "KBO") return "kbo";
   if (league === "NPB") return "npb";
   if (league === "LOL") return "leaguepedia";
