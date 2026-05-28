@@ -87,6 +87,7 @@ async function haikuTranslate(batch: string[]): Promise<Record<string, string>> 
     `참고: 위키피디아 한국어판 또는 네이버/다음 스포츠 표기 기준.\n` +
     `- 음역 정확성 우선 (Aaron Judge → 에런 저지, Shohei Ohtani → 오타니 쇼헤이)\n` +
     `- 풀네임 한국어 표기\n` +
+    `- 한국인 메이저리거의 한국 성씨는 두음법칙 적용: Lee → 이 (리 아님), Ryu → 류, Roh → 노, Lim → 임 (예: Hyun-jin Ryu → 류현진)\n` +
     `- 자신없는 선수는 결과에서 제외해도 됨\n\n` +
     `선수 list:\n` +
     batch.map((n, i) => `${i + 1}. "${n}"`).join("\n") +
