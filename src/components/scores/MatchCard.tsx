@@ -324,11 +324,6 @@ export default function MatchCard(props: MatchCardProps) {
           KST {timeLabel}
         </div>
       )}
-      {actions && (
-        <div className="flex items-center justify-end gap-1.5 px-3.5 sm:px-4 pb-3">
-          {actions}
-        </div>
-      )}
     </>
   );
 
@@ -354,6 +349,11 @@ export default function MatchCard(props: MatchCardProps) {
         )
       ) : (
         body
+      )}
+      {actions && (
+        <div className="flex items-center justify-end gap-1.5 px-3.5 sm:px-4 pb-3">
+          {actions}
+        </div>
       )}
     </li>
   );

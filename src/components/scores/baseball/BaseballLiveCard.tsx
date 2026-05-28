@@ -315,10 +315,6 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
           KST {timeLabel}
         </div>
       )}
-
-      {actions && (
-        <div className="flex items-center justify-end gap-1.5">{actions}</div>
-      )}
     </div>
   );
 
@@ -341,6 +337,11 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         )
       ) : (
         body
+      )}
+      {actions && (
+        <div className="flex items-center justify-end gap-1.5 px-3 sm:px-4 pb-3 sm:pb-4">
+          {actions}
+        </div>
       )}
     </li>
   );

@@ -236,10 +236,6 @@ export default function EsportsCard(props: EsportsCardProps) {
           {liveStatusLabel}
         </div>
       )}
-
-      {actions && (
-        <div className="flex items-center justify-end gap-1.5">{actions}</div>
-      )}
     </div>
   );
 
@@ -262,6 +258,11 @@ export default function EsportsCard(props: EsportsCardProps) {
         )
       ) : (
         body
+      )}
+      {actions && (
+        <div className="flex items-center justify-end gap-1.5 px-3 sm:px-4 pb-3 sm:pb-4">
+          {actions}
+        </div>
       )}
     </li>
   );
