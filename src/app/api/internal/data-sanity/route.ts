@@ -225,12 +225,23 @@ export async function GET(req: NextRequest) {
       continue;
     }
     const half = scoreArr[2];
+    const sid = scoreArr[1];
     if (half === 0 || half == null) {
+      // 2026-05-28 LMB #328115/#328116 케이스 — cache.sid=1 (Not Started) +
+      // 빈 scoresObj 인데 우리 Match.status=LIVE stuck. 같은 시간대 다른 매치는 정상
+      // = TheSports source 가 두 매치만 누락 (연기 / 표시 누락). worker 죽음 아님.
+      //   - 시작 +30분 미만 + sid=1: 매치 시작 lag — skip (false positive)
+      //   - 시작 +30분+ + sid=1: source 누락 (별도 detail 로 구분)
+      const elapsedMs = now - m.startTime.getTime();
+      if (sid === 1 && elapsedMs < 30 * 60 * 1000) continue;
+      const reason = sid === 1
+        ? `TheSports source 누락 또는 매치 연기 (시작 +${Math.round(elapsedMs / 60000)}분, sid=1 Not Started)`
+        : `cache half=${half} (이닝 표시 불가)`;
       issues.push({
         ...matchInfo,
         kind: "inning_missing",
         severity: "WARN",
-        detail: `LIVE 인데 cache half=${half} (이닝 표시 불가)`,
+        detail: `LIVE 인데 ${reason}`,
       });
     }
 
