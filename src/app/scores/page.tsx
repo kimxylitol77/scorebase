@@ -104,7 +104,7 @@ const SOCCER_LEAGUES = new Set(
 function sportFromLeague(league: string): string {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
   if (SOCCER_LEAGUES.has(league)) return "soccer";
-  if (league === "NBA") return "basketball";
+  if (BASKETBALL_LEAGUES.has(league)) return "basketball"; // NBA/WNBA/KBL/WKBL (이전엔 NBA 만 → 나머지가 "other" 한 줄로 빠짐)
   if (HOCKEY_LEAGUES.has(league)) return "hockey"; // NHL + IIHF_WC (이전엔 NHL 만 → IIHF_WC 가 "other" 한 줄로 빠짐)
   if (league === "LOL") return "esports";
   return "other";
@@ -557,6 +557,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
   // 하키 (특히 IIHF_WC) 피리어드 점수표 — ESPN periodMap 에 없는 매치는 cache 에서 추출.
   const hockeyPeriodByMatchId = new Map<number, PeriodLinescoreData>();
+  // 농구 (WNBA/KBL/WKBL) 쿼터 점수표 — NBA 는 ESPN periodMap 사용, 나머지는 ESPN 미지원이라 cache 에서 추출.
+  const basketballPeriodByMatchId = new Map<number, PeriodLinescoreData>();
   const baseballCacheCtx = new Map<string, {
     bases: [boolean, boolean, boolean];
     outs: number | null;
@@ -587,8 +589,23 @@ export default async function ScoresPage({ searchParams }: Props) {
   const hockeyMatchIds = matches
     .filter((m) => HOCKEY_LEAGUES.has(m.league) && m.status !== "SCHEDULED")
     .map((m) => m.id);
+  // 농구 (WNBA/KBL/WKBL) — NBA 제외 (ESPN periodMap). SCHEDULED 제외 (쿼터 없음).
+  // cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열에서 추출.
+  const basketballMatchIds = matches
+    .filter(
+      (m) =>
+        BASKETBALL_LEAGUES.has(m.league) &&
+        m.league !== "NBA" &&
+        m.status !== "SCHEDULED",
+    )
+    .map((m) => m.id);
   const cacheIds = Array.from(
-    new Set([...soccerMatchIds, ...baseballLiveDbIds, ...hockeyMatchIds]),
+    new Set([
+      ...soccerMatchIds,
+      ...baseballLiveDbIds,
+      ...hockeyMatchIds,
+      ...basketballMatchIds,
+    ]),
   );
 
   if (cacheIds.length > 0) {
@@ -599,6 +616,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     const soccerIdSet = new Set(soccerMatchIds);
     const baseballIdSet = new Set(baseballLiveDbIds);
     const hockeyIdSet = new Set(hockeyMatchIds);
+    const basketballIdSet = new Set(basketballMatchIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
       const dl = c.detailLive as
@@ -656,6 +674,43 @@ export default async function ScoresPage({ searchParams }: Props) {
             homeScore: hScore,
             awayScore: aScore,
           });
+        }
+      }
+      // 농구 쿼터 (WNBA/KBL/WKBL) — cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열
+      // (하키/야구의 score[3] 객체와 다름). NBA 는 ESPN periodMap 사용 → 여기 제외.
+      // swap 없음 검증 완료 (production: 정렬 13 / swap 0 / _swap 플래그 0).
+      if (basketballIdSet.has(c.matchId)) {
+        const bScore = dl.score as unknown[] | undefined;
+        const homeArr = Array.isArray(bScore) ? bScore[3] : undefined;
+        const awayArr = Array.isArray(bScore) ? bScore[4] : undefined;
+        if (Array.isArray(homeArr) && Array.isArray(awayArr)) {
+          const toNum = (x: unknown): number | null => {
+            const n = Number(x);
+            return Number.isFinite(n) ? n : null;
+          };
+          const homePeriods = homeArr.map(toNum);
+          const awayPeriods = awayArr.map(toNum);
+          // 트레일링 OT 컬럼(정규 4쿼터 초과) 이 양 팀 모두 0 이면 제거 — NBA ESPN 렌더와 컬럼 수 맞춤.
+          let len = Math.max(homePeriods.length, awayPeriods.length);
+          while (
+            len > 4 &&
+            (homePeriods[len - 1] ?? 0) === 0 &&
+            (awayPeriods[len - 1] ?? 0) === 0
+          ) {
+            len--;
+          }
+          const hp = homePeriods.slice(0, len);
+          const ap = awayPeriods.slice(0, len);
+          const sum = (arr: (number | null)[]) =>
+            arr.reduce<number>((s, n) => s + (n ?? 0), 0);
+          if (hp.length > 0 || ap.length > 0) {
+            basketballPeriodByMatchId.set(c.matchId, {
+              homePeriods: hp,
+              awayPeriods: ap,
+              homeScore: sum(hp),
+              awayScore: sum(ap),
+            });
+          }
         }
       }
       // 야구 베이스/아웃 + 이닝/half + 이닝별 점수표 (linescore).
@@ -946,7 +1001,10 @@ export default async function ScoresPage({ searchParams }: Props) {
           : null,
       periodLinescore:
         sport_ === "basketball" || sport_ === "hockey"
-          ? periodMap[m.externalId] ?? hockeyPeriodByMatchId.get(m.id) ?? null
+          ? periodMap[m.externalId] ??
+            basketballPeriodByMatchId.get(m.id) ??
+            hockeyPeriodByMatchId.get(m.id) ??
+            null
           : null,
       // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
       // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
@@ -1174,11 +1232,14 @@ export default async function ScoresPage({ searchParams }: Props) {
   const containerMaxW = "max-w-6xl";
 
   // 축구 상태 필터 — 표시할 매치 결정
-  // 오늘 KST 아닌 다른 날짜 선택 시 LIVE 섹션 숨김 (LIVE 는 현재 시점 매치 — 미래/과거 일자에선 의미 없음)
+  // 기본은 오늘 KST 만 LIVE 섹션 표시. 단 자정 boundary 매치(예: 5/28 23:20 시작 →
+  // 5/29 새벽 진행 중)는 어제 날짜에 속하지만 현재 LIVE 이므로, 실제 LIVE 매치가
+  // 있으면(liveList>0) 날짜 무관 표시 — 헤더 "LIVE N" 카운트와 렌더 불일치 방지.
+  // (staleLive 는 이미 effStatus=FINISHED 로 변환되므로 liveList 는 진짜 진행 중만)
   const todayKstStr = dateQuery(new Date());
   const isToday = dateStr === todayKstStr;
   const showLive =
-    isToday &&
+    (isToday || liveList.length > 0) &&
     (sport !== "soccer" || statusFilter === "all" || statusFilter === "live");
   const showScheduled = sport !== "soccer" || statusFilter === "all" || statusFilter === "scheduled";
   const showFinished = sport !== "soccer" || statusFilter === "all" || statusFilter === "finished";
