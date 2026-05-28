@@ -130,6 +130,7 @@ export function buildApiFootballCollector(league: League): MatchCollector {
   const leagueId = API_FOOTBALL_LEAGUE_ID[league];
   return {
     league,
+    source: "api-football",
     async fetchByDate(date: string): Promise<NormalizedMatch[]> {
       if (!leagueId) {
         throw new Error(`api-football league id 미등록: ${league}`);

@@ -10,6 +10,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
+import type { League } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -196,8 +198,12 @@ export async function GET(req: NextRequest) {
     orderBy: { startTime: "asc" },
   });
 
-  // api-football 으로 verify 할 매치 (externalId 가 fixture id 형식)
-  const verifyTargets = stale.filter((m) => (SOURCE_HINT[m.league] ?? "").includes("api-football"));
+  // api-football 으로 verify 할 매치 — collectors 에서 source="api-football" 로 태그된 리그만.
+  // (SOURCE_HINT 화이트리스트는 누락 리그 — MOLDOVA_SL/COPA_LIB/ICELAND_1L 등 — 가 영구 stuck 됐음.
+  //  ESPN/TheSports id 리그는 제외해 fixture id 오조회 방지. 숫자 ext 가드는 belt-and-suspenders.)
+  const verifyTargets = stale.filter(
+    (m) => API_FOOTBALL_LEAGUES.has(m.league as League) && /^\d+$/.test(m.externalId),
+  );
   const verifyMap = await fetchApiFootballStatuses(verifyTargets.map((m) => m.externalId));
 
   // 분류 결과

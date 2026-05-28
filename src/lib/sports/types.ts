@@ -484,6 +484,9 @@ export interface NormalizedMatch {
 
 export interface MatchCollector {
   readonly league: League;
+  /** externalId 출처. "api-football" 인 리그만 externalId 가 api-football fixture id —
+   * cleanup-stale-scheduled verify 가 ESPN/TheSports id 를 api-football 에 잘못 조회하지 않도록 사용. */
+  readonly source?: "api-football";
   /** 특정 날짜의 경기 목록 가져오기 (YYYY-MM-DD) */
   fetchByDate(date: string): Promise<NormalizedMatch[]>;
 }

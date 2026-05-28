@@ -202,6 +202,15 @@ export const collectors: Record<League, MatchCollector> = {
   ARG_PRIMERA_NACIONAL: buildApiFootballCollector("ARG_PRIMERA_NACIONAL"),
 };
 
+// externalId 가 api-football fixture id 인 리그 집합 (= buildApiFootballCollector 등록 리그).
+// collectors 단일 진실에서 source 태그로 파생 — 신규 api-football 리그 추가 시 자동 포함.
+// cleanup-stale-scheduled cron 이 ESPN/TheSports/baseball id 를 api-football 에 잘못 조회하는 것 방지.
+export const API_FOOTBALL_LEAGUES: ReadonlySet<League> = new Set(
+  (Object.entries(collectors) as [League, MatchCollector][])
+    .filter(([, c]) => c.source === "api-football")
+    .map(([league]) => league),
+);
+
 export {
   eplCollector,
   nbaCollector,
