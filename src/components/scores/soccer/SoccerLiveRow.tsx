@@ -2,7 +2,8 @@
 // 구조 (데스크탑): [리그배지 110px] [시간] [상태] [홈팀 →] [점수] [← 원정팀] [글] [관심]
 // 다크 디폴트. 모바일은 카드 layout (별도 처리) — 이 컴포넌트는 데스크탑 row 전용.
 //
-// client component — 글 아이콘 onClick stopPropagation 위해 (외부 row Link 와 nested).
+// client component — 행 전체가 <a>/<Link> 라서 내부 클릭 동작(리그배지/순위/예측/L/R)은
+// anchor 대신 button + window.open 으로 처리한다 (nested anchor invalid HTML + hydration 회피).
 
 "use client";
 
@@ -105,17 +106,20 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     enableScoreFlash,
   } = props;
 
-  const goToStandings = (teamId: number | undefined) => (
-    e: React.MouseEvent<HTMLButtonElement>,
-  ) => {
+  // 행 전체가 <a>/<Link> 라 내부 링크를 anchor 로 두면 nested anchor (invalid HTML +
+  // hydration mismatch) 가 된다. 내부 클릭 동작은 모두 button + window.open 으로 우회.
+  const openInNewTab = (url: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const hash = teamId != null ? `#team-${teamId}` : "";
-    // 새창에서 열기 — row 의 Link href 와 충돌 안 하도록 window.open 사용
     if (typeof window !== "undefined") {
-      window.open(`/predictions/${league}${hash}`, "_blank", "noopener,noreferrer");
+      window.open(url, "_blank", "noopener,noreferrer");
     }
   };
+
+  const goToStandings = (teamId: number | undefined) =>
+    openInNewTab(
+      `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`,
+    );
 
   const badge = getLeagueBadge(league);
   const flag = getLeagueFlag(league);
@@ -162,19 +166,17 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 28px 48px minmax(0,154px)",
       }}
     >
-      {/* 1. 리그 배지 — 클릭 시 새창에서 리그 순위 페이지 */}
-      <a
-        href={`/predictions/${league}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate hover:opacity-80 transition"
+      {/* 1. 리그 배지 — 클릭 시 새창에서 리그 순위 페이지 (nested anchor 회피 위해 button) */}
+      <button
+        type="button"
+        onClick={openInNewTab(`/predictions/${league}`)}
+        className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate hover:opacity-80 transition w-full cursor-pointer"
         style={{ background: badge.bg, color: badge.fg }}
         title={`${badge.label} 리그 순위 보기 (새창)`}
       >
         {flag && <span className="mr-0.5" aria-hidden>{flag}</span>}
         {badge.label}
-      </a>
+      </button>
 
       {/* 2. KST 시간 */}
       <div className="text-[12px] text-neutral-600 dark:text-neutral-400 tabular-nums">
@@ -341,37 +343,34 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           justify-start 로 AI 칩 위치를 row 마다 동일하게 고정 (칩 개수에 따라 흔들리지 않게). */}
       <div className="flex items-center justify-start gap-1">
         {href && (
-          <Link
-            href={href}
-            prefetch={false}
-            onClick={(e) => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={openInNewTab(href)}
             title="AI 매치 인사이트"
-            className="inline-flex items-center justify-center px-1.5 h-5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition whitespace-nowrap"
+            className="inline-flex items-center justify-center px-1.5 h-5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition whitespace-nowrap cursor-pointer"
           >
             예측
-          </Link>
+          </button>
         )}
         {href && LINEUP_LEAGUES.has(league) && (
-          <Link
-            href={href}
-            prefetch={false}
-            onClick={(e) => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={openInNewTab(href)}
             title="라인업 (TheSports cover)"
-            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition"
+            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition cursor-pointer"
           >
             L
-          </Link>
+          </button>
         )}
         {recapSlug && (
-          <Link
-            href={`/articles/${recapSlug}`}
-            prefetch={false}
-            onClick={(e) => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={openInNewTab(`/articles/${recapSlug}`)}
             title="리뷰"
-            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition"
+            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 transition cursor-pointer"
           >
             R
-          </Link>
+          </button>
         )}
       </div>
     </div>
