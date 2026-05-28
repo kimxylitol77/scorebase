@@ -325,9 +325,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             prefetch={false}
             onClick={(e) => e.stopPropagation()}
             title="AI 매치 인사이트"
-            className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
+            className="inline-flex items-center justify-center px-1.5 h-5 rounded text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition whitespace-nowrap"
           >
-            AI
+            예측
           </Link>
         )}
         {href && LINEUP_LEAGUES.has(league) && (
