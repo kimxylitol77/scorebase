@@ -308,18 +308,23 @@ export async function GET(req: NextRequest) {
     })
     .join("\n");
 
-  // Haiku 진단 — ANTHROPIC_API_KEY 있을 때만
-  const diagnosePrompt =
-    `다음은 scorebase 의 stale 매치 자동 정리 보고서입니다.\n` +
-    `시작 시각 + ${STALE_HOURS}시간 지났는데 SCHEDULED 상태로 남은 매치들 (= cron 업데이트 누락).\n\n` +
-    `리그별 카운트:\n${leagueLines}\n\n` +
-    `샘플:\n${sampleLines}\n\n` +
-    `요청:\n` +
-    `1) 각 리그별 가장 가능성 높은 원인 1개 (cron 누락 / source API 변화 / collector 미지원 / 오프시즌 / 비공식 매치 등)\n` +
-    `2) 즉시 확인할 곳 (예: "vercel logs --grep collect", "Lightsail systemd logs")\n` +
-    `3) 정상 (오프시즌 등) 인 경우 명시\n\n` +
-    `형식: 리그명별 1줄 (한국어). 마지막 줄에 종합 권장 action 1개.`;
-  const diagnosis = await diagnoseWithHaiku(diagnosePrompt);
+  // Haiku 진단 — POSTPONED 처리된 매치가 있을 때만.
+  // KEPT-only (전부 api-football verify 로 SCHEDULED 유지) 면 진단 프롬프트의
+  // 리그별 카운트/샘플이 toPostpone 기반이라 빈 문자열 → Haiku 가 "데이터 없음" 응답.
+  let diagnosis: string | null = null;
+  if (toPostpone.length > 0) {
+    const diagnosePrompt =
+      `다음은 scorebase 의 stale 매치 자동 정리 보고서입니다.\n` +
+      `시작 시각 + ${STALE_HOURS}시간 지났는데 SCHEDULED 상태로 남은 매치들 (= cron 업데이트 누락).\n\n` +
+      `리그별 카운트:\n${leagueLines}\n\n` +
+      `샘플:\n${sampleLines}\n\n` +
+      `요청:\n` +
+      `1) 각 리그별 가장 가능성 높은 원인 1개 (cron 누락 / source API 변화 / collector 미지원 / 오프시즌 / 비공식 매치 등)\n` +
+      `2) 즉시 확인할 곳 (예: "vercel logs --grep collect", "Lightsail systemd logs")\n` +
+      `3) 정상 (오프시즌 등) 인 경우 명시\n\n` +
+      `형식: 리그명별 1줄 (한국어). 마지막 줄에 종합 권장 action 1개.`;
+    diagnosis = await diagnoseWithHaiku(diagnosePrompt);
+  }
 
   // HealthCheck row insert — /admin/health 에 자동 노출
   const correctedCount = verifiedFinished.length + verifiedLive.length;
@@ -380,9 +385,11 @@ export async function GET(req: NextRequest) {
         (correctedCount > 0
           ? `<b>verify 로 정정 (${correctedCount}건)</b>:\n<code>${correctedLines}</code>\n\n`
           : "") +
-        (diagnosis
-          ? `🤖 <b>Haiku 진단</b>:\n${diagnosis}\n\n`
-          : `<i>(ANTHROPIC_API_KEY 미설정 — Vercel env 등록 시 AI 진단 활성)</i>\n\n`) +
+        (toPostpone.length > 0
+          ? diagnosis
+            ? `🤖 <b>Haiku 진단</b>:\n${diagnosis}\n\n`
+            : `<i>(ANTHROPIC_API_KEY 미설정 — Vercel env 등록 시 AI 진단 활성)</i>\n\n`
+          : "") +
         `➡️ <b>확인</b>: scorebase.kr/admin/health (category=stale-cleanup)\n\n` +
         `<code>[안내] cron-cleanup-stale-scheduled</code>`,
     );
