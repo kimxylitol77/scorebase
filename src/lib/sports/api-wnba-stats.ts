@@ -7,6 +7,7 @@
 //   /games/statistics/players?id={game_id} — 선수별 boxscore (10~12 per team)
 
 import axios from "axios";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 const BASE = "https://v1.basketball.api-sports.io";
 
@@ -86,13 +87,13 @@ function teamLeaders(players: PlayerStat[]): BasketballLeader[] {
 
   const out: BasketballLeader[] = [];
   if (topPts && topPts.points > 0) {
-    out.push({ category: "득점", playerName: topPts.player.name, displayValue: `${topPts.points}점` });
+    out.push({ category: "득점", playerName: toKoreanPlayerName(topPts.player.name), displayValue: `${topPts.points}점` });
   }
   if (topReb && topReb.rebounds.total > 0) {
-    out.push({ category: "리바", playerName: topReb.player.name, displayValue: `${topReb.rebounds.total}리바` });
+    out.push({ category: "리바", playerName: toKoreanPlayerName(topReb.player.name), displayValue: `${topReb.rebounds.total}리바` });
   }
   if (topAst && topAst.assists > 0) {
-    out.push({ category: "어시", playerName: topAst.player.name, displayValue: `${topAst.assists}어시` });
+    out.push({ category: "어시", playerName: toKoreanPlayerName(topAst.player.name), displayValue: `${topAst.assists}어시` });
   }
   return out;
 }
