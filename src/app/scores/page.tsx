@@ -553,15 +553,22 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
   const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
-  const baseballCacheCtx = new Map<string, { bases: [boolean, boolean, boolean]; outs: number | null }>();
+  const baseballCacheCtx = new Map<string, {
+    bases: [boolean, boolean, boolean];
+    outs: number | null;
+    inning: number | null;
+    half: "top" | "bottom" | null;
+  }>();
 
   const soccerMatchIds = needsSoccerGoals
     ? matches.filter((m) => SOCCER_LEAGUES.has(m.league)).map((m) => m.id)
     : [];
+  // KBO/NPB/MLB + CPBL/LMB (2026-05-27 추가). cache.detailLive 의 bases/outs/inning
+  // 카드에 표시. 이전엔 CPBL/LMB cache 조회 skip 으로 "주자 정보 없음" 표시 사고.
   const baseballLiveDbIds = matches
     .filter(
       (m) =>
-        (m.league === "KBO" || m.league === "NPB" || m.league === "MLB") &&
+        ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(m.league) &&
         m.status !== "FINISHED",
     )
     .map((m) => m.id);
@@ -577,7 +584,11 @@ export default async function ScoresPage({ searchParams }: Props) {
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
       const dl = c.detailLive as
-        | { incidents?: unknown; extra?: { base?: string; out?: number } }
+        | {
+            incidents?: unknown;
+            extra?: { base?: string; out?: number };
+            score?: [string, number, number, Record<string, [string, string] | undefined>];
+          }
         | null;
       if (!dl) continue;
       // 축구 골/카드
@@ -587,17 +598,33 @@ export default async function ScoresPage({ searchParams }: Props) {
         if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
         if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
       }
-      // 야구 베이스/아웃
-      if (baseballIdSet.has(c.matchId) && dl.extra) {
+      // 야구 베이스/아웃 + 이닝/half
+      if (baseballIdSet.has(c.matchId)) {
+        const extraBase = dl.extra?.base;
         const baseStr =
-          typeof dl.extra.base === "string" && /^[01]{3}$/.test(dl.extra.base)
-            ? dl.extra.base
+          typeof extraBase === "string" && /^[01]{3}$/.test(extraBase)
+            ? extraBase
             : "000";
         const ext = idToExt.get(c.matchId);
+        // inning 추정 — cache.score[3].p1~p12 중 마지막 entry 가 현재 이닝.
+        // (TheSports 가 진행 중 이닝까지 p_i 채움). half = score[2] (1=초/2=말 추정).
+        let inning: number | null = null;
+        let half: "top" | "bottom" | null = null;
+        if (Array.isArray(dl.score) && dl.score.length >= 4) {
+          const sObj = dl.score[3] as Record<string, [string, string] | undefined>;
+          for (let i = 12; i >= 1; i--) {
+            if (Array.isArray(sObj?.["p" + i])) { inning = i; break; }
+          }
+          const h = dl.score[2];
+          if (h === 1) half = "top";
+          else if (h === 2) half = "bottom";
+        }
         if (ext) {
           baseballCacheCtx.set(ext, {
             bases: [baseStr[0] === "1", baseStr[1] === "1", baseStr[2] === "1"],
-            outs: typeof dl.extra.out === "number" ? dl.extra.out : null,
+            outs: typeof dl.extra?.out === "number" ? dl.extra.out : null,
+            inning,
+            half,
           });
         }
       }
@@ -853,8 +880,8 @@ export default async function ScoresPage({ searchParams }: Props) {
             const cached = baseballCacheCtx.get(m.externalId);
             if (cached) {
               return {
-                inning: undefined,
-                half: null,
+                inning: cached.inning ?? undefined,
+                half: cached.half,
                 outs: cached.outs,
                 bases: cached.bases,
               } satisfies BaseballContext;
