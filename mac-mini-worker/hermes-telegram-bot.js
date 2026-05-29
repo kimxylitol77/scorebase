@@ -178,7 +178,11 @@ function runClaudeFix(instruction) {
     let out = "";
     let err = "";
     let done = false;
-    const child = spawn(CLAUDE_BIN, args, { cwd: REPO_DIR, env: process.env });
+    // Max 구독(OAuth 토큰)으로 인증 — ANTHROPIC_API_KEY 가 우선순위상 OAuth 토큰을 이기므로
+    // claude 자식 프로세스 env 에서만 제거 (봇 자체의 hermes 챗은 process.env 의 API 키 계속 사용).
+    const childEnv = { ...process.env };
+    delete childEnv.ANTHROPIC_API_KEY;
+    const child = spawn(CLAUDE_BIN, args, { cwd: REPO_DIR, env: childEnv });
     const timer = setTimeout(() => {
       if (!done) { try { child.kill("SIGTERM"); } catch {} }
     }, FIX_TIMEOUT_MS);
