@@ -21,6 +21,7 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 const axios = require("axios");
+const { spawn } = require("child_process");
 
 const TG_TOKEN = process.env.HERMES_TELEGRAM_TOKEN;
 const ALLOWED = (process.env.HERMES_ALLOWED_CHAT_IDS || "")
@@ -143,6 +144,58 @@ async function callLLM(chatId, userMessage) {
   return callOllama(chatId, userMessage);
 }
 
+// ── /fix — Claude Code 헤드리스 진단 ───────────────────────────────
+// 텔레 지시 → 맥미니 repo 에서 `claude -p` 실행 (읽기전용 도구만) → 결과 회신.
+// Phase 1: 진단 + 수정안(diff) 제안만. 파일 수정/commit/push 안 함 (allowlist 로 차단).
+const REPO_DIR = path.resolve(__dirname, ".."); // /Users/kkulkkul/dev/scorebase
+const CLAUDE_BIN = process.env.CLAUDE_BIN || "/opt/homebrew/bin/claude";
+const FIX_TIMEOUT_MS = 5 * 60 * 1000;
+
+// 읽기전용 진단 도구만 — Edit/Write/commit/push/rm 은 목록에 없어 자동 차단됨.
+const FIX_ALLOWED_TOOLS = [
+  "Read", "Grep", "Glob",
+  "mcp__postgres__query",
+  "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)", "Bash(git show:*)",
+  "Bash(npx tsc:*)",
+  "Bash(cat:*)", "Bash(ls:*)", "Bash(head:*)", "Bash(tail:*)", "Bash(wc:*)",
+  "Bash(grep:*)", "Bash(rg:*)", "Bash(find:*)", "Bash(curl:*)",
+].join(",");
+
+const FIX_SYSTEM = [
+  "너는 scorebase(스포츠 라이브스코어 사이트) 운영 진단 보조다.",
+  "읽기전용으로 원인을 진단하라. 파일을 수정하거나 git commit/push 하지 마라.",
+  "코드 수정이 필요하면 적용하지 말고 제안 diff 와 설명을 한국어로 간결히 출력하라.",
+  "DB 조회는 postgres MCP(읽기전용), 진단 endpoint 는 curl 로 확인할 수 있다.",
+].join(" ");
+
+function runClaudeFix(instruction) {
+  return new Promise((resolve) => {
+    const args = [
+      "-p", instruction,
+      "--allowedTools", FIX_ALLOWED_TOOLS,
+      "--append-system-prompt", FIX_SYSTEM,
+    ];
+    let out = "";
+    let err = "";
+    let done = false;
+    const child = spawn(CLAUDE_BIN, args, { cwd: REPO_DIR, env: process.env });
+    const timer = setTimeout(() => {
+      if (!done) { try { child.kill("SIGTERM"); } catch {} }
+    }, FIX_TIMEOUT_MS);
+    child.stdout.on("data", (d) => { out += d.toString(); });
+    child.stderr.on("data", (d) => { err += d.toString(); });
+    child.on("error", (e) => {
+      done = true; clearTimeout(timer);
+      resolve(`❌ claude 실행 실패: ${e.message}`);
+    });
+    child.on("close", (code) => {
+      done = true; clearTimeout(timer);
+      const body = out.trim() || err.trim() || "(출력 없음)";
+      resolve(code === 0 ? body : `⚠️ claude 종료 code=${code}\n${body}`);
+    });
+  });
+}
+
 async function handleMessage(msg) {
   const chatId = msg.chat.id;
   const text = (msg.text || "").trim();
@@ -161,6 +214,7 @@ async function handleMessage(msg) {
       `🤖 AI 비서\n\n` +
         `자유롭게 대화하세요.\n\n` +
         `명령어:\n` +
+        `/fix <지시> — Claude Code 진단 (읽기전용, repo+DB 조회)\n` +
         `/reset — 대화 초기화\n` +
         `/model — 현재 모델 정보\n` +
         `/help — 이 안내\n\n` +
@@ -178,6 +232,25 @@ async function handleMessage(msg) {
   if (text === "/reset") {
     history.delete(chatId);
     await sendTelegram(chatId, "✓ 대화 초기화됨");
+    return;
+  }
+  if (text.startsWith("/fix") || text.startsWith("/진단")) {
+    const instruction = text.replace(/^\/(fix|진단)\s*/, "").trim();
+    if (!instruction) {
+      await sendTelegram(
+        chatId,
+        "사용법: /fix <진단할 내용>\n예) /fix /predictions/NHL 브라켓 왜 stale 인지 봐줘",
+      );
+      return;
+    }
+    console.log(`[fix ${chatId}] ${instruction.slice(0, 80)}`);
+    await sendTelegram(chatId, "🔍 Claude Code 진단 중… (읽기전용, 최대 5분)");
+    try {
+      const result = await runClaudeFix(instruction);
+      await sendTelegram(chatId, result);
+    } catch (e) {
+      await sendTelegram(chatId, `❌ 진단 실패: ${e.message}`);
+    }
     return;
   }
 
