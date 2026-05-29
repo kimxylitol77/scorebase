@@ -192,7 +192,7 @@ export default function BasketballCard(props: BasketballCardProps) {
         </div>
       </div>
 
-      {/* 컨텍스트 — LIVE 만, 큰 클럭 */}
+      {/* 컨텍스트 — LIVE 만. 클럭 있으면 쿼터+클럭, 없으면 라벨(하프타임/연장 등) */}
       {isLive && (
         <div
           className="rounded-lg px-3 py-3 text-center"
@@ -201,15 +201,23 @@ export default function BasketballCard(props: BasketballCardProps) {
             border: "1px solid rgba(255,255,255,.06)",
           }}
         >
-          <div className="text-[11px] text-neutral-500 mb-0.5">
-            {quarterText ?? "진행 중"}
-          </div>
-          <div
-            className="text-2xl font-black tabular-nums"
-            style={{ color: clock ? "#22c55e" : "#94a3b8" }}
-          >
-            {clock ?? "—"}
-          </div>
+          {clock ? (
+            <>
+              <div className="text-[11px] text-neutral-500 mb-0.5">
+                {quarterText ?? "진행 중"}
+              </div>
+              <div
+                className="text-2xl font-black tabular-nums"
+                style={{ color: "#22c55e" }}
+              >
+                {clock}
+              </div>
+            </>
+          ) : (
+            <div className="text-xl font-black" style={{ color: "#22c55e" }}>
+              {quarterText ?? liveStatusLabel ?? "진행 중"}
+            </div>
+          )}
         </div>
       )}
 

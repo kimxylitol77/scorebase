@@ -138,6 +138,45 @@ function iceHockeyLiveLabel(statusId: number): string | null {
   }
 }
 
+// basketball status_id → 진행 쿼터 라벨 (live statusLabel 이 없는 WNBA/KBL/WKBL +
+// BALLDONTLIE 가 period 0 으로 "LIVE" 만 주는 NBA 모두 cache 로 보강).
+// 코드표 (status-codes.ts): 2/4/6/8 = Q1~Q4 진행, 3/5/7 = 쿼터 사이 휴식, 9/13 = 연장, 11 = 중단.
+// remainingSec = detailLive.timer[3] = 현재 쿼터 잔여 초 (countdown, 2026-05-29 검증: 362→212).
+// in-play 는 "3Q 6:02" (영문 Q) — BasketballCard parseQuarter 가 "N쿼터"+클럭으로 렌더.
+// 휴식/연장/중단은 한국어 라벨 (parseQuarter 미매칭 → 카드가 라벨 그대로 표시).
+function basketballLiveLabel(
+  statusId: number,
+  remainingSec: number | null,
+): string | null {
+  const clock =
+    remainingSec != null && Number.isFinite(remainingSec) && remainingSec >= 0
+      ? `${Math.floor(remainingSec / 60)}:${String(remainingSec % 60).padStart(2, "0")}`
+      : null;
+  switch (statusId) {
+    case 2:
+      return clock ? `1Q ${clock}` : "1Q";
+    case 4:
+      return clock ? `2Q ${clock}` : "2Q";
+    case 6:
+      return clock ? `3Q ${clock}` : "3Q";
+    case 8:
+      return clock ? `4Q ${clock}` : "4Q";
+    case 3:
+      return "1쿼터 종료";
+    case 5:
+      return "하프타임";
+    case 7:
+      return "3쿼터 종료";
+    case 9:
+    case 13:
+      return clock ? `연장 ${clock}` : "연장";
+    case 11:
+      return "중단";
+    default:
+      return null;
+  }
+}
+
 function parseKstDate(s: string | undefined): Date {
   if (s && /^\d{4}-\d{2}-\d{2}$/.test(s)) {
     return new Date(`${s}T00:00:00+09:00`);
@@ -596,6 +635,9 @@ export default async function ScoresPage({ searchParams }: Props) {
   const hockeyStatusLabelByMatchId = new Map<number, string>();
   // 농구 (WNBA/KBL/WKBL) 쿼터 점수표 — NBA 는 ESPN periodMap 사용, 나머지는 ESPN 미지원이라 cache 에서 추출.
   const basketballPeriodByMatchId = new Map<number, PeriodLinescoreData>();
+  // 농구 진행 쿼터 라벨 ("3Q 6:02"/"하프타임") — cache status_id + timer 로 생성.
+  // NBA 포함 전 리그 (BDL "LIVE" / WNBA 등 라벨 부재 보강).
+  const basketballStatusLabelByMatchId = new Map<number, string>();
   const baseballCacheCtx = new Map<string, {
     bases: [boolean, boolean, boolean];
     outs: number | null;
@@ -636,12 +678,19 @@ export default async function ScoresPage({ searchParams }: Props) {
         m.status !== "SCHEDULED",
     )
     .map((m) => m.id);
+  // 진행 쿼터 라벨용 — NBA 포함 모든 농구 LIVE 매치 (period 표와 달리 NBA 도 cache 라벨 사용).
+  const basketballLabelMatchIds = matches
+    .filter(
+      (m) => BASKETBALL_LEAGUES.has(m.league) && m.status !== "SCHEDULED",
+    )
+    .map((m) => m.id);
   const cacheIds = Array.from(
     new Set([
       ...soccerMatchIds,
       ...baseballLiveDbIds,
       ...hockeyMatchIds,
       ...basketballMatchIds,
+      ...basketballLabelMatchIds,
     ]),
   );
 
@@ -654,6 +703,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     const baseballIdSet = new Set(baseballLiveDbIds);
     const hockeyIdSet = new Set(hockeyMatchIds);
     const basketballIdSet = new Set(basketballMatchIds);
+    const basketballLabelIdSet = new Set(basketballLabelMatchIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
       const dl = c.detailLive as
@@ -751,6 +801,20 @@ export default async function ScoresPage({ searchParams }: Props) {
               awayScore: sum(ap),
             });
           }
+        }
+      }
+      // 농구 진행 쿼터 라벨 (NBA 포함) — score[1]=status_id, timer[3]=쿼터 잔여초.
+      if (basketballLabelIdSet.has(c.matchId)) {
+        const bScore = dl.score as unknown[] | undefined;
+        const statusId = Array.isArray(bScore) ? Number(bScore[1]) : NaN;
+        const timerArr = (dl as { timer?: unknown[] }).timer;
+        const remaining = Array.isArray(timerArr) ? Number(timerArr[3]) : NaN;
+        if (Number.isFinite(statusId)) {
+          const label = basketballLiveLabel(
+            statusId,
+            Number.isFinite(remaining) ? remaining : null,
+          );
+          if (label) basketballStatusLabelByMatchId.set(c.matchId, label);
         }
       }
       // 야구 베이스/아웃 + 이닝/half + 이닝별 점수표 (linescore).
@@ -1012,10 +1076,12 @@ export default async function ScoresPage({ searchParams }: Props) {
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
       liveStatusLabel:
-        live?.statusLabel ??
-        (sport_ === "hockey"
-          ? hockeyStatusLabelByMatchId.get(m.id) ?? null
-          : null),
+        sport_ === "basketball"
+          ? basketballStatusLabelByMatchId.get(m.id) ?? live?.statusLabel ?? null
+          : live?.statusLabel ??
+            (sport_ === "hockey"
+              ? hockeyStatusLabelByMatchId.get(m.id) ?? null
+              : null),
       homeStarter: isBaseball
         ? localizeStarter(parseStarter(m.homeStarter), m.league)
         : null,
