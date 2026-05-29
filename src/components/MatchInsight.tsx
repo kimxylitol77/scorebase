@@ -94,6 +94,8 @@ interface Props {
   liveOddsContent?: ReactNode;
   /** 맞대결·최근 폼 카드 prop (탭 자동 추가) — 농구 BasketballH2HCard 등 풍부한 H2H */
   h2hRichContent?: ReactNode;
+  /** 선수 기록(박스스코어) 카드 prop (탭 자동 추가) — 농구 BasketballBoxScoreTab 등 */
+  playerBoxContent?: ReactNode;
 }
 
 /** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
@@ -147,6 +149,7 @@ export default async function MatchInsight({
   teamStatsContent,
   liveOddsContent,
   h2hRichContent,
+  playerBoxContent,
 }: Props) {
   const dbMatches = await prisma.match.findMany({
     where: { league: match.league },
@@ -796,6 +799,12 @@ export default async function MatchInsight({
           label: "맞대결·최근 폼",
           enabled: !!h2hRichContent,
           content: h2hRichContent ?? null,
+        },
+        {
+          key: "player-box",
+          label: "선수 기록",
+          enabled: !!playerBoxContent,
+          content: playerBoxContent ?? null,
         },
         {
           key: "predict",

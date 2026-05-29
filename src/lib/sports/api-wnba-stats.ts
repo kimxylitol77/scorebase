@@ -8,6 +8,7 @@
 
 import axios from "axios";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import type { BasketballPlayerBox } from "@/lib/sports/live-scores";
 
 const BASE = "https://v1.basketball.api-sports.io";
 
@@ -58,6 +59,39 @@ export interface WnbaGameStatsResult {
   awayStats: BasketballTeamStat[];
   homeLeaders: BasketballLeader[];
   awayLeaders: BasketballLeader[];
+  homePlayers: BasketballPlayerBox[];
+  awayPlayers: BasketballPlayerBox[];
+}
+
+/** PlayerStat → 공통 박스스코어 행. v1 엔 steals/blocks/oreb 미제공 → null. 득점순 정렬용 반환. */
+function toPlayerBox(p: PlayerStat): BasketballPlayerBox {
+  return {
+    name: toKoreanPlayerName(p.player.name),
+    starter: p.type === "starters",
+    min: p.minutes ?? "",
+    points: p.points ?? 0,
+    reb: p.rebounds?.total ?? 0,
+    oreb: null,
+    assists: p.assists ?? 0,
+    steals: null,
+    blocks: null,
+    fgm: p.field_goals?.total ?? 0,
+    fga: p.field_goals?.attempts ?? 0,
+    tpm: p.threepoint_goals?.total ?? 0,
+    tpa: p.threepoint_goals?.attempts ?? 0,
+    ftm: p.freethrows_goals?.total ?? 0,
+    fta: p.freethrows_goals?.attempts ?? 0,
+  };
+}
+
+/** 선발 먼저, 그다음 득점 내림차순 */
+function sortPlayers(players: PlayerStat[]): BasketballPlayerBox[] {
+  return players
+    .map(toPlayerBox)
+    .sort((a, b) => {
+      if (a.starter !== b.starter) return a.starter ? -1 : 1;
+      return b.points - a.points;
+    });
 }
 
 /** TeamStat → UI 표시 row 변환 */
@@ -147,6 +181,8 @@ export async function fetchWnbaGameStats(
       awayStats: awayTeam ? teamStatsToRows(awayTeam) : [],
       homeLeaders: teamLeaders(homePlayers),
       awayLeaders: teamLeaders(awayPlayers),
+      homePlayers: sortPlayers(homePlayers),
+      awayPlayers: sortPlayers(awayPlayers),
     };
   } catch (e) {
     console.warn("[wnba-stats] fetch failed:", (e as Error).message);

@@ -26,6 +26,7 @@ import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-mapping.json";
 import BasketballH2HCard from "@/components/scores/basketball/BasketballH2HCard";
 import BasketballLiveOddsTab from "@/components/live/BasketballLiveOddsTab";
+import BasketballBoxScoreTab from "@/components/live/BasketballBoxScoreTab";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
@@ -609,6 +610,18 @@ export default async function GenericLivePage({ params }: Props) {
                   : null
               }
               oddsHistory={oddsHistory}
+            />
+          ) : undefined
+        }
+        playerBoxContent={
+          lg === "NBA" || lg === "WNBA" ? (
+            <BasketballBoxScoreTab
+              gameId={gameId}
+              league={lg}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              homeNameEn={match.homeTeam.name}
+              awayNameEn={match.awayTeam.name}
             />
           ) : undefined
         }

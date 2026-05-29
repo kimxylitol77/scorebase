@@ -8,7 +8,8 @@
 // 캐시: gameId 5분, stats 30초 (1분 폴링)
 
 import axios from "axios";
-import type { MatchTeamStat } from "@/lib/sports/live-scores";
+import { toKoreanPlayerName } from "@/lib/player-names";
+import type { MatchTeamStat, BasketballPlayerBox } from "@/lib/sports/live-scores";
 
 const BASE = "https://v2.nba.api-sports.io";
 
@@ -61,6 +62,59 @@ interface TeamStatsRaw {
     pointsOffTurnovers: number | null;
     longestRun: number | null;
   }>;
+}
+
+// /players/statistics?game={id} — 선수별 boxscore (양팀 합쳐 20~30 rows)
+interface PlayerStatsRaw {
+  player: { id: number; firstname: string; lastname: string };
+  team: { id: number };
+  points: number;
+  pos: string | null;
+  min: string; // "28:17" 또는 "28"
+  fgm: number;
+  fga: number;
+  ftm: number;
+  fta: number;
+  tpm: number;
+  tpa: number;
+  offReb: number;
+  defReb: number;
+  totReb: number;
+  assists: number;
+  pFouls: number;
+  steals: number;
+  turnovers: number;
+  blocks: number;
+}
+
+/** PlayerStatsRaw → 공통 박스스코어 행. min 빈값/DNP 은 제외. */
+function toPlayerBox(p: PlayerStatsRaw): BasketballPlayerBox {
+  const fullName = `${p.player.firstname ?? ""} ${p.player.lastname ?? ""}`.trim();
+  return {
+    name: toKoreanPlayerName(fullName),
+    pos: p.pos || null,
+    min: p.min ?? "",
+    points: p.points ?? 0,
+    reb: p.totReb ?? 0,
+    oreb: p.offReb ?? null,
+    assists: p.assists ?? 0,
+    steals: p.steals ?? null,
+    blocks: p.blocks ?? null,
+    fgm: p.fgm ?? 0,
+    fga: p.fga ?? 0,
+    tpm: p.tpm ?? 0,
+    tpa: p.tpa ?? 0,
+    ftm: p.ftm ?? 0,
+    fta: p.fta ?? 0,
+  };
+}
+
+/** 출전 선수만 (min 있는 행), 득점 내림차순 */
+function sortPlayers(players: PlayerStatsRaw[]): BasketballPlayerBox[] {
+  return players
+    .filter((p) => p.min && p.min !== "0" && p.min !== "0:00")
+    .map(toPlayerBox)
+    .sort((a, b) => b.points - a.points);
 }
 
 // ───── gameId 캐시 ─────
@@ -133,6 +187,7 @@ interface StatsCacheEntry {
     homeTeamId: number;
     awayTeamId: number;
     stats: Record<number, MatchTeamStat[]>;
+    players: Record<number, BasketballPlayerBox[]>;
   } | null;
   at: number;
 }
@@ -197,15 +252,25 @@ export async function fetchNbaLiveStats(
   dateKst: string,
   awayName: string,
   homeName: string,
-): Promise<{ homeStats: MatchTeamStat[]; awayStats: MatchTeamStat[] } | null> {
+): Promise<{
+  homeStats: MatchTeamStat[];
+  awayStats: MatchTeamStat[];
+  homePlayers: BasketballPlayerBox[];
+  awayPlayers: BasketballPlayerBox[];
+} | null> {
   if (!awayName || !homeName) return null;
   const gameId = await resolveNbaGameId(dateKst, awayName, homeName);
   if (!gameId) return null;
   const cached = statsCache.get(gameId);
   if (cached && Date.now() - cached.at < STATS_TTL_MS) {
     if (!cached.payload) return null;
-    const { homeTeamId, awayTeamId, stats } = cached.payload;
-    return { homeStats: stats[homeTeamId] ?? [], awayStats: stats[awayTeamId] ?? [] };
+    const { homeTeamId, awayTeamId, stats, players } = cached.payload;
+    return {
+      homeStats: stats[homeTeamId] ?? [],
+      awayStats: stats[awayTeamId] ?? [],
+      homePlayers: players[homeTeamId] ?? [],
+      awayPlayers: players[awayTeamId] ?? [],
+    };
   }
   const c = client();
   if (!c) return null;
@@ -222,10 +287,11 @@ export async function fetchNbaLiveStats(
     const homeTeamId = game.teams.home.id;
     const awayTeamId = game.teams.visitors.id;
 
-    const { data: statsData } = await c.get("/games/statistics", {
-      params: { id: gameId },
-    });
-    const teams = (statsData?.response ?? []) as TeamStatsRaw[];
+    const [statsRes, playersRes] = await Promise.all([
+      c.get("/games/statistics", { params: { id: gameId } }),
+      c.get("/players/statistics", { params: { game: gameId } }),
+    ]);
+    const teams = (statsRes.data?.response ?? []) as TeamStatsRaw[];
     if (teams.length < 2) {
       statsCache.set(gameId, { payload: null, at: Date.now() });
       return null;
@@ -236,11 +302,20 @@ export async function fetchNbaLiveStats(
       if (!s) continue;
       stats[t.team.id] = buildStatsList(s);
     }
-    const payload = { homeTeamId, awayTeamId, stats };
+
+    const rawPlayers = (playersRes.data?.response ?? []) as PlayerStatsRaw[];
+    const players: Record<number, BasketballPlayerBox[]> = {
+      [homeTeamId]: sortPlayers(rawPlayers.filter((p) => p.team.id === homeTeamId)),
+      [awayTeamId]: sortPlayers(rawPlayers.filter((p) => p.team.id === awayTeamId)),
+    };
+
+    const payload = { homeTeamId, awayTeamId, stats, players };
     statsCache.set(gameId, { payload, at: Date.now() });
     return {
       homeStats: stats[homeTeamId] ?? [],
       awayStats: stats[awayTeamId] ?? [],
+      homePlayers: players[homeTeamId] ?? [],
+      awayPlayers: players[awayTeamId] ?? [],
     };
   } catch {
     statsCache.set(gameId, { payload: null, at: Date.now() });

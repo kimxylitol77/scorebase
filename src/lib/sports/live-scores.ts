@@ -576,6 +576,28 @@ export interface TeamLeader {
   displayValue: string;
 }
 
+/** 농구 선수별 박스스코어 한 행. NBA(api-nba v2) / WNBA(api-sports v1) 공통.
+    WNBA v1 응답엔 steals/blocks/oreb 가 없어 null 일 수 있음 → UI 에서 "-" 표시. */
+export interface BasketballPlayerBox {
+  name: string;
+  pos?: string | null;
+  starter?: boolean;
+  /** 출전 시간 — "28:17" 또는 "28" */
+  min: string;
+  points: number;
+  reb: number;
+  oreb?: number | null;
+  assists: number;
+  steals?: number | null;
+  blocks?: number | null;
+  fgm: number;
+  fga: number;
+  tpm: number;
+  tpa: number;
+  ftm: number;
+  fta: number;
+}
+
 export interface MatchSummary {
   homeStats: MatchTeamStat[];
   awayStats: MatchTeamStat[];
@@ -583,6 +605,9 @@ export interface MatchSummary {
   awayLeaders: TeamLeader[];
   /** ESPN winprobability — 마지막 100개 plays 까지 추출 */
   winProbabilityHome?: number[];
+  /** 농구 — 선수별 박스스코어 (NBA/WNBA). 미제공 시 undefined */
+  homePlayers?: BasketballPlayerBox[];
+  awayPlayers?: BasketballPlayerBox[];
 }
 
 interface EspnStatRaw {

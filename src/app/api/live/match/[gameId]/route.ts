@@ -201,6 +201,8 @@ export async function GET(
         homeLeaders: summary?.homeLeaders ?? [],
         awayLeaders: summary?.awayLeaders ?? [],
         winProbabilityHome: summary?.winProbabilityHome,
+        homePlayers: nbaStats.homePlayers,
+        awayPlayers: nbaStats.awayPlayers,
       };
     } else {
       out.summary = summary;
@@ -288,6 +290,8 @@ export async function GET(
           awayStats: stats.awayStats,
           homeLeaders: stats.homeLeaders,
           awayLeaders: stats.awayLeaders,
+          homePlayers: stats.homePlayers,
+          awayPlayers: stats.awayPlayers,
         };
       }
     }
