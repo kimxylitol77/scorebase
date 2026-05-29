@@ -79,7 +79,7 @@ function Logo({ url, name }: { url?: string | null; name: string }) {
           alt=""
           width={48}
           height={48}
-          className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+          className="w-10 h-10 sm:w-12 sm:h-12 object-contain bg-white rounded-md p-0.5"
         />
       );
     }
@@ -88,7 +88,7 @@ function Logo({ url, name }: { url?: string | null; name: string }) {
       <img
         src={url}
         alt=""
-        className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+        className="w-10 h-10 sm:w-12 sm:h-12 object-contain bg-white rounded-md p-0.5"
         loading="lazy"
       />
     );

@@ -33,7 +33,7 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
       <img
         src={url}
         alt=""
-        className="w-4 h-4 object-contain shrink-0"
+        className="w-4 h-4 object-contain shrink-0 bg-white rounded-sm p-0.5"
         loading="lazy"
       />
     );

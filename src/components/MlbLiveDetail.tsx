@@ -18,7 +18,7 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
       <img
         src={url}
         alt=""
-        className="w-12 h-12 sm:w-14 sm:h-14 object-contain mx-auto mb-1"
+        className="w-12 h-12 sm:w-14 sm:h-14 object-contain mx-auto mb-1 bg-white rounded-lg p-1"
         loading="lazy"
       />
     );
