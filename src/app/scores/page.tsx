@@ -654,13 +654,14 @@ export default async function ScoresPage({ searchParams }: Props) {
   const soccerMatchIds = needsSoccerGoals
     ? matches.filter((m) => SOCCER_LEAGUES.has(m.league)).map((m) => m.id)
     : [];
-  // KBO/NPB/MLB + CPBL/LMB (2026-05-27 추가). cache.detailLive 의 bases/outs/inning
-  // 카드에 표시. 이전엔 CPBL/LMB cache 조회 skip 으로 "주자 정보 없음" 표시 사고.
+  // KBO/NPB/MLB + CPBL/LMB. cache.detailLive 의 bases/outs/inning(LIVE) +
+  // 이닝별 점수표(LIVE/종료) 추출. CPBL/LMB 는 api-baseball 매핑이 없어 종료 경기
+  // 이닝표가 TheSports cache 가 유일 소스 → SCHEDULED 만 제외(이닝 없음).
   const baseballLiveDbIds = matches
     .filter(
       (m) =>
         ["KBO", "NPB", "MLB", "CPBL", "LMB"].includes(m.league) &&
-        m.status !== "FINISHED",
+        m.status !== "SCHEDULED",
     )
     .map((m) => m.id);
   // 하키 (NHL/IIHF_WC) — IIHF_WC 는 ESPN periodMap 에 없어 cache.score 에서 피리어드 추출.
