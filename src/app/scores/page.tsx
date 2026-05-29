@@ -1002,11 +1002,13 @@ export default async function ScoresPage({ searchParams }: Props) {
       : 4 * 3600 * 1000; // baseball (12회 연장 가능) 기본
     const staleLive =
       !live && m.status === "LIVE" && elapsedMs > staleThresholdMs;
-    // staleScheduled 위장 금지 (2026-05-29 — TheSports 1순위 원칙 + 검증없는 연기주장 금지).
-    // 예전엔 "SCHEDULED 인데 시작시각만 지나면 POSTPONED 로 표시"했는데, 이게 실제로는
-    // 예정/진행 예정 경기(예: NHL 플레이오프 다음 경기 — startTime 이 약간 어긋남)를
-    // 거짓 "연기"로 오표시했음 (VGK@COL 사고). 검증 안 된 연기 주장 금지 → SCHEDULED 유지.
-    // 진짜 stale 은 cleanup-stale-scheduled cron 이 외부 verify 후 DB status 를 정정한다.
+    // staleScheduled — DB.status=SCHEDULED 인데 시작 + 임계 지났고 라이브 데이터도 없음.
+    // = 안 열리는 유령 경기(플레이오프 if-necessary, 시리즈 이미 종료 등) 또는 cron 갱신 누락.
+    // 거짓 "연기"(POSTPONED)/"예정"으로 노출하지 않고 /scores 에서 hidden 처리.
+    // 진짜 경기면 cleanup-stale-scheduled cron 이 외부 verify 후 FINISHED/POSTPONED 정정 → 그때 노출.
+    // (2026-05-29 VGK@COL: VGK 4-0 스윕으로 안 열리는 if-necessary 경기가 예정/연기로 오표시)
+    const staleScheduled =
+      !live && m.status === "SCHEDULED" && elapsedMs > staleThresholdMs;
     const effStatus = live
       ? "LIVE"
       : staleLive
@@ -1055,6 +1057,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       sport: sport_,
       league: m.league,
       status: effStatus as "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED",
+      hidden: staleScheduled, // 유령/stale SCHEDULED → /scores 표시에서 제외
       home: {
         name: toKoreanTeamName(m.homeTeam.name, m.league),
         abbr: m.homeTeam.shortName,
@@ -1249,7 +1252,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   // normalizedAll = 모든 종목 매치 (FavoriteMatches 용 — sport tab 무관 fav 표시).
   // normalized = 현재 sport 의 리그만 — 메인 그리드 / 상태 섹션 / 헤더 카운트 용.
   const sportLeagueSet = new Set(leaguesForSport(sport));
-  const normalized = normalizedAll.filter((m) => sportLeagueSet.has(m.league));
+  const normalized = normalizedAll.filter((m) => sportLeagueSet.has(m.league) && !m.hidden);
 
   // 상태 그룹화 — sport 별 filtered 기반
   const liveList = normalized.filter((m) => m.status === "LIVE");
