@@ -1226,7 +1226,9 @@ export default async function ScoresPage({ searchParams }: Props) {
       href,
       doubleHeader: null as { index: number; total: number } | null,
     };
-  });
+  })
+    // 유령/stale SCHEDULED 는 favorites·doubleheader·데이터 payload 등 모든 소비에서 제외.
+    .filter((m) => !m.hidden);
 
   // 더블헤더 감지 — 같은 league + 두 팀 페어 + 같은 KST 일자에 2경기 이상.
   // 시작 시간 순서로 1, 2 번호 부여. MLB 정규 더블헤더 + KBO/NPB 가능성 모두 대응.
