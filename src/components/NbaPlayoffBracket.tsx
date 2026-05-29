@@ -37,7 +37,7 @@ export default function NbaPlayoffBracket({ series, league = "NBA" }: Props) {
           <h3 className="font-bold text-sm sm:text-base">{title}</h3>
         </div>
         <span className="text-[10px] sm:text-[11px] text-neutral-500">
-          BO7 · ESPN 실시간
+          BO7 · 실시간
         </span>
       </header>
 
@@ -197,7 +197,8 @@ function GameRow({
   const team1IsHome = game.homeTeamId === team1Id;
   const homeShort = team1IsHome ? team1Short : team2Short;
   const awayShort = team1IsHome ? team2Short : team1Short;
-  const kst = new Date(game.date.getTime() + 9 * 3600 * 1000);
+  // unstable_cache 직렬화로 Date 가 문자열이 될 수 있어 재파싱 (NHL=Date, NBA 캐시=string).
+  const kst = new Date(new Date(game.date).getTime() + 9 * 3600 * 1000);
   const dateLabel = `${String(kst.getUTCMonth() + 1).padStart(2, "0")}.${String(kst.getUTCDate()).padStart(2, "0")}`;
   return (
     <div className="flex items-center justify-between text-[11px] tabular-nums text-neutral-600 dark:text-neutral-300">

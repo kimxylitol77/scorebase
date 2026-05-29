@@ -16,6 +16,7 @@ import { buildUclBracket } from "@/lib/predict/ucl-bracket";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
+import { getTsNbaPlayoffBracket } from "@/lib/predict/ts-nba-playoff";
 import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -468,7 +469,16 @@ export default async function LeaguePredictions({ params }: Props) {
       include: { homeTeam: true, awayTeam: true },
       orderBy: { startTime: "asc" },
     });
-    playoffBracket = getNbaPlayoffBracket(recentMatches);
+    if (isNba) {
+      // NBA 는 TheSports 가 stage(라운드) 메타데이터를 제공 — api-sports 수집엔 없음.
+      playoffBracket = await getTsNbaPlayoffBracket();
+      if (playoffBracket.length === 0) {
+        playoffBracket = getNbaPlayoffBracket(recentMatches); // ESPN raw fallback
+      }
+    } else {
+      // NHL — ESPN raw 의 series.type='playoff'
+      playoffBracket = getNbaPlayoffBracket(recentMatches);
+    }
     // 플레이오프 우승 시뮬레이션 — 진행 중 시리즈 잔여 + 미시작 라운드 5000회 Monte Carlo
     if (playoffBracket.length > 0 && !isWorldCup) {
       const eloMap: Record<number, number> = {};
