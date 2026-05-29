@@ -12326,5 +12326,176 @@
     "tsName": "Democratic Republic of the Congo",
     "tsKo": "콩고민주공화국",
     "matchType": "cross-ref"
+  },
+  {
+    "ourId": 115460,
+    "ourName": "Real Sociedad II",
+    "ourLeague": "LALIGA_2",
+    "ourExternalId": "9585",
+    "tsId": "318q66hoov2qo9j",
+    "tsName": "Real Sociedad B",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 115471,
+    "ourName": "Valladolid",
+    "ourLeague": "LALIGA_2",
+    "ourExternalId": "720",
+    "tsId": "gx7lm7phdywm2wd",
+    "tsName": "Real Valladolid CF",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 118680,
+    "ourName": "Zaragoza",
+    "ourLeague": "LALIGA_2",
+    "ourExternalId": "732",
+    "tsId": "gx7lm7phepym2wd",
+    "tsName": "Real Zaragoza",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 118689,
+    "ourName": "Huesca",
+    "ourLeague": "LALIGA_2",
+    "ourExternalId": "726",
+    "tsId": "1l4rjnh6z3gm7vx",
+    "tsName": "SD Huesca",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600094,
+    "ourName": "Ulytau",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "21010",
+    "tsId": "dj2ryohn4jgq1zp",
+    "tsName": "Ulytau Zhezkazgan",
+    "matchType": "substr"
+  },
+  {
+    "ourId": 600092,
+    "ourName": "Kaspiy",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4552",
+    "tsId": "vjxm8gh4yzyr6od",
+    "tsName": "FK Kaspyi Aktau",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 600083,
+    "ourName": "Okzhetpes",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4558",
+    "tsId": "zp5rzghjwl9q82w",
+    "tsName": "Okzhetpes",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600097,
+    "ourName": "FC Astana",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "562",
+    "tsId": "gy0or5jhpnjqwzv",
+    "tsName": "FC Astana",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600090,
+    "ourName": "Irtysh",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4565",
+    "tsId": "n54qllh2zowqvy9",
+    "tsName": "Irtysh Pavlodar",
+    "matchType": "substr"
+  },
+  {
+    "ourId": 600084,
+    "ourName": "Yelimay Semey",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "21011",
+    "tsId": "l5ergphnyvor8k0",
+    "tsName": "FK Yelimay Semey",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600091,
+    "ourName": "Kyzyl-Zhar",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4554",
+    "tsId": "23xmvkh30nzqg8n",
+    "tsName": "Kyzylzhar Petropavlovsk",
+    "matchType": "substr"
+  },
+  {
+    "ourId": 600085,
+    "ourName": "Altay",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4544",
+    "tsId": "l5ergph3l42r8k0",
+    "tsName": "Altay FK",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600096,
+    "ourName": "Zhenys",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "16611",
+    "tsId": "6ypq3nhl012md7o",
+    "tsName": "Zhenis Astana",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 600087,
+    "ourName": "Aktobe",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4563",
+    "tsId": "zp5rzghj798q82w",
+    "tsName": "FK Aktobe Lento",
+    "matchType": "substr"
+  },
+  {
+    "ourId": 600093,
+    "ourName": "Atyrau",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4564",
+    "tsId": "4wyrn4h8901q86p",
+    "tsName": "FK Atyrau",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600095,
+    "ourName": "Kaisar",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4562",
+    "tsId": "vjxm8gh4l8vr6od",
+    "tsName": "Kaisar Kyzylorda",
+    "matchType": "substr"
+  },
+  {
+    "ourId": 600088,
+    "ourName": "FK Tobol Kostanay",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "2259",
+    "tsId": "d23xmvkhj2wqg8n",
+    "tsName": "Tobol Kostanai",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 600089,
+    "ourName": "Ordabasy",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "692",
+    "tsId": "4jwq2gh4pvjm0ve",
+    "tsName": "Ordabasy",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600098,
+    "ourName": "Zhetysu",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "4560",
+    "tsId": "n54qllh2dd2qvy9",
+    "tsName": "FC Zhetysu Taldykorgan",
+    "matchType": "substr"
   }
 ]
