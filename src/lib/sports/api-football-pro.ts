@@ -172,7 +172,8 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   ALGERIA_L1: 186, // 알제리 리그 프로페시오넬 1 (8~5월)
   SVENSKA_CUPEN: 109, // 스벤스카 컵 (스웨덴 컵, 2~6월) — 달력연도
   GHANA_PL: 240, // 가나 프리미어리그 (9~5월)
-  ARG_PRIMERA_NACIONAL: 131, // 아르헨티나 프리메라 나시오날 (2부, 달력연도)
+  // ARG_PRIMERA_NACIONAL 제거 — api-football 131 은 실제 Primera B Metropolitana(3부) 오매핑.
+  // 진짜 2부는 TheSports(9vjxm8ghonr6odg)로 수집 (2026-05-29).
 };
 
 interface CacheEntry<T> {

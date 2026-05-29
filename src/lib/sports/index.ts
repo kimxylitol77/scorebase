@@ -203,7 +203,9 @@ export const collectors: Record<League, MatchCollector> = {
   ALGERIA_L1: buildApiFootballCollector("ALGERIA_L1"),
   SVENSKA_CUPEN: buildApiFootballCollector("SVENSKA_CUPEN"),
   GHANA_PL: buildApiFootballCollector("GHANA_PL"),
-  ARG_PRIMERA_NACIONAL: buildApiFootballCollector("ARG_PRIMERA_NACIONAL"),
+  // ARG_PRIMERA_NACIONAL: TheSports worker 수집 (api-football id 131 은 실제 Primera B
+  // Metropolitana(3부) 오매핑이라 제외). Vercel collect no-op — worker 가 ts 매치 push.
+  ARG_PRIMERA_NACIONAL: { league: "ARG_PRIMERA_NACIONAL", async fetchByDate() { return []; } },
 };
 
 // externalId 가 api-football fixture id 인 리그 집합 (= buildApiFootballCollector 등록 리그).
