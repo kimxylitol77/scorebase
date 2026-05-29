@@ -37,7 +37,9 @@ export async function buildPlayerNameMap(
     });
     const map: Record<string, string> = {};
     for (const r of rows) {
-      map[r.id] = r.nameKo ?? r.shortName ?? r.name;
+      // || (not ??) — shortName 이 "" (빈문자열) 인 선수(예: Tima)가 ?? 로 빈칸 표시되던 버그.
+      // 빈 값은 건너뛰고 nameKo → shortName → name 순으로 첫 non-empty 사용.
+      map[r.id] = r.nameKo || r.shortName || r.name;
     }
     return map;
   } catch {
