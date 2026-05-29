@@ -30,6 +30,10 @@
     { "path": "/api/cron/baseball-starters", "schedule": "0 8 * * *" },
     { "path": "/api/cron/league-leaders", "schedule": "0 20 * * *" },
     { "path": "/api/cron/health-check", "schedule": "30 21 * * *" },
-    { "path": "/api/cron/bot-heartbeat-check", "schedule": "*/10 * * * *" }
+    { "path": "/api/cron/bot-heartbeat-check", "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/preview", "schedule": "30 22 * * *" },
+    { "path": "/api/cron/preview", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/preview", "schedule": "30 8 * * *" },
+    { "path": "/api/cron/preview", "schedule": "0 14 * * *" }
   ]
 }
