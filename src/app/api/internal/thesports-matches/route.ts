@@ -62,6 +62,10 @@ interface MatchPayload {
   status: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
   homeScore?: number;
   awayScore?: number;
+  // 플레이오프 라운드 라벨 (NBA — TheSports stage). 브라켓 그룹화용.
+  playoffRound?: string;
+  playoffConference?: string | null;
+  playoffStageId?: string;
 }
 interface Body {
   sport: "football" | "baseball" | "ice_hockey" | "basketball";
@@ -312,7 +316,10 @@ export async function POST(req: NextRequest) {
             const RANK = { SCHEDULED: 0, LIVE: 1, FINISHED: 2, POSTPONED: 2 } as const;
             const cur = await prisma.match.findUnique({
               where: { id: existingNonTs.id },
-              select: { status: true, homeScore: true, awayScore: true },
+              select: {
+                status: true, homeScore: true, awayScore: true,
+                playoffRound: true, playoffConference: true, playoffStageId: true,
+              },
             });
             if (cur) {
               const upd: Record<string, unknown> = {};
@@ -321,6 +328,10 @@ export async function POST(req: NextRequest) {
               if (allow && m.status !== cur.status) upd.status = m.status;
               if (typeof m.homeScore === "number" && m.homeScore !== cur.homeScore) upd.homeScore = m.homeScore;
               if (typeof m.awayScore === "number" && m.awayScore !== cur.awayScore) upd.awayScore = m.awayScore;
+              // 플레이오프 라벨 — NBA 매치는 api-sports owner 라 dedup 경로로 흐름. 여기서 라벨 부착.
+              if (m.playoffRound && m.playoffRound !== cur.playoffRound) upd.playoffRound = m.playoffRound;
+              if (m.playoffConference !== undefined && m.playoffConference !== cur.playoffConference) upd.playoffConference = m.playoffConference;
+              if (m.playoffStageId && m.playoffStageId !== cur.playoffStageId) upd.playoffStageId = m.playoffStageId;
               if (Object.keys(upd).length) await prisma.match.update({ where: { id: existingNonTs.id }, data: upd });
             }
           }
@@ -355,6 +366,9 @@ export async function POST(req: NextRequest) {
       if (allowStatus) updateData.status = m.status;
       if (typeof m.homeScore === "number") updateData.homeScore = m.homeScore;
       if (typeof m.awayScore === "number") updateData.awayScore = m.awayScore;
+      if (m.playoffRound) updateData.playoffRound = m.playoffRound;
+      if (m.playoffConference !== undefined) updateData.playoffConference = m.playoffConference;
+      if (m.playoffStageId) updateData.playoffStageId = m.playoffStageId;
 
       await prisma.match.upsert({
         where: { league_externalId: { league: m.league, externalId } },
@@ -368,6 +382,9 @@ export async function POST(req: NextRequest) {
           awayScore: m.awayScore ?? null,
           status: m.status,
           startTime: new Date(m.startTime),
+          playoffRound: m.playoffRound ?? null,
+          playoffConference: m.playoffConference ?? null,
+          playoffStageId: m.playoffStageId ?? null,
         },
       });
       upserted++;

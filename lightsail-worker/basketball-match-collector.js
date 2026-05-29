@@ -16,6 +16,14 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 const POLL_INTERVAL_MS = 30 * 60 * 1000;
 const SWEEP_DAYS = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
 
+// --backfill=N → 일회성 광역 sweep ([-N .. +5]). 플레이오프 과거 라운드 라벨 채우기용.
+const backfillArg = process.argv.slice(2).find((a) => a.startsWith("--backfill="));
+const BACKFILL_DAYS = backfillArg ? parseInt(backfillArg.split("=")[1], 10) : 0;
+const SWEEP =
+  BACKFILL_DAYS > 0
+    ? Array.from({ length: BACKFILL_DAYS + 6 }, (_, i) => i - BACKFILL_DAYS)
+    : SWEEP_DAYS;
+
 if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN missing"); process.exit(1); }
 
@@ -38,6 +46,40 @@ function mapStatus(id) {
   if (BB_LIVE.has(id)) return "LIVE";
   if (id === 12) return "POSTPONED";
   return "SCHEDULED"; // 0/1/15 + 미지
+}
+
+// TheSports stage 이름 → 우리 라운드/컨퍼런스. src/lib/predict/ts-nba-playoff.ts stageToRound 와 단일 진실.
+// NBA Cup(시즌 중 토너먼트)은 제외.
+function stageToRound(name) {
+  const h = String(name || "").trim().toLowerCase();
+  if (/nba cup|cup /.test(h)) return null;
+  let round = null;
+  if (/1st round|first round/.test(h)) round = "FIRST_ROUND";
+  else if (/semifinals|semi-finals/.test(h)) round = "CONF_SEMIS";
+  else if (/^(east|west)\s+finals/.test(h)) round = "CONF_FINALS";
+  else if (/^finals$/.test(h)) round = "FINALS";
+  if (!round) return null;
+  let conference = null;
+  if (round !== "FINALS") {
+    if (/east/.test(h)) conference = "EAST";
+    else if (/west/.test(h)) conference = "WEST";
+  }
+  return { round, conference };
+}
+
+// stage/list → stage_id → {round, conference} (플레이오프 stage 만). 시즌 무관 — stage_id 가 유니크.
+async function fetchStageInfo() {
+  const { data } = await axios.get(`${TS_BASE}/v1/basketball/stage/list`, {
+    params: { user: TS_USER, secret: TS_SECRET },
+    timeout: 30_000,
+  });
+  const map = new Map();
+  for (const s of Array.isArray(data.results) ? data.results : []) {
+    if (!s || !s.id) continue;
+    const info = stageToRound(s.name);
+    if (info) map.set(s.id, info);
+  }
+  return map;
 }
 
 // diary match: home_scores/away_scores = [q1,q2,q3,q4,ot] — 합이 최종 점수.
@@ -77,11 +119,16 @@ async function poll() {
   try { teamMap = JSON.parse(fs.readFileSync(TEAM_MAP_FILE, "utf-8")); }
   catch (e) { console.error(`[${ts}] ❌ team map load fail: ${e.message}`); return; }
   const tsIdSet = new Set(teamMap.map((t) => t.tsId));
-  console.log(`[${ts}] 🏀 basketball-match-collector start — ${tsIdSet.size} mapped teams`);
+  console.log(`[${ts}] 🏀 basketball-match-collector start — ${tsIdSet.size} mapped teams (sweep=${SWEEP.length}d)`);
+
+  // 플레이오프 stage 라벨 (NBA 브라켓용). 실패해도 매치 수집은 계속.
+  let stageInfo = new Map();
+  try { stageInfo = await fetchStageInfo(); }
+  catch (e) { console.error(`    ✗ stage/list: ${e.message}`); }
 
   const seen = new Set();
   const batch = [];
-  for (const offset of SWEEP_DAYS) {
+  for (const offset of SWEEP) {
     let raw;
     try { raw = await fetchDiary(ymdUTC(offset)); }
     catch (e) { console.error(`    ✗ diary offset=${offset}: ${e.message}`); continue; }
@@ -99,6 +146,16 @@ async function poll() {
         hs = sumScore(m.home_scores);
         as = sumScore(m.away_scores);
       }
+      // 플레이오프 라벨 — NBA 만. 매치의 stage_id 가 플레이오프 stage 면 라운드/컨퍼런스 부착.
+      let playoffRound, playoffConference, playoffStageId;
+      if (league === "NBA" && m.round && m.round.stage_id) {
+        const info = stageInfo.get(m.round.stage_id);
+        if (info) {
+          playoffRound = info.round;
+          playoffConference = info.conference; // null 가능 (FINALS)
+          playoffStageId = m.round.stage_id;
+        }
+      }
       batch.push({
         league,
         tsMatchId: m.id,
@@ -108,10 +165,14 @@ async function poll() {
         status,
         homeScore: hs,
         awayScore: as,
+        playoffRound,
+        playoffConference,
+        playoffStageId,
       });
     }
   }
-  console.log(`    수집 ${batch.length}건`);
+  const labeled = batch.filter((b) => b.playoffRound).length;
+  console.log(`    수집 ${batch.length}건 (플레이오프 라벨 ${labeled}건)`);
 
   const CHUNK = 100;
   let totalUp = 0, totalSkip = 0;
@@ -122,6 +183,13 @@ async function poll() {
   console.log(`    summary: upserted=${totalUp} skippedNoTeam=${totalSkip}`);
 }
 
-console.log(`🚀 basketball-match-collector started (interval=${POLL_INTERVAL_MS / 1000}s, site=${SITE_URL})`);
-poll();
-setInterval(poll, POLL_INTERVAL_MS);
+if (BACKFILL_DAYS > 0) {
+  console.log(`🔁 일회성 backfill sweep — ${BACKFILL_DAYS}일 back (site=${SITE_URL})`);
+  poll()
+    .then(() => process.exit(0))
+    .catch((e) => { console.error(e.message); process.exit(1); });
+} else {
+  console.log(`🚀 basketball-match-collector started (interval=${POLL_INTERVAL_MS / 1000}s, site=${SITE_URL})`);
+  poll();
+  setInterval(poll, POLL_INTERVAL_MS);
+}

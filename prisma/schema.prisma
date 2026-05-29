@@ -164,6 +164,12 @@ model Match {
   awayGoalie         String?
   goaliesUpdatedAt   DateTime?
 
+  // 플레이오프 라운드 메타 (NBA — TheSports stage 라벨). 브라켓 그룹화 키.
+  // round: FIRST_ROUND | CONF_SEMIS | CONF_FINALS | FINALS, conference: EAST | WEST | null
+  playoffRound       String?
+  playoffConference  String?
+  playoffStageId     String?  // TheSports stage_id (시리즈 그룹 안정 키)
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]
