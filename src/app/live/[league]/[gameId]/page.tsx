@@ -23,6 +23,8 @@ import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard"
 import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
+import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-mapping.json";
+import BasketballH2HCard from "@/components/scores/basketball/BasketballH2HCard";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
@@ -77,6 +79,20 @@ const TEAM_ID_MAP: Map<number, string> = new Map(
 );
 function tsTeamId(ourTeamId: number): string | null {
   return TEAM_ID_MAP.get(ourTeamId) ?? null;
+}
+
+// 농구 우리 Team.id → TheSports team_id (별도 매핑 — 농구는 단일 id system)
+const BASKETBALL_TEAM_ID_MAP: Map<number, string> = new Map(
+  (basketballTeamIdMapping as Array<{ ourId: number; tsId: string }>).map((t) => [t.ourId, t.tsId]),
+);
+// 농구 TheSports team_id → 한국어 팀명 (H2H 상대팀 해석용)
+const BASKETBALL_TS_ID_TO_NAME: Record<string, string> = Object.fromEntries(
+  (basketballTeamIdMapping as Array<{ tsId: string; ourName: string; ourLeague: string }>).map(
+    (t) => [t.tsId, toKoreanTeamName(t.ourName, t.ourLeague)],
+  ),
+);
+function basketballTsTeamId(ourTeamId: number): string | null {
+  return BASKETBALL_TEAM_ID_MAP.get(ourTeamId) ?? null;
 }
 
 interface Props {
@@ -511,6 +527,25 @@ export default async function GenericLivePage({ params }: Props) {
               />
             )}
           </>
+        );
+      })()}
+
+      {/* 농구 H2H + 양 팀 최근 폼 (TheSports analysis.history) */}
+      {BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.analysis != null && (() => {
+        const analysis = match.theSportsCache.analysis as {
+          history?: { vs?: unknown[]; home?: unknown[]; away?: unknown[] };
+        } | null;
+        const history = analysis?.history ?? null;
+        if (!history) return null;
+        return (
+          <BasketballH2HCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            homeTsTeamId={basketballTsTeamId(match.homeTeam.id)}
+            awayTsTeamId={basketballTsTeamId(match.awayTeam.id)}
+            history={history}
+            tsIdToName={BASKETBALL_TS_ID_TO_NAME}
+          />
         );
       })()}
 

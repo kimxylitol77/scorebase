@@ -37,6 +37,18 @@ async function fetchTsDetailLive() {
   return Array.isArray(data.results) ? data.results : [];
 }
 
+// H2H + 양 팀 최근경기 (history.vs/home/away) + 미래 일정. 느리게 변함 → 매치당 10분 throttle.
+async function fetchTsAnalysis(tsMatchId) {
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/basketball/match/analysis`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid: tsMatchId }, timeout: 30_000,
+    });
+    return data.code === 0 ? (data.results || null) : null;
+  } catch { return null; }
+}
+const ANALYSIS_TTL_MS = 10 * 60_000;
+const lastAnalysisAt = new Map(); // tsMatchId → epoch ms
+
 // detail_live entry.score = [id, statusId, ?, [q1,q2,q3,q4,ot]home, [q1,q2,q3,q4,ot]away]
 // 최종 점수 = 각 쿼터배열 합. id system 일치 → swap 없음.
 function sumArr(a) { if (!Array.isArray(a)) return null; let s=0; for (const v of a){ const n=parseInt(String(v),10); if(Number.isFinite(n)) s+=n; } return s; }
@@ -48,9 +60,10 @@ function extractScore(entry) {
   return { homeScore: h, awayScore: a };
 }
 
-async function postCache(matchId, tsMatchId, detailLive, scoreObj) {
+async function postCache(matchId, tsMatchId, detailLive, scoreObj, extra) {
   const body = { matchId, tsMatchId, detailLive };
   if (scoreObj) { body.homeScore = scoreObj.homeScore; body.awayScore = scoreObj.awayScore; }
+  if (extra) Object.assign(body, extra);
   await axios.post(`${SITE_URL}/api/internal/thesports-cache`, body, {
     headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 30_000,
   });
@@ -76,7 +89,19 @@ async function poll() {
     try { await postCache(matchId, entry.id, entry, extractScore(entry)); pushed++; }
     catch (e) { console.error(`    ✗ cache POST id=${entry.id}: ${e.message}`); }
   }
-  console.log(`[${ts}] 🏀 our=${ourMatches.length} live=${live.length} pushed=${pushed}`);
+
+  // analysis (H2H + 양 팀 최근경기) — live 뿐 아니라 예정 매치도 대상. 매치당 10분 throttle.
+  let analysisPushed = 0;
+  const now = Date.now();
+  for (const m of ourMatches) {
+    if (!m.tsMatchId || now - (lastAnalysisAt.get(m.tsMatchId) || 0) <= ANALYSIS_TTL_MS) continue;
+    lastAnalysisAt.set(m.tsMatchId, now);
+    const analysis = await fetchTsAnalysis(m.tsMatchId);
+    if (!analysis) continue;
+    try { await postCache(m.matchId, m.tsMatchId, undefined, undefined, { analysis }); analysisPushed++; }
+    catch (e) { console.error(`    ✗ analysis POST id=${m.tsMatchId}: ${e.message}`); }
+  }
+  console.log(`[${ts}] 🏀 our=${ourMatches.length} live=${live.length} pushed=${pushed} analysis=${analysisPushed}`);
 }
 
 async function main() {
