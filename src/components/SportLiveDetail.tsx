@@ -251,6 +251,10 @@ export default function SportLiveDetail({
   // statusLabel 표시용 (회/말이 아니라 쿼터/피리어드/하프)
   const contextLabel = isLive ? live?.statusLabel : null;
 
+  // 농구는 라이브 배당 + 팀 stats 비교를 MatchInsight 탭으로 일원화 (2026-05-29) →
+  // 여기서는 중복 렌더 안 함.
+  const isBasketball = league === "NBA" || league === "WNBA";
+
   // 종목별 LIVE 카드 클래스 (border glow 색)
   const liveCardClass =
     league === "NBA" || league === "WNBA"
@@ -367,8 +371,8 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 라이브 배당 (The Odds API 1분 갱신) */}
-      {live?.liveOdds && (
+      {/* 라이브 배당 (The Odds API 1분 갱신) — 농구는 MatchInsight 탭으로 이동 */}
+      {!isBasketball && live?.liveOdds && (
         <LiveOddsCard
           odds={live.liveOdds}
           homeNameKo={homeNameKo}
@@ -414,8 +418,8 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 팀 stats 비교 */}
-      {live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
+      {/* 팀 stats 비교 — 농구는 MatchInsight "팀 통계" 탭(TheSports)으로 일원화 */}
+      {!isBasketball && live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
         <TeamStatCompare
           summary={live.summary}
           homeNameKo={homeNameKo}

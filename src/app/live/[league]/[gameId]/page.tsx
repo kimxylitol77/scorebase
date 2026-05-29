@@ -25,6 +25,7 @@ import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-mapping.json";
 import BasketballH2HCard from "@/components/scores/basketball/BasketballH2HCard";
+import BasketballLiveOddsTab from "@/components/live/BasketballLiveOddsTab";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
@@ -530,25 +531,6 @@ export default async function GenericLivePage({ params }: Props) {
         );
       })()}
 
-      {/* 농구 H2H + 양 팀 최근 폼 (TheSports analysis.history) */}
-      {BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.analysis != null && (() => {
-        const analysis = match.theSportsCache.analysis as {
-          history?: { vs?: unknown[]; home?: unknown[]; away?: unknown[] };
-        } | null;
-        const history = analysis?.history ?? null;
-        if (!history) return null;
-        return (
-          <BasketballH2HCard
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-            homeTsTeamId={basketballTsTeamId(match.homeTeam.id)}
-            awayTsTeamId={basketballTsTeamId(match.awayTeam.id)}
-            history={history}
-            tsIdToName={BASKETBALL_TS_ID_TO_NAME}
-          />
-        );
-      })()}
-
       {lg === "NHL" && (homeGoalie || awayGoalie) && (
         <NhlGoalieInsight
           homeGoalie={homeGoalie}
@@ -592,6 +574,42 @@ export default async function GenericLivePage({ params }: Props) {
                 />
               );
             })()
+          ) : undefined
+        }
+        h2hRichContent={
+          BASKETBALL_LEAGUES.has(lg) &&
+          (() => {
+            const analysis = match.theSportsCache?.analysis as {
+              history?: { vs?: unknown[]; home?: unknown[]; away?: unknown[] };
+            } | null;
+            const history = analysis?.history ?? null;
+            if (!history) return undefined;
+            return (
+              <BasketballH2HCard
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+                homeTsTeamId={basketballTsTeamId(match.homeTeam.id)}
+                awayTsTeamId={basketballTsTeamId(match.awayTeam.id)}
+                history={history}
+                tsIdToName={BASKETBALL_TS_ID_TO_NAME}
+              />
+            );
+          })()
+        }
+        liveOddsContent={
+          BASKETBALL_LEAGUES.has(lg) ? (
+            <BasketballLiveOddsTab
+              gameId={gameId}
+              league={lg}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              eloPrediction={
+                match.predHome != null && match.predAway != null
+                  ? { home: match.predHome, draw: match.predDraw ?? null, away: match.predAway }
+                  : null
+              }
+              oddsHistory={oddsHistory}
+            />
           ) : undefined
         }
       />

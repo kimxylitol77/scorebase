@@ -6,7 +6,6 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcEloHistory } from "@/lib/predict/elo-history";
 import { calcForm } from "@/lib/predict/form";
-import { calcH2H } from "@/lib/predict/h2h";
 import {
   calcSeasonStats,
   calcSeasonForm,
@@ -43,7 +42,6 @@ import {
 import { blendWithMarket } from "@/lib/predict/market-blend";
 import type { PredictMatch } from "@/lib/predict/types";
 import type { ReactNode } from "react";
-import FormDots from "./FormDots";
 import EloMeter from "./EloMeter";
 import WinProbDonut from "./charts/WinProbDonut";
 import EloTrendChart from "./charts/EloTrendChart";
@@ -94,6 +92,8 @@ interface Props {
   teamStatsContent?: ReactNode;
   /** 라이브 배당 카드 prop (탭 자동 추가) — LiveOddsCard 또는 같은 데이터 카드 */
   liveOddsContent?: ReactNode;
+  /** 맞대결·최근 폼 카드 prop (탭 자동 추가) — 농구 BasketballH2HCard 등 풍부한 H2H */
+  h2hRichContent?: ReactNode;
 }
 
 /** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
@@ -146,6 +146,7 @@ export default async function MatchInsight({
   match,
   teamStatsContent,
   liveOddsContent,
+  h2hRichContent,
 }: Props) {
   const dbMatches = await prisma.match.findMany({
     where: { league: match.league },
@@ -174,14 +175,6 @@ export default async function MatchInsight({
 
   const homeForm = calcForm(matches, match.homeTeamId, referenceTime, 5);
   const awayForm = calcForm(matches, match.awayTeamId, referenceTime, 5);
-
-  const h2h = calcH2H(
-    matches,
-    match.homeTeamId,
-    match.awayTeamId,
-    referenceTime,
-    5,
-  );
 
   const baseWinProb = calcWinProbability(homeElo, awayElo, match.league);
 
@@ -699,29 +692,6 @@ export default async function MatchInsight({
     </div>
   );
 
-  // === 상대 전적 탭 ===
-  const h2hContent =
-    h2h.total > 0 ? (
-      <Section title={`상대 전적 (최근 ${Math.min(h2h.total, 10)}경기)`}>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="font-semibold text-blue-600 dark:text-blue-400">
-            {toKoreanTeamName(match.homeTeam.name)} {h2h.homeTeamWins}승
-          </span>
-          <span className="text-neutral-400">·</span>
-          <span className="text-neutral-500">{h2h.draws}무</span>
-          <span className="text-neutral-400">·</span>
-          <span className="font-semibold text-rose-600 dark:text-rose-400">
-            {toKoreanTeamName(match.awayTeam.name)} {h2h.awayTeamWins}승
-          </span>
-          {h2h.recentForHome.length > 0 && (
-            <span className="ml-auto">
-              <FormDots results={h2h.recentForHome} />
-            </span>
-          )}
-        </div>
-      </Section>
-    ) : null;
-
   // === 시장 odds 탭 ===
   const hasMarketCompare =
     match.marketHome != null && match.marketAway != null;
@@ -822,16 +792,16 @@ export default async function MatchInsight({
           content: teamStatsContent ?? null,
         },
         {
+          key: "h2h-rich",
+          label: "맞대결·최근 폼",
+          enabled: !!h2hRichContent,
+          content: h2hRichContent ?? null,
+        },
+        {
           key: "predict",
           label: "AI 예측",
           enabled: true,
           content: predictContent,
-        },
-        {
-          key: "h2h",
-          label: "상대 전적",
-          enabled: !!h2hContent,
-          content: h2hContent,
         },
         {
           key: "odds",
