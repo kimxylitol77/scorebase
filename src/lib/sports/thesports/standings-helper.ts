@@ -185,6 +185,7 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
     where: { league },
     select: { payload: true },
   });
+  let tsTableCount = 0; // ts payload 의 table(=stage) 수. 2+ 면 다단계(J1/J2) — af 병합 제외용.
   if (ts) {
     interface TsRow {
       team_id?: string;
@@ -197,6 +198,7 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
       goal_diff?: number;
     }
     const payload = ts.payload as unknown as { tables?: Array<{ rows?: TsRow[] }> };
+    tsTableCount = (payload?.tables ?? []).length;
     const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
     for (const t of payload?.tables ?? []) {
       for (const r of t.rows ?? []) {
@@ -221,9 +223,12 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
     }
   }
 
-  // 2) api-football / api-baseball fallback — TheSports 매핑 누락 리그/팀 보강.
-  // 전체 try-catch — 2026-05-27 production 500 사고. 야구는 TeamSourceId 2차 lookup.
-  if (out.length === 0) {
+  // 2) api-football / api-baseball fallback — TheSports 매핑 누락 "팀" 보강.
+  // 이전엔 out.length===0(ts 완전 무매핑)일 때만 af 실행 → SERIE_B 처럼 ts 가 6/20 만
+  // 매핑하면 af 가 차단돼 순위표에 14팀 누락(깨진 표). → 단일 table 리그는 af 로 병합 보강.
+  // ⚠ 다단계(J1/J2 처럼 tables 2+ = stage 별 1~N위 중복) 리그는 flatten 자체가 별도 버그라
+  // af 병합 시 중복만 늘어 제외(out 비었을 때만). getStandingsPositions 는 칩이라 영향 적어 항상 병합.
+  if (out.length === 0 || tsTableCount <= 1) {
     try {
       const af = await prisma.apiFootballStandingsCache.findUnique({
         where: { league },
@@ -256,9 +261,12 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
             });
             for (const s of sourceIds) if (!extToOurId.has(s.externalId)) extToOurId.set(s.externalId, s.teamId);
           }
+          // ts 가 이미 차지한 순위에는 af 팀을 넣지 않음 — af 가 stale(최대 5일) 이라 ts 와
+          // 순위가 어긋나면 같은 position 에 두 팀이 생겨 표가 깨짐(BRASILEIRAO 7위 중복 사고). 충돌 시 skip.
+          const tsPositions = new Set(out.map((r) => r.position));
           for (const r of rows) {
             const ourId = extToOurId.get(r.teamExternalId);
-            if (ourId != null && !seen.has(ourId)) {
+            if (ourId != null && !seen.has(ourId) && !tsPositions.has(r.position)) {
               seen.add(ourId);
               out.push({
                 teamId: ourId,
