@@ -58,6 +58,7 @@ export const ALL_LEAGUES = [
   "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
   "RPL", "ALGERIA_L1",
   "SVENSKA_CUPEN", "GHANA_PL", "ARG_PRIMERA_NACIONAL",
+  "IRAQ_SL",
 ];
 
 export const SPORTS: SportMeta[] = [
@@ -111,6 +112,7 @@ export const SPORTS: SportMeta[] = [
       "SCOT_CHAMPIONSHIP", "SCOT_LEAGUE_ONE", "SCOT_LEAGUE_TWO",
       "RPL", "ALGERIA_L1",
       "SVENSKA_CUPEN", "GHANA_PL", "ARG_PRIMERA_NACIONAL",
+      "IRAQ_SL",
     ],
   },
   {
@@ -334,6 +336,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   SVENSKA_CUPEN: "스벤스카 컵",
   GHANA_PL: "가나 프리미어리그",
   ARG_PRIMERA_NACIONAL: "아르헨티나 프리메라 나시오날",
+  IRAQ_SL: "이라크 스타스 리그",
 };
 
 /** 정렬 우선순위 (낮을수록 위) — KBO/NPB 한국 시청자 우선 */
@@ -476,6 +479,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   ALGERIA_L1: 16.71, // 아프리카 — MOROCCO_BP 옆
   GHANA_PL: 16.72,
   ARG_PRIMERA_NACIONAL: 16.91, // 아르헨티나 — ARGENTINA_PL 다음
+  IRAQ_SL: 17.5, // 이라크 — 아시아 1부
   NBA: 20,
   NHL: 21,
   IIHF_WC: 22,
@@ -680,6 +684,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   SVENSKA_CUPEN: "스웨덴",
   GHANA_PL: "가나",
   ARG_PRIMERA_NACIONAL: "아르헨티나",
+  IRAQ_SL: "이라크",
 };
 
 /** 국가명 → 국기 유니코드 이모지. "국제"는 지구본. */

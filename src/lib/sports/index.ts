@@ -206,6 +206,8 @@ export const collectors: Record<League, MatchCollector> = {
   // ARG_PRIMERA_NACIONAL: TheSports worker 수집 (api-football id 131 은 실제 Primera B
   // Metropolitana(3부) 오매핑이라 제외). Vercel collect no-op — worker 가 ts 매치 push.
   ARG_PRIMERA_NACIONAL: { league: "ARG_PRIMERA_NACIONAL", async fetchByDate() { return []; } },
+  // IRAQ_SL: 이라크 스타스 리그(1부) — TheSports worker 수집. Vercel collect no-op.
+  IRAQ_SL: { league: "IRAQ_SL", async fetchByDate() { return []; } },
 };
 
 // externalId 가 api-football fixture id 인 리그 집합 (= buildApiFootballCollector 등록 리그).

@@ -178,7 +178,8 @@ export type League =
   | "ALGERIA_L1" // 알제리 리그 프로페시오넬 1 (1부, 8~5월)
   | "SVENSKA_CUPEN" // 스벤스카 컵 (스웨덴 컵, 2~6월)
   | "GHANA_PL" // 가나 프리미어리그 (1부, 9~5월)
-  | "ARG_PRIMERA_NACIONAL"; // 아르헨티나 프리메라 나시오날 (2부, 달력)
+  | "ARG_PRIMERA_NACIONAL" // 아르헨티나 프리메라 나시오날 (2부, 달력)
+  | "IRAQ_SL"; // 이라크 스타스 리그 (1부) — TheSports 전용
 
 /** 축구 리그(다중 리그 컬렉터에서 분기용) */
 export const SOCCER_LEAGUES = [
@@ -447,6 +448,7 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "PARAGUAY_PD",
   "BOLIVIA_PD",
   "ARG_PRIMERA_NACIONAL",
+  "IRAQ_SL",
   // 아프리카 2
   "ALGERIA_L1",
   "GHANA_PL",

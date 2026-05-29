@@ -2754,6 +2754,28 @@ const RAW: Record<string, string> = {
   "Almagro": "알마그로",
   "San Martin Tucuman": "산 마르틴 투쿠만",
   "Gimnasia Jujuy": "김나시아 후후이",
+
+  // ===== 이라크 스타스 리그 (2026-05-29 추가, TheSports) =====
+  "Duhok SC": "두호크",
+  "Al Qasim SC": "알 카심",
+  "Al-Mina'a SC": "알 미나",
+  "Al Zawraa": "알 자우라",
+  "Naft Missan": "나프트 미산",
+  "Al-Naft SC": "알 나프트",
+  "Al Karma": "알 카르마",
+  "Al Quwa Al Jawiya": "알 쿠와 알 자위야",
+  "Al Shorta": "알 쇼르타",
+  "Al Gharraf": "알 가라프",
+  "Al-Kahraba Club": "알 카흐라바",
+  "Newroz SC": "네우로즈",
+  "Al Karkh": "알 카르크",
+  "Amanat Baghdad": "아마나트 바그다드",
+  "Al-Najaf": "알 나자프",
+  "Erbil SC": "에르빌",
+  "Mosul FC": "모술",
+  "Al Talaba": "알 탈라바",
+  "Zakho SC": "자코",
+  "Diala": "디알라",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
