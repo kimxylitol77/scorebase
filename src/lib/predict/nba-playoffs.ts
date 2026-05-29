@@ -125,6 +125,9 @@ function parseRound(headline: string): NbaRound | null {
   if (/nba finals|stanley cup final/.test(h)) return "FINALS";
   // 컨퍼런스 파이널 — "East Conference Finals" / "Conference Finals"
   if (/conf(?:erence)?\s+finals/.test(h)) return "CONF_FINALS";
+  // NHL 컨퍼런스 파이널 — "East Final" / "West Final" ("Conference" 없이 표기).
+  // Stanley Cup Final(east/west 없음)은 위 FINALS 분기에서 이미 처리됨.
+  if (/\b(?:east|west)\s+finals?\b/.test(h)) return "CONF_FINALS";
   // 컨퍼런스 세미 — NBA "Semifinals" / NHL "2nd Round"
   if (/semifinals/.test(h)) return "CONF_SEMIS";
   if (/2nd\s+round|second\s+round/.test(h)) return "CONF_SEMIS";
