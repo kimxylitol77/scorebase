@@ -128,9 +128,14 @@ function SeriesCard({ series }: { series: NbaPlayoffSeries }) {
       : null;
   // BO7 → 4선승. 진행률 = max(wins) / 4
   const winsNeeded = Math.ceil(series.totalGames / 2);
-  // 실제 진행된 게임 (점수 있음) 만 필터
+  // 실제 진행된 게임만 — 점수 있고 + 미실시(SCHEDULED/POSTPONED) 제외.
+  // NHL 등은 미래·연기 경기도 0-0 점수가 들어와 브라켓에 phantom 0-0 으로 찍히던 버그.
   const playedGames = series.games.filter(
-    (g) => g.homeScore != null && g.awayScore != null,
+    (g) =>
+      g.homeScore != null &&
+      g.awayScore != null &&
+      g.status !== "SCHEDULED" &&
+      g.status !== "POSTPONED",
   );
 
   return (
