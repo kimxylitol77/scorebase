@@ -757,8 +757,16 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 일반 리그 — Monte Carlo 결과 (UCL 제외) */}
-        {canSimulate && !isWorldCup && !isUcl && (
+        {/* NBA — 예상 순위는 수집기 데이터(팀 중복/매치 누락) 정비 중이라 숨김.
+            브라켓·우승확률은 위에서 정상 제공. (api-sports NBA 팀 id 불일치 — 별도 수집기 fix 예정) */}
+        {isNba && canSimulate && (
+          <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-6 text-center text-sm text-neutral-500">
+            ⓘ NBA 예상 순위는 데이터 정비 중입니다. 플레이오프 브라켓·우승 확률은 위에서 정상 제공됩니다.
+          </div>
+        )}
+
+        {/* 일반 리그 — Monte Carlo 결과 (UCL·NBA 제외) */}
+        {canSimulate && !isWorldCup && !isUcl && !isNba && (
           <>
             {/* 우승 확률 */}
             <section>
