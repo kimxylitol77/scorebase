@@ -2764,7 +2764,6 @@ const RAW: Record<string, string> = {
   "Al-Naft SC": "알 나프트",
   "Al Karma": "알 카르마",
   "Al Quwa Al Jawiya": "알 쿠와 알 자위야",
-  "Al Shorta": "알 쇼르타",
   "Al Gharraf": "알 가라프",
   "Al-Kahraba Club": "알 카흐라바",
   "Newroz SC": "네우로즈",
