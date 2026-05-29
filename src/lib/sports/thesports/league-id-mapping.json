@@ -10,9 +10,10 @@
   {
     "code": "AFC_CL",
     "ourLabel": "AFC 챔피언스리그",
-    "tsId": "9dn1m1ghjpmoepl",
-    "tsEn": "AFC Champions League",
-    "tsKo": "AFC 챔피언스리그"
+    "tsId": "z8yomo4hg66q0j6",
+    "tsEn": "AFC Champions League Elite",
+    "tsKo": "AFC 챔피언스리그",
+    "tsSeasonId": "p4jwq2gh83zm0ve"
   },
   {
     "code": "AFC_CL_TWO",
@@ -680,7 +681,8 @@
     "ourLabel": "FIFA 월드컵 2026",
     "tsId": "kp3glrw7hwqdyjv",
     "tsEn": "FIFA World Cup",
-    "tsKo": "월드컵"
+    "tsKo": "월드컵",
+    "tsSeasonId": "e4wyrn4hgjzq86p"
   },
   {
     "code": "YKKONEN",

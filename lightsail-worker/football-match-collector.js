@@ -42,8 +42,10 @@ const MAP_FILE = path.join(__dirname, "league-id-mapping.json");
 // cache row + tsMatchId 만 연결 — fast-poller 가 incidents 채움. 매치 중복 X.
 //
 // SKIP 유지 = ts 가 incidents 데이터 부실한 국가대표/특수 대회만.
+// 2026-05-29: WORLD_CUP 은 사용자 결정으로 SKIP 해제 — TheSports 스코어 병행 수집.
+//   api-football(world-cup.ts) 도 유지하므로 상세 incidents 는 api-football 이 보강.
 const SKIP_LEAGUES = new Set([
-  "WORLD_CUP", "CLUB_WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL",
+  "CLUB_WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL",
   "INTL_FRIENDLY", "AFCON", "CONCACAF_GOLD",
 ]);
 
