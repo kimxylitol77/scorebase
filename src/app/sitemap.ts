@@ -70,16 +70,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  // 라이브 매치 페이지 (최근 14일 종료 + 예정 7일 + 진행 중) — Google 색인 quota 우선순위
+  // 라이브 매치 페이지 — 예정 7일 + 진행 중만 (종료 매치 제외).
+  // 종료 매치는 thin 이라 Google 이 색인 거부(크롤링됨-색인안됨/중복) → sitemap 품질 저하.
+  // 페이지 자체는 DB 에 남아 회원/방문자가 계속 접근 가능 (sitemap 제외 ≠ 페이지 삭제).
+  // 2026-05-29: GSC Coverage 진단 — /live 2294개(86%) thin 종료매치 과다로 제외.
   const liveWindow = {
-    past: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000),
+    past: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // LIVE(자정 넘긴 경기)만 커버
     future: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
   };
   const matches = await prisma.match.findMany({
     where: {
       league: { in: ALL_LEAGUES },
       startTime: { gte: liveWindow.past, lte: liveWindow.future },
-      status: { in: ["SCHEDULED", "LIVE", "FINISHED"] },
+      status: { in: ["SCHEDULED", "LIVE"] },
       // 콜론(":") 포함 externalId 는 Next.js URL 라우팅이 매칭 못 함 (TheSports
       // 의 "ts:xxx" 패턴). sitemap 에 등록하면 검색엔진/봇이 404 만남 → 제외.
       NOT: { externalId: { contains: ":" } },
