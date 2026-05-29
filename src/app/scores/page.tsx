@@ -668,13 +668,13 @@ export default async function ScoresPage({ searchParams }: Props) {
   const hockeyMatchIds = matches
     .filter((m) => HOCKEY_LEAGUES.has(m.league) && m.status !== "SCHEDULED")
     .map((m) => m.id);
-  // 농구 (WNBA/KBL/WKBL) — NBA 제외 (ESPN periodMap). SCHEDULED 제외 (쿼터 없음).
+  // 농구 (NBA/WNBA/KBL/WKBL) — SCHEDULED 제외 (쿼터 없음).
   // cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열에서 추출.
+  // NBA 도 포함 — ESPN periodMap 이 우선, 비어있을 때만 cache fallback (1114줄).
   const basketballMatchIds = matches
     .filter(
       (m) =>
         BASKETBALL_LEAGUES.has(m.league) &&
-        m.league !== "NBA" &&
         m.status !== "SCHEDULED",
     )
     .map((m) => m.id);
@@ -766,8 +766,8 @@ export default async function ScoresPage({ searchParams }: Props) {
           });
         }
       }
-      // 농구 쿼터 (WNBA/KBL/WKBL) — cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열
-      // (하키/야구의 score[3] 객체와 다름). NBA 는 ESPN periodMap 사용 → 여기 제외.
+      // 농구 쿼터 (NBA/WNBA/KBL/WKBL) — cache.score[3]=home 쿼터배열, score[4]=away 쿼터배열
+      // (하키/야구의 score[3] 객체와 다름). 농구는 TheSports cache 가 우선 (1112줄).
       // swap 없음 검증 완료 (production: 정렬 13 / swap 0 / _swap 플래그 0).
       if (basketballIdSet.has(c.matchId)) {
         const bScore = dl.score as unknown[] | undefined;
@@ -1110,12 +1110,16 @@ export default async function ScoresPage({ searchParams }: Props) {
             } as EsportsContext)
           : null,
       periodLinescore:
-        sport_ === "basketball" || sport_ === "hockey"
-          ? periodMap[m.externalId] ??
+        sport_ === "basketball"
+          ? // 농구는 TheSports cache 우선 (쿼터 데이터 정확), ESPN 은 fallback.
             basketballPeriodByMatchId.get(m.id) ??
-            hockeyPeriodByMatchId.get(m.id) ??
+            periodMap[m.externalId] ??
             null
-          : null,
+          : sport_ === "hockey"
+            ? periodMap[m.externalId] ??
+              hockeyPeriodByMatchId.get(m.id) ??
+              null
+            : null,
       // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
       // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
       baseballLinescore: isBaseball

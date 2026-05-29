@@ -20,6 +20,8 @@ import type { SoccerEvent } from "@/lib/live/soccer-events";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { fetchNbaLiveStats } from "@/lib/sports/api-nba";
+import { BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { extractBasketballFromCache } from "@/lib/sports/thesports/basketball-live";
 
 // ESPN team-stat name → 한국어 라벨 (sportPath 별)
 const NBA_STATS = [
@@ -380,6 +382,40 @@ export async function GET(
       { error: "unsupported league (use /api/live/{lol,mlb,baseball})" },
       { status: 400 },
     );
+  }
+
+  // 농구 (NBA/WNBA/KBL/WKBL) — TheSports cache 가 쿼터/상태 우선 소스.
+  // ESPN/api-sports 가 빈 응답이어도 cache 에 쿼터별 점수 + 진행 라벨이 있음.
+  if (BASKETBALL_LEAGUES.has(league)) {
+    try {
+      const { prisma } = await import("@/lib/db");
+      const dbMatch = await prisma.match.findFirst({
+        where: { externalId: gameId, league },
+        select: { status: true, theSportsCache: { select: { detailLive: true } } },
+      });
+      const cacheLive = dbMatch?.theSportsCache?.detailLive
+        ? extractBasketballFromCache(dbMatch.theSportsCache.detailLive)
+        : null;
+      if (cacheLive?.periodLinescore) {
+        out.periodLinescore = cacheLive.periodLinescore;
+      }
+      // 라이브 폴링(allLive)에서 못 찾았어도 cache 상태로 보정.
+      if (!live && cacheLive?.status) {
+        if (cacheLive.status === "LIVE") out.status = "LIVE";
+        else if (cacheLive.status === "FINISHED") out.status = "FINAL";
+      }
+      if (cacheLive?.statusLabel && (out.status === "LIVE" || !out.statusLabel)) {
+        out.statusLabel = cacheLive.statusLabel;
+      }
+      // periodLinescore 합계로 점수 보정 (cache 가 가장 fresh).
+      if (cacheLive?.periodLinescore) {
+        const { homeScore, awayScore } = cacheLive.periodLinescore;
+        if (out.homeScore == null || homeScore > out.homeScore) out.homeScore = homeScore;
+        if (out.awayScore == null || awayScore > out.awayScore) out.awayScore = awayScore;
+      }
+    } catch {
+      // cache 조회 실패는 ignore — 외부 source 결과만 응답
+    }
   }
 
   const etag = `W/"${await hashLive(out)}"`;
