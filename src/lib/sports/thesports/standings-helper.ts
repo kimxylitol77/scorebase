@@ -79,6 +79,21 @@ export async function getStandingsPositions(
   });
   if (ts) {
     const payload = ts.payload as unknown as StandingsPayload;
+    // 녹아웃 가드 — UCL/UEL/UECL 은 리그페이즈(스위스 8경기) 완료 후 토너먼트 단계.
+    // 녹아웃 매치(16강~결승)에 리그페이즈 순위([11] 등) 표기는 무의미·혼란이라 숨김.
+    // 리그페이즈 진행 중(최다 소화 경기 < 8)엔 순위 표기 유지. (2026-05-29 UCL 결승 PSG[11])
+    const CONTINENTAL_KNOCKOUT = new Set(["UCL", "UEL", "UECL"]);
+    if (CONTINENTAL_KNOCKOUT.has(league)) {
+      const allRows = (payload?.tables ?? []).flatMap((t) => t.rows ?? []);
+      const maxPlayed = allRows.reduce(
+        (mx, r) => Math.max(mx, (r.won ?? 0) + (r.draw ?? 0) + (r.loss ?? 0)),
+        0,
+      );
+      if (maxPlayed >= 8) {
+        cache.set(league, { fetchedAt: now, positionByOurTeamId });
+        return null;
+      }
+    }
     const leagueMap = TS_TO_OUR_BY_LEAGUE.get(league);
     for (const t of payload?.tables ?? []) {
       for (const r of t.rows ?? []) {
