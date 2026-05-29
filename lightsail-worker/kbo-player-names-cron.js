@@ -1,18 +1,17 @@
 // kbo-player-names-cron.js — Lightsail daily cron (KST 03:00 = UTC 18:00).
+// (파일명은 레거시 'kbo' 지만 KBO/NPB/MLB 전부 커버 — service/timer 그대로 사용)
 //
-// 흐름:
-//   1) GET {SITE_URL}/api/internal/baseball-missing-player-ids?days=7&league=KBO
-//      → missingIds (row 없음) + nameKoNullIds (row 있지만 nameKo NULL) 받음
-//   2) 각 ts player_id → TheSports player/list?uuid={id} 로 영문명 fetch
-//   3) Anthropic API (Haiku) batch 50명 → 한국어 음역 (네이버 KBO 표기 기준)
-//   4) POST {SITE_URL}/api/internal/ts-baseball-players { players: [{id, name, nameKo, sport:"KBO"}] }
-//      → DB upsert (확장된 endpoint, team_id 없어도 sport 명시로 cover)
+// 흐름 (리그별 반복):
+//   1) GET {SITE_URL}/api/internal/baseball-missing-player-ids?days=7&league=<L>
+//      → missingIds (row 없음) + nameKoNullIds (row 있지만 nameKo NULL)
+//   2) 각 ts player_id → TheSports player/list?uuid={id} 로 영문/로마자명 fetch
+//   3) Anthropic API (Haiku) batch 50명 → 한국어 음역 (리그별 표기 기준 prompt)
+//   4) POST {SITE_URL}/api/internal/ts-baseball-players { players: [{id, name, nameKo, sport:<L>}] }
+//   5) (KBO 전용) KBO 공식 API 로 photo enrich
 //
-// 환경변수: THESPORTS_USER, THESPORTS_SECRET (TheSports), ANTHROPIC_API_KEY (Anthropic),
-//          SITE_URL, INTERNAL_API_TOKEN (scorebase).
-// 누락 시 즉시 exit 1 + bot-heartbeat 로 알림.
-//
-// 매일 03:00 KST. weekly mac-mini 대신 Lightsail 이관 (TheSports IP whitelist 제약 — mac-mini home IP 거부).
+// 환경변수: THESPORTS_USER, THESPORTS_SECRET, ANTHROPIC_API_KEY, SITE_URL, INTERNAL_API_TOKEN
+//          PLAYER_NAME_LEAGUES (선택, 기본 "KBO,NPB,MLB")
+// 매일 03:00 KST.
 
 require("dotenv").config({ path: "/home/ubuntu/.env" });
 const axios = require("axios");
@@ -25,7 +24,8 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 
-const LEAGUE = "KBO";
+const LEAGUES = (process.env.PLAYER_NAME_LEAGUES || "KBO,NPB,MLB")
+  .split(",").map((s) => s.trim()).filter(Boolean);
 const DAYS = 7;
 const BATCH = 50;
 const KBO_SEARCH_URL = "https://www.koreabaseball.com/ws/Controls.asmx/GetSearchPlayer";
@@ -38,14 +38,44 @@ if (!ANTHROPIC_KEY) { console.error("❌ ANTHROPIC_API_KEY missing"); process.ex
 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 
-async function fetchMissingIds() {
+// 리그별 음역 prompt 헤더 — 표기 기준이 다름 (KBO 한국선수 / NPB 일본선수 / MLB 영미).
+function promptIntro(league) {
+  if (league === "NPB") {
+    return (
+      "다음 NPB (일본 프로야구) 로마자 선수 이름을 한국 스포츠 미디어 표기로 변환해주세요.\n" +
+      "참고: 네이버/다음 스포츠 일본야구 표기 기준. 일본 선수는 '성 이름' 순서.\n" +
+      "- 일본 선수: Shohei Ohtani → 오타니 쇼헤이, Munetaka Murakami → 무라카미 무네타카, Roki Sasaki → 사사키 로키\n" +
+      "- 외국인 용병: 음역 (예: Tyler Austin → 타일러 오스틴)\n" +
+      "- 한 단어만 있으면 그대로 음역 (Tima → 티마)\n"
+    );
+  }
+  if (league === "MLB") {
+    return (
+      "다음 MLB (메이저리그) 영문 선수 이름을 한국 스포츠 미디어 표기로 음역해주세요.\n" +
+      "참고: 네이버/스탯티즈 MLB 표기 기준.\n" +
+      "- Mike Trout → 마이크 트라웃, Aaron Judge → 애런 저지, Shohei Ohtani → 오타니 쇼헤이(일본계는 일본식)\n" +
+      "- 성+이름 순서(영미식): 마이크 트라웃 (띄어쓰기 유지)\n"
+    );
+  }
+  // KBO (기본)
+  return (
+    "다음 KBO (한국 프로야구) 영문 선수 이름을 한국 스포츠 미디어 표기로 변환해주세요.\n" +
+    "참고: 네이버/다음 스포츠 KBO 페이지의 한국어 표기 기준.\n" +
+    "- 한국 선수 (대다수): Lee Hyung-Jong → 이형종, Kim Do-yeong → 김도영, Choi Joo-hwan → 최주환\n" +
+    "- 외국인 용병: Aderlin Rodriguez → 아데를린 로드리게스 같은 음역\n" +
+    "- 표기 가이드: 한국 선수는 모든 단어 합쳐서 (Lee Jong-bum → 이종범, 띄어쓰기 X)\n"
+  );
+}
+
+async function fetchMissingIds(league) {
   const { data } = await axios.get(
-    `${SITE_URL}/api/internal/baseball-missing-player-ids?days=${DAYS}&league=${LEAGUE}`,
+    `${SITE_URL}/api/internal/baseball-missing-player-ids?days=${DAYS}&league=${league}`,
     { headers: SITE_HEADERS, timeout: 30_000 },
   );
   return {
     missingIds: data.missingIds || [],
     nameKoNullIds: data.nameKoNullIds || [],
+    photoUrlNullIds: data.photoUrlNullIds || [],
     totalIds: data.totalIds || 0,
   };
 }
@@ -70,36 +100,19 @@ async function fetchEnglishName(pid) {
   }
 }
 
-async function haikuTranslate(batch) {
-  // en → ko 매핑 (Anthropic Haiku, 네이버 KBO 표기 기준 prompt).
+async function haikuTranslate(batch, league) {
   const prompt =
-    "다음 KBO (한국 프로야구) 영문 선수 이름을 한국 스포츠 미디어 표기로 변환해주세요.\n" +
-    "참고: 네이버/다음 스포츠 KBO 페이지의 한국어 표기 기준.\n" +
-    "- 한국 선수 (대다수): Lee Hyung-Jong → 이형종, Kim Do-yeong → 김도영, Choi Joo-hwan → 최주환\n" +
-    "- 외국인 용병: Aderlin Rodriguez → 아데를린 로드리게스 같은 음역\n" +
-    "- 표기 가이드: 모든 단어 합쳐서 한국식 표기 (Lee Jong-bum → 이종범, 띄어쓰기 X)\n" +
+    promptIntro(league) +
     "- 자신없으면 그 entry 제외\n\n" +
     "선수 list:\n" +
     batch.map((b, i) => `${i + 1}. "${b.name}"`).join("\n") +
     "\n\n출력 — JSON 객체 한 줄 (다른 설명 X):\n" +
-    `{"Lee Hyung-Jong": "이형종", "Kim Do-yeong": "김도영", ...}`;
-
+    `{"${batch[0]?.name || "Name"}": "음역결과", ...}`;
   try {
     const { data } = await axios.post(
       "https://api.anthropic.com/v1/messages",
-      {
-        model: ANTHROPIC_MODEL,
-        max_tokens: 4000,
-        messages: [{ role: "user", content: prompt }],
-      },
-      {
-        headers: {
-          "x-api-key": ANTHROPIC_KEY,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
-        },
-        timeout: 60_000,
-      },
+      { model: ANTHROPIC_MODEL, max_tokens: 4000, messages: [{ role: "user", content: prompt }] },
+      { headers: { "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, timeout: 60_000 },
     );
     const text = (data?.content?.[0]?.text || "").trim();
     const m = text.match(/\{[\s\S]*\}/);
@@ -112,7 +125,7 @@ async function haikuTranslate(batch) {
       if (!s) continue;
       if (!/[가-힣]/.test(s)) continue;
       const cjk = s.match(/[一-鿿]/g);
-      if (cjk && cjk.length >= 3) continue; // 일본/중국 한자 다수면 skip
+      if (cjk && cjk.length >= 3) continue;
       cleaned[en] = s;
     }
     return cleaned;
@@ -122,54 +135,33 @@ async function haikuTranslate(batch) {
   }
 }
 
-// KBO 공식 선수 검색.
-//   1차: nameKo 전체 검색
-//   2차 (외국인 cover): last token (성, "오스틴 딘" → "오스틴" / "치리노스")
-//   3차: first token
 async function searchKboPlayer(nameKo) {
   const tryName = async (q) => {
     try {
       const { data } = await axios.post(
         KBO_SEARCH_URL,
         new URLSearchParams({ name: q }).toString(),
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "User-Agent": "Mozilla/5.0",
-            Referer: "https://www.koreabaseball.com/Player/Search.aspx",
-            "X-Requested-With": "XMLHttpRequest",
-          },
-          timeout: 10_000,
-        },
+        { headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "User-Agent": "Mozilla/5.0", Referer: "https://www.koreabaseball.com/Player/Search.aspx", "X-Requested-With": "XMLHttpRequest" }, timeout: 10_000 },
       );
       if (data?.code !== "100") return null;
       const now = data?.now || [];
       if (now.length === 0) return null;
-      const exact = now.find((p) => p.P_NM === q);
-      return exact || now[0];
-    } catch {
-      return null;
-    }
+      return now.find((p) => p.P_NM === q) || now[0];
+    } catch { return null; }
   };
   let hit = await tryName(nameKo);
   if (hit) return hit;
   const tokens = nameKo.trim().split(/\s+/);
   if (tokens.length > 1) {
-    hit = await tryName(tokens[tokens.length - 1]);
-    if (hit) return hit;
-    hit = await tryName(tokens[0]);
-    if (hit) return hit;
+    hit = await tryName(tokens[tokens.length - 1]); if (hit) return hit;
+    hit = await tryName(tokens[0]); if (hit) return hit;
   }
   return null;
 }
 
 async function verifyPhotoUrl(url) {
-  try {
-    const res = await axios.head(url, { timeout: 8_000 });
-    return res.status >= 200 && res.status < 300;
-  } catch {
-    return false;
-  }
+  try { const res = await axios.head(url, { timeout: 8_000 }); return res.status >= 200 && res.status < 300; }
+  catch { return false; }
 }
 
 async function postPlayersUpsert(players) {
@@ -183,144 +175,82 @@ async function postPlayersUpsert(players) {
 
 async function bootHeartbeat(metadata) {
   try {
-    await axios.post(
-      `${SITE_URL}/api/internal/bot-heartbeat`,
-      { name: "lightsail-kbo-player-names", metadata },
-      { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 10_000 },
-    );
-  } catch {
-    // silent
-  }
+    await axios.post(`${SITE_URL}/api/internal/bot-heartbeat`, { name: "lightsail-baseball-player-names", metadata }, { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 10_000 });
+  } catch { /* silent */ }
 }
 
-async function main() {
-  const ts0 = new Date().toISOString();
-  console.log(`[${ts0}] 🚀 kbo-player-names-cron start (league=${LEAGUE}, days=${DAYS})`);
-
-  // 1) missing/nameKoNull/photoUrlNull ids
-  const { missingIds, nameKoNullIds, photoUrlNullIds, totalIds } = await fetchMissingIds();
+// 리그 1개 처리 (이름 음역 upsert + KBO 전용 사진). 통계 반환.
+async function processLeague(league) {
+  const { missingIds, nameKoNullIds, photoUrlNullIds, totalIds } = await fetchMissingIds(league);
   const todo = Array.from(new Set([...missingIds, ...nameKoNullIds]));
   const photoTodo = photoUrlNullIds || [];
-  console.log(`  total=${totalIds}, missing=${missingIds.length}, nameKoNull=${nameKoNullIds.length}, photoUrlNull=${photoTodo.length}, todoNames=${todo.length}`);
-  if (todo.length === 0 && photoTodo.length === 0) {
-    await bootHeartbeat({ totalIds, todoNames: 0, photoTodo: 0, upserted: 0 });
-    console.log(`◀ 매핑 대상 없음. 종료`);
-    return;
-  }
+  console.log(`  [${league}] total=${totalIds} missing=${missingIds.length} nameKoNull=${nameKoNullIds.length} photoNull=${photoTodo.length} → todoNames=${todo.length}`);
+  if (todo.length === 0 && photoTodo.length === 0) return { league, totalIds, upserted: 0 };
 
-  // 2) 영문명 fetch (TheSports player/list?uuid). 50ms sleep — rate limit 안전.
-  console.log(`  ▶ 영문명 fetch (${todo.length}건)`);
+  // 2) 영문/로마자명 fetch
   const records = [];
   for (let i = 0; i < todo.length; i++) {
     const r = await fetchEnglishName(todo[i]);
     if (r && r.name) records.push(r);
-    if ((i + 1) % 50 === 0) console.log(`    ${i + 1}/${todo.length} (hit ${records.length})`);
     await new Promise((res) => setTimeout(res, 60));
   }
-  console.log(`  ✓ 영문 hit ${records.length}/${todo.length}`);
-  if (records.length === 0) {
-    await bootHeartbeat({ totalIds, todo: todo.length, upserted: 0, enHit: 0 });
-    return;
-  }
+  console.log(`  [${league}] 영문 hit ${records.length}/${todo.length}`);
 
-  // 3) Haiku 음역 batch
-  console.log(`  ▶ Haiku 음역 batch=${BATCH}`);
+  // 3) Haiku 음역
   const enToKo = {};
   for (let i = 0; i < records.length; i += BATCH) {
     const chunk = records.slice(i, i + BATCH);
-    const map = await haikuTranslate(chunk);
-    Object.assign(enToKo, map);
-    console.log(`    batch ${Math.floor(i / BATCH) + 1}/${Math.ceil(records.length / BATCH)} → +${Object.keys(map).length}`);
+    Object.assign(enToKo, await haikuTranslate(chunk, league));
     await new Promise((res) => setTimeout(res, 500));
   }
-  console.log(`  ✓ ko 매핑 ${Object.keys(enToKo).length}/${records.length}`);
+  console.log(`  [${league}] ko 매핑 ${Object.keys(enToKo).length}/${records.length}`);
 
-  // 4) DB upsert via /api/internal/ts-baseball-players
+  // 4) upsert
   const payload = records
-    .map((r) => ({
-      id: r.id,
-      name: r.name,
-      short_name: r.short_name || undefined,
-      team_id: r.team_id || undefined,
-      position: r.position || undefined,
-      sport: LEAGUE,
-      nameKo: enToKo[r.name] || undefined,
-    }))
-    // nameKo 못 받은 건 upsert 해도 영문만 들어감 → 다음 cycle 재시도 가능. 일단 모두 upsert.
+    .map((r) => ({ id: r.id, name: r.name, short_name: r.short_name || undefined, team_id: r.team_id || undefined, position: r.position || undefined, sport: league, nameKo: enToKo[r.name] || undefined }))
     .filter((p) => p.id && p.name);
-  console.log(`  ▶ upsert ${payload.length}건`);
-  const CHUNK = 100;
   let totalUp = 0;
-  for (let i = 0; i < payload.length; i += CHUNK) {
-    const slice = payload.slice(i, i + CHUNK);
-    try {
-      const r = await postPlayersUpsert(slice);
-      totalUp += r.upserted || 0;
-    } catch (e) {
-      console.error(`    ✗ upsert ${i}: ${e.message}`);
-    }
+  for (let i = 0; i < payload.length; i += 100) {
+    try { const r = await postPlayersUpsert(payload.slice(i, i + 100)); totalUp += r.upserted || 0; }
+    catch (e) { console.error(`    ✗ [${league}] upsert ${i}: ${e.message}`); }
   }
-  console.log(`  ✓ upserted ${totalUp}`);
+  console.log(`  [${league}] ✓ names upserted ${totalUp}`);
 
-  // 5) photo enrich — KBO 공식 API 로 nameKo 검색 + photo HEAD verify + upsert.
-  //    todo: photoUrlNull (이전부터 photo 없는 player) + 방금 새로 ko 채운 player 들도 동일 후보.
-  const photoCandidates = [
-    ...photoTodo,
-    ...records.filter((r) => enToKo[r.name]).map((r) => ({ id: r.id, nameKo: enToKo[r.name] })),
-  ];
-  // dedup by id
-  const photoMap = new Map();
-  for (const p of photoCandidates) if (p.nameKo) photoMap.set(p.id, p);
-  const photoList = [...photoMap.values()];
-  console.log(`  ▶ photo enrich (${photoList.length}건)`);
-  let photoHit = 0, photoUp = 0;
-  const photoPayload = [];
-  for (let i = 0; i < photoList.length; i++) {
-    const { id, nameKo } = photoList[i];
-    const hit = await searchKboPlayer(nameKo);
-    if (!hit) {
-      if ((i + 1) % 20 === 0) console.log(`    ${i + 1}/${photoList.length} search miss (last: ${nameKo})`);
-      continue;
+  // 5) KBO 전용 photo enrich
+  let photoUp = 0;
+  if (league === "KBO") {
+    const photoMap = new Map();
+    for (const p of [...photoTodo, ...records.filter((r) => enToKo[r.name]).map((r) => ({ id: r.id, nameKo: enToKo[r.name] }))]) {
+      if (p.nameKo) photoMap.set(p.id, p);
     }
-    photoHit++;
-    const url = `${KBO_PHOTO_BASE}/${KBO_PHOTO_YEAR}/${hit.P_ID}.jpg`;
-    const ok = await verifyPhotoUrl(url);
-    if (!ok) continue;
-    // nameKo 도 같이 보냄 — endpoint upsert update branch 가 photoUrl 만 변경.
-    // name 필드는 endpoint 가 require 하므로 dummy 라도 보내야. 기존 row 에서 update 시 보존.
-    photoPayload.push({ id, name: nameKo, nameKo, sport: LEAGUE, photoUrl: url });
-    if (photoPayload.length >= 50) {
-      try {
-        const r = await postPlayersUpsert(photoPayload);
-        photoUp += r.upserted || 0;
-      } catch (e) {
-        console.error(`    ✗ photo upsert: ${e.message}`);
-      }
-      photoPayload.length = 0;
+    const photoList = [...photoMap.values()];
+    const photoPayload = [];
+    for (const { id, nameKo } of photoList) {
+      const hit = await searchKboPlayer(nameKo);
+      if (!hit) continue;
+      const url = `${KBO_PHOTO_BASE}/${KBO_PHOTO_YEAR}/${hit.P_ID}.jpg`;
+      if (!(await verifyPhotoUrl(url))) continue;
+      photoPayload.push({ id, name: nameKo, nameKo, sport: league, photoUrl: url });
+      if (photoPayload.length >= 50) { try { const r = await postPlayersUpsert(photoPayload); photoUp += r.upserted || 0; } catch {} photoPayload.length = 0; }
+      await new Promise((res) => setTimeout(res, 80));
     }
-    await new Promise((res) => setTimeout(res, 80));
+    if (photoPayload.length > 0) { try { const r = await postPlayersUpsert(photoPayload); photoUp += r.upserted || 0; } catch {} }
+    console.log(`  [KBO] ✓ photo upserted ${photoUp}`);
   }
-  if (photoPayload.length > 0) {
-    try {
-      const r = await postPlayersUpsert(photoPayload);
-      photoUp += r.upserted || 0;
-    } catch (e) {
-      console.error(`    ✗ photo upsert final: ${e.message}`);
-    }
-  }
-  console.log(`  ✓ photo search hit ${photoHit}/${photoList.length}, upserted ${photoUp}`);
 
-  await bootHeartbeat({
-    totalIds,
-    todoNames: todo.length,
-    photoTodo: photoTodo.length,
-    enHit: records.length,
-    koMapped: Object.keys(enToKo).length,
-    namesUpserted: totalUp,
-    photoSearchHit: photoHit,
-    photoUpserted: photoUp,
-  });
-  console.log(`◀ 종료`);
+  return { league, totalIds, todoNames: todo.length, enHit: records.length, koMapped: Object.keys(enToKo).length, namesUpserted: totalUp, photoUpserted: photoUp };
+}
+
+async function main() {
+  const ts0 = new Date().toISOString();
+  console.log(`[${ts0}] 🚀 baseball-player-names-cron start (leagues=${LEAGUES.join(",")}, days=${DAYS})`);
+  const results = [];
+  for (const league of LEAGUES) {
+    try { results.push(await processLeague(league)); }
+    catch (e) { console.error(`❌ [${league}] ${e.message}`); results.push({ league, error: e.message }); }
+  }
+  await bootHeartbeat({ leagues: LEAGUES, results });
+  console.log(`◀ 종료 — ${results.map((r) => `${r.league}:${r.namesUpserted ?? "err"}`).join(" ")}`);
 }
 
 main().catch((e) => {
