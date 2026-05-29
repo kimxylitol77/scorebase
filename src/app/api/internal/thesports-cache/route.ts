@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     }),
     prisma.match.findUnique({
       where: { id: body.matchId },
-      select: { id: true, homeScore: true, awayScore: true, status: true, league: true },
+      select: { id: true, homeScore: true, awayScore: true, status: true, league: true, startTime: true },
     }),
   ]);
   if (!currentMatch) return NextResponse.json({ error: "match not found" }, { status: 404 });
@@ -166,7 +166,18 @@ export async function POST(req: NextRequest) {
         // POSTPONED 는 어디서나 진입 허용 (matchday cancel).
         const currentRank = STATUS_RANK[currentMatch.status as MatchStatus] ?? 0;
         const newRank = STATUS_RANK[mapped];
-        if (mapped !== currentMatch.status && (newRank >= currentRank || mapped === "POSTPONED")) {
+        // 미래 매치 가드 — 킥오프 10분 전보다 이른 매치는 LIVE/FINISHED 로 안 바꿈.
+        // ts cache 오연결(진행 중 다른 경기의 status_id)이 미래 예정 매치를 LIVE 로
+        // 오염시키던 사고 차단 (2026-05-29 EGYPT_PL #144999 — 2h 후 매치가 LIVE).
+        const isFutureMatch =
+          currentMatch.startTime.getTime() > Date.now() + 10 * 60 * 1000;
+        const blockByFuture =
+          isFutureMatch && (mapped === "LIVE" || mapped === "FINISHED");
+        if (
+          mapped !== currentMatch.status &&
+          (newRank >= currentRank || mapped === "POSTPONED") &&
+          !blockByFuture
+        ) {
           updateData.status = mapped;
         }
       }
