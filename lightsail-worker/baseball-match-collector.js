@@ -33,6 +33,7 @@ const TEAM_MAP_FILE = path.join(__dirname, "baseball-team-id-mapping.json");
 // mapBaseballStatus 와 단일 진실 통일 (2026-05-27 status_id=1 LIVE 오매핑 사고).
 //   0, 1 = SCHEDULED (Not Started)
 //   100 = FINISHED
+//   14, 19 = POSTPONED (취소/중단 — score[3]={} 빈값, 이닝 없이 LIVE 표시되던 버그)
 //   2~99 = LIVE (이닝 진행)
 //   400대 = LIVE (이닝/half 세부)
 //   200대 = SCHEDULED
@@ -40,6 +41,7 @@ const TEAM_MAP_FILE = path.join(__dirname, "baseball-team-id-mapping.json");
 function mapStatus(id) {
   if (id === 0 || id === 1) return "SCHEDULED";
   if (id === 100) return "FINISHED";
+  if (id === 14 || id === 19) return "POSTPONED";
   if (id >= 2 && id < 100) return "LIVE";
   if (id >= 400 && id < 500) return "LIVE";
   if (id >= 200 && id < 300) return "SCHEDULED";

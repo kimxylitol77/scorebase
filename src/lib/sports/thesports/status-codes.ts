@@ -12,6 +12,9 @@ import type { MatchStatus } from "../types";
 export function mapBaseballStatus(statusId: number): MatchStatus {
   if (statusId === 0 || statusId === 1) return "SCHEDULED"; // Not Started
   if (statusId === 100) return "FINISHED";
+  // 14, 19 = 취소/중단 (하키 14=POSTPONED, 농구 14=FINISHED 와 동일 계열).
+  // catch-all LIVE 보다 먼저 처리 — score[3]={} 빈값으로 이닝 없이 LIVE 표시되던 버그.
+  if (statusId === 14 || statusId === 19) return "POSTPONED";
   if (statusId >= 2 && statusId < 100) return "LIVE";
   if (statusId >= 400 && statusId < 500) return "LIVE";
   if (statusId >= 200 && statusId < 300) return "SCHEDULED";
