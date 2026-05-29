@@ -208,14 +208,12 @@ export const collectors: Record<League, MatchCollector> = {
   ARG_PRIMERA_NACIONAL: { league: "ARG_PRIMERA_NACIONAL", async fetchByDate() { return []; } },
   // IRAQ_SL: 이라크 스타스 리그(1부) — TheSports worker 수집. Vercel collect no-op.
   IRAQ_SL: { league: "IRAQ_SL", async fetchByDate() { return []; } },
-  // 14개국 2부 (2026-05-29) — TheSports worker 수집, Vercel collect no-op
-  URUGUAY_2: { league: "URUGUAY_2", async fetchByDate() { return []; } },
+  // 9개국 2부 (2026-05-29) — TheSports worker 수집, Vercel collect no-op
   MEXICO_2: { league: "MEXICO_2", async fetchByDate() { return []; } },
   CHINA_2: { league: "CHINA_2", async fetchByDate() { return []; } },
   IRELAND_2: { league: "IRELAND_2", async fetchByDate() { return []; } },
   DENMARK_2: { league: "DENMARK_2", async fetchByDate() { return []; } },
   HUNGARY_2: { league: "HUNGARY_2", async fetchByDate() { return []; } },
-  CROATIA_2: { league: "CROATIA_2", async fetchByDate() { return []; } },
   CZECH_2: { league: "CZECH_2", async fetchByDate() { return []; } },
   AUSTRIA_2: { league: "AUSTRIA_2", async fetchByDate() { return []; } },
   BELGIUM_2: { league: "BELGIUM_2", async fetchByDate() { return []; } },

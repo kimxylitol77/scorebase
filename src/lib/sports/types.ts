@@ -180,13 +180,11 @@ export type League =
   | "GHANA_PL" // 가나 프리미어리그 (1부, 9~5월)
   | "ARG_PRIMERA_NACIONAL" // 아르헨티나 프리메라 나시오날 (2부, 달력)
   | "IRAQ_SL" // 이라크 스타스 리그 (1부) — TheSports 전용
-  | "URUGUAY_2" // 우루과이 세군다 (2부)
   | "MEXICO_2" // 멕시코 아센소 MX (2부)
   | "CHINA_2" // 중국 갑급리그 (2부)
   | "IRELAND_2" // 아일랜드 퍼스트 디비전 (2부)
   | "DENMARK_2" // 덴마크 1.디비전 (2부)
   | "HUNGARY_2" // 헝가리 NB II (2부)
-  | "CROATIA_2" // 크로아티아 2부
   | "CZECH_2" // 체코 2부 (FNL)
   | "AUSTRIA_2" // 오스트리아 2.리가 (2부)
   | "BELGIUM_2" // 벨기에 챌린저 프로리그 (2부)
@@ -460,8 +458,8 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "BOLIVIA_PD",
   "ARG_PRIMERA_NACIONAL",
   "IRAQ_SL",
-  "URUGUAY_2", "MEXICO_2", "CHINA_2", "IRELAND_2", "DENMARK_2",
-  "HUNGARY_2", "CROATIA_2", "CZECH_2", "AUSTRIA_2", "BELGIUM_2", "TURKEY_2",
+  "MEXICO_2", "CHINA_2", "IRELAND_2", "DENMARK_2", "HUNGARY_2",
+  "CZECH_2", "AUSTRIA_2", "BELGIUM_2", "TURKEY_2",
   // 아프리카 2
   "ALGERIA_L1",
   "GHANA_PL",

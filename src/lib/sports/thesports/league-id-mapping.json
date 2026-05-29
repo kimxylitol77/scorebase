@@ -796,13 +796,11 @@
     "tsKo": "이라크 스타스 리그",
     "tsSeasonId": "9vjxm8ghy7pr6od"
   },
-  { "code": "URUGUAY_2", "ourLabel": "우루과이 세군다", "tsId": "vl7oqdeh4ydr510", "tsEn": "Uruguay Segunda League", "tsKo": "우루과이 세군다" },
   { "code": "MEXICO_2", "ourLabel": "멕시코 아센소 MX", "tsId": "z318q66hygqo9jd", "tsEn": "Mexico Ascenso MX", "tsKo": "멕시코 아센소 MX" },
   { "code": "CHINA_2", "ourLabel": "중국 갑급리그", "tsId": "z318q66h91qo9jd", "tsEn": "Chinese Football League 1", "tsKo": "중국 갑급리그" },
   { "code": "IRELAND_2", "ourLabel": "아일랜드 1부 디비전", "tsId": "gx7lm7ph8jm2wdk", "tsEn": "Ireland First Division", "tsKo": "아일랜드 1부 디비전" },
   { "code": "DENMARK_2", "ourLabel": "덴마크 1.디비전", "tsId": "j1l4rjnh20m7vx5", "tsEn": "Danish 1st Division", "tsKo": "덴마크 1.디비전" },
   { "code": "HUNGARY_2", "ourLabel": "헝가리 NB II", "tsId": "d23xmvkh8nqg8ny", "tsEn": "Merkantil Bank Liga", "tsKo": "헝가리 NB II" },
-  { "code": "CROATIA_2", "ourLabel": "크로아티아 2부", "tsId": "kjw2r09hwwyrz84", "tsEn": "Croatian Second Football League", "tsKo": "크로아티아 2부" },
   { "code": "CZECH_2", "ourLabel": "체코 2부", "tsId": "p4jwq2gh9ym0veo", "tsEn": "Chance Narodni Liga", "tsKo": "체코 2부" },
   { "code": "AUSTRIA_2", "ourLabel": "오스트리아 2.리가", "tsId": "kjw2r09h9jrz84o", "tsEn": "Austrian 2.Liga", "tsKo": "오스트리아 2.리가" },
   { "code": "BELGIUM_2", "ourLabel": "벨기에 챌린저 프로", "tsId": "gx7lm7ph5nm2wdk", "tsEn": "Belgian Challenger Pro League", "tsKo": "벨기에 챌린저 프로" },
