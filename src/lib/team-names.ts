@@ -2697,6 +2697,25 @@ const RAW: Record<string, string> = {
   "KuPS Akatemia": "쿠프스 아카테미아",
   "Rops": "롭스",
   "SalPa": "살파",
+
+  // ===== 잔여 누락 보정 (2026-05-29 추가) — 메이저팀 위주 =====
+  "Coritiba": "코리치바",
+  "JEF United Chiba": "제프 유나이티드 치바",
+  "Las Palmas": "라스 팔마스",
+  "Suwon Bluewings": "수원 블루윙즈",
+  "Chindia Targoviste": "킨디아 트르고비슈테",
+  "FC Voluntari": "볼룬타리",
+  "Floreşti": "플로레슈티",
+  "Sireți": "시레치",
+  "Nafta": "나프타",
+  "Primorje": "프리모레",
+  "Völsungur": "뵐숭귀르",
+  "Ægir": "아이이르",
+  "CF Os Belenenses": "벨레넨세스",
+  "St Patrick's Athl.": "세인트 패트릭스",
+  "Yantra 2019": "얀트라",
+  "Latvia": "라트비아",
+  "AIK Stockholm": "AIK 스톡홀름",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
