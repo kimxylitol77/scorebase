@@ -24,7 +24,7 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 
-const LEAGUES = (process.env.PLAYER_NAME_LEAGUES || "KBO,NPB,MLB")
+const LEAGUES = (process.env.PLAYER_NAME_LEAGUES || "KBO,NPB,MLB,LMB,CPBL")
   .split(",").map((s) => s.trim()).filter(Boolean);
 const DAYS = 7;
 const BATCH = 50;
@@ -55,6 +55,20 @@ function promptIntro(league) {
       "참고: 네이버/스탯티즈 MLB 표기 기준.\n" +
       "- Mike Trout → 마이크 트라웃, Aaron Judge → 애런 저지, Shohei Ohtani → 오타니 쇼헤이(일본계는 일본식)\n" +
       "- 성+이름 순서(영미식): 마이크 트라웃 (띄어쓰기 유지)\n"
+    );
+  }
+  if (league === "LMB") {
+    return (
+      "다음 LMB (멕시코 프로야구) 선수 이름을 한국 스포츠 미디어 음역으로 변환해주세요.\n" +
+      "대부분 중남미(스페인어) 선수. 네이버/스탯티즈 중남미 야구 표기 기준.\n" +
+      "- Aderlin Rodriguez → 아데를린 로드리게스, Jose Cardona → 호세 카르도나, Robinson Cano → 로빈슨 카노\n" +
+      "- 성+이름 순서 유지 (음역, 띄어쓰기 유지)\n"
+    );
+  }
+  if (league === "CPBL") {
+    return (
+      "다음 CPBL (대만 프로야구) 선수 이름을 한국 스포츠 미디어 음역으로 변환해주세요.\n" +
+      "- 대만/중화권 선수는 한국 한자음 또는 음역, 외국인 용병은 음역\n"
     );
   }
   // KBO (기본)
