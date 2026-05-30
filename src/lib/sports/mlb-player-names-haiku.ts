@@ -91,6 +91,7 @@ export const MLB_PLAYER_NAMES_HAIKU_KO: Record<string, string> = {
   "Clayton Beeter": "클레이턴 비터",
   "Codi Heuer": "코디 흐우어",
   "Cody Bolton": "코디 볼튼",
+  "Cody Laweryson": "코디 로어리슨",
   "Cole Henry": "콜 헨리",
   "Cole Sulser": "콜 설서",
   "Cole Wilcox": "콜 윌콕스",
