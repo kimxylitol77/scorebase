@@ -4,7 +4,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { getFullStandings, type StandingsRow } from "@/lib/sports/thesports/standings-helper";
+import {
+  getFullStandings,
+  GROUPED_STANDINGS_LEAGUES,
+  type StandingsRow,
+} from "@/lib/sports/thesports/standings-helper";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
@@ -49,6 +53,9 @@ interface LeagueRace {
 async function buildRaces(): Promise<LeagueRace[]> {
   const out: LeagueRace[] = [];
   for (const league of TITLE_RACE_LEAGUES) {
+    // 그룹 컵(J1 2026 100년 비전 = East/West)은 단일 우승 레이스가 무의미 → 제외.
+    // 2026-27 정상 단일표 복귀 시 GROUPED set 비우면 자동 복귀.
+    if (GROUPED_STANDINGS_LEAGUES.has(league)) continue;
     const rows = await getFullStandings(league);
     if (rows.length === 0) continue;
     const top: StandingsRow[] = rows.slice(0, 3);

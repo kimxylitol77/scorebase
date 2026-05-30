@@ -40,7 +40,19 @@ export default async function StandingsOnlyView({ league }: Props) {
         logoUrl: team?.logoUrl ?? null,
       };
     })
-    .sort((a, b) => a.position - b.position);
+    .sort(
+      (a, b) =>
+        (a.group ?? "").localeCompare(b.group ?? "") || a.position - b.position,
+    );
+
+  // 그룹(J1/J2 2026 East/West 등) 있으면 섹션 분리, 없으면 단일표.
+  const groupNames = [
+    ...new Set(rows.map((r) => r.group).filter(Boolean)),
+  ] as string[];
+  const isGrouped = groupNames.length >= 2;
+  const sections = isGrouped
+    ? groupNames.map((g) => ({ group: g, rows: rows.filter((r) => r.group === g) }))
+    : [{ group: null as string | null, rows }];
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
@@ -59,62 +71,78 @@ export default async function StandingsOnlyView({ league }: Props) {
           순위 데이터를 수집 중입니다. 잠시 후 다시 확인해주세요.
         </div>
       ) : (
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
-              <tr>
-                <th className="text-right px-3 py-2 font-medium w-10">#</th>
-                <th className="text-left px-3 py-2 font-medium">팀</th>
-                <th className="text-right px-2 py-2 font-medium">경기</th>
-                <th className="text-right px-2 py-2 font-medium">승</th>
-                <th className="text-right px-2 py-2 font-medium">무</th>
-                <th className="text-right px-2 py-2 font-medium">패</th>
-                <th className="text-right px-2 py-2 font-medium hidden sm:table-cell">득실</th>
-                <th className="text-right px-3 py-2 font-medium">승점</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {rows.map((r) => {
-                const played = r.won + r.draw + r.loss;
-                const gd = r.goalDiff ?? (r.goalsFor != null && r.goalsAgainst != null ? r.goalsFor - r.goalsAgainst : null);
-                return (
-                  <tr
-                    key={r.teamId}
-                    id={`team-${r.teamId}`}
-                    className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24"
-                  >
-                    <td className="px-3 py-2 text-right tabular-nums font-semibold text-neutral-500">{r.position}</td>
-                    <td className="px-3 py-2 truncate">
-                      <div className="flex items-center gap-2 min-w-0">
-                        {r.logoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={r.logoUrl}
-                            alt=""
-                            width={24}
-                            height={24}
-                            loading="lazy"
-                            className="w-6 h-6 object-contain shrink-0 bg-white rounded-sm"
-                          />
-                        ) : (
-                          <div className="w-6 h-6 rounded-sm bg-neutral-200 dark:bg-neutral-700 shrink-0" />
-                        )}
-                        <span className="truncate">{r.teamName}</span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 text-right tabular-nums">{played}</td>
-                    <td className="px-2 py-2 text-right tabular-nums">{r.won}</td>
-                    <td className="px-2 py-2 text-right tabular-nums">{r.draw}</td>
-                    <td className="px-2 py-2 text-right tabular-nums">{r.loss}</td>
-                    <td className="px-2 py-2 text-right tabular-nums hidden sm:table-cell">
-                      {gd != null ? (gd > 0 ? `+${gd}` : `${gd}`) : "-"}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums font-bold">{r.points}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-5">
+          {isGrouped && (
+            <p className="text-xs text-neutral-500">
+              ※ 2026 J리그 100년 비전 리그 — 지역 그룹별 순위
+            </p>
+          )}
+          {sections.map((sec) => (
+            <div key={sec.group ?? "_single"} className="space-y-2">
+              {sec.group && (
+                <h2 className="text-sm font-bold text-neutral-700 dark:text-neutral-300 px-1">
+                  {sec.group}
+                </h2>
+              )}
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                    <tr>
+                      <th className="text-right px-3 py-2 font-medium w-10">#</th>
+                      <th className="text-left px-3 py-2 font-medium">팀</th>
+                      <th className="text-right px-2 py-2 font-medium">경기</th>
+                      <th className="text-right px-2 py-2 font-medium">승</th>
+                      <th className="text-right px-2 py-2 font-medium">무</th>
+                      <th className="text-right px-2 py-2 font-medium">패</th>
+                      <th className="text-right px-2 py-2 font-medium hidden sm:table-cell">득실</th>
+                      <th className="text-right px-3 py-2 font-medium">승점</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                    {sec.rows.map((r) => {
+                      const played = r.won + r.draw + r.loss;
+                      const gd = r.goalDiff ?? (r.goalsFor != null && r.goalsAgainst != null ? r.goalsFor - r.goalsAgainst : null);
+                      return (
+                        <tr
+                          key={r.teamId}
+                          id={`team-${r.teamId}`}
+                          className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24"
+                        >
+                          <td className="px-3 py-2 text-right tabular-nums font-semibold text-neutral-500">{r.position}</td>
+                          <td className="px-3 py-2 truncate">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {r.logoUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={r.logoUrl}
+                                  alt=""
+                                  width={24}
+                                  height={24}
+                                  loading="lazy"
+                                  className="w-6 h-6 object-contain shrink-0 bg-white rounded-sm"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded-sm bg-neutral-200 dark:bg-neutral-700 shrink-0" />
+                              )}
+                              <span className="truncate">{r.teamName}</span>
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 text-right tabular-nums">{played}</td>
+                          <td className="px-2 py-2 text-right tabular-nums">{r.won}</td>
+                          <td className="px-2 py-2 text-right tabular-nums">{r.draw}</td>
+                          <td className="px-2 py-2 text-right tabular-nums">{r.loss}</td>
+                          <td className="px-2 py-2 text-right tabular-nums hidden sm:table-cell">
+                            {gd != null ? (gd > 0 ? `+${gd}` : `${gd}`) : "-"}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums font-bold">{r.points}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

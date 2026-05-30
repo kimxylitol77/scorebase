@@ -161,7 +161,15 @@ export interface StandingsRow {
   goalsFor?: number;
   goalsAgainst?: number;
   goalDiff?: number;
+  /** 그룹/지역명 (J1/J2 2026 100년 비전 = East/West 등). 일반 단일표 리그는 undefined. */
+  group?: string | null;
 }
+
+// 2026 J리그 "100년 비전 리그"(과도기 단일 시즌, 2/6~6/7) = 그룹 포맷.
+// J1: East 10 / West 10, J2: East A·B / West A·B 4그룹. ts payload 는 stage_id 가 opaque 라
+// 그룹 라벨을 못 주므로 af(깨끗한 group 필드 + 전팀 매핑) 를 우선 source 로 사용한다.
+// 2026-27 정상 단일표 복귀 시 이 set 비우면 됨.
+export const GROUPED_STANDINGS_LEAGUES = new Set(["J1_LEAGUE", "J2_LEAGUE"]);
 
 const fullCache = new Map<string, { fetchedAt: number; rows: StandingsRow[] }>();
 
@@ -177,6 +185,64 @@ export async function getFullStandings(league: string): Promise<StandingsRow[]> 
 
   const out: StandingsRow[] = [];
   const seen = new Set<number>();
+
+  // 0) J1/J2 2026 그룹 포맷 — af(깨끗한 group 필드 + 전팀 매핑) 우선. ts 는 stage_id 가
+  //    opaque 라 East/West 라벨 불가 + flatten 시 1~N위 중복. af 로 그룹별 표 구성.
+  if (GROUPED_STANDINGS_LEAGUES.has(league)) {
+    try {
+      const afG = await prisma.apiFootballStandingsCache.findUnique({
+        where: { league },
+        select: { rows: true },
+      });
+      const gr =
+        (afG?.rows as unknown as Array<{
+          teamExternalId: string;
+          position: number;
+          points: number;
+          won?: number;
+          draw?: number;
+          loss?: number;
+          group?: string;
+        }>) ?? [];
+      if (gr.length > 0) {
+        const ext = gr.map((r) => r.teamExternalId);
+        const teamsG = await prisma.team.findMany({
+          where: { league, externalId: { in: ext } },
+          select: { id: true, externalId: true },
+        });
+        const e2o = new Map(teamsG.map((t) => [t.externalId, t.id]));
+        for (const r of gr) {
+          const ourId = e2o.get(r.teamExternalId);
+          if (ourId == null || seen.has(ourId)) continue;
+          seen.add(ourId);
+          out.push({
+            teamId: ourId,
+            position: r.position,
+            points: typeof r.points === "number" ? r.points : 0,
+            won: r.won ?? 0,
+            draw: r.draw ?? 0,
+            loss: r.loss ?? 0,
+            group: r.group ?? null,
+          });
+        }
+        if (out.length > 0) {
+          out.sort(
+            (a, b) =>
+              (a.group ?? "").localeCompare(b.group ?? "") ||
+              a.position - b.position,
+          );
+          fullCache.set(league, { fetchedAt: now, rows: out });
+          return out;
+        }
+      }
+      // af 비면 아래 일반(ts) 경로로 fallback (그룹 라벨은 없지만 표시는 됨)
+    } catch (e) {
+      console.warn(
+        `[standings-helper] grouped af fail league=${league}:`,
+        (e as Error).message,
+      );
+    }
+  }
 
   // 1) TheSports 우선 — Lightsail standings-poller 1시간 주기로 fresh.
   //    (이전: api-football 우선이었으나 1일 1회 cron 이라 19h+ stale 자주 발생,

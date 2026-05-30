@@ -13,7 +13,10 @@ import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
 import UclBracket from "@/components/UclBracket";
 import { buildUclBracket } from "@/lib/predict/ucl-bracket";
-import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import {
+  getFullStandings,
+  GROUPED_STANDINGS_LEAGUES,
+} from "@/lib/sports/thesports/standings-helper";
 import NbaPlayoffBracket from "@/components/NbaPlayoffBracket";
 import { getNbaPlayoffBracket } from "@/lib/predict/nba-playoffs";
 import { getTsNbaPlayoffBracket } from "@/lib/predict/ts-nba-playoff";
@@ -245,6 +248,13 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase();
+  if (GROUPED_STANDINGS_LEAGUES.has(upper)) {
+    const name = LEAGUE_DISPLAY[upper] ?? upper;
+    return {
+      title: `${name} 순위`,
+      description: `${name} 2026 100년 비전 리그 — 지역 그룹별 순위표.`,
+    };
+  }
   if (!VALID.includes(upper as ValidLeague)) {
     // ALL_LEAGUES 에는 있지만 VALID 에 없는 신규 리그 → standings-only fallback
     if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
@@ -263,6 +273,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function LeaguePredictions({ params }: Props) {
   const { league } = await params;
   const upper = league.toUpperCase();
+  // J1/J2 2026 100년 비전 = East/West 그룹 포맷 → 단일리그 가정의 Monte Carlo 부적합.
+  // 그룹별 순위표(StandingsOnlyView, af group 라벨)로 표시. 2026-27 정상 복귀 시 set 비우면 됨.
+  if (GROUPED_STANDINGS_LEAGUES.has(upper)) {
+    return <StandingsOnlyView league={upper} />;
+  }
   if (!VALID.includes(upper as ValidLeague)) {
     // ALL_LEAGUES 안에 있으면 순위표만 보여주는 fallback (Elo/예측 데이터 준비 전)
     if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
