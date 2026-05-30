@@ -12785,5 +12785,50 @@
     "tsId": "jw2r09hlgn1rz84",
     "tsName": "Meizhou Hakka",
     "matchType": "ts-name"
+  },
+  {
+    "ourId": 119198,
+    "ourName": "Atletico Paranaense",
+    "ourLeague": "BRASILEIRAO",
+    "ourExternalId": "134",
+    "tsId": "9vjxm8gh678r6od",
+    "tsName": "Atletico Paranaense",
+    "matchType": "ts-name-season"
+  },
+  {
+    "ourId": 119196,
+    "ourName": "RB Bragantino",
+    "ourLeague": "BRASILEIRAO",
+    "ourExternalId": "794",
+    "tsId": "pxwrxlhg975ryk0",
+    "tsName": "RB Bragantino",
+    "matchType": "ts-name-season"
+  },
+  {
+    "ourId": 119189,
+    "ourName": "Coritiba",
+    "ourLeague": "BRASILEIRAO",
+    "ourExternalId": "147",
+    "tsId": "9vjxm8ghoenr6od",
+    "tsName": "Coritiba",
+    "matchType": "ts-name-season"
+  },
+  {
+    "ourId": 115948,
+    "ourName": "Atletico-MG",
+    "ourLeague": "BRASILEIRAO",
+    "ourExternalId": "1062",
+    "tsId": "gx7lm7phe29m2wd",
+    "tsName": "Atletico-MG",
+    "matchType": "ts-name-season"
+  },
+  {
+    "ourId": 115947,
+    "ourName": "Vasco DA Gama",
+    "ourLeague": "BRASILEIRAO",
+    "ourExternalId": "133",
+    "tsId": "jednm9whll2ryox",
+    "tsName": "Vasco DA Gama",
+    "matchType": "ts-name-season"
   }
 ]
