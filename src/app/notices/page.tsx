@@ -48,9 +48,10 @@ export default async function NoticesPage({ searchParams }: Props) {
   const { tab } = await searchParams;
   const activeTab = tab === "blog" ? "blog" : "notice";
 
-  const [notices, blogs] = await Promise.all([
+  const [notices, blogs, postCount] = await Promise.all([
     prisma.notice.findMany({ orderBy: { publishedAt: "desc" }, take: 50 }),
     prisma.blog.findMany({ orderBy: { publishedAt: "desc" }, take: 50 }),
+    prisma.post.count(),
   ]);
 
   return (
@@ -86,6 +87,12 @@ export default async function NoticesPage({ searchParams }: Props) {
           }`}
         >
           블로그 ({blogs.length})
+        </Link>
+        <Link
+          href="/analysis"
+          className="px-4 py-2 text-sm font-semibold transition border-b-2 -mb-px border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+        >
+          회원분석 ({postCount})
         </Link>
       </nav>
 
