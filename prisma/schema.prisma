@@ -173,6 +173,7 @@ model Match {
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]
+  posts    Post[]
   theSportsCache TheSportsMatchCache?
   oddsSnapshots  OddsSnapshot[]
   tsBaseballOdds TsBaseballOddsHistory[]
@@ -486,9 +487,60 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // ⚠️ 회원 등급(exp/points/level) 컬럼은 2단계(프로필 UI) 때 추가 + db push 를 함께.
-  //    schema 에만 두고 db push 안 하면 user.create 가 "column exp does not exist" 로 가입 전체가 깨짐(검증됨).
-  //    등급 계산 util 은 src/lib/user-level.ts 에 이미 있음(DB 무관) — 2단계에서 이 컬럼과 연동.
+  // 회원 등급 시스템 (축구 디비전 12단계). exp→level 계산·등급표는 src/lib/user-level.ts.
+  // 권한 차등 아님(가입하면 댓글·글쓰기 모두 가능) → 순수 활동·적중 명예 용도.
+  // ⚠️ 이 컬럼들 + Post/PostLike 는 반드시 함께 db push — schema 에만 두고 push 안 하면 가입 깨짐(검증됨).
+  exp    Int @default(0) // 누적 경험치 (등급 산출 기준)
+  points Int @default(0) // 소비용 포인트 (등급과 분리)
+  level  Int @default(1) // 캐시된 등급 (exp 변동 시 expToLevel 로 재계산)
+
+  posts     Post[]
+  postLikes PostLike[]
+
   // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
+}
+
+/// 회원 작성 스포츠 분석 게시판 글. 예측(승/무/패)을 선택적으로 포함 → 경기 종료 시 자동 채점.
+/// 권한 차등 없음: 로그인 회원이면 누구나 작성. 등급(level)은 표시용 명예.
+model Post {
+  id       Int    @id @default(autoincrement())
+  authorId String // User.id (cuid)
+  category String @default("ANALYSIS") // 분류 라벨 — 현재 ANALYSIS, 확장 대비
+  title    String
+  content  String // 본문 (Markdown/Plain text)
+  views    Int    @default(0)
+  likes    Int    @default(0) // PostLike 집계 캐시 (목록 정렬·표시용)
+
+  // 예측 (선택) — 특정 예정 경기에 대한 승/무/패 픽. 경기 종료 후 자동 채점.
+  sport     String?   // soccer | baseball | basketball | hockey (예측 있을 때만)
+  matchId   Int?      // 대상 경기 (Match.id)
+  pick      String?   // "HOME" | "DRAW" | "AWAY"  (DRAW 는 축구만)
+  isCorrect Boolean?  // null=미정산, 경기 FINISHED 후 채점됨
+  settledAt DateTime? // 채점 시각
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author  User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  match   Match?     @relation(fields: [matchId], references: [id])
+  likedBy PostLike[]
+
+  @@index([category, createdAt])
+  @@index([authorId])
+  @@index([matchId, isCorrect]) // 자동채점 cron 쿼리용 (미정산 픽 조회)
+}
+
+/// 글 추천 (중복 방지). 한 회원이 한 글에 1회만.
+model PostLike {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
 }
