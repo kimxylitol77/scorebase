@@ -11,6 +11,7 @@ import {
   verifyPassword,
 } from "@/lib/user-auth";
 import { rateLimit, rateLimitReset } from "@/lib/rate-limit";
+import { expToLevel } from "@/lib/user-level";
 
 export interface AuthState {
   ok: boolean;
@@ -132,7 +133,7 @@ export async function loginUserAction(
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, passwordHash: true },
+    select: { id: true, passwordHash: true, exp: true, lastAttendanceAt: true },
   });
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return {
@@ -142,6 +143,23 @@ export async function loginUserAction(
   }
 
   rateLimitReset(`user-login:${ip}`);
+
+  // 출석 경험치 +10 (KST 하루 1회). 실패해도 로그인은 진행.
+  const KST = 9 * 3600 * 1000;
+  const nk = new Date(Date.now() + KST);
+  const todayStart = new Date(
+    Date.UTC(nk.getUTCFullYear(), nk.getUTCMonth(), nk.getUTCDate()) - KST,
+  );
+  if (!user.lastAttendanceAt || user.lastAttendanceAt < todayStart) {
+    const newExp = user.exp + 10;
+    await prisma.user
+      .update({
+        where: { id: user.id },
+        data: { exp: newExp, level: expToLevel(newExp), lastAttendanceAt: new Date() },
+      })
+      .catch(() => {});
+  }
+
   await setSession(user.id);
   redirect(from);
 }

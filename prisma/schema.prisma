@@ -494,6 +494,9 @@ model User {
   points Int @default(0) // 소비용 포인트 (등급과 분리)
   level  Int @default(1) // 캐시된 등급 (exp 변동 시 expToLevel 로 재계산)
 
+  avatarUrl        String?   // 아바타 프리셋 id (src/lib/avatars.ts). null=기본
+  lastAttendanceAt DateTime? // 출석 경험치 마지막 적립 시각 (KST 하루 1회 제한)
+
   posts     Post[]
   postLikes PostLike[]
 

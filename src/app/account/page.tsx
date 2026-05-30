@@ -1,5 +1,5 @@
-// 회원 개인 페이지(마이페이지) — 본인 정보 + 등급 미리보기 + 로그아웃.
-// user_session 인증(미로그인 → /login). exp 컬럼은 2단계라 현재 0 기준 미리보기.
+// 회원 개인 페이지(마이페이지) — 아바타 + 경험치/등급 + 등급표 + 계정 + 로그아웃.
+// user_session 인증. 경험치(exp)/등급(level)은 게시판이 추가한 User 컬럼 사용.
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -7,7 +7,9 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
 import { logoutUserAction } from "@/app/(auth)/actions";
-import { gradeByExp, levelProgress } from "@/lib/user-level";
+import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
+import { avatarById } from "@/lib/avatars";
+import AvatarPicker from "./AvatarPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -29,52 +31,107 @@ export default async function AccountPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { email: true, nickname: true, createdAt: true },
+    select: {
+      email: true,
+      nickname: true,
+      createdAt: true,
+      exp: true,
+      level: true,
+      points: true,
+      avatarUrl: true,
+    },
   });
   if (!user) redirect("/login?from=/account");
 
-  // 등급: exp 컬럼은 2단계(프로필 UI) 때 도입 → 현재 0 기준 미리보기.
-  const exp = 0;
-  const grade = gradeByExp(exp);
-  const prog = levelProgress(exp);
+  const avatar = avatarById(user.avatarUrl);
+  const grade = gradeByExp(user.exp);
+  const prog = levelProgress(user.exp);
 
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
       <h1 className="text-xl font-black tracking-tight mb-6">내 정보</h1>
 
-      {/* 등급 카드 */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-gradient-to-br from-blue-500/5 to-transparent p-5 mb-5">
-        <div className="flex items-center gap-3">
-          <div className="text-3xl leading-none">{grade.emoji}</div>
+      {/* 프로필 카드 */}
+      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 mb-5">
+        <div className="flex items-center gap-4">
+          <div
+            className={`w-16 h-16 rounded-full ${avatar.bg} flex items-center justify-center text-3xl shrink-0`}
+          >
+            {avatar.emoji}
+          </div>
           <div className="min-w-0">
-            <div className="text-xs text-neutral-500">
-              Lv.{grade.level} · {grade.name}
-            </div>
             <div className="text-lg font-black truncate">{user.nickname}</div>
+            <div className="text-sm text-neutral-500">
+              {grade.emoji} Lv.{grade.level} · {grade.name}
+            </div>
           </div>
         </div>
-        {prog.next && (
-          <div className="mt-4">
-            <div className="h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
-              <div
-                className="h-full bg-blue-500 transition-all"
-                style={{ width: `${Math.round(prog.ratio * 100)}%` }}
-              />
-            </div>
-            <div className="mt-1.5 text-[11px] text-neutral-500">
-              다음 등급{" "}
-              <span className="font-semibold">
-                {prog.next.emoji} {prog.next.name}
-              </span>{" "}
-              — 등급 시스템 곧 오픈 (활동·예측 적중으로 승급)
-            </div>
+
+        {/* 경험치 바 */}
+        <div className="mt-4">
+          <div className="flex justify-between text-[11px] text-neutral-500 mb-1">
+            <span>경험치 {user.exp.toLocaleString()}</span>
+            {prog.next ? (
+              <span>
+                다음 {prog.next.emoji} {prog.next.name} 까지{" "}
+                {(prog.next.minExp - user.exp).toLocaleString()}
+              </span>
+            ) : (
+              <span>최고 등급 달성 👑</span>
+            )}
           </div>
-        )}
+          <div className="h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+            <div
+              className="h-full bg-blue-500 transition-all"
+              style={{ width: `${Math.round(prog.ratio * 100)}%` }}
+            />
+          </div>
+          <div className="mt-2 text-[11px] text-neutral-500">
+            보유 포인트{" "}
+            <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+              {user.points.toLocaleString()}P
+            </span>
+          </div>
+        </div>
       </div>
+
+      {/* 아바타 선택 */}
+      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 mb-5">
+        <div className="text-sm font-semibold mb-3">아바타 선택</div>
+        <AvatarPicker current={avatar.id} />
+      </section>
+
+      {/* 등급표 */}
+      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden mb-5">
+        <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 text-sm font-semibold">
+          등급표 <span className="text-neutral-500 font-normal">(축구 디비전 12단계)</span>
+        </div>
+        <div className="divide-y divide-neutral-100 dark:divide-neutral-900">
+          {GRADES.map((g) => {
+            const cur = g.level === grade.level;
+            return (
+              <div
+                key={g.level}
+                className={`flex items-center gap-3 px-4 py-2 ${cur ? "bg-blue-500/10" : ""}`}
+              >
+                <span className="text-lg w-6 text-center">{g.emoji}</span>
+                <span
+                  className={`text-sm flex-1 ${cur ? "font-bold text-blue-700 dark:text-blue-400" : ""}`}
+                >
+                  Lv.{g.level} {g.name}
+                  {cur && " ← 현재"}
+                </span>
+                <span className="text-[11px] text-neutral-400 tabular-nums">
+                  {g.minExp.toLocaleString()}+
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {/* 계정 정보 */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-900 mb-5">
-        <Row label="닉네임" value={user.nickname} />
         <Row label="이메일" value={user.email} />
         <Row label="가입일" value={fmtKst(user.createdAt)} />
       </div>
@@ -96,8 +153,8 @@ export default async function AccountPage() {
         </form>
       </div>
 
-      <p className="mt-8 text-[11px] text-neutral-400 text-center">
-        비밀번호 변경 · 즐겨찾기 동기화는 준비 중입니다.
+      <p className="mt-6 text-[11px] text-neutral-400 text-center">
+        출석(로그인) 시 매일 경험치가 적립됩니다. 게시판 글·예측 적중으로 더 빠르게 승급!
       </p>
     </div>
   );
