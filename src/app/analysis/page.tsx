@@ -32,7 +32,7 @@ export default async function AnalysisListPage() {
   ]);
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-14">
       <header className="flex items-end justify-between mb-6">
         <div>
           <p className="text-sm text-neutral-500 mb-1">커뮤니티</p>
@@ -51,7 +51,7 @@ export default async function AnalysisListPage() {
           아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!
         </p>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
+        <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80">
           {/* header row (desktop) */}
           <div className="hidden sm:grid grid-cols-[56px_1fr_150px_72px_56px_56px] gap-2 px-4 py-2.5 bg-neutral-50 dark:bg-neutral-900 text-xs font-semibold text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
             <span>분류</span>
