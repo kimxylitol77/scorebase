@@ -330,7 +330,20 @@ export const SOCCER_LEAGUES = [
   "PRIMEIRA_LIGA_2",
 ] as const satisfies readonly League[];
 
-/** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만 (스코어/일정) */
+/** PREVIEW/RECAP 자동 발행 화이트리스트 — 명시한 리그만 글 생성.
+ * TheSports 로 새 리그(CPBL/WNBA/LMB/NWSL 등)가 수집돼도 여기 없으면 발행 안 함.
+ * 2026-05-30 사용자 결정: 블랙리스트(NO_ARTICLE_LEAGUES) → 화이트리스트 전환. */
+export const ARTICLE_LEAGUES: readonly League[] = [
+  "KBO", "NPB", "MLB", // 야구
+  "NBA", // 농구
+  "NHL", "IIHF_WC", // 하키
+  "LOL", // e스포츠
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", // 축구 주요
+  "UCL", "UEL", "UECL", "WORLD_CUP", // 국제
+  "J1_LEAGUE", "K_LEAGUE_1", // 아시아
+];
+
+/** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만. (참고용; 발행 필터는 ARTICLE_LEAGUES 화이트리스트로 전환됨) */
 export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "K_LEAGUE_2",
   "J2_LEAGUE",

@@ -42,7 +42,7 @@ export async function runRecap(opts?: {
     `[generate] 시작 — sinceHours=${sinceHours}, league=${onlyLeague ?? "ALL"}, take=${take}, autoPublish=${autoPublish}`,
   );
 
-  const { NO_ARTICLE_LEAGUES } = await import("@/lib/sports/types");
+  const { ARTICLE_LEAGUES } = await import("@/lib/sports/types");
   const since = new Date(Date.now() - sinceHours * 60 * 60 * 1000);
   const matches = await prisma.match.findMany({
     where: {
@@ -51,7 +51,7 @@ export async function runRecap(opts?: {
       articles: { none: { type: "RECAP" } },
       ...(onlyLeague
         ? { league: onlyLeague }
-        : { league: { notIn: [...NO_ARTICLE_LEAGUES] } }),
+        : { league: { in: [...ARTICLE_LEAGUES] } }),
     },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { startTime: "desc" },

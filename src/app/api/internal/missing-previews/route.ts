@@ -6,13 +6,13 @@
 //   (정책: 야구는 투수 확정 후 PREVIEW 발행)
 // 축구/기타: 모든 SCHEDULED 매치.
 //
-// NO_ARTICLE_LEAGUES 자동 제외.
+// ARTICLE_LEAGUES 화이트리스트만 (발행 대상과 동일 기준).
 //
 // Query: ?days=3 (기본 3일)
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { NO_ARTICLE_LEAGUES } from "@/lib/sports/types";
+import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     where: {
       status: "SCHEDULED",
       startTime: { gte: now, lte: horizon },
-      league: { notIn: [...NO_ARTICLE_LEAGUES] },
+      league: { in: [...ARTICLE_LEAGUES] },
     },
     include: {
       homeTeam: { select: { name: true } },
