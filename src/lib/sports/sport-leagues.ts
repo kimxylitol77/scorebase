@@ -342,7 +342,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   ARG_PRIMERA_NACIONAL: "아르헨티나 프리메라 나시오날",
   IRAQ_SL: "이라크 스타스 리그",
   MEXICO_2: "멕시코 아센소 MX",
-  CHINA_2: "중국 갑급리그",
+  CHINA_2: "중국 리그원",
   IRELAND_2: "아일랜드 1부 디비전",
   DENMARK_2: "덴마크 1.디비전",
   HUNGARY_2: "헝가리 NB II",

@@ -181,7 +181,7 @@ export type League =
   | "ARG_PRIMERA_NACIONAL" // 아르헨티나 프리메라 나시오날 (2부, 달력)
   | "IRAQ_SL" // 이라크 스타스 리그 (1부) — TheSports 전용
   | "MEXICO_2" // 멕시코 아센소 MX (2부)
-  | "CHINA_2" // 중국 갑급리그 (2부)
+  | "CHINA_2" // 중국 리그원 (2부, China League One)
   | "IRELAND_2" // 아일랜드 퍼스트 디비전 (2부)
   | "DENMARK_2" // 덴마크 1.디비전 (2부)
   | "HUNGARY_2" // 헝가리 NB II (2부)
