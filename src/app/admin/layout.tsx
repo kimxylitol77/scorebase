@@ -79,6 +79,12 @@ function AdminBar({ username }: { username: string }) {
             접속자 통계
           </Link>
           <Link
+            href="/admin/users"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            회원 현황
+          </Link>
+          <Link
             href="/admin/health"
             className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
           >
