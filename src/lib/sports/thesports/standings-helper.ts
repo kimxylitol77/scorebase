@@ -72,6 +72,14 @@ export async function getStandingsPositions(
 
   const positionByOurTeamId = new Map<number, number>();
 
+  // J1/J2 2026 그룹 포맷(East/West) — 매치 카드 칩의 단일 [순위] 는 그룹상대순위라
+  // East-3·West-3 가 둘 다 [3] 으로 모호하고, 중복 Team row 합산으로 한 position 에 여러 팀이
+  // 잡힌다. 풀표(/predictions)는 그룹별로 정상 표시되므로 카드 칩은 숨긴다(UCL 녹아웃 가드와 동일).
+  if (GROUPED_STANDINGS_LEAGUES.has(league)) {
+    cache.set(league, { fetchedAt: now, positionByOurTeamId });
+    return null;
+  }
+
   // 1) TheSports 우선 — ts team_id → ourId 변환
   const ts = await prisma.theSportsStandingsCache.findUnique({
     where: { league },

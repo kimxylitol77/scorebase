@@ -17,18 +17,30 @@ import type { TSFootballStandingsRow, TSFootballSeasonStandingsResponse } from "
 interface TeamMap {
   ourId: number;
   tsId: string;
+  ourLeague?: string;
 }
 
 const STALE_AFTER_MS = 4 * 60 * 60 * 1000; // 4 hours
 
-let cachedReverseTeamMap: Map<string, number> | null = null;
+// ⚠ 리그별로 분리 — 같은 tsId 가 정규리그 + UCL/UEL/COPA_LIB 등에 다른 ourId 로 존재한다.
+// 전역 Map 으로 만들면 last-write 가 이겨 LALIGA Barcelona 가 COPA_LIB Barcelona SC 로
+// 오매핑되는 사고(로고/링크 오류). standings-helper.ts 의 TS_TO_OUR_BY_LEAGUE 와 동일 패턴.
+let cachedReverseTeamMap: Map<string, Map<string, number>> | null = null;
 
-function loadReverseTeamMap(): Map<string, number> {
+function loadReverseTeamMap(): Map<string, Map<string, number>> {
   if (cachedReverseTeamMap) return cachedReverseTeamMap;
   const file = path.join(process.cwd(), "src/lib/sports/thesports/team-id-mapping.json");
   const teams: TeamMap[] = JSON.parse(readFileSync(file, "utf-8"));
   cachedReverseTeamMap = new Map();
-  for (const t of teams) cachedReverseTeamMap.set(t.tsId, t.ourId);
+  for (const t of teams) {
+    if (!t.ourLeague) continue;
+    let m = cachedReverseTeamMap.get(t.ourLeague);
+    if (!m) {
+      m = new Map();
+      cachedReverseTeamMap.set(t.ourLeague, m);
+    }
+    m.set(t.tsId, t.ourId);
+  }
   return cachedReverseTeamMap;
 }
 
@@ -74,7 +86,7 @@ export async function fetchStandingsForLeague(leagueCode: string): Promise<Mappe
   const payload = row.payload as TSFootballSeasonStandingsResponse["results"];
   if (!payload?.tables) return null;
 
-  const reverseTeam = loadReverseTeamMap();
+  const leagueMap = loadReverseTeamMap().get(leagueCode);
   const tables = (payload.tables ?? []).map((t) => ({
     id: t.id,
     conference: t.conference,
@@ -82,7 +94,7 @@ export async function fetchStandingsForLeague(leagueCode: string): Promise<Mappe
     stage_id: t.stage_id,
     rows: (t.rows ?? []).map((r: TSFootballStandingsRow) => ({
       ...r,
-      ourTeamId: reverseTeam.get(r.team_id) ?? null,
+      ourTeamId: leagueMap?.get(r.team_id) ?? null,
     })),
   }));
   return {
