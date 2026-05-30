@@ -66,6 +66,7 @@ const ARTICLE_ITEMS: SubItem[] = [
   { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   { href: "/notices", label: "공지", desc: "사이트 공지 · 패치노트" },
   { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
+  { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 글 · 예측 적중" },
 ];
 
 export default function Header() {
