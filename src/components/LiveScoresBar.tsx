@@ -189,8 +189,12 @@ export default function LiveScoresBar() {
 
   // 매치 → 라이브 상세 페이지 URL. 야구 (KBO/NPB/MLB) 와 LOL 은 자체 라이브 페이지.
   // LiveMatch.id 는 "ab-180841" 같은 prefix 형식 → externalId 추출.
-  function liveHref(m: LiveMatch): string {
+  function liveHref(m: LiveMatch): string | null {
     const rawId = m.id.replace(/^[a-z]+-/i, "");
+    // 야구 라이브 라우트(KBO/NPB/MLB)는 숫자 id(api-sports/ESPN) 전용(^\d+$ 가드).
+    // TheSports(ts-) 매치는 숫자가 아니라 404 → 링크 비활성(클릭 불가)해 방문자 404 차단.
+    const isBaseball = m.league === "KBO" || m.league === "NPB" || m.league === "MLB";
+    if (isBaseball && !/^\d+$/.test(rawId)) return null;
     if (m.league === "KBO") return `/live/kbo/${rawId}`;
     if (m.league === "NPB") return `/live/npb/${rawId}`;
     if (m.league === "MLB") return `/live/mlb/${rawId}`;
@@ -217,33 +221,42 @@ export default function LiveScoresBar() {
           </span>
           {matches.map((m) => {
             const href = liveHref(m);
-            const isExternal = /^https?:\/\//i.test(href);
+            const isExternal = href != null && /^https?:\/\//i.test(href);
             const chipCls =
               "group shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs " +
               "bg-neutral-50 dark:bg-neutral-900 hover:bg-neutral-100 dark:hover:bg-neutral-800 " +
               "border border-neutral-200 dark:border-neutral-800 transition";
-            const Wrap = isExternal
-              ? ({ children }: { children: React.ReactNode }) => (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={chipCls}
-                    title={`${m.homeName} ${m.homeScore} - ${m.awayScore} ${m.awayName}`}
-                  >
-                    {children}
-                  </a>
-                )
-              : ({ children }: { children: React.ReactNode }) => (
-                  <Link
-                    href={href}
-                    prefetch={false}
-                    className={chipCls}
-                    title={`${m.homeName} ${m.homeScore} - ${m.awayScore} ${m.awayName}`}
-                  >
-                    {children}
-                  </Link>
-                );
+            const title = `${m.homeName} ${m.homeScore} - ${m.awayScore} ${m.awayName}`;
+            // href=null = 라이브 페이지 없는 매치(ts- 야구) → 클릭 비활성 div (404 방지)
+            const Wrap =
+              href == null
+                ? ({ children }: { children: React.ReactNode }) => (
+                    <div className={`${chipCls} cursor-default`} title={title}>
+                      {children}
+                    </div>
+                  )
+                : isExternal
+                  ? ({ children }: { children: React.ReactNode }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={chipCls}
+                        title={title}
+                      >
+                        {children}
+                      </a>
+                    )
+                  : ({ children }: { children: React.ReactNode }) => (
+                      <Link
+                        href={href}
+                        prefetch={false}
+                        className={chipCls}
+                        title={title}
+                      >
+                        {children}
+                      </Link>
+                    );
             return (
               <Wrap key={m.id}>
               <LeagueBadge league={m.league} size="sm" />

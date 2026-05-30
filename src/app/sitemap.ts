@@ -95,9 +95,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       league: { in: ALL_LEAGUES },
       startTime: { gte: liveWindow.past, lte: liveWindow.future },
       status: { in: ["SCHEDULED", "LIVE"] },
-      // 콜론(":") 포함 externalId 는 Next.js URL 라우팅이 매칭 못 함 (TheSports
-      // 의 "ts:xxx" 패턴). sitemap 에 등록하면 검색엔진/봇이 404 만남 → 제외.
-      NOT: { externalId: { contains: ":" } },
+      // 라우팅 불가 externalId 제외 (sitemap 등록 시 검색엔진/봇이 404 만남):
+      // - 콜론(":") 포함 = Next.js URL 라우팅이 매칭 못 함 (TheSports "ts:xxx")
+      // - 야구(KBO/MLB/NPB) ts- 매치 = 라이브 라우트가 숫자 id(api-sports/ESPN)
+      //   전용(^\d+$ 가드)이라 TheSports 매치는 404 → 제외 (2026-05-30 route-guardian).
+      NOT: [
+        { externalId: { contains: ":" } },
+        {
+          AND: [
+            { league: { in: ["KBO", "MLB", "NPB"] } },
+            { externalId: { startsWith: "ts-" } },
+          ],
+        },
+      ],
     },
     select: { league: true, externalId: true, status: true, startTime: true, updatedAt: true },
     orderBy: { startTime: "desc" },
