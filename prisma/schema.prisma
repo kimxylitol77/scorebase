@@ -486,12 +486,9 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // 회원 등급 시스템 (축구 디비전 승격, 12단계). exp→level 계산·등급표는 src/lib/user-level.ts.
-  // 권한 차등 아님(가입하면 댓글·글쓰기 모두 가능) → 순수 활동·적중 명예 용도.
-  exp    Int @default(0) // 누적 경험치 (등급 산출 기준). 차감 가능(어뷰징 몰수)
-  points Int @default(0) // 소비용 포인트 (등급과 분리. 프리미엄 열람·뱃지 등에 사용 예정)
-  level  Int @default(1) // 캐시된 등급. exp 변동 시 expToLevel()로 재계산해 저장
-
+  // ⚠️ 회원 등급(exp/points/level) 컬럼은 2단계(프로필 UI) 때 추가 + db push 를 함께.
+  //    schema 에만 두고 db push 안 하면 user.create 가 "column exp does not exist" 로 가입 전체가 깨짐(검증됨).
+  //    등급 계산 util 은 src/lib/user-level.ts 에 이미 있음(DB 무관) — 2단계에서 이 컬럼과 연동.
   // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
 }
