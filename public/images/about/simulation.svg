@@ -1,0 +1,101 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="스코어베이스 시즌 시뮬레이션 — 우승 확률·진출 확률">
+  <defs>
+    <linearGradient id="sm-bg" x1="0" y1="0" x2="1200" y2="600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071019"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="sm-bar1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0e7490"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="sm-bar2" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#155e75"/>
+      <stop offset="1" stop-color="#22a7c2"/>
+    </linearGradient>
+    <linearGradient id="sm-bar3" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1e3a4a"/>
+      <stop offset="1" stop-color="#3a7d92"/>
+    </linearGradient>
+    <style>
+      text { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="600" rx="28" fill="url(#sm-bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="599" rx="27.5" stroke="#1b2a3d" stroke-opacity="0.6"/>
+
+  <!-- 헤더 -->
+  <g transform="translate(56,52)">
+    <rect width="10" height="32" rx="3" fill="#06b6d4"/>
+    <text x="26" y="16" fill="#e6f0fa" font-size="26" font-weight="800">시즌 우승 확률 시뮬레이션</text>
+    <text x="26" y="44" fill="#5b7089" font-size="17" font-weight="600">Elo 레이팅 + 잔여 일정 기반</text>
+  </g>
+  <g transform="translate(1144,52)">
+    <rect x="-228" y="-4" width="228" height="44" rx="22" fill="#06b6d4" fill-opacity="0.12" stroke="#0e7490"/>
+    <text x="-114" y="24" text-anchor="middle" fill="#22d3ee" font-size="17" font-weight="700">5,000회 몬테카를로</text>
+  </g>
+
+  <!-- 막대 그래프: 상위 3팀 -->
+  <g transform="translate(56,150)">
+    <!-- 눈금 -->
+    <g stroke="#162234" stroke-width="1">
+      <line x1="250" y1="0" x2="250" y2="320"/>
+      <line x1="460" y1="0" x2="460" y2="320"/>
+      <line x1="670" y1="0" x2="670" y2="320"/>
+      <line x1="880" y1="0" x2="880" y2="320"/>
+      <line x1="1088" y1="0" x2="1088" y2="320"/>
+    </g>
+    <g fill="#33485f" font-size="13" font-weight="600">
+      <text x="250" y="340" text-anchor="middle">10%</text>
+      <text x="460" y="340" text-anchor="middle">20%</text>
+      <text x="670" y="340" text-anchor="middle">30%</text>
+      <text x="880" y="340" text-anchor="middle">40%</text>
+    </g>
+
+    <!-- 1위 -->
+    <g transform="translate(0,30)">
+      <text x="0" y="30" fill="#cdddee" font-size="22" font-weight="800">LG 트윈스</text>
+      <rect x="200" y="6" width="0" height="44" rx="10" fill="url(#sm-bar1)">
+        <animate attributeName="width" from="0" to="760" dur="1.1s" fill="freeze"/>
+      </rect>
+      <rect x="200" y="6" width="760" height="44" rx="10" fill="url(#sm-bar1)"/>
+      <text x="980" y="36" fill="#22d3ee" font-size="24" font-weight="900">36.2%</text>
+    </g>
+    <!-- 2위 -->
+    <g transform="translate(0,128)">
+      <text x="0" y="30" fill="#cdddee" font-size="22" font-weight="800">KIA 타이거즈</text>
+      <rect x="200" y="6" width="520" height="44" rx="10" fill="url(#sm-bar2)"/>
+      <text x="740" y="36" fill="#9fd9e6" font-size="24" font-weight="900">24.8%</text>
+    </g>
+    <!-- 3위 -->
+    <g transform="translate(0,226)">
+      <text x="0" y="30" fill="#cdddee" font-size="22" font-weight="800">삼성 라이온즈</text>
+      <rect x="200" y="6" width="372" height="44" rx="10" fill="url(#sm-bar3)"/>
+      <text x="592" y="36" fill="#7fa9b8" font-size="24" font-weight="900">17.5%</text>
+    </g>
+  </g>
+
+  <!-- 하단 요약 칩 -->
+  <g transform="translate(56,520)">
+    <g>
+      <rect width="250" height="48" rx="14" fill="#0e1a2b" stroke="#26405e"/>
+      <text x="20" y="22" fill="#5b7089" font-size="13" font-weight="600">우승 확률</text>
+      <text x="20" y="40" fill="#22d3ee" font-size="18" font-weight="800">최상위권 추정</text>
+    </g>
+    <g transform="translate(274,0)">
+      <rect width="250" height="48" rx="14" fill="#0e1a2b" stroke="#26405e"/>
+      <text x="20" y="22" fill="#5b7089" font-size="13" font-weight="600">포스트시즌 진출</text>
+      <text x="20" y="40" fill="#22c55e" font-size="18" font-weight="800">확률로 제시</text>
+    </g>
+    <g transform="translate(548,0)">
+      <rect width="250" height="48" rx="14" fill="#0e1a2b" stroke="#26405e"/>
+      <text x="20" y="22" fill="#5b7089" font-size="13" font-weight="600">예상 최종 순위</text>
+      <text x="20" y="40" fill="#cdddee" font-size="18" font-weight="800">매주 업데이트</text>
+    </g>
+    <g transform="translate(822,0)">
+      <rect width="266" height="48" rx="14" fill="#0e1a2b" stroke="#26405e"/>
+      <text x="20" y="22" fill="#5b7089" font-size="13" font-weight="600">강등 확률</text>
+      <text x="20" y="40" fill="#cdddee" font-size="18" font-weight="800">해당 리그 한정</text>
+    </g>
+  </g>
+</svg>

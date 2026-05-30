@@ -1,0 +1,54 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="og-bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071019"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="og-accent" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#og-bg)"/>
+
+  <!-- 배경 막대 모티프 (우하단, 옅게) -->
+  <g opacity="0.5">
+    <rect x="700" y="510" width="64" height="120" rx="12" fill="#385978" fill-opacity="0.16"/>
+    <rect x="778" y="430" width="64" height="200" rx="12" fill="#385978" fill-opacity="0.16"/>
+    <rect x="856" y="330" width="64" height="300" rx="12" fill="#385978" fill-opacity="0.16"/>
+    <rect x="934" y="210" width="64" height="420" rx="12" fill="#385978" fill-opacity="0.16"/>
+    <rect x="1012" y="70" width="64" height="560" rx="12" fill="#06b6d4" fill-opacity="0.16"/>
+  </g>
+
+  <!-- 로고 -->
+  <g transform="translate(72,70)">
+    <rect x="0" y="22" width="9" height="16" rx="2" fill="#0e7490"/>
+    <rect x="13" y="13" width="9" height="25" rx="2" fill="#0891b2"/>
+    <rect x="26" y="6" width="9" height="32" rx="2" fill="#06b6d4"/>
+    <rect x="39" y="0" width="9" height="38" rx="2" fill="#22d3ee"/>
+    <text x="62" y="30" font-family="'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif" font-size="32" font-weight="900" fill="#e6f0fa" letter-spacing="-0.5">Scorebase</text>
+  </g>
+
+  <!-- 종목 칩 -->
+  <g transform="translate(636,76)" font-family="'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif" font-size="20" font-weight="700">
+    <g><rect width="84" height="40" rx="20" fill="#06b6d4" fill-opacity="0.10" stroke="#0e7490"/><text x="42" y="26" text-anchor="middle" fill="#9fd3e0">축구</text></g>
+    <g transform="translate(96,0)"><rect width="84" height="40" rx="20" fill="#06b6d4" fill-opacity="0.10" stroke="#0e7490"/><text x="42" y="26" text-anchor="middle" fill="#9fd3e0">야구</text></g>
+    <g transform="translate(192,0)"><rect width="84" height="40" rx="20" fill="#06b6d4" fill-opacity="0.10" stroke="#0e7490"/><text x="42" y="26" text-anchor="middle" fill="#9fd3e0">농구</text></g>
+    <g transform="translate(288,0)"><rect width="84" height="40" rx="20" fill="#06b6d4" fill-opacity="0.10" stroke="#0e7490"/><text x="42" y="26" text-anchor="middle" fill="#9fd3e0">하키</text></g>
+    <g transform="translate(384,0)"><rect width="92" height="40" rx="20" fill="#06b6d4" fill-opacity="0.10" stroke="#0e7490"/><text x="46" y="26" text-anchor="middle" fill="#9fd3e0">LCK</text></g>
+  </g>
+
+  <!-- 중앙 카피 -->
+  <g font-family="'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+    <text x="80" y="300" font-size="58" font-weight="700" fill="#aebfd0">감이 아니라,</text>
+    <text x="80" y="400" font-size="92" font-weight="900" fill="#ffffff" letter-spacing="-3">숫자로 보는 경기</text>
+    <rect x="84" y="432" width="180" height="10" rx="5" fill="url(#og-accent)"/>
+  </g>
+
+  <!-- 하단 브랜드 -->
+  <g font-family="'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+    <text x="80" y="566" font-size="27" font-weight="700" fill="#cdddee">스코어베이스 · AI 스포츠 데이터 분석</text>
+    <text x="1128" y="566" text-anchor="end" font-size="20" font-weight="700" fill="#33485f" letter-spacing="2">scorebase.kr</text>
+  </g>
+</svg>

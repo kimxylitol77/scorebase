@@ -14,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/`, lastModified: now, changeFrequency: "hourly", priority: 1.0 },
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${base}/notices`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/predictions`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
     { url: `${base}/previews`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     ...["SOCCER", "BASEBALL", "BASKETBALL", "HOCKEY", "ESPORTS"].map((sport) => ({
@@ -70,6 +71,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
+  // 블로그 글 — SEO 키워드 타깃 수동 작성(AI 자동 발행 아님) → 전체 포함.
+  const blogs = await prisma.blog.findMany({
+    select: { slug: true, updatedAt: true, publishedAt: true },
+  });
+  const blogPages: MetadataRoute.Sitemap = blogs.map((b) => ({
+    url: `${base}/blog/${b.slug}`,
+    lastModified: b.updatedAt ?? b.publishedAt ?? now,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
   // 라이브 매치 페이지 — 예정 7일 + 진행 중만 (종료 매치 제외).
   // 종료 매치는 thin 이라 Google 이 색인 거부(크롤링됨-색인안됨/중복) → sitemap 품질 저하.
   // 페이지 자체는 DB 에 남아 회원/방문자가 계속 접근 가능 (sitemap 제외 ≠ 페이지 삭제).
@@ -105,5 +117,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [...staticPages, ...articlePages, ...noticePages, ...livePages];
+  return [...staticPages, ...articlePages, ...noticePages, ...blogPages, ...livePages];
 }

@@ -39,9 +39,17 @@ export default function AboutPage() {
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
         Scorebase 소개
       </h1>
-      <p className="text-neutral-500 dark:text-neutral-400 mb-10">
+      <p className="text-neutral-500 dark:text-neutral-400 mb-6">
         데이터로 보는 글로벌 스포츠 미디어
       </p>
+      <div className="mb-10">
+        <Link
+          href="/blog/about-scorebase"
+          className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-500/15 dark:text-cyan-300"
+        >
+          스코어베이스 기능·사용법 자세히 보기 →
+        </Link>
+      </div>
 
       <section className="prose dark:prose-invert max-w-none">
         <h2>우리가 다루는 리그</h2>
