@@ -12641,5 +12641,149 @@
     "tsId": "p4jwq2gh2dlm0ve",
     "tsName": "Naftan",
     "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 607897,
+    "ourName": "Shenzhen Juniors",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-jw2r09hw9yerz84",
+    "tsId": "jw2r09hw9yerz84",
+    "tsName": "Shenzhen Juniors",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607892,
+    "ourName": "Guangdong Guangzhou Power",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-dj2ryohn4l7q1zp",
+    "tsId": "dj2ryohn4l7q1zp",
+    "tsName": "Guangdong Guangzhou Power",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607901,
+    "ourName": "Nantong Zhiyun",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-vjxm8ghg5eor6od",
+    "tsId": "vjxm8ghg5eor6od",
+    "tsName": "Nantong Zhiyun",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607887,
+    "ourName": "Nanjing City",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-4wyrn4hd3v8q86p",
+    "tsId": "4wyrn4hd3v8q86p",
+    "tsName": "Nanjing City",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607893,
+    "ourName": "Yanbian Longding",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-dn1m1ghnj8vmoep",
+    "tsId": "dn1m1ghnj8vmoep",
+    "tsName": "Yanbian Longding",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607894,
+    "ourName": "Guangxi Hengchen",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-vjxm8ghpgx2r6od",
+    "tsId": "vjxm8ghpgx2r6od",
+    "tsName": "Guangxi Hengchen",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607889,
+    "ourName": "Dingnan United",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-pxwrxlh1xynryk0",
+    "tsId": "pxwrxlh1xynryk0",
+    "tsName": "Dingnan United",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607902,
+    "ourName": "Wuxi Wugo",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-dj2ryohg472q1zp",
+    "tsId": "dj2ryohg472q1zp",
+    "tsName": "Wuxi Wugo",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607895,
+    "ourName": "Shaanxi Union",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-x7lm7ph98vom2wd",
+    "tsId": "x7lm7ph98vom2wd",
+    "tsName": "Shaanxi Union",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607896,
+    "ourName": "Ningbo Professional Football Club",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-n54qllh25ogqvy9",
+    "tsId": "n54qllh25ogqvy9",
+    "tsName": "Ningbo Professional Football Club",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607891,
+    "ourName": "Dalian K'un City",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-y39mp1hjo8emojx",
+    "tsId": "y39mp1hjo8emojx",
+    "tsName": "Dalian K'un City",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607899,
+    "ourName": "Foshan Nanshi",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-8yomo4hvxy9q0j6",
+    "tsId": "8yomo4hvxy9q0j6",
+    "tsName": "Foshan Nanshi",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607890,
+    "ourName": "Changchun Yatai",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-56ypq3nhov9md7o",
+    "tsId": "56ypq3nhov9md7o",
+    "tsName": "Changchun Yatai",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607900,
+    "ourName": "Suzhou Dongwu",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-y0or5jhlx2kqwzv",
+    "tsId": "y0or5jhlx2kqwzv",
+    "tsName": "Suzhou Dongwu",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607898,
+    "ourName": "Shijiazhuang Gongfu",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-l7oqdeh02jlr510",
+    "tsId": "l7oqdeh02jlr510",
+    "tsName": "Shijiazhuang Gongfu",
+    "matchType": "ts-name"
+  },
+  {
+    "ourId": 607888,
+    "ourName": "Meizhou Hakka",
+    "ourLeague": "CHINA_2",
+    "ourExternalId": "ts-jw2r09hlgn1rz84",
+    "tsId": "jw2r09hlgn1rz84",
+    "tsName": "Meizhou Hakka",
+    "matchType": "ts-name"
   }
 ]
