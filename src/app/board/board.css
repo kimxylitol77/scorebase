@@ -39,9 +39,9 @@
 .bd-lg .fl{font-size:14px}
 .bd-lg .ct{margin-left:auto;font-weight:500;font-size:11px;color:var(--bd-dim)}
 /* 매치 카드 */
-.bd-m{margin:0 12px 9px;background:var(--bd-card);border:1px solid var(--bd-line);border-radius:16px;padding:13px 15px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;text-decoration:none;color:inherit;overflow:hidden}
+.bd-m{margin:0 12px 9px;background:var(--bd-card);border:1px solid var(--bd-line);border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;overflow:hidden}
 .bd-m.live{background:linear-gradient(180deg,var(--bd-glow),var(--bd-card) 60%);border-color:rgba(79,195,232,.22)}
-.bd-side{display:flex;align-items:center;gap:10px;min-width:0}
+.bd-side{flex:1 1 0%;display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
 .bd-side.away{flex-direction:row-reverse;text-align:right}
 .bd-lo{width:30px;height:30px;border-radius:50%;flex:0 0 auto;background:radial-gradient(circle at 35% 30%,#2b3850,#1a2230);display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#9fb0c8;overflow:hidden}
 .bd-tn{flex:1;min-width:0;font-size:14px;font-weight:600;color:#c4cdda;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
