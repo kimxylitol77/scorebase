@@ -18,12 +18,15 @@ export function middleware(req: NextRequest) {
   reqHeaders.set("x-pathname", path);
   const pass = () => NextResponse.next({ request: { headers: reqHeaders } });
 
-  // 스코어보드.kr 루트 → /scores 내용으로 rewrite (scorebase.kr 은 영향 없음).
+  // 스코어보드.kr 루트 → /board (라이브 스코어 전용 독립 화면) 으로 rewrite.
+  // scorebase.kr 은 영향 없음. URL 은 스코어보드.kr 유지.
   if (path === "/") {
     const host = (req.headers.get("host") || "").toLowerCase();
     if (SCOREBOARD_HOSTS.some((h) => host.includes(h))) {
       const url = req.nextUrl.clone();
-      url.pathname = "/scores";
+      url.pathname = "/board";
+      // layout 이 board 로 인지해 scorebase 헤더/푸터 완전 제거 (독립 화면).
+      reqHeaders.set("x-pathname", "/board");
       return NextResponse.rewrite(url, { request: { headers: reqHeaders } });
     }
     return pass();
