@@ -4,6 +4,7 @@ import MobileMenu from "./MobileMenu";
 import ThemeToggle from "./ThemeToggle";
 import SearchInput from "./SearchInput";
 import AdminBadge from "./AdminBadge";
+import UserBadge from "./UserBadge";
 
 interface SubItem {
   href: string;
@@ -99,6 +100,7 @@ export default function Header() {
             <SearchInput variant="compact" />
           </div>
           <div className="ml-1 flex items-center gap-2">
+            <UserBadge />
             <AdminBadge />
             <ThemeToggle variant="icon" />
           </div>
@@ -106,6 +108,7 @@ export default function Header() {
 
         {/* 모바일 — admin 배지 + 햄버거 */}
         <div className="sm:hidden flex items-center gap-2">
+          <UserBadge />
           <AdminBadge />
           <MobileMenu />
         </div>

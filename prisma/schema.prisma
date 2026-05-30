@@ -474,3 +474,18 @@ model TheSportsPlayer {
 
   @@index([sport, teamId])
 }
+
+/// 방문자(일반 사용자) 계정 — 이메일+비밀번호 로그인. admin(env ADMIN_*) 과 완전 분리.
+/// 세션: HMAC 서명 쿠키 user_session (src/lib/user-auth.ts).
+model User {
+  id            String    @id @default(cuid()) // 세션 payload 노출용 → Int 대신 cuid
+  email         String    @unique // 소문자 정규화 저장. 중복 race 최종 방어
+  passwordHash  String // bcryptjs $2a$...
+  nickname      String // 헤더 표시
+  emailVerified DateTime? // MVP: null. 후속 이메일 인증용
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
+  @@index([email])
+}
