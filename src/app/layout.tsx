@@ -88,12 +88,9 @@ export default async function RootLayout({
 
   // 스코어보드.kr — 라이브 스코어 전용 도메인. scorebase 메인 헤더/푸터 대신
   // 전용 간소 헤더만 노출 (메인과 똑같아 보이지 않게). 한글 도메인 punycode 매칭.
-  const hdrs = await headers();
-  const host = (hdrs.get("host") || "").toLowerCase();
+  const host = ((await headers()).get("host") || "").toLowerCase();
   const isScoreboard =
     host.includes("xn--hy1bm7m1yevrd8pq") || host.includes("스코어보드");
-  // scoreboard.kr 전용 라이브 스코어 화면(/board) — scorebase 헤더/푸터/배경 완전 제거(독립 레이아웃).
-  const isBoard = (hdrs.get("x-pathname") || "").startsWith("/board");
   return (
     <html
       lang="ko"
@@ -153,7 +150,7 @@ export default async function RootLayout({
           </noscript>
         )}
         <PageViewTracker />
-        {isBoard ? null : isScoreboard ? (
+        {isScoreboard ? (
           <ScoreboardHeader />
         ) : (
           <>
@@ -162,7 +159,7 @@ export default async function RootLayout({
           </>
         )}
         <main className="flex-1 w-full">{children}</main>
-        {!isBoard && !isScoreboard && <Footer />}
+        {!isScoreboard && <Footer />}
         {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
         <Analytics />
       </body>
