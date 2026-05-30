@@ -486,6 +486,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // 회원 등급 시스템 (축구 디비전 승격, 12단계). exp→level 계산·등급표는 src/lib/user-level.ts.
+  // 권한 차등 아님(가입하면 댓글·글쓰기 모두 가능) → 순수 활동·적중 명예 용도.
+  exp    Int @default(0) // 누적 경험치 (등급 산출 기준). 차감 가능(어뷰징 몰수)
+  points Int @default(0) // 소비용 포인트 (등급과 분리. 프리미엄 열람·뱃지 등에 사용 예정)
+  level  Int @default(1) // 캐시된 등급. exp 변동 시 expToLevel()로 재계산해 저장
+
   // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
 }

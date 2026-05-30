@@ -52,6 +52,14 @@
 
 ## 🟢 한달 내 (~2026-06-21)
 
+### [CODE] 회원 등급 시스템 (축구 디비전 12단계 + 예측 적중 자동채점)
+> 등급 = 활동·적중 **명예** (권한 차등 X, 가입하면 댓글·글쓰기 모두 가능). 경험치(등급)·포인트(소비) 분리. admin(env)/user 세션 안 건드림. 차별점 = 우리만 실시간 결과 데이터가 있어 "적중"을 자동 채점 가능.
+- [x] **1단계**: `User.exp/points/level` 필드 + 등급 util (`src/lib/user-level.ts`) — 2026-05-30 · [S]
+- [ ] **2단계**: 프로필에 등급/경험치 바 노출 · [S]
+- [ ] **3단계**: `Prediction` 테이블 + `/scores` 예측 버튼 UI · [M]
+- [ ] **4단계**: 채점 cron + 적중률·연승 정산 (기존 Match `status=FINISHED` 활용) · [M]
+- [ ] **5단계**: (게시판 나올 때) 글·댓글 경험치 연동 + `ExpLog` 어뷰징 추적 · [M]
+
 ### [CODE] Collector 전환 (NBA 패턴 복제)
 - [ ] **NHL collector → API-Sports Hockey** — ESPN edge case 영구 회피 · [L]
 - [ ] **MLB collector → API-Sports Baseball Pro** — ESPN edge case 영구 회피 · [L]
