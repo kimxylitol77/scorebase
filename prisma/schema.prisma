@@ -230,6 +230,21 @@ model Blog {
   @@index([publishedAt])
 }
 
+// Instagram Threads 자동 포스팅 발행 이력 — 중복 발행 방지(dedup)의 단일 진실.
+// Mac mini threads-auto-poster 워커가 발행 성공 후 /api/internal/threads-posted 로 기록.
+// /api/internal/threads-queue 가 이 테이블을 보고 "아직 안 올린 것"만 큐에 넣는다.
+model ThreadsPost {
+  id             Int      @id @default(autoincrement())
+  kind           String   // "DAILY_MATCHES" | "BLOG"
+  refKey         String   // dedup 키: 오늘경기 = "YYYY-MM-DD"(KST), 블로그 = "blog-{id}"
+  threadsMediaId String?  // 발행된 Threads media id (감사 / 퍼머링크용)
+  text           String?  // 실제 올린 caption (감사용)
+  postedAt       DateTime @default(now())
+
+  @@unique([kind, refKey]) // ← 같은 콘텐츠 재발행 차단
+  @@index([postedAt])
+}
+
 // AI 가 생성한 기사
 model Article {
   id          Int       @id @default(autoincrement())
