@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
+import tsTeamMap from "@/lib/sports/thesports/team-id-mapping.json";
 
 // Phase 4 (2026-05-25): TheSports standings-poller 가 cover 하는 리그는
 // api-football standings 호출 skip. ts standings-poller (Lightsail) 가 1h
@@ -19,9 +20,16 @@ const TS_STANDINGS_COVERED = new Set(
     .map((e) => e.code),
 );
 
+// 2026-05-30: ts 순위가 실제로 표시되려면 team-id-mapping 에 그 리그 팀 엔트리가 있어야 함.
+// BELARUS_PL 처럼 tsSeasonId 는 있지만 매치/팀이 api-football 소스라 ts 팀매핑이 0 이면
+// ts 순위가 안 뜸(team_id 불일치) → af 가 유일한 순위 source. 이런 리그는 skip 에서 제외.
+const TS_TEAM_MAPPED_LEAGUES = new Set(
+  (tsTeamMap as Array<{ ourLeague: string }>).map((e) => e.ourLeague),
+);
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300; // 2026-05-30: af fetch 대상 리그 ~57개로 늘어 60s 초과 가능 → 상향
 
 const AF_BASE = "https://v3.football.api-sports.io";
 
@@ -142,7 +150,8 @@ export async function GET(req: NextRequest) {
   const leagues = (SOCCER_LEAGUES as readonly string[]).filter(
     (l) =>
       API_FOOTBALL_LEAGUE_ID[l as keyof typeof API_FOOTBALL_LEAGUE_ID] &&
-      !TS_STANDINGS_COVERED.has(l), // Phase 4: ts cover 리그 skip
+      // ts cover + ts 팀매핑 있는 리그만 skip. 매핑 0(BELARUS_PL 등)은 af fetch.
+      !(TS_STANDINGS_COVERED.has(l) && TS_TEAM_MAPPED_LEAGUES.has(l)),
   );
 
   for (const league of leagues) {
