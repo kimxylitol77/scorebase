@@ -12497,5 +12497,149 @@
     "tsId": "n54qllh2dd2qvy9",
     "tsName": "FC Zhetysu Taldykorgan",
     "matchType": "substr"
+  },
+  {
+    "ourId": 600056,
+    "ourName": "ML Vitebsk",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "7808",
+    "tsId": "x7lm7phw844m2wd",
+    "tsName": "ML Vitebsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600054,
+    "ourName": "Dinamo Minsk",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "394",
+    "tsId": "p3glrw7h2e6qdyj",
+    "tsName": "Dinamo Minsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600051,
+    "ourName": "Neman",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "387",
+    "tsId": "8y39mp1hn7vmojx",
+    "tsName": "Neman",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600047,
+    "ourName": "FC Minsk",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "380",
+    "tsId": "l7oqdehnl3jr510",
+    "tsName": "FC Minsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600055,
+    "ourName": "Torpedo Zhodino",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "385",
+    "tsId": "j1l4rjnh7p8m7vx",
+    "tsName": "Torpedo Zhodino",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600059,
+    "ourName": "FC Isloch Minsk R.",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "391",
+    "tsId": "l5ergphogxyr8k0",
+    "tsName": "FC Isloch Minsk R.",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600050,
+    "ourName": "FC Gomel",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "389",
+    "tsId": "jednm9whn48ryox",
+    "tsName": "FC Gomel",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600058,
+    "ourName": "Dinamo Brest",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "386",
+    "tsId": "9vjxm8ghnl6r6od",
+    "tsName": "Dinamo Brest",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600048,
+    "ourName": "Arsenal",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "9419",
+    "tsId": "2y8m4zhg939ql07",
+    "tsName": "Arsenal",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600053,
+    "ourName": "Slavia Mozyr",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "751",
+    "tsId": "l965mkyhvx7r1ge",
+    "tsName": "Slavia Mozyr",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600049,
+    "ourName": "FC Vitebsk",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "382",
+    "tsId": "4jwq2gh44wym0ve",
+    "tsName": "FC Vitebsk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600057,
+    "ourName": "Belshina",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "3384",
+    "tsId": "3glrw7hwvxpqdyj",
+    "tsName": "Belshina",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600052,
+    "ourName": "Bate Borisov",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "388",
+    "tsId": "p3glrw7hx7eqdyj",
+    "tsName": "Bate Borisov",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600062,
+    "ourName": "FC Dnepr Mogilev",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "384",
+    "tsId": "1l4rjnh66kzm7vx",
+    "tsName": "FC Dnepr Mogilev",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600060,
+    "ourName": "Baranovichi",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "3383",
+    "tsId": "318q66hody4qo9j",
+    "tsName": "Baranovichi",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600061,
+    "ourName": "Naftan",
+    "ourLeague": "BELARUS_PL",
+    "ourExternalId": "750",
+    "tsId": "p4jwq2gh2dlm0ve",
+    "tsName": "Naftan",
+    "matchType": "stat-bridge"
   }
 ]
