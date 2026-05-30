@@ -1,5 +1,4 @@
-// 회원 개인 페이지(마이페이지) — 아바타 + 경험치/등급 + 등급표 + 계정 + 로그아웃.
-// user_session 인증. 경험치(exp)/등급(level)은 게시판이 추가한 User 컬럼 사용.
+// 회원 마이페이지 — 애플풍 2컬럼. 좌: 프로필·등급표(sticky) / 우: 활동통계·즐겨찾기·내 글.
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -10,6 +9,7 @@ import { logoutUserAction } from "@/app/(auth)/actions";
 import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
 import { avatarById } from "@/lib/avatars";
 import AvatarPicker from "./AvatarPicker";
+import FavoriteSummary from "./FavoriteSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -29,142 +29,209 @@ export default async function AccountPage() {
   const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
   if (!session) redirect("/login?from=/account");
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: {
-      email: true,
-      nickname: true,
-      createdAt: true,
-      exp: true,
-      level: true,
-      points: true,
-      avatarUrl: true,
-    },
-  });
+  const [user, myPosts, agg, settled, correct] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { email: true, nickname: true, createdAt: true, exp: true, level: true, points: true, avatarUrl: true },
+    }),
+    prisma.post.findMany({
+      where: { authorId: session.userId },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: { id: true, title: true, views: true, likes: true, isCorrect: true, createdAt: true },
+    }),
+    prisma.post.aggregate({
+      where: { authorId: session.userId },
+      _count: { _all: true },
+      _sum: { likes: true, views: true },
+    }),
+    prisma.post.count({ where: { authorId: session.userId, isCorrect: { not: null } } }),
+    prisma.post.count({ where: { authorId: session.userId, isCorrect: true } }),
+  ]);
   if (!user) redirect("/login?from=/account");
 
   const avatar = avatarById(user.avatarUrl);
   const grade = gradeByExp(user.exp);
   const prog = levelProgress(user.exp);
+  const totalPosts = agg._count._all;
+  const totalLikes = agg._sum.likes ?? 0;
+  const totalViews = agg._sum.views ?? 0;
+  const winRate = settled > 0 ? Math.round((correct / settled) * 100) : null;
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-10">
-      <h1 className="text-xl font-black tracking-tight mb-6">내 정보</h1>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <h1 className="text-2xl font-bold tracking-tight mb-8 px-1">내 정보</h1>
 
-      {/* 프로필 카드 */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 mb-5">
-        <div className="flex items-center gap-4">
-          <div
-            className={`w-16 h-16 rounded-full ${avatar.bg} flex items-center justify-center text-3xl shrink-0`}
-          >
-            {avatar.emoji}
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5">
+        {/* 좌: 프로필 + 등급표 (데스크탑 sticky) */}
+        <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+          {/* 프로필 카드 */}
+          <div className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 p-6">
+            <div className="flex flex-col items-center text-center">
+              <div className={`w-20 h-20 rounded-full ${avatar.bg} flex items-center justify-center text-4xl shadow-sm`}>
+                {avatar.emoji}
+              </div>
+              <div className="mt-3 text-lg font-bold">{user.nickname}</div>
+              <div className="mt-0.5 text-sm text-neutral-500">
+                {grade.emoji} Lv.{grade.level} · {grade.name}
+              </div>
+            </div>
+
+            {/* 경험치 바 */}
+            <div className="mt-5">
+              <div className="flex justify-between text-[11px] text-neutral-500 mb-1.5">
+                <span>경험치 {user.exp.toLocaleString()}</span>
+                {prog.next ? (
+                  <span>다음 {prog.next.emoji} {prog.next.name}</span>
+                ) : (
+                  <span>최고 등급 👑</span>
+                )}
+              </div>
+              <div className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.round(prog.ratio * 100)}%` }} />
+              </div>
+            </div>
+
+            {/* 포인트 / 글 수 */}
+            <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+              <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 py-2.5">
+                <div className="text-base font-bold tabular-nums">{user.points.toLocaleString()}</div>
+                <div className="text-[10px] text-neutral-500">포인트</div>
+              </div>
+              <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 py-2.5">
+                <div className="text-base font-bold tabular-nums">{totalPosts}</div>
+                <div className="text-[10px] text-neutral-500">작성 글</div>
+              </div>
+            </div>
+
+            {/* 아바타 선택 */}
+            <div className="mt-5">
+              <div className="text-xs font-semibold text-neutral-500 mb-2">아바타</div>
+              <AvatarPicker current={avatar.id} />
+            </div>
+
+            {/* 계정 정보 */}
+            <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800 space-y-1.5 text-xs">
+              <div className="flex justify-between gap-2">
+                <span className="text-neutral-500 shrink-0">이메일</span>
+                <span className="font-medium truncate">{user.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-500">가입일</span>
+                <span className="font-medium">{fmtKst(user.createdAt)}</span>
+              </div>
+            </div>
+
+            <form action={logoutUserAction} className="mt-4">
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-2xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-sm font-medium transition"
+              >
+                로그아웃
+              </button>
+            </form>
           </div>
-          <div className="min-w-0">
-            <div className="text-lg font-black truncate">{user.nickname}</div>
-            <div className="text-sm text-neutral-500">
-              {grade.emoji} Lv.{grade.level} · {grade.name}
+
+          {/* 등급표 */}
+          <div className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 overflow-hidden">
+            <div className="px-5 py-3.5 text-sm font-semibold border-b border-neutral-100 dark:border-neutral-800">
+              등급표 <span className="text-neutral-400 font-normal">12단계</span>
+            </div>
+            <div className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
+              {GRADES.map((g) => {
+                const cur = g.level === grade.level;
+                return (
+                  <div key={g.level} className={`flex items-center gap-3 px-5 py-2 ${cur ? "bg-blue-50 dark:bg-blue-500/10" : ""}`}>
+                    <span className="text-base w-5 text-center">{g.emoji}</span>
+                    <span className={`text-[13px] flex-1 ${cur ? "font-bold text-blue-600 dark:text-blue-400" : "text-neutral-600 dark:text-neutral-400"}`}>
+                      Lv.{g.level} {g.name}
+                    </span>
+                    <span className="text-[10px] text-neutral-400 tabular-nums">{g.minExp.toLocaleString()}+</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        </aside>
 
-        {/* 경험치 바 */}
-        <div className="mt-4">
-          <div className="flex justify-between text-[11px] text-neutral-500 mb-1">
-            <span>경험치 {user.exp.toLocaleString()}</span>
-            {prog.next ? (
-              <span>
-                다음 {prog.next.emoji} {prog.next.name} 까지{" "}
-                {(prog.next.minExp - user.exp).toLocaleString()}
-              </span>
-            ) : (
-              <span>최고 등급 달성 👑</span>
-            )}
-          </div>
-          <div className="h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
-            <div
-              className="h-full bg-blue-500 transition-all"
-              style={{ width: `${Math.round(prog.ratio * 100)}%` }}
-            />
-          </div>
-          <div className="mt-2 text-[11px] text-neutral-500">
-            보유 포인트{" "}
-            <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-              {user.points.toLocaleString()}P
-            </span>
-          </div>
-        </div>
-      </div>
+        {/* 우: 활동통계 + 즐겨찾기 + 내 글 */}
+        <main className="space-y-5">
+          {/* 활동 통계 */}
+          <section className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 p-6">
+            <h2 className="text-sm font-semibold text-neutral-500 mb-4">활동 통계</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <Stat label="작성 글" value={totalPosts} />
+              <Stat label="받은 추천" value={totalLikes} />
+              <Stat label="총 조회" value={totalViews} />
+              <Stat
+                label="예측 적중률"
+                value={winRate != null ? `${winRate}%` : "–"}
+                sub={settled > 0 ? `${correct}/${settled}` : "예측 없음"}
+              />
+            </div>
+          </section>
 
-      {/* 아바타 선택 */}
-      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 mb-5">
-        <div className="text-sm font-semibold mb-3">아바타 선택</div>
-        <AvatarPicker current={avatar.id} />
-      </section>
+          {/* 즐겨찾기 경기 (client island) */}
+          <FavoriteSummary />
 
-      {/* 등급표 */}
-      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden mb-5">
-        <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 text-sm font-semibold">
-          등급표 <span className="text-neutral-500 font-normal">(축구 디비전 12단계)</span>
-        </div>
-        <div className="divide-y divide-neutral-100 dark:divide-neutral-900">
-          {GRADES.map((g) => {
-            const cur = g.level === grade.level;
-            return (
-              <div
-                key={g.level}
-                className={`flex items-center gap-3 px-4 py-2 ${cur ? "bg-blue-500/10" : ""}`}
-              >
-                <span className="text-lg w-6 text-center">{g.emoji}</span>
-                <span
-                  className={`text-sm flex-1 ${cur ? "font-bold text-blue-700 dark:text-blue-400" : ""}`}
-                >
-                  Lv.{g.level} {g.name}
-                  {cur && " ← 현재"}
-                </span>
-                <span className="text-[11px] text-neutral-400 tabular-nums">
-                  {g.minExp.toLocaleString()}+
-                </span>
+          {/* 내가 쓴 글 */}
+          <section className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
+              <h2 className="text-sm font-semibold">내가 쓴 글</h2>
+              <Link href="/analysis/new" className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                + 글쓰기
+              </Link>
+            </div>
+            {myPosts.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <p className="text-sm text-neutral-500">아직 작성한 글이 없습니다.</p>
+                <Link href="/analysis/new" className="inline-block mt-3 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                  첫 스포츠 분석 글 써보기 →
+                </Link>
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 계정 정보 */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-900 mb-5">
-        <Row label="이메일" value={user.email} />
-        <Row label="가입일" value={fmtKst(user.createdAt)} />
+            ) : (
+              <ul className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
+                {myPosts.map((p) => (
+                  <li key={p.id}>
+                    <Link
+                      href={`/analysis/${p.id}`}
+                      className="flex items-center gap-3 px-6 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{p.title}</div>
+                        <div className="text-[11px] text-neutral-500 mt-0.5">
+                          조회 {p.views} · 추천 {p.likes} · {fmtKst(p.createdAt)}
+                        </div>
+                      </div>
+                      {p.isCorrect != null && (
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                            p.isCorrect
+                              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                              : "bg-neutral-500/15 text-neutral-500"
+                          }`}
+                        >
+                          {p.isCorrect ? "적중" : "실패"}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </main>
       </div>
-
-      <div className="flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-sm text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition"
-        >
-          ← 홈으로
-        </Link>
-        <form action={logoutUserAction}>
-          <button
-            type="submit"
-            className="text-sm px-4 py-2 rounded-md bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 transition"
-          >
-            로그아웃
-          </button>
-        </form>
-      </div>
-
-      <p className="mt-6 text-[11px] text-neutral-400 text-center">
-        출석(로그인) 시 매일 경험치가 적립됩니다. 게시판 글·예측 적중으로 더 빠르게 승급!
-      </p>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 gap-3">
-      <span className="text-sm text-neutral-500 shrink-0">{label}</span>
-      <span className="text-sm font-semibold truncate">{value}</span>
+    <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 p-3.5 text-center">
+      <div className="text-xl font-bold tabular-nums">{value}</div>
+      <div className="text-[11px] text-neutral-500 mt-0.5">{label}</div>
+      {sub && <div className="text-[10px] text-neutral-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
