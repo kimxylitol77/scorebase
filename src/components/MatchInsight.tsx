@@ -48,7 +48,7 @@ import EloTrendChart from "./charts/EloTrendChart";
 import SeasonFormHeatmap from "./charts/SeasonFormHeatmap";
 import GoalScatter from "./charts/GoalScatter";
 import TeamMatchup from "./TeamMatchup";
-import MatchInsightTabs from "./MatchInsightTabs";
+import MatchInsightTabs, { type InsightTab } from "./MatchInsightTabs";
 
 interface Props {
   match: {
@@ -96,6 +96,9 @@ interface Props {
   h2hRichContent?: ReactNode;
   /** 선수 기록(박스스코어) 카드 prop (탭 자동 추가) — 농구 BasketballBoxScoreTab 등 */
   playerBoxContent?: ReactNode;
+  /** 스포츠별 추가 탭 — 축구 라인업/팀통계/맞대결/경기정보 등. starters 다음에 삽입.
+   *  { key, label, enabled, content } 배열. 모든 스포츠가 같은 탭 UI 를 쓰도록 통일. */
+  extraTabs?: Array<{ key: string; label: string; enabled: boolean; content: ReactNode }>;
 }
 
 /** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
@@ -150,6 +153,7 @@ export default async function MatchInsight({
   liveOddsContent,
   h2hRichContent,
   playerBoxContent,
+  extraTabs,
 }: Props) {
   const dbMatches = await prisma.match.findMany({
     where: { league: match.league },
@@ -351,6 +355,39 @@ export default async function MatchInsight({
     (homeStarterEarly || awayStarterEarly);
 
   if (dataSparse) {
+    // sparse(과거 매치 <5) 라도 라이브/주입 데이터(축구 라인업·팀통계, 야구 선발 등)는
+    // Elo 누적과 무관하니 탭으로 표시. Elo 기반 팀전력/예측/시장 탭만 생략.
+    const sparseTabs: InsightTab[] = [
+      sparseHasStarters && {
+        key: "starters",
+        label: "선발 매치업",
+        enabled: true,
+        content: (
+          <StarterCard
+            home={homeStarterEarly}
+            away={awayStarterEarly}
+            homeTeam={toKoreanTeamName(match.homeTeam.name)}
+            awayTeam={toKoreanTeamName(match.awayTeam.name)}
+            league={match.league}
+          />
+        ),
+      },
+      ...(extraTabs ?? []),
+      teamStatsContent && { key: "team-stats", label: "팀 통계", enabled: true, content: teamStatsContent },
+      h2hRichContent && { key: "h2h-rich", label: "맞대결·최근 폼", enabled: true, content: h2hRichContent },
+      playerBoxContent && { key: "player-box", label: "선수 기록", enabled: true, content: playerBoxContent },
+      liveOddsContent && { key: "odds", label: "라이브 배당", enabled: true, content: liveOddsContent },
+    ].filter((t): t is InsightTab => !!t && (t as InsightTab).enabled);
+
+    if (sparseTabs.length > 0) {
+      return (
+        <MatchInsightTabs
+          headerLabel="매치 인사이트"
+          headerSubLabel={`시즌 초반 데이터 누적 중 (${eloTable.processed}경기)`}
+          tabs={sparseTabs}
+        />
+      );
+    }
     return (
       <section className="my-10 space-y-4 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-zinc-500 dark:text-white/45">
@@ -359,19 +396,9 @@ export default async function MatchInsight({
             · 시즌 초반 데이터 누적 중 ({eloTable.processed}경기)
           </span>
         </div>
-        {sparseHasStarters ? (
-          <StarterCard
-            home={homeStarterEarly}
-            away={awayStarterEarly}
-            homeTeam={toKoreanTeamName(match.homeTeam.name)}
-            awayTeam={toKoreanTeamName(match.awayTeam.name)}
-            league={match.league}
-          />
-        ) : (
-          <p className="text-sm text-neutral-500">
-            분석에 필요한 과거 매치 데이터가 충분하지 않습니다. 시즌이 진행될수록 정확도가 올라갑니다.
-          </p>
-        )}
+        <p className="text-sm text-neutral-500">
+          분석에 필요한 과거 매치 데이터가 충분하지 않습니다. 시즌이 진행될수록 정확도가 올라갑니다.
+        </p>
       </section>
     );
   }
@@ -782,6 +809,8 @@ export default async function MatchInsight({
           enabled: !!startersContent,
           content: startersContent,
         },
+        // 스포츠별 추가 탭 (축구 라인업/팀통계/맞대결/경기정보 등) — starters 다음, 팀전력 앞.
+        ...(extraTabs ?? []),
         {
           key: "matchup",
           label: "팀 전력",

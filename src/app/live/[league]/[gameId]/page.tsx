@@ -6,6 +6,7 @@
 //   야구 9개 리그 = TheSports ts-{tsMatchId} (thesports-matches route 가 prefix 부여).
 
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -255,6 +256,145 @@ export default async function GenericLivePage({ params }: Props) {
     }
   }
 
+  // ── 축구 매치 인사이트 탭 (야구처럼 정리) ─────────────────────────────
+  // 기존 세로 카드 스택(라인업/팀통계/하프타임/트렌드/골분포/H2H/구장/예측/시즌/다음경기)을
+  // MatchInsight 의 탭(라인업 · 팀 통계 · 맞대결 · 경기 정보)으로 묶어 주입. 모든 스포츠 동일 UI.
+  const soccerTabs: Array<{ key: string; label: string; enabled: boolean; content: ReactNode }> = [];
+  if (isSoccer) {
+    let teamStatsNode: ReactNode = null;
+    let halfTimeNode: ReactNode = null;
+    let trendNode: ReactNode = null;
+    let lineupNode: ReactNode = null;
+    let goalDistNode: ReactNode = null;
+    let h2hNode: ReactNode = null;
+    if (match.theSportsCache) {
+      const cache = match.theSportsCache;
+      const analysis = cache.analysis as {
+        goal_distribution?: { home: unknown; away: unknown };
+        history?: { vs?: unknown[] };
+      } | null;
+      const lineup = cache.lineup as Parameters<typeof SoccerLineupSvg>[0]["data"] | null;
+      const detailLive = cache.detailLive as { stats?: Array<{ type: number; home: number; away: number }> } | null;
+      const teamStats = cache.teamStats as Parameters<typeof SoccerTeamStatsCard>[0]["teamStats"] | null;
+      const halfTeamStats = cache.halfTeamStats as Parameters<typeof SoccerHalfTimeStatsCard>[0]["halfTeamStats"] | null;
+      const trendStale =
+        match.status === "LIVE" &&
+        cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
+      const trend = trendStale
+        ? null
+        : (cache.trend as Parameters<typeof MatchTrendChart>[0]["trend"] | null);
+      const gd = analysis?.goal_distribution;
+      const h2h = analysis?.history?.vs ?? [];
+      const homeTsId = tsTeamId(match.homeTeam.id);
+      const awayTsId = tsTeamId(match.awayTeam.id);
+      teamStatsNode =
+        teamStats && Array.isArray(teamStats) && teamStats.length >= 2 ? (
+          <SoccerTeamStatsCard
+            teamStats={teamStats}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            homeTsTeamId={homeTsId}
+            awayTsTeamId={awayTsId}
+          />
+        ) : detailLive?.stats && detailLive.stats.length > 0 ? (
+          <SoccerLiveStatsCard stats={detailLive.stats} homeNameKo={homeKo} awayNameKo={awayKo} />
+        ) : null;
+      halfTimeNode =
+        halfTeamStats && (halfTeamStats.p1 || halfTeamStats.p2 || halfTeamStats.ft) ? (
+          <SoccerHalfTimeStatsCard halfTeamStats={halfTeamStats} homeNameKo={homeKo} awayNameKo={awayKo} />
+        ) : null;
+      trendNode =
+        trend && Array.isArray(trend.data) && trend.data.length > 0 ? (
+          <MatchTrendChart
+            trend={trend}
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            homeScore={match.homeScore}
+            awayScore={match.awayScore}
+            goals={
+              detailLive
+                ? (() => {
+                    const incs = (detailLive as { incidents?: unknown }).incidents;
+                    if (!Array.isArray(incs)) return null;
+                    return incs
+                      .filter((i: Record<string, unknown>) =>
+                        typeof i.home_score === "number" || typeof i.away_score === "number",
+                      )
+                      .map((i: Record<string, unknown>) => ({
+                        minute:
+                          typeof i.add_time === "number" ? `${i.time}+${i.add_time}'` : `${i.time}'`,
+                        side: (i.position === 1 ? "home" : "away") as "home" | "away",
+                        player: typeof i.player_name === "string" ? i.player_name : "",
+                        ownGoal: false,
+                        penaltyKick: i.type === 17,
+                      }));
+                  })()
+                : null
+            }
+          />
+        ) : null;
+      lineupNode =
+        lineup && lineup.lineup ? (
+          <SoccerLineupSvg data={lineup} homeNameKo={homeKo} awayNameKo={awayKo} />
+        ) : null;
+      goalDistNode =
+        gd && gd.home && gd.away ? (
+          <SoccerGoalDistributionCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            data={gd as Parameters<typeof SoccerGoalDistributionCard>[0]["data"]}
+          />
+        ) : null;
+      h2hNode =
+        h2h.length > 0 ? (
+          <SoccerH2HCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            homeTsTeamId={homeTsId}
+            awayTsTeamId={awayTsId}
+            history={h2h}
+          />
+        ) : null;
+    }
+    const venueNode = venue ? <SoccerVenueCard venue={venue} /> : null;
+    const predictionNode = matchPrediction ? (
+      <MatchPredictionsCard prediction={matchPrediction} homeNameKo={homeKo} awayNameKo={awayKo} />
+    ) : null;
+    const seasonNode =
+      homeAfStats || awayAfStats ? (
+        <TeamSeasonStatsCard home={homeAfStats} away={awayAfStats} homeNameKo={homeKo} awayNameKo={awayKo} />
+      ) : null;
+    const upcomingNode =
+      homeUpcomingF.length > 0 || awayUpcomingF.length > 0 ? (
+        <UpcomingFixturesCard
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          homeUpcoming={homeUpcomingF}
+          awayUpcoming={awayUpcomingF}
+        />
+      ) : null;
+
+    const statsTab =
+      teamStatsNode || halfTimeNode || trendNode ? (
+        <div className="space-y-4">{teamStatsNode}{halfTimeNode}{trendNode}</div>
+      ) : null;
+    const h2hTab =
+      h2hNode || goalDistNode ? (
+        <div className="space-y-4">{h2hNode}{goalDistNode}</div>
+      ) : null;
+    const infoTab =
+      predictionNode || seasonNode || venueNode || upcomingNode ? (
+        <div className="space-y-4">{predictionNode}{seasonNode}{venueNode}{upcomingNode}</div>
+      ) : null;
+
+    soccerTabs.push(
+      { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
+      { key: "soccer-stats", label: "팀 통계", enabled: !!statsTab, content: statsTab },
+      { key: "soccer-h2h", label: "맞대결", enabled: !!h2hTab, content: h2hTab },
+      { key: "soccer-info", label: "경기 정보", enabled: !!infoTab, content: infoTab },
+    );
+  }
+
   // SportsEvent JSON-LD — 검색 rich snippet + AI 인용 source.
   // 라이브/종료 매치 모두 발행 — eventStatus 분기로 의미 명확.
   const eventStatusByMatch =
@@ -391,146 +531,8 @@ export default async function GenericLivePage({ params }: Props) {
         scoreLabel={scoreLabel}
       />
 
-      {/* 경기 정보 — 홈팀 구장 (축구만, mapping 있을 때) */}
-      {isSoccer && venue && <SoccerVenueCard venue={venue} />}
-
-      {/* 매치 예측 (api-football) — 친선·예선 매치에서 특히 의미 큼 */}
-      {isSoccer && matchPrediction && (
-        <MatchPredictionsCard
-          prediction={matchPrediction}
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-        />
-      )}
-
-      {/* 시즌 통계 — 한쪽이라도 있으면 표시 */}
-      {isSoccer && (homeAfStats || awayAfStats) && (
-        <TeamSeasonStatsCard
-          home={homeAfStats}
-          away={awayAfStats}
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-        />
-      )}
-
-      {/* 양 팀 다음 경기 — DB SCHEDULED 매치 가까운 2개씩 */}
-      {isSoccer && (homeUpcomingF.length > 0 || awayUpcomingF.length > 0) && (
-        <UpcomingFixturesCard
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-          homeUpcoming={homeUpcomingF}
-          awayUpcoming={awayUpcomingF}
-        />
-      )}
-
-      {/* TheSports 카드 (축구만, cache 있을 때) */}
-      {isSoccer && match.theSportsCache && (() => {
-        const cache = match.theSportsCache;
-        const analysis = cache.analysis as {
-          goal_distribution?: { home: unknown; away: unknown };
-          history?: { vs?: unknown[] };
-        } | null;
-        const lineup = cache.lineup as Parameters<typeof SoccerLineupSvg>[0]["data"] | null;
-        const detailLive = cache.detailLive as { stats?: Array<{ type: number; home: number; away: number }> } | null;
-        const teamStats = cache.teamStats as Parameters<typeof SoccerTeamStatsCard>[0]["teamStats"] | null;
-        const halfTeamStats = cache.halfTeamStats as Parameters<typeof SoccerHalfTimeStatsCard>[0]["halfTeamStats"] | null;
-        // LIVE 매치인데 cache 가 10분 이상 stale 이면 trend 도 옛 데이터일 가능성 큼 →
-        // 90분 분량 momentum 이 미리 그려져 진행 분과 불일치. stale 가드 후 hide.
-        // (FINISHED 매치는 어차피 더이상 갱신 X 라 stale 무관.)
-        const trendStale =
-          match.status === "LIVE" &&
-          cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
-        const trend = trendStale
-          ? null
-          : (cache.trend as Parameters<typeof MatchTrendChart>[0]["trend"] | null);
-        const gd = analysis?.goal_distribution;
-        const h2h = analysis?.history?.vs ?? [];
-        const homeTsId = tsTeamId(match.homeTeam.id);
-        const awayTsId = tsTeamId(match.awayTeam.id);
-        // teamStats (named fields v3) 우선, fallback 으로 detailLive.stats (type-coded)
-        return (
-          <>
-            {teamStats && Array.isArray(teamStats) && teamStats.length >= 2 ? (
-              <SoccerTeamStatsCard
-                teamStats={teamStats}
-                homeNameKo={homeKo}
-                awayNameKo={awayKo}
-                homeTsTeamId={homeTsId}
-                awayTsTeamId={awayTsId}
-              />
-            ) : (
-              detailLive?.stats && detailLive.stats.length > 0 && (
-                <SoccerLiveStatsCard
-                  stats={detailLive.stats}
-                  homeNameKo={homeKo}
-                  awayNameKo={awayKo}
-                />
-              )
-            )}
-            {halfTeamStats && (halfTeamStats.p1 || halfTeamStats.p2 || halfTeamStats.ft) && (
-              <SoccerHalfTimeStatsCard
-                halfTeamStats={halfTeamStats}
-                homeNameKo={homeKo}
-                awayNameKo={awayKo}
-              />
-            )}
-            {trend && Array.isArray(trend.data) && trend.data.length > 0 && (
-              <MatchTrendChart
-                trend={trend}
-                homeNameKo={homeKo}
-                awayNameKo={awayKo}
-                homeScore={match.homeScore}
-                awayScore={match.awayScore}
-                goals={
-                  detailLive
-                    ? (() => {
-                        const incs = (detailLive as { incidents?: unknown }).incidents;
-                        if (!Array.isArray(incs)) return null;
-                        return incs
-                          .filter((i: Record<string, unknown>) =>
-                            typeof i.home_score === "number" || typeof i.away_score === "number",
-                          )
-                          .map((i: Record<string, unknown>) => ({
-                            minute:
-                              typeof i.add_time === "number"
-                                ? `${i.time}+${i.add_time}'`
-                                : `${i.time}'`,
-                            side: (i.position === 1 ? "home" : "away") as "home" | "away",
-                            player: typeof i.player_name === "string" ? i.player_name : "",
-                            ownGoal: false,
-                            penaltyKick: i.type === 17,
-                          }));
-                      })()
-                    : null
-                }
-              />
-            )}
-            {lineup && lineup.lineup && (
-              <SoccerLineupSvg
-                data={lineup}
-                homeNameKo={homeKo}
-                awayNameKo={awayKo}
-              />
-            )}
-            {gd && gd.home && gd.away && (
-              <SoccerGoalDistributionCard
-                homeNameKo={homeKo}
-                awayNameKo={awayKo}
-                data={gd as Parameters<typeof SoccerGoalDistributionCard>[0]["data"]}
-              />
-            )}
-            {h2h.length > 0 && (
-              <SoccerH2HCard
-                homeNameKo={homeKo}
-                awayNameKo={awayKo}
-                homeTsTeamId={homeTsId}
-                awayTsTeamId={awayTsId}
-                history={h2h}
-              />
-            )}
-          </>
-        );
-      })()}
+      {/* 축구 카드(라인업·팀통계·하프타임·트렌드·골분포·H2H·구장·예측·시즌·다음경기)는
+          아래 MatchInsight 탭(라인업·팀 통계·맞대결·경기 정보)으로 이동 — soccerTabs 참고. */}
 
       {lg === "NHL" && (homeGoalie || awayGoalie) && (
         <NhlGoalieInsight
@@ -543,6 +545,7 @@ export default async function GenericLivePage({ params }: Props) {
 
       <MatchInsight
         match={match}
+        extraTabs={soccerTabs}
         teamStatsContent={
           BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
             <BasketballTeamStatsCard
