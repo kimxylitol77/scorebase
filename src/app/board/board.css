@@ -4,6 +4,7 @@
   --bd-glow:rgba(79,195,232,.07); --bd-txt:#eef2f8; --bd-sub:#737f93;
   --bd-cy:#4fc3e8; --bd-live:#ff4757; --bd-dim:#46526a;
   min-height:100vh;
+  overflow-x:hidden;
   background:radial-gradient(1200px 520px at 50% -220px,#0d1826 0%,var(--bd-bg) 58%);
   color:var(--bd-txt);
   font-family:'Pretendard','Pretendard Variable',-apple-system,'Apple SD Gothic Neo','Segoe UI',sans-serif;
@@ -38,7 +39,7 @@
 .bd-lg .fl{font-size:14px}
 .bd-lg .ct{margin-left:auto;font-weight:500;font-size:11px;color:var(--bd-dim)}
 /* 매치 카드 */
-.bd-m{margin:0 12px 9px;background:var(--bd-card);border:1px solid var(--bd-line);border-radius:16px;padding:13px 15px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;text-decoration:none;color:inherit}
+.bd-m{margin:0 12px 9px;background:var(--bd-card);border:1px solid var(--bd-line);border-radius:16px;padding:13px 15px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;text-decoration:none;color:inherit;overflow:hidden}
 .bd-m.live{background:linear-gradient(180deg,var(--bd-glow),var(--bd-card) 60%);border-color:rgba(79,195,232,.22)}
 .bd-side{display:flex;align-items:center;gap:10px;min-width:0}
 .bd-side.away{flex-direction:row-reverse;text-align:right}
