@@ -31,13 +31,14 @@ export default async function UserBadge() {
 
   return (
     <div className="inline-flex items-center gap-1.5">
-      <span
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-blue-500/40 bg-blue-500/10 text-xs font-semibold text-blue-700 dark:text-blue-400"
-        title={`${user.nickname} 로그인 중`}
+      <Link
+        href="/account"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 transition text-xs font-semibold text-blue-700 dark:text-blue-400"
+        title={`${user.nickname} — 내 정보`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
         <span className="max-w-[80px] truncate">{user.nickname}</span>
-      </span>
+      </Link>
       <form action={logoutUserAction}>
         <button
           type="submit"
