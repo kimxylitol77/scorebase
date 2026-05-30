@@ -8,6 +8,9 @@
 // 실행: tsx scripts/build-mlb-player-names-haiku.ts 14
 // 환경변수: ANTHROPIC_API_KEY (필수), ANTHROPIC_MODEL (기본 haiku-4-5-20251001)
 
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { PrismaClient } from "@prisma/client";

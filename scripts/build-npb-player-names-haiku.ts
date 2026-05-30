@@ -8,6 +8,9 @@
 // 실행: tsx scripts/build-npb-player-names-haiku.ts 30
 // 환경변수: ANTHROPIC_API_KEY, THESPORTS_USER, THESPORTS_SECRET (필수)
 
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 import { PrismaClient } from "@prisma/client";
 
 const DAYS = parseInt(process.argv[2] ?? "30", 10);
