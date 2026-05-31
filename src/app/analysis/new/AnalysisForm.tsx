@@ -305,10 +305,15 @@ export default function AnalysisForm({ matchesBySport }: Props) {
 
       {/* 3. 내용 */}
       <div>
-        <div className={stepLabel}>내용</div>
+        <div className={stepLabel}>
+          내용{" "}
+          <span className="font-normal text-neutral-400">
+            · **굵게** ## 제목 - 목록 등 마크다운 지원
+          </span>
+        </div>
         <textarea
           name="content"
-          placeholder="분석 내용을 적어주세요."
+          placeholder="분석 내용을 적어주세요. (마크다운 문법 사용 가능)"
           required
           rows={10}
           className={inputCls}

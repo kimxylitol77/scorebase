@@ -123,10 +123,11 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
     });
 
     if (verdict) {
-      await awardExp(p.authorId, {
-        exp: EXP_REWARDS.predictionHit,
-        points: POINT_REWARDS.predictionHit,
-      });
+      await awardExp(
+        p.authorId,
+        { exp: EXP_REWARDS.predictionHit, points: POINT_REWARDS.predictionHit },
+        "prediction_hit",
+      );
       correct++;
     }
     scored++;

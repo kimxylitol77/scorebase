@@ -506,6 +506,7 @@ model User {
   posts     Post[]
   postLikes PostLike[]
   comments  Comment[]
+  expLogs   ExpLog[]
 
   // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
@@ -572,4 +573,18 @@ model Comment {
 
   @@index([postId, createdAt])
   @@index([authorId])
+}
+
+/// 경험치/포인트 변동 이력 — 어뷰징 추적·롤백용. awardExp() 가 기록.
+model ExpLog {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  exp       Int // 경험치 변동량 (양수=지급, 음수=회수)
+  points    Int // 포인트 변동량
+  reason    String // post_create | comment | prediction_hit | recommend_received | post_delete | comment_delete
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

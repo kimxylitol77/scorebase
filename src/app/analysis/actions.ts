@@ -39,7 +39,6 @@ export async function createPostAction(
     return { ok: false, error: "내용을 5자 이상 입력해주세요." };
   }
 
-  // 예측 입력 검증 (선택이지만 하나라도 있으면 종목·경기·마켓·픽 모두 유효해야)
   let predData:
     | { sport: string; matchId: number; market: string; line: number | null; pick: string }
     | null = null;
@@ -55,15 +54,9 @@ export async function createPostAction(
       return { ok: false, error: "예측하려면 종목·경기·마켓·픽을 모두 선택해주세요." };
     }
 
-    // 예정 경기만 + line 은 서버에서 경기 배당으로 확정(클라 값 신뢰 X = 어뷰징 차단)
     const match = await prisma.match.findUnique({
       where: { id: matchId },
-      select: {
-        status: true,
-        startTime: true,
-        oddsHcLine: true,
-        oddsTotalLine: true,
-      },
+      select: { status: true, startTime: true, oddsHcLine: true, oddsTotalLine: true },
     });
     if (!match || match.status !== "SCHEDULED" || match.startTime <= new Date()) {
       return { ok: false, error: "예측 가능한 예정 경기가 아닙니다." };
@@ -78,7 +71,6 @@ export async function createPostAction(
       if (match.oddsHcLine == null) return { ok: false, error: "이 경기는 핸디캡 배당이 없어요." };
       line = match.oddsHcLine;
     } else {
-      // OU
       if (!["OVER", "UNDER"].includes(pick)) return { ok: false, error: "올바른 오버/언더 픽을 선택해주세요." };
       if (match.oddsTotalLine == null) return { ok: false, error: "이 경기는 오버언더 배당이 없어요." };
       line = match.oddsTotalLine;
@@ -87,7 +79,6 @@ export async function createPostAction(
     predData = { sport, matchId, market, line, pick };
   }
 
-  // 도배 방지 (회원 단위)
   const rl = rateLimit(`post-create:${userId}`, {
     max: 10,
     windowMs: 10 * 60 * 1000,
@@ -99,19 +90,15 @@ export async function createPostAction(
   }
 
   const post = await prisma.post.create({
-    data: {
-      authorId: userId,
-      title,
-      content,
-      ...(predData ?? {}),
-    },
+    data: { authorId: userId, title, content, ...(predData ?? {}) },
     select: { id: true },
   });
 
-  await awardExp(userId, {
-    exp: EXP_REWARDS.analysisPost,
-    points: POINT_REWARDS.analysisPost,
-  });
+  await awardExp(
+    userId,
+    { exp: EXP_REWARDS.analysisPost, points: POINT_REWARDS.analysisPost },
+    "post_create",
+  );
 
   revalidatePath("/analysis");
   redirect(`/analysis/${post.id}`);
@@ -136,14 +123,12 @@ export async function likePostAction(formData: FormData): Promise<void> {
     return; // unique 위반 = 이미 추천함 → 무시
   }
 
-  await prisma.post.update({
-    where: { id: postId },
-    data: { likes: { increment: 1 } },
-  });
-  await awardExp(post.authorId, {
-    exp: EXP_REWARDS.recommendReceived,
-    points: POINT_REWARDS.recommendReceived,
-  });
+  await prisma.post.update({ where: { id: postId }, data: { likes: { increment: 1 } } });
+  await awardExp(
+    post.authorId,
+    { exp: EXP_REWARDS.recommendReceived, points: POINT_REWARDS.recommendReceived },
+    "recommend_received",
+  );
 
   revalidatePath(`/analysis/${postId}`);
   revalidatePath("/analysis");
@@ -178,12 +163,60 @@ export async function createCommentAction(
   }
 
   await prisma.comment.create({ data: { postId, authorId: userId, content } });
-  await prisma.post.update({
-    where: { id: postId },
-    data: { commentCount: { increment: 1 } },
-  });
-  await awardExp(userId, { exp: EXP_REWARDS.comment, points: POINT_REWARDS.comment });
+  await prisma.post.update({ where: { id: postId }, data: { commentCount: { increment: 1 } } });
+  await awardExp(userId, { exp: EXP_REWARDS.comment, points: POINT_REWARDS.comment }, "comment");
 
   revalidatePath(`/analysis/${postId}`);
   return { ok: true };
+}
+
+/** 글 삭제 (본인만). 작성 경험치 회수. Cascade 로 댓글·추천도 삭제. */
+export async function deletePostAction(formData: FormData): Promise<void> {
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+  const postId = Number(formData.get("postId"));
+  if (!Number.isInteger(postId)) return;
+
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { authorId: true },
+  });
+  if (!post || post.authorId !== userId) return; // 본인만
+
+  await prisma.post.delete({ where: { id: postId } });
+  await awardExp(
+    userId,
+    { exp: -EXP_REWARDS.analysisPost, points: -POINT_REWARDS.analysisPost },
+    "post_delete",
+  );
+
+  revalidatePath("/analysis");
+  redirect("/analysis");
+}
+
+/** 댓글 삭제 (본인만). 댓글 경험치 회수 + commentCount 감소. */
+export async function deleteCommentAction(formData: FormData): Promise<void> {
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+  const commentId = Number(formData.get("commentId"));
+  if (!Number.isInteger(commentId)) return;
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { authorId: true, postId: true },
+  });
+  if (!comment || comment.authorId !== userId) return; // 본인만
+
+  await prisma.comment.delete({ where: { id: commentId } });
+  await prisma.post.update({
+    where: { id: comment.postId },
+    data: { commentCount: { decrement: 1 } },
+  });
+  await awardExp(
+    userId,
+    { exp: -EXP_REWARDS.comment, points: -POINT_REWARDS.comment },
+    "comment_delete",
+  );
+
+  revalidatePath(`/analysis/${comment.postId}`);
 }

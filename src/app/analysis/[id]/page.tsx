@@ -5,8 +5,10 @@ import { gradeByLevel } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
 import { toKoreanTeamName } from "@/lib/team-names";
+import Markdown from "@/components/Markdown";
 import LikeButton from "./LikeButton";
 import CommentForm from "./CommentForm";
+import { DeletePostButton, DeleteCommentButton } from "./DeleteButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +70,7 @@ export default async function PostDetailPage({ params }: Props) {
           id: true,
           content: true,
           createdAt: true,
+          authorId: true,
           author: { select: { nickname: true, level: true } },
         },
       },
@@ -82,6 +85,7 @@ export default async function PostDetailPage({ params }: Props) {
   });
 
   const userId = await getCurrentUserId();
+  const isAuthor = userId === post.authorId;
   const g = gradeByLevel(post.author.level);
   const a = post.author;
 
@@ -142,6 +146,12 @@ export default async function PostDetailPage({ params }: Props) {
           <span>추천 {post.likes}</span>
           <span>·</span>
           <span>댓글 {post.commentCount}</span>
+          {isAuthor && (
+            <>
+              <span>·</span>
+              <DeletePostButton postId={post.id} />
+            </>
+          )}
         </div>
 
         {/* 예측 카드 */}
@@ -175,9 +185,9 @@ export default async function PostDetailPage({ params }: Props) {
           </div>
         )}
 
-        {/* 본문 */}
-        <div className="mt-6 whitespace-pre-wrap text-[15px] leading-relaxed text-neutral-800 dark:text-neutral-200">
-          {post.content}
+        {/* 본문 (Markdown) */}
+        <div className="mt-6">
+          <Markdown disableAutoLink>{post.content}</Markdown>
         </div>
 
         {/* 추천 */}
@@ -185,7 +195,7 @@ export default async function PostDetailPage({ params }: Props) {
           <LikeButton
             postId={post.id}
             likes={post.likes}
-            disabled={!userId || post.authorId === userId}
+            disabled={!userId || isAuthor}
           />
         </div>
       </article>
@@ -208,6 +218,7 @@ export default async function PostDetailPage({ params }: Props) {
                       {cg.emoji} {c.author.nickname}
                     </span>
                     <span className="text-xs text-neutral-400">{listTime(c.createdAt)}</span>
+                    {userId === c.authorId && <DeleteCommentButton commentId={c.id} />}
                   </div>
                   <p className="whitespace-pre-wrap text-neutral-700 dark:text-neutral-300 leading-relaxed">
                     {c.content}
