@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { gradeByLevel } from "@/lib/user-level";
+import { displayGrade } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, hitRate } from "@/lib/analysis/format";
 
@@ -33,6 +33,7 @@ export default async function AnalysisListPage() {
           select: {
             nickname: true,
             level: true,
+            badge: true,
             predTotal: true,
             predHit: true,
             predStreak: true,
@@ -77,7 +78,7 @@ export default async function AnalysisListPage() {
           </div>
           <ul className="divide-y divide-neutral-100 dark:divide-neutral-800/70">
             {posts.map((p) => {
-              const g = gradeByLevel(p.author.level);
+              const g = displayGrade(p.author.level, p.author.badge);
               const a = p.author;
               return (
                 <li key={p.id}>

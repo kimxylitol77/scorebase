@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { gradeByLevel } from "@/lib/user-level";
+import { displayGrade } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -47,6 +47,7 @@ export default async function PostDetailPage({ params }: Props) {
         select: {
           nickname: true,
           level: true,
+          badge: true,
           predTotal: true,
           predHit: true,
           predStreak: true,
@@ -71,7 +72,7 @@ export default async function PostDetailPage({ params }: Props) {
           content: true,
           createdAt: true,
           authorId: true,
-          author: { select: { nickname: true, level: true } },
+          author: { select: { nickname: true, level: true, badge: true } },
         },
       },
     },
@@ -86,7 +87,7 @@ export default async function PostDetailPage({ params }: Props) {
 
   const userId = await getCurrentUserId();
   const isAuthor = userId === post.authorId;
-  const g = gradeByLevel(post.author.level);
+  const g = displayGrade(post.author.level, post.author.badge);
   const a = post.author;
 
   const home = post.match ? toKoreanTeamName(post.match.homeTeam.name, post.match.league) : "";
@@ -209,7 +210,7 @@ export default async function PostDetailPage({ params }: Props) {
         {post.comments.length > 0 && (
           <ul className="space-y-4 mb-5">
             {post.comments.map((c) => {
-              const cg = gradeByLevel(c.author.level);
+              const cg = displayGrade(c.author.level, c.author.badge);
               return (
                 <li key={c.id} className="text-sm">
                   <div className="flex items-center gap-2 mb-1">

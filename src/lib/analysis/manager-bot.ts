@@ -30,13 +30,27 @@ type Sport = "soccer" | "baseball" | "basketball" | "hockey";
 export async function ensureManager(): Promise<string> {
   const existing = await prisma.user.findUnique({
     where: { email: MANAGER_EMAIL },
-    select: { id: true },
+    select: { id: true, badge: true },
   });
-  if (existing) return existing.id;
-  // 로그인 불가용 더미 해시 (봇은 세션 미사용). level 은 적중 쌓이며 자연 상승.
+  if (existing) {
+    // 기존 매니저도 공식 등급 보장
+    if (existing.badge !== "OFFICIAL") {
+      await prisma.user.update({
+        where: { email: MANAGER_EMAIL },
+        data: { badge: "OFFICIAL" },
+      });
+    }
+    return existing.id;
+  }
+  // 로그인 불가용 더미 해시 (봇은 세션 미사용). badge=OFFICIAL → 공식 분석관 등급.
   const pw = await hashPassword(`manager-seed-${Date.now()}-${Math.random()}`);
   const u = await prisma.user.create({
-    data: { email: MANAGER_EMAIL, passwordHash: pw, nickname: MANAGER_NICKNAME },
+    data: {
+      email: MANAGER_EMAIL,
+      passwordHash: pw,
+      nickname: MANAGER_NICKNAME,
+      badge: "OFFICIAL",
+    },
     select: { id: true },
   });
   return u.id;

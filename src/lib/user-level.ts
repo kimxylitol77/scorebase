@@ -95,3 +95,16 @@ export function levelProgress(exp: number): {
   const ratio = expForNext > 0 ? Math.min(expIntoLevel / expForNext, 1) : 1;
   return { level, current, next, expIntoLevel, expForNext, ratio };
 }
+
+/** 특별 등급 — 레전드(Lv12) 위. exp 무관, badge 로만 부여(매니저·운영 계정). */
+export const OFFICIAL_GRADE = { emoji: "🎖️", name: "공식 분석관" } as const;
+
+/** 표시용 등급 — badge 가 있으면 특별 등급, 없으면 exp(level) 기반 일반 등급. */
+export function displayGrade(
+  level: number,
+  badge?: string | null,
+): { emoji: string; name: string } {
+  if (badge === "OFFICIAL") return OFFICIAL_GRADE;
+  const g = gradeByLevel(level);
+  return { emoji: g.emoji, name: g.name };
+}

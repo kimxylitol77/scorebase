@@ -492,7 +492,8 @@ model User {
   // ⚠️ 이 컬럼들 + Post/PostLike 는 반드시 함께 db push — schema 에만 두고 push 안 하면 가입 깨짐(검증됨).
   exp    Int @default(0) // 누적 경험치 (등급 산출 기준)
   points Int @default(0) // 소비용 포인트 (등급과 분리)
-  level  Int @default(1) // 캐시된 등급 (exp 변동 시 expToLevel 로 재계산)
+  level  Int     @default(1) // 캐시된 등급 (exp 변동 시 expToLevel 로 재계산)
+  badge  String? // 특별 등급 마커 — "OFFICIAL"=공식 분석관(레전드 위, 매니저 전용). null=exp 기반 일반 등급
 
   avatarUrl        String?   // 아바타 프리셋 id (src/lib/avatars.ts). null=기본
   lastAttendanceAt DateTime? // 출석 경험치 마지막 적립 시각 (KST 하루 1회 제한)
