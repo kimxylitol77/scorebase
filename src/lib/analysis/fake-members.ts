@@ -10,7 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { kickoffLabel } from "@/lib/analysis/format";
 import { leagueLabel } from "@/lib/analysis/matches";
 import { ARTICLE_LEAGUES } from "@/lib/sports/types";
-import { sportForLeague, parsePickJson } from "@/lib/analysis/manager-bot";
+import { sportForLeague, parsePickJson, botTeamName } from "@/lib/analysis/manager-bot";
 
 // 가짜 회원 닉네임 풀 (스포츠 커뮤니티 팬 톤)
 const FAKE_NICKNAMES = [
@@ -104,8 +104,8 @@ async function randomMatch(userId: string): Promise<FakeCand | null> {
     league: m.league,
     sport,
     startTime: m.startTime,
-    home: toKoreanTeamName(m.homeTeam.name, m.league),
-    away: toKoreanTeamName(m.awayTeam.name, m.league),
+    home: botTeamName(toKoreanTeamName(m.homeTeam.name, m.league), m.league),
+    away: botTeamName(toKoreanTeamName(m.awayTeam.name, m.league), m.league),
     hcLine: m.oddsHcLine,
     ouLine: m.oddsTotalLine,
   };

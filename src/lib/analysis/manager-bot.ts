@@ -64,6 +64,29 @@ export function sportForLeague(league: string): Sport | null {
   return "soccer";
 }
 
+// MLB 중 한국에서 별명이 압도적으로 통용되는 팀 — 지역명 대신 별명 유지
+const MLB_KEEP_NICKNAME = new Set([
+  "양키스", "다저스", "레드삭스", "컵스", "메츠",
+  "자이언츠", "에인절스", "카디널스", "브레이브스", "필리스", "화이트삭스",
+]);
+
+/**
+ * 봇이 글에서 쓸 팀 호칭 — Claude 가 별명만 축약하는 것 방지.
+ * MLB: 지역명(휴스턴·밀워키·샌디에이고). 단 양키스·다저스 등 별명 통용 팀은 유지.
+ * KBO/NPB: 첫 어절(삼성·LG·요미우리 = 구단/기업명).
+ * 축구·농구·하키: 전체명 그대로.
+ */
+export function botTeamName(koName: string, league: string): string {
+  const parts = koName.trim().split(/\s+/);
+  if (parts.length < 2) return koName;
+  if (league === "MLB") {
+    const nick = parts[parts.length - 1];
+    return MLB_KEEP_NICKNAME.has(nick) ? nick : parts[0];
+  }
+  if (BASEBALL_LEAGUES.has(league)) return parts[0]; // KBO/NPB
+  return koName;
+}
+
 interface Candidate {
   id: number;
   league: string;
@@ -125,8 +148,8 @@ async function pickImportantMatches(managerId: string, limit: number): Promise<C
       league: m.league,
       sport,
       startTime: m.startTime,
-      home: toKoreanTeamName(m.homeTeam.name, m.league),
-      away: toKoreanTeamName(m.awayTeam.name, m.league),
+      home: botTeamName(toKoreanTeamName(m.homeTeam.name, m.league), m.league),
+      away: botTeamName(toKoreanTeamName(m.awayTeam.name, m.league), m.league),
       homeElo: m.homeTeam.eloRating,
       awayElo: m.awayTeam.eloRating,
       oddsHome: m.oddsHome,
