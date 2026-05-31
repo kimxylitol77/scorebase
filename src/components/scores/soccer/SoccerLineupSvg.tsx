@@ -154,7 +154,7 @@ function TeamHalf({
         // 라인 세로 위치 — 자기 진영(절반)을 n등분, GK 가 바깥(골문)쪽.
         // home: 위 절반(top 3~47%), away: 아래 절반(거울).
         const frac = (li + 0.5) / n; // 0~1, 0=골문쪽
-        const half = 3 + frac * 44; // 3~47%
+        const half = 3 + frac * 42; // 3~45% (중앙선 55~45=10% 갭 — 양팀 최전방 충돌 방지)
         // 라인 내 가로 — x 원좌표 정렬 유지 (home 그대로 / away 거울)
         const byX = [...line].sort((a, b) => (a.x ?? 50) - (b.x ?? 50));
         return byX.map((p, pi) => {
