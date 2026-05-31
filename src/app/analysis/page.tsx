@@ -51,12 +51,20 @@ export default async function AnalysisListPage() {
           <p className="text-sm text-neutral-500 mb-1.5">커뮤니티</p>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">스포츠 분석</h1>
         </div>
-        <Link
-          href="/analysis/new"
-          className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-sm font-semibold transition"
-        >
-          ✏️ 글쓰기
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/analysis/ranking"
+            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 px-4 py-2.5 text-sm font-semibold transition"
+          >
+            🏆 랭킹
+          </Link>
+          <Link
+            href="/analysis/new"
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-sm font-semibold transition"
+          >
+            ✏️ 글쓰기
+          </Link>
+        </div>
       </header>
 
       {posts.length === 0 ? (
