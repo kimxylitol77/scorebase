@@ -100,6 +100,9 @@ interface MatchLive {
   liveOdds?: LiveOdds | null;
   soccerLineups?: SoccerLineups | null;
   soccerEvents?: SoccerEventItem[] | null;
+  /** 축구 승부차기 점수 — 정규/연장 동점 후 PK. */
+  penHome?: number | null;
+  penAway?: number | null;
 }
 
 interface Props {
@@ -230,6 +233,8 @@ export default function SportLiveDetail({
     (loaded && live?.status !== "LIVE" && initialStatus === "FINISHED");
   const homeScore = live?.homeScore ?? initialHomeScore ?? null;
   const awayScore = live?.awayScore ?? initialAwayScore ?? null;
+  const penHome = live?.penHome ?? null;
+  const penAway = live?.penAway ?? null;
   const statusBadge = !loaded
     ? initialStatus === "FINISHED" ? "종료" : "LOADING"
     : isLive
@@ -243,8 +248,12 @@ export default function SportLiveDetail({
   // Scorebase LiveCard v2 — 우세팀 강조
   const a = awayScore ?? 0;
   const h = homeScore ?? 0;
-  const awayWin = isFinal && a > h;
-  const homeWin = isFinal && h > a;
+  const awayWin =
+    isFinal &&
+    (a > h || (h === a && penAway != null && penHome != null && penAway > penHome));
+  const homeWin =
+    isFinal &&
+    (h > a || (h === a && penHome != null && penAway != null && penHome > penAway));
   const liveLead = isLive && a !== h;
   const liveAwayLead = liveLead && a > h;
   const liveHomeLead = liveLead && h > a;
@@ -316,6 +325,11 @@ export default function SportLiveDetail({
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} position={homePosition} league={league} />
           <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
+            {penHome != null && (
+              <span className="text-lg sm:text-2xl text-neutral-400 align-middle mr-1.5">
+                ({penHome})
+              </span>
+            )}
             <span
               style={{
                 color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
@@ -335,6 +349,11 @@ export default function SportLiveDetail({
             >
               <CountUp value={a} />
             </span>
+            {penAway != null && (
+              <span className="text-lg sm:text-2xl text-neutral-400 align-middle ml-1.5">
+                ({penAway})
+              </span>
+            )}
           </div>
           <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} position={awayPosition} league={league} />
         </div>

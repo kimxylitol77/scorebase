@@ -66,6 +66,9 @@ export interface MatchCardProps {
   liveCommentary?: LiveCommentaryData | null;
   /** 같은 두 팀이 같은 날 2경기 이상일 때 (예: MLB 더블헤더) — 1차전/2차전 라벨 표시용 */
   doubleHeader?: { index: number; total: number } | null;
+  /** 축구 승부차기 점수 — 정규/연장 동점 후 PK. 있으면 (4) 1 : 1 (3) 괄호 표시. */
+  penaltyHome?: number | null;
+  penaltyAway?: number | null;
 }
 
 function Logo({ url, name }: { url?: string | null; name: string }) {
@@ -124,6 +127,8 @@ export default function MatchCard(props: MatchCardProps) {
     recentGoalSide,
     liveCommentary,
     doubleHeader,
+    penaltyHome,
+    penaltyAway,
   } = props;
 
   const isLive = status === "live";
@@ -279,11 +284,21 @@ export default function MatchCard(props: MatchCardProps) {
         }`}>
           {hasScore ? (
             <>
+              {penaltyHome != null && (
+                <span className="text-sm sm:text-base text-neutral-400 dark:text-neutral-500 align-middle mr-0.5">
+                  ({penaltyHome})
+                </span>
+              )}
               {home.score}
               <span className="mx-1 sm:mx-1.5 text-neutral-300 dark:text-neutral-700 font-thin">
                 :
               </span>
               {away.score}
+              {penaltyAway != null && (
+                <span className="text-sm sm:text-base text-neutral-400 dark:text-neutral-500 align-middle ml-0.5">
+                  ({penaltyAway})
+                </span>
+              )}
             </>
           ) : (
             <span className="text-base font-bold text-neutral-300 dark:text-neutral-600">

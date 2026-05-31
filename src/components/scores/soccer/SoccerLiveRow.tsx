@@ -38,6 +38,9 @@ export interface SoccerLiveRowProps {
   away: { name: string; logo?: string | null; teamId?: number };
   homeScore: number | null;
   awayScore: number | null;
+  /** 축구 승부차기 — 정규/연장 동점 후 PK */
+  penaltyHome?: number | null;
+  penaltyAway?: number | null;
   /** 골 list — 종료 매치 hover tooltip 용 */
   soccerGoals?: SoccerGoal[] | null;
   /** 옐로/레드 카드 list — 골 tooltip 안에 같이 표시 */
@@ -92,6 +95,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     away,
     homeScore,
     awayScore,
+    penaltyHome,
+    penaltyAway,
     soccerGoals,
     soccerCards,
     homeShort,
@@ -240,6 +245,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       <div className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group hover:z-50">
         {hasScore ? (
           <>
+            {(awayFirst ? penaltyAway : penaltyHome) != null && (
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 mr-0.5">
+                ({awayFirst ? penaltyAway : penaltyHome})
+              </span>
+            )}
             <span
               className={`relative isolate inline-block ${
                 (awayFirst ? awayWin : homeWin)
@@ -269,6 +279,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               )}
               {awayFirst ? homeScore : awayScore}
             </span>
+            {(awayFirst ? penaltyHome : penaltyAway) != null && (
+              <span className="text-[11px] font-bold text-neutral-400 dark:text-neutral-500 ml-0.5">
+                ({awayFirst ? penaltyHome : penaltyAway})
+              </span>
+            )}
             {(isFinished || isLive) &&
               ((soccerGoals && soccerGoals.length > 0) ||
                 (soccerCards && soccerCards.length > 0)) && (

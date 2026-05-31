@@ -114,6 +114,9 @@ interface MatchLive {
   // soccerLineups 제거 — TheSports cache 의 lineup 직접 사용.
   /** 축구 — 골/카드/교체 이벤트 타임라인 (최신 우선) */
   soccerEvents?: SoccerEvent[] | null;
+  /** 축구 승부차기 점수 — 정규/연장 동점 후 PK. 있으면 (4) 1 : 1 (3) 표시. */
+  penHome?: number | null;
+  penAway?: number | null;
 }
 
 function kstDate(d: Date = new Date()): string {
@@ -330,7 +333,9 @@ export async function GET(
     //   [match_id, status, home_arr[7], away_arr[7], kick_off_ts, '']
     //   home_arr[0]=regular time score, [5]=overtime (regular 포함)
     // incidents[].home_score / away_score = 골 시점 누적 score (가장 fresh).
-    if (out.status === "LIVE") {
+    // 종료·라이브 모두 — cache.detailLive.score 에서 정규/연장/승부차기 보강.
+    // (종료 경기도 승부차기 괄호 표시 위해 LIVE 가드 제거)
+    {
       try {
         const { prisma: db } = await import("@/lib/db");
         const ourMatch = await db.match.findFirst({
@@ -359,6 +364,13 @@ export async function GET(
             const awayOt = Number(awayArr[5]);
             tsHome = Math.max(tsHome, Number.isFinite(homeReg) ? homeReg : -1, Number.isFinite(homeOt) ? homeOt : -1);
             tsAway = Math.max(tsAway, Number.isFinite(awayReg) ? awayReg : -1, Number.isFinite(awayOt) ? awayOt : -1);
+            // 승부차기 (idx6) — 정규/연장 동점 후 PK. -1=없음.
+            const homePen = Number(homeArr[6]);
+            const awayPen = Number(awayArr[6]);
+            if (homePen >= 0 && awayPen >= 0 && (homePen > 0 || awayPen > 0)) {
+              out.penHome = homePen;
+              out.penAway = awayPen;
+            }
           }
           // (2) incidents 마지막 entry score — 가장 fresh source
           if (Array.isArray(dl?.incidents)) {

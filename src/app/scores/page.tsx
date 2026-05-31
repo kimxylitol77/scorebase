@@ -35,6 +35,8 @@ import {
   type SoccerGoal,
   type SoccerCard,
   type LiveMatch,
+  parseTsFootballScore,
+  type TsFootballScoreParsed,
 } from "@/lib/sports/live-scores";
 import SportTabs from "@/components/scores/SportTabs";
 import DateSlider from "@/components/scores/DateSlider";
@@ -629,6 +631,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
   const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
+  const footballScoreByMatchId = new Map<number, TsFootballScoreParsed>();
   // 하키 (특히 IIHF_WC) 피리어드 점수표 — ESPN periodMap 에 없는 매치는 cache 에서 추출.
   const hockeyPeriodByMatchId = new Map<number, PeriodLinescoreData>();
   // 하키 진행 피리어드 라벨 (IIHF 등 live statusLabel 없을 때 cache status_id 로 생성)
@@ -715,12 +718,16 @@ export default async function ScoresPage({ searchParams }: Props) {
           }
         | null;
       if (!dl) continue;
-      // 축구 골/카드
-      if (soccerIdSet.has(c.matchId) && dl.incidents) {
-        const goals = tsIncidentsToGoals(dl.incidents);
-        const cards = tsIncidentsToCards(dl.incidents);
-        if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
-        if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
+      // 축구 골/카드 + 승부차기/연장 점수 (score 배열은 incidents 없어도 존재)
+      if (soccerIdSet.has(c.matchId)) {
+        const fs = parseTsFootballScore(dl);
+        if (fs) footballScoreByMatchId.set(c.matchId, fs);
+        if (dl.incidents) {
+          const goals = tsIncidentsToGoals(dl.incidents);
+          const cards = tsIncidentsToCards(dl.incidents);
+          if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
+          if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
+        }
       }
       // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
       // IIHF_WC 는 ESPN periodMap 없어 여기서 추출 (commit 검증: ft=[home,away] 우리 관점 일치).
@@ -1026,12 +1033,19 @@ export default async function ScoresPage({ searchParams }: Props) {
     const dbH = m.homeScore;
     const dbA = m.awayScore;
     const isBaseball = BASEBALL_LEAGUES.has(m.league);
+    // 축구: TheSports cache 의 정규/연장 점수(fs.main) 우선 — DB.homeScore 는 승부차기 합산
+    // 오염 가능(예: UCL 결승 4-3). 승부차기는 별도 penHome/penAway 로 분리 표시.
+    const fs = footballScoreByMatchId.get(m.id) ?? null;
     const homeScore = isBaseball
       ? (dbH ?? liveH ?? null)
-      : (liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH));
+      : fs
+        ? fs.mainHome
+        : (liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH));
     const awayScore = isBaseball
       ? (dbA ?? liveA ?? null)
-      : (liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA));
+      : fs
+        ? fs.mainAway
+        : (liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA));
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
 
@@ -1094,6 +1108,8 @@ export default async function ScoresPage({ searchParams }: Props) {
       // TheSports cache 의 incidents 에서 추출 — match.id 직접 키.
       soccerGoals: sport_ === "soccer" ? soccerGoalsByMatchId.get(m.id) ?? null : null,
       soccerCards: sport_ === "soccer" ? soccerCardsByMatchId.get(m.id) ?? null : null,
+      penHome: sport_ === "soccer" ? fs?.penHome ?? null : null,
+      penAway: sport_ === "soccer" ? fs?.penAway ?? null : null,
       // 라이브 매치 한정: 최근 골 발생 측 (점수 셀 emerald flash)
       recentGoalSide:
         sport_ === "soccer" && effStatus === "LIVE" && live
@@ -1675,6 +1691,8 @@ function SoccerRowLayout({
         }}
         homeScore={m.home.score}
         awayScore={m.away.score}
+        penaltyHome={m.penHome ?? null}
+        penaltyAway={m.penAway ?? null}
         soccerGoals={m.soccerGoals}
         soccerCards={m.soccerCards}
         homeShort={m.home.abbr ?? m.home.name}
@@ -1931,6 +1949,9 @@ type NormalizedMatch = {
   preview?: string;
   recap?: string;
   href: string | null;
+  /** 축구 승부차기 — 정규/연장 동점 후 PK */
+  penHome?: number | null;
+  penAway?: number | null;
   doubleHeader: { index: number; total: number } | null;
 };
 

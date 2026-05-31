@@ -24,6 +24,9 @@ interface Props {
   recapSlug?: string | null;
   recentGoalSide?: "home" | "away" | null;
   href?: string | null;
+  /** 축구 승부차기 — 정규/연장 동점 후 PK. 점수 옆 (4) 표시 */
+  penaltyHome?: number | null;
+  penaltyAway?: number | null;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -56,6 +59,8 @@ export default function SoccerCompactCard(props: Props) {
     away,
     recentGoalSide,
     href,
+    penaltyHome,
+    penaltyAway,
   } = props;
   const badge = getLeagueBadge(league);
   const flag = getLeagueFlag(league);
@@ -187,14 +192,24 @@ export default function SoccerCompactCard(props: Props) {
       </div>
 
       {/* 점수 2줄 — 골 강조는 팀 칸에만, 점수 칸 제외 */}
-      <div className="shrink-0 w-7 flex flex-col items-end gap-1">
+      <div className="shrink-0 w-auto min-w-[1.75rem] flex flex-col items-end gap-1">
         <span className={scoreClass(homeWin, hasScore && !homeWin)}>
           {home.score ?? "-"}
+          {penaltyHome != null && (
+            <span className="ml-0.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500">
+              ({penaltyHome})
+            </span>
+          )}
         </span>
         <span
           className={scoreClass(awayWin, hasScore && !awayWin)}
         >
           {away.score ?? "-"}
+          {penaltyAway != null && (
+            <span className="ml-0.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500">
+              ({penaltyAway})
+            </span>
+          )}
         </span>
       </div>
     </div>

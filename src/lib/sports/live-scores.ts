@@ -835,6 +835,59 @@ export function tsIncidentsToCards(
 /**
  * SoccerEvent shape — events 타임라인 카드용. api-football events 의 형식과 호환.
  */
+export interface TsFootballScoreParsed {
+  /** 정규시간(90분) 점수 */
+  regHome: number;
+  regAway: number;
+  /** 메인 표시 점수 = 연장 포함 (연장 없으면 정규와 동일) */
+  mainHome: number;
+  mainAway: number;
+  /** 승부차기 점수 (승부차기까지 간 경기만, 아니면 null) */
+  penHome: number | null;
+  penAway: number | null;
+}
+
+/**
+ * TheSports cache.detailLive.score 를 정규/연장/승부차기로 분해. (축구 전용)
+ * score 형식: [match_id, status, home_arr[7], away_arr[7], kickoff, ""]
+ *   arr[0]=정규시간, arr[5]=연장(정규 포함 누적), arr[6]=승부차기. 값 -1 = 해당 단계 없음.
+ * 예: PSG vs Arsenal UCL 결승 home_arr=[1,0,0,2,11,1,4] away_arr=[1,1,0,4,3,1,3]
+ *   = 정규 1-1, 연장 1-1, 승부차기 4-3.
+ */
+export function parseTsFootballScore(
+  detailLive: unknown,
+): TsFootballScoreParsed | null {
+  const score = (detailLive as { score?: unknown } | null)?.score;
+  if (!Array.isArray(score) || score.length < 4) return null;
+  const homeArr = score[2];
+  const awayArr = score[3];
+  if (!Array.isArray(homeArr) || !Array.isArray(awayArr)) return null;
+  if (homeArr.length < 7 || awayArr.length < 7) return null;
+  const num = (v: unknown): number => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : -1;
+  };
+  const regHome = num(homeArr[0]);
+  const regAway = num(awayArr[0]);
+  if (regHome < 0 || regAway < 0) return null;
+  const otHome = num(homeArr[5]);
+  const otAway = num(awayArr[5]);
+  const mainHome = otHome >= regHome ? otHome : regHome;
+  const mainAway = otAway >= regAway ? otAway : regAway;
+  const penHomeRaw = num(homeArr[6]);
+  const penAwayRaw = num(awayArr[6]);
+  const hasPen =
+    penHomeRaw >= 0 && penAwayRaw >= 0 && (penHomeRaw > 0 || penAwayRaw > 0);
+  return {
+    regHome,
+    regAway,
+    mainHome,
+    mainAway,
+    penHome: hasPen ? penHomeRaw : null,
+    penAway: hasPen ? penAwayRaw : null,
+  };
+}
+
 export interface SoccerEvent {
   minute: number;
   extra: number;
