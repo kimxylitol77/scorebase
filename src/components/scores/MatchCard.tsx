@@ -293,8 +293,8 @@ export default function MatchCard(props: MatchCardProps) {
               </div>
               {penaltyHome != null && penaltyAway != null && (
                 <div className="grid grid-cols-2 text-[10px] sm:text-[11px] font-bold text-neutral-400 dark:text-neutral-500 leading-none mt-0.5">
-                  <span className="text-left">승부차기 {penaltyHome}</span>
-                  <span className="text-right">{penaltyAway}</span>
+                  <span className="text-center">({penaltyHome})</span>
+                  <span className="text-center">({penaltyAway})</span>
                 </div>
               )}
             </>

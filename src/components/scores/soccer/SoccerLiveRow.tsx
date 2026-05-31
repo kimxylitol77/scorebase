@@ -242,11 +242,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       })()}
 
       {/* 5. 점수 — awayFirst=true 면 away score 좌측 / home score 우측. hover 시 z-50 으로 tooltip 이 다른 row 위로.
-           승부차기는 점수 아래 작은 줄로 (6)   (5) 좌/우 정렬 표시. */}
-      <div className="relative font-black text-[14px] tabular-nums whitespace-nowrap px-2 group hover:z-50 flex flex-col items-center">
+           승부차기는 점수 아래 absolute 로 (6) (5) — 행 높이에 영향 안 주게 (다른 행과 높이 통일). */}
+      <div className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group hover:z-50">
         {hasScore ? (
           <>
-            <div className="flex items-center justify-center">
             <span
               className={`relative isolate inline-block ${
                 (awayFirst ? awayWin : homeWin)
@@ -276,12 +275,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               )}
               {awayFirst ? homeScore : awayScore}
             </span>
-            </div>
-            {/* 승부차기 — 점수 칸과 같은 폭에서 좌(왼선수)·우(오른선수) 정렬 */}
+            {/* 승부차기 — absolute 라 행 높이 불변. 점수 바로 아래 좌/우 정렬. */}
             {penaltyHome != null && penaltyAway != null && (
-              <div className="grid grid-cols-2 w-full text-[10px] font-bold text-neutral-400 dark:text-neutral-500 leading-none -mt-0.5">
-                <span className="text-left">승부차기 {awayFirst ? penaltyAway : penaltyHome}</span>
-                <span className="text-right">{awayFirst ? penaltyHome : penaltyAway}</span>
+              <div className="absolute left-0 right-0 top-full grid grid-cols-2 text-[9px] font-semibold text-neutral-400 dark:text-neutral-500 leading-none pointer-events-none -mt-0.5">
+                <span className="text-center">({awayFirst ? penaltyAway : penaltyHome})</span>
+                <span className="text-center">({awayFirst ? penaltyHome : penaltyAway})</span>
               </div>
             )}
             {(isFinished || isLive) &&

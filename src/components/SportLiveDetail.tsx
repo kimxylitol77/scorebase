@@ -354,8 +354,8 @@ export default function SportLiveDetail({
             {/* 승부차기 — 점수 아래 작은 줄, 좌(홈)·우(원정) 정렬 */}
             {penHome != null && penAway != null && (
               <div className="grid grid-cols-2 w-full text-xs sm:text-sm font-bold text-neutral-400 dark:text-neutral-500 leading-none mt-1">
-                <span className="text-left">승부차기 {penHome}</span>
-                <span className="text-right">{penAway}</span>
+                <span className="text-center">({penHome})</span>
+                <span className="text-center">({penAway})</span>
               </div>
             )}
           </div>
