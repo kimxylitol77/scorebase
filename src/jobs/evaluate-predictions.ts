@@ -30,6 +30,25 @@ import {
 } from "@/lib/predict/goalie-adjust";
 import { blendWithMarket } from "@/lib/predict/market-blend";
 import type { PredictMatch } from "@/lib/predict/types";
+import { parseTsFootballScore } from "@/lib/sports/live-scores";
+
+/**
+ * 채점용 실제 점수 — 축구는 1X2/OU/핸디캡 모두 90분(정규시간) 기준.
+ * DB.homeScore 는 승부차기 합산 오염 가능(예 UCL 결승 4-3) → cache 의 정규시간(regHome/regAway) 우선.
+ * cache 없거나 축구 아니면 DB 점수 그대로.
+ */
+function gradingScore(
+  league: string,
+  dbHome: number,
+  dbAway: number,
+  detailLive: unknown,
+): { home: number; away: number } {
+  if (SOCCER_LEAGUES_FOR_MARKETS.has(league)) {
+    const fs = parseTsFootballScore(detailLive);
+    if (fs) return { home: fs.regHome, away: fs.regAway };
+  }
+  return { home: dbHome, away: dbAway };
+}
 
 function parseStarter(s: string | null) {
   if (!s) return null;
@@ -73,7 +92,12 @@ export async function runEvaluate(opts?: { limit?: number }) {
     },
     include: {
       match: {
-        select: { homeScore: true, awayScore: true, league: true },
+        select: {
+          homeScore: true,
+          awayScore: true,
+          league: true,
+          theSportsCache: { select: { detailLive: true } },
+        },
       },
     },
     take: limit,
@@ -85,7 +109,13 @@ export async function runEvaluate(opts?: { limit?: number }) {
   let correctCount = 0;
   for (const a of articles) {
     if (!a.match || a.match.homeScore == null || a.match.awayScore == null) continue;
-    const actual = actualWinnerOf(a.match.homeScore, a.match.awayScore);
+    const gs = gradingScore(
+      a.match.league,
+      a.match.homeScore,
+      a.match.awayScore,
+      a.match.theSportsCache?.detailLive,
+    );
+    const actual = actualWinnerOf(gs.home, gs.away);
     const isCorrect = a.predWinner === actual;
     await prisma.article.update({
       where: { id: a.id },
@@ -118,6 +148,7 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
     },
     orderBy: { startTime: "asc" },
     take: limit,
+    include: { theSportsCache: { select: { detailLive: true } } },
   });
   console.log(`[evaluate/match] 미평가: ${pending.length}건`);
   if (pending.length === 0) return { evaluated: 0, byLeague: {} };
@@ -146,6 +177,14 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
   for (const m of pending) {
     if (m.homeScore == null || m.awayScore == null) continue;
     const all = cache.get(m.league)!;
+
+    // 채점용 점수 — 축구는 정규시간(90분) 기준 (승부차기/연장 오염 제거).
+    const gs = gradingScore(
+      m.league,
+      m.homeScore,
+      m.awayScore,
+      m.theSportsCache?.detailLive,
+    );
 
     // 시즌 초반 학습 부족 매치 제외 — Elo 가 1500 기본값이라
     // 픽이 거의 50/50 random. 양 팀 모두 5경기 이상 치른 후의 매치만 평가.
@@ -202,7 +241,7 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         : wp.away >= wp.draw
           ? "AWAY"
           : "DRAW";
-    const actualW = actualWinnerOf(m.homeScore, m.awayScore);
+    const actualW = actualWinnerOf(gs.home, gs.away);
     const correct = winner === actualW;
 
     const data: Record<string, unknown> = {
@@ -243,7 +282,7 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         data.predOverProb = total.pOver;
         data.predOverPick = ovPick;
         data.predOverCorrect =
-          ovPick === overActual(m.homeScore, m.awayScore, total.line);
+          ovPick === overActual(gs.home, gs.away, total.line);
       }
       const hc = predictHandicapMarket(
         all,
@@ -259,8 +298,8 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         data.predHcCorrect = handicapCorrect(
           hc.pick,
           hc.line,
-          m.homeScore,
-          m.awayScore,
+          gs.home,
+          gs.away,
         );
       }
     }
