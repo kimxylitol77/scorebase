@@ -183,6 +183,25 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
   const awayStarters = (lu.away ?? []).filter((p) => p.first === 1);
   if (homeStarters.length === 0 && awayStarters.length === 0) return null;
 
+  // 친선 등에서 라인업이 점진적으로 들어오는 중이면(한 팀이라도 선발 7명 미만)
+  // 1~2명만 빈 피치에 떠서 깨져 보임 → 안내 문구로 대체(경기 임박 시 자동 완성).
+  const ready = homeStarters.length >= 7 && awayStarters.length >= 7;
+  if (!ready) {
+    return (
+      <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
+        <header className="flex items-center justify-between mb-3">
+          <h2 className="text-sm sm:text-base font-bold tracking-tight">라인업</h2>
+          <span className="text-[11px] text-neutral-500">확정 대기</span>
+        </header>
+        <div className="py-12 text-center text-sm text-neutral-500 leading-relaxed">
+          선발 라인업이 아직 확정되지 않았습니다.
+          <br />
+          경기 시작 전 자동으로 업데이트됩니다.
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
       <header className="flex items-center justify-between mb-3">
