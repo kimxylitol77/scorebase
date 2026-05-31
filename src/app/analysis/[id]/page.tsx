@@ -143,9 +143,15 @@ export default async function PostDetailPage({ params }: Props) {
           ) : (
             <span className="text-neutral-400">🎯 예측 기록 없음</span>
           )}
-          {a.predStreak >= 3 ? (
+          {a.predStreak >= 5 ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/badge-streak3.png" alt={`${a.predStreak}연승`} className="h-6 w-auto" />
+            <img src="/badge-streak5.png" alt={`${a.predStreak}연승`} className="h-6 w-auto" />
+          ) : a.predStreak === 4 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/badge-streak4.png" alt="4연승" className="h-6 w-auto" />
+          ) : a.predStreak === 3 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/badge-streak3.png" alt="3연승" className="h-6 w-auto" />
           ) : a.predStreak === 2 ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src="/badge-streak2.png" alt="2연승" className="h-6 w-auto" />
