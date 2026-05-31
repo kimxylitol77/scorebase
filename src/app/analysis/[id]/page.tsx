@@ -6,6 +6,7 @@ import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LikeButton from "./LikeButton";
+import CommentForm from "./CommentForm";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function PostDetailPage({ params }: Props) {
       content: true,
       views: true,
       likes: true,
+      commentCount: true,
       pick: true,
       market: true,
       line: true,
@@ -58,6 +60,15 @@ export default async function PostDetailPage({ params }: Props) {
           awayScore: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
+        },
+      },
+      comments: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          author: { select: { nickname: true, level: true } },
         },
       },
     },
@@ -129,6 +140,8 @@ export default async function PostDetailPage({ params }: Props) {
           <span>조회 {post.views}</span>
           <span>·</span>
           <span>추천 {post.likes}</span>
+          <span>·</span>
+          <span>댓글 {post.commentCount}</span>
         </div>
 
         {/* 예측 카드 */}
@@ -176,6 +189,50 @@ export default async function PostDetailPage({ params }: Props) {
           />
         </div>
       </article>
+
+      {/* 댓글 */}
+      <section className="mt-12 border-t border-neutral-200 dark:border-neutral-800 pt-6">
+        <h2 className="text-sm font-bold mb-4">댓글 {post.commentCount}</h2>
+
+        {post.comments.length > 0 && (
+          <ul className="space-y-4 mb-5">
+            {post.comments.map((c) => {
+              const cg = gradeByLevel(c.author.level);
+              return (
+                <li key={c.id} className="text-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className="font-semibold text-neutral-700 dark:text-neutral-300"
+                      title={cg.name}
+                    >
+                      {cg.emoji} {c.author.nickname}
+                    </span>
+                    <span className="text-xs text-neutral-400">{listTime(c.createdAt)}</span>
+                  </div>
+                  <p className="whitespace-pre-wrap text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                    {c.content}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {userId ? (
+          <CommentForm postId={post.id} />
+        ) : (
+          <p className="text-sm text-neutral-500">
+            댓글은{" "}
+            <Link
+              href={`/login?from=/analysis/${post.id}`}
+              className="text-blue-600 dark:text-blue-400 underline"
+            >
+              로그인
+            </Link>{" "}
+            후 작성할 수 있어요.
+          </p>
+        )}
+      </section>
     </main>
   );
 }

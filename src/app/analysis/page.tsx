@@ -26,6 +26,7 @@ export default async function AnalysisListPage() {
         title: true,
         views: true,
         likes: true,
+        commentCount: true,
         createdAt: true,
         isCorrect: true,
         author: {
@@ -94,6 +95,11 @@ export default async function AnalysisListPage() {
                           <span title="예측 미적중" className="opacity-50">❌</span>
                         )}
                         <span className="truncate font-semibold text-base">{p.title}</span>
+                        {p.commentCount > 0 && (
+                          <span className="shrink-0 text-xs font-semibold text-blue-500">
+                            💬{p.commentCount}
+                          </span>
+                        )}
                         {p.likes > 0 && (
                           <span className="shrink-0 text-xs font-semibold text-rose-500">
                             [{p.likes}]

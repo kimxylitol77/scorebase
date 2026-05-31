@@ -148,3 +148,42 @@ export async function likePostAction(formData: FormData): Promise<void> {
   revalidatePath(`/analysis/${postId}`);
   revalidatePath("/analysis");
 }
+
+/** 댓글 작성 (회원 전용). 댓글당 경험치 +50 (rate limit 으로 도배 방지). */
+export async function createCommentAction(
+  _prev: PostFormState,
+  formData: FormData,
+): Promise<PostFormState> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: "로그인이 필요합니다." };
+
+  const postId = Number(formData.get("postId"));
+  const content = String(formData.get("content") ?? "").trim();
+  if (!Number.isInteger(postId)) return { ok: false, error: "잘못된 글입니다." };
+  if (content.length < 1 || content.length > 1000) {
+    return { ok: false, error: "댓글은 1~1000자로 입력해주세요." };
+  }
+
+  const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+  if (!post) return { ok: false, error: "존재하지 않는 글입니다." };
+
+  const rl = rateLimit(`comment:${userId}`, {
+    max: 15,
+    windowMs: 5 * 60 * 1000,
+    lockMs: 5 * 60 * 1000,
+  });
+  if (!rl.allowed) {
+    const min = Math.ceil(rl.retryAfterSec / 60);
+    return { ok: false, error: `댓글이 너무 많습니다. ${min}분 후 다시 시도해주세요.` };
+  }
+
+  await prisma.comment.create({ data: { postId, authorId: userId, content } });
+  await prisma.post.update({
+    where: { id: postId },
+    data: { commentCount: { increment: 1 } },
+  });
+  await awardExp(userId, { exp: EXP_REWARDS.comment, points: POINT_REWARDS.comment });
+
+  revalidatePath(`/analysis/${postId}`);
+  return { ok: true };
+}

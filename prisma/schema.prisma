@@ -505,6 +505,7 @@ model User {
 
   posts     Post[]
   postLikes PostLike[]
+  comments  Comment[]
 
   // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
@@ -519,7 +520,8 @@ model Post {
   title    String
   content  String // 본문 (Markdown/Plain text)
   views    Int    @default(0)
-  likes    Int    @default(0) // PostLike 집계 캐시 (목록 정렬·표시용)
+  likes        Int @default(0) // PostLike 집계 캐시 (목록 정렬·표시용)
+  commentCount Int @default(0) // Comment 수 캐시 (목록 표시용)
 
   // 예측 (선택) — 특정 예정 경기에 대한 픽. 경기 종료 후 자동 채점.
   sport     String?   // soccer | baseball | basketball | hockey (예측 있을 때만)
@@ -533,9 +535,10 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author  User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  match   Match?     @relation(fields: [matchId], references: [id])
-  likedBy PostLike[]
+  author   User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  match    Match?     @relation(fields: [matchId], references: [id])
+  likedBy  PostLike[]
+  comments Comment[]
 
   @@index([category, createdAt])
   @@index([authorId])
@@ -554,4 +557,19 @@ model PostLike {
 
   @@unique([postId, userId])
   @@index([userId])
+}
+
+/// 분석글 댓글. 로그인 회원만 작성. 작성 시 경험치 +50 (도배 방지 rate limit).
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([authorId])
 }
