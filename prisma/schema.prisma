@@ -515,10 +515,12 @@ model Post {
   views    Int    @default(0)
   likes    Int    @default(0) // PostLike 집계 캐시 (목록 정렬·표시용)
 
-  // 예측 (선택) — 특정 예정 경기에 대한 승/무/패 픽. 경기 종료 후 자동 채점.
+  // 예측 (선택) — 특정 예정 경기에 대한 픽. 경기 종료 후 자동 채점.
   sport     String?   // soccer | baseball | basketball | hockey (예측 있을 때만)
   matchId   Int?      // 대상 경기 (Match.id)
-  pick      String?   // "HOME" | "DRAW" | "AWAY"  (DRAW 는 축구만)
+  market    String?   // "1X2"(승무패) | "HANDICAP"(핸디캡) | "OU"(오버언더)
+  line      Float?    // 핸디캡/오버언더 기준선 (1X2 면 null). 서버에서 경기 배당으로 확정 저장
+  pick      String?   // 1X2: HOME|DRAW|AWAY · HANDICAP: HOME|AWAY · OU: OVER|UNDER
   isCorrect Boolean?  // null=미정산, 경기 FINISHED 후 채점됨
   settledAt DateTime? // 채점 시각
 

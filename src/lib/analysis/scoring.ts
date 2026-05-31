@@ -1,6 +1,6 @@
 // 분석 게시판 예측 자동 채점 — 우리만의 차별점.
-// 회원이 예정 경기에 건 승/무/패 픽을, 경기 종료(FINISHED) 후 실제 결과와 대조.
-// 적중 시 작성자에게 경험치/포인트 지급. cron(/api/cron/score-analysis)에서 호출.
+// 회원이 예정 경기에 건 픽(승무패/핸디캡/오버언더)을 경기 종료(FINISHED) 후 실제
+// 결과와 대조. 적중 시 작성자에게 경험치/포인트 지급. cron(/api/cron/score-analysis)에서 호출.
 
 import "server-only";
 import { prisma } from "@/lib/db";
@@ -12,7 +12,7 @@ export function sportHasDraw(sport: string | null | undefined): boolean {
   return sport === "soccer";
 }
 
-/** 경기 점수 → 실제 결과. 점수 미확정이거나 무승부 없는 종목의 동점이면 null(판정 보류). */
+/** 승무패(1X2) 결과. 점수 미확정이거나 무승부 없는 종목의 동점이면 null(보류). */
 export function matchOutcome(
   homeScore: number | null,
   awayScore: number | null,
@@ -21,7 +21,43 @@ export function matchOutcome(
   if (homeScore == null || awayScore == null) return null;
   if (homeScore > awayScore) return "HOME";
   if (homeScore < awayScore) return "AWAY";
-  return sportHasDraw(sport) ? "DRAW" : null; // 야구/농구/하키 동점 = 데이터 이상 → 보류
+  return sportHasDraw(sport) ? "DRAW" : null;
+}
+
+/**
+ * 마켓별 픽 판정. true=적중, false=미적중, null=판정 보류(점수 미확정/동점/푸시).
+ * - 1X2: 승무패
+ * - HANDICAP: line(홈팀 기준) 적용 후 승패. (home + line) vs away
+ * - OU: 총득점 vs line
+ */
+export function settlePick(
+  market: string | null,
+  pick: string | null,
+  line: number | null,
+  homeScore: number | null,
+  awayScore: number | null,
+  sport: string | null,
+): boolean | null {
+  if (!market || !pick || homeScore == null || awayScore == null) return null;
+
+  if (market === "1X2") {
+    const o = matchOutcome(homeScore, awayScore, sport);
+    return o == null ? null : o === pick;
+  }
+  if (market === "HANDICAP") {
+    if (line == null) return null;
+    const adj = homeScore + line; // line: 홈팀 기준 핸디캡 (예: 홈 -1.5)
+    if (adj === awayScore) return null; // 푸시 → 보류
+    const winner = adj > awayScore ? "HOME" : "AWAY";
+    return winner === pick;
+  }
+  if (market === "OU") {
+    if (line == null) return null;
+    const total = homeScore + awayScore;
+    if (total === line) return null; // 푸시 → 보류
+    return total > line === (pick === "OVER");
+  }
+  return null;
 }
 
 /**
@@ -42,7 +78,9 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
     select: {
       id: true,
       authorId: true,
+      market: true,
       pick: true,
+      line: true,
       sport: true,
       match: { select: { homeScore: true, awayScore: true } },
     },
@@ -52,19 +90,21 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
   let scored = 0;
   let correct = 0;
   for (const p of pending) {
-    const outcome = matchOutcome(
+    const verdict = settlePick(
+      p.market,
+      p.pick,
+      p.line,
       p.match?.homeScore ?? null,
       p.match?.awayScore ?? null,
       p.sport,
     );
-    if (outcome == null) continue; // 점수 미확정/보류 — 다음 cron 에서 재시도
+    if (verdict == null) continue; // 보류 — 다음 cron 에서 재시도
 
-    const hit = outcome === p.pick;
     await prisma.post.update({
       where: { id: p.id },
-      data: { isCorrect: hit, settledAt: new Date() },
+      data: { isCorrect: verdict, settledAt: new Date() },
     });
-    if (hit) {
+    if (verdict) {
       await awardExp(p.authorId, {
         exp: EXP_REWARDS.predictionHit,
         points: POINT_REWARDS.predictionHit,

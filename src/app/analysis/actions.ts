@@ -15,8 +15,9 @@ export interface PostFormState {
 }
 
 const VALID_SPORTS = new Set(["soccer", "baseball", "basketball", "hockey"]);
+const VALID_MARKETS = new Set(["1X2", "HANDICAP", "OU"]);
 
-/** 분석글 작성 (회원 전용). 예측은 선택 — 종목·경기·픽을 모두 채우면 저장. */
+/** 분석글 작성 (회원 전용). 예측은 선택 — 종목·경기·마켓·픽을 채우면 저장. */
 export async function createPostAction(
   _prev: PostFormState,
   formData: FormData,
@@ -28,35 +29,62 @@ export async function createPostAction(
   const content = String(formData.get("content") ?? "").trim();
   const sport = String(formData.get("sport") ?? "").trim();
   const matchIdRaw = String(formData.get("matchId") ?? "").trim();
+  const market = String(formData.get("market") ?? "").trim();
   const pick = String(formData.get("pick") ?? "").trim();
 
-  if (title.length < 2 || title.length > 100) {
-    return { ok: false, error: "제목은 2~100자로 입력해주세요." };
+  if (title.length < 2 || title.length > 120) {
+    return { ok: false, error: "제목은 2~120자로 입력해주세요." };
   }
   if (content.length < 5) {
     return { ok: false, error: "내용을 5자 이상 입력해주세요." };
   }
 
-  // 예측 입력 검증 (선택사항이지만, 하나라도 있으면 셋 다 유효해야 함)
-  let predData: { sport: string; matchId: number; pick: string } | null = null;
-  if (sport || matchIdRaw || pick) {
+  // 예측 입력 검증 (선택이지만 하나라도 있으면 종목·경기·마켓·픽 모두 유효해야)
+  let predData:
+    | { sport: string; matchId: number; market: string; line: number | null; pick: string }
+    | null = null;
+
+  if (sport || matchIdRaw || market || pick) {
     const matchId = Number(matchIdRaw);
-    if (!VALID_SPORTS.has(sport) || !Number.isInteger(matchId) || !pick) {
-      return { ok: false, error: "예측을 하려면 종목·경기·예상을 모두 선택해주세요." };
+    if (
+      !VALID_SPORTS.has(sport) ||
+      !Number.isInteger(matchId) ||
+      !VALID_MARKETS.has(market) ||
+      !pick
+    ) {
+      return { ok: false, error: "예측하려면 종목·경기·마켓·픽을 모두 선택해주세요." };
     }
-    const allowed = sportHasDraw(sport) ? ["HOME", "DRAW", "AWAY"] : ["HOME", "AWAY"];
-    if (!allowed.includes(pick)) {
-      return { ok: false, error: "올바른 예상(승/무/패)을 선택해주세요." };
-    }
-    // 예정 경기만 — 이미 시작/종료된 경기는 픽 불가 (결과 보고 거는 어뷰징 차단)
+
+    // 예정 경기만 + line 은 서버에서 경기 배당으로 확정(클라 값 신뢰 X = 어뷰징 차단)
     const match = await prisma.match.findUnique({
       where: { id: matchId },
-      select: { status: true, startTime: true },
+      select: {
+        status: true,
+        startTime: true,
+        oddsHcLine: true,
+        oddsTotalLine: true,
+      },
     });
     if (!match || match.status !== "SCHEDULED" || match.startTime <= new Date()) {
       return { ok: false, error: "예측 가능한 예정 경기가 아닙니다." };
     }
-    predData = { sport, matchId, pick };
+
+    let line: number | null = null;
+    if (market === "1X2") {
+      const allowed = sportHasDraw(sport) ? ["HOME", "DRAW", "AWAY"] : ["HOME", "AWAY"];
+      if (!allowed.includes(pick)) return { ok: false, error: "올바른 승무패 픽을 선택해주세요." };
+    } else if (market === "HANDICAP") {
+      if (!["HOME", "AWAY"].includes(pick)) return { ok: false, error: "올바른 핸디캡 픽을 선택해주세요." };
+      if (match.oddsHcLine == null) return { ok: false, error: "이 경기는 핸디캡 배당이 없어요." };
+      line = match.oddsHcLine;
+    } else {
+      // OU
+      if (!["OVER", "UNDER"].includes(pick)) return { ok: false, error: "올바른 오버/언더 픽을 선택해주세요." };
+      if (match.oddsTotalLine == null) return { ok: false, error: "이 경기는 오버언더 배당이 없어요." };
+      line = match.oddsTotalLine;
+    }
+
+    predData = { sport, matchId, market, line, pick };
   }
 
   // 도배 방지 (회원 단위)
@@ -80,7 +108,6 @@ export async function createPostAction(
     select: { id: true },
   });
 
-  // 작성 경험치/포인트 지급 (등급 명예 용도)
   await awardExp(userId, {
     exp: EXP_REWARDS.analysisPost,
     points: POINT_REWARDS.analysisPost,

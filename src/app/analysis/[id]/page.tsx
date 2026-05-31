@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { gradeByLevel } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel } from "@/lib/analysis/format";
+import { toKoreanTeamName } from "@/lib/team-names";
 import LikeButton from "./LikeButton";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,13 @@ export const dynamic = "force-dynamic";
 interface Props {
   params: Promise<{ id: string }>;
 }
+
+const MARKET_LABEL: Record<string, string> = {
+  "1X2": "승무패",
+  HANDICAP: "핸디캡",
+  OU: "오버언더",
+};
+const fmtLine = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
 export default async function PostDetailPage({ params }: Props) {
   const { id } = await params;
@@ -26,12 +34,15 @@ export default async function PostDetailPage({ params }: Props) {
       views: true,
       likes: true,
       pick: true,
+      market: true,
+      line: true,
       isCorrect: true,
       createdAt: true,
       authorId: true,
       author: { select: { nickname: true, level: true } },
       match: {
         select: {
+          league: true,
           status: true,
           startTime: true,
           homeScore: true,
@@ -53,14 +64,20 @@ export default async function PostDetailPage({ params }: Props) {
   const userId = await getCurrentUserId();
   const g = gradeByLevel(post.author.level);
 
+  const home = post.match ? toKoreanTeamName(post.match.homeTeam.name, post.match.league) : "";
+  const away = post.match ? toKoreanTeamName(post.match.awayTeam.name, post.match.league) : "";
+
   let pickLabel = "";
   if (post.pick && post.match) {
-    pickLabel =
-      post.pick === "HOME"
-        ? `${post.match.homeTeam.name} 승`
-        : post.pick === "AWAY"
-          ? `${post.match.awayTeam.name} 승`
-          : "무승부";
+    if (post.market === "HANDICAP" && post.line != null) {
+      pickLabel =
+        post.pick === "HOME" ? `${home} ${fmtLine(post.line)}` : `${away} ${fmtLine(-post.line)}`;
+    } else if (post.market === "OU" && post.line != null) {
+      pickLabel = post.pick === "OVER" ? `오버 ${post.line}` : `언더 ${post.line}`;
+    } else {
+      pickLabel =
+        post.pick === "HOME" ? `${home} 승` : post.pick === "AWAY" ? `${away} 승` : "무승부";
+    }
   }
 
   const resultBadge =
@@ -99,14 +116,16 @@ export default async function PostDetailPage({ params }: Props) {
         {post.pick && post.match && (
           <div className="mt-5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-5 bg-neutral-50 dark:bg-neutral-900/40">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-neutral-500">🎯 예측</span>
+              <span className="text-xs font-semibold text-neutral-500">
+                🎯 예측 · {MARKET_LABEL[post.market ?? "1X2"] ?? "승무패"}
+              </span>
               <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${resultBadge.c}`}>
                 {resultBadge.t}
               </span>
             </div>
             <div className="text-sm">
               <span className="font-semibold">
-                {post.match.homeTeam.name} vs {post.match.awayTeam.name}
+                {home} vs {away}
               </span>
               <span className="text-neutral-500"> · {kickoffLabel(post.match.startTime)}</span>
             </div>

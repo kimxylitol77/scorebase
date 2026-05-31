@@ -8,10 +8,12 @@ function kstParts(d: Date) {
     da: k.getUTCDate(),
     h: k.getUTCHours(),
     mi: k.getUTCMinutes(),
+    dow: k.getUTCDay(),
   };
 }
 
 const p2 = (n: number) => String(n).padStart(2, "0");
+const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 
 /** 목록 등록일: 오늘이면 HH:MM, 아니면 MM/DD. */
 export function listTime(d: Date): string {
@@ -25,4 +27,22 @@ export function listTime(d: Date): string {
 export function kickoffLabel(d: Date): string {
   const a = kstParts(d);
   return `${a.mo}/${a.da} ${p2(a.h)}:${p2(a.mi)}`;
+}
+
+/** 날짜 그룹 키 (정렬용): YYYY-MM-DD (KST). */
+export function kstDateKey(d: Date): string {
+  const a = kstParts(d);
+  return `${a.y}-${p2(a.mo)}-${p2(a.da)}`;
+}
+
+/** 날짜 칩 라벨: "5/30(금)". */
+export function kstDateLabel(d: Date): string {
+  const a = kstParts(d);
+  return `${a.mo}/${a.da}(${WEEK[a.dow]})`;
+}
+
+/** 경기 시각만: "18:30". */
+export function kstTimeLabel(d: Date): string {
+  const a = kstParts(d);
+  return `${p2(a.h)}:${p2(a.mi)}`;
 }
