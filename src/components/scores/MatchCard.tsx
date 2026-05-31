@@ -278,26 +278,24 @@ export default function MatchCard(props: MatchCardProps) {
             </div>
           )}
         </div>
-        {/* 점수 — 라이브 최근 골 시 앰버 ring + pulse */}
+        {/* 점수 — 라이브 최근 골 시 앰버 ring + pulse. 승부차기는 점수 아래 (4) (3) 좌우 정렬. */}
         <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] px-2 py-1 rounded-md ${scoreColor} ${
           recentGoalSide ? "ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
         }`}>
           {hasScore ? (
             <>
-              {penaltyHome != null && (
-                <span className="text-sm sm:text-base text-neutral-400 dark:text-neutral-500 align-middle mr-0.5">
-                  ({penaltyHome})
+              <div className="flex items-center justify-center">
+                {home.score}
+                <span className="mx-1 sm:mx-1.5 text-neutral-300 dark:text-neutral-700 font-thin">
+                  :
                 </span>
-              )}
-              {home.score}
-              <span className="mx-1 sm:mx-1.5 text-neutral-300 dark:text-neutral-700 font-thin">
-                :
-              </span>
-              {away.score}
-              {penaltyAway != null && (
-                <span className="text-sm sm:text-base text-neutral-400 dark:text-neutral-500 align-middle ml-0.5">
-                  ({penaltyAway})
-                </span>
+                {away.score}
+              </div>
+              {penaltyHome != null && penaltyAway != null && (
+                <div className="grid grid-cols-2 text-[10px] sm:text-[11px] font-bold text-neutral-400 dark:text-neutral-500 leading-none mt-0.5">
+                  <span className="text-left">승부차기 {penaltyHome}</span>
+                  <span className="text-right">{penaltyAway}</span>
+                </div>
               )}
             </>
           ) : (

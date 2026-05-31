@@ -191,25 +191,25 @@ export default function SoccerCompactCard(props: Props) {
         </div>
       </div>
 
-      {/* 점수 2줄 — 골 강조는 팀 칸에만, 점수 칸 제외 */}
+      {/* 점수 2줄 — 골 강조는 팀 칸에만. 승부차기는 점수 우측에 작게 (홈줄 (4) / 원정줄 (3)) */}
       <div className="shrink-0 w-auto min-w-[1.75rem] flex flex-col items-end gap-1">
         <span className={scoreClass(homeWin, hasScore && !homeWin)}>
-          {home.score ?? "-"}
           {penaltyHome != null && (
-            <span className="ml-0.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500">
+            <span className="mr-0.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 align-middle">
               ({penaltyHome})
             </span>
           )}
+          {home.score ?? "-"}
         </span>
         <span
           className={scoreClass(awayWin, hasScore && !awayWin)}
         >
-          {away.score ?? "-"}
           {penaltyAway != null && (
-            <span className="ml-0.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500">
+            <span className="mr-0.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 align-middle">
               ({penaltyAway})
             </span>
           )}
+          {away.score ?? "-"}
         </span>
       </div>
     </div>

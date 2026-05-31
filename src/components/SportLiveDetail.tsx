@@ -329,35 +329,34 @@ export default function SportLiveDetail({
         {/* 양팀 + 점수 — home 좌측 / away 우측 (한국 축구·야구 미디어 관행) */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
           <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} position={homePosition} league={league} />
-          <div className="text-center font-black tabular-nums text-3xl sm:text-5xl tracking-tight">
-            {penHome != null && (
-              <span className="text-lg sm:text-2xl text-neutral-400 align-middle mr-1.5">
-                ({penHome})
+          <div className="font-black tabular-nums text-3xl sm:text-5xl tracking-tight flex flex-col items-center">
+            <div className="flex items-center justify-center">
+              <span
+                style={{
+                  color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
+                  textShadow:
+                    homeWin || liveHomeLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+                }}
+              >
+                <CountUp value={h} />
               </span>
-            )}
-            <span
-              style={{
-                color: homeWin || liveHomeLead ? "#22c55e" : "#cbd5e1",
-                textShadow:
-                  homeWin || liveHomeLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
-              }}
-            >
-              <CountUp value={h} />
-            </span>
-            <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
-            <span
-              style={{
-                color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
-                textShadow:
-                  awayWin || liveAwayLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
-              }}
-            >
-              <CountUp value={a} />
-            </span>
-            {penAway != null && (
-              <span className="text-lg sm:text-2xl text-neutral-400 align-middle ml-1.5">
-                ({penAway})
+              <span className="mx-1.5 sm:mx-3 text-neutral-500 font-thin">:</span>
+              <span
+                style={{
+                  color: awayWin || liveAwayLead ? "#22c55e" : "#cbd5e1",
+                  textShadow:
+                    awayWin || liveAwayLead ? "0 0 14px rgba(34,197,94,.45)" : "none",
+                }}
+              >
+                <CountUp value={a} />
               </span>
+            </div>
+            {/* 승부차기 — 점수 아래 작은 줄, 좌(홈)·우(원정) 정렬 */}
+            {penHome != null && penAway != null && (
+              <div className="grid grid-cols-2 w-full text-xs sm:text-sm font-bold text-neutral-400 dark:text-neutral-500 leading-none mt-1">
+                <span className="text-left">승부차기 {penHome}</span>
+                <span className="text-right">{penAway}</span>
+              </div>
             )}
           </div>
           <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} position={awayPosition} league={league} />
