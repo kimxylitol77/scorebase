@@ -162,7 +162,7 @@ export function buildMatchContext(
     const t = formDiff > 0 ? homeTrend : awayTrend;
     signals.push({
       score: Math.abs(formDiff) * 4,
-      text: `${fav} 최근 5경기 폼 우위 (경기당 ${t.ppg.toFixed(1)}점·득점 ${t.gf.toFixed(1)})`,
+      text: `${fav} 최근 5경기 폼 우위 (경기당 ${t.ppg.toFixed(1)}점·득점 ${t.avgGoalsFor.toFixed(1)})`,
     });
   }
   const haDiff = homeHA.home.ppg - awayHA.away.ppg;
@@ -180,14 +180,14 @@ export function buildMatchContext(
       text: `상대전적 ${fav} 우세 (최근 ${h2h.total}경기 ${h2h.homeTeamWins}-${h2h.draws}-${h2h.awayTeamWins})`,
     });
   }
-  const homeRun = Math.max(homeStreak.winning, homeStreak.losing);
-  const awayRun = Math.max(awayStreak.winning, awayStreak.losing);
+  const homeRun = Math.max(homeStreak.winningRun, homeStreak.losingRun);
+  const awayRun = Math.max(awayStreak.winningRun, awayStreak.losingRun);
   if (homeRun >= 3 || awayRun >= 3) {
     if (homeRun >= awayRun && homeRun >= 3) {
-      const kind = homeStreak.winning >= 3 ? `${homeStreak.winning}연승` : `${homeStreak.losing}연패`;
+      const kind = homeStreak.winningRun >= 3 ? `${homeStreak.winningRun}연승` : `${homeStreak.losingRun}연패`;
       signals.push({ score: homeRun, text: `{home} ${kind} 흐름` });
     } else if (awayRun >= 3) {
-      const kind = awayStreak.winning >= 3 ? `${awayStreak.winning}연승` : `${awayStreak.losing}연패`;
+      const kind = awayStreak.winningRun >= 3 ? `${awayStreak.winningRun}연승` : `${awayStreak.losingRun}연패`;
       signals.push({ score: awayRun, text: `{away} ${kind} 흐름` });
     }
   }
