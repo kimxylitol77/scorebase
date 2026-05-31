@@ -139,11 +139,17 @@ export default async function PostDetailPage({ params }: Props) {
               title={`예측 적중률 ${hitRate(a.predHit, a.predTotal)}% · 최고 ${a.predBest}연승`}
             >
               🎯 {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
-              {a.predStreak >= 2 && ` · 🔥${a.predStreak}연승`}
             </span>
           ) : (
             <span className="text-neutral-400">🎯 예측 기록 없음</span>
           )}
+          {a.predStreak >= 3 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/badge-streak3.png" alt={`${a.predStreak}연승`} className="h-6 w-auto" />
+          ) : a.predStreak === 2 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/badge-streak2.png" alt="2연승" className="h-6 w-auto" />
+          ) : null}
           <span>·</span>
           <span>{listTime(post.createdAt)}</span>
           <span>·</span>
@@ -167,9 +173,14 @@ export default async function PostDetailPage({ params }: Props) {
               <span className="text-xs font-semibold text-neutral-500">
                 🎯 예측 · {MARKET_LABEL[post.market ?? "1X2"] ?? "승무패"}
               </span>
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${resultBadge.c}`}>
-                {resultBadge.t}
-              </span>
+              {post.isCorrect === true ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src="/badge-hit.png" alt="적중" className="h-12 w-auto drop-shadow" />
+              ) : (
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${resultBadge.c}`}>
+                  {resultBadge.t}
+                </span>
+              )}
             </div>
             <div className="text-sm">
               <span className="font-semibold">
