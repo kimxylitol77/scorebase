@@ -61,17 +61,15 @@ function ratingColor(r: number): string {
 
 function PlayerDot({
   player,
-  side,
+  top,
+  left,
   nameById,
 }: {
   player: Player;
-  side: "home" | "away";
+  top: number;
+  left: number;
   nameById?: Record<string, string>;
 }) {
-  const x = player.x ?? 50;
-  const y = player.y ?? 50;
-  const top = side === "home" ? y * 0.5 : 100 - y * 0.5;
-  const left = side === "home" ? x : 100 - x;
   const name = displayName(player, nameById);
   const num = player.shirt_number ?? "";
   const captain = player.captain === 1;
@@ -89,39 +87,47 @@ function PlayerDot({
           <img
             src={player.logo}
             alt={name}
-            className="w-10 h-10 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white/90 bg-white shadow-md"
+            className="w-8 h-8 sm:w-11 sm:h-11 rounded-full object-cover border border-white/90 bg-white shadow"
             loading="lazy"
           />
         ) : (
-          <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 border-white/90 bg-emerald-900/60 shadow-md flex items-center justify-center text-white text-sm font-bold">
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full border border-white/90 bg-emerald-900/60 shadow flex items-center justify-center text-white text-[10px] sm:text-xs font-bold">
             {num}
           </div>
         )}
         {/* 평점 배지 — 사진 우상단 */}
         {rating > 0 && (
           <span
-            className="absolute -top-1.5 -right-1.5 min-w-[17px] sm:min-w-[20px] text-center px-0.5 py-px rounded text-[8px] sm:text-[10px] font-extrabold text-white leading-tight shadow"
+            className="absolute -top-1 -right-1.5 text-center px-0.5 rounded-sm text-[7px] sm:text-[9px] font-extrabold text-white leading-[1.3] shadow"
             style={{ background: ratingColor(rating) }}
           >
             {rating.toFixed(1)}
           </span>
         )}
-        {/* 주장 마크 — 사진 좌상단 */}
+        {/* 등번호 — 사진 좌하단 작은 원 */}
+        <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-neutral-900/85 text-white text-[7px] sm:text-[8px] font-bold flex items-center justify-center tabular-nums leading-none">
+          {num}
+        </span>
+        {/* 주장 마크 — 사진 우하단 */}
         {captain && (
-          <span className="absolute -top-1.5 -left-1.5 w-4 h-4 sm:w-[18px] sm:h-[18px] rounded-full bg-amber-400 text-[8px] sm:text-[9px] font-extrabold text-black flex items-center justify-center shadow">
+          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-400 text-[7px] sm:text-[8px] font-extrabold text-black flex items-center justify-center leading-none shadow">
             C
           </span>
         )}
       </div>
-      {/* 등번호 + 이름 */}
-      <span className="mt-1 px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold text-white bg-black/50 whitespace-nowrap leading-none">
-        <span className="opacity-70 mr-0.5 tabular-nums">{num}</span>
+      {/* 이름 — truncate 로 옆 선수와 가로 겹침 차단 */}
+      <span className="mt-0.5 inline-block max-w-[3.75rem] sm:max-w-[5rem] truncate px-1 py-px rounded text-[9px] sm:text-[10px] font-bold text-white bg-black/55 leading-tight text-center">
         {name}
       </span>
     </div>
   );
 }
 
+/**
+ * 선수를 y값(자기 골 기준 0~90)으로 라인(GK/DF/MF/FW…)에 그룹핑 후
+ * 라인을 세로 균등 배치 → 원좌표 간격이 좁아도 겹침 구조적 차단 (네이버/SofaScore 방식).
+ * 라인 내 가로 위치는 x 원좌표 유지(좌우 의미 보존).
+ */
 function TeamHalf({
   players,
   side,
@@ -131,11 +137,41 @@ function TeamHalf({
   side: "home" | "away";
   nameById?: Record<string, string>;
 }) {
+  // 1) y 오름차순 정렬 후 인접 y 차이 8 이내면 같은 라인으로 묶음
+  const sorted = [...players].sort((a, b) => (a.y ?? 50) - (b.y ?? 50));
+  const lines: Player[][] = [];
+  for (const p of sorted) {
+    const last = lines[lines.length - 1];
+    const lastY = last ? (last[0].y ?? 50) : null;
+    if (last && lastY != null && Math.abs((p.y ?? 50) - lastY) <= 8) last.push(p);
+    else lines.push([p]);
+  }
+  const n = lines.length || 1;
+
   return (
     <>
-      {players.map((p, i) => (
-        <PlayerDot key={`${side}-${p.id ?? i}`} player={p} side={side} nameById={nameById} />
-      ))}
+      {lines.map((line, li) => {
+        // 라인 세로 위치 — 자기 진영(절반)을 n등분, GK 가 바깥(골문)쪽.
+        // home: 위 절반(top 3~47%), away: 아래 절반(거울).
+        const frac = (li + 0.5) / n; // 0~1, 0=골문쪽
+        const half = 3 + frac * 44; // 3~47%
+        // 라인 내 가로 — x 원좌표 정렬 유지 (home 그대로 / away 거울)
+        const byX = [...line].sort((a, b) => (a.x ?? 50) - (b.x ?? 50));
+        return byX.map((p, pi) => {
+          const top = side === "home" ? half : 100 - half;
+          const x = p.x ?? 50;
+          const left = side === "home" ? x : 100 - x;
+          return (
+            <PlayerDot
+              key={`${side}-${p.id ?? `${li}-${pi}`}`}
+              player={p}
+              top={top}
+              left={left}
+              nameById={nameById}
+            />
+          );
+        });
+      })}
     </>
   );
 }
@@ -176,7 +212,7 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
       <div
         className="relative w-full mx-auto rounded-lg overflow-hidden border border-emerald-800/40 max-w-[460px]"
         style={{
-          aspectRatio: "0.66",
+          aspectRatio: "0.56",
           backgroundColor: "#1f8a4c",
           backgroundImage:
             "repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 9.09%, rgba(0,0,0,0.05) 9.09%, rgba(0,0,0,0.05) 18.18%)",
