@@ -24,6 +24,11 @@ import { calcHomeAway } from "./home-away";
 import { calcStreaks } from "./streak";
 import { calcRecentTrend } from "./recent-trend";
 import { calcWinProbability } from "./win-probability";
+import {
+  predictTotalMarket,
+  predictHandicapMarket,
+  getSportProfile,
+} from "./markets";
 import type { PreviewContext } from "@/prompts/match-preview";
 import {
   fetchSeasonInjuries,
@@ -113,6 +118,17 @@ export function buildMatchContext(
 
   const wp = calcWinProbability(homeElo, awayElo, league);
 
+  // OVER/UNDER + 핸디캡 — 위젯(MatchInsight)과 동일한 결정적 계산(referenceTime=startTime,
+  // 시장 blend 없음 → 시점 무관)을 글 생성 시점 context 에 담는다. 본문 표가 LLM 추측
+  // 대신 이 확정값을 쓰게 해 위젯과 single source(핸디캡 방향 반대 표시 근절).
+  const sportProfile = getSportProfile(league);
+  const ouMarket = sportProfile
+    ? predictTotalMarket(matches, league, homeTeamId, awayTeamId, referenceTime)
+    : null;
+  const hcMarket = sportProfile
+    ? predictHandicapMarket(matches, league, homeTeamId, awayTeamId, referenceTime)
+    : null;
+
   const standings = calcStandings(matches, referenceTime);
   const homeRow = standings.byTeam.get(homeTeamId);
   const awayRow = standings.byTeam.get(awayTeamId);
@@ -199,6 +215,17 @@ export function buildMatchContext(
   return {
     elo: { home: homeElo, away: awayElo },
     winProb: { home: wp.home, draw: wp.draw, away: wp.away },
+    ouMarket: ouMarket
+      ? {
+          line: ouMarket.line,
+          expectedTotal: ouMarket.expectedTotal,
+          pOver: ouMarket.pOver,
+          pick: ouMarket.pOver >= 0.5 ? ("OVER" as const) : ("UNDER" as const),
+        }
+      : undefined,
+    handicapMarket: hcMarket
+      ? { pick: hcMarket.pick, line: hcMarket.line, prob: hcMarket.prob }
+      : undefined,
     confidence,
     dataSparse,
     restDays,

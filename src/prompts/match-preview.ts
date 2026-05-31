@@ -44,6 +44,10 @@ export interface PreviewContext {
   elo?: { home: number; away: number };
   /** 통계 추정 승률 (%) */
   winProb?: { home: number; draw: number; away: number };
+  /** OVER/UNDER 모델 확정값 (build-context, referenceTime=startTime 결정적 — 위젯과 동일 함수·동일 입력). */
+  ouMarket?: { line: number; expectedTotal: number; pOver: number; pick: "OVER" | "UNDER" };
+  /** 핸디캡 모델 확정값. pick=우세팀. 본문 표 방향 고정용(LLM 추측·반대표시 차단). */
+  handicapMarket?: { pick: "HOME" | "AWAY"; line: number; prob: number };
   /** 예측 신뢰도 — 코드 계산값 (LLM 추측 X). 위젯과 단일 소스. */
   confidence?: {
     /** 최고 확률 픽 (HOME/DRAW/AWAY) */
@@ -330,6 +334,19 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
   if (context.winProb) {
     ctxLines.push(
       `- 통계 추정 승률: ${home} ${pct(context.winProb.home)} / 무 ${pct(context.winProb.draw)} / ${away} ${pct(context.winProb.away)}`,
+    );
+  }
+  if (context.ouMarket) {
+    const o = context.ouMarket;
+    ctxLines.push(
+      `- OVER/UNDER 예측(모델 확정값): 기준선 ${o.line} · 예상 총득점 ${o.expectedTotal.toFixed(1)} · 모델 픽 ${o.pick} ${pct(o.pick === "OVER" ? o.pOver : 1 - o.pOver)} — 표에 이 값 그대로, 임의 변경 금지`,
+    );
+  }
+  if (context.handicapMarket) {
+    const h = context.handicapMarket;
+    const fav = h.pick === "HOME" ? home : away;
+    ctxLines.push(
+      `- 핸디캡 예측(모델 확정값): 우세팀 ${fav} -${h.line} cover ${pct(h.prob)} — 방향=${fav} 고정, 절대 반대 팀으로 쓰지 말 것`,
     );
   }
   if (context.lineups) {
@@ -766,9 +783,11 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 표 형식. 모든 확률은 정수 %(반올림). 차이는 +/- %p. 0%는 "—"로 표기.
 "차이" 컬럼 = 모델 - 시장 평균.
 
-⚠️ OVER/UNDER 기준선은 종목별로 다름 — 절대 2.5 고정 금지. 위 컨텍스트의
-"예상 득점/총득점"과 종목 기준선을 쓸 것: 축구 2.5골 / 농구(NBA) 220.5점 /
-하키(NHL) 5.5골 / 야구(MLB·NPB) 8.5런 / 야구(KBO) 9.5런.
+⚠️ OVER/UNDER·핸디캡은 위 컨텍스트의 "OVER/UNDER 예측(모델 확정값)"·"핸디캡 예측(모델
+확정값)"을 표에 **그대로** 기입한다 — 기준선·방향·확률 임의 변경 절대 금지(위젯과 단일 소스).
+핸디캡 "모델 추정" 칸은 컨텍스트의 우세팀과 cover 확률을 쓴다 (예: "삼성 -1.5 / 62%").
+방향을 반대 팀으로 뒤집지 마라. 컨텍스트에 해당 값이 없을 때만 종목 기준선으로 보수적 추정:
+축구 2.5골 / 농구(NBA) 220.5점 / 하키(NHL) 5.5골 / 야구(MLB·NPB) 8.5런 / 야구(KBO) 9.5런.
 "시장 평균" 컬럼 헤더의 개수는 위 "베팅사이트 평균 odds (N개사)" 의 N 을 그대로 쓸 것 (8 고정 금지).
 
 | 시장 | 모델 추정 | 시장 평균 | 차이 |
