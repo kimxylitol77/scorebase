@@ -28,6 +28,9 @@ import {
   predictTotalMarket,
   predictHandicapMarket,
   getSportProfile,
+  bestDoubleChance,
+  predictBttsMarket,
+  SOCCER_LEAGUES_FOR_MARKETS,
 } from "./markets";
 import type { PreviewContext } from "@/prompts/match-preview";
 import {
@@ -128,6 +131,13 @@ export function buildMatchContext(
   const hcMarket = sportProfile
     ? predictHandicapMarket(matches, league, homeTeamId, awayTeamId, referenceTime)
     : null;
+  // 더블찬스(1X2 파생)·BTTS — 축구 시장만(위젯 MatchInsight 257·259 와 동일 기준).
+  // DC 는 wp(=글 생성 시점 저장되는 predHome, 위젯이 override 로 쓰는 값) 파생이라 일치 유지.
+  const isSoccerMarket = SOCCER_LEAGUES_FOR_MARKETS.has(league);
+  const dcMarket = isSoccerMarket ? bestDoubleChance(wp) : null;
+  const bttsMarket = isSoccerMarket
+    ? predictBttsMarket(matches, league, homeTeamId, awayTeamId, referenceTime)
+    : null;
 
   const standings = calcStandings(matches, referenceTime);
   const homeRow = standings.byTeam.get(homeTeamId);
@@ -225,6 +235,15 @@ export function buildMatchContext(
       : undefined,
     handicapMarket: hcMarket
       ? { pick: hcMarket.pick, line: hcMarket.line, prob: hcMarket.prob }
+      : undefined,
+    doubleChance: dcMarket
+      ? { pick: dcMarket.pick, prob: dcMarket.prob }
+      : undefined,
+    btts: bttsMarket
+      ? {
+          pick: bttsMarket.pBtts >= 0.5 ? ("YES" as const) : ("NO" as const),
+          prob: bttsMarket.pBtts,
+        }
       : undefined,
     confidence,
     dataSparse,

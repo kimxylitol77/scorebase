@@ -48,6 +48,10 @@ export interface PreviewContext {
   ouMarket?: { line: number; expectedTotal: number; pOver: number; pick: "OVER" | "UNDER" };
   /** 핸디캡 모델 확정값. pick=우세팀. 본문 표 방향 고정용(LLM 추측·반대표시 차단). */
   handicapMarket?: { pick: "HOME" | "AWAY"; line: number; prob: number };
+  /** 더블찬스 모델 확정값(축구). pick: 1X=홈/무, X2=무/원정, 12=홈/원정. */
+  doubleChance?: { pick: "1X" | "X2" | "12"; prob: number };
+  /** BTTS(양 팀 모두 득점) 모델 확정값(축구·하키). */
+  btts?: { pick: "YES" | "NO"; prob: number };
   /** 예측 신뢰도 — 코드 계산값 (LLM 추측 X). 위젯과 단일 소스. */
   confidence?: {
     /** 최고 확률 픽 (HOME/DRAW/AWAY) */
@@ -347,6 +351,24 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     const fav = h.pick === "HOME" ? home : away;
     ctxLines.push(
       `- 핸디캡 예측(모델 확정값): 우세팀 ${fav} -${h.line} cover ${pct(h.prob)} — 방향=${fav} 고정, 절대 반대 팀으로 쓰지 말 것`,
+    );
+  }
+  if (context.doubleChance) {
+    const d = context.doubleChance;
+    const dcLabel =
+      d.pick === "1X"
+        ? `${home} 또는 무`
+        : d.pick === "X2"
+          ? `무 또는 ${away}`
+          : `${home} 또는 ${away}`;
+    ctxLines.push(
+      `- 더블찬스 예측(모델 확정값): ${dcLabel} ${pct(d.prob)} — 표에 이 값 그대로, 임의 변경 금지`,
+    );
+  }
+  if (context.btts) {
+    const b = context.btts;
+    ctxLines.push(
+      `- BTTS(양 팀 모두 득점) 예측(모델 확정값): ${b.pick} ${pct(b.prob)} — 표에 이 값 그대로, 임의 변경 금지`,
     );
   }
   if (context.lineups) {
@@ -783,8 +805,8 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 표 형식. 모든 확률은 정수 %(반올림). 차이는 +/- %p. 0%는 "—"로 표기.
 "차이" 컬럼 = 모델 - 시장 평균.
 
-⚠️ OVER/UNDER·핸디캡은 위 컨텍스트의 "OVER/UNDER 예측(모델 확정값)"·"핸디캡 예측(모델
-확정값)"을 표에 **그대로** 기입한다 — 기준선·방향·확률 임의 변경 절대 금지(위젯과 단일 소스).
+⚠️ 더블찬스·OVER/UNDER·핸디캡·BTTS는 위 컨텍스트의 "…예측(모델 확정값)" 을 표에 **그대로**
+기입한다 — 픽·기준선·방향·확률 임의 변경 절대 금지(위젯과 단일 소스).
 핸디캡 "모델 추정" 칸은 컨텍스트의 우세팀과 cover 확률을 쓴다 (예: "삼성 -1.5 / 62%").
 방향을 반대 팀으로 뒤집지 마라. 컨텍스트에 해당 값이 없을 때만 종목 기준선으로 보수적 추정:
 축구 2.5골 / 농구(NBA) 220.5점 / 하키(NHL) 5.5골 / 야구(MLB·NPB) 8.5런 / 야구(KBO) 9.5런.
