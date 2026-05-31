@@ -606,7 +606,22 @@ export default async function ArticlePage({ params }: Props) {
       {/* 참고 외부 출처 (공식 사이트·통계) */}
       <ExternalSources league={article.league} />
 
-      {article.match && <MatchInsight match={article.match} />}
+      {/* ⭐ 본문=위젯 단일 소스: 위젯 예측을 글(Article) 스냅샷으로 주입.
+          Match.predHome 은 predict-match/evaluate/odds cron 이 수시 재계산·덮어써서
+          본문(글 작성 시점 고정)과 벌어짐(예: 본문 76% vs 위젯 64%). 글 페이지에서는
+          글이 보여주는 예측을 위젯도 그대로 쓰게 강제 → 한 화면 안 100% 일치.
+          (article.pred* 없으면 Match 값 fallback) */}
+      {article.match && (
+        <MatchInsight
+          match={{
+            ...article.match,
+            predHome: article.predHome ?? article.match.predHome,
+            predDraw: article.predDraw ?? article.match.predDraw,
+            predAway: article.predAway ?? article.match.predAway,
+            predWinner: article.predWinner ?? article.match.predWinner,
+          }}
+        />
+      )}
 
       {/* 야구(KBO/MLB/NPB) — Poisson 이닝별 득점 확률 차트.
           generate-articles / generate-previews 가 baseballContext JSON 저장. */}

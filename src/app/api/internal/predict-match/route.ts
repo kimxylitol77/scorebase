@@ -37,18 +37,26 @@ export async function GET(req: NextRequest) {
   try {
     const prediction = await predictMatchById(id);
     if (prediction) {
-      // Match 에 cache — UI / cron 평가가 별도 호출 없이 사용.
+      // ⭐ 단일 소스 가드: PREVIEW 글이 있는 매치는 predHome 을 덮어쓰지 않는다.
+      // 글(Article.predHome)=글 작성 시점 고정값이 본문·위젯의 단일 진실. 이 route 가
+      // 재계산값으로 덮으면 본문 76% vs 위젯 64% 불일치 발생(predict-match 는 narrator/
+      // scores prerender 가 수시 호출). 글 없는 매치만 cache write.
+      const hasPreview = await prisma.article.count({
+        where: { matchId: id, type: "PREVIEW", predWinner: { not: null } },
+      });
       // predCorrect 는 evaluate-predictions cron 이 매치 종료 후 채움 — 여기선 건드리지 않음.
       try {
-        await prisma.match.update({
-          where: { id },
-          data: {
-            predHome: prediction.probHome,
-            predDraw: prediction.probDraw,
-            predAway: prediction.probAway,
-            predWinner: prediction.pick === "NO_PICK" ? null : prediction.pick,
-          },
-        });
+        if (hasPreview === 0) {
+          await prisma.match.update({
+            where: { id },
+            data: {
+              predHome: prediction.probHome,
+              predDraw: prediction.probDraw,
+              predAway: prediction.probAway,
+              predWinner: prediction.pick === "NO_PICK" ? null : prediction.pick,
+            },
+          });
+        }
       } catch (e) {
         // FK 오류 등 silent — prediction 응답은 그대로
         console.warn(`[predict-match] cache write fail id=${id}:`, (e as Error).message);
