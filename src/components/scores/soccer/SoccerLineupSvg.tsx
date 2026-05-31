@@ -9,8 +9,6 @@
 //   선수: 원 + 등번호 + 짧은 이름 (한국어 매핑 시도)
 //   라인 표시 (GK + DEF + MID + FWD).
 
-import { toKoreanTeamName } from "@/lib/team-names";
-
 interface Player {
   id?: string;
   first?: number;
@@ -37,13 +35,16 @@ interface Props {
   data: LineupData;
   homeNameKo: string;
   awayNameKo: string;
+  /** ts player id → 한글 이름 (TheSportsPlayer.nameKo). 없으면 영문 last name fallback. */
+  nameById?: Record<string, string>;
 }
 
-function lastName(full: string): string {
+/** 표시 이름: nameKo(DB) 우선 → 팀명사전 → 영문 last name. */
+function displayName(player: Player, nameById?: Record<string, string>): string {
+  const ko = player.id ? nameById?.[player.id] : undefined;
+  if (ko) return ko;
+  const full = player.name || "";
   if (!full) return "";
-  // 한국어 매핑 시도 후 그래도 영문이면 last name
-  const ko = toKoreanTeamName(full);
-  if (ko && ko !== full) return ko;
   const parts = full.split(/\s+/);
   return parts[parts.length - 1] ?? full;
 }
@@ -59,16 +60,17 @@ function positionColor(pos?: string): string {
 }
 
 function Marker({
-  player, x, y, mirror,
+  player, x, y, mirror, nameById,
 }: {
   player: Player;
   x: number;
   y: number;
   mirror: boolean;
+  nameById?: Record<string, string>;
 }) {
   const cx = mirror ? 100 - x : x;
   const cy = mirror ? 50 - y / 2 : 50 + y / 2;
-  const name = lastName(player.name || "");
+  const name = displayName(player, nameById);
   const num = player.shirt_number ?? "";
   const captain = player.captain === 1;
   const rating = typeof player.rating === "string" ? parseFloat(player.rating) : player.rating;
@@ -117,7 +119,7 @@ function Marker({
   );
 }
 
-export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo }: Props) {
+export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
   const homeStarters = (lu.home ?? []).filter((p) => p.first === 1);
@@ -173,6 +175,7 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo }: Props)
               x={p.x ?? 50}
               y={p.y ?? 50}
               mirror
+              nameById={nameById}
             />
           ))}
           {/* home 선수 (아래쪽) */}
@@ -183,6 +186,7 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo }: Props)
               x={p.x ?? 50}
               y={p.y ?? 50}
               mirror={false}
+              nameById={nameById}
             />
           ))}
         </svg>

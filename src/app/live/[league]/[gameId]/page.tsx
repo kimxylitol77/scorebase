@@ -247,13 +247,25 @@ export default async function GenericLivePage({ params }: Props) {
   // 이벤트 타임라인 아바타용 player photo map — TheSports lineup cache 의 home/away
   // 객체 (index 키 0..N) 의 each player.logo (md5 hash URL) 추출.
   const playerLogoById: Record<string, string> = {};
+  // 라인업 선수 한글 이름 — TheSportsPlayer.nameKo (build-football-player-names-haiku 가 적재).
+  // DB miss 시 영문 fallback (SoccerLineupSvg 내부 lastName).
+  const lineupNameById: Record<string, string> = {};
   if (isSoccer && match.theSportsCache?.lineup) {
     const lu = (match.theSportsCache.lineup as { lineup?: { home?: Record<string, { id?: string; logo?: string }>; away?: Record<string, { id?: string; logo?: string }> } }).lineup;
+    const ids = new Set<string>();
     for (const side of [lu?.home, lu?.away]) {
       if (!side) continue;
       for (const p of Object.values(side)) {
         if (p?.id && p?.logo) playerLogoById[p.id] = p.logo;
+        if (p?.id) ids.add(p.id);
       }
+    }
+    if (ids.size > 0) {
+      const rows = await prisma.theSportsPlayer.findMany({
+        where: { id: { in: Array.from(ids) }, nameKo: { not: null } },
+        select: { id: true, nameKo: true },
+      });
+      for (const r of rows) if (r.nameKo) lineupNameById[r.id] = r.nameKo;
     }
   }
 
@@ -336,7 +348,7 @@ export default async function GenericLivePage({ params }: Props) {
         ) : null;
       lineupNode =
         lineup && lineup.lineup ? (
-          <SoccerLineupSvg data={lineup} homeNameKo={homeKo} awayNameKo={awayKo} />
+          <SoccerLineupSvg data={lineup} homeNameKo={homeKo} awayNameKo={awayKo} nameById={lineupNameById} />
         ) : null;
       goalDistNode =
         gd && gd.home && gd.away ? (
