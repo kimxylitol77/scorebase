@@ -62,6 +62,12 @@ interface Props {
     startTime: Date;
     homeTeam: { id: number; name: string };
     awayTeam: { id: number; name: string };
+    /** 글 생성 시점 저장 예측 — 있으면 위젯이 이 값 사용 (본문=위젯 단일 소스).
+     *  없으면(글 없는 매치) 렌더 시점 재계산 fallback. */
+    predHome?: number | null;
+    predDraw?: number | null;
+    predAway?: number | null;
+    predWinner?: string | null;
     marketHome?: number | null;
     marketDraw?: number | null;
     marketAway?: number | null;
@@ -211,6 +217,13 @@ export default async function MatchInsight({
       winProb = { home: blended.home, draw: blended.draw, away: blended.away };
       marketBlended = true;
     }
+  }
+
+  // 단일 소스 — 글 생성 시점에 저장된 예측이 있으면 그 값을 사용 (본문 글과 100% 일치).
+  // 위 재계산은 글 없는 매치용 fallback. 글이 있는 매치는 며칠 전 Elo/배당으로 쓴 본문과
+  // 지금 재계산이 달라지는 불일치(76% vs 64%)를 방지 — 저장값으로 고정.
+  if (match.predHome != null && match.predDraw != null && match.predAway != null) {
+    winProb = { home: match.predHome, draw: match.predDraw, away: match.predAway };
   }
   const summary = summarizeWinProb(
     winProb,

@@ -153,6 +153,19 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
   console.log(`[evaluate/match] 미평가: ${pending.length}건`);
   if (pending.length === 0) return { evaluated: 0, byLeague: {} };
 
+  // PREVIEW 글이 있는 매치 — predHome/predWinner 는 글 생성 시점 값을 보존(덮어쓰기 X).
+  // 본문(Article.predHome) = Match.predHome = 위젯 단일 소스 유지. evaluate 는 채점만.
+  // (글 없는 매치는 아래에서 기존대로 재계산 — 적중률 백테스트 표본 확보)
+  const previewArticles = await prisma.article.findMany({
+    where: {
+      type: "PREVIEW",
+      predWinner: { not: null },
+      matchId: { in: pending.map((m) => m.id) },
+    },
+    select: { matchId: true },
+  });
+  const hasPreview = new Set(previewArticles.map((a) => a.matchId));
+
   // 리그별 전체 매치 한 번씩만 가져오기 (in-memory 캐시)
   const leagues = Array.from(new Set(pending.map((m) => m.league)));
   const cache = new Map<string, PredictMatch[]>();
@@ -235,22 +248,29 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
       wp = blended;
     }
 
-    const winner =
+    const recalcWinner =
       wp.home >= wp.away && wp.home >= wp.draw
         ? "HOME"
         : wp.away >= wp.draw
           ? "AWAY"
           : "DRAW";
     const actualW = actualWinnerOf(gs.home, gs.away);
+
+    // PREVIEW 글이 있으면 글 생성 시점 예측(Match.predWinner)을 그대로 채점 — 덮어쓰기 X.
+    // 글 없으면 방금 재계산한 값으로 평가 (적중률 백테스트).
+    const useStored = hasPreview.has(m.id) && m.predWinner != null;
+    const winner = useStored ? (m.predWinner as "HOME" | "DRAW" | "AWAY") : recalcWinner;
     const correct = winner === actualW;
 
-    const data: Record<string, unknown> = {
-      predHome: wp.home,
-      predDraw: wp.draw,
-      predAway: wp.away,
-      predWinner: winner,
-      predCorrect: correct,
-    };
+    const data: Record<string, unknown> = useStored
+      ? { predCorrect: correct }
+      : {
+          predHome: wp.home,
+          predDraw: wp.draw,
+          predAway: wp.away,
+          predWinner: winner,
+          predCorrect: correct,
+        };
 
     // Value Bet 평가 — 시장 odds 가 저장돼 있으면 우리 모델 pick 의 prob 와 시장 prob 비교.
     // 베팅사 3개 미만이면 시장 합의가 약해 Value Bet 판정 신뢰 불가 (NPB "0개사인데
