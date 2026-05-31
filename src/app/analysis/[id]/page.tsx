@@ -108,7 +108,10 @@ export default async function PostDetailPage({ params }: Props) {
 
   const resultBadge =
     post.isCorrect === true
-      ? { t: "🎯 적중", c: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
+      ? {
+          t: "✓ 적중",
+          c: "bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-yellow-950 font-extrabold shadow-[0_0_12px_rgba(234,179,8,0.6)] ring-1 ring-yellow-300/60",
+        }
       : post.isCorrect === false
         ? { t: "❌ 미적중", c: "bg-neutral-500/15 text-neutral-500" }
         : { t: "⏳ 경기 대기", c: "bg-amber-500/15 text-amber-600 dark:text-amber-400" };

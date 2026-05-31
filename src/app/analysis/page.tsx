@@ -99,7 +99,14 @@ export default async function AnalysisListPage() {
                     </span>
                     <span className="min-w-0">
                       <span className="flex items-center gap-2">
-                        {p.isCorrect === true && <span title="예측 적중">🎯</span>}
+                        {p.isCorrect === true && (
+                          <span
+                            title="예측 적중"
+                            className="shrink-0 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-yellow-950 shadow-[0_0_8px_rgba(234,179,8,0.55)]"
+                          >
+                            ✓적중
+                          </span>
+                        )}
                         {p.isCorrect === false && (
                           <span title="예측 미적중" className="opacity-50">❌</span>
                         )}
