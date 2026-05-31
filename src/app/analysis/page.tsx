@@ -111,10 +111,12 @@ export default async function AnalysisListPage() {
                         <span>
                           {g.emoji} {a.nickname}
                         </span>
-                        {a.predTotal > 0 && (
+                        {a.predTotal > 0 ? (
                           <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                             🎯{hitRate(a.predHit, a.predTotal)}%
                           </span>
+                        ) : (
+                          <span className="text-neutral-400">🎯 기록없음</span>
                         )}
                         <span>·</span>
                         <span>{listTime(p.createdAt)}</span>
@@ -128,11 +130,13 @@ export default async function AnalysisListPage() {
                         <span>{g.emoji}</span>
                         <span className="truncate">{a.nickname}</span>
                       </span>
-                      {a.predTotal > 0 && (
+                      {a.predTotal > 0 ? (
                         <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          🎯 {hitRate(a.predHit, a.predTotal)}%
-                          {a.predStreak >= 3 && ` 🔥${a.predStreak}`}
+                          🎯 {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
+                          {a.predStreak >= 2 && ` 🔥${a.predStreak}`}
                         </span>
+                      ) : (
+                        <span className="text-[11px] text-neutral-400">🎯 예측 기록 없음</span>
                       )}
                     </span>
                     <span className="hidden sm:block text-right text-sm text-neutral-500">

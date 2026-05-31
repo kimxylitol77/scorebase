@@ -129,7 +129,7 @@ export default async function PostDetailPage({ params }: Props) {
           <span className="font-semibold text-neutral-700 dark:text-neutral-300" title={g.name}>
             {g.emoji} {a.nickname}
           </span>
-          {a.predTotal > 0 && (
+          {a.predTotal > 0 ? (
             <span
               className="font-semibold text-emerald-600 dark:text-emerald-400"
               title={`예측 적중률 ${hitRate(a.predHit, a.predTotal)}% · 최고 ${a.predBest}연승`}
@@ -137,6 +137,8 @@ export default async function PostDetailPage({ params }: Props) {
               🎯 {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
               {a.predStreak >= 2 && ` · 🔥${a.predStreak}연승`}
             </span>
+          ) : (
+            <span className="text-neutral-400">🎯 예측 기록 없음</span>
           )}
           <span>·</span>
           <span>{listTime(post.createdAt)}</span>
