@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { gradeByLevel } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
-import { listTime } from "@/lib/analysis/format";
+import { listTime, hitRate } from "@/lib/analysis/format";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
@@ -14,8 +14,7 @@ export const metadata: Metadata = {
 };
 
 // 데스크탑 그리드 컬럼 — 제목(1fr)을 넓게, 나머지는 고정폭
-const COLS =
-  "sm:grid-cols-[72px_minmax(0,1fr)_180px_96px_80px_72px]";
+const COLS = "sm:grid-cols-[72px_minmax(0,1fr)_180px_96px_80px_72px]";
 
 export default async function AnalysisListPage() {
   const [posts, userId] = await Promise.all([
@@ -29,7 +28,15 @@ export default async function AnalysisListPage() {
         likes: true,
         createdAt: true,
         isCorrect: true,
-        author: { select: { nickname: true, level: true } },
+        author: {
+          select: {
+            nickname: true,
+            level: true,
+            predTotal: true,
+            predHit: true,
+            predStreak: true,
+          },
+        },
       },
     }),
     getCurrentUserId(),
@@ -70,6 +77,7 @@ export default async function AnalysisListPage() {
           <ul className="divide-y divide-neutral-100 dark:divide-neutral-800/70">
             {posts.map((p) => {
               const g = gradeByLevel(p.author.level);
+              const a = p.author;
               return (
                 <li key={p.id}>
                   <Link
@@ -95,20 +103,31 @@ export default async function AnalysisListPage() {
                       {/* mobile meta */}
                       <span className="sm:hidden mt-1.5 flex items-center gap-2 text-xs text-neutral-500">
                         <span>
-                          {g.emoji} {p.author.nickname}
+                          {g.emoji} {a.nickname}
                         </span>
+                        {a.predTotal > 0 && (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                            🎯{hitRate(a.predHit, a.predTotal)}%
+                          </span>
+                        )}
                         <span>·</span>
                         <span>{listTime(p.createdAt)}</span>
-                        <span>·</span>
-                        <span>조회 {p.views}</span>
                       </span>
                     </span>
                     <span
-                      className="hidden sm:flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-400 min-w-0"
+                      className="hidden sm:flex flex-col justify-center text-sm text-neutral-600 dark:text-neutral-400 min-w-0"
                       title={g.name}
                     >
-                      <span>{g.emoji}</span>
-                      <span className="truncate">{p.author.nickname}</span>
+                      <span className="flex items-center gap-1.5">
+                        <span>{g.emoji}</span>
+                        <span className="truncate">{a.nickname}</span>
+                      </span>
+                      {a.predTotal > 0 && (
+                        <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          🎯 {hitRate(a.predHit, a.predTotal)}%
+                          {a.predStreak >= 3 && ` 🔥${a.predStreak}`}
+                        </span>
+                      )}
                     </span>
                     <span className="hidden sm:block text-right text-sm text-neutral-500">
                       {listTime(p.createdAt)}

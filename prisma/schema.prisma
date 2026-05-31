@@ -497,6 +497,12 @@ model User {
   avatarUrl        String?   // 아바타 프리셋 id (src/lib/avatars.ts). null=기본
   lastAttendanceAt DateTime? // 출석 경험치 마지막 적립 시각 (KST 하루 1회 제한)
 
+  // 예측 적중 통계 (분석 게시판 자동채점 시 누적) — 작성자 신뢰도 표시용
+  predTotal  Int @default(0) // 채점 완료된 예측 수
+  predHit    Int @default(0) // 적중 수 (적중률 = predHit/predTotal)
+  predStreak Int @default(0) // 현재 연속 적중 (미적중 시 0)
+  predBest   Int @default(0) // 최고 연속 적중 기록
+
   posts     Post[]
   postLikes PostLike[]
 

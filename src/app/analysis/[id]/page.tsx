@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { gradeByLevel } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
-import { listTime, kickoffLabel } from "@/lib/analysis/format";
+import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LikeButton from "./LikeButton";
 
@@ -39,7 +39,16 @@ export default async function PostDetailPage({ params }: Props) {
       isCorrect: true,
       createdAt: true,
       authorId: true,
-      author: { select: { nickname: true, level: true } },
+      author: {
+        select: {
+          nickname: true,
+          level: true,
+          predTotal: true,
+          predHit: true,
+          predStreak: true,
+          predBest: true,
+        },
+      },
       match: {
         select: {
           league: true,
@@ -63,6 +72,7 @@ export default async function PostDetailPage({ params }: Props) {
 
   const userId = await getCurrentUserId();
   const g = gradeByLevel(post.author.level);
+  const a = post.author;
 
   const home = post.match ? toKoreanTeamName(post.match.homeTeam.name, post.match.league) : "";
   const away = post.match ? toKoreanTeamName(post.match.awayTeam.name, post.match.league) : "";
@@ -102,8 +112,17 @@ export default async function PostDetailPage({ params }: Props) {
 
         <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500">
           <span className="font-semibold text-neutral-700 dark:text-neutral-300" title={g.name}>
-            {g.emoji} {post.author.nickname}
+            {g.emoji} {a.nickname}
           </span>
+          {a.predTotal > 0 && (
+            <span
+              className="font-semibold text-emerald-600 dark:text-emerald-400"
+              title={`예측 적중률 ${hitRate(a.predHit, a.predTotal)}% · 최고 ${a.predBest}연승`}
+            >
+              🎯 {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
+              {a.predStreak >= 2 && ` · 🔥${a.predStreak}연승`}
+            </span>
+          )}
           <span>·</span>
           <span>{listTime(post.createdAt)}</span>
           <span>·</span>

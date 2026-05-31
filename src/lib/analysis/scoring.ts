@@ -104,6 +104,24 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
       where: { id: p.id },
       data: { isCorrect: verdict, settledAt: new Date() },
     });
+
+    // 작성자 적중 통계 갱신 (predTotal/Hit/Streak/Best)
+    const author = await prisma.user.findUnique({
+      where: { id: p.authorId },
+      select: { predStreak: true, predBest: true },
+    });
+    const newStreak = verdict ? (author?.predStreak ?? 0) + 1 : 0;
+    const newBest = Math.max(author?.predBest ?? 0, newStreak);
+    await prisma.user.update({
+      where: { id: p.authorId },
+      data: {
+        predTotal: { increment: 1 },
+        ...(verdict ? { predHit: { increment: 1 } } : {}),
+        predStreak: newStreak,
+        predBest: newBest,
+      },
+    });
+
     if (verdict) {
       await awardExp(p.authorId, {
         exp: EXP_REWARDS.predictionHit,

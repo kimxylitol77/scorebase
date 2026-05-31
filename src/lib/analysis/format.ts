@@ -46,3 +46,8 @@ export function kstTimeLabel(d: Date): string {
   const a = kstParts(d);
   return `${p2(a.h)}:${p2(a.mi)}`;
 }
+
+/** 적중률(%) — 정수 반올림. 예측 0건이면 0. */
+export function hitRate(hit: number, total: number): number {
+  return total > 0 ? Math.round((hit / total) * 100) : 0;
+}
