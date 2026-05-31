@@ -271,6 +271,8 @@ export async function runManagerPicks(limit = 4): Promise<{
           market: pick.market,
           line: pick.line,
           pick: pick.pick,
+          // 한 cron 에서 여러 글이 동시 생성되므로 0~3시간 과거로 흩뿌려 자연스럽게
+          createdAt: new Date(Date.now() - Math.floor(Math.random() * 180) * 60_000),
         },
       });
       created++;
