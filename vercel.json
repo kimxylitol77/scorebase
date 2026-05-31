@@ -18,6 +18,8 @@
     { "path": "/api/cron/score-analysis", "schedule": "0 16 * * *" },
     { "path": "/api/cron/score-analysis", "schedule": "0 6 * * *" },
     { "path": "/api/cron/manager-picks", "schedule": "0 23 * * *" },
+    { "path": "/api/cron/fake-picks", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/fake-picks", "schedule": "0 11 * * *" },
     { "path": "/api/cron/cleanup-ghost", "schedule": "30 19 * * *" },
     { "path": "/api/cron/cleanup-stale-scheduled", "schedule": "0 */4 * * *" },
     { "path": "/api/cron/standings-collect", "schedule": "0 20 * * *" },

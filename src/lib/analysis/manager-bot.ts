@@ -56,7 +56,7 @@ export async function ensureManager(): Promise<string> {
   return u.id;
 }
 
-function sportForLeague(league: string): Sport | null {
+export function sportForLeague(league: string): Sport | null {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
   if (BASKETBALL_LEAGUES.has(league)) return "basketball";
   if (HOCKEY_LEAGUES.has(league)) return "hockey";
@@ -172,7 +172,7 @@ interface PickResult {
   analysis: string;
 }
 
-function parsePickJson(raw: string): Record<string, unknown> | null {
+export function parsePickJson(raw: string): Record<string, unknown> | null {
   let s = raw.trim();
   s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
   const start = s.indexOf("{");
