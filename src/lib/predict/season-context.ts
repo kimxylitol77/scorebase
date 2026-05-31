@@ -129,7 +129,7 @@ export function buildSeasonContext(
   let mc: MonteCarloRow[] | undefined;
   if (scheduled.length > 0 && finished.length >= 20) {
     mc = runMonteCarlo(matches, league, {
-      iterations: opts.iterations ?? 3000,
+      iterations: opts.iterations ?? 5000,
       relegationCount: opts.relegationCount ?? 0,
     });
   }

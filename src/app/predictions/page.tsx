@@ -24,7 +24,7 @@ export const revalidate = 600;
 export const metadata: Metadata = {
   title: "시즌 예측 — 스코어베이스",
   description:
-    "19개 리그 시즌 시뮬레이션 — Monte Carlo 1,000회 기반 우승·플레이오프·강등 확률. K리그1·K리그2·J1·J2·AFC 챔스 엘리트·KBO·NPB·MLB·EPL·LCK 등.",
+    "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 기반 우승·플레이오프·강등 확률. K리그1·K리그2·J1·J2·AFC 챔스 엘리트·KBO·NPB·MLB·EPL·LCK 등.",
 };
 
 // 한 league fetch — throw 면 빈 결과 반환 (전체 page 500 방지).

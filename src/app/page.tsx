@@ -139,7 +139,7 @@ const faqJsonLd = {
       name: "스코어베이스에서 어떤 리그를 다루나요?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "축구는 EPL(프리미어리그), 라리가, 분데스리가, 세리에A, 리그앙, MLS, UEFA 챔피언스리그를 다룹니다. 그 외에 NBA(농구), MLB(야구), NHL(아이스하키)까지 총 10개 리그를 매일 자동 업데이트합니다.",
+        text: "축구(EPL·라리가·분데스리가·세리에A·리그앙·MLS·챔피언스리그·K리그·J리그 등), 야구(KBO·NPB·MLB), 농구(NBA), 아이스하키(NHL), e스포츠(LCK)까지 총 19개 리그를 매일 자동 업데이트합니다.",
       },
     },
     {
@@ -209,7 +209,7 @@ export default async function Home() {
           <section>
             <SectionHeading
               title="최신 매치 리뷰·프리뷰"
-              subtitle="10개 리그의 매치 인사이트를 매일 자동 업데이트"
+              subtitle="19개 리그의 매치 인사이트를 매일 자동 업데이트"
             />
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {restLatest.map((a) => (
@@ -222,7 +222,7 @@ export default async function Home() {
         <section>
           <SectionHeading
             title="시즌 인사이트 — Elo 기반 우승 확률"
-            subtitle="10개 리그의 현재 흐름과 시즌 시뮬레이션 결과를 한 눈에"
+            subtitle="19개 리그의 현재 흐름과 시즌 시뮬레이션 결과를 한 눈에"
             href="/predictions"
             hrefLabel="예측 대시보드"
           />
@@ -343,7 +343,7 @@ function RecentUpdatesSection() {
       tag: "NEW",
       Icon: Radio,
       title: "스코어베이스 라이브스코어",
-      body: "13개 리그 (EPL · KBO · NPB · MLB · NBA · NHL · UCL · LCK 등) 라이브 / 종료 / 예정 매치를 한 페이지에.",
+      body: "19개 리그 (EPL · KBO · NPB · MLB · NBA · NHL · UCL · LCK 등) 라이브 / 종료 / 예정 매치를 한 페이지에.",
       href: "/scores",
       cta: "라이브 스코어 보기",
     },
@@ -359,7 +359,7 @@ function RecentUpdatesSection() {
       tag: "NEW",
       Icon: Sparkles,
       title: "베팅사이트 odds vs AI 모델 비교",
-      body: "글마다 8개 베팅사이트 평균 implied 확률을 우리 모델과 나란히 표시. 모델이 시장보다 5%p+ 자신 있는 결과는 Value Bet 으로 강조.",
+      body: "글마다 여러 베팅사이트 평균 implied 확률을 우리 모델과 나란히 표시. 모델이 시장보다 5%p+ 자신 있는 결과는 Value Bet 으로 강조.",
       href: "/predictions/accuracy",
       cta: "Value Bet 통계",
     },
@@ -649,7 +649,7 @@ function FaqSection() {
     },
     {
       q: "어떤 리그를 다루나요?",
-      a: "축구는 EPL(프리미어리그), 라리가, 분데스리가, 세리에A, 리그앙, MLS, UEFA 챔피언스리그를 다룹니다. 그 외에 NBA(농구), MLB(야구), NHL(아이스하키)까지 총 10개 리그를 매일 자동 업데이트합니다.",
+      a: "축구(EPL·라리가·분데스리가·세리에A·리그앙·MLS·챔피언스리그·K리그·J리그 등), 야구(KBO·NPB·MLB), 농구(NBA), 아이스하키(NHL), e스포츠(LCK)까지 총 19개 리그를 매일 자동 업데이트합니다.",
     },
     {
       q: "도박·베팅 사이트인가요?",

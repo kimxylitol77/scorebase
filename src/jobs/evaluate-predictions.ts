@@ -252,8 +252,10 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
       predCorrect: correct,
     };
 
-    // Value Bet 평가 — 시장 odds 가 저장돼 있으면 우리 모델 pick 의 prob 와 시장 prob 비교
-    if (m.marketHome != null && m.marketAway != null) {
+    // Value Bet 평가 — 시장 odds 가 저장돼 있으면 우리 모델 pick 의 prob 와 시장 prob 비교.
+    // 베팅사 3개 미만이면 시장 합의가 약해 Value Bet 판정 신뢰 불가 (NPB "0개사인데
+    // Value Bet" 사례 차단). marketBookmakers >= 3 일 때만 평가.
+    if (m.marketHome != null && m.marketAway != null && (m.marketBookmakers ?? 0) >= 3) {
       const modelProb =
         winner === "HOME" ? wp.home : winner === "AWAY" ? wp.away : wp.draw;
       const marketProb =

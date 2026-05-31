@@ -3,7 +3,7 @@
 // 동작:
 //   1) 현재까지 FINISHED 매치로 시즌 standings 누적
 //   2) SCHEDULED 매치 각각에 대해 Elo 기반 winProb 계산
-//   3) N 회 (기본 5,000~10,000) 시뮬레이션:
+//   3) N 회 (기본 5,000) 시뮬레이션:
 //      - 각 SCHEDULED 매치를 winProb 분포로 random sample (홈승/무/원정승)
 //      - 시즌 끝났을 때 final standings 만들기
 //      - 우승/Top4/강등(하위 3) 카운트
@@ -214,10 +214,12 @@ export function runMonteCarlo(
     const currentRow = fixed.byTeam.get(teamId);
     result.push({
       teamId,
-      champion: (accChampion.get(teamId) ?? 0) / iterations,
-      top4: (accTop4.get(teamId) ?? 0) / iterations,
-      top6: (accTop6.get(teamId) ?? 0) / iterations,
-      relegation: (accRelegation.get(teamId) ?? 0) / iterations,
+      // 확률 0.999 캡 — 잔여 경기 많은 시즌 중 100%/0% 표기는 모델 과신으로 읽혀
+      // 신뢰를 깎음(MLB 다저스 100% 사례). 수학적 확정이어도 99.9% 로 표시.
+      champion: Math.min(0.999, (accChampion.get(teamId) ?? 0) / iterations),
+      top4: Math.min(0.999, (accTop4.get(teamId) ?? 0) / iterations),
+      top6: Math.min(0.999, (accTop6.get(teamId) ?? 0) / iterations),
+      relegation: Math.min(0.999, (accRelegation.get(teamId) ?? 0) / iterations),
       expectedPoints: (accPoints.get(teamId) ?? 0) / iterations,
       expectedPosition: (accPosition.get(teamId) ?? 0) / iterations,
       currentPoints: currentRow?.points ?? 0,

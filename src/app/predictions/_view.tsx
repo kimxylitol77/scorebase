@@ -30,7 +30,7 @@ const featureCards: Array<{
   desc: string;
 }> = [
   { Icon: BarChart3, title: "Elo 예측", desc: "팀 전력과 홈/원정 흐름을 수치화" },
-  { Icon: Trophy, title: "시즌 시뮬레이션", desc: "Monte Carlo 1,000회 — 우승·강등 확률" },
+  { Icon: Trophy, title: "시즌 시뮬레이션", desc: "Monte Carlo 5,000회 — 우승·강등 확률" },
   { Icon: ShieldCheck, title: "부상자 영향", desc: "결장 변수와 경기 영향도 추적" },
   { Icon: Sparkles, title: "AI 프리뷰", desc: "핵심 포인트를 짧고 선명하게" },
 ];
@@ -42,7 +42,7 @@ export default function PredictionsView({ top3, countryGroups }: ViewProps) {
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-10 sm:pb-14">
         <div className="space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs sm:text-sm text-zinc-700 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/70">
-            <Sparkles className="h-4 w-4" /> Elo + Monte Carlo 1,000회 시뮬레이션
+            <Sparkles className="h-4 w-4" /> Elo + Monte Carlo 5,000회 시뮬레이션
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.04em] leading-[1.05] text-zinc-950 dark:text-white">
             감이 아니라,

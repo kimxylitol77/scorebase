@@ -260,7 +260,7 @@ export default async function AccuracyPage() {
             양 팀이 각각 한 골 이상 기록할 확률 산출 (P(0골) 보수).
           </li>
           <li>
-            <strong>강한 예측</strong> = 1X2 가장 높은 확률이 60% 이상인 매치만의
+            <strong>강한 예측</strong> = 1X2 가장 높은 확률이 65% 이상인 매치만의
             적중률.
           </li>
           <li>
