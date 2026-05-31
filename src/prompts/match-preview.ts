@@ -44,6 +44,27 @@ export interface PreviewContext {
   elo?: { home: number; away: number };
   /** 통계 추정 승률 (%) */
   winProb?: { home: number; draw: number; away: number };
+  /** 예측 신뢰도 — 코드 계산값 (LLM 추측 X). 위젯과 단일 소스. */
+  confidence?: {
+    /** 최고 확률 픽 (HOME/DRAW/AWAY) */
+    pick: "HOME" | "DRAW" | "AWAY";
+    /** 그 픽의 확률 0~1 */
+    prob: number;
+    /** 등급: high(65%+) / medium(50~65%) / low(<50%) */
+    level: "high" | "medium" | "low";
+  };
+  /** 데이터 부족 경고 — 양 팀 직전 경기 표본이 MIN_PRIOR 미만이면 신뢰 낮음 */
+  dataSparse?: {
+    sparse: boolean;
+    homePlayed: number;
+    awayPlayed: number;
+    /** 표본 충분 기준 (경기 수) */
+    minRequired: number;
+  };
+  /** 일정 — 직전 경기로부터 휴식일 (적을수록 체력/로테이션 부담). null=직전 경기 없음 */
+  restDays?: { home: number | null; away: number | null };
+  /** 모델이 본 핵심 이유 TOP 3 — 신호 크기순 코드 산출 (LLM 자유해석 X) */
+  keyReasons?: string[];
   /** 시즌 순위 */
   position?: { home: number; away: number; total: number };
   /** 시즌 승점 */
@@ -760,6 +781,12 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 
 - Value Bet이 있으면 ✨ 표시 + 한 줄 설명.
 - AI Strong Pick(65%+)이 있으면 ⭐ 강조.
+- **예측 신뢰도**: 입력의 "예측 신뢰도" 등급(높음/보통/낮음)을 표 아래 한 줄로 명시
+  (예: "🎯 예측 신뢰도: 보통 — 최고확률 삼성 58%"). 입력값 그대로, 임의 변경 금지.
+- **모델이 주목한 3가지**: 입력의 "모델이 본 핵심 이유" 항목을 불릿 3개로 풀어 쓴다.
+  각 이유에 "왜 중요한지" 한 문장 해석 추가. 입력에 이유가 3개 미만이면 있는 것만.
+- 입력에 "⚠️ 데이터 부족" 이 있으면 반드시 그 취지(표본 적어 신뢰도 낮음)를
+  한 문장 경고로 본문에 포함한다. 없으면 언급하지 마라.
 
 ## 시즌 함의
 이 경기 결과가 우승/강등/플레이오프 확률을 어떻게 흔드는지 1문단.

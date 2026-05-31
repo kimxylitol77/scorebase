@@ -38,6 +38,65 @@ import {
 } from "@/lib/sports/api-football-pro";
 import type { RecapContext } from "@/prompts/match-recap";
 
+/** 예측 신뢰도/데이터부족 기준 — 양 팀 직전 경기 표본 최소치. evaluate MIN_PRIOR 와 동일. */
+export const MIN_PRIOR_MATCHES = 5;
+
+/** winProb 최고 확률 → 신뢰도 등급 (코드 단일 소스 — 본문·위젯 동일값). */
+export function computeConfidence(wp: {
+  home: number;
+  draw: number;
+  away: number;
+}): { pick: "HOME" | "DRAW" | "AWAY"; prob: number; level: "high" | "medium" | "low" } {
+  const entries: Array<["HOME" | "DRAW" | "AWAY", number]> = [
+    ["HOME", wp.home],
+    ["DRAW", wp.draw],
+    ["AWAY", wp.away],
+  ];
+  const top = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const prob = top[1];
+  const level = prob >= 0.65 ? "high" : prob >= 0.5 ? "medium" : "low";
+  return { pick: top[0], prob, level };
+}
+
+/** 한 팀의 referenceTime 이전 FINISHED 경기 수. */
+function countPlayedBefore(
+  matches: PredictMatch[],
+  teamId: number,
+  refTime: number,
+): number {
+  let n = 0;
+  for (const m of matches) {
+    if (
+      m.status === "FINISHED" &&
+      m.startTime.getTime() < refTime &&
+      (m.homeTeamId === teamId || m.awayTeamId === teamId)
+    )
+      n++;
+  }
+  return n;
+}
+
+/** 직전 경기로부터 휴식일. 직전 경기 없으면 null. */
+export function computeRestDays(
+  matches: PredictMatch[],
+  teamId: number,
+  refTime: Date,
+): number | null {
+  let prev: number | null = null;
+  for (const m of matches) {
+    const t = m.startTime.getTime();
+    if (
+      m.status === "FINISHED" &&
+      t < refTime.getTime() &&
+      (m.homeTeamId === teamId || m.awayTeamId === teamId)
+    ) {
+      if (prev == null || t > prev) prev = t;
+    }
+  }
+  if (prev == null) return null;
+  return Math.round((refTime.getTime() - prev) / 86_400_000);
+}
+
 export function buildMatchContext(
   matches: PredictMatch[],
   league: string,
@@ -72,9 +131,78 @@ export function buildMatchContext(
 
   const h2h = calcH2H(matches, homeTeamId, awayTeamId, referenceTime, 5);
 
+  // ── 예측 신뢰도 / 데이터부족 / 휴식일 / 핵심 이유 (코드 산출 — LLM 추측 X) ──
+  const confidence = computeConfidence(wp);
+  const homePlayed = countPlayedBefore(matches, homeTeamId, referenceTime.getTime());
+  const awayPlayed = countPlayedBefore(matches, awayTeamId, referenceTime.getTime());
+  const dataSparse = {
+    sparse: Math.min(homePlayed, awayPlayed) < MIN_PRIOR_MATCHES,
+    homePlayed,
+    awayPlayed,
+    minRequired: MIN_PRIOR_MATCHES,
+  };
+  const restDays = {
+    home: computeRestDays(matches, homeTeamId, referenceTime),
+    away: computeRestDays(matches, awayTeamId, referenceTime),
+  };
+
+  // 핵심 이유 TOP 3 — 신호 크기순. text 는 {home}/{away} placeholder (소비처에서 팀명 치환).
+  const signals: Array<{ score: number; text: string }> = [];
+  const eloDiff = homeElo - awayElo;
+  if (Math.abs(eloDiff) >= 25) {
+    const fav = eloDiff > 0 ? "{home}" : "{away}";
+    signals.push({
+      score: Math.abs(eloDiff) / 8,
+      text: `${fav} Elo 우위 (${Math.round(homeElo)} vs ${Math.round(awayElo)})`,
+    });
+  }
+  const formDiff = homeTrend.ppg - awayTrend.ppg;
+  if (homeTrend.matches >= 3 && awayTrend.matches >= 3 && Math.abs(formDiff) >= 0.4) {
+    const fav = formDiff > 0 ? "{home}" : "{away}";
+    const t = formDiff > 0 ? homeTrend : awayTrend;
+    signals.push({
+      score: Math.abs(formDiff) * 4,
+      text: `${fav} 최근 5경기 폼 우위 (경기당 ${t.ppg.toFixed(1)}점·득점 ${t.gf.toFixed(1)})`,
+    });
+  }
+  const haDiff = homeHA.home.ppg - awayHA.away.ppg;
+  if (Math.abs(haDiff) >= 0.3) {
+    const fav = haDiff > 0 ? "{home} 홈" : "{away} 원정";
+    signals.push({
+      score: Math.abs(haDiff) * 3,
+      text: `${fav} 강세 (홈 ${homeHA.home.ppg.toFixed(1)}점 / 원정 ${awayHA.away.ppg.toFixed(1)}점)`,
+    });
+  }
+  if (h2h.total >= 3 && Math.abs(h2h.homeTeamWins - h2h.awayTeamWins) >= 2) {
+    const fav = h2h.homeTeamWins > h2h.awayTeamWins ? "{home}" : "{away}";
+    signals.push({
+      score: (Math.abs(h2h.homeTeamWins - h2h.awayTeamWins) / h2h.total) * 4,
+      text: `상대전적 ${fav} 우세 (최근 ${h2h.total}경기 ${h2h.homeTeamWins}-${h2h.draws}-${h2h.awayTeamWins})`,
+    });
+  }
+  const homeRun = Math.max(homeStreak.winning, homeStreak.losing);
+  const awayRun = Math.max(awayStreak.winning, awayStreak.losing);
+  if (homeRun >= 3 || awayRun >= 3) {
+    if (homeRun >= awayRun && homeRun >= 3) {
+      const kind = homeStreak.winning >= 3 ? `${homeStreak.winning}연승` : `${homeStreak.losing}연패`;
+      signals.push({ score: homeRun, text: `{home} ${kind} 흐름` });
+    } else if (awayRun >= 3) {
+      const kind = awayStreak.winning >= 3 ? `${awayStreak.winning}연승` : `${awayStreak.losing}연패`;
+      signals.push({ score: awayRun, text: `{away} ${kind} 흐름` });
+    }
+  }
+  const keyReasons = signals
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((s) => s.text);
+
   return {
     elo: { home: homeElo, away: awayElo },
     winProb: { home: wp.home, draw: wp.draw, away: wp.away },
+    confidence,
+    dataSparse,
+    restDays,
+    keyReasons: keyReasons.length > 0 ? keyReasons : undefined,
     position: homeRow && awayRow
       ? {
           home: homeRow.position,
