@@ -12,6 +12,7 @@ import {
   type MatchSummary,
   type PeriodLinescore,
   type SoccerGoal,
+  parseTsFootballScore,
 } from "@/lib/sports/live-scores";
 // Phase 1 (2026-05-25): 축구의 ESPN summary + api-football events/stats/goals/lineups
 // 모두 제거. TheSports cache.detailLive 로 일원화 (page.tsx 가 직접 cache 조회).
@@ -351,42 +352,33 @@ export async function GET(
             score?: unknown[];
             incidents?: Array<{ home_score?: number; away_score?: number }>;
           } | null;
-          let tsHome = -1;
-          let tsAway = -1;
-          // (1) score array [home_regular, away_regular, home_ot, away_ot]
-          const arr = Array.isArray(dl?.score) ? dl.score : null;
-          if (arr && arr.length >= 4 && Array.isArray(arr[2]) && Array.isArray(arr[3])) {
-            const homeArr = arr[2] as unknown[];
-            const awayArr = arr[3] as unknown[];
-            const homeReg = Number(homeArr[0]);
-            const homeOt = Number(homeArr[5]); // 연장전 (regular 포함)
-            const awayReg = Number(awayArr[0]);
-            const awayOt = Number(awayArr[5]);
-            tsHome = Math.max(tsHome, Number.isFinite(homeReg) ? homeReg : -1, Number.isFinite(homeOt) ? homeOt : -1);
-            tsAway = Math.max(tsAway, Number.isFinite(awayReg) ? awayReg : -1, Number.isFinite(awayOt) ? awayOt : -1);
-            // 승부차기 (idx6) — 정규/연장 동점 후 PK. -1=없음.
-            const homePen = Number(homeArr[6]);
-            const awayPen = Number(awayArr[6]);
-            if (homePen >= 0 && awayPen >= 0 && (homePen > 0 || awayPen > 0)) {
-              out.penHome = homePen;
-              out.penAway = awayPen;
+          const fs = parseTsFootballScore(dl);
+          if (fs?.penHome != null && fs?.penAway != null) {
+            // 승부차기 종료(또는 진행 중) — 메인 점수는 정규/연장 (cache idx0/5) 이 권위.
+            // incidents 의 PK 골 누적이 메인을 4 로 오염시키므로 incidents max 를 쓰지 않는다.
+            out.homeScore = fs.mainHome;
+            out.awayScore = fs.mainAway;
+            out.penHome = fs.penHome;
+            out.penAway = fs.penAway;
+          } else {
+            // 일반/연장 경기 — score array(정규+연장) + incidents 마지막 score 중 max (라이브 fresh).
+            let tsHome = fs ? fs.mainHome : -1;
+            let tsAway = fs ? fs.mainAway : -1;
+            if (Array.isArray(dl?.incidents)) {
+              for (const inc of dl.incidents) {
+                const h = typeof inc?.home_score === "number" ? inc.home_score : -1;
+                const a = typeof inc?.away_score === "number" ? inc.away_score : -1;
+                if (h > tsHome) tsHome = h;
+                if (a > tsAway) tsAway = a;
+              }
             }
-          }
-          // (2) incidents 마지막 entry score — 가장 fresh source
-          if (Array.isArray(dl?.incidents)) {
-            for (const inc of dl.incidents) {
-              const h = typeof inc?.home_score === "number" ? inc.home_score : -1;
-              const a = typeof inc?.away_score === "number" ? inc.away_score : -1;
-              if (h > tsHome) tsHome = h;
-              if (a > tsAway) tsAway = a;
+            // monotonic max(ESPN, cache)
+            if (tsHome >= 0 && (out.homeScore == null || tsHome > out.homeScore)) {
+              out.homeScore = tsHome;
             }
-          }
-          // monotonic max(ESPN, cache)
-          if (tsHome >= 0 && (out.homeScore == null || tsHome > out.homeScore)) {
-            out.homeScore = tsHome;
-          }
-          if (tsAway >= 0 && (out.awayScore == null || tsAway > out.awayScore)) {
-            out.awayScore = tsAway;
+            if (tsAway >= 0 && (out.awayScore == null || tsAway > out.awayScore)) {
+              out.awayScore = tsAway;
+            }
           }
         }
       } catch {

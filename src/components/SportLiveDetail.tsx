@@ -123,6 +123,9 @@ interface Props {
   /** SSR 단에서 본 초기 점수 (라이브 데이터 도착 전 placeholder) */
   initialHomeScore?: number | null;
   initialAwayScore?: number | null;
+  /** SSR 단 초기 승부차기 점수 (축구) — 첫 폴링 전 (4)1:1(3) 표시용 */
+  initialPenHome?: number | null;
+  initialPenAway?: number | null;
   /** DB Match.status — 라이브 API 가 매치 못 찾을 때 fallback (종료된 매치 등) */
   initialStatus?: "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED";
   /** 리그 순위 (TheSports standings) — 팀명 옆 [N] 표시. 클릭 시 새창에서 /predictions/{league} */
@@ -152,6 +155,8 @@ export default function SportLiveDetail({
   awayLogoUrl,
   initialHomeScore,
   initialAwayScore,
+  initialPenHome,
+  initialPenAway,
   initialStatus,
   homePosition,
   awayPosition,
@@ -233,8 +238,8 @@ export default function SportLiveDetail({
     (loaded && live?.status !== "LIVE" && initialStatus === "FINISHED");
   const homeScore = live?.homeScore ?? initialHomeScore ?? null;
   const awayScore = live?.awayScore ?? initialAwayScore ?? null;
-  const penHome = live?.penHome ?? null;
-  const penAway = live?.penAway ?? null;
+  const penHome = live?.penHome ?? initialPenHome ?? null;
+  const penAway = live?.penAway ?? initialPenAway ?? null;
   const statusBadge = !loaded
     ? initialStatus === "FINISHED" ? "종료" : "LOADING"
     : isLive
