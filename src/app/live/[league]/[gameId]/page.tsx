@@ -33,6 +33,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import { parseTsFootballScore } from "@/lib/sports/live-scores";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
@@ -437,6 +438,12 @@ export default async function GenericLivePage({ params }: Props) {
     isAccessibleForFree: true,
   };
 
+  // 축구 — 승부차기/연장 분리. DB.homeScore 는 승부차기 합산 오염 가능(예 UCL 결승 4-3) →
+  // SSR 초기값을 cache 의 정규/연장(mainHome) + 승부차기(penHome) 로 분리해 첫 화면부터 (4)1:1(3).
+  const soccerScore = isSoccer
+    ? parseTsFootballScore(match.theSportsCache?.detailLive)
+    : null;
+
   return (
     <>
       <script
@@ -503,8 +510,10 @@ export default async function GenericLivePage({ params }: Props) {
         awayTeamId={match.awayTeam.id}
         homeLogoUrl={match.homeTeam.logoUrl ?? null}
         awayLogoUrl={match.awayTeam.logoUrl ?? null}
-        initialHomeScore={match.homeScore}
-        initialAwayScore={match.awayScore}
+        initialHomeScore={soccerScore?.mainHome ?? match.homeScore}
+        initialAwayScore={soccerScore?.mainAway ?? match.awayScore}
+        initialPenHome={soccerScore?.penHome ?? null}
+        initialPenAway={soccerScore?.penAway ?? null}
         initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
         homePosition={homePosition}
         awayPosition={awayPosition}
