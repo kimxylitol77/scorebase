@@ -7,7 +7,7 @@ const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 export const metadata: Metadata = {
   title: "Scorebase 소개 — 데이터로 보는 글로벌 스포츠",
   description:
-    "Scorebase는 EPL · 라리가 · 분데스리가 · 세리에 A · 리그 1 · MLS · 챔피언스리그 · NBA · NHL · MLB 의 경기 결과·프리뷰·시즌 분석을 데이터 기반으로 정리하는 미디어입니다. football-data.org 와 ESPN 의 공식 데이터를 사용하며, Elo 레이팅과 Monte Carlo 시뮬레이션으로 시즌 우승·강등 확률을 추정합니다.",
+    "Scorebase는 EPL · 라리가 · 분데스리가 · 세리에 A · 리그 1 · MLS · 챔피언스리그 · K리그 · J리그 · KBO · NPB · MLB · NBA · NHL · LCK 등 19개 리그의 경기 결과·프리뷰·시즌 분석을 데이터 기반으로 정리하는 미디어입니다. TheSports·ESPN 등 공식 데이터를 사용하며, Elo 레이팅과 Monte Carlo 시뮬레이션으로 시즌 우승·강등 확률을 추정합니다.",
   alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {
     title: "Scorebase 소개",
@@ -66,10 +66,15 @@ export default function AboutPage() {
             <Link href="/leagues/SERIE_A">세리에 A</Link>,{" "}
             <Link href="/leagues/LIGUE_1">리그 1</Link>,{" "}
             <Link href="/leagues/MLS">MLS</Link>,{" "}
-            <Link href="/leagues/UCL">UEFA 챔피언스리그</Link>
+            <Link href="/leagues/UCL">UEFA 챔피언스리그</Link>, 유로파리그,
+            컨퍼런스리그,{" "}
+            <Link href="/leagues/K_LEAGUE_1">K리그</Link>,{" "}
+            <Link href="/leagues/J1_LEAGUE">J리그</Link>
           </li>
           <li>
-            <strong>야구</strong> · <Link href="/leagues/MLB">MLB</Link>
+            <strong>야구</strong> · <Link href="/leagues/KBO">KBO</Link>,{" "}
+            <Link href="/leagues/NPB">NPB</Link>,{" "}
+            <Link href="/leagues/MLB">MLB</Link>
           </li>
           <li>
             <strong>농구</strong> · <Link href="/leagues/NBA">NBA</Link>
@@ -77,7 +82,13 @@ export default function AboutPage() {
           <li>
             <strong>아이스하키</strong> · <Link href="/leagues/NHL">NHL</Link>
           </li>
+          <li>
+            <strong>e스포츠</strong> · <Link href="/leagues/LOL">LCK</Link>
+          </li>
         </ul>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          AI 프리뷰·리뷰 자동 발행 대상은 위 19개 주요 리그입니다.
+        </p>
 
         <h2>데이터 출처</h2>
         <p>
@@ -88,8 +99,11 @@ export default function AboutPage() {
             <strong>EPL</strong> — football-data.org (공식 라이선스 API)
           </li>
           <li>
-            <strong>그 외 축구 리그·NBA·NHL·MLB</strong> — ESPN 공개 scoreboard
-            API
+            <strong>TheSports</strong> — 축구·야구·농구·하키 라이브 스코어 +
+            라인업·통계·H2H (1순위 소스)
+          </li>
+          <li>
+            <strong>그 외 (NBA·NHL·MLB 등)</strong> — ESPN 공개 scoreboard API
           </li>
         </ul>
 

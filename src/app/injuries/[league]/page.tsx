@@ -916,16 +916,21 @@ export default async function InjuriesByLeague({
       partCount.set(i.reasonKo, (partCount.get(i.reasonKo) ?? 0) + 1);
     }
   }
+  // generic("부상"/"미상"/"부상 의심" 등 부위 불명)은 부위가 아니므로 1위에서 제외 —
+  // "최다 부상 부위: 부상" 같은 무의미 표기 방지. 구체 부위 우선, 전부 미분류면 null.
+  const GENERIC_REASON = new Set(["부상", "미상", "부상 의심", "결장", "기타"]);
   const sortedParts = Array.from(partCount.entries()).sort(
     (a, b) => b[1] - a[1],
   );
-  const topPart = sortedParts[0]
+  const topEntry =
+    sortedParts.find(([name]) => !GENERIC_REASON.has(name)) ?? null;
+  const topPart = topEntry
     ? {
-        name: sortedParts[0][0],
-        count: sortedParts[0][1],
+        name: topEntry[0],
+        count: topEntry[1],
         pct:
           totalInjuries > 0
-            ? Math.round((sortedParts[0][1] / totalInjuries) * 100)
+            ? Math.round((topEntry[1] / totalInjuries) * 100)
             : 0,
       }
     : null;
