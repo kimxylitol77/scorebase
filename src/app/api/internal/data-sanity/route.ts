@@ -294,17 +294,24 @@ export async function GET(req: NextRequest) {
       }
       const ftAway = parseInt(ft[0], 10);
       const ftHome = parseInt(ft[1], 10);
+      // 라이브 push 진행 중(cache 최근 5분 내 갱신)이면 이닝 partial 은 다음 push 가
+      // 보정 → skip. 총점(ft)·DB·화면 점수는 정상이고 이닝 분해만 일시 어긋난 정상 케이스
+      // (LMB #328157: ft=[4,5] DB 일치, 이닝합만 4) false alarm 차단. cache_db_mismatch
+      // 의 sync grace 와 동일 철학 — 5분+ 정체된 채 불일치만 진짜 push 누락 고착으로 알림.
+      const innerCacheAgeMs = cache?.updatedAt ? now - cache.updatedAt.getTime() : Infinity;
+      const INNER_FRESH_MS = 5 * 60 * 1000;
       if (
         hasInning &&
         Number.isFinite(ftAway) &&
         Number.isFinite(ftHome) &&
-        (ftAway !== sumAway || ftHome !== sumHome)
+        (ftAway !== sumAway || ftHome !== sumHome) &&
+        innerCacheAgeMs >= INNER_FRESH_MS
       ) {
         issues.push({
           ...matchInfo,
           kind: "cache_inner_inconsistent",
           severity: "WARN",
-          detail: `cache ft=[${ftAway},${ftHome}] vs 이닝 합=[${sumAway},${sumHome}] 불일치 (TheSports push 일부 누락 — 이닝 표시 vs 총점 mismatch 위험)`,
+          detail: `cache ft=[${ftAway},${ftHome}] vs 이닝 합=[${sumAway},${sumHome}] 불일치 + cache ${Math.round(innerCacheAgeMs / 60000)}분 정체 (TheSports push 누락 고착 의심)`,
         });
       }
     }
