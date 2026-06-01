@@ -20,6 +20,7 @@ import {
 import {
   FIFA_RANKINGS,
   fifaCountryKo,
+  fifaFlag,
   FIFA_RANKING_DATE,
 } from "@/lib/sports/fifa-rankings";
 
@@ -144,12 +145,13 @@ const PREDICTIONS_JSONLD = {
   measurementTechnique: "Monte Carlo 시뮬레이션(5,000회) + Elo 레이팅",
 };
 
-// FIFA 국가 랭킹 표시용 — 정적 JSON(fifa-rankings) → 한글명 부여. 영문 canonical 매핑
-// 없으면 toKoreanTeamName(국가대표 RAW)으로 2차 보강, 그래도 없으면 영문 그대로.
-function buildFifaRanking(): { rank: number; name: string }[] {
+// FIFA 국가 랭킹 표시용 — 정적 JSON(fifa-rankings) → 한글명 + 국기 부여. 영문 canonical
+// 매핑 없으면 toKoreanTeamName(국가대표 RAW)으로 2차 보강, 그래도 없으면 영문 그대로.
+function buildFifaRanking(): { rank: number; name: string; flag: string }[] {
   return FIFA_RANKINGS.map((r) => ({
     rank: r.rank,
     name: fifaCountryKo(r.name) ?? toKoreanTeamName(r.name, "INTL_FRIENDLY"),
+    flag: fifaFlag(r.name),
   }));
 }
 

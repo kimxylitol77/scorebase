@@ -2,6 +2,7 @@
 
 // 리디자인된 /predictions 인덱스 — Apple 톤(라이트) + glassmorphism(다크).
 // 데이터는 server 에서 fetch 해 props 로 받음 (page.tsx).
+import { Fragment } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -24,7 +25,7 @@ interface ViewProps {
   top3: Record<string, TopThreeEntry[]>;
   countryGroups: CountryStandingsGroup[];
   /** FIFA 남자 국가대표 랭킹 (rank asc) — 국가대표 섹션 표 */
-  fifaRanking: { rank: number; name: string }[];
+  fifaRanking: { rank: number; name: string; flag: string }[];
   /** FIFA 랭킹 발표 일자 (YYYY-MM-DD) */
   fifaDate: string;
 }
@@ -46,6 +47,55 @@ export default function PredictionsView({
   fifaRanking,
   fifaDate,
 }: ViewProps) {
+  // FIFA 국가 랭킹 블록 — 축구 리그 카드 그리드 직후(월드컵 카드 옆)에 렌더. 국기 + 한글명.
+  const fifaBlock =
+    fifaRanking.length > 0 ? (
+      <div id="fifa-ranking" className="space-y-4 scroll-mt-24">
+        <div className="flex items-baseline justify-between">
+          <h3 className="flex items-center gap-2 text-lg sm:text-xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+            <Globe className="h-5 w-5 text-zinc-500 dark:text-white/50" />
+            FIFA 국가 랭킹
+          </h3>
+          <span className="text-xs text-zinc-400 dark:text-white/40 tabular-nums">
+            {fifaDate} 기준 · {fifaRanking.length}개국
+          </span>
+        </div>
+        <div className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-0.5">
+            {fifaRanking.map((c) => (
+              <li
+                key={c.rank}
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]"
+              >
+                <span
+                  className={`w-6 shrink-0 text-right tabular-nums text-sm font-bold ${
+                    c.rank === 1
+                      ? "text-amber-500"
+                      : c.rank <= 3
+                        ? "text-amber-600/80 dark:text-amber-400/80"
+                        : c.rank <= 10
+                          ? "text-zinc-600 dark:text-white/60"
+                          : "text-zinc-400 dark:text-white/35"
+                  }`}
+                >
+                  {c.rank}
+                </span>
+                <span
+                  className="w-5 shrink-0 text-center text-base leading-none"
+                  aria-hidden
+                >
+                  {c.flag}
+                </span>
+                <span className="truncate text-sm text-zinc-800 dark:text-white/85">
+                  {c.name}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
       {/* Hero */}
@@ -125,7 +175,8 @@ export default function PredictionsView({
             const sportLeagues = LEAGUES.filter((l) => l.sport === sport);
             if (sportLeagues.length === 0) return null;
             return (
-              <div key={sport} className="space-y-4">
+              <Fragment key={sport}>
+                <div className="space-y-4">
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-zinc-950 dark:text-white">
                     {sport}
@@ -226,55 +277,13 @@ export default function PredictionsView({
                     );
                   })}
                 </div>
-              </div>
+                </div>
+                {sport === "축구" && fifaBlock}
+              </Fragment>
             );
           })}
         </div>
       </section>
-
-      {/* FIFA 국가 랭킹 — 국가대표 친선/예선/대륙컵 매치 [순위]의 출처. 전 211개국. */}
-      {fifaRanking.length > 0 && (
-        <section id="fifa-ranking" className="mx-auto max-w-6xl px-4 sm:px-6 pb-16">
-          <div className="mb-6 flex items-end justify-between">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-                FIFA 국가 랭킹
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-white/45">
-                FIFA 남자 국가대표 랭킹 · {fifaDate} 발표 기준 · {fifaRanking.length}개국
-              </p>
-            </div>
-            <Globe className="hidden sm:block h-6 w-6 text-zinc-400 dark:text-white/40" />
-          </div>
-          <div className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-            <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-0.5">
-              {fifaRanking.map((c) => (
-                <li
-                  key={c.rank}
-                  className="flex items-center gap-3 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]"
-                >
-                  <span
-                    className={`w-7 shrink-0 text-right tabular-nums text-sm font-bold ${
-                      c.rank === 1
-                        ? "text-amber-500"
-                        : c.rank <= 3
-                          ? "text-amber-600/80 dark:text-amber-400/80"
-                          : c.rank <= 10
-                            ? "text-zinc-600 dark:text-white/60"
-                            : "text-zinc-400 dark:text-white/35"
-                    }`}
-                  >
-                    {c.rank}
-                  </span>
-                  <span className="truncate text-sm text-zinc-800 dark:text-white/85">
-                    {c.name}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-      )}
 
       {/* Country grouped standings */}
       {countryGroups.length > 0 && (

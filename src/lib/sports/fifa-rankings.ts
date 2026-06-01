@@ -280,3 +280,78 @@ for (const [ko, en] of Object.entries(KOREAN_ALIASES)) {
 export function fifaCountryKo(nameEn: string): string | null {
   return EN_TO_KO_DISPLAY[nameEn] ?? null;
 }
+
+// FIFA 영문 canonical → ISO 3166-1 alpha-2 (국기 emoji 생성용).
+// 잉글랜드/스코틀랜드/웨일스는 regional-indicator 가 없어 subdivision 태그 시퀀스로 별도 처리.
+// 북아일랜드는 표준 emoji 가 없어 국기 미표시(graceful).
+const EN_TO_ISO2: Record<string, string> = {
+  France: "FR", Spain: "ES", Argentina: "AR", Portugal: "PT", Brazil: "BR",
+  Netherlands: "NL", Morocco: "MA", Belgium: "BE", Germany: "DE", Croatia: "HR",
+  Italy: "IT", Colombia: "CO", Senegal: "SN", Mexico: "MX", USA: "US",
+  Uruguay: "UY", Japan: "JP", Switzerland: "CH", Denmark: "DK", "IR Iran": "IR",
+  Turkey: "TR", Ecuador: "EC", Austria: "AT", "Korea Republic": "KR", Nigeria: "NG",
+  Australia: "AU", Algeria: "DZ", Egypt: "EG", Canada: "CA", Norway: "NO",
+  Ukraine: "UA", Panama: "PA", "Côte d'Ivoire": "CI", Poland: "PL", Russia: "RU",
+  Sweden: "SE", Serbia: "RS", Paraguay: "PY", Czechia: "CZ", Hungary: "HU",
+  Tunisia: "TN", Cameroon: "CM", "Congo DR": "CD", Greece: "GR", Slovakia: "SK",
+  Venezuela: "VE", Uzbekistan: "UZ", "Costa Rica": "CR", Mali: "ML", Peru: "PE",
+  Chile: "CL", Qatar: "QA", Romania: "RO", Iraq: "IQ", Slovenia: "SI",
+  "Republic of Ireland": "IE", "South Africa": "ZA", "Saudi Arabia": "SA",
+  "Burkina Faso": "BF", Jordan: "JO", Albania: "AL", "Bosnia and Herzegovina": "BA",
+  Honduras: "HN", "North Macedonia": "MK", "United Arab Emirates": "AE", "Cabo Verde": "CV",
+  Jamaica: "JM", Georgia: "GE", Finland: "FI", Ghana: "GH", Iceland: "IS",
+  Bolivia: "BO", Israel: "IL", Kosovo: "XK", Oman: "OM", Guinea: "GN",
+  Montenegro: "ME", "Curaçao": "CW", Haiti: "HT", Syria: "SY", "New Zealand": "NZ",
+  Bulgaria: "BG", Gabon: "GA", Uganda: "UG", Angola: "AO", Benin: "BJ",
+  Bahrain: "BH", Zambia: "ZM", Thailand: "TH", "China PR": "CN", Palestine: "PS",
+  Guatemala: "GT", Belarus: "BY", Luxembourg: "LU", Vietnam: "VN", "El Salvador": "SV",
+  Mozambique: "MZ", "Trinidad and Tobago": "TT", Tajikistan: "TJ", Madagascar: "MG",
+  "Equatorial Guinea": "GQ", Armenia: "AM", "Kyrgyz Republic": "KG", Lebanon: "LB",
+  Comoros: "KM", Kazakhstan: "KZ", Kenya: "KE", Libya: "LY", Tanzania: "TZ",
+  Niger: "NE", Mauritania: "MR", "The Gambia": "GM", Sudan: "SD", "Korea DPR": "KP",
+  "Sierra Leone": "SL", Namibia: "NA", Togo: "TG", Indonesia: "ID", "Faroe Islands": "FO",
+  Azerbaijan: "AZ", Suriname: "SR", Cyprus: "CY", Malawi: "MW", Rwanda: "RW",
+  Estonia: "EE", Zimbabwe: "ZW", Nicaragua: "NI", "Guinea-Bissau": "GW", Congo: "CG",
+  Kuwait: "KW", Philippines: "PH", India: "IN", Latvia: "LV", Malaysia: "MY",
+  "Central African Republic": "CF", Liberia: "LR", Turkmenistan: "TM", Burundi: "BI",
+  "Dominican Republic": "DO", Ethiopia: "ET", Lesotho: "LS", Botswana: "BW", Singapore: "SG",
+  Lithuania: "LT", Yemen: "YE", Guyana: "GY", "New Caledonia": "NC", "St Kitts and Nevis": "KN",
+  "Solomon Islands": "SB", Fiji: "FJ", "Hong Kong, China": "HK", "Puerto Rico": "PR", Tahiti: "PF",
+  Myanmar: "MM", Moldova: "MD", Vanuatu: "VU", Malta: "MT", "Antigua and Barbuda": "AG",
+  Grenada: "GD", Cuba: "CU", Eswatini: "SZ", Bermuda: "BM", "St Lucia": "LC",
+  "Papua New Guinea": "PG", Afghanistan: "AF", "South Sudan": "SS",
+  "St Vincent and the Grenadines": "VC", Maldives: "MV", Andorra: "AD", "Chinese Taipei": "TW",
+  Montserrat: "MS", Nepal: "NP", Cambodia: "KH", Mauritius: "MU", Barbados: "BB",
+  Belize: "BZ", Bangladesh: "BD", Dominica: "DM", Chad: "TD", Eritrea: "ER",
+  Laos: "LA", Bhutan: "BT", Mongolia: "MN", "Cook Islands": "CK", Aruba: "AW",
+  Samoa: "WS", "Sri Lanka": "LK", "American Samoa": "AS", "Brunei Darussalam": "BN", Macau: "MO",
+  "Cayman Islands": "KY", "São Tomé and Príncipe": "ST", Djibouti: "DJ", Somalia: "SO",
+  Tonga: "TO", "Timor-Leste": "TL", Guam: "GU", Pakistan: "PK", Gibraltar: "GI",
+  Seychelles: "SC", "Turks and Caicos Islands": "TC", Liechtenstein: "LI", Bahamas: "BS",
+  "British Virgin Islands": "VG", "US Virgin Islands": "VI", Anguilla: "AI", "San Marino": "SM",
+};
+
+// regional-indicator 가 없는 영국 구성국 — subdivision 태그 시퀀스로 국기 생성.
+const SUBDIVISION_FLAG: Record<string, string> = {
+  England: "gbeng",
+  Scotland: "gbsct",
+  Wales: "gbwls",
+};
+
+function regionalIndicator(iso2: string): string {
+  return String.fromCodePoint(
+    ...[...iso2.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65),
+  );
+}
+function subdivisionFlag(sub: string): string {
+  let s = String.fromCodePoint(0x1f3f4); // 흑색 깃발
+  for (const ch of sub) s += String.fromCodePoint(0xe0000 + ch.charCodeAt(0));
+  return s + String.fromCodePoint(0xe007f); // cancel tag
+}
+
+/** FIFA 영문 canonical 국가명 → 국기 emoji. 매핑 없으면 "" (graceful 미표시). */
+export function fifaFlag(nameEn: string): string {
+  if (SUBDIVISION_FLAG[nameEn]) return subdivisionFlag(SUBDIVISION_FLAG[nameEn]);
+  const iso2 = EN_TO_ISO2[nameEn];
+  return iso2 ? regionalIndicator(iso2) : "";
+}
