@@ -18,6 +18,8 @@ import SportLiveDetail from "@/components/SportLiveDetail";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
 import SoccerH2HCard from "@/components/scores/soccer/SoccerH2HCard";
 import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
+import MatchOddsTable from "@/components/MatchOddsTable";
+import { fetchFixtureOdds } from "@/lib/odds/api-sports-odds";
 import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeStatsCard";
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
@@ -400,11 +402,19 @@ export default async function GenericLivePage({ params }: Props) {
         <div className="space-y-4">{predictionNode}{seasonNode}{venueNode}{upcomingNode}</div>
       ) : null;
 
+    // 배당 — API-Sports odds (축구 externalId = api-football fixture id 직접 매핑).
+    // 배당 없는 경기는 enabled=false 라 탭이 숨겨짐.
+    const fixtureOdds = /^\d+$/.test(match.externalId)
+      ? await fetchFixtureOdds(match.externalId)
+      : null;
+    const oddsTab = fixtureOdds ? <MatchOddsTable odds={fixtureOdds} /> : null;
+
     soccerTabs.push(
       { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
       { key: "soccer-stats", label: "팀 통계", enabled: !!statsTab, content: statsTab },
       { key: "soccer-h2h", label: "맞대결", enabled: !!h2hTab, content: h2hTab },
       { key: "soccer-info", label: "경기 정보", enabled: !!infoTab, content: infoTab },
+      { key: "soccer-odds", label: "배당", enabled: !!oddsTab, content: oddsTab },
     );
   }
 
