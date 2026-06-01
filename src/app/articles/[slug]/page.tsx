@@ -598,6 +598,12 @@ export default async function ArticlePage({ params }: Props) {
 
       {/* LoL RECAP 본문은 길게 풀어쓴 Markdown (사용자 선호 — 카드 UI 대신 본문에 모든 정보 통합).
           lolRecapCtx 가 있어도 본문 안에 5라인 매치업·시즌·MVP 가 다 들어있으므로 Markdown 만. */}
+      {article.match && (
+        <p className="mb-4 rounded-lg border border-amber-200/60 bg-amber-50/60 px-3 py-2 text-[12px] leading-relaxed text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200/85">
+          📅 이 분석은 <strong>{date} 발행 시점</strong>의 데이터 기준입니다. Elo·순위·선발 등은
+          이후 갱신될 수 있어, 아래 실시간 위젯과 차이가 있을 수 있습니다.
+        </p>
+      )}
       <Markdown>{article.content}</Markdown>
 
       {/* AI 작성 disclosure + 데이터 출처 */}
