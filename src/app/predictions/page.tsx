@@ -17,6 +17,11 @@ import {
   type CountryStandingsGroup,
   type TopThreeEntry,
 } from "./_data";
+import {
+  FIFA_RANKINGS,
+  fifaCountryKo,
+  FIFA_RANKING_DATE,
+} from "@/lib/sports/fifa-rankings";
 
 // b14e3e6 baseline 동일 — 둘 다 export. (force-dynamic 우선 + revalidate hint)
 export const dynamic = "force-dynamic";
@@ -30,6 +35,7 @@ export const metadata: Metadata = {
     "시즌 예측", "우승 확률", "우승 예측", "Monte Carlo 시뮬레이션",
     "EPL 우승 확률", "리그 우승 예측", "강등 확률", "플레이오프 확률",
     "Elo 레이팅", "시즌 시뮬레이션",
+    "FIFA 랭킹", "FIFA 국가 랭킹", "축구 국가대표 순위",
   ],
 };
 
@@ -138,18 +144,33 @@ const PREDICTIONS_JSONLD = {
   measurementTechnique: "Monte Carlo 시뮬레이션(5,000회) + Elo 레이팅",
 };
 
+// FIFA 국가 랭킹 표시용 — 정적 JSON(fifa-rankings) → 한글명 부여. 영문 canonical 매핑
+// 없으면 toKoreanTeamName(국가대표 RAW)으로 2차 보강, 그래도 없으면 영문 그대로.
+function buildFifaRanking(): { rank: number; name: string }[] {
+  return FIFA_RANKINGS.map((r) => ({
+    rank: r.rank,
+    name: fifaCountryKo(r.name) ?? toKoreanTeamName(r.name, "INTL_FRIENDLY"),
+  }));
+}
+
 export default async function PredictionsRoot() {
   const [top3, countryGroups] = await Promise.all([
     fetchTop3Map(),
     fetchCountryStandings(),
   ]);
+  const fifaRanking = buildFifaRanking();
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(PREDICTIONS_JSONLD) }}
       />
-      <PredictionsView top3={top3} countryGroups={countryGroups} />
+      <PredictionsView
+        top3={top3}
+        countryGroups={countryGroups}
+        fifaRanking={fifaRanking}
+        fifaDate={FIFA_RANKING_DATE}
+      />
     </>
   );
 }

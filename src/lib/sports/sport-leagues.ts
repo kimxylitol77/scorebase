@@ -874,5 +874,4 @@ export const COUNTRY_ORDER: string[] = [
   "대만",
   "카자흐스탄",
   "호주",
-  "멕시코",
 ];

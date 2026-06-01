@@ -264,3 +264,19 @@ export function getFifaRank(
   }
   return null;
 }
+
+/** FIFA 랭킹 전체 목록 (rank asc) — /predictions 등 랭킹 표 렌더용. */
+export const FIFA_RANKINGS: ReadonlyArray<FifaRankEntry> =
+  rankingsData as FifaRankEntry[];
+
+// FIFA 영문 canonical → 한글 표시명 (KOREAN_ALIASES 역매핑, 먼저 등록된 한글 우선).
+// 같은 국가에 한글 별칭이 여러 개면 가장 먼저 정의한 정식 표기 채택(대한민국>한국, 튀르키예>터키 등).
+const EN_TO_KO_DISPLAY: Record<string, string> = {};
+for (const [ko, en] of Object.entries(KOREAN_ALIASES)) {
+  if (EN_TO_KO_DISPLAY[en] === undefined) EN_TO_KO_DISPLAY[en] = ko;
+}
+
+/** FIFA 영문 canonical 국가명 → 한글 표시명. 매핑 없으면 null (호출측에서 영문 fallback). */
+export function fifaCountryKo(nameEn: string): string | null {
+  return EN_TO_KO_DISPLAY[nameEn] ?? null;
+}
