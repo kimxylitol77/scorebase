@@ -649,16 +649,26 @@ function TeamBlock({
     <div className="font-bold truncate">
       {name}
       {position != null && league && (
-        <a
-          href={`/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
+        <span
+          role="link"
+          tabIndex={0}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(`/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(`/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
+            }
+          }}
           title={`${name} 리그 순위 보기 (새창)`}
           className="ml-1 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer"
         >
           [{position}]
-        </a>
+        </span>
       )}
     </div>
   );
