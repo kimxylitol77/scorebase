@@ -19,6 +19,7 @@ import {
 } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
+import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { buildSportsEventLocation } from "@/lib/seo/sports-event-location";
@@ -1066,6 +1067,18 @@ export default async function ScoresPage({ searchParams }: Props) {
     } else if (recap) href = `/articles/${recap}`;
     else if (preview) href = `/articles/${preview}`;
 
+    // 국가대항(친선/예선/대륙컵) 매치 — 리그 standings 개념이 없으므로 [순위] 자리에
+    // FIFA 국가 랭킹을 표시. 클럽 리그(EPL/이라크 스타스 리그 등)는 절대 안 건드림(position 유지).
+    const isNationalTeam = NATIONAL_TEAM_LEAGUES.has(m.league);
+    const homeNameKo = toKoreanTeamName(m.homeTeam.name, m.league);
+    const awayNameKo = toKoreanTeamName(m.awayTeam.name, m.league);
+    const homeFifaRank = isNationalTeam
+      ? getFifaRank(m.homeTeam.name, homeNameKo)
+      : null;
+    const awayFifaRank = isNationalTeam
+      ? getFifaRank(m.awayTeam.name, awayNameKo)
+      : null;
+
     return {
       id: m.id,
       sport: sport_,
@@ -1073,20 +1086,26 @@ export default async function ScoresPage({ searchParams }: Props) {
       status: effStatus as "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED",
       hidden: staleScheduled, // 유령/stale SCHEDULED → /scores 표시에서 제외
       home: {
-        name: toKoreanTeamName(m.homeTeam.name, m.league),
+        name: homeNameKo,
         abbr: m.homeTeam.shortName,
         logo: m.homeTeam.logoUrl,
         score: homeScore,
         teamId: m.homeTeamId,
-        position: standingsByLeague.get(m.league)?.get(m.homeTeamId) ?? null,
+        position: isNationalTeam
+          ? null
+          : standingsByLeague.get(m.league)?.get(m.homeTeamId) ?? null,
+        fifaRank: homeFifaRank,
       },
       away: {
-        name: toKoreanTeamName(m.awayTeam.name, m.league),
+        name: awayNameKo,
         abbr: m.awayTeam.shortName,
         logo: m.awayTeam.logoUrl,
         score: awayScore,
         teamId: m.awayTeamId,
-        position: standingsByLeague.get(m.league)?.get(m.awayTeamId) ?? null,
+        position: isNationalTeam
+          ? null
+          : standingsByLeague.get(m.league)?.get(m.awayTeamId) ?? null,
+        fifaRank: awayFifaRank,
       },
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
@@ -1703,6 +1722,8 @@ function SoccerRowLayout({
         href={m.href}
         homePosition={m.home.position ?? null}
         awayPosition={m.away.position ?? null}
+        homeFifaRank={m.home.fifaRank ?? null}
+        awayFifaRank={m.away.fifaRank ?? null}
         awayFirst={BASEBALL_LEAGUES.has(m.league)}
       />
     );
@@ -1925,8 +1946,8 @@ type NormalizedMatch = {
   sport: string;
   league: string;
   status: "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED";
-  home: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null };
-  away: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null };
+  home: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null; fifaRank?: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score: number | null; teamId: number; position?: number | null; fifaRank?: number | null };
   timeLabel: string;
   liveStatusLabel: string | null;
   homeStarter: string | null;

@@ -131,6 +131,9 @@ interface Props {
   /** 리그 순위 (TheSports standings) — 팀명 옆 [N] 표시. 클릭 시 새창에서 /predictions/{league} */
   homePosition?: number | null;
   awayPosition?: number | null;
+  /** FIFA 국가 랭킹 — 국가대항(친선/예선/대륙컵) 매치에서 리그 순위 대신 "FIFA N" 표시. position 우선. */
+  homeFifaRank?: number | null;
+  awayFifaRank?: number | null;
   /** 우리 Elo 모델 예측 확률 (0~1) — 라이브 배당 카드의 implied 와 비교해 value % 표시 */
   eloPrediction?: { home: number; draw?: number | null; away: number } | null;
   /** 라이브 배당 시계열 — sparkline 차트용. 오래된→최신 순. */
@@ -160,6 +163,8 @@ export default function SportLiveDetail({
   initialStatus,
   homePosition,
   awayPosition,
+  homeFifaRank,
+  awayFifaRank,
   eloPrediction,
   oddsHistory,
   playerLogoById,
@@ -328,7 +333,7 @@ export default function SportLiveDetail({
 
         {/* 양팀 + 점수 — home 좌측 / away 우측 (한국 축구·야구 미디어 관행) */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 sm:gap-6 items-center">
-          <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} position={homePosition} league={league} />
+          <TeamBlock teamId={homeTeamId} logo={homeLogoUrl} name={homeNameKo} position={homePosition} fifaRank={homeFifaRank} league={league} />
           <div className="font-black tabular-nums text-3xl sm:text-5xl tracking-tight flex flex-col items-center">
             <div className="flex items-center justify-center">
               <span
@@ -359,7 +364,7 @@ export default function SportLiveDetail({
               </div>
             )}
           </div>
-          <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} position={awayPosition} league={league} />
+          <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} position={awayPosition} fifaRank={awayFifaRank} league={league} />
         </div>
       </div>
 
@@ -637,18 +642,20 @@ function TeamBlock({
   logo,
   name,
   position,
+  fifaRank,
   league,
 }: {
   teamId?: number;
   logo?: string | null;
   name: string;
   position?: number | null;
+  fifaRank?: number | null;
   league?: string;
 }) {
   const nameWithPosition = (
     <div className="font-bold truncate">
       {name}
-      {position != null && league && (
+      {position != null && league ? (
         <span
           role="link"
           tabIndex={0}
@@ -669,7 +676,16 @@ function TeamBlock({
         >
           [{position}]
         </span>
-      )}
+      ) : fifaRank != null ? (
+        // 국가대항 매치 — 리그 순위 대신 FIFA 국가 랭킹 (리그 순위와 혼동 방지 위해 "FIFA" 라벨).
+        <span
+          title={`FIFA 랭킹 ${fifaRank}위`}
+          className="ml-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 tabular-nums whitespace-nowrap"
+        >
+          <span className="opacity-70 mr-0.5">FIFA</span>
+          {fifaRank}
+        </span>
+      ) : null}
     </div>
   );
   const inner = (

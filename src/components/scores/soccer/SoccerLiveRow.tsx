@@ -58,6 +58,10 @@ export interface SoccerLiveRowProps {
   /** 리그 순위 (TheSportsStandingsCache 기반) — 팀명 옆 [14] 표시. null 이면 미표시 */
   homePosition?: number | null;
   awayPosition?: number | null;
+  /** FIFA 국가 랭킹 — 국가대항(친선/예선/대륙컵) 매치에서 리그 순위 대신 표시.
+      position 이 우선, position 이 없을 때만 FIFA 랭킹 노출 ("FIFA N" 배지). */
+  homeFifaRank?: number | null;
+  awayFifaRank?: number | null;
   /** true 면 원정팀 좌측 / 홈팀 우측 표시 + 홈팀 옆에 "홈" 마크 (야구 미디어 관행) */
   awayFirst?: boolean;
   /** true 면 점수 증가 시 득점한 팀 숫자 뒤에 halo flash (야구 compact 행 전용).
@@ -107,6 +111,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     href,
     homePosition,
     awayPosition,
+    homeFifaRank,
+    awayFifaRank,
     awayFirst,
     enableScoreFlash,
   } = props;
@@ -196,6 +202,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         const leftSide = awayFirst ? "away" : "home";
         const team = awayFirst ? away : home;
         const position = awayFirst ? awayPosition : homePosition;
+        const fifaRank = awayFirst ? awayFifaRank : homeFifaRank;
         const isFlash = recentGoalSide === leftSide;
         const showHomeBadge = awayFirst === false ? false : false;
         // 좌측은 awayFirst 인 경우 원정 → "홈" 배지 안 붙음
@@ -221,7 +228,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             >
               {team.name}
             </span>
-            {position != null && (
+            {position != null ? (
               <button
                 type="button"
                 onClick={goToStandings(team.teamId)}
@@ -230,7 +237,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               >
                 [{position}]
               </button>
-            )}
+            ) : fifaRank != null ? (
+              <span
+                title={`FIFA 랭킹 ${fifaRank}위`}
+                className="shrink-0 inline-flex items-baseline gap-0.5 text-[9px] font-bold text-sky-600 dark:text-sky-400 tabular-nums whitespace-nowrap"
+              >
+                <span className="opacity-70">FIFA</span>
+                {fifaRank}
+              </span>
+            ) : null}
             {showHomeBadge && (
               <span className="shrink-0 text-[9px] font-bold tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/15 rounded px-1 py-px">
                 홈
@@ -303,6 +318,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         const rightSide = awayFirst ? "home" : "away";
         const team = awayFirst ? home : away;
         const position = awayFirst ? homePosition : awayPosition;
+        const fifaRank = awayFirst ? homeFifaRank : awayFifaRank;
         const isFlash = recentGoalSide === rightSide;
         const showHomeBadge = awayFirst === true;
         return (
@@ -328,7 +344,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             >
               {team.name}
             </span>
-            {position != null && (
+            {position != null ? (
               <button
                 type="button"
                 onClick={goToStandings(team.teamId)}
@@ -337,7 +353,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               >
                 [{position}]
               </button>
-            )}
+            ) : fifaRank != null ? (
+              <span
+                title={`FIFA 랭킹 ${fifaRank}위`}
+                className="shrink-0 inline-flex items-baseline gap-0.5 text-[9px] font-bold text-sky-600 dark:text-sky-400 tabular-nums whitespace-nowrap"
+              >
+                <span className="opacity-70">FIFA</span>
+                {fifaRank}
+              </span>
+            ) : null}
             {isFlash && (
               <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
                 ⚽ GOAL

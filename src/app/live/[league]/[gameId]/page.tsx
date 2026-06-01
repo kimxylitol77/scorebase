@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
@@ -156,10 +157,21 @@ export default async function GenericLivePage({ params }: Props) {
   const extras = await fetchMatchExtras(match);
 
   // 양 팀 리그 순위 — TheSports standings cache 기반. fetch 실패/매핑 누락 시 null.
-  const standingsRows = await getFullStandings(lg).catch(() => []);
+  // 국가대항(친선/예선/대륙컵) 매치는 리그 standings 개념이 없으므로 순위 자리에 FIFA 국가
+  // 랭킹을 표시. 클럽 리그는 기존 standings 순위 그대로(아래 getFullStandings).
+  const isNationalTeam = NATIONAL_TEAM_LEAGUES.has(lg);
+  const standingsRows = isNationalTeam
+    ? []
+    : await getFullStandings(lg).catch(() => []);
   const positionByTeamId = new Map(standingsRows.map((r) => [r.teamId, r.position]));
   const homePosition = positionByTeamId.get(match.homeTeam.id) ?? null;
   const awayPosition = positionByTeamId.get(match.awayTeam.id) ?? null;
+  const homeFifaRank = isNationalTeam
+    ? getFifaRank(match.homeTeam.name, homeKo)
+    : null;
+  const awayFifaRank = isNationalTeam
+    ? getFifaRank(match.awayTeam.name, awayKo)
+    : null;
 
   // 라이브 배당 시계열 — 최근 30 snapshot (sparkline). 매치 없으면 빈 배열.
   const oddsHistory = await getOddsHistory(match.id).catch(() => []);
@@ -539,6 +551,8 @@ export default async function GenericLivePage({ params }: Props) {
         initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
         homePosition={homePosition}
         awayPosition={awayPosition}
+        homeFifaRank={homeFifaRank}
+        awayFifaRank={awayFifaRank}
         eloPrediction={
           match.predHome != null && match.predAway != null
             ? { home: match.predHome, draw: match.predDraw ?? null, away: match.predAway }
