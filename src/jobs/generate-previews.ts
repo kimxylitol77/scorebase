@@ -241,6 +241,12 @@ export async function runPreview(opts?: {
           continue;
         }
       }
+      // MLB 도 선발 양쪽 확정 후에만 발행 — 선발·배당 없는 빈약 프리뷰 방지(사용자 요청 2026-06-01).
+      // KBO/NPB 와 동일 정책. 선발 미정이면 다음 cron 에서 채워진 후 재시도.
+      if (m.league === "MLB" && (!m.homeStarter || !m.awayStarter)) {
+        console.log(`[preview/MLB] skip — 선발 미확정: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
+        continue;
+      }
       let context = buildMatchContext(
         leagueMatches[m.league],
         m.league,
