@@ -8,6 +8,10 @@ import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { formatChampionPct } from "@/lib/format";
+
+// 정규시즌 1위 ≠ 최종 우승(플레이오프) 인 리그 — "1위" 를 "정규시즌 1위" 로 구분 표기.
+const PLAYOFF_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL", "KBO", "MLB", "NPB", "CPBL", "LMB", "MLS"]);
 
 type Lg =
   | "EPL"
@@ -102,6 +106,7 @@ export default async function SeasonInsightCard({ league }: Props) {
   }
 
   const top1Elo = getElo(eloTable, top1.teamId);
+  const rankLabel = PLAYOFF_LEAGUES.has(league) ? "정규시즌 1위" : "1위";
 
   return (
     <Link
@@ -121,7 +126,7 @@ export default async function SeasonInsightCard({ league }: Props) {
         {/* 1위 */}
         <div>
           <div className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-white/45">
-            1위
+            {rankLabel}
           </div>
           <div className="truncate text-sm font-semibold text-zinc-950 dark:text-white">
             {nameById.get(top1.teamId) ?? "?"}
@@ -142,7 +147,7 @@ export default async function SeasonInsightCard({ league }: Props) {
                 {topChampPct.name}
               </span>
               <span className="text-base font-semibold tabular-nums text-zinc-950 dark:text-white">
-                {topChampPct.pct.toFixed(0)}%
+                {formatChampionPct(topChampPct.pct / 100)}
               </span>
             </div>
           </div>

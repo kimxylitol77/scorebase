@@ -1,6 +1,7 @@
 // 리그 시즌 종합 분석 글 프롬프트.
 
 import type { SeasonContext } from "@/lib/predict/season-context";
+import { formatChampionPct } from "@/lib/format";
 
 const LEAGUE_NAME: Record<string, string> = {
   EPL: "프리미어리그",
@@ -113,7 +114,7 @@ export function buildSeasonAnalysisPrompt({
       lines.push(" 우승 확률:");
       champs.forEach((r) =>
         lines.push(
-          `  - ${teamName(r.teamId)} ${(r.champion * 100).toFixed(0)}% (예상 ${r.expectedPoints.toFixed(0)}점)`,
+          `  - ${teamName(r.teamId)} ${formatChampionPct(r.champion)} (예상 ${r.expectedPoints.toFixed(0)}점)`,
         ),
       );
     }

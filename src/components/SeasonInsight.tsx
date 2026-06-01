@@ -7,6 +7,7 @@ import LeagueBadge from "./LeagueBadge";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
+import { formatChampionPct } from "@/lib/format";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -258,7 +259,7 @@ export default async function SeasonInsight({ league }: Props) {
                 <span key={c.teamId}>
                   {i > 0 && (i === mcChampions.length - 1 ? "와 " : ", ")}
                   <strong>{teamName(c.teamId)}</strong>의 우승 확률은{" "}
-                  <strong className="tabular-nums">{c.pct.toFixed(0)}%</strong>
+                  <strong className="tabular-nums">{formatChampionPct(c.pct / 100)}</strong>
                 </span>
               ))}
               로 추정된다.
@@ -266,7 +267,7 @@ export default async function SeasonInsight({ league }: Props) {
                 <>
                   {" "}강등권(하위 {info.relegationCount}팀)에서는{" "}
                   {mcRelegation
-                    .map((r) => `${teamName(r.teamId)} ${r.pct.toFixed(0)}%`)
+                    .map((r) => `${teamName(r.teamId)} ${formatChampionPct(r.pct / 100)}`)
                     .join(", ")}{" "}
                   순으로 위험 지표가 높다.
                 </>
