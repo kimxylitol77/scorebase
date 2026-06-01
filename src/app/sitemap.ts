@@ -16,6 +16,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/notices`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/predictions`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
+    { url: `${base}/predictions/accuracy`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${base}/value-bets`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/analysis`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
+    { url: `${base}/standings`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/injuries`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/previews`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     ...["SOCCER", "BASEBALL", "BASKETBALL", "HOCKEY", "ESPORTS"].map((sport) => ({
       url: `${base}/previews?sport=${sport}`,
