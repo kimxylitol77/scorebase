@@ -18,10 +18,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans:
-    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
-    system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo",
-    "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji",
-    sans-serif;
+    "Twemoji Country Flags", "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji",
+    "Segoe UI Emoji", sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
@@ -37,6 +37,18 @@ body {
   font-family: var(--font-sans);
   font-feature-settings: "ss03", "cv01"; /* Pretendard 의 한글 가독성 향상 */
   text-rendering: optimizeLegibility;
+}
+
+/* Windows 국기 이모지 폴리필 — Regional Indicator 글자에만 Twemoji 국기 폰트 적용.
+   Windows 는 국기 이모지를 OS 폰트에서 미지원(코드 2글자 폴백) → CDN 웹폰트로 보강.
+   macOS/iOS 는 unicode-range 매칭 전 OS 컬러 이모지로 이미 정상 표시. */
+@font-face {
+  font-family: "Twemoji Country Flags";
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067,
+    U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+  src: url("https://cdn.jsdelivr.net/npm/country-flag-emoji-polyfill@0.1.8/dist/TwemojiCountryFlags.woff2")
+    format("woff2");
+  font-display: swap;
 }
 
 /* 본문 한글 줄간격은 약간 넉넉하게 */
