@@ -47,55 +47,6 @@ export default function PredictionsView({
   fifaRanking,
   fifaDate,
 }: ViewProps) {
-  // FIFA 국가 랭킹 블록 — 축구 리그 카드 그리드 직후(월드컵 카드 옆)에 렌더. 국기 + 한글명.
-  const fifaBlock =
-    fifaRanking.length > 0 ? (
-      <div id="fifa-ranking" className="space-y-4 scroll-mt-24">
-        <div className="flex items-baseline justify-between">
-          <h3 className="flex items-center gap-2 text-lg sm:text-xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-            <Globe className="h-5 w-5 text-zinc-500 dark:text-white/50" />
-            FIFA 국가 랭킹
-          </h3>
-          <span className="text-xs text-zinc-400 dark:text-white/40 tabular-nums">
-            {fifaDate} 기준 · {fifaRanking.length}개국
-          </span>
-        </div>
-        <div className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-0.5">
-            {fifaRanking.map((c) => (
-              <li
-                key={c.rank}
-                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]"
-              >
-                <span
-                  className={`w-6 shrink-0 text-right tabular-nums text-sm font-bold ${
-                    c.rank === 1
-                      ? "text-amber-500"
-                      : c.rank <= 3
-                        ? "text-amber-600/80 dark:text-amber-400/80"
-                        : c.rank <= 10
-                          ? "text-zinc-600 dark:text-white/60"
-                          : "text-zinc-400 dark:text-white/35"
-                  }`}
-                >
-                  {c.rank}
-                </span>
-                <span
-                  className="w-5 shrink-0 text-center text-base leading-none"
-                  aria-hidden
-                >
-                  {c.flag}
-                </span>
-                <span className="truncate text-sm text-zinc-800 dark:text-white/85">
-                  {c.name}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    ) : null;
-
   return (
     <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
       {/* Hero */}
@@ -276,22 +227,25 @@ export default function PredictionsView({
                       </div>
                     );
                   })}
-                  {/* FIFA 국가 랭킹 — 축구 그리드 빈칸에 다른 리그 카드와 동일 형식. 클릭 시 전체 랭킹 섹션으로. */}
+                  {/* FIFA 국가 랭킹 — 축구 그리드 빈칸에 다른 리그 카드와 동일 형식(top5 박스). */}
                   {sport === "축구" && fifaRanking.length > 0 && (
-                    <a
-                      href="#fifa-ranking"
-                      className="group relative block overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:hover:bg-white/[0.06] dark:shadow-none"
+                    <div
+                      id="fifa-ranking"
+                      className="relative scroll-mt-24 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none"
                     >
                       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-amber-400" />
                       <div className="p-5 pb-3">
-                        <h4 className="text-lg font-semibold tracking-tight text-zinc-950 group-hover:underline underline-offset-4 decoration-2 dark:text-white">
+                        <h4 className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-zinc-950 dark:text-white">
+                          <Globe className="h-4 w-4 text-zinc-500 dark:text-white/50" />
                           FIFA 랭킹
                         </h4>
-                        <p className="mt-1 text-xs text-zinc-500 dark:text-white/45">국가대표 순위</p>
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-white/45">
+                          국가대표 순위 · {fifaDate} 기준
+                        </p>
                       </div>
-                      <div className="px-5 pb-5 space-y-3">
+                      <div className="px-5 pb-5">
                         <div className="space-y-1">
-                          {fifaRanking.slice(0, 3).map((c) => (
+                          {fifaRanking.slice(0, 5).map((c) => (
                             <div key={c.rank} className="flex items-center gap-2 text-xs">
                               <span className="w-4 text-center tabular-nums font-bold text-zinc-400 dark:text-white/35">
                                 {c.rank}
@@ -301,15 +255,11 @@ export default function PredictionsView({
                             </div>
                           ))}
                         </div>
-                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-zinc-400 transition group-hover:text-zinc-900 dark:text-white/40 dark:group-hover:text-white">
-                          전체 랭킹 보기 <ChevronRight className="h-3 w-3" />
-                        </span>
                       </div>
-                    </a>
+                    </div>
                   )}
                 </div>
                 </div>
-                {sport === "축구" && fifaBlock}
               </Fragment>
             );
           })}
