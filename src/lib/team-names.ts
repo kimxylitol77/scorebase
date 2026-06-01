@@ -5,6 +5,8 @@
 // 매핑 누락 시 toKoreanTeamName 은 원본 영문을 그대로 반환 (fallback).
 // 외래어 표기는 국립국어원 표기법 + 한국 스포츠 미디어 관행을 따른다.
 
+import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
+
 const RAW: Record<string, string> = {
   // ─── EPL (2025-26) ───
   "Arsenal": "아스널",
@@ -395,39 +397,39 @@ const RAW: Record<string, string> = {
   "Washington Capitals": "워싱턴 캐피털스",
   "Winnipeg Jets": "위니펙 제츠",
 
-  // ─── MLB ───
-  "Arizona Diamondbacks": "애리조나 다이아몬드백스",
-  "Atlanta Braves": "애틀랜타 브레이브스",
-  "Baltimore Orioles": "볼티모어 오리올스",
-  "Boston Red Sox": "보스턴 레드삭스",
-  "Chicago Cubs": "시카고 컵스",
-  "Chicago White Sox": "시카고 화이트삭스",
-  "Cincinnati Reds": "신시내티 레즈",
-  "Cleveland Guardians": "클리블랜드 가디언스",
-  "Colorado Rockies": "콜로라도 로키스",
-  "Detroit Tigers": "디트로이트 타이거스",
-  "Houston Astros": "휴스턴 애스트로스",
-  "Kansas City Royals": "캔자스시티 로열스",
-  "Los Angeles Angels": "LA 에인절스",
-  "Los Angeles Dodgers": "LA 다저스",
-  "LA Dodgers": "LA 다저스",
-  "Miami Marlins": "마이애미 말린스",
-  "Milwaukee Brewers": "밀워키 브루어스",
-  "Minnesota Twins": "미네소타 트윈스",
-  "New York Mets": "뉴욕 메츠",
-  "New York Yankees": "뉴욕 양키스",
-  "Oakland Athletics": "오클랜드 애슬레틱스",
-  "Athletics": "오클랜드 애슬레틱스",
-  "Philadelphia Phillies": "필라델피아 필리스",
-  "Pittsburgh Pirates": "피츠버그 파이리츠",
-  "San Diego Padres": "샌디에이고 파드리스",
-  "San Francisco Giants": "샌프란시스코 자이언츠",
-  "Seattle Mariners": "시애틀 매리너스",
-  "St. Louis Cardinals": "세인트루이스 카디널스",
-  "Tampa Bay Rays": "탬파베이 레이스",
-  "Texas Rangers": "텍사스 레인저스",
-  "Toronto Blue Jays": "토론토 블루제이스",
-  "Washington Nationals": "워싱턴 내셔널스",
+  // ─── MLB (도시명 표기 — named 스타일. 동명 도시 NY/LA/시카고만 별명) ───
+  "Arizona Diamondbacks": "애리조나",
+  "Atlanta Braves": "애틀랜타",
+  "Baltimore Orioles": "볼티모어",
+  "Boston Red Sox": "보스턴",
+  "Chicago Cubs": "컵스",
+  "Chicago White Sox": "화이트삭스",
+  "Cincinnati Reds": "신시내티",
+  "Cleveland Guardians": "클리블랜드",
+  "Colorado Rockies": "콜로라도",
+  "Detroit Tigers": "디트로이트",
+  "Houston Astros": "휴스턴",
+  "Kansas City Royals": "캔자스시티",
+  "Los Angeles Angels": "에인절스",
+  "Los Angeles Dodgers": "다저스",
+  "LA Dodgers": "다저스",
+  "Miami Marlins": "마이애미",
+  "Milwaukee Brewers": "밀워키",
+  "Minnesota Twins": "미네소타",
+  "New York Mets": "메츠",
+  "New York Yankees": "양키스",
+  "Oakland Athletics": "오클랜드",
+  "Athletics": "오클랜드",
+  "Philadelphia Phillies": "필라델피아",
+  "Pittsburgh Pirates": "피츠버그",
+  "San Diego Padres": "샌디에이고",
+  "San Francisco Giants": "샌프란시스코",
+  "Seattle Mariners": "시애틀",
+  "St. Louis Cardinals": "세인트루이스",
+  "Tampa Bay Rays": "탬파베이",
+  "Texas Rangers": "텍사스",
+  "Toronto Blue Jays": "토론토",
+  "Washington Nationals": "워싱턴",
 
   // ─── KBO (kbo.ts 와 일치) ───
   "KIA Tigers": "KIA 타이거즈",
@@ -2893,6 +2895,8 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Bravos de Leon": "브라보스 데 레온",
     "Bravos de León": "브라보스 데 레온",
   },
+  // NPB — 한글 풀네임 → 약자 (요미우리 자이언츠 → 요미우리). npb-team-names.ts 단일 출처 재사용.
+  NPB: NPB_TEAM_SHORT_NAMES,
 };
 
 const RAW_BY_LEAGUE_LOWER: Record<string, Record<string, string>> = Object.fromEntries(
