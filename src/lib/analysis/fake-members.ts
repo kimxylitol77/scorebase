@@ -203,8 +203,6 @@ export async function runFakeMemberPicks(): Promise<{ created: number; skipped: 
           market: pick.market,
           line: pick.line,
           pick: pick.pick,
-          // 발행 시각을 0~90분 과거로 흩뿌려 자연스럽게
-          createdAt: new Date(Date.now() - Math.floor(Math.random() * 90) * 60_000),
         },
       });
       created++;
