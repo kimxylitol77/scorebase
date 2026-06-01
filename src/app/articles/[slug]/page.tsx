@@ -758,7 +758,7 @@ function AiDisclosure({ league, type }: { league: string; type: string }) {
             AI · 데이터 협업 작성
           </strong>{" "}
           본 {typeLabel} 글은 데이터 분석 모델(Elo 레이팅 · Monte Carlo
-          시뮬레이션 · 마켓 odds blending)과 AI(OpenAI gpt-4o-mini)가
+          시뮬레이션 · 마켓 odds blending)과 여러 AI 모델(Claude · Gemini · ChatGPT)이
           협업해 작성됐으며, 운영진의 모니터링 하에 발행됩니다.
         </p>
         <p>

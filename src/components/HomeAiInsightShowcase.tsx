@@ -9,6 +9,7 @@ import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
 
 // 야구는 자체 라우트, 그 외는 [league] 라우트.
@@ -60,6 +61,8 @@ export default async function HomeAiInsightShowcase() {
 
   const candidates = await prisma.match.findMany({
     where: {
+      // 메인 첫 화면 노출 = 주요 리그(발행 화이트리스트)만. 이라크 등 마이너 리그 제외.
+      league: { in: [...ARTICLE_LEAGUES] },
       OR: [
         { status: "LIVE" },
         {
