@@ -8,6 +8,9 @@ function best(map: Map<string, number[]>): Map<string, number> {
   return out;
 }
 
+// 한쪽 배당이 이 값 미만이면 사실상 확정(정보 가치 없음) → 해당 라인 제외.
+const MIN_LINE_ODD = 1.5;
+
 const cell = "px-3 py-2.5 text-center tabular-nums";
 const headCls =
   "bg-neutral-50 dark:bg-neutral-900/60 text-[11px] uppercase tracking-wider text-neutral-500";
@@ -73,8 +76,12 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
     }
   }
   const hcHomeBest = best(hcHome), hcAwayBest = best(hcAway);
-  // 메인 라인 위주 — 0에 가까운 6개만(극단 핸디캡 제외), 표시는 숫자순.
+  // 한쪽 배당이 너무 낮은(거의 확정) 라인 제외 + 0 근처 메인 6개, 표시는 숫자순.
   const hcLines = [...new Set([...hcHome.keys(), ...hcAway.keys()])]
+    .filter((line) => {
+      const h = hcHomeBest.get(line) ?? 0, a = hcAwayBest.get(line) ?? 0;
+      return h > 0 && a > 0 && Math.min(h, a) >= MIN_LINE_ODD;
+    })
     .sort((a, b) => Math.abs(parseFloat(a)) - Math.abs(parseFloat(b)))
     .slice(0, 6)
     .sort((a, b) => parseFloat(a) - parseFloat(b));
@@ -92,10 +99,14 @@ export default function MatchOddsTable({ odds }: { odds: FixtureOdds }) {
     }
   }
   const ouOverBest = best(ouOver), ouUnderBest = best(ouUnder);
-  // 핵심 기준선만 — .5 라인(0.5/1.5/2.5/3.5…) 우선, 2.5 중심 6개. 표시는 숫자순.
+  // 핵심 기준선만 — .5 라인 우선 + 한쪽 배당이 너무 낮은(거의 확정) 라인 제외, 2.5 중심 6개.
   const ouAll = [...new Set([...ouOver.keys(), ...ouUnder.keys()])];
   const ouHalf = ouAll.filter((l) => /\.5$/.test(l));
   const ouLines = (ouHalf.length >= 3 ? ouHalf : ouAll)
+    .filter((line) => {
+      const o = ouOverBest.get(line) ?? 0, u = ouUnderBest.get(line) ?? 0;
+      return o > 0 && u > 0 && Math.min(o, u) >= MIN_LINE_ODD;
+    })
     .sort((a, b) => Math.abs(parseFloat(a) - 2.5) - Math.abs(parseFloat(b) - 2.5))
     .slice(0, 6)
     .sort((a, b) => parseFloat(a) - parseFloat(b));
