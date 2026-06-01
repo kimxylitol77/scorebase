@@ -9,6 +9,8 @@ export interface TeamSide {
   form: FormResult[];
   // 시즌
   position: number;
+  /** 시즌 누적 승점 — 글 스냅샷 값(있으면) 또는 실시간 standings.points */
+  seasonPoints: number;
   totalTeams: number;
   played: number;
   wins: number;
@@ -103,6 +105,21 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
               : `${away.wins}승 ${away.losses}패`
           }
         />
+        {/* 승점 — 승점제 리그(축구)만. 글 스냅샷 값 우선이라 본문 "N점" 과 일치. */}
+        {showDraw && (
+          <CompareRow
+            label="승점"
+            home={`${home.seasonPoints}점`}
+            away={`${away.seasonPoints}점`}
+            highlight={
+              home.seasonPoints > away.seasonPoints
+                ? "home"
+                : away.seasonPoints > home.seasonPoints
+                  ? "away"
+                  : null
+            }
+          />
+        )}
         <CompareBarRow
           label="평균득점"
           homeValue={homeAvgFor}

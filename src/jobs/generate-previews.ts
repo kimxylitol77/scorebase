@@ -833,6 +833,11 @@ export async function runPreview(opts?: {
           predDraw: wp?.draw ?? null,
           predAway: wp?.away ?? null,
           predWinner: predictedWinner,
+          // 본문=위젯 단일 소스 — Elo·시즌 승점도 글 시점 값 고정 (predHome 과 동일).
+          eloHome: context.elo?.home ?? null,
+          eloAway: context.elo?.away ?? null,
+          homeSeasonPoints: context.points?.home ?? null,
+          awaySeasonPoints: context.points?.away ?? null,
           baseballContext: baseballCtx ? JSON.stringify(baseballCtx) : null,
         },
       });

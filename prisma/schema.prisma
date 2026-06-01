@@ -269,6 +269,14 @@ model Article {
   evaluatedAt DateTime?
   correct     Boolean?  // null = 미평가, true/false = 평가됨
 
+  // 본문=위젯 단일 소스 — 글 작성 시점 Elo·시즌 승점 스냅샷 (predHome 과 동일 취지).
+  // 위젯(MatchInsight EloMeter·TeamMatchup)이 이 값 우선 사용해 본문과 100% 일치.
+  // 없으면(기존 글) 렌더 시점 실시간 재계산 fallback. 신규 글부터 채워짐.
+  eloHome          Float? // 글 시점 홈 Elo
+  eloAway          Float? // 글 시점 원정 Elo
+  homeSeasonPoints Int?   // 글 시점 홈 시즌 누적 승점
+  awaySeasonPoints Int?   // 글 시점 원정 시즌 누적 승점
+
   // LoL RECAP 전용 — 게임별 MVP/LVP·타임라인·시즌·다음 매치·Quote 카드 데이터.
   // 페이지에서 JSON.parse 후 카드 컴포넌트에 prop 으로 전달.
   lolContext  String?   // JSON serialized LolRecapContext

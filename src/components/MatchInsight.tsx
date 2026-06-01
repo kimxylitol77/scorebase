@@ -71,6 +71,12 @@ interface Props {
     predDraw?: number | null;
     predAway?: number | null;
     predWinner?: string | null;
+    /** 글 생성 시점 저장 Elo·시즌 승점 — 있으면 위젯이 이 값 사용 (본문=위젯 단일 소스).
+     *  없으면(글 없는 매치) 렌더 시점 재계산 fallback. */
+    eloHome?: number | null;
+    eloAway?: number | null;
+    homeSeasonPoints?: number | null;
+    awaySeasonPoints?: number | null;
     marketHome?: number | null;
     marketDraw?: number | null;
     marketAway?: number | null;
@@ -186,8 +192,9 @@ export default async function MatchInsight({
     (m) => m.startTime.getTime() < referenceTime.getTime(),
   );
   const eloTable = calcEloTable(beforeMatches);
-  const homeElo = getElo(eloTable, match.homeTeamId);
-  const awayElo = getElo(eloTable, match.awayTeamId);
+  // 단일 소스 — 글 스냅샷 Elo 가 있으면 그 값 사용 (본문 글과 100% 일치). 없으면 재계산.
+  const homeElo = match.eloHome ?? getElo(eloTable, match.homeTeamId);
+  const awayElo = match.eloAway ?? getElo(eloTable, match.awayTeamId);
 
   const homeForm = calcForm(matches, match.homeTeamId, referenceTime, 5);
   const awayForm = calcForm(matches, match.awayTeamId, referenceTime, 5);
@@ -484,6 +491,7 @@ export default async function MatchInsight({
           name: toKoreanTeamName(match.homeTeam.name),
           form: homeForm.results,
           position: homeRow.position,
+          seasonPoints: match.homeSeasonPoints ?? homeRow.points,
           totalTeams: totalTeams,
           played: homeRow.played,
           wins: homeRow.wins,
@@ -513,6 +521,7 @@ export default async function MatchInsight({
           name: toKoreanTeamName(match.awayTeam.name),
           form: awayForm.results,
           position: awayRow.position,
+          seasonPoints: match.awaySeasonPoints ?? awayRow.points,
           totalTeams: totalTeams,
           played: awayRow.played,
           wins: awayRow.wins,

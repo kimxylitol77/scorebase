@@ -625,6 +625,12 @@ export default async function ArticlePage({ params }: Props) {
             predDraw: article.predDraw ?? article.match.predDraw,
             predAway: article.predAway ?? article.match.predAway,
             predWinner: article.predWinner ?? article.match.predWinner,
+            // Elo·시즌 승점도 글 스냅샷 주입 (predHome 과 동일 — 본문=위젯 일치).
+            // Match 에 없는 값이라 article 값만, 없으면(기존 글) 위젯이 실시간 fallback.
+            eloHome: article.eloHome,
+            eloAway: article.eloAway,
+            homeSeasonPoints: article.homeSeasonPoints,
+            awaySeasonPoints: article.awaySeasonPoints,
           }}
         />
       )}

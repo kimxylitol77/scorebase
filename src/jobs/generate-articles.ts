@@ -306,6 +306,11 @@ export async function runRecap(opts?: {
           content,
           status: autoPublish ? "PUBLISHED" : "PENDING_REVIEW",
           publishedAt: autoPublish ? new Date() : null,
+          // 본문=위젯 단일 소스 — Elo·시즌 승점 글 시점 스냅샷 (preview 와 동일).
+          eloHome: context.elo?.home ?? null,
+          eloAway: context.elo?.away ?? null,
+          homeSeasonPoints: context.points?.home ?? null,
+          awaySeasonPoints: context.points?.away ?? null,
           // LoL RECAP — UI 카드 렌더링용 JSON 컨텍스트 저장
           lolContext: lolRecapCtx ? JSON.stringify(lolRecapCtx) : null,
           baseballContext: baseballCtx ? JSON.stringify(baseballCtx) : null,
