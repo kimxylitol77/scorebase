@@ -29,13 +29,18 @@ const LEAGUE_NAME: Record<string, string> = {
 const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "AI 적중률 — 리그별 예측 정확도",
+  title: "AI 스포츠 예측 적중률 — 축구·야구·농구 승부예측 정확도 공개",
   description:
-    "스코어베이스 AI 가 Elo 레이팅 기반으로 추정한 매치 결과의 적중률. EPL · 라리가 · 분데스리가 · NBA · MLB · NHL 등 리그별 예측 정확도와 표본 수를 데이터로 공개합니다.",
+    "스코어베이스 AI의 실제 예측 적중률을 투명하게 공개합니다. EPL·라리가·분데스리가·MLB·NBA·NHL 등 리그별 1X2·언더오버·핸디캡·BTTS 적중률과 표본 수를, 종료된 모든 매치의 시점 기반 백테스트로 검증해 보여줍니다.",
+  keywords: [
+    "AI 예측 적중률", "스포츠 예측 정확도", "축구 승부예측", "AI 승률 예측",
+    "예측 적중률", "EPL 예측 적중률", "MLB 예측", "NBA 예측 정확도",
+    "Elo 레이팅 예측", "승부예측 정확도", "스포츠 AI 분석",
+  ],
   alternates: { canonical: `${SITE_URL}/predictions/accuracy` },
   openGraph: {
-    title: "AI 적중률 보드 — Scorebase",
-    description: "리그별 AI 매치 예측 적중률을 데이터로 공개",
+    title: "AI 스포츠 예측 적중률 — Scorebase",
+    description: "리그별·시장별 AI 매치 예측 적중률을 표본 수와 함께 데이터로 투명 공개.",
     url: `${SITE_URL}/predictions/accuracy`,
   },
 };
@@ -144,16 +149,40 @@ export default async function AccuracyPage() {
     .filter((s) => s.oneXTwo.evaluated > 0)
     .sort((a, b) => b.oneXTwo.rate - a.oneXTwo.rate);
 
+  // 구조화 데이터 (Dataset) — Google 이 "검증된 고유 데이터셋"으로 인식하게.
+  // 실제 적중률 수치를 schema 에 담아 E-E-A-T 신호 강화.
+  const accuracyJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: "스코어베이스 AI 스포츠 예측 적중률",
+    description: `Elo 레이팅 기반 AI 매치 예측의 실제 적중률. 13개 리그 ${totalEvaluated.toLocaleString()}경기를 종료 후 시점 기준으로 백테스트하여 1X2 적중률 ${(overallRate * 100).toFixed(1)}% 등 시장별·리그별 정확도를 공개합니다.`,
+    url: `${SITE_URL}/predictions/accuracy`,
+    keywords: ["AI 예측 적중률", "스포츠 승부예측 정확도", "Elo 레이팅 예측"],
+    creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+    isAccessibleForFree: true,
+    measurementTechnique:
+      "Elo 레이팅 + 홈 어드밴티지 + 최근 폼 기반 시점 백테스트",
+    variableMeasured: [
+      { "@type": "PropertyValue", name: "1X2 적중률", value: `${(overallRate * 100).toFixed(1)}%` },
+      { "@type": "PropertyValue", name: "평가 표본", value: `${totalEvaluated}경기` },
+    ],
+  };
+
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(accuracyJsonLd) }}
+      />
       <header className="mb-10">
         <p className="text-sm text-neutral-500 mb-2">데이터 분석</p>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
-          AI 적중률 보드
+          AI 스포츠 예측 적중률 보드
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400">
           Elo 레이팅 + 홈 어드밴티지 + 최근 폼 기반 매치 결과 예측의 실제
-          적중률입니다. 종료된 모든 매치를 시점 기준으로 백테스트하여 산출.
+          적중률입니다. 종료된 모든 매치를 시점 기준으로 백테스트하여 산출하며,
+          수치를 보정 없이 표본 수와 함께 그대로 공개합니다.
         </p>
       </header>
 
