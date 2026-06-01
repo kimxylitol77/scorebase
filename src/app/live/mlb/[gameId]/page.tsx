@@ -11,7 +11,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import MlbLiveDetail from "@/components/MlbLiveDetail";
-import BaseballPreMatchInsight, { type StarterInfo } from "@/components/BaseballPreMatchInsight";
+import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -219,25 +219,6 @@ export default async function MlbLivePage({ params }: Props) {
             : null
         }
       />
-      {/* 선발 매치업 — 사진 + 한글 이름 + ERA/WHIP. MLB Stats pid 보유 시. */}
-      {(() => {
-        const h = parseStarterFull(match.homeStarter);
-        const a = parseStarterFull(match.awayStarter);
-        if (
-          (match.status !== "SCHEDULED" && match.status !== "LIVE") ||
-          (!h && !a)
-        )
-          return null;
-        return (
-          <BaseballPreMatchInsight
-            league="MLB"
-            homeStarter={h ? { ...h, name: toKoreanPlayerName(h.name) } : null}
-            awayStarter={a ? { ...a, name: toKoreanPlayerName(a.name) } : null}
-            homeTeamName={homeKo}
-            awayTeamName={awayKo}
-          />
-        );
-      })()}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}

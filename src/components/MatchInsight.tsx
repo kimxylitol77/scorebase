@@ -3,6 +3,9 @@
 
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
+import { kboPhotoUrl } from "@/lib/sports/kbo-official";
+import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcEloHistory } from "@/lib/predict/elo-history";
 import { calcForm } from "@/lib/predict/form";
@@ -1269,6 +1272,23 @@ function StarterPanel({
   const hasAnyStat =
     starter.era != null || starter.whip != null || starter.k9 != null;
 
+  // 이름 한글화 (MLB 영문 → 한글, KBO/NPB 는 이미 한글이라 그대로) + 선수 사진.
+  const nameKo = toKoreanPlayerName(starter.name);
+  const pidNum =
+    starter.pid != null
+      ? typeof starter.pid === "string"
+        ? Number(starter.pid)
+        : starter.pid
+      : null;
+  const photo =
+    pidNum != null && Number.isFinite(pidNum)
+      ? league === "MLB"
+        ? mlbHeadshotUrl(pidNum)
+        : league === "KBO"
+          ? kboPhotoUrl(pidNum)
+          : null
+      : null;
+
   return (
     <div
       className={`rounded-[0.875rem] px-3 py-3 ring-1 ${
@@ -1281,20 +1301,29 @@ function StarterPanel({
         <span>{side} · {teamName}</span>
         {handLabel && <span>{handLabel}</span>}
       </div>
-      {starter.pid != null ? (
-        <a
-          href={`/players/${starter.pid}${
-            league === "KBO" ? "?league=KBO" : league === "NPB" ? "?league=NPB" : ""
-          }`}
-          className="mt-1 block font-semibold tracking-tight truncate hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
-        >
-          {starter.name}
-        </a>
-      ) : (
-        <div className="mt-1 font-semibold tracking-tight truncate">
-          {starter.name}
-        </div>
-      )}
+      <div className="mt-1 flex items-center gap-2.5">
+        {photo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photo}
+            alt=""
+            className="h-11 w-11 shrink-0 rounded-full bg-zinc-100 object-cover ring-1 ring-black/5 dark:bg-white/[0.06] dark:ring-white/10"
+            loading="lazy"
+          />
+        )}
+        {starter.pid != null ? (
+          <a
+            href={`/players/${starter.pid}${
+              league === "KBO" ? "?league=KBO" : league === "NPB" ? "?league=NPB" : ""
+            }`}
+            className="min-w-0 truncate font-semibold tracking-tight transition hover:text-blue-600 hover:underline dark:hover:text-blue-400"
+          >
+            {nameKo}
+          </a>
+        ) : (
+          <div className="min-w-0 truncate font-semibold tracking-tight">{nameKo}</div>
+        )}
+      </div>
       {hasAnyStat && (
         <div className="mt-2 grid grid-cols-3 gap-1 text-center">
           <StatCell label="ERA" value={fmtNum(starter.era, 2)} />
