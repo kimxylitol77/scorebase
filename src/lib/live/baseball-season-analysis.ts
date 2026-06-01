@@ -1,0 +1,139 @@
+// 야구 경기 전 분석 — 팀/선수 시즌 성적 읽기 헬퍼 (SSR).
+// BaseballTeamSeasonStats / BaseballPlayerSeasonStats (cron 적재) 를 매치의 양 팀에 join.
+//
+// JOIN 전략 (2026-06-02 실측):
+//   - season.teamName = 정규화 한글명.
+//   - MLB: toKoreanTeamName(Team.name) 와 정확히 일치 ("Tampa Bay Rays"→"탬파베이").
+//   - KBO/NPB: season.teamName("LG","한신")이 Team.name("LG 트윈스","한신 타이거스")의 부분문자열.
+//   - league 필터로 동명(롯데=KBO/NPB) 구분.
+
+import { prisma } from "@/lib/db";
+import { toKoreanTeamName } from "@/lib/team-names";
+
+export interface BaseballTeamSeason {
+  teamName: string;
+  wins: number;
+  losses: number;
+  games: number;
+  avg: number | null;
+  ops: number | null;
+  homeRuns: number | null;
+  stolenBases: number | null;
+  runs: number | null;
+  era: number | null;
+  whip: number | null;
+}
+
+export interface BaseballBatter {
+  playerName: string;
+  playerNameEn: string | null;
+  externalId: string | null;
+  avg: number | null;
+  hits: number | null;
+  rbi: number | null;
+  ops: number | null;
+  homeRuns: number | null;
+  games: number | null;
+}
+
+export interface BaseballSeasonAnalysis {
+  home: { team: BaseballTeamSeason | null; batters: BaseballBatter[] };
+  away: { team: BaseballTeamSeason | null; batters: BaseballBatter[] };
+  /** 양 팀 중 하나라도 시즌 stats 매칭됐는지 — false 면 섹션 렌더 skip. */
+  hasData: boolean;
+}
+
+const BASEBALL_LEAGUES = new Set(["MLB", "KBO", "NPB"]);
+const MAX_BATTERS = 13;
+
+type TeamRow = Awaited<
+  ReturnType<typeof prisma.baseballTeamSeasonStats.findMany>
+>[number];
+
+/** 매치 팀명 → season 테이블 row 매칭. MLB 정규화 일치 → KBO/NPB 부분문자열 순. */
+function matchTeam(rows: TeamRow[], dbTeamName: string): TeamRow | null {
+  const ko = toKoreanTeamName(dbTeamName) || dbTeamName;
+  // 1) 정규화 정확 일치 (MLB)
+  const exact = rows.find((r) => r.teamName === ko);
+  if (exact) return exact;
+  // 2) Team.name 이 season.teamName 을 포함 (KBO/NPB: "LG" ⊂ "LG 트윈스")
+  const contains = rows.find(
+    (r) => ko.includes(r.teamName) || dbTeamName.includes(r.teamName),
+  );
+  if (contains) return contains;
+  // 3) 역방향 (드묾)
+  return rows.find((r) => r.teamName.includes(ko)) ?? null;
+}
+
+function toTeam(r: TeamRow): BaseballTeamSeason {
+  return {
+    teamName: r.teamName,
+    wins: r.wins,
+    losses: r.losses,
+    games: r.games,
+    avg: r.avg,
+    ops: r.ops,
+    homeRuns: r.homeRuns,
+    stolenBases: r.stolenBases,
+    runs: r.runs,
+    era: r.era,
+    whip: r.whip,
+  };
+}
+
+async function loadBatters(
+  league: string,
+  season: string,
+  teamName: string,
+): Promise<BaseballBatter[]> {
+  const rows = await prisma.baseballPlayerSeasonStats.findMany({
+    where: { league, season, teamName },
+    orderBy: [{ hits: "desc" }, { rbi: "desc" }],
+    take: MAX_BATTERS,
+  });
+  return rows.map((r) => ({
+    playerName: r.playerName,
+    playerNameEn: r.playerNameEn,
+    externalId: r.externalId,
+    avg: r.avg,
+    hits: r.hits,
+    rbi: r.rbi,
+    ops: r.ops,
+    homeRuns: r.homeRuns,
+    games: r.games,
+  }));
+}
+
+/** 매치(야구)의 경기 전 팀/선수 시즌 분석. 비야구·데이터 없음·DB 에러 시 null. */
+export async function getBaseballSeasonAnalysis(match: {
+  league: string;
+  startTime: Date;
+  homeTeam: { name: string };
+  awayTeam: { name: string };
+}): Promise<BaseballSeasonAnalysis | null> {
+  if (!BASEBALL_LEAGUES.has(match.league)) return null;
+  try {
+    const season = String(match.startTime.getUTCFullYear());
+    const teamRows = await prisma.baseballTeamSeasonStats.findMany({
+      where: { league: match.league, season },
+    });
+    if (teamRows.length === 0) return null;
+
+    const homeRow = matchTeam(teamRows, match.homeTeam.name);
+    const awayRow = matchTeam(teamRows, match.awayTeam.name);
+    if (!homeRow && !awayRow) return null;
+
+    const [homeBatters, awayBatters] = await Promise.all([
+      homeRow ? loadBatters(match.league, season, homeRow.teamName) : Promise.resolve([]),
+      awayRow ? loadBatters(match.league, season, awayRow.teamName) : Promise.resolve([]),
+    ]);
+
+    return {
+      home: { team: homeRow ? toTeam(homeRow) : null, batters: homeBatters },
+      away: { team: awayRow ? toTeam(awayRow) : null, batters: awayBatters },
+      hasData: true,
+    };
+  } catch {
+    return null;
+  }
+}

@@ -370,6 +370,61 @@ model ApiFootballStandingsCache {
   updatedAt DateTime @updatedAt
 }
 
+/// 야구 팀 시즌 누적 성적 — 경기 전 "팀 시즌 성적 비교" 섹션(좌우 막대)용.
+/// cron(fetch-baseball-season-stats) 이 매일 1회 upsert:
+///   MLB = statsapi.mlb.com /teams/stats, KBO = koreabaseball.com, NPB = npb.jp 스크랩.
+/// 매치 페이지는 (league, season, teamName) 로 join. teamName = toKoreanTeamName 정규화 한글명.
+/// 승패·득실은 기존 Match(calcStandings)로도 계산되므로 여기선 레이트 스탯(ERA/OPS/AVG/...)이 핵심.
+model BaseballTeamSeasonStats {
+  id          Int      @id @default(autoincrement())
+  league      String   // MLB | KBO | NPB
+  season      String   // "2026"
+  teamName    String   // 정규화된 한글 팀명 (join key)
+  teamNameEn  String?
+  externalId  String?  // 소스 native team id (있으면)
+  games       Int      @default(0)
+  wins        Int      @default(0)
+  losses      Int      @default(0)
+  draws       Int      @default(0)
+  // 타격
+  avg         Float?   // 팀 타율
+  ops         Float?
+  homeRuns    Int?     // 홈런
+  stolenBases Int?     // 도루
+  runs        Int?     // 득점
+  // 투구
+  era         Float?   // 평균자책점
+  whip        Float?
+  fetchedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([league, season, teamName])
+  @@index([league, season])
+}
+
+/// 야구 선수 시즌 타격 성적 — 경기 전 "타자 전력" 테이블용 (선수별 타율/안타/타점/OPS).
+/// cron 이 팀별 로스터(또는 규정타석 충족 타자) upsert. 선수명/사진은 player 페이지 link.
+model BaseballPlayerSeasonStats {
+  id           Int      @id @default(autoincrement())
+  league       String   // MLB | KBO | NPB
+  season       String
+  teamName     String   // 정규화 한글 팀명 (match 팀과 join)
+  playerName   String   // 한글 표시명
+  playerNameEn String?
+  externalId   String?  // player id (사진/선수페이지 link)
+  // 타격
+  avg          Float?   // 타율
+  hits         Int?     // 안타
+  rbi          Int?     // 타점
+  ops          Float?
+  homeRuns     Int?
+  games        Int?     // 출장
+  fetchedAt    DateTime @default(now())
+
+  @@unique([league, season, teamName, playerName])
+  @@index([league, season, teamName])
+}
+
 /// 외부 워커 (Mac mini, Lightsail 등) 의 heartbeat. 워커가 5분마다 POST.
 /// Vercel cron 이 매 10분 lastAt 체크 — 30분+ 무응답 시 텔레그램 알림.
 /// 다중 워커 식별 위해 name 을 PK 로 사용 (ex: "mac-mini-match-narrator").
