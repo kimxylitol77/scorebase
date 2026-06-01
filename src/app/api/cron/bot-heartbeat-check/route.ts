@@ -23,6 +23,9 @@ const BOT_INTERVAL_MS: Record<string, number> = {
   "mac-mini-api-quota": 30 * 60 * 1000,
   "mac-mini-preview-coverage": 30 * 60 * 1000,
   "mac-mini-weekly-player-names": 7 * 24 * 60 * 60 * 1000,
+  // lightsail daily cron (KST 03시 1회). 미등록 시 기본 30분 임계라
+  // 03시 실행 후 매일 false positive 알림 났음 → daily 주기 등록(임계 24h×4=4일).
+  "lightsail-baseball-player-names": 24 * 60 * 60 * 1000,
 };
 
 function staleThreshold(name: string): number {
