@@ -6,14 +6,34 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { SITE_URL } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "밸류 베트 — Elo 예측 vs 배당사 비교",
+  title: "밸류 베트 — AI Elo 예측 vs 배당사 implied 확률 비교",
   description:
-    "Scorebase Elo 모델 예측이 배당사 implied 확률보다 5% 이상 높은 매치 list. value bet 발굴 + 시즌별 적중률 추적.",
+    "스코어베이스 Elo 모델의 예측 확률이 배당사 implied 확률보다 +5%p 이상 높은 매치(밸류 베트)를 자동 발굴합니다. Elo vs 시장 비교 + 시즌별 적중률 추적으로 모델의 우위를 검증.",
+  keywords: [
+    "밸류 베트", "value bet", "Elo 예측", "배당사 비교", "implied 확률",
+    "스포츠 예측 모델", "승률 예측", "기대값",
+  ],
+  alternates: { canonical: `${SITE_URL}/value-bets` },
+};
+
+// 구조화 데이터 (Dataset) — Elo vs 시장 비교를 고유 데이터셋으로 인식.
+const VALUE_BETS_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: "스코어베이스 밸류 베트 — Elo vs 배당사",
+  description:
+    "Elo 모델 예측 확률과 배당사 implied 확률을 비교해 +5%p 이상 격차(밸류 베트)를 자동 발굴한 데이터.",
+  url: `${SITE_URL}/value-bets`,
+  keywords: ["밸류 베트", "value bet", "Elo 예측", "implied 확률"],
+  creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+  isAccessibleForFree: true,
+  measurementTechnique: "Elo 레이팅 예측 확률 vs 배당사 implied 확률 비교",
 };
 
 const MIN_VALUE_PCT = 5; // value ≥ +5% 매치만 list
@@ -156,6 +176,10 @@ export default async function ValueBetsPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(VALUE_BETS_JSONLD) }}
+      />
       <header className="space-y-2">
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
           💎 밸류 베트
@@ -256,6 +280,34 @@ export default async function ValueBetsPage() {
           </ul>
         </div>
       )}
+
+      {/* SEO 본문 — 밸류 베트 개념 + 가치 페이지 내부링크 (thin 탈출) */}
+      <section className="border-t border-black/5 dark:border-white/10 pt-8 space-y-3">
+        <h2 className="text-base sm:text-lg font-bold tracking-tight">밸류 베트란?</h2>
+        <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          밸류 베트(value bet)는 우리 Elo 모델이 추정한 승리 확률이 배당사의 implied 확률보다
+          의미 있게(여기선 +5%p 이상) 높은 매치를 말합니다. 시장이 특정 팀을 과소평가했을 때
+          모델이 그 격차를 포착합니다. 베팅 권유가 아니라{" "}
+          <strong>모델과 시장의 시각 차이를 보여주는 데이터</strong>입니다.
+        </p>
+        <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          모델의 실제 성적은{" "}
+          <Link
+            href="/predictions/accuracy"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            적중률 보드
+          </Link>
+          에서, 시즌 우승 확률은{" "}
+          <Link
+            href="/predictions"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            시즌 예측
+          </Link>
+          에서 확인할 수 있습니다.
+        </p>
+      </section>
     </main>
   );
 }

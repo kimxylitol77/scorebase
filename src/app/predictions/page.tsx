@@ -11,6 +11,7 @@ import {
   COUNTRY_ORDER,
 } from "@/lib/sports/sport-leagues";
 import PredictionsView from "./_view";
+import { SITE_URL } from "@/lib/site-url";
 import {
   LEAGUES,
   type CountryStandingsGroup,
@@ -22,9 +23,14 @@ export const dynamic = "force-dynamic";
 export const revalidate = 600;
 
 export const metadata: Metadata = {
-  title: "시즌 예측 — 스코어베이스",
+  title: "시즌 우승 확률 예측 — Monte Carlo 시뮬레이션 | 스코어베이스",
   description:
-    "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 기반 우승·플레이오프·강등 확률. K리그1·K리그2·J1·J2·AFC 챔스 엘리트·KBO·NPB·MLB·EPL·LCK 등.",
+    "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 기반 우승·플레이오프·강등 확률을 Elo 레이팅으로 계산해 공개합니다. EPL·라리가·분데스리가·K리그·J리그·KBO·NPB·MLB·NBA·NHL·LCK.",
+  keywords: [
+    "시즌 예측", "우승 확률", "우승 예측", "Monte Carlo 시뮬레이션",
+    "EPL 우승 확률", "리그 우승 예측", "강등 확률", "플레이오프 확률",
+    "Elo 레이팅", "시즌 시뮬레이션",
+  ],
 };
 
 // 한 league fetch — throw 면 빈 결과 반환 (전체 page 500 방지).
@@ -118,10 +124,32 @@ async function fetchCountryStandings(): Promise<CountryStandingsGroup[]> {
   return groups;
 }
 
+// 구조화 데이터 (Dataset) — Monte Carlo 시즌 시뮬레이션을 고유 데이터셋으로 인식.
+const PREDICTIONS_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: "스코어베이스 시즌 우승 확률 예측",
+  description:
+    "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 + Elo 레이팅 기반 우승·플레이오프·강등 확률.",
+  url: `${SITE_URL}/predictions`,
+  keywords: ["시즌 우승 확률", "Monte Carlo 시뮬레이션", "Elo 레이팅 예측"],
+  creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+  isAccessibleForFree: true,
+  measurementTechnique: "Monte Carlo 시뮬레이션(5,000회) + Elo 레이팅",
+};
+
 export default async function PredictionsRoot() {
   const [top3, countryGroups] = await Promise.all([
     fetchTop3Map(),
     fetchCountryStandings(),
   ]);
-  return <PredictionsView top3={top3} countryGroups={countryGroups} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(PREDICTIONS_JSONLD) }}
+      />
+      <PredictionsView top3={top3} countryGroups={countryGroups} />
+    </>
+  );
 }
