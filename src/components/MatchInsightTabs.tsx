@@ -62,14 +62,14 @@ export default function MatchInsightTabs({
         </div>
       </div>
 
-      {/* 탭 바 */}
-      <div className="px-3 sm:px-4 pt-3 pb-3 border-b border-neutral-100 dark:border-neutral-900">
-        <div className="flex items-center gap-1 text-sm overflow-x-auto -mx-1 px-1 [&::-webkit-scrollbar]:hidden whitespace-nowrap">
+      {/* 탭 바 — 모바일 가로 스크롤 + 우측 페이드(스크롤 힌트) */}
+      <div className="relative border-b border-neutral-100 dark:border-neutral-900">
+        <div className="flex items-center gap-0.5 text-sm overflow-x-auto px-3 sm:px-4 pt-3 pb-3 pr-8 [&::-webkit-scrollbar]:hidden whitespace-nowrap">
           {visibleTabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setActive(t.key)}
-              className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
                 activeKey === t.key
                   ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
                   : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
@@ -79,6 +79,8 @@ export default function MatchInsightTabs({
             </button>
           ))}
         </div>
+        {/* 우측 페이드 — 탭이 더 있음을 시각적으로 표시 */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent dark:from-neutral-950" />
       </div>
 
       {/* 탭 콘텐츠 — 모든 탭 SSR, active 만 보이게 */}

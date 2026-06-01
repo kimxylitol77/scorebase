@@ -360,8 +360,10 @@ export default async function GenericLivePage({ params }: Props) {
             }
           />
         ) : null;
+      // 라인업 확정(confirmed=1) 시에만 탭 표시. 미발표(confirmed=-)는 탭 자동 숨김.
+      // 부분 도착·좌표 미도착(x/y 0,0)은 SoccerLineupSvg 내부에서 "확정 대기" 안내로 처리.
       lineupNode =
-        lineup && lineup.lineup ? (
+        lineup && lineup.confirmed === 1 && lineup.lineup ? (
           <SoccerLineupSvg data={lineup} homeNameKo={homeKo} awayNameKo={awayKo} nameById={lineupNameById} />
         ) : null;
       goalDistNode =

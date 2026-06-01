@@ -183,9 +183,11 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
   const awayStarters = (lu.away ?? []).filter((p) => p.first === 1);
   if (homeStarters.length === 0 && awayStarters.length === 0) return null;
 
-  // 친선 등에서 라인업이 점진적으로 들어오는 중이면(한 팀이라도 선발 7명 미만)
-  // 1~2명만 빈 피치에 떠서 깨져 보임 → 안내 문구로 대체(경기 임박 시 자동 완성).
-  const ready = homeStarters.length >= 7 && awayStarters.length >= 7;
+  // 친선 등에서 라인업이 점진적으로 들어오는 중이면 안내 문구로 대체(경기 임박 시 자동 완성).
+  // 선발 수뿐 아니라 x/y 좌표가 유효(0,0 아님)한 선수 기준으로 판정 — 좌표 미도착 시
+  // 선수들이 피치 좌상단(0,0)에 겹쳐 1~2명처럼 깨져 보이는 것 방지.
+  const placed = (arr: Player[]) => arr.filter((p) => (p.x ?? 0) > 0 || (p.y ?? 0) > 0);
+  const ready = placed(homeStarters).length >= 7 && placed(awayStarters).length >= 7;
   if (!ready) {
     return (
       <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
