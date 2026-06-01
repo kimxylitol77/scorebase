@@ -231,6 +231,8 @@ export default function PredictionsView({
                   {sport === "축구" && fifaRanking.length > 0 && (
                     <Link
                       href="/predictions/fifa-ranking"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       prefetch={false}
                       className="group relative block overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:hover:bg-white/[0.06] dark:shadow-none"
                     >
