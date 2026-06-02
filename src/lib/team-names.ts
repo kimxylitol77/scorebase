@@ -2929,5 +2929,8 @@ export function toKoreanTeamName(
   if (RAW_LOWER[lower]) return RAW_LOWER[lower];
   if (RAW[stripped]) return RAW[stripped];
   if (RAW_LOWER[strippedLower]) return RAW_LOWER[strippedLower];
+  // NPB 약자: league 인자 없이 호출돼도 풀네임→약자 적용 (MatchInsight 등 공통 컴포넌트).
+  // 키가 고유한 한글 풀네임이라 타 리그와 충돌 없음.
+  if (NPB_TEAM_SHORT_NAMES[trimmed]) return NPB_TEAM_SHORT_NAMES[trimmed];
   return trimmed;
 }
