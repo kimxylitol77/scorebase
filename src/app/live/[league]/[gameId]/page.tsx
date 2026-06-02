@@ -47,6 +47,9 @@ import ConclusionCards, {
   type ConclusionPred,
   type KeyFactor,
 } from "@/components/live/BaseballConclusionCards";
+import RecentGamesCard from "@/components/live/BaseballRecentGames";
+import CollapsibleSection from "@/components/live/CollapsibleSection";
+import { getBaseballRecentGames } from "@/lib/live/baseball-season-analysis";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
@@ -484,6 +487,9 @@ export default async function GenericLivePage({ params }: Props) {
     ? parseTsFootballScore(match.theSportsCache?.detailLive)
     : null;
 
+  // 최근 5경기 + 상대전적 (전 종목 공통, Match 기반)
+  const recentGames = await getBaseballRecentGames(match);
+
   // ── 결론 3카드 데이터 (전 종목 공통) — 승률은 Match.pred* 스냅샷(단일소스) ──
   const predDrawV = isSoccer ? match.predDraw ?? null : null;
   let conclFavored: "home" | "draw" | "away" | null = null;
@@ -656,6 +662,16 @@ export default async function GenericLivePage({ params }: Props) {
         hasDraw={isSoccer}
         scoreLabel={scoreLabel}
       />
+
+      {recentGames?.hasData && (
+        <CollapsibleSection title="최근 5경기 · 상대전적" hint="양 팀 최근 경기 + 맞대결">
+          <RecentGamesCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            data={recentGames}
+          />
+        </CollapsibleSection>
+      )}
 
       {/* 축구 카드(라인업·팀통계·하프타임·트렌드·골분포·H2H·구장·예측·시즌·다음경기)는
           아래 MatchInsight 탭(라인업·팀 통계·맞대결·경기 정보)으로 이동 — soccerTabs 참고. */}

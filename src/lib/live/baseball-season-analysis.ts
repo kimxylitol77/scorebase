@@ -203,7 +203,7 @@ export async function getBaseballRecentGames(match: {
   homeTeam: { id: number; name: string };
   awayTeam: { id: number; name: string };
 }): Promise<BaseballRecentGames | null> {
-  if (!BASEBALL_LEAGUES.has(match.league)) return null;
+  // 전 종목 공통 (Match 기반) — 야구 게이트 없음. 무승부는 toGameRow 가 처리. 에러 시 null.
   try {
     const before = match.startTime;
     const base = {
