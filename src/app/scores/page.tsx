@@ -1495,7 +1495,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                             ? "postponed"
                             : "scheduled",
                     league: m.league,
-                    leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
+                    leagueLabel: displayLeagueLabel(m.league, m.startTime),
                     home: m.home,
                     away: m.away,
                     timeLabel: m.timeLabel,
@@ -1566,7 +1566,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                           ? "postponed"
                           : "scheduled",
                   league: m.league,
-                  leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
+                  leagueLabel: displayLeagueLabel(m.league, m.startTime),
                   home: m.home,
                   away: m.away,
                   timeLabel: m.timeLabel,
@@ -2017,6 +2017,15 @@ function actionsFor(m: NormalizedMatch) {
   );
 }
 
+// 리그 표시 라벨 — NHL 은 6월에 스탠리컵 파이널만 열리므로(TheSports stage 데이터가
+// SCHEDULED 단계엔 없음) 6월(KST) NHL 경기는 "🏆 스탠리컵 파이널" 로 표시.
+function displayLeagueLabel(league: string, startTime: string | Date): string {
+  const t = typeof startTime === "string" ? new Date(startTime) : startTime;
+  const kstMonth = new Date(t.getTime() + 9 * 3600 * 1000).getUTCMonth();
+  if (league === "NHL" && kstMonth === 5) return "🏆 스탠리컵 파이널"; // 5 = 6월(0-idx)
+  return LEAGUE_DISPLAY[league] ?? league;
+}
+
 function renderCard(m: NormalizedMatch) {
   const statusKey: "scheduled" | "live" | "finished" | "postponed" =
     m.status === "LIVE"
@@ -2034,7 +2043,7 @@ function renderCard(m: NormalizedMatch) {
       sport={m.sport}
       status={statusKey}
       league={m.league}
-      leagueLabel={LEAGUE_DISPLAY[m.league] ?? m.league}
+      leagueLabel={displayLeagueLabel(m.league, m.startTime)}
       home={m.home}
       away={m.away}
       timeLabel={m.timeLabel}
