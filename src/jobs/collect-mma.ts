@@ -21,12 +21,13 @@ async function fetchFighterPhoto(name: string): Promise<string | null> {
       `https://v1.mma.api-sports.io/fighters?search=${encodeURIComponent(name)}`,
       { headers: { "x-apisports-key": apiKey } },
     );
+    if (!r.ok) return null; // rate limit(429)·에러 → null (마킹 안 함, 다음에 재조회)
     const j = (await r.json()) as { response?: Array<{ name?: string; photo?: string }> };
     const list = j.response ?? [];
     const exact = list.find((f) => f.name?.toLowerCase() === name.toLowerCase()) ?? list[0];
-    return exact?.photo ?? null;
+    return exact?.photo ?? ""; // 결과 0(api-sports 미수록) → "" 마킹(재조회 방지)
   } catch {
-    return null;
+    return null; // 네트워크 에러 → 재조회
   }
 }
 
@@ -39,7 +40,8 @@ async function upsertFighter(name: string): Promise<number> {
   // logoUrl 미설정(null)일 때만 api-sports 조회. 미매칭은 ""로 마킹해 재조회 방지(Free 한도 절약).
   let logoUrl = existing?.logoUrl ?? null;
   if (logoUrl == null) {
-    logoUrl = (await fetchFighterPhoto(name)) ?? "";
+    logoUrl = await fetchFighterPhoto(name); // photo | "" (미매칭) | null (rate/에러 → 재조회)
+    await new Promise((res) => setTimeout(res, 250)); // api-sports rate limit 회피 (연속 호출)
   }
   const t = await prisma.team.upsert({
     where: { league_externalId: { league: "UFC", externalId } },
