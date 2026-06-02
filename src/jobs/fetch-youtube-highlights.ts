@@ -25,12 +25,14 @@ import { toKoreanTeamName } from "@/lib/team-names";
 const HIGHLIGHT_PLAYLISTS: Record<string, string> = {
   K_LEAGUE_1: "PL1596Fd0RtLRyZF8c5ZwcvjRASe0mCg2x", // HIGHLIGHTSㅣ하나은행 K리그1 2026 (@kleaguehighlights)
   K_LEAGUE_2: "PL1596Fd0RtLRXJ0wSAFLjhYpBEr94fBXh", // HIGHLIGHTSㅣ하나은행 K리그2 2026 (@kleaguehighlights)
+  NHL: "PL1NbHSfosBuFyu867mbHHhB2G6fx7jtiH", // 2025-2026 NHL Full Game Highlights (공식 @NHL, KR 가능 확인 2026-06-03)
 };
 
 // 경기 현지 시간대 (UTC offset, 시간) — 제목의 "경기 날짜" 와 startTime(UTC) 정합용.
 const LEAGUE_TZ_OFFSET_H: Record<string, number> = {
   K_LEAGUE_1: 9, // KST
   K_LEAGUE_2: 9, // KST
+  NHL: -5, // US Eastern (서머타임/PT 슬랙은 ±1일 윈도가 흡수)
 };
 
 const LOOKBACK_DAYS = 12; // 최근 12일 종료 경기만 대상 (재생목록 RSS 가 최근 ~15개라 충분).
