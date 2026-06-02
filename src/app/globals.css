@@ -720,23 +720,20 @@ body {
   font-weight: 600;
 }
 
-/* 스코어보드.kr (body.sb-mode) — /scores 행에서 예측/L/R(정보 칸) "내용만" 숨김.
-   컬럼 트랙(정보48px·spacer154px)은 유지 → 좌측 고정(110+56+64=230)과 우측
-   (관심28+48+154=230)이 대칭 → 점수(vs)가 정중앙. 팀칸은 minmax(0,1fr) 로 두어
-   행을 컨테이너 폭에 fit(가로 넘침 방지) → 맨 우측 관심별이 잘리지 않고 노출.
-   (1200폭 기준 팀 1fr≈360px 라 팀명도 잘리지 않음. max-content 면 로고·순위배지
-   때문에 행이 넘쳐 우측 별이 가로 스크롤 밖으로 밀려 안 보였음.) */
+/* 스코어보드.kr (body.sb-mode) — /scores 행에서 예측/L/R(정보 칸) "내용만" 숨김. */
 body.sb-mode [data-sinfo] {
   display: none !important;
 }
+/* reference(scorebase_score_row_aligned) 레이아웃 — 7컬럼 좌우대칭:
+   리그150 · 시간52 · 상태44 · 홈팀1fr(우측정렬) · 점수72(고정) · 원정팀1fr(좌측정렬) · 별32.
+   정보(48)·spacer(154) 트랙 완전 제거. 점수를 72px 고정폭으로 두고 좌우 1fr 을 대칭으로
+   둬 점수(vs)가 "두 팀 사이 중앙"에 항상 고정. 고정 트랙 합이 작아(≈350) 임베드 등 좁은
+   폭에서도 1fr 이 자동 적응 → "다른 데서 화면 이상" 문제 해결. 별은 7번째 컬럼(32px). */
 body.sb-mode [data-srow] {
-  grid-template-columns: 110px 56px 64px minmax(0, 1fr) auto minmax(0, 1fr) 28px 48px minmax(0, 154px) !important;
+  grid-template-columns: 150px 52px 44px 1fr 72px 1fr 32px !important;
 }
-/* 관심(별) 셀(7번째 자식)을 맨 우측 spacer 트랙(9번째)으로 이동 → 별·헤더"관심"이
-   행 우측 끝으로 정렬. 점수(t5)는 대칭 트랙(좌230·우28+48+154=230) 그대로라 정중앙 유지.
-   원래 별 자리(t7 28px)·정보(t8 48px)는 빈 트랙으로 남음. */
+/* 관심별(7번째 자식) — 32px 컬럼 우측 끝 정렬. */
 body.sb-mode [data-srow] > :nth-child(7) {
-  grid-column: 9 / 10 !important;
   justify-self: end !important;
 }
 /* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제 → 화면(노란칸) 전체 폭
