@@ -12,6 +12,7 @@ import {
   BASEBALL_LEAGUES,
   BASKETBALL_LEAGUES,
   HOCKEY_LEAGUES,
+  MMA_LEAGUES,
   leaguesForSport,
   LEAGUE_DISPLAY,
   LEAGUE_ORDER,
@@ -109,6 +110,7 @@ function sportFromLeague(league: string): string {
   if (SOCCER_LEAGUES.has(league)) return "soccer";
   if (BASKETBALL_LEAGUES.has(league)) return "basketball"; // NBA/WNBA/KBL/WKBL (이전엔 NBA 만 → 나머지가 "other" 한 줄로 빠짐)
   if (HOCKEY_LEAGUES.has(league)) return "hockey"; // NHL + IIHF_WC (이전엔 NHL 만 → IIHF_WC 가 "other" 한 줄로 빠짐)
+  if (MMA_LEAGUES.has(league)) return "mma"; // UFC
   if (league === "LOL") return "esports";
   return "other";
 }
