@@ -11,6 +11,10 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import ConclusionCards, {
+  type ConclusionPred,
+  type KeyFactor,
+} from "@/components/live/BaseballConclusionCards";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +66,53 @@ export default async function LolLivePage({ params }: Props) {
 
   const extras = await fetchMatchExtras(match);
 
+  // 결론 3카드 데이터 (LoL — 무승부 없음)
+  let lolFavored: "home" | "away" | null = null;
+  if (match.predHome != null && match.predAway != null) {
+    lolFavored = match.predHome >= match.predAway ? "home" : "away";
+  }
+  let lolCorrect: boolean | null = match.predCorrect ?? null;
+  if (
+    match.status === "FINISHED" &&
+    match.homeScore != null &&
+    match.awayScore != null &&
+    match.homeScore !== match.awayScore &&
+    lolFavored != null
+  ) {
+    lolCorrect = (match.homeScore > match.awayScore ? "home" : "away") === lolFavored;
+  }
+  const lolPred: ConclusionPred | null =
+    lolFavored != null && match.predHome != null && match.predAway != null
+      ? {
+          favored: lolFavored,
+          pct: Math.min(99, Math.round(Math.max(match.predHome, match.predAway) * 100)),
+          correct: lolCorrect,
+        }
+      : null;
+  const lHS = extras.homeStanding;
+  const lAS = extras.awayStanding;
+  const lolFactors: KeyFactor[] = [];
+  if (lHS && lAS) {
+    if (lHS.position && lAS.position) {
+      lolFactors.push({
+        label: "리그순위",
+        home: `${lHS.position}위`,
+        away: `${lAS.position}위`,
+        edge: lHS.position < lAS.position ? "home" : lHS.position > lAS.position ? "away" : "even",
+      });
+    }
+    if (lHS.played > 0 && lAS.played > 0) {
+      const hw = lHS.wins / lHS.played;
+      const aw = lAS.wins / lAS.played;
+      lolFactors.push({
+        label: "시즌 승률",
+        home: hw.toFixed(3),
+        away: aw.toFixed(3),
+        edge: hw > aw ? "home" : hw < aw ? "away" : "even",
+      });
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -102,6 +153,18 @@ export default async function LolLivePage({ params }: Props) {
         recapSlug={extras.recapSlug}
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
       />
+
+      {/* 결론 3카드 — 결론 먼저 (명세 v2 §6) */}
+      {(lolPred || lolFactors.length > 0) && (
+        <ConclusionCards
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+          pred={lolPred}
+          factors={lolFactors}
+        />
+      )}
+
       <LolLiveDetail
         matchId={Number(matchId)}
         date={date}

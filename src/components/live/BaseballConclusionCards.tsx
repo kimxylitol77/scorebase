@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 
 export interface ConclusionPred {
-  favored: "home" | "away";
+  favored: "home" | "draw" | "away"; // draw = 무승부(축구 등)
   pct: number; // 0~100, 캡 적용됨
   correct: boolean | null; // null=미채점, true/false=종료 후 채점
 }
@@ -40,7 +40,9 @@ export default function BaseballConclusionCards({
 }: Props) {
   if (!pred && factors.length === 0) return null;
   const isFinished = status === "FINISHED";
-  const favName = pred?.favored === "home" ? homeNameKo : awayNameKo;
+  const favName =
+    pred?.favored === "home" ? homeNameKo : pred?.favored === "draw" ? "무승부" : awayNameKo;
+  const isDraw = pred?.favored === "draw";
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -66,7 +68,9 @@ export default function BaseballConclusionCards({
           <div className="text-[10px] font-medium uppercase tracking-wider text-neutral-400">
             경기 전 기준
           </div>
-          <div className="text-base font-bold tracking-tight truncate">{favName} 승 예측</div>
+          <div className="text-base font-bold tracking-tight truncate">
+            {isDraw ? "무승부 예측" : `${favName} 승 예측`}
+          </div>
           {isFinished && pred.correct != null ? (
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${

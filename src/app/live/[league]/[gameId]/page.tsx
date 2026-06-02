@@ -43,6 +43,10 @@ import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
 import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
+import ConclusionCards, {
+  type ConclusionPred,
+  type KeyFactor,
+} from "@/components/live/BaseballConclusionCards";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
@@ -480,6 +484,70 @@ export default async function GenericLivePage({ params }: Props) {
     ? parseTsFootballScore(match.theSportsCache?.detailLive)
     : null;
 
+  // ── 결론 3카드 데이터 (전 종목 공통) — 승률은 Match.pred* 스냅샷(단일소스) ──
+  const predDrawV = isSoccer ? match.predDraw ?? null : null;
+  let conclFavored: "home" | "draw" | "away" | null = null;
+  let conclMax = -1;
+  if (match.predHome != null && match.predAway != null) {
+    conclMax = Math.max(match.predHome, match.predAway, predDrawV ?? -1);
+    conclFavored =
+      conclMax === match.predHome
+        ? "home"
+        : predDrawV != null && conclMax === predDrawV
+          ? "draw"
+          : "away";
+  }
+  let conclCorrect: boolean | null = match.predCorrect ?? null;
+  if (
+    match.status === "FINISHED" &&
+    match.homeScore != null &&
+    match.awayScore != null &&
+    conclFavored != null
+  ) {
+    const actual =
+      match.homeScore > match.awayScore
+        ? "home"
+        : match.homeScore < match.awayScore
+          ? "away"
+          : "draw";
+    conclCorrect = actual === conclFavored;
+  }
+  const conclPred: ConclusionPred | null =
+    conclFavored != null
+      ? { favored: conclFavored, pct: Math.min(99, Math.round(conclMax * 100)), correct: conclCorrect }
+      : null;
+  const cHS = extras.homeStanding;
+  const cAS = extras.awayStanding;
+  const conclFactors: KeyFactor[] = [];
+  if (cHS && cAS) {
+    if (cHS.position && cAS.position) {
+      conclFactors.push({
+        label: "리그순위",
+        home: `${cHS.position}위`,
+        away: `${cAS.position}위`,
+        edge: cHS.position < cAS.position ? "home" : cHS.position > cAS.position ? "away" : "even",
+      });
+    }
+    if (cHS.played > 0 && cAS.played > 0) {
+      const hw = cHS.wins / cHS.played;
+      const aw = cAS.wins / cAS.played;
+      conclFactors.push({
+        label: "시즌 승률",
+        home: hw.toFixed(3),
+        away: aw.toFixed(3),
+        edge: hw > aw ? "home" : hw < aw ? "away" : "even",
+      });
+      const hgf = cHS.goalsFor / cHS.played;
+      const agf = cAS.goalsFor / cAS.played;
+      conclFactors.push({
+        label: scoreLabel.for,
+        home: hgf.toFixed(1),
+        away: agf.toFixed(1),
+        edge: hgf > agf ? "home" : hgf < agf ? "away" : "even",
+      });
+    }
+  }
+
   return (
     <>
       <script
@@ -534,6 +602,17 @@ export default async function GenericLivePage({ params }: Props) {
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
         league={lg}
       />
+
+      {/* 결론 3카드 — 결론 먼저 (명세 v2 §6, 전 종목 공통) */}
+      {(conclPred || conclFactors.length > 0) && (
+        <ConclusionCards
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+          pred={conclPred}
+          factors={conclFactors}
+        />
+      )}
 
       <SportLiveDetail
         gameId={gameId}
