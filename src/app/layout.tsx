@@ -160,6 +160,18 @@ export default async function RootLayout({
         )}
         <main className="flex-1 w-full">{children}</main>
         {!isScoreboard && <Footer />}
+        {isScoreboard && (
+          <footer className="mt-8 border-t border-neutral-200 dark:border-neutral-800 py-5 px-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
+            본 스코어는{" "}
+            <a
+              href="https://www.scorebase.kr/"
+              className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              스코어베이스
+            </a>
+            가 제공하는 서비스입니다.
+          </footer>
+        )}
         {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
         <Analytics />
       </body>
