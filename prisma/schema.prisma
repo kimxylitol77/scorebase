@@ -74,6 +74,9 @@ model Match {
   status     String // SCHEDULED | LIVE | FINISHED | POSTPONED
   startTime  DateTime
   raw        String? // 원본 JSON (디버깅/재가공용)
+  // 공식 유튜브 하이라이트 영상 ID — 경기 종료 후 fetch-youtube-highlights cron 이 적재.
+  // 공식 채널 "풀 하이라이트" 재생목록에서만 매칭 (재업로드 차단). null = 카드 숨김.
+  highlightYoutubeId String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

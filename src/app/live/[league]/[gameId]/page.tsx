@@ -61,6 +61,7 @@ import MatchPredictionsCard from "@/components/live/MatchPredictionsCard";
 import TeamSeasonStatsCard from "@/components/live/TeamSeasonStatsCard";
 import UpcomingFixturesCard, { type UpcomingFixture } from "@/components/live/UpcomingFixturesCard";
 import KickoffCountdown from "@/components/live/KickoffCountdown";
+import MatchHighlightCard from "@/components/live/MatchHighlightCard";
 
 // 축구 리그 — SPORTS.soccer.leagues 단일 출처에서 derive (신규 리그 추가 자동 동기화)
 const SOCCER_LEAGUES = new Set(
@@ -648,6 +649,15 @@ export default async function GenericLivePage({ params }: Props) {
         oddsHistory={oddsHistory}
         playerLogoById={playerLogoById}
       />
+
+      {/* 공식 유튜브 하이라이트 — 종료 경기에 매칭된 영상이 있을 때만 (K리그·NBA). */}
+      {match.highlightYoutubeId && (
+        <MatchHighlightCard
+          videoId={match.highlightYoutubeId}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+        />
+      )}
 
       {/* 팀명 + 최근경기 (상대전적) — 점수 카드 바로 아래로 (사용자 우선순위 2026-05-24) */}
       <MatchHeadToHead
