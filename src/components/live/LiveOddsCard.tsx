@@ -46,6 +46,8 @@ interface Props {
   } | null;
   /** 시계열 — sparkline 차트용 (오래된→최신). 비어있으면 차트 미표시 */
   oddsHistory?: OddsHistoryPoint[];
+  /** 매치 상태 — FINISHED 면 "경기 전 최종"으로 표기해 오래된 값이 현재처럼 보이지 않게 함. */
+  matchStatus?: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
 }
 
 function fmt(v: number | null | undefined): string {
@@ -59,6 +61,15 @@ function timeAgo(epoch: number): string {
   const min = Math.floor(sec / 60);
   if (min < 60) return `${min}분 전`;
   return `${Math.floor(min / 60)}시간 전`;
+}
+
+/** 배당 신선도 — 갱신 후 경과시간으로 🟢<2분 / 🟡<30분 / 🔴 그 외(지연). */
+function freshnessLabel(epoch: number): { dot: string; text: string; cls: string } {
+  const min = Math.floor(Math.max(0, Date.now() - epoch) / 60000);
+  const ago = timeAgo(epoch);
+  if (min < 2) return { dot: "🟢", text: ago, cls: "text-emerald-600 dark:text-emerald-400" };
+  if (min < 30) return { dot: "🟡", text: ago, cls: "text-amber-600 dark:text-amber-400" };
+  return { dot: "🔴", text: `${ago} · 지연`, cls: "text-rose-600 dark:text-rose-400" };
 }
 
 /** vig 미제거 implied probability (decimal odds 의 역수). 정규화 안 함. */
@@ -93,11 +104,15 @@ export default function LiveOddsCard({
   hasDraw,
   eloPrediction,
   oddsHistory,
+  matchStatus,
 }: Props) {
   const { h2h, totals, spread, bookmakers, bookmakerList, fetchedAt } = odds;
   const [expanded, setExpanded] = useState(false);
 
   if (!h2h && !totals && !spread) return null;
+
+  const isFinished = matchStatus === "FINISHED";
+  const fresh = freshnessLabel(fetchedAt);
 
   // implied % (vig 제거 후 정규화)
   const vig = calcVig(h2h);
@@ -139,19 +154,30 @@ export default function LiveOddsCard({
 
   return (
     <div className="rounded-[28px] bg-neutral-100/70 dark:bg-white/[0.04] ring-1 ring-black/5 dark:ring-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4),0_8px_32px_-8px_rgba(0,0,0,0.6)] backdrop-blur-xl p-5 sm:p-6 space-y-5">
-      {/* 헤더 — 라이브 dot + 라벨 */}
+      {/* 헤더 — status 인지 라벨 + freshness 배지 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="relative inline-flex w-2 h-2">
-            <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-60" />
-            <span className="relative inline-block w-2 h-2 rounded-full bg-rose-500" />
-          </span>
+          {!isFinished && (
+            <span className="relative inline-flex w-2 h-2">
+              <span className="absolute inset-0 rounded-full bg-rose-500 animate-ping opacity-60" />
+              <span className="relative inline-block w-2 h-2 rounded-full bg-rose-500" />
+            </span>
+          )}
           <span className="text-[13px] font-semibold tracking-tight text-neutral-900 dark:text-white">
-            라이브 배당
+            {isFinished ? "경기 전 배당" : "라이브 배당"}
           </span>
         </div>
-        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums">
-          {bookmakers}곳 평균 · {timeAgo(fetchedAt)}
+        <div className="flex items-center gap-1.5 text-[11px] tabular-nums">
+          <span className="text-neutral-500 dark:text-neutral-400">{bookmakers}곳 평균</span>
+          {isFinished ? (
+            <span className="rounded-full bg-neutral-200/70 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:text-neutral-400">
+              경기 전 최종
+            </span>
+          ) : (
+            <span className={`font-medium ${fresh.cls}`}>
+              {fresh.dot} {fresh.text}
+            </span>
+          )}
         </div>
       </div>
 
@@ -247,7 +273,7 @@ export default function LiveOddsCard({
         <div className="rounded-2xl bg-white/70 dark:bg-white/[0.03] ring-1 ring-black/5 dark:ring-white/5 p-4 space-y-2.5">
           <div className="flex items-baseline justify-between">
             <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
-              배당 흐름 · {oddsHistory.length}개 snapshot
+              {isFinished ? "경기 전 배당 흐름" : "배당 흐름"} · {oddsHistory.length}개 snapshot
             </div>
             <SparklineLegend
               hasDraw={hasDraw}

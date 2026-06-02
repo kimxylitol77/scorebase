@@ -53,16 +53,17 @@ export default function BaseballWpaChart({ series, homeNameKo, awayNameKo }: Pro
     ` L${xOf(series[series.length - 1].inning).toFixed(1)},${yOf(0.5).toFixed(1)} Z`;
 
   const last = series[series.length - 1];
-  const homeWPpct = Math.round(last.homeWP * 100);
+  // 확률 상한 캡 — 100%/0% 과신 표기 금지 (명세 4-5).
+  const homeWPpct = Math.min(99, Math.max(1, Math.round(last.homeWP * 100)));
   const awayWPpct = 100 - homeWPpct;
 
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-3">
       <div className="flex items-center justify-between">
         <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-          라이브 승률 곡선
+          현재 승률 곡선 · 실시간
         </div>
-        <div className="text-[10px] text-neutral-400">Poisson · 이닝 기준</div>
+        <div className="text-[10px] text-neutral-400">Poisson · 현재 점수 기준</div>
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="none">

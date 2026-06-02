@@ -369,6 +369,7 @@ export default function MlbBoxscoreTabs({
             homeNameKo={homeNameKo}
             awayNameKo={awayNameKo}
             history={initialOdds?.history}
+            matchStatus={initialStatus}
           />
         ) : activeTab === "wpa" && wpaSeries ? (
           <BaseballWpaChart
@@ -604,6 +605,7 @@ function EmbedLiveOdds(props: {
   homeNameKo: string;
   awayNameKo: string;
   history?: Array<{ fetchedAt: number; home: number | null; away: number | null }>;
+  matchStatus?: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
 }) {
   return (
     <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none [&>section]:bg-transparent">
@@ -612,6 +614,7 @@ function EmbedLiveOdds(props: {
         homeNameKo={props.homeNameKo}
         awayNameKo={props.awayNameKo}
         hasDraw={false}
+        matchStatus={props.matchStatus}
         oddsHistory={props.history
           ?.filter(
             (p): p is { fetchedAt: number; home: number; away: number } =>

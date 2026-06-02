@@ -819,6 +819,10 @@ export default async function MatchInsight({
           시장 odds 반영
         </span>
       )}
+      {/* 4-2 시점 라벨 — 이 승률은 경기 전 모델값(실시간 WPA 곡선과 구분) */}
+      <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-700 ring-1 ring-black/5 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10">
+        경기 전 기준
+      </span>
     </>
   );
 

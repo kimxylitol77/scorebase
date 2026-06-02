@@ -23,6 +23,11 @@ import MlbTeamStatsLive from "@/components/live/MlbTeamStatsLive";
 import BaseballSeasonComparison from "@/components/live/BaseballSeasonComparison";
 import BaseballBatterStats from "@/components/live/BaseballBatterStats";
 import BaseballRecentGames from "@/components/live/BaseballRecentGames";
+import CollapsibleSection from "@/components/live/CollapsibleSection";
+import BaseballConclusionCards, {
+  type ConclusionPred,
+  type KeyFactor,
+} from "@/components/live/BaseballConclusionCards";
 import {
   getBaseballSeasonAnalysis,
   getBaseballRecentGames,
@@ -169,6 +174,60 @@ export default async function MlbLivePage({ params }: Props) {
     ]);
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
 
+  // 결론 3카드 데이터 — 승률은 Match.pred* 스냅샷(단일소스 = MatchInsight 동일값).
+  // 적중/빗나감 — 종료 경기는 최종 스코어로 직접 판정(평가잡 미반영 대비), 그 외엔 저장값.
+  let predCorrect: boolean | null = match.predCorrect ?? null;
+  if (
+    match.status === "FINISHED" &&
+    match.homeScore != null &&
+    match.awayScore != null &&
+    match.homeScore !== match.awayScore &&
+    match.predHome != null &&
+    match.predAway != null
+  ) {
+    const homeWon = match.homeScore > match.awayScore;
+    const predHomeFav = match.predHome >= match.predAway;
+    predCorrect = homeWon === predHomeFav;
+  }
+  const pred: ConclusionPred | null =
+    match.predHome != null && match.predAway != null
+      ? {
+          favored: match.predHome >= match.predAway ? "home" : "away",
+          pct: Math.min(99, Math.round(Math.max(match.predHome, match.predAway) * 100)),
+          correct: predCorrect,
+        }
+      : null;
+  // 핵심 변수 TOP3 — 선발 ERA · 팀 ERA · 팀 OPS (있는 것만).
+  const homeStarterInfo = parseStarterFull(match.homeStarter);
+  const awayStarterInfo = parseStarterFull(match.awayStarter);
+  const ht = seasonAnalysis?.home.team;
+  const at = seasonAnalysis?.away.team;
+  const keyFactors: KeyFactor[] = [];
+  if (homeStarterInfo?.era != null && awayStarterInfo?.era != null) {
+    keyFactors.push({
+      label: "선발 ERA",
+      home: homeStarterInfo.era.toFixed(2),
+      away: awayStarterInfo.era.toFixed(2),
+      edge: homeStarterInfo.era < awayStarterInfo.era ? "home" : homeStarterInfo.era > awayStarterInfo.era ? "away" : "even",
+    });
+  }
+  if (ht?.era != null && at?.era != null) {
+    keyFactors.push({
+      label: "팀 ERA",
+      home: ht.era.toFixed(2),
+      away: at.era.toFixed(2),
+      edge: ht.era < at.era ? "home" : ht.era > at.era ? "away" : "even",
+    });
+  }
+  if (ht?.ops != null && at?.ops != null) {
+    keyFactors.push({
+      label: "팀 OPS",
+      home: ht.ops.toFixed(3),
+      away: at.ops.toFixed(3),
+      edge: ht.ops > at.ops ? "home" : ht.ops < at.ops ? "away" : "even",
+    });
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -211,6 +270,18 @@ export default async function MlbLivePage({ params }: Props) {
         matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
         league="MLB"
       />
+
+      {/* 결론 3카드 — 결론 먼저 (명세 v2 §6) */}
+      {(pred || keyFactors.length > 0) && (
+        <BaseballConclusionCards
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+          pred={pred}
+          factors={keyFactors}
+        />
+      )}
+
       <MlbLiveDetail
         gameId={gameId}
         homeNameKo={homeKo}
@@ -240,44 +311,7 @@ export default async function MlbLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
       />
 
-      {seasonAnalysis?.hasData && (
-        <>
-          <BaseballSeasonComparison
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-            home={seasonAnalysis.home.team}
-            away={seasonAnalysis.away.team}
-          />
-          <BaseballBatterStats
-            homeNameKo={homeKo}
-            awayNameKo={awayKo}
-            homeBatters={seasonAnalysis.home.batters}
-            awayBatters={seasonAnalysis.away.batters}
-          />
-        </>
-      )}
-
-      {recentGames?.hasData && (
-        <BaseballRecentGames
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-          data={recentGames}
-        />
-      )}
-
-      {/* 네이버 스타일 7탭 통합 카드 — 라인업/타자/투수/팀통계(ESPN)/팀스탯(TS)/배당/승률 */}
-      <MlbBoxscoreTabs
-        gameId={gameId}
-        homeNameKo={homeKo}
-        awayNameKo={awayKo}
-        initialBoxscore={mlbBoxscore}
-        initialStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
-        playerNameKoBy={playerNameKoBy}
-        tsDetailStats={
-          (match.theSportsCache?.detailLive as { stats?: unknown } | null)?.stats
-        }
-        initialOdds={baseballOdds}
-      />
+      {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}
       <MatchInsight
         match={match}
         teamStatsContent={
@@ -294,11 +328,63 @@ export default async function MlbLivePage({ params }: Props) {
               homeNameKo={homeKo}
               awayNameKo={awayKo}
               hasDraw={false}
+              matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
               oddsHistory={baseballOdds.history}
             />
           ) : null
         }
       />
+
+      {/* ── 여기부터 심화 분석 · 기본 접힘 (명세 v2) ── */}
+      {(seasonAnalysis?.hasData || recentGames?.hasData) && (
+        <CollapsibleSection
+          title="팀 전력 · 시즌 분석"
+          hint="시즌 성적 · 타자 전력 · 최근 5경기"
+        >
+          {seasonAnalysis?.hasData && (
+            <>
+              <BaseballSeasonComparison
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+                home={seasonAnalysis.home.team}
+                away={seasonAnalysis.away.team}
+              />
+              <BaseballBatterStats
+                homeNameKo={homeKo}
+                awayNameKo={awayKo}
+                homeBatters={seasonAnalysis.home.batters}
+                awayBatters={seasonAnalysis.away.batters}
+              />
+            </>
+          )}
+          {recentGames?.hasData && (
+            <BaseballRecentGames
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              data={recentGames}
+            />
+          )}
+        </CollapsibleSection>
+      )}
+
+      {/* 박스스코어 · 어드밴스드 — 기본 접힘 */}
+      <CollapsibleSection
+        title="박스스코어 · 어드밴스드"
+        hint="라인업 · 타자 · 투수 · 팀스탯 · 배당 · 승률"
+      >
+        <MlbBoxscoreTabs
+          gameId={gameId}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          initialBoxscore={mlbBoxscore}
+          initialStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+          playerNameKoBy={playerNameKoBy}
+          tsDetailStats={
+            (match.theSportsCache?.detailLive as { stats?: unknown } | null)?.stats
+          }
+          initialOdds={baseballOdds}
+        />
+      </CollapsibleSection>
     </div>
   );
 }
