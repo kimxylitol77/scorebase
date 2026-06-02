@@ -732,17 +732,9 @@ body.sb-mode [data-sinfo] {
 body.sb-mode [data-srow] {
   grid-template-columns: 150px 52px 44px 1fr 72px 1fr 32px !important;
 }
-/* 관심별(7번째 자식) — 32px 컬럼 우측 끝 정렬 후, 넓은 화면(데스크탑)에서는 왼쪽으로
-   당겨 원정팀 쪽으로 이동. transform 이라 점수·팀 레이아웃엔 영향 없음(별만 시각 이동).
-   좁은 폭(임베드)은 점수/팀과 겹침 방지 위해 미적용(별 우측 끝 유지).
-   사용자 요청: "현재 위치에서 별만 왼쪽으로 이동". */
+/* 관심별(7번째 자식) — 32px 컬럼 우측 끝 정렬. */
 body.sb-mode [data-srow] > :nth-child(7) {
   justify-self: end !important;
-}
-@media (min-width: 1024px) {
-  body.sb-mode [data-srow] > :nth-child(7) {
-    transform: translateX(-200px) !important;
-  }
 }
 /* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제해 화면(노란칸) 폭 사용.
    단 우측 패딩을 키워(좌12 · 우80) 전체를 왼쪽으로 밀고, 우측 끝 관심별이 브라우저
