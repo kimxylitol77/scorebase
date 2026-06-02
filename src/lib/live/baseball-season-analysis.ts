@@ -181,15 +181,15 @@ function kstMMDD(d: Date): string {
   return `${mm}.${dd}`;
 }
 
-function toGameRow(m: RawGame): BaseballGameRow {
+function toGameRow(m: RawGame, league: string): BaseballGameRow {
   const hs = m.homeScore;
   const as = m.awayScore;
   let winner: BaseballGameRow["winner"] = null;
   if (hs != null && as != null) winner = hs > as ? "HOME" : hs < as ? "AWAY" : "DRAW";
   return {
     date: kstMMDD(m.startTime),
-    homeName: toKoreanTeamName(m.homeTeam.name) || m.homeTeam.name,
-    awayName: toKoreanTeamName(m.awayTeam.name) || m.awayTeam.name,
+    homeName: toKoreanTeamName(m.homeTeam.name, league) || m.homeTeam.name,
+    awayName: toKoreanTeamName(m.awayTeam.name, league) || m.awayTeam.name,
     homeScore: hs,
     awayScore: as,
     winner,
@@ -237,9 +237,9 @@ export async function getBaseballRecentGames(match: {
         select: GAME_SELECT,
       }),
     ]);
-    const home = homeRows.map(toGameRow);
-    const away = awayRows.map(toGameRow);
-    const h2h = h2hRows.map(toGameRow);
+    const home = homeRows.map((m) => toGameRow(m, match.league));
+    const away = awayRows.map((m) => toGameRow(m, match.league));
+    const h2h = h2hRows.map((m) => toGameRow(m, match.league));
     if (!home.length && !away.length && !h2h.length) return null;
     return { home, away, h2h, hasData: true };
   } catch {

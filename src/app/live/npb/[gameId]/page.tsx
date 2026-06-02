@@ -69,8 +69,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { gameId } = await params;
   const match = await findNpbMatch(gameId);
   if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
-  const home = toKoreanTeamName(match.homeTeam.name);
-  const away = toKoreanTeamName(match.awayTeam.name);
+  const home = toKoreanTeamName(match.homeTeam.name, "NPB");
+  const away = toKoreanTeamName(match.awayTeam.name, "NPB");
   return {
     title: `${away} vs ${home} 라이브 — NPB`,
     description: `${away} vs ${home} NPB 일본프로야구 라이브 스코어 · 이닝별 점수 · 안타·실책 · 양팀 선발투수.`,
@@ -85,8 +85,8 @@ export default async function NpbLivePage({ params }: Props) {
   const match = await findNpbMatch(gameId);
   if (!match) notFound();
 
-  const homeKo = toKoreanTeamName(match.homeTeam.name);
-  const awayKo = toKoreanTeamName(match.awayTeam.name);
+  const homeKo = toKoreanTeamName(match.homeTeam.name, "NPB");
+  const awayKo = toKoreanTeamName(match.awayTeam.name, "NPB");
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
