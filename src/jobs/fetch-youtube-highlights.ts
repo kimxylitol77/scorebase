@@ -20,17 +20,17 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 // 시즌별 공식 "풀 하이라이트" 재생목록 — 매 시즌 갱신 (다음: 2027 시즌 개막 시).
+// NBA 제외 — 공식 "Full Game Highlights" 가 한국 지역차단(쿠팡 중계권). availableCountries 에
+// KR 없음(24개국, 2026-06-03 확인). 한국 임베드 가능한 공식 소스 부재 → 재업로더는 저작권상 불가.
 const HIGHLIGHT_PLAYLISTS: Record<string, string> = {
   K_LEAGUE_1: "PL1596Fd0RtLRyZF8c5ZwcvjRASe0mCg2x", // HIGHLIGHTSㅣ하나은행 K리그1 2026 (@kleaguehighlights)
   K_LEAGUE_2: "PL1596Fd0RtLRXJ0wSAFLjhYpBEr94fBXh", // HIGHLIGHTSㅣ하나은행 K리그2 2026 (@kleaguehighlights)
-  NBA: "PLlVlyGVtvuVlek5UOvwJaRDtuAI1FgGZf", // NBA 공식 "Nightly Full Game Highlights" 2025-26 (@NBA)
 };
 
 // 경기 현지 시간대 (UTC offset, 시간) — 제목의 "경기 날짜" 와 startTime(UTC) 정합용.
 const LEAGUE_TZ_OFFSET_H: Record<string, number> = {
   K_LEAGUE_1: 9, // KST
   K_LEAGUE_2: 9, // KST
-  NBA: -5, // US Eastern (서머타임 1시간 슬랙은 ±1일 윈도가 흡수)
 };
 
 const LOOKBACK_DAYS = 12; // 최근 12일 종료 경기만 대상 (재생목록 RSS 가 최근 ~15개라 충분).
@@ -76,6 +76,29 @@ async function fetchPlaylistFeed(playlistId: string): Promise<FeedEntry[]> {
     return entries;
   } catch {
     return [];
+  }
+}
+
+/** 영상이 한국에서 임베드 재생 가능한지 — availableCountries 에 KR + playableInEmbed:true.
+ *  지역차단(예: NBA 공식 풀하이라이트=쿠팡 중계권) 영상을 적재 전에 걸러내는 안전장치. */
+async function isPlayableInKorea(videoId: string): Promise<boolean> {
+  try {
+    const r = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+        "Accept-Language": "ko-KR,ko;q=0.9",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) return false;
+    const html = await r.text();
+    if (!/"playableInEmbed":true/.test(html)) return false;
+    const ac = html.match(/"availableCountries":\[[^\]]*\]/)?.[0] ?? "";
+    return ac.includes('"KR"');
+  } catch {
+    return false;
   }
 }
 
@@ -196,6 +219,11 @@ export async function runYoutubeHighlights(opts?: {
 
       if (cands.length === 0) continue;
       const best = cands[0].e;
+
+      // 한국 지역차단 영상 차단 — KR 가능 + 임베드 가능 확인 후에만 적재.
+      // (NBA 공식 풀하이라이트는 한국 차단 → 자동 skip. K리그는 통과.)
+      if (!(await isPlayableInKorea(best.videoId))) continue;
+
       out.matched += 1;
       out.assigned.push({ matchId: m.id, title: best.title, videoId: best.videoId });
 
@@ -213,15 +241,27 @@ export async function runYoutubeHighlights(opts?: {
   return { dryRun, byLeague };
 }
 
+/** 특정 리그의 highlightYoutubeId 전부 비움 (지역차단 발견 등으로 회수 시). */
+export async function clearLeagueHighlights(league: string): Promise<number> {
+  const res = await prisma.match.updateMany({
+    where: { league, highlightYoutubeId: { not: null } },
+    data: { highlightYoutubeId: null },
+  });
+  return res.count;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
+  const clearArg = process.argv.find((a) => a.startsWith("--clear="));
   const daysArg = process.argv.find((a) => a.startsWith("--days="));
-  runYoutubeHighlights({
-    dryRun: process.argv.includes("--dry"),
-    lookbackDays: daysArg ? Number(daysArg.slice("--days=".length)) : undefined,
-  })
-    .then((res) => {
-      console.log(JSON.stringify(res, null, 2));
-    })
+  const task = clearArg
+    ? clearLeagueHighlights(clearArg.slice("--clear=".length)).then((n) =>
+        console.log(`cleared ${n} highlights (${clearArg.slice("--clear=".length)})`),
+      )
+    : runYoutubeHighlights({
+        dryRun: process.argv.includes("--dry"),
+        lookbackDays: daysArg ? Number(daysArg.slice("--days=".length)) : undefined,
+      }).then((res) => console.log(JSON.stringify(res, null, 2)));
+  task
     .catch((e) => {
       console.error(e);
       process.exitCode = 1;
