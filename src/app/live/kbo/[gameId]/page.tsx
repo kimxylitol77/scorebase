@@ -20,6 +20,13 @@ import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/ba
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import { buildPlayerNameMap, buildPlayerPhotoMap } from "@/lib/sports/thesports/baseball-player-names";
+import BaseballSeasonComparison from "@/components/live/BaseballSeasonComparison";
+import BaseballBatterStats from "@/components/live/BaseballBatterStats";
+import BaseballRecentGames from "@/components/live/BaseballRecentGames";
+import {
+  getBaseballSeasonAnalysis,
+  getBaseballRecentGames,
+} from "@/lib/live/baseball-season-analysis";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +108,10 @@ export default async function KboLivePage({ params }: Props) {
   const batterColumns = playerStatColumns("batter");
   const pitcherColumns = playerStatColumns("pitcher");
   const wpaSeries = computeWpaFromDetailLive(detailLive);
+  const [seasonAnalysis, recentGames] = await Promise.all([
+    getBaseballSeasonAnalysis(match),
+    getBaseballRecentGames(match),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
@@ -176,6 +187,31 @@ export default async function KboLivePage({ params }: Props) {
         awayStanding={extras.awayStanding}
         totalTeams={extras.totalTeams}
       />
+
+      {seasonAnalysis?.hasData && (
+        <>
+          <BaseballSeasonComparison
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            home={seasonAnalysis.home.team}
+            away={seasonAnalysis.away.team}
+          />
+          <BaseballBatterStats
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            homeBatters={seasonAnalysis.home.batters}
+            awayBatters={seasonAnalysis.away.batters}
+          />
+        </>
+      )}
+
+      {recentGames?.hasData && (
+        <BaseballRecentGames
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          data={recentGames}
+        />
+      )}
 
       {/* 통합 4탭 카드 (타자/투수/배당/승률) — KBO/NPB 공통. 팀 스탯은 MatchInsight 탭으로. */}
       <BaseballBoxscoreTabs
