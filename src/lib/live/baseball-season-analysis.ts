@@ -137,3 +137,112 @@ export async function getBaseballSeasonAnalysis(match: {
     return null;
   }
 }
+
+/* ============================================================
+ * ③ 최근 5경기 / ④ 상대전적 — Match 테이블 기반
+ * ==========================================================*/
+
+export interface BaseballGameRow {
+  date: string; // "MM.DD" (KST)
+  homeName: string;
+  awayName: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  winner: "HOME" | "AWAY" | "DRAW" | null;
+}
+
+export interface BaseballRecentGames {
+  home: BaseballGameRow[];
+  away: BaseballGameRow[];
+  h2h: BaseballGameRow[];
+  hasData: boolean;
+}
+
+interface RawGame {
+  startTime: Date;
+  homeScore: number | null;
+  awayScore: number | null;
+  homeTeam: { name: string };
+  awayTeam: { name: string };
+}
+
+const GAME_SELECT = {
+  startTime: true,
+  homeScore: true,
+  awayScore: true,
+  homeTeam: { select: { name: true } },
+  awayTeam: { select: { name: true } },
+};
+
+function kstMMDD(d: Date): string {
+  const k = new Date(d.getTime() + 9 * 3600 * 1000);
+  const mm = String(k.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(k.getUTCDate()).padStart(2, "0");
+  return `${mm}.${dd}`;
+}
+
+function toGameRow(m: RawGame): BaseballGameRow {
+  const hs = m.homeScore;
+  const as = m.awayScore;
+  let winner: BaseballGameRow["winner"] = null;
+  if (hs != null && as != null) winner = hs > as ? "HOME" : hs < as ? "AWAY" : "DRAW";
+  return {
+    date: kstMMDD(m.startTime),
+    homeName: toKoreanTeamName(m.homeTeam.name) || m.homeTeam.name,
+    awayName: toKoreanTeamName(m.awayTeam.name) || m.awayTeam.name,
+    homeScore: hs,
+    awayScore: as,
+    winner,
+  };
+}
+
+/** 양 팀 각자 최근 5경기 + 두 팀 상대전적(H2H) 최근 5경기. 비야구·데이터 없음·DB 에러 시 null. */
+export async function getBaseballRecentGames(match: {
+  league: string;
+  startTime: Date;
+  homeTeam: { id: number; name: string };
+  awayTeam: { id: number; name: string };
+}): Promise<BaseballRecentGames | null> {
+  if (!BASEBALL_LEAGUES.has(match.league)) return null;
+  try {
+    const before = match.startTime;
+    const base = {
+      league: match.league,
+      status: "FINISHED",
+      startTime: { lt: before },
+    };
+    const [homeRows, awayRows, h2hRows] = await Promise.all([
+      prisma.match.findMany({
+        where: { ...base, OR: [{ homeTeamId: match.homeTeam.id }, { awayTeamId: match.homeTeam.id }] },
+        orderBy: { startTime: "desc" },
+        take: 5,
+        select: GAME_SELECT,
+      }),
+      prisma.match.findMany({
+        where: { ...base, OR: [{ homeTeamId: match.awayTeam.id }, { awayTeamId: match.awayTeam.id }] },
+        orderBy: { startTime: "desc" },
+        take: 5,
+        select: GAME_SELECT,
+      }),
+      prisma.match.findMany({
+        where: {
+          ...base,
+          OR: [
+            { homeTeamId: match.homeTeam.id, awayTeamId: match.awayTeam.id },
+            { homeTeamId: match.awayTeam.id, awayTeamId: match.homeTeam.id },
+          ],
+        },
+        orderBy: { startTime: "desc" },
+        take: 5,
+        select: GAME_SELECT,
+      }),
+    ]);
+    const home = homeRows.map(toGameRow);
+    const away = awayRows.map(toGameRow);
+    const h2h = h2hRows.map(toGameRow);
+    if (!home.length && !away.length && !h2h.length) return null;
+    return { home, away, h2h, hasData: true };
+  } catch {
+    return null;
+  }
+}

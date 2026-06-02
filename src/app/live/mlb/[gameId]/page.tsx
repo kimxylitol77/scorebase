@@ -22,7 +22,11 @@ import MlbBoxscoreTabs from "@/components/live/MlbBoxscoreTabs";
 import MlbTeamStatsLive from "@/components/live/MlbTeamStatsLive";
 import BaseballSeasonComparison from "@/components/live/BaseballSeasonComparison";
 import BaseballBatterStats from "@/components/live/BaseballBatterStats";
-import { getBaseballSeasonAnalysis } from "@/lib/live/baseball-season-analysis";
+import BaseballRecentGames from "@/components/live/BaseballRecentGames";
+import {
+  getBaseballSeasonAnalysis,
+  getBaseballRecentGames,
+} from "@/lib/live/baseball-season-analysis";
 import { loadBaseballOdds } from "@/lib/odds/baseball-ts-odds";
 import {
   fetchMlbFullBoxscore,
@@ -155,12 +159,14 @@ export default async function MlbLivePage({ params }: Props) {
   const homeShort = match.homeTeam.shortName || homeKo;
   const awayShort = match.awayTeam.shortName || awayKo;
 
-  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis] = await Promise.all([
-    fetchMatchExtras(match),
-    loadBaseballOdds(match.id),
-    fetchInitialMlbBoxscore(match),
-    getBaseballSeasonAnalysis(match),
-  ]);
+  const [extras, baseballOdds, mlbBoxscore, seasonAnalysis, recentGames] =
+    await Promise.all([
+      fetchMatchExtras(match),
+      loadBaseballOdds(match.id),
+      fetchInitialMlbBoxscore(match),
+      getBaseballSeasonAnalysis(match),
+      getBaseballRecentGames(match),
+    ]);
   const playerNameKoBy = mlbBoxscore ? buildMlbPlayerNameKoMap(mlbBoxscore) : undefined;
 
   return (
@@ -249,6 +255,14 @@ export default async function MlbLivePage({ params }: Props) {
             awayBatters={seasonAnalysis.away.batters}
           />
         </>
+      )}
+
+      {recentGames?.hasData && (
+        <BaseballRecentGames
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          data={recentGames}
+        />
       )}
 
       {/* 네이버 스타일 7탭 통합 카드 — 라인업/타자/투수/팀통계(ESPN)/팀스탯(TS)/배당/승률 */}
