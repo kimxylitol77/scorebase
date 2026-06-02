@@ -238,13 +238,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                 [{position}]
               </button>
             ) : fifaRank != null ? (
-              <span
-                title={`FIFA 랭킹 ${fifaRank}위`}
-                className="shrink-0 inline-flex items-baseline gap-0.5 text-[9px] font-bold text-sky-600 dark:text-sky-400 tabular-nums whitespace-nowrap"
+              <button
+                type="button"
+                onClick={openInNewTab("/predictions/fifa-ranking")}
+                title={`FIFA 랭킹 ${fifaRank}위 — 전체 랭킹 보기 (새 탭)`}
+                className="shrink-0 inline-flex items-baseline gap-0.5 text-[9px] font-bold text-sky-600 dark:text-sky-400 tabular-nums whitespace-nowrap hover:text-sky-700 dark:hover:text-sky-300 hover:underline cursor-pointer"
               >
                 <span className="opacity-70">FIFA</span>
                 {fifaRank}
-              </span>
+              </button>
             ) : null}
             {showHomeBadge && (
               <span className="shrink-0 text-[9px] font-bold tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/15 rounded px-1 py-px">
@@ -354,13 +356,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                 [{position}]
               </button>
             ) : fifaRank != null ? (
-              <span
-                title={`FIFA 랭킹 ${fifaRank}위`}
-                className="shrink-0 inline-flex items-baseline gap-0.5 text-[9px] font-bold text-sky-600 dark:text-sky-400 tabular-nums whitespace-nowrap"
+              <button
+                type="button"
+                onClick={openInNewTab("/predictions/fifa-ranking")}
+                title={`FIFA 랭킹 ${fifaRank}위 — 전체 랭킹 보기 (새 탭)`}
+                className="shrink-0 inline-flex items-baseline gap-0.5 text-[9px] font-bold text-sky-600 dark:text-sky-400 tabular-nums whitespace-nowrap hover:text-sky-700 dark:hover:text-sky-300 hover:underline cursor-pointer"
               >
                 <span className="opacity-70">FIFA</span>
                 {fifaRank}
-              </span>
+              </button>
             ) : null}
             {isFlash && (
               <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
