@@ -730,3 +730,10 @@ body.sb-mode [data-sinfo] {
 body.sb-mode [data-srow] {
   grid-template-columns: 110px 56px 64px minmax(max-content, 1fr) auto minmax(max-content, 1fr) 28px 48px minmax(0, 154px) !important;
 }
+/* 관심(별) 셀(7번째 자식)을 맨 우측 spacer 트랙(9번째)으로 이동 → 별·헤더"관심"이
+   행 우측 끝으로 정렬. 점수(t5)는 대칭 트랙(좌230·우28+48+154=230) 그대로라 정중앙 유지.
+   원래 별 자리(t7 28px)·정보(t8 48px)는 빈 트랙으로 남음. */
+body.sb-mode [data-srow] > :nth-child(7) {
+  grid-column: 9 / 10 !important;
+  justify-self: end !important;
+}
