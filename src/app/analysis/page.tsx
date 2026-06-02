@@ -40,11 +40,33 @@ const ANALYSIS_JSONLD = {
 // 데스크탑 그리드 컬럼 — 제목(1fr)을 넓게, 나머지는 고정폭
 const COLS = "sm:grid-cols-[72px_minmax(0,1fr)_180px_96px_80px_72px]";
 
-export default async function AnalysisListPage() {
-  const [posts, userId] = await Promise.all([
+const PAGE_SIZE = 20;
+
+interface Props {
+  searchParams: Promise<{ page?: string }>;
+}
+
+// 페이지 번호 목록 (총 7개 초과 시 … 으로 축약: 1 … 4 5 6 … 10)
+function pageList(cur: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const out: (number | "…")[] = [1];
+  const start = Math.max(2, cur - 1);
+  const end = Math.min(total - 1, cur + 1);
+  if (start > 2) out.push("…");
+  for (let p = start; p <= end; p++) out.push(p);
+  if (end < total - 1) out.push("…");
+  out.push(total);
+  return out;
+}
+
+export default async function AnalysisListPage({ searchParams }: Props) {
+  const { page } = await searchParams;
+  const cur = Math.max(1, Number(page) || 1);
+  const [posts, total, userId] = await Promise.all([
     prisma.post.findMany({
       orderBy: { createdAt: "desc" },
-      take: 50,
+      skip: (cur - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       select: {
         id: true,
         title: true,
@@ -65,8 +87,10 @@ export default async function AnalysisListPage() {
         },
       },
     }),
+    prisma.post.count(),
     getCurrentUserId(),
   ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
@@ -193,6 +217,46 @@ export default async function AnalysisListPage() {
             })}
           </ul>
         </div>
+      )}
+
+      {totalPages > 1 && (
+        <nav className="flex justify-center items-center gap-1.5 mt-6">
+          {cur > 1 && (
+            <Link
+              href={`/analysis?page=${cur - 1}`}
+              className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              ‹
+            </Link>
+          )}
+          {pageList(cur, totalPages).map((p, i) =>
+            p === "…" ? (
+              <span key={`e${i}`} className="px-2 text-neutral-400">
+                …
+              </span>
+            ) : (
+              <Link
+                key={p}
+                href={`/analysis?page=${p}`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition ${
+                  p === cur
+                    ? "bg-rose-600 text-white border-rose-600"
+                    : "border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                }`}
+              >
+                {p}
+              </Link>
+            ),
+          )}
+          {cur < totalPages && (
+            <Link
+              href={`/analysis?page=${cur + 1}`}
+              className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              ›
+            </Link>
+          )}
+        </nav>
       )}
 
       {!userId && (
