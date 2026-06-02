@@ -26,6 +26,7 @@ const HIGHLIGHT_PLAYLISTS: Record<string, string> = {
   K_LEAGUE_1: "PL1596Fd0RtLRyZF8c5ZwcvjRASe0mCg2x", // HIGHLIGHTSㅣ하나은행 K리그1 2026 (@kleaguehighlights)
   K_LEAGUE_2: "PL1596Fd0RtLRXJ0wSAFLjhYpBEr94fBXh", // HIGHLIGHTSㅣ하나은행 K리그2 2026 (@kleaguehighlights)
   NHL: "PL1NbHSfosBuFyu867mbHHhB2G6fx7jtiH", // 2025-2026 NHL Full Game Highlights (공식 @NHL, KR 가능 확인 2026-06-03)
+  MLS: "PLcj4z4KsbIoXrLpj2pOVr_maRaxhW902-", // 2026 Match Highlights (공식 @mls, KR 가능 확인 2026-06-03)
 };
 
 // 경기 현지 시간대 (UTC offset, 시간) — 제목의 "경기 날짜" 와 startTime(UTC) 정합용.
@@ -33,6 +34,7 @@ const LEAGUE_TZ_OFFSET_H: Record<string, number> = {
   K_LEAGUE_1: 9, // KST
   K_LEAGUE_2: 9, // KST
   NHL: -5, // US Eastern (서머타임/PT 슬랙은 ±1일 윈도가 흡수)
+  MLS: -6, // US Central(평균) — 제목에 경기 날짜 없어 주로 업로드일(published) 기준 매칭
 };
 
 const LOOKBACK_DAYS = 12; // 최근 12일 종료 경기만 대상 (재생목록 RSS 가 최근 ~15개라 충분).
@@ -170,7 +172,7 @@ export interface HighlightRunResult {
     {
       finished: number;
       matched: number;
-      assigned: Array<{ matchId: number; title: string; videoId: string }>;
+      assigned: Array<{ matchId: number; home: string; away: string; title: string; videoId: string }>;
     }
   >;
 }
@@ -200,7 +202,7 @@ export async function runYoutubeHighlights(opts?: {
     const out = {
       finished: matches.length,
       matched: 0,
-      assigned: [] as Array<{ matchId: number; title: string; videoId: string }>,
+      assigned: [] as Array<{ matchId: number; home: string; away: string; title: string; videoId: string }>,
     };
 
     for (const m of matches) {
@@ -227,7 +229,7 @@ export async function runYoutubeHighlights(opts?: {
       if (!(await isPlayableInKorea(best.videoId))) continue;
 
       out.matched += 1;
-      out.assigned.push({ matchId: m.id, title: best.title, videoId: best.videoId });
+      out.assigned.push({ matchId: m.id, home: m.homeTeam.name, away: m.awayTeam.name, title: best.title, videoId: best.videoId });
 
       if (!dryRun) {
         await prisma.match.update({
