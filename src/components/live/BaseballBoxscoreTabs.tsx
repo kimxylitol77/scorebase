@@ -72,6 +72,8 @@ interface Props {
   } | null;
   /** linescore — 이닝별 점수 (1-9+). [away, home] 순서. WPA 계산용. */
   wpaSeries?: WpaPoint[] | null;
+  /** 매치 상태 — 배당 freshness("경기 전 최종") 표기용. */
+  matchStatus?: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
 }
 
 type TabKey = "batting" | "pitching" | "odds" | "wpa";
@@ -92,6 +94,7 @@ export default function BaseballBoxscoreTabs({
   playerPhotoById,
   initialOdds,
   wpaSeries,
+  matchStatus,
 }: Props) {
   const [tab, setTab] = useState<TabKey>("batting");
   const [side, setSide] = useState<"away" | "home">("away");
@@ -196,6 +199,7 @@ export default function BaseballBoxscoreTabs({
               homeNameKo={homeNameKo}
               awayNameKo={awayNameKo}
               hasDraw={false}
+              matchStatus={matchStatus}
               oddsHistory={initialOdds.history
                 .filter(
                   (p): p is { fetchedAt: number; home: number; away: number } =>
