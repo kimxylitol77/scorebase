@@ -7,23 +7,31 @@ const COOKIE_NAME = "admin_session";
 
 // 스코어보드.kr — 라이브 스코어 전용 도메인. scorebase 와 같은 Vercel 앱을 공유하되
 // host 로 분기해 루트 접속 시 /scores 화면을 보여준다 (URL 은 스코어보드.kr 유지).
-// 한글 도메인은 브라우저가 punycode(xn--) 로 host 헤더 전송 → 둘 다 매칭.
+// 한글 도메인은 브라우저가 punycode(xn--) 로 host 헤더 전송 → 둘 다 매칭. www. 도 includes 로 커버.
 const SCOREBOARD_HOSTS = ["스코어보드.kr", "xn--hy1bm7m1yevrd8pq.kr"];
 
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  const host = (req.headers.get("host") || "").toLowerCase();
+  const isScoreboard = SCOREBOARD_HOSTS.some((h) => host.includes(h));
 
-  // 스코어보드.kr 루트 → /scores 내용으로 rewrite (scorebase.kr 은 영향 없음).
-  if (path === "/") {
-    const host = (req.headers.get("host") || "").toLowerCase();
-    if (SCOREBOARD_HOSTS.some((h) => host.includes(h))) {
+  // 스코어보드.kr — scorebase.kr 와 콘텐츠가 동일해 구글 중복 색인을 막기 위해 전 경로 noindex.
+  // robots.txt 는 크롤 허용 상태라 구글이 이 헤더를 읽고 색인에서 제외한다 (Disallow 면 헤더를 못 읽음).
+  // 루트는 /scores 내용으로 rewrite (URL 은 스코어보드.kr 유지).
+  if (isScoreboard) {
+    let res: NextResponse;
+    if (path === "/") {
       const url = req.nextUrl.clone();
       url.pathname = "/scores";
-      return NextResponse.rewrite(url);
+      res = NextResponse.rewrite(url);
+    } else {
+      res = NextResponse.next();
     }
-    return NextResponse.next();
+    res.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return res;
   }
 
+  // ── scorebase.kr ── /admin 보호 외에는 통과.
   if (!path.startsWith("/admin")) return NextResponse.next();
 
   // 로그인 페이지는 통과
@@ -42,5 +50,6 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/"],
+  // 정적 자산 제외한 전 경로 — 스코어보드.kr noindex 헤더를 모든 페이지에 적용하기 위함.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
