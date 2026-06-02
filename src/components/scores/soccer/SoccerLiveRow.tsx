@@ -168,6 +168,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
   const rowContent = (
     <div
+      data-srow
       className="grid items-center gap-3 px-0 py-2 text-sm transition hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
       style={{
         // 좌측 fixed (110+56+64=230) vs 우측 fixed (28+48=76) 비대칭으로 vs/점수가 우측 쏠림.
@@ -381,8 +382,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       </div>
 
       {/* 8. 정보 — AI 매치 인사이트 + 라인업 cover 리그 + 리뷰 글 (있을 때).
-          justify-start 로 AI 칩 위치를 row 마다 동일하게 고정 (칩 개수에 따라 흔들리지 않게). */}
-      <div className="flex items-center justify-start gap-1">
+          justify-start 로 AI 칩 위치를 row 마다 동일하게 고정 (칩 개수에 따라 흔들리지 않게).
+          data-sinfo: 스코어보드.kr(.sb-mode) 에서 숨김. */}
+      <div data-sinfo className="flex items-center justify-start gap-1">
         {href && (
           <button
             type="button"
@@ -587,6 +589,7 @@ function GoalsTooltip({
 export function SoccerLiveRowHeader() {
   return (
     <div
+      data-srow
       className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
@@ -600,7 +603,7 @@ export function SoccerLiveRowHeader() {
       <div className="text-center px-2">점수</div>
       <div>원정팀</div>
       <div className="text-center">관심</div>
-      <div className="text-center">정보</div>
+      <div data-sinfo className="text-center">정보</div>
     </div>
   );
 }
