@@ -722,13 +722,15 @@ body {
 
 /* 스코어보드.kr (body.sb-mode) — /scores 행에서 예측/L/R(정보 칸) "내용만" 숨김.
    컬럼 트랙(정보48px·spacer154px)은 유지 → 좌측 고정(110+56+64=230)과 우측
-   (관심28+48+154=230)이 대칭 → 점수(vs)가 정중앙 유지. 팀칸만 minmax(0,1fr)
-   →minmax(max-content,1fr) 로 바꿔 긴 팀명 잘림 방지. 관심(별)도 정상 노출. */
+   (관심28+48+154=230)이 대칭 → 점수(vs)가 정중앙. 팀칸은 minmax(0,1fr) 로 두어
+   행을 컨테이너 폭에 fit(가로 넘침 방지) → 맨 우측 관심별이 잘리지 않고 노출.
+   (1200폭 기준 팀 1fr≈360px 라 팀명도 잘리지 않음. max-content 면 로고·순위배지
+   때문에 행이 넘쳐 우측 별이 가로 스크롤 밖으로 밀려 안 보였음.) */
 body.sb-mode [data-sinfo] {
   display: none !important;
 }
 body.sb-mode [data-srow] {
-  grid-template-columns: 110px 56px 64px minmax(max-content, 1fr) auto minmax(max-content, 1fr) 28px 48px minmax(0, 154px) !important;
+  grid-template-columns: 110px 56px 64px minmax(0, 1fr) auto minmax(0, 1fr) 28px 48px minmax(0, 154px) !important;
 }
 /* 관심(별) 셀(7번째 자식)을 맨 우측 spacer 트랙(9번째)으로 이동 → 별·헤더"관심"이
    행 우측 끝으로 정렬. 점수(t5)는 대칭 트랙(좌230·우28+48+154=230) 그대로라 정중앙 유지.
