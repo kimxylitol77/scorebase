@@ -12,6 +12,7 @@
     { "path": "/api/cron/collect", "schedule": "30 15 * * *" },
     { "path": "/api/cron/collect", "schedule": "30 16 * * *" },
     { "path": "/api/cron/odds", "schedule": "0 21 * * *" },
+    { "path": "/api/cron/mma", "schedule": "0 21 * * *" },
     { "path": "/api/cron/api-football", "schedule": "0 3 * * *" },
     { "path": "/api/cron/api-football", "schedule": "0 14 * * *" },
     { "path": "/api/cron/evaluate", "schedule": "0 15 * * *" },
