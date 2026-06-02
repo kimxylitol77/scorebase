@@ -736,9 +736,12 @@ body.sb-mode [data-srow] {
 body.sb-mode [data-srow] > :nth-child(7) {
   justify-self: end !important;
 }
-/* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제 → 화면(노란칸) 전체 폭
-   사용. mx-auto 우측 여백이 사라져 점수(vs)가 화면 정중앙·관심별이 화면 우측 끝에
-   정렬된다. scorebase.kr(메인)은 sb-mode 미부여라 max-w-6xl 그대로. */
+/* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제해 화면(노란칸) 폭 사용.
+   단 우측 패딩을 키워(좌12 · 우56) 전체를 살짝 왼쪽으로 밀고, 우측 끝 관심별이
+   브라우저 스크롤바·화면 가장자리 뒤로 숨지 않도록 안쪽으로 들인다.
+   scorebase.kr(메인)은 sb-mode 미부여라 max-w-6xl 그대로. */
 body.sb-mode [data-scores-root] {
   max-width: none !important;
+  padding-left: 0.75rem !important;
+  padding-right: 3.5rem !important;
 }
