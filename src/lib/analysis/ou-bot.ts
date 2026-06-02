@@ -83,7 +83,6 @@ export async function runOuPicks(limit = 2): Promise<{ created: number; skipped:
       status: "SCHEDULED",
       startTime: { gte: now, lte: horizon },
       league: { in: soccerLeagues },
-      oddsTotalLine: { not: null },
       posts: { none: { authorId: botId } },
     },
     select: {
@@ -103,10 +102,12 @@ export async function runOuPicks(limit = 2): Promise<{ created: number; skipped:
   let skipped = 0;
   for (const m of matches) {
     try {
+      // 메이저 오프시즌엔 OU 배당이 없음 → 축구 표준 기준선 2.5 사용
+      const line = m.oddsTotalLine ?? 2.5;
       const pick = await generateOuPick({
         league: m.league,
         startTime: m.startTime,
-        ouLine: m.oddsTotalLine as number,
+        ouLine: line,
         predOverProb: m.predOverProb,
         home: botTeamName(toKoreanTeamName(m.homeTeam.name, m.league), m.league),
         away: botTeamName(toKoreanTeamName(m.awayTeam.name, m.league), m.league),
@@ -123,7 +124,7 @@ export async function runOuPicks(limit = 2): Promise<{ created: number; skipped:
           sport: "soccer",
           matchId: m.id,
           market: "OU",
-          line: m.oddsTotalLine,
+          line,
           pick: pick.pick,
         },
       });
