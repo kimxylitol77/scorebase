@@ -309,7 +309,7 @@ export default async function MatchInsight({
     },
     select: { id: true, name: true },
   });
-  const teamNameById = new Map(teams.map((t) => [t.id, t.name]));
+  const teamNameById = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name)]));
 
   const scatterPoints = Array.from(seasonStats.values())
     .filter((s) => s.played >= 5)
