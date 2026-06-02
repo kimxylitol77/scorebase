@@ -12,12 +12,39 @@ function fighterExternalId(name: string): string {
   return "ufc-" + name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
+// api-sports MMA /fighters?search — 파이터 사진(photo) 조회. Free 100req/day.
+async function fetchFighterPhoto(name: string): Promise<string | null> {
+  const apiKey = process.env.API_FOOTBALL_KEY ?? "";
+  if (!apiKey) return null;
+  try {
+    const r = await fetch(
+      `https://v1.mma.api-sports.io/fighters?search=${encodeURIComponent(name)}`,
+      { headers: { "x-apisports-key": apiKey } },
+    );
+    const j = (await r.json()) as { response?: Array<{ name?: string; photo?: string }> };
+    const list = j.response ?? [];
+    const exact = list.find((f) => f.name?.toLowerCase() === name.toLowerCase()) ?? list[0];
+    return exact?.photo ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function upsertFighter(name: string): Promise<number> {
   const externalId = fighterExternalId(name);
+  const existing = await prisma.team.findUnique({
+    where: { league_externalId: { league: "UFC", externalId } },
+    select: { id: true, logoUrl: true },
+  });
+  // logoUrl 미설정(null)일 때만 api-sports 조회. 미매칭은 ""로 마킹해 재조회 방지(Free 한도 절약).
+  let logoUrl = existing?.logoUrl ?? null;
+  if (logoUrl == null) {
+    logoUrl = (await fetchFighterPhoto(name)) ?? "";
+  }
   const t = await prisma.team.upsert({
     where: { league_externalId: { league: "UFC", externalId } },
-    update: { name },
-    create: { league: "UFC", externalId, name },
+    update: { name, logoUrl },
+    create: { league: "UFC", externalId, name, logoUrl },
   });
   return t.id;
 }
