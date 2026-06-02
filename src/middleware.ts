@@ -18,35 +18,39 @@ export function middleware(req: NextRequest) {
   // 스코어보드.kr — scorebase.kr 와 콘텐츠가 동일해 구글 중복 색인을 막기 위해 전 경로 noindex.
   // robots.txt 는 크롤 허용 상태라 구글이 이 헤더를 읽고 색인에서 제외한다 (Disallow 면 헤더를 못 읽음).
   // 루트는 /scores 내용으로 rewrite (URL 은 스코어보드.kr 유지).
-  if (isScoreboard) {
-    let res: NextResponse;
-    if (path === "/") {
-      const url = req.nextUrl.clone();
-      url.pathname = "/scores";
-      res = NextResponse.rewrite(url);
-    } else {
-      res = NextResponse.next();
+  // ── /admin 보호 (host 무관) — 미인증이면 로그인으로 redirect ──
+  if (
+    path.startsWith("/admin") &&
+    path !== "/admin/login" &&
+    path !== "/admin/logout"
+  ) {
+    const session = req.cookies.get(COOKIE_NAME);
+    if (!session?.value) {
+      const url = new URL("/admin/login", req.url);
+      url.searchParams.set("from", path);
+      return NextResponse.redirect(url);
     }
+  }
+
+  // ── 응답 + host별 헤더 ──
+  // 스코어보드.kr 루트 → /scores 내용으로 rewrite (URL 은 스코어보드.kr 유지).
+  let res: NextResponse;
+  if (isScoreboard && path === "/") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/scores";
+    res = NextResponse.rewrite(url);
+  } else {
+    res = NextResponse.next();
+  }
+
+  if (isScoreboard) {
+    // 중복 색인 방지(noindex). X-Frame-Options 는 안 붙여 iframe 위젯 임베드 허용(어디서나).
     res.headers.set("X-Robots-Tag", "noindex, nofollow");
-    return res;
+  } else {
+    // scorebase.kr — 클릭재킹 방지 (next.config 전역 대신 host별로 여기서 부여).
+    res.headers.set("X-Frame-Options", "DENY");
   }
-
-  // ── scorebase.kr ── /admin 보호 외에는 통과.
-  if (!path.startsWith("/admin")) return NextResponse.next();
-
-  // 로그인 페이지는 통과
-  if (path === "/admin/login" || path === "/admin/logout") {
-    return NextResponse.next();
-  }
-
-  const session = req.cookies.get(COOKIE_NAME);
-  if (!session?.value) {
-    const url = new URL("/admin/login", req.url);
-    url.searchParams.set("from", path);
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {

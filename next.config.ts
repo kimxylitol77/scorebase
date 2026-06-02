@@ -6,8 +6,8 @@ const securityHeaders = [
     key: "Strict-Transport-Security",
     value: "max-age=31536000; includeSubDomains; preload",
   },
-  // 클릭재킹 방지 — iframe 임베드 거부
-  { key: "X-Frame-Options", value: "DENY" },
+  // 클릭재킹 방지(X-Frame-Options)는 middleware 에서 host별 처리:
+  //   scorebase.kr = DENY, 스코어보드.kr = 미설정(iframe 위젯 임베드 허용).
   // MIME 스니핑 방지
   { key: "X-Content-Type-Options", value: "nosniff" },
   // referrer 정보 최소화 (cross-origin 시 origin 만)
