@@ -739,3 +739,9 @@ body.sb-mode [data-srow] > :nth-child(7) {
   grid-column: 9 / 10 !important;
   justify-self: end !important;
 }
+/* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제 → 화면(노란칸) 전체 폭
+   사용. mx-auto 우측 여백이 사라져 점수(vs)가 화면 정중앙·관심별이 화면 우측 끝에
+   정렬된다. scorebase.kr(메인)은 sb-mode 미부여라 max-w-6xl 그대로. */
+body.sb-mode [data-scores-root] {
+  max-width: none !important;
+}

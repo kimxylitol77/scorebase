@@ -1404,7 +1404,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     visibleLive.length + visibleScheduled.length + visibleFinished.length + visiblePostponed.length;
 
   return (
-    <div className={`${containerMaxW} mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4`}>
+    <div data-scores-root className={`${containerMaxW} mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4`}>
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
