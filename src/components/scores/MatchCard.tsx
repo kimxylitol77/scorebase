@@ -71,7 +71,10 @@ export interface MatchCardProps {
   penaltyAway?: number | null;
 }
 
-function Logo({ url, name }: { url?: string | null; name: string }) {
+function Logo({ url, name, big }: { url?: string | null; name: string; big?: boolean }) {
+  // MMA 파이터는 인물 사진이라 크게(big), 팀 로고는 작게.
+  const sz = big ? "w-16 h-16 sm:w-24 sm:h-24" : "w-10 h-10 sm:w-12 sm:h-12";
+  const imgCls = `${sz} object-contain bg-white rounded-md p-0.5`;
   if (url) {
     // Liquipedia (LCK 로고) 는 hotlink Referer 검사로 외부 직접 fetch 불가 →
     // Next.js image optimizer 통해 서버가 fetch 후 재제공해야 표시됨.
@@ -80,9 +83,9 @@ function Logo({ url, name }: { url?: string | null; name: string }) {
         <Image
           src={url}
           alt=""
-          width={48}
-          height={48}
-          className="w-10 h-10 sm:w-12 sm:h-12 object-contain bg-white rounded-md p-0.5"
+          width={96}
+          height={96}
+          className={imgCls}
         />
       );
     }
@@ -91,13 +94,13 @@ function Logo({ url, name }: { url?: string | null; name: string }) {
       <img
         src={url}
         alt=""
-        className="w-10 h-10 sm:w-12 sm:h-12 object-contain bg-white rounded-md p-0.5"
+        className={imgCls}
         loading="lazy"
       />
     );
   }
   return (
-    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-neutral-100 dark:bg-neutral-900 inline-flex items-center justify-center text-sm font-bold text-neutral-400">
+    <div className={`${sz} rounded-full bg-neutral-100 dark:bg-neutral-900 inline-flex items-center justify-center text-sm font-bold text-neutral-400`}>
       {name.slice(0, 1)}
     </div>
   );
@@ -268,7 +271,7 @@ export default function MatchCard(props: MatchCardProps) {
       <div className="px-3.5 sm:px-4 py-3 grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-center">
         {/* 홈 */}
         <div className="min-w-0 flex flex-col items-center gap-1 text-center">
-          <Logo url={home.logo} name={home.name} />
+          <Logo url={home.logo} name={home.name} big={sport === "mma"} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
             {home.name}
           </div>
@@ -306,7 +309,7 @@ export default function MatchCard(props: MatchCardProps) {
         </div>
         {/* 원정 */}
         <div className="min-w-0 flex flex-col items-center gap-1 text-center">
-          <Logo url={away.logo} name={away.name} />
+          <Logo url={away.logo} name={away.name} big={sport === "mma"} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
             {away.name}
           </div>
