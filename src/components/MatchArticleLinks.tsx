@@ -2,6 +2,7 @@
 // 프리뷰 / 리뷰 / 부상자 명단.
 
 import Link from "next/link";
+import { headers } from "next/headers";
 
 interface Props {
   previewSlug: string | null;
@@ -26,12 +27,18 @@ const INJURY_LABEL: Record<string, string> = {
   KBO: "KBO", NPB: "NPB",
 };
 
-export default function MatchArticleLinks({
+export default async function MatchArticleLinks({
   previewSlug,
   recapSlug,
   matchStatus,
   league,
 }: Props) {
+  // 스코어보드.kr — 라이브 스코어 전용 도메인이라 프리뷰/리뷰/부상자 등 scorebase 콘텐츠 링크 미노출.
+  const host = ((await headers()).get("host") || "").toLowerCase();
+  if (host.includes("xn--hy1bm7m1yevrd8pq") || host.includes("스코어보드")) {
+    return null;
+  }
+
   // 경기 종료면 RECAP 우선, 그 외엔 PREVIEW 우선
   const showPreview = previewSlug && matchStatus !== "FINISHED";
   const showRecap = recapSlug && matchStatus === "FINISHED";
