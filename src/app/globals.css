@@ -720,13 +720,13 @@ body {
   font-weight: 600;
 }
 
-/* 스코어보드.kr (body.sb-mode) — /scores 행에서 예측/L/R(정보 칸) 숨김 +
-   팀명 잘림 방지. 정보(48px)·spacer(154px) 컬럼 제거하고 팀칸을 max-content 로
-   바꿔 콘텐츠를 좌측에 모음(상태~팀명 사이 빈공간 제거). 맨 끝 1fr 빈 트랙이
-   남는 폭을 흡수해 우측 여백 처리 → 관심(별)은 원정팀 바로 옆으로 와 정상 노출. */
+/* 스코어보드.kr (body.sb-mode) — /scores 행에서 예측/L/R(정보 칸) "내용만" 숨김.
+   컬럼 트랙(정보48px·spacer154px)은 유지 → 좌측 고정(110+56+64=230)과 우측
+   (관심28+48+154=230)이 대칭 → 점수(vs)가 정중앙 유지. 팀칸만 minmax(0,1fr)
+   →minmax(max-content,1fr) 로 바꿔 긴 팀명 잘림 방지. 관심(별)도 정상 노출. */
 body.sb-mode [data-sinfo] {
   display: none !important;
 }
 body.sb-mode [data-srow] {
-  grid-template-columns: 110px 56px 64px max-content auto max-content 28px minmax(0, 1fr) !important;
+  grid-template-columns: 110px 56px 64px minmax(max-content, 1fr) auto minmax(max-content, 1fr) 28px 48px minmax(0, 154px) !important;
 }
