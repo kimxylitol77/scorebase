@@ -1,7 +1,7 @@
 // 종목(sport) ↔ 리그(league) 매핑 + 한글 라벨.
 // /scores 페이지 종목 탭에서 사용.
 
-export type SportCode = "all" | "soccer" | "baseball" | "basketball" | "hockey" | "esports";
+export type SportCode = "all" | "soccer" | "baseball" | "basketball" | "hockey" | "esports" | "mma";
 
 interface SportMeta {
   code: SportCode;
@@ -47,7 +47,7 @@ export const ALL_LEAGUES = [
   // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
-  "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL",
+  "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL", "UFC",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -147,6 +147,12 @@ export const SPORTS: SportMeta[] = [
     emoji: "🎮",
     leagues: ["LOL"],
   },
+  {
+    code: "mma",
+    label: "UFC",
+    emoji: "🥊",
+    leagues: ["UFC"],
+  },
 ];
 
 // 야구 리그 집합 — SPORTS.baseball.leagues 단일 진실에서 빌드.
@@ -166,6 +172,12 @@ export const HOCKEY_LEAGUES = new Set(
 // 농구 리그 집합 — SPORTS.basketball.leagues 단일 진실. thesports-cache 가 mapBasketballStatus 분기에 사용.
 export const BASKETBALL_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "basketball")?.leagues ?? [],
+);
+
+// MMA(UFC) 리그 집합 — 경기는 The Odds API, 파이터 프로필은 api-sports /fighters.
+// 팀 스포츠가 아니라 파이터(개인)지만 Match.homeTeam/awayTeam(=파이터 Team) 재사용.
+export const MMA_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "mma")?.leagues ?? [],
 );
 
 export function leaguesForSport(code: SportCode): string[] {
@@ -315,6 +327,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   KBL: "KBL",
   WKBL: "WKBL",
   LOL: "LCK",
+  UFC: "UFC",
   // 2026-05-24 추가
   SUI_CUP: "스위스컵",
   LEAGUE_ONE: "잉글랜드 리그 원",
@@ -501,6 +514,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   KBL: 23,
   WKBL: 24,
   LOL: 30,
+  UFC: 40,
 };
 
 /** 축구 사이드바 — 인기 리그 (상단 고정 노출) */
@@ -645,6 +659,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   KBL: "대한민국",
   WKBL: "대한민국",
   LOL: "대한민국",
+  UFC: "미국",
   // 신규 추가 (23개)
   K3_LEAGUE: "대한민국",
   K4_LEAGUE: "대한민국",
