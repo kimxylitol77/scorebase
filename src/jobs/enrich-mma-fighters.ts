@@ -62,7 +62,7 @@ async function searchFighter(
   if (!surnameOnly) {
     const byFull = await trySearch(name, name, key, true);
     if (byFull === "rate" || byFull) return byFull;
-    await new Promise((res) => setTimeout(res, 2500)); // 2차 호출 전 delay
+    await new Promise((res) => setTimeout(res, 6000)); // 2차 호출 전 delay
   }
   if (surname.toLowerCase() === name.toLowerCase()) return null; // 단일 토큰이면 성 재시도 무의미
   return trySearch(surname, name, key, false);
@@ -113,7 +113,7 @@ export async function runEnrichMma(): Promise<{ enriched: number; rateLimited: b
       console.log(`[mma-enrich] rate limit(429) — ${enriched}명 처리 후 중단 (다음 실행에 이어서)`);
       break;
     }
-    await new Promise((res) => setTimeout(res, 2500)); // api-sports 연속 호출 rate limit 회피
+    await new Promise((res) => setTimeout(res, 6000)); // api-sports 연속 호출 rate limit 회피
 
     await prisma.mmaFighter.upsert({
       where: { teamId: t.id },
