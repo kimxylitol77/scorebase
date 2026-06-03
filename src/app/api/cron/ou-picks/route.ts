@@ -20,7 +20,7 @@ export async function GET(req: Request) {
   }
   try {
     const url = new URL(req.url);
-    const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 2, 1), 5);
+    const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 1, 1), 5);
     const result = await runOuPicks(limit);
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {

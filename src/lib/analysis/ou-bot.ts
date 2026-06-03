@@ -71,8 +71,8 @@ async function generateOuPick(c: OuCand): Promise<{ pick: string; title: string;
   return { pick, title, analysis };
 }
 
-/** 축구 OU 전문 봇 픽 발행. cron 에서 호출. */
-export async function runOuPicks(limit = 2): Promise<{ created: number; skipped: number }> {
+/** 축구 OU 전문 봇 픽 발행. cron 에서 호출. 기본 1개 (같은 시각 다발행 = 봇 티 회피). */
+export async function runOuPicks(limit = 1): Promise<{ created: number; skipped: number }> {
   const botId = await ensureOuBot();
   const soccerLeagues = leaguesForSport("soccer");
   const now = new Date();
