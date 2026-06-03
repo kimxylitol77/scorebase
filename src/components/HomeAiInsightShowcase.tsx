@@ -182,7 +182,15 @@ export default async function HomeAiInsightShowcase() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+      <div
+        className={`grid grid-cols-1 gap-3 sm:gap-4 ${
+          cards.length >= 3
+            ? "md:grid-cols-3"
+            : cards.length === 2
+              ? "sm:grid-cols-2"
+              : "sm:grid-cols-1"
+        }`}
+      >
         {cards.map((c) => (
           <Link
             key={c.match.id}

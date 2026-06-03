@@ -11,7 +11,6 @@ import {
   HeartPulse,
   Radio,
   Satellite,
-  Search,
   Sparkles,
   Star,
   Target,
@@ -476,19 +475,6 @@ function FeaturesSection() {
       ),
     },
     {
-      Icon: Search,
-      title: "경기 리뷰",
-      body: (
-        <>
-          경기 종료 직후 자동 발행되는{" "}
-          <strong className="text-zinc-950 dark:text-white">
-            스포츠 리뷰
-          </strong>
-          가 결과·핵심 장면·통계 흐름·다음 경기 영향까지 한 번에 정리합니다.
-        </>
-      ),
-    },
-    {
       Icon: HeartPulse,
       title: "부상자 명단",
       body: (
@@ -519,10 +505,10 @@ function FeaturesSection() {
   return (
     <section aria-labelledby="features-title">
       <SectionHeading
-        title="스코어베이스가 매일 분석하는 4가지"
+        title="스코어베이스가 매일 분석하는 3가지"
         subtitle="공인 데이터 소스에서 Elo · 시뮬레이션 · AI 스포츠 경기 심층 분석까지"
       />
-      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
         {items.map(({ Icon, title, body }) => (
           <article
             key={title}
