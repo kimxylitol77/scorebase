@@ -343,6 +343,17 @@ export const ARTICLE_LEAGUES: readonly League[] = [
   "J1_LEAGUE", "K_LEAGUE_1", // 아시아
 ];
 
+/** PREVIEW 자동발행 전용 화이트리스트 (RECAP/ANALYSIS 와 분리).
+ * 검색 회복 — 자동:양질 비율 개선 + crawl budget 회복을 위해 핵심 빅리그만 PREVIEW 발행.
+ * 2026-06-03 사용자 결정: 8개 핵심. 되돌리려면 generate-previews 가 다시 ARTICLE_LEAGUES 를 쓰게. */
+export const PREVIEW_LEAGUES: readonly League[] = [
+  "EPL", "LALIGA", "UCL", // 축구 빅
+  "KBO", "MLB", // 야구
+  "NBA", // 농구
+  "K_LEAGUE_1", // 한국 축구
+  "LOL", // e스포츠 (LCK)
+];
+
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만. (참고용; 발행 필터는 ARTICLE_LEAGUES 화이트리스트로 전환됨) */
 export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "K_LEAGUE_2",

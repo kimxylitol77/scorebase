@@ -123,7 +123,7 @@ export async function runPreview(opts?: {
   // 라인업/폼 변동이 큰 먼 미래 매치는 모델 신뢰도가 떨어지므로 의도적으로 좁게.
   const horizon = new Date(now.getTime() + horizonDays * 24 * 60 * 60 * 1000);
 
-  const { ARTICLE_LEAGUES } = await import("@/lib/sports/types");
+  const { PREVIEW_LEAGUES } = await import("@/lib/sports/types");
   const matches = await prisma.match.findMany({
     where: {
       status: "SCHEDULED",
@@ -131,7 +131,7 @@ export async function runPreview(opts?: {
       articles: { none: { type: "PREVIEW" } },
       ...(onlyLeague
         ? { league: onlyLeague }
-        : { league: { in: [...ARTICLE_LEAGUES] } }),
+        : { league: { in: [...PREVIEW_LEAGUES] } }),
     },
     include: { homeTeam: true, awayTeam: true },
     orderBy: { startTime: "asc" },
