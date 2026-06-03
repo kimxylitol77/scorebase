@@ -36,6 +36,31 @@ export default async function RankingPage({ searchParams }: Props) {
         </Link>
       </div>
 
+      {/* 적중률 채점 방식 안내 — "승률"로 오해 방지 */}
+      <details className="group mb-6 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 px-4 py-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-neutral-800 dark:text-neutral-200 [&::-webkit-details-marker]:hidden">
+          <span>🎯 적중률은 승률이 아닙니다 — 채점 방식</span>
+          <span className="shrink-0 text-neutral-400 transition-transform duration-200 group-open:rotate-45">+</span>
+        </summary>
+        <div className="mt-3 space-y-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          <p>
+            적중률 = 회원이 건{" "}
+            <strong className="font-semibold text-neutral-800 dark:text-neutral-200">
+              픽(승무패·핸디캡·오버언더)이 실제 경기 결과와 맞은 비율
+            </strong>
+            . 경기 종료 후 자동 채점됩니다. “N승 M패”는 팀 승패가 아니라{" "}
+            <strong>N적중 · M빗나감</strong>이에요.
+          </p>
+          <p>
+            순위는 단순 적중률(%)이 아니라{" "}
+            <strong className="font-semibold text-neutral-800 dark:text-neutral-200">
+              표본을 반영한 신뢰도 보정(Wilson 점수 하한)
+            </strong>
+            으로 정렬됩니다 — 1경기 100%가 무조건 1등이 되지 않고, 꾸준히 많이 맞춘 회원이 위로 올라갑니다.
+          </p>
+        </div>
+      </details>
+
       {/* 탭 */}
       <div className="flex gap-2 mb-6">
         <Link

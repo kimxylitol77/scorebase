@@ -122,6 +122,41 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         <p className="text-neutral-600 dark:text-neutral-400 mt-2">
           회원이 올린 경기 분석·승부 예측이 실제 결과로 자동 채점되어 적중률·랭킹에 반영됩니다.
         </p>
+
+        <details className="group mt-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 px-4 py-3">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-neutral-800 dark:text-neutral-200 [&::-webkit-details-marker]:hidden">
+            <span>🎯 적중률은 어떻게 채점되나요? (= 승률이 아닙니다)</span>
+            <span className="shrink-0 text-neutral-400 transition-transform duration-200 group-open:rotate-45">+</span>
+          </summary>
+          <div className="mt-3 space-y-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+            <p>
+              적중률은 회원이{" "}
+              <strong className="font-semibold text-neutral-800 dark:text-neutral-200">
+                예정 경기에 직접 건 픽
+              </strong>
+              이 실제 결과와 맞았는지의 비율입니다. 경기가 끝나면 실제 스코어로 자동 채점돼요.
+            </p>
+            <p>
+              픽은 마켓별로 판정합니다 — <strong>승무패</strong>(예측한 승자 = 실제 승자),{" "}
+              <strong>핸디캡</strong>(라인 적용 후 승패), <strong>오버언더</strong>(총득점 vs 기준선).
+              무승부 없는 종목의 동점·핸디캡/오버언더 푸시는 무효 처리됩니다.
+            </p>
+            <p>
+              즉 적중률은{" "}
+              <strong className="font-semibold text-neutral-800 dark:text-neutral-200">
+                “팀이 이길 확률(승률)”이나 단순 승패 기록이 아니라 “내 예측이 맞았는가”
+              </strong>
+              입니다. 랭킹에 보이는 “N승 M패”도 사실은 <strong>N적중 · M빗나감</strong>을 뜻해요.
+            </p>
+            <p>
+              랭킹 순서도 단순 적중률(%)이 아니라{" "}
+              <strong className="font-semibold text-neutral-800 dark:text-neutral-200">
+                표본 수를 반영한 신뢰도 보정(Wilson 점수 하한)
+              </strong>
+              으로 정렬됩니다. 그래서 1경기 100%가 무조건 1등이 되지 않고, 많이·꾸준히 맞춘 회원이 위로 올라갑니다.
+            </p>
+          </div>
+        </details>
       </header>
 
       {posts.length === 0 ? (
