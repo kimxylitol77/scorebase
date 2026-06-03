@@ -337,7 +337,32 @@ type UpdateItem = {
   cta: string;
 };
 
-function RecentUpdatesSection() {
+async function RecentUpdatesSection() {
+  // AI Strong Pick 적중률 — DB 실시간 산출(하드코딩 금지, 적중률 보드와 동일 소스).
+  // 65%+ 자신 매치의 리그별 적중률 top 3 (표본 30+). 1시간 ISR 로 비용 흡수.
+  const spMatches = await prisma.match.findMany({
+    where: { predCorrect: { not: null } },
+    select: { league: true, predCorrect: true, predHome: true, predDraw: true, predAway: true },
+  });
+  const spByLeague = new Map<string, { hit: number; total: number }>();
+  for (const m of spMatches) {
+    const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
+    if (top < 0.65) continue;
+    const e = spByLeague.get(m.league) ?? { hit: 0, total: 0 };
+    e.total++;
+    if (m.predCorrect) e.hit++;
+    spByLeague.set(m.league, e);
+  }
+  const topStrong = [...spByLeague.entries()]
+    .filter(([, e]) => e.total >= 30)
+    .map(([league, e]) => ({ league, rate: Math.round((e.hit / e.total) * 100) }))
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 3);
+  const strongBody =
+    topStrong.length >= 2
+      ? `모델이 65% 이상 자신한 매치만 따로 추적 — ${topStrong.map((t) => `${t.league} ${t.rate}%`).join(", ")} 적중. 종료된 모든 매치 백테스트로 검증.`
+      : "모델이 65% 이상 자신한 매치만 따로 추적합니다. 실제 적중률은 적중률 보드에서 실시간 공개합니다.";
+
   const items: UpdateItem[] = [
     {
       tag: "NEW",
@@ -351,7 +376,7 @@ function RecentUpdatesSection() {
       tag: "NEW",
       Icon: Star,
       title: "AI Strong Pick · 65% 이상 자신 있는 픽",
-      body: "모델이 강하게 찍은 매치만 따로 추적 — NBA 62%, NHL 61%, MLB 52% 적중. 전체 평균 대비 +13%p 리프트.",
+      body: strongBody,
       href: "/predictions/accuracy",
       cta: "적중률 보드 보기",
     },
