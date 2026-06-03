@@ -254,7 +254,12 @@ export default function BaseballLiveDetail({
   const inningMatch = live.statusLabel.match(/(\d+)\s*회\s*(초|말)?/);
   const currentInning = inningMatch ? parseInt(inningMatch[1], 10) : null;
   const halfKo = inningMatch?.[2] ?? null;
-  const inningText = currentInning ? `${currentInning}회 ${halfKo ?? ""}`.trim() : null;
+  const inningText =
+    live.statusLabel === "연장"
+      ? "연장"
+      : currentInning
+        ? `${currentInning}회 ${halfKo ?? ""}`.trim()
+        : null;
 
   return (
     <div className="space-y-4">
@@ -381,7 +386,7 @@ export default function BaseballLiveDetail({
                         fontWeight: isCur ? 600 : 500,
                       }}
                     >
-                      {i + 1}
+                      {i >= 9 ? "연장" : i + 1}
                     </th>
                   );
                 })}

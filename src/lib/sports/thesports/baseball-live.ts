@@ -126,12 +126,27 @@ export function convertCacheToBaseballLive(opts: {
   const homeInnings: (number | null)[] = [];
   const awayInnings: (number | null)[] = [];
   let maxInning = 0;
+  let isExtra = false;
   for (let i = 1; i <= 20; i++) {
     const p = sObj[`p${i}` as `p${number}`];
     if (!p) continue;
     maxInning = i;
     homeInnings.push(parseSc(p[0]));
     awayInnings.push(parseSc(p[1]));
+  }
+
+  // 연장: TheSports 가 연장 이닝별(p10+) 미제공, ft(연장 포함 총점)만 줌
+  // → ft - 9회합 > 0 이면 "연장" 통합 칸 1개 추가 (10/11/12 이닝별은 소스 한계).
+  if (homeInnings.length >= 9) {
+    let sumH = 0;
+    let sumA = 0;
+    for (const v of homeInnings) sumH += v ?? 0;
+    for (const v of awayInnings) sumA += v ?? 0;
+    if (homeScore > sumH || awayScore > sumA) {
+      homeInnings.push(homeScore - sumH);
+      awayInnings.push(awayScore - sumA);
+      isExtra = true;
+    }
   }
 
   // hits / errors ([home, away])
@@ -151,9 +166,11 @@ export function convertCacheToBaseballLive(opts: {
   } else if (opts.dbStatus === "LIVE") {
     status = "LIVE";
     const half = halfTopBot === 2 ? "말" : halfTopBot === 1 ? "초" : "";
-    statusLabel = maxInning > 0
-      ? `${maxInning}회 ${half}`.trim()
-      : "Inning -";
+    statusLabel = isExtra
+      ? "연장"
+      : maxInning > 0
+        ? `${maxInning}회 ${half}`.trim()
+        : "Inning -";
   } else {
     status = "PRE";
     statusLabel = "Not Started";
