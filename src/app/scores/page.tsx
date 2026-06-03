@@ -1926,9 +1926,10 @@ function SoccerRowLayout({
         )}
       </div>
 
-      {/* 데스크탑 — row table */}
-      <div className="hidden md:block rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02]">
-        <div className="min-w-[860px] px-4 pt-1 pb-16">
+      {/* 데스크탑 — row table. overflow-x-auto = 좁은 창에서 잘림 대신 가로 스크롤(fallback).
+          스코어보드.kr(sb-mode)은 data-srow-table min-width 해제로 화면폭에 맞춰 압축(스크롤 불필요). */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02]">
+        <div data-srow-table className="min-w-[860px] px-4 pt-1 pb-16">
           <SoccerLiveRowHeader />
           {liveSorted.length > 0 && (
             <>

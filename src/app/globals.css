@@ -745,3 +745,8 @@ body.sb-mode [data-scores-root] {
   padding-left: 0.75rem !important;
   padding-right: 5rem !important;
 }
+/* 좁은 화면(태블릿·작은 창)에서 테이블 min-width(860) 가 컨테이너를 넘쳐 별(관심) 칼럼이
+   잘리던 문제: sb-mode 는 min-width 해제 → data-srow 7컬럼이 화면폭에 맞춰 압축(주석 731 의도대로). */
+body.sb-mode [data-srow-table] {
+  min-width: 0 !important;
+}
