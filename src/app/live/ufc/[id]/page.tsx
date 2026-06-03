@@ -33,7 +33,7 @@ const FIGHTER_SELECT = {
     select: {
       nameKo: true, nickname: true, category: true, height: true, weight: true,
       reach: true, stance: true, gym: true, record: true, headshot: true, flagUrl: true, photo: true,
-      age: true, koRecord: true, subRecord: true,
+      age: true, koRecord: true, subRecord: true, fightHistory: true,
     },
   },
 } as const;
@@ -45,9 +45,19 @@ type FighterTeam = {
     nameKo: string | null; nickname: string | null; category: string | null;
     height: string | null; weight: string | null; reach: string | null; stance: string | null;
     gym: string | null; record: string | null; headshot: string | null; flagUrl: string | null; photo: string | null;
-    age: number | null; koRecord: string | null; subRecord: string | null;
+    age: number | null; koRecord: string | null; subRecord: string | null; fightHistory: string | null;
   } | null;
 };
+
+type FightRow = { d: string; r: string | null; o: string | null; m: string | null; rd: number | null; c: string | null };
+function parseHistory(s: string | null | undefined): FightRow[] {
+  if (!s) return [];
+  try {
+    return JSON.parse(s) as FightRow[];
+  } catch {
+    return [];
+  }
+}
 
 function view(team: FighterTeam) {
   const f = team.mmaFighter;
@@ -66,6 +76,7 @@ function view(team: FighterTeam) {
     age: f?.age ?? null,
     koRecord: f?.koRecord ?? null,
     subRecord: f?.subRecord ?? null,
+    history: parseHistory(f?.fightHistory),
   };
 }
 
@@ -144,6 +155,36 @@ function FighterCol({ f }: { f: ReturnType<typeof view> }) {
       <div className="font-bold text-sm leading-tight">{f.ko}</div>
       {f.nickname && <div className="text-[11px] italic text-neutral-500">&lsquo;{f.nickname}&rsquo;</div>}
       {f.record && <div className="text-xs font-semibold tabular-nums text-neutral-600 dark:text-neutral-300">{f.record}</div>}
+    </div>
+  );
+}
+
+function FightHistoryCol({ f }: { f: ReturnType<typeof view> }) {
+  if (f.history.length === 0) {
+    return <div className="text-center text-[11px] text-neutral-400 pt-4">{f.ko}<br />경기 이력 없음</div>;
+  }
+  return (
+    <div>
+      <h3 className="text-xs font-bold mb-2 truncate text-center">{f.ko}</h3>
+      <div className="space-y-1.5">
+        {f.history.map((h, i) => (
+          <div key={i} className="flex items-start gap-1.5 text-[11px]">
+            <span
+              className={`font-black w-3.5 shrink-0 ${
+                h.r === "W" ? "text-emerald-600 dark:text-emerald-400" : h.r === "L" ? "text-rose-600 dark:text-rose-400" : "text-neutral-400"
+              }`}
+            >
+              {h.r ?? "-"}
+            </span>
+            <div className="min-w-0">
+              <div className="truncate font-semibold text-neutral-700 dark:text-neutral-200">{h.o}</div>
+              <div className="text-neutral-400 truncate">
+                {[h.m, h.rd ? `R${h.rd}` : null, h.d].filter(Boolean).join(" · ")}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -239,7 +280,18 @@ export default async function UfcMatchPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
-      {tale.length === 0 && !odds && (
+      {/* 최근 경기 (Fight History) — ESPN athlete events */}
+      {(home.history.length > 0 || away.history.length > 0) && (
+        <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-5">
+          <h2 className="text-center text-xs font-bold uppercase tracking-wider text-neutral-400 mb-3">최근 경기 (Fight History)</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <FightHistoryCol f={home} />
+            <FightHistoryCol f={away} />
+          </div>
+        </div>
+      )}
+
+      {tale.length === 0 && !odds && home.history.length === 0 && away.history.length === 0 && (
         <p className="text-center text-sm text-neutral-400 py-8">
           아직 상세 데이터가 준비되지 않았습니다. 경기가 다가오면 전적·신체·배당이 채워집니다.
         </p>

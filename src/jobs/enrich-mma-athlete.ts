@@ -24,6 +24,13 @@ interface EspnAthlete {
   statsSummary?: { statistics?: Array<{ name?: string; displayValue?: string }> };
 }
 
+interface EspnFightEvent {
+  gameDate?: string;
+  gameResult?: string; // "W" | "L" | "D" ...
+  opponent?: { displayName?: string };
+  status?: { period?: number; displayClock?: string; result?: { shortDisplayName?: string } };
+}
+
 export async function runEnrichMmaAthlete(): Promise<{ enriched: number }> {
   const rows = await prisma.mmaFighter.findMany({
     where: { espnId: { not: null } },
@@ -34,10 +41,31 @@ export async function runEnrichMmaAthlete(): Promise<{ enriched: number }> {
     try {
       const res = await fetch(ATH(r.espnId as string));
       if (!res.ok) continue;
-      const a = ((await res.json()) as { athlete?: EspnAthlete }).athlete;
+      const data = (await res.json()) as {
+        athlete?: EspnAthlete;
+        events?: string[];
+        eventsMap?: Record<string, EspnFightEvent>;
+      };
+      const a = data.athlete;
       if (!a) continue;
       const stats = a.statsSummary?.statistics ?? [];
       const stat = (name: string) => stats.find((s) => s.name === name)?.displayValue ?? null;
+      // 최근 경기 이력 (events=id 배열, eventsMap=상세) → 최대 6경기 [{날짜,결과,상대,방법,라운드,종료시각}]
+      const history = (data.events ?? [])
+        .slice(0, 6)
+        .map((id) => {
+          const e = data.eventsMap?.[id];
+          if (!e) return null;
+          return {
+            d: (e.gameDate ?? "").slice(0, 10),
+            r: e.gameResult ?? null,
+            o: e.opponent?.displayName ?? null,
+            m: e.status?.result?.shortDisplayName ?? null,
+            rd: e.status?.period ?? null,
+            c: e.status?.displayClock ?? null,
+          };
+        })
+        .filter((h): h is NonNullable<typeof h> => !!h && !!h.o);
       await prisma.mmaFighter.update({
         where: { teamId: r.teamId },
         data: {
@@ -56,6 +84,7 @@ export async function runEnrichMmaAthlete(): Promise<{ enriched: number }> {
           subRecord: stat("submissions-submissionLosses") ?? undefined,
           headshot: a.headshot?.href ?? undefined,
           flagUrl: a.flag?.href ?? undefined,
+          fightHistory: history.length ? JSON.stringify(history) : undefined,
         },
       });
       n++;

@@ -572,6 +572,7 @@ model MmaFighter {
   citizenship String?                    // ESPN 국적 (예: "Brazil")
   koRecord    String?                    // (T)KO 승-패 (예: "4-1")
   subRecord   String?                    // 서브미션 승-패 (예: "13-0")
+  fightHistory String?                   // ESPN 최근 경기 이력 JSON: [{d,r,o,m,rd,c}] (날짜·결과·상대·방법·라운드·종료시각)
   fetchedAt   DateTime @default(now())   // 마지막 api-sports 수집 시각 (점진 백필 기준)
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
