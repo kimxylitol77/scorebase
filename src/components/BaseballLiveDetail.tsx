@@ -308,7 +308,7 @@ export default function BaseballLiveDetail({
             )}
           </div>
           {isLive && (
-            <span className="text-[10px] text-neutral-500">15초 자동 갱신</span>
+            <span className="text-[10px] text-neutral-500">라이브 자동 갱신</span>
           )}
         </div>
 

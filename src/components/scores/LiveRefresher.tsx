@@ -48,7 +48,7 @@ export default function LiveRefresher({ liveCount }: Props) {
         onChange={(e) => setEnabled(e.target.checked)}
         className="w-3.5 h-3.5 accent-[#00d4ff] cursor-pointer"
       />
-      <span>15초 자동 갱신</span>
+      <span>라이브 자동 갱신</span>
     </label>
   );
 }

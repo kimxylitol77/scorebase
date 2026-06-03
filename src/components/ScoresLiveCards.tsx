@@ -202,7 +202,7 @@ export default function ScoresLiveCards({ sport }: { sport: SportCode }) {
             )}
           </button>
           <span className="text-[10px] text-rose-600/70 dark:text-rose-400/70 tabular-nums">
-            15초 자동 갱신
+            라이브 자동 갱신
           </span>
         </div>
       </div>
