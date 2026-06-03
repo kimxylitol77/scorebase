@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, leagueHasDraw } from "@/lib/sports/sport-leagues";
 import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
 
@@ -132,10 +132,12 @@ export default async function HomeAiInsightShowcase() {
     const homeElo = getElo(eloTable, m.homeTeam.id);
     const awayElo = getElo(eloTable, m.awayTeam.id);
     const winProb = calcWinProbability(homeElo, awayElo, m.league);
-    const total = winProb.home + winProb.away + winProb.draw;
-    const pHome = total > 0 ? winProb.home / total : 0.33;
-    const pAway = total > 0 ? winProb.away / total : 0.33;
-    const pDraw = total > 0 ? winProb.draw / total : 0;
+    // 무승부 없는 종목(야구·농구 등)은 무 제거 후 홈/원정만 재정규화 — 야구에 "무 0%" 안 보이게.
+    const drawRaw = leagueHasDraw(m.league) ? winProb.draw : 0;
+    const total = winProb.home + winProb.away + drawRaw;
+    const pHome = total > 0 ? winProb.home / total : 0.5;
+    const pAway = total > 0 ? winProb.away / total : 0.5;
+    const pDraw = total > 0 ? drawRaw / total : 0;
     const topConf = Math.max(pHome, pAway, pDraw);
     const isStrong = topConf >= 0.65;
     const pickName =

@@ -51,6 +51,13 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
   const awayAvgFor = away.played > 0 ? away.goalsFor / away.played : 0;
   const homeAvgAgainst = home.played > 0 ? home.goalsAgainst / home.played : 0;
   const awayAvgAgainst = away.played > 0 ? away.goalsAgainst / away.played : 0;
+  // 승률 — 무승부 없는 종목(야구·농구)에서 승점/경기당승점 대신 표기.
+  const homeWinRate = home.played > 0 ? home.wins / home.played : 0;
+  const awayWinRate = away.played > 0 ? away.wins / away.played : 0;
+  const homeSplitWinRate = home.splitPlayed > 0 ? home.splitWins / home.splitPlayed : 0;
+  const awaySplitWinRate = away.splitPlayed > 0 ? away.splitWins / away.splitPlayed : 0;
+  const homeRecentWinRate = formWinRate(home.form);
+  const awayRecentWinRate = formWinRate(away.form);
 
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 sm:px-6 py-5 sm:py-6">
@@ -93,7 +100,7 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
           big
         />
         <CompareRow
-          label={showDraw ? "리그성적" : "리그성적"}
+          label="리그성적"
           home={
             showDraw
               ? `${home.wins}승 ${home.draws}무 ${home.losses}패`
@@ -105,8 +112,9 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
               : `${away.wins}승 ${away.losses}패`
           }
         />
-        {/* 승점 — 승점제 리그(축구)만. 글 스냅샷 값 우선이라 본문 "N점" 과 일치. */}
-        {showDraw && (
+        {/* 승점제 리그(축구)는 승점, 무승부 없는 종목(야구·농구)은 승률.
+            승점은 글 스냅샷 값 우선이라 본문 "N점" 과 일치. */}
+        {showDraw ? (
           <CompareRow
             label="승점"
             home={`${home.seasonPoints}점`}
@@ -115,6 +123,19 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
               home.seasonPoints > away.seasonPoints
                 ? "home"
                 : away.seasonPoints > home.seasonPoints
+                  ? "away"
+                  : null
+            }
+          />
+        ) : (
+          <CompareRow
+            label="승률"
+            home={fmtWinRate(homeWinRate)}
+            away={fmtWinRate(awayWinRate)}
+            highlight={
+              homeWinRate > awayWinRate
+                ? "home"
+                : awayWinRate > homeWinRate
                   ? "away"
                   : null
             }
@@ -173,22 +194,32 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
             label="기록"
             home={
               home.splitPlayed > 0
-                ? `${home.splitWins}승 ${home.splitDraws}무 ${home.splitLosses}패`
+                ? splitRecord(home.splitWins, home.splitDraws, home.splitLosses, showDraw)
                 : "—"
             }
             away={
               away.splitPlayed > 0
-                ? `${away.splitWins}승 ${away.splitDraws}무 ${away.splitLosses}패`
+                ? splitRecord(away.splitWins, away.splitDraws, away.splitLosses, showDraw)
                 : "—"
             }
           />
-          <CompareBarRow
-            label="경기당 승점"
-            homeValue={home.splitPpg}
-            awayValue={away.splitPpg}
-            tone="positive"
-            decimals={2}
-          />
+          {showDraw ? (
+            <CompareBarRow
+              label="경기당 승점"
+              homeValue={home.splitPpg}
+              awayValue={away.splitPpg}
+              tone="positive"
+              decimals={2}
+            />
+          ) : (
+            <CompareBarRow
+              label="승률"
+              homeValue={homeSplitWinRate}
+              awayValue={awaySplitWinRate}
+              tone="positive"
+              decimals={3}
+            />
+          )}
         </Group>
       )}
 
@@ -207,13 +238,23 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
             awayValue={away.recentAvgAgainst}
             tone="negative"
           />
-          <CompareBarRow
-            label="경기당 승점"
-            homeValue={home.recentPpg}
-            awayValue={away.recentPpg}
-            tone="positive"
-            decimals={2}
-          />
+          {showDraw ? (
+            <CompareBarRow
+              label="경기당 승점"
+              homeValue={home.recentPpg}
+              awayValue={away.recentPpg}
+              tone="positive"
+              decimals={2}
+            />
+          ) : (
+            <CompareBarRow
+              label="최근 승률"
+              homeValue={homeRecentWinRate}
+              awayValue={awayRecentWinRate}
+              tone="positive"
+              decimals={3}
+            />
+          )}
         </Group>
       )}
 
@@ -225,7 +266,7 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
           away={streakLabel(away)}
         />
         <CompareRow
-          label="클린시트"
+          label={showDraw ? "클린시트" : "무실점"}
           home={`${home.cleanSheetsLast5}경기`}
           away={`${away.cleanSheetsLast5}경기`}
           highlight={
@@ -258,6 +299,27 @@ function streakLabel(t: TeamSide): string {
   if (t.unbeatenRun >= 3) return `${t.unbeatenRun}경기 무패`;
   if (t.losingRun >= 2) return `❄️ ${t.losingRun}연패`;
   return "특이 흐름 없음";
+}
+
+/** 최근 폼(W/D/L)에서 승률 계산 — 야구·농구 "최근 승률" 행용. */
+function formWinRate(form: FormResult[]): number {
+  if (form.length === 0) return 0;
+  return form.filter((r) => r === "W").length / form.length;
+}
+
+/** 승률을 야구식 .XXX 로 — 0.620 → ".620", 1.000 → "1.000". */
+function fmtWinRate(r: number): string {
+  return r.toFixed(3).replace(/^0/, "");
+}
+
+/** 홈/원정 기록 문자열 — 무승부 종목만 "N무" 포함. */
+function splitRecord(
+  wins: number,
+  draws: number,
+  losses: number,
+  showDraw: boolean,
+): string {
+  return showDraw ? `${wins}승 ${draws}무 ${losses}패` : `${wins}승 ${losses}패`;
 }
 
 function Group({

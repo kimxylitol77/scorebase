@@ -3,6 +3,7 @@
 
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { leagueHasDraw } from "@/lib/sports/sport-leagues";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
@@ -366,11 +367,9 @@ export default async function MatchInsight({
   const homeTrend = calcRecentTrend(matches, match.homeTeamId, referenceTime, 5);
   const awayTrend = calcRecentTrend(matches, match.awayTeamId, referenceTime, 5);
 
-  const hideDraw =
-    match.league === "NBA" ||
-    match.league === "KBO" ||
-    match.league === "NPB" ||
-    match.league === "LOL";
+  // 무승부 표기 여부 — 축구만 무 표시 (leagueHasDraw 단일 진실). MLB·NHL·WNBA 등
+  // 비축구 전부 무 숨김. 이전엔 NBA/KBO/NPB/LOL 만 하드코딩돼 MLB·하키·마이너 야구가 누락.
+  const hideDraw = !leagueHasDraw(match.league);
   const dataSparse = eloTable.processed < 5;
   // sparse 라도 선발 투수 카드만은 표시 (KBO/NPB 시즌 초반 등)
   const sparseHasStarters =
@@ -623,7 +622,7 @@ export default async function MatchInsight({
       <Section title={isFinished ? "AI 예측 종합 · 결과 비교" : "AI 예측 종합"}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MarketCard
-            label="결과 (1X2)"
+            label={hideDraw ? "승패 예측" : "결과 (1X2)"}
             pick={
               oneXTwoPick === "HOME"
                 ? "홈 승"

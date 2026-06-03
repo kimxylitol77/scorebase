@@ -180,6 +180,18 @@ export const MMA_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "mma")?.leagues ?? [],
 );
 
+// 축구 리그 집합 — SPORTS.soccer.leagues 단일 진실 (K리그·월드컵 등 전부 포함).
+export const SOCCER_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
+);
+
+// 무승부가 정규 결과로 존재하는 종목 = 축구만. 야구(KBO/NPB 는 무 제도 있으나 예측·UI 는
+// 승패 2지선다로 통일)·농구·하키(OT/SO)·MMA·LoL(BO 시리즈) 은 무승부 표기 안 함.
+// hideDraw / hasDraw / showDraw 분기의 단일 진실 — inline 블랙리스트(NBA/KBO/NPB...) 금지.
+export function leagueHasDraw(league: string): boolean {
+  return SOCCER_LEAGUES.has(league);
+}
+
 export function leaguesForSport(code: SportCode): string[] {
   if (code === "all") return ALL_LEAGUES;
   return SPORTS.find((s) => s.code === code)?.leagues ?? ALL_LEAGUES;

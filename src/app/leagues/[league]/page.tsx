@@ -470,7 +470,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                     tone="amber"
                   />
                 )}
-                <AccPill icon="🎯" label="1X2" rate={r1x2} tone="neutral" />
+                <AccPill icon="🎯" label={isSoccer ? "1X2" : "승패"} rate={r1x2} tone="neutral" />
                 {isSoccer && (
                   <AccPill icon="✨" label="DC" rate={rDc} tone="emerald" />
                 )}
