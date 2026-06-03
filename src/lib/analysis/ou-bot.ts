@@ -126,6 +126,9 @@ export async function runOuPicks(limit = 1): Promise<{ created: number; skipped:
           market: "OU",
           line,
           pick: pick.pick,
+          // 발행 시각을 0~25분 과거로 분산 → 매번 다른 분에 찍힘(정각·고정시각 = 봇 티 회피).
+          // cron(KST 5:25/20:25) 기준 5:00~5:25 등. 신규 발행분만(기존 글 미변경).
+          createdAt: new Date(Date.now() - Math.floor(Math.random() * 26) * 60_000),
         },
       });
       created++;
