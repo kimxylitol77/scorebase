@@ -667,6 +667,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     homeHits: number | null;
     awayErrors: number | null;
     homeErrors: number | null;
+    isExtra: boolean;
   }>();
 
   const soccerMatchIds = needsSoccerGoals
@@ -853,6 +854,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         const swap = (dl as { _swap?: boolean })?._swap === true;
         let inning: number | null = null;
         let half: "top" | "bottom" | null = null;
+        let isExtra = false;
         const awayInnings: (number | null)[] = [];
         const homeInnings: (number | null)[] = [];
         let awayHits: number | null = null;
@@ -873,6 +875,22 @@ export default async function ScoresPage({ searchParams }: Props) {
             } else {
               homeInnings.push(Number.isFinite(tsHome) ? tsHome : null);
               awayInnings.push(Number.isFinite(tsAway) ? tsAway : null);
+            }
+          }
+          // 연장: TheSports 가 연장 이닝별(p10+) 미제공, score[3].ft(연장 포함 총점)만 줌.
+          // ft - 9회합 > 0 이면 연장 점수 → "연장" 통합 칸 1개 추가 (10/11/12 이닝별은 소스 한계).
+          const ftArr = sObj?.ft as [string, string] | undefined;
+          if (Array.isArray(ftArr) && ftArr.length >= 2 && homeInnings.length >= 9) {
+            const ftHome = parseInt(String(ftArr[swap ? 1 : 0]), 10);
+            const ftAway = parseInt(String(ftArr[swap ? 0 : 1]), 10);
+            let sumHome = 0;
+            let sumAway = 0;
+            for (const v of homeInnings) sumHome += v ?? 0;
+            for (const v of awayInnings) sumAway += v ?? 0;
+            if (Number.isFinite(ftHome) && Number.isFinite(ftAway) && (ftHome > sumHome || ftAway > sumAway)) {
+              homeInnings.push(ftHome - sumHome);
+              awayInnings.push(ftAway - sumAway);
+              isExtra = true;
             }
           }
           const h = dl.score[2];
@@ -905,6 +923,7 @@ export default async function ScoresPage({ searchParams }: Props) {
             homeHits,
             awayErrors,
             homeErrors,
+            isExtra,
           });
         }
       }
@@ -1203,8 +1222,14 @@ export default async function ScoresPage({ searchParams }: Props) {
         ? (() => {
             const details =
               live?.baseball ?? baseballDetailsMap[m.externalId];
-            // ESPN/api-baseball 우선, 없으면 TheSports cache (KBO/NPB/CPBL/LMB) fallback.
-            if (details) {
+            const cachedBb = baseballCacheCtx.get(m.externalId);
+            // TheSports 야구(MLB 외 KBO/NPB/CPBL/LMB)는 cache 우선 — 연장을 ft 로 복구.
+            // (ESPN/API-Sports 는 연장이 extra 1칸이라 이닝별 표가 부정확/9회까지만)
+            const tsBaseballHasInnings =
+              m.league !== "MLB" &&
+              !!cachedBb &&
+              (cachedBb.awayInnings.length > 0 || cachedBb.homeInnings.length > 0);
+            if (details && !tsBaseballHasInnings) {
               return {
                 awayInnings: details.awayInnings,
                 homeInnings: details.homeInnings,
@@ -1259,6 +1284,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 half: cached.half,
                 outs: cached.outs,
                 bases: cached.bases,
+                isExtra: cached.isExtra,
               } satisfies BaseballContext;
             }
             const mlb = baseballDetailsMap[m.externalId]?.ctx;

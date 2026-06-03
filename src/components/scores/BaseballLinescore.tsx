@@ -37,7 +37,7 @@ export default function BaseballLinescore({ data }: Props) {
                 key={i}
                 className="px-1.5 py-1.5 text-center font-semibold tabular-nums"
               >
-                {i + 1}
+                {i >= 9 ? "연장" : i + 1}
               </th>
             ))}
             <th className="px-2 py-1.5 text-center font-bold text-neutral-700 dark:text-neutral-200 border-l border-neutral-200/60 dark:border-neutral-800">

@@ -11,6 +11,8 @@ export interface BaseballContext {
   outs?: number | null;
   /** [1루, 2루, 3루] */
   bases?: [boolean, boolean, boolean] | null;
+  /** 연장 여부 — TheSports 가 연장 이닝별 미제공, ft(총점)로 감지. 라벨 "연장" 표시용. */
+  isExtra?: boolean;
 }
 
 interface Props {
@@ -32,7 +34,7 @@ export default function BaseballMiniBoard({ ctx }: Props) {
   if (!inning && !outs && !bases) return null;
 
   const half_ko = half === "top" ? "초" : half === "bottom" ? "말" : "";
-  const inningText = inning ? `${inning}회${half_ko}` : "";
+  const inningText = ctx.isExtra ? `연장${inning ? ` ${inning > 9 ? inning : ""}` : ""}`.trim() : inning ? `${inning}회${half_ko}` : "";
   const outsText = outs != null ? `${outs}사` : "";
 
   return (

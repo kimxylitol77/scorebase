@@ -100,7 +100,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
   const inning = baseballCtx?.inning ?? parsed.inning;
   const half = baseballCtx?.half ?? parsed.half;
   const halfKo = half === "top" ? "초" : half === "bottom" ? "말" : "";
-  const inningText = inning ? `${inning}회 ${halfKo}`.trim() : null;
+  const inningText = baseballCtx?.isExtra ? "연장" : inning ? `${inning}회 ${halfKo}`.trim() : null;
 
   const bases = baseballCtx?.bases ?? null;
   const outs = (baseballCtx?.outs ?? null) as 0 | 1 | 2 | 3 | null;
