@@ -95,6 +95,12 @@ export default function Header() {
             href="/previews"
             items={ARTICLE_ITEMS}
           />
+          <Link
+            href="/analysis"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
+          >
+            분석
+          </Link>
 
           {/* 검색 + 다크모드 (데스크탑) */}
           <div className="hidden md:block ml-2">

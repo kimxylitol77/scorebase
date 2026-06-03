@@ -22,6 +22,7 @@ import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
 import HomeFocusCards from "@/components/HomeFocusCards";
 import HomeAiInsightShowcase from "@/components/HomeAiInsightShowcase";
+import HomeRankingShowcase from "@/components/HomeRankingShowcase";
 import SectionHeading from "@/components/SectionHeading";
 import SeasonInsight from "@/components/SeasonInsight";
 import SeasonInsightCard from "@/components/SeasonInsightCard";
@@ -197,6 +198,8 @@ export default async function Home() {
       <HomeFocusCards />
 
       <HomeAiInsightShowcase />
+
+      <HomeRankingShowcase />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-16">
         <FeaturesSection />
