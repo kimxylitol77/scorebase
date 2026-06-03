@@ -93,30 +93,35 @@ export default async function AnalysisListPage({ searchParams }: Props) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ANALYSIS_JSONLD) }}
       />
-      <header className="flex items-end justify-between mb-8">
-        <div>
-          <p className="text-sm text-neutral-500 mb-1.5">커뮤니티</p>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">스포츠 분석</h1>
+      <header className="mb-8">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-sm text-neutral-500 mb-2">커뮤니티</p>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">스포츠 분석</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/analysis/ranking"
+              className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 px-4 py-2.5 text-sm font-semibold transition"
+            >
+              🏆 랭킹
+            </Link>
+            <Link
+              href="/analysis/new"
+              className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-sm font-semibold transition"
+            >
+              ✏️ 글쓰기
+            </Link>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/analysis/ranking"
-            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 px-4 py-2.5 text-sm font-semibold transition"
-          >
-            🏆 랭킹
-          </Link>
-          <Link
-            href="/analysis/new"
-            className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-sm font-semibold transition"
-          >
-            ✏️ 글쓰기
-          </Link>
-        </div>
+        <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+          회원이 올린 경기 분석·승부 예측이 실제 결과로 자동 채점되어 적중률·랭킹에 반영됩니다.
+        </p>
       </header>
 
       {posts.length === 0 ? (
