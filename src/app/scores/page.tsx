@@ -568,10 +568,22 @@ export default async function ScoresPage({ searchParams }: Props) {
         homeStarter: true,
         awayStarter: true,
         homeTeam: {
-          select: { id: true, name: true, externalId: true, shortName: true, logoUrl: true },
+          select: {
+            id: true, name: true, externalId: true, shortName: true, logoUrl: true,
+            // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
+            mmaFighter: {
+              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true },
+            },
+          },
         },
         awayTeam: {
-          select: { id: true, name: true, externalId: true, shortName: true, logoUrl: true },
+          select: {
+            id: true, name: true, externalId: true, shortName: true, logoUrl: true,
+            // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
+            mmaFighter: {
+              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true },
+            },
+          },
         },
         articles: {
           where: { status: "PUBLISHED" },
@@ -1072,8 +1084,11 @@ export default async function ScoresPage({ searchParams }: Props) {
     // 국가대항(친선/예선/대륙컵) 매치 — 리그 standings 개념이 없으므로 [순위] 자리에
     // FIFA 국가 랭킹을 표시. 클럽 리그(EPL/이라크 스타스 리그 등)는 절대 안 건드림(position 유지).
     const isNationalTeam = NATIONAL_TEAM_LEAGUES.has(m.league);
-    const homeNameKo = toKoreanTeamName(m.homeTeam.name, m.league);
-    const awayNameKo = toKoreanTeamName(m.awayTeam.name, m.league);
+    // UFC 파이터는 정적 dict 대신 MmaFighter.nameKo (haiku 음역) 우선, 없으면 영문 fallback.
+    const homeNameKo =
+      m.homeTeam.mmaFighter?.nameKo ?? toKoreanTeamName(m.homeTeam.name, m.league);
+    const awayNameKo =
+      m.awayTeam.mmaFighter?.nameKo ?? toKoreanTeamName(m.awayTeam.name, m.league);
     const homeFifaRank = isNationalTeam
       ? getFifaRank(m.homeTeam.name, homeNameKo)
       : null;
@@ -1109,6 +1124,28 @@ export default async function ScoresPage({ searchParams }: Props) {
           : standingsByLeague.get(m.league)?.get(m.awayTeamId) ?? null,
         fifaRank: awayFifaRank,
       },
+      // UFC Tale of the Tape — 파이터 신체/별명 (mma 외 종목은 null)
+      mma:
+        sport_ === "mma"
+          ? {
+              category:
+                m.homeTeam.mmaFighter?.category ?? m.awayTeam.mmaFighter?.category ?? null,
+              home: {
+                nickname: m.homeTeam.mmaFighter?.nickname ?? null,
+                height: m.homeTeam.mmaFighter?.height ?? null,
+                weight: m.homeTeam.mmaFighter?.weight ?? null,
+                reach: m.homeTeam.mmaFighter?.reach ?? null,
+                stance: m.homeTeam.mmaFighter?.stance ?? null,
+              },
+              away: {
+                nickname: m.awayTeam.mmaFighter?.nickname ?? null,
+                height: m.awayTeam.mmaFighter?.height ?? null,
+                weight: m.awayTeam.mmaFighter?.weight ?? null,
+                reach: m.awayTeam.mmaFighter?.reach ?? null,
+                stance: m.awayTeam.mmaFighter?.stance ?? null,
+              },
+            }
+          : null,
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
       liveStatusLabel:
@@ -1811,6 +1848,7 @@ function SoccerRowLayout({
         recentGoalSide={m.recentGoalSide ?? null}
         href={m.href}
         doubleHeader={m.doubleHeader}
+        mma={m.mma}
       />
     );
   };
@@ -1943,6 +1981,14 @@ function SoccerRowLayout({
   );
 }
 
+type MmaTale = {
+  nickname: string | null;
+  height: string | null;
+  weight: string | null;
+  reach: string | null;
+  stance: string | null;
+};
+
 type NormalizedMatch = {
   id: string | number;
   sport: string;
@@ -1976,6 +2022,8 @@ type NormalizedMatch = {
   penHome?: number | null;
   penAway?: number | null;
   doubleHeader: { index: number; total: number } | null;
+  /** UFC Tale of the Tape — 파이터 신체/별명 (mma 외 종목은 null) */
+  mma: { category: string | null; home: MmaTale; away: MmaTale } | null;
 };
 
 // 야구 라인업 cover 리그 — MLB 만 풍부한 boxscore 라인업 (MLB Stats API).
@@ -2062,6 +2110,7 @@ function renderCard(m: NormalizedMatch) {
       actions={actionsFor(m)}
       liveCommentary={m.liveCommentary}
       doubleHeader={m.doubleHeader}
+      mma={m.mma}
     />
   );
 }

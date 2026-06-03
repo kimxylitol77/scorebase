@@ -37,6 +37,7 @@ model Team {
   homeMatches Match[] @relation("HomeTeam")
   awayMatches Match[] @relation("AwayTeam")
   sourceIds   TeamSourceId[]
+  mmaFighter  MmaFighter?   // UFC 파이터 프로필 (league="UFC" 일 때만 1:1)
 
   @@unique([league, externalId])
   @@index([league, eloRating])
@@ -540,6 +541,32 @@ model TheSportsPlayer {
   createdAt DateTime @default(now())
 
   @@index([sport, teamId])
+}
+
+/// UFC(MMA) 파이터 프로필 — 파이터는 Team(league="UFC")으로 저장되고, 그 1:1 확장 테이블.
+/// api-sports MMA /fighters?search 로 수집 (체급·신장·체중·리치·스탠스·별명·소속짐).
+///   - 전적(W-L-D) 은 api-sports /fighters 응답에 없음 → 미수집 (후속 별도 소스).
+/// nameKo 는 build-ufc-fighter-names-haiku.ts 가 Claude haiku 로 음역 후 채움 (miss 시 null).
+model MmaFighter {
+  id          Int      @id @default(autoincrement())
+  teamId      Int      @unique          // Team(league="UFC").id 와 1:1
+  apiSportsId Int?                       // api-sports MMA fighter id
+  name        String                     // 영문 풀네임 (Team.name 미러)
+  nameKo      String?                    // haiku 음역 결과, dictionary miss 시 null
+  nickname    String?                    // 별명 (예: "The Eagle")
+  gender      String?                    // "M" | "F"
+  category    String?                    // 체급 (예: "Welterweight")
+  height      String?                    // 신장 (예: "5' 10")
+  weight      String?                    // 체중 (예: "170 lbs")
+  reach       String?                    // 리치 (예: "70.5")
+  stance      String?                    // 스탠스 (예: "Southpaw" | "Orthodox")
+  gym         String?                    // 소속 짐 (예: "Eagles MMA")
+  photo       String?                    // api-sports 파이터 사진 URL
+  fetchedAt   DateTime @default(now())   // 마지막 api-sports 수집 시각 (점진 백필 기준)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 /// 방문자(일반 사용자) 계정 — 이메일+비밀번호 로그인. admin(env ADMIN_*) 과 완전 분리.

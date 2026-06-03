@@ -69,6 +69,12 @@ export interface MatchCardProps {
   /** 축구 승부차기 점수 — 정규/연장 동점 후 PK. 있으면 (4) 1 : 1 (3) 괄호 표시. */
   penaltyHome?: number | null;
   penaltyAway?: number | null;
+  /** UFC Tale of the Tape — 파이터 신체/별명 (mma 카드 전용, 그 외 종목 무시) */
+  mma?: {
+    category: string | null;
+    home: { nickname: string | null; height: string | null; weight: string | null; reach: string | null; stance: string | null };
+    away: { nickname: string | null; height: string | null; weight: string | null; reach: string | null; stance: string | null };
+  } | null;
 }
 
 function Logo({ url, name, big }: { url?: string | null; name: string; big?: boolean }) {
@@ -106,6 +112,63 @@ function Logo({ url, name, big }: { url?: string | null; name: string; big?: boo
   );
 }
 
+// UFC 체급(영문) → 한국어 표기
+const WEIGHT_CLASS_KO: Record<string, string> = {
+  Strawweight: "스트로급",
+  Flyweight: "플라이급",
+  Bantamweight: "밴텀급",
+  Featherweight: "페더급",
+  Lightweight: "라이트급",
+  Welterweight: "웰터급",
+  Middleweight: "미들급",
+  "Light Heavyweight": "라이트헤비급",
+  Heavyweight: "헤비급",
+  "Women's Strawweight": "여자 스트로급",
+  "Women's Flyweight": "여자 플라이급",
+  "Women's Bantamweight": "여자 밴텀급",
+  "Women's Featherweight": "여자 페더급",
+  Catchweight: "캐치웨이트",
+};
+
+// UFC Tale of the Tape — 두 파이터 신체 비교 (체급 헤더 + 신장/체중/리치/스탠스).
+// 값이 하나라도 있는 행만 표시. 전부 비고 체급도 없으면 렌더 안 함.
+function MmaTaleOfTape({ mma }: { mma: NonNullable<MatchCardProps["mma"]> }) {
+  const rows = (
+    [
+      ["신장", mma.home.height, mma.away.height],
+      ["체중", mma.home.weight, mma.away.weight],
+      ["리치", mma.home.reach, mma.away.reach],
+      ["스탠스", mma.home.stance, mma.away.stance],
+    ] as Array<[string, string | null, string | null]>
+  ).filter(([, h, a]) => h || a);
+  const cat = mma.category ? (WEIGHT_CLASS_KO[mma.category] ?? mma.category) : null;
+  if (rows.length === 0 && !cat) return null;
+  return (
+    <div className="px-3.5 sm:px-4 pb-3 pt-1 border-t border-[var(--score-border)]">
+      {cat && (
+        <div className="text-center text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
+          {cat}
+        </div>
+      )}
+      <div className="space-y-1">
+        {rows.map(([label, h, a]) => (
+          <div key={label} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-[11px]">
+            <span className="text-right font-semibold tabular-nums text-neutral-700 dark:text-neutral-200">
+              {h ?? "—"}
+            </span>
+            <span className="text-[9px] uppercase tracking-wider text-neutral-400 px-1.5 whitespace-nowrap">
+              {label}
+            </span>
+            <span className="text-left font-semibold tabular-nums text-neutral-700 dark:text-neutral-200">
+              {a ?? "—"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function MatchCard(props: MatchCardProps) {
   const {
     matchId,
@@ -132,6 +195,7 @@ export default function MatchCard(props: MatchCardProps) {
     doubleHeader,
     penaltyHome,
     penaltyAway,
+    mma,
   } = props;
 
   const isLive = status === "live";
@@ -280,6 +344,11 @@ export default function MatchCard(props: MatchCardProps) {
               {homeStarter}
             </div>
           )}
+          {sport === "mma" && mma?.home.nickname && (
+            <div className="truncate text-[10px] italic text-neutral-500 w-full">
+              &lsquo;{mma.home.nickname}&rsquo;
+            </div>
+          )}
         </div>
         {/* 점수 — 라이브 최근 골 시 앰버 ring + pulse. 승부차기는 점수 아래 (4) (3) 좌우 정렬. */}
         <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] px-2 py-1 rounded-md ${scoreColor} ${
@@ -318,8 +387,16 @@ export default function MatchCard(props: MatchCardProps) {
               {awayStarter}
             </div>
           )}
+          {sport === "mma" && mma?.away.nickname && (
+            <div className="truncate text-[10px] italic text-neutral-500 w-full">
+              &lsquo;{mma.away.nickname}&rsquo;
+            </div>
+          )}
         </div>
       </div>
+
+      {/* UFC Tale of the Tape — 체급 + 신장/체중/리치/스탠스 비교 (mma 카드 전용) */}
+      {sport === "mma" && mma && <MmaTaleOfTape mma={mma} />}
 
       {/* 축구 라이브 컨텍스트 */}
       {isLive && soccerCtx && (

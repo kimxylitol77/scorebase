@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runCollectMma } from "@/jobs/collect-mma";
+import { runEnrichMma } from "@/jobs/enrich-mma-fighters";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,9 @@ export async function GET(req: Request) {
   }
   try {
     await runCollectMma();
-    return NextResponse.json({ ok: true });
+    // 파이터 프로필(체급·신체·별명·소속짐) 점진 백필 — api-sports rate limit 시 다음 실행에 이어서.
+    const enrich = await runEnrichMma();
+    return NextResponse.json({ ok: true, enriched: enrich.enriched, rateLimited: enrich.rateLimited });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
