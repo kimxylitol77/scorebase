@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toUfcFighterKo } from "@/lib/sports/ufc-fighter-names";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,51 @@ function bestOdds(raw: string | null, homeName: string, awayName: string) {
   }
 }
 
+// ── UFC AI 분석 (머니라인 배당 역산 + 전적·피니시·리치·폼) ──
+function recWins(r: string | null): number | null {
+  const m = r?.match(/^(\d+)-(\d+)/);
+  return m ? Number(m[1]) : null;
+}
+function finishCount(ko: string | null, sub: string | null): number {
+  return Number(ko?.match(/^(\d+)/)?.[1] ?? 0) + Number(sub?.match(/^(\d+)/)?.[1] ?? 0);
+}
+function reachNum(r: string | null): number | null {
+  const m = r?.match(/[\d.]+/);
+  return m ? Number(m[0]) : null;
+}
+
+type Analysis = { homeProb: number; awayProb: number; favoredKo: string; favProb: number; reasons: string[] };
+function mmaAnalysis(
+  home: ReturnType<typeof view>,
+  away: ReturnType<typeof view>,
+  odds: { home: number; away: number } | null,
+): Analysis | null {
+  if (!odds) return null;
+  const ih = 1 / odds.home;
+  const ia = 1 / odds.away;
+  const sum = ih + ia;
+  const homeProb = Math.round((ih / sum) * 100); // 마진 제거 정규화
+  const awayProb = 100 - homeProb;
+  const homeFav = homeProb >= awayProb;
+  const fav = homeFav ? home : away;
+  const dog = homeFav ? away : home;
+  const reasons: string[] = [];
+  const fw = recWins(fav.record);
+  const dw = recWins(dog.record);
+  if (fw != null && dw != null && fw > dw) reasons.push(`${fav.ko} 전적 우위 (${fav.record} vs ${dog.record})`);
+  const ff = finishCount(fav.koRecord, fav.subRecord);
+  const df = finishCount(dog.koRecord, dog.subRecord);
+  if (ff > df && ff > 0) reasons.push(`${fav.ko} 피니시 능력 우위 (KO+서브 ${ff}회)`);
+  else if (df > ff && df > 0) reasons.push(`${dog.ko} 도 피니시 위협 (KO+서브 ${df}회)`);
+  const fr = reachNum(fav.reach);
+  const dr = reachNum(dog.reach);
+  if (fr != null && dr != null && Math.abs(fr - dr) >= 2)
+    reasons.push(`${fr > dr ? fav.ko : dog.ko} 리치 우위 (${Math.max(fr, dr)}\" vs ${Math.min(fr, dr)}\")`);
+  const fform = fav.history.slice(0, 3).filter((h) => h.r === "W").length;
+  if (fform === 3) reasons.push(`${fav.ko} 최근 3연승 상승세`);
+  return { homeProb, awayProb, favoredKo: fav.ko, favProb: Math.max(homeProb, awayProb), reasons: reasons.slice(0, 4) };
+}
+
 async function getMatch(id: number) {
   return prisma.match.findUnique({
     where: { id },
@@ -177,7 +223,7 @@ function FightHistoryCol({ f }: { f: ReturnType<typeof view> }) {
               {h.r ?? "-"}
             </span>
             <div className="min-w-0">
-              <div className="truncate font-semibold text-neutral-700 dark:text-neutral-200">{h.o}</div>
+              <div className="truncate font-semibold text-neutral-700 dark:text-neutral-200">{toUfcFighterKo(h.o)}</div>
               <div className="text-neutral-400 truncate">
                 {[h.m, h.rd ? `R${h.rd}` : null, h.d].filter(Boolean).join(" · ")}
               </div>
@@ -198,6 +244,7 @@ export default async function UfcMatchPage({ params }: { params: Promise<{ id: s
   const home = view(m.homeTeam);
   const away = view(m.awayTeam);
   const odds = bestOdds(m.raw, m.homeTeam.name, m.awayTeam.name);
+  const analysis = mmaAnalysis(home, away, odds);
   const isFinished = m.status === "FINISHED";
   const category = home.category ?? away.category;
   const catKo = category ? (WEIGHT_CLASS_KO[category] ?? category) : null;
@@ -244,6 +291,32 @@ export default async function UfcMatchPage({ params }: { params: Promise<{ id: s
           <FighterCol f={away} />
         </div>
       </div>
+
+      {/* AI 분석 — 배당 역산 승률 + 전적·통계 근거 */}
+      {analysis && (
+        <div className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-5">
+          <h2 className="text-center text-xs font-bold uppercase tracking-wider text-neutral-400 mb-3">AI 분석</h2>
+          <div className="flex items-center gap-2 text-xs font-bold mb-2">
+            <span className="w-9 text-right tabular-nums text-blue-600 dark:text-blue-400">{analysis.homeProb}%</span>
+            <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800 flex">
+              <div style={{ width: `${analysis.homeProb}%` }} className="bg-blue-500" />
+              <div style={{ width: `${analysis.awayProb}%` }} className="bg-rose-500" />
+            </div>
+            <span className="w-9 tabular-nums text-rose-600 dark:text-rose-400">{analysis.awayProb}%</span>
+          </div>
+          <div className="text-center text-sm font-bold mb-2">
+            예상 우세: {analysis.favoredKo} <span className="text-neutral-400">({analysis.favProb}%)</span>
+          </div>
+          {analysis.reasons.length > 0 && (
+            <ul className="text-[12px] text-neutral-500 dark:text-neutral-400 space-y-0.5 list-disc list-inside">
+              {analysis.reasons.map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
+            </ul>
+          )}
+          <p className="text-[10px] text-neutral-400 mt-2.5 text-center">머니라인 배당 역산 + 전적·통계 기반 (참고용)</p>
+        </div>
+      )}
 
       {/* Tale of the Tape */}
       {tale.length > 0 && (
