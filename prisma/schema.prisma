@@ -561,7 +561,12 @@ model MmaFighter {
   reach       String?                    // 리치 (예: "70.5")
   stance      String?                    // 스탠스 (예: "Southpaw" | "Orthodox")
   gym         String?                    // 소속 짐 (예: "Eagles MMA")
-  photo       String?                    // api-sports 파이터 사진 URL
+  photo       String?                    // api-sports 파이터 사진 URL (일부 깨짐 → headshot 우선)
+  // ESPN MMA 보강 (scoreboard competitor) — 이벤트 1콜로 전적/국기/헤드샷 수집
+  record      String?                    // 전적 "15-4-0" (W-L-D) — api-sports 미제공분
+  espnId      String?                    // ESPN athlete id
+  headshot    String?                    // ESPN 헤드샷 URL (a.espncdn.com/i/headshots/mma/players/full/{espnId}.png)
+  flagUrl     String?                    // ESPN 국기 이미지 URL
   fetchedAt   DateTime @default(now())   // 마지막 api-sports 수집 시각 (점진 백필 기준)
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())

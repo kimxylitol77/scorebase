@@ -572,7 +572,7 @@ export default async function ScoresPage({ searchParams }: Props) {
             id: true, name: true, externalId: true, shortName: true, logoUrl: true,
             // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
             mmaFighter: {
-              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true },
+              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true, headshot: true, photo: true },
             },
           },
         },
@@ -581,7 +581,7 @@ export default async function ScoresPage({ searchParams }: Props) {
             id: true, name: true, externalId: true, shortName: true, logoUrl: true,
             // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
             mmaFighter: {
-              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true },
+              select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true, headshot: true, photo: true },
             },
           },
         },
@@ -1071,6 +1071,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
     else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
     else if (m.league === "LOL") href = `/live/lol/${m.externalId}`;
+    else if (m.league === "UFC") href = `/live/ufc/${m.id}`; // UFC 매치 상세 (파이터 Tale of the Tape + 전적/배당)
     else if (
       BASEBALL_LEAGUES.has(m.league) ||    // LMB/CPBL/KBO_FUTURES/NPB_MINOR 등 마이너 야구 (MLB/KBO/NPB 는 위 전용 라우트)
       BASKETBALL_LEAGUES.has(m.league) || // NBA/WNBA/KBL/WKBL
@@ -1105,7 +1106,8 @@ export default async function ScoresPage({ searchParams }: Props) {
       home: {
         name: homeNameKo,
         abbr: m.homeTeam.shortName,
-        logo: m.homeTeam.logoUrl,
+        // UFC: ESPN 헤드샷 우선(api-sports photo 일부 깨짐) → photo → 로고. 비UFC 는 mmaFighter null → logoUrl.
+        logo: m.homeTeam.mmaFighter?.headshot ?? m.homeTeam.mmaFighter?.photo ?? m.homeTeam.logoUrl,
         score: homeScore,
         teamId: m.homeTeamId,
         position: isNationalTeam
@@ -1116,7 +1118,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       away: {
         name: awayNameKo,
         abbr: m.awayTeam.shortName,
-        logo: m.awayTeam.logoUrl,
+        logo: m.awayTeam.mmaFighter?.headshot ?? m.awayTeam.mmaFighter?.photo ?? m.awayTeam.logoUrl,
         score: awayScore,
         teamId: m.awayTeamId,
         position: isNationalTeam
