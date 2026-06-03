@@ -33,6 +33,7 @@ const FIGHTER_SELECT = {
     select: {
       nameKo: true, nickname: true, category: true, height: true, weight: true,
       reach: true, stance: true, gym: true, record: true, headshot: true, flagUrl: true, photo: true,
+      age: true, koRecord: true, subRecord: true,
     },
   },
 } as const;
@@ -44,6 +45,7 @@ type FighterTeam = {
     nameKo: string | null; nickname: string | null; category: string | null;
     height: string | null; weight: string | null; reach: string | null; stance: string | null;
     gym: string | null; record: string | null; headshot: string | null; flagUrl: string | null; photo: string | null;
+    age: number | null; koRecord: string | null; subRecord: string | null;
   } | null;
 };
 
@@ -61,6 +63,9 @@ function view(team: FighterTeam) {
     reach: f?.reach ?? null,
     stance: f?.stance ?? null,
     gym: f?.gym ?? null,
+    age: f?.age ?? null,
+    koRecord: f?.koRecord ?? null,
+    subRecord: f?.subRecord ?? null,
   };
 }
 
@@ -159,6 +164,9 @@ export default async function UfcMatchPage({ params }: { params: Promise<{ id: s
   const tale = (
     [
       ["전적", home.record, away.record],
+      ["(T)KO 승-패", home.koRecord, away.koRecord],
+      ["서브미션 승-패", home.subRecord, away.subRecord],
+      ["나이", home.age != null ? `${home.age}세` : null, away.age != null ? `${away.age}세` : null],
       ["신장", home.height, away.height],
       ["체중", home.weight, away.weight],
       ["리치", home.reach, away.reach],

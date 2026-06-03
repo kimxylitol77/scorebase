@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { runCollectMma } from "@/jobs/collect-mma";
 import { runEnrichMma } from "@/jobs/enrich-mma-fighters";
 import { runEnrichMmaEspn } from "@/jobs/enrich-mma-espn";
+import { runEnrichMmaAthlete } from "@/jobs/enrich-mma-athlete";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,9 @@ export async function GET(req: Request) {
     const enrich = await runEnrichMma();
     // ESPN scoreboard 1콜로 임박 이벤트 파이트카드 전적/국기/헤드샷 보강
     const espn = await runEnrichMmaEspn();
-    return NextResponse.json({ ok: true, enriched: enrich.enriched, rateLimited: enrich.rateLimited, espnMatched: espn.matched });
+    // ESPN athlete API 로 신체·나이·국적·전적통계(KO/SUB) 풀보강 (espnId 있는 파이터)
+    const athlete = await runEnrichMmaAthlete();
+    return NextResponse.json({ ok: true, enriched: enrich.enriched, espnMatched: espn.matched, athleteEnriched: athlete.enriched });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
