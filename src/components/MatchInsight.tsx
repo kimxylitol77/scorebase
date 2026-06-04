@@ -59,6 +59,7 @@ import SeasonFormHeatmap from "./charts/SeasonFormHeatmap";
 import GoalScatter from "./charts/GoalScatter";
 import TeamMatchup from "./TeamMatchup";
 import MatchInsightTabs, { type InsightTab } from "./MatchInsightTabs";
+import MatchStatsCard from "./MatchStatsCard";
 
 interface Props {
   match: {
@@ -212,6 +213,12 @@ export default async function MatchInsight({
       // silent — DC 실패 시 표시 생략
     }
   }
+
+  // 실제 경기 기록 (코너·슈팅·점유율·카드) — 종료 축구 경기만. 예측 아닌 사실 통계.
+  const matchStats =
+    leagueHasDraw(match.league) && match.status === "FINISHED"
+      ? await prisma.matchStats.findUnique({ where: { matchId: match.id } })
+      : null;
 
   const eloTable = calcEloTable(beforeMatches);
   // 단일 소스 — 글 스냅샷 Elo 가 있으면 그 값 사용 (본문 글과 100% 일치). 없으면 재계산.
@@ -900,6 +907,18 @@ export default async function MatchInsight({
           label: "팀 통계",
           enabled: !!teamStatsContent,
           content: teamStatsContent ?? null,
+        },
+        {
+          key: "match-stats",
+          label: "경기 기록",
+          enabled: !!matchStats,
+          content: matchStats ? (
+            <MatchStatsCard
+              stats={matchStats}
+              homeName={toKoreanTeamName(match.homeTeam.name)}
+              awayName={toKoreanTeamName(match.awayTeam.name)}
+            />
+          ) : null,
         },
         {
           key: "h2h-rich",
