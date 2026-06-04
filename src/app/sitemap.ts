@@ -114,7 +114,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       ],
     },
-    select: { league: true, externalId: true, status: true, startTime: true, updatedAt: true },
+    select: { id: true, league: true, externalId: true, status: true, startTime: true, updatedAt: true },
     orderBy: { startTime: "desc" },
     take: 2500,
   });
@@ -124,8 +124,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // MLB/KBO/NPB/LOL = 전용 라우트, 나머지(NBA/NHL/축구) = [league] 동적 라우트
     const slug = m.league === "LOL" ? "lol" : lg;
     const segment = ["mlb", "kbo", "npb", "lol"].includes(slug) ? slug : lg;
+    // UFC 라우트는 Match.id(숫자) 기반 — externalId(hash)는 404 (2026-06-04 route-guardian).
+    // /scores 내부링크와 동일하게 Match.id 로 sitemap 등록 (야구 ts- 제외와 다른 처리: UFC 는 전부 Match.id 라우팅).
+    const routeId = m.league === "UFC" ? m.id : m.externalId;
     return {
-      url: `${base}/live/${segment}/${m.externalId}`,
+      url: `${base}/live/${segment}/${routeId}`,
       lastModified: m.updatedAt ?? m.startTime,
       changeFrequency: m.status === "LIVE" ? "hourly" : m.status === "SCHEDULED" ? "daily" : "weekly",
       priority: m.status === "LIVE" ? 0.85 : m.status === "SCHEDULED" ? 0.75 : 0.6,
