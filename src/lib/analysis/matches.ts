@@ -62,6 +62,27 @@ export interface UpcomingMatch {
   ouLine: number | null; // 오버언더 총득점
 }
 
+// 배당 없는 경기(국제친선·마이너 리그 등)용 종목별 기본 기준선 — 게시판에서 핸디/OU 픽 허용.
+// The Odds API 가 친선 배당을 안 줘서 hcLine/ouLine 이 null → 표준 라인으로 fallback.
+const DEFAULT_HC_LINE: Record<SportCode, number> = {
+  soccer: -1.5,
+  baseball: -1.5,
+  basketball: -5.5,
+  hockey: -1.5,
+  esports: -1.5,
+  mma: 0,
+  all: 0,
+};
+const DEFAULT_OU_LINE: Record<SportCode, number> = {
+  soccer: 2.5,
+  baseball: 8.5,
+  basketball: 220.5,
+  hockey: 5.5,
+  esports: 2.5,
+  mma: 0,
+  all: 0,
+};
+
 /**
  * 종목의 예정 경기 목록 (시작 임박 순). 날짜·리그 그룹핑은 클라이언트에서.
  * @param sport soccer | baseball | basketball | hockey
@@ -96,7 +117,7 @@ export async function getUpcomingMatchesForSport(
     startTime: m.startTime,
     home: toKoreanTeamName(m.homeTeam.name, m.league),
     away: toKoreanTeamName(m.awayTeam.name, m.league),
-    hcLine: m.oddsHcLine ?? null,
-    ouLine: m.oddsTotalLine ?? null,
+    hcLine: m.oddsHcLine ?? DEFAULT_HC_LINE[sport],
+    ouLine: m.oddsTotalLine ?? DEFAULT_OU_LINE[sport],
   }));
 }
