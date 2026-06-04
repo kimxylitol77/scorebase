@@ -11,7 +11,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import MlbLiveDetail from "@/components/MlbLiveDetail";
-import BaseballPreMatchInsight, { type StarterInfo } from "@/components/BaseballPreMatchInsight";
+import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -300,15 +300,6 @@ export default async function MlbLivePage({ params }: Props) {
             : null
         }
       />
-      {(homeStarterInfo || awayStarterInfo) && (
-        <BaseballPreMatchInsight
-          league="MLB"
-          homeStarter={homeStarterInfo}
-          awayStarter={awayStarterInfo}
-          homeTeamName={homeKo}
-          awayTeamName={awayKo}
-        />
-      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}
