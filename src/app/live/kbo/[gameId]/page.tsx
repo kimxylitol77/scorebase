@@ -253,6 +253,7 @@ export default async function KboLivePage({ params }: Props) {
         homeStanding={extras.homeStanding}
         awayStanding={extras.awayStanding}
         totalTeams={extras.totalTeams}
+        swapSides
       />
 
       {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}

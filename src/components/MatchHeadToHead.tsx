@@ -36,6 +36,8 @@ interface Props {
   /** 평균득점/실점 단위 (축구="골", 야구·NBA·NHL·LOL="점"·"킬" 등) */
   scoreUnit?: string;
   scoreLabel?: { for: string; against: string };
+  /** 좌우 반전 — 야구는 원정 좌측 통일(true). 기본 false = 홈 좌측(축구 관례) */
+  swapSides?: boolean;
 }
 
 function pct(n: number, d: number, digits = 3): string {
@@ -50,6 +52,16 @@ function avg(n: number, d: number, digits = 2): string {
 function fmtRank(pos: number, total: number): string {
   if (!pos) return "—";
   return `${pos}위 / ${total}팀`;
+}
+
+// home 관점 H2H 를 반전(원정 관점) — swapSides(원정 좌측) 시 좌측에 원정 데이터를 그대로 넣기 위함.
+function invertH2H(h: H2HResult): H2HResult {
+  return {
+    results: h.results.map((r) => (r === "W" ? "L" : r === "L" ? "W" : r) as FormResult),
+    wins: h.losses,
+    losses: h.wins,
+    draws: h.draws,
+  };
 }
 
 function H2HDots({
@@ -193,18 +205,22 @@ function CenterLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function MatchHeadToHead({
-  homeShortName,
-  awayShortName,
-  homeTeamId,
-  awayTeamId,
-  h2hHome,
-  homeStanding,
-  awayStanding,
-  totalTeams,
-  hasDraw = false,
-  scoreLabel = { for: "평균득점", against: "평균실점" },
-}: Props) {
+export default function MatchHeadToHead(props: Props) {
+  const {
+    totalTeams,
+    hasDraw = false,
+    scoreLabel = { for: "평균득점", against: "평균실점" },
+    swapSides = false,
+  } = props;
+  // 야구: 원정 좌측 통일 — swapSides 면 home/away 를 통째 교체 + H2H 반전.
+  // (본문 렌더는 "home 좌측" 그대로 두고, home 슬롯에 원정 데이터를 넣는 방식)
+  const homeShortName = swapSides ? props.awayShortName : props.homeShortName;
+  const awayShortName = swapSides ? props.homeShortName : props.awayShortName;
+  const homeTeamId = swapSides ? props.awayTeamId : props.homeTeamId;
+  const awayTeamId = swapSides ? props.homeTeamId : props.awayTeamId;
+  const homeStanding = swapSides ? props.awayStanding : props.homeStanding;
+  const awayStanding = swapSides ? props.homeStanding : props.awayStanding;
+  const h2hHome = swapSides ? invertH2H(props.h2hHome) : props.h2hHome;
   const homeWinPct = homeStanding
     ? pct(homeStanding.wins, homeStanding.played)
     : "—";
