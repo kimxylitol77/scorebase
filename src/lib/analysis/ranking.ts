@@ -14,12 +14,13 @@ export interface RankRow {
   hit: number;
   rate: number;
   streak: number;
+  avatarUrl: string | null;
 }
 
 // Wilson score 신뢰구간 하한(95%) — 표본이 적으면 적중률을 보정해 내린다.
 // 예: 1/1=0.21, 3/3=0.44, 7/10=0.40, 35/50=0.56, 70/100=0.60.
 // 단순 적중률(hit/total) 정렬 시 "1경기 100% 가 매일 1등" 되는 문제를 해결.
-function wilsonLower(hit: number, total: number): number {
+export function wilsonLower(hit: number, total: number): number {
   if (total <= 0) return 0;
   const z = 1.96;
   const p = hit / total;
@@ -43,6 +44,7 @@ export async function getOverallRanking(limit = 50): Promise<RankRow[]> {
       nickname: true,
       level: true,
       badge: true,
+      avatarUrl: true,
       predTotal: true,
       predHit: true,
       predStreak: true,
@@ -59,6 +61,7 @@ export async function getOverallRanking(limit = 50): Promise<RankRow[]> {
       hit: u.predHit,
       streak: u.predStreak,
       rate: hitRate(u.predHit, u.predTotal),
+      avatarUrl: u.avatarUrl,
     }))
     .sort(byRate)
     .slice(0, limit);
@@ -92,7 +95,7 @@ export async function getMonthlyRanking(limit = 50): Promise<RankRow[]> {
   const hitMap = new Map(hits.map((h) => [h.authorId, h._count._all]));
   const users = await prisma.user.findMany({
     where: { id: { in: totals.map((t) => t.authorId) } },
-    select: { id: true, nickname: true, level: true, badge: true, predStreak: true },
+    select: { id: true, nickname: true, level: true, badge: true, predStreak: true, avatarUrl: true },
   });
   const userMap = new Map(users.map((u) => [u.id, u]));
 
@@ -110,6 +113,7 @@ export async function getMonthlyRanking(limit = 50): Promise<RankRow[]> {
         hit,
         streak: u?.predStreak ?? 0,
         rate: hitRate(hit, total),
+        avatarUrl: u?.avatarUrl ?? null,
       };
     })
     .sort(byRate)

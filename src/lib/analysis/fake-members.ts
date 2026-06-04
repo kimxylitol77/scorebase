@@ -13,7 +13,7 @@ import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import { sportForLeague, parsePickJson, botTeamName } from "@/lib/analysis/manager-bot";
 
 // 가짜 회원 닉네임 풀 (스포츠 커뮤니티 팬 톤)
-const FAKE_NICKNAMES = [
+export const FAKE_NICKNAMES = [
   "오늘은간다",
   "느낌충만",
   "직관러",

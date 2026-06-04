@@ -128,6 +128,12 @@ export default function MobileMenu() {
             🏆 스포츠 분석 · 적중률 랭킹
           </Link>
           <Link
+            href="/experts"
+            className="flex items-center justify-center gap-2 w-full mb-3 px-4 py-3 rounded-xl border border-sky-300 dark:border-sky-500/40 bg-sky-50 dark:bg-sky-500/10 font-semibold text-sky-800 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/15 transition"
+          >
+            🏆 예측 전문가 순위
+          </Link>
+          <Link
             href="/previews"
             className="block w-full mb-3 px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 font-semibold text-center text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
           >
