@@ -19,6 +19,17 @@ function hourKey(d: Date) {
   return String(kst.getUTCHours()).padStart(2, "0");
 }
 
+// Host 헤더 → 사람이 읽을 도메인 라벨. 운영 2개 도메인 + 개발/프리뷰 그룹핑.
+function friendlyHost(host: string | null): string {
+  if (!host) return "도메인 미상 (이전 기록)";
+  const h = host.toLowerCase().split(":")[0].replace(/^www\./, "");
+  if (h.includes("xn--hy1bm7m1yevrd8pq")) return "스코어보드.kr";
+  if (h.includes("scorebase.kr")) return "scorebase.kr";
+  if (h === "localhost" || h.startsWith("127.")) return "localhost (개발)";
+  if (h.endsWith(".vercel.app")) return "Vercel 프리뷰";
+  return h || "(빈 host)";
+}
+
 type Range = "7d" | "30d" | "all";
 
 const RANGE_LABEL: Record<Range, string> = {
@@ -69,7 +80,7 @@ export default async function StatsPage({ searchParams }: Props) {
     }),
     prisma.pageView.findMany({
       where: rangeWhere,
-      select: { ts: true, path: true, userAgent: true, sessionId: true },
+      select: { ts: true, path: true, userAgent: true, sessionId: true, host: true },
       take: rangeTake,
       orderBy: { ts: "desc" },
     }),
@@ -194,6 +205,20 @@ export default async function StatsPage({ searchParams }: Props) {
   const topHumanPaths = Array.from(humanPathCount.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
+
+  // 도메인별 (사람만, 선택 기간) — scorebase.kr vs 스코어보드.kr 분리.
+  const hostAgg = new Map<string, { pv: number; ids: Set<string> }>();
+  for (const r of humansRange) {
+    const label = friendlyHost(r.host);
+    const e = hostAgg.get(label) ?? { pv: 0, ids: new Set<string>() };
+    e.pv++;
+    if (r.sessionId) e.ids.add(r.sessionId);
+    hostAgg.set(label, e);
+  }
+  const hostData = Array.from(hostAgg.entries())
+    .map(([host, e]) => ({ host, pv: e.pv, unique: e.ids.size }))
+    .sort((a, b) => b.pv - a.pv);
+  const hostTotalPv = hostData.reduce((s, h) => s + h.pv, 0);
 
   // === AI 크롤러 전용 분석 (ChatGPT/Claude/Perplexity 등) ===
   // bots30 / botsRange 안에서 category === "ai" 만 추출 → KPI + top paths + 일별.
@@ -398,6 +423,50 @@ export default async function StatsPage({ searchParams }: Props) {
             </ul>
           )}
         </SectionCard>
+      </section>
+
+      {/* === 도메인별 === */}
+      <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">🌐</span>
+          <h2 className="text-lg font-bold tracking-tight">도메인별</h2>
+          <span className="text-xs text-neutral-500">(사람 기준 · {rangeLabel})</span>
+        </div>
+
+        <SectionCard title="도메인별 방문자·PV" subtitle={rangeLabel}>
+          {hostData.length === 0 ? (
+            <EmptyHint message="아직 도메인이 기록된 방문이 없습니다. host 기록은 추가(2026-06-04) 이후 PV 부터 — 이전 PV 는 '도메인 미상'." />
+          ) : (
+            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {hostData.map((h, i) => {
+                const max = hostData[0].pv;
+                const pct = max > 0 ? (h.pv / max) * 100 : 0;
+                const share = hostTotalPv > 0 ? Math.round((h.pv / hostTotalPv) * 100) : 0;
+                return (
+                  <li key={h.host} className="py-2.5 flex items-center gap-3 text-sm">
+                    <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
+                      {i + 1}
+                    </span>
+                    <span className="font-medium truncate max-w-[38%]">{h.host}</span>
+                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                      <div className="h-full bg-violet-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="tabular-nums text-neutral-500 font-semibold w-32 text-right">
+                      방문자 {h.unique.toLocaleString()} · PV {h.pv.toLocaleString()}
+                      <span className="text-neutral-400"> ({share}%)</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </SectionCard>
+
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          ⓘ scorebase.kr 과 스코어보드.kr 은 같은 앱을 공유합니다. 스코어보드.kr 루트(/)는
+          /scores 화면으로 rewrite 되며 URL 은 유지됩니다. host 기록은 이 기능 추가 시점부터라
+          이전 PV 는 “도메인 미상”으로 합산됩니다. (봇 제외, 사람 기준)
+        </p>
       </section>
 
       {/* === AI 크롤러 전용 (ChatGPT/Claude/Perplexity 등) === */}

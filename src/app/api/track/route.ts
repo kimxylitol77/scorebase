@@ -26,6 +26,9 @@ export async function POST(req: Request) {
         path: path.slice(0, MAX_PATH),
         userAgent: h.get("user-agent")?.slice(0, MAX_HEADER) ?? null,
         referrer: h.get("referer")?.slice(0, MAX_HEADER) ?? null,
+        // 접속 도메인 — scorebase.kr vs 스코어보드.kr 분리용. 트랙 요청이 해당
+        // 도메인으로 오므로 Host 헤더에 그대로 잡힘(스코어보드.kr 은 punycode).
+        host: h.get("host")?.slice(0, MAX_HEADER) ?? null,
         sessionId,
       },
     });

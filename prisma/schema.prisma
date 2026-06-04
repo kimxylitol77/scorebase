@@ -199,6 +199,9 @@ model PageView {
   /// localStorage 발급 random ID — unique 방문자 (사람) 카운트 용. 2026-05-23 추가.
   /// 기존 row 는 null. 새 PV 부터 채워짐.
   sessionId String?
+  /// 접속 도메인(Host 헤더) — scorebase.kr vs 스코어보드.kr 분리용. 2026-06-04 추가.
+  /// 기존 row 는 null(도메인 미상). 새 PV 부터 채워짐.
+  host      String?
 
   @@index([ts])
   @@index([path])
