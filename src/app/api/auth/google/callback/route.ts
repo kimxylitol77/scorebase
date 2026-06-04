@@ -66,6 +66,7 @@ export async function GET(req: Request) {
 
   // 3) User 찾기/생성
   let userId: string;
+  let isNew = false;
   const byGoogle = await prisma.user.findUnique({ where: { googleId }, select: { id: true } });
   if (byGoogle) {
     userId = byGoogle.id;
@@ -83,6 +84,7 @@ export async function GET(req: Request) {
         select: { id: true },
       });
       userId = created.id;
+      isNew = true;
     }
   }
 
@@ -96,6 +98,8 @@ export async function GET(req: Request) {
     maxAge,
   });
 
+  // 신규 구글 가입은 닉네임 설정을 유도 → /account?welcome=1 (기존 유저·계정연결은 원래 경로)
   const safeFrom = from && from.startsWith("/") && !from.startsWith("//") ? from : "/";
-  return NextResponse.redirect(new URL(safeFrom, origin));
+  const dest = isNew ? "/account?welcome=1" : safeFrom;
+  return NextResponse.redirect(new URL(dest, origin));
 }

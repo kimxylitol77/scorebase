@@ -9,6 +9,7 @@ import { logoutUserAction } from "@/app/(auth)/actions";
 import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
 import { avatarById } from "@/lib/avatars";
 import AvatarPicker from "./AvatarPicker";
+import NicknameEditor from "./NicknameEditor";
 import FavoriteSummary from "./FavoriteSummary";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,12 @@ function fmtKst(d: Date): string {
   return `${k.getUTCFullYear()}.${p(k.getUTCMonth() + 1)}.${p(k.getUTCDate())}`;
 }
 
-export default async function AccountPage() {
+interface Props {
+  searchParams: Promise<{ welcome?: string }>;
+}
+
+export default async function AccountPage({ searchParams }: Props) {
+  const { welcome } = await searchParams;
   const c = await cookies();
   const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
   if (!session) redirect("/login?from=/account");
@@ -60,6 +66,11 @@ export default async function AccountPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      {welcome && (
+        <div className="mb-5 rounded-2xl border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
+          👋 가입을 환영합니다! 아래 프로필에서 <strong>닉네임</strong>을 원하는 대로 바꿔보세요.
+        </div>
+      )}
       <h1 className="text-2xl font-bold tracking-tight mb-8 px-1">내 정보</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5">
@@ -72,6 +83,9 @@ export default async function AccountPage() {
                 {avatar.emoji}
               </div>
               <div className="mt-3 text-lg font-bold">{user.nickname}</div>
+              <div className="mt-1.5">
+                <NicknameEditor current={user.nickname} />
+              </div>
               <div className="mt-0.5 text-sm text-neutral-500">
                 {grade.emoji} Lv.{grade.level} · {grade.name}
               </div>
