@@ -1,5 +1,5 @@
-// 가짜 일반 회원 픽 봇 — 매니저(전문가·공식 등급)와 달리, 평범한 회원 여러 명이
-// 짧고 캐주얼한 픽을 하루 1~2개 랜덤 발행. 자동채점되어 랭킹에 다양한 회원이 채워짐.
+// 가짜 일반 회원 픽 봇 — 평범한 회원 40명이 짧은 픽을 분단위 cron 에서 낮은 확률로 발행.
+// 한 번에 몰아쓰지 않고 하루 5~10글이 시간에 분산. 야구 시즌 가중(야구 7 : 축구 3).
 // 일반 등급(badge 없음) → 적중 쌓이면 등급 상승.
 
 import "server-only";
@@ -12,23 +12,18 @@ import { leagueLabel } from "@/lib/analysis/matches";
 import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import { sportForLeague, parsePickJson, botTeamName } from "@/lib/analysis/manager-bot";
 
-// 가짜 회원 닉네임 풀 (스포츠 커뮤니티 팬 톤)
+// 가짜 회원 닉네임 풀 — 기존 15명(인덱스 0~14, 그대로 유지) + 신규 25명(평범·한/영 혼합, 배팅 용어 배제).
 export const FAKE_NICKNAMES = [
-  "오늘은간다",
-  "느낌충만",
-  "직관러",
-  "역배장인",
-  "안전제일",
-  "고배당헌터",
-  "묻고더블로",
-  "스포츠불패",
-  "찍신강림",
-  "꾸준왕",
-  "한방인생",
-  "관전모드",
-  "야구는역시",
-  "축덕광",
-  "초보픽쟁이",
+  // 기존 15 (건드리지 않음 — fake0~14@ 계정 닉네임 보존)
+  "오늘은간다", "느낌충만", "직관러", "역배장인", "안전제일",
+  "고배당헌터", "묻고더블로", "스포츠불패", "찍신강림", "꾸준왕",
+  "한방인생", "관전모드", "야구는역시", "축덕광", "초보픽쟁이",
+  // 신규 25 (평범한 스포츠팬 톤)
+  "슬로우커브", "HomeRun_K", "9회말", "외야석직관", "불펜대기",
+  "끝내기", "ParkJS", "mike_b", "동네야구단", "풀카운트",
+  "치맥과야구", "야구는진리", "베이스볼킴", "7번타자", "leadoff",
+  "새벽직관", "코너킥러", "midfielder", "손케이팬", "축구보는밤",
+  "GoalKeeper", "잔디사랑", "striker9", "soccer_kim", "응원단장",
 ];
 
 type Sport = "soccer" | "baseball" | "basketball" | "hockey";
@@ -59,7 +54,7 @@ async function ensureFakeMember(i: number): Promise<string> {
     where: { email },
     select: { id: true },
   });
-  if (existing) return existing.id;
+  if (existing) return existing.id; // 기존 봇은 그대로(닉네임 변경 X)
   const pw = await hashPassword(`fake-${i}-${Date.now()}-${Math.random()}`);
   const u = await prisma.user.create({
     data: { email, passwordHash: pw, nickname: FAKE_NICKNAMES[i] },
@@ -68,8 +63,8 @@ async function ensureFakeMember(i: number): Promise<string> {
   return u.id;
 }
 
-/** 이 회원이 아직 안 쓴 예정 경기 중 랜덤 1개. */
-async function randomMatch(userId: string): Promise<FakeCand | null> {
+/** 이 회원이 아직 안 쓴 예정 경기 중 랜덤 1개. preferSport 종목 우선(없으면 전체). */
+async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCand | null> {
   const now = new Date();
   const horizon = new Date(now.getTime() + 36 * 60 * 60 * 1000);
   const leagues = ARTICLE_LEAGUES.filter((l) => l !== "LOL") as string[];
@@ -93,10 +88,16 @@ async function randomMatch(userId: string): Promise<FakeCand | null> {
     take: 50,
   });
 
-  const valid = matches
+  let valid = matches
     .map((m) => ({ m, sport: sportForLeague(m.league) }))
     .filter((x): x is { m: (typeof matches)[number]; sport: Sport } => x.sport != null);
   if (valid.length === 0) return null;
+
+  // 종목 가중 — preferSport 경기가 있으면 그쪽만(없으면 전체 fallback)
+  if (preferSport) {
+    const pref = valid.filter((x) => x.sport === preferSport);
+    if (pref.length > 0) valid = pref;
+  }
 
   const { m, sport } = valid[Math.floor(Math.random() * valid.length)];
   return {
@@ -170,45 +171,35 @@ async function generateShortPick(c: FakeCand): Promise<ShortPick | null> {
   return { market, pick, line, title, analysis };
 }
 
-/** 랜덤 회원 1~2명이 각자 랜덤 경기에 짧은 픽 발행. cron 에서 호출. */
+// 분단위 cron(30분 간격) 호출 → 매번 ~15% 확률로 1글만 발행. 하루 5~10글이 시간에 분산(몰아쓰기 X).
+// 야구 시즌이라 종목 가중 야구 70% / 축구 30%.
 export async function runFakeMemberPicks(): Promise<{ created: number; skipped: number }> {
-  // cron 이 하루 2회(KST 14·20시) 호출 → 각 호출 ~65% 확률로 1명만 발행(가끔 거름)
-  // → 하루 0~2글, 진짜 회원처럼 불규칙. 한 호출에 몰아쓰지 않음.
-  if (Math.random() < 0.35) return { created: 0, skipped: 0 };
-  const order = FAKE_NICKNAMES.map((_, i) => i).sort(() => Math.random() - 0.5);
-  const chosen = order.slice(0, 1);
+  // 호출당 ~15% 만 발행 → 30분 간격(하루 48회) × 0.15 ≈ 7글/일. 한 호출에 1글만.
+  if (Math.random() < 0.85) return { created: 0, skipped: 0 };
 
-  let created = 0;
-  let skipped = 0;
-  for (const i of chosen) {
-    try {
-      const userId = await ensureFakeMember(i);
-      const c = await randomMatch(userId);
-      if (!c) {
-        skipped++;
-        continue;
-      }
-      const pick = await generateShortPick(c);
-      if (!pick) {
-        skipped++;
-        continue;
-      }
-      await prisma.post.create({
-        data: {
-          authorId: userId,
-          title: pick.title,
-          content: pick.analysis,
-          sport: c.sport,
-          matchId: c.id,
-          market: pick.market,
-          line: pick.line,
-          pick: pick.pick,
-        },
-      });
-      created++;
-    } catch {
-      skipped++;
-    }
+  const i = Math.floor(Math.random() * FAKE_NICKNAMES.length);
+  const preferSport: Sport = Math.random() < 0.7 ? "baseball" : "soccer";
+
+  try {
+    const userId = await ensureFakeMember(i);
+    const c = await randomMatch(userId, preferSport);
+    if (!c) return { created: 0, skipped: 1 };
+    const pick = await generateShortPick(c);
+    if (!pick) return { created: 0, skipped: 1 };
+    await prisma.post.create({
+      data: {
+        authorId: userId,
+        title: pick.title,
+        content: pick.analysis,
+        sport: c.sport,
+        matchId: c.id,
+        market: pick.market,
+        line: pick.line,
+        pick: pick.pick,
+      },
+    });
+    return { created: 1, skipped: 0 };
+  } catch {
+    return { created: 0, skipped: 1 };
   }
-  return { created, skipped };
 }
