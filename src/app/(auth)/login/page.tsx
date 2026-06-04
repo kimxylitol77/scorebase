@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LoginForm from "./LoginForm";
+import GoogleButton from "../GoogleButton";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,12 @@ export default async function LoginPage({ searchParams }: Props) {
         <div className="text-center mb-8">
           <div className="text-2xl font-black tracking-tight">로그인</div>
           <div className="mt-1 text-sm text-neutral-500">스코어베이스 회원 로그인</div>
+        </div>
+        <GoogleButton from={from ?? "/"} label="구글로 로그인" />
+        <div className="my-5 flex items-center gap-3">
+          <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+          <span className="text-xs text-neutral-400">또는 이메일로</span>
+          <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
         </div>
         <LoginForm from={from ?? "/"} />
         <div className="mt-4 text-center text-sm text-neutral-500">

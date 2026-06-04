@@ -614,7 +614,8 @@ model MmaFighter {
 model User {
   id            String    @id @default(cuid()) // 세션 payload 노출용 → Int 대신 cuid
   email         String    @unique // 소문자 정규화 저장. 중복 race 최종 방어
-  passwordHash  String // bcryptjs $2a$...
+  passwordHash  String? // bcryptjs $2a$... (구글 OAuth 전용 계정은 null)
+  googleId      String? @unique // 구글 OAuth sub(고유 id). null=이메일 가입 계정
   nickname      String // 헤더 표시
   emailVerified DateTime? // MVP: null. 후속 이메일 인증용
   createdAt     DateTime  @default(now())

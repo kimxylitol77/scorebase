@@ -135,7 +135,8 @@ export async function loginUserAction(
     where: { email },
     select: { id: true, passwordHash: true, exp: true, lastAttendanceAt: true },
   });
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
+  // passwordHash null = 구글 OAuth 전용 계정 → 비밀번호 로그인 불가 (구글로 로그인 유도)
+  if (!user || !user.passwordHash || !(await verifyPassword(password, user.passwordHash))) {
     return {
       ok: false,
       error: `이메일 또는 비밀번호가 올바르지 않습니다. (남은 시도 ${rl.remaining}회)`,
