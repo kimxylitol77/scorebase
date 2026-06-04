@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
-import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
+import BaseballPreMatchInsight, { type StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -244,6 +244,15 @@ export default async function KboLivePage({ params }: Props) {
             : null
         }
       />
+      {(homeStarterInfo || awayStarterInfo) && (
+        <BaseballPreMatchInsight
+          league="KBO"
+          homeStarter={homeStarterInfo}
+          awayStarter={awayStarterInfo}
+          homeTeamName={homeKo}
+          awayTeamName={awayKo}
+        />
+      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}

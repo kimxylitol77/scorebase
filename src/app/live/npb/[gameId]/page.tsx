@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
-import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
+import BaseballPreMatchInsight, { type StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
@@ -250,6 +250,17 @@ export default async function NpbLivePage({ params }: Props) {
             : null
         }
       />
+      {(homeStarterFull || awayStarterFull) && (
+        <BaseballPreMatchInsight
+          league="NPB"
+          homeStarter={homeStarterFull}
+          awayStarter={awayStarterFull}
+          homeTeamName={homeKo}
+          awayTeamName={awayKo}
+          homeStarterPhoto={homeStarterPhoto}
+          awayStarterPhoto={awayStarterPhoto}
+        />
+      )}
       <MatchHeadToHead
         homeShortName={homeShort}
         awayShortName={awayShort}
