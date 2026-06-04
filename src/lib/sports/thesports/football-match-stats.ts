@@ -43,6 +43,9 @@ export function extractFootballStats(detailLive: unknown): FootballStats | null 
 
   const c = by.get(TYPE.corners);
   if (!c || typeof c.home !== "number" || typeof c.away !== "number") return null;
+  // 종료 경기인데 총 코너 0 = 불완전한 cache 스냅샷(통계 채워지기 전) → 저장 안 함.
+  // 실제 축구 경기 평균 코너 ~10, 0 은 사실상 데이터 누락.
+  if (c.home + c.away === 0) return null;
 
   const num = (t: number, k: "home" | "away"): number | null => {
     const v = by.get(t)?.[k];
