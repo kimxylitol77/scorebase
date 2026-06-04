@@ -96,7 +96,34 @@ export async function POST(req: NextRequest) {
   if (body.detailLive !== undefined) {
     const cur = (existing?.detailLive as Record<string, unknown> | null) ?? {};
     const incoming = (body.detailLive as Record<string, unknown> | null) ?? {};
-    data.detailLive = { ...cur, ...incoming };
+    const merged: Record<string, unknown> = { ...cur, ...incoming };
+    // 야구 score = [id, statusId, half, {ft,p1..pN,h,e}]. MQTT delta 는 점수만 바뀐
+    // push 에서 score[3] 에 {ft,p5} 처럼 일부 키만 담아 보냄 → score 통째 교체 시
+    // 이닝별(p1~pN)·안타(h)·실책(e) 소실 → 화면 이닝칸 공백 (2026-06-04 KBO 한화:두산).
+    // score[3] 만 기존과 deep merge 해 이닝 데이터 보존 (sid/half=score[1],[2]는 최신 유지).
+    // football·농구의 score[3] 는 배열이므로 !Array.isArray 가드로 야구(plain object)만 처리.
+    const curScore = cur.score;
+    const inScore = incoming.score;
+    if (
+      Array.isArray(inScore) &&
+      Array.isArray(curScore) &&
+      inScore.length >= 4 &&
+      curScore.length >= 4 &&
+      inScore[3] != null &&
+      typeof inScore[3] === "object" &&
+      !Array.isArray(inScore[3]) &&
+      curScore[3] != null &&
+      typeof curScore[3] === "object" &&
+      !Array.isArray(curScore[3])
+    ) {
+      const mergedScore = [...inScore];
+      mergedScore[3] = {
+        ...(curScore[3] as Record<string, unknown>),
+        ...(inScore[3] as Record<string, unknown>),
+      };
+      merged.score = mergedScore;
+    }
+    data.detailLive = merged;
   }
   if (body.lineup !== undefined) data.lineup = body.lineup as object;
   if (body.analysis !== undefined) data.analysis = body.analysis as object;
