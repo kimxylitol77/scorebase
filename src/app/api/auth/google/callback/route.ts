@@ -73,14 +73,23 @@ export async function GET(req: Request) {
   } else {
     const byEmail = await prisma.user.findUnique({ where: { email }, select: { id: true } });
     if (byEmail) {
-      // 같은 이메일로 이미 가입 → 구글 계정 연결 (이후 구글 로그인 가능)
-      await prisma.user.update({ where: { id: byEmail.id }, data: { googleId } });
+      // 같은 이메일로 이미 가입 → 구글 계정 연결 + 구글이 인증한 메일이면 emailVerified 반영
+      await prisma.user.update({
+        where: { id: byEmail.id },
+        data: { googleId, ...(p.email_verified ? { emailVerified: new Date() } : {}) },
+      });
       userId = byEmail.id;
     } else {
       // 신규 — 닉네임은 구글 이름 또는 이메일 앞부분 (중복 허용, 1~20자)
       const baseNick = (p.name || email.split("@")[0] || "user").trim().slice(0, 20) || "user";
       const created = await prisma.user.create({
-        data: { email, googleId, nickname: baseNick }, // passwordHash 생략(null) = OAuth 전용
+        // passwordHash 생략(null)=OAuth 전용. 구글이 인증한 메일이면 emailVerified 자동 기록.
+        data: {
+          email,
+          googleId,
+          nickname: baseNick,
+          emailVerified: p.email_verified ? new Date() : null,
+        },
         select: { id: true },
       });
       userId = created.id;
