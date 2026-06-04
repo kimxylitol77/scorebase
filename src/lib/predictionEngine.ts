@@ -27,6 +27,7 @@ import { calcEloTable, getElo } from "./predict/elo";
 import { calcWinProbability, type WinProb } from "./predict/win-probability";
 import { blendWithMarket, type MarketProb } from "./predict/market-blend";
 import { calcRecentTrend } from "./predict/recent-trend";
+import { fitDixonColes, predictDixonColes, type DcMatch } from "./predict/dixon-coles";
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { PredictMatch } from "./predict/types";
 
@@ -72,6 +73,8 @@ export interface PredictionInput {
   away: TeamInput;
   /** 시장 합의 확률 (남은 vig 제거 권장). 없으면 blend skip. */
   odds?: { home: number; away: number; draw?: number };
+  /** 축구 Dixon-Coles 득점모델 확률 (있으면 Elo base 와 블렌드). predictMatchById 가 채움. */
+  dc?: { home: number; draw: number; away: number };
 }
 
 export interface PredictionReason {
@@ -152,6 +155,18 @@ export function predictMatch(input: PredictionInput): PredictionResult {
   let probs = calcWinProbability(home.elo, away.elo, league);
   probs = normalizeProbs(probs);
   signalsUsed.push("elo");
+
+  // 축구: Dixon-Coles 득점모델 블렌드 (DC 0.7 우세 — 백테스트 1X2 49.1% vs Elo 44.5%,
+  // 로그손실 전 리그 개선). DC 는 표본 적은 팀은 shrinkage 로 리그평균 수렴 → cold-start 안전.
+  if (sport === "football" && input.dc) {
+    const W = 0.7;
+    probs = normalizeProbs({
+      home: W * input.dc.home + (1 - W) * probs.home,
+      draw: W * input.dc.draw + (1 - W) * probs.draw,
+      away: W * input.dc.away + (1 - W) * probs.away,
+    });
+    signalsUsed.push("dixon_coles");
+  }
 
   const eloDiff = home.elo - away.elo;
   if (Math.abs(eloDiff) >= 50) {
@@ -376,6 +391,18 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
   const eloHome = getElo(eloTable, match.homeTeamId);
   const eloAway = getElo(eloTable, match.awayTeamId);
 
+  // 축구 Dixon-Coles 득점모델 (Elo 와 0.7 블렌드). 실패 시 Elo only fallback.
+  let dc: { home: number; draw: number; away: number } | undefined;
+  if (sport === "football") {
+    try {
+      const s = fitDixonColes(seasonMatchesTyped as unknown as DcMatch[], match.startTime);
+      const p = predictDixonColes(s, match.homeTeamId, match.awayTeamId);
+      dc = { home: p.probHome, draw: p.probDraw, away: p.probAway };
+    } catch {
+      // silent
+    }
+  }
+
   // 최근 폼 — ppg 0~3 → 0~1 정규화 (3=전승 ppg)
   let homeForm: number | undefined;
   let awayForm: number | undefined;
@@ -412,6 +439,7 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
       recentForm: awayForm,
     },
     odds,
+    dc,
   });
 }
 
