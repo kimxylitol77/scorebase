@@ -58,6 +58,10 @@ import {
   enrichContextWithApiFootball,
 } from "@/lib/predict/build-context";
 import { enrichBaseballContext } from "@/lib/predict/baseball-context";
+import {
+  computeStarterAdjustment,
+  applyStarterToWinProb,
+} from "@/lib/predict/starter-adjust";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
 import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsAnalysisForPreview } from "@/lib/sports/thesports/preview-analysis";
@@ -799,8 +803,23 @@ export async function runPreview(opts?: {
         : `${prefix} ${rawTitle}`;
       const slug = buildSlug(m.league, m.id);
 
-      // 적중률 추적용 — 글 작성 시점의 추정 승률을 그대로 저장
-      const wp = context.winProb;
+      // 적중률 추적용 — 글 작성 시점의 추정 승률을 그대로 저장.
+      // 야구 선발 ERA/WHIP/K9 보정 적용 — predHome 도 선발 반영 (predictMatchById 와 동일 단일 소스).
+      let wp = context.winProb;
+      if (wp) {
+        const ps = (
+          s: string | null,
+        ): { era?: number; whip?: number; k9?: number; gs?: number } | null => {
+          if (!s) return null;
+          try {
+            return JSON.parse(s);
+          } catch {
+            return null;
+          }
+        };
+        const sAdj = computeStarterAdjustment(ps(m.homeStarter), ps(m.awayStarter));
+        if (sAdj.applied) wp = applyStarterToWinProb(wp, sAdj);
+      }
       const predictedWinner = wp
         ? wp.home >= wp.away && wp.home >= wp.draw
           ? "HOME"

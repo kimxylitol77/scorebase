@@ -30,6 +30,10 @@ import { calcRecentTrend } from "./predict/recent-trend";
 import { fitDixonColes, predictDixonColes, type DcMatch } from "./predict/dixon-coles";
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { PredictMatch } from "./predict/types";
+import {
+  computeStarterAdjustment,
+  applyStarterToWinProb,
+} from "./predict/starter-adjust";
 
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
@@ -54,8 +58,10 @@ export interface TeamInput {
   recentForm?: number;
   /** 0~1. 부상자 영향 (0=정상, 1=주축 전부 결장). 축구/농구. */
   injuryImpact?: number;
-  /** 야구 선발투수 rating 0~100. 50 = league avg. ERA 낮을수록 ↑. */
+  /** 야구 선발투수 rating 0~100. 50 = league avg. ERA 낮을수록 ↑. (레거시 — starter 없을 때 fallback) */
   starterRating?: number;
+  /** 야구 선발 통계 (ERA/WHIP/K9/GS). 있으면 starterRating 보다 우선해 정밀 보정 (starter-adjust). */
+  starter?: { era?: number; whip?: number; k9?: number; gs?: number };
   /** 야구 불펜 fatigue 0~1. 0=쉼, 1=완전 소진. */
   bullpenFatigue?: number;
   /** 하키 골리 rating 0~100. 50 = league avg. SV% 높을수록 ↑. */
@@ -222,8 +228,24 @@ export function predictMatch(input: PredictionInput): PredictionResult {
 
   // ── 4. 종목별 시그널 분기 ────────────────────────────────
   if (sport === "baseball") {
-    // 선발투수 rating 차이 — 50 평균, 5+ 차이면 반영
-    if (home.starterRating != null && away.starterRating != null) {
+    // 선발투수 — ERA/WHIP/K9 정밀 보정 우선 (evaluate-predictions 와 동일 starter-adjust).
+    // starter 통계 없으면 레거시 starterRating(숫자) fallback.
+    const sAdj = computeStarterAdjustment(home.starter ?? null, away.starter ?? null);
+    if (sAdj.applied) {
+      probs = normalizeProbs(applyStarterToWinProb(probs, sAdj));
+      signalsUsed.push("starter");
+      const homeBetter = sAdj.homeShift > 0;
+      const eraTxt =
+        home.starter?.era != null && away.starter?.era != null
+          ? ` (ERA ${home.starter.era.toFixed(2)} vs ${away.starter.era.toFixed(2)})`
+          : "";
+      reasons.push({
+        tag: "선발 ERA",
+        detail: `${homeBetter ? home.name : away.name} 선발 우위${eraTxt}`,
+        weight: Math.abs(sAdj.homeShift) >= 0.08 ? "high" : "med",
+      });
+    } else if (home.starterRating != null && away.starterRating != null) {
+      // 선발투수 rating 차이 — 50 평균, 5+ 차이면 반영
       const diff = home.starterRating - away.starterRating;
       if (Math.abs(diff) >= 5) {
         const shift = (diff / 100) * 0.5; // max ±20% 효과
@@ -337,6 +359,18 @@ export function predictMatch(input: PredictionInput): PredictionResult {
 
 // ── DB wrapper ──────────────────────────────────────────────────
 
+/** Match.homeStarter JSON → 선발 통계 (예측 보정용). 파싱 실패/null 이면 undefined. */
+function parseStarterStats(
+  json: string | null,
+): { era?: number; whip?: number; k9?: number; gs?: number } | undefined {
+  if (!json) return undefined;
+  try {
+    return JSON.parse(json) as { era?: number; whip?: number; k9?: number; gs?: number };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * matchId 만 받아서 DB 에서 시즌 데이터 + 사이드 신호 자동 빌드 후 predictMatch.
  * Elo + 최근 폼 (calcRecentTrend) 자동 계산.
@@ -354,6 +388,8 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
       marketHome: true,
       marketDraw: true,
       marketAway: true,
+      homeStarter: true,
+      awayStarter: true,
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
     },
@@ -432,12 +468,14 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
       name: match.homeTeam.name,
       elo: eloHome,
       recentForm: homeForm,
-      // 선발/골리/부상 — Phase 3 source 통합 시 채움
+      // 야구 선발 ERA/WHIP/K9 — 있으면 predictMatch 가 starter-adjust 로 보정 (골리/부상은 Phase 3).
+      starter: parseStarterStats(match.homeStarter),
     },
     away: {
       name: match.awayTeam.name,
       elo: eloAway,
       recentForm: awayForm,
+      starter: parseStarterStats(match.awayStarter),
     },
     odds,
     dc,
