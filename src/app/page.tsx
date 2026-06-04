@@ -153,26 +153,12 @@ const faqJsonLd = {
   ],
 };
 
-async function getArticlesByLeague(league: string, take = 4) {
-  return prisma.article.findMany({
-    where: { status: "PUBLISHED", league },
-    orderBy: { publishedAt: "desc" },
-    take,
-  });
-}
-
 export default async function Home() {
-  const [latest, eplPicks, nbaPicks, nhlPicks, mlbPicks] = await Promise.all([
-    prisma.article.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: { publishedAt: "desc" },
-      take: 12,
-    }),
-    getArticlesByLeague("EPL", 3),
-    getArticlesByLeague("NBA", 3),
-    getArticlesByLeague("NHL", 3),
-    getArticlesByLeague("MLB", 3),
-  ]);
+  const latest = await prisma.article.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { publishedAt: "desc" },
+    take: 12,
+  });
 
   const restLatest = latest.slice(0, 6);
   const hasAny = latest.length > 0;
@@ -247,42 +233,6 @@ export default async function Home() {
             <SeasonInsight league="MLB" />
           </div>
         </section>
-
-        {eplPicks.length > 0 && (
-          <LeagueShelf
-            league="EPL"
-            title="프리미어리그"
-            subtitle="잉글리시 풋볼의 최신 흐름"
-            articles={eplPicks}
-          />
-        )}
-
-        {nbaPicks.length > 0 && (
-          <LeagueShelf
-            league="NBA"
-            title="NBA"
-            subtitle="미국 프로농구 매치 리뷰"
-            articles={nbaPicks}
-          />
-        )}
-
-        {nhlPicks.length > 0 && (
-          <LeagueShelf
-            league="NHL"
-            title="NHL"
-            subtitle="북미 아이스하키의 최신 매치 결과"
-            articles={nhlPicks}
-          />
-        )}
-
-        {mlbPicks.length > 0 && (
-          <LeagueShelf
-            league="MLB"
-            title="MLB"
-            subtitle="메이저리그 야구의 최신 결과·한국 선수 활약"
-            articles={mlbPicks}
-          />
-        )}
 
         <LeagueDirectory />
 
@@ -692,41 +642,6 @@ function FaqSection() {
               {f.a}
             </p>
           </details>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function LeagueShelf({
-  league,
-  title,
-  subtitle,
-  articles,
-}: {
-  league: string;
-  title: string;
-  subtitle: string;
-  articles: Array<{
-    id: number;
-    slug: string;
-    title: string;
-    league: string;
-    type: string;
-    publishedAt: Date | null;
-    createdAt: Date;
-  }>;
-}) {
-  return (
-    <section>
-      <SectionHeading
-        title={title}
-        subtitle={subtitle}
-        href={`/leagues/${league}`}
-      />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {articles.map((a) => (
-          <ArticleCard key={a.id} article={a} variant="compact" />
         ))}
       </div>
     </section>
