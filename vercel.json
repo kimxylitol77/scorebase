@@ -45,6 +45,7 @@
     { "path": "/api/cron/preview", "schedule": "30 22 * * *" },
     { "path": "/api/cron/preview", "schedule": "0 8 * * *" },
     { "path": "/api/cron/preview", "schedule": "30 8 * * *" },
-    { "path": "/api/cron/preview", "schedule": "0 14 * * *" }
+    { "path": "/api/cron/preview", "schedule": "0 14 * * *" },
+    { "path": "/api/cron/boost-views", "schedule": "0 * * * *" }
   ]
 }
