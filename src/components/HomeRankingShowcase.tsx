@@ -29,7 +29,7 @@ export default async function HomeRankingShowcase() {
           </p>
         </div>
         <Link
-          href="/analysis/ranking"
+          href="/experts"
           className="hidden shrink-0 text-sm font-medium text-blue-600 hover:underline sm:inline-block dark:text-blue-400"
         >
           전체 랭킹 →
@@ -44,7 +44,7 @@ export default async function HomeRankingShowcase() {
             return (
               <li key={r.userId}>
                 <Link
-                  href="/analysis/ranking"
+                  href="/experts"
                   className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 transition hover:bg-neutral-50 dark:hover:bg-neutral-900/60"
                 >
                   <span className="w-6 shrink-0 text-center text-base font-bold text-neutral-400">

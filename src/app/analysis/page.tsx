@@ -106,7 +106,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href="/analysis/ranking"
+              href="/experts"
               className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 px-4 py-2.5 text-sm font-semibold transition"
             >
               🏆 랭킹
@@ -319,7 +319,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           승부를 예측하는 커뮤니티입니다. 다른 사이트와 달리{" "}
           <strong>모든 예측은 실제 경기 결과로 자동 채점</strong>되어, 적중률·연승
           기록이 작성자 프로필과{" "}
-          <Link href="/analysis/ranking" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+          <Link href="/experts" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
             예측 랭킹
           </Link>
           에 그대로 남습니다. 감이 아니라 검증된 기록으로 실력을 증명할 수 있습니다.
