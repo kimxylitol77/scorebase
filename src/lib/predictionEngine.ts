@@ -156,10 +156,11 @@ export function predictMatch(input: PredictionInput): PredictionResult {
   probs = normalizeProbs(probs);
   signalsUsed.push("elo");
 
-  // 축구: Dixon-Coles 득점모델 블렌드 (DC 0.7 우세 — 백테스트 1X2 49.1% vs Elo 44.5%,
-  // 로그손실 전 리그 개선). DC 는 표본 적은 팀은 shrinkage 로 리그평균 수렴 → cold-start 안전.
+  // 축구: Dixon-Coles 득점모델 블렌드. W=0.85 는 grid-search 최적(로그손실 최저, 0.8~0.9 평탄).
+  // 순수 DC(1.0)보다 Elo 15% 남기는 게 더 좋음(다양화+크로스컴피티션). 백테스트 1X2 49.3% vs Elo 44.5%.
+  // DC 는 표본 적은 팀은 shrinkage 로 리그평균 수렴 → cold-start 안전.
   if (sport === "football" && input.dc) {
-    const W = 0.7;
+    const W = 0.85;
     probs = normalizeProbs({
       home: W * input.dc.home + (1 - W) * probs.home,
       draw: W * input.dc.draw + (1 - W) * probs.draw,

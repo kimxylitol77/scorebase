@@ -4,6 +4,12 @@
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { leagueHasDraw } from "@/lib/sports/sport-leagues";
+import {
+  fitDixonColes,
+  predictDixonColes,
+  type DcMatch,
+  type DcPrediction,
+} from "@/lib/predict/dixon-coles";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
@@ -192,6 +198,21 @@ export default async function MatchInsight({
   const beforeMatches = matches.filter(
     (m) => m.startTime.getTime() < referenceTime.getTime(),
   );
+
+  // 축구 Dixon-Coles 예상 스코어 (Elo 가 못 주는 스코어라인 — DC 신규 능력).
+  let dcPred: DcPrediction | null = null;
+  if (leagueHasDraw(match.league)) {
+    try {
+      const scored = beforeMatches.filter(
+        (m) => m.homeScore != null && m.awayScore != null,
+      );
+      const s = fitDixonColes(scored as unknown as DcMatch[], referenceTime);
+      dcPred = predictDixonColes(s, match.homeTeamId, match.awayTeamId);
+    } catch {
+      // silent — DC 실패 시 표시 생략
+    }
+  }
+
   const eloTable = calcEloTable(beforeMatches);
   // 단일 소스 — 글 스냅샷 Elo 가 있으면 그 값 사용 (본문 글과 100% 일치). 없으면 재계산.
   const homeElo = match.eloHome ?? getElo(eloTable, match.homeTeamId);
@@ -619,6 +640,35 @@ export default async function MatchInsight({
           hideDraw={hideDraw}
         />
       </Section>
+      {dcPred && dcPred.sampleHome >= 3 && dcPred.sampleAway >= 3 && (
+        <Section title="예상 스코어 · 기대 득점">
+          <div className="rounded-[1rem] bg-zinc-50 p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+            <div className="flex items-center justify-center gap-3 sm:gap-5 text-center">
+              <div className="min-w-0 flex-1 truncate text-sm font-semibold">
+                {toKoreanTeamName(match.homeTeam.name)}
+              </div>
+              <div className="text-3xl font-black tabular-nums text-zinc-950 dark:text-white">
+                {dcPred.topScore.home}
+                <span className="mx-1.5 text-zinc-400">:</span>
+                {dcPred.topScore.away}
+              </div>
+              <div className="min-w-0 flex-1 truncate text-sm font-semibold">
+                {toKoreanTeamName(match.awayTeam.name)}
+              </div>
+            </div>
+            <div className="mt-2 text-center text-[11px] text-zinc-500 dark:text-white/45">
+              가장 유력한 스코어 ({Math.round(dcPred.topScore.prob * 100)}%) · 기대 득점{" "}
+              {dcPred.lambdaHome.toFixed(1)}–{dcPred.lambdaAway.toFixed(1)} (합{" "}
+              {dcPred.expGoals.toFixed(1)})
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-zinc-500 dark:text-white/45">
+              ⓘ Dixon-Coles 득점 모델 — 팀별 공·수 강도와 홈 어드밴티지로 추정한 예상 스코어입니다.
+              OVER 2.5 {Math.round(dcPred.probOver25 * 100)}% · 양 팀 득점{" "}
+              {Math.round(dcPred.probBttsYes * 100)}%.
+            </p>
+          </div>
+        </Section>
+      )}
       <Section title={isFinished ? "AI 예측 종합 · 결과 비교" : "AI 예측 종합"}>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MarketCard
