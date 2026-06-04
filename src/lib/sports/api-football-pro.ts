@@ -747,6 +747,37 @@ export async function fetchFixtureStatistics(
   }
 }
 
+// 리그-시즌 전체 fixture (id + 날짜 + 팀명) — 1콜로 한 시즌 받아서 우리 매치를 fixture id 에
+// 매핑(날짜+팀명)하는 용도. TheSports 수집 메이저 리그(externalId≠fixture id) 코너 백필에 필요.
+export interface AfSeasonFixture {
+  id: number;
+  dateMs: number;
+  homeName: string;
+  awayName: string;
+}
+export async function fetchSeasonFixtures(
+  league: string,
+  season: number,
+): Promise<AfSeasonFixture[]> {
+  const lid = API_FOOTBALL_LEAGUE_ID[league];
+  if (!lid) return [];
+  try {
+    const { data } = await client().get("/fixtures", {
+      params: { league: lid, season },
+    });
+    return (data?.response ?? [])
+      .map((r: any) => ({
+        id: r.fixture?.id as number,
+        dateMs: new Date(r.fixture?.date).getTime(),
+        homeName: (r.teams?.home?.name ?? "") as string,
+        awayName: (r.teams?.away?.name ?? "") as string,
+      }))
+      .filter((f: AfSeasonFixture) => f.id && f.homeName && f.awayName && Number.isFinite(f.dateMs));
+  } catch {
+    return [];
+  }
+}
+
 // ===== API-Football 자체 예측 (third opinion) =====
 
 export interface ApiFootballPrediction {
