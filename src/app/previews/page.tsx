@@ -68,6 +68,9 @@ export default async function PreviewsPage({ searchParams }: Props) {
   const where: Prisma.ArticleWhereInput = {
     status: "PUBLISHED",
     type: "PREVIEW",
+    // 경기 삭제로 연결 끊긴 orphan 글 제외 — match.startTime 이 null 이면
+    // orderBy startTime desc 에서 맨 앞으로 와 지난 글이 최상단에 박힘 (2026-06-05 NBA #1717).
+    matchId: { not: null },
     ...(current.leagues.length > 0
       ? { league: { in: current.leagues } }
       : {}),
@@ -96,6 +99,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
         const w: Prisma.ArticleWhereInput = {
           status: "PUBLISHED",
           type: "PREVIEW",
+          matchId: { not: null },
           ...(s.leagues.length > 0 ? { league: { in: s.leagues } } : {}),
         };
         return { key: s.key, count: await prisma.article.count({ where: w }) };
