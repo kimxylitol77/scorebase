@@ -723,3 +723,48 @@ model ExpLog {
 
   @@index([userId, createdAt])
 }
+
+/// TheSports 선수 시장가치(몸값) — player/market/list 수집. id = ts player id.
+/// 우리 TheSportsPlayer(nameKo)·TeamSourceId(thesports)·player ability 와 join.
+model PlayerMarketValue {
+  id           String   @id // ts player id
+  currentValue Float? // 최신 시장가치 (€, history 마지막)
+  age          Int? // 최신 나이
+  teamId       String? // 최신 ts team id
+  league       String? // thesports 매핑 후 backfill (우리 리그 code)
+  history      Json     @default("[]") // [{t, v, teamId, age}, ...] 변동 이력
+  updatedAt    DateTime @default(now())
+  fetchedAt    DateTime @default(now())
+
+  @@index([league, currentValue])
+}
+
+/// TheSports 이적 — transfer/list 수집(글로벌 전량 → 우리 팀 필터). id = ts transfer id.
+model FootballTransfer {
+  id           String   @id // ts transfer id
+  playerId     String // ts player id
+  fromTeamId   String?
+  fromTeamName String?
+  toTeamId     String?
+  toTeamName   String?
+  transferType Int? // ts transfer_type 코드
+  transferTime Int? // unix 초
+  transferFee  Float? // € (대부분 0)
+  transferDesc String?
+  league       String? // 매핑 후 backfill
+  updatedAt    DateTime @default(now())
+
+  @@index([league, transferTime])
+  @@index([toTeamId])
+  @@index([playerId])
+}
+
+/// TheSports 랭킹 cache — FIFA 남/여 국가대표 + 클럽 순위. worker cron 이 1일 1회 fetch → upsert.
+/// payload: [{rank, name, teamId, points, regionId?, prevPoints?, posChange?, logo?, countryLogo?}, ...]
+model RankingCache {
+  kind      String   @id // "fifa_men" | "fifa_women" | "club"
+  payload   Json     @default("[]")
+  pubTime   Int? // FIFA 발표 시간 (timestamp)
+  updatedAt DateTime @updatedAt
+  fetchedAt DateTime @default(now())
+}
