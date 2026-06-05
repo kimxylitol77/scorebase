@@ -1,6 +1,4 @@
-// 시장가치 랭킹 — TheSports market value 실데이터.
-// PlayerMarketValue(몸값+history) + TheSportsPlayer(nameKo) + TeamSourceId(thesports)→Team.
-// 사진/포지션은 lineup 추출(후속) 전이라 이니셜 placeholder.
+// 시장가치 랭킹 — TheSports market value 실데이터. 20명씩 페이지네이션.
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 
@@ -14,13 +12,23 @@ const LEAGUES: Record<string, string> = {
   LIGUE_1: "리그 1",
 };
 const SORTS = ["금액순", "포지션", "최근이적"];
+const PER = 20;
 
-// 프로토타입 환율 (실시간 환율로 교체 예정). €200M → 3,583억.
 const EUR_KRW = 1791.5;
 function krw(eurM: number): string {
   const eok = (eurM * 1e6 * EUR_KRW) / 1e8;
   if (eok >= 10000) return (eok / 10000).toFixed(2) + "조";
   return Math.round(eok).toLocaleString() + "억";
+}
+
+// 페이지 번호 윈도우: 1 … (cur±2) … total
+function pageNums(cur: number, total: number): (number | string)[] {
+  const out: (number | string)[] = [];
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || (i >= cur - 2 && i <= cur + 2)) out.push(i);
+    else if (out[out.length - 1] !== "…") out.push("…");
+  }
+  return out;
 }
 
 function Spark({ data }: { data: number[] }) {
@@ -45,14 +53,18 @@ function Spark({ data }: { data: number[] }) {
 
 interface HistPt { market_value?: number }
 
-export default async function TransfersPage({ searchParams }: { searchParams: Promise<{ league?: string }> }) {
+export default async function TransfersPage({ searchParams }: { searchParams: Promise<{ league?: string; page?: string }> }) {
   const sp = await searchParams;
   const league = sp.league && LEAGUES[sp.league] ? sp.league : "EPL";
+  const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
 
+  const totalCount = await prisma.playerMarketValue.count({ where: { league, currentValue: { not: null } } });
+  const totalPages = Math.max(1, Math.ceil(totalCount / PER));
   const rows = await prisma.playerMarketValue.findMany({
     where: { league, currentValue: { not: null } },
     orderBy: { currentValue: "desc" },
-    take: 50,
+    skip: (page - 1) * PER,
+    take: PER,
   });
   const ids = rows.map((r) => r.id);
   const players = await prisma.theSportsPlayer.findMany({
@@ -77,7 +89,7 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
     const team = ourId != null ? teamMap.get(ourId) : undefined;
     const hist = Array.isArray(r.history) ? (r.history as HistPt[]) : [];
     return {
-      rank: i + 1,
+      rank: (page - 1) * PER + i + 1,
       name: nameMap.get(r.id) || "선수",
       value: Math.round((r.currentValue || 0) / 1e6),
       age: r.age,
@@ -87,30 +99,15 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
     };
   });
 
-  const total = data.reduce((s, p) => s + p.value, 0);
-  const avg = data.length ? Math.round(total / data.length) : 0;
+  const linkBase = `/transfers?league=${league}`;
 
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
       <p className="text-sm text-neutral-500 mb-1">이적시장 · 시장가치</p>
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">💰 {LEAGUES[league]} 시장가치</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong>. TheSports 데이터 기반.
+        선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong>. TheSports 데이터 기반 · 총 {totalCount}명.
       </p>
-
-      {/* 요약 칩 */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        {[
-          ["TOP50 합계", `€${(total / 1000).toFixed(2)}B`],
-          ["평균", `€${avg}M`],
-          ["최고", data[0] ? `${data[0].name} €${data[0].value}M` : "—"],
-        ].map(([k, v]) => (
-          <div key={k} className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 px-3 py-1.5">
-            <span className="text-xs text-neutral-500">{k} </span>
-            <span className="text-sm font-bold">{v}</span>
-          </div>
-        ))}
-      </div>
 
       {/* 토글 메뉴 — 리그 선택 + 정렬 */}
       <div className="flex flex-wrap gap-2 mt-5">
@@ -157,7 +154,7 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
 
       {/* 랭킹 리스트 */}
       {data.length === 0 ? (
-        <p className="text-sm text-neutral-500 py-20 text-center">아직 수집된 몸값 데이터가 없습니다.</p>
+        <p className="text-sm text-neutral-500 py-20 text-center">데이터가 없습니다.</p>
       ) : (
         <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
           {data.map((p) => {
@@ -166,7 +163,7 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
             const up = chg >= 0;
             return (
               <div key={p.rank} className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition">
-                <div className={`w-6 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+                <div className={`w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 text-sm font-bold text-neutral-500 dark:text-neutral-400">
                   {p.name.slice(0, 1)}
                 </div>
@@ -196,7 +193,35 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
         </div>
       )}
 
-      <p className="mt-4 text-xs text-neutral-400 text-center">TheSports 몸값 데이터 · 사진/포지션은 추후 연결</p>
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
+          {page > 1 && (
+            <Link href={`${linkBase}&page=${page - 1}`} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">‹</Link>
+          )}
+          {pageNums(page, totalPages).map((n, i) =>
+            typeof n === "number" ? (
+              <Link
+                key={i}
+                href={`${linkBase}&page=${n}`}
+                className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${
+                  n === page
+                    ? "bg-cyan-600 text-white border-cyan-600"
+                    : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                }`}
+              >
+                {n}
+              </Link>
+            ) : (
+              <span key={i} className="px-1 text-neutral-400">…</span>
+            ),
+          )}
+          {page < totalPages && (
+            <Link href={`${linkBase}&page=${page + 1}`} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">›</Link>
+          )}
+        </div>
+      )}
+      <p className="mt-4 text-xs text-neutral-400 text-center">{page}/{totalPages} 페이지 · TheSports 몸값 데이터</p>
     </main>
   );
 }
