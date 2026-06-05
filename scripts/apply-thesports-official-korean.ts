@@ -51,6 +51,21 @@ async function main() {
   console.log(`매칭=${matched}/${ours.length} (${(matched / ours.length * 100).toFixed(1)}%) | 동일=${same} 교체=${diff} 신규=${newly} 노이즈거부=${rejected} 미매칭=${ours.length - matched}`);
   console.log(`업데이트 대상=${updates.length}`);
 
+  // market value 선수 보강: PlayerMarketValue 에 있으나 TheSportsPlayer 에 없는 선수를 공식 한글로 추가.
+  // (TheSportsPlayer 는 라인업 출전 선수 기반 → 몸값 데이터의 비출전 선수는 /transfers 에서 "선수" placeholder 로 떴음)
+  const ourIds = new Set(ours.map((p) => p.id));
+  const marketRows = await prisma.playerMarketValue.findMany({ select: { id: true } });
+  const toAdd: Array<{ id: string; ko: string }> = [];
+  for (const m of marketRows) {
+    if (ourIds.has(m.id)) continue;
+    const raw = langMap.get(m.id);
+    if (!raw) continue;
+    const ko = normalize(raw);
+    if (!ko) continue;
+    toAdd.push({ id: m.id, ko });
+  }
+  console.log(`market 보강 대상(TheSportsPlayer 신규)=${toAdd.length}`);
+
   if (!APPLY) { console.log("[DRY-RUN] --apply 로 적용"); await prisma.$disconnect(); return; }
 
   let done = 0;
@@ -58,7 +73,18 @@ async function main() {
     await prisma.theSportsPlayer.update({ where: { id: u.id }, data: { nameKo: u.ko } });
     if (++done % 500 === 0) console.log("  updated", done);
   }
-  console.log("APPLY DONE", done);
+  console.log("라인업 nameKo 교체 DONE", done);
+
+  let added = 0;
+  for (const t of toAdd) {
+    await prisma.theSportsPlayer.upsert({
+      where: { id: t.id },
+      create: { id: t.id, name: t.ko, nameKo: t.ko, sport: "FOOTBALL" },
+      update: { nameKo: t.ko },
+    });
+    if (++added % 500 === 0) console.log("  added", added);
+  }
+  console.log("market 보강 DONE", added);
   await prisma.$disconnect();
 }
 main().catch((e) => { console.error("ERR", e.message); process.exit(1); });
