@@ -265,6 +265,8 @@ export default async function NpbLivePage({ params }: Props) {
       {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}
       <MatchInsight
         match={match}
+        homeStarterPhoto={homeStarterPhoto}
+        awayStarterPhoto={awayStarterPhoto}
         teamStatsContent={
           detailLive?.stats ? (
             <div className="[&>section]:border-0 [&>section]:p-0 [&>section]:rounded-none">

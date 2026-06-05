@@ -122,6 +122,10 @@ interface Props {
   /** 스포츠별 추가 탭 — 축구 라인업/팀통계/맞대결/경기정보 등. starters 다음에 삽입.
    *  { key, label, enabled, content } 배열. 모든 스포츠가 같은 탭 UI 를 쓰도록 통일. */
   extraTabs?: Array<{ key: string; label: string; enabled: boolean; content: ReactNode }>;
+  /** NPB 선발 투수 사진 URL — npb.jp scraping 필요해 SSR 단에서 미리 fetch 후 주입.
+   *  KBO 는 kboPhotoUrl, MLB 는 mlbHeadshotUrl 로 pid 즉시 생성하므로 불필요. */
+  homeStarterPhoto?: string;
+  awayStarterPhoto?: string;
 }
 
 /** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
@@ -177,6 +181,8 @@ export default async function MatchInsight({
   h2hRichContent,
   playerBoxContent,
   extraTabs,
+  homeStarterPhoto,
+  awayStarterPhoto,
 }: Props) {
   const dbMatches = await prisma.match.findMany({
     where: { league: match.league },
@@ -419,6 +425,8 @@ export default async function MatchInsight({
             homeTeam={toKoreanTeamName(match.homeTeam.name)}
             awayTeam={toKoreanTeamName(match.awayTeam.name)}
             league={match.league}
+            homeStarterPhoto={homeStarterPhoto}
+            awayStarterPhoto={awayStarterPhoto}
           />
         ),
       },
@@ -495,6 +503,8 @@ export default async function MatchInsight({
           homeTeam={toKoreanTeamName(match.homeTeam.name)}
           awayTeam={toKoreanTeamName(match.awayTeam.name)}
           league={match.league}
+          homeStarterPhoto={homeStarterPhoto}
+          awayStarterPhoto={awayStarterPhoto}
         />
       )}
       {hasGoalies && (
@@ -1270,12 +1280,16 @@ function StarterCard({
   homeTeam,
   awayTeam,
   league,
+  homeStarterPhoto,
+  awayStarterPhoto,
 }: {
   home: MlbStarterInfo | null;
   away: MlbStarterInfo | null;
   homeTeam: string;
   awayTeam: string;
   league?: string;
+  homeStarterPhoto?: string;
+  awayStarterPhoto?: string;
 }) {
   // ERA 비교 — 낮은 쪽이 우세
   const homeBetterEra =
@@ -1306,6 +1320,7 @@ function StarterCard({
           side="원정"
           highlight={awayBetterEra}
           league={league}
+          photoUrl={awayStarterPhoto}
         />
         <StarterPanel
           starter={home}
@@ -1313,6 +1328,7 @@ function StarterCard({
           side="홈"
           highlight={homeBetterEra}
           league={league}
+          photoUrl={homeStarterPhoto}
         />
       </div>
       {(home || away) && (home?.era != null || away?.era != null) && (
@@ -1331,12 +1347,14 @@ function StarterPanel({
   side,
   highlight,
   league,
+  photoUrl,
 }: {
   starter: MlbStarterInfo | null;
   teamName: string;
   side: "홈" | "원정";
   highlight: boolean;
   league?: string;
+  photoUrl?: string;
 }) {
   if (!starter) {
     return (
@@ -1361,14 +1379,17 @@ function StarterPanel({
         ? Number(starter.pid)
         : starter.pid
       : null;
+  // NPB 는 pid 로 URL 생성 불가 → SSR 단에서 npb.jp scraping 한 photoUrl 주입받아 사용.
   const photo =
-    pidNum != null && Number.isFinite(pidNum)
-      ? league === "MLB"
-        ? mlbHeadshotUrl(pidNum)
-        : league === "KBO"
-          ? kboPhotoUrl(pidNum)
-          : null
-      : null;
+    league === "NPB"
+      ? photoUrl ?? null
+      : pidNum != null && Number.isFinite(pidNum)
+        ? league === "MLB"
+          ? mlbHeadshotUrl(pidNum)
+          : league === "KBO"
+            ? kboPhotoUrl(pidNum)
+            : null
+        : null;
 
   return (
     <div
