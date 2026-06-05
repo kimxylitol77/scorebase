@@ -12,6 +12,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
+import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,9 @@ export default async function StandingsPage({ params }: Props) {
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
   const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper);
   const tsStandings = isSoccerLeague ? await fetchStandingsForLeague(upper) : null;
+  // 야구(KBO/NPB) 순위는 TheSports season/table/detail 공식 순위 사용 (DB 매치 계산보다 정확).
+  const baseballTable =
+    upper === "KBO" || upper === "NPB" ? await fetchBaseballTable(upper) : null;
 
   // 시즌 매치 (recent form dots 용 + fallback 계산용)
   const matches = await prisma.match.findMany({
@@ -111,6 +115,25 @@ export default async function StandingsPage({ params }: Props) {
       rows = tsRows;
       source = "ts";
     }
+  }
+
+  // 야구(KBO/NPB) — TheSports 공식 순위 (season/table/detail). 미매핑/실패 시 calc fallback.
+  if (source === "calc" && baseballTable && baseballTable.length > 0) {
+    rows = baseballTable.map((r) => ({
+      position: r.position,
+      teamId: r.ourTeamId,
+      played: r.played,
+      wins: r.wins,
+      draws: r.draws,
+      losses: r.losses,
+      goalsFor: r.goalsFor,
+      goalsAgainst: r.goalsAgainst,
+      goalDiff: r.goalsFor - r.goalsAgainst,
+      points: r.wins * 3,
+      promotionColor: undefined,
+      promotionName: undefined,
+    }));
+    source = "ts";
   }
 
   if (source === "calc") {
