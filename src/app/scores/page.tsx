@@ -646,6 +646,8 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 중이므로 SCHEDULED 매치도 포함, FINISHED 만 제외.
   const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
+  // 축구 라인업(cache.lineup) 실제 존재 매치 — L 배지용 (리그 whitelist 대신 실제 유무).
+  const lineupMatchIdSet = new Set<number>();
   const footballScoreByMatchId = new Map<number, TsFootballScoreParsed>();
   // 하키 (특히 IIHF_WC) 피리어드 점수표 — ESPN periodMap 에 없는 매치는 cache 에서 추출.
   const hockeyPeriodByMatchId = new Map<number, PeriodLinescoreData>();
@@ -717,7 +719,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   if (cacheIds.length > 0) {
     const caches = await prisma.theSportsMatchCache.findMany({
       where: { matchId: { in: cacheIds } },
-      select: { matchId: true, detailLive: true },
+      select: { matchId: true, detailLive: true, lineup: true },
     });
     const soccerIdSet = new Set(soccerMatchIds);
     const baseballIdSet = new Set(baseballLiveDbIds);
@@ -726,6 +728,15 @@ export default async function ScoresPage({ searchParams }: Props) {
     const basketballLabelIdSet = new Set(basketballLabelMatchIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
+      // 축구 라인업 존재 — cache.lineup 이 비어있지 않은 객체면 L 배지 (football-poller 가 빈 건 null 로 저장).
+      if (
+        soccerIdSet.has(c.matchId) &&
+        c.lineup &&
+        typeof c.lineup === "object" &&
+        Object.keys(c.lineup as object).length > 0
+      ) {
+        lineupMatchIdSet.add(c.matchId);
+      }
       const dl = c.detailLive as
         | {
             incidents?: unknown;
@@ -1588,6 +1599,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   scheduledList={visibleScheduled}
                   finishedList={visibleFinished}
                   postponedList={visiblePostponed}
+                  lineupSet={lineupMatchIdSet}
                 />
               </div>
             )}
@@ -1742,11 +1754,14 @@ function SoccerRowLayout({
   scheduledList,
   finishedList,
   postponedList,
+  lineupSet,
 }: {
   liveList: NormalizedMatch[];
   scheduledList: NormalizedMatch[];
   finishedList: NormalizedMatch[];
   postponedList: NormalizedMatch[];
+  /** cache.lineup 존재 매치 id — L 배지용 */
+  lineupSet: Set<number>;
 }) {
   const renderRow = (m: NormalizedMatch) => {
     const statusKey: "scheduled" | "live" | "finished" | "postponed" =
@@ -1792,6 +1807,7 @@ function SoccerRowLayout({
         homeFifaRank={m.home.fifaRank ?? null}
         awayFifaRank={m.away.fifaRank ?? null}
         awayFirst={BASEBALL_LEAGUES.has(m.league)}
+        hasLineup={lineupSet.has(Number(m.id))}
       />
     );
   };

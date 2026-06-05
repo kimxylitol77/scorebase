@@ -14,18 +14,6 @@ import FavoriteStar from "../FavoriteStar";
 import { useScoreFlash } from "../useScoreFlash";
 import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
 
-// TheSports football-poller 가 lineup.detail 풍부 cover 하는 리그.
-// 메모리 [project_thesports_trial] 의 라이브 데이터 cover 현황 참고 — 메이저 + 한국/일본 + AFC.
-const LINEUP_LEAGUES = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "UCL", "UEL", "UECL",
-  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE",
-  "AFC_CL", "AFC_CL_TWO", "AFC_U23",
-  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
-  "EREDIVISIE", "PRIMEIRA_LIGA", "MLS", "BRASILEIRAO", "LIGA_MX",
-  "INDIA_ISL", "SAUDI_PL",
-]);
-
 export interface SoccerLiveRowProps {
   matchId: string | number;
   league: string;
@@ -67,6 +55,8 @@ export interface SoccerLiveRowProps {
   /** true 면 점수 증가 시 득점한 팀 숫자 뒤에 halo flash (야구 compact 행 전용).
       축구는 recentGoalSide 로 이미 골 임팩트 효과가 있어 켜지 않음. */
   enableScoreFlash?: boolean;
+  /** TheSports cache.lineup 실제 존재 시 true → L 배지 표시 (리그 whitelist 대신 실제 라인업 유무). */
+  hasLineup?: boolean;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -115,6 +105,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayFifaRank,
     awayFirst,
     enableScoreFlash,
+    hasLineup,
   } = props;
 
   // 행 전체가 <a>/<Link> 라 내부 링크를 anchor 로 두면 nested anchor (invalid HTML +
@@ -395,11 +386,11 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             예측
           </button>
         )}
-        {href && LINEUP_LEAGUES.has(league) && (
+        {href && hasLineup && (
           <button
             type="button"
             onClick={openInNewTab(href)}
-            title="라인업 (TheSports cover)"
+            title="라인업"
             className="inline-flex items-center justify-center w-6 h-5 rounded text-[9px] font-bold bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition cursor-pointer"
           >
             L
