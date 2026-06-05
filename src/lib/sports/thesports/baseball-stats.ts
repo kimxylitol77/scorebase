@@ -89,12 +89,36 @@ export function extractTeamStats(stats: unknown): TeamStatRow[] {
 // ⚠️ 기존 613=AB·614=PA 는 추정 오매핑이었음 → 정정(613=Position 이라 stat 컬럼 제외, 614=AB).
 // 현재 cache 에 선수 stat 유입이 희소(실측 0/40·메모리 1/50)해 핵심만 라벨링.
 // 데이터 유입 확인되면 위 공식 매핑으로 타자/투수 컬럼 확장(빈 컬럼 방지 위해 보류).
+// KBO/NPB cache 에 타자 613~633·투수 634~649 풀 유입 확인 (2026-06-05 실측, MLB 는 미유입).
+// playerStatColumns 가 key 오름차순으로 컬럼 표시 → 타자 AB R H RBI HR SO BB / 투수 IP H ER BB SO.
+// 단일경기 cache 에 0 으로만 오는 누적성 stat(618 AVG·639 ERA·640 P)은 제외.
 const PLAYER_STAT_LABEL: Record<number, { label: string; decimal: boolean; type: "batter" | "pitcher" | "both" }> = {
-  614: { label: "AB", decimal: false, type: "batter" }, // At Bats (공식)
-  // 투수 stats
-  634: { label: "IP", decimal: true, type: "pitcher" }, // Innings Pitched (공식)
-  640: { label: "P", decimal: false, type: "pitcher" }, // Pitches (공식)
+  // 타자
+  614: { label: "AB", decimal: false, type: "batter" }, // 타수
+  615: { label: "R", decimal: false, type: "batter" }, // 득점
+  616: { label: "H", decimal: false, type: "batter" }, // 안타
+  617: { label: "RBI", decimal: false, type: "batter" }, // 타점
+  621: { label: "HR", decimal: false, type: "batter" }, // 홈런
+  650: { label: "SO", decimal: false, type: "batter" }, // 삼진
+  651: { label: "BB", decimal: false, type: "batter" }, // 볼넷
+  // 투수
+  634: { label: "IP", decimal: false, type: "pitcher" }, // 이닝 (8.2=8⅔ 표기 위해 정수문자열 유지)
+  635: { label: "H", decimal: false, type: "pitcher" }, // 피안타
+  636: { label: "ER", decimal: false, type: "pitcher" }, // 자책
+  637: { label: "BB", decimal: false, type: "pitcher" }, // 볼넷
+  638: { label: "SO", decimal: false, type: "pitcher" }, // 삼진
 };
+
+// 타자 포지션 코드 (stat_id 613) — TheSports 공식. 박스스코어 타자 이름 옆 표기.
+export const BASEBALL_POSITION: Record<number, string> = {
+  1: "DH", 2: "C", 3: "1B", 4: "2B", 5: "3B", 6: "CF", 7: "LF", 8: "RF",
+  9: "SS", 10: "PH", 11: "PR", 12: "SP", 13: "RP", 14: "P",
+};
+
+/** stat_id 613(포지션 코드) → 약칭. 없으면 빈 문자열. */
+export function baseballPositionLabel(code: number | undefined): string {
+  return code != null ? (BASEBALL_POSITION[code] ?? "") : "";
+}
 
 export interface PlayerStatRow {
   playerId: string;

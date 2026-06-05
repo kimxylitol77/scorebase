@@ -15,6 +15,7 @@
 import { useState } from "react";
 import BaseballWpaChart from "./BaseballWpaChart";
 import LiveOddsCard from "./LiveOddsCard";
+import { baseballPositionLabel } from "@/lib/sports/thesports/baseball-stats";
 
 interface PlayerStatRow {
   playerId: string;
@@ -278,6 +279,7 @@ function StatTable({
           {rows.map((p) => {
             const photo = koPhoto(p.playerId);
             const name = koName(p.playerId);
+            const pos = roleLabel === "타자" ? baseballPositionLabel(p.stats[613]) : "";
             return (
             <tr
               key={p.playerId}
@@ -301,6 +303,11 @@ function StatTable({
                     </span>
                   )}
                   <span className="font-medium truncate">{name}</span>
+                  {pos && (
+                    <span className="text-[10px] font-normal text-neutral-400 shrink-0">
+                      {pos}
+                    </span>
+                  )}
                 </div>
               </td>
               {columns.map((c) => (
