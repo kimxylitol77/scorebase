@@ -120,8 +120,10 @@ export function mapFootballStatus(statusId: number): NormalizedMatch["status"] {
   if (statusId === 8) return "FINISHED";
   // 추정 — 진행 중 매치 코드 (1~7 정도?)
   if (statusId >= 1 && statusId <= 7) return "LIVE";
-  // 추정 — 예정/연기
-  if (statusId === 9 || statusId === 10) return "POSTPONED";
+  // 9=Delay, 10=Interrupt, 12=Cancel — 연기/취소.
+  // 12 누락 시 취소 경기가 SCHEDULED 로 방치돼 stale stuck → cleanup 봇이 뒤처리
+  // (2026-06-05 적도기니 vs 부룬디 #314637, TheSports 는 12 로 정확히 줬으나 미매핑).
+  if (statusId === 9 || statusId === 10 || statusId === 12) return "POSTPONED";
   return "SCHEDULED";
 }
 
