@@ -53,6 +53,23 @@ async function fetchTsStandings(seasonId) {
   return data.results;
 }
 
+// 야구 (KBO/NPB) — baseball season/table/detail (축구와 endpoint 다름).
+// ⚠️ season_id 는 시즌마다 변경 — 매 시즌 초 /v1/baseball/season/list 에서
+//   unique_tournament_id(KBO 56ypq36s0o9qd7o·NPB 9k82re4svpxqepz) + 최신 year 로 갱신.
+const BASEBALL_SEASONS = [
+  { code: "KBO", seasonId: "318q63s4v00qo9j" },
+  { code: "NPB", seasonId: "pxwrxgsj10kmyk0" },
+];
+
+async function fetchBaseballStandings(seasonId) {
+  const { data } = await axios.get(`${TS_BASE}/v1/baseball/season/table/detail`, {
+    params: { user: TS_USER, secret: TS_SECRET, uuid: seasonId },
+    timeout: 30_000,
+  });
+  if (data.code !== 0) throw new Error(`ts code=${data.code} err=${data.err ?? ""}`);
+  return data.results;
+}
+
 async function postCache(league, tsSeasonId, payload) {
   const res = await axios.post(
     `${SITE_URL}/api/internal/thesports-standings`,
@@ -95,6 +112,25 @@ async function poll() {
     }
     await sleep(CALL_GAP_MS);
   }
+
+  // 야구 (KBO/NPB) — baseball season/table/detail → 같은 postCache (league별 cache)
+  for (const b of BASEBALL_SEASONS) {
+    try {
+      const payload = await fetchBaseballStandings(b.seasonId);
+      if (!payload || !Array.isArray(payload.tables)) {
+        console.warn(`  skip ${b.code} — empty payload`);
+        continue;
+      }
+      await postCache(b.code, b.seasonId, payload);
+      ok++;
+    } catch (e) {
+      err++;
+      const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
+      console.error(`  ✗ ${b.code} (${b.seasonId}): ${msg}`);
+    }
+    await sleep(CALL_GAP_MS);
+  }
+
   console.log(`[${new Date().toISOString()}] summary: ok=${ok} err=${err}`);
 }
 
