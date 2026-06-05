@@ -116,14 +116,20 @@ function normalizeFootballMatch(
  * 임시 매핑 — 화요일 라이브 매치 받으면 진행 중 코드 검증 후 정정.
  */
 export function mapFootballStatus(statusId: number): NormalizedMatch["status"] {
-  // 8 = 종료된 매치 (5/17 sample 검증)
+  // 8 = End(종료). (5/17 sample + production 397건 검증)
   if (statusId === 8) return "FINISHED";
-  // 추정 — 진행 중 매치 코드 (1~7 정도?)
-  if (statusId >= 1 && statusId <= 7) return "LIVE";
+  // 2=전반, 3=하프타임, 4=후반, 5/6=연장, 7=승부차기 → 진행 중(LIVE).
+  // status_id 1 = Not started(예정)는 LIVE 에서 분리해 SCHEDULED 로.
+  //   - 야구/하키/농구 docs 모두 1 = Not started (status-codes.ts, TheSports 종목 공통 스킴).
+  //   - production 검증: LIVE 축구 매치의 score[1]은 4(후반)만 관측, status_id=1 인 LIVE 0건.
+  //   - 1 을 LIVE 로 묶으면 킥오프 직후~지연 킥오프 구간의 예정 경기가 LIVE 로 오표시됨
+  //     (cache route blockByFuture 가드는 미래 매치만 막아 이 구간은 못 거름, 2026-06-05 검증).
+  if (statusId >= 2 && statusId <= 7) return "LIVE";
   // 9=Delay, 10=Interrupt, 12=Cancel — 연기/취소.
   // 12 누락 시 취소 경기가 SCHEDULED 로 방치돼 stale stuck → cleanup 봇이 뒤처리
   // (2026-06-05 적도기니 vs 부룬디 #314637, TheSports 는 12 로 정확히 줬으나 미매핑).
   if (statusId === 9 || statusId === 10 || statusId === 12) return "POSTPONED";
+  // 1=Not started, 11=Cut in half, 13=TBD 등 → SCHEDULED.
   return "SCHEDULED";
 }
 
