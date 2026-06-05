@@ -25,7 +25,10 @@ export interface TeamStatRow {
 //   610 = SB (도루) — 14/17 match
 //   611 = AB (타석) — 13/17 match
 //   612 = AVG (타율) — 28/28 H/AB 산식 일치
-// 607 만 미확정 (단일 stat candidate 매칭 0/17). 라벨 제외.
+// 607 = LOB (Left on base, 잔루) — 2026-06-05 TheSports 공식 코드표로 확정
+//   (기존 "미확정 0/17" → 라벨 확정). 단 cache 값이 0 빈번이라 TEAM_STAT_ORDER 엔
+//   미포함(표시 보류). 공식 팀 Batters: 601=H 603=2B 604=3B 605=HR 606=RBI
+//   607=LOB 608=BB 609=SO 610=SB 611=AB 612=AVG 652=TB 653=OBP 654=SLG 655=OPS 677=R.
 const TEAM_STAT_LABEL: Record<number, { label: string; decimal: boolean }> = {
   601: { label: "안타 (H)", decimal: false },
   602: { label: "실책 (E)", decimal: false },
@@ -33,6 +36,7 @@ const TEAM_STAT_LABEL: Record<number, { label: string; decimal: boolean }> = {
   604: { label: "3루타", decimal: false },
   605: { label: "홈런 (HR)", decimal: false },
   606: { label: "타점 (RBI)", decimal: false },
+  607: { label: "잔루 (LOB)", decimal: false }, // 공식 확정, cache 값 0 빈번 → ORDER 미포함
   608: { label: "볼넷 (BB)", decimal: false },
   609: { label: "삼진 (SO)", decimal: false },
   610: { label: "도루 (SB)", decimal: false },
@@ -75,14 +79,21 @@ export function extractTeamStats(stats: unknown): TeamStatRow[] {
 }
 
 // PLAYER stats — detail_live.players.{home,away}: [{ id, stats: [[stat_id, val], ...] }]
+// 공식 매핑 (TheSports baseball Player Statistics 코드표, 2026-06-05 확정):
+//   타자: 613=Position(포지션코드 1~14·stat 아님) 614=AB 615=R 616=H 617=RBI
+//         618=AVG 619=2B 620=3B 621=HR 622=GIDP 627=TB 650=SO 651=BB
+//         681=OBP 682=SLG 683=OPS / 주루 628=SB 629=CS 630=PickedOff
+//         수비 631=PB 632=E 633=A
+//   투수: 634=IP 635=H 636=ER 637=BB 638=SO 639=ERA 640=Pitches 641=Strikes
+//         644=BF 645=WP 646=HBP 647=IBB 648=HRAllowed 649=RAllowed 702=K/9 705=WHIP
+// ⚠️ 기존 613=AB·614=PA 는 추정 오매핑이었음 → 정정(613=Position 이라 stat 컬럼 제외, 614=AB).
+// 현재 cache 에 선수 stat 유입이 희소(실측 0/40·메모리 1/50)해 핵심만 라벨링.
+// 데이터 유입 확인되면 위 공식 매핑으로 타자/투수 컬럼 확장(빈 컬럼 방지 위해 보류).
 const PLAYER_STAT_LABEL: Record<number, { label: string; decimal: boolean; type: "batter" | "pitcher" | "both" }> = {
-  // 타자 stats (613~633 중 가장 흔한 것만 일단 라벨링).
-  // 자주 0 인 stat_id 는 표시 가치 낮음 → hide. 큰 값 stat_id 우선.
-  613: { label: "AB", decimal: false, type: "batter" }, // avg 3.87 — at-bats
-  614: { label: "PA", decimal: false, type: "batter" }, // avg 3.11 — plate appearances 추정
+  614: { label: "AB", decimal: false, type: "batter" }, // At Bats (공식)
   // 투수 stats
-  634: { label: "IP", decimal: true, type: "pitcher" }, // decimal max 8 — innings pitched
-  640: { label: "P", decimal: false, type: "pitcher" }, // max 106 — pitch count
+  634: { label: "IP", decimal: true, type: "pitcher" }, // Innings Pitched (공식)
+  640: { label: "P", decimal: false, type: "pitcher" }, // Pitches (공식)
 };
 
 export interface PlayerStatRow {
