@@ -728,14 +728,21 @@ export default async function ScoresPage({ searchParams }: Props) {
     const basketballLabelIdSet = new Set(basketballLabelMatchIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
-      // 축구 라인업 존재 — cache.lineup 이 비어있지 않은 객체면 L 배지 (football-poller 가 빈 건 null 로 저장).
-      if (
-        soccerIdSet.has(c.matchId) &&
-        c.lineup &&
-        typeof c.lineup === "object" &&
-        Object.keys(c.lineup as object).length > 0
-      ) {
-        lineupMatchIdSet.add(c.matchId);
+      // 축구 라인업 L 배지 — SoccerLineupSvg 의 ready 조건과 동일하게: 양팀 선발(first=1) 중
+      // 좌표 배치된(x>0||y>0) 선수 7명+ 일 때만. squad 명단만(좌표 0,0·선발 0)인 "확정 대기"
+      // 상태는 미표시 (2026-06-05 #314645 China:Singapore confirmed=1 이나 선발 0 → L 오표시 수정).
+      if (soccerIdSet.has(c.matchId) && c.lineup && typeof c.lineup === "object") {
+        const inner = (c.lineup as { lineup?: { home?: unknown[]; away?: unknown[] } }).lineup;
+        const placedStarters = (arr: unknown): number =>
+          Array.isArray(arr)
+            ? arr.filter((p) => {
+                const pp = p as { first?: number; x?: number; y?: number };
+                return pp.first === 1 && ((Number(pp.x) || 0) > 0 || (Number(pp.y) || 0) > 0);
+              }).length
+            : 0;
+        if (placedStarters(inner?.home) >= 7 && placedStarters(inner?.away) >= 7) {
+          lineupMatchIdSet.add(c.matchId);
+        }
       }
       const dl = c.detailLive as
         | {
