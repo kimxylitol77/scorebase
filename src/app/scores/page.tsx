@@ -1592,6 +1592,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                     preview: m.preview,
                     recap: m.recap,
                     recentGoalSide: m.recentGoalSide ?? null,
+                    hasLineup: lineupMatchIdSet.has(Number(m.id)),
                   }))}
                 />
                 <SoccerRowLayout
@@ -1664,6 +1665,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   preview: m.preview,
                   recap: m.recap,
                   recentGoalSide: m.recentGoalSide ?? null,
+                  hasLineup: lineupMatchIdSet.has(Number(m.id)),
                 }))}
               />
               {isToday && liveList.length > 0 && (

@@ -50,6 +50,8 @@ interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
   recap?: string;
   /** 최근 1분 내 골 측 — 점수 셀 노란 ring + pulse */
   recentGoalSide?: "home" | "away" | null;
+  /** 축구 라인업(cache.lineup) 존재 여부 — 데스크탑 L 배지용 */
+  hasLineup?: boolean;
 }
 
 interface Props {
@@ -408,6 +410,7 @@ function CompactRow({ match }: { match: MatchEntry }) {
           awayPosition={match.away.position ?? null}
           awayFirst={match.league === "KBO" || match.league === "NPB" || match.league === "MLB"}
           enableScoreFlash={match.sport === "baseball"}
+          hasLineup={match.hasLineup}
         />
       </div>
     </li>
