@@ -19,6 +19,25 @@ interface Group {
 
 const GROUPS: Group[] = [
   {
+    label: "경기 분석",
+    items: [
+      { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
+      { href: "/predictions", label: "예측", desc: "시즌 시뮬레이션" },
+      { href: "/value-bets", label: "밸류 베트", desc: "Elo vs 배당" },
+      { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자" },
+    ],
+  },
+  {
+    label: "커뮤니티",
+    items: [
+      { href: "/notices", label: "공지사항", desc: "공지 · 패치노트" },
+      { href: "/blog", label: "블로그", desc: "데이터 인사이트" },
+      { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 · 적중" },
+      { href: "/experts", label: "🏆 예측 전문가", desc: "적중률 순위" },
+      { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
+    ],
+  },
+  {
     label: "축구",
     items: [
       { href: "/leagues/WORLD_CUP", label: "FIFA 월드컵 2026", desc: "북중미 6/11~" },
@@ -114,42 +133,12 @@ export default function MobileMenu() {
             라이브 스코어
           </Link>
 
-          {/* 예측 진입점 강조 */}
+          {/* 예측 대시보드 — 플래그십 CTA */}
           <Link
             href="/predictions"
-            className="block w-full mb-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold text-center shadow-sm"
+            className="block w-full mb-4 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold text-center shadow-sm"
           >
             시즌 예측 대시보드
-          </Link>
-          <Link
-            href="/analysis"
-            className="flex items-center justify-center gap-2 w-full mb-3 px-4 py-3 rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/15 transition"
-          >
-            🏆 스포츠 분석 · 적중률 랭킹
-          </Link>
-          <Link
-            href="/experts"
-            className="flex items-center justify-center gap-2 w-full mb-3 px-4 py-3 rounded-xl border border-sky-300 dark:border-sky-500/40 bg-sky-50 dark:bg-sky-500/10 font-semibold text-sky-800 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/15 transition"
-          >
-            🏆 예측 전문가 순위
-          </Link>
-          <Link
-            href="/previews"
-            className="block w-full mb-3 px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 font-semibold text-center text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
-          >
-            프리뷰 모음 (종목별)
-          </Link>
-          <Link
-            href="/injuries"
-            className="block w-full mb-3 px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 font-semibold text-center text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
-          >
-            부상자 명단
-          </Link>
-          <Link
-            href="/notices"
-            className="block w-full mb-4 px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 font-semibold text-center text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
-          >
-            공지사항 · 패치노트
           </Link>
 
           {/* 카테고리별 */}
