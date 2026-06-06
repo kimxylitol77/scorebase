@@ -14,6 +14,7 @@ import { getSportFromLeague } from "@/lib/players/types";
 import rawTOverrides from "../../../../data/player-overrides.json";
 import rawTPhotos from "../../../../data/player-photos.json";
 import rawTPos from "../../../../data/player-positions.json";
+import rawClubRank from "../../../../data/club-rank-by-team.json";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -37,6 +38,8 @@ export const dynamic = "force-dynamic";
 const T_OVERRIDES = rawTOverrides as Record<string, { nameKo?: string; flag?: string }>;
 const T_PHOTOS = rawTPhotos as Record<string, string>;
 const T_POS = rawTPos as Record<string, string>;
+// 세계 클럽 랭킹 (ts team id → 순위, 2729팀). 팀 헤더 배지용. [[club-ranking]]
+const CLUB_RANK = rawClubRank as Record<string, number>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -244,6 +247,7 @@ export default async function TeamPage({ params }: Props) {
 
   // TheSports 선수단 (PlayerMarketValue, ts player id) — 이름 클릭 → /transfers 상세
   const tsTeamRows = await prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } });
+  const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; flag: string | null }[] = [];
   if (tsTeamRows.length) {
     const pmv = await prisma.playerMarketValue.findMany({
@@ -295,12 +299,21 @@ export default async function TeamPage({ params }: Props) {
                 />
               ))}
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <LeagueBadge league={team.league} />
                 {team.shortName && (
                   <span className="text-xs text-neutral-500">
                     {team.shortName}
                   </span>
+                )}
+                {clubRank && (
+                  <Link
+                    href="/predictions/club-ranking"
+                    className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 transition"
+                    title="세계 클럽 랭킹"
+                  >
+                    🌍 세계 {clubRank}위
+                  </Link>
                 )}
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
