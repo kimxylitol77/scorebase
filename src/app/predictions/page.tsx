@@ -23,6 +23,10 @@ import {
   fifaFlag,
   FIFA_RANKING_DATE,
 } from "@/lib/sports/fifa-rankings";
+import rawClubRankings from "../../../data/club-rankings.json";
+
+// 세계 클럽 랭킹 top5 — 대시보드 FIFA 랭킹 옆 카드용 (정적 JSON)
+const CLUB_RANKINGS = rawClubRankings as { rank: number; name: string; logo: string | null }[];
 
 // b14e3e6 baseline 동일 — 둘 다 export. (force-dynamic 우선 + revalidate hint)
 export const dynamic = "force-dynamic";
@@ -155,12 +159,18 @@ function buildFifaRanking(): { rank: number; name: string; flag: string }[] {
   }));
 }
 
+// 세계 클럽 랭킹 top5 — 한글 클럽명 + 로고
+function buildClubRanking(): { rank: number; name: string; logo: string | null }[] {
+  return CLUB_RANKINGS.slice(0, 5).map((c) => ({ rank: c.rank, name: toKoreanTeamName(c.name) || c.name, logo: c.logo }));
+}
+
 export default async function PredictionsRoot() {
   const [top3, countryGroups] = await Promise.all([
     fetchTop3Map(),
     fetchCountryStandings(),
   ]);
   const fifaRanking = buildFifaRanking();
+  const clubRanking = buildClubRanking();
   return (
     <>
       <script
@@ -172,6 +182,7 @@ export default async function PredictionsRoot() {
         countryGroups={countryGroups}
         fifaRanking={fifaRanking}
         fifaDate={FIFA_RANKING_DATE}
+        clubRanking={clubRanking}
       />
     </>
   );

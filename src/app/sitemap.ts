@@ -23,7 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/injuries`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/transfers`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/predictions/club-ranking`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/predictions/top-scorers`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/previews`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     ...["SOCCER", "BASEBALL", "BASKETBALL", "HOCKEY", "ESPORTS"].map((sport) => ({
       url: `${base}/previews?sport=${sport}`,

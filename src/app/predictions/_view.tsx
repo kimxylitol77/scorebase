@@ -28,6 +28,8 @@ interface ViewProps {
   fifaRanking: { rank: number; name: string; flag: string }[];
   /** FIFA 랭킹 발표 일자 (YYYY-MM-DD) */
   fifaDate: string;
+  /** 세계 클럽 랭킹 top 5 (rank asc) */
+  clubRanking: { rank: number; name: string; logo: string | null }[];
 }
 
 const featureCards: Array<{
@@ -46,6 +48,7 @@ export default function PredictionsView({
   countryGroups,
   fifaRanking,
   fifaDate,
+  clubRanking,
 }: ViewProps) {
   return (
     <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
@@ -254,6 +257,44 @@ export default function PredictionsView({
                                 {c.rank}
                               </span>
                               <span className="shrink-0 text-sm leading-none">{c.flag}</span>
+                              <span className="truncate text-zinc-700 dark:text-white/80">{c.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-zinc-400 transition group-hover:text-zinc-900 dark:text-white/40 dark:group-hover:text-white">
+                          전체 랭킹 보기 <ChevronRight className="h-3 w-3" />
+                        </span>
+                      </div>
+                    </Link>
+                  )}
+                  {/* 세계 클럽 랭킹 — FIFA 랭킹 옆 카드. 클릭 시 /predictions/club-ranking. */}
+                  {sport === "축구" && clubRanking.length > 0 && (
+                    <Link
+                      href="/predictions/club-ranking"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      prefetch={false}
+                      className="group relative block overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:hover:bg-white/[0.06] dark:shadow-none"
+                    >
+                      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500" />
+                      <div className="p-5 pb-3">
+                        <h4 className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-zinc-950 group-hover:underline underline-offset-4 decoration-2 dark:text-white">
+                          <Trophy className="h-4 w-4 text-zinc-500 dark:text-white/50" />
+                          클럽 랭킹
+                        </h4>
+                        <p className="mt-1 text-xs text-zinc-500 dark:text-white/45">세계 축구 클럽 순위</p>
+                      </div>
+                      <div className="px-5 pb-5 space-y-3">
+                        <div className="space-y-1">
+                          {clubRanking.slice(0, 5).map((c) => (
+                            <div key={c.rank} className="flex items-center gap-2 text-xs">
+                              <span className="w-4 text-center tabular-nums font-bold text-zinc-400 dark:text-white/35">{c.rank}</span>
+                              {c.logo ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={c.logo} alt="" className="w-4 h-4 shrink-0 object-contain" />
+                              ) : (
+                                <span className="w-4 shrink-0" />
+                              )}
                               <span className="truncate text-zinc-700 dark:text-white/80">{c.name}</span>
                             </div>
                           ))}
