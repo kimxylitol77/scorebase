@@ -15,6 +15,13 @@ export interface MatchOption {
   timeLabel: string;
   hcLine: number | null;
   ouLine: number | null;
+  oddsHome: number | null;
+  oddsDraw: number | null;
+  oddsAway: number | null;
+  oddsHcHome: number | null;
+  oddsHcAway: number | null;
+  oddsOver: number | null;
+  oddsUnder: number | null;
 }
 
 interface Props {
@@ -31,6 +38,7 @@ const SPORTS = [
 const initial: PostFormState = { ok: true };
 
 const fmtLine = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+const fmtOdds = (n: number) => n.toFixed(2);
 
 function pickText(m: MatchOption, market: string, pick: string): string {
   if (market === "1X2")
@@ -55,11 +63,15 @@ const chip = (active: boolean) =>
   }`;
 
 const pickBtn = (active: boolean) =>
-  `flex-1 min-w-[84px] px-3 py-2.5 rounded-lg text-sm font-bold border transition ${
+  `flex-1 min-w-[84px] px-3 py-2 rounded-lg text-sm font-bold border transition flex flex-col items-center justify-center gap-0.5 ${
     active
       ? "bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white"
       : "border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
   }`;
+
+// 배당 텍스트 — 비활성 버튼은 강조색(rose), 활성(검/흰 배경)은 같은 색 흐리게
+const oddsCls = (active: boolean) =>
+  `text-[11px] font-extrabold tabular-nums ${active ? "opacity-70" : "text-rose-500"}`;
 
 const inputCls =
   "w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/40";
@@ -243,35 +255,56 @@ export default function AnalysisForm({ matchesBySport }: Props) {
               {market === "1X2" && (
                 <>
                   <button type="button" onClick={() => setPick("HOME")} className={pickBtn(pick === "HOME")}>
-                    {selected.home} 승
+                    <span>{selected.home} 승</span>
+                    {selected.oddsHome != null && (
+                      <span className={oddsCls(pick === "HOME")}>{fmtOdds(selected.oddsHome)}</span>
+                    )}
                   </button>
                   {drawAllowed && (
                     <button type="button" onClick={() => setPick("DRAW")} className={pickBtn(pick === "DRAW")}>
-                      무
+                      <span>무</span>
+                      {selected.oddsDraw != null && (
+                        <span className={oddsCls(pick === "DRAW")}>{fmtOdds(selected.oddsDraw)}</span>
+                      )}
                     </button>
                   )}
                   <button type="button" onClick={() => setPick("AWAY")} className={pickBtn(pick === "AWAY")}>
-                    {selected.away} 승
+                    <span>{selected.away} 승</span>
+                    {selected.oddsAway != null && (
+                      <span className={oddsCls(pick === "AWAY")}>{fmtOdds(selected.oddsAway)}</span>
+                    )}
                   </button>
                 </>
               )}
               {market === "HANDICAP" && selected.hcLine != null && (
                 <>
                   <button type="button" onClick={() => setPick("HOME")} className={pickBtn(pick === "HOME")}>
-                    {selected.home} {fmtLine(selected.hcLine)}
+                    <span>{selected.home} {fmtLine(selected.hcLine)}</span>
+                    {selected.oddsHcHome != null && (
+                      <span className={oddsCls(pick === "HOME")}>{fmtOdds(selected.oddsHcHome)}</span>
+                    )}
                   </button>
                   <button type="button" onClick={() => setPick("AWAY")} className={pickBtn(pick === "AWAY")}>
-                    {selected.away} {fmtLine(-selected.hcLine)}
+                    <span>{selected.away} {fmtLine(-selected.hcLine)}</span>
+                    {selected.oddsHcAway != null && (
+                      <span className={oddsCls(pick === "AWAY")}>{fmtOdds(selected.oddsHcAway)}</span>
+                    )}
                   </button>
                 </>
               )}
               {market === "OU" && selected.ouLine != null && (
                 <>
                   <button type="button" onClick={() => setPick("OVER")} className={pickBtn(pick === "OVER")}>
-                    오버 {selected.ouLine}
+                    <span>오버 {selected.ouLine}</span>
+                    {selected.oddsOver != null && (
+                      <span className={oddsCls(pick === "OVER")}>{fmtOdds(selected.oddsOver)}</span>
+                    )}
                   </button>
                   <button type="button" onClick={() => setPick("UNDER")} className={pickBtn(pick === "UNDER")}>
-                    언더 {selected.ouLine}
+                    <span>언더 {selected.ouLine}</span>
+                    {selected.oddsUnder != null && (
+                      <span className={oddsCls(pick === "UNDER")}>{fmtOdds(selected.oddsUnder)}</span>
+                    )}
                   </button>
                 </>
               )}

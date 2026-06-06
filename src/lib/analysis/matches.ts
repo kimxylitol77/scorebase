@@ -60,6 +60,14 @@ export interface UpcomingMatch {
   // 마켓별 기준선 — 배당이 있을 때만 채워짐(없으면 null → 해당 마켓 비활성)
   hcLine: number | null; // 핸디캡 (홈팀 기준)
   ouLine: number | null; // 오버언더 총득점
+  // 실제 시장 배당 (The Odds API) — 메이저 경기만 있고 마이너는 null → 버튼에 있을 때만 표시
+  oddsHome: number | null;
+  oddsDraw: number | null;
+  oddsAway: number | null;
+  oddsHcHome: number | null;
+  oddsHcAway: number | null;
+  oddsOver: number | null;
+  oddsUnder: number | null;
 }
 
 // 배당 없는 경기(국제친선·마이너 리그 등)용 종목별 기본 기준선 — 게시판에서 핸디/OU 픽 허용.
@@ -106,6 +114,13 @@ export async function getUpcomingMatchesForSport(
       awayTeam: { select: { name: true } },
       oddsHcLine: true,
       oddsTotalLine: true,
+      oddsHome: true,
+      oddsDraw: true,
+      oddsAway: true,
+      oddsHcHome: true,
+      oddsHcAway: true,
+      oddsOver: true,
+      oddsUnder: true,
     },
     orderBy: { startTime: "asc" },
     take: limit,
@@ -119,5 +134,12 @@ export async function getUpcomingMatchesForSport(
     away: toKoreanTeamName(m.awayTeam.name, m.league),
     hcLine: m.oddsHcLine ?? DEFAULT_HC_LINE[sport],
     ouLine: m.oddsTotalLine ?? DEFAULT_OU_LINE[sport],
+    oddsHome: m.oddsHome,
+    oddsDraw: m.oddsDraw,
+    oddsAway: m.oddsAway,
+    oddsHcHome: m.oddsHcHome,
+    oddsHcAway: m.oddsHcAway,
+    oddsOver: m.oddsOver,
+    oddsUnder: m.oddsUnder,
   }));
 }

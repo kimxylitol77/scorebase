@@ -30,6 +30,13 @@ export default async function NewAnalysisPage() {
       timeLabel: kstTimeLabel(m.startTime),
       hcLine: m.hcLine,
       ouLine: m.ouLine,
+      oddsHome: m.oddsHome,
+      oddsDraw: m.oddsDraw,
+      oddsAway: m.oddsAway,
+      oddsHcHome: m.oddsHcHome,
+      oddsHcAway: m.oddsHcAway,
+      oddsOver: m.oddsOver,
+      oddsUnder: m.oddsUnder,
     }));
   });
 
