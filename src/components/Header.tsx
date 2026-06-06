@@ -73,6 +73,7 @@ const COMMUNITY_ITEMS: SubItem[] = [
   { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 글 · 예측 적중" },
   { href: "/experts", label: "예측 전문가", desc: "분석가 적중률 순위 · 프로필" },
   { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
+  { href: "/predictions/club-ranking", label: "클럽 랭킹", desc: "세계 축구 클럽 순위" },
 ];
 
 export default function Header() {
