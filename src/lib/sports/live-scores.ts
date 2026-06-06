@@ -12,6 +12,7 @@
 
 // Edge Runtime 호환을 위해 fetch 사용 (axios 제거).
 import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
+import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 
@@ -92,6 +93,10 @@ const LEAGUE_LABEL: Record<string, string> = {
   NBA: "NBA",
   NHL: "NHL",
   LOL: "LCK",
+  LCK_CL: "LCK CL",
+  LPL: "LPL",
+  LEC: "LEC",
+  LCS: "LCS",
 };
 
 // API-Football fixture league_id → 우리 코드 (역매핑)
@@ -1723,13 +1728,11 @@ export async function fetchNhlLive(): Promise<LiveMatch[]> {
 /* ============================================================
  * LoL / LCK — BALLDONTLIE /lol/v1/matches
  * ==========================================================*/
-const LCK_TOURNAMENT_ID = 324;
-
 interface BdlLolMatch {
   id: number;
   tournament: { id: number; name: string };
-  team1: { id: number; name: string };
-  team2: { id: number; name: string };
+  team1: { id: number; name: string } | null;
+  team2: { id: number; name: string } | null;
   team1_score: number;
   team2_score: number;
   bo_type: number; // 3 or 5
@@ -1742,31 +1745,39 @@ function lolStatusLabel(match: BdlLolMatch): string {
   return `${t + 1}게임`;
 }
 
+// LOL 라이브 — 전 리그(LCK 본선·2군 + 해외 LPL/LEC/LCS) tournament 를 한 번에 폴링.
+// tournament → league 매핑은 lol.ts 단일 소스. 해외 리그는 표준시 차이로 매치 날짜가
+// 어제/내일 KST 에 걸칠 수 있어 ±1일 window 로 조회한 뒤 status="current" 만 라이브로 채택.
 export async function fetchLolLive(): Promise<LiveMatch[]> {
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return [];
-  // 오늘 KST 일자
   const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
-  const date = kstNow.toISOString().slice(0, 10);
+  const ymd = (offsetDays: number) =>
+    new Date(kstNow.getTime() + offsetDays * 86400000).toISOString().slice(0, 10);
+  const dateQs = [-1, 0, 1].map((o) => `dates[]=${ymd(o)}`).join("&");
+  const tourQs = LOL_TOURNAMENT_IDS.map((id) => `tournament_ids[]=${id}`).join("&");
   try {
     const data = await getJson<{ data?: BdlLolMatch[] }>(
-      `${BDL_BASE}/lol/v1/matches?dates[]=${date}&tournament_ids[]=${LCK_TOURNAMENT_ID}`,
+      `${BDL_BASE}/lol/v1/matches?${dateQs}&${tourQs}&per_page=100`,
       { Authorization: key },
     );
     return (data.data ?? [])
-      .filter((m) => m.status === "current")
+      // 미정(TBD) 팀은 name=null 로 오므로 제외.
+      .filter((m) => m.status === "current" && m.team1?.name && m.team2?.name)
       .map((m): LiveMatch => {
+        // tournament → league (lol.ts 단일 소스). 미매핑은 LCK 본선("LOL") fallback.
+        const league = TOURNAMENT_TO_LEAGUE[m.tournament?.id] ?? "LOL";
         // BALLDONTLIE team1 = home, team2 = away (DB 매칭 검증 완료)
         const bestOf: 3 | 5 = m.bo_type === 5 ? 5 : 3;
         const totalGames = m.team1_score + m.team2_score;
         return {
           id: `bdllol-${m.id}`,
-          league: "LOL",
-          leagueLabel: LEAGUE_LABEL.LOL ?? "LCK",
-          homeName: m.team1.name,
-          awayName: m.team2.name,
-          homeShort: m.team1.name.slice(0, 4),
-          awayShort: m.team2.name.slice(0, 4),
+          league,
+          leagueLabel: LEAGUE_LABEL[league] ?? league,
+          homeName: m.team1!.name,
+          awayName: m.team2!.name,
+          homeShort: m.team1!.name.slice(0, 4),
+          awayShort: m.team2!.name.slice(0, 4),
           homeScore: m.team1_score,
           awayScore: m.team2_score,
           statusLabel: lolStatusLabel(m),

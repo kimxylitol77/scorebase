@@ -19,11 +19,12 @@ const BASE = "https://api.balldontlie.io/lol/v1";
 // 2군·해외 리그는 여기에만 추가하면 fetchLolAll/collect 가 자동 분기한다.
 //   324=LCK 2026 본선, 31757=Road to MSI (둘 다 "LOL"=LCK), 30626=LCK CL(2군).
 //   (Stage 2: 19349/35115=LPL, 328/336=LEC, 323/337=LCS)
-const TOURNAMENT_TO_LEAGUE: Record<number, League> = {
+// export — collect(fetchLolAll) 와 live-scores(fetchLolLive) 가 같은 매핑을 공유(단일 소스).
+export const TOURNAMENT_TO_LEAGUE: Record<number, League> = {
   324: "LOL",
   31757: "LOL",
   30626: "LCK_CL",
-  // Stage 2 해외(표시만) — 19349/35115=LPL(중국), 328/336=LEC(유럽), 323/337=LCS(북미)
+  // Stage 2 해외 — 19349/35115=LPL(중국), 328/336=LEC(유럽), 323/337=LCS(북미). 라이브 추적 포함.
   19349: "LPL",
   35115: "LPL",
   328: "LEC",
@@ -31,7 +32,7 @@ const TOURNAMENT_TO_LEAGUE: Record<number, League> = {
   323: "LCS",
   337: "LCS",
 };
-const LOL_TOURNAMENT_IDS = Object.keys(TOURNAMENT_TO_LEAGUE).map(Number);
+export const LOL_TOURNAMENT_IDS = Object.keys(TOURNAMENT_TO_LEAGUE).map(Number);
 
 // LCK 10팀 한글명 + 로고 매핑 (BALLDONTLIE team id 기준).
 // 새 시즌에 팀 ID가 바뀌면 추가/수정. logo URL 은 Liquipedia hotlink (600px).

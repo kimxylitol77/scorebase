@@ -8,7 +8,9 @@ export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 const BDL_BASE = "https://api.balldontlie.io";
-const LCK_TOURNAMENT_ID = 324;
+// LOL 라이브 추적 tournament — LCK 본선·2군 + 해외(LPL/LEC/LCS). lol.ts TOURNAMENT_TO_LEAGUE 와 동기.
+// (edge runtime — lol.ts 는 axios import 라 직접 import 불가 → ID 만 로컬 복제)
+const LOL_TOURNAMENT_IDS = [324, 31757, 30626, 19349, 35115, 328, 336, 323, 337];
 const TIMEOUT = 8000;
 
 export interface LolLive {
@@ -100,8 +102,16 @@ export async function GET(
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT);
   try {
+    // 해외 리그는 표준시 차이로 매치 날짜가 ±1일 KST 에 걸칠 수 있어 window 조회 (id 로 정확 매칭).
+    const dates = [-1, 0, 1].map((o) => {
+      const d = new Date(`${date}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + o);
+      return d.toISOString().slice(0, 10);
+    });
+    const dateQs = dates.map((d) => `dates[]=${d}`).join("&");
+    const tourQs = LOL_TOURNAMENT_IDS.map((t) => `tournament_ids[]=${t}`).join("&");
     const res = await fetch(
-      `${BDL_BASE}/lol/v1/matches?dates[]=${date}&tournament_ids[]=${LCK_TOURNAMENT_ID}&per_page=50`,
+      `${BDL_BASE}/lol/v1/matches?${dateQs}&${tourQs}&per_page=100`,
       {
         headers: { Authorization: key },
         signal: ctrl.signal,
