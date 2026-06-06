@@ -9,6 +9,7 @@ import rawOverrides from "../../../../data/player-overrides.json";
 import rawSeason from "../../../../data/player-season-stats.json";
 import rawPhotos from "../../../../data/player-photos.json";
 import rawWiki from "../../../../data/player-wiki-seasons.json";
+import rawAbility from "../../../../data/player-ability.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean }
@@ -27,6 +28,8 @@ const PHOTOS = rawPhotos as Record<string, string>;
 // 과거 시즌 (Wikipedia Career statistics) — 시즌별 클럽 리그/총 출장·골
 interface WikiSeasonRow { season: string; club: string; division: string; lApps: number; lGoals: number; tApps: number; tGoals: number }
 const WIKI = rawWiki as Record<string, WikiSeasonRow[]>;
+// 종합 능력치 (TheSports player/ability comprehensive, 10점=만점x10 아닌 0~100 종합)
+const ABILITY = rawAbility as Record<string, number>;
 
 export const dynamic = "force-dynamic";
 
@@ -242,6 +245,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const career = ov?.career || [];
   const season = SEASON[id];
   const photoUrl = PHOTOS[id] || tsp?.photoUrl || null;
+  const ability = ABILITY[id] ?? null;
 
   // 시즌별 성적 — 현 시즌(TheSports 상세) + 과거 시즌(Wikipedia). 시즌별 collapsible.
   const normSeason = (s: string) => s.replace(/[–—]/g, "-");
@@ -337,6 +341,11 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             {tsp?.position && (
               <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
                 {POS_LABEL[tsp.position]}
+              </span>
+            )}
+            {ability != null && (
+              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" title="종합 능력치">
+                ⭐ 종합 {ability}
               </span>
             )}
             {mv.age != null && <span className="text-sm text-neutral-500">{mv.age}세</span>}

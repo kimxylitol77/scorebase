@@ -13,8 +13,12 @@ const PLAYER_PAGE_LEAGUES = new Set([
   "KBO", "NPB", "MLB", "NBA", "NHL", "LOL",
 ]);
 
+// 빅5 리더보드는 TheSports 시즌통계(ts player id)로 교체됨 → /transfers 상세로 링크. (SERIE_A 는 기존 api-football)
+const TRANSFERS_LEADER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "LIGUE_1"]);
 function playerHref(league: string, externalId: string | null): string | null {
-  if (!externalId || !PLAYER_PAGE_LEAGUES.has(league)) return null;
+  if (!externalId) return null;
+  if (TRANSFERS_LEADER_LEAGUES.has(league)) return `/transfers/${externalId}`;
+  if (!PLAYER_PAGE_LEAGUES.has(league)) return null;
   if (league === "MLB") return `/players/${externalId}`;
   return `/players/${externalId}?league=${league}`;
 }

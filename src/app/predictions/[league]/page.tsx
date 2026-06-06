@@ -24,6 +24,9 @@ import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
+import rawSeasonStats from "../../../../data/player-season-stats.json";
+import rawPlayerOverrides from "../../../../data/player-overrides.json";
+import rawPlayerPhotos from "../../../../data/player-photos.json";
 import TeamFormBadges from "@/components/predictions/TeamFormBadges";
 import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
 import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
@@ -31,6 +34,19 @@ import StandingsOnlyView from "@/components/StandingsOnlyView";
 import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 export const dynamic = "force-dynamic";
+
+// TheSports 시즌 통계 기반 리그 리더보드 (빅5) — 기존 api-football LeagueLeader 대체.
+//  SERIE_A 는 시즌스탯이 2026-27 롤오버로 비어 제외 → 기존 LeagueLeader 유지.
+interface PSeasonStat { lg: string; team: string | null; goals: number | null; assists: number | null; yellow: number | null; red: number | null; matches: number | null }
+const SEASON_STATS = rawSeasonStats as Record<string, PSeasonStat>;
+const P_OVERRIDES = rawPlayerOverrides as Record<string, { nameKo?: string }>;
+const P_PHOTOS = rawPlayerPhotos as Record<string, string>;
+const TS_LEADER_CATS: { cat: string; key: "goals" | "assists" | "yellow" | "red"; unit: string }[] = [
+  { cat: "GOAL", key: "goals", unit: "골" },
+  { cat: "ASSIST", key: "assists", unit: "도움" },
+  { cat: "YELLOW", key: "yellow", unit: "장" },
+  { cat: "RED", key: "red", unit: "장" },
+];
 
 /**
  * NBA/NHL 플레이오프 미정 매치업 placeholder ("TBD", "TTBD", "Sabres/Canadiens" 등) 처리.
@@ -513,7 +529,8 @@ export default async function LeaguePredictions({ params }: Props) {
   });
   const latestSeason = allLeaderRows[0]?.season ?? "";
   const leaderRowsRaw = allLeaderRows.filter((r) => r.season === latestSeason);
-  const leaderSeason = latestSeason;
+  let leaderSeason = latestSeason;
+  let hasTsLeader = false;
   const leaderRowsByCategory: Record<string, LeaderRow[]> = {};
   for (const r of leaderRowsRaw) {
     if (!leaderRowsByCategory[r.category]) leaderRowsByCategory[r.category] = [];
@@ -532,6 +549,29 @@ export default async function LeaguePredictions({ params }: Props) {
       photoUrl: r.photoUrl,
       externalId: r.externalId,
     });
+  }
+
+  // 빅5 = TheSports 시즌 통계(player-season-stats)로 리더보드 교체. SERIE_A 는 시즌스탯 빈값 → 기존 유지.
+  const tsLeaderEntries = Object.entries(SEASON_STATS).filter(([, s]) => s.lg === upper);
+  if (tsLeaderEntries.length) {
+    const sortedByCat = TS_LEADER_CATS.map(({ cat, key, unit }) => ({
+      cat, key, unit,
+      top: tsLeaderEntries.filter(([, s]) => (s[key] ?? 0) > 0).sort((a, b) => (b[1][key] ?? 0) - (a[1][key] ?? 0)).slice(0, 10),
+    }));
+    const ids = [...new Set(sortedByCat.flatMap((c) => c.top.map(([id]) => id)))];
+    const lp = await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, nameKo: true } });
+    const nm = new Map(lp.map((p) => [p.id, p]));
+    const nameOf = (id: string) => P_OVERRIDES[id]?.nameKo || nm.get(id)?.nameKo || nm.get(id)?.name || "선수";
+    for (const k of Object.keys(leaderRowsByCategory)) delete leaderRowsByCategory[k];
+    for (const { cat, key, unit, top } of sortedByCat) {
+      leaderRowsByCategory[cat] = top.map(([id, s], i) => ({
+        rank: i + 1, playerName: nameOf(id), playerNameEn: nm.get(id)?.name ?? null,
+        teamName: toKoreanTeamName(s.team, upper) || s.team || "", teamShort: null,
+        value: s[key] ?? 0, unit, appearances: s.matches, photoUrl: P_PHOTOS[id] || null, externalId: id,
+      }));
+    }
+    leaderSeason = "2025-26";
+    hasTsLeader = (leaderRowsByCategory.GOAL?.length ?? 0) > 0;
   }
 
   return (
@@ -1054,8 +1094,8 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 시즌 리더보드 — 득점/도움/카드 (축구), 향후 종목별 카테고리 확장 */}
-        {leaderRowsRaw.length > 0 && (
+        {/* 시즌 리더보드 — 득점/도움/카드 (축구). 빅5는 TheSports 시즌통계 기반 */}
+        {(leaderRowsRaw.length > 0 || hasTsLeader) && (
           <section>
             <Heading
               title="시즌 리더보드"
