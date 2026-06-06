@@ -45,6 +45,12 @@ const NAME_CURATION: Record<string, string> = {
   pxwrxlhj354wryk: "케난 이을드즈", // Yıldız — DB "케난 예르디즈"
   pxwrxlhv2peryk0: "오렐리앙 추아메니", // Tchouaméni — DB "오렐리앙 쇼아메니"
   l5ergphv83e2r8k: "마르틴 수비멘디", // Zubimendi — DB "마르틴 주비멘디"
+  // 이름 '자체' 오류(성·이름 다름) 교정 — 국적으로 신원 확인
+  l7oqdehleg1r510: "알렉산더 이사크", // Isak — DB "안드레아 이사크"(이름 완전 오류)
+  pxwrxlh93y1oryk: "데스티니 우도기에", // Udogie — DB "이에노마 우도기에"(미들네임)
+  "1l4rjnhxgkgym7v": "후니오르 디아스", // Junior Diaz — DB "미셸 디아즈"
+  pxwrxlh9zk74ryk: "윌리안 파초", // Pacho — DB "윌리엄 테노리오"(성씨 오류)
+  dn1m1ghnkovvmoe: "실라스 카톰파 음붐파", // Silas — DB "실라스 와망기투카"(실명 변경)
 };
 const yr = (t?: string): number | null => (t ? parseInt(t.slice(1, 5), 10) || null : null);
 const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
