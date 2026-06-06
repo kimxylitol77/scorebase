@@ -45,6 +45,10 @@ const NAME_CURATION: Record<string, string> = {
   pxwrxlhj354wryk: "케난 이을드즈", // Yıldız — DB "케난 예르디즈"
   pxwrxlhv2peryk0: "오렐리앙 추아메니", // Tchouaméni — DB "오렐리앙 쇼아메니"
   l5ergphv83e2r8k: "마르틴 수비멘디", // Zubimendi — DB "마르틴 주비멘디"
+  l5ergphe8wokr8k: "페르민 로페스", // Fermín López(바르셀로나) — DB "페르민 마린" 오역
+  "318q66hvngwvqo9": "훌리안 알바레스", // Julián Álvarez(아틀레티코) — DB "후리안 알바레스"
+  l7oqdehe9j7r510: "흐비차 크바라츠헬리아", // Khvicha Kvaratskhelia(PSG) — DB "크바라츠크헬리아"(이름 누락)
+  n54qllhxl41yqvy: "모건 로저스", // Morgan Rogers(아스톤 빌라) — DB "모건 엘리엇 로저스"(미들네임)
   // 이름 '자체' 오류(성·이름 다름) 교정 — 국적으로 신원 확인
   l7oqdehleg1r510: "알렉산더 이사크", // Isak — DB "안드레아 이사크"(이름 완전 오류)
   pxwrxlh93y1oryk: "데스티니 우도기에", // Udogie — DB "이에노마 우도기에"(미들네임)
