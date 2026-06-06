@@ -33,6 +33,14 @@ const NAME_CURATION: Record<string, string> = {
   y0or5jh4d2yjqwz: "브라이언 음뵈모", // Mbeumo — DB "브르얀 음보이모" 오역
   zp5rzgh2ylnq82w: "마테우스 쿠냐", // Cunha — DB "쿤하" 오역(쿠냐가 맞음)
   y0or5jh3yl8gqwz: "패트릭 도르구", // Dorgu — DB 긴본명 → 짧은명(중복 dedup 매칭용)
+  // audit 확정 오역 교정 (2026-06-06, DB nameKo vs Wikidata 대조)
+  "3glrw7hygyyqdyj": "조나탕 이코네", // Ikoné — DB "나니타모 이콘"
+  ednm9whz7z5yryo: "피에로 인카피에", // Hincapié — DB "마틴 힌카피"(이름 자체 오류)
+  "4wyrn4hej2vq86p": "마이크 메냥", // Maignan — DB "미크 마이낭"
+  y0or5jhe6zx2qwz: "미카엘 올리세", // Olise — DB "미가엘 올리스"
+  "23xmvkhd064vqg8": "닉 볼테마데", // Woltemade — DB "닉 월트메이드"
+  "3glrw7hyg2kqdyj": "도니엘 말렌", // Malen — DB "돈옐 마렌"
+  "4jwq2gh6pdlm0ve": "앙투안 세메뇨", // Semenyo — DB "안토니 세메니오"
 };
 const yr = (t?: string): number | null => (t ? parseInt(t.slice(1, 5), 10) || null : null);
 const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
@@ -101,7 +109,10 @@ function parseEntity(e: any): Entity | null {
       loan: (q.P1642 || []).some((x: any) => x.datavalue?.value?.id === LOAN_QID),
     };
   }).filter((c: RawCareer) => c.clubQid);
-  if (!p54.length) return null; // P54 없음 = 오매칭/저정보 → 채택 안 함(정밀도 가드)
+  // 정밀도 가드: 커리어(P54) 또는 축구선수 직업(P106=Q937857) 중 하나는 있어야 채택(동명이인 오매칭 방지).
+  //  P54 없는 어린 선수(예: 도르구 2004년생)도 footballer 직업이면 국적/이름은 채움(커리어만 빔).
+  const isFootballer = (e.claims?.P106 || []).some((c: any) => c.mainsnak?.datavalue?.value?.id === "Q937857");
+  if (!p54.length && !isFootballer) return null;
   const ko = e.labels?.ko?.value || null;
   const countryQid = e.claims?.P1532?.[0]?.mainsnak?.datavalue?.value?.id || e.claims?.P27?.[0]?.mainsnak?.datavalue?.value?.id || null;
   return { ko, countryQid, p54 };
