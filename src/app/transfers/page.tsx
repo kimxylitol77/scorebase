@@ -5,6 +5,7 @@ import Link from "next/link";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawDetailPos from "../../../data/player-positions.json";
+import rawOverrides from "../../../data/player-overrides.json";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,8 @@ const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, labe
 const FIVE = Object.keys(LEAGUES);
 // 세부 포지션 — 라인업 x/y 도출(data/player-positions.json). 없으면 coarse(G/D/M/F)로 fallback.
 const DETAIL_POS = rawDetailPos as Record<string, string>;
+// Wikidata 보강 — ts player id → { 교정 한글명, 국적(ko), 국기 }
+const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string }>;
 const POS_CODES = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 function posCodeOf(id: string, coarse: string | null | undefined): string | null {
   if (DETAIL_POS[id]) return DETAIL_POS[id];
@@ -115,7 +118,17 @@ export default async function TransfersPage({
     .sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
   // ── 국가 옵션 (데이터 적재 전 = 빈 목록 → "수집 중") ──
-  const countryOptions: { name: string; flag: string | null; count: number }[] = [];
+  const countryAgg = new Map<string, { flag: string | null; count: number }>();
+  for (const o of Object.values(OVERRIDES)) {
+    if (o.country) {
+      const c = countryAgg.get(o.country) || { flag: o.flag || null, count: 0 };
+      c.count++; if (o.flag) c.flag = o.flag;
+      countryAgg.set(o.country, c);
+    }
+  }
+  const countryOptions = [...countryAgg.entries()]
+    .map(([name, v]) => ({ name, flag: v.flag, count: v.count }))
+    .sort((a, b) => b.count - a.count);
 
   // ── 후보 집합 where (view 별) ──
   let where: Record<string, unknown> = { league: { in: FIVE }, currentValue: { not: null } };
@@ -143,15 +156,18 @@ export default async function TransfersPage({
       const ourId = r.teamId ? tsToOur.get(r.teamId) : undefined;
       const tm = ourId != null ? teamMeta.get(ourId) : undefined;
       const tsp = pMap.get(r.id);
+      const ov = OVERRIDES[r.id];
       const hist = Array.isArray(r.history) ? (r.history as Hist[]) : [];
       const last = hist[hist.length - 1];
       return {
         id: r.id,
-        name: tsp?.nameKo || tsp?.name || "선수",
+        name: ov?.nameKo || tsp?.nameKo || tsp?.name || "선수",
         value: Math.round((r.currentValue || 0) / 1e6),
         age: r.age,
         posCode: posCodeOf(r.id, tsp?.position),
         league: r.league,
+        country: ov?.country || null,
+        countryFlag: ov?.flag || null,
         teamName: toKoreanTeamName(tm?.name) || tm?.name || "—",
         teamLogo: tm?.logoUrl || null,
         photo: tsp?.photoUrl || null,
@@ -162,7 +178,7 @@ export default async function TransfersPage({
     .filter((e) => e.lastTime >= cutoff);
 
   if (view === "pos" && pos) enriched = enriched.filter((e) => e.posCode === pos);
-  // view === "country" 필터는 country 데이터 적재 후 활성화
+  if (view === "country" && country) enriched = enriched.filter((e) => e.country === country);
 
   const totalCount = enriched.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PER));
@@ -242,6 +258,10 @@ export default async function TransfersPage({
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500 shrink-0">
                         {p.posCode}
                       </span>
+                    )}
+                    {p.countryFlag && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.countryFlag} alt={p.country || ""} title={p.country || ""} className="w-4 h-3 object-cover rounded-[1px] shrink-0" />
                     )}
                   </div>
                   <div className="text-xs text-neutral-500 truncate flex items-center gap-1">
