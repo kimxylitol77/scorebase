@@ -2,6 +2,7 @@
 // 오늘 issue 카드 + 최근 7일 추세 + 카테고리별 분포.
 
 import { prisma } from "@/lib/db";
+import { BOT_REGISTRY as BOT_META } from "@/lib/bot-registry";
 import BotHeartbeatTable, { type BotRow } from "./BotHeartbeatTable";
 import HealthChatStream, { type ChatMessage } from "./HealthChatStream";
 
@@ -36,75 +37,8 @@ const SEVERITY_COLOR: Record<string, { bg: string; text: string; emoji: string; 
   },
 };
 
-// 봇별 예상 주기 (ms). lastAt 이 expected × 2 넘으면 지연, × 4 넘으면 다운.
-const BOT_META: Record<
-  string,
-  { ko: string; intervalMs: number; role: string }
-> = {
-  "mac-mini-match-narrator": {
-    ko: "AI 라이브 코멘터리",
-    intervalMs: 5 * 60 * 1000,
-    role: "Ollama/Haiku 매치 진행 박스 생성",
-  },
-  "mac-mini-endpoint-monitor": {
-    ko: "엔드포인트 헬스 체크",
-    intervalMs: 5 * 60 * 1000,
-    role: "5개 핵심 페이지 응답 감시",
-  },
-  "mac-mini-live-scores-watcher": {
-    ko: "라이브 스코어 감시",
-    intervalMs: 60 * 1000,
-    role: "1분 주기 라이브 데이터 sanity check",
-  },
-  "mac-mini-live-scores": {
-    ko: "라이브 스코어 감시",
-    intervalMs: 60 * 1000,
-    role: "1분 주기 라이브 데이터 sanity check",
-  },
-  "mac-mini-data-quality": {
-    ko: "데이터 품질",
-    intervalMs: 15 * 60 * 1000,
-    role: "LIVE 점수 null + TBD 팀명 감시",
-  },
-  "mac-mini-api-quota": {
-    ko: "API 한도 감시",
-    intervalMs: 30 * 60 * 1000,
-    role: "4개 외부 API 사용량 알림",
-  },
-  "mac-mini-preview-coverage": {
-    ko: "PREVIEW 커버리지",
-    intervalMs: 30 * 60 * 1000,
-    role: "PREVIEW 누락 + 야구 투수 확정 분기",
-  },
-  "mac-mini-weekly-player-names": {
-    ko: "주간 선수명 사전 보강",
-    intervalMs: 7 * 24 * 60 * 60 * 1000,
-    role: "네이버 → MLB 선수명 사전 자동 PR",
-  },
-  "mac-mini-route-guardian": {
-    ko: "라우트 가디언",
-    intervalMs: 24 * 60 * 60 * 1000,
-    role: "sitemap 전수 + 홈 BFS 크롤로 404/soft 404/5xx 감시",
-  },
-  // 아래 3개 미등록 시 fallback intervalMs=1h 적용 → 실제 주기가 1h보다 긴 봇(lightsail 일일 03:00)이
-  // 매일 false 다운 떴음(예상 주기 1시간 표기). 실제 주기로 등록 (bot-heartbeat-check 의
-  // BOT_INTERVAL_MS 와 같은 값 유지 — 두 설정이 따로 놀아 생긴 드리프트라 동기화).
-  "lightsail-baseball-player-names": {
-    ko: "야구 선수명 사전 보강",
-    intervalMs: 24 * 60 * 60 * 1000,
-    role: "Lightsail 일일(03:00) 야구 선수 한글명 보강",
-  },
-  "mac-mini-data-sanity": {
-    ko: "데이터 정합성 감시",
-    intervalMs: 3 * 60 * 1000,
-    role: "score drift/이닝/순위 등 정합성 점검 (3분 주기)",
-  },
-  "mac-mini-threads-poster": {
-    ko: "Threads 자동 발행",
-    intervalMs: 30 * 60 * 1000,
-    role: "오늘 경기 카드 + 신규 블로그 Threads 발행",
-  },
-};
+// 봇별 예상 주기/한글명/역할 = 단일 레지스트리 (@/lib/bot-registry).
+// lastAt 이 intervalMs × 2 넘으면 지연, × 4 넘으면 다운. 봇 추가/주기변경은 레지스트리에서.
 
 function botStatus(ageMs: number, intervalMs: number) {
   if (ageMs <= intervalMs * 2) return { label: "정상", color: "emerald" };
@@ -321,11 +255,19 @@ export default async function HealthPage() {
     orderBy: { runAt: "desc" },
   });
 
-  // 최근 HIGH/MED finding 1건
-  const recentCritical = await prisma.healthCheck.findFirst({
-    where: { severity: { in: ["HIGH", "MED"] }, category: { not: "stale-cleanup" } },
-    orderBy: { runAt: "desc" },
-  });
+  // 최근 HIGH/MED finding 1건 — 최신 run 으로 한정.
+  // (time bound 없으면 과거 1회성 HIGH 가 다음 critical 나올 때까지 AI 종합 카드에 영구 잔존 →
+  //  데이터 해소돼도 stale HIGH 표시. 최신 run 의 finding 만 봐야 현재 상태 정확 반영.)
+  const recentCritical = latest
+    ? await prisma.healthCheck.findFirst({
+        where: {
+          severity: { in: ["HIGH", "MED"] },
+          category: { not: "stale-cleanup" },
+          runAt: { gte: new Date(latest.runAt.getTime() - 60 * 1000) },
+        },
+        orderBy: [{ severity: "asc" }, { runAt: "desc" }], // HIGH(H) < MED(M) → HIGH 우선
+      })
+    : null;
 
   // 채팅 messages 생성 — 좌측 = 봇 보고, 우측 = AI 종합
   const chat: ChatMessage[] = [];
