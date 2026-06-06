@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawOverrides from "../../../../data/player-overrides.json";
 import rawSeason from "../../../../data/player-season-stats.json";
+import rawPhotos from "../../../../data/player-photos.json";
 import SeasonAccordion from "./SeasonAccordion";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean }
@@ -20,6 +21,8 @@ interface SeasonStat {
   yellow: number | null; red: number | null; saves: number | null;
 }
 const SEASON = rawSeason as Record<string, SeasonStat>;
+// 선수 사진 (TheSports season player.logo). DB photoUrl(라인업)보다 커버리지 높아 우선.
+const PHOTOS = rawPhotos as Record<string, string>;
 
 export const dynamic = "force-dynamic";
 
@@ -228,6 +231,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const ov = OVERRIDES[id];
   const career = ov?.career || [];
   const season = SEASON[id];
+  const photoUrl = PHOTOS[id] || tsp?.photoUrl || null;
   const value = mv.currentValue ? Math.round(mv.currentValue / 1e6) : null;
   const league = mv.league && LEAGUE_LABEL[mv.league] ? mv.league : null;
 
@@ -297,9 +301,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       {/* 헤더 */}
       <header className="flex items-center gap-4 flex-wrap">
         <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
-          {tsp?.photoUrl ? (
+          {photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={tsp.photoUrl} alt={name} className="w-full h-full object-cover" />
+            <img src={photoUrl} alt={name} className="w-full h-full object-cover" />
           ) : (
             <span className="text-3xl font-bold text-neutral-500 dark:text-neutral-400">{name.slice(0, 1)}</span>
           )}

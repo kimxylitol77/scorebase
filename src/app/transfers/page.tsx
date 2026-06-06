@@ -6,6 +6,7 @@ import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawDetailPos from "../../../data/player-positions.json";
 import rawOverrides from "../../../data/player-overrides.json";
+import rawPhotos from "../../../data/player-photos.json";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,8 @@ const FIVE = Object.keys(LEAGUES);
 const DETAIL_POS = rawDetailPos as Record<string, string>;
 // Wikidata 보강 — ts player id → { 교정 한글명, 국적(ko), 국기 }
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string }>;
+// 선수 사진 (TheSports season player.logo, 빅5 ~2.6k). DB photoUrl(라인업) 보다 커버리지 높아 우선.
+const PHOTOS = rawPhotos as Record<string, string>;
 const POS_CODES = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 function posCodeOf(id: string, coarse: string | null | undefined): string | null {
   if (DETAIL_POS[id]) return DETAIL_POS[id];
@@ -170,7 +173,7 @@ export default async function TransfersPage({
         countryFlag: ov?.flag || null,
         teamName: toKoreanTeamName(tm?.name) || tm?.name || "—",
         teamLogo: tm?.logoUrl || null,
-        photo: tsp?.photoUrl || null,
+        photo: PHOTOS[r.id] || tsp?.photoUrl || null,
         lastTime: last?.market_time ?? 0,
         hist: hist.map((h) => (h?.market_value || 0) / 1e6).filter((v) => v > 0),
       };
