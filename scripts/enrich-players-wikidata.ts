@@ -23,7 +23,14 @@ const LEAGUES = LEAGUE ? [LEAGUE] : ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "
 const PATH = "data/player-overrides.json";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const isEnglish = (s: string) => /^[A-Za-z][A-Za-z'.\-\s]+$/.test(s);
+// Latin 스크립트 전체 허용 — 악센트(Mbappé é, Vinícius í, Ørjan Ø, Škriniar Š) 포함.
+// 한글/키릴 등 비-Latin nameKo 는 제외(검색 불가). (구 [A-Za-z] 는 악센트 거부 → 135명 누락 버그)
+const isEnglish = (s: string) => /^[\p{Script=Latin}][\p{Script=Latin}'.\-\s]+$/u.test(s);
+
+// 수동 이름 큐레이션 — Wikidata/공식명과 다르게 사용자가 지정한 표기. 매 실행 끝에 강제 적용(보존).
+const NAME_CURATION: Record<string, string> = {
+  pxwrxlhze0dryk0: "킬리안 음바페", // Mbappé — 사용자 지정(엠바페→음바페)
+};
 const yr = (t?: string): number | null => (t ? parseInt(t.slice(1, 5), 10) || null : null);
 const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
 const isNT = (en?: string | null, ko?: string | null) => /national/i.test(en || "") || /국가\s*대표/.test(ko || "");
@@ -219,6 +226,12 @@ async function main() {
   console.log(`squad 영문명 ${squadEn.size}`);
 
   for (const lg of LEAGUES) await enrichLeague(lg, flagOf, squadEn);
+
+  // 수동 이름 큐레이션 강제 적용 (enrich 결과를 덮어씀, 재실행에도 보존)
+  const cur = loadOverrides();
+  for (const [id, ko] of Object.entries(NAME_CURATION)) cur[id] = { ...(cur[id] || {}), nameKo: ko };
+  fs.writeFileSync(PATH, JSON.stringify(cur));
+  console.log(`이름 큐레이션 적용: ${Object.keys(NAME_CURATION).length}`);
 
   // 국가 분포 요약
   const all = loadOverrides();
