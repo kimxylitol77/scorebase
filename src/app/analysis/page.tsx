@@ -37,10 +37,32 @@ const ANALYSIS_JSONLD = {
   inLanguage: "ko-KR",
 };
 
-// 데스크탑 그리드 컬럼 — 제목(1fr)을 넓게, 나머지는 고정폭
-const COLS = "sm:grid-cols-[72px_minmax(0,1fr)_180px_96px_80px_72px]";
+// 데스크탑 그리드 컬럼 — 제목(1fr)을 넓게, 나머지는 고정폭. 작성자 뒤·등록일 앞 배당 컬럼.
+const COLS = "sm:grid-cols-[72px_minmax(0,1fr)_180px_70px_96px_80px_72px]";
 
 const PAGE_SIZE = 20;
+
+const fmtOdds = (n: number) => n.toFixed(2);
+
+// 픽한 선택지에 해당하는 시장 배당 (없으면 null — 마이너 리그/픽 없음)
+function pickOdds(
+  market: string | null,
+  pick: string | null,
+  m: {
+    oddsHome: number | null; oddsDraw: number | null; oddsAway: number | null;
+    oddsHcHome: number | null; oddsHcAway: number | null;
+    oddsOver: number | null; oddsUnder: number | null;
+  } | null,
+): number | null {
+  if (!m || !market || !pick) return null;
+  if (market === "1X2")
+    return pick === "HOME" ? m.oddsHome : pick === "DRAW" ? m.oddsDraw : pick === "AWAY" ? m.oddsAway : null;
+  if (market === "HANDICAP")
+    return pick === "HOME" ? m.oddsHcHome : pick === "AWAY" ? m.oddsHcAway : null;
+  if (market === "OU")
+    return pick === "OVER" ? m.oddsOver : pick === "UNDER" ? m.oddsUnder : null;
+  return null;
+}
 
 interface Props {
   searchParams: Promise<{ page?: string }>;
@@ -75,6 +97,19 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         commentCount: true,
         createdAt: true,
         isCorrect: true,
+        market: true,
+        pick: true,
+        match: {
+          select: {
+            oddsHome: true,
+            oddsDraw: true,
+            oddsAway: true,
+            oddsHcHome: true,
+            oddsHcAway: true,
+            oddsOver: true,
+            oddsUnder: true,
+          },
+        },
         author: {
           select: {
             nickname: true,
@@ -172,6 +207,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             <span>분류</span>
             <span>제목</span>
             <span>작성자</span>
+            <span className="text-right">배당</span>
             <span className="text-right">등록일</span>
             <span className="text-right">조회</span>
             <span className="text-right">추천</span>
@@ -180,6 +216,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             {posts.map((p) => {
               const g = displayGrade(p.author.level, p.author.badge);
               const a = p.author;
+              const odds = pickOdds(p.market, p.pick, p.match);
               return (
                 <li key={p.id}>
                   <Link
@@ -221,6 +258,12 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                         ) : (
                           <span className="text-neutral-400">🎯 기록없음</span>
                         )}
+                        {odds != null && (
+                          <>
+                            <span>·</span>
+                            <span className="text-rose-500 font-bold">@{fmtOdds(odds)}</span>
+                          </>
+                        )}
                         <span>·</span>
                         <span>{listTime(p.createdAt)}</span>
                       </span>
@@ -240,6 +283,16 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                         </span>
                       ) : (
                         <span className="text-[11px] text-neutral-400">🎯 예측 기록 없음</span>
+                      )}
+                    </span>
+                    <span
+                      className="hidden sm:block text-right text-sm font-bold tabular-nums"
+                      title={odds != null ? "내 픽 배당" : undefined}
+                    >
+                      {odds != null ? (
+                        <span className="text-rose-500">{fmtOdds(odds)}</span>
+                      ) : (
+                        <span className="text-neutral-300 dark:text-neutral-700">–</span>
                       )}
                     </span>
                     <span className="hidden sm:block text-right text-sm text-neutral-500">
