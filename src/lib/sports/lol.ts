@@ -14,9 +14,10 @@ import type {
 
 const BASE = "https://api.balldontlie.io/lol/v1";
 
-// LCK 2026 Season tournament id. 시즌 종료 시 새 tournament id 로 교체 필요.
-// (한 시즌이 끝나면 매치 fetch 가 비게 되니까 시즌 전환 시 신경 써야 함)
-const LCK_TOURNAMENT_IDS = [324];
+// LCK 계열 tournament ids — 324=2026 본선, 31757=Road to MSI(본선 종료 후 MSI 진출전).
+// 본선만 두면 스플릿 사이 공백이 생기니, BDL tournaments 에서 status=current/upcoming 인
+// LCK 계열 id 를 함께 둔다(같은 LCK 10팀이라 기존 한글/로고 매핑 그대로 적용).
+const LCK_TOURNAMENT_IDS = [324, 31757];
 
 // LCK 10팀 한글명 + 로고 매핑 (BALLDONTLIE team id 기준).
 // 새 시즌에 팀 ID가 바뀌면 추가/수정. logo URL 은 Liquipedia hotlink (600px).
