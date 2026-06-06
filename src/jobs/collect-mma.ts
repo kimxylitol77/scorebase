@@ -99,12 +99,14 @@ export async function runCollectMma() {
   console.log(`[mma] ${n}경기 upsert (파이터 Team 포함)`);
 
   // 2) 완료 경기 결과 — scores (status FINISHED + 승자)
+  let scoresArr: Array<Record<string, unknown>> = [];
   try {
     const sr = await fetch(`${ODDS_BASE}/scores?apiKey=${key}&daysFrom=3`);
     const scores: unknown = await sr.json();
     if (Array.isArray(scores)) {
+      scoresArr = scores as Array<Record<string, unknown>>;
       let done = 0;
-      for (const ev of scores as Array<Record<string, unknown>>) {
+      for (const ev of scoresArr) {
         if (!ev.completed || !Array.isArray(ev.scores)) continue;
         const home = ev.home_team as string;
         const away = ev.away_team as string;
@@ -125,6 +127,29 @@ export async function runCollectMma() {
     }
   } catch (e) {
     console.warn("[mma] scores fetch 실패:", (e as Error).message);
+  }
+
+  // 3) 유령 경기 정리 — The Odds(odds+scores) 현재 목록에 없고 시작 6h+ 경과한 SCHEDULED 삭제.
+  //    The Odds 가 더 이상 추적 않는 마이너 매치(신예·지역단체)가 결과 없이 SCHEDULED 로 박제되는 것 방지.
+  //    진행 중 경기는 scores 목록에 남아 liveIds 로 보호됨.
+  try {
+    const liveIds = new Set<string>();
+    for (const ev of events as Array<Record<string, unknown>>) if (ev.id) liveIds.add(ev.id as string);
+    for (const ev of scoresArr) if (ev.id) liveIds.add(ev.id as string);
+    const cutoff = new Date(Date.now() - 6 * 3600 * 1000);
+    const stale = await prisma.match.findMany({
+      where: { league: "UFC", status: "SCHEDULED", startTime: { lt: cutoff } },
+      select: { id: true, externalId: true },
+    });
+    const ghostIds = stale.filter((m) => !liveIds.has(m.externalId)).map((m) => m.id);
+    if (ghostIds.length) {
+      await prisma.match.deleteMany({ where: { id: { in: ghostIds } } });
+      console.log(`[mma] 유령 경기 ${ghostIds.length}건 정리 (The Odds 미제공 + 시작 6h+ 경과 SCHEDULED)`);
+    } else {
+      console.log("[mma] 유령 경기 없음");
+    }
+  } catch (e) {
+    console.warn("[mma] 유령 정리 실패:", (e as Error).message);
   }
 
   await prisma.$disconnect();
