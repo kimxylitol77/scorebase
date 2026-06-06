@@ -2,6 +2,7 @@
 // 카테고리: 전체 / 리그별 / 팀별 / 국가별 / 포지션별. 기본 = 전체(빅5 통합). 행 클릭 → /transfers/[id].
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import type { Metadata } from "next";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawDetailPos from "../../../data/player-positions.json";
@@ -9,6 +10,22 @@ import rawOverrides from "../../../data/player-overrides.json";
 import rawPhotos from "../../../data/player-photos.json";
 
 export const dynamic = "force-dynamic";
+
+// SEO — 선수 몸값/이적시장 키워드 + 스코어베이스 브랜드
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ league?: string }> }): Promise<Metadata> {
+  const sp = await searchParams;
+  const lgLabel = sp.league && LEAGUES[sp.league] ? LEAGUES[sp.league] : null;
+  const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
+  const title = `${scope}선수 몸값 랭킹 · 이적시장 시장가치 | 스코어베이스`;
+  const description = `${scope}리그 선수 시장가치(몸값) 랭킹과 변동 추이, 이적 기록, 커리어·시즌별 성적까지. 스코어베이스에서 선수 몸값을 한눈에.`;
+  return {
+    title,
+    description,
+    keywords: ["선수 몸값", "시장가치", "이적시장", "축구 이적", "선수 시장가치", "스코어베이스", "빅5 리그"],
+    openGraph: { title, description, type: "website" },
+    alternates: { canonical: "/transfers" },
+  };
+}
 
 const LEAGUES: Record<string, string> = {
   EPL: "EPL",
@@ -219,7 +236,7 @@ export default async function TransfersPage({
       <p className="text-sm text-neutral-500 mb-1">이적시장 · 시장가치</p>
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">💰 {selectedLabel} 시장가치</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong>. TheSports 데이터 기반 · 빅5 리그 · {totalCount}명.
+        선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.
       </p>
 
       <div className="mt-5">
@@ -327,7 +344,7 @@ export default async function TransfersPage({
           )}
         </div>
       )}
-      <p className="mt-4 text-xs text-neutral-400 text-center">{safePage}/{totalPages} 페이지 · TheSports 몸값 데이터</p>
+      <p className="mt-4 text-xs text-neutral-400 text-center">{safePage}/{totalPages} 페이지 · 스코어베이스 선수 몸값 데이터</p>
     </main>
   );
 }
