@@ -4,7 +4,8 @@
 //   · 국적: P1532(스포츠 국가) 우선, 없으면 P27(시민권). 국기 = ts-countries.json en 매칭
 //   · 커리어: P54(소속팀) → 클럽·연도(P580/P582)·출장(P1350)·골(P1351)·임대(P1642=Q2914547)
 //             국가대표(라벨 "national"/"국가대표")는 nt:true 로 분리
-//   · 정밀도 가드: P54 가 있는 엔티티만 채택 (동명이인 오매칭 방지)
+//   · 정밀도 가드: P54 가 있는 엔티티만 채택 (직업·커리어 없는 동명이인 오매칭 방지)
+//   · QID 핀: P54 가드로도 못 거르는 "둘 다 실재 축구선수인 동명이인"(남↔여 등)은 QID_PIN 으로 검색 우회
 //   · rate-limit: 연락처 포함 UA + 429/Retry-After 대응 + adaptive pace. 리그별 점진저장(merge).
 //   npx tsx --env-file=.env.local scripts/enrich-players-wikidata.ts [--league=EPL] [--limit=N] [--pace=150] [--force]
 import { PrismaClient } from "@prisma/client";
@@ -56,6 +57,13 @@ const NAME_CURATION: Record<string, string> = {
   pxwrxlh9zk74ryk: "윌리안 파초", // Pacho — DB "윌리엄 테노리오"(성씨 오류)
   dn1m1ghnkovvmoe: "실라스 카톰파 음붐파", // Silas — DB "실라스 와망기투카"(실명 변경)
   "2y8m4zhzp01ql07": "아르나우트 단주마", // Danjuma — ts.name 오기(흐루네벨트), PMV·커리어는 Danjuma
+};
+
+// 정확한 QID 핀 — searchQid 가 영문명으로 동명이인(둘 다 실재 축구선수라 P54 가드도 통과)을 매칭하는 케이스 우회.
+// ts player id → 정확한 Wikidata QID. 여기 있으면 검색을 건너뛰고 이 엔티티로 국적·커리어를 채워 재실행(--force 포함)에도 보존.
+const QID_PIN: Record<string, string> = {
+  n54qllhxl41yqvy: "Q61598452",  // 모건 로저스(아스톤 빌라·잉글랜드) — searchQid 가 웨일스 여자선수(Q98087876) 오매칭
+  k82rekho9k97rep: "Q106778648", // 앨릭스 스콧(본머스·잉글랜드, 2003년생) — searchQid 가 여자 레전드 앨릭스 스콧(Q434354) 오매칭
 };
 const yr = (t?: string): number | null => (t ? parseInt(t.slice(1, 5), 10) || null : null);
 const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
@@ -176,10 +184,10 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
   const qidById = new Map<string, string>();
   let done = 0;
   for (const [id, en] of enById) {
-    const qid = await searchQid(en);
+    const qid = QID_PIN[id] || await searchQid(en); // 핀 우선 — 동명이인 오매칭 우회
     if (qid) qidById.set(id, qid);
     if (++done % 100 === 0) console.log(`  [${league}] 검색 ${done}/${enById.size} | qid ${qidById.size} | pace ${PACE}`);
-    await sleep(PACE);
+    if (!QID_PIN[id]) await sleep(PACE); // 핀은 API 미호출 → throttle 불필요
   }
 
   // ── phase 2: 엔티티 배치 (labels + claims) ──
