@@ -69,9 +69,10 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
   const ids = rows.map((r) => r.id);
   const players = await prisma.theSportsPlayer.findMany({
     where: { id: { in: ids } },
-    select: { id: true, nameKo: true, name: true },
+    select: { id: true, nameKo: true, name: true, photoUrl: true },
   });
   const nameMap = new Map(players.map((p) => [p.id, p.nameKo || p.name]));
+  const photoMap = new Map(players.map((p) => [p.id, p.photoUrl]));
   const teamIds = [...new Set(rows.map((r) => r.teamId).filter((x): x is string => !!x))];
   const tsT = await prisma.teamSourceId.findMany({
     where: { source: "thesports", externalId: { in: teamIds } },
@@ -95,6 +96,7 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
       age: r.age,
       teamName: team?.name || "—",
       teamLogo: team?.logoUrl || null,
+      photo: photoMap.get(r.id) || null,
       hist: hist.map((h) => (h?.market_value || 0) / 1e6).filter((v) => v > 0),
     };
   });
@@ -164,8 +166,13 @@ export default async function TransfersPage({ searchParams }: { searchParams: Pr
             return (
               <div key={p.rank} className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition">
                 <div className={`w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10 text-sm font-bold text-neutral-500 dark:text-neutral-400">
-                  {p.name.slice(0, 1)}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                  {p.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.photo} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400">{p.name.slice(0, 1)}</span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold truncate">{p.name}</div>
