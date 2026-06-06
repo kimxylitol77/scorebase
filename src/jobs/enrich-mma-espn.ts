@@ -40,7 +40,7 @@ function ymd(t: number): string {
 }
 
 // 이름 정규화 — 악센트·접미사(Jr.)·특수문자 제거 (ESPN displayName ↔ Team.name 매칭률 ↑)
-function norm(s: string): string {
+export function norm(s: string): string {
   return s
     .normalize("NFD").replace(/[̀-ͯ]/g, "") // 악센트: Procházka→Prochazka, Benoît→Benoit
     .replace(/\b(jr|sr|ii|iii|iv)\b/gi, "")           // 접미사: Rountree Jr→Rountree
@@ -48,8 +48,35 @@ function norm(s: string): string {
     .toLowerCase().replace(/\s+/g, " ").trim();
 }
 // 토큰 정렬 키 — 이름 순서 차이(Weili Zhang ↔ Zhang Weili) 흡수
-function sortedKey(s: string): string {
+export function sortedKey(s: string): string {
   return norm(s).split(" ").filter(Boolean).sort().join(" ");
+}
+
+// 두 파이터명 → 순서 무관 페어 키 (확정 경기 매칭용)
+export function ufcPairKey(a: string, b: string): string {
+  return [sortedKey(a), sortedKey(b)].sort().join("|");
+}
+
+// ESPN scoreboard(임박 + calendar 미래 순회)의 확정 경기 페어 키 집합.
+// collect-mma 가 "ESPN 에 실제 카드로 있는 경기"만 등록하도록 필터 기준 제공.
+export async function collectUfcEventPairs(): Promise<Set<string>> {
+  const dates = await collectEventDates();
+  const pairs = new Set<string>();
+  const processed = new Set<string>();
+  for (const date of [undefined, ...dates] as (string | undefined)[]) {
+    for (const ev of await fetchEspn(date)) {
+      const key = ev.name ?? `d${date}`;
+      if (processed.has(key)) continue;
+      processed.add(key);
+      for (const comp of ev.competitions ?? []) {
+        const cs = comp.competitors ?? [];
+        if (cs.length < 2) continue;
+        const a = cs[0].athlete?.displayName, b = cs[1].athlete?.displayName;
+        if (a && b) pairs.add(ufcPairKey(a, b));
+      }
+    }
+  }
+  return pairs;
 }
 
 // scoreboard calendar 에서 최근~미래 UFC 이벤트 날짜(UTC YYYYMMDD) 수집 (이벤트 날짜+전날 경계 보정).

@@ -5,6 +5,7 @@
 // 사용: npx tsx src/jobs/collect-mma.ts
 import "@/lib/env";
 import { prisma } from "@/lib/db";
+import { collectUfcEventPairs, ufcPairKey } from "./enrich-mma-espn";
 
 const ODDS_BASE = "https://api.the-odds-api.com/v4/sports/mma_mixed_martial_arts";
 
@@ -67,13 +68,19 @@ export async function runCollectMma() {
   }
   console.log(`[mma] odds ${events.length}경기 수신`);
 
-  let n = 0;
+  // ESPN 확정 카드 페어 — 라이브·결과 받을 수 있는 경기만 등록(가상대진·미확정 placeholder 제외).
+  const espnPairs = await collectUfcEventPairs();
+  const useFilter = espnPairs.size >= 5; // ESPN 응답 정상일 때만 필터 적용 (장애 시 전체 skip 방지)
+  console.log(`[mma] ESPN 확정 카드 ${espnPairs.size}경기${useFilter ? "" : " → 필터 미적용(이번 회차)"}`);
+
+  let n = 0, skipped = 0;
   for (const ev of events as Array<Record<string, unknown>>) {
     const home = ev.home_team as string | undefined;
     const away = ev.away_team as string | undefined;
     const id = ev.id as string | undefined;
     const commence = ev.commence_time as string | undefined;
     if (!home || !away || !id || !commence) continue;
+    if (useFilter && !espnPairs.has(ufcPairKey(home, away))) { skipped++; continue; } // ESPN 미확정 → 등록 안 함
     const homeId = await upsertFighter(home);
     const awayId = await upsertFighter(away);
     await prisma.match.upsert({
@@ -96,7 +103,7 @@ export async function runCollectMma() {
     });
     n++;
   }
-  console.log(`[mma] ${n}경기 upsert (파이터 Team 포함)`);
+  console.log(`[mma] ${n}경기 등록 / ${skipped}경기 skip(ESPN 미확정)`);
 
   // 2) 완료 경기 결과 — scores (status FINISHED + 승자)
   let scoresArr: Array<Record<string, unknown>> = [];
@@ -129,27 +136,33 @@ export async function runCollectMma() {
     console.warn("[mma] scores fetch 실패:", (e as Error).message);
   }
 
-  // 3) 유령 경기 정리 — The Odds(odds+scores) 현재 목록에 없고 시작 6h+ 경과한 SCHEDULED 삭제.
-  //    The Odds 가 더 이상 추적 않는 마이너 매치(신예·지역단체)가 결과 없이 SCHEDULED 로 박제되는 것 방지.
-  //    진행 중 경기는 scores 목록에 남아 liveIds 로 보호됨.
-  try {
-    const liveIds = new Set<string>();
-    for (const ev of events as Array<Record<string, unknown>>) if (ev.id) liveIds.add(ev.id as string);
-    for (const ev of scoresArr) if (ev.id) liveIds.add(ev.id as string);
-    const cutoff = new Date(Date.now() - 6 * 3600 * 1000);
-    const stale = await prisma.match.findMany({
-      where: { league: "UFC", status: "SCHEDULED", startTime: { lt: cutoff } },
-      select: { id: true, externalId: true },
-    });
-    const ghostIds = stale.filter((m) => !liveIds.has(m.externalId)).map((m) => m.id);
-    if (ghostIds.length) {
-      await prisma.match.deleteMany({ where: { id: { in: ghostIds } } });
-      console.log(`[mma] 유령 경기 ${ghostIds.length}건 정리 (The Odds 미제공 + 시작 6h+ 경과 SCHEDULED)`);
-    } else {
-      console.log("[mma] 유령 경기 없음");
+  // 3) 정리 — ESPN 확정 카드(espnPairs)에 없는 SCHEDULED UFC 경기 삭제.
+  //    가상대진·미확정 placeholder·취소·과거 마이너 유령을 한 번에 제거. FINISHED/LIVE 는 보존.
+  //    useFilter false(ESPN 장애)면 전체 삭제 위험 → skip.
+  if (useFilter) {
+    try {
+      const teams = await prisma.team.findMany({ where: { league: "UFC" }, select: { id: true, name: true } });
+      const tname = new Map(teams.map((t) => [t.id, t.name]));
+      const scheduled = await prisma.match.findMany({
+        where: { league: "UFC", status: "SCHEDULED" },
+        select: { id: true, homeTeamId: true, awayTeamId: true },
+      });
+      const toDelete = scheduled
+        .filter((m) => {
+          const h = m.homeTeamId != null ? tname.get(m.homeTeamId) : undefined;
+          const a = m.awayTeamId != null ? tname.get(m.awayTeamId) : undefined;
+          return h && a ? !espnPairs.has(ufcPairKey(h, a)) : false;
+        })
+        .map((m) => m.id);
+      if (toDelete.length) {
+        await prisma.match.deleteMany({ where: { id: { in: toDelete } } });
+        console.log(`[mma] ESPN 미확정 경기 ${toDelete.length}건 정리`);
+      } else {
+        console.log("[mma] 정리 대상 없음");
+      }
+    } catch (e) {
+      console.warn("[mma] 정리 실패:", (e as Error).message);
     }
-  } catch (e) {
-    console.warn("[mma] 유령 정리 실패:", (e as Error).message);
   }
 
   await prisma.$disconnect();
