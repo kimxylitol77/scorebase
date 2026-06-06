@@ -30,6 +30,9 @@ const isEnglish = (s: string) => /^[\p{Script=Latin}][\p{Script=Latin}'.\-\s]+$/
 // 수동 이름 큐레이션 — Wikidata/공식명과 다르게 사용자가 지정한 표기. 매 실행 끝에 강제 적용(보존).
 const NAME_CURATION: Record<string, string> = {
   pxwrxlhze0dryk0: "킬리안 음바페", // Mbappé — 사용자 지정(엠바페→음바페)
+  y0or5jh4d2yjqwz: "브라이언 음뵈모", // Mbeumo — DB "브르얀 음보이모" 오역
+  zp5rzgh2ylnq82w: "마테우스 쿠냐", // Cunha — DB "쿤하" 오역(쿠냐가 맞음)
+  y0or5jh3yl8gqwz: "패트릭 도르구", // Dorgu — DB 긴본명 → 짧은명(중복 dedup 매칭용)
 };
 const yr = (t?: string): number | null => (t ? parseInt(t.slice(1, 5), 10) || null : null);
 const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);

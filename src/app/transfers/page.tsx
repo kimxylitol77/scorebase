@@ -177,6 +177,11 @@ export default async function TransfersPage({
     })
     .filter((e) => e.lastTime >= cutoff);
 
+  // 동일 표시명+팀 중복 제거 (TheSports 중복 선수 레코드 — 예: 패트릭 도르구 2건).
+  // raw 가 가치순(desc)이라 첫 등장 = 최고가 → 그것만 유지.
+  const dedupSeen = new Set<string>();
+  enriched = enriched.filter((e) => { const k = `${e.name}|${e.teamName}`; if (dedupSeen.has(k)) return false; dedupSeen.add(k); return true; });
+
   if (view === "pos" && pos) enriched = enriched.filter((e) => e.posCode === pos);
   if (view === "country" && country) enriched = enriched.filter((e) => e.country === country);
 
