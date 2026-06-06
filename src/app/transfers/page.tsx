@@ -89,12 +89,21 @@ export default async function TransfersPage({
     where: { source: "thesports", externalId: { in: allTsTeamIds } },
     select: { externalId: true, teamId: true },
   });
-  const tsToOur = new Map(tsT.map((t) => [t.externalId, t.teamId]));
+  // 한 ts팀 id 가 여러 Team 에 매핑된 경우(예: FC 바르셀로나 ts → 바르셀로나 LALIGA·UCL·Barcelona SC 에콰도르)
+  // 빅5 리그 Team 을 우선 선택 — 엉뚱한 동명 클럽 표시 방지.
+  const candByTs = new Map<string, number[]>();
+  for (const t of tsT) { const a = candByTs.get(t.externalId) || []; a.push(t.teamId); candByTs.set(t.externalId, a); }
   const ourTeamRows = await prisma.team.findMany({
-    where: { id: { in: [...new Set(tsToOur.values())] } },
-    select: { id: true, name: true, logoUrl: true },
+    where: { id: { in: [...new Set(tsT.map((t) => t.teamId))] } },
+    select: { id: true, name: true, logoUrl: true, league: true },
   });
   const teamMeta = new Map(ourTeamRows.map((t) => [t.id, t]));
+  const FIVE_SET = new Set(FIVE);
+  const tsToOur = new Map<string, number>();
+  for (const [ext, idsArr] of candByTs) {
+    const big5 = idsArr.find((id) => { const tm = teamMeta.get(id); return tm && FIVE_SET.has(tm.league); });
+    tsToOur.set(ext, big5 ?? idsArr[0]);
+  }
   const teamCount = new Map<number, number>();
   for (const g of teamGroups) {
     const our = g.teamId ? tsToOur.get(g.teamId) : undefined;

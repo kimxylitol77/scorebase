@@ -96,15 +96,19 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const value = mv.currentValue ? Math.round(mv.currentValue / 1e6) : null;
   const league = mv.league && LEAGUE_LABEL[mv.league] ? mv.league : null;
 
-  // 팀 resolve (ts → 우리 Team)
+  // 팀 resolve (ts → 우리 Team). 한 ts 가 여러 Team 에 매핑되면 해당 리그 Team 우선(동명 클럽 방지).
   let teamName = "—", teamLogo: string | null = null, ourTeamId: number | null = null;
   if (mv.teamId) {
-    const ts = await prisma.teamSourceId.findFirst({
+    const tss = await prisma.teamSourceId.findMany({
       where: { source: "thesports", externalId: mv.teamId },
       select: { teamId: true },
     });
-    if (ts) {
-      const team = await prisma.team.findUnique({ where: { id: ts.teamId }, select: { id: true, name: true, logoUrl: true } });
+    if (tss.length) {
+      const teams = await prisma.team.findMany({
+        where: { id: { in: tss.map((t) => t.teamId) } },
+        select: { id: true, name: true, logoUrl: true, league: true },
+      });
+      const team = teams.find((t) => t.league === mv.league) || teams[0];
       if (team) { teamName = toKoreanTeamName(team.name) || team.name; teamLogo = team.logoUrl; ourTeamId = team.id; }
     }
   }
