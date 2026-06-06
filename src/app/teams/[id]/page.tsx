@@ -15,6 +15,7 @@ import rawTOverrides from "../../../../data/player-overrides.json";
 import rawTPhotos from "../../../../data/player-photos.json";
 import rawTPos from "../../../../data/player-positions.json";
 import rawClubRank from "../../../../data/club-rank-by-team.json";
+import rawTeamStats from "../../../../data/team-season-stats.json";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -40,6 +41,9 @@ const T_PHOTOS = rawTPhotos as Record<string, string>;
 const T_POS = rawTPos as Record<string, string>;
 // 세계 클럽 랭킹 (ts team id → 순위, 2729팀). 팀 헤더 배지용. [[club-ranking]]
 const CLUB_RANK = rawClubRank as Record<string, number>;
+// 팀 시즌 통계 (ts team id → 집계). TheSports season/recent/team/stat.
+interface TeamStat { lg: string; name: string; matches: number | null; goals: number | null; against: number | null; poss: number | null; shots: number | null; sot: number | null; passAcc: number | null; dribbleSucc: number | null; tackles: number | null; corners: number | null; fouls: number | null; yellow: number | null; red: number | null }
+const TEAM_STATS = rawTeamStats as Record<string, TeamStat>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -248,6 +252,7 @@ export default async function TeamPage({ params }: Props) {
   // TheSports 선수단 (PlayerMarketValue, ts player id) — 이름 클릭 → /transfers 상세
   const tsTeamRows = await prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } });
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
+  const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
   let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; flag: string | null }[] = [];
   if (tsTeamRows.length) {
     const pmv = await prisma.playerMarketValue.findMany({
@@ -384,6 +389,36 @@ export default async function TeamPage({ params }: Props) {
             </div>
           </Card>
         </section>
+
+        {/* 팀 시즌 통계 (TheSports season/recent/team/stat) */}
+        {teamStat && (
+          <section>
+            <SectionH title="📊 팀 시즌 통계" subtitle={teamStat.matches ? `${teamStat.matches}경기 · 리그 집계` : "리그 집계"} />
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+              {([
+                { label: "득점", v: teamStat.goals },
+                { label: "실점", v: teamStat.against },
+                { label: "점유율", v: teamStat.poss, suf: "%" },
+                { label: "슈팅", v: teamStat.shots },
+                { label: "유효슈팅", v: teamStat.sot },
+                { label: "패스성공", v: teamStat.passAcc, suf: "%" },
+                { label: "드리블성공", v: teamStat.dribbleSucc },
+                { label: "태클", v: teamStat.tackles },
+                { label: "코너", v: teamStat.corners },
+                { label: "파울", v: teamStat.fouls },
+                { label: "경고", v: teamStat.yellow },
+                { label: "퇴장", v: teamStat.red },
+              ] as { label: string; v: number | null; suf?: string }[])
+                .filter((t) => t.v != null)
+                .map((t) => (
+                  <div key={t.label} className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 text-center">
+                    <div className="text-xl font-black tabular-nums">{t.v}{t.suf || ""}</div>
+                    <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
+                  </div>
+                ))}
+            </div>
+          </section>
+        )}
 
         {/* TheSports 선수단 — 이름 클릭 → 이적시장 상세(/transfers) */}
         {squad.length > 0 && (

@@ -74,6 +74,7 @@ const COMMUNITY_ITEMS: SubItem[] = [
   { href: "/experts", label: "예측 전문가", desc: "분석가 적중률 순위 · 프로필" },
   { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
   { href: "/predictions/club-ranking", label: "클럽 랭킹", desc: "세계 축구 클럽 순위" },
+  { href: "/predictions/top-scorers", label: "득점왕·도움왕", desc: "리그별 득점·도움 순위" },
 ];
 
 export default function Header() {
