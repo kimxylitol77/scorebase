@@ -278,9 +278,26 @@ async function checkLeaderboardLeagueConsistency(): Promise<HealthFinding[]> {
     if (teamNameMatchesValid(r.teamName, validNames)) continue;
     if (koTeam !== r.teamName && teamNameMatchesValid(koTeam, validNames)) continue;
 
+    // 자기 리그에 안 맞아도 곧바로 "외부 리그"로 단정하지 않는다.
+    // 미매칭 대다수는 외부 선수가 아니라 팀명 정규화갭(한글 leader "뉴욕 양키스" vs 영문 Team
+    // "New York Yankees", NPB 원시약자 "(デ)" 등)이고, 이게 HIGH 오발화의 원인이었음.
+    // 진짜 "외부 리그 오염"은 그 팀이 다른 리그 Team set 에 실제로 존재할 때만 → 그때만 flag.
+    let foreign: string | null = null;
+    for (const [oleague, oset] of byLeague) {
+      if (oleague === r.league || CONTINENTAL_CUP_LEAGUES.has(oleague)) continue;
+      if (
+        teamNameMatchesValid(r.teamName, oset) ||
+        (koTeam !== r.teamName && teamNameMatchesValid(koTeam, oset))
+      ) {
+        foreign = oleague;
+        break;
+      }
+    }
+    if (!foreign) continue; // 정규화갭 — 외부 리그 아님, skip
+
     const e = mismatchByLeague.get(r.league) ?? { total: 0, samples: [] };
     e.total++;
-    if (e.samples.length < 3) e.samples.push(`${r.playerName} (${r.teamName})`);
+    if (e.samples.length < 3) e.samples.push(`${r.playerName} (${r.teamName} → ${foreign})`);
     mismatchByLeague.set(r.league, e);
   }
   for (const [league, info] of mismatchByLeague) {
