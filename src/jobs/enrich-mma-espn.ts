@@ -15,9 +15,13 @@ interface EspnCompetitor {
   athlete?: { displayName?: string; flag?: { href?: string } };
   records?: Array<{ summary?: string }>;
 }
+interface EspnCompetition {
+  competitors?: EspnCompetitor[];
+  status?: { type?: { state?: string; completed?: boolean } }; // state: pre|in|post
+}
 interface EspnEvent {
   name?: string;
-  competitions?: Array<{ competitors?: EspnCompetitor[] }>;
+  competitions?: EspnCompetition[];
 }
 
 async function fetchEspn(dates?: string): Promise<EspnEvent[]> {
@@ -125,6 +129,72 @@ export async function runEnrichMmaEspn(): Promise<{ matched: number; events: num
   }
   console.log(`[mma-espn] ${events}이벤트(${dates.length}날짜 순회) → ${matched}명 ESPN 보강(전적/국기/헤드샷)`);
   return { matched, events };
+}
+
+/**
+ * UFC 라이브 status — ESPN scoreboard 의 competition.status(pre/in/post)로
+ * Match 를 SCHEDULED→LIVE→FINISHED 전환(+종료 시 승자 1/0). The Odds 는 완료 경기만 줘서
+ * 라이브 상태가 없던 공백을 메운다. 빠름(현재/임박 scoreboard 1콜) → cron 경기 시간대 자주 호출.
+ */
+export async function runEnrichMmaLive(): Promise<{ live: number; finished: number }> {
+  const teams = await prisma.team.findMany({ where: { league: "UFC" }, select: { id: true, name: true } });
+  const byName = new Map<string, number>();
+  const bySorted = new Map<string, number>();
+  for (const t of teams) {
+    byName.set(norm(t.name), t.id);
+    bySorted.set(sortedKey(t.name), t.id);
+  }
+  const tid = (name?: string): number | null =>
+    name ? (byName.get(norm(name)) ?? bySorted.get(sortedKey(name)) ?? null) : null;
+
+  const events = await fetchEspn(); // 현재/임박 이벤트 (라이브는 calendar 순회 불필요)
+  let live = 0;
+  let finished = 0;
+  for (const ev of events) {
+    for (const comp of ev.competitions ?? []) {
+      const state = comp.status?.type?.state;
+      if (!state || state === "pre") continue; // 예정 → SCHEDULED 유지
+      const cs = comp.competitors ?? [];
+      if (cs.length < 2) continue;
+      const tA = tid(cs[0].athlete?.displayName);
+      const tB = tid(cs[1].athlete?.displayName);
+      if (tA == null || tB == null) continue;
+      const m = await prisma.match.findFirst({
+        where: {
+          league: "UFC",
+          OR: [
+            { homeTeamId: tA, awayTeamId: tB },
+            { homeTeamId: tB, awayTeamId: tA },
+          ],
+        },
+        select: { id: true, homeTeamId: true, status: true },
+      });
+      if (!m) continue;
+
+      if (state === "in") {
+        // 단조 가드 — FINISHED 는 LIVE 로 되돌리지 않음.
+        if (m.status !== "FINISHED" && m.status !== "LIVE") {
+          await prisma.match.update({ where: { id: m.id }, data: { status: "LIVE" } });
+        }
+        live++;
+      } else if (state === "post") {
+        const winnerTid = tid(cs.find((c) => c.winner)?.athlete?.displayName);
+        const homeWon = winnerTid != null && winnerTid === m.homeTeamId;
+        await prisma.match.update({
+          where: { id: m.id },
+          data: {
+            status: "FINISHED",
+            // MMA 는 점수 없음 → 승자 1 / 패자 0. 무승부·노컨테스트(winner 없음)면 null.
+            homeScore: winnerTid == null ? null : homeWon ? 1 : 0,
+            awayScore: winnerTid == null ? null : homeWon ? 0 : 1,
+          },
+        });
+        finished++;
+      }
+    }
+  }
+  console.log(`[mma-live] LIVE ${live} · FINISHED ${finished}`);
+  return { live, finished };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
