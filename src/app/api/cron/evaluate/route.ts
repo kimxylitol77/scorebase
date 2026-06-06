@@ -3,7 +3,8 @@ import { runEvaluate, runEvaluateMatches } from "@/jobs/evaluate-predictions";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// take 200→400 (desc 백로그 배수)로 처리량 늘어 60s 부족 가능 → 180s.
+export const maxDuration = 180;
 
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;

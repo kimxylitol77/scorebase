@@ -136,9 +136,14 @@ export async function runEvaluate(opts?: { limit?: number }) {
  * 리그별로 한 번씩 prisma.findMany 해서 in-memory 컨텍스트 재사용.
  */
 export async function runEvaluateMatches(opts?: { limit?: number }) {
-  const limit = opts?.limit ?? 200;
+  const limit = opts?.limit ?? 400;
   console.log("[evaluate/match] 시작");
 
+  // 최신 매치 먼저 채점 (desc). asc 면 평가불가 컵/여자/마이너 리그 매치(양팀 prior<5 → 아래
+  // MIN_PRIOR 에서 영구 skip)가 큐 머리를 점거해, take 만큼 집어도 전부 건너뛰고 끝나 최근 매치가
+  // 영영 채점 안 됨 (19401 백로그 中 최古 250건이 100% 이런 매치였음 → 알림 17% starvation).
+  // desc 면 평가 가능한 최근 매치가 항상 머리에 와 즉시 처리되고, 평가불가 매치는 바닥으로
+  // 가라앉아 starvation 없음.
   const pending = await prisma.match.findMany({
     where: {
       status: "FINISHED",
@@ -146,7 +151,7 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
       awayScore: { not: null },
       predCorrect: null,
     },
-    orderBy: { startTime: "asc" },
+    orderBy: { startTime: "desc" },
     take: limit,
     include: { theSportsCache: { select: { detailLive: true } } },
   });

@@ -22,6 +22,9 @@ const BOT_INTERVAL_MS: Record<string, number> = {
   "mac-mini-data-quality": 15 * 60 * 1000,
   "mac-mini-api-quota": 30 * 60 * 1000,
   "mac-mini-preview-coverage": 30 * 60 * 1000,
+  // route-guardian 는 24h 주기 데몬(하루 1회 sitemap 전수 크롤 후 heartbeat 1회). 미등록 시 기본
+  // 30분 임계라 실행 직후 ~23.5h 동안 매일 false positive DOWN 알림 났음 → daily 등록(임계 24h×4).
+  "mac-mini-route-guardian": 24 * 60 * 60 * 1000,
   "mac-mini-weekly-player-names": 7 * 24 * 60 * 60 * 1000,
   // lightsail daily cron (KST 03시 1회). 미등록 시 기본 30분 임계라
   // 03시 실행 후 매일 false positive 알림 났음 → daily 주기 등록(임계 24h×4=4일).
