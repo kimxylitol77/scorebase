@@ -75,16 +75,14 @@ async function main() {
   }
   console.log("라인업 nameKo 교체 DONE", done);
 
-  let added = 0;
-  for (const t of toAdd) {
-    await prisma.theSportsPlayer.upsert({
-      where: { id: t.id },
-      create: { id: t.id, name: t.ko, nameKo: t.ko, sport: "FOOTBALL" },
-      update: { nameKo: t.ko },
+  // createMany 일괄 insert (개별 upsert 루프는 Neon 연결 소진 유발). market 보강은 신규 전용 = skipDuplicates.
+  if (toAdd.length) {
+    const res = await prisma.theSportsPlayer.createMany({
+      data: toAdd.map((t) => ({ id: t.id, name: t.ko, nameKo: t.ko, sport: "FOOTBALL" })),
+      skipDuplicates: true,
     });
-    if (++added % 500 === 0) console.log("  added", added);
+    console.log("market 보강 createMany 추가:", res.count);
   }
-  console.log("market 보강 DONE", added);
   await prisma.$disconnect();
 }
 main().catch((e) => { console.error("ERR", e.message); process.exit(1); });
