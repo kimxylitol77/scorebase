@@ -252,8 +252,8 @@ export default async function TransfersPage({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate flex items-center gap-1.5">
-                    {p.name}
+                  <div className="font-bold flex items-center gap-1.5 min-w-0">
+                    <span className="truncate">{p.name}</span>
                     {p.posCode && (
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500 shrink-0">
                         {p.posCode}
@@ -262,6 +262,9 @@ export default async function TransfersPage({
                     {p.countryFlag && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={p.countryFlag} alt={p.country || ""} title={p.country || ""} className="w-4 h-3 object-cover rounded-[1px] shrink-0" />
+                    )}
+                    {p.country && (
+                      <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 shrink-0">{p.country}</span>
                     )}
                   </div>
                   <div className="text-xs text-neutral-500 truncate flex items-center gap-1">
