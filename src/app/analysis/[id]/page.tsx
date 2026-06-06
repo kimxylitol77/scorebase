@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { displayGrade } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
+import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { toKoreanTeamName } from "@/lib/team-names";
 import Markdown from "@/components/Markdown";
 import LikeButton from "./LikeButton";
@@ -61,6 +62,13 @@ export default async function PostDetailPage({ params }: Props) {
           startTime: true,
           homeScore: true,
           awayScore: true,
+          oddsHome: true,
+          oddsDraw: true,
+          oddsAway: true,
+          oddsHcHome: true,
+          oddsHcAway: true,
+          oddsOver: true,
+          oddsUnder: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
         },
@@ -105,6 +113,8 @@ export default async function PostDetailPage({ params }: Props) {
         post.pick === "HOME" ? `${home} 승` : post.pick === "AWAY" ? `${away} 승` : "무승부";
     }
   }
+
+  const odds = pickOdds(post.market, post.pick, post.match);
 
   const resultBadge =
     post.isCorrect === true
@@ -198,11 +208,16 @@ export default async function PostDetailPage({ params }: Props) {
               </span>
               <span className="text-neutral-500"> · {kickoffLabel(post.match.startTime)}</span>
             </div>
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-sm">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-base sm:text-lg">
                 내 예상:{" "}
-                <span className="font-bold text-rose-600 dark:text-rose-400">{pickLabel}</span>
+                <span className="font-extrabold text-rose-600 dark:text-rose-400">{pickLabel}</span>
               </span>
+              {odds != null && (
+                <span className="text-sm font-bold tabular-nums text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md">
+                  배당 {fmtOdds(odds)}
+                </span>
+              )}
               {post.match.status === "FINISHED" && post.match.homeScore != null && (
                 <span className="text-xs text-neutral-500">
                   (결과 {post.match.homeScore}:{post.match.awayScore})
