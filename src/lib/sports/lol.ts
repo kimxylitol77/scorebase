@@ -7,6 +7,7 @@
 
 import axios from "axios";
 import type {
+  League,
   MatchCollector,
   MatchStatus,
   NormalizedMatch,
@@ -14,10 +15,16 @@ import type {
 
 const BASE = "https://api.balldontlie.io/lol/v1";
 
-// LCK 계열 tournament ids — 324=2026 본선, 31757=Road to MSI(본선 종료 후 MSI 진출전).
-// 본선만 두면 스플릿 사이 공백이 생기니, BDL tournaments 에서 status=current/upcoming 인
-// LCK 계열 id 를 함께 둔다(같은 LCK 10팀이라 기존 한글/로고 매핑 그대로 적용).
-const LCK_TOURNAMENT_IDS = [324, 31757];
+// BDL tournament id → 우리 League 코드 (단일 진실). "LOL"=LCK 본선(코드 유지).
+// 2군·해외 리그는 여기에만 추가하면 fetchLolAll/collect 가 자동 분기한다.
+//   324=LCK 2026 본선, 31757=Road to MSI (둘 다 "LOL"=LCK), 30626=LCK CL(2군).
+//   (Stage 2: 19349/35115=LPL, 328/336=LEC, 323/337=LCS)
+const TOURNAMENT_TO_LEAGUE: Record<number, League> = {
+  324: "LOL",
+  31757: "LOL",
+  30626: "LCK_CL",
+};
+const LOL_TOURNAMENT_IDS = Object.keys(TOURNAMENT_TO_LEAGUE).map(Number);
 
 // LCK 10팀 한글명 + 로고 매핑 (BALLDONTLIE team id 기준).
 // 새 시즌에 팀 ID가 바뀌면 추가/수정. logo URL 은 Liquipedia hotlink (600px).
@@ -127,13 +134,13 @@ function mapStatus(s: string): MatchStatus {
   return "SCHEDULED";
 }
 
-/** LCK tournament 전체 매치 (cursor 페이지네이션). */
-export async function fetchLolLckAll(): Promise<NormalizedMatch[]> {
+/** LOL 계열 전체 tournament 매치 (LCK·LCK CL 등, cursor 페이지네이션). league 는 tournament 로 결정. */
+export async function fetchLolAll(): Promise<NormalizedMatch[]> {
   const out: BdlMatch[] = [];
   let cursor: number | undefined;
   for (let i = 0; i < 10; i++) {
     const params: Record<string, unknown> = {
-      "tournament_ids[]": LCK_TOURNAMENT_IDS,
+      "tournament_ids[]": LOL_TOURNAMENT_IDS,
       per_page: 100,
     };
     if (cursor) params.cursor = cursor;
@@ -160,7 +167,8 @@ export async function fetchLolLckAll(): Promise<NormalizedMatch[]> {
       const t1Ko = LCK_TEAM_NAMES_KO[String(t1.id)];
       const t2Ko = LCK_TEAM_NAMES_KO[String(t2.id)];
       return {
-        league: "LOL",
+        // tournament → league (단일 소스). LCK 계열은 "LOL", 2군은 "LCK_CL" 등. 미매핑은 "LOL" fallback.
+        league: TOURNAMENT_TO_LEAGUE[m.tournament?.id] ?? "LOL",
         externalId: String(m.id),
         homeTeam: {
           externalId: String(t1.id),
@@ -249,6 +257,7 @@ interface StandingsInputMatch {
 /** LCK FINISHED 매치들에서 정규 순위 집계 + 시즌 누적 지표 (2-0 셧다운·streak·recent5). */
 export function calcLckStandings(
   matches: StandingsInputMatch[],
+  league: string = "LOL",
 ): Map<number, LckStanding> {
   // 1단계: 팀별 결과 시계열 누적 (시간순)
   interface TeamAccum {
@@ -279,7 +288,7 @@ export function calcLckStandings(
   const finishedMatches = matches
     .filter(
       (m) =>
-        m.league === "LOL" &&
+        m.league === league &&
         m.status === "FINISHED" &&
         m.homeScore !== null &&
         m.awayScore !== null,
@@ -908,7 +917,7 @@ export const lolCollector: MatchCollector = {
   // day-loop fallback — 보통 collect.ts 가 fetchLolLckAll 로 special-case 처리.
   // 누가 직접 호출해도 깨지지 않도록 같은 데이터에서 날짜 필터링.
   async fetchByDate(date: string): Promise<NormalizedMatch[]> {
-    const all = await fetchLolLckAll();
+    const all = await fetchLolAll();
     const ymd = date.slice(0, 10);
     return all.filter((m) => m.startTime.toISOString().slice(0, 10) === ymd);
   },

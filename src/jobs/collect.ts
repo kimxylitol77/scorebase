@@ -11,7 +11,8 @@ import { resolveTeamId } from "@/lib/sports/team-resolver";
 import { fetchEplRange } from "@/lib/sports/football-data";
 import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
-import { fetchLolLckAll } from "@/lib/sports/lol";
+import { fetchLolAll } from "@/lib/sports/lol";
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
@@ -121,7 +122,7 @@ const ALL_LEAGUES: League[] = [
   "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
   "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD", "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
-  "LOL", // NHL/NBA/WNBA 제거 — TheSports ice_hockey/basketball worker 가 매치 소스 (2026-05-28 마이그레이션)
+  "LOL", "LCK_CL", // NHL/NBA/WNBA 제거 — TheSports ice_hockey/basketball worker 가 매치 소스 (2026-05-28 마이그레이션)
   // stale-cleanup 알림 발견 12개 리그 추가 (2026-05-23) — cron 미호출로 SCHEDULED 자동 POSTPONED 발생
   "URVALSDEILD", "IRELAND_PD", "ICELAND_1L", "SLOVENIA_SNL",
   "HNL", "ALLSVENSKAN", "EGYPT_PL", "AUSTRIA_BL",
@@ -290,6 +291,8 @@ export async function runCollect(opts?: {
     }`,
   );
 
+  // BDL LOL 전체는 collect 1회당 한 번만 fetch(여러 LOL 계열 리그가 공유) → 중복 API 호출 방지.
+  let lolCache: NormalizedMatch[] | null = null;
   for (const league of leagues) {
     try {
       // EPL: football-data 는 dateFrom/dateTo 한 번 호출로 범위 처리 가능
@@ -315,11 +318,12 @@ export async function runCollect(opts?: {
         for (const m of matches) await upsertMatch(m);
         continue;
       }
-      // LoL/LCK: BALLDONTLIE LoL endpoint 가 날짜 필터를 지원하지 않아
-      // LCK tournament 전체를 한 번에 가져오는 게 효율적이다.
-      if (league === "LOL") {
-        const matches = await fetchLolLckAll();
-        console.log(`[collect/LOL] ${matches.length}경기 수집 (LCK 전체)`);
+      // LoL 계열(LCK·LCK CL·해외): BDL LoL endpoint 가 날짜 필터 미지원 → 전체 1회 fetch(캐시) 후
+      // tournament→league 로 분리된 해당 league 만 필터해 upsert.
+      if (LOL_LEAGUES.has(league)) {
+        if (!lolCache) lolCache = await fetchLolAll();
+        const matches = lolCache.filter((m) => m.league === league);
+        console.log(`[collect/${league}] ${matches.length}경기 수집 (LoL 계열)`);
         for (const m of matches) await upsertMatch(m);
         continue;
       }

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
-import { ALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 // 자동 생성되는 sitemap.xml
 // 검색 엔진(Google, 네이버 등)에 사이트 구조를 알려준다.
@@ -122,7 +122,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const livePages: MetadataRoute.Sitemap = matches.map((m) => {
     const lg = m.league.toLowerCase();
     // MLB/KBO/NPB/LOL = 전용 라우트, 나머지(NBA/NHL/축구) = [league] 동적 라우트
-    const slug = m.league === "LOL" ? "lol" : lg;
+    const slug = LOL_LEAGUES.has(m.league) ? "lol" : lg;
     const segment = ["mlb", "kbo", "npb", "lol"].includes(slug) ? slug : lg;
     // UFC 라우트는 Match.id(숫자) 기반 — externalId(hash)는 404 (2026-06-04 route-guardian).
     // /scores 내부링크와 동일하게 Match.id 로 sitemap 등록 (야구 ts- 제외와 다른 처리: UFC 는 전부 Match.id 라우팅).

@@ -17,6 +17,7 @@ import {
   BASEBALL_LEAGUES,
   BASKETBALL_LEAGUES,
   HOCKEY_LEAGUES,
+  LOL_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 
 const MANAGER_EMAIL = "manager@scorebase.internal";
@@ -60,7 +61,7 @@ export function sportForLeague(league: string): Sport | null {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
   if (BASKETBALL_LEAGUES.has(league)) return "basketball";
   if (HOCKEY_LEAGUES.has(league)) return "hockey";
-  if (league === "LOL") return null; // e스포츠는 분석 게시판 종목(축구/야구/농구/하키) 밖
+  if (LOL_LEAGUES.has(league)) return null; // e스포츠는 분석 게시판 종목(축구/야구/농구/하키) 밖
   return "soccer";
 }
 

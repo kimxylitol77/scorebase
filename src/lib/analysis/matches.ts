@@ -44,6 +44,7 @@ const LEAGUE_KO: Record<string, string> = {
   NHL: "NHL",
   IIHF_WC: "세계선수권",
   LOL: "LCK",
+  LCK_CL: "LCK CL",
 };
 
 export function leagueLabel(code: string): string {

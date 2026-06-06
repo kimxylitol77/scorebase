@@ -13,6 +13,7 @@ import {
   BASKETBALL_LEAGUES,
   HOCKEY_LEAGUES,
   MMA_LEAGUES,
+  LOL_LEAGUES,
   leaguesForSport,
   LEAGUE_DISPLAY,
   LEAGUE_ORDER,
@@ -111,7 +112,7 @@ function sportFromLeague(league: string): string {
   if (BASKETBALL_LEAGUES.has(league)) return "basketball"; // NBA/WNBA/KBL/WKBL (이전엔 NBA 만 → 나머지가 "other" 한 줄로 빠짐)
   if (HOCKEY_LEAGUES.has(league)) return "hockey"; // NHL + IIHF_WC (이전엔 NHL 만 → IIHF_WC 가 "other" 한 줄로 빠짐)
   if (MMA_LEAGUES.has(league)) return "mma"; // UFC
-  if (league === "LOL") return "esports";
+  if (LOL_LEAGUES.has(league)) return "esports";
   return "other";
 }
 
@@ -1107,7 +1108,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     if (m.league === "MLB") href = `/live/mlb/${m.externalId}`;
     else if (m.league === "KBO") href = `/live/kbo/${m.externalId}`;
     else if (m.league === "NPB") href = `/live/npb/${m.externalId}`;
-    else if (m.league === "LOL") href = `/live/lol/${m.externalId}`;
+    else if (LOL_LEAGUES.has(m.league)) href = `/live/lol/${m.externalId}`;
     else if (m.league === "UFC") href = `/live/ufc/${m.id}`; // UFC 매치 상세 (파이터 Tale of the Tape + 전적/배당)
     else if (
       BASEBALL_LEAGUES.has(m.league) ||    // LMB/CPBL/KBO_FUTURES/NPB_MINOR 등 마이너 야구 (MLB/KBO/NPB 는 위 전용 라우트)

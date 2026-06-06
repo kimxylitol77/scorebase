@@ -47,7 +47,7 @@ export const ALL_LEAGUES = [
   // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
-  "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL", "UFC",
+  "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "UFC",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -145,7 +145,9 @@ export const SPORTS: SportMeta[] = [
     code: "esports",
     label: "e스포츠",
     emoji: "🎮",
-    leagues: ["LOL"],
+    // "LOL" = LCK 본선(+Road to MSI, 코드 유지). "LCK_CL" = LCK 챌린저스(2군).
+    // 해외(LPL/LEC/LCS)는 Stage 2 에서 추가. BDL tournament→league 는 lol.ts 단일 소스.
+    leagues: ["LOL", "LCK_CL"],
   },
   {
     code: "mma",
@@ -178,6 +180,12 @@ export const BASKETBALL_LEAGUES = new Set(
 // 팀 스포츠가 아니라 파이터(개인)지만 Match.homeTeam/awayTeam(=파이터 Team) 재사용.
 export const MMA_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "mma")?.leagues ?? [],
+);
+
+// e스포츠(LoL) 리그 집합 — SPORTS.esports.leagues 단일 진실. "LOL"=LCK 본선(코드 유지),
+// "LCK_CL"=2군 등. league→sport 매핑·라우트·sitemap 분기가 이 Set 으로 자동화된다.
+export const LOL_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "esports")?.leagues ?? [],
 );
 
 // 축구 리그 집합 — SPORTS.soccer.leagues 단일 진실 (K리그·월드컵 등 전부 포함).
@@ -339,6 +347,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   KBL: "KBL",
   WKBL: "WKBL",
   LOL: "LCK",
+  LCK_CL: "LCK CL",
   UFC: "UFC",
   // 2026-05-24 추가
   SUI_CUP: "스위스컵",
@@ -526,6 +535,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   KBL: 23,
   WKBL: 24,
   LOL: 30,
+  LCK_CL: 30.5,
   UFC: 40,
 };
 
@@ -671,6 +681,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   KBL: "대한민국",
   WKBL: "대한민국",
   LOL: "대한민국",
+  LCK_CL: "대한민국",
   UFC: "미국",
   // 신규 추가 (23개)
   K3_LEAGUE: "대한민국",

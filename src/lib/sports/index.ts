@@ -12,6 +12,7 @@ import { kboCollector } from "./kbo";
 import { npbCollector } from "./npb";
 import { worldCupCollector } from "./world-cup";
 import { lolCollector } from "./lol";
+import { LOL_LEAGUES } from "./sport-leagues";
 import type { League, MatchCollector } from "./types";
 
 const eplCollector: MatchCollector = process.env.FOOTBALL_DATA_KEY
@@ -48,6 +49,7 @@ export const collectors: Record<League, MatchCollector> = {
   KBO: kboCollector,
   NPB: npbCollector,
   LOL: lolCollector,
+  LCK_CL: lolCollector, // LCK 챌린저스(2군). collect 는 LOL_LEAGUES special-case 로 처리, Record 타입 충족용.
   // 신규 — 아시아 축구
   J1_LEAGUE: buildApiFootballCollector("J1_LEAGUE"), // api-football (ESPN 80일 백필 timeout 회피)
   AFC_CL: buildApiFootballCollector("AFC_CL"), // api-football 통일
@@ -265,7 +267,7 @@ export function getPrimarySource(league: League): string {
   if (league === "KBL" || league === "WKBL") return "thesports";
   if (league === "KBO") return "kbo";
   if (league === "NPB") return "npb";
-  if (league === "LOL") return "leaguepedia";
+  if (LOL_LEAGUES.has(league)) return "leaguepedia";
   if (league === "WORLD_CUP") return "world-cup";
   if (SOCCER_ESPN_LEAGUES.includes(league)) return "espn";
   // 그 외 축구 리그는 모두 buildApiFootballCollector

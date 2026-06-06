@@ -11,6 +11,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 import ConclusionCards, {
   type ConclusionPred,
   type KeyFactor,
@@ -30,7 +31,7 @@ function kstDate(d: Date): string {
 async function findLolMatch(matchId: string) {
   try {
     return await prisma.match.findFirst({
-      where: { externalId: matchId, league: "LOL" },
+      where: { externalId: matchId, league: { in: [...LOL_LEAGUES] } },
       include: { homeTeam: true, awayTeam: true },
     });
   } catch {
