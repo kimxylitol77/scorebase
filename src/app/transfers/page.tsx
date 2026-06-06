@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import TransfersFilterBar from "./TransfersFilterBar";
+import rawDetailPos from "../../../data/player-positions.json";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,13 @@ const LEAGUES: Record<string, string> = {
 };
 const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, label }));
 const FIVE = Object.keys(LEAGUES);
-const POS_LABEL: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
+// 세부 포지션 — 라인업 x/y 도출(data/player-positions.json). 없으면 coarse(G/D/M/F)로 fallback.
+const DETAIL_POS = rawDetailPos as Record<string, string>;
+const POS_CODES = ["GK", "CB", "FB", "MF", "W", "ST"];
+function posCodeOf(id: string, coarse: string | null | undefined): string | null {
+  if (DETAIL_POS[id]) return DETAIL_POS[id];
+  return coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null;
+}
 const PER = 20;
 
 const EUR_KRW = 1791.5;
@@ -65,7 +72,7 @@ export default async function TransfersPage({
   const view = ["all", "league", "team", "country", "pos"].includes(sp.view || "") ? sp.view! : "all";
   const league = sp.league && LEAGUES[sp.league] ? sp.league : "";
   const team = sp.team || "";
-  const pos = sp.pos && POS_LABEL[sp.pos] ? sp.pos : "";
+  const pos = sp.pos && POS_CODES.includes(sp.pos) ? sp.pos : "";
   const country = sp.country || "";
   const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
   const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400; // 18개월 활성
@@ -133,7 +140,7 @@ export default async function TransfersPage({
         name: tsp?.nameKo || tsp?.name || "선수",
         value: Math.round((r.currentValue || 0) / 1e6),
         age: r.age,
-        position: tsp?.position || null,
+        posCode: posCodeOf(r.id, tsp?.position),
         league: r.league,
         teamName: tm?.name || "—",
         teamLogo: tm?.logoUrl || null,
@@ -144,7 +151,7 @@ export default async function TransfersPage({
     })
     .filter((e) => e.lastTime >= cutoff);
 
-  if (view === "pos" && pos) enriched = enriched.filter((e) => e.position === pos);
+  if (view === "pos" && pos) enriched = enriched.filter((e) => e.posCode === pos);
   // view === "country" 필터는 country 데이터 적재 후 활성화
 
   const totalCount = enriched.length;
@@ -156,7 +163,7 @@ export default async function TransfersPage({
   const selectedLabel =
     view === "league" && league ? LEAGUES[league]
       : view === "team" && team ? teamOptions.find((t) => String(t.id) === team)?.name || "팀"
-        : view === "pos" && pos ? POS_LABEL[pos]
+        : view === "pos" && pos ? pos
           : view === "country" && country ? country
             : "전체";
 
@@ -221,9 +228,9 @@ export default async function TransfersPage({
                 <div className="flex-1 min-w-0">
                   <div className="font-bold truncate flex items-center gap-1.5">
                     {p.name}
-                    {p.position && (
+                    {p.posCode && (
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500 shrink-0">
-                        {POS_LABEL[p.position]}
+                        {p.posCode}
                       </span>
                     )}
                   </div>

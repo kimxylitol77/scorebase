@@ -25,11 +25,14 @@ const CATS = [
   { key: "country", label: "국가별" },
   { key: "pos", label: "포지션별" },
 ];
+// 세부 포지션 — GK / CB(중앙수비) / FB(윙백) / MF / W(윙어) / ST(스트라이커)
 const POSITIONS = [
-  { code: "G", label: "GK" },
-  { code: "D", label: "DF" },
-  { code: "M", label: "MF" },
-  { code: "F", label: "FW" },
+  { code: "GK", label: "GK" },
+  { code: "CB", label: "CB" },
+  { code: "FB", label: "FB" },
+  { code: "MF", label: "MF" },
+  { code: "W", label: "W" },
+  { code: "ST", label: "ST" },
 ];
 
 function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string }): string {
