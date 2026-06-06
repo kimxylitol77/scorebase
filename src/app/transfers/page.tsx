@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import TransfersFilterBar from "./TransfersFilterBar";
+import { toKoreanTeamName } from "@/lib/team-names";
 import rawDetailPos from "../../../data/player-positions.json";
 
 export const dynamic = "force-dynamic";
@@ -100,7 +101,7 @@ export default async function TransfersPage({
     if (our != null) teamCount.set(our, (teamCount.get(our) || 0) + g._count._all);
   }
   const teamOptions = [...teamCount.entries()]
-    .map(([id, count]) => ({ id, name: teamMeta.get(id)?.name || "", count }))
+    .map(([id, count]) => ({ id, name: toKoreanTeamName(teamMeta.get(id)?.name) || teamMeta.get(id)?.name || "", count }))
     .filter((t) => t.name)
     .sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
@@ -142,7 +143,7 @@ export default async function TransfersPage({
         age: r.age,
         posCode: posCodeOf(r.id, tsp?.position),
         league: r.league,
-        teamName: tm?.name || "—",
+        teamName: toKoreanTeamName(tm?.name) || tm?.name || "—",
         teamLogo: tm?.logoUrl || null,
         photo: tsp?.photoUrl || null,
         lastTime: last?.market_time ?? 0,

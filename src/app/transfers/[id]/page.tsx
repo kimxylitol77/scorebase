@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +105,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     });
     if (ts) {
       const team = await prisma.team.findUnique({ where: { id: ts.teamId }, select: { id: true, name: true, logoUrl: true } });
-      if (team) { teamName = team.name; teamLogo = team.logoUrl; ourTeamId = team.id; }
+      if (team) { teamName = toKoreanTeamName(team.name) || team.name; teamLogo = team.logoUrl; ourTeamId = team.id; }
     }
   }
 
