@@ -82,7 +82,7 @@ export async function runEnrichMmaAthlete(): Promise<{ enriched: number }> {
           record: stat("wins-losses-draws") ?? undefined,
           koRecord: stat("tkos-tkoLosses") ?? undefined,
           subRecord: stat("submissions-submissionLosses") ?? undefined,
-          headshot: a.headshot?.href ?? undefined,
+          headshot: a.headshot?.href || undefined, // "" 도 기존 헤드샷(espn URL) 보존
           flagUrl: a.flag?.href ?? undefined,
           fightHistory: history.length ? JSON.stringify(history) : undefined,
         },

@@ -132,16 +132,18 @@ export async function runEnrichMma(): Promise<{ enriched: number; rateLimited: b
         photo: f?.photo || null,
       },
       update: {
-        apiSportsId: f?.id ?? undefined, // 미매칭이면 기존값 보존
-        nickname: f?.nickname || null,
-        gender: f?.gender || null,
-        category: f?.category || null,
-        height: f?.height || null,
-        weight: f?.weight || null,
-        reach: f?.reach || null,
-        stance: f?.stance || null,
-        gym: f?.team?.name || null,
-        photo: f?.photo || null,
+        // 미매칭(f=null)·부분데이터면 빈값으로 덮지 않고 기존값 보존
+        // (ESPN athlete 가 채운 신체/사진을 api-sports 빈값이 날리던 버그 수정 — athlete 우선).
+        apiSportsId: f?.id ?? undefined,
+        nickname: f?.nickname || undefined,
+        gender: f?.gender || undefined,
+        category: f?.category || undefined,
+        height: f?.height || undefined,
+        weight: f?.weight || undefined,
+        reach: f?.reach || undefined,
+        stance: f?.stance || undefined,
+        gym: f?.team?.name || undefined,
+        photo: f?.photo || undefined,
         fetchedAt: new Date(),
         // nameKo 는 건드리지 않음 (build-ufc-fighter-names-haiku.ts 가 채운 값 보존)
       },
