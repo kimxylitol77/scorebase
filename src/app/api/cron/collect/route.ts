@@ -125,6 +125,8 @@ const ALL_LEAGUES: League[] = [
   "KBO",
   "NPB",
   "LOL",
+  "LCK_CL", // LCK 2군
+  "LPL", "LEC", "LCS", // 해외 (표시만) — collect 가 fetchLolAll 1회 캐시 공유
 ];
 
 function authorized(req: Request): boolean {
