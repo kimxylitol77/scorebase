@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/analysis`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
     { url: `${base}/standings`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${base}/injuries`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
+    { url: `${base}/transfers`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/previews`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     ...["SOCCER", "BASEBALL", "BASKETBALL", "HOCKEY", "ESPORTS"].map((sport) => ({
       url: `${base}/previews?sport=${sport}`,
@@ -135,5 +136,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [...staticPages, ...articlePages, ...noticePages, ...blogPages, ...livePages];
+  // 선수 몸값 상세 — 가치 상위 600명(스타 = 콘텐츠 풍부 + 검색 수요). thin 회피로 상위만.
+  const topPlayers = await prisma.playerMarketValue.findMany({
+    where: { league: { in: ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] }, currentValue: { not: null } },
+    orderBy: { currentValue: "desc" },
+    take: 600,
+    select: { id: true },
+  });
+  const playerPages: MetadataRoute.Sitemap = topPlayers.map((p) => ({
+    url: `${base}/transfers/${p.id}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages];
 }
