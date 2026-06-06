@@ -1,7 +1,8 @@
 // 시장가치 랭킹 — TheSports market value 실데이터.
-// 필터: 리그 / 팀 / 포지션. 행 클릭 → 선수 개인페이지(/transfers/[id]).
+// 카테고리: 전체 / 리그별 / 팀별 / 국가별 / 포지션별. 기본 = 전체(빅5 통합). 행 클릭 → /transfers/[id].
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import TransfersFilterBar from "./TransfersFilterBar";
 
 export const dynamic = "force-dynamic";
 
@@ -12,13 +13,8 @@ const LEAGUES: Record<string, string> = {
   SERIE_A: "세리에 A",
   LIGUE_1: "리그 1",
 };
-// TheSports 포지션 코드 → 표시 라벨
-const POS: { code: string; label: string }[] = [
-  { code: "G", label: "GK" },
-  { code: "D", label: "DF" },
-  { code: "M", label: "MF" },
-  { code: "F", label: "FW" },
-];
+const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, label }));
+const FIVE = Object.keys(LEAGUES);
 const POS_LABEL: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
 const PER = 20;
 
@@ -58,197 +54,144 @@ function Spark({ data }: { data: number[] }) {
   );
 }
 
-interface HistPt { market_value?: number }
+interface Hist { market_value?: number; market_time?: number }
 
 export default async function TransfersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ league?: string; team?: string; pos?: string; page?: string }>;
+  searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string }>;
 }) {
   const sp = await searchParams;
-  const league = sp.league && LEAGUES[sp.league] ? sp.league : "EPL";
-  const teamFilter = sp.team || "";
-  const posFilter = sp.pos && POS_LABEL[sp.pos] ? sp.pos : "";
+  const view = ["all", "league", "team", "country", "pos"].includes(sp.view || "") ? sp.view! : "all";
+  const league = sp.league && LEAGUES[sp.league] ? sp.league : "";
+  const team = sp.team || "";
+  const pos = sp.pos && POS_LABEL[sp.pos] ? sp.pos : "";
+  const country = sp.country || "";
   const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
+  const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400; // 18개월 활성
 
-  // 리그 전체 행(≤919) 을 한 번에 — 팀/포지션 필터는 앱단에서 (소규모라 안전).
-  // 최신성 필터: 마지막 몸값 갱신이 18개월 이내인 선수만 노출. stale 데이터(빅5 떠난·은퇴
-  // 선수의 박제된 몸값, 예: 은퇴 크로스 €10M)를 랭킹에서 배제 → "현재 시장가치" 정합성 +
-  // 이름 없는 비활성 선수 placeholder 대량 제거. history 마지막 원소 market_time 으로 판정.
-  const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400;
-  const allRows = (
-    await prisma.playerMarketValue.findMany({
-      where: { league, currentValue: { not: null } },
-      orderBy: { currentValue: "desc" },
-    })
-  ).filter((r) => {
-    const h = Array.isArray(r.history) ? (r.history as { market_time?: number }[]) : [];
-    const last = h[h.length - 1];
-    return last?.market_time != null && last.market_time >= cutoff;
+  // ── 팀 옵션 (빅5 전체에서 distinct, 인원수) ──
+  const teamGroups = await prisma.playerMarketValue.groupBy({
+    by: ["teamId"],
+    where: { league: { in: FIVE }, currentValue: { not: null }, teamId: { not: null } },
+    _count: { _all: true },
   });
-  const ids = allRows.map((r) => r.id);
+  const allTsTeamIds = teamGroups.map((g) => g.teamId).filter((x): x is string => !!x);
+  const tsT = await prisma.teamSourceId.findMany({
+    where: { source: "thesports", externalId: { in: allTsTeamIds } },
+    select: { externalId: true, teamId: true },
+  });
+  const tsToOur = new Map(tsT.map((t) => [t.externalId, t.teamId]));
+  const ourTeamRows = await prisma.team.findMany({
+    where: { id: { in: [...new Set(tsToOur.values())] } },
+    select: { id: true, name: true, logoUrl: true },
+  });
+  const teamMeta = new Map(ourTeamRows.map((t) => [t.id, t]));
+  const teamCount = new Map<number, number>();
+  for (const g of teamGroups) {
+    const our = g.teamId ? tsToOur.get(g.teamId) : undefined;
+    if (our != null) teamCount.set(our, (teamCount.get(our) || 0) + g._count._all);
+  }
+  const teamOptions = [...teamCount.entries()]
+    .map(([id, count]) => ({ id, name: teamMeta.get(id)?.name || "", count }))
+    .filter((t) => t.name)
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+
+  // ── 국가 옵션 (데이터 적재 전 = 빈 목록 → "수집 중") ──
+  const countryOptions: { name: string; flag: string | null; count: number }[] = [];
+
+  // ── 후보 집합 where (view 별) ──
+  let where: Record<string, unknown> = { league: { in: FIVE }, currentValue: { not: null } };
+  if (view === "team" && team) {
+    const tsForTeam = await prisma.teamSourceId.findMany({
+      where: { source: "thesports", teamId: Number(team) },
+      select: { externalId: true },
+    });
+    where = { league: { in: FIVE }, currentValue: { not: null }, teamId: { in: tsForTeam.map((t) => t.externalId) } };
+  } else if (view === "league" && league) {
+    where = { league, currentValue: { not: null } };
+  }
+
+  const raw = await prisma.playerMarketValue.findMany({ where, orderBy: { currentValue: "desc" } });
+  const ids = raw.map((r) => r.id);
   const players = await prisma.theSportsPlayer.findMany({
     where: { id: { in: ids } },
     select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
   });
   const pMap = new Map(players.map((p) => [p.id, p]));
 
-  // ts team id → 우리 Team
-  const teamIds = [...new Set(allRows.map((r) => r.teamId).filter((x): x is string => !!x))];
-  const tsT = await prisma.teamSourceId.findMany({
-    where: { source: "thesports", externalId: { in: teamIds } },
-    select: { externalId: true, teamId: true },
-  });
-  const tsToOur = new Map(tsT.map((t) => [t.externalId, t.teamId]));
-  const ourTeams = await prisma.team.findMany({
-    where: { id: { in: [...new Set(tsToOur.values())] } },
-    select: { id: true, name: true, logoUrl: true },
-  });
-  const teamMap = new Map(ourTeams.map((t) => [t.id, t]));
+  // enrich + 18개월 활성 필터
+  let enriched = raw
+    .map((r) => {
+      const ourId = r.teamId ? tsToOur.get(r.teamId) : undefined;
+      const tm = ourId != null ? teamMeta.get(ourId) : undefined;
+      const tsp = pMap.get(r.id);
+      const hist = Array.isArray(r.history) ? (r.history as Hist[]) : [];
+      const last = hist[hist.length - 1];
+      return {
+        id: r.id,
+        name: tsp?.nameKo || tsp?.name || "선수",
+        value: Math.round((r.currentValue || 0) / 1e6),
+        age: r.age,
+        position: tsp?.position || null,
+        league: r.league,
+        teamName: tm?.name || "—",
+        teamLogo: tm?.logoUrl || null,
+        photo: tsp?.photoUrl || null,
+        lastTime: last?.market_time ?? 0,
+        hist: hist.map((h) => (h?.market_value || 0) / 1e6).filter((v) => v > 0),
+      };
+    })
+    .filter((e) => e.lastTime >= cutoff);
 
-  // 행 enrich
-  const enriched = allRows.map((r) => {
-    const ourId = r.teamId ? tsToOur.get(r.teamId) : undefined;
-    const team = ourId != null ? teamMap.get(ourId) : undefined;
-    const tsp = pMap.get(r.id);
-    const hist = Array.isArray(r.history) ? (r.history as HistPt[]) : [];
-    return {
-      id: r.id,
-      name: tsp?.nameKo || tsp?.name || "선수",
-      value: Math.round((r.currentValue || 0) / 1e6),
-      age: r.age,
-      position: tsp?.position || null,
-      ourTeamId: ourId ?? null,
-      teamName: team?.name || "—",
-      teamLogo: team?.logoUrl || null,
-      photo: tsp?.photoUrl || null,
-      hist: hist.map((h) => (h?.market_value || 0) / 1e6).filter((v) => v > 0),
-    };
-  });
+  if (view === "pos" && pos) enriched = enriched.filter((e) => e.position === pos);
+  // view === "country" 필터는 country 데이터 적재 후 활성화
 
-  // 팀 드롭다운 목록 (리그 내 등장 팀 + 인원수)
-  const teamCount = new Map<number, { name: string; count: number }>();
-  for (const e of enriched) {
-    if (e.ourTeamId != null) {
-      const cur = teamCount.get(e.ourTeamId) || { name: e.teamName, count: 0 };
-      cur.count++;
-      teamCount.set(e.ourTeamId, cur);
-    }
-  }
-  const teamList = [...teamCount.entries()]
-    .map(([id, v]) => ({ id, name: v.name, count: v.count }))
-    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
-
-  // 필터 적용
-  let filtered = enriched;
-  if (teamFilter) filtered = filtered.filter((e) => String(e.ourTeamId) === teamFilter);
-  if (posFilter) filtered = filtered.filter((e) => e.position === posFilter);
-
-  const totalCount = filtered.length;
+  const totalCount = enriched.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PER));
   const safePage = Math.min(page, totalPages);
-  const data = filtered.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({
-    ...e,
-    rank: (safePage - 1) * PER + i + 1,
-  }));
+  const data = enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1 }));
 
-  // URL 빌더 — 현재 필터 유지, over 로 덮어쓰기(undefined = 해제)
-  const buildUrl = (over: { league?: string; team?: string; pos?: string; page?: string }) => {
-    const merged: { league?: string; team?: string; pos?: string; page?: string } = {
-      league, team: teamFilter, pos: posFilter, ...over,
-    };
+  // 제목
+  const selectedLabel =
+    view === "league" && league ? LEAGUES[league]
+      : view === "team" && team ? teamOptions.find((t) => String(t.id) === team)?.name || "팀"
+        : view === "pos" && pos ? POS_LABEL[pos]
+          : view === "country" && country ? country
+            : "전체";
+
+  // 페이지네이션 URL (필터 유지)
+  const pageUrl = (n: number) => {
     const params = new URLSearchParams();
-    if (merged.league) params.set("league", merged.league);
-    if (merged.team) params.set("team", merged.team);
-    if (merged.pos) params.set("pos", merged.pos);
-    if (merged.page && merged.page !== "1") params.set("page", merged.page);
+    if (view !== "all") params.set("view", view);
+    if (league) params.set("league", league);
+    if (team) params.set("team", team);
+    if (pos) params.set("pos", pos);
+    if (country) params.set("country", country);
+    if (n !== 1) params.set("page", String(n));
     const qs = params.toString();
     return `/transfers${qs ? `?${qs}` : ""}`;
   };
 
-  const teamLabel = teamFilter ? teamList.find((t) => String(t.id) === teamFilter)?.name : null;
-
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
       <p className="text-sm text-neutral-500 mb-1">이적시장 · 시장가치</p>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">💰 {LEAGUES[league]} 시장가치</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">💰 {selectedLabel} 시장가치</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong>. TheSports 데이터 기반 · 최근 18개월 활성 {totalCount}명.
+        선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong>. TheSports 데이터 기반 · 빅5 리그 · {totalCount}명.
       </p>
 
-      {/* 필터 — 리그 / 팀 */}
-      <div className="flex flex-wrap gap-2 mt-5">
-        <details className="relative">
-          <summary className="flex items-center gap-1.5 cursor-pointer list-none px-4 py-2 rounded-xl text-sm font-bold border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 [&::-webkit-details-marker]:hidden">
-            <span className="text-neutral-400 text-xs font-normal">리그</span>
-            <span className="text-cyan-600 dark:text-cyan-400">{LEAGUES[league]}</span>
-            <span className="text-neutral-400 text-xs">▾</span>
-          </summary>
-          <div className="absolute z-20 mt-1.5 w-44 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl overflow-hidden py-1">
-            {Object.entries(LEAGUES).map(([code, label]) => (
-              <Link
-                key={code}
-                href={`/transfers?league=${code}`}
-                className={`block w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
-                  code === league ? "font-bold text-cyan-600 dark:text-cyan-400" : "text-neutral-600 dark:text-neutral-300"
-                }`}
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        </details>
-
-        <details className="relative">
-          <summary className="flex items-center gap-1.5 cursor-pointer list-none px-4 py-2 rounded-xl text-sm font-bold border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 [&::-webkit-details-marker]:hidden">
-            <span className="text-neutral-400 text-xs font-normal">팀</span>
-            <span className={teamLabel ? "text-cyan-600 dark:text-cyan-400" : ""}>{teamLabel || "전체"}</span>
-            <span className="text-neutral-400 text-xs">▾</span>
-          </summary>
-          <div className="absolute z-20 mt-1.5 w-56 max-h-80 overflow-y-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl py-1">
-            <Link
-              href={buildUrl({ team: undefined, page: undefined })}
-              className={`block px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 ${!teamFilter ? "font-bold text-cyan-600 dark:text-cyan-400" : "text-neutral-600 dark:text-neutral-300"}`}
-            >
-              전체 팀
-            </Link>
-            {teamList.map((t) => (
-              <Link
-                key={t.id}
-                href={buildUrl({ team: String(t.id), page: undefined })}
-                className={`flex justify-between gap-2 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
-                  String(t.id) === teamFilter ? "font-bold text-cyan-600 dark:text-cyan-400" : "text-neutral-600 dark:text-neutral-300"
-                }`}
-              >
-                <span className="truncate">{t.name}</span>
-                <span className="text-xs text-neutral-400 shrink-0">{t.count}</span>
-              </Link>
-            ))}
-          </div>
-        </details>
-      </div>
-
-      {/* 포지션 칩 */}
-      <div className="flex flex-wrap gap-1.5 mt-3">
-        <Link
-          href={buildUrl({ pos: undefined, page: undefined })}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-            !posFilter ? "bg-cyan-600 text-white border-cyan-600" : "border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-          }`}
-        >
-          전체
-        </Link>
-        {POS.map((p) => (
-          <Link
-            key={p.code}
-            href={buildUrl({ pos: p.code, page: undefined })}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-              posFilter === p.code ? "bg-cyan-600 text-white border-cyan-600" : "border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-            }`}
-          >
-            {p.label}
-          </Link>
-        ))}
+      <div className="mt-5">
+        <TransfersFilterBar
+          view={view}
+          league={league}
+          team={team}
+          pos={pos}
+          country={country}
+          leagues={LEAGUE_LIST}
+          teams={teamOptions}
+          countries={countryOptions}
+        />
       </div>
 
       {/* 랭킹 리스트 */}
@@ -289,7 +232,7 @@ export default async function TransfersPage({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={p.teamLogo} alt="" className="w-3.5 h-3.5 object-contain inline-block" />
                     )}
-                    {p.teamName}{p.age ? ` · ${p.age}세` : ""}
+                    {p.teamName}{p.league && view !== "league" ? ` · ${LEAGUES[p.league] || p.league}` : ""}{p.age ? ` · ${p.age}세` : ""}
                   </div>
                 </div>
                 <Spark data={p.hist} />
@@ -312,13 +255,13 @@ export default async function TransfersPage({
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
           {safePage > 1 && (
-            <Link href={buildUrl({ page: String(safePage - 1) })} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">‹</Link>
+            <Link href={pageUrl(safePage - 1)} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">‹</Link>
           )}
           {pageNums(safePage, totalPages).map((n, i) =>
             typeof n === "number" ? (
               <Link
                 key={i}
-                href={buildUrl({ page: String(n) })}
+                href={pageUrl(n)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${
                   n === safePage
                     ? "bg-cyan-600 text-white border-cyan-600"
@@ -332,7 +275,7 @@ export default async function TransfersPage({
             ),
           )}
           {safePage < totalPages && (
-            <Link href={buildUrl({ page: String(safePage + 1) })} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">›</Link>
+            <Link href={pageUrl(safePage + 1)} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">›</Link>
           )}
         </div>
       )}
