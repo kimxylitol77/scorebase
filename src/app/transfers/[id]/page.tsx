@@ -67,8 +67,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-// 면적 라인차트 (SVG)
-function ValueChart({ points }: { points: { t: number; v: number }[] }) {
+// 면적 라인차트 (SVG) + 이적 시점 클럽 마크(곡선 위 절대배치 — preserveAspectRatio none 왜곡 회피)
+function ValueChart({ points, markers = [] }: { points: { t: number; v: number }[]; markers?: { index: number; logo: string; name?: string }[] }) {
   if (points.length < 2) return null;
   const w = 640, h = 180, padX = 8, padTop = 16, padBot = 24;
   const vals = points.map((p) => p.v);
@@ -84,19 +84,36 @@ function ValueChart({ points }: { points: { t: number; v: number }[] }) {
   const up = vals[vals.length - 1] >= vals[0];
   const stroke = up ? "#06b6d4" : "#f87171";
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="vgrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={stroke} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={area} fill="url(#vgrad)" />
-      <polyline points={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      {xy.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={stroke} />
-      ))}
-    </svg>
+    <div className="relative w-full">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto block" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="vgrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={stroke} stopOpacity="0.25" />
+            <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={area} fill="url(#vgrad)" />
+        <polyline points={line} fill="none" stroke={stroke} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        {xy.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={stroke} />
+        ))}
+      </svg>
+      {markers.map((m, k) => {
+        const p = xy[m.index];
+        if (!p) return null;
+        return (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={k}
+            src={m.logo}
+            alt={m.name || ""}
+            title={m.name || ""}
+            className="absolute w-6 h-6 object-contain rounded-full bg-white ring-1 ring-black/15 shadow-sm p-0.5 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={{ left: `${(p.x / w) * 100}%`, top: `${(p.y / h) * 100}%` }}
+          />
+        );
+      })}
+    </div>
   );
 }
 
@@ -152,11 +169,12 @@ function SeasonSection({ s }: { s: SeasonStat }) {
   );
 }
 
-interface ValuePoint { time: number; v: number; age?: number | null; chg: number | null }
+interface ValuePoint { time: number; v: number; age?: number | null; chg: number | null; team?: string | null }
 
 // 커리어 + 몸값 변동 병합 타임라인 (Wikidata P54 클럽 이력 × TheSports 몸값 history).
 //  클럽 시기별로 그 기간의 시장가치 변동을 묶어 한 타임라인에 표시. 시니어 국가대표는 상단 요약.
-function CareerTimeline({ entries, hist }: { entries: CareerEntry[]; hist: ValuePoint[] }) {
+//  클럽 로고 = 그 시기 몸값 포인트의 ts team_id 를 tsLogo 로 해소(우리 Team DB, 빅5 위주).
+function CareerTimeline({ entries, hist, tsLogo }: { entries: CareerEntry[]; hist: ValuePoint[]; tsLogo: Record<string, string> }) {
   // 현 소속(end=null) 우선 → 그다음 최근 시작순. (Wikidata 등록일 기준이라 임대가 본클럽보다
   //  start 가 늦는 경우가 있어 단순 역순으로는 현 소속이 묻힘 → 진행중 먼저)
   const clubs = [...entries.filter((e) => !e.nt)].sort((a, b) => {
@@ -166,16 +184,16 @@ function CareerTimeline({ entries, hist }: { entries: CareerEntry[]; hist: Value
   const nts = [...entries.filter((e) => e.nt)].sort((a, b) => (b.apps ?? 0) - (a.apps ?? 0));
   if (!clubs.length && !nts.length) return null;
 
-  // 몸값 변동을 클럽 시기에 배정 — 연도 기준, 겹치면 시작 늦은(최근)·기간 짧은(임대) 우선.
-  //  (예: 잘츠부르크 2019-20 ↔ 도르트문트 2020-22 의 2020 → 도르트문트 / 본클럽 ↔ 임대 → 임대)
+  // 몸값 변동을 클럽 시기에 배정 — 연도 기준. 우선순위: 시작 늦은(최근) > 임대 > 긴 기간.
+  //  (잘츠부르크2019-20↔도르트문트2020-22 의 2020→도르트문트 / 본팀↔임대→임대 /
+  //   본팀↔유스리저브 같은해 시작→긴 기간=본팀, 유스가 시니어 포인트 뺏는 것 방지)
   const bestIdx = (year: number): number => {
-    let best = -1, bestStart = -Infinity, bestSpan = Infinity;
+    let best = -1, bS = -Infinity, bL = 0, bSpan = -1;
     clubs.forEach((c, i) => {
       const st = c.start ?? -Infinity, en = c.end ?? 9999;
-      if (year >= st && year <= en) {
-        const span = en - st;
-        if (st > bestStart || (st === bestStart && span < bestSpan)) { bestStart = st; bestSpan = span; best = i; }
-      }
+      if (year < st || year > en) return;
+      const span = en - st, lr = c.loan ? 1 : 0;
+      if (best === -1 || st > bS || (st === bS && (lr > bL || (lr === bL && span > bSpan)))) { best = i; bS = st; bL = lr; bSpan = span; }
     });
     if (best === -1) { let nd = Infinity; clubs.forEach((c, i) => { const d = Math.abs((c.start ?? 9999) - year); if (d < nd) { nd = d; best = i; } }); }
     return best;
@@ -183,6 +201,8 @@ function CareerTimeline({ entries, hist }: { entries: CareerEntry[]; hist: Value
   const byClub: ValuePoint[][] = clubs.map(() => []);
   if (clubs.length) for (const vp of hist) { const idx = bestIdx(new Date(vp.time * 1000).getUTCFullYear()); if (idx >= 0) byClub[idx].push(vp); }
   byClub.forEach((arr) => arr.sort((a, b) => b.time - a.time));
+  // 클럽 행 로고 = 그 클럽 시기 몸값 포인트의 team_id 로고
+  const logoFor = (i: number): string | null => { for (const vp of byClub[i]) if (vp.team && tsLogo[vp.team]) return tsLogo[vp.team]; return null; };
 
   return (
     <section>
@@ -201,11 +221,17 @@ function CareerTimeline({ entries, hist }: { entries: CareerEntry[]; hist: Value
       )}
       {clubs.length > 0 && (
         <div className="relative border-l border-neutral-200 dark:border-neutral-800 ml-1.5">
-          {clubs.map((c, i) => (
+          {clubs.map((c, i) => {
+            const logo = logoFor(i);
+            return (
             <div key={i} className="relative pl-5 py-2.5">
               <span className={`absolute -left-[5px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-neutral-950 ${c.end == null ? "bg-cyan-500" : "bg-neutral-300 dark:bg-neutral-600"}`} />
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-neutral-400 tabular-nums w-[68px] shrink-0">{yrRange(c.start, c.end)}</span>
+                {logo && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logo} alt="" className="w-5 h-5 object-contain shrink-0" />
+                )}
                 <span className="font-semibold">{c.club}</span>
                 {c.loan && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">임대</span>}
                 {(c.apps != null || c.goals != null) && (
@@ -228,7 +254,8 @@ function CareerTimeline({ entries, hist }: { entries: CareerEntry[]; hist: Value
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>
@@ -265,22 +292,37 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     }
   }
 
-  // 몸값 이력
+  // 몸값 이력 (연대순 정렬 — 차트/마커/타임라인 공통)
   const hist = (Array.isArray(mv.history) ? (mv.history as HistPt[]) : [])
-    .filter((h) => (h?.market_value || 0) > 0 && h?.market_time);
+    .filter((h) => (h?.market_value || 0) > 0 && h?.market_time)
+    .sort((a, b) => (a.market_time || 0) - (b.market_time || 0));
   const points = hist.map((h) => ({ t: h.market_time!, v: (h.market_value || 0) / 1e6 }));
   const peak = points.length ? Math.max(...points.map((p) => p.v)) : value || 0;
-  // 직전 시점 대비 변동(%) — 리스트와 동일 기준. 유스 시절 초기값 대비 "전체" 는
-  // 수천% 가 나와 무의미하므로 쓰지 않는다.
+  // 직전 시점 대비 변동(%). 유스 초기값 대비 "전체" 는 수천% 라 무의미 → 직전 대비만.
   const prevV = points.length >= 2 ? points[points.length - 2].v : 0;
   const recentChg = prevV > 0 && value != null ? Math.round(((value - prevV) / prevV) * 100) : 0;
 
-  // 몸값 변동 포인트 (연대순 + 직전 대비 변동%) — 커리어 타임라인에 클럽별로 병합 표시
-  const histAsc = [...hist].sort((a, b) => (a.market_time || 0) - (b.market_time || 0));
-  const valuePoints = histAsc.map((h, i) => {
+  // 팀 로고 맵 (ts team_id → 우리 Team.logoUrl) — 몸값 history 의 team_id 해소(빅5 위주, 없으면 생략)
+  const histTeamIds = [...new Set(hist.map((h) => h.team_id).filter((x): x is string => !!x))];
+  const tsLogo: Record<string, string> = {};
+  const tsTeamName: Record<string, string> = {};
+  if (histTeamIds.length) {
+    const tss = await prisma.teamSourceId.findMany({ where: { source: "thesports", externalId: { in: histTeamIds } }, select: { externalId: true, teamId: true } });
+    const teams = await prisma.team.findMany({ where: { id: { in: tss.map((t) => t.teamId) } }, select: { id: true, name: true, logoUrl: true } });
+    const tById = new Map(teams.map((t) => [t.id, t]));
+    for (const t of tss) { const tm = tById.get(t.teamId); if (tm?.logoUrl) { tsLogo[t.externalId] = tm.logoUrl; tsTeamName[t.externalId] = toKoreanTeamName(tm.name) || tm.name; } }
+  }
+
+  // 차트 이적 마커 (team_id 바뀌는 시점 = 이적/입단, 로고 있는 것만)
+  const markers: { index: number; logo: string; name?: string }[] = [];
+  let prevTeam: string | undefined;
+  hist.forEach((h, i) => { if (h.team_id && h.team_id !== prevTeam) { prevTeam = h.team_id; if (tsLogo[h.team_id]) markers.push({ index: i, logo: tsLogo[h.team_id], name: tsTeamName[h.team_id] }); } });
+
+  // 몸값 변동 포인트 (연대순 + 변동% + team) — 커리어 타임라인 병합용
+  const valuePoints = hist.map((h, i) => {
     const v = Math.round((h.market_value || 0) / 1e6);
-    const pv = i > 0 ? Math.round((histAsc[i - 1].market_value || 0) / 1e6) : 0;
-    return { time: h.market_time!, v, age: h.age, chg: pv > 0 ? Math.round(((v - pv) / pv) * 100) : null };
+    const pv = i > 0 ? Math.round((hist[i - 1].market_value || 0) / 1e6) : 0;
+    return { time: h.market_time!, v, age: h.age, chg: pv > 0 ? Math.round(((v - pv) / pv) * 100) : null, team: h.team_id };
   });
 
   // 이적 기록
@@ -361,13 +403,13 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">시장가치 추이</h2>
             <span className="text-xs text-neutral-400">최고 €{Math.round(peak)}M</span>
           </div>
-          <ValueChart points={points} />
+          <ValueChart points={points} markers={markers} />
         </section>
       )}
 
       {/* 커리어 & 몸값 변동 — 커리어 데이터 있으면 병합 타임라인, 없으면 단순 변동이력 테이블 */}
       {career.length > 0 ? (
-        <CareerTimeline entries={career} hist={valuePoints} />
+        <CareerTimeline entries={career} hist={valuePoints} tsLogo={tsLogo} />
       ) : hist.length >= 1 ? (
         <section>
           <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
