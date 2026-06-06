@@ -11,6 +11,9 @@ import TransfersSection from "@/components/teams/TransfersSection";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { getSportFromLeague } from "@/lib/players/types";
+import rawTOverrides from "../../../../data/player-overrides.json";
+import rawTPhotos from "../../../../data/player-photos.json";
+import rawTPos from "../../../../data/player-positions.json";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -29,6 +32,13 @@ import {
 import FormDots from "@/components/FormDots";
 
 export const dynamic = "force-dynamic";
+
+// TheSports 선수단(이적시장 데이터) — 이름 → /transfers/{ts id} 링크용
+const T_OVERRIDES = rawTOverrides as Record<string, { nameKo?: string; flag?: string }>;
+const T_PHOTOS = rawTPhotos as Record<string, string>;
+const T_POS = rawTPos as Record<string, string>;
+const squadPos = (id: string, coarse: string | null | undefined): string | null =>
+  T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
 const LEAGUE_GRADIENT: Record<string, string> = {
   EPL: "from-purple-600 via-fuchsia-500 to-pink-500",
@@ -232,6 +242,22 @@ export default async function TeamPage({ params }: Props) {
   const koName = (id: number, en: string) =>
     playerNameResolved.get(id)?.ko ?? toKoreanPlayerName(en);
 
+  // TheSports 선수단 (PlayerMarketValue, ts player id) — 이름 클릭 → /transfers 상세
+  const tsTeamRows = await prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } });
+  let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; flag: string | null }[] = [];
+  if (tsTeamRows.length) {
+    const pmv = await prisma.playerMarketValue.findMany({
+      where: { teamId: { in: tsTeamRows.map((t) => t.externalId) }, currentValue: { not: null } },
+      orderBy: { currentValue: "desc" }, select: { id: true, currentValue: true },
+    });
+    const sp = await prisma.theSportsPlayer.findMany({ where: { id: { in: pmv.map((p) => p.id) } }, select: { id: true, name: true, nameKo: true, photoUrl: true, position: true } });
+    const spMap = new Map(sp.map((p) => [p.id, p]));
+    squad = pmv.map((p) => {
+      const t = spMap.get(p.id); const ov = T_OVERRIDES[p.id];
+      return { id: p.id, name: ov?.nameKo || t?.nameKo || t?.name || "선수", photo: T_PHOTOS[p.id] || t?.photoUrl || null, pos: squadPos(p.id, t?.position), value: Math.round((p.currentValue || 0) / 1e6), flag: ov?.flag || null };
+    });
+  }
+
   return (
     <div>
       {/* 헤더 */}
@@ -345,6 +371,41 @@ export default async function TeamPage({ params }: Props) {
             </div>
           </Card>
         </section>
+
+        {/* TheSports 선수단 — 이름 클릭 → 이적시장 상세(/transfers) */}
+        {squad.length > 0 && (
+          <section>
+            <SectionH title="👥 선수단" subtitle={`시장가치순 · ${squad.length}명 · 클릭 시 상세`} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {squad.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/transfers/${p.id}`}
+                  className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                >
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                    {p.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.photo} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold text-neutral-500">{p.name.slice(0, 1)}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-sm truncate flex items-center gap-1">
+                      {p.name}
+                      {p.flag && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.flag} alt="" className="w-3.5 h-2.5 object-cover rounded-[1px] shrink-0" />
+                      )}
+                    </div>
+                    <div className="text-[11px] text-neutral-500 tabular-nums">{p.pos ? `${p.pos} · ` : ""}€{p.value}M</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 부상·결장 명단 + 핵심 선수 */}
         {(injuries.length > 0 || keyPlayers.length > 0) && (
