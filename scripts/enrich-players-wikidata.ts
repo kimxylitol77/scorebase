@@ -41,6 +41,10 @@ const NAME_CURATION: Record<string, string> = {
   "23xmvkhd064vqg8": "닉 볼테마데", // Woltemade — DB "닉 월트메이드"
   "3glrw7hyg2kqdyj": "도니엘 말렌", // Malen — DB "돈옐 마렌"
   "4jwq2gh6pdlm0ve": "앙투안 세메뇨", // Semenyo — DB "안토니 세메니오"
+  ednm9whgg9x7ryo: "에스테방", // Estêvão — DB "에스테바오 공칼베스"(통용 모노님)
+  pxwrxlhj354wryk: "케난 이을드즈", // Yıldız — DB "케난 예르디즈"
+  pxwrxlhv2peryk0: "오렐리앙 추아메니", // Tchouaméni — DB "오렐리앙 쇼아메니"
+  l5ergphv83e2r8k: "마르틴 수비멘디", // Zubimendi — DB "마르틴 주비멘디"
 };
 const yr = (t?: string): number | null => (t ? parseInt(t.slice(1, 5), 10) || null : null);
 const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
