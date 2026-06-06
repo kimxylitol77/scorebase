@@ -8,7 +8,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import rawOverrides from "../../../../data/player-overrides.json";
 import rawSeason from "../../../../data/player-season-stats.json";
 import rawPhotos from "../../../../data/player-photos.json";
-import SeasonAccordion from "./SeasonAccordion";
+import rawWiki from "../../../../data/player-wiki-seasons.json";
+import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean }
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[] }>;
@@ -23,6 +24,9 @@ interface SeasonStat {
 const SEASON = rawSeason as Record<string, SeasonStat>;
 // 선수 사진 (TheSports season player.logo). DB photoUrl(라인업)보다 커버리지 높아 우선.
 const PHOTOS = rawPhotos as Record<string, string>;
+// 과거 시즌 (Wikipedia Career statistics) — 시즌별 클럽 리그/총 출장·골
+interface WikiSeasonRow { season: string; club: string; division: string; lApps: number; lGoals: number; tApps: number; tGoals: number }
+const WIKI = rawWiki as Record<string, WikiSeasonRow[]>;
 
 export const dynamic = "force-dynamic";
 
@@ -65,9 +69,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!p) return { title: "선수 미발견" };
   const name = OVERRIDES[id]?.nameKo || p.tsp?.nameKo || p.tsp?.name || "선수";
   const val = p.mv.currentValue ? Math.round(p.mv.currentValue / 1e6) : null;
+  const photo = PHOTOS[id] || p.tsp?.photoUrl || null;
+  const title = `${name} 시장가치${val ? ` €${val}M` : ""} · 몸값 추이 | 스코어베이스`;
+  const description = `${name} 선수의 시장가치(몸값) 변동 추이와 이적 기록, 시즌별 성적·커리어. 스코어베이스 이적시장에서 ${name} 몸값을 한눈에.`;
   return {
-    title: `${name} 시장가치${val ? ` €${val}M` : ""} — 몸값 추이`,
-    description: `${name} 의 시장가치 변동 추이와 이적 기록. TheSports 데이터 기반.`,
+    title,
+    description,
+    keywords: [name, `${name} 몸값`, `${name} 시장가치`, "이적시장", "선수 몸값", "스코어베이스"],
+    openGraph: { title, description, type: "profile", ...(photo ? { images: [{ url: photo }] } : {}) },
+    alternates: { canonical: `/transfers/${id}` },
   };
 }
 
@@ -232,6 +242,19 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const career = ov?.career || [];
   const season = SEASON[id];
   const photoUrl = PHOTOS[id] || tsp?.photoUrl || null;
+
+  // 시즌별 성적 — 현 시즌(TheSports 상세) + 과거 시즌(Wikipedia). 시즌별 collapsible.
+  const normSeason = (s: string) => s.replace(/[–—]/g, "-");
+  const wikiBySeason = new Map<string, WikiSeasonRow[]>();
+  for (const w of WIKI[id] || []) { const a = wikiBySeason.get(w.season) || []; a.push(w); wikiBySeason.set(w.season, a); }
+  const seasonEntries: SeasonEntry[] = [];
+  if (season) seasonEntries.push({ kind: "rich", label: `${season.season} 시즌`, sub: season.team ? toKoreanTeamName(season.team) || season.team : null, stat: season });
+  const curNorm = season ? normSeason(season.season) : null;
+  for (const sk of [...wikiBySeason.keys()].sort((a, b) => normSeason(b).localeCompare(normSeason(a)))) {
+    if (curNorm && normSeason(sk) === curNorm) continue;
+    const rows = wikiBySeason.get(sk)!.map((w) => ({ club: toKoreanTeamName(w.club) || w.club, lApps: w.lApps, lGoals: w.lGoals, tApps: w.tApps, tGoals: w.tGoals }));
+    seasonEntries.push({ kind: "wiki", label: `${sk} 시즌`, sub: rows.length === 1 ? rows[0].club : `${rows.length}개 클럽`, rows });
+  }
   const value = mv.currentValue ? Math.round(mv.currentValue / 1e6) : null;
   const league = mv.league && LEAGUE_LABEL[mv.league] ? mv.league : null;
 
@@ -353,12 +376,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         )}
       </header>
 
-      {/* 이번 시즌 성적 — 접기/펼치기 아코디언 (멀티시즌 구조, 현재 1시즌). 과거 시즌은 TheSports newest-only 제약 */}
-      {season && (
-        <SeasonAccordion
-          seasons={[{ label: `${season.season} 시즌`, team: season.team ? toKoreanTeamName(season.team) || season.team : null, stat: season }]}
-        />
-      )}
+      {/* 시즌별 성적 — 현 시즌(TheSports 상세) + 과거 시즌(Wikipedia). 시즌별 접기/펼치기 */}
+      {seasonEntries.length > 0 && <SeasonAccordion seasons={seasonEntries} />}
 
       {/* 몸값 추이 차트 */}
       {points.length >= 2 && (
@@ -428,7 +447,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       </section>
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ 데이터 출처: 시장가치·이적·시즌 성적 = TheSports · 국적·커리어 이력 = Wikidata. 원화는 €1 = ₩{EUR_KRW.toLocaleString()} 기준 환산.
+        ⓘ 시장가치·이적·현 시즌 성적 = 스코어베이스 데이터 · 국적·커리어·과거 시즌 = Wikipedia·Wikidata. 원화는 €1 = ₩{EUR_KRW.toLocaleString()} 기준 환산.
       </p>
     </article>
   );

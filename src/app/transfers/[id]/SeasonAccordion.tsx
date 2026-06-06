@@ -1,6 +1,7 @@
 "use client";
-// 시즌별 성적 아코디언 — 헤더 클릭으로 펼치기/접기. 멀티시즌 지원(현재는 현 시즌만, 첫 시즌 기본 펼침).
-//  ⚠️ 과거 시즌 통계는 TheSports 플랜상 newest season 만 제공(405) → 현재는 1개. 추후 소스 확보 시 배열에 추가.
+// 시즌별 성적 아코디언 — 헤더 클릭 펼치기/접기. 첫(최신) 시즌 기본 펼침.
+//  · rich: 현 시즌(TheSports season/recent/player/stat) 상세 타일
+//  · wiki: 과거 시즌(Wikipedia Career statistics) 클럽별 리그/총 출장·골 (TheSports 는 newest-only 제약)
 import { useState } from "react";
 
 interface SeasonStat {
@@ -10,7 +11,10 @@ interface SeasonStat {
   passAcc: number | null; tackles: number | null; interceptions: number | null;
   yellow: number | null; red: number | null; saves: number | null;
 }
-export interface SeasonEntry { label: string; team: string | null; stat: SeasonStat }
+export interface WikiRow { club: string; lApps: number; lGoals: number; tApps: number; tGoals: number }
+export type SeasonEntry =
+  | { kind: "rich"; label: string; sub: string | null; stat: SeasonStat }
+  | { kind: "wiki"; label: string; sub: string | null; rows: WikiRow[] };
 
 function tilesFor(s: SeasonStat): { label: string; val: string; hi?: boolean }[] {
   const isGK = s.pos === "G";
@@ -27,41 +31,55 @@ function tilesFor(s: SeasonStat): { label: string; val: string; hi?: boolean }[]
 }
 
 export default function SeasonAccordion({ seasons }: { seasons: SeasonEntry[] }) {
-  // 첫 시즌(최신)은 기본 펼침, 나머지는 접힘
   const [open, setOpen] = useState<Record<number, boolean>>({ 0: true });
   if (!seasons.length) return null;
   return (
-    <section className="space-y-2">
-      {seasons.map((se, i) => {
-        const tiles = tilesFor(se.stat);
-        const isOpen = open[i] ?? false;
-        return (
-          <div key={i} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setOpen((o) => ({ ...o, [i]: !isOpen }))}
-              aria-expanded={isOpen}
-              className="flex items-center justify-between w-full px-4 sm:px-5 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
-            >
-              <span className="flex items-baseline gap-2 min-w-0">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 shrink-0">{se.label} 성적</span>
-                {se.team && <span className="text-xs text-neutral-400 truncate">{se.team}</span>}
-              </span>
-              <span className={`text-neutral-400 text-sm shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>▾</span>
-            </button>
-            {isOpen && tiles.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 px-4 sm:px-5 pb-4">
-                {tiles.map((t) => (
-                  <div key={t.label} className="rounded-xl bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2.5 text-center">
-                    <div className={`text-xl font-black tabular-nums ${t.hi ? "text-cyan-600 dark:text-cyan-400" : ""}`}>{t.val}</div>
-                    <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+    <section>
+      <h2 className="text-lg font-semibold mb-3">시즌별 성적</h2>
+      <div className="space-y-2">
+        {seasons.map((se, i) => {
+          const isOpen = open[i] ?? false;
+          return (
+            <div key={i} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setOpen((o) => ({ ...o, [i]: !isOpen }))}
+                aria-expanded={isOpen}
+                className="flex items-center justify-between w-full px-4 sm:px-5 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+              >
+                <span className="flex items-baseline gap-2 min-w-0">
+                  <span className="text-sm font-bold text-neutral-700 dark:text-neutral-200 shrink-0">{se.label}</span>
+                  {se.sub && <span className="text-xs text-neutral-400 truncate">{se.sub}</span>}
+                </span>
+                <span className={`text-neutral-400 text-sm shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>▾</span>
+              </button>
+              {isOpen && se.kind === "rich" && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 px-4 sm:px-5 pb-4">
+                  {tilesFor(se.stat).map((t) => (
+                    <div key={t.label} className="rounded-xl bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2.5 text-center">
+                      <div className={`text-xl font-black tabular-nums ${t.hi ? "text-cyan-600 dark:text-cyan-400" : ""}`}>{t.val}</div>
+                      <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isOpen && se.kind === "wiki" && (
+                <div className="px-4 sm:px-5 pb-3 divide-y divide-neutral-100 dark:divide-neutral-800/70">
+                  {se.rows.map((r, j) => (
+                    <div key={j} className="flex items-center justify-between gap-2 py-2 text-sm">
+                      <span className="font-medium truncate">{r.club}</span>
+                      <span className="text-neutral-500 tabular-nums shrink-0">
+                        리그 <span className="font-semibold text-neutral-700 dark:text-neutral-200">{r.lApps}</span>경기 <span className="font-semibold text-cyan-600 dark:text-cyan-400">{r.lGoals}</span>골
+                        {(r.tApps !== r.lApps || r.tGoals !== r.lGoals) && <span className="text-neutral-400"> · 전체 {r.tApps}/{r.tGoals}</span>}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
