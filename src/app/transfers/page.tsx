@@ -19,7 +19,7 @@ const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, labe
 const FIVE = Object.keys(LEAGUES);
 // 세부 포지션 — 라인업 x/y 도출(data/player-positions.json). 없으면 coarse(G/D/M/F)로 fallback.
 const DETAIL_POS = rawDetailPos as Record<string, string>;
-const POS_CODES = ["GK", "CB", "FB", "MF", "W", "ST"];
+const POS_CODES = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 function posCodeOf(id: string, coarse: string | null | undefined): string | null {
   if (DETAIL_POS[id]) return DETAIL_POS[id];
   return coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null;

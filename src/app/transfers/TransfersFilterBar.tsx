@@ -25,12 +25,14 @@ const CATS = [
   { key: "country", label: "국가별" },
   { key: "pos", label: "포지션별" },
 ];
-// 세부 포지션 — GK / CB(중앙수비) / FB(윙백) / MF / W(윙어) / ST(스트라이커)
+// 세부 포지션 — 수비→공격 순. CB 중앙수비·FB 윙백·DM/CM/AM 미드·W 윙어·ST 스트라이커
 const POSITIONS = [
   { code: "GK", label: "GK" },
   { code: "CB", label: "CB" },
   { code: "FB", label: "FB" },
-  { code: "MF", label: "MF" },
+  { code: "DM", label: "DM" },
+  { code: "CM", label: "CM" },
+  { code: "AM", label: "AM" },
   { code: "W", label: "W" },
   { code: "ST", label: "ST" },
 ];
