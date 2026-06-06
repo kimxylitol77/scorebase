@@ -86,6 +86,24 @@ const BOT_META: Record<
     intervalMs: 24 * 60 * 60 * 1000,
     role: "sitemap 전수 + 홈 BFS 크롤로 404/soft 404/5xx 감시",
   },
+  // 아래 3개 미등록 시 fallback intervalMs=1h 적용 → 실제 주기가 1h보다 긴 봇(lightsail 일일 03:00)이
+  // 매일 false 다운 떴음(예상 주기 1시간 표기). 실제 주기로 등록 (bot-heartbeat-check 의
+  // BOT_INTERVAL_MS 와 같은 값 유지 — 두 설정이 따로 놀아 생긴 드리프트라 동기화).
+  "lightsail-baseball-player-names": {
+    ko: "야구 선수명 사전 보강",
+    intervalMs: 24 * 60 * 60 * 1000,
+    role: "Lightsail 일일(03:00) 야구 선수 한글명 보강",
+  },
+  "mac-mini-data-sanity": {
+    ko: "데이터 정합성 감시",
+    intervalMs: 3 * 60 * 1000,
+    role: "score drift/이닝/순위 등 정합성 점검 (3분 주기)",
+  },
+  "mac-mini-threads-poster": {
+    ko: "Threads 자동 발행",
+    intervalMs: 30 * 60 * 1000,
+    role: "오늘 경기 카드 + 신규 블로그 Threads 발행",
+  },
 };
 
 function botStatus(ageMs: number, intervalMs: number) {
