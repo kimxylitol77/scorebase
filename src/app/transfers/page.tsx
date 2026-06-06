@@ -265,9 +265,9 @@ export default async function TransfersPage({
               <Link
                 key={p.id}
                 href={`/transfers/${p.id}`}
-                className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
               >
-                <div className={`w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+                <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                   {p.photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -289,7 +289,7 @@ export default async function TransfersPage({
                       <img src={p.countryFlag} alt={p.country || ""} title={p.country || ""} className="w-4 h-3 object-cover rounded-[1px] shrink-0" />
                     )}
                     {p.country && (
-                      <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 shrink-0">{p.country}</span>
+                      <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 shrink-0 hidden sm:inline">{p.country}</span>
                     )}
                   </div>
                   <div className="text-xs text-neutral-500 truncate flex items-center gap-1">
@@ -301,7 +301,7 @@ export default async function TransfersPage({
                   </div>
                 </div>
                 <Spark data={p.hist} />
-                <div className="text-right w-[92px] shrink-0 leading-tight">
+                <div className="text-right w-[78px] sm:w-[92px] shrink-0 leading-tight">
                   <div className="font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{p.value}M</div>
                   <div className="text-[11px] text-neutral-500 tabular-nums">{krw(p.value)}</div>
                   {p.hist.length >= 2 && (
