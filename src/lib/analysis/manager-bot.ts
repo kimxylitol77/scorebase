@@ -185,9 +185,12 @@ const MANAGER_SYSTEM = `당신은 한국어 스포츠 미디어 "스코어베이
 [픽 규칙]
 - market 은 제공된 "사용 가능 market" 중 가장 확신 있는 하나만 선택.
 - pick 값: 1X2 → HOME/DRAW/AWAY (무승부 없는 종목은 HOME/AWAY), HANDICAP → HOME/AWAY, OU → OVER/UNDER.
+- ⚠️ 홈 이점은 여러 요소 중 하나일 뿐이다. Elo·시장 배당·자체 예측이 원정팀 우위를 가리키면 망설이지 말고 AWAY 를 선택하라.
+  배당·예측 확률이 원정 우세인데 HOME 을 고르는 것은 데이터 무시다. 픽은 항상 근거(숫자)를 따라간다.
 
 [출력] 반드시 아래 JSON 객체 하나만 출력. 앞뒤 설명·코드블록 금지:
-{"market":"1X2","pick":"HOME","title":"제목","analysis":"마크다운 본문"}
+{"market":"1X2","pick":"AWAY","title":"제목","analysis":"마크다운 본문"}
+- 위 예시의 pick 값(AWAY)을 모방하지 말 것 — 데이터 근거로 HOME/DRAW/AWAY 중 직접 판단.
 - title: "[홈팀 vs 원정팀] 핵심 한 줄" 형태, 40자 이내.
 - analysis: 마크다운. "## 전력 분석", "## 핵심 포인트", "## 종합" 섹션으로 250자 이상. 픽 근거를 명확히.`;
 

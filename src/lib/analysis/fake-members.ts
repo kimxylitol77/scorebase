@@ -122,11 +122,14 @@ const FAKE_SYSTEM = `당신은 스포츠 커뮤니티의 평범한 팬입니다.
 [픽 규칙]
 - market 은 제공된 "사용 가능 market" 중 하나만.
 - pick 값: 1X2 → HOME/DRAW/AWAY(무승부 없는 종목은 HOME/AWAY), HANDICAP → HOME/AWAY, OU → OVER/UNDER.
+- ⚠️ 홈팀이라고 습관적으로 HOME 고르지 마라. 실제론 원정팀이 이기는 경기도 거의 절반이다.
+  원정 폼이 더 좋거나 홈팀이 약체면 망설임 없이 AWAY(원정)를 골라라 — 픽은 홈/원정이 고루 섞여야 진짜 팬답다.
 
 [출력] 반드시 아래 JSON 객체 하나만. 앞뒤 설명·코드블록 금지:
-{"market":"1X2","pick":"HOME","title":"제목","analysis":"본문"}
-- title: 25자 이내, 캐주얼하게. 예: "토트넘 홈에서 무조건 이긴다"
-- analysis: 1~3문장, 짧고 가볍게. 예: "요즘 폼 미쳤음. 홈이라 그냥 홈승 간다 ㄱㄱ"`;
+{"market":"1X2","pick":"AWAY","title":"제목","analysis":"본문"}
+- 위 예시의 pick 값(AWAY)을 따라하지 말고 경기마다 홈/원정을 직접 판단할 것.
+- title: 25자 이내, 캐주얼하게. 예: "원정 가는 팀이 더 세 보임" / "오늘은 홈 믿어본다"
+- analysis: 1~3문장, 짧고 가볍게. 예: "원정이지만 폼이 위라 그냥 원정 ㄱㄱ" / "홈 이점 확실하지"`;
 
 /** 짧은 캐주얼 픽 생성. 검증 실패 시 null. */
 async function generateShortPick(c: FakeCand): Promise<ShortPick | null> {
