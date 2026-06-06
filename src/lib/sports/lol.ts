@@ -23,6 +23,13 @@ const TOURNAMENT_TO_LEAGUE: Record<number, League> = {
   324: "LOL",
   31757: "LOL",
   30626: "LCK_CL",
+  // Stage 2 해외(표시만) — 19349/35115=LPL(중국), 328/336=LEC(유럽), 323/337=LCS(북미)
+  19349: "LPL",
+  35115: "LPL",
+  328: "LEC",
+  336: "LEC",
+  323: "LCS",
+  337: "LCS",
 };
 const LOL_TOURNAMENT_IDS = Object.keys(TOURNAMENT_TO_LEAGUE).map(Number);
 
@@ -160,7 +167,8 @@ export async function fetchLolAll(): Promise<NormalizedMatch[]> {
   }
 
   return out
-    .filter((m) => m.team1 && m.team2)
+    // 양 팀 + name 필수 — 해외 리그는 미정(TBD) 팀이 name=null 로 오기도 해 upsert 에러 방지.
+    .filter((m) => m.team1?.name && m.team2?.name)
     .map((m): NormalizedMatch => {
       const t1 = m.team1!;
       const t2 = m.team2!;

@@ -20,6 +20,9 @@ export type League =
   | "WORLD_CUP" // 2026 FIFA 북중미 월드컵
   | "LOL" // LCK 본선 (League of Legends Champions Korea) — e스포츠
   | "LCK_CL" // LCK 챌린저스 리그(2군) — 표시만(자동 발행·배당 제외)
+  | "LPL" // 중국 LPL — 표시만
+  | "LEC" // 유럽 LEC — 표시만
+  | "LCS" // 북미 LCS — 표시만
   // 아시아 축구
   | "K_LEAGUE_1" // K리그 1 (한국 1부) — api-football
   | "K_LEAGUE_2" // K리그 2 (한국 2부) — api-football

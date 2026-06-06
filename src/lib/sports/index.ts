@@ -50,6 +50,9 @@ export const collectors: Record<League, MatchCollector> = {
   NPB: npbCollector,
   LOL: lolCollector,
   LCK_CL: lolCollector, // LCK 챌린저스(2군). collect 는 LOL_LEAGUES special-case 로 처리, Record 타입 충족용.
+  LPL: lolCollector, // 중국 LPL (표시만)
+  LEC: lolCollector, // 유럽 LEC (표시만)
+  LCS: lolCollector, // 북미 LCS (표시만)
   // 신규 — 아시아 축구
   J1_LEAGUE: buildApiFootballCollector("J1_LEAGUE"), // api-football (ESPN 80일 백필 timeout 회피)
   AFC_CL: buildApiFootballCollector("AFC_CL"), // api-football 통일
