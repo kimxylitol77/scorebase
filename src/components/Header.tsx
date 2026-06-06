@@ -62,7 +62,7 @@ const CATEGORIES: CategoryDef[] = [
 // 경기 분석 — 경기 전 AI/데이터 도구
 const MATCH_ITEMS: SubItem[] = [
   { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
-  { href: "/predictions", label: "예측", desc: "Monte Carlo 시즌 시뮬레이션" },
+  { href: "/predictions", label: "예측·순위", desc: "Monte Carlo 시즌 시뮬레이션" },
   { href: "/value-bets", label: "밸류 베트", desc: "Elo 예측 vs 배당사 implied" },
   { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
 ];

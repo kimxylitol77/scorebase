@@ -22,7 +22,7 @@ const GROUPS: Group[] = [
     label: "경기 분석",
     items: [
       { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
-      { href: "/predictions", label: "예측", desc: "시즌 시뮬레이션" },
+      { href: "/predictions", label: "예측·순위", desc: "시즌 시뮬레이션" },
       { href: "/value-bets", label: "밸류 베트", desc: "Elo vs 배당" },
       { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자" },
     ],
