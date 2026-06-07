@@ -189,6 +189,22 @@ async function fetchTsHalfTeamStatsDetail(uuid) {
   }
 }
 
+// match/team_stats/detail — uuid 로 풀타임 팀 통계 (영구 조회).
+// list(delta) 가 5분 poll 의 120s 윈도우를 놓쳐 적재율 낮던 문제 → detail 로 보강.
+// 응답: results = [home, away] (named fields: ball_possession, shots, corner_kicks ...)
+async function fetchTsTeamStatsDetail(uuid) {
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/team_stats/detail`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid },
+      timeout: 30_000,
+    });
+    if (!data || data.code !== 0 || !Array.isArray(data.results) || data.results.length < 2) return null;
+    return data.results;
+  } catch {
+    return null;
+  }
+}
+
 // 두 단계 매칭:
 //   strict: competition + 양 팀 ts_id 정확 일치 + ±150분 (시간대 30분~1시간 오프셋 흡수)
 //   fallback: competition + 한쪽 team_id 만 일치 + ±90분 윈도우, 후보가 unique 일 때만
@@ -370,9 +386,11 @@ async function poll() {
           if (trend) payload.trend = trend;
         }
 
-        // half-time team stats (전/후반 통계): status_id 2~8 (라이브~종료).
+        // team stats (풀타임) + half-time team stats (전/후반): status_id 2~8 (라이브~종료).
         // detail 은 uuid 직접 조회라 list(delta 누락) 와 달리 종료 매치도 채움.
         if (tsMatch.status_id >= 2 && tsMatch.status_id <= 8) {
+          const teamStats = await fetchTsTeamStatsDetail(tsMatch.id);
+          if (teamStats) payload.teamStats = teamStats;
           const halfStats = await fetchTsHalfTeamStatsDetail(tsMatch.id);
           if (halfStats) payload.halfTeamStats = halfStats;
         }
