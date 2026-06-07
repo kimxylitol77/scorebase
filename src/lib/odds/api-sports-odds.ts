@@ -2,6 +2,8 @@
 // 우리 Match.externalId 가 api-football fixture id 체계인 리그(J2/남미/MLS 등)는
 // 매핑 없이 그대로 조회 가능. The Odds API 가 못 주는 한국/하위 리그 배당 보완용.
 import "server-only";
+import { prisma } from "@/lib/db";
+import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 
 const BASE = "https://v3.football.api-sports.io";
 
@@ -43,4 +45,73 @@ export async function fetchFixtureOdds(fixtureId: string): Promise<FixtureOdds |
   } catch {
     return null;
   }
+}
+
+/** FixtureOdds → 1X2 + 오버언더(2.5) 평균. 데이터 없으면 null. */
+function parseFixtureOdds(fo: FixtureOdds): {
+  home: number; draw: number; away: number;
+  over: number | null; under: number | null; line: number | null; books: number;
+} | null {
+  const h: number[] = [], d: number[] = [], a: number[] = [], ov: number[] = [], un: number[] = [];
+  for (const b of fo.bookmakers) {
+    for (const m of b.markets) {
+      if (m.name === "Match Winner") {
+        for (const v of m.values) {
+          const o = parseFloat(v.odd);
+          if (v.value === "Home") h.push(o);
+          else if (v.value === "Draw") d.push(o);
+          else if (v.value === "Away") a.push(o);
+        }
+      } else if (m.name === "Goals Over/Under") {
+        for (const v of m.values) {
+          if (v.value === "Over 2.5") ov.push(parseFloat(v.odd));
+          else if (v.value === "Under 2.5") un.push(parseFloat(v.odd));
+        }
+      }
+    }
+  }
+  if (!h.length) return null;
+  const avg = (arr: number[]) => (arr.length ? arr.reduce((s, x) => s + x, 0) / arr.length : null);
+  return {
+    home: avg(h)!, draw: avg(d) ?? 0, away: avg(a) ?? 0,
+    over: avg(ov), under: avg(un), line: ov.length ? 2.5 : null, books: fo.bookmakerCount,
+  };
+}
+
+/**
+ * api-football odds 로 축구 배당 보강 — The Odds API 미커버 리그(친선/J2/남미/마이너).
+ * 오늘±3일 축구 매치 중 oddsHome 없는 것 → fetchFixtureOdds → 1X2+오버언더 저장.
+ * fetch-odds cron(매일 06:00 KST) 끝에서 호출. externalId 가 숫자(api-football fixture)인 매치만.
+ */
+export async function backfillApiFootballOdds(): Promise<number> {
+  const ms = await prisma.match.findMany({
+    where: {
+      startTime: { gte: new Date(Date.now() - 86400000), lte: new Date(Date.now() + 3 * 86400000) },
+      oddsHome: null,
+    },
+    select: { id: true, league: true, externalId: true },
+  });
+  const soccer = ms.filter(
+    (m) => SOCCER_LEAGUES.has(m.league as never) && /^\d+$/.test(String(m.externalId)),
+  );
+  let ok = 0;
+  for (const m of soccer) {
+    const fo = await fetchFixtureOdds(String(m.externalId));
+    if (fo) {
+      const o = parseFixtureOdds(fo);
+      if (o) {
+        await prisma.match.update({
+          where: { id: m.id },
+          data: {
+            oddsHome: o.home, oddsDraw: o.draw, oddsAway: o.away,
+            oddsTotalLine: o.line, oddsOver: o.over, oddsUnder: o.under,
+            marketBookmakers: o.books, marketUpdatedAt: new Date(),
+          },
+        });
+        ok++;
+      }
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return ok;
 }

@@ -33,6 +33,7 @@ import {
   fetchLolFixtureOdds,
   isOddsPapiEnabled,
 } from "@/lib/sports/oddspapi";
+import { backfillApiFootballOdds } from "@/lib/odds/api-sports-odds";
 
 export async function runFetchOdds(opts?: { leagues?: string[] }) {
   const leagues = opts?.leagues ?? ODDS_SUPPORTED_LEAGUES;
@@ -143,6 +144,14 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
     tally["LOL"] = lolMatched;
   } catch (err) {
     console.error("[odds/LOL] 실패:", (err as Error).message);
+  }
+
+  // api-football fallback — The Odds API 미커버 리그(친선/J2/남미/마이너) 축구 배당 보강
+  try {
+    const af = await backfillApiFootballOdds();
+    tally["api-football"] = af;
+  } catch (err) {
+    console.error("[odds/api-football] 실패:", (err as Error).message);
   }
 
   console.log("[odds] 완료:", tally);
