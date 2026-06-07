@@ -36,11 +36,12 @@ const featureCards: Array<{
   Icon: React.ComponentType<{ className?: string }>;
   title: string;
   desc: string;
+  href: string;
 }> = [
-  { Icon: BarChart3, title: "Elo 예측", desc: "팀 전력과 홈/원정 흐름을 수치화" },
-  { Icon: Trophy, title: "시즌 시뮬레이션", desc: "Monte Carlo 5,000회 — 우승·강등 확률" },
-  { Icon: ShieldCheck, title: "부상자 영향", desc: "결장 변수와 경기 영향도 추적" },
-  { Icon: Sparkles, title: "AI 프리뷰", desc: "핵심 포인트를 짧고 선명하게" },
+  { Icon: BarChart3, title: "Elo 예측", desc: "팀 전력과 홈/원정 흐름을 수치화", href: "/predictions/accuracy" },
+  { Icon: Trophy, title: "시즌 시뮬레이션", desc: "Monte Carlo 5,000회 — 우승·강등 확률", href: "/predictions/title-race" },
+  { Icon: ShieldCheck, title: "부상자 영향", desc: "결장 변수와 경기 영향도 추적", href: "/injuries" },
+  { Icon: Sparkles, title: "AI 프리뷰", desc: "핵심 포인트를 짧고 선명하게", href: "/previews" },
 ];
 
 export default function PredictionsView({
@@ -53,7 +54,7 @@ export default function PredictionsView({
   return (
     <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-10 sm:pb-14">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-10 sm:pb-14" aria-label="시즌 예측 소개">
         <div className="space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs sm:text-sm text-zinc-700 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/70">
             <Sparkles className="h-4 w-4" /> Elo + Monte Carlo 5,000회 시뮬레이션
@@ -91,12 +92,14 @@ export default function PredictionsView({
       </section>
 
       {/* Feature 4-up */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-12">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-12" aria-label="예측 방식 소개">
+        <h2 className="sr-only">스코어베이스 예측 방식</h2>
         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-          {featureCards.map(({ Icon, title, desc }) => (
-            <div
+          {featureCards.map(({ Icon, title, desc, href }) => (
+            <Link
               key={title}
-              className="rounded-[1.5rem] sm:rounded-[2rem] bg-white p-4 sm:p-6 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none"
+              href={href}
+              className="block rounded-[1.5rem] sm:rounded-[2rem] bg-white p-4 sm:p-6 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none"
             >
               <Icon className="mb-4 sm:mb-6 h-6 w-6 sm:h-7 sm:w-7 text-zinc-900 dark:text-white" />
               <h3 className="text-base sm:text-lg font-semibold tracking-tight text-zinc-950 dark:text-white">
@@ -105,7 +108,7 @@ export default function PredictionsView({
               <p className="mt-2 text-xs sm:text-sm leading-5 sm:leading-6 text-zinc-600 dark:text-white/55">
                 {desc}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -118,7 +121,7 @@ export default function PredictionsView({
               주요 리그 시즌 예측
             </h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-white/45">
-              19개 리그 · Top 3 현재 순위 미리보기
+              EPL·라리가·분데스리가·K리그·J리그·KBO·MLB·NBA·NHL·LCK 등 19개 리그 · Top 3 현재 순위 미리보기
             </p>
           </div>
           <Activity className="hidden sm:block h-6 w-6 text-zinc-400 dark:text-white/40" />

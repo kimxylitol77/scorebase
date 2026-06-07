@@ -138,18 +138,45 @@ async function fetchCountryStandings(): Promise<CountryStandingsGroup[]> {
   return groups;
 }
 
-// 구조화 데이터 (Dataset) — Monte Carlo 시즌 시뮬레이션을 고유 데이터셋으로 인식.
+// 구조화 데이터 — Dataset + BreadcrumbList + ItemList(리그별 시즌 예측). 리그 상세 색인 촉진.
+const LEAGUE_LD_ITEMS = LEAGUES.flatMap((lg) => {
+  const subs = lg.codes ?? [{ code: lg.code, label: lg.name }];
+  return subs.map((s) => ({ code: s.code, label: lg.codes ? s.label : lg.name }));
+});
 const PREDICTIONS_JSONLD = {
   "@context": "https://schema.org",
-  "@type": "Dataset",
-  name: "스코어베이스 시즌 우승 확률 예측",
-  description:
-    "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 + Elo 레이팅 기반 우승·플레이오프·강등 확률.",
-  url: `${SITE_URL}/predictions`,
-  keywords: ["시즌 우승 확률", "Monte Carlo 시뮬레이션", "Elo 레이팅 예측"],
-  creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
-  isAccessibleForFree: true,
-  measurementTechnique: "Monte Carlo 시뮬레이션(5,000회) + Elo 레이팅",
+  "@graph": [
+    {
+      "@type": "Dataset",
+      name: "스코어베이스 시즌 우승 확률 예측",
+      description:
+        "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 + Elo 레이팅 기반 우승·플레이오프·강등 확률.",
+      url: `${SITE_URL}/predictions`,
+      keywords: ["시즌 우승 확률", "Monte Carlo 시뮬레이션", "Elo 레이팅 예측"],
+      creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+      isAccessibleForFree: true,
+      measurementTechnique: "Monte Carlo 시뮬레이션(5,000회) + Elo 레이팅",
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "시즌 예측", item: `${SITE_URL}/predictions` },
+      ],
+    },
+    {
+      "@type": "ItemList",
+      name: "리그별 시즌 예측",
+      description: "리그별 우승·플레이오프·강등 확률, 순위표, 시즌 리더보드 페이지.",
+      numberOfItems: LEAGUE_LD_ITEMS.length,
+      itemListElement: LEAGUE_LD_ITEMS.map((l, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: `${l.label} 시즌 예측`,
+        url: `${SITE_URL}/predictions/${l.code}`,
+      })),
+    },
+  ],
 };
 
 // FIFA 국가 랭킹 표시용 — 정적 JSON(fifa-rankings) → 한글명 + 국기 부여. 영문 canonical
