@@ -821,6 +821,23 @@ export function tsHalfTimeScore(
   return { home: Number(g[0]) || 0, away: Number(g[1]) || 0 };
 }
 
+/** 골 incidents(SoccerGoal[]) 로 전반전 점수 자체 계산 — halfTeamStats 없을 때 fallback.
+ *  골 발생 분의 base 가 ≤45 = 전반 (45+추가시간 포함, 46~ 는 후반). */
+export function tsHalfScoreFromGoals(
+  goals: SoccerGoal[],
+): { home: number; away: number } {
+  let home = 0;
+  let away = 0;
+  for (const g of goals) {
+    const base = parseInt(g.minute.match(/^(\d+)/)?.[1] ?? "0", 10);
+    if (base > 0 && base <= 45) {
+      if (g.side === "home") home++;
+      else away++;
+    }
+  }
+  return { home, away };
+}
+
 /**
  * halfTeamStats(half/team_stats/detail 의 results) 에서 특정 phase 통계 행 추출.
  * phase: p1=전반, p2=후반, ft=풀타임. 구조: { p1: { "25": [home, away], ... }, ... }

@@ -36,6 +36,7 @@ import {
   tsTeamStatsToSoccerStats,
   tsHalfStatsToSoccerStats,
   tsHalfTimeScore,
+  tsHalfScoreFromGoals,
   type BaseballGameDetails,
   type PeriodLinescore as PeriodLinescoreData,
   type SoccerGoal,
@@ -779,7 +780,10 @@ export default async function ScoresPage({ searchParams }: Props) {
         // 전반전 통계 (half/team_stats/detail 의 p1)
         const hstats = tsHalfStatsToSoccerStats(c.halfTeamStats, "p1");
         if (hstats.length > 0) soccerHalfStatsByMatchId.set(c.matchId, hstats);
-        const hscore = tsHalfTimeScore(c.halfTeamStats);
+        // 전반 점수: halfTeamStats.p1 골(정확) 우선, 없으면 incidents 골 시각으로 자체계산
+        const hscore =
+          tsHalfTimeScore(c.halfTeamStats) ??
+          (dl.incidents ? tsHalfScoreFromGoals(tsIncidentsToGoals(dl.incidents)) : null);
         if (hscore) soccerHalfScoreByMatchId.set(c.matchId, hscore);
       }
       // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
