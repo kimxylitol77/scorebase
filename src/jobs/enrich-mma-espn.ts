@@ -34,6 +34,21 @@ async function fetchEspn(dates?: string): Promise<EspnEvent[]> {
   }
 }
 
+// 승리 방법/라운드 — scoreboard 엔 없어 ESPN athlete(common/v3) 의 최근 경기 result 로 보강.
+// result.displayName = "KO/TKO" | "Submission" | "Decision - Unanimous" 등 (세부 서브미션 종류는 미제공).
+async function fetchMmaResult(espnId: string): Promise<{ method?: string; round?: number; clock?: string }> {
+  try {
+    const r = await fetch(`https://site.web.api.espn.com/apis/common/v3/sports/mma/athletes/${espnId}`);
+    if (!r.ok) return {};
+    const j = (await r.json()) as { eventsMap?: Record<string, { gameDate?: string; status?: { period?: number; displayClock?: string; result?: { displayName?: string } } }> };
+    const recent = Object.values(j.eventsMap || {}).sort((a, b) => new Date(b.gameDate || 0).getTime() - new Date(a.gameDate || 0).getTime())[0];
+    const s = recent?.status;
+    return { method: s?.result?.displayName, round: s?.period, clock: s?.displayClock };
+  } catch {
+    return {};
+  }
+}
+
 function ymd(t: number): string {
   const d = new Date(t);
   return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
@@ -194,7 +209,7 @@ export async function runEnrichMmaLive(): Promise<{ live: number; finished: numb
             { homeTeamId: tB, awayTeamId: tA },
           ],
         },
-        select: { id: true, homeTeamId: true, status: true },
+        select: { id: true, homeTeamId: true, status: true, resultMethod: true },
       });
       if (!m) continue;
 
@@ -205,8 +220,13 @@ export async function runEnrichMmaLive(): Promise<{ live: number; finished: numb
         }
         live++;
       } else if (state === "post") {
-        const winnerTid = tid(cs.find((c) => c.winner)?.athlete?.displayName);
+        // 이미 FINISHED + 방법 채워졌으면 athlete API 재호출 skip (10분 cron 낭비 방지).
+        if (m.status === "FINISHED" && m.resultMethod) { finished++; continue; }
+        const winnerC = cs.find((c) => c.winner);
+        const winnerTid = tid(winnerC?.athlete?.displayName);
         const homeWon = winnerTid != null && winnerTid === m.homeTeamId;
+        // 승리 방법/라운드 — scoreboard 엔 없어 athlete result 로 보강.
+        const res = winnerC?.id ? await fetchMmaResult(winnerC.id) : {};
         await prisma.match.update({
           where: { id: m.id },
           data: {
@@ -214,6 +234,9 @@ export async function runEnrichMmaLive(): Promise<{ live: number; finished: numb
             // MMA 는 점수 없음 → 승자 1 / 패자 0. 무승부·노컨테스트(winner 없음)면 null.
             homeScore: winnerTid == null ? null : homeWon ? 1 : 0,
             awayScore: winnerTid == null ? null : homeWon ? 0 : 1,
+            resultMethod: res.method ?? undefined,
+            resultRound: res.round ?? undefined,
+            resultClock: res.clock ?? undefined,
           },
         });
         finished++;

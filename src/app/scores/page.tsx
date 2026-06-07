@@ -568,6 +568,9 @@ export default async function ScoresPage({ searchParams }: Props) {
         awayTeamId: true,
         homeStarter: true,
         awayStarter: true,
+        resultMethod: true,
+        resultRound: true,
+        resultClock: true,
         homeTeam: {
           select: {
             id: true, name: true, externalId: true, shortName: true, logoUrl: true,
@@ -1185,6 +1188,11 @@ export default async function ScoresPage({ searchParams }: Props) {
                 stance: m.awayTeam.mmaFighter?.stance ?? null,
               },
             }
+          : null,
+      // UFC 승리 방법/라운드 (종료 mma 카드 — ESPN athlete result)
+      mmaResult:
+        sport_ === "mma" && m.resultMethod
+          ? { method: m.resultMethod, round: m.resultRound, clock: m.resultClock }
           : null,
       startTime: m.startTime,
       timeLabel: kstHHmm(m.startTime),
@@ -1903,6 +1911,7 @@ function SoccerRowLayout({
         href={m.href}
         doubleHeader={m.doubleHeader}
         mma={m.mma}
+        mmaResult={m.mmaResult}
       />
     );
   };
@@ -2079,6 +2088,7 @@ type NormalizedMatch = {
   doubleHeader: { index: number; total: number } | null;
   /** UFC Tale of the Tape — 파이터 신체/별명 (mma 외 종목은 null) */
   mma: { category: string | null; home: MmaTale; away: MmaTale } | null;
+  mmaResult: { method: string | null; round: number | null; clock: string | null } | null;
 };
 
 // 야구 라인업 cover 리그 — MLB 만 풍부한 boxscore 라인업 (MLB Stats API).
@@ -2166,6 +2176,7 @@ function renderCard(m: NormalizedMatch) {
       liveCommentary={m.liveCommentary}
       doubleHeader={m.doubleHeader}
       mma={m.mma}
+      mmaResult={m.mmaResult}
     />
   );
 }

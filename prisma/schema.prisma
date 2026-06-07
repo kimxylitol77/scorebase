@@ -75,6 +75,10 @@ model Match {
   status     String // SCHEDULED | LIVE | FINISHED | POSTPONED
   startTime  DateTime
   raw        String? // 원본 JSON (디버깅/재가공용)
+  // MMA(UFC) 결과 상세 — ESPN athlete result. 종료 시 enrich-mma-espn 이 채움. 타 종목 null.
+  resultMethod String? // "KO/TKO" | "Submission" | "Decision - Unanimous" 등 (세부 서브미션 종류는 ESPN 미제공)
+  resultRound  Int?    // 종료 라운드 (period)
+  resultClock  String? // 종료 시각 "1:34"
   // 공식 유튜브 하이라이트 영상 ID — 경기 종료 후 fetch-youtube-highlights cron 이 적재.
   // 공식 채널 "풀 하이라이트" 재생목록에서만 매칭 (재업로드 차단). null = 카드 숨김.
   highlightYoutubeId String?

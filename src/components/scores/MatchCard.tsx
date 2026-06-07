@@ -75,6 +75,8 @@ export interface MatchCardProps {
     home: { nickname: string | null; height: string | null; weight: string | null; reach: string | null; stance: string | null };
     away: { nickname: string | null; height: string | null; weight: string | null; reach: string | null; stance: string | null };
   } | null;
+  /** UFC 승리 방법/라운드 (종료 mma 카드 전용) — ESPN athlete result */
+  mmaResult?: { method: string | null; round: number | null; clock: string | null } | null;
 }
 
 function Logo({ url, name, big }: { url?: string | null; name: string; big?: boolean }) {
@@ -129,6 +131,22 @@ const WEIGHT_CLASS_KO: Record<string, string> = {
   "Women's Featherweight": "여자 페더급",
   Catchweight: "캐치웨이트",
 };
+
+// UFC 승리 방법 한글 (ESPN result.displayName → 한글). 세부 서브미션 종류는 ESPN 미제공.
+const MMA_METHOD_KO: Record<string, string> = {
+  "KO/TKO": "KO/TKO",
+  Submission: "서브미션",
+  "Decision - Unanimous": "판정 (만장)",
+  "Decision - Split": "판정 (분할)",
+  "Decision - Majority": "판정 (다수)",
+  Decision: "판정",
+};
+// "1R · KO/TKO" (피니시) / "판정 (만장)" (판정엔 라운드 생략 — 풀라운드).
+function mmaResultLabel(r: NonNullable<MatchCardProps["mmaResult"]>): string | null {
+  if (!r.method) return null;
+  const ko = MMA_METHOD_KO[r.method] ?? r.method;
+  return r.method.startsWith("Decision") ? ko : r.round ? `${r.round}R · ${ko}` : ko;
+}
 
 // UFC Tale of the Tape — 두 파이터 신체 비교 (체급 헤더 + 신장/체중/리치/스탠스).
 // 값이 하나라도 있는 행만 표시. 전부 비고 체급도 없으면 렌더 안 함.
@@ -196,6 +214,7 @@ export default function MatchCard(props: MatchCardProps) {
     penaltyHome,
     penaltyAway,
     mma,
+    mmaResult,
   } = props;
 
   const isLive = status === "live";
@@ -312,6 +331,16 @@ export default function MatchCard(props: MatchCardProps) {
       ? "text-neutral-900 dark:text-white"
       : "text-neutral-400";
 
+  // MMA 종료 — 승자 점수(1:0 의 1)를 초록으로 강조. 다른 종목·무승부엔 영향 없음.
+  const mmaWin: "home" | "away" | null =
+    sport === "mma" && isFinished && home.score != null && away.score != null
+      ? home.score > away.score
+        ? "home"
+        : away.score > home.score
+          ? "away"
+          : null
+      : null;
+
   // 메인 body — 점수 / 로고 / 팀명
   const body = (
     <>
@@ -357,11 +386,11 @@ export default function MatchCard(props: MatchCardProps) {
           {hasScore ? (
             <>
               <div className="flex items-center justify-center">
-                {home.score}
+                <span className={mmaWin === "home" ? "text-emerald-500 dark:text-emerald-400" : ""}>{home.score}</span>
                 <span className="mx-1 sm:mx-1.5 text-neutral-300 dark:text-neutral-700 font-thin">
                   :
                 </span>
-                {away.score}
+                <span className={mmaWin === "away" ? "text-emerald-500 dark:text-emerald-400" : ""}>{away.score}</span>
               </div>
               {penaltyHome != null && penaltyAway != null && (
                 <div className="grid grid-cols-2 text-[10px] sm:text-[11px] font-bold text-neutral-400 dark:text-neutral-500 leading-none mt-0.5">
@@ -394,6 +423,15 @@ export default function MatchCard(props: MatchCardProps) {
           )}
         </div>
       </div>
+
+      {/* UFC 승리 방법 — 종료 시 점수 아래 (예: "1R · KO/TKO", "판정 (만장)") */}
+      {sport === "mma" && isFinished && mmaResult && mmaResultLabel(mmaResult) && (
+        <div className="px-3.5 sm:px-4 -mt-1.5 pb-1 text-center">
+          <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+            {mmaResultLabel(mmaResult)}
+          </span>
+        </div>
+      )}
 
       {/* UFC Tale of the Tape — 체급 + 신장/체중/리치/스탠스 비교 (mma 카드 전용) */}
       {sport === "mma" && mma && <MmaTaleOfTape mma={mma} />}
