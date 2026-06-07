@@ -528,6 +528,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let totalInjuries = 0;
   let topTeam: { name: string; count: number } | null = null;
   let fullSquadCount = 0;
+  let soccerSource = "api-football Pro";
   try {
     const teams = await prisma.team.findMany({ where: { league: upper } });
     const isEspn = ESPN_LEAGUES.includes(upper);
@@ -535,14 +536,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     let teamLists: Array<{ teamName: string; count: number }> = [];
 
     if (isSoccer) {
-      if (process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0) {
-        const season = getApiFootballSeason(new Date(), upper);
-        const all = await fetchSeasonInjuries(upper, season);
-        teamLists = teams.map((t) => ({
-          teamName: t.name,
-          count: getTeamInjuries(all, t.name, undefined, 30).length,
-        }));
-      }
+      // 본문과 동일 — TheSports 1순위 + cache 없는 팀만 api-football 보강
+      const tsInj = await getTheSportsInjuriesByTeam(teams.map((t) => t.id));
+      const needAf = teams.some((t) => !tsInj.has(t.id));
+      const all = needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0
+        ? await fetchSeasonInjuries(upper, getApiFootballSeason(new Date(), upper))
+        : [];
+      teamLists = teams.map((t) => {
+        const ts = tsInj.get(t.id);
+        return { teamName: t.name, count: ts ? ts.length : getTeamInjuries(all, t.name, undefined, 30).length };
+      });
+      soccerSource = tsInj.size > 0 ? (needAf ? "TheSports + api-football" : "TheSports") : "api-football Pro";
     } else if (isEspn) {
       const all = await fetchEspnInjuries(upper as "NBA" | "MLB" | "NHL");
       teamLists = teams.map((t) => ({
@@ -586,7 +590,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? "KBO 공식 (koreabaseball.com)"
       : upper === "NPB"
         ? "NPB 공식 (npb.jp)"
-        : "api-football Pro";
+        : SOCCER.includes(upper)
+          ? soccerSource
+          : ESPN_LEAGUES.includes(upper)
+            ? "ESPN"
+            : "api-football Pro";
   const title = `${lm.krFull} 부상자 명단 ${seasonLabel}${totalInjuries > 0 ? ` · 총 ${totalInjuries}명 결장` : ""} | 스코어베이스`;
   const description = totalInjuries > 0
     ? `${lm.krFull} 전 팀 부상·결장 선수 ${totalInjuries}명 현황${topTeam ? `. 가장 많은 결장자 보유: ${topTeam.name}(${topTeam.count}명)` : ""}${fullSquadCount > 0 ? `. 풀스쿼드 팀 ${fullSquadCount}개` : ""}. 매일 업데이트 · 출처 ${sourceLabel}.`
