@@ -37,6 +37,8 @@ export interface SoccerLiveRowProps {
   soccerTeamStats?: SoccerTeamStat[] | null;
   /** 전반전 통계 — tooltip 통계 섹션에 "전반전" 으로 추가 표시 */
   soccerHalfStats?: SoccerTeamStat[] | null;
+  /** 전반전 점수 — 원정팀 옆 컬럼에 "전반 H-A" 표시 (halfTeamStats.p1 골) */
+  soccerHalfScore?: { home: number; away: number } | null;
   /** 팀 약칭 라벨 — tooltip 안에 표시 */
   homeShort?: string;
   awayShort?: string;
@@ -99,6 +101,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     soccerCards,
     soccerTeamStats,
     soccerHalfStats,
+    soccerHalfScore,
     homeShort,
     awayShort,
     previewSlug,
@@ -172,7 +175,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         // 우측에 154px spacer 컬럼 추가 → vs 가 row 가운데 정렬 (날짜 header 와 일치).
         // 7=관심(28px), 8=글(48px) — 사용자 요청으로 위치 swap (2026-05-24)
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 28px 48px minmax(0,154px)",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 54px 28px 48px minmax(0,154px)",
       }}
     >
       {/* 1. 리그 배지 — 클릭 시 새창에서 리그 순위 페이지 (nested anchor 회피 위해 button) */}
@@ -376,6 +379,16 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           </div>
         );
       })()}
+
+      {/* 6.5 전반전 점수 (halfTeamStats.p1 골) — 진행/종료 매치만 (예정 제외) */}
+      <div className="text-center text-[11px] tabular-nums whitespace-nowrap text-neutral-500 dark:text-neutral-400">
+        {(isLive || isFinished) && soccerHalfScore ? (
+          <span title="전반전 점수">
+            <span className="text-[8px] text-neutral-400 dark:text-neutral-500 mr-0.5">전반</span>
+            {soccerHalfScore.home}-{soccerHalfScore.away}
+          </span>
+        ) : null}
+      </div>
 
       {/* 7. 관심 별표 (위치 swap — 글보다 우선 노출) */}
       <div className="flex justify-center">
@@ -654,7 +667,7 @@ export function SoccerLiveRowHeader() {
       className="grid items-center gap-3 px-0 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-200 dark:border-white/10"
       style={{
         gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 28px 48px minmax(0,154px)",
+          "110px 56px 64px minmax(0,1fr) auto minmax(0,1fr) 54px 28px 48px minmax(0,154px)",
       }}
     >
       <div className="text-center">리그명</div>
@@ -663,6 +676,7 @@ export function SoccerLiveRowHeader() {
       <div className="text-right">홈팀</div>
       <div className="text-center px-2">점수</div>
       <div>원정팀</div>
+      <div className="text-center">전반</div>
       <div className="text-center">관심</div>
       <div data-sinfo className="text-center">정보</div>
     </div>

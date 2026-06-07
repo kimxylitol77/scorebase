@@ -809,6 +809,18 @@ export function tsTeamStatsToSoccerStats(raw: unknown): SoccerTeamStat[] {
   return out;
 }
 
+/** halfTeamStats.p1 의 골(stat "1") → 전반전 점수 {home, away}. 데이터 없으면 null. */
+export function tsHalfTimeScore(
+  halfStats: unknown,
+): { home: number; away: number } | null {
+  if (!halfStats || typeof halfStats !== "object") return null;
+  const p1 = (halfStats as Record<string, unknown>).p1;
+  if (!p1 || typeof p1 !== "object") return null;
+  const g = (p1 as Record<string, unknown>)["1"];
+  if (!Array.isArray(g) || g.length < 2) return null;
+  return { home: Number(g[0]) || 0, away: Number(g[1]) || 0 };
+}
+
 /**
  * halfTeamStats(half/team_stats/detail 의 results) 에서 특정 phase 통계 행 추출.
  * phase: p1=전반, p2=후반, ft=풀타임. 구조: { p1: { "25": [home, away], ... }, ... }
