@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -156,7 +156,9 @@ export async function GET(req: NextRequest) {
     // 4. stale_live — 모든 sport. Match.updatedAt 은 점수 변동시에만 갱신되어
     // 골 없는 30분+ 라이브에서 false positive 가 남. ts cache.updatedAt 이 더
     // 최근이면 그쪽으로 fresh 판정 (cache poll 은 점수 변동과 무관하게 갱신).
-    if (m.status === "LIVE") {
+    // MMA/UFC 제외: 라운드 진행 중 점수 변동이 없어 updatedAt 정체 + ts cache 자체가
+    // 없어 항상 stale 오판. 종료 시 ESPN cron(mma-live)이 FINISHED 전환하므로 stuck 위험 없음.
+    if (m.status === "LIVE" && !MMA_LEAGUES.has(m.league)) {
       const cacheUpdatedAt = cacheByMatchId.get(m.id)?.updatedAt;
       const lastUpdate =
         cacheUpdatedAt && cacheUpdatedAt > m.updatedAt
@@ -329,6 +331,15 @@ export async function GET(req: NextRequest) {
   const tsByLeague = new Map(tsStandings.map((s) => [s.league, s]));
   const afByLeague = new Map(afStandings.map((s) => [s.league, s]));
 
+  // 시즌 종료(미래 경기 없음) 리그는 standings 갱신이 불필요 → stale 검사 제외.
+  // 5/24 종료된 SERIE_A 등 유럽 리그가 시즌오프 내내 stale 알림 쏟는 것 방지.
+  const upcoming = await prisma.match.groupBy({
+    by: ["league"],
+    where: { league: { in: STANDINGS_CHECK_LEAGUES }, startTime: { gt: new Date(now) } },
+    _count: { _all: true },
+  });
+  const hasUpcoming = new Set(upcoming.filter((g) => g._count._all > 0).map((g) => g.league));
+
   const placeholderInfo = (league: string) => ({
     matchId: 0,
     externalId: "",
@@ -338,6 +349,7 @@ export async function GET(req: NextRequest) {
   });
 
   for (const league of STANDINGS_CHECK_LEAGUES) {
+    if (!hasUpcoming.has(league)) continue; // 시즌 종료(미래 경기 없음) → standings stale·mismatch 무시
     const ts = tsByLeague.get(league);
     const af = afByLeague.get(league);
 
