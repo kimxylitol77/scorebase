@@ -7,8 +7,10 @@ import {
   FIFA_RANKING_DATE,
   fifaCountryKo,
   fifaFlag,
+  getFifaRank,
 } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
 
 // 한국 순위(동적) + 상위국 — metadata·본문·FAQ·JSON-LD 공용. 하드코딩 금지.
@@ -93,8 +95,16 @@ function buildFifaRanking(): { rank: number; name: string; flag: string }[] {
   }));
 }
 
-export default function FifaRankingPage() {
+export default async function FifaRankingPage() {
   const ranking = buildFifaRanking();
+  // 국가대표 Team rank → id (WORLD_CUP 우선) — 랭킹 행에서 국가대표팀 페이지로 링크
+  const natlTeams = await prisma.team.findMany({ where: { league: { in: ["WORLD_CUP", "INTL_FRIENDLY"] } }, select: { id: true, name: true, league: true } });
+  const teamByRank = new Map<number, number>();
+  for (const t of natlTeams) {
+    const rk = getFifaRank(t.name, fifaCountryKo(t.name) || toKoreanTeamName(t.name, "INTL_FRIENDLY") || undefined);
+    if (!rk) continue;
+    if (!teamByRank.has(rk) || t.league === "WORLD_CUP") teamByRank.set(rk, t.id);
+  }
   return (
     <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
@@ -127,30 +137,41 @@ export default function FifaRankingPage() {
 
         <div className="mt-6 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-0.5">
-            {ranking.map((c) => (
-              <li
-                key={c.rank}
-                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]"
-              >
-                <span
-                  className={`w-6 shrink-0 text-right tabular-nums text-sm font-bold ${
-                    c.rank === 1
-                      ? "text-amber-500"
-                      : c.rank <= 3
-                        ? "text-amber-600/80 dark:text-amber-400/80"
-                        : c.rank <= 10
-                          ? "text-zinc-600 dark:text-white/60"
-                          : "text-zinc-400 dark:text-white/35"
-                  }`}
-                >
-                  {c.rank}
-                </span>
-                <span className="w-5 shrink-0 text-center text-base leading-none" aria-hidden>
-                  {c.flag}
-                </span>
-                <span className="truncate text-sm text-zinc-800 dark:text-white/85">{c.name}</span>
-              </li>
-            ))}
+            {ranking.map((c) => {
+              const tid = teamByRank.get(c.rank);
+              const cls = "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]";
+              const inner = (
+                <>
+                  <span
+                    className={`w-6 shrink-0 text-right tabular-nums text-sm font-bold ${
+                      c.rank === 1
+                        ? "text-amber-500"
+                        : c.rank <= 3
+                          ? "text-amber-600/80 dark:text-amber-400/80"
+                          : c.rank <= 10
+                            ? "text-zinc-600 dark:text-white/60"
+                            : "text-zinc-400 dark:text-white/35"
+                    }`}
+                  >
+                    {c.rank}
+                  </span>
+                  <span className="w-5 shrink-0 text-center text-base leading-none" aria-hidden>
+                    {c.flag}
+                  </span>
+                  <span className="truncate text-sm text-zinc-800 dark:text-white/85">{c.name}</span>
+                  {tid && <span className="ml-auto shrink-0 text-xs text-blue-500/70 dark:text-blue-400/60" aria-hidden>→</span>}
+                </>
+              );
+              return (
+                <li key={c.rank}>
+                  {tid ? (
+                    <Link href={`/national-teams/${tid}`} className={cls}>{inner}</Link>
+                  ) : (
+                    <div className={cls}>{inner}</div>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </div>
 
