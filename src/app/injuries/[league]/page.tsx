@@ -35,6 +35,7 @@ import {
   enrichNpbInjuriesWithKoreanCached,
 } from "@/lib/sports/npb-cache";
 import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
+import { getTheSportsInjuriesByTeam, type TSInjuryRaw } from "@/lib/sports/thesports/injuries";
 
 function classifyKboDuration(
   duration: string,
@@ -701,8 +702,15 @@ export default async function InjuriesByLeague({
   let allBdl: Awaited<ReturnType<typeof fetchBalldontlieInjuries>> = [];
   let allKbo: KboInjury[] = [];
   let allNpb: NpbInjuryEntry[] = [];
-  const hasKey = isSoccer ? !!process.env.API_FOOTBALL_KEY : true;
-  if (isSoccer && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
+  // 축구 부상자: TheSports lineup.injury 1순위 (cache 추적 중인 팀은 부상자 0명도 신뢰).
+  let tsInjByTeam = new Map<number, TSInjuryRaw[]>();
+  if (isSoccer) {
+    try { tsInjByTeam = await getTheSportsInjuriesByTeam(teams.map((t) => t.id)); } catch {}
+  }
+  // cache 없는 팀(오프시즌 등)이 있을 때만 api-football 보강 — 전부 cover 면 호출 skip(rate-limit 절약).
+  const needAf = isSoccer && teams.some((t) => !tsInjByTeam.has(t.id));
+  const hasKey = isSoccer ? tsInjByTeam.size > 0 || !!process.env.API_FOOTBALL_KEY : true;
+  if (isSoccer && needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
     try {
       const season = getApiFootballSeason(new Date(), upper);
       allInjuries = await fetchSeasonInjuries(upper, season);
@@ -746,7 +754,15 @@ export default async function InjuriesByLeague({
       ? "KBO 공식 (koreabaseball.com)"
       : upper === "NPB"
         ? "NPB 공식 (npb.jp)"
-        : "api-football Pro";
+        : isSoccer
+          ? tsInjByTeam.size > 0
+            ? needAf
+              ? "TheSports + api-football"
+              : "TheSports"
+            : "api-football Pro"
+          : isEspn
+            ? "ESPN"
+            : "api-football Pro";
 
   // 검색·필터·정렬 파라미터
   const query = (sp.q ?? "").trim().toLowerCase();
@@ -770,12 +786,18 @@ export default async function InjuriesByLeague({
   const rawByTeam: Array<{ team: typeof teams[number]; raw: RawInjury[] }> = teams.map((t) => {
     let raw: RawInjury[] = [];
     if (isSoccer) {
-      raw = getTeamInjuries(allInjuries, t.name, undefined, 30).map((i) => ({
-        playerId: i.playerId,
-        playerName: i.playerName,
-        reason: i.reason,
-        fixtureDate: i.fixtureDate,
-      }));
+      const tsRaw = tsInjByTeam.get(t.id);
+      if (tsRaw) {
+        raw = tsRaw; // TheSports lineup.injury (한글 사유 override 포함)
+      } else {
+        // cache 없는 팀 → api-football 보강
+        raw = getTeamInjuries(allInjuries, t.name, undefined, 30).map((i) => ({
+          playerId: i.playerId,
+          playerName: i.playerName,
+          reason: i.reason,
+          fixtureDate: i.fixtureDate,
+        }));
+      }
     } else if (isEspn && allBdl.length > 0) {
       raw = getTeamEspnInjuries(allBdl, t.name, undefined, 30).map((i) => ({
         playerId: i.playerId,
