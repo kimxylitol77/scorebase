@@ -131,7 +131,7 @@ export async function getTheSportsInjuriesByTeam(
   // 2. 최신 매치들의 lineup 캐시
   const matchIds = [...new Set([...latest.values()].map((v) => v.matchId))];
   const caches = await prisma.theSportsMatchCache.findMany({
-    where: { matchId: { in: matchIds }, lineup: { not: null } },
+    where: { matchId: { in: matchIds } }, // lineup null 은 후처리에서 skip (Prisma Json not-null 필터 타입 회피)
     select: { matchId: true, lineup: true },
   });
   const cacheByMatch = new Map(caches.map((c) => [c.matchId, c.lineup as Record<string, unknown>]));
