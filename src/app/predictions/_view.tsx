@@ -64,7 +64,7 @@ export default function PredictionsView({
           </h1>
           <p className="max-w-2xl text-base sm:text-lg leading-7 text-zinc-600 dark:text-white/55">
             19개 주요 리그의 시즌 종료 시 우승·플레이오프·강등 확률을 한 화면에서.
-            각 리그 카드를 누르면 상세 분포·잔여 일정·팀별 확률 표를 볼 수 있어요.
+            각 리그 카드를 누르면 리그 순위표와 득점왕·도움왕 리더보드, 상세 확률 분포·잔여 일정·팀별 확률 표까지 볼 수 있어요.
           </p>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link
@@ -398,6 +398,11 @@ export default function PredictionsView({
         <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
           EPL, MLB, NBA, KBO 등 주요 리그의 시즌 우승·플레이오프·강등 확률을 Elo 레이팅과 Monte Carlo
           시뮬레이션으로 분석해 제공합니다. 경기 종료 후 결과 리뷰와 적중률 보드도 함께 확인할 수 있습니다.
+        </p>
+        <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
+          각 리그 상세 페이지에서는 실시간 <strong className="font-medium text-zinc-700 dark:text-white/70">리그 순위표</strong>와 함께
+          <strong className="font-medium text-zinc-700 dark:text-white/70"> 득점왕·도움왕·경고·퇴장 시즌 리더보드</strong>(TOP 10, 매일 자동 갱신)를 제공합니다.
+          EPL·라리가·분데스리가 등 유럽 빅5 리그의 득점 순위·어시스트 순위와, 현재 순위 대비 Elo 예측 순위 비교까지 한 곳에서 확인할 수 있습니다.
         </p>
         <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
           실시간 경기 진행은{" "}

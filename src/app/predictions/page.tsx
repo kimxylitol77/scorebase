@@ -33,13 +33,15 @@ export const dynamic = "force-dynamic";
 export const revalidate = 600;
 
 export const metadata: Metadata = {
-  title: "시즌 우승 확률 예측 — Monte Carlo 시뮬레이션 | 스코어베이스",
+  title: "시즌 우승 확률 예측 · 리그 순위 · 득점왕·도움왕 | 스코어베이스",
   description:
-    "19개 리그 시즌 시뮬레이션 — Monte Carlo 5,000회 기반 우승·플레이오프·강등 확률을 Elo 레이팅으로 계산해 공개합니다. EPL·라리가·분데스리가·K리그·J리그·KBO·NPB·MLB·NBA·NHL·LCK.",
+    "19개 리그 시즌 예측과 리그 순위표·득점왕·도움왕 리더보드를 한 곳에서. Monte Carlo 5,000회 + Elo 레이팅으로 우승·플레이오프·강등 확률을 계산해 공개합니다. EPL·라리가·분데스리가·K리그·KBO·MLB·NBA·NHL·LCK.",
   keywords: [
     "시즌 예측", "우승 확률", "우승 예측", "Monte Carlo 시뮬레이션",
     "EPL 우승 확률", "리그 우승 예측", "강등 확률", "플레이오프 확률",
     "Elo 레이팅", "시즌 시뮬레이션",
+    "리그 순위", "득점왕", "도움왕", "EPL 순위", "라리가 순위",
+    "라리가 득점왕", "리그 리더보드", "득점 순위", "어시스트 순위",
     "FIFA 랭킹", "FIFA 국가 랭킹", "축구 국가대표 순위",
   ],
 };
