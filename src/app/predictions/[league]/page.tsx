@@ -710,7 +710,10 @@ export default async function LeaguePredictions({ params }: Props) {
                 title="조별예선 통과 확률 (32강)"
                 subtitle="각 조 1·2위 + 3위 중 상위 8팀 진출"
               />
-              <WorldCupGroupTable rows={wc} />
+              <WorldCupGroupTable
+                rows={wc}
+                nameToId={new Map(Array.from(teamNameById, ([id, name]): [string, number] => [name, id]))}
+              />
             </section>
           </>
         )}
@@ -1399,7 +1402,7 @@ function PredTeamLogo({
   );
 }
 
-function WorldCupGroupTable({ rows }: { rows: WorldCupRow[] }) {
+function WorldCupGroupTable({ rows, nameToId }: { rows: WorldCupRow[]; nameToId?: Map<string, number> }) {
   // 조별로 묶고 조 내에서 통과 확률 내림차순
   const byGroup = new Map<string, WorldCupRow[]>();
   for (const r of rows) {
@@ -1435,10 +1438,25 @@ function WorldCupGroupTable({ rows }: { rows: WorldCupRow[] }) {
                     isKorea ? "bg-amber-50 dark:bg-amber-900/20 font-bold" : ""
                   }`}
                 >
-                  <span className="flex-1 truncate">
-                    {isKorea ? "🇰🇷 " : ""}
-                    {toKoreanTeamName(r.teamName, "WORLD_CUP")}
-                  </span>
+                  {(() => {
+                    const tid = nameToId?.get(r.teamName);
+                    const inner = (
+                      <>
+                        {isKorea ? "🇰🇷 " : ""}
+                        {toKoreanTeamName(r.teamName, "WORLD_CUP")}
+                      </>
+                    );
+                    return tid ? (
+                      <Link
+                        href={`/national-teams/${tid}`}
+                        className="flex-1 truncate hover:underline underline-offset-2 decoration-neutral-300 dark:decoration-neutral-600"
+                      >
+                        {inner}
+                      </Link>
+                    ) : (
+                      <span className="flex-1 truncate">{inner}</span>
+                    );
+                  })()}
                   <span className="text-xs tabular-nums text-neutral-500">
                     {r.expectedPoints.toFixed(1)}점
                   </span>
