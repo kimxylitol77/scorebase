@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import type { HealthFinding } from "./types";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 
 // ──────────────────────────────────────────────────────────────
 // 1. 시즌 표기 — NHL / NBA / EPL / LALIGA / BUNDESLIGA / SERIE_A / LIGUE_1
@@ -154,6 +155,23 @@ const OFFSEASON_MONTHS: Record<string, Set<number>> = {
   NBA: new Set([7, 8, 9]), NHL: new Set([7, 8, 9]),
 };
 
+/** api-football 다음 경기 날짜 (휴식 감지용 외부 verify). 없으면 null. */
+async function fetchAfNextFixtureDate(leagueId: number): Promise<Date | null> {
+  const key = process.env.API_FOOTBALL_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch(`https://v3.football.api-sports.io/fixtures?league=${leagueId}&next=1`, {
+      headers: { "x-apisports-key": key },
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const d = j.response?.[0]?.fixture?.date;
+    return d ? new Date(d) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
   const out: HealthFinding[] = [];
   const horizon = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
@@ -191,6 +209,13 @@ async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
     }
 
     if (recentFinished > 0 && cnt === 0) {
+      // 외부 verify — api-football 다음 경기가 horizon(7일) 밖이면 리그 휴식(월드컵 등) → suppress.
+      // 축구만(API_FOOTBALL_LEAGUE_ID 보유). 야구/농구는 6~7월 시즌 중이라 verify 불필요.
+      const afId = API_FOOTBALL_LEAGUE_ID[league];
+      if (afId) {
+        const nextDate = await fetchAfNextFixtureDate(afId);
+        if (nextDate && nextDate.getTime() > horizon.getTime()) continue;
+      }
       out.push({
         category: "scheduled-freshness",
         key: league,
