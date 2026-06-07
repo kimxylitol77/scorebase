@@ -380,11 +380,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         );
       })()}
 
-      {/* 6.5 전반전 점수 (halfTeamStats.p1 골) — 진행/종료 매치만 (예정 제외) */}
-      <div className="text-center text-[11px] tabular-nums whitespace-nowrap text-neutral-500 dark:text-neutral-400">
+      {/* 6.5 전반전 점수 (halfTeamStats.p1 골) — 진행/종료 매치만, 빨간색 점수만 */}
+      <div className="text-center text-[11px] tabular-nums whitespace-nowrap">
         {(isLive || isFinished) && soccerHalfScore ? (
-          <span title="전반전 점수">
-            <span className="text-[8px] text-neutral-400 dark:text-neutral-500 mr-0.5">전반</span>
+          <span title="전반전 점수" className="text-rose-600 dark:text-rose-400 font-semibold">
             {soccerHalfScore.home}-{soccerHalfScore.away}
           </span>
         ) : null}
