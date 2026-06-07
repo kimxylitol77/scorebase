@@ -12,7 +12,7 @@ import { getLeagueBadge } from "./leagueBadge";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import FavoriteStar from "../FavoriteStar";
 import { useScoreFlash } from "../useScoreFlash";
-import type { SoccerGoal, SoccerCard, SoccerTeamStat } from "@/lib/sports/live-scores";
+import type { SoccerGoal, SoccerCard, SoccerTeamStat, MatchOdds } from "@/lib/sports/live-scores";
 
 export interface SoccerLiveRowProps {
   matchId: string | number;
@@ -39,6 +39,8 @@ export interface SoccerLiveRowProps {
   soccerHalfStats?: SoccerTeamStat[] | null;
   /** 전반전 점수 — 원정팀 옆 컬럼에 "전반 H-A" 표시 (halfTeamStats.p1 골) */
   soccerHalfScore?: { home: number; away: number } | null;
+  /** 배당 (1X2 + 오버언더 + 핸디캡) — 행에 작게 + hover 상세 팝업 */
+  odds?: MatchOdds | null;
   /** 팀 약칭 라벨 — tooltip 안에 표시 */
   homeShort?: string;
   awayShort?: string;
@@ -102,6 +104,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     soccerTeamStats,
     soccerHalfStats,
     soccerHalfScore,
+    odds,
     homeShort,
     awayShort,
     previewSlug,
@@ -429,6 +432,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           </button>
         )}
       </div>
+
+      {/* 배당 — 우측 끝(spacer 자리). odds 없으면 null → 빈 칸 */}
+      <OddsCell odds={odds ?? null} />
     </div>
   );
 
@@ -457,6 +463,59 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 }
 
 /** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip. */
+/** 배당 셀 — 행에 1X2(승/무/패)+오버언더 작게, hover 시 상세 팝업(핸디캡 포함). */
+function OddsCell({ odds }: { odds: MatchOdds | null }) {
+  if (!odds) return null;
+  const f = (n: number | null) => (n != null ? n.toFixed(2) : "-");
+  return (
+    <div className="relative group/odds flex flex-col items-end justify-center gap-0.5 text-[9px] leading-none tabular-nums">
+      {/* 1X2 (승/무/패) */}
+      <div className="flex gap-1">
+        <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}</span>
+        <span className="text-neutral-400">{f(odds.draw)}</span>
+        <span className="text-blue-600 dark:text-blue-400 font-semibold">{f(odds.away)}</span>
+      </div>
+      {/* 오버언더 */}
+      {odds.over != null && (
+        <div className="flex gap-1 text-neutral-500">
+          <span>O{f(odds.over)}</span>
+          <span>U{f(odds.under)}</span>
+        </div>
+      )}
+      {/* hover 상세 팝업 */}
+      <div className="absolute right-0 top-full z-50 mt-1 hidden group-hover/odds:block pointer-events-none">
+        <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 p-2.5 text-left min-w-[176px]">
+          <div className="text-[10px] font-bold text-neutral-500 mb-1.5">
+            배당{odds.books ? ` · ${odds.books}곳 평균` : ""}
+          </div>
+          <div className="space-y-1 text-[11px]">
+            <div className="flex justify-between">
+              <span className="text-neutral-500">승 / 무 / 패</span>
+              <span className="tabular-nums">
+                <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}</span>
+                {" "}{f(odds.draw)}{" "}
+                <span className="text-blue-600 dark:text-blue-400 font-semibold">{f(odds.away)}</span>
+              </span>
+            </div>
+            {odds.over != null && (
+              <div className="flex justify-between pt-1 mt-1 border-t border-neutral-200 dark:border-white/10">
+                <span className="text-neutral-500">오버언더 {odds.totalLine}</span>
+                <span className="tabular-nums">O {f(odds.over)} / U {f(odds.under)}</span>
+              </div>
+            )}
+            {odds.hcHome != null && (
+              <div className="flex justify-between">
+                <span className="text-neutral-500">핸디캡 {odds.hcLine}</span>
+                <span className="tabular-nums">{f(odds.hcHome)} / {f(odds.hcAway)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** 통계 바 행들 (점유율·슈팅·코너·카드) — 풀타임/전반 공용. 좌=홈(rose), 우=원정(blue). */
 function StatBars({ stats }: { stats: SoccerTeamStat[] }) {
   return (
@@ -678,6 +737,7 @@ export function SoccerLiveRowHeader() {
       <div className="text-center">전반</div>
       <div className="text-center">관심</div>
       <div data-sinfo className="text-center">정보</div>
+      <div className="text-right">배당</div>
     </div>
   );
 }

@@ -783,6 +783,20 @@ export interface SoccerTeamStat {
   pct?: boolean;
 }
 
+/** 매치 배당 (The Odds API, 베팅사 평균 raw decimal). 1X2 + 오버언더 + 핸디캡. */
+export interface MatchOdds {
+  home: number;
+  draw: number;
+  away: number;
+  totalLine: number | null;
+  over: number | null;
+  under: number | null;
+  hcLine: number | null;
+  hcHome: number | null;
+  hcAway: number | null;
+  books: number | null;
+}
+
 /**
  * TheSports match cache 의 teamStats (/v1/football/match/team_stats/list 의 stats[])
  * → 표시용 핵심 통계 행. 배열 순서 [0]=home, [1]=away (goals 필드로 교차검증).

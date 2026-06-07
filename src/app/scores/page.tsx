@@ -42,6 +42,7 @@ import {
   type SoccerGoal,
   type SoccerCard,
   type SoccerTeamStat,
+  type MatchOdds,
   type LiveMatch,
   parseTsFootballScore,
   type TsFootballScoreParsed,
@@ -605,6 +606,16 @@ export default async function ScoresPage({ searchParams }: Props) {
         predHome: true,
         predDraw: true,
         predAway: true,
+        oddsHome: true,
+        oddsDraw: true,
+        oddsAway: true,
+        oddsTotalLine: true,
+        oddsOver: true,
+        oddsUnder: true,
+        oddsHcLine: true,
+        oddsHcHome: true,
+        oddsHcAway: true,
+        marketBookmakers: true,
         predWinner: true,
       },
       orderBy: { startTime: "asc" },
@@ -1236,6 +1247,21 @@ export default async function ScoresPage({ searchParams }: Props) {
       soccerTeamStats: sport_ === "soccer" ? soccerTeamStatsByMatchId.get(m.id) ?? null : null,
       soccerHalfStats: sport_ === "soccer" ? soccerHalfStatsByMatchId.get(m.id) ?? null : null,
       soccerHalfScore: sport_ === "soccer" ? soccerHalfScoreByMatchId.get(m.id) ?? null : null,
+      odds:
+        sport_ === "soccer" && m.oddsHome != null
+          ? {
+              home: m.oddsHome,
+              draw: m.oddsDraw ?? 0,
+              away: m.oddsAway ?? 0,
+              totalLine: m.oddsTotalLine,
+              over: m.oddsOver,
+              under: m.oddsUnder,
+              hcLine: m.oddsHcLine,
+              hcHome: m.oddsHcHome,
+              hcAway: m.oddsHcAway,
+              books: m.marketBookmakers,
+            }
+          : null,
       penHome: sport_ === "soccer" ? fs?.penHome ?? null : null,
       penAway: sport_ === "soccer" ? fs?.penAway ?? null : null,
       // 라이브 매치 한정: 최근 골 발생 측 (점수 셀 emerald flash)
@@ -1839,6 +1865,7 @@ function SoccerRowLayout({
         soccerTeamStats={m.soccerTeamStats}
         soccerHalfStats={m.soccerHalfStats}
         soccerHalfScore={m.soccerHalfScore}
+        odds={m.odds}
         homeShort={m.home.abbr ?? m.home.name}
         awayShort={m.away.abbr ?? m.away.name}
         previewSlug={m.preview ?? null}
@@ -2095,6 +2122,7 @@ type NormalizedMatch = {
   soccerTeamStats: SoccerTeamStat[] | null;
   soccerHalfStats: SoccerTeamStat[] | null;
   soccerHalfScore: { home: number; away: number } | null;
+  odds: MatchOdds | null;
   /** 라이브 매치 최근 1분 내 골 발생 측 — 점수 셀 노란 highlight 용 */
   recentGoalSide?: "home" | "away" | null;
   esportsCtx: EsportsContext | null;
