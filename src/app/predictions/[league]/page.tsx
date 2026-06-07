@@ -1298,10 +1298,13 @@ function ProjectionsTable({
                   {i + 1}
                 </td>
                 <td className="px-3 py-2 font-medium truncate">
-                  <span className="inline-flex items-center gap-2">
+                  <Link
+                    href={`/teams/${r.teamId}`}
+                    className="inline-flex items-center gap-2 hover:underline underline-offset-2 decoration-neutral-300 dark:decoration-neutral-600"
+                  >
                     <PredTeamLogo src={r.logoUrl} name={r.name} />
                     <span className="truncate">{r.name}</span>
-                  </span>
+                  </Link>
                 </td>
                 <td className="px-3 py-2 hidden sm:table-cell">
                   <TeamFormBadges form={form} />
