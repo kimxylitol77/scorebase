@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { fifaFlag } from "@/lib/sports/fifa-rankings";
 import type { Metadata } from "next";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcWinProbability } from "@/lib/predict/win-probability";
@@ -1440,9 +1441,10 @@ function WorldCupGroupTable({ rows, nameToId }: { rows: WorldCupRow[]; nameToId?
                 >
                   {(() => {
                     const tid = nameToId?.get(r.teamName);
+                    const flag = fifaFlag(r.teamName) || (isKorea ? "🇰🇷" : "");
                     const inner = (
                       <>
-                        {isKorea ? "🇰🇷 " : ""}
+                        {flag && <span className="shrink-0" aria-hidden>{flag} </span>}
                         {toKoreanTeamName(r.teamName, "WORLD_CUP")}
                       </>
                     );
