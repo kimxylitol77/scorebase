@@ -27,7 +27,7 @@ export default async function BlogPage() {
   });
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
       <header className="mb-10">
         <p className="text-sm text-neutral-500 mb-2">스코어베이스 블로그</p>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
@@ -44,35 +44,49 @@ export default async function BlogPage() {
           아직 등록된 글이 없습니다.
         </p>
       ) : (
-        <ul className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {posts.map((b) => (
-            <li key={b.id}>
-              <Link
-                href={`/blog/${b.slug}`}
-                className="block rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5 hover:border-neutral-300 dark:hover:border-neutral-700 transition"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-neutral-500">
+            <Link
+              key={b.id}
+              href={`/blog/${b.slug}`}
+              className="group block rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden hover:border-neutral-300 dark:hover:border-neutral-700 hover:shadow-md transition"
+            >
+              {b.thumbnailUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={b.thumbnailUrl}
+                  alt=""
+                  className="w-full h-40 object-cover group-hover:opacity-90 transition"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-40 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-rose-500/10 flex items-center justify-center">
+                  <span className="text-2xl font-black text-neutral-400 dark:text-neutral-600 tracking-tight">
+                    Scorebase
+                  </span>
+                </div>
+              )}
+              <div className="p-4">
+                <div className="flex items-center gap-2 text-[11px] text-neutral-500 mb-2 min-w-0">
+                  <span className="shrink-0 whitespace-nowrap">
                     {formatDateKo(b.publishedAt)}
                   </span>
                   {b.tags && (
-                    <span className="text-[10px] text-neutral-400 truncate">
-                      · {b.tags}
-                    </span>
+                    <span className="truncate min-w-0">· {b.tags}</span>
                   )}
                 </div>
-                <h2 className="text-base sm:text-lg font-semibold leading-snug mb-1">
+                <h2 className="text-sm sm:text-base font-semibold leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
                   {b.title}
                 </h2>
                 {b.excerpt && (
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
                     {b.excerpt}
                   </p>
                 )}
-              </Link>
-            </li>
+              </div>
+            </Link>
           ))}
-        </ul>
+        </div>
       )}
     </main>
   );
