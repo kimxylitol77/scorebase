@@ -12,7 +12,7 @@ import { getLeagueBadge } from "./leagueBadge";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import FavoriteStar from "../FavoriteStar";
 import { useScoreFlash } from "../useScoreFlash";
-import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
+import type { SoccerGoal, SoccerCard, SoccerTeamStat } from "@/lib/sports/live-scores";
 
 export interface SoccerLiveRowProps {
   matchId: string | number;
@@ -33,6 +33,8 @@ export interface SoccerLiveRowProps {
   soccerGoals?: SoccerGoal[] | null;
   /** 옐로/레드 카드 list — 골 tooltip 안에 같이 표시 */
   soccerCards?: SoccerCard[] | null;
+  /** 팀 통계(점유율·슈팅·코너·카드) — tooltip 하단 표시 */
+  soccerTeamStats?: SoccerTeamStat[] | null;
   /** 팀 약칭 라벨 — tooltip 안에 표시 */
   homeShort?: string;
   awayShort?: string;
@@ -93,6 +95,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     penaltyAway,
     soccerGoals,
     soccerCards,
+    soccerTeamStats,
     homeShort,
     awayShort,
     previewSlug,
@@ -293,10 +296,12 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             )}
             {(isFinished || isLive) &&
               ((soccerGoals && soccerGoals.length > 0) ||
-                (soccerCards && soccerCards.length > 0)) && (
+                (soccerCards && soccerCards.length > 0) ||
+                (soccerTeamStats && soccerTeamStats.length > 0)) && (
                 <GoalsTooltip
                   goals={soccerGoals ?? []}
                   cards={soccerCards ?? []}
+                  teamStats={soccerTeamStats ?? []}
                   homeLabel={homeShort ?? home.name}
                   awayLabel={awayShort ?? away.name}
                 />
@@ -438,11 +443,13 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 function GoalsTooltip({
   goals,
   cards,
+  teamStats,
   homeLabel,
   awayLabel,
 }: {
   goals: SoccerGoal[];
   cards: SoccerCard[];
+  teamStats: SoccerTeamStat[];
   homeLabel: string;
   awayLabel: string;
 }) {
@@ -569,6 +576,46 @@ function GoalsTooltip({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* 통계 섹션 — 점유율·슈팅·코너·카드 (teamStats). 좌=홈(rose), 우=원정(blue) */}
+        {teamStats.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-neutral-200 dark:border-white/10 space-y-1.5">
+            {teamStats.map((s) => {
+              const max = Math.max(s.home, s.away, 1);
+              return (
+                <div key={s.label}>
+                  <div className="grid grid-cols-[2.2rem_1fr_2.2rem] items-center gap-1.5 text-[10px] leading-none mb-0.5">
+                    <span className="text-rose-600 dark:text-rose-400 font-bold tabular-nums text-right">
+                      {s.home}
+                      {s.pct ? "%" : ""}
+                    </span>
+                    <span className="text-center text-neutral-500 truncate">
+                      {s.label}
+                    </span>
+                    <span className="text-blue-600 dark:text-blue-400 font-bold tabular-nums text-left">
+                      {s.away}
+                      {s.pct ? "%" : ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-0.5 h-1">
+                    <div className="flex-1 flex justify-end">
+                      <div
+                        className="bg-rose-500/80 h-full rounded-l"
+                        style={{ width: `${(s.home / max) * 100}%` }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className="bg-blue-500/80 h-full rounded-r"
+                        style={{ width: `${(s.away / max) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

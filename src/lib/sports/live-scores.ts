@@ -774,6 +774,41 @@ export interface SoccerCard {
   kind: "yellow" | "red";
 }
 
+/** 축구 팀 통계 한 줄 (점유율·슈팅·코너·카드) — hover tooltip 하단 표시용. */
+export interface SoccerTeamStat {
+  label: string;
+  home: number;
+  away: number;
+  /** 점유율(%) 행 — 값 뒤 % 표시 */
+  pct?: boolean;
+}
+
+/**
+ * TheSports match cache 의 teamStats (/v1/football/match/team_stats/list 의 stats[])
+ * → 표시용 핵심 통계 행. 배열 순서 [0]=home, [1]=away (goals 필드로 교차검증).
+ * 양팀 모두 0 인 항목은 숨김 (데이터 없음/무의미).
+ */
+export function tsTeamStatsToSoccerStats(raw: unknown): SoccerTeamStat[] {
+  if (!Array.isArray(raw) || raw.length < 2) return [];
+  const h = raw[0] as Record<string, unknown> | null;
+  const a = raw[1] as Record<string, unknown> | null;
+  if (!h || !a || typeof h !== "object" || typeof a !== "object") return [];
+  const out: SoccerTeamStat[] = [];
+  const add = (label: string, key: string, pct?: boolean) => {
+    const hv = Number(h[key] ?? 0) || 0;
+    const av = Number(a[key] ?? 0) || 0;
+    if (hv === 0 && av === 0) return;
+    out.push({ label, home: hv, away: av, pct });
+  };
+  add("점유율", "ball_possession", true);
+  add("슈팅", "shots");
+  add("유효 슈팅", "shots_on_target");
+  add("코너킥", "corner_kicks");
+  add("옐로카드", "yellow_cards");
+  add("레드카드", "red_cards");
+  return out;
+}
+
 /**
  * TheSports match cache 의 detailLive.incidents 배열을 SoccerGoal[] / SoccerCard[] 로 변환.
  *
