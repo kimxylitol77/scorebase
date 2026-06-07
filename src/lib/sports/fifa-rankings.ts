@@ -351,7 +351,10 @@ function subdivisionFlag(sub: string): string {
 
 /** FIFA 영문 canonical 국가명 → 국기 emoji. 매핑 없으면 "" (graceful 미표시). */
 export function fifaFlag(nameEn: string): string {
-  if (SUBDIVISION_FLAG[nameEn]) return subdivisionFlag(SUBDIVISION_FLAG[nameEn]);
-  const iso2 = EN_TO_ISO2[nameEn];
+  // TheSports 등 변형 영문명을 FIFA canonical 로 정규화 후 ISO2 조회.
+  // 예: "South Korea"→"Korea Republic", "Türkiye"→"Turkey", "Czech Republic"→"Czechia".
+  const canonical = ENGLISH_ALIASES[nameEn] ?? nameEn;
+  if (SUBDIVISION_FLAG[canonical]) return subdivisionFlag(SUBDIVISION_FLAG[canonical]);
+  const iso2 = EN_TO_ISO2[canonical] ?? EN_TO_ISO2[nameEn];
   return iso2 ? regionalIndicator(iso2) : "";
 }
