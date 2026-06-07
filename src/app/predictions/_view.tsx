@@ -64,7 +64,7 @@ export default function PredictionsView({
           </h1>
           <p className="max-w-2xl text-base sm:text-lg leading-7 text-zinc-600 dark:text-white/55">
             19개 주요 리그의 시즌 종료 시 우승·플레이오프·강등 확률을 한 화면에서.
-            각 리그 카드를 누르면 리그 순위표와 득점왕·도움왕 리더보드, 상세 확률 분포·잔여 일정·팀별 확률 표까지 볼 수 있어요.
+            각 리그 카드를 누르면 리그 순위표와 종목별 리더보드(축구 득점·도움, 야구 홈런·타율·ERA, 농구 득점·리바운드 등), 상세 확률 분포·잔여 일정·팀별 확률 표까지 볼 수 있어요.
           </p>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link
@@ -401,8 +401,11 @@ export default function PredictionsView({
         </p>
         <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
           각 리그 상세 페이지에서는 실시간 <strong className="font-medium text-zinc-700 dark:text-white/70">리그 순위표</strong>와 함께
-          <strong className="font-medium text-zinc-700 dark:text-white/70"> 득점왕·도움왕·경고·퇴장 시즌 리더보드</strong>(TOP 10, 매일 자동 갱신)를 제공합니다.
-          EPL·라리가·분데스리가 등 유럽 빅5 리그의 득점 순위·어시스트 순위와, 현재 순위 대비 Elo 예측 순위 비교까지 한 곳에서 확인할 수 있습니다.
+          <strong className="font-medium text-zinc-700 dark:text-white/70"> 종목별 시즌 리더보드</strong>(TOP 10, 매일 자동 갱신)를 제공합니다.
+          축구는 EPL·라리가·분데스리가·세리에 A·K리그·J리그·MLS·챔피언스리그 등 주요 리그의 득점·도움·경고·퇴장 순위,
+          야구는 KBO·MLB·NPB의 타율·홈런·타점·평균자책(ERA)·다승·탈삼진 순위,
+          농구 NBA는 득점·어시스트·리바운드·스틸·블록, 아이스하키 NHL은 골·어시스트·포인트 순위를 확인할 수 있습니다.
+          현재 순위 대비 Elo 예측 순위 비교도 함께 제공합니다.
         </p>
         <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
           실시간 경기 진행은{" "}
