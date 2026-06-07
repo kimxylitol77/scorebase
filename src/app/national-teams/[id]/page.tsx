@@ -7,9 +7,11 @@ import type { Metadata } from "next";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import rawCoachNames from "../../../../data/coach-names.json";
 
 export const dynamic = "force-dynamic";
 
+const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글명 (build-coach-names-haiku)
 const NATL = new Set(["WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON", "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL"]);
 const POS_GROUPS: Array<[string, string]> = [["G", "골키퍼"], ["D", "수비수"], ["M", "미드필더"], ["F", "공격수"]];
 
@@ -137,7 +139,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
             )}
             <div className="min-w-0">
               <div className="text-[11px] uppercase tracking-wider text-white/60">감독</div>
-              <div className="font-bold text-lg leading-tight truncate">{coach.name}</div>
+              <div className="font-bold text-lg leading-tight truncate">{(coachId && COACH_KO[coachId]) || coach.name}</div>
               <div className="text-xs text-white/70">{coach.nationality} · {coach.age}세 · 선호 {coach.formation}</div>
             </div>
           </div>
