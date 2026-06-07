@@ -35,6 +35,8 @@ export interface SoccerLiveRowProps {
   soccerCards?: SoccerCard[] | null;
   /** 팀 통계(점유율·슈팅·코너·카드) — tooltip 하단 표시 */
   soccerTeamStats?: SoccerTeamStat[] | null;
+  /** 전반전 통계 — tooltip 통계 섹션에 "전반전" 으로 추가 표시 */
+  soccerHalfStats?: SoccerTeamStat[] | null;
   /** 팀 약칭 라벨 — tooltip 안에 표시 */
   homeShort?: string;
   awayShort?: string;
@@ -96,6 +98,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     soccerGoals,
     soccerCards,
     soccerTeamStats,
+    soccerHalfStats,
     homeShort,
     awayShort,
     previewSlug,
@@ -297,11 +300,13 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
             {(isFinished || isLive) &&
               ((soccerGoals && soccerGoals.length > 0) ||
                 (soccerCards && soccerCards.length > 0) ||
-                (soccerTeamStats && soccerTeamStats.length > 0)) && (
+                (soccerTeamStats && soccerTeamStats.length > 0) ||
+                (soccerHalfStats && soccerHalfStats.length > 0)) && (
                 <GoalsTooltip
                   goals={soccerGoals ?? []}
                   cards={soccerCards ?? []}
                   teamStats={soccerTeamStats ?? []}
+                  halfStats={soccerHalfStats ?? []}
                   homeLabel={homeShort ?? home.name}
                   awayLabel={awayShort ?? away.name}
                 />
@@ -440,16 +445,59 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 }
 
 /** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip. */
+/** 통계 바 행들 (점유율·슈팅·코너·카드) — 풀타임/전반 공용. 좌=홈(rose), 우=원정(blue). */
+function StatBars({ stats }: { stats: SoccerTeamStat[] }) {
+  return (
+    <div className="space-y-1.5">
+      {stats.map((s) => {
+        const max = Math.max(s.home, s.away, 1);
+        return (
+          <div key={s.label}>
+            <div className="grid grid-cols-[2.2rem_1fr_2.2rem] items-center gap-1.5 text-[10px] leading-none mb-0.5">
+              <span className="text-rose-600 dark:text-rose-400 font-bold tabular-nums text-right">
+                {s.home}
+                {s.pct ? "%" : ""}
+              </span>
+              <span className="text-center text-neutral-500 truncate">{s.label}</span>
+              <span className="text-blue-600 dark:text-blue-400 font-bold tabular-nums text-left">
+                {s.away}
+                {s.pct ? "%" : ""}
+              </span>
+            </div>
+            <div className="flex items-center gap-0.5 h-1">
+              <div className="flex-1 flex justify-end">
+                <div
+                  className="bg-rose-500/80 h-full rounded-l"
+                  style={{ width: `${(s.home / max) * 100}%` }}
+                />
+              </div>
+              <div className="flex-1">
+                <div
+                  className="bg-blue-500/80 h-full rounded-r"
+                  style={{ width: `${(s.away / max) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip. */
 function GoalsTooltip({
   goals,
   cards,
   teamStats,
+  halfStats,
   homeLabel,
   awayLabel,
 }: {
   goals: SoccerGoal[];
   cards: SoccerCard[];
   teamStats: SoccerTeamStat[];
+  halfStats: SoccerTeamStat[];
   homeLabel: string;
   awayLabel: string;
 }) {
@@ -579,43 +627,18 @@ function GoalsTooltip({
           </div>
         )}
 
-        {/* 통계 섹션 — 점유율·슈팅·코너·카드 (teamStats). 좌=홈(rose), 우=원정(blue) */}
+        {/* 통계 섹션 — 풀타임(teamStats) + 전반전(halfStats). 좌=홈(rose), 우=원정(blue) */}
         {teamStats.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-neutral-200 dark:border-white/10 space-y-1.5">
-            {teamStats.map((s) => {
-              const max = Math.max(s.home, s.away, 1);
-              return (
-                <div key={s.label}>
-                  <div className="grid grid-cols-[2.2rem_1fr_2.2rem] items-center gap-1.5 text-[10px] leading-none mb-0.5">
-                    <span className="text-rose-600 dark:text-rose-400 font-bold tabular-nums text-right">
-                      {s.home}
-                      {s.pct ? "%" : ""}
-                    </span>
-                    <span className="text-center text-neutral-500 truncate">
-                      {s.label}
-                    </span>
-                    <span className="text-blue-600 dark:text-blue-400 font-bold tabular-nums text-left">
-                      {s.away}
-                      {s.pct ? "%" : ""}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-0.5 h-1">
-                    <div className="flex-1 flex justify-end">
-                      <div
-                        className="bg-rose-500/80 h-full rounded-l"
-                        style={{ width: `${(s.home / max) * 100}%` }}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div
-                        className="bg-blue-500/80 h-full rounded-r"
-                        style={{ width: `${(s.away / max) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-2 pt-2 border-t border-neutral-200 dark:border-white/10">
+            <StatBars stats={teamStats} />
+          </div>
+        )}
+        {halfStats.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-neutral-200 dark:border-white/10">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 text-center mb-1.5">
+              전반전
+            </div>
+            <StatBars stats={halfStats} />
           </div>
         )}
       </div>

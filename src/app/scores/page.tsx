@@ -34,6 +34,7 @@ import {
   tsIncidentsToGoals,
   tsIncidentsToCards,
   tsTeamStatsToSoccerStats,
+  tsHalfStatsToSoccerStats,
   type BaseballGameDetails,
   type PeriodLinescore as PeriodLinescoreData,
   type SoccerGoal,
@@ -653,6 +654,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   const soccerGoalsByMatchId = new Map<number, SoccerGoal[]>();
   const soccerCardsByMatchId = new Map<number, SoccerCard[]>();
   const soccerTeamStatsByMatchId = new Map<number, SoccerTeamStat[]>();
+  const soccerHalfStatsByMatchId = new Map<number, SoccerTeamStat[]>();
   // 축구 라인업(cache.lineup) 실제 존재 매치 — L 배지용 (리그 whitelist 대신 실제 유무).
   const lineupMatchIdSet = new Set<number>();
   const footballScoreByMatchId = new Map<number, TsFootballScoreParsed>();
@@ -726,7 +728,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   if (cacheIds.length > 0) {
     const caches = await prisma.theSportsMatchCache.findMany({
       where: { matchId: { in: cacheIds } },
-      select: { matchId: true, detailLive: true, lineup: true, teamStats: true },
+      select: { matchId: true, detailLive: true, lineup: true, teamStats: true, halfTeamStats: true },
     });
     const soccerIdSet = new Set(soccerMatchIds);
     const baseballIdSet = new Set(baseballLiveDbIds);
@@ -772,6 +774,9 @@ export default async function ScoresPage({ searchParams }: Props) {
         // 팀 통계 (점유율·슈팅·코너·카드) — team_stats/list named fields
         const tstats = tsTeamStatsToSoccerStats(c.teamStats);
         if (tstats.length > 0) soccerTeamStatsByMatchId.set(c.matchId, tstats);
+        // 전반전 통계 (half/team_stats/detail 의 p1)
+        const hstats = tsHalfStatsToSoccerStats(c.halfTeamStats, "p1");
+        if (hstats.length > 0) soccerHalfStatsByMatchId.set(c.matchId, hstats);
       }
       // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
       // IIHF_WC 는 ESPN periodMap 없어 여기서 추출 (commit 검증: ft=[home,away] 우리 관점 일치).
@@ -1221,6 +1226,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       soccerGoals: sport_ === "soccer" ? soccerGoalsByMatchId.get(m.id) ?? null : null,
       soccerCards: sport_ === "soccer" ? soccerCardsByMatchId.get(m.id) ?? null : null,
       soccerTeamStats: sport_ === "soccer" ? soccerTeamStatsByMatchId.get(m.id) ?? null : null,
+      soccerHalfStats: sport_ === "soccer" ? soccerHalfStatsByMatchId.get(m.id) ?? null : null,
       penHome: sport_ === "soccer" ? fs?.penHome ?? null : null,
       penAway: sport_ === "soccer" ? fs?.penAway ?? null : null,
       // 라이브 매치 한정: 최근 골 발생 측 (점수 셀 emerald flash)
@@ -1822,6 +1828,7 @@ function SoccerRowLayout({
         soccerGoals={m.soccerGoals}
         soccerCards={m.soccerCards}
         soccerTeamStats={m.soccerTeamStats}
+        soccerHalfStats={m.soccerHalfStats}
         homeShort={m.home.abbr ?? m.home.name}
         awayShort={m.away.abbr ?? m.away.name}
         previewSlug={m.preview ?? null}
@@ -2076,6 +2083,7 @@ type NormalizedMatch = {
   soccerGoals: SoccerGoal[] | null;
   soccerCards: SoccerCard[] | null;
   soccerTeamStats: SoccerTeamStat[] | null;
+  soccerHalfStats: SoccerTeamStat[] | null;
   /** 라이브 매치 최근 1분 내 골 발생 측 — 점수 셀 노란 highlight 용 */
   recentGoalSide?: "home" | "away" | null;
   esportsCtx: EsportsContext | null;

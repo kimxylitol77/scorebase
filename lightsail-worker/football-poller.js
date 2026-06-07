@@ -173,6 +173,22 @@ async function fetchTsHalfTeamStatsList() {
   }
 }
 
+// match/half/team_stats/detail — uuid 로 특정 매치 전/후반 통계 (영구 조회).
+// list(delta) 는 5분 poll 이 120s 변경 윈도우를 놓쳐 종료 매치 0건 → detail 로 보강.
+// 응답: results = { ft:{...}, p1:{stat_id:[home,away]}, p2:{...}, o1, o2 } (p1=전반, p2=후반)
+async function fetchTsHalfTeamStatsDetail(uuid) {
+  try {
+    const { data } = await axios.get(`${TS_BASE}/v1/football/match/half/team_stats/detail`, {
+      params: { user: TS_USER, secret: TS_SECRET, uuid },
+      timeout: 30_000,
+    });
+    if (!data || data.code !== 0 || !data.results) return null;
+    return Object.keys(data.results).length > 0 ? data.results : null;
+  } catch {
+    return null;
+  }
+}
+
 // 두 단계 매칭:
 //   strict: competition + 양 팀 ts_id 정확 일치 + ±150분 (시간대 30분~1시간 오프셋 흡수)
 //   fallback: competition + 한쪽 team_id 만 일치 + ±90분 윈도우, 후보가 unique 일 때만
@@ -352,6 +368,13 @@ async function poll() {
         if (tsMatch.status_id >= 2 && tsMatch.status_id <= 8) {
           const trend = await fetchTsTrend(tsMatch.id);
           if (trend) payload.trend = trend;
+        }
+
+        // half-time team stats (전/후반 통계): status_id 2~8 (라이브~종료).
+        // detail 은 uuid 직접 조회라 list(delta 누락) 와 달리 종료 매치도 채움.
+        if (tsMatch.status_id >= 2 && tsMatch.status_id <= 8) {
+          const halfStats = await fetchTsHalfTeamStatsDetail(tsMatch.id);
+          if (halfStats) payload.halfTeamStats = halfStats;
         }
 
         if (Object.keys(payload).length === 0) continue;

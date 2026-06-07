@@ -810,6 +810,41 @@ export function tsTeamStatsToSoccerStats(raw: unknown): SoccerTeamStat[] {
 }
 
 /**
+ * halfTeamStats(half/team_stats/detail 의 results) 에서 특정 phase 통계 행 추출.
+ * phase: p1=전반, p2=후반, ft=풀타임. 구조: { p1: { "25": [home, away], ... }, ... }
+ * stat_id 라벨은 검증된 핵심만 (점유율 25 확실, 나머지 SoccerHalfTimeStatsCard 매핑 추정).
+ */
+export function tsHalfStatsToSoccerStats(
+  halfStats: unknown,
+  phase: "p1" | "p2" | "ft",
+): SoccerTeamStat[] {
+  if (!halfStats || typeof halfStats !== "object") return [];
+  const obj = (halfStats as Record<string, unknown>)[phase];
+  if (!obj || typeof obj !== "object") return [];
+  const src = obj as Record<string, unknown>;
+  const LABELS: Record<string, string> = {
+    "25": "점유율",
+    "2": "슈팅",
+    "21": "유효 슈팅",
+    "4": "코너킥",
+    "8": "옐로카드",
+    "9": "레드카드",
+  };
+  const ORDER = ["25", "2", "21", "4", "8", "9"];
+  const PCT = new Set(["25"]);
+  const out: SoccerTeamStat[] = [];
+  for (const id of ORDER) {
+    const v = src[id];
+    if (!Array.isArray(v) || v.length < 2) continue;
+    const h = Number(v[0]) || 0;
+    const a = Number(v[1]) || 0;
+    if (h === 0 && a === 0) continue;
+    out.push({ label: LABELS[id], home: h, away: a, pct: PCT.has(id) });
+  }
+  return out;
+}
+
+/**
  * TheSports match cache 의 detailLive.incidents 배열을 SoccerGoal[] / SoccerCard[] 로 변환.
  *
  * incidents type 코드 (관찰 기반):
