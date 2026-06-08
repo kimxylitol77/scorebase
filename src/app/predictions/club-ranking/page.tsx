@@ -5,9 +5,10 @@ import type { Metadata } from "next";
 import { ChevronLeft, Trophy } from "lucide-react";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
+import { prisma } from "@/lib/db";
 import rawClubs from "../../../../data/club-rankings.json";
 
-interface ClubRank { rank: number; name: string; logo: string | null; countryLogo: string | null; points: number; prev: number; change: number }
+interface ClubRank { id: string; rank: number; name: string; logo: string | null; countryLogo: string | null; points: number; prev: number; change: number }
 const CLUBS = rawClubs as ClubRank[];
 // 상위 클럽 — JSON-LD ItemList + 본문 SEO 문구용 (한글명 부여)
 const TOP = CLUBS.slice(0, 10).map((c) => ({ ...c, ko: toKoreanTeamName(c.name) || c.name }));
@@ -53,7 +54,14 @@ const JSONLD = {
   ],
 };
 
-export default function ClubRankingPage() {
+export default async function ClubRankingPage() {
+  // ts team id → 우리 Team.id (클럽 페이지 /teams/[id] 링크). 매핑 있는 클럽만 클릭 가능(404 방지).
+  const srcRows = await prisma.teamSourceId.findMany({
+    where: { source: "thesports", externalId: { in: CLUBS.map((c) => c.id) } },
+    select: { externalId: true, teamId: true },
+  });
+  const teamByTs = new Map<string, number>();
+  for (const r of srcRows) if (!teamByTs.has(r.externalId)) teamByTs.set(r.externalId, r.teamId);
   return (
     <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
@@ -81,11 +89,10 @@ export default function ClubRankingPage() {
             {CLUBS.map((c) => {
               const ko = toKoreanTeamName(c.name) || c.name;
               const up = c.change > 0, down = c.change < 0;
-              return (
-                <li
-                  key={c.rank}
-                  className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]"
-                >
+              const teamId = teamByTs.get(c.id);
+              const cardCls = "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]";
+              const inner = (
+                <>
                   <span
                     className={`w-6 shrink-0 text-right tabular-nums text-sm font-bold ${
                       c.rank === 1
@@ -112,6 +119,15 @@ export default function ClubRankingPage() {
                     </span>
                   )}
                   <span className="w-12 shrink-0 text-right tabular-nums text-xs text-zinc-500 dark:text-white/50">{c.points}</span>
+                </>
+              );
+              return (
+                <li key={c.rank}>
+                  {teamId ? (
+                    <Link href={`/teams/${teamId}`} className={cardCls}>{inner}</Link>
+                  ) : (
+                    <div className={cardCls}>{inner}</div>
+                  )}
                 </li>
               );
             })}
