@@ -1,23 +1,23 @@
 // /landing — 스코어베이스 브랜드 랜딩(소개) 페이지. 검색 노출용 키워드 풍부 가시 콘텐츠 + SEO.
-//  스코어베이스.com 도메인 진입점. 앱 기능(/scores·/predictions 등)으로 유도.
+//  스코어베이스.com 도메인 진입점. 키워드 우선순위 = 검색량 데이터 기반(라이브스코어·리그 순위 중심).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/site-url";
 
 export const metadata: Metadata = {
-  title: "스코어베이스 — AI 스포츠 분석·라이브스코어·승부예측 | Scorebase",
+  title: "라이브스코어·리그 순위·해외 이적시장 — 스코어베이스",
   description:
-    "스코어베이스(Scorebase)는 EPL·라리가·분데스리가·K리그·KBO·NBA·MLB·NHL·FIFA 월드컵 2026 등 글로벌 스포츠를 Elo 모델과 멀티 AI로 매일 분석하는 데이터 미디어입니다. 라이브스코어, AI 승부예측, 부상자 명단, 이적시장·선수 몸값, 리그 순위·FIFA 랭킹을 한 곳에서.",
+    "EPL·라리가·분데스리가·K리그·KBO·NBA·MLB·NHL 라이브스코어와 리그 순위를 실시간으로. 해외 이적시장·선수 몸값(시장가치)을 매일 반영하고, AI 시즌 예측·부상자 명단·FIFA 랭킹까지 한 곳에서 보는 스포츠 데이터 미디어, 스코어베이스(Scorebase).",
   keywords: [
-    "스코어베이스", "Scorebase",
-    "AI 스포츠 분석", "스포츠 데이터 분석", "AI 승부예측", "승부예측 사이트",
-    "라이브스코어", "실시간 스코어", "스포츠 라이브스코어",
-    "축구 예측", "야구 예측", "축구 승부예측", "프로야구 예측",
-    "EPL 순위", "프리미어리그 순위", "라리가 순위", "분데스리가 순위",
-    "KBO 순위", "NBA 순위", "MLB 순위", "NHL 순위",
-    "부상자 명단", "이적시장", "선수 몸값", "시장가치",
-    "FIFA 랭킹", "시즌 우승 확률", "매치 프리뷰", "경기 분석",
-    "월드컵 2026",
+    // 검색량 높은 핵심 (라이브스코어·리그 순위)
+    "라이브스코어", "실시간 스코어", "축구 라이브스코어",
+    "프리미어리그 순위", "EPL 순위", "라리가 순위", "분데스리가 순위", "세리에A 순위",
+    "KBO 순위", "NBA 순위", "MLB 순위", "NHL 순위", "해외축구 순위",
+    "KBO 일정", "FIFA 랭킹", "월드컵 2026",
+    // 이적시장·몸값
+    "이적시장", "해외 이적시장", "선수 몸값", "축구 선수 몸값", "시장가치",
+    // 브랜드·기타
+    "스코어베이스", "Scorebase", "AI 스포츠 분석", "축구 예측", "야구 예측",
   ],
   alternates: { canonical: `${SITE_URL}/landing` },
   openGraph: {
@@ -25,20 +25,20 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     url: `${SITE_URL}/landing`,
     siteName: "스코어베이스",
-    title: "스코어베이스 — 감이 아니라, 숫자로 보는 스포츠",
+    title: "라이브스코어·리그 순위·해외 이적시장 — 스코어베이스",
     description:
-      "EPL·KBO·NBA·MLB·NHL·FIFA 월드컵 2026 — Elo 모델과 멀티 AI가 매일 분석하는 글로벌 스포츠 데이터 미디어.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "스코어베이스 AI 스포츠 분석" }],
+      "EPL·라리가·KBO·NBA 라이브스코어와 리그 순위를 실시간으로. 해외 이적시장·선수 몸값까지 한 곳에서.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "스코어베이스 — 라이브스코어·리그 순위·이적시장" }],
   },
 };
 
-const FEATURES: { href: string; emoji: string; title: string; desc: string }[] = [
-  { href: "/scores", emoji: "⚡", title: "라이브스코어", desc: "축구·야구·농구·하키·e스포츠 실시간 스코어를 한 화면에서. 전반 점수·통계·배당까지." },
-  { href: "/predictions", emoji: "📊", title: "AI 시즌 예측", desc: "Elo 레이팅 + Monte Carlo 5,000회로 리그별 우승·플레이오프·강등 확률을 계산." },
-  { href: "/analysis", emoji: "🎯", title: "AI 승부예측·분석", desc: "경기별 승부 예측과 적중률을 투명하게 공개. 전문가 리더보드도 함께." },
+const FEATURES: { href: string; emoji: string; title: string; desc: string; live?: boolean }[] = [
+  { href: "/scores", emoji: "⚡", title: "라이브스코어", desc: "축구·야구·농구·아이스하키·e스포츠 실시간 스코어를 한 화면에서. 전반 점수·통계·배당까지 즉시 반영.", live: true },
+  { href: "/standings", emoji: "📋", title: "리그 순위 (실시간)", desc: "EPL·라리가·분데스리가·세리에 A·K리그·KBO·NBA·MLB 리그 순위와 득점왕·도움왕 리더보드를 실시간으로.", live: true },
+  { href: "/transfers", emoji: "💰", title: "해외 이적시장·선수 몸값", desc: "유럽 빅5 리그 선수 시장가치(몸값) 랭킹과 최신 이적을 빠르게 반영. 커리어·시즌 성적·몸값 변동 추이까지.", live: true },
+  { href: "/predictions", emoji: "📊", title: "AI 시즌 예측", desc: "Elo 레이팅 + Monte Carlo 5,000회로 우승·플레이오프·강등 확률을 계산. FIFA 랭킹·세계 클럽 랭킹도 함께." },
   { href: "/injuries", emoji: "🩹", title: "부상자 명단", desc: "전 팀 부상·결장 선수를 매일 갱신. 사유·심각도·복귀 전망까지 한눈에." },
-  { href: "/transfers", emoji: "💰", title: "이적시장·선수 몸값", desc: "유럽 빅5 리그 선수 시장가치(몸값) 랭킹과 변동 추이, 커리어·시즌 성적." },
-  { href: "/predictions/fifa-ranking", emoji: "🌍", title: "리그 순위·FIFA 랭킹", desc: "리그별 순위표와 득점왕·도움왕 리더보드, FIFA 국가대표 랭킹, 세계 클럽 랭킹." },
+  { href: "/analysis", emoji: "🎯", title: "AI 승부예측·적중률", desc: "경기별 승부 예측과 누적 적중률을 투명하게 공개. 예측 전문가 리더보드도 함께." },
 ];
 
 const SPORTS: { name: string; leagues: string }[] = [
@@ -49,39 +49,43 @@ const SPORTS: { name: string; leagues: string }[] = [
   { name: "🎮 e스포츠", leagues: "LCK (리그 오브 레전드)" },
 ];
 
+// 검색량 가장 높은 "OO 순위" 키워드 — 가시 칩 + 내부링크로 직접 노출(SEO 핵심).
+const POPULAR: { label: string; href: string }[] = [
+  { label: "프리미어리그 순위", href: "/standings/EPL" },
+  { label: "라리가 순위", href: "/standings/LALIGA" },
+  { label: "분데스리가 순위", href: "/standings/BUNDESLIGA" },
+  { label: "세리에 A 순위", href: "/standings/SERIE_A" },
+  { label: "KBO 순위", href: "/standings/KBO" },
+  { label: "NBA 순위", href: "/standings/NBA" },
+  { label: "MLB 순위", href: "/standings/MLB" },
+  { label: "NHL 순위", href: "/standings/NHL" },
+  { label: "FIFA 랭킹", href: "/predictions/fifa-ranking" },
+  { label: "월드컵 2026", href: "/predictions/WORLD_CUP" },
+];
+
 const FAQ: { q: string; a: string }[] = [
-  { q: "스코어베이스는 무엇인가요?", a: "스코어베이스(Scorebase)는 글로벌 스포츠를 Elo 모델과 멀티 AI로 매일 분석하는 데이터 미디어입니다. 라이브스코어, AI 승부예측, 부상자 명단, 이적시장, 리그 순위를 한 곳에서 제공합니다." },
-  { q: "무료로 이용할 수 있나요?", a: "네. 라이브스코어, 시즌 예측, 부상자 명단, 이적시장, 순위 등 모든 데이터를 무료로 제공합니다." },
-  { q: "AI 승부예측은 어떻게 만들어지나요?", a: "Elo 레이팅으로 팀 전력을 수치화하고, Monte Carlo 시뮬레이션 5,000회로 확률을 계산합니다. 예측 적중률은 투명하게 공개합니다." },
-  { q: "어떤 종목과 리그를 다루나요?", a: "축구(EPL·라리가·K리그·UCL 등), 야구(KBO·NPB·MLB), 농구(NBA), 아이스하키(NHL), e스포츠(LCK)를 다룹니다." },
+  { q: "스코어베이스는 무엇인가요?", a: "스코어베이스(Scorebase)는 EPL·KBO·NBA 등 글로벌 스포츠의 라이브스코어와 리그 순위를 실시간으로, 해외 이적시장·선수 몸값을 매일 반영하는 스포츠 데이터 미디어입니다. AI 시즌 예측·부상자 명단도 함께 제공합니다." },
+  { q: "라이브스코어와 리그 순위는 실시간인가요?", a: "네. 축구·야구·농구·하키 라이브스코어와 리그 순위를 실시간으로 반영합니다. 경기 중 점수·통계가 즉시 업데이트됩니다." },
+  { q: "해외 이적시장·선수 몸값도 볼 수 있나요?", a: "유럽 빅5 리그 선수의 시장가치(몸값) 랭킹과 최신 이적, 몸값 변동 추이를 제공합니다. 리그별·팀별·국가별·포지션별로 정렬됩니다." },
+  { q: "무료로 이용할 수 있나요?", a: "네. 라이브스코어, 리그 순위, 이적시장, 시즌 예측, 부상자 명단 등 모든 데이터를 무료로 제공합니다." },
 ];
 
 const JSONLD = {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": "WebSite",
-      name: "스코어베이스",
-      alternateName: ["Scorebase", "스코어 베이스"],
-      url: SITE_URL,
-      inLanguage: "ko-KR",
-    },
+    { "@type": "WebSite", name: "스코어베이스", alternateName: ["Scorebase", "스코어 베이스"], url: SITE_URL, inLanguage: "ko-KR" },
     {
       "@type": "Organization",
       name: "스코어베이스",
       alternateName: ["Scorebase"],
       url: SITE_URL,
       logo: `${SITE_URL}/icon.png`,
-      description: "AI 데이터 분석 기반 글로벌 스포츠 미디어 — 라이브스코어·승부예측·부상자·이적시장·리그 순위",
+      description: "라이브스코어·리그 순위·해외 이적시장을 실시간으로 반영하는 글로벌 스포츠 데이터 미디어",
     },
-    {
-      "@type": "FAQPage",
-      mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
-    },
+    { "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
   ],
 };
 
-const btnPrimary = "inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-white/90";
 const btnGhost = "inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-black/5 transition hover:bg-zinc-50 dark:bg-white/[0.06] dark:text-white dark:ring-white/10 dark:hover:bg-white/[0.1]";
 
 export default function LandingPage() {
@@ -92,29 +96,51 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 pt-16 sm:pt-24 pb-12 text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-1.5 text-xs sm:text-sm text-zinc-700 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/70">
-          ⚡ Elo + 멀티 AI · 매일 자동 분석
+          <span className="inline-block w-2 h-2 rounded-full bg-rose-500 animate-pulse" /> 라이브스코어 · 리그 순위 실시간 반영
         </div>
         <h1 className="mt-6 text-4xl sm:text-5xl md:text-6xl font-bold tracking-[-0.03em] leading-[1.1] text-zinc-950 dark:text-white">
           감이 아니라,<br />숫자로 보는 스포츠
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base sm:text-lg leading-7 text-zinc-600 dark:text-white/60">
-          <strong className="font-semibold text-zinc-800 dark:text-white/80">스코어베이스(Scorebase)</strong>는 EPL·라리가·K리그·KBO·NBA·MLB·NHL·FIFA 월드컵 2026 등
-          글로벌 스포츠를 데이터로 분석하는 미디어입니다. 라이브스코어부터 AI 승부예측,
-          부상자 명단, 이적시장, 리그 순위까지 한 곳에서.
+          <strong className="font-semibold text-zinc-800 dark:text-white/80">스코어베이스(Scorebase)</strong>는
+          EPL·라리가·KBO·NBA·MLB 등 글로벌 스포츠의 <strong className="font-semibold text-zinc-800 dark:text-white/80">라이브스코어와 리그 순위를 실시간</strong>으로,
+          <strong className="font-semibold text-zinc-800 dark:text-white/80"> 해외 이적시장·선수 몸값을 매일</strong> 반영합니다. AI 시즌 예측·부상자 명단·FIFA 랭킹까지 한 곳에서.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/scores" className={btnPrimary}>라이브스코어 보기 →</Link>
-          <Link href="/predictions" className={btnGhost}>AI 시즌 예측</Link>
-          <Link href="/transfers" className={btnGhost}>선수 몸값 랭킹</Link>
+          <Link href="/scores" className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-white/90">라이브스코어 보기 →</Link>
+          <Link href="/standings" className={btnGhost}>리그 순위</Link>
+          <Link href="/transfers" className={btnGhost}>해외 이적시장</Link>
+        </div>
+      </section>
+
+      {/* 인기 순위 바로가기 — 검색량 높은 "OO 순위" 키워드 직접 노출 + 내부링크 */}
+      <section className="mx-auto max-w-4xl px-4 sm:px-6 pb-12" aria-label="인기 리그 순위 바로가기">
+        <h2 className="text-center text-sm font-bold text-zinc-500 dark:text-white/45">실시간 리그 순위 바로가기</h2>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {POPULAR.map((p) => (
+            <Link
+              key={p.label}
+              href={p.href}
+              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:bg-zinc-50 hover:text-zinc-950 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.1] dark:hover:text-white"
+            >
+              {p.label}
+            </Link>
+          ))}
         </div>
       </section>
 
       {/* 핵심 기능 */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-16" aria-label="핵심 기능">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-950 dark:text-white text-center">한 곳에서, 데이터로 보는 모든 경기</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-950 dark:text-white text-center">실시간 스코어부터 순위·이적시장까지</h2>
+        <p className="mt-2 text-center text-sm text-zinc-500 dark:text-white/45">검색량 가장 많은 라이브스코어·리그 순위를 핵심으로, 해외 이적시장까지 한 곳에서.</p>
         <div className="mt-8 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <Link key={f.href} href={f.href} className="group block rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 sm:p-6 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+            <Link key={f.href} href={f.href} className="group relative block rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 sm:p-6 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+              {f.live && (
+                <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> LIVE
+                </span>
+              )}
               <div className="text-2xl">{f.emoji}</div>
               <h3 className="mt-3 text-lg font-bold tracking-tight text-zinc-950 group-hover:underline underline-offset-4 decoration-2 dark:text-white">{f.title}</h3>
               <p className="mt-1.5 text-sm leading-6 text-zinc-600 dark:text-white/55">{f.desc}</p>
@@ -125,7 +151,7 @@ export default function LandingPage() {
 
       {/* 다루는 종목·리그 (키워드) */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 pb-16" aria-label="다루는 종목과 리그">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-950 dark:text-white text-center">5개 종목 · 30개 이상 리그</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-950 dark:text-white text-center">5개 종목 · 30개 이상 리그 순위·라이브스코어</h2>
         <div className="mt-8 space-y-2.5">
           {SPORTS.map((s) => (
             <div key={s.name} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
@@ -142,16 +168,16 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-950 dark:text-white">데이터로 증명하는 분석</h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-3">
             <div>
+              <div className="text-lg font-bold text-zinc-900 dark:text-white">실시간 반영</div>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-white/55">라이브스코어와 리그 순위를 경기 중 즉시 업데이트하고, 이적시장·몸값을 매일 갱신합니다.</p>
+            </div>
+            <div>
               <div className="text-lg font-bold text-zinc-900 dark:text-white">Elo + Monte Carlo</div>
               <p className="mt-1 text-sm text-zinc-600 dark:text-white/55">팀 전력을 Elo 레이팅으로 수치화하고 시즌을 5,000회 시뮬레이션해 확률을 산출합니다.</p>
             </div>
             <div>
               <div className="text-lg font-bold text-zinc-900 dark:text-white">적중률 투명 공개</div>
               <p className="mt-1 text-sm text-zinc-600 dark:text-white/55">예측이 맞았는지 틀렸는지 매 경기 그대로 표시하고 누적 적중률을 공개합니다.</p>
-            </div>
-            <div>
-              <div className="text-lg font-bold text-zinc-900 dark:text-white">매일 자동 갱신</div>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-white/55">스코어·순위·부상자·시장가치·리더보드를 매일 자동으로 업데이트합니다.</p>
             </div>
           </div>
           <p className="mt-6 text-xs text-zinc-400 dark:text-white/35">ⓘ 모든 확률은 통계 모델 기반 추정치이며, 도박·베팅과 무관한 정보 제공 목적입니다.</p>
@@ -174,11 +200,11 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 pb-24 text-center">
         <div className="rounded-[2rem] bg-zinc-950 p-8 sm:p-12 dark:bg-white/[0.06] dark:ring-1 dark:ring-white/10">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">지금, 숫자로 경기를 읽어보세요</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm sm:text-base text-white/70">회원가입 없이 무료로 라이브스코어·예측·순위·부상자·이적시장을 바로 확인할 수 있습니다.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">지금, 라이브스코어부터 확인하세요</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm sm:text-base text-white/70">회원가입 없이 무료로 라이브스코어·리그 순위·이적시장·예측·부상자 명단을 바로 볼 수 있습니다.</p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/scores" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white/90">스코어베이스 시작하기 →</Link>
-            <Link href="/predictions/accuracy" className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-7 py-3 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/20">모델 적중률 보기</Link>
+            <Link href="/scores" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white/90">라이브스코어 보기 →</Link>
+            <Link href="/standings" className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-7 py-3 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/20">리그 순위 보기</Link>
           </div>
         </div>
       </section>
