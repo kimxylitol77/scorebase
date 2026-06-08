@@ -188,7 +188,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
         <div className="min-w-0 flex items-center gap-2">
           <Logo url={away.logo} name={away.name} />
           <div className="min-w-0">
-            <div className="truncate text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
+            <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
               {away.name}
             </div>
             {awayStarter && (
@@ -217,7 +217,7 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
 
         <div className="min-w-0 flex items-center gap-2 justify-end text-right">
           <div className="min-w-0">
-            <div className="truncate text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
+            <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
               <span className="inline-block rounded bg-neutral-200 text-neutral-700 dark:bg-zinc-700 dark:text-zinc-200 text-xs px-1.5 py-0.5 mr-1">
                 홈
               </span>

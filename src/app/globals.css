@@ -744,13 +744,13 @@ body.sb-mode [data-srow] > :nth-child(8) {
   justify-self: end !important;
 }
 /* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제해 화면(노란칸) 폭 사용.
-   단 우측 패딩을 키워(좌12 · 우80) 전체를 왼쪽으로 밀고, 우측 끝 관심별이 브라우저
-   스크롤바·화면 가장자리에 걸쳐 잘리지 않도록 충분히 안쪽으로 들인다.
+   좌우 대칭(좌12·우16) — 우측은 스크롤바/관심별 가장자리 걸침 방지로만 살짝 더.
+   (이전 우80 은 전반·배당 컬럼 제거 전의 잔재 — 우측 여백 과다 원인이라 축소.)
    scorebase.kr(메인)은 sb-mode 미부여라 max-w-6xl 그대로. */
 body.sb-mode [data-scores-root] {
   max-width: none !important;
   padding-left: 0.75rem !important;
-  padding-right: 5rem !important;
+  padding-right: 1rem !important;
 }
 /* 좁은 화면(태블릿·작은 창)에서 테이블 min-width(860) 가 컨테이너를 넘쳐 별(관심) 칼럼이
    잘리던 문제: sb-mode 는 min-width 해제 → data-srow 7컬럼이 화면폭에 맞춰 압축(주석 731 의도대로). */

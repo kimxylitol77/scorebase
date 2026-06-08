@@ -157,7 +157,7 @@ export default function BasketballCard(props: BasketballCardProps) {
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
         <div className="min-w-0 flex items-center gap-2">
           <Logo url={away.logo} name={away.name} />
-          <div className="truncate text-xs sm:text-sm font-bold">{away.name}</div>
+          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">{away.name}</div>
         </div>
         <div className="text-center font-black tabular-nums tracking-tight text-2xl sm:text-3xl">
           {hasScore ? (
@@ -187,7 +187,7 @@ export default function BasketballCard(props: BasketballCardProps) {
           )}
         </div>
         <div className="min-w-0 flex items-center gap-2 justify-end text-right">
-          <div className="truncate text-xs sm:text-sm font-bold">{home.name}</div>
+          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">{home.name}</div>
           <Logo url={home.logo} name={home.name} />
         </div>
       </div>
