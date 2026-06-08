@@ -10,10 +10,15 @@ const COOKIE_NAME = "admin_session";
 // 한글 도메인은 브라우저가 punycode(xn--) 로 host 헤더 전송 → 둘 다 매칭. www. 도 includes 로 커버.
 const SCOREBOARD_HOSTS = ["스코어보드.kr", "xn--hy1bm7m1yevrd8pq.kr"];
 
+// 스코어베이스.com — 브랜드 랜딩 전용 도메인. 같은 Vercel 앱 공유, 루트 접속 시 /landing 화면.
+// 한글 도메인은 브라우저가 punycode(xn--) host 헤더로 전송 → 둘 다 매칭.
+const SCOREBASE_COM_HOSTS = ["스코어베이스.com", "xn--9k3b13iba842abwcsvs.com"];
+
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const host = (req.headers.get("host") || "").toLowerCase();
   const isScoreboard = SCOREBOARD_HOSTS.some((h) => host.includes(h));
+  const isScoreBaseCom = SCOREBASE_COM_HOSTS.some((h) => host.includes(h));
 
   // 스코어보드.kr — scorebase.kr 와 콘텐츠가 동일해 구글 중복 색인을 막기 위해 전 경로 noindex.
   // robots.txt 는 크롤 허용 상태라 구글이 이 헤더를 읽고 색인에서 제외한다 (Disallow 면 헤더를 못 읽음).
@@ -38,6 +43,11 @@ export function middleware(req: NextRequest) {
   if (isScoreboard && path === "/") {
     const url = req.nextUrl.clone();
     url.pathname = "/scores";
+    res = NextResponse.rewrite(url);
+  } else if (isScoreBaseCom && path === "/") {
+    // 스코어베이스.com 루트 → 랜딩(/landing) 내용으로 rewrite (URL 은 스코어베이스.com 유지).
+    const url = req.nextUrl.clone();
+    url.pathname = "/landing";
     res = NextResponse.rewrite(url);
   } else {
     res = NextResponse.next();
