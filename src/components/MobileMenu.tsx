@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import SearchInput from "./SearchInput";
@@ -71,7 +71,7 @@ const GROUPS: Group[] = [
   },
 ];
 
-export default function MobileMenu() {
+export default function MobileMenu({ account }: { account?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
 
@@ -113,6 +113,10 @@ export default function MobileMenu() {
         }`}
       >
         <nav className="h-full overflow-y-auto px-4 pt-3 pb-8">
+          {/* 로그인/계정 — 헤더에서 옮겨옴 (헤더 가로 넘침 방지). 비로그인=로그인 링크. */}
+          {account && (
+            <div className="mb-3 flex flex-wrap items-center gap-2">{account}</div>
+          )}
           {/* 검색창 */}
           <div className="mb-4">
             <SearchInput

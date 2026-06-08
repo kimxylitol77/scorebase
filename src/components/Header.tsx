@@ -110,11 +110,11 @@ export default function Header() {
           </div>
         </nav>
 
-        {/* 모바일 — admin 배지 + 햄버거 */}
-        <div className="sm:hidden flex items-center gap-2">
-          <UserBadge />
-          <AdminBadge />
-          <MobileMenu />
+        {/* 모바일 — 햄버거만. user/admin 배지는 메뉴 안으로 옮김.
+            (로그인 시 닉네임+로그아웃이 헤더 가로폭을 넘겨 → iOS Safari 가 body 가로
+             overflow 로 fixed inset-x-0 메뉴 패널·콘텐츠를 우측에서 잘라내던 버그 차단) */}
+        <div className="sm:hidden">
+          <MobileMenu account={<><UserBadge /><AdminBadge /></>} />
         </div>
       </div>
     </header>
