@@ -70,7 +70,10 @@ export async function POST(req: NextRequest) {
   }
 
   // 우리 Match 존재 확인 — 없으면 silently skip (worker 가 stale id 호출해도 안전).
-  const exists = await prisma.match.findUnique({ where: { id: body.matchId }, select: { id: true } });
+  const exists = await prisma.match.findUnique({
+    where: { id: body.matchId },
+    select: { id: true, status: true, oddsHome: true, oddsOver: true, oddsHcHome: true },
+  });
   if (!exists) return NextResponse.json({ skipped: "match not found", matchId: body.matchId }, { status: 200 });
 
   const rows: ReturnType<typeof toRow>[] = [];
@@ -91,10 +94,55 @@ export async function POST(req: NextRequest) {
   }
 
   // skipDuplicates — @@unique([matchId, companyId, kind, ts]) 가드.
+  const valid = rows.filter((r): r is NonNullable<typeof r> => r !== null);
   const result = await prisma.tsBaseballOddsHistory.createMany({
-    data: rows.filter((r): r is NonNullable<typeof r> => r !== null),
+    data: valid,
     skipDuplicates: true,
   });
 
-  return NextResponse.json({ inserted: result.count, totalRows: rows.length });
+  // === Match raw odds 갱신 — /analysis · MatchInsight 표시용 (pickOdds 가 읽는 필드).
+  // 야구는 The Odds API 가 NPB 1경기·KBO 0 으로 사실상 미커버 → TheSports 가 owner.
+  // company "2"(Bet365, baseball-ts-odds.ts 와 동일) 우선, kind 별 최신(ts max). v1=home·v2=away.
+  // FINISHED 는 동결(종료 직전 라인 유지), SCHEDULED/LIVE 만 갱신.
+  let oddsUpdated = false;
+  if (exists.status !== "FINISHED") {
+    const latest = (kind: Kind) => {
+      const pool = valid.filter((r) => r.kind === kind && r.v1 >= 1.01 && r.v2 >= 1.01);
+      const pref = pool.filter((r) => r.companyId === "2");
+      return (pref.length ? pref : pool).reduce<(typeof pool)[number] | null>(
+        (a, r) => (!a || r.ts > a.ts ? r : a),
+        null,
+      );
+    };
+    const eu = latest("eu");
+    const asia = latest("asia");
+    const bs = latest("bs");
+    // 기존 값(주로 MLB 의 The Odds API)은 보존 — 비어있는 마켓만 TheSports 로 채움(gap-fill).
+    // KBO/NPB 는 The Odds API 미커버라 항상 null → TheSports 가 채움.
+    const data: Record<string, number> = {};
+    if (eu && exists.oddsHome == null) {
+      data.oddsHome = eu.v1;
+      data.oddsAway = eu.v2;
+    }
+    if (bs && exists.oddsOver == null) {
+      data.oddsOver = bs.v1;
+      data.oddsUnder = bs.v2;
+      if (bs.mid != null) data.oddsTotalLine = bs.mid;
+    }
+    if (asia && exists.oddsHcHome == null) {
+      data.oddsHcHome = asia.v1;
+      data.oddsHcAway = asia.v2;
+      if (asia.mid != null) data.oddsHcLine = Math.abs(asia.mid);
+    }
+    if (Object.keys(data).length) {
+      await prisma.match
+        .update({ where: { id: body.matchId }, data })
+        .then(() => {
+          oddsUpdated = true;
+        })
+        .catch(() => {});
+    }
+  }
+
+  return NextResponse.json({ inserted: result.count, totalRows: rows.length, oddsUpdated });
 }
