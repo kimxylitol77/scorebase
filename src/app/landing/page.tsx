@@ -114,9 +114,9 @@ export default function LandingPage() {
           <strong className="font-semibold text-zinc-800 dark:text-white/80"> 해외 이적시장·선수 몸값을 매일</strong> 반영합니다. AI 시즌 예측·부상자 명단·FIFA 랭킹까지 한 곳에서.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/scores" className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-white/90">라이브스코어 보기 →</Link>
-          <Link href="/standings" className={btnGhost}>리그 순위</Link>
-          <Link href="/transfers" className={btnGhost}>해외 이적시장</Link>
+          <Link href={`${SITE_URL}/scores`} className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-white/90">라이브스코어 보기 →</Link>
+          <Link href={`${SITE_URL}/standings`} className={btnGhost}>리그 순위</Link>
+          <Link href={`${SITE_URL}/transfers`} className={btnGhost}>해외 이적시장</Link>
         </div>
       </section>
 
@@ -127,7 +127,7 @@ export default function LandingPage() {
           {POPULAR.map((p) => (
             <Link
               key={p.label}
-              href={p.href}
+              href={`${SITE_URL}${p.href}`}
               className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:bg-zinc-50 hover:text-zinc-950 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.1] dark:hover:text-white"
             >
               {p.label}
@@ -142,7 +142,7 @@ export default function LandingPage() {
         <p className="mt-2 text-center text-sm text-zinc-500 dark:text-white/45">검색량 가장 많은 라이브스코어·리그 순위를 핵심으로, 해외 이적시장까지 한 곳에서.</p>
         <div className="mt-8 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <Link key={f.href} href={f.href} className="group relative block rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 sm:p-6 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+            <Link key={f.href} href={`${SITE_URL}${f.href}`} className="group relative block rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 sm:p-6 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
               {f.live && (
                 <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> LIVE
@@ -210,8 +210,8 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">지금, 라이브스코어부터 확인하세요</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm sm:text-base text-white/70">회원가입 없이 무료로 라이브스코어·리그 순위·이적시장·예측·부상자 명단을 바로 볼 수 있습니다.</p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/scores" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white/90">라이브스코어 보기 →</Link>
-            <Link href="/standings" className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-7 py-3 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/20">리그 순위 보기</Link>
+            <Link href={`${SITE_URL}/scores`} className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white/90">라이브스코어 보기 →</Link>
+            <Link href={`${SITE_URL}/standings`} className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-7 py-3 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/20">리그 순위 보기</Link>
           </div>
         </div>
       </section>

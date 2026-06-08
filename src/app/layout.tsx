@@ -91,6 +91,10 @@ export default async function RootLayout({
   const host = ((await headers()).get("host") || "").toLowerCase();
   const isScoreboard =
     host.includes("xn--hy1bm7m1yevrd8pq") || host.includes("스코어보드");
+  // 스코어베이스.com — 브랜드 랜딩 전용 도메인. 사이트 기능(헤더 nav·라이브 티커·로그인·
+  // 검색·푸터)을 전부 빼고 랜딩 본문만 노출하는 순수 랜딩 페이지. punycode host 매칭.
+  const isScoreBaseCom =
+    host.includes("xn--9k3b13iba842abwcsvs") || host.includes("스코어베이스");
   return (
     <html
       lang="ko"
@@ -152,14 +156,14 @@ export default async function RootLayout({
         <PageViewTracker />
         {isScoreboard ? (
           <ScoreboardHeader />
-        ) : (
+        ) : isScoreBaseCom ? null : (
           <>
             <Header />
             <LiveScoresBar />
           </>
         )}
         <main className="flex-1 w-full">{children}</main>
-        {!isScoreboard && <Footer />}
+        {!isScoreboard && !isScoreBaseCom && <Footer />}
         {isScoreboard && (
           <footer className="mt-8 border-t border-neutral-200 dark:border-neutral-800 py-5 px-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
             본 스코어는{" "}
