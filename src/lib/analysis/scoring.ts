@@ -74,8 +74,11 @@ export function settlePick(
 }
 
 /**
- * 미정산 예측글 일괄 채점. 대상 = pick 있음 + isCorrect=null + 경기 FINISHED.
- * 적중 시에만 경험치/포인트 지급(미적중은 패널티 없음).
+ * 미정산 예측글 일괄 채점 + 무효(취소) 처리.
+ * - 채점: pick 있음 + isCorrect=null + 경기 FINISHED → 결과 대조, 적중 시 경험치/포인트 지급.
+ * - 무효: POSTPONED(연기·취소) 경기 + 시작 24h↑ 지난 죽은 경기(SCHEDULED/LIVE) 픽 →
+ *   채점 불가라 settledAt 만 찍어 종결(isCorrect=null 유지 → 적중률 제외·통계 무영향).
+ *   FINISHED 만 처리하던 과거엔 연기 경기 픽이 영원히 미정산으로 쌓였음 → 자동 해소.
  */
 export async function scoreAnalysisPredictions(limit = 500): Promise<{
   scored: number;
@@ -162,5 +165,30 @@ export async function scoreAnalysisPredictions(limit = 500): Promise<{
     }
     scored++;
   }
+
+  // 연기·취소(POSTPONED) 경기 + 죽은 경기(시작 +VOID_STALE_HOURS↑ 지났는데 미종료) 픽은
+  // 채점 자체가 불가 → 자동 무효. settledAt 만 찍어 종결(isCorrect=null 유지 → 적중률 분모
+  // 제외·배지 없음·통계 무영향). 적중과 달리 per-user 처리 불필요해 updateMany 한 번으로 끝.
+  const VOID_STALE_HOURS = 24;
+  const voidStaleCutoff = new Date(Date.now() - VOID_STALE_HOURS * 3600 * 1000);
+  const voidResult = await prisma.post.updateMany({
+    where: {
+      pick: { not: null },
+      isCorrect: null,
+      settledAt: null,
+      matchId: { not: null },
+      OR: [
+        { match: { is: { status: "POSTPONED" } } },
+        {
+          match: {
+            is: { status: { in: ["SCHEDULED", "LIVE"] }, startTime: { lt: voidStaleCutoff } },
+          },
+        },
+      ],
+    },
+    data: { settledAt: new Date() },
+  });
+  voided += voidResult.count;
+
   return { scored, correct, voided };
 }
