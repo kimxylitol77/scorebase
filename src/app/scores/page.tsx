@@ -1065,17 +1065,18 @@ export default async function ScoresPage({ searchParams }: Props) {
     return undefined;
   }
 
-  // orphan 라이브 (DB 매치 없음) → 간소 NormalizedMatch. 예측/로고/순위/링크 없이 점수+상태만 표시.
+  // orphan 라이브 (DB 매치 없음) → 간소 NormalizedMatch. 팀 로고 + 상세 링크 포함, 순위/예측 없음.
   function orphanLiveCard(lm: LiveMatch): NormalizedMatch {
     const st = new Date(lm.startTime);
     const sport_ = sportFromLeague(lm.league);
+    const extId = lm.id.replace(/^[a-z]+-/i, ""); // "af-1546501" → "1546501" (상세 라우트 gameId)
     return {
       id: lm.id,
       sport: sport_,
       league: lm.league,
       status: "LIVE",
-      home: { name: toKoreanTeamName(lm.homeName, lm.league), abbr: lm.homeShort, logo: null, score: lm.homeScore, teamId: -1, position: null, fifaRank: null },
-      away: { name: toKoreanTeamName(lm.awayName, lm.league), abbr: lm.awayShort, logo: null, score: lm.awayScore, teamId: -1, position: null, fifaRank: null },
+      home: { name: toKoreanTeamName(lm.homeName, lm.league), abbr: lm.homeShort, logo: lm.homeLogo ?? null, score: lm.homeScore, teamId: -1, position: null, fifaRank: null },
+      away: { name: toKoreanTeamName(lm.awayName, lm.league), abbr: lm.awayShort, logo: lm.awayLogo ?? null, score: lm.awayScore, teamId: -1, position: null, fifaRank: null },
       timeLabel: kstHHmm(st),
       liveStatusLabel: lm.statusLabel,
       homeStarter: null,
@@ -1093,7 +1094,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       periodLinescore: null,
       liveCommentary: null,
       startTime: st,
-      href: null,
+      href: `/live/${lm.league}/${extId}`,
       doubleHeader: null,
       mma: null,
       mmaResult: null,

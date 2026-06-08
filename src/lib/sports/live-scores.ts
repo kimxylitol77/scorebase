@@ -54,6 +54,9 @@ export interface LiveMatch {
   awayName: string;
   homeShort: string;
   awayShort: string;
+  /** 팀 엠블럼 URL (축구 api-football fixture 제공). 없으면 null. */
+  homeLogo?: string | null;
+  awayLogo?: string | null;
   homeScore: number;
   awayScore: number;
   /** "전반 23'", "5회 초", "3쿼터 8:42" 같은 한국어 표기. */
@@ -188,6 +191,8 @@ export async function fetchSoccerLive(): Promise<LiveMatch[]> {
           awayName: f.teams.away.name,
           homeShort: shortName(f.teams.home.name, code),
           awayShort: shortName(f.teams.away.name, code),
+          homeLogo: f.teams.home.logo ?? null,
+          awayLogo: f.teams.away.logo ?? null,
           homeScore: f.goals.home ?? 0,
           awayScore: f.goals.away ?? 0,
           statusLabel: soccerStatusLabel(

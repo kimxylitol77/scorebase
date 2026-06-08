@@ -6,11 +6,12 @@
 //   야구 9개 리그 = TheSports ts-{tsMatchId} (thesports-matches route 가 prefix 부여).
 
 import type { Metadata } from "next";
+import { cache } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
@@ -36,7 +37,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import { parseTsFootballScore } from "@/lib/sports/live-scores";
+import { parseTsFootballScore, fetchSoccerLive, type LiveMatch } from "@/lib/sports/live-scores";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
@@ -126,12 +127,92 @@ async function findMatch(league: string, gameId: string) {
   }
 }
 
+// DB 미적재 라이브(청소년 친선·군소 리그) — 라이브 API 에서 fixture 단건 조회.
+// cache 로 generateMetadata + 본문의 중복 fetchSoccerLive 호출을 요청당 1회로 묶음.
+const findOrphanLive = cache(async (gameId: string): Promise<LiveMatch | null> => {
+  const list = await fetchSoccerLive();
+  return list.find((m) => m.id === `af-${gameId}`) ?? null;
+});
+
+// DB 미적재 라이브 축구(청소년 친선·군소 리그) 경량 상세 — 스코어보드 + AI 예측만.
+// 정식 상세(라인업/통계/H2H)는 match 객체(DB Team relation) 의존이라 orphan 엔 제공 불가.
+async function renderOrphanSoccerLive(live: LiveMatch, lg: string, gameId: string) {
+  const homeKo = toKoreanTeamName(live.homeName, lg);
+  const awayKo = toKoreanTeamName(live.awayName, lg);
+  const label = LEAGUE_DISPLAY[lg] ?? lg;
+  const flag = getLeagueFlag(lg);
+  const prediction = await fetchMatchPrediction(gameId).catch(() => null);
+  const teamCol = (name: string, logo?: string | null) => (
+    <div className="flex flex-col items-center gap-2 min-w-0">
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt="" className="w-16 h-16 object-contain" loading="lazy" />
+      ) : (
+        <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-xl font-bold text-neutral-400">
+          {name.slice(0, 1)}
+        </div>
+      )}
+      <span className="text-sm font-bold text-center truncate w-full">{name}</span>
+    </div>
+  );
+  return (
+    <main className="max-w-3xl mx-auto px-4 py-6 space-y-5">
+      <Link
+        href="/scores?sport=soccer"
+        className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+      >
+        ← 라이브 스코어
+      </Link>
+      <div className="rounded-2xl border border-[var(--score-border)] bg-white dark:bg-neutral-900 p-6">
+        <div className="text-center text-xs font-semibold text-neutral-500 mb-4">
+          {flag && (
+            <span className="mr-1" aria-hidden>
+              {flag}
+            </span>
+          )}
+          {label}
+          <span className="ml-2 text-rose-600 dark:text-rose-400">● LIVE {live.statusLabel}</span>
+        </div>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          {teamCol(homeKo, live.homeLogo)}
+          <div className="text-4xl font-black tabular-nums text-rose-600 dark:text-rose-400 text-center whitespace-nowrap">
+            {live.homeScore} : {live.awayScore}
+          </div>
+          {teamCol(awayKo, live.awayLogo)}
+        </div>
+      </div>
+      {prediction && (
+        <MatchPredictionsCard prediction={prediction} homeNameKo={homeKo} awayNameKo={awayKo} />
+      )}
+      <p className="text-xs text-neutral-400 dark:text-neutral-500 text-center leading-relaxed">
+        실시간 수집된 라이브 경기입니다. 라인업·통계·H2H 등 상세 데이터는 경기 종료 후 제공됩니다.
+      </p>
+    </main>
+  );
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league, gameId } = await params;
   const lg = league.toUpperCase();
   if (!SUPPORTED.has(lg)) return { title: "라이브 매치를 찾을 수 없습니다" };
   const match = await findMatch(lg, gameId);
-  if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
+  if (!match) {
+    // orphan 라이브(DB 미적재 축구) — 라이브 API 폴백으로 제목 생성 (없으면 404 제목).
+    if (SOCCER_LEAGUES.has(lg)) {
+      const live = await findOrphanLive(gameId);
+      if (live) {
+        const h = toKoreanTeamName(live.homeName, lg);
+        const a = toKoreanTeamName(live.awayName, lg);
+        const lb = LEAGUE_DISPLAY[lg] ?? lg;
+        return {
+          title: `${h} vs ${a} 라이브 — ${lb}`,
+          description: `${h} vs ${a} ${lb} 라이브 스코어 · 실시간 점수.`,
+          alternates: { canonical: `https://www.scorebase.kr/live/${lg}/${gameId}` },
+        };
+      }
+    }
+    return { title: "라이브 매치를 찾을 수 없습니다" };
+  }
   const home = toKoreanTeamName(match.homeTeam.name, lg);
   const away = toKoreanTeamName(match.awayTeam.name, lg);
   const label = LEAGUE_DISPLAY[lg] ?? lg;
@@ -149,7 +230,14 @@ export default async function GenericLivePage({ params }: Props) {
   if (!gameId) notFound();
 
   const match = await findMatch(lg, gameId);
-  if (!match) notFound();
+  if (!match) {
+    // DB 미적재 라이브(청소년 친선·군소 리그 등) — 라이브 API 폴백 경량 상세.
+    if (SOCCER_LEAGUES.has(lg)) {
+      const live = await findOrphanLive(gameId);
+      if (live) return await renderOrphanSoccerLive(live, lg, gameId);
+    }
+    notFound();
+  }
 
   const homeKo = toKoreanTeamName(match.homeTeam.name, lg);
   const awayKo = toKoreanTeamName(match.awayTeam.name, lg);
