@@ -4,6 +4,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/site-url";
 
+// 스코어베이스.com (브랜드 랜딩 전용 도메인) 자기참조 canonical/OG.
+// 과거엔 canonical 이 scorebase.kr/landing 이라 구글이 .com 을 scorebase.kr 로 흡수 →
+// .com 이 독립 색인·브랜드("스코어베이스") 검색 노출이 불가했다. .com 을 정식 home 으로
+// 자기참조시켜 독립 색인 가능하게 한다. href 는 호환성 위해 punycode(ASCII) 사용
+// (= https://www.스코어베이스.com). www 는 scorebase.kr 와 동일 컨벤션.
+const SCOREBASE_COM_URL = "https://www.xn--9k3b13iba842abwcsvs.com";
+
 export const metadata: Metadata = {
   title: "라이브스코어·리그 순위·해외 이적시장 — 스코어베이스",
   description:
@@ -19,11 +26,11 @@ export const metadata: Metadata = {
     // 브랜드·기타
     "스코어베이스", "Scorebase", "AI 스포츠 분석", "축구 예측", "야구 예측",
   ],
-  alternates: { canonical: `${SITE_URL}/landing` },
+  alternates: { canonical: SCOREBASE_COM_URL },
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: `${SITE_URL}/landing`,
+    url: SCOREBASE_COM_URL,
     siteName: "스코어베이스",
     title: "라이브스코어·리그 순위·해외 이적시장 — 스코어베이스",
     description:
@@ -73,7 +80,7 @@ const FAQ: { q: string; a: string }[] = [
 const JSONLD = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "WebSite", name: "스코어베이스", alternateName: ["Scorebase", "스코어 베이스"], url: SITE_URL, inLanguage: "ko-KR" },
+    { "@type": "WebSite", name: "스코어베이스", alternateName: ["Scorebase", "스코어 베이스"], url: SCOREBASE_COM_URL, inLanguage: "ko-KR" },
     {
       "@type": "Organization",
       name: "스코어베이스",
