@@ -25,14 +25,34 @@ interface EspnEvent {
   date: string;
   name?: string;
   status?: {
-    type?: { state?: string; completed?: boolean; description?: string };
+    type?: {
+      state?: string;
+      name?: string;
+      completed?: boolean;
+      description?: string;
+    };
   };
   competitions?: Array<{ competitors: EspnCompetitor[] }>;
 }
 
-function mapStatus(state: string | undefined, completed: boolean): MatchStatus {
-  if (state === "post" || completed) return "FINISHED";
-  if (state === "in") return "LIVE";
+// ESPN status.type.name 우선 판정. 연기/취소 경기는 예정시각이 지나면 state="post" 로
+// 오지만 completed=false + name=STATUS_POSTPONED/CANCELED 다 — 기존 `state==="post"
+// → FINISHED` 가 이를 0-0 FINISHED 로 오기록했음 (2026-06 fix, MLB 16건 정정).
+function mapStatus(
+  type: { state?: string; name?: string; completed?: boolean } | undefined,
+): MatchStatus {
+  const name = type?.name ?? "";
+  if (
+    name === "STATUS_POSTPONED" ||
+    name === "STATUS_CANCELED" ||
+    name === "STATUS_CANCELLED"
+  ) {
+    return "POSTPONED";
+  }
+  if (type?.completed) return "FINISHED";
+  if (type?.state === "in") return "LIVE";
+  // 연기/취소 분기 뒤이므로 안전 — completed 플래그 못 받은 종료 직후 보강.
+  if (type?.state === "post") return "FINISHED";
   return "SCHEDULED";
 }
 
@@ -57,6 +77,9 @@ export async function fetchEspnMlbByDate(
     const awayC = competitors.find((c) => c.homeAway === "away");
     const homeScore = homeC?.score ? Number(homeC.score) : undefined;
     const awayScore = awayC?.score ? Number(awayC.score) : undefined;
+    const status = mapStatus(e.status?.type);
+    // 연기/취소는 ESPN 이 0-0 score 를 주지만 무의미 → score 미기록(undefined → upsert 시 null).
+    const scored = status !== "POSTPONED";
 
     return {
       league: "MLB",
@@ -73,12 +96,9 @@ export async function fetchEspnMlbByDate(
         shortName: awayC?.team.abbreviation,
         logoUrl: awayC?.team.logo,
       },
-      homeScore: Number.isFinite(homeScore) ? homeScore : undefined,
-      awayScore: Number.isFinite(awayScore) ? awayScore : undefined,
-      status: mapStatus(
-        e.status?.type?.state,
-        Boolean(e.status?.type?.completed),
-      ),
+      homeScore: scored && Number.isFinite(homeScore) ? homeScore : undefined,
+      awayScore: scored && Number.isFinite(awayScore) ? awayScore : undefined,
+      status,
       startTime: new Date(e.date),
       raw: e,
     };
