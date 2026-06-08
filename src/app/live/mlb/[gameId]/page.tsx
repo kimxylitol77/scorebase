@@ -147,7 +147,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function MlbLivePage({ params }: Props) {
   const { gameId } = await params;
-  if (!/^\d+$/.test(gameId)) notFound();
+  // gameId = Match.externalId — api-sports 숫자 OR TheSports "ts-..." (standalone 매치).
+  if (!/^\d+$/.test(gameId) && !/^ts-[a-z0-9]+$/i.test(gameId)) notFound();
 
   let match = await findEspnMatch(gameId);
   if (!match) {
