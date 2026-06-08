@@ -12,19 +12,22 @@ import { SITE_URL } from "@/lib/site-url";
 const SCOREBASE_COM_URL = "https://www.xn--9k3b13iba842abwcsvs.com";
 
 export const metadata: Metadata = {
-  title: "라이브스코어·리그 순위·해외 이적시장 — 스코어베이스",
+  title: "라이브스코어·리그 순위·스포츠 분석 — 스코어베이스",
   description:
-    "EPL·라리가·분데스리가·K리그·KBO·NBA·MLB·NHL 라이브스코어와 리그 순위를 실시간으로. 해외 이적시장·선수 몸값(시장가치)을 매일 반영하고, AI 시즌 예측·부상자 명단·FIFA 랭킹까지 한 곳에서 보는 스포츠 데이터 미디어, 스코어베이스(Scorebase).",
+    "EPL·라리가·분데스리가·K리그·KBO·NBA·MLB·NHL 라이브스코어와 리그 순위를 실시간으로. AI 스포츠 분석·승부예측과 적중률, FIFA 랭킹·부상자 명단·이적시장까지 한 곳에서 보는 스포츠 데이터 미디어, 스코어베이스(Scorebase).",
   keywords: [
-    // 검색량 높은 핵심 (라이브스코어·리그 순위)
-    "라이브스코어", "실시간 스코어", "축구 라이브스코어",
+    // 검색량 최상위 (라이브스코어 183만 · 리그 순위 45만급)
+    "라이브스코어", "실시간 스코어", "축구 라이브스코어", "라이브스코어 사이트",
     "프리미어리그 순위", "EPL 순위", "라리가 순위", "분데스리가 순위", "세리에A 순위",
-    "KBO 순위", "NBA 순위", "MLB 순위", "NHL 순위", "해외축구 순위",
-    "KBO 일정", "FIFA 랭킹", "월드컵 2026",
-    // 이적시장·몸값
-    "이적시장", "해외 이적시장", "선수 몸값", "축구 선수 몸값", "시장가치",
-    // 브랜드·기타
-    "스코어베이스", "Scorebase", "AI 스포츠 분석", "축구 예측", "야구 예측",
+    "KBO 순위", "NBA 순위", "MLB 순위", "NHL 순위", "K리그 순위", "해외축구 순위",
+    // 스포츠 분석 (20만급 · 사이트 정체성)
+    "스포츠 분석", "축구 분석", "야구 분석", "승부예측", "AI 스포츠 분석",
+    // 일정·랭킹·예측
+    "KBO 일정", "해외축구 일정", "FIFA 랭킹", "월드컵 2026",
+    // 이적시장 (보조 — 검색량 작아 비중↓)
+    "이적시장", "선수 몸값",
+    // 브랜드
+    "스코어베이스", "Scorebase",
   ],
   alternates: { canonical: SCOREBASE_COM_URL },
   openGraph: {
@@ -32,20 +35,20 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     url: SCOREBASE_COM_URL,
     siteName: "스코어베이스",
-    title: "라이브스코어·리그 순위·해외 이적시장 — 스코어베이스",
+    title: "라이브스코어·리그 순위·스포츠 분석 — 스코어베이스",
     description:
-      "EPL·라리가·KBO·NBA 라이브스코어와 리그 순위를 실시간으로. 해외 이적시장·선수 몸값까지 한 곳에서.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "스코어베이스 — 라이브스코어·리그 순위·이적시장" }],
+      "EPL·라리가·KBO·NBA 라이브스코어와 리그 순위를 실시간으로. AI 스포츠 분석·승부예측·적중률까지 한 곳에서.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "스코어베이스 — 라이브스코어·리그 순위·스포츠 분석" }],
   },
 };
 
 const FEATURES: { href: string; emoji: string; title: string; desc: string; live?: boolean }[] = [
   { href: "/scores", emoji: "⚡", title: "라이브스코어", desc: "축구·야구·농구·아이스하키·e스포츠 실시간 스코어를 한 화면에서. 전반 점수·통계·배당까지 즉시 반영.", live: true },
   { href: "/standings", emoji: "📋", title: "리그 순위 (실시간)", desc: "EPL·라리가·분데스리가·세리에 A·K리그·KBO·NBA·MLB 리그 순위와 득점왕·도움왕 리더보드를 실시간으로.", live: true },
-  { href: "/transfers", emoji: "💰", title: "해외 이적시장·선수 몸값", desc: "유럽 빅5 리그 선수 시장가치(몸값) 랭킹과 최신 이적을 빠르게 반영. 커리어·시즌 성적·몸값 변동 추이까지.", live: true },
+  { href: "/analysis", emoji: "🎯", title: "AI 스포츠 분석·승부예측", desc: "축구·야구·농구 경기별 승부 예측과 누적 적중률을 투명하게 공개. 데이터 기반 스포츠 분석과 예측 전문가 리더보드까지." },
   { href: "/predictions", emoji: "📊", title: "AI 시즌 예측", desc: "Elo 레이팅 + Monte Carlo 5,000회로 우승·플레이오프·강등 확률을 계산. FIFA 랭킹·세계 클럽 랭킹도 함께." },
+  { href: "/transfers", emoji: "💰", title: "해외 이적시장", desc: "유럽 빅5 리그 선수 시장가치(몸값) 랭킹과 최신 이적을 빠르게 반영. 커리어·시즌 성적·몸값 변동 추이까지.", live: true },
   { href: "/injuries", emoji: "🩹", title: "부상자 명단", desc: "전 팀 부상·결장 선수를 매일 갱신. 사유·심각도·복귀 전망까지 한눈에." },
-  { href: "/analysis", emoji: "🎯", title: "AI 승부예측·적중률", desc: "경기별 승부 예측과 누적 적중률을 투명하게 공개. 예측 전문가 리더보드도 함께." },
 ];
 
 const SPORTS: { name: string; leagues: string }[] = [
@@ -71,10 +74,10 @@ const POPULAR: { label: string; href: string }[] = [
 ];
 
 const FAQ: { q: string; a: string }[] = [
-  { q: "스코어베이스는 무엇인가요?", a: "스코어베이스(Scorebase)는 EPL·KBO·NBA 등 글로벌 스포츠의 라이브스코어와 리그 순위를 실시간으로, 해외 이적시장·선수 몸값을 매일 반영하는 스포츠 데이터 미디어입니다. AI 시즌 예측·부상자 명단도 함께 제공합니다." },
+  { q: "스코어베이스는 무엇인가요?", a: "스코어베이스(Scorebase)는 EPL·KBO·NBA 등 글로벌 스포츠의 라이브스코어와 리그 순위를 실시간으로 제공하고, AI 스포츠 분석·승부예측과 적중률을 공개하는 스포츠 데이터 미디어입니다. 부상자 명단·이적시장도 함께 제공합니다." },
   { q: "라이브스코어와 리그 순위는 실시간인가요?", a: "네. 축구·야구·농구·하키 라이브스코어와 리그 순위를 실시간으로 반영합니다. 경기 중 점수·통계가 즉시 업데이트됩니다." },
-  { q: "해외 이적시장·선수 몸값도 볼 수 있나요?", a: "유럽 빅5 리그 선수의 시장가치(몸값) 랭킹과 최신 이적, 몸값 변동 추이를 제공합니다. 리그별·팀별·국가별·포지션별로 정렬됩니다." },
-  { q: "무료로 이용할 수 있나요?", a: "네. 라이브스코어, 리그 순위, 이적시장, 시즌 예측, 부상자 명단 등 모든 데이터를 무료로 제공합니다." },
+  { q: "AI 스포츠 분석·승부예측도 제공하나요?", a: "네. Elo 레이팅과 통계 모델 기반으로 축구·야구·농구 경기 승부를 예측하고, 누적 적중률을 투명하게 공개합니다. 시즌 우승·플레이오프 확률 시뮬레이션도 함께 제공합니다." },
+  { q: "무료로 이용할 수 있나요?", a: "네. 라이브스코어, 리그 순위, 스포츠 분석, 시즌 예측, 부상자 명단 등 모든 데이터를 무료로 제공합니다." },
 ];
 
 const JSONLD = {
@@ -111,12 +114,12 @@ export default function LandingPage() {
         <p className="mx-auto mt-5 max-w-2xl text-base sm:text-lg leading-7 text-zinc-600 dark:text-white/60">
           <strong className="font-semibold text-zinc-800 dark:text-white/80">스코어베이스(Scorebase)</strong>는
           EPL·라리가·KBO·NBA·MLB 등 글로벌 스포츠의 <strong className="font-semibold text-zinc-800 dark:text-white/80">라이브스코어와 리그 순위를 실시간</strong>으로,
-          <strong className="font-semibold text-zinc-800 dark:text-white/80"> 해외 이적시장·선수 몸값을 매일</strong> 반영합니다. AI 시즌 예측·부상자 명단·FIFA 랭킹까지 한 곳에서.
+          <strong className="font-semibold text-zinc-800 dark:text-white/80"> AI 스포츠 분석·승부예측과 적중률</strong>까지. FIFA 랭킹·부상자 명단·이적시장도 한 곳에서.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href={`${SITE_URL}/scores`} className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-white/90">라이브스코어 보기 →</Link>
           <Link href={`${SITE_URL}/standings`} className={btnGhost}>리그 순위</Link>
-          <Link href={`${SITE_URL}/transfers`} className={btnGhost}>해외 이적시장</Link>
+          <Link href={`${SITE_URL}/analysis`} className={btnGhost}>스포츠 분석</Link>
         </div>
       </section>
 
