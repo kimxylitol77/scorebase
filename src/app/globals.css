@@ -732,8 +732,15 @@ body.sb-mode [data-sinfo] {
 body.sb-mode [data-srow] {
   grid-template-columns: 150px 52px 44px 1fr 72px 1fr 32px !important;
 }
-/* 관심별(7번째 자식) — 32px 컬럼 우측 끝 정렬. */
-body.sb-mode [data-srow] > :nth-child(7) {
+/* 스코어보드.kr 만 전반(7번째)·배당(10번째) 칸 숨김 → 라이브 스코어 전용 간결 뷰.
+   글(9, data-sinfo)도 숨겨져 남는 7개(리그·시간·상태·홈팀·점수·원정팀·별)가 7컬럼을 채움.
+   scorebase.kr(메인)은 sb-mode 미부여라 전반·배당 그대로 노출. */
+body.sb-mode [data-srow] > :nth-child(7),
+body.sb-mode [data-srow] > :nth-child(10) {
+  display: none !important;
+}
+/* 관심별 — 전반 칸 추가로 8번째 자식이 됨. 32px 컬럼 우측 끝 정렬. */
+body.sb-mode [data-srow] > :nth-child(8) {
   justify-self: end !important;
 }
 /* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제해 화면(노란칸) 폭 사용.
