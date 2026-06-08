@@ -334,6 +334,17 @@ export async function GET(req: NextRequest) {
     })
     .join("\n");
 
+  // KEPT (상태 변경 없이 SCHEDULED 유지) sample. verify 불가 리그(ESPN/TheSports/esports)
+  // 거나 외부 status 가 NS/TBD 라 안전하게 둔 매치. 같은 매치가 매 run 반복되면
+  // = 영구 stuck → source/collector 점검 필요하므로 알림에 실제 목록을 노출한다.
+  const keptLines = verifyKept
+    .slice(0, 8)
+    .map((m) => {
+      const hrs = Math.round((Date.now() - m.startTime.getTime()) / 3600000);
+      return `  ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} (${hrs}h, ${SOURCE_HINT[m.league] ?? "unknown"})`;
+    })
+    .join("\n");
+
   // Haiku 진단 — POSTPONED 처리된 매치가 있을 때만.
   // KEPT-only (전부 api-football verify 로 SCHEDULED 유지) 면 진단 프롬프트의
   // 리그별 카운트/샘플이 toPostpone 기반이라 빈 문자열 → Haiku 가 "데이터 없음" 응답.
@@ -407,9 +418,14 @@ export async function GET(req: NextRequest) {
         `🔍 <b>원인</b>: cron 미업데이트 (collector 누락 / source API 변화)\n\n` +
         (toPostpone.length > 0
           ? `<b>POSTPONED 리그별</b>:\n<code>${leagueLines}</code>\n\n<b>sample</b>:\n<code>${sampleLines}</code>\n\n`
-          : `<b>POSTPONED 없음</b> — 모두 api-football verify 로 정정됨\n\n`) +
+          : "") +
         (correctedCount > 0
           ? `<b>verify 로 정정 (${correctedCount}건)</b>:\n<code>${correctedLines}</code>\n\n`
+          : "") +
+        // KEPT 매치 실제 목록. 과거엔 toPostpone===0 이면 "모두 정정됨" 을 무조건 출력해
+        // 정정 0·KEPT 다수인 run 에서 거짓 안심을 줬다 → 유지된 매치를 그대로 보여준다.
+        (verifyKept.length > 0
+          ? `<b>SCHEDULED 유지 (${verifyKept.length}건 — verify 불가/미정, stuck 가능)</b>:\n<code>${keptLines}</code>\n\n`
           : "") +
         (toPostpone.length > 0
           ? diagnosis
