@@ -97,6 +97,11 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     ? await prisma.theSportsPlayer.findMany({ where: { id: { in: squad.map((p) => p.id) } }, select: { id: true, nameKo: true } })
     : [];
   const koName = new Map(tsPlayers.map((p) => [p.id, p.nameKo]));
+  // 선수 페이지(/transfers/[id])는 PlayerMarketValue 있는 선수만 존재 → 그 선수만 링크(404 방지)
+  const mvRows = squad.length
+    ? await prisma.playerMarketValue.findMany({ where: { id: { in: squad.map((p) => p.id) } }, select: { id: true } })
+    : [];
+  const hasMv = new Set(mvRows.map((m) => m.id));
 
   const coach = await fetchCoach(coachId);
   const koCountry = toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name;
@@ -191,22 +196,36 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
               <div key={code} className="mt-3">
                 <h3 className="text-xs font-bold text-neutral-400 mb-2">{label}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {players.map((p) => (
-                    <div key={p.id} className="flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2">
-                      <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden shrink-0 grid place-items-center">
-                        {p.photo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.photo} alt="" className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <span className="text-xs font-bold text-neutral-400">{p.shirt || "?"}</span>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold truncate">{koName.get(p.id) || p.name}</div>
-                        <div className="text-[11px] text-neutral-400">#{p.shirt}</div>
-                      </div>
-                    </div>
-                  ))}
+                  {players.map((p) => {
+                    const cardCls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
+                    const inner = (
+                      <>
+                        <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden shrink-0 grid place-items-center">
+                          {p.photo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={p.photo} alt="" className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <span className="text-xs font-bold text-neutral-400">{p.shirt || "?"}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold truncate">{koName.get(p.id) || p.name}</div>
+                          <div className="text-[11px] text-neutral-400">#{p.shirt}</div>
+                        </div>
+                      </>
+                    );
+                    return hasMv.has(p.id) ? (
+                      <Link
+                        key={p.id}
+                        href={`/transfers/${p.id}`}
+                        className={`${cardCls} hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition`}
+                      >
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div key={p.id} className={cardCls}>{inner}</div>
+                    );
+                  })}
                 </div>
               </div>
             );
