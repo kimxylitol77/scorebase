@@ -24,6 +24,7 @@ const CATS = [
   { key: "team", label: "팀별" },
   { key: "country", label: "국가별" },
   { key: "pos", label: "포지션별" },
+  { key: "latest", label: "최신 이적" },
 ];
 // 세부 포지션 — 수비→공격 순. CB 중앙수비·FB 윙백·DM/CM/AM 미드·W 윙어·ST 스트라이커
 const POSITIONS = [
