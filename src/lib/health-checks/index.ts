@@ -214,7 +214,10 @@ async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
       const afId = API_FOOTBALL_LEAGUE_ID[league];
       if (afId) {
         const nextDate = await fetchAfNextFixtureDate(afId);
-        if (nextDate && nextDate.getTime() > horizon.getTime()) continue;
+        // 다음 경기가 horizon 밖 = 리그 휴식(월드컵 등) → suppress. nextDate=null 도
+        // api-football 에 향후 일정 없음 = 장기 휴식 중 일정 미발표(2026 WC 로 MLS/K리그
+        // 휴식) → 동일하게 휴식 간주 suppress. (우리 수집 갭이면 af 엔 일정이 남음)
+        if (!nextDate || nextDate.getTime() > horizon.getTime()) continue;
       }
       out.push({
         category: "scheduled-freshness",
@@ -329,7 +332,8 @@ async function checkLeaderboardLeagueConsistency(): Promise<HealthFinding[]> {
     out.push({
       category: "leaderboard-consistency",
       key: league,
-      severity: info.total >= 3 ? "HIGH" : "MED",
+      // 외부리그 선수 추정은 이름매칭 휴리스틱이라 오발화 잦음 → HIGH(텔레그램) 대신 MED.
+      severity: "MED",
       message: `${league} 리더보드에 외부 리그 추정 선수 ${info.total}명 — 예: ${info.samples.join(", ")}`,
       metadata: info,
     });
@@ -439,14 +443,21 @@ async function checkTeamNameMissingRate(now: Date): Promise<HealthFinding[]> {
     }
     counts.set(t.league, e);
   }
+  // 대형 리그만 HIGH/MED 알림 — 마이너 리그는 공식 한글 소스 자체가 없어 만성 영문노출이
+  // 정상(미관 이슈일 뿐). LOW 로 두어 텔레그램 HIGH 스팸 차단.
+  const MAJOR_TEAM_NAME = new Set([
+    "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "UCL", "UEL", "UECL",
+    "K_LEAGUE_1", "J1_LEAGUE", "MLS", "NBA", "NHL", "MLB", "KBO", "NPB",
+  ]);
   for (const [league, e] of counts) {
     if (e.total < 3) continue;
     const rate = e.missing / e.total;
     if (rate > 0.15) {
+      const major = MAJOR_TEAM_NAME.has(league);
       out.push({
         category: "team-name-missing",
         key: league,
-        severity: rate > 0.3 ? "HIGH" : "MED",
+        severity: major ? (rate > 0.3 ? "HIGH" : "MED") : "LOW",
         message: `${league} 영문 팀명 노출 ${(rate * 100).toFixed(0)}% (${e.missing}/${e.total}) — ${Array.from(e.samples).slice(0, 3).join(", ")}`,
         metadata: { rate, missing: e.missing, total: e.total, samples: Array.from(e.samples) },
       });
@@ -494,7 +505,8 @@ async function checkAccuracy(): Promise<HealthFinding[]> {
         out.push({
           category: "accuracy",
           key: `${league}-${name}`,
-          severity: rate < highT ? "HIGH" : "MED",
+          // 60일 누적 적중률 = 매일 거의 안 변하는 정보성 지표 → HIGH(텔레그램) 제외, MED/LOW.
+          severity: rate < highT ? "MED" : "LOW",
           message: `${league} ${name} 적중률 ${(rate * 100).toFixed(0)}% (${correct}/${rows.length}) — 60일`,
           metadata: { rate, correct, total: rows.length },
         });
@@ -514,7 +526,9 @@ async function checkArticleCadence(now: Date): Promise<HealthFinding[]> {
   yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
   const yesterdayEnd = new Date(yesterdayStart);
   yesterdayEnd.setUTCDate(yesterdayEnd.getUTCDate() + 1);
-  for (const type of ["PREVIEW", "RECAP"] as const) {
+  // RECAP 자동발행은 2026-05 SEO 판단으로 의도적 중단(73a88ad recap cron 제거) — cadence
+  // 점검 제외(0건이 정상). PREVIEW 만 점검.
+  for (const type of ["PREVIEW"] as const) {
     const cnt = await prisma.article.count({
       where: {
         type,
@@ -577,7 +591,14 @@ async function checkStarterCoverage(now: Date): Promise<HealthFinding[]> {
       out.push({
         category: "starter-coverage",
         key: league,
-        severity: rate < 0.2 ? "HIGH" : "MED",
+        // KBO/NPB 는 무료 선발투수 소스 없음(알려진 한계, 유료 Data Sports Group 미계약)
+        // → LOW. MLB(MLB Stats API 무료)만 실제 알림 대상.
+        severity:
+          league === "KBO" || league === "NPB"
+            ? "LOW"
+            : rate < 0.2
+              ? "HIGH"
+              : "MED",
         message: `${league} 오늘 매치 starter 매핑 ${withStarter}/${total} (${(rate * 100).toFixed(0)}%)`,
         metadata: { league, withStarter, total, rate },
       });
