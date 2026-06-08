@@ -26,14 +26,25 @@ import { readFileSync } from "fs";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { HOCKEY_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import {
+  HOCKEY_LEAGUES,
+  BASKETBALL_LEAGUES,
+  BASEBALL_LEAGUES,
+} from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
 
-// TS 단일 소스 리그 (ESPN/api-sports cut 됨) — dedup 경로에서 기존 매치 status/score 도 TS 로 갱신.
-// 축구/야구는 api-football/ESPN 이 아직 status owner 라 제외 (cache 만 링크).
+// TS 단일 소스 리그 — dedup 경로에서 기존 매치 status/score 도 TS 로 갱신 (단조 가드).
+// 야구(MLB/KBO/NPB 등) 2026-06 합류: ESPN 이 연기 경기를 state="post" 로 FINISHED 0-0 오기록하던
+// 버그 차단 + TheSports status_id(100=종료/300대·14·19=연기)가 POSTPONED 정확. collect 백스톱
+// 유지(NBA/NHL 과 동일 패턴 — coverage gap 방지, score 는 숫자일 때만 갱신).
+// 축구만 제외 — api-football 이 lineup/통계/predictions owner 라 status 도 api-football 유지.
 function isTsSoleSource(league: string): boolean {
-  return HOCKEY_LEAGUES.has(league) || BASKETBALL_LEAGUES.has(league);
+  return (
+    HOCKEY_LEAGUES.has(league) ||
+    BASKETBALL_LEAGUES.has(league) ||
+    BASEBALL_LEAGUES.has(league)
+  );
 }
 
 // 팀 이름 normalize 비교 (Team 중복 row 대응 — LALIGA Barcelona 4 row 같은 케이스).
@@ -309,9 +320,9 @@ export async function POST(req: NextRequest) {
               detailLive: {},
             },
           });
-          // TS 단일소스 리그(NBA/WNBA/NHL 등 — ESPN/api-sports cut)는 기존 매치 status/score 도
-          // TS 로 동기화. dedup-link 만 하면 끝난 경기가 SCHEDULED 로 stuck → /scores "연기" 오표시.
-          // 축구/야구는 api-football/ESPN 이 owner 라 skip. 단조 가드(역행 차단, POSTPONED 예외).
+          // TS 단일소스 리그(NBA/NHL/MLB/KBO/NPB 등 — ESPN/api-sports 는 백스톱)는 기존 매치
+          // status/score 도 TS 로 동기화. dedup-link 만 하면 끝난 경기가 SCHEDULED 로 stuck →
+          // /scores "연기" 오표시. 축구만 api-football owner 라 skip. 단조 가드(역행 차단, POSTPONED 예외).
           if (isTsSoleSource(m.league)) {
             const RANK = { SCHEDULED: 0, LIVE: 1, FINISHED: 2, POSTPONED: 2 } as const;
             const cur = await prisma.match.findUnique({
