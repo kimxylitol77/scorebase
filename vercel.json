@@ -17,7 +17,7 @@
     { "path": "/api/cron/api-football", "schedule": "0 3 * * *" },
     { "path": "/api/cron/api-football", "schedule": "0 14 * * *" },
     { "path": "/api/cron/evaluate", "schedule": "0 15 * * *" },
-    { "path": "/api/cron/score-analysis", "schedule": "0 */2 * * *" },
+    { "path": "/api/cron/score-analysis", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/manager-picks", "schedule": "0 23 * * *" },
     { "path": "/api/cron/manager-picks", "schedule": "0 12 * * *" },
     { "path": "/api/cron/fake-picks", "schedule": "*/30 * * * *" },
