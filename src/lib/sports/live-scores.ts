@@ -15,6 +15,7 @@ import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
 import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 const AF_BASE = "https://v3.football.api-sports.io";
 const AB_BASE = "https://v1.baseball.api-sports.io";
@@ -99,6 +100,12 @@ const LEAGUE_LABEL: Record<string, string> = {
   LCS: "LCS",
 };
 
+// 티커/라이브 라벨 — 짧은 LEAGUE_LABEL 우선, 없으면 sport-leagues 의 정식 한글(LEAGUE_DISPLAY),
+// 그것도 없으면 raw 코드. (INTL_FRIENDLY/MOROCCO_BP 등 152개 리그가 raw 로 노출되던 문제 해소)
+function leagueLabelOf(code: string): string {
+  return LEAGUE_LABEL[code] ?? LEAGUE_DISPLAY[code] ?? code;
+}
+
 // API-Football fixture league_id → 우리 코드 (역매핑)
 const AF_ID_TO_CODE: Record<number, string> = Object.fromEntries(
   Object.entries(API_FOOTBALL_LEAGUE_ID).map(([k, v]) => [v, k]),
@@ -176,7 +183,7 @@ export async function fetchSoccerLive(): Promise<LiveMatch[]> {
         return {
           id: `af-${f.fixture.id}`,
           league: code,
-          leagueLabel: LEAGUE_LABEL[code] ?? code,
+          leagueLabel: leagueLabelOf(code),
           homeName: f.teams.home.name,
           awayName: f.teams.away.name,
           homeShort: shortName(f.teams.home.name, code),
@@ -1693,7 +1700,7 @@ export async function fetchBaseballLive(): Promise<LiveMatch[]> {
       return {
         id: `ab-${m.externalId}`, // 기존 prefix 유지 (페이지 매칭 호환)
         league: code,
-        leagueLabel: LEAGUE_LABEL[code] ?? code,
+        leagueLabel: leagueLabelOf(code),
         homeName: m.homeTeam.name,
         awayName: m.awayTeam.name,
         homeShort: shortName(m.homeTeam.name, code),
@@ -1886,7 +1893,7 @@ export async function fetchLolLive(): Promise<LiveMatch[]> {
         return {
           id: `bdllol-${m.id}`,
           league,
-          leagueLabel: LEAGUE_LABEL[league] ?? league,
+          leagueLabel: leagueLabelOf(league),
           homeName: m.team1!.name,
           awayName: m.team2!.name,
           homeShort: m.team1!.name.slice(0, 4),

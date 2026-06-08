@@ -1065,6 +1065,41 @@ export default async function ScoresPage({ searchParams }: Props) {
     return undefined;
   }
 
+  // orphan 라이브 (DB 매치 없음) → 간소 NormalizedMatch. 예측/로고/순위/링크 없이 점수+상태만 표시.
+  function orphanLiveCard(lm: LiveMatch): NormalizedMatch {
+    const st = new Date(lm.startTime);
+    const sport_ = sportFromLeague(lm.league);
+    return {
+      id: lm.id,
+      sport: sport_,
+      league: lm.league,
+      status: "LIVE",
+      home: { name: toKoreanTeamName(lm.homeName, lm.league), abbr: lm.homeShort, logo: null, score: lm.homeScore, teamId: -1, position: null, fifaRank: null },
+      away: { name: toKoreanTeamName(lm.awayName, lm.league), abbr: lm.awayShort, logo: null, score: lm.awayScore, teamId: -1, position: null, fifaRank: null },
+      timeLabel: kstHHmm(st),
+      liveStatusLabel: lm.statusLabel,
+      homeStarter: null,
+      awayStarter: null,
+      soccerCtx: sport_ === "soccer" ? parseSoccerStatus(lm.statusLabel) : null,
+      soccerGoals: null,
+      soccerCards: null,
+      soccerTeamStats: null,
+      soccerHalfStats: null,
+      soccerHalfScore: null,
+      odds: null,
+      esportsCtx: null,
+      baseballCtx: null,
+      baseballLinescore: null,
+      periodLinescore: null,
+      liveCommentary: null,
+      startTime: st,
+      href: null,
+      doubleHeader: null,
+      mma: null,
+      mmaResult: null,
+    };
+  }
+
   // TheSports standings — 카드 팀명 옆 [순위] 표시용. 축구 리그만 prefetch.
   // 야구 [순위] chip 은 별도 검증 후 활성화 (2026-05-27 /predictions 500 사고로 revert).
   const soccerLeaguesInPage = Array.from(
@@ -1079,8 +1114,11 @@ export default async function ScoresPage({ searchParams }: Props) {
     : new Map<string, Map<number, number>>();
 
   // 매치 → 정규화 (sport 분기 + 라이브 보강)
+  // 라이브 API 매치 중 DB 매치에 매칭된 id 추적 — 나머지(orphan)는 메인 카드 누락 방지용으로 따로 추가.
+  const matchedLiveIds = new Set<string>();
   const normalizedAll = matches.map((m) => {
     const live = matchLive(m);
+    if (live) matchedLiveIds.add(live.id);
     const elapsedMs = Date.now() - m.startTime.getTime();
     const sport_ = sportFromLeague(m.league);
     // sport 별 staleLive 임계 — 정규 경기 시간 + 적당 마진.
@@ -1433,8 +1471,21 @@ export default async function ScoresPage({ searchParams }: Props) {
   const sportLeagueSet = new Set(leaguesForSport(sport));
   const normalized = normalizedAll.filter((m) => sportLeagueSet.has(m.league) && !m.hidden);
 
-  // 상태 그룹화 — sport 별 filtered 기반
-  const liveList = normalized.filter((m) => m.status === "LIVE");
+  // orphan 라이브 — DB Match row 가 없지만 라이브 API 가 보고하는 진행 중 축구 경기.
+  // (청소년 친선·군소 리그 등 collect 큐레이션 대상 외 → DB 미적재.) 라이브 티커엔 뜨는데
+  // 메인 카드엔 빠지던 불일치 해소. 축구만 — 타 종목은 종목별 미니보드 데이터가 필요.
+  const orphanLive: NormalizedMatch[] = liveForThisDay
+    .filter(
+      (lm) =>
+        SOCCER_LEAGUES.has(lm.league) &&
+        sportLeagueSet.has(lm.league) &&
+        (!leagueFilter || lm.league === leagueFilter) &&
+        !matchedLiveIds.has(lm.id),
+    )
+    .map((lm) => orphanLiveCard(lm));
+
+  // 상태 그룹화 — sport 별 filtered 기반 (+ orphan 라이브 합침)
+  const liveList = [...normalized.filter((m) => m.status === "LIVE"), ...orphanLive];
   const scheduledList = normalized.filter((m) => m.status === "SCHEDULED");
   // 종료 섹션 — effStatus=FINISHED 이면서 startTime 이 선택 일자(KST 자정) 이후인 매치만.
   // 어제 LIVE 로 stuck 되었다가 staleLive 로 FINISHED 변환된 매치 (collector cron 누락 케이스)

@@ -1,4 +1,5 @@
 // 리그 표시용 작은 뱃지.
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 
 const BADGE_CLS =
   "bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10";
@@ -29,7 +30,9 @@ interface Props {
 export default function LeagueBadge({ league, size = "sm" }: Props) {
   const sizeCls =
     size === "md" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-[10px]";
-  const label = LABELS[league] ?? league;
+  // LABELS(짧은 인기 리그 약칭) 우선 → 없으면 sport-leagues 정식 한글(152개) → raw 코드.
+  // INTL_FRIENDLY/MOROCCO_BP 등이 티커에 raw 로 노출되던 문제 해소.
+  const label = LABELS[league] ?? LEAGUE_DISPLAY[league] ?? league;
   return (
     <span
       className={`inline-flex items-center font-semibold tracking-wide ring-1 ring-inset rounded-md ${sizeCls} ${BADGE_CLS}`}
