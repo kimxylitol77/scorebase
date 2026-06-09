@@ -127,6 +127,28 @@ export async function runPreview(opts?: {
   // 라인업/폼 변동이 큰 먼 미래 매치는 모델 신뢰도가 떨어지므로 의도적으로 좁게.
   const horizon = new Date(now.getTime() + horizonDays * 24 * 60 * 60 * 1000);
 
+  // 재편성된 매치의 stale 프리뷰 정리. 매치가 preview 발행 후 크게 미뤄지면(SCHEDULED 미래 +
+  // startTime - publishedAt > 4일) 옛 프리뷰가 slug(league-preview-matchId)를 점유해 재생성을
+  // 막고(아래 articles:{none:PREVIEW} 조건), /previews 는 startTime desc 라 최상단에 stale 하게
+  // 박힌다 (2026-06 NPB 6/2→6/16 교류전 우천 makeup 사례). 삭제 → 매치 임박 시 fresh 재생성.
+  {
+    const futurePreviews = await prisma.article.findMany({
+      where: {
+        type: "PREVIEW",
+        matchId: { not: null },
+        match: { is: { status: "SCHEDULED", startTime: { gt: now } } },
+      },
+      select: { id: true, publishedAt: true, createdAt: true, match: { select: { startTime: true } } },
+    });
+    const staleIds = futurePreviews
+      .filter((a) => a.match!.startTime.getTime() - (a.publishedAt ?? a.createdAt).getTime() > 4 * 24 * 60 * 60 * 1000)
+      .map((a) => a.id);
+    if (staleIds.length > 0) {
+      await prisma.article.deleteMany({ where: { id: { in: staleIds } } });
+      console.log(`[preview] 재편성 stale 프리뷰 ${staleIds.length}건 삭제 → 재생성 대기`);
+    }
+  }
+
   const { PREVIEW_LEAGUES } = await import("@/lib/sports/types");
   const matches = await prisma.match.findMany({
     where: {
