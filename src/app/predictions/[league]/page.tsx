@@ -653,6 +653,24 @@ export default async function LeaguePredictions({ params }: Props) {
           </div>
         )}
 
+        {/* 조별 통합 베스트 11 진입 (12조) */}
+        {isWorldCup && (
+          <section>
+            <Heading title="조별 통합 베스트 11" subtitle="각 조 4개국 선수를 아우른 최고의 11인 · 평점·순위 매일 갱신" />
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 sm:max-w-xl">
+              {"ABCDEFGHIJKL".split("").map((g) => (
+                <Link
+                  key={g}
+                  href={`/world-cup/best-xi/${g.toLowerCase()}`}
+                  className="flex items-center justify-center py-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-sm font-bold transition"
+                >
+                  {g}조
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* 월드컵 — 토너먼트 시뮬레이션 결과 */}
         {canSimulate && isWorldCup && wc.length > 0 && (
           <>

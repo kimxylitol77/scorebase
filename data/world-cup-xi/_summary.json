@@ -1,0 +1,65 @@
+{
+  "builtAt": null,
+  "groups": [
+    {
+      "group": "A",
+      "xi": 11,
+      "pool": 51
+    },
+    {
+      "group": "B",
+      "xi": 11,
+      "pool": 76
+    },
+    {
+      "group": "C",
+      "xi": 11,
+      "pool": 105
+    },
+    {
+      "group": "D",
+      "xi": 11,
+      "pool": 77
+    },
+    {
+      "group": "E",
+      "xi": 11,
+      "pool": 49
+    },
+    {
+      "group": "F",
+      "xi": 11,
+      "pool": 80
+    },
+    {
+      "group": "G",
+      "xi": 11,
+      "pool": 76
+    },
+    {
+      "group": "H",
+      "xi": 11,
+      "pool": 55
+    },
+    {
+      "group": "I",
+      "xi": 11,
+      "pool": 99
+    },
+    {
+      "group": "J",
+      "xi": 11,
+      "pool": 102
+    },
+    {
+      "group": "K",
+      "xi": 11,
+      "pool": 76
+    },
+    {
+      "group": "L",
+      "xi": 11,
+      "pool": 106
+    }
+  ]
+}

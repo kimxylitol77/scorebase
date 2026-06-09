@@ -43,6 +43,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly" as const,
       priority: 0.85,
     })),
+    // 월드컵 조별 통합 베스트11 (A~L, 12조) — 평점·순위 매일 갱신
+    ...["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"].map((g) => ({
+      url: `${base}/world-cup/best-xi/${g}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.85,
+    })),
   ];
 
   // 발행된 글 — 최근 60일만 (Google 색인 quota 우선순위).
