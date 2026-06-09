@@ -1,10 +1,10 @@
 // preview-coverage.js — 봇 E. 30분 주기 PREVIEW 누락 점검.
 //
 // 정책:
-//   - 다음 3일 SCHEDULED 매치 중 PREVIEW 글 없는 것
+//   - 다음 2일 SCHEDULED 매치 중 PREVIEW 글 없는 것 (generate-previews 잡 horizon 과 일치)
 //   - 야구 (KBO/NPB/MLB): 양 팀 투수 확정된 매치만 누락 카운트
 //     (투수 미확정 시 정상 — 정책상 PREVIEW 안 만듦)
-//   - NO_ARTICLE_LEAGUES 자동 제외 (endpoint 측 필터)
+//   - PREVIEW_LEAGUES 화이트리스트만 (endpoint 측 필터 — PREVIEW 발행 대상과 동일)
 //
 // 알림:
 //   - 누락 1건 이상 → WARN
@@ -22,7 +22,7 @@ const SITE = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
 const WORKER_NAME = "mac-mini-preview-coverage";
 const POLL_MS = 30 * 60 * 1000;
-const HORIZON_DAYS = 3;
+const HORIZON_DAYS = 2; // generate-previews 잡 horizon(기본 2일)과 일치 — 3일째 매치 오탐 방지
 
 if (!TOKEN) { console.error("❌ INTERNAL_API_TOKEN 미설정"); process.exit(1); }
 const headers = { Authorization: `Bearer ${TOKEN}` };
