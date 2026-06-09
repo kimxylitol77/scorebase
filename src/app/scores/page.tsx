@@ -46,6 +46,8 @@ import {
   type LiveMatch,
   parseTsFootballScore,
   type TsFootballScoreParsed,
+  fetchSoccerByDate,
+  type DatedMatch,
 } from "@/lib/sports/live-scores";
 import SportTabs from "@/components/scores/SportTabs";
 import DateSlider from "@/components/scores/DateSlider";
@@ -85,6 +87,12 @@ const fetchBaseballByDateCached = unstable_cache(
 const fetchMlbByDateCached = unstable_cache(
   fetchMlbByDate,
   ["scores-page-mlb-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+// 일자별 우리 축구 리그 경기 전부 (예정/라이브/종료) — orphan(DB 미적재) 카드 보강.
+const fetchSoccerByDateCached = unstable_cache(
+  fetchSoccerByDate,
+  ["scores-page-soccer-by-date"],
   { revalidate: 60, tags: ["live-scores"] },
 );
 // (축구 골/카드는 ESPN 미사용 — TheSportsMatchCache.detailLive.incidents 에서 직접 추출)
@@ -1065,23 +1073,26 @@ export default async function ScoresPage({ searchParams }: Props) {
     return undefined;
   }
 
-  // orphan 라이브 (DB 매치 없음) → 간소 NormalizedMatch. 팀 로고 + 상세 링크 포함, 순위/예측 없음.
-  function orphanLiveCard(lm: LiveMatch): NormalizedMatch {
-    const st = new Date(lm.startTime);
-    const sport_ = sportFromLeague(lm.league);
-    const extId = lm.id.replace(/^[a-z]+-/i, ""); // "af-1546501" → "1546501" (상세 라우트 gameId)
+  // orphan 카드 (DB 매치 없음) → 간소 NormalizedMatch. 그날 우리 리그 경기(예정/라이브/종료)를
+  // date 조회로 보강. 팀 로고 포함. 라이브는 상세 링크 연결, 예정/종료는 점수만(상세 폴백은 라이브 한정).
+  function orphanCard(dm: DatedMatch): NormalizedMatch {
+    const st = new Date(dm.startTime);
+    const sport_ = sportFromLeague(dm.league);
+    const extId = dm.id.replace(/^[a-z]+-/i, "");
+    const isLive = dm.status === "LIVE";
+    const isScheduled = dm.status === "SCHEDULED";
     return {
-      id: lm.id,
+      id: dm.id,
       sport: sport_,
-      league: lm.league,
-      status: "LIVE",
-      home: { name: toKoreanTeamName(lm.homeName, lm.league), abbr: lm.homeShort, logo: lm.homeLogo ?? null, score: lm.homeScore, teamId: -1, position: null, fifaRank: null },
-      away: { name: toKoreanTeamName(lm.awayName, lm.league), abbr: lm.awayShort, logo: lm.awayLogo ?? null, score: lm.awayScore, teamId: -1, position: null, fifaRank: null },
+      league: dm.league,
+      status: dm.status,
+      home: { name: toKoreanTeamName(dm.homeName, dm.league), abbr: dm.homeShort, logo: dm.homeLogo ?? null, score: isScheduled ? null : dm.homeScore, teamId: -1, position: null, fifaRank: null },
+      away: { name: toKoreanTeamName(dm.awayName, dm.league), abbr: dm.awayShort, logo: dm.awayLogo ?? null, score: isScheduled ? null : dm.awayScore, teamId: -1, position: null, fifaRank: null },
       timeLabel: kstHHmm(st),
-      liveStatusLabel: lm.statusLabel,
+      liveStatusLabel: isLive ? dm.statusLabel : null,
       homeStarter: null,
       awayStarter: null,
-      soccerCtx: sport_ === "soccer" ? parseSoccerStatus(lm.statusLabel) : null,
+      soccerCtx: isLive ? parseSoccerStatus(dm.statusLabel) : null,
       soccerGoals: null,
       soccerCards: null,
       soccerTeamStats: null,
@@ -1094,7 +1105,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       periodLinescore: null,
       liveCommentary: null,
       startTime: st,
-      href: `/live/${lm.league}/${extId}`,
+      href: isLive ? `/live/${dm.league}/${extId}` : null,
       doubleHeader: null,
       mma: null,
       mmaResult: null,
@@ -1472,30 +1483,45 @@ export default async function ScoresPage({ searchParams }: Props) {
   const sportLeagueSet = new Set(leaguesForSport(sport));
   const normalized = normalizedAll.filter((m) => sportLeagueSet.has(m.league) && !m.hidden);
 
-  // orphan 라이브 — DB Match row 가 없지만 라이브 API 가 보고하는 진행 중 축구 경기.
-  // (청소년 친선·군소 리그 등 collect 큐레이션 대상 외 → DB 미적재.) 라이브 티커엔 뜨는데
-  // 메인 카드엔 빠지던 불일치 해소. 축구만 — 타 종목은 종목별 미니보드 데이터가 필요.
-  const orphanLive: NormalizedMatch[] = liveForThisDay
+  // orphan — DB Match row 가 없는 그날 우리 축구 리그 경기(예정/라이브/종료)를 date 조회로 보강.
+  // (청소년 친선·군소 리그 등 collect 큐레이션 대상 외 → DB 미적재.) live=all 만 쓰면 종료 후
+  // 사라지므로, 날짜 기반 조회로 라이프사이클(예정→라이브→종료) 전부 표시.
+  const sportIncludesSoccer = sport === "soccer" || sport === "all";
+  const datedSoccer: DatedMatch[] = sportIncludesSoccer
+    ? await fetchSoccerByDateCached(dateStr)
+    : [];
+  const dbExtIds = new Set(matches.map((m) => m.externalId)); // DB 매치와 중복 제거용
+  const orphanCards = datedSoccer
     .filter(
-      (lm) =>
-        SOCCER_LEAGUES.has(lm.league) &&
-        sportLeagueSet.has(lm.league) &&
-        (!leagueFilter || lm.league === leagueFilter) &&
-        !matchedLiveIds.has(lm.id),
+      (dm) =>
+        sportLeagueSet.has(dm.league) &&
+        (!leagueFilter || dm.league === leagueFilter) &&
+        !dbExtIds.has(dm.id.replace(/^[a-z]+-/i, "")) &&
+        !matchedLiveIds.has(dm.id),
     )
-    .map((lm) => orphanLiveCard(lm));
+    .map((dm) => orphanCard(dm));
 
-  // 상태 그룹화 — sport 별 filtered 기반 (+ orphan 라이브 합침)
-  const liveList = [...normalized.filter((m) => m.status === "LIVE"), ...orphanLive];
-  const scheduledList = normalized.filter((m) => m.status === "SCHEDULED");
+  // 상태 그룹화 — DB(normalized) + orphan(date 조회) 합침
+  const liveList = [
+    ...normalized.filter((m) => m.status === "LIVE"),
+    ...orphanCards.filter((m) => m.status === "LIVE"),
+  ];
+  const scheduledList = [
+    ...normalized.filter((m) => m.status === "SCHEDULED"),
+    ...orphanCards.filter((m) => m.status === "SCHEDULED"),
+  ];
   // 종료 섹션 — effStatus=FINISHED 이면서 startTime 이 선택 일자(KST 자정) 이후인 매치만.
   // 어제 LIVE 로 stuck 되었다가 staleLive 로 FINISHED 변환된 매치 (collector cron 누락 케이스)
   // 가 오늘 종료 섹션에 노출되는 문제 방지. 자정 boundary 매치는 startTime >= day 라 OK.
-  const finishedList = normalized.filter(
-    (m) => m.status === "FINISHED" && m.startTime.getTime() >= day.getTime(),
-  );
+  const finishedList = [
+    ...normalized.filter((m) => m.status === "FINISHED" && m.startTime.getTime() >= day.getTime()),
+    ...orphanCards.filter((m) => m.status === "FINISHED"),
+  ];
   // 연기 섹션 — POSTPONED 매치. cleanup-stale-scheduled cron 으로 자동 처리되는 매치도 포함.
-  const postponedList = normalized.filter((m) => m.status === "POSTPONED");
+  const postponedList = [
+    ...normalized.filter((m) => m.status === "POSTPONED"),
+    ...orphanCards.filter((m) => m.status === "POSTPONED"),
+  ];
 
   // 라이브 카운트 (종목 탭 dot 표시용)
   const liveCounts: Partial<Record<SportCode, number>> = {};

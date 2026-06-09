@@ -209,6 +209,76 @@ export async function fetchSoccerLive(): Promise<LiveMatch[]> {
   }
 }
 
+/** api-football fixture status.short → 우리 status 분류. */
+function soccerEffStatus(short: string): "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED" {
+  if (["1H", "2H", "HT", "ET", "BT", "P", "LIVE", "INT"].includes(short)) return "LIVE";
+  if (["FT", "AET", "PEN", "AWD", "WO"].includes(short)) return "FINISHED";
+  if (["PST", "CANC", "ABD", "SUSP"].includes(short)) return "POSTPONED";
+  return "SCHEDULED"; // NS / TBD
+}
+
+/** LiveMatch + 경기 상태 — 날짜 조회(예정/라이브/종료 혼재)용. */
+export interface DatedMatch extends LiveMatch {
+  status: "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED";
+}
+
+/**
+ * KST 특정일(yyyy-mm-dd)의 우리 축구 리그 경기 전부 — 예정/라이브/종료 혼재.
+ * api-football /fixtures?date 는 UTC 기준이라 KST 하루는 UTC 2일에 걸침 → 전날+당일 2회 조회 후
+ * KST 일자로 필터. orphan(DB 미적재 — 청소년 친선·군소 리그) 카드가 종료 후 사라지지 않게 함.
+ */
+export async function fetchSoccerByDate(kstDateStr: string): Promise<DatedMatch[]> {
+  const key = process.env.API_FOOTBALL_KEY;
+  if (!key) return [];
+  try {
+    const dayStart = new Date(`${kstDateStr}T00:00:00+09:00`); // KST 00:00 = UTC 전날 15:00
+    const utcDates = [
+      dayStart.toISOString().slice(0, 10),
+      new Date(dayStart.getTime() + 24 * 3600 * 1000).toISOString().slice(0, 10),
+    ];
+    const resps = await Promise.all(
+      utcDates.map((d) =>
+        getJson<AFFixtureResp>(`${AF_BASE}/fixtures?date=${d}`, {
+          "x-apisports-key": key,
+        }).catch(() => ({ response: [] }) as AFFixtureResp),
+      ),
+    );
+    const seen = new Set<string>();
+    const out: DatedMatch[] = [];
+    for (const f of resps.flatMap((r) => r.response ?? [])) {
+      const code = AF_ID_TO_CODE[f.league.id];
+      if (!code) continue; // 우리가 지원하는 리그만
+      const kst = new Date(new Date(f.fixture.date).getTime() + 9 * 3600 * 1000)
+        .toISOString()
+        .slice(0, 10);
+      if (kst !== kstDateStr) continue; // 정확히 KST 해당 일자만
+      const id = `af-${f.fixture.id}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.push({
+        id,
+        league: code,
+        leagueLabel: leagueLabelOf(code),
+        homeName: f.teams.home.name,
+        awayName: f.teams.away.name,
+        homeShort: shortName(f.teams.home.name, code),
+        awayShort: shortName(f.teams.away.name, code),
+        homeLogo: f.teams.home.logo ?? null,
+        awayLogo: f.teams.away.logo ?? null,
+        homeScore: f.goals.home ?? 0,
+        awayScore: f.goals.away ?? 0,
+        statusLabel: soccerStatusLabel(f.fixture.status.short, f.fixture.status.elapsed),
+        startTime: f.fixture.date,
+        status: soccerEffStatus(f.fixture.status.short),
+      });
+    }
+    return out;
+  } catch (e) {
+    console.warn("[live-scores/soccer-by-date]", (e as Error).message);
+    return [];
+  }
+}
+
 /* ============================================================
  * 야구 (KBO·NPB·MLB) — API-Sports Baseball
  * ==========================================================*/
