@@ -668,6 +668,13 @@ export default async function LeaguePredictions({ params }: Props) {
                 </Link>
               ))}
             </div>
+            {/* 12개 조를 아우른 종합 분석 글 진입점 (글 #2105) */}
+            <Link
+              href="/articles/world-cup-best-xi-2026"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-amber-600 dark:text-amber-400 hover:underline"
+            >
+              📖 12개 조 통합 베스트 11 종합 분석 글 보기 →
+            </Link>
           </section>
         )}
 
