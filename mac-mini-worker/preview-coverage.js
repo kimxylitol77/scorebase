@@ -82,7 +82,7 @@ async function poll() {
   const miss = data.missing ?? [];
   const baseballPending = data.baseball_starter_pending_count ?? 0;
 
-  console.log(`  3일 SCHEDULED: ${total}건 | 누락: ${miss.length}건 | 야구 투수 미확정 (정상 skip): ${baseballPending}건`);
+  console.log(`  ${HORIZON_DAYS}일 SCHEDULED: ${total}건 | 누락: ${miss.length}건 | 야구 투수 미확정 (정상 skip): ${baseballPending}건`);
 
   // 누락 0 → 알림 X (해소 시 INFO 만)
   if (miss.length === 0) {
