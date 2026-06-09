@@ -23,7 +23,8 @@
     {
       "id": "l7oqdeh085vr510",
       "name": "Álvaro Montero",
-      "nameKo": "Álvaro Montero",
+      "nameKo": "알바로 몬테로",
+      "hasMv": false,
       "pos": "G",
       "country": "Colombia",
       "flag": "🇨🇴",
@@ -39,7 +40,8 @@
     {
       "id": "n54qllhx733qvy9",
       "name": "Rúben Dias",
-      "nameKo": "Rúben Dias",
+      "nameKo": "루벤 디아스",
+      "hasMv": true,
       "pos": "D",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -55,7 +57,8 @@
     {
       "id": "8yomo4h9zg1q0j6",
       "name": "Willer Ditta",
-      "nameKo": "Willer Ditta",
+      "nameKo": "윌러 디타",
+      "hasMv": false,
       "pos": "D",
       "country": "Colombia",
       "flag": "🇨🇴",
@@ -71,7 +74,8 @@
     {
       "id": "4wyrn4h4w9dgq86",
       "name": "Abdukodir Khusanov",
-      "nameKo": "Abdukodir Khusanov",
+      "nameKo": "압두코디르 쿠사노프",
+      "hasMv": true,
       "pos": "D",
       "country": "Uzbekistan",
       "flag": "🇺🇿",
@@ -88,6 +92,7 @@
       "id": "l7oqdeh03ygvr51",
       "name": "Renato Veiga",
       "nameKo": "헤나투 베이가",
+      "hasMv": true,
       "pos": "D",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -103,7 +108,8 @@
     {
       "id": "n54qllhx11oqvy9",
       "name": "Bruno Fernandes",
-      "nameKo": "Bruno Fernandes",
+      "nameKo": "브루노 페르난데스",
+      "hasMv": true,
       "pos": "M",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -119,7 +125,8 @@
     {
       "id": "3glrw7hj003qdyj",
       "name": "Rúben Neves",
-      "nameKo": "Rúben Neves",
+      "nameKo": "루벤 네베스",
+      "hasMv": true,
       "pos": "M",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -135,7 +142,8 @@
     {
       "id": "dj2ryohjlv0xq1z",
       "name": "Francisco Conceicao",
-      "nameKo": "Francisco Conceicao",
+      "nameKo": "프란시스코 콘세이소",
+      "hasMv": true,
       "pos": "M",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -151,7 +159,8 @@
     {
       "id": "6ypq3nh4pzdmd7o",
       "name": "Luis Díaz",
-      "nameKo": "Luis Díaz",
+      "nameKo": "루이스 디아즈",
+      "hasMv": true,
       "pos": "F",
       "country": "Colombia",
       "flag": "🇨🇴",
@@ -167,7 +176,8 @@
     {
       "id": "8yomo4h290z0q0j",
       "name": "Jhon Arias",
-      "nameKo": "Jhon Arias",
+      "nameKo": "존 아리아스",
+      "hasMv": true,
       "pos": "F",
       "country": "Colombia",
       "flag": "🇨🇴",
@@ -183,7 +193,8 @@
     {
       "id": "8yomo4h03g0q0j6",
       "name": "Francisco Trincão",
-      "nameKo": "Francisco Trincão",
+      "nameKo": "트린캉",
+      "hasMv": true,
       "pos": "F",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -201,7 +212,8 @@
     {
       "id": "6ypq3nhzkn7md7o",
       "name": "Igor Sergeev",
-      "nameKo": "Igor Sergeev",
+      "nameKo": "이고르 세르게예프",
+      "hasMv": false,
       "pos": "F",
       "country": "Uzbekistan",
       "flag": "🇺🇿",
@@ -215,7 +227,8 @@
     {
       "id": "6ypq3nh19kemd7o",
       "name": "Pedro Neto",
-      "nameKo": "Pedro Neto",
+      "nameKo": "페드로 네토",
+      "hasMv": true,
       "pos": "F",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -229,7 +242,8 @@
     {
       "id": "3glrw7h0loeqdyj",
       "name": "Luis Suárez",
-      "nameKo": "Luis Suárez",
+      "nameKo": "루이스 수아레스",
+      "hasMv": true,
       "pos": "F",
       "country": "Colombia",
       "flag": "🇨🇴",
@@ -243,7 +257,8 @@
     {
       "id": "n54qllhxvv8qvy9",
       "name": "Davinson Sánchez",
-      "nameKo": "Davinson Sánchez",
+      "nameKo": "다빈손 산체스",
+      "hasMv": true,
       "pos": "D",
       "country": "Colombia",
       "flag": "🇨🇴",
@@ -257,7 +272,8 @@
     {
       "id": "23xmvkhdwwlqg8n",
       "name": "Gonçalo Guedes",
-      "nameKo": "Gonçalo Guedes",
+      "nameKo": "곤살로 게데스",
+      "hasMv": true,
       "pos": "F",
       "country": "Portugal",
       "flag": "🇵🇹",
@@ -271,7 +287,8 @@
     {
       "id": "y0or5jhge5lqwzv",
       "name": "Jhon Lucumi",
-      "nameKo": "Jhon Lucumi",
+      "nameKo": "존 루쿠미",
+      "hasMv": true,
       "pos": "D",
       "country": "Colombia",
       "flag": "🇨🇴",

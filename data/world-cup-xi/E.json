@@ -23,7 +23,8 @@
     {
       "id": "y39mp1hypk9emoj",
       "name": "Jonas Urbig",
-      "nameKo": "Jonas Urbig",
+      "nameKo": "요나스 우르비그",
+      "hasMv": true,
       "pos": "G",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -39,7 +40,8 @@
     {
       "id": "jw2r09hxke39rz8",
       "name": "Malick Thiaw",
-      "nameKo": "Malick Thiaw",
+      "nameKo": "말릭 티아우",
+      "hasMv": true,
       "pos": "D",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -55,7 +57,8 @@
     {
       "id": "8yomo4h2xn90q0j",
       "name": "Nico Schlotterbeck",
-      "nameKo": "Nico Schlotterbeck",
+      "nameKo": "니코 슐로테벡",
+      "hasMv": true,
       "pos": "D",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -71,7 +74,8 @@
     {
       "id": "n54qllhxdy6qvy9",
       "name": "Joshua Kimmich",
-      "nameKo": "Joshua Kimmich",
+      "nameKo": "조슈아 킴미히",
+      "hasMv": true,
       "pos": "D",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -87,7 +91,8 @@
     {
       "id": "vjxm8gh870e8r6o",
       "name": "Nathaniel Brown",
-      "nameKo": "Nathaniel Brown",
+      "nameKo": "나단니엘 브라운",
+      "hasMv": true,
       "pos": "D",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -103,7 +108,8 @@
     {
       "id": "3glrw7hj7vjoqdy",
       "name": "Jamal Musiala",
-      "nameKo": "Jamal Musiala",
+      "nameKo": "자말 무시알라",
+      "hasMv": true,
       "pos": "M",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -119,7 +125,8 @@
     {
       "id": "1l4rjnhzgol1m7v",
       "name": "Florian Wirtz",
-      "nameKo": "Florian Wirtz",
+      "nameKo": "플로리안 비르츠",
+      "hasMv": true,
       "pos": "M",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -135,7 +142,8 @@
     {
       "id": "x7lm7phw7govm2w",
       "name": "Aleksandar Pavlović",
-      "nameKo": "Aleksandar Pavlović",
+      "nameKo": "알렉산다르 파블로비치",
+      "hasMv": true,
       "pos": "M",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -151,7 +159,8 @@
     {
       "id": "jw2r09hwgw0rz84",
       "name": "Kai Havertz",
-      "nameKo": "Kai Havertz",
+      "nameKo": "카이 하베르츠",
+      "hasMv": true,
       "pos": "F",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -167,7 +176,8 @@
     {
       "id": "l5ergphe8e6r8k0",
       "name": "Deniz Undav",
-      "nameKo": "Deniz Undav",
+      "nameKo": "데니즈 운다브",
+      "hasMv": true,
       "pos": "F",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -183,7 +193,8 @@
     {
       "id": "23xmvkhkg0p2qg8",
       "name": "Nilson Angulo",
-      "nameKo": "Nilson Angulo",
+      "nameKo": "닐손 안구로",
+      "hasMv": true,
       "pos": "F",
       "country": "Ecuador",
       "flag": "🇪🇨",
@@ -201,7 +212,8 @@
     {
       "id": "965mkyh3204gr1g",
       "name": "Moises Caicedo",
-      "nameKo": "Moises Caicedo",
+      "nameKo": "모이세스 카이세도",
+      "hasMv": true,
       "pos": "M",
       "country": "Ecuador",
       "flag": "🇪🇨",
@@ -215,7 +227,8 @@
     {
       "id": "vjxm8ghpl7vvr6o",
       "name": "Lennart Karl",
-      "nameKo": "Lennart Karl",
+      "nameKo": "렌나르트 칼",
+      "hasMv": true,
       "pos": "M",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -230,6 +243,7 @@
       "id": "ednm9whz7z5yryo",
       "name": "Piero Hincapié",
       "nameKo": "피에로 인카피에",
+      "hasMv": true,
       "pos": "D",
       "country": "Ecuador",
       "flag": "🇪🇨",
@@ -243,7 +257,8 @@
     {
       "id": "y0or5jheolzqwzv",
       "name": "Leroy Sané",
-      "nameKo": "Leroy Sané",
+      "nameKo": "레로이 사네",
+      "hasMv": true,
       "pos": "M",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -257,7 +272,8 @@
     {
       "id": "zp5rzghzj63q82w",
       "name": "Jonathan Tah",
-      "nameKo": "Jonathan Tah",
+      "nameKo": "조나단 타",
+      "hasMv": true,
       "pos": "D",
       "country": "Germany",
       "flag": "🇩🇪",
@@ -271,7 +287,8 @@
     {
       "id": "3glrw7hl2lnqdyj",
       "name": "Felix Nmecha",
-      "nameKo": "Felix Nmecha",
+      "nameKo": "펠릭스 네메차",
+      "hasMv": true,
       "pos": "M",
       "country": "Germany",
       "flag": "🇩🇪",

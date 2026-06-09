@@ -23,7 +23,8 @@
     {
       "id": "3glrw7hynjzxqdy",
       "name": "Patrick Beach",
-      "nameKo": "Patrick Beach",
+      "nameKo": "패트릭 비치",
+      "hasMv": false,
       "pos": "G",
       "country": "Australia",
       "flag": "🇦🇺",
@@ -39,7 +40,8 @@
     {
       "id": "6ypq3nhwpj2md7o",
       "name": "Antonee Robinson",
-      "nameKo": "Antonee Robinson",
+      "nameKo": "안토니 로빈슨",
+      "hasMv": true,
       "pos": "D",
       "country": "USA",
       "flag": "🇺🇸",
@@ -55,7 +57,8 @@
     {
       "id": "dn1m1gh3z2gmoep",
       "name": "Omar Alderete",
-      "nameKo": "Omar Alderete",
+      "nameKo": "오마르 알데레테",
+      "hasMv": true,
       "pos": "D",
       "country": "Paraguay",
       "flag": "🇵🇾",
@@ -71,7 +74,8 @@
     {
       "id": "3glrw7hz7n7wqdy",
       "name": "Lucas Herrington",
-      "nameKo": "Lucas Herrington",
+      "nameKo": "루카스 헤링턴",
+      "hasMv": false,
       "pos": "D",
       "country": "Australia",
       "flag": "🇦🇺",
@@ -87,7 +91,8 @@
     {
       "id": "vjxm8gh8lgkdr6o",
       "name": "Alessandro Circati",
-      "nameKo": "Alessandro Circati",
+      "nameKo": "알레산드로 치르카티",
+      "hasMv": true,
       "pos": "D",
       "country": "Australia",
       "flag": "🇦🇺",
@@ -103,7 +108,8 @@
     {
       "id": "965mkyhn3gjr1ge",
       "name": "Christian Pulisic",
-      "nameKo": "Christian Pulisic",
+      "nameKo": "크리스티안 풀리시치",
+      "hasMv": true,
       "pos": "M",
       "country": "USA",
       "flag": "🇺🇸",
@@ -119,7 +125,8 @@
     {
       "id": "8yomo4hvy06zq0j",
       "name": "Diego Gomez",
-      "nameKo": "Diego Gomez",
+      "nameKo": "디에고 알렉산더 고메즈 아마리야",
+      "hasMv": true,
       "pos": "M",
       "country": "Paraguay",
       "flag": "🇵🇾",
@@ -135,7 +142,8 @@
     {
       "id": "ednm9whzx15zryo",
       "name": "Julio Enciso",
-      "nameKo": "Julio Enciso",
+      "nameKo": "후리오 엔시소",
+      "hasMv": true,
       "pos": "M",
       "country": "Paraguay",
       "flag": "🇵🇾",
@@ -151,7 +159,8 @@
     {
       "id": "pxwrxlh9577pryk",
       "name": "Folarin Balogun",
-      "nameKo": "Folarin Balogun",
+      "nameKo": "폴라린 바로그운",
+      "hasMv": true,
       "pos": "F",
       "country": "USA",
       "flag": "🇺🇸",
@@ -167,7 +176,8 @@
     {
       "id": "1l4rjnhx14npm7v",
       "name": "Tete Yengi",
-      "nameKo": "Tete Yengi",
+      "nameKo": "테테 옌기",
+      "hasMv": false,
       "pos": "F",
       "country": "Australia",
       "flag": "🇦🇺",
@@ -183,7 +193,8 @@
     {
       "id": "y0or5jhez44jqwz",
       "name": "Ricardo Pepi",
-      "nameKo": "Ricardo Pepi",
+      "nameKo": "리카르도 페피",
+      "hasMv": true,
       "pos": "F",
       "country": "USA",
       "flag": "🇺🇸",
@@ -201,7 +212,8 @@
     {
       "id": "ednm9whd417ryox",
       "name": "Sergiño Dest",
-      "nameKo": "Sergiño Dest",
+      "nameKo": "세르지뇨 데스트",
+      "hasMv": true,
       "pos": "M",
       "country": "USA",
       "flag": "🇺🇸",
@@ -215,7 +227,8 @@
     {
       "id": "k82rekhy2z1vrep",
       "name": "Ramon Sosa",
-      "nameKo": "Ramon Sosa",
+      "nameKo": "라몬 소사",
+      "hasMv": true,
       "pos": "F",
       "country": "Paraguay",
       "flag": "🇵🇾",
@@ -229,7 +242,8 @@
     {
       "id": "23xmvkhd083jqg8",
       "name": "Malik Tillman",
-      "nameKo": "Malik Tillman",
+      "nameKo": "말릭 틸만",
+      "hasMv": true,
       "pos": "M",
       "country": "USA",
       "flag": "🇺🇸",
@@ -243,7 +257,8 @@
     {
       "id": "dj2ryohg7z1q1zp",
       "name": "Tyler Adams",
-      "nameKo": "Tyler Adams",
+      "nameKo": "타일러 아담스",
+      "hasMv": true,
       "pos": "M",
       "country": "USA",
       "flag": "🇺🇸",
@@ -257,7 +272,8 @@
     {
       "id": "y0or5jh1v1wqwzv",
       "name": "Weston McKennie",
-      "nameKo": "Weston McKennie",
+      "nameKo": "웨스턴 맥케니",
+      "hasMv": true,
       "pos": "M",
       "country": "USA",
       "flag": "🇺🇸",
@@ -271,7 +287,8 @@
     {
       "id": "dj2ryohj755q1zp",
       "name": "Miguel Almirón",
-      "nameKo": "Miguel Almirón",
+      "nameKo": "미구엘 알미론",
+      "hasMv": true,
       "pos": "F",
       "country": "Paraguay",
       "flag": "🇵🇾",

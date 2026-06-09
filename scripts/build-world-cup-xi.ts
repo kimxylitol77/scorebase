@@ -48,7 +48,6 @@ const KO: Record<string, string> = {
   "Harry Kane": "해리 케인", "Jude Bellingham": "주드 벨링엄", "Vinicius Junior": "비니시우스 주니오르",
   "Lamine Yamal": "라민 야말", "Erling Haaland": "엘링 홀란", "Virgil van Dijk": "버질 반 다이크",
 };
-const koName = (id: string, en: string) => OV[id]?.nameKo || KO[en] || en;
 const isWomenOrYouth = (n: string) => /women|\(w\)|girls|U1[5-9]|U2[0-3]/i.test(n);
 const norm = (s: string) => s.toLowerCase().replace(/[\s.&·-]/g, "");
 
@@ -90,6 +89,9 @@ async function main() {
   const allIds = Object.values(byCountry).flatMap((m) => [...m.keys()]);
   const mv = await p.playerMarketValue.findMany({ where: { id: { in: allIds } }, select: { id: true, currentValue: true } });
   const valById = new Map(mv.map((m) => [m.id, m.currentValue ?? 0]));
+  // 한글명 — TheSportsPlayer.nameKo (haiku/OpenAI 음역 백필분)
+  const tspRows = await p.theSportsPlayer.findMany({ where: { id: { in: allIds }, nameKo: { not: null } }, select: { id: true, nameKo: true } });
+  const tspKo = new Map(tspRows.map((t) => [t.id, t.nameKo!]));
 
   fs.mkdirSync("data/world-cup-xi", { recursive: true });
   const summary: { group: string; xi: number; pool: number }[] = [];
@@ -104,7 +106,8 @@ async function main() {
         const score = pl.rating > 0 ? (valuePart > 0 ? pl.rating * 0.5 + valuePart * 0.5 : pl.rating) : (valuePart || 5.0);
         const valid = pl.ratings.filter((x) => x.r > 0).sort((a, b) => b.d.localeCompare(a.d));
         pool.push({
-          id: pl.id, name: pl.name, nameKo: koName(pl.id, pl.name), pos: pl.pos, country, flag: flagOf(country),
+          id: pl.id, name: pl.name, nameKo: OV[pl.id]?.nameKo || KO[pl.name] || tspKo.get(pl.id) || pl.name,
+          hasMv: (valById.get(pl.id) ?? 0) > 0, pos: pl.pos, country, flag: flagOf(country),
           logo: pl.logo, score: +score.toFixed(2), star: Math.max(1, Math.min(5, Math.floor(score / 2))),
           recentRating: valid[0]?.r ?? 0, avgRating: valid.length ? +(valid.reduce((s, x) => s + x.r, 0) / valid.length).toFixed(2) : 0, games: valid.length,
         });

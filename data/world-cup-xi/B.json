@@ -23,7 +23,8 @@
     {
       "id": "23xmvkhd6jzoqg8",
       "name": "Mahmoud Abunada",
-      "nameKo": "Mahmoud Abunada",
+      "nameKo": "마흐무드 아부나드",
+      "hasMv": false,
       "pos": "G",
       "country": "Qatar",
       "flag": "🇶🇦",
@@ -39,7 +40,8 @@
     {
       "id": "pxwrxlhznovryk0",
       "name": "Pedro Miguel",
-      "nameKo": "Pedro Miguel",
+      "nameKo": "페드로 미구엘",
+      "hasMv": false,
       "pos": "D",
       "country": "Qatar",
       "flag": "🇶🇦",
@@ -55,7 +57,8 @@
     {
       "id": "2y8m4zh4v8gql07",
       "name": "Alfie Jones",
-      "nameKo": "Alfie Jones",
+      "nameKo": "알피 존스",
+      "hasMv": false,
       "pos": "D",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -71,7 +74,8 @@
     {
       "id": "pxwrxlhj2n53ryk",
       "name": "Luca Jaquez",
-      "nameKo": "Luca Jaquez",
+      "nameKo": "루카 안토니 자케즈",
+      "hasMv": true,
       "pos": "D",
       "country": "Switzerland",
       "flag": "🇨🇭",
@@ -87,7 +91,8 @@
     {
       "id": "pxwrxlh975nryk0",
       "name": "Nico Elvedi",
-      "nameKo": "Nico Elvedi",
+      "nameKo": "니코 엘베디",
+      "hasMv": true,
       "pos": "D",
       "country": "Switzerland",
       "flag": "🇨🇭",
@@ -103,7 +108,8 @@
     {
       "id": "ednm9whzd48ryox",
       "name": "Jonathan Osorio",
-      "nameKo": "Jonathan Osorio",
+      "nameKo": "조나단 오소리오",
+      "hasMv": false,
       "pos": "M",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -119,7 +125,8 @@
     {
       "id": "dn1m1ghnkz8kmoe",
       "name": "Dan Ndoye",
-      "nameKo": "Dan Ndoye",
+      "nameKo": "단 엔도예",
+      "hasMv": true,
       "pos": "M",
       "country": "Switzerland",
       "flag": "🇨🇭",
@@ -135,7 +142,8 @@
     {
       "id": "y0or5jh3ld3oqwz",
       "name": "Nathan-Dylan Saliba",
-      "nameKo": "Nathan-Dylan Saliba",
+      "nameKo": "나단-딜란 살리바",
+      "hasMv": false,
       "pos": "M",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -151,7 +159,8 @@
     {
       "id": "6ypq3nhzvz51md7",
       "name": "Jayden Nelson",
-      "nameKo": "Jayden Nelson",
+      "nameKo": "제이든 넬슨",
+      "hasMv": false,
       "pos": "F",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -167,7 +176,8 @@
     {
       "id": "965mkyhn4ypwr1g",
       "name": "Johan Manzambi",
-      "nameKo": "Johan Manzambi",
+      "nameKo": "만잠비",
+      "hasMv": true,
       "pos": "F",
       "country": "Switzerland",
       "flag": "🇨🇭",
@@ -183,7 +193,8 @@
     {
       "id": "l7oqdeh42e77r51",
       "name": "Jonathan David",
-      "nameKo": "Jonathan David",
+      "nameKo": "조나단 데이비드",
+      "hasMv": true,
       "pos": "F",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -201,7 +212,8 @@
     {
       "id": "k82rekhon5dvrep",
       "name": "Ismael Kone",
-      "nameKo": "Ismael Kone",
+      "nameKo": "이스마엘 코네",
+      "hasMv": true,
       "pos": "M",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -215,7 +227,8 @@
     {
       "id": "l7oqdeh4g466r51",
       "name": "Ralph Priso",
-      "nameKo": "Ralph Priso",
+      "nameKo": "래프 프리소",
+      "hasMv": false,
       "pos": "M",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -229,7 +242,8 @@
     {
       "id": "ednm9whz104ryox",
       "name": "Gregor Kobel",
-      "nameKo": "Gregor Kobel",
+      "nameKo": "그레고르 코벨",
+      "hasMv": true,
       "pos": "G",
       "country": "Switzerland",
       "flag": "🇨🇭",
@@ -243,7 +257,8 @@
     {
       "id": "l5ergph50jvr8k0",
       "name": "Stephen Eustáquio",
-      "nameKo": "Stephen Eustáquio",
+      "nameKo": "스테판 유스타퀴오",
+      "hasMv": false,
       "pos": "M",
       "country": "Canada",
       "flag": "🇨🇦",
@@ -257,7 +272,8 @@
     {
       "id": "4jwq2ghvdzy4m0v",
       "name": "Ardon Jashari",
-      "nameKo": "Ardon Jashari",
+      "nameKo": "아르돈 자사리",
+      "hasMv": true,
       "pos": "M",
       "country": "Switzerland",
       "flag": "🇨🇭",
@@ -271,7 +287,8 @@
     {
       "id": "zp5rzgh7x6kq82w",
       "name": "Granit Xhaka",
-      "nameKo": "Granit Xhaka",
+      "nameKo": "그라니트 자카",
+      "hasMv": true,
       "pos": "M",
       "country": "Switzerland",
       "flag": "🇨🇭",

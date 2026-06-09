@@ -22,7 +22,7 @@ const COUNTRY_KO: Record<string, string> = {
   England: "잉글랜드", Croatia: "크로아티아", Ghana: "가나", Panama: "파나마",
 };
 
-interface XIPlayer { name: string; nameKo?: string; pos: string; country: string; flag: string; star: number; score: number; recentRating?: number; logo: string | null; x: number; y: number }
+interface XIPlayer { id: string; name: string; nameKo?: string; pos: string; country: string; flag: string; star: number; score: number; recentRating?: number; hasMv?: boolean; logo: string | null; x: number; y: number }
 interface GroupData { group: string; countries: { name: string; flag: string }[]; teamRating: number; xi: XIPlayer[]; bench: XIPlayer[]; complete: boolean }
 
 function load(g: string): GroupData | null {
@@ -103,47 +103,66 @@ export default async function Page({ params }: { params: Promise<{ group: string
           <div className="absolute left-1/2 top-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 border-2 border-white/15 rounded-full" />
           <div className="absolute left-1/2 bottom-3 w-32 h-12 -translate-x-1/2 border-2 border-t-0 border-white/15" />
           <div className="absolute left-1/2 top-3 w-32 h-12 -translate-x-1/2 border-2 border-b-0 border-white/15" />
-          {xi.map((p, i) => (
-            <div key={i} className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2" style={{ left: `${p.x}%`, top: `${p.y}%`, width: "88px" }}>
-              <div className="relative w-14 h-14 rounded-full ring-2 ring-white/80 overflow-hidden bg-neutral-800 flex items-center justify-center shadow-lg">
-                {p.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.logo} alt={koOf(p)} className="w-full h-full object-cover" />
+          {xi.map((p, i) => {
+            const inner = (
+              <>
+                <div className="relative w-14 h-14 rounded-full ring-2 ring-white/80 overflow-hidden bg-neutral-800 flex items-center justify-center shadow-lg">
+                  {p.logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.logo} alt={koOf(p)} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-lg font-black text-neutral-300">{koOf(p).slice(0, 1)}</span>
+                  )}
+                </div>
+                <div className="mt-1 px-0.5 text-[11px] font-bold leading-tight text-center w-full break-keep drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                  <span className="mr-0.5 align-middle">{p.flag}</span>{koOf(p)}
+                </div>
+                <div className="text-amber-400 text-[10px] leading-none tracking-tight">{"★".repeat(p.star)}<span className="text-white/25">{"★".repeat(5 - p.star)}</span></div>
+                {p.recentRating ? (
+                  <div className="mt-0.5 inline-flex items-center rounded bg-emerald-500/20 px-1 text-[9px] font-bold text-emerald-300 leading-tight">최근 {p.recentRating.toFixed(1)}</div>
                 ) : (
-                  <span className="text-lg font-black text-neutral-300">{koOf(p).slice(0, 1)}</span>
+                  <div className="mt-0.5 text-[9px] text-neutral-500 leading-tight">평점 —</div>
+                )}
+              </>
+            );
+            return (
+              <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${p.x}%`, top: `${p.y}%`, width: "88px" }}>
+                {p.hasMv ? (
+                  <Link href={`/transfers/${p.id}`} className="flex flex-col items-center hover:opacity-80 transition" title={`${koOf(p)} 시장가치·이적 보기`}>{inner}</Link>
+                ) : (
+                  <div className="flex flex-col items-center">{inner}</div>
                 )}
               </div>
-              <div className="mt-1 px-0.5 text-[11px] font-bold leading-tight text-center w-full break-keep drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-                <span className="mr-0.5 align-middle">{p.flag}</span>{koOf(p)}
-              </div>
-              <div className="text-amber-400 text-[10px] leading-none tracking-tight">{"★".repeat(p.star)}<span className="text-white/25">{"★".repeat(5 - p.star)}</span></div>
-              {p.recentRating ? (
-                <div className="mt-0.5 inline-flex items-center rounded bg-emerald-500/20 px-1 text-[9px] font-bold text-emerald-300 leading-tight">최근 {p.recentRating.toFixed(1)}</div>
-              ) : (
-                <div className="mt-0.5 text-[9px] text-neutral-500 leading-tight">평점 —</div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {bench && bench.length > 0 && (
           <div className="mt-5">
             <div className="text-xs font-bold text-neutral-400 mb-2">후보 선수 · 차순위</div>
             <div className="grid grid-cols-3 gap-2">
-              {bench.map((p, i) => (
-                <div key={i} className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1.5">
-                  <div className="w-7 h-7 rounded-full overflow-hidden bg-neutral-800 shrink-0 flex items-center justify-center ring-1 ring-white/15">
-                    {p.logo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.logo} alt="" className="w-full h-full object-cover" />
-                    ) : (<span className="text-[10px] font-bold text-neutral-400">{koOf(p).slice(0, 1)}</span>)}
-                  </div>
-                  <div className="min-w-0 leading-tight">
-                    <div className="text-[10px] font-bold truncate">{p.flag} {koOf(p)}</div>
-                    <div className="text-[9px] text-emerald-300">{p.recentRating ? `최근 ${p.recentRating.toFixed(1)}` : "평점 —"}</div>
-                  </div>
-                </div>
-              ))}
+              {bench.map((p, i) => {
+                const inner = (
+                  <>
+                    <div className="w-7 h-7 rounded-full overflow-hidden bg-neutral-800 shrink-0 flex items-center justify-center ring-1 ring-white/15">
+                      {p.logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.logo} alt="" className="w-full h-full object-cover" />
+                      ) : (<span className="text-[10px] font-bold text-neutral-400">{koOf(p).slice(0, 1)}</span>)}
+                    </div>
+                    <div className="min-w-0 leading-tight">
+                      <div className="text-[10px] font-bold truncate">{p.flag} {koOf(p)}</div>
+                      <div className="text-[9px] text-emerald-300">{p.recentRating ? `최근 ${p.recentRating.toFixed(1)}` : "평점 —"}</div>
+                    </div>
+                  </>
+                );
+                const cls = "flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1.5";
+                return p.hasMv ? (
+                  <Link key={i} href={`/transfers/${p.id}`} className={`${cls} hover:bg-white/10 transition`}>{inner}</Link>
+                ) : (
+                  <div key={i} className={cls}>{inner}</div>
+                );
+              })}
             </div>
           </div>
         )}
