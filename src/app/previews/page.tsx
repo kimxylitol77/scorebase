@@ -1,12 +1,18 @@
 // 종목별 PREVIEW 글 모음 페이지.
 // 축구·야구·농구·하키·e스포츠 카테고리 탭으로 프리뷰만 모아 보기.
+//
+// 야구는 리그별로 발행 주기가 달라(MLB 는 미래 3일치, KBO/NPB 는 당일분) 한 그리드에
+// startTime desc 로 섞으면 MLB 미래 경기가 첫 화면을 점유해 KBO/NPB 가 밀려 안 보임.
+// → 야구 탭만 MLB·KBO·NPB 리그별 섹션으로 분리 렌더. (그 외 종목은 통합 + 페이지네이션)
 
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
+import { leagueLabel } from "@/lib/analysis/matches";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +46,28 @@ const SPORTS: SportCategory[] = [
 
 const PAGE_SIZE = 24;
 
+// 야구 리그별 섹션 표시 순서 + 섹션당 최대 글 수 (미래 3일치 + 최근분 충분히 커버)
+const BASEBALL_LEAGUE_ORDER = ["MLB", "KBO", "NPB"];
+const BASEBALL_SECTION_TAKE = 36;
+
+const ARTICLE_INCLUDE = {
+  match: {
+    select: {
+      startersUpdatedAt: true,
+      homeStarter: true,
+      awayStarter: true,
+      startTime: true,
+    },
+  },
+} satisfies Prisma.ArticleInclude;
+
+const ARTICLE_ORDER: Prisma.ArticleOrderByWithRelationInput[] = [
+  { match: { startTime: "desc" } },
+  { publishedAt: "desc" },
+];
+
+const GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
+
 interface Props {
   searchParams: Promise<{ sport?: string; page?: string }>;
 }
@@ -63,51 +91,134 @@ export default async function PreviewsPage({ searchParams }: Props) {
   const current = SPORTS.find((s) => s.key === sportKey);
   if (!current) notFound();
 
+  const isBaseball = sportKey === "BASEBALL";
   const pageNum = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
-  const where: Prisma.ArticleWhereInput = {
+  const buildWhere = (leagues: string[]): Prisma.ArticleWhereInput => ({
     status: "PUBLISHED",
     type: "PREVIEW",
     // 경기 삭제로 연결 끊긴 orphan 글 제외 — match.startTime 이 null 이면
     // orderBy startTime desc 에서 맨 앞으로 와 지난 글이 최상단에 박힘 (2026-06-05 NBA #1717).
     matchId: { not: null },
-    ...(current.leagues.length > 0
-      ? { league: { in: current.leagues } }
-      : {}),
-  };
+    ...(leagues.length > 0 ? { league: { in: leagues } } : {}),
+  });
 
-  const [articles, total, countsBySport] = await Promise.all([
-    prisma.article.findMany({
-      where,
-      orderBy: [{ match: { startTime: "desc" } }, { publishedAt: "desc" }],
-      skip: (pageNum - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      include: {
-        match: {
-          select: {
-            startersUpdatedAt: true,
-            homeStarter: true,
-            awayStarter: true,
-            startTime: true,
-          },
-        },
-      },
-    }),
-    prisma.article.count({ where }),
-    Promise.all(
-      SPORTS.map(async (s) => {
-        const w: Prisma.ArticleWhereInput = {
-          status: "PUBLISHED",
-          type: "PREVIEW",
-          matchId: { not: null },
-          ...(s.leagues.length > 0 ? { league: { in: s.leagues } } : {}),
-        };
-        return { key: s.key, count: await prisma.article.count({ where: w }) };
+  // 탭 카운트 — 항상 필요 (아래 분기 데이터 페치와 병렬 실행)
+  const countsPromise = Promise.all(
+    SPORTS.map(async (s) => ({
+      key: s.key,
+      count: await prisma.article.count({ where: buildWhere(s.leagues) }),
+    })),
+  );
+
+  let listSection: ReactNode;
+  let pagination: ReactNode = null;
+
+  if (isBaseball) {
+    // 리그별로 각각 최신 N개 — 섹션 분리 렌더 (페이지네이션 없음)
+    const groups = await Promise.all(
+      BASEBALL_LEAGUE_ORDER.map(async (lg) => ({
+        league: lg,
+        articles: await prisma.article.findMany({
+          where: buildWhere([lg]),
+          orderBy: ARTICLE_ORDER,
+          take: BASEBALL_SECTION_TAKE,
+          include: ARTICLE_INCLUDE,
+        }),
+      })),
+    );
+
+    listSection = (
+      <div className="space-y-12">
+        {groups.map((g) => (
+          <section key={g.league}>
+            <h2 className="mb-4 flex items-baseline gap-2 text-xl font-bold tracking-tight text-zinc-950 dark:text-white">
+              {leagueLabel(g.league)}
+              <span className="text-sm font-medium tabular-nums text-zinc-400 dark:text-white/40">
+                {g.articles.length}
+              </span>
+            </h2>
+            {g.articles.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center dark:border-white/15">
+                <p className="text-sm text-zinc-500 dark:text-white/50">
+                  아직 발행된 {leagueLabel(g.league)} 프리뷰가 없습니다.
+                </p>
+              </div>
+            ) : (
+              <div className={GRID_CLASS}>
+                {g.articles.map((a) => (
+                  <ArticleCard key={a.id} article={a} />
+                ))}
+              </div>
+            )}
+          </section>
+        ))}
+      </div>
+    );
+  } else {
+    const where = buildWhere(current.leagues);
+    const [articles, total] = await Promise.all([
+      prisma.article.findMany({
+        where,
+        orderBy: ARTICLE_ORDER,
+        skip: (pageNum - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+        include: ARTICLE_INCLUDE,
       }),
-    ),
-  ]);
+      prisma.article.count({ where }),
+    ]);
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    listSection =
+      articles.length === 0 ? (
+        <div className="rounded-[1.5rem] sm:rounded-[2rem] border border-dashed border-zinc-300 p-12 text-center dark:border-white/15">
+          <p className="text-sm text-zinc-500 dark:text-white/50">
+            아직 발행된 프리뷰가 없습니다.
+          </p>
+        </div>
+      ) : (
+        <div className={GRID_CLASS}>
+          {articles.map((a) => (
+            <ArticleCard key={a.id} article={a} />
+          ))}
+        </div>
+      );
+
+    if (totalPages > 1) {
+      const pageHref = (p: number) =>
+        current.key === "ALL"
+          ? `/previews?page=${p}`
+          : `/previews?sport=${current.key}&page=${p}`;
+      pagination = (
+        <nav
+          aria-label="페이지네이션"
+          className="mt-10 flex items-center justify-center gap-1"
+        >
+          {pageNum > 1 && (
+            <Link
+              href={pageHref(pageNum - 1)}
+              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
+            >
+              ← 이전
+            </Link>
+          )}
+          <span className="px-4 py-2 text-sm tabular-nums text-zinc-500 dark:text-white/45">
+            {pageNum} / {totalPages}
+          </span>
+          {pageNum < totalPages && (
+            <Link
+              href={pageHref(pageNum + 1)}
+              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
+            >
+              다음 →
+            </Link>
+          )}
+        </nav>
+      );
+    }
+  }
+
+  const countsBySport = await countsPromise;
   const countMap = new Map(countsBySport.map((c) => [c.key, c.count]));
 
   return (
@@ -161,56 +272,8 @@ export default async function PreviewsPage({ searchParams }: Props) {
 
       {/* 글 목록 */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
-        {articles.length === 0 ? (
-          <div className="rounded-[1.5rem] sm:rounded-[2rem] border border-dashed border-zinc-300 p-12 text-center dark:border-white/15">
-            <p className="text-sm text-zinc-500 dark:text-white/50">
-              아직 발행된 프리뷰가 없습니다.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.map((a) => (
-                <ArticleCard key={a.id} article={a} />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <nav
-                aria-label="페이지네이션"
-                className="mt-10 flex items-center justify-center gap-1"
-              >
-                {pageNum > 1 && (
-                  <Link
-                    href={
-                      current.key === "ALL"
-                        ? `/previews?page=${pageNum - 1}`
-                        : `/previews?sport=${current.key}&page=${pageNum - 1}`
-                    }
-                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
-                  >
-                    ← 이전
-                  </Link>
-                )}
-                <span className="px-4 py-2 text-sm tabular-nums text-zinc-500 dark:text-white/45">
-                  {pageNum} / {totalPages}
-                </span>
-                {pageNum < totalPages && (
-                  <Link
-                    href={
-                      current.key === "ALL"
-                        ? `/previews?page=${pageNum + 1}`
-                        : `/previews?sport=${current.key}&page=${pageNum + 1}`
-                    }
-                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
-                  >
-                    다음 →
-                  </Link>
-                )}
-              </nav>
-            )}
-          </>
-        )}
+        {listSection}
+        {pagination}
 
         <section className="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-black/5 dark:border-white/10 space-y-3">
           <h2 className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-white">
