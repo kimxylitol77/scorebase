@@ -183,12 +183,13 @@ export function simulateWorldCup(
     for (const id of advanced) counters.get(id)!.groupPass += 1;
 
     // 3) 토너먼트 — 32→16→8→4→결승
-    // FIFA 가 정한 32강 매치업이 미정이라, 시드 점수 기반 가중치로 무작위 페어링.
-    // (실제 매치업 발표되면 이 부분만 갱신하면 됨)
+    // FIFA 가 정한 32강 매치업이 미정이라 무작위 셔플 페어링 (조 추첨 기반 실제
+    // 브래킷은 사실상 시드 중립). 기존 pairTopBottom(상위↔하위 고정)은 매 iteration
+    // 중위 시드가 최강팀과 강제 매칭돼 r16 이 비현실적으로 급락하던 편향
+    // (2026-06-10: 한국 32강 70% → 16강 8.7% 로 왜곡, 셔플 후 ~30%대 정상화).
+    // 실제 매치업 발표되면 이 부분만 조 위치 기반으로 갱신하면 됨.
     let bracket: TeamSnap[] = teams.filter((t) => advanced.has(t.id));
-    // Elo 내림차순 정렬 후 상위↔하위 페어로 시작 (정상적인 시드 매칭)
-    bracket.sort((a, b) => b.elo - a.elo);
-    bracket = pairTopBottom(bracket);
+    shuffleInPlace(bracket);
 
     // 32강
     bracket = playRound(bracket, counters, "r16");
@@ -232,15 +233,12 @@ function compareStanding(a: GroupStanding, b: GroupStanding): number {
   return b.rand - a.rand;
 }
 
-/** Elo 정렬된 팀 배열을 [상위, 하위, 상위, 하위 ...] 순서로 재배열. */
-function pairTopBottom(arr: TeamSnap[]): TeamSnap[] {
-  const out: TeamSnap[] = [];
-  const n = arr.length;
-  for (let i = 0; i < n / 2; i++) {
-    out.push(arr[i]);
-    out.push(arr[n - 1 - i]);
+/** Fisher–Yates 셔플 (in place) — 토너먼트 무작위 페어링용. */
+function shuffleInPlace(arr: TeamSnap[]): void {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return out;
 }
 
 /** 라운드 진행 — 인접 페어가 매치. 통과한 팀에게 카운터 ++. */

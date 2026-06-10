@@ -46,6 +46,19 @@ import {
   type Motivation,
 } from "./predict/schedule-context";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
+import { getWorldCupSeedElo } from "./predict/world-cup-elos";
+import { getFifaRank } from "@/lib/sports/fifa-rankings";
+
+// 국가대표 Elo — 클럽 시즌 Elo 가 없는 국가대항(WC·친선)용.
+// world-cup-elos(본선국 실제 Elo) 우선, 없으면 FIFA랭킹 환산 (build-context 와 동일 공식).
+const NATIONAL_TEAM_LEAGUES = new Set(["WORLD_CUP", "INTL_FRIENDLY"]);
+function nationalTeamElo(name: string): number {
+  const seed = getWorldCupSeedElo(name);
+  if (seed != null) return seed;
+  const rank = getFifaRank(name);
+  if (rank != null) return Math.max(1300, 2050 - 250 * Math.log10(rank));
+  return 1500;
+}
 
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
@@ -549,10 +562,16 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
     return { ...rest, xgHome, xgAway };
   });
 
-  // Elo
+  // Elo — 국가대항(WC·친선)은 클럽 시즌 매치가 없어 calcEloTable 이 전팀 1500 으로
+  // 평준화됨 (2026-06-10: WC 매치 predHome null 원인) → 국가대표 Elo 로 대체.
   const eloTable = calcEloTable(seasonMatchesTyped);
-  const eloHome = getElo(eloTable, match.homeTeamId);
-  const eloAway = getElo(eloTable, match.awayTeamId);
+  const isNationalTeam = NATIONAL_TEAM_LEAGUES.has(match.league);
+  const eloHome = isNationalTeam
+    ? nationalTeamElo(match.homeTeam.name)
+    : getElo(eloTable, match.homeTeamId);
+  const eloAway = isNationalTeam
+    ? nationalTeamElo(match.awayTeam.name)
+    : getElo(eloTable, match.awayTeamId);
 
   // 축구 Dixon-Coles 득점모델 (Elo 와 0.7 블렌드). 실패 시 Elo only fallback.
   let dc: { home: number; draw: number; away: number } | undefined;
