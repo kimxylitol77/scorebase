@@ -12,7 +12,9 @@ const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_AGE_SEC = MAX_AGE_MS / 1000;
 
 function getSecret(): string {
-  return process.env.ADMIN_SECRET ?? "dev-secret-fallback-please-set";
+  const s = process.env.ADMIN_SECRET;
+  if (!s) throw new Error("ADMIN_SECRET 미설정 — admin 세션 서명 불가 (fail-closed)");
+  return s;
 }
 
 function sign(data: string): string {

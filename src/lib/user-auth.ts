@@ -12,12 +12,10 @@ const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_AGE_SEC = MAX_AGE_MS / 1000;
 
 function getSecret(): string {
-  // 전용 secret 우선, 없으면 admin secret fallback(배포 연속성). prod 에 USER_SESSION_SECRET 등록 권장.
-  return (
-    process.env.USER_SESSION_SECRET ??
-    process.env.ADMIN_SECRET ??
-    "dev-secret-fallback-please-set"
-  );
+  // 전용 secret 우선, 없으면 admin secret. 둘 다 없으면 throw — 약한 기본값으로 세션 서명하지 않는다(fail-closed).
+  const s = process.env.USER_SESSION_SECRET ?? process.env.ADMIN_SECRET;
+  if (!s) throw new Error("USER_SESSION_SECRET/ADMIN_SECRET 미설정 — user 세션 서명 불가 (fail-closed)");
+  return s;
 }
 
 function sign(data: string): string {
