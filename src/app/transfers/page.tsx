@@ -10,6 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import rawDetailPos from "../../../data/player-positions.json";
 import rawOverrides from "../../../data/player-overrides.json";
 import rawPhotos from "../../../data/player-photos.json";
+import rawTeamLogos from "../../../data/team-logos.json";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,9 @@ const DETAIL_POS = rawDetailPos as Record<string, string>;
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string }>;
 // 선수 사진 (TheSports season player.logo, 빅5 ~2.6k). DB photoUrl(라인업) 보다 커버리지 높아 우선.
 const PHOTOS = rawPhotos as Record<string, string>;
+// 피드 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 출신팀)를 ts team/additional 수집분으로.
+// 생성: scripts/build-transfer-team-logos.ts (신규 팀 등장 시 재실행)
+const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
 const POS_CODES = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 function posCodeOf(id: string, coarse: string | null | undefined): string | null {
   if (DETAIL_POS[id]) return DETAIL_POS[id];
@@ -147,16 +151,43 @@ interface TransferCard {
   id: string; playerId: string; name: string; posCode: string | null; photo: string | null;
   fromTeam: string; toTeam: string; time: number; fee: number; desc: string | null; league: string | null;
   ttype: number | null; badge: string | null;
+  flag: string | null; country: string | null; fromLogo: string | null; toLogo: string | null;
 }
 
 interface TsPlayerLite { nameKo: string | null; name: string | null; photoUrl: string | null; position: string | null }
 interface TransferRow {
   id: string; playerId: string; fromTeamName: string | null; toTeamName: string | null;
+  fromTeamId: string | null; toTeamId: string | null;
   transferTime: number | null; transferFee: number | null; transferDesc: string | null; league: string | null;
   transferType: number | null;
 }
-// FootballTransfer row → 표시 카드 (이름 한글 우선 + 사진 + 포지션 + 유형 배지)
-function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>): TransferCard {
+
+// 피드 행의 ts 팀 id → 로고 URL. ① TeamSourceId→Team.logoUrl(빅5 우선 — 동명 클럽 방지)
+// ② 미커버(비빅5 출신팀)는 TEAM_LOGOS 정적 사전 fallback.
+async function buildTeamLogoMap(rows: Array<{ fromTeamId: string | null; toTeamId: string | null }>): Promise<Map<string, string>> {
+  const ids = [...new Set(rows.flatMap((r) => [r.fromTeamId, r.toTeamId]).filter((x): x is string => !!x))];
+  const map = new Map<string, string>();
+  if (!ids.length) return map;
+  const srcRows = await prisma.teamSourceId.findMany({
+    where: { source: "thesports", externalId: { in: ids } },
+    select: { externalId: true, team: { select: { logoUrl: true, league: true } } },
+  });
+  const big5 = new Set(FIVE);
+  const picked = new Map<string, boolean>(); // tsId → 채택분이 빅5인지
+  for (const s of srcRows) {
+    if (!s.team.logoUrl) continue;
+    const isBig5 = big5.has(s.team.league);
+    if (!map.has(s.externalId) || (isBig5 && !picked.get(s.externalId))) {
+      map.set(s.externalId, s.team.logoUrl);
+      picked.set(s.externalId, isBig5);
+    }
+  }
+  for (const id of ids) if (!map.has(id) && TEAM_LOGOS[id]) map.set(id, TEAM_LOGOS[id]);
+  return map;
+}
+
+// FootballTransfer row → 표시 카드 (이름 한글 우선 + 사진 + 포지션 + 유형 배지 + 국기·팀마크)
+function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>, teamLogos?: Map<string, string>): TransferCard {
   const tsp = tpMap.get(r.playerId);
   const ov = OVERRIDES[r.playerId];
   // 배지 — 특수 팀명 우선, 그다음 확정 type 코드. 불확실(1·4)은 무배지.
@@ -182,6 +213,10 @@ function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>): TransferCard 
     league: r.league,
     ttype: r.transferType,
     badge,
+    flag: ov?.flag || null,
+    country: ov?.country || null,
+    fromLogo: (r.fromTeamId && teamLogos?.get(r.fromTeamId)) || null,
+    toLogo: (r.toTeamId && teamLogos?.get(r.toTeamId)) || null,
   };
 }
 
@@ -419,7 +454,8 @@ export default async function TransfersPage({
       select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
     });
     const tpMap = new Map(tplayers.map((p) => [p.id, p]));
-    latestMainCards = rows.map((r) => toCard(r, tpMap)).filter((c) => c.name !== "선수" || c.fee > 0);
+    const logoMap = await buildTeamLogoMap(rows);
+    latestMainCards = rows.map((r) => toCard(r, tpMap, logoMap)).filter((c) => c.name !== "선수" || c.fee > 0);
     dateCounts = new Map();
     for (const c of latestMainCards) { const k = fmtDateHeader(c.time); dateCounts.set(k, (dateCounts.get(k) || 0) + 1); }
   }
@@ -456,7 +492,8 @@ export default async function TransfersPage({
       select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
     });
     const tpMap = new Map(tplayers.map((p) => [p.id, p]));
-    transferData = rows.map((r) => toCard(r, tpMap));
+    const logoMap = await buildTeamLogoMap(rows);
+    transferData = rows.map((r) => toCard(r, tpMap, logoMap));
     // TheSports 중복 transfer 레코드 방어 — 같은 선수·행선지·이적료는 페이지 내 1건만
     if (isBigdeals) {
       const seen = new Set<string>();
@@ -666,11 +703,27 @@ export default async function TransfersPage({
                     {t.badge && (
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${BADGE_CLS[t.badge] || "bg-neutral-100 dark:bg-neutral-800 text-neutral-500"}`}>{t.badge}</span>
                     )}
+                    {t.flag && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={t.flag} alt={t.country || ""} title={t.country || ""} className="w-4 h-3 object-cover rounded-[1px] shrink-0" />
+                    )}
                   </div>
-                  <div className="text-xs text-neutral-500 truncate flex items-center gap-1 mt-0.5">
-                    <span className="truncate">{t.fromTeam}</span>
+                  <div className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5 min-w-0">
+                    <span className="truncate flex items-center gap-1 min-w-0">
+                      {t.fromLogo && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.fromLogo} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
+                      )}
+                      <span className="truncate">{t.fromTeam}</span>
+                    </span>
                     <span className="shrink-0 text-neutral-400">→</span>
-                    <span className="truncate font-semibold text-neutral-700 dark:text-neutral-300">{t.toTeam}</span>
+                    <span className="truncate font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-1 min-w-0">
+                      {t.toLogo && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.toLogo} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
+                      )}
+                      <span className="truncate">{t.toTeam}</span>
+                    </span>
                   </div>
                 </div>
                 <div className="text-right shrink-0 leading-tight w-[64px]">
