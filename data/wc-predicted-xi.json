@@ -1,0 +1,5378 @@
+{
+ "Argentina": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "k82rekh1kglrepz",
+    "name": "Elías Rafn Ólafsson",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "2y8m4zh3lpgql07",
+    "name": "Victor Pálsson",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "ednm9whvx2oryox",
+    "name": "Daniel Leo Gretarsson",
+    "nameKo": "다니엘 레오 그레타르손",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "jw2r09hn4k1rz84",
+    "name": "Hörður Magnússon",
+    "nameKo": "회르뒤르 마그누손",
+    "position": "D",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "1l4rjnhee3wm7vx",
+    "name": "Logi Tomasson",
+    "nameKo": "로기 토마손",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "n54qllhxjy52qvy",
+    "name": "Mikael Ellertsson",
+    "nameKo": "미카엘 엘레르츠손",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "jw2r09hx028prz8",
+    "name": "Ísak Bergmann Jóhannesson",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4wyrn4hdlxgvq86",
+    "name": "Andri Fannar Baldursson",
+    "nameKo": "안드리 파날 발더슨",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hy5lvqdyj",
+    "name": "Albert Gudmundsson",
+    "nameKo": "알버트 구드문손",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "zp5rzghzw5nkq82",
+    "name": "Hákon Arnar Haraldsson",
+    "nameKo": "하콘 아르나르 하랄손",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "pxwrxlh93kyoryk",
+    "name": "Orri Steinn Óskarsson",
+    "nameKo": "오리 스테인 오스카르손",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Saudi Arabia": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "23xmvkhkw94qg8n",
+    "name": "Mohammed Al-Owais",
+    "nameKo": "모하메드 알 오와이스",
+    "position": "G",
+    "shirtNumber": 21,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghxnp3r6od",
+    "name": "Abdulelah Al-Amri",
+    "nameKo": "압둘라 알 암리",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7phpl9vm2wd",
+    "name": "Hassan Al-Tambakti",
+    "nameKo": "하산 알 탐박티",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhd266dqg8",
+    "name": "Moteb Al-Harbi",
+    "nameKo": "모테브 알하르비",
+    "position": "D",
+    "shirtNumber": 24,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhx97vwqvy",
+    "name": "Saud Abdulhamid",
+    "nameKo": "사우드 압둘하미드",
+    "position": "D",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8gh81zewr6o",
+    "name": "Mohammed Abu Al-Shamat",
+    "nameKo": "와힙 알 샤마트",
+    "position": "M",
+    "shirtNumber": 26,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghx5kzr6od",
+    "name": "Abdullah Al-Khaibari",
+    "nameKo": "압둘라 알 카이바리",
+    "position": "M",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4henvvq86p",
+    "name": "Salem Al-Dawsari",
+    "nameKo": "세일름 알 다우사리",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nh483jmd7o",
+    "name": "Nasser Al-Dawsari",
+    "nameKo": "나세르 알 다와사리",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "n54qllhe65zyqvy",
+    "name": "Firas Al-Buraikan",
+    "nameKo": "페라스 알브리칸",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhwldgemd7",
+    "name": "Musab Al-Juwayr",
+    "nameKo": "무사브 알 주웨이르",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Senegal": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "965mkyhnjzor1ge",
+    "name": "Edouard Mendy",
+    "nameKo": "에도아르 멘디",
+    "position": "G",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2gh1wzjm0ve",
+    "name": "Krépin Diatta",
+    "nameKo": "크레핀 디아타",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4hv8p45q0j",
+    "name": "Mamadou Sarr",
+    "nameKo": "마마두 사르",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1hyykemojx",
+    "name": "Moussa Niakhaté",
+    "nameKo": "무사 니아카테",
+    "position": "D",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "l7oqdeh07zz7r51",
+    "name": "El Hadji Malick Diouf",
+    "nameKo": "엘 하지 말릭 디우프",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "23xmvkhkl50kqg8",
+    "name": "Lamine Camara",
+    "nameKo": "라민 카마라",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1hyjjegmoj",
+    "name": "Iliman Ndiaye",
+    "nameKo": "일리만 엔디아예",
+    "position": "M",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hj788drz8",
+    "name": "Habib Diarra",
+    "nameKo": "하비브 디아라",
+    "position": "M",
+    "shirtNumber": 21,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4hdz9xq86p",
+    "name": "Sadio Mané",
+    "nameKo": "사디오 마네",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hx7k6zrz8",
+    "name": "Pathé Ciss",
+    "nameKo": "파테 시스",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "965mkyhzy46r1ge",
+    "name": "Cherif Ndiaye",
+    "nameKo": "셰리프 느야에",
+    "position": "F",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Congo DR": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "2y8m4zhgy4xpql0",
+    "name": "Lionel Mpasi-Nzau",
+    "nameKo": "라이오넬 페인",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh46jdr510",
+    "name": "Chancel Mbemba",
+    "nameKo": "찬셀 음벰바",
+    "position": "D",
+    "shirtNumber": 22,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h029xq0j6",
+    "name": "Axel Tuanzebe",
+    "nameKo": "악셀 튀앙제브",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hj5yjqdyj",
+    "name": "Joris Kayembe",
+    "nameKo": "카옘베",
+    "position": "D",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "x7lm7ph5xe9m2wd",
+    "name": "Aaron Wan-Bissaka",
+    "nameKo": "아론 완비사카",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "23xmvkhgzv3qg8n",
+    "name": "Samuel Moutoussamy",
+    "nameKo": "사무엘 무투삼미",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jh3pyoyqwz",
+    "name": "Ngal'ayel Mukau",
+    "nameKo": "날아올 무카우",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlhjn136ryk",
+    "name": "Noah Sadiki",
+    "nameKo": "노아 사디키",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y0or5jh070zqwzv",
+    "name": "Edo Kayembe",
+    "nameKo": "에도 카예엠베",
+    "position": "M",
+    "shirtNumber": 25,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "vjxm8gh86ljr6od",
+    "name": "Yoane Wissa",
+    "nameKo": "요안 위사",
+    "position": "F",
+    "shirtNumber": 20,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh492wr510",
+    "name": "Theo Bongonda",
+    "nameKo": "테오 본곤다",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Spain": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "dj2ryohg1l6q1zp",
+    "name": "Unai Simon",
+    "nameKo": "우나이 시몬",
+    "position": "G",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "8yomo4hk80wq0j6",
+    "name": "Aymeric Laporte",
+    "nameKo": "에이메릭 라포르트",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1hjn3wmojx",
+    "name": "Marcos Llorente",
+    "nameKo": "마르코스 요렌테",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "23xmvkhk1e18qg8",
+    "name": "Pau Cubarsí",
+    "nameKo": "파우 쿠바르시 파레데스",
+    "position": "D",
+    "shirtNumber": 22,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hyp9eqdyj",
+    "name": "Marc Cucurella",
+    "nameKo": "마르크 쿠쿠렐라",
+    "position": "D",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2gh1x09m0ve",
+    "name": "Ferrán Torres",
+    "nameKo": "페란 토레스",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1hkgd1mojx",
+    "name": "Alejandro Baena Rodríguez",
+    "nameKo": "알레한드로 바에나",
+    "position": "M",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66hvwjy3qo9",
+    "name": "Pedri",
+    "nameKo": "페드리",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4wyrn4hvlloq86p",
+    "name": "Rodrigo Hernandez Cascante",
+    "nameKo": "로드리",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "318q66h4jjyqo9j",
+    "name": "Fabián Ruiz",
+    "nameKo": "파비안 루이스",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "965mkyhngg9r1ge",
+    "name": "Mikel Oyarzabal",
+    "nameKo": "미켈 오야르사발",
+    "position": "F",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "France": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "4wyrn4hej2vq86p",
+    "name": "Mike Maignan",
+    "nameKo": "미크 마이낭",
+    "position": "G",
+    "shirtNumber": 16,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzgh278wq82w",
+    "name": "Jules Koundé",
+    "nameKo": "줄스 쿤데",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hjk38rz84",
+    "name": "Dayot Upamecano",
+    "nameKo": "다요트 우파메카노",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh8d8pqvy9",
+    "name": "Theo Hernandez",
+    "nameKo": "테오 에르난데스",
+    "position": "D",
+    "shirtNumber": 19,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh9e758ryk",
+    "name": "William Saliba",
+    "nameKo": "윌리엄 살리바",
+    "position": "D",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "pxwrxlhv2peryk0",
+    "name": "Aurelien Tchouameni",
+    "nameKo": "오렐리앙 쇼아메니",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whzgd9ryox",
+    "name": "Adrien Rabiot",
+    "nameKo": "아드리앙 라비오",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jhe6zx2qwz",
+    "name": "Michael Olise",
+    "nameKo": "미가엘 올리스",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhze775md7",
+    "name": "Rayan Cherki",
+    "nameKo": "라얀 셰르키",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "pxwrxlhze0dryk0",
+    "name": "Kylian Mbappé",
+    "nameKo": "킬리안 엠바페",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66hjv6kqo9j",
+    "name": "Ousmane Dembélé",
+    "nameKo": "우스만 뎀벨레",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Netherlands": {
+  "formation": "4-3-3",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "vjxm8ghjle8nr6o",
+    "name": "Bart Verbruggen",
+    "nameKo": "바르트 베르브귄",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h294epq0j",
+    "name": "Jan Paul van Hecke",
+    "nameKo": "얀 폴 반 헤케",
+    "position": "D",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66h01egqo9j",
+    "name": "Virgil van Dijk",
+    "nameKo": "버질 반 다이크",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh954vjryk",
+    "name": "Micky van de Ven",
+    "nameKo": "미키 반 데 벤",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66h44gpqo9j",
+    "name": "Denzel Dumfries",
+    "nameKo": "덴절 덤프리스",
+    "position": "D",
+    "shirtNumber": 22,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "n54qllheyly3qvy",
+    "name": "Ryan Gravenberch",
+    "nameKo": "라이언 그레이븐버그",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hypxxqdyj",
+    "name": "Frenkie de Jong",
+    "nameKo": "프렌키 더 종",
+    "position": "M",
+    "shirtNumber": 21,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyhggodr1ge",
+    "name": "Tijjani Reijnders",
+    "nameKo": "티자니 레인더스",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohdww1q1zp",
+    "name": "Crysencio Summerville",
+    "nameKo": "크리센시오 숨머빌",
+    "position": "F",
+    "shirtNumber": 24,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hyg2kqdyj",
+    "name": "Donyell Malen",
+    "nameKo": "도니얼 말런",
+    "position": "F",
+    "shirtNumber": 18,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4jwq2gh1p2km0ve",
+    "name": "Cody Gakpo",
+    "nameKo": "코디 가크포",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Uzbekistan": {
+  "formation": "3-4-2-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "zp5rzgh7nknzq82",
+    "name": "Utkir Yusupov",
+    "nameKo": "우트키르 유수포프",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dn1m1ghnzwlmoep",
+    "name": "Rustam Ashurmatov",
+    "nameKo": "루스탐존 아슈르마토프",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4h4w9dgq86",
+    "name": "Abdukodir Khusanov",
+    "nameKo": "압두코디르 쿠사노프",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8gh83vzr6od",
+    "name": "Farrukh Sayfiev",
+    "nameKo": "파루흐 사이피에프",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whz4j6ryox",
+    "name": "Otabek Shukurov",
+    "nameKo": "오타벡",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jhewny8qwz",
+    "name": "Akmal Mozgovoy",
+    "nameKo": "아크말 모즈고보이",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "318q66hv5z9wqo9",
+    "name": "Abdulla Abdullayev",
+    "nameKo": "아브둘라 아브둘라예프",
+    "position": "M",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "vjxm8ghpdvexr6o",
+    "name": "Odildzhon Khamrobekov",
+    "nameKo": "오딜종 함로베코프",
+    "position": "M",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "vjxm8gh83znr6od",
+    "name": "Azizjon Ganiev",
+    "nameKo": "아지즈존 가니에브",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "8yomo4h24ne9q0j",
+    "name": "Oston Urunov",
+    "nameKo": "오스톤 우루노브",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7ph0j4owm2w",
+    "name": "Sherzod Nasrullaev",
+    "nameKo": "셰르조드 나스룰라에브",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Colombia": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "965mkyh4gogr1ge",
+    "name": "Camilo Vargas",
+    "nameKo": "까밀로 바르가스",
+    "position": "G",
+    "shirtNumber": 12,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhxvv8qvy9",
+    "name": "Davinson Sánchez",
+    "nameKo": "다빈손 산체스",
+    "position": "D",
+    "shirtNumber": 23,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hjg6wqdyj",
+    "name": "Johan Mojica",
+    "nameKo": "요한 모히카",
+    "position": "D",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4h9wpoq86p",
+    "name": "Daniel Muñoz",
+    "nameKo": "다니엘 무뇨스",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y0or5jhge5lqwzv",
+    "name": "Jhon Lucumi",
+    "nameKo": "존 루쿠미",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hy6587qdy",
+    "name": "Gustavo Puerta",
+    "nameKo": "구스타보 푸에르타",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhx6pyqvy9",
+    "name": "Jefferson Lerma",
+    "nameKo": "제퍼슨 레르마",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghgjpnr6od",
+    "name": "James Rodríguez",
+    "nameKo": "하메스 로드리게스",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dn1m1ghnwx51moe",
+    "name": "Richard Ríos Montoya",
+    "nameKo": "리차드 리오스 몬토야",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "jw2r09hjnp0rz84",
+    "name": "Jorge Carrascal",
+    "nameKo": "호르헤 카라스칼",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "6ypq3nh4pzdmd7o",
+    "name": "Luis Díaz",
+    "nameKo": "루이스 디아즈",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Jordan": {
+  "formation": "5-4-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "k82rekh30vorepz",
+    "name": "Yazeed Abulaila",
+    "nameKo": "야제드 아부라일라",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hpg2erz84",
+    "name": "Yazan Al-Arab",
+    "nameKo": "야잔 알아랍",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h0ge1q0j6",
+    "name": "Abdallah Nasib",
+    "nameKo": "압달라 나시브",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8gh8nx53r6o",
+    "name": "Saleem Obaid",
+    "nameKo": "오베이드",
+    "position": "D",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "pxwrxlhz2d7dryk",
+    "name": "Saed Al-Rosan",
+    "nameKo": "사에드 알로산",
+    "position": "D",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "3glrw7hyvzonqdy",
+    "name": "Mohammad Abualnadi",
+    "nameKo": "모 아부알나디",
+    "position": "D",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "6ypq3nhl64jmd7o",
+    "name": "Ehsan Haddad",
+    "nameKo": "이산 하다드",
+    "position": "M",
+    "shirtNumber": 23,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jh3j9o2qwz",
+    "name": "Mohannad Abu Taha",
+    "nameKo": "모하난드 아부 타하",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whzw41pryo",
+    "name": "Nizar Al-Rashdan",
+    "nameKo": "니자르 알 라쉬단",
+    "position": "M",
+    "shirtNumber": 21,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jheo42pqwz",
+    "name": "Noor Al-Rawabdeh",
+    "nameKo": "누르 알 라와브데",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhxjk7qg8n",
+    "name": "Mousa Al-Tamari",
+    "nameKo": "무사 알 타아마리",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Ecuador": {
+  "formation": "3-4-1-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "zp5rzghpj8gq82w",
+    "name": "Hernan Galindez",
+    "nameKo": "에르난 갈린데스",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "x7lm7ph07nzpm2w",
+    "name": "Jackson Porozo",
+    "nameKo": "잭슨 포로조",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66hk9k0qo9j",
+    "name": "Felix Torres",
+    "nameKo": "펠릭스 토레스",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hjjygkrz8",
+    "name": "Yaimar Medina",
+    "nameKo": "야이마르 메디나",
+    "position": "D",
+    "shirtNumber": 26,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "1l4rjnhx9x3jm7v",
+    "name": "Anthony Valencia",
+    "nameKo": "안토니 레닌 발렌시아 바하나",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghx19nq82w",
+    "name": "Alan Franco",
+    "nameKo": "알란 프랑코",
+    "position": "M",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dn1m1ghn8y03moe",
+    "name": "Jordy Alcivar",
+    "nameKo": "조디 알시바르",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "k82rekho7kxlrep",
+    "name": "Kendry Páez",
+    "nameKo": "켄드리 파에즈",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1hyjo5pmoj",
+    "name": "Denil Castillo",
+    "nameKo": "데닐 카스티요",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "318q66h4pkjqo9j",
+    "name": "Jordy Caicedo",
+    "nameKo": "요르디 카이세도",
+    "position": "F",
+    "shirtNumber": 16,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyhezv3xr1g",
+    "name": "Alan Minda",
+    "nameKo": "알란 민다",
+    "position": "F",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Morocco": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "6ypq3nhzyn3md7o",
+    "name": "Yassine Bounou",
+    "nameKo": "야시네 보노",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2gh7pkdm0ve",
+    "name": "Issa Diop",
+    "nameKo": "이사 디옵",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jh1xegqwzv",
+    "name": "Noussair Mazraoui",
+    "nameKo": "노우세어 마즈라위",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohnk9nq1zp",
+    "name": "Achraf Hakimi",
+    "nameKo": "아크라프 하키프",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hjd0o2qdy",
+    "name": "Chadi Riad",
+    "nameKo": "차디 리아드",
+    "position": "D",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1h1y53omoj",
+    "name": "Ayyoub Bouaddi",
+    "nameKo": "아유부 부아디",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whz7ln3ryo",
+    "name": "Ismael Saibari",
+    "nameKo": "이스마엘 사이바리",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhwgwjlmd7",
+    "name": "Neil El Aynaoui",
+    "nameKo": "니엘 엘 아이나위",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghp03nr6od",
+    "name": "Brahim Díaz",
+    "nameKo": "브라힘 디아즈",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghjo4j4r6o",
+    "name": "Azzedine Ounahi",
+    "nameKo": "아제딘 우나히",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2ghvl8y7m0v",
+    "name": "Abde Ezzalzouli",
+    "nameKo": "아브데삼마드 에잘줄리",
+    "position": "F",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Norway": {
+  "formation": "4-3-3",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.062Z",
+  "xi": [
+   {
+    "id": "vjxm8gh44olr6od",
+    "name": "Ørjan Nyland",
+    "nameKo": "외르얀 뉠란",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hy9yjqdyj",
+    "name": "Julian Ryerson",
+    "nameKo": "율리안 라이어슨",
+    "position": "D",
+    "shirtNumber": 26,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dn1m1gh3vd0moep",
+    "name": "Kristoffer Ajer",
+    "nameKo": "크리스토퍼 아이에르",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh1wk0jryk",
+    "name": "Torbjørn Heggem",
+    "nameKo": "토르비욘 헤겜",
+    "position": "D",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhxz2njqvy",
+    "name": "David Moller Wolfe",
+    "nameKo": "다비드 뫼러 볼프",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4h42okq86p",
+    "name": "Sander Berge",
+    "nameKo": "산더 베르게",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghj4k3r6od",
+    "name": "Fredrik Aursnes",
+    "nameKo": "프레드릭 아우르스네스",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4hdjonq86p",
+    "name": "Martin Odegaard",
+    "nameKo": "마르틴 외데가르드",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hj3o2qdyj",
+    "name": "Alexander Sørloth",
+    "nameKo": "알렉산더 쇼를스",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4h495nzq86",
+    "name": "Antonio Nusa",
+    "nameKo": "안토니오 누사",
+    "position": "F",
+    "shirtNumber": 20,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "2y8m4zhzd27ql07",
+    "name": "Erling Haaland",
+    "nameKo": "엘링 홀란드",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Croatia": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "4jwq2ghk87dm0ve",
+    "name": "Dominik Livaković",
+    "nameKo": "도미닉 리바코비치",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7phnwd2m2wd",
+    "name": "Josip Stanišić",
+    "nameKo": "요시프 스타니시치",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h2x0xnq0j",
+    "name": "Josko Gvardiol",
+    "nameKo": "요코 그바르디올",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66h4kp3qo9j",
+    "name": "Martin Erlic",
+    "nameKo": "마틴 에릭",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4wyrn4h9z60q86p",
+    "name": "Marin Pongračić",
+    "nameKo": "마린 폰그라치치",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4zp5rzghnopq82w",
+    "name": "Luka Modrić",
+    "nameKo": "루카 모드리치",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhezp4qvy9",
+    "name": "Mateo Kovačić",
+    "nameKo": "마테오 코바치치",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hjy7nxqdy",
+    "name": "Marco Pašalić",
+    "nameKo": "마르코 파살리치",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hy9vyoqdy",
+    "name": "Petar Sučić",
+    "nameKo": "페타르 수치치",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "4jwq2ghx4805m0v",
+    "name": "Martin Baturina",
+    "nameKo": "마틴 바투리나",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "zp5rzghj23vq82w",
+    "name": "Ivan Perišić",
+    "nameKo": "이반 페리시치",
+    "position": "F",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Curaçao": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "8yomo4hkjwo9q0j",
+    "name": "Trevor Doornbusch",
+    "nameKo": "트레버 도른부시",
+    "position": "G",
+    "shirtNumber": 26,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghxyy7r6od",
+    "name": "Jurien Gaari",
+    "nameKo": "유리엔 가리",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyh3oger1ge",
+    "name": "Joshua Brenet",
+    "nameKo": "조슈아 브레넷",
+    "position": "D",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghjepnnr6o",
+    "name": "Ar'jany Martha",
+    "nameKo": "아르자니 마르타",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "l7oqdeh4ldlyr51",
+    "name": "Shurandy Sambo",
+    "nameKo": "슈란디 삼보",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4wyrn4hdvynq86p",
+    "name": "Brandley Kuwas",
+    "nameKo": "브랜들리 쿠바스",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "zp5rzgh7eneeq82",
+    "name": "Godfried Roemeratoe",
+    "nameKo": "고드프리드 로메라토",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "zp5rzghpxgg0q82",
+    "name": "Livano Comenencia",
+    "nameKo": "리바노 코멘시아",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "k82rekh8wdyrepz",
+    "name": "Kenji Gorre",
+    "nameKo": "켄지 고레",
+    "position": "F",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "318q66hn44wqo9j",
+    "name": "Roshon van Eijma",
+    "nameKo": "로숀 반 에이마",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1hy6kkmojx",
+    "name": "Gervane Kastaneer",
+    "nameKo": "게반 카스타니어",
+    "position": "F",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Türkiye": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "vjxm8gh88g1r6od",
+    "name": "Uğurcan Çakır",
+    "nameKo": "우우르잔 차키르",
+    "position": "G",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dj2ryoh2n60q1zp",
+    "name": "Ozan Kabak",
+    "nameKo": "오잔 카바크",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l5ergphv8py2r8k",
+    "name": "Eren Elmalı",
+    "nameKo": "에브렌 에렌 엘마치",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whdlkgryox",
+    "name": "Zeki Çelik",
+    "nameKo": "제키 첼릭",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "k82rekh9klxrepz",
+    "name": "Abdulkerim Bardakçı",
+    "nameKo": "압둘케림 바르닥치",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1h58x8xmoj",
+    "name": "Orkun Kökçü",
+    "nameKo": "오르쿤 코쿠",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohjd7okq1z",
+    "name": "Ismail Yüksek",
+    "nameKo": "이스마일 유크셰크",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "n54qllh8zyoqvy9",
+    "name": "Salih Özcan",
+    "nameKo": "사리 오즈칸",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "3glrw7hjdnkzqdy",
+    "name": "Can Yilmaz Uzun",
+    "nameKo": "캔 예르마즌 우준",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "8yomo4h2zv2dq0j",
+    "name": "Oguz Aydin",
+    "nameKo": "오구즈 에이딘",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "2y8m4zh899yyql0",
+    "name": "Deniz Gül",
+    "nameKo": "데니즈 귈",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Qatar": {
+  "formation": "4-3-3",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "23xmvkhd6jzoqg8",
+    "name": "Mahmoud Abunada",
+    "nameKo": "마흐무드 아부나드",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh8l5n3qvy",
+    "name": "Ayoub Al-Oui",
+    "nameKo": "아요브 알 오이",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlhznovryk0",
+    "name": "Pedro Miguel",
+    "nameKo": "페드로 미구엘",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhdox9qg8n",
+    "name": "Boualem Khoukhi",
+    "nameKo": "부알렘 쿠키",
+    "position": "D",
+    "shirtNumber": 16,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghz7kolq82",
+    "name": "Homam Ahmed",
+    "nameKo": "호맘 아흐마드",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whveodryox",
+    "name": "Ahmed Fathy",
+    "nameKo": "아흐메드 파티",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhxg3ydm7v",
+    "name": "Issa Laye",
+    "nameKo": "게예 라예",
+    "position": "M",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhxzok6qvy",
+    "name": "Yusuf Abdurisag",
+    "nameKo": "유수프 압두리사그",
+    "position": "F",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyheo19r1ge",
+    "name": "Akram Afif",
+    "nameKo": "아크람 아피프",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh0gy0r510",
+    "name": "Edmilson Junior",
+    "nameKo": "에드밀손 후니오르",
+    "position": "F",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66hvy1jwqo9",
+    "name": "Jassem Gaber",
+    "nameKo": "자셈 가버 압둘살람",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "England": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "23xmvkhopdpqg8n",
+    "name": "Jordan Pickford",
+    "nameKo": "조던 픽퍼드",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "318q66hvx4wxqo9",
+    "name": "Jarell Quansah",
+    "nameKo": "자렐 콴사",
+    "position": "D",
+    "shirtNumber": 26,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "2y8m4zhje02ql07",
+    "name": "John Stones",
+    "nameKo": "존 스톤스",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhx1y2qg8n",
+    "name": "Marc Guehi",
+    "nameKo": "마크 구에히",
+    "position": "D",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh97xnpryk",
+    "name": "Djed Spence",
+    "nameKo": "디제드 스펜스",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "2y8m4zh3x6eql07",
+    "name": "Jordan Henderson",
+    "nameKo": "조던 헨더슨",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghp48nvq82",
+    "name": "Kobbie Mainoo",
+    "nameKo": "코비 마이누",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhxvk9qvy9",
+    "name": "Ollie Watkins",
+    "nameKo": "올리 왓킨스",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhxl41yqvy",
+    "name": "Morgan Rogers",
+    "nameKo": "모건 엘리엇 로저스",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hwlgxrz84",
+    "name": "Marcus Rashford",
+    "nameKo": "마커스 래시포드",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9wh9z22ryox",
+    "name": "Harry Kane",
+    "nameKo": "해리 케인",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "New Zealand": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "3glrw7h1xvzqdyj",
+    "name": "Max Crocombe",
+    "nameKo": "막스 크로컴",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "318q66hvk82eqo9",
+    "name": "Tim Payne",
+    "nameKo": "팀 페인",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8gh88xz7r6o",
+    "name": "Finn Surman",
+    "nameKo": "핀 서만",
+    "position": "D",
+    "shirtNumber": 16,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7ph5ejym2wd",
+    "name": "Liberato Cacace",
+    "nameKo": "리베라토 카카세",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jhl08wqwzv",
+    "name": "Michael Boxall",
+    "nameKo": "마이클 박스올",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "l7oqdeh4g41er51",
+    "name": "Marko Stamenić",
+    "nameKo": "마르코 스타메닉",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh8vvvoqvy",
+    "name": "Sarpreet Singh",
+    "nameKo": "사르프릿 싱",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhgj6eqg8n",
+    "name": "Elijah Just",
+    "nameKo": "엘리야흐 저스트",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhl1ykmd7o",
+    "name": "Joe Bell",
+    "nameKo": "조 벨",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "jw2r09hxkx11rz8",
+    "name": "Matthew Garbett",
+    "nameKo": "매튜 가르벳",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "1l4rjnh692pm7vx",
+    "name": "Chris Wood",
+    "nameKo": "크리스 우드",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Scotland": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "pxwrxlh9gy2ryk0",
+    "name": "Angus Gunn",
+    "nameKo": "앵거스 건",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "l5ergphv2y4nr8k",
+    "name": "Aaron Hickey",
+    "nameKo": "아론 히키",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h252dq0j6",
+    "name": "Andrew Robertson",
+    "nameKo": "앤드류 로버트슨",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzgh7ynwq82w",
+    "name": "Grant Hanley",
+    "nameKo": "그랜트 한리",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "x7lm7phw3w7m2wd",
+    "name": "Jack Hendry",
+    "nameKo": "잭 헨드리",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hj7vvqdyj",
+    "name": "Ryan Christie",
+    "nameKo": "라이언 크리스티",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "2y8m4zh1ov4ql07",
+    "name": "Scott McTominay",
+    "nameKo": "스콧 맥토미네이",
+    "position": "M",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "1l4rjnh3okgm7vx",
+    "name": "Lewis Ferguson",
+    "nameKo": "루이스 퍼거슨",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghj3pljr6o",
+    "name": "Billy Gilmour",
+    "nameKo": "빌리 길모어",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "23xmvkhkp0y1qg8",
+    "name": "Ben Gannon-Doak",
+    "nameKo": "벤 도크",
+    "position": "F",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhz1jdm7vx",
+    "name": "Lawrence Shankland",
+    "nameKo": "로렌스 샹클랜드",
+    "position": "F",
+    "shirtNumber": 20,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Brazil": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "ednm9whzz28ryox",
+    "name": "Alisson Becker",
+    "nameKo": "알리송",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh0oeyzr51",
+    "name": "Wesley Vinícius França Lima",
+    "nameKo": "위스리 비니시우스 프란사 리마",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7h1ew0qdyj",
+    "name": "Marcos Aoás Corrêa",
+    "nameKo": "마르퀴뇨스",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hlgnzqdyj",
+    "name": "Roger Ibañez",
+    "nameKo": "호저 이바네즈",
+    "position": "D",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "n54qllhxxzgqvy9",
+    "name": "Douglas Santos",
+    "nameKo": "드멜로 더글라스 산토스",
+    "position": "D",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "8yomo4hznx6q0j6",
+    "name": "Bruno Guimarães",
+    "nameKo": "브루노 귀마랑이스",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohy2lpq1zp",
+    "name": "Carlos Henrique Casimiro",
+    "nameKo": "카를루스 카제미루",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkh48j7qg8n",
+    "name": "Raphael Dias Belloli",
+    "nameKo": "하피냐",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhjylvqvy9",
+    "name": "Lucas Paquetá",
+    "nameKo": "루카스 파케타",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "1l4rjnhe42vm7vx",
+    "name": "Vinícius",
+    "nameKo": "비니시우스 주니오르",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hx3k00rz8",
+    "name": "Igor Thiago",
+    "nameKo": "이고르 티아고 나사시멘투 로드리게스",
+    "position": "F",
+    "shirtNumber": 25,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Egypt": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "zp5rzghzvzwjq82",
+    "name": "Mostafa Shobeir",
+    "nameKo": "모스타파 쇼베이르",
+    "position": "G",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8gh2e0nr6od",
+    "name": "Mohamed Hany",
+    "nameKo": "모하메드 하니",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1hjdwvmojx",
+    "name": "Yasser Ibrahim",
+    "nameKo": "야세르 이브라힘",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh9284qvy9",
+    "name": "Hamdy Fathy",
+    "nameKo": "함디 파티",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "k82rekhyl48orep",
+    "name": "Ahmed Fatouh",
+    "nameKo": "아흐메드 아부 엘 포투",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdehdy9gr510",
+    "name": "Mohanad Lashin",
+    "nameKo": "모하나드 모스타파 라신",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l5ergphv4674r8k",
+    "name": "Marwan Attia",
+    "nameKo": "마르완 아티아",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh9eejnryk",
+    "name": "Haissem Hassan",
+    "nameKo": "하이셈 하산",
+    "position": "M",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "2y8m4zh8yl0nql0",
+    "name": "Mostafa Zico",
+    "nameKo": "모스타파 지코",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jheogwqwzv",
+    "name": "Mahmoud Trezeguet",
+    "nameKo": "마흐무드 트레즈게",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghx0l5r6od",
+    "name": "Omar Marmoush",
+    "nameKo": "오마르 마르무쉬",
+    "position": "F",
+    "shirtNumber": 22,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "Australia": {
+  "formation": "3-4-2-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "3glrw7hynjzxqdy",
+    "name": "Patrick Beach",
+    "nameKo": "패트릭 비치",
+    "position": "G",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8gh8lgkdr6o",
+    "name": "Alessandro Circati",
+    "nameKo": "알레산드로 치르카티",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dn1m1gho182moep",
+    "name": "Harry Souttar",
+    "nameKo": "해리 사우타",
+    "position": "D",
+    "shirtNumber": 19,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hz7n7wqdy",
+    "name": "Lucas Herrington",
+    "nameKo": "루카스 헤링턴",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzgh1yl4q82w",
+    "name": "Aiden O'Neill",
+    "nameKo": "에이든 오닐",
+    "position": "M",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dn1m1ghn291dmoe",
+    "name": "Kai Trewin",
+    "nameKo": "카이 트레윈",
+    "position": "M",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "2y8m4zh8wd28ql0",
+    "name": "Paul Okon-Engstler",
+    "nameKo": "폴 오콘-엥스틀러",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dj2ryohgv9pq1zp",
+    "name": "Aziz Behich",
+    "nameKo": "아지즈 베히치",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y0or5jh3z093qwz",
+    "name": "Cristian Volpato",
+    "nameKo": "크리스티안 볼파토",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "2y8m4zh8wj47ql0",
+    "name": "Nestory Irankunda",
+    "nameKo": "네스토리 이랑쿤다",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "1l4rjnhx14npm7v",
+    "name": "Tete Yengi",
+    "nameKo": "테테 옌기",
+    "position": "F",
+    "shirtNumber": 26,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Switzerland": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "ednm9whz104ryox",
+    "name": "Gregor Kobel",
+    "nameKo": "그레고르 코벨",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "pxwrxlh975nryk0",
+    "name": "Nico Elvedi",
+    "nameKo": "니코 엘베디",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l5ergphv954r8k0",
+    "name": "Manuel Akanji",
+    "nameKo": "마누엘 아칸지",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh6z9zr510",
+    "name": "Silvan Widmer",
+    "nameKo": "실반 비드머",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "8yomo4h7odoq0j6",
+    "name": "Ricardo Rodríguez",
+    "nameKo": "리카르도 로드리게스",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "2y8m4zh1ggeql07",
+    "name": "Michel Aebischer",
+    "nameKo": "미셸 에비셔",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzgh7x6kq82w",
+    "name": "Granit Xhaka",
+    "nameKo": "그라니트 자카",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyh4n45r1ge",
+    "name": "Remo Freuler",
+    "nameKo": "레모 프로이러",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dn1m1ghnkz8kmoe",
+    "name": "Dan Ndoye",
+    "nameKo": "단 엔도예",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyhn4ypwr1g",
+    "name": "Johan Manzambi",
+    "nameKo": "만잠비",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66hvdkl1qo9",
+    "name": "Zeki Amdouni",
+    "nameKo": "제키 암두니",
+    "position": "F",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Panama": {
+  "formation": "4-4-2",
+  "basedOnGames": 3,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "vjxm8gh2vl2r6od",
+    "name": "Orlando Mosquera",
+    "nameKo": "올란도 모스쿠에라",
+    "position": "G",
+    "shirtNumber": 22,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "vjxm8gh8w5gor6o",
+    "name": "Edgardo Farina",
+    "nameKo": "에드가르도 파리나",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.83
+   },
+   {
+    "id": "23xmvkhd69lpqg8",
+    "name": "Jiovany Ramos",
+    "nameKo": "조바니 라모스",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.83
+   },
+   {
+    "id": "965mkyhnd24r1ge",
+    "name": "César Blackman",
+    "nameKo": "세사르 블랙만",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "965mkyh3ov9er1g",
+    "name": "Carlos Harvey",
+    "nameKo": "카를로스 하비",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "4jwq2gh7jdxm0ve",
+    "name": "Cristian Martínez",
+    "nameKo": "크리스티안 마르티네스",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.83
+   },
+   {
+    "id": "k82rekh3p0orepz",
+    "name": "José Luis Rodríguez",
+    "nameKo": "호세 루이스 로드리게스",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "jw2r09hxewp0rz8",
+    "name": "Cesar Yanis",
+    "nameKo": "세사르 야니스",
+    "position": "M",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 3,
+    "confidence": 0.33
+   },
+   {
+    "id": "y39mp1hj4l81moj",
+    "name": "Víctor Griffith",
+    "nameKo": "빅터 그리피스",
+    "position": "M",
+    "shirtNumber": 28,
+    "starts": 1,
+    "games": 3,
+    "confidence": 0.33
+   },
+   {
+    "id": "1l4rjnhkn28m7vx",
+    "name": "Edgar Yoel Bárcenas",
+    "nameKo": "에드가 바르세나스",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "dj2ryohy0g4q1zp",
+    "name": "Cecilio Waterman",
+    "nameKo": "세실리오 와터만",
+    "position": "F",
+    "shirtNumber": 18,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   }
+  ]
+ },
+ "Bosnia & Herzegovina": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "318q66hvxv1qo9j",
+    "name": "Nikola Vasilj",
+    "nameKo": "니콜라 바실리",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "ednm9whz2d90ryo",
+    "name": "Amar Dedić",
+    "nameKo": "아마르 데디치",
+    "position": "D",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h017pq0j6",
+    "name": "Nikola Katić",
+    "nameKo": "니콜라 카티치",
+    "position": "D",
+    "shirtNumber": 18,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l5ergph3wz0r8k0",
+    "name": "Sead Kolašinac",
+    "nameKo": "세아드 콜라시나츠",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2ghx1ojjm0v",
+    "name": "Tarik Muharemovic",
+    "nameKo": "타릭 무하레모비치",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hj800yqdy",
+    "name": "Benjamin Tahirovic",
+    "nameKo": "벤자민 타히로비치",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghzgj80q82",
+    "name": "Ivan Bašić",
+    "nameKo": "이반 바시치",
+    "position": "M",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "23xmvkhdp1g5qg8",
+    "name": "Armin Gigovic",
+    "nameKo": "아르민 기고비치",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "pxwrxlh9xv5eryk",
+    "name": "Jovo Lukić",
+    "nameKo": "조보 루키치",
+    "position": "F",
+    "shirtNumber": 25,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "k82rekhoendlrep",
+    "name": "Esmir Bajraktarević",
+    "nameKo": "에스미르 바이라크타레비치",
+    "position": "F",
+    "shirtNumber": 20,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4jwq2ghxgnp3m0v",
+    "name": "Kerim Alajbegovic",
+    "nameKo": "케림-삼 알라이베고비치",
+    "position": "F",
+    "shirtNumber": 19,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "USA": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "3glrw7hj6dyjqdy",
+    "name": "Matthew Freese",
+    "nameKo": "매튜 프리스",
+    "position": "G",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hy9934qdy",
+    "name": "Alex Freeman",
+    "nameKo": "알렉스 프리먼",
+    "position": "D",
+    "shirtNumber": 16,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh6lgdr510",
+    "name": "Tim Ream",
+    "nameKo": "팀 리암",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhwpj2md7o",
+    "name": "Antonee Robinson",
+    "nameKo": "안토니 로빈슨",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7ho76gqdyj",
+    "name": "Miles Robinson",
+    "nameKo": "마일스 로빈슨",
+    "position": "D",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dj2ryohg7z1q1zp",
+    "name": "Tyler Adams",
+    "nameKo": "타일러 아담스",
+    "position": "M",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whd417ryox",
+    "name": "Sergiño Dest",
+    "nameKo": "세르지뇨 데스트",
+    "position": "M",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyhn3gjr1ge",
+    "name": "Christian Pulisic",
+    "nameKo": "크리스티안 풀리시치",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhd083jqg8",
+    "name": "Malik Tillman",
+    "nameKo": "말릭 틸만",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y0or5jh1v1wqwzv",
+    "name": "Weston McKennie",
+    "nameKo": "웨스턴 맥케니",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "pxwrxlh9577pryk",
+    "name": "Folarin Balogun",
+    "nameKo": "폴라린 바로그운",
+    "position": "F",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Germany": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "3glrw7hw066qdyj",
+    "name": "Oliver Baumann",
+    "nameKo": "올리버 바우만",
+    "position": "G",
+    "shirtNumber": 12,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhxdy6qvy9",
+    "name": "Joshua Kimmich",
+    "nameKo": "조슈아 킴미히",
+    "position": "D",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghzj63q82w",
+    "name": "Jonathan Tah",
+    "nameKo": "조나단 타",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h2xn90q0j",
+    "name": "Nico Schlotterbeck",
+    "nameKo": "니코 슐로테벡",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8gh870e8r6o",
+    "name": "Nathaniel Brown",
+    "nameKo": "나단니엘 브라운",
+    "position": "D",
+    "shirtNumber": 18,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hl2lnqdyj",
+    "name": "Felix Nmecha",
+    "nameKo": "펠릭스 네메차",
+    "position": "M",
+    "shirtNumber": 23,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7phw7govm2w",
+    "name": "Aleksandar Pavlović",
+    "nameKo": "알렉산다르 파블로비치",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hj7vjoqdy",
+    "name": "Jamal Musiala",
+    "nameKo": "자말 무시알라",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhzgol1m7v",
+    "name": "Florian Wirtz",
+    "nameKo": "플로리안 비르츠",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jheolzqwzv",
+    "name": "Leroy Sané",
+    "nameKo": "레로이 사네",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "jw2r09hwgw0rz84",
+    "name": "Kai Havertz",
+    "nameKo": "카이 하베르츠",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Portugal": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "zp5rzghzxg4q82w",
+    "name": "José Sá",
+    "nameKo": "페드로 호세 사",
+    "position": "G",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhzknlm7vx",
+    "name": "Nélson Semedo",
+    "nameKo": "넬손 세메도",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhx733qvy9",
+    "name": "Rúben Dias",
+    "nameKo": "루벤 디아스",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh03ygvr51",
+    "name": "Renato Veiga",
+    "nameKo": "레나토 데 팔마 베이가",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghg52lr6od",
+    "name": "João Cancelo",
+    "nameKo": "주앙 칸셀로",
+    "position": "D",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyh32xpwr1g",
+    "name": "Samuel de Almeida Costa",
+    "nameKo": "사무엘 코스타",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohj7vwq1zp",
+    "name": "Bernardo Silva",
+    "nameKo": "베르나르도 실바",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohjlv0xq1z",
+    "name": "Francisco Conceicao",
+    "nameKo": "프란시스코 콘세이소",
+    "position": "M",
+    "shirtNumber": 26,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhx11oqvy9",
+    "name": "Bruno Fernandes",
+    "nameKo": "브루노 페르난데스",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghxj52r6od",
+    "name": "Rafael Leão",
+    "nameKo": "하파엘 레앙",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "j1l4rjnhpgxm7vx",
+    "name": "Cristiano Ronaldo",
+    "nameKo": "크리스티아누 호날두",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "Belgium": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "k82rekhvpdxrepz",
+    "name": "Thibaut Courtois",
+    "nameKo": "티보 쿠르투아",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hyoy8zqdy",
+    "name": "Nathan Ngoy",
+    "nameKo": "네이단 고이",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh172kryk0",
+    "name": "Thomas Meunier",
+    "nameKo": "토마스 메니에",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "965mkyh3e8gr1ge",
+    "name": "Brandon Mechele",
+    "nameKo": "브란돈 메쉘레",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "23xmvkhd65dqg8n",
+    "name": "Timothy Castagne",
+    "nameKo": "티모시 카스타뉴",
+    "position": "D",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "8yomo4hko79gq0j",
+    "name": "Amadou Onana",
+    "nameKo": "아마두 오나나",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhx4e7qvy9",
+    "name": "Youri Tielemans",
+    "nameKo": "요리 틸레만스",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdehnwz9r510",
+    "name": "Kevin De Bruyne",
+    "nameKo": "케빈 데 브라위너",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l5ergph2yx5r8k0",
+    "name": "Jeremy Doku",
+    "nameKo": "제레미 도쿠",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7pho79om2wd",
+    "name": "Leandro Trossard",
+    "nameKo": "레안드로 트로사르드",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hj75yxqdy",
+    "name": "Charles De Ketelaere",
+    "nameKo": "찰스 드 케텔라에르",
+    "position": "F",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Tunisia": {
+  "formation": "4-4-1-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "jw2r09hj0y84rz8",
+    "name": "Mouhib Chamakh",
+    "nameKo": "압델무히브 샤마흐",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhd0o2qvy9",
+    "name": "Montassar Talbi",
+    "nameKo": "몬타살 탈비",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dn1m1ghnoel1moe",
+    "name": "Omar Rekik",
+    "nameKo": "오마르 레키크",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1h165yzmoj",
+    "name": "Adem Arous",
+    "nameKo": "아뎀 아루스",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "k82rekhyg7pyrep",
+    "name": "Mohamed Amine Ben Hamida",
+    "nameKo": "모하메드 아민 벤하미다",
+    "position": "D",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "jw2r09hjn23rz84",
+    "name": "Ellyes Skhiri",
+    "nameKo": "엘리에스 스키리",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyhenk46r1g",
+    "name": "Ismael Gharbi",
+    "nameKo": "이스마엘 가르비",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhk4p64m7v",
+    "name": "Khalil Ayari",
+    "nameKo": "할릴 아야리",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "k82rekhyx2k6rep",
+    "name": "Mohamed Hadj Mahmoud",
+    "nameKo": "모하메드 벨하지 마흐무드",
+    "position": "M",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2ghv6n8km0v",
+    "name": "Elias Achouri",
+    "nameKo": "엘리아스 아추리",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hzn1k8qdy",
+    "name": "Hazem Mastouri",
+    "nameKo": "하점 마스투리",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Haiti": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "l5ergphop6er8k0",
+    "name": "Johny Placide",
+    "nameKo": "존니 플라시드",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8gh8wxjr6od",
+    "name": "Carlens Arcus",
+    "nameKo": "칼렌스 아르쿠스",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh1k711ryk",
+    "name": "Ricardo Ade",
+    "nameKo": "리카르도 아데",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7ph045l3m2w",
+    "name": "Martin Expérience",
+    "nameKo": "마틴 경험",
+    "position": "D",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h0x46q0j6",
+    "name": "Hannes Delcroix",
+    "nameKo": "한네스 델크로이",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "ednm9whz2kdwryo",
+    "name": "Danley Jean Jacques",
+    "nameKo": "단리 장 자크",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyhnj2wr1ge",
+    "name": "Jean-Ricner Bellegarde",
+    "nameKo": "장-리크너 벨레가르드",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1hj451pmoj",
+    "name": "Leverton Pierre",
+    "nameKo": "피에르",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "vjxm8ghj92zlr6o",
+    "name": "Ruben Providence",
+    "nameKo": "루벤 프로비던스",
+    "position": "F",
+    "shirtNumber": 15,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7phpyx5m2wd",
+    "name": "Wilson Isidor",
+    "nameKo": "윌슨 이시도르",
+    "position": "F",
+    "shirtNumber": 18,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whz7zngryo",
+    "name": "Louicius Deedson",
+    "nameKo": "루시우스 돈 디드슨",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Canada": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "4wyrn4he5p6q86p",
+    "name": "Maxime Crépeau",
+    "nameKo": "맥심 크레페아우",
+    "position": "G",
+    "shirtNumber": 16,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh9lykoryk",
+    "name": "Alistair Johnston",
+    "nameKo": "알리스터 존스턴",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4h4wy4q86p",
+    "name": "Derek Cornelius",
+    "nameKo": "데렉 코넬리우스",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhjpwwqvy9",
+    "name": "Richie Laryea",
+    "nameKo": "리치 라리아",
+    "position": "D",
+    "shirtNumber": 22,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "318q66h4w7enqo9",
+    "name": "Luc De Fougerolles",
+    "nameKo": "루크 롤레 드 푸제롤",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "318q66hv2gjkqo9",
+    "name": "Tajon Buchanan",
+    "nameKo": "타존 뷰캐넌",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "k82rekhon5dvrep",
+    "name": "Ismael Kone",
+    "nameKo": "이스마엘 코네",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l5ergph50jvr8k0",
+    "name": "Stephen Eustáquio",
+    "nameKo": "스테판 유스타퀴오",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhwkl1qg8n",
+    "name": "Liam Millar",
+    "nameKo": "리암 밀라",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh42e77r51",
+    "name": "Jonathan David",
+    "nameKo": "조나단 데이비드",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8gh82evr6od",
+    "name": "Cyle Larin",
+    "nameKo": "싸일 라린",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   }
+  ]
+ },
+ "Paraguay": {
+  "formation": "4-4-2",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "y0or5jhgd7vqwzv",
+    "name": "Roberto Fernández",
+    "nameKo": "가티토 페르난데즈",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7ph0xnpgm2w",
+    "name": "Juan Caceres",
+    "nameKo": "후안 카세레스",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh4yxnr510",
+    "name": "Gustavo Gómez",
+    "nameKo": "구스타보 고메스",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "dn1m1gh3z2gmoep",
+    "name": "Omar Alderete",
+    "nameKo": "오마르 알데레테",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhzn37m7vx",
+    "name": "Junior Alonso",
+    "nameKo": "후니오르 알론소",
+    "position": "D",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4hvy06zq0j",
+    "name": "Diego Gomez",
+    "nameKo": "디에고 알렉산더 고메즈 아마리야",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7ph0l79m2wd",
+    "name": "Andrés Cubas",
+    "nameKo": "쿠바스",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8gh8xeyr6od",
+    "name": "Alejandro Romero Gamarra",
+    "nameKo": "로메로 가마라",
+    "position": "M",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whzx15zryo",
+    "name": "Julio Enciso",
+    "nameKo": "후리오 엔시소",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhx4kyqvy9",
+    "name": "Antonio Sanabria",
+    "nameKo": "안토니오 사나브리아",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohj755q1zp",
+    "name": "Miguel Almirón",
+    "nameKo": "미구엘 알미론",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "Mexico": {
+  "formation": "4-1-4-1",
+  "basedOnGames": 3,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "zp5rzghzvl8zq82",
+    "name": "Jose Rangel",
+    "nameKo": "호세 랑겔",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghpkjxr6od",
+    "name": "Jorge Sánchez",
+    "nameKo": "호르헤 산체스",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.83
+   },
+   {
+    "id": "4wyrn4hd092lq86",
+    "name": "Johan Vásquez",
+    "nameKo": "요한 바스케스",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.83
+   },
+   {
+    "id": "dj2ryohggpnq1zp",
+    "name": "Jesús Gallardo",
+    "nameKo": "헤수스 갈라르도",
+    "position": "D",
+    "shirtNumber": 23,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "1l4rjnhkznym7vx",
+    "name": "César Montes",
+    "nameKo": "세사르 몬테스",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 3,
+    "confidence": 0.5
+   },
+   {
+    "id": "pxwrxlhzw16ryk0",
+    "name": "Álvaro Fidalgo",
+    "nameKo": "알바로 피달고",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.83
+   },
+   {
+    "id": "2y8m4zhgnw6eql0",
+    "name": "Erik Lira",
+    "nameKo": "에릭 리라",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "jw2r09hxv7jyrz8",
+    "name": "Brian Gutierrez",
+    "nameKo": "브라이언 구티에레즈",
+    "position": "M",
+    "shirtNumber": 26,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "jw2r09h16xerz84",
+    "name": "Roberto Alvarado",
+    "nameKo": "로베르토 알바라도",
+    "position": "M",
+    "shirtNumber": 25,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67
+   },
+   {
+    "id": "318q66hjex6qo9j",
+    "name": "Julián Quiñones",
+    "nameKo": "후리안 키뇨네스",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 3,
+    "confidence": 0.5
+   },
+   {
+    "id": "vjxm8ghgn50r6od",
+    "name": "Raúl Jiménez",
+    "nameKo": "라울 히메네스",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 3,
+    "confidence": 0.5
+   }
+  ]
+ },
+ "Czech Republic": {
+  "formation": "5-4-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "x7lm7ph0lpxpm2w",
+    "name": "Luis Morán",
+    "nameKo": "루이스 모란",
+    "position": "G",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1h92dymojx",
+    "name": "Aaron Herrera",
+    "nameKo": "아론 헤레라",
+    "position": "D",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "3glrw7hz2wpoqdy",
+    "name": "M.Hernández",
+    "nameKo": "에르난데스",
+    "position": "D",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dj2ryohg3dxq1zp",
+    "name": "Nicolás Samayoa",
+    "nameKo": "니콜라스 사마요아",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "dn1m1gh8volmoep",
+    "name": "Jose Pinto Samayoa",
+    "nameKo": "호세 핀토 사마요아",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2ghv2p6jm0v",
+    "name": "J. Morales",
+    "nameKo": "모랄레스",
+    "position": "D",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "965mkyh3jzk8r1g",
+    "name": "Oscar Santis",
+    "nameKo": "오스카 알렉산더 산티스 카야크",
+    "position": "M",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "k82rekhy5xe0rep",
+    "name": "Jonathan Francisco Franco González",
+    "nameKo": "조나단 프란시스코 프랑코 곤살레스",
+    "position": "M",
+    "shirtNumber": 22,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "n54qllhxp2pnqvy",
+    "name": "José Rosales",
+    "nameKo": "호세 로살레스",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "pxwrxlhjekjjryk",
+    "name": "William Fajardo",
+    "nameKo": "윌리엄 파하르도",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "l7oqdehlw6p9r51",
+    "name": "Daniel Mendez",
+    "nameKo": "다니엘 멘데스",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Ivory Coast": {
+  "formation": "4-4-2",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "pxwrxlhv8ljryk0",
+    "name": "Yahia Fofana",
+    "nameKo": "야히아 포파나",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h28elyq0j",
+    "name": "Guéla Doué",
+    "nameKo": "게라 두에",
+    "position": "D",
+    "shirtNumber": 17,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlh9e3vkryk",
+    "name": "Wilfried Stephane Singo",
+    "nameKo": "윌프리드 스테판 싱고",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4hvex5zq0j",
+    "name": "Emmanuel Agbadou",
+    "nameKo": "에마누엘 아그바두",
+    "position": "D",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "4jwq2gh7n0dm0ve",
+    "name": "Ghislain Konan",
+    "nameKo": "길랭 코낭",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyh3d48r1ge",
+    "name": "Franck Kessié",
+    "nameKo": "프랑크 케시에",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1h5xw3mojx",
+    "name": "Seko Fofana",
+    "nameKo": "세코 포파나",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhk0kxjqg8",
+    "name": "Oumar Diakité",
+    "nameKo": "우마르 디아키테",
+    "position": "F",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdehl92k2r51",
+    "name": "Yan Diomande",
+    "nameKo": "얀 디오망데",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh824p9qvy",
+    "name": "Sepe Elye Wahi",
+    "nameKo": "세페 엘예 와히",
+    "position": "F",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh8jz17qvy",
+    "name": "Simon Adingra",
+    "nameKo": "시몬 아딩라",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "Iraq": {
+  "formation": "4-4-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "2y8m4zh4yxxql07",
+    "name": "Ahmed Basil",
+    "nameKo": "아흐메드 바실",
+    "position": "G",
+    "shirtNumber": 22,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2ghx23zem0v",
+    "name": "Zaid Tahseen",
+    "nameKo": "자이드 타흐신",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhzn33jmd7",
+    "name": "Hussein Ali",
+    "nameKo": "훈세인 알리",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "23xmvkhde6edqg8",
+    "name": "Merchas  Doski",
+    "position": "D",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1h1pzjemoj",
+    "name": "Mustafa Saadoun",
+    "nameKo": "무스타파 사아둔",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "8yomo4h03j1jq0j",
+    "name": "Akam Hashim",
+    "nameKo": "아캄 해심",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "k82rekhn9g2repz",
+    "name": "Ibrahim Bayesh",
+    "nameKo": "이브라힘 바예쉬",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "6ypq3nhl4ekpmd7",
+    "name": "Zaid Ismael",
+    "nameKo": "자이드 이스마엘",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y0or5jh0237qwzv",
+    "name": "Amir Al-Ammari",
+    "nameKo": "아미르 알 암마리",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "4jwq2ghv9k77m0v",
+    "name": "Marko Farji",
+    "nameKo": "마르코 파르지",
+    "position": "F",
+    "shirtNumber": 21,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlhj520yryk",
+    "name": "Ali Al-Hamadi",
+    "nameKo": "알리 알하마디",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Sweden": {
+  "formation": "3-4-1-2",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "318q66hoo5jqo9j",
+    "name": "Kristoffer Nordfeldt",
+    "nameKo": "크리스토퍼 노르드펠트",
+    "position": "G",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "6ypq3nhzk13xmd7",
+    "name": "Gustaf Lagerbielke",
+    "nameKo": "구스타프 라겔비엘케",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "pxwrxlhv0dgryk0",
+    "name": "Isak Hien",
+    "nameKo": "이삭 힌",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghpkn2r6od",
+    "name": "Gabriel Gudmundsson",
+    "nameKo": "가브리엘 구드문손",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghj0ez3r6o",
+    "name": "Daniel Svensson",
+    "nameKo": "다니엘 스벤손",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhdjow4qg8",
+    "name": "Yasin Ayari",
+    "nameKo": "야신 아바스 아야리",
+    "position": "M",
+    "shirtNumber": 18,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "dn1m1gh3277moep",
+    "name": "Mattias Svanberg",
+    "nameKo": "마티아스 스반베리",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "vjxm8ghjn8yr6od",
+    "name": "Eric Smith",
+    "nameKo": "에릭 스미스",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "4wyrn4hdw6djq86",
+    "name": "Herman Johansson",
+    "nameKo": "헤르만 요한손",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "y0or5jhe0xo0qwz",
+    "name": "Alexander Bernhardsson",
+    "nameKo": "알렉산더 베른하르드손",
+    "position": "F",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "n54qllheyol4qvy",
+    "name": "Benjamin Nygren",
+    "nameKo": "벤자민 니그렌",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "South Korea": {
+  "formation": "3-4-2-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "3glrw7hj1p6qdyj",
+    "name": "Kim Seung-Gyu",
+    "nameKo": "승규 김",
+    "position": "G",
+    "shirtNumber": 12,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "2y8m4zhg5g5yql0",
+    "name": "Lee Han-beom",
+    "nameKo": "이한범",
+    "position": "D",
+    "shirtNumber": 18,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh0lol0r51",
+    "name": "Lee Gi-Hyuk",
+    "nameKo": "이기허",
+    "position": "D",
+    "shirtNumber": 10,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "4wyrn4h7evnq86p",
+    "name": "Kim Min-Jae",
+    "nameKo": "김민재",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "l7oqdehd17nr510",
+    "name": "Lee Dong-gyeong",
+    "nameKo": "이동경",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 2,
+    "games": 2,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1hjo87dmoj",
+    "name": "Seol Young-woo",
+    "nameKo": "설영우",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "1l4rjnhz2lw3m7v",
+    "name": "Hwang In-Beom",
+    "nameKo": "황인범",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "2y8m4zhgkonql07",
+    "name": "Lee Jae-Sung",
+    "nameKo": "이재성",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "8yomo4h2121pq0j",
+    "name": "Lee Tae-seok",
+    "nameKo": "이태석",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y0or5jh3gwyqwzv",
+    "name": "Hwang Hee-Chan",
+    "nameKo": "희찬 황",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "zp5rzghzg9dzq82",
+    "name": "Cho Gue-sung",
+    "nameKo": "조규성",
+    "position": "F",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Algeria": {
+  "formation": "4-3-3",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "l7oqdeh094vr510",
+    "name": "Luca Zidane",
+    "nameKo": "루카 지단",
+    "position": "G",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "y39mp1hy61k2moj",
+    "name": "Achref Abada",
+    "nameKo": "아크레프 아바다",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhedpgqvy9",
+    "name": "Aïssa Mandi",
+    "nameKo": "아이사 만디",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hjl3pdrz8",
+    "name": "Zinéddine Belaïd",
+    "nameKo": "지네딘 벨라이드",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nh5dj2gmd7",
+    "name": "Rayan Aït-Nouri",
+    "nameKo": "라얀 아이트 누리",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghz5j79q82",
+    "name": "Ramiz Zerrouki",
+    "nameKo": "라미즈 제루키",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhz7e8m7vx",
+    "name": "Nabil Bentaleb",
+    "nameKo": "나빌 벤탈렙",
+    "position": "M",
+    "shirtNumber": 19,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghx815q82w",
+    "name": "Houssem Aouar",
+    "nameKo": "후셈 아와르",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7h1evyqdyj",
+    "name": "Riyad Mahrez",
+    "nameKo": "리야드 마흐레즈",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7holkpqdyj",
+    "name": "Amine Gouiri",
+    "nameKo": "아민 구이리",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh06woer51",
+    "name": "Mohamed El Amine Amoura",
+    "nameKo": "모하메드 엘 아무라",
+    "position": "F",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "Ghana": {
+  "formation": "4-4-1-1",
+  "basedOnGames": 2,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "y0or5jh3jldqwzv",
+    "name": "Lawrence Ati-Zigi",
+    "nameKo": "로렌스 아티-지기",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y0or5jhevvvwqwz",
+    "name": "Marvin Senaya",
+    "nameKo": "마빈 세나야",
+    "position": "D",
+    "shirtNumber": 26,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "l7oqdeh09knwr51",
+    "name": "Jonas Adjetey",
+    "nameKo": "조나스 아제이 아제테이",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "y39mp1hp5ppmojx",
+    "name": "Jerome Opoku",
+    "nameKo": "제롬 오포쿠",
+    "position": "D",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "k82rekh35y8repz",
+    "name": "Gideon Mensah",
+    "nameKo": "기데온 멘사",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "8yomo4h235wq0j6",
+    "name": "Thomas Partey",
+    "nameKo": "토마스 파르테이",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "ednm9wh9l3yyryo",
+    "name": "Elisha Owusu",
+    "nameKo": "엘리샤 오우수",
+    "position": "M",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   },
+   {
+    "id": "6ypq3nhw0xg3md7",
+    "name": "Jesurun Rak-Sakyi",
+    "nameKo": "제수런 락-사키",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "8yomo4h556gq0j6",
+    "name": "Majeed Ashimeru",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "l7oqdeh0o8kdr51",
+    "name": "emmanuel agyel",
+    "position": "M",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.4
+   },
+   {
+    "id": "pxwrxlhjz98eryk",
+    "name": "Abdul Fatawu Issahaku",
+    "nameKo": "아브둘 파타우 이사하쿠",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 2,
+    "confidence": 0.6
+   }
+  ]
+ },
+ "Austria": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "x7lm7ph0n3jm2wd",
+    "name": "Alexander Schlager",
+    "nameKo": "알렉산더 슐라거",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whz40lryox",
+    "name": "Stefan Posch",
+    "nameKo": "스테판 포쉬",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hykg8qdyj",
+    "name": "Philipp Lienhart",
+    "nameKo": "필리프 리엔하르트",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hlv39rz84",
+    "name": "David Alaba",
+    "nameKo": "다비드 알라바",
+    "position": "D",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "965mkyh3xoxr1ge",
+    "name": "Konrad Laimer",
+    "nameKo": "콘라드 라이머",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnhz5e2lm7v",
+    "name": "Nicolas Seiwald",
+    "nameKo": "니콜라스 세이왈트",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "2y8m4zh8n3pql07",
+    "name": "Xaver Schlager",
+    "nameKo": "크사버 슐라거",
+    "position": "M",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdehlo15r510",
+    "name": "Romano Schmid",
+    "nameKo": "로마노 슈미트",
+    "position": "M",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l5ergph3y7or8k0",
+    "name": "Marcel Sabitzer",
+    "nameKo": "마르셀 자비처",
+    "position": "M",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzgh7pzpq82w",
+    "name": "Michael Gregoritsch",
+    "nameKo": "미카엘 그레고리슈",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hllk8rz84",
+    "name": "Marko Arnautović",
+    "nameKo": "마르코 아르나우토비치",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "Cape Verde Islands": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "y39mp1hj053mojx",
+    "name": "Josimar Dias Vozinha",
+    "nameKo": "조지마르 조제 에보라 디아스",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hy81d1qdy",
+    "name": "Wagner Pina",
+    "nameKo": "바그너 피나",
+    "position": "D",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hjww8rz84",
+    "name": "Diney Borges",
+    "nameKo": "디네이 보르제스",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hn50erz84",
+    "name": "Roberto Lopes",
+    "nameKo": "로베르토 로페스",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hyyl73qdy",
+    "name": "Sidny Lopes Cabral",
+    "nameKo": "실니 로페스 카브랄",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "dj2ryohj3d93q1z",
+    "name": "Telmo Arcanjo",
+    "nameKo": "텔모 에마누엘 고메스 아르칸조",
+    "position": "M",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhw03lemd7",
+    "name": "Kevin Lenini Pina",
+    "nameKo": "케빈 레니니 피나",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllhj2o5qvy9",
+    "name": "Jamiro Monteiro",
+    "nameKo": "자미로 몬테이로",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh24z0qvy9",
+    "name": "Ryan Mendes",
+    "nameKo": "라이언 멘데스",
+    "position": "F",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "vjxm8ghpnyzr6od",
+    "name": "Jovane Cabral",
+    "nameKo": "조바네 카브랄",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnh1vp9m7vx",
+    "name": "Nuno Da Costa",
+    "nameKo": "누노 다 코스타",
+    "position": "F",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "Japan": {
+  "formation": "3-4-2-1",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "zp5rzgh29o8q82w",
+    "name": "Zion Suzuki",
+    "nameKo": "지온 스즈키",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh8yv3qvy9",
+    "name": "Takehiro Tomiyasu",
+    "nameKo": "다케히로 토미야스",
+    "position": "D",
+    "shirtNumber": 15,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkh3o98qg8n",
+    "name": "Maya Yoshida",
+    "nameKo": "마야 요시다",
+    "position": "D",
+    "shirtNumber": 22,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "x7lm7phw543m2wd",
+    "name": "Ko Itakura",
+    "nameKo": "고 이타쿠라",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "zp5rzghp2noq82w",
+    "name": "Ritsu Doan",
+    "nameKo": "리츠 도안",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9wheokxryox",
+    "name": "Ao Tanaka",
+    "nameKo": "아오 타나카",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9wh9wdzryox",
+    "name": "Wataru Endo",
+    "nameKo": "와타루 엔도",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "1l4rjnh30dym7vx",
+    "name": "Keito Nakamura",
+    "nameKo": "케이토 나카무라",
+    "position": "F",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "23xmvkhxn9zqg8n",
+    "name": "Takefusa Kubo",
+    "nameKo": "타케후사 쿠보",
+    "position": "F",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "y0or5jh3ge3qwzv",
+    "name": "Junya Ito",
+    "nameKo": "준야 이토",
+    "position": "F",
+    "shirtNumber": 14,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "6ypq3nhz757vmd7",
+    "name": "Ayase Ueda",
+    "nameKo": "아야세 우에다",
+    "position": "F",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ },
+ "South Africa": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 1,
+  "updatedAt": "2026-06-10T09:48:10.063Z",
+  "xi": [
+   {
+    "id": "pxwrxlh97054ryk",
+    "name": "Ricardo Goss",
+    "nameKo": "리카르도 고스",
+    "position": "G",
+    "shirtNumber": 22,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "4jwq2ghx3e32m0v",
+    "name": "Thabang Matuludi",
+    "nameKo": "톨로 타방 마툴루디",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "n54qllh8o7voqvy",
+    "name": "Ime Okon",
+    "nameKo": "임에 오콘",
+    "position": "D",
+    "shirtNumber": 21,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "4jwq2ghxy1g1m0v",
+    "name": "Olwethu Makhanya",
+    "nameKo": "올웨쓰 마칸야",
+    "position": "D",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h0zzx9q0j",
+    "name": "Samukelo Kabini",
+    "nameKo": "사무켈로 카비니",
+    "position": "D",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hw1djrz84",
+    "name": "Yaya Sithole",
+    "nameKo": "스페헬로 시톨레",
+    "position": "M",
+    "shirtNumber": 13,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "jw2r09hxk84yrz8",
+    "name": "Thalente Mbatha",
+    "nameKo": "탈렌테 임바타",
+    "position": "M",
+    "shirtNumber": 5,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "3glrw7hy4wn6qdy",
+    "name": "Kamogelo Sebelebele",
+    "nameKo": "카모겔로 세벨레벨레",
+    "position": "M",
+    "shirtNumber": 25,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "8yomo4h2njgq0j6",
+    "name": "Themba Zwane",
+    "nameKo": "뎀바 즈완",
+    "position": "M",
+    "shirtNumber": 11,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "l7oqdeh0424gr51",
+    "name": "Tshepang Moremi",
+    "nameKo": "체팡 모레미",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   },
+   {
+    "id": "ednm9whzxg7pryo",
+    "name": "Lyle Foster",
+    "nameKo": "릴리 포스터",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 1,
+    "games": 1,
+    "confidence": 1
+   }
+  ]
+ }
+}

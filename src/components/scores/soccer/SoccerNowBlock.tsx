@@ -20,6 +20,12 @@ interface LineupPlayer {
   position?: string;
 }
 
+export interface PredictedXiTeam {
+  formation: string;
+  basedOnGames: number;
+  xi: Array<{ name: string; nameKo?: string; position: string; confidence: number }>;
+}
+
 interface Props {
   status: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
   homeNameKo: string;
@@ -31,6 +37,9 @@ interface Props {
   lineup: { home?: LineupPlayer[]; away?: LineupPlayer[] } | null;
   /** 선수 한글명 매핑 (TheSportsPlayer.nameKo) */
   nameById?: Record<string, string>;
+  /** 예상 라인업 (월드컵 — 최근 국제경기 XI 가중투표). 확정 라인업 없을 때만 표시. */
+  predictedHome?: PredictedXiTeam | null;
+  predictedAway?: PredictedXiTeam | null;
 }
 
 function parseMinute(minute: string): number {
@@ -194,6 +203,33 @@ function KeyPlayerChips({
   );
 }
 
+/** 예상 라인업 — 한 팀 분량 (G→D→M→F 순 칩, 신뢰도 낮은 선수는 흐리게). */
+function PredictedXiRow({ team, label }: { team: PredictedXiTeam; label: string }) {
+  const order: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
+  const sorted = [...team.xi].sort(
+    (a, b) => (order[a.position] ?? 9) - (order[b.position] ?? 9),
+  );
+  return (
+    <div>
+      <div className="flex justify-between text-[11px] text-neutral-500 mb-1">
+        <span>{label} · {team.formation}</span>
+        <span>최근 {team.basedOnGames}경기 기반</span>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {sorted.map((p) => (
+          <span
+            key={p.name}
+            className={`text-[11.5px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 ${p.confidence < 0.6 ? "opacity-55" : ""}`}
+            title={`선발 확률 ${Math.round(p.confidence * 100)}%`}
+          >
+            {p.position === "G" ? "🧤 " : ""}{p.nameKo ?? p.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function SoccerNowBlock({
   status,
   homeNameKo,
@@ -203,13 +239,18 @@ export default function SoccerNowBlock({
   trend,
   lineup,
   nameById = {},
+  predictedHome,
+  predictedAway,
 }: Props) {
   const isPlayedOrPlaying = status === "LIVE" || status === "FINISHED";
   const hasGoals = isPlayedOrPlaying && goals && goals.length > 0;
   const hasMomentum = status === "LIVE" && trend;
   const showChips = status === "SCHEDULED" && lineup;
+  // 예상 라인업 — 확정 라인업이 아직 없는 예정 매치에서만 (확정 도착 시 자동 교체)
+  const showPredicted =
+    status === "SCHEDULED" && !lineup && (predictedHome || predictedAway);
 
-  if (!hasGoals && !hasMomentum && !showChips) return null;
+  if (!hasGoals && !hasMomentum && !showChips && !showPredicted) return null;
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 space-y-3">
@@ -232,6 +273,16 @@ export default function SoccerNowBlock({
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
         />
+      )}
+      {showPredicted && (
+        <div className="space-y-2.5">
+          <div className="flex justify-between text-[11px] text-neutral-500">
+            <span>📋 예상 선발 라인업</span>
+            <span>공식 발표(킥오프 ~1시간 전) 시 자동 교체</span>
+          </div>
+          {predictedHome && <PredictedXiRow team={predictedHome} label={homeNameKo} />}
+          {predictedAway && <PredictedXiRow team={predictedAway} label={awayNameKo} />}
+        </div>
       )}
     </section>
   );

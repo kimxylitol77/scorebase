@@ -26,7 +26,9 @@ import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeSt
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
 import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
-import SoccerNowBlock from "@/components/scores/soccer/SoccerNowBlock";
+import SoccerNowBlock, { type PredictedXiTeam } from "@/components/scores/soccer/SoccerNowBlock";
+import { readFileSync } from "fs";
+import path from "path";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-mapping.json";
@@ -386,6 +388,9 @@ export default async function GenericLivePage({ params }: Props) {
   const soccerTabs: Array<{ key: string; label: string; enabled: boolean; content: ReactNode }> = [];
   // "지금" 블록 — 스코어보드 바로 아래 (2026-06-10 목업 확정: status 별 상단 답변).
   let soccerNowNode: ReactNode = null;
+  let nowIncidents: unknown = null;
+  let nowLineup: { home: unknown[]; away: unknown[] } | null = null;
+  let nowTrend: Parameters<typeof SoccerNowBlock>[0]["trend"] = null;
   if (isSoccer) {
     let teamStatsNode: ReactNode = null;
     let halfTimeNode: ReactNode = null;
@@ -483,29 +488,54 @@ export default async function GenericLivePage({ params }: Props) {
             history={h2h}
           />
         ) : null;
-      // "지금" 블록 데이터 — LIVE/FINISHED: 골·카드 타임라인 (+LIVE 모멘텀),
-      // SCHEDULED: 확정 라인업 키 플레이어 칩. 데이터 없으면 컴포넌트가 null 반환.
-      const nowIncidents = (detailLive as { incidents?: unknown } | null)?.incidents;
-      const nowLineup =
-        lineup && lineup.confirmed === 1 && lineup.lineup
-          ? {
-              home: Object.values(lineup.lineup.home ?? {}),
-              away: Object.values(lineup.lineup.away ?? {}),
-            }
-          : null;
-      soccerNowNode = (
-        <SoccerNowBlock
-          status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-          goals={nowIncidents ? tsIncidentsToGoals(nowIncidents) : null}
-          cards={nowIncidents ? tsIncidentsToCards(nowIncidents) : null}
-          trend={trend as Parameters<typeof SoccerNowBlock>[0]["trend"]}
-          lineup={nowLineup as Parameters<typeof SoccerNowBlock>[0]["lineup"]}
-          nameById={lineupNameById}
-        />
-      );
+      // "지금" 블록 cache 데이터 — LIVE/FINISHED 골·카드 타임라인 (+LIVE 모멘텀) 재료.
+      // 라인업은 confirmed=1 이어도 선발(first=1) 미지정 사전 스쿼드 명단인 케이스가 있어
+      // (2026-06-10 멕시코-남아공: 킥오프 19h 전 squad-only) 양팀 선발 7명+ 일 때만 "확정" 취급.
+      nowIncidents = (detailLive as { incidents?: unknown } | null)?.incidents ?? null;
+      if (lineup && lineup.confirmed === 1 && lineup.lineup) {
+        const home = Object.values(lineup.lineup.home ?? {});
+        const away = Object.values(lineup.lineup.away ?? {});
+        const starters = (arr: unknown[]) =>
+          arr.filter((p) => (p as { first?: number }).first === 1).length;
+        nowLineup = starters(home) >= 7 && starters(away) >= 7 ? { home, away } : null;
+      }
+      nowTrend = trend as Parameters<typeof SoccerNowBlock>[0]["trend"];
     }
+
+    // 월드컵 예상 라인업 — build-wc-predicted-xi (cron-wc-xi.sh 매일 갱신) 산출물.
+    // cache 유무와 무관하게 로드 (예정 매치는 cache 가 아예 없는 경우가 핵심 케이스).
+    // 확정 라인업(nowLineup) 도착 시 SoccerNowBlock 이 자동으로 예상 대신 확정 표시.
+    let predictedHome: PredictedXiTeam | null = null;
+    let predictedAway: PredictedXiTeam | null = null;
+    if (lg === "WORLD_CUP" && match.status === "SCHEDULED" && !nowLineup) {
+      try {
+        const raw = JSON.parse(
+          readFileSync(path.join(process.cwd(), "data/wc-predicted-xi.json"), "utf-8"),
+        ) as Record<string, PredictedXiTeam>;
+        const normName = (s: string) =>
+          s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[\s.&·'-]/g, "");
+        const byNorm = new Map(Object.entries(raw).map(([k, v]) => [normName(k), v]));
+        predictedHome = byNorm.get(normName(match.homeTeam.name)) ?? null;
+        predictedAway = byNorm.get(normName(match.awayTeam.name)) ?? null;
+      } catch {
+        // 파일 없음 (빌드 전) — 미표시
+      }
+    }
+    soccerNowNode = (
+      <SoccerNowBlock
+        status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        goals={nowIncidents ? tsIncidentsToGoals(nowIncidents) : null}
+        cards={nowIncidents ? tsIncidentsToCards(nowIncidents) : null}
+        trend={nowTrend}
+        lineup={nowLineup as Parameters<typeof SoccerNowBlock>[0]["lineup"]}
+        nameById={lineupNameById}
+        predictedHome={predictedHome}
+        predictedAway={predictedAway}
+      />
+    );
+
     const venueNode = venue ? <SoccerVenueCard venue={venue} /> : null;
     const predictionNode = matchPrediction ? (
       <MatchPredictionsCard prediction={matchPrediction} homeNameKo={homeKo} awayNameKo={awayKo} />
