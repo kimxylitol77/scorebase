@@ -54,6 +54,12 @@ function fmtDate(unixSec?: number): string {
   return `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+// 클럽명 정규화 — 한국어 변환 후 소문자·FC류 토큰·공백 제거 (career club ↔ 이적기록 팀명 매칭용)
+const CLUB_STOP = new Set(["fc", "afc", "cf", "sc", "cd", "ac", "club"]);
+function normClub(s: string): string {
+  return (toKoreanTeamName(s) || s).toLowerCase().split(/\s+/).filter((w) => !CLUB_STOP.has(w)).join("");
+}
+
 interface HistPt { market_time?: number; market_value?: number; team_id?: string; age?: number }
 
 async function loadPlayer(id: string) {
@@ -146,7 +152,7 @@ interface ValuePoint { time: number; v: number; age?: number | null; chg: number
 // 커리어 + 몸값 변동 병합 타임라인 (Wikidata P54 클럽 이력 × TheSports 몸값 history).
 //  클럽 시기별로 그 기간의 시장가치 변동을 묶어 한 타임라인에 표시. 시니어 국가대표는 상단 요약.
 //  클럽 로고 = 그 시기 몸값 포인트의 ts team_id 를 tsLogo 로 해소(우리 Team DB, 빅5 위주).
-function CareerTimeline({ entries, hist, tsLogo }: { entries: CareerEntry[]; hist: ValuePoint[]; tsLogo: Record<string, string> }) {
+function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {} }: { entries: CareerEntry[]; hist: ValuePoint[]; tsLogo: Record<string, string>; tsName?: Record<string, string>; clubLogos?: Record<string, string> }) {
   // 현 소속(end=null) 우선 → 그다음 최근 시작순. (Wikidata 등록일 기준이라 임대가 본클럽보다
   //  start 가 늦는 경우가 있어 단순 역순으로는 현 소속이 묻힘 → 진행중 먼저)
   const clubs = [...entries.filter((e) => !e.nt)].sort((a, b) => {
@@ -173,8 +179,18 @@ function CareerTimeline({ entries, hist, tsLogo }: { entries: CareerEntry[]; his
   const byClub: ValuePoint[][] = clubs.map(() => []);
   if (clubs.length) for (const vp of hist) { const idx = bestIdx(new Date(vp.time * 1000).getUTCFullYear()); if (idx >= 0) byClub[idx].push(vp); }
   byClub.forEach((arr) => arr.sort((a, b) => b.time - a.time));
-  // 클럽 행 로고 = 그 클럽 시기 몸값 포인트의 team_id 로고
-  const logoFor = (i: number): string | null => { for (const vp of byClub[i]) if (vp.team && tsLogo[vp.team]) return tsLogo[vp.team]; return null; };
+  // 클럽 행 로고 — 1) 이적기록 팀명 매칭(정확→접두) 2) 그 시기 몸값 포인트 로고(팀명 일치 시만).
+  //  포인트만 쓰면 이적 발표~몸값 갱신 사이 새 클럽 행에 직전 클럽 로고가 붙고(예: 바르샤 행에 뉴캐슬 마크),
+  //  연도 단위 배정이라 임대 행에 본클럽 포인트가 섞임(예: 프레스턴 행에 에버턴) → 이름 불일치 로고는 숨김.
+  const match = (a: string, b: string) => !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a));
+  const logoFor = (i: number): string | null => {
+    const cn = normClub(clubs[i].club);
+    if (!cn) return null;
+    if (clubLogos[cn]) return clubLogos[cn];
+    for (const [k, v] of Object.entries(clubLogos)) if (match(k, cn)) return v;
+    for (const vp of byClub[i]) if (vp.team && tsLogo[vp.team] && match(normClub(tsName[vp.team] || ""), cn)) return tsLogo[vp.team];
+    return null;
+  };
 
   return (
     <section>
@@ -289,34 +305,62 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const prevV = points.length >= 2 ? points[points.length - 2].v : 0;
   const recentChg = prevV > 0 && value != null ? Math.round(((value - prevV) / prevV) * 100) : 0;
 
-  // 팀 로고 맵 (ts team_id → 우리 Team.logoUrl) — 몸값 history 의 team_id 해소(빅5 위주, 없으면 생략)
-  const histTeamIds = [...new Set(hist.map((h) => h.team_id).filter((x): x is string => !!x))];
+  // 이적 기록 — 하단 표시 + 팀 로고 해소(커리어 행·차트 마커)에 함께 사용
+  const transfers = await prisma.footballTransfer.findMany({
+    where: { playerId: id },
+    orderBy: { transferTime: "desc" },
+    take: 30,
+  });
+
+  // 팀 로고 맵 (ts team_id → 우리 Team.logoUrl) — 몸값 history + 이적기록 from/to 해소(빅5 위주, 없으면 생략)
+  const histTeamIds = [...new Set([
+    ...hist.map((h) => h.team_id),
+    ...transfers.flatMap((t) => [t.fromTeamId, t.toTeamId]),
+  ].filter((x): x is string => !!x))];
   const tsLogo: Record<string, string> = {};
   const tsTeamName: Record<string, string> = {};
   if (histTeamIds.length) {
     const tss = await prisma.teamSourceId.findMany({ where: { source: "thesports", externalId: { in: histTeamIds } }, select: { externalId: true, teamId: true } });
-    const teams = await prisma.team.findMany({ where: { id: { in: tss.map((t) => t.teamId) } }, select: { id: true, name: true, logoUrl: true } });
+    const teams = await prisma.team.findMany({ where: { id: { in: tss.map((t) => t.teamId) } }, select: { id: true, name: true, logoUrl: true, league: true } });
     const tById = new Map(teams.map((t) => [t.id, t]));
-    for (const t of tss) { const tm = tById.get(t.teamId); if (tm?.logoUrl) { tsLogo[t.externalId] = tm.logoUrl; tsTeamName[t.externalId] = toKoreanTeamName(tm.name) || tm.name; } }
+    // 한 ts id 가 여러 Team 이면 빅5 > UCL > 기타 — 동명 클럽 오매핑 방지(예: Barcelona ↔ Barcelona SC[COPA_LIB])
+    const pri = (lg: string | null) => (lg && LEAGUE_LABEL[lg] ? 0 : lg === "UCL" ? 1 : 2);
+    const bestPri: Record<string, number> = {};
+    for (const t of tss) {
+      const tm = tById.get(t.teamId);
+      if (!tm?.logoUrl) continue;
+      const p = pri(tm.league);
+      if (tsLogo[t.externalId] && bestPri[t.externalId] <= p) continue;
+      tsLogo[t.externalId] = tm.logoUrl;
+      tsTeamName[t.externalId] = toKoreanTeamName(tm.name) || tm.name;
+      bestPri[t.externalId] = p;
+    }
+  }
+
+  // 커리어 행 로고용 클럽명 → 로고 (이적기록 기반, 과거→최신 순회로 최신 이적이 우선)
+  const clubLogos: Record<string, string> = {};
+  for (const t of [...transfers].reverse()) {
+    for (const [tid, tname] of [[t.fromTeamId, t.fromTeamName], [t.toTeamId, t.toTeamName]] as const) {
+      if (tid && tname && tsLogo[tid]) clubLogos[normClub(tname)] = tsLogo[tid];
+    }
   }
 
   // 차트 이적 마커 (team_id 바뀌는 시점 = 이적/입단, 로고 있는 것만)
   const markers: { index: number; logo: string; name?: string }[] = [];
   let prevTeam: string | undefined;
   hist.forEach((h, i) => { if (h.team_id && h.team_id !== prevTeam) { prevTeam = h.team_id; if (tsLogo[h.team_id]) markers.push({ index: i, logo: tsLogo[h.team_id], name: tsTeamName[h.team_id] }); } });
+  // 발표됐지만 몸값 history 미반영(발효 전)인 확정 이적 → 차트 끝점에 새 클럽 마커(예: 고든 2026-07-01 바르샤행)
+  const lastH = hist[hist.length - 1];
+  const pendingTr = lastH?.market_time
+    ? [...transfers].reverse().find((t) => t.toTeamId && t.transferTime && t.transferTime > lastH.market_time! && t.toTeamId !== lastH.team_id && tsLogo[t.toTeamId])
+    : undefined;
+  if (pendingTr?.toTeamId) markers.push({ index: points.length - 1, logo: tsLogo[pendingTr.toTeamId], name: tsTeamName[pendingTr.toTeamId] });
 
   // 몸값 변동 포인트 (연대순 + 변동% + team) — 커리어 타임라인 병합용
   const valuePoints = hist.map((h, i) => {
     const v = Math.round((h.market_value || 0) / 1e6);
     const pv = i > 0 ? Math.round((hist[i - 1].market_value || 0) / 1e6) : 0;
     return { time: h.market_time!, v, age: h.age, chg: pv > 0 ? Math.round(((v - pv) / pv) * 100) : null, team: h.team_id };
-  });
-
-  // 이적 기록
-  const transfers = await prisma.footballTransfer.findMany({
-    where: { playerId: id },
-    orderBy: { transferTime: "desc" },
-    take: 30,
   });
 
   return (
@@ -401,7 +445,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
 
       {/* 커리어 & 몸값 변동 — 커리어 데이터 있으면 병합 타임라인, 없으면 단순 변동이력 테이블 */}
       {career.length > 0 ? (
-        <CareerTimeline entries={career} hist={valuePoints} tsLogo={tsLogo} />
+        <CareerTimeline entries={career} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} clubLogos={clubLogos} />
       ) : hist.length >= 1 ? (
         <section>
           <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
