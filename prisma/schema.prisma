@@ -161,10 +161,16 @@ model Match {
   apiPredCorrect  Boolean?
 
   // MLB Stats API — 선발 투수 (MLB 만, 매치 직전 publish)
-  // 한 줄 JSON 으로 저장 — { name, pid, era, whip, k9, wins, losses, gs, ip, hand }
+  // 한 줄 JSON 으로 저장 — { name, pid, era, whip, k9, wins, losses, gs, ip, hand,
+  //                       recentEra, recentIp, recentPitches(최근 3등판 폼) }
   homeStarter        String?
   awayStarter        String?
   startersUpdatedAt  DateTime?
+
+  // MLB 불펜 피로도 — 팀별 최근 3일 불펜(선발 제외) 투구수 집계 (MLB 만)
+  // JSON: { pitches3d, appearances3d, games3d, asOf }
+  homeBullpen        String?
+  awayBullpen        String?
 
   // NHL 공식 API — 시작 골리 (NHL 만)
   // JSON: { pid, name, gaa, savePctg, wins, losses, otLosses, gamesPlayed, shutouts }

@@ -10,7 +10,8 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import {
   fetchKboPitcherIndex,
-  fetchKboPitcherStats,
+  fetchKboPitcherDetail,
+  computeKboRecentForm,
   findKboIdByName,
   calcK9,
   type KboPitcherIndexEntry,
@@ -30,6 +31,10 @@ export interface KboPitcherFullStats {
   qs?: number;
   avg?: number; // 피안타율
   hr?: number;
+  /** 최근 3등판 ERA (ER·IP 합산) */
+  recentEra?: number;
+  /** 최근 3등판 평균 이닝 */
+  recentIp?: number;
 }
 
 export interface KboStarter {
@@ -161,9 +166,10 @@ export async function enrichKboStartersWithStats(
     const kboId = findKboIdByName(index, p.name, teamHint);
     if (!kboId) return p;
     try {
-      const st = await fetchKboPitcherStats(kboId);
+      const { stats: st, recent } = await fetchKboPitcherDetail(kboId);
       if (!st) return { ...p, kboId };
       const k9 = calcK9(st.k, st.ip);
+      const form = computeKboRecentForm(recent);
       return {
         ...p,
         kboId,
@@ -179,6 +185,8 @@ export async function enrichKboStartersWithStats(
           qs: st.qs,
           avg: st.avg,
           hr: st.hr,
+          recentEra: form ? Number(form.recentEra.toFixed(2)) : undefined,
+          recentIp: form ? Number(form.recentIp.toFixed(1)) : undefined,
         },
       };
     } catch {

@@ -13,6 +13,7 @@
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import {
+  fetchMlbBoxscoreBullpen,
   fetchMlbBoxscoreStarters,
   fetchMlbScheduleWithStarters,
   fetchPitcherStats,
@@ -175,7 +176,110 @@ export async function runFetchMlbStarters(opts?: {
   console.log(
     `[mlb-starters] 완료 — 갱신 ${updated} / 스킵 ${skipped} / 선발미정 ${noStarter}`,
   );
-  return { updated, skipped, noStarter };
+
+  // 불펜 피로도 — 팀별 최근 3일 불펜 투구수 집계 후 horizon 내 SCHEDULED 매치에 저장.
+  // starter 갱신과 독립 (실패해도 starter 결과 유지).
+  let bullpenUpdated = 0;
+  try {
+    bullpenUpdated = await updateMlbBullpen(days);
+  } catch (e) {
+    console.warn(`[mlb-starters] 불펜 집계 실패:`, (e as Error).message);
+  }
+
+  return { updated, skipped, noStarter, bullpenUpdated };
+}
+
+/**
+ * 팀별 최근 3일 불펜(선발 제외) 투구수 집계 → SCHEDULED MLB 매치의
+ * homeBullpen / awayBullpen JSON 갱신.
+ *
+ * MLB schedule 의 date 는 ET 기준 — "어제~3일 전" ET 날짜의 Final 매치 boxscore 만
+ * 사용 (Live 매치는 진행 중 값이라 제외). 3일간 안 뛴 팀은 pitches3d=0 (휴식 불펜).
+ * 호출량: 3 schedule + 최대 ~45 boxscore. 무료 API 한도 충분.
+ */
+async function updateMlbBullpen(horizonDays: number): Promise<number> {
+  // ET 오늘 (시즌은 3~10월 = EDT, UTC-4 고정 근사)
+  const etNow = new Date(Date.now() - 4 * 3600 * 1000);
+  const todayEt = etNow.toISOString().slice(0, 10);
+
+  // 팀별 집계 — key: normName(teamName)
+  const agg = new Map<string, { pitches: number; appearances: number; games: number }>();
+  let gamesProcessed = 0;
+
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date(etNow.getTime() - i * 24 * 3600 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    let games: MlbScheduledGame[];
+    try {
+      games = await fetchMlbScheduleWithStarters(d);
+    } catch (e) {
+      console.warn(`[mlb-bullpen] ${d} schedule 실패:`, (e as Error).message);
+      continue;
+    }
+    for (const g of games) {
+      if (g.abstractGameState !== "Final") continue;
+      try {
+        const bp = await fetchMlbBoxscoreBullpen(g.gamePk);
+        for (const side of ["home", "away"] as const) {
+          const u = bp[side];
+          if (!u) continue;
+          const key = normName(u.teamName);
+          const cur = agg.get(key) ?? { pitches: 0, appearances: 0, games: 0 };
+          cur.pitches += u.pitches;
+          cur.appearances += u.appearances;
+          cur.games++;
+          agg.set(key, cur);
+        }
+        gamesProcessed++;
+        await new Promise((r) => setTimeout(r, 50));
+      } catch (e) {
+        console.warn(`[mlb-bullpen] gamePk ${g.gamePk} boxscore 실패:`, (e as Error).message);
+      }
+    }
+  }
+
+  // 데이터 품질 가드 — 3일 내 처리 매치가 너무 적으면 (API 장애 등) 전체 0 기록 방지
+  if (gamesProcessed < 5) {
+    console.warn(`[mlb-bullpen] 처리 매치 ${gamesProcessed}건 < 5 — 갱신 스킵`);
+    return 0;
+  }
+
+  const now = new Date();
+  const horizon = new Date(now.getTime() + horizonDays * 24 * 3600 * 1000);
+  const upcoming = await prisma.match.findMany({
+    where: {
+      league: "MLB",
+      status: "SCHEDULED",
+      startTime: { gte: now, lte: horizon },
+    },
+    include: { homeTeam: true, awayTeam: true },
+  });
+
+  let updated = 0;
+  for (const m of upcoming) {
+    const toJson = (teamName: string) => {
+      const a = agg.get(normName(teamName)) ?? { pitches: 0, appearances: 0, games: 0 };
+      return JSON.stringify({
+        pitches3d: a.pitches,
+        appearances3d: a.appearances,
+        games3d: a.games,
+        asOf: todayEt,
+      });
+    };
+    await prisma.match.update({
+      where: { id: m.id },
+      data: {
+        homeBullpen: toJson(m.homeTeam.name),
+        awayBullpen: toJson(m.awayTeam.name),
+      },
+    });
+    updated++;
+  }
+  console.log(
+    `[mlb-bullpen] 집계 ${gamesProcessed}매치/${agg.size}팀 → ${updated}건 갱신 (asOf ${todayEt})`,
+  );
+  return updated;
 }
 
 /**

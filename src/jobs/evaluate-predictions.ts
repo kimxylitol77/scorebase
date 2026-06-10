@@ -261,7 +261,8 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
     const awayStarter = parseStarter(m.awayStarter);
     const homeGoalie = parseGoalie(m.homeGoalie);
     const awayGoalie = parseGoalie(m.awayGoalie);
-    const sAdj = computeStarterAdjustment(homeStarter, awayStarter);
+    // league 전달 — KBO 는 최근 3등판 recentEra 블렌드 (백테스트 통과분)
+    const sAdj = computeStarterAdjustment(homeStarter, awayStarter, m.league);
     const gAdj = computeGoalieAdjustment(homeGoalie, awayGoalie);
     let wp = baseWp;
     if (sAdj.applied) wp = applyStarterToWinProb(wp, sAdj);

@@ -85,8 +85,8 @@ export interface TeamInput {
   injuryImpact?: number;
   /** 야구 선발투수 rating 0~100. 50 = league avg. ERA 낮을수록 ↑. (레거시 — starter 없을 때 fallback) */
   starterRating?: number;
-  /** 야구 선발 통계 (ERA/WHIP/K9/GS). 있으면 starterRating 보다 우선해 정밀 보정 (starter-adjust). */
-  starter?: { era?: number; whip?: number; k9?: number; gs?: number };
+  /** 야구 선발 통계 (ERA/WHIP/K9/GS + 최근 3등판). 있으면 starterRating 보다 우선해 정밀 보정 (starter-adjust). */
+  starter?: { era?: number; whip?: number; k9?: number; gs?: number; recentEra?: number };
   /** 야구 불펜 fatigue 0~1. 0=쉼, 1=완전 소진. */
   bullpenFatigue?: number;
   /** 하키 골리 rating 0~100. 50 = league avg. SV% 높을수록 ↑. */
@@ -265,7 +265,8 @@ export function predictMatch(input: PredictionInput): PredictionResult {
   if (sport === "baseball") {
     // 선발투수 — ERA/WHIP/K9 정밀 보정 우선 (evaluate-predictions 와 동일 starter-adjust).
     // starter 통계 없으면 레거시 starterRating(숫자) fallback.
-    const sAdj = computeStarterAdjustment(home.starter ?? null, away.starter ?? null);
+    // league 전달 — KBO 는 최근 3등판 recentEra 블렌드 (백테스트 통과, starter-adjust 주석).
+    const sAdj = computeStarterAdjustment(home.starter ?? null, away.starter ?? null, league);
     if (sAdj.applied) {
       probs = normalizeProbs(applyStarterToWinProb(probs, sAdj));
       signalsUsed.push("starter");
@@ -482,10 +483,16 @@ export function predictMatch(input: PredictionInput): PredictionResult {
 /** Match.homeStarter JSON → 선발 통계 (예측 보정용). 파싱 실패/null 이면 undefined. */
 function parseStarterStats(
   json: string | null,
-): { era?: number; whip?: number; k9?: number; gs?: number } | undefined {
+): { era?: number; whip?: number; k9?: number; gs?: number; recentEra?: number } | undefined {
   if (!json) return undefined;
   try {
-    return JSON.parse(json) as { era?: number; whip?: number; k9?: number; gs?: number };
+    return JSON.parse(json) as {
+      era?: number;
+      whip?: number;
+      k9?: number;
+      gs?: number;
+      recentEra?: number;
+    };
   } catch {
     return undefined;
   }

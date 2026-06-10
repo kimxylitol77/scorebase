@@ -859,7 +859,7 @@ export async function runPreview(opts?: {
       if (wp && !enginePred) {
         const ps = (
           s: string | null,
-        ): { era?: number; whip?: number; k9?: number; gs?: number } | null => {
+        ): { era?: number; whip?: number; k9?: number; gs?: number; recentEra?: number } | null => {
           if (!s) return null;
           try {
             return JSON.parse(s);
@@ -867,7 +867,8 @@ export async function runPreview(opts?: {
             return null;
           }
         };
-        const sAdj = computeStarterAdjustment(ps(m.homeStarter), ps(m.awayStarter));
+        // league 전달 — KBO 는 최근 3등판 recentEra 블렌드 (predictMatchById 와 동일 동작)
+        const sAdj = computeStarterAdjustment(ps(m.homeStarter), ps(m.awayStarter), m.league);
         if (sAdj.applied) wp = applyStarterToWinProb(wp, sAdj);
       }
       const predictedWinner = wp

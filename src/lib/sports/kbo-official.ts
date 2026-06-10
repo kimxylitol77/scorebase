@@ -211,6 +211,14 @@ export async function fetchKboPitcherStats(
     console.warn(`[kbo-official] stats #${kboId} fetch 실패:`, (e as Error).message);
     return null;
   }
+  return parseKboPitcherStatsHtml(html, kboId);
+}
+
+/** PitcherDetail HTML → 시즌 stats 파싱 (fetch 분리 — detail 통합 fetch 재사용용) */
+function parseKboPitcherStatsHtml(
+  html: string,
+  kboId: string,
+): KboPitcherStats | null {
   const $ = cheerio.load(html);
   // PitcherDetail 페이지: stats 가 2개 테이블에 분리.
   //   table 0: 팀명 | ERA | G | CG | SHO | W | L | SV | HLD | WPCT | TBF | NP | IP | H | 2B | 3B | HR
@@ -336,6 +344,11 @@ export async function fetchKboPitcherRecent(kboId: string): Promise<KboPitcherRe
   } catch {
     return [];
   }
+  return parseKboPitcherRecentHtml(html);
+}
+
+/** PitcherDetail HTML → 최근 등판 로그 파싱 (fetch 분리) */
+function parseKboPitcherRecentHtml(html: string): KboPitcherRecentGame[] {
   const $ = cheerio.load(html);
   const result: KboPitcherRecentGame[] = [];
   $("table").each((_, t) => {
@@ -364,6 +377,66 @@ export async function fetchKboPitcherRecent(kboId: string): Promise<KboPitcherRe
     });
   });
   return result;
+}
+
+/**
+ * PitcherDetail 1회 fetch 로 시즌 stats + 최근 등판 로그 동시 파싱.
+ * (fetchKboPitcherStats + fetchKboPitcherRecent 를 따로 부르면 같은 페이지 2회 fetch)
+ */
+export async function fetchKboPitcherDetail(kboId: string): Promise<{
+  stats: KboPitcherStats | null;
+  recent: KboPitcherRecentGame[];
+}> {
+  const url = `${BASE}/Record/Player/PitcherDetail/Basic.aspx?playerId=${kboId}`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, {
+      headers: HEADERS,
+      timeout: 12000,
+      responseType: "text",
+    });
+    html = r.data;
+  } catch (e) {
+    console.warn(`[kbo-official] detail #${kboId} fetch 실패:`, (e as Error).message);
+    return { stats: null, recent: [] };
+  }
+  return {
+    stats: parseKboPitcherStatsHtml(html, kboId),
+    recent: parseKboPitcherRecentHtml(html),
+  };
+}
+
+export interface KboRecentForm {
+  recentEra: number;
+  recentIp: number;
+  /** 집계에 쓴 등판 수 (2~lastN) */
+  starts: number;
+}
+
+/**
+ * KBO 등판 로그 → 최근 N등판 폼 (ER·IP 합산 ERA + 평균 이닝).
+ * 페이지가 최근 10경기만 노출 — beforeDate("MM.DD", exclusive)는 그 범위 내 walk-forward 용.
+ * 등판 2회 미만 또는 합산 IP 2 미만이면 null (표본 부족 — ERA 왜곡 방지).
+ */
+export function computeKboRecentForm(
+  recent: KboPitcherRecentGame[],
+  opts?: { lastN?: number; beforeDate?: string },
+): KboRecentForm | null {
+  const lastN = opts?.lastN ?? 3;
+  const games = recent
+    .filter((g) => g.er != null && ipToInnings(g.ip) != null)
+    .filter((g) => !opts?.beforeDate || g.date < opts.beforeDate)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, lastN);
+  if (games.length < 2) return null;
+  const sumIp = games.reduce((s, g) => s + (ipToInnings(g.ip) ?? 0), 0);
+  const sumEr = games.reduce((s, g) => s + (g.er ?? 0), 0);
+  if (sumIp < 2) return null;
+  return {
+    recentEra: Math.min(27, (sumEr * 9) / sumIp),
+    recentIp: sumIp / games.length,
+    starts: games.length,
+  };
 }
 
 export interface KboPitcherProfile {

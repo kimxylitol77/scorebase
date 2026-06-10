@@ -43,6 +43,12 @@ export interface MlbStarter {
   gs?: number;
   /** Innings Pitched (예: "41.0") */
   ip?: string;
+  /** 최근 3등판 ERA (ER·IP 합산 — 등판별 평균 아님) */
+  recentEra?: number;
+  /** 최근 3등판 평균 이닝 */
+  recentIp?: number;
+  /** 최근 3등판 평균 투구수 */
+  recentPitches?: number;
 }
 
 export interface MlbScheduledGame {
@@ -120,14 +126,160 @@ export async function fetchMlbBoxscoreStarters(gamePk: number): Promise<{
   return result;
 }
 
-/** 한 선수의 시즌 피칭 통계 + 던지는 손. */
+export interface MlbBullpenUsage {
+  teamName: string;
+  /** 불펜(선발 제외) 투구수 합 */
+  pitches: number;
+  /** 불펜 등판 인원 수 */
+  appearances: number;
+}
+
+/**
+ * 한 매치의 양 팀 불펜 사용량 — boxscore pitchers[1..] (등판 순서, [0]=선발) 의
+ * numberOfPitches 합산. 불펜 피로도 집계용.
+ */
+export async function fetchMlbBoxscoreBullpen(gamePk: number): Promise<{
+  home?: MlbBullpenUsage;
+  away?: MlbBullpenUsage;
+}> {
+  const { data } = await client.get(`/game/${gamePk}/boxscore`);
+  const result: { home?: MlbBullpenUsage; away?: MlbBullpenUsage } = {};
+  for (const side of ["home", "away"] as const) {
+    const t = data?.teams?.[side];
+    const teamName: string | undefined = t?.team?.name;
+    if (!teamName) continue;
+    const pitchers: number[] = t?.pitchers ?? [];
+    let pitches = 0;
+    let appearances = 0;
+    for (const pid of pitchers.slice(1)) {
+      const stat = t?.players?.[`ID${pid}`]?.stats?.pitching;
+      if (!stat) continue;
+      pitches += Number(stat.numberOfPitches ?? 0);
+      appearances++;
+    }
+    result[side] = { teamName, pitches, appearances };
+  }
+  return result;
+}
+
+/**
+ * 야구 IP 표기 → 실수 이닝. MLB/KBO 공통 dot 표기 — ".1"=1/3, ".2"=2/3.
+ *   "5.2" → 5 + 2/3
+ */
+export function mlbIpToInnings(ip: string | undefined): number {
+  if (!ip) return 0;
+  const m = ip.trim().match(/^(\d+)(?:\.([12]))?(?:\.0)?$/);
+  if (!m) {
+    const n = Number(ip);
+    return Number.isFinite(n) ? n : 0;
+  }
+  return Number(m[1]) + (m[2] ? Number(m[2]) / 3 : 0);
+}
+
+export interface PitcherGameLogEntry {
+  date: string; // YYYY-MM-DD
+  /** 실수 이닝 (5.2 표기 → 5.667 변환 완료) */
+  innings: number;
+  er: number;
+  pitches?: number;
+  /** 선발 등판 여부 */
+  started: boolean;
+}
+
+export interface PitcherRecentForm {
+  recentEra: number;
+  recentIp: number;
+  recentPitches?: number;
+  /** 집계에 쓴 등판 수 (2~lastN) */
+  starts: number;
+}
+
+/**
+ * gameLog → 최근 N 선발등판 폼. walk-forward 백테스트용 beforeDate(exclusive) 지원.
+ * 선발등판 2회 미만 또는 합산 IP 2 미만이면 null (표본 부족 — ERA 왜곡 방지).
+ */
+export function computeRecentFormFromLog(
+  log: PitcherGameLogEntry[],
+  opts?: { lastN?: number; beforeDate?: string },
+): PitcherRecentForm | null {
+  const lastN = opts?.lastN ?? 3;
+  const games = log
+    .filter((g) => g.started && (!opts?.beforeDate || g.date < opts.beforeDate))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, lastN);
+  if (games.length < 2) return null;
+  const sumIp = games.reduce((s, g) => s + g.innings, 0);
+  const sumEr = games.reduce((s, g) => s + g.er, 0);
+  if (sumIp < 2) return null;
+  const withPitches = games.filter((g) => g.pitches != null);
+  return {
+    recentEra: Math.min(27, (sumEr * 9) / sumIp),
+    recentIp: sumIp / games.length,
+    recentPitches:
+      withPitches.length > 0
+        ? withPitches.reduce((s, g) => s + (g.pitches ?? 0), 0) / withPitches.length
+        : undefined,
+    starts: games.length,
+  };
+}
+
+/** people API 응답의 stats 그룹에서 pitching gameLog splits → entries. */
+function parsePitcherGameLog(
+  stats: Array<{
+    type?: { displayName?: string };
+    group?: { displayName?: string };
+    splits?: Array<{
+      date?: string;
+      stat?: Record<string, unknown>;
+    }>;
+  }>,
+): PitcherGameLogEntry[] {
+  const out: PitcherGameLogEntry[] = [];
+  for (const grp of stats ?? []) {
+    if (grp?.group?.displayName !== "pitching") continue;
+    if (grp?.type?.displayName !== "gameLog") continue;
+    for (const sp of grp.splits ?? []) {
+      const s = sp.stat ?? {};
+      if (!sp.date) continue;
+      out.push({
+        date: sp.date,
+        innings: mlbIpToInnings(s.inningsPitched as string | undefined),
+        er: Number(s.earnedRuns ?? 0),
+        pitches:
+          s.numberOfPitches != null ? Number(s.numberOfPitches) : undefined,
+        started: Number(s.gamesStarted ?? 0) > 0,
+      });
+    }
+  }
+  return out;
+}
+
+/** 한 선수의 시즌 gameLog (등판별). 백테스트 백필용. */
+export async function fetchPitcherGameLog(
+  personId: number,
+  season: number,
+): Promise<PitcherGameLogEntry[]> {
+  const { data } = await client.get(`/people/${personId}`, {
+    params: {
+      hydrate: `stats(group=pitching,type=gameLog,season=${season})`,
+    },
+  });
+  const p = data?.people?.[0];
+  if (!p) return [];
+  return parsePitcherGameLog(p.stats ?? []);
+}
+
+/**
+ * 한 선수의 시즌 피칭 통계 + 던지는 손 + 최근 3등판 폼.
+ * hydrate type=[season,gameLog] 통합 — API 1콜로 둘 다 수신 (추가 호출 0).
+ */
 export async function fetchPitcherStats(
   personId: number,
   season: number,
 ): Promise<Partial<MlbStarter>> {
   const { data } = await client.get(`/people/${personId}`, {
     params: {
-      hydrate: `stats(group=pitching,type=season,season=${season})`,
+      hydrate: `stats(group=pitching,type=[season,gameLog],season=${season})`,
     },
   });
   const p = data?.people?.[0];
@@ -138,7 +290,7 @@ export async function fetchPitcherStats(
     hand: p.pitchHand?.code,
   };
   for (const grp of p.stats ?? []) {
-    if (grp?.group?.displayName === "pitching") {
+    if (grp?.group?.displayName === "pitching" && grp?.type?.displayName === "season") {
       const split = grp.splits?.[0];
       const s = split?.stat ?? {};
       out.era = s.era != null ? Number(s.era) : undefined;
@@ -150,6 +302,13 @@ export async function fetchPitcherStats(
       out.ip = s.inningsPitched;
       break;
     }
+  }
+  const recent = computeRecentFormFromLog(parsePitcherGameLog(p.stats ?? []));
+  if (recent) {
+    out.recentEra = Number(recent.recentEra.toFixed(2));
+    out.recentIp = Number(recent.recentIp.toFixed(1));
+    out.recentPitches =
+      recent.recentPitches != null ? Math.round(recent.recentPitches) : undefined;
   }
   return out;
 }

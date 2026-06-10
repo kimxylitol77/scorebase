@@ -14,7 +14,18 @@ interface StarterStats {
   k9?: number;
   /** 등판 수 — 신뢰도 가중에 사용 */
   gs?: number;
+  /** 최근 3등판 ERA (ER·IP 합산) — KBO 만 가중 (RECENT_ERA_WEIGHT 참조) */
+  recentEra?: number;
 }
+
+// 최근 3등판 ERA 블렌드 가중 (리그별) — 2026-06-10 walk-forward 백테스트:
+//   KBO n=125: w=0.35 에서 Brier 0.4860→0.4838, 적중률 59.2→60.0%,
+//             Strong Pick 60.7→66.7% 모두 개선 (w 스윕 0~0.8 중 적중률 피크).
+//   MLB n=777: w=0.1 부터 단조 악화 (Brier 0.5115→0.5126~0.5237) — 미적용.
+//   양쪽 선발 모두 recentEra 있을 때만 블렌드 (한쪽만 있으면 비대칭 편향).
+const RECENT_ERA_WEIGHT: Record<string, number> = {
+  KBO: 0.35,
+};
 
 export interface StarterAdjustment {
   /** 홈 winProb 에 더할 보정값 (음수면 감소). 일반적으로 -0.20 ~ +0.20 */
@@ -35,10 +46,13 @@ export interface StarterAdjustment {
  * - marginShift: 홈 expected runs - 어웨이 expected runs 에 더할 보정.
  *   ERA 가 낮으면 그 팀이 적게 실점 → 어웨이 ERA 낮으면 홈 득점 ↓.
  * - totalShift: 양 선발 평균 ERA 가 높으면 totalRuns 증가.
+ * - league 전달 시 RECENT_ERA_WEIGHT 리그(현재 KBO)는 시즌 ERA 에
+ *   최근 3등판 ERA 를 블렌드 (백테스트 통과분만 — 파일 상단 주석).
  */
 export function computeStarterAdjustment(
   homeStarter: StarterStats | null,
   awayStarter: StarterStats | null,
+  league?: string,
 ): StarterAdjustment {
   const empty: StarterAdjustment = {
     homeShift: 0,
@@ -52,8 +66,21 @@ export function computeStarterAdjustment(
   const minGs = Math.min(homeStarter.gs ?? 99, awayStarter.gs ?? 99);
   const weight = minGs < 5 ? 0.5 : 1.0;
 
+  // 최근 3등판 폼 블렌드 — 해당 리그 + 양쪽 모두 recentEra 있을 때만
+  const recentW = league ? (RECENT_ERA_WEIGHT[league] ?? 0) : 0;
+  const useRecent =
+    recentW > 0 &&
+    homeStarter.recentEra != null &&
+    awayStarter.recentEra != null;
+  const effHomeEra = useRecent
+    ? (1 - recentW) * homeStarter.era + recentW * homeStarter.recentEra!
+    : homeStarter.era;
+  const effAwayEra = useRecent
+    ? (1 - recentW) * awayStarter.era + recentW * awayStarter.recentEra!
+    : awayStarter.era;
+
   // ERA 차이 (어웨이 - 홈) — 양수면 홈 우세 (홈 선발 ERA 낮음)
-  const eraDiff = awayStarter.era - homeStarter.era;
+  const eraDiff = effAwayEra - effHomeEra;
   // WHIP / K9 보조 — 작은 가중치
   const whipDiff =
     homeStarter.whip != null && awayStarter.whip != null
@@ -72,7 +99,8 @@ export function computeStarterAdjustment(
 
   // 마진 보정 — ERA 차이가 큰 만큼 expected runs 차이가 큼
   // 0.5 점/매치 가량 (ERA 1.0 차이당)
-  const marginShift = eraDiff * 0.5 * weight;
+  // 핸디·OU 는 1X2 백테스트로 검증 안 된 시장 — recentEra 블렌드 없이 시즌 ERA 만 사용
+  const marginShift = (awayStarter.era - homeStarter.era) * 0.5 * weight;
 
   // 총합 — 양 선발 ERA 평균이 4.50 (리그 평균) 이면 0, 그보다 높으면 totalRuns 증가
   const avgEra = (homeStarter.era + awayStarter.era) / 2;

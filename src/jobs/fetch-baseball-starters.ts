@@ -56,6 +56,8 @@ interface StarterJson {
   wins?: number;
   losses?: number;
   ip?: string;
+  recentEra?: number;
+  recentIp?: number;
 }
 
 function jsonEq(a: string | null, b: string | null): boolean {
@@ -172,6 +174,8 @@ export async function runFetchBaseballStarters(opts?: {
         wins: side.stats?.wins,
         losses: side.stats?.losses,
         ip: side.stats?.ip,
+        recentEra: side.stats?.recentEra,
+        recentIp: side.stats?.recentIp,
       });
       newHomeJson = JSON.stringify(build(p.home));
       newAwayJson = JSON.stringify(build(p.away));
