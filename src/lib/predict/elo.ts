@@ -12,7 +12,10 @@
 //   Upset = 1 (현 버전에서는 MoV 만 적용)
 
 import type { PredictMatch } from "./types";
-import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { LOL_LEAGUES, BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+
+// 피타고리안 혼합 적용 야구 리그 — sport-leagues 단일 진실 재사용
+const BASEBALL_ELO_LEAGUES = BASEBALL_LEAGUES;
 
 export const STARTING_ELO = 1500;
 const K_FACTOR = 20;
@@ -82,13 +85,25 @@ export function calcEloTable(matches: PredictMatch[]): EloTable {
       s = 0.5 * s + 0.5 * sXg;
     }
 
+    // 피타고리안-Elo (야구, 2026-06-10 백테스트 채택: pyth70 — KBO Brier 0.5403→0.5355
+    // ·적중 53.6→54.0, MLB Brier 0.5291→0.5251): 단판 분산이 극심한 야구는 승패(S)보다
+    // 그 경기 득실 기반 기대승률 h^1.83/(h^1.83+a^1.83) 이 미래 예측력 ↑ —
+    // 1점차 진땀승은 S≈0.55 로 평활, 대승만 온전히 반영.
+    const isPythBaseball = BASEBALL_ELO_LEAGUES.has(m.league);
+    if (isPythBaseball && (m.homeScore > 0 || m.awayScore > 0)) {
+      const E = 1.83;
+      const hp = Math.pow(Math.max(m.homeScore, 0.5), E);
+      const ap = Math.pow(Math.max(m.awayScore, 0.5), E);
+      s = 0.3 * s + 0.7 * (hp / (hp + ap));
+    }
+
     // FiveThirtyEight 스타일 MoV 가중치 — 점수 차이가 클수록 K 커짐
     // ln(|diff|+1) 로 diminishing return; eloDiff 큰 매치에서는 약화
     const margin = hasXg
       ? Math.abs(0.7 * xgDiff + 0.3 * goalDiffSigned)
       : Math.abs(goalDiffSigned);
     const eloDiffSigned = home + ha - away;
-    const homeIsWinner = hasXg ? s >= 0.5 : s === 1;
+    const homeIsWinner = hasXg || isPythBaseball ? s >= 0.5 : s === 1;
     const winnerEloDiff = homeIsWinner ? eloDiffSigned : -eloDiffSigned;
     const movMultiplier =
       Math.log(margin + 1) * (2.2 / (Math.abs(winnerEloDiff) * 0.001 + 2.2));
