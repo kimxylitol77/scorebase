@@ -318,8 +318,16 @@ export async function runCollect(opts?: {
         for (const m of matches) await upsertMatch(m);
         continue;
       }
-      // LoL 계열(LCK·LCK CL·해외): BDL LoL endpoint 가 날짜 필터 미지원 → 전체 1회 fetch(캐시) 후
-      // tournament→league 로 분리된 해당 league 만 필터해 upsert.
+      // LoL 계열(LCK·LCK CL·해외): BDL 전체 1회 fetch(캐시) 후 tournament→league 분리 upsert.
+      // BDL 은 dates[] 필터를 지원하지만(live-scores 가 사용) 미래 일정 선수집·과거 score
+      // 보정에는 전체 fetch 가 맞다 — 전 tournament 합 ~400건·4페이지라 부하 무시 가능.
+      //
+      // 리드타임 한계 (2026-06-10 진단): LCK 본선(324)은 풀 시즌 일정이 팀 확정 상태로
+      // 선등록되지만, LCK_CL·LPL·LEC·LCS 는 BDL 이 미래 매치 팀을 TBD(null)로 뒀다가
+      // 경기 3~7일 전에야 확정 → fetchLolAll 의 팀 null 필터에 걸렸다가 확정 시점의
+      // collect(일 9회)가 자동 upsert. 소스 종속이라 코드로 리드타임 단축 불가.
+      // ⚠️ 점검 시 "당일 생성" 으로 보이면 createdAt > startTime(경기 후 backfill) 여부
+      // 먼저 확인 — 2026-06-06 리그 신설 때 과거 경기 일괄 backfill 이 당일수집처럼 보였음.
       if (LOL_LEAGUES.has(league)) {
         if (!lolCache) lolCache = await fetchLolAll();
         const matches = lolCache.filter((m) => m.league === league);

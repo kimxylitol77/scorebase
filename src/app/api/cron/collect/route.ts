@@ -25,6 +25,11 @@ const TS_COVERED = new Set(
 // K_LEAGUE_1 (2026-06-10): ts- 매치 0건인데 skip 돼 미래 일정 공백 → 경기 당일에야
 // af 매치 생성 → PREVIEW(3일 전)·predict 전무 → 리그 페이지 적중률 0건이던 원인.
 // PREVIEW_LEAGUES 인데 일정 공백이 생기면 여기 추가.
+//
+// ⚠️ IIHF_WC 는 이 방식으로 못 고친다 (2026-06-10 진단): 아이스하키라 TS_COVERED(축구
+// 매핑) 분류 밖 + af collector·ALL_LEAGUES 미등록이라 여기 넣어도 무효. 매치 소스는
+// ts ice_hockey worker 인데 당일/사후 수집만 해 2026 대회 30경기가 미래 리드타임 0
+// → predict 4건·채점 0. 2027 대회(5월) 전에 ts worker 의 미래 일정 커버를 점검할 것.
 const TS_COVERED_EXCEPTIONS = new Set<League>(["K_LEAGUE_1"]);
 
 const ALL_LEAGUES: League[] = [
