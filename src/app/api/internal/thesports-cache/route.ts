@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { mapFootballStatus } from "@/lib/sports/thesports/football-collector";
+import { mapFootballStatus, convertTsLineup } from "@/lib/sports/thesports/football-collector";
 import { mapBaseballStatus, mapIceHockeyStatus, mapBasketballStatus } from "@/lib/sports/thesports/status-codes";
 import { BASEBALL_LEAGUES, HOCKEY_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { MatchStatus } from "@/lib/sports/types";
@@ -73,7 +73,12 @@ export async function POST(req: NextRequest) {
     }),
     prisma.match.findUnique({
       where: { id: body.matchId },
-      select: { id: true, homeScore: true, awayScore: true, status: true, league: true, startTime: true },
+      select: {
+        id: true, homeScore: true, awayScore: true, status: true, league: true, startTime: true,
+        lineupHome: true,
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } },
+      },
     }),
   ]);
   if (!currentMatch) return NextResponse.json({ error: "match not found" }, { status: 404 });
@@ -218,5 +223,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, cache, matchUpdated });
+  // ===== TheSports lineup → Match.lineupHome/away 동기화 (2026-06-10) =====
+  // 확장 리그(ts- 매치)는 api-football cron 이 라인업을 못 채움 — worker 가 push 한
+  // cache.lineup 을 af FixtureLineup 계약으로 변환해 저장 (RECAP/PREVIEW 글·챗봇 소비).
+  // confirmed=1 공식 라인업만, 축구만, 비어 있을 때만 (af 가 이미 채운 매치는 유지).
+  let lineupSynced = false;
+  const isFootball =
+    !BASEBALL_LEAGUES.has(currentMatch.league) &&
+    !HOCKEY_LEAGUES.has(currentMatch.league) &&
+    !BASKETBALL_LEAGUES.has(currentMatch.league);
+  if (body.lineup && isFootball && currentMatch.lineupHome == null) {
+    const conv = convertTsLineup(
+      body.lineup,
+      currentMatch.homeTeam.name,
+      currentMatch.awayTeam.name,
+    );
+    if (conv) {
+      try {
+        await prisma.match.update({
+          where: { id: body.matchId },
+          data: {
+            lineupHome: JSON.stringify(conv.home),
+            lineupAway: JSON.stringify(conv.away),
+            lineupUpdatedAt: new Date(),
+          },
+        });
+        lineupSynced = true;
+      } catch {
+        // Match update 실패 ignore — cache 는 저장됨, 다음 worker push 가 재시도
+      }
+    }
+  }
+
+  return NextResponse.json({ ok: true, cache, matchUpdated, lineupSynced });
 }

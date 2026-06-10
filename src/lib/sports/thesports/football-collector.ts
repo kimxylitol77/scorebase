@@ -11,6 +11,7 @@ import type {
   TSFootballMatch,
   TSFootballTeamMeta,
   TSFootballLineupResponse,
+  TSFootballLineupPlayer,
   TSFootballMatchTeamStatsResponse,
   TSFootballMatchPlayerStatsResponse,
   TSFootballH2HResponse,
@@ -149,6 +150,57 @@ export function fetchFootballLineup(
     "/v1/football/match/lineup/detail",
     { uuid: matchId },
   );
+}
+
+// ============================================================
+// TheSports lineup → Match.lineupHome/lineupAway 변환
+// ============================================================
+
+/** Match.lineupHome/away 저장 shape — api-football FixtureLineup 과 동일 계약.
+ *  (RECAP/PREVIEW 글 생성·챗봇이 JSON.parse 해 그대로 소비) */
+export interface ConvertedLineup {
+  teamName: string;
+  formation?: string;
+  startXI: string[]; // 선수 이름 11명 (G→D→M→F 순)
+}
+
+const TS_POSITION_ORDER: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
+
+/**
+ * TheSports lineup/detail results → af FixtureLineup 호환 shape.
+ * confirmed=1(공식 라인업) + 양팀 선발 11명일 때만 변환, 아니면 null.
+ * 확장 리그(ts- 매치)는 api-football cron 이 못 채우므로 이 변환이 1순위 소스.
+ */
+export function convertTsLineup(
+  raw: unknown,
+  homeTeamName: string,
+  awayTeamName: string,
+): { home: ConvertedLineup; away: ConvertedLineup } | null {
+  const lu = raw as TSFootballLineupResponse["results"] | null;
+  if (!lu || typeof lu !== "object" || lu.confirmed !== 1) return null;
+  const pick = (side: TSFootballLineupPlayer[] | undefined): string[] =>
+    (side ?? [])
+      .filter((p) => p.first === 1 && p.name)
+      .sort(
+        (a, b) =>
+          (TS_POSITION_ORDER[a.position] ?? 9) - (TS_POSITION_ORDER[b.position] ?? 9),
+      )
+      .map((p) => p.name);
+  const home = pick(lu.lineup?.home);
+  const away = pick(lu.lineup?.away);
+  if (home.length < 11 || away.length < 11) return null;
+  return {
+    home: {
+      teamName: homeTeamName,
+      formation: lu.home_formation || undefined,
+      startXI: home,
+    },
+    away: {
+      teamName: awayTeamName,
+      formation: lu.away_formation || undefined,
+      startXI: away,
+    },
+  };
 }
 
 /**
