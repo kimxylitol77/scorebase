@@ -700,6 +700,8 @@ export interface FixtureStat {
   yellowCards?: number;
   redCards?: number;
   saves?: number;
+  /** 기대득점 (af: 빅5·MLS·브라질레이랑 등 주요 리그만, 친선·아시아 미제공) */
+  expectedGoals?: number;
 }
 
 const STAT_KEY: Record<string, keyof FixtureStat> = {
@@ -713,6 +715,7 @@ const STAT_KEY: Record<string, keyof FixtureStat> = {
   "Yellow Cards": "yellowCards",
   "Red Cards": "redCards",
   "Goalkeeper Saves": "saves",
+  expected_goals: "expectedGoals", // af 가 snake_case type 으로 줌 ("1.15" string)
 };
 
 export async function fetchFixtureStatistics(

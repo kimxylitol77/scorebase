@@ -68,13 +68,28 @@ export function calcEloTable(matches: PredictMatch[]): EloTable {
     else if (m.homeScore < m.awayScore) s = 0;
     else s = 0.5;
 
+    // xG-Elo (2026-06-10 백테스트 채택: xgRes 변형 — 7리그 중 6개 Brier 개선):
+    //   마진 = |0.7×xG차 + 0.3×골차|, 결과 S = 실제 0.5 + xG기반 0.5 (±0.35 임계)
+    //   → 운 좋은 1-0 승리(xG 열세)는 Elo 상승 디스카운트, 정당한 압박 패배는 보존.
+    // xG 없는 매치(아시아 리그·과거 데이터)는 아래 분기 전부 기존 골 마진과 동일.
+    const goalDiffSigned = m.homeScore - m.awayScore;
+    const hasXg = m.xgHome != null && m.xgAway != null;
+    const xgDiff = hasXg ? m.xgHome! - m.xgAway! : goalDiffSigned;
+    if (hasXg) {
+      const sXg = xgDiff > 0.35 ? 1 : xgDiff < -0.35 ? 0 : 0.5;
+      s = 0.5 * s + 0.5 * sXg;
+    }
+
     // FiveThirtyEight 스타일 MoV 가중치 — 점수 차이가 클수록 K 커짐
     // ln(|diff|+1) 로 diminishing return; eloDiff 큰 매치에서는 약화
-    const goalDiff = Math.abs(m.homeScore - m.awayScore);
+    const margin = hasXg
+      ? Math.abs(0.7 * xgDiff + 0.3 * goalDiffSigned)
+      : Math.abs(goalDiffSigned);
     const eloDiffSigned = home + ha - away;
-    const winnerEloDiff = s === 1 ? eloDiffSigned : -eloDiffSigned;
+    const homeIsWinner = hasXg ? s >= 0.5 : s === 1;
+    const winnerEloDiff = homeIsWinner ? eloDiffSigned : -eloDiffSigned;
     const movMultiplier =
-      Math.log(goalDiff + 1) * (2.2 / (Math.abs(winnerEloDiff) * 0.001 + 2.2));
+      Math.log(margin + 1) * (2.2 / (Math.abs(winnerEloDiff) * 0.001 + 2.2));
     const kEff = K_FACTOR * Math.max(1, movMultiplier);
 
     const newHome = home + kEff * (s - expHome);

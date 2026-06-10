@@ -419,9 +419,28 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
       homeScore: true,
       awayScore: true,
       startTime: true,
+      fixtureStats: true,
     },
   });
-  const seasonMatchesTyped = seasonMatches as PredictMatch[];
+  // xG 추출 — af /fixtures/statistics 는 [home, away] 순서 고정 (2026-06-10 394/394 검증).
+  // xG 없는 매치(아시아 리그·과거분)는 null → calcEloTable 이 기존 골 마진과 동일 동작.
+  const seasonMatchesTyped: PredictMatch[] = seasonMatches.map((m) => {
+    let xgHome: number | null = null;
+    let xgAway: number | null = null;
+    if (m.fixtureStats) {
+      try {
+        const fs = JSON.parse(m.fixtureStats) as { expectedGoals?: number }[];
+        if (Array.isArray(fs) && fs.length === 2) {
+          xgHome = fs[0]?.expectedGoals ?? null;
+          xgAway = fs[1]?.expectedGoals ?? null;
+        }
+      } catch {
+        // 손상 JSON — xG 없이 진행
+      }
+    }
+    const { fixtureStats: _fs, ...rest } = m;
+    return { ...rest, xgHome, xgAway };
+  });
 
   // Elo
   const eloTable = calcEloTable(seasonMatchesTyped);

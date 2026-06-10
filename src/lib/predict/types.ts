@@ -10,6 +10,10 @@ export interface PredictMatch {
   homeScore: number | null;
   awayScore: number | null;
   startTime: Date;
+  /** 기대득점 (af fixtureStats) — 있으면 Elo 가 xG 혼합 마진으로 업데이트 (xG-Elo).
+   *  빅5·MLS·브라질레이랑만 제공, 없으면 기존 골 마진과 100% 동일 동작. */
+  xgHome?: number | null;
+  xgAway?: number | null;
 }
 
 export type FormResult = "W" | "D" | "L";
