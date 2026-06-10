@@ -6,6 +6,7 @@ import {
   BarChart3,
   Bot,
   ChevronRight,
+  ClipboardList,
   Dice5,
   FileText,
   HeartPulse,
@@ -17,6 +18,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { toKoreanTeamName } from "@/lib/team-names";
 import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
 import HomeFocusCards from "@/components/HomeFocusCards";
@@ -315,7 +317,30 @@ async function RecentUpdatesSection() {
       ? `모델이 65% 이상 자신한 매치만 따로 추적 — ${topStrong.map((t) => `${t.league} ${t.rate}%`).join(", ")} 적중. 종료된 모든 매치 백테스트로 검증.`
       : "모델이 65% 이상 자신한 매치만 따로 추적합니다. 실제 적중률은 적중률 보드에서 실시간 공개합니다.";
 
+  // 월드컵 예상 선발 라인업 — 다음 예정 WC 매치로 동적 연결 (1h ISR 로 자동 추적).
+  // 데이터: data/wc-predicted-xi.json (cron-wc-xi.sh 매일 갱신, 46/48개국).
+  const nextWc = await prisma.match.findFirst({
+    where: { league: "WORLD_CUP", status: "SCHEDULED", startTime: { gte: new Date() } },
+    orderBy: { startTime: "asc" },
+    select: {
+      externalId: true,
+      homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
+    },
+  });
+  const wcXiBody = nextWc
+    ? `${toKoreanTeamName(nextWc.homeTeam.name, "WORLD_CUP")} vs ${toKoreanTeamName(nextWc.awayTeam.name, "WORLD_CUP")}부터 — 최근 국제경기 선발 데이터 가중투표로 46개국 예상 11명 + 신뢰도 표시. 공식 발표(킥오프 ~1시간 전) 시 확정 라인업으로 자동 교체.`
+    : "최근 국제경기 선발 데이터 가중투표로 46개국 예상 11명 + 신뢰도 표시. 공식 발표 시 확정 라인업으로 자동 교체.";
+
   const items: UpdateItem[] = [
+    {
+      tag: "NEW",
+      Icon: ClipboardList,
+      title: "🏆 월드컵 예상 선발 라인업",
+      body: wcXiBody,
+      href: nextWc ? `/live/WORLD_CUP/${nextWc.externalId}` : "/leagues/WORLD_CUP",
+      cta: "다음 경기 예상 라인업 보기",
+    },
     {
       tag: "NEW",
       Icon: Radio,
