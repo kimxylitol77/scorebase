@@ -1491,12 +1491,25 @@ export default async function ScoresPage({ searchParams }: Props) {
     ? await fetchSoccerByDateCached(dateStr)
     : [];
   const dbExtIds = new Set(matches.map((m) => m.externalId)); // DB 매치와 중복 제거용
+  // externalId dedup 만으론 부족 — TheSports 수집 매치(ext="ts-xxx")와 api-football
+  // orphan(ext="af-{fixtureId}")은 같은 경기라도 source 별 id 체계가 달라 ext 가 절대
+  // 안 맞음. LALIGA_2 등 TheSports 로 적재되는 하위 리그가 full 카드 + minimal orphan
+  // 두 장으로 중복되던 버그 (2026-06-10 알메리아-카스테욘). 리그+팀명 정규화 키로 보강.
+  const dbNameKeys = new Set(
+    matches.map(
+      (m) =>
+        `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
+    ),
+  );
   const orphanCards = datedSoccer
     .filter(
       (dm) =>
         sportLeagueSet.has(dm.league) &&
         (!leagueFilter || dm.league === leagueFilter) &&
         !dbExtIds.has(dm.id.replace(/^[a-z]+-/i, "")) &&
+        !dbNameKeys.has(
+          `${dm.league}|${normalizeName(dm.homeName)}|${normalizeName(dm.awayName)}`,
+        ) &&
         !matchedLiveIds.has(dm.id),
     )
     .map((dm) => orphanCard(dm));
