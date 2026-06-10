@@ -4,6 +4,7 @@
 //   SCHEDULED + 라인업 확정 → 키 플레이어 칩 (평점 상위)
 // 데이터 없으면 null — 빈 카드는 렌더하지 않는다 (접는 게 아니라 숨김).
 
+import Link from "next/link";
 import type { SoccerGoal, SoccerCard } from "@/lib/sports/live-scores";
 
 interface TrendData {
@@ -23,7 +24,17 @@ interface LineupPlayer {
 export interface PredictedXiTeam {
   formation: string;
   basedOnGames: number;
-  xi: Array<{ name: string; nameKo?: string; position: string; confidence: number }>;
+  xi: Array<{
+    name: string;
+    nameKo?: string;
+    position: string;
+    confidence: number;
+    photo?: string;
+    avgRating?: number;
+    lastRating?: number;
+    /** api-football player id — 있으면 선수 상세 링크 */
+    afId?: number;
+  }>;
 }
 
 interface Props {
@@ -203,7 +214,14 @@ function KeyPlayerChips({
   );
 }
 
-/** 예상 라인업 — 한 팀 분량 (G→D→M→F 순 칩, 신뢰도 낮은 선수는 흐리게). */
+const POS_LABEL: Record<string, { ko: string; cls: string }> = {
+  G: { ko: "GK", cls: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
+  D: { ko: "DF", cls: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
+  M: { ko: "MF", cls: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" },
+  F: { ko: "FW", cls: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300" },
+};
+
+/** 예상 라인업 — 한 팀 분량. 선수 카드(사진·포지션·평점), afId 있으면 선수 상세 링크. */
 function PredictedXiRow({ team, label }: { team: PredictedXiTeam; label: string }) {
   const order: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
   const sorted = [...team.xi].sort(
@@ -211,20 +229,54 @@ function PredictedXiRow({ team, label }: { team: PredictedXiTeam; label: string 
   );
   return (
     <div>
-      <div className="flex justify-between text-[11px] text-neutral-500 mb-1">
-        <span>{label} · {team.formation}</span>
+      <div className="flex justify-between text-[11px] text-neutral-500 mb-1.5">
+        <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+          {label} <span className="font-normal text-neutral-500">· {team.formation}</span>
+        </span>
         <span>최근 {team.basedOnGames}경기 기반</span>
       </div>
-      <div className="flex flex-wrap gap-1">
-        {sorted.map((p) => (
-          <span
-            key={p.name}
-            className={`text-[11.5px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 ${p.confidence < 0.6 ? "opacity-55" : ""}`}
-            title={`선발 확률 ${Math.round(p.confidence * 100)}%`}
-          >
-            {p.position === "G" ? "🧤 " : ""}{p.nameKo ?? p.name}
-          </span>
-        ))}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+        {sorted.map((p) => {
+          const pos = POS_LABEL[p.position] ?? POS_LABEL.M;
+          const card = (
+            <span
+              className={`flex items-center gap-1.5 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/60 px-1.5 py-1 min-w-0 ${p.confidence < 0.6 ? "opacity-60" : ""} ${p.afId ? "hover:border-blue-400 dark:hover:border-blue-500 transition cursor-pointer" : ""}`}
+              title={`선발 확률 ${Math.round(p.confidence * 100)}%${p.lastRating ? ` · 직전 평점 ${p.lastRating}` : ""}`}
+            >
+              {p.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.photo}
+                  alt=""
+                  loading="lazy"
+                  className="w-7 h-7 rounded-full object-cover bg-neutral-200 dark:bg-neutral-700 shrink-0"
+                />
+              ) : (
+                <span className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-neutral-700 shrink-0" />
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block text-[11.5px] leading-tight truncate text-neutral-800 dark:text-neutral-200">
+                  {p.nameKo ?? p.name}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className={`text-[9px] px-1 rounded font-semibold ${pos.cls}`}>{pos.ko}</span>
+                  {p.avgRating != null && (
+                    <span className={`text-[10px] tabular-nums font-semibold ${p.avgRating >= 7 ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-500"}`}>
+                      ★ {p.avgRating.toFixed(1)}
+                    </span>
+                  )}
+                </span>
+              </span>
+            </span>
+          );
+          return p.afId ? (
+            <Link key={p.name} href={`/players/${p.afId}?league=WORLD_CUP`} prefetch={false}>
+              {card}
+            </Link>
+          ) : (
+            <span key={p.name}>{card}</span>
+          );
+        })}
       </div>
     </div>
   );
