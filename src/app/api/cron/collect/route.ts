@@ -21,6 +21,11 @@ const TS_COVERED = new Set(
     .filter((e) => e.tsSeasonId)
     .map((e) => e.code),
 );
+// TS_COVERED 분류지만 실제로는 ts collector 가 매치를 안 만드는 리그 — af 수집 유지.
+// K_LEAGUE_1 (2026-06-10): ts- 매치 0건인데 skip 돼 미래 일정 공백 → 경기 당일에야
+// af 매치 생성 → PREVIEW(3일 전)·predict 전무 → 리그 페이지 적중률 0건이던 원인.
+// PREVIEW_LEAGUES 인데 일정 공백이 생기면 여기 추가.
+const TS_COVERED_EXCEPTIONS = new Set<League>(["K_LEAGUE_1"]);
 
 const ALL_LEAGUES: League[] = [
   "EPL",
@@ -149,8 +154,11 @@ export async function GET(req: Request) {
   const leaguesRaw = leaguesParam
     ? (leaguesParam.split(",").filter(Boolean) as League[])
     : ALL_LEAGUES;
-  // Phase 3c — TS cover 축구 리그 skip (야구/농구/하키는 영향 없음)
-  const leagues = leaguesRaw.filter((l) => !TS_COVERED.has(l));
+  // Phase 3c — TS cover 축구 리그 skip (야구/농구/하키는 영향 없음).
+  // 단 TS_COVERED_EXCEPTIONS 는 ts collector 실커버리지가 없어 af 수집 유지.
+  const leagues = leaguesRaw.filter(
+    (l) => !TS_COVERED.has(l) || TS_COVERED_EXCEPTIONS.has(l),
+  );
   const pastDays = pastDaysParam ? parseInt(pastDaysParam) : 2;
   const futureDays = futureDaysParam ? parseInt(futureDaysParam) : 7;
   try {
