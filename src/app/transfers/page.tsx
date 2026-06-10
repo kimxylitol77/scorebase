@@ -11,6 +11,7 @@ import rawDetailPos from "../../../data/player-positions.json";
 import rawOverrides from "../../../data/player-overrides.json";
 import rawPhotos from "../../../data/player-photos.json";
 import rawTeamLogos from "../../../data/team-logos.json";
+import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 
 export const dynamic = "force-dynamic";
 
@@ -96,17 +97,8 @@ function fmtDate(unix?: number | null): string {
   return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
 // TheSports transfer_desc → 한글 (이적료 없을 때 표시)
-const DESC_KO: Record<string, string> = { Free: "자유이적", Loan: "임대", "End of loan": "임대복귀", "Loan return": "임대복귀", Retired: "은퇴", Unknown: "" };
-// TheSports 특수 "팀명" (실클럽 아님) → 한글
-const SPECIAL_TEAM_KO: Record<string, string> = { "Free player": "자유계약", Retired: "은퇴", Disqualification: "징계" };
-// 이적 유형 배지 색 — 데이터로 확정된 type 만 배지 부여 (2=임대복귀·7=임대·6=방출, 1·4 는 생략)
-const BADGE_CLS: Record<string, string> = {
-  임대: "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300",
-  복귀: "bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300",
-  방출: "bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300",
-  은퇴: "bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300",
-  자유영입: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300",
-};
+// 이적 표시 공통(DESC_KO·SPECIAL_TEAM_KO·BADGE_CLS·koTeam·badgeOf)은 transfer-display.ts 공유 —
+// 선수 페이지(/transfers/[id]) 이적 기록과 동일 규칙.
 
 // 이적일 → 날짜 그룹 헤더 "7월 1일 (수)" / 타년도 "2025년 12월 30일 (화)" (UTC 고정 — Vercel/로컬 동일)
 function fmtDateHeader(unix: number): string {
@@ -190,29 +182,20 @@ async function buildTeamLogoMap(rows: Array<{ fromTeamId: string | null; toTeamI
 function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>, teamLogos?: Map<string, string>): TransferCard {
   const tsp = tpMap.get(r.playerId);
   const ov = OVERRIDES[r.playerId];
-  // 배지 — 특수 팀명 우선, 그다음 확정 type 코드. 불확실(1·4)은 무배지.
-  let badge: string | null = null;
-  if (r.toTeamName === "Retired") badge = "은퇴";
-  else if (r.toTeamName === "Free player") badge = "방출";
-  else if (r.fromTeamName === "Disqualification") badge = "복귀";
-  else if (r.fromTeamName === "Free player") badge = "자유영입";
-  else if (r.transferType === 2) badge = "복귀";
-  else if (r.transferType === 7) badge = "임대";
-  else if (r.transferType === 6) badge = "방출";
   return {
     id: r.id,
     playerId: r.playerId,
     name: ov?.nameKo || tsp?.nameKo || tsp?.name || "선수",
     posCode: posCodeOf(r.playerId, tsp?.position),
     photo: PHOTOS[r.playerId] || tsp?.photoUrl || null,
-    fromTeam: SPECIAL_TEAM_KO[r.fromTeamName || ""] || toKoreanTeamName(r.fromTeamName || undefined) || r.fromTeamName || "—",
-    toTeam: SPECIAL_TEAM_KO[r.toTeamName || ""] || toKoreanTeamName(r.toTeamName || undefined) || r.toTeamName || "—",
+    fromTeam: koTeam(r.fromTeamName),
+    toTeam: koTeam(r.toTeamName),
     time: r.transferTime || 0,
     fee: r.transferFee || 0,
     desc: r.transferDesc || null,
     league: r.league,
     ttype: r.transferType,
-    badge,
+    badge: badgeOf(r),
     flag: ov?.flag || null,
     country: ov?.country || null,
     fromLogo: (r.fromTeamId && teamLogos?.get(r.fromTeamId)) || null,

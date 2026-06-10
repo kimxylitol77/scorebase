@@ -10,7 +10,9 @@ import rawSeason from "../../../../data/player-season-stats.json";
 import rawPhotos from "../../../../data/player-photos.json";
 import rawWiki from "../../../../data/player-wiki-seasons.json";
 import rawAbility from "../../../../data/player-ability.json";
+import rawTeamLogos from "../../../../data/team-logos.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
+import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "../transfer-display";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean }
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[] }>;
@@ -30,6 +32,8 @@ interface WikiSeasonRow { season: string; club: string; division: string; lApps:
 const WIKI = rawWiki as Record<string, WikiSeasonRow[]>;
 // 종합 능력치 (TheSports player/ability comprehensive, 10점=만점x10 아닌 0~100 종합)
 const ABILITY = rawAbility as Record<string, number>;
+// 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
+const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
 
 export const dynamic = "force-dynamic";
 
@@ -336,6 +340,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       bestPri[t.externalId] = p;
     }
   }
+  // DB 미커버(비빅5 출신팀)는 정적 수집분으로 보강 — 피드와 동일 fallback
+  for (const tid of histTeamIds) if (!tsLogo[tid] && TEAM_LOGOS[tid]) tsLogo[tid] = TEAM_LOGOS[tid];
 
   // 커리어 행 로고용 클럽명 → 로고 (이적기록 기반, 과거→최신 순회로 최신 이적이 우선)
   const clubLogos: Record<string, string> = {};
@@ -484,17 +490,37 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           <p className="text-sm text-neutral-500">이적 기록이 아직 없습니다.</p>
         ) : (
           <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800/70">
-            {transfers.map((t) => (
+            {transfers.map((t) => {
+              const badge = badgeOf(t);
+              return (
               <div key={t.id} className="flex items-center gap-2 px-3 py-2.5 text-sm">
                 <span className="text-xs text-neutral-400 tabular-nums w-16 shrink-0">{fmtDate(t.transferTime ?? undefined)}</span>
-                <span className="truncate text-neutral-500">{t.fromTeamName || "—"}</span>
+                <span className="truncate text-neutral-500 flex items-center gap-1 min-w-0">
+                  {t.fromTeamId && tsLogo[t.fromTeamId] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={tsLogo[t.fromTeamId]} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
+                  )}
+                  <span className="truncate">{koTeam(t.fromTeamName)}</span>
+                </span>
                 <span className="text-neutral-400 shrink-0">→</span>
-                <span className="truncate font-semibold">{t.toTeamName || "—"}</span>
-                {t.transferFee != null && t.transferFee > 0 && (
-                  <span className="ml-auto text-xs font-semibold text-cyan-600 dark:text-cyan-400 shrink-0">€{Math.round(t.transferFee / 1e6)}M</span>
+                <span className="truncate font-semibold flex items-center gap-1 min-w-0">
+                  {t.toTeamId && tsLogo[t.toTeamId] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={tsLogo[t.toTeamId]} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
+                  )}
+                  <span className="truncate">{koTeam(t.toTeamName)}</span>
+                </span>
+                {badge && (
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${BADGE_CLS[badge] || "bg-neutral-100 dark:bg-neutral-800 text-neutral-500"}`}>{badge}</span>
                 )}
+                {t.transferFee != null && t.transferFee > 0 ? (
+                  <span className="ml-auto text-xs font-semibold text-cyan-600 dark:text-cyan-400 shrink-0">€{Math.round(t.transferFee / 1e6)}M</span>
+                ) : t.transferDesc && DESC_KO[t.transferDesc] ? (
+                  <span className="ml-auto text-[11px] font-semibold text-neutral-500 shrink-0">{DESC_KO[t.transferDesc]}</span>
+                ) : null}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
