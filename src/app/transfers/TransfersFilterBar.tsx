@@ -14,6 +14,8 @@ interface Props {
   pos: string;
   country: string;
   search: string;
+  mode: string; // 최신 이적: "" = 주요(기본) | "all" = 전체 이력
+  ttype: string; // 최신 이적 유형 필터: "" | "fee" | "loan"
   leagues: { code: string; label: string }[];
   teams: TeamOpt[];
   countries: CountryOpt[];
@@ -43,7 +45,7 @@ const POSITIONS = [
   { code: "ST", label: "ST" },
 ];
 
-function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string; q?: string }): string {
+function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string; q?: string; mode?: string; t?: string }): string {
   const params = new URLSearchParams();
   if (o.view && o.view !== "all") params.set("view", o.view);
   if (o.league) params.set("league", o.league);
@@ -51,11 +53,13 @@ function buildUrl(o: { view?: string; league?: string; team?: string; pos?: stri
   if (o.pos) params.set("pos", o.pos);
   if (o.country) params.set("country", o.country);
   if (o.q) params.set("q", o.q);
+  if (o.mode) params.set("mode", o.mode);
+  if (o.t) params.set("t", o.t);
   const qs = params.toString();
   return `/transfers${qs ? `?${qs}` : ""}`;
 }
 
-export default function TransfersFilterBar({ view, league, team, pos, country, search, leagues, teams, countries }: Props) {
+export default function TransfersFilterBar({ view, league, team, pos, country, search, mode, ttype, leagues, teams, countries }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState<null | "team" | "country">(null);
   const [q, setQ] = useState("");
@@ -130,6 +134,31 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
           </button>
         )}
       </form>
+
+      {/* 최신 이적 하위 필터 — 주요/전체 토글 + 유형 칩 */}
+      {view === "latest" && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button onClick={() => go({ view: "latest", t: ttype || undefined })} className={chip(mode !== "all")}>
+            주요
+          </button>
+          <button onClick={() => go({ view: "latest", mode: "all", t: ttype || undefined })} className={chip(mode === "all")}>
+            전체
+          </button>
+          <span className="w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-1" aria-hidden />
+          <button
+            onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "fee" ? undefined : "fee" })}
+            className={chip(ttype === "fee")}
+          >
+            💰 이적료
+          </button>
+          <button
+            onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "loan" ? undefined : "loan" })}
+            className={chip(ttype === "loan")}
+          >
+            임대·복귀
+          </button>
+        </div>
+      )}
 
       {/* 하위 필터 */}
       {view === "league" && (

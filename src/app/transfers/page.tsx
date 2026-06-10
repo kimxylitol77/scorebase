@@ -4,7 +4,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawDetailPos from "../../../data/player-positions.json";
@@ -93,6 +93,25 @@ function fmtDate(unix?: number | null): string {
 }
 // TheSports transfer_desc → 한글 (이적료 없을 때 표시)
 const DESC_KO: Record<string, string> = { Free: "자유이적", Loan: "임대", "End of loan": "임대복귀", "Loan return": "임대복귀", Retired: "은퇴", Unknown: "" };
+// TheSports 특수 "팀명" (실클럽 아님) → 한글
+const SPECIAL_TEAM_KO: Record<string, string> = { "Free player": "자유계약", Retired: "은퇴", Disqualification: "징계" };
+// 이적 유형 배지 색 — 데이터로 확정된 type 만 배지 부여 (2=임대복귀·7=임대·6=방출, 1·4 는 생략)
+const BADGE_CLS: Record<string, string> = {
+  임대: "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300",
+  복귀: "bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300",
+  방출: "bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300",
+  은퇴: "bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300",
+  자유영입: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300",
+};
+
+// 이적일 → 날짜 그룹 헤더 "7월 1일 (수)" / 타년도 "2025년 12월 30일 (화)" (UTC 고정 — Vercel/로컬 동일)
+function fmtDateHeader(unix: number): string {
+  const d = new Date(unix * 1000);
+  const wd = ["일", "월", "화", "수", "목", "금", "토"][d.getUTCDay()];
+  const y = d.getUTCFullYear();
+  const cur = new Date().getUTCFullYear();
+  return `${y !== cur ? `${y}년 ` : ""}${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${wd})`;
+}
 
 function pageNums(cur: number, total: number): (number | string)[] {
   const out: (number | string)[] = [];
@@ -127,29 +146,42 @@ interface Hist { market_value?: number; market_time?: number }
 interface TransferCard {
   id: string; playerId: string; name: string; posCode: string | null; photo: string | null;
   fromTeam: string; toTeam: string; time: number; fee: number; desc: string | null; league: string | null;
+  ttype: number | null; badge: string | null;
 }
 
 interface TsPlayerLite { nameKo: string | null; name: string | null; photoUrl: string | null; position: string | null }
 interface TransferRow {
   id: string; playerId: string; fromTeamName: string | null; toTeamName: string | null;
   transferTime: number | null; transferFee: number | null; transferDesc: string | null; league: string | null;
+  transferType: number | null;
 }
-// FootballTransfer row → 표시 카드 (이름 한글 우선 + 사진 + 포지션)
+// FootballTransfer row → 표시 카드 (이름 한글 우선 + 사진 + 포지션 + 유형 배지)
 function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>): TransferCard {
   const tsp = tpMap.get(r.playerId);
   const ov = OVERRIDES[r.playerId];
+  // 배지 — 특수 팀명 우선, 그다음 확정 type 코드. 불확실(1·4)은 무배지.
+  let badge: string | null = null;
+  if (r.toTeamName === "Retired") badge = "은퇴";
+  else if (r.toTeamName === "Free player") badge = "방출";
+  else if (r.fromTeamName === "Disqualification") badge = "복귀";
+  else if (r.fromTeamName === "Free player") badge = "자유영입";
+  else if (r.transferType === 2) badge = "복귀";
+  else if (r.transferType === 7) badge = "임대";
+  else if (r.transferType === 6) badge = "방출";
   return {
     id: r.id,
     playerId: r.playerId,
     name: ov?.nameKo || tsp?.nameKo || tsp?.name || "선수",
     posCode: posCodeOf(r.playerId, tsp?.position),
     photo: PHOTOS[r.playerId] || tsp?.photoUrl || null,
-    fromTeam: toKoreanTeamName(r.fromTeamName || undefined) || r.fromTeamName || "—",
-    toTeam: toKoreanTeamName(r.toTeamName || undefined) || r.toTeamName || "—",
+    fromTeam: SPECIAL_TEAM_KO[r.fromTeamName || ""] || toKoreanTeamName(r.fromTeamName || undefined) || r.fromTeamName || "—",
+    toTeam: SPECIAL_TEAM_KO[r.toTeamName || ""] || toKoreanTeamName(r.toTeamName || undefined) || r.toTeamName || "—",
     time: r.transferTime || 0,
     fee: r.transferFee || 0,
     desc: r.transferDesc || null,
     league: r.league,
+    ttype: r.transferType,
+    badge,
   };
 }
 
@@ -191,7 +223,7 @@ function PulseRow({ href, photo, name, right }: { href: string; photo: string | 
 export default async function TransfersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string; q?: string }>;
+  searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string; q?: string; mode?: string; t?: string }>;
 }) {
   const sp = await searchParams;
   const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout"].includes(sp.view || "") ? sp.view! : "all";
@@ -199,6 +231,9 @@ export default async function TransfersPage({
   const isBigdeals = view === "bigdeals";
   const isFeed = isLatest || isBigdeals; // 이적 피드형 (최신순/이적료순)
   const isInout = view === "inout";
+  // 최신 이적: 기본 = 주요(이적창 윈도우 + 이름·이적료 확인분), mode=all = 전체 이력
+  const latestAll = isLatest && sp.mode === "all";
+  const tFilter = isLatest && ["fee", "loan"].includes(sp.t || "") ? sp.t! : "";
   const league = sp.league && LEAGUES[sp.league] ? sp.league : "";
   const team = sp.team || "";
   const pos = sp.pos && POS_CODES.includes(sp.pos) ? sp.pos : "";
@@ -364,19 +399,51 @@ export default async function TransfersPage({
     inoutData = board.slice((page - 1) * PER, page * PER);
   }
 
+  // ── 최신 이적 "주요" 모드 — 이적창 윈도우 전체 fetch → 이름·이적료 필터 → 메모리 페이지네이션 ──
+  //   (익명 "선수" 행 ~35% 제거. 윈도우 행 수백~수천 수준이라 메모리 처리 가능. 전체 이력은 mode=all)
+  let latestMainCards: TransferCard[] | null = null;
+  let dateCounts: Map<string, number> | null = null;
+  if (isLatest && !latestAll) {
+    const rows = await prisma.footballTransfer.findMany({
+      where: {
+        league: { in: FIVE },
+        transferTime: { gte: win.from },
+        ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
+        ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
+      },
+      orderBy: { transferTime: "desc" },
+    });
+    const pids = [...new Set(rows.map((r) => r.playerId))];
+    const tplayers = await prisma.theSportsPlayer.findMany({
+      where: { id: { in: pids } },
+      select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
+    });
+    const tpMap = new Map(tplayers.map((p) => [p.id, p]));
+    latestMainCards = rows.map((r) => toCard(r, tpMap)).filter((c) => c.name !== "선수" || c.fee > 0);
+    dateCounts = new Map();
+    for (const c of latestMainCards) { const k = fmtDateHeader(c.time); dateCounts.set(k, (dateCounts.get(k) || 0) + 1); }
+  }
+
   const feedWhere = isBigdeals
     ? { league: { in: FIVE }, transferTime: { gte: win.from }, transferFee: { gt: 0 } }
-    : { league: { in: FIVE }, transferTime: { not: null } };
-  const transferTotal = isFeed ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
-  const totalCount = isFeed ? transferTotal : isInout ? inoutTotal : enriched.length;
+    : {
+        league: { in: FIVE },
+        transferTime: { not: null },
+        ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
+        ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
+      };
+  const transferTotal = isBigdeals || latestAll ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
+  const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : enriched.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PER));
   const safePage = Math.min(page, totalPages);
   inoutData = inoutData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
   const data = isFeed || isInout ? [] : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1 }));
 
-  // ── 이적 피드 (view=latest 최신순 / view=bigdeals 이적료순) + 페이지네이션 ──
+  // ── 이적 피드 (latest 주요=메모리 / latest 전체·bigdeals=DB 페이지네이션) ──
   let transferData: TransferCard[] = [];
-  if (isFeed) {
+  if (latestMainCards) {
+    transferData = latestMainCards.slice((safePage - 1) * PER, safePage * PER);
+  } else if (isFeed) {
     const rows = await prisma.footballTransfer.findMany({
       where: feedWhere,
       orderBy: isBigdeals ? { transferFee: "desc" } : { transferTime: "desc" },
@@ -454,6 +521,8 @@ export default async function TransfersPage({
     if (pos) params.set("pos", pos);
     if (country) params.set("country", country);
     if (qSearch) params.set("q", qSearch);
+    if (latestAll) params.set("mode", "all");
+    if (tFilter) params.set("t", tFilter);
     if (n !== 1) params.set("page", String(n));
     const qs = params.toString();
     return `/transfers${qs ? `?${qs}` : ""}`;
@@ -469,7 +538,11 @@ export default async function TransfersPage({
         ) : isInout ? (
           <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">팀별 영입·방출</strong> · 영입 지출순 · {totalCount}팀.</>
         ) : isLatest ? (
-          <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">선수 이적 현황</strong> · 최신순 · {totalCount.toLocaleString()}건.</>
+          latestAll ? (
+            <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">전체 이적 이력</strong> · 최신순 · {totalCount.toLocaleString()}건.</>
+          ) : (
+            <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">주요 이적</strong> · 이름·이적료 확인분 · {totalCount.toLocaleString()}건.</>
+          )
         ) : (
           <>선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.</>
         )}
@@ -483,6 +556,8 @@ export default async function TransfersPage({
           pos={pos}
           country={country}
           search={qSearch}
+          mode={latestAll ? "all" : ""}
+          ttype={tFilter}
           leagues={LEAGUE_LIST}
           teams={teamOptions}
           countries={countryOptions}
@@ -557,9 +632,17 @@ export default async function TransfersPage({
           <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
             {transferData.map((t, ti) => {
               const rank = (safePage - 1) * PER + ti + 1;
+              // 날짜 그룹 헤더 (최신 이적만) — 이전 행과 날짜 다를 때 섹션 구분
+              const dh = isLatest ? fmtDateHeader(t.time) : null;
+              const prevDh = isLatest && ti > 0 ? fmtDateHeader(transferData[ti - 1].time) : null;
               return (
+              <Fragment key={t.id}>
+                {dh && dh !== prevDh && (
+                  <div className="px-3 sm:px-4 py-1.5 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-neutral-900/60">
+                    {dh}{dateCounts?.get(dh) ? ` · ${dateCounts.get(dh)}건` : ""}
+                  </div>
+                )}
               <Link
-                key={t.id}
                 href={`/transfers/${t.playerId}`}
                 className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
               >
@@ -579,6 +662,9 @@ export default async function TransfersPage({
                     <span className="truncate">{t.name}</span>
                     {t.posCode && (
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500 shrink-0">{t.posCode}</span>
+                    )}
+                    {t.badge && (
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${BADGE_CLS[t.badge] || "bg-neutral-100 dark:bg-neutral-800 text-neutral-500"}`}>{t.badge}</span>
                     )}
                   </div>
                   <div className="text-xs text-neutral-500 truncate flex items-center gap-1 mt-0.5">
@@ -605,6 +691,7 @@ export default async function TransfersPage({
                   )}
                 </div>
               </Link>
+              </Fragment>
               );
             })}
           </div>
