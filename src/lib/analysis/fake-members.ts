@@ -1,6 +1,12 @@
 // 가짜 일반 회원 픽 봇 — 평범한 회원 40명이 짧은 픽을 분단위 cron 에서 낮은 확률로 발행.
 // 한 번에 몰아쓰지 않고 하루 5~10글이 시간에 분산. 야구 시즌 가중(야구 7 : 축구 3).
 // 일반 등급(badge 없음) → 적중 쌓이면 등급 상승.
+//
+// 자연스러움 장치 (템플릿 티 제거):
+//   ① 닉네임별 고정 페르소나(말투·픽 성향·길이) — 40명이 다 다른 사람처럼
+//   ② 마켓은 코드에서 성향 가중 랜덤 확정 — AI 에 맡기면 1X2 로 수렴하던 문제 해결
+//   ③ 최근 발행 글을 프롬프트에 주입해 표현·구조 중복 회피
+//   ④ createdAt 1~24분 과거 지터(cron 정각 :00/:30 티 제거) + 시간대별 발행 확률
 
 import "server-only";
 import { prisma } from "@/lib/db";
@@ -27,6 +33,77 @@ export const FAKE_NICKNAMES = [
 ];
 
 type Sport = "soccer" | "baseball" | "basketball" | "hockey";
+type Bias = "underdog" | "safe" | "over" | "under" | "handicap" | "balanced";
+
+interface Persona {
+  tone: string; // 말투·캐릭터 (시스템 프롬프트 주입)
+  bias: Bias; // 픽 성향 — 마켓 가중 + 프롬프트 힌트
+  len: "short" | "mid"; // 글 길이 힌트
+}
+
+// 닉네임 인덱스와 1:1 — FAKE_NICKNAMES 순서 동기. 닉네임이 풍기는 캐릭터와 일치시킴.
+const PERSONAS: Persona[] = [
+  { tone: "텐션 높은 반말. 시원시원하게 지르는 스타일, 가끔 ㅋㅋ", bias: "balanced", len: "mid" }, // 오늘은간다
+  { tone: "직감 위주. '느낌이 온다'는 식의 감 표현을 즐김, 근거는 대충", bias: "balanced", len: "short" }, // 느낌충만
+  { tone: "직관 다니는 팬. 현장에서 본 경험을 슬쩍 끼워 말함", bias: "balanced", len: "mid" }, // 직관러
+  { tone: "역배 전문을 자처. 약팀이 잡는 그림과 배당 가치 얘기를 좋아함", bias: "underdog", len: "mid" }, // 역배장인
+  { tone: "신중하고 차분한 존댓말. 무리수 안 두는 성격", bias: "safe", len: "mid" }, // 안전제일
+  { tone: "남들이 안 가는 쪽에서 가치를 찾는 사냥꾼 톤. 짧고 자신감", bias: "underdog", len: "short" }, // 고배당헌터
+  { tone: "과감하고 흥 많음. 느낌표 자주, 약간 허세 섞인 반말", bias: "handicap", len: "short" }, // 묻고더블로
+  { tone: "자신만만 단정형. 짧고 굵게 끊어 말함", bias: "balanced", len: "short" }, // 스포츠불패
+  { tone: "찍기 자랑하는 가벼운 톤. 오늘의 촉을 믿는 스타일", bias: "balanced", len: "short" }, // 찍신강림
+  { tone: "담백하고 건조. 군더더기 없이 요점만", bias: "safe", len: "short" }, // 꾸준왕
+  { tone: "화끈한 경기 좋아함. 큰 거 한 방을 노리는 톤", bias: "over", len: "mid" }, // 한방인생
+  { tone: "관조적이고 차분한 존댓말. 한 발 떨어져서 보는 톤", bias: "safe", len: "mid" }, // 관전모드
+  { tone: "야구에 진심. 선발투수·타순 같은 디테일을 가볍게 언급", bias: "balanced", len: "mid" }, // 야구는역시
+  { tone: "축구 전술 얘기 좋아함. 라인업·압박 같은 단어를 가볍게 씀", bias: "balanced", len: "mid" }, // 축덕광
+  { tone: "초보 티 나는 겸손 톤. 자신 없어하면서도 픽은 함, 물음표 가끔", bias: "balanced", len: "short" }, // 초보픽쟁이
+  { tone: "투수전 감상파. 점수 안 나는 팽팽한 경기를 좋아함", bias: "under", len: "mid" }, // 슬로우커브
+  { tone: "타격전 환영. 홈런·빅이닝 얘기, 영어 단어 한두 개 섞기도", bias: "over", len: "short" }, // HomeRun_K
+  { tone: "드라마틱한 전개 좋아함. 살짝 감성적인 표현", bias: "balanced", len: "mid" }, // 9회말
+  { tone: "직관파. 야구장 분위기·현장 얘기를 곁들임", bias: "balanced", len: "mid" }, // 외야석직관
+  { tone: "불펜 소모·연투 같은 운영 디테일에 밝은 톤", bias: "under", len: "mid" }, // 불펜대기
+  { tone: "짧고 강하게 단정. 한 방에 끝내는 말투", bias: "balanced", len: "short" }, // 끝내기
+  { tone: "건조한 한두 줄. 영어 약어 가끔(W, ez 정도)", bias: "safe", len: "short" }, // ParkJS
+  { tone: "영어 살짝 섞인 짧은 톤. 가볍고 외국인 교포 느낌 한 스푼", bias: "balanced", len: "short" }, // mike_b
+  { tone: "동네 형 정감 톤. 푸근하고 사람 냄새 나게", bias: "safe", len: "mid" }, // 동네야구단
+  { tone: "끝까지 지켜보는 신중파. 변수 얘기를 한 번씩 함", bias: "safe", len: "mid" }, // 풀카운트
+  { tone: "치맥에 야구 보는 즐김파. 승패보다 재미를 먼저 말하고 픽은 덤", bias: "over", len: "mid" }, // 치맥과야구
+  { tone: "야구 진심 단정형. 줄임말 가끔", bias: "balanced", len: "short" }, // 야구는진리
+  { tone: "평범하고 무난한 동호인 톤", bias: "balanced", len: "mid" }, // 베이스볼킴
+  { tone: "겸손한 톤. 자기 픽을 소소하게 낮추는 유머", bias: "safe", len: "short" }, // 7번타자
+  { tone: "속도감 있게 치고 나가는 짧은 말투", bias: "handicap", len: "short" }, // leadoff
+  { tone: "새벽에 MLB 보는 올빼미. 피곤함이 살짝 묻어나는 톤", bias: "balanced", len: "mid" }, // 새벽직관
+  { tone: "세트피스·코너킥 같은 축구 디테일을 가볍게 언급", bias: "balanced", len: "mid" }, // 코너킥러
+  { tone: "중원 싸움 관점으로 경기를 보는 축구팬", bias: "under", len: "mid" }, // midfielder
+  { tone: "EPL 애정 가득. 응원하는 마음이 픽에 묻어나는 톤", bias: "balanced", len: "mid" }, // 손케이팬
+  { tone: "밤에 축구 보는 감성. 차분하고 약간 서정적", bias: "balanced", len: "mid" }, // 축구보는밤
+  { tone: "수비·클린시트 관점. 골키퍼 시점에서 말하는 게 습관", bias: "under", len: "mid" }, // GoalKeeper
+  { tone: "여유롭고 느긋하게 즐기는 스타일", bias: "safe", len: "mid" }, // 잔디사랑
+  { tone: "공격 본능. 골 많이 나는 그림을 좋아하고 직설적", bias: "over", len: "short" }, // striker9
+  { tone: "무난한 축구팬. 가끔 존댓말이 섞임", bias: "balanced", len: "mid" }, // soccer_kim
+  { tone: "응원 텐션 높음. 느낌표 많고 흥겨운 톤", bias: "balanced", len: "mid" }, // 응원단장
+];
+
+// 성향별 픽 힌트 — 프롬프트에 주입(강제 아님, 캐릭터 부여용)
+const BIAS_DESC: Record<Bias, string> = {
+  underdog: "약팀이 잡는 그림(역배)에 끌리는 편. 다만 매번 역배는 아니고 끌리는 경기에서만.",
+  safe: "무리한 픽보다 확실해 보이는 쪽을 고르는 편.",
+  over: "점수가 많이 나는 화끈한 경기를 기대하는 편 — 오버 쪽에 마음이 기울지만 강제는 아님.",
+  under: "투수전·수비전 같은 낮은 점수 경기를 좋아하는 편 — 언더 쪽에 마음이 기울지만 강제는 아님.",
+  handicap: "핸디캡 라인 보는 재미로 픽하는 편.",
+  balanced: "특별한 고집 없이 그날 끌리는 대로 고르는 편.",
+};
+
+// 성향별 마켓 가중 — 코드에서 확정해 1X2 쏠림 방지 (AI 에 맡기면 1X2 만 고름)
+const MARKET_W: Record<Bias, [string, number][]> = {
+  underdog: [["1X2", 0.5], ["HANDICAP", 0.35], ["OU", 0.15]],
+  safe: [["1X2", 0.7], ["HANDICAP", 0.15], ["OU", 0.15]],
+  over: [["OU", 0.65], ["1X2", 0.25], ["HANDICAP", 0.1]],
+  under: [["OU", 0.65], ["1X2", 0.25], ["HANDICAP", 0.1]],
+  handicap: [["HANDICAP", 0.55], ["1X2", 0.3], ["OU", 0.15]],
+  balanced: [["1X2", 0.45], ["OU", 0.3], ["HANDICAP", 0.25]],
+};
 
 interface FakeCand {
   id: number;
@@ -112,40 +189,87 @@ async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCan
   };
 }
 
-const FAKE_SYSTEM = `당신은 스포츠 커뮤니티의 평범한 팬입니다. 경기에 대한 짧은 픽을 캐주얼하게 남깁니다.
+/** 성향 가중으로 마켓 확정 — 라인 없는 마켓은 후보 제외. */
+function chooseMarket(c: FakeCand, bias: Bias): string {
+  const avail = new Set(["1X2"]);
+  if (c.hcLine != null) avail.add("HANDICAP");
+  if (c.ouLine != null) avail.add("OU");
+  const weights = MARKET_W[bias].filter(([m]) => avail.has(m));
+  const total = weights.reduce((s, [, w]) => s + w, 0);
+  let r = Math.random() * total;
+  for (const [m, w] of weights) {
+    r -= w;
+    if (r <= 0) return m;
+  }
+  return weights[weights.length - 1][0];
+}
 
-[톤]
-- 친구한테 말하듯 1~3문장. 구어체·반말 섞어도 OK.
-- 전문 분석가 아님. 직감·느낌·응원 위주로 가볍게. 통계 나열 금지.
-- 팀명은 별명만 단독으로 쓰지 말 것. 예: "파드리스"(X)→"샌디에이고", "내셔널스"(X)→"워싱턴".
+/** 최근 봇 글 — 표현·구조 중복 회피용 컨텍스트. */
+async function recentBotPosts(): Promise<string[]> {
+  const bots = await prisma.user.findMany({
+    where: { email: { startsWith: "fake", endsWith: "@scorebase.internal" } },
+    select: { id: true },
+  });
+  if (!bots.length) return [];
+  const posts = await prisma.post.findMany({
+    where: { authorId: { in: bots.map((b) => b.id) } },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    select: { title: true, content: true },
+  });
+  return posts.map((p) => `- ${p.title} / ${p.content.slice(0, 50)}`);
+}
 
-[픽 규칙]
-- market 은 제공된 "사용 가능 market" 중 하나만.
-- pick 값: 1X2 → HOME/DRAW/AWAY(무승부 없는 종목은 HOME/AWAY), HANDICAP → HOME/AWAY, OU → OVER/UNDER.
-- ⚠️ 홈팀이라고 습관적으로 HOME 고르지 마라. 실제론 원정팀이 이기는 경기도 거의 절반이다.
-  원정 폼이 더 좋거나 홈팀이 약체면 망설임 없이 AWAY(원정)를 골라라 — 픽은 홈/원정이 고루 섞여야 진짜 팬답다.
+/** 닉네임·페르소나·확정 마켓 기반 시스템 프롬프트. */
+function buildSystem(nickname: string, p: Persona, market: string, drawAllowed: boolean, recent: string[]): string {
+  const lenHint = p.len === "short" ? "한 줄(10자짜리 단문도 OK)~2문장" : "1~3문장";
+  const pickRule =
+    market === "1X2"
+      ? `pick 은 ${drawAllowed ? '"HOME"/"DRAW"/"AWAY"' : '"HOME"/"AWAY"'} 중 하나. ⚠️ 홈이라고 습관적으로 HOME 금지 — 원정이 나아 보이면 망설임 없이 AWAY.`
+      : market === "HANDICAP"
+        ? 'pick 은 "HOME"/"AWAY" 중 하나 (핸디캡 라인을 커버할 쪽).'
+        : 'pick 은 "OVER"/"UNDER" 중 하나.';
+  return `당신은 스포츠 커뮤니티 회원 "${nickname}"입니다. 경기 하나에 짧은 픽 글을 남깁니다.
+
+[캐릭터]
+- 말투: ${p.tone}
+- 픽 성향: ${BIAS_DESC[p.bias]}
+- 전문 분석가 아님. 팬의 시선으로, 통계 나열 금지.
+
+[이번 글]
+- market 은 "${market}" 으로 정해져 있음. ${pickRule}
+- 본문 길이: ${lenHint}. 길이가 매번 똑같지 않게.
+- 제목: 25자 이내. 픽 요약일 필요 없음 — 혼잣말·질문·감탄 다 가능. 팀명이 안 들어가도 됨.
+- 팀명을 쓸 땐 별명 단독 금지. 예: "파드리스"(X)→"샌디에이고", "내셔널스"(X)→"워싱턴".
+
+[중복 금지 — 중요]
+최근 다른 회원들이 쓴 글:
+${recent.length ? recent.join("\n") : "(없음)"}
+- 위 글들과 문장 구조·표현·제목 패턴이 겹치면 안 됨.
+- 특히 "요즘 폼이 좋다", "~믿고 간다/믿어본다", "기선제압", "홈 이점", "A는 잘하고 B는 약하다" 같은 닳은 틀 금지. 자기만의 말로.
+- "요즘"·"최근"은 남용된 단어 — 아예 안 쓰거나 글당 1회까지. 요새/이번 주/올 시즌/지난 경기들 같은 다른 표현도 섞을 것.
 
 [출력] 반드시 아래 JSON 객체 하나만. 앞뒤 설명·코드블록 금지:
-{"market":"1X2","pick":"AWAY","title":"제목","analysis":"본문"}
-- 위 예시의 pick 값(AWAY)을 따라하지 말고 경기마다 홈/원정을 직접 판단할 것.
-- title: 25자 이내, 캐주얼하게. 예: "원정 가는 팀이 더 세 보임" / "오늘은 홈 믿어본다"
-- analysis: 1~3문장, 짧고 가볍게. 예: "원정이지만 폼이 위라 그냥 원정 ㄱㄱ" / "홈 이점 확실하지"`;
+{"pick":"...","title":"...","analysis":"..."}`;
+}
 
 /** 짧은 캐주얼 픽 생성. 검증 실패 시 null. */
-async function generateShortPick(c: FakeCand): Promise<ShortPick | null> {
+async function generateShortPick(c: FakeCand, nickname: string, persona: Persona): Promise<ShortPick | null> {
   const drawAllowed = c.sport === "soccer";
-  const markets = ["1X2"];
-  if (c.hcLine != null) markets.push("HANDICAP");
-  if (c.ouLine != null) markets.push("OU");
+  const market = chooseMarket(c, persona.bias);
+  const recent = await recentBotPosts();
 
   const data = [
     `경기: ${c.home}(홈) vs ${c.away}(원정)`,
     `리그: ${leagueLabel(c.league)} · ${kickoffLabel(c.startTime)}`,
-    `사용 가능 market: ${markets.join(", ")}${drawAllowed ? "" : " · 무승부 없음"}`,
-  ].join("\n");
+    market === "HANDICAP" ? `핸디캡 라인(홈 기준): ${c.hcLine}` : null,
+    market === "OU" ? `오버언더 기준선: ${c.ouLine}` : null,
+  ]
+    .filter((l): l is string => l != null)
+    .join("\n");
 
   const raw = await generate(data, {
-    system: FAKE_SYSTEM,
+    system: buildSystem(nickname, persona, market, drawAllowed, recent),
     maxTokens: 600,
     temperature: 0.95, // 캐주얼·다양성
   });
@@ -153,11 +277,10 @@ async function generateShortPick(c: FakeCand): Promise<ShortPick | null> {
   const json = parsePickJson(raw);
   if (!json) return null;
 
-  const market = String(json.market ?? "").trim();
   const pick = String(json.pick ?? "").trim().toUpperCase();
   const title = String(json.title ?? "").trim().slice(0, 120);
   const analysis = String(json.analysis ?? "").trim();
-  if (!title || analysis.length < 4 || !markets.includes(market)) return null;
+  if (!title || analysis.length < 4) return null;
 
   let line: number | null = null;
   if (market === "1X2") {
@@ -174,11 +297,13 @@ async function generateShortPick(c: FakeCand): Promise<ShortPick | null> {
   return { market, pick, line, title, analysis };
 }
 
-// 분단위 cron(30분 간격) 호출 → 매번 ~15% 확률로 1글만 발행. 하루 5~10글이 시간에 분산(몰아쓰기 X).
+// 분단위 cron(30분 간격) 호출 → 시간대별 확률로 1글만 발행. 하루 5~10글이 시간에 분산(몰아쓰기 X).
 // 야구 시즌이라 종목 가중 야구 70% / 축구 30%.
 export async function runFakeMemberPicks(): Promise<{ created: number; skipped: number }> {
-  // 호출당 ~15% 만 발행 → 30분 간격(하루 48회) × 0.15 ≈ 7글/일. 한 호출에 1글만.
-  if (Math.random() < 0.85) return { created: 0, skipped: 0 };
+  // 시간대별 발행 확률(KST) — 저녁 활발·새벽 한산. 30분 간격 호출 기준 일 평균 ~7글 유지.
+  const kstHour = (new Date().getUTCHours() + 9) % 24;
+  const rate = kstHour >= 18 ? 0.22 : kstHour >= 9 ? 0.12 : kstHour >= 3 ? 0.07 : 0.15;
+  if (Math.random() > rate) return { created: 0, skipped: 0 };
 
   const i = Math.floor(Math.random() * FAKE_NICKNAMES.length);
   const preferSport: Sport = Math.random() < 0.7 ? "baseball" : "soccer";
@@ -187,8 +312,12 @@ export async function runFakeMemberPicks(): Promise<{ created: number; skipped: 
     const userId = await ensureFakeMember(i);
     const c = await randomMatch(userId, preferSport);
     if (!c) return { created: 0, skipped: 1 };
-    const pick = await generateShortPick(c);
+    const pick = await generateShortPick(c, FAKE_NICKNAMES[i], PERSONAS[i]);
     if (!pick) return { created: 0, skipped: 1 };
+    // createdAt 과거 지터 1~29분 — cron 이 :00/:30 정각 실행이라 그대로면 발행 분이 00/30 고정.
+    // 1~29분 빼면 :00 발행 → 31~59분, :30 발행 → 1~29분으로 모든 분(10분·13분…)에 고르게 분포.
+    // 과거 방향이라 킥오프 전 보장 유지. 초도 랜덤(0~59).
+    const createdAt = new Date(Date.now() - (1 + Math.floor(Math.random() * 29)) * 60_000 - Math.floor(Math.random() * 60) * 1000);
     await prisma.post.create({
       data: {
         authorId: userId,
@@ -199,6 +328,7 @@ export async function runFakeMemberPicks(): Promise<{ created: number; skipped: 
         market: pick.market,
         line: pick.line,
         pick: pick.pick,
+        createdAt,
       },
     });
     return { created: 1, skipped: 0 };
