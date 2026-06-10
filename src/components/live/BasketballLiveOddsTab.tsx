@@ -25,6 +25,9 @@ interface Props {
   league: string;
   homeNameKo: string;
   awayNameKo: string;
+  /** 영문 팀명 — 축구 The Odds API 매칭에 필요 (농구는 gameId 로 충분, 2026-06-10 축구 일원화) */
+  homeNameEn?: string;
+  awayNameEn?: string;
   eloPrediction?: { home: number; draw?: number | null; away: number } | null;
   oddsHistory?: Array<{ fetchedAt: number; home: number; draw: number | null; away: number }>;
 }
@@ -37,6 +40,8 @@ export default function BasketballLiveOddsTab({
   league,
   homeNameKo,
   awayNameKo,
+  homeNameEn,
+  awayNameEn,
   eloPrediction,
   oddsHistory,
 }: Props) {
@@ -52,8 +57,12 @@ export default function BasketballLiveOddsTab({
     const fetchOnce = async () => {
       try {
         const headers: HeadersInit = lastEtag ? { "if-none-match": lastEtag } : {};
+        const namesParam =
+          homeNameEn && awayNameEn
+            ? `&away=${encodeURIComponent(awayNameEn)}&home=${encodeURIComponent(homeNameEn)}`
+            : "";
         const res = await fetch(
-          `/api/live/match/${gameId}?league=${encodeURIComponent(league)}`,
+          `/api/live/match/${gameId}?league=${encodeURIComponent(league)}${namesParam}`,
           { cache: "no-store", headers },
         );
         if (res.status === 304) return;
@@ -94,7 +103,7 @@ export default function BasketballLiveOddsTab({
       if (timer) clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [gameId, league]);
+  }, [gameId, league, homeNameEn, awayNameEn]);
 
   if (!odds) {
     return (

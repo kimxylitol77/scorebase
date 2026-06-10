@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { SPORTS } from "@/lib/sports/sport-leagues";
 import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
@@ -12,6 +13,11 @@ import LiveOddsCard from "./live/LiveOddsCard";
 import SoccerEventsTimeline from "./live/SoccerEventsTimeline";
 import SoccerGoalsCard from "./live/SoccerGoalsCard";
 import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
+
+// 축구 리그 집합 — SPORTS 단일 진실 (라이브 배당 카드 suppress 판정용)
+const SOCCER_LEAGUES_SET = new Set(
+  SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
+);
 
 interface PeriodLinescore {
   homePeriods: (number | null)[];
@@ -271,8 +277,11 @@ export default function SportLiveDetail({
   const contextLabel = isLive ? live?.statusLabel : null;
 
   // 농구는 라이브 배당 + 팀 stats 비교를 MatchInsight 탭으로 일원화 (2026-05-29) →
-  // 여기서는 중복 렌더 안 함.
+  // 여기서는 중복 렌더 안 함. 축구도 동일 일원화 (2026-06-10 — 배당 탭에 라이브
+  // 배당 + 북메이커 상세 합침, 본문 중복 카드 제거).
   const isBasketball = league === "NBA" || league === "WNBA";
+  const isSoccerLeague = SOCCER_LEAGUES_SET.has(league);
+  const suppressLiveOddsCard = isBasketball || isSoccerLeague;
 
   // 종목별 LIVE 카드 클래스 (border glow 색)
   const liveCardClass =
@@ -399,8 +408,8 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 라이브 배당 (The Odds API 1분 갱신) — 농구는 MatchInsight 탭으로 이동 */}
-      {!isBasketball && live?.liveOdds && (
+      {/* 라이브 배당 (The Odds API 1분 갱신) — 농구·축구는 MatchInsight 배당 탭으로 이동 */}
+      {!suppressLiveOddsCard && live?.liveOdds && (
         <LiveOddsCard
           odds={live.liveOdds}
           homeNameKo={homeNameKo}

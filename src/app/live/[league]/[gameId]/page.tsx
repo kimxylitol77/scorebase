@@ -567,19 +567,43 @@ export default async function GenericLivePage({ params }: Props) {
         <div className="space-y-4">{predictionNode}{seasonNode}{venueNode}{upcomingNode}</div>
       ) : null;
 
-    // 배당 — API-Sports odds (축구 externalId = api-football fixture id 직접 매핑).
-    // 배당 없는 경기는 enabled=false 라 탭이 숨겨짐.
+    // 배당 — 라이브 배당(The Odds API 폴링, 농구 패턴과 동일 일원화 2026-06-10)
+    // + API-Sports 북메이커별 상세. 본문 중복 카드는 SportLiveDetail 에서 제거됨.
     const fixtureOdds = /^\d+$/.test(match.externalId)
       ? await fetchFixtureOdds(match.externalId)
       : null;
-    const oddsTab = fixtureOdds ? <MatchOddsTable odds={fixtureOdds} /> : null;
+    const liveOddsNode = (
+      <BasketballLiveOddsTab
+        gameId={gameId}
+        league={lg}
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        homeNameEn={match.homeTeam.name}
+        awayNameEn={match.awayTeam.name}
+        eloPrediction={
+          match.predHome != null && match.predAway != null
+            ? { home: match.predHome, draw: match.predDraw ?? null, away: match.predAway }
+            : null
+        }
+        oddsHistory={oddsHistory}
+      />
+    );
+    const oddsTab = (
+      <div className="space-y-4">
+        {liveOddsNode}
+        {fixtureOdds && <MatchOddsTable odds={fixtureOdds} />}
+      </div>
+    );
+    // 라이브 배당은 The Odds API 커버 매치만 데이터가 옴 — 확장 리그처럼 둘 다
+    // 없을 수 있는 경우 oddsHistory·fixtureOdds 로 enabled 판정 (빈 탭 방지).
+    const oddsTabEnabled = !!fixtureOdds || oddsHistory.length > 0;
 
     soccerTabs.push(
       { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
       { key: "soccer-stats", label: "팀 통계", enabled: !!statsTab, content: statsTab },
       { key: "soccer-h2h", label: "맞대결", enabled: !!h2hTab, content: h2hTab },
       { key: "soccer-info", label: "경기 정보", enabled: !!infoTab, content: infoTab },
-      { key: "soccer-odds", label: "배당", enabled: !!oddsTab, content: oddsTab },
+      { key: "soccer-odds", label: "배당", enabled: oddsTabEnabled, content: oddsTab },
     );
   }
 
