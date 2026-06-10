@@ -39,6 +39,12 @@ import {
   applyLineupToWinProb,
   type LineupAdjustment,
 } from "./predict/lineup-adjust";
+import {
+  computeRestContext,
+  computeMotivation,
+  type Motivation,
+} from "./predict/schedule-context";
+import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
@@ -71,6 +77,12 @@ export interface TeamInput {
   bullpenFatigue?: number;
   /** 하키 골리 rating 0~100. 50 = league avg. SV% 높을수록 ↑. */
   goalieRating?: number;
+  /** 축구 — 직전 경기 후 휴식일 (10일 초과는 null, schedule-context). */
+  restDays?: number | null;
+  /** 축구 — 킥오프 직전 8일간 치른 경기 수 (혼잡 감지). */
+  matchesIn8d?: number;
+  /** 축구 — 시즌 막판 동기부여 (fight=우승·강등 사투 / dead=중위 무동기). */
+  motivation?: "fight" | "dead" | "normal";
 }
 
 /**
@@ -310,6 +322,62 @@ export function predictMatch(input: PredictionInput): PredictionResult {
       }
     }
   } else if (sport === "football") {
+    // 휴식일 격차 — 2일+ 차이에만, 1일당 1%p, cap ±3%p (UEFA 미드위크 연구 일반치 보수 적용)
+    if (home.restDays != null && away.restDays != null) {
+      const rd = home.restDays - away.restDays;
+      if (Math.abs(rd) >= 2) {
+        const shift = Math.max(-0.03, Math.min(0.03, rd * 0.01));
+        probs = normalizeProbs({
+          home: clamp01(probs.home + shift),
+          draw: probs.draw,
+          away: clamp01(probs.away - shift),
+        });
+        signalsUsed.push("rest");
+        reasons.push({
+          tag: "휴식일",
+          detail: `${rd > 0 ? home.name : away.name} 휴식 우위 (${home.restDays}일 vs ${away.restDays}일)`,
+          weight: "low",
+        });
+      }
+    }
+    // 일정 혼잡 — 8일 3경기+ 인데 상대는 아닐 때 2%p
+    if (home.matchesIn8d != null && away.matchesIn8d != null) {
+      const homeCongested = home.matchesIn8d >= 3 && away.matchesIn8d < 3;
+      const awayCongested = away.matchesIn8d >= 3 && home.matchesIn8d < 3;
+      if (homeCongested || awayCongested) {
+        const shift = homeCongested ? -0.02 : 0.02;
+        probs = normalizeProbs({
+          home: clamp01(probs.home + shift),
+          draw: probs.draw,
+          away: clamp01(probs.away - shift),
+        });
+        signalsUsed.push("congestion");
+        reasons.push({
+          tag: "일정 혼잡",
+          detail: `${homeCongested ? home.name : away.name} 8일 내 3경기 강행군 (${home.matchesIn8d} vs ${away.matchesIn8d}경기)`,
+          weight: "low",
+        });
+      }
+    }
+    // 시즌 막판 동기부여 — fight(우승·강등 사투) vs dead(중위 무동기) 격차에만 4%p
+    if (home.motivation && away.motivation && home.motivation !== away.motivation) {
+      const homeFight = home.motivation === "fight" && away.motivation === "dead";
+      const awayFight = away.motivation === "fight" && home.motivation === "dead";
+      if (homeFight || awayFight) {
+        const shift = homeFight ? 0.04 : -0.04;
+        probs = normalizeProbs({
+          home: clamp01(probs.home + shift),
+          draw: probs.draw,
+          away: clamp01(probs.away - shift),
+        });
+        signalsUsed.push("motivation");
+        reasons.push({
+          tag: "동기부여",
+          detail: `${homeFight ? home.name : away.name} 순위 사투 중 — 상대는 중위 안착 (시즌 막판)`,
+          weight: "med",
+        });
+      }
+    }
     // 확정 XI 평점 보정 (lineup-adjust) — MLB starter 와 평행. 라인업 확정 후
     // 재계산 트리거에서만 입력됨 (TheSports lineup 평점 기반, ±1.5%p 미만 노이즈 무시).
     const lAdj = input.lineupAdj;
@@ -514,6 +582,27 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
         ).catch(() => null)
       : null;
 
+  // 축구 휴식·혼잡 (이미 로드한 시즌 매치에서 계산 — 추가 쿼리 0) + 시즌 막판 동기부여.
+  let homeRest: ReturnType<typeof computeRestContext> | null = null;
+  let awayRest: ReturnType<typeof computeRestContext> | null = null;
+  let homeMotivation: Motivation | undefined;
+  let awayMotivation: Motivation | undefined;
+  if (sport === "football") {
+    homeRest = computeRestContext(seasonMatchesTyped, match.homeTeamId, match.startTime);
+    awayRest = computeRestContext(seasonMatchesTyped, match.awayTeamId, match.startTime);
+    try {
+      const standings = await getFullStandings(match.league);
+      if (standings.length >= 10) {
+        const homeRow = standings.find((r) => r.teamId === match.homeTeamId) ?? null;
+        const awayRow = standings.find((r) => r.teamId === match.awayTeamId) ?? null;
+        homeMotivation = computeMotivation(homeRow, standings.length);
+        awayMotivation = computeMotivation(awayRow, standings.length);
+      }
+    } catch {
+      // standings 없음 (국가대항·컵) — motivation 미적용
+    }
+  }
+
   return predictMatch({
     sport,
     league: match.league,
@@ -523,12 +612,18 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
       recentForm: homeForm,
       // 야구 선발 ERA/WHIP/K9 — 있으면 predictMatch 가 starter-adjust 로 보정 (골리/부상은 Phase 3).
       starter: parseStarterStats(match.homeStarter),
+      restDays: homeRest?.restDays,
+      matchesIn8d: homeRest?.matchesIn8d,
+      motivation: homeMotivation,
     },
     away: {
       name: match.awayTeam.name,
       elo: eloAway,
       recentForm: awayForm,
       starter: parseStarterStats(match.awayStarter),
+      restDays: awayRest?.restDays,
+      matchesIn8d: awayRest?.matchesIn8d,
+      motivation: awayMotivation,
     },
     odds,
     dc,
