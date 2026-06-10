@@ -144,18 +144,43 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
   // 영영 채점 안 됨 (19401 백로그 中 최古 250건이 100% 이런 매치였음 → 알림 17% starvation).
   // desc 면 평가 가능한 최근 매치가 항상 머리에 와 즉시 처리되고, 평가불가 매치는 바닥으로
   // 가라앉아 starvation 없음.
-  const pending = await prisma.match.findMany({
+  // 2-pass (2026-06-10): predHome 보유 매치(평가 가치 확정 — PREVIEW/predict 가 붙었던
+  // 경기)를 먼저 전부 큐에 — desc take 만으로는 cron 당일 못 탄 매치가 마이너 리그
+  // 평가불가 매치 수만 건에 밀려 영영 채점 안 되던 starvation 해소 (KBO 53·MLB 172건
+  // 등 5/12 부터 한 달 적체 발견). 남은 slot 은 기존 desc 로 백테스트 표본 확보.
+  const pendingPriority = await prisma.match.findMany({
     where: {
       status: "FINISHED",
       homeScore: { not: null },
       awayScore: { not: null },
       predCorrect: null,
+      predHome: { not: null },
     },
     orderBy: { startTime: "desc" },
     take: limit,
     include: { theSportsCache: { select: { detailLive: true } } },
   });
-  console.log(`[evaluate/match] 미평가: ${pending.length}건`);
+  const seen = new Set(pendingPriority.map((m) => m.id));
+  const pendingRest =
+    pendingPriority.length < limit
+      ? (
+          await prisma.match.findMany({
+            where: {
+              status: "FINISHED",
+              homeScore: { not: null },
+              awayScore: { not: null },
+              predCorrect: null,
+            },
+            orderBy: { startTime: "desc" },
+            take: limit,
+            include: { theSportsCache: { select: { detailLive: true } } },
+          })
+        ).filter((m) => !seen.has(m.id)).slice(0, limit - pendingPriority.length)
+      : [];
+  const pending = [...pendingPriority, ...pendingRest];
+  console.log(
+    `[evaluate/match] 미평가: ${pending.length}건 (pred 우선 ${pendingPriority.length})`,
+  );
   if (pending.length === 0) return { evaluated: 0, byLeague: {} };
 
   // PREVIEW 글이 있는 매치 — predHome/predWinner 는 글 생성 시점 값을 보존(덮어쓰기 X).
