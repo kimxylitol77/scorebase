@@ -18,41 +18,24 @@
       "flag": "🇨🇭"
     }
   ],
-  "teamRating": 3.2,
+  "teamRating": 3.1,
   "xi": [
     {
-      "id": "23xmvkhd6jzoqg8",
-      "name": "Mahmoud Abunada",
-      "nameKo": "마흐무드 아부나드",
-      "hasMv": false,
+      "id": "ednm9whz104ryox",
+      "name": "Gregor Kobel",
+      "nameKo": "그레고르 코벨",
+      "hasMv": true,
       "pos": "G",
-      "country": "Qatar",
-      "flag": "🇶🇦",
-      "logo": "https://img.thesports.com/football/player/bcfe06b8a9b85288be7bf4083474a4c9.png",
-      "score": 8,
-      "star": 4,
-      "recentRating": 8,
-      "avgRating": 8,
+      "country": "Switzerland",
+      "flag": "🇨🇭",
+      "logo": "https://img.thesports.com/football/player/8d016e14c78f3d8b05c726c4042ce032.png",
+      "score": 7.47,
+      "star": 3,
+      "recentRating": 6.86,
+      "avgRating": 6.86,
       "games": 1,
       "x": 50,
       "y": 90
-    },
-    {
-      "id": "pxwrxlhznovryk0",
-      "name": "Pedro Miguel",
-      "nameKo": "페드로 미구엘",
-      "hasMv": false,
-      "pos": "D",
-      "country": "Qatar",
-      "flag": "🇶🇦",
-      "logo": "https://img.thesports.com/football/player/cdcecfd733179fabc8a2f685b143b513.png",
-      "score": 7.5,
-      "star": 3,
-      "recentRating": 7.5,
-      "avgRating": 7.5,
-      "games": 1,
-      "x": 16,
-      "y": 68
     },
     {
       "id": "2y8m4zh4v8gql07",
@@ -68,8 +51,25 @@
       "recentRating": 7.4,
       "avgRating": 7.4,
       "games": 1,
+      "x": 16,
+      "y": 70
+    },
+    {
+      "id": "23xmvkhdox9qg8n",
+      "name": "Boualem Khoukhi",
+      "nameKo": "부알렘 쿠키",
+      "hasMv": false,
+      "pos": "D",
+      "country": "Qatar",
+      "flag": "🇶🇦",
+      "logo": "https://img.thesports.com/football/player/a7ba89b69c22bc9285c55e5447147d84.png",
+      "score": 7.39,
+      "star": 3,
+      "recentRating": 7.39,
+      "avgRating": 7.39,
+      "games": 1,
       "x": 39,
-      "y": 68
+      "y": 70
     },
     {
       "id": "pxwrxlhj2n53ryk",
@@ -86,7 +86,7 @@
       "avgRating": 0,
       "games": 0,
       "x": 61,
-      "y": 68
+      "y": 70
     },
     {
       "id": "pxwrxlh975nryk0",
@@ -103,7 +103,7 @@
       "avgRating": 7.19,
       "games": 1,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "ednm9whzd48ryox",
@@ -119,8 +119,8 @@
       "recentRating": 8.2,
       "avgRating": 8.2,
       "games": 1,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "dn1m1ghnkz8kmoe",
@@ -137,7 +137,7 @@
       "avgRating": 7.5,
       "games": 1,
       "x": 50,
-      "y": 44
+      "y": 32
     },
     {
       "id": "y0or5jh3ld3oqwz",
@@ -153,8 +153,42 @@
       "recentRating": 6.37,
       "avgRating": 6.98,
       "games": 2,
-      "x": 72,
-      "y": 44
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "k82rekhon5dvrep",
+      "name": "Ismael Kone",
+      "nameKo": "이스마엘 코네",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Canada",
+      "flag": "🇨🇦",
+      "logo": "https://img.thesports.com/football/player/2452a92babe040ed8f5ac640a7cf5e6e.png",
+      "score": 7.51,
+      "star": 3,
+      "recentRating": 7.09,
+      "avgRating": 7.17,
+      "games": 2,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "l7oqdeh4g466r51",
+      "name": "Ralph Priso",
+      "nameKo": "래프 프리소",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Canada",
+      "flag": "🇨🇦",
+      "logo": "https://img.thesports.com/football/player/68fa78ce1d1a3114b68ef7676fa96a6d.png",
+      "score": 7.5,
+      "star": 3,
+      "recentRating": 7.5,
+      "avgRating": 7.5,
+      "games": 1,
+      "x": 65,
+      "y": 52
     },
     {
       "id": "6ypq3nhzvz51md7",
@@ -170,88 +204,24 @@
       "recentRating": 6.7,
       "avgRating": 7.27,
       "games": 2,
-      "x": 26,
-      "y": 20
-    },
-    {
-      "id": "965mkyhn4ypwr1g",
-      "name": "Johan Manzambi",
-      "nameKo": "만잠비",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Switzerland",
-      "flag": "🇨🇭",
-      "logo": "https://img.thesports.com/football/player/36e3f53a9e5b55b82f2be319b45f9d92.png",
-      "score": 7.19,
-      "star": 3,
-      "recentRating": 6.14,
-      "avgRating": 6.14,
-      "games": 1,
       "x": 50,
-      "y": 20
-    },
-    {
-      "id": "l7oqdeh42e77r51",
-      "name": "Jonathan David",
-      "nameKo": "조나단 데이비드",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Canada",
-      "flag": "🇨🇦",
-      "logo": "https://img.thesports.com/football/player/9de146bd66bd42d984f0e451e11635cb.png",
-      "score": 7.18,
-      "star": 3,
-      "recentRating": 6.47,
-      "avgRating": 6.46,
-      "games": 2,
-      "x": 74,
-      "y": 20
+      "y": 14
     }
   ],
   "bench": [
     {
-      "id": "k82rekhon5dvrep",
-      "name": "Ismael Kone",
-      "nameKo": "이스마엘 코네",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Canada",
-      "flag": "🇨🇦",
-      "logo": "https://img.thesports.com/football/player/2452a92babe040ed8f5ac640a7cf5e6e.png",
-      "score": 7.51,
-      "star": 3,
-      "recentRating": 7.09,
-      "avgRating": 7.17,
-      "games": 2
-    },
-    {
-      "id": "l7oqdeh4g466r51",
-      "name": "Ralph Priso",
-      "nameKo": "래프 프리소",
+      "id": "23xmvkhd6jzoqg8",
+      "name": "Mahmoud Abunada",
+      "nameKo": "마흐무드 아부나드",
       "hasMv": false,
-      "pos": "M",
-      "country": "Canada",
-      "flag": "🇨🇦",
-      "logo": "https://img.thesports.com/football/player/68fa78ce1d1a3114b68ef7676fa96a6d.png",
-      "score": 7.5,
-      "star": 3,
-      "recentRating": 7.5,
-      "avgRating": 7.5,
-      "games": 1
-    },
-    {
-      "id": "ednm9whz104ryox",
-      "name": "Gregor Kobel",
-      "nameKo": "그레고르 코벨",
-      "hasMv": true,
       "pos": "G",
-      "country": "Switzerland",
-      "flag": "🇨🇭",
-      "logo": "https://img.thesports.com/football/player/8d016e14c78f3d8b05c726c4042ce032.png",
-      "score": 7.47,
+      "country": "Qatar",
+      "flag": "🇶🇦",
+      "logo": "https://img.thesports.com/football/player/bcfe06b8a9b85288be7bf4083474a4c9.png",
+      "score": 7.44,
       "star": 3,
-      "recentRating": 6.86,
-      "avgRating": 6.86,
+      "recentRating": 7.44,
+      "avgRating": 7.44,
       "games": 1
     },
     {
@@ -297,6 +267,36 @@
       "star": 3,
       "recentRating": 7.7,
       "avgRating": 7.7,
+      "games": 1
+    },
+    {
+      "id": "ednm9wh98v7ryox",
+      "name": "Hassan Al-Haydos",
+      "nameKo": "하산 알 하이두스",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Qatar",
+      "flag": "🇶🇦",
+      "logo": "https://img.thesports.com/football/player/b0db9b1831916ab78fdd64f99b921fbc.png",
+      "score": 7.2,
+      "star": 3,
+      "recentRating": 7.2,
+      "avgRating": 7.2,
+      "games": 1
+    },
+    {
+      "id": "965mkyhn4ypwr1g",
+      "name": "Johan Manzambi",
+      "nameKo": "만잠비",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Switzerland",
+      "flag": "🇨🇭",
+      "logo": "https://img.thesports.com/football/player/36e3f53a9e5b55b82f2be319b45f9d92.png",
+      "score": 7.19,
+      "star": 3,
+      "recentRating": 6.14,
+      "avgRating": 6.14,
       "games": 1
     }
   ],

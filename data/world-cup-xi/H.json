@@ -38,6 +38,23 @@
       "y": 90
     },
     {
+      "id": "l5ergphn2wv9r8k",
+      "name": "Jehad Thakri",
+      "nameKo": "지하드 타크리",
+      "hasMv": false,
+      "pos": "D",
+      "country": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "logo": "https://img.thesports.com/football/player/0c17333c856036fc05ba245ef33bfb20.png",
+      "score": 8,
+      "star": 4,
+      "recentRating": 6.55,
+      "avgRating": 7.28,
+      "games": 2,
+      "x": 16,
+      "y": 70
+    },
+    {
       "id": "23xmvkhk1e18qg8",
       "name": "Pau Cubarsí",
       "nameKo": "파우 쿠바르시",
@@ -51,8 +68,8 @@
       "recentRating": 7.07,
       "avgRating": 7.07,
       "games": 1,
-      "x": 16,
-      "y": 68
+      "x": 39,
+      "y": 70
     },
     {
       "id": "3glrw7hyp9eqdyj",
@@ -68,8 +85,8 @@
       "recentRating": 6.74,
       "avgRating": 6.74,
       "games": 1,
-      "x": 39,
-      "y": 68
+      "x": 61,
+      "y": 70
     },
     {
       "id": "pxwrxlhj1k4zryk",
@@ -85,25 +102,8 @@
       "recentRating": 6.96,
       "avgRating": 6.96,
       "games": 1,
-      "x": 61,
-      "y": 68
-    },
-    {
-      "id": "23xmvkhojvpjqg8",
-      "name": "Pedro Porro",
-      "nameKo": "페드로 포로",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/1fbe68500a159068567e72f366b8a245.png",
-      "score": 7.31,
-      "star": 3,
-      "recentRating": 6.62,
-      "avgRating": 6.62,
-      "games": 1,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "318q66hvwjy3qo9",
@@ -119,8 +119,8 @@
       "recentRating": 8.2,
       "avgRating": 8.2,
       "games": 1,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "l5ergphv83e2r8k",
@@ -137,78 +137,8 @@
       "avgRating": 0,
       "games": 0,
       "x": 50,
-      "y": 44
+      "y": 32
     },
-    {
-      "id": "4jwq2gh1x09m0ve",
-      "name": "Ferrán Torres",
-      "nameKo": "페란 토레스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/2f136897e305e897eb81e1634f5b431b.png",
-      "score": 8.22,
-      "star": 4,
-      "recentRating": 7.16,
-      "avgRating": 7.68,
-      "games": 2,
-      "x": 72,
-      "y": 44
-    },
-    {
-      "id": "x7lm7ph51lem2wd",
-      "name": "Abdullah Al-Hamdan",
-      "nameKo": "압둘라 알-함단",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Saudi Arabia",
-      "flag": "🇸🇦",
-      "logo": "https://img.thesports.com/football/player/35edfc2e5292b8db1a715dfb8d28b025.png",
-      "score": 8,
-      "star": 4,
-      "recentRating": 8,
-      "avgRating": 8,
-      "games": 1,
-      "x": 26,
-      "y": 20
-    },
-    {
-      "id": "965mkyhngg9r1ge",
-      "name": "Mikel Oyarzabal",
-      "nameKo": "미켈 오야르사발",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/fa3ad2f0531840002198511280948995.png",
-      "score": 7.66,
-      "star": 3,
-      "recentRating": 7.55,
-      "avgRating": 7.55,
-      "games": 1,
-      "x": 50,
-      "y": 20
-    },
-    {
-      "id": "318q66hvwp35qo9",
-      "name": "Ayman Yahya",
-      "nameKo": "아이만 야히야",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Saudi Arabia",
-      "flag": "🇸🇦",
-      "logo": "https://img.thesports.com/football/player/8e7e2781e88bc8eb5c7cc145c4d865f5.png",
-      "score": 7.4,
-      "star": 3,
-      "recentRating": 7.4,
-      "avgRating": 7.4,
-      "games": 1,
-      "x": 74,
-      "y": 20
-    }
-  ],
-  "bench": [
     {
       "id": "4jwq2ghx151m0ve",
       "name": "Daniel Olmo Carvajal",
@@ -222,7 +152,9 @@
       "star": 3,
       "recentRating": 7.48,
       "avgRating": 7.48,
-      "games": 1
+      "games": 1,
+      "x": 78,
+      "y": 32
     },
     {
       "id": "4wyrn4hvlloq86p",
@@ -237,6 +169,89 @@
       "star": 3,
       "recentRating": 7.06,
       "avgRating": 7.06,
+      "games": 1,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "6ypq3nh483jmd7o",
+      "name": "Nasser Al-Dawsari",
+      "nameKo": "나세르 알 다와사리",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "logo": "https://img.thesports.com/football/player/8ae7c29217e88117c7a4cc700f2c6391.png",
+      "score": 7.5,
+      "star": 3,
+      "recentRating": 6.69,
+      "avgRating": 7.1,
+      "games": 2,
+      "x": 65,
+      "y": 52
+    },
+    {
+      "id": "4jwq2gh1x09m0ve",
+      "name": "Ferrán Torres",
+      "nameKo": "페란 토레스",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "logo": "https://img.thesports.com/football/player/2f136897e305e897eb81e1634f5b431b.png",
+      "score": 8.22,
+      "star": 4,
+      "recentRating": 7.36,
+      "avgRating": 7.78,
+      "games": 2,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
+    {
+      "id": "x7lm7ph51lem2wd",
+      "name": "Abdullah Al-Hamdan",
+      "nameKo": "압둘라 알-함단",
+      "hasMv": false,
+      "pos": "F",
+      "country": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "logo": "https://img.thesports.com/football/player/35edfc2e5292b8db1a715dfb8d28b025.png",
+      "score": 8.2,
+      "star": 4,
+      "recentRating": 6.82,
+      "avgRating": 7.51,
+      "games": 2
+    },
+    {
+      "id": "965mkyhn301r1ge",
+      "name": "Sultan Mandash",
+      "nameKo": "수르탄 만다쉬",
+      "hasMv": false,
+      "pos": "F",
+      "country": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "logo": "https://img.thesports.com/football/player/773f5ef7e9225de5353646380ed52772.png",
+      "score": 7.69,
+      "star": 3,
+      "recentRating": 6.61,
+      "avgRating": 7.15,
+      "games": 2
+    },
+    {
+      "id": "965mkyhngg9r1ge",
+      "name": "Mikel Oyarzabal",
+      "nameKo": "미켈 오야르사발",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Spain",
+      "flag": "🇪🇸",
+      "logo": "https://img.thesports.com/football/player/fa3ad2f0531840002198511280948995.png",
+      "score": 7.66,
+      "star": 3,
+      "recentRating": 7.55,
+      "avgRating": 7.55,
       "games": 1
     },
     {
@@ -244,15 +259,30 @@
       "name": "Alejandro Baena Rodríguez",
       "nameKo": "알레한드로 바에나",
       "hasMv": true,
-      "pos": "M",
+      "pos": "F",
       "country": "Spain",
       "flag": "🇪🇸",
       "logo": "https://img.thesports.com/football/player/f0942d77865fb7be7dac5a4bab9c43ef.png",
       "score": 7.64,
       "star": 3,
-      "recentRating": 6.42,
-      "avgRating": 6.77,
+      "recentRating": 6.56,
+      "avgRating": 6.84,
       "games": 2
+    },
+    {
+      "id": "23xmvkhkw94qg8n",
+      "name": "Mohammed Al-Owais",
+      "nameKo": "모하메드 알 오와이스",
+      "hasMv": false,
+      "pos": "G",
+      "country": "Saudi Arabia",
+      "flag": "🇸🇦",
+      "logo": "https://img.thesports.com/football/player/78f084badf58d6655094a673c0c48dae.png",
+      "score": 7.51,
+      "star": 3,
+      "recentRating": 7.51,
+      "avgRating": 7.51,
+      "games": 1
     },
     {
       "id": "4jwq2ghv8pd1m0v",
@@ -267,36 +297,6 @@
       "star": 3,
       "recentRating": 7.05,
       "avgRating": 7.05,
-      "games": 1
-    },
-    {
-      "id": "965mkyh3j5x1r1g",
-      "name": "Joan García",
-      "nameKo": "주안 가르시아",
-      "hasMv": true,
-      "pos": "G",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/c982862c2e2c0360120b8ff9c155df20.png",
-      "score": 7.43,
-      "star": 3,
-      "recentRating": 6.78,
-      "avgRating": 6.78,
-      "games": 1
-    },
-    {
-      "id": "3glrw7hy1gy4qdy",
-      "name": "Pablo Martín Páez Gavira",
-      "nameKo": "가비",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Spain",
-      "flag": "🇪🇸",
-      "logo": "https://img.thesports.com/football/player/1532e12d85a2234a39594467202bd15e.png",
-      "score": 7.4,
-      "star": 3,
-      "recentRating": 6.91,
-      "avgRating": 6.91,
       "games": 1
     }
   ],

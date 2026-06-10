@@ -52,7 +52,7 @@
       "avgRating": 7.6,
       "games": 2,
       "x": 16,
-      "y": 68
+      "y": 70
     },
     {
       "id": "x7lm7ph03n08m2w",
@@ -69,7 +69,7 @@
       "avgRating": 7.51,
       "games": 1,
       "x": 39,
-      "y": 68
+      "y": 70
     },
     {
       "id": "23xmvkhd65dqg8n",
@@ -86,7 +86,7 @@
       "avgRating": 7.93,
       "games": 1,
       "x": 61,
-      "y": 68
+      "y": 70
     },
     {
       "id": "y0or5jhe556eqwz",
@@ -103,7 +103,7 @@
       "avgRating": 7.05,
       "games": 2,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "l5ergph2yx5r8k0",
@@ -119,8 +119,8 @@
       "recentRating": 8.6,
       "avgRating": 7.66,
       "games": 2,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "n54qllhx4e7qvy9",
@@ -137,7 +137,7 @@
       "avgRating": 7.95,
       "games": 2,
       "x": 50,
-      "y": 44
+      "y": 32
     },
     {
       "id": "x7lm7pho79om2wd",
@@ -153,8 +153,42 @@
       "recentRating": 7.99,
       "avgRating": 7.99,
       "games": 1,
-      "x": 72,
-      "y": 44
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "l7oqdehen58r510",
+      "name": "Nicolas Raskin",
+      "nameKo": "니콜라스 라스킨",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/4437361376d0a7b9690e5756f5e65628.png",
+      "score": 7.74,
+      "star": 3,
+      "recentRating": 7.74,
+      "avgRating": 7.13,
+      "games": 2,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "8yomo4hko79gq0j",
+      "name": "Amadou Onana",
+      "nameKo": "아마두 오나나",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/f9fcd3ba25c6cacc8d07b46cb7cce0e5.png",
+      "score": 7.68,
+      "star": 3,
+      "recentRating": 7.19,
+      "avgRating": 7.14,
+      "games": 2,
+      "x": 65,
+      "y": 52
     },
     {
       "id": "3glrw7hj75yxqdy",
@@ -170,42 +204,8 @@
       "recentRating": 8.1,
       "avgRating": 7.29,
       "games": 2,
-      "x": 26,
-      "y": 20
-    },
-    {
-      "id": "4wyrn4hv77jq86p",
-      "name": "Dodi Lukebakio",
-      "nameKo": "도디 루케바키오",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/419c796796054c7ae51b3616d4fdcd5d.png",
-      "score": 7.6,
-      "star": 3,
-      "recentRating": 7.77,
-      "avgRating": 7.77,
-      "games": 1,
       "x": 50,
-      "y": 20
-    },
-    {
-      "id": "x7lm7phwyklxm2w",
-      "name": "Matias Fernandez-Pardo",
-      "nameKo": "마티아스 페르난데스파르도",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/bcf736f5bdd1b67f77b700fc146e2044.png",
-      "score": 7.41,
-      "star": 3,
-      "recentRating": 6.82,
-      "avgRating": 6.5,
-      "games": 2,
-      "x": 74,
-      "y": 20
+      "y": 14
     }
   ],
   "bench": [
@@ -225,36 +225,6 @@
       "games": 0
     },
     {
-      "id": "l7oqdehen58r510",
-      "name": "Nicolas Raskin",
-      "nameKo": "니콜라스 라스킨",
-      "hasMv": false,
-      "pos": "M",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/4437361376d0a7b9690e5756f5e65628.png",
-      "score": 7.74,
-      "star": 3,
-      "recentRating": 7.74,
-      "avgRating": 7.13,
-      "games": 2
-    },
-    {
-      "id": "8yomo4hko79gq0j",
-      "name": "Amadou Onana",
-      "nameKo": "아마두 오나나",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/f9fcd3ba25c6cacc8d07b46cb7cce0e5.png",
-      "score": 7.68,
-      "star": 3,
-      "recentRating": 7.19,
-      "avgRating": 7.14,
-      "games": 2
-    },
-    {
       "id": "l7oqdehnwz9r510",
       "name": "Kevin De Bruyne",
       "nameKo": "케빈 데 브라위너",
@@ -267,6 +237,36 @@
       "star": 3,
       "recentRating": 8.2,
       "avgRating": 7.25,
+      "games": 2
+    },
+    {
+      "id": "4wyrn4hv77jq86p",
+      "name": "Dodi Lukebakio",
+      "nameKo": "도디 루케바키오",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/419c796796054c7ae51b3616d4fdcd5d.png",
+      "score": 7.6,
+      "star": 3,
+      "recentRating": 7.77,
+      "avgRating": 7.77,
+      "games": 1
+    },
+    {
+      "id": "x7lm7phwyklxm2w",
+      "name": "Matias Fernandez-Pardo",
+      "nameKo": "마티아스 페르난데스파르도",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/bcf736f5bdd1b67f77b700fc146e2044.png",
+      "score": 7.41,
+      "star": 3,
+      "recentRating": 6.82,
+      "avgRating": 6.5,
       "games": 2
     },
     {

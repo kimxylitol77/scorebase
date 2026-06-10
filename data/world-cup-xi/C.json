@@ -52,7 +52,7 @@
       "avgRating": 0,
       "games": 0,
       "x": 16,
-      "y": 68
+      "y": 70
     },
     {
       "id": "y0or5jh1xegqwzv",
@@ -69,7 +69,7 @@
       "avgRating": 7.62,
       "games": 2,
       "x": 39,
-      "y": 68
+      "y": 70
     },
     {
       "id": "dj2ryohnk9nq1zp",
@@ -86,7 +86,7 @@
       "avgRating": 7.29,
       "games": 1,
       "x": 61,
-      "y": 68
+      "y": 70
     },
     {
       "id": "l5ergphv2y4nr8k",
@@ -103,7 +103,7 @@
       "avgRating": 7.39,
       "games": 1,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "1l4rjnhe42vm7vx",
@@ -119,8 +119,8 @@
       "recentRating": 6.25,
       "avgRating": 7.88,
       "games": 2,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "ednm9whz7ln3ryo",
@@ -137,7 +137,7 @@
       "avgRating": 7.54,
       "games": 2,
       "x": 50,
-      "y": 44
+      "y": 32
     },
     {
       "id": "n54qllhjylvqvy9",
@@ -153,62 +153,9 @@
       "recentRating": 6.97,
       "avgRating": 8.44,
       "games": 2,
-      "x": 72,
-      "y": 44
+      "x": 78,
+      "y": 32
     },
-    {
-      "id": "jw2r09hx3k00rz8",
-      "name": "Igor Thiago",
-      "nameKo": "이고르 치아구",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Brazil",
-      "flag": "🇧🇷",
-      "logo": "https://img.thesports.com/football/player/9b683327f891ef7d2534cd1bd789218f.png",
-      "score": 8.41,
-      "star": 4,
-      "recentRating": 6.78,
-      "avgRating": 7.59,
-      "games": 2,
-      "x": 26,
-      "y": 20
-    },
-    {
-      "id": "1l4rjnhz1jdm7vx",
-      "name": "Lawrence Shankland",
-      "nameKo": "로렌스 샹클랜드",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Scotland",
-      "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-      "logo": "https://img.thesports.com/football/player/a1a3a1333966aac3e4a48cb5d4e7bb68.png",
-      "score": 8.38,
-      "star": 4,
-      "recentRating": 8.38,
-      "avgRating": 8.38,
-      "games": 1,
-      "x": 50,
-      "y": 20
-    },
-    {
-      "id": "y0or5jh33kkqwzv",
-      "name": "Che Adams",
-      "nameKo": "체 아담스",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Scotland",
-      "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-      "logo": "https://img.thesports.com/football/player/53841ec9e3622f24740035a7526f9e73.png",
-      "score": 8.36,
-      "star": 4,
-      "recentRating": 9.97,
-      "avgRating": 9.97,
-      "games": 1,
-      "x": 74,
-      "y": 20
-    }
-  ],
-  "bench": [
     {
       "id": "8yomo4hznx6q0j6",
       "name": "Bruno Guimarães",
@@ -222,7 +169,9 @@
       "star": 4,
       "recentRating": 8.2,
       "avgRating": 7.55,
-      "games": 2
+      "games": 2,
+      "x": 35,
+      "y": 52
     },
     {
       "id": "2y8m4zh1ov4ql07",
@@ -237,6 +186,57 @@
       "star": 4,
       "recentRating": 8.2,
       "avgRating": 8.2,
+      "games": 1,
+      "x": 65,
+      "y": 52
+    },
+    {
+      "id": "jw2r09hx3k00rz8",
+      "name": "Igor Thiago",
+      "nameKo": "이고르 치아구",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/9b683327f891ef7d2534cd1bd789218f.png",
+      "score": 8.41,
+      "star": 4,
+      "recentRating": 6.28,
+      "avgRating": 7.34,
+      "games": 2,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
+    {
+      "id": "1l4rjnhz1jdm7vx",
+      "name": "Lawrence Shankland",
+      "nameKo": "로렌스 샹클랜드",
+      "hasMv": false,
+      "pos": "F",
+      "country": "Scotland",
+      "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+      "logo": "https://img.thesports.com/football/player/a1a3a1333966aac3e4a48cb5d4e7bb68.png",
+      "score": 8.38,
+      "star": 4,
+      "recentRating": 8.38,
+      "avgRating": 8.38,
+      "games": 1
+    },
+    {
+      "id": "y0or5jh33kkqwzv",
+      "name": "Che Adams",
+      "nameKo": "체 아담스",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Scotland",
+      "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+      "logo": "https://img.thesports.com/football/player/53841ec9e3622f24740035a7526f9e73.png",
+      "score": 8.36,
+      "star": 4,
+      "recentRating": 9.97,
+      "avgRating": 9.97,
       "games": 1
     },
     {
@@ -250,8 +250,8 @@
       "logo": "https://img.thesports.com/football/player/9c685f9197ad995f28a991ed5b601714.png",
       "score": 8.13,
       "star": 4,
-      "recentRating": 6.03,
-      "avgRating": 7.71,
+      "recentRating": 5.93,
+      "avgRating": 7.67,
       "games": 2
     },
     {

@@ -46,13 +46,13 @@
       "country": "USA",
       "flag": "🇺🇸",
       "logo": "https://img.thesports.com/football/player/93b8231de15965810cc1d5c6aeb1bb95.png",
-      "score": 7.43,
+      "score": 7.74,
       "star": 3,
       "recentRating": 7.18,
-      "avgRating": 6.75,
+      "avgRating": 7.49,
       "games": 2,
       "x": 16,
-      "y": 68
+      "y": 70
     },
     {
       "id": "dn1m1gh3z2gmoep",
@@ -69,7 +69,24 @@
       "avgRating": 0,
       "games": 0,
       "x": 39,
-      "y": 68
+      "y": 70
+    },
+    {
+      "id": "3glrw7hy9934qdy",
+      "name": "Alex Freeman",
+      "nameKo": "알렉스 프리먼",
+      "hasMv": false,
+      "pos": "D",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/0e61eeaba8be9d47caa0b723362004e5.png",
+      "score": 7.3,
+      "star": 3,
+      "recentRating": 6.58,
+      "avgRating": 6.94,
+      "games": 2,
+      "x": 61,
+      "y": 70
     },
     {
       "id": "3glrw7hz7n7wqdy",
@@ -85,25 +102,8 @@
       "recentRating": 7.05,
       "avgRating": 7.05,
       "games": 1,
-      "x": 61,
-      "y": 68
-    },
-    {
-      "id": "vjxm8gh8lgkdr6o",
-      "name": "Alessandro Circati",
-      "nameKo": "알레산드로 치르카티",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Australia",
-      "flag": "🇦🇺",
-      "logo": "https://img.thesports.com/football/player/d796460d9904281be7823c494ded5957.png",
-      "score": 6.99,
-      "star": 3,
-      "recentRating": 6.7,
-      "avgRating": 6.7,
-      "games": 1,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "965mkyhn3gjr1ge",
@@ -114,13 +114,30 @@
       "country": "USA",
       "flag": "🇺🇸",
       "logo": "https://img.thesports.com/football/player/59ea84ba1b15b3ea70f56f0766949f20.png",
-      "score": 8.43,
+      "score": 8.64,
       "star": 4,
       "recentRating": 6.16,
-      "avgRating": 7.47,
+      "avgRating": 7.67,
       "games": 2,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
+    },
+    {
+      "id": "ednm9whd417ryox",
+      "name": "Sergiño Dest",
+      "nameKo": "세르지뇨 데스트",
+      "hasMv": true,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/4b6be5e0b1873903908353e121aeacaa.png",
+      "score": 8.12,
+      "star": 4,
+      "recentRating": 6,
+      "avgRating": 7.34,
+      "games": 2,
+      "x": 50,
+      "y": 32
     },
     {
       "id": "8yomo4hvy06zq0j",
@@ -136,8 +153,8 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 50,
-      "y": 44
+      "x": 78,
+      "y": 32
     },
     {
       "id": "ednm9whzx15zryo",
@@ -153,26 +170,45 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 72,
-      "y": 44
+      "x": 35,
+      "y": 52
     },
     {
-      "id": "pxwrxlh9577pryk",
-      "name": "Folarin Balogun",
-      "nameKo": "폴라린 바로그운",
+      "id": "23xmvkhd083jqg8",
+      "name": "Malik Tillman",
+      "nameKo": "말릭 틸만",
+      "hasMv": true,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/d4c86ead1bcdde2d9bea2a02de94ad9d.png",
+      "score": 7.49,
+      "star": 3,
+      "recentRating": 6.39,
+      "avgRating": 6.74,
+      "games": 2,
+      "x": 65,
+      "y": 52
+    },
+    {
+      "id": "y0or5jhez44jqwz",
+      "name": "Ricardo Pepi",
+      "nameKo": "리카르도 페피",
       "hasMv": true,
       "pos": "F",
       "country": "USA",
       "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/8770da6921202e88b0bbcf94f1c53dba.png",
-      "score": 8.14,
-      "star": 4,
-      "recentRating": 6.41,
-      "avgRating": 7.3,
+      "logo": "https://img.thesports.com/football/player/4b89cea36622ca27218113e6291363d5.png",
+      "score": 7.69,
+      "star": 3,
+      "recentRating": 6.69,
+      "avgRating": 7.1,
       "games": 2,
-      "x": 26,
-      "y": 20
-    },
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "1l4rjnhx14npm7v",
       "name": "Tete Yengi",
@@ -186,42 +222,36 @@
       "star": 3,
       "recentRating": 7.69,
       "avgRating": 7.69,
-      "games": 1,
-      "x": 50,
-      "y": 20
+      "games": 1
     },
     {
-      "id": "y0or5jhez44jqwz",
-      "name": "Ricardo Pepi",
-      "nameKo": "리카르도 페피",
+      "id": "pxwrxlh9577pryk",
+      "name": "Folarin Balogun",
+      "nameKo": "폴라린 바로그운",
       "hasMv": true,
       "pos": "F",
       "country": "USA",
       "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/4b89cea36622ca27218113e6291363d5.png",
-      "score": 7.68,
+      "logo": "https://img.thesports.com/football/player/8770da6921202e88b0bbcf94f1c53dba.png",
+      "score": 7.44,
       "star": 3,
-      "recentRating": 6.69,
-      "avgRating": 7.08,
-      "games": 2,
-      "x": 74,
-      "y": 20
-    }
-  ],
-  "bench": [
+      "recentRating": 6.41,
+      "avgRating": 6.61,
+      "games": 2
+    },
     {
-      "id": "ednm9whd417ryox",
-      "name": "Sergiño Dest",
-      "nameKo": "세르지뇨 데스트",
+      "id": "dj2ryohg7z1q1zp",
+      "name": "Tyler Adams",
+      "nameKo": "타일러 아담스",
       "hasMv": true,
       "pos": "M",
       "country": "USA",
       "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/4b6be5e0b1873903908353e121aeacaa.png",
-      "score": 7.55,
+      "logo": "https://img.thesports.com/football/player/5d51378d691a67d82e7cb7f1d1f4b327.png",
+      "score": 7.18,
       "star": 3,
-      "recentRating": 6,
-      "avgRating": 6.78,
+      "recentRating": 6.33,
+      "avgRating": 6.46,
       "games": 2
     },
     {
@@ -240,36 +270,6 @@
       "games": 0
     },
     {
-      "id": "23xmvkhd083jqg8",
-      "name": "Malik Tillman",
-      "nameKo": "말릭 틸만",
-      "hasMv": true,
-      "pos": "M",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/d4c86ead1bcdde2d9bea2a02de94ad9d.png",
-      "score": 7.14,
-      "star": 3,
-      "recentRating": 6.39,
-      "avgRating": 6.28,
-      "games": 2
-    },
-    {
-      "id": "dj2ryohg7z1q1zp",
-      "name": "Tyler Adams",
-      "nameKo": "타일러 아담스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/5d51378d691a67d82e7cb7f1d1f4b327.png",
-      "score": 7.13,
-      "star": 3,
-      "recentRating": 6.33,
-      "avgRating": 6.41,
-      "games": 2
-    },
-    {
       "id": "y0or5jh1v1wqwzv",
       "name": "Weston McKennie",
       "nameKo": "웨스턴 맥케니",
@@ -281,23 +281,23 @@
       "score": 7.11,
       "star": 3,
       "recentRating": 6.33,
-      "avgRating": 6.19,
+      "avgRating": 6.17,
       "games": 2
     },
     {
-      "id": "dj2ryohj755q1zp",
-      "name": "Miguel Almirón",
-      "nameKo": "미구엘 알미론",
+      "id": "vjxm8gh8lgkdr6o",
+      "name": "Alessandro Circati",
+      "nameKo": "알레산드로 치르카티",
       "hasMv": true,
-      "pos": "F",
-      "country": "Paraguay",
-      "flag": "🇵🇾",
-      "logo": "https://img.thesports.com/football/player/92921f61c2b406b2412fe02f068d2431.png",
-      "score": 6.94,
+      "pos": "D",
+      "country": "Australia",
+      "flag": "🇦🇺",
+      "logo": "https://img.thesports.com/football/player/d796460d9904281be7823c494ded5957.png",
+      "score": 6.99,
       "star": 3,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0
+      "recentRating": 6.7,
+      "avgRating": 6.7,
+      "games": 1
     }
   ],
   "complete": true

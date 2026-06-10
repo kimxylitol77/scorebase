@@ -18,7 +18,7 @@
       "flag": "🇨🇩"
     }
   ],
-  "teamRating": 3.4,
+  "teamRating": 3.2,
   "xi": [
     {
       "id": "l7oqdeh085vr510",
@@ -52,7 +52,7 @@
       "avgRating": 7.34,
       "games": 1,
       "x": 16,
-      "y": 68
+      "y": 70
     },
     {
       "id": "8yomo4h9zg1q0j6",
@@ -69,7 +69,7 @@
       "avgRating": 7.63,
       "games": 2,
       "x": 39,
-      "y": 68
+      "y": 70
     },
     {
       "id": "4wyrn4h4w9dgq86",
@@ -86,7 +86,7 @@
       "avgRating": 6.79,
       "games": 2,
       "x": 61,
-      "y": 68
+      "y": 70
     },
     {
       "id": "l7oqdeh03ygvr51",
@@ -103,7 +103,7 @@
       "avgRating": 7.43,
       "games": 1,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "n54qllhx11oqvy9",
@@ -119,8 +119,8 @@
       "recentRating": 8.2,
       "avgRating": 8.2,
       "games": 1,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "3glrw7hj003qdyj",
@@ -137,7 +137,7 @@
       "avgRating": 7.7,
       "games": 1,
       "x": 50,
-      "y": 44
+      "y": 32
     },
     {
       "id": "dj2ryohjlv0xq1z",
@@ -153,8 +153,42 @@
       "recentRating": 7.54,
       "avgRating": 7.54,
       "games": 1,
-      "x": 72,
-      "y": 44
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "dj2ryohj7vwq1zp",
+      "name": "Bernardo Silva",
+      "nameKo": "베르나르도 실바",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/c2549f51a139166bf17e1d39b2867ab7.png",
+      "score": 7.44,
+      "star": 3,
+      "recentRating": 7.2,
+      "avgRating": 7.2,
+      "games": 1,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "jw2r09hjnp0rz84",
+      "name": "Jorge Carrascal",
+      "nameKo": "호르헤 카라스칼",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Colombia",
+      "flag": "🇨🇴",
+      "logo": "https://img.thesports.com/football/player/f8a4b892b91eebbe7cd02e24f1b2636a.png",
+      "score": 7.4,
+      "star": 3,
+      "recentRating": 7.04,
+      "avgRating": 7.22,
+      "games": 2,
+      "x": 65,
+      "y": 52
     },
     {
       "id": "6ypq3nh4pzdmd7o",
@@ -170,9 +204,11 @@
       "recentRating": 6.51,
       "avgRating": 7.85,
       "games": 2,
-      "x": 26,
-      "y": 20
-    },
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "8yomo4h290z0q0j",
       "name": "Jhon Arias",
@@ -186,9 +222,7 @@
       "star": 4,
       "recentRating": 9.43,
       "avgRating": 8.02,
-      "games": 2,
-      "x": 50,
-      "y": 20
+      "games": 2
     },
     {
       "id": "8yomo4h03g0q0j6",
@@ -203,12 +237,8 @@
       "star": 4,
       "recentRating": 0,
       "avgRating": 0,
-      "games": 0,
-      "x": 74,
-      "y": 20
-    }
-  ],
-  "bench": [
+      "games": 0
+    },
     {
       "id": "6ypq3nhzkn7md7o",
       "name": "Igor Sergeev",
@@ -267,36 +297,6 @@
       "star": 3,
       "recentRating": 7.47,
       "avgRating": 7.58,
-      "games": 2
-    },
-    {
-      "id": "23xmvkhdwwlqg8n",
-      "name": "Gonçalo Guedes",
-      "nameKo": "곤살로 게데스",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/98bc9236f3fd9c7657814f8ef773d6cf.png",
-      "score": 7.53,
-      "star": 3,
-      "recentRating": 8.2,
-      "avgRating": 8.2,
-      "games": 1
-    },
-    {
-      "id": "y0or5jhge5lqwzv",
-      "name": "Jhon Lucumi",
-      "nameKo": "존 루쿠미",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Colombia",
-      "flag": "🇨🇴",
-      "logo": "https://img.thesports.com/football/player/05cac2c2675d2ca7fdbf7a18e1852032.png",
-      "score": 7.48,
-      "star": 3,
-      "recentRating": 7.29,
-      "avgRating": 6.95,
       "games": 2
     }
   ],

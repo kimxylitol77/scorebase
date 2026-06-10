@@ -52,7 +52,7 @@
       "avgRating": 7.53,
       "games": 1,
       "x": 16,
-      "y": 68
+      "y": 70
     },
     {
       "id": "4wyrn4h7evnq86p",
@@ -69,7 +69,7 @@
       "avgRating": 7.38,
       "games": 1,
       "x": 39,
-      "y": 68
+      "y": 70
     },
     {
       "id": "4wyrn4hd092lq86",
@@ -86,7 +86,7 @@
       "avgRating": 7.51,
       "games": 1,
       "x": 61,
-      "y": 68
+      "y": 70
     },
     {
       "id": "2y8m4zhg5g5yql0",
@@ -103,7 +103,7 @@
       "avgRating": 7.34,
       "games": 1,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "l7oqdehd17nr510",
@@ -119,8 +119,8 @@
       "recentRating": 8.2,
       "avgRating": 8.2,
       "games": 1,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "l7oqdehed20r510",
@@ -137,7 +137,7 @@
       "avgRating": 7.6,
       "games": 1,
       "x": 50,
-      "y": 44
+      "y": 32
     },
     {
       "id": "jw2r09hxv7jyrz8",
@@ -153,8 +153,42 @@
       "recentRating": 7.7,
       "avgRating": 7.7,
       "games": 1,
-      "x": 72,
-      "y": 44
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "1l4rjnhz2lw3m7v",
+      "name": "Hwang In-Beom",
+      "nameKo": "황인범",
+      "hasMv": false,
+      "pos": "M",
+      "country": "South Korea",
+      "flag": "🇰🇷",
+      "logo": "https://img.thesports.com/football/player/20550cc8249a4e79485672d34e170340.png",
+      "score": 7.4,
+      "star": 3,
+      "recentRating": 7.4,
+      "avgRating": 7.4,
+      "games": 1,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "jw2r09h16xerz84",
+      "name": "Roberto Alvarado",
+      "nameKo": "로베르토 알바라도",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Mexico",
+      "flag": "🇲🇽",
+      "logo": "https://img.thesports.com/football/player/f52b07bd9b143cf37312afcda79c3413.png",
+      "score": 7.2,
+      "star": 3,
+      "recentRating": 7.2,
+      "avgRating": 7.2,
+      "games": 1,
+      "x": 65,
+      "y": 52
     },
     {
       "id": "8yomo4hkjw23q0j",
@@ -170,9 +204,11 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 26,
-      "y": 20
-    },
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "vjxm8ghgn50r6od",
       "name": "Raúl Jiménez",
@@ -186,57 +222,6 @@
       "star": 3,
       "recentRating": 8.2,
       "avgRating": 8.2,
-      "games": 1,
-      "x": 50,
-      "y": 20
-    },
-    {
-      "id": "y39mp1h5yjwmojx",
-      "name": "Son Heung-min",
-      "nameKo": "손흥민",
-      "hasMv": true,
-      "pos": "F",
-      "country": "South Korea",
-      "flag": "🇰🇷",
-      "logo": "https://img.thesports.com/football/player/02581622219073217cd06a3411fee61c.png",
-      "score": 7.17,
-      "star": 3,
-      "recentRating": 6.91,
-      "avgRating": 6.91,
-      "games": 1,
-      "x": 74,
-      "y": 20
-    }
-  ],
-  "bench": [
-    {
-      "id": "1l4rjnhz2lw3m7v",
-      "name": "Hwang In-Beom",
-      "nameKo": "황인범",
-      "hasMv": false,
-      "pos": "M",
-      "country": "South Korea",
-      "flag": "🇰🇷",
-      "logo": "https://img.thesports.com/football/player/20550cc8249a4e79485672d34e170340.png",
-      "score": 7.4,
-      "star": 3,
-      "recentRating": 7.4,
-      "avgRating": 7.4,
-      "games": 1
-    },
-    {
-      "id": "jw2r09h16xerz84",
-      "name": "Roberto Alvarado",
-      "nameKo": "로베르토 알바라도",
-      "hasMv": false,
-      "pos": "M",
-      "country": "Mexico",
-      "flag": "🇲🇽",
-      "logo": "https://img.thesports.com/football/player/f52b07bd9b143cf37312afcda79c3413.png",
-      "score": 7.2,
-      "star": 3,
-      "recentRating": 7.2,
-      "avgRating": 7.2,
       "games": 1
     },
     {
@@ -282,6 +267,21 @@
       "star": 3,
       "recentRating": 7.18,
       "avgRating": 7.18,
+      "games": 1
+    },
+    {
+      "id": "y39mp1h5yjwmojx",
+      "name": "Son Heung-min",
+      "nameKo": "손흥민",
+      "hasMv": true,
+      "pos": "F",
+      "country": "South Korea",
+      "flag": "🇰🇷",
+      "logo": "https://img.thesports.com/football/player/02581622219073217cd06a3411fee61c.png",
+      "score": 7.17,
+      "star": 3,
+      "recentRating": 6.91,
+      "avgRating": 6.91,
       "games": 1
     },
     {

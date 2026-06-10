@@ -1,4 +1,4 @@
-// /world-cup/best-xi/[group] — 월드컵 조별 통합 베스트11 (4-3-3) + SEO 본문.
+// /world-cup/best-xi/[group] — 월드컵 조별 통합 베스트11 (4-2-3-1) + SEO 본문.
 // 데이터: data/world-cup-xi/{group}.json (worker cron 이 build-world-cup-xi.ts 로 매일 갱신).
 import fs from "fs";
 import path from "path";
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ group: st
   const stars = d.xi.slice(0, 3).map((p) => koOf(p)).join(", ");
   return {
     title: `2026 월드컵 ${g}조 통합 베스트11 — ${cs} | Scorebase`,
-    description: `2026 북중미 월드컵 ${g}조(${cs}) 통합 베스트 11. TheSports 경기 평점·시장가치 기반 4-3-3. ${stars} 등 ${g}조 최고의 11인 — 순위·평점 매일 갱신.`,
+    description: `2026 북중미 월드컵 ${g}조(${cs}) 통합 베스트 11. TheSports 경기 평점·시장가치 기반 4-2-3-1. ${stars} 등 ${g}조 최고의 11인 — 순위·평점 매일 갱신.`,
     keywords: ["2026 월드컵", `월드컵 ${g}조`, "통합 베스트11", "베스트XI", ...d.countries.map((c) => ctyKo(c.name) + " 대표팀"), "스코어베이스"],
     alternates: { canonical: `/world-cup/best-xi/${group.toLowerCase()}` },
   };
@@ -114,7 +114,7 @@ export default async function Page({ params }: { params: Promise<{ group: string
                     <span className="text-lg font-black text-neutral-300">{koOf(p).slice(0, 1)}</span>
                   )}
                 </div>
-                <div className="mt-1 px-0.5 text-[11px] font-bold leading-tight text-center w-full break-keep drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                <div className="mt-1 px-0.5 text-[11px] font-bold leading-tight text-center w-full break-keep text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                   <span className="mr-0.5 align-middle">{p.flag}</span>{koOf(p)}
                 </div>
                 <div className="text-amber-400 text-[10px] leading-none tracking-tight">{"★".repeat(p.star)}<span className="text-white/25">{"★".repeat(5 - p.star)}</span></div>
@@ -169,7 +169,7 @@ export default async function Page({ params }: { params: Promise<{ group: string
 
         <article className="mt-8 space-y-4 text-[15px] leading-relaxed text-neutral-700 dark:text-neutral-300">
           <h2 className="text-xl font-black text-neutral-900 dark:text-white">2026 FIFA 월드컵 {g}조 통합 베스트 11</h2>
-          <p>2026 북중미 월드컵 {g}조에는 <strong className="text-neutral-900 dark:text-white">{csKo.join(" · ")}</strong>가 편성됐다. 스코어베이스는 TheSports 실시간 경기 평점과 선수 시장가치를 종합해 {g}조 네 나라 선수를 아우르는 <strong className="text-neutral-900 dark:text-white">통합 베스트 11</strong>을 4-3-3 포메이션으로 선정했다. 조 전체 전력은 별점 평균 <strong className="text-neutral-900 dark:text-white">{teamRating.toFixed(1)}</strong>점이다.</p>
+          <p>2026 북중미 월드컵 {g}조에는 <strong className="text-neutral-900 dark:text-white">{csKo.join(" · ")}</strong>가 편성됐다. 스코어베이스는 TheSports 실시간 경기 평점과 선수 시장가치를 종합해 {g}조 네 나라 선수를 아우르는 <strong className="text-neutral-900 dark:text-white">통합 베스트 11</strong>을 4-2-3-1 포메이션으로 선정했다. 조 전체 전력은 별점 평균 <strong className="text-neutral-900 dark:text-white">{teamRating.toFixed(1)}</strong>점이다.</p>
           <h3 className="text-lg font-bold text-neutral-900 dark:text-white pt-1">최전방 스리톱</h3>
           <p>공격진에는 <strong className="text-neutral-900 dark:text-white">{names(fw)}</strong>이(가) 선정됐다. {top ? `${koOf(top)}은 ${g}조 전체 최고 평점(${top.score})으로 조별리그 핵심 자원으로 꼽힌다.` : ""}</p>
           <h3 className="text-lg font-bold text-neutral-900 dark:text-white pt-1">중원 미드필드</h3>

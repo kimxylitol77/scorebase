@@ -1,5 +1,5 @@
 // 월드컵 12조 통합 베스트11 빌드 → data/world-cup-xi/{A..L}.json
-// TheSports 친선(+추후 본선) 라인업 → 국가별 선수·포지션·평점 → 조별 4-3-3 베스트11.
+// TheSports 친선(+추후 본선) 라인업 → 국가별 선수·포지션·평점 → 조별 4-2-3-1 베스트11.
 // IP 화이트리스트 필요 → worker/mac-mini cron 에서 실행 (Vercel 동적 IP 불가).
 import { thesportsGet } from "../src/lib/sports/thesports/client";
 import { WORLD_CUP_GROUPS } from "../src/lib/predict/world-cup-elos";
@@ -114,11 +114,13 @@ async function main() {
       }
     }
     const pick = (pos: string, n: number) => pool.filter((x) => x.pos === pos).sort((a, b) => b.score - a.score).slice(0, n);
+    // 4-2-3-1 (2026-06-10 사용자 확정, 기존 4-3-3) — 미드필더 5명 중 점수 상위 3명을
+    // 공격형(AM) 라인, 하위 2명을 수비형(DM) 라인에 배치.
     const layout = [
       ...pick("G", 1).map((x) => ({ ...x, x: 50, y: 90 })),
-      ...pick("D", 4).map((x, i) => ({ ...x, x: [16, 39, 61, 84][i], y: 68 })),
-      ...pick("M", 3).map((x, i) => ({ ...x, x: [28, 50, 72][i], y: 44 })),
-      ...pick("F", 3).map((x, i) => ({ ...x, x: [26, 50, 74][i], y: 20 })),
+      ...pick("D", 4).map((x, i) => ({ ...x, x: [16, 39, 61, 84][i], y: 70 })),
+      ...pick("M", 5).map((x, i) => ({ ...x, x: [22, 50, 78, 35, 65][i], y: [32, 32, 32, 52, 52][i] })),
+      ...pick("F", 1).map((x) => ({ ...x, x: 50, y: 14 })),
     ].filter((x) => x.name);
     const xiIds = new Set(layout.map((x) => x.id));
     const bench = pool.filter((x) => !xiIds.has(x.id)).sort((a, b) => b.score - a.score).slice(0, 6);

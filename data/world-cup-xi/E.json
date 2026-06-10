@@ -52,7 +52,7 @@
       "avgRating": 0,
       "games": 0,
       "x": 16,
-      "y": 68
+      "y": 70
     },
     {
       "id": "8yomo4h2xn90q0j",
@@ -69,7 +69,7 @@
       "avgRating": 7.2,
       "games": 2,
       "x": 39,
-      "y": 68
+      "y": 70
     },
     {
       "id": "n54qllhxdy6qvy9",
@@ -86,7 +86,7 @@
       "avgRating": 7.31,
       "games": 2,
       "x": 61,
-      "y": 68
+      "y": 70
     },
     {
       "id": "vjxm8gh870e8r6o",
@@ -103,7 +103,7 @@
       "avgRating": 6.79,
       "games": 2,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "3glrw7hj7vjoqdy",
@@ -119,8 +119,8 @@
       "recentRating": 6.24,
       "avgRating": 7.22,
       "games": 2,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "1l4rjnhzgol1m7v",
@@ -137,7 +137,7 @@
       "avgRating": 7.26,
       "games": 2,
       "x": 50,
-      "y": 44
+      "y": 32
     },
     {
       "id": "x7lm7phw7govm2w",
@@ -153,8 +153,42 @@
       "recentRating": 6.61,
       "avgRating": 7.16,
       "games": 2,
-      "x": 72,
-      "y": 44
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "965mkyh3204gr1g",
+      "name": "Moises Caicedo",
+      "nameKo": "모이세스 카이세도",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Ecuador",
+      "flag": "🇪🇨",
+      "logo": "https://img.thesports.com/football/player/34533b279f7810a5ad9cf3a02170baf1.png",
+      "score": 8.15,
+      "star": 4,
+      "recentRating": 7.6,
+      "avgRating": 7.6,
+      "games": 1,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "vjxm8ghpl7vvr6o",
+      "name": "Lennart Karl",
+      "nameKo": "렌나르트 칼",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Germany",
+      "flag": "🇩🇪",
+      "logo": "https://img.thesports.com/football/player/8c7a2a0b4fb1a696da794b9a82af3f8c.png",
+      "score": 7.83,
+      "star": 3,
+      "recentRating": 7.3,
+      "avgRating": 7.3,
+      "games": 1,
+      "x": 65,
+      "y": 52
     },
     {
       "id": "jw2r09hwgw0rz84",
@@ -170,9 +204,11 @@
       "recentRating": 8.91,
       "avgRating": 8.91,
       "games": 1,
-      "x": 26,
-      "y": 20
-    },
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "l5ergphe8e6r8k0",
       "name": "Deniz Undav",
@@ -186,58 +222,7 @@
       "star": 4,
       "recentRating": 6.78,
       "avgRating": 8.1,
-      "games": 2,
-      "x": 50,
-      "y": 20
-    },
-    {
-      "id": "23xmvkhkg0p2qg8",
-      "name": "Nilson Angulo",
-      "nameKo": "닐손 안구로",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Ecuador",
-      "flag": "🇪🇨",
-      "logo": "https://img.thesports.com/football/player/2718208c469e410c1d2cd632cf278b1a.png",
-      "score": 7.63,
-      "star": 3,
-      "recentRating": 7.76,
-      "avgRating": 7.76,
-      "games": 1,
-      "x": 74,
-      "y": 20
-    }
-  ],
-  "bench": [
-    {
-      "id": "965mkyh3204gr1g",
-      "name": "Moises Caicedo",
-      "nameKo": "모이세스 카이세도",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Ecuador",
-      "flag": "🇪🇨",
-      "logo": "https://img.thesports.com/football/player/34533b279f7810a5ad9cf3a02170baf1.png",
-      "score": 8.15,
-      "star": 4,
-      "recentRating": 7.6,
-      "avgRating": 7.6,
-      "games": 1
-    },
-    {
-      "id": "vjxm8ghpl7vvr6o",
-      "name": "Lennart Karl",
-      "nameKo": "렌나르트 칼",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Germany",
-      "flag": "🇩🇪",
-      "logo": "https://img.thesports.com/football/player/8c7a2a0b4fb1a696da794b9a82af3f8c.png",
-      "score": 7.83,
-      "star": 3,
-      "recentRating": 7.3,
-      "avgRating": 7.3,
-      "games": 1
+      "games": 2
     },
     {
       "id": "ednm9whz7z5yryo",
@@ -268,6 +253,21 @@
       "recentRating": 7.7,
       "avgRating": 7.3,
       "games": 2
+    },
+    {
+      "id": "23xmvkhkg0p2qg8",
+      "name": "Nilson Angulo",
+      "nameKo": "닐손 안구로",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Ecuador",
+      "flag": "🇪🇨",
+      "logo": "https://img.thesports.com/football/player/2718208c469e410c1d2cd632cf278b1a.png",
+      "score": 7.63,
+      "star": 3,
+      "recentRating": 7.76,
+      "avgRating": 7.76,
+      "games": 1
     },
     {
       "id": "zp5rzghzj63q82w",

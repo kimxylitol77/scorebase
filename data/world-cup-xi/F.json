@@ -52,7 +52,7 @@
       "avgRating": 7.67,
       "games": 2,
       "x": 16,
-      "y": 68
+      "y": 70
     },
     {
       "id": "3glrw7hj6z71qdy",
@@ -69,7 +69,7 @@
       "avgRating": 0,
       "games": 0,
       "x": 39,
-      "y": 68
+      "y": 70
     },
     {
       "id": "pxwrxlh954vjryk",
@@ -86,7 +86,7 @@
       "avgRating": 6.78,
       "games": 2,
       "x": 61,
-      "y": 68
+      "y": 70
     },
     {
       "id": "318q66h44gpqo9j",
@@ -103,7 +103,7 @@
       "avgRating": 7.52,
       "games": 1,
       "x": 84,
-      "y": 68
+      "y": 70
     },
     {
       "id": "n54qllheyly3qvy",
@@ -119,8 +119,8 @@
       "recentRating": 7.13,
       "avgRating": 6.71,
       "games": 2,
-      "x": 28,
-      "y": 44
+      "x": 22,
+      "y": 32
     },
     {
       "id": "965mkyhggodr1ge",
@@ -137,7 +137,7 @@
       "avgRating": 6.75,
       "games": 2,
       "x": 50,
-      "y": 44
+      "y": 32
     },
     {
       "id": "3glrw7hypxxqdyj",
@@ -153,8 +153,42 @@
       "recentRating": 6.95,
       "avgRating": 7.03,
       "games": 2,
-      "x": 72,
-      "y": 44
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "dj2ryohgezyzq1z",
+      "name": "Lucas Bergvall",
+      "nameKo": "루카스 베르그발",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Sweden",
+      "flag": "🇸🇪",
+      "logo": "https://img.thesports.com/football/player/99ed20658a8b949eb656fe20ada40acd.png",
+      "score": 7.35,
+      "star": 3,
+      "recentRating": 6.7,
+      "avgRating": 6.3,
+      "games": 2,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "vjxm8ghj0ez3r6o",
+      "name": "Daniel Svensson",
+      "nameKo": "다니엘 스벤손",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Sweden",
+      "flag": "🇸🇪",
+      "logo": "https://img.thesports.com/football/player/88aacee13a31b9ae5420e2c739b29b6e.png",
+      "score": 7.34,
+      "star": 3,
+      "recentRating": 5.7,
+      "avgRating": 6.35,
+      "games": 2,
+      "x": 65,
+      "y": 52
     },
     {
       "id": "4jwq2gh1p2km0ve",
@@ -170,9 +204,11 @@
       "recentRating": 8.5,
       "avgRating": 7.65,
       "games": 2,
-      "x": 26,
-      "y": 20
-    },
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "l7oqdehleg1r510",
       "name": "Alexander Isak",
@@ -186,9 +222,7 @@
       "star": 3,
       "recentRating": 6.3,
       "avgRating": 6.85,
-      "games": 2,
-      "x": 50,
-      "y": 20
+      "games": 2
     },
     {
       "id": "1l4rjnhedo5m7vx",
@@ -203,12 +237,8 @@
       "star": 3,
       "recentRating": 0,
       "avgRating": 0,
-      "games": 0,
-      "x": 74,
-      "y": 20
-    }
-  ],
-  "bench": [
+      "games": 0
+    },
     {
       "id": "4jwq2ghxjoym0ve",
       "name": "Viktor Gyökeres",
@@ -267,36 +297,6 @@
       "star": 3,
       "recentRating": 6.46,
       "avgRating": 6.63,
-      "games": 2
-    },
-    {
-      "id": "965mkyhel3wr1ge",
-      "name": "Gustaf Nilsson",
-      "nameKo": "구스타프 닐손",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Sweden",
-      "flag": "🇸🇪",
-      "logo": "https://img.thesports.com/football/player/f3d997af5f1d1451713c877a716b9736.png",
-      "score": 7.4,
-      "star": 3,
-      "recentRating": 7.4,
-      "avgRating": 6.65,
-      "games": 2
-    },
-    {
-      "id": "318q66h01egqo9j",
-      "name": "Virgil van Dijk",
-      "nameKo": "버질 반 다이크",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Netherlands",
-      "flag": "🇳🇱",
-      "logo": "https://img.thesports.com/football/player/feab2af10aace84f79afd8b2113e7739.png",
-      "score": 7.36,
-      "star": 3,
-      "recentRating": 7.3,
-      "avgRating": 7.15,
       "games": 2
     }
   ],
