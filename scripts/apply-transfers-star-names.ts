@@ -39,6 +39,10 @@ const STARS: Record<string, string> = {
   // 랭스 공식(stade-de-reims.com) + Ligue1.com "Zabi la magie": Patrick Zabi 19세 코트디부아르 MF,
   // €25M, 2026-07-01 합류(2026-02-05 발표). 이적료·클럽·시점 유일 일치.
   "4jwq2gh7g2zgm0v": "파트리크 자비",
+  // FootballTransfer "Crvena Zvezda → Bayer 04 Leverkusen €5M" — TheSports SERBIA_SL 시즌 player/stat
+  // 에서 동일 id 직접 확인(Aleksa Damjanovic) + 분데스리가 공식(bundesliga.com 36020): 17세 ST,
+  // €5M+보너스 €3M, 2026-06 발효. 데이터 소스 id 일치 + 공식 발표 이중 확정.
+  "1l4rjnhk382em7v": "알렉사 담야노비치",
 };
 
 async function main() {
