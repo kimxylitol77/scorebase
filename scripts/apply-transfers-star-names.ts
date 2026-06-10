@@ -27,6 +27,10 @@ const STARS: Record<string, string> = {
   // FootballTransfer "Disqualification → Hamburger SV 2026-11-14" — CAS 도핑(EPO) 4년 징계
   // 2026-11-15 만료(hsv.de 공식) 후 HSV 복귀 계약. 징계만료일+클럽 유일 일치. MV €0(징계 중) 정합.
   "3glrw7hov7eqdyj": "마리오 부슈코비치",
+  // FootballTransfer "Red Bull Salzburg → Borussia Dortmund 2026-07-01 €19.5M" — 잘츠부르크 공식 발표
+  // (redbullsalzburg.at) + 분데스리가 공식 이적센터(bundesliga.com 37051): 2026 여름 Salzburg→BVB 이적은
+  // Joane Gadou(19세 CB, PSG 유스, €19.5M+보너스 €4.5M) 단 1건. 이적료·클럽·시점 유일 일치.
+  "l7oqdeh057w0r51": "조안 가두",
 };
 
 async function main() {
