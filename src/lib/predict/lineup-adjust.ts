@@ -26,8 +26,11 @@ const EMPTY: LineupAdjustment = { homeShift: 0, homeGap: 0, awayGap: 0, applied:
 // 주전→벤치 교체 1명당 평점 차 ~0.3 → 5명 로테이션 ≈ 1.5점 ≈ 2.3%p).
 const SHIFT_PER_RATING = 0.015;
 const SHIFT_CLAMP = 0.12;
-/** 기준선 신뢰 최소 표본 — 라인업 있는 최근 경기 수 */
-const MIN_HISTORY = 4;
+/** 기준선 신뢰 최소 표본 — 라인업 있는 최근 경기 수.
+ *  TheSports lineup 조회가 30일 한도라 시즌 초반·신규 리그는 3경기가 현실 상한 —
+ *  3경기면 발동하되 weight 0.7 (MLB starter-adjust 의 GS<5 → 0.5 패턴과 동일 원리). */
+const MIN_HISTORY = 3;
+const LOW_SAMPLE_WEIGHT = 0.7;
 /** 평점 이력 없는 선수(신규·외곽 로테이션)의 가정 평점: 팀 XI 평균 - 0.25 */
 const UNKNOWN_PENALTY = 0.25;
 
@@ -131,10 +134,14 @@ export async function computeLineupAdjustment(
 
   const homeGap = xiStrength(homeXi, homeHist) - homeHist.baseline;
   const awayGap = xiStrength(awayXi, awayHist) - awayHist.baseline;
-  const homeShift = Math.max(
-    -SHIFT_CLAMP,
-    Math.min(SHIFT_CLAMP, (homeGap - awayGap) * SHIFT_PER_RATING),
-  );
+  // 표본 부족(어느 한쪽 3경기) 시 보정 강도 디스카운트
+  const weight =
+    Math.min(homeHist.games, awayHist.games) < 4 ? LOW_SAMPLE_WEIGHT : 1.0;
+  const homeShift =
+    Math.max(
+      -SHIFT_CLAMP,
+      Math.min(SHIFT_CLAMP, (homeGap - awayGap) * SHIFT_PER_RATING),
+    ) * weight;
   return { homeShift, homeGap, awayGap, applied: true };
 }
 
