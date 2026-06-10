@@ -31,6 +31,14 @@ const STARS: Record<string, string> = {
   // (redbullsalzburg.at) + 분데스리가 공식 이적센터(bundesliga.com 37051): 2026 여름 Salzburg→BVB 이적은
   // Joane Gadou(19세 CB, PSG 유스, €19.5M+보너스 €4.5M) 단 1건. 이적료·클럽·시점 유일 일치.
   "l7oqdeh057w0r51": "조안 가두",
+  // FootballTransfer "AIK → Brighton Hove Albion 2026-07-01 €28M" — 브라이튼 공식 발표
+  // (brightonandhovealbion.com "Albion agree deal to sign Zadok Yohanna"): 18세 나이지리아 RW, AIK 출신
+  // 5년 계약. €28M(+보너스 €2M) Allsvenskan 역대 최고액(Wikipedia). 이적료·클럽·시점 유일 일치.
+  "n54qllhj691jqvy": "자독 요한나",
+  // FootballTransfer "Stade DE Reims → Paris FC 2026-06-30 €25M" — 파리 FC 공식 발표(parisfc.fr) +
+  // 랭스 공식(stade-de-reims.com) + Ligue1.com "Zabi la magie": Patrick Zabi 19세 코트디부아르 MF,
+  // €25M, 2026-07-01 합류(2026-02-05 발표). 이적료·클럽·시점 유일 일치.
+  "4jwq2gh7g2zgm0v": "파트리크 자비",
 };
 
 async function main() {
