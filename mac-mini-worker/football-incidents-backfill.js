@@ -47,7 +47,13 @@ const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 
 const tsKst = () => new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const norm = (s) => String(s || "").toLowerCase().replace(/[\s.&·'-]/g, "");
+// diacritics 제거 (Östersunds→ostersunds) + 소문자 + 특수문자 제거 — af/ts 표기 차이 흡수
+const norm = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[\s.&·'-]/g, "");
 
 // 매치 startTime(ms) → KST 날짜 자정의 unix sec (stale-ts-verify 와 동일 계산)
 function kstMidnightTsp(startTimeMs) {
@@ -91,23 +97,25 @@ async function fetchDiary(tsp) {
 }
 
 // af 소스 매치 → diary 에서 ts match id 탐색.
-// 1순위: competition + 양팀 ts team id 일치 / 2순위: competition + 양팀 이름 norm 일치.
+// 1순위: competition + 양팀 ts team id 일치
+// 2순위: competition + 한쪽 팀 id 일치 + 킥오프 ±3h (같은 날 같은 리그에서 한 팀은 1경기)
+// 3순위: competition + 양팀 이름 norm 일치 (diacritics 제거)
 function findTsMatchInDiary(diary, m) {
+  let oneSideHit = null;
   for (const r of diary.results) {
     if (m.tsCompetitionId && r.competition_id !== m.tsCompetitionId) continue;
-    if (
-      m.homeTsTeamId &&
-      m.awayTsTeamId &&
-      r.home_team_id === m.homeTsTeamId &&
-      r.away_team_id === m.awayTsTeamId
-    ) {
-      return r.id;
-    }
+    const homeIdHit = m.homeTsTeamId && r.home_team_id === m.homeTsTeamId;
+    const awayIdHit = m.awayTsTeamId && r.away_team_id === m.awayTsTeamId;
+    if (homeIdHit && awayIdHit) return r.id;
+    const timeOk =
+      typeof r.match_time === "number" &&
+      Math.abs(r.match_time * 1000 - m.startTimeMs) <= 3 * 3600 * 1000;
+    if ((homeIdHit || awayIdHit) && timeOk && !oneSideHit) oneSideHit = r.id;
     const hn = norm(diary.teamName.get(r.home_team_id));
     const an = norm(diary.teamName.get(r.away_team_id));
     if (hn && an && hn === norm(m.homeName) && an === norm(m.awayName)) return r.id;
   }
-  return null;
+  return oneSideHit;
 }
 
 async function fetchLiveHistory(uuid) {
