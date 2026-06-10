@@ -4,20 +4,10 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { formatDateKo } from "@/lib/format";
 import Markdown from "@/components/Markdown";
-import DOMPurify from "isomorphic-dompurify";
 
 export const revalidate = 600;
 
 const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
-
-// blog 본문 HTML 정화 — script·이벤트핸들러(on*)·javascript: 제거, iframe(임베드)만 허용.
-// admin 작성이지만 계정 탈취·DB 변조 시의 저장형 XSS 를 차단한다.
-function sanitizeBlogHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ADD_TAGS: ["iframe"],
-    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "loading", "referrerpolicy"],
-  });
-}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -112,11 +102,13 @@ export default async function BlogDetailPage({ params }: Props) {
         )}
       </header>
 
-      {/* content 가 HTML(<article ... > 시작) 이면 정화 후 렌더, 아니면 Markdown. */}
+      {/* content 가 HTML(<article ... > 시작) 이면 그대로 렌더, 아니면 Markdown.
+          TODO(보안): 본문 HTML 정화 재도입 — isomorphic-dompurify 가 서버 런타임 500 유발,
+          jsdom 비의존 sanitize-html 등으로 교체 예정. 현재 작성자는 admin 뿐. */}
       {/^\s*<(article|div|section|p|h[1-6])\b/i.test(b.content) ? (
         <div
           className="blog-html prose prose-neutral dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(b.content) }}
+          dangerouslySetInnerHTML={{ __html: b.content }}
         />
       ) : (
         <Markdown>{b.content}</Markdown>
