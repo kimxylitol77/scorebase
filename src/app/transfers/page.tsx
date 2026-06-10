@@ -12,16 +12,36 @@ import rawOverrides from "../../../data/player-overrides.json";
 import rawPhotos from "../../../data/player-photos.json";
 import rawTeamLogos from "../../../data/team-logos.json";
 import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
+import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 
 export const dynamic = "force-dynamic";
 
 // SEO — 선수 몸값/이적시장 키워드 + 스코어베이스 브랜드. view 별 타이틀 분기.
-export async function generateMetadata({ searchParams }: { searchParams: Promise<{ league?: string; view?: string; q?: string }> }): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ league?: string; view?: string; q?: string; team?: string }> }): Promise<Metadata> {
   const sp = await searchParams;
   const win = transferWindow();
   const lgLabel = sp.league && LEAGUES[sp.league] ? LEAGUES[sp.league] : null;
   let title: string, description: string, canonical = "/transfers";
-  if (sp.view === "bigdeals") {
+  let teamKeywords: string[] = [];
+  if (sp.view === "team" && sp.team && Number.isFinite(Number(sp.team))) {
+    // 팀 스쿼드 — "맨유 스쿼드" 류 검색 수요 타깃. 팀명 DB 조회.
+    const t = await prisma.team.findUnique({ where: { id: Number(sp.team) }, select: { name: true } });
+    const nm = t ? toKoreanTeamName(t.name) || t.name : null;
+    if (nm) {
+      title = `${nm} 스쿼드 · 선수단 몸값 랭킹 | 스코어베이스`;
+      description = `${nm} 선수단 시장가치 총정리 — 스쿼드 총 가치와 베스트11, 선수별 몸값·변동 추이·포지션·연령까지 한눈에. 스코어베이스 이적시장.`;
+      canonical = `/transfers?view=team&team=${Number(sp.team)}`;
+      teamKeywords = [`${nm} 스쿼드`, `${nm} 선수단`, `${nm} 선수 몸값`];
+    } else {
+      title = "팀 스쿼드 · 선수단 몸값 랭킹 | 스코어베이스";
+      description = "유럽 빅5 리그 팀별 선수단 시장가치(몸값) 랭킹 — 스코어베이스 이적시장.";
+    }
+  } else if (sp.view === "squads") {
+    const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
+    title = `${scope}팀 스쿼드 가치 랭킹 · 선수단 총액 | 스코어베이스`;
+    description = `${scope}리그 팀별 스쿼드 시장가치 총액 랭킹. 선수단 가치·평균 연령·최고가 선수를 팀 단위로 비교 — 스코어베이스 이적시장.`;
+    canonical = lgLabel ? `/transfers?view=squads&league=${sp.league}` : "/transfers?view=squads";
+  } else if (sp.view === "bigdeals") {
     title = `${win.label} 빅딜 랭킹 · 이적료 TOP | 스코어베이스`;
     description = `${win.label} 유럽 빅5 리그 최고 이적료 랭킹. 확정 이적 빅딜을 이적료 순으로 한눈에 — 스코어베이스 이적시장.`;
     canonical = "/transfers?view=bigdeals";
@@ -41,7 +61,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   return {
     title,
     description,
-    keywords: ["선수 몸값", "시장가치", "이적시장", "축구 이적", "이적료", "선수 시장가치", "스코어베이스", "빅5 리그"],
+    keywords: [...teamKeywords, "선수 몸값", "시장가치", "이적시장", "축구 이적", "이적료", "선수 시장가치", "스코어베이스", "빅5 리그"],
     openGraph: { title, description, type: "website" },
     alternates: { canonical },
     ...(sp.q ? { robots: { index: false } } : {}), // 검색 결과 페이지는 색인 제외
@@ -244,11 +264,12 @@ export default async function TransfersPage({
   searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string; q?: string; mode?: string; t?: string }>;
 }) {
   const sp = await searchParams;
-  const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout"].includes(sp.view || "") ? sp.view! : "all";
+  const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout", "squads"].includes(sp.view || "") ? sp.view! : "all";
   const isLatest = view === "latest";
   const isBigdeals = view === "bigdeals";
   const isFeed = isLatest || isBigdeals; // 이적 피드형 (최신순/이적료순)
   const isInout = view === "inout";
+  const isSquads = view === "squads"; // 팀 스쿼드 가치 랭킹 — enriched(18개월 활성·dedup 적용) 팀 단위 집계
   // 최신 이적: 기본 = 주요(이적창 윈도우 + 이름·이적료 확인분), mode=all = 전체 이력
   const latestAll = isLatest && sp.mode === "all";
   const tFilter = isLatest && ["fee", "loan"].includes(sp.t || "") ? sp.t! : "";
@@ -318,7 +339,7 @@ export default async function TransfersPage({
       select: { externalId: true },
     });
     where = { league: { in: FIVE }, currentValue: { not: null }, teamId: { in: tsForTeam.map((t) => t.externalId) } };
-  } else if (view === "league" && league) {
+  } else if ((view === "league" || view === "squads") && league) {
     where = { league, currentValue: { not: null } };
   }
 
@@ -345,6 +366,7 @@ export default async function TransfersPage({
         nameEn: tsp?.name || null,
         value: Math.round((r.currentValue || 0) / 1e6),
         age: r.age,
+        ourTeamId: ourId ?? null,
         posCode: posCodeOf(r.id, tsp?.position),
         league: r.league,
         country: ov?.country || null,
@@ -417,6 +439,62 @@ export default async function TransfersPage({
     inoutData = board.slice((page - 1) * PER, page * PER);
   }
 
+  // ── 팀 스쿼드 가치 랭킹 (view=squads) — enriched(활성·dedup·이름 필터 완료) 팀 단위 집계 ──
+  interface SquadRow { teamId: number; name: string; logo: string | null; league: string; total: number; cnt: number; avgAge: number | null; topName: string; topValue: number; rank: number }
+  let squadsData: SquadRow[] = [];
+  let squadsTotal = 0;
+  if (isSquads) {
+    const byTeam = new Map<number, { total: number; cnt: number; ageSum: number; ageCnt: number; topName: string; topValue: number }>();
+    for (const e of enriched) {
+      if (e.ourTeamId == null) continue;
+      // enriched 가 가치순(desc)이라 팀별 첫 등장 선수 = 최고가
+      const a = byTeam.get(e.ourTeamId) || { total: 0, cnt: 0, ageSum: 0, ageCnt: 0, topName: e.name, topValue: e.value };
+      a.total += e.value;
+      a.cnt++;
+      if (e.age) { a.ageSum += e.age; a.ageCnt++; }
+      byTeam.set(e.ourTeamId, a);
+    }
+    const board = [...byTeam.entries()]
+      .map(([id, a]) => {
+        const tm = teamMeta.get(id);
+        return {
+          teamId: id,
+          name: toKoreanTeamName(tm?.name) || tm?.name || "—",
+          logo: tm?.logoUrl || null,
+          league: tm?.league || "",
+          total: a.total,
+          cnt: a.cnt,
+          avgAge: a.ageCnt ? Math.round((a.ageSum / a.ageCnt) * 10) / 10 : null,
+          topName: a.topName,
+          topValue: a.topValue,
+          rank: 0,
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+    squadsTotal = board.length;
+    squadsData = board.slice((page - 1) * PER, page * PER);
+  }
+
+  // ── 팀 스쿼드 요약 + 시장가치 Best XI (view=team) ──
+  const teamIdNum = Number(team);
+  const squadSummary =
+    view === "team" && team && Number.isFinite(teamIdNum) && enriched.length > 0
+      ? (() => {
+          const tm = teamMeta.get(teamIdNum);
+          const total = enriched.reduce((s, e) => s + e.value, 0);
+          const ages = enriched.filter((e) => e.age);
+          return {
+            name: toKoreanTeamName(tm?.name) || tm?.name || "팀",
+            logo: tm?.logoUrl || null,
+            league: tm?.league || null,
+            total,
+            avgAge: ages.length ? Math.round((ages.reduce((s, e) => s + (e.age || 0), 0) / ages.length) * 10) / 10 : null,
+            cnt: enriched.length,
+          };
+        })()
+      : null;
+  const bestXI = squadSummary ? pickBestXI(enriched) : null;
+
   // ── 최신 이적 "주요" 모드 — 이적창 윈도우 전체 fetch → 이름·이적료 필터 → 메모리 페이지네이션 ──
   //   (익명 "선수" 행 ~35% 제거. 윈도우 행 수백~수천 수준이라 메모리 처리 가능. 전체 이력은 mode=all)
   let latestMainCards: TransferCard[] | null = null;
@@ -452,11 +530,12 @@ export default async function TransfersPage({
         ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
       };
   const transferTotal = isBigdeals || latestAll ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
-  const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : enriched.length;
+  const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : isSquads ? squadsTotal : enriched.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PER));
   const safePage = Math.min(page, totalPages);
   inoutData = inoutData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
-  const data = isFeed || isInout ? [] : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1 }));
+  squadsData = squadsData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
+  const data = isFeed || isInout || isSquads ? [] : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1 }));
 
   // ── 이적 피드 (latest 주요=메모리 / latest 전체·bigdeals=DB 페이지네이션) ──
   let transferData: TransferCard[] = [];
@@ -526,11 +605,15 @@ export default async function TransfersPage({
     ? `💸 ${win.label} 빅딜`
     : isInout
       ? "🔁 팀별 IN/OUT"
-      : isLatest
-        ? "🔄 최신 이적"
-        : qSearch
-          ? `🔍 "${qSearch}" 검색`
-          : `💰 ${selectedLabel} 시장가치`;
+      : isSquads
+        ? `🏟️ ${league ? `${LEAGUES[league]} ` : ""}팀 스쿼드 가치`
+        : isLatest
+          ? "🔄 최신 이적"
+          : qSearch
+            ? `🔍 "${qSearch}" 검색`
+            : squadSummary
+              ? `💰 ${squadSummary.name} 스쿼드`
+              : `💰 ${selectedLabel} 시장가치`;
 
   // 페이지네이션 URL (필터 유지)
   const pageUrl = (n: number) => {
@@ -557,6 +640,10 @@ export default async function TransfersPage({
           <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">이적료 TOP</strong> · {win.label} · {totalCount.toLocaleString()}건.</>
         ) : isInout ? (
           <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">팀별 영입·방출</strong> · 영입 지출순 · {totalCount}팀.</>
+        ) : isSquads ? (
+          <>{league ? LEAGUES[league] : "유럽 빅5"} 리그 <strong className="text-neutral-700 dark:text-neutral-300">팀별 스쿼드 시장가치 총액</strong> 랭킹 · {totalCount}팀.</>
+        ) : squadSummary ? (
+          <><strong className="text-neutral-700 dark:text-neutral-300">{squadSummary.name}</strong> 선수단 몸값 랭킹 · 시장가치순 · {squadSummary.cnt}명.</>
         ) : isLatest ? (
           latestAll ? (
             <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">전체 이적 이력</strong> · 최신순 · {totalCount.toLocaleString()}건.</>
@@ -583,6 +670,41 @@ export default async function TransfersPage({
           countries={countryOptions}
         />
       </div>
+
+      {/* 팀 스쿼드 요약 + 시장가치 Best XI (view=team) */}
+      {squadSummary && (
+        <>
+          <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-4 mt-4 flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
+              {squadSummary.logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={squadSummary.logo} alt={squadSummary.name} className="w-12 h-12 object-contain shrink-0" />
+              )}
+              <div className="min-w-0">
+                <div className="font-bold text-lg truncate">{squadSummary.name}</div>
+                <div className="text-xs text-neutral-500">
+                  {squadSummary.league && LEAGUES[squadSummary.league] ? `${LEAGUES[squadSummary.league]} · ` : ""}스쿼드 {squadSummary.cnt}명
+                  {squadSummary.avgAge ? ` · 평균 ${squadSummary.avgAge}세` : ""}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 ml-auto">
+              <div className="text-right leading-tight">
+                <div className="text-[11px] text-neutral-400">스쿼드 총 가치</div>
+                <div className="font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{squadSummary.total.toLocaleString()}M</div>
+                <div className="text-[11px] text-neutral-500 tabular-nums">{krw(squadSummary.total)}</div>
+              </div>
+              <Link
+                href={`/teams/${teamIdNum}`}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition shrink-0"
+              >
+                팀 페이지 →
+              </Link>
+            </div>
+          </div>
+          {bestXI && <SquadBestXI slots={bestXI} teamName={squadSummary.name} />}
+        </>
+      )}
 
       {/* 마켓 무브 — 급상승·급락·빅딜 요약 (전체 view 1페이지) */}
       {showPulse && (rising.length > 0 || falling.length > 0 || pulseDeals.length > 0) && (
@@ -778,6 +900,51 @@ export default async function TransfersPage({
                 </Link>
               );
             })}
+          </div>
+        )
+      ) : isSquads ? (
+        squadsData.length === 0 ? (
+          <p className="text-sm text-neutral-500 py-20 text-center">집계할 시장가치 데이터가 없습니다.</p>
+        ) : (
+          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-neutral-900/60">
+              <div className="w-6 sm:w-7 shrink-0" />
+              <div className="flex-1">팀</div>
+              <div className="hidden sm:block w-[120px] text-right shrink-0">최고가 선수</div>
+              <div className="w-[44px] text-right shrink-0">인원</div>
+              <div className="w-[86px] sm:w-[96px] text-right shrink-0">총 가치</div>
+            </div>
+            {squadsData.map((t) => (
+              <Link
+                key={t.teamId}
+                href={`/transfers?view=team&team=${t.teamId}`}
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+              >
+                <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${t.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{t.rank}</div>
+                <div className="flex-1 min-w-0 flex items-center gap-2">
+                  {t.logo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={t.logo} alt="" className="w-6 h-6 object-contain shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-bold truncate">{t.name}</div>
+                    <div className="text-[11px] text-neutral-500">
+                      {LEAGUES[t.league] || t.league}
+                      {t.avgAge ? ` · 평균 ${t.avgAge}세` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden sm:block w-[120px] text-right leading-tight shrink-0 min-w-0">
+                  <div className="text-xs font-semibold truncate">{t.topName}</div>
+                  <div className="text-[11px] text-neutral-500 tabular-nums">€{t.topValue}M</div>
+                </div>
+                <div className="w-[44px] text-right text-sm font-bold tabular-nums text-neutral-500 shrink-0">{t.cnt}</div>
+                <div className="w-[86px] sm:w-[96px] text-right leading-tight shrink-0">
+                  <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{t.total.toLocaleString()}M</div>
+                  <div className="text-[11px] text-neutral-500 tabular-nums">{krw(t.total)}</div>
+                </div>
+              </Link>
+            ))}
           </div>
         )
       ) : data.length === 0 ? (

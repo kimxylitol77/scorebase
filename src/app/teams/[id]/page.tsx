@@ -452,6 +452,12 @@ export default async function TeamPage({ params }: Props) {
                 </Link>
               ))}
             </div>
+            <Link
+              href={`/transfers?view=team&team=${team.id}`}
+              className="mt-3 flex items-center justify-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-2.5 text-sm font-bold text-cyan-600 dark:text-cyan-400 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+            >
+              스쿼드 몸값 랭킹 · 시장가치 Best XI 전체보기 →
+            </Link>
           </section>
         )}
 

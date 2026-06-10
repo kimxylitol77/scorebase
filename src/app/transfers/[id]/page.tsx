@@ -12,9 +12,9 @@ import rawWiki from "../../../../data/player-wiki-seasons.json";
 import rawAbility from "../../../../data/player-ability.json";
 import rawTeamLogos from "../../../../data/team-logos.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
-import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "../transfer-display";
+import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
 
-interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean }
+interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[] }>;
 
 interface SeasonStat {
@@ -63,6 +63,8 @@ const CLUB_STOP = new Set(["fc", "afc", "cf", "sc", "cd", "ac", "club"]);
 function normClub(s: string): string {
   return (toKoreanTeamName(s) || s).toLowerCase().split(/\s+/).filter((w) => !CLUB_STOP.has(w)).join("");
 }
+// 정규화된 클럽명 동일 판정 (정확 → 접두) — 커리어 행 로고·stale 보정 공통
+const matchClub = (a: string, b: string) => !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a));
 
 interface HistPt { market_time?: number; market_value?: number; team_id?: string; age?: number }
 
@@ -169,9 +171,12 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {} }: 
   // 몸값 변동을 클럽 시기에 배정 — 연도 기준. 우선순위: 시작 늦은(최근) > 임대 > 긴 기간.
   //  (잘츠부르크2019-20↔도르트문트2020-22 의 2020→도르트문트 / 본팀↔임대→임대 /
   //   본팀↔유스리저브 같은해 시작→긴 기간=본팀, 유스가 시니어 포인트 뺏는 것 방지)
-  const bestIdx = (year: number): number => {
+  //  startTime(이적 발효 unix초, stale 보정 합성 행) 보유 행은 발효 전 포인트를 받지 않음.
+  const bestIdx = (vpTime: number): number => {
+    const year = new Date(vpTime * 1000).getUTCFullYear();
     let best = -1, bS = -Infinity, bL = 0, bSpan = -1;
     clubs.forEach((c, i) => {
+      if (c.startTime && vpTime < c.startTime) return;
       const st = c.start ?? -Infinity, en = c.end ?? 9999;
       if (year < st || year > en) return;
       const span = en - st, lr = c.loan ? 1 : 0;
@@ -181,18 +186,17 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {} }: 
     return best;
   };
   const byClub: ValuePoint[][] = clubs.map(() => []);
-  if (clubs.length) for (const vp of hist) { const idx = bestIdx(new Date(vp.time * 1000).getUTCFullYear()); if (idx >= 0) byClub[idx].push(vp); }
+  if (clubs.length) for (const vp of hist) { const idx = bestIdx(vp.time); if (idx >= 0) byClub[idx].push(vp); }
   byClub.forEach((arr) => arr.sort((a, b) => b.time - a.time));
   // 클럽 행 로고 — 1) 이적기록 팀명 매칭(정확→접두) 2) 그 시기 몸값 포인트 로고(팀명 일치 시만).
   //  포인트만 쓰면 이적 발표~몸값 갱신 사이 새 클럽 행에 직전 클럽 로고가 붙고(예: 바르샤 행에 뉴캐슬 마크),
   //  연도 단위 배정이라 임대 행에 본클럽 포인트가 섞임(예: 프레스턴 행에 에버턴) → 이름 불일치 로고는 숨김.
-  const match = (a: string, b: string) => !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a));
   const logoFor = (i: number): string | null => {
     const cn = normClub(clubs[i].club);
     if (!cn) return null;
     if (clubLogos[cn]) return clubLogos[cn];
-    for (const [k, v] of Object.entries(clubLogos)) if (match(k, cn)) return v;
-    for (const vp of byClub[i]) if (vp.team && tsLogo[vp.team] && match(normClub(tsName[vp.team] || ""), cn)) return tsLogo[vp.team];
+    for (const [k, v] of Object.entries(clubLogos)) if (matchClub(k, cn)) return v;
+    for (const vp of byClub[i]) if (vp.team && tsLogo[vp.team] && matchClub(normClub(tsName[vp.team] || ""), cn)) return tsLogo[vp.team];
     return null;
   };
 
@@ -351,6 +355,47 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     }
   }
 
+  // 커리어 stale 자동 보정 — Wikidata career 에 현 소속이 없으면(예: 람멘스 앤트워프→맨유)
+  //  TheSports 현 소속(mv.teamId)으로의 "발효된" 이적을 근거로 현 클럽 행을 합성.
+  //  ① 도착 ts id = mv.teamId 인 이적만 신뢰(이름 매칭 오류로 엉뚱한 행 합성 방지)
+  //  ② 클럽명 후보(우리 DB 한글명·이적기록 팀명 변환)가 career 에 이미 있으면 보정 불필요
+  //  ③ 완전이적은 기존 진행중(end=null) 행을 이적연도로 캡, 임대(type 7)는 본클럽 유지
+  let careerView = career;
+  if (career.length && mv.teamId) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const arrival = transfers.find(
+      (t) => t.toTeamId === mv.teamId && t.transferTime && t.transferTime <= nowSec && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),
+    );
+    if (arrival?.transferTime) {
+      const trYear = new Date(arrival.transferTime * 1000).getUTCFullYear();
+      const curNames = [tsTeamName[mv.teamId], koTeam(arrival.toTeamName)].filter(Boolean).map((n) => normClub(n!));
+      // 이름 비교는 부분 포함까지 허용 — "OGC 니스"↔"니스", "보루시아 묀헨글라트바흐"↔"묀헨글라트바흐"
+      //  같은 접두 수식어 차이로 같은 클럽을 못 알아보고 중복 행을 합성하는 것 방지 (보수적 = 보정 스킵 쪽).
+      const sameClub = (cn: string, n: string) => matchClub(cn, n) || (n.length >= 2 && cn.includes(n)) || (cn.length >= 2 && n.includes(cn));
+      const covered = career.some(
+        (c) => !c.nt && curNames.some((n) => sameClub(normClub(c.club), n)) && (c.end == null || c.end >= trYear),
+      );
+      // 진행중(end=null) 행이 이적연도 이후 시작이면 Wikidata 가 이미 이 이적을 반영한 것 —
+      //  한글 표기 변형(인테르나치오날레↔인터 밀란, 브렌트퍼드↔브렌트포드)으로 covered 를
+      //  놓친 케이스에서 같은 클럽 중복 행 합성 방지.
+      const wikidataFresh = career.some((c) => !c.nt && c.end == null && c.start != null && c.start >= trYear);
+      if (!covered && !wikidataFresh) {
+        const isLoan = arrival.transferType === 7;
+        careerView = career.map((c) => (!c.nt && c.end == null && !isLoan ? { ...c, end: trYear } : c));
+        careerView.push({
+          club: tsTeamName[mv.teamId] || koTeam(arrival.toTeamName),
+          start: trYear,
+          end: null,
+          apps: null,
+          goals: null,
+          loan: isLoan,
+          nt: false,
+          startTime: arrival.transferTime,
+        });
+      }
+    }
+  }
+
   // 차트 이적 마커 (team_id 바뀌는 시점 = 이적/입단, 로고 있는 것만)
   const markers: { index: number; logo: string; name?: string }[] = [];
   let prevTeam: string | undefined;
@@ -450,8 +495,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       )}
 
       {/* 커리어 & 몸값 변동 — 커리어 데이터 있으면 병합 타임라인, 없으면 단순 변동이력 테이블 */}
-      {career.length > 0 ? (
-        <CareerTimeline entries={career} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} clubLogos={clubLogos} />
+      {careerView.length > 0 ? (
+        <CareerTimeline entries={careerView} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} clubLogos={clubLogos} />
       ) : hist.length >= 1 ? (
         <section>
           <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>

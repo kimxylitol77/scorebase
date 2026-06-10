@@ -30,9 +30,10 @@ const CATS = [
   { key: "latest", label: "최신 이적" },
   { key: "bigdeals", label: "💸 빅딜" },
   { key: "inout", label: "IN/OUT" },
+  { key: "squads", label: "🏟️ 팀 가치" },
 ];
-// 이적 피드형 view — 선수 검색은 몸값 랭킹에서만 동작하므로 검색 시 전체로 전환
-const FEED_VIEWS = ["latest", "bigdeals", "inout"];
+// 이적 피드형·집계형 view — 선수 검색은 몸값 랭킹에서만 동작하므로 검색 시 전체로 전환
+const FEED_VIEWS = ["latest", "bigdeals", "inout", "squads"];
 // 세부 포지션 — 수비→공격 순. CB 중앙수비·FB 윙백·DM/CM/AM 미드·W 윙어·ST 스트라이커
 const POSITIONS = [
   { code: "GK", label: "GK" },
@@ -157,6 +158,20 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
           >
             임대·복귀
           </button>
+        </div>
+      )}
+
+      {/* 팀 가치 랭킹 하위 필터 — 리그 범위 */}
+      {view === "squads" && (
+        <div className="flex flex-wrap gap-1.5">
+          <button onClick={() => go({ view: "squads" })} className={chip(!league)}>
+            빅5 전체
+          </button>
+          {leagues.map((l) => (
+            <button key={l.code} onClick={() => go({ view: "squads", league: l.code })} className={chip(league === l.code)}>
+              {l.label}
+            </button>
+          ))}
         </div>
       )}
 

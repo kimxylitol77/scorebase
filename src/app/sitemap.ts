@@ -159,5 +159,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages];
+  // 팀 스쿼드 몸값 (view=team) — "맨유 스쿼드" 류 팀 단위 검색 수요 타깃.
+  // 시장가치 데이터 보유한 빅5 팀만 (빈 페이지 = thin 회피). + 팀 가치 랭킹 view.
+  const BIG5 = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+  const mvTeamGroups = await prisma.playerMarketValue.groupBy({
+    by: ["teamId"],
+    where: { league: { in: BIG5 }, currentValue: { not: null }, teamId: { not: null } },
+  });
+  const mvTsIds = mvTeamGroups.map((g) => g.teamId).filter((x): x is string => !!x);
+  const mvTsRows = await prisma.teamSourceId.findMany({
+    where: { source: "thesports", externalId: { in: mvTsIds } },
+    select: { teamId: true, team: { select: { league: true } } },
+  });
+  const squadTeamIds = [...new Set(mvTsRows.filter((r) => BIG5.includes(r.team.league)).map((r) => r.teamId))];
+  const squadPages: MetadataRoute.Sitemap = [
+    { url: `${base}/transfers?view=squads`, lastModified: now, changeFrequency: "daily", priority: 0.75 },
+    // Next sitemap 빌더는 loc 를 이스케이프하지 않음 — raw "&" 는 invalid XML 이라 "&amp;" 직접 기입
+    ...squadTeamIds.map((id) => ({
+      url: `${base}/transfers?view=team&amp;team=${id}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
+  ];
+
+  return [...staticPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
 }
