@@ -806,22 +806,54 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
-      {/* 팀명 + 최근경기 (상대전적) — 점수 카드 바로 아래로 (사용자 우선순위 2026-05-24) */}
-      <MatchHeadToHead
-        homeShortName={homeShort}
-        awayShortName={awayShort}
-        homeTeamId={match.homeTeam.id}
-        awayTeamId={match.awayTeam.id}
-        h2hHome={extras.h2hHome}
-        homeStanding={extras.homeStanding}
-        awayStanding={extras.awayStanding}
-        totalTeams={extras.totalTeams}
-        hasDraw={isSoccer}
-        scoreLabel={scoreLabel}
-      />
+      {/* 팀명 + 최근경기 (상대전적) — 예정 매치는 분석 본문이라 펼침 (사용자 우선순위
+          2026-05-24), LIVE/종료 축구는 "지금" 블록이 답을 주므로 접힘 (2026-06-10 목업).
+          접힘 라벨에 순위 미리보기 — 안 펼쳐도 핵심이 보이게. */}
+      {isSoccer && match.status !== "SCHEDULED" ? (
+        <CollapsibleSection
+          title="시즌 성적 · 상대전적"
+          hint={
+            homePosition && awayPosition
+              ? `${homeKo} ${homePosition}위 vs ${awayKo} ${awayPosition}위`
+              : homeFifaRank && awayFifaRank
+                ? `FIFA ${homeFifaRank}위 vs ${awayFifaRank}위`
+                : "순위 · 시즌 성적 · 맞대결"
+          }
+        >
+          <MatchHeadToHead
+            homeShortName={homeShort}
+            awayShortName={awayShort}
+            homeTeamId={match.homeTeam.id}
+            awayTeamId={match.awayTeam.id}
+            h2hHome={extras.h2hHome}
+            homeStanding={extras.homeStanding}
+            awayStanding={extras.awayStanding}
+            totalTeams={extras.totalTeams}
+            hasDraw={isSoccer}
+            scoreLabel={scoreLabel}
+          />
+        </CollapsibleSection>
+      ) : (
+        <MatchHeadToHead
+          homeShortName={homeShort}
+          awayShortName={awayShort}
+          homeTeamId={match.homeTeam.id}
+          awayTeamId={match.awayTeam.id}
+          h2hHome={extras.h2hHome}
+          homeStanding={extras.homeStanding}
+          awayStanding={extras.awayStanding}
+          totalTeams={extras.totalTeams}
+          hasDraw={isSoccer}
+          scoreLabel={scoreLabel}
+        />
+      )}
 
       {recentGames?.hasData && (
-        <CollapsibleSection title="최근 5경기 · 상대전적" hint="양 팀 최근 경기 + 맞대결">
+        <CollapsibleSection
+          title="최근 5경기 · 상대전적"
+          hint="양 팀 최근 경기 + 맞대결"
+          defaultOpen={isSoccer && match.status === "SCHEDULED"}
+        >
           <RecentGamesCard
             homeNameKo={homeKo}
             awayNameKo={awayKo}
