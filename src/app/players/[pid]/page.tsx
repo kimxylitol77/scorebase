@@ -3,7 +3,8 @@
 //   ?league=NPB  → NPB 공식 (npb.jp) scraping + DB 최근 등판
 //   default      → MLB Stats API (statsapi.mlb.com)
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -130,6 +131,10 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     league &&
     ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL", "UEL", "UECL", "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL", "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD", "CSL", "A_LEAGUE", "CLUB_WORLD_CUP"].includes(league)
   ) {
+    // 축구 선수 페이지 단일화 (2026-06-10) — ts 매핑 있으면 /transfers 선수 페이지로
+    // 영구 이동 (시장가치·커리어·대회별 스탯 통합본). 매핑 없는 선수는 기존 af 뷰 유지.
+    const tsId = afPlayerToTs(pid);
+    if (tsId) redirect(`/transfers/${tsId}`);
     return renderSoccerPlayerView(pid, league);
   }
 

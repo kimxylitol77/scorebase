@@ -12,6 +12,7 @@ import rawWiki from "../../../../data/player-wiki-seasons.json";
 import rawAbility from "../../../../data/player-ability.json";
 import rawTeamLogos from "../../../../data/team-logos.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
+import CompetitionStatsSection from "@/components/transfers/CompetitionStatsSection";
 import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
@@ -479,6 +480,10 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           </div>
         )}
       </header>
+
+      {/* 현 시즌 대회별 스탯 (af) — 축구 선수 페이지 단일화: /players 의 대회별 정보를
+          여기로 통합 (2026-06-10). ts→af 매핑 없으면 자동 미표시. */}
+      <CompetitionStatsSection tsId={id} league={mv.league} />
 
       {/* 시즌별 성적 — 현 시즌(TheSports 상세) + 과거 시즌(Wikipedia). 시즌별 접기/펼치기 */}
       {seasonEntries.length > 0 && <SeasonAccordion seasons={seasonEntries} />}
