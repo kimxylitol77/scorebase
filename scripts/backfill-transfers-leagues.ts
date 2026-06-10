@@ -40,13 +40,25 @@ async function getPage(page: number): Promise<TRow[] | null> {
   return null;
 }
 
+type Kept = {
+  id: string; playerId: string; fromTeamId: string | null; fromTeamName: string | null;
+  toTeamId: string | null; toTeamName: string | null; transferType: number | null;
+  transferTime: number | null; transferFee: number | null; transferDesc: string | null; league: string;
+};
+
 async function main() {
   console.log(`사전 팀 수: ${Object.keys(TEAMS).length}`);
-  const kept: Array<{
-    id: string; playerId: string; fromTeamId: string | null; fromTeamName: string | null;
-    toTeamId: string | null; toTeamName: string | null; transferType: number | null;
-    transferTime: number | null; transferFee: number | null; transferDesc: string | null; league: string;
-  }> = [];
+  let pending: Kept[] = [];
+  let inserted = 0;
+  let keptTotal = 0;
+  // 100 page 마다 DB flush — 중단(kill/timeout)돼도 그 지점까지 저장 (skipDuplicates 멱등)
+  const flush = async () => {
+    for (let i = 0; i < pending.length; i += 1000) {
+      const r = await prisma.footballTransfer.createMany({ data: pending.slice(i, i + 1000), skipDuplicates: true });
+      inserted += r.count;
+    }
+    pending = [];
+  };
   const startPage = parseInt(process.argv[2] ?? "1", 10) || 1;
   const endPage = parseInt(process.argv[3] ?? "3500", 10) || 3500;
   let empty = 0;
@@ -59,7 +71,8 @@ async function main() {
       if (!t.id || !t.player_id) continue;
       const league = (t.to_team_id && TEAMS[t.to_team_id]) || (t.from_team_id && TEAMS[t.from_team_id]) || null;
       if (!league) continue;
-      kept.push({
+      keptTotal++;
+      pending.push({
         id: t.id, playerId: t.player_id,
         fromTeamId: t.from_team_id || null, fromTeamName: t.from_team_name || null,
         toTeamId: t.to_team_id || null, toTeamName: t.to_team_name || null,
@@ -67,18 +80,14 @@ async function main() {
         transferFee: t.transfer_fee ?? null, transferDesc: t.transfer_desc || null, league,
       });
     }
-    if (page % 50 === 0) console.log(`  page ${page} — kept ${kept.length}`);
+    if (page % 100 === 0) {
+      await flush();
+      console.log(`  page ${page} — kept ${keptTotal}, inserted ${inserted}`);
+    }
     await sleep(500);
   }
-  console.log(`스캔 완료 — kept ${kept.length}`);
-
-  let inserted = 0;
-  for (let i = 0; i < kept.length; i += 1000) {
-    const chunk = kept.slice(i, i + 1000);
-    const r = await prisma.footballTransfer.createMany({ data: chunk, skipDuplicates: true });
-    inserted += r.count;
-  }
-  console.log(`✓ insert ${inserted} (중복 skip ${kept.length - inserted})`);
+  await flush();
+  console.log(`✓ 스캔 완료 — kept ${keptTotal}, insert ${inserted} (중복 skip ${keptTotal - inserted})`);
   const byLeague = await prisma.footballTransfer.groupBy({
     by: ["league"], _count: { _all: true },
     where: { league: { in: [...new Set(Object.values(TEAMS))] } },
