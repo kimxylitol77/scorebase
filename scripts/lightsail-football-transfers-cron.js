@@ -40,17 +40,22 @@ function writeLastRun(ts) {
   fs.writeFileSync(STATE, String(ts) + "\n");
 }
 
+// ⚠️ time 과 page 를 같이 주면 API 가 page 모드로 전환됨 (전체 목록) — page 절대 금지.
+// time 모드는 1회 최대 1000건 → 응답 query.max_time 을 커서로 전진하며 반복.
 async function fetchIncremental(sinceTs) {
   const all = [];
-  for (let page = 1; page <= MAX_PAGES; page++) {
+  let cursor = sinceTs;
+  for (let i = 0; i < MAX_PAGES; i++) {
     const { data } = await axios.get(`${TS_BASE}/v1/football/transfer/list`, {
-      params: { user: TS_USER, secret: TS_SECRET, time: sinceTs, page },
+      params: { user: TS_USER, secret: TS_SECRET, time: cursor },
       timeout: 30_000,
     });
-    if (data.code !== 0) throw new Error(`ts code=${data.code} page=${page}`);
+    if (data.code !== 0) throw new Error(`ts code=${data.code} cursor=${cursor}`);
     const results = Array.isArray(data.results) ? data.results : [];
     all.push(...results);
-    if (results.length < 1000) break; // 마지막 페이지
+    const maxTime = Number(data.query?.max_time ?? 0);
+    if (results.length < 1000 || !maxTime || maxTime <= cursor) break;
+    cursor = maxTime;
     await sleep(PAGE_SLEEP_MS);
   }
   return all;
