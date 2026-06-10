@@ -3,6 +3,7 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
+import { predictMatchById } from "@/lib/predictionEngine";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
@@ -807,6 +808,30 @@ export async function runPreview(opts?: {
         console.warn(`[preview] recentRecap fetch 실패:`, (err as Error).message);
       }
 
+      // 풀엔진 일원화 (2026-06-10) — predictionEngine 의 전체 시그널 체인
+      // (Elo·DC·시장 blend 60%·선발·XI 평점·휴식/동기부여·국대 Elo·피타고리안)을
+      // 글 예측 + 본문 근거에 반영. 글 = 매치 카드 = 채점 단일 엔진.
+      // 실패 시 기존 context.winProb + 선발 보정 경로로 fallback (글 발행은 멈추지 않음).
+      let enginePred: Awaited<ReturnType<typeof predictMatchById>> = null;
+      if (m.league !== "LOL") {
+        try {
+          enginePred = await predictMatchById(m.id);
+          if (enginePred) {
+            context.winProb = {
+              home: enginePred.probHome,
+              draw: enginePred.probDraw,
+              away: enginePred.probAway,
+            };
+            context.aiReasons = enginePred.reasons.map((r) => ({
+              tag: r.tag,
+              detail: r.detail,
+            }));
+          }
+        } catch (err) {
+          console.warn(`[preview] predictMatchById 실패 #${m.id}:`, (err as Error).message);
+        }
+      }
+
       const prompt =
         m.league === "LOL"
           ? buildLolPreviewPrompt({ match: normalized, context })
@@ -828,9 +853,10 @@ export async function runPreview(opts?: {
       const slug = buildSlug(m.league, m.id);
 
       // 적중률 추적용 — 글 작성 시점의 추정 승률을 그대로 저장.
-      // 야구 선발 ERA/WHIP/K9 보정 적용 — predHome 도 선발 반영 (predictMatchById 와 동일 단일 소스).
+      // 풀엔진(predictMatchById) 성공 시 그 값이 이미 context.winProb 에 반영됨 (선발
+      // 보정 포함). 엔진 실패 fallback 에서만 기존 선발 수동 보정 적용.
       let wp = context.winProb;
-      if (wp) {
+      if (wp && !enginePred) {
         const ps = (
           s: string | null,
         ): { era?: number; whip?: number; k9?: number; gs?: number } | null => {

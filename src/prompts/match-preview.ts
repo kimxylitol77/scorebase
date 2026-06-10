@@ -44,6 +44,9 @@ export interface PreviewContext {
   elo?: { home: number; away: number };
   /** 통계 추정 승률 (%) */
   winProb?: { home: number; draw: number; away: number };
+  /** AI 모델 픽 근거 (predictionEngine reasons — 선발 라인업·휴식일·동기부여·xG 등 신규
+   *  시그널 포함, 2026-06-10 풀엔진 일원화). 본문 분석 단락 재료. */
+  aiReasons?: { tag: string; detail: string }[];
   /** OVER/UNDER 모델 확정값 (build-context, referenceTime=startTime 결정적 — 위젯과 동일 함수·동일 입력). */
   ouMarket?: { line: number; expectedTotal: number; pOver: number; pick: "OVER" | "UNDER" };
   /** 핸디캡 모델 확정값. pick=우세팀. 본문 표 방향 고정용(LLM 추측·반대표시 차단). */
@@ -338,6 +341,14 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
   if (context.winProb) {
     ctxLines.push(
       `- 통계 추정 승률: ${home} ${pct(context.winProb.home)} / 무 ${pct(context.winProb.draw)} / ${away} ${pct(context.winProb.away)}`,
+    );
+  }
+  if (context.aiReasons && context.aiReasons.length > 0) {
+    ctxLines.push(
+      `- 모델 픽 근거 (분석 단락에서 자연스럽게 풀어 쓸 것, 항목명 그대로 나열 금지): ${context.aiReasons
+        .slice(0, 3)
+        .map((r) => `[${r.tag}] ${r.detail}`)
+        .join(" · ")}`,
     );
   }
   if (context.ouMarket) {
