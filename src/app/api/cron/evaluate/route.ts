@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runEvaluate, runEvaluateMatches } from "@/jobs/evaluate-predictions";
+import { runEvaluate, runEvaluateMatches, runBrierReport } from "@/jobs/evaluate-predictions";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +22,13 @@ export async function GET(req: Request) {
       runEvaluate(),
       runEvaluateMatches(),
     ]);
+    // Brier 리포트 — predCorrect 채운 뒤 실행 (확률 품질 + 시장 대비, cron 로그·응답으로 확인)
+    const brier = await runBrierReport().catch(() => null);
     return NextResponse.json({
       ok: true,
       preview: previewResult,
       match: matchResult,
+      brier,
     });
   } catch (e) {
     return NextResponse.json(
