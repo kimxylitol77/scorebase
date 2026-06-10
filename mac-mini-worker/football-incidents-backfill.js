@@ -76,10 +76,11 @@ async function sendHeartbeat() {
 }
 
 async function fetchTargets() {
-  const { data } = await axios.get(`${SITE_URL}/api/internal/football-incidents-backfill`, {
-    headers: SITE_HEADERS,
-    timeout: 30_000,
-  });
+  // days=30 — TheSports lineup/detail 조회 한도(최근 30일)까지 최대 활용
+  const { data } = await axios.get(
+    `${SITE_URL}/api/internal/football-incidents-backfill?days=30&limit=300`,
+    { headers: SITE_HEADERS, timeout: 30_000 },
+  );
   return Array.isArray(data.matches) ? data.matches : [];
 }
 
@@ -129,10 +130,23 @@ async function fetchLiveHistory(uuid) {
   return hit;
 }
 
-async function postCache(matchId, tsMatchId, detailLive) {
+// 라인업 (formation + 선수 평점) — 최근 30일 매치만. lineup-adjust(XI 평점 보정)
+// 의 이력 데이터 + Match.lineupHome 동기화(server) 재료.
+async function fetchLineup(uuid) {
+  const { data } = await axios.get(`${TS_BASE}/v1/football/match/lineup/detail`, {
+    params: { user: TS_USER, secret: TS_SECRET, uuid },
+    timeout: 30_000,
+  });
+  if (data.code !== 0) throw new Error(`lineup code=${data.code}`);
+  const r = data.results;
+  if (!r || typeof r !== "object" || !r.lineup) return null;
+  return r;
+}
+
+async function postCache(matchId, tsMatchId, body) {
   const { data } = await axios.post(
     `${SITE_URL}/api/internal/thesports-cache`,
-    { matchId, tsMatchId, detailLive },
+    { matchId, tsMatchId, ...body },
     { headers: { ...SITE_HEADERS, "Content-Type": "application/json" }, timeout: 30_000 },
   );
   return data;
@@ -181,15 +195,30 @@ async function runOnce() {
           continue; // ts 미커버 또는 매칭 실패 — 다음 run 재시도 (영구 미매칭은 그대로 잔류)
         }
       }
-      // 2) live/history → incidents
-      const hit = await fetchLiveHistory(uuid);
-      await sleep(PACE_MS);
-      if (!hit || !Array.isArray(hit.incidents) || hit.incidents.length === 0) {
-        noData++;
-        continue; // TheSports 에 incidents 자체가 없는 매치 (군소 리그)
+      // 2) 필요한 것만 호출 — incidents(live/history) / lineup(평점 포함)
+      const body = {};
+      if (m.needIncidents !== false) {
+        const hit = await fetchLiveHistory(uuid);
+        await sleep(PACE_MS);
+        if (hit && Array.isArray(hit.incidents) && hit.incidents.length > 0) {
+          body.detailLive = hit;
+        }
       }
-      // 3) cache POST — server 가 detailLive merge + 저장
-      await postCache(m.matchId, uuid, hit);
+      if (m.needLineup !== false) {
+        try {
+          const lu = await fetchLineup(uuid);
+          await sleep(PACE_MS);
+          if (lu) body.lineup = lu;
+        } catch (e) {
+          // 30일 초과 등 — lineup 만 skip, incidents 는 진행
+        }
+      }
+      if (!body.detailLive && !body.lineup) {
+        noData++;
+        continue; // TheSports 에 데이터 자체가 없는 매치 (군소 리그)
+      }
+      // 3) cache POST — server 가 detailLive merge + lineup 저장 + Match.lineupHome 동기화
+      await postCache(m.matchId, uuid, body);
       applied++;
       byLeague.set(m.league, (byLeague.get(m.league) ?? 0) + 1);
     } catch (e) {

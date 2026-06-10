@@ -88,13 +88,31 @@ export async function GET(req: NextRequest) {
        AND (c."matchId" IS NULL
             OR c."detailLive" IS NULL
             OR jsonb_typeof(c."detailLive"->'incidents') IS DISTINCT FROM 'array'
-            OR jsonb_array_length(c."detailLive"->'incidents') = 0)
+            OR jsonb_array_length(c."detailLive"->'incidents') = 0
+            OR jsonb_typeof(c.lineup) IS DISTINCT FROM 'object')
      ORDER BY m."startTime" DESC
      LIMIT $3`,
     soccerLeagues,
     String(days),
     limit,
   );
+
+  // 어떤 보강이 필요한지 플래그 — worker 가 필요한 endpoint 만 호출 (rate 절약).
+  const flagRows: { id: number; needIncidents: boolean; needLineup: boolean }[] =
+    rows.length > 0
+      ? await prisma.$queryRawUnsafe(
+          `SELECT m.id,
+             (c."matchId" IS NULL OR c."detailLive" IS NULL
+              OR jsonb_typeof(c."detailLive"->'incidents') IS DISTINCT FROM 'array'
+              OR jsonb_array_length(c."detailLive"->'incidents') = 0) AS "needIncidents",
+             (c."matchId" IS NULL OR jsonb_typeof(c.lineup) IS DISTINCT FROM 'object') AS "needLineup"
+           FROM "Match" m
+           LEFT JOIN "TheSportsMatchCache" c ON c."matchId" = m.id
+           WHERE m.id = ANY($1)`,
+          rows.map((r) => r.id),
+        )
+      : [];
+  const flagById = new Map(flagRows.map((f) => [f.id, f]));
 
   const matches = rows.map((m) => ({
     matchId: m.id,
@@ -106,6 +124,8 @@ export async function GET(req: NextRequest) {
     homeTsTeamId: teamMap.get(m.homeTeamId) ?? null,
     awayTsTeamId: teamMap.get(m.awayTeamId) ?? null,
     tsCompetitionId: leagueMap.get(m.league) ?? null,
+    needIncidents: flagById.get(m.id)?.needIncidents ?? true,
+    needLineup: flagById.get(m.id)?.needLineup ?? true,
   }));
 
   return NextResponse.json({ count: matches.length, matches });

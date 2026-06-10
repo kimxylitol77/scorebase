@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { mapFootballStatus, convertTsLineup } from "@/lib/sports/thesports/football-collector";
+import { predictMatchById } from "@/lib/predictionEngine";
 import { mapBaseballStatus, mapIceHockeyStatus, mapBasketballStatus } from "@/lib/sports/thesports/status-codes";
 import { BASEBALL_LEAGUES, HOCKEY_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { MatchStatus } from "@/lib/sports/types";
@@ -255,5 +256,34 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, cache, matchUpdated, lineupSynced });
+  // ===== 라인업 확정 → predict 재계산 (lineup-adjust 발동, 2026-06-10) =====
+  // 확정 XI 평점 보정은 라인업 도착 후에만 가능 — 이 시점이 트리거.
+  // predict-match route 와 동일한 PREVIEW 단일 소스 가드 (글 있는 매치는 덮지 않음).
+  let predictionRecalced = false;
+  if (lineupSynced && currentMatch.status === "SCHEDULED") {
+    try {
+      const prediction = await predictMatchById(body.matchId);
+      if (prediction) {
+        const hasPreview = await prisma.article.count({
+          where: { matchId: body.matchId, type: "PREVIEW", predWinner: { not: null } },
+        });
+        if (hasPreview === 0) {
+          await prisma.match.update({
+            where: { id: body.matchId },
+            data: {
+              predHome: prediction.probHome,
+              predDraw: prediction.probDraw,
+              predAway: prediction.probAway,
+              predWinner: prediction.pick === "NO_PICK" ? null : prediction.pick,
+            },
+          });
+          predictionRecalced = true;
+        }
+      }
+    } catch {
+      // silent — 라인업 저장은 이미 완료, predict 는 다음 트리거에서 재시도
+    }
+  }
+
+  return NextResponse.json({ ok: true, cache, matchUpdated, lineupSynced, predictionRecalced });
 }

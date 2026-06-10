@@ -34,6 +34,11 @@ import {
   computeStarterAdjustment,
   applyStarterToWinProb,
 } from "./predict/starter-adjust";
+import {
+  computeLineupAdjustment,
+  applyLineupToWinProb,
+  type LineupAdjustment,
+} from "./predict/lineup-adjust";
 
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
@@ -81,6 +86,8 @@ export interface PredictionInput {
   odds?: { home: number; away: number; draw?: number };
   /** 축구 Dixon-Coles 득점모델 확률 (있으면 Elo base 와 블렌드). predictMatchById 가 채움. */
   dc?: { home: number; draw: number; away: number };
+  /** 축구 확정 XI 평점 보정 (lineup-adjust) — 라인업 확정 후 재계산 시 predictMatchById 가 채움. */
+  lineupAdj?: LineupAdjustment | null;
 }
 
 export interface PredictionReason {
@@ -302,6 +309,21 @@ export function predictMatch(input: PredictionInput): PredictionResult {
         });
       }
     }
+  } else if (sport === "football") {
+    // 확정 XI 평점 보정 (lineup-adjust) — MLB starter 와 평행. 라인업 확정 후
+    // 재계산 트리거에서만 입력됨 (TheSports lineup 평점 기반, ±1.5%p 미만 노이즈 무시).
+    const lAdj = input.lineupAdj;
+    if (lAdj?.applied && Math.abs(lAdj.homeShift) >= 0.015) {
+      probs = normalizeProbs(applyLineupToWinProb(probs, lAdj));
+      signalsUsed.push("lineup");
+      const betterHome = lAdj.homeShift > 0;
+      const fmt = (g: number) => `${g >= 0 ? "+" : ""}${g.toFixed(1)}`;
+      reasons.push({
+        tag: "선발 라인업",
+        detail: `${betterHome ? home.name : away.name} 평소 베스트 전력에 근접 (XI 평점 갭 ${fmt(lAdj.homeGap)} vs ${fmt(lAdj.awayGap)})`,
+        weight: Math.abs(lAdj.homeShift) >= 0.05 ? "high" : "med",
+      });
+    }
   }
 
   // ── 5. 시장 배당 blend ─────────────────────────────────
@@ -480,6 +502,18 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
         }
       : undefined;
 
+  // 축구 확정 XI 평점 보정 — 라인업(cache.lineup confirmed=1) 있을 때만 applied.
+  // 라인업 확정 전 호출(프리뷰 등)은 EMPTY 라 기존과 동일 동작.
+  const lineupAdj =
+    sport === "football"
+      ? await computeLineupAdjustment(
+          match.id,
+          match.homeTeamId,
+          match.awayTeamId,
+          match.startTime,
+        ).catch(() => null)
+      : null;
+
   return predictMatch({
     sport,
     league: match.league,
@@ -498,6 +532,7 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
     },
     odds,
     dc,
+    lineupAdj,
   });
 }
 
