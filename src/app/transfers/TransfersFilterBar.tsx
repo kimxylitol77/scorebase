@@ -17,6 +17,8 @@ interface Props {
   mode: string; // 최신 이적: "" = 주요(기본) | "all" = 전체 이력
   ttype: string; // 최신 이적 유형 필터: "" | "fee" | "loan"
   leagues: { code: string; label: string }[];
+  // 시장가치 기반 뷰(팀 가치) 리그 범위 — PMV 커버리지 얇은 확장 리그 제외(빅5)
+  valueLeagues: { code: string; label: string }[];
   teams: TeamOpt[];
   countries: CountryOpt[];
 }
@@ -60,7 +62,7 @@ function buildUrl(o: { view?: string; league?: string; team?: string; pos?: stri
   return `/transfers${qs ? `?${qs}` : ""}`;
 }
 
-export default function TransfersFilterBar({ view, league, team, pos, country, search, mode, ttype, leagues, teams, countries }: Props) {
+export default function TransfersFilterBar({ view, league, team, pos, country, search, mode, ttype, leagues, valueLeagues, teams, countries }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState<null | "team" | "country">(null);
   const [q, setQ] = useState("");
@@ -136,38 +138,54 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
         )}
       </form>
 
-      {/* 최신 이적 하위 필터 — 주요/전체 토글 + 유형 칩 */}
+      {/* 최신 이적 하위 필터 — 주요/전체 토글 + 유형 칩 + 리그 칩 */}
       {view === "latest" && (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <button onClick={() => go({ view: "latest", t: ttype || undefined })} className={chip(mode !== "all")}>
-            주요
-          </button>
-          <button onClick={() => go({ view: "latest", mode: "all", t: ttype || undefined })} className={chip(mode === "all")}>
-            전체
-          </button>
-          <span className="w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-1" aria-hidden />
-          <button
-            onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "fee" ? undefined : "fee" })}
-            className={chip(ttype === "fee")}
-          >
-            💰 이적료
-          </button>
-          <button
-            onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "loan" ? undefined : "loan" })}
-            className={chip(ttype === "loan")}
-          >
-            임대·복귀
-          </button>
-        </div>
+        <>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button onClick={() => go({ view: "latest", t: ttype || undefined, league: league || undefined })} className={chip(mode !== "all")}>
+              주요
+            </button>
+            <button onClick={() => go({ view: "latest", mode: "all", t: ttype || undefined, league: league || undefined })} className={chip(mode === "all")}>
+              전체
+            </button>
+            <span className="w-px h-5 bg-neutral-200 dark:bg-neutral-800 mx-1" aria-hidden />
+            <button
+              onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "fee" ? undefined : "fee", league: league || undefined })}
+              className={chip(ttype === "fee")}
+            >
+              💰 이적료
+            </button>
+            <button
+              onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype === "loan" ? undefined : "loan", league: league || undefined })}
+              className={chip(ttype === "loan")}
+            >
+              임대·복귀
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype || undefined })} className={chip(!league)}>
+              전체 리그
+            </button>
+            {leagues.map((l) => (
+              <button
+                key={l.code}
+                onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype || undefined, league: l.code })}
+                className={chip(league === l.code)}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
-      {/* 팀 가치 랭킹 하위 필터 — 리그 범위 */}
+      {/* 팀 가치 랭킹 하위 필터 — 리그 범위 (시장가치 커버리지 있는 빅5만) */}
       {view === "squads" && (
         <div className="flex flex-wrap gap-1.5">
           <button onClick={() => go({ view: "squads" })} className={chip(!league)}>
             빅5 전체
           </button>
-          {leagues.map((l) => (
+          {valueLeagues.map((l) => (
             <button key={l.code} onClick={() => go({ view: "squads", league: l.code })} className={chip(league === l.code)}>
               {l.label}
             </button>

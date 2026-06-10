@@ -50,9 +50,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     description = `${win.label} 유럽 빅5 리그 팀별 영입(IN)·방출(OUT) 현황과 이적 지출·수입·순지출 총정리 — 스코어베이스 이적시장.`;
     canonical = "/transfers?view=inout";
   } else if (sp.view === "latest") {
-    title = "최신 축구 이적 현황 · 유럽 빅5 | 스코어베이스";
-    description = "유럽 빅5 리그 선수 이적 소식을 최신순으로. 이적료·임대·자유이적까지 매일 업데이트 — 스코어베이스 이적시장.";
-    canonical = "/transfers?view=latest";
+    const scope = lgLabel || "유럽 빅5·K리그1·사우디·MLS";
+    title = `최신 축구 이적 현황 · ${lgLabel || "주요 리그"} | 스코어베이스`;
+    description = `${scope} 선수 이적 소식을 최신순으로. 이적료·임대·자유이적까지 매일 업데이트 — 스코어베이스 이적시장.`;
+    canonical = lgLabel ? `/transfers?view=latest&league=${sp.league}` : "/transfers?view=latest";
   } else {
     const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
     title = `${scope}선수 몸값 랭킹 · 이적시장 시장가치 | 스코어베이스`;
@@ -74,9 +75,16 @@ const LEAGUES: Record<string, string> = {
   BUNDESLIGA: "분데스리가",
   SERIE_A: "세리에 A",
   LIGUE_1: "리그 1",
+  K_LEAGUE_1: "K리그1",
+  SAUDI_PL: "사우디 프로리그",
+  MLS: "MLS",
 };
 const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, label }));
-const FIVE = Object.keys(LEAGUES);
+// 빅5 — 시장가치 기반 뷰(머니파워·스쿼드 가치·IN/OUT·팀 옵션) 범위.
+// 확장 리그(K리그1·사우디·MLS)는 PlayerMarketValue 커버리지가 얇아(17~179명) 피드·빅딜만 노출.
+const FIVE = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+// 이적 피드(최신·빅딜) 범위 — 전체 커버 리그.
+const FEED_LEAGUES = Object.keys(LEAGUES);
 // 세부 포지션 — 라인업 x/y 도출(data/player-positions.json). 없으면 coarse(G/D/M/F)로 fallback.
 const DETAIL_POS = rawDetailPos as Record<string, string>;
 // Wikidata 보강 — ts player id → { 교정 한글명, 국적(ko), 국기 }
@@ -273,7 +281,9 @@ export default async function TransfersPage({
   // 최신 이적: 기본 = 주요(이적창 윈도우 + 이름·이적료 확인분), mode=all = 전체 이력
   const latestAll = isLatest && sp.mode === "all";
   const tFilter = isLatest && ["fee", "loan"].includes(sp.t || "") ? sp.t! : "";
-  const league = sp.league && LEAGUES[sp.league] ? sp.league : "";
+  let league = sp.league && LEAGUES[sp.league] ? sp.league : "";
+  // 팀 스쿼드 가치는 PMV 커버리지 있는 빅5 만 — 확장 리그 코드는 빅5 전체로 fallback
+  if (view === "squads" && league && !FIVE.includes(league)) league = "";
   const team = sp.team || "";
   const pos = sp.pos && POS_CODES.includes(sp.pos) ? sp.pos : "";
   const country = sp.country || "";
@@ -502,7 +512,7 @@ export default async function TransfersPage({
   if (isLatest && !latestAll) {
     const rows = await prisma.footballTransfer.findMany({
       where: {
-        league: { in: FIVE },
+        league: { in: league ? [league] : FEED_LEAGUES },
         transferTime: { gte: win.from },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
@@ -521,10 +531,11 @@ export default async function TransfersPage({
     for (const c of latestMainCards) { const k = fmtDateHeader(c.time); dateCounts.set(k, (dateCounts.get(k) || 0) + 1); }
   }
 
+  const feedScope = league ? [league] : FEED_LEAGUES;
   const feedWhere = isBigdeals
-    ? { league: { in: FIVE }, transferTime: { gte: win.from }, transferFee: { gt: 0 } }
+    ? { league: { in: feedScope }, transferTime: { gte: win.from }, transferFee: { gt: 0 } }
     : {
-        league: { in: FIVE },
+        league: { in: feedScope },
         transferTime: { not: null },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
@@ -576,7 +587,7 @@ export default async function TransfersPage({
     rising = movers.filter((m) => m.chg > 0).sort((a, b) => b.chg - a.chg).slice(0, 3);
     falling = movers.filter((m) => m.chg < 0).sort((a, b) => a.chg - b.chg).slice(0, 3);
     const dealRows = await prisma.footballTransfer.findMany({
-      where: { league: { in: FIVE }, transferTime: { gte: win.from }, transferFee: { gt: 0 } },
+      where: { league: { in: FEED_LEAGUES }, transferTime: { gte: win.from }, transferFee: { gt: 0 } },
       orderBy: { transferFee: "desc" },
       take: 6,
     });
@@ -637,7 +648,7 @@ export default async function TransfersPage({
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{heading}</h1>
       <p className="mt-2 text-sm text-neutral-500">
         {isBigdeals ? (
-          <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">이적료 TOP</strong> · {win.label} · {totalCount.toLocaleString()}건.</>
+          <>{league ? LEAGUES[league] : "주요 리그"} <strong className="text-neutral-700 dark:text-neutral-300">이적료 TOP</strong> · {win.label} · {totalCount.toLocaleString()}건.</>
         ) : isInout ? (
           <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">팀별 영입·방출</strong> · 영입 지출순 · {totalCount}팀.</>
         ) : isSquads ? (
@@ -646,7 +657,7 @@ export default async function TransfersPage({
           <><strong className="text-neutral-700 dark:text-neutral-300">{squadSummary.name}</strong> 선수단 몸값 랭킹 · 시장가치순 · {squadSummary.cnt}명.</>
         ) : isLatest ? (
           latestAll ? (
-            <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">전체 이적 이력</strong> · 최신순 · {totalCount.toLocaleString()}건.</>
+            <>{league ? LEAGUES[league] : "유럽 빅5·K리그1·사우디·MLS"} <strong className="text-neutral-700 dark:text-neutral-300">전체 이적 이력</strong> · 최신순 · {totalCount.toLocaleString()}건.</>
           ) : (
             <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">주요 이적</strong> · 이름·이적료 확인분 · {totalCount.toLocaleString()}건.</>
           )
@@ -666,6 +677,7 @@ export default async function TransfersPage({
           mode={latestAll ? "all" : ""}
           ttype={tFilter}
           leagues={LEAGUE_LIST}
+          valueLeagues={LEAGUE_LIST.filter((l) => FIVE.includes(l.code))}
           teams={teamOptions}
           countries={countryOptions}
         />

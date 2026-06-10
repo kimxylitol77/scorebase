@@ -44,6 +44,9 @@ const LEAGUE_LABEL: Record<string, string> = {
   BUNDESLIGA: "분데스리가",
   SERIE_A: "세리에 A",
   LIGUE_1: "리그 1",
+  K_LEAGUE_1: "K리그1",
+  SAUDI_PL: "사우디 프로리그",
+  MLS: "MLS",
 };
 const POS_LABEL: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
 
