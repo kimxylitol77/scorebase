@@ -279,6 +279,8 @@ export async function runPreview(opts?: {
         m.homeTeamId,
         m.awayTeamId,
         m.startTime,
+        m.homeTeam.name,
+        m.awayTeam.name,
       );
       context = await enrichContextWithApiFootball(
         context,

@@ -356,6 +356,7 @@ export const PREVIEW_LEAGUES: readonly League[] = [
   "NBA", // 농구
   "K_LEAGUE_1", // 한국 축구
   "LOL", // e스포츠 (LCK)
+  "INTL_FRIENDLY", // 국가대표 친선 (월드컵 평가전 — 국가대표 Elo 기반 winProb)
 ];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만. (참고용; 발행 필터는 ARTICLE_LEAGUES 화이트리스트로 전환됨) */

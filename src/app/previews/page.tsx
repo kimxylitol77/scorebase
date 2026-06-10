@@ -35,6 +35,7 @@ const SPORTS: SportCategory[] = [
       "MLS",
       "UCL",
       "WORLD_CUP",
+      "INTL_FRIENDLY",
     ],
   },
   { key: "BASEBALL", label: "야구", leagues: ["KBO", "NPB", "MLB"] },

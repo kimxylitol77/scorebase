@@ -4,6 +4,8 @@ import type { PredictMatch } from "./types";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { calcEloTable, getElo } from "./elo";
+import { getWorldCupSeedElo } from "./world-cup-elos";
+import { getFifaRank } from "@/lib/sports/fifa-rankings";
 import { buildScoreDistribution } from "./score-distribution";
 
 const SOCCER_LEAGUES = new Set([
@@ -48,6 +50,16 @@ import type { RecapContext } from "@/prompts/match-recap";
 
 /** 예측 신뢰도/데이터부족 기준 — 양 팀 직전 경기 표본 최소치. evaluate MIN_PRIOR 와 동일. */
 export const MIN_PRIOR_MATCHES = 5;
+
+// 국가대표 Elo (친선 winProb 용) — world-cup-elos(본선국 실제 Elo) 우선, 없으면 FIFA랭킹 환산.
+// 친선은 클럽 Elo(calcEloTable)가 주전 결장·결과 변동으로 평준화돼 부정확하므로 별도 소스 사용.
+function nationalElo(name: string): number {
+  const seed = getWorldCupSeedElo(name);
+  if (seed != null) return seed;
+  const rank = getFifaRank(name);
+  if (rank != null) return Math.max(1300, 2050 - 250 * Math.log10(rank));
+  return 1500;
+}
 
 /** winProb 최고 확률 → 신뢰도 등급 (코드 단일 소스 — 본문·위젯 동일값). */
 export function computeConfidence(wp: {
@@ -111,13 +123,22 @@ export function buildMatchContext(
   homeTeamId: number,
   awayTeamId: number,
   referenceTime: Date,
+  homeName?: string,
+  awayName?: string,
 ): PreviewContext {
   const before = matches.filter(
     (m) => m.startTime.getTime() < referenceTime.getTime(),
   );
-  const elo = calcEloTable(before);
-  const homeElo = getElo(elo, homeTeamId);
-  const awayElo = getElo(elo, awayTeamId);
+  // 친선(INTL_FRIENDLY)은 클럽 Elo 부정확 → 국가대표 Elo(world-cup-elos + FIFA랭킹) 사용.
+  let homeElo: number, awayElo: number;
+  if (league === "INTL_FRIENDLY" && homeName && awayName) {
+    homeElo = nationalElo(homeName);
+    awayElo = nationalElo(awayName);
+  } else {
+    const elo = calcEloTable(before);
+    homeElo = getElo(elo, homeTeamId);
+    awayElo = getElo(elo, awayTeamId);
+  }
 
   const wp = calcWinProbability(homeElo, awayElo, league);
 
