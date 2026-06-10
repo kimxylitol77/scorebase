@@ -134,8 +134,9 @@ export default function BaseballBoxscoreTabs({
   const currentTabInfo = tabs.find((t) => t.key === activeTab)!;
 
   const sideRows = side === "home" ? playerStats.home : playerStats.away;
-  const koName = (pid: string) =>
-    playerNameById[pid] ?? `#${pid.slice(-4)}`;
+  // DB 미등록 선수 — TheSports 가 선수 등록 전이거나(신규 콜업, 익일 cron 해소)
+  // 영구 미식별 placeholder id (예: KBO vmwz). cryptic "#vmwz" 대신 라벨 표시.
+  const koName = (pid: string) => playerNameById[pid] ?? "미확인 선수";
   const koPhoto = (pid: string) => playerPhotoById?.[pid];
 
   return (
