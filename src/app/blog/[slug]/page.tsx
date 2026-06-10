@@ -4,10 +4,50 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { formatDateKo } from "@/lib/format";
 import Markdown from "@/components/Markdown";
+import sanitizeHtml from "sanitize-html";
 
 export const revalidate = 600;
 
 const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
+
+// blog 본문 HTML 정화 정책 — script·이벤트핸들러(on*)·javascript: 는 제거하되
+// 레이아웃에 필요한 인라인 style 과 본문 태그(figure·table·iframe 등)는 보존한다.
+// sanitize-html 은 jsdom 비의존(htmlparser2) 이라 서버 런타임에서 안전.
+const BLOG_SANITIZE: sanitizeHtml.IOptions = {
+  allowedTags: [
+    "article", "section", "div", "figure", "figcaption", "p", "span", "br", "hr",
+    "h1", "h2", "h3", "h4", "h5", "h6", "a", "img", "strong", "em", "b", "i", "u", "s",
+    "small", "mark", "sub", "sup", "ul", "ol", "li", "blockquote", "pre", "code",
+    "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption", "iframe",
+  ],
+  allowedAttributes: {
+    "*": ["class", "style", "id"],
+    a: ["href", "target", "rel"],
+    img: ["src", "alt", "width", "height", "loading"],
+    iframe: ["src", "width", "height", "allow", "allowfullscreen", "frameborder", "loading"],
+  },
+  allowedSchemes: ["http", "https", "mailto"],
+  allowedSchemesByTag: { img: ["http", "https", "data"] },
+  allowedIframeHostnames: ["www.youtube.com", "youtube.com", "player.vimeo.com"],
+};
+
+// 본문을 정화하고, 안에 든 JSON-LD(application/ld+json) 는 검증해 분리한다.
+// script 는 본문에서 모두 제거되며, JSON 으로 파싱 통과한 JSON-LD 만 별도 <script> 로 안전 재삽입한다.
+function prepareBlogContent(content: string): { body: string; ldJson: string | null } {
+  let ldJson: string | null = null;
+  const m = content.match(
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i,
+  );
+  if (m) {
+    try {
+      // 임의 JS 차단(파싱돼야 통과) + "<" escape 로 </script> breakout 방지
+      ldJson = JSON.stringify(JSON.parse(m[1])).replace(/</g, "\\u003c");
+    } catch {
+      ldJson = null;
+    }
+  }
+  return { body: sanitizeHtml(content, BLOG_SANITIZE), ldJson };
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -72,6 +112,9 @@ export default async function BlogDetailPage({ params }: Props) {
     mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${slug}` },
   };
 
+  const isHtmlContent = /^\s*<(article|div|section|p|h[1-6])\b/i.test(b.content);
+  const prepared = isHtmlContent ? prepareBlogContent(b.content) : null;
+
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <script
@@ -102,14 +145,21 @@ export default async function BlogDetailPage({ params }: Props) {
         )}
       </header>
 
-      {/* content 가 HTML(<article ... > 시작) 이면 그대로 렌더, 아니면 Markdown.
-          TODO(보안): 본문 HTML 정화 재도입 — isomorphic-dompurify 가 서버 런타임 500 유발,
-          jsdom 비의존 sanitize-html 등으로 교체 예정. 현재 작성자는 admin 뿐. */}
-      {/^\s*<(article|div|section|p|h[1-6])\b/i.test(b.content) ? (
-        <div
-          className="blog-html prose prose-neutral dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: b.content }}
-        />
+      {/* HTML 본문은 정화 후 렌더(script·on*·javascript: 제거, style·태그 보존),
+          JSON-LD 만 검증해 분리 재삽입. 아니면 Markdown. */}
+      {prepared ? (
+        <>
+          <div
+            className="blog-html prose prose-neutral dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: prepared.body }}
+          />
+          {prepared.ldJson && (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: prepared.ldJson }}
+            />
+          )}
+        </>
       ) : (
         <Markdown>{b.content}</Markdown>
       )}
