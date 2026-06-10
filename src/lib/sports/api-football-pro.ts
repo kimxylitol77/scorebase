@@ -109,22 +109,20 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   DFB_POKAL: 81, // 독일 DFB-Pokal
   COUPE_DE_FRANCE: 66, // 프랑스 쿠프 드 프랑스
   KFA_CUP: 294, // 한국 FA Cup (검증 2026-05-25, country=South-Korea, current=2025 봄~겨울)
-  EMPEROR_CUP: 290, // 일본 천황배
+  EMPEROR_CUP: 102, // 일본 천황배 (2026-06-10 id 교정: 290=이란 1부였음)
   CONCACAF_CCUP: 16, // CONCACAF Champions Cup
-  AFC_CUP: 18, // AFC Cup (3부 클럽 대회). Elite 는 17 (AFC_CL).
   // ───── 신규 추가 (2026-05-22, 23개) ─────
   // ID 일부는 api-football 공식 docs 기반 추정 — 실 검증 후 확정 (collector
   // 첫 호출 시 매치 0건이면 id 보정 필요).
   // 한국 하부 + 일본 J3 + 동남아 추가
-  K3_LEAGUE: 766, // K3 리그
-  K4_LEAGUE: 767, // K4 리그
+  K3_LEAGUE: 295, // K3 리그 (2026-06-10 id 교정: 766=China Cup 이었음)
   J3_LEAGUE: 100, // J3 리그
   THAI_L1: 296, // Thai League 1
-  VIETNAM_VL2: 341, // V.League 2
+  VIETNAM_VL2: 637, // V.League 2 (2026-06-10 id 교정: 341=베트남컵이었음)
   // 남미 추가
   ARGENTINA_PL: 128, // Liga Profesional
   URUGUAY_PD: 268, // Primera División
-  PARAGUAY_PD: 284, // Primera División
+  PARAGUAY_PD: 250, // Division Profesional Apertura (2026-06-10 id 교정: 284=루마니아 2부였음. Clausura 는 252)
   BOLIVIA_PD: 344, // División Profesional
   // 국가대표 토너 / 예선 / 친선
   AFCON: 6, // Africa Cup of Nations
@@ -144,9 +142,9 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // 여자 축구
   WSL: 44, // FA Women's Super League
   NWSL: 254, // NWSL
-  WK_LEAGUE: 783, // 한국 WK리그
+  WK_LEAGUE: 660, // 한국 WK리그 (2026-06-10 id 교정: 783=폴란드 3부였음)
   UEFA_WCL: 525, // UEFA Women's Champions League
-  A_LEAGUE_W: 191, // A-League Women
+  A_LEAGUE_W: 190, // A-League Women (2026-06-10 id 교정: 191=브리즈번 지역리그였음)
   // ───── 2026-05-24 추가 (4개) ─────
   // ID 는 api-football 공식 docs 기반 — collector 첫 호출 시 매치 0건이면 id 보정 필요.
   SUI_CUP: 209, // 스위스컵 (8~5월)
@@ -165,13 +163,13 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // ───── 2026-05-24 추가 (3차) — TheSports 업그레이드 후 검증 ─────
   LEAGUE_TWO: 42, // 잉글랜드 EFL League Two (4부, 8~5월)
   NATIONAL_LEAGUE: 43, // 잉글랜드 National League (5부, 8~5월)
-  SCOT_CHAMPIONSHIP: 181, // 스코티시 챔피언십 (2부, 8~5월)
-  SCOT_LEAGUE_ONE: 182, // 스코티시 리그 1 (3부, 8~5월)
-  SCOT_LEAGUE_TWO: 183, // 스코티시 리그 2 (4부, 8~5월)
+  SCOT_CHAMPIONSHIP: 180, // 스코티시 챔피언십 (2부, 8~5월) (2026-06-10 id 교정: 181=스코트 FA컵이었음)
+  SCOT_LEAGUE_ONE: 183, // 스코티시 리그 1 (3부, 8~5월) (2026-06-10 id 교정: 182=챌린지컵이었음)
+  SCOT_LEAGUE_TWO: 184, // 스코티시 리그 2 (4부, 8~5월) (2026-06-10 id 교정: 183=리그1이었음)
   RPL: 235, // 러시아 프리미어리그 (8~5월)
   ALGERIA_L1: 186, // 알제리 리그 프로페시오넬 1 (8~5월)
-  SVENSKA_CUPEN: 109, // 스벤스카 컵 (스웨덴 컵, 2~6월) — 달력연도
-  GHANA_PL: 240, // 가나 프리미어리그 (9~5월)
+  SVENSKA_CUPEN: 115, // 스벤스카 컵 (스웨덴 컵, 2~6월) — 달력연도 (2026-06-10 id 교정: 109=폴란드 2부였음)
+  GHANA_PL: 570, // 가나 프리미어리그 (9~5월) (2026-06-10 id 교정: 240=콜롬비아 2부였음)
   // ARG_PRIMERA_NACIONAL 제거 — api-football 131 은 실제 Primera B Metropolitana(3부) 오매핑.
   // 진짜 2부는 TheSports(9vjxm8ghonr6odg)로 수집 (2026-05-29).
 };

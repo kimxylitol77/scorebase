@@ -1501,11 +1501,17 @@ export default async function ScoresPage({ searchParams }: Props) {
         `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
     ),
   );
+  // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
+  // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.
+  const isYouthOrWomenFriendly = (dm: DatedMatch) =>
+    dm.league === "INTL_FRIENDLY" &&
+    /\bU-?\d{2}\b|women|girls|\(w\)/i.test(`${dm.homeName} ${dm.awayName}`);
   const orphanCards = datedSoccer
     .filter(
       (dm) =>
         sportLeagueSet.has(dm.league) &&
         (!leagueFilter || dm.league === leagueFilter) &&
+        !isYouthOrWomenFriendly(dm) &&
         !dbExtIds.has(dm.id.replace(/^[a-z]+-/i, "")) &&
         !dbNameKeys.has(
           `${dm.league}|${normalizeName(dm.homeName)}|${normalizeName(dm.awayName)}`,
