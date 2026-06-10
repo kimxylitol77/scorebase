@@ -43,6 +43,10 @@ const STARS: Record<string, string> = {
   // 에서 동일 id 직접 확인(Aleksa Damjanovic) + 분데스리가 공식(bundesliga.com 36020): 17세 ST,
   // €5M+보너스 €3M, 2026-06 발효. 데이터 소스 id 일치 + 공식 발표 이중 확정.
   "1l4rjnhk382em7v": "알렉사 담야노비치",
+  // FootballTransfer "River Plate → Getafe 2026-01-15 임대 → 2026-07-01 €1.5M 완전" — 헤타페 공식 발표
+  // (getafecf.com "Sebastián Boselli, nuevo jugador" + 공식 X 매입옵션 행사 COMUNICADO): Juan Sebastián
+  // Boselli 22세 우루과이 CB, 2026 겨울 임대→매입(~2030). 클럽·시점·이적료 유일 일치. 나무위키 "후안 보셀리".
+  "ednm9whv7ljeryo": "후안 보셀리",
 };
 
 async function main() {
