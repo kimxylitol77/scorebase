@@ -1,8 +1,10 @@
 // 시장가치 랭킹 — TheSports market value 실데이터.
-// 카테고리: 전체 / 리그별 / 팀별 / 국가별 / 포지션별. 기본 = 전체(빅5 통합). 행 클릭 → /transfers/[id].
+// 카테고리: 전체 / 리그별 / 팀별 / 국가별 / 포지션별 / 최신 이적 / 빅딜 / 팀별 IN·OUT + 선수·팀 검색(q).
+// 기본 = 전체(빅5 통합) — 상단 마켓 무브(급상승·급락·빅딜) 요약. 행 클릭 → /transfers/[id].
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawDetailPos from "../../../data/player-positions.json";
@@ -11,19 +13,36 @@ import rawPhotos from "../../../data/player-photos.json";
 
 export const dynamic = "force-dynamic";
 
-// SEO — 선수 몸값/이적시장 키워드 + 스코어베이스 브랜드
-export async function generateMetadata({ searchParams }: { searchParams: Promise<{ league?: string }> }): Promise<Metadata> {
+// SEO — 선수 몸값/이적시장 키워드 + 스코어베이스 브랜드. view 별 타이틀 분기.
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ league?: string; view?: string; q?: string }> }): Promise<Metadata> {
   const sp = await searchParams;
+  const win = transferWindow();
   const lgLabel = sp.league && LEAGUES[sp.league] ? LEAGUES[sp.league] : null;
-  const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
-  const title = `${scope}선수 몸값 랭킹 · 이적시장 시장가치 | 스코어베이스`;
-  const description = `${scope}리그 선수 시장가치(몸값) 랭킹과 변동 추이, 이적 기록, 커리어·시즌별 성적까지. 스코어베이스에서 선수 몸값을 한눈에.`;
+  let title: string, description: string, canonical = "/transfers";
+  if (sp.view === "bigdeals") {
+    title = `${win.label} 빅딜 랭킹 · 이적료 TOP | 스코어베이스`;
+    description = `${win.label} 유럽 빅5 리그 최고 이적료 랭킹. 확정 이적 빅딜을 이적료 순으로 한눈에 — 스코어베이스 이적시장.`;
+    canonical = "/transfers?view=bigdeals";
+  } else if (sp.view === "inout") {
+    title = `팀별 영입·방출 IN/OUT · ${win.label} | 스코어베이스`;
+    description = `${win.label} 유럽 빅5 리그 팀별 영입(IN)·방출(OUT) 현황과 이적 지출·수입·순지출 총정리 — 스코어베이스 이적시장.`;
+    canonical = "/transfers?view=inout";
+  } else if (sp.view === "latest") {
+    title = "최신 축구 이적 현황 · 유럽 빅5 | 스코어베이스";
+    description = "유럽 빅5 리그 선수 이적 소식을 최신순으로. 이적료·임대·자유이적까지 매일 업데이트 — 스코어베이스 이적시장.";
+    canonical = "/transfers?view=latest";
+  } else {
+    const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
+    title = `${scope}선수 몸값 랭킹 · 이적시장 시장가치 | 스코어베이스`;
+    description = `${scope}리그 선수 시장가치(몸값) 랭킹과 변동 추이, 이적 기록, 커리어·시즌별 성적까지. 스코어베이스에서 선수 몸값을 한눈에.`;
+  }
   return {
     title,
     description,
-    keywords: ["선수 몸값", "시장가치", "이적시장", "축구 이적", "선수 시장가치", "스코어베이스", "빅5 리그"],
+    keywords: ["선수 몸값", "시장가치", "이적시장", "축구 이적", "이적료", "선수 시장가치", "스코어베이스", "빅5 리그"],
     openGraph: { title, description, type: "website" },
-    alternates: { canonical: "/transfers" },
+    alternates: { canonical },
+    ...(sp.q ? { robots: { index: false } } : {}), // 검색 결과 페이지는 색인 제외
   };
 }
 
@@ -48,6 +67,16 @@ function posCodeOf(id: string, coarse: string | null | undefined): string | null
   return coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null;
 }
 const PER = 20;
+
+// 이적창 윈도우 — 6~9월 = 그해 여름창(6/1~), 12~2월 = 겨울창(12/1~), 그 외 = 최근 90일
+function transferWindow(): { label: string; from: number } {
+  const now = new Date();
+  const y = now.getUTCFullYear(), m = now.getUTCMonth() + 1;
+  if (m >= 6 && m <= 9) return { label: `${y} 여름 이적시장`, from: Date.UTC(y, 5, 1) / 1000 };
+  if (m === 12) return { label: `${y + 1} 겨울 이적시장`, from: Date.UTC(y, 11, 1) / 1000 };
+  if (m <= 2) return { label: `${y} 겨울 이적시장`, from: Date.UTC(y - 1, 11, 1) / 1000 };
+  return { label: "최근 90일", from: Math.floor(now.getTime() / 1000) - 90 * 86400 };
+}
 
 const EUR_KRW = 1791.5;
 function krw(eurM: number): string {
@@ -100,20 +129,84 @@ interface TransferCard {
   fromTeam: string; toTeam: string; time: number; fee: number; desc: string | null; league: string | null;
 }
 
+interface TsPlayerLite { nameKo: string | null; name: string | null; photoUrl: string | null; position: string | null }
+interface TransferRow {
+  id: string; playerId: string; fromTeamName: string | null; toTeamName: string | null;
+  transferTime: number | null; transferFee: number | null; transferDesc: string | null; league: string | null;
+}
+// FootballTransfer row → 표시 카드 (이름 한글 우선 + 사진 + 포지션)
+function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>): TransferCard {
+  const tsp = tpMap.get(r.playerId);
+  const ov = OVERRIDES[r.playerId];
+  return {
+    id: r.id,
+    playerId: r.playerId,
+    name: ov?.nameKo || tsp?.nameKo || tsp?.name || "선수",
+    posCode: posCodeOf(r.playerId, tsp?.position),
+    photo: PHOTOS[r.playerId] || tsp?.photoUrl || null,
+    fromTeam: toKoreanTeamName(r.fromTeamName || undefined) || r.fromTeamName || "—",
+    toTeam: toKoreanTeamName(r.toTeamName || undefined) || r.toTeamName || "—",
+    time: r.transferTime || 0,
+    fee: r.transferFee || 0,
+    desc: r.transferDesc || null,
+    league: r.league,
+  };
+}
+
+// 마켓 무브 요약 카드 (급상승/급락/빅딜 공통 틀)
+function PulseCard({ title, hint, more, children }: { title: string; hint?: string; more?: { href: string; label: string }; children: ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-3.5">
+      <div className="flex items-baseline justify-between mb-2">
+        <h2 className="text-sm font-bold">{title}</h2>
+        {more ? (
+          <Link href={more.href} className="text-[11px] text-cyan-600 dark:text-cyan-400 hover:underline">{more.label}</Link>
+        ) : hint ? (
+          <span className="text-[10px] text-neutral-400">{hint}</span>
+        ) : null}
+      </div>
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+// 무브 카드 행 공통 — 작은 사진 + 이름 + 우측 수치
+function PulseRow({ href, photo, name, right }: { href: string; photo: string | null; name: string; right: ReactNode }) {
+  return (
+    <Link href={href} className="flex items-center gap-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900/40 rounded-lg px-1.5 py-1 -mx-1.5 transition">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">{name.slice(0, 1)}</span>
+        )}
+      </div>
+      <span className="flex-1 truncate font-semibold">{name}</span>
+      {right}
+    </Link>
+  );
+}
+
 export default async function TransfersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string }>;
+  searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string; q?: string }>;
 }) {
   const sp = await searchParams;
-  const view = ["all", "league", "team", "country", "pos", "latest"].includes(sp.view || "") ? sp.view! : "all";
+  const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout"].includes(sp.view || "") ? sp.view! : "all";
   const isLatest = view === "latest";
+  const isBigdeals = view === "bigdeals";
+  const isFeed = isLatest || isBigdeals; // 이적 피드형 (최신순/이적료순)
+  const isInout = view === "inout";
   const league = sp.league && LEAGUES[sp.league] ? sp.league : "";
   const team = sp.team || "";
   const pos = sp.pos && POS_CODES.includes(sp.pos) ? sp.pos : "";
   const country = sp.country || "";
+  const qSearch = (sp.q || "").trim().slice(0, 40);
   const page = Math.max(1, parseInt(sp.page || "1", 10) || 1);
   const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400; // 18개월 활성
+  const win = transferWindow();
 
   // ── 팀 옵션 (빅5 전체에서 distinct, 인원수) ──
   const teamGroups = await prisma.playerMarketValue.groupBy({
@@ -176,7 +269,7 @@ export default async function TransfersPage({
     where = { league, currentValue: { not: null } };
   }
 
-  const raw = isLatest ? [] : await prisma.playerMarketValue.findMany({ where, orderBy: { currentValue: "desc" } });
+  const raw = isFeed || isInout ? [] : await prisma.playerMarketValue.findMany({ where, orderBy: { currentValue: "desc" } });
   const ids = raw.map((r) => r.id);
   const players = await prisma.theSportsPlayer.findMany({
     where: { id: { in: ids } },
@@ -196,6 +289,7 @@ export default async function TransfersPage({
       return {
         id: r.id,
         name: ov?.nameKo || tsp?.nameKo || tsp?.name || "선수",
+        nameEn: tsp?.name || null,
         value: Math.round((r.currentValue || 0) / 1e6),
         age: r.age,
         posCode: posCodeOf(r.id, tsp?.position),
@@ -223,20 +317,69 @@ export default async function TransfersPage({
   if (view === "pos" && pos) enriched = enriched.filter((e) => e.posCode === pos);
   if (view === "country" && country) enriched = enriched.filter((e) => e.country === country);
 
-  const transferTotal = isLatest
-    ? await prisma.footballTransfer.count({ where: { league: { in: FIVE }, transferTime: { not: null } } })
-    : 0;
-  const totalCount = isLatest ? transferTotal : enriched.length;
+  // 선수·팀 검색 (q) — 한글명·영문명·팀명 부분일치
+  if (qSearch) {
+    const qq = qSearch.toLowerCase();
+    enriched = enriched.filter(
+      (e) => e.name.toLowerCase().includes(qq) || (e.nameEn && e.nameEn.toLowerCase().includes(qq)) || e.teamName.toLowerCase().includes(qq),
+    );
+  }
+
+  // ── 팀별 IN/OUT (view=inout) — 이적창 윈도우 내 빅5 팀 영입·방출 집계 ──
+  interface InOutRow { teamId: number; name: string; logo: string | null; league: string; inCnt: number; inFee: number; outCnt: number; outFee: number; rank: number }
+  let inoutData: InOutRow[] = [];
+  let inoutTotal = 0;
+  if (isInout) {
+    const big5Teams = await prisma.team.findMany({ where: { league: { in: FIVE } }, select: { id: true, name: true, logoUrl: true, league: true } });
+    const tsRows = await prisma.teamSourceId.findMany({
+      where: { source: "thesports", teamId: { in: big5Teams.map((t) => t.id) } },
+      select: { externalId: true, teamId: true },
+    });
+    const extToOur = new Map(tsRows.map((t) => [t.externalId, t.teamId]));
+    const extIds = tsRows.map((t) => t.externalId);
+    const trs = await prisma.footballTransfer.findMany({
+      where: { transferTime: { gte: win.from }, OR: [{ toTeamId: { in: extIds } }, { fromTeamId: { in: extIds } }] },
+      select: { toTeamId: true, fromTeamId: true, transferFee: true },
+    });
+    const agg = new Map<number, { inCnt: number; inFee: number; outCnt: number; outFee: number }>();
+    const bump = (ourId: number | undefined, dir: "in" | "out", fee: number) => {
+      if (ourId == null) return;
+      const a = agg.get(ourId) || { inCnt: 0, inFee: 0, outCnt: 0, outFee: 0 };
+      if (dir === "in") { a.inCnt++; a.inFee += fee; } else { a.outCnt++; a.outFee += fee; }
+      agg.set(ourId, a);
+    };
+    for (const t of trs) {
+      const fee = t.transferFee || 0;
+      bump(t.toTeamId ? extToOur.get(t.toTeamId) : undefined, "in", fee);
+      bump(t.fromTeamId ? extToOur.get(t.fromTeamId) : undefined, "out", fee);
+    }
+    const big5Meta = new Map(big5Teams.map((t) => [t.id, t]));
+    const board = [...agg.entries()]
+      .map(([id, a]) => {
+        const tm = big5Meta.get(id)!;
+        return { teamId: id, name: toKoreanTeamName(tm.name) || tm.name, logo: tm.logoUrl, league: tm.league, ...a, rank: 0 };
+      })
+      .sort((a, b) => b.inFee - a.inFee || b.inCnt - a.inCnt);
+    inoutTotal = board.length;
+    inoutData = board.slice((page - 1) * PER, page * PER);
+  }
+
+  const feedWhere = isBigdeals
+    ? { league: { in: FIVE }, transferTime: { gte: win.from }, transferFee: { gt: 0 } }
+    : { league: { in: FIVE }, transferTime: { not: null } };
+  const transferTotal = isFeed ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
+  const totalCount = isFeed ? transferTotal : isInout ? inoutTotal : enriched.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PER));
   const safePage = Math.min(page, totalPages);
-  const data = isLatest ? [] : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1 }));
+  inoutData = inoutData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
+  const data = isFeed || isInout ? [] : enriched.slice((safePage - 1) * PER, safePage * PER).map((e, i) => ({ ...e, rank: (safePage - 1) * PER + i + 1 }));
 
-  // ── 최신 이적 (view=latest) — transferTime 내림차순 + 페이지네이션 ──
+  // ── 이적 피드 (view=latest 최신순 / view=bigdeals 이적료순) + 페이지네이션 ──
   let transferData: TransferCard[] = [];
-  if (isLatest) {
+  if (isFeed) {
     const rows = await prisma.footballTransfer.findMany({
-      where: { league: { in: FIVE }, transferTime: { not: null } },
-      orderBy: { transferTime: "desc" },
+      where: feedWhere,
+      orderBy: isBigdeals ? { transferFee: "desc" } : { transferTime: "desc" },
       skip: (safePage - 1) * PER,
       take: PER,
     });
@@ -246,23 +389,42 @@ export default async function TransfersPage({
       select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
     });
     const tpMap = new Map(tplayers.map((p) => [p.id, p]));
-    transferData = rows.map((r) => {
-      const tsp = tpMap.get(r.playerId);
-      const ov = OVERRIDES[r.playerId];
-      return {
-        id: r.id,
-        playerId: r.playerId,
-        name: ov?.nameKo || tsp?.nameKo || tsp?.name || "선수",
-        posCode: posCodeOf(r.playerId, tsp?.position),
-        photo: PHOTOS[r.playerId] || tsp?.photoUrl || null,
-        fromTeam: toKoreanTeamName(r.fromTeamName || undefined) || r.fromTeamName || "—",
-        toTeam: toKoreanTeamName(r.toTeamName || undefined) || r.toTeamName || "—",
-        time: r.transferTime || 0,
-        fee: r.transferFee || 0,
-        desc: r.transferDesc || null,
-        league: r.league,
-      };
+    transferData = rows.map((r) => toCard(r, tpMap));
+    // TheSports 중복 transfer 레코드 방어 — 같은 선수·행선지·이적료는 페이지 내 1건만
+    if (isBigdeals) {
+      const seen = new Set<string>();
+      transferData = transferData.filter((t) => { const k = `${t.playerId}|${t.toTeam}|${t.fee}`; if (seen.has(k)) return false; seen.add(k); return true; });
+    }
+  }
+
+  // ── 마켓 무브 요약 (전체 view 1페이지 상단) — 급상승·급락 TOP3 + 윈도우 빅딜 TOP3 ──
+  type Mover = (typeof enriched)[number] & { chg: number };
+  const showPulse = view === "all" && !qSearch && safePage === 1 && enriched.length > 0;
+  let rising: Mover[] = [], falling: Mover[] = [];
+  let pulseDeals: TransferCard[] = [];
+  if (showPulse) {
+    // 직전 업데이트 대비 변동% — 저가(€3M 미만) 출발은 노이즈라 제외
+    const movers: Mover[] = enriched
+      .filter((e) => e.hist.length >= 2 && e.hist[e.hist.length - 2] >= 3)
+      .map((e) => { const prev = e.hist[e.hist.length - 2]; return { ...e, chg: Math.round(((e.value - prev) / prev) * 100) }; });
+    rising = movers.filter((m) => m.chg > 0).sort((a, b) => b.chg - a.chg).slice(0, 3);
+    falling = movers.filter((m) => m.chg < 0).sort((a, b) => a.chg - b.chg).slice(0, 3);
+    const dealRows = await prisma.footballTransfer.findMany({
+      where: { league: { in: FIVE }, transferTime: { gte: win.from }, transferFee: { gt: 0 } },
+      orderBy: { transferFee: "desc" },
+      take: 6,
     });
+    const dIds = [...new Set(dealRows.map((r) => r.playerId))];
+    const dPlayers = await prisma.theSportsPlayer.findMany({
+      where: { id: { in: dIds } },
+      select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
+    });
+    const dMap = new Map(dPlayers.map((p) => [p.id, p]));
+    const dSeen = new Set<string>();
+    pulseDeals = dealRows
+      .filter((r) => { const k = `${r.playerId}|${r.toTeamId}|${r.transferFee}`; if (dSeen.has(k)) return false; dSeen.add(k); return true; })
+      .slice(0, 3)
+      .map((r) => toCard(r, dMap));
   }
 
   // 제목
@@ -273,6 +435,15 @@ export default async function TransfersPage({
           : view === "pos" && pos ? pos
             : view === "country" && country ? country
               : "전체";
+  const heading = isBigdeals
+    ? `💸 ${win.label} 빅딜`
+    : isInout
+      ? "🔁 팀별 IN/OUT"
+      : isLatest
+        ? "🔄 최신 이적"
+        : qSearch
+          ? `🔍 "${qSearch}" 검색`
+          : `💰 ${selectedLabel} 시장가치`;
 
   // 페이지네이션 URL (필터 유지)
   const pageUrl = (n: number) => {
@@ -282,6 +453,7 @@ export default async function TransfersPage({
     if (team) params.set("team", team);
     if (pos) params.set("pos", pos);
     if (country) params.set("country", country);
+    if (qSearch) params.set("q", qSearch);
     if (n !== 1) params.set("page", String(n));
     const qs = params.toString();
     return `/transfers${qs ? `?${qs}` : ""}`;
@@ -290,9 +462,13 @@ export default async function TransfersPage({
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
       <p className="text-sm text-neutral-500 mb-1">이적시장 · 시장가치</p>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{isLatest ? "🔄 최신 이적" : `💰 ${selectedLabel} 시장가치`}</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{heading}</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        {isLatest ? (
+        {isBigdeals ? (
+          <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">이적료 TOP</strong> · {win.label} · {totalCount.toLocaleString()}건.</>
+        ) : isInout ? (
+          <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">팀별 영입·방출</strong> · 영입 지출순 · {totalCount}팀.</>
+        ) : isLatest ? (
           <>유럽 빅5 리그 <strong className="text-neutral-700 dark:text-neutral-300">선수 이적 현황</strong> · 최신순 · {totalCount.toLocaleString()}건.</>
         ) : (
           <>선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.</>
@@ -306,24 +482,90 @@ export default async function TransfersPage({
           team={team}
           pos={pos}
           country={country}
+          search={qSearch}
           leagues={LEAGUE_LIST}
           teams={teamOptions}
           countries={countryOptions}
         />
       </div>
 
-      {/* 리스트 — 최신 이적 or 몸값 랭킹 */}
-      {isLatest ? (
+      {/* 마켓 무브 — 급상승·급락·빅딜 요약 (전체 view 1페이지) */}
+      {showPulse && (rising.length > 0 || falling.length > 0 || pulseDeals.length > 0) && (
+        <div className="grid sm:grid-cols-3 gap-3 mt-4">
+          {rising.length > 0 && (
+            <PulseCard title="📈 급상승" hint="직전 업데이트 대비">
+              {rising.map((m) => (
+                <PulseRow
+                  key={m.id}
+                  href={`/transfers/${m.id}`}
+                  photo={m.photo}
+                  name={m.name}
+                  right={
+                    <>
+                      <span className="text-xs font-bold tabular-nums text-emerald-500 shrink-0">▲{m.chg}%</span>
+                      <span className="text-xs text-neutral-500 tabular-nums w-12 text-right shrink-0">€{m.value}M</span>
+                    </>
+                  }
+                />
+              ))}
+            </PulseCard>
+          )}
+          {falling.length > 0 && (
+            <PulseCard title="📉 급락" hint="직전 업데이트 대비">
+              {falling.map((m) => (
+                <PulseRow
+                  key={m.id}
+                  href={`/transfers/${m.id}`}
+                  photo={m.photo}
+                  name={m.name}
+                  right={
+                    <>
+                      <span className="text-xs font-bold tabular-nums text-rose-500 shrink-0">▼{Math.abs(m.chg)}%</span>
+                      <span className="text-xs text-neutral-500 tabular-nums w-12 text-right shrink-0">€{m.value}M</span>
+                    </>
+                  }
+                />
+              ))}
+            </PulseCard>
+          )}
+          {pulseDeals.length > 0 && (
+            <PulseCard title="💸 빅딜" more={{ href: "/transfers?view=bigdeals", label: "전체 →" }}>
+              {pulseDeals.map((d) => (
+                <PulseRow
+                  key={d.id}
+                  href={`/transfers/${d.playerId}`}
+                  photo={d.photo}
+                  name={d.name}
+                  right={
+                    <>
+                      <span className="text-[11px] text-neutral-500 truncate max-w-[76px] shrink-0">{d.toTeam}</span>
+                      <span className="text-xs font-bold tabular-nums text-cyan-600 dark:text-cyan-400 shrink-0">€{Math.round(d.fee / 1e6)}M</span>
+                    </>
+                  }
+                />
+              ))}
+            </PulseCard>
+          )}
+        </div>
+      )}
+
+      {/* 리스트 — 이적 피드(최신/빅딜) or 팀별 IN/OUT or 몸값 랭킹 */}
+      {isFeed ? (
         transferData.length === 0 ? (
-          <p className="text-sm text-neutral-500 py-20 text-center">이적 데이터를 수집하는 중입니다.</p>
+          <p className="text-sm text-neutral-500 py-20 text-center">{isBigdeals ? "아직 집계된 빅딜이 없습니다." : "이적 데이터를 수집하는 중입니다."}</p>
         ) : (
           <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
-            {transferData.map((t) => (
+            {transferData.map((t, ti) => {
+              const rank = (safePage - 1) * PER + ti + 1;
+              return (
               <Link
                 key={t.id}
                 href={`/transfers/${t.playerId}`}
                 className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
               >
+                {isBigdeals && (
+                  <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{rank}</div>
+                )}
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                   {t.photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -346,19 +588,77 @@ export default async function TransfersPage({
                   </div>
                 </div>
                 <div className="text-right shrink-0 leading-tight w-[64px]">
-                  <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(t.time)}</div>
-                  {t.fee > 0 ? (
-                    <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{Math.round(t.fee / 1e6)}M</div>
-                  ) : t.desc && DESC_KO[t.desc] ? (
-                    <div className="text-[11px] font-semibold text-neutral-500">{DESC_KO[t.desc]}</div>
-                  ) : null}
+                  {isBigdeals ? (
+                    <>
+                      <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{Math.round(t.fee / 1e6)}M</div>
+                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(t.time)}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(t.time)}</div>
+                      {t.fee > 0 ? (
+                        <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{Math.round(t.fee / 1e6)}M</div>
+                      ) : t.desc && DESC_KO[t.desc] ? (
+                        <div className="text-[11px] font-semibold text-neutral-500">{DESC_KO[t.desc]}</div>
+                      ) : null}
+                    </>
+                  )}
                 </div>
               </Link>
-            ))}
+              );
+            })}
+          </div>
+        )
+      ) : isInout ? (
+        inoutData.length === 0 ? (
+          <p className="text-sm text-neutral-500 py-20 text-center">집계할 이적 데이터가 없습니다.</p>
+        ) : (
+          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-neutral-900/60">
+              <div className="w-6 sm:w-7 shrink-0" />
+              <div className="flex-1">팀</div>
+              <div className="w-[80px] sm:w-[104px] text-right shrink-0">IN · 지출</div>
+              <div className="hidden sm:block w-[104px] text-right shrink-0">OUT · 수입</div>
+              <div className="w-[60px] sm:w-[72px] text-right shrink-0">순지출</div>
+            </div>
+            {inoutData.map((t) => {
+              const net = t.inFee - t.outFee;
+              const feeM = (v: number) => { const m = v / 1e6; return m >= 10 ? String(Math.round(m)) : String(Math.round(m * 10) / 10); };
+              return (
+                <Link
+                  key={t.teamId}
+                  href={`/teams/${t.teamId}`}
+                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                >
+                  <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${t.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{t.rank}</div>
+                  <div className="flex-1 min-w-0 flex items-center gap-2">
+                    {t.logo && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={t.logo} alt="" className="w-6 h-6 object-contain shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-bold truncate">{t.name}</div>
+                      <div className="text-[11px] text-neutral-500">{LEAGUES[t.league] || t.league}</div>
+                    </div>
+                  </div>
+                  <div className="w-[80px] sm:w-[104px] text-right leading-tight shrink-0">
+                    <div className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{t.inCnt}명</div>
+                    <div className="text-[11px] text-neutral-500 tabular-nums">{t.inFee > 0 ? `€${feeM(t.inFee)}M` : "—"}</div>
+                  </div>
+                  <div className="hidden sm:block w-[104px] text-right leading-tight shrink-0">
+                    <div className="text-sm font-bold tabular-nums text-neutral-500">{t.outCnt}명</div>
+                    <div className="text-[11px] text-neutral-500 tabular-nums">{t.outFee > 0 ? `€${feeM(t.outFee)}M` : "—"}</div>
+                  </div>
+                  <div className={`w-[60px] sm:w-[72px] text-right text-sm font-bold tabular-nums shrink-0 ${net > 0 ? "text-rose-500" : net < 0 ? "text-emerald-500" : "text-neutral-400"}`}>
+                    {net === 0 ? "—" : net > 0 ? `-€${feeM(net)}M` : `+€${feeM(Math.abs(net))}M`}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )
       ) : data.length === 0 ? (
-        <p className="text-sm text-neutral-500 py-20 text-center">조건에 맞는 선수가 없습니다.</p>
+        <p className="text-sm text-neutral-500 py-20 text-center">{qSearch ? `"${qSearch}" 검색 결과가 없습니다.` : "조건에 맞는 선수가 없습니다."}</p>
       ) : (
         <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
           {data.map((p) => {
@@ -448,7 +748,7 @@ export default async function TransfersPage({
           )}
         </div>
       )}
-      <p className="mt-4 text-xs text-neutral-400 text-center">{safePage}/{totalPages} 페이지 · 스코어베이스 {isLatest ? "이적시장" : "선수 몸값"} 데이터</p>
+      <p className="mt-4 text-xs text-neutral-400 text-center">{safePage}/{totalPages} 페이지 · 스코어베이스 {isFeed || isInout ? "이적시장" : "선수 몸값"} 데이터</p>
     </main>
   );
 }

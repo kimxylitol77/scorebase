@@ -1,5 +1,5 @@
 "use client";
-// 이적시장 필터바 — 카테고리(전체/리그별/팀별/국가별/포지션별) + 컨텍스트 하위필터.
+// 이적시장 필터바 — 카테고리(전체/리그별/팀별/국가별/포지션별/최신 이적/빅딜/IN·OUT) + 컨텍스트 하위필터 + 선수·팀 검색.
 // 팀·국가는 검색 가능한 드롭다운(선택/바깥클릭 시 닫힘), 리그·포지션은 칩.
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
@@ -13,6 +13,7 @@ interface Props {
   team: string;
   pos: string;
   country: string;
+  search: string;
   leagues: { code: string; label: string }[];
   teams: TeamOpt[];
   countries: CountryOpt[];
@@ -25,7 +26,11 @@ const CATS = [
   { key: "country", label: "국가별" },
   { key: "pos", label: "포지션별" },
   { key: "latest", label: "최신 이적" },
+  { key: "bigdeals", label: "💸 빅딜" },
+  { key: "inout", label: "IN/OUT" },
 ];
+// 이적 피드형 view — 선수 검색은 몸값 랭킹에서만 동작하므로 검색 시 전체로 전환
+const FEED_VIEWS = ["latest", "bigdeals", "inout"];
 // 세부 포지션 — 수비→공격 순. CB 중앙수비·FB 윙백·DM/CM/AM 미드·W 윙어·ST 스트라이커
 const POSITIONS = [
   { code: "GK", label: "GK" },
@@ -38,22 +43,27 @@ const POSITIONS = [
   { code: "ST", label: "ST" },
 ];
 
-function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string }): string {
+function buildUrl(o: { view?: string; league?: string; team?: string; pos?: string; country?: string; q?: string }): string {
   const params = new URLSearchParams();
   if (o.view && o.view !== "all") params.set("view", o.view);
   if (o.league) params.set("league", o.league);
   if (o.team) params.set("team", o.team);
   if (o.pos) params.set("pos", o.pos);
   if (o.country) params.set("country", o.country);
+  if (o.q) params.set("q", o.q);
   const qs = params.toString();
   return `/transfers${qs ? `?${qs}` : ""}`;
 }
 
-export default function TransfersFilterBar({ view, league, team, pos, country, leagues, teams, countries }: Props) {
+export default function TransfersFilterBar({ view, league, team, pos, country, search, leagues, teams, countries }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState<null | "team" | "country">(null);
   const [q, setQ] = useState("");
+  const [searchText, setSearchText] = useState(search);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  // 뒤로가기 등 라우트 변경 시 검색창 동기화
+  useEffect(() => { setSearchText(search); }, [search]);
 
   // 바깥 클릭 시 드롭다운 닫기
   useEffect(() => {
@@ -82,6 +92,13 @@ export default function TransfersFilterBar({ view, league, team, pos, country, l
   const countryName = country || null;
   const fil = (s: string) => s.toLowerCase().includes(q.toLowerCase());
 
+  const submitSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const t = searchText.trim();
+    const v = FEED_VIEWS.includes(view) ? "all" : view;
+    go({ view: v, league, team, pos, country, q: t || undefined });
+  };
+
   return (
     <div ref={wrapRef} className="space-y-3">
       {/* 카테고리 탭 */}
@@ -92,6 +109,27 @@ export default function TransfersFilterBar({ view, league, team, pos, country, l
           </button>
         ))}
       </div>
+
+      {/* 선수·팀 검색 */}
+      <form onSubmit={submitSearch} className="relative max-w-xs">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none">🔍</span>
+        <input
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="선수·팀 검색"
+          className="w-full pl-9 pr-8 py-2 rounded-xl text-sm border border-neutral-300 dark:border-neutral-700 bg-transparent outline-none focus:border-cyan-500 dark:focus:border-cyan-500 transition"
+        />
+        {(searchText || search) && (
+          <button
+            type="button"
+            aria-label="검색 지우기"
+            onClick={() => { setSearchText(""); if (search) go({ view, league, team, pos, country }); }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+          >
+            ✕
+          </button>
+        )}
+      </form>
 
       {/* 하위 필터 */}
       {view === "league" && (
