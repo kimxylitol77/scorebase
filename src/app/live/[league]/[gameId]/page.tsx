@@ -26,6 +26,7 @@ import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeSt
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
 import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
+import SoccerNowBlock from "@/components/scores/soccer/SoccerNowBlock";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-mapping.json";
@@ -37,7 +38,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import { parseTsFootballScore, fetchSoccerLive, type LiveMatch } from "@/lib/sports/live-scores";
+import { parseTsFootballScore, fetchSoccerLive, tsIncidentsToGoals, tsIncidentsToCards, type LiveMatch } from "@/lib/sports/live-scores";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
@@ -383,6 +384,8 @@ export default async function GenericLivePage({ params }: Props) {
   // 기존 세로 카드 스택(라인업/팀통계/하프타임/트렌드/골분포/H2H/구장/예측/시즌/다음경기)을
   // MatchInsight 의 탭(라인업 · 팀 통계 · 맞대결 · 경기 정보)으로 묶어 주입. 모든 스포츠 동일 UI.
   const soccerTabs: Array<{ key: string; label: string; enabled: boolean; content: ReactNode }> = [];
+  // "지금" 블록 — 스코어보드 바로 아래 (2026-06-10 목업 확정: status 별 상단 답변).
+  let soccerNowNode: ReactNode = null;
   if (isSoccer) {
     let teamStatsNode: ReactNode = null;
     let halfTimeNode: ReactNode = null;
@@ -480,6 +483,28 @@ export default async function GenericLivePage({ params }: Props) {
             history={h2h}
           />
         ) : null;
+      // "지금" 블록 데이터 — LIVE/FINISHED: 골·카드 타임라인 (+LIVE 모멘텀),
+      // SCHEDULED: 확정 라인업 키 플레이어 칩. 데이터 없으면 컴포넌트가 null 반환.
+      const nowIncidents = (detailLive as { incidents?: unknown } | null)?.incidents;
+      const nowLineup =
+        lineup && lineup.confirmed === 1 && lineup.lineup
+          ? {
+              home: Object.values(lineup.lineup.home ?? {}),
+              away: Object.values(lineup.lineup.away ?? {}),
+            }
+          : null;
+      soccerNowNode = (
+        <SoccerNowBlock
+          status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
+          homeNameKo={homeKo}
+          awayNameKo={awayKo}
+          goals={nowIncidents ? tsIncidentsToGoals(nowIncidents) : null}
+          cards={nowIncidents ? tsIncidentsToCards(nowIncidents) : null}
+          trend={trend as Parameters<typeof SoccerNowBlock>[0]["trend"]}
+          lineup={nowLineup as Parameters<typeof SoccerNowBlock>[0]["lineup"]}
+          nameById={lineupNameById}
+        />
+      );
     }
     const venueNode = venue ? <SoccerVenueCard venue={venue} /> : null;
     const predictionNode = matchPrediction ? (
@@ -737,6 +762,10 @@ export default async function GenericLivePage({ params }: Props) {
         oddsHistory={oddsHistory}
         playerLogoById={playerLogoById}
       />
+
+      {/* 축구 "지금" 블록 — 골 타임라인(LIVE/종료) · 모멘텀(LIVE) · 키 플레이어 칩(예정).
+          데이터 없으면 자동 미렌더 (2026-06-10 목업 확정 구조). */}
+      {soccerNowNode}
 
       {/* 공식 유튜브 하이라이트 — 종료 경기에 매칭된 영상이 있을 때만 (K리그·NBA). */}
       {match.highlightYoutubeId && (

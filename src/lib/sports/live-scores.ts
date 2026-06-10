@@ -984,6 +984,14 @@ export function tsHalfStatsToSoccerStats(
  * ESPN scoreboard 보다 fresh (TheSports MQTT push 기반) + cover 리그 더 넓음
  * (TheSports 가 cover 하는 모든 축구 리그 자동 적용).
  */
+// TheSports incident 분 표기 — time 은 절대분 (90+4 골 → time=94, add_time=4).
+// 표기는 베이스분 기준 "90+4'" (45+2 하프 추가시간도 동일 규칙).
+function tsIncidentMinute(i: Record<string, unknown>): string {
+  const time = typeof i.time === "number" ? i.time : 0;
+  const addTime = typeof i.add_time === "number" && i.add_time > 0 ? i.add_time : null;
+  return addTime != null ? `${time - addTime}+${addTime}'` : `${time}'`;
+}
+
 export function tsIncidentsToGoals(
   incidents: unknown,
 ): SoccerGoal[] {
@@ -996,9 +1004,7 @@ export function tsIncidentsToGoals(
     const as = i.away_score;
     if (typeof hs !== "number" && typeof as !== "number") continue;
     const side: "home" | "away" = i.position === 1 ? "home" : "away";
-    const time = typeof i.time === "number" ? i.time : 0;
-    const addTime = typeof i.add_time === "number" ? i.add_time : null;
-    const minute = addTime != null ? `${time}+${addTime}'` : `${time}'`;
+    const minute = tsIncidentMinute(i);
     out.push({
       minute,
       side,
@@ -1019,9 +1025,7 @@ export function tsIncidentsToCards(
     const i = raw as Record<string, unknown>;
     if (i.type !== 3 && i.type !== 4) continue;
     const side: "home" | "away" = i.position === 1 ? "home" : "away";
-    const time = typeof i.time === "number" ? i.time : 0;
-    const addTime = typeof i.add_time === "number" ? i.add_time : null;
-    const minute = addTime != null ? `${time}+${addTime}'` : `${time}'`;
+    const minute = tsIncidentMinute(i);
     out.push({
       minute,
       side,
