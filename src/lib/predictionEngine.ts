@@ -23,7 +23,8 @@
 //   - validatePredictionDisplay — LIVE score 와 pick 방향 충돌 시 hide
 
 import { prisma } from "@/lib/db";
-import { calcEloTable, getElo } from "./predict/elo";
+import { calcEloTable, getElo, eloSpread } from "./predict/elo";
+import { calcLeagueBaseRate, priorWeight } from "./predict/league-prior";
 import { calcWinProbability, type WinProb } from "./predict/win-probability";
 import { blendWithMarket, type MarketProb } from "./predict/market-blend";
 import { calcRecentTrend } from "./predict/recent-trend";
@@ -98,6 +99,8 @@ export interface PredictionInput {
   odds?: { home: number; away: number; draw?: number };
   /** 축구 Dixon-Coles 득점모델 확률 (있으면 Elo base 와 블렌드). predictMatchById 가 채움. */
   dc?: { home: number; draw: number; away: number };
+  /** 리그 실측 1X2 베이스레이트 + 가중 — Elo 분산 작은 리그 과확신 보정 (league-prior.ts). predictMatchById 가 채움. */
+  leaguePrior?: { home: number; draw: number; away: number; weight: number };
   /** 축구 확정 XI 평점 보정 (lineup-adjust) — 라인업 확정 후 재계산 시 predictMatchById 가 채움. */
   lineupAdj?: LineupAdjustment | null;
 }
@@ -394,6 +397,20 @@ export function predictMatch(input: PredictionInput): PredictionResult {
     }
   }
 
+  // ── 4.5 리그 베이스레이트 prior ──────────────────────────
+  // Elo 분산이 작은(수집 이력 부족) 리그는 모델 신호가 약해 홈어드밴티지만 작동
+  // → 리그 실측 분포로 후퇴. 정상 리그는 weight 0 이라 no-op. 시장 blend 보다 먼저
+  // 적용해 시장 있는 리그에선 시장 60% + (모델·prior 혼합) 40% 구조 유지.
+  const lp = input.leaguePrior;
+  if (lp && lp.weight > 0) {
+    probs = normalizeProbs({
+      home: probs.home * (1 - lp.weight) + lp.home * lp.weight,
+      draw: probs.draw * (1 - lp.weight) + lp.draw * lp.weight,
+      away: probs.away * (1 - lp.weight) + lp.away * lp.weight,
+    });
+    signalsUsed.push("league_prior");
+  }
+
   // ── 5. 시장 배당 blend ─────────────────────────────────
   if (odds && typeof odds.home === "number" && typeof odds.away === "number") {
     const market: MarketProb = {
@@ -628,6 +645,12 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
     odds,
     dc,
     lineupAdj,
+    leaguePrior: (() => {
+      // Elo 분산 작은 리그 베이스레이트 후퇴 — buildMatchContext(cron 경로)와 동일 보정
+      const base = calcLeagueBaseRate(seasonMatchesTyped, match.startTime);
+      const w = priorWeight(eloSpread(eloTable));
+      return base && w > 0 ? { ...base, weight: w } : undefined;
+    })(),
   });
 }
 

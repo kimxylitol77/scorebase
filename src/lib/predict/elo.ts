@@ -12,14 +12,16 @@
 //   Upset = 1 (현 버전에서는 MoV 만 적용)
 
 import type { PredictMatch } from "./types";
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const STARTING_ELO = 1500;
 const K_FACTOR = 20;
 const HOME_ADVANTAGE_ELO = 100;
 
-// LoL/LCK 는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지가 무의미.
+// e스포츠는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지가 무의미.
+// "LOL"(LCK) 만 하드코딩돼 LPL/LEC/LCS 가 EPL 취급되던 버그 → LOL_LEAGUES 단일 진실로.
 function homeAdvantageFor(league: string): number {
-  if (league === "LOL") return 0;
+  if (LOL_LEAGUES.has(league)) return 0;
   return HOME_ADVANTAGE_ELO;
 }
 
@@ -105,4 +107,15 @@ export function calcEloTable(matches: PredictMatch[]): EloTable {
 
 export function getElo(table: EloTable, teamId: number): number {
   return table.ratings.get(teamId) ?? STARTING_ELO;
+}
+
+/**
+ * Elo 테이블의 표준편차 — 리그 레이팅이 얼마나 벌어졌는지 (부트스트랩 품질 지표).
+ * 풀시즌 리그 70~82, 시즌 중반 수집 시작 리그 25~50 (2026-06 실측).
+ */
+export function eloSpread(table: EloTable): number {
+  const xs = [...table.ratings.values()];
+  if (xs.length < 2) return 0;
+  const mu = xs.reduce((a, b) => a + b, 0) / xs.length;
+  return Math.sqrt(xs.reduce((a, b) => a + (b - mu) ** 2, 0) / xs.length);
 }

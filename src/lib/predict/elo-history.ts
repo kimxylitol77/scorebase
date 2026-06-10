@@ -2,6 +2,7 @@
 // calcEloTable 과 같은 알고리즘이지만 매치마다 스냅샷을 남긴다.
 
 import type { PredictMatch } from "./types";
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 const STARTING_ELO = 1500;
 const K_FACTOR = 20;
@@ -48,7 +49,9 @@ export function calcEloHistory(
     const home = ratings.get(m.homeTeamId) ?? STARTING_ELO;
     const away = ratings.get(m.awayTeamId) ?? STARTING_ELO;
 
-    const expHome = expectedScore(home + HOME_ADVANTAGE_ELO, away);
+    // e스포츠(BO 시리즈)는 홈 어드밴티지 없음 — calcEloTable 과 동일 규칙
+    const ha = LOL_LEAGUES.has(m.league) ? 0 : HOME_ADVANTAGE_ELO;
+    const expHome = expectedScore(home + ha, away);
 
     let s: number;
     if (m.homeScore > m.awayScore) s = 1;

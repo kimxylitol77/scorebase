@@ -5,11 +5,14 @@
 // - 무승부 확률은 두 팀 실력이 비슷할수록 커지는 형태로 보정
 // - 야구·농구는 정규시간 무승부가 거의 없으므로 drawWeight 0 으로
 
+import { LOL_LEAGUES, leagueHasDraw } from "@/lib/sports/sport-leagues";
+
 const HOME_ADVANTAGE_ELO = 100;
 
-// LoL/LCK 는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지 무의미.
+// e스포츠는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지 무의미.
+// "LOL"(LCK) 만 하드코딩돼 LPL/LEC/LCS 가 홈 +100 Elo 받던 버그 → LOL_LEAGUES 단일 진실로.
 function homeAdvantageFor(league: string): number {
-  if (league === "LOL") return 0;
+  if (LOL_LEAGUES.has(league)) return 0;
   return HOME_ADVANTAGE_ELO;
 }
 
@@ -49,6 +52,8 @@ const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
   NPB: NO_DRAW,
   // e스포츠 — LCK 는 BO 시리즈라 시리즈 무승부 없음
   LOL: NO_DRAW,
+  // 이집트 — 실측 무승부 37.8% (2025-26, 323매치)·홈승 33.7% 로 무가 최빈 결과인 리그.
+  EGYPT_PL: { drawWeight: 0.26, drawSensitivity: 0.18 },
 };
 
 export function calcWinProbability(
@@ -56,7 +61,12 @@ export function calcWinProbability(
   eloAway: number,
   league: string,
 ): WinProb {
-  const cfg = DEFAULT_CONFIG[league] ?? DEFAULT_CONFIG.EPL;
+  // 미등록 리그 fallback — 축구(무승부 존재)만 EPL 프로파일, 그 외(e스포츠 LPL/LEC/LCS·
+  // 야구·농구 신규 리그)는 NO_DRAW. 종전엔 일괄 EPL fallback 이라 무승부 0% 인 BO 시리즈에
+  // predDraw ~30% 를 배정 (LPL Brier 0.805 의 주범).
+  const cfg =
+    DEFAULT_CONFIG[league] ??
+    (leagueHasDraw(league) ? DEFAULT_CONFIG.EPL : NO_DRAW);
 
   const diff = eloAway - (eloHome + homeAdvantageFor(league));
   // expHome = "홈이 이길 (또는 비겼을 때 절반의 무승부 점수를 가져갈) 기댓값"

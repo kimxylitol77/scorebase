@@ -3,7 +3,12 @@
 import type { PredictMatch } from "./types";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
-import { calcEloTable, getElo } from "./elo";
+import { calcEloTable, getElo, eloSpread, type EloTable } from "./elo";
+import {
+  calcLeagueBaseRate,
+  blendLeaguePrior,
+  priorWeight,
+} from "./league-prior";
 import { getWorldCupSeedElo } from "./world-cup-elos";
 import { getFifaRank } from "@/lib/sports/fifa-rankings";
 import { buildScoreDistribution } from "./score-distribution";
@@ -131,16 +136,27 @@ export function buildMatchContext(
   );
   // 친선(INTL_FRIENDLY)은 클럽 Elo 부정확 → 국가대표 Elo(world-cup-elos + FIFA랭킹) 사용.
   let homeElo: number, awayElo: number;
+  let eloTable: EloTable | null = null;
   if (league === "INTL_FRIENDLY" && homeName && awayName) {
     homeElo = nationalElo(homeName);
     awayElo = nationalElo(awayName);
   } else {
-    const elo = calcEloTable(before);
-    homeElo = getElo(elo, homeTeamId);
-    awayElo = getElo(elo, awayTeamId);
+    eloTable = calcEloTable(before);
+    homeElo = getElo(eloTable, homeTeamId);
+    awayElo = getElo(eloTable, awayTeamId);
   }
 
-  const wp = calcWinProbability(homeElo, awayElo, league);
+  let wp = calcWinProbability(homeElo, awayElo, league);
+  // 베이스레이트 prior — Elo 분산이 작은(수집 이력 부족·시장 odds 미커버) 리그는
+  // 리그 실측 1X2 분포로 후퇴 (league-prior.ts). 정상 리그(stddev 70+)는 가중 0 — 불변.
+  // 친선은 국대 Elo 소스라 클럽 풀 분포와 무관 → skip.
+  if (eloTable) {
+    wp = blendLeaguePrior(
+      wp,
+      calcLeagueBaseRate(before, referenceTime),
+      priorWeight(eloSpread(eloTable)),
+    );
+  }
 
   // OVER/UNDER + 핸디캡 — 위젯(MatchInsight)과 동일한 결정적 계산(referenceTime=startTime,
   // 시장 blend 없음 → 시점 무관)을 글 생성 시점 context 에 담는다. 본문 표가 LLM 추측

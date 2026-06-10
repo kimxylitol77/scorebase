@@ -100,12 +100,24 @@ export async function backfillApiFootballOdds(): Promise<number> {
     if (fo) {
       const o = parseFixtureOdds(fo);
       if (o) {
+        // vig 제거 implied → marketHome/Draw/Away 도 저장. 종전엔 raw(oddsHome)만 저장해
+        // market-blend·Brier 시장 비교(marketHome 참조)가 af 배당을 전혀 못 쓰던 구멍.
+        // The Odds API 미커버 리그(남미·이집트 등)는 이게 유일한 시장 신호.
+        const pH = o.home > 1 ? 1 / o.home : 0;
+        const pD = o.draw > 1 ? 1 / o.draw : 0;
+        const pA = o.away > 1 ? 1 / o.away : 0;
+        const pSum = pH + pA > 0 ? pH + pD + pA : 0;
+        const implied =
+          pH > 0 && pA > 0 && pSum > 0
+            ? { marketHome: pH / pSum, marketDraw: pD / pSum, marketAway: pA / pSum }
+            : {};
         await prisma.match.update({
           where: { id: m.id },
           data: {
             oddsHome: o.home, oddsDraw: o.draw, oddsAway: o.away,
             oddsTotalLine: o.line, oddsOver: o.over, oddsUnder: o.under,
             marketBookmakers: o.books, marketUpdatedAt: new Date(),
+            ...implied,
           },
         });
         ok++;
