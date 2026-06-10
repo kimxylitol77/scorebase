@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh — Mac mini launchd 등록 (9 봇 모두)
+# install.sh — Mac mini launchd 등록 (10 봇 모두)
 # 부팅 시 자동 시작 + 크래시 시 자동 재시작 (KeepAlive)
 #
 # 사용:
@@ -22,6 +22,7 @@ BOTS=(
   "com.scorebase.route-guardian"
   "com.scorebase.threads-auto-poster"
   "com.scorebase.stale-ts-verify"
+  "com.scorebase.football-incidents-backfill"
 )
 
 # Node 경로 자동 감지 (brew 위치 따라 다름)
