@@ -818,25 +818,36 @@ export default async function GenericLivePage({ params }: Props) {
         playerLogoById={playerLogoById}
       />
 
-      {/* 축구 "지금" 블록 — 골 타임라인(LIVE/종료) · 모멘텀(LIVE) · 키 플레이어 칩(예정).
-          데이터 없으면 자동 미렌더 (2026-06-10 목업 확정 구조). */}
-      {soccerNowNode}
-
-      {/* 월드컵 국가 분석 — 국가대항전은 클럽 시즌 데이터가 없어 비어 보이던 문제 해결.
-          국가 비교(대륙·FIFA·역대) + AI 시뮬 진출확률 + 최근 A매치 몇대몇 (2026-06-10). */}
-      {lg === "WORLD_CUP" && (
-        <WcMatchAnalysisCard
-          homeTeamId={match.homeTeam.id}
-          awayTeamId={match.awayTeam.id}
-          homeName={match.homeTeam.name}
-          awayName={match.awayTeam.name}
-          homeNameKo={homeKo}
-          awayNameKo={awayKo}
-          homeFifaRank={homeFifaRank}
-          awayFifaRank={awayFifaRank}
-          startTime={match.startTime}
-        />
-      )}
+      {/* 월드컵 국가 분석 + 축구 "지금" 블록 — 예정 매치는 국가 비교(분석)가 먼저,
+          예상 라인업이 뒤 (2026-06-10 사용자 순서 확정). LIVE/종료는 골 타임라인이
+          항상 먼저 ("지금" 원칙). 데이터 없으면 각 블록 자동 미렌더. */}
+      {(() => {
+        const wcAnalysisNode =
+          lg === "WORLD_CUP" ? (
+            <WcMatchAnalysisCard
+              homeTeamId={match.homeTeam.id}
+              awayTeamId={match.awayTeam.id}
+              homeName={match.homeTeam.name}
+              awayName={match.awayTeam.name}
+              homeNameKo={homeKo}
+              awayNameKo={awayKo}
+              homeFifaRank={homeFifaRank}
+              awayFifaRank={awayFifaRank}
+              startTime={match.startTime}
+            />
+          ) : null;
+        return match.status === "SCHEDULED" ? (
+          <>
+            {wcAnalysisNode}
+            {soccerNowNode}
+          </>
+        ) : (
+          <>
+            {soccerNowNode}
+            {wcAnalysisNode}
+          </>
+        );
+      })()}
 
       {/* 공식 유튜브 하이라이트 — 종료 경기에 매칭된 영상이 있을 때만 (K리그·NBA). */}
       {match.highlightYoutubeId && (
