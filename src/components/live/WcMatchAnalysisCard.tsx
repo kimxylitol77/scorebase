@@ -196,9 +196,10 @@ export default async function WcMatchAnalysisCard({
               {awr != null && <span className="font-normal text-neutral-500">최근 승률 {awr}% · </span>}{awayNameKo}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          {/* 와이드 화면에서 좌우 가장자리로 흩어지지 않게 — 각 컬럼 콘텐츠를 중앙으로 모음 */}
+          <div className="grid grid-cols-2 gap-3 justify-items-center">
             {[{ list: homeRecent }, { list: awayRecent }].map((side, si) => (
-              <div key={si} className="space-y-1">
+              <div key={si} className="space-y-1 w-full max-w-[240px]">
                 {side.list.map((r, i) => (
                   <div key={i} className="flex items-center gap-1.5 text-[12px]">
                     <span className={`w-4 h-4 rounded text-[10px] font-bold flex items-center justify-center shrink-0 ${OUTCOME_CLS[r.outcome]}`}>
