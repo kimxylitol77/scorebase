@@ -3,10 +3,12 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/admin-guard";
 
 // ===== 검수/수정/승인/거절/저장 (기존 review 페이지에서 사용) =====
 
 export async function approveAndPublish(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
@@ -33,6 +35,7 @@ export async function approveAndPublish(formData: FormData) {
 }
 
 export async function reject(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("ID 누락");
   await prisma.article.update({
@@ -45,6 +48,7 @@ export async function reject(formData: FormData) {
 }
 
 export async function saveDraft(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
@@ -65,6 +69,7 @@ export async function saveDraft(formData: FormData) {
 
 /** 글 영구 삭제 */
 export async function deleteArticle(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("ID 누락");
 
@@ -87,6 +92,7 @@ export async function deleteArticle(formData: FormData) {
 
 /** 발행 취소 (PUBLISHED → DRAFT) */
 export async function unpublish(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("ID 누락");
   await prisma.article.update({
@@ -100,6 +106,7 @@ export async function unpublish(formData: FormData) {
 
 /** 즉시 발행 (DRAFT/PENDING_REVIEW → PUBLISHED) */
 export async function publish(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("ID 누락");
   await prisma.article.update({
@@ -123,6 +130,7 @@ export async function createArticle(
   _prevState: CreateArticleResult,
   formData: FormData,
 ): Promise<CreateArticleResult> {
+  await requireAdmin();
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   const league = String(formData.get("league") ?? "").trim();

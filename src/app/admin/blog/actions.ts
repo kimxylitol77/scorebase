@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/admin-guard";
 
 function slugify(s: string): string {
   return (
@@ -27,6 +28,7 @@ function parseBody(formData: FormData) {
 }
 
 export async function createBlog(formData: FormData) {
+  await requireAdmin();
   const { title, slugInput, excerpt, content, tags, thumbnailUrl, publishedAtStr } =
     parseBody(formData);
   if (!title) throw new Error("제목 필수");
@@ -47,6 +49,7 @@ export async function createBlog(formData: FormData) {
 }
 
 export async function updateBlog(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const { title, slugInput, excerpt, content, tags, thumbnailUrl, publishedAtStr } =
     parseBody(formData);
@@ -73,6 +76,7 @@ export async function updateBlog(formData: FormData) {
 }
 
 export async function deleteBlog(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("id 필수");
   const b = await prisma.blog.delete({ where: { id } });

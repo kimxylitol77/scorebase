@@ -3,8 +3,10 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/admin-guard";
 
 export async function approveAndPublish(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
@@ -30,6 +32,7 @@ export async function approveAndPublish(formData: FormData) {
 }
 
 export async function reject(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("ID 누락");
 
@@ -43,6 +46,7 @@ export async function reject(formData: FormData) {
 }
 
 export async function saveDraft(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();

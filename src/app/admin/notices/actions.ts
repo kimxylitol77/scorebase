@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/admin-guard";
 
 const VALID_TYPES = new Set(["CHANGELOG", "NOTICE", "MAINTENANCE"]);
 
@@ -18,6 +19,7 @@ function slugify(s: string): string {
 }
 
 export async function createNotice(formData: FormData) {
+  await requireAdmin();
   const type = String(formData.get("type") ?? "CHANGELOG").toUpperCase();
   const title = String(formData.get("title") ?? "").trim();
   const slugInput = String(formData.get("slug") ?? "").trim();
@@ -44,6 +46,7 @@ export async function createNotice(formData: FormData) {
 }
 
 export async function updateNotice(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const type = String(formData.get("type") ?? "").toUpperCase();
   const title = String(formData.get("title") ?? "").trim();
@@ -73,6 +76,7 @@ export async function updateNotice(formData: FormData) {
 }
 
 export async function deleteNotice(formData: FormData) {
+  await requireAdmin();
   const id = Number(formData.get("id"));
   if (!id) throw new Error("id 필수");
   const n = await prisma.notice.delete({ where: { id } });

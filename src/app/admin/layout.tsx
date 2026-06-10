@@ -1,4 +1,5 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { COOKIE_NAME, readSessionCookie } from "@/lib/auth";
 import ActiveUsersBadge from "@/components/admin/ActiveUsersBadge";
@@ -12,6 +13,15 @@ export default async function AdminLayout({
 }) {
   const c = await cookies();
   const session = readSessionCookie(c.get(COOKIE_NAME)?.value);
+
+  // 미인증 차단 — login/logout 경로만 예외. 그 외 /admin/* 는 서명(HMAC) 무효 시 로그인으로 redirect.
+  // middleware 는 Edge 라 쿠키 "존재"만 검사하므로, 실제 검증·차단은 반드시 여기(Node)에서 한다.
+  const h = await headers();
+  const pathname = h.get("x-pathname") || "";
+  const isAuthRoute = pathname === "/admin/login" || pathname === "/admin/logout";
+  if (!session && !isAuthRoute) {
+    redirect("/admin/login");
+  }
 
   // 로그인 페이지는 자기 자신이라 헤더 안 표시
   // (session 이 null 이면 헤더 없는 단순 레이아웃)

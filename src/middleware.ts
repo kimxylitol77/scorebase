@@ -39,18 +39,22 @@ export function middleware(req: NextRequest) {
 
   // ── 응답 + host별 헤더 ──
   // 스코어보드.kr 루트 → /scores 내용으로 rewrite (URL 은 스코어보드.kr 유지).
+  // layout 등 server component 가 현재 경로를 알도록 주입 (admin 가드의 login 예외 판정에 사용).
+  const reqHeaders = new Headers(req.headers);
+  reqHeaders.set("x-pathname", path);
+
   let res: NextResponse;
   if (isScoreboard && path === "/") {
     const url = req.nextUrl.clone();
     url.pathname = "/scores";
-    res = NextResponse.rewrite(url);
+    res = NextResponse.rewrite(url, { request: { headers: reqHeaders } });
   } else if (isScoreBaseCom && path === "/") {
     // 스코어베이스.com 루트 → 랜딩(/landing) 내용으로 rewrite (URL 은 스코어베이스.com 유지).
     const url = req.nextUrl.clone();
     url.pathname = "/landing";
-    res = NextResponse.rewrite(url);
+    res = NextResponse.rewrite(url, { request: { headers: reqHeaders } });
   } else {
-    res = NextResponse.next();
+    res = NextResponse.next({ request: { headers: reqHeaders } });
   }
 
   if (isScoreboard) {
