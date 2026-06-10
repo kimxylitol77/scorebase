@@ -217,25 +217,37 @@ async function updateMlbBullpen(horizonDays: number): Promise<number> {
       console.warn(`[mlb-bullpen] ${d} schedule 실패:`, (e as Error).message);
       continue;
     }
-    for (const g of games) {
-      if (g.abstractGameState !== "Final") continue;
-      try {
-        const bp = await fetchMlbBoxscoreBullpen(g.gamePk);
-        for (const side of ["home", "away"] as const) {
-          const u = bp[side];
-          if (!u) continue;
-          const key = normName(u.teamName);
-          const cur = agg.get(key) ?? { pitches: 0, appearances: 0, games: 0 };
-          cur.pitches += u.pitches;
-          cur.appearances += u.appearances;
-          cur.games++;
-          agg.set(key, cur);
+    // boxscore 병렬 fetch (동시 6) — cron maxDuration 안에서 ~45매치 처리
+    const finals = games.filter((g) => g.abstractGameState === "Final");
+    let idx = 0;
+    const results: Awaited<ReturnType<typeof fetchMlbBoxscoreBullpen>>[] = [];
+    await Promise.all(
+      Array.from({ length: Math.min(6, finals.length) }, async () => {
+        while (idx < finals.length) {
+          const g = finals[idx++];
+          try {
+            results.push(await fetchMlbBoxscoreBullpen(g.gamePk));
+          } catch (e) {
+            console.warn(
+              `[mlb-bullpen] gamePk ${g.gamePk} boxscore 실패:`,
+              (e as Error).message,
+            );
+          }
         }
-        gamesProcessed++;
-        await new Promise((r) => setTimeout(r, 50));
-      } catch (e) {
-        console.warn(`[mlb-bullpen] gamePk ${g.gamePk} boxscore 실패:`, (e as Error).message);
+      }),
+    );
+    for (const bp of results) {
+      for (const side of ["home", "away"] as const) {
+        const u = bp[side];
+        if (!u) continue;
+        const key = normName(u.teamName);
+        const cur = agg.get(key) ?? { pitches: 0, appearances: 0, games: 0 };
+        cur.pitches += u.pitches;
+        cur.appearances += u.appearances;
+        cur.games++;
+        agg.set(key, cur);
       }
+      gamesProcessed++;
     }
   }
 
@@ -256,25 +268,31 @@ async function updateMlbBullpen(horizonDays: number): Promise<number> {
     include: { homeTeam: true, awayTeam: true },
   });
 
-  let updated = 0;
-  for (const m of upcoming) {
-    const toJson = (teamName: string) => {
-      const a = agg.get(normName(teamName)) ?? { pitches: 0, appearances: 0, games: 0 };
-      return JSON.stringify({
-        pitches3d: a.pitches,
-        appearances3d: a.appearances,
-        games3d: a.games,
-        asOf: todayEt,
-      });
-    };
-    await prisma.match.update({
-      where: { id: m.id },
-      data: {
-        homeBullpen: toJson(m.homeTeam.name),
-        awayBullpen: toJson(m.awayTeam.name),
-      },
+  const toJson = (teamName: string) => {
+    const a = agg.get(normName(teamName)) ?? { pitches: 0, appearances: 0, games: 0 };
+    return JSON.stringify({
+      pitches3d: a.pitches,
+      appearances3d: a.appearances,
+      games3d: a.games,
+      asOf: todayEt,
     });
-    updated++;
+  };
+  // DB update 10개 단위 병렬 (Neon 왕복 직렬화 방지)
+  let updated = 0;
+  for (let i = 0; i < upcoming.length; i += 10) {
+    const chunk = upcoming.slice(i, i + 10);
+    await Promise.all(
+      chunk.map((m) =>
+        prisma.match.update({
+          where: { id: m.id },
+          data: {
+            homeBullpen: toJson(m.homeTeam.name),
+            awayBullpen: toJson(m.awayTeam.name),
+          },
+        }),
+      ),
+    );
+    updated += chunk.length;
   }
   console.log(
     `[mlb-bullpen] 집계 ${gamesProcessed}매치/${agg.size}팀 → ${updated}건 갱신 (asOf ${todayEt})`,

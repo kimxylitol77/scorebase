@@ -3,7 +3,8 @@ import { runFetchMlbStarters } from "@/jobs/fetch-mlb-starters";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 불펜 3일 집계 (updateMlbBullpen — boxscore 병렬 fetch) 추가로 60→120s 여유 확보
+export const maxDuration = 120;
 
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;
