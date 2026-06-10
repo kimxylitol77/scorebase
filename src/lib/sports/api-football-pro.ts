@@ -228,6 +228,8 @@ export interface InjuryEntry {
   teamName: string;
   /** 매치 시점 (있을 때만) */
   fixtureDate?: string;
+  /** 선수 사진 (af player.photo) — 팀 페이지 부상자 명단 표시용 */
+  photoUrl?: string;
 }
 
 export async function fetchSeasonInjuries(
@@ -251,6 +253,7 @@ export async function fetchSeasonInjuries(
       playerId: r.player?.id,
       playerName: r.player?.name ?? "",
       reason: r.player?.reason ?? "",
+      photoUrl: r.player?.photo as string | undefined,
       type: r.player?.type ?? "",
       teamId: r.team?.id,
       teamName: r.team?.name ?? "",

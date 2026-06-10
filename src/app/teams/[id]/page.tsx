@@ -476,7 +476,24 @@ export default async function TeamPage({ params }: Props) {
                       {injuries.map((p) => (
                         <tr key={p.playerId} title={p.reason}>
                           <td className="px-4 py-2.5 font-medium">
-                            {koName(p.playerId, p.playerName)}
+                            <Link
+                              href={`/players/${p.playerId}?league=${team.league}`}
+                              prefetch={false}
+                              className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            >
+                              {p.photoUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={p.photoUrl}
+                                  alt=""
+                                  loading="lazy"
+                                  className="w-7 h-7 rounded-full object-cover bg-neutral-100 dark:bg-neutral-800 shrink-0"
+                                />
+                              ) : (
+                                <span className="w-7 h-7 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
+                              )}
+                              {koName(p.playerId, p.playerName)}
+                            </Link>
                           </td>
                           <td className="px-4 py-2.5 text-right text-xs text-neutral-500">
                             {translateReason(p.reason)}
@@ -508,7 +525,24 @@ export default async function TeamPage({ params }: Props) {
                       {keyPlayers.map((p) => (
                         <tr key={p.playerId}>
                           <td className="px-4 py-2.5 font-medium">
-                            {koName(p.playerId, p.playerName)}
+                            <Link
+                              href={`/players/${p.playerId}?league=${team.league}`}
+                              prefetch={false}
+                              className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            >
+                              {p.photoUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={p.photoUrl}
+                                  alt=""
+                                  loading="lazy"
+                                  className="w-7 h-7 rounded-full object-cover bg-neutral-100 dark:bg-neutral-800 shrink-0"
+                                />
+                              ) : (
+                                <span className="w-7 h-7 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
+                              )}
+                              {koName(p.playerId, p.playerName)}
+                            </Link>
                           </td>
                           <td className="px-2 py-2.5 text-right tabular-nums font-bold">
                             {p.goals}
