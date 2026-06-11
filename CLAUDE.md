@@ -17,7 +17,8 @@
 
 | 용도 | 서비스 | 키 |
 |---|---|---|
-| **글 작성** (PREVIEW/RECAP/ANALYSIS) | OpenAI **gpt-4o-mini** | `OPENAI_API_KEY` |
+| **글 작성** (PREVIEW/RECAP/ANALYSIS + blog-weekly 서술) | Claude **haiku-4-5** (`lib/ai/claude.ts` 경유) | `ANTHROPIC_API_KEY` |
+| ~~글 작성~~ (구버전 — Vercel 키 미가동 실측 2026-06-12) | OpenAI gpt-4o-mini | `OPENAI_API_KEY` |
 | 챗봇 (현재 비활성 — 사용자 작업 중) | Claude Sonnet 4.5 | `ANTHROPIC_API_KEY` |
 | 축구 매치/라인업/통계 | **api-football Pro** ($19/mo) | `API_FOOTBALL_KEY` |
 | 야구 매치 (KBO/MLB) | **api-sports baseball Pro** ($72/6mo) | `API_BASEBALL_KEY` (= API_FOOTBALL_KEY 동일 값) |
@@ -53,6 +54,7 @@
 21:00  베팅 odds 갱신
 22:00  적중률 평가 (predCorrect 채움)
 22:30  PREVIEW 글 생성 (향후 3일)
+월 09:00 blog-weekly — 이적시장 위클리 자동 발행 (얇은 주 skip, ?dry=1 미리보기)
 23:00  api-football 2차
 월 11:00 ANALYSIS (맥미니) + 목 11:00 (Vercel) — 주 2회, 리그당 60h 가드
 ```
