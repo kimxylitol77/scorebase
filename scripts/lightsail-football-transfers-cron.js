@@ -70,11 +70,11 @@ async function postBatch(transfers) {
   return data;
 }
 
-async function heartbeat(metadata) {
+async function heartbeat(body) {
   try {
     await axios.post(
       `${SITE_URL}/api/internal/bot-heartbeat`,
-      { name: "lightsail-football-transfers", metadata },
+      { name: "lightsail-football-transfers", ...body },
       { headers: SITE_HEADERS, timeout: 10_000 },
     );
   } catch { /* silent */ }
@@ -99,11 +99,24 @@ async function main() {
   console.log(`◀ 종료 — upserted=${upserted} uncovered=${uncovered} invalid=${invalid}`);
 
   writeLastRun(startedAt);
-  await heartbeat({ fetched: rows.length, upserted, uncovered });
+  await heartbeat({ ok: true, durationMs: Date.now() - startedAt * 1000, metadata: { fetched: rows.length, upserted, uncovered } });
 }
 
-main().catch(async (e) => {
-  console.error(`! fail: ${e.message}`);
-  // 실패 시 lastrun 갱신 안 함 — 다음 회차가 같은 윈도우 재시도
-  process.exit(1);
-});
+// 자가치유: 일시 순단(ts API/Neon) 흡수용 1회 재시도. 그래도 실패면 ok:false 정밀 보고
+// (서버가 즉시 텔레그램 알림) + lastrun 미갱신 → 다음 회차가 같은 윈도우 재시도.
+(async () => {
+  const t0 = Date.now();
+  try {
+    await main();
+  } catch (e) {
+    console.error(`! 1차 실패: ${e.message} — 30s 후 재시도`);
+    await sleep(30_000);
+    try {
+      await main();
+    } catch (e2) {
+      console.error(`! fail: ${e2.message}`);
+      await heartbeat({ ok: false, durationMs: Date.now() - t0, error: String(e2.message || e2).slice(0, 380) });
+      process.exit(1);
+    }
+  }
+})();

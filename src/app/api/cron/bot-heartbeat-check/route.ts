@@ -55,11 +55,15 @@ export async function GET(req: Request) {
 
   for (const row of toAlert) {
     const downMin = Math.round((now - row.lastAt.getTime()) / 60000);
+    // 마지막 실행이 실패였으면 에러 첨부 — "왜 멈췄는지"까지 알림에서 파악 (heartbeat v2)
+    const meta = (row.metadata ?? {}) as Record<string, unknown>;
+    const lastErr = typeof meta.lastError === "string" ? meta.lastError.slice(0, 300) : null;
     const text = [
       `🔔 <b>워커 응답 없음</b>`,
       ``,
       `🤖 <b>${row.name}</b>`,
       `🕐 마지막: ${formatKst(row.lastAt)} (${downMin}분 전)`,
+      ...(lastErr ? [``, `💥 마지막 실행 에러: ${lastErr}`] : []),
       ``,
       `Mac mini 또는 워커 프로세스 확인 필요.`,
     ].join("\n");
