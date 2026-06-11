@@ -680,6 +680,21 @@ export default async function ArticlePage({ params }: Props) {
         />
       )}
 
+      {/* H2H 상대전적 링크 — noindex 글이지만 follow 라 링크 권한은 흐름 (H2H 발견 경로) */}
+      {article.match && (
+        <p className="mt-3 text-sm">
+          <Link
+            href={`/h2h/${Math.min(article.match.homeTeamId, article.match.awayTeamId)}-vs-${Math.max(article.match.homeTeamId, article.match.awayTeamId)}`}
+            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            prefetch={false}
+          >
+            📊 {toKoreanTeamName(article.match.homeTeam.name, article.league) || article.match.homeTeam.name} vs{" "}
+            {toKoreanTeamName(article.match.awayTeam.name, article.league) || article.match.awayTeam.name} 역대
+            상대전적 보기 →
+          </Link>
+        </p>
+      )}
+
       {/* 야구(KBO/MLB/NPB) — Poisson 이닝별 득점 확률 차트.
           generate-articles / generate-previews 가 baseballContext JSON 저장. */}
       {article.baseballContext && article.match && (() => {

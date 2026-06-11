@@ -67,6 +67,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  // 상대전적(H2H) — 활발한 페어만 (5전 이상 + 최근 180일 내 맞대결 = KBO 전 페어·
+  // MLB 동지구·유럽 라이벌전). 회복기 크롤 예산 고려해 상한 500 — 나머지는 on-demand 렌더.
+  const h2hPairs = await prisma.$queryRaw<Array<{ a: number; b: number }>>`
+    SELECT LEAST("homeTeamId","awayTeamId") a, GREATEST("homeTeamId","awayTeamId") b
+    FROM "Match" WHERE status = 'FINISHED'
+    GROUP BY 1, 2
+    HAVING COUNT(*) >= 5 AND MAX("startTime") > NOW() - INTERVAL '180 days'
+    ORDER BY MAX("startTime") DESC
+    LIMIT 500`;
+  const h2hPages: MetadataRoute.Sitemap = h2hPairs.map((p) => ({
+    url: `${base}/h2h/${p.a}-vs-${p.b}`,
+    lastModified: now,
+    changeFrequency: "daily" as const,
+    priority: 0.7,
+  }));
+
   // 발행된 글 — 최근 60일만 (Google 색인 quota 우선순위).
   // PREVIEW + RECAP 은 AI 자동 발행 = scaled content abuse 회피 위해 sitemap 제외.
   // article page 자체에도 robots noindex 적용됨 (이중 차단).
@@ -198,5 +214,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  return [...staticPages, ...nationalTeamPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
+  return [...staticPages, ...nationalTeamPages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
 }
