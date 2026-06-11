@@ -16,6 +16,7 @@ export type TrafficChannel =
   | "threads"
   | "x"
   | "facebook"
+  | "kakao"
   | "youtube"
   | "search_other"
   | "referral"
@@ -31,6 +32,7 @@ export const CHANNEL_META: Record<TrafficChannel, { label: string; emoji: string
   threads: { label: "스레드", emoji: "🧵" },
   x: { label: "X (트위터)", emoji: "✖️" },
   facebook: { label: "페이스북", emoji: "🔵" },
+  kakao: { label: "카카오톡 (utm)", emoji: "💬" },
   youtube: { label: "유튜브", emoji: "▶️" },
   search_other: { label: "기타 검색엔진", emoji: "🔍" },
   referral: { label: "기타 사이트", emoji: "🔗" },
@@ -47,10 +49,30 @@ export const CHANNEL_ORDER: TrafficChannel[] = [
   "threads",
   "x",
   "facebook",
+  "kakao",
   "youtube",
   "search_other",
   "referral",
 ];
+
+/** utm_source 값 → 채널. SNS 프로필/공유 링크에 ?utm_source=instagram 식으로
+ *  붙이면 referrer 가 안 남는 인앱(카톡 등)도 100% 식별 — referrer 분류보다 우선. */
+const UTM_SOURCE_CHANNEL: Record<string, TrafficChannel> = {
+  instagram: "instagram",
+  insta: "instagram",
+  ig: "instagram",
+  threads: "threads",
+  x: "x",
+  twitter: "x",
+  facebook: "facebook",
+  fb: "facebook",
+  kakao: "kakao",
+  kakaotalk: "kakao",
+  katalk: "kakao",
+  youtube: "youtube",
+  naver: "naver",
+  google: "google",
+};
 
 /** 우리 서비스 도메인 — referrer 가 이들이면 내부 이동(유입 아님). */
 export function isInternalReferrerHost(hostname: string): boolean {
@@ -101,4 +123,50 @@ export function classifyReferrer(referrer: string | null): {
     if (m.re.test(host)) return { channel: m.channel, domain: null };
   }
   return { channel: "referral", domain: host };
+}
+
+/** utm_source 우선 분류 — utm 매핑되면 그 채널, 아니면 referrer 분류.
+ *  (utm 값이 미등록 문자열이면 referrer 분류로 폴백 후, 그래도 direct 면 referral 로
+ *  두지 않고 direct 유지 — utm 만으로 출처를 단정하지 않는다) */
+export function classifyLanding(
+  referrer: string | null,
+  utmSource: string | null,
+): { channel: TrafficChannel; domain: string | null } {
+  if (utmSource) {
+    const mapped = UTM_SOURCE_CHANNEL[utmSource];
+    if (mapped) return { channel: mapped, domain: null };
+  }
+  return classifyReferrer(referrer);
+}
+
+/** 검색엔진 referrer 에서 검색어 추출 — 네이버/다음/빙/야후/줌 등은 referrer URL 에
+ *  검색어 파라미터가 그대로 남는다. 구글은 2011년부터 비공개(origin 만 전송) —
+ *  구글 검색어는 Google Search Console API 로만 확인 가능. */
+const SEARCH_QUERY_PARAMS: Array<{ hostRe: RegExp; params: string[] }> = [
+  { hostRe: /(^|\.)naver\.com$/, params: ["query"] },
+  { hostRe: /(^|\.)daum\.net$/, params: ["q"] },
+  { hostRe: /(^|\.)bing\.com$/, params: ["q"] },
+  { hostRe: /(^|\.)yahoo\.[a-z.]+$/, params: ["p", "q"] },
+  { hostRe: /(^|\.)duckduckgo\.com$/, params: ["q"] },
+  { hostRe: /(^|\.)zum\.com$/, params: ["query", "q"] },
+  { hostRe: /(^|\.)nate\.com$/, params: ["q"] },
+  { hostRe: /(^|\.)baidu\.[a-z.]+$/, params: ["wd", "word"] },
+];
+
+export function extractSearchQuery(referrer: string | null): string | null {
+  if (!referrer) return null;
+  try {
+    const u = new URL(referrer);
+    const host = u.hostname.toLowerCase().replace(/^www\./, "");
+    for (const s of SEARCH_QUERY_PARAMS) {
+      if (!s.hostRe.test(host)) continue;
+      for (const p of s.params) {
+        const q = u.searchParams.get(p)?.trim();
+        if (q) return q.slice(0, 80);
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }

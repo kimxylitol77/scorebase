@@ -36,6 +36,11 @@ export async function POST(req: Request) {
         ? body.sessionId
         : null;
     const isLanding = body.isLanding === true;
+    // utm_source — 영숫자·하이픈·언더스코어·점만 허용 (저장 전 정규화).
+    const utmSource =
+      isLanding && typeof body.utmSource === "string" && body.utmSource
+        ? body.utmSource.toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 64) || null
+        : null;
 
     const h = await headers();
     await prisma.pageView.create({
@@ -45,6 +50,7 @@ export async function POST(req: Request) {
         // 유입 출처 — 랜딩 PV 의 document.referrer (외부 도메인만). 내부 이동은 null.
         referrer: isLanding ? cleanReferrer(body.referrer) : null,
         isLanding,
+        utmSource,
         // 접속 도메인 — scorebase.kr vs 스코어보드.kr 분리용. 트랙 요청이 해당
         // 도메인으로 오므로 Host 헤더에 그대로 잡힘(스코어보드.kr 은 punycode).
         host: h.get("host")?.slice(0, MAX_HEADER) ?? null,

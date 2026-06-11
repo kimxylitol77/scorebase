@@ -3,7 +3,8 @@ import { DailyArea, HourlyBar } from "@/components/charts/StatsChart";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
 import { detectDevice, DEVICE_LABEL, type DeviceType } from "@/lib/device-detect";
 import {
-  classifyReferrer,
+  classifyLanding,
+  extractSearchQuery,
   CHANNEL_META,
   CHANNEL_ORDER,
   type TrafficChannel,
@@ -95,7 +96,7 @@ export default async function StatsPage({ searchParams }: Props) {
     // 별도 쿼리가 메인 rangeRaw 에 referrer 컬럼 얹는 것보다 가볍다.
     prisma.pageView.findMany({
       where: { ...rangeWhere, isLanding: true },
-      select: { referrer: true, userAgent: true, sessionId: true },
+      select: { referrer: true, userAgent: true, sessionId: true, path: true, utmSource: true },
       take: 50000,
       orderBy: { ts: "desc" },
     }),
@@ -237,15 +238,27 @@ export default async function StatsPage({ searchParams }: Props) {
   // === 유입 채널 (사람 랜딩 PV 기준) — 구글/네이버/다음/빙/인스타/스레드/X/직접 ===
   const channelAgg = new Map<TrafficChannel, { count: number; ids: Set<string> }>();
   const referralDomainAgg = new Map<string, number>();
+  // 검색 키워드 (네이버·다음·빙 등 referrer 에 남는 검색어 — 구글은 GSC 전용)
+  const searchQueryAgg = new Map<string, { count: number; channel: TrafficChannel }>();
+  // 외부 유입(직접 제외)이 도착한 랜딩 페이지
+  const externalLandingPathAgg = new Map<string, number>();
   let landingTotal = 0;
   for (const r of landingRaw) {
     if (detectBot(r.userAgent).isBot) continue;
-    const { channel, domain } = classifyReferrer(r.referrer);
+    const { channel, domain } = classifyLanding(r.referrer, r.utmSource);
     const e = channelAgg.get(channel) ?? { count: 0, ids: new Set<string>() };
     e.count++;
     if (r.sessionId) e.ids.add(r.sessionId);
     channelAgg.set(channel, e);
     if (domain) referralDomainAgg.set(domain, (referralDomainAgg.get(domain) ?? 0) + 1);
+    const q = extractSearchQuery(r.referrer);
+    if (q) {
+      const cur = searchQueryAgg.get(q);
+      searchQueryAgg.set(q, { count: (cur?.count ?? 0) + 1, channel });
+    }
+    if (channel !== "direct") {
+      externalLandingPathAgg.set(r.path, (externalLandingPathAgg.get(r.path) ?? 0) + 1);
+    }
     landingTotal++;
   }
   const channelData = CHANNEL_ORDER.map((c) => ({
@@ -254,6 +267,12 @@ export default async function StatsPage({ searchParams }: Props) {
     unique: channelAgg.get(c)?.ids.size ?? 0,
   })).filter((c) => c.count > 0);
   const topReferralDomains = Array.from(referralDomainAgg.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+  const topSearchQueries = Array.from(searchQueryAgg.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 15);
+  const topExternalLandings = Array.from(externalLandingPathAgg.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
 
@@ -501,6 +520,73 @@ export default async function StatsPage({ searchParams }: Props) {
           )}
         </SectionCard>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SectionCard
+            title="검색 키워드 (네이버·다음·빙)"
+            subtitle={`${rangeLabel} · 검색 유입 ${topSearchQueries.reduce((s, [, v]) => s + v.count, 0)}회`}
+          >
+            {topSearchQueries.length === 0 ? (
+              <EmptyHint message="아직 검색어가 잡힌 유입이 없습니다. 네이버·다음·빙 검색 유입부터 쌓입니다 (구글은 검색어 비공개 — 아래 안내 참고)." />
+            ) : (
+              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {topSearchQueries.map(([query, info], i) => {
+                  const max = topSearchQueries[0][1].count;
+                  const pct = max > 0 ? (info.count / max) * 100 : 0;
+                  return (
+                    <li key={query} className="py-2 flex items-center gap-3 text-sm">
+                      <span className="w-5 text-right tabular-nums text-neutral-400 font-bold">
+                        {i + 1}
+                      </span>
+                      <span className="text-base">{CHANNEL_META[info.channel].emoji}</span>
+                      <span className="font-medium truncate max-w-[45%]">{query}</span>
+                      <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                        <div className="h-full bg-teal-500" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
+                        {info.count}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </SectionCard>
+
+          <SectionCard title="외부 유입 랜딩 페이지 TOP 10" subtitle={`${rangeLabel} · 직접 제외`}>
+            {topExternalLandings.length === 0 ? (
+              <EmptyHint message="외부(검색·SNS·타 사이트) 유입이 도착한 페이지가 아직 없습니다." />
+            ) : (
+              <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {topExternalLandings.map(([path, count], i) => {
+                  const max = topExternalLandings[0][1];
+                  const pct = max > 0 ? (count / max) * 100 : 0;
+                  return (
+                    <li key={path} className="py-2 flex items-center gap-3 text-xs">
+                      <span className="w-5 text-right tabular-nums text-neutral-400 font-bold">
+                        {i + 1}
+                      </span>
+                      <a
+                        href={path}
+                        target="_blank"
+                        rel="noopener"
+                        className="font-mono truncate max-w-[55%] hover:underline"
+                      >
+                        {path}
+                      </a>
+                      <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                        <div className="h-full bg-indigo-400/80" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
+                        {count}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </SectionCard>
+        </div>
+
         {topReferralDomains.length > 0 && (
           <SectionCard title="기타 사이트 상세 (referral TOP 10)" subtitle={rangeLabel}>
             <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -531,6 +617,14 @@ export default async function StatsPage({ searchParams }: Props) {
           referrer 를 안 남기는 유입(즐겨찾기·주소창 직접 입력 + 카카오톡 등 일부 앱)은 모두
           &ldquo;직접&rdquo;에 합산되므로, SNS 수치는 하한선으로 보는 게 정확합니다. 인스타그램·스레드·X
           인앱 브라우저는 대부분 referrer 가 잡힙니다. 기록은 2026-06-11 이후 PV부터.
+          <br />
+          ⓘ <strong>구글 검색어</strong>는 구글이 referrer 에서 숨겨(2011~) 여기서 볼 수 없습니다 —
+          Google Search Console 연동으로만 확인 가능 (노출·클릭·순위까지). 네이버·다음·빙은 referrer 에
+          검색어가 남아 위 표에 잡힙니다.
+          <br />
+          ⓘ SNS 프로필·공유 링크에 <code>?utm_source=instagram</code> / <code>threads</code> /{" "}
+          <code>x</code> / <code>kakao</code> 를 붙이면 referrer 가 안 남는 인앱 유입도 100% 해당
+          채널로 분류됩니다 (카카오톡은 utm 없이는 식별 불가).
         </p>
       </section>
 

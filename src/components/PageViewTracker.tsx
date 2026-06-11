@@ -61,12 +61,25 @@ export default function PageViewTracker() {
     const isLanding = isLandingNow();
     // 랜딩일 때만 유입 출처 전송 — 직접 진입(즐겨찾기·주소창)은 빈 문자열.
     const referrer = isLanding ? document.referrer || null : null;
+    // utm_source — referrer 를 안 남기는 앱(카톡 등) 유입 식별. 랜딩 URL 쿼리에서 추출.
+    let utmSource: string | null = null;
+    if (isLanding) {
+      try {
+        utmSource =
+          new URLSearchParams(window.location.search)
+            .get("utm_source")
+            ?.toLowerCase()
+            .slice(0, 64) || null;
+      } catch {
+        // URLSearchParams 실패 — 무시
+      }
+    }
 
     // 비동기 fire-and-forget. 에러 무시.
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: pathname, sessionId, isLanding, referrer }),
+      body: JSON.stringify({ path: pathname, sessionId, isLanding, referrer, utmSource }),
       keepalive: true,
     }).catch(() => {});
   }, [pathname]);
