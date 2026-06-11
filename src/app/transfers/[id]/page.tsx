@@ -73,12 +73,16 @@ const matchClub = (a: string, b: string) => !!a && !!b && (a === b || a.startsWi
 interface HistPt { market_time?: number; market_value?: number; team_id?: string; age?: number }
 
 async function loadPlayer(id: string) {
-  const mv = await prisma.playerMarketValue.findUnique({ where: { id } });
-  if (!mv) return null;
-  const tsp = await prisma.theSportsPlayer.findUnique({
-    where: { id },
-    select: { nameKo: true, name: true, photoUrl: true, position: true },
-  });
+  // mv(시장가치) 없어도 TheSportsPlayer 만 있으면 라이트 프로필 렌더 —
+  // 확장 리그(K리그1·사우디·MLS)는 대부분 mv 미보유라 mv 필수면 피드 클릭이 404.
+  const [mv, tsp] = await Promise.all([
+    prisma.playerMarketValue.findUnique({ where: { id } }),
+    prisma.theSportsPlayer.findUnique({
+      where: { id },
+      select: { nameKo: true, name: true, photoUrl: true, position: true },
+    }),
+  ]);
+  if (!mv && !tsp) return null;
   return { mv, tsp };
 }
 
@@ -87,7 +91,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const p = await loadPlayer(id);
   if (!p) return { title: "선수 미발견" };
   const name = OVERRIDES[id]?.nameKo || p.tsp?.nameKo || p.tsp?.name || "선수";
-  const val = p.mv.currentValue ? Math.round(p.mv.currentValue / 1e6) : null;
+  const val = p.mv?.currentValue ? Math.round(p.mv.currentValue / 1e6) : null;
   const photo = PHOTOS[id] || p.tsp?.photoUrl || null;
   const title = `${name} 시장가치${val ? ` €${val}M` : ""} · 몸값 추이 | 스코어베이스`;
   const description = `${name} 선수의 시장가치(몸값) 변동 추이와 이적 기록, 시즌별 성적·커리어. 스코어베이스 이적시장에서 ${name} 몸값을 한눈에.`;
@@ -287,12 +291,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     const rows = wikiBySeason.get(sk)!.map((w) => ({ club: toKoreanTeamName(w.club) || w.club, lApps: w.lApps, lGoals: w.lGoals, tApps: w.tApps, tGoals: w.tGoals }));
     seasonEntries.push({ kind: "wiki", label: `${sk} 시즌`, sub: rows.length === 1 ? rows[0].club : `${rows.length}개 클럽`, rows });
   }
-  const value = mv.currentValue ? Math.round(mv.currentValue / 1e6) : null;
-  const league = mv.league && LEAGUE_LABEL[mv.league] ? mv.league : null;
+  const value = mv?.currentValue ? Math.round(mv.currentValue / 1e6) : null;
+  const league = mv?.league && LEAGUE_LABEL[mv.league] ? mv.league : null;
 
   // 팀 resolve (ts → 우리 Team). 한 ts 가 여러 Team 에 매핑되면 해당 리그 Team 우선(동명 클럽 방지).
   let teamName = "—", teamLogo: string | null = null, ourTeamId: number | null = null;
-  if (mv.teamId) {
+  if (mv?.teamId) {
     const tss = await prisma.teamSourceId.findMany({
       where: { source: "thesports", externalId: mv.teamId },
       select: { teamId: true },
@@ -308,7 +312,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   }
 
   // 몸값 이력 (연대순 정렬 — 차트/마커/타임라인 공통)
-  const hist = (Array.isArray(mv.history) ? (mv.history as HistPt[]) : [])
+  const hist = (Array.isArray(mv?.history) ? (mv.history as HistPt[]) : [])
     .filter((h) => (h?.market_value || 0) > 0 && h?.market_time)
     .sort((a, b) => (a.market_time || 0) - (b.market_time || 0));
   const points = hist.map((h) => ({ t: h.market_time!, v: (h.market_value || 0) / 1e6 }));
@@ -351,6 +355,15 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // DB 미커버(비빅5 출신팀)는 정적 수집분으로 보강 — 피드와 동일 fallback
   for (const tid of histTeamIds) if (!tsLogo[tid] && TEAM_LOGOS[tid]) tsLogo[tid] = TEAM_LOGOS[tid];
 
+  // mv 없는 라이트 프로필 — 현 소속을 최신 이적(도착)에서 유도
+  if (teamName === "—" && transfers.length) {
+    const cur = transfers.find((t) => t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO));
+    if (cur?.toTeamName) {
+      teamName = koTeam(cur.toTeamName);
+      if (cur.toTeamId && tsLogo[cur.toTeamId]) teamLogo = tsLogo[cur.toTeamId];
+    }
+  }
+
   // 커리어 행 로고용 클럽명 → 로고 (이적기록 기반, 과거→최신 순회로 최신 이적이 우선)
   const clubLogos: Record<string, string> = {};
   for (const t of [...transfers].reverse()) {
@@ -365,7 +378,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   //  ② 클럽명 후보(우리 DB 한글명·이적기록 팀명 변환)가 career 에 이미 있으면 보정 불필요
   //  ③ 완전이적은 기존 진행중(end=null) 행을 이적연도로 캡, 임대(type 7)는 본클럽 유지
   let careerView = career;
-  if (career.length && mv.teamId) {
+  if (career.length && mv?.teamId) {
     const nowSec = Math.floor(Date.now() / 1000);
     const arrival = transfers.find(
       (t) => t.toTeamId === mv.teamId && t.transferTime && t.transferTime <= nowSec && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),
@@ -420,7 +433,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
-      <Link href={`/transfers${league ? `?league=${mv.league}` : ""}`} className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+      <Link href={`/transfers${league ? `?league=${league}` : ""}`} className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
         ← 이적시장
       </Link>
 
@@ -447,7 +460,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 ⭐ 종합 {ability}
               </span>
             )}
-            {mv.age != null && <span className="text-sm text-neutral-500">{mv.age}세</span>}
+            {mv?.age != null && <span className="text-sm text-neutral-500">{mv.age}세</span>}
             {ov?.country && (
               <span className="flex items-center gap-1 text-sm text-neutral-500">
                 {ov.flag && (
@@ -467,7 +480,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
               <img src={teamLogo} alt="" className="w-4 h-4 object-contain" />
             )}
             {teamName}
-            {league && <span className="text-neutral-400">· {LEAGUE_LABEL[mv.league!]}</span>}
+            {league && <span className="text-neutral-400">· {LEAGUE_LABEL[league]}</span>}
           </Link>
         </div>
         {value != null && (
@@ -486,7 +499,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
 
       {/* 현 시즌 대회별 스탯 (af) — 축구 선수 페이지 단일화: /players 의 대회별 정보를
           여기로 통합 (2026-06-10). ts→af 매핑 없으면 자동 미표시. */}
-      <CompetitionStatsSection tsId={id} league={mv.league} />
+      <CompetitionStatsSection tsId={id} league={mv?.league ?? null} />
 
       {/* 시즌별 성적 — 현 시즌(TheSports 상세) + 과거 시즌(Wikipedia). 시즌별 접기/펼치기 */}
       {seasonEntries.length > 0 && <SeasonAccordion seasons={seasonEntries} />}

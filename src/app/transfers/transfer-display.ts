@@ -5,7 +5,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 export const DESC_KO: Record<string, string> = { Free: "자유이적", Loan: "임대", "End of loan": "임대복귀", "Loan return": "임대복귀", Retired: "은퇴", Unknown: "" };
 
 /** TheSports 특수 "팀명" (실클럽 아님) → 한글 */
-export const SPECIAL_TEAM_KO: Record<string, string> = { "Free player": "자유계약", Retired: "은퇴", Disqualification: "징계" };
+export const SPECIAL_TEAM_KO: Record<string, string> = { "Free player": "자유계약", Retired: "은퇴", Disqualification: "징계", Unknown: "미상" };
 
 /** 이적 유형 배지 색 — 데이터로 확정된 type 만 배지 부여 (2=임대복귀·7=임대·6=방출, 1·4 는 생략) */
 export const BADGE_CLS: Record<string, string> = {

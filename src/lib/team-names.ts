@@ -2903,6 +2903,32 @@ const RAW: Record<string, string> = {
   "Atlanta United": "애틀랜타 유나이티드",
   "Nashville": "내슈빌 SC",
   "CD Chivas USA": "치바스 USA",
+
+  // ─── K리그 커리어 경로 (대학·실업·U18 — 이적 이력 표기) ───
+  "Yonsei University": "연세대",
+  "Korea University": "고려대",
+  "Chung-Ang University": "중앙대",
+  "Soongsil University": "숭실대",
+  "Incheon National University": "인천대",
+  "Yong In University": "용인대",
+  "Dankook University": "단국대",
+  "Konkuk University": "건국대",
+  "Ajou University": "아주대",
+  "Kwangwoon University": "광운대",
+  "Dongguk University": "동국대",
+  "Hanyang University": "한양대",
+  "University of Ulsan": "울산대",
+  "Gangneung Citizen": "강릉시민축구단",
+  "Pocheon FC": "포천 FC",
+  "Gyeongju KHNP": "경주 한수원",
+  "Daejeon Korail": "대전 코레일",
+  "Asan Mugunghwa (2017-2019)": "아산 무궁화",
+  "Ulsan Hyundai Mipo Dolphin (- 2016)": "울산 현대미포조선",
+  "Chungju Hummel (-2016)": "충주 험멜",
+  "FC Seoul U18": "FC 서울 U18",
+  "Pohang Steelers U18": "포항 스틸러스 U18",
+  "Jeonbuk Hyundai Motors U18": "전북 현대 U18",
+  "Ulsan Hyundai Horang-i U18": "울산 현대 U18",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
