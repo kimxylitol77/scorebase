@@ -129,9 +129,10 @@ OPENAI_MODEL=gpt-4o-mini
 ANTHROPIC_API_KEY         # 챗봇 (현재 비활성)
 API_FOOTBALL_KEY API_BASEBALL_KEY  # 같은 값
 FOOTBALL_DATA_KEY ODDS_API_KEY
-GSC_SERVICE_ACCOUNT_JSON  # Google Search Console 서비스 계정 키 JSON (admin/stats 검색 성과)
+GSC_OAUTH_CLIENT_ID GSC_OAUTH_CLIENT_SECRET GSC_OAUTH_REFRESH_TOKEN  # GSC 검색 성과 (admin/stats) — 소유자 OAuth
+GSC_SERVICE_ACCOUNT_JSON  # GSC 폴백 (서비스 계정 — GSC 사용자 추가 거부로 미사용)
 ADMIN_USERNAME ADMIN_PASSWORD ADMIN_SECRET
-SITE_URL=https://scorebase.kr SITE_NAME=Scorebase
+SITE_URL=https://www.scorebase.kr SITE_NAME=Scorebase
 CRON_SECRET
 ```
 

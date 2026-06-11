@@ -642,26 +642,27 @@ export default async function StatsPage({ searchParams }: Props) {
         </div>
 
         {!gsc.configured ? (
-          <SectionCard title="GSC 연동 대기" subtitle="GSC_SERVICE_ACCOUNT_JSON 미설정">
+          <SectionCard title="GSC 연동 대기" subtitle="인증 환경변수 미설정">
             <div className="text-sm text-neutral-500 leading-relaxed py-2 space-y-2">
               <p>
                 Google Search Console API 를 연동하면 구글 검색어별
-                노출·클릭·CTR·평균순위가 여기 표시됩니다. 설정 순서:
+                노출·클릭·CTR·평균순위가 여기 표시됩니다. 인증 방법 (둘 중 하나):
               </p>
               <ol className="list-decimal list-inside space-y-1">
                 <li>
-                  Google Cloud Console → 프로젝트 생성 → <strong>Search Console API</strong> 사용 설정
-                </li>
-                <li>서비스 계정 생성 → JSON 키 다운로드</li>
-                <li>
-                  GSC 속성 [설정 → 사용자 및 권한] 에 서비스 계정 이메일을{" "}
-                  <strong>제한된 사용자</strong>로 추가
+                  <strong>OAuth (속성 소유자 계정 — 권장)</strong>: Cloud Console 에서 데스크톱 앱
+                  OAuth 클라이언트 생성 → 1회 동의로 refresh token 발급 →{" "}
+                  <code>GSC_OAUTH_CLIENT_ID</code> / <code>GSC_OAUTH_CLIENT_SECRET</code> /{" "}
+                  <code>GSC_OAUTH_REFRESH_TOKEN</code> 등록
                 </li>
                 <li>
-                  키 JSON 전체를 <code>GSC_SERVICE_ACCOUNT_JSON</code> 환경변수로 등록
-                  (.env.local + Vercel — 한 줄 JSON 또는 base64)
+                  <strong>서비스 계정</strong>: Search Console API 활성화 → 서비스 계정 키 JSON →
+                  GSC 속성 [설정 → 사용자 및 권한] 에 <strong>제한된 사용자</strong>로 추가 →{" "}
+                  <code>GSC_SERVICE_ACCOUNT_JSON</code> 등록 (GSC 가 서비스 계정 추가를
+                  거부하면 1번 방식 사용)
                 </li>
               </ol>
+              <p>.env.local 과 Vercel 양쪽에 등록해야 합니다.</p>
             </div>
           </SectionCard>
         ) : gsc.error ? (
