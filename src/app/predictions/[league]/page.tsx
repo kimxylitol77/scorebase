@@ -288,8 +288,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const info = LEAGUE_INFO[upper as ValidLeague];
   return {
-    title: `${info.name} 예측`,
-    description: `${info.subtitle}. Monte Carlo 시즌 시뮬레이션 + 다가오는 경기 승률.`,
+    title: `${info.name} 예측 — 오늘 경기 승률·우승 확률 시뮬레이션`,
+    description: `${info.subtitle}. 매일 갱신하는 ${info.name} 경기별 승률(Elo+시장 배당 모델), Monte Carlo 시즌 시뮬레이션, 우승·플레이오프 확률까지 데이터로 제공.`,
+    keywords: [
+      `${info.name} 예측`,
+      `오늘 ${info.name}`,
+      `${info.name} 승률`,
+      `${info.name} 픽`,
+      `${info.name} 분석`,
+      "AI 승부예측",
+      "스코어베이스",
+    ],
     alternates: { canonical },
   };
 }

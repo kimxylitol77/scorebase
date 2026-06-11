@@ -319,7 +319,7 @@ export async function generateMetadata({
       ? ""
       : ` · ${TAB_LABEL[validType].replace(/^\W+\s*/, "")}`;
   return {
-    title: `${info.name}${titleSuffix}`,
+    title: `${info.name} 경기 프리뷰·결과·분석${titleSuffix}`,
     description: TYPE_DESC[validType] + " — " + info.copy,
     alternates: { canonical },
   };
