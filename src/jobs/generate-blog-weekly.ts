@@ -6,10 +6,12 @@
 //   ② 몸값 급등/급락 — /transfers 마켓 무브와 동일 (직전 업데이트 대비, 출발 €3M+) + 14일 내 갱신분만 (주간 중복 방지)
 //   ③ 구단 지갑 — 이적창 개장 후 누적 (빅5, 공개 이적료)
 // 얇은 주(딜·무브 모두 적음)는 발행 skip — 5월 색인 절벽 교훈 (대량 저품질 자동 글 금지).
-// LLM(gpt-4o-mini)은 서술 문단만 담당, 수치·표는 결정적 생성. LLM 실패 시 템플릿 문장 폴백.
+// LLM 은 서술 문단만 담당, 수치·표는 결정적 생성. LLM 실패 시 템플릿 문장 폴백.
+//   provider = claude.ts (haiku) — 현역 글 생성 잡(PREVIEW/RECAP/ANALYSIS)과 동일 경로.
+//   openai.ts 는 Vercel 에서 실패 실측(2026-06-12, 키 미가동 추정) — 전환 금지.
 
 import { prisma } from "@/lib/db";
-import { generate } from "@/lib/ai/openai";
+import { generate } from "@/lib/ai/claude";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { koTeam } from "@/app/transfers/transfer-display";
 import rawOverrides from "../../data/player-overrides.json";

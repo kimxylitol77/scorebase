@@ -7,7 +7,7 @@ import { runBlogWeekly } from "@/jobs/generate-blog-weekly";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300; // claude.ts transient retry (최대 ~155s) 여유
 
 function authorized(req: Request): boolean {
   const secret = process.env.CRON_SECRET;
