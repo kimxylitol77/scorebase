@@ -417,11 +417,15 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     Boolean(sp.league) ||
     (sp.status !== undefined && sp.status !== "all");
 
+  // canonical 은 sport 별 base URL 고정 — date param 은 매일 바뀌어 canonical 이
+  // 매일 변하는 중복 신호가 됐었다 (2026-05 진단: "Crawled - not indexed" 원인).
+  const canonical = sportCode === "soccer" ? "/scores" : `/scores?sport=${sportCode}`;
+
   return {
     title: { absolute: title },
     description,
     keywords,
-    alternates: { canonical: url },
+    alternates: { canonical },
     ...(isThin && { robots: { index: false, follow: true } }),
     openGraph: {
       title,

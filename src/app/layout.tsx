@@ -27,7 +27,9 @@ export const metadata: Metadata = {
   description:
     "EPL · NBA · NHL · MLB 의 경기 결과·프리뷰·분석. 시즌 순위, Elo 레이팅, 공격·수비 랭킹, 홈/원정 강도, 최근 흐름과 H2H 상대 전적까지 데이터 기반으로 정리.",
   metadataBase: new URL(SITE_URL),
-  alternates: { canonical: SITE_URL },
+  // ⚠️ 여기에 사이트 공통 alternates.canonical 을 두면 안 된다 — Next metadata 상속으로
+  // 자체 canonical 없는 모든 페이지가 "홈의 중복"을 선언하게 돼 색인에서 제외된다
+  // (2026-05 노출 절벽 진단에서 확인). canonical 은 각 page 의 metadata 에서만.
   openGraph: {
     type: "website",
     locale: "ko_KR",

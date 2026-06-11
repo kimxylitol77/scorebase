@@ -265,18 +265,24 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase();
+  const canonical = `/predictions/${upper}`;
   if (GROUPED_STANDINGS_LEAGUES.has(upper)) {
     const name = LEAGUE_DISPLAY[upper] ?? upper;
     return {
       title: `${name} 순위`,
       description: `${name} 2026 100년 비전 리그 — 지역 그룹별 순위표.`,
+      alternates: { canonical },
     };
   }
   if (!VALID.includes(upper as ValidLeague)) {
     // ALL_LEAGUES 에는 있지만 VALID 에 없는 신규 리그 → standings-only fallback
     if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
       const name = LEAGUE_DISPLAY[upper] ?? upper;
-      return { title: `${name} 순위`, description: `${name} 현재 시즌 순위표.` };
+      return {
+        title: `${name} 순위`,
+        description: `${name} 현재 시즌 순위표.`,
+        alternates: { canonical },
+      };
     }
     return { title: "찾을 수 없음" };
   }
@@ -284,6 +290,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${info.name} 예측`,
     description: `${info.subtitle}. Monte Carlo 시즌 시뮬레이션 + 다가오는 경기 승률.`,
+    alternates: { canonical },
   };
 }
 

@@ -75,12 +75,15 @@ interface Props {
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { pid } = await params;
   const { league } = await searchParams;
+  // league 별로 다른 선수 — canonical 에 league param 유지 (없으면 MLB 기본)
+  const canonical = league ? `/players/${pid}?league=${league}` : `/players/${pid}`;
   if (league === "KBO") {
     const info = await fetchKboPitcherProfile(pid);
     if (!info.name) return { title: "선수 미발견" };
     return {
       title: `${info.name} — KBO 선발 투수 통계`,
       description: `${info.team ?? "KBO"} ${info.name} 의 시즌 ERA·WHIP·IP·W-L·최근 등판 결과.`,
+      alternates: { canonical },
     };
   }
   if (league === "NPB") {
@@ -91,6 +94,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: `${koName} — NPB 선발 투수 통계`,
       description: `${teamKo} ${koName} 의 시즌 ERA·WHIP·IP·승패·최근 등판.`,
+      alternates: { canonical },
     };
   }
   // 축구/NBA/NHL/LOL 등은 metadata 단에서는 generic title 만 반환 (본문에서 별도 fetch).
@@ -100,6 +104,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: `선수 — ${league}`,
       description: `${league} 선수 프로필 · 통계 · 최근 경기.`,
+      alternates: { canonical },
     };
   }
   const id = Number(pid);
@@ -111,6 +116,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: `${profile.name} — MLB 선발 투수 통계`,
       description: `${profile.team ?? ""} ${profile.name} 의 ${new Date().getUTCFullYear()} 시즌 ERA·WHIP·K/9·최근 등판 결과.`,
+      alternates: { canonical },
     };
   } catch {
     return { title: "선수 미발견" };

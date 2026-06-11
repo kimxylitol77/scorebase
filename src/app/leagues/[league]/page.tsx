@@ -298,10 +298,16 @@ export async function generateMetadata({
   const { league } = await params;
   const sp = await searchParams;
   const upper = league.toUpperCase();
+  // type 필터 뷰는 base 리그 페이지로 canonical — 탭은 부분집합이라 중복 신호 방지
+  const canonical = `/leagues/${upper}`;
   if (!VALID_LEAGUES.includes(upper as ValidLeague)) {
     if ((ALL_LEAGUES as readonly string[]).includes(upper)) {
       const name = LEAGUE_DISPLAY[upper] ?? upper;
-      return { title: `${name} 순위`, description: `${name} 현재 시즌 순위표.` };
+      return {
+        title: `${name} 순위`,
+        description: `${name} 현재 시즌 순위표.`,
+        alternates: { canonical },
+      };
     }
     return { title: "Not Found" };
   }
@@ -315,6 +321,7 @@ export async function generateMetadata({
   return {
     title: `${info.name}${titleSuffix}`,
     description: TYPE_DESC[validType] + " — " + info.copy,
+    alternates: { canonical },
   };
 }
 

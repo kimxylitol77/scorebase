@@ -140,6 +140,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${ko} — 시즌 통계·부상자·관련 기사`,
     description: `${team.league} ${ko}(${team.name}) 팀의 시즌 통계, 최근 폼, 부상자 명단, 관련 기사를 한 페이지에 모았습니다.`,
+    alternates: { canonical: `/teams/${id}` },
   };
 }
 
