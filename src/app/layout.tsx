@@ -167,8 +167,10 @@ export default async function RootLayout({
         {isScoreboard && (
           <footer className="mt-8 border-t border-neutral-200 dark:border-neutral-800 py-5 px-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
             본 스코어는{" "}
+            {/* 사람만 통과: rel=nofollow + robots Disallow(/go) 경유 302 — 봇은 경유 차단 */}
             <a
-              href="https://www.scorebase.kr/"
+              href="/go/scorebase"
+              rel="nofollow"
               className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
             >
               스코어베이스

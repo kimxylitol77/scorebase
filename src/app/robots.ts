@@ -8,7 +8,8 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api/admin"],
+        // /go — 사람 전용 외부 이동 통로 (스코어보드 footer → scorebase). 봇 경유 차단.
+        disallow: ["/admin", "/api/admin", "/go"],
       },
     ],
     sitemap: `${base}/sitemap.xml`,
