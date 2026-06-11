@@ -2,6 +2,12 @@ import { prisma } from "@/lib/db";
 import { DailyArea, HourlyBar } from "@/components/charts/StatsChart";
 import { detectBot, BOT_CATEGORY_LABEL, type BotCategory } from "@/lib/bot-detect";
 import { detectDevice, DEVICE_LABEL, type DeviceType } from "@/lib/device-detect";
+import {
+  classifyReferrer,
+  CHANNEL_META,
+  CHANNEL_ORDER,
+  type TrafficChannel,
+} from "@/lib/referrer-channel";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +73,7 @@ export default async function StatsPage({ searchParams }: Props) {
   const rangeTake = range === "all" ? 200000 : range === "30d" ? 100000 : 30000;
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll] = await Promise.all([
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw] = await Promise.all([
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
@@ -85,6 +91,14 @@ export default async function StatsPage({ searchParams }: Props) {
       orderBy: { ts: "desc" },
     }),
     prisma.pageView.count(),
+    // 유입 채널 — 랜딩 PV 만 (isLanding=true, 2026-06-11 이후 기록). 행 수가 적어
+    // 별도 쿼리가 메인 rangeRaw 에 referrer 컬럼 얹는 것보다 가볍다.
+    prisma.pageView.findMany({
+      where: { ...rangeWhere, isLanding: true },
+      select: { referrer: true, userAgent: true, sessionId: true },
+      take: 50000,
+      orderBy: { ts: "desc" },
+    }),
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -219,6 +233,29 @@ export default async function StatsPage({ searchParams }: Props) {
     .map(([host, e]) => ({ host, pv: e.pv, unique: e.ids.size }))
     .sort((a, b) => b.pv - a.pv);
   const hostTotalPv = hostData.reduce((s, h) => s + h.pv, 0);
+
+  // === 유입 채널 (사람 랜딩 PV 기준) — 구글/네이버/다음/빙/인스타/스레드/X/직접 ===
+  const channelAgg = new Map<TrafficChannel, { count: number; ids: Set<string> }>();
+  const referralDomainAgg = new Map<string, number>();
+  let landingTotal = 0;
+  for (const r of landingRaw) {
+    if (detectBot(r.userAgent).isBot) continue;
+    const { channel, domain } = classifyReferrer(r.referrer);
+    const e = channelAgg.get(channel) ?? { count: 0, ids: new Set<string>() };
+    e.count++;
+    if (r.sessionId) e.ids.add(r.sessionId);
+    channelAgg.set(channel, e);
+    if (domain) referralDomainAgg.set(domain, (referralDomainAgg.get(domain) ?? 0) + 1);
+    landingTotal++;
+  }
+  const channelData = CHANNEL_ORDER.map((c) => ({
+    channel: c,
+    count: channelAgg.get(c)?.count ?? 0,
+    unique: channelAgg.get(c)?.ids.size ?? 0,
+  })).filter((c) => c.count > 0);
+  const topReferralDomains = Array.from(referralDomainAgg.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
 
   // === AI 크롤러 전용 분석 (ChatGPT/Claude/Perplexity 등) ===
   // bots30 / botsRange 안에서 category === "ai" 만 추출 → KPI + top paths + 일별.
@@ -423,6 +460,78 @@ export default async function StatsPage({ searchParams }: Props) {
             </ul>
           )}
         </SectionCard>
+      </section>
+
+      {/* === 유입 채널 === */}
+      <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">🚪</span>
+          <h2 className="text-lg font-bold tracking-tight">유입 채널</h2>
+          <span className="text-xs text-neutral-500">
+            (사람 · 랜딩 기준 · {rangeLabel}) — 구글/네이버/SNS/직접
+          </span>
+        </div>
+
+        <SectionCard title="어디서 들어왔나" subtitle={`유입 ${landingTotal.toLocaleString()}회`}>
+          {channelData.length === 0 ? (
+            <EmptyHint message="유입 기록은 2026-06-11 기능 추가 이후 랜딩 PV부터 쌓입니다. 하루 정도 지나면 채널 분포가 보입니다." />
+          ) : (
+            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {channelData.map((c) => {
+                const meta = CHANNEL_META[c.channel];
+                const max = Math.max(...channelData.map((x) => x.count));
+                const pct = max > 0 ? (c.count / max) * 100 : 0;
+                const share =
+                  landingTotal > 0 ? Math.round((c.count / landingTotal) * 100) : 0;
+                return (
+                  <li key={c.channel} className="py-2.5 flex items-center gap-3 text-sm">
+                    <span className="text-base w-6 text-center">{meta.emoji}</span>
+                    <span className="font-medium truncate w-40 sm:w-48">{meta.label}</span>
+                    <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                      <div className="h-full bg-sky-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="tabular-nums text-neutral-500 font-semibold w-36 text-right">
+                      방문자 {c.unique.toLocaleString()} · {c.count.toLocaleString()}회
+                      <span className="text-neutral-400"> ({share}%)</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </SectionCard>
+
+        {topReferralDomains.length > 0 && (
+          <SectionCard title="기타 사이트 상세 (referral TOP 10)" subtitle={rangeLabel}>
+            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {topReferralDomains.map(([domain, count], i) => {
+                const max = topReferralDomains[0][1];
+                const pct = max > 0 ? (count / max) * 100 : 0;
+                return (
+                  <li key={domain} className="py-2 flex items-center gap-3 text-sm">
+                    <span className="w-6 text-right tabular-nums text-neutral-400 font-bold">
+                      {i + 1}
+                    </span>
+                    <span className="font-mono text-xs truncate max-w-[45%]">{domain}</span>
+                    <div className="flex-1 h-1.5 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                      <div className="h-full bg-sky-400/80" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="tabular-nums text-neutral-500 font-semibold w-10 text-right">
+                      {count}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </SectionCard>
+        )}
+
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          ⓘ 랜딩(외부→사이트 첫 진입) 1회 = 1유입으로 집계 — 내부 페이지 이동은 세지 않습니다.
+          referrer 를 안 남기는 유입(즐겨찾기·주소창 직접 입력 + 카카오톡 등 일부 앱)은 모두
+          &ldquo;직접&rdquo;에 합산되므로, SNS 수치는 하한선으로 보는 게 정확합니다. 인스타그램·스레드·X
+          인앱 브라우저는 대부분 referrer 가 잡힙니다. 기록은 2026-06-11 이후 PV부터.
+        </p>
       </section>
 
       {/* === 도메인별 === */}
