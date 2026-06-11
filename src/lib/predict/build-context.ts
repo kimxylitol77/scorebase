@@ -134,10 +134,12 @@ export function buildMatchContext(
   const before = matches.filter(
     (m) => m.startTime.getTime() < referenceTime.getTime(),
   );
-  // 친선(INTL_FRIENDLY)은 클럽 Elo 부정확 → 국가대표 Elo(world-cup-elos + FIFA랭킹) 사용.
+  // 국가대항(친선·월드컵 본선)은 클럽 Elo 부정확 → 국가대표 Elo(world-cup-elos + FIFA랭킹) 사용.
+  // WORLD_CUP: 본선 매치 히스토리가 적어 calcEloTable 이 전원 1500 — 글이 "동점 Elo" 오판.
+  // predictionEngine 의 NATIONAL_TEAM_LEAGUES 처리와 동일하게 시드 Elo (글-위젯 정합, 2026-06-11).
   let homeElo: number, awayElo: number;
   let eloTable: EloTable | null = null;
-  if (league === "INTL_FRIENDLY" && homeName && awayName) {
+  if ((league === "INTL_FRIENDLY" || league === "WORLD_CUP") && homeName && awayName) {
     homeElo = nationalElo(homeName);
     awayElo = nationalElo(awayName);
   } else {

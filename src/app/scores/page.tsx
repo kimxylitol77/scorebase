@@ -1695,6 +1695,30 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* 축구: 사이드바 제거 — 매치 list 만 가운데 정렬 / 다른 종목: 기존 그대로 */}
       {sport === "soccer" ? (
         <div className="space-y-4">
+            {/* 🏆 월드컵 기간 배너 (2026-06-11 개막 ~ 07-19 결승) — 우승 시뮬 진입점.
+                gradient 는 /predictions 허브 WORLD_CUP 카드와 통일. */}
+            {!leagueFilter &&
+              day >= new Date("2026-06-08T00:00:00+09:00") &&
+              day <= new Date("2026-07-20T00:00:00+09:00") && (
+                <Link
+                  href="/predictions/world_cup"
+                  prefetch={false}
+                  className="block rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+                    <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                      🏆 2026 FIFA 월드컵{" "}
+                      <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                        — 48개국 본선, 북중미 3개국 개최
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-[12px] font-bold text-amber-600 dark:text-amber-400">
+                      우승 확률 시뮬 →
+                    </span>
+                  </span>
+                </Link>
+              )}
+
             {/* 상태 탭 — 전체/라이브/예정/종료 */}
             <SoccerStatusTabs
               active={statusFilter}
@@ -1983,10 +2007,17 @@ function SoccerRowLayout({
   // 동시간 KBO 매치가 맨 위 (사용자: 국야 위로).
   const byStartThenLeague = (a: NormalizedMatch, b: NormalizedMatch) =>
     a.startTime.getTime() - b.startTime.getTime() || a.league.localeCompare(b.league);
-  const liveSorted = [...liveList].sort(byStartThenLeague);
-  const scheduledSorted = [...scheduledList].sort(byStartThenLeague);
-  const finishedSorted = [...finishedList].sort(byStartThenLeague);
+  // 🏆 월드컵 강조 — WC 매치는 일반 상태 섹션에서 분리해 최상단 전용 섹션에 고정
+  // (live → scheduled → finished 순). 대회 기간 외엔 매치가 없으니 자동 비표시.
+  const isWc = (m: NormalizedMatch) => m.league === "WORLD_CUP";
+  const liveSorted = [...liveList].filter((m) => !isWc(m)).sort(byStartThenLeague);
+  const scheduledSorted = [...scheduledList].filter((m) => !isWc(m)).sort(byStartThenLeague);
+  const finishedSorted = [...finishedList].filter((m) => !isWc(m)).sort(byStartThenLeague);
   const postponedSorted = [...postponedList].sort(byStartThenLeague);
+  const wcLive = [...liveList].filter(isWc).sort(byStartThenLeague);
+  const wcScheduled = [...scheduledList].filter(isWc).sort(byStartThenLeague);
+  const wcFinished = [...finishedList].filter(isWc).sort(byStartThenLeague);
+  const wcAll = [...wcLive, ...wcScheduled, ...wcFinished];
   const dayKey = (d: Date): string =>
     new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   const dayLabel = (d: Date): string => {
@@ -2083,10 +2114,41 @@ function SoccerRowLayout({
     </div>
   );
 
+  // 🏆 월드컵 섹션 헤더 (모바일/데스크탑 공용) — LIVE 카운트 + 우승 시뮬 링크
+  const wcSectionHeader = (
+    <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-transparent dark:from-amber-500/15 dark:via-rose-500/10">
+      <span className="text-[13px] font-extrabold tracking-tight text-amber-700 dark:text-amber-400">
+        🏆 2026 FIFA 월드컵
+        {wcLive.length > 0 && (
+          <span className="ml-2 text-[11px] font-bold text-rose-600 dark:text-rose-500">
+            ● LIVE {wcLive.length}
+          </span>
+        )}
+      </span>
+      <Link
+        href="/predictions/world_cup"
+        prefetch={false}
+        className="shrink-0 text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:underline"
+      >
+        우승 확률 시뮬 →
+      </Link>
+    </div>
+  );
+
   return (
     <div className="space-y-5">
       {/* 모바일 */}
       <div className="md:hidden space-y-4">
+        {wcAll.length > 0 && (
+          <section className="rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-fuchsia-600 p-[1.5px] shadow-sm">
+            <div className="rounded-[10.5px] bg-white dark:bg-neutral-950 overflow-hidden">
+              {wcSectionHeader}
+              <ul className="divide-y divide-neutral-200 dark:divide-white/10">
+                {wcAll.map((m) => mobileCardFor(m))}
+              </ul>
+            </div>
+          </section>
+        )}
         {liveSorted.length > 0 && (
           <section className="space-y-2">
             {statusHeader(`● 진행 중 (${liveSorted.length})`, "text-rose-600 dark:text-rose-500", "sm")}
@@ -2141,6 +2203,12 @@ function SoccerRowLayout({
       <div className="hidden md:block overflow-x-auto rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02]">
         <div data-srow-table className="min-w-[860px] px-4 pt-1 pb-16">
           <SoccerLiveRowHeader />
+          {wcAll.length > 0 && (
+            <div className="mt-2 mb-1 rounded-lg border-2 border-amber-400/70 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/[0.04] overflow-hidden">
+              {wcSectionHeader}
+              <div className="px-3 pb-1.5">{wcAll.map(renderRow)}</div>
+            </div>
+          )}
           {liveSorted.length > 0 && (
             <>
               <div className="px-0 pt-3 pb-1 text-[12px] font-bold text-rose-600 dark:text-rose-500">

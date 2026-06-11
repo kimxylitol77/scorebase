@@ -357,6 +357,7 @@ export const PREVIEW_LEAGUES: readonly League[] = [
   "K_LEAGUE_1", // 한국 축구
   "LOL", // e스포츠 (LCK)
   "INTL_FRIENDLY", // 국가대표 친선 (월드컵 평가전 — 국가대표 Elo 기반 winProb)
+  "WORLD_CUP", // 2026 본선 (6/11~7/19) — 6/3 화이트리스트 축소 때 평가전만 넣고 본선 누락됐던 것 복구
 ];
 
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만. (참고용; 발행 필터는 ARTICLE_LEAGUES 화이트리스트로 전환됨) */
