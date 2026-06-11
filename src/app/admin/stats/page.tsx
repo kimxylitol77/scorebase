@@ -9,6 +9,7 @@ import {
   CHANNEL_ORDER,
   type TrafficChannel,
 } from "@/lib/referrer-channel";
+import { getGscOverview, gscPageToPath, type GscRow } from "@/lib/gsc";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -74,7 +75,8 @@ export default async function StatsPage({ searchParams }: Props) {
   const rangeTake = range === "all" ? 200000 : range === "30d" ? 100000 : 30000;
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw] = await Promise.all([
+  // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, gsc] = await Promise.all([
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
@@ -100,6 +102,7 @@ export default async function StatsPage({ searchParams }: Props) {
       take: 50000,
       orderBy: { ts: "desc" },
     }),
+    getGscOverview(),
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -526,7 +529,7 @@ export default async function StatsPage({ searchParams }: Props) {
             subtitle={`${rangeLabel} · 검색 유입 ${topSearchQueries.reduce((s, [, v]) => s + v.count, 0)}회`}
           >
             {topSearchQueries.length === 0 ? (
-              <EmptyHint message="아직 검색어가 잡힌 유입이 없습니다. 네이버·다음·빙 검색 유입부터 쌓입니다 (구글은 검색어 비공개 — 아래 안내 참고)." />
+              <EmptyHint message="아직 검색어가 잡힌 유입이 없습니다. 네이버·다음·빙 검색 유입부터 쌓입니다 (구글 검색어는 아래 '구글 검색 성과' 섹션에서 확인)." />
             ) : (
               <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
                 {topSearchQueries.map(([query, info], i) => {
@@ -619,12 +622,127 @@ export default async function StatsPage({ searchParams }: Props) {
           인앱 브라우저는 대부분 referrer 가 잡힙니다. 기록은 2026-06-11 이후 PV부터.
           <br />
           ⓘ <strong>구글 검색어</strong>는 구글이 referrer 에서 숨겨(2011~) 여기서 볼 수 없습니다 —
-          Google Search Console 연동으로만 확인 가능 (노출·클릭·순위까지). 네이버·다음·빙은 referrer 에
-          검색어가 남아 위 표에 잡힙니다.
+          바로 아래 <strong>&lsquo;구글 검색 성과&rsquo; 섹션</strong>(Search Console 연동)에서 노출·클릭·순위까지
+          확인하세요. 네이버·다음·빙은 referrer 에 검색어가 남아 위 표에 잡힙니다.
           <br />
           ⓘ SNS 프로필·공유 링크에 <code>?utm_source=instagram</code> / <code>threads</code> /{" "}
           <code>x</code> / <code>kakao</code> 를 붙이면 referrer 가 안 남는 인앱 유입도 100% 해당
           채널로 분류됩니다 (카카오톡은 utm 없이는 식별 불가).
+        </p>
+      </section>
+
+      {/* === 구글 검색 성과 (GSC) === */}
+      <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">🔎</span>
+          <h2 className="text-lg font-bold tracking-tight">구글 검색 성과</h2>
+          <span className="text-xs text-neutral-500">
+            (Google Search Console · 확정 데이터 2~3일 지연)
+          </span>
+        </div>
+
+        {!gsc.configured ? (
+          <SectionCard title="GSC 연동 대기" subtitle="GSC_SERVICE_ACCOUNT_JSON 미설정">
+            <div className="text-sm text-neutral-500 leading-relaxed py-2 space-y-2">
+              <p>
+                Google Search Console API 를 연동하면 구글 검색어별
+                노출·클릭·CTR·평균순위가 여기 표시됩니다. 설정 순서:
+              </p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>
+                  Google Cloud Console → 프로젝트 생성 → <strong>Search Console API</strong> 사용 설정
+                </li>
+                <li>서비스 계정 생성 → JSON 키 다운로드</li>
+                <li>
+                  GSC 속성 [설정 → 사용자 및 권한] 에 서비스 계정 이메일을{" "}
+                  <strong>제한된 사용자</strong>로 추가
+                </li>
+                <li>
+                  키 JSON 전체를 <code>GSC_SERVICE_ACCOUNT_JSON</code> 환경변수로 등록
+                  (.env.local + Vercel — 한 줄 JSON 또는 base64)
+                </li>
+              </ol>
+            </div>
+          </SectionCard>
+        ) : gsc.error ? (
+          <SectionCard title="GSC 호출 실패" subtitle="설정 점검 필요">
+            <div className="text-sm text-red-600 dark:text-red-400 py-4 break-all">
+              {gsc.error}
+            </div>
+          </SectionCard>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <KpiCard
+                label="클릭 (최근 7일)"
+                value={gsc.totals7?.clicks ?? 0}
+                accent
+                sub={gsc.totals7 ? `CTR ${(gsc.totals7.ctr * 100).toFixed(1)}%` : undefined}
+              />
+              <KpiCard
+                label="노출 (최근 7일)"
+                value={gsc.totals7?.impressions ?? 0}
+                sub={gsc.totals7 ? `평균 ${gsc.totals7.position.toFixed(1)}위` : undefined}
+              />
+              <KpiCard
+                label="클릭 (최근 28일)"
+                value={gsc.totals28?.clicks ?? 0}
+                sub={gsc.totals28 ? `CTR ${(gsc.totals28.ctr * 100).toFixed(1)}%` : undefined}
+              />
+              <KpiCard
+                label="노출 (최근 28일)"
+                value={gsc.totals28?.impressions ?? 0}
+                sub={gsc.totals28 ? `평균 ${gsc.totals28.position.toFixed(1)}위` : undefined}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SectionCard
+                title="구글 검색어 TOP 20"
+                subtitle={`최근 7일 (${gsc.range7.start} ~ ${gsc.range7.end})`}
+              >
+                {gsc.queries7.length === 0 ? (
+                  <EmptyHint message="해당 기간 구글 검색 데이터가 없습니다. GSC 는 2~3일 지연되므로 최근 유입은 아직 안 보일 수 있습니다." />
+                ) : (
+                  <GscTable rows={gsc.queries7} keyLabel="검색어" />
+                )}
+              </SectionCard>
+
+              <SectionCard
+                title="구글 검색어 TOP 20"
+                subtitle={`최근 28일 (${gsc.range28.start} ~ ${gsc.range28.end})`}
+              >
+                {gsc.queries28.length === 0 ? (
+                  <EmptyHint message="해당 기간 구글 검색 데이터가 없습니다." />
+                ) : (
+                  <GscTable rows={gsc.queries28} keyLabel="검색어" />
+                )}
+              </SectionCard>
+            </div>
+
+            <SectionCard
+              title="클릭 많은 페이지 TOP 10"
+              subtitle={`최근 28일 (${gsc.range28.start} ~ ${gsc.range28.end}) · 구글 검색 유입`}
+            >
+              {gsc.pages28.length === 0 ? (
+                <EmptyHint message="해당 기간 구글 검색으로 클릭된 페이지가 없습니다." />
+              ) : (
+                <GscTable rows={gsc.pages28} keyLabel="페이지" isPage />
+              )}
+            </SectionCard>
+          </>
+        )}
+
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          ⓘ GSC 데이터는 구글이 <strong>2~3일 후 확정</strong>하므로 오늘·어제 검색 유입은 아직
+          반영되지 않습니다 (조회 종료일 = 오늘−3일, 구글 PT 기준 일자). 수치는 1시간 캐시되어
+          Search Console 웹 화면과 약간 차이날 수 있습니다.
+          {gsc.siteUrl && (
+            <>
+              {" "}
+              연동 속성: <code>{gsc.siteUrl}</code>
+            </>
+          )}
         </p>
       </section>
 
@@ -962,5 +1080,74 @@ function EmptyHint({ message }: { message?: string } = {}) {
     <div className="text-sm text-neutral-500 py-8 text-center">
       {message ?? "아직 데이터가 충분하지 않습니다."}
     </div>
+  );
+}
+
+/** GSC 검색어/페이지 공용 표 — 노출·클릭·CTR·평균순위. isPage 면 키를 path 로 표시 + 링크. */
+function GscTable({
+  rows,
+  keyLabel,
+  isPage,
+}: {
+  rows: GscRow[];
+  keyLabel: string;
+  isPage?: boolean;
+}) {
+  return (
+    <table className="w-full text-sm table-fixed">
+      <thead>
+        <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+          <th className="text-left font-medium pb-2 pr-2">{keyLabel}</th>
+          <th className="text-right font-medium pb-2 px-1 w-14">클릭</th>
+          <th className="text-right font-medium pb-2 px-1 w-20">노출</th>
+          <th className="text-right font-medium pb-2 px-1 w-14">CTR</th>
+          <th className="text-right font-medium pb-2 pl-1 w-14">순위</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        {rows.map((r, i) => {
+          const key = r.keys[0] ?? "";
+          const display = isPage ? gscPageToPath(key) : key;
+          return (
+            <tr key={key || i}>
+              <td className="py-2 pr-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5 shrink-0 text-right tabular-nums text-neutral-400 font-bold text-xs">
+                    {i + 1}
+                  </span>
+                  {isPage ? (
+                    <a
+                      href={key}
+                      target="_blank"
+                      rel="noopener"
+                      className="font-mono text-xs truncate hover:underline"
+                      title={display}
+                    >
+                      {display}
+                    </a>
+                  ) : (
+                    <span className="font-medium truncate" title={display}>
+                      {display}
+                    </span>
+                  )}
+                </div>
+              </td>
+              <td className="py-2 px-1 text-right tabular-nums font-semibold">
+                {r.clicks.toLocaleString()}
+              </td>
+              <td className="py-2 px-1 text-right tabular-nums text-neutral-500">
+                {r.impressions.toLocaleString()}
+              </td>
+              <td className="py-2 px-1 text-right tabular-nums text-neutral-500">
+                {(r.ctr * 100).toFixed(1)}%
+              </td>
+              <td className="py-2 pl-1 text-right tabular-nums text-neutral-500">
+                {r.position.toFixed(1)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }

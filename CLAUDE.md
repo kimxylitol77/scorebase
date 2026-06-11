@@ -129,6 +129,7 @@ OPENAI_MODEL=gpt-4o-mini
 ANTHROPIC_API_KEY         # 챗봇 (현재 비활성)
 API_FOOTBALL_KEY API_BASEBALL_KEY  # 같은 값
 FOOTBALL_DATA_KEY ODDS_API_KEY
+GSC_SERVICE_ACCOUNT_JSON  # Google Search Console 서비스 계정 키 JSON (admin/stats 검색 성과)
 ADMIN_USERNAME ADMIN_PASSWORD ADMIN_SECRET
 SITE_URL=https://scorebase.kr SITE_NAME=Scorebase
 CRON_SECRET
@@ -166,7 +167,6 @@ npx prisma db push --skip-generate && npx prisma generate
 |---|---|---|---|
 | 선수 이름 한글화 (Player 테이블 + AI 번역 캐시) | 1.5h | 월 ~100원 | 낮 |
 | 축구 라인업 cron 빈도 6h → 4h | 1분 | 0 | 낮 (8월 새 시즌 전) |
-| Google Search Console API 통합 (검색어 분석) | 1~2h | 0 | 중간 |
 | Naver Search Console 등록 | 5분 사용자 직접 | 0 | 중간 |
 | KBO 선발 투수 — Data Sports Group 영업 문의 | — | $200+/월 | 검토만 |
 | 챗봇 활성화 — Anthropic 크레딧 충전 (사용자 본인) | — | — | — |
