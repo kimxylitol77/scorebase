@@ -178,7 +178,64 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       coachRows.push({ club: teamName, start: joinedYr, end: null });
     }
   }
-  const coachTimeline = [...coachRows].reverse(); // 최신 위
+  // === 우승 트로피를 경력 구간에 배치 — "어디서 어떤 우승" 이 타임라인에서 바로 보이게 ===
+  // honors 클럽명은 영문(위키 Honours), career 는 한글(Wikidata ko) → 연도를 1차 신호로,
+  // 전환 연도처럼 구간이 겹치면 클럽명 유사도(양방향 normalize 포함)로 판별.
+  const seasonEndYear = (s: string): number | null => {
+    const m = /^(\d{4})(?:[–-](\d{2,4}))?/.exec(s.trim());
+    if (!m) return null;
+    const a = Number(m[1]);
+    if (!m[2]) return a;
+    const b = m[2].length === 2 ? Math.floor(a / 100) * 100 + Number(m[2]) : Number(m[2]);
+    return b < a ? b + 100 : b; // "1999–00" → 2000
+  };
+  // Wikidata 가 재계약을 행으로 쪼개는 것 정리 — 인접 동일 클럽 구간 병합
+  const mergedRows: CareerRow[] = [];
+  for (const r of coachRows) {
+    const last = mergedRows[mergedRows.length - 1];
+    if (last && norm(last.club) === norm(r.club) && (r.start ?? 0) <= (last.end ?? 9999) + 1) {
+      last.end = last.end == null || r.end == null ? null : Math.max(last.end, r.end);
+      if (r.start != null && (last.start == null || r.start < last.start)) last.start = r.start;
+    } else {
+      mergedRows.push({ ...r });
+    }
+  }
+  type StintTrophy = { comp: string; compKo: string | null; seasons: string[] };
+  type TimelineRow = CareerRow & { trophies: StintTrophy[] };
+  const tlRows: TimelineRow[] = mergedRows.map((r) => ({ ...r, trophies: [] }));
+  const unplacedHonors: HonorRow[] = []; // 구간 매칭 실패분 — 클럽명 보존해 별도 표기
+  for (const h of honors) {
+    if (h.club === "Individual") continue;
+    const buckets = new Map<number, string[]>();
+    const unplaced: string[] = [];
+    for (const s of h.seasons) {
+      const y = seasonEndYear(s);
+      let idx = -1;
+      if (y != null) {
+        const cands = tlRows
+          .map((r, i) => ({ r, i }))
+          .filter(({ r }) => (r.start ?? -9999) <= y && y <= (r.end ?? 9999));
+        if (cands.length === 1) idx = cands[0].i;
+        else if (cands.length > 1) {
+          const hn = norm(toKoreanTeamName(h.club) || h.club);
+          const en = norm(h.club);
+          const byName = cands.find(({ r }) => {
+            const rn = norm(r.club);
+            return rn.includes(hn) || hn.includes(rn) || rn.includes(en) || en.includes(rn);
+          });
+          idx = (byName ?? cands[cands.length - 1]).i;
+        }
+      }
+      if (idx >= 0) buckets.set(idx, [...(buckets.get(idx) ?? []), s]);
+      else unplaced.push(s);
+    }
+    for (const [idx, seasons] of buckets) {
+      tlRows[idx].trophies.push({ comp: h.comp, compKo: h.compKo, seasons });
+    }
+    if (unplaced.length) unplacedHonors.push({ ...h, seasons: unplaced });
+  }
+  const coachTimeline = [...tlRows].reverse(); // 최신 위
+  const individualHonors = honors.filter((h) => h.club === "Individual");
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
@@ -261,8 +318,92 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
         </section>
       )}
 
-      {/* 우승 기록 — 클럽별 그룹 (영문 위키 Honours) */}
-      {honorsByClub.length > 0 && (
+      {/* 감독 경력 타임라인 — 재임 구간 안에 우승 트로피 표시 (어디서 어떤 우승인지 한눈에) */}
+      {coachTimeline.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">
+            감독 경력{" "}
+            {trophyTotal > 0 && (
+              <span className="text-sm font-normal text-neutral-400">
+                🏆 우승 총 <span className="font-bold text-amber-600 dark:text-amber-400">{trophyTotal}</span>회
+              </span>
+            )}
+          </h2>
+          <div className="relative pl-4 space-y-4 before:absolute before:left-[3px] before:top-2 before:bottom-2 before:w-px before:bg-neutral-200 dark:before:bg-neutral-800">
+            {coachTimeline.map((r, i) => {
+              const stintCount = r.trophies.reduce((s, t) => s + t.seasons.length, 0);
+              return (
+                <div key={i} className="relative">
+                  <span
+                    className={`absolute -left-[17px] top-1.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-neutral-950 ${
+                      r.end == null ? "bg-cyan-500" : stintCount > 0 ? "bg-amber-400" : "bg-neutral-300 dark:bg-neutral-600"
+                    }`}
+                  />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-neutral-400 tabular-nums w-[84px] shrink-0">{yrRange(r.start, r.end)}</span>
+                    <span className={`font-semibold ${r.end == null ? "" : "text-neutral-600 dark:text-neutral-300"}`}>
+                      {toKoreanTeamName(r.club) || r.club}
+                    </span>
+                    {r.end == null && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300">현직</span>
+                    )}
+                    {stintCount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+                        🏆 {stintCount}
+                      </span>
+                    )}
+                  </div>
+                  {r.trophies.length > 0 && (
+                    <div className="mt-1.5 ml-6 sm:ml-[92px] space-y-1">
+                      {r.trophies.map((t, j) => (
+                        <div key={j} className="flex items-baseline gap-2 flex-wrap text-sm">
+                          <span aria-hidden>🏆</span>
+                          <span className="font-medium text-amber-700 dark:text-amber-400">
+                            {t.compKo || t.comp}
+                            {t.seasons.length > 1 && <span> ×{t.seasons.length}</span>}
+                          </span>
+                          <span className="text-xs text-neutral-500 tabular-nums">{t.seasons.join(" · ")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {unplacedHonors.length > 0 && (
+            <div className="mt-3 ml-4 text-sm space-y-1">
+              {unplacedHonors.map((h, i) => (
+                <div key={i} className="flex items-baseline gap-2 flex-wrap text-neutral-500">
+                  <span aria-hidden>🏆</span>
+                  <span className="font-medium">{h.compKo || h.comp}</span>
+                  <span className="text-xs">({toKoreanTeamName(h.club) || h.club})</span>
+                  <span className="text-xs tabular-nums">{h.seasons.join(" · ")}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {individualHonors.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
+              <div className="font-bold mb-2 text-sm">🎖 개인 수상</div>
+              <div className="space-y-1.5">
+                {individualHonors.map((h, i) => (
+                  <div key={i} className="flex items-baseline gap-2 flex-wrap text-sm">
+                    <span className="font-semibold">
+                      {h.compKo || h.comp}
+                      {h.seasons.length > 1 && <span className="text-amber-600 dark:text-amber-400"> ×{h.seasons.length}</span>}
+                    </span>
+                    <span className="text-xs text-neutral-500 tabular-nums">{h.seasons.join(" · ")}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* 경력 데이터가 없는 감독 — 우승 기록만이라도 클럽별 그룹으로 (폴백) */}
+      {coachTimeline.length === 0 && honorsByClub.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold mb-3">
             🏆 우승 기록 <span className="text-sm font-normal text-neutral-400">총 {trophyTotal}회</span>
@@ -299,29 +440,6 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
                 {s.fromTeam && <span className="text-xs text-neutral-500 truncate">← {s.fromTeam}</span>}
                 <span className="ml-auto font-bold text-cyan-600 dark:text-cyan-400 tabular-nums shrink-0">€{s.fee}M</span>
               </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* 감독 경력 타임라인 */}
-      {coachTimeline.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold mb-3">감독 경력</h2>
-          <div className="relative pl-4 space-y-3 before:absolute before:left-[3px] before:top-2 before:bottom-2 before:w-px before:bg-neutral-200 dark:before:bg-neutral-800">
-            {coachTimeline.map((r, i) => (
-              <div key={i} className="relative">
-                <span className={`absolute -left-[17px] top-1.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-neutral-950 ${r.end == null ? "bg-cyan-500" : "bg-neutral-300 dark:bg-neutral-600"}`} />
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-neutral-400 tabular-nums w-[84px] shrink-0">{yrRange(r.start, r.end)}</span>
-                  <span className={`font-semibold ${r.end == null ? "" : "text-neutral-600 dark:text-neutral-300"}`}>
-                    {toKoreanTeamName(r.club) || r.club}
-                  </span>
-                  {r.end == null && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300">현직</span>
-                  )}
-                </div>
-              </div>
             ))}
           </div>
         </section>
