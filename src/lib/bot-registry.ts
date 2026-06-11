@@ -82,6 +82,21 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "TheSports 공식 한국어명(type=5) → 축구 선수 nameKo (매일 03:30)",
   },
+  "mac-mini-nightly-report": {
+    ko: "야간 운영 리포트",
+    intervalMs: 1 * DAY,
+    role: "일일 운영 요약 리포트 (매일 07:00)",
+  },
+  "mac-mini-code-diagnostics": {
+    ko: "코드 진단",
+    intervalMs: 1 * DAY,
+    role: "repo 정적 진단 (매일 21:00)",
+  },
+  "mac-mini-daily-football-player-names": {
+    ko: "축구 선수명 일일 보강",
+    intervalMs: 1 * DAY,
+    role: "라인업 신규 축구 선수 한글명 보강 (매일 04:10)",
+  },
   "lightsail-baseball-player-names": {
     ko: "야구 선수명 사전 보강",
     intervalMs: 12 * HOUR,
