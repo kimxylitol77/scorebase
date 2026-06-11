@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
+import rawHonors from "../../../../data/coach-honors.json";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,18 @@ interface CoachCareer {
   coachCareer: CareerRow[]; playerCareer: CareerRow[];
 }
 
+interface HonorRow { club: string; comp: string; compKo: string | null; seasons: string[] }
+
 const COACHES = rawCoaches as Record<string, CoachSnap>;
 const CAREERS = rawCareers as Record<string, CoachCareer>;
+// 우승 기록 — 영문 위키 Honours(Manager) 파싱. 생성: scripts/build-coach-honors.ts
+const HONORS = rawHonors as Record<string, HonorRow[]>;
 const LEAGUE_LABEL: Record<string, string> = {
   EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1",
-  K_LEAGUE_1: "K리그1", SAUDI_PL: "사우디 프로리그", MLS: "MLS",
+  K_LEAGUE_1: "K리그1", SAUDI_PL: "사우디 프로리그", MLS: "MLS", WORLD_CUP: "FIFA 월드컵 2026",
 };
+// 국가대표 리그 — 팀 링크를 /national-teams 로 (클럽은 /transfers 스쿼드·/teams)
+const NATL = new Set(["WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON", "CONCACAF_GOLD", "INTL_FRIENDLY"]);
 
 // coach id → 현 소속 ts team id (team-coaches.json 이 팀 키 구조라 역인덱스)
 const TEAM_BY_COACH: Record<string, string> = {};
@@ -114,6 +121,49 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
     return [...cnt.entries()].sort((a, b) => b[1] - a[1]).map(([f, c]) => (c > 1 ? `${f} ×${c}` : f)).join(" · ");
   })();
 
+  // 우승 기록 (클럽 등장 순 그룹) + 총 트로피 수
+  const honors = HONORS[id] ?? [];
+  const honorsByClub: Array<{ club: string; rows: HonorRow[] }> = [];
+  for (const h of honors) {
+    const g = honorsByClub.find((x) => x.club === h.club);
+    if (g) g.rows.push(h);
+    else honorsByClub.push({ club: h.club, rows: [h] });
+  }
+  // 총 트로피 수 = 팀 트로피만 (개인 수상 제외)
+  const trophyTotal = honors.filter((h) => h.club !== "Individual").reduce((s, h) => s + h.seasons.length, 0);
+
+  // 재임 중 주요 영입 — 부임 이후 현 팀 도착 이적 TOP (이적료 순, 커버 리그만 데이터 존재)
+  // ts joined 없으면(예: 엔리케) Wikidata 경력의 현직 시작연도 7/1 로 근사 (감독 교체는 대부분 여름)
+  const curStintStart = (career?.coachCareer ?? []).find((r) => r.end == null)?.start ?? null;
+  const joinedTs = snap.joined || (curStintStart ? Date.UTC(curStintStart, 6, 1) / 1000 : null);
+  let signings: Array<{ playerId: string; name: string; fromTeam: string | null; fee: number; time: number }> = [];
+  if (joinedTs) {
+    const rows = await prisma.footballTransfer.findMany({
+      where: { toTeamId: teamTsId, transferTime: { gte: joinedTs }, transferFee: { gt: 0 } },
+      orderBy: { transferFee: "desc" },
+      take: 8,
+    }).catch(() => []);
+    const pids = [...new Set(rows.map((r) => r.playerId))];
+    const players = pids.length
+      ? await prisma.theSportsPlayer.findMany({
+          where: { id: { in: pids } },
+          select: { id: true, nameKo: true, name: true },
+        }).catch(() => [])
+      : [];
+    const pMap = new Map(players.map((p) => [p.id, p]));
+    const seen = new Set<string>();
+    signings = rows
+      .filter((r) => { const k = `${r.playerId}|${r.transferFee}`; if (seen.has(k)) return false; seen.add(k); return true; })
+      .slice(0, 5)
+      .map((r) => ({
+        playerId: r.playerId,
+        name: pMap.get(r.playerId)?.nameKo || pMap.get(r.playerId)?.name || "선수",
+        fromTeam: r.fromTeamName ? toKoreanTeamName(r.fromTeamName) || r.fromTeamName : null,
+        fee: Math.round((r.transferFee || 0) / 1e6),
+        time: r.transferTime || 0,
+      }));
+  }
+
   // 감독 경력 — Wikidata 가 현 부임을 아직 반영 못했으면 ts joined 로 현 팀 행 합성
   const norm = (s: string) => s.replace(/\s|FC|CF|AFC|SC/gi, "").toLowerCase();
   let coachRows: CareerRow[] = career?.coachCareer ?? [];
@@ -132,8 +182,17 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
-      <Link href={ourTeamId != null ? `/transfers?view=team&team=${ourTeamId}` : "/transfers"} className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
-        ← {teamName ? `${teamName} 스쿼드` : "이적시장"}
+      <Link
+        href={
+          ourTeamId != null
+            ? teamLeague && NATL.has(teamLeague)
+              ? `/national-teams/${ourTeamId}`
+              : `/transfers?view=team&team=${ourTeamId}`
+            : "/transfers"
+        }
+        className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+      >
+        ← {teamName ? (teamLeague && NATL.has(teamLeague) ? `${teamName} 대표팀` : `${teamName} 스쿼드`) : "이적시장"}
       </Link>
 
       {/* 헤더 */}
@@ -163,7 +222,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
           </div>
           {teamName && (
             <Link
-              href={ourTeamId != null ? `/teams/${ourTeamId}` : "#"}
+              href={ourTeamId != null ? (teamLeague && NATL.has(teamLeague) ? `/national-teams/${ourTeamId}` : `/teams/${ourTeamId}`) : "#"}
               className="text-sm text-neutral-500 flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition w-fit"
             >
               {teamLogo && (
@@ -199,6 +258,49 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
               <div className="text-xl font-black tabular-nums">{formationSummary}</div>
             </div>
           )}
+        </section>
+      )}
+
+      {/* 우승 기록 — 클럽별 그룹 (영문 위키 Honours) */}
+      {honorsByClub.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">
+            🏆 우승 기록 <span className="text-sm font-normal text-neutral-400">총 {trophyTotal}회</span>
+          </h2>
+          <div className="space-y-4">
+            {honorsByClub.map((g) => (
+              <div key={g.club} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div className="font-bold mb-2">{g.club === "Individual" ? "🎖 개인 수상" : toKoreanTeamName(g.club) || g.club}</div>
+                <div className="space-y-1.5">
+                  {g.rows.map((h, i) => (
+                    <div key={i} className="flex items-baseline gap-2 flex-wrap text-sm">
+                      <span className="font-semibold">
+                        {h.compKo || h.comp}
+                        {h.seasons.length > 1 && <span className="text-amber-600 dark:text-amber-400"> ×{h.seasons.length}</span>}
+                      </span>
+                      <span className="text-xs text-neutral-500 tabular-nums">{h.seasons.join(" · ")}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 재임 중 주요 영입 — 우리 이적 DB (커버 리그만) */}
+      {signings.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">재임 중 주요 영입</h2>
+          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-900">
+            {signings.map((s) => (
+              <Link key={`${s.playerId}-${s.fee}`} href={`/transfers/${s.playerId}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition">
+                <span className="font-semibold truncate">{s.name}</span>
+                {s.fromTeam && <span className="text-xs text-neutral-500 truncate">← {s.fromTeam}</span>}
+                <span className="ml-auto font-bold text-cyan-600 dark:text-cyan-400 tabular-nums shrink-0">€{s.fee}M</span>
+              </Link>
+            ))}
+          </div>
         </section>
       )}
 

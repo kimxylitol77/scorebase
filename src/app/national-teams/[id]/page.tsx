@@ -8,28 +8,18 @@ import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import rawCoachNames from "../../../../data/coach-names.json";
+import rawCoaches from "../../../../data/team-coaches.json";
 
 export const dynamic = "force-dynamic";
 
 const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글명 (build-coach-names-haiku)
+// 감독 스냅샷 (ts coach/list 정적 수집 — Vercel 은 ts 직접 호출 불가(IP whitelist)라 정적 json 사용)
+// 키 = ts team id. 생성: scripts/build-team-coaches.ts (WC 국대 포함)
+const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
 const NATL = new Set(["WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON", "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL"]);
 const POS_GROUPS: Array<[string, string]> = [["G", "골키퍼"], ["D", "수비수"], ["M", "미드필더"], ["F", "공격수"]];
 
 interface SquadPlayer { id: string; name: string; position: string; shirt: number; photo: string; apps: number }
-
-// 감독 — TheSports coach/list (coach/detail 은 권한 없음). 이름·사진·나이·국적·선호 포메이션.
-async function fetchCoach(coachId: string | null): Promise<{ name: string; logo: string; age: number; nationality: string; formation: string } | null> {
-  const U = process.env.THESPORTS_USER, S = process.env.THESPORTS_SECRET;
-  if (!coachId || !U || !S) return null;
-  try {
-    const r = await fetch(`https://api.thesports.com/v1/football/coach/list?user=${U}&secret=${S}&uuid=${coachId}`, { next: { revalidate: 3600 } });
-    const j = (await r.json()) as { results?: Array<{ name: string; logo: string; age: number; nationality: string; preferred_formation: string }> };
-    const c = j.results?.[0];
-    return c ? { name: c.name, logo: c.logo, age: c.age, nationality: c.nationality, formation: c.preferred_formation } : null;
-  } catch {
-    return null;
-  }
-}
 
 // 국가 통합 team id 들 (같은 ts team id → WORLD_CUP + INTL_FRIENDLY 등 row 합침)
 async function unifyTeamIds(teamId: number): Promise<number[]> {
@@ -103,7 +93,12 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     : [];
   const hasMv = new Set(mvRows.map((m) => m.id));
 
-  const coach = await fetchCoach(coachId);
+  // 감독 — 정적 json (키: ts team id). 라인업 coach_id 는 보조(과거 경기 기준이라 교체 직후 stale 가능).
+  const tsRow = await prisma.teamSourceId.findFirst({
+    where: { teamId, source: "thesports" },
+    select: { externalId: true },
+  });
+  const coach = (tsRow && COACHES[tsRow.externalId]) || null;
   const koCountry = toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name;
   const flag = fifaFlag(team.name);
   const fifaRank = getFifaRank(team.name, koCountry);
@@ -135,7 +130,10 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
           </div>
         </div>
         {coach && (
-          <div className="mt-5 flex items-center gap-3 bg-white/10 rounded-2xl p-3 backdrop-blur-sm">
+          <Link
+            href={coach.id ? `/coaches/${coach.id}` : "#"}
+            className="mt-5 flex items-center gap-3 bg-white/10 rounded-2xl p-3 backdrop-blur-sm hover:bg-white/15 transition"
+          >
             {coach.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={coach.logo} alt={coach.name} className="w-14 h-14 rounded-full object-cover bg-white/20 ring-2 ring-white/30" />
@@ -144,10 +142,15 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
             )}
             <div className="min-w-0">
               <div className="text-[11px] uppercase tracking-wider text-white/60">감독</div>
-              <div className="font-bold text-lg leading-tight truncate">{(coachId && COACH_KO[coachId]) || coach.name}</div>
-              <div className="text-xs text-white/70">{coach.nationality} · {coach.age}세 · 선호 {coach.formation}</div>
+              <div className="font-bold text-lg leading-tight truncate">
+                {coach.nameKo || (coach.id && COACH_KO[coach.id]) || (coachId && COACH_KO[coachId]) || coach.name}
+              </div>
+              <div className="text-xs text-white/70">
+                {coach.nationality}{coach.age ? ` · ${coach.age}세` : ""}{coach.preferredFormation ? ` · 선호 ${coach.preferredFormation}` : ""}
+                <span className="text-white/90"> · 프로필 →</span>
+              </div>
             </div>
-          </div>
+          </Link>
         )}
       </div>
 

@@ -76,12 +76,40 @@ async function haikuTranslate(names: string[]): Promise<Record<string, string>> 
   } catch { return {}; }
 }
 
+interface TablesResp { code: number; results?: { tables?: Array<{ rows?: Array<{ team_id?: string }> }> } }
+
 async function main() {
   const big5Rows = await prisma.teamSourceId.findMany({
     where: { source: "thesports", team: { league: { in: BIG5 } } },
     select: { externalId: true },
   });
-  const ourTeams = new Set([...big5Rows.map((r) => r.externalId), ...Object.keys(EXPANSION)]);
+  // 월드컵 국가대표 — TeamSourceId(WORLD_CUP) + WC season 순위표(미매핑 국가 보충)
+  const wcRows = await prisma.teamSourceId.findMany({
+    where: { source: "thesports", team: { league: "WORLD_CUP" } },
+    select: { externalId: true },
+  });
+  const mapping = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "..", "src", "lib", "sports", "thesports", "league-id-mapping.json"), "utf8"),
+  ) as Array<{ code: string; tsSeasonId?: string }>;
+  const wcSeason = mapping.find((m) => m.code === "WORLD_CUP")?.tsSeasonId;
+  const wcSeasonIds: string[] = [];
+  if (wcSeason) {
+    try {
+      const r = await fetch(
+        `https://api.thesports.com/v1/football/season/recent/table/detail?uuid=${wcSeason}&user=${TS_USER}&secret=${TS_SECRET}`,
+        { signal: AbortSignal.timeout(25000) },
+      );
+      const d = (await r.json()) as TablesResp;
+      for (const t of d.results?.tables ?? []) for (const row of t.rows ?? []) if (row.team_id) wcSeasonIds.push(row.team_id);
+    } catch { /* 보충 실패해도 TeamSourceId 분으로 진행 */ }
+  }
+  const ourTeams = new Set([
+    ...big5Rows.map((r) => r.externalId),
+    ...Object.keys(EXPANSION),
+    ...wcRows.map((r) => r.externalId),
+    ...wcSeasonIds,
+  ]);
+  console.log(`대상: 빅5 ${big5Rows.length} + 확장 ${Object.keys(EXPANSION).length} + WC ${new Set([...wcRows.map((r) => r.externalId), ...wcSeasonIds]).size}`);
   await prisma.$disconnect();
 
   const coaches = await fetchAllCoaches();
