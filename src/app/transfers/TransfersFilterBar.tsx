@@ -1,11 +1,15 @@
 "use client";
 // 이적시장 필터바 — 카테고리(전체/리그별/팀별/국가별/포지션별/최신 이적/빅딜/IN·OUT) + 컨텍스트 하위필터 + 선수·팀 검색.
 // 팀·국가는 검색 가능한 드롭다운(선택/바깥클릭 시 닫힘), 리그·포지션은 칩.
+// 검색창은 /api/transfers/suggest 자동완성(자모 분해·초성 매칭) — 선수 클릭 → 개인페이지, 팀 클릭 → 스쿼드 뷰.
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 
 interface TeamOpt { id: number; name: string; count: number }
 interface CountryOpt { name: string; flag: string | null; count: number }
+interface SugPlayer { id: string; name: string; team: string; photo: string | null; value: string }
+interface SugTeam { id: number; name: string; logo: string | null; count: number }
+interface SugRes { players: SugPlayer[]; teams: SugTeam[] }
 
 interface Props {
   view: string;
@@ -69,6 +73,15 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
   const [searchText, setSearchText] = useState(search);
   const wrapRef = useRef<HTMLDivElement>(null);
 
+  // ── 검색 자동완성 ──
+  const [sug, setSug] = useState<SugRes | null>(null);
+  const [sugOpen, setSugOpen] = useState(false);
+  const [hi, setHi] = useState(-1); // 키보드 하이라이트 index (-1 = 없음)
+  const formRef = useRef<HTMLFormElement>(null);
+  const sugCache = useRef(new Map<string, SugRes>());
+  const debRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
   // 뒤로가기 등 라우트 변경 시 검색창 동기화
   useEffect(() => { setSearchText(search); }, [search]);
 
@@ -82,9 +95,45 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
+  // 자동완성 바깥 클릭 닫기 + 언마운트 시 디바운스·요청 정리
+  useEffect(() => {
+    if (!sugOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(e.target as Node)) { setSugOpen(false); setHi(-1); }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [sugOpen]);
+  useEffect(() => () => { if (debRef.current) clearTimeout(debRef.current); abortRef.current?.abort(); }, []);
+
+  const fetchSug = (raw: string) => {
+    const t = raw.trim();
+    if (debRef.current) clearTimeout(debRef.current);
+    if (!t) { setSug(null); setSugOpen(false); setHi(-1); abortRef.current?.abort(); return; }
+    const hit = sugCache.current.get(t);
+    if (hit) { setSug(hit); setSugOpen(true); setHi(-1); return; }
+    debRef.current = setTimeout(async () => {
+      abortRef.current?.abort();
+      const ac = new AbortController();
+      abortRef.current = ac;
+      try {
+        const r = await fetch(`/api/transfers/suggest?q=${encodeURIComponent(t)}`, { signal: ac.signal });
+        if (!r.ok) return;
+        const j = (await r.json()) as SugRes;
+        if (sugCache.current.size > 100) sugCache.current.clear();
+        sugCache.current.set(t, j);
+        setSug(j);
+        setSugOpen(true);
+        setHi(-1);
+      } catch { /* abort — 무시 */ }
+    }, 140);
+  };
+
   const go = (o: Parameters<typeof buildUrl>[0]) => {
     setOpen(null);
     setQ("");
+    setSugOpen(false);
+    setHi(-1);
     router.push(buildUrl(o));
   };
 
@@ -99,11 +148,34 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
   const countryName = country || null;
   const fil = (s: string) => s.toLowerCase().includes(q.toLowerCase());
 
-  const submitSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const runSearch = () => {
     const t = searchText.trim();
     const v = FEED_VIEWS.includes(view) ? "all" : view;
     go({ view: v, league, team, pos, country, q: t || undefined });
+  };
+
+  const submitSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    runSearch();
+  };
+
+  // 하이라이트 index → 항목 실행 (선수 → 개인페이지 / 팀 → 스쿼드 뷰 / 마지막 = 전체 검색)
+  const selectAt = (i: number) => {
+    const ps = sug?.players || [];
+    const ts = sug?.teams || [];
+    if (i < ps.length) { setSugOpen(false); setHi(-1); router.push(`/transfers/${ps[i].id}`); return; }
+    if (i < ps.length + ts.length) { go({ view: "team", team: String(ts[i - ps.length].id) }); return; }
+    runSearch();
+  };
+
+  const onSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing) return; // 한글 IME 조합 중 Enter 중복 방지
+    if (!sugOpen || !sug) return;
+    const total = sug.players.length + sug.teams.length + 1; // +1 = 전체 검색 행
+    if (e.key === "ArrowDown") { e.preventDefault(); setHi((h) => (h + 1) % total); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setHi((h) => (h - 1 + total) % total); }
+    else if (e.key === "Escape") { setSugOpen(false); setHi(-1); }
+    else if (e.key === "Enter" && hi >= 0) { e.preventDefault(); selectAt(hi); }
   };
 
   return (
@@ -117,24 +189,96 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
         ))}
       </div>
 
-      {/* 선수·팀 검색 */}
-      <form onSubmit={submitSearch} className="relative max-w-xs">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none">🔍</span>
+      {/* 선수·팀 검색 — 자동완성 (한 글자·초성부터 매칭) */}
+      <form ref={formRef} onSubmit={submitSearch} className="relative max-w-xs">
+        <span className="absolute left-3 top-[19px] -translate-y-1/2 text-sm text-neutral-400 pointer-events-none">🔍</span>
         <input
           value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={(e) => { setSearchText(e.target.value); fetchSug(e.target.value); }}
+          onFocus={() => { if (searchText.trim() && sug) setSugOpen(true); }}
+          onKeyDown={onSearchKey}
           placeholder="선수·팀 검색"
+          autoComplete="off"
+          spellCheck={false}
           className="w-full pl-9 pr-8 py-2 rounded-xl text-sm border border-neutral-300 dark:border-neutral-700 bg-transparent outline-none focus:border-cyan-500 dark:focus:border-cyan-500 transition"
         />
         {(searchText || search) && (
           <button
             type="button"
             aria-label="검색 지우기"
-            onClick={() => { setSearchText(""); if (search) go({ view, league, team, pos, country }); }}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+            onClick={() => { setSearchText(""); setSug(null); setSugOpen(false); setHi(-1); if (search) go({ view, league, team, pos, country }); }}
+            className="absolute right-2.5 top-[19px] -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
           >
             ✕
           </button>
+        )}
+
+        {sugOpen && sug && (
+          <div className="absolute z-40 top-full left-0 right-0 mt-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl overflow-hidden">
+            <div className="max-h-96 overflow-y-auto py-1">
+              {sug.players.length === 0 && sug.teams.length === 0 && (
+                <p className="px-4 py-3 text-sm text-neutral-400">일치하는 선수·팀 없음</p>
+              )}
+              {sug.players.map((p, i) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => selectAt(i)}
+                  onMouseEnter={() => setHi(i)}
+                  className={`flex items-center gap-2.5 w-full text-left px-3 py-2 ${hi === i ? "bg-neutral-100 dark:bg-neutral-800" : ""}`}
+                >
+                  <span className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                    {p.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.photo} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">{p.name.slice(0, 1)}</span>
+                    )}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold truncate text-neutral-800 dark:text-neutral-100">{p.name}</span>
+                    <span className="block text-xs text-neutral-400 truncate">{p.team}</span>
+                  </span>
+                  <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 shrink-0">{p.value}</span>
+                </button>
+              ))}
+              {sug.teams.length > 0 && (
+                <p className="px-3 pt-2 pb-1 text-[11px] font-bold text-neutral-400 border-t border-neutral-100 dark:border-neutral-800">팀</p>
+              )}
+              {sug.teams.map((t, j) => {
+                const i = sug.players.length + j;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => selectAt(i)}
+                    onMouseEnter={() => setHi(i)}
+                    className={`flex items-center gap-2.5 w-full text-left px-3 py-2 ${hi === i ? "bg-neutral-100 dark:bg-neutral-800" : ""}`}
+                  >
+                    <span className="w-7 h-7 shrink-0 flex items-center justify-center">
+                      {t.logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.logo} alt="" className="w-6 h-6 object-contain" loading="lazy" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-neutral-500">{t.name.slice(0, 1)}</span>
+                      )}
+                    </span>
+                    <span className="flex-1 text-sm font-semibold truncate text-neutral-800 dark:text-neutral-100">{t.name}</span>
+                    <span className="text-xs text-neutral-400 shrink-0">선수 {t.count}명</span>
+                  </button>
+                );
+              })}
+              <button
+                type="submit"
+                onMouseEnter={() => setHi(sug.players.length + sug.teams.length)}
+                className={`flex items-center gap-2 w-full text-left px-3 py-2.5 text-sm text-cyan-600 dark:text-cyan-400 font-semibold border-t border-neutral-100 dark:border-neutral-800 ${
+                  hi === sug.players.length + sug.teams.length ? "bg-neutral-100 dark:bg-neutral-800" : ""
+                }`}
+              >
+                🔍 “{searchText.trim()}” 전체 검색
+              </button>
+            </div>
+          </div>
         )}
       </form>
 
