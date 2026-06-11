@@ -38,21 +38,45 @@ export interface FilledSlot extends Slot {
   player: XIPlayer | null;
 }
 
-// 가치순(desc) 선수 목록 → 슬롯 채움. ① 자기 포지션이 1순위인 빈 슬롯 ② accept 우선순위 최소 빈 슬롯.
+// 가치순(desc) 선수 목록 → 슬롯 채움. 밀어내기(augmenting path) 배치:
+//   각 선수를 accept 순위가 좋은 슬롯부터 시도 — 빈 슬롯이면 배치,
+//   점유돼 있으면 "점유자가 더 싸고 다른 곳으로 옮길 수 있을 때" 연쇄 재배치 후 차지.
+// 단순 그리디(고가 coarse 가 정위치 선점)·2-pass(고가 coarse 가 통째로 탈락) 의
+// 양쪽 함정을 모두 피해 XI 총가치를 사실상 최대화한다 (맨유 케이스로 검증).
 export function pickBestXI(players: XIPlayer[]): FilledSlot[] {
   const slots: FilledSlot[] = SLOT_DEFS.map((s) => ({ ...s, player: null }));
+  const slotsFor = (p: XIPlayer) =>
+    slots
+      .map((s) => ({ s, idx: s.accept.indexOf(p.posCode!) }))
+      .filter((x) => x.idx >= 0)
+      .sort((a, b) => a.idx - b.idx)
+      .map((x) => x.s);
+
+  function tryPlace(p: XIPlayer, visited: Set<string>): boolean {
+    const cand = slotsFor(p);
+    for (const s of cand) {
+      if (!s.player) { s.player = p; return true; }
+    }
+    // 빈 자리 없음 — 점유자보다 ① 가치 우위 또는 ② 동가+적합도(accept 순위) 우위면 차지.
+    // 점유자는 연쇄 재배치 시도 — 실패해도 교체 유지 (총가치/적합도가 증가하는 방향).
+    for (const s of cand) {
+      const occ = s.player!;
+      if (visited.has(s.key)) continue;
+      const pIdx = s.accept.indexOf(p.posCode!);
+      const oIdx = occ.posCode ? s.accept.indexOf(occ.posCode) : 99;
+      const better = occ.value < p.value || (occ.value === p.value && oIdx > pIdx);
+      if (!better) continue;
+      visited.add(s.key);
+      s.player = p;
+      tryPlace(occ, visited);
+      return true;
+    }
+    return false;
+  }
+
   for (const p of players) {
     if (!p.posCode) continue;
-    let slot = slots.find((s) => !s.player && s.accept[0] === p.posCode);
-    if (!slot) {
-      let bestIdx = Infinity;
-      for (const s of slots) {
-        if (s.player) continue;
-        const idx = s.accept.indexOf(p.posCode);
-        if (idx >= 0 && idx < bestIdx) { slot = s; bestIdx = idx; }
-      }
-    }
-    if (slot) slot.player = p;
+    tryPlace(p, new Set());
     if (slots.every((s) => s.player)) break;
   }
   return slots;
