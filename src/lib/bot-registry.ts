@@ -77,6 +77,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "sitemap 전수 + 홈 BFS 크롤로 404/soft 404/5xx 감시 (하루 1회)",
   },
+  "mac-mini-daily-official-korean": {
+    ko: "공식 한글명 일일 적용",
+    intervalMs: 1 * DAY,
+    role: "TheSports 공식 한국어명(type=5) → 축구 선수 nameKo (매일 03:30)",
+  },
   "lightsail-baseball-player-names": {
     ko: "야구 선수명 사전 보강",
     intervalMs: 12 * HOUR,
