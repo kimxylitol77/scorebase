@@ -54,6 +54,11 @@ export default async function CompetitionStatsSection({
   const afId = tsPlayerToAf(tsId);
   if (!afId) return null;
   const season = getApiFootballSeason(new Date(), league ?? "EPL");
+  // 캘린더제 리그(MLS·K·J·브라질 등)는 단일 연도 시즌 — "2026-27" 표기 방지
+  const CALENDAR_LEAGUES = new Set(["MLS", "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "BRASILEIRAO", "ALLSVENSKAN", "ELITESERIEN", "CSL"]);
+  const seasonLabel = CALENDAR_LEAGUES.has(league ?? "")
+    ? `${season}`
+    : `${season}-${(season + 1) % 100}`;
   const profile = await getProfile(afId, season).catch(() => null);
   if (!profile) return null;
   const rows = (profile.stats ?? [])
@@ -65,7 +70,7 @@ export default async function CompetitionStatsSection({
     <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
       <div className="px-4 pt-3 pb-2 flex items-baseline justify-between">
         <h2 className="text-sm font-bold">🏆 현 시즌 대회별 스탯</h2>
-        <span className="text-[11px] text-neutral-500">{season}-{(season + 1) % 100} 시즌 · 대회 {rows.length}개</span>
+        <span className="text-[11px] text-neutral-500">{seasonLabel} 시즌 · 대회 {rows.length}개</span>
       </div>
       <table className="w-full text-sm">
         <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
