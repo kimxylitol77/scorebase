@@ -57,6 +57,23 @@ const TS_COUNTRY_KO: Record<string, string> = {
   "Benin": "베냉",
   "Madagascar": "마다가스카르",
   "Kenya": "케냐",
+  "Faroe Islands": "페로 제도",
+  "Malta": "몰타",
+  "Zambia": "잠비아",
+  "Guatemala": "과테말라",
+  "Kyrgyzstan": "키르기스스탄",
+  "Bangladesh": "방글라데시",
+  "Taipei, China": "대만",
+  "Zimbabwe": "짐바브웨",
+  "Cuba": "쿠바",
+  "Dominican Republic": "도미니카 공화국",
+  "Sierra Leone": "시에라리온",
+  "Andorra": "안도라",
+  "Equatorial Guinea": "적도 기니",
+  "Tanzania": "탄자니아",
+  "Tajikistan": "타지키스탄",
+  "Liberia": "라이베리아",
+  "Guyana": "가이아나",
 };
 
 function countryKo(en: string): string | null {
@@ -68,10 +85,16 @@ async function main() {
   const mapping: Array<{ code: string; tsSeasonId?: string }> = JSON.parse(
     fs.readFileSync(path.join(__dirname, "..", "src", "lib", "sports", "thesports", "league-id-mapping.json"), "utf8"),
   );
-  const wanted = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "LIGUE_2", "ALLSVENSKAN", "AUSTRIA_BL", "BRASILEIRAO", "ARGENTINA_PL", "SERBIA_SL", "KAZAKHSTAN_PL", "SWISS_SL", "K_LEAGUE_1", "SAUDI_PL", "MLS"];
-  const seasons = wanted
-    .map((code) => ({ code, sid: mapping.find((m) => m.code === code)?.tsSeasonId }))
-    .filter((s): s is { code: string; sid: string } => !!s.sid);
+  // tsSeasonId 있는 전체 리그 시즌 (130+) — 이적 유입 선수의 전 소속 리그가 어디든 커버.
+  // 빅5·확장리그를 앞에 — playerCountry 는 먼저 잡힌 시즌 우선이라 주력 리그 데이터 우선.
+  const PRIORITY = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "SAUDI_PL", "MLS"];
+  const seasons = mapping
+    .filter((m): m is { code: string; tsSeasonId: string } => !!m.tsSeasonId)
+    .map((m) => ({ code: m.code, sid: m.tsSeasonId }))
+    .sort((a, b) => {
+      const pa = PRIORITY.indexOf(a.code), pb = PRIORITY.indexOf(b.code);
+      return (pa === -1 ? 99 : pa) - (pb === -1 ? 99 : pb);
+    });
 
   // ts country id → { 국기 URL, 한국어 국가명 }
   const countries = (rawCountries as { results: Array<{ id: string; name: string; logo?: string }> }).results || [];
