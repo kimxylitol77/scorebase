@@ -35,8 +35,8 @@
 
 | 마켓 | EPL | MLB | KBO |
 |---|---|---|---|
-| 1X2 | 59% | **54%** ⚾ starter 통합 | 48% |
-| Strong Pick (≥65%) | — | **60%** | 48% |
+| 1X2 | 59% | **54%** ⚾ starter 통합 | **60%** ⚾ recentEra w=0.35 |
+| Strong Pick (≥65%) | — | **60%** | **66.7%** |
 | OU | — | 50% | 49% |
 | 핸디 | 59% | 59% | **63%** ✅ fix |
 
@@ -184,3 +184,4 @@ npx prisma db push --skip-generate && npx prisma generate
 - #1 데이터 미디어 도약 — 5종 시장 적중률 + 시장 odds + Strong Pick
 - #2 🏆 2026 FIFA 월드컵 통합
 - #3 ⚾ MLB 1X2 48% → 54% (선발 투수 통합)
+- #4 (6월 2탄) AI 예측 업그레이드(KBO 60%·Strong 66.7%) + 이적시장 8리그 + 감독 프로필 — `update-2026-06-transfers-coaches-ai`
