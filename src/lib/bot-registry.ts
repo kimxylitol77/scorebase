@@ -61,7 +61,17 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 30 * MIN,
     role: "오늘 경기 카드 + 신규 블로그 Threads 발행",
   },
-  // 아래 3개는 주기가 길어(일/주) fallback(1h/30분) 임계로 매일 false 다운 떴던 봇 — 실제 주기로 등록.
+  // 아래는 주기가 길어(시간/일/주) fallback(30분) 임계로 false 다운 떴던/뜰 봇 — 실제 주기로 등록.
+  "mac-mini-football-incidents": {
+    ko: "축구 인시던트 백필",
+    intervalMs: 4 * HOUR,
+    role: "종료 매치 골/카드 incidents 사후 백필 (4시간 주기)",
+  },
+  "lightsail-football-transfers": {
+    ko: "이적시장 증분 수집",
+    intervalMs: 6 * HOUR,
+    role: "TheSports transfer/list 증분 → FootballTransfer (KST 00·06·12·18)",
+  },
   "mac-mini-route-guardian": {
     ko: "라우트 가디언",
     intervalMs: 1 * DAY,
@@ -69,8 +79,8 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
   },
   "lightsail-baseball-player-names": {
     ko: "야구 선수명 사전 보강",
-    intervalMs: 1 * DAY,
-    role: "Lightsail 일일(03:00) 야구 선수 한글명 보강",
+    intervalMs: 12 * HOUR,
+    role: "Lightsail 야구 선수 한글명 보강 (KST 03·23시 하루 2회)",
   },
   "mac-mini-weekly-player-names": {
     ko: "주간 선수명 사전 보강",
