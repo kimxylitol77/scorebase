@@ -70,7 +70,23 @@ const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
 const isNT = (en?: string | null, ko?: string | null) => /national/i.test(en || "") || /국가\s*대표/.test(ko || "");
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean }
-interface Override { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[] }
+interface Override { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string }
+
+// P413(주 포지션) 영문 라벨 → 세부 POS 코드. 순서 중요 — wing-back 이 winger 보다 먼저.
+// generic(defender/midfielder/forward 단독)은 세부 확정 불가 → 미기록(coarse 유지).
+function posCodeOfLabel(label: string | null): string | null {
+  if (!label) return null;
+  const s = label.toLowerCase();
+  if (/goalkeeper/.test(s)) return "GK";
+  if (/centre[- ]back|center[- ]back/.test(s)) return "CB";
+  if (/full[- ]back|wing[- ]back|left[- ]back|right[- ]back/.test(s)) return "FB";
+  if (/defensive midfield/.test(s)) return "DM";
+  if (/attacking midfield/.test(s)) return "AM";
+  if (/central midfield|centre midfield|center midfield/.test(s)) return "CM";
+  if (/winger|left wing|right wing/.test(s)) return "W";
+  if (/centre[- ]forward|center[- ]forward|striker/.test(s)) return "ST";
+  return null;
+}
 
 // 이름 교정 여부 — 보수적: "긴 본명 축약"만 교정.
 //  · 현 nameKo 없음 → Wikidata 사용
@@ -118,7 +134,7 @@ async function searchQid(name: string): Promise<string | null> {
 
 // 엔티티 → ko라벨 + 국가Qid + P54(원시 클럽Qid·연도·통계·임대)
 interface RawCareer { clubQid: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean }
-interface Entity { ko: string | null; countryQid: string | null; p54: RawCareer[] }
+interface Entity { ko: string | null; countryQid: string | null; p54: RawCareer[]; p413: string[] }
 function parseEntity(e: any): Entity | null {
   const p54: RawCareer[] = (e.claims?.P54 || []).map((c: any) => {
     const clubQid = c.mainsnak?.datavalue?.value?.id;
@@ -138,7 +154,12 @@ function parseEntity(e: any): Entity | null {
   if (!p54.length && !isFootballer) return null;
   const ko = e.labels?.ko?.value || null;
   const countryQid = e.claims?.P1532?.[0]?.mainsnak?.datavalue?.value?.id || e.claims?.P27?.[0]?.mainsnak?.datavalue?.value?.id || null;
-  return { ko, countryQid, p54 };
+  // P413 주 포지션 — rank preferred 우선, 없으면 선언 순서 (첫 매핑 가능 라벨 채택)
+  const p413raw = (e.claims?.P413 || []) as any[];
+  const p413 = [...p413raw.filter((c) => c.rank === "preferred"), ...p413raw.filter((c) => c.rank !== "preferred")]
+    .map((c) => c.mainsnak?.datavalue?.value?.id)
+    .filter(Boolean);
+  return { ko, countryQid, p54, p413 };
 }
 
 async function batchLabels(qids: string[]): Promise<Map<string, { ko: string | null; en: string | null }>> {
@@ -209,12 +230,13 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
   for (const e of ent.values()) {
     if (e.countryQid) labelQids.add(e.countryQid);
     for (const c of e.p54) labelQids.add(c.clubQid);
+    for (const q of e.p413) labelQids.add(q);
   }
   const labels = await batchLabels([...labelQids]);
 
   // ── override 빌드 ──
   const overrides: Record<string, Override> = {};
-  let nameFix = 0, countryFix = 0, careerFix = 0;
+  let nameFix = 0, countryFix = 0, careerFix = 0, posFix = 0;
   for (const [id, qid] of qidById) {
     const e = ent.get(qid); if (!e) continue; // P54 가드 통과 못함
     const cur = tspMap.get(id)?.nameKo || null;
@@ -225,6 +247,11 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
       const ko = c?.ko || c?.en;
       if (ko) { o.country = ko; const f = flagOf(c?.en || null); if (f) o.flag = f; countryFix++; }
     }
+    // P413 주 포지션 — 첫 매핑 가능 라벨 (preferred rank 우선 정렬됨)
+    for (const pq of e.p413) {
+      const code = posCodeOfLabel(labels.get(pq)?.en ?? null);
+      if (code) { o.pos = code; posFix++; break; }
+    }
     const career: CareerEntry[] = e.p54.map((c) => {
       const lab = labels.get(c.clubQid);
       return { club: (lab?.ko || lab?.en)!, start: c.start, end: c.end, apps: c.apps, goals: c.goals, loan: c.loan, nt: isNT(lab?.en, lab?.ko) };
@@ -233,13 +260,14 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
       .filter((c) => c.club && !(c.nt && /U-?\d{1,2}|under-?\d|youth/i.test(c.club)))
       .sort((a, b) => (a.start ?? a.end ?? 0) - (b.start ?? b.end ?? 0));
     if (career.length) { o.career = career; careerFix++; }
-    if (o.nameKo || o.country || o.career) overrides[id] = o;
+    if (o.nameKo || o.country || o.career || o.pos) overrides[id] = o;
   }
 
-  // 병합 저장 (다른 리그 + 이전 결과 보존)
-  const merged = { ...loadOverrides(), ...overrides };
+  // 병합 저장 (다른 리그 + 이전 결과 보존) — 같은 id 는 필드 단위 merge (flag-only 항목 보존)
+  const merged = loadOverrides();
+  for (const [id, o] of Object.entries(overrides)) merged[id] = { ...merged[id], ...o };
   fs.writeFileSync(PATH, JSON.stringify(merged));
-  console.log(`[${league}] 완료 → 이름 ${nameFix}, 국적 ${countryFix}, 커리어 ${careerFix} | 누적 ${Object.keys(merged).length}`);
+  console.log(`[${league}] 완료 → 이름 ${nameFix}, 국적 ${countryFix}, 커리어 ${careerFix}, 포지션 ${posFix} | 누적 ${Object.keys(merged).length}`);
 }
 
 async function main() {

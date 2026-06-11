@@ -22,7 +22,9 @@ function classify(pos: string, x: number, y: number): string | null {
   return null;
 }
 
-function collectCache(lu: unknown, m: Map<string, { pos: string; x: number; y: number }>) {
+// 출장 경기마다 push — 단일 경기 좌표는 임시 포지션(백3 좌CB·임시 LB 등) 노이즈가 커서
+// 전 경기 분류 후 최빈값을 채택한다 (예: 반 데 벤이 마지막 경기 좌표로 FB 오분류되던 버그).
+function collectCache(lu: unknown, m: Map<string, Array<{ pos: string; x: number; y: number }>>) {
   const root = lu as Record<string, any> | null;
   const lineup = root?.lineup ?? root;
   for (const k of ["home", "away"]) {
@@ -30,25 +32,50 @@ function collectCache(lu: unknown, m: Map<string, { pos: string; x: number; y: n
     const players = Array.isArray(side) ? side : side?.players ?? [];
     if (Array.isArray(players)) for (const p of players) {
       if (p?.id && ["G", "D", "M", "F"].includes(p.position) && typeof p.x === "number" && p.x > 0) {
-        m.set(p.id, { pos: p.position, x: p.x, y: typeof p.y === "number" ? p.y : 50 });
+        const arr = m.get(p.id) ?? [];
+        arr.push({ pos: p.position, x: p.x, y: typeof p.y === "number" ? p.y : 50 });
+        m.set(p.id, arr);
       }
     }
   }
 }
 
 async function main() {
-  const xy = new Map<string, { pos: string; x: number; y: number }>();
+  const xy = new Map<string, Array<{ pos: string; x: number; y: number }>>();
   const caches = await prisma.theSportsMatchCache.findMany({ select: { lineup: true } });
   for (const c of caches) if (c.lineup) collectCache(c.lineup, xy);
-  console.log("캐시 x/y:", xy.size);
+  console.log("캐시 x/y 선수:", xy.size);
   if (fs.existsSync("/tmp/lineup-xy.json")) {
     const coll: { id: string; position: string; x: number; y: number }[] = JSON.parse(fs.readFileSync("/tmp/lineup-xy.json", "utf8"));
-    for (const r of coll) if (["G", "D", "M", "F"].includes(r.position) && r.x > 0 && !xy.has(r.id)) xy.set(r.id, { pos: r.position, x: r.x, y: typeof r.y === "number" ? r.y : 50 });
-    console.log("union(+신규):", xy.size);
+    for (const r of coll) if (["G", "D", "M", "F"].includes(r.position) && r.x > 0) {
+      const arr = xy.get(r.id) ?? [];
+      arr.push({ pos: r.position, x: r.x, y: typeof r.y === "number" ? r.y : 50 });
+      xy.set(r.id, arr);
+    }
+    console.log("union(+worker):", xy.size);
   }
 
+  // 출장별 분류 → 최빈 코드 채택. 동률이면 중앙 해석 우선(CB>FB, ST>W) —
+  // 좌표 노이즈는 빌드업 치우침 등으로 측면으로 튀는 경우가 대부분(예: 반 데 벤 CB·FB 1:1 동률).
+  // 그 외 동률은 최근 출장 코드 (push 가 시간순이라 뒤쪽이 최신).
+  const CENTRAL_FIRST = ["CB", "ST", "GK", "DM", "CM", "AM", "FB", "W"];
   const map: Record<string, string> = {};
-  for (const [id, e] of xy) { const c = classify(e.pos, e.x, e.y); if (c) map[id] = c; }
+  let multi = 0;
+  for (const [id, apps] of xy) {
+    const codes = apps.map((a) => classify(a.pos, a.x, a.y)).filter((c): c is string => !!c);
+    if (!codes.length) continue;
+    const cnt = new Map<string, number>();
+    for (const c of codes) cnt.set(c, (cnt.get(c) || 0) + 1);
+    if (cnt.size > 1) multi++;
+    const maxN = Math.max(...cnt.values());
+    const tied = [...cnt.entries()].filter(([, n]) => n === maxN).map(([c]) => c);
+    if (tied.length === 1) { map[id] = tied[0]; continue; }
+    const central = tied.filter((c) => ["CB", "ST"].includes(c));
+    if (central.length === 1) { map[id] = central[0]; continue; }
+    const tiedSet = new Set(tied);
+    map[id] = [...codes].reverse().find((c) => tiedSet.has(c)) ?? tied.sort((a, b) => CENTRAL_FIRST.indexOf(a) - CENTRAL_FIRST.indexOf(b))[0];
+  }
+  console.log(`복수 포지션 관측 선수: ${multi}`);
   fs.writeFileSync("data/player-positions.json", JSON.stringify(map));
   console.log("세부 포지션 도출:", Object.keys(map).length);
 

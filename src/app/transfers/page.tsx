@@ -11,6 +11,8 @@ import rawDetailPos from "../../../data/player-positions.json";
 import rawOverrides from "../../../data/player-overrides.json";
 import rawPhotos from "../../../data/player-photos.json";
 import rawTeamLogos from "../../../data/team-logos.json";
+import rawSquads from "../../../data/team-squads.json";
+import rawCoaches from "../../../data/team-coaches.json";
 import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 
@@ -87,15 +89,21 @@ const FIVE = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
 const FEED_LEAGUES = Object.keys(LEAGUES);
 // 세부 포지션 — 라인업 x/y 도출(data/player-positions.json). 없으면 coarse(G/D/M/F)로 fallback.
 const DETAIL_POS = rawDetailPos as Record<string, string>;
-// Wikidata 보강 — ts player id → { 교정 한글명, 국적(ko), 국기 }
-const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string }>;
+// Wikidata 보강 — ts player id → { 교정 한글명, 국적(ko), 국기, 주 포지션(P413) }
+const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; pos?: string }>;
 // 선수 사진 (TheSports season player.logo, 빅5 ~2.6k). DB photoUrl(라인업) 보다 커버리지 높아 우선.
 const PHOTOS = rawPhotos as Record<string, string>;
 // 피드 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 출신팀)를 ts team/additional 수집분으로.
 // 생성: scripts/build-transfer-team-logos.ts (신규 팀 등장 시 재실행)
 const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
+// 공식 스쿼드 (ts team/squad/list — 등번호·공식 coarse 포지션). 생성: scripts/build-team-squads.ts
+const SQUADS = rawSquads as Record<string, { updatedAt: string; squad: Array<{ id: string; name: string; position: string | null; number: number | null }> }>;
+// 감독 (ts coach/list — 선호 포메이션·부임·계약). 생성: scripts/build-team-coaches.ts
+const COACHES = rawCoaches as Record<string, { name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
 const POS_CODES = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
+// 포지션 우선순위: Wikidata P413(검증된 주 포지션) > 라인업 x/y 추정 > ts coarse
 function posCodeOf(id: string, coarse: string | null | undefined): string | null {
+  if (OVERRIDES[id]?.pos) return OVERRIDES[id].pos!;
   if (DETAIL_POS[id]) return DETAIL_POS[id];
   return coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null;
 }
@@ -378,6 +386,7 @@ export default async function TransfersPage({
         age: r.age,
         ourTeamId: ourId ?? null,
         posCode: posCodeOf(r.id, tsp?.position),
+        number: (r.teamId && SQUADS[r.teamId]?.squad.find((s) => s.id === r.id)?.number) || null,
         league: r.league,
         country: ov?.country || null,
         countryFlag: ov?.flag || null,
@@ -504,6 +513,40 @@ export default async function TransfersPage({
         })()
       : null;
   const bestXI = squadSummary ? pickBestXI(enriched) : null;
+
+  // ── 감독 + 최근 5경기 실제 포메이션 (view=team) ──
+  let coach: (typeof COACHES)[string] | null = null;
+  const recentFormations: string[] = [];
+  if (squadSummary) {
+    const tsIds = await prisma.teamSourceId.findMany({
+      where: { source: "thesports", teamId: teamIdNum },
+      select: { externalId: true },
+    });
+    for (const t of tsIds) {
+      if (COACHES[t.externalId]) { coach = COACHES[t.externalId]; break; }
+    }
+    // 최근 종료 매치 라인업 cache 의 home/away_formation — 우리 팀 측만
+    const recent = await prisma.match.findMany({
+      where: { status: "FINISHED", OR: [{ homeTeamId: teamIdNum }, { awayTeamId: teamIdNum }] },
+      orderBy: { startTime: "desc" },
+      take: 10,
+      select: { homeTeamId: true, theSportsCache: { select: { lineup: true } } },
+    });
+    for (const m of recent) {
+      const lu = m.theSportsCache?.lineup as { home_formation?: string; away_formation?: string } | null;
+      const f = m.homeTeamId === teamIdNum ? lu?.home_formation : lu?.away_formation;
+      if (f) recentFormations.push(f);
+      if (recentFormations.length >= 5) break;
+    }
+  }
+  // 포메이션 분포 — 최빈 순 "4-3-3 ×3" 형식
+  const formationSummary = (() => {
+    if (!recentFormations.length) return null;
+    const cnt = new Map<string, number>();
+    for (const f of recentFormations) cnt.set(f, (cnt.get(f) || 0) + 1);
+    return [...cnt.entries()].sort((a, b) => b[1] - a[1]).map(([f, c]) => (c > 1 ? `${f} ×${c}` : f)).join(" · ");
+  })();
+  const fmtYm = (ts: number | null) => (ts ? `${new Date(ts * 1000).getUTCFullYear()}.${new Date(ts * 1000).getUTCMonth() + 1}` : null);
 
   // ── 최신 이적 "주요" 모드 — 이적창 윈도우 전체 fetch → 이름·이적료 필터 → 메모리 페이지네이션 ──
   //   (익명 "선수" 행 ~35% 제거. 윈도우 행 수백~수천 수준이라 메모리 처리 가능. 전체 이력은 mode=all)
@@ -714,6 +757,48 @@ export default async function TransfersPage({
               </Link>
             </div>
           </div>
+          {/* 감독 · 전술 카드 — ts coach/list(선호 포메이션) + 라인업 cache(최근 실제 포메이션) */}
+          {coach && (
+            <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-4 mt-3 flex items-center gap-3 flex-wrap">
+              <div className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                {coach.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={coach.logo} alt={coach.nameKo || coach.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg">🧑‍💼</span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] text-neutral-400">감독</div>
+                <div className="font-bold truncate">
+                  {coach.nameKo || coach.name}
+                  {coach.age ? <span className="font-normal text-sm text-neutral-500"> · {coach.age}세</span> : null}
+                  {coach.nationality ? <span className="font-normal text-sm text-neutral-500"> · {coach.nationality}</span> : null}
+                </div>
+                {(coach.joined || coach.contractUntil) && (
+                  <div className="text-xs text-neutral-500">
+                    {coach.joined ? `${fmtYm(coach.joined)} 부임` : ""}
+                    {coach.joined && coach.contractUntil ? " · " : ""}
+                    {coach.contractUntil ? `계약 ~${fmtYm(coach.contractUntil)}` : ""}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-5 ml-auto text-right">
+                {coach.preferredFormation && (
+                  <div className="leading-tight">
+                    <div className="text-[11px] text-neutral-400">선호 포메이션</div>
+                    <div className="font-bold tabular-nums">{coach.preferredFormation}</div>
+                  </div>
+                )}
+                {formationSummary && (
+                  <div className="leading-tight">
+                    <div className="text-[11px] text-neutral-400">최근 {recentFormations.length}경기</div>
+                    <div className="font-bold tabular-nums">{formationSummary}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {bestXI && <SquadBestXI slots={bestXI} teamName={squadSummary.name} />}
         </>
       )}
@@ -984,6 +1069,9 @@ export default async function TransfersPage({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold flex items-center gap-1.5 min-w-0">
+                    {view === "team" && p.number != null && (
+                      <span className="text-xs font-bold text-neutral-400 tabular-nums shrink-0 w-6 text-right">{p.number}</span>
+                    )}
                     <span className="truncate">{p.name}</span>
                     {p.posCode && (
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500 shrink-0">

@@ -16,7 +16,7 @@ import CompetitionStatsSection from "@/components/transfers/CompetitionStatsSect
 import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
-const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[] }>;
+const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string }>;
 
 interface SeasonStat {
   lg: string; season: string; team: string | null; pos: string | null;
@@ -455,9 +455,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name}</h1>
-            {tsp?.position && (
+            {(ov?.pos || tsp?.position) && (
               <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-                {POS_LABEL[tsp.position]}
+                {ov?.pos || POS_LABEL[tsp!.position!]}
               </span>
             )}
             {ability != null && (
