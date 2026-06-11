@@ -21,6 +21,7 @@ interface Suggestion {
   league: string;
   logoUrl?: string | null;
   href: string;
+  value?: string; // 축구 선수 몸값
 }
 
 export default function SearchInput({
@@ -33,6 +34,7 @@ export default function SearchInput({
   const [value, setValue] = useState(defaultValue);
   const [items, setItems] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
+  const [hi, setHi] = useState(-1); // 키보드 하이라이트 (-1 = 없음, items.length = "기사에서도 검색" 행)
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // 외부 클릭 닫기
@@ -44,11 +46,13 @@ export default function SearchInput({
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  // debounce 자동완성 fetch
+  // debounce 자동완성 fetch — 한 글자(초성 포함)부터
   useEffect(() => {
     const q = value.trim();
-    if (q.length < 2) {
+    if (q.length < 1) {
       setItems([]);
+      setOpen(false);
+      setHi(-1);
       return;
     }
     const ctrl = new AbortController();
@@ -56,29 +60,64 @@ export default function SearchInput({
       try {
         const r = await fetch(`/api/search/autocomplete?q=${encodeURIComponent(q)}`, {
           signal: ctrl.signal,
-          cache: "no-store",
         });
         if (!r.ok) return;
         const j = (await r.json()) as { items?: Suggestion[] };
         setItems(j.items ?? []);
         setOpen(true);
+        setHi(-1);
       } catch {
         // ignore
       }
-    }, 200);
+    }, 150);
     return () => {
       clearTimeout(t);
       ctrl.abort();
     };
   }, [value]);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function goSearchPage() {
     const q = value.trim();
     if (!q) return;
     setOpen(false);
+    setHi(-1);
     onSubmit?.();
     router.push(`/search?q=${encodeURIComponent(q)}`);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    goSearchPage();
+  }
+
+  function selectAt(i: number) {
+    if (i >= 0 && i < items.length) {
+      setOpen(false);
+      setHi(-1);
+      onSubmit?.();
+      router.push(items[i].href);
+      return;
+    }
+    goSearchPage();
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.nativeEvent.isComposing) return; // 한글 IME 조합 중 Enter 중복 방지
+    if (!open || items.length === 0) return;
+    const total = items.length + 1; // +1 = "기사에서도 검색" 행
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHi((h) => (h + 1) % total);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHi((h) => (h - 1 + total) % total);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setHi(-1);
+    } else if (e.key === "Enter" && hi >= 0) {
+      e.preventDefault();
+      selectAt(hi);
+    }
   }
 
   const inputClass =
@@ -99,8 +138,11 @@ export default function SearchInput({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => items.length > 0 && setOpen(true)}
+          onKeyDown={onKeyDown}
           placeholder={variant === "full" ? "팀·선수·기사 검색" : "검색"}
           autoFocus={autoFocus}
+          autoComplete="off"
+          spellCheck={false}
           className={inputClass}
         />
       </form>
@@ -115,23 +157,35 @@ export default function SearchInput({
                   prefetch={false}
                   onClick={() => {
                     setOpen(false);
+                    setHi(-1);
                     onSubmit?.();
                   }}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-100 dark:hover:bg-white/5 transition"
+                  onMouseEnter={() => setHi(i)}
+                  className={`flex items-center gap-2 px-3 py-2 transition ${
+                    hi === i ? "bg-neutral-100 dark:bg-white/5" : ""
+                  }`}
                 >
                   {it.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={it.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                    <img
+                      src={it.logoUrl}
+                      alt=""
+                      className={`w-5 h-5 shrink-0 ${it.type === "player" ? "rounded-full object-cover" : "object-contain"}`}
+                      loading="lazy"
+                    />
                   ) : (
                     <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-[9px] font-bold text-neutral-500 shrink-0">
-                      {it.type === "team" ? "T" : "P"}
+                      {it.name.slice(0, 1)}
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold truncate">{it.name}</div>
                     <div className="text-[10px] text-neutral-500 truncate">{it.subtitle}</div>
                   </div>
-                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">
+                  {it.value && (
+                    <span className="text-[10px] font-semibold text-neutral-400 shrink-0">{it.value}</span>
+                  )}
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider shrink-0">
                     {it.type === "team" ? "팀" : "선수"}
                   </span>
                 </Link>
@@ -140,14 +194,13 @@ export default function SearchInput({
             <li className="border-t border-neutral-100 dark:border-white/5">
               <button
                 type="button"
-                onClick={() => {
-                  setOpen(false);
-                  onSubmit?.();
-                  router.push(`/search?q=${encodeURIComponent(value.trim())}`);
-                }}
-                className="w-full text-left px-3 py-2 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 transition"
+                onClick={goSearchPage}
+                onMouseEnter={() => setHi(items.length)}
+                className={`w-full text-left px-3 py-2 text-xs text-neutral-500 transition ${
+                  hi === items.length ? "bg-neutral-100 dark:bg-white/5" : ""
+                }`}
               >
-                🔎 기사에서도 검색 →
+                🔎 “{value.trim()}” 기사에서도 검색 →
               </button>
             </li>
           </ul>
