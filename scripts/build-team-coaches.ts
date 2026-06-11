@@ -107,6 +107,7 @@ async function main() {
   const out: Record<string, unknown> = {};
   for (const [tid, c] of byTeam) {
     out[tid] = {
+      id: c.id,
       name: c.name,
       nameKo: enToKo[c.name!] ?? null,
       logo: c.logo || null,

@@ -99,7 +99,7 @@ const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
 // 공식 스쿼드 (ts team/squad/list — 등번호·공식 coarse 포지션). 생성: scripts/build-team-squads.ts
 const SQUADS = rawSquads as Record<string, { updatedAt: string; squad: Array<{ id: string; name: string; position: string | null; number: number | null }> }>;
 // 감독 (ts coach/list — 선호 포메이션·부임·계약). 생성: scripts/build-team-coaches.ts
-const COACHES = rawCoaches as Record<string, { name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
+const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
 const POS_CODES = ["GK", "CB", "FB", "DM", "CM", "AM", "W", "ST"];
 // 포지션 우선순위: Wikidata P413(검증된 주 포지션) > 라인업 x/y 추정 > ts coarse
 function posCodeOf(id: string, coarse: string | null | undefined): string | null {
@@ -760,29 +760,35 @@ export default async function TransfersPage({
           {/* 감독 · 전술 카드 — ts coach/list(선호 포메이션) + 라인업 cache(최근 실제 포메이션) */}
           {coach && (
             <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-4 mt-3 flex items-center gap-3 flex-wrap">
-              <div className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
-                {coach.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={coach.logo} alt={coach.nameKo || coach.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-lg">🧑‍💼</span>
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="text-[11px] text-neutral-400">감독</div>
-                <div className="font-bold truncate">
-                  {coach.nameKo || coach.name}
-                  {coach.age ? <span className="font-normal text-sm text-neutral-500"> · {coach.age}세</span> : null}
-                  {coach.nationality ? <span className="font-normal text-sm text-neutral-500"> · {coach.nationality}</span> : null}
+              <Link
+                href={coach.id ? `/coaches/${coach.id}` : "#"}
+                className="flex items-center gap-3 min-w-0 group"
+              >
+                <div className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden shrink-0 flex items-center justify-center">
+                  {coach.logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={coach.logo} alt={coach.nameKo || coach.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-lg">🧑‍💼</span>
+                  )}
                 </div>
-                {(coach.joined || coach.contractUntil) && (
-                  <div className="text-xs text-neutral-500">
-                    {coach.joined ? `${fmtYm(coach.joined)} 부임` : ""}
-                    {coach.joined && coach.contractUntil ? " · " : ""}
-                    {coach.contractUntil ? `계약 ~${fmtYm(coach.contractUntil)}` : ""}
+                <div className="min-w-0">
+                  <div className="text-[11px] text-neutral-400">감독</div>
+                  <div className="font-bold truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition">
+                    {coach.nameKo || coach.name}
+                    {coach.age ? <span className="font-normal text-sm text-neutral-500"> · {coach.age}세</span> : null}
+                    {coach.nationality ? <span className="font-normal text-sm text-neutral-500"> · {coach.nationality}</span> : null}
                   </div>
-                )}
-              </div>
+                  {(coach.joined || coach.contractUntil) && (
+                    <div className="text-xs text-neutral-500">
+                      {coach.joined ? `${fmtYm(coach.joined)} 부임` : ""}
+                      {coach.joined && coach.contractUntil ? " · " : ""}
+                      {coach.contractUntil ? `계약 ~${fmtYm(coach.contractUntil)}` : ""}
+                      <span className="text-cyan-600 dark:text-cyan-400"> · 프로필 →</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
               <div className="flex items-center gap-5 ml-auto text-right">
                 {coach.preferredFormation && (
                   <div className="leading-tight">
