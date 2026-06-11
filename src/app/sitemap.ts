@@ -43,6 +43,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly" as const,
       priority: 0.85,
     })),
+    // 월드컵 허브 + 출전국 목록 (2026-06 신설 — 고아였던 national-teams/[id] 입구)
+    { url: `${base}/world-cup`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
+    { url: `${base}/national-teams`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
     // 월드컵 조별 통합 베스트11 (A~L, 12조) — 평점·순위 매일 갱신
     ...["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"].map((g) => ({
       url: `${base}/world-cup/best-xi/${g}`,
@@ -51,6 +54,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     })),
   ];
+
+  // 월드컵 출전국 48개국 페이지 — 스쿼드·감독·일정 (대회 기간 검색 수요)
+  const wcTeams = await prisma.team.findMany({
+    where: { league: "WORLD_CUP" },
+    select: { id: true },
+  });
+  const nationalTeamPages: MetadataRoute.Sitemap = wcTeams.map((t) => ({
+    url: `${base}/national-teams/${t.id}`,
+    lastModified: now,
+    changeFrequency: "daily" as const,
+    priority: 0.8,
+  }));
 
   // 발행된 글 — 최근 60일만 (Google 색인 quota 우선순위).
   // PREVIEW + RECAP 은 AI 자동 발행 = scaled content abuse 회피 위해 sitemap 제외.
@@ -183,5 +198,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  return [...staticPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
+  return [...staticPages, ...nationalTeamPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
 }

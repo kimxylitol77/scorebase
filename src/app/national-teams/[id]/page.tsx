@@ -118,6 +118,16 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-6">
+      {/* 브레드크럼 — 허브·48개국 목록으로 연결 (고아 페이지 방지) */}
+      <nav className="mb-3 text-xs text-neutral-500 flex items-center gap-1.5">
+        <Link href="/world-cup" className="hover:underline" prefetch={false}>
+          🏆 2026 월드컵
+        </Link>
+        <span>›</span>
+        <Link href="/national-teams" className="hover:underline" prefetch={false}>
+          출전국 48개국
+        </Link>
+      </nav>
       {/* 헤더 */}
       <div className="rounded-3xl bg-gradient-to-br from-blue-700 via-indigo-600 to-sky-500 p-6 text-white shadow-lg">
         <div className="flex items-center gap-4">
