@@ -54,7 +54,7 @@
 22:00  적중률 평가 (predCorrect 채움)
 22:30  PREVIEW 글 생성 (향후 3일)
 23:00  api-football 2차
-월 09:00 ANALYSIS 시즌 분석 (주 1회)
+월 11:00 ANALYSIS (맥미니) + 목 11:00 (Vercel) — 주 2회, 리그당 60h 가드
 ```
 
 ## DB 핵심

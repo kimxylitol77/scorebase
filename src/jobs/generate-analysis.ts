@@ -101,19 +101,20 @@ export async function runAnalysis() {
 
   for (const league of leagues) {
     try {
-      // 이번 주 ANALYSIS 글이 이미 있으면 스킵
-      const weekStart = new Date();
-      weekStart.setUTCDate(weekStart.getUTCDate() - 7);
+      // 최근 60시간 내 같은 리그 ANALYSIS 있으면 스킵 — 주 2회 운영(월 11시 맥미니 +
+      // 목 11시 Vercel)용. 간격이 정확히 72h 라 3일(72h) 가드는 경계에서 막혀 60h 로.
+      // ANALYSIS 는 유일하게 색인되는 글 타입 — 양산 방지 가드는 유지한다.
+      const freshSince = new Date(Date.now() - 60 * 60 * 60 * 1000);
       const existing = await prisma.article.findFirst({
         where: {
           league,
           type: "ANALYSIS",
-          createdAt: { gte: weekStart },
+          createdAt: { gte: freshSince },
         },
       });
       if (existing) {
         console.log(
-          `[analysis] ${league} 이번 주 글 #${existing.id} 이미 있음 (${existing.title.slice(0, 30)}…) — 스킵`,
+          `[analysis] ${league} 최근 60h 내 글 #${existing.id} 이미 있음 (${existing.title.slice(0, 30)}…) — 스킵`,
         );
         continue;
       }

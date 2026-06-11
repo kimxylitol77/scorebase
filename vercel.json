@@ -19,6 +19,7 @@
     { "path": "/api/cron/api-football", "schedule": "30 0-3 * * *" },
     { "path": "/api/cron/evaluate", "schedule": "0 15 * * *" },
     { "path": "/api/cron/score-analysis", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/analysis", "schedule": "0 2 * * 4" },
     { "path": "/api/cron/player-names", "schedule": "0 17 * * 1" },
     { "path": "/api/cron/manager-picks", "schedule": "0 23 * * *" },
     { "path": "/api/cron/manager-picks", "schedule": "0 12 * * *" },
