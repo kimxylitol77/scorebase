@@ -107,6 +107,21 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 7 * DAY,
     role: "네이버 → MLB 선수명 사전 자동 PR",
   },
+  "mac-mini-db-backup": {
+    ko: "DB 일일 백업",
+    intervalMs: 1 * DAY,
+    role: "Neon pg_dump → mac-mini 로컬 30일 보존 (매일 04:30)",
+  },
+  "mac-mini-weekly-static-refresh": {
+    ko: "정적 데이터 주간 갱신",
+    intervalMs: 7 * DAY,
+    role: "스쿼드·감독·국기·포지션 빌더 일괄 + data/*.json 자동 push (일 05:00)",
+  },
+  "mac-mini-synthetic-monitor": {
+    ko: "합성 페이지 검증",
+    intervalMs: 1 * HOUR,
+    role: "핵심 6페이지 SSR 마커 검증 — 빈 화면/섹션 소실 감지 (1시간)",
+  },
 };
 
 // bot-heartbeat-check(텔레그램)용 — intervalMs 만 추출.

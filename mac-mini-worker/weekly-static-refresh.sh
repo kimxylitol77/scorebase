@@ -1,0 +1,57 @@
+#!/bin/zsh
+# heartbeat v2 — 성공/실패+에러를 EXIT 에서 자동 보고 (hb-lib.sh)
+source "$HOME/dev/scorebase/mac-mini-worker/hb-lib.sh"
+hb_trap mac-mini-weekly-static-refresh /tmp/weekly-static-refresh.log
+# 매주 일요일 05:00 KST — /transfers·감독 페이지 정적 데이터 일괄 갱신 + data/*.json 한정 자동 push.
+# 수동 재실행에 의존하던 빌더들(스쿼드·감독·경력·트로피·국기·포지션·이적 팀사전)을 자동화 (2026-06-11).
+# 안전선: ① data/*.json 만 add (코드 절대 미포함) ② 핵심 json 빈 파일 가드 ③ 실패 시 push 안 함.
+# 이 머신 IP = TheSports whitelist (빌더들의 ts API 호출 가능).
+set -e
+set -o pipefail
+cd ~/dev/scorebase
+export PATH="/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:$PATH"
+if [ -f mac-mini-worker/.env ]; then set -a; . mac-mini-worker/.env; set +a; fi
+
+log() { echo "[static-refresh $(date '+%F %T')] $1"; }
+log "▶ 시작"
+
+# repo 최신화 — 빌더 코드/사전 최신 기준
+git fetch origin main -q && git reset --hard origin/main -q
+npx --yes prisma generate >/dev/null 2>&1 || true
+
+# ── 빌더 일괄 (실패 1개가 전체를 막지 않게 || true — 단 가드에서 빈 파일이면 중단) ──
+log "① 이적 팀 사전"
+npx tsx --env-file=.env.local scripts/build-transfer-league-teams.ts 2>&1 | tail -1 || true
+log "② 공식 스쿼드·등번호"
+npx tsx --env-file=.env.local scripts/build-team-squads.ts 2>&1 | tail -2 || true
+log "③ 감독 스냅샷 (Haiku 한글명)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-team-coaches.ts' 2>&1 | tail -2 || true
+log "④ 감독 경력 (Wikidata)"
+npx tsx --env-file=.env.local scripts/build-coach-careers.ts 2>&1 | tail -1 || true
+log "⑤ 감독 트로피 (위키 Honours)"
+npx tsx --env-file=.env.local scripts/build-coach-honors.ts 2>&1 | tail -1 || true
+log "⑥ 국기·국적 (130시즌)"
+npx tsx --env-file=.env.local scripts/build-player-flags.ts 2>&1 | tail -1 || true
+log "⑦ 세부 포지션 (라인업 최빈값)"
+npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
+
+# ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
+for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json; do
+  SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
+  if [ "$SIZE" -lt 10000 ]; then
+    echo "❌ $f 비정상 (${SIZE}B) — push 중단"
+    git checkout -- data/ 2>/dev/null || true
+    exit 1
+  fi
+done
+
+# ── data/*.json 변경분만 commit/push ──
+if git diff --quiet -- data/; then
+  log "변경 없음 — push 생략"
+else
+  git add data/*.json
+  git commit -m "chore(data): 주간 정적 데이터 자동 갱신 — 스쿼드·감독·국기·포지션 (mac-mini)" -q
+  git push origin main -q
+  log "✓ push 완료: $(git log --oneline -1)"
+fi
+log "✓ 종료"

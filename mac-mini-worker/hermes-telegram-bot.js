@@ -168,12 +168,33 @@ const FIX_SYSTEM = [
   "DB 조회는 postgres MCP(읽기전용), 진단 endpoint 는 curl 로 확인할 수 있다.",
 ].join(" ");
 
-function runClaudeFix(instruction) {
+// ── /repair — Phase 2: 수리 권한 (2026-06-11) ────────────────────
+// 진단 도구 + 수정/재시작/배포까지. chat whitelist 가 1차 방어선.
+// rm/sudo 는 allowlist 에 없어 자동 차단. push 는 main 직접(이 repo 운영 패턴).
+const REPAIR_TIMEOUT_MS = 10 * 60 * 1000;
+const REPAIR_ALLOWED_TOOLS = [
+  FIX_ALLOWED_TOOLS,
+  "Edit", "Write",
+  "Bash(git add:*)", "Bash(git commit:*)", "Bash(git push:*)", "Bash(git fetch:*)", "Bash(git reset:*)",
+  "Bash(launchctl:*)", "Bash(pkill -f autossh:*)",
+  "Bash(npx prisma generate:*)", "Bash(npx tsx:*)", "Bash(node:*)", "Bash(zsh -n:*)",
+  "Bash(scp:*)", "Bash(ssh:*)",
+].join(",");
+
+const REPAIR_SYSTEM = [
+  "너는 scorebase 운영 수리 봇이다. mac-mini repo(~/dev/scorebase)에서 실행 중이다.",
+  "절차: ① 원인 진단 ② 최소 수정 ③ 검증(tsc/zsh -n/재실행) ④ 필요 시 commit·push(main 직접, 한국어 메시지, footer 없음) ⑤ 결과를 한국어로 간결 보고.",
+  "봇 재시작: launchctl kickstart -k gui/$(id -u)/com.scorebase.<name>. Lightsail 워커는 ssh ubuntu@15.164.60.238 (LightsailDefaultKey).",
+  "위험한 광역 삭제·schema 변경·대량 데이터 변경은 하지 말고 제안만 하라.",
+].join(" ");
+
+function runClaudeFix(instruction, mode = "fix") {
+  const repair = mode === "repair";
   return new Promise((resolve) => {
     const args = [
       "-p", instruction,
-      "--allowedTools", FIX_ALLOWED_TOOLS,
-      "--append-system-prompt", FIX_SYSTEM,
+      "--allowedTools", repair ? REPAIR_ALLOWED_TOOLS : FIX_ALLOWED_TOOLS,
+      "--append-system-prompt", repair ? REPAIR_SYSTEM : FIX_SYSTEM,
     ];
     let out = "";
     let err = "";
@@ -185,7 +206,7 @@ function runClaudeFix(instruction) {
     const child = spawn(CLAUDE_BIN, args, { cwd: REPO_DIR, env: childEnv });
     const timer = setTimeout(() => {
       if (!done) { try { child.kill("SIGTERM"); } catch {} }
-    }, FIX_TIMEOUT_MS);
+    }, repair ? REPAIR_TIMEOUT_MS : FIX_TIMEOUT_MS);
     child.stdout.on("data", (d) => { out += d.toString(); });
     child.stderr.on("data", (d) => { err += d.toString(); });
     child.on("error", (e) => {
@@ -219,6 +240,7 @@ async function handleMessage(msg) {
         `자유롭게 대화하세요.\n\n` +
         `명령어:\n` +
         `/fix <지시> — Claude Code 진단 (읽기전용, repo+DB 조회)\n` +
+        `/repair <지시> — Claude Code 수리 (수정·봇 재시작·commit·push까지, 최대 10분)\n` +
         `/reset — 대화 초기화\n` +
         `/model — 현재 모델 정보\n` +
         `/help — 이 안내\n\n` +
@@ -254,6 +276,25 @@ async function handleMessage(msg) {
       await sendTelegram(chatId, result);
     } catch (e) {
       await sendTelegram(chatId, `❌ 진단 실패: ${e.message}`);
+    }
+    return;
+  }
+  if (text.startsWith("/repair") || text.startsWith("/수리")) {
+    const instruction = text.replace(/^\/(repair|수리)\s*/, "").trim();
+    if (!instruction) {
+      await sendTelegram(
+        chatId,
+        "사용법: /repair <수리할 내용>\n예) /repair preview-coverage 봇 재시작해줘\n예) /repair 어제 알림 온 stale_live 원인 고쳐서 push 까지",
+      );
+      return;
+    }
+    console.log(`[repair ${chatId}] ${instruction.slice(0, 80)}`);
+    await sendTelegram(chatId, "🔧 Claude Code 수리 중… (수정 권한, 최대 10분)");
+    try {
+      const result = await runClaudeFix(instruction, "repair");
+      await sendTelegram(chatId, result);
+    } catch (e) {
+      await sendTelegram(chatId, `❌ 수리 실패: ${e.message}`);
     }
     return;
   }
