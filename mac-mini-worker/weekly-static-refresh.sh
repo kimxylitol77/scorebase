@@ -34,9 +34,11 @@ log "⑥ 국기·국적 (130시즌)"
 npx tsx --env-file=.env.local scripts/build-player-flags.ts 2>&1 | tail -1 || true
 log "⑦ 세부 포지션 (라인업 최빈값)"
 npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
+log "⑧ 선수 ts↔af 매핑 + af 시즌스탯 (17개 리그 — 대회별·시즌별 스탯 섹션 동력)"
+npx tsx --env-file=.env.local scripts/build-ts-af-player-map.ts 2>&1 | tail -3 || true
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
-for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json; do
+for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json; do
   SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
   if [ "$SIZE" -lt 10000 ]; then
     echo "❌ $f 비정상 (${SIZE}B) — push 중단"
@@ -50,7 +52,7 @@ if git diff --quiet -- data/; then
   log "변경 없음 — push 생략"
 else
   git add data/*.json
-  git commit -m "chore(data): 주간 정적 데이터 자동 갱신 — 스쿼드·감독·국기·포지션 (mac-mini)" -q
+  git commit -m "chore(data): 주간 정적 데이터 자동 갱신 — 스쿼드·감독·국기·포지션·선수매핑·시즌스탯 (mac-mini)" -q
   git push origin main -q
   log "✓ push 완료: $(git log --oneline -1)"
 fi
