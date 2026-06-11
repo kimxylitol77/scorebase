@@ -328,6 +328,15 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
 
   const ctxLines: string[] = [];
 
+  // 2026 월드컵 — 북중미 3개국 공동개최, 비개최국 "홈"은 명목 표기일 뿐 중립 구장.
+  // gpt-4o-mini 가 "서울 월드컵 경기장에서 홈 관중 응원" 류 환각을 쓴 사례(2026-06-11
+  // 한국-체코 프리뷰) 차단 — 장소·관중 이점은 아래 사실로만 서술.
+  if (match.league === "WORLD_CUP") {
+    ctxLines.push(
+      `- ⚠️ 대회 사실(반드시 준수): 2026 FIFA 월드컵 본선은 미국·캐나다·멕시코 공동개최로, 모든 경기가 북중미 현지 경기장에서 열린다. ${home}·${away} 모두 개최국이 아니라면 이 경기는 중립 구장 경기다 — "홈 구장", "홈 관중의 응원", 자국 도시 개최(예: 서울 개최) 같은 서술 절대 금지. 표기상 홈팀은 대진표 형식일 뿐이다. 개최국(미국·캐나다·멕시코)이 자국에서 치르는 경기만 실제 홈 이점을 언급할 수 있다.`,
+    );
+  }
+
   if (context.position) {
     ctxLines.push(
       `- 시즌 순위: ${home} ${context.position.home}위 (${context.points?.home ?? "?"}점) / ${away} ${context.position.away}위 (${context.points?.away ?? "?"}점) — 총 ${context.position.total}팀`,

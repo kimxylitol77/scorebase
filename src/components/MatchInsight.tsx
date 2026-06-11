@@ -50,6 +50,7 @@ import {
   applyGoalieToWinProb,
 } from "@/lib/predict/goalie-adjust";
 import { blendWithMarket } from "@/lib/predict/market-blend";
+import { nationalElo } from "@/lib/predict/build-context";
 import type { PredictMatch } from "@/lib/predict/types";
 import type { ReactNode } from "react";
 import EloMeter from "./EloMeter";
@@ -228,13 +229,27 @@ export default async function MatchInsight({
 
   const eloTable = calcEloTable(beforeMatches);
   // 단일 소스 — 글 스냅샷 Elo 가 있으면 그 값 사용 (본문 글과 100% 일치). 없으면 재계산.
-  const homeElo = match.eloHome ?? getElo(eloTable, match.homeTeamId);
-  const awayElo = match.eloAway ?? getElo(eloTable, match.awayTeamId);
+  // 국가대항(월드컵·친선)은 클럽 매치 히스토리가 없어 calcEloTable 이 전원 1500 —
+  // build-context/predictionEngine 과 동일하게 국가대표 시드 Elo 로 fallback.
+  const isNationalLeague =
+    match.league === "WORLD_CUP" || match.league === "INTL_FRIENDLY";
+  const homeElo =
+    match.eloHome ??
+    (isNationalLeague
+      ? nationalElo(match.homeTeam.name)
+      : getElo(eloTable, match.homeTeamId));
+  const awayElo =
+    match.eloAway ??
+    (isNationalLeague
+      ? nationalElo(match.awayTeam.name)
+      : getElo(eloTable, match.awayTeamId));
 
   const homeForm = calcForm(matches, match.homeTeamId, referenceTime, 5);
   const awayForm = calcForm(matches, match.awayTeamId, referenceTime, 5);
 
-  const baseWinProb = calcWinProbability(homeElo, awayElo, match.league);
+  const baseWinProb = calcWinProbability(homeElo, awayElo, match.league, {
+    homeTeamName: match.homeTeam.name,
+  });
 
   // MLB 선발 투수 / NHL 골리 가중치
   const homeStarterEarly = parseStarter(match.homeStarter);
@@ -413,7 +428,53 @@ export default async function MatchInsight({
   if (dataSparse) {
     // sparse(과거 매치 <5) 라도 라이브/주입 데이터(축구 라인업·팀통계, 야구 선발 등)는
     // Elo 누적과 무관하니 탭으로 표시. Elo 기반 팀전력/예측/시장 탭만 생략.
+    //
+    // AI 예측 탭 — 공식 예측(predHome 저장값) 또는 국가대항 시드 Elo 가 있으면 히스토리
+    // 누적과 무관하게 신뢰 가능 → 표시. 월드컵 개막 직후 "AI 분석 없음" 문제 해소
+    // (2026-06-11 사용자 보고: world_cup-preview 글 위젯이 "데이터 누적 중"만 표시).
+    const sparseHasPrediction =
+      (match.predHome != null && match.predDraw != null && match.predAway != null) ||
+      isNationalLeague;
     const sparseTabs: InsightTab[] = [
+      sparseHasPrediction && {
+        key: "predict",
+        label: "AI 예측",
+        enabled: true,
+        content: (
+          <div className="space-y-6">
+            <Section title="승률 추정">
+              <WinProbDonut
+                homeProb={winProb.home}
+                drawProb={winProb.draw}
+                awayProb={winProb.away}
+                homeName={toKoreanTeamName(match.homeTeam.name)}
+                awayName={toKoreanTeamName(match.awayTeam.name)}
+                hideDraw={hideDraw}
+              />
+            </Section>
+            <Section title="Elo 레이팅">
+              <div className="space-y-3">
+                <EloMeter
+                  name={toKoreanTeamName(match.homeTeam.name)}
+                  rating={homeElo}
+                  opponentRating={awayElo}
+                />
+                <EloMeter
+                  name={toKoreanTeamName(match.awayTeam.name)}
+                  rating={awayElo}
+                  opponentRating={homeElo}
+                />
+              </div>
+              {isNationalLeague && (
+                <p className="mt-2 text-[11px] leading-relaxed text-zinc-500 dark:text-white/45">
+                  ⓘ 국가대표 Elo — World Football Elo Ratings 기반 시드값으로, 본선 경기
+                  결과가 쌓이면 자동 갱신됩니다.
+                </p>
+              )}
+            </Section>
+          </div>
+        ),
+      },
       sparseHasStarters && {
         key: "starters",
         label: "선발 매치업",
@@ -441,7 +502,12 @@ export default async function MatchInsight({
       return (
         <MatchInsightTabs
           headerLabel="매치 인사이트"
-          headerSubLabel={`시즌 초반 데이터 누적 중 (${eloTable.processed}경기)`}
+          headerSubLabel={
+            isNationalLeague
+              ? "국가대표 시드 Elo 기반"
+              : `시즌 초반 데이터 누적 중 (${eloTable.processed}경기)`
+          }
+          headerSummary={sparseHasPrediction ? summary : undefined}
           tabs={sparseTabs}
         />
       );

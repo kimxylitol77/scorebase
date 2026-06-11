@@ -460,7 +460,7 @@ export default async function LeaguePredictions({ params }: Props) {
     .map((m) => {
       const homeElo = getElo(elo, m.homeTeamId);
       const awayElo = getElo(elo, m.awayTeamId);
-      const wp = calcWinProbability(homeElo, awayElo, upper);
+      const wp = calcWinProbability(homeElo, awayElo, upper, { homeTeamName: m.homeTeam.name });
       return {
         id: m.id,
         startTime: m.startTime,
@@ -988,7 +988,7 @@ export default async function LeaguePredictions({ params }: Props) {
                   {upcoming.map((m) => {
                     const homeElo = getElo(elo, m.homeTeamId);
                     const awayElo = getElo(elo, m.awayTeamId);
-                    const wp = calcWinProbability(homeElo, awayElo, upper);
+                    const wp = calcWinProbability(homeElo, awayElo, upper, { homeTeamName: m.homeTeam.name });
                     const marketProbs: [number, number, number] | null =
                       m.marketHome != null && m.marketAway != null
                         ? [m.marketHome, m.marketDraw ?? 0, m.marketAway]
@@ -1061,7 +1061,7 @@ export default async function LeaguePredictions({ params }: Props) {
               {upcoming.map((m) => {
                 const homeElo = getElo(elo, m.homeTeamId);
                 const awayElo = getElo(elo, m.awayTeamId);
-                const wp = calcWinProbability(homeElo, awayElo, upper);
+                const wp = calcWinProbability(homeElo, awayElo, upper, { homeTeamName: m.homeTeam.name });
                 const kst = new Date(m.startTime.getTime() + 9 * 3600 * 1000);
                 const dateLabel = `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
                 const timeLabel = `${String(kst.getUTCHours()).padStart(2, "0")}:${String(kst.getUTCMinutes()).padStart(2, "0")}`;

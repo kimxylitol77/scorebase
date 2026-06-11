@@ -193,7 +193,8 @@ export function predictMatch(input: PredictionInput): PredictionResult {
   const reasons: PredictionReason[] = [];
 
   // ── 1. Elo 기반 base (모든 종목 공통) ─────────────────
-  let probs = calcWinProbability(home.elo, away.elo, league);
+  // homeTeamName: WORLD_CUP 중립 구장 판정용 (개최국만 홈 +100) — 타 리그엔 영향 없음.
+  let probs = calcWinProbability(home.elo, away.elo, league, { homeTeamName: home.name });
   probs = normalizeProbs(probs);
   signalsUsed.push("elo");
 

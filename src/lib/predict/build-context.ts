@@ -56,9 +56,10 @@ import type { RecapContext } from "@/prompts/match-recap";
 /** 예측 신뢰도/데이터부족 기준 — 양 팀 직전 경기 표본 최소치. evaluate MIN_PRIOR 와 동일. */
 export const MIN_PRIOR_MATCHES = 5;
 
-// 국가대표 Elo (친선 winProb 용) — world-cup-elos(본선국 실제 Elo) 우선, 없으면 FIFA랭킹 환산.
+// 국가대표 Elo (친선·월드컵 winProb 용) — world-cup-elos(본선국 실제 Elo) 우선, 없으면 FIFA랭킹 환산.
 // 친선은 클럽 Elo(calcEloTable)가 주전 결장·결과 변동으로 평준화돼 부정확하므로 별도 소스 사용.
-function nationalElo(name: string): number {
+// export — MatchInsight 위젯도 국가대항 매치 Elo 표시·fallback 계산에 동일 소스 사용.
+export function nationalElo(name: string): number {
   const seed = getWorldCupSeedElo(name);
   if (seed != null) return seed;
   const rank = getFifaRank(name);
@@ -148,7 +149,7 @@ export function buildMatchContext(
     awayElo = getElo(eloTable, awayTeamId);
   }
 
-  let wp = calcWinProbability(homeElo, awayElo, league);
+  let wp = calcWinProbability(homeElo, awayElo, league, { homeTeamName: homeName });
   // 베이스레이트 prior — Elo 분산이 작은(수집 이력 부족·시장 odds 미커버) 리그는
   // 리그 실측 1X2 분포로 후퇴 (league-prior.ts). 정상 리그(stddev 70+)는 가중 0 — 불변.
   // 친선은 국대 Elo 소스라 클럽 풀 분포와 무관 → skip.

@@ -11,8 +11,19 @@ const HOME_ADVANTAGE_ELO = 100;
 
 // e스포츠는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지 무의미.
 // "LOL"(LCK) 만 하드코딩돼 LPL/LEC/LCS 가 홈 +100 Elo 받던 버그 → LOL_LEAGUES 단일 진실로.
-function homeAdvantageFor(league: string): number {
+//
+// 2026 월드컵 — 북중미 3개국 공동개최라 대부분 중립 구장. 개최국 자국 경기만 실제 홈
+// (eloratings.net 동일 관행). 팀명 미전달 호출부는 중립(0) 디폴트 — 한국·체코 같은
+// 비개최국 "홈"팀이 +100 받아 시장 대비 과대평가되던 것 수정 (2026-06-11).
+const WC_HOST_NATIONS = new Set(["usa", "unitedstates", "mexico", "canada"]);
+
+function homeAdvantageFor(league: string, homeTeamName?: string): number {
   if (LOL_LEAGUES.has(league)) return 0;
+  if (league === "WORLD_CUP") {
+    if (!homeTeamName) return 0;
+    const norm = homeTeamName.toLowerCase().replace(/[\s.&-]/g, "");
+    return WC_HOST_NATIONS.has(norm) ? HOME_ADVANTAGE_ELO : 0;
+  }
   return HOME_ADVANTAGE_ELO;
 }
 
@@ -56,10 +67,16 @@ const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
   EGYPT_PL: { drawWeight: 0.26, drawSensitivity: 0.18 },
 };
 
+export interface WinProbOpts {
+  /** 홈팀 이름 — WORLD_CUP 중립 구장 판정용 (개최국 USA/Mexico/Canada 만 홈 +100) */
+  homeTeamName?: string;
+}
+
 export function calcWinProbability(
   eloHome: number,
   eloAway: number,
   league: string,
+  opts?: WinProbOpts,
 ): WinProb {
   // 미등록 리그 fallback — 축구(무승부 존재)만 EPL 프로파일, 그 외(e스포츠 LPL/LEC/LCS·
   // 야구·농구 신규 리그)는 NO_DRAW. 종전엔 일괄 EPL fallback 이라 무승부 0% 인 BO 시리즈에
@@ -68,7 +85,7 @@ export function calcWinProbability(
     DEFAULT_CONFIG[league] ??
     (leagueHasDraw(league) ? DEFAULT_CONFIG.EPL : NO_DRAW);
 
-  const diff = eloAway - (eloHome + homeAdvantageFor(league));
+  const diff = eloAway - (eloHome + homeAdvantageFor(league, opts?.homeTeamName));
   // expHome = "홈이 이길 (또는 비겼을 때 절반의 무승부 점수를 가져갈) 기댓값"
   const expHome = 1 / (1 + Math.pow(10, diff / 400));
 
