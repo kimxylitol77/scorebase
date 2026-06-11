@@ -40,10 +40,13 @@ async function searchQid(name: string): Promise<string | null> {
     `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(name)}&language=en&format=json&type=item&limit=7`,
   );
   const arr = d?.search || [];
-  // 감독/선수 출신 감독 우선 — description 에 manager/coach, 없으면 footballer
+  // 감독/선수 출신 감독 우선 — description 에 manager/coach, 없으면 footballer.
+  // "Liverpool head coach"처럼 클럽명+head coach 표기도 잡아야 함 (이라올라 실측 누락 fix).
+  // 마지막 폴백: 라벨 정확 일치 — phase 2 의 P6087/P106 감독 가드가 동명이인을 거름.
   return (
-    arr.find((s: any) => /football (manager|coach)/i.test(s.description || ""))?.id ||
+    arr.find((s: any) => /football (manager|coach)|head coach/i.test(s.description || ""))?.id ||
     arr.find((s: any) => /footballer|football player/i.test(s.description || ""))?.id ||
+    arr.find((s: any) => (s.label || "").toLowerCase() === name.toLowerCase())?.id ||
     null
   );
 }

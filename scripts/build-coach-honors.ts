@@ -88,9 +88,11 @@ async function searchQid(name: string): Promise<string | null> {
     `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(name)}&language=en&format=json&type=item&limit=7`,
   );
   const arr = d?.search || [];
+  // "X head coach" 표기 + 라벨 정확 일치 폴백 (build-coach-careers 와 동일 fix)
   return (
-    arr.find((s: any) => /football (manager|coach)/i.test(s.description || ""))?.id ||
+    arr.find((s: any) => /football (manager|coach)|head coach/i.test(s.description || ""))?.id ||
     arr.find((s: any) => /footballer|football player/i.test(s.description || ""))?.id ||
+    arr.find((s: any) => (s.label || "").toLowerCase() === name.toLowerCase())?.id ||
     null
   );
 }

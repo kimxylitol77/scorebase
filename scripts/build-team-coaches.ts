@@ -110,6 +110,23 @@ async function main() {
     ...wcSeasonIds,
   ]);
   console.log(`대상: 빅5 ${big5Rows.length} + 확장 ${Object.keys(EXPANSION).length} + WC ${new Set([...wcRows.map((r) => r.externalId), ...wcSeasonIds]).size}`);
+
+  // ts→af 팀 매핑 — ts coach_id 공백 팀(감독 교체기 데이터 공백)의 api-football 폴백용
+  const allMaps = await prisma.teamSourceId.findMany({
+    where: { source: { in: ["thesports", "api-football"] } },
+    select: { teamId: true, source: true, externalId: true },
+  });
+  const tsToAf = new Map<string, string>();
+  {
+    const byTeamId = new Map<number, { ts?: string; af?: string }>();
+    for (const m of allMaps) {
+      const e = byTeamId.get(m.teamId) ?? {};
+      if (m.source === "thesports") e.ts = m.externalId;
+      else e.af = m.externalId;
+      byTeamId.set(m.teamId, e);
+    }
+    for (const e of byTeamId.values()) if (e.ts && e.af) tsToAf.set(e.ts, e.af);
+  }
   await prisma.$disconnect();
 
   const coaches = await fetchAllCoaches();
@@ -124,7 +141,61 @@ async function main() {
   }
   console.log(`우리 팀 감독 ${byTeam.size}/${ourTeams.size}`);
 
-  const names = [...new Set([...byTeam.values()].map((c) => c.name!))];
+  // === api-football 폴백 — ts coach/list 가 team_id 를 못 채운 팀 (2026-06 실측:
+  // 여름 감독 교체기에 나폴리·맨시티 등 14팀 coach_id='' — ts 1순위, af 는 보충만) ===
+  const AF_KEY = process.env.API_FOOTBALL_KEY;
+  interface AfCoach {
+    name: string; logo: string | null; age: number | null;
+    nationality: string | null; joined: number | null;
+  }
+  const afFallback = new Map<string, AfCoach>();
+  const missingTs = [...ourTeams].filter((id) => !byTeam.has(id) && tsToAf.has(id));
+  if (AF_KEY && missingTs.length > 0) {
+    for (const tsId of missingTs) {
+      const afId = tsToAf.get(tsId)!;
+      try {
+        const r = await fetch(`https://v3.football.api-sports.io/coachs?team=${afId}`, {
+          headers: { "x-apisports-key": AF_KEY },
+          signal: AbortSignal.timeout(20000),
+        });
+        const d = (await r.json()) as {
+          response?: Array<{
+            name?: string; firstname?: string; lastname?: string;
+            age?: number; nationality?: string; photo?: string;
+            career?: Array<{ team?: { id?: number }; start?: string; end?: string | null }>;
+          }>;
+        };
+        // 이 팀을 "현재"(career end=null) 맡고 있는 감독만 — 과거 감독 오염 방지
+        const cur = (d.response ?? []).find((co) =>
+          (co.career ?? []).some((k) => String(k.team?.id) === afId && k.end == null),
+        );
+        if (!cur) continue;
+        const stint = (cur.career ?? []).find((k) => String(k.team?.id) === afId && k.end == null);
+        // af 의 name 은 "A. Conte" 축약형 — 풀네임(firstname+lastname) 우선해야
+        // Haiku 한글 변환("안토니오 콘테")이 제대로 된다
+        const nm = [cur.firstname, cur.lastname].filter(Boolean).join(" ") || cur.name;
+        if (!nm) continue;
+        afFallback.set(tsId, {
+          name: nm,
+          logo: cur.photo || null,
+          age: cur.age ?? null,
+          nationality: cur.nationality ?? null,
+          joined: stint?.start ? Math.floor(Date.parse(stint.start) / 1000) : null,
+        });
+        await new Promise((res) => setTimeout(res, 350));
+      } catch {
+        /* 한 팀 실패는 건너뜀 — ts 분만으로도 동작 */
+      }
+    }
+    console.log(`af 폴백 감독 ${afFallback.size}/${missingTs.length} (ts coach_id 공백 팀)`);
+  }
+
+  const names = [
+    ...new Set([
+      ...[...byTeam.values()].map((c) => c.name!),
+      ...[...afFallback.values()].map((c) => c.name),
+    ]),
+  ];
   const enToKo: Record<string, string> = {};
   for (let i = 0; i < names.length; i += 50) {
     Object.assign(enToKo, await haikuTranslate(names.slice(i, i + 50)));
@@ -146,8 +217,22 @@ async function main() {
       contractUntil: c.contract_until || null,
     };
   }
+  // af 폴백 병합 — ts 에 없는 팀만 (id 없음 = 감독 상세 페이지 링크는 생기지 않음)
+  for (const [tid, c] of afFallback) {
+    if (out[tid]) continue;
+    out[tid] = {
+      name: c.name,
+      nameKo: enToKo[c.name] ?? null,
+      logo: c.logo,
+      age: c.age,
+      nationality: c.nationality,
+      preferredFormation: null,
+      joined: c.joined,
+      contractUntil: null,
+    };
+  }
   fs.writeFileSync(OUT, JSON.stringify(out));
-  console.log(`✓ wrote team-coaches.json — ${Object.keys(out).length}팀`);
+  console.log(`✓ wrote team-coaches.json — ${Object.keys(out).length}팀 (af 폴백 ${afFallback.size} 포함)`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
