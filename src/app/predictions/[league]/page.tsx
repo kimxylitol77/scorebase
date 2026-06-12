@@ -25,7 +25,7 @@ import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
-import { getWorldCupPlayerStats, type WcPlayerStat } from "@/lib/sports/thesports/world-cup-player-stats";
+import { getWorldCupPlayerStats, buildWcLeaderRows } from "@/lib/sports/thesports/world-cup-player-stats";
 import rawSeasonStats from "../../../../data/player-season-stats.json";
 import rawPlayerOverrides from "../../../../data/player-overrides.json";
 import rawPlayerPhotos from "../../../../data/player-photos.json";
@@ -594,40 +594,10 @@ export default async function LeaguePredictions({ params }: Props) {
 
   // 월드컵 — 본선 선수 랭킹 (cache playerStats 누적 집계, 라이브 중 worker 가 ~2분 간격 push).
   // 조별 순위표 카드 바로 아래 노출. 기존 "시즌 리더보드" 섹션은 WORLD_CUP 에서 이걸로 대체.
+  // rows 빌드는 /world-cup 허브와 공유 (buildWcLeaderRows).
   let wcRowsByCategory: Record<string, LeaderRow[]> | null = null;
   if (isWorldCup) {
-    const wcStats = await getWorldCupPlayerStats();
-    if (wcStats.length > 0) {
-      const toRow = (s: WcPlayerStat, i: number, value: number, unit: string | null): LeaderRow => ({
-        rank: i + 1,
-        playerName: s.name,
-        playerNameEn: s.nameEn,
-        teamName: `${fifaFlag(s.country)} ${toKoreanTeamName(s.country, upper) || s.country}`.trim(),
-        teamShort: null,
-        value,
-        unit,
-        appearances: s.games,
-        photoUrl: s.photo,
-        externalId: s.hasMv ? s.id : null,
-      });
-      const top = (
-        filter: (s: WcPlayerStat) => boolean,
-        sort: (a: WcPlayerStat, b: WcPlayerStat) => number,
-        value: (s: WcPlayerStat) => number,
-        unit: string | null,
-      ) => wcStats.filter(filter).sort(sort).slice(0, 10).map((s, i) => toRow(s, i, value(s), unit));
-      wcRowsByCategory = {
-        GOAL: top((s) => s.goals > 0, (a, b) => b.goals - a.goals || b.avgRating - a.avgRating, (s) => s.goals, "골"),
-        ASSIST: top((s) => s.assists > 0, (a, b) => b.assists - a.assists || b.avgRating - a.avgRating, (s) => s.assists, "도움"),
-        // 평점 — 누적 45분+ 출전 선수만 (교체 투입 노이즈 방지)
-        RATING: top((s) => s.avgRating > 0 && s.minutes >= 45, (a, b) => b.avgRating - a.avgRating || b.minutes - a.minutes, (s) => s.avgRating, "평점"),
-        // 세이브 — GK 만 값이 쌓임 (필드 플레이어 0)
-        SAVE: top((s) => s.saves > 0, (a, b) => b.saves - a.saves || b.avgRating - a.avgRating, (s) => s.saves, "세이브"),
-        YELLOW: top((s) => s.yellow > 0, (a, b) => b.yellow - a.yellow || b.avgRating - a.avgRating, (s) => s.yellow, "장"),
-        RED: top((s) => s.red > 0, (a, b) => b.red - a.red || b.avgRating - a.avgRating, (s) => s.red, "장"),
-      };
-      if (Object.values(wcRowsByCategory).every((rows) => rows.length === 0)) wcRowsByCategory = null;
-    }
+    wcRowsByCategory = buildWcLeaderRows(await getWorldCupPlayerStats());
   }
 
   return (

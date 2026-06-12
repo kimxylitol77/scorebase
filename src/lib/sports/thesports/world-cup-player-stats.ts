@@ -2,6 +2,9 @@
 // 소스: TheSportsMatchCache.playerStats (Lightsail football-poller 가 라이브 중 ~2분 간격 push)
 //       + cache.lineup (이름·사진·소속 side). TheSports API 직접 호출 없음 → Vercel 안전.
 import { prisma } from "@/lib/db";
+import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
+import { toKoreanTeamName } from "@/lib/team-names";
+import type { LeaderRow } from "@/components/LeagueLeaderBoard";
 import rawOv from "../../../../data/player-overrides.json";
 
 const OV = rawOv as Record<string, { nameKo?: string }>;
@@ -160,4 +163,40 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     minutes: a.minutes,
     games: a.games,
   }));
+}
+
+/** 집계 → LeagueLeaderBoard rowsByCategory (GOAL·ASSIST·RATING·SAVE·YELLOW·RED 각 TOP 10).
+ *  predictions/WORLD_CUP 와 /world-cup 허브가 공유. 전 카테고리 빈 배열이면 null. */
+export function buildWcLeaderRows(stats: WcPlayerStat[]): Record<string, LeaderRow[]> | null {
+  if (stats.length === 0) return null;
+  const countryKo = (en: string) => fifaCountryKo(en) ?? toKoreanTeamName(en, "WORLD_CUP") ?? en;
+  const toRow = (s: WcPlayerStat, i: number, value: number, unit: string | null): LeaderRow => ({
+    rank: i + 1,
+    playerName: s.name,
+    playerNameEn: s.nameEn,
+    teamName: `${fifaFlag(s.country)} ${countryKo(s.country)}`.trim(),
+    teamShort: null,
+    value,
+    unit,
+    appearances: s.games,
+    photoUrl: s.photo,
+    externalId: s.hasMv ? s.id : null,
+  });
+  const top = (
+    filter: (s: WcPlayerStat) => boolean,
+    sort: (a: WcPlayerStat, b: WcPlayerStat) => number,
+    value: (s: WcPlayerStat) => number,
+    unit: string | null,
+  ) => stats.filter(filter).sort(sort).slice(0, 10).map((s, i) => toRow(s, i, value(s), unit));
+  const rows: Record<string, LeaderRow[]> = {
+    GOAL: top((s) => s.goals > 0, (a, b) => b.goals - a.goals || b.avgRating - a.avgRating, (s) => s.goals, "골"),
+    ASSIST: top((s) => s.assists > 0, (a, b) => b.assists - a.assists || b.avgRating - a.avgRating, (s) => s.assists, "도움"),
+    // 평점 — 누적 45분+ 출전 선수만 (교체 투입 노이즈 방지)
+    RATING: top((s) => s.avgRating > 0 && s.minutes >= 45, (a, b) => b.avgRating - a.avgRating || b.minutes - a.minutes, (s) => s.avgRating, "평점"),
+    // 세이브 — GK 만 값이 쌓임 (필드 플레이어 0)
+    SAVE: top((s) => s.saves > 0, (a, b) => b.saves - a.saves || b.avgRating - a.avgRating, (s) => s.saves, "세이브"),
+    YELLOW: top((s) => s.yellow > 0, (a, b) => b.yellow - a.yellow || b.avgRating - a.avgRating, (s) => s.yellow, "장"),
+    RED: top((s) => s.red > 0, (a, b) => b.red - a.red || b.avgRating - a.avgRating, (s) => s.red, "장"),
+  };
+  return Object.values(rows).every((r) => r.length === 0) ? null : rows;
 }
