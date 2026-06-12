@@ -552,11 +552,14 @@ export default async function TransfersPage({
   //   (익명 "선수" 행 ~35% 제거. 윈도우 행 수백~수천 수준이라 메모리 처리 가능. 전체 이력은 mode=all)
   let latestMainCards: TransferCard[] | null = null;
   let dateCounts: Map<string, number> | null = null;
+  // 임대 복귀 "예정" 행은 transferTime 이 미래(연말·내년)로 들어와 최신순 최상단을 점령 —
+  // 발효 7일 이내 근미래까지만 "최신"으로 인정 (7/1 발효 여름 빅딜은 그 주부터 자연 노출)
+  const latestTimeCap = Math.floor(Date.now() / 1000) + 7 * 86400;
   if (isLatest && !latestAll) {
     const rows = await prisma.footballTransfer.findMany({
       where: {
         league: { in: league ? [league] : FEED_LEAGUES },
-        transferTime: { gte: win.from },
+        transferTime: { gte: win.from, lte: latestTimeCap },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
       },
@@ -579,7 +582,8 @@ export default async function TransfersPage({
     ? { league: { in: feedScope }, transferTime: { gte: win.from }, transferFee: { gt: 0 } }
     : {
         league: { in: feedScope },
-        transferTime: { not: null },
+        // 전체 이력(latest mode=all)도 미래 발효 예정 행은 최신순 상단에서 제외
+        transferTime: { not: null, lte: latestTimeCap },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
       };
