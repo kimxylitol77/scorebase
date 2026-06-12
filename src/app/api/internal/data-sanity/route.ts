@@ -59,6 +59,46 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+// ── MLB sid=1(Not Started) 경보의 지연/연기 구분 — 공식 statsapi (무료·키 불요) ──
+// 우천 지연(Delayed Start 등)은 경기 시작 시 자동 해소라 경보 가치가 없고, 연기·중단은
+// LIVE 표기 자체가 잘못이라 더 크게 울려야 함. 2026-06-12 CWS-ATL Rain Delay 가
+// "source 누락" WARN 으로 오탐된 건 대응. fetch 실패 시 null → 기존 WARN 동작 유지(fail-open).
+interface MlbGame { home: string; away: string; state: string }
+
+async function fetchMlbSchedule(dateEt: string): Promise<MlbGame[]> {
+  const res = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${dateEt}`, {
+    signal: AbortSignal.timeout(5000),
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  const j = (await res.json()) as {
+    dates?: { games?: { teams?: { home?: { team?: { name?: string } }; away?: { team?: { name?: string } } }; status?: { detailedState?: string } }[] }[];
+  };
+  const out: MlbGame[] = [];
+  for (const d of j.dates ?? [])
+    for (const g of d.games ?? [])
+      out.push({ home: g.teams?.home?.team?.name ?? "", away: g.teams?.away?.team?.name ?? "", state: g.status?.detailedState ?? "" });
+  return out;
+}
+
+async function mlbGameState(
+  home: string,
+  away: string,
+  startTime: Date,
+  cache: Map<string, Promise<MlbGame[]>>,
+): Promise<string | null> {
+  try {
+    // schedule?date= 는 ET 기준 — UTC startTime 을 미 동부 날짜로 변환 (en-CA = YYYY-MM-DD)
+    const dateEt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(startTime);
+    if (!cache.has(dateEt)) cache.set(dateEt, fetchMlbSchedule(dateEt));
+    const games = await cache.get(dateEt)!;
+    const g = games.find((x) => (x.home === home || x.away === home) && (x.home === away || x.away === away));
+    return g?.state || null;
+  } catch {
+    return null;
+  }
+}
+
 // 팀 이름 normalize 비교 — Team 테이블 중복 row(같은 팀이 source 별 2~4 row) 때문에
 // standings_mismatch 비교에서 ourId 직접 비교 못 함. 영문/한글 외 모든 문자 제거 +
 // 일반 club prefix/suffix(FC/CF/AC/SC/CD/RCD/SV/Club) 제거 후 양쪽 substring 매칭.
@@ -130,6 +170,8 @@ export async function GET(req: NextRequest) {
     .map((m) => m.id);
 
   const issues: Issue[] = [];
+  // MLB schedule 응답 per-request 캐시 — 같은 날짜 다중 경보여도 fetch 1회
+  const mlbSched = new Map<string, Promise<MlbGame[]>>();
 
   for (const m of matches) {
     const matchInfo = {
@@ -236,13 +278,28 @@ export async function GET(req: NextRequest) {
       //   - 시작 +30분+ + sid=1: source 누락 (별도 detail 로 구분)
       const elapsedMs = now - m.startTime.getTime();
       if (sid === 1 && elapsedMs < 30 * 60 * 1000) continue;
-      const reason = sid === 1
+      let reason = sid === 1
         ? `TheSports source 누락 또는 매치 연기 (시작 +${Math.round(elapsedMs / 60000)}분, sid=1 Not Started)`
         : `cache half=${half} (이닝 표시 불가)`;
+      let severity: "HIGH" | "WARN" = "WARN";
+      // MLB 는 공식 statsapi 로 실제 상태 구분 — 지연류(Delayed/Warmup/Pre-Game/Scheduled)는
+      // 경기 시작 시 자동 해소되므로 skip, 연기·중단·취소는 LIVE 표기 잘못이라 HIGH 승격.
+      if (sid === 1 && m.league === "MLB") {
+        const st = await mlbGameState(m.homeTeam.name, m.awayTeam.name, m.startTime, mlbSched);
+        if (st) {
+          if (/Delayed|Warmup|Pre-Game|Scheduled/i.test(st)) continue;
+          if (/Postponed|Suspended|Cancelled/i.test(st)) {
+            severity = "HIGH";
+            reason = `MLB 공식 "${st}" — 연기/중단 확정인데 status=LIVE (collector 정리 필요)`;
+          } else if (/In Progress/i.test(st)) {
+            reason = `TheSports source 누락 — MLB 공식은 "${st}" (시작 +${Math.round(elapsedMs / 60000)}분)`;
+          }
+        }
+      }
       issues.push({
         ...matchInfo,
         kind: "inning_missing",
-        severity: "WARN",
+        severity,
         detail: `LIVE 인데 ${reason}`,
       });
     }
