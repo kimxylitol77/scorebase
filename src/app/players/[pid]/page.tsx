@@ -149,9 +149,21 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (!Number.isFinite(id)) notFound();
   const season = new Date().getUTCFullYear();
 
-  // primaryPosition 으로 분기
-  const hitterFirst = await fetchHitterProfile(id, season);
-  if (!hitterFirst) notFound();
+  // primaryPosition 으로 분기.
+  // MLB 에 없는 id 는 statsapi 404 throw 로 페이지 전체가 500 나던 버그(2026-06-12 실측:
+  // league 파라미터 없는 축구 af id 링크·구글 색인 잔존 URL) → 가드 + ts 매핑 구제 redirect.
+  let hitterFirst: Awaited<ReturnType<typeof fetchHitterProfile>> = null;
+  try {
+    hitterFirst = await fetchHitterProfile(id, season);
+  } catch {
+    hitterFirst = null;
+  }
+  if (!hitterFirst) {
+    // MLB 미존재 — league 없이 들어온 축구 af id 면 통합 선수 페이지로
+    const tsId = afPlayerToTs(pid);
+    if (tsId) redirect(`/transfers/${tsId}`);
+    notFound();
+  }
   const isPitcher = hitterFirst.position === "P";
 
   if (!isPitcher) {
