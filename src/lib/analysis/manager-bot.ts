@@ -25,7 +25,7 @@ const MANAGER_NICKNAME = "스코어베이스 분석팀";
 
 const DISCLAIMER = "\n\n---\n_데이터 기반 자동 분석입니다. 투자·베팅 결정은 본인 책임입니다._";
 
-type Sport = "soccer" | "baseball" | "basketball" | "hockey";
+type Sport = "soccer" | "baseball" | "basketball" | "hockey" | "esports" | "mma" | "volleyball";
 
 /** 매니저(가상 작성자) 계정 보장 — 없으면 생성. 로그인은 안 쓰고 authorId 만 사용. */
 export async function ensureManager(): Promise<string> {
@@ -61,7 +61,9 @@ export function sportForLeague(league: string): Sport | null {
   if (BASEBALL_LEAGUES.has(league)) return "baseball";
   if (BASKETBALL_LEAGUES.has(league)) return "basketball";
   if (HOCKEY_LEAGUES.has(league)) return "hockey";
-  if (LOL_LEAGUES.has(league)) return null; // e스포츠는 분석 게시판 종목(축구/야구/농구/하키) 밖
+  if (LOL_LEAGUES.has(league)) return "esports"; // 2026-06 게시판 종목 확장 — 롤 픽 봇 활성
+  if (league === "UFC") return "mma";
+  if (league === "V_LEAGUE" || league === "VNL") return "volleyball"; // V리그 수집 합류 시 자동 활성
   return "soccer";
 }
 
@@ -112,7 +114,9 @@ interface Candidate {
 async function pickImportantMatches(managerId: string, limit: number): Promise<Candidate[]> {
   const now = new Date();
   const horizon = new Date(now.getTime() + 36 * 60 * 60 * 1000);
-  const leagues = ARTICLE_LEAGUES.filter((l) => l !== "LOL") as string[];
+  // LOL 포함 (배당·predHome 보유 — 데이터 기반 픽 가능). UFC 는 예측 데이터가 없어
+  // 매니저봇(데이터 근거 전문 픽) 대상에서 제외 — 일반 회원봇만 다룬다.
+  const leagues = ARTICLE_LEAGUES as readonly string[] as string[];
 
   const matches = await prisma.match.findMany({
     where: {

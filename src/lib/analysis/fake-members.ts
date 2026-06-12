@@ -30,9 +30,11 @@ export const FAKE_NICKNAMES = [
   "치맥과야구", "야구는진리", "베이스볼킴", "7번타자", "leadoff",
   "새벽직관", "코너킥러", "midfielder", "손케이팬", "축구보는밤",
   "GoalKeeper", "잔디사랑", "striker9", "soccer_kim", "응원단장",
+  // 신규 4 (2026-06 게시판 종목 확장 — 롤 2 + UFC 2. 배구는 V리그 수집 합류 시 추가)
+  "미드차이", "한타각", "옥타곤직관", "테이크다운",
 ];
 
-type Sport = "soccer" | "baseball" | "basketball" | "hockey";
+type Sport = "soccer" | "baseball" | "basketball" | "hockey" | "esports" | "mma" | "volleyball";
 type Bias = "underdog" | "safe" | "over" | "under" | "handicap" | "balanced";
 
 interface Persona {
@@ -83,6 +85,10 @@ const PERSONAS: Persona[] = [
   { tone: "공격 본능. 골 많이 나는 그림을 좋아하고 직설적", bias: "over", len: "short" }, // striker9
   { tone: "무난한 축구팬. 가끔 존댓말이 섞임", bias: "balanced", len: "mid" }, // soccer_kim
   { tone: "응원 텐션 높음. 느낌표 많고 흥겨운 톤", bias: "balanced", len: "mid" }, // 응원단장
+  { tone: "롤 챔프 폼·밴픽 얘기를 가볍게 섞는 반말. ㅋㅋ 가끔", bias: "balanced", len: "short" }, // 미드차이
+  { tone: "한타·오브젝트 위주로 경기를 보는 담백한 톤", bias: "safe", len: "short" }, // 한타각
+  { tone: "UFC 체급·리치 같은 디테일을 슬쩍 언급하는 존댓말", bias: "balanced", len: "mid" }, // 옥타곤직관
+  { tone: "그래플링 우위를 따지는 자신감 있는 반말", bias: "underdog", len: "short" }, // 테이크다운
 ];
 
 // 성향별 픽 힌트 — 프롬프트에 주입(강제 아님, 캐릭터 부여용)
@@ -144,7 +150,8 @@ async function ensureFakeMember(i: number): Promise<string> {
 async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCand | null> {
   const now = new Date();
   const horizon = new Date(now.getTime() + 36 * 60 * 60 * 1000);
-  const leagues = ARTICLE_LEAGUES.filter((l) => l !== "LOL") as string[];
+  // LOL 포함 + UFC 추가 (UFC 는 ARTICLE_LEAGUES 밖 — 글 자동발행 없이 게시판 픽만)
+  const leagues = [...ARTICLE_LEAGUES, "UFC"] as string[];
 
   const matches = await prisma.match.findMany({
     where: {
@@ -306,7 +313,9 @@ export async function runFakeMemberPicks(): Promise<{ created: number; skipped: 
   if (Math.random() > rate) return { created: 0, skipped: 0 };
 
   const i = Math.floor(Math.random() * FAKE_NICKNAMES.length);
-  const preferSport: Sport = Math.random() < 0.7 ? "baseball" : "soccer";
+  // 종목 가중 — 야구 시즌 주력 + 축구, 롤·UFC 는 양념 (경기 없으면 전체 fallback)
+  const r = Math.random();
+  const preferSport: Sport = r < 0.55 ? "baseball" : r < 0.8 ? "soccer" : r < 0.9 ? "esports" : "mma";
 
   try {
     const userId = await ensureFakeMember(i);
