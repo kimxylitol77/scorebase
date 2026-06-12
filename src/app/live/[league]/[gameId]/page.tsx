@@ -255,9 +255,9 @@ export default async function GenericLivePage({ params }: Props) {
     return renderBaseballPage({ match, lg, gameId, homeKo, awayKo, homeShort, awayShort, label });
   }
 
-  // ── 배구 (VNL/AVC/유럽리그) — 세트 스코어보드 + 세트별 점수 + 기술통계. 축구/농구 fetch skip.
+  // ── 배구 (VNL/AVC/유럽리그) — 세트 스코어보드 + 세트별 점수 + 기술통계 + 배당. 축구/농구 fetch skip.
   if (VOLLEYBALL_LEAGUES.has(lg)) {
-    return renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label });
+    return await renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label });
   }
 
   const extras = await fetchMatchExtras(match);
@@ -1191,8 +1191,18 @@ interface VolleyballPageArgs {
   label: string;
 }
 
-function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }: VolleyballPageArgs) {
+async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }: VolleyballPageArgs) {
   const dl = match.theSportsCache?.detailLive as { stats?: unknown[] } | null;
+  // bet365(companyId "2") 우선 최신 승패(eu) 배당 — volleyball-odds-poller 가 야구 odds 테이블 재사용해 적재
+  const oddsRow =
+    (await prisma.tsBaseballOddsHistory.findFirst({
+      where: { matchId: match.id, kind: "eu", companyId: "2" },
+      orderBy: { ts: "desc" },
+    })) ??
+    (await prisma.tsBaseballOddsHistory.findFirst({
+      where: { matchId: match.id, kind: "eu" },
+      orderBy: { ts: "desc" },
+    }));
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -1207,9 +1217,14 @@ function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }: Voll
         <h1 className="text-xl sm:text-2xl font-black tracking-tight">
           {homeKo} vs {awayKo}
         </h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          {getLeagueFlag(lg) && <span className="mr-1">{getLeagueFlag(lg)}</span>}
-          {label} · 라이브 스코어 · 세트별 점수 · 5초 자동 갱신
+        <p className="text-sm text-neutral-500 mt-1 flex items-center gap-2 flex-wrap">
+          <span>
+            {getLeagueFlag(lg) && <span className="mr-1">{getLeagueFlag(lg)}</span>}
+            {label} · 라이브 스코어 · 세트별 점수 · 5초 자동 갱신
+          </span>
+          <Link href={`/standings/${lg}`} className="font-bold text-amber-600 dark:text-amber-400 hover:underline">
+            순위표 →
+          </Link>
         </p>
       </header>
 
@@ -1238,7 +1253,57 @@ function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }: Voll
         playerLogoById={{}}
       />
 
+      <VolleyballOddsCard odds={oddsRow} homeKo={homeKo} awayKo={awayKo} status={match.status} />
+
       <VolleyballStatsCard stats={dl?.stats} homeKo={homeKo} awayKo={awayKo} />
+    </div>
+  );
+}
+
+// 배구 배당 + 임플라이드 승률 — bet365 승패 배당에서 vig 제거 양분.
+// 자체 Elo 모델은 표본 축적 후 블렌드 예정 — 현재는 시장 단일 신호라 "배당 기반" 명시.
+function VolleyballOddsCard({
+  odds,
+  homeKo,
+  awayKo,
+  status,
+}: {
+  odds: { v1: number; v2: number; ts: number; companyId: string } | null;
+  homeKo: string;
+  awayKo: string;
+  status: string;
+}) {
+  if (!odds || odds.v1 <= 1 || odds.v2 <= 1) return null;
+  const ih = 1 / odds.v1;
+  const ia = 1 / odds.v2;
+  const ph = Math.round((ih / (ih + ia)) * 100);
+  const pa = 100 - ph;
+  const updated = new Date(odds.ts * 1000).toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+  const company = odds.companyId === "2" ? "bet365" : `북메이커 #${odds.companyId}`;
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+          승률 (배당 기반)
+        </div>
+        <div className="text-[10px] text-neutral-500">
+          {company} · {status === "FINISHED" ? "마감 배당" : "갱신"} {updated}
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-sm font-bold">
+        <span className="truncate max-w-[40%]">{homeKo} {ph}%</span>
+        <span className="truncate max-w-[40%] text-right">{awayKo} {pa}%</span>
+      </div>
+      <div className="h-2.5 rounded-full overflow-hidden flex bg-neutral-100 dark:bg-neutral-800">
+        <div className="h-full" style={{ width: `${ph}%`, background: "#22c55e" }} />
+        <div className="h-full" style={{ width: `${pa}%`, background: "#3b82f6" }} />
+      </div>
+      <div className="flex items-center justify-between text-xs text-neutral-500 tabular-nums">
+        <span>배당 {odds.v1.toFixed(2)}</span>
+        <span>배당 {odds.v2.toFixed(2)}</span>
+      </div>
     </div>
   );
 }

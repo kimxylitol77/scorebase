@@ -14,6 +14,8 @@ import { SOCCER_LEAGUES } from "@/lib/sports/types";
 import { fetchStandingsForLeague } from "@/lib/sports/thesports/standings-fetch";
 import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
 import { getTeamGroup } from "@/lib/predict/world-cup-elos";
+import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,7 @@ interface Props {
 
 const VALID = new Set<string>([
   ...SOCCER_LEAGUES,
+  ...VOLLEYBALL_LEAGUES,
   "NBA",
   "WNBA",
   "NHL",
@@ -51,6 +54,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // 월드컵은 단일표가 아니라 12개 조(A~L) 분리 표 — 전용 렌더로 분기
   if (upper === "WORLD_CUP") return <WorldCupStandings name={name} />;
+
+  // 배구는 세트 득실 컬럼 + 조별(Pool) 다중 테이블 — 전용 렌더로 분기
+  if (VOLLEYBALL_LEAGUES.has(upper)) return <VolleyballStandings league={upper} name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
@@ -408,6 +414,104 @@ async function WorldCupStandings({ name }: { name: string }) {
           3위는 12개 조 중 상위 8팀이 32강 진출
         </p>
         <p>ⓘ FINISHED 매치만 집계 · 동률 시 승점→득실→다득점 순.</p>
+      </div>
+    </div>
+  );
+}
+
+
+// ── 배구 순위 (VNL/AVC/유럽리그) — TheSports season/table/detail cache 기반 ──
+// 승점·승패·세트 득실. AVC/유럽리그는 조별(Pool) 다중 테이블 그대로 렌더.
+async function VolleyballStandings({ league, name }: { league: string; name: string }) {
+  const groups = await fetchVolleyballTable(league);
+  const teamIds = groups.flatMap((g) => g.rows.map((r) => r.ourTeamId));
+  const teams = await prisma.team.findMany({
+    where: { id: { in: teamIds } },
+    select: { id: true, name: true, logoUrl: true },
+  });
+  const teamMap = new Map(teams.map((t) => [t.id, t]));
+  const multi = groups.length > 1;
+
+  return (
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=volleyball" className="hover:underline">배구 라이브 스코어</Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{name} 순위표</span>
+      </nav>
+
+      <header>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name} 순위표</h1>
+        <p className="text-sm text-neutral-500 mt-1">
+          승점 · 승패 · 세트 득실 — TheSports 공식 순위, 경기 종료 후 자동 갱신
+        </p>
+      </header>
+
+      {groups.length === 0 ? (
+        <p className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-5 py-10 text-center text-sm text-neutral-500">
+          순위 데이터 수집 중입니다. 잠시 후 다시 확인해주세요.
+        </p>
+      ) : (
+        <div className={multi ? "grid sm:grid-cols-2 gap-4" : "space-y-4"}>
+          {groups.map((g) => (
+            <section key={g.name} className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden">
+              {multi && (
+                <h2 className="px-4 py-2.5 text-sm font-black bg-neutral-50 dark:bg-white/[0.04] border-b border-neutral-200 dark:border-white/10">
+                  {g.name}
+                </h2>
+              )}
+              <table className="w-full text-sm border-separate border-spacing-0">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wider text-neutral-400">
+                    <th className="text-right py-2 pl-3 pr-2 font-semibold w-8">#</th>
+                    <th className="text-left py-2 px-2 font-semibold">팀</th>
+                    <th className="text-center py-2 px-1 font-semibold w-10">경기</th>
+                    <th className="text-center py-2 px-1 font-semibold w-8">승</th>
+                    <th className="text-center py-2 px-1 font-semibold w-8">패</th>
+                    <th className="text-center py-2 px-1 font-semibold w-14">세트 +/-</th>
+                    <th className="text-right py-2 pr-3 pl-1 font-semibold w-12">승점</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {g.rows.map((r) => {
+                    const t = teamMap.get(r.ourTeamId);
+                    if (!t) return null;
+                    const sd = r.setsWin - r.setsLoss;
+                    return (
+                      <tr key={r.ourTeamId} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition">
+                        <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">{r.position}</td>
+                        <td className="py-2 px-2">
+                          <span className="flex items-center gap-2">
+                            {t.logoUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={t.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                            ) : (
+                              <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                            )}
+                            <span className="font-semibold truncate max-w-[150px] sm:max-w-none">
+                              {toKoreanTeamName(t.name, league)}
+                            </span>
+                          </span>
+                        </td>
+                        <td className="text-center py-2 px-1 tabular-nums text-neutral-600 dark:text-neutral-400">{r.played}</td>
+                        <td className="text-center py-2 px-1 tabular-nums text-emerald-600 dark:text-emerald-400">{r.wins}</td>
+                        <td className="text-center py-2 px-1 tabular-nums text-rose-500">{r.losses}</td>
+                        <td className={`text-center py-2 px-1 tabular-nums font-semibold ${sd > 0 ? "text-emerald-600 dark:text-emerald-400" : sd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
+                          {r.setsWin}:{r.setsLoss}
+                        </td>
+                        <td className="text-right py-2 pr-3 pl-1 tabular-nums font-black text-base">{r.points}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </section>
+          ))}
+        </div>
+      )}
+
+      <div className="text-[11px] text-neutral-400 text-center pt-2">
+        ⓘ 세트 +/- = 세트 득실 (승:패). 순위 산정은 대회 규정(승점→승수→세트율) 기준.
       </div>
     </div>
   );

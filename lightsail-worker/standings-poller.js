@@ -61,6 +61,23 @@ const BASEBALL_SEASONS = [
   { code: "NPB", seasonId: "pxwrxgsj10kmyk0" },
 ];
 
+// 배구 (VNL/AVC/유럽리그) — volleyball season/table/detail. season_id 는 시즌마다 변경:
+// 시즌 초 diary sweep 매치의 season_id 로 갱신 (utid: VNL e4wyrn3hexvm86p / AVC y0or58hld26rwzv / EGL jednm9vh901qyox)
+const VOLLEYBALL_SEASONS = [
+  { code: "VNL", seasonId: "23xmvzhkkv2qg8n" },
+  { code: "AVC_NATIONS_W", seasonId: "dj2rydhgn9yr1zp" },
+  { code: "EGL_W", seasonId: "pxwrxdhjj28myk0" },
+];
+
+async function fetchVolleyballStandings(seasonId) {
+  const { data } = await axios.get(`${TS_BASE}/v1/volleyball/season/table/detail`, {
+    params: { user: TS_USER, secret: TS_SECRET, uuid: seasonId },
+    timeout: 30_000,
+  });
+  if (data.code !== 0) throw new Error(`ts code=${data.code} err=${data.err ?? ""}`);
+  return data.results;
+}
+
 async function fetchBaseballStandings(seasonId) {
   const { data } = await axios.get(`${TS_BASE}/v1/baseball/season/table/detail`, {
     params: { user: TS_USER, secret: TS_SECRET, uuid: seasonId },
@@ -109,6 +126,24 @@ async function poll() {
       err++;
       const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
       console.error(`  ✗ ${l.code} (${l.tsSeasonId}): ${msg}`);
+    }
+    await sleep(CALL_GAP_MS);
+  }
+
+  // 배구 (VNL/AVC/유럽리그) — volleyball season/table/detail → 같은 postCache
+  for (const v of VOLLEYBALL_SEASONS) {
+    try {
+      const payload = await fetchVolleyballStandings(v.seasonId);
+      if (!payload || !Array.isArray(payload.tables)) {
+        console.warn(`  skip ${v.code} — empty payload`);
+        continue;
+      }
+      await postCache(v.code, v.seasonId, payload);
+      ok++;
+    } catch (e) {
+      err++;
+      const msg = e.response?.data?.error ?? e.response?.data?.err ?? e.message;
+      console.error(`  ✗ ${v.code} (${v.seasonId}): ${msg}`);
     }
     await sleep(CALL_GAP_MS);
   }
