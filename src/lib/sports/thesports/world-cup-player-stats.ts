@@ -21,6 +21,8 @@ export interface WcPlayerStat {
   yellow: number;
   red: number;
   saves: number; // GK 세이브 (필드 플레이어는 0)
+  keyPasses: number; // 키패스 (찬스메이킹)
+  defActions: number; // 수비 포인트 = 태클 + 인터셉트 + 클리어런스
   avgRating: number; // rating>0 경기 평균 (소수 2)
   minutes: number;
   games: number; // 출전 경기 수 (minutes>0)
@@ -34,6 +36,10 @@ interface TsPlayerStatRow {
   red_cards?: number;
   yellow2red_cards?: number;
   saves?: number;
+  key_passes?: number;
+  tackles?: number;
+  interceptions?: number;
+  clearances?: number;
   rating?: number;
   minutes_played?: number;
 }
@@ -71,6 +77,8 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     yellow: number;
     red: number;
     saves: number;
+    keyPasses: number;
+    defActions: number;
     ratings: number[];
     minutes: number;
     games: number;
@@ -108,6 +116,8 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
         yellow: 0,
         red: 0,
         saves: 0,
+        keyPasses: 0,
+        defActions: 0,
         ratings: [],
         minutes: 0,
         games: 0,
@@ -120,6 +130,8 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
       a.yellow += s.yellow_cards ?? 0;
       a.red += (s.red_cards ?? 0) + (s.yellow2red_cards ?? 0);
       a.saves += s.saves ?? 0;
+      a.keyPasses += s.key_passes ?? 0;
+      a.defActions += (s.tackles ?? 0) + (s.interceptions ?? 0) + (s.clearances ?? 0);
       const rating = Number(s.rating) || 0;
       if (rating > 0) a.ratings.push(rating);
       const min = s.minutes_played ?? 0;
@@ -157,6 +169,8 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     yellow: a.yellow,
     red: a.red,
     saves: a.saves,
+    keyPasses: a.keyPasses,
+    defActions: a.defActions,
     avgRating: a.ratings.length
       ? +(a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length).toFixed(2)
       : 0,
@@ -191,8 +205,12 @@ export function buildWcLeaderRows(stats: WcPlayerStat[]): Record<string, LeaderR
   const rows: Record<string, LeaderRow[]> = {
     GOAL: top((s) => s.goals > 0, (a, b) => b.goals - a.goals || b.avgRating - a.avgRating, (s) => s.goals, "골"),
     ASSIST: top((s) => s.assists > 0, (a, b) => b.assists - a.assists || b.avgRating - a.avgRating, (s) => s.assists, "도움"),
+    // 키패스(찬스메이킹) — 도움으로 이어지지 않은 결정적 패스까지
+    CHANCE: top((s) => s.keyPasses > 0, (a, b) => b.keyPasses - a.keyPasses || b.avgRating - a.avgRating, (s) => s.keyPasses, "회"),
     // 평점 — 누적 45분+ 출전 선수만 (교체 투입 노이즈 방지)
     RATING: top((s) => s.avgRating > 0 && s.minutes >= 45, (a, b) => b.avgRating - a.avgRating || b.minutes - a.minutes, (s) => s.avgRating, "평점"),
+    // 수비 포인트 = 태클+인터셉트+클리어런스 합산
+    DEFENSE: top((s) => s.defActions > 0, (a, b) => b.defActions - a.defActions || b.avgRating - a.avgRating, (s) => s.defActions, "회"),
     // 세이브 — GK 만 값이 쌓임 (필드 플레이어 0)
     SAVE: top((s) => s.saves > 0, (a, b) => b.saves - a.saves || b.avgRating - a.avgRating, (s) => s.saves, "세이브"),
     YELLOW: top((s) => s.yellow > 0, (a, b) => b.yellow - a.yellow || b.avgRating - a.avgRating, (s) => s.yellow, "장"),

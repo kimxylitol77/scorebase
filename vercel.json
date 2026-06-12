@@ -51,6 +51,7 @@
     { "path": "/api/cron/preview", "schedule": "30 8 * * *" },
     { "path": "/api/cron/preview", "schedule": "0 14 * * *" },
     { "path": "/api/cron/blog-weekly", "schedule": "0 0 * * 1" },
+    { "path": "/api/cron/wc-sim-snapshot", "schedule": "0 4 * * *" },
     { "path": "/api/cron/boost-views", "schedule": "0 * * * *" }
   ]
 }

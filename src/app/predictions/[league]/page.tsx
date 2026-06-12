@@ -26,6 +26,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows } from "@/lib/sports/thesports/world-cup-player-stats";
+import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
 import rawSeasonStats from "../../../../data/player-season-stats.json";
 import rawPlayerOverrides from "../../../../data/player-overrides.json";
 import rawPlayerPhotos from "../../../../data/player-photos.json";
@@ -600,6 +601,34 @@ export default async function LeaguePredictions({ params }: Props) {
     wcRowsByCategory = buildWcLeaderRows(await getWorldCupPlayerStats());
   }
 
+  // 우승 확률 추이 — cron(wc-sim-snapshot, KST 13:00)이 쌓는 일일 시뮬 스냅샷.
+  // 스냅샷 2개 이상부터 차트 노출 (1개로는 추이가 안 됨).
+  let wcTrend: { data: WcTrendPoint[]; teams: { name: string; color: string }[] } | null = null;
+  if (isWorldCup) {
+    const snaps = await prisma.worldCupSimSnapshot.findMany({ orderBy: { date: "asc" } });
+    if (snaps.length >= 2) {
+      type SnapRow = { team: string; champion: number };
+      const latest = snaps[snaps.length - 1].data as unknown as SnapRow[];
+      const TREND_COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#ef4444", "#8b5cf6", "#64748b"];
+      const topTeams = [...latest]
+        .sort((a, b) => b.champion - a.champion)
+        .slice(0, 6)
+        .map((r, i) => ({ en: r.team, name: toKoreanTeamName(r.team, upper) || r.team, color: TREND_COLORS[i] }));
+      wcTrend = {
+        teams: topTeams.map(({ name, color }) => ({ name, color })),
+        data: snaps.map((s) => {
+          const rows = s.data as unknown as SnapRow[];
+          const point: WcTrendPoint = { date: s.date.slice(5).replace("-", "/") };
+          for (const t of topTeams) {
+            const r = rows.find((x) => x.team === t.en);
+            point[t.name] = r ? +(r.champion * 100).toFixed(1) : null;
+          }
+          return point;
+        }),
+      };
+    }
+  }
+
   return (
     <div>
       {/* 히어로 */}
@@ -753,6 +782,19 @@ export default async function LeaguePredictions({ params }: Props) {
                 />
               </div>
             </section>
+
+            {/* 우승 확률 추이 — 일일 스냅샷 누적 (경기 결과가 확률을 어떻게 움직였는지) */}
+            {wcTrend && (
+              <section>
+                <Heading
+                  title="📈 우승 확률 추이"
+                  subtitle="매일 13시 시뮬레이션 스냅샷 — 경기 결과에 따라 우승 확률이 어떻게 움직이는지 (TOP 6)"
+                />
+                <div className="sm:max-w-2xl">
+                  <WcChampionTrendChart data={wcTrend.data} teams={wcTrend.teams} />
+                </div>
+              </section>
+            )}
 
             <section>
               <Heading

@@ -785,3 +785,13 @@ model RankingCache {
   updatedAt DateTime @updatedAt
   fetchedAt DateTime @default(now())
 }
+
+/// 월드컵 Monte Carlo 시뮬 일일 스냅샷 — 우승·진출 확률 추이 그래프용.
+/// /api/cron/wc-sim-snapshot (KST 13:00) 이 5,000회 시뮬 후 upsert (date 당 1 row).
+/// payload: [{ team, groupPass, r16, qf, sf, final, champion }] — 48개국 전체.
+model WorldCupSimSnapshot {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique // KST YYYY-MM-DD
+  data      Json
+  createdAt DateTime @default(now())
+}
