@@ -86,6 +86,12 @@ async function main() {
     }
   }
 
+  // 수집 0건 가드 — API 일시 장애 시 빈 데이터로 기존 파일을 덮어쓰지 않음 (2026-06-12 빈 커밋 사고)
+  if (calls === 0 || Object.keys(byCountry).length === 0) {
+    console.error(`수집 실패(lineup ${calls}회, 국가 ${Object.keys(byCountry).length}개) — 기존 데이터 유지, 파일 미작성`);
+    process.exit(1);
+  }
+
   const allIds = Object.values(byCountry).flatMap((m) => [...m.keys()]);
   const mv = await p.playerMarketValue.findMany({ where: { id: { in: allIds } }, select: { id: true, currentValue: true } });
   const valById = new Map(mv.map((m) => [m.id, m.currentValue ?? 0]));
@@ -133,4 +139,4 @@ async function main() {
   console.log(`lineup 호출 ${calls}회`);
   console.log("조별:", summary.map((s) => `${s.group}:${s.xi}/11(${s.pool})`).join("  "));
 }
-main().then(() => p.$disconnect()).then(() => process.exit(0)).catch((e) => { console.error(e.message); process.exit(0); });
+main().then(() => p.$disconnect()).then(() => process.exit(0)).catch((e) => { console.error(e.message); process.exit(1); });

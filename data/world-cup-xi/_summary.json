@@ -3,63 +3,63 @@
   "groups": [
     {
       "group": "A",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 51
     },
     {
       "group": "B",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 76
     },
     {
       "group": "C",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 105
     },
     {
       "group": "D",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 77
     },
     {
       "group": "E",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 49
     },
     {
       "group": "F",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 80
     },
     {
       "group": "G",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 76
     },
     {
       "group": "H",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 59
     },
     {
       "group": "I",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 108
     },
     {
       "group": "J",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 107
     },
     {
       "group": "K",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 81
     },
     {
       "group": "L",
-      "xi": 0,
-      "pool": 0
+      "xi": 11,
+      "pool": 110
     }
   ]
 }
