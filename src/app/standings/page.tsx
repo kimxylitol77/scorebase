@@ -1,11 +1,15 @@
-// /standings 인덱스 — 주요 리그 카드 grid + SEO 콘텐츠.
-// [league] 동적 페이지로 이동하는 진입점.
+// /standings 인덱스 — 순위 허브: 주요 리그 카드 grid + 국가·종목별 현재 순위 TOP 3 전체.
+// (2026-06-12 역할 분리 — /predictions 는 예측 중심 요약, 순위 전체는 여기가 정본)
 
 import Link from "next/link";
 import type { Metadata } from "next";
+import {
+  fetchSoccerCountryGroups,
+  fetchSportGroups,
+  type CountryStandingsGroup,
+} from "@/lib/sports/standings-overview";
 
-export const dynamic = "force-static";
-export const revalidate = 3600;
+export const revalidate = 600;
 
 export const metadata: Metadata = {
   title: {
@@ -40,7 +44,14 @@ const LEAGUES: LeagueCard[] = [
   { code: "NHL", name: "NHL", subtitle: "북미 아이스하키", flag: "🏒", gradient: "from-cyan-500 via-blue-600 to-indigo-700" },
 ];
 
-export default function StandingsRoot() {
+export default async function StandingsRoot() {
+  // 종목(야구 등) 그룹을 앞에, 축구 국가별을 뒤에 — standings 있는 리그만 자동 노출
+  const [sportGroups, soccerGroups] = await Promise.all([
+    fetchSportGroups(),
+    fetchSoccerCountryGroups(),
+  ]);
+  const groups: CountryStandingsGroup[] = [...sportGroups, ...soccerGroups];
+
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
       <header className="space-y-2">
@@ -73,6 +84,63 @@ export default function StandingsRoot() {
           </Link>
         ))}
       </section>
+
+      {/* 국가·종목별 현재 순위 TOP 3 — 전체 리그 (순위 허브의 본체) */}
+      {groups.length > 0 && (
+        <section className="space-y-6 pt-2">
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">국가·종목별 현재 순위</h2>
+            <p className="text-sm text-neutral-500">
+              야구(KBO·NPB·MLB)는 종목별, 전 세계 축구 리그는 국가별 — 현재 순위 Top 3. 리그명 클릭 시 전체 순위표.
+            </p>
+            <nav className="flex flex-wrap gap-1.5 pt-1 text-[11px]">
+              {groups.map((g) => (
+                <a
+                  key={g.country}
+                  href={`#st-${g.country}`}
+                  className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+                >
+                  {g.country}
+                </a>
+              ))}
+            </nav>
+          </div>
+          {groups.map((g) => (
+            <div key={g.country} id={`st-${g.country}`} className="space-y-3">
+              <h3 className="flex items-center gap-2 text-sm sm:text-base font-bold">
+                <span>{g.country}</span>
+                <span className="text-xs font-normal text-neutral-400">{g.leagues.length}개 리그</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {g.leagues.map((l) => (
+                  <Link
+                    key={l.league}
+                    href={`/standings/${l.league}`}
+                    prefetch={false}
+                    className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 hover:-translate-y-0.5 hover:shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+                  >
+                    <div className="mb-2 flex items-baseline justify-between gap-2">
+                      <span className="truncate text-sm font-semibold">{l.leagueDisplay}</span>
+                      <span className="text-xs text-neutral-400">→</span>
+                    </div>
+                    <div className="space-y-1">
+                      {l.top3.map((t) => (
+                        <div key={t.teamId} className="flex items-center justify-between gap-2 text-[11px] sm:text-xs">
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <span className="w-3 text-center tabular-nums font-bold text-neutral-400">{t.position}</span>
+                            <span className="truncate text-neutral-700 dark:text-neutral-300">{t.name}</span>
+                          </div>
+                          <span className="shrink-0 tabular-nums font-semibold text-neutral-500">{t.points}p</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
 
       <section className="mt-4 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
         <h2 className="text-base sm:text-lg font-bold tracking-tight">

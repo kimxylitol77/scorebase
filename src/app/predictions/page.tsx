@@ -1,22 +1,15 @@
 // /predictions 인덱스 — 리그 카드 grid + 국가별 standings.
 // 데이터 fetch 는 server, UI/motion 은 _view.tsx (client).
 import type { Metadata } from "next";
-import { prisma } from "@/lib/db";
-import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
-import { toKoreanTeamName } from "@/lib/team-names";
 import {
-  SPORTS,
-  LEAGUE_DISPLAY,
-  COUNTRY_BY_LEAGUE,
-  COUNTRY_ORDER,
-} from "@/lib/sports/sport-leagues";
+  safeFetchTop3,
+  fetchSoccerCountryGroups,
+  fetchSportGroups,
+} from "@/lib/sports/standings-overview";
+import { toKoreanTeamName } from "@/lib/team-names";
 import PredictionsView from "./_view";
 import { SITE_URL } from "@/lib/site-url";
-import {
-  LEAGUES,
-  type CountryStandingsGroup,
-  type TopThreeEntry,
-} from "./_data";
+import { LEAGUES, type TopThreeEntry } from "./_data";
 import {
   FIFA_RANKINGS,
   fifaCountryKo,
@@ -33,9 +26,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 600;
 
 export const metadata: Metadata = {
-  title: "리그 순위·우승 확률·득점/홈런/타율 리더보드 | 스코어베이스",
+  title: "시즌 예측 — 우승 확률·플레이오프·리더보드 | 스코어베이스",
   description:
-    "리그 순위, 시즌 우승·강등 확률, 그리고 득점·홈런·타율·ERA 리더보드까지 한 곳에서. 축구·야구·농구·아이스하키를 Monte Carlo 5,000회 + Elo 레이팅으로 분석합니다. EPL·라리가·K리그·KBO·MLB·NPB·NBA·NHL·LCK.",
+    "시즌 우승·플레이오프·강등 확률과 득점·홈런·타율·ERA 리더보드를 Monte Carlo 5,000회 + Elo 레이팅으로 분석합니다. EPL·라리가·K리그·KBO·MLB·NPB·NBA·NHL·LCK — 전체 리그 순위는 순위 허브에서.",
+  alternates: { canonical: "/predictions" },
   keywords: [
     "시즌 예측", "우승 확률", "강등 확률", "플레이오프 확률",
     "Monte Carlo 시뮬레이션", "Elo 레이팅",
@@ -47,33 +41,8 @@ export const metadata: Metadata = {
   ],
 };
 
-// 한 league fetch — throw 면 빈 결과 반환 (전체 page 500 방지).
-// 2026-05-27 /predictions 500 사고: standings-helper 의 새 baseball cache row
-// 처리 중 일부 league 가 throw → Promise.all 전체 reject → 페이지 죽음.
-async function safeFetchTop3(
-  league: string,
-): Promise<TopThreeEntry[]> {
-  try {
-    const rows = await getFullStandings(league);
-    if (rows.length === 0) return [];
-    // MLB 처럼 양 리그 합산 표는 동순위(position 중복)가 있음 — 동순위 내 승점 내림차순 보정
-    const top3 = [...rows].sort((a, b) => a.position - b.position || b.points - a.points).slice(0, 3);
-    const teams = await prisma.team.findMany({
-      where: { id: { in: top3.map((r) => r.teamId) } },
-      select: { id: true, name: true },
-    });
-    const nameById = new Map(teams.map((t) => [t.id, t.name]));
-    return top3.map((r) => ({
-      position: r.position,
-      teamId: r.teamId,
-      name: toKoreanTeamName(nameById.get(r.teamId) ?? `Team ${r.teamId}`, league),
-      points: r.points,
-    }));
-  } catch (e) {
-    console.warn(`[predictions] fetchTop3 fail league=${league}:`, (e as Error).message);
-    return [];
-  }
-}
+// top3 fetch 는 lib(standings-overview)으로 이동 — /standings 허브와 공유.
+// (리그 단위 실패는 빈 배열 격리 — 2026-05-27 /predictions 500 사고 가드 유지)
 
 async function fetchTop3Map(): Promise<Record<string, TopThreeEntry[]>> {
   const allCodes = new Set<string>();
@@ -95,76 +64,10 @@ const PREDICTION_PAGE_CODES = new Set(
   LEAGUES.flatMap((lg) => (lg.codes ? lg.codes.map((c) => c.code) : [lg.code])),
 );
 
-/** 비축구 종목(야구·농구·하키 등) — 종목 단위 그룹. standings 있는 리그만 자동 노출
- *  (NBA·NHL 은 시즌오프라 0행 → 자동 미노출, 개막 후 standings 쌓이면 자동 등장). */
-async function fetchSportStandings(): Promise<CountryStandingsGroup[]> {
-  const groups: CountryStandingsGroup[] = [];
-  for (const sport of SPORTS.filter((s) => s.code !== "soccer")) {
-    const codes = sport.leagues.filter((l) => PREDICTION_PAGE_CODES.has(l));
-    if (codes.length === 0) continue;
-    const fetched = await Promise.all(
-      codes.map(async (league) => ({ league, top3: await safeFetchTop3(league) })),
-    );
-    const leagues = fetched
-      .filter((f) => f.top3.length > 0)
-      .map((f) => ({
-        league: f.league,
-        leagueDisplay: LEAGUE_DISPLAY[f.league] ?? f.league,
-        top3: f.top3,
-      }));
-    if (leagues.length > 0) groups.push({ country: `${sport.emoji} ${sport.label}`, leagues });
-  }
-  return groups;
-}
-
-async function fetchCountryStandings(): Promise<CountryStandingsGroup[]> {
-  const soccer = SPORTS.find((s) => s.code === "soccer");
-  if (!soccer) return [];
-  const skipCups = new Set([
-    "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
-    "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
-  ]);
-  const leagues = soccer.leagues.filter((l) => !skipCups.has(l));
-
-  const fetched = await Promise.all(
-    leagues.map(async (league) => {
-      const top3 = await safeFetchTop3(league);
-      return { league, top3 };
-    }),
-  );
-
-  const byCountry = new Map<string, CountryStandingsGroup["leagues"]>();
-  for (const f of fetched) {
-    if (f.top3.length === 0) continue;
-    const country = COUNTRY_BY_LEAGUE[f.league] ?? "기타";
-    if (!byCountry.has(country)) byCountry.set(country, []);
-    byCountry.get(country)!.push({
-      league: f.league,
-      leagueDisplay: LEAGUE_DISPLAY[f.league] ?? f.league,
-      top3: f.top3,
-    });
-  }
-
-  const groups: CountryStandingsGroup[] = [];
-  const seen = new Set<string>();
-  for (const country of COUNTRY_ORDER) {
-    if (byCountry.has(country)) {
-      groups.push({
-        country,
-        leagues: byCountry.get(country)!,
-      });
-      seen.add(country);
-    }
-  }
-  for (const [country, leagues] of Array.from(byCountry.entries()).sort()) {
-    if (seen.has(country)) continue;
-    groups.push({
-      country,
-      leagues,
-    });
-  }
-  return groups;
-}
+// 예측 인덱스의 순위는 "핵심 요약"만 — 야구 + 한국·빅5 축구. 전체는 /standings 허브가 정본.
+const PREDICTIONS_SUMMARY_COUNTRIES = new Set([
+  "대한민국", "잉글랜드", "스페인", "독일", "이탈리아", "프랑스",
+]);
 
 // 구조화 데이터 — Dataset + BreadcrumbList + ItemList(리그별 시즌 예측). 리그 상세 색인 촉진.
 const LEAGUE_LD_ITEMS = LEAGUES.flatMap((lg) => {
@@ -223,12 +126,19 @@ function buildClubRanking(): { rank: number; name: string; logo: string | null }
 }
 
 export default async function PredictionsRoot() {
-  const [top3, soccerGroups, sportGroups] = await Promise.all([
+  const [top3, soccerGroupsAll, sportGroups] = await Promise.all([
     fetchTop3Map(),
-    fetchCountryStandings(),
-    fetchSportStandings(),
+    fetchSoccerCountryGroups(),
+    fetchSportGroups(PREDICTION_PAGE_CODES),
   ]);
-  // 야구 등 종목 그룹을 앞에 (한국 사용자 야구 순위 수요), 이어서 축구 국가별
+  // 야구 종목 그룹 앞 + 축구는 핵심 국가만 (전체 순위는 /standings — view 에 진입 링크)
+  const soccerGroups = soccerGroupsAll
+    .filter((g) => PREDICTIONS_SUMMARY_COUNTRIES.has(g.country))
+    .map((g) => ({
+      ...g,
+      leagues: g.leagues.filter((l) => PREDICTION_PAGE_CODES.has(l.league)),
+    }))
+    .filter((g) => g.leagues.length > 0);
   const countryGroups = [...sportGroups, ...soccerGroups];
   const fifaRanking = buildFifaRanking();
   const clubRanking = buildClubRanking();

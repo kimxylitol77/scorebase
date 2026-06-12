@@ -321,10 +321,13 @@ export default function PredictionsView({
         <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
           <div className="mb-6 space-y-2">
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-              국가·종목별 리그 순위
+              주요 리그 순위
             </h2>
             <p className="text-sm text-zinc-500 dark:text-white/45">
-              야구(KBO·NPB·MLB)는 종목별, 전 세계 축구 리그는 국가별 — 현재 순위 Top 3. 리그명 클릭 시 시즌 예측 상세.
+              야구(KBO·NPB·MLB)와 한국·빅5 축구 현재 순위 Top 3 — 리그명 클릭 시 시즌 예측 상세.{" "}
+              <Link href="/standings" prefetch={false} className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                전 세계 전체 리그 순위 →
+              </Link>
             </p>
             <nav className="flex flex-wrap gap-1.5 pt-2 text-[11px]">
               {countryGroups.map((g) => (
