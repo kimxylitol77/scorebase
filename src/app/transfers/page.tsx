@@ -109,14 +109,16 @@ function posCodeOf(id: string, coarse: string | null | undefined): string | null
 }
 const PER = 20;
 
-// 이적창 윈도우 — 6~9월 = 그해 여름창(6/1~), 12~2월 = 겨울창(12/1~), 그 외 = 최근 90일
-function transferWindow(): { label: string; from: number } {
+// 이적창 윈도우 — 6~9월 = 그해 여름창(6/1~), 12~2월 = 겨울창(12/1~), 그 외 = 최근 90일.
+// to = 창 종료 상한: 여름 이적은 7/1 발효(시즌 전환일)로 기록되는 행이 다수라 미래 발효도
+// 창 내면 표시하되, 연말·내년 "임대 복귀 예정" 노이즈는 잘라낸다.
+function transferWindow(): { label: string; from: number; to: number } {
   const now = new Date();
   const y = now.getUTCFullYear(), m = now.getUTCMonth() + 1;
-  if (m >= 6 && m <= 9) return { label: `${y} 여름 이적시장`, from: Date.UTC(y, 5, 1) / 1000 };
-  if (m === 12) return { label: `${y + 1} 겨울 이적시장`, from: Date.UTC(y, 11, 1) / 1000 };
-  if (m <= 2) return { label: `${y} 겨울 이적시장`, from: Date.UTC(y - 1, 11, 1) / 1000 };
-  return { label: "최근 90일", from: Math.floor(now.getTime() / 1000) - 90 * 86400 };
+  if (m >= 6 && m <= 9) return { label: `${y} 여름 이적시장`, from: Date.UTC(y, 5, 1) / 1000, to: Date.UTC(y, 9, 1) / 1000 };
+  if (m === 12) return { label: `${y + 1} 겨울 이적시장`, from: Date.UTC(y, 11, 1) / 1000, to: Date.UTC(y + 1, 2, 1) / 1000 };
+  if (m <= 2) return { label: `${y} 겨울 이적시장`, from: Date.UTC(y - 1, 11, 1) / 1000, to: Date.UTC(y, 2, 1) / 1000 };
+  return { label: "최근 90일", from: Math.floor(now.getTime() / 1000) - 90 * 86400, to: Math.floor(now.getTime() / 1000) + 30 * 86400 };
 }
 
 const EUR_KRW = 1791.5;
@@ -142,7 +144,9 @@ function fmtDateHeader(unix: number): string {
   const wd = ["일", "월", "화", "수", "목", "금", "토"][d.getUTCDay()];
   const y = d.getUTCFullYear();
   const cur = new Date().getUTCFullYear();
-  return `${y !== cur ? `${y}년 ` : ""}${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${wd})`;
+  const base = `${y !== cur ? `${y}년 ` : ""}${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${wd})`;
+  // 미래 발효(7/1 시즌 전환 등) 그룹은 헤더에 명시 — "이미 일어난 이적"으로 오독 방지
+  return unix * 1000 > Date.now() ? `${base} 발효 예정` : base;
 }
 
 function pageNums(cur: number, total: number): (number | string)[] {
@@ -553,17 +557,17 @@ export default async function TransfersPage({
   let latestMainCards: TransferCard[] | null = null;
   let dateCounts: Map<string, number> | null = null;
   // 임대 복귀 "예정" 행은 transferTime 이 미래(연말·내년)로 들어와 최신순 최상단을 점령 —
-  // 발효 7일 이내 근미래까지만 "최신"으로 인정 (7/1 발효 여름 빅딜은 그 주부터 자연 노출)
-  const latestTimeCap = Math.floor(Date.now() / 1000) + 7 * 86400;
+  // 창 종료(win.to)까지만 표시: 7/1 발효 여름 이적(창 행 다수)은 포함, 연말·내년 복귀 예정은 제외
   if (isLatest && !latestAll) {
     const rows = await prisma.footballTransfer.findMany({
       where: {
         league: { in: league ? [league] : FEED_LEAGUES },
-        transferTime: { gte: win.from, lte: latestTimeCap },
+        transferTime: { gte: win.from, lte: win.to },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
       },
-      orderBy: { transferTime: "desc" },
+      // 같은 발효일(7/1 무더기) 안에서는 최근 수집(발표)분 먼저
+      orderBy: [{ transferTime: "desc" }, { updatedAt: "desc" }],
     });
     const pids = [...new Set(rows.map((r) => r.playerId))];
     const tplayers = await prisma.theSportsPlayer.findMany({
@@ -582,8 +586,8 @@ export default async function TransfersPage({
     ? { league: { in: feedScope }, transferTime: { gte: win.from }, transferFee: { gt: 0 } }
     : {
         league: { in: feedScope },
-        // 전체 이력(latest mode=all)도 미래 발효 예정 행은 최신순 상단에서 제외
-        transferTime: { not: null, lte: latestTimeCap },
+        // 전체 이력(latest mode=all)도 창 종료 이후의 미래 발효 예정 행은 제외
+        transferTime: { not: null, lte: win.to },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
       };
