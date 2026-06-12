@@ -174,15 +174,13 @@ export async function POST(req: NextRequest) {
       const updateData: { homeScore?: number; awayScore?: number; status?: MatchStatus } = {};
 
       if (needScoreUpdate) {
-        // 야구는 챌린지/판정 정정으로 점수 감소 가능 → ws-subscriber 의 fresh ft 그대로 set.
-        // 축구는 monotonic max 유지 (점수 감소 시나리오 거의 없음 + race 안전망).
-        const isBaseball = BASEBALL_LEAGUES.has(currentMatch.league);
-        const newHome = isBaseball
-          ? body.homeScore!
-          : Math.max(body.homeScore!, currentMatch.homeScore ?? -1);
-        const newAway = isBaseball
-          ? body.awayScore!
-          : Math.max(body.awayScore!, currentMatch.awayScore ?? -1);
+        // 워커가 보낸 현재 스코어 그대로 set — 전 종목 공통.
+        // 야구는 챌린지 판정, 축구는 VAR 골 취소로 점수가 줄어들 수 있음.
+        // 기존 축구 monotonic max 는 2026-06-12 WC 한국-체코에서 막판 2:2 동점골이
+        // VAR 취소(2:1)됐는데 하향을 막아 2:2 로 영구 고착시킴 — stale push 역행은
+        // 다음 poll 이 수십 초 내 재정정하므로 일시적, max 고착은 영구적.
+        const newHome = body.homeScore!;
+        const newAway = body.awayScore!;
         if (newHome !== currentMatch.homeScore) updateData.homeScore = newHome;
         if (newAway !== currentMatch.awayScore) updateData.awayScore = newAway;
       }
