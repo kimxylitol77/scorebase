@@ -5,6 +5,9 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { kboPhotoUrl } from "@/lib/sports/kbo-official";
+import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
+import PitcherAvatar from "@/components/predictions/PitcherAvatar";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +21,7 @@ export const metadata: Metadata = {
 
 interface StarterJson {
   name?: string;
+  pid?: number | string;
   era?: number;
   whip?: number;
   k9?: number;
@@ -27,6 +31,14 @@ interface StarterJson {
   hand?: string;
   recentEra?: number;
   recentIp?: number;
+}
+
+/** 리그별 선발 사진 URL — KBO 네이버 CDN·MLB 공식(미보유 시 generic 내장). NPB 는 소스 없음(이니셜). */
+function pitcherPhoto(league: string, s: StarterJson | null): string | null {
+  if (!s?.pid) return null;
+  if (league === "KBO") return kboPhotoUrl(s.pid);
+  if (league === "MLB") return mlbHeadshotUrl(Number(s.pid));
+  return null;
 }
 
 const LEAGUES = ["KBO", "MLB", "NPB"] as const;
@@ -44,18 +56,42 @@ function parseStarter(raw: unknown): StarterJson | null {
 
 const fmt = (v: number | undefined, d = 2) => (v == null || Number.isNaN(v) ? "—" : v.toFixed(d));
 
-/** 지표 셀 — 우위(승부 유리) 쪽 강조. lowerBetter: ERA·WHIP / higherBetter: K9 */
+/** 지표 비교 행 — 중앙 라벨 기준 좌우로 뻗는 바. 우위 쪽 색 강조.
+ *  lowerBetter(ERA·WHIP): 값이 낮을수록 바가 길고 진함 / higherBetter(K9): 반대. */
 function StatRow({ label, home, away, lowerBetter }: { label: string; home?: number; away?: number; lowerBetter: boolean }) {
-  const both = home != null && away != null && !Number.isNaN(home) && !Number.isNaN(away) && home !== away;
-  const homeWins = both && (lowerBetter ? home! < away! : home! > away!);
-  const awayWins = both && !homeWins;
-  const cls = (win: boolean) =>
-    `tabular-nums ${win ? "font-black text-emerald-600 dark:text-emerald-400" : "text-neutral-600 dark:text-neutral-300"}`;
+  const ok = (v?: number) => v != null && !Number.isNaN(v) && v >= 0;
+  const both = ok(home) && ok(away);
+  // 우위 강도(0~1): 상대 대비 비율 — lowerBetter 면 상대값 비중이 내 강도
+  let sh = 0.5;
+  if (both && home! + away! > 0) {
+    sh = lowerBetter ? away! / (home! + away!) : home! / (home! + away!);
+  }
+  const sa = 1 - sh;
+  const homeWins = both && home !== away && sh > 0.5;
+  const awayWins = both && home !== away && sa > 0.5;
+  const d = label === "K/9" ? 1 : 2;
   return (
-    <div className="flex items-center text-sm py-1">
-      <span className={`w-1/3 text-right ${cls(!!homeWins)}`}>{fmt(home, label === "K/9" ? 1 : 2)}</span>
-      <span className="w-1/3 text-center text-[11px] text-neutral-400">{label}</span>
-      <span className={`w-1/3 text-left ${cls(!!awayWins)}`}>{fmt(away, label === "K/9" ? 1 : 2)}</span>
+    <div className="flex items-center gap-1.5 py-[3px]">
+      {/* 홈 값 + 우→좌 바 */}
+      <span className={`w-11 text-right text-[13px] tabular-nums shrink-0 ${homeWins ? "font-black text-emerald-600 dark:text-emerald-400" : "text-neutral-600 dark:text-neutral-300"}`}>
+        {fmt(home, d)}
+      </span>
+      <div className="flex-1 flex justify-end">
+        <div
+          className={`h-1.5 rounded-l-full ${homeWins ? "bg-emerald-500" : "bg-neutral-300 dark:bg-neutral-700"}`}
+          style={{ width: `${Math.round(sh * 100)}%` }}
+        />
+      </div>
+      <span className="w-[72px] text-center text-[10px] text-neutral-400 shrink-0">{label}</span>
+      <div className="flex-1 flex justify-start">
+        <div
+          className={`h-1.5 rounded-r-full ${awayWins ? "bg-sky-500" : "bg-neutral-300 dark:bg-neutral-700"}`}
+          style={{ width: `${Math.round(sa * 100)}%` }}
+        />
+      </div>
+      <span className={`w-11 text-left text-[13px] tabular-nums shrink-0 ${awayWins ? "font-black text-sky-600 dark:text-sky-400" : "text-neutral-600 dark:text-neutral-300"}`}>
+        {fmt(away, d)}
+      </span>
     </div>
   );
 }
@@ -133,55 +169,76 @@ export default async function StartersPage() {
                       const as = parseStarter(m.awayStarter);
                       const hName = toKoreanTeamName(m.homeTeam.name, lg) || m.homeTeam.name;
                       const aName = toKoreanTeamName(m.awayTeam.name, lg) || m.awayTeam.name;
+                      const ph = m.predHome != null ? Math.round(m.predHome * 100) : null;
+                      const pa = m.predAway != null ? Math.round(m.predAway * 100) : null;
                       const inner = (
                         <>
-                          {/* 헤더: 시간/상태 + 팀 */}
-                          <div className="flex items-center justify-between text-[11px] text-neutral-500 mb-2">
-                            <span>
-                              {m.status === "LIVE" ? (
-                                <span className="text-rose-600 dark:text-rose-400 font-bold">🔴 LIVE</span>
-                              ) : m.status === "FINISHED" ? (
-                                `종료 ${m.homeScore ?? 0}:${m.awayScore ?? 0}`
-                              ) : (
-                                `${kstTime(m.startTime)} 예정`
-                              )}
-                            </span>
-                            {m.predHome != null && m.predAway != null && (
-                              <span className="tabular-nums">AI 승률 {Math.round(m.predHome * 100)}% : {Math.round(m.predAway * 100)}%</span>
+                          {/* 상태 뱃지 */}
+                          <div className="text-center mb-2.5">
+                            {m.status === "LIVE" ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-900/30 text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> LIVE
+                              </span>
+                            ) : m.status === "FINISHED" ? (
+                              <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[11px] font-bold text-neutral-500">
+                                종료 {m.homeScore ?? 0} : {m.awayScore ?? 0}
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-[11px] font-bold text-neutral-500">
+                                {kstTime(m.startTime)} 예정
+                              </span>
                             )}
                           </div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-sm w-1/3 truncate">{hName}</span>
-                            <span className="text-[10px] text-neutral-400">vs</span>
-                            <span className="font-bold text-sm w-1/3 text-right truncate">{aName}</span>
+                          {/* 투수 대면 헤더 — 사진 + 이름 + 승패 */}
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex flex-col items-center w-[42%] text-center">
+                              <PitcherAvatar src={pitcherPhoto(lg, hs)} name={hs?.name ?? "?"} size={64} />
+                              <div className="mt-1.5 text-[13px] font-bold leading-tight truncate w-full">{hs?.name ?? "선발 미정"}</div>
+                              <div className="text-[11px] text-neutral-500 truncate w-full">
+                                {hName}{hs?.wins != null ? ` · ${hs.wins}승${hs.losses ?? 0}패` : ""}
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center pt-4 shrink-0">
+                              <span className="text-base font-black text-neutral-300 dark:text-neutral-600">VS</span>
+                            </div>
+                            <div className="flex flex-col items-center w-[42%] text-center">
+                              <PitcherAvatar src={pitcherPhoto(lg, as)} name={as?.name ?? "?"} size={64} />
+                              <div className="mt-1.5 text-[13px] font-bold leading-tight truncate w-full">{as?.name ?? "선발 미정"}</div>
+                              <div className="text-[11px] text-neutral-500 truncate w-full">
+                                {aName}{as?.wins != null ? ` · ${as.wins}승${as.losses ?? 0}패` : ""}
+                              </div>
+                            </div>
                           </div>
-                          {/* 선발 이름 + 시즌 성적 */}
-                          <div className="flex items-center justify-between text-[13px] mb-1.5">
-                            <span className="w-[44%]">
-                              <span className="font-semibold">{hs?.name ?? "선발 미정"}</span>
-                              {hs?.wins != null && <span className="ml-1 text-[11px] text-neutral-500">{hs.wins}승{hs.losses ?? 0}패</span>}
-                            </span>
-                            <span className="w-[44%] text-right">
-                              {as?.wins != null && <span className="mr-1 text-[11px] text-neutral-500">{as.wins}승{as.losses ?? 0}패</span>}
-                              <span className="font-semibold">{as?.name ?? "선발 미정"}</span>
-                            </span>
-                          </div>
-                          {/* 지표 비교 */}
+                          {/* AI 승률 게이지 */}
+                          {ph != null && pa != null && (
+                            <div className="mb-2.5">
+                              <div className="flex justify-between text-[11px] font-bold mb-0.5">
+                                <span className="text-emerald-600 dark:text-emerald-400 tabular-nums">{ph}%</span>
+                                <span className="text-[10px] font-semibold text-neutral-400">AI 승률</span>
+                                <span className="text-sky-600 dark:text-sky-400 tabular-nums">{pa}%</span>
+                              </div>
+                              <div className="flex h-1.5 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800">
+                                <span className="bg-emerald-500" style={{ width: `${ph}%` }} />
+                                <span className="bg-sky-500" style={{ width: `${100 - ph}%` }} />
+                              </div>
+                            </div>
+                          )}
+                          {/* 지표 비교 바 */}
                           {(hs || as) && (
-                            <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 px-2 py-1">
+                            <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 px-2.5 py-1.5">
                               <StatRow label="ERA" home={hs?.era} away={as?.era} lowerBetter />
                               <StatRow label="WHIP" home={hs?.whip} away={as?.whip} lowerBetter />
                               <StatRow label="K/9" home={hs?.k9} away={as?.k9} lowerBetter={false} />
                               {(hs?.recentEra != null || as?.recentEra != null) && (
-                                <StatRow label="최근 3등판 ERA" home={hs?.recentEra} away={as?.recentEra} lowerBetter />
+                                <StatRow label="최근 3등판" home={hs?.recentEra} away={as?.recentEra} lowerBetter />
                               )}
                             </div>
                           )}
                         </>
                       );
-                      const cls = "block rounded-xl border border-neutral-200 dark:border-neutral-800 p-3.5";
+                      const cls = "block rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4";
                       return m.externalId ? (
-                        <Link key={m.id} href={`/live/${lg}/${m.externalId}`} prefetch={false} className={`${cls} hover:border-emerald-400 dark:hover:border-emerald-600 transition`}>
+                        <Link key={m.id} href={`/live/${lg}/${m.externalId}`} prefetch={false} className={`${cls} hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md transition`}>
                           {inner}
                         </Link>
                       ) : (
