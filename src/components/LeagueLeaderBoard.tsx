@@ -14,7 +14,8 @@ const PLAYER_PAGE_LEAGUES = new Set([
 ]);
 
 // 빅5 리더보드는 TheSports 시즌통계(ts player id)로 교체됨 → /transfers 상세로 링크. (SERIE_A 는 기존 api-football)
-const TRANSFERS_LEADER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "LIGUE_1"]);
+// WORLD_CUP 도 ts player id 기반 (cache playerStats 실시간 집계) — 시장가치 보유 선수만 externalId 가 채워짐.
+const TRANSFERS_LEADER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "LIGUE_1", "WORLD_CUP"]);
 function playerHref(league: string, externalId: string | null): string | null {
   if (!externalId) return null;
   if (TRANSFERS_LEADER_LEAGUES.has(league)) return `/transfers/${externalId}`;
@@ -49,6 +50,8 @@ const CATEGORIES_BY_LEAGUE: Record<string, CategoryDef[]> = {
   SOCCER: [
     { key: "GOAL", label: "득점", emoji: "⚽" },
     { key: "ASSIST", label: "도움", emoji: "🎯" },
+    // RATING 은 월드컵(실시간 playerStats 집계)만 데이터를 공급 — 빅5는 탭 미노출
+    { key: "RATING", label: "평점", emoji: "⭐", decimals: 2 },
     { key: "YELLOW", label: "옐로", emoji: "🟨" },
     { key: "RED", label: "레드", emoji: "🟥" },
   ],
@@ -102,9 +105,11 @@ interface Props {
   league: string;
   season: string;
   rowsByCategory: Record<string, LeaderRow[]>;
+  /** footer 문구 override — 기본 "{season} 시즌 · 매일 자동 갱신" */
+  footer?: string;
 }
 
-export default function LeagueLeaderBoard({ league, season, rowsByCategory }: Props) {
+export default function LeagueLeaderBoard({ league, season, rowsByCategory, footer }: Props) {
   const sport = LEAGUE_TO_SPORT[league] ?? "SOCCER";
   const allCats = CATEGORIES_BY_LEAGUE[sport] ?? [];
   // 데이터 있는 카테고리만 노출
@@ -215,7 +220,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory }: Pr
       </div>
 
       <div className="px-3 sm:px-4 py-2 text-[11px] text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/40 border-t border-neutral-200 dark:border-neutral-800">
-        {season} 시즌 · 매일 자동 갱신
+        {footer ?? `${season} 시즌 · 매일 자동 갱신`}
       </div>
     </section>
   );

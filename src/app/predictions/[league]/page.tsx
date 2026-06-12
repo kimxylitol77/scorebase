@@ -25,6 +25,7 @@ import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
+import { getWorldCupPlayerStats, type WcPlayerStat } from "@/lib/sports/thesports/world-cup-player-stats";
 import rawSeasonStats from "../../../../data/player-season-stats.json";
 import rawPlayerOverrides from "../../../../data/player-overrides.json";
 import rawPlayerPhotos from "../../../../data/player-photos.json";
@@ -591,6 +592,42 @@ export default async function LeaguePredictions({ params }: Props) {
     hasTsLeader = (leaderRowsByCategory.GOAL?.length ?? 0) > 0;
   }
 
+  // 월드컵 — 본선 선수 랭킹 (cache playerStats 누적 집계, 라이브 중 worker 가 ~2분 간격 push).
+  // 조별 순위표 카드 바로 아래 노출. 기존 "시즌 리더보드" 섹션은 WORLD_CUP 에서 이걸로 대체.
+  let wcRowsByCategory: Record<string, LeaderRow[]> | null = null;
+  if (isWorldCup) {
+    const wcStats = await getWorldCupPlayerStats();
+    if (wcStats.length > 0) {
+      const toRow = (s: WcPlayerStat, i: number, value: number, unit: string | null): LeaderRow => ({
+        rank: i + 1,
+        playerName: s.name,
+        playerNameEn: s.nameEn,
+        teamName: `${fifaFlag(s.country)} ${toKoreanTeamName(s.country, upper) || s.country}`.trim(),
+        teamShort: null,
+        value,
+        unit,
+        appearances: s.games,
+        photoUrl: s.photo,
+        externalId: s.hasMv ? s.id : null,
+      });
+      const top = (
+        filter: (s: WcPlayerStat) => boolean,
+        sort: (a: WcPlayerStat, b: WcPlayerStat) => number,
+        value: (s: WcPlayerStat) => number,
+        unit: string | null,
+      ) => wcStats.filter(filter).sort(sort).slice(0, 10).map((s, i) => toRow(s, i, value(s), unit));
+      wcRowsByCategory = {
+        GOAL: top((s) => s.goals > 0, (a, b) => b.goals - a.goals || b.avgRating - a.avgRating, (s) => s.goals, "골"),
+        ASSIST: top((s) => s.assists > 0, (a, b) => b.assists - a.assists || b.avgRating - a.avgRating, (s) => s.assists, "도움"),
+        // 평점 — 누적 45분+ 출전 선수만 (교체 투입 노이즈 방지)
+        RATING: top((s) => s.avgRating > 0 && s.minutes >= 45, (a, b) => b.avgRating - a.avgRating || b.minutes - a.minutes, (s) => s.avgRating, "평점"),
+        YELLOW: top((s) => s.yellow > 0, (a, b) => b.yellow - a.yellow, (s) => s.yellow, "장"),
+        RED: top((s) => s.red > 0, (a, b) => b.red - a.red, (s) => s.red, "장"),
+      };
+      if (Object.values(wcRowsByCategory).every((rows) => rows.length === 0)) wcRowsByCategory = null;
+    }
+  }
+
   return (
     <div>
       {/* 히어로 */}
@@ -681,6 +718,22 @@ export default async function LeaguePredictions({ params }: Props) {
             </div>
             <span className="text-amber-500 font-bold">→</span>
           </Link>
+        )}
+
+        {/* 월드컵 선수 랭킹 — 본선 누적 득점·도움·평점·카드 (라이브 실시간) */}
+        {isWorldCup && wcRowsByCategory && (
+          <section>
+            <Heading
+              title="🏅 선수 랭킹"
+              subtitle="득점왕·도움·평점·카드 — 본선 전 경기 누적, 라이브 중에도 실시간 갱신"
+            />
+            <LeagueLeaderBoard
+              league="WORLD_CUP"
+              season="2026 본선"
+              rowsByCategory={wcRowsByCategory}
+              footer="2026 본선 누적 · 라이브 경기 약 2분 간격 실시간 갱신"
+            />
+          </section>
         )}
 
         {/* 조별 통합 베스트 11 진입 (12조) */}
@@ -1153,8 +1206,9 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 시즌 리더보드 — 득점/도움/카드 (축구). 빅5는 TheSports 시즌통계 기반 */}
-        {(leaderRowsRaw.length > 0 || hasTsLeader) && (
+        {/* 시즌 리더보드 — 득점/도움/카드 (축구). 빅5는 TheSports 시즌통계 기반.
+            WORLD_CUP 은 상단 실시간 선수 랭킹으로 대체 (중복 노출 방지) */}
+        {!isWorldCup && (leaderRowsRaw.length > 0 || hasTsLeader) && (
           <section>
             <Heading
               title="시즌 리더보드"
