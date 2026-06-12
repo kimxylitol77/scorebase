@@ -12830,5 +12830,770 @@
     "tsId": "jednm9whll2ryox",
     "tsName": "Vasco DA Gama",
     "matchType": "ts-name-season"
+  },
+  {
+    "ourId": 600135,
+    "ourName": "ADO Den Haag",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "198",
+    "tsId": "9vjxm8gh6v9r6od",
+    "tsName": "ADO Den Haag",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600127,
+    "ourName": "Cambuur",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "420",
+    "tsId": "4zp5rzghegzq82w",
+    "tsName": "SC Cambuur Leeuwarden",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600136,
+    "ourName": "Willem II",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "195",
+    "tsId": "v2y8m4zhy3xql07",
+    "tsName": "Willem II",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600124,
+    "ourName": "De Graafschap",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "199",
+    "tsId": "d23xmvkhzpnqg8n",
+    "tsName": "De Graafschap",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600121,
+    "ourName": "Almere City FC",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "419",
+    "tsId": "gx7lm7ph64lm2wd",
+    "tsName": "Almere City FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600140,
+    "ourName": "Waalwijk",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "417",
+    "tsId": "z318q66hpvoqo9j",
+    "tsName": "RKC Waalwijk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600137,
+    "ourName": "Jong PSV U21",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "411",
+    "tsId": "e4wyrn4hnddq86p",
+    "tsName": "Jong PSV Eindhoven Youth",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600134,
+    "ourName": "Roda",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "414",
+    "tsId": "gx7lm7phdl8m2wd",
+    "tsName": "Roda JC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600123,
+    "ourName": "Den Bosch",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "421",
+    "tsId": "kdj2ryoh31eq1zp",
+    "tsName": "Den Bosch",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600126,
+    "ourName": "Dordrecht",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "409",
+    "tsId": "gpxwrxlho1xryk0",
+    "tsName": "Dordrecht",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600129,
+    "ourName": "FC Eindhoven",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "422",
+    "tsId": "p3glrw7h5wlqdyj",
+    "tsName": "FC Eindhoven",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600130,
+    "ourName": "Jong Utrecht",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "428",
+    "tsId": "k82rekhv6gnrepz",
+    "tsName": "FC Utrecht Youth",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600125,
+    "ourName": "VVV Venlo",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "204",
+    "tsId": "d23xmvkh169qg8n",
+    "tsName": "VVV Venlo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600138,
+    "ourName": "Emmen",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "208",
+    "tsId": "kdj2ryohz69q1zp",
+    "tsName": "Emmen",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600122,
+    "ourName": "Vitesse",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "200",
+    "tsId": "j1l4rjnh0ynm7vx",
+    "tsName": "Vitesse Arnhem",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600131,
+    "ourName": "FC OSS",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "423",
+    "tsId": "9k82rekhdworepz",
+    "tsName": "FC Oss",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600139,
+    "ourName": "Jong AZ",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "418",
+    "tsId": "dj2ryohk799q1zp",
+    "tsName": "AZ Alkmaar Youth",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600133,
+    "ourName": "Helmond Sport",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "424",
+    "tsId": "kn54qllh65pqvy9",
+    "tsName": "Helmond Sport",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600132,
+    "ourName": "MVV",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "412",
+    "tsId": "d23xmvkhjozqg8n",
+    "tsName": "MVV Maastricht",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600128,
+    "ourName": "Jong Ajax",
+    "ourLeague": "EREDIVISIE_2",
+    "ourExternalId": "425",
+    "tsId": "9dn1m1ghznemoep",
+    "tsName": "Ajax Amsterdam U21",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600150,
+    "ourName": "Maritimo",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "214",
+    "tsId": "56ypq3nhy23md7o",
+    "tsName": "Maritimo",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600157,
+    "ourName": "Academico Viseu",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "238",
+    "tsId": "3glrw7hwy16qdyj",
+    "tsName": "Viseu",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600144,
+    "ourName": "Torreense",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "4799",
+    "tsId": "y0or5jhlkg3qwzv",
+    "tsName": "SCU Torreense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600143,
+    "ourName": "Vizela",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "810",
+    "tsId": "4jwq2gh4p8gm0ve",
+    "tsName": "Vizela",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600154,
+    "ourName": "FC Porto B",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "243",
+    "tsId": "965mkyh7wdxr1ge",
+    "tsName": "Porto B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600156,
+    "ourName": "União de Leiria",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "4662",
+    "tsId": "318q66hoz4vqo9j",
+    "tsName": "Uniao Leiria",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600152,
+    "ourName": "Leixoes",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "244",
+    "tsId": "k82rekhvz88repz",
+    "tsName": "Leixoes",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600155,
+    "ourName": "Feirense",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "213",
+    "tsId": "kdj2ryoh0wjq1zp",
+    "tsName": "Feirense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600148,
+    "ourName": "Chaves",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "223",
+    "tsId": "yl5ergphx2dr8k0",
+    "tsName": "GD Chaves",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600149,
+    "ourName": "Benfica B",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "229",
+    "tsId": "x7lm7phow89m2wd",
+    "tsName": "SL Benfica B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600153,
+    "ourName": "Felgueiras 1932",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "4744",
+    "tsId": "v2y8m4zh928ql07",
+    "tsName": "FC Felgueiras",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600151,
+    "ourName": "Lusitânia Lourosa",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "6358",
+    "tsId": "965mkyh70zer1ge",
+    "tsName": "Lusitania FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600145,
+    "ourName": "Sporting CP B",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "761",
+    "tsId": "4wyrn4h8w1nq86p",
+    "tsName": "Sporting CP B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600147,
+    "ourName": "Penafiel",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "235",
+    "tsId": "e4wyrn4h15xq86p",
+    "tsName": "Penafiel",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600146,
+    "ourName": "Portimonense",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "216",
+    "tsId": "9k82rekhlg0repz",
+    "tsName": "Portimonense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600159,
+    "ourName": "Farense",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "231",
+    "tsId": "l5ergphox36r8k0",
+    "tsName": "SC Farense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600142,
+    "ourName": "Pacos Ferreira",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "234",
+    "tsId": "vl7oqdehknnr510",
+    "tsName": "Pacos de Ferreira",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600158,
+    "ourName": "Oliveirense",
+    "ourLeague": "PRIMEIRA_LIGA_2",
+    "ourExternalId": "233",
+    "tsId": "4wyrn4h846lq86p",
+    "tsName": "Oliveirense",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609003,
+    "ourName": "Saint Johnstone",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-z318q66hp4oqo9j",
+    "tsId": "z318q66hp4oqo9j",
+    "tsName": "Saint Johnstone",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609004,
+    "ourName": "Partick Thistle FC",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-p4jwq2ghyo3m0ve",
+    "tsId": "p4jwq2ghyo3m0ve",
+    "tsName": "Partick Thistle FC",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609005,
+    "ourName": "Arbroath",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-v2y8m4zhy2pql07",
+    "tsId": "v2y8m4zhy2pql07",
+    "tsName": "Arbroath",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609006,
+    "ourName": "Dunfermline Athletic",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-e4wyrn4h1l7q86p",
+    "tsId": "e4wyrn4h1l7q86p",
+    "tsName": "Dunfermline Athletic",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609007,
+    "ourName": "Raith Rovers",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-kn54qllho2jqvy9",
+    "tsId": "kn54qllho2jqvy9",
+    "tsName": "Raith Rovers",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609008,
+    "ourName": "Queen's Park",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-gy0or5jhyknqwzv",
+    "tsId": "gy0or5jhyknqwzv",
+    "tsName": "Queen's Park",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609009,
+    "ourName": "Ayr United",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-8yomo4h738zq0j6",
+    "tsId": "8yomo4h738zq0j6",
+    "tsName": "Ayr United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609010,
+    "ourName": "Greenock Morton",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-gy0or5jh71wqwzv",
+    "tsId": "gy0or5jh71wqwzv",
+    "tsName": "Greenock Morton",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609011,
+    "ourName": "Airdrie United",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-gpxwrxlhkw4ryk0",
+    "tsId": "gpxwrxlhkw4ryk0",
+    "tsName": "Airdrie United",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609012,
+    "ourName": "Ross County",
+    "ourLeague": "SCOT_CHAMPIONSHIP",
+    "ourExternalId": "ts-p3glrw7hv0oqdyj",
+    "tsId": "p3glrw7hv0oqdyj",
+    "tsName": "Ross County",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609013,
+    "ourName": "Erzurum BB",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-4jwq2gh42dem0ve",
+    "tsId": "4jwq2gh42dem0ve",
+    "tsName": "Erzurum BB",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609014,
+    "ourName": "Amedspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-jw2r09hl20orz84",
+    "tsId": "jw2r09hl20orz84",
+    "tsName": "Amedspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 608033,
+    "ourName": "Erokspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-pxwrxlh9g31ryk0",
+    "tsId": "pxwrxlh9g31ryk0",
+    "tsName": "Erokspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 608032,
+    "ourName": "Corum Belediyespor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-k82rekh98ylrepz",
+    "tsId": "k82rekh98ylrepz",
+    "tsName": "Corum Belediyespor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 608031,
+    "ourName": "Bodrum FK",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-3glrw7h10vnqdyj",
+    "tsId": "3glrw7h10vnqdyj",
+    "tsName": "Bodrum FK",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609015,
+    "ourName": "Pendikspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-8yomo4h7ynvq0j6",
+    "tsId": "8yomo4h7ynvq0j6",
+    "tsName": "Pendikspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609016,
+    "ourName": "Keciorengucu",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-1l4rjnh6l95m7vx",
+    "tsId": "1l4rjnh6l95m7vx",
+    "tsName": "Keciorengucu",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609017,
+    "ourName": "Bandirmaspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-dn1m1gh4dy8moep",
+    "tsId": "dn1m1gh4dy8moep",
+    "tsName": "Bandirmaspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609018,
+    "ourName": "Manisa Futbol Kulübü",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-vjxm8ghg9zkr6od",
+    "tsId": "vjxm8ghg9zkr6od",
+    "tsName": "Manisa Futbol Kulübü",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609019,
+    "ourName": "Istanbulspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-d23xmvkhz5gqg8n",
+    "tsId": "d23xmvkhz5gqg8n",
+    "tsName": "Istanbulspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609020,
+    "ourName": "Sariyer",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-dn1m1gh48gjmoep",
+    "tsId": "dn1m1gh48gjmoep",
+    "tsName": "Sariyer",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609021,
+    "ourName": "Sivasspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-e4wyrn4hplyq86p",
+    "tsId": "e4wyrn4hplyq86p",
+    "tsName": "Sivasspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609022,
+    "ourName": "Iğdır FK",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-k82rekhowx8repz",
+    "tsId": "k82rekhowx8repz",
+    "tsName": "Iğdır FK",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609023,
+    "ourName": "Belediye Vanspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-dj2ryohk1x8q1zp",
+    "tsId": "dj2ryohk1x8q1zp",
+    "tsName": "Belediye Vanspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609024,
+    "ourName": "Boluspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-1l4rjnh6l4xm7vx",
+    "tsId": "1l4rjnh6l4xm7vx",
+    "tsName": "Boluspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609025,
+    "ourName": "Umraniyespor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-zp5rzgh72zeq82w",
+    "tsId": "zp5rzgh72zeq82w",
+    "tsName": "Umraniyespor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609026,
+    "ourName": "Serik Belediyespor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-3glrw7hj3nzqdyj",
+    "tsId": "3glrw7hj3nzqdyj",
+    "tsName": "Serik Belediyespor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609027,
+    "ourName": "Sakaryaspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-8y39mp1h75gmojx",
+    "tsId": "8y39mp1h75gmojx",
+    "tsName": "Sakaryaspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609028,
+    "ourName": "Atakas Hatayspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-4wyrn4h8ov0q86p",
+    "tsId": "4wyrn4h8ov0q86p",
+    "tsName": "Atakas Hatayspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609029,
+    "ourName": "Adana Demirspor",
+    "ourLeague": "TURKEY_2",
+    "ourExternalId": "ts-vjxm8gh4w4lr6od",
+    "tsId": "vjxm8gh4w4lr6od",
+    "tsName": "Adana Demirspor",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609030,
+    "ourName": "SK Beveren",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-z8yomo4hlngq0j6",
+    "tsId": "z8yomo4hlngq0j6",
+    "tsName": "SK Beveren",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609031,
+    "ourName": "KV Kortrijk",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-e4wyrn4h1jjq86p",
+    "tsId": "e4wyrn4h1jjq86p",
+    "tsName": "KV Kortrijk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 608029,
+    "ourName": "Beerschot Wilrijk",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-3glrw7hw5ywqdyj",
+    "tsId": "3glrw7hw5ywqdyj",
+    "tsName": "Beerschot Wilrijk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609032,
+    "ourName": "RFC de Liege",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-2y8m4zh350oql07",
+    "tsId": "2y8m4zh350oql07",
+    "tsName": "RFC de Liege",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 608030,
+    "ourName": "KVSK Lommel",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-y0or5jhlegzqwzv",
+    "tsId": "y0or5jhlegzqwzv",
+    "tsName": "KVSK Lommel",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609033,
+    "ourName": "Patro Eisden",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-zp5rzghjg82q82w",
+    "tsId": "zp5rzghjg82q82w",
+    "tsName": "Patro Eisden",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609034,
+    "ourName": "KAS Eupen",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-jw2r09hln04rz84",
+    "tsId": "jw2r09hln04rz84",
+    "tsName": "KAS Eupen",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609035,
+    "ourName": "KSC Lokeren",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-8yomo4hv0loq0j6",
+    "tsId": "8yomo4hv0loq0j6",
+    "tsName": "KSC Lokeren",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609036,
+    "ourName": "Gent B",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-k82rekh3o61repz",
+    "tsId": "k82rekh3o61repz",
+    "tsName": "Gent B",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609037,
+    "ourName": "Koninklijke Lierse Sportkring",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-e4wyrn4hn66q86p",
+    "tsId": "e4wyrn4hn66q86p",
+    "tsName": "Koninklijke Lierse Sportkring",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609038,
+    "ourName": "RFC Seraing",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-dj2ryohklv6q1zp",
+    "tsId": "dj2ryohklv6q1zp",
+    "tsName": "RFC Seraing",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609039,
+    "ourName": "Francs Borains",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-n54qllh2k4yqvy9",
+    "tsId": "n54qllh2k4yqvy9",
+    "tsName": "Francs Borains",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609040,
+    "ourName": "RWDM Brussels",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-zp5rzghjjeeq82w",
+    "tsId": "zp5rzghjjeeq82w",
+    "tsName": "RWDM Brussels",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609041,
+    "ourName": "RSCA Futures",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-k82rekh3oe0repz",
+    "tsId": "k82rekh3oe0repz",
+    "tsName": "RSCA Futures",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609042,
+    "ourName": "Jong Genk",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-vjxm8ghp89dr6od",
+    "tsId": "vjxm8ghp89dr6od",
+    "tsName": "Jong Genk",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609043,
+    "ourName": "Club Nxt",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-23xmvkh3nj2qg8n",
+    "tsId": "23xmvkh3nj2qg8n",
+    "tsName": "Club Nxt",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 609044,
+    "ourName": "Olympic Charleroi",
+    "ourLeague": "BELGIUM_2",
+    "ourExternalId": "ts-23xmvkh300oqg8n",
+    "tsId": "23xmvkh300oqg8n",
+    "tsName": "Olympic Charleroi",
+    "matchType": "stat-bridge"
   }
 ]

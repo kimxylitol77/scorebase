@@ -70,6 +70,11 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   BOLIVIA_PD: "kn54qllh02qvy9d",
   URUGUAY_PD: "v2y8m4zhydql074",
   NWSL: "4zp5rzghvzq82w1",
+  // 2026-06-12 추가 — 유럽 2부 5종 리그 순위 추가 작업 (league-id-mapping.json tsId 와 동일)
+  EREDIVISIE_2: "kdj2ryohdkq1zpg",
+  PRIMEIRA_LIGA_2: "gx7lm7phpnm2wdk",
+  TURKEY_2: "9k82rekhgorepzj",
+  BELGIUM_2: "gx7lm7ph5nm2wdk",
 };
 
 /**

@@ -851,14 +851,16 @@
     "ourLabel": "벨기에 챌린저 프로",
     "tsId": "gx7lm7ph5nm2wdk",
     "tsEn": "Belgian Challenger Pro League",
-    "tsKo": "벨기에 챌린저 프로"
+    "tsKo": "벨기에 챌린저 프로",
+    "tsSeasonId": "9k82rekhl1vrepz"
   },
   {
     "code": "TURKEY_2",
     "ourLabel": "튀르키예 1.리그",
     "tsId": "9k82rekhgorepzj",
     "tsEn": "Turkish First League",
-    "tsKo": "튀르키예 1.리그"
+    "tsKo": "튀르키예 1.리그",
+    "tsSeasonId": "v2y8m4zhl1xql07"
   },
   {
     "code": "BOLIVIA_PD",

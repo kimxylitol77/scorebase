@@ -332,6 +332,28 @@ export const SOCCER_LEAGUES = [
   "AZERBAIJAN_PL",
   "EREDIVISIE_2",
   "PRIMEIRA_LIGA_2",
+  // 2026-05-24 (3차) + 2026-05-25 추가분 — League 타입엔 있었지만 본 배열에 누락됐던 리그
+  // (영향: /standings/[league] VALID 판정 404 — 2026-06-12 리그 순위 추가 작업에서 일괄 보강)
+  "LEAGUE_TWO",
+  "NATIONAL_LEAGUE",
+  "SCOT_CHAMPIONSHIP",
+  "SCOT_LEAGUE_ONE",
+  "SCOT_LEAGUE_TWO",
+  "RPL",
+  "ALGERIA_L1",
+  "SVENSKA_CUPEN",
+  "GHANA_PL",
+  "ARG_PRIMERA_NACIONAL",
+  "IRAQ_SL",
+  "MEXICO_2",
+  "CHINA_2",
+  "IRELAND_2",
+  "DENMARK_2",
+  "HUNGARY_2",
+  "CZECH_2",
+  "AUSTRIA_2",
+  "BELGIUM_2",
+  "TURKEY_2",
 ] as const satisfies readonly League[];
 
 /** PREVIEW/RECAP 자동 발행 화이트리스트 — 명시한 리그만 글 생성.
