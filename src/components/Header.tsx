@@ -62,7 +62,9 @@ const CATEGORIES: CategoryDef[] = [
 // 경기 분석 — 경기 전 AI/데이터 도구
 const MATCH_ITEMS: SubItem[] = [
   { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
-  { href: "/predictions", label: "예측·순위", desc: "Monte Carlo 시즌 시뮬레이션" },
+  { href: "/predictions", label: "시즌 예측", desc: "Monte Carlo 우승·PO 확률" },
+  { href: "/standings", label: "리그 순위", desc: "국가·종목별 전체 순위" },
+  { href: "/predictions/starters", label: "선발 매치업", desc: "야구 선발 투수 비교" },
   { href: "/value-bets", label: "밸류 베트", desc: "Elo 예측 vs 배당사 implied" },
   { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
 ];

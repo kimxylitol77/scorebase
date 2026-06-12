@@ -22,7 +22,9 @@ const GROUPS: Group[] = [
     label: "경기 분석",
     items: [
       { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
-      { href: "/predictions", label: "예측·순위", desc: "시즌 시뮬레이션" },
+      { href: "/predictions", label: "시즌 예측", desc: "우승·PO 확률" },
+      { href: "/standings", label: "리그 순위", desc: "국가·종목별 전체" },
+      { href: "/predictions/starters", label: "선발 매치업", desc: "야구 선발 비교" },
       { href: "/value-bets", label: "밸류 베트", desc: "Elo vs 배당" },
       { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자" },
     ],
