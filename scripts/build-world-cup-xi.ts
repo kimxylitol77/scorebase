@@ -1,5 +1,5 @@
 // 월드컵 12조 통합 베스트11 빌드 → data/world-cup-xi/{A..L}.json
-// TheSports 친선(+추후 본선) 라인업 → 국가별 선수·포지션·평점 → 조별 4-2-3-1 베스트11.
+// TheSports 친선+월드컵 본선 라인업 → 국가별 선수·포지션·평점 → 조별 4-2-3-1 베스트11.
 // IP 화이트리스트 필요 → worker/mac-mini cron 에서 실행 (Vercel 동적 IP 불가).
 import { thesportsGet } from "../src/lib/sports/thesports/client";
 import { WORLD_CUP_GROUPS } from "../src/lib/predict/world-cup-elos";
@@ -8,6 +8,8 @@ import rawOv from "../data/player-overrides.json";
 import * as fs from "fs";
 
 const INTL = "jednm9whk0ryox8"; // INTL_FRIENDLY competition_id
+const WC = "kp3glrw7hwqdyjv"; // FIFA World Cup competition_id (2026-06-12 KST diary 개막전 멕시코-남아공 실측)
+const COMPS = new Set([INTL, WC]);
 const p = new PrismaClient();
 const OV = rawOv as Record<string, { nameKo?: string }>;
 
@@ -58,30 +60,40 @@ async function main() {
   const normToCountry = new Map(Object.values(WORLD_CUP_GROUPS).flat().map((c) => [norm(c), c]));
   let calls = 0;
 
-  for (let d = 1; d <= 12; d++) {
-    const date = `2026-06-${String(d).padStart(2, "0")}`;
+  // 수집 범위: 2026-06-01(6월 친선 시작) ~ 오늘 KST, 상한 2026-07-21(결승 7/19 = KST 7/20 +버퍼).
+  // 시작을 고정하는 이유: 조별 베스트11은 탈락국도 포함해야 하므로 롤링 윈도우를 쓰면
+  // 대회 후반에 조별리그·탈락국 경기가 범위 밖으로 빠져 조 풀이 깨진다.
+  // 상한은 대회 종료 후 친선 평점이 recentRating 을 덮어쓰는 것을 막는다.
+  const todayKst = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+  const endDate = todayKst < "2026-07-21" ? todayKst : "2026-07-21";
+  const endMs = Date.parse(`${endDate}T00:00:00Z`);
+  for (let t = Date.parse("2026-06-01T00:00:00Z"); t <= endMs; t += 86400000) {
+    const date = new Date(t).toISOString().slice(0, 10);
     const tsp = Math.floor((new Date(`${date}T00:00:00Z`).getTime() - 9 * 3600000) / 1000);
     let diary: any;
     try { diary = await thesportsGet<any>("/v1/football/match/diary", { tsp }); } catch { continue; }
     const tm = new Map((diary.results_extra?.team ?? []).map((t: any) => [t.id, t.name]));
-    for (const m of (diary.results ?? []).filter((x: any) => x.competition_id === INTL)) {
+    for (const m of (diary.results ?? []).filter((x: any) => COMPS.has(x.competition_id))) {
+      // 본선 진출국이 속한 side 만 수집 — 라인업은 매치당 1회 호출(양 side 동일 응답)
+      const sides: ["home" | "away", string][] = [];
       for (const [side, tid] of [["home", m.home_team_id], ["away", m.away_team_id]] as const) {
         const tn = tm.get(tid) as string | undefined;
         if (!tn || isWomenOrYouth(tn)) continue;
         const country = normToCountry.get(norm(tn));
-        if (!country) continue; // 본선 진출국만
-        try {
-          const lu = await thesportsGet<any>("/v1/football/match/lineup/detail", { uuid: m.id });
-          calls++;
-          byCountry[country] ??= new Map();
-          for (const pl of (lu.results?.lineup?.[side] ?? [])) {
-            const rating = parseFloat(pl.rating) || 0;
-            const prev = byCountry[country].get(pl.id);
-            const ratings = prev?.ratings ?? [];
-            if (rating > 0) ratings.push({ d: date, r: rating });
-            byCountry[country].set(pl.id, { id: pl.id, name: pl.name, pos: pl.position, rating: Math.max(prev?.rating ?? 0, rating), logo: pl.logo || prev?.logo || null, ratings });
-          }
-        } catch { /* skip */ }
+        if (country) sides.push([side, country]);
+      }
+      if (!sides.length) continue;
+      let lu: any;
+      try { lu = await thesportsGet<any>("/v1/football/match/lineup/detail", { uuid: m.id }); calls++; } catch { continue; }
+      for (const [side, country] of sides) {
+        byCountry[country] ??= new Map();
+        for (const pl of (lu.results?.lineup?.[side] ?? [])) {
+          const rating = parseFloat(pl.rating) || 0;
+          const prev = byCountry[country].get(pl.id);
+          const ratings = prev?.ratings ?? [];
+          if (rating > 0) ratings.push({ d: date, r: rating });
+          byCountry[country].set(pl.id, { id: pl.id, name: pl.name, pos: pl.position, rating: Math.max(prev?.rating ?? 0, rating), logo: pl.logo || prev?.logo || null, ratings });
+        }
       }
     }
   }
