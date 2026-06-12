@@ -1292,7 +1292,14 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
         league={lg}
       />
 
-      <VolleyballOddsCard odds={oddsRow} homeKo={homeKo} awayKo={awayKo} status={match.status} />
+      <VolleyballOddsCard
+        odds={oddsRow}
+        homeKo={homeKo}
+        awayKo={awayKo}
+        status={match.status}
+        predHome={match.predHome}
+        marketHome={match.marketHome}
+      />
 
       <VolleyballStatsCard stats={dl?.stats} homeKo={homeKo} awayKo={awayKo} />
     </div>
@@ -1362,37 +1369,57 @@ function VolleyballRecentForm({
   );
 }
 
-// 배구 배당 + 임플라이드 승률 — bet365 승패 배당에서 vig 제거 양분.
-// 자체 Elo 모델은 표본 축적 후 블렌드 예정 — 현재는 시장 단일 신호라 "배당 기반" 명시.
+// 배구 AI 예측 — Elo(자체) + bet365 시장 블렌드 (cron volleyball-predict 가 predHome 저장).
+// predHome 없는 매치(예측 가동 전 종료분)는 배당 임플라이드 폴백 — 라벨로 구분.
 function VolleyballOddsCard({
   odds,
   homeKo,
   awayKo,
   status,
+  predHome,
+  marketHome,
 }: {
   odds: { v1: number; v2: number; ts: number; companyId: string } | null;
   homeKo: string;
   awayKo: string;
   status: string;
+  predHome?: number | null;
+  marketHome?: number | null;
 }) {
-  if (!odds || odds.v1 <= 1 || odds.v2 <= 1) return null;
-  const ih = 1 / odds.v1;
-  const ia = 1 / odds.v2;
-  const ph = Math.round((ih / (ih + ia)) * 100);
+  const hasPred = predHome != null;
+  if (!hasPred && (!odds || odds.v1 <= 1 || odds.v2 <= 1)) return null;
+  let ph: number;
+  let modelPct: number | null = null;
+  let marketPct: number | null = null;
+  if (hasPred) {
+    ph = Math.round(predHome! * 100);
+    marketPct = marketHome != null ? Math.round(marketHome * 100) : null;
+    // 블렌드 역산 (pred = 0.6*market + 0.4*elo) — 시장 없으면 pred 자체가 Elo
+    const elo = marketHome != null ? (predHome! - 0.6 * marketHome) / 0.4 : predHome!;
+    modelPct = Math.round(Math.min(0.99, Math.max(0.01, elo)) * 100);
+  } else {
+    const ih = 1 / odds!.v1;
+    const ia = 1 / odds!.v2;
+    ph = Math.round((ih / (ih + ia)) * 100);
+  }
   const pa = 100 - ph;
-  const updated = new Date(odds.ts * 1000).toLocaleString("ko-KR", {
-    timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
-  });
-  const company = odds.companyId === "2" ? "bet365" : `북메이커 #${odds.companyId}`;
+  const updated = odds
+    ? new Date(odds.ts * 1000).toLocaleString("ko-KR", {
+        timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
+      })
+    : "";
+  const company = odds ? (odds.companyId === "2" ? "bet365" : `북메이커 #${odds.companyId}`) : "";
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 space-y-3">
       <div className="flex items-center justify-between">
         <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-          승률 (배당 기반)
+          {hasPred ? "AI 예측 (Elo + 시장)" : "승률 (배당 기반)"}
         </div>
-        <div className="text-[10px] text-neutral-500">
-          {company} · {status === "FINISHED" ? "마감 배당" : "갱신"} {updated}
-        </div>
+        {odds && (
+          <div className="text-[10px] text-neutral-500">
+            {company} · {status === "FINISHED" ? "마감 배당" : "갱신"} {updated}
+          </div>
+        )}
       </div>
       <div className="flex items-center justify-between text-sm font-bold">
         <span className="truncate max-w-[40%]">{homeKo} {ph}%</span>
@@ -1402,10 +1429,18 @@ function VolleyballOddsCard({
         <div className="h-full" style={{ width: `${ph}%`, background: "#22c55e" }} />
         <div className="h-full" style={{ width: `${pa}%`, background: "#3b82f6" }} />
       </div>
-      <div className="flex items-center justify-between text-xs text-neutral-500 tabular-nums">
-        <span>배당 {odds.v1.toFixed(2)}</span>
-        <span>배당 {odds.v2.toFixed(2)}</span>
-      </div>
+      {odds && (
+        <div className="flex items-center justify-between text-xs text-neutral-500 tabular-nums">
+          <span>배당 {odds.v1.toFixed(2)}</span>
+          <span>배당 {odds.v2.toFixed(2)}</span>
+        </div>
+      )}
+      {hasPred && (
+        <div className="text-[10px] text-neutral-400">
+          Elo 모델 {modelPct}%{marketPct != null ? ` · 시장 ${marketPct}%` : ""} — 시장 0.6 + 모델 0.4 블렌드
+          {marketPct == null ? " (배당 미수집 — 모델 단독)" : ""}
+        </div>
+      )}
     </div>
   );
 }

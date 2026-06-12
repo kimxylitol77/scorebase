@@ -2408,8 +2408,8 @@ function actionsFor(m: NormalizedMatch) {
   const showAi = !!m.href; // 모든 매치 — 라이브 페이지의 매치 인사이트 5탭 진입
   const showLineup = !!m.href && BASEBALL_LINEUP_LEAGUES.has(m.league);
   if (!showAi && !m.recap && !showLineup) return null;
-  // 배구는 아직 AI 예측 미지원 (세트 상세 페이지만) — "AI 예측" 라벨이 과장이라 분리
-  const aiLabel = VOLLEYBALL_LEAGUES.has(m.league) ? "매치 상세" : "AI 예측";
+  // 배구도 AI 예측 가동 (volleyball-predict cron — Elo+시장 블렌드, 2026-06-12)
+  const aiLabel = "AI 예측";
   return (
     <>
       {showAi && (
