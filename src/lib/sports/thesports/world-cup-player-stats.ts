@@ -17,6 +17,7 @@ export interface WcPlayerStat {
   assists: number;
   yellow: number;
   red: number;
+  saves: number; // GK 세이브 (필드 플레이어는 0)
   avgRating: number; // rating>0 경기 평균 (소수 2)
   minutes: number;
   games: number; // 출전 경기 수 (minutes>0)
@@ -29,6 +30,7 @@ interface TsPlayerStatRow {
   yellow_cards?: number;
   red_cards?: number;
   yellow2red_cards?: number;
+  saves?: number;
   rating?: number;
   minutes_played?: number;
 }
@@ -65,6 +67,7 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     assists: number;
     yellow: number;
     red: number;
+    saves: number;
     ratings: number[];
     minutes: number;
     games: number;
@@ -101,6 +104,7 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
         assists: 0,
         yellow: 0,
         red: 0,
+        saves: 0,
         ratings: [],
         minutes: 0,
         games: 0,
@@ -112,6 +116,7 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
       a.assists += s.assists ?? 0;
       a.yellow += s.yellow_cards ?? 0;
       a.red += (s.red_cards ?? 0) + (s.yellow2red_cards ?? 0);
+      a.saves += s.saves ?? 0;
       const rating = Number(s.rating) || 0;
       if (rating > 0) a.ratings.push(rating);
       const min = s.minutes_played ?? 0;
@@ -148,6 +153,7 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     assists: a.assists,
     yellow: a.yellow,
     red: a.red,
+    saves: a.saves,
     avgRating: a.ratings.length
       ? +(a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length).toFixed(2)
       : 0,
