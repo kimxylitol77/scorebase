@@ -728,6 +728,21 @@ export default async function LeaguePredictions({ params }: Props) {
           </div>
         )}
 
+        {/* 야구 — 오늘의 선발 매치업 보드 진입 */}
+        {["KBO", "MLB", "NPB"].includes(upper) && (
+          <Link
+            href="/predictions/starters"
+            prefetch={false}
+            className="flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 hover:border-emerald-400 dark:hover:border-emerald-500 transition"
+          >
+            <div>
+              <p className="font-bold">⚾ 오늘의 선발 투수 매치업</p>
+              <p className="text-xs text-neutral-500 mt-0.5">KBO·MLB·NPB 선발 맞대결 — ERA·WHIP·K/9·최근 폼 비교, 발표 시 자동 갱신</p>
+            </div>
+            <span className="text-emerald-500 font-bold">→</span>
+          </Link>
+        )}
+
         {/* 조별 순위표 진입 — 개막 후 실제 결과는 standings 에서 (시뮬 확률과 상호 보완) */}
         {isWorldCup && (
           <Link
