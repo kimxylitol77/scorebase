@@ -56,7 +56,8 @@ async function safeFetchTop3(
   try {
     const rows = await getFullStandings(league);
     if (rows.length === 0) return [];
-    const top3 = rows.slice(0, 3);
+    // MLB 처럼 양 리그 합산 표는 동순위(position 중복)가 있음 — 동순위 내 승점 내림차순 보정
+    const top3 = [...rows].sort((a, b) => a.position - b.position || b.points - a.points).slice(0, 3);
     const teams = await prisma.team.findMany({
       where: { id: { in: top3.map((r) => r.teamId) } },
       select: { id: true, name: true },
@@ -87,6 +88,33 @@ async function fetchTop3Map(): Promise<Record<string, TopThreeEntry[]>> {
     }),
   );
   return Object.fromEntries(results);
+}
+
+// /predictions/{league} 상세가 존재하는 리그만 — 카드 링크 404 방지 (CPBL 등 standings 만 있는 리그 제외)
+const PREDICTION_PAGE_CODES = new Set(
+  LEAGUES.flatMap((lg) => (lg.codes ? lg.codes.map((c) => c.code) : [lg.code])),
+);
+
+/** 비축구 종목(야구·농구·하키 등) — 종목 단위 그룹. standings 있는 리그만 자동 노출
+ *  (NBA·NHL 은 시즌오프라 0행 → 자동 미노출, 개막 후 standings 쌓이면 자동 등장). */
+async function fetchSportStandings(): Promise<CountryStandingsGroup[]> {
+  const groups: CountryStandingsGroup[] = [];
+  for (const sport of SPORTS.filter((s) => s.code !== "soccer")) {
+    const codes = sport.leagues.filter((l) => PREDICTION_PAGE_CODES.has(l));
+    if (codes.length === 0) continue;
+    const fetched = await Promise.all(
+      codes.map(async (league) => ({ league, top3: await safeFetchTop3(league) })),
+    );
+    const leagues = fetched
+      .filter((f) => f.top3.length > 0)
+      .map((f) => ({
+        league: f.league,
+        leagueDisplay: LEAGUE_DISPLAY[f.league] ?? f.league,
+        top3: f.top3,
+      }));
+    if (leagues.length > 0) groups.push({ country: `${sport.emoji} ${sport.label}`, leagues });
+  }
+  return groups;
 }
 
 async function fetchCountryStandings(): Promise<CountryStandingsGroup[]> {
@@ -195,10 +223,13 @@ function buildClubRanking(): { rank: number; name: string; logo: string | null }
 }
 
 export default async function PredictionsRoot() {
-  const [top3, countryGroups] = await Promise.all([
+  const [top3, soccerGroups, sportGroups] = await Promise.all([
     fetchTop3Map(),
     fetchCountryStandings(),
+    fetchSportStandings(),
   ]);
+  // 야구 등 종목 그룹을 앞에 (한국 사용자 야구 순위 수요), 이어서 축구 국가별
+  const countryGroups = [...sportGroups, ...soccerGroups];
   const fifaRanking = buildFifaRanking();
   const clubRanking = buildClubRanking();
   return (
