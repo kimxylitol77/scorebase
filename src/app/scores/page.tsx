@@ -2387,6 +2387,8 @@ function actionsFor(m: NormalizedMatch) {
   const showAi = !!m.href; // 모든 매치 — 라이브 페이지의 매치 인사이트 5탭 진입
   const showLineup = !!m.href && BASEBALL_LINEUP_LEAGUES.has(m.league);
   if (!showAi && !m.recap && !showLineup) return null;
+  // 배구는 아직 AI 예측 미지원 (세트 상세 페이지만) — "AI 예측" 라벨이 과장이라 분리
+  const aiLabel = VOLLEYBALL_LEAGUES.has(m.league) ? "매치 상세" : "AI 예측";
   return (
     <>
       {showAi && (
@@ -2395,7 +2397,7 @@ function actionsFor(m: NormalizedMatch) {
           prefetch={false}
           className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/25 transition"
         >
-          AI 예측
+          {aiLabel}
         </Link>
       )}
       {showLineup && (
