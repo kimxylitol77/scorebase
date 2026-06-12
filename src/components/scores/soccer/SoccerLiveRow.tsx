@@ -7,6 +7,7 @@
 
 "use client";
 
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getLeagueBadge } from "./leagueBadge";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
@@ -149,6 +150,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   );
   // 좌/우 표시 순서는 awayFirst 에 따라 바뀜 — 좌측 숫자의 ping 을 골라준다.
   const leftPing = awayFirst ? awayPing : homePing;
+
+  // 득점자 tooltip 좌표 — 컨테이너(overflow-x-auto)에 잘리지 않게 fixed 로 띄운다.
+  // x 는 화면 가장자리 클램프(폭 280px 절반+여유), 세로는 렌더 후 실측 클램프 (GoalsTooltip).
+  const [tipPos, setTipPos] = useState<{ x: number; bottom: number } | null>(null);
   const rightPing = awayFirst ? homePing : awayPing;
 
   // SCHEDULED 매치는 score 무시 — collector 잔여 데이터로 미래 매치에 점수 표시되는 버그 회피
@@ -264,7 +269,17 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
       {/* 5. 점수 — awayFirst=true 면 away score 좌측 / home score 우측. hover 시 z-50 으로 tooltip 이 다른 row 위로.
            승부차기는 점수 아래 absolute 로 (6) (5) — 행 높이에 영향 안 주게 (다른 행과 높이 통일). */}
-      <div className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group hover:z-50">
+      <div
+        className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group hover:z-50"
+        onMouseEnter={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setTipPos({
+            x: Math.min(Math.max(r.left + r.width / 2, 152), window.innerWidth - 152),
+            bottom: r.bottom,
+          });
+        }}
+        onMouseLeave={() => setTipPos(null)}
+      >
         {hasScore ? (
           <>
             <span
@@ -315,6 +330,8 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
                   halfStats={soccerHalfStats ?? []}
                   homeLabel={homeShort ?? home.name}
                   awayLabel={awayShort ?? away.name}
+                  pos={tipPos}
+                  onClose={() => setTipPos(null)}
                 />
               )}
           </>
@@ -556,7 +573,9 @@ function StatBars({ stats }: { stats: SoccerTeamStat[] }) {
   );
 }
 
-/** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip. */
+/** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip.
+ *  컨테이너(overflow-x-auto)가 absolute 팝업을 잘라서 fixed + 마우스 진입 시 계산된
+ *  좌표로 띄운다 (가장자리 클램프 + 하단 공간 부족 시 위로 플립). */
 function GoalsTooltip({
   goals,
   cards,
@@ -564,6 +583,8 @@ function GoalsTooltip({
   halfStats,
   homeLabel,
   awayLabel,
+  pos,
+  onClose,
 }: {
   goals: SoccerGoal[];
   cards: SoccerCard[];
@@ -571,7 +592,26 @@ function GoalsTooltip({
   halfStats: SoccerTeamStat[];
   homeLabel: string;
   awayLabel: string;
+  pos: { x: number; bottom: number } | null;
+  onClose: () => void;
 }) {
+  // 호버 중 스크롤하면 fixed 팝업이 행과 분리되므로 닫는다
+  useEffect(() => {
+    if (!pos) return;
+    window.addEventListener("scroll", onClose, true);
+    return () => window.removeEventListener("scroll", onClose, true);
+  }, [pos, onClose]);
+
+  // 세로 클램프 — 내용 높이가 가변(골·카드·스탯)이라 렌더 후 실측해 화면 안으로
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [topAdj, setTopAdj] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    if (!pos) { setTopAdj(null); return; }
+    const el = boxRef.current;
+    if (!el) return;
+    const h = el.getBoundingClientRect().height;
+    setTopAdj(Math.min(pos.bottom + 4, Math.max(8, window.innerHeight - h - 8)));
+  }, [pos]);
   const parseMinute = (s: string): number => {
     const m = s.match(/(\d+)(?:\+(\d+))?/);
     if (!m) return 0;
@@ -601,10 +641,13 @@ function GoalsTooltip({
     />
   );
 
+  if (!pos) return null;
   return (
     <div
+      ref={boxRef}
       role="tooltip"
-      className="absolute left-1/2 top-full z-50 -translate-x-1/2 mt-1 min-w-[280px] hidden group-hover:block pointer-events-none"
+      className="fixed z-50 -translate-x-1/2 min-w-[280px] pointer-events-none"
+      style={{ left: pos.x, top: topAdj ?? pos.bottom + 4 }}
     >
       <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 dark:shadow-black/50 p-2.5 text-left">
         <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
