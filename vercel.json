@@ -53,7 +53,7 @@
     { "path": "/api/cron/blog-weekly", "schedule": "0 0 * * 1" },
     { "path": "/api/cron/volleyball-predict", "schedule": "15 * * * *" },
     { "path": "/api/cron/wc-sim-snapshot", "schedule": "0 4 * * *" },
-    { "path": "/api/cron/league-sim-snapshot?league=KBO", "schedule": "0 22 * * *" },
+    { "path": "/api/cron/league-sim-snapshot", "schedule": "0 22 * * *" },
     { "path": "/api/cron/boost-views", "schedule": "0 * * * *" }
   ]
 }

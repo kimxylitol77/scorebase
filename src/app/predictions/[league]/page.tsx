@@ -640,14 +640,16 @@ export default async function LeaguePredictions({ params }: Props) {
     wcTrend = buildChampionTrend(snaps.map((s) => ({ date: s.date, data: s.data })));
   }
 
-  // KBO — 우승 확률 추이(league-sim-snapshot cron, KST 07:00) + 팀 상대전적 매트릭스
+  // 야구(KBO·NPB·MLB) — 우승 확률 추이(league-sim-snapshot cron, KST 07:00)
+  // + 상대전적 매트릭스(KBO 10팀·NPB 12팀만 — MLB 30팀은 표가 비실용적이라 제외)
   const isKbo = upper === "KBO";
-  let kboTrend: ChampionTrend | null = null;
-  let kboH2H: H2HMatrix | null = null;
-  if (isKbo) {
-    const snaps = await prisma.leagueSimSnapshot.findMany({ where: { league: "KBO" }, orderBy: { date: "asc" } });
-    kboTrend = buildChampionTrend(snaps.map((s) => ({ date: s.date, data: s.data })));
-    kboH2H = await getBaseballH2H("KBO");
+  const isBaseballSim = ["KBO", "NPB", "MLB"].includes(upper);
+  let baseballTrend: ChampionTrend | null = null;
+  let baseballH2H: H2HMatrix | null = null;
+  if (isBaseballSim) {
+    const snaps = await prisma.leagueSimSnapshot.findMany({ where: { league: upper }, orderBy: { date: "asc" } });
+    baseballTrend = buildChampionTrend(snaps.map((s) => ({ date: s.date, data: s.data })));
+    if (upper !== "MLB") baseballH2H = await getBaseballH2H(upper);
   }
 
   return (
@@ -1064,15 +1066,15 @@ export default async function LeaguePredictions({ params }: Props) {
               </div>
             </section>
 
-            {/* KBO — 우승 확률 추이 (일일 스냅샷 누적) */}
-            {isKbo && kboTrend && (
+            {/* 야구 — 우승 확률 추이 (일일 스냅샷 누적, KBO·NPB·MLB) */}
+            {isBaseballSim && baseballTrend && (
               <section>
                 <Heading
                   title="📈 우승 확률 추이"
                   subtitle="매일 아침 7시 시뮬레이션 스냅샷 — 시즌이 흐르며 우승 확률이 어떻게 움직이는지 (TOP 6)"
                 />
                 <div className="sm:max-w-2xl">
-                  <WcChampionTrendChart data={kboTrend.data} teams={kboTrend.teams} />
+                  <WcChampionTrendChart data={baseballTrend.data} teams={baseballTrend.teams} />
                 </div>
               </section>
             )}
@@ -1177,8 +1179,8 @@ export default async function LeaguePredictions({ params }: Props) {
               />
             </section>
 
-            {/* KBO — 팀 간 상대전적 매트릭스 (경기 종료 시 자동 갱신) */}
-            {isKbo && kboH2H && (
+            {/* 야구 — 팀 간 상대전적 매트릭스 (KBO·NPB, 경기 종료 시 자동 갱신) */}
+            {baseballH2H && (
               <section>
                 <Heading
                   title="⚔️ 팀 상대전적 매트릭스"
@@ -1189,18 +1191,18 @@ export default async function LeaguePredictions({ params }: Props) {
                     <thead>
                       <tr className="bg-neutral-50 dark:bg-neutral-900 text-[11px] text-neutral-500">
                         <th className="px-2 py-2 text-left font-semibold sticky left-0 bg-neutral-50 dark:bg-neutral-900">팀 \ 상대</th>
-                        {kboH2H.teams.map((t) => (
+                        {baseballH2H.teams.map((t) => (
                           <th key={t} className="px-1 py-2 text-center font-semibold">{t.split(" ")[0]}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                      {kboH2H.teams.map((row) => (
+                      {baseballH2H.teams.map((row) => (
                         <tr key={row}>
                           <td className="px-2 py-1.5 font-bold whitespace-nowrap sticky left-0 bg-white dark:bg-neutral-950">{row.split(" ")[0]}</td>
-                          {kboH2H!.teams.map((col) => {
+                          {baseballH2H!.teams.map((col) => {
                             if (row === col) return <td key={col} className="px-1 py-1.5 text-center text-neutral-300 dark:text-neutral-700">—</td>;
-                            const c = kboH2H!.cells[row]?.[col];
+                            const c = baseballH2H!.cells[row]?.[col];
                             if (!c || c.w + c.d + c.l === 0) return <td key={col} className="px-1 py-1.5 text-center text-neutral-400">·</td>;
                             const diff = c.w - c.l;
                             const cls = diff > 1 ? "bg-emerald-100 dark:bg-emerald-900/40 font-bold" : diff > 0 ? "bg-emerald-50 dark:bg-emerald-900/20" : diff < -1 ? "bg-rose-100 dark:bg-rose-900/40" : diff < 0 ? "bg-rose-50 dark:bg-rose-900/20" : "";
