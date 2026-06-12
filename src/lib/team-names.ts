@@ -2942,6 +2942,33 @@ const STRIP_RE = /\s+(fc|cf|sc|afc|ac|cfc|club|football club)\.?$/i;
 // 동음이의 클럽 (Al Ittihad = 사우디 SAUDI_PL / 이집트 EGYPT_PL / ...)
 // league 인자가 주어지면 글로벌 RAW 보다 우선 적용.
 const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
+  // ── 배구 국가대표 (2026-06-12) — ts 영문명이 "Xxx Women" 형태라 league scope 로 분리.
+  // 리그 라벨에 (여) 가 있어 팀명은 국가명만 깔끔하게.
+  VNL: {
+    "Argentina": "아르헨티나", "Belgium": "벨기에", "Brazil": "브라질", "Bulgaria": "불가리아",
+    "Canada": "캐나다", "China": "중국", "Cuba": "쿠바", "France": "프랑스",
+    "Germany": "독일", "Iran": "이란", "Italy": "이탈리아", "Japan": "일본",
+    "Poland": "폴란드", "Serbia": "세르비아", "Slovenia": "슬로베니아", "Turkey": "튀르키예",
+    "USA": "미국", "Ukraine": "우크라이나",
+  },
+  AVC_NATIONS_W: {
+    "Australia Women": "호주", "Chinese Taipei Women": "대만", "Hong Kong Women": "홍콩",
+    "Indonesia Women": "인도네시아", "Iran Women": "이란", "Kazakhstan Women": "카자흐스탄",
+    "Kyrgyzstan Women": "키르기스스탄", "Lebanon Women": "레바논", "Philippines Women": "필리핀",
+    "South Korea Women": "대한민국", "Uzbekistan Women": "우즈베키스탄", "Vietnam Women": "베트남",
+  },
+  EGL_W: {
+    "Albania Women": "알바니아", "Austria Women": "오스트리아", "Azerbaijan Women": "아제르바이잔",
+    "Bosnia & Herzegovina Women": "보스니아 헤르체고비나", "Croatia Women": "크로아티아",
+    "Denmark Women": "덴마크", "Estonia Women": "에스토니아", "Finland Women": "핀란드",
+    "Georgia Women": "조지아", "Greece Women": "그리스", "Hungary Women": "헝가리",
+    "Iceland Women": "아이슬란드", "Israel Women": "이스라엘", "Kosovo Women": "코소보",
+    "Latvia Women": "라트비아", "Lithuania Women": "리투아니아", "Luxembourg Women": "룩셈부르크",
+    "Montenegro Women": "몬테네그로", "North Macedonia Women": "북마케도니아",
+    "Portugal Women": "포르투갈", "Romania Women": "루마니아", "Slovakia Women": "슬로바키아",
+    "Slovenia Women": "슬로베니아", "Spain Women": "스페인", "Sweden Women": "스웨덴",
+    "Switzerland Women": "스위스",
+  },
   EGYPT_PL: {
     "Al Ittihad": "이티하드 알렉산드리아",
     "Al-Ittihad": "이티하드 알렉산드리아",

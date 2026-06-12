@@ -7,8 +7,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { mapFootballStatus, convertTsLineup } from "@/lib/sports/thesports/football-collector";
 import { predictMatchById } from "@/lib/predictionEngine";
-import { mapBaseballStatus, mapIceHockeyStatus, mapBasketballStatus } from "@/lib/sports/thesports/status-codes";
-import { BASEBALL_LEAGUES, HOCKEY_LEAGUES, BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { mapBaseballStatus, mapIceHockeyStatus, mapBasketballStatus, mapVolleyballStatus } from "@/lib/sports/thesports/status-codes";
+import { BASEBALL_LEAGUES, HOCKEY_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { MatchStatus } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
@@ -194,7 +194,9 @@ export async function POST(req: NextRequest) {
             ? mapIceHockeyStatus(tsStatusId)
             : BASKETBALL_LEAGUES.has(currentMatch.league)
               ? mapBasketballStatus(tsStatusId)
-              : mapFootballStatus(tsStatusId);
+              : VOLLEYBALL_LEAGUES.has(currentMatch.league)
+                ? mapVolleyballStatus(tsStatusId)
+                : mapFootballStatus(tsStatusId);
         // 단조 progression — FINISHED 에서 LIVE/SCHEDULED 로 역행 안 함.
         // POSTPONED 는 어디서나 진입 허용 (matchday cancel).
         const currentRank = STATUS_RANK[currentMatch.status as MatchStatus] ?? 0;
@@ -232,7 +234,8 @@ export async function POST(req: NextRequest) {
   const isFootball =
     !BASEBALL_LEAGUES.has(currentMatch.league) &&
     !HOCKEY_LEAGUES.has(currentMatch.league) &&
-    !BASKETBALL_LEAGUES.has(currentMatch.league);
+    !BASKETBALL_LEAGUES.has(currentMatch.league) &&
+    !VOLLEYBALL_LEAGUES.has(currentMatch.league);
   if (body.lineup && isFootball && currentMatch.lineupHome == null) {
     const conv = convertTsLineup(
       body.lineup,

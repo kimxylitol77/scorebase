@@ -1,7 +1,7 @@
 // 종목(sport) ↔ 리그(league) 매핑 + 한글 라벨.
 // /scores 페이지 종목 탭에서 사용.
 
-export type SportCode = "all" | "soccer" | "baseball" | "basketball" | "hockey" | "esports" | "mma";
+export type SportCode = "all" | "soccer" | "baseball" | "basketball" | "volleyball" | "hockey" | "esports" | "mma";
 
 interface SportMeta {
   code: SportCode;
@@ -48,6 +48,8 @@ export const ALL_LEAGUES = [
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
   "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "UFC",
+  // 2026-06-12 배구 — TheSports unique_tournament 기반 (VNL 남자 / AVC 네이션스컵 여자 / 유럽 골든리그 여자)
+  "VNL", "AVC_NATIONS_W", "EGL_W",
   // 2026-05-24 추가
   "SUI_CUP", "LEAGUE_ONE", "LATVIA_VL", "BELARUS_PL",
   // 2026-05-24 추가 (2차, 8개)
@@ -136,6 +138,13 @@ export const SPORTS: SportMeta[] = [
     leagues: ["NBA", "WNBA", "KBL", "WKBL"],
   },
   {
+    code: "volleyball",
+    label: "배구",
+    emoji: "🏐",
+    // 2026-06-12 신설 — TheSports 배구. V-리그는 10월 개막 시 추가 예정([[feedback_thesports_volleyball_shapes]]).
+    leagues: ["VNL", "AVC_NATIONS_W", "EGL_W"],
+  },
+  {
     code: "hockey",
     label: "하키",
     emoji: "🏒",
@@ -174,6 +183,11 @@ export const HOCKEY_LEAGUES = new Set(
 // 농구 리그 집합 — SPORTS.basketball.leagues 단일 진실. thesports-cache 가 mapBasketballStatus 분기에 사용.
 export const BASKETBALL_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "basketball")?.leagues ?? [],
+);
+
+// 배구 리그 집합 — SPORTS.volleyball.leagues 단일 진실. 세트 기반 status(432~440)·score(ft=세트) 분기에 사용.
+export const VOLLEYBALL_LEAGUES = new Set(
+  SPORTS.find((s) => s.code === "volleyball")?.leagues ?? [],
 );
 
 // MMA(UFC) 리그 집합 — 경기는 The Odds API, 파이터 프로필은 api-sports /fighters.
@@ -353,6 +367,9 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   IIHF_WC: "세계선수권",
   KBL: "KBL",
   WKBL: "WKBL",
+  VNL: "발리볼 네이션스리그",
+  AVC_NATIONS_W: "AVC 네이션스컵 (여)",
+  EGL_W: "유럽 발리볼리그 (여)", // CEV European League — 골든+실버 통합 utid (26팀 실측)
   LOL: "LCK",
   LCK_CL: "LCK CL",
   LPL: "LPL",
@@ -544,6 +561,9 @@ export const LEAGUE_ORDER: Record<string, number> = {
   IIHF_WC: 22,
   KBL: 23,
   WKBL: 24,
+  VNL: 25, // 배구 — 국대 한국전 수요 (AVC 에 한국 여자 출전)
+  AVC_NATIONS_W: 25.1,
+  EGL_W: 25.2,
   LOL: 30,
   LCK_CL: 30.5,
   LPL: 30.6,

@@ -30,6 +30,7 @@ import {
   HOCKEY_LEAGUES,
   BASKETBALL_LEAGUES,
   BASEBALL_LEAGUES,
+  VOLLEYBALL_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
@@ -43,7 +44,8 @@ function isTsSoleSource(league: string): boolean {
   return (
     HOCKEY_LEAGUES.has(league) ||
     BASKETBALL_LEAGUES.has(league) ||
-    BASEBALL_LEAGUES.has(league)
+    BASEBALL_LEAGUES.has(league) ||
+    VOLLEYBALL_LEAGUES.has(league) // 배구는 ts 가 유일 소스 (백스톱 collector 없음)
   );
 }
 
@@ -79,7 +81,7 @@ interface MatchPayload {
   playoffStageId?: string;
 }
 interface Body {
-  sport: "football" | "baseball" | "ice_hockey" | "basketball";
+  sport: "football" | "baseball" | "ice_hockey" | "basketball" | "volleyball";
   matches: MatchPayload[];
 }
 
@@ -90,6 +92,7 @@ let cachedFootballJsonMap: Map<string, number> | null = null;
 let cachedBaseballJsonMap: Map<string, number> | null = null;
 let cachedIceHockeyJsonMap: Map<string, number> | null = null;
 let cachedBasketballJsonMap: Map<string, number> | null = null;
+let cachedVolleyballJsonMap: Map<string, number> | null = null;
 
 function loadFootballJsonReverse(): Map<string, number> {
   if (cachedFootballJsonMap) return cachedFootballJsonMap;
@@ -139,6 +142,18 @@ function loadBasketballJsonReverse(): Map<string, number> {
   return cachedBasketballJsonMap;
 }
 
+function loadVolleyballJsonReverse(): Map<string, number> {
+  if (cachedVolleyballJsonMap) return cachedVolleyballJsonMap;
+  const file = path.join(process.cwd(), "src/lib/sports/thesports/volleyball-team-id-mapping.json");
+  try {
+    const arr: TeamMapEntry[] = JSON.parse(readFileSync(file, "utf-8"));
+    cachedVolleyballJsonMap = new Map(arr.map((t) => [t.tsId, t.ourId]));
+  } catch {
+    cachedVolleyballJsonMap = new Map();
+  }
+  return cachedVolleyballJsonMap;
+}
+
 /** 이번 batch 의 tsTeamId 들을 한 번에 TeamSourceId 에서 fetch — Map<"league|ext", teamId>. */
 async function loadDbMapForBatch(
   matches: MatchPayload[],
@@ -183,8 +198,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
-  if (body.sport !== "football" && body.sport !== "baseball" && body.sport !== "ice_hockey" && body.sport !== "basketball") {
-    return NextResponse.json({ error: "sport must be football | baseball | ice_hockey | basketball" }, { status: 400 });
+  if (body.sport !== "football" && body.sport !== "baseball" && body.sport !== "ice_hockey" && body.sport !== "basketball" && body.sport !== "volleyball") {
+    return NextResponse.json({ error: "sport must be football | baseball | ice_hockey | basketball | volleyball" }, { status: 400 });
   }
   if (!Array.isArray(body.matches)) {
     return NextResponse.json({ error: "matches array required" }, { status: 400 });
@@ -200,7 +215,9 @@ export async function POST(req: NextRequest) {
         ? loadBaseballJsonReverse()
         : body.sport === "ice_hockey"
           ? loadIceHockeyJsonReverse()
-          : loadBasketballJsonReverse();
+          : body.sport === "volleyball"
+            ? loadVolleyballJsonReverse()
+            : loadBasketballJsonReverse();
 
   function resolveTsTeamId(league: string, tsTeamId: string): number | undefined {
     return dbMap.get(`${league}|${tsTeamId}`) ?? jsonMap.get(tsTeamId);

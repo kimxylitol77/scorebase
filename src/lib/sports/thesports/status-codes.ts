@@ -62,3 +62,27 @@ export function mapBasketballStatus(statusId: number): MatchStatus {
   // 0/1/15 + 미지 → SCHEDULED
   return "SCHEDULED";
 }
+
+// TheSports volleyball status_id → 우리 MatchStatus.
+// docs 표 (2026-06-12 사용자 제공) + VNL 라이브 실측. 세트 기반 — 하키/농구와 또 다름.
+//   SCHEDULED: 0(Abnormal/hide), 1(Not started), 15(Delayed), 99(TBD)
+//   LIVE:      432/434/436/438/440 (1~5세트), 17(Interrupted)
+//   FINISHED:  100(Ended), 19(Cut in half)
+//   POSTPONED: 14(Postponed), 16(Canceled)
+const VOLLEYBALL_LIVE = new Set([432, 434, 436, 438, 440, 17]);
+const VOLLEYBALL_FINISHED = new Set([100, 19]);
+const VOLLEYBALL_POSTPONED = new Set([14, 16]);
+
+export function mapVolleyballStatus(statusId: number): MatchStatus {
+  if (VOLLEYBALL_FINISHED.has(statusId)) return "FINISHED";
+  if (VOLLEYBALL_LIVE.has(statusId)) return "LIVE";
+  if (VOLLEYBALL_POSTPONED.has(statusId)) return "POSTPONED";
+  // 0/1/15/99 + 미지 → SCHEDULED (보수: 가짜 LIVE 방지)
+  return "SCHEDULED";
+}
+
+/** 배구 status_id → 진행 세트 라벨 ("1세트"~"5세트"). LIVE 외엔 null. */
+export function volleyballSetLabel(statusId: number): string | null {
+  const SET: Record<number, string> = { 432: "1세트", 434: "2세트", 436: "3세트", 438: "4세트", 440: "5세트" };
+  return SET[statusId] ?? null;
+}

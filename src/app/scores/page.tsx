@@ -10,6 +10,7 @@ import { SITE_URL } from "@/lib/site-url";
 import {
   SPORTS,
   BASEBALL_LEAGUES,
+  VOLLEYBALL_LEAGUES,
   BASKETBALL_LEAGUES,
   HOCKEY_LEAGUES,
   MMA_LEAGUES,
@@ -125,6 +126,7 @@ function sportFromLeague(league: string): string {
   if (SOCCER_LEAGUES.has(league)) return "soccer";
   if (BASKETBALL_LEAGUES.has(league)) return "basketball"; // NBA/WNBA/KBL/WKBL (이전엔 NBA 만 → 나머지가 "other" 한 줄로 빠짐)
   if (HOCKEY_LEAGUES.has(league)) return "hockey"; // NHL + IIHF_WC (이전엔 NHL 만 → IIHF_WC 가 "other" 한 줄로 빠짐)
+  if (VOLLEYBALL_LEAGUES.has(league)) return "volleyball"; // VNL/AVC/유럽리그 (2026-06-12)
   if (MMA_LEAGUES.has(league)) return "mma"; // UFC
   if (LOL_LEAGUES.has(league)) return "esports";
   return "other";
@@ -195,6 +197,25 @@ function basketballLiveLabel(
     default:
       return null;
   }
+}
+
+// volleyball status_id → 진행 세트 라벨 ("2세트 18-15"). score[3] 의 현재 세트 p_i 점수 포함.
+// 코드표 (status-codes.ts): 432/434/436/438/440 = 1~5세트, 17 = 중단.
+function volleyballLiveLabel(
+  statusId: number,
+  scoreObj: Record<string, unknown> | null,
+): string | null {
+  const SET: Record<number, number> = { 432: 1, 434: 2, 436: 3, 438: 4, 440: 5 };
+  if (statusId === 17) return "중단";
+  const setNo = SET[statusId];
+  if (!setNo) return null;
+  const p = scoreObj?.["p" + setNo];
+  if (Array.isArray(p) && p.length >= 2) {
+    const h = Number(p[0]);
+    const a = Number(p[1]);
+    if (Number.isFinite(h) && Number.isFinite(a)) return `${setNo}세트 ${h}-${a}`;
+  }
+  return `${setNo}세트`;
 }
 
 function parseKstDate(s: string | undefined): Date {
@@ -693,6 +714,9 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 농구 진행 쿼터 라벨 ("3Q 6:02"/"하프타임") — cache status_id + timer 로 생성.
   // NBA 포함 전 리그 (BDL "LIVE" / WNBA 등 라벨 부재 보강).
   const basketballStatusLabelByMatchId = new Map<number, string>();
+  // 배구 (VNL/AVC/유럽리그) 세트별 점수표 + 진행 세트 라벨 — TheSports cache 가 유일 소스.
+  const volleyballPeriodByMatchId = new Map<number, PeriodLinescoreData>();
+  const volleyballStatusLabelByMatchId = new Map<number, string>();
   const baseballCacheCtx = new Map<string, {
     bases: [boolean, boolean, boolean];
     outs: number | null;
@@ -741,6 +765,10 @@ export default async function ScoresPage({ searchParams }: Props) {
       (m) => BASKETBALL_LEAGUES.has(m.league) && m.status !== "SCHEDULED",
     )
     .map((m) => m.id);
+  // 배구 — SCHEDULED 제외 (세트 없음). cache.score[3] = {ft, p1..p5} (하키와 같은 객체형).
+  const volleyballMatchIds = matches
+    .filter((m) => VOLLEYBALL_LEAGUES.has(m.league) && m.status !== "SCHEDULED")
+    .map((m) => m.id);
   const cacheIds = Array.from(
     new Set([
       ...soccerMatchIds,
@@ -748,6 +776,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       ...hockeyMatchIds,
       ...basketballMatchIds,
       ...basketballLabelMatchIds,
+      ...volleyballMatchIds,
     ]),
   );
 
@@ -761,6 +790,7 @@ export default async function ScoresPage({ searchParams }: Props) {
     const hockeyIdSet = new Set(hockeyMatchIds);
     const basketballIdSet = new Set(basketballMatchIds);
     const basketballLabelIdSet = new Set(basketballLabelMatchIds);
+    const volleyballIdSet = new Set(volleyballMatchIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
     for (const c of caches) {
       // 축구 라인업 L 배지 — SoccerLineupSvg 의 ready 조건과 동일하게: 양팀 선발(first=1) 중
@@ -809,7 +839,35 @@ export default async function ScoresPage({ searchParams }: Props) {
           (dl.incidents ? tsHalfScoreFromGoals(tsIncidentsToGoals(dl.incidents)) : null);
         if (hscore) soccerHalfScoreByMatchId.set(c.matchId, hscore);
       }
-      // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
+      // 배구 세트 (VNL/AVC/유럽리그) — score[3] = {ft:[h세트,a세트], p1..p5:[h점,a점]}.
+      // ft 는 합계가 아니라 "세트 스코어" — 큰 점수 칸과 표의 T(세트) 에 그대로 사용.
+      if (volleyballIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
+        const sObj = dl.score[3] as Record<string, unknown>;
+        const vlabel = volleyballLiveLabel(Number(dl.score[1]), sObj);
+        if (vlabel) volleyballStatusLabelByMatchId.set(c.matchId, vlabel);
+        const homeSets: (number | null)[] = [];
+        const awaySets: (number | null)[] = [];
+        for (let i = 1; i <= 5; i++) {
+          const pv = sObj?.["p" + i];
+          if (!Array.isArray(pv) || pv.length < 2) continue;
+          const h = Number(pv[0]);
+          const a = Number(pv[1]);
+          homeSets.push(Number.isFinite(h) ? h : null);
+          awaySets.push(Number.isFinite(a) ? a : null);
+        }
+        const ft = sObj?.["ft"];
+        const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
+        const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
+        if (homeSets.length > 0 && Number.isFinite(ftH) && Number.isFinite(ftA)) {
+          volleyballPeriodByMatchId.set(c.matchId, {
+            homePeriods: homeSets,
+            awayPeriods: awaySets,
+            homeScore: ftH,
+            awayScore: ftA,
+          });
+        }
+      }
+            // 하키 피리어드 (NHL/IIHF_WC) — cache.detailLive.score[3] 의 ft/p_i = [home, away].
       // IIHF_WC 는 ESPN periodMap 없어 여기서 추출 (commit 검증: ft=[home,away] 우리 관점 일치).
       // _swap 키 있으면 ts perspective 반대 → home/away 반전 (야구 패턴 동일).
       if (hockeyIdSet.has(c.matchId) && Array.isArray(dl.score) && dl.score.length >= 4) {
@@ -1283,10 +1341,12 @@ export default async function ScoresPage({ searchParams }: Props) {
       liveStatusLabel:
         sport_ === "basketball"
           ? basketballStatusLabelByMatchId.get(m.id) ?? live?.statusLabel ?? null
-          : live?.statusLabel ??
-            (sport_ === "hockey"
-              ? hockeyStatusLabelByMatchId.get(m.id) ?? null
-              : null),
+          : sport_ === "volleyball"
+            ? volleyballStatusLabelByMatchId.get(m.id) ?? null
+            : live?.statusLabel ??
+              (sport_ === "hockey"
+                ? hockeyStatusLabelByMatchId.get(m.id) ?? null
+                : null),
       homeStarter: isBaseball
         ? localizeStarter(parseStarter(m.homeStarter), m.league)
         : null,
@@ -1344,7 +1404,9 @@ export default async function ScoresPage({ searchParams }: Props) {
             ? periodMap[m.externalId] ??
               hockeyPeriodByMatchId.get(m.id) ??
               null
-            : null,
+            : sport_ === "volleyball"
+              ? volleyballPeriodByMatchId.get(m.id) ?? null
+              : null,
       // LIVE 매치는 live.baseball 우선, 종료된 매치는 fetchBaseballByDate
       // 결과 (externalId key) 에서 가져옴. 둘 다 없으면 null.
       baseballLinescore: isBaseball

@@ -16,6 +16,7 @@ import BaseballLiveCard from "./baseball/BaseballLiveCard";
 import type { LiveCommentaryData } from "../live/LiveCommentaryBox";
 import BasketballCard from "./basketball/BasketballCard";
 import HockeyCard from "./hockey/HockeyCard";
+import VolleyballCard from "./volleyball/VolleyballCard";
 import EsportsCard from "./esports/EsportsCard";
 import SoccerGoals from "./SoccerGoals";
 import type {
@@ -250,6 +251,25 @@ export default function MatchCard(props: MatchCardProps) {
   if (sport === "basketball") {
     return (
       <BasketballCard
+        matchId={matchId}
+        status={status}
+        league={league}
+        leagueLabel={leagueLabel}
+        home={home}
+        away={away}
+        timeLabel={timeLabel}
+        liveStatusLabel={liveStatusLabel}
+        periodLinescore={periodLinescore}
+        href={href}
+        actions={actions}
+      />
+    );
+  }
+
+  // 배구 (VNL/AVC/유럽리그) — 세트 스코어 + 세트별 점수표
+  if (sport === "volleyball") {
+    return (
+      <VolleyballCard
         matchId={matchId}
         status={status}
         league={league}
