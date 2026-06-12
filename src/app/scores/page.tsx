@@ -23,6 +23,7 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
+import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { buildSportsEventLocation } from "@/lib/seo/sports-event-location";
@@ -1187,6 +1188,22 @@ export default async function ScoresPage({ searchParams }: Props) {
     ? await getStandingsForLeagues(soccerLeaguesInPage)
     : new Map<string, Map<number, number>>();
 
+  // 배구 [순위] — TheSports season/table cache (volleyball-table). AVC/유럽리그는 조내 순위.
+  const volleyballLeaguesInPage = Array.from(
+    new Set(matches.filter((m) => VOLLEYBALL_LEAGUES.has(m.league)).map((m) => m.league)),
+  );
+  const vbPositionByLeague = new Map<string, Map<number, number>>();
+  for (const lg of volleyballLeaguesInPage) {
+    try {
+      const groups = await fetchVolleyballTable(lg);
+      const posMap = new Map<number, number>();
+      for (const g of groups) for (const r of g.rows) posMap.set(r.ourTeamId, r.position);
+      if (posMap.size > 0) vbPositionByLeague.set(lg, posMap);
+    } catch {
+      // cache miss — 순위 없이 렌더
+    }
+  }
+
   // 매치 → 정규화 (sport 분기 + 라이브 보강)
   // 라이브 API 매치 중 DB 매치에 매칭된 id 추적 — 나머지(orphan)는 메인 카드 누락 방지용으로 따로 추가.
   const matchedLiveIds = new Set<string>();
@@ -1296,7 +1313,9 @@ export default async function ScoresPage({ searchParams }: Props) {
         teamId: m.homeTeamId,
         position: isNationalTeam
           ? null
-          : standingsByLeague.get(m.league)?.get(m.homeTeamId) ?? null,
+          : standingsByLeague.get(m.league)?.get(m.homeTeamId) ??
+            vbPositionByLeague.get(m.league)?.get(m.homeTeamId) ??
+            null,
         fifaRank: homeFifaRank,
       },
       away: {
@@ -1307,7 +1326,9 @@ export default async function ScoresPage({ searchParams }: Props) {
         teamId: m.awayTeamId,
         position: isNationalTeam
           ? null
-          : standingsByLeague.get(m.league)?.get(m.awayTeamId) ?? null,
+          : standingsByLeague.get(m.league)?.get(m.awayTeamId) ??
+            vbPositionByLeague.get(m.league)?.get(m.awayTeamId) ??
+            null,
         fifaRank: awayFifaRank,
       },
       // UFC Tale of the Tape — 파이터 신체/별명 (mma 외 종목은 null)

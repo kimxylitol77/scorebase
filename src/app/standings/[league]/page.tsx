@@ -425,10 +425,17 @@ async function WorldCupStandings({ name }: { name: string }) {
 async function VolleyballStandings({ league, name }: { league: string; name: string }) {
   const groups = await fetchVolleyballTable(league);
   const teamIds = groups.flatMap((g) => g.rows.map((r) => r.ourTeamId));
-  const teams = await prisma.team.findMany({
-    where: { id: { in: teamIds } },
-    select: { id: true, name: true, logoUrl: true },
-  });
+  const [teams, vbMatches] = await Promise.all([
+    prisma.team.findMany({
+      where: { id: { in: teamIds } },
+      select: { id: true, name: true, logoUrl: true },
+    }),
+    // 최근 5 도트용 — 대회 FINISHED 매치 (세트 스코어 기준 W/L)
+    prisma.match.findMany({
+      where: { league },
+      select: { status: true, homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true, startTime: true },
+    }),
+  ]);
   const teamMap = new Map(teams.map((t) => [t.id, t]));
   const multi = groups.length > 1;
 
@@ -469,6 +476,7 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
                     <th className="text-center py-2 px-1 font-semibold w-8">승</th>
                     <th className="text-center py-2 px-1 font-semibold w-8">패</th>
                     <th className="text-center py-2 px-1 font-semibold w-14">세트 +/-</th>
+                    <th className="text-center py-2 px-1 font-semibold w-16 hidden sm:table-cell">최근 5</th>
                     <th className="text-right py-2 pr-3 pl-1 font-semibold w-12">승점</th>
                   </tr>
                 </thead>
@@ -498,6 +506,9 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
                         <td className="text-center py-2 px-1 tabular-nums text-rose-500">{r.losses}</td>
                         <td className={`text-center py-2 px-1 tabular-nums font-semibold ${sd > 0 ? "text-emerald-600 dark:text-emerald-400" : sd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
                           {r.setsWin}:{r.setsLoss}
+                        </td>
+                        <td className="text-center py-2 px-1 hidden sm:table-cell">
+                          <RecentFormDots form={getRecentForm(vbMatches, r.ourTeamId, 5)} size="sm" />
                         </td>
                         <td className="text-right py-2 pr-3 pl-1 tabular-nums font-black text-base">{r.points}</td>
                       </tr>

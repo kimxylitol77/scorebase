@@ -32,6 +32,9 @@ import { readFileSync } from "fs";
 import path from "path";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
+import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
+import { getRecentForm } from "@/lib/predict/recent-form";
+import RecentFormDots from "@/components/scores/RecentFormDots";
 import basketballTeamIdMapping from "@/lib/sports/thesports/basketball-team-id-mapping.json";
 import BasketballH2HCard from "@/components/scores/basketball/BasketballH2HCard";
 import BasketballLiveOddsTab from "@/components/live/BasketballLiveOddsTab";
@@ -1193,6 +1196,33 @@ interface VolleyballPageArgs {
 
 async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }: VolleyballPageArgs) {
   const dl = match.theSportsCache?.detailLive as { stats?: unknown[] } | null;
+  // 순위 ([N] 칩 — AVC/유럽리그는 조내 순위) + 최근 5경기 (같은 대회 FINISHED)
+  let homePosition: number | null = null;
+  let awayPosition: number | null = null;
+  try {
+    const groups = await fetchVolleyballTable(lg);
+    for (const g of groups)
+      for (const r of g.rows) {
+        if (r.ourTeamId === match.homeTeam.id) homePosition = r.position;
+        if (r.ourTeamId === match.awayTeam.id) awayPosition = r.position;
+      }
+  } catch { /* cache miss — 순위 없이 렌더 */ }
+  const recentMatches = await prisma.match.findMany({
+    where: {
+      league: lg,
+      status: "FINISHED",
+      OR: [
+        { homeTeamId: { in: [match.homeTeam.id, match.awayTeam.id] } },
+        { awayTeamId: { in: [match.homeTeam.id, match.awayTeam.id] } },
+      ],
+    },
+    orderBy: { startTime: "desc" },
+    take: 40,
+    select: {
+      status: true, homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true, startTime: true,
+      homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+    },
+  });
   // bet365(companyId "2") 우선 최신 승패(eu) 배당 — volleyball-odds-poller 가 야구 odds 테이블 재사용해 적재
   const oddsRow =
     (await prisma.tsBaseballOddsHistory.findFirst({
@@ -1244,8 +1274,8 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
         initialPenHome={null}
         initialPenAway={null}
         initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
-        homePosition={null}
-        awayPosition={null}
+        homePosition={homePosition}
+        awayPosition={awayPosition}
         homeFifaRank={null}
         awayFifaRank={null}
         eloPrediction={null}
@@ -1253,9 +1283,81 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
         playerLogoById={{}}
       />
 
+      <VolleyballRecentForm
+        matches={recentMatches}
+        homeId={match.homeTeam.id}
+        awayId={match.awayTeam.id}
+        homeKo={homeKo}
+        awayKo={awayKo}
+        league={lg}
+      />
+
       <VolleyballOddsCard odds={oddsRow} homeKo={homeKo} awayKo={awayKo} status={match.status} />
 
       <VolleyballStatsCard stats={dl?.stats} homeKo={homeKo} awayKo={awayKo} />
+    </div>
+  );
+}
+
+// 배구 최근 5경기 — 같은 대회 FINISHED, 도트(좌=과거) + 미니 리스트(위=최근).
+interface VbRecentMatch {
+  status: string; homeTeamId: number; awayTeamId: number;
+  homeScore: number | null; awayScore: number | null; startTime: Date;
+  homeTeam: { name: string }; awayTeam: { name: string };
+}
+
+function VolleyballRecentForm({
+  matches, homeId, awayId, homeKo, awayKo, league,
+}: {
+  matches: VbRecentMatch[]; homeId: number; awayId: number; homeKo: string; awayKo: string; league: string;
+}) {
+  const teamCol = (teamId: number, nameKo: string) => {
+    const form = getRecentForm(matches, teamId, 5);
+    const recent = matches
+      .filter((m) => (m.homeTeamId === teamId || m.awayTeamId === teamId) && m.homeScore != null && m.awayScore != null)
+      .slice(0, 5);
+    if (recent.length === 0) return null;
+    return (
+      <div className="space-y-2 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-bold truncate">{nameKo}</span>
+          <RecentFormDots form={form} size="sm" />
+        </div>
+        <ul className="space-y-1">
+          {recent.map((m, i) => {
+            const isHome = m.homeTeamId === teamId;
+            const my = isHome ? m.homeScore! : m.awayScore!;
+            const opp = isHome ? m.awayScore! : m.homeScore!;
+            const oppName = toKoreanTeamName(isHome ? m.awayTeam.name : m.homeTeam.name, league);
+            const win = my > opp;
+            const d = new Date(m.startTime.getTime() + 9 * 3600 * 1000);
+            return (
+              <li key={i} className="flex items-center gap-1.5 text-xs text-neutral-500 tabular-nums">
+                <span className={`shrink-0 w-4 h-4 rounded inline-flex items-center justify-center text-[9px] font-black text-white ${win ? "bg-emerald-500" : "bg-rose-500"}`}>
+                  {win ? "승" : "패"}
+                </span>
+                <span className="shrink-0">{d.getUTCMonth() + 1}/{d.getUTCDate()}</span>
+                <span className="truncate">vs {oppName}</span>
+                <span className="ml-auto shrink-0 font-semibold text-neutral-600 dark:text-neutral-300">{my}:{opp}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  };
+  const homeNode = teamCol(homeId, homeKo);
+  const awayNode = teamCol(awayId, awayKo);
+  if (!homeNode && !awayNode) return null;
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-3">
+        최근 5경기 (세트 스코어)
+      </div>
+      <div className="grid sm:grid-cols-2 gap-5">
+        {homeNode}
+        {awayNode}
+      </div>
     </div>
   );
 }

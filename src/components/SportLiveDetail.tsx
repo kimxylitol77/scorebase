@@ -674,13 +674,13 @@ function TeamBlock({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            window.open(`/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
+            window.open(VOLLEYBALL_SET.has(league ?? "") ? `/standings/${league}` : `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               e.stopPropagation();
-              window.open(`/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
+              window.open(VOLLEYBALL_SET.has(league ?? "") ? `/standings/${league}` : `/predictions/${league}${teamId != null ? `#team-${teamId}` : ""}`, "_blank", "noopener,noreferrer");
             }
           }}
           title={`${name} 리그 순위 보기 (새창)`}

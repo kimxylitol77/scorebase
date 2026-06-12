@@ -37,8 +37,8 @@ export interface MatchCardProps {
   league: string;
   /** 화면 표시용 리그 라벨 ("KBO", "프리미어리그") */
   leagueLabel?: string;
-  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
-  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
+  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
   /** "18:30" KST */
   timeLabel: string;
   /** "5회 말 진행 중" 같은 LIVE 보조 텍스트 */
