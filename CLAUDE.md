@@ -177,7 +177,7 @@ npx prisma db push --skip-generate && npx prisma generate
 ## 알려진 한계
 
 - **NHL 정규시즌은 4월 종료** → 5월 starter/goalie backfill 매핑 어려움 (다음 시즌 자동)
-- **The Odds API KBO** `active=False` (한국시리즈 임박 시 활성화 가능성)
+- ~~The Odds API KBO `active=False`~~ → **2026-06-12 활성화 확인** — KBO 배당 수집 중 (api-sports baseball 폴백 보유). ⚠️ marketHome 유입으로 KBO 1X2 시장 블렌드 자동 적용 시작 — 적중률 변동 시 1순위 확인
 - **MLB Stats API sport=32 (KBO)** 등록만, 실제 데이터 ❌
 - **선수 이름 100% 영문** — 한글화 미적용
 
