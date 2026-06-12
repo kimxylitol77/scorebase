@@ -166,6 +166,16 @@ const NPB_PLAYER_KO: Record<string, string> = {
   "菅井": "스가이 신야",
   "菅井 信也": "스가이 신야",
   "菅井信也": "스가이 신야",
+
+  // 6/12 시즌 리더보드 누락분 — npb.jp 영문 프로필 공식 로마자 기반 음역
+  "小川龍成": "오가와 류세이", // Ogawa, Ryusei (롯데)
+  "滝澤夏央": "타키자와 나츠오", // Takizawa, Natsuo (세이부)
+  "牧原大成": "마키하라 타이세이", // Makihara, Taisei (소프트뱅크)
+  "村林一輝": "무라바야시 이츠키", // Murabayashi, Itsuki (라쿠텐)
+  "蝦名達夫": "에비나 타츠오", // Ebina, Tatsuo (DeNA)
+  "泉口友汰": "이즈구치 유타", // Izuguchi, Yuta (요미우리)
+  "大津亮介": "오츠 료스케", // Ohtsu, Ryosuke (소프트뱅크)
+  "岩田幸宏": "이와타 유키히로", // Iwata, Yukihiro (야쿠르트)
 };
 
 /**
