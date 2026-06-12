@@ -27,6 +27,7 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import { getWcThirdPlaceRace, type WcGroupTeamRow } from "@/lib/sports/world-cup-standings";
+import { getBaseballH2H, type H2HMatrix } from "@/lib/sports/baseball-h2h";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
 import rawSeasonStats from "../../../../data/player-season-stats.json";
 import rawPlayerOverrides from "../../../../data/player-overrides.json";
@@ -609,32 +610,44 @@ export default async function LeaguePredictions({ params }: Props) {
     if (thirds.some((t) => t.played > 0)) wcThirds = thirds;
   }
 
-  // 우승 확률 추이 — cron(wc-sim-snapshot, KST 13:00)이 쌓는 일일 시뮬 스냅샷.
-  // 스냅샷 2개 이상부터 차트 노출 (1개로는 추이가 안 됨).
-  let wcTrend: { data: WcTrendPoint[]; teams: { name: string; color: string }[] } | null = null;
+  // 우승 확률 추이 — 일일 시뮬 스냅샷(2개 이상부터 차트 노출). WC·KBO 공용 변환.
+  type ChampionTrend = { data: WcTrendPoint[]; teams: { name: string; color: string }[] };
+  const buildChampionTrend = (snaps: { date: string; data: unknown }[]): ChampionTrend | null => {
+    if (snaps.length < 2) return null;
+    type SnapRow = { team: string; champion: number };
+    const latest = snaps[snaps.length - 1].data as SnapRow[];
+    const TREND_COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#ef4444", "#8b5cf6", "#64748b"];
+    const topTeams = [...latest]
+      .sort((a, b) => b.champion - a.champion)
+      .slice(0, 6)
+      .map((r, i) => ({ en: r.team, name: toKoreanTeamName(r.team, upper) || r.team, color: TREND_COLORS[i] }));
+    return {
+      teams: topTeams.map(({ name, color }) => ({ name, color })),
+      data: snaps.map((s) => {
+        const rows = s.data as SnapRow[];
+        const point: WcTrendPoint = { date: s.date.slice(5).replace("-", "/") };
+        for (const t of topTeams) {
+          const r = rows.find((x) => x.team === t.en);
+          point[t.name] = r ? +(r.champion * 100).toFixed(1) : null;
+        }
+        return point;
+      }),
+    };
+  };
+  let wcTrend: ChampionTrend | null = null;
   if (isWorldCup) {
     const snaps = await prisma.worldCupSimSnapshot.findMany({ orderBy: { date: "asc" } });
-    if (snaps.length >= 2) {
-      type SnapRow = { team: string; champion: number };
-      const latest = snaps[snaps.length - 1].data as unknown as SnapRow[];
-      const TREND_COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#ef4444", "#8b5cf6", "#64748b"];
-      const topTeams = [...latest]
-        .sort((a, b) => b.champion - a.champion)
-        .slice(0, 6)
-        .map((r, i) => ({ en: r.team, name: toKoreanTeamName(r.team, upper) || r.team, color: TREND_COLORS[i] }));
-      wcTrend = {
-        teams: topTeams.map(({ name, color }) => ({ name, color })),
-        data: snaps.map((s) => {
-          const rows = s.data as unknown as SnapRow[];
-          const point: WcTrendPoint = { date: s.date.slice(5).replace("-", "/") };
-          for (const t of topTeams) {
-            const r = rows.find((x) => x.team === t.en);
-            point[t.name] = r ? +(r.champion * 100).toFixed(1) : null;
-          }
-          return point;
-        }),
-      };
-    }
+    wcTrend = buildChampionTrend(snaps.map((s) => ({ date: s.date, data: s.data })));
+  }
+
+  // KBO — 우승 확률 추이(league-sim-snapshot cron, KST 07:00) + 팀 상대전적 매트릭스
+  const isKbo = upper === "KBO";
+  let kboTrend: ChampionTrend | null = null;
+  let kboH2H: H2HMatrix | null = null;
+  if (isKbo) {
+    const snaps = await prisma.leagueSimSnapshot.findMany({ where: { league: "KBO" }, orderBy: { date: "asc" } });
+    kboTrend = buildChampionTrend(snaps.map((s) => ({ date: s.date, data: s.data })));
+    kboH2H = await getBaseballH2H("KBO");
   }
 
   return (
@@ -1036,6 +1049,38 @@ export default async function LeaguePredictions({ params }: Props) {
               </div>
             </section>
 
+            {/* KBO — 우승 확률 추이 (일일 스냅샷 누적) */}
+            {isKbo && kboTrend && (
+              <section>
+                <Heading
+                  title="📈 우승 확률 추이"
+                  subtitle="매일 아침 7시 시뮬레이션 스냅샷 — 시즌이 흐르며 우승 확률이 어떻게 움직이는지 (TOP 6)"
+                />
+                <div className="sm:max-w-2xl">
+                  <WcChampionTrendChart data={kboTrend.data} teams={kboTrend.teams} />
+                </div>
+              </section>
+            )}
+
+            {/* KBO — 가을야구(5강) 진출 확률 */}
+            {isKbo && (
+              <section>
+                <Heading title="🍂 가을야구 (5강) 진출 확률" subtitle="시즌 종료 시점 5위 이상 — 포스트시즌 진출 가능성" />
+                <div className="sm:max-w-xl">
+                  <MonteCarloBar
+                    data={mc
+                      .filter((r) => r.top5 >= 0.01)
+                      .sort((a, b) => b.top5 - a.top5)
+                      .slice(0, 10)
+                      .map((r) => ({
+                        name: teamKoNameById.get(r.teamId) ?? `Team ${r.teamId}`,
+                        value: r.top5 * 100,
+                      }))}
+                  />
+                </div>
+              </section>
+            )}
+
             {/* 챔스(Top 4) 확률 */}
             {info.relegationCount > 0 && (
               <section>
@@ -1116,6 +1161,50 @@ export default async function LeaguePredictions({ params }: Props) {
                 formByTeamId={formByTeamId}
               />
             </section>
+
+            {/* KBO — 팀 간 상대전적 매트릭스 (경기 종료 시 자동 갱신) */}
+            {isKbo && kboH2H && (
+              <section>
+                <Heading
+                  title="⚔️ 팀 상대전적 매트릭스"
+                  subtitle="2026 시즌 맞대결 승-무-패 (행 팀 기준) — 진한 초록일수록 우세, 경기 종료 시 자동 갱신"
+                />
+                <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-x-auto">
+                  <table className="w-full text-xs min-w-[640px]">
+                    <thead>
+                      <tr className="bg-neutral-50 dark:bg-neutral-900 text-[11px] text-neutral-500">
+                        <th className="px-2 py-2 text-left font-semibold sticky left-0 bg-neutral-50 dark:bg-neutral-900">팀 \ 상대</th>
+                        {kboH2H.teams.map((t) => (
+                          <th key={t} className="px-1 py-2 text-center font-semibold">{t.split(" ")[0]}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                      {kboH2H.teams.map((row) => (
+                        <tr key={row}>
+                          <td className="px-2 py-1.5 font-bold whitespace-nowrap sticky left-0 bg-white dark:bg-neutral-950">{row.split(" ")[0]}</td>
+                          {kboH2H!.teams.map((col) => {
+                            if (row === col) return <td key={col} className="px-1 py-1.5 text-center text-neutral-300 dark:text-neutral-700">—</td>;
+                            const c = kboH2H!.cells[row]?.[col];
+                            if (!c || c.w + c.d + c.l === 0) return <td key={col} className="px-1 py-1.5 text-center text-neutral-400">·</td>;
+                            const diff = c.w - c.l;
+                            const cls = diff > 1 ? "bg-emerald-100 dark:bg-emerald-900/40 font-bold" : diff > 0 ? "bg-emerald-50 dark:bg-emerald-900/20" : diff < -1 ? "bg-rose-100 dark:bg-rose-900/40" : diff < 0 ? "bg-rose-50 dark:bg-rose-900/20" : "";
+                            return (
+                              <td key={col} className={`px-1 py-1.5 text-center tabular-nums ${cls}`}>
+                                {c.w}-{c.d}-{c.l}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="px-3 py-2 text-[11px] text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/40 border-t border-neutral-200 dark:border-neutral-800">
+                    승-무-패 (행 팀 기준) · 천적 관계는 진한 색 — 시즌 전 경기 자동 집계
+                  </div>
+                </div>
+              </section>
+            )}
           </>
         )}
 

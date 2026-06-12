@@ -35,6 +35,8 @@ export interface MonteCarloRow {
   teamId: number;
   champion: number; // 0~1
   top4: number;
+  /** Top 5 (KBO 포스트시즌 진출권) */
+  top5: number;
   top6: number;
   relegation: number;
   /** 평균 최종 승점 */
@@ -116,6 +118,7 @@ export function runMonteCarlo(
   // 3) 누적용 카운터
   const accChampion = new Map<number, number>();
   const accTop4 = new Map<number, number>();
+  const accTop5 = new Map<number, number>();
   const accTop6 = new Map<number, number>();
   const accRelegation = new Map<number, number>();
   const accPoints = new Map<number, number>();
@@ -203,6 +206,7 @@ export function runMonteCarlo(
       inc(accPosition, row.teamId, pos);
       if (pos === 1) inc(accChampion, row.teamId);
       if (pos <= 4) inc(accTop4, row.teamId);
+      if (pos <= 5) inc(accTop5, row.teamId);
       if (pos <= 6) inc(accTop6, row.teamId);
       if (pos > finalRows.length - relegationCount) inc(accRelegation, row.teamId);
     });
@@ -218,6 +222,7 @@ export function runMonteCarlo(
       // 신뢰를 깎음(MLB 다저스 100% 사례). 수학적 확정이어도 99.9% 로 표시.
       champion: Math.min(0.999, (accChampion.get(teamId) ?? 0) / iterations),
       top4: Math.min(0.999, (accTop4.get(teamId) ?? 0) / iterations),
+      top5: Math.min(0.999, (accTop5.get(teamId) ?? 0) / iterations),
       top6: Math.min(0.999, (accTop6.get(teamId) ?? 0) / iterations),
       relegation: Math.min(0.999, (accRelegation.get(teamId) ?? 0) / iterations),
       expectedPoints: (accPoints.get(teamId) ?? 0) / iterations,

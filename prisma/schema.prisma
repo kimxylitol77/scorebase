@@ -795,3 +795,16 @@ model WorldCupSimSnapshot {
   data      Json
   createdAt DateTime @default(now())
 }
+
+/// 리그 시즌 시뮬 일일 스냅샷 — 우승·PO 확률 추이 (KBO 등 시즌 리그 범용).
+/// /api/cron/league-sim-snapshot?league=KBO (KST 07:00) 이 5,000회 시뮬 후 upsert.
+/// payload: [{ team, champion, po(top5), expectedPosition, currentPosition }]
+model LeagueSimSnapshot {
+  id        Int      @id @default(autoincrement())
+  league    String
+  date      String // KST YYYY-MM-DD
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@unique([league, date])
+}
