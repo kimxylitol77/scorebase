@@ -73,7 +73,9 @@ export interface UpcomingMatch {
 
 // 배당 없는 경기(국제친선·마이너 리그 등)용 종목별 기본 기준선 — 게시판에서 핸디/OU 픽 허용.
 // The Odds API 가 친선 배당을 안 줘서 hcLine/ouLine 이 null → 표준 라인으로 fallback.
-const DEFAULT_HC_LINE: Record<SportCode, number> = {
+// Record<string, ...> — 배구가 SportCode 에 합류 중(별도 작업)이라 느슨하게.
+// 키가 없으면 호출부에서 0 fallback.
+const DEFAULT_HC_LINE: Record<string, number> = {
   soccer: -1.5,
   baseball: -1.5,
   basketball: -5.5,
@@ -83,7 +85,7 @@ const DEFAULT_HC_LINE: Record<SportCode, number> = {
   mma: 0,
   all: 0,
 };
-const DEFAULT_OU_LINE: Record<SportCode, number> = {
+const DEFAULT_OU_LINE: Record<string, number> = {
   soccer: 2.5,
   baseball: 8.5,
   basketball: 220.5,
