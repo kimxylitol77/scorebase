@@ -1259,6 +1259,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       BASEBALL_LEAGUES.has(m.league) ||    // LMB/CPBL/KBO_FUTURES/NPB_MINOR 등 마이너 야구 (MLB/KBO/NPB 는 위 전용 라우트)
       BASKETBALL_LEAGUES.has(m.league) || // NBA/WNBA/KBL/WKBL
       HOCKEY_LEAGUES.has(m.league) ||      // NHL/IIHF_WC
+      VOLLEYBALL_LEAGUES.has(m.league) ||  // VNL/AVC/유럽리그 — 세트 상세
       SOCCER_LEAGUES.has(m.league)
     ) {
       href = `/live/${m.league}/${m.externalId}`;

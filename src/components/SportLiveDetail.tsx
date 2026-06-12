@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { SPORTS } from "@/lib/sports/sport-leagues";
+import { SPORTS, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import CountUp from "./CountUp";
 import SoccerGoals from "./scores/SoccerGoals";
 import LiveOddsCard from "./live/LiveOddsCard";
@@ -15,6 +15,9 @@ import SoccerGoalsCard from "./live/SoccerGoalsCard";
 import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
 
 // 축구 리그 집합 — SPORTS 단일 진실 (라이브 배당 카드 suppress 판정용)
+const VOLLEYBALL_SET = new Set(
+  SPORTS.find((s) => s.code === "volleyball")?.leagues ?? [],
+);
 const SOCCER_LEAGUES_SET = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
 );
@@ -324,7 +327,7 @@ export default function SportLiveDetail({
               </span>
             )}
             <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              {league}
+              {LEAGUE_DISPLAY[league] ?? league}
             </span>
             {isLive && contextLabel && (
               <span
@@ -740,13 +743,14 @@ function PeriodTable({
   homeNameKo: string;
   awayNameKo: string;
 }) {
+  const isVolleyball = VOLLEYBALL_SET.has(league);
   const periodLabel = league === "NHL" ? "P" : "Q";
   const cols = Math.max(linescore.homePeriods.length, linescore.awayPeriods.length);
-  const ot = league === "NHL" ? 4 : 5; // NHL 4피리어드부터 OT, NBA 5쿼터부터 OT
+  const ot = isVolleyball ? 99 : league === "NHL" ? 4 : 5; // 배구는 OT 없음 (최대 5세트)
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
       <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-2">
-        {league === "NHL" ? "피리어드 별 점수" : "쿼터 별 점수"}
+        {isVolleyball ? "세트 별 점수" : league === "NHL" ? "피리어드 별 점수" : "쿼터 별 점수"}
       </div>
       <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         <table className="w-full text-sm tabular-nums">
@@ -757,11 +761,11 @@ function PeriodTable({
                 const isOt = i + 1 >= ot;
                 return (
                   <th key={i} className="text-center font-medium px-1.5 sm:px-2 pb-1 sm:pb-2">
-                    {isOt ? `OT${i + 2 - ot}` : `${i + 1}${periodLabel}`}
+                    {isVolleyball ? `${i + 1}세트` : isOt ? `OT${i + 2 - ot}` : `${i + 1}${periodLabel}`}
                   </th>
                 );
               })}
-              <th className="text-right font-bold pl-2 pb-1 sm:pb-2">합계</th>
+              <th className="text-right font-bold pl-2 pb-1 sm:pb-2">{isVolleyball ? "세트" : "합계"}</th>
             </tr>
           </thead>
           <tbody>

@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, SPORTS, BASEBALL_LEAGUES, BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
@@ -89,6 +89,7 @@ const SUPPORTED = new Set([
   ...(SPORTS.find((s) => s.code === "hockey")?.leagues ?? []), // NHL + IIHF_WC
   ...(SPORTS.find((s) => s.code === "soccer")?.leagues ?? []),
   ...(SPORTS.find((s) => s.code === "baseball")?.leagues ?? []),
+  ...(SPORTS.find((s) => s.code === "volleyball")?.leagues ?? []), // VNL + AVC + 유럽리그 (2026-06-12)
 ]);
 
 // 리그 라벨은 LEAGUE_DISPLAY (sport-leagues.ts) 단일 출처 사용 — 사이드바와 통일.
@@ -252,6 +253,11 @@ export default async function GenericLivePage({ params }: Props) {
   // ── 야구 9개 리그 (CPBL/WBC/.../LMB) — KBO 라우트 패턴 재사용. 축구/NBA fetch skip 위해 early branch.
   if (BASEBALL_LEAGUES.has(lg)) {
     return renderBaseballPage({ match, lg, gameId, homeKo, awayKo, homeShort, awayShort, label });
+  }
+
+  // ── 배구 (VNL/AVC/유럽리그) — 세트 스코어보드 + 세트별 점수 + 기술통계. 축구/농구 fetch skip.
+  if (VOLLEYBALL_LEAGUES.has(lg)) {
+    return renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label });
   }
 
   const extras = await fetchMatchExtras(match);
@@ -1172,4 +1178,130 @@ function computeWpaFromDetailLive(
   }
   if (homeInn.length < 2) return null;
   return computeBaseballWpa(awayInn, homeInn, { lambdaPerInning: 0.45 });
+}
+
+
+// ── 배구 매치 페이지 — TheSports cache 단일 소스 (세트 스코어보드는 SportLiveDetail 5초 폴링) ──
+interface VolleyballPageArgs {
+  match: NonNullable<Awaited<ReturnType<typeof findMatch>>>;
+  lg: string;
+  gameId: string;
+  homeKo: string;
+  awayKo: string;
+  label: string;
+}
+
+function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }: VolleyballPageArgs) {
+  const dl = match.theSportsCache?.detailLive as { stats?: unknown[] } | null;
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=volleyball" className="hover:underline">
+          배구 라이브 스코어
+        </Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{label}</span>
+      </nav>
+
+      <header>
+        <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+          {homeKo} vs {awayKo}
+        </h1>
+        <p className="text-sm text-neutral-500 mt-1">
+          {getLeagueFlag(lg) && <span className="mr-1">{getLeagueFlag(lg)}</span>}
+          {label} · 라이브 스코어 · 세트별 점수 · 5초 자동 갱신
+        </p>
+      </header>
+
+      <SportLiveDetail
+        gameId={gameId}
+        league={lg}
+        homeNameKo={homeKo}
+        awayNameKo={awayKo}
+        homeNameEn={match.homeTeam.name}
+        awayNameEn={match.awayTeam.name}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        homeLogoUrl={match.homeTeam.logoUrl ?? null}
+        awayLogoUrl={match.awayTeam.logoUrl ?? null}
+        initialHomeScore={match.homeScore}
+        initialAwayScore={match.awayScore}
+        initialPenHome={null}
+        initialPenAway={null}
+        initialStatus={match.status as "FINISHED" | "SCHEDULED" | "LIVE" | "POSTPONED"}
+        homePosition={null}
+        awayPosition={null}
+        homeFifaRank={null}
+        awayFifaRank={null}
+        eloPrediction={null}
+        oddsHistory={[]}
+        playerLogoById={{}}
+      />
+
+      <VolleyballStatsCard stats={dl?.stats} homeKo={homeKo} awayKo={awayKo} />
+    </div>
+  );
+}
+
+// 배구 기술통계 — detail_live.stats = [[type(0=풀코트, n=세트), [[statId, home, away], ...]], ...]
+// statId 코드표 (TheSports docs, 2026-06-12 사용자 제공)
+const VB_STAT_KO: Record<number, string> = {
+  1: "에이스",
+  2: "연속 최다 득점",
+  3: "득점",
+  4: "서브 에러",
+  5: "타임아웃",
+  6: "서브 득점 성공",
+  7: "서브 시도",
+  8: "서브 성공률 (%)",
+  9: "리시브 성공",
+  10: "리시브 시도",
+  11: "리시브 성공률 (%)",
+};
+
+function VolleyballStatsCard({
+  stats,
+  homeKo,
+  awayKo,
+}: {
+  stats?: unknown[] | null;
+  homeKo: string;
+  awayKo: string;
+}) {
+  if (!Array.isArray(stats)) return null;
+  // 풀코트(type 0) 항목만 — 세트별은 표가 길어져 v1 생략
+  const full = stats.find((s) => Array.isArray(s) && Number(s[0]) === 0) as
+    | [number, unknown[]]
+    | undefined;
+  if (!full || !Array.isArray(full[1]) || full[1].length === 0) return null;
+  const rows = full[1]
+    .filter((r): r is [number, number, number] => Array.isArray(r) && r.length >= 3)
+    .map(([id, h, a]) => ({ id, label: VB_STAT_KO[id] ?? `#${id}`, h, a }))
+    .filter((r) => VB_STAT_KO[r.id]);
+  if (rows.length === 0) return null;
+  return (
+    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+      <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-2">
+        기술 통계 (풀코트)
+      </div>
+      <table className="w-full text-sm tabular-nums">
+        <thead>
+          <tr className="text-[11px] text-neutral-500">
+            <th className="text-left font-medium pb-2 truncate max-w-[100px]">{homeKo}</th>
+            <th className="text-center font-medium pb-2">항목</th>
+            <th className="text-right font-medium pb-2 truncate max-w-[100px]">{awayKo}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
+              <td className={`py-1.5 text-left font-bold ${r.h > r.a ? "text-emerald-600 dark:text-emerald-400" : ""}`}>{r.h}</td>
+              <td className="py-1.5 text-center text-neutral-500 text-xs">{r.label}</td>
+              <td className={`py-1.5 text-right font-bold ${r.a > r.h ? "text-emerald-600 dark:text-emerald-400" : ""}`}>{r.a}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }

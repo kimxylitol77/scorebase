@@ -21,7 +21,7 @@ import type { SoccerEvent } from "@/lib/live/soccer-events";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
 import { fetchNbaLiveStats } from "@/lib/sports/api-nba";
-import { BASKETBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { extractBasketballFromCache } from "@/lib/sports/thesports/basketball-live";
 
 // ESPN team-stat name → 한국어 라벨 (sportPath 별)
@@ -384,6 +384,61 @@ export async function GET(
       } catch {
         // cache 조회 실패는 ignore — ESPN 데이터만 응답
       }
+    }
+  } else if (VOLLEYBALL_LEAGUES.has(league)) {
+    // 배구 (VNL/AVC/유럽리그) — TheSports cache 단일 소스.
+    // score[3] = {ft:[h세트,a세트], p1..p5:[h점,a점]} — ft 가 곧 매치 스코어(세트).
+    try {
+      const { prisma } = await import("@/lib/db");
+      const dbMatch = await prisma.match.findFirst({
+        where: { externalId: gameId, league },
+        select: { status: true, homeScore: true, awayScore: true, theSportsCache: { select: { detailLive: true } } },
+      });
+      if (dbMatch) {
+        out.status = dbMatch.status === "LIVE" ? "LIVE" : dbMatch.status === "FINISHED" ? "FINAL" : "PRE";
+        out.homeScore = dbMatch.homeScore;
+        out.awayScore = dbMatch.awayScore;
+        const dl = dbMatch.theSportsCache?.detailLive as { score?: unknown[] } | null;
+        const arr = dl?.score;
+        if (Array.isArray(arr) && arr.length >= 4) {
+          const sid = Number(arr[1]);
+          const sObj = arr[3] as Record<string, unknown>;
+          const homeSets: (number | null)[] = [];
+          const awaySets: (number | null)[] = [];
+          for (let i = 1; i <= 5; i++) {
+            const pv = sObj?.["p" + i];
+            if (!Array.isArray(pv) || pv.length < 2) continue;
+            const hp = Number(pv[0]);
+            const ap = Number(pv[1]);
+            homeSets.push(Number.isFinite(hp) ? hp : null);
+            awaySets.push(Number.isFinite(ap) ? ap : null);
+          }
+          const ft = sObj?.["ft"];
+          const ftH = Array.isArray(ft) ? Number(ft[0]) : NaN;
+          const ftA = Array.isArray(ft) ? Number(ft[1]) : NaN;
+          if (homeSets.length > 0 && Number.isFinite(ftH) && Number.isFinite(ftA)) {
+            out.periodLinescore = { homePeriods: homeSets, awayPeriods: awaySets, homeScore: ftH, awayScore: ftA };
+            out.homeScore = ftH;
+            out.awayScore = ftA;
+          }
+          // 진행 세트 라벨 — LIVE 일 때만 ("3세트 12-10")
+          const SET_NO: Record<number, number> = { 432: 1, 434: 2, 436: 3, 438: 4, 440: 5 };
+          const setNo = SET_NO[sid];
+          if (out.status === "LIVE") {
+            if (setNo) {
+              const pv = sObj?.["p" + setNo];
+              out.statusLabel =
+                Array.isArray(pv) && pv.length >= 2
+                  ? `${setNo}세트 ${Number(pv[0])}-${Number(pv[1])}`
+                  : `${setNo}세트`;
+            } else if (sid === 17) {
+              out.statusLabel = "중단";
+            }
+          }
+        }
+      }
+    } catch {
+      // cache 조회 실패 ignore — UNKNOWN 응답 (클라이언트는 initial 값 유지)
     }
   } else {
     return NextResponse.json(
