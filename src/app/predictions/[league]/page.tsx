@@ -669,6 +669,20 @@ export default async function LeaguePredictions({ params }: Props) {
           </div>
         )}
 
+        {/* 조별 순위표 진입 — 개막 후 실제 결과는 standings 에서 (시뮬 확률과 상호 보완) */}
+        {isWorldCup && (
+          <Link
+            href="/standings/WORLD_CUP"
+            className="flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 hover:border-amber-400 dark:hover:border-amber-500 transition"
+          >
+            <div>
+              <p className="font-bold">📋 조별 순위표 (실제 결과)</p>
+              <p className="text-xs text-neutral-500 mt-0.5">A~L조 승점·득실 — 경기 종료 시 자동 갱신</p>
+            </div>
+            <span className="text-amber-500 font-bold">→</span>
+          </Link>
+        )}
+
         {/* 조별 통합 베스트 11 진입 (12조) */}
         {isWorldCup && (
           <section>
