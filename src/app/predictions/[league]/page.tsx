@@ -25,7 +25,8 @@ import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
-import { getWorldCupPlayerStats, buildWcLeaderRows } from "@/lib/sports/thesports/world-cup-player-stats";
+import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
+import { getWcThirdPlaceRace, type WcGroupTeamRow } from "@/lib/sports/world-cup-standings";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
 import rawSeasonStats from "../../../../data/player-season-stats.json";
 import rawPlayerOverrides from "../../../../data/player-overrides.json";
@@ -597,8 +598,15 @@ export default async function LeaguePredictions({ params }: Props) {
   // 조별 순위표 카드 바로 아래 노출. 기존 "시즌 리더보드" 섹션은 WORLD_CUP 에서 이걸로 대체.
   // rows 빌드는 /world-cup 허브와 공유 (buildWcLeaderRows).
   let wcRowsByCategory: Record<string, LeaderRow[]> | null = null;
+  let wcFunRows: Record<string, LeaderRow[]> | null = null;
+  let wcThirds: WcGroupTeamRow[] = [];
   if (isWorldCup) {
-    wcRowsByCategory = buildWcLeaderRows(await getWorldCupPlayerStats());
+    const allRows = buildWcLeaderRows(await getWorldCupPlayerStats());
+    wcRowsByCategory = pickCats(allRows, WC_CORE_CATS);
+    wcFunRows = pickCats(allRows, WC_FUN_CATS);
+    // 조 3위 와일드카드 레이스 — 경기 기록이 하나라도 있어야 의미
+    const thirds = await getWcThirdPlaceRace();
+    if (thirds.some((t) => t.played > 0)) wcThirds = thirds;
   }
 
   // 우승 확률 추이 — cron(wc-sim-snapshot, KST 13:00)이 쌓는 일일 시뮬 스냅샷.
@@ -721,6 +729,53 @@ export default async function LeaguePredictions({ params }: Props) {
           </Link>
         )}
 
+        {/* 조 3위 와일드카드 레이스 — 48개국 체제 신규 룰: 12개 조 3위 중 상위 8팀 32강 진출 */}
+        {isWorldCup && wcThirds.length > 0 && (
+          <section>
+            <Heading
+              title="🎯 조 3위 와일드카드 레이스"
+              subtitle="12개 조 3위 중 상위 8팀이 32강 진출 — 승점 → 득실 → 다득점 순, 경기 종료 시 자동 갱신"
+            />
+            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden sm:max-w-2xl">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-neutral-50 dark:bg-neutral-900 text-[11px] text-neutral-500">
+                    <th className="px-3 py-2 text-left font-semibold w-10">#</th>
+                    <th className="px-2 py-2 text-left font-semibold">팀</th>
+                    <th className="px-2 py-2 text-center font-semibold w-10">조</th>
+                    <th className="px-2 py-2 text-center font-semibold w-12">경기</th>
+                    <th className="px-2 py-2 text-center font-semibold w-12">승점</th>
+                    <th className="px-2 py-2 text-center font-semibold w-12">득실</th>
+                    <th className="px-2 py-2 text-center font-semibold w-12">득점</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                  {wcThirds.map((t, i) => (
+                    <tr
+                      key={t.team}
+                      className={`${i < 8 ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "opacity-70"} ${i === 7 ? "border-b-2 !border-emerald-500/60" : ""}`}
+                    >
+                      <td className="px-3 py-2 tabular-nums text-neutral-400 font-bold">{i + 1}</td>
+                      <td className="px-2 py-2 font-medium">
+                        {fifaFlag(t.team)} {displayTeamName(t.team, upper)}
+                        {i < 8 && <span className="ml-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">진출권</span>}
+                      </td>
+                      <td className="px-2 py-2 text-center text-neutral-500">{t.group}</td>
+                      <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{t.played}</td>
+                      <td className="px-2 py-2 text-center tabular-nums font-bold">{t.pts}</td>
+                      <td className="px-2 py-2 text-center tabular-nums">{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
+                      <td className="px-2 py-2 text-center tabular-nums">{t.gf}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-3 py-2 text-[11px] text-neutral-400 bg-neutral-50/50 dark:bg-neutral-900/40 border-t border-neutral-200 dark:border-neutral-800">
+                초록 8팀이 현재 진출권 — 동률 시 FIFA 공식 기준(페어플레이 점수·추첨)은 미반영
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* 월드컵 선수 랭킹 — 본선 누적 득점·도움·평점·카드 (라이브 실시간) */}
         {isWorldCup && wcRowsByCategory && (
           <section>
@@ -732,6 +787,22 @@ export default async function LeaguePredictions({ params }: Props) {
               league="WORLD_CUP"
               season="2026 본선"
               rowsByCategory={wcRowsByCategory}
+              footer="2026 본선 누적 · 라이브 경기 약 2분 간격 실시간 갱신"
+            />
+          </section>
+        )}
+
+        {/* 이색 랭킹 — 가성비·파울유도·빅찬스미스·골대·공중볼·드리블 (여기서만 보는 기록) */}
+        {isWorldCup && wcFunRows && (
+          <section>
+            <Heading
+              title="🎪 이색 랭킹"
+              subtitle="가성비(평점÷몸값)·파울유도·빅찬스미스·골대·공중볼·드리블 — 데이터로만 보이는 기록들"
+            />
+            <LeagueLeaderBoard
+              league="WORLD_CUP"
+              season="2026 본선"
+              rowsByCategory={wcFunRows}
               footer="2026 본선 누적 · 라이브 경기 약 2분 간격 실시간 갱신"
             />
           </section>

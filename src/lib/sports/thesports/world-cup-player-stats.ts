@@ -23,6 +23,12 @@ export interface WcPlayerStat {
   saves: number; // GK 세이브 (필드 플레이어는 0)
   keyPasses: number; // 키패스 (찬스메이킹)
   defActions: number; // 수비 포인트 = 태클 + 인터셉트 + 클리어런스
+  wasFouled: number; // 파울 유도 (걷어차인 횟수)
+  bigMiss: number; // 빅찬스 미스
+  woodwork: number; // 골대 맞춘 횟수
+  aerialWon: number; // 공중볼 승리
+  dribbleSucc: number; // 드리블 성공
+  mvEuro: number; // 시장가치 € (없으면 0)
   avgRating: number; // rating>0 경기 평균 (소수 2)
   minutes: number;
   games: number; // 출전 경기 수 (minutes>0)
@@ -40,6 +46,11 @@ interface TsPlayerStatRow {
   tackles?: number;
   interceptions?: number;
   clearances?: number;
+  was_fouled?: number;
+  big_chance_missed?: number;
+  hit_woodwork?: number;
+  aerial_won?: number;
+  dribble_succ?: number;
   rating?: number;
   minutes_played?: number;
 }
@@ -79,6 +90,11 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     saves: number;
     keyPasses: number;
     defActions: number;
+    wasFouled: number;
+    bigMiss: number;
+    woodwork: number;
+    aerialWon: number;
+    dribbleSucc: number;
     ratings: number[];
     minutes: number;
     games: number;
@@ -118,6 +134,11 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
         saves: 0,
         keyPasses: 0,
         defActions: 0,
+        wasFouled: 0,
+        bigMiss: 0,
+        woodwork: 0,
+        aerialWon: 0,
+        dribbleSucc: 0,
         ratings: [],
         minutes: 0,
         games: 0,
@@ -132,6 +153,11 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
       a.saves += s.saves ?? 0;
       a.keyPasses += s.key_passes ?? 0;
       a.defActions += (s.tackles ?? 0) + (s.interceptions ?? 0) + (s.clearances ?? 0);
+      a.wasFouled += s.was_fouled ?? 0;
+      a.bigMiss += s.big_chance_missed ?? 0;
+      a.woodwork += s.hit_woodwork ?? 0;
+      a.aerialWon += s.aerial_won ?? 0;
+      a.dribbleSucc += s.dribble_succ ?? 0;
       const rating = Number(s.rating) || 0;
       if (rating > 0) a.ratings.push(rating);
       const min = s.minutes_played ?? 0;
@@ -151,11 +177,12 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     }),
     prisma.playerMarketValue.findMany({
       where: { id: { in: ids } },
-      select: { id: true },
+      select: { id: true, currentValue: true },
     }),
   ]);
   const koById = new Map(tsRows.map((r) => [r.id, r.nameKo!]));
   const mvIds = new Set(mvRows.map((r) => r.id));
+  const mvEuroById = new Map(mvRows.map((r) => [r.id, r.currentValue ?? 0]));
 
   return [...acc.entries()].map(([id, a]) => ({
     id,
@@ -171,6 +198,12 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     saves: a.saves,
     keyPasses: a.keyPasses,
     defActions: a.defActions,
+    wasFouled: a.wasFouled,
+    bigMiss: a.bigMiss,
+    woodwork: a.woodwork,
+    aerialWon: a.aerialWon,
+    dribbleSucc: a.dribbleSucc,
+    mvEuro: mvEuroById.get(id) ?? 0,
     avgRating: a.ratings.length
       ? +(a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length).toFixed(2)
       : 0,
@@ -215,6 +248,39 @@ export function buildWcLeaderRows(stats: WcPlayerStat[]): Record<string, LeaderR
     SAVE: top((s) => s.saves > 0, (a, b) => b.saves - a.saves || b.avgRating - a.avgRating, (s) => s.saves, "세이브"),
     YELLOW: top((s) => s.yellow > 0, (a, b) => b.yellow - a.yellow || b.avgRating - a.avgRating, (s) => s.yellow, "장"),
     RED: top((s) => s.red > 0, (a, b) => b.red - a.red || b.avgRating - a.avgRating, (s) => s.red, "장"),
+    // ===== 이색 랭킹 (predictions 전용 섹션) =====
+    // 가성비 = 평점 ÷ log10(몸값€M + 2) — 몸값 낮고 평점 높을수록 ↑. 45분+ & 시장가치 보유만.
+    VALUE: stats
+      .filter((s) => s.mvEuro > 0 && s.avgRating > 0 && s.minutes >= 45)
+      .map((s) => ({ s, idx: s.avgRating / Math.log10(s.mvEuro / 1e6 + 2) }))
+      .sort((a, b) => b.idx - a.idx || b.s.avgRating - a.s.avgRating)
+      .slice(0, 10)
+      .map(({ s, idx }, i) => {
+        const r = toRow(s, i, +idx.toFixed(1), "지수");
+        // 몸값을 팀 줄에 병기 — "🇰🇷 대한민국 · €3M"
+        const m = s.mvEuro / 1e6;
+        return { ...r, teamName: `${r.teamName} · €${m >= 10 ? Math.round(m) : m.toFixed(1)}M` };
+      }),
+    FOULED: top((s) => s.wasFouled > 0, (a, b) => b.wasFouled - a.wasFouled || b.avgRating - a.avgRating, (s) => s.wasFouled, "회"),
+    BIGMISS: top((s) => s.bigMiss > 0, (a, b) => b.bigMiss - a.bigMiss || b.avgRating - a.avgRating, (s) => s.bigMiss, "회"),
+    WOODWORK: top((s) => s.woodwork > 0, (a, b) => b.woodwork - a.woodwork || b.avgRating - a.avgRating, (s) => s.woodwork, "회"),
+    AERIAL: top((s) => s.aerialWon > 0, (a, b) => b.aerialWon - a.aerialWon || b.avgRating - a.avgRating, (s) => s.aerialWon, "회"),
+    DRIBBLE: top((s) => s.dribbleSucc > 0, (a, b) => b.dribbleSucc - a.dribbleSucc || b.avgRating - a.avgRating, (s) => s.dribbleSucc, "회"),
   };
   return Object.values(rows).every((r) => r.length === 0) ? null : rows;
+}
+
+/** 핵심 랭킹 탭 (선수 랭킹 섹션) / 이색 랭킹 탭 (predictions 전용 섹션) 분리용 키 셋. */
+export const WC_CORE_CATS = ["GOAL", "ASSIST", "CHANCE", "RATING", "DEFENSE", "SAVE", "YELLOW", "RED"];
+export const WC_FUN_CATS = ["VALUE", "FOULED", "BIGMISS", "WOODWORK", "AERIAL", "DRIBBLE"];
+
+/** rowsByCategory 에서 지정 키만 추출 — 전부 빈 배열이면 null. */
+export function pickCats(
+  rows: Record<string, LeaderRow[]> | null,
+  keys: string[],
+): Record<string, LeaderRow[]> | null {
+  if (!rows) return null;
+  const out: Record<string, LeaderRow[]> = {};
+  for (const k of keys) if (rows[k]?.length) out[k] = rows[k];
+  return Object.keys(out).length ? out : null;
 }

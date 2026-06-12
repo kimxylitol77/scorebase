@@ -57,6 +57,13 @@ const CATEGORIES_BY_LEAGUE: Record<string, CategoryDef[]> = {
     { key: "SAVE", label: "세이브", emoji: "🧤" },
     { key: "YELLOW", label: "옐로", emoji: "🟨" },
     { key: "RED", label: "레드", emoji: "🟥" },
+    // 이색 랭킹 (월드컵 전용 — predictions 의 별도 섹션이 이 키들만 공급)
+    { key: "VALUE", label: "가성비", emoji: "💰", decimals: 1 },
+    { key: "FOULED", label: "파울유도", emoji: "🤕" },
+    { key: "BIGMISS", label: "빅찬스미스", emoji: "😱" },
+    { key: "WOODWORK", label: "골대", emoji: "🪵" },
+    { key: "AERIAL", label: "공중볼", emoji: "🦅" },
+    { key: "DRIBBLE", label: "드리블", emoji: "🪄" },
   ],
   // Phase 2 예정
   BASEBALL: [

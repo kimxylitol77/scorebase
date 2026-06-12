@@ -9,7 +9,7 @@ import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { getWorldCupPlayerStats, buildWcLeaderRows } from "@/lib/sports/thesports/world-cup-player-stats";
+import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 
 export const revalidate = 600;
@@ -95,8 +95,9 @@ export default async function WorldCupHub() {
   const koreaSim = sim.find((r) => r.teamName === "South Korea") ?? null;
   const koreaTeam = byName.get("South Korea") ?? null;
 
-  // 본선 선수 랭킹 — cache playerStats 누적 집계 (predictions/WORLD_CUP 와 동일 데이터, 10분 ISR)
-  const wcLeaderRows = buildWcLeaderRows(await getWorldCupPlayerStats());
+  // 본선 선수 랭킹 — cache playerStats 누적 집계 (predictions/WORLD_CUP 와 동일 데이터, 10분 ISR).
+  // 허브는 핵심 8탭만 — 이색 랭킹(가성비 등)은 predictions 전용.
+  const wcLeaderRows = pickCats(buildWcLeaderRows(await getWorldCupPlayerStats()), WC_CORE_CATS);
 
   const nameKo = (en: string) => fifaCountryKo(en) ?? toKoreanTeamName(en) ?? en;
   type MatchRow = (typeof upcoming)[number] | (typeof recentOrLive)[number];
