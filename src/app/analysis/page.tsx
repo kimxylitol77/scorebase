@@ -43,8 +43,22 @@ const COLS = "sm:grid-cols-[72px_minmax(0,1fr)_180px_70px_96px_80px_72px]";
 
 const PAGE_SIZE = 20;
 
+// 종목 필터 탭 — Post.sport 값과 1:1 (sport-leagues SportCode 부분집합).
+const SPORT_TABS = [
+  { code: "soccer", label: "축구", emoji: "⚽" },
+  { code: "baseball", label: "야구", emoji: "⚾" },
+  { code: "basketball", label: "농구", emoji: "🏀" },
+  { code: "hockey", label: "하키", emoji: "🏒" },
+  { code: "esports", label: "롤", emoji: "🎮" },
+  { code: "volleyball", label: "배구", emoji: "🏐" },
+  { code: "mma", label: "UFC", emoji: "🥊" },
+] as const;
+const SPORT_META: Record<string, { label: string; emoji: string }> = Object.fromEntries(
+  SPORT_TABS.map((s) => [s.code, { label: s.label, emoji: s.emoji }]),
+);
+
 interface Props {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; sport?: string }>;
 }
 
 // 페이지 번호 목록 (총 7개 초과 시 … 으로 축약: 1 … 4 5 6 … 10)
@@ -61,10 +75,19 @@ function pageList(cur: number, total: number): (number | "…")[] {
 }
 
 export default async function AnalysisListPage({ searchParams }: Props) {
-  const { page } = await searchParams;
+  const { page, sport } = await searchParams;
   const cur = Math.max(1, Number(page) || 1);
-  const [posts, total, userId] = await Promise.all([
+  const sportFilter = SPORT_META[sport ?? ""] ? sport! : null;
+  const href = (p: number, s: string | null = sportFilter) => {
+    const q = new URLSearchParams();
+    if (s) q.set("sport", s);
+    if (p > 1) q.set("page", String(p));
+    const qs = q.toString();
+    return qs ? `/analysis?${qs}` : "/analysis";
+  };
+  const [posts, sportCounts, userId] = await Promise.all([
     prisma.post.findMany({
+      where: sportFilter ? { sport: sportFilter } : {},
       orderBy: { createdAt: "desc" },
       skip: (cur - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -78,6 +101,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         isCorrect: true,
         market: true,
         pick: true,
+        sport: true,
         match: {
           select: {
             oddsHome: true,
@@ -101,9 +125,13 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         },
       },
     }),
-    prisma.post.count(),
+    // 종목별 글 수 — 탭 카운트 + 필터된 총 페이지 계산 (한 쿼리)
+    prisma.post.groupBy({ by: ["sport"], _count: true }),
     getCurrentUserId(),
   ]);
+  const countBySport = new Map(sportCounts.map((g) => [g.sport, g._count]));
+  const totalAll = sportCounts.reduce((s, g) => s + g._count, 0);
+  const total = sportFilter ? (countBySport.get(sportFilter) ?? 0) : totalAll;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
@@ -173,9 +201,43 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         </details>
       </header>
 
+      {/* 종목 필터 탭 */}
+      <nav className="mb-5 flex flex-wrap items-center gap-1.5" aria-label="종목 필터">
+        <Link
+          href={href(1, null)}
+          className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition ${
+            !sportFilter
+              ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white"
+              : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          }`}
+        >
+          전체 <span className="opacity-60 tabular-nums">{totalAll}</span>
+        </Link>
+        {SPORT_TABS.map((s) => {
+          const n = countBySport.get(s.code) ?? 0;
+          const active = sportFilter === s.code;
+          return (
+            <Link
+              key={s.code}
+              href={href(1, s.code)}
+              className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition ${
+                active
+                  ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white"
+                  : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              }`}
+            >
+              {s.emoji} {s.label}
+              {n > 0 && <span className="ml-1 opacity-60 tabular-nums">{n}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
       {posts.length === 0 ? (
         <p className="text-sm text-neutral-500 py-24 text-center">
-          아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!
+          {sportFilter
+            ? `${SPORT_META[sportFilter].emoji} ${SPORT_META[sportFilter].label} 분석글이 아직 없습니다. 첫 글을 남겨보세요!`
+            : "아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!"}
         </p>
       ) : (
         <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80">
@@ -202,8 +264,13 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                     href={`/analysis/${p.id}`}
                     className={`grid grid-cols-[1fr] ${COLS} gap-4 px-6 py-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition`}
                   >
-                    <span className="hidden sm:inline text-xs font-bold text-blue-600 dark:text-blue-400">
-                      분석
+                    <span className="hidden sm:flex flex-col gap-0.5">
+                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400">분석</span>
+                      {p.sport && SPORT_META[p.sport] && (
+                        <span className="text-[11px] font-semibold text-neutral-500">
+                          {SPORT_META[p.sport].emoji} {SPORT_META[p.sport].label}
+                        </span>
+                      )}
                     </span>
                     <span className="min-w-0">
                       <span className="flex items-center gap-2">
@@ -227,6 +294,9 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       </span>
                       {/* mobile meta */}
                       <span className="sm:hidden mt-1.5 flex items-center gap-2 text-xs text-neutral-500">
+                        {p.sport && SPORT_META[p.sport] && (
+                          <span title={SPORT_META[p.sport].label}>{SPORT_META[p.sport].emoji}</span>
+                        )}
                         <span>
                           {g.emoji} {a.nickname}
                         </span>
@@ -295,7 +365,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         <nav className="flex justify-center items-center gap-1.5 mt-6">
           {cur > 1 && (
             <Link
-              href={`/analysis?page=${cur - 1}`}
+              href={href(cur - 1)}
               className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             >
               ‹
@@ -309,7 +379,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             ) : (
               <Link
                 key={p}
-                href={`/analysis?page=${p}`}
+                href={href(p)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition ${
                   p === cur
                     ? "bg-rose-600 text-white border-rose-600"
@@ -322,7 +392,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           )}
           {cur < totalPages && (
             <Link
-              href={`/analysis?page=${cur + 1}`}
+              href={href(cur + 1)}
               className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             >
               ›

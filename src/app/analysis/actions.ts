@@ -14,7 +14,7 @@ export interface PostFormState {
   error?: string;
 }
 
-const VALID_SPORTS = new Set(["soccer", "baseball", "basketball", "hockey"]);
+const VALID_SPORTS = new Set(["soccer", "baseball", "basketball", "hockey", "esports", "volleyball", "mma"]);
 const VALID_MARKETS = new Set(["1X2", "HANDICAP", "OU"]);
 
 /** 분석글 작성 (회원 전용). 예측은 선택 — 종목·경기·마켓·픽을 채우면 저장. */

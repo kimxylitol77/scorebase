@@ -33,6 +33,9 @@ const SPORTS = [
   { code: "baseball", label: "야구", emoji: "⚾", draw: false },
   { code: "basketball", label: "농구", emoji: "🏀", draw: false },
   { code: "hockey", label: "하키", emoji: "🏒", draw: false },
+  { code: "esports", label: "롤", emoji: "🎮", draw: false },
+  { code: "volleyball", label: "배구", emoji: "🏐", draw: false },
+  { code: "mma", label: "UFC", emoji: "🥊", draw: false },
 ] as const;
 
 const initial: PostFormState = { ok: true };

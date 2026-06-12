@@ -7,7 +7,7 @@ import AnalysisForm, { type MatchOption } from "./AnalysisForm";
 
 export const dynamic = "force-dynamic";
 
-const SPORTS = ["soccer", "baseball", "basketball", "hockey"] as const;
+const SPORTS = ["soccer", "baseball", "basketball", "hockey", "esports", "volleyball", "mma"] as const;
 
 export default async function NewAnalysisPage() {
   const user = await getCurrentUser();

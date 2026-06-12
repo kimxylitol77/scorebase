@@ -79,6 +79,7 @@ const DEFAULT_HC_LINE: Record<SportCode, number> = {
   basketball: -5.5,
   hockey: -1.5,
   esports: -1.5,
+  volleyball: -1.5, // 세트 핸디캡
   mma: 0,
   all: 0,
 };
@@ -88,6 +89,7 @@ const DEFAULT_OU_LINE: Record<SportCode, number> = {
   basketball: 220.5,
   hockey: 5.5,
   esports: 2.5,
+  volleyball: 4.5, // 총 세트 수 (스코어가 세트 단위)
   mma: 0,
   all: 0,
 };
