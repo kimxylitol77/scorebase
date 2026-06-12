@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 
@@ -16,7 +16,8 @@ const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글�
 // 감독 스냅샷 (ts coach/list 정적 수집 — Vercel 은 ts 직접 호출 불가(IP whitelist)라 정적 json 사용)
 // 키 = ts team id. 생성: scripts/build-team-coaches.ts (WC 국대 포함)
 const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
-const NATL = new Set(["WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON", "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL"]);
+// 국대 리그 판별은 sport-leagues 의 NATIONAL_TEAM_LEAGUES 공용 — /teams 리다이렉트와 동일 기준
+const NATL = NATIONAL_TEAM_LEAGUES;
 const POS_GROUPS: Array<[string, string]> = [["G", "골키퍼"], ["D", "수비수"], ["M", "미드필더"], ["F", "공격수"]];
 
 interface SquadPlayer { id: string; name: string; position: string; shirt: number; photo: string; apps: number }

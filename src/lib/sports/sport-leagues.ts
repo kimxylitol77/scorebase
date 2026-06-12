@@ -188,6 +188,13 @@ export const LOL_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "esports")?.leagues ?? [],
 );
 
+// 국가대표 대회 리그 — 이 리그 소속 Team 은 클럽 페이지(/teams) 대신
+// 국가대표 페이지(/national-teams)가 단일 진실 (팀 페이지 이원화 방지).
+export const NATIONAL_TEAM_LEAGUES = new Set([
+  "WORLD_CUP", "WC_QUAL", "EURO_QUAL", "UEFA_NL", "AFCON",
+  "CONCACAF_GOLD", "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
+]);
+
 // 축구 리그 집합 — SPORTS.soccer.leagues 단일 진실 (K리그·월드컵 등 전부 포함).
 export const SOCCER_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],

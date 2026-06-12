@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
 import TeamFollowButton from "@/components/teams/TeamFollowButton";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -151,6 +152,9 @@ export default async function TeamPage({ params }: Props) {
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
   if (!team) notFound();
+
+  // 국가대표팀은 /national-teams 가 단일 진실 — 클럽 페이지와 이원화 방지 (308)
+  if (NATIONAL_TEAM_LEAGUES.has(team.league)) permanentRedirect(`/national-teams/${teamId}`);
 
   const gradient =
     LEAGUE_GRADIENT[team.league] ?? "from-neutral-700 to-neutral-900";

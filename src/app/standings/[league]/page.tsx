@@ -371,7 +371,7 @@ async function WorldCupStandings({ name }: { name: string }) {
                     >
                       <td className="text-right py-2 pl-3 pr-1 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
                       <td className="py-2 px-1.5">
-                        <Link href={`/teams/${r.teamId}`} prefetch={false} className="flex items-center gap-2 hover:underline">
+                        <Link href={`/national-teams/${r.teamId}`} prefetch={false} className="flex items-center gap-2 hover:underline">
                           {r.logo ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={r.logo} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
