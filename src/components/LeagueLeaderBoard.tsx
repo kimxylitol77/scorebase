@@ -202,19 +202,18 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                     : ""}
                 </div>
               </div>
+              {/* 단위 라벨은 활성 탭이 이미 말해주므로 생략 — 값 숫자만 우측 정렬.
+                  › 는 링크 없는 행에도 invisible 로 자리를 차지시켜 숫자 세로 정렬 유지. */}
               <div className="text-right shrink-0">
                 <div className="text-lg sm:text-xl font-black tabular-nums">
                   {decimals > 0 ? r.value.toFixed(decimals) : Math.round(r.value)}
                 </div>
-                {r.unit && (
-                  <div className="text-[10px] text-neutral-500 -mt-0.5">
-                    {r.unit}
-                  </div>
-                )}
               </div>
-              {href && (
-                <span className="text-neutral-300 dark:text-neutral-600 text-xs shrink-0">›</span>
-              )}
+              <span
+                className={`text-neutral-300 dark:text-neutral-600 text-xs shrink-0 ${href ? "" : "invisible"}`}
+              >
+                ›
+              </span>
             </Wrap>
           );
         })}
