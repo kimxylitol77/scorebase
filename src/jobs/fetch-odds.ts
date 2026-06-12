@@ -34,6 +34,7 @@ import {
   isOddsPapiEnabled,
 } from "@/lib/sports/oddspapi";
 import { backfillApiFootballOdds } from "@/lib/odds/api-sports-odds";
+import { backfillApiBaseballOdds } from "@/lib/odds/api-baseball-odds";
 
 export async function runFetchOdds(opts?: { leagues?: string[] }) {
   const leagues = opts?.leagues ?? ODDS_SUPPORTED_LEAGUES;
@@ -152,6 +153,14 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
     tally["api-football"] = af;
   } catch (err) {
     console.error("[odds/api-football] 실패:", (err as Error).message);
+  }
+
+  // api-baseball fallback — The Odds API 가 KBO active=False 라 야구 배당 보강 (북 11곳 실측)
+  try {
+    const ab = await backfillApiBaseballOdds();
+    tally["api-baseball(KBO)"] = ab;
+  } catch (err) {
+    console.error("[odds/api-baseball] 실패:", (err as Error).message);
   }
 
   console.log("[odds] 완료:", tally);
