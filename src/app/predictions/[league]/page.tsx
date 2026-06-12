@@ -621,8 +621,8 @@ export default async function LeaguePredictions({ params }: Props) {
         ASSIST: top((s) => s.assists > 0, (a, b) => b.assists - a.assists || b.avgRating - a.avgRating, (s) => s.assists, "도움"),
         // 평점 — 누적 45분+ 출전 선수만 (교체 투입 노이즈 방지)
         RATING: top((s) => s.avgRating > 0 && s.minutes >= 45, (a, b) => b.avgRating - a.avgRating || b.minutes - a.minutes, (s) => s.avgRating, "평점"),
-        YELLOW: top((s) => s.yellow > 0, (a, b) => b.yellow - a.yellow, (s) => s.yellow, "장"),
-        RED: top((s) => s.red > 0, (a, b) => b.red - a.red, (s) => s.red, "장"),
+        YELLOW: top((s) => s.yellow > 0, (a, b) => b.yellow - a.yellow || b.avgRating - a.avgRating, (s) => s.yellow, "장"),
+        RED: top((s) => s.red > 0, (a, b) => b.red - a.red || b.avgRating - a.avgRating, (s) => s.red, "장"),
       };
       if (Object.values(wcRowsByCategory).every((rows) => rows.length === 0)) wcRowsByCategory = null;
     }

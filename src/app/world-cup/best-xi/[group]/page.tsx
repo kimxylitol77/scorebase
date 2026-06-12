@@ -56,7 +56,10 @@ export default async function Page({ params }: { params: Promise<{ group: string
   if (!GROUPS.includes(g)) notFound();
   const d = load(g);
   if (!d) notFound();
-  const { countries, teamRating, xi, bench } = d;
+  const { countries, teamRating, xi } = d;
+  // 벤치 선정은 빌더의 score(평점+시장가치)순 — 나열은 화면 표시값(최근 평점) 내림차순으로
+  // (score 순서 그대로면 "최근 9.9"가 "최근 8.3" 아래 오는 역전이 보임). 평점 없는 선수는 뒤로.
+  const bench = [...(d.bench ?? [])].sort((a, b) => (b.recentRating ?? 0) - (a.recentRating ?? 0));
 
   const fw = xi.filter((p) => p.pos === "F");
   const mf = xi.filter((p) => p.pos === "M");
