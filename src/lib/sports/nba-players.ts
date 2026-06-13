@@ -10,6 +10,7 @@ interface PlayerEntry {
   photo: string;
   espnId: string;
   pos: string | null;
+  bdlId?: number;
 }
 
 const INDEX = rawIndex as Record<string, PlayerEntry>;
@@ -32,12 +33,19 @@ export interface NbaPlayerInfo {
   photo: string;
   espnId: string;
   pos: string | null;
+  /** balldontlie id — /players/{bdlId}?league=NBA 선수 상세 연결용. 매칭 실패 시 undefined. */
+  bdlId?: number;
 }
 
-/** 영문 선수명 → {한글명·사진}. 매칭 실패 시 null. */
+/** 영문 선수명 → {한글명·사진·bdlId}. 매칭 실패 시 null. */
 export function lookupNbaPlayer(name: string | null | undefined): NbaPlayerInfo | null {
   if (!name) return null;
   const e = INDEX[normKey(name)];
   if (!e) return null;
-  return { ko: e.ko || name, photo: e.photo, espnId: e.espnId, pos: e.pos };
+  return { ko: e.ko || name, photo: e.photo, espnId: e.espnId, pos: e.pos, bdlId: e.bdlId };
+}
+
+/** balldontlie 선수 상세 href — bdlId 있을 때만. */
+export function nbaPlayerHref(info: NbaPlayerInfo | null): string | null {
+  return info?.bdlId != null ? `/players/${info.bdlId}?league=NBA` : null;
 }

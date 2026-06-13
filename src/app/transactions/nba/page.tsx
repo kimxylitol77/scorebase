@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { lookupNbaPlayer } from "@/lib/sports/nba-players";
+import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
 
 export const revalidate = 1800; // 30분
 
@@ -170,12 +170,17 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
                   const koTeam = t.teamName ? toKoreanTeamName(t.teamName, "NBA") : null;
                   // 단일 선수(계약·방출·단기) 사진 — 트레이드(다중)·감독은 매칭 안 됨 → 팀로고.
                   const player = t.category !== "trade" ? lookupNbaPlayer(t.playerName) : null;
+                  const href = nbaPlayerHref(player);
                   return (
                     <li
                       key={t.id}
                       className="flex items-start gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3.5 py-3"
                     >
-                      <TxAvatar photo={player?.photo} teamLogo={t.teamLogo} />
+                      {href ? (
+                        <Link href={href}><TxAvatar photo={player?.photo} teamLogo={t.teamLogo} /></Link>
+                      ) : (
+                        <TxAvatar photo={player?.photo} teamLogo={t.teamLogo} />
+                      )}
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex items-center gap-2">
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${c.cls}`}>{c.label}</span>

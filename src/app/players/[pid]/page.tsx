@@ -50,6 +50,7 @@ import {
 } from "@/lib/sports/nhl-api";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { lookupNbaPlayer } from "@/lib/sports/nba-players";
 import {
   fetchNpbPitcherProfileCached as fetchNpbPitcherProfile,
   fetchNpbPitcherStatsCached as fetchNpbPitcherStats,
@@ -998,6 +999,7 @@ async function renderNbaPlayerView(pid: string) {
   const fullName = `${profile.firstName} ${profile.lastName}`.trim();
   const nameKo = toKoreanPlayerName(fullName) || fullName;
   const teamKo = profile.team ? toKoreanTeamName(profile.team.fullName) || profile.team.fullName : "";
+  const photo = lookupNbaPlayer(fullName)?.photo; // ESPN headshot (이름 매칭)
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       <header className="space-y-3">
@@ -1005,9 +1007,14 @@ async function renderNbaPlayerView(pid: string) {
           ← NBA
         </Link>
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-2xl font-bold text-neutral-400">
-            {profile.firstName[0]}{profile.lastName[0]}
-          </div>
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photo} alt={nameKo} className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 object-cover object-top" />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-2xl font-bold text-neutral-400">
+              {profile.firstName[0]}{profile.lastName[0]}
+            </div>
+          )}
           <div className="space-y-1">
             <div className="flex items-baseline gap-3 flex-wrap">
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{nameKo}</h1>

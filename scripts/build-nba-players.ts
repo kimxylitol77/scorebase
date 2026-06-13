@@ -19,6 +19,7 @@ interface PlayerEntry {
   photo: string; // headshot URL
   espnId: string;
   pos: string | null;
+  bdlId?: number; // balldontlie player id — 선수 상세(/players/{bdlId}?league=NBA) 연결용
 }
 
 /** 이름 정규화 — 매칭 키 (악센트 제거·소문자·suffix 정리). player-names.ts 와 동일 정책. */
@@ -42,6 +43,37 @@ async function fetchTeamIds(): Promise<string[]> {
   ).json();
   const teams = r.sports?.[0]?.leagues?.[0]?.teams ?? [];
   return teams.map((t: { team: { id: string } }) => t.team.id);
+}
+
+/** balldontlie 현역 선수 → normKey(이름) → bdlId 맵. 선수 상세 페이지 연결용.
+ *  /players/active cursor 순회 (현역만 → 은퇴 동명이인 충돌 회피). */
+async function fetchBalldontlieIds(): Promise<Map<string, number>> {
+  const key = process.env.BALLDONTLIE_KEY;
+  const map = new Map<string, number>();
+  if (!key) {
+    console.warn("  BALLDONTLIE_KEY 미설정 — bdlId 매핑 skip");
+    return map;
+  }
+  let cursor: number | null = null;
+  for (let guard = 0; guard < 30; guard++) {
+    const url = `https://api.balldontlie.io/v1/players/active?per_page=100${cursor != null ? `&cursor=${cursor}` : ""}`;
+    let j: { data?: Array<{ id: number; first_name?: string; last_name?: string }>; meta?: { next_cursor?: number } };
+    try {
+      const res = await fetch(url, { headers: { Authorization: key }, signal: AbortSignal.timeout(12000) });
+      if (!res.ok) break;
+      j = await res.json();
+    } catch {
+      break;
+    }
+    for (const p of j.data ?? []) {
+      const full = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim();
+      if (full) map.set(normKey(full), p.id);
+    }
+    if (j.meta?.next_cursor == null) break;
+    cursor = j.meta.next_cursor;
+    await new Promise((r) => setTimeout(r, 400)); // rate limit 회피
+  }
+  return map;
 }
 
 interface RosterAthlete {
@@ -130,8 +162,22 @@ async function main() {
       photo: a.headshot?.href ?? `https://a.espncdn.com/i/headshots/nba/players/full/${a.id}.png`,
       espnId: a.id,
       pos: a.position?.abbreviation ?? null,
+      bdlId: prev[key]?.bdlId, // 기존 매핑 보존, 아래서 갱신
     };
   }
+
+  // balldontlie id 병합 — 선수 상세 페이지(/players/{bdlId}?league=NBA) 연결용
+  console.log("balldontlie 현역 선수 id 매핑...");
+  const bdlByKey = await fetchBalldontlieIds();
+  let bdlMatched = 0;
+  for (const key of Object.keys(index)) {
+    const bdl = bdlByKey.get(key);
+    if (bdl != null) {
+      index[key].bdlId = bdl;
+      bdlMatched++;
+    }
+  }
+  console.log(`  bdlId 매칭 ${bdlMatched}/${Object.keys(index).length}`);
 
   // 2차: 누락분 Haiku 음역
   if (needTranslit.length > 0) {
@@ -149,7 +195,8 @@ async function main() {
 
   writeFileSync(OUT, JSON.stringify(index, null, 0) + "\n");
   const withKo = Object.values(index).filter((e) => e.ko && e.ko !== e.name).length;
-  console.log(`\n✓ ${OUT} — ${Object.keys(index).length}명 (한글 ${withKo})`);
+  const withBdl = Object.values(index).filter((e) => e.bdlId != null).length;
+  console.log(`\n✓ ${OUT} — ${Object.keys(index).length}명 (한글 ${withKo} · bdlId ${withBdl})`);
 }
 
 main()

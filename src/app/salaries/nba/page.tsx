@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { lookupNbaPlayer } from "@/lib/sports/nba-players";
+import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
 
 export const revalidate = 3600; // 1시간 — 연봉 주1회·환율 시간당 갱신이면 충분
 
@@ -138,6 +138,12 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                   const top3 = r.rank <= 3;
                   const info = lookupNbaPlayer(r.playerName);
                   const display = info?.ko ?? r.playerName;
+                  const href = nbaPlayerHref(info);
+                  const nameEl = (
+                    <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${href ? "hover:underline" : ""}`}>
+                      {display}
+                    </span>
+                  );
                   return (
                     <tr
                       key={r.id}
@@ -145,12 +151,14 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                     >
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                       <td className="pl-2 py-1.5 w-9">
-                        <PlayerAvatar photo={info?.photo} name={display} />
+                        {href ? (
+                          <Link href={href}><PlayerAvatar photo={info?.photo} name={display} /></Link>
+                        ) : (
+                          <PlayerAvatar photo={info?.photo} name={display} />
+                        )}
                       </td>
                       <td className="pr-2 py-2.5">
-                        <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
-                          {display}
-                        </span>
+                        {href ? <Link href={href}>{nameEl}</Link> : nameEl}
                       </td>
                       <td className="px-2 py-2.5 text-neutral-500">{toKoreanTeamName(r.teamName, "NBA")}</td>
                       <td className="px-3 py-2 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
