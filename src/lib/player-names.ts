@@ -12,10 +12,12 @@ import { WNBA_PLAYER_NAMES_KO } from "./sports/wnba-player-names";
 import { MLB_PLAYER_NAMES_KO } from "./sports/mlb-player-names";
 import { MLB_PLAYER_NAMES_NAVER_KO } from "./sports/mlb-player-names-naver";
 import { MLB_PLAYER_NAMES_HAIKU_KO } from "./sports/mlb-player-names-haiku";
+import rawMlbInjuryHaikuKo from "../../data/mlb-injury-names-haiku.json"; // IL 부상자 보강, 주간 cron 갱신(mac-mini)
 import { MLS_PLAYER_NAMES_KO } from "./sports/mls-player-names";
 import { ESPN_LEADER_NAMES_KO } from "./sports/espn-leader-names";
 
 const NBA_PLAYER_NAMES_HAIKU_KO = rawNbaHaikuKo as Record<string, string>;
+const MLB_INJURY_NAMES_HAIKU_KO = rawMlbInjuryHaikuKo as Record<string, string>;
 
 const RAW: Record<string, string> = {
   // ─── EPL — Big 6 + 한국 선수 + 슈퍼스타 ───
@@ -1996,6 +1998,7 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   if (MLB_PLAYER_NAMES_KO[trimmed]) return MLB_PLAYER_NAMES_KO[trimmed];
   if (MLB_PLAYER_NAMES_NAVER_KO[trimmed]) return MLB_PLAYER_NAMES_NAVER_KO[trimmed];
   if (MLB_PLAYER_NAMES_HAIKU_KO[trimmed]) return MLB_PLAYER_NAMES_HAIKU_KO[trimmed];
+  if (MLB_INJURY_NAMES_HAIKU_KO[trimmed]) return MLB_INJURY_NAMES_HAIKU_KO[trimmed];
   if (MLS_PLAYER_NAMES_KO[trimmed]) return MLS_PLAYER_NAMES_KO[trimmed];
   if (ESPN_LEADER_NAMES_KO[trimmed]) return ESPN_LEADER_NAMES_KO[trimmed];
   if (RAW[trimmed]) return RAW[trimmed];

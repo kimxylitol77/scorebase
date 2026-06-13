@@ -38,6 +38,8 @@ log "⑧ 선수 ts↔af 매핑 + af 시즌스탯 (17개 리그 — 대회별·�
 npx tsx --env-file=.env.local scripts/build-ts-af-player-map.ts 2>&1 | tail -3 || true
 log "⑨ NBA 부상자 한글명 (Haiku, BDL+ESPN union — 비스타 선수 보강)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-player-names-haiku.ts' 2>&1 | tail -2 || true
+log "⑩ MLB 부상자(IL) 한글명 (Haiku, BDL+ESPN union — 박스스코어 미수집 IL 선수 보강)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-mlb-injury-names-haiku.ts' 2>&1 | tail -2 || true
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
 for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json; do
