@@ -42,6 +42,8 @@ log "⑩ MLB 부상자(IL) 한글명 (Haiku, BDL+ESPN union — 박스스코어 
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-mlb-injury-names-haiku.ts' 2>&1 | tail -2 || true
 log "⑪ NHL 선수 한글명 (Haiku, NHL 매치 cache player_id → TheSports 영문 — 골타임라인·박스스코어)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nhl-player-names-haiku.ts' 2>&1 | tail -2 || true
+log "⑫ NHL 부상자 한글명 (Haiku, ESPN injuries — /injuries/NHL)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nhl-injury-names-haiku.ts' 2>&1 | tail -2 || true
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
 for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json; do
