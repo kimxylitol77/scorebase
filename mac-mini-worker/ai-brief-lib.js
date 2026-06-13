@@ -38,6 +38,13 @@ function stripPreamble(text, anchors) {
   return (i > 0 ? lines.slice(i) : lines).join("\n").trim();
 }
 
+// LLM 이 "- "(불릿) 뒤에 줄바꿈을 넣거나 출처를 다음 줄로 흘리는 습관 정리 — 항목을 한 줄로 합침.
+function tidyBullets(text) {
+  return String(text)
+    .replace(/^[-•][ \t]*\n+[ \t]*/gm, "- ") // '- \n내용' → '- 내용'
+    .replace(/\n[ \t]+(\()/g, " $1");         // '내용\n  (출처)' → '내용 (출처)'
+}
+
 // web_search(+web_fetch) server-side tool 로 LLM 질의. server tool 루프가
 // 10회 한도에 닿으면 stop_reason=pause_turn → assistant 턴 붙여 재요청해 이어감.
 async function askWithWebSearch(
@@ -90,4 +97,4 @@ async function notify(payload) {
   });
 }
 
-module.exports = { client, MODEL, SITE, TOKEN, todayKst, escapeHtml, stripPreamble, askWithWebSearch, notify };
+module.exports = { client, MODEL, SITE, TOKEN, todayKst, escapeHtml, stripPreamble, tidyBullets, askWithWebSearch, notify };

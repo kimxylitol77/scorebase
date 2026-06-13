@@ -1,6 +1,6 @@
 // 매일 아침 12개 리그 스포츠 뉴스를 web_search 로 모아 한국어로 요약, 텔레그램으로 보내는 봇.
 // crontab: 0 7 * * * (KST). 1회 실행 후 종료.
-const { askWithWebSearch, notify, escapeHtml, stripPreamble, todayKst } = require("./ai-brief-lib");
+const { askWithWebSearch, notify, escapeHtml, stripPreamble, tidyBullets, todayKst } = require("./ai-brief-lib");
 
 function buildPrompt() {
   return `오늘은 ${todayKst()} 입니다. 당신은 한국 스포츠 미디어 scorebase 의 아침 뉴스 큐레이터입니다.
@@ -37,7 +37,7 @@ web_search 로 지난 24시간의 주요 스포츠 뉴스를 조사해 한국 �
 async function main() {
   const text = await askWithWebSearch(buildPrompt(), { maxTokens: 4000, maxSearches: 10 });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
-  const clean = stripPreamble(text, ["⚽", "⚾", "🏀", "🏒", "📝"]);
+  const clean = tidyBullets(stripPreamble(text, ["⚽", "⚾", "🏀", "🏒", "📝"]));
   await notify({
     source: "sports-news-brief",
     severity: "INFO",

@@ -2,7 +2,7 @@
 // crontab: 0 8 * * * (KST). 어제 스냅샷과 diff 해 새 변화만 보고. 1회 실행 후 종료.
 const path = require("path");
 const fs = require("fs");
-const { askWithWebSearch, notify, escapeHtml, stripPreamble, todayKst } = require("./ai-brief-lib");
+const { askWithWebSearch, notify, escapeHtml, stripPreamble, tidyBullets, todayKst } = require("./ai-brief-lib");
 
 const STATE_DIR = path.resolve(__dirname, "state");
 const SNAP = path.join(STATE_DIR, "competitor-snapshot.json");
@@ -66,7 +66,7 @@ async function main() {
     fetch: true,
   });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
-  const clean = stripPreamble(text, ["🔍", "🟢", "💡"]);
+  const clean = tidyBullets(stripPreamble(text, ["🔍", "🟢", "💡"]));
   await notify({
     source: "competitor-watch",
     severity: "INFO",
