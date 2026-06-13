@@ -32,6 +32,9 @@ export const FAKE_NICKNAMES = [
   "GoalKeeper", "잔디사랑", "striker9", "soccer_kim", "응원단장",
   // 신규 4 (2026-06 게시판 종목 확장 — 롤 2 + UFC 2. 배구는 V리그 수집 합류 시 추가)
   "미드차이", "한타각", "옥타곤직관", "테이크다운",
+  // 신규 8 (2026-06 월드컵 — persona.sport="soccer" 고정 → WORLD_CUP 경기 우선)
+  "국대분석관", "원정응원단", "조별리그덕후", "킥오프24",
+  "톱시드", "언더독코리아", "월드컵사관", "그라운드K",
 ];
 
 type Sport = "soccer" | "baseball" | "basketball" | "hockey" | "esports" | "mma" | "volleyball";
@@ -41,6 +44,7 @@ interface Persona {
   tone: string; // 말투·캐릭터 (시스템 프롬프트 주입)
   bias: Bias; // 픽 성향 — 마켓 가중 + 프롬프트 힌트
   len: "short" | "mid"; // 글 길이 힌트
+  sport?: Sport; // 지정 시 종목 고정(월드컵 페르소나 = soccer). 없으면 가중 랜덤
 }
 
 // 닉네임 인덱스와 1:1 — FAKE_NICKNAMES 순서 동기. 닉네임이 풍기는 캐릭터와 일치시킴.
@@ -89,6 +93,15 @@ const PERSONAS: Persona[] = [
   { tone: "한타·오브젝트 위주로 경기를 보는 담백한 톤", bias: "safe", len: "short" }, // 한타각
   { tone: "UFC 체급·리치 같은 디테일을 슬쩍 언급하는 존댓말", bias: "balanced", len: "mid" }, // 옥타곤직관
   { tone: "그래플링 우위를 따지는 자신감 있는 반말", bias: "underdog", len: "short" }, // 테이크다운
+  // 월드컵 페르소나 8 — sport:"soccer" 고정 → randomMatch 가 WORLD_CUP 경기 우선 선택
+  { tone: "국가대표 전력·FIFA 랭킹·최근 A매치를 근거로 분석하는 차분한 존댓말", bias: "balanced", len: "mid", sport: "soccer" }, // 국대분석관
+  { tone: "원정 직관 응원파. 현장 분위기·골 세리머니 얘기 곁들이고 텐션 높음", bias: "balanced", len: "mid", sport: "soccer" }, // 원정응원단
+  { tone: "조 순위·경우의 수를 즐겨 따짐. 골득실·승점 시나리오를 가볍게", bias: "balanced", len: "mid", sport: "soccer" }, // 조별리그덕후
+  { tone: "새벽 킥오프 챙겨보는 올빼미. 짧고 담백, 피곤함이 살짝 묻어남", bias: "balanced", len: "short", sport: "soccer" }, // 킥오프24
+  { tone: "우승후보·강팀 위주로 안정적으로 보는 신중파 존댓말", bias: "safe", len: "mid", sport: "soccer" }, // 톱시드
+  { tone: "약체국 돌풍에 거는 역배 헌터. 짧고 자신감 있게", bias: "underdog", len: "short", sport: "soccer" }, // 언더독코리아
+  { tone: "역대 월드컵 기록·명승부를 슬쩍 인용하는 감성 톤", bias: "balanced", len: "mid", sport: "soccer" }, // 월드컵사관
+  { tone: "전술·세트피스 관점으로 경기를 보는 축구 디테일파", bias: "under", len: "mid", sport: "soccer" }, // 그라운드K
 ];
 
 // 성향별 픽 힌트 — 프롬프트에 주입(강제 아님, 캐릭터 부여용)
@@ -181,6 +194,11 @@ async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCan
   if (preferSport) {
     const pref = valid.filter((x) => x.sport === preferSport);
     if (pref.length > 0) valid = pref;
+  }
+  // 월드컵 시즌 — soccer 픽은 WORLD_CUP 경기 우선(있을 때만 좁힘, 본선 끝나면 자동 클럽 fallback)
+  if (preferSport === "soccer") {
+    const wc = valid.filter((x) => x.m.league === "WORLD_CUP");
+    if (wc.length > 0) valid = wc;
   }
 
   const { m, sport } = valid[Math.floor(Math.random() * valid.length)];
@@ -313,9 +331,11 @@ export async function runFakeMemberPicks(): Promise<{ created: number; skipped: 
   if (Math.random() > rate) return { created: 0, skipped: 0 };
 
   const i = Math.floor(Math.random() * FAKE_NICKNAMES.length);
-  // 종목 가중 — 야구 시즌 주력 + 축구, 롤·UFC 는 양념 (경기 없으면 전체 fallback)
+  // 페르소나에 종목이 고정돼 있으면(월드컵 8명 = soccer) 그 종목, 아니면 가중 랜덤(야구 시즌 주력).
+  // 월드컵 페르소나 8명이 항상 soccer→WORLD_CUP 우선 → 축구 픽 비중 자동 상향(25%→~36%).
   const r = Math.random();
-  const preferSport: Sport = r < 0.55 ? "baseball" : r < 0.8 ? "soccer" : r < 0.9 ? "esports" : "mma";
+  const preferSport: Sport =
+    PERSONAS[i].sport ?? (r < 0.55 ? "baseball" : r < 0.8 ? "soccer" : r < 0.9 ? "esports" : "mma");
 
   try {
     const userId = await ensureFakeMember(i);
