@@ -233,11 +233,11 @@ export default async function WorldCupHub() {
       {top10.length > 0 && (
         <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-semibold">우승 확률 TOP 10</h2>
+            <h2 className="font-semibold">우승 확률 TOP 3</h2>
             <span className="text-xs text-neutral-500">Elo 기반 Monte Carlo 5,000회</span>
           </div>
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-            {top10.map((r, i) => {
+            {top10.slice(0, 3).map((r, i) => {
               const max = top10[0].champion || 1;
               const team = byName.get(r.teamName);
               const row = (
@@ -275,6 +275,12 @@ export default async function WorldCupHub() {
               );
             })}
           </ul>
+          <Link
+            href="/predictions/WORLD_CUP"
+            className="mt-4 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 text-sm font-semibold hover:bg-amber-100 dark:hover:bg-amber-500/20 transition"
+          >
+            AI 예측 전체 보기 — 우승~32강 단계별 확률 · 시뮬레이션 →
+          </Link>
         </section>
       )}
 

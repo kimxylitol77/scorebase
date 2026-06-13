@@ -25,7 +25,7 @@ import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
-import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
+import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import { getWcThirdPlaceRace, type WcGroupTeamRow } from "@/lib/sports/world-cup-standings";
 import { getBaseballH2H, type H2HMatrix } from "@/lib/sports/baseball-h2h";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
@@ -595,15 +595,12 @@ export default async function LeaguePredictions({ params }: Props) {
     hasTsLeader = (leaderRowsByCategory.GOAL?.length ?? 0) > 0;
   }
 
-  // 월드컵 — 본선 선수 랭킹 (cache playerStats 누적 집계, 라이브 중 worker 가 ~2분 간격 push).
-  // 조별 순위표 카드 바로 아래 노출. 기존 "시즌 리더보드" 섹션은 WORLD_CUP 에서 이걸로 대체.
-  // rows 빌드는 /world-cup 허브와 공유 (buildWcLeaderRows).
-  let wcRowsByCategory: Record<string, LeaderRow[]> | null = null;
+  // 월드컵 — 이색 랭킹용 행만 빌드. 선수 랭킹(코어: 득점왕·도움·평점)은 /world-cup
+  // 데이터 센터로 일원화(중복 노출 방지) → predictions 는 예측·시뮬·이색 랭킹 전담.
   let wcFunRows: Record<string, LeaderRow[]> | null = null;
   let wcThirds: WcGroupTeamRow[] = [];
   if (isWorldCup) {
     const allRows = buildWcLeaderRows(await getWorldCupPlayerStats());
-    wcRowsByCategory = pickCats(allRows, WC_CORE_CATS);
     wcFunRows = pickCats(allRows, WC_FUN_CATS);
     // 조 3위 와일드카드 레이스 — 경기 기록이 하나라도 있어야 의미
     const thirds = await getWcThirdPlaceRace();
@@ -806,20 +803,22 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 월드컵 선수 랭킹 — 본선 누적 득점·도움·평점·카드 (라이브 실시간) */}
-        {isWorldCup && wcRowsByCategory && (
-          <section>
-            <Heading
-              title="🏅 선수 랭킹"
-              subtitle="득점왕·도움·평점·카드 — 본선 전 경기 누적, 라이브 중에도 실시간 갱신"
-            />
-            <LeagueLeaderBoard
-              league="WORLD_CUP"
-              season="2026 본선"
-              rowsByCategory={wcRowsByCategory}
-              footer="2026 본선 누적 · 라이브 경기 약 2분 간격 실시간 갱신"
-            />
-          </section>
+        {/* 선수 랭킹(득점왕·도움·평점)은 /world-cup 데이터 센터로 일원화 — 중복 방지, 여기선 유도 링크만 */}
+        {isWorldCup && (
+          <Link
+            href="/world-cup"
+            className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 hover:border-amber-400 dark:hover:border-amber-500/40 hover:bg-amber-50/50 dark:hover:bg-amber-500/5 transition group"
+          >
+            <span className="min-w-0">
+              <span className="block font-bold text-sm">🏅 선수 랭킹 — 득점왕·도움·평점</span>
+              <span className="block text-xs text-neutral-500 mt-0.5">
+                본선 누적 기록은 월드컵 데이터 센터에서 실시간 확인
+              </span>
+            </span>
+            <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm shrink-0 group-hover:translate-x-0.5 transition-transform">
+              보기 →
+            </span>
+          </Link>
         )}
 
         {/* 이색 랭킹 — 가성비·파울유도·빅찬스미스·골대·공중볼·드리블 (여기서만 보는 기록) */}
