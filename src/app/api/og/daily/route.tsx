@@ -1,7 +1,7 @@
-// GET /api/og/daily?d=YYYY-MM-DD  — 오늘의 주요 경기 종합 카드 (1200×630).
+// GET /api/og/daily?d=YYYY-MM-DD[&size=square]  — 오늘의 주요 경기 종합 카드.
 //
-// Threads 자동 포스팅용 public 이미지. Meta 서버가 image_url 을 외부 fetch 하므로
-// 절대 URL(https://www.scorebase.kr/api/og/daily)로 접근 가능해야 한다.
+// 기본 1200×630(스레드/OG). ?size=square → 1080×1080 인스타 피드용(경기 더 많이).
+// Threads 자동 포스팅 + 수동 SNS 발행 공용 public 이미지.
 // 디자인/그라데이션/BarMark 은 articles/[slug]/opengraph-image.tsx 와 동일 컨셉.
 
 import { ImageResponse } from "next/og";
@@ -12,17 +12,18 @@ import { kstDayWindow, kstHHmm } from "@/lib/threads/kst";
 
 export const runtime = "nodejs";
 
-const SIZE = { width: 1200, height: 630 };
-const MAX_ROWS = 6; // 카드에 표시할 경기 수 (1200×630 에 여유롭게)
-
 // 당일 라인업/스코어가 바뀌므로 OG 카드만큼 길게 캐시하지 않는다(짧게).
 const CACHE_HEADERS = {
   "Cache-Control": "public, max-age=300, s-maxage=600, stale-while-revalidate=1800",
 };
 
 export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const square = url.searchParams.get("size") === "square";
+  const size = square ? { width: 1080, height: 1080 } : { width: 1200, height: 630 };
+  const maxRows = square ? 9 : 6;
+
   try {
-    const url = new URL(req.url);
     const { start, end, label } = kstDayWindow(url.searchParams.get("d"));
 
     const allLeagues = leaguesForSport("all");
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
       return a.startTime.getTime() - b.startTime.getTime();
     });
 
-    const rows = sorted.slice(0, MAX_ROWS).map((m) => ({
+    const rows = sorted.slice(0, maxRows).map((m) => ({
       leagueLabel: LEAGUE_DISPLAY[m.league] ?? m.league,
       home: toKoreanTeamName(m.homeTeam.name, m.league),
       away: toKoreanTeamName(m.awayTeam.name, m.league),
@@ -68,7 +69,7 @@ export async function GET(req: Request) {
             height: "100%",
             display: "flex",
             flexDirection: "column",
-            padding: "52px 64px",
+            padding: square ? "60px 60px" : "52px 64px",
             background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
             color: "white",
             fontFamily: "Pretendard, system-ui, sans-serif",
@@ -116,7 +117,7 @@ export async function GET(req: Request) {
               display: "flex",
               alignItems: "center",
               gap: "18px",
-              marginTop: "26px",
+              marginTop: square ? "30px" : "26px",
               marginBottom: "6px",
             }}
           >
@@ -135,9 +136,10 @@ export async function GET(req: Request) {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "11px",
+              gap: square ? "13px" : "11px",
               flex: 1,
               marginTop: "16px",
+              justifyContent: square ? "center" : "flex-start",
             }}
           >
             {rows.length === 0 ? (
@@ -181,7 +183,7 @@ export async function GET(req: Request) {
                     style={{
                       display: "flex",
                       flex: 1,
-                      fontSize: "26px",
+                      fontSize: "25px",
                       fontWeight: 800,
                       letterSpacing: "-0.02em",
                     }}
@@ -222,12 +224,12 @@ export async function GET(req: Request) {
           </div>
         </div>
       ),
-      { ...SIZE, headers: CACHE_HEADERS },
+      { ...size, headers: CACHE_HEADERS },
     );
   } catch (e) {
     console.warn("[og/daily] render fail:", (e as Error).message);
     return new ImageResponse(<DefaultCard />, {
-      ...SIZE,
+      ...size,
       headers: { "Cache-Control": "public, max-age=60" },
     });
   }
