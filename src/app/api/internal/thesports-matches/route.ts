@@ -50,9 +50,14 @@ function isTsSoleSource(league: string): boolean {
 }
 
 // 팀 이름 normalize 비교 (Team 중복 row 대응 — LALIGA Barcelona 4 row 같은 케이스).
+// 2026-06-13: 분음부호 폴딩 추가 — 발트/캅카스/아제르 리그는 Žalgiris·Šamaxı·Grobiņa·İmişli
+// 처럼 결합 분음부호+dotless i 가 흔해, 기존 `[^a-z0-9]` 제거가 첫 글자까지 날려 매칭 어긋났음.
 function normalizeTeamName(s: string): string {
   return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // 결합 분음부호 제거 (Žalgiris→Zalgiris, Grobiņa→Grobina)
     .toLowerCase()
+    .replace(/[ıİ]/g, "i") // 터키/아제르 dotless i (İmişli, Şamaxı → samaxi)
     .replace(/\b(fc|cf|ac|afc|sc|cd|rcd|sv|ss|ssc|nk|hsv|fk|club)\b/g, "")
     .replace(/[^a-z0-9가-힣]/g, "");
 }
@@ -250,16 +255,18 @@ export async function POST(req: NextRequest) {
         });
         // unique candidate (= 같은 시각 매치 1개만) 일 때만 안전하게 매핑.
         // EPL 시즌 마지막 라운드 10경기 동시 같은 케이스는 모호해서 skip.
+        // 2026-06-13: 이 경로는 팀 매핑 실패 시의 blind 추측이라, 이미 다른 tsMatchId 로
+        // 연결된 cache 를 덮어쓰면 안 됨 (매핑 경로/이전 연결이 우선). cache 부재 시에만 신규 연결.
         if (candidates.length === 1) {
-          await prisma.theSportsMatchCache.upsert({
+          const existed = await prisma.theSportsMatchCache.findUnique({
             where: { matchId: candidates[0].id },
-            update: { tsMatchId: m.tsMatchId },
-            create: {
-              matchId: candidates[0].id,
-              tsMatchId: m.tsMatchId,
-              detailLive: {},
-            },
+            select: { matchId: true },
           });
+          if (!existed) {
+            await prisma.theSportsMatchCache.create({
+              data: { matchId: candidates[0].id, tsMatchId: m.tsMatchId, detailLive: {} },
+            });
+          }
         }
       } catch {
         // silent — 다음 cycle 재시도
