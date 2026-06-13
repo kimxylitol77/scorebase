@@ -297,7 +297,8 @@ export async function GET(req: NextRequest) {
         category: "stale-cleanup",
         key: "live-summary",
         message: `stale LIVE ${staleLive.length}건 정리 (FINISHED ${liveFinished} / POSTPONED ${livePostponed})`,
-        metadata: { liveFinished, livePostponed, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, teams: `${m.awayTeam.name} vs ${m.homeTeam.name}` })) },
+        // sample 은 메인 경로(아래 summary)와 동일 스키마 유지 — /admin/health 가 startTime 으로 렌더
+        metadata: { liveFinished, livePostponed, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, source: SOURCE_HINT[m.league] ?? "unknown", teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`, startTime: m.startTime.toISOString() })) },
       },
     });
     return NextResponse.json({ ok: true, marked: 0, liveFinished, livePostponed });

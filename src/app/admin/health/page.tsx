@@ -659,11 +659,13 @@ export default async function HealthPage() {
           </p>
           <div className="space-y-3">
             {staleCleanups.map((c) => {
+              // sample 스키마는 경로별로 다름 (live-summary 는 startTime/source 없이 기록된 이력 존재)
+              // → 전 필드 optional 렌더. 필수 가정 시 과거 row 하나로 페이지 전체 500.
               const md = (c.metadata ?? {}) as {
                 marked?: number;
                 byLeague?: Record<string, number>;
                 diagnosis?: string | null;
-                sample?: Array<{ league: string; source: string; teams: string; startTime: string }>;
+                sample?: Array<{ league?: string; source?: string; teams?: string; startTime?: string }>;
               };
               const sevColor =
                 c.severity === "HIGH"
@@ -702,7 +704,13 @@ export default async function HealthPage() {
                       <ul className="mt-1.5 space-y-0.5 pl-3 font-mono text-[11px] text-neutral-600 dark:text-neutral-400">
                         {md.sample.map((s, i) => (
                           <li key={i}>
-                            {s.startTime.slice(5, 16)} · {s.league} ({s.source}) · {s.teams}
+                            {[
+                              s.startTime?.slice(5, 16),
+                              s.source ? `${s.league} (${s.source})` : s.league,
+                              s.teams,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
                           </li>
                         ))}
                       </ul>
