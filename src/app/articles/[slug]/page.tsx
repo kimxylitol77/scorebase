@@ -468,6 +468,9 @@ export default async function ArticlePage({ params }: Props) {
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     inLanguage: "ko-KR",
     articleSection: article.league,
+    // 저작권 주체 명시 — 도용 시 권리자를 구조화 데이터로 못박는다(DMCA 근거).
+    copyrightHolder: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    copyrightYear: (article.publishedAt ?? article.createdAt).getFullYear(),
   };
 
   const eventJsonLd = article.match
@@ -652,7 +655,7 @@ export default async function ArticlePage({ params }: Props) {
       <Markdown>{article.content}</Markdown>
 
       {/* AI 작성 disclosure + 데이터 출처 */}
-      <AiDisclosure league={article.league} type={article.type} />
+      <AiDisclosure league={article.league} type={article.type} url={url} />
 
       {/* 참고 외부 출처 (공식 사이트·통계) */}
       <ExternalSources league={article.league} />
@@ -811,7 +814,15 @@ const DATA_SOURCES_BY_LEAGUE: Record<string, string[]> = {
   NHL:        ["NHL 공식 API (api-web.nhle.com)", "ESPN", "The Odds API"],
 };
 
-function AiDisclosure({ league, type }: { league: string; type: string }) {
+function AiDisclosure({
+  league,
+  type,
+  url,
+}: {
+  league: string;
+  type: string;
+  url: string;
+}) {
   const sources = DATA_SOURCES_BY_LEAGUE[league] ?? ["공식 스포츠 데이터"];
   const typeLabel =
     type === "PREVIEW" ? "프리뷰" : type === "RECAP" ? "리뷰" : "분석";
@@ -832,6 +843,17 @@ function AiDisclosure({ league, type }: { league: string; type: string }) {
           {" — "}
           {sources.join(" · ")}. 모든 통계는 매치 시점 기준으로
           계산되며 결과는 모델 추정치로 베팅 결과를 보장하지 않습니다.
+        </p>
+        <p>
+          <strong className="text-zinc-900 dark:text-white">저작권</strong>
+          {" — "}© {SITE_NAME}. 이 글의 원문은{" "}
+          <a
+            href={url}
+            className="underline underline-offset-2 hover:text-zinc-900 dark:hover:text-white"
+          >
+            {url.replace(/^https?:\/\//, "")}
+          </a>
+          {" "}입니다. 무단 전재·재배포를 금합니다.
         </p>
       </div>
     </aside>

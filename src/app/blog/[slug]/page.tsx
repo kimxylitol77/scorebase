@@ -110,6 +110,9 @@ export default async function BlogDetailPage({ params }: Props) {
     image: b.thumbnailUrl ?? undefined,
     keywords: b.tags ?? undefined,
     mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${slug}` },
+    // 저작권 주체 명시 — 도용 시 권리자를 구조화 데이터로 못박는다(DMCA 근거).
+    copyrightHolder: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
+    copyrightYear: b.publishedAt.getFullYear(),
   };
 
   const isHtmlContent = /^\s*<(article|div|section|p|h[1-6])\b/i.test(b.content);
@@ -163,6 +166,16 @@ export default async function BlogDetailPage({ params }: Props) {
       ) : (
         <Markdown>{b.content}</Markdown>
       )}
+      <p className="mt-8 border-t border-black/5 pt-4 text-xs leading-relaxed text-zinc-500 dark:border-white/10 dark:text-white/50">
+        © 스코어베이스. 이 글의 원문은{" "}
+        <a
+          href={`${SITE_URL}/blog/${slug}`}
+          className="underline underline-offset-2 hover:text-zinc-900 dark:hover:text-white"
+        >
+          {`${SITE_URL}/blog/${slug}`.replace(/^https?:\/\//, "")}
+        </a>
+        {" "}입니다. 무단 전재·재배포를 금합니다.
+      </p>
     </main>
   );
 }
