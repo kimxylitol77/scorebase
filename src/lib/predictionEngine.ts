@@ -28,6 +28,7 @@ import { calcLeagueBaseRate, priorWeight } from "./predict/league-prior";
 import { calcWinProbability, type WinProb } from "./predict/win-probability";
 import { blendWithMarket, type MarketProb } from "./predict/market-blend";
 import { calcRecentTrend } from "./predict/recent-trend";
+import { rollingXgStrength, xgMomentumShift } from "./predict/rolling-xg";
 import { fitDixonColes, predictDixonColes, type DcMatch } from "./predict/dixon-coles";
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { PredictMatch } from "./predict/types";
@@ -97,6 +98,8 @@ export interface TeamInput {
   matchesIn8d?: number;
   /** 축구 — 시즌 막판 동기부여 (fight=우승·강등 사투 / dead=중위 무동기). */
   motivation?: "fight" | "dead" | "normal";
+  /** 축구 — 최근 8경기 rolling xG 득실 평균 (xgFor-xgAgainst). predictMatchById 가 채움 (rolling-xg). */
+  xgStrength?: number | null;
 }
 
 /**
@@ -340,6 +343,25 @@ export function predictMatch(input: PredictionInput): PredictionResult {
       }
     }
   } else if (sport === "football") {
+    // xG 모멘텀 — 최근 8경기 rolling 기대득실. DC 0.85 블렌드가 elo(xG-Elo) 를 15% 로 희석해
+    // 최근 xG 폼이 약하게만 반영되던 것을 독립 shift 로 보강 (walk-forward 백테스트 통과:
+    // 빅5+MLS Brier -1.8%·test -1.6%, 누수검증 anti +5%·shuffle 0%. UCL 크로스리그 제외 — rolling-xg).
+    const xgShift = xgMomentumShift(league, home.xgStrength, away.xgStrength);
+    if (xgShift !== 0) {
+      probs = normalizeProbs({
+        home: clamp01(probs.home + xgShift),
+        draw: probs.draw,
+        away: clamp01(probs.away - xgShift),
+      });
+      signalsUsed.push("xg_momentum");
+      const hStr = home.xgStrength ?? 0;
+      const aStr = away.xgStrength ?? 0;
+      reasons.push({
+        tag: "xG 모멘텀",
+        detail: `${xgShift > 0 ? home.name : away.name} 최근 기대득실 우위 (xG ${hStr >= 0 ? "+" : ""}${hStr.toFixed(2)} vs ${aStr >= 0 ? "+" : ""}${aStr.toFixed(2)})`,
+        weight: Math.abs(xgShift) >= 0.06 ? "high" : "med",
+      });
+    }
     // 휴식일 격차 — 2일+ 차이에만, 1일당 1%p, cap ±3%p (UEFA 미드위크 연구 일반치 보수 적용)
     if (home.restDays != null && away.restDays != null) {
       const rd = home.restDays - away.restDays;
@@ -605,6 +627,16 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
     // silent
   }
 
+  // 축구 xG 모멘텀 — 최근 8경기 rolling xG 득실 (seasonMatchesTyped 에 fixtureStats→xgHome 주입됨, rolling-xg)
+  const homeXgStrength =
+    sport === "football"
+      ? rollingXgStrength(seasonMatchesTyped, match.homeTeamId, match.startTime)
+      : null;
+  const awayXgStrength =
+    sport === "football"
+      ? rollingXgStrength(seasonMatchesTyped, match.awayTeamId, match.startTime)
+      : null;
+
   const odds =
     typeof match.marketHome === "number" && typeof match.marketAway === "number"
       ? {
@@ -659,6 +691,7 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
       restDays: homeRest?.restDays,
       matchesIn8d: homeRest?.matchesIn8d,
       motivation: homeMotivation,
+      xgStrength: homeXgStrength,
     },
     away: {
       name: match.awayTeam.name,
@@ -668,6 +701,7 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
       restDays: awayRest?.restDays,
       matchesIn8d: awayRest?.matchesIn8d,
       motivation: awayMotivation,
+      xgStrength: awayXgStrength,
     },
     odds,
     dc,
