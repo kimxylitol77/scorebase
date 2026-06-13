@@ -1,12 +1,14 @@
-// 선수 연봉 수집 잡 — NBA(basketball-reference) + MLB(spotrac) 스크래핑 → PlayerSalary replace.
+// 선수 연봉 수집 잡 — NBA(basketball-reference)·MLB(spotrac) 스크래핑 + KBO(큐레이션) → PlayerSalary replace.
 // /api/cron/fetch-salaries 호출 + 수동: npm run job:salaries
 //
 // "현재 시즌 스냅샷" → league 전체 deleteMany 후 createMany (rank 변동·은퇴 자동 정리).
 // ⚠️ 파싱 0건이면 해당 league replace 안 함 — 스크래핑 실패(봇차단·구조변경) 시 빈 테이블 덮어쓰기 방지.
+// ⚠️ KBO 는 정적 큐레이션(만원 단위) — statiz 로그인 벽으로 자동 스크랩 불가. cron 마다 멱등 replace.
 
 import { prisma } from "@/lib/db";
 import { fetchNbaSalaries, currentSeasonLabel } from "@/lib/sports/nba-salaries";
 import { fetchMlbSalaries, mlbSeasonLabel } from "@/lib/sports/mlb-salaries";
+import { getKboSalaries, KBO_SALARY_SEASON } from "@/lib/sports/kbo-salaries";
 
 interface LeagueResult {
   league: string;
@@ -32,9 +34,10 @@ async function replaceLeague(
         season,
         rank: r.rank,
         playerName: r.playerName,
-        position: null,
+        position: r.position ?? null,
         teamName: r.teamName,
         salary: r.salary,
+        photoUrl: r.photoUrl ?? null,
       })),
     }),
   ]);
@@ -46,7 +49,9 @@ interface NormalizedRow {
   rank: number;
   playerName: string;
   teamName: string;
+  position?: string | null; // KBO 포지션(포수·투수·내야수·외야수). NBA/MLB 는 미사용.
   salary: number;
+  photoUrl?: string;
 }
 
 export async function runFetchSalaries(): Promise<{ results: LeagueResult[] }> {
@@ -56,6 +61,7 @@ export async function runFetchSalaries(): Promise<{ results: LeagueResult[] }> {
   const results: LeagueResult[] = [];
   results.push(await replaceLeague("NBA", nba, currentSeasonLabel(now)));
   results.push(await replaceLeague("MLB", mlb, mlbSeasonLabel(now)));
+  results.push(await replaceLeague("KBO", getKboSalaries(), KBO_SALARY_SEASON));
   return { results };
 }
 

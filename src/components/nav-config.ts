@@ -41,6 +41,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/predictions/starters", label: "선발 매치업", desc: "선발 투수 맞대결 비교" },
       { href: "/predictions/KBO", label: "시즌 예측", desc: "KBO·MLB·NPB 우승 확률" },
       { href: "/standings", label: "리그 순위", desc: "KBO·MLB·NPB" },
+      { href: "/salaries/kbo", label: "KBO 연봉 랭킹", desc: "국내 선수 연봉 순위" },
       { href: "/salaries/mlb", label: "MLB 연봉 랭킹", desc: "선수별 연봉·한화 환산" },
     ],
   },
