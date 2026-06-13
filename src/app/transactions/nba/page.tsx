@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { lookupNbaPlayer } from "@/lib/sports/nba-players";
 
 export const revalidate = 1800; // 30분 — 데이터는 일 1회 갱신이라 충분
 
@@ -138,6 +139,9 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
                 {items.map((t) => {
                   const c = CAT_MAP[t.category] ?? CAT_MAP.other;
                   const koTeam = t.teamName ? toKoreanTeamName(t.teamName, "NBA") : null;
+                  // 단일 선수 트랜잭션만 선수 한글명·사진 (트레이드는 다중이라 생략).
+                  const player = t.category !== "trade" ? lookupNbaPlayer(t.playerName) : null;
+                  const playerDisplay = player?.ko ?? t.playerName;
                   return (
                     <li
                       key={t.id}
@@ -156,9 +160,13 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
                             <span className="truncate text-xs font-semibold text-neutral-700 dark:text-neutral-300">{koTeam}</span>
                           )}
                           {/* 트레이드는 다중 선수·다중 문장이라 단일 파싱이 노이즈 — 설명 전문으로 충분. */}
-                          {t.playerName && t.category !== "trade" && (
-                            <span className="truncate text-xs text-neutral-500">
-                              · {t.position ? `${t.position} ` : ""}{t.playerName}
+                          {playerDisplay && t.category !== "trade" && (
+                            <span className="inline-flex items-center gap-1 text-xs text-neutral-500 min-w-0">
+                              {player?.photo && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={player.photo} alt="" loading="lazy" className="h-4 w-4 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top" />
+                              )}
+                              <span className="truncate">· {t.position ? `${t.position} ` : ""}{playerDisplay}</span>
                             </span>
                           )}
                         </div>

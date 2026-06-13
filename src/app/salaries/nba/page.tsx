@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { lookupNbaPlayer } from "@/lib/sports/nba-players";
 
 export const revalidate = 3600; // 1시간 — 주 1회 갱신이라 충분
 
@@ -24,6 +25,28 @@ function fmtUsd(n: number): string {
 }
 function fmtFull(n: number): string {
   return `$${n.toLocaleString()}`;
+}
+
+/** 선수 사진 아바타 — ESPN headshot. 없으면(매칭 실패) 이니셜 원형 fallback. */
+function PlayerAvatar({ photo, name }: { photo?: string; name: string }) {
+  if (!photo) {
+    const initial = name.trim().charAt(0).toUpperCase();
+    return (
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300">
+        {initial}
+      </span>
+    );
+  }
+  // ESPN headshot 은 투명 배경 PNG — 옅은 원형 배경 위에 얹어 일관된 썸네일.
+  // eslint-disable-next-line @next/next/no-img-element
+  return (
+    <img
+      src={photo}
+      alt=""
+      loading="lazy"
+      className="h-7 w-7 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top"
+    />
+  );
 }
 
 export default async function NbaSalariesPage() {
@@ -73,7 +96,7 @@ export default async function NbaSalariesPage() {
             <thead>
               <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 text-xs text-neutral-500">
                 <th className="px-3 py-2.5 text-center font-semibold w-10">#</th>
-                <th className="px-2 py-2.5 text-left font-semibold">선수</th>
+                <th className="px-2 py-2.5 text-left font-semibold" colSpan={2}>선수</th>
                 <th className="px-2 py-2.5 text-left font-semibold">팀</th>
                 <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
               </tr>
@@ -81,15 +104,20 @@ export default async function NbaSalariesPage() {
             <tbody>
               {rows.map((r) => {
                 const top3 = r.rank <= 3;
+                const info = lookupNbaPlayer(r.playerName);
+                const display = info?.ko ?? r.playerName;
                 return (
                   <tr
                     key={r.id}
                     className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition"
                   >
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
-                    <td className="px-2 py-2.5">
+                    <td className="pl-2 py-1.5 w-9">
+                      <PlayerAvatar photo={info?.photo} name={display} />
+                    </td>
+                    <td className="pr-2 py-2.5">
                       <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
-                        {r.playerName}
+                        {display}
                       </span>
                     </td>
                     <td className="px-2 py-2.5 text-neutral-500">{toKoreanTeamName(r.teamName, "NBA")}</td>
