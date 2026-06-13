@@ -19,6 +19,7 @@
     "job:blog-weekly": "tsx src/jobs/generate-blog-weekly.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
     "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",
+    "job:transactions": "tsx --env-file=.env.local src/jobs/fetch-transactions.ts",
     "scheduler": "tsx src/jobs/scheduler.ts",
     "players:match": "tsx scripts/match-player-ids.ts",
     "players:apply": "tsx scripts/apply-player-seed.ts",

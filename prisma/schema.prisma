@@ -776,6 +776,28 @@ model FootballTransfer {
   @@index([playerId])
 }
 
+/// ESPN 트랜잭션 피드 — 북미 종목(NBA/MLB/NHL) 의 트레이드·FA계약·방출·단기계약·감독인사.
+/// ESPN transactions 엔드포인트는 세 종목 응답 형태가 동일 → league 필드로 단일 모델 재사용.
+/// ESPN 응답엔 안정적 고유 id 가 없어 id = `${league}:${date}:${desc 해시}` 합성 (멱등 upsert).
+/// 축구 FootballTransfer(이적료·시장가치 중심)와 분리 — 북미는 이적료 시장이 아니라 트랜잭션 피드.
+model SportsTransaction {
+  id          String   @id // 합성: "{league}:{yyyy-mm-dd}:{hash}"
+  league      String // "NBA" | "MLB" | "NHL"
+  date        DateTime // 트랜잭션 발생일
+  teamId      String? // ESPN team id
+  teamName    String? // ESPN 팀 표시명 (영문)
+  teamAbbr    String? // 약어 (NO, LAL ...)
+  teamLogo    String? // ESPN 로고 URL
+  description String // 원문 설명 (영문) — "Signed G Nick Smith Jr. to a contract."
+  category    String // 분류: trade | signing | waive | short_term | staff | other
+  playerName  String? // 설명에서 best-effort 파싱 (표시용, player page 연결 X)
+  position    String? // G | F | C 등 (파싱)
+  createdAt   DateTime @default(now())
+
+  @@index([league, date])
+  @@index([league, category, date])
+}
+
 /// TheSports 랭킹 cache — FIFA 남/여 국가대표 + 클럽 순위. worker cron 이 1일 1회 fetch → upsert.
 /// payload: [{rank, name, teamId, points, regionId?, prevPoints?, posChange?, logo?, countryLogo?}, ...]
 model RankingCache {

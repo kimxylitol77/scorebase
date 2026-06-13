@@ -37,6 +37,7 @@ const GROUPS: Group[] = [
       { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 · 적중" },
       { href: "/experts", label: "예측 전문가", desc: "적중률 순위" },
       { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
+      { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드 · FA · 방출" },
     ],
   },
   {

@@ -1,59 +1,224 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["sin1"],
+  "regions": [
+    "sin1"
+  ],
   "crons": [
-    { "path": "/api/cron/refresh-live-baseball", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/collect", "schedule": "30 11 * * *" },
-    { "path": "/api/cron/collect", "schedule": "30 12 * * *" },
-    { "path": "/api/cron/collect", "schedule": "0 13 * * *" },
-    { "path": "/api/cron/collect", "schedule": "30 13 * * *" },
-    { "path": "/api/cron/collect", "schedule": "0 22 * * *" },
-    { "path": "/api/cron/collect", "schedule": "30 14 * * *" },
-    { "path": "/api/cron/collect", "schedule": "30 15 * * *" },
-    { "path": "/api/cron/collect", "schedule": "30 16 * * *" },
-    { "path": "/api/cron/odds", "schedule": "0 21 * * *" },
-    { "path": "/api/cron/mma", "schedule": "0 21 * * *" },
-    { "path": "/api/cron/mma-live", "schedule": "*/10 21-23,0-5 * * *" },
-    { "path": "/api/cron/api-football", "schedule": "0 14 * * *" },
-    { "path": "/api/cron/api-football", "schedule": "30 15-23 * * *" },
-    { "path": "/api/cron/api-football", "schedule": "30 0-3 * * *" },
-    { "path": "/api/cron/evaluate", "schedule": "0 15 * * *" },
-    { "path": "/api/cron/score-analysis", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/analysis", "schedule": "0 2 * * 4" },
-    { "path": "/api/cron/player-names", "schedule": "0 17 * * 1" },
-    { "path": "/api/cron/manager-picks", "schedule": "0 23 * * *" },
-    { "path": "/api/cron/manager-picks", "schedule": "0 12 * * *" },
-    { "path": "/api/cron/fake-picks", "schedule": "*/30 * * * *" },
-    { "path": "/api/cron/ou-picks", "schedule": "25 11,20 * * *" },
-    { "path": "/api/cron/cleanup-ghost", "schedule": "30 19 * * *" },
-    { "path": "/api/cron/cleanup-stale-scheduled", "schedule": "0 */4 * * *" },
-    { "path": "/api/cron/capture-football-stats", "schedule": "0 */6 * * *" },
-    { "path": "/api/cron/backfill-corners", "schedule": "0 */12 * * *" },
-    { "path": "/api/cron/standings-collect", "schedule": "0 20 * * *" },
-    { "path": "/api/cron/baseball-standings", "schedule": "30 20 * * *" },
-    { "path": "/api/cron/baseball-season-stats", "schedule": "30 19 * * *" },
-    { "path": "/api/cron/mlb-starters", "schedule": "0 12 * * *" },
-    { "path": "/api/cron/nhl-goalies", "schedule": "30 12 * * *" },
-    { "path": "/api/cron/baseball-starters", "schedule": "30 1 * * *" },
-    { "path": "/api/cron/baseball-starters", "schedule": "0 2 * * *" },
-    { "path": "/api/cron/baseball-starters", "schedule": "30 2 * * *" },
-    { "path": "/api/cron/baseball-starters", "schedule": "0 3 * * *" },
-    { "path": "/api/cron/baseball-starters", "schedule": "30 3 * * *" },
-    { "path": "/api/cron/baseball-starters", "schedule": "0 5 * * *" },
-    { "path": "/api/cron/baseball-starters", "schedule": "0 8 * * *" },
-    { "path": "/api/cron/league-leaders", "schedule": "0 20 * * *" },
-    { "path": "/api/cron/lol-team-logos", "schedule": "0 6 * * 1" },
-    { "path": "/api/cron/youtube-highlights", "schedule": "0 */3 * * *" },
-    { "path": "/api/cron/health-check", "schedule": "30 21 * * *" },
-    { "path": "/api/cron/bot-heartbeat-check", "schedule": "*/10 * * * *" },
-    { "path": "/api/cron/preview", "schedule": "30 22 * * *" },
-    { "path": "/api/cron/preview", "schedule": "0 8 * * *" },
-    { "path": "/api/cron/preview", "schedule": "30 8 * * *" },
-    { "path": "/api/cron/preview", "schedule": "0 14 * * *" },
-    { "path": "/api/cron/blog-weekly", "schedule": "0 0 * * 1" },
-    { "path": "/api/cron/volleyball-predict", "schedule": "15 * * * *" },
-    { "path": "/api/cron/wc-sim-snapshot", "schedule": "0 4 * * *" },
-    { "path": "/api/cron/league-sim-snapshot", "schedule": "0 22 * * *" },
-    { "path": "/api/cron/boost-views", "schedule": "0 * * * *" }
+    {
+      "path": "/api/cron/refresh-live-baseball",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "30 11 * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "30 14 * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "30 15 * * *"
+    },
+    {
+      "path": "/api/cron/collect",
+      "schedule": "30 16 * * *"
+    },
+    {
+      "path": "/api/cron/odds",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/mma",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron/mma-live",
+      "schedule": "*/10 21-23,0-5 * * *"
+    },
+    {
+      "path": "/api/cron/api-football",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/api-football",
+      "schedule": "30 15-23 * * *"
+    },
+    {
+      "path": "/api/cron/api-football",
+      "schedule": "30 0-3 * * *"
+    },
+    {
+      "path": "/api/cron/evaluate",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/score-analysis",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/analysis",
+      "schedule": "0 2 * * 4"
+    },
+    {
+      "path": "/api/cron/player-names",
+      "schedule": "0 17 * * 1"
+    },
+    {
+      "path": "/api/cron/manager-picks",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/manager-picks",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/fake-picks",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/ou-picks",
+      "schedule": "25 11,20 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-ghost",
+      "schedule": "30 19 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-stale-scheduled",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/capture-football-stats",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/backfill-corners",
+      "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/cron/standings-collect",
+      "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-standings",
+      "schedule": "30 20 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-season-stats",
+      "schedule": "30 19 * * *"
+    },
+    {
+      "path": "/api/cron/mlb-starters",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/nhl-goalies",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "30 1 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "30 2 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/baseball-starters",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/league-leaders",
+      "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron/lol-team-logos",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/youtube-highlights",
+      "schedule": "0 */3 * * *"
+    },
+    {
+      "path": "/api/cron/health-check",
+      "schedule": "30 21 * * *"
+    },
+    {
+      "path": "/api/cron/bot-heartbeat-check",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/preview",
+      "schedule": "30 22 * * *"
+    },
+    {
+      "path": "/api/cron/preview",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/preview",
+      "schedule": "30 8 * * *"
+    },
+    {
+      "path": "/api/cron/preview",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/blog-weekly",
+      "schedule": "0 0 * * 1"
+    },
+    {
+      "path": "/api/cron/volleyball-predict",
+      "schedule": "15 * * * *"
+    },
+    {
+      "path": "/api/cron/wc-sim-snapshot",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/league-sim-snapshot",
+      "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/boost-views",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/fetch-transactions",
+      "schedule": "0 0 * * *"
+    }
   ]
 }
