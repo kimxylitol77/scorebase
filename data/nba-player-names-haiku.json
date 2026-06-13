@@ -1,7 +1,4 @@
-// NBA 선수 영문 → 한국어 사전 (Haiku 음역, 비스타·부상자 보강).
-// 자동 생성: scripts/build-nba-player-names-haiku.ts (멱등 머지). 스타 선수는 nba-player-names.ts(curated) 우선.
-
-export const NBA_PLAYER_NAMES_HAIKU_KO: Record<string, string> = {
+{
   "Aaron Nesmith": "애런 네스미스",
   "Adama Bal": "아다마 발",
   "Ajay Mitchell": "아제이 미첼",
@@ -99,5 +96,5 @@ export const NBA_PLAYER_NAMES_HAIKU_KO: Record<string, string> = {
   "Yves Missi": "이브 미시",
   "Zach Collins": "자크 콜린스",
   "Zach Edey": "자크 에디",
-  "Ziaire Williams": "지에어 윌리엄스",
-};
+  "Ziaire Williams": "지에어 윌리엄스"
+}

@@ -6,7 +6,7 @@ import { K_LEAGUE_PLAYER_NAMES_KO } from "./sports/k-league-player-names";
 import { J_LEAGUE_PLAYER_NAMES_KO } from "./sports/j-league-player-names";
 import { NBA_PLAYER_NAMES_KO } from "./sports/nba-player-names";
 import { NBA_PLAYER_NAMES_WIKI_KO } from "./sports/nba-player-names-wiki";
-import { NBA_PLAYER_NAMES_HAIKU_KO } from "./sports/nba-player-names-haiku";
+import rawNbaHaikuKo from "../../data/nba-player-names-haiku.json"; // 주간 cron 이 갱신하는 data/*.json (mac-mini)
 import { NHL_PLAYER_NAMES_KO } from "./sports/nhl-player-names";
 import { WNBA_PLAYER_NAMES_KO } from "./sports/wnba-player-names";
 import { MLB_PLAYER_NAMES_KO } from "./sports/mlb-player-names";
@@ -14,6 +14,8 @@ import { MLB_PLAYER_NAMES_NAVER_KO } from "./sports/mlb-player-names-naver";
 import { MLB_PLAYER_NAMES_HAIKU_KO } from "./sports/mlb-player-names-haiku";
 import { MLS_PLAYER_NAMES_KO } from "./sports/mls-player-names";
 import { ESPN_LEADER_NAMES_KO } from "./sports/espn-leader-names";
+
+const NBA_PLAYER_NAMES_HAIKU_KO = rawNbaHaikuKo as Record<string, string>;
 
 const RAW: Record<string, string> = {
   // ─── EPL — Big 6 + 한국 선수 + 슈퍼스타 ───

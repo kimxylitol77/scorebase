@@ -1,6 +1,7 @@
 // NBA 영문 → 한국어 선수명 사전 (Haiku 음역) — 부상자 명단 등 비스타 선수 커버.
 // 소스: BALLDONTLIE + ESPN NBA 부상자 union (페이지가 실제 쓰는 데이터). 기존 사전 미커버만 음역.
-// 출력: src/lib/sports/nba-player-names-haiku.ts (멱등 머지) → player-names.ts 에서 import.
+// 출력: data/nba-player-names-haiku.json (멱등 머지) → player-names.ts 에서 import.
+//   data/*.json 이라 mac-mini weekly-static-refresh.sh 가 자동 갱신·push (코드 사전과 달리 무인 자동화 가능).
 //   실행: env -u ANTHROPIC_API_KEY npx tsx scripts/build-nba-player-names-haiku.ts [LIMIT]
 //   (Claude Code 가 빈 ANTHROPIC_API_KEY="" 주입 → env -u 로 제거. dotenv override:true 도 보강.)
 import dotenv from "dotenv";
@@ -13,7 +14,7 @@ import { fetchEspnInjuries } from "../src/lib/sports/espn-injuries";
 import { toKoreanPlayerName } from "../src/lib/player-names";
 
 const BATCH = 50;
-const OUT = "src/lib/sports/nba-player-names-haiku.ts";
+const OUT = "data/nba-player-names-haiku.json";
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 const LIMIT = parseInt(process.argv[2] ?? "0", 10);
@@ -80,11 +81,9 @@ async function main() {
   console.log(`▶ NBA 부상자 union 수집: ${all.length}명`);
 
   const outPath = resolve(OUT);
-  const existing: Record<string, string> = {};
+  let existing: Record<string, string> = {};
   if (existsSync(outPath)) {
-    for (const x of readFileSync(outPath, "utf8").matchAll(/"((?:[^"\\]|\\.)+)":\s*"((?:[^"\\]|\\.)+)"/g)) {
-      existing[x[1].replace(/\\"/g, '"')] = x[2].replace(/\\"/g, '"');
-    }
+    try { existing = JSON.parse(readFileSync(outPath, "utf8")) as Record<string, string>; } catch {}
   }
   // 미커버 = 기존 사전(curated/import) 도 실패 + haiku 파일에도 없음
   let todo = all.filter((en) => toKoreanPlayerName(en) === en && !(en in existing));
@@ -111,10 +110,9 @@ async function main() {
     await new Promise((r) => setTimeout(r, 500));
   }
 
-  const sorted = Object.entries(merged).sort((a, b) => a[0].localeCompare(b[0]));
-  const body = sorted.map(([en, ko]) => `  "${en.replace(/"/g, '\\"')}": "${ko.replace(/"/g, '\\"')}",`).join("\n");
-  writeFileSync(outPath, `// NBA 선수 영문 → 한국어 사전 (Haiku 음역, 비스타·부상자 보강).\n// 자동 생성: scripts/build-nba-player-names-haiku.ts (멱등 머지). 스타 선수는 nba-player-names.ts(curated) 우선.\n\nexport const NBA_PLAYER_NAMES_HAIKU_KO: Record<string, string> = {\n${body}\n};\n`);
-  console.log(`\n✓ wrote ${OUT} — total ${sorted.length} entries (+${added})`);
+  const sortedObj = Object.fromEntries(Object.entries(merged).sort((a, b) => a[0].localeCompare(b[0])));
+  writeFileSync(outPath, JSON.stringify(sortedObj, null, 2) + "\n");
+  console.log(`\n✓ wrote ${OUT} — total ${Object.keys(sortedObj).length} entries (+${added})`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
