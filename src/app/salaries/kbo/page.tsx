@@ -31,6 +31,16 @@ export default async function KboSalariesPage() {
   });
   const season = rows[0]?.season ?? "2026";
 
+  // 선수 사진 = TheSportsPlayer(KBO) nameKo 매칭 (KBO 공식 이미지). 미매칭은 이니셜.
+  const names = rows.map((r) => r.playerName);
+  const tsP = names.length
+    ? await prisma.theSportsPlayer.findMany({
+        where: { sport: "KBO", nameKo: { in: names } },
+        select: { nameKo: true, photoUrl: true },
+      })
+    : [];
+  const photoOf = new Map(tsP.map((p) => [p.nameKo, p.photoUrl]));
+
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <header className="space-y-2">
@@ -75,7 +85,7 @@ export default async function KboSalariesPage() {
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                     <td className="px-2 py-2.5">
                       <div className="flex items-center gap-2.5">
-                        <Avatar name={r.playerName} />
+                        <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
                         <div className="leading-tight">
                           <div className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{r.playerName}</div>
                           <div className="text-[11px] text-neutral-400">
@@ -106,8 +116,12 @@ export default async function KboSalariesPage() {
   );
 }
 
-/** 선수 이니셜 아바타 — KBO 선수 사진 소스가 없어 한글 첫 글자 원형. */
-function Avatar({ name }: { name: string }) {
+/** 선수 아바타 — KBO 공식 이미지(TheSportsPlayer), 매칭 실패 시 한글 첫 글자 원형. */
+function Avatar({ photo, name }: { photo?: string | null; name: string }) {
+  if (photo) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
+  }
   const initial = name.trim().charAt(0);
   return (
     <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
