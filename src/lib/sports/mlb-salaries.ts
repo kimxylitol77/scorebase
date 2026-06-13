@@ -119,5 +119,22 @@ export async function fetchMlbSalaries(): Promise<NormalizedSalary[]> {
       if (m.id) r.photoUrl = `https://midfield.mlbstatic.com/v1/people/${m.id}/spots/120`;
     }
   }
+  // 미매칭(IL·방출 등 active 명단 밖 — Rendon·Burnes·Bryant) 보강 — people/search 배치(40명씩)
+  const unmatched = out.filter((r) => !r.photoUrl);
+  for (let i = 0; i < unmatched.length; i += 40) {
+    const chunk = unmatched.slice(i, i + 40);
+    try {
+      const url = `https://statsapi.mlb.com/api/v1/people/search?names=${encodeURIComponent(chunk.map((r) => r.playerName).join(","))}&hydrate=currentTeam`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+      const data = (await res.json()) as { people?: Array<{ id: number; fullName: string; currentTeam?: { name?: string } }> };
+      const byNorm = new Map((data.people ?? []).map((p) => [norm(p.fullName), p]));
+      for (const r of chunk) {
+        const p = byNorm.get(norm(r.playerName));
+        if (!p) continue;
+        if (p.currentTeam?.name) r.teamName = p.currentTeam.name;
+        r.photoUrl = `https://midfield.mlbstatic.com/v1/people/${p.id}/spots/120`;
+      }
+    } catch { /* 배치 실패 시 skip */ }
+  }
   return out;
 }
