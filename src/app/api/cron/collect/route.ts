@@ -30,7 +30,12 @@ const TS_COVERED = new Set(
 // 매핑) 분류 밖 + af collector·ALL_LEAGUES 미등록이라 여기 넣어도 무효. 매치 소스는
 // ts ice_hockey worker 인데 당일/사후 수집만 해 2026 대회 30경기가 미래 리드타임 0
 // → predict 4건·채점 0. 2027 대회(5월) 전에 ts worker 의 미래 일정 커버를 점검할 것.
-const TS_COVERED_EXCEPTIONS = new Set<League>(["K_LEAGUE_1"]);
+//
+// YKKONEN·LATVIA_VL (2026-06-13): af 소스 매치인데 ts 매치↔af row 연결이 거의 실패
+// (최근 30일 cache 연결 4%·48%) → af 수집까지 skip 되면 결과 갱신 경로가 전무, 매 경기일
+// stale SCHEDULED → cleanup verify 가 6h 후 뒷수습하는 패턴 반복 (6/12~13 알림 5건).
+// 같은 증상 후보: ESTONIA_ML·LITHUANIA_AL·GEORGIA_EL·SINGAPORE_PL — 알림 재발 시 추가.
+const TS_COVERED_EXCEPTIONS = new Set<League>(["K_LEAGUE_1", "YKKONEN", "LATVIA_VL"]);
 
 const ALL_LEAGUES: League[] = [
   "EPL",
