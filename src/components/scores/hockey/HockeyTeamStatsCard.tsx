@@ -9,8 +9,12 @@ import { useState } from "react";
 const HOCKEY_STAT_LABELS: Record<number, { label: string; pct?: boolean }> = {
   6: { label: "유효 슈팅" },
   7: { label: "슈팅 성공률", pct: true },
+  8: { label: "슛 블록" },
   9: { label: "선방" },
   10: { label: "선방률", pct: true },
+  14: { label: "보디체크" },
+  18: { label: "퍽 탈취" },
+  19: { label: "퍽 내줌" },
   4: { label: "페널티" },
   11: { label: "페널티 분(PIM)" },
   2: { label: "파워플레이 골" },
@@ -21,7 +25,8 @@ const HOCKEY_STAT_LABELS: Record<number, { label: string; pct?: boolean }> = {
   16: { label: "페이스오프 %", pct: true },
   17: { label: "빈 골대 골" },
 };
-const ORDER = [6, 7, 9, 10, 4, 11, 2, 3, 12, 13, 15, 16, 17];
+// 표시 순서: 공격(유효슛·성공률·블록) → 수비(선방) → 몸싸움(체크·탈취·내줌) → 페널티 → 페이스오프
+const ORDER = [6, 7, 8, 9, 10, 14, 18, 19, 4, 11, 2, 3, 12, 13, 15, 16, 17];
 
 export interface HockeyStatRow {
   statId: number;

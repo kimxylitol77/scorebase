@@ -50,6 +50,8 @@ import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import BasketballTeamStatsCard from "@/components/live/BasketballTeamStatsCard";
 import HockeyTeamStatsCard from "@/components/scores/hockey/HockeyTeamStatsCard";
+import HockeyGoalTimeline, { type HockeyIncident } from "@/components/scores/hockey/HockeyGoalTimeline";
+import HockeyBoxScore, { type HockeyPlayerRow } from "@/components/scores/hockey/HockeyBoxScore";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import ConclusionCards, {
   type ConclusionPred,
@@ -934,6 +936,30 @@ export default async function GenericLivePage({ params }: Props) {
           awayTeamName={awayKo}
         />
       )}
+
+      {/* NHL/하키 골 타임라인 + 선수 박스스코어 — cache detailLive.incidents/players (player_id→한글) */}
+      {(lg === "NHL" || lg === "IIHF_WC") &&
+        match.theSportsCache?.detailLive &&
+        (() => {
+          const dl = match.theSportsCache.detailLive as {
+            incidents?: HockeyIncident[];
+            players?: { home?: HockeyPlayerRow[]; away?: HockeyPlayerRow[] };
+          };
+          return (
+            <>
+              {dl.incidents && dl.incidents.length > 0 && (
+                <HockeyGoalTimeline
+                  incidents={dl.incidents}
+                  homeNameKo={homeKo}
+                  awayNameKo={awayKo}
+                />
+              )}
+              {dl.players && (
+                <HockeyBoxScore players={dl.players} homeNameKo={homeKo} awayNameKo={awayKo} />
+              )}
+            </>
+          );
+        })()}
 
       <MatchInsight
         match={match}
