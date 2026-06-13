@@ -755,6 +755,28 @@ export default async function ArticlePage({ params }: Props) {
         />
       )}
 
+      {/* 축구 경기 — 더 풍부한 라인업·실시간 통계는 라이브스코어 상세로 유도 */}
+      {article.match && SOCCER_LEAGUES.has(article.league) && article.match.externalId && (
+        <Link
+          href={`/live/${article.league}/${article.match.externalId}`}
+          prefetch={false}
+          className="group mt-6 flex items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50/60 px-5 py-4 transition hover:border-blue-400 dark:border-blue-900/40 dark:bg-blue-950/30"
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-sm font-bold text-blue-700 dark:text-blue-300">
+              <span aria-hidden>⚽</span>
+              <span>이 경기 실시간 상세 보기</span>
+            </div>
+            <p className="mt-0.5 text-[13px] text-neutral-600 dark:text-neutral-400">
+              라인업·팀 통계·경기 추이·맞대결을 라이브스코어에서 자세히
+            </p>
+          </div>
+          <span className="shrink-0 text-lg text-blue-500 transition group-hover:translate-x-0.5" aria-hidden>
+            →
+          </span>
+        </Link>
+      )}
+
       <RelatedArticles league={article.league} currentId={article.id} />
 
       <div className="mt-12 pt-6 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-sm">
