@@ -13,9 +13,12 @@
     "route-guardian": "node route-guardian.js",
     "threads": "node threads-auto-poster.js",
     "stale-ts-verify": "node stale-ts-verify.js",
-    "football-incidents-backfill": "node football-incidents-backfill.js"
+    "football-incidents-backfill": "node football-incidents-backfill.js",
+    "sports-news-brief": "node sports-news-brief.js",
+    "competitor-watch": "node competitor-watch.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.1",
     "axios": "^1.7.0",
     "dotenv": "^16.4.0"
   }
