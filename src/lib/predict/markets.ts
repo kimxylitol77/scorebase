@@ -2,6 +2,8 @@
 // 종목별 baseline 이 달라서 SPORT_PROFILE 매핑으로 통일.
 
 import type { PredictMatch } from "./types";
+import { calculateInningScoreProbs } from "./baseball-poisson";
+import { getParkFactor } from "./park-factors";
 
 /* =====================================================================
  * Double Chance — winProb (1X2) 데이터 그대로. 무승부 있는 종목(축구)만 의미.
@@ -247,10 +249,60 @@ function teamGoalAverages(
   };
 }
 
+const BULLPEN_ERA_FALLBACK = 4.2;
+
+/**
+ * 야구 OU expectedTotal — baseball-poisson(선발 ERA 6이닝·불펜 3이닝·구장·최근 폼 반영).
+ * 양 선발 ERA 가용 시에만 호출 (없으면 호출 측이 팀평균 모델로 fallback).
+ * baseball-context.enrichBaseballContext 와 동일 입력 소스(venue 무관 시즌 평균 + 최근5 폼).
+ * walk-forward 백테스트 통과(2026-06-13): MLB 선발경기 52.1→54.9%·KBO 51.2→54.4%, OVER 쏠림 90→48%.
+ */
+function baseballPoissonTotal(
+  matches: PredictMatch[],
+  league: string,
+  homeTeamId: number,
+  awayTeamId: number,
+  asOf: Date,
+  s: { homeEra: number; awayEra: number; homeTeamName?: string },
+): { expectedTotal: number; sample: number } | null {
+  const home = teamGoalAverages(matches, homeTeamId, asOf, { venue: "all", recentBlend: 0 });
+  const away = teamGoalAverages(matches, awayTeamId, asOf, { venue: "all", recentBlend: 0 });
+  if (home.sample === 0 || away.sample === 0) return null;
+  // 최근 폼 = 최근5경기 평균 득점 - 시즌 평균, ±0.4 클램프 (baseball-context 동일).
+  const homeRecent = teamGoalAverages(matches, homeTeamId, asOf, { venue: "all", recentBlend: 1, recentN: 5 });
+  const awayRecent = teamGoalAverages(matches, awayTeamId, asOf, { venue: "all", recentBlend: 1, recentN: 5 });
+  const clampForm = (v: number) => Math.max(-0.4, Math.min(0.4, v));
+  const homeForm = clampForm(homeRecent.scoredPerGame - home.scoredPerGame);
+  const awayForm = clampForm(awayRecent.scoredPerGame - away.scoredPerGame);
+  const park = s.homeTeamName
+    ? getParkFactor(league as "KBO" | "NPB" | "MLB", s.homeTeamName)
+    : 1.0;
+  // team1 = 원정(away), team2 = 홈(home) — baseball-poisson / baseball-context 규약
+  const poisson = calculateInningScoreProbs({
+    team1AvgRpg: away.scoredPerGame,
+    team1AvgRApg: away.concededPerGame,
+    team2AvgRpg: home.scoredPerGame,
+    team2AvgRApg: home.concededPerGame,
+    team1StarterEra: s.awayEra,
+    team2StarterEra: s.homeEra,
+    team1StarterInnings: 5.5,
+    team2StarterInnings: 5.5,
+    team1BullpenEra: BULLPEN_ERA_FALLBACK,
+    team2BullpenEra: BULLPEN_ERA_FALLBACK,
+    parkFactor: park,
+    team1RecentForm: awayForm,
+    team2RecentForm: homeForm,
+  });
+  return {
+    expectedTotal: poisson.totalExpectedRuns.team1 + poisson.totalExpectedRuns.team2,
+    sample: Math.min(home.sample, away.sample),
+  };
+}
+
 /**
  * 종목별 OVER/UNDER 추정.
- * expected_total = 양 팀 공격력 + 상대 수비력의 평균.
- * 그 분포를 Normal(mean=expected_total, std=종목별)로 가정 → P(total > line).
+ * 야구(KBO/MLB/NPB) + 양 선발 ERA 가용 → baseball-poisson 모델(선발/구장/불펜/폼).
+ * 그 외 → expected_total = 양 팀 공격력 + 상대 수비력의 평균을 Normal(std=종목별)로 가정.
  */
 export function predictTotalMarket(
   matches: PredictMatch[],
@@ -258,6 +310,7 @@ export function predictTotalMarket(
   homeTeamId: number,
   awayTeamId: number,
   asOf: Date,
+  opts?: { homeStarterEra?: number; awayStarterEra?: number; homeTeamName?: string },
 ): {
   expectedTotal: number;
   pOver: number;
@@ -268,6 +321,25 @@ export function predictTotalMarket(
   if (!profile) return null;
   // 야구는 홈/원정 격차 + 최근 폼 영향 큼 — KBO·MLB 분리 사용
   const isBaseball = league === "KBO" || league === "MLB" || league === "NPB";
+
+  // 야구 + 양 선발 ERA 가용 → baseball-poisson 으로 정밀 expectedTotal (백테스트 통과 V2).
+  if (isBaseball && opts?.homeStarterEra != null && opts?.awayStarterEra != null) {
+    const pt = baseballPoissonTotal(matches, league, homeTeamId, awayTeamId, asOf, {
+      homeEra: opts.homeStarterEra,
+      awayEra: opts.awayStarterEra,
+      homeTeamName: opts.homeTeamName,
+    });
+    if (pt) {
+      const pOver = 1 - normalCdf(profile.overLine, pt.expectedTotal, profile.totalStd);
+      return {
+        expectedTotal: pt.expectedTotal,
+        pOver: Math.max(0.01, Math.min(0.99, pOver)),
+        line: profile.overLine,
+        sample: pt.sample,
+      };
+    }
+  }
+
   const home = teamGoalAverages(matches, homeTeamId, asOf, {
     venue: isBaseball ? "home" : "all",
     recentBlend: isBaseball ? 0.4 : 0,

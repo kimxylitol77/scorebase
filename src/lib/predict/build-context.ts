@@ -56,6 +56,17 @@ import type { RecapContext } from "@/prompts/match-recap";
 /** 예측 신뢰도/데이터부족 기준 — 양 팀 직전 경기 표본 최소치. evaluate MIN_PRIOR 와 동일. */
 export const MIN_PRIOR_MATCHES = 5;
 
+/** 선발 JSON(Match.homeStarter) 에서 ERA 만 안전 추출 — predictTotalMarket 야구 OU(baseball-poisson) 보강용. */
+export function starterEraFromJson(s: string | null | undefined): number | undefined {
+  if (!s) return undefined;
+  try {
+    const era = (JSON.parse(s) as { era?: number }).era;
+    return typeof era === "number" ? era : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // 국가대표 Elo (친선·월드컵 winProb 용) — world-cup-elos(본선국 실제 Elo) 우선, 없으면 FIFA랭킹 환산.
 // 친선은 클럽 Elo(calcEloTable)가 주전 결장·결과 변동으로 평준화돼 부정확하므로 별도 소스 사용.
 // export — MatchInsight 위젯도 국가대항 매치 Elo 표시·fallback 계산에 동일 소스 사용.
@@ -131,6 +142,7 @@ export function buildMatchContext(
   referenceTime: Date,
   homeName?: string,
   awayName?: string,
+  baseballStarter?: { homeEra?: number; awayEra?: number },
 ): PreviewContext {
   const before = matches.filter(
     (m) => m.startTime.getTime() < referenceTime.getTime(),
@@ -166,7 +178,11 @@ export function buildMatchContext(
   // 대신 이 확정값을 쓰게 해 위젯과 single source(핸디캡 방향 반대 표시 근절).
   const sportProfile = getSportProfile(league);
   const ouMarket = sportProfile
-    ? predictTotalMarket(matches, league, homeTeamId, awayTeamId, referenceTime)
+    ? predictTotalMarket(matches, league, homeTeamId, awayTeamId, referenceTime, {
+        homeStarterEra: baseballStarter?.homeEra,
+        awayStarterEra: baseballStarter?.awayEra,
+        homeTeamName: homeName,
+      })
     : null;
   const hcMarket = sportProfile
     ? predictHandicapMarket(matches, league, homeTeamId, awayTeamId, referenceTime)
