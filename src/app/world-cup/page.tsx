@@ -12,6 +12,16 @@ import { toKoreanTeamName } from "@/lib/team-names";
 
 export const revalidate = 600;
 
+// 토너먼트 일정 — FIFA 공식(현지 기준). 대진(팀)은 조별리그 후 확정 → 그때 af 수집되며 경기 일정에 자동 합류.
+const KNOCKOUT = [
+  { round: "32강", en: "Round of 32", dates: "6.28 ~ 7.3" },
+  { round: "16강", en: "Round of 16", dates: "7.4 ~ 7.7" },
+  { round: "8강", en: "Quarter-finals", dates: "7.9 ~ 7.11" },
+  { round: "4강", en: "Semi-finals", dates: "7.14 ~ 7.15" },
+  { round: "3·4위전", en: "Third place", dates: "7.18" },
+  { round: "결승", en: "Final", dates: "7.19" },
+];
+
 export const metadata: Metadata = {
   title: "2026 월드컵 — 일정·결과·우승 확률·조별리그 데이터 센터",
   description:
@@ -188,6 +198,24 @@ export default async function WorldCupHub() {
           </div>
         </section>
       )}
+
+      {/* 토너먼트 일정 — 정적(FIFA 공식). 대진은 조별리그 후 확정되면 경기 일정에 자동 합류 */}
+      <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="font-semibold">토너먼트 일정</h2>
+          <span className="text-xs text-neutral-500">대진은 조별리그 후 확정 · 현지 기준</span>
+        </div>
+        <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          {KNOCKOUT.map((k) => (
+            <li key={k.round} className="flex items-center justify-between py-2.5 text-sm">
+              <span className="font-semibold">
+                {k.round} <span className="text-xs font-normal text-neutral-400">{k.en}</span>
+              </span>
+              <span className="tabular-nums text-neutral-600 dark:text-neutral-300">{k.dates}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {koreaSim && (
         <section className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 p-5">
