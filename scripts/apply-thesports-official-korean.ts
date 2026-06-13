@@ -6,6 +6,7 @@
 // mac mini 공식 한글 봇(daily-official-korean)이 매일 새벽 호출.
 import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "fs";
+import { deReverseKoreanName } from "../src/lib/korean-name-order";
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes("--apply");
@@ -42,8 +43,9 @@ async function main() {
     const raw = langMap.get(p.id);
     if (!raw) continue;
     matched++;
-    const off = normalize(raw);
-    if (!off) { rejected++; continue; }
+    const off0 = normalize(raw);
+    if (!off0) { rejected++; continue; }
+    const off = deReverseKoreanName(off0, p.name); // 공식 ko 가 "흥민 손" 처럼 뒤집힌 경우 "손흥민" 으로 교정
     if (p.nameKo === off) { same++; continue; }
     if (!p.nameKo) newly++; else diff++;
     updates.push({ id: p.id, ko: off });
