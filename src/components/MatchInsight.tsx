@@ -227,6 +227,28 @@ export default async function MatchInsight({
       ? await prisma.matchStats.findUnique({ where: { matchId: match.id } })
       : null;
 
+  // 기대득점(xG) — af fixtureStats[home, away].expectedGoals (종료 빅5·MLS·브라질 등만 제공).
+  // "경기 기록" 카드 상단에 강조 + 실제 스코어 대비 인사이트.
+  let matchXg: { home: number; away: number; homeScore: number | null; awayScore: number | null } | null = null;
+  if (leagueHasDraw(match.league) && match.status === "FINISHED") {
+    const xgRow = await prisma.match.findUnique({
+      where: { id: match.id },
+      select: { fixtureStats: true },
+    });
+    if (xgRow?.fixtureStats) {
+      try {
+        const fs = JSON.parse(xgRow.fixtureStats) as { expectedGoals?: number }[];
+        const h = fs[0]?.expectedGoals;
+        const a = fs[1]?.expectedGoals;
+        if (typeof h === "number" && typeof a === "number") {
+          matchXg = { home: h, away: a, homeScore: match.homeScore, awayScore: match.awayScore };
+        }
+      } catch {
+        // 손상 JSON — xG 생략
+      }
+    }
+  }
+
   const eloTable = calcEloTable(beforeMatches);
   // 단일 소스 — 글 스냅샷 Elo 가 있으면 그 값 사용 (본문 글과 100% 일치). 없으면 재계산.
   // 국가대항(월드컵·친선)은 클럽 매치 히스토리가 없어 calcEloTable 이 전원 1500 —
@@ -327,7 +349,11 @@ export default async function MatchInsight({
 
   // 모든 종목 공통 — OVER/UNDER + 핸디캡
   const total = sportProfile
-    ? predictTotalMarket(matches, match.league, match.homeTeamId, match.awayTeamId, referenceTime)
+    ? predictTotalMarket(matches, match.league, match.homeTeamId, match.awayTeamId, referenceTime, {
+        homeStarterEra: homeStarterEarly?.era,
+        awayStarterEra: awayStarterEarly?.era,
+        homeTeamName: match.homeTeam.name,
+      })
     : null;
   const ovPick = total ? (total.pOver >= 0.5 ? "OVER" : "UNDER") : null;
   const ovOk =
@@ -993,6 +1019,7 @@ export default async function MatchInsight({
               stats={matchStats}
               homeName={toKoreanTeamName(match.homeTeam.name)}
               awayName={toKoreanTeamName(match.awayTeam.name)}
+              xg={matchXg}
             />
           ) : null,
         },

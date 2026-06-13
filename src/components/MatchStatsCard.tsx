@@ -16,14 +16,47 @@ interface MatchStatsRow {
   awayRed: number | null;
 }
 
+/** 기대득점(xG) — af fixtureStats. 종료 경기 + 실제 스코어와 함께 "운 좋은 승리" 등 인사이트 생성. */
+interface MatchXg {
+  home: number;
+  away: number;
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+/** xG vs 실제 결과의 어긋남을 한국어 인사이트 한 줄로. 평범한 경기는 null(코멘트 생략). */
+function xgInsight(xg: MatchXg, homeName: string, awayName: string): string | null {
+  const { home, away, homeScore, awayScore } = xg;
+  if (homeScore == null || awayScore == null) return null;
+  const xgDiff = home - away;
+  const realDiff = homeScore - awayScore;
+  const xgWinnerHome = xgDiff > 0;
+  const realWinnerHome = realDiff > 0;
+  // xG 의미있는 차이만(0.5+). 무승부인데 xG 한쪽 우세 → 아쉬운 무승부.
+  if (Math.abs(xgDiff) >= 0.5 && realDiff === 0) {
+    return `${xgWinnerHome ? homeName : awayName}, 기대득점은 앞섰지만 무승부 — 결정력이 아쉬웠습니다.`;
+  }
+  // 실제 승자 ≠ xG 우세팀 → 운 좋은 승리.
+  if (Math.abs(xgDiff) >= 0.5 && realDiff !== 0 && xgWinnerHome !== realWinnerHome) {
+    return `🍀 ${realWinnerHome ? homeName : awayName}, 기대득점 열세를 딛고 거둔 값진 승리입니다.`;
+  }
+  // 실제·xG 모두 압도 → 완승.
+  if (Math.abs(xgDiff) >= 0.8 && realDiff !== 0 && xgWinnerHome === realWinnerHome) {
+    return `${realWinnerHome ? homeName : awayName}, 기대득점·결과 모두 앞선 완승입니다.`;
+  }
+  return null;
+}
+
 export default function MatchStatsCard({
   stats,
   homeName,
   awayName,
+  xg,
 }: {
   stats: MatchStatsRow;
   homeName: string;
   awayName: string;
+  xg?: MatchXg | null;
 }) {
   const rows: Array<{ label: string; h: number | null; a: number | null; pct?: boolean }> = [
     { label: "코너킥", h: stats.homeCorners, a: stats.awayCorners },
@@ -44,6 +77,40 @@ export default function MatchStatsCard({
         <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">경기 기록</div>
         <div className="truncate text-sm font-bold text-rose-600 dark:text-rose-400">{awayName}</div>
       </div>
+      {xg && (() => {
+        const max = Math.max(xg.home, xg.away, 0.1);
+        const insight = xgInsight(xg, homeName, awayName);
+        return (
+          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/60 px-3 py-3 dark:border-emerald-900/50 dark:bg-emerald-950/30">
+            <div className="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+              기대 득점 (xG)
+            </div>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+              <div className="text-right text-2xl font-extrabold tabular-nums text-blue-600 dark:text-blue-400">
+                {xg.home.toFixed(2)}
+              </div>
+              <div className="px-1 text-[10px] font-medium text-neutral-400">xG</div>
+              <div className="text-2xl font-extrabold tabular-nums text-rose-600 dark:text-rose-400">
+                {xg.away.toFixed(2)}
+              </div>
+            </div>
+            <div className="mt-1.5 flex h-1.5 items-center gap-1">
+              <div className="flex flex-1 justify-end">
+                <div className="h-full rounded-l bg-blue-500" style={{ width: `${(xg.home / max) * 100}%` }} />
+              </div>
+              <div className="h-3 w-px bg-neutral-300 dark:bg-neutral-700" />
+              <div className="flex-1">
+                <div className="h-full rounded-r bg-rose-500" style={{ width: `${(xg.away / max) * 100}%` }} />
+              </div>
+            </div>
+            {insight && (
+              <p className="mt-2 text-center text-[11px] font-medium leading-relaxed text-emerald-800 dark:text-emerald-300">
+                {insight}
+              </p>
+            )}
+          </div>
+        );
+      })()}
       <div className="space-y-2.5">
         {visible.map((r) => {
           const h = r.h ?? 0;
