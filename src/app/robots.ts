@@ -1,6 +1,22 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site-url";
 
+// AI 학습·데이터수집 크롤러 — 검색 노출 0 손실로 콘텐츠 학습 도용만 차단.
+// 검색·실시간답변 봇(Googlebot·Bingbot·NaverBot·PerplexityBot·OAI-SearchBot·
+// ChatGPT-User 등)은 의도적으로 제외 — 미디어 검색 유입(현재+미래 AI 검색)을 지킨다.
+const AI_TRAINING_BOTS = [
+  "GPTBot", // OpenAI 학습
+  "Google-Extended", // Gemini 학습 (Googlebot 검색 색인과 별개)
+  "ClaudeBot", // Anthropic 학습
+  "anthropic-ai", // Anthropic 구형 학습
+  "Claude-Web", // Anthropic 구형 학습
+  "CCBot", // CommonCrawl — 다수 LLM 학습셋 원천
+  "Bytespider", // ByteDance(TikTok/Doubao) — 공격적 스크래핑
+  "Applebot-Extended", // Apple Intelligence 학습 (Applebot 검색은 유지)
+  "Amazonbot", // Amazon AI 학습
+  "Meta-ExternalAgent", // Meta(Llama) AI 학습
+];
+
 export default function robots(): MetadataRoute.Robots {
   const base = SITE_URL;
   return {
@@ -11,6 +27,8 @@ export default function robots(): MetadataRoute.Robots {
         // /go — 사람 전용 외부 이동 통로 (스코어보드 footer → scorebase). 봇 경유 차단.
         disallow: ["/admin", "/api/admin", "/go"],
       },
+      // AI 학습 크롤러 — 전 경로 차단 (개별 그룹으로 펼쳐 파서 호환성 확보).
+      ...AI_TRAINING_BOTS.map((ua) => ({ userAgent: ua, disallow: "/" })),
     ],
     sitemap: `${base}/sitemap.xml`,
     host: base,

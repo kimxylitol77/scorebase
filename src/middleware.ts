@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { detectBot } from "@/lib/bot-detect";
+import { rateLimit } from "@/lib/rate-limit";
 
 // /admin 경로 보호 — cookie 존재만 체크 (검증은 page/action 에서).
 // /admin/login 은 누구나 접근 가능.
@@ -19,6 +21,33 @@ export function middleware(req: NextRequest) {
   const host = (req.headers.get("host") || "").toLowerCase();
   const isScoreboard = SCOREBOARD_HOSTS.some((h) => host.includes(h));
   const isScoreBaseCom = SCOREBASE_COM_HOSTS.some((h) => host.includes(h));
+
+  // ── Rate limit — 단일 IP 의 공격적 스크래핑 속도 제한 ──
+  // 검색·SNS·모니터 봇은 면제(SEO 색인·공유 미리보기·헬스체크 보호).
+  // AI 학습봇은 robots 로 차단했고, robots 를 무시하는 악성 봇은 여기서 걸린다.
+  const bot = detectBot(req.headers.get("user-agent"));
+  const exemptFromLimit =
+    bot.isBot &&
+    (bot.category === "search" ||
+      bot.category === "social" ||
+      bot.category === "monitor");
+  if (!exemptFromLimit) {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    const { allowed, retryAfterSec } = rateLimit(`scrape:${ip}`, {
+      max: 200, // 60초당 200요청 — 정상 브라우징+prefetch 여유, 스크래퍼만 초과
+      windowMs: 60_000,
+      lockMs: 60_000, // 초과 시 1분 차단
+    });
+    if (!allowed) {
+      return new NextResponse("Too Many Requests", {
+        status: 429,
+        headers: { "Retry-After": String(retryAfterSec) },
+      });
+    }
+  }
 
   // 스코어보드.kr — scorebase.kr 와 콘텐츠가 동일해 구글 중복 색인을 막기 위해 전 경로 noindex.
   // robots.txt 는 크롤 허용 상태라 구글이 이 헤더를 읽고 색인에서 제외한다 (Disallow 면 헤더를 못 읽음).
