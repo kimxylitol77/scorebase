@@ -412,3 +412,91 @@ export async function fetchNhlPlayerGameLog(
     return [];
   }
 }
+
+// ===== NHL 시즌 순위 (/standings/now) — 공식 순위표 =====
+// ⚠️ NHL 승점은 승=2·연장패(OTL)=1·정규패=0 — 축구식 calcStandings(승×3)와 다르다.
+//    반드시 공식 API 값을 그대로 써야 순위가 맞는다.
+
+export interface NhlStandingRow {
+  abbrev: string; // "COL"
+  name: string; // "Colorado Avalanche"
+  placeName: string; // "Colorado"
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  otLosses: number;
+  points: number;
+  /** 정규시간 승 — 동률 타이브레이커 1순위 */
+  regulationWins: number;
+  goalFor: number;
+  goalAgainst: number;
+  goalDiff: number;
+  /** 컨퍼런스명 (Eastern/Western) */
+  conference?: string;
+  /** 디비전명 (Atlantic/Metropolitan/Central/Pacific) */
+  division?: string;
+  /** 진출 확정 표시 (p=프레지던츠 트로피, x=PO 확정, z=디비전 우승 등) */
+  clinchIndicator?: string;
+}
+
+/**
+ * NHL 공식 시즌 순위 — `/standings/now` (정규시즌 기준, 경기 종료 시 갱신).
+ * season 은 raw 8자리("20252026"). rows 는 리그 전체 승점 내림차순 정렬.
+ */
+export async function fetchNhlStandings(): Promise<{
+  season: string;
+  rows: NhlStandingRow[];
+} | null> {
+  let data: { standings?: Record<string, unknown>[]; [k: string]: unknown };
+  try {
+    const r = await fetch(`${BASE_URL}/standings/now`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) return null;
+    data = await r.json();
+  } catch (e) {
+    console.warn("[nhl] standings 실패:", (e as Error).message);
+    return null;
+  }
+  const std = data?.standings ?? [];
+  if (std.length === 0) return null;
+
+  const def = (v: unknown): string =>
+    v && typeof v === "object" && "default" in v
+      ? String((v as { default?: string }).default ?? "")
+      : String(v ?? "");
+  const num = (v: unknown): number => (typeof v === "number" ? v : 0);
+
+  const rows: NhlStandingRow[] = std.map((s) => ({
+    abbrev: def(s.teamAbbrev),
+    name: def(s.teamName),
+    placeName: def(s.placeName),
+    gamesPlayed: num(s.gamesPlayed),
+    wins: num(s.wins),
+    losses: num(s.losses),
+    otLosses: num(s.otLosses),
+    points: num(s.points),
+    regulationWins: num(s.regulationWins),
+    goalFor: num(s.goalFor),
+    goalAgainst: num(s.goalAgainst),
+    goalDiff: num(s.goalDifferential ?? num(s.goalFor) - num(s.goalAgainst)),
+    conference: s.conferenceName ? def(s.conferenceName) : undefined,
+    division: s.divisionName ? def(s.divisionName) : undefined,
+    clinchIndicator: s.clinchIndicator ? String(s.clinchIndicator) : undefined,
+  }));
+
+  // API 가 컨퍼런스/디비전 순으로 줄 수 있어 리그 전체 순위로 재정렬
+  // (승점 → 정규승(RW) → 골득실 — NHL 공식 타이브레이커 근사)
+  rows.sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.regulationWins - a.regulationWins ||
+      b.goalDiff - a.goalDiff,
+  );
+
+  const season = String(
+    (std[0] as { seasonId?: number })?.seasonId ?? "",
+  );
+  return { season, rows };
+}
