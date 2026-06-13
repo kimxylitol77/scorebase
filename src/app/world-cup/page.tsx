@@ -143,7 +143,7 @@ export default async function WorldCupHub() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-10">
       <header>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          🏆 2026 FIFA 월드컵 데이터 센터
+          2026 FIFA 월드컵 데이터 센터
         </h1>
         <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
           북중미(미국·캐나다·멕시코) 개최 · 6/11 ~ 7/19 · 사상 첫 <strong>48개국</strong> 본선.
@@ -152,16 +152,16 @@ export default async function WorldCupHub() {
         </p>
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
           <Link href="/predictions/WORLD_CUP" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-900" prefetch={false}>
-            📊 진출 확률 풀 시뮬레이션
+            진출 확률 풀 시뮬레이션
           </Link>
           <Link href="/national-teams" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-900" prefetch={false}>
-            🌍 출전국 48개국
+            출전국 48개국
           </Link>
           <Link href="/scores" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-900" prefetch={false}>
-            ⚡ 라이브 스코어
+            라이브 스코어
           </Link>
           <Link href="/leagues/WORLD_CUP" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-900" prefetch={false}>
-            📰 월드컵 분석 글
+            월드컵 분석 글
           </Link>
           <Link href="/predictions/WORLD_CUP#player-ranking" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-900" prefetch={false}>
             선수 랭킹
@@ -192,7 +192,7 @@ export default async function WorldCupHub() {
       {koreaSim && (
         <section className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 p-5">
           <div className="flex items-baseline justify-between mb-3">
-            <h2 className="font-semibold">🇰🇷 대한민국 — A조</h2>
+            <h2 className="font-semibold">대한민국 — A조</h2>
             {koreaTeam && (
               <Link
                 href={`/national-teams/${koreaTeam.id}`}

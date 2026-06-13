@@ -762,7 +762,7 @@ export default async function LeaguePredictions({ params }: Props) {
         {isWorldCup && wcThirds.length > 0 && (
           <section>
             <Heading
-              title="🎯 조 3위 와일드카드 레이스"
+              title="조 3위 와일드카드 레이스"
               subtitle="12개 조 3위 중 상위 8팀이 32강 진출 — 승점 → 득실 → 다득점 순, 경기 종료 시 자동 갱신"
             />
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden sm:max-w-2xl">
@@ -825,7 +825,7 @@ export default async function LeaguePredictions({ params }: Props) {
         {isWorldCup && wcFunRows && (
           <section>
             <Heading
-              title="🎪 이색 랭킹"
+              title="이색 랭킹"
               subtitle="가성비(평점÷몸값)·파울유도·빅찬스미스·골대·공중볼·드리블 — 데이터로만 보이는 기록들"
             />
             <LeagueLeaderBoard
