@@ -5,6 +5,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 export const revalidate = 3600;
 
@@ -129,6 +130,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                 <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 text-xs text-neutral-500">
                   <th className="px-3 py-2.5 text-center font-semibold w-10">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold">선수</th>
+                  <th className="px-2 py-2.5 text-left font-semibold">팀</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
                 </tr>
               </thead>
@@ -137,15 +139,17 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                   const top3 = r.rank <= 3;
                   const p = pMap.get(r.playerName);
                   const display = p?.nameKo ?? r.playerName;
+                  const team = r.teamName ? toKoreanTeamName(r.teamName, "MLB") : null;
                   return (
                     <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition">
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                       <td className="px-2 py-2.5">
                         <div className="flex items-center gap-2.5">
-                          <Avatar name={display} />
+                          <Avatar photo={r.photoUrl} name={display} />
                           <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
                         </div>
                       </td>
+                      <td className="px-2 py-2.5 text-neutral-500">{team ?? "—"}</td>
                       <td className="px-3 py-2 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
                         <div className="tabular-nums font-bold">{fmtUsd(r.salary)}</div>
                         <div className="text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>
@@ -213,8 +217,12 @@ function PageLink({ page, disabled, label }: { page: number; disabled: boolean; 
   );
 }
 
-/** 선수 이니셜 아바타 — MLB 선수 사진 소스가 없어 이니셜 원형. */
-function Avatar({ name }: { name: string }) {
+/** 선수 아바타 — MLB Stats headshot, 매칭 실패 시 이니셜 원형. */
+function Avatar({ photo, name }: { photo?: string | null; name: string }) {
+  if (photo) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
+  }
   const initial = name.trim().charAt(0).toUpperCase();
   return (
     <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">

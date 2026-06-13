@@ -811,6 +811,7 @@ model PlayerSalary {
   position   String? // G | F | C 등
   teamName   String // ESPN 팀 표시명 (영문) — 표시 시 toKoreanTeamName 변환
   salary     Int // 연봉 (USD, 최대 $60M < Int 범위)
+  photoUrl   String? // 선수 사진 — MLB: mlbstatic headshot. NBA 는 page 단 lookupNbaPlayer
   updatedAt  DateTime @default(now())
 
   @@index([league, rank])

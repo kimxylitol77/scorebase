@@ -10,8 +10,9 @@ import * as cheerio from "cheerio";
 export interface NormalizedSalary {
   rank: number;
   playerName: string;
-  teamName: string; // spotrac 팀 표기(영문, 비어있을 수 있음) — 표시 시 toKoreanTeamName
+  teamName: string; // MLB Stats currentTeam(영문) 보강 — 표시 시 toKoreanTeamName
   salary: number; // USD (올시즌 cap total)
+  photoUrl?: string; // MLB Stats headshot (이름 매칭분 ~93%)
 }
 
 /** MLB 시즌 라벨 — 단일 연도(3~10월 시즌). 비시즌도 당해 연도. */
@@ -21,6 +22,37 @@ export function mlbSeasonLabel(now: Date): string {
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+
+// 이름 정규화 — 액센트 제거(López→lopez) + 소문자. spotrac↔MLB Stats 표기차 흡수.
+const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+// MLB Stats API(무료 공식) — 선수 id(headshot) + roster 팀. spotrac 연봉에 팀·사진 보강.
+// /sports/1/players 는 currentTeam 누락 多 → roster 30팀으로 팀 확정.
+async function fetchMlbPlayerMeta(): Promise<Map<string, { id: number; team: string }>> {
+  const year = new Date().getUTCFullYear();
+  const meta = new Map<string, { id: number; team: string }>();
+  try {
+    const allRes = await fetch(`https://statsapi.mlb.com/api/v1/sports/1/players?season=${year}&hydrate=currentTeam`, { signal: AbortSignal.timeout(20000) });
+    const all = (await allRes.json()) as { people?: Array<{ id: number; fullName: string; currentTeam?: { name?: string } }> };
+    for (const p of all.people ?? []) meta.set(norm(p.fullName), { id: p.id, team: p.currentTeam?.name ?? "" });
+    const tRes = await fetch(`https://statsapi.mlb.com/api/v1/teams?sportId=1&season=${year}`, { signal: AbortSignal.timeout(15000) });
+    const teams = (await tRes.json()) as { teams?: Array<{ id: number; name: string }> };
+    for (const t of teams.teams ?? []) {
+      try {
+        const rRes = await fetch(`https://statsapi.mlb.com/api/v1/teams/${t.id}/roster?season=${year}`, { signal: AbortSignal.timeout(10000) });
+        const r = (await rRes.json()) as { roster?: Array<{ person?: { id: number; fullName: string } }> };
+        for (const e of r.roster ?? []) {
+          if (!e.person) continue;
+          const k = norm(e.person.fullName);
+          const m = meta.get(k);
+          if (m) m.team = t.name; // roster 우선(현재 소속)
+          else meta.set(k, { id: e.person.id, team: t.name });
+        }
+      } catch { /* skip team */ }
+    }
+  } catch { /* meta 없으면 빈 — 연봉만 유지 */ }
+  return meta;
+}
 
 export async function fetchMlbSalaries(): Promise<NormalizedSalary[]> {
   const year = new Date().getUTCFullYear();
@@ -76,5 +108,16 @@ export async function fetchMlbSalaries(): Promise<NormalizedSalary[]> {
   // cap total desc 정렬 후 rank 부여 (spotrac 이 이미 정렬돼 있지만 안전하게)
   out.sort((a, b) => b.salary - a.salary);
   out.forEach((r, i) => (r.rank = i + 1));
+
+  // MLB Stats 매칭 — 팀·사진 보강 (meta 실패해도 연봉은 유지)
+  const meta = await fetchMlbPlayerMeta();
+  if (meta.size) {
+    for (const r of out) {
+      const m = meta.get(norm(r.playerName));
+      if (!m) continue;
+      if (m.team) r.teamName = m.team;
+      if (m.id) r.photoUrl = `https://midfield.mlbstatic.com/v1/people/${m.id}/spots/120`;
+    }
+  }
   return out;
 }
