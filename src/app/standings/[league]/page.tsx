@@ -615,11 +615,27 @@ async function NhlStandings({ name }: { name: string }) {
         <span className="text-neutral-700 dark:text-neutral-300">순위표</span>
       </nav>
 
-      <header>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">NHL 순위표</h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          {seasonLabel} 정규시즌 · 32팀 · NHL 공식 기록 (승 2점 · 연장패 1점)
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">NHL 순위표</h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            {seasonLabel} 정규시즌 · 32팀 · NHL 공식 기록 (승 2점 · 연장패 1점)
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Link
+            href="/predictions/NHL"
+            className="text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline"
+          >
+            🏆 AI 예측 →
+          </Link>
+          <Link
+            href="/injuries/NHL"
+            className="text-sm font-bold text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            🏥 부상자 →
+          </Link>
+        </div>
       </header>
 
       <div className="overflow-x-auto -mx-3 sm:mx-0">
