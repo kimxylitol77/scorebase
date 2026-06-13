@@ -9,6 +9,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
+import rawWcSquads from "../../../../data/wc-national-squads.json";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,13 @@ const NATL = NATIONAL_TEAM_LEAGUES;
 const POS_GROUPS: Array<[string, string]> = [["G", "골키퍼"], ["D", "수비수"], ["M", "미드필더"], ["F", "공격수"]];
 
 interface SquadPlayer { id: string; name: string; position: string; shirt: number; photo: string; apps: number }
+
+// 월드컵 공식 26인 스쿼드 (ts team/squad/list, build-wc-national-squads.ts) — tsId → squad
+const WC_SQUAD_BY_TSID = new Map(
+  Object.values(
+    rawWcSquads as Record<string, { tsId: string; squad: Array<{ id: string; name: string; position: string | null; number: number | null }> }>,
+  ).map((t) => [t.tsId, t.squad] as const),
+);
 
 // 국가 통합 team id 들 (같은 ts team id → WORLD_CUP + INTL_FRIENDLY 등 row 합침)
 async function unifyTeamIds(teamId: number): Promise<number[]> {
@@ -82,7 +90,20 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
       else squadMap.set(p.id, { id: p.id, name: p.name, position: p.position, shirt: p.shirt_number, photo: p.logo, apps: 1 });
     }
   }
-  const squad = [...squadMap.values()];
+  // 공식 26인 스쿼드(data/wc-national-squads.json) 우선 — 라인업은 출전자만이라 후보가 빠짐.
+  // 공식 명단에 라인업 사진·출전수를 병합(미출전자는 등번호 표시). 미수집국은 라인업 fallback.
+  const tsRow = await prisma.teamSourceId.findFirst({
+    where: { teamId, source: "thesports" },
+    select: { externalId: true },
+  });
+  const officialSquad = tsRow ? WC_SQUAD_BY_TSID.get(tsRow.externalId) : null;
+  const squad: SquadPlayer[] = officialSquad
+    ? officialSquad.map((s) => {
+        const li = squadMap.get(s.id);
+        return { id: s.id, name: s.name, position: s.position ?? "", shirt: s.number ?? 0, photo: li?.photo ?? "", apps: li?.apps ?? 0 };
+      })
+    : [...squadMap.values()];
+  const isOfficialSquad = !!officialSquad;
 
   const tsPlayers = squad.length
     ? await prisma.theSportsPlayer.findMany({ where: { id: { in: squad.map((p) => p.id) } }, select: { id: true, nameKo: true } })
@@ -94,11 +115,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     : [];
   const hasMv = new Set(mvRows.map((m) => m.id));
 
-  // 감독 — 정적 json (키: ts team id). 라인업 coach_id 는 보조(과거 경기 기준이라 교체 직후 stale 가능).
-  const tsRow = await prisma.teamSourceId.findFirst({
-    where: { teamId, source: "thesports" },
-    select: { externalId: true },
-  });
+  // 감독 — 정적 json (키: ts team id). tsRow 는 위 스쿼드 결정에서 재사용.
   const coach = (tsRow && COACHES[tsRow.externalId]) || null;
   const koCountry = toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name;
   const flag = fifaFlag(team.name);
@@ -201,7 +218,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
         <section className="mt-6">
           <div className="flex items-baseline justify-between mb-2">
             <h2 className="text-sm font-bold text-neutral-500">스쿼드 <span className="text-neutral-400 font-normal">({squad.length}명)</span></h2>
-            <span className="text-[11px] text-neutral-400">최근 소집 라인업 기준</span>
+            <span className="text-[11px] text-neutral-400">{isOfficialSquad ? "공식 소집 명단" : "최근 소집 라인업 기준"}</span>
           </div>
           {POS_GROUPS.map(([code, label]) => {
             const players = squad.filter((p) => p.position === code).sort((a, b) => b.apps - a.apps);
