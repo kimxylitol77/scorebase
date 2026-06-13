@@ -15,6 +15,9 @@ import { getExternalLinks } from "@/lib/external-links";
 import AdminEditLink from "@/components/AdminEditLink";
 import { SITE_URL } from "@/lib/site-url";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores/soccer/buildSoccerCacheTabs";
+import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +99,10 @@ function extractLolPatch(content: string): string | undefined {
 }
 
 const LCK_LEAGUES = new Set(["LOL", "LCK"]);
+// 우리 Team.id → TheSports team_id (축구 매치 탭의 H2H·팀통계 home/away 판별)
+const TEAM_ID_MAP = new Map<number, string>(
+  (teamIdMapping as Array<{ ourId: number; tsId: string }>).map((t) => [t.ourId, t.tsId]),
+);
 
 interface LolMetaInput {
   homeName: string;
@@ -427,7 +434,7 @@ export default async function ArticlePage({ params }: Props) {
   const article = await prisma.article.findUnique({
     where: { slug },
     include: {
-      match: { include: { homeTeam: true, awayTeam: true } },
+      match: { include: { homeTeam: true, awayTeam: true, theSportsCache: true } },
     },
   });
 
@@ -436,6 +443,22 @@ export default async function ArticlePage({ params }: Props) {
   const date = formatDateKo(article.publishedAt ?? article.createdAt);
   const url = `${SITE_URL}/articles/${slug}`;
   const desc = makeDescription(article.content);
+
+  // 축구 글 — TheSports 캐시 기반 탭(라인업·팀통계·모멘텀·하프타임·H2H) 주입 (live 페이지와 동등).
+  let soccerTabs: SoccerInsightTab[] = [];
+  if (article.match && SOCCER_LEAGUES.has(article.league) && article.match.theSportsCache) {
+    const m = article.match;
+    soccerTabs = await buildSoccerCacheTabs({
+      cache: m.theSportsCache,
+      status: m.status,
+      homeKo: toKoreanTeamName(m.homeTeam.name, article.league),
+      awayKo: toKoreanTeamName(m.awayTeam.name, article.league),
+      homeTsId: TEAM_ID_MAP.get(m.homeTeam.id) ?? null,
+      awayTsId: TEAM_ID_MAP.get(m.awayTeam.id) ?? null,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+    });
+  }
 
   // LoL RECAP — 본문 안에 5라인 매치업·시즌·MVP 가 모두 들어있는 긴 Markdown 사용.
   // lolContext 는 디버깅용으로 DB 에 저장만 하고 페이지에서 카드로 렌더링하지 않는다.
@@ -680,6 +703,7 @@ export default async function ArticlePage({ params }: Props) {
             homeSeasonPoints: article.homeSeasonPoints,
             awaySeasonPoints: article.awaySeasonPoints,
           }}
+          extraTabs={soccerTabs}
         />
       )}
 
