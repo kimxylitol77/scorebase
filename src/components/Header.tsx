@@ -5,78 +5,11 @@ import ThemeToggle from "./ThemeToggle";
 import SearchInput from "./SearchInput";
 import AdminBadge from "./AdminBadge";
 import UserBadge from "./UserBadge";
-
-interface SubItem {
-  href: string;
-  label: string;
-  desc?: string;
-}
-
-interface CategoryDef {
-  label: string;
-  /** 헤더 메뉴 본체 클릭 시 이동할 대표 페이지 */
-  href: string;
-  items: SubItem[];
-}
-
-const SOCCER_LEAGUES: SubItem[] = [
-  { href: "/world-cup", label: "FIFA 월드컵 2026", desc: "북중미 · 일정·우승 확률" },
-  { href: "/leagues/K_LEAGUE_1", label: "K리그 1", desc: "한국 1부" },
-  { href: "/leagues/J1_LEAGUE", label: "J1 리그", desc: "일본 1부" },
-  { href: "/leagues/AFC_CL", label: "AFC 챔피언스리그", desc: "아시아" },
-  { href: "/leagues/EPL", label: "프리미어리그 (EPL)", desc: "잉글랜드" },
-  { href: "/leagues/UCL", label: "챔피언스리그", desc: "유럽" },
-  { href: "/leagues/LALIGA", label: "라리가", desc: "스페인" },
-  { href: "/leagues/BUNDESLIGA", label: "분데스리가", desc: "독일" },
-  { href: "/leagues/SERIE_A", label: "세리에 A", desc: "이탈리아" },
-  { href: "/leagues/LIGUE_1", label: "리그 1", desc: "프랑스" },
-  { href: "/leagues/MLS", label: "MLS", desc: "북미" },
-];
-
-const CATEGORIES: CategoryDef[] = [
-  { label: "축구", href: "/leagues/EPL", items: SOCCER_LEAGUES },
-  {
-    label: "야구",
-    href: "/leagues/KBO",
-    items: [
-      { href: "/leagues/KBO", label: "KBO 리그", desc: "한국 프로야구" },
-      { href: "/leagues/NPB", label: "NPB 리그", desc: "일본 프로야구" },
-      { href: "/leagues/MLB", label: "MLB", desc: "메이저리그" },
-    ],
-  },
-  {
-    label: "농구",
-    href: "/leagues/NBA",
-    items: [{ href: "/leagues/NBA", label: "NBA", desc: "미국" }],
-  },
-  {
-    label: "기타종목",
-    href: "/leagues/NHL",
-    items: [
-      { href: "/leagues/NHL", label: "NHL", desc: "북미 아이스하키" },
-      { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국" },
-    ],
-  },
-];
-
-// 경기 분석 — 경기 전 AI/데이터 도구
-const MATCH_ITEMS: SubItem[] = [
-  { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
-  { href: "/predictions", label: "시즌 예측", desc: "Monte Carlo 우승·PO 확률" },
-  { href: "/standings", label: "리그 순위", desc: "국가·종목별 전체 순위" },
-  { href: "/predictions/starters", label: "선발 매치업", desc: "야구 선발 투수 비교" },
-  { href: "/value-bets", label: "밸류 베트", desc: "Elo 예측 vs 배당사 implied" },
-  { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
-];
-// 커뮤니티 — 콘텐츠 · 회원 · 랭킹
-const COMMUNITY_ITEMS: SubItem[] = [
-  { href: "/notices", label: "공지사항", desc: "사이트 공지 · 패치노트" },
-  { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
-  { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 글 · 예측 적중" },
-  { href: "/experts", label: "예측 전문가", desc: "분석가 적중률 순위 · 프로필" },
-  { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
-  { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드 · FA · 방출" },
-];
+import {
+  SPORT_CATEGORIES,
+  COMMUNITY_CATEGORY,
+  type NavCategory,
+} from "./nav-config";
 
 export default function Header() {
   return (
@@ -96,11 +29,10 @@ export default function Header() {
             </span>
             라이브 스코어
           </Link>
-          {CATEGORIES.map((c) => (
+          {SPORT_CATEGORIES.map((c) => (
             <CategoryDropdown key={c.label} {...c} />
           ))}
-          <CategoryDropdown label="경기 분석" href="/previews" items={MATCH_ITEMS} />
-          <CategoryDropdown label="커뮤니티" href="/analysis" items={COMMUNITY_ITEMS} />
+          <CategoryDropdown {...COMMUNITY_CATEGORY} />
 
           {/* 검색 + 다크모드 (데스크탑) */}
           <div className="hidden md:block ml-2">
@@ -124,7 +56,7 @@ export default function Header() {
   );
 }
 
-function CategoryDropdown({ label, href, items }: CategoryDef) {
+function CategoryDropdown({ label, href, items }: NavCategory) {
   return (
     <div className="relative group">
       <Link

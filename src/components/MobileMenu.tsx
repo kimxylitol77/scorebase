@@ -5,74 +5,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import SearchInput from "./SearchInput";
+import { ALL_CATEGORIES } from "./nav-config";
 
-interface SubItem {
-  href: string;
-  label: string;
-  desc?: string;
-}
-
-interface Group {
-  label: string;
-  items: SubItem[];
-}
-
-const GROUPS: Group[] = [
-  {
-    label: "경기 분석",
-    items: [
-      { href: "/previews", label: "프리뷰", desc: "경기 분석 · 예상" },
-      { href: "/predictions", label: "시즌 예측", desc: "우승·PO 확률" },
-      { href: "/standings", label: "리그 순위", desc: "국가·종목별 전체" },
-      { href: "/predictions/starters", label: "선발 매치업", desc: "야구 선발 비교" },
-      { href: "/value-bets", label: "밸류 베트", desc: "Elo vs 배당" },
-      { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자" },
-    ],
-  },
-  {
-    label: "커뮤니티",
-    items: [
-      { href: "/notices", label: "공지사항", desc: "공지 · 패치노트" },
-      { href: "/blog", label: "블로그", desc: "데이터 인사이트" },
-      { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 · 적중" },
-      { href: "/experts", label: "예측 전문가", desc: "적중률 순위" },
-      { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
-      { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드 · FA · 방출" },
-    ],
-  },
-  {
-    label: "축구",
-    items: [
-      { href: "/leagues/WORLD_CUP", label: "FIFA 월드컵 2026", desc: "북중미 6/11~" },
-      { href: "/leagues/EPL", label: "프리미어리그", desc: "잉글랜드" },
-      { href: "/leagues/UCL", label: "챔피언스리그", desc: "유럽" },
-      { href: "/leagues/LALIGA", label: "라리가", desc: "스페인" },
-      { href: "/leagues/BUNDESLIGA", label: "분데스리가", desc: "독일" },
-      { href: "/leagues/SERIE_A", label: "세리에 A", desc: "이탈리아" },
-      { href: "/leagues/LIGUE_1", label: "리그 1", desc: "프랑스" },
-      { href: "/leagues/MLS", label: "MLS", desc: "북미" },
-    ],
-  },
-  {
-    label: "야구",
-    items: [
-      { href: "/leagues/KBO", label: "KBO 리그", desc: "한국 프로야구" },
-      { href: "/leagues/NPB", label: "NPB 리그", desc: "일본 프로야구" },
-      { href: "/leagues/MLB", label: "MLB", desc: "메이저리그" },
-    ],
-  },
-  {
-    label: "농구",
-    items: [{ href: "/leagues/NBA", label: "NBA", desc: "미국" }],
-  },
-  {
-    label: "기타종목",
-    items: [
-      { href: "/leagues/NHL", label: "NHL", desc: "북미 아이스하키" },
-      { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국" },
-    ],
-  },
-];
+// 메뉴 구조는 nav-config.ts 단일 정의 (데스크탑 Header 와 공유) — 종목 4 + 커뮤니티.
+const GROUPS = ALL_CATEGORIES;
 
 export default function MobileMenu({ account }: { account?: ReactNode }) {
   const [open, setOpen] = useState(false);
