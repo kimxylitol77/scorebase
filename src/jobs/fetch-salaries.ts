@@ -1,30 +1,34 @@
-// NBA 연봉 수집 잡 — basketball-reference 스크래핑 → PlayerSalary replace.
+// 선수 연봉 수집 잡 — NBA(basketball-reference) + MLB(spotrac) 스크래핑 → PlayerSalary replace.
 // /api/cron/fetch-salaries 호출 + 수동: npm run job:salaries
 //
 // "현재 시즌 스냅샷" → league 전체 deleteMany 후 createMany (rank 변동·은퇴 자동 정리).
-// ⚠️ 파싱 0건이면 replace 안 함 — HTML 스크래핑 실패(봇차단·구조변경) 시 빈 테이블로 덮어쓰기 방지.
+// ⚠️ 파싱 0건이면 해당 league replace 안 함 — 스크래핑 실패(봇차단·구조변경) 시 빈 테이블 덮어쓰기 방지.
 
 import { prisma } from "@/lib/db";
 import { fetchNbaSalaries, currentSeasonLabel } from "@/lib/sports/nba-salaries";
+import { fetchMlbSalaries, mlbSeasonLabel } from "@/lib/sports/mlb-salaries";
 
-export async function runFetchSalaries(): Promise<{
+interface LeagueResult {
   league: string;
   fetched: number;
   replaced: boolean;
-}> {
-  const rows = await fetchNbaSalaries();
-  if (rows.length === 0) {
-    console.warn("[fetch-salaries] NBA: 파싱 0건 — 스크래핑 실패 의심, 기존 데이터 유지(replace skip)");
-    return { league: "NBA", fetched: 0, replaced: false };
-  }
+}
 
-  const season = currentSeasonLabel(new Date());
-  // 트랜잭션으로 묶어 replace — 중간 실패 시 기존 데이터 보존.
+/** 한 리그 연봉 replace — 파싱 0건이면 기존 유지. */
+async function replaceLeague(
+  league: string,
+  rows: NormalizedRow[],
+  season: string,
+): Promise<LeagueResult> {
+  if (rows.length === 0) {
+    console.warn(`[fetch-salaries] ${league}: 파싱 0건 — 스크래핑 실패 의심, 기존 데이터 유지(replace skip)`);
+    return { league, fetched: 0, replaced: false };
+  }
   await prisma.$transaction([
-    prisma.playerSalary.deleteMany({ where: { league: "NBA" } }),
+    prisma.playerSalary.deleteMany({ where: { league } }),
     prisma.playerSalary.createMany({
       data: rows.map((r) => ({
-        league: "NBA",
+        league,
         season,
         rank: r.rank,
         playerName: r.playerName,
@@ -34,9 +38,25 @@ export async function runFetchSalaries(): Promise<{
       })),
     }),
   ]);
+  console.log(`[fetch-salaries] ${league}: ${rows.length}명 replace (시즌 ${season})`);
+  return { league, fetched: rows.length, replaced: true };
+}
 
-  console.log(`[fetch-salaries] NBA: ${rows.length}명 replace (시즌 ${season})`);
-  return { league: "NBA", fetched: rows.length, replaced: true };
+interface NormalizedRow {
+  rank: number;
+  playerName: string;
+  teamName: string;
+  salary: number;
+}
+
+export async function runFetchSalaries(): Promise<{ results: LeagueResult[] }> {
+  const now = new Date();
+  // NBA·MLB 병렬 스크래핑 → 각자 replace (한쪽 실패해도 다른 쪽 진행)
+  const [nba, mlb] = await Promise.all([fetchNbaSalaries(), fetchMlbSalaries()]);
+  const results: LeagueResult[] = [];
+  results.push(await replaceLeague("NBA", nba, currentSeasonLabel(now)));
+  results.push(await replaceLeague("MLB", mlb, mlbSeasonLabel(now)));
+  return { results };
 }
 
 if (process.argv[1]?.includes("fetch-salaries")) {
