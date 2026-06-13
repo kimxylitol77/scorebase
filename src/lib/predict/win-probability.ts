@@ -7,7 +7,10 @@
 
 import { LOL_LEAGUES, leagueHasDraw } from "@/lib/sports/sport-leagues";
 
-const HOME_ADVANTAGE_ELO = 100;
+const HOME_ADVANTAGE_ELO = 100; // 야구·농구·하키 (정규시간 무승부 없는 종목)
+// 축구 — calibration 백테스트(2026-06-13, 빅5+UCL+MLS 1828건·홀드아웃 +0.71%):
+// 홈 +100 은 원정승을 과소예측(평균 0.249 vs 실제 0.301)했음 → 70 으로 낮춰 원정 확률 정합.
+const HOME_ADVANTAGE_SOCCER = 70;
 
 // e스포츠는 한 스튜디오에서 진행되는 BO 시리즈라 홈/어웨이 어드밴티지 무의미.
 // "LOL"(LCK) 만 하드코딩돼 LPL/LEC/LCS 가 홈 +100 Elo 받던 버그 → LOL_LEAGUES 단일 진실로.
@@ -22,8 +25,10 @@ function homeAdvantageFor(league: string, homeTeamName?: string): number {
   if (league === "WORLD_CUP") {
     if (!homeTeamName) return 0;
     const norm = homeTeamName.toLowerCase().replace(/[\s.&-]/g, "");
-    return WC_HOST_NATIONS.has(norm) ? HOME_ADVANTAGE_ELO : 0;
+    return WC_HOST_NATIONS.has(norm) ? HOME_ADVANTAGE_SOCCER : 0;
   }
+  // 축구(무승부 존재 종목)는 calibration 적용한 70, 야구·농구는 100
+  if (leagueHasDraw(league)) return HOME_ADVANTAGE_SOCCER;
   return HOME_ADVANTAGE_ELO;
 }
 
@@ -40,7 +45,8 @@ export interface WinProb {
   away: number; // 0~1
 }
 
-const SOCCER_DRAW = { drawWeight: 0.18, drawSensitivity: 0.18 };
+// drawWeight 0.18→0.10: 무승부 과대(평균 0.306 vs 실제 0.251) 보정 (2026-06-13 백테스트)
+const SOCCER_DRAW = { drawWeight: 0.1, drawSensitivity: 0.18 };
 const NO_DRAW = { drawWeight: 0, drawSensitivity: 0 };
 
 const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
