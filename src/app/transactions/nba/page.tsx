@@ -1,6 +1,6 @@
 // /transactions/nba — NBA 트랜잭션 피드 (트레이드·FA계약·방출·단기계약·감독 인사).
 // 데이터: ESPN transactions → SportsTransaction (cron fetch-transactions, 일 1회).
-// 축구 /transfers(이적료·시장가치)와 분리 — 북미는 이적료 시장이 아닌 트랜잭션 피드.
+// 설명은 Haiku 한글 번역(descriptionKo) 우선 + 영문 원문 보조. 25건 페이지네이션.
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
@@ -8,7 +8,9 @@ import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer } from "@/lib/sports/nba-players";
 
-export const revalidate = 1800; // 30분 — 데이터는 일 1회 갱신이라 충분
+export const revalidate = 1800; // 30분
+
+const PER_PAGE = 25;
 
 const CATS: { key: string; label: string; cls: string }[] = [
   { key: "trade", label: "트레이드", cls: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" },
@@ -23,7 +25,7 @@ const CAT_MAP = Object.fromEntries(CATS.map((c) => [c.key, c]));
 export const metadata: Metadata = {
   title: "NBA 트랜잭션 — 트레이드·FA·방출 | 스코어베이스",
   description:
-    "NBA 트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 날짜순으로 한눈에. 팀별·유형별 필터 제공. 매일 자동 갱신.",
+    "NBA 트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 한국어로 한눈에. 선수 사진·유형별 필터 제공. 매일 자동 갱신.",
   alternates: { canonical: "https://www.scorebase.kr/transactions/nba" },
 };
 
@@ -32,30 +34,57 @@ function dateLabel(d: Date): string {
   return `${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${wk})`;
 }
 
+/** cat·page 보존 href. */
+function txHref(cat: string | null, page: number): string {
+  const p = new URLSearchParams();
+  if (cat) p.set("cat", cat);
+  if (page > 1) p.set("page", String(page));
+  const qs = p.toString();
+  return qs ? `/transactions/nba?${qs}` : "/transactions/nba";
+}
+
+function pageList(cur: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const set = new Set([1, 2, total - 1, total, cur - 1, cur, cur + 1]);
+  const out: (number | "…")[] = [];
+  let prev = 0;
+  for (let i = 1; i <= total; i++) {
+    if (!set.has(i)) continue;
+    if (i - prev > 1) out.push("…");
+    out.push(i);
+    prev = i;
+  }
+  return out;
+}
+
 interface Props {
-  searchParams: Promise<{ cat?: string }>;
+  searchParams: Promise<{ cat?: string; page?: string }>;
 }
 
 export default async function NbaTransactionsPage({ searchParams }: Props) {
-  const { cat } = await searchParams;
+  const { cat, page: pageParam } = await searchParams;
   const activeCat = cat && CAT_MAP[cat] ? cat : null;
+  const where = { league: "NBA", ...(activeCat ? { category: activeCat } : {}) };
 
-  const [rows, counts] = await Promise.all([
-    prisma.sportsTransaction.findMany({
-      where: { league: "NBA", ...(activeCat ? { category: activeCat } : {}) },
-      orderBy: { date: "desc" },
-      take: 250,
-    }),
-    prisma.sportsTransaction.groupBy({
-      by: ["category"],
-      where: { league: "NBA" },
-      _count: true,
-    }),
-  ]);
+  const counts = await prisma.sportsTransaction.groupBy({
+    by: ["category"],
+    where: { league: "NBA" },
+    _count: true,
+  });
   const countByCat = Object.fromEntries(counts.map((c) => [c.category, c._count]));
   const total = counts.reduce((s, c) => s + c._count, 0);
+  const filteredTotal = activeCat ? countByCat[activeCat] ?? 0 : total;
+  const totalPages = Math.max(1, Math.ceil(filteredTotal / PER_PAGE));
+  const page = Math.min(Math.max(1, parseInt(pageParam ?? "1", 10) || 1), totalPages);
 
-  // 날짜(yyyy-mm-dd)별 그룹
+  const rows = await prisma.sportsTransaction.findMany({
+    where,
+    orderBy: [{ date: "desc" }, { id: "asc" }],
+    skip: (page - 1) * PER_PAGE,
+    take: PER_PAGE,
+  });
+
+  // 날짜(yyyy-mm-dd)별 그룹 (현재 페이지 내)
   const groups = new Map<string, typeof rows>();
   for (const r of rows) {
     const key = r.date.toISOString().slice(0, 10);
@@ -75,7 +104,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
         </div>
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight">🏀 NBA 트랜잭션</h1>
         <p className="text-sm text-neutral-500 leading-relaxed">
-          트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 날짜순으로. 매일 자동 갱신 · 데이터 ESPN.
+          트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 한국어로. 매일 자동 갱신 · 데이터 ESPN.
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
           <Link
@@ -93,7 +122,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
         </div>
       </header>
 
-      {/* 카테고리 필터 칩 */}
+      {/* 카테고리 필터 칩 — 클릭 시 1페이지로 */}
       <nav className="flex flex-wrap gap-1.5">
         <Link
           href="/transactions/nba"
@@ -112,7 +141,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
           return (
             <Link
               key={c.key}
-              href={`/transactions/nba?cat=${c.key}`}
+              href={txHref(c.key, 1)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                 on
                   ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
@@ -139,38 +168,28 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
                 {items.map((t) => {
                   const c = CAT_MAP[t.category] ?? CAT_MAP.other;
                   const koTeam = t.teamName ? toKoreanTeamName(t.teamName, "NBA") : null;
-                  // 단일 선수 트랜잭션만 선수 한글명·사진 (트레이드는 다중이라 생략).
+                  // 단일 선수(계약·방출·단기) 사진 — 트레이드(다중)·감독은 매칭 안 됨 → 팀로고.
                   const player = t.category !== "trade" ? lookupNbaPlayer(t.playerName) : null;
-                  const playerDisplay = player?.ko ?? t.playerName;
                   return (
                     <li
                       key={t.id}
                       className="flex items-start gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3.5 py-3"
                     >
-                      {t.teamLogo ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={t.teamLogo} alt="" className="mt-0.5 h-7 w-7 shrink-0 object-contain" />
-                      ) : (
-                        <div className="mt-0.5 h-7 w-7 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800" />
-                      )}
+                      <TxAvatar photo={player?.photo} teamLogo={t.teamLogo} />
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex items-center gap-2">
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${c.cls}`}>{c.label}</span>
                           {koTeam && (
                             <span className="truncate text-xs font-semibold text-neutral-700 dark:text-neutral-300">{koTeam}</span>
                           )}
-                          {/* 트레이드는 다중 선수·다중 문장이라 단일 파싱이 노이즈 — 설명 전문으로 충분. */}
-                          {playerDisplay && t.category !== "trade" && (
-                            <span className="inline-flex items-center gap-1 text-xs text-neutral-500 min-w-0">
-                              {player?.photo && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={player.photo} alt="" loading="lazy" className="h-4 w-4 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top" />
-                              )}
-                              <span className="truncate">· {t.position ? `${t.position} ` : ""}{playerDisplay}</span>
-                            </span>
-                          )}
                         </div>
-                        <p className="text-sm leading-snug text-neutral-600 dark:text-neutral-400">{t.description}</p>
+                        <p className="text-sm leading-snug text-neutral-800 dark:text-neutral-200">
+                          {t.descriptionKo || t.description}
+                        </p>
+                        {/* 한글 번역이 있으면 영문 원문을 보조로 (신뢰성·검증). */}
+                        {t.descriptionKo && (
+                          <p className="mt-0.5 text-[11px] leading-snug text-neutral-400">{t.description}</p>
+                        )}
                       </div>
                     </li>
                   );
@@ -181,10 +200,65 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
         </div>
       )}
 
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <nav className="flex items-center justify-center gap-1 text-sm">
+          {page > 1 ? (
+            <Link href={txHref(activeCat, page - 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">‹ 이전</Link>
+          ) : (
+            <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 select-none">‹ 이전</span>
+          )}
+          {pageList(page, totalPages).map((p, i) =>
+            p === "…" ? (
+              <span key={`gap-${i}`} className="px-1.5 text-neutral-400">…</span>
+            ) : (
+              <Link
+                key={p}
+                href={txHref(activeCat, p)}
+                aria-current={p === page ? "page" : undefined}
+                className={`min-w-[34px] rounded-lg px-2.5 py-1.5 text-center font-medium transition ${
+                  p === page
+                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                    : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                }`}
+              >
+                {p}
+              </Link>
+            ),
+          )}
+          {page < totalPages ? (
+            <Link href={txHref(activeCat, page + 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">다음 ›</Link>
+          ) : (
+            <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 select-none">다음 ›</span>
+          )}
+        </nav>
+      )}
+
       <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
-        트랜잭션 원문은 영문 그대로 제공됩니다. 팀명은 한국어로 표기. 트레이드는 한 건에 여러 선수가 포함될 수 있습니다.{" "}
+        한국어 번역은 AI(Claude)가 생성하며 영문 원문을 함께 표기합니다. 트레이드는 한 건에 여러 선수가 포함될 수 있습니다.{" "}
         <Link href="/leagues/NBA" className="text-blue-600 dark:text-blue-400 hover:underline">NBA 경기·순위</Link>도 함께 확인하세요.
       </footer>
     </main>
   );
+}
+
+/** 트랜잭션 아바타 — 단일 선수면 선수 사진 + 우하단 팀로고 배지, 아니면 팀로고. */
+function TxAvatar({ photo, teamLogo }: { photo?: string; teamLogo?: string | null }) {
+  if (photo) {
+    return (
+      <div className="relative mt-0.5 h-10 w-10 shrink-0">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo} alt="" loading="lazy" className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top" />
+        {teamLogo && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={teamLogo} alt="" loading="lazy" className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white dark:bg-neutral-900 p-0.5 object-contain ring-1 ring-neutral-200 dark:ring-neutral-700" />
+        )}
+      </div>
+    );
+  }
+  if (teamLogo) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={teamLogo} alt="" loading="lazy" className="mt-0.5 h-9 w-9 shrink-0 object-contain" />;
+  }
+  return <div className="mt-0.5 h-9 w-9 shrink-0 rounded-full bg-neutral-100 dark:bg-neutral-800" />;
 }

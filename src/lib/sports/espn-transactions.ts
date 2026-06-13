@@ -7,6 +7,7 @@
 // ESPN 응답엔 안정적 고유 id 가 없어 우리가 합성(league:date:desc 해시) → 멱등 upsert.
 
 import crypto from "crypto";
+import { generate } from "@/lib/ai/claude";
 
 export type TxLeague = "NBA" | "MLB" | "NHL";
 
@@ -109,6 +110,42 @@ export interface NormalizedTransaction {
   category: TxCategory;
   playerName: string | null;
   position: string | null;
+}
+
+/** 트랜잭션 영문 설명 배열 → 한글 번역 배열 (Haiku 배치). 선수명 한국 표기·팀명 한글·간결.
+ *  입력과 같은 길이/순서로 반환, 실패분은 빈 문자열 → caller 가 영문 fallback. */
+export async function translateDescriptions(descriptions: string[]): Promise<string[]> {
+  const out: string[] = new Array(descriptions.length).fill("");
+  const BATCH = 30;
+  for (let i = 0; i < descriptions.length; i += BATCH) {
+    const chunk = descriptions.slice(i, i + BATCH);
+    const numbered = chunk.map((d, j) => `${j + 1}. ${d}`).join("\n");
+    const prompt = `다음 NBA 트랜잭션 영문 문장을 자연스러운 한국어로 번역해줘.
+규칙:
+- 선수·감독 이름은 한국 스포츠 미디어 통용 표기로 음역 (예: Jamahl Mosley→자말 모슬리, Stephen Curry→스테판 커리)
+- 포지션 약자(G/F/C)는 생략, 팀명은 한국어
+- 간결한 뉴스체 (예: "Hired Jamahl Mosley as head coach."→"자말 모슬리 감독 선임", "Signed F Trevon Scott to a 10-day contract."→"트레본 스콧과 10일 단기계약", "Waived G Tyreke Key."→"타이리크 키 방출")
+- 트레이드 등 복합 문장은 핵심을 한 문장으로
+
+입력(번호별):
+${numbered}
+
+반드시 아래 JSON 배열만 출력 (번호 순서대로, 다른 텍스트 금지):
+["번역1","번역2",...]`;
+    try {
+      const res = await generate(prompt, { maxTokens: 4096, temperature: 0 });
+      const m = res.match(/\[[\s\S]*\]/);
+      if (m) {
+        const arr = JSON.parse(m[0]) as string[];
+        for (let j = 0; j < chunk.length && j < arr.length; j++) {
+          if (typeof arr[j] === "string") out[i + j] = arr[j].trim();
+        }
+      }
+    } catch {
+      // 배치 실패 → 해당 구간 빈 문자열 유지 (영문 fallback)
+    }
+  }
+  return out;
 }
 
 /** 한 리그의 트랜잭션 전 페이지 fetch → 정규화 배열. 실패 시 빈 배열. */

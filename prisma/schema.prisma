@@ -789,6 +789,7 @@ model SportsTransaction {
   teamAbbr    String? // 약어 (NO, LAL ...)
   teamLogo    String? // ESPN 로고 URL
   description String // 원문 설명 (영문) — "Signed G Nick Smith Jr. to a contract."
+  descriptionKo String? // Haiku 한글 번역 (job 수집 시 1회 캐시, 멱등). null=미번역→영문 fallback
   category    String // 분류: trade | signing | waive | short_term | staff | other
   playerName  String? // 설명에서 best-effort 파싱 (표시용, player page 연결 X)
   position    String? // G | F | C 등 (파싱)

@@ -5,17 +5,38 @@
 // 합성 id(espn-transactions.ts)로 멱등 — 같은 트랜잭션 재수집 시 update 만.
 
 import { prisma } from "@/lib/db";
-import { fetchEspnTransactions, type TxLeague } from "@/lib/sports/espn-transactions";
+import {
+  fetchEspnTransactions,
+  translateDescriptions,
+  type TxLeague,
+} from "@/lib/sports/espn-transactions";
 
 export async function runFetchTransactions(
   leagues: TxLeague[] = ["NBA"],
-): Promise<{ league: TxLeague; fetched: number; upserted: number }[]> {
-  const summary: { league: TxLeague; fetched: number; upserted: number }[] = [];
+): Promise<{ league: TxLeague; fetched: number; upserted: number; translated: number }[]> {
+  const summary: { league: TxLeague; fetched: number; upserted: number; translated: number }[] = [];
 
   for (const league of leagues) {
     const txs = await fetchEspnTransactions(league);
+
+    // 이미 번역된 트랜잭션(descriptionKo 보유)은 재번역 skip — Haiku 호출 최소화(멱등).
+    const existing = await prisma.sportsTransaction.findMany({
+      where: { id: { in: txs.map((t) => t.id) }, descriptionKo: { not: null } },
+      select: { id: true },
+    });
+    const alreadyKo = new Set(existing.map((e) => e.id));
+    const toTranslate = txs.filter((t) => !alreadyKo.has(t.id));
+    const koByIdx = toTranslate.length
+      ? await translateDescriptions(toTranslate.map((t) => t.description))
+      : [];
+    const koById = new Map<string, string>();
+    toTranslate.forEach((t, i) => {
+      if (koByIdx[i]) koById.set(t.id, koByIdx[i]);
+    });
+
     let upserted = 0;
     for (const t of txs) {
+      const ko = koById.get(t.id); // 신규 번역분만 (기존은 update 에서 미지정→보존)
       await prisma.sportsTransaction.upsert({
         where: { id: t.id },
         create: {
@@ -27,6 +48,7 @@ export async function runFetchTransactions(
           teamAbbr: t.teamAbbr,
           teamLogo: t.teamLogo,
           description: t.description,
+          descriptionKo: ko ?? null,
           category: t.category,
           playerName: t.playerName,
           position: t.position,
@@ -41,12 +63,16 @@ export async function runFetchTransactions(
           category: t.category,
           playerName: t.playerName,
           position: t.position,
+          // 신규 번역분만 기록 — 기존 descriptionKo 는 ko 가 undefined 면 건드리지 않음(보존).
+          ...(ko ? { descriptionKo: ko } : {}),
         },
       });
       upserted++;
     }
-    summary.push({ league, fetched: txs.length, upserted });
-    console.log(`[fetch-transactions] ${league}: fetched ${txs.length} · upserted ${upserted}`);
+    summary.push({ league, fetched: txs.length, upserted, translated: koById.size });
+    console.log(
+      `[fetch-transactions] ${league}: fetched ${txs.length} · upserted ${upserted} · 번역 ${koById.size}`,
+    );
   }
 
   return summary;
