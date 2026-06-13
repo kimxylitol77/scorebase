@@ -798,6 +798,23 @@ model SportsTransaction {
   @@index([league, category, date])
 }
 
+/// 선수 연봉 랭킹 — ESPN salaries(HTML) 스크래핑. NBA 우선(MLB/NHL 동일 구조 확장 가능).
+/// "현재 시즌 스냅샷"이라 수집마다 league 전체 replace(deleteMany+createMany) → rank 변동·은퇴 자동 정리.
+/// id = autoincrement(매번 갈아끼워 안정 id 불필요). 축구는 시장가치(PlayerMarketValue) 별도.
+model PlayerSalary {
+  id         Int      @id @default(autoincrement())
+  league     String // "NBA" | "MLB" | "NHL"
+  season     String // "2025-26"
+  rank       Int // 연봉 순위
+  playerName String
+  position   String? // G | F | C 등
+  teamName   String // ESPN 팀 표시명 (영문) — 표시 시 toKoreanTeamName 변환
+  salary     Int // 연봉 (USD, 최대 $60M < Int 범위)
+  updatedAt  DateTime @default(now())
+
+  @@index([league, rank])
+}
+
 /// TheSports 랭킹 cache — FIFA 남/여 국가대표 + 클럽 순위. worker cron 이 1일 1회 fetch → upsert.
 /// payload: [{rank, name, teamId, points, regionId?, prevPoints?, posChange?, logo?, countryLogo?}, ...]
 model RankingCache {

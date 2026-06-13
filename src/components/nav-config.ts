@@ -50,6 +50,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/previews?sport=BASKETBALL", label: "AI 프리뷰·분석", desc: "NBA 경기 예측" },
       { href: "/standings", label: "리그 순위", desc: "NBA 컨퍼런스 순위" },
       { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드·FA·방출" },
+      { href: "/salaries/nba", label: "NBA 연봉 랭킹", desc: "선수별 연봉 순위" },
     ],
   },
   {

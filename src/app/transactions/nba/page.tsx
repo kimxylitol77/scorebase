@@ -76,6 +76,20 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
         <p className="text-sm text-neutral-500 leading-relaxed">
           트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 날짜순으로. 매일 자동 갱신 · 데이터 ESPN.
         </p>
+        <div className="flex flex-wrap gap-2 pt-1 text-xs">
+          <Link
+            href="/salaries/nba"
+            className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+          >
+            💰 NBA 연봉 랭킹
+          </Link>
+          <Link
+            href="/leagues/NBA"
+            className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+          >
+            🏀 NBA 경기·순위
+          </Link>
+        </div>
       </header>
 
       {/* 카테고리 필터 칩 */}

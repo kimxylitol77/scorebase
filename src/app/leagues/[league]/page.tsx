@@ -543,14 +543,22 @@ export default async function LeaguePage({ params, searchParams }: Props) {
               🩹 부상자명단
             </Link>
           )}
-          {/* NBA 트랜잭션 — 트레이드·FA·방출 피드 (ESPN) */}
+          {/* NBA 트랜잭션·연봉 — 트레이드/FA 피드(ESPN) + 연봉 랭킹(basketball-reference) */}
           {upper === "NBA" && (
-            <Link
-              href="/transactions/nba"
-              className="px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
-            >
-              🔄 트랜잭션
-            </Link>
+            <>
+              <Link
+                href="/transactions/nba"
+                className="px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+              >
+                🔄 트랜잭션
+              </Link>
+              <Link
+                href="/salaries/nba"
+                className="px-3 sm:px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+              >
+                💰 연봉
+              </Link>
+            </>
           )}
         </div>
       </div>

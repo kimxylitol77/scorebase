@@ -219,6 +219,10 @@
     {
       "path": "/api/cron/fetch-transactions",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/fetch-salaries",
+      "schedule": "30 0 * * 1"
     }
   ]
 }
