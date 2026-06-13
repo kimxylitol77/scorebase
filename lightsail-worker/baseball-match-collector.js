@@ -42,6 +42,10 @@ function mapStatus(id) {
   if (id === 0 || id === 1) return "SCHEDULED";
   if (id === 100) return "FINISHED";
   if (id === 14 || id === 19) return "POSTPONED";
+  // 15 = Delayed (시작 지연) — detail_live 는 sid=1 인데 diary 가 15 를 주면 아래 2~99
+  // 범위에 걸려 LIVE 오마킹 → "LIVE 인데 이닝 없음" (2026-06-13 LMB Puebla-Tijuana 실측).
+  // 농구/하키 collector 는 이미 15 를 SCHEDULED 처리 — 야구만 누락돼 있던 것.
+  if (id === 15) return "SCHEDULED";
   if (id >= 2 && id < 100) return "LIVE";
   if (id >= 400 && id < 500) return "LIVE";
   if (id >= 200 && id < 300) return "SCHEDULED";
