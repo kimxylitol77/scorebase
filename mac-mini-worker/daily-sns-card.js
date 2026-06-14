@@ -1,17 +1,22 @@
-// 매일 11:00 KST "오늘의 주요 경기" 카드(이미지+캡션)를 텔레그램으로 배달하는 봇.
-// og/daily 카드를 Threads 자동발행 대신 텔레그램으로 받아 사용자가 직접 SNS(인스타·스레드)에 게시.
+// 매일 11:00 KST "내일의 월드컵 경기" 카드(이미지+캡션)를 텔레그램으로 배달하는 봇.
+// 11시에 받아 "내일 이런 월드컵 경기 있어요" 예고로 인스타·스레드에 직접 게시.
 // launchd: com.scorebase.daily-sns-card (11:00). 1회 실행 후 종료.
 const axios = require("axios");
 const { SITE, TOKEN, sendPhoto, notify, escapeHtml } = require("./ai-brief-lib");
 
 async function main() {
-  // 1) 오늘 카드 캡션 + 이미지 URL (dedup 없는 preview 엔드포인트)
-  const { data } = await axios.get(`${SITE}/api/internal/daily-sns-preview`, {
-    headers: { Authorization: `Bearer ${TOKEN}` },
-    timeout: 20000,
+  // 내일(KST) 날짜 — 11시에 받아 다음날 경기를 미리 예고
+  const dStr = new Date(Date.now() + 24 * 3600 * 1000).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Seoul",
   });
+
+  // 1) 내일 월드컵 경기 카드 캡션 + 이미지 URL (dedup 없는 preview 엔드포인트)
+  const { data } = await axios.get(
+    `${SITE}/api/internal/daily-sns-preview?comp=wc&t=tomorrow&d=${dStr}`,
+    { headers: { Authorization: `Bearer ${TOKEN}` }, timeout: 20000 },
+  );
   if (!data.hasMatches) {
-    console.log("[sns-card] 오늘 경기 없음 — skip");
+    console.log(`[sns-card] 내일(${dStr}) 월드컵 경기 없음 — skip`);
     return;
   }
 
@@ -24,7 +29,7 @@ async function main() {
 
   // 3) 텔레그램 sendPhoto — 캡션은 SNS 에 그대로 올릴 문구(해시태그·CTA 포함)
   await sendPhoto(buffer, data.caption);
-  console.log(`[sns-card] sent (${data.count}경기, ${buffer.length}B)`);
+  console.log(`[sns-card] sent (내일 ${data.count}경기, ${buffer.length}B)`);
 }
 
 main()

@@ -25,9 +25,9 @@ function truncate(s: string, max: number): string {
 // 오늘의 주요 경기 종합 caption.
 export function buildDailyCaption(
   lines: DailyMatchLine[],
-  opts: { dateLabel: string; url: string; totalCount: number },
+  opts: { dateLabel: string; url: string; totalCount: number; title?: string; hashtags?: string },
 ): string {
-  const header = `⚽️ 오늘의 주요 경기 (${opts.dateLabel})`;
+  const header = `${opts.title ?? "⚽️ 오늘의 주요 경기"} (${opts.dateLabel})`;
   const body = lines
     .map(
       (l) =>
@@ -38,7 +38,7 @@ export function buildDailyCaption(
     opts.totalCount > lines.length
       ? `\n…외 ${opts.totalCount - lines.length}경기`
       : "";
-  const footer = `\n\n전체 일정·스코어 👉 ${opts.url}\n\n${HASHTAGS_DAILY}`;
+  const footer = `\n\n전체 일정·스코어 👉 ${opts.url}\n\n${opts.hashtags ?? HASHTAGS_DAILY}`;
 
   const fixed = `${header}\n\n`;
   const tail = `${more}${footer}`;

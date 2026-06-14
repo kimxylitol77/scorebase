@@ -22,16 +22,20 @@ export async function GET(req: Request) {
   const square = url.searchParams.get("size") === "square";
   const size = square ? { width: 1080, height: 1080 } : { width: 1200, height: 630 };
   const maxRows = square ? 9 : 6;
+  // 월드컵 전용 카드 (comp=wc) — 내일 예고(t=tomorrow)면 타이틀에 "내일".
+  const wc = url.searchParams.get("comp") === "wc";
+  const tomorrow = url.searchParams.get("t") === "tomorrow";
 
   try {
     const { start, end, label } = kstDayWindow(url.searchParams.get("d"));
 
     const allLeagues = leaguesForSport("all");
+    const leagueFilter = wc ? allLeagues.filter((l) => l === "WORLD_CUP") : allLeagues;
     // 리그 우선순위 = ALL_LEAGUES(SPORTS 정의 순서) 인덱스.
     const priority = new Map(allLeagues.map((lg, i) => [lg, i]));
 
     const matches = await prisma.match.findMany({
-      where: { league: { in: allLeagues }, startTime: { gte: start, lt: end } },
+      where: { league: { in: leagueFilter }, startTime: { gte: start, lt: end } },
       include: {
         homeTeam: { select: { name: true } },
         awayTeam: { select: { name: true } },
@@ -122,7 +126,7 @@ export async function GET(req: Request) {
             }}
           >
             <span style={{ fontSize: "46px", fontWeight: 900, letterSpacing: "-0.03em" }}>
-              오늘의 주요 경기
+              {wc ? (tomorrow ? "내일의 월드컵 경기" : "오늘의 월드컵 경기") : "오늘의 주요 경기"}
             </span>
             {liveCount > 0 && (
               <span style={{ display: "flex", fontSize: "22px", fontWeight: 800, color: "#f87171" }}>

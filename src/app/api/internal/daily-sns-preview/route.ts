@@ -24,12 +24,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { start, end, dateKey, label } = kstDayWindow();
+  // comp=wc → 월드컵만, t=tomorrow → 내일 예고, d=YYYY-MM-DD → 특정일
+  const url = new URL(req.url);
+  const wc = url.searchParams.get("comp") === "wc";
+  const tomorrow = url.searchParams.get("t") === "tomorrow";
+
+  const { start, end, dateKey, label } = kstDayWindow(url.searchParams.get("d"));
   const allLeagues = leaguesForSport("all");
+  const leagueFilter = wc ? allLeagues.filter((l) => l === "WORLD_CUP") : allLeagues;
   const priority = new Map(allLeagues.map((lg, i) => [lg, i]));
 
   const matches = await prisma.match.findMany({
-    where: { league: { in: allLeagues }, startTime: { gte: start, lt: end } },
+    where: { league: { in: leagueFilter }, startTime: { gte: start, lt: end } },
     include: {
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
@@ -70,8 +76,10 @@ export async function GET(req: NextRequest) {
       dateLabel: label,
       url: `${SITE_URL}/board`,
       totalCount: matches.length,
+      title: wc ? `🏆 ${tomorrow ? "내일" : "오늘"}의 월드컵 경기` : undefined,
+      hashtags: wc ? "#스코어베이스 #월드컵 #2026월드컵 #축구 #국가대표" : undefined,
     }),
     // 인스타 피드 비율(1080×1080)로 — 경기 더 많이 노출
-    imageUrl: `${SITE_URL}/api/og/daily?d=${dateKey}&size=square`,
+    imageUrl: `${SITE_URL}/api/og/daily?d=${dateKey}&size=square${wc ? "&comp=wc" : ""}${tomorrow ? "&t=tomorrow" : ""}`,
   });
 }
