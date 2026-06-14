@@ -27,7 +27,8 @@ function icon(g: SoccerGoal): string {
 function parseMinute(m: string): number {
   const mm = m.match(/(\d+)(?:\+(\d+))?/);
   if (!mm) return 0;
-  return parseInt(mm[1], 10) + (mm[2] ? parseInt(mm[2], 10) : 0);
+  // 추가시간 fractional — 전반 추가시간(45+5)이 후반(47) 앞에 오게 (합산=50 역전 버그).
+  return parseInt(mm[1], 10) + (mm[2] ? parseInt(mm[2], 10) / 100 : 0);
 }
 
 export default function SoccerGoals({ goals }: Props) {

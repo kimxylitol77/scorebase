@@ -618,7 +618,9 @@ function GoalsTooltip({
   const parseMinute = (s: string): number => {
     const m = s.match(/(\d+)(?:\+(\d+))?/);
     if (!m) return 0;
-    return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) : 0);
+    // 추가시간은 fractional — 전반 추가시간(45+5)이 후반(47) 앞에 오게.
+    // 합산(45+5=50)이면 47 뒤로 가던 버그 (2026-06-14 독일전 득점순서 역전).
+    return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) / 100 : 0);
   };
   const homeGoals = goals
     .filter((g) => g.side === "home")

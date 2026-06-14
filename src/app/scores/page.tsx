@@ -304,11 +304,12 @@ function parseSoccerStatus(statusLabel?: string | null): SoccerContext | null {
   return { halfLabel: statusLabel };
 }
 
-/** goal.minute ("67'" / "45+2'") 에서 분 추출 — 추가시간 포함 합. */
+/** goal.minute ("67'" / "45+2'") → 정렬용 분. 추가시간은 fractional 로 더해
+ *  전반 추가시간(45+5)이 후반(47)보다 앞에 오게 (합산하면 45+5=50 > 47 로 역전). */
 function parseGoalMinute(minute: string): number {
   const m = minute.match(/(\d+)(?:\+(\d+))?/);
   if (!m) return 0;
-  return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) : 0);
+  return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) / 100 : 0);
 }
 
 /**
