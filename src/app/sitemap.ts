@@ -48,6 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     // 월드컵 허브 + 출전국 목록 (2026-06 신설 — 고아였던 national-teams/[id] 입구)
     { url: `${base}/world-cup`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
+    { url: `${base}/world-cup/team-of-day`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/national-teams`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
     // 월드컵 조별 통합 베스트11 (A~L, 12조) — 평점·순위 매일 갱신
     ...["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"].map((g) => ({

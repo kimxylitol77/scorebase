@@ -309,6 +309,21 @@ export default async function WorldCupHub() {
         </section>
       )}
 
+      <Link
+        href="/world-cup/team-of-day"
+        prefetch={false}
+        className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-amber-300/60 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition"
+      >
+        <span className="flex items-center gap-2.5">
+          <span className="text-xl">⚽</span>
+          <span>
+            <span className="block text-sm font-bold text-amber-800 dark:text-amber-200">오늘의 베스트 XI</span>
+            <span className="block text-[11px] text-amber-700/80 dark:text-amber-300/70">매일 경기 평점 기반 팀 오브 더 데이 · 4-2-3-1</span>
+          </span>
+        </span>
+        <span className="text-amber-600 dark:text-amber-400 text-sm font-bold">→</span>
+      </Link>
+
       <section>
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-lg font-bold tracking-tight">조별리그 A~L</h2>
