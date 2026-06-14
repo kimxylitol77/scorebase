@@ -42,6 +42,9 @@ const LEAGUES: LeagueCard[] = [
   { code: "KBO", name: "KBO 리그", subtitle: "한국 프로야구", flag: "🇰🇷", gradient: "from-blue-600 via-indigo-600 to-rose-500" },
   { code: "NPB", name: "NPB 리그", subtitle: "일본 프로야구", flag: "🇯🇵", gradient: "from-red-600 via-pink-500 to-rose-500" },
   { code: "NHL", name: "NHL", subtitle: "북미 아이스하키", flag: "🏒", gradient: "from-cyan-500 via-blue-600 to-indigo-700" },
+  { code: "VNL", name: "발리볼 네이션스리그", subtitle: "VNL · 남자 국가대항", flag: "🏐", gradient: "from-amber-500 via-orange-500 to-red-500" },
+  { code: "AVC_NATIONS_W", name: "AVC 네이션스컵", subtitle: "배구 여자 · 한국 출전", flag: "🏐", gradient: "from-sky-500 via-blue-500 to-indigo-600" },
+  { code: "EGL_W", name: "유럽 발리볼리그", subtitle: "배구 여자 · CEV", flag: "🏐", gradient: "from-violet-500 via-purple-500 to-fuchsia-500" },
 ];
 
 export default async function StandingsRoot() {
@@ -57,7 +60,7 @@ export default async function StandingsRoot() {
       <header className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight">리그별 순위</h1>
         <p className="text-sm text-neutral-500 leading-relaxed">
-          주요 축구·야구·농구·하키 리그의 시즌 순위와 Elo 레이팅·최근 폼·홈/원정 강도를 한눈에.
+          주요 축구·야구·농구·배구·하키 리그의 시즌 순위와 Elo 레이팅·최근 폼·홈/원정 강도를 한눈에.
           각 리그 카드를 클릭해 상세 순위표를 확인하세요.
         </p>
       </header>
