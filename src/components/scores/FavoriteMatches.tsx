@@ -48,8 +48,6 @@ interface MatchEntry extends Omit<MatchCardProps, "actions" | "home" | "away"> {
   };
   preview?: string;
   recap?: string;
-  /** 최근 1분 내 골 측 — 점수 셀 노란 ring + pulse */
-  recentGoalSide?: "home" | "away" | null;
   /** 축구 라인업(cache.lineup) 존재 여부 — 데스크탑 L 배지용 */
   hasLineup?: boolean;
 }
@@ -404,7 +402,6 @@ function CompactRow({ match }: { match: MatchEntry }) {
           awayShort={match.away.abbr ?? undefined}
           previewSlug={match.preview ?? null}
           recapSlug={match.recap ?? null}
-          recentGoalSide={match.recentGoalSide ?? null}
           href={match.href ?? null}
           homePosition={match.home.position ?? null}
           awayPosition={match.away.position ?? null}

@@ -49,8 +49,6 @@ export interface SoccerLiveRowProps {
   previewSlug?: string | null;
   /** RECAP 글 slug — 있으면 R 아이콘 */
   recapSlug?: string | null;
-  /** 최근 1분 내 골 측 — 점수 셀 노란 ring + pulse */
-  recentGoalSide?: "home" | "away" | null;
   href?: string | null;
   /** 리그 순위 (TheSportsStandingsCache 기반) — 팀명 옆 [14] 표시. null 이면 미표시 */
   homePosition?: number | null;
@@ -62,7 +60,7 @@ export interface SoccerLiveRowProps {
   /** true 면 원정팀 좌측 / 홈팀 우측 표시 + 홈팀 옆에 "홈" 마크 (야구 미디어 관행) */
   awayFirst?: boolean;
   /** true 면 점수 증가 시 득점한 팀 숫자 뒤에 halo flash (야구 compact 행 전용).
-      축구는 recentGoalSide 로 이미 골 임팩트 효과가 있어 켜지 않음. */
+      축구는 flashSide 로 이미 골 임팩트 효과가 있어 켜지 않음. */
   enableScoreFlash?: boolean;
   /** TheSports cache.lineup 실제 존재 시 true → L 배지 표시 (리그 whitelist 대신 실제 라인업 유무). */
   hasLineup?: boolean;
@@ -148,7 +146,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   );
   // 임팩트 측 = 점수 기반 flashSide(6초). incident 기반 recentGoalSide(2026-05-23 도입한
   // 0~2분 윈도우=실제 ~3분 잔존)는 라이브 느릴 때 보강책이었으나, 점수가 af+ts 병합으로
-  // 빨라져 제거 — "너무 오래 떠 있음" 해소 (2026-06-14). recentGoalSide prop 은 향후 정리.
+  // 빨라져 제거 — "너무 오래 떠 있음" 해소 (2026-06-14).
   const goalFlashSide = flashSide;
   // 좌/우 표시 순서는 awayFirst 에 따라 바뀜 — 좌측 숫자의 ping 을 골라준다.
   const leftPing = awayFirst ? awayPing : homePing;

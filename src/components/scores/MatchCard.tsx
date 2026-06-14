@@ -62,8 +62,6 @@ export interface MatchCardProps {
   href?: string | null;
   /** 우측 액션 (프리뷰/리뷰 칩 등) */
   actions?: ReactNode;
-  /** 축구 라이브 — 최근 1분 내 골 측 (점수 셀 노란 ring + pulse) */
-  recentGoalSide?: "home" | "away" | null;
   /** Ollama (Mac mini) 생성 라이브 코멘터리 — LIVE 야구 카드에 표시 */
   liveCommentary?: LiveCommentaryData | null;
   /** 같은 두 팀이 같은 날 2경기 이상일 때 (예: MLB 더블헤더) — 1차전/2차전 라벨 표시용 */

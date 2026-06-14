@@ -23,7 +23,6 @@ interface Props {
   away: { name: string; logo?: string | null; score: number | null };
   previewSlug?: string | null;
   recapSlug?: string | null;
-  recentGoalSide?: "home" | "away" | null;
   href?: string | null;
   /** 축구 승부차기 — 정규/연장 동점 후 PK. 점수 옆 (4) 표시 */
   penaltyHome?: number | null;
