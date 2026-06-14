@@ -27,7 +27,10 @@ export interface WcPlayerStat {
   bigMiss: number; // 빅찬스 미스
   woodwork: number; // 골대 맞춘 횟수
   aerialWon: number; // 공중볼 승리
+  aerialLost: number; // 공중볼 패배 (제공권 지배율 계산용)
   dribbleSucc: number; // 드리블 성공
+  dribbleAtt: number; // 드리블 시도 (성공률 계산용)
+  shots: number; // 슛 시도 (결정력 = goals÷shots)
   mvEuro: number; // 시장가치 € (없으면 0)
   avgRating: number; // rating>0 경기 평균 (소수 2)
   minutes: number;
@@ -50,7 +53,10 @@ interface TsPlayerStatRow {
   big_chance_missed?: number;
   hit_woodwork?: number;
   aerial_won?: number;
+  aerial_lost?: number;
+  dribble?: number;
   dribble_succ?: number;
+  shots?: number;
   rating?: number;
   minutes_played?: number;
 }
@@ -94,7 +100,10 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     bigMiss: number;
     woodwork: number;
     aerialWon: number;
+    aerialLost: number;
     dribbleSucc: number;
+    dribbleAtt: number;
+    shots: number;
     ratings: number[];
     minutes: number;
     games: number;
@@ -138,7 +147,10 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
         bigMiss: 0,
         woodwork: 0,
         aerialWon: 0,
+        aerialLost: 0,
         dribbleSucc: 0,
+        dribbleAtt: 0,
+        shots: 0,
         ratings: [],
         minutes: 0,
         games: 0,
@@ -157,7 +169,10 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
       a.bigMiss += s.big_chance_missed ?? 0;
       a.woodwork += s.hit_woodwork ?? 0;
       a.aerialWon += s.aerial_won ?? 0;
+      a.aerialLost += s.aerial_lost ?? 0;
       a.dribbleSucc += s.dribble_succ ?? 0;
+      a.dribbleAtt += s.dribble ?? 0;
+      a.shots += s.shots ?? 0;
       const rating = Number(s.rating) || 0;
       if (rating > 0) a.ratings.push(rating);
       const min = s.minutes_played ?? 0;
@@ -202,7 +217,10 @@ export async function getWorldCupPlayerStats(): Promise<WcPlayerStat[]> {
     bigMiss: a.bigMiss,
     woodwork: a.woodwork,
     aerialWon: a.aerialWon,
+    aerialLost: a.aerialLost,
     dribbleSucc: a.dribbleSucc,
+    dribbleAtt: a.dribbleAtt,
+    shots: a.shots,
     mvEuro: mvEuroById.get(id) ?? 0,
     avgRating: a.ratings.length
       ? +(a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length).toFixed(2)
@@ -264,15 +282,42 @@ export function buildWcLeaderRows(stats: WcPlayerStat[]): Record<string, LeaderR
     FOULED: top((s) => s.wasFouled > 0, (a, b) => b.wasFouled - a.wasFouled || b.avgRating - a.avgRating, (s) => s.wasFouled, "회"),
     BIGMISS: top((s) => s.bigMiss > 0, (a, b) => b.bigMiss - a.bigMiss || b.avgRating - a.avgRating, (s) => s.bigMiss, "회"),
     WOODWORK: top((s) => s.woodwork > 0, (a, b) => b.woodwork - a.woodwork || b.avgRating - a.avgRating, (s) => s.woodwork, "회"),
-    AERIAL: top((s) => s.aerialWon > 0, (a, b) => b.aerialWon - a.aerialWon || b.avgRating - a.avgRating, (s) => s.aerialWon, "회"),
-    DRIBBLE: top((s) => s.dribbleSucc > 0, (a, b) => b.dribbleSucc - a.dribbleSucc || b.avgRating - a.avgRating, (s) => s.dribbleSucc, "회"),
+    // 제공권 지배율 = aerial_won ÷ (won+lost) %. 최소 10 경합 (표본 노이즈 방지).
+    AERIAL: stats
+      .filter((s) => s.aerialWon + s.aerialLost >= 10)
+      .map((s) => ({ s, total: s.aerialWon + s.aerialLost }))
+      .sort((a, b) => b.s.aerialWon / b.total - a.s.aerialWon / a.total || b.total - a.total)
+      .slice(0, 10)
+      .map(({ s, total }, i) => {
+        const r = toRow(s, i, Math.round((s.aerialWon / total) * 100), "%");
+        return { ...r, teamName: `${r.teamName} · ${s.aerialWon}/${total}` };
+      }),
+    // 드리블 성공률 = dribble_succ ÷ dribble %. 최소 5 시도.
+    DRIBBLE: stats
+      .filter((s) => s.dribbleAtt >= 5)
+      .sort((a, b) => b.dribbleSucc / b.dribbleAtt - a.dribbleSucc / a.dribbleAtt || b.dribbleAtt - a.dribbleAtt)
+      .slice(0, 10)
+      .map((s, i) => {
+        const r = toRow(s, i, Math.round((s.dribbleSucc / s.dribbleAtt) * 100), "%");
+        return { ...r, teamName: `${r.teamName} · ${s.dribbleSucc}/${s.dribbleAtt}` };
+      }),
+    // 결정력 = goals ÷ shots %. 득점자만. shots<goals 데이터 흠집은 분모 보정(max).
+    CLINICAL: stats
+      .filter((s) => s.goals >= 1)
+      .map((s) => ({ s, denom: Math.max(s.shots, s.goals) }))
+      .sort((a, b) => b.s.goals / b.denom - a.s.goals / a.denom || b.s.goals - a.s.goals)
+      .slice(0, 10)
+      .map(({ s, denom }, i) => {
+        const r = toRow(s, i, Math.round((s.goals / denom) * 100), "%");
+        return { ...r, teamName: `${r.teamName} · ${s.goals}골/${s.shots}슛` };
+      }),
   };
   return Object.values(rows).every((r) => r.length === 0) ? null : rows;
 }
 
 /** 핵심 랭킹 탭 (선수 랭킹 섹션) / 이색 랭킹 탭 (predictions 전용 섹션) 분리용 키 셋. */
 export const WC_CORE_CATS = ["GOAL", "ASSIST", "CHANCE", "RATING", "DEFENSE", "SAVE", "YELLOW", "RED"];
-export const WC_FUN_CATS = ["VALUE", "FOULED", "BIGMISS", "WOODWORK", "AERIAL", "DRIBBLE"];
+export const WC_FUN_CATS = ["VALUE", "FOULED", "BIGMISS", "WOODWORK", "AERIAL", "DRIBBLE", "CLINICAL"];
 
 /** rowsByCategory 에서 지정 키만 추출 — 전부 빈 배열이면 null. */
 export function pickCats(

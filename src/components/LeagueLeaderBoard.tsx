@@ -62,8 +62,9 @@ const CATEGORIES_BY_LEAGUE: Record<string, CategoryDef[]> = {
     { key: "FOULED", label: "파울유도", emoji: "🤕" },
     { key: "BIGMISS", label: "빅찬스미스", emoji: "😱" },
     { key: "WOODWORK", label: "골대", emoji: "🪵" },
-    { key: "AERIAL", label: "공중볼", emoji: "🦅" },
-    { key: "DRIBBLE", label: "드리블", emoji: "🪄" },
+    { key: "AERIAL", label: "제공권%", emoji: "🎈" },
+    { key: "DRIBBLE", label: "드리블%", emoji: "⚡" },
+    { key: "CLINICAL", label: "결정력", emoji: "🥶" },
   ],
   // Phase 2 예정
   BASEBALL: [

@@ -821,12 +821,12 @@ export default async function LeaguePredictions({ params }: Props) {
           </section>
         )}
 
-        {/* 이색 랭킹 — 가성비·파울유도·빅찬스미스·골대·공중볼·드리블 (여기서만 보는 기록) */}
+        {/* 이색 랭킹 — 가성비·파울유도·빅찬스미스·골대·제공권지배율·드리블성공률·결정력 (여기서만 보는 기록) */}
         {isWorldCup && wcFunRows && (
           <section>
             <Heading
               title="이색 랭킹"
-              subtitle="가성비(평점÷몸값)·파울유도·빅찬스미스·골대·공중볼·드리블 — 데이터로만 보이는 기록들"
+              subtitle="가성비(평점÷몸값)·파울유도·빅찬스미스·골대·제공권 지배율·드리블 성공률·결정력(골÷슛) — 데이터로만 보이는 기록들"
             />
             <LeagueLeaderBoard
               league="WORLD_CUP"
