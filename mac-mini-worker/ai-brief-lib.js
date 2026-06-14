@@ -97,4 +97,19 @@ async function notify(payload) {
   });
 }
 
-module.exports = { client, MODEL, SITE, TOKEN, todayKst, escapeHtml, stripPreamble, tidyBullets, askWithWebSearch, notify };
+// 텔레그램 sendPhoto — 이미지 buffer + 캡션 (multipart). notify(텍스트 전용)와 별개.
+async function sendPhoto(buffer, caption, filename = "card.png") {
+  const fd = new FormData();
+  fd.append("chat_id", process.env.TELEGRAM_CHAT_ID);
+  if (caption) fd.append("caption", caption);
+  fd.append("photo", new Blob([buffer], { type: "image/png" }), filename);
+  const r = await fetch(
+    `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`,
+    { method: "POST", body: fd },
+  );
+  const j = await r.json();
+  if (!j.ok) throw new Error("sendPhoto 실패: " + JSON.stringify(j).slice(0, 200));
+  return j;
+}
+
+module.exports = { client, MODEL, SITE, TOKEN, todayKst, escapeHtml, stripPreamble, tidyBullets, askWithWebSearch, notify, sendPhoto };
