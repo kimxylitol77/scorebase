@@ -22,6 +22,10 @@ export const dynamic = "force-dynamic";
 // 30분 — football-poller 5분 주기 + ws-subscriber 푸시 빈도가 마이너 리그에서
 // 낮을 수 있어 15분 → 30분 으로 완화 (false positive 감소, 2026-05-25).
 const STALE_LIVE_MS = 30 * 60 * 1000;
+// score_drift — 시작 직후 SCHEDULED→LIVE 전환 lag 면제. stale_live 와 동일 이유로 30분
+// (2026-06-14: MLB 시작 7초 만에 0:0 SCHEDULED 오판 → 가드 추가. status updater =
+//  poller 5분 주기 + ws-subscriber, 마이너 야구 리그는 전환 느림. 진짜 죽음은 30분 후 알림).
+const SCORE_DRIFT_GRACE_MS = 30 * 60 * 1000;
 // TheSports standings poller 1h 주기 → 1.5h+ stale 면 worker 죽음 의심.
 const STANDINGS_TS_STALE_MS = 1.5 * 3600 * 1000;
 // api-football standings cron 1일 1회 → 26h+ stale 면 cron 실패 의심.
@@ -219,11 +223,12 @@ export async function GET(req: NextRequest) {
 
     if (!BASEBALL_LEAGUES.has(m.league)) continue;
 
-    // 1. score_drift — 야구 SCHEDULED 인데 점수 있음 + 시작 시각 지남
+    // 1. score_drift — 야구 SCHEDULED 인데 점수 있음 + 시작 +30분 경과
+    // (시작 직후 SCHEDULED→LIVE 전환 lag 는 정상 — SCORE_DRIFT_GRACE_MS 가드로 false positive 차단)
     if (
       m.status === "SCHEDULED" &&
       (m.homeScore != null || m.awayScore != null) &&
-      m.startTime.getTime() < now
+      m.startTime.getTime() < now - SCORE_DRIFT_GRACE_MS
     ) {
       issues.push({
         ...matchInfo,
