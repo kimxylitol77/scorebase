@@ -19,9 +19,16 @@ const CACHE_HEADERS = {
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const square = url.searchParams.get("size") === "square";
-  const size = square ? { width: 1080, height: 1080 } : { width: 1200, height: 630 };
-  const maxRows = square ? 9 : 6;
+  const sizeParam = url.searchParams.get("size");
+  const square = sizeParam === "square";
+  const portrait = sizeParam === "portrait"; // 1080×1350 인스타 4:5 피드용
+  const tall = square || portrait; // 세로형 — 패딩·정렬 공통
+  const size = portrait
+    ? { width: 1080, height: 1350 }
+    : square
+      ? { width: 1080, height: 1080 }
+      : { width: 1200, height: 630 };
+  const maxRows = portrait ? 10 : square ? 9 : 6;
   // 월드컵 전용 카드 (comp=wc) — 내일 예고(t=tomorrow)면 타이틀에 "내일".
   const wc = url.searchParams.get("comp") === "wc";
   const tomorrow = url.searchParams.get("t") === "tomorrow";
@@ -73,7 +80,7 @@ export async function GET(req: Request) {
             height: "100%",
             display: "flex",
             flexDirection: "column",
-            padding: square ? "60px 60px" : "52px 64px",
+            padding: tall ? "60px 60px" : "52px 64px",
             background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
             color: "white",
             fontFamily: "Pretendard, system-ui, sans-serif",
@@ -121,7 +128,7 @@ export async function GET(req: Request) {
               display: "flex",
               alignItems: "center",
               gap: "18px",
-              marginTop: square ? "30px" : "26px",
+              marginTop: tall ? "30px" : "26px",
               marginBottom: "6px",
             }}
           >
@@ -140,10 +147,10 @@ export async function GET(req: Request) {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: square ? "13px" : "11px",
+              gap: tall ? "13px" : "11px",
               flex: 1,
               marginTop: "16px",
-              justifyContent: square ? "center" : "flex-start",
+              justifyContent: tall ? "center" : "flex-start",
             }}
           >
             {rows.length === 0 ? (

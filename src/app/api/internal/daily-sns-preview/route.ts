@@ -80,6 +80,6 @@ export async function GET(req: NextRequest) {
       hashtags: wc ? "#스코어베이스 #월드컵 #2026월드컵 #축구 #국가대표" : undefined,
     }),
     // 인스타 피드 비율(1080×1080)로 — 경기 더 많이 노출
-    imageUrl: `${SITE_URL}/api/og/daily?d=${dateKey}&size=square${wc ? "&comp=wc" : ""}${tomorrow ? "&t=tomorrow" : ""}`,
+    imageUrl: `${SITE_URL}/api/og/daily?d=${dateKey}&size=portrait${wc ? "&comp=wc" : ""}${tomorrow ? "&t=tomorrow" : ""}`,
   });
 }
