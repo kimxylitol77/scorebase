@@ -198,7 +198,7 @@ const KOREAN_ALIASES: Record<string, string> = {
   오만: "Oman",
   기니: "Guinea",
   몬테네그로: "Montenegro",
-  쿠라사오: "Curaçao",
+  퀴라소: "Curaçao",
   시리아: "Syria",
   뉴질랜드: "New Zealand",
   불가리아: "Bulgaria",

@@ -2338,7 +2338,7 @@ const RAW: Record<string, string> = {
   "Comoros": "코모로",
   "Congo DR": "콩고민주공화국",
   "Croatia U21": "크로아티아 U21",
-  "Curaçao": "쿠라사오",
+  "Curaçao": "퀴라소",
   "Cyprus": "키프로스",
   "Cyprus U18": "키프로스 U18",
   "Dominican Republic": "도미니카공화국",
