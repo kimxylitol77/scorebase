@@ -1251,20 +1251,22 @@ export default async function ScoresPage({ searchParams }: Props) {
     // 축구: TheSports cache 의 정규/연장 점수(fs.main) 우선 — DB.homeScore 는 승부차기 합산
     // 오염 가능(예: UCL 결승 4-3). 승부차기는 별도 penHome/penAway 로 분리 표시.
     const fs = footballScoreByMatchId.get(m.id) ?? null;
+    // 축구 정규/연장 점수 reconciliation — ts cache(fs.main)·af-live·DB 중 최댓값.
+    // ts detailLive 가 라이브/종료 미추적으로 stale(0-0 고착)일 때 af·DB 골이 가려지던
+    // 버그 fix (2026-06-14 독일 1-0 쿠라사오: af·DB 1-0 인데 ts캐시 0-0 노출).
+    // 단 DB 는 승부차기 합산 오염 가능 → fs 에 승부차기(penHome) 있으면 DB 제외(fs.main·af만).
+    // 라이브엔 승부차기 없어 af·DB 모두 정규점수라 안전.
+    const hasPens = fs != null && (fs.penHome != null || fs.penAway != null);
+    const numsOf = (...vals: (number | null | undefined)[]) =>
+      vals.filter((v): v is number => typeof v === "number");
+    const homeCands = numsOf(fs?.mainHome, liveH, hasPens ? undefined : dbH);
+    const awayCands = numsOf(fs?.mainAway, liveA, hasPens ? undefined : dbA);
     const homeScore = isBaseball
       ? (dbH ?? liveH ?? null)
-      : fs
-        // ts 정규/연장 점수 우선(승부차기 합산 DB 오염 회피) — 단 af 라이브(/fixtures?live=all)가
-        // 더 높으면 그 값. ts detailLive 가 라이브 미추적으로 0-0 고착 시 af 골이 가려지던
-        // 버그 fix (2026-06-14 독일 1-0 쿠라사오: af·DB 1-0 인데 ts캐시 0-0 노출). 라이브엔
-        // 승부차기 없어 max 안전(af goals 는 정규점수, penalty 별도 필드).
-        ? (liveH != null ? Math.max(fs.mainHome, liveH) : fs.mainHome)
-        : (liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH));
+      : homeCands.length ? Math.max(...homeCands) : null;
     const awayScore = isBaseball
       ? (dbA ?? liveA ?? null)
-      : fs
-        ? (liveA != null ? Math.max(fs.mainAway, liveA) : fs.mainAway)
-        : (liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA));
+      : awayCands.length ? Math.max(...awayCands) : null;
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
 
