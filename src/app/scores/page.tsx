@@ -1254,12 +1254,16 @@ export default async function ScoresPage({ searchParams }: Props) {
     const homeScore = isBaseball
       ? (dbH ?? liveH ?? null)
       : fs
-        ? fs.mainHome
+        // ts 정규/연장 점수 우선(승부차기 합산 DB 오염 회피) — 단 af 라이브(/fixtures?live=all)가
+        // 더 높으면 그 값. ts detailLive 가 라이브 미추적으로 0-0 고착 시 af 골이 가려지던
+        // 버그 fix (2026-06-14 독일 1-0 쿠라사오: af·DB 1-0 인데 ts캐시 0-0 노출). 라이브엔
+        // 승부차기 없어 max 안전(af goals 는 정규점수, penalty 별도 필드).
+        ? (liveH != null ? Math.max(fs.mainHome, liveH) : fs.mainHome)
         : (liveH != null && dbH != null ? Math.max(liveH, dbH) : (liveH ?? dbH));
     const awayScore = isBaseball
       ? (dbA ?? liveA ?? null)
       : fs
-        ? fs.mainAway
+        ? (liveA != null ? Math.max(fs.mainAway, liveA) : fs.mainAway)
         : (liveA != null && dbA != null ? Math.max(liveA, dbA) : (liveA ?? dbA));
     const preview = m.articles.find((a) => a.type === "PREVIEW")?.slug;
     const recap = m.articles.find((a) => a.type === "RECAP")?.slug;
