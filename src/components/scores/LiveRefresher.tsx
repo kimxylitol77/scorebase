@@ -1,4 +1,4 @@
-// LIVE 매치가 있으면 15초마다 router.refresh() — SSR 매치 데이터 갱신.
+// LIVE 매치가 있으면 10초마다 router.refresh() — SSR 매치 데이터 갱신.
 // document.hidden 일 때 정지, 사용자가 토글로 ON/OFF.
 
 "use client";
@@ -11,7 +11,8 @@ interface Props {
   liveCount: number;
 }
 
-const POLL_MS = 15_000;
+// 골 임팩트·점수 반영 지연 단축 (2026-06-14, 15→10초). 부하는 라이브 경기 중·접속자 한정.
+const POLL_MS = 10_000;
 
 export default function LiveRefresher({ liveCount }: Props) {
   const router = useRouter();
