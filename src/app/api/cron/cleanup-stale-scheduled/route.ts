@@ -11,7 +11,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
-import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { League } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
@@ -158,11 +158,21 @@ export async function GET(req: NextRequest) {
 
   const cutoff = new Date(Date.now() - STALE_HOURS * 3600 * 1000);
 
-  // 1) stale LIVE 매치 처리 (시작 + 6h+ 지났는데 LIVE) — data-sanity 봇 알림 제거
+  // 1) stale LIVE 매치 처리 (시작 + cutoff 지났는데 LIVE) — data-sanity 봇 알림 제거
   //    점수 있으면 FINISHED, 없으면 POSTPONED.
-  const liveCutoff = new Date(Date.now() - 6 * 3600 * 1000);
+  //    축구는 3.5h (종료 ~2.5h 후 여유) — ts 군소 축구가 fast-poller 누락으로 LIVE 고착하는
+  //    공백 단축(2026-06-14 ARG #441867 진단). 야구/기타는 연장 고려 6h 유지. 정밀 복구는
+  //    mac-mini stale-ts-verify(diary status_id)가 먼저 처리하고, 이 cron 은 worker 중단 시 백스톱.
+  const liveCutoffSoccer = new Date(Date.now() - 3.5 * 3600 * 1000);
+  const liveCutoffDefault = new Date(Date.now() - 6 * 3600 * 1000);
   const staleLive = await prisma.match.findMany({
-    where: { status: "LIVE", startTime: { lt: liveCutoff } },
+    where: {
+      status: "LIVE",
+      OR: [
+        { league: { in: [...SOCCER_LEAGUES] }, startTime: { lt: liveCutoffSoccer } },
+        { league: { notIn: [...SOCCER_LEAGUES] }, startTime: { lt: liveCutoffDefault } },
+      ],
+    },
     include: { homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
   });
   let liveFinished = 0;

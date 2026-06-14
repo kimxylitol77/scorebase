@@ -1,4 +1,4 @@
-// GET  /api/internal/stale-ts-verify — stale ts- SCHEDULED 매치 목록 (TheSports diary verify 대상).
+// GET  /api/internal/stale-ts-verify — stale ts- SCHEDULED/LIVE 매치 목록 (TheSports diary verify 대상).
 // POST /api/internal/stale-ts-verify — 고정 IP worker 가 diary verify 한 결과를 적용 (FINISHED/POSTPONED sync).
 //
 // 배경:
@@ -29,6 +29,11 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const STALE_HOURS = 6;
+// LIVE 매치는 더 짧게 — 축구 종료(90분+연장+휴식 ~2.5h) 후 빨리 verify.
+// ts 군소 축구가 fast-poller(thesports-cache) 누락 시 LIVE 고착하는 공백을 좁힌다
+// (2026-06-14 ARG_PRIMERA_NACIONAL #441867 진단). diary status_id 재확인이 가드라
+// 야구 연장(3h+) 매치도 진행 중이면 KEPT 로 안전하게 유지된다.
+const LIVE_STALE_HOURS = 3;
 
 // ts- 매치 sport 분류 — baseball / football diary 만 verify 대상.
 // 하키/농구 ts- 매치는 diary 스킴이 달라 현재 제외 (worker 가 football 로 오조회하지 않도록 null).
@@ -54,12 +59,15 @@ function authed(req: NextRequest): boolean {
 export async function GET(req: NextRequest) {
   if (!authed(req)) return unauthorized();
 
-  const cutoff = new Date(Date.now() - STALE_HOURS * 3600 * 1000);
+  const schedCutoff = new Date(Date.now() - STALE_HOURS * 3600 * 1000);
+  const liveCutoff = new Date(Date.now() - LIVE_STALE_HOURS * 3600 * 1000);
   const stale = await prisma.match.findMany({
     where: {
-      status: "SCHEDULED",
-      startTime: { lt: cutoff },
       externalId: { startsWith: "ts-" },
+      OR: [
+        { status: "SCHEDULED", startTime: { lt: schedCutoff } },
+        { status: "LIVE", startTime: { lt: liveCutoff } },
+      ],
     },
     select: { id: true, league: true, externalId: true, startTime: true },
     orderBy: { startTime: "asc" },
@@ -134,7 +142,8 @@ export async function POST(req: NextRequest) {
       continue;
     }
     // 단조 가드 — worker GET 이후 다른 경로(collect 등)가 이미 처리했으면 건드리지 않음.
-    if (m.status !== "SCHEDULED") {
+    // SCHEDULED·LIVE 만 verify 대상 (FINISHED/POSTPONED 로 이미 확정된 매치는 skip).
+    if (m.status !== "SCHEDULED" && m.status !== "LIVE") {
       skipped++;
       continue;
     }
@@ -144,8 +153,15 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    // diary 에 해당 매치가 없음 = 취소/일정변경 → POSTPONED.
+    // diary 에 해당 매치가 없음.
+    //   SCHEDULED → 취소/일정변경으로 POSTPONED.
+    //   LIVE → 진행 중이던 매치가 diary 날짜 버킷 밖(자정 경계 이동)일 수 있어 POSTPONED
+    //          오판 금지. 유지하고 다음 run 재시도 — 종료되면 FINISHED 버킷에 재등장한다.
     if (!r.found) {
+      if (m.status === "LIVE") {
+        kept.push(m);
+        continue;
+      }
       await prisma.match.update({ where: { id: m.id }, data: { status: "POSTPONED" } });
       postponed.push(m);
       continue;
@@ -217,7 +233,7 @@ export async function POST(req: NextRequest) {
     try {
       await sendTelegram(
         `🛰️ <b>ts- stale verify ${changed}건 정리</b> (FINISHED ${finished.length} / POSTPONED ${postponed.length})\n\n` +
-          `📍 <b>무엇</b>: TheSports(ts-) stale SCHEDULED 매치 diary 검증\n` +
+          `📍 <b>무엇</b>: TheSports(ts-) stale SCHEDULED/LIVE 매치 diary 검증\n` +
           `💥 <b>영향</b>: Vercel cron 이 IP 화이트리스트로 못 보던 ts- 매치 자동 정정\n` +
           `🔍 <b>출처</b>: mac-mini worker (고정 IP) → baseball/football diary\n\n` +
           `<code>${lines}</code>\n\n` +
