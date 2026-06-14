@@ -58,7 +58,6 @@ export default function SoccerCompactCard(props: Props) {
     liveStatusLabel,
     home,
     away,
-    recentGoalSide,
     href,
     penaltyHome,
     penaltyAway,
@@ -73,10 +72,10 @@ export default function SoccerCompactCard(props: Props) {
   const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   const homeWin = hasScore && home.score! > away.score!;
   const awayWin = hasScore && away.score! > home.score!;
-  // 골 임팩트 — 점수 증가 측 ~6초 flash. incident 기반 recentGoalSide 가 ts incidents
-  // 지연/누락으로 못 뜰 때의 확실한 백업 (2026-06-14, useScoreFlash 공용).
+  // 골 임팩트 = 점수 기반 flashSide(6초). 긴 incident 윈도우(recentGoalSide, ~3분 잔존) 제거
+  // — 점수가 빨라져 불필요, "너무 오래 떠 있음" 해소 (2026-06-14).
   const { flashSide } = useScoreFlash(away.score ?? 0, home.score ?? 0, isLive);
-  const goalFlashSide = recentGoalSide ?? flashSide;
+  const goalFlashSide = flashSide;
 
   // 좌측 시간/상태 라벨 — 라이브: 분, 종료: "종료", 예정: 시간
   const leftPrimary = isLive

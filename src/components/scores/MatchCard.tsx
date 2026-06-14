@@ -210,7 +210,6 @@ export default function MatchCard(props: MatchCardProps) {
     awayStarter,
     href,
     actions,
-    recentGoalSide,
     liveCommentary,
     doubleHeader,
     penaltyHome,
@@ -223,15 +222,15 @@ export default function MatchCard(props: MatchCardProps) {
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
   const hasScore = home.score != null && away.score != null;
-  // 골 임팩트(축구) — 점수 증가 측 ~6초 flash. incident 기반 recentGoalSide 가 ts incidents
-  // 지연/누락으로 못 뜰 때의 확실한 백업 (2026-06-14, useScoreFlash 공용). hook 은 baseball
-  // early-return 전이라 Rules of Hooks 충족.
+  // 골 임팩트(축구) = 점수 기반 flashSide(6초). 긴 incident 윈도우(recentGoalSide, ~3분
+  // 잔존) 제거 — "너무 오래 떠 있음" 해소 (2026-06-14). hook 은 baseball early-return 전이라
+  // Rules of Hooks 충족.
   const { flashSide } = useScoreFlash(
     away.score ?? 0,
     home.score ?? 0,
     isLive && sport === "soccer",
   );
-  const goalFlashSide = recentGoalSide ?? flashSide;
+  const goalFlashSide = flashSide;
 
   // 야구 (KBO/NPB/MLB) — LIVE/종료/예정 모두 통합 카드
   if (sport === "baseball") {

@@ -110,7 +110,6 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayShort,
     previewSlug,
     recapSlug,
-    recentGoalSide,
     href,
     homePosition,
     awayPosition,
@@ -147,9 +146,10 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     homeScore ?? 0,
     isLive,
   );
-  // 임팩트 측 — incident(recentGoalSide) 우선(득점자 정보 포함), 없으면 점수 기반(flashSide).
-  // ts incidents 지연/누락으로 recentGoalSide 가 못 떠도 점수 증가로 확실히 flash (2026-06-14).
-  const goalFlashSide = recentGoalSide ?? flashSide;
+  // 임팩트 측 = 점수 기반 flashSide(6초). incident 기반 recentGoalSide(2026-05-23 도입한
+  // 0~2분 윈도우=실제 ~3분 잔존)는 라이브 느릴 때 보강책이었으나, 점수가 af+ts 병합으로
+  // 빨라져 제거 — "너무 오래 떠 있음" 해소 (2026-06-14). recentGoalSide prop 은 향후 정리.
+  const goalFlashSide = flashSide;
   // 좌/우 표시 순서는 awayFirst 에 따라 바뀜 — 좌측 숫자의 ping 을 골라준다.
   const leftPing = awayFirst ? awayPing : homePing;
 
