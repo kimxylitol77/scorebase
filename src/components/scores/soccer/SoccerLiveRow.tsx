@@ -117,7 +117,6 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     homeFifaRank,
     awayFifaRank,
     awayFirst,
-    enableScoreFlash,
     hasLineup,
   } = props;
 
@@ -142,12 +141,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
 
-  // 야구 compact 행 — 득점 시 점수 숫자 뒤 halo (enableScoreFlash + LIVE 일 때만).
-  const { awayPing, homePing } = useScoreFlash(
+  // 득점 감지 — LIVE 축구는 항상 켬. 점수 숫자 뒤 halo(score-halo-burst) + flashSide(골 임팩트).
+  const { awayPing, homePing, flashSide } = useScoreFlash(
     awayScore ?? 0,
     homeScore ?? 0,
-    !!enableScoreFlash && isLive,
+    isLive,
   );
+  // 임팩트 측 — incident(recentGoalSide) 우선(득점자 정보 포함), 없으면 점수 기반(flashSide).
+  // ts incidents 지연/누락으로 recentGoalSide 가 못 떠도 점수 증가로 확실히 flash (2026-06-14).
+  const goalFlashSide = recentGoalSide ?? flashSide;
   // 좌/우 표시 순서는 awayFirst 에 따라 바뀜 — 좌측 숫자의 ping 을 골라준다.
   const leftPing = awayFirst ? awayPing : homePing;
 
@@ -213,7 +215,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         const team = awayFirst ? away : home;
         const position = awayFirst ? awayPosition : homePosition;
         const fifaRank = awayFirst ? awayFifaRank : homeFifaRank;
-        const isFlash = recentGoalSide === leftSide;
+        const isFlash = goalFlashSide === leftSide;
         const showHomeBadge = awayFirst === false ? false : false;
         // 좌측은 awayFirst 인 경우 원정 → "홈" 배지 안 붙음
         return (
@@ -347,7 +349,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         const team = awayFirst ? home : away;
         const position = awayFirst ? homePosition : awayPosition;
         const fifaRank = awayFirst ? homeFifaRank : awayFifaRank;
-        const isFlash = recentGoalSide === rightSide;
+        const isFlash = goalFlashSide === rightSide;
         const showHomeBadge = awayFirst === true;
         return (
           <div

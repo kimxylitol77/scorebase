@@ -9,6 +9,7 @@ import FavoriteStar from "../FavoriteStar";
 import { teamColor } from "@/lib/team-colors";
 import { getLeagueBadge } from "./leagueBadge";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { useScoreFlash } from "../useScoreFlash";
 
 interface Props {
   matchId: string | number;
@@ -72,6 +73,10 @@ export default function SoccerCompactCard(props: Props) {
   const hasScore = (isLive || isFinished) && home.score != null && away.score != null;
   const homeWin = hasScore && home.score! > away.score!;
   const awayWin = hasScore && away.score! > home.score!;
+  // 골 임팩트 — 점수 증가 측 ~6초 flash. incident 기반 recentGoalSide 가 ts incidents
+  // 지연/누락으로 못 뜰 때의 확실한 백업 (2026-06-14, useScoreFlash 공용).
+  const { flashSide } = useScoreFlash(away.score ?? 0, home.score ?? 0, isLive);
+  const goalFlashSide = recentGoalSide ?? flashSide;
 
   // 좌측 시간/상태 라벨 — 라이브: 분, 종료: "종료", 예정: 시간
   const leftPrimary = isLive
@@ -131,7 +136,7 @@ export default function SoccerCompactCard(props: Props) {
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div
           className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
-            recentGoalSide === "home"
+            goalFlashSide === "home"
               ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
               : ""
           }`}
@@ -146,14 +151,14 @@ export default function SoccerCompactCard(props: Props) {
           <TeamLogo url={home.logo} name={home.name} />
           <span
             className={
-              recentGoalSide === "home"
+              goalFlashSide === "home"
                 ? "truncate text-[13px] font-bold text-emerald-800 dark:text-emerald-200"
                 : teamNameClass(hasScore && !homeWin && !isLive)
             }
           >
             {home.name}
           </span>
-          {recentGoalSide === "home" && (
+          {goalFlashSide === "home" && (
             <span className="ml-auto text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
               ⚽
             </span>
@@ -161,7 +166,7 @@ export default function SoccerCompactCard(props: Props) {
         </div>
         <div
           className={`flex items-center gap-1.5 min-w-0 rounded-md px-1 py-0.5 transition ${
-            recentGoalSide === "away"
+            goalFlashSide === "away"
               ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
               : ""
           }`}
@@ -176,14 +181,14 @@ export default function SoccerCompactCard(props: Props) {
           <TeamLogo url={away.logo} name={away.name} />
           <span
             className={
-              recentGoalSide === "away"
+              goalFlashSide === "away"
                 ? "truncate text-[13px] font-bold text-emerald-800 dark:text-emerald-200"
                 : teamNameClass(hasScore && !awayWin && !isLive)
             }
           >
             {away.name}
           </span>
-          {recentGoalSide === "away" && (
+          {goalFlashSide === "away" && (
             <span className="ml-auto text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
               ⚽
             </span>

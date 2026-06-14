@@ -13,18 +13,37 @@ export function useScoreFlash(
   awayScore: number,
   homeScore: number,
   enabled: boolean,
-): { awayPing: number; homePing: number } {
+): {
+  awayPing: number;
+  homePing: number;
+  /** 방금 득점한 측 — 점수 증가 후 ~6초간 set, 그 뒤 자동 null. 골 임팩트 flash 용
+   *  (incident 기반 recentGoalSide 가 ts incidents 지연/누락으로 못 뜰 때의 확실한 백업). */
+  flashSide: "home" | "away" | null;
+} {
   const prevRef = useRef<{ away: number; home: number } | null>(null);
   const [awayPing, setAwayPing] = useState(0);
   const [homePing, setHomePing] = useState(0);
+  const [flashSide, setFlashSide] = useState<"home" | "away" | null>(null);
 
   useEffect(() => {
     const prev = prevRef.current;
     prevRef.current = { away: awayScore, home: homeScore };
     if (!prev || !enabled) return;
-    if (awayScore > prev.away) setAwayPing((n) => n + 1);
-    if (homeScore > prev.home) setHomePing((n) => n + 1);
+    let side: "home" | "away" | null = null;
+    if (homeScore > prev.home) {
+      setHomePing((n) => n + 1);
+      side = "home";
+    }
+    if (awayScore > prev.away) {
+      setAwayPing((n) => n + 1);
+      side = "away";
+    }
+    if (!side) return;
+    setFlashSide(side);
+    // deps 가 점수라 다음 득점마다 cleanup→재설정 = 연속골도 타이머 연장.
+    const t = setTimeout(() => setFlashSide(null), 6000);
+    return () => clearTimeout(t);
   }, [awayScore, homeScore, enabled]);
 
-  return { awayPing, homePing };
+  return { awayPing, homePing, flashSide };
 }

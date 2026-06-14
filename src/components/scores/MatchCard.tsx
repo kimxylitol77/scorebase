@@ -26,6 +26,7 @@ import type {
 } from "@/lib/sports/live-scores";
 import FavoriteStar from "./FavoriteStar";
 import { getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { useScoreFlash } from "./useScoreFlash";
 
 export interface MatchCardProps {
   /** localStorage 즐겨찾기 식별자 (DB Match.id) */
@@ -222,6 +223,15 @@ export default function MatchCard(props: MatchCardProps) {
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
   const hasScore = home.score != null && away.score != null;
+  // 골 임팩트(축구) — 점수 증가 측 ~6초 flash. incident 기반 recentGoalSide 가 ts incidents
+  // 지연/누락으로 못 뜰 때의 확실한 백업 (2026-06-14, useScoreFlash 공용). hook 은 baseball
+  // early-return 전이라 Rules of Hooks 충족.
+  const { flashSide } = useScoreFlash(
+    away.score ?? 0,
+    home.score ?? 0,
+    isLive && sport === "soccer",
+  );
+  const goalFlashSide = recentGoalSide ?? flashSide;
 
   // 야구 (KBO/NPB/MLB) — LIVE/종료/예정 모두 통합 카드
   if (sport === "baseball") {
@@ -401,7 +411,7 @@ export default function MatchCard(props: MatchCardProps) {
         </div>
         {/* 점수 — 라이브 최근 골 시 앰버 ring + pulse. 승부차기는 점수 아래 (4) (3) 좌우 정렬. */}
         <div className={`text-center font-black tabular-nums text-2xl sm:text-3xl tracking-tight min-w-[3.5rem] sm:min-w-[4.5rem] px-2 py-1 rounded-md ${scoreColor} ${
-          recentGoalSide ? "ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
+          goalFlashSide ? "ring-2 ring-amber-400 bg-amber-100/40 dark:bg-amber-500/15 animate-pulse" : ""
         }`}>
           {hasScore ? (
             <>
