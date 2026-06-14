@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { sendSlack } from "@/lib/notify/slack";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +46,17 @@ const SEV_LABEL_KO: Record<string, string> = {
   HIGH: "긴급",
   CRIT: "치명",
 };
+
+// 브리핑 소스 → 슬랙 채널 아카이빙. 여기 매핑된 source 만 슬랙에도 전송(나머지는 텔레그램만).
+const SLACK_CHANNEL_BY_SOURCE: Record<string, string> = {
+  "sports-news-brief": process.env.SLACK_CHANNEL_NEWS || "C0BAB424EG5", // #뉴스
+  "competitor-watch": process.env.SLACK_CHANNEL_COMPETITOR || "C0BAB4257UM", // #경쟁사
+};
+
+// 텔레그램용으로 HTML 이스케이프된 본문을 슬랙용으로 되돌림.
+function unescapeHtml(s: string): string {
+  return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
 
 function unauthorized(msg = "Unauthorized") {
   return NextResponse.json({ error: msg }, { status: 401 });
@@ -121,5 +133,14 @@ export async function POST(req: NextRequest) {
   lines.push(`<code>[${sevKo}] ${body.source}</code>`);
 
   await sendTelegram(lines.join("\n"));
+
+  // 브리핑 소스는 슬랙 채널에도 아카이빙 (검색·보존). SLACK_BOT_TOKEN 있을 때만 실제 전송.
+  const slackChannel = SLACK_CHANNEL_BY_SOURCE[body.source];
+  if (slackChannel) {
+    const slackParts = [`*${body.title}*`];
+    if (body.message) slackParts.push(unescapeHtml(body.message));
+    await sendSlack(slackChannel, slackParts.join("\n\n"));
+  }
+
   return NextResponse.json({ ok: true });
 }
