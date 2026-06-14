@@ -35,7 +35,14 @@ const TS_COVERED = new Set(
 // (최근 30일 cache 연결 4%·48%) → af 수집까지 skip 되면 결과 갱신 경로가 전무, 매 경기일
 // stale SCHEDULED → cleanup verify 가 6h 후 뒷수습하는 패턴 반복 (6/12~13 알림 5건).
 // 같은 증상 후보: ESTONIA_ML·LITHUANIA_AL·GEORGIA_EL·SINGAPORE_PL — 알림 재발 시 추가.
-const TS_COVERED_EXCEPTIONS = new Set<League>(["K_LEAGUE_1", "YKKONEN", "LATVIA_VL"]);
+//
+// BELARUS_PL·KAZAKHSTAN_PL (2026-06-14): 같은 패턴 재발. cleanup-stale-scheduled 알림에서
+// 3경기(#316277·#316278·#316807)가 startTime 동결(6/13→6/14 연기 누락)로 발견 — 매치의
+// 96%+ 가 af 생성(BELARUS 238/247·KAZAKHSTAN 240/241, ts 는 9·1건뿐)인데 TS_COVERED 로
+// af 수집이 skip 돼 5/25 이후 갱신 경로 전무. ts 워커가 실커버리지를 못 채우므로 af 수집 유지.
+const TS_COVERED_EXCEPTIONS = new Set<League>([
+  "K_LEAGUE_1", "YKKONEN", "LATVIA_VL", "BELARUS_PL", "KAZAKHSTAN_PL",
+]);
 
 const ALL_LEAGUES: League[] = [
   "EPL",
