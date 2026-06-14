@@ -15,7 +15,7 @@ import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
 import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import { LEAGUE_DISPLAY, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 
 const AF_BASE = "https://v3.football.api-sports.io";
 const AB_BASE = "https://v1.baseball.api-sports.io";
@@ -207,6 +207,46 @@ export async function fetchSoccerLive(): Promise<LiveMatch[]> {
     console.warn("[live-scores/soccer]", (e as Error).message);
     return [];
   }
+}
+
+/**
+ * 축구 라이브 ts 캐시 점수 — TheSports MQTT 캐시(워커가 1~2초 push)에서 LIVE 축구 매치의
+ * 정규/연장 점수를 추출. fetchAllLiveScores 가 af-live(/fixtures?live=all, 자체 피드 지연)와
+ * max 병합 → af 가 골을 늦게 반영해도 ts 가 추적 중이면 즉시 반영돼 골 임팩트(CountUp)·
+ * 사운드(chime) 지연이 짧아진다 (야구 fetchBaseballLive 와 동일 취지).
+ *
+ * 키 = af fixture id. af-live id 는 `af-{fixtureId}` 이므로 정합되게 apiFixtureId(ESPN 소스
+ * 빅5 등)와 숫자 externalId(af 소스, ext=fixtureId) 양쪽으로 저장. ts 미추적 매치는 미포함.
+ */
+export async function fetchSoccerLiveTsScores(): Promise<
+  Map<string, { home: number; away: number }>
+> {
+  const out = new Map<string, { home: number; away: number }>();
+  const { prisma } = await import("@/lib/db");
+  const cutoff = new Date(Date.now() - 5 * 60 * 1000); // 최근 5분 push = 진행 중
+  try {
+    const rows = await prisma.theSportsMatchCache.findMany({
+      where: {
+        updatedAt: { gte: cutoff },
+        match: { league: { in: [...SOCCER_LEAGUES] }, status: "LIVE" },
+      },
+      select: {
+        detailLive: true,
+        match: { select: { externalId: true, apiFixtureId: true } },
+      },
+      take: 100,
+    });
+    for (const c of rows) {
+      const fs = parseTsFootballScore(c.detailLive);
+      if (!fs) continue;
+      const score = { home: fs.mainHome, away: fs.mainAway };
+      if (c.match.apiFixtureId != null) out.set(String(c.match.apiFixtureId), score);
+      if (/^\d+$/.test(c.match.externalId)) out.set(c.match.externalId, score);
+    }
+  } catch (e) {
+    console.warn("[live-scores/soccer-ts]", (e as Error).message);
+  }
+  return out;
 }
 
 /** api-football fixture status.short → 우리 status 분류. */
@@ -1998,14 +2038,27 @@ export async function fetchLolLive(): Promise<LiveMatch[]> {
  * 통합 — 모든 소스 병렬 fetch + 정렬
  * ==========================================================*/
 export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
-  const [soccer, baseball, nba, nhl, lol] = await Promise.all([
+  const [soccer, soccerTs, baseball, nba, nhl, lol] = await Promise.all([
     fetchSoccerLive(),
+    fetchSoccerLiveTsScores(),
     fetchBaseballLive(),
     fetchNbaLive(),
     fetchNhlLive(),
     fetchLolLive(),
   ]);
-  const all = [...soccer, ...baseball, ...nba, ...nhl, ...lol];
+  // 축구 — af-live 점수에 ts 캐시(빠른 MQTT) 점수를 max 병합. af 가 골을 늦게 반영해도
+  // ts 가 추적 중이면 즉시 반영돼 골 임팩트·사운드 지연이 짧아진다. 라이브엔 승부차기 없어
+  // max 안전(fs.main=정규/연장). ts 미추적 매치(이 키 없음)는 그대로 af-live.
+  const soccerMerged = soccer.map((m) => {
+    const ts = soccerTs.get(m.id.replace(/^af-/, ""));
+    if (!ts) return m;
+    return {
+      ...m,
+      homeScore: Math.max(m.homeScore, ts.home),
+      awayScore: Math.max(m.awayScore, ts.away),
+    };
+  });
+  const all = [...soccerMerged, ...baseball, ...nba, ...nhl, ...lol];
   // 정렬 — 가장 최근 시작 매치 우선
   all.sort((a, b) => b.startTime.localeCompare(a.startTime));
   return all;
