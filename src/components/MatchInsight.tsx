@@ -919,8 +919,11 @@ export default async function MatchInsight({
     hasMarketCompare || hasOddsTable ? (
       <div className="space-y-6">
         {hasMarketCompare && (
-          <Section title="AI 모델 vs 시장 odds">
+          <Section title="예측 비교 — 순수 Elo · 시장 반영 · 베팅시장">
             <MarketCompareTable
+              baseHome={baseWinProb.home}
+              baseDraw={baseWinProb.draw}
+              baseAway={baseWinProb.away}
               modelHome={winProb.home}
               modelDraw={winProb.draw}
               modelAway={winProb.away}
@@ -1228,6 +1231,9 @@ function OddsCell({
 }
 
 function MarketCompareTable({
+  baseHome,
+  baseDraw,
+  baseAway,
   modelHome,
   modelDraw,
   modelAway,
@@ -1239,6 +1245,10 @@ function MarketCompareTable({
   bookmakers,
   hideDraw,
 }: {
+  // 순수 Elo(시장 blend 전) — 있으면 3-way 비교(순수 Elo · Scorebase 최종 · 시장).
+  baseHome?: number;
+  baseDraw?: number;
+  baseAway?: number;
   modelHome: number;
   modelDraw: number;
   modelAway: number;
@@ -1250,13 +1260,22 @@ function MarketCompareTable({
   bookmakers: number;
   hideDraw: boolean;
 }) {
+  // 순수 Elo 와 최종(시장 반영)이 유의미하게 다를 때만 순수 Elo 열 노출.
+  // 같으면(시장 blend 미적용 매치) 기존 2-way(모델 vs 시장 + 차이) 유지.
+  const showBase =
+    baseHome != null &&
+    baseAway != null &&
+    (Math.abs(baseHome - modelHome) > 0.01 || Math.abs(baseAway - modelAway) > 0.01);
+
   const rows = [
-    { label: "홈 승", model: modelHome, market: marketHome, name: homeName, key: "h" },
+    { label: "홈 승", base: baseHome, model: modelHome, market: marketHome, name: homeName, key: "h" },
     !hideDraw && marketDraw !== null
-      ? { label: "무", model: modelDraw, market: marketDraw, name: "무승부", key: "d" }
+      ? { label: "무", base: baseDraw, model: modelDraw, market: marketDraw, name: "무승부", key: "d" }
       : null,
-    { label: "원정 승", model: modelAway, market: marketAway, name: awayName, key: "a" },
-  ].filter(Boolean) as Array<{ label: string; model: number; market: number; name: string; key: string }>;
+    { label: "원정 승", base: baseAway, model: modelAway, market: marketAway, name: awayName, key: "a" },
+  ].filter(Boolean) as Array<{ label: string; base?: number; model: number; market: number; name: string; key: string }>;
+
+  const pct = (n: number) => Math.round(n * 100);
 
   return (
     <div>
@@ -1264,10 +1283,11 @@ function MarketCompareTable({
         <table className="w-full text-sm">
           <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500 dark:bg-white/[0.04] dark:text-white/45">
             <tr>
-              <th className="px-3 py-2 text-left font-semibold">결과</th>
-              <th className="px-3 py-2 text-right font-semibold">AI 모델</th>
-              <th className="px-3 py-2 text-right font-semibold">시장</th>
-              <th className="px-3 py-2 text-right font-semibold">차이</th>
+              <th className="px-2.5 py-2 text-left font-semibold">결과</th>
+              {showBase && <th className="px-2 py-2 text-right font-semibold">순수 Elo</th>}
+              <th className="px-2 py-2 text-right font-semibold">Scorebase</th>
+              <th className="px-2 py-2 text-right font-semibold">시장</th>
+              {!showBase && <th className="px-2 py-2 text-right font-semibold">차이</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5 dark:divide-white/10">
@@ -1275,32 +1295,47 @@ function MarketCompareTable({
               const gap = r.model - r.market;
               const isValue = gap >= 0.05;
               const isOver = gap <= -0.05;
+              // 3-way 일 땐 차이 열 대신 Scorebase 셀 배경으로 Value/Over 인코딩.
+              const finalCls = showBase
+                ? isValue
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                  : isOver
+                    ? "bg-rose-500/10 text-rose-700 dark:text-rose-400"
+                    : ""
+                : "";
               return (
                 <tr key={r.key}>
-                  <td className="px-3 py-2.5">
+                  <td className="px-2.5 py-2.5">
                     <div className="text-xs text-neutral-500">{r.label}</div>
                     <div className="font-medium truncate">{r.name}</div>
                   </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold">
-                    {Math.round(r.model * 100)}%
+                  {showBase && (
+                    <td className="px-2 py-2.5 text-right tabular-nums text-neutral-500 dark:text-neutral-400">
+                      {r.base != null ? `${pct(r.base)}%` : "—"}
+                    </td>
+                  )}
+                  <td className={`px-2 py-2.5 text-right tabular-nums font-bold ${finalCls}`}>
+                    {pct(r.model)}%
                   </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-neutral-600 dark:text-neutral-400">
-                    {Math.round(r.market * 100)}%
+                  <td className="px-2 py-2.5 text-right tabular-nums text-neutral-600 dark:text-neutral-400">
+                    {pct(r.market)}%
                   </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <span
-                      className={`tabular-nums font-bold text-xs px-2 py-0.5 rounded ${
-                        isValue
-                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-                          : isOver
-                            ? "bg-rose-500/15 text-rose-700 dark:text-rose-400"
-                            : "text-neutral-500"
-                      }`}
-                    >
-                      {gap > 0 ? "+" : ""}
-                      {Math.round(gap * 100)}%p
-                    </span>
-                  </td>
+                  {!showBase && (
+                    <td className="px-2 py-2.5 text-right">
+                      <span
+                        className={`tabular-nums font-bold text-xs px-2 py-0.5 rounded ${
+                          isValue
+                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                            : isOver
+                              ? "bg-rose-500/15 text-rose-700 dark:text-rose-400"
+                              : "text-neutral-500"
+                        }`}
+                      >
+                        {gap > 0 ? "+" : ""}
+                        {pct(gap)}%p
+                      </span>
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -1308,8 +1343,18 @@ function MarketCompareTable({
         </table>
       </div>
       <p className="mt-2 text-[11px] text-zinc-500 dark:text-white/45">
-        시장 평균 = {bookmakers}개 베팅사이트 odds(vig 제거) · 초록 표시 = AI 가
-        시장보다 5%p+ 자신 있는 결과 (Value Bet 후보)
+        {showBase ? (
+          <>
+            <b>순수 Elo</b> = 레이팅만의 추정 · <b>Scorebase</b> = 베팅시장 {bookmakers}곳을
+            반영한 최종 예측 · <b>시장</b> = 베팅사이트 평균(vig 제거). 초록 = 최종이 시장보다
+            5%p+ 자신 있는 결과(Value 후보), 빨강 = 시장이 더 높게 보는 결과.
+          </>
+        ) : (
+          <>
+            시장 평균 = {bookmakers}개 베팅사이트 odds(vig 제거) · 초록 표시 = AI 가 시장보다
+            5%p+ 자신 있는 결과 (Value Bet 후보)
+          </>
+        )}
       </p>
     </div>
   );
