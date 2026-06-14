@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 interface StarterJson {
   name?: string;
   pid?: number | string;
+  photoUrl?: string;
   era?: number;
   whip?: number;
   k9?: number;
@@ -33,8 +34,9 @@ interface StarterJson {
   recentIp?: number;
 }
 
-/** 리그별 선발 사진 URL — KBO 네이버 CDN·MLB 공식(미보유 시 generic 내장). NPB 는 소스 없음(이니셜). */
+/** 리그별 선발 사진 URL — KBO 네이버 CDN·MLB 공식·NPB npb.jp(cron 이 enrich 시 photoUrl 저장). */
 function pitcherPhoto(league: string, s: StarterJson | null): string | null {
+  if (s?.photoUrl) return s.photoUrl; // NPB — cron 이 npb.jp profile HTML 에서 추출해 저장
   if (!s?.pid) return null;
   if (league === "KBO") return kboPhotoUrl(s.pid);
   if (league === "MLB") return mlbHeadshotUrl(Number(s.pid));

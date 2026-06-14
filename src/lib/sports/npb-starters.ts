@@ -17,6 +17,7 @@ import * as cheerio from "cheerio";
 import {
   fetchNpbPlayerIndex,
   fetchNpbPitcherStats,
+  fetchNpbPhotoUrl,
   findNpbPidByName,
   type NpbPitcherStats,
   type NpbPlayerIndexEntry,
@@ -27,6 +28,7 @@ export interface NpbStarterPitcher {
   name: string; // 한글 음역 (UI 표시용)
   nameJp: string; // 원어 한자/가타카나 (npb.jp 매칭용)
   pid?: string; // npb.jp 8자리 pid (enrich 시 채워짐)
+  photoUrl?: string; // npb.jp players_photo URL (enrich 시 profile HTML 에서 추출)
   stats?: {
     era?: number;
     whip?: number;
@@ -181,6 +183,9 @@ const PITCHER_NAME_KO: Record<string, string> = {
   // 5/27 라이브 누락 보강
   "曽谷": "소야",
   "曽谷龍平": "소야 류헤이",
+  // 6/14 보강 — 닛폰햄 대만 선수 (kana ぐーりん・るぇやん 가운뎃점+작은가나라 음역 실패)
+  "古林": "구린 루에얀",
+  "古林睿煬": "구린 루에얀",
 };
 
 function hasHan(s: string): boolean {
@@ -363,6 +368,14 @@ export async function enrichNpbStartersWithStats(
     statsCache.set(pid, s);
     return s;
   };
+  // 사진 URL 캐시 (npb.jp profile HTML 파싱 — 중복 fetch 회피)
+  const photoCache = new Map<string, string | undefined>();
+  const fetchPhotoOnce = async (pid: string): Promise<string | undefined> => {
+    if (photoCache.has(pid)) return photoCache.get(pid);
+    const u = await fetchNpbPhotoUrl(pid);
+    photoCache.set(pid, u);
+    return u;
+  };
 
   const enrichOne = async (
     p: NpbStarterPitcher,
@@ -370,16 +383,20 @@ export async function enrichNpbStartersWithStats(
   ): Promise<NpbStarterPitcher> => {
     const hit = findNpbPidByName(index, p.nameJp, { abbr: teamAbbr });
     if (!hit) return p;
-    const st = await fetchStatsOnce(hit.pid);
+    const [st, photoUrl] = await Promise.all([
+      fetchStatsOnce(hit.pid),
+      fetchPhotoOnce(hit.pid),
+    ]);
     // 한자 잔존 (PITCHER_NAME_KO 매핑 없음) → kana 음역 fallback
     const name = hasHan(p.name) && st?.kana
       ? (transliterateFromKana(st.kana, p.nameJp) ?? p.name)
       : p.name;
-    if (!st) return { ...p, name, pid: hit.pid };
+    if (!st) return { ...p, name, pid: hit.pid, photoUrl };
     return {
       ...p,
       name,
       pid: hit.pid,
+      photoUrl,
       stats: {
         era: st.era,
         whip: st.whip,

@@ -186,6 +186,7 @@ export async function runFetchBaseballStarters(opts?: {
       const buildNpb = (side: typeof p.home) => ({
         name: side.name,
         pid: side.pid ? Number(side.pid) : undefined,
+        photoUrl: side.photoUrl,
         era: side.stats?.era,
         whip: side.stats?.whip,
         k9: side.stats?.k9,
