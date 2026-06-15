@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import LeagueBadge from "@/components/LeagueBadge";
+import CiteBox from "@/components/CiteBox";
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -148,6 +149,16 @@ export default async function AccuracyPage() {
   const sorted = [...stats]
     .filter((s) => s.oneXTwo.evaluated > 0)
     .sort((a, b) => b.oneXTwo.rate - a.oneXTwo.rate);
+
+  // 인용 자석 — 블로거·기자가 출처 표기해 가져가기 쉽게 (백링크 유도)
+  const citeUrl = `${SITE_URL}/predictions/accuracy`;
+  const citeDate = new Date().toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const citation = `Scorebase AI 스포츠 예측 적중률 — 13개 리그 ${totalEvaluated.toLocaleString()}경기 1X2 적중률 ${(overallRate * 100).toFixed(1)}% (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`;
 
   // 구조화 데이터 (Dataset) — Google 이 "검증된 고유 데이터셋"으로 인식하게.
   // 실제 적중률 수치를 schema 에 담아 E-E-A-T 신호 강화.
@@ -298,6 +309,8 @@ export default async function AccuracyPage() {
           </li>
         </ul>
       </section>
+
+      <CiteBox citation={citation} url={citeUrl} />
 
       <p className="mt-6 text-xs text-neutral-500 text-center">
         <Link href="/about" className="underline hover:text-neutral-900 dark:hover:text-white">
