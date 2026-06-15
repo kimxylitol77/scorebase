@@ -19,6 +19,8 @@ interface TsLineupPlayer {
   position?: string;
   first?: number;
   captain?: number;
+  x?: number; // 그 경기 내 좌우 위치 (0 좌 ~ 100 우)
+  y?: number; // 그 경기 내 공수 깊이 (낮을수록 수비 진영)
 }
 interface TsPlayerStatRow {
   player_id: string;
@@ -61,14 +63,6 @@ export interface TeamOfDay {
   topRating: number;
   complete: boolean; // xi 11명 채워졌는지
 }
-
-// 4-2-3-1 — build-world-cup-xi.ts 와 동일 좌표. M 5명 중 상위 3=AM(y32), 하위 2=DM(y52).
-const POS_LAYOUT: Record<"G" | "D" | "M" | "F", { n: number; xs: number[]; ys: number[] }> = {
-  G: { n: 1, xs: [50], ys: [90] },
-  D: { n: 4, xs: [16, 39, 61, 84], ys: [70, 70, 70, 70] },
-  M: { n: 5, xs: [22, 50, 78, 35, 65], ys: [32, 32, 32, 52, 52] },
-  F: { n: 1, xs: [50], ys: [14] },
-};
 
 // KST 날짜(YYYY-MM-DD) → 그날 00:00~24:00(KST)에 해당하는 UTC startTime 범위.
 function kstDayRangeUtc(dateKst: string): { gte: Date; lt: Date } {
@@ -123,6 +117,8 @@ export async function getTeamOfDay(dateKst?: string): Promise<TeamOfDay | null> 
     country: string;
     goals: number;
     assists: number;
+    x: number; // raw 좌우 (0~100)
+    y: number; // raw 공수 깊이 (낮을수록 수비)
   }
   const byId = new Map<string, Raw>(); // id 중복(연장 등) 시 최고 rating 유지
   const matchMeta: TeamOfDay["matches"] = [];
@@ -166,6 +162,8 @@ export async function getTeamOfDay(dateKst?: string): Promise<TeamOfDay | null> 
           country,
           goals: st?.goals ?? 0,
           assists: st?.assists ?? 0,
+          x: Number(pl.x) || 50,
+          y: Number(pl.y) || 50,
         });
       }
     }
@@ -207,19 +205,40 @@ export async function getTeamOfDay(dateKst?: string): Promise<TeamOfDay | null> 
     star: Math.max(1, Math.min(5, Math.round(p.rating / 2))),
   });
 
+  // 배치: 어떤 11명을 뽑을지는 포지션별 평점 상위(G1·D4·M5·F1)로 유지하되,
+  // 슬롯 좌표는 평점순이 아니라 raw x(좌우)·y(공수 깊이)로 정해 실제 역할을 반영한다.
+  // (평점 1위 수비형 MF 가 공격형 슬롯에 올라가던 문제 해결)
   const xi: TodPlayer[] = [];
   const used = new Set<string>();
-  (["G", "D", "M", "F"] as const).forEach((pos) => {
-    const L = POS_LAYOUT[pos];
-    uniq
-      .filter((p) => p.pos === pos)
-      .sort(sortScore)
-      .slice(0, L.n)
-      .forEach((p, i) => {
-        xi.push(toTod(p, L.xs[i], L.ys[i]));
-        used.add(p.id);
-      });
-  });
+  const place = (p: Raw, x: number, y: number) => {
+    xi.push(toTod(p, x, y));
+    used.add(p.id);
+  };
+
+  // GK
+  uniq.filter((p) => p.pos === "G").sort(sortScore).slice(0, 1)
+    .forEach((p) => place(p, 50, 90));
+
+  // 수비 4 — raw x 오름차순(좌→우)으로 배치해 CB 는 중앙, 풀백은 측면에.
+  const DX = [16, 39, 61, 84];
+  uniq.filter((p) => p.pos === "D").sort(sortScore).slice(0, 4)
+    .sort((a, b) => a.x - b.x)
+    .forEach((p, i) => place(p, DX[i] ?? 50, 70));
+
+  // 미드 5 — raw y 로 수비형(DM, 낮은 y)·공격형(AM, 높은 y) 구분, 각 그룹 raw x 순.
+  const mids = uniq.filter((p) => p.pos === "M").sort(sortScore).slice(0, 5);
+  const byDepth = [...mids].sort((a, b) => a.y - b.y);
+  const dmCount = Math.min(2, Math.max(0, mids.length - 3));
+  const DMX = [35, 65];
+  const AMX = [22, 50, 78];
+  byDepth.slice(0, dmCount).sort((a, b) => a.x - b.x)
+    .forEach((p, i) => place(p, DMX[i] ?? 50, 52));
+  byDepth.slice(dmCount).sort((a, b) => a.x - b.x)
+    .forEach((p, i) => place(p, AMX[i] ?? 50, 32));
+
+  // FW
+  uniq.filter((p) => p.pos === "F").sort(sortScore).slice(0, 1)
+    .forEach((p) => place(p, 50, 14));
   const bench = uniq
     .filter((p) => !used.has(p.id))
     .sort(sortScore)

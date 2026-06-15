@@ -161,7 +161,7 @@ function Player({ p }: { p: TodPlayer }) {
           display: "flex",
           width: "86px",
           height: "86px",
-          borderRadius: "999px",
+          borderRadius: "18px",
           background: "#1f2937",
           border: "3px solid rgba(255,255,255,0.85)",
           alignItems: "center",
