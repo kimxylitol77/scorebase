@@ -18,6 +18,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores/soccer/buildSoccerCacheTabs";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
+import TeamOfDayPitch from "@/components/TeamOfDayPitch";
+import { getTeamOfDay, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
 
 export const dynamic = "force-dynamic";
 
@@ -444,6 +446,11 @@ export default async function ArticlePage({ params }: Props) {
   const url = `${SITE_URL}/articles/${slug}`;
   const desc = makeDescription(article.content);
 
+  // '오늘의 베스트 XI' 분석 글 — 본문 위에 그날 베스트11 피치 렌더 (slug 의 날짜로 재집계).
+  const tod = article.slug.startsWith(TOD_ARTICLE_SLUG_PREFIX)
+    ? await getTeamOfDay(article.slug.slice(TOD_ARTICLE_SLUG_PREFIX.length))
+    : null;
+
   // 축구 글 — TheSports 캐시 기반 탭(라인업·팀통계·모멘텀·하프타임·H2H) 주입 (live 페이지와 동등).
   let soccerTabs: SoccerInsightTab[] = [];
   if (article.match && SOCCER_LEAGUES.has(article.league) && article.match.theSportsCache) {
@@ -566,6 +573,12 @@ export default async function ArticlePage({ params }: Props) {
         })()}
         <span className="text-neutral-500">{date}</span>
       </div>
+
+      {tod && tod.xi.length > 0 && (
+        <div className="mb-8 mx-auto max-w-md">
+          <TeamOfDayPitch matches={tod.matches} xi={tod.xi} />
+        </div>
+      )}
 
       {article.match && (() => {
         const hs = article.match.homeScore;

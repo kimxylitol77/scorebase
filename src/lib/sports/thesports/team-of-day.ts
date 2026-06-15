@@ -8,6 +8,9 @@ import rawOv from "../../../../data/player-overrides.json";
 
 const OV = rawOv as Record<string, { nameKo?: string }>;
 
+/** '오늘의 베스트 XI' 분석 글의 slug 접두사. 뒤에 KST 날짜(YYYY-MM-DD)가 붙는다. */
+export const TOD_ARTICLE_SLUG_PREFIX = "world-cup-team-of-day-";
+
 interface TsLineupPlayer {
   id: string;
   name: string;

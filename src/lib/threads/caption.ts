@@ -46,6 +46,27 @@ export function buildDailyCaption(
   return `${fixed}${truncate(body, budget)}${tail}`;
 }
 
+// 월드컵 '오늘의 베스트 XI' SNS caption (인스타·스레드 공용).
+export function buildTeamOfDayCaption(opts: {
+  dateLabel: string;
+  url: string;
+  mvpName: string;
+  mvpCountry: string;
+  mvpRating: number;
+  results: { homeKo: string; awayKo: string; homeScore: number | null; awayScore: number | null }[];
+}): string {
+  const header = `⚽️ ${opts.dateLabel} 월드컵 베스트 11`;
+  const mvp = `🥇 MVP ${opts.mvpName} (${opts.mvpCountry}) · 평점 ${opts.mvpRating.toFixed(1)}`;
+  const hashtags = "#스코어베이스 #월드컵 #베스트11 #2026월드컵 #축구 #국가대표";
+  const footer = `\n\n전체 라인업·평점 분석 👉 ${opts.url}\n\n${hashtags}`;
+  const fixed = `${header}\n\n${mvp}\n\n📋 결과\n`;
+  const budget = THREADS_TEXT_LIMIT - fixed.length - footer.length;
+  const body = opts.results
+    .map((m) => `· ${m.homeKo} ${m.homeScore ?? "-"}-${m.awayScore ?? "-"} ${m.awayKo}`)
+    .join("\n");
+  return `${fixed}${truncate(body, budget)}${footer}`;
+}
+
 // 신규 블로그 글 공유 caption.
 export function buildBlogCaption(opts: {
   title: string;
