@@ -6,7 +6,25 @@ const { askWithWebSearch, notify, escapeHtml, stripPreamble, tidyBullets, todayK
 
 const STATE_DIR = path.resolve(__dirname, "state");
 const SNAP = path.join(STATE_DIR, "competitor-snapshot.json");
+const IDEA_LOG = path.join(STATE_DIR, "idea-log.jsonl");
 const FEATURES = fs.readFileSync(path.resolve(__dirname, "scorebase-features.md"), "utf8");
+
+// 요일별 중점 추적군 — 대상이 늘어도 매일 깊이를 유지하려 하루 한 군에 집중(나머지 군은 큰 변화만).
+const FOCUS_ROTATION = [
+  "야구 데이터·세이버메트릭스 — FanGraphs, Baseball Savant, Statiz(KBO), 네이버 야구",   // 0 일
+  "글로벌 데이터·예측 — Sofascore, FotMob, Opta(theanalyst), WhoScored, Understat",       // 1 월
+  "한국 축구 미디어 — 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아",   // 2 화
+  "AI 픽·배팅 분석 — Forebet, WinDrawWin, PredictZ, Infogol(xG)",                          // 3 수
+  "해외 프리미엄·종합 — The Athletic, ESPN, OneFootball, 365Scores",                       // 4 목
+  "소셜·신흥 — Reddit r/soccer·r/baseball, 유튜브 전술·통계 분석 채널",                    // 5 금
+  "종합 — 이번 주 변화가 가장 큰 곳을 자유 선정",                                          // 6 토
+];
+
+function todaysFocus() {
+  const dow = new Date().toLocaleDateString("en-US", { timeZone: "Asia/Seoul", weekday: "long" });
+  const idx = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(dow);
+  return FOCUS_ROTATION[idx >= 0 ? idx : 6];
+}
 
 function loadPrev() {
   try {
@@ -21,17 +39,28 @@ function saveSnap(report) {
   fs.writeFileSync(SNAP, JSON.stringify({ date: todayKst(), report }, null, 2));
 }
 
-function buildPrompt(prev) {
+// 매일 산출물을 누적 저장 — 주간 백로그 봇(competitor-backlog.js)이 최근 7일치를 모아 정리한다.
+function appendIdeaLog(report) {
+  fs.mkdirSync(STATE_DIR, { recursive: true });
+  fs.appendFileSync(IDEA_LOG, JSON.stringify({ date: todayKst(), report }) + "\n");
+}
+
+function buildPrompt(prev, focus) {
   return `오늘은 ${todayKst()} 입니다. 당신은 한국 AI 스포츠 미디어 scorebase 의 경쟁 분석가입니다.
 
 ## scorebase 현재 기능
 ${FEATURES}
 
 ## 추적 대상 — web_search / web_fetch 로 최근 동향을 조사
-1. 데이터·예측 글로벌: Sofascore, FotMob, Opta, Understat
-2. 한국 스포츠 미디어: 네이버 스포츠, 스포티비뉴스, 스포탈코리아, 풋볼리스트
-3. AI 픽·배팅 분석: 축구 예측·픽 분석 사이트(Forebet, WinDrawWin 등)
-4. 해외 프리미엄: The Athletic, ESPN
+1. 글로벌 데이터·예측: Sofascore, FotMob, Opta(theanalyst.com), WhoScored, Understat, Flashscore
+2. 한국 스포츠 미디어: 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아, OSEN, 점프볼(농구)
+3. AI 픽·배팅 분석: Forebet, WinDrawWin, PredictZ, Infogol(xG 기반)
+4. 해외 프리미엄·종합: The Athletic, ESPN, OneFootball, 365Scores
+5. 야구 데이터(우리 KBO·MLB 강점군): FanGraphs, Baseball Savant, Statiz(KBO 세이버), 네이버 야구
+6. 소셜·신흥: Reddit r/soccer·r/baseball, 유튜브 전술·통계 분석 채널
+
+## 오늘의 중점군 — 여기를 깊게 파고, 나머지 군은 큰 변화만
+${focus}
 
 ## 어제까지 보고한 내용 (반복하지 말 것)
 ${prev ? prev.report : "없음 (첫 실행 — 이번엔 전반적 현황을 보고)"}
@@ -60,9 +89,10 @@ ${prev ? prev.report : "없음 (첫 실행 — 이번엔 전반적 현황을 보
 
 async function main() {
   const prev = loadPrev();
-  const text = await askWithWebSearch(buildPrompt(prev), {
+  const focus = todaysFocus();
+  const text = await askWithWebSearch(buildPrompt(prev, focus), {
     maxTokens: 4500,
-    maxSearches: 14,
+    maxSearches: 18,
     fetch: true,
   });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
@@ -74,7 +104,8 @@ async function main() {
     message: escapeHtml(clean),
   });
   saveSnap(clean);
-  console.log("[competitor-watch] sent:\n" + clean);
+  appendIdeaLog(clean);
+  console.log("[competitor-watch] (focus: " + focus.split(" — ")[0] + ") sent:\n" + clean);
 }
 
 main()
