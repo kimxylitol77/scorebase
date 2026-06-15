@@ -21,7 +21,7 @@ const LIMIT = Number(arg("limit") || "0"); // 리그별 상한 (0 = 전부)
 const FORCE = process.argv.includes("--force"); // 이미 career 있는 선수도 재조회
 const DRY = process.argv.includes("--dry"); // Wikidata ko vs DB nameKo 차이만 출력(적용·저장 X)
 let PACE = Number(arg("pace") || "150"); // 검색 호출 간격(ms), 429 시 자동 증가
-const LEAGUES = LEAGUE ? [LEAGUE] : ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+const LEAGUES = LEAGUE ? LEAGUE.split(",").filter(Boolean) : ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
 const PATH = "data/player-overrides.json";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
