@@ -1,6 +1,8 @@
 // /scores 매치 카드 — named.com 스타일 + 종목별 mini board.
 // 모든 종목 공통, sport prop 으로 mini board 분기.
 
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
