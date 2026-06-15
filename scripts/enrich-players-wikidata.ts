@@ -43,7 +43,13 @@ const NAME_CURATION: Record<string, string> = {
   "3glrw7hyg2kqdyj": "도니엘 말렌", // Malen — DB "돈옐 마렌"
   "4jwq2gh6pdlm0ve": "앙투안 세메뇨", // Semenyo — DB "안토니 세메니오"
   ednm9whgg9x7ryo: "에스테방", // Estêvão — DB "에스테바오 공칼베스"(통용 모노님)
-  pxwrxlhj354wryk: "케난 이을드즈", // Yıldız — DB "케난 예르디즈"
+  pxwrxlhj354wryk: "케난 일디즈", // Yıldız — DB "케난 예르디즈"
+  // 사용자 표기 교정 (2026-06-16)
+  "4jwq2ghxjoym0ve": "빅토르 요케레스", // Gyökeres — DB "빅토르 게요케레스"
+  "318q66hvxe77qo9": "라스무스 호일룬", // Højlund — DB "라스무스 훌룬드"
+  dj2ryohg2z8xq1z: "주앙 페드루 레지날도", // João Pedro — DB "조아오 페드로"
+  n54qllheyly3qvy: "라이언 흐라벤베르흐", // Gravenberch — DB "라이언 그레이븐버그"
+  l5ergphvlzwor8k: "누누 멘데스", // Nuno Mendes — DB "누노 멘데스"
   pxwrxlhv2peryk0: "오렐리앙 추아메니", // Tchouaméni — DB "오렐리앙 쇼아메니"
   l5ergphv83e2r8k: "마르틴 수비멘디", // Zubimendi — DB "마르틴 주비멘디"
   l5ergphe8wokr8k: "페르민 로페스", // Fermín López(바르셀로나) — DB "페르민 마린" 오역
