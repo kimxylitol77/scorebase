@@ -270,6 +270,21 @@
       "games": 2
     },
     {
+      "id": "pxwrxlh1z5yryk0",
+      "name": "Hans Vanaken",
+      "nameKo": "한스 바나켄",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/498430e70c4826d198eaa44fa1dc2607.png",
+      "score": 7.39,
+      "star": 3,
+      "recentRating": 7.39,
+      "avgRating": 7.01,
+      "games": 2
+    },
+    {
       "id": "y0or5jhe8lwyqwz",
       "name": "Koni De Winter",
       "nameKo": "코니 더빈터르",
@@ -283,21 +298,6 @@
       "recentRating": 7.06,
       "avgRating": 7.06,
       "games": 1
-    },
-    {
-      "id": "965mkyh3e8gr1ge",
-      "name": "Brandon Mechele",
-      "nameKo": "브란돈 메쉘레",
-      "hasMv": false,
-      "pos": "D",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/be7c1a4bd2be2771e10c5a29f907bdbf.png",
-      "score": 7.35,
-      "star": 3,
-      "recentRating": 7.35,
-      "avgRating": 7.19,
-      "games": 2
     }
   ],
   "complete": true

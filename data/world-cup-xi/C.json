@@ -18,7 +18,7 @@
       "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿"
     }
   ],
-  "teamRating": 3.6,
+  "teamRating": 3.5,
   "xi": [
     {
       "id": "ednm9whzz28ryox",
@@ -31,28 +31,11 @@
       "logo": "https://img.thesports.com/football/player/5c89a33cf034c8fbd79e593a1800cf37.png",
       "score": 7.71,
       "star": 3,
-      "recentRating": 6.32,
-      "avgRating": 7.16,
-      "games": 2,
+      "recentRating": 6.88,
+      "avgRating": 7.07,
+      "games": 3,
       "x": 50,
       "y": 90
-    },
-    {
-      "id": "x7lm7phpz18m2wd",
-      "name": "Gabriel dos Santos Magalhães",
-      "nameKo": "가브리엘 마갈라에스",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Brazil",
-      "flag": "🇧🇷",
-      "logo": "https://img.thesports.com/football/player/922207e8f1f6c15e7d7c6c73321037ce.png",
-      "score": 8.51,
-      "star": 4,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0,
-      "x": 16,
-      "y": 70
     },
     {
       "id": "y0or5jh1xegqwzv",
@@ -65,10 +48,10 @@
       "logo": "https://img.thesports.com/football/player/9fc9eea13620a0dc5495e22c6fb2ff2d.png",
       "score": 7.97,
       "star": 3,
-      "recentRating": 6.83,
-      "avgRating": 7.62,
-      "games": 2,
-      "x": 39,
+      "recentRating": 7.25,
+      "avgRating": 7.49,
+      "games": 3,
+      "x": 16,
       "y": 70
     },
     {
@@ -82,45 +65,45 @@
       "logo": "https://img.thesports.com/football/player/5885cc072fb8b238b2611bb45de56c39.png",
       "score": 7.92,
       "star": 3,
-      "recentRating": 7.29,
-      "avgRating": 7.29,
+      "recentRating": 7.13,
+      "avgRating": 7.21,
+      "games": 2,
+      "x": 39,
+      "y": 70
+    },
+    {
+      "id": "x7lm7phpz18m2wd",
+      "name": "Gabriel dos Santos Magalhães",
+      "nameKo": "가브리엘 마갈라에스",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/922207e8f1f6c15e7d7c6c73321037ce.png",
+      "score": 7.63,
+      "star": 3,
+      "recentRating": 6.75,
+      "avgRating": 6.75,
       "games": 1,
       "x": 61,
       "y": 70
     },
     {
-      "id": "l5ergphv2y4nr8k",
-      "name": "Aaron Hickey",
-      "nameKo": "아론 히키",
+      "id": "3glrw7h1ew0qdyj",
+      "name": "Marcos Aoás Corrêa",
+      "nameKo": "마르퀴뇨스",
       "hasMv": true,
       "pos": "D",
-      "country": "Scotland",
-      "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-      "logo": "https://img.thesports.com/football/player/93c65862249d68a12f871d0ba39c48a3.png",
-      "score": 7.43,
-      "star": 3,
-      "recentRating": 7.39,
-      "avgRating": 7.39,
-      "games": 1,
-      "x": 84,
-      "y": 70
-    },
-    {
-      "id": "1l4rjnhe42vm7vx",
-      "name": "Vinícius",
-      "nameKo": "비니시우스 주니오르",
-      "hasMv": true,
-      "pos": "M",
       "country": "Brazil",
       "flag": "🇧🇷",
-      "logo": "https://img.thesports.com/football/player/bed7e5fcda1aaa06af23fbc49b8e99aa.png",
-      "score": 9.24,
-      "star": 4,
-      "recentRating": 6.25,
-      "avgRating": 7.88,
+      "logo": "https://img.thesports.com/football/player/9778151565da5b533037788375468434.png",
+      "score": 7.5,
+      "star": 3,
+      "recentRating": 7.17,
+      "avgRating": 6.74,
       "games": 2,
-      "x": 22,
-      "y": 32
+      "x": 84,
+      "y": 70
     },
     {
       "id": "ednm9whz7ln3ryo",
@@ -133,10 +116,10 @@
       "logo": "https://img.thesports.com/football/player/6f9236d59f2781a5a4b1d48cee76f875.png",
       "score": 9,
       "star": 4,
-      "recentRating": 6.07,
-      "avgRating": 7.54,
-      "games": 2,
-      "x": 50,
+      "recentRating": 7.8,
+      "avgRating": 7.62,
+      "games": 3,
+      "x": 22,
       "y": 32
     },
     {
@@ -150,10 +133,10 @@
       "logo": "https://img.thesports.com/football/player/dd6132559f62ad6ab1c2b428fd0eca27.png",
       "score": 8.91,
       "star": 4,
-      "recentRating": 6.97,
-      "avgRating": 8.44,
-      "games": 2,
-      "x": 78,
+      "recentRating": 6.58,
+      "avgRating": 7.82,
+      "games": 3,
+      "x": 50,
       "y": 32
     },
     {
@@ -167,9 +150,26 @@
       "logo": "https://img.thesports.com/football/player/7f32ed1c2c4c3e3e2fc3c6c1cf4605f2.png",
       "score": 8.33,
       "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 7.55,
-      "games": 2,
+      "recentRating": 7.12,
+      "avgRating": 7.41,
+      "games": 3,
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "pxwrxlh97e21ryk",
+      "name": "Éderson José dos Santos",
+      "nameKo": "에더손",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/e1f4264abcdf0f3d97f61d126dad3e62.png",
+      "score": 8.16,
+      "star": 4,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 35,
       "y": 52
     },
@@ -184,12 +184,31 @@
       "logo": "https://img.thesports.com/football/player/c2fda7b5269ac46e51d90de9183c92bb.png",
       "score": 8.14,
       "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 8.2,
-      "games": 1,
+      "recentRating": 6.96,
+      "avgRating": 7.58,
+      "games": 2,
       "x": 65,
       "y": 52
     },
+    {
+      "id": "1l4rjnhe42vm7vx",
+      "name": "Vinícius",
+      "nameKo": "비니시우스 주니오르",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/bed7e5fcda1aaa06af23fbc49b8e99aa.png",
+      "score": 9.24,
+      "star": 4,
+      "recentRating": 8,
+      "avgRating": 7.92,
+      "games": 3,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "jw2r09hx3k00rz8",
       "name": "Igor Thiago",
@@ -202,13 +221,9 @@
       "score": 8.41,
       "star": 4,
       "recentRating": 6.28,
-      "avgRating": 7.34,
-      "games": 2,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
+      "avgRating": 6.99,
+      "games": 3
+    },
     {
       "id": "1l4rjnhz1jdm7vx",
       "name": "Lawrence Shankland",
@@ -220,9 +235,9 @@
       "logo": "https://img.thesports.com/football/player/a1a3a1333966aac3e4a48cb5d4e7bb68.png",
       "score": 8.38,
       "star": 4,
-      "recentRating": 8.38,
-      "avgRating": 8.38,
-      "games": 1
+      "recentRating": 6.32,
+      "avgRating": 7.35,
+      "games": 2
     },
     {
       "id": "y0or5jh33kkqwzv",
@@ -235,9 +250,9 @@
       "logo": "https://img.thesports.com/football/player/53841ec9e3622f24740035a7526f9e73.png",
       "score": 8.36,
       "star": 4,
-      "recentRating": 9.97,
-      "avgRating": 9.97,
-      "games": 1
+      "recentRating": 6.4,
+      "avgRating": 8.19,
+      "games": 2
     },
     {
       "id": "dj2ryohy2lpq1zp",
@@ -250,24 +265,24 @@
       "logo": "https://img.thesports.com/football/player/9c685f9197ad995f28a991ed5b601714.png",
       "score": 8.13,
       "star": 4,
-      "recentRating": 5.93,
-      "avgRating": 7.67,
-      "games": 2
+      "recentRating": 6.23,
+      "avgRating": 7.19,
+      "games": 3
     },
     {
       "id": "vjxm8ghp03nr6od",
       "name": "Brahim Díaz",
       "nameKo": "브라힘 디아즈",
       "hasMv": true,
-      "pos": "M",
+      "pos": "F",
       "country": "Morocco",
       "flag": "🇲🇦",
       "logo": "https://img.thesports.com/football/player/fe3830bdc1731c1bdaa54f2f290082f0.png",
       "score": 8.1,
       "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 7.55,
-      "games": 2
+      "recentRating": 7.46,
+      "avgRating": 7.52,
+      "games": 3
     },
     {
       "id": "zp5rzghp5394q82",
@@ -283,21 +298,6 @@
       "recentRating": 7.8,
       "avgRating": 7.8,
       "games": 1
-    },
-    {
-      "id": "vjxm8gh861x7r6o",
-      "name": "Endrick Felipe Moreira de Sousa",
-      "nameKo": "엔드리키 펠리피",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Brazil",
-      "flag": "🇧🇷",
-      "logo": "https://img.thesports.com/football/player/3e18d7bfea5af8fb372bb6afdaca47d9.png",
-      "score": 8.08,
-      "star": 4,
-      "recentRating": 8.08,
-      "avgRating": 6.84,
-      "games": 2
     }
   ],
   "complete": true
