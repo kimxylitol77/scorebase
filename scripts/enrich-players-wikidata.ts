@@ -19,6 +19,7 @@ const arg = (k: string) => process.argv.find((a) => a.startsWith(`--${k}=`))?.sp
 const LEAGUE = arg("league") || "";
 const LIMIT = Number(arg("limit") || "0"); // 리그별 상한 (0 = 전부)
 const FORCE = process.argv.includes("--force"); // 이미 career 있는 선수도 재조회
+const DRY = process.argv.includes("--dry"); // Wikidata ko vs DB nameKo 차이만 출력(적용·저장 X)
 let PACE = Number(arg("pace") || "150"); // 검색 호출 간격(ms), 429 시 자동 증가
 const LEAGUES = LEAGUE ? [LEAGUE] : ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
 const PATH = "data/player-overrides.json";
@@ -199,7 +200,7 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
   // 영문명 확보 (squad 1순위 → ts.name 영문)
   const enById = new Map<string, string>();
   for (const r of rows) {
-    if (!FORCE && prev[r.id]?.career) continue; // 이미 채워짐 → skip (재실행 incremental)
+    if (!FORCE && !DRY && prev[r.id]?.career) continue; // 이미 채워짐 → skip (재실행 incremental)
     const p = tspMap.get(r.id);
     const en = squadEn.get(r.id) || (p && isEnglish(p.name) ? p.name : undefined);
     if (en) enById.set(r.id, en);
@@ -238,7 +239,7 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
     for (const c of e.p54) labelQids.add(c.clubQid);
     for (const q of e.p413) labelQids.add(q);
   }
-  const labels = await batchLabels([...labelQids]);
+  const labels = DRY ? new Map<string, { ko: string | null; en: string | null }>() : await batchLabels([...labelQids]);
 
   // ── override 빌드 ──
   const overrides: Record<string, Override> = {};
@@ -246,6 +247,14 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
   for (const [id, qid] of qidById) {
     const e = ent.get(qid); if (!e) continue; // P54 가드 통과 못함
     const cur = tspMap.get(id)?.nameKo || null;
+    if (DRY) {
+      if (e.ko && e.ko !== cur) {
+        const ct = cur ? cur.trim().split(/\s+/).length : 0, wt = e.ko.trim().split(/\s+/).length;
+        const tag = !cur ? "신규" : wt < ct ? "축약" : wt === ct ? "음역" : "확장";
+        console.log(`[${tag}] ${tspMap.get(id)?.name} | "${cur}" → "${e.ko}"`);
+      }
+      continue;
+    }
     const o: Override = {};
     if (shouldOverrideName(cur, e.ko)) { o.nameKo = e.ko!; nameFix++; }
     if (e.countryQid) {
@@ -272,8 +281,10 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
   // 병합 저장 (다른 리그 + 이전 결과 보존) — 같은 id 는 필드 단위 merge (flag-only 항목 보존)
   const merged = loadOverrides();
   for (const [id, o] of Object.entries(overrides)) merged[id] = { ...merged[id], ...o };
-  fs.writeFileSync(PATH, JSON.stringify(merged));
-  console.log(`[${league}] 완료 → 이름 ${nameFix}, 국적 ${countryFix}, 커리어 ${careerFix}, 포지션 ${posFix} | 누적 ${Object.keys(merged).length}`);
+  if (!DRY) {
+    fs.writeFileSync(PATH, JSON.stringify(merged));
+    console.log(`[${league}] 완료 → 이름 ${nameFix}, 국적 ${countryFix}, 커리어 ${careerFix}, 포지션 ${posFix} | 누적 ${Object.keys(merged).length}`);
+  }
 }
 
 async function main() {
@@ -299,10 +310,12 @@ async function main() {
   for (const lg of LEAGUES) await enrichLeague(lg, flagOf, squadEn);
 
   // 수동 이름 큐레이션 강제 적용 (enrich 결과를 덮어씀, 재실행에도 보존)
-  const cur = loadOverrides();
-  for (const [id, ko] of Object.entries(NAME_CURATION)) cur[id] = { ...(cur[id] || {}), nameKo: ko };
-  fs.writeFileSync(PATH, JSON.stringify(cur));
-  console.log(`이름 큐레이션 적용: ${Object.keys(NAME_CURATION).length}`);
+  if (!DRY) {
+    const cur = loadOverrides();
+    for (const [id, ko] of Object.entries(NAME_CURATION)) cur[id] = { ...(cur[id] || {}), nameKo: ko };
+    fs.writeFileSync(PATH, JSON.stringify(cur));
+    console.log(`이름 큐레이션 적용: ${Object.keys(NAME_CURATION).length}`);
+  }
 
   // 국가 분포 요약
   const all = loadOverrides();
