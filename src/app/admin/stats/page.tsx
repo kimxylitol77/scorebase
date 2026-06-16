@@ -10,6 +10,7 @@ import {
   type TrafficChannel,
 } from "@/lib/referrer-channel";
 import { getGscOverview, gscPageToPath, type GscRow } from "@/lib/gsc";
+import { getBingOverview } from "@/lib/bing-webmaster";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -76,7 +77,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, gsc] = await Promise.all([
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, gsc, bing] = await Promise.all([
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
@@ -103,6 +104,7 @@ export default async function StatsPage({ searchParams }: Props) {
       orderBy: { ts: "desc" },
     }),
     getGscOverview(),
+    getBingOverview(),
   ]);
 
   // 사람 vs 봇 분리 (recent30 기준 — 차트용)
@@ -529,7 +531,7 @@ export default async function StatsPage({ searchParams }: Props) {
             subtitle={`${rangeLabel} · 검색 유입 ${topSearchQueries.reduce((s, [, v]) => s + v.count, 0)}회`}
           >
             {topSearchQueries.length === 0 ? (
-              <EmptyHint message="아직 검색어가 잡힌 유입이 없습니다. 네이버·다음·빙 검색 유입부터 쌓입니다 (구글 검색어는 아래 '구글 검색 성과' 섹션에서 확인)." />
+              <EmptyHint message="아직 검색어가 잡힌 유입이 없습니다. 네이버·다음 검색 유입부터 쌓입니다 (구글·빙 검색어는 아래 '검색 성과' 섹션에서 확인 — referrer 에 검색어를 안 남김)." />
             ) : (
               <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
                 {topSearchQueries.map(([query, info], i) => {
@@ -623,7 +625,7 @@ export default async function StatsPage({ searchParams }: Props) {
           <br />
           ⓘ <strong>구글 검색어</strong>는 구글이 referrer 에서 숨겨(2011~) 여기서 볼 수 없습니다 —
           바로 아래 <strong>&lsquo;구글 검색 성과&rsquo; 섹션</strong>(Search Console 연동)에서 노출·클릭·순위까지
-          확인하세요. 네이버·다음·빙은 referrer 에 검색어가 남아 위 표에 잡힙니다.
+          확인하세요. 네이버·다음은 referrer 에 검색어가 남아 위 표에 잡히고, 빙은 아래 &lsquo;빙 검색 성과&rsquo; 섹션에서 봅니다.
           <br />
           ⓘ SNS 프로필·공유 링크에 <code>?utm_source=instagram</code> / <code>threads</code> /{" "}
           <code>x</code> / <code>kakao</code> 를 붙이면 referrer 가 안 남는 인앱 유입도 100% 해당
@@ -745,6 +747,76 @@ export default async function StatsPage({ searchParams }: Props) {
             </>
           )}
         </p>
+      </section>
+
+      {/* === 빙 검색 성과 (Bing Webmaster) === */}
+      <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">🔷</span>
+          <h2 className="text-lg font-bold tracking-tight">빙 검색 성과</h2>
+          <span className="text-xs text-neutral-500">(Bing Webmaster Tools)</span>
+        </div>
+
+        {!bing.configured ? (
+          <SectionCard title="빙 연동 대기" subtitle="API 키 미설정">
+            <div className="text-sm text-neutral-500 leading-relaxed py-2 space-y-2">
+              <p>
+                빙도 구글처럼 referrer 에 검색어를 안 남기므로(위 검색어 표에 안 잡힘),
+                빙 검색어는 Bing Webmaster Tools API 로만 볼 수 있습니다. 셋업:
+              </p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>
+                  <a href="https://www.bing.com/webmasters" target="_blank" rel="noopener noreferrer" className="underline">
+                    bing.com/webmasters
+                  </a>{" "}
+                  에서 사이트 등록·소유권 인증 (GSC 에서 가져오기 지원)
+                </li>
+                <li>설정 → API 액세스 → <strong>API 키 생성</strong></li>
+                <li>
+                  <code>BING_WEBMASTER_API_KEY</code> 등록 (.env.local + Vercel). 등록 URL 이{" "}
+                  <code>https://www.scorebase.kr</code> 와 다르면 <code>BING_SITE_URL</code> 도 지정
+                </li>
+              </ol>
+            </div>
+          </SectionCard>
+        ) : bing.error ? (
+          <SectionCard title="빙 호출 실패" subtitle="설정 점검 필요">
+            <div className="text-sm text-red-600 dark:text-red-400 py-4 break-all">{bing.error}</div>
+          </SectionCard>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <KpiCard label="클릭 (빙)" value={bing.totals?.clicks ?? 0} accent />
+              <KpiCard label="노출 (빙)" value={bing.totals?.impressions ?? 0} />
+            </div>
+            <SectionCard title="빙 검색어 TOP 20" subtitle="Bing Webmaster Tools 집계">
+              {bing.queries.length === 0 ? (
+                <EmptyHint message="빙 검색어 데이터가 아직 없습니다. 사이트 등록 직후면 며칠 뒤부터 쌓입니다." />
+              ) : (
+                <GscTable
+                  rows={bing.queries.map((q) => ({
+                    keys: [q.query],
+                    clicks: q.clicks,
+                    impressions: q.impressions,
+                    ctr: q.ctr,
+                    position: q.position,
+                  }))}
+                  keyLabel="검색어"
+                />
+              )}
+            </SectionCard>
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              ⓘ 빙은 referrer 에 검색어를 안 남겨(구글과 동일) 위 &lsquo;검색어&rsquo; 표엔 안 잡힙니다 —
+              빙 검색어는 이 섹션이 유일한 소스입니다. 수치는 1시간 캐시됩니다.
+              {bing.siteUrl && (
+                <>
+                  {" "}
+                  연동 사이트: <code>{bing.siteUrl}</code>
+                </>
+              )}
+            </p>
+          </>
+        )}
       </section>
 
       {/* === 도메인별 === */}
