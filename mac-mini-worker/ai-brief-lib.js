@@ -49,7 +49,7 @@ function tidyBullets(text) {
 // 10회 한도에 닿으면 stop_reason=pause_turn → assistant 턴 붙여 재요청해 이어감.
 async function askWithWebSearch(
   prompt,
-  { system, maxTokens = 4000, maxSearches = 8, fetch = false } = {},
+  { system, maxTokens = 4000, maxSearches = 5, fetch = false } = {},
 ) {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY 미설정 — .env.local 확인");
@@ -66,14 +66,28 @@ async function askWithWebSearch(
   for (let turn = 0; turn < 8; turn++) {
     // web_search 다회 요청은 응답까지 오래 걸려 non-stream 은 connection 이 끊긴다.
     // streaming 으로 keepalive 를 유지하고 finalMessage() 로 완성 메시지를 받는다.
-    const stream = client.messages.stream({
-      model: MODEL,
-      max_tokens: maxTokens,
-      ...(system ? { system } : {}),
-      tools,
-      messages,
-    });
-    const res = await stream.finalMessage();
+    // 간헐적 연결 끊김(terminated/ECONNRESET)·과부하(429/529)는 backoff 로 재시도.
+    let res;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const stream = client.messages.stream({
+          model: MODEL,
+          max_tokens: maxTokens,
+          ...(system ? { system } : {}),
+          tools,
+          messages,
+        });
+        res = await stream.finalMessage();
+        break;
+      } catch (e) {
+        const msg = String(e?.message || e);
+        const transient = /terminated|econnreset|connection|aborted|socket|network|timeout|overload|429|503|529/i.test(msg);
+        if (attempt >= 3 || !transient) throw e;
+        const wait = 4000 * (attempt + 1);
+        console.warn(`[ai-brief] retry ${attempt + 1}/3 (${msg.slice(0, 60)}) after ${wait}ms`);
+        await new Promise((r) => setTimeout(r, wait));
+      }
+    }
     const text = res.content
       .filter((b) => b.type === "text")
       .map((b) => b.text)
