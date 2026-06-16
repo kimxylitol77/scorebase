@@ -40,7 +40,7 @@
     {
       "id": "8yomo4h2xn90q0j",
       "name": "Nico Schlotterbeck",
-      "nameKo": "니코 슐로테벡",
+      "nameKo": "니코 슐로터베크",
       "hasMv": true,
       "pos": "D",
       "country": "Germany",
@@ -89,19 +89,19 @@
       "y": 70
     },
     {
-      "id": "ednm9whz7z5yryo",
-      "name": "Piero Hincapié",
-      "nameKo": "피에로 인카피에",
+      "id": "pxwrxlh9zk74ryk",
+      "name": "Willian Pacho",
+      "nameKo": "윌리암 파초",
       "hasMv": true,
       "pos": "D",
       "country": "Ecuador",
       "flag": "🇪🇨",
-      "logo": "https://img.thesports.com/football/player/3bd885fe2b5aa0ba827980a1605630ba.png",
-      "score": 7.75,
+      "logo": "https://img.thesports.com/football/player/5d873b0a9388f36b3aa8fbf566811a0a.png",
+      "score": 7.76,
       "star": 3,
-      "recentRating": 6.65,
-      "avgRating": 6.96,
-      "games": 2,
+      "recentRating": 6.97,
+      "avgRating": 6.97,
+      "games": 1,
       "x": 84,
       "y": 70
     },
@@ -233,10 +233,10 @@
       "country": "Ecuador",
       "flag": "🇪🇨",
       "logo": "https://img.thesports.com/football/player/34533b279f7810a5ad9cf3a02170baf1.png",
-      "score": 7.95,
+      "score": 7.87,
       "star": 3,
-      "recentRating": 7.2,
-      "avgRating": 7,
+      "recentRating": 7.03,
+      "avgRating": 6.92,
       "games": 2
     },
     {
@@ -270,6 +270,21 @@
       "games": 1
     },
     {
+      "id": "ednm9whz7z5yryo",
+      "name": "Piero Hincapié",
+      "nameKo": "피에로 잉카피에",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Ecuador",
+      "flag": "🇪🇨",
+      "logo": "https://img.thesports.com/football/player/3bd885fe2b5aa0ba827980a1605630ba.png",
+      "score": 7.75,
+      "star": 3,
+      "recentRating": 6.6,
+      "avgRating": 6.93,
+      "games": 2
+    },
+    {
       "id": "3glrw7hynekyqdy",
       "name": "Joel Ordonez",
       "nameKo": "조엘 오르도네스",
@@ -280,24 +295,9 @@
       "logo": "https://img.thesports.com/football/player/2a7d5c6ebeb13e6a1003ba91dd0b81d2.png",
       "score": 7.7,
       "star": 3,
-      "recentRating": 6.87,
-      "avgRating": 7.29,
+      "recentRating": 7.17,
+      "avgRating": 7.44,
       "games": 2
-    },
-    {
-      "id": "23xmvkhkg0p2qg8",
-      "name": "Nilson Angulo",
-      "nameKo": "닐손 안구로",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Ecuador",
-      "flag": "🇪🇨",
-      "logo": "https://img.thesports.com/football/player/2718208c469e410c1d2cd632cf278b1a.png",
-      "score": 7.67,
-      "star": 3,
-      "recentRating": 7.83,
-      "avgRating": 7.83,
-      "games": 1
     }
   ],
   "complete": true
