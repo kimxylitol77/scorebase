@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { SITE_URL } from "@/lib/site-url";
 import { ALL_LEAGUES, LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
 
 // 자동 생성되는 sitemap.xml
 // 검색 엔진(Google, 네이버 등)에 사이트 구조를 알려준다.
@@ -69,6 +70,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: "daily" as const,
     priority: 0.8,
+  }));
+
+  // 월드컵 '오늘의 베스트 XI' 날짜별 페이지 — 최신일은 base(staticPages)에 이미 등록 + [date] 가
+  // redirect 하므로 slice(1)로 과거일만. 과거일 평점은 확정 = 거의 불변(monthly).
+  const todDates = await finishedDatesKst();
+  const todDatePages: MetadataRoute.Sitemap = todDates.slice(1).map((d) => ({
+    url: `${base}/world-cup/team-of-day/${d}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
   }));
 
   // 상대전적(H2H) — 활발한 페어만 (5전 이상 + 최근 180일 내 맞대결 = KBO 전 페어·
@@ -218,5 +229,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  return [...staticPages, ...nationalTeamPages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
+  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
 }

@@ -81,6 +81,20 @@ export async function latestFinishedDateKst(): Promise<string | null> {
   return new Date(m.startTime.getTime() + 9 * 3600000).toISOString().slice(0, 10);
 }
 
+/** 완료 경기가 하나라도 있는 KST 날짜 목록 (최신순). 날짜 네비게이션·sitemap 용. */
+export async function finishedDatesKst(): Promise<string[]> {
+  const rows = await prisma.match.findMany({
+    where: { league: "WORLD_CUP", status: "FINISHED" },
+    orderBy: { startTime: "desc" },
+    select: { startTime: true },
+  });
+  const seen = new Set<string>(); // desc 입력이라 첫 등장 순서가 곧 최신순
+  for (const r of rows) {
+    seen.add(new Date(r.startTime.getTime() + 9 * 3600000).toISOString().slice(0, 10));
+  }
+  return [...seen];
+}
+
 const koCountry = (en: string) =>
   fifaCountryKo(en) ?? toKoreanTeamName(en, "WORLD_CUP") ?? en;
 
