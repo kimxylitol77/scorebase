@@ -40,7 +40,7 @@ interface RawQueryStat {
 }
 
 function bingSiteUrl(): string {
-  return process.env.BING_SITE_URL?.trim() || "https://www.scorebase.kr";
+  return process.env.BING_SITE_URL?.trim() || "https://www.scorebase.kr/";
 }
 
 const fetchBingOverviewCached = unstable_cache(
