@@ -16,18 +16,13 @@ const fmtDateKo = (d: string) => {
   return `${Number(m)}월 ${Number(day)}일`;
 };
 
-/** 외부 이미지를 base64 data URI 로 변환 — satori 가 외부 URL 을 직접 못 가져오는 경우 회피. */
-async function toDataUri(url: string | null): Promise<string | null> {
-  if (!url) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    const ct = res.headers.get("content-type") ?? "image/png";
-    return `data:${ct};base64,${buf.toString("base64")}`;
-  } catch {
-    return null;
-  }
+const POS_KO: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
+
+// 평점대별 색상 — 8.0+ 초록, 7.0+ 황금, 그 이하 회색. 사진 대신 평점을 시각 주인공으로.
+function ratingColor(r: number): { fg: string; bg: string; bd: string } {
+  if (r >= 8) return { fg: "#6ee7b7", bg: "rgba(16,185,129,0.20)", bd: "rgba(16,185,129,0.85)" };
+  if (r >= 7) return { fg: "#fcd34d", bg: "rgba(251,191,36,0.16)", bd: "rgba(245,158,11,0.85)" };
+  return { fg: "#cbd5e1", bg: "rgba(148,163,184,0.16)", bd: "rgba(148,163,184,0.7)" };
 }
 
 export async function GET(req: Request) {
@@ -49,13 +44,8 @@ export async function GET(req: Request) {
     });
   }
 
-  // satori 가 외부 이미지 URL 을 직접 못 가져오는 경우가 있어 미리 data URI 로 임베드.
-  const xi = await Promise.all(
-    tod.xi.map(async (p) => ({ ...p, logo: await toDataUri(p.logo) })),
-  );
-
   return new ImageResponse(
-    <Card dk={fmtDateKo(tod.date)} matches={tod.matches} xi={xi} />,
+    <Card dk={fmtDateKo(tod.date)} matches={tod.matches} xi={tod.xi} />,
     { width: 1080, height: 1350, headers: CACHE_HEADERS },
   );
 }
@@ -142,6 +132,7 @@ function Card({
 }
 
 function Player({ p }: { p: TodPlayer }) {
+  const rc = ratingColor(p.rating);
   return (
     <div
       style={{
@@ -152,39 +143,34 @@ function Player({ p }: { p: TodPlayer }) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        width: "160px",
+        width: "172px",
       }}
     >
       <div
         style={{
           position: "relative",
           display: "flex",
-          width: "86px",
-          height: "86px",
-          borderRadius: "18px",
-          background: "#1f2937",
-          border: "3px solid rgba(255,255,255,0.85)",
           alignItems: "center",
           justifyContent: "center",
-          ...(p.logo
-            ? { backgroundImage: `url(${p.logo})`, backgroundSize: "cover", backgroundPosition: "center top" }
-            : {}),
+          width: "96px",
+          height: "96px",
+          borderRadius: "22px",
+          background: rc.bg,
+          border: `3px solid ${rc.bd}`,
         }}
       >
-        {!p.logo && (
-          <span style={{ fontSize: "32px", fontWeight: 900, color: "#d1d5db" }}>{p.name.slice(0, 1)}</span>
-        )}
+        <span style={{ display: "flex", fontSize: "44px", fontWeight: 900, color: rc.fg, lineHeight: 1 }}>{p.rating.toFixed(1)}</span>
         {p.goals > 0 && (
-          <div style={{ position: "absolute", top: "-4px", right: "-4px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: "26px", height: "26px", padding: "0 5px", borderRadius: "999px", background: "#fbbf24", color: "#111827", fontSize: "16px", fontWeight: 900, border: "2px solid white" }}>
+          <div style={{ position: "absolute", top: "-6px", right: "-6px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: "28px", height: "28px", padding: "0 6px", borderRadius: "999px", background: "#fbbf24", color: "#111827", fontSize: "16px", fontWeight: 900, border: "2px solid white" }}>
             {p.goals > 1 ? `⚽${p.goals}` : "⚽"}
           </div>
         )}
       </div>
-      <div style={{ display: "flex", marginTop: "6px", fontSize: "21px", fontWeight: 800, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>
+      <div style={{ display: "flex", marginTop: "10px", fontSize: "22px", fontWeight: 800, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>
         {p.name}{p.captain ? " ©" : ""}
       </div>
-      <div style={{ display: "flex", marginTop: "4px", fontSize: "17px", fontWeight: 800, color: "#6ee7b7", background: "rgba(16,185,129,0.2)", padding: "2px 10px", borderRadius: "6px" }}>
-        평점 {p.rating.toFixed(1)}
+      <div style={{ display: "flex", marginTop: "4px", fontSize: "16px", fontWeight: 700, color: "rgba(255,255,255,0.65)", letterSpacing: "0.05em" }}>
+        {POS_KO[p.pos] || p.pos}
       </div>
     </div>
   );
