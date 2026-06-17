@@ -158,7 +158,10 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
     },
     orderBy: { startTime: "desc" },
     take: limit,
-    include: { theSportsCache: { select: { detailLive: true } } },
+    include: {
+      theSportsCache: { select: { detailLive: true } },
+      homeTeam: { select: { name: true } },
+    },
   });
   const seen = new Set(pendingPriority.map((m) => m.id));
   const pendingRest =
@@ -173,7 +176,10 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
             },
             orderBy: { startTime: "desc" },
             take: limit,
-            include: { theSportsCache: { select: { detailLive: true } } },
+            include: {
+      theSportsCache: { select: { detailLive: true } },
+      homeTeam: { select: { name: true } },
+    },
           })
         ).filter((m) => !seen.has(m.id)).slice(0, limit - pendingPriority.length)
       : [];
@@ -244,7 +250,9 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         p.startTime.getTime() < m.startTime.getTime(),
     ).length;
     const MIN_PRIOR = 5; // 양 팀 모두 5경기 이상 학습 후
-    if (Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
+    // 월드컵은 외부 시드 Elo(eloratings.net) 라 prior 0 이어도 1500 random 이 아님 → 가드 면제.
+    // (이 가드가 본선 경기를 전부 걸러 predCorrect 가 안 채워지던 문제, 2026-06-17.)
+    if (m.league !== "WORLD_CUP" && Math.min(homePrior, awayPrior) < MIN_PRIOR) continue;
 
     const ctx = buildMatchContext(
       all,
@@ -329,6 +337,11 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         m.homeTeamId,
         m.awayTeamId,
         m.startTime,
+        {
+          homeStarterEra: homeStarter?.era,
+          awayStarterEra: awayStarter?.era,
+          homeTeamName: m.homeTeam?.name,
+        },
       );
       if (total) {
         const ovPick = total.pOver >= 0.5 ? "OVER" : "UNDER";
