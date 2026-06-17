@@ -3021,6 +3021,17 @@ const RAW: Record<string, string> = {
   "RSCA Futures": "안데를레흐트 퓨처스",
   "RWDM Brussels": "RWDM 브뤼셀",
   "SK Beveren": "베베런",
+  // WK리그 (한국 여자축구, 2026-06-17) — af(api-football id 660) 영문명 → 2026 공식 한글명.
+  // 팀명이 고유("Xxx W")해 글로벌 RAW 에 둠 — league 인자 없는 매치상세(MatchInsight)도 변환.
+  // 상무·스포츠토토는 af 가 옛 연고(보은/구미)를 표기 중이라 실제 2026 연고(문경/세종)로 매핑.
+  "Incheon Red Angels W": "인천 현대제철 레드엔젤스",
+  "Changnyeong W": "창녕 WFC",
+  "Gyeongju W": "경주 한국수력원자력",
+  "Hwacheon KSPO W": "화천 KSPO",
+  "Seoul W": "서울시청",
+  "Suwon FMC W": "수원 FC 위민",
+  "Boeun Sangmu W": "문경 상무",
+  "Gumi Sportstoto W": "세종 스포츠토토",
 };
 
 // 다양한 표기를 통합하기 위한 lookup helper.
