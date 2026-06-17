@@ -32,11 +32,12 @@ export async function POST(req: NextRequest) {
 
   const awayAbbr = String(body.awayAbbr ?? "").trim();
   const homeAbbr = String(body.homeAbbr ?? "").trim();
-  const awayPct = num(body.awayPct);
-  const homePct = num(body.homePct);
-  if (!awayAbbr || !homeAbbr || awayPct == null || homePct == null) {
+  const overPct = num(body.overPct);
+  const underPct = num(body.underPct);
+  const line = num(body.line);
+  if (!awayAbbr || !homeAbbr || overPct == null || underPct == null || line == null) {
     return NextResponse.json(
-      { error: "awayAbbr, homeAbbr, awayPct, homePct required" },
+      { error: "awayAbbr, homeAbbr, overPct, underPct, line required" },
       { status: 400 },
     );
   }
@@ -44,12 +45,11 @@ export async function POST(req: NextRequest) {
   const game: ConsensusGame = {
     awayAbbr,
     homeAbbr,
-    awayPct,
-    homePct,
-    awayOdds: num(body.awayOdds),
-    homeOdds: num(body.homeOdds),
-    awayPicks: num(body.awayPicks),
-    homePicks: num(body.homePicks),
+    overPct,
+    underPct,
+    line,
+    overPicks: num(body.overPicks),
+    underPicks: num(body.underPicks),
     gameTimeEt: body.gameTimeEt != null ? String(body.gameTimeEt) : null,
   };
 
