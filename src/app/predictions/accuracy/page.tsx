@@ -3,6 +3,10 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import LeagueBadge from "@/components/LeagueBadge";
 import CiteBox from "@/components/CiteBox";
+import CumulativeAccuracyChart, {
+  type AccSeriesPoint,
+  type AccLeagueMeta,
+} from "@/components/charts/CumulativeAccuracyChart";
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -123,10 +127,72 @@ async function statForLeague(league: string): Promise<LeagueStat> {
   };
 }
 
+// 누적 적중률 곡선용 리그 색 (LEAGUES 순)
+const LEAGUE_COLOR: Record<string, string> = {
+  EPL: "#3b82f6", LALIGA: "#ef4444", BUNDESLIGA: "#f59e0b", SERIE_A: "#10b981",
+  LIGUE_1: "#8b5cf6", MLS: "#ec4899", UCL: "#6366f1", NBA: "#f97316",
+  NHL: "#06b6d4", MLB: "#14b8a6", KBO: "#eab308", NPB: "#a855f7", LOL: "#84cc16",
+};
+
+// 시즌 진행률(0~100%) 대비 1X2 누적 적중률 시리즈. 경기 시간순 누적 후 101점으로 리샘플.
+// 표본 ≥50 리그만 (적은 표본은 곡선이 출렁여 신뢰 증거로 부적합).
+async function cumulativeAccuracySeries(): Promise<{
+  points: AccSeriesPoint[];
+  leagues: AccLeagueMeta[];
+}> {
+  const RES = 100; // 0~100% → 101 포인트
+  const per = await Promise.all(
+    LEAGUES.map(async (lg) => {
+      const ms = await prisma.match.findMany({
+        where: { league: lg, predCorrect: { not: null } },
+        select: { predCorrect: true },
+        orderBy: { startTime: "asc" },
+      });
+      const n = ms.length;
+      let correct = 0;
+      const cumCorrect = ms.map((m) => {
+        if (m.predCorrect) correct++;
+        return correct;
+      });
+      // 초반 표본이 작을 땐 누적값이 0/100% 로 출렁이므로 최소 30경기 이후부터 곡선 시작.
+      const minIdx = Math.min(29, Math.max(0, n - 1));
+      const resampled = Array.from({ length: RES + 1 }, (_, k) => {
+        if (n === 0) return null;
+        const i = Math.max(minIdx, Math.round((k / RES) * (n - 1)));
+        return (cumCorrect[i] / (i + 1)) * 100;
+      });
+      return {
+        key: lg,
+        name: LEAGUE_NAME[lg],
+        color: LEAGUE_COLOR[lg] ?? "#737373",
+        sample: n,
+        finalRate: n > 0 ? (correct / n) * 100 : 0,
+        resampled,
+      };
+    }),
+  );
+  const eligible = per.filter((l) => l.sample >= 50);
+  const points: AccSeriesPoint[] = Array.from({ length: RES + 1 }, (_, k) => {
+    const row: AccSeriesPoint = { pct: k };
+    for (const l of eligible) {
+      const v = l.resampled[k];
+      if (v != null) row[l.name] = Number(v.toFixed(1));
+    }
+    return row;
+  });
+  return {
+    points,
+    leagues: eligible.map(({ key, name, color, sample, finalRate }) => ({
+      key, name, color, sample, finalRate,
+    })),
+  };
+}
+
 export default async function AccuracyPage() {
-  const [stats, valueBet] = await Promise.all([
+  const [stats, valueBet, accSeries] = await Promise.all([
     Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
     valueBetStats(),
+    cumulativeAccuracySeries(),
   ]);
   const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
@@ -252,6 +318,18 @@ export default async function AccuracyPage() {
         모델이 통계적 신호를 잡고 있다고 해석할 수 있습니다. 도박·베팅 권유는 아니며,
         모든 수치는 데이터 모델의 후행 검증 결과입니다.
       </p>
+
+      {/* 누적 적중률 추이 곡선 — 신뢰 증거 앵커 */}
+      {accSeries.leagues.length > 0 && (
+        <section className="mb-10 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 sm:p-6">
+          <h2 className="text-lg font-semibold mb-1">리그별 누적 적중률 추이</h2>
+          <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
+            시즌 첫 경기부터 현재까지, 경기가 쌓일수록 1X2 적중률이 어디로 수렴하는지
+            보여줍니다. 표본이 커질수록 안정되는 곡선이 모델의 일관성을 뜻합니다.
+          </p>
+          <CumulativeAccuracyChart data={accSeries.points} leagues={accSeries.leagues} />
+        </section>
+      )}
 
       {/* 리그별 카드 */}
       <section className="mb-10">
