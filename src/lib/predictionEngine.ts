@@ -27,6 +27,7 @@ import { calcEloTable, getElo, eloSpread } from "./predict/elo";
 import { calcLeagueBaseRate, priorWeight } from "./predict/league-prior";
 import { calcWinProbability, type WinProb } from "./predict/win-probability";
 import { blendWithMarket, type MarketProb } from "./predict/market-blend";
+import { calibrateHomeWinProb, hasHomeCalibration } from "./predict/home-calibration";
 import { calcRecentTrend } from "./predict/recent-trend";
 import { rollingXgStrength, xgMomentumShift } from "./predict/rolling-xg";
 import { fitDixonColes, predictDixonColes, type DcMatch } from "./predict/dixon-coles";
@@ -473,6 +474,13 @@ export function predictMatch(input: PredictionInput): PredictionResult {
         });
       }
     }
+  }
+
+  // ── 5.5 home calibration — 야구·농구 home 과대 보정 (Platt scaling, NBA 제외) ──
+  if (hasHomeCalibration(league)) {
+    const calHome = calibrateHomeWinProb(probs.home, league);
+    probs = normalizeProbs({ home: calHome, draw: 0, away: 1 - calHome });
+    signalsUsed.push("home_calibration");
   }
 
   // ── 6. pick + confidence + NO_PICK gate ────────────────

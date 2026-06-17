@@ -29,6 +29,7 @@ import {
   applyGoalieToWinProb,
 } from "@/lib/predict/goalie-adjust";
 import { blendWithMarket } from "@/lib/predict/market-blend";
+import { calibrateHomeWinProb, hasHomeCalibration } from "@/lib/predict/home-calibration";
 import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
 
@@ -285,6 +286,12 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         bookmakers: m.marketBookmakers,
       });
       wp = blended;
+    }
+
+    // home calibration — 야구·농구 home 과대 보정 (predictionEngine 과 동일 적용)
+    if (hasHomeCalibration(m.league)) {
+      const calHome = calibrateHomeWinProb(wp.home, m.league);
+      wp = { home: calHome, draw: 0, away: 1 - calHome };
     }
 
     const recalcWinner =
