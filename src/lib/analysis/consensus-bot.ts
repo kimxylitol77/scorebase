@@ -117,7 +117,9 @@ const SYSTEM = `당신은 한국어 스포츠 미디어 "스코어베이스"의 
 - 양 팀 타선·선발 투수 맥락을 곁들이되, 컨센서스가 항상 옳지 않음(대중 편향) 가능성을 한 줄 짚으면 좋다.
 - 과장·자극 금지. 특정 출처나 사이트 이름은 언급하지 않는다.
 
-[팀명 표기]
+[표기 규칙 — 엄수]
+- 모든 글자는 한글로만 쓴다. 일본어 가나(カタカナ·ひらがな)·한자·영어 단어를 절대 섞지 않는다.
+- 구장·도시·인명도 한글로 적는다 (예: 양키 스타디움, 펜웨이 파크). "ヤンキー" 같은 외국 문자 혼입 금지.
 - 제공된 한글 팀명을 그대로 쓰거나 지역명으로 줄인다. 별명만 단독으로 쓰지 않는다.
 
 [출력] 반드시 아래 JSON 객체 하나만 출력. 앞뒤 설명·코드블록 금지:
@@ -151,13 +153,19 @@ async function generateAnalysis(
     `대중 우세: ${favLabel} (${favPct}%)`,
   ].join("\n");
 
-  const raw = await generate(prompt, { system: SYSTEM, maxTokens: 1400, temperature: 0.6 });
-  const json = parsePickJson(raw);
-  if (!json) return null;
-  const title = String(json.title ?? "").trim().slice(0, 120);
-  const analysis = String(json.analysis ?? "").trim();
-  if (!title || analysis.length < 20) return null;
-  return { title, analysis };
+  // 일본어 가나가 섞이면(haiku 외래어 오타) 재생성, 2회째도 섞이면 포기(skip).
+  const hasKana = (s: string) => /[぀-ヿ]/.test(s);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const raw = await generate(prompt, { system: SYSTEM, maxTokens: 1400, temperature: 0.6 });
+    const json = parsePickJson(raw);
+    if (!json) continue;
+    const title = String(json.title ?? "").trim().slice(0, 120);
+    const analysis = String(json.analysis ?? "").trim();
+    if (!title || analysis.length < 20) continue;
+    if (hasKana(title) || hasKana(analysis)) continue;
+    return { title, analysis };
+  }
+  return null;
 }
 
 /** 경기 1건 인제스트 — 박빙 skip → 매칭 → dedup → Claude 분석 → Post 생성. */
