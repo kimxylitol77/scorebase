@@ -405,6 +405,15 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
  * 시장(marketHome) Brier 병기 — 모델이 시장 대비 어디 있는지가 진짜 기준선.
  * evaluate cron(22:00) 로그로 매일 확인.
  */
+// RPS (Ranked Probability Score) — 3-way 순서(홈-무-원정) 고려 지표. 누적분포 차의 제곱합/2.
+// Brier 와 달리 "홈 예측인데 원정 패"를 "홈 예측인데 무"보다 더 페널티. 축구 3-way 표준. 낮을수록 우수.
+// 균등(1/3,1/3,1/3) 기준선 ≈ 0.2222 — 모델이 이보다 낮아야 신호.
+function rps3(p: number[], o: number[]): number {
+  const cp1 = p[0];
+  const cp2 = p[0] + p[1];
+  return ((cp1 - o[0]) ** 2 + (cp2 - (o[0] + o[1])) ** 2) / 2;
+}
+
 export async function runBrierReport(days = 30) {
   const since = new Date(Date.now() - days * 86400e3);
   const ms = await prisma.match.findMany({
@@ -425,19 +434,20 @@ export async function runBrierReport(days = 30) {
   });
   const agg = new Map<
     string,
-    { n: number; brier: number; hit: number; mN: number; mBrier: number }
+    { n: number; brier: number; rps: number; hit: number; mN: number; mBrier: number; mRps: number }
   >();
   for (const m of ms) {
     const o = m.homeScore! > m.awayScore! ? [1, 0, 0] : m.homeScore! < m.awayScore! ? [0, 0, 1] : [0, 1, 0];
     const p = [m.predHome!, m.predDraw!, m.predAway!];
     const b = (p[0] - o[0]) ** 2 + (p[1] - o[1]) ** 2 + (p[2] - o[2]) ** 2;
     const pick = p[0] >= p[1] && p[0] >= p[2] ? 0 : p[1] >= p[2] ? 1 : 2;
-    const e = agg.get(m.league) ?? { n: 0, brier: 0, hit: 0, mN: 0, mBrier: 0 };
-    e.n++; e.brier += b; if (o[pick] === 1) e.hit++;
+    const e = agg.get(m.league) ?? { n: 0, brier: 0, rps: 0, hit: 0, mN: 0, mBrier: 0, mRps: 0 };
+    e.n++; e.brier += b; e.rps += rps3(p, o); if (o[pick] === 1) e.hit++;
     if (m.marketHome != null && m.marketDraw != null && m.marketAway != null) {
       const mk = [m.marketHome, m.marketDraw, m.marketAway];
       e.mN++;
       e.mBrier += (mk[0] - o[0]) ** 2 + (mk[1] - o[1]) ** 2 + (mk[2] - o[2]) ** 2;
+      e.mRps += rps3(mk, o);
     }
     agg.set(m.league, e);
   }
@@ -448,16 +458,19 @@ export async function runBrierReport(days = 30) {
       league: lg,
       n: e.n,
       brier: +(e.brier / e.n).toFixed(4),
+      rps: +(e.rps / e.n).toFixed(4),
       hitPct: +((e.hit / e.n) * 100).toFixed(1),
       marketBrier: e.mN >= 5 ? +(e.mBrier / e.mN).toFixed(4) : null,
+      marketRps: e.mN >= 5 ? +(e.mRps / e.mN).toFixed(4) : null,
     }));
-  console.log(`[evaluate/brier] 최근 ${days}일 (n≥5 리그):`);
+  console.log(`[evaluate/brier] 최근 ${days}일 (n≥5 리그) · RPS 낮을수록↑, 균등 0.2222 기준:`);
   for (const r of report) {
-    const vsMarket =
-      r.marketBrier != null
-        ? ` | 시장 ${r.marketBrier} (${r.brier <= r.marketBrier ? "모델 우위✓" : "시장 우위"})`
+    const vsB = r.marketBrier != null ? ` | 시장B ${r.marketBrier}` : "";
+    const vsR =
+      r.marketRps != null
+        ? ` | 시장RPS ${r.marketRps} (${r.rps <= r.marketRps ? "모델 우위✓" : "시장 우위"})`
         : "";
-    console.log(`  ${r.league}: n=${r.n} Brier ${r.brier} 적중 ${r.hitPct}%${vsMarket}`);
+    console.log(`  ${r.league}: n=${r.n} Brier ${r.brier} RPS ${r.rps} 적중 ${r.hitPct}%${vsB}${vsR}`);
   }
   return report;
 }
