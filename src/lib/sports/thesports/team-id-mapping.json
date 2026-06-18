@@ -13595,5 +13595,485 @@
     "tsId": "23xmvkh300oqg8n",
     "tsName": "Olympic Charleroi",
     "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 607801,
+    "ourName": "Deportivo Maipu",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-k82rekh9806repz",
+    "tsId": "k82rekh9806repz",
+    "tsName": "Deportivo Maipu",
+    "tsKo": "데포르티보 마이푸",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607802,
+    "ourName": "San Martin San Juan",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-9k82rekhd5prepz",
+    "tsId": "9k82rekhd5prepz",
+    "tsName": "San Martin San Juan",
+    "tsKo": "산 마르틴 산 후안",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 607803,
+    "ourName": "Patronato Parana",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-23xmvkh371eqg8n",
+    "tsId": "23xmvkh371eqg8n",
+    "tsName": "Patronato Parana",
+    "tsKo": "파트로나토",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607804,
+    "ourName": "Atletico Rafaela",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-kn54qllhoz3qvy9",
+    "tsId": "kn54qllhoz3qvy9",
+    "tsName": "Atletico Rafaela",
+    "tsKo": "아틀레티코 라파엘라",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607792,
+    "ourName": "Deportivo Moron",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-pxwrxlh1gz7ryk0",
+    "tsId": "pxwrxlh1gz7ryk0",
+    "tsName": "Deportivo Moron",
+    "tsKo": "데포르티보 모론",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607793,
+    "ourName": "Los Andes",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-dn1m1gh4y9omoep",
+    "tsId": "dn1m1gh4y9omoep",
+    "tsName": "Los Andes",
+    "tsKo": "로스 안데스",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607794,
+    "ourName": "San Telmo",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-vjxm8ghgg72r6od",
+    "tsId": "vjxm8ghgg72r6od",
+    "tsName": "San Telmo",
+    "tsKo": "산 텔모",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607795,
+    "ourName": "Atletico Mitre de Santiago del Estero",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-dj2ryohy4g0q1zp",
+    "tsId": "dj2ryohy4g0q1zp",
+    "tsName": "Atletico Mitre de Santiago del Estero",
+    "tsKo": "아틀레티코 미트레 데 산티아고 델 에스테로",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607796,
+    "ourName": "Tristan Suarez",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-3glrw7hw5jwqdyj",
+    "tsId": "3glrw7hw5jwqdyj",
+    "tsName": "Tristan Suarez",
+    "tsKo": "트리스탄 수아레스",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607797,
+    "ourName": "Ferrocarril Midland",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-zp5rzghjndeq82w",
+    "tsId": "zp5rzghjndeq82w",
+    "tsName": "Ferrocarril Midland",
+    "tsKo": "페로카릴 미드랜드",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607798,
+    "ourName": "CA San Miguel",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-6ypq3nh54d6md7o",
+    "tsId": "6ypq3nh54d6md7o",
+    "tsName": "CA San Miguel",
+    "tsKo": "CA 산 미구엘",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607799,
+    "ourName": "Estudiantes de Caseros",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-ednm9whk7o1ryox",
+    "tsId": "ednm9whk7o1ryox",
+    "tsName": "Estudiantes de Caseros",
+    "tsKo": "아틀레티코 에스투디안테스 클럽",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607805,
+    "ourName": "Gimnasia yTiro",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-8yomo4hk0o6q0j6",
+    "tsId": "8yomo4hk0o6q0j6",
+    "tsName": "Gimnasia yTiro",
+    "tsKo": "김나시아 y 티로",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607800,
+    "ourName": "Temperley",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-p3glrw7h5gjqdyj",
+    "tsId": "p3glrw7h5gjqdyj",
+    "tsName": "Temperley",
+    "tsKo": "템페를레이",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607806,
+    "ourName": "Club Atletico Acassuso",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-zp5rzghj8lpq82w",
+    "tsId": "zp5rzghj8lpq82w",
+    "tsName": "Club Atletico Acassuso",
+    "tsKo": "아틀레티코 아카수소 클럽",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607807,
+    "ourName": "Almirante Brown",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-pxwrxlhg37nryk0",
+    "tsId": "pxwrxlhg37nryk0",
+    "tsName": "Almirante Brown",
+    "tsKo": "알미란테 브라운",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607808,
+    "ourName": "Chacarita juniors",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-k82rekhvnd8repz",
+    "tsId": "k82rekhvnd8repz",
+    "tsName": "Chacarita juniors",
+    "tsKo": "차카리타 주니어스",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607809,
+    "ourName": "Colegiales",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-3glrw7h1zdkqdyj",
+    "tsId": "3glrw7h1zdkqdyj",
+    "tsName": "Colegiales",
+    "tsKo": "콜레기알레스",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607810,
+    "ourName": "Agropecuario de Carlos Casares",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-vjxm8ghg2lnr6od",
+    "tsId": "vjxm8ghg2lnr6od",
+    "tsName": "Agropecuario de Carlos Casares",
+    "tsKo": "아그로페카리오 데 카를로스 카사레스",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607811,
+    "ourName": "Atletico Atlanta",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-23xmvkho41vqg8n",
+    "tsId": "23xmvkho41vqg8n",
+    "tsName": "Atletico Atlanta",
+    "tsKo": "아틀레티코 아틀란타",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607812,
+    "ourName": "Club Atletico Guemes",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-zp5rzgh70d3q82w",
+    "tsId": "zp5rzgh70d3q82w",
+    "tsName": "Club Atletico Guemes",
+    "tsKo": "아틀레티코 게메스 클럽",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607813,
+    "ourName": "Quilmes",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-gy0or5jhkg5qwzv",
+    "tsId": "gy0or5jhkg5qwzv",
+    "tsName": "Quilmes",
+    "tsKo": "퀼메스",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607814,
+    "ourName": "Chaco For Ever",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-l7oqdeh64lxr510",
+    "tsId": "l7oqdeh64lxr510",
+    "tsName": "Chaco For Ever",
+    "tsKo": "차코 포 에버",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607815,
+    "ourName": "Club Ciudad de Bolivar",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-4jwq2ghxo9lm0ve",
+    "tsId": "4jwq2ghxo9lm0ve",
+    "tsName": "Club Ciudad de Bolivar",
+    "tsKo": "시우다드 데 볼리바르 클럽",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607816,
+    "ourName": "Godoy Cruz Antonio Tomba",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-kjw2r09hd35rz84",
+    "tsId": "kjw2r09hd35rz84",
+    "tsName": "Godoy Cruz Antonio Tomba",
+    "tsKo": "고도이 크루스 안토니오 톰바",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607817,
+    "ourName": "Racing de Cordoba",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-vjxm8gh47xdr6od",
+    "tsId": "vjxm8gh47xdr6od",
+    "tsName": "Racing de Cordoba",
+    "tsKo": "라싱 코르도바",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607818,
+    "ourName": "Central Norte Salta",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-4jwq2ghkpd8m0ve",
+    "tsId": "4jwq2ghkpd8m0ve",
+    "tsName": "Central Norte Salta",
+    "tsKo": "센트럴 북부 살타",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607819,
+    "ourName": "Deportivo Madryn",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-dj2ryohyn07q1zp",
+    "tsId": "dj2ryohyn07q1zp",
+    "tsName": "Deportivo Madryn",
+    "tsKo": "데포르티보 마디린",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607820,
+    "ourName": "Colon de Santa Fe",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-56ypq3nhd3kmd7o",
+    "tsId": "56ypq3nhd3kmd7o",
+    "tsName": "Colon de Santa Fe",
+    "tsKo": "콜론 산타페",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607821,
+    "ourName": "All Boys",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-pxwrxlhg087ryk0",
+    "tsId": "pxwrxlhg087ryk0",
+    "tsName": "All Boys",
+    "tsKo": "올 보이스",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607822,
+    "ourName": "Ferrol Carril Oeste",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-dn1m1gh43g9moep",
+    "tsId": "dn1m1gh43g9moep",
+    "tsName": "Ferrol Carril Oeste",
+    "tsKo": "페롤 카릴 오스테",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607823,
+    "ourName": "Defensores de Belgrano",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-4jwq2gh42yem0ve",
+    "tsId": "4jwq2gh42yem0ve",
+    "tsName": "Defensores de Belgrano",
+    "tsKo": "데펜소레스 데 벨그라노",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607824,
+    "ourName": "Nueva Chicago",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-kdj2ryoh3p9q1zp",
+    "tsId": "kdj2ryoh3p9q1zp",
+    "tsName": "Nueva Chicago",
+    "tsKo": "누에바 시카고",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607825,
+    "ourName": "Almagro",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-p3glrw7h859qdyj",
+    "tsId": "p3glrw7h859qdyj",
+    "tsName": "Almagro",
+    "tsKo": "알마그로",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 607826,
+    "ourName": "San Martin Tucuman",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-y39mp1h30v7mojx",
+    "tsId": "y39mp1h30v7mojx",
+    "tsName": "San Martin Tucuman",
+    "tsKo": "산 마르틴 투쿠만",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 607827,
+    "ourName": "Gimnasia Jujuy",
+    "ourLeague": "ARG_PRIMERA_NACIONAL",
+    "ourExternalId": "ts-vjxm8gh4j5kr6od",
+    "tsId": "vjxm8gh4j5kr6od",
+    "tsName": "Gimnasia Jujuy",
+    "tsKo": "힘나시아 후후이",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600107,
+    "ourName": "Tammeka",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "3530",
+    "tsId": "pxwrxlhg24wryk0",
+    "tsName": "Tartu JK Maag Tammeka",
+    "tsKo": "타르투 JK 마그 타메카",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600099,
+    "ourName": "Flora Tallinn",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "687",
+    "tsId": "kjw2r09holvrz84",
+    "tsName": "FC Flora Tallinn",
+    "tsKo": "FC 플로라 탈린",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600100,
+    "ourName": "Nõmme United",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "10059",
+    "tsId": "k82rekhv476repz",
+    "tsName": "FC Nomme United",
+    "tsKo": "FC 옴므 유나이티드",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600103,
+    "ourName": "Trans Narva",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "2274",
+    "tsId": "pxwrxlhgno1ryk0",
+    "tsName": "Trans Narva",
+    "tsKo": "트란스 나바",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600105,
+    "ourName": "FC Levadia Tallinn",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "2273",
+    "tsId": "9k82rekh4lvrepz",
+    "tsName": "Levadia Tallinn",
+    "tsKo": "FC 레바디아 탈린",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600106,
+    "ourName": "Kuressaare",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "3526",
+    "tsId": "23xmvkh34yxqg8n",
+    "tsName": "FC Kuressaare",
+    "tsKo": "FC 쿠레사레",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600063,
+    "ourName": "Torpedo Kutaisi",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "685",
+    "tsId": "4wyrn4h8825q86p",
+    "tsName": "Torpedo Kutaisi",
+    "tsKo": "토르페도 쿠타이시",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600064,
+    "ourName": "Spaeri",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "14864",
+    "tsId": "l5ergphvkl8r8k0",
+    "tsName": "Spaeri FC",
+    "tsKo": "스파에리 FC",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 600065,
+    "ourName": "Gagra",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "3505",
+    "tsId": "318q66hoxe2qo9j",
+    "tsName": "Gagra FC",
+    "tsKo": "가그라",
+    "matchType": "cross-ref"
+  },
+  {
+    "ourId": 600069,
+    "ourName": "Dinamo Tbilisi",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "2262",
+    "tsId": "jednm9whl3pryox",
+    "tsName": "Dinamo Tbilisi",
+    "tsKo": "디나모 트빌리시",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600070,
+    "ourName": "Rustavi",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "3501",
+    "tsId": "vjxm8ghgjzer6od",
+    "tsName": "FC Rustavi",
+    "tsKo": "FC 루스타비",
+    "matchType": "exact"
+  },
+  {
+    "ourId": 600071,
+    "ourName": "Dinamo Batumi",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "705",
+    "tsId": "pxwrxlhgy9dryk0",
+    "tsName": "Dinamo Batumi",
+    "tsKo": "디나모 바투미",
+    "matchType": "exact"
   }
 ]
