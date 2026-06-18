@@ -222,8 +222,18 @@ async function askWithLocalSearch(query, prompt, opts = {}) {
   }
   if (all.length === 0) throw new Error("RSS 뉴스 0건 — 검색어/네트워크 확인");
   const context = all.map((a, i) => `${i + 1}. ${a.title}${a.source ? ` (${a.source})` : ""}`).join("\n");
-  const fullPrompt = `${prompt}\n\n[오늘 수집된 실제 뉴스 헤드라인 — 아래 목록만 근거로 작성하고, 목록에 없는 내용은 지어내지 말 것]\n${context}`;
-  return ollamaChat(fullPrompt, opts);
+  const fullPrompt = `${prompt}\n\n[오늘 수집된 실제 뉴스 헤드라인 — 아래 목록만 근거로 작성하고, 목록에 없는 내용은 지어내지 말 것]\n${context}\n\n[작성 규칙 엄수] 지정된 섹션을 각각 한 번씩만 쓰고 같은 이모지 섹션을 두 번 반복하지 말 것. 총평·맺음말·결론 문장 없이 마지막 뉴스 항목으로 끝낼 것.`;
+  const out = await ollamaChat(fullPrompt, opts);
+  // 로컬 모델이 가끔 끝에 "~살펴볼 수 있습니다" 류 맺음말을 붙임 — 마지막 줄이
+  // 불릿(-)/이모지 섹션이 아닌 산문이면 잘라낸다.
+  const lines = out.split("\n");
+  while (lines.length) {
+    const last = lines[lines.length - 1].trim();
+    if (!last) { lines.pop(); continue; }
+    if (/^[-•]/.test(last) || /^\p{Extended_Pictographic}/u.test(last)) break;
+    lines.pop();
+  }
+  return lines.join("\n").trim();
 }
 
 // web_search LLM 질의 — Anthropic 우선, 크레딧 소진·장애 시 OpenAI 자동 폴백.
