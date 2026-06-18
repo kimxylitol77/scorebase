@@ -38,8 +38,9 @@ async function main() {
   const text = await askWithWebSearch(buildPrompt(), {
     maxTokens: 4000,
     maxSearches: 10,
-    // 로컬 모드(BRIEF_PROVIDER=local) 시 RSS 검색어. 시즌 활발 종목 위주.
-    query: ["해외축구 EPL", "MLB 메이저리그", "KBO 프로야구", "NBA 농구", "2026 월드컵 축구", "손흥민"],
+    // 로컬 모드(BRIEF_PROVIDER=local) 시 RSS 검색어. 6월 현재 시즌 활발 종목 위주.
+    // ⚠️ EPL 등 유럽축구는 비시즌(회고 기사만) → 8월 시즌 개막 시 추가할 것.
+    query: ["MLB 메이저리그", "KBO 프로야구", "2026 월드컵 축구", "월드컵 축구 대표팀", "손흥민", "NBA 파이널"],
   });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
   const clean = tidyBullets(stripPreamble(text, ["⚽", "⚾", "🏀", "🏒", "📝"]));

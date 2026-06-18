@@ -156,12 +156,13 @@ async function askOpenAIWebSearch(prompt, { system, maxTokens = 4000 } = {}) {
 }
 
 // Google News RSS 헤드라인 수집 (한국어·최근 when). web_search 없이 로컬 검색 대체.
-async function fetchGoogleNews(query, { when = "1d", limit = 15 } = {}) {
+async function fetchGoogleNews(query, { when = "1d", limit = 15, maxAgeDays = 2 } = {}) {
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko&when=${when}`;
   const r = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
   if (!r.ok) throw new Error(`Google News RSS HTTP ${r.status}`);
   const xml = await r.text();
   const items = [];
+  const cutoff = Date.now() - maxAgeDays * 86400e3; // 비시즌 회고 차단
   const re = /<item>([\s\S]*?)<\/item>/g;
   let m;
   while ((m = re.exec(xml)) && items.length < limit) {
@@ -169,6 +170,9 @@ async function fetchGoogleNews(query, { when = "1d", limit = 15 } = {}) {
     const rawTitle = (block.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "";
     const title = rawTitle.replace(/<!\[CDATA\[|\]\]>/g, "").trim();
     const source = ((block.match(/<source[^>]*>([\s\S]*?)<\/source>/) || [])[1] || "").trim();
+    // when=1d 가 비시즌엔 5월 회고까지 끌어옴 → 발행일 N일 지난 기사 제외(날짜 없으면 통과).
+    const pubMs = Date.parse((block.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || "");
+    if (Number.isFinite(pubMs) && pubMs < cutoff) continue;
     // RSS 머리의 'XXX - Google 뉴스' 헤더 행 제외
     if (title && !/- Google 뉴스$/.test(title) && title !== "Google 뉴스") {
       items.push({ title, source });
