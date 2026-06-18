@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { fifaCountryKo } from "@/lib/sports/fifa-rankings";
 import rawOverrides from "../../../../data/player-overrides.json";
 import rawSeason from "../../../../data/player-season-stats.json";
 import rawPhotos from "../../../../data/player-photos.json";
@@ -436,6 +437,53 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     return { time: h.market_time!, v, age: h.age, chg: pv > 0 ? Math.round(((v - pv) / pv) * 100) : null, team: h.team_id };
   });
 
+  // 국가대표 경기 기록 — 이 선수가 나온 국대 매치(월드컵/친선) playerStats 를 대회별로 분리.
+  //   playerStats 는 Lightsail poller 가 라이브 중 ~2분 push, 페이지 force-dynamic → 실시간 반영.
+  const natlMatches = await prisma.match.findMany({
+    where: { league: { in: ["WORLD_CUP", "INTL_FRIENDLY"] }, status: "FINISHED" },
+    orderBy: { startTime: "desc" }, take: 150,
+    select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true },
+  });
+  const natlById = new Map(natlMatches.map((m) => [m.id, m]));
+  const natlCaches = natlMatches.length
+    ? await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: natlMatches.map((m) => m.id) } }, select: { matchId: true, playerStats: true } })
+    : [];
+  interface NatlGame { time: number; wc: boolean; home: string; away: string; hs: number | null; as: number | null; goals: number; assists: number; rating: number }
+  const natlGames: NatlGame[] = [];
+  const koNat = (n: string) => toKoreanTeamName(n) || fifaCountryKo(n) || n;
+  for (const c of natlCaches) {
+    const ps = c.playerStats as Array<{ player_id: string; goals?: number; assists?: number; rating?: number; minutes_played?: number }> | null;
+    if (!Array.isArray(ps)) continue;
+    const row = ps.find((s) => s.player_id === id);
+    if (!row || (row.minutes_played ?? 0) === 0) continue; // 미출전 제외
+    const m = natlById.get(c.matchId);
+    if (!m) continue;
+    natlGames.push({
+      time: m.startTime.getTime(), wc: m.league === "WORLD_CUP",
+      home: koNat(m.homeTeam.name), away: koNat(m.awayTeam.name), hs: m.homeScore, as: m.awayScore,
+      goals: row.goals ?? 0, assists: row.assists ?? 0, rating: Number(row.rating) || 0,
+    });
+  }
+  natlGames.sort((a, b) => b.time - a.time);
+  const wcGames = natlGames.filter((g) => g.wc);
+  const frGames = natlGames.filter((g) => !g.wc);
+  const sumBy = (arr: NatlGame[], k: "goals" | "assists") => arr.reduce((s, g) => s + g[k], 0);
+  const natlGameRow = (g: NatlGame, i: number) => {
+    const d = new Date(g.time + 9 * 3600e3).toISOString().slice(5, 10).replace("-", ".");
+    return (
+      <div key={i} className="flex items-center gap-2 rounded-lg border border-neutral-200/70 dark:border-neutral-800/70 px-3 py-2 text-sm">
+        <span className="text-xs text-neutral-400 tabular-nums shrink-0 w-11">{d}</span>
+        <span className="truncate min-w-0 flex-1 text-neutral-600 dark:text-neutral-300">{g.home} <span className="font-bold tabular-nums text-neutral-900 dark:text-white">{g.hs}-{g.as}</span> {g.away}</span>
+        <span className="flex items-center gap-1.5 shrink-0">
+          {g.goals >= 3 && <span className="text-[10px] font-bold text-rose-500">해트트릭</span>}
+          {g.goals > 0 && <span className="font-bold text-emerald-600 dark:text-emerald-400">⚽{g.goals}</span>}
+          {g.assists > 0 && <span className="text-neutral-500 text-xs">🅰️{g.assists}</span>}
+          {g.rating > 0 && <span className="text-amber-600 dark:text-amber-400 font-semibold text-xs">★{g.rating.toFixed(1)}</span>}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <Link href={`/transfers${league ? `?league=${league}` : ""}`} className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
@@ -501,6 +549,31 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           </div>
         )}
       </header>
+
+      {/* 국가대표 경기 기록 — 월드컵 본선 / 평가전(친선) 분리. playerStats 실시간(force-dynamic) */}
+      {natlGames.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">국가대표 경기 기록</h2>
+          {wcGames.length > 0 && (
+            <div>
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-400">🏆 월드컵 본선</h3>
+                <span className="text-xs text-neutral-500">{wcGames.length}경기 · ⚽{sumBy(wcGames, "goals")} 🅰️{sumBy(wcGames, "assists")}</span>
+              </div>
+              <div className="space-y-1.5">{wcGames.map(natlGameRow)}</div>
+            </div>
+          )}
+          {frGames.length > 0 && (
+            <div>
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <h3 className="text-sm font-bold text-neutral-500">평가전 (친선)</h3>
+                <span className="text-xs text-neutral-500">{frGames.length}경기 · ⚽{sumBy(frGames, "goals")} 🅰️{sumBy(frGames, "assists")}</span>
+              </div>
+              <div className="space-y-1.5">{frGames.map(natlGameRow)}</div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* 현 시즌 대회별 스탯 (af) — 축구 선수 페이지 단일화: /players 의 대회별 정보를
           여기로 통합 (2026-06-10). ts→af 매핑 없으면 자동 미표시. */}
