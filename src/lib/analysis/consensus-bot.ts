@@ -1,14 +1,15 @@
 // 해외픽스터 봇 — 해외 MLB 오버/언더(총득점) 대중 베팅 컨센서스를 한국어 분석으로
-// /analysis 게시판에 발행. 매니저봇(manager-bot.ts)과 동일 구조지만, 픽 출처가 Claude
-// 추론이 아니라 대중 컨센서스(오버/언더 우세쪽)다. 경기 종료 후 scoreAnalysisPredictions 가
+// /analysis 게시판에 발행. 매니저봇(manager-bot.ts)과 동일 게시판 구조지만, 픽 출처가
+// Claude 추론이 아니라 대중 컨센서스(오버/언더 우세쪽)다. 한국어 분석 생성은 맥미니
+// 로컬 Ollama 가 담당(Anthropic 크레딧 0 무관) — 이 모듈은 매칭(matchConsensusGame)과
+// 저장(saveConsensusPost) 2단계만 제공한다. 경기 종료 후 scoreAnalysisPredictions 가
 // 자동 채점 → "해외픽스터" 적중률이 게시판에 누적된다 (우리 AI 적중률과 비교 가능).
 
 import "server-only";
 import { prisma } from "@/lib/db";
-import { generate } from "@/lib/ai/claude";
 import { hashPassword } from "@/lib/user-auth";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { botTeamName, parsePickJson } from "@/lib/analysis/manager-bot";
+import { botTeamName } from "@/lib/analysis/manager-bot";
 import { kickoffLabel } from "@/lib/analysis/format";
 
 const CONSENSUS_EMAIL = "covers-consensus@scorebase.internal";
@@ -104,99 +105,86 @@ async function findMatch(g: ConsensusGame, botId: string): Promise<MatchedGame |
   };
 }
 
-const SYSTEM = `당신은 한국어 스포츠 미디어 "스코어베이스"의 해외 베팅 동향 분석가입니다.
-해외 베팅 대중의 오버/언더(총득점) 컨센서스(수만 명 참가자의 픽 분포)를 한국 독자에게 전달합니다.
+export type MatchOutcome =
+  | { matched: false; reason: "too_close" | "no_line" | "no_match" | "dup" }
+  | {
+      matched: true;
+      matchId: number;
+      awayKo: string;
+      homeKo: string;
+      kickoffKst: string;
+      line: number;
+      pick: "OVER" | "UNDER";
+      overPct: number;
+      underPct: number;
+      overPicks: number | null;
+      underPicks: number | null;
+    };
 
-[역할]
-- 주어진 컨센서스 데이터(오버/언더 비율, 총득점 기준선, 픽 수)를 해석한다.
-- "대중이 오버와 언더 중 어느 쪽에 얼마나 몰렸는지"와 그 의미를 설명한다.
-- 픽은 이미 데이터로 정해져 있다(컨센서스 우세쪽). 너는 그 근거를 분석할 뿐, 픽을 바꾸지 않는다.
-
-[톤]
-- 정보 전달형 문어체. "대중의 70%가 오버에" 식.
-- 양 팀 타선·선발 투수 맥락을 곁들이되, 컨센서스가 항상 옳지 않음(대중 편향) 가능성을 한 줄 짚으면 좋다.
-- 과장·자극 금지. 특정 출처나 사이트 이름은 언급하지 않는다.
-
-[표기 규칙 — 엄수]
-- 모든 글자는 한글로만 쓴다. 일본어 가나(カタカナ·ひらがな)·한자·영어 단어를 절대 섞지 않는다.
-- 구장·도시·인명도 한글로 적는다 (예: 양키 스타디움, 펜웨이 파크). "ヤンキー" 같은 외국 문자 혼입 금지.
-- 제공된 한글 팀명을 그대로 쓰거나 지역명으로 줄인다. 별명만 단독으로 쓰지 않는다.
-
-[출력] 반드시 아래 JSON 객체 하나만 출력. 앞뒤 설명·코드블록 금지:
-{"title":"제목","analysis":"마크다운 본문"}
-- title: 40자 이내. 오버/언더 어느 쪽에 몰렸는지 드러낼 것.
-- analysis: 마크다운. "## 오버언더 컨센서스", "## 기준선·픽 분포", "## 해석" 세 섹션, 200자 이상.`;
-
-interface Generated {
-  title: string;
-  analysis: string;
-}
-
-async function generateAnalysis(
-  g: ConsensusGame,
-  m: MatchedGame,
-  pick: "OVER" | "UNDER",
-): Promise<Generated | null> {
-  const awayKo = botTeamName(toKoreanTeamName(m.awayName, "MLB"), "MLB");
-  const homeKo = botTeamName(toKoreanTeamName(m.homeName, "MLB"), "MLB");
-  const favLabel = pick === "OVER" ? "오버" : "언더";
-  const favPct = pick === "OVER" ? g.overPct : g.underPct;
-  const picks = (x: number | null) => (x == null ? "" : ` (${x}픽)`);
-
-  const prompt = [
-    `경기: ${awayKo}(원정) vs ${homeKo}(홈)`,
-    `리그: MLB · 경기 시각(KST): ${kickoffLabel(m.startTime)}`,
-    `총득점 기준선(O/U line): ${g.line}`,
-    `해외 베팅 대중 오버/언더 컨센서스:`,
-    `- 오버: ${g.overPct}%${picks(g.overPicks)}`,
-    `- 언더: ${g.underPct}%${picks(g.underPicks)}`,
-    `대중 우세: ${favLabel} (${favPct}%)`,
-  ].join("\n");
-
-  // 일본어 가나가 섞이면(haiku 외래어 오타) 재생성, 2회째도 섞이면 포기(skip).
-  const hasKana = (s: string) => /[぀-ヿ]/.test(s);
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const raw = await generate(prompt, { system: SYSTEM, maxTokens: 1400, temperature: 0.6 });
-    const json = parsePickJson(raw);
-    if (!json) continue;
-    const title = String(json.title ?? "").trim().slice(0, 120);
-    const analysis = String(json.analysis ?? "").trim();
-    if (!title || analysis.length < 20) continue;
-    if (hasKana(title) || hasKana(analysis)) continue;
-    return { title, analysis };
-  }
-  return null;
-}
-
-/** 경기 1건 인제스트 — 박빙 skip → 매칭 → dedup → Claude 분석 → Post 생성. */
-export async function ingestConsensusGame(g: ConsensusGame): Promise<{
-  created: boolean;
-  reason?: string;
-  postId?: number;
-}> {
+/**
+ * 1단계: 박빙 skip → 매칭 → dedup. LLM 호출 없음.
+ * 한국어 분석 생성은 맥미니 크롤러(로컬 Ollama)가 담당하므로, 여기서는 생성에 필요한
+ * 컨텍스트(한글 팀명·경기시각·우세 픽)까지 계산해 반환한다.
+ */
+export async function matchConsensusGame(g: ConsensusGame): Promise<MatchOutcome> {
   const fav = Math.max(g.overPct, g.underPct);
-  if (fav < MIN_FAVORITE_PCT) return { created: false, reason: "too_close" };
-  if (!Number.isFinite(g.line)) return { created: false, reason: "no_line" };
+  if (fav < MIN_FAVORITE_PCT) return { matched: false, reason: "too_close" };
+  if (!Number.isFinite(g.line)) return { matched: false, reason: "no_line" };
 
   const botId = await ensureConsensusBot();
   const m = await findMatch(g, botId);
-  if (!m) return { created: false, reason: "no_match" };
-  if (m.hasPost) return { created: false, reason: "dup" };
+  if (!m) return { matched: false, reason: "no_match" };
+  if (m.hasPost) return { matched: false, reason: "dup" };
 
   const pick: "OVER" | "UNDER" = g.overPct >= g.underPct ? "OVER" : "UNDER";
-  const gen = await generateAnalysis(g, m, pick);
-  if (!gen) return { created: false, reason: "gen_fail" };
+  return {
+    matched: true,
+    matchId: m.matchId,
+    awayKo: botTeamName(toKoreanTeamName(m.awayName, "MLB"), "MLB"),
+    homeKo: botTeamName(toKoreanTeamName(m.homeName, "MLB"), "MLB"),
+    kickoffKst: kickoffLabel(m.startTime),
+    line: g.line,
+    pick,
+    overPct: g.overPct,
+    underPct: g.underPct,
+    overPicks: g.overPicks,
+    underPicks: g.underPicks,
+  };
+}
+
+export interface SaveConsensusInput {
+  matchId: number;
+  pick: "OVER" | "UNDER";
+  line: number;
+  title: string;
+  analysis: string; // 마크다운 본문 (DISCLAIMER 는 저장 시 append)
+}
+
+/**
+ * 2단계: 맥미니 로컬 Ollama 가 생성한 완성 분석을 Post 로 저장.
+ * match 단계와 save 단계 사이에 다른 실행이 먼저 썼을 수 있어 저장 직전 dedup 재확인.
+ */
+export async function saveConsensusPost(
+  input: SaveConsensusInput,
+): Promise<{ created: boolean; reason?: string; postId?: number }> {
+  const botId = await ensureConsensusBot();
+
+  const dup = await prisma.post.findFirst({
+    where: { authorId: botId, matchId: input.matchId },
+    select: { id: true },
+  });
+  if (dup) return { created: false, reason: "dup" };
 
   const post = await prisma.post.create({
     data: {
       authorId: botId,
-      title: gen.title,
-      content: gen.analysis + DISCLAIMER,
+      title: input.title,
+      content: input.analysis + DISCLAIMER,
       sport: "baseball",
-      matchId: m.matchId,
+      matchId: input.matchId,
       market: "OU",
-      line: g.line,
-      pick,
+      line: input.line,
+      pick: input.pick,
     },
     select: { id: true },
   });
