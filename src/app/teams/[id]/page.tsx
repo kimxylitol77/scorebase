@@ -263,16 +263,27 @@ export default async function TeamPage({ params }: Props) {
   const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
   let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; flag: string | null }[] = [];
   if (tsTeamRows.length) {
-    const pmv = await prisma.playerMarketValue.findMany({
+    const pmvAll = await prisma.playerMarketValue.findMany({
       where: { teamId: { in: tsTeamRows.map((t) => t.externalId) }, currentValue: { not: null } },
-      orderBy: { currentValue: "desc" }, select: { id: true, currentValue: true },
+      orderBy: { currentValue: "desc" }, select: { id: true, currentValue: true, history: true },
+    });
+    // PlayerMarketValue.teamId 는 "마지막 소속팀" — 그 팀에서 은퇴한 선수(칸·라암 등)가 영구 잔류한다.
+    // 마지막 시장가치 기록(history market_time)이 18개월 넘게 끊긴 선수는 현재 스쿼드에서 제외 (transfers 페이지와 동일 기준).
+    const SQUAD_CUTOFF = Math.floor(Date.now() / 1000) - 18 * 30 * 86400;
+    const pmv = pmvAll.filter((p) => {
+      const hist = (p.history as { market_time?: number }[]) || [];
+      return (hist[hist.length - 1]?.market_time ?? 0) >= SQUAD_CUTOFF;
     });
     const sp = await prisma.theSportsPlayer.findMany({ where: { id: { in: pmv.map((p) => p.id) } }, select: { id: true, name: true, nameKo: true, photoUrl: true, position: true } });
     const spMap = new Map(sp.map((p) => [p.id, p]));
-    squad = pmv.map((p) => {
-      const t = spMap.get(p.id); const ov = T_OVERRIDES[p.id];
-      return { id: p.id, name: ov?.nameKo || t?.nameKo || t?.name || "선수", photo: T_PHOTOS[p.id] || t?.photoUrl || null, pos: squadPos(p.id, t?.position), value: Math.round((p.currentValue || 0) / 1e6), flag: ov?.flag || null };
-    });
+    const seen = new Set<string>();
+    squad = pmv
+      .map((p) => {
+        const t = spMap.get(p.id); const ov = T_OVERRIDES[p.id];
+        return { id: p.id, name: ov?.nameKo || t?.nameKo || t?.name || "선수", photo: T_PHOTOS[p.id] || t?.photoUrl || null, pos: squadPos(p.id, t?.position), value: Math.round((p.currentValue || 0) / 1e6), flag: ov?.flag || null };
+      })
+      // 이름없음("선수") 제외 + 동일 표시명 중복 제거 (가치순이라 첫 등장=최고가 유지)
+      .filter((p) => { if (p.name === "선수" || seen.has(p.name)) return false; seen.add(p.name); return true; });
   }
 
   // 골 위치 히트맵 — 시즌 득점 슈터 좌표 누적 (축구만, away 골은 공격 방향 오른쪽으로 정규화)
