@@ -87,18 +87,51 @@ ${prev ? prev.report : "없음 (첫 실행 — 이번엔 전반적 현황을 보
 3. 내용`;
 }
 
+// 로컬 모드(BRIEF_PROVIDER=local) 전용 — 사이트 본문 분석 불가라 "업계 뉴스 동향"으로 격하.
+// web_search 크레딧 충전 시 BRIEF_PROVIDER 풀면 원래 buildPrompt(사이트 추적)로 자동 복귀.
+function buildLocalPrompt(prev) {
+  return `오늘은 ${todayKst()} 입니다. 당신은 한국 AI 스포츠 미디어 scorebase 의 업계 동향 분석가입니다.
+
+## scorebase 현재 기능 (대조용)
+${FEATURES}
+
+## 작업
+아래 [수집된 뉴스 헤드라인]에서:
+- 스포츠 데이터·예측·미디어 업계의 새 서비스·기능·동향만 고른다.
+- 스포츠와 무관한 기사(정부 통계, 일반 경제 등)는 버린다.
+- scorebase 기능과 견줘 참고할 만한 아이디어를 뽑는다.
+- 어제 보고와 겹치면 제외.
+
+## 어제 보고 (반복 금지)
+${prev ? prev.report : "없음"}
+
+## 출력 형식 (엄수)
+- 한국어로만. 첫 글자부터 바로 🔍 로 시작. 인사·맺음말·총평·메타발언 금지.
+- 각 항목은 "- 내용" 한 줄. 같은 이모지 섹션을 두 번 반복하지 말 것.
+- 아래 두 섹션만 순서대로 한 번씩:
+
+🔍 업계 새 동향
+- 내용 한 줄
+💡 scorebase 적용 아이디어
+- 내용 한 줄`;
+}
+
 async function main() {
   const prev = loadPrev();
   const focus = todaysFocus();
-  const text = await askWithWebSearch(buildPrompt(prev, focus), {
-    maxTokens: 4500,
-    maxSearches: 18,
-    fetch: true,
-    // 로컬 모드(BRIEF_PROVIDER=local): 경쟁사·스포츠테크 업계 뉴스 RSS.
-    // ⚠️ 사이트 본문 기능 분석은 불가 → "업계 동향 파악"으로 격하(사용자 합의).
-    query: ["Sofascore", "FotMob 축구 앱", "스포츠 데이터 분석", "축구 통계 서비스", "AI 스포츠 예측", "네이버 스포츠 기능"],
-    perQuery: 8,
-  });
+  const isLocal = process.env.BRIEF_PROVIDER === "local";
+  // 로컬: 스포츠 특화 검색어(정부통계 등 무관 배제) + 격하 prompt. web_search: 원래 사이트 추적.
+  const text = isLocal
+    ? await askWithWebSearch(buildLocalPrompt(prev), {
+        maxTokens: 2000,
+        query: ["Sofascore 축구", "FotMob 축구", "Opta 축구 통계", "Forebet 축구 예측", "스포츠 베팅 예측 서비스", "네이버 스포츠 기능"],
+        perQuery: 8,
+      })
+    : await askWithWebSearch(buildPrompt(prev, focus), {
+        maxTokens: 4500,
+        maxSearches: 18,
+        fetch: true,
+      });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
   const clean = tidyBullets(stripPreamble(text, ["🔍", "🟢", "💡"]));
   await notify({
