@@ -14075,5 +14075,68 @@
     "tsName": "Dinamo Batumi",
     "tsKo": "디나모 바투미",
     "matchType": "exact"
+  },
+  {
+    "ourId": 600066,
+    "ourName": "Samgurali",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "10017",
+    "tsId": "y39mp1h51n9mojx",
+    "tsName": "Samgurali Tskh",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600068,
+    "ourName": "Dila",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "3499",
+    "tsId": "kn54qllhgynqvy9",
+    "tsName": "Dila Gori",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600072,
+    "ourName": "Meshakhte",
+    "ourLeague": "GEORGIA_EL",
+    "ourExternalId": "13847",
+    "tsId": "2y8m4zh327jql07",
+    "tsName": "Fc Meshakhte Tkibuli",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600108,
+    "ourName": "Kalju Nomme",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "662",
+    "tsId": "3glrw7hw0yyqdyj",
+    "tsName": "Nomme JK Kalju",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600102,
+    "ourName": "Paide",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "3528",
+    "tsId": "y39mp1h3dzjmojx",
+    "tsName": "Paide Linnameeskond",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600101,
+    "ourName": "Vaprus",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "3525",
+    "tsId": "x7lm7phkzz3m2wd",
+    "tsName": "Parnu JK Vaprus",
+    "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 600104,
+    "ourName": "Laagri",
+    "ourLeague": "ESTONIA_ML",
+    "ourExternalId": "18657",
+    "tsId": "6ypq3nhw4d5md7o",
+    "tsName": "Harju JK Laagri",
+    "matchType": "stat-bridge"
   }
 ]
