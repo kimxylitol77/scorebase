@@ -48,8 +48,12 @@ interface TsStat {
   minutes: number | null; yellow: number | null;
 }
 const TS = rawStats as unknown as Record<string, TsStat>;
+// NFD 로 분해 안 되는 특수문자 → ASCII 폴딩 (af "Ødegaard" ↔ DB "Odegaard" 처럼
+//  한쪽만 특수문자면 norm 키가 갈려 이름 매칭 실패 — 북유럽·동유럽 선수 다수 영향)
+const FOLD: Record<string, string> = { "ø": "o", "å": "a", "ł": "l", "ß": "ss", "æ": "ae", "ð": "d", "þ": "th", "đ": "d", "ı": "i", "ŧ": "t", "ħ": "h" };
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    .replace(/[øåłßæðþđıŧħ]/g, (c) => FOLD[c] || c)
     .replace(/\b(fc|cf|afc|club|de|cd|ud|rcd|ac|as|sc|ssc|rc|stade|olympique)\b/g, "")
     .replace(/[\s.&·'-]/g, "");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -73,7 +77,8 @@ async function af(path: string, retry = 3): Promise<any> {
 
 // af "L. Yamal" 축약·풀네임 모두 대응 — 성(마지막 토큰) + 첫 이니셜
 function nameKey(full: string): string | null {
-  const tokens = full.trim().split(/\s+/);
+  // "·" 구분자도 토큰 분리 (ts 일부 이름이 "Khvicha·Kvaratskhelia" 형태로 옴)
+  const tokens = full.trim().split(/[\s·]+/);
   if (tokens.length === 0) return null;
   const last = norm(tokens[tokens.length - 1]);
   const initial = norm(tokens[0])[0] ?? "";
