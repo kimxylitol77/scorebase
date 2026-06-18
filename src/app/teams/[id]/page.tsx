@@ -20,6 +20,7 @@ import rawTPhotos from "../../../../data/player-photos.json";
 import rawTPos from "../../../../data/player-positions.json";
 import rawClubRank from "../../../../data/club-rank-by-team.json";
 import rawTeamStats from "../../../../data/team-season-stats.json";
+import rawTSquads from "../../../../data/team-squads.json";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -48,6 +49,8 @@ const CLUB_RANK = rawClubRank as Record<string, number>;
 // 팀 시즌 통계 (ts team id → 집계). TheSports season/recent/team/stat.
 interface TeamStat { lg: string; name: string; matches: number | null; goals: number | null; against: number | null; poss: number | null; shots: number | null; sot: number | null; passAcc: number | null; dribbleSucc: number | null; tackles: number | null; corners: number | null; fouls: number | null; yellow: number | null; red: number | null }
 const TEAM_STATS = rawTeamStats as Record<string, TeamStat>;
+// 공식 스쿼드 (ts team/squad/list — 등번호·공식 coarse 포지션, 154팀). 생성: scripts/build-team-squads.ts [[transfers-league-expansion]]
+const T_SQUADS = rawTSquads as Record<string, { updatedAt: string; squad: Array<{ id: string; name: string; position: string | null; number: number | null }> }>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -261,29 +264,41 @@ export default async function TeamPage({ params }: Props) {
   const tsTeamRows = await prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } });
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
-  let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; flag: string | null }[] = [];
+  let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; number: number | null; flag: string | null }[] = [];
   if (tsTeamRows.length) {
+    const extIds = tsTeamRows.map((t) => t.externalId);
+    // 시장가치(PMV) — 공식 스쿼드 멤버에 join + fallback 용
     const pmvAll = await prisma.playerMarketValue.findMany({
-      where: { teamId: { in: tsTeamRows.map((t) => t.externalId) }, currentValue: { not: null } },
+      where: { teamId: { in: extIds }, currentValue: { not: null } },
       orderBy: { currentValue: "desc" }, select: { id: true, currentValue: true, history: true },
     });
-    // PlayerMarketValue.teamId 는 "마지막 소속팀" — 그 팀에서 은퇴한 선수(칸·라암 등)가 영구 잔류한다.
-    // 마지막 시장가치 기록(history market_time)이 18개월 넘게 끊긴 선수는 현재 스쿼드에서 제외 (transfers 페이지와 동일 기준).
-    const SQUAD_CUTOFF = Math.floor(Date.now() / 1000) - 18 * 30 * 86400;
-    const pmv = pmvAll.filter((p) => {
-      const hist = (p.history as { market_time?: number }[]) || [];
-      return (hist[hist.length - 1]?.market_time ?? 0) >= SQUAD_CUTOFF;
-    });
-    const sp = await prisma.theSportsPlayer.findMany({ where: { id: { in: pmv.map((p) => p.id) } }, select: { id: true, name: true, nameKo: true, photoUrl: true, position: true } });
+    const valueOf = new Map(pmvAll.map((p) => [p.id, Math.round((p.currentValue || 0) / 1e6)]));
+
+    // 공식 스쿼드(team/squad/list — 등번호 포함 정본) 우선. 없는 팀(154팀 외)은 PMV 18개월 컷오프 fallback.
+    // PlayerMarketValue.teamId 는 "마지막 소속팀" 이라 은퇴 선수(칸·라암 등)가 영구 잔류 → 컷오프로만 거른다.
+    const official = tsTeamRows.map((t) => T_SQUADS[t.externalId]?.squad).find((s) => Array.isArray(s) && s.length > 0);
+    let members: { id: string; coarse: string | null; number: number | null }[];
+    if (official) {
+      members = official.map((m) => ({ id: m.id, coarse: m.position, number: m.number }));
+    } else {
+      const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400;
+      members = pmvAll
+        .filter((p) => { const h = (p.history as { market_time?: number }[]) || []; return (h[h.length - 1]?.market_time ?? 0) >= cutoff; })
+        .map((p) => ({ id: p.id, coarse: null, number: null }));
+    }
+
+    const sp = await prisma.theSportsPlayer.findMany({ where: { id: { in: members.map((m) => m.id) } }, select: { id: true, name: true, nameKo: true, photoUrl: true, position: true } });
     const spMap = new Map(sp.map((p) => [p.id, p]));
     const seen = new Set<string>();
-    squad = pmv
-      .map((p) => {
-        const t = spMap.get(p.id); const ov = T_OVERRIDES[p.id];
-        return { id: p.id, name: ov?.nameKo || t?.nameKo || t?.name || "선수", photo: T_PHOTOS[p.id] || t?.photoUrl || null, pos: squadPos(p.id, t?.position), value: Math.round((p.currentValue || 0) / 1e6), flag: ov?.flag || null };
+    squad = members
+      .map((m) => {
+        const t = spMap.get(m.id); const ov = T_OVERRIDES[m.id];
+        return { id: m.id, name: ov?.nameKo || t?.nameKo || t?.name || "선수", photo: T_PHOTOS[m.id] || t?.photoUrl || null, pos: squadPos(m.id, m.coarse ?? t?.position), value: valueOf.get(m.id) ?? 0, number: m.number, flag: ov?.flag || null };
       })
-      // 이름없음("선수") 제외 + 동일 표시명 중복 제거 (가치순이라 첫 등장=최고가 유지)
-      .filter((p) => { if (p.name === "선수" || seen.has(p.name)) return false; seen.add(p.name); return true; });
+      // 이름없음("선수") 제외 + 동일 표시명 중복 제거
+      .filter((p) => { if (p.name === "선수" || seen.has(p.name)) return false; seen.add(p.name); return true; })
+      // 시장가치순, 동가면 등번호순
+      .sort((a, b) => b.value - a.value || (a.number ?? 99) - (b.number ?? 99));
   }
 
   // 골 위치 히트맵 — 시즌 득점 슈터 좌표 누적 (축구만, away 골은 공격 방향 오른쪽으로 정규화)
@@ -501,7 +516,7 @@ export default async function TeamPage({ params }: Props) {
                         <img src={p.flag} alt="" className="w-3.5 h-2.5 object-cover rounded-[1px] shrink-0" />
                       )}
                     </div>
-                    <div className="text-[11px] text-neutral-500 tabular-nums">{p.pos ? `${p.pos} · ` : ""}€{p.value}M</div>
+                    <div className="text-[11px] text-neutral-500 tabular-nums">{p.number ? `#${p.number} · ` : ""}{p.pos ? `${p.pos} · ` : ""}€{p.value}M</div>
                   </div>
                 </Link>
               ))}
