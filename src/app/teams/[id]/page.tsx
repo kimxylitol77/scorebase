@@ -29,10 +29,8 @@ import { calcHomeAway } from "@/lib/predict/home-away";
 import { calcWinProbability } from "@/lib/predict/win-probability";
 import type { PredictMatch } from "@/lib/predict/types";
 import {
-  fetchSeasonInjuries,
   fetchSeasonTopScorers,
   getApiFootballSeason,
-  getTeamInjuries,
   getTeamKeyPlayers,
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
@@ -103,37 +101,11 @@ const LEAGUE_GRADIENT: Record<string, string> = {
   COPA_SUD: "from-orange-600 via-amber-500 to-yellow-400",
 };
 
-const REASON_KO: Record<string, string> = {
-  Hamstring: "햄스트링",
-  Knee: "무릎",
-  Ankle: "발목",
-  Foot: "발",
-  Calf: "종아리",
-  Thigh: "허벅지",
-  Groin: "사타구니",
-  Back: "허리",
-  Shoulder: "어깨",
-  Wrist: "손목",
-  Hand: "손",
-  Hip: "고관절",
-  Concussion: "뇌진탕",
-  Achilles: "아킬레스",
-  Illness: "질병",
-  Suspended: "출장 정지",
-  Fitness: "컨디션",
-  Muscle: "근육",
-  "Broken Bone": "골절",
-  "Cardiac problems": "심장 문제",
-  Toe: "발가락",
-};
-
-function translateReason(en: string): string {
-  if (!en) return "사유 미공개";
-  for (const [k, v] of Object.entries(REASON_KO)) {
-    if (en.toLowerCase().includes(k.toLowerCase())) return v;
-  }
-  return en;
-}
+// /injuries/[league] 지원 리그 (그 라우트 VALID 와 동기 — 미지원 리그는 부상 바로가기 숨김)
+const INJURY_LEAGUES = new Set<string>([
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "NBA", "MLB", "NHL", "KBO", "NPB",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
+]);
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -231,16 +203,11 @@ export default async function TeamPage({ params }: Props) {
   });
 
   // 부상자 + 핵심 선수 (api-football Pro, 축구 리그만)
-  let injuries: Awaited<ReturnType<typeof getTeamInjuries>> = [];
   let keyPlayers: Awaited<ReturnType<typeof getTeamKeyPlayers>> = [];
   if (process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[team.league]) {
     try {
       const season = getApiFootballSeason(new Date(), team.league);
-      const [allInj, allTop] = await Promise.all([
-        fetchSeasonInjuries(team.league, season),
-        fetchSeasonTopScorers(team.league, season),
-      ]);
-      injuries = getTeamInjuries(allInj, team.name, undefined, 12);
+      const allTop = await fetchSeasonTopScorers(team.league, season);
       keyPlayers = getTeamKeyPlayers(allTop, team.name, 5);
     } catch {}
   }
@@ -250,10 +217,7 @@ export default async function TeamPage({ params }: Props) {
     try { return getSportFromLeague(team.league); } catch { return "soccer" as const; }
   })();
   const playerNameResolved = await resolvePlayerNames(
-    [
-      ...injuries.map((i) => ({ apiFootballId: i.playerId, nameEn: i.playerName })),
-      ...keyPlayers.map((p) => ({ apiFootballId: p.playerId, nameEn: p.playerName })),
-    ],
+    keyPlayers.map((p) => ({ apiFootballId: p.playerId, nameEn: p.playerName })),
     sport,
     team.league,
   );
@@ -530,54 +494,22 @@ export default async function TeamPage({ params }: Props) {
           </section>
         )}
 
-        {/* 부상·결장 명단 + 핵심 선수 */}
-        {(injuries.length > 0 || keyPlayers.length > 0) && (
+        {/* 부상·결장 명단 바로가기(정확한 통합 소스 = /injuries) + 핵심 선수 */}
+        {(INJURY_LEAGUES.has(team.league) || keyPlayers.length > 0) && (
           <section className="grid md:grid-cols-2 gap-5">
-            {injuries.length > 0 && (
+            {INJURY_LEAGUES.has(team.league) && (
               <div>
-                <SectionH
-                  title="🩹 부상·결장 명단"
-                  subtitle={`현재 ${injuries.length}명 · 시즌 누적 기준`}
-                />
-                <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
-                      <tr>
-                        <th className="text-left px-4 py-2 font-medium">선수</th>
-                        <th className="text-right px-4 py-2 font-medium">사유</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                      {injuries.map((p) => (
-                        <tr key={p.playerId} title={p.reason}>
-                          <td className="px-4 py-2.5 font-medium">
-                            <Link
-                              href={`/players/${p.playerId}?league=${team.league}`}
-                              prefetch={false}
-                              className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                            >
-                              {p.photoUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                  src={p.photoUrl}
-                                  alt=""
-                                  loading="lazy"
-                                  className="w-7 h-7 rounded-full object-cover bg-neutral-100 dark:bg-neutral-800 shrink-0"
-                                />
-                              ) : (
-                                <span className="w-7 h-7 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0" />
-                              )}
-                              {koName(p.playerId, p.playerName)}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-2.5 text-right text-xs text-neutral-500">
-                            {translateReason(p.reason)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <SectionH title="🩹 부상·결장 명단" />
+                <Link
+                  href={`/injuries/${team.league}`}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{toKoreanTeamName(team.name, team.league)} 부상·결장 명단 보기</span>
+                    <span className="block text-xs text-neutral-500 mt-0.5">실시간 통합 집계 페이지에서 팀별로 확인</span>
+                  </span>
+                  <span className="text-neutral-400 shrink-0">→</span>
+                </Link>
               </div>
             )}
             {keyPlayers.length > 0 && (
