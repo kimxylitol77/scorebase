@@ -9,6 +9,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
 import GoalHeatmap from "@/components/charts/GoalHeatmap";
 import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
+import { getWcGroupStandings } from "@/lib/sports/world-cup-standings";
+import { getTeamGroup } from "@/lib/predict/world-cup-elos";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
@@ -117,18 +119,21 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     : [];
   const hasMv = new Set(mvRows.map((m) => m.id));
 
-  // 선수 시즌 기여 — playerStats(자국 team_id) 의 골·도움·평점·출전 누적 (월드컵+친선)
+  // 선수 기여 — playerStats(자국 team_id) 골·도움을 대회별(월드컵 본선 / 평가전)로 분리 누적
   const tsExt = tsRow?.externalId;
-  const statMap = new Map<string, { goals: number; assists: number; ratings: number[]; minutes: number; games: number }>();
+  const matchLeague = new Map(matches.map((m) => [m.id, m.league]));
+  interface PStat { wcG: number; wcA: number; frG: number; frA: number; ratings: number[]; minutes: number; games: number }
+  const statMap = new Map<string, PStat>();
   if (tsExt) {
     for (const c of caches) {
       const ps = c.playerStats as Array<{ player_id: string; team_id?: string; goals?: number; assists?: number; rating?: number; minutes_played?: number }> | null;
       if (!Array.isArray(ps)) continue;
+      const isWc = matchLeague.get(c.matchId) === "WORLD_CUP";
       for (const s of ps) {
         if (!s.player_id || s.team_id !== tsExt) continue;
-        const a = statMap.get(s.player_id) ?? { goals: 0, assists: 0, ratings: [] as number[], minutes: 0, games: 0 };
-        a.goals += s.goals ?? 0;
-        a.assists += s.assists ?? 0;
+        const a = statMap.get(s.player_id) ?? { wcG: 0, wcA: 0, frG: 0, frA: 0, ratings: [] as number[], minutes: 0, games: 0 };
+        if (isWc) { a.wcG += s.goals ?? 0; a.wcA += s.assists ?? 0; }
+        else { a.frG += s.goals ?? 0; a.frA += s.assists ?? 0; }
         const r = Number(s.rating) || 0;
         if (r > 0) a.ratings.push(r);
         const min = s.minutes_played ?? 0;
@@ -142,13 +147,13 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     const a = statMap.get(pid);
     if (!a) return null;
     const avgRating = a.ratings.length ? +(a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length).toFixed(2) : 0;
-    return { goals: a.goals, assists: a.assists, avgRating, games: a.games };
+    return { wcG: a.wcG, wcA: a.wcA, frG: a.frG, frA: a.frA, goals: a.wcG + a.frG, assists: a.wcA + a.frA, avgRating, games: a.games };
   };
-  // 핵심 선수 = 골·도움 기여 상위 (골 2 + 도움 1 가중)
+  // 핵심 선수 = 기여 상위 (월드컵 본선 골 우선: 본선골 3 + 평가전골 2 + 도움 1)
   const keyPlayers = squad
     .map((p) => ({ p, st: statOf(p.id) }))
     .filter((x): x is { p: SquadPlayer; st: NonNullable<ReturnType<typeof statOf>> } => !!x.st && (x.st.goals > 0 || x.st.assists > 0))
-    .sort((a, b) => b.st.goals * 2 + b.st.assists - (a.st.goals * 2 + a.st.assists) || b.st.avgRating - a.st.avgRating)
+    .sort((a, b) => b.st.wcG * 3 + b.st.frG * 2 + b.st.wcA + b.st.frA - (a.st.wcG * 3 + a.st.frG * 2 + a.st.wcA + a.st.frA) || b.st.avgRating - a.st.avgRating)
     .slice(0, 5);
 
   // 감독 — 정적 json (키: ts team id). tsRow 는 위 스쿼드 결정에서 재사용.
@@ -187,6 +192,16 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
       if (belong === 2) x = 100 - x;
       goalSpots.push({ x, y });
     }
+  }
+
+  // 월드컵 조별 순위 — 이 팀이 속한 조의 순위표 (DB Match FINISHED 집계)
+  const group = getTeamGroup(team.name);
+  const groupStandings = group ? await getWcGroupStandings() : null;
+  const groupRows = (group && groupStandings?.get(group)) || [];
+  const groupNameToId = new Map<string, number>();
+  if (groupRows.length) {
+    const trows = await prisma.team.findMany({ where: { name: { in: groupRows.map((r) => r.team) }, league: { in: [...NATL] } }, select: { id: true, name: true } });
+    for (const t of trows) if (!groupNameToId.has(t.name)) groupNameToId.set(t.name, t.id);
   }
 
   return (
@@ -279,7 +294,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
       {/* 핵심 선수 — 시즌 골·도움 기여 상위 */}
       {keyPlayers.length > 0 && (
         <section className="mt-6">
-          <h2 className="text-sm font-bold text-neutral-500 mb-2">핵심 선수 <span className="text-neutral-400 font-normal">· 최근 경기 골·도움</span></h2>
+          <h2 className="text-sm font-bold text-neutral-500 mb-2">핵심 선수 <span className="text-neutral-400 font-normal">· 월드컵 본선 / 평가전 구분</span></h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {keyPlayers.map(({ p, st }) => {
               const inner = (
@@ -294,10 +309,14 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                   </div>
                   <div className="min-w-0">
                     <div className="text-sm font-semibold truncate">{koName.get(p.id) || p.name}</div>
-                    <div className="text-[11px] text-neutral-500 flex items-center gap-1.5 mt-0.5">
-                      {st.goals > 0 && <span>⚽ {st.goals}</span>}
-                      {st.assists > 0 && <span>🅰️ {st.assists}</span>}
-                      {st.avgRating > 0 && <span className="text-amber-600 dark:text-amber-400 font-semibold">★ {st.avgRating}</span>}
+                    <div className="text-[10px] flex items-center gap-x-2 gap-y-0.5 mt-0.5 flex-wrap">
+                      {(st.wcG > 0 || st.wcA > 0) && (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">🏆 본선 {st.wcG > 0 ? `⚽${st.wcG}` : ""}{st.wcG > 0 && st.wcA > 0 ? " " : ""}{st.wcA > 0 ? `🅰️${st.wcA}` : ""}</span>
+                      )}
+                      {(st.frG > 0 || st.frA > 0) && (
+                        <span className="text-neutral-500">평가전 {st.frG > 0 ? `⚽${st.frG}` : ""}{st.frG > 0 && st.frA > 0 ? " " : ""}{st.frA > 0 ? `🅰️${st.frA}` : ""}</span>
+                      )}
+                      {st.avgRating > 0 && <span className="text-amber-600 dark:text-amber-400 font-semibold">★{st.avgRating}</span>}
                     </div>
                   </div>
                 </>
@@ -330,7 +349,6 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                 <h3 className="text-xs font-bold text-neutral-400 mb-2">{label}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {players.map((p) => {
-                    const st = statOf(p.id);
                     const cardCls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
                     const inner = (
                       <>
@@ -344,16 +362,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                         </div>
                         <div className="min-w-0">
                           <div className="text-sm font-semibold truncate">{koName.get(p.id) || p.name}</div>
-                          <div className="text-[11px] text-neutral-400 flex items-center gap-1.5">
-                            <span>#{p.shirt}</span>
-                            {st && (st.goals > 0 || st.assists > 0) && (
-                              <span className="text-neutral-500">
-                                {st.goals > 0 && <>⚽{st.goals}</>}
-                                {st.goals > 0 && st.assists > 0 && " "}
-                                {st.assists > 0 && <>🅰️{st.assists}</>}
-                              </span>
-                            )}
-                          </div>
+                          <div className="text-[11px] text-neutral-400">#{p.shirt}</div>
                         </div>
                       </>
                     );
@@ -376,6 +385,53 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
         </section>
       ) : (
         <p className="mt-6 text-sm text-neutral-500 text-center py-8">아직 소집 라인업 데이터가 없습니다. 경기가 임박하면 업데이트됩니다.</p>
+      )}
+
+      {/* 조별 순위 — 이 팀이 속한 월드컵 조 (경기·승·무·패·득실·승점) */}
+      {groupRows.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-bold text-neutral-500 mb-2">{group}조 순위</h2>
+          <div className="rounded-xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden">
+            <div className="grid grid-cols-[1.5rem_1fr_2rem_1.5rem_1.5rem_1.5rem_2.5rem_2.25rem] items-center gap-1 px-2.5 py-2 text-[11px] font-medium text-neutral-400 border-b border-neutral-200/80 dark:border-neutral-800/80">
+              <span className="text-center">#</span>
+              <span>팀</span>
+              <span className="text-center">경기</span>
+              <span className="text-center">승</span>
+              <span className="text-center">무</span>
+              <span className="text-center">패</span>
+              <span className="text-center">득실</span>
+              <span className="text-center">승점</span>
+            </div>
+            {groupRows.map((r) => {
+              const isMe = r.team === team.name;
+              const bar = r.posInGroup <= 2 ? "border-emerald-500" : r.posInGroup === 3 ? "border-amber-500" : "border-rose-400";
+              const ko = toKoreanTeamName(r.team) || fifaCountryKo(r.team) || r.team;
+              const tid = groupNameToId.get(r.team);
+              const inner = (
+                <>
+                  <span className="text-center font-semibold text-neutral-500">{r.posInGroup}</span>
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span aria-hidden>{fifaFlag(r.team) || "🏳️"}</span>
+                    <span className="truncate font-semibold">{ko}</span>
+                  </span>
+                  <span className="text-center tabular-nums text-neutral-500">{r.played}</span>
+                  <span className="text-center tabular-nums text-emerald-600 dark:text-emerald-400">{r.won}</span>
+                  <span className="text-center tabular-nums text-neutral-400">{r.draw}</span>
+                  <span className="text-center tabular-nums text-rose-500">{r.loss}</span>
+                  <span className={`text-center tabular-nums font-medium ${r.gd > 0 ? "text-emerald-600 dark:text-emerald-400" : r.gd < 0 ? "text-rose-500" : "text-neutral-400"}`}>{r.gd > 0 ? `+${r.gd}` : r.gd}</span>
+                  <span className="text-center tabular-nums font-bold">{r.pts}</span>
+                </>
+              );
+              const cls = `grid grid-cols-[1.5rem_1fr_2rem_1.5rem_1.5rem_1.5rem_2.5rem_2.25rem] items-center gap-1 px-2.5 py-2.5 border-l-4 ${bar} ${isMe ? "bg-blue-50 dark:bg-blue-900/20" : ""}`;
+              return tid && !isMe ? (
+                <Link key={r.team} href={`/national-teams/${tid}`} className={`${cls} hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition`}>{inner}</Link>
+              ) : (
+                <div key={r.team} className={cls}>{inner}</div>
+              );
+            })}
+          </div>
+          <p className="mt-1.5 text-[11px] text-neutral-400">상위 2팀 32강 직행 · 각 조 3위는 와일드카드 경쟁</p>
+        </section>
       )}
     </main>
   );
