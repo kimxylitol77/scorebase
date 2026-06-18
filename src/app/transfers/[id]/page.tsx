@@ -402,7 +402,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       //  놓친 케이스에서 같은 클럽 중복 행 합성 방지.
       const wikidataFresh = career.some((c) => !c.nt && c.end == null && c.start != null && c.start >= trYear);
       if (!covered && !wikidataFresh) {
-        const isLoan = arrival.transferType === 7;
+        const isLoan = arrival.transferType === 1;
         careerView = career.map((c) => (!c.nt && c.end == null && !isLoan ? { ...c, end: trYear } : c));
         careerView.push({
           club: tsTeamName[mv.teamId] || koTeam(arrival.toTeamName),

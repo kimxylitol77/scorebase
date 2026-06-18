@@ -564,7 +564,7 @@ export default async function TransfersPage({
         league: { in: league ? [league] : FEED_LEAGUES },
         transferTime: { gte: win.from, lte: win.to },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
-        ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
+        ...(tFilter === "loan" ? { transferType: { in: [1, 2] } } : {}),
       },
       // 같은 발효일(7/1 무더기) 안에서는 최근 수집(발표)분 먼저
       orderBy: [{ transferTime: "desc" }, { updatedAt: "desc" }],
@@ -589,7 +589,7 @@ export default async function TransfersPage({
         // 전체 이력(latest mode=all)도 창 종료 이후의 미래 발효 예정 행은 제외
         transferTime: { not: null, lte: win.to },
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
-        ...(tFilter === "loan" ? { transferType: { in: [2, 7] } } : {}),
+        ...(tFilter === "loan" ? { transferType: { in: [1, 2] } } : {}),
       };
   const transferTotal = isBigdeals || latestAll ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
   const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : isSquads ? squadsTotal : enriched.length;
