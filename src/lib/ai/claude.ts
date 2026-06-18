@@ -45,7 +45,7 @@ function isTransient(err: unknown): boolean {
  * 총 최대 대기 ~155s — 529 overloaded burst 통과용 (2026-05-21 확장).
  * cron maxDuration 300s 의 1/2 미만 — 매치 1건 fail 후에도 다른 매치 처리 여유.
  */
-export async function generate(
+async function generateAnthropic(
   prompt: string,
   opts: GenerateOptions = {},
 ): Promise<string> {
@@ -95,4 +95,32 @@ export async function generate(
     }
   }
   throw lastErr;
+}
+
+/**
+ * 기사 텍스트 생성 — Anthropic 우선, 크레딧 소진·장애 시 OpenAI(gpt-4o-mini) 자동 폴백.
+ * AI_PROVIDER=openai 면 Anthropic 건너뛰고 OpenAI 직행 (크레딧 0 동안 400 왕복 회피).
+ * 호출부(generateWithMinLength → 모든 글 생성)는 이 함수만 쓰면 됨.
+ */
+export async function generate(
+  prompt: string,
+  opts: GenerateOptions = {},
+): Promise<string> {
+  if (process.env.AI_PROVIDER === "openai") {
+    const { generate: generateOpenAI } = await import("./openai");
+    return generateOpenAI(prompt, opts);
+  }
+  try {
+    return await generateAnthropic(prompt, opts);
+  } catch (err) {
+    // 크레딧 소진(400)·인증·지속 장애 등 Anthropic 최종 실패 시 OpenAI 폴백.
+    if (process.env.OPENAI_API_KEY) {
+      console.warn(
+        `[ai] Anthropic 생성 실패 → OpenAI 폴백: ${(err as Error).message?.slice(0, 120)}`,
+      );
+      const { generate: generateOpenAI } = await import("./openai");
+      return generateOpenAI(prompt, opts);
+    }
+    throw err;
+  }
 }
