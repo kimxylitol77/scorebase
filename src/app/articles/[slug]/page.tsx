@@ -690,8 +690,8 @@ export default async function ArticlePage({ params }: Props) {
       )}
       <Markdown>{article.content}</Markdown>
 
-      {/* AI 작성 disclosure + 데이터 출처 */}
-      <AiDisclosure league={article.league} type={article.type} url={url} />
+      {/* 데이터 출처 + 저작권 */}
+      <AiDisclosure league={article.league} url={url} />
 
       {/* 참고 외부 출처 (공식 사이트·통계) */}
       <ExternalSources league={article.league} />
@@ -850,9 +850,8 @@ function TeamLogo({ src, name }: { src?: string | null; name: string }) {
 }
 
 /* =====================================================================
- * AI 작성 disclosure + 데이터 출처 footer
- * Google E-E-A-T / 투명성 가이드 부합. AI 콘텐츠 명시 + 출처 인용으로
- * Scaled content abuse 처벌 위험 회피.
+ * 데이터 출처 + 저작권 footer
+ * Google E-E-A-T / 투명성 가이드 부합 — 출처 인용·저작권 명시.
  * ===================================================================*/
 const DATA_SOURCES_BY_LEAGUE: Record<string, string[]> = {
   // 축구 - football-data.org + api-football Pro + The Odds API
@@ -875,28 +874,15 @@ const DATA_SOURCES_BY_LEAGUE: Record<string, string[]> = {
 
 function AiDisclosure({
   league,
-  type,
   url,
 }: {
   league: string;
-  type: string;
   url: string;
 }) {
   const sources = DATA_SOURCES_BY_LEAGUE[league] ?? ["공식 스포츠 데이터"];
-  const typeLabel =
-    type === "PREVIEW" ? "프리뷰" : type === "RECAP" ? "리뷰" : "분석";
-
   return (
     <aside className="mt-8 rounded-[1.25rem] bg-zinc-100 px-5 py-4 text-xs leading-relaxed text-zinc-600 ring-1 ring-black/5 dark:bg-white/[0.04] dark:text-white/55 dark:ring-white/10">
       <div className="space-y-1">
-        <p>
-          <strong className="text-zinc-900 dark:text-white">
-            AI · 데이터 협업 작성
-          </strong>{" "}
-          본 {typeLabel} 글은 데이터 분석 모델(Elo 레이팅 · Monte Carlo
-          시뮬레이션 · 마켓 odds blending)과 여러 AI 모델(Claude · Gemini · ChatGPT)이
-          협업해 작성됐으며, 운영진의 모니터링 하에 발행됩니다.
-        </p>
         <p>
           <strong className="text-zinc-900 dark:text-white">데이터 출처</strong>
           {" — "}
