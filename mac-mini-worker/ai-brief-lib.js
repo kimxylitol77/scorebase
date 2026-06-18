@@ -180,7 +180,8 @@ async function fetchGoogleNews(query, { when = "1d", limit = 15 } = {}) {
 // 로컬 Ollama chat (맥미니 localhost:11434). 크레딧 0.
 async function ollamaChat(prompt, { system, model = process.env.OLLAMA_MODEL || "qwen2.5:14b" } = {}) {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 180000);
+  // 32b/30b 는 긴 브리핑 생성이 swap 으로 느려 180s 를 넘길 수 있어 넉넉히(env override).
+  const timer = setTimeout(() => ctrl.abort(), Number(process.env.OLLAMA_TIMEOUT_MS) || 600000);
   try {
     const r = await fetch("http://localhost:11434/api/chat", {
       method: "POST",

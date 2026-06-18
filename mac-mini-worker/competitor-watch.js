@@ -94,6 +94,10 @@ async function main() {
     maxTokens: 4500,
     maxSearches: 18,
     fetch: true,
+    // 로컬 모드(BRIEF_PROVIDER=local): 경쟁사·스포츠테크 업계 뉴스 RSS.
+    // ⚠️ 사이트 본문 기능 분석은 불가 → "업계 동향 파악"으로 격하(사용자 합의).
+    query: ["Sofascore", "FotMob 축구 앱", "스포츠 데이터 분석", "축구 통계 서비스", "AI 스포츠 예측", "네이버 스포츠 기능"],
+    perQuery: 8,
   });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
   const clean = tidyBullets(stripPreamble(text, ["🔍", "🟢", "💡"]));
