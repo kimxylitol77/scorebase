@@ -75,7 +75,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
   const upcoming = matches.filter((m) => m.startTime.getTime() > now).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   // 라인업 누적 → 스쿼드 + 감독 id
-  const caches = await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: matches.map((m) => m.id) } }, select: { matchId: true, lineup: true, goalLine: true } });
+  const caches = await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: matches.map((m) => m.id) } }, select: { matchId: true, lineup: true, goalLine: true, playerStats: true } });
   const squadMap = new Map<string, SquadPlayer>();
   let coachId: string | null = null;
   for (const c of caches) {
@@ -116,6 +116,40 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     ? await prisma.playerMarketValue.findMany({ where: { id: { in: squad.map((p) => p.id) } }, select: { id: true } })
     : [];
   const hasMv = new Set(mvRows.map((m) => m.id));
+
+  // 선수 시즌 기여 — playerStats(자국 team_id) 의 골·도움·평점·출전 누적 (월드컵+친선)
+  const tsExt = tsRow?.externalId;
+  const statMap = new Map<string, { goals: number; assists: number; ratings: number[]; minutes: number; games: number }>();
+  if (tsExt) {
+    for (const c of caches) {
+      const ps = c.playerStats as Array<{ player_id: string; team_id?: string; goals?: number; assists?: number; rating?: number; minutes_played?: number }> | null;
+      if (!Array.isArray(ps)) continue;
+      for (const s of ps) {
+        if (!s.player_id || s.team_id !== tsExt) continue;
+        const a = statMap.get(s.player_id) ?? { goals: 0, assists: 0, ratings: [] as number[], minutes: 0, games: 0 };
+        a.goals += s.goals ?? 0;
+        a.assists += s.assists ?? 0;
+        const r = Number(s.rating) || 0;
+        if (r > 0) a.ratings.push(r);
+        const min = s.minutes_played ?? 0;
+        a.minutes += min;
+        if (min > 0) a.games += 1;
+        statMap.set(s.player_id, a);
+      }
+    }
+  }
+  const statOf = (pid: string) => {
+    const a = statMap.get(pid);
+    if (!a) return null;
+    const avgRating = a.ratings.length ? +(a.ratings.reduce((s, r) => s + r, 0) / a.ratings.length).toFixed(2) : 0;
+    return { goals: a.goals, assists: a.assists, avgRating, games: a.games };
+  };
+  // 핵심 선수 = 골·도움 기여 상위 (골 2 + 도움 1 가중)
+  const keyPlayers = squad
+    .map((p) => ({ p, st: statOf(p.id) }))
+    .filter((x): x is { p: SquadPlayer; st: NonNullable<ReturnType<typeof statOf>> } => !!x.st && (x.st.goals > 0 || x.st.assists > 0))
+    .sort((a, b) => b.st.goals * 2 + b.st.assists - (a.st.goals * 2 + a.st.assists) || b.st.avgRating - a.st.avgRating)
+    .slice(0, 5);
 
   // 감독 — 정적 json (키: ts team id). tsRow 는 위 스쿼드 결정에서 재사용.
   const coach = (tsRow && COACHES[tsRow.externalId]) || null;
@@ -242,6 +276,45 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
         </section>
       )}
 
+      {/* 핵심 선수 — 시즌 골·도움 기여 상위 */}
+      {keyPlayers.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-bold text-neutral-500 mb-2">핵심 선수 <span className="text-neutral-400 font-normal">· 최근 경기 골·도움</span></h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {keyPlayers.map(({ p, st }) => {
+              const inner = (
+                <>
+                  <div className="w-11 h-11 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden shrink-0 grid place-items-center">
+                    {p.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.photo} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <span className="text-xs font-bold text-neutral-400">{p.shirt || "?"}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{koName.get(p.id) || p.name}</div>
+                    <div className="text-[11px] text-neutral-500 flex items-center gap-1.5 mt-0.5">
+                      {st.goals > 0 && <span>⚽ {st.goals}</span>}
+                      {st.assists > 0 && <span>🅰️ {st.assists}</span>}
+                      {st.avgRating > 0 && <span className="text-amber-600 dark:text-amber-400 font-semibold">★ {st.avgRating}</span>}
+                    </div>
+                  </div>
+                </>
+              );
+              const cls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
+              return hasMv.has(p.id) ? (
+                <Link key={p.id} href={`/transfers/${p.id}`} className={`${cls} hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition`}>
+                  {inner}
+                </Link>
+              ) : (
+                <div key={p.id} className={cls}>{inner}</div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* 스쿼드 — 라인업 누적 (포지션 그룹) */}
       {squad.length > 0 ? (
         <section className="mt-6">
@@ -257,6 +330,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                 <h3 className="text-xs font-bold text-neutral-400 mb-2">{label}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {players.map((p) => {
+                    const st = statOf(p.id);
                     const cardCls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
                     const inner = (
                       <>
@@ -270,7 +344,16 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                         </div>
                         <div className="min-w-0">
                           <div className="text-sm font-semibold truncate">{koName.get(p.id) || p.name}</div>
-                          <div className="text-[11px] text-neutral-400">#{p.shirt}</div>
+                          <div className="text-[11px] text-neutral-400 flex items-center gap-1.5">
+                            <span>#{p.shirt}</span>
+                            {st && (st.goals > 0 || st.assists > 0) && (
+                              <span className="text-neutral-500">
+                                {st.goals > 0 && <>⚽{st.goals}</>}
+                                {st.goals > 0 && st.assists > 0 && " "}
+                                {st.assists > 0 && <>🅰️{st.assists}</>}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </>
                     );
