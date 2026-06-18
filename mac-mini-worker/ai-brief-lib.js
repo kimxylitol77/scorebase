@@ -189,7 +189,7 @@ async function ollamaChat(prompt, { system, model = process.env.OLLAMA_MODEL || 
         model,
         messages: [...(system ? [{ role: "system", content: system }] : []), { role: "user", content: prompt }],
         stream: false,
-        options: { temperature: 0.4 },
+        options: { temperature: 0.4, repeat_penalty: 1.2 },
       }),
       signal: ctrl.signal,
     });
@@ -223,10 +223,10 @@ async function askWithLocalSearch(query, prompt, opts = {}) {
   if (all.length === 0) throw new Error("RSS 뉴스 0건 — 검색어/네트워크 확인");
   const context = all.map((a, i) => `${i + 1}. ${a.title}${a.source ? ` (${a.source})` : ""}`).join("\n");
   const fullPrompt = `${prompt}\n\n[오늘 수집된 실제 뉴스 헤드라인 — 아래 목록만 근거로 작성하고, 목록에 없는 내용은 지어내지 말 것]\n${context}\n\n[작성 규칙 엄수] 지정된 섹션을 각각 한 번씩만 쓰고 같은 이모지 섹션을 두 번 반복하지 말 것. 총평·맺음말·결론 문장 없이 마지막 뉴스 항목으로 끝낼 것.`;
-  const out = await ollamaChat(fullPrompt, opts);
-  // 로컬 모델이 가끔 끝에 "~살펴볼 수 있습니다" 류 맺음말을 붙임 — 마지막 줄이
-  // 불릿(-)/이모지 섹션이 아닌 산문이면 잘라낸다.
-  const lines = out.split("\n");
+  const sys = opts.system || "당신은 한국어 뉴스 큐레이터입니다. 엄수: ① 한국어로만 쓰고 일본어 가나·한자·영어 문장을 절대 섞지 말 것(NBA·EPL·MVP·ETF·BTC 같은 영문 약어만 허용). ② 주어진 이모지 섹션 형식을 그대로 따르고 같은 섹션을 두 번 반복하지 말 것. ③ 각 뉴스는 '- '로 시작하는 한 줄. ④ 총평·맺음말·결론 문장 금지.";
+  const out = await ollamaChat(fullPrompt, { ...opts, system: sys });
+  // 후처리: ① 일본어 가나 문자 제거(qwen 한국어 순도 보강) ② 끝의 맺음말 산문 제거.
+  let lines = out.split("\n").map((l) => l.replace(/[぀-ヿ]/g, ""));
   while (lines.length) {
     const last = lines[lines.length - 1].trim();
     if (!last) { lines.pop(); continue; }
