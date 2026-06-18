@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { generate as generateOpenAI } from "./openai";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.warn(
@@ -107,7 +108,6 @@ export async function generate(
   opts: GenerateOptions = {},
 ): Promise<string> {
   if (process.env.AI_PROVIDER === "openai") {
-    const { generate: generateOpenAI } = await import("./openai");
     return generateOpenAI(prompt, opts);
   }
   try {
@@ -118,7 +118,6 @@ export async function generate(
       console.warn(
         `[ai] Anthropic 생성 실패 → OpenAI 폴백: ${(err as Error).message?.slice(0, 120)}`,
       );
-      const { generate: generateOpenAI } = await import("./openai");
       return generateOpenAI(prompt, opts);
     }
     throw err;
