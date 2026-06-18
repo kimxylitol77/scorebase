@@ -10,6 +10,7 @@ import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeSt
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
+import GoalSceneViz, { type GoalLineGoal } from "@/components/charts/GoalSceneViz";
 
 interface SoccerCacheLike {
   trend?: unknown;
@@ -18,6 +19,7 @@ interface SoccerCacheLike {
   lineup?: unknown;
   analysis?: unknown;
   detailLive?: unknown;
+  goalLine?: unknown;
   fetchedAt: Date;
 }
 
@@ -154,6 +156,12 @@ export async function buildSoccerCacheTabs(opts: {
       />
     ) : null;
 
+  const goalLine = cache.goalLine as GoalLineGoal[] | null;
+  const goalSceneNode =
+    Array.isArray(goalLine) && goalLine.length > 0 ? (
+      <GoalSceneViz goals={goalLine} homeName={homeKo} awayName={awayKo} />
+    ) : null;
+
   const statsTab =
     teamStatsNode || halfTimeNode || trendNode ? (
       <div className="space-y-4">
@@ -172,6 +180,7 @@ export async function buildSoccerCacheTabs(opts: {
 
   return [
     { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
+    { key: "soccer-goalscene", label: "골 장면", enabled: !!goalSceneNode, content: goalSceneNode },
     { key: "soccer-stats", label: "팀 통계", enabled: !!statsTab, content: statsTab },
     { key: "soccer-h2h", label: "맞대결", enabled: !!h2hTab, content: h2hTab },
   ];

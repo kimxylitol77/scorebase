@@ -143,6 +143,17 @@ async function fetchLineup(uuid) {
   return r;
 }
 
+// 골 장면 — 골별 슈터/어시 좌표 + 빌드업 패스. 골 있는 종료 매치만(needGoalLine).
+// 미커버/code≠0 이면 [] 반환 → 빈 마커 저장으로 다음 run 재시도 방지.
+async function fetchGoalLine(uuid) {
+  const { data } = await axios.get(`${TS_BASE}/v1/football/match/goal/line/detail`, {
+    params: { user: TS_USER, secret: TS_SECRET, uuid },
+    timeout: 30_000,
+  });
+  if (data.code !== 0) return [];
+  return Array.isArray(data.results) ? data.results : [];
+}
+
 async function postCache(matchId, tsMatchId, body) {
   const { data } = await axios.post(
     `${SITE_URL}/api/internal/thesports-cache`,
@@ -213,7 +224,16 @@ async function runOnce() {
           // 30일 초과 등 — lineup 만 skip, incidents 는 진행
         }
       }
-      if (!body.detailLive && !body.lineup) {
+      // 골 장면 — 골 있는 매치만(needGoalLine). [] 마커도 저장해 재시도 방지.
+      if (m.needGoalLine) {
+        try {
+          body.goalLine = await fetchGoalLine(uuid);
+          await sleep(PACE_MS);
+        } catch (e) {
+          // goal/line 미커버/일시 오류 — skip (다음 run 재시도)
+        }
+      }
+      if (!body.detailLive && !body.lineup && body.goalLine === undefined) {
         noData++;
         continue; // TheSports 에 데이터 자체가 없는 매치 (군소 리그)
       }

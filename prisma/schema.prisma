@@ -391,6 +391,10 @@ model TheSportsMatchCache {
   /// 값 -100~+100 (home 양수, away 음수, 1분 단위 momentum).
   /// 2026-05-25 추가, Lightsail football-poller v3+ 5분 cycle 갱신.
   trend       Json?
+  /// 골 장면 — /v1/football/match/goal/line/detail 응답 results.
+  /// 골별 [{number, time, goal_x, goal_y, own_goal, pass:[{belong,x,y,shooter,assist,player_id,shirt_number}], goalkeeper}].
+  /// 슈터/어시 full-field 좌표(0~100)+빌드업 패스 시퀀스. football-incidents-backfill worker 가 incidents 와 함께 채움.
+  goalLine    Json?
   fetchedAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)

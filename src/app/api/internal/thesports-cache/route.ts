@@ -39,6 +39,8 @@ interface Body {
   /** Match momentum trend — match/trend/detail 응답
    *  구조: { count, per, data: [[전반 값들], [후반 값들]] } */
   trend?: unknown;
+  /** 골 장면 — match/goal/line/detail 의 results[] (골별 슈터/어시 좌표·빌드업 패스). */
+  goalLine?: unknown;
   /** football fast-poller 가 detailLive 에서 추출한 score — DB.Match 도 함께 update.
    *  /scores 목록 SSR 이 즉시 fresh 받도록. */
   homeScore?: number;
@@ -137,6 +139,7 @@ export async function POST(req: NextRequest) {
   if (body.playerStats !== undefined) data.playerStats = body.playerStats as object;
   if (body.halfTeamStats !== undefined) data.halfTeamStats = body.halfTeamStats as object;
   if (body.trend !== undefined) data.trend = body.trend as object;
+  if (body.goalLine !== undefined) data.goalLine = body.goalLine as object;
 
   const cache = await prisma.theSportsMatchCache.upsert({
     where: { matchId: body.matchId },
@@ -150,6 +153,7 @@ export async function POST(req: NextRequest) {
       playerStats: (body.playerStats ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       halfTeamStats: (body.halfTeamStats ?? Prisma.JsonNull) as Prisma.InputJsonValue,
       trend: (body.trend ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      goalLine: (body.goalLine ?? Prisma.JsonNull) as Prisma.InputJsonValue,
     },
     update: data,
     select: { id: true, matchId: true, updatedAt: true },
