@@ -122,6 +122,7 @@ function teamKeys(name: string): string[] {
 
 interface AfPlayerRow {
   id: number; name: string; photo: string | null;
+  teamName: string; // af 소속 팀명 — 리그풀 폴백 매칭 시 시즌스탯 팀명용
   apps: number; goals: number; assists: number; minutes: number;
   fullTok: Set<string>; // firstname+lastname+name 토큰 — 부분집합 폴백용
   st: any; // 해당 리그 statistics row (SeasonStat 생성용)
@@ -160,7 +161,7 @@ async function main() {
   const tsToAf: Record<string, number> = { ...(prevMap.tsToAf ?? {}) };
   const afName: Record<number, string> = {};
   const newSeasons: Record<string, ReturnType<typeof toSeasonStat>> = {};
-  let byName = 0, byTok = 0, exact = 0, loose = 0, conflict = 0, noTeam = 0;
+  let byName = 0, byTok = 0, byLeague = 0, exact = 0, loose = 0, conflict = 0, noTeam = 0;
 
   // 인자로 리그 코드 주면 해당 리그만 재실행 (af quota 절약): ... MLS SAUDI_PL
   const ONLY = new Set(process.argv.slice(2));
@@ -227,7 +228,34 @@ async function main() {
     if (tsByKey.size === 0) { console.log(`${lg}: ts 후보 없음 — 스킵`); continue; }
 
     const teams = await af(`/teams?league=${afId}&season=${season}`);
+    const allAfPlayers: AfPlayerRow[] = []; // 리그 전체 af 풀 — 팀매핑 누락 선수 폴백용
+    const recordMatch = (tsId: string, p: AfPlayerRow) => {
+      tsToAf[tsId] = p.id;
+      afName[p.id] = p.name;
+      newSeasons[tsId] = toSeasonStat(lg, seasonLabel, p.teamName, p);
+    };
     for (const t of teams.response ?? []) {
+      // af 로스터 + 시즌스탯 (페이지네이션) — 팀매칭 성패와 무관하게 항상 수집해 리그
+      //  전체 풀에 누적(팀 매핑 누락 팀[사우디 알나스르 등]의 로스터도 폴백에 쓰기 위함).
+      const afPlayers: AfPlayerRow[] = [];
+      for (let page = 1; page <= 6; page++) {
+        const d = await af(`/players?team=${t.team.id}&season=${season}&page=${page}`);
+        for (const r of d.response ?? []) {
+          const st = (r.statistics ?? []).find((x: any) => x.league?.id === afId) ?? r.statistics?.[0];
+          if (!st) continue;
+          afPlayers.push({
+            id: r.player.id, name: r.player.name, photo: r.player.photo ?? null,
+            teamName: t.team.name,
+            apps: st.games?.appearences ?? 0, goals: st.goals?.total ?? 0,
+            assists: st.goals?.assists ?? 0, minutes: st.games?.minutes ?? 0,
+            fullTok: tokset(`${r.player.firstname ?? ""} ${r.player.lastname ?? ""} ${r.player.name}`),
+            st,
+          });
+        }
+        if ((d.paging?.current ?? 1) >= (d.paging?.total ?? 1)) break;
+      }
+      allAfPlayers.push(...afPlayers);
+
       // af 팀명의 모든 키(norm·한글·약어)에 걸린 ts 후보 합집합.
       //  첫 hit 에서 break 하면 af norm 키(예 "bayernmunchen")가 ts 일부 선수와 먼저
       //  매칭되며, 한글 키("ko:바이에른뮌헨")에만 걸린 선수(케인 등 — af "München" vs
@@ -238,30 +266,6 @@ async function main() {
       }
       if (tsMerged.size === 0) { noTeam++; continue; }
       const tsPlayers = [...tsMerged.values()];
-
-      // af 로스터 + 시즌스탯 (페이지네이션)
-      const afPlayers: AfPlayerRow[] = [];
-      for (let page = 1; page <= 6; page++) {
-        const d = await af(`/players?team=${t.team.id}&season=${season}&page=${page}`);
-        for (const r of d.response ?? []) {
-          const st = (r.statistics ?? []).find((x: any) => x.league?.id === afId) ?? r.statistics?.[0];
-          if (!st) continue;
-          afPlayers.push({
-            id: r.player.id, name: r.player.name, photo: r.player.photo ?? null,
-            apps: st.games?.appearences ?? 0, goals: st.goals?.total ?? 0,
-            assists: st.goals?.assists ?? 0, minutes: st.games?.minutes ?? 0,
-            fullTok: tokset(`${r.player.firstname ?? ""} ${r.player.lastname ?? ""} ${r.player.name}`),
-            st,
-          });
-        }
-        if ((d.paging?.current ?? 1) >= (d.paging?.total ?? 1)) break;
-      }
-
-      const recordMatch = (tsId: string, p: AfPlayerRow) => {
-        tsToAf[tsId] = p.id;
-        afName[p.id] = p.name;
-        newSeasons[tsId] = toSeasonStat(lg, seasonLabel, t.team.name, p);
-      };
 
       // ① 이름 매칭 (영문명 보유자) — 같은 팀 내 성+이니셜 유일 시
       const afByName = new Map<string, AfPlayerRow[]>();
@@ -324,6 +328,26 @@ async function main() {
         else if (cands.length > 1) conflict++;
       }
     }
+
+    // 리그풀 폴백 — 팀매핑(mv.teamId→Team) 누락으로 팀별 후보에 못 든 선수(사우디·MLS·K리그
+    //  처럼 TeamSourceId 매핑이 빈 리그)를 리그 전체 af 풀에서 이름/토큰 유일 매칭.
+    //  빅5는 팀매핑이 완벽해 이미 다 잡혀(takenL) 폴백이 건드릴 게 없음.
+    {
+      const takenL = new Set(Object.values(tsToAf));
+      const afByNameL = new Map<string, AfPlayerRow[]>();
+      for (const p of allAfPlayers) { const k = nameKey(p.name); if (k) afByNameL.set(k, [...(afByNameL.get(k) ?? []), p]); }
+      for (const p of players) {
+        if (tsToAf[p.id]) continue;
+        const en = tsEnName.get(p.id);
+        if (!en) continue;
+        let cands = (afByNameL.get(nameKey(en) ?? "") ?? []).filter((c) => !takenL.has(c.id));
+        if (cands.length !== 1) {
+          const dbTok = tokset(en);
+          if (dbTok.size >= 2) cands = allAfPlayers.filter((c) => !takenL.has(c.id) && [...dbTok].every((tk) => c.fullTok.has(tk)));
+        }
+        if (cands.length === 1) { recordMatch(p.id, cands[0]); takenL.add(cands[0].id); byLeague++; }
+      }
+    }
     console.log(`${lg}: 누적 매칭 ${Object.keys(tsToAf).length} · 시즌스탯 신규 ${Object.keys(newSeasons).length}`);
   }
   await prisma.$disconnect();
@@ -337,7 +361,7 @@ async function main() {
   fs.writeFileSync("data/player-season-stats.json", JSON.stringify(mergedSeasons, null, 0));
 
   console.log(
-    `완료: 매핑 ${Object.keys(tsToAf).length} — 이름 ${byName} · 토큰 ${byTok} · 지문 ${exact} · 완화 ${loose} · 충돌skip ${conflict} · 팀미매칭 ${noTeam}`,
+    `완료: 매핑 ${Object.keys(tsToAf).length} — 이름 ${byName} · 토큰 ${byTok} · 리그풀 ${byLeague} · 지문 ${exact} · 완화 ${loose} · 충돌skip ${conflict} · 팀미매칭 ${noTeam}`,
   );
   console.log(`시즌스탯: 기존 ${Object.keys(TS).length} + 신규/갱신 ${Object.keys(newSeasons).length} = ${Object.keys(mergedSeasons).length}`);
   console.log("손흥민 검증:", tsToAf["y39mp1h5yjwmojx"] ?? "미매칭", "| 야말:", tsToAf["4jwq2ghxjzkvm0v"] ?? "미매칭");
