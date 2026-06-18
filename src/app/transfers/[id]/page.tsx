@@ -437,18 +437,19 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     return { time: h.market_time!, v, age: h.age, chg: pv > 0 ? Math.round(((v - pv) / pv) * 100) : null, team: h.team_id };
   });
 
-  // 국가대표 경기 기록 — 이 선수가 나온 국대 매치(월드컵/친선) playerStats 를 대회별로 분리.
-  //   playerStats 는 Lightsail poller 가 라이브 중 ~2분 push, 페이지 force-dynamic → 실시간 반영.
-  const natlMatches = await prisma.match.findMany({
-    where: { league: { in: ["WORLD_CUP", "INTL_FRIENDLY"] }, status: "FINISHED" },
-    orderBy: { startTime: "desc" }, take: 150,
-    select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true },
-  });
-  const natlById = new Map(natlMatches.map((m) => [m.id, m]));
-  const natlCaches = natlMatches.length
-    ? await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: natlMatches.map((m) => m.id) } }, select: { matchId: true, playerStats: true } })
+  // 국가대표 경기 기록 — 대회/연도 단위로 묶어 표시(과거 대회는 접힘·보존, 최신 펼침).
+  //   월드컵 본선은 전부 읽고(대회당 ~70경기) 평가전은 최근 100. playerStats 는 Lightsail
+  //   poller(~2분) push·force-dynamic → 실시간. cache 는 시간삭제 없어(중복 dedup 외) 영구 보존.
+  const [wcMatchRows, frMatchRows] = await Promise.all([
+    prisma.match.findMany({ where: { league: "WORLD_CUP", status: "FINISHED" }, orderBy: { startTime: "desc" }, select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true } }),
+    prisma.match.findMany({ where: { league: "INTL_FRIENDLY", status: "FINISHED" }, orderBy: { startTime: "desc" }, take: 100, select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true } }),
+  ]);
+  const natlMatchList = [...wcMatchRows, ...frMatchRows];
+  const natlById = new Map(natlMatchList.map((m) => [m.id, m]));
+  const natlCaches = natlMatchList.length
+    ? await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: natlMatchList.map((m) => m.id) } }, select: { matchId: true, playerStats: true } })
     : [];
-  interface NatlGame { time: number; wc: boolean; home: string; away: string; hs: number | null; as: number | null; goals: number; assists: number; rating: number }
+  interface NatlGame { time: number; wc: boolean; year: number; home: string; away: string; hs: number | null; as: number | null; goals: number; assists: number; rating: number }
   const natlGames: NatlGame[] = [];
   const koNat = (n: string) => toKoreanTeamName(n) || fifaCountryKo(n) || n;
   for (const c of natlCaches) {
@@ -459,15 +460,22 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     const m = natlById.get(c.matchId);
     if (!m) continue;
     natlGames.push({
-      time: m.startTime.getTime(), wc: m.league === "WORLD_CUP",
+      time: m.startTime.getTime(), wc: m.league === "WORLD_CUP", year: m.startTime.getUTCFullYear(),
       home: koNat(m.homeTeam.name), away: koNat(m.awayTeam.name), hs: m.homeScore, as: m.awayScore,
       goals: row.goals ?? 0, assists: row.assists ?? 0, rating: Number(row.rating) || 0,
     });
   }
   natlGames.sort((a, b) => b.time - a.time);
-  const wcGames = natlGames.filter((g) => g.wc);
-  const frGames = natlGames.filter((g) => !g.wc);
-  const sumBy = (arr: NatlGame[], k: "goals" | "assists") => arr.reduce((s, g) => s + g[k], 0);
+  // 대회/연도 그룹 ("{연도} 월드컵" / "{연도} 평가전") — 최신 연도·월드컵 우선, 최신만 펼침
+  interface NatlGroup { label: string; wc: boolean; sort: number; games: NatlGame[]; goals: number; assists: number }
+  const natlGroupMap = new Map<string, NatlGroup>();
+  for (const g of natlGames) {
+    const key = `${g.wc ? "wc" : "fr"}-${g.year}`;
+    let grp = natlGroupMap.get(key);
+    if (!grp) { grp = { label: `${g.year} ${g.wc ? "월드컵" : "평가전"}`, wc: g.wc, sort: g.year * 10 + (g.wc ? 1 : 0), games: [], goals: 0, assists: 0 }; natlGroupMap.set(key, grp); }
+    grp.games.push(g); grp.goals += g.goals; grp.assists += g.assists;
+  }
+  const natlGroups = [...natlGroupMap.values()].sort((a, b) => b.sort - a.sort);
   const natlGameRow = (g: NatlGame, i: number) => {
     const d = new Date(g.time + 9 * 3600e3).toISOString().slice(5, 10).replace("-", ".");
     return (
@@ -550,28 +558,20 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         )}
       </header>
 
-      {/* 국가대표 경기 기록 — 월드컵 본선 / 평가전(친선) 분리. playerStats 실시간(force-dynamic) */}
-      {natlGames.length > 0 && (
-        <section className="space-y-3">
+      {/* 국가대표 경기 기록 — 대회/연도 단위로 묶어 접기(최신 펼침, 과거 대회 보존). force-dynamic 실시간 */}
+      {natlGroups.length > 0 && (
+        <section className="space-y-2">
           <h2 className="text-lg font-semibold">국가대표 경기 기록</h2>
-          {wcGames.length > 0 && (
-            <div>
-              <div className="flex items-baseline gap-2 mb-1.5">
-                <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-400">🏆 월드컵 본선</h3>
-                <span className="text-xs text-neutral-500">{wcGames.length}경기 · ⚽{sumBy(wcGames, "goals")} 🅰️{sumBy(wcGames, "assists")}</span>
-              </div>
-              <div className="space-y-1.5">{wcGames.map(natlGameRow)}</div>
-            </div>
-          )}
-          {frGames.length > 0 && (
-            <div>
-              <div className="flex items-baseline gap-2 mb-1.5">
-                <h3 className="text-sm font-bold text-neutral-500">평가전 (친선)</h3>
-                <span className="text-xs text-neutral-500">{frGames.length}경기 · ⚽{sumBy(frGames, "goals")} 🅰️{sumBy(frGames, "assists")}</span>
-              </div>
-              <div className="space-y-1.5">{frGames.map(natlGameRow)}</div>
-            </div>
-          )}
+          {natlGroups.map((grp, gi) => (
+            <details key={grp.label} open={gi === 0} className="group rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 overflow-hidden">
+              <summary className="flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
+                <span className={`font-bold ${grp.wc ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{grp.wc ? "🏆 " : ""}{grp.label}</span>
+                <span className="text-xs text-neutral-500">{grp.games.length}경기 · ⚽{grp.goals} 🅰️{grp.assists}</span>
+                <span className="ml-auto text-neutral-400 text-xs transition-transform group-open:rotate-180">▾</span>
+              </summary>
+              <div className="px-2.5 pb-2.5 pt-0.5 space-y-1.5">{grp.games.map(natlGameRow)}</div>
+            </details>
+          ))}
         </section>
       )}
 
