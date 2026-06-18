@@ -65,6 +65,9 @@ const PATTERNS: Array<{
   { re: /StatusCake/i, category: "monitor", name: "StatusCake" },
   { re: /vercel-screenshot/i, category: "monitor", name: "Vercel" },
   { re: /Better\s?Stack/i, category: "monitor", name: "Better Stack" },
+  // scorebase 자체 모니터 봇 — route-guardian 의 sitemap 전수 크롤(2096개)이
+  // 자기 IP rate limit 에 걸려 429 false positive 나던 것 면제 (2026-06-18).
+  { re: /scorebase-(route-guardian|monitor|synthetic|endpoint)/i, category: "monitor", name: "Scorebase Internal" },
 
   // 🕷 일반 — 마지막에 검사 (위 패턴 우선)
   { re: /SemrushBot/i, category: "generic", name: "SemrushBot" },
