@@ -54,12 +54,21 @@ const norm = (s: string) =>
     .replace(/[\s.&·'-]/g, "");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function af(path: string): Promise<any> {
-  const res = await fetch(`https://v3.football.api-sports.io${path}`, {
-    headers: { "x-apisports-key": KEY },
-  });
-  await sleep(280);
-  return res.json();
+// af 호출 — 일시적 네트워크 에러(ECONNRESET 등)는 백오프 재시도.
+//  1,100콜 중 1회 끊김에 전체가 죽으면 JSON 미저장(끝에 1회 write)이라 전부 날아감.
+async function af(path: string, retry = 3): Promise<any> {
+  for (let i = 0; ; i++) {
+    try {
+      const res = await fetch(`https://v3.football.api-sports.io${path}`, {
+        headers: { "x-apisports-key": KEY },
+      });
+      await sleep(280);
+      return res.json();
+    } catch (e) {
+      if (i >= retry) throw e;
+      await sleep(2000 * (i + 1));
+    }
+  }
 }
 
 // af "L. Yamal" 축약·풀네임 모두 대응 — 성(마지막 토큰) + 첫 이니셜
@@ -203,12 +212,16 @@ async function main() {
 
     const teams = await af(`/teams?league=${afId}&season=${season}`);
     for (const t of teams.response ?? []) {
-      let tsPlayers: { id: string; fp: TsStat | null }[] | null = null;
+      // af 팀명의 모든 키(norm·한글·약어)에 걸린 ts 후보 합집합.
+      //  첫 hit 에서 break 하면 af norm 키(예 "bayernmunchen")가 ts 일부 선수와 먼저
+      //  매칭되며, 한글 키("ko:바이에른뮌헨")에만 걸린 선수(케인 등 — af "München" vs
+      //  우리 "Munich" 로 norm 키가 갈리는 클럽)를 놓침 → 합집합으로 교정.
+      const tsMerged = new Map<string, { id: string; fp: TsStat | null }>();
       for (const k of teamKeys(t.team.name)) {
-        const hit = tsByKey.get(k);
-        if (hit?.length) { tsPlayers = hit; break; }
+        for (const e of tsByKey.get(k) ?? []) tsMerged.set(e.id, e);
       }
-      if (!tsPlayers) { noTeam++; continue; }
+      if (tsMerged.size === 0) { noTeam++; continue; }
+      const tsPlayers = [...tsMerged.values()];
 
       // af 로스터 + 시즌스탯 (페이지네이션)
       const afPlayers: AfPlayerRow[] = [];
