@@ -85,6 +85,16 @@ function nameKey(full: string): string | null {
   return last ? `${initial}.${last}` : null;
 }
 
+// 풀네임 토큰 집합 (af firstname+lastname+name ↔ DB 이름) — af 등록명이 DB 성과 다른
+//  단일명·복성 선수(페르민 "Fermín"↔"Fermín López", 쿠바르시 복성) 부분집합 매칭용.
+const TOK_STOP = new Set(["de", "da", "do", "dos", "del", "la", "le", "van", "von", "di", "el", "al", "bin", "ben", "the", "jr"]);
+function tokset(s: string): Set<string> {
+  return new Set(
+    s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[øåłßæðþđıŧħ]/g, (c) => FOLD[c] || c)
+      .split(/[\s·.\-']+/).map((t) => t.replace(/[^a-z0-9]/g, "")).filter((t) => t.length >= 2 && !TOK_STOP.has(t)),
+  );
+}
+
 // 팀명 매칭 키 셋 — 영문 norm + 한글명(별칭 사전 = team-names.ts) + 약어.
 // "Los Angeles FC"(af) vs "LAFC"(우리): norm 으론 불일치 → 약어 "lafc" 로 연결.
 // 한글명: 양쪽 변형 영문이 같은 한글로 수렴하면 매칭 ("Al Hilal"/"Al-Hilal Saudi FC"→알힐랄).
@@ -113,6 +123,7 @@ function teamKeys(name: string): string[] {
 interface AfPlayerRow {
   id: number; name: string; photo: string | null;
   apps: number; goals: number; assists: number; minutes: number;
+  fullTok: Set<string>; // firstname+lastname+name 토큰 — 부분집합 폴백용
   st: any; // 해당 리그 statistics row (SeasonStat 생성용)
 }
 
@@ -149,7 +160,7 @@ async function main() {
   const tsToAf: Record<string, number> = { ...(prevMap.tsToAf ?? {}) };
   const afName: Record<number, string> = {};
   const newSeasons: Record<string, ReturnType<typeof toSeasonStat>> = {};
-  let byName = 0, exact = 0, loose = 0, conflict = 0, noTeam = 0;
+  let byName = 0, byTok = 0, exact = 0, loose = 0, conflict = 0, noTeam = 0;
 
   // 인자로 리그 코드 주면 해당 리그만 재실행 (af quota 절약): ... MLS SAUDI_PL
   const ONLY = new Set(process.argv.slice(2));
@@ -239,6 +250,7 @@ async function main() {
             id: r.player.id, name: r.player.name, photo: r.player.photo ?? null,
             apps: st.games?.appearences ?? 0, goals: st.goals?.total ?? 0,
             assists: st.goals?.assists ?? 0, minutes: st.games?.minutes ?? 0,
+            fullTok: tokset(`${r.player.firstname ?? ""} ${r.player.lastname ?? ""} ${r.player.name}`),
             st,
           });
         }
@@ -266,6 +278,20 @@ async function main() {
         else unresolved.push(tp);
       }
 
+      // ①b 토큰 부분집합 폴백 — af 등록명이 DB 성과 달라 nameKey 가 어긋난 케이스
+      //  (페르민 af "Fermín"↔DB "Fermín López", 쿠바르시 복성). DB 토큰(2개+)이 af
+      //  풀네임 토큰의 부분집합이고 같은 팀에서 유일하면 매칭 (단일토큰은 오매칭 우려로 제외).
+      const takenTok = new Set(Object.values(tsToAf));
+      const unresolved2: typeof unresolved = [];
+      for (const tp of unresolved) {
+        const en = tsEnName.get(tp.id);
+        const dbTok = en ? tokset(en) : null;
+        if (!dbTok || dbTok.size < 2) { unresolved2.push(tp); continue; }
+        const hits = afPlayers.filter((p) => !takenTok.has(p.id) && [...dbTok].every((tk) => p.fullTok.has(tk)));
+        if (hits.length === 1) { recordMatch(tp.id, hits[0]); takenTok.add(hits[0].id); byTok++; }
+        else unresolved2.push(tp);
+      }
+
       // ② 지문 매칭 (기존 시즌스탯 보유자) — 정확 일치 → ③ 완화
       const taken = new Set(Object.values(tsToAf));
       const byFp = new Map<string, AfPlayerRow[]>();
@@ -275,7 +301,7 @@ async function main() {
         byFp.set(k, [...(byFp.get(k) ?? []), p]);
       }
       const still: typeof unresolved = [];
-      for (const { id, fp } of unresolved) {
+      for (const { id, fp } of unresolved2) {
         if (!fp || fp.matches == null) continue;
         const k = `${fp.matches}|${fp.goals ?? 0}|${fp.assists ?? 0}`;
         const cands = (byFp.get(k) ?? []).filter((p) => !taken.has(p.id));
@@ -311,7 +337,7 @@ async function main() {
   fs.writeFileSync("data/player-season-stats.json", JSON.stringify(mergedSeasons, null, 0));
 
   console.log(
-    `완료: 매핑 ${Object.keys(tsToAf).length} — 이름 ${byName} · 지문 ${exact} · 완화 ${loose} · 충돌skip ${conflict} · 팀미매칭 ${noTeam}`,
+    `완료: 매핑 ${Object.keys(tsToAf).length} — 이름 ${byName} · 토큰 ${byTok} · 지문 ${exact} · 완화 ${loose} · 충돌skip ${conflict} · 팀미매칭 ${noTeam}`,
   );
   console.log(`시즌스탯: 기존 ${Object.keys(TS).length} + 신규/갱신 ${Object.keys(newSeasons).length} = ${Object.keys(mergedSeasons).length}`);
   console.log("손흥민 검증:", tsToAf["y39mp1h5yjwmojx"] ?? "미매칭", "| 야말:", tsToAf["4jwq2ghxjzkvm0v"] ?? "미매칭");
