@@ -279,10 +279,12 @@ export async function GET(req: NextRequest) {
       // 2026-05-28 LMB #328115/#328116 케이스 — cache.sid=1 (Not Started) +
       // 빈 scoresObj 인데 우리 Match.status=LIVE stuck. 같은 시간대 다른 매치는 정상
       // = TheSports source 가 두 매치만 누락 (연기 / 표시 누락). worker 죽음 아님.
-      //   - 시작 +30분 미만 + sid=1: 매치 시작 lag — skip (false positive)
-      //   - 시작 +30분+ + sid=1: source 누락 (별도 detail 로 구분)
+      //   - 시작 +30분 미만: 매치 시작 lag/시작전 — skip (false positive)
+      //   - 시작 +30분+: source 누락 (아래 sid 로 detail 구분)
+      // half=0(이닝 데이터 전무)은 sid 무관하게 30분 가드. sid=1 만 면제하던 종전 가드가
+      // sid=15 등 다른 "시작 전/지연" 코드를 못 걸러 시작 직후 오탐 (2026-06-18 LMB #503512).
       const elapsedMs = now - m.startTime.getTime();
-      if (sid === 1 && elapsedMs < 30 * 60 * 1000) continue;
+      if (elapsedMs < 30 * 60 * 1000) continue;
       let reason = sid === 1
         ? `TheSports source 누락 또는 매치 연기 (시작 +${Math.round(elapsedMs / 60000)}분, sid=1 Not Started)`
         : `cache half=${half} (이닝 표시 불가)`;
