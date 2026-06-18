@@ -7,6 +7,8 @@ import type { Metadata } from "next";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/sport-leagues";
+import GoalHeatmap from "@/components/charts/GoalHeatmap";
+import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
@@ -73,7 +75,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
   const upcoming = matches.filter((m) => m.startTime.getTime() > now).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   // 라인업 누적 → 스쿼드 + 감독 id
-  const caches = await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: matches.map((m) => m.id) } }, select: { matchId: true, lineup: true } });
+  const caches = await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: matches.map((m) => m.id) } }, select: { matchId: true, lineup: true, goalLine: true } });
   const squadMap = new Map<string, SquadPlayer>();
   let coachId: string | null = null;
   for (const c of caches) {
@@ -134,6 +136,25 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     return gf > ga ? { r: "승", c: "bg-emerald-500" } : gf < ga ? { r: "패", c: "bg-rose-500" } : { r: "무", c: "bg-neutral-400" };
   });
 
+  // 골 위치 히트맵 — 국가 득점 슈터 좌표 누적 (away 골은 공격 방향 오른쪽으로 정규화)
+  const goalSpots: { x: number; y: number }[] = [];
+  for (const c of caches) {
+    const goals = (c.goalLine as GoalLineGoal[] | null) ?? [];
+    if (goals.length === 0) continue;
+    const m = matches.find((x) => x.id === c.matchId);
+    if (!m) continue;
+    const belong = teamIdSet.has(m.homeTeamId) ? 1 : 2;
+    for (const g of goals) {
+      const sh = g.pass?.find((p) => p.shooter === 1);
+      if (!sh || sh.belong !== belong) continue;
+      let x = parseFloat(sh.x);
+      const y = parseFloat(sh.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+      if (belong === 2) x = 100 - x;
+      goalSpots.push({ x, y });
+    }
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-6">
       {/* 브레드크럼 — 허브·48개국 목록으로 연결 (고아 페이지 방지) */}
@@ -191,6 +212,14 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
               <span key={i} className={`w-8 h-8 rounded-lg ${f.c} text-white text-xs font-bold grid place-items-center`}>{f.r}</span>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* 골 위치 히트맵 (goal/line 누적) */}
+      {goalSpots.length >= 3 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-bold text-neutral-500 mb-2">⚽ 골 위치 히트맵 <span className="text-neutral-400 font-normal">· 시즌 {goalSpots.length}골</span></h2>
+          <GoalHeatmap spots={goalSpots} teamName={koCountry} />
         </section>
       )}
 
