@@ -155,10 +155,85 @@ async function askOpenAIWebSearch(prompt, { system, maxTokens = 4000 } = {}) {
   throw lastErr;
 }
 
+// Google News RSS 헤드라인 수집 (한국어·최근 when). web_search 없이 로컬 검색 대체.
+async function fetchGoogleNews(query, { when = "1d", limit = 15 } = {}) {
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko&when=${when}`;
+  const r = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+  if (!r.ok) throw new Error(`Google News RSS HTTP ${r.status}`);
+  const xml = await r.text();
+  const items = [];
+  const re = /<item>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = re.exec(xml)) && items.length < limit) {
+    const block = m[1];
+    const rawTitle = (block.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || "";
+    const title = rawTitle.replace(/<!\[CDATA\[|\]\]>/g, "").trim();
+    const source = ((block.match(/<source[^>]*>([\s\S]*?)<\/source>/) || [])[1] || "").trim();
+    // RSS 머리의 'XXX - Google 뉴스' 헤더 행 제외
+    if (title && !/- Google 뉴스$/.test(title) && title !== "Google 뉴스") {
+      items.push({ title, source });
+    }
+  }
+  return items;
+}
+
+// 로컬 Ollama chat (맥미니 localhost:11434). 크레딧 0.
+async function ollamaChat(prompt, { system, model = process.env.OLLAMA_MODEL || "qwen2.5:14b" } = {}) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 180000);
+  try {
+    const r = await fetch("http://localhost:11434/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages: [...(system ? [{ role: "system", content: system }] : []), { role: "user", content: prompt }],
+        stream: false,
+        options: { temperature: 0.4 },
+      }),
+      signal: ctrl.signal,
+    });
+    if (!r.ok) throw new Error(`Ollama HTTP ${r.status} — 'ollama serve' 실행 확인`);
+    const j = await r.json();
+    return (j.message?.content || "").trim();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// 로컬 검색+요약: RSS 헤드라인 수집 → Ollama 한국어 브리핑. query 는 문자열 또는 배열(키워드 여러 개).
+async function askWithLocalSearch(query, prompt, opts = {}) {
+  const queries = Array.isArray(query) ? query : [query];
+  const seen = new Set();
+  const all = [];
+  for (const q of queries) {
+    let items = [];
+    try {
+      items = await fetchGoogleNews(q, { when: opts.when, limit: opts.perQuery || 12 });
+    } catch (e) {
+      console.warn(`[ai-brief/local] RSS '${q}' 실패: ${String(e.message).slice(0, 80)}`);
+    }
+    for (const it of items) {
+      const key = it.title.slice(0, 40);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      all.push(it);
+    }
+  }
+  if (all.length === 0) throw new Error("RSS 뉴스 0건 — 검색어/네트워크 확인");
+  const context = all.map((a, i) => `${i + 1}. ${a.title}${a.source ? ` (${a.source})` : ""}`).join("\n");
+  const fullPrompt = `${prompt}\n\n[오늘 수집된 실제 뉴스 헤드라인 — 아래 목록만 근거로 작성하고, 목록에 없는 내용은 지어내지 말 것]\n${context}`;
+  return ollamaChat(fullPrompt, opts);
+}
+
 // web_search LLM 질의 — Anthropic 우선, 크레딧 소진·장애 시 OpenAI 자동 폴백.
+// BRIEF_PROVIDER=local 면 Google News RSS + Ollama 로 직행 (크레딧 0, opts.query 필요).
 // BRIEF_PROVIDER=openai 면 Anthropic 건너뛰고 직행 (크레딧 0 동안 400 왕복 회피).
 // 4개 브리핑 봇(ai-news-brief·competitor-watch·crypto-brief·sports-news-brief) 공유.
 async function askWithWebSearch(prompt, opts = {}) {
+  if (process.env.BRIEF_PROVIDER === "local" && opts.query) {
+    return askWithLocalSearch(opts.query, prompt, opts);
+  }
   if (process.env.BRIEF_PROVIDER === "openai") {
     return askOpenAIWebSearch(prompt, opts);
   }

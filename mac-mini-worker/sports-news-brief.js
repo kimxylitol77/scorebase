@@ -35,7 +35,12 @@ web_search 로 지난 24시간의 주요 스포츠 뉴스를 조사해 한국 �
 }
 
 async function main() {
-  const text = await askWithWebSearch(buildPrompt(), { maxTokens: 4000, maxSearches: 10 });
+  const text = await askWithWebSearch(buildPrompt(), {
+    maxTokens: 4000,
+    maxSearches: 10,
+    // 로컬 모드(BRIEF_PROVIDER=local) 시 RSS 검색어. 시즌 활발 종목 위주.
+    query: ["해외축구 EPL", "MLB 메이저리그", "KBO 프로야구", "NBA 농구", "2026 월드컵 축구", "손흥민"],
+  });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
   const clean = tidyBullets(stripPreamble(text, ["⚽", "⚾", "🏀", "🏒", "📝"]));
   await notify({

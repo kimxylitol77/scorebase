@@ -30,7 +30,12 @@ web_search 로 지난 24시간의 주요 AI 뉴스를 조사해 한국어 아침
 }
 
 async function main() {
-  const text = await askWithWebSearch(buildPrompt(), { maxTokens: 4000, maxSearches: 10 });
+  const text = await askWithWebSearch(buildPrompt(), {
+    maxTokens: 4000,
+    maxSearches: 10,
+    // 로컬 모드(BRIEF_PROVIDER=local) 시 RSS 검색어.
+    query: ["AI 인공지능", "ChatGPT OpenAI", "구글 제미나이 AI", "Anthropic 클로드"],
+  });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
   const clean = tidyBullets(stripPreamble(text, ["🤖", "📌"]));
   await notify({

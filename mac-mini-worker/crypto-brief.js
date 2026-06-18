@@ -30,7 +30,12 @@ web_search 로 지난 24시간의 주요 암호화폐 뉴스를 조사해 한국
 }
 
 async function main() {
-  const text = await askWithWebSearch(buildPrompt(), { maxTokens: 4000, maxSearches: 10 });
+  const text = await askWithWebSearch(buildPrompt(), {
+    maxTokens: 4000,
+    maxSearches: 10,
+    // 로컬 모드(BRIEF_PROVIDER=local) 시 RSS 검색어.
+    query: ["비트코인", "이더리움", "암호화폐 코인"],
+  });
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
   const clean = tidyBullets(stripPreamble(text, ["🪙", "📌"]));
   await notify({
