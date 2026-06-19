@@ -1045,6 +1045,13 @@ async function renderSoccerPlayerView(pid: string, league: string) {
  * NBA 선수 view (BALLDONTLIE)
  * ==========================================================*/
 
+// NBA 선수 연봉(USD) → "$52.6M · ₩726억" 표기. TheSports player.salary.
+function fmtUsdKrw(usd: number): string {
+  const eok = (usd * 1380) / 1e8;
+  const krw = eok >= 10000 ? `${(eok / 10000).toFixed(2)}조` : `${Math.round(eok).toLocaleString()}억`;
+  return `$${(usd / 1e6).toFixed(1)}M · ₩${krw}`;
+}
+
 async function renderNbaPlayerView(pid: string) {
   const id = Number(pid);
   if (!Number.isFinite(id)) notFound();
@@ -1060,7 +1067,11 @@ async function renderNbaPlayerView(pid: string) {
   const fullName = `${profile.firstName} ${profile.lastName}`.trim();
   const nameKo = toKoreanPlayerName(fullName) || fullName;
   const teamKo = profile.team ? toKoreanTeamName(profile.team.fullName) || profile.team.fullName : "";
-  const photo = lookupNbaPlayer(fullName)?.photo; // ESPN headshot (이름 매칭)
+  const tsp = lookupNbaPlayer(fullName); // ESPN headshot + TheSports 프로필(생일·출생지·연봉·경력)
+  const photo = tsp?.photo;
+  const birth = tsp?.birthday ? new Date(tsp.birthday * 1000) : null;
+  const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
+  const birthStr = birth ? `${birth.getUTCFullYear()}.${String(birth.getUTCMonth() + 1).padStart(2, "0")}.${String(birth.getUTCDate()).padStart(2, "0")}` : null;
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       <header className="space-y-3">
@@ -1085,16 +1096,25 @@ async function renderNbaPlayerView(pid: string) {
                 </span>
               )}
               {profile.jerseyNumber && <span className="text-sm text-neutral-500">#{profile.jerseyNumber}</span>}
+              {age != null && <span className="text-sm text-neutral-500">{age}세</span>}
             </div>
             <div className="text-sm text-neutral-500">
               {teamKo ? `${teamKo} · ` : ""}
               {profile.height ? `${profile.height} · ` : ""}
               {profile.weight ? `${profile.weight} lbs` : ""}
               {profile.country ? ` · ${profile.country}` : ""}
+              {tsp?.city ? ` · 출생 ${tsp.city}` : ""}
             </div>
+            {tsp?.salary ? (
+              <div className="text-sm">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">연봉 {fmtUsdKrw(tsp.salary)}</span>
+                {tsp.careerAge ? <span className="text-neutral-400"> · NBA {tsp.careerAge}년차</span> : null}
+              </div>
+            ) : null}
             <div className="text-[11px] text-neutral-400">
-              BALLDONTLIE · {season} 시즌
+              BALLDONTLIE · TheSports · {season} 시즌
               {profile.draftYear ? ` · ${profile.draftYear} 드래프트 ${profile.draftRound}R ${profile.draftNumber}순위` : ""}
+              {birthStr ? ` · ${birthStr} 생` : ""}
             </div>
           </div>
         </div>
@@ -1167,7 +1187,7 @@ async function renderNbaPlayerView(pid: string) {
       </section>
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ 데이터 출처: BALLDONTLIE NBA API.
+        ⓘ 데이터 출처: BALLDONTLIE NBA API · 프로필(생일·출생지·연봉·경력) TheSports.
       </p>
     </article>
   );

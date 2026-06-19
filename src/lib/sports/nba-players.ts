@@ -11,6 +11,14 @@ interface PlayerEntry {
   espnId: string;
   pos: string | null;
   bdlId?: number;
+  // TheSports basketball player/list 보강 (enrich-nba-players-thesports.ts)
+  tsId?: string;
+  birthday?: number; // unix sec
+  city?: string; // 출생지 "Akron, OH"
+  careerAge?: number; // 리그 경력연수
+  salary?: number; // 연봉 USD (슈퍼스타만 채워짐)
+  drafted?: string; // "1997:Rd 1,Pk 11"
+  school?: string;
 }
 
 const INDEX = rawIndex as Record<string, PlayerEntry>;
@@ -35,6 +43,13 @@ export interface NbaPlayerInfo {
   pos: string | null;
   /** balldontlie id — /players/{bdlId}?league=NBA 선수 상세 연결용. 매칭 실패 시 undefined. */
   bdlId?: number;
+  // TheSports 보강 프로필 (선수 상세 페이지 헤더용)
+  birthday?: number;
+  city?: string;
+  careerAge?: number;
+  salary?: number;
+  drafted?: string;
+  school?: string;
 }
 
 /** 영문 선수명 → {한글명·사진·bdlId}. 매칭 실패 시 null. */
@@ -42,7 +57,10 @@ export function lookupNbaPlayer(name: string | null | undefined): NbaPlayerInfo 
   if (!name) return null;
   const e = INDEX[normKey(name)];
   if (!e) return null;
-  return { ko: e.ko || name, photo: e.photo, espnId: e.espnId, pos: e.pos, bdlId: e.bdlId };
+  return {
+    ko: e.ko || name, photo: e.photo, espnId: e.espnId, pos: e.pos, bdlId: e.bdlId,
+    birthday: e.birthday, city: e.city, careerAge: e.careerAge, salary: e.salary, drafted: e.drafted, school: e.school,
+  };
 }
 
 /** balldontlie 선수 상세 href — bdlId 있을 때만. */
