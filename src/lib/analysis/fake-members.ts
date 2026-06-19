@@ -179,6 +179,7 @@ async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCan
       startTime: true,
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
+      oddsHome: true, // 배당 유무 판단용 (배당 있는 경기 우선 선택)
       oddsHcLine: true,
       oddsTotalLine: true,
     },
@@ -200,6 +201,11 @@ async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCan
     const wc = valid.filter((x) => x.m.league === "WORLD_CUP");
     if (wc.length > 0) valid = wc;
   }
+  // 배당 있는 경기 우선 — 게시판 목록에 '배당 –' 글이 쌓이는 것 방지.
+  // 단 배당 있는 경기가 하나도 없으면(야구 odds stale·군소리그 등) 전체 fallback —
+  // 종목가중(야구55%)이 배당 누락만으로 깨지지 않게 한다.
+  const withOdds = valid.filter((x) => x.m.oddsHome != null);
+  if (withOdds.length > 0) valid = withOdds;
 
   const { m, sport } = valid[Math.floor(Math.random() * valid.length)];
   return {

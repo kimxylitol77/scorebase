@@ -169,9 +169,12 @@ async function pickImportantMatches(managerId: string, limit: number): Promise<C
     });
   }
 
-  // 중요도 = 두 팀 Elo 합(강팀 빅매치 우선) + 배당 있으면 가산(분석 풍부)
+  // 중요도 = 두 팀 Elo 합(강팀 빅매치 우선) + 배당 있으면 대형 가산.
+  // 가산을 Elo 합 범위(~2000~4000)보다 크게 둬서, 배당 있는 경기가 항상 상위 →
+  // 배당 있는 후보가 limit 이상이면 그것만 픽, 부족할 때만 배당 없는 빅매치로 채움.
+  // (매니저 픽은 시장 배당 대비 분석이라 배당 없는 경기는 본질적으로 빈약)
   const score = (c: Candidate) =>
-    c.homeElo + c.awayElo + (c.oddsHome != null ? 150 : 0);
+    c.homeElo + c.awayElo + (c.oddsHome != null ? 5000 : 0);
   cands.sort((a, b) => score(b) - score(a));
   return cands.slice(0, limit);
 }
