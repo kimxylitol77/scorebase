@@ -25,6 +25,7 @@ import rawClubRank from "../../../../data/club-rank-by-team.json";
 import rawTeamStats from "../../../../data/team-season-stats.json";
 import rawTSquads from "../../../../data/team-squads.json";
 import rawTeamVenues from "../../../../data/team-venues.json";
+import rawBaseballRosters from "../../../../data/baseball-rosters.json";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -56,6 +57,9 @@ const T_SQUADS = rawTSquads as Record<string, { updatedAt: string; squad: Array<
 // 축구 팀 홈구장+메타 (build-team-venues.ts — TheSports team/additional+venue)
 interface TeamVenue { venueName?: string; capacity?: number; city?: string; country?: string; foundation?: number; website?: string; marketValue?: number; currency?: string; totalPlayers?: number; foreignPlayers?: number }
 const TEAM_VENUES = rawTeamVenues as Record<string, TeamVenue>;
+// KBO·NPB 팀 로스터 (build-baseball-rosters.ts — koreabaseball·npb scrape, key=DB Team.id)
+interface BaseballRosterPlayer { id: string; name: string; group: "P" | "B" }
+const BASEBALL_ROSTERS = rawBaseballRosters as Record<string, BaseballRosterPlayer[]>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -312,6 +316,11 @@ export default async function TeamPage({ params }: Props) {
   // MLB 로스터 (MLB Stats API, person.id=mlbStatsId) → /players/{id}?league=MLB 선수페이지 연결.
   let mlbRoster: MlbRosterPlayer[] = [];
   if (team.league === "MLB") mlbRoster = await fetchMlbRoster(team.name);
+  // KBO·NPB — 정적 JSON 로스터 (런타임 scrape 안 함, 주간 빌드)
+  const baseballRoster: BaseballRosterPlayer[] =
+    team.league === "KBO" || team.league === "NPB"
+      ? (BASEBALL_ROSTERS[String(team.id)] ?? [])
+      : [];
 
   return (
     <div>
@@ -601,6 +610,38 @@ export default async function TeamPage({ params }: Props) {
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold text-sm truncate">{toKoreanPlayerName(p.name) || p.name}</div>
                           <div className="text-[11px] text-neutral-500 tabular-nums">{p.number ? `#${p.number} · ` : ""}{p.position}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
+        {/* KBO·NPB 로스터 — koreabaseball·npb scrape(build-baseball-rosters), 클릭 → /players/{pid}?league= */}
+        {baseballRoster.length > 0 && (
+          <section>
+            <SectionH title="⚾ 로스터" subtitle={`${baseballRoster.length}명 · ${team.league} 공식 · 클릭 시 상세`} />
+            {([["P", "투수"], ["B", "야수"]] as const).map(([g, label]) => {
+              const ps = baseballRoster.filter((p) => p.group === g);
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/players/${p.id}?league=${team.league}`}
+                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                      >
+                        <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                          <span className="text-xs font-bold text-neutral-500">{p.name.slice(0, 1)}</span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-sm truncate">{p.name}</div>
                         </div>
                       </Link>
                     ))}

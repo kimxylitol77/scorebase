@@ -164,6 +164,87 @@ export async function fetchKboPitcherIndex(
   return merged;
 }
 
+// ============================================================
+// 타자 인덱스 — HitterBasic.aspx (투수 패턴 복제 + ddlPos 추가)
+// ============================================================
+
+/** 한 팀 등재 타자 — HitterBasic.aspx, GET viewstate → POST ddlTeam (투수와 동일 ASP.NET). */
+async function fetchKboHitterIndexForTeam(
+  team: string,
+  season = SEASON_DEFAULT,
+): Promise<KboPitcherIndexEntry[]> {
+  const url = `${BASE}/Record/Player/HitterBasic/Basic1.aspx`;
+  const getRes = await axios.get<string>(url, {
+    headers: HEADERS,
+    timeout: 15000,
+    responseType: "text",
+  });
+  const setCookie = (getRes.headers["set-cookie"] ?? []).join("; ");
+  const cookie = setCookie
+    .split(/,\s*(?=[^;]+=)/)
+    .map((c) => c.split(";")[0])
+    .join("; ");
+  const hidden = extractHidden(getRes.data);
+
+  // 타자 페이지는 투수와 동일 prefix + ddlPos 추가. 정렬만 HRA_RT/DESC (명단엔 무관).
+  const P = "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents$";
+  const body = new URLSearchParams({
+    __EVENTTARGET: `${P}ddlTeam$ddlTeam`,
+    __EVENTARGUMENT: "",
+    __LASTFOCUS: "",
+    __VIEWSTATE: hidden.viewState,
+    __VIEWSTATEGENERATOR: hidden.viewStateGenerator,
+    __EVENTVALIDATION: hidden.eventValidation,
+    [`${P}ddlSeason$ddlSeason`]: season,
+    [`${P}ddlSeries$ddlSeries`]: "0",
+    [`${P}ddlTeam$ddlTeam`]: team,
+    [`${P}ddlPos$ddlPos`]: "", // 전체 포지션 (타자 페이지 추가 필드)
+    [`${P}ddlSituation$ddlSituation`]: "",
+    [`${P}ddlSituationDetail$ddlSituationDetail`]: "",
+    [`${P}hfPage`]: "1",
+    [`${P}hfOrderByCol`]: "HRA_RT",
+    [`${P}hfOrderBy`]: "DESC",
+  });
+
+  const postRes = await axios.post<string>(url, body.toString(), {
+    headers: {
+      ...HEADERS,
+      "Content-Type": "application/x-www-form-urlencoded",
+      Referer: url,
+      Origin: BASE,
+      Cookie: cookie,
+    },
+    timeout: 15000,
+    responseType: "text",
+  });
+  // 선수명/팀명 헤더가 투수 테이블과 동일 → parseKboPitcherTable 재사용.
+  return parseKboPitcherTable(postRes.data);
+}
+
+/** 시즌 등재 타자 전체 인덱스 — 10팀 순회 (fetchKboPitcherIndex 와 동일 구조). */
+export async function fetchKboHitterIndex(
+  season = SEASON_DEFAULT,
+): Promise<KboPitcherIndexEntry[]> {
+  const merged: KboPitcherIndexEntry[] = [];
+  const seen = new Set<string>();
+  for (const team of KBO_TEAM_CODES) {
+    try {
+      const list = await fetchKboHitterIndexForTeam(team, season);
+      for (const p of list) {
+        if (seen.has(p.kboId)) continue;
+        seen.add(p.kboId);
+        merged.push(p);
+      }
+    } catch (e) {
+      console.warn(
+        `[kbo-official] team=${team} 타자 index 실패:`,
+        (e as Error).message,
+      );
+    }
+  }
+  return merged;
+}
+
 export interface KboPitcherStats {
   kboId: string;
   team?: string;

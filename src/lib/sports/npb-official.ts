@@ -115,6 +115,64 @@ export async function fetchNpbPlayerIndex(): Promise<NpbPlayerIndexEntry[]> {
   return result;
 }
 
+export interface NpbRosterEntry {
+  pid: string;
+  fullName: string;
+  group: "P" | "B"; // 投手=P, 捕手/内野手/外野手=B (야수)
+  teamKor: string;
+}
+
+/**
+ * 12팀 로스터 — rst_*.html 의 포지션 th(投手/捕手/内野手/外野手) 행을 추적해
+ * 선수를 투수(P)/야수(B)로 분류. 監督/コーチ 는 제외. 주 1회 cron 으로 호출.
+ */
+export async function fetchNpbRoster(): Promise<NpbRosterEntry[]> {
+  const result: NpbRosterEntry[] = [];
+  const seen = new Set<string>();
+  for (const team of NPB_TEAMS) {
+    const url = `${BASE}/bis/teams/rst_${team.code}.html`;
+    try {
+      const r = await axios.get<string>(url, {
+        headers: HEADERS,
+        timeout: 12000,
+        responseType: "text",
+      });
+      const $ = cheerio.load(r.data);
+      $("table").each((_, t) => {
+        let group: "P" | "B" | null = null;
+        $(t)
+          .find("tr")
+          .each((_, tr) => {
+            const thText = $(tr)
+              .find("th")
+              .map((_, e) => $(e).text().trim())
+              .get()
+              .join("");
+            if (/投手/.test(thText)) group = "P";
+            else if (/捕手|内野手|外野手/.test(thText)) group = "B";
+            else if (/監督|コーチ/.test(thText)) group = null;
+            const a = $(tr).find("a[href*='/bis/players/']").first();
+            const g = group;
+            if (!a.length || !g) return;
+            const m = ($(a).attr("href") ?? "").match(
+              /\/bis\/players\/(\d{6,9})\.html/,
+            );
+            if (!m) return;
+            const pid = m[1];
+            const fullName = $(a).text().trim();
+            if (!fullName || seen.has(pid)) return;
+            seen.add(pid);
+            result.push({ pid, fullName, group: g, teamKor: team.korName });
+          });
+      });
+    } catch (e) {
+      console.warn(`[npb-official] roster ${team.code} 실패:`, (e as Error).message);
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return result;
+}
+
 /**
  * 한자 성 (또는 풀네임) + 팀 hint 로 NPB pid 매칭.
  * starter 표기는 보통 성 1개 ("戸郷") — 동성이인 가능성은 팀 hint 로 좁힘.
