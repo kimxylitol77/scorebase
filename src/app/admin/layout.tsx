@@ -83,6 +83,12 @@ function AdminBar({ username }: { username: string }) {
             🔗 링크
           </Link>
           <Link
+            href="/admin/structure"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            구조 지도
+          </Link>
+          <Link
             href="/admin/stats"
             className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
           >
