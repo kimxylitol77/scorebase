@@ -13,6 +13,7 @@ import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
 import TeamFollowButton from "@/components/teams/TeamFollowButton";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { getSportFromLeague } from "@/lib/players/types";
 import rawTOverrides from "../../../../data/player-overrides.json";
@@ -292,6 +293,15 @@ export default async function TeamPage({ params }: Props) {
     }
   }
 
+  // NHL 로스터 (NHL 공식 API, id=nhlId) — 팀 페이지 선수 명단 → 선수 상세(/players/{id}?league=NHL) 연결.
+  //  shortName=팀 약어(FLA 등). roster/current 는 여름 빈 응답이라 fetchNhlRoster 가 시즌 명시+직전 fallback.
+  let nhlRoster: NhlRosterPlayer[] = [];
+  if (team.league === "NHL" && team.shortName) {
+    const dn = new Date();
+    const ny = dn.getUTCMonth() + 1 >= 9 ? dn.getUTCFullYear() : dn.getUTCFullYear() - 1;
+    nhlRoster = await fetchNhlRoster(team.shortName, `${ny}${ny + 1}`);
+  }
+
   return (
     <div>
       {/* 헤더 */}
@@ -491,6 +501,44 @@ export default async function TeamPage({ params }: Props) {
             >
               스쿼드 몸값 랭킹 · 시장가치 Best XI 전체보기 →
             </Link>
+          </section>
+        )}
+
+        {/* NHL 로스터 — NHL 공식 API(nhlId), 클릭 → 선수 상세(/players/{id}?league=NHL) */}
+        {nhlRoster.length > 0 && (
+          <section>
+            <SectionH title="🏒 로스터" subtitle={`${nhlRoster.length}명 · NHL 공식 · 클릭 시 상세`} />
+            {([["F", "공격수"], ["D", "수비수"], ["G", "골리"]] as const).map(([g, label]) => {
+              const ps = nhlRoster.filter((p) => p.group === g);
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/players/${p.id}?league=NHL`}
+                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                      >
+                        <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                          {p.headshot ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={p.headshot} alt={p.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-bold text-neutral-500">{p.name.slice(0, 1)}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-sm truncate">{toKoreanPlayerName(p.name) || p.name}</div>
+                          <div className="text-[11px] text-neutral-500 tabular-nums">{p.number ? `#${p.number} · ` : ""}{p.position}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </section>
         )}
 

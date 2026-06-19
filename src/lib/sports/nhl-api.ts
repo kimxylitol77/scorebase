@@ -413,6 +413,46 @@ export async function fetchNhlPlayerGameLog(
   }
 }
 
+// ===== NHL 팀 로스터 (/roster/{abbr}/{season}) — 팀 페이지 선수 명단 =====
+//  id = nhlId → /players/{id}?league=NHL 선수 상세와 바로 연결.
+export interface NhlRosterPlayer {
+  id: number;
+  name: string;
+  position: string;
+  number: number | null;
+  headshot?: string;
+  group: "F" | "D" | "G";
+}
+
+// roster/current 는 비시즌(여름) 빈 응답 → 시즌 명시. 현재 시즌 빈이면 직전 시즌 fallback.
+export async function fetchNhlRoster(abbr: string, season: string): Promise<NhlRosterPlayer[]> {
+  const prev = `${Number(season.slice(0, 4)) - 1}${Number(season.slice(4)) - 1}`;
+  for (const s of [season, prev]) {
+    try {
+      const r = await fetch(`${BASE_URL}/roster/${abbr}/${s}`, { cache: "no-store", signal: AbortSignal.timeout(10000) });
+      if (!r.ok) continue;
+      const d = (await r.json()) as Record<string, Array<{ id: number; firstName?: { default?: string }; lastName?: { default?: string }; positionCode?: string; sweaterNumber?: number; headshot?: string }>>;
+      const out: NhlRosterPlayer[] = [];
+      for (const [key, group] of [["forwards", "F"], ["defensemen", "D"], ["goalies", "G"]] as const) {
+        for (const p of d[key] ?? []) {
+          out.push({
+            id: p.id,
+            name: `${p.firstName?.default ?? ""} ${p.lastName?.default ?? ""}`.trim(),
+            position: p.positionCode ?? group,
+            number: p.sweaterNumber ?? null,
+            headshot: p.headshot,
+            group,
+          });
+        }
+      }
+      if (out.length) return out;
+    } catch {
+      continue;
+    }
+  }
+  return [];
+}
+
 // ===== NHL 시즌 순위 (/standings/now) — 공식 순위표 =====
 // ⚠️ NHL 승점은 승=2·연장패(OTL)=1·정규패=0 — 축구식 calcStandings(승×3)와 다르다.
 //    반드시 공식 API 값을 그대로 써야 순위가 맞는다.
