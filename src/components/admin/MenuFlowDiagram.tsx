@@ -1,11 +1,12 @@
 // 헤더 메뉴 트리 플로우 — nav-config 를 박스+화살표로 시각화. admin 구조 지도 ①.
-// 좌→우 4단: 홈 → 대표메뉴 5 → 각 페이지 → (허브 페이지의) 하위 페이지. 박스 클릭 시 이동.
+// 좌→우 4단: 홈 → 대표메뉴 5 → 각 페이지 → (허브의) 하위 페이지. 박스 클릭 시 이동.
+// 하위는 정적 별도 페이지(색 채움)와 동적 [param] 페이지(점선)로 구분.
 import { SPORT_CATEGORIES, COMMUNITY_CATEGORY } from "@/components/nav-config";
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#64748B", "#8B5CF6"]; // 메뉴 순서대로 색
 
-// 허브 페이지(메뉴 페이지)가 거느린 하위 페이지 — 수동 큐레이션. 키는 nav-config href(쿼리 제거).
-const SUBPAGES: Record<string, { label: string; href: string }[]> = {
+// 허브 페이지가 거느린 하위 — 수동 큐레이션. dyn=true 는 동적 [param](리그·선수·글 끼움).
+const SUBPAGES: Record<string, { label: string; href: string; dyn?: boolean }[]> = {
   "/world-cup": [
     { label: "오늘의 베스트XI", href: "/world-cup/team-of-day" },
     { label: "조별 베스트11", href: "/world-cup/best-xi/A" },
@@ -20,13 +21,21 @@ const SUBPAGES: Record<string, { label: string; href: string }[]> = {
   ],
   "/analysis": [
     { label: "분석글 작성", href: "/analysis/new" },
+    { label: "글 상세·댓글", href: "/analysis", dyn: true },
   ],
+  "/standings": [{ label: "리그별 순위표", href: "/standings/EPL", dyn: true }],
+  "/transfers": [{ label: "선수 개인 페이지", href: "/transfers", dyn: true }],
+  "/injuries": [{ label: "리그별 부상자", href: "/injuries/EPL", dyn: true }],
+  "/experts": [{ label: "전문가 프로필", href: "/experts", dyn: true }],
+  "/blog": [{ label: "블로그 글 상세", href: "/blog", dyn: true }],
+  "/notices": [{ label: "공지 상세", href: "/notices", dyn: true }],
 };
 
 interface Node {
   label: string;
   href: string;
   y: number;
+  dyn: boolean;
 }
 
 export default function MenuFlowDiagram() {
@@ -43,11 +52,11 @@ export default function MenuFlowDiagram() {
       if (subDefs.length > 0) {
         const subStart = y;
         const subs: Node[] = subDefs.map((s) => {
-          const n = { label: s.label, href: s.href, y };
+          const n = { label: s.label, href: s.href, y, dyn: s.dyn ?? false };
           y += PH + GAP;
           return n;
         });
-        const pageY = (subStart + (y - PH - GAP)) / 2; // 하위 묶음의 세로 중앙
+        const pageY = (subStart + (y - PH - GAP)) / 2;
         return { label: it.label, href: it.href, y: pageY, subs };
       }
       const node = { label: it.label, href: it.href, y, subs: [] as Node[] };
@@ -64,7 +73,6 @@ export default function MenuFlowDiagram() {
   const curve = (x1: number, y1: number, x2: number, y2: number) =>
     `M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}`;
   const cy = (boxY: number) => boxY + PH / 2;
-
   const boxStyle = { fontSize: 11, fontFamily: "system-ui, sans-serif" } as const;
 
   return (
@@ -75,7 +83,6 @@ export default function MenuFlowDiagram() {
         </marker>
       </defs>
 
-      {/* 선: 홈→메뉴 / 메뉴→페이지 / 페이지→하위 */}
       {layout.map((c, i) => (
         <path key={`h${i}`} d={curve(HX + HW, cy(homeY), MX, cy(c.menuY))} fill="none" stroke={c.col} strokeWidth={1.5} opacity={0.5} markerEnd="url(#mtfArrow)" />
       ))}
@@ -87,12 +94,11 @@ export default function MenuFlowDiagram() {
       {layout.flatMap((c, ci) =>
         c.items.flatMap((it, ii) =>
           it.subs.map((s, si) => (
-            <path key={`ps${ci}-${ii}-${si}`} d={curve(PX + PW, cy(it.y), SX, cy(s.y))} fill="none" stroke={c.col} strokeWidth={1.4} opacity={0.45} markerEnd="url(#mtfArrow)" />
+            <path key={`ps${ci}-${ii}-${si}`} d={curve(PX + PW, cy(it.y), SX, cy(s.y))} fill="none" stroke={c.col} strokeWidth={1.4} opacity={0.4} markerEnd="url(#mtfArrow)" />
           )),
         ),
       )}
 
-      {/* 박스: 홈 / 메뉴 / 페이지 / 하위 */}
       <a href="/">
         <rect x={HX} y={homeY} width={HW} height={PH} rx={5} fill="#6B7280" />
         <text x={HX + HW / 2} y={cy(homeY) + 4} textAnchor="middle" fill="#fff" {...boxStyle}>홈 (메인)</text>
@@ -115,8 +121,12 @@ export default function MenuFlowDiagram() {
         c.items.flatMap((it, ii) =>
           it.subs.map((s, si) => (
             <a key={`sb${ci}-${ii}-${si}`} href={s.href}>
-              <rect x={SX} y={s.y} width={SW} height={PH} rx={5} fill={c.col} fillOpacity={0.78} />
-              <text x={SX + SW / 2} y={cy(s.y) + 4} textAnchor="middle" fill="#fff" {...boxStyle}>{s.label}</text>
+              {s.dyn ? (
+                <rect x={SX} y={s.y} width={SW} height={PH} rx={5} fill="none" stroke={c.col} strokeWidth={1.2} strokeDasharray="4 2.5" />
+              ) : (
+                <rect x={SX} y={s.y} width={SW} height={PH} rx={5} fill={c.col} fillOpacity={0.78} />
+              )}
+              <text x={SX + SW / 2} y={cy(s.y) + 4} textAnchor="middle" fill={s.dyn ? c.col : "#fff"} {...boxStyle}>{s.label}</text>
             </a>
           )),
         ),
