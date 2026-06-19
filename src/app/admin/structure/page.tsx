@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { SPORT_CATEGORIES, COMMUNITY_CATEGORY } from "@/components/nav-config";
 import { SPORTS } from "@/lib/sports/sport-leagues";
+import pagesInventory from "../../../../data/pages-inventory.json";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "구조 지도 — admin", robots: { index: false } };
@@ -31,6 +32,17 @@ const GAPS: { sport: string; level: "none" | "part"; text: string }[] = [
   { sport: "농구·하키", level: "part", text: "시즌 우승확률 예측 미구현 (야구·축구만 있음)." },
   { sport: "야구", level: "part", text: "NPB 연봉·이적 없음, KBO/NPB 팀 로스터 미완(scraping)." },
   { sport: "UFC", level: "none", text: "예측 데이터가 없어 회원봇 픽만, 정식 AI예측 없음." },
+];
+
+// 페이지 인벤토리 그룹 — 표시 순서 + 한글 라벨 (스크립트의 group 키와 1:1).
+const GROUP_META: { key: string; label: string }[] = [
+  { key: "menu", label: "메뉴 직행" },
+  { key: "predictions-deep", label: "예측 딥링크 (메뉴 비노출)" },
+  { key: "live", label: "라이브 상세 (매치 클릭)" },
+  { key: "detail", label: "상세 페이지 (동적)" },
+  { key: "worldcup", label: "월드컵" },
+  { key: "other", label: "기타·시안" },
+  { key: "prototype", label: "프로토타입 (정리 후보)" },
 ];
 
 function cellColor(v: string): string {
@@ -113,8 +125,42 @@ export default function StructurePage() {
         ))}
       </ol>
 
+      {/* ④ 페이지 인벤토리 — page.tsx 헤더 주석 자동 추출 */}
+      <h2 className="text-sm font-bold mt-9 mb-2.5">
+        ④ 페이지 인벤토리{" "}
+        <span className="text-neutral-400 font-normal">— page.tsx 헤더 주석 자동 추출 ({pagesInventory.length}개 · 그룹 펼치기)</span>
+      </h2>
+      <div className="space-y-2">
+        {GROUP_META.map(({ key, label }) => {
+          const pages = pagesInventory.filter((p) => p.group === key);
+          if (pages.length === 0) return null;
+          return (
+            <details key={key} className="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden">
+              <summary className="cursor-pointer select-none px-4 py-2.5 text-sm font-semibold bg-neutral-50 dark:bg-neutral-900/40">
+                {label} <span className="text-neutral-400 font-normal tabular-nums">{pages.length}</span>
+              </summary>
+              <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
+                {pages.map((p) => (
+                  <div key={p.route} className="flex flex-col sm:flex-row gap-1 sm:gap-3 px-4 py-2 text-xs">
+                    {p.dynamic ? (
+                      <span className="font-mono text-neutral-500 shrink-0 sm:w-[210px] truncate" title="동적 경로 — 목록에서 항목 클릭 시 접근">{p.route}</span>
+                    ) : (
+                      <Link href={p.route} className="font-mono text-blue-600 dark:text-blue-400 hover:underline shrink-0 sm:w-[210px] truncate">{p.route}</Link>
+                    )}
+                    <span className="text-neutral-500 leading-snug">
+                      {p.desc ? p.desc : <span className="text-neutral-400 italic">헤더 주석 없음 — page.tsx 첫 줄에 한 줄 설명 추가하면 자동으로 채워짐</span>}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          );
+        })}
+      </div>
+
       <p className="mt-8 text-xs text-neutral-400 leading-relaxed">
-        출처: nav-config.ts · sport-leagues.ts (메뉴·리그 자동) + 코드 재검증(커버리지). 칸이 틀리면 COVERAGE 상수만 고치면 됩니다.
+        출처: nav-config.ts · sport-leagues.ts (메뉴·리그 자동) + 코드 재검증(커버리지). 페이지 인벤토리는{" "}
+        <code className="text-[11px]">npx tsx scripts/build-pages-inventory.ts</code> 재실행으로 갱신. 칸이 틀리면 COVERAGE 상수만 고치면 됩니다.
       </p>
     </main>
   );

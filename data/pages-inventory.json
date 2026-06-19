@@ -1,0 +1,422 @@
+[
+  {
+    "route": "/",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/about",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/account",
+    "desc": "회원 마이페이지 — 애플풍 2컬럼. 좌: 프로필·등급표(sticky) / 우: 활동통계·즐겨찾기·내 글.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/analysis",
+    "desc": "",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/analysis/[id]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/analysis/new",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/analysis/ranking",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/articles/[slug]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/assistant",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/blog",
+    "desc": "",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/blog/[slug]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/board",
+    "desc": "scoreboard.kr — 라이브 스코어 전용 화면 (D · 프리미엄 시안). scorebase 와 데이터 공유(오늘 경기 DB), 디자인/레이아웃은 완전 독립. Phase 1: 서버 렌더 + 종목 탭(링크). 폴링/날짜네비/미니상세는 후속.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/coaches/[id]",
+    "desc": "감독 상세 페이지. id = TheSports coach id. 데이터: data/team-coaches.json(현직 스냅샷 — ts coach/list) + data/coach-careers.json (Wikidata P6087 감독 경력 + P54 선수 시절 + 국적) + 라인업 cache(최근 실제 포메이션). 갱신: scripts/build-team-coaches.ts → scripts/build-coach-careers.ts 순서 재실행.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/experts",
+    "desc": "",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/experts/[userId]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/h2h/[pair]",
+    "desc": "두 팀 상대전적(H2H) 페이지 — \"한화 KIA 상대전적\"류 검색 수요 타깃. URL: /h2h/{작은id}-vs-{큰id} (역순 진입 시 정렬 URL 로 redirect — 중복 색인 방지). 전적 요약 + 다음 맞대결(모델 승률) + 최근 맞대결 목록. 모든 리그 공용.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/injuries",
+    "desc": "",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/injuries/[league]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/landing",
+    "desc": "스코어베이스 브랜드 랜딩(소개) 페이지. 검색 노출용 키워드 풍부 가시 콘텐츠 + SEO.  스코어베이스.com 도메인 진입점. 키워드 우선순위 = 검색량 데이터 기반(라이브스코어·리그 순위 중심).",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/leagues/[league]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/live/[league]/[gameId]",
+    "desc": "NBA / NHL / 축구 + 9개 야구 리그 (CPBL/WBC/.../LMB) 라이브 상세. MLB/KBO/NPB/LOL 은 자체 라우트 (/live/{mlb,kbo,npb,lol}/[gameId]) 가 우선 매칭됨.  gameId = Match.externalId   NBA/NHL = ESPN id, 축구 = api-football fixture id,   야구 9개 리그 = TheSports ts-{tsMatchId} (thesports-matches route 가 prefix 부여).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "live"
+  },
+  {
+    "route": "/live/kbo/[gameId]",
+    "desc": "KBO 매치 라이브 상세 페이지. gameId = api-sports Baseball game id (= 우리 Match.externalId). SSR: DB Match 조회로 메타데이터 + 한글팀명 + 선발투수.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "live"
+  },
+  {
+    "route": "/live/lol/[matchId]",
+    "desc": "LCK 매치 라이브 상세 페이지. matchId = BALLDONTLIE match id (= 우리 Match.externalId).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "live"
+  },
+  {
+    "route": "/live/mlb/[gameId]",
+    "desc": "MLB 매치 라이브 상세 페이지. gameId = ESPN game id (= 우리 Match.externalId, MLB collector 가 ESPN ID 사용). SSR: DB Match 조회로 메타데이터 + 한글팀명. 라이브 데이터는 클라이언트가 polling.  Fallback: 헤더 라이브바 등에서 api-sports baseball id (5자리) 로 접속하는 케이스 지원. → api-sports 에서 game info fetch → home/away/date 매칭 → 진짜 ESPN id 로 redirect.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "live"
+  },
+  {
+    "route": "/live/npb/[gameId]",
+    "desc": "NPB 매치 라이브 상세 페이지. gameId = api-sports Baseball game id (= 우리 Match.externalId).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "live"
+  },
+  {
+    "route": "/live/ufc/[id]",
+    "desc": "UFC(MMA) 매치 상세 — 두 파이터 대결 헤더 + Tale of the Tape + 배당. 데이터: Match(The Odds 일정/배당) + MmaFighter(api-sports 체급·신체·별명 + ESPN 전적·국기·헤드샷). 파이터=Team(league=\"UFC\") 1:1 MmaFighter. /scores UFC 카드 클릭 → /live/ufc/{Match.id}.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "live"
+  },
+  {
+    "route": "/login",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/national-teams",
+    "desc": "2026 월드컵 출전 48개국 목록 — 조별(A~L) 그리드. 고아 상태였던 national-teams/[id] 페이지들의 입구(허브). 데이터는 시드 Elo + FIFA 랭킹 정적, 팀 row 매칭만 DB — 1시간 ISR 로 충분.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "worldcup"
+  },
+  {
+    "route": "/national-teams/[id]",
+    "desc": "국가대표팀 페이지 — 월드컵 대비. ts team id 로 국가 통합(WORLD_CUP+INTL_FRIENDLY 등). 헤더(국기·FIFA랭킹·감독) + 최근 폼 + 다음 경기 + 스쿼드(라인업 누적).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "worldcup"
+  },
+  {
+    "route": "/notices",
+    "desc": "",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/notices/[slug]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/players/[pid]",
+    "desc": "선수(투수) 상세 페이지 — league 별 분기.   ?league=KBO  → KBO 공식 (koreabaseball.com) scraping   ?league=NPB  → NPB 공식 (npb.jp) scraping + DB 최근 등판   default      → MLB Stats API (statsapi.mlb.com)",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/predictions",
+    "desc": "/predictions 인덱스 — 리그 카드 grid + 국가별 standings. 데이터 fetch 는 server, UI/motion 은 _view.tsx (client).",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/predictions/[league]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/predictions/accuracy",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "predictions-deep"
+  },
+  {
+    "route": "/predictions/club-ranking",
+    "desc": "세계 클럽 랭킹 상위 150 (TheSports ranking/club). 예측 대시보드에서 진입.  FIFA 국가 랭킹(/predictions/fifa-ranking)의 클럽 버전. 정적 JSON(data/club-rankings.json) 읽기.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "predictions-deep"
+  },
+  {
+    "route": "/predictions/fifa-ranking",
+    "desc": "FIFA 국가 랭킹 전체(211개국). 예측 대시보드 FIFA 카드/버튼에서 진입.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "predictions-deep"
+  },
+  {
+    "route": "/predictions/starters",
+    "desc": "오늘·내일 선발 투수 매치업 보드 (KBO·MLB·NPB). 데이터: Match.homeStarter/awayStarter JSON (baseball-starters·mlb-starters cron 이 채움). ERA·WHIP·K9 비교 + 최근 3등판 폼(KBO·MLB) + AI 승률 — 매치 상세(/live)로 클릭 이동.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/predictions/title-race",
+    "desc": "전 리그 우승 경쟁 trackerboard. 각 리그의 1~3위 + 격차 + 잔여 경기 + Elo 예측 우승 확률 횡단 표시.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "predictions-deep"
+  },
+  {
+    "route": "/preview/match-insight",
+    "desc": "매치 인사이트 사이드바 미리보기 — sample 데이터로 3가지 케이스 렌더링. 1) 유의미 격차 (≥5%p) — 초록 글로우 2) 약한 격차 (2~5%p) — 옅은 글로우 3) 시장과 일치 — 글로우 없음",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/previews",
+    "desc": "종목별 PREVIEW 글 모음 페이지. 축구·야구·농구·하키·e스포츠 카테고리 탭으로 프리뷰만 모아 보기.  야구는 리그별 발행 주기가 달라(MLB 미래 3일치 / KBO·NPB 당일분) 한 그리드에 섞으면 MLB 미래 경기가 화면을 점유해 KBO/NPB 가 묻힘 → 야구 탭은 KBO·MLB·NPB 하위 탭으로 두고 한 번에 한 리그만 선택해서 보게 함. (그 외 종목은 카테고리 통합 그리드)",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/salaries/kbo",
+    "desc": "KBO 국내 선수 연봉 랭킹 (원화, 상위 큐레이션). 데이터: KBO 공식 + 언론 교차검증 → PlayerSalary(KBO) (만원 단위). 선수명·구단 한글 그대로. ⚠️ KBO 연봉 전체 DB 무료 소스 없음(statiz 로그인 벽) → 국내 선수 TOP 10 큐레이션. 외국인은 달러 별도라 제외.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/salaries/mlb",
+    "desc": "MLB 선수 연봉 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: spotrac → PlayerSalary(MLB) (cron fetch-salaries). 선수 한글명·팀 = TheSportsPlayer(MLB) 매칭. ⚠️ MLB 선수 사진 소스가 없어 이니셜 fallback (NBA 는 ESPN headshot). 이름 매칭 ~69%(표기차 영문 유지).",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/salaries/nba",
+    "desc": "NBA 선수 연봉 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: basketball-reference contracts → PlayerSalary (cron fetch-salaries, 주 1회). 환율: frankfurter.app USD→KRW (revalidate 캐시, 실패 시 fallback).",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/scores",
+    "desc": "라이브/종료/예정 통합 스코어 페이지 (named.com 스타일 박스 카드). 구조: SportTabs → DateSlider → LeagueChips → MatchCard 그리드 (LIVE→예정→종료 그룹). LIVE 매치 있으면 LiveRefresher 가 30초마다 router.refresh().",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/search",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/signup",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
+    "route": "/standings",
+    "desc": "/standings 인덱스 — 순위 허브: 주요 리그 카드 grid + 국가·종목별 현재 순위 TOP 3 전체. (2026-06-12 역할 분리 — /predictions 는 예측 중심 요약, 순위 전체는 여기가 정본)",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/standings/[league]",
+    "desc": "리그별 순위표 페이지 — 36개 축구 리그 + 야구/농구/하키 일부 지원. /standings/EPL, /standings/K_LEAGUE_1 등.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/teams/[id]",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/thesports-prototype/epl-lineup",
+    "desc": "TheSports trial 검증 prototype — 단일 매치 라인업 SVG 포메이션 도식. x/y 좌표 (100x100 grid) 로 축구장에 선수 배치.  좌표 origin (docs):   Home team: 좌상단 → x 오른쪽, y 아래쪽 (y=12 골키퍼, y=85 FW)   Away team: 우하단 → x 왼쪽, y 위쪽 (mirror 처리 필요)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "prototype"
+  },
+  {
+    "route": "/thesports-prototype/epl-top-scorers",
+    "desc": "TheSports trial 검증 prototype — EPL 득점왕 Top 50. dev server 에서만 작동 (우리 macOS IP 가 whitelist 되어 있어 호출 OK). Production 은 fixed IP worker 셋업 전엔 비활성.  검증 데이터: Erling Haaland 26골 (2025-26 시즌, 5/17 fetch 기준)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "prototype"
+  },
+  {
+    "route": "/transactions/nba",
+    "desc": "NBA 트랜잭션 피드 (트레이드·FA계약·방출·단기계약·감독 인사). 데이터: ESPN transactions → SportsTransaction (cron fetch-transactions, 일 1회). 설명은 Haiku 한글 번역(descriptionKo) 우선 + 영문 원문 보조. 25건 페이지네이션.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/transfers",
+    "desc": "시장가치 랭킹 — TheSports market value 실데이터. 카테고리: 전체 / 리그별 / 팀별 / 국가별 / 포지션별 / 최신 이적 / 빅딜 / 팀별 IN·OUT + 선수·팀 검색(q). 기본 = 전체(빅5 통합) — 상단 마켓 무브(급상승·급락·빅딜) 요약. 행 클릭 → /transfers/[id].",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/transfers/[id]",
+    "desc": "선수 개인페이지 (TheSports 기반) — 몸값 추이 + 변동 이력 + 이적 기록.   id = TheSports player id. PlayerMarketValue / TheSportsPlayer / FootballTransfer 만 사용 (api-football 안 씀).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
+    "route": "/value-bets",
+    "desc": "Elo 예측 vs 배당사 implied 비교 → value > +5% 매치 list. SSR — 1분 revalidate. 데이터 source: Match.predHome/predDraw/predAway + 최근 OddsSnapshot.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/world-cup",
+    "desc": "2026 월드컵 허브 — 일정·결과·우승 확률·조별 그리드 + 사이트 내 WC 콘텐츠 전체 입구. 기존 자산 연결: national-teams/[id](48개국), world-cup/best-xi/[group], predictions/WORLD_CUP(풀 시뮬), leagues/WORLD_CUP(글), /scores(라이브). 시뮬 5000회 + DB 조회 → 10분 ISR (라이브 스코어 실시간은 /scores 가 담당).",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "worldcup"
+  },
+  {
+    "route": "/world-cup/best-xi/[group]",
+    "desc": "월드컵 조별 통합 베스트11 (4-2-3-1) + SEO 본문. 데이터: data/world-cup-xi/{group}.json (worker cron 이 build-world-cup-xi.ts 로 매일 갱신).",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "worldcup"
+  },
+  {
+    "route": "/world-cup/team-of-day",
+    "desc": "월드컵 '오늘의 베스트 XI' (최근 완료일 경기 평점 기반 4-2-3-1). 데이터: getTeamOfDay() 가 TheSportsMatchCache 평점을 실시간 집계 (Vercel 안전, cron·빌드 불필요). 과거 날짜는 /world-cup/team-of-day/[date] 동적 라우트로 조회 (날짜 칩 네비게이션).",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "worldcup"
+  },
+  {
+    "route": "/world-cup/team-of-day/[date]",
+    "desc": "특정 KST 날짜(YYYY-MM-DD)의 월드컵 베스트 XI. 최신 완료일이면 base(/team-of-day)로 redirect 해 canonical 중복을 막는다.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "worldcup"
+  }
+]
