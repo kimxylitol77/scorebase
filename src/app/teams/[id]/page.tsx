@@ -23,6 +23,7 @@ import rawTPos from "../../../../data/player-positions.json";
 import rawClubRank from "../../../../data/club-rank-by-team.json";
 import rawTeamStats from "../../../../data/team-season-stats.json";
 import rawTSquads from "../../../../data/team-squads.json";
+import rawTeamVenues from "../../../../data/team-venues.json";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -51,6 +52,9 @@ interface TeamStat { lg: string; name: string; matches: number | null; goals: nu
 const TEAM_STATS = rawTeamStats as Record<string, TeamStat>;
 // 공식 스쿼드 (ts team/squad/list — 등번호·공식 coarse 포지션, 154팀). 생성: scripts/build-team-squads.ts [[transfers-league-expansion]]
 const T_SQUADS = rawTSquads as Record<string, { updatedAt: string; squad: Array<{ id: string; name: string; position: string | null; number: number | null }> }>;
+// 축구 팀 홈구장+메타 (build-team-venues.ts — TheSports team/additional+venue)
+interface TeamVenue { venueName?: string; capacity?: number; city?: string; country?: string; foundation?: number; website?: string; marketValue?: number; currency?: string; totalPlayers?: number; foreignPlayers?: number }
+const TEAM_VENUES = rawTeamVenues as Record<string, TeamVenue>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -230,6 +234,7 @@ export default async function TeamPage({ params }: Props) {
   const tsTeamRows = await prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } });
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
+  const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
   let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; number: number | null; flag: string | null }[] = [];
   if (tsTeamRows.length) {
     const extIds = tsTeamRows.map((t) => t.externalId);
@@ -374,6 +379,30 @@ export default async function TeamPage({ params }: Props) {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-10">
+        {/* 클럽 정보 — 홈구장·창단·스쿼드 (TheSports team/additional+venue) */}
+        {teamVenue && (teamVenue.venueName || teamVenue.foundation || teamVenue.totalPlayers) && (
+          <section>
+            <SectionH title="🏟️ 클럽 정보" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {teamVenue.venueName && (
+                <Stat label="홈구장" value={teamVenue.venueName} subtle={[teamVenue.capacity ? `${teamVenue.capacity.toLocaleString()}석` : "", teamVenue.city ?? ""].filter(Boolean).join(" · ")} />
+              )}
+              {teamVenue.foundation ? <Stat label="창단" value={`${teamVenue.foundation}년`} /> : null}
+              {teamVenue.totalPlayers ? (
+                <Stat label="선수단" value={`${teamVenue.totalPlayers}명`} subtle={teamVenue.foreignPlayers != null ? `외국인 ${teamVenue.foreignPlayers}명` : undefined} />
+              ) : null}
+              {teamVenue.marketValue ? (
+                <Stat label="스쿼드 가치" value={`${teamVenue.currency ?? "€"}${(teamVenue.marketValue / 1e6).toFixed(0)}M`} />
+              ) : null}
+            </div>
+            {teamVenue.website && (
+              <a href={teamVenue.website} target="_blank" rel="noopener noreferrer nofollow" className="mt-3 inline-block text-xs text-cyan-600 dark:text-cyan-400 hover:underline">
+                공식 웹사이트 →
+              </a>
+            )}
+          </section>
+        )}
+
         {/* 시즌 통계 */}
         {row && (
           <section>
