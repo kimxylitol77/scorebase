@@ -1,6 +1,7 @@
 // BALLDONTLIE 통합 injuries fetch — NBA / NHL / MLB.
 // 각 종목별 응답 구조가 약간 달라 정규화 거쳐 EspnInjuryEntry 호환 형식으로 반환.
 
+import { unstable_cache } from "next/cache";
 import type { EspnInjuryEntry } from "./espn-injuries";
 
 export interface BdlInjuryEntry extends EspnInjuryEntry {
@@ -212,12 +213,12 @@ export async function fetchBalldontlieInjuries(
 
 const BDL_NBA = "https://api.balldontlie.io/nba/v1";
 
-// BDL plan rate limit 이 분당 5(x-ratelimit-limit:5)로 매우 낮음 — Next 캐시(revalidate)로
-// 같은 선수 호출을 사용자/재방문 간 공유하고, 429 시 backoff 재시도로 일시 burst 를 흡수.
+// BDL plan rate limit 이 분당 5(x-ratelimit-limit:5)로 매우 낮음 — 429 시 backoff 재시도로 흡수.
+// 페이지가 force-dynamic 이라 fetch 의 next.revalidate 가 무시됨 → profile 은 unstable_cache 로 캐시.
 const bdlSleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-async function bdlGet(url: string, key: string, revalidate: number): Promise<Response | null> {
+async function bdlGet(url: string, key: string): Promise<Response | null> {
   for (let i = 0; i < 3; i++) {
-    const r = await fetch(url, { headers: { Authorization: key }, next: { revalidate } });
+    const r = await fetch(url, { headers: { Authorization: key }, cache: "no-store" });
     if (r.status !== 429) return r;
     if (i < 2) await bdlSleep(1500 * (i + 1)); // 429 → 1.5s · 3s 후 재시도
   }
@@ -314,12 +315,18 @@ interface BdlNbaPlayerResp {
   };
 }
 
-export async function fetchNbaPlayer(id: number): Promise<NbaPlayerProfile | null> {
-  const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return null;
-  try {
-    const r = await bdlGet(`${BDL_NBA}/players/${id}`, key, 3600); // profile 은 거의 정적 — 1시간 캐시
-    if (!r || !r.ok) return null;
+// force-dynamic 페이지라 fetch 캐시가 무시됨 → unstable_cache 로 강제 캐시(1시간). BDL 분당 5
+//  한도에서 같은 선수 호출을 사용자·재방문 간 공유하는 핵심. 429 지속(bdlGet null)·5xx 는 throw 로
+//  캐시를 회피해 다음 요청에 재시도(404·정상 무데이터만 null 로 캐시).
+const getNbaPlayerCached = unstable_cache(
+  async (id: number): Promise<NbaPlayerProfile | null> => {
+    const key = process.env.BALLDONTLIE_KEY ?? "";
+    const r = await bdlGet(`${BDL_NBA}/players/${id}`, key);
+    if (!r) throw new Error("bdl 429");
+    if (!r.ok) {
+      if (r.status === 404) return null;
+      throw new Error(`bdl ${r.status}`);
+    }
     const j = (await r.json()) as BdlNbaPlayerResp;
     const d = j.data;
     if (!d) return null;
@@ -337,15 +344,18 @@ export async function fetchNbaPlayer(id: number): Promise<NbaPlayerProfile | nul
       draftRound: d.draft_round,
       draftNumber: d.draft_number,
       team: d.team
-        ? {
-            id: d.team.id,
-            fullName: d.team.full_name,
-            city: d.team.city,
-            name: d.team.name,
-            abbr: d.team.abbreviation,
-          }
+        ? { id: d.team.id, fullName: d.team.full_name, city: d.team.city, name: d.team.name, abbr: d.team.abbreviation }
         : undefined,
     };
+  },
+  ["bdl-nba-player"],
+  { revalidate: 3600 },
+);
+
+export async function fetchNbaPlayer(id: number): Promise<NbaPlayerProfile | null> {
+  if (!process.env.BALLDONTLIE_KEY) return null;
+  try {
+    return await getNbaPlayerCached(id);
   } catch (e) {
     console.warn("[bdl] nba player 실패:", (e as Error).message);
     return null;
@@ -359,7 +369,7 @@ export async function fetchNbaSeasonAverages(
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return null;
   try {
-    const r = await bdlGet(`${BDL_NBA}/season_averages?player_id=${playerId}&season=${season}`, key, 900); // 시즌평균 15분 캐시
+    const r = await bdlGet(`${BDL_NBA}/season_averages?player_id=${playerId}&season=${season}`, key);
     if (!r || !r.ok) return null;
     interface AvgRow {
       season: number;
@@ -424,7 +434,7 @@ export async function fetchNbaPlayerRecentGames(
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return [];
   try {
-    const r = await bdlGet(`${BDL_NBA}/stats?player_ids[]=${playerId}&seasons[]=${season}&per_page=${limit}`, key, 900); // 최근경기 15분 캐시
+    const r = await bdlGet(`${BDL_NBA}/stats?player_ids[]=${playerId}&seasons[]=${season}&per_page=${limit}`, key);
     if (!r || !r.ok) return [];
     interface StatRow {
       id: number;
