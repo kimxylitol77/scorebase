@@ -33,8 +33,6 @@ import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
 import {
   fetchNbaPlayer,
-  fetchNbaSeasonAverages,
-  fetchNbaPlayerRecentGames,
   fetchLolPlayerSeason,
   type NbaPlayerProfile,
   type NbaSeasonAverages,
@@ -42,6 +40,7 @@ import {
   type LolPlayerStats,
   type LolMatchRow,
 } from "@/lib/sports/balldontlie";
+import { fetchNbaEspnStats } from "@/lib/sports/espn-nba-player";
 import {
   fetchNhlPlayerLanding,
   fetchNhlPlayerGameLog,
@@ -1058,17 +1057,15 @@ async function renderNbaPlayerView(pid: string) {
   const now = new Date();
   const m = now.getUTCMonth() + 1;
   const season = m >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-  const [profile, avg, recent] = await Promise.all([
-    fetchNbaPlayer(id),
-    fetchNbaSeasonAverages(id, season),
-    fetchNbaPlayerRecentGames(id, season, 10),
-  ]);
+  const profile = await fetchNbaPlayer(id);
   if (!profile) notFound();
   const fullName = `${profile.firstName} ${profile.lastName}`.trim();
   const nameKo = toKoreanPlayerName(fullName) || fullName;
   const teamKo = profile.team ? toKoreanTeamName(profile.team.fullName) || profile.team.fullName : "";
   const tsp = lookupNbaPlayer(fullName); // ESPN headshot + TheSports 프로필(생일·출생지·연봉·경력)
   const photo = tsp?.photo;
+  // 통계는 BDL plan 401 → 무료 ESPN(overview 시즌평균 + gamelog 최근경기)으로 우회
+  const { avg, recent } = tsp?.espnId ? await fetchNbaEspnStats(tsp.espnId) : { avg: null, recent: [] };
   const birth = tsp?.birthday ? new Date(tsp.birthday * 1000) : null;
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
   const birthStr = birth ? `${birth.getUTCFullYear()}.${String(birth.getUTCMonth() + 1).padStart(2, "0")}.${String(birth.getUTCDate()).padStart(2, "0")}` : null;
@@ -1112,7 +1109,7 @@ async function renderNbaPlayerView(pid: string) {
               </div>
             ) : null}
             <div className="text-[11px] text-neutral-400">
-              BALLDONTLIE · TheSports · {season} 시즌
+              BALLDONTLIE · ESPN · TheSports · {season} 시즌
               {profile.draftYear ? ` · ${profile.draftYear} 드래프트 ${profile.draftRound}R ${profile.draftNumber}순위` : ""}
               {birthStr ? ` · ${birthStr} 생` : ""}
             </div>
@@ -1187,7 +1184,7 @@ async function renderNbaPlayerView(pid: string) {
       </section>
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ 데이터 출처: BALLDONTLIE NBA API · 프로필(생일·출생지·연봉·경력) TheSports.
+        ⓘ 데이터 출처: 기본정보 BALLDONTLIE · 통계·사진 ESPN · 연봉·생일·출생지 TheSports.
       </p>
     </article>
   );
