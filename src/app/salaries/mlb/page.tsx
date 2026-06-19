@@ -140,14 +140,24 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                   const p = pMap.get(r.playerName);
                   const display = p?.nameKo ?? r.playerName;
                   const team = r.teamName ? toKoreanTeamName(r.teamName, "MLB") : null;
+                  // 사진 URL(mlbstatic headshot)의 mlbamId → 통일 선수 페이지(/players/[pid], MLB 기본)
+                  const mlbamId = r.photoUrl?.match(/\/people\/(\d+)\//)?.[1];
+                  const href = mlbamId ? `/players/${mlbamId}` : null;
                   return (
                     <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition">
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                       <td className="px-2 py-2.5">
-                        <div className="flex items-center gap-2.5">
-                          <Avatar photo={r.photoUrl} name={display} />
-                          <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
-                        </div>
+                        {href ? (
+                          <Link href={href} className="flex items-center gap-2.5 hover:underline">
+                            <Avatar photo={r.photoUrl} name={display} />
+                            <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
+                          </Link>
+                        ) : (
+                          <div className="flex items-center gap-2.5">
+                            <Avatar photo={r.photoUrl} name={display} />
+                            <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-2 py-2.5 text-neutral-500">{team ?? "—"}</td>
                       <td className="px-3 py-2 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
