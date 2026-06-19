@@ -44,6 +44,20 @@ interface RecentResult {
   vsKo: string;
   score: string;
   outcome: "W" | "D" | "L";
+  date: string;
+  venue: string | null;
+}
+
+// af fixture raw(대부분 JSON 문자열로 저장)에서 경기장 이름만 best-effort 추출.
+function venueFromRaw(raw: unknown): string | null {
+  try {
+    const p = (typeof raw === "string" ? JSON.parse(raw) : raw) as
+      | { fixture?: { venue?: { name?: string | null } } }
+      | null;
+    return p?.fixture?.venue?.name ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function recentInternationals(teamId: number, before: Date): Promise<RecentResult[]> {
@@ -58,7 +72,7 @@ async function recentInternationals(teamId: number, before: Date): Promise<Recen
     orderBy: { startTime: "desc" },
     take: 5,
     select: {
-      league: true, homeScore: true, awayScore: true, homeTeamId: true,
+      league: true, homeScore: true, awayScore: true, homeTeamId: true, startTime: true, raw: true,
       homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
     },
   });
@@ -73,6 +87,10 @@ async function recentInternationals(teamId: number, before: Date): Promise<Recen
       vsKo: toKoreanTeamName(vs, "WORLD_CUP"),
       score: `${my}:${opp}`,
       outcome: my > opp ? "W" : my === opp ? "D" : "L",
+      date: r.startTime
+        .toLocaleDateString("ko-KR", { year: "2-digit", month: "numeric", day: "numeric", timeZone: "Asia/Seoul" })
+        .replace(/\s/g, "").replace(/\.$/, ""),
+      venue: venueFromRaw(r.raw),
     } as RecentResult;
   });
 }
@@ -201,12 +219,18 @@ export default async function WcMatchAnalysisCard({
             {[{ list: homeRecent }, { list: awayRecent }].map((side, si) => (
               <div key={si} className="space-y-1 w-full max-w-[240px]">
                 {side.list.map((r, i) => (
-                  <div key={i} className="flex items-center gap-1.5 text-[12px]">
-                    <span className={`w-4 h-4 rounded text-[10px] font-bold flex items-center justify-center shrink-0 ${OUTCOME_CLS[r.outcome]}`}>
-                      {r.outcome}
-                    </span>
-                    <span className="tabular-nums font-semibold text-neutral-800 dark:text-neutral-200 shrink-0">{r.score}</span>
-                    <span className="truncate text-neutral-500">vs {r.vsKo}</span>
+                  <div key={i} className="text-[12px]">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-4 h-4 rounded text-[10px] font-bold flex items-center justify-center shrink-0 ${OUTCOME_CLS[r.outcome]}`}>
+                        {r.outcome}
+                      </span>
+                      <span className="tabular-nums font-semibold text-neutral-800 dark:text-neutral-200 shrink-0">{r.score}</span>
+                      <span className="truncate text-neutral-500">vs {r.vsKo}</span>
+                    </div>
+                    <div className="flex items-center gap-1 pl-[22px] mt-0.5 text-[10px] text-neutral-400 leading-tight">
+                      <span className="shrink-0 tabular-nums">{r.date}</span>
+                      {r.venue && <span className="truncate">· {r.venue}</span>}
+                    </div>
                   </div>
                 ))}
                 {side.list.length === 0 && (
