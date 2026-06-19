@@ -208,6 +208,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           <div className="space-y-1">
             <div className="flex items-baseline gap-3 flex-wrap">
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{profile.name}</h1>
+              {profile.number && <span className="text-xl font-bold text-neutral-400">#{profile.number}</span>}
               <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">{handLabel}</span>
               {profile.age != null && <span className="text-sm text-neutral-500">{profile.age}세</span>}
             </div>
@@ -215,6 +216,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
               {profile.team ? `${profile.team} · ` : ""}
               {profile.birthCity}{profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
             </div>
+            <PlayerBioLine height={profile.height} weight={profile.weight} debut={profile.debut} draftYear={profile.draftYear} />
           </div>
         </div>
       </header>
@@ -237,6 +239,21 @@ export default async function PlayerPage({ params, searchParams }: Props) {
         </section>
       ) : (
         <p className="text-sm text-neutral-500">{season} 시즌 통계가 아직 없습니다.</p>
+      )}
+
+      {profile.career && (
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">통산 (career)</h2>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <Stat label="ERA" value={fmtNum(profile.career.era, 2)} accent />
+            <Stat label="WHIP" value={fmtNum(profile.career.whip, 2)} />
+            <Stat label="W-L" value={profile.career.wins != null && profile.career.losses != null ? `${profile.career.wins}-${profile.career.losses}` : "—"} />
+            <Stat label="경기" value={profile.career.games != null ? String(profile.career.games) : "—"} />
+            <Stat label="선발" value={profile.career.gs != null ? String(profile.career.gs) : "—"} />
+            <Stat label="이닝" value={profile.career.ip ?? "—"} />
+            <Stat label="삼진" value={profile.career.so != null ? String(profile.career.so) : "—"} />
+          </div>
+        </section>
       )}
 
       <section>
@@ -366,6 +383,20 @@ async function KboPlayerView({ pid }: { pid: string }) {
         ⓘ 데이터 출처: KBO 공식 (koreabaseball.com) · 시즌 누적과 최근 등판 game-by-game.
       </p>
     </article>
+  );
+}
+
+// 선수 신체/이력 한 줄 (키·몸무게는 한국 독자용 cm·kg 변환). 투수·타자 공통.
+function PlayerBioLine({ height, weight, debut, draftYear }: { height?: string; weight?: number; debut?: string; draftYear?: number }) {
+  const cm = height?.match(/(\d+)'\s*(\d+)/);
+  const hcm = cm ? `${Math.round((Number(cm[1]) * 12 + Number(cm[2])) * 2.54)}cm` : null;
+  const phys = hcm && weight ? `${hcm} · ${Math.round(weight * 0.4536)}kg` : hcm;
+  const parts = [phys, debut ? `데뷔 ${debut}` : null, draftYear ? `드래프트 ${draftYear}년` : null].filter(Boolean) as string[];
+  if (parts.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-neutral-500">
+      {parts.map((p, i) => (<span key={i}>{p}</span>))}
+    </div>
   );
 }
 
@@ -758,6 +789,7 @@ function renderMlbHitterView(
           <div className="space-y-1">
             <div className="flex items-baseline gap-3 flex-wrap">
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{profile.name}</h1>
+              {profile.number && <span className="text-xl font-bold text-neutral-400">#{profile.number}</span>}
               {batsLabel && (
                 <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-neutral-100 dark:bg-neutral-800">
                   {batsLabel}
@@ -775,6 +807,7 @@ function renderMlbHitterView(
               {profile.birthCity}
               {profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
             </div>
+            <PlayerBioLine height={profile.height} weight={profile.weight} debut={profile.debut} draftYear={profile.draftYear} />
           </div>
         </div>
       </header>
@@ -797,10 +830,32 @@ function renderMlbHitterView(
             <Stat label="2B" value={s.doubles != null ? String(s.doubles) : "—"} />
             <Stat label="BB" value={s.bb != null ? String(s.bb) : "—"} />
             <Stat label="SO" value={s.so != null ? String(s.so) : "—"} />
+            <Stat label="PA" value={s.pa != null ? String(s.pa) : "—"} />
+            <Stat label="AB" value={s.ab != null ? String(s.ab) : "—"} />
+            <Stat label="3B" value={s.triples != null ? String(s.triples) : "—"} />
+            <Stat label="R" value={s.runs != null ? String(s.runs) : "—"} />
           </div>
         </section>
       ) : (
         <p className="text-sm text-neutral-500">{season} 시즌 타격 통계가 아직 없습니다.</p>
+      )}
+
+      {profile.career && (
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">통산 (career)</h2>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <Stat label="타율" value={profile.career.avg ?? "—"} accent />
+            <Stat label="OPS" value={profile.career.ops ?? "—"} accent />
+            <Stat label="HR" value={profile.career.hr != null ? String(profile.career.hr) : "—"} />
+            <Stat label="RBI" value={profile.career.rbi != null ? String(profile.career.rbi) : "—"} />
+            <Stat label="H" value={profile.career.hits != null ? String(profile.career.hits) : "—"} />
+            <Stat label="OBP" value={profile.career.obp ?? "—"} />
+            <Stat label="SLG" value={profile.career.slg ?? "—"} />
+            <Stat label="SB" value={profile.career.sb != null ? String(profile.career.sb) : "—"} />
+            <Stat label="R" value={profile.career.runs != null ? String(profile.career.runs) : "—"} />
+            <Stat label="경기" value={profile.career.games != null ? String(profile.career.games) : "—"} />
+          </div>
+        </section>
       )}
 
       <section>
@@ -996,12 +1051,14 @@ async function renderNbaPlayerView(pid: string) {
   const now = new Date();
   const m = now.getUTCMonth() + 1;
   const season = m >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-  const [profile, avg, recent] = await Promise.all([
-    fetchNbaPlayer(id),
+  // profile 을 먼저(429 재시도 포함) — BDL 분당 5 한도라 3호출 동시 burst 를 피해
+  //  notFound 를 좌우하는 profile 의 성공률을 높인다. avg/recent 는 실패해도 페이지는 렌더.
+  const profile = await fetchNbaPlayer(id);
+  if (!profile) notFound();
+  const [avg, recent] = await Promise.all([
     fetchNbaSeasonAverages(id, season),
     fetchNbaPlayerRecentGames(id, season, 10),
   ]);
-  if (!profile) notFound();
   const fullName = `${profile.firstName} ${profile.lastName}`.trim();
   const nameKo = toKoreanPlayerName(fullName) || fullName;
   const teamKo = profile.team ? toKoreanTeamName(profile.team.fullName) || profile.team.fullName : "";

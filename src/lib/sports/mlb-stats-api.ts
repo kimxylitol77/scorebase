@@ -321,6 +321,11 @@ export interface PitcherProfile {
   birthCity?: string;
   birthCountry?: string;
   team?: string;
+  number?: string; // 등번호
+  height?: string; // "6' 4""
+  weight?: number; // lb
+  debut?: string; // MLB 데뷔일 YYYY-MM-DD
+  draftYear?: number;
   /** 시즌 누적 통계 */
   season?: {
     era?: number;
@@ -334,6 +339,17 @@ export interface PitcherProfile {
     bb?: number;
     hra?: number;
     avg?: string;
+  };
+  /** 통산(career) 통계 */
+  career?: {
+    era?: number;
+    whip?: number;
+    so?: number;
+    wins?: number;
+    losses?: number;
+    ip?: string;
+    gs?: number;
+    games?: number;
   };
 }
 
@@ -357,7 +373,7 @@ export async function fetchPitcherProfile(
 ): Promise<PitcherProfile | null> {
   const { data } = await client.get(`/people/${personId}`, {
     params: {
-      hydrate: `stats(group=pitching,type=season,season=${season}),currentTeam`,
+      hydrate: `stats(group=pitching,type=[season,career],season=${season}),currentTeam`,
     },
   });
   const p = data?.people?.[0];
@@ -370,11 +386,27 @@ export async function fetchPitcherProfile(
     birthCity: p.birthCity,
     birthCountry: p.birthCountry,
     team: p.currentTeam?.name,
+    number: p.primaryNumber,
+    height: p.height,
+    weight: p.weight,
+    debut: p.mlbDebutDate,
+    draftYear: p.draftYear,
   };
   for (const grp of p.stats ?? []) {
-    if (grp?.group?.displayName === "pitching") {
-      const split = grp.splits?.[0];
-      const s = split?.stat ?? {};
+    if (grp?.group?.displayName !== "pitching") continue;
+    const s = grp.splits?.[0]?.stat ?? {};
+    if (grp?.type?.displayName === "career") {
+      profile.career = {
+        era: s.era != null ? Number(s.era) : undefined,
+        whip: s.whip != null ? Number(s.whip) : undefined,
+        so: s.strikeOuts,
+        wins: s.wins,
+        losses: s.losses,
+        ip: s.inningsPitched,
+        gs: s.gamesStarted,
+        games: s.gamesPlayed,
+      };
+    } else {
       profile.season = {
         era: s.era != null ? Number(s.era) : undefined,
         whip: s.whip != null ? Number(s.whip) : undefined,
@@ -388,7 +420,6 @@ export async function fetchPitcherProfile(
         hra: s.homeRuns,
         avg: s.avg,
       };
-      break;
     }
   }
   return profile;
@@ -450,6 +481,11 @@ export interface HitterProfile {
   birthCountry?: string;
   team?: string;
   position?: string; // OF, 1B, 2B, ...
+  number?: string; // 등번호
+  height?: string;
+  weight?: number;
+  debut?: string; // MLB 데뷔일 YYYY-MM-DD
+  draftYear?: number;
   /** 시즌 누적 타격 통계 */
   season?: {
     games?: number;
@@ -468,6 +504,19 @@ export interface HitterProfile {
     bb?: number;
     pa?: number;
     ab?: number;
+  };
+  /** 통산(career) 타격 통계 */
+  career?: {
+    games?: number;
+    avg?: string;
+    hr?: number;
+    rbi?: number;
+    hits?: number;
+    ops?: string;
+    obp?: string;
+    slg?: string;
+    sb?: number;
+    runs?: number;
   };
 }
 
@@ -492,7 +541,7 @@ export async function fetchHitterProfile(
 ): Promise<HitterProfile | null> {
   const { data } = await client.get(`/people/${personId}`, {
     params: {
-      hydrate: `stats(group=hitting,type=season,season=${season}),currentTeam`,
+      hydrate: `stats(group=hitting,type=[season,career],season=${season}),currentTeam`,
     },
   });
   const p = data?.people?.[0];
@@ -507,11 +556,29 @@ export async function fetchHitterProfile(
     birthCountry: p.birthCountry,
     team: p.currentTeam?.name,
     position: p.primaryPosition?.abbreviation,
+    number: p.primaryNumber,
+    height: p.height,
+    weight: p.weight,
+    debut: p.mlbDebutDate,
+    draftYear: p.draftYear,
   };
   for (const grp of p.stats ?? []) {
-    if (grp?.group?.displayName === "hitting") {
-      const split = grp.splits?.[0];
-      const s = split?.stat ?? {};
+    if (grp?.group?.displayName !== "hitting") continue;
+    const s = grp.splits?.[0]?.stat ?? {};
+    if (grp?.type?.displayName === "career") {
+      profile.career = {
+        games: s.gamesPlayed,
+        avg: s.avg,
+        hr: s.homeRuns,
+        rbi: s.rbi,
+        hits: s.hits,
+        ops: s.ops,
+        obp: s.obp,
+        slg: s.slg,
+        sb: s.stolenBases,
+        runs: s.runs,
+      };
+    } else {
       profile.season = {
         games: s.gamesPlayed,
         avg: s.avg,
@@ -530,7 +597,6 @@ export async function fetchHitterProfile(
         pa: s.plateAppearances,
         ab: s.atBats,
       };
-      break;
     }
   }
   return profile;
