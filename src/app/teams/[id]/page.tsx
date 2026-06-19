@@ -14,6 +14,7 @@ import TeamFollowButton from "@/components/teams/TeamFollowButton";
 import TransfersSection from "@/components/teams/TransfersSection";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
+import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { getSportFromLeague } from "@/lib/players/types";
 import rawTOverrides from "../../../../data/player-overrides.json";
@@ -302,6 +303,10 @@ export default async function TeamPage({ params }: Props) {
     nhlRoster = await fetchNhlRoster(team.shortName, `${ny}${ny + 1}`);
   }
 
+  // MLB 로스터 (MLB Stats API, person.id=mlbStatsId) → /players/{id}?league=MLB 선수페이지 연결.
+  let mlbRoster: MlbRosterPlayer[] = [];
+  if (team.league === "MLB") mlbRoster = await fetchMlbRoster(team.name);
+
   return (
     <div>
       {/* 헤더 */}
@@ -528,6 +533,40 @@ export default async function TeamPage({ params }: Props) {
                           ) : (
                             <span className="text-xs font-bold text-neutral-500">{p.name.slice(0, 1)}</span>
                           )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-sm truncate">{toKoreanPlayerName(p.name) || p.name}</div>
+                          <div className="text-[11px] text-neutral-500 tabular-nums">{p.number ? `#${p.number} · ` : ""}{p.position}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
+        {/* MLB 로스터 — MLB Stats API(mlbStatsId), 클릭 → 선수 상세(/players/{id}?league=MLB) */}
+        {mlbRoster.length > 0 && (
+          <section>
+            <SectionH title="⚾ 로스터" subtitle={`${mlbRoster.length}명 · MLB 공식 · 클릭 시 상세`} />
+            {([["P", "투수"], ["C", "포수"], ["IF", "내야수"], ["OF", "외야수"]] as const).map(([g, label]) => {
+              const ps = mlbRoster.filter((p) => p.group === g);
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/players/${p.id}?league=MLB`}
+                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                      >
+                        <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={`https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto/v1/people/${p.id}/headshot/67/current`} alt={p.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold text-sm truncate">{toKoreanPlayerName(p.name) || p.name}</div>

@@ -949,3 +949,52 @@ export async function enrichGameStarters(
   }
   return result;
 }
+
+// ===== MLB 팀 로스터 (MLB Stats API /teams/{id}/roster) — 팀 페이지 선수 명단 =====
+//  person.id = MLB Stats id → /players/{id}?league=MLB 선수페이지와 일관(NHL roster 와 동형).
+export interface MlbRosterPlayer {
+  id: number;
+  name: string;
+  position: string;
+  number: string | null;
+  group: "P" | "C" | "IF" | "OF";
+}
+
+// MLB Stats team id 는 our 팀(espn id만 보유)과 별개 → teams API 이름매칭. 모듈 캐시.
+let mlbTeamIdMap: Map<string, number> | null = null;
+async function getMlbStatsTeamId(name: string): Promise<number | null> {
+  if (!mlbTeamIdMap) {
+    try {
+      const r = await fetch(`${BASE_URL}/teams?sportId=1`, { signal: AbortSignal.timeout(10000) });
+      const d = (await r.json()) as { teams?: Array<{ id: number; name: string }> };
+      mlbTeamIdMap = new Map((d.teams ?? []).map((t) => [t.name.toLowerCase(), t.id]));
+    } catch {
+      return null;
+    }
+  }
+  return mlbTeamIdMap.get(name.toLowerCase()) ?? null;
+}
+
+const mlbPosGroup = (pos: string): "P" | "C" | "IF" | "OF" =>
+  pos === "P" || pos === "TWP" ? "P" : pos === "C" ? "C" : ["1B", "2B", "3B", "SS"].includes(pos) ? "IF" : "OF";
+
+export async function fetchMlbRoster(teamName: string): Promise<MlbRosterPlayer[]> {
+  const tid = await getMlbStatsTeamId(teamName);
+  if (!tid) return [];
+  try {
+    const r = await fetch(`${BASE_URL}/teams/${tid}/roster`, { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) return [];
+    const d = (await r.json()) as {
+      roster?: Array<{ person: { id: number; fullName: string }; position: { abbreviation: string }; jerseyNumber?: string }>;
+    };
+    return (d.roster ?? []).map((p) => ({
+      id: p.person.id,
+      name: p.person.fullName,
+      position: p.position.abbreviation,
+      number: p.jerseyNumber ?? null,
+      group: mlbPosGroup(p.position.abbreviation),
+    }));
+  } catch {
+    return [];
+  }
+}
