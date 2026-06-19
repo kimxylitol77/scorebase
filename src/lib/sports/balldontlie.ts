@@ -362,80 +362,47 @@ export async function fetchNbaPlayer(id: number): Promise<NbaPlayerProfile | nul
   }
 }
 
-export async function fetchNbaSeasonAverages(
-  playerId: number,
-  season: number,
-): Promise<NbaSeasonAverages | null> {
-  const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return null;
-  try {
+const getNbaAvgCached = unstable_cache(
+  async (playerId: number, season: number): Promise<NbaSeasonAverages | null> => {
+    const key = process.env.BALLDONTLIE_KEY ?? "";
     const r = await bdlGet(`${BDL_NBA}/season_averages?player_id=${playerId}&season=${season}`, key);
-    if (!r || !r.ok) return null;
+    if (!r) throw new Error("bdl 429");
+    if (!r.ok) { if (r.status === 404) return null; throw new Error(`bdl ${r.status}`); }
     interface AvgRow {
-      season: number;
-      games_played: number;
-      min: string;
-      pts: number;
-      ast: number;
-      reb: number;
-      oreb: number;
-      dreb: number;
-      stl: number;
-      blk: number;
-      turnover: number;
-      pf: number;
-      fgm: number;
-      fga: number;
-      fg_pct: number;
-      fg3m: number;
-      fg3a: number;
-      fg3_pct: number;
-      ftm: number;
-      fta: number;
-      ft_pct: number;
+      season: number; games_played: number; min: string; pts: number; ast: number; reb: number;
+      oreb: number; dreb: number; stl: number; blk: number; turnover: number; pf: number;
+      fgm: number; fga: number; fg_pct: number; fg3m: number; fg3a: number; fg3_pct: number;
+      ftm: number; fta: number; ft_pct: number;
     }
     const j = (await r.json()) as { data?: AvgRow[] };
     const d = j.data?.[0];
     if (!d) return null;
     return {
-      season: d.season,
-      gamesPlayed: d.games_played,
-      min: d.min,
-      pts: d.pts,
-      ast: d.ast,
-      reb: d.reb,
-      oreb: d.oreb,
-      dreb: d.dreb,
-      stl: d.stl,
-      blk: d.blk,
-      turnover: d.turnover,
-      pf: d.pf,
-      fgm: d.fgm,
-      fga: d.fga,
-      fgPct: d.fg_pct,
-      fg3m: d.fg3m,
-      fg3a: d.fg3a,
-      fg3Pct: d.fg3_pct,
-      ftm: d.ftm,
-      fta: d.fta,
-      ftPct: d.ft_pct,
+      season: d.season, gamesPlayed: d.games_played, min: d.min, pts: d.pts, ast: d.ast,
+      reb: d.reb, oreb: d.oreb, dreb: d.dreb, stl: d.stl, blk: d.blk, turnover: d.turnover,
+      pf: d.pf, fgm: d.fgm, fga: d.fga, fgPct: d.fg_pct, fg3m: d.fg3m, fg3a: d.fg3a,
+      fg3Pct: d.fg3_pct, ftm: d.ftm, fta: d.fta, ftPct: d.ft_pct,
     };
+  },
+  ["bdl-nba-avg"],
+  { revalidate: 900 },
+);
+export async function fetchNbaSeasonAverages(playerId: number, season: number): Promise<NbaSeasonAverages | null> {
+  if (!process.env.BALLDONTLIE_KEY) return null;
+  try {
+    return await getNbaAvgCached(playerId, season);
   } catch (e) {
     console.warn("[bdl] nba avg 실패:", (e as Error).message);
     return null;
   }
 }
 
-export async function fetchNbaPlayerRecentGames(
-  playerId: number,
-  season: number,
-  limit = 10,
-): Promise<NbaGameStat[]> {
-  const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return [];
-  try {
+const getNbaRecentCached = unstable_cache(
+  async (playerId: number, season: number, limit: number): Promise<NbaGameStat[]> => {
+    const key = process.env.BALLDONTLIE_KEY ?? "";
     const r = await bdlGet(`${BDL_NBA}/stats?player_ids[]=${playerId}&seasons[]=${season}&per_page=${limit}`, key);
-    if (!r || !r.ok) return [];
+    if (!r) throw new Error("bdl 429");
+    if (!r.ok) { if (r.status === 404) return []; throw new Error(`bdl ${r.status}`); }
     interface StatRow {
       id: number;
       min: string;
@@ -498,6 +465,14 @@ export async function fetchNbaPlayerRecentGames(
     // 최근 순
     rows.sort((a, b) => (b.game?.date ?? "").localeCompare(a.game?.date ?? ""));
     return rows;
+  },
+  ["bdl-nba-recent"],
+  { revalidate: 900 },
+);
+export async function fetchNbaPlayerRecentGames(playerId: number, season: number, limit = 10): Promise<NbaGameStat[]> {
+  if (!process.env.BALLDONTLIE_KEY) return [];
+  try {
+    return await getNbaRecentCached(playerId, season, limit);
   } catch (e) {
     console.warn("[bdl] nba games 실패:", (e as Error).message);
     return [];
