@@ -110,13 +110,19 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   }
   const id = Number(pid);
   if (!Number.isFinite(id)) return { title: "Not Found" };
-  // MLB fetchPitcherProfile 이 404 throw 가능 — 잘못된 pid 면 generic metadata 로 fallback.
+  const yr = new Date().getUTCFullYear();
+  // 본문과 동일하게 fetchHitterProfile 로 position 받아 타자/투수 분기 (404 throw 면 generic fallback).
   try {
-    const profile = await fetchPitcherProfile(id, new Date().getUTCFullYear());
+    const profile = await fetchHitterProfile(id, yr);
     if (!profile) return { title: "선수 미발견" };
+    const isPitcher = profile.position === "P";
     return {
-      title: `${profile.name} — MLB 선발 투수 통계`,
-      description: `${profile.team ?? ""} ${profile.name} 의 ${new Date().getUTCFullYear()} 시즌 ERA·WHIP·K/9·최근 등판 결과.`,
+      title: isPitcher
+        ? `${profile.name} — MLB 선발 투수 통계`
+        : `${profile.name} — MLB 타자 통계`,
+      description: isPitcher
+        ? `${profile.team ?? ""} ${profile.name} 의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
+        : `${profile.team ?? ""} ${profile.name} 의 ${yr} 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
       alternates: { canonical },
     };
   } catch {
