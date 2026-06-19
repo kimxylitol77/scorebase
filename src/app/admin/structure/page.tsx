@@ -7,6 +7,7 @@ import { SPORT_CATEGORIES, COMMUNITY_CATEGORY } from "@/components/nav-config";
 import { SPORTS } from "@/lib/sports/sport-leagues";
 import pagesInventory from "../../../../data/pages-inventory.json";
 import PageInventory from "@/components/admin/PageInventory";
+import MenuFlowDiagram from "@/components/admin/MenuFlowDiagram";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "구조 지도 — admin", robots: { index: false } };
@@ -62,28 +63,36 @@ export default function StructurePage() {
         커버리지·갭은 큐레이션 상수(<code className="text-xs">admin/structure/page.tsx</code>)입니다.
       </p>
 
-      {/* ① 메뉴 트리 */}
+      {/* ① 메뉴 트리 — 플로우(요약) + 카드(설명, 접기) */}
       <h2 className="text-sm font-bold mb-2.5">
-        ① 헤더 메뉴 트리 <span className="text-neutral-400 font-normal">— nav-config.ts</span>
+        ① 헤더 메뉴 트리 <span className="text-neutral-400 font-normal">— nav-config.ts (홈 → 메뉴 → 페이지)</span>
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-9">
-        {[...SPORT_CATEGORIES, COMMUNITY_CATEGORY].map((cat) => (
-          <div key={cat.label} className="border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 bg-neutral-50 dark:bg-neutral-900/40">
-            <Link href={cat.href} className="text-sm font-semibold hover:underline block mb-2">
-              {cat.label}
-            </Link>
-            <ul className="space-y-1">
-              {cat.items.map((it) => (
-                <li key={it.href} className="text-xs text-neutral-500 leading-snug">
-                  <Link href={it.href} className="hover:underline hover:text-neutral-700 dark:hover:text-neutral-300">
-                    {it.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 mb-3">
+        <MenuFlowDiagram />
       </div>
+      <details className="mb-9">
+        <summary className="cursor-pointer select-none text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300">
+          메뉴별 카드로 보기 (제품 목록)
+        </summary>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mt-2">
+          {[...SPORT_CATEGORIES, COMMUNITY_CATEGORY].map((cat) => (
+            <div key={cat.label} className="border border-neutral-200 dark:border-neutral-800 rounded-xl p-3 bg-neutral-50 dark:bg-neutral-900/40">
+              <Link href={cat.href} className="text-sm font-semibold hover:underline block mb-2">
+                {cat.label}
+              </Link>
+              <ul className="space-y-1">
+                {cat.items.map((it) => (
+                  <li key={it.href} className="text-xs text-neutral-500 leading-snug">
+                    <Link href={it.href} className="hover:underline hover:text-neutral-700 dark:hover:text-neutral-300">
+                      {it.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </details>
 
       {/* ② 커버리지 매트릭스 */}
       <h2 className="text-sm font-bold mb-2.5">
