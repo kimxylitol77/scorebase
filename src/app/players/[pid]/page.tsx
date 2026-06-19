@@ -216,7 +216,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
               {profile.team ? `${profile.team} · ` : ""}
               {profile.birthCity}{profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
             </div>
-            <PlayerBioLine height={profile.height} weight={profile.weight} debut={profile.debut} draftYear={profile.draftYear} />
+            <PlayerBioLine height={profile.height} weight={profile.weight} debut={profile.debut} draft={profile.draft} school={profile.school} />
           </div>
         </div>
       </header>
@@ -387,11 +387,11 @@ async function KboPlayerView({ pid }: { pid: string }) {
 }
 
 // 선수 신체/이력 한 줄 (키·몸무게는 한국 독자용 cm·kg 변환). 투수·타자 공통.
-function PlayerBioLine({ height, weight, debut, draftYear }: { height?: string; weight?: number; debut?: string; draftYear?: number }) {
+function PlayerBioLine({ height, weight, debut, draft, school }: { height?: string; weight?: number; debut?: string; draft?: string; school?: string }) {
   const cm = height?.match(/(\d+)'\s*(\d+)/);
   const hcm = cm ? `${Math.round((Number(cm[1]) * 12 + Number(cm[2])) * 2.54)}cm` : null;
   const phys = hcm && weight ? `${hcm} · ${Math.round(weight * 0.4536)}kg` : hcm;
-  const parts = [phys, debut ? `데뷔 ${debut}` : null, draftYear ? `드래프트 ${draftYear}년` : null].filter(Boolean) as string[];
+  const parts = [phys, debut ? `데뷔 ${debut}` : null, draft || null, school || null].filter(Boolean) as string[];
   if (parts.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-neutral-500">
@@ -807,7 +807,7 @@ function renderMlbHitterView(
               {profile.birthCity}
               {profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
             </div>
-            <PlayerBioLine height={profile.height} weight={profile.weight} debut={profile.debut} draftYear={profile.draftYear} />
+            <PlayerBioLine height={profile.height} weight={profile.weight} debut={profile.debut} draft={profile.draft} school={profile.school} />
           </div>
         </div>
       </header>
@@ -1051,14 +1051,12 @@ async function renderNbaPlayerView(pid: string) {
   const now = new Date();
   const m = now.getUTCMonth() + 1;
   const season = m >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-  // profile 을 먼저(429 재시도 포함) — BDL 분당 5 한도라 3호출 동시 burst 를 피해
-  //  notFound 를 좌우하는 profile 의 성공률을 높인다. avg/recent 는 실패해도 페이지는 렌더.
-  const profile = await fetchNbaPlayer(id);
-  if (!profile) notFound();
-  const [avg, recent] = await Promise.all([
+  const [profile, avg, recent] = await Promise.all([
+    fetchNbaPlayer(id),
     fetchNbaSeasonAverages(id, season),
     fetchNbaPlayerRecentGames(id, season, 10),
   ]);
+  if (!profile) notFound();
   const fullName = `${profile.firstName} ${profile.lastName}`.trim();
   const nameKo = toKoreanPlayerName(fullName) || fullName;
   const teamKo = profile.team ? toKoreanTeamName(profile.team.fullName) || profile.team.fullName : "";

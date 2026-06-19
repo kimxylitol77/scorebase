@@ -325,7 +325,8 @@ export interface PitcherProfile {
   height?: string; // "6' 4""
   weight?: number; // lb
   debut?: string; // MLB 데뷔일 YYYY-MM-DD
-  draftYear?: number;
+  draft?: string; // 예: "2013 드래프트 1R 전체 32픽"
+  school?: string; // 출신 대학/고교
   /** 시즌 누적 통계 */
   season?: {
     era?: number;
@@ -366,6 +367,25 @@ export interface PitcherRecentGame {
   decision?: string; // "W" / "L" / null
 }
 
+// statsapi person 응답에서 출신학교 + 드래프트(재지명 중 계약연도=draftYear 건) 추출.
+function parseDraftSchool(p: {
+  education?: { colleges?: { name?: string }[]; highschools?: { name?: string; state?: string }[] };
+  drafts?: { year?: number; pickRound?: string; pickNumber?: number }[];
+  draftYear?: number;
+}): { school?: string; draft?: string } {
+  const college = p.education?.colleges?.[0]?.name;
+  const hs = p.education?.highschools?.[0];
+  const school = college || (hs?.name ? `${hs.name}${hs.state ? ` (${hs.state})` : ""}` : undefined);
+  const drafts = p.drafts ?? [];
+  const d = drafts.find((x) => x.year === p.draftYear) ?? drafts[drafts.length - 1];
+  const draft = d?.year
+    ? `${d.year} 드래프트 ${d.pickRound}R 전체 ${d.pickNumber}픽`
+    : p.draftYear
+      ? `${p.draftYear} 드래프트`
+      : undefined;
+  return { school, draft };
+}
+
 /** 선수 상세 + 시즌 통계 (한 번에). */
 export async function fetchPitcherProfile(
   personId: number,
@@ -373,7 +393,7 @@ export async function fetchPitcherProfile(
 ): Promise<PitcherProfile | null> {
   const { data } = await client.get(`/people/${personId}`, {
     params: {
-      hydrate: `stats(group=pitching,type=[season,career],season=${season}),currentTeam`,
+      hydrate: `stats(group=pitching,type=[season,career],season=${season}),currentTeam,education,draft`,
     },
   });
   const p = data?.people?.[0];
@@ -390,7 +410,7 @@ export async function fetchPitcherProfile(
     height: p.height,
     weight: p.weight,
     debut: p.mlbDebutDate,
-    draftYear: p.draftYear,
+    ...parseDraftSchool(p),
   };
   for (const grp of p.stats ?? []) {
     if (grp?.group?.displayName !== "pitching") continue;
@@ -485,7 +505,8 @@ export interface HitterProfile {
   height?: string;
   weight?: number;
   debut?: string; // MLB 데뷔일 YYYY-MM-DD
-  draftYear?: number;
+  draft?: string;
+  school?: string;
   /** 시즌 누적 타격 통계 */
   season?: {
     games?: number;
@@ -541,7 +562,7 @@ export async function fetchHitterProfile(
 ): Promise<HitterProfile | null> {
   const { data } = await client.get(`/people/${personId}`, {
     params: {
-      hydrate: `stats(group=hitting,type=[season,career],season=${season}),currentTeam`,
+      hydrate: `stats(group=hitting,type=[season,career],season=${season}),currentTeam,education,draft`,
     },
   });
   const p = data?.people?.[0];
@@ -560,7 +581,7 @@ export async function fetchHitterProfile(
     height: p.height,
     weight: p.weight,
     debut: p.mlbDebutDate,
-    draftYear: p.draftYear,
+    ...parseDraftSchool(p),
   };
   for (const grp of p.stats ?? []) {
     if (grp?.group?.displayName !== "hitting") continue;
