@@ -113,11 +113,9 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     ? await prisma.theSportsPlayer.findMany({ where: { id: { in: squad.map((p) => p.id) } }, select: { id: true, nameKo: true } })
     : [];
   const koName = new Map(tsPlayers.map((p) => [p.id, p.nameKo]));
-  // 선수 페이지(/transfers/[id])는 PlayerMarketValue 있는 선수만 존재 → 그 선수만 링크(404 방지)
-  const mvRows = squad.length
-    ? await prisma.playerMarketValue.findMany({ where: { id: { in: squad.map((p) => p.id) } }, select: { id: true } })
-    : [];
-  const hasMv = new Set(mvRows.map((m) => m.id));
+  // 선수 페이지(/transfers/[id])는 TheSportsPlayer 있으면 렌더 — mv(시장가치) 없는 국대 선수는
+  // 국가대표 경기 기록·프로필 중심 라이트 페이지가 된다. tsp 있는 선수만 링크해 404 방지.
+  const hasTsp = new Set(tsPlayers.map((p) => p.id));
 
   // 선수 기여 — playerStats(자국 team_id) 골·도움을 대회별(월드컵 본선 / 평가전)로 분리 누적
   const tsExt = tsRow?.externalId;
@@ -322,7 +320,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                 </>
               );
               const cls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
-              return hasMv.has(p.id) ? (
+              return hasTsp.has(p.id) ? (
                 <Link key={p.id} href={`/transfers/${p.id}`} className={`${cls} hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition`}>
                   {inner}
                 </Link>
@@ -366,7 +364,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                         </div>
                       </>
                     );
-                    return hasMv.has(p.id) ? (
+                    return hasTsp.has(p.id) ? (
                       <Link
                         key={p.id}
                         href={`/transfers/${p.id}`}
