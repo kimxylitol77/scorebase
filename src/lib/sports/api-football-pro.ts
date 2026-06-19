@@ -646,6 +646,22 @@ export async function findFixtureByDateAndTeams(
   }
 }
 
+/** 단일 fixture 의 주심 이름 — /fixtures?id={id}.
+ *  ESPN 6리그(라리가·분데스 등)처럼 collect raw 에 referee 가 없는 매치 보강용. */
+export async function fetchFixtureReferee(
+  fixtureId: number,
+): Promise<string | null> {
+  try {
+    const { data } = await client().get("/fixtures", {
+      params: { id: fixtureId },
+    });
+    const ref = data?.response?.[0]?.fixture?.referee;
+    return typeof ref === "string" && ref.trim() ? ref.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchFixtureLineups(
   fixtureId: number,
 ): Promise<FixtureLineup[]> {

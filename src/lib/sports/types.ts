@@ -547,6 +547,7 @@ export interface NormalizedMatch {
   awayScore?: number;
   status: MatchStatus;
   startTime: Date;
+  referee?: string; // 주심 이름 (축구 collector 가 채움, 없으면 미설정)
   raw: unknown; // 원본 응답 (디버깅/추가 정보 추출용)
 }
 

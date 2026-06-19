@@ -11,6 +11,7 @@ import {
   fetchFixtureLineups,
   fetchFixtureStatistics,
   fetchFixturePredictions,
+  fetchFixtureReferee,
   teamsMatch,
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
@@ -151,7 +152,32 @@ export async function runApiFootball(opts?: { limit?: number }) {
   }
   console.log(`[af/stats] ${statsCount}건 통계 + ${postLineupCount}건 사후 라인업 저장`);
 
-  return { lineupCount, predCount, statsCount, postLineupCount };
+  // ===== Phase 3: 주심 보강 — collect raw 에 referee 가 없는 축구 매치 (ESPN 6리그 등) =====
+  // referee 미저장 + apiFixtureId 보유 + 최근 14일~향후 3일 매치만 (오래된 매치 무한 재조회 방지).
+  // af 소스 리그는 collect 에서 이미 채워 referee != null → 자동 제외.
+  const noRef = await prisma.match.findMany({
+    where: {
+      league: { in: SOCCER_LEAGUES },
+      referee: null,
+      apiFixtureId: { not: null },
+      startTime: {
+        gte: new Date(Date.now() - 14 * 24 * 3600 * 1000),
+        lte: new Date(Date.now() + 3 * 24 * 3600 * 1000),
+      },
+    },
+    take: limit,
+  });
+  let refereeCount = 0;
+  for (const m of noRef) {
+    const ref = await fetchFixtureReferee(m.apiFixtureId!);
+    if (ref) {
+      await prisma.match.update({ where: { id: m.id }, data: { referee: ref } });
+      refereeCount++;
+    }
+  }
+  console.log(`[af/referee] ${refereeCount}건 주심 보강 (대상 ${noRef.length})`);
+
+  return { lineupCount, predCount, statsCount, postLineupCount, refereeCount };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

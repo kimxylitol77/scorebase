@@ -112,6 +112,8 @@ interface MatchLive {
   /** 축구 승부차기 점수 — 정규/연장 동점 후 PK. */
   penHome?: number | null;
   penAway?: number | null;
+  /** 주심 이름 (축구 — route 가 DB Match.referee 를 실어줌) */
+  referee?: string | null;
 }
 
 interface Props {
@@ -379,6 +381,13 @@ export default function SportLiveDetail({
           <TeamBlock teamId={awayTeamId} logo={awayLogoUrl} name={awayNameKo} position={awayPosition} fifaRank={awayFifaRank} league={league} />
         </div>
       </div>
+
+      {/* 축구 — 주심 (DB Match.referee) */}
+      {isSoccerLeague && live?.referee && (
+        <div className="text-center text-xs text-neutral-500 dark:text-neutral-400">
+          주심 {live.referee}
+        </div>
+      )}
 
       {/* NBA/NHL — 쿼터/피리어드 linescore */}
       {live?.periodLinescore && (

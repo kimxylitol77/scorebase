@@ -249,6 +249,9 @@ async function upsertMatch(m: NormalizedMatch) {
       status: mergedStatus,
       startTime: m.startTime,
       raw: JSON.stringify(m.raw),
+      // referee 는 값이 있을 때만 갱신 (undefined → prisma 가 제외해 기존값 유지).
+      // ESPN 6리그처럼 collect 에서 못 뽑는 매치는 fetch-api-football 이 채운 값을 보존.
+      referee: m.referee ?? undefined,
     },
     create: {
       league: m.league,
@@ -260,6 +263,7 @@ async function upsertMatch(m: NormalizedMatch) {
       status: m.status,
       startTime: m.startTime,
       raw: JSON.stringify(m.raw),
+      referee: m.referee ?? null,
     },
   });
 }

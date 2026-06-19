@@ -37,6 +37,15 @@ interface FdMatch {
   };
   competition?: { code?: string; name?: string };
   season?: { id: number; startDate: string; endDate: string; currentMatchday: number };
+  referees?: Array<{ id?: number; name?: string; type?: string; nationality?: string }>;
+}
+
+/** football-data referees[] 에서 주심(REFEREE) 이름. 없으면 undefined. */
+function pickFdReferee(m: FdMatch): string | undefined {
+  const refs = m.referees;
+  if (!Array.isArray(refs) || refs.length === 0) return undefined;
+  const main = refs.find((r) => r.type === "REFEREE") ?? refs[0];
+  return main?.name || undefined;
 }
 
 function mapStatus(s: string): MatchStatus {
@@ -84,6 +93,7 @@ export async function fetchEplRange(
     awayScore: m.score?.fullTime?.away ?? undefined,
     status: mapStatus(m.status),
     startTime: new Date(m.utcDate),
+    referee: pickFdReferee(m),
     raw: m,
   }));
 }
@@ -129,6 +139,7 @@ export const eplCollectorViaFootballData: MatchCollector = {
       awayScore: m.score?.fullTime?.away ?? undefined,
       status: mapStatus(m.status),
       startTime: new Date(m.utcDate),
+      referee: pickFdReferee(m),
       raw: m,
     }));
   },

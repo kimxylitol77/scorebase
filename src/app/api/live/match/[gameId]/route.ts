@@ -118,6 +118,8 @@ interface MatchLive {
   /** 축구 승부차기 점수 — 정규/연장 동점 후 PK. 있으면 (4) 1 : 1 (3) 표시. */
   penHome?: number | null;
   penAway?: number | null;
+  /** 주심 이름 (축구 — DB Match.referee. 정적이라 ETag hash 제외, 첫 200 응답에만 실림). */
+  referee?: string | null;
 }
 
 function kstDate(d: Date = new Date()): string {
@@ -311,9 +313,10 @@ export async function GET(
       const { prisma: db } = await import("@/lib/db");
       const ourMatch = await db.match.findFirst({
         where: { externalId: gameId, league },
-        select: { id: true },
+        select: { id: true, referee: true },
       });
       if (ourMatch) {
+        if (ourMatch.referee) out.referee = ourMatch.referee;
         const cache = await db.theSportsMatchCache.findUnique({
           where: { matchId: ourMatch.id },
           select: { detailLive: true },

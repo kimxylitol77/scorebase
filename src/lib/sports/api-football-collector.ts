@@ -36,6 +36,7 @@ interface ApiFixture {
     id: number;
     date: string;
     status: { short: string };
+    referee?: string | null;
   };
   teams: {
     home: { id: number; name: string; logo?: string };
@@ -117,6 +118,7 @@ function toNormalized(league: League, f: ApiFixture): NormalizedMatch {
     awayScore: f.goals?.away ?? undefined,
     status: mapStatus(f.fixture?.status?.short ?? ""),
     startTime: new Date(f.fixture.date),
+    referee: f.fixture.referee ?? undefined,
     raw: f,
   };
 }
