@@ -212,6 +212,18 @@ export async function fetchBalldontlieInjuries(
 
 const BDL_NBA = "https://api.balldontlie.io/nba/v1";
 
+// BDL plan rate limit 이 분당 5(x-ratelimit-limit:5)로 매우 낮음 — Next 캐시(revalidate)로
+// 같은 선수 호출을 사용자/재방문 간 공유하고, 429 시 backoff 재시도로 일시 burst 를 흡수.
+const bdlSleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+async function bdlGet(url: string, key: string, revalidate: number): Promise<Response | null> {
+  for (let i = 0; i < 3; i++) {
+    const r = await fetch(url, { headers: { Authorization: key }, next: { revalidate } });
+    if (r.status !== 429) return r;
+    if (i < 2) await bdlSleep(1500 * (i + 1)); // 429 → 1.5s · 3s 후 재시도
+  }
+  return null;
+}
+
 export interface NbaPlayerProfile {
   id: number;
   firstName: string;
@@ -306,11 +318,8 @@ export async function fetchNbaPlayer(id: number): Promise<NbaPlayerProfile | nul
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return null;
   try {
-    const r = await fetch(`${BDL_NBA}/players/${id}`, {
-      headers: { Authorization: key },
-      cache: "no-store",
-    });
-    if (!r.ok) return null;
+    const r = await bdlGet(`${BDL_NBA}/players/${id}`, key, 3600); // profile 은 거의 정적 — 1시간 캐시
+    if (!r || !r.ok) return null;
     const j = (await r.json()) as BdlNbaPlayerResp;
     const d = j.data;
     if (!d) return null;
@@ -350,11 +359,8 @@ export async function fetchNbaSeasonAverages(
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return null;
   try {
-    const r = await fetch(
-      `${BDL_NBA}/season_averages?player_id=${playerId}&season=${season}`,
-      { headers: { Authorization: key }, cache: "no-store" },
-    );
-    if (!r.ok) return null;
+    const r = await bdlGet(`${BDL_NBA}/season_averages?player_id=${playerId}&season=${season}`, key, 900); // 시즌평균 15분 캐시
+    if (!r || !r.ok) return null;
     interface AvgRow {
       season: number;
       games_played: number;
@@ -418,11 +424,8 @@ export async function fetchNbaPlayerRecentGames(
   const key = process.env.BALLDONTLIE_KEY;
   if (!key) return [];
   try {
-    const r = await fetch(
-      `${BDL_NBA}/stats?player_ids[]=${playerId}&seasons[]=${season}&per_page=${limit}`,
-      { headers: { Authorization: key }, cache: "no-store" },
-    );
-    if (!r.ok) return [];
+    const r = await bdlGet(`${BDL_NBA}/stats?player_ids[]=${playerId}&seasons[]=${season}&per_page=${limit}`, key, 900); // 최근경기 15분 캐시
+    if (!r || !r.ok) return [];
     interface StatRow {
       id: number;
       min: string;
