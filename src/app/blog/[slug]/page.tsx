@@ -1,3 +1,4 @@
+// 블로그 글 상세 — 데이터 분석 본문(저작권·출처 JSON-LD).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";

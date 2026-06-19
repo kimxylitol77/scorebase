@@ -1,3 +1,4 @@
+// 리그별 부상자 명단 — 부상 부위·복귀 예상·치료/재활.
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import Link from "next/link";

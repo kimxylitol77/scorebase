@@ -1,3 +1,4 @@
+// /experts 로 영구 redirect (구 분석 랭킹 경로 호환).
 import { permanentRedirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";

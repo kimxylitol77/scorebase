@@ -1,3 +1,4 @@
+// 통합 검색 — 팀·선수·리그 검색 결과.
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
 import SearchInput from "@/components/SearchInput";

@@ -1,3 +1,4 @@
+// 리그별 시즌 시뮬레이션 — Monte Carlo 우승·강등·순위 확률.
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import { notFound } from "next/navigation";

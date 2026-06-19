@@ -1,3 +1,4 @@
+// 공지/패치노트 상세 — 단일 공지 본문.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";

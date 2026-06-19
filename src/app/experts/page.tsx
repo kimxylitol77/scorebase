@@ -1,3 +1,4 @@
+// 예측 전문가 순위 — 분석가·회원 적중률 랭킹(Wilson 점수 하한 정렬).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getOverallRanking, getMonthlyRanking, type RankRow } from "@/lib/analysis/ranking";

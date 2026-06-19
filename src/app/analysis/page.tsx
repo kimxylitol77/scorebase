@@ -1,3 +1,4 @@
+// 스포츠 분석 게시판 — 회원·봇 승부예측 글 목록 + 적중 자동채점·종목 필터.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";

@@ -1,3 +1,4 @@
+// AI 예측 적중률 보드 — 13개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";

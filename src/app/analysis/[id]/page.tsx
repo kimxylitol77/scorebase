@@ -1,3 +1,4 @@
+// 분석 게시판 글 상세 — 픽·근거 본문 + 댓글 + 경기 결과 적중 판정.
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";

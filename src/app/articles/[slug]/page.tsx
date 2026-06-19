@@ -1,3 +1,4 @@
+// PREVIEW/RECAP/ANALYSIS 글 상세 — 본문 + AiDisclosure + ExternalSources + JSON-LD.
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import Markdown from "@/components/Markdown";

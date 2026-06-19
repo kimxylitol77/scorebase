@@ -1,3 +1,4 @@
+// 공지/패치노트 목록 — 사이트 공지·변경 이력(CHANGELOG·NOTICE·MAINTENANCE).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";

@@ -1,3 +1,4 @@
+// 분석글 작성 폼 — 종목→날짜→경기→마켓→픽 선택 후 발행.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/current-user";

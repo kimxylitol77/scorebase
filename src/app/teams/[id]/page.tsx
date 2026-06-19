@@ -1,3 +1,4 @@
+// 팀 페이지 — 클럽 정보·로스터·경기장·일정(종목별 분기).
 import { prisma } from "@/lib/db";
 import Image from "next/image";
 import { notFound, permanentRedirect } from "next/navigation";

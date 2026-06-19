@@ -1,3 +1,4 @@
+// 예측 전문가 개인 프로필 — 적중률·연승·작성 글 이력.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";

@@ -1,3 +1,4 @@
+// 홈(메인) — 통계 기반 AI 스포츠 분석 랜딩. 오늘 경기·AI 예측·최신 콘텐츠 입구.
 import type { Metadata } from "next";
 import Link from "next/link";
 import {

@@ -1,3 +1,4 @@
+// 블로그 목록 — 스포츠 데이터 분석 인사이트 글 모음.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";

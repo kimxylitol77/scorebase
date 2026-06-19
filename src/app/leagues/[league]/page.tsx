@@ -1,3 +1,4 @@
+// 리그 페이지 — 리그별 일정·결과·순위 허브.
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";

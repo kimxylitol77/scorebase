@@ -1,3 +1,4 @@
+// 사이트 소개 — 데이터로 보는 글로벌 스포츠. 브랜드·서비스 설명(SEO).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/site-url";
