@@ -13,9 +13,13 @@ const SUBPAGES: Record<string, { label: string; href: string }[]> = {
   ],
   "/predictions": [
     { label: "적중률 보드", href: "/predictions/accuracy" },
+    { label: "선발 매치업", href: "/predictions/starters" },
     { label: "우승 경쟁", href: "/predictions/title-race" },
     { label: "클럽 랭킹", href: "/predictions/club-ranking" },
     { label: "FIFA 랭킹", href: "/predictions/fifa-ranking" },
+  ],
+  "/analysis": [
+    { label: "분석글 작성", href: "/analysis/new" },
   ],
 };
 
