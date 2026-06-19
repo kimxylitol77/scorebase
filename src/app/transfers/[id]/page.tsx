@@ -12,6 +12,7 @@ import rawPhotos from "../../../../data/player-photos.json";
 import rawWiki from "../../../../data/player-wiki-seasons.json";
 import rawAbility from "../../../../data/player-ability.json";
 import rawTeamLogos from "../../../../data/team-logos.json";
+import rawWcSquads from "../../../../data/wc-national-squads.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import CompetitionStatsSection from "@/components/transfers/CompetitionStatsSection";
 import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
@@ -36,6 +37,12 @@ const WIKI = rawWiki as Record<string, WikiSeasonRow[]>;
 const ABILITY = rawAbility as Record<string, number>;
 // 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
 const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
+// 선수 → 소속 국가대표 ts team id (WC 공식 스쿼드 역검색). 국가대표 경기 기록을 자국 경기로
+// 한정 조회하기 위함 — 전세계 평가전 take 100 제한으로 누락되던 WC 미출전·평가전 위주 선수 구제.
+const PLAYER_TO_NATL_TSID = new Map<string, string>();
+for (const t of Object.values(rawWcSquads as Record<string, { tsId: string; squad: Array<{ id: string }> }>)) {
+  for (const s of t.squad) PLAYER_TO_NATL_TSID.set(s.id, t.tsId);
+}
 
 export const dynamic = "force-dynamic";
 
@@ -461,9 +468,18 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // 국가대표 경기 기록 — 대회/연도 단위로 묶어 표시(과거 대회는 접힘·보존, 최신 펼침).
   //   월드컵 본선은 전부 읽고(대회당 ~70경기) 평가전은 최근 100. playerStats 는 Lightsail
   //   poller(~2분) push·force-dynamic → 실시간. cache 는 시간삭제 없어(중복 dedup 외) 영구 보존.
+  // 선수 소속 국가대표팀 한정 — WC 공식 스쿼드 역검색으로 국가 ts team id → 우리 Team id.
+  //  자국 경기만 조회해 평가전 전체를 포함(WC 미출전 백업·평가전 위주 선수 기록 누락 해결).
+  //  동시에 전세계 평가전을 안 뒤져 더 가벼움. 미등록(비WC스쿼드) 선수는 take 100 폴백.
+  const natlTsId = PLAYER_TO_NATL_TSID.get(id);
+  const natlTeamIds = natlTsId
+    ? [...new Set((await prisma.teamSourceId.findMany({ where: { source: "thesports", externalId: natlTsId }, select: { teamId: true } })).map((s) => s.teamId))]
+    : [];
+  const natlWhere = natlTeamIds.length ? { OR: [{ homeTeamId: { in: natlTeamIds } }, { awayTeamId: { in: natlTeamIds } }] } : {};
+  const natlSelect = { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true } as const;
   const [wcMatchRows, frMatchRows] = await Promise.all([
-    prisma.match.findMany({ where: { league: "WORLD_CUP", status: "FINISHED" }, orderBy: { startTime: "desc" }, select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true } }),
-    prisma.match.findMany({ where: { league: "INTL_FRIENDLY", status: "FINISHED" }, orderBy: { startTime: "desc" }, take: 100, select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true } }),
+    prisma.match.findMany({ where: { league: "WORLD_CUP", status: "FINISHED", ...natlWhere }, orderBy: { startTime: "desc" }, select: natlSelect }),
+    prisma.match.findMany({ where: { league: "INTL_FRIENDLY", status: "FINISHED", ...natlWhere }, orderBy: { startTime: "desc" }, ...(natlTeamIds.length ? {} : { take: 100 }), select: natlSelect }),
   ]);
   const natlMatchList = [...wcMatchRows, ...frMatchRows];
   const natlById = new Map(natlMatchList.map((m) => [m.id, m]));
