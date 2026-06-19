@@ -30,6 +30,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/predictions", label: "시즌 예측", desc: "Monte Carlo 우승·강등 확률" },
       { href: "/world-cup", label: "FIFA 월드컵 2026", desc: "북중미 · 일정·우승 확률" },
       { href: "/standings", label: "리그 순위", desc: "EPL·라리가·K리그 등" },
+      { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
       { href: "/value-bets", label: "밸류 베트", desc: "Elo 예측 vs 배당 implied" },
     ],
   },
@@ -75,7 +76,6 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
     { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 글 · 예측 적중" },
     { href: "/experts", label: "예측 전문가", desc: "분석가 적중률 순위 · 프로필" },
-    { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
     { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   ],
 };
