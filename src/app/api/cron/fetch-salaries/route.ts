@@ -2,6 +2,7 @@
 // 주 1회 cron (연봉은 거의 불변 — 트레이드/계약 때만 변동).
 
 import { NextResponse, type NextRequest } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchSalaries } from "@/jobs/fetch-salaries";
 
 export const runtime = "nodejs";
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await runFetchSalaries();
+    await recordCronRun("fetch-salaries");
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });

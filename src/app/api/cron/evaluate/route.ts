@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runEvaluate, runEvaluateMatches, runBrierReport } from "@/jobs/evaluate-predictions";
 import { prisma } from "@/lib/db";
 
@@ -24,6 +25,7 @@ export async function GET(req: Request) {
     ]);
     // Brier 리포트 — predCorrect 채운 뒤 실행 (확률 품질 + 시장 대비, cron 로그·응답으로 확인)
     const brier = await runBrierReport().catch(() => null);
+    await recordCronRun("evaluate");
     return NextResponse.json({
       ok: true,
       preview: previewResult,

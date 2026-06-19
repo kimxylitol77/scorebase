@@ -3,6 +3,7 @@
 // 수동: ?leagues=NBA,MLB 로 종목 지정.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchTransactions } from "@/jobs/fetch-transactions";
 import type { TxLeague } from "@/lib/sports/espn-transactions";
 
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const summary = await runFetchTransactions(leagues);
+    await recordCronRun("fetch-transactions");
     return NextResponse.json({ ok: true, summary });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });

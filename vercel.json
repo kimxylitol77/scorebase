@@ -227,6 +227,10 @@
     {
       "path": "/api/cron/fetch-salaries",
       "schedule": "30 0 * * 1"
+    },
+    {
+      "path": "/api/cron/cron-freshness",
+      "schedule": "0 */2 * * *"
     }
   ]
 }

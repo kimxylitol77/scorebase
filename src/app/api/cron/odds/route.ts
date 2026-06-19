@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchOdds } from "@/jobs/fetch-odds";
 import { prisma } from "@/lib/db";
 
@@ -18,6 +19,7 @@ export async function GET(req: Request) {
   }
   try {
     const tally = await runFetchOdds();
+    await recordCronRun("odds");
     return NextResponse.json({ ok: true, tally });
   } catch (e) {
     return NextResponse.json(

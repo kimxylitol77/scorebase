@@ -3,6 +3,7 @@
 // 얇은 주는 잡이 자체 skip (thin-week). GENERATE_DISABLED=1 시 다른 글 생성 cron 과 동일하게 중단.
 
 import { NextResponse } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runBlogWeekly } from "@/jobs/generate-blog-weekly";
 import { prisma } from "@/lib/db";
 
@@ -27,6 +28,7 @@ export async function GET(req: Request) {
   try {
     const dryRun = url.searchParams.get("dry") === "1";
     const r = await runBlogWeekly({ dryRun });
+    await recordCronRun("blog-weekly");
     // htmlPreview 는 응답 비대 방지 — 길이만 노출
     const { htmlPreview, ...meta } = r;
     return NextResponse.json({ ok: true, dryRun, ...meta, htmlBytes: htmlPreview?.length });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchMlbStarters } from "@/jobs/fetch-mlb-starters";
 import { prisma } from "@/lib/db";
 
@@ -19,6 +20,7 @@ export async function GET(req: Request) {
   }
   try {
     const tally = await runFetchMlbStarters();
+    await recordCronRun("mlb-starters");
     return NextResponse.json({ ok: true, ...tally });
   } catch (e) {
     return NextResponse.json(

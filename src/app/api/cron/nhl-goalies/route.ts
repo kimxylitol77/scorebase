@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchNhlGoalies } from "@/jobs/fetch-nhl-goalies";
 import { prisma } from "@/lib/db";
 
@@ -18,6 +19,7 @@ export async function GET(req: Request) {
   }
   try {
     const tally = await runFetchNhlGoalies();
+    await recordCronRun("nhl-goalies");
     return NextResponse.json({ ok: true, ...tally });
   } catch (e) {
     return NextResponse.json(

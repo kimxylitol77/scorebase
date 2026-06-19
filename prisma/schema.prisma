@@ -82,6 +82,8 @@ model Match {
   // 공식 유튜브 하이라이트 영상 ID — 경기 종료 후 fetch-youtube-highlights cron 이 적재.
   // 공식 채널 "풀 하이라이트" 재생목록에서만 매칭 (재업로드 차단). null = 카드 숨김.
   highlightYoutubeId String?
+  // 주심 이름 (축구만) — af fixture.referee / football-data referees[] / ESPN 6리그는 fetch-api-football 보강.
+  referee            String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -490,6 +492,20 @@ model BotHeartbeat {
   createdAt  DateTime  @default(now())
 
   @@index([lastAt])
+}
+
+/// 핵심 배치 cron 의 실행 레지스트리 — dead-man's switch.
+/// 각 배치 cron(odds·standings·transactions 등)이 끝날 때 recordCronRun() 으로 1 row upsert.
+/// /api/cron/cron-freshness 가 기대주기+유예 지나도 갱신 없으면 텔레그램 알림.
+/// 데이터 나이가 아니라 "cron 실행 여부"를 직접 봐서 시즌종료·비수기 오탐을 피한다.
+model CronRun {
+  name       String    @id              // cron 식별자 (vercel path 기준)
+  lastRunAt  DateTime  @default(now())  // 마지막 실행 시각 (성공·실패 무관 — 실행되면 갱신)
+  lastOk     Boolean   @default(true)   // 마지막 실행 성공 여부
+  lastCount  Int?                       // 처리 건수 (0 이어도 실행은 됨 — 비수기 구분용)
+  lastError  String?                    // 실패 시 메시지
+  notifiedAt DateTime?                  // 마지막 stale/실패 알림 시각 (중복 알림 방지)
+  createdAt  DateTime  @default(now())
 }
 
 /// Ollama (Mac mini, Qwen 2.5 14B) 가 생성한 라이브 매치 코멘터리 캐시.

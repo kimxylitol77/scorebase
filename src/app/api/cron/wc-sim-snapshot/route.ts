@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
+import { recordCronRun } from "@/lib/cron-registry";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -25,6 +26,7 @@ export async function GET(req: Request) {
     const date = kstNow.toISOString().slice(0, 10);
     // 결승(7/19 KST 7/20 새벽) 이후엔 확률이 고정 — 7/21 부터 스냅샷 중단
     if (date > "2026-07-21") {
+      await recordCronRun("wc-sim-snapshot");
       return NextResponse.json({ ok: true, skipped: "tournament over" });
     }
 
@@ -56,6 +58,7 @@ export async function GET(req: Request) {
       update: { data },
     });
     const top = [...data].sort((a, b) => b.champion - a.champion)[0];
+    await recordCronRun("wc-sim-snapshot");
     return NextResponse.json({ ok: true, date, teams: data.length, top: `${top.team} ${(top.champion * 100).toFixed(1)}%` });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });

@@ -4,6 +4,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
+import { recordCronRun } from "@/lib/cron-registry";
 import { prisma } from "@/lib/db";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 import { SOCCER_LEAGUES } from "@/lib/sports/types";
@@ -168,5 +169,6 @@ export async function GET(req: NextRequest) {
     await new Promise((r) => setTimeout(r, 200));
   }
 
+  await recordCronRun("standings-collect", { count: out.ok });
   return NextResponse.json({ success: true, ...out });
 }

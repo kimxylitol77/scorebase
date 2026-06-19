@@ -3,6 +3,7 @@
 // ?league=MLB|KBO|NPB — 부분 처리 (Vercel 함수 한도 회피용, 생략 시 3개 전부).
 
 import { NextResponse } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchBaseballSeasonStats } from "@/jobs/fetch-baseball-season-stats";
 import { prisma } from "@/lib/db";
 
@@ -26,6 +27,7 @@ export async function GET(req: Request) {
     const result = await runFetchBaseballSeasonStats({
       league: league ?? undefined,
     });
+    await recordCronRun("baseball-season-stats");
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json(

@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
+import { recordCronRun } from "@/lib/cron-registry";
 import type { PredictMatch } from "@/lib/predict/types";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,7 @@ export async function GET(req: Request) {
       const top = [...data].sort((a, b) => b.champion - a.champion)[0];
       results[league] = `${top.team} ${(top.champion * 100).toFixed(1)}%`;
     }
+    await recordCronRun("league-sim-snapshot");
     return NextResponse.json({ ok: true, date, results });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });

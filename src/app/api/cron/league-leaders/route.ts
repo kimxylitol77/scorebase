@@ -2,6 +2,7 @@
 // vercel.json schedule: KST 05:00 (UTC 20:00 전날) 또는 별도.
 
 import { NextResponse } from "next/server";
+import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchLeagueLeaders } from "@/jobs/fetch-league-leaders";
 import { prisma } from "@/lib/db";
 
@@ -30,6 +31,7 @@ export async function GET(req: Request) {
     | null;
   try {
     const result = await runFetchLeagueLeaders({ sport: sport ?? undefined });
+    await recordCronRun("league-leaders");
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     return NextResponse.json(

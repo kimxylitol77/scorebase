@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { recordCronRun } from "@/lib/cron-registry";
 import type { Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
@@ -112,5 +113,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  await recordCronRun("baseball-standings");
   return NextResponse.json({ ok: true, leagues: results });
 }
