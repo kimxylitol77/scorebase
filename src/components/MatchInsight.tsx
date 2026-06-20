@@ -313,6 +313,21 @@ export default async function MatchInsight({
     toKoreanTeamName(match.awayTeam.name),
   );
 
+  // === 예측 근거 분해 — 실제 1X2 승률에 반영되는 신호만 (정직성: 폼·H2H·득실은 미반영) ===
+  const eloGap = Math.round(homeElo - awayElo);
+  const predBasis: { label: string; detail: string }[] = [
+    {
+      label: "Elo 레이팅",
+      detail: `홈 ${Math.round(homeElo)} · 원정 ${Math.round(awayElo)} (${eloGap >= 0 ? "+" : ""}${eloGap} ${eloGap > 0 ? "홈 우위" : eloGap < 0 ? "원정 우위" : "대등"})`,
+    },
+  ];
+  if (starterAdj.applied)
+    predBasis.push({ label: "선발 투수", detail: "선발 매치업 반영 — 상세는 아래 선발 카드" });
+  if (goalieAdj.applied)
+    predBasis.push({ label: "골리", detail: "골리 매치업 반영 — 상세는 아래 골리 카드" });
+  if (marketBlended)
+    predBasis.push({ label: "시장 배당", detail: "베팅사이트 평균 확률과 앙상블 블렌드" });
+
   // === AI 예측 시장 ===
   const isSoccer = SOCCER_LEAGUES_FOR_MARKETS.has(match.league);
   const sportProfile = getSportProfile(match.league);
@@ -748,6 +763,21 @@ export default async function MatchInsight({
           awayName={toKoreanTeamName(match.awayTeam.name)}
           hideDraw={hideDraw}
         />
+      </Section>
+      <Section title="이 예측의 근거">
+        <div className="rounded-[1rem] bg-zinc-50 p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 space-y-2">
+          {predBasis.map((b) => (
+            <div key={b.label} className="flex gap-2.5 text-sm">
+              <span className="w-16 shrink-0 font-semibold text-zinc-700 dark:text-white/80">
+                {b.label}
+              </span>
+              <span className="text-zinc-600 dark:text-white/55">{b.detail}</span>
+            </div>
+          ))}
+          <p className="mt-1 border-t border-black/5 pt-2 text-[11px] leading-relaxed text-zinc-500 dark:border-white/10 dark:text-white/45">
+            ⓘ 위 신호만 승률에 직접 반영됩니다. 최근 폼·상대전적(H2H)·득실 추이는 아래 참고 지표이며, 예측 확률 계산에는 들어가지 않습니다.
+          </p>
+        </div>
       </Section>
       {dcPred && dcPred.sampleHome >= 3 && dcPred.sampleAway >= 3 && (
         <Section title="예상 스코어 · 기대 득점">
