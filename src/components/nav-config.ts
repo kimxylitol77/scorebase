@@ -62,7 +62,8 @@ export const SPORT_CATEGORIES: NavCategory[] = [
     items: [
       { href: "/leagues/NHL", label: "NHL 아이스하키", desc: "북미 · 골리 매치업" },
       { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국" },
-      { href: "/standings", label: "리그 순위", desc: "NHL·LCK" },
+      { href: "/scores?sport=volleyball", label: "배구 (VNL·AVC)", desc: "발리볼 네이션스리그 · 라이브 세트 스코어" },
+      { href: "/standings", label: "리그 순위", desc: "NHL·LCK·배구" },
     ],
   },
 ];
