@@ -145,8 +145,9 @@ async function poll() {
         });
       }
     } else {
-      // 정상 — 카운트 리셋
-      if (failCount.get(ep.name)) {
+      // 정상 — 카운트 리셋. 복구 알림은 진짜 장애(연속 2회+ HIGH)였을 때만 보낸다.
+      // 단발 실패(배포 직후 콜드 스타트·재배포 순간 502 등)→복구는 노이즈라 조용히 리셋.
+      if ((failCount.get(ep.name) ?? 0) >= FAIL_THRESHOLD) {
         await notify({
           severity: "INFO",
           title: `${ep.koName} 복구됨`,
