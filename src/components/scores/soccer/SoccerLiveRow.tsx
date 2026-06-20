@@ -483,13 +483,23 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   );
 }
 
-/** 종료/진행 매치 점수 hover 시 표시되는 골 + 카드 tooltip. */
-/** 배당 셀 — 행에 1X2(승/무/패)+오버언더 작게, hover 시 상세 팝업(핸디캡 포함). */
+/** 배당 셀 — 행에 1X2(승/무/패)+오버언더 작게, hover 시 상세 팝업(핸디캡 포함).
+ *  팝업은 overflow-x-auto 컨테이너에 세로로 잘리므로(특히 마지막 행이 하단으로 넘쳐 잘림)
+ *  GoalsTooltip 처럼 fixed + 실측 좌표로 띄우고, 하단 공간 부족하면 위로 플립한다. */
 function OddsCell({ odds }: { odds: MatchOdds | null }) {
-  if (!odds) return null;
   const f = (n: number | null) => (n != null ? n.toFixed(2) : "-");
+  // hover 시 셀의 우측·하단 좌표 저장 → 팝업을 fixed 로 띄워 컨테이너 클립 회피.
+  const [pos, setPos] = useState<{ right: number; bottom: number } | null>(null);
+  if (!odds) return null;
   return (
-    <div className="relative group/odds flex flex-col items-end justify-center gap-0.5 text-[9px] leading-none tabular-nums">
+    <div
+      className="relative flex flex-col items-end justify-center gap-0.5 text-[9px] leading-none tabular-nums"
+      onMouseEnter={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        setPos({ right: window.innerWidth - r.right, bottom: r.bottom });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
       {/* 1X2 (승/무/패) */}
       <div className="flex gap-1">
         <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}</span>
@@ -503,34 +513,72 @@ function OddsCell({ odds }: { odds: MatchOdds | null }) {
           <span>U{f(odds.under)}</span>
         </div>
       )}
-      {/* hover 상세 팝업 */}
-      <div className="absolute right-0 top-full z-50 mt-1 hidden group-hover/odds:block pointer-events-none">
-        <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 p-2.5 text-left min-w-[176px]">
-          <div className="text-[10px] font-bold text-neutral-500 mb-1.5">
-            배당{odds.books ? ` · ${odds.books}곳 평균` : ""}
+      {/* hover 상세 팝업 — fixed (컨테이너 세로 클립 회피) */}
+      <OddsPopup odds={odds} pos={pos} f={f} onClose={() => setPos(null)} />
+    </div>
+  );
+}
+
+/** 배당 상세 팝업 — fixed 로 띄워 overflow 컨테이너 세로 클립 회피. 하단 공간 부족(마지막 행)이면 위로 플립. */
+function OddsPopup({
+  odds,
+  pos,
+  f,
+  onClose,
+}: {
+  odds: MatchOdds;
+  pos: { right: number; bottom: number } | null;
+  f: (n: number | null) => string;
+  onClose: () => void;
+}) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [top, setTop] = useState<number | null>(null);
+  // 호버 중 스크롤하면 fixed 팝업이 행과 분리되므로 닫는다.
+  useEffect(() => {
+    if (!pos) return;
+    window.addEventListener("scroll", onClose, true);
+    return () => window.removeEventListener("scroll", onClose, true);
+  }, [pos, onClose]);
+  // 렌더 후 높이 실측 → 하단 넘치면 위로 클램프(플립).
+  useLayoutEffect(() => {
+    if (!pos) { setTop(null); return; }
+    const el = boxRef.current;
+    if (!el) return;
+    const h = el.getBoundingClientRect().height;
+    setTop(Math.min(pos.bottom + 4, Math.max(8, window.innerHeight - h - 8)));
+  }, [pos]);
+  if (!pos) return null;
+  return (
+    <div
+      ref={boxRef}
+      className="fixed z-50 pointer-events-none"
+      style={{ right: pos.right, top: top ?? pos.bottom + 4 }}
+    >
+      <div className="rounded-lg border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-900 shadow-xl shadow-neutral-900/15 p-2.5 text-left min-w-[176px]">
+        <div className="text-[10px] font-bold text-neutral-500 mb-1.5">
+          배당{odds.books ? ` · ${odds.books}곳 평균` : ""}
+        </div>
+        <div className="space-y-1 text-[11px]">
+          <div className="flex justify-between">
+            <span className="text-neutral-500">승 / 무 / 패</span>
+            <span className="tabular-nums">
+              <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}</span>
+              {" "}{f(odds.draw)}{" "}
+              <span className="text-blue-600 dark:text-blue-400 font-semibold">{f(odds.away)}</span>
+            </span>
           </div>
-          <div className="space-y-1 text-[11px]">
-            <div className="flex justify-between">
-              <span className="text-neutral-500">승 / 무 / 패</span>
-              <span className="tabular-nums">
-                <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}</span>
-                {" "}{f(odds.draw)}{" "}
-                <span className="text-blue-600 dark:text-blue-400 font-semibold">{f(odds.away)}</span>
-              </span>
+          {odds.over != null && (
+            <div className="flex justify-between pt-1 mt-1 border-t border-neutral-200 dark:border-white/10">
+              <span className="text-neutral-500">오버언더 {odds.totalLine}</span>
+              <span className="tabular-nums">O {f(odds.over)} / U {f(odds.under)}</span>
             </div>
-            {odds.over != null && (
-              <div className="flex justify-between pt-1 mt-1 border-t border-neutral-200 dark:border-white/10">
-                <span className="text-neutral-500">오버언더 {odds.totalLine}</span>
-                <span className="tabular-nums">O {f(odds.over)} / U {f(odds.under)}</span>
-              </div>
-            )}
-            {odds.hcHome != null && (
-              <div className="flex justify-between">
-                <span className="text-neutral-500">핸디캡 {odds.hcLine}</span>
-                <span className="tabular-nums">{f(odds.hcHome)} / {f(odds.hcAway)}</span>
-              </div>
-            )}
-          </div>
+          )}
+          {odds.hcHome != null && (
+            <div className="flex justify-between">
+              <span className="text-neutral-500">핸디캡 {odds.hcLine}</span>
+              <span className="tabular-nums">{f(odds.hcHome)} / {f(odds.hcAway)}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
