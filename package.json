@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "tsx scripts/build-pages-inventory.ts",
     "dev": "next dev",
+    "prebuild": "tsx scripts/build-pages-inventory.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -16,6 +18,7 @@
     "job:generate": "tsx src/jobs/generate-articles.ts",
     "job:preview": "tsx src/jobs/generate-previews.ts",
     "job:analysis": "tsx src/jobs/generate-analysis.ts",
+    "job:tod": "tsx src/jobs/generate-team-of-day-article.ts",
     "job:blog-weekly": "tsx src/jobs/generate-blog-weekly.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
     "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",
@@ -29,7 +32,9 @@
     "preview:kbo": "tsx --env-file=.env.local scripts/preview-now.ts KBO",
     "preview:npb": "tsx --env-file=.env.local scripts/preview-now.ts NPB",
     "preview:mlb": "tsx --env-file=.env.local scripts/preview-now.ts MLB",
-    "preview:baseball": "tsx --env-file=.env.local scripts/preview-now.ts ALL"
+    "preview:baseball": "tsx --env-file=.env.local scripts/preview-now.ts ALL",
+    "assistant:index": "tsx --env-file=.env.local assistant/index.ts",
+    "assistant": "tsx --env-file=.env.local assistant/server.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",

@@ -1,6 +1,6 @@
 // 모든 공개 page.tsx 의 헤더 주석을 추출해 페이지 인벤토리 JSON 생성.
 // /admin/structure 의 "페이지 인벤토리" 섹션이 이 JSON 을 렌더한다.
-// 코드/주석이 바뀌면 재실행: npx tsx scripts/build-pages-inventory.ts
+// predev·prebuild hook 으로 dev 시작·배포 시 자동 실행 (package.json). 수동 재실행: npx tsx scripts/build-pages-inventory.ts
 import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { join } from "path";
 import { SPORT_CATEGORIES, COMMUNITY_CATEGORY } from "../src/components/nav-config";

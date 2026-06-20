@@ -149,7 +149,7 @@ export default function StructurePage() {
 
       <p className="mt-8 text-xs text-neutral-400 leading-relaxed">
         출처: nav-config.ts · sport-leagues.ts (메뉴·리그 자동) + 코드 재검증(커버리지). 페이지 인벤토리는{" "}
-        <code className="text-[11px]">npx tsx scripts/build-pages-inventory.ts</code> 재실행으로 갱신. 칸이 틀리면 COVERAGE 상수만 고치면 됩니다.
+        <code className="text-[11px]">predev·prebuild</code> hook 으로 dev 시작·배포 시 자동 갱신(page.tsx 추가·삭제 자동 반영). 커버리지·갭 칸이 틀리면 COVERAGE·GAPS 상수만 고치면 됩니다.
       </p>
     </main>
   );
