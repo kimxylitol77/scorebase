@@ -324,6 +324,21 @@ export default async function WorldCupHub() {
         <span className="text-amber-600 dark:text-amber-400 text-sm font-bold">→</span>
       </Link>
 
+      <Link
+        href="/world-cup/xg"
+        prefetch={false}
+        className="mb-6 flex items-center justify-between gap-2 rounded-xl border border-sky-300/60 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 px-4 py-3 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition"
+      >
+        <span className="flex items-center gap-2.5">
+          <span className="text-xl">📊</span>
+          <span>
+            <span className="block text-sm font-bold text-sky-800 dark:text-sky-200">xG 트래커</span>
+            <span className="block text-[11px] text-sky-700/80 dark:text-sky-300/70">전 경기 기대득점 vs 실제 결과 · 이변·결정력 추적</span>
+          </span>
+        </span>
+        <span className="text-sky-600 dark:text-sky-400 text-sm font-bold">→</span>
+      </Link>
+
       <section>
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-lg font-bold tracking-tight">조별리그 A~L</h2>
