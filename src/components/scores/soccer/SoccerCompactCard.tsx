@@ -4,6 +4,7 @@
 
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
 import { teamColor } from "@/lib/team-colors";
@@ -30,12 +31,15 @@ interface Props {
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
-  if (url) {
+  // 군소팀 로고 URL 이 404(이미지 없음)면 onError 로 이니셜 fallback. (af KFA컵 등)
+  const [err, setErr] = useState(false);
+  if (url && !err) {
     // eslint-disable-next-line @next/next/no-img-element
     return (
       <img
         src={url}
         alt=""
+        onError={() => setErr(true)}
         className="w-4 h-4 object-contain shrink-0 bg-white rounded-sm p-0.5"
         loading="lazy"
       />
