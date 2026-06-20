@@ -9,6 +9,20 @@ import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
 // 빌드 시점 정적 스냅샷이면 cron 발행 글(Article)·블로그가 다음 배포까지 누락 → 1시간 재생성
 export const revalidate = 3600;
 
+// sitemap 등록 리그 — 한국 검색수요 있는 핵심만. 나머지 ~120개 군소·해외 하부리그는
+// thin 페이지라 크롤 예산·사이트 품질 신호를 희석(GSC "크롤링됨-색인안됨" 다수) → sitemap 제외.
+// 페이지 자체는 /scores 등에서 살아있음(제외 ≠ 삭제). 2026-06-20 — 5/23 sitemap 청소 연장.
+const SITEMAP_LEAGUES = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
+  "UCL", "UEL", "UECL",
+  "MLS", "CHAMPIONSHIP", "EREDIVISIE", "PRIMEIRA_LIGA",
+  "WORLD_CUP", "CLUB_WORLD_CUP",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "AFC_CL", "SAUDI_PL",
+  "NBA", "WNBA", "NHL",
+  "MLB", "KBO", "NPB",
+  "LOL", "LCK_CL",
+];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = SITE_URL;
   const now = new Date();
@@ -35,13 +49,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly" as const,
       priority: 0.85,
     })),
-    ...ALL_LEAGUES.map((lg) => ({
+    ...SITEMAP_LEAGUES.map((lg) => ({
       url: `${base}/leagues/${lg}`,
       lastModified: now,
       changeFrequency: "daily" as const,
       priority: 0.9,
     })),
-    ...ALL_LEAGUES.map((lg) => ({
+    ...SITEMAP_LEAGUES.map((lg) => ({
       url: `${base}/predictions/${lg}`,
       lastModified: now,
       changeFrequency: "hourly" as const,
