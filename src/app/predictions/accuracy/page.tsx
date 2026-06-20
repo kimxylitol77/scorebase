@@ -352,12 +352,14 @@ export default async function AccuracyPage() {
         <h2 className="text-base font-semibold mb-3">계산 방법</h2>
         <ul className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2 list-disc pl-5">
           <li>
-            각 매치 시점 기준으로 그 이전까지의 데이터(Elo, 폼, 홈/원정 split,
-            상대 전적, 평균 득/실점)만 사용해 확률을 추정합니다 — 미래 데이터
-            오염 없음.
+            각 매치 시점 기준으로 그 이전까지의 데이터만 사용합니다 — 미래 데이터
+            오염 없음. 마켓마다 쓰는 신호가 다릅니다 (아래 참고).
           </li>
           <li>
-            <strong>1X2</strong>: 홈 승 / 무 / 원정 승 중 가장 높은 확률을 선택.
+            <strong>1X2</strong>: Elo 레이팅 + 리그별 홈 어드밴티지 + 선발
+            투수(MLB)·골리(NHL) + 시장 배당이 있을 때 implied 확률과 블렌드 —
+            홈/무/원정 확률을 산출해 가장 높은 쪽 선택. 최근 폼·상대 전적(H2H)·평균
+            득실점은 1X2 확률 계산에 직접 들어가지 않는 참고 지표입니다.
           </li>
           <li>
             <strong>DC (Double Chance)</strong>: "홈 승 또는 무" / "원정 승 또는
