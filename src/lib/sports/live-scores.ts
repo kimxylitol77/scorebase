@@ -2037,14 +2037,26 @@ export async function fetchLolLive(): Promise<LiveMatch[]> {
 /* ============================================================
  * 통합 — 모든 소스 병렬 fetch + 정렬
  * ==========================================================*/
+// 종목별 hard 타임아웃 — 개별 fetch 의 8초 AbortController 는 fetch 자체만 끊고
+// 후속 처리·DB 쿼리는 못 끊는다. 그래서 Promise.all 에서 한 종목이 hang 하면 전체가
+// 대기(20초 타임아웃 관측됨). race 로 종목당 9초 상한을 걸고, 실패·hang 은 fallback 으로
+// 흘려 나머지 종목 스코어는 정상 반환한다(Promise.all 한 종목 reject 시 전체가 빈응답
+// 되던 것도 동시에 방지 — 일부 종목 장애가 라이브 스코어 전체를 끊지 않게).
+function withSportTimeout<T>(p: Promise<T>, fallback: T): Promise<T> {
+  return Promise.race([
+    p.catch(() => fallback),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), 9000)),
+  ]);
+}
+
 export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
   const [soccer, soccerTs, baseball, nba, nhl, lol] = await Promise.all([
-    fetchSoccerLive(),
-    fetchSoccerLiveTsScores(),
-    fetchBaseballLive(),
-    fetchNbaLive(),
-    fetchNhlLive(),
-    fetchLolLive(),
+    withSportTimeout(fetchSoccerLive(), [] as LiveMatch[]),
+    withSportTimeout(fetchSoccerLiveTsScores(), new Map()),
+    withSportTimeout(fetchBaseballLive(), [] as LiveMatch[]),
+    withSportTimeout(fetchNbaLive(), [] as LiveMatch[]),
+    withSportTimeout(fetchNhlLive(), [] as LiveMatch[]),
+    withSportTimeout(fetchLolLive(), [] as LiveMatch[]),
   ]);
   // 축구 — af-live 점수에 ts 캐시(빠른 MQTT) 점수를 max 병합. af 가 골을 늦게 반영해도
   // ts 가 추적 중이면 즉시 반영돼 골 임팩트·사운드 지연이 짧아진다. 라이브엔 승부차기 없어
