@@ -17,6 +17,8 @@ import { getTeamGroup } from "@/lib/predict/world-cup-elos";
 import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
+import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 
 export const dynamic = "force-dynamic";
 
@@ -179,6 +181,10 @@ export default async function StandingsPage({ params }: Props) {
   });
   const teamMap = new Map(teams.map((t) => [t.id, t]));
 
+  // 시즌 리더보드 (득점왕·도움왕 등) — DB cron 이 매일 채움. 데이터 있는 리그만 노출.
+  const { rowsByCategory: leaderRows, season: leaderSeason } = await loadLeagueLeaderboard(upper);
+  const hasLeaders = Object.keys(leaderRows).length > 0;
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
@@ -272,6 +278,13 @@ export default async function StandingsPage({ params }: Props) {
       <div className="text-[11px] text-neutral-400 text-center pt-2">
         ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외.
       </div>
+
+      {hasLeaders && (
+        <section className="space-y-3 pt-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight">{name} 시즌 리더보드</h2>
+          <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
+        </section>
+      )}
     </div>
   );
 }
@@ -597,6 +610,10 @@ async function NhlStandings({ name }: { name: string }) {
     ],
   };
 
+  // 시즌 리더보드 (골·어시·포인트·세이브%) — 데이터 있을 때만.
+  const { rowsByCategory: nhlLeaders, season: nhlLeaderSeason } = await loadLeagueLeaderboard("NHL");
+  const hasNhlLeaders = Object.keys(nhlLeaders).length > 0;
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <script
@@ -706,6 +723,13 @@ async function NhlStandings({ name }: { name: string }) {
       <div className="text-[11px] text-neutral-400 text-center pt-2">
         ⓘ 승점 = 승 2점 + 연장·슛아웃 패 1점. NHL 공식 기록 기준 · 경기 종료 후 자동 갱신.
       </div>
+
+      {hasNhlLeaders && (
+        <section className="space-y-3 pt-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight">NHL 시즌 리더보드</h2>
+          <LeagueLeaderBoard league="NHL" season={nhlLeaderSeason} rowsByCategory={nhlLeaders} />
+        </section>
+      )}
     </div>
   );
 }
