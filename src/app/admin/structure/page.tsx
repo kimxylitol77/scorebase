@@ -29,7 +29,7 @@ const COVERAGE: Record<string, string[]> = {
 
 // 지금 눈에 띄는 갭 — 우선순위 후보 (수동 큐레이션).
 const GAPS: { sport: string; level: "none" | "part"; text: string }[] = [
-  { sport: "배구", level: "part", text: "헤더 노출·AI예측 가동중(volleyball-elo, scores 노출). 남은 갭=프리뷰 글 미생성, 배당은 예정매치 미수집(과거 52건뿐이라 value-bets 노출 불가)." },
+  { sport: "배구", level: "part", text: "라이브 스코어 종목 탭으로 노출(전용 헤더 메뉴는 사용자 판단으로 제외)·AI예측 가동중(volleyball-elo). 남은 갭=프리뷰 글 미생성, 배당 예정매치 미수집(value-bets 노출 불가)." },
   { sport: "e스포츠(LCK)", level: "none", text: "BDL plan 막혀 수집 멈춤(401). 복구는 결제·plan 확인 필요." },
   { sport: "농구·하키", level: "part", text: "시즌 우승확률 예측 미구현 (야구·축구만 있음)." },
   { sport: "야구", level: "part", text: "NPB 연봉·이적 없음, KBO/NPB 팀 로스터 미완(scraping)." },
