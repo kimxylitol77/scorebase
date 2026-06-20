@@ -199,6 +199,20 @@ export default async function AccuracyPage() {
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
   const overallRate = totalEvaluated > 0 ? totalCorrect / totalEvaluated : 0;
 
+  // 평가 표본 기간 — 첫 평가 매치 날짜 (표본 투명성: "언제부터 N경기")
+  const dateAgg = await prisma.match.aggregate({
+    where: { predCorrect: { not: null } },
+    _min: { startTime: true },
+  });
+  const sinceLabel = dateAgg._min.startTime
+    ? dateAgg._min.startTime.toLocaleDateString("ko-KR", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
+
   // 축구 시장 전체 평균
   const soccerStats = stats.filter((s) => s.isSoccer);
   const dcTotal = soccerStats.reduce((s, x) => s + x.dc.evaluated, 0);
@@ -239,7 +253,7 @@ export default async function AccuracyPage() {
     creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
     isAccessibleForFree: true,
     measurementTechnique:
-      "Elo 레이팅 + 홈 어드밴티지 + 최근 폼 기반 시점 백테스트",
+      "Elo 레이팅 + 홈 어드밴티지 + 선발(MLB)/골리(NHL) + 시장 배당 블렌드 시점 백테스트",
     variableMeasured: [
       { "@type": "PropertyValue", name: "1X2 적중률", value: `${(overallRate * 100).toFixed(1)}%` },
       { "@type": "PropertyValue", name: "평가 표본", value: `${totalEvaluated}경기` },
@@ -258,9 +272,11 @@ export default async function AccuracyPage() {
           AI 스포츠 예측 적중률 보드
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400">
-          Elo 레이팅 + 홈 어드밴티지 + 최근 폼 기반 매치 결과 예측의 실제
-          적중률입니다. 종료된 모든 매치를 시점 기준으로 백테스트하여 산출하며,
-          수치를 보정 없이 표본 수와 함께 그대로 공개합니다.
+          Elo 레이팅 + 홈 어드밴티지 + 선발/골리 + 시장 배당 블렌드 기반 매치 결과
+          예측의 실제 적중률입니다.{" "}
+          {sinceLabel ? `${sinceLabel}부터 ` : ""}종료된{" "}
+          {totalEvaluated.toLocaleString()}경기를 시점 기준으로 백테스트하여
+          산출하며, 수치를 보정 없이 표본 수와 함께 그대로 공개합니다.
         </p>
       </header>
 
