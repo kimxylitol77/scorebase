@@ -59,6 +59,42 @@ function authed(req: NextRequest): boolean {
 export async function GET(req: NextRequest) {
   if (!authed(req)) return unauthorized();
 
+  // 미래 매치 LIVE 고착 즉시 롤백 — startTime 이 now+1h 보다 미래인데 LIVE 면
+  // 시작 전이라 무조건 오염(ts status_id 글리치/cross-link). diary verify 불필요 —
+  // 미래엔 LIVE 일 수 없으므로 SCHEDULED + score null 로 강제 복원.
+  // cleanup-stale-scheduled 1b 와 동일 로직을 빠른 layer(worker GET 주기)로 당겨
+  // 4h cron 공백을 메운다 (2026-06-20 LMB #532202/#532476 — 16:00 cron 직후 stuck →
+  // 다음 20:00 까지 phantom LIVE+score 노출. data-sanity 봇이 cron 보다 빨라 알림).
+  const futureLiveCutoff = new Date(Date.now() + 60 * 60 * 1000);
+  const futureLive = await prisma.match.findMany({
+    where: { status: "LIVE", startTime: { gt: futureLiveCutoff } },
+    select: { id: true, league: true, startTime: true, externalId: true },
+  });
+  let futureLiveRolledBack = 0;
+  if (futureLive.length > 0) {
+    await prisma.match.updateMany({
+      where: { id: { in: futureLive.map((m) => m.id) } },
+      data: { status: "SCHEDULED", homeScore: null, awayScore: null },
+    });
+    futureLiveRolledBack = futureLive.length;
+    try {
+      const lines = futureLive
+        .slice(0, 10)
+        .map((m) => `  ${m.league} #${m.id} | ${m.externalId} | ${m.startTime.toISOString()}`)
+        .join("\n");
+      await sendTelegram(
+        `⏭ <b>미래 매치 LIVE ${futureLiveRolledBack}건 자동 롤백</b>\n\n` +
+          `📍 <b>무엇</b>: startTime 이 1h+ 미래인데 status=LIVE → SCHEDULED + score null\n` +
+          `💥 <b>영향</b>: 시작 전 phantom LIVE/score 노출 차단 (4h cron 대기 없이)\n` +
+          `🔍 <b>원인</b>: ts status_id 글리치/cross-link 로 미래 매치 LIVE 오염\n\n` +
+          `<code>${lines}</code>\n\n` +
+          `<code>[안내] stale-ts-verify future_live</code>`,
+      );
+    } catch (e) {
+      console.warn("[stale-ts-verify] future_live telegram fail:", (e as Error).message);
+    }
+  }
+
   const schedCutoff = new Date(Date.now() - STALE_HOURS * 3600 * 1000);
   const liveCutoff = new Date(Date.now() - LIVE_STALE_HOURS * 3600 * 1000);
   const stale = await prisma.match.findMany({
@@ -87,7 +123,7 @@ export async function GET(req: NextRequest) {
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
 
-  return NextResponse.json({ staleHours: STALE_HOURS, count: matches.length, matches });
+  return NextResponse.json({ staleHours: STALE_HOURS, futureLiveRolledBack, count: matches.length, matches });
 }
 
 // ── POST: worker 의 diary verify 결과 적용 ──────────────────
