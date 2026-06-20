@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Scorebase LOL collector — LCK 결과/일정 동기화 (6h 주기)
+
+[Timer]
+# 6시간마다 (UTC 00/06/12/18 = KST 09/15/21/03). LCK 경기는 보통 KST 17~22시 → 21·03시에 결과 확정.
+# 휴식기엔 매치 0건이라 POST skip(무해). diary 가 아니라 tournament 조회라 과거 결과까지 항상 sync.
+OnCalendar=*-*-* 00,06,12,18:00:00
+Persistent=true
+Unit=scorebase-lol-collector.service
+
+[Install]
+WantedBy=timers.target
