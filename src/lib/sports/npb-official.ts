@@ -154,6 +154,10 @@ export async function fetchNpbRoster(): Promise<NpbRosterEntry[]> {
             const a = $(tr).find("a[href*='/bis/players/']").first();
             const g = group;
             if (!a.length || !g) return;
+            // 등번호(첫 td) 3자리 이상 = 育成선수 → 제외 (支配下 1군 로스터만).
+            // 支配下=1~99(1~2자리), 育成=0XX/1XX/2XX(3자리). rst probe 2026-06 확인.
+            const shirtNo = $(tr).find("td").first().text().trim();
+            if (shirtNo.length >= 3) return;
             const m = ($(a).attr("href") ?? "").match(
               /\/bis\/players\/(\d{6,9})\.html/,
             );
