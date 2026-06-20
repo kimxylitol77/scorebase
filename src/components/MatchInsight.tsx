@@ -321,10 +321,24 @@ export default async function MatchInsight({
       detail: `홈 ${Math.round(homeElo)} · 원정 ${Math.round(awayElo)} (${eloGap >= 0 ? "+" : ""}${eloGap} ${eloGap > 0 ? "홈 우위" : eloGap < 0 ? "원정 우위" : "대등"})`,
     },
   ];
-  if (starterAdj.applied)
-    predBasis.push({ label: "선발 투수", detail: "선발 매치업 반영 — 상세는 아래 선발 카드" });
-  if (goalieAdj.applied)
-    predBasis.push({ label: "골리", detail: "골리 매치업 반영 — 상세는 아래 골리 카드" });
+  if (starterAdj.applied) {
+    const he = homeStarterEarly?.era;
+    const ae = awayStarterEarly?.era;
+    const detail =
+      he != null && ae != null
+        ? `${he < ae ? "홈 선발 우위" : he > ae ? "원정 선발 우위" : "대등"} — ERA ${he.toFixed(2)} vs ${ae.toFixed(2)}`
+        : "선발 매치업 반영 — 상세는 아래 선발 카드";
+    predBasis.push({ label: "선발 투수", detail });
+  }
+  if (goalieAdj.applied) {
+    const hg = homeGoalieEarly?.gaa;
+    const ag = awayGoalieEarly?.gaa;
+    const detail =
+      hg != null && ag != null
+        ? `${hg < ag ? "홈 골리 우위" : hg > ag ? "원정 골리 우위" : "대등"} — GAA ${hg.toFixed(2)} vs ${ag.toFixed(2)}`
+        : "골리 매치업 반영 — 상세는 아래 골리 카드";
+    predBasis.push({ label: "골리", detail });
+  }
   if (marketBlended)
     predBasis.push({ label: "시장 배당", detail: "베팅사이트 평균 확률과 앙상블 블렌드" });
 
