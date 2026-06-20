@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
     typeof body.homeScore === "number" && typeof body.awayScore === "number";
   if (needScoreUpdate || tsStatusId != null) {
     try {
-      const updateData: { homeScore?: number; awayScore?: number; status?: MatchStatus } = {};
+      const updateData: { homeScore?: number | null; awayScore?: number | null; status?: MatchStatus } = {};
 
       if (needScoreUpdate) {
         // 워커가 보낸 현재 스코어 그대로 set — 전 종목 공통.
@@ -210,12 +210,22 @@ export async function POST(req: NextRequest) {
           currentMatch.startTime.getTime() > Date.now() + 10 * 60 * 1000;
         const blockByFuture =
           isFutureMatch && (mapped === "LIVE" || mapped === "FINISHED");
+        // 미래 매치가 (ts 오연결·startTime 갱신 등으로) LIVE/FINISHED 로 고착되면
+        // 단조 가드(newRank>=currentRank)가 SCHEDULED 복구를 막아 영구 고착됨
+        // (2026-06-20 LMB #532202/#532476 — 18h 후 매치가 LIVE+score 노출).
+        // 미래 매치 + cache 가 SCHEDULED(미시작) 신호면 역행을 허용해 되돌린다.
+        const futureRollback = isFutureMatch && mapped === "SCHEDULED";
         if (
           mapped !== currentMatch.status &&
-          (newRank >= currentRank || mapped === "POSTPONED") &&
+          (newRank >= currentRank || mapped === "POSTPONED" || futureRollback) &&
           !blockByFuture
         ) {
           updateData.status = mapped;
+          // 미래 매치를 SCHEDULED 로 되돌릴 때 오염된 score 도 비운다.
+          if (futureRollback) {
+            updateData.homeScore = null;
+            updateData.awayScore = null;
+          }
         }
       }
 
