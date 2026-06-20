@@ -165,18 +165,27 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
       <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
         {rows.map((r) => {
           const href = playerHref(league, r.externalId);
+          // 1·2·3위 시상대 배경 강조 (금·은·동)
+          const rankBg =
+            r.rank === 1
+              ? "bg-amber-50 dark:bg-amber-400/10"
+              : r.rank === 2
+                ? "bg-slate-100 dark:bg-slate-300/10"
+                : r.rank === 3
+                  ? "bg-orange-50 dark:bg-orange-400/10"
+                  : "";
           const Wrap = href
             ? ({ children }: { children: React.ReactNode }) => (
                 <Link
                   href={href}
                   prefetch={false}
-                  className="flex items-center gap-3 px-3 sm:px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition"
+                  className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 ${rankBg} hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition`}
                 >
                   {children}
                 </Link>
               )
             : ({ children }: { children: React.ReactNode }) => (
-                <div className="flex items-center gap-3 px-3 sm:px-4 py-2.5">
+                <div className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 ${rankBg}`}>
                   {children}
                 </div>
               );
