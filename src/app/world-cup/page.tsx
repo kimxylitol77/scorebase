@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Star, Info, ChevronRight } from "lucide-react";
+import { Star, Info, ChevronRight, Radio, Globe, Newspaper, ListOrdered } from "lucide-react";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
@@ -112,11 +112,23 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
         <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
           북중미(미국·캐나다·멕시코) 개최 · 6/11 ~ 7/19 · 사상 첫 <strong>48개국</strong> 본선. 일정·결과, Monte Carlo 우승 확률, 선수 랭킹, xG까지 한곳에서. 대한민국은 개최국 멕시코와 <strong>A조</strong>.
         </p>
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
-          <Link href="/scores" className="hover:text-neutral-800 dark:hover:text-neutral-200" prefetch={false}>라이브 스코어</Link>
-          <Link href="/national-teams" className="hover:text-neutral-800 dark:hover:text-neutral-200" prefetch={false}>출전국 48개국</Link>
-          <Link href="/leagues/WORLD_CUP" className="hover:text-neutral-800 dark:hover:text-neutral-200" prefetch={false}>분석 글</Link>
-          <Link href="/predictions/fifa-ranking" className="hover:text-neutral-800 dark:hover:text-neutral-200" prefetch={false}>FIFA 랭킹</Link>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {[
+            { href: "/scores", label: "라이브 스코어", Icon: Radio },
+            { href: "/national-teams", label: "출전국 48개국", Icon: Globe },
+            { href: "/leagues/WORLD_CUP", label: "분석 글", Icon: Newspaper },
+            { href: "/predictions/fifa-ranking", label: "FIFA 랭킹", Icon: ListOrdered },
+          ].map(({ href, label, Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              prefetch={false}
+              className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3.5 py-1.5 text-[13px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-700 transition"
+            >
+              <Icon className="w-3.5 h-3.5 text-neutral-400" aria-hidden />
+              {label}
+            </Link>
+          ))}
         </div>
       </header>
 
