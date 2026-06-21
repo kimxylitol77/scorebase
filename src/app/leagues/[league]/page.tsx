@@ -6,6 +6,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
+import LeagueStandingsTable from "@/components/leagues/LeagueStandingsTable";
+import LeagueFixtures from "@/components/leagues/LeagueFixtures";
+import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
 
 export const dynamic = "force-dynamic";
@@ -287,8 +291,19 @@ const TYPE_DESC: Record<FilterType, string> = {
 
 interface Props {
   params: Promise<{ league: string }>;
-  searchParams: Promise<{ type?: string; page?: string }>;
+  searchParams: Promise<{ type?: string; page?: string; view?: string }>;
 }
+
+// buildup식 데이터 탭 (축구 리그) — 순위·일정·통계·역사·글
+const VIEW_KEYS = ["standings", "fixtures", "stats", "history", "articles"] as const;
+type ViewKey = (typeof VIEW_KEYS)[number];
+const VIEW_LABEL: Record<ViewKey, string> = {
+  standings: "순위",
+  fixtures: "일정",
+  stats: "통계",
+  history: "역사",
+  articles: "글",
+};
 
 const PAGE_SIZE = 24;
 
@@ -433,6 +448,13 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   };
   const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL","WORLD_CUP","K_LEAGUE_1","K_LEAGUE_2","J1_LEAGUE","J2_LEAGUE","AFC_CL","AFC_CL_TWO","AFC_U23","SAUDI_PL","UEL","UECL","CHAMPIONSHIP","LALIGA_2","BUNDESLIGA_2","SERIE_B","LIGUE_2","EREDIVISIE","PRIMEIRA_LIGA","SUPER_LIG","JUPILER_PL","SPL","GREEK_SL","BRASILEIRAO","LIGA_MX","COPA_LIB","COPA_SUD","CSL","A_LEAGUE","CLUB_WORLD_CUP"].includes(upper);
 
+  // view 결정 — 축구만 데이터 탭(순위 기본), 비축구는 기존 글 화면 유지
+  const reqView = (sp.view ?? "").toLowerCase();
+  const view: ViewKey = isSoccer
+    ? ((VIEW_KEYS as readonly string[]).includes(reqView) ? (reqView as ViewKey) : "standings")
+    : "articles";
+  const leaderboard = isSoccer && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
+
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
   for (const c of countsByType) {
@@ -502,6 +524,58 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         </div>
       </section>
 
+      {/* buildup식 데이터 탭 (축구) — 순위·일정·통계·역사·글 */}
+      {isSoccer && (
+        <div className="border-b border-neutral-200 dark:border-neutral-800 sticky top-16 bg-white/85 dark:bg-neutral-950/85 backdrop-blur z-10">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-x-1 sm:gap-x-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+            {VIEW_KEYS.map((v) => {
+              const active = v === view;
+              return (
+                <Link
+                  key={v}
+                  href={v === "standings" ? `/leagues/${upper}` : `/leagues/${upper}?view=${v}`}
+                  className={`px-3 sm:px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition ${
+                    active
+                      ? "border-cyan-500 text-cyan-600 dark:text-cyan-400"
+                      : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+                  }`}
+                >
+                  {VIEW_LABEL[v]}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* view별 콘텐츠 */}
+      {isSoccer && view === "standings" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <LeagueStandingsTable league={upper} />
+        </div>
+      )}
+      {isSoccer && view === "fixtures" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <LeagueFixtures league={upper} />
+        </div>
+      )}
+      {isSoccer && view === "stats" && leaderboard && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
+        </div>
+      )}
+      {isSoccer && view === "history" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+          <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center space-y-2">
+            <div className="text-3xl">🏆</div>
+            <h3 className="text-base font-bold">역대 우승 기록 준비 중</h3>
+            <p className="text-sm text-neutral-500 max-w-md mx-auto">{info.name} 역대 우승팀·시즌별 기록을 수집 중입니다. 곧 추가됩니다.</p>
+          </div>
+        </div>
+      )}
+
+      {view === "articles" && (
+      <>
       {/* 탭 — 모바일에서는 wrap 2줄, 태블릿+ 에서는 한 줄 가로 스크롤 */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 sticky top-16 bg-white/85 dark:bg-neutral-950/85 backdrop-blur z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-x-1 sm:gap-x-2 gap-y-0 flex-wrap sm:flex-nowrap sm:overflow-x-auto">
@@ -585,6 +659,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           </>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }
