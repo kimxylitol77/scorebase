@@ -9,6 +9,7 @@ import { logoutUserAction } from "@/app/(auth)/actions";
 import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
 import { avatarById } from "@/lib/avatars";
 import AvatarPicker from "./AvatarPicker";
+import AvatarUpload from "./AvatarUpload";
 import NicknameEditor from "./NicknameEditor";
 import FavoriteSummary from "./FavoriteSummary";
 
@@ -79,9 +80,14 @@ export default async function AccountPage({ searchParams }: Props) {
           {/* 프로필 카드 */}
           <div className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 p-6">
             <div className="flex flex-col items-center text-center">
-              <div className={`w-20 h-20 rounded-full ${avatar.bg} flex items-center justify-center text-4xl shadow-sm`}>
-                {avatar.emoji}
-              </div>
+              {avatar.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatar.imageUrl} alt="" className="w-20 h-20 rounded-full object-cover shadow-sm" />
+              ) : (
+                <div className={`w-20 h-20 rounded-full ${avatar.bg} flex items-center justify-center text-4xl shadow-sm`}>
+                  {avatar.emoji}
+                </div>
+              )}
               <div className="mt-3 text-lg font-bold">{user.nickname}</div>
               <div className="mt-1.5">
                 <NicknameEditor current={user.nickname} />
@@ -118,10 +124,11 @@ export default async function AccountPage({ searchParams }: Props) {
               </div>
             </div>
 
-            {/* 아바타 선택 */}
+            {/* 아바타 선택 — 프리셋 또는 사진 업로드(프리셋 클릭 시 사진 해제) */}
             <div className="mt-5">
               <div className="text-xs font-semibold text-neutral-500 mb-2">아바타</div>
               <AvatarPicker current={avatar.id} />
+              <AvatarUpload />
             </div>
 
             {/* 계정 정보 */}

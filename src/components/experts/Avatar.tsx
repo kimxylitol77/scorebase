@@ -14,6 +14,19 @@ export default function Avatar({
   avatar: AvatarPreset;
   size?: keyof typeof SIZE;
 }) {
+  if (avatar.imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatar.imageUrl}
+        alt=""
+        className={`inline-block rounded-full shrink-0 object-cover ${SIZE[size]}`}
+        aria-hidden
+        loading="lazy"
+      />
+    );
+  }
+
   return (
     <span
       className={`inline-flex items-center justify-center rounded-full shrink-0 ${avatar.bg} ${SIZE[size]}`}

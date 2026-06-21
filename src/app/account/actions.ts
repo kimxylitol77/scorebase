@@ -6,6 +6,36 @@ import { prisma } from "@/lib/db";
 import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
 import { AVATAR_IDS } from "@/lib/avatars";
 
+const MAX_AVATAR_DATAURL = 300_000; // ~225KB. 160px webp 면 보통 수십KB → 넉넉한 상한 가드.
+
+export type UploadAvatarState = { error?: string } | null;
+
+/** 아바타 사진 업로드 — 본인만. 브라우저에서 160px webp 로 줄인 data URL 을 받아 DB 에 저장. */
+export async function uploadAvatarAction(
+  _prev: UploadAvatarState,
+  formData: FormData,
+): Promise<UploadAvatarState> {
+  const c = await cookies();
+  const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
+  if (!session) return { error: "로그인이 필요합니다." };
+
+  const dataUrl = String(formData.get("avatarData") ?? "");
+  if (!dataUrl) return { error: "파일을 선택해주세요." };
+  if (!/^data:image\/(webp|png|jpeg);base64,/.test(dataUrl)) {
+    return { error: "이미지를 처리하지 못했습니다. 다른 사진을 시도해주세요." };
+  }
+  if (dataUrl.length > MAX_AVATAR_DATAURL) return { error: "이미지가 너무 큽니다." };
+
+  try {
+    await prisma.user.update({ where: { id: session.userId }, data: { avatarUrl: dataUrl } });
+  } catch (e) {
+    console.error("[avatar-upload]", e);
+    return { error: "저장에 실패했습니다. 잠시 후 다시 시도해주세요." };
+  }
+  revalidatePath("/account");
+  return null;
+}
+
 /** 아바타 프리셋 변경 — 본인만. */
 export async function setAvatarAction(formData: FormData): Promise<void> {
   const c = await cookies();

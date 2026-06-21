@@ -1,8 +1,9 @@
-// 아바타 프리셋 — 이모지 + 배경색. User.avatarUrl 에 프리셋 id 저장(이미지 업로드 X).
+// 아바타 — 이모지 프리셋(emoji+bg) 또는 업로드 사진(imageUrl). User.avatarUrl 에 프리셋 id 또는 Cloudinary URL 저장.
 export interface AvatarPreset {
   id: string;
   emoji: string;
   bg: string; // tailwind 배경 클래스
+  imageUrl?: string; // 업로드 사진이면 이미지 URL(이 경우 emoji/bg 무시). 미설정=이모지 프리셋
 }
 
 export const AVATARS: readonly AvatarPreset[] = [
@@ -23,6 +24,14 @@ export const AVATARS: readonly AvatarPreset[] = [
 export const AVATAR_IDS = AVATARS.map((a) => a.id);
 export const DEFAULT_AVATAR_ID = "soccer";
 
+/** 업로드 사진 여부 — avatarUrl 이 http(s) URL 또는 data URL 이면 사진, 아니면 프리셋 id. */
+export function isUploadedAvatar(id: string | null | undefined): boolean {
+  return !!id && (id.startsWith("http") || id.startsWith("data:image/"));
+}
+
 export function avatarById(id: string | null | undefined): AvatarPreset {
+  if (isUploadedAvatar(id)) {
+    return { id: id!, emoji: "", bg: "bg-neutral-200 dark:bg-neutral-700", imageUrl: id! };
+  }
   return AVATARS.find((a) => a.id === id) ?? AVATARS[0];
 }

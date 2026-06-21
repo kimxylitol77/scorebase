@@ -89,6 +89,18 @@ function AuthorBadge({
   size?: string;
 }) {
   const av = resolveAvatar(avatarUrl, nickname);
+  if (av.imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={av.imageUrl}
+        alt=""
+        className={`inline-block shrink-0 rounded-full object-cover ${size}`}
+        aria-hidden
+        loading="lazy"
+      />
+    );
+  }
   return (
     <span
       className={`inline-flex shrink-0 items-center justify-center rounded-full ${av.bg} ${size}`}
