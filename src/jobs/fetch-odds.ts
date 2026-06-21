@@ -73,7 +73,8 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
       for (const m of dbMatches) {
         const homeN = normalizeOddsTeamName(m.homeTeam.name);
         const awayN = normalizeOddsTeamName(m.awayTeam.name);
-        const ev = events.find((e) => {
+        // 팀명 일치 후보 — 같은 매치업이 시리즈(여러 날)면 다수가 잡힌다.
+        const candidates = events.filter((e) => {
           const eh = normalizeOddsTeamName(localizeTeam(e.home_team));
           const ea = normalizeOddsTeamName(localizeTeam(e.away_team));
           return (
@@ -81,9 +82,22 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
             (ea.includes(awayN) || awayN.includes(ea))
           );
         });
-        if (!ev) continue;
+        // commence_time 이 우리 startTime 에 가장 가까운 이벤트 선택. 팀명만으로 find 하면
+        // 시리즈 첫 경기(진행 중일 수 있음)의 in-play odds 가 미래 경기에 잘못 박힌다
+        // (2026-06-20 Cubs-BlueJays 3연전 06-20/21 에 06-19 in-play 1.00/139.5 오매핑 사고).
+        let ev: (typeof events)[number] | null = null;
+        let bestGap = Infinity;
+        for (const e of candidates) {
+          const gap = Math.abs(new Date(e.commence_time).getTime() - m.startTime.getTime());
+          if (gap < bestGap) { bestGap = gap; ev = e; }
+        }
+        // 가장 가까운 이벤트도 12h 이상 차이면 다른 경기 → skip (오매핑/in-play 누수 차단).
+        if (!ev || bestGap > 12 * 3600 * 1000) continue;
         const implied = impliedFromOdds(ev);
         if (!implied) continue;
+        // in-play/정지 마켓 가드 — 한 쪽 implied 가 비현실적(>0.97)이면 프리게임 라인이 아니다
+        // (정상 최대 ~0.90). market-blend·배당 표시 오염 차단.
+        if (Math.max(implied.home ?? 0, implied.away ?? 0) > 0.97) continue;
 
         // raw decimal odds — UI 표시용
         const h2h = averageH2h(ev);
