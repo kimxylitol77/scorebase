@@ -20,6 +20,7 @@ import {
   BASEBALL_LEAGUES,
   HOCKEY_LEAGUES,
   BASKETBALL_LEAGUES,
+  MMA_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 import { mapBaseballStatus } from "@/lib/sports/thesports/status-codes";
 import { mapFootballStatus } from "@/lib/sports/thesports/football-collector";
@@ -65,9 +66,11 @@ export async function GET(req: NextRequest) {
   // cleanup-stale-scheduled 1b 와 동일 로직을 빠른 layer(worker GET 주기)로 당겨
   // 4h cron 공백을 메운다 (2026-06-20 LMB #532202/#532476 — 16:00 cron 직후 stuck →
   // 다음 20:00 까지 phantom LIVE+score 노출. data-sanity 봇이 cron 보다 빨라 알림).
+  // MMA/UFC 제외 — 파이트 카드 startTime 은 추정치라 추정보다 먼저 LIVE 가 정상.
+  // 롤백하면 진행 중인 경기를 SCHEDULED 로 되돌려 라이브 노출이 사라짐 (2026-06-21 UFC).
   const futureLiveCutoff = new Date(Date.now() + 60 * 60 * 1000);
   const futureLive = await prisma.match.findMany({
-    where: { status: "LIVE", startTime: { gt: futureLiveCutoff } },
+    where: { status: "LIVE", startTime: { gt: futureLiveCutoff }, league: { notIn: [...MMA_LEAGUES] } },
     select: { id: true, league: true, startTime: true, externalId: true },
   });
   let futureLiveRolledBack = 0;

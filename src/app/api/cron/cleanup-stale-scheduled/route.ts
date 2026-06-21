@@ -11,7 +11,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
-import { BASEBALL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { League } from "@/lib/sports/types";
 
 export const runtime = "nodejs";
@@ -187,9 +187,11 @@ export async function GET(req: NextRequest) {
   // 1b) future_live 매치 자동 롤백 — startTime 이 미래 (now + 1h+) 인데 status=LIVE.
   // 2026-05-27 NPB #328161 (5/31 시작) 발견. TheSports status_id=0/1 LIVE 잘못 매핑 잔재.
   // status=SCHEDULED + score null 로 즉시 강제 복원 (data-sanity future_live 알림 자동 해소).
+  // MMA/UFC 제외 — 파이트 카드 개별 경기 startTime 은 추정치라 추정보다 먼저 LIVE 가 정상.
+  // 롤백하면 진짜 진행 중인 경기를 SCHEDULED 로 되돌려 라이브 노출이 사라짐 (2026-06-21 UFC).
   const futureLiveCutoff = new Date(Date.now() + 60 * 60 * 1000);
   const futureLive = await prisma.match.findMany({
-    where: { status: "LIVE", startTime: { gt: futureLiveCutoff } },
+    where: { status: "LIVE", startTime: { gt: futureLiveCutoff }, league: { notIn: [...MMA_LEAGUES] } },
     select: { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
   });
   let futureLiveRolledBack = 0;

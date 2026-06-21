@@ -189,7 +189,9 @@ export async function GET(req: NextRequest) {
     // 4b. future_live — startTime 이 미래 (now + 1h+) 인데 status=LIVE 인 stuck 매치.
     // 2026-05-27 NPB #328161 (5/31 시작) 발견. TheSports status_id=0/1 이 잘못 LIVE 매핑됐던
     // 잔재 또는 status update path 에 미래 매치 가드 누락. 즉시 SCHEDULED 으로 롤백 필요.
-    if (m.status === "LIVE" && m.startTime.getTime() > now + 3600 * 1000) {
+    // MMA/UFC 제외 — 파이트 카드 개별 경기 startTime 은 추정치(앞 경기 끝나야 시작)라 추정보다
+    // 먼저 LIVE 가 정상. "미래+LIVE"가 매 카드 false positive (stale_live MMA 제외와 동일 이유).
+    if (m.status === "LIVE" && m.startTime.getTime() > now + 3600 * 1000 && !MMA_LEAGUES.has(m.league)) {
       issues.push({
         ...matchInfo,
         kind: "future_live",
