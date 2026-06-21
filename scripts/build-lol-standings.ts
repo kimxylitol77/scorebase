@@ -3,6 +3,7 @@
 import "@/lib/env";
 import { thesportsGet } from "@/lib/sports/thesports/client";
 import { TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
+import { prisma } from "@/lib/db";
 import fs from "fs";
 
 const LCK = "l7oqd9kb6y6m510"; // LCK 2026 본선 tournament
@@ -69,12 +70,21 @@ async function g(path: string, params: Record<string, string | number>): Promise
       };
     });
 
+  // DB Team id 조인 (팀 클릭 → /teams/{dbId}). name 매칭(TS_LOL_TEAMS 한글명 = DB Team name).
+  const dbTeams = await prisma.team.findMany({
+    where: { name: { in: standings.map((s) => s.name) } },
+    select: { id: true, name: true },
+  });
+  const dbIdByName = new Map(dbTeams.map((t) => [t.name, t.id]));
+  const withDb = standings.map((s) => ({ ...s, dbId: dbIdByName.get(s.name) ?? null }));
+
   fs.writeFileSync(
     "data/lol-standings.json",
-    JSON.stringify({ league: "LOL", name: "LCK", updatedAt: new Date().toISOString(), standings }, null, 2),
+    JSON.stringify({ league: "LOL", name: "LCK", updatedAt: new Date().toISOString(), standings: withDb }, null, 2),
   );
-  console.log(`저장 ${standings.length}팀:`);
-  for (const s of standings) console.log(`  ${s.rank}. ${s.short} ${s.name} ${s.win}-${s.lose}`);
+  console.log(`저장 ${withDb.length}팀:`);
+  for (const s of withDb) console.log(`  ${s.rank}. ${s.short} ${s.name} ${s.win}-${s.lose} dbId=${s.dbId}`);
+  await prisma.$disconnect();
 })().catch((e) => {
   console.error(e);
   process.exit(1);

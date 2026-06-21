@@ -19,6 +19,7 @@ interface Row {
   logo: string;
   win: number;
   lose: number;
+  dbId: number | null;
 }
 interface Data {
   league: string;
@@ -68,9 +69,12 @@ export default async function LolStandings({ name }: { name: string }) {
     bans: b.bans,
   }));
 
+  const teamMeta = new Map(data.standings.map((r) => [r.teamId, { logo: r.logo, dbId: r.dbId }]));
   const teamRows = teams.map((t) => ({
     teamId: t.teamId,
     name: t.name,
+    logo: teamMeta.get(t.teamId)?.logo ?? "",
+    dbId: teamMeta.get(t.teamId)?.dbId ?? null,
     avgKills: t.avgKills,
     avgDragons: t.avgDragons,
     avgTowers: t.avgTowers,
@@ -84,6 +88,7 @@ export default async function LolStandings({ name }: { name: string }) {
     logo: r.logo,
     win: r.win,
     lose: r.lose,
+    dbId: r.dbId,
   }));
 
   return (

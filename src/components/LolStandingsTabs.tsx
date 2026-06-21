@@ -12,6 +12,7 @@ export interface TeamRow {
   logo: string;
   win: number;
   lose: number;
+  dbId: number | null;
 }
 export interface PlayerRow {
   playerId: string;
@@ -37,6 +38,8 @@ export interface BanRow {
 export interface TeamStatRow {
   teamId: string;
   name: string;
+  logo: string;
+  dbId: number | null;
   avgKills: number;
   avgDragons: number;
   avgTowers: number;
@@ -69,6 +72,27 @@ function Champ({ logo, name }: { logo: string; name: string }) {
       )}
       <span className="font-semibold">{name}</span>
     </span>
+  );
+}
+
+function TeamCell({ logo, name, dbId }: { logo: string; name: string; dbId: number | null }) {
+  const inner = (
+    <>
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt="" className="w-6 h-6 object-contain shrink-0" loading="lazy" />
+      ) : (
+        <span className="w-6 h-6 shrink-0" />
+      )}
+      <span className="font-semibold">{name}</span>
+    </>
+  );
+  return dbId ? (
+    <Link href={`/teams/${dbId}`} className="inline-flex items-center gap-2 hover:underline">
+      {inner}
+    </Link>
+  ) : (
+    <span className="inline-flex items-center gap-2">{inner}</span>
   );
 }
 
@@ -117,15 +141,7 @@ export default function LolStandingsTabs(p: Props) {
                   <tr key={r.teamId} className="border-t border-neutral-100 dark:border-neutral-800">
                     <td className="py-2.5 px-3 font-bold tabular-nums">{r.rank}</td>
                     <td className="py-2.5 px-2">
-                      <span className="inline-flex items-center gap-2">
-                        {r.logo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={r.logo} alt="" className="w-6 h-6 object-contain shrink-0" loading="lazy" />
-                        ) : (
-                          <span className="w-6 h-6 shrink-0" />
-                        )}
-                        <span className="font-semibold">{r.name}</span>
-                      </span>
+                      <TeamCell logo={r.logo} name={r.name} dbId={r.dbId} />
                     </td>
                     <td className={C + " tabular-nums"}>{r.win}</td>
                     <td className={C + " tabular-nums text-neutral-500"}>{r.lose}</td>
@@ -243,7 +259,7 @@ export default function LolStandingsTabs(p: Props) {
             <tbody>
               {p.teams.map((t) => (
                 <tr key={t.teamId} className="border-t border-neutral-100 dark:border-neutral-800">
-                  <td className="py-2.5 px-2 font-semibold">{t.name}</td>
+                  <td className="py-2.5 px-2"><TeamCell logo={t.logo} name={t.name} dbId={t.dbId} /></td>
                   <td className={C + " tabular-nums font-semibold"}>{t.avgKills.toFixed(1)}</td>
                   <td className={C + " tabular-nums text-neutral-500"}>{t.avgDragons.toFixed(1)}</td>
                   <td className={C + " tabular-nums text-neutral-500"}>{t.avgTowers.toFixed(1)}</td>

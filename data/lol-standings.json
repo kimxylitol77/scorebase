@@ -1,7 +1,7 @@
 {
   "league": "LOL",
   "name": "LCK",
-  "updatedAt": "2026-06-21T02:27:34.023Z",
+  "updatedAt": "2026-06-21T04:15:15.180Z",
   "standings": [
     {
       "rank": 1,
@@ -10,7 +10,8 @@
       "short": "HLE",
       "logo": "https://eimg.thesports.com/lol/team/FosSfN6KzBxq4oiU_Xi7z_DJ4rMF",
       "win": 15,
-      "lose": 3
+      "lose": 3,
+      "dbId": 22588
     },
     {
       "rank": 2,
@@ -19,7 +20,8 @@
       "short": "T1",
       "logo": "https://eimg.thesports.com/lol/team/FvlF-KaNF_aUW28gaY0-Uw5ITFoW",
       "win": 14,
-      "lose": 4
+      "lose": 4,
+      "dbId": 22590
     },
     {
       "rank": 3,
@@ -28,7 +30,8 @@
       "short": "GEN",
       "logo": "https://eimg.thesports.com/lol/team/FmS7NLx8b7zRARpNmDkvDrhjKx0w",
       "win": 14,
-      "lose": 4
+      "lose": 4,
+      "dbId": 22593
     },
     {
       "rank": 4,
@@ -37,7 +40,8 @@
       "short": "KT",
       "logo": "https://eimg.thesports.com/lol/team/Fqw0V_AbDcoKj78Xxm1tbGMYP0o2",
       "win": 13,
-      "lose": 5
+      "lose": 5,
+      "dbId": 22591
     },
     {
       "rank": 5,
@@ -46,7 +50,8 @@
       "short": "DK",
       "logo": "https://eimg.thesports.com/lol/team/Fg1Z7jhh5zluHsCcrWC2vOiiEo7s",
       "win": 11,
-      "lose": 7
+      "lose": 7,
+      "dbId": 22586
     },
     {
       "rank": 6,
@@ -55,7 +60,8 @@
       "short": "BRO",
       "logo": "https://eimg.thesports.com/lol/team/FlFdQU07TgJrOF4wvMOGFRJzg8KK",
       "win": 6,
-      "lose": 12
+      "lose": 12,
+      "dbId": 22587
     },
     {
       "rank": 7,
@@ -64,7 +70,8 @@
       "short": "BFX",
       "logo": "https://eimg.thesports.com/lol/team/FlycExNPh_FPU6tqsmvMotdwigIt",
       "win": 6,
-      "lose": 12
+      "lose": 12,
+      "dbId": 22589
     },
     {
       "rank": 8,
@@ -73,7 +80,8 @@
       "short": "DRX",
       "logo": "https://eimg.thesports.com/lol/team/FrJTPfp5FygOCrCXcHyzETJXGi6c",
       "win": 5,
-      "lose": 13
+      "lose": 13,
+      "dbId": 22596
     },
     {
       "rank": 9,
@@ -82,7 +90,8 @@
       "short": "NS",
       "logo": "https://eimg.thesports.com/lol/team/FgXx-XxZb5L3_QPcFFJAFKWVrHhE",
       "win": 5,
-      "lose": 13
+      "lose": 13,
+      "dbId": 22585
     },
     {
       "rank": 10,
@@ -91,7 +100,8 @@
       "short": "DNS",
       "logo": "https://eimg.thesports.com/lol/team/FiREL-9p9kEsrBd0LMbO_gmBv6qC",
       "win": 1,
-      "lose": 17
+      "lose": 17,
+      "dbId": 22592
     }
   ]
 }

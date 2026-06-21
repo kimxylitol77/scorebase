@@ -26,6 +26,7 @@ import rawTeamStats from "../../../../data/team-season-stats.json";
 import rawTSquads from "../../../../data/team-squads.json";
 import rawTeamVenues from "../../../../data/team-venues.json";
 import rawBaseballRosters from "../../../../data/baseball-rosters.json";
+import LolTeamRoster from "@/components/LolTeamRoster";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -651,6 +652,9 @@ export default async function TeamPage({ params }: Props) {
             })}
           </section>
         )}
+
+        {/* LOL 로스터 + 팀 통계 — lolGames 집계(선수 KDA·승률)·lol-players(사진) */}
+        {team.league === "LOL" && <LolTeamRoster teamId={team.id} />}
 
         {/* 부상·결장 명단 바로가기(정확한 통합 소스 = /injuries) + 핵심 선수 */}
         {(INJURY_LEAGUES.has(team.league) || keyPlayers.length > 0) && (
