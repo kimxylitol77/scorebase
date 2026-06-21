@@ -155,7 +155,7 @@ export default async function BaseballHub() {
         </nav>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {/* 오늘 경기 */}
         <Card title="오늘 경기" icon="🗓️" badge={`${games.length}경기`} href="/scores" hrefLabel="전체 경기">
           {games.length === 0 ? (
@@ -326,18 +326,18 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 flex flex-col">
+    <section className="group flex flex-col rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-bold flex items-center gap-1.5">
+        <span className="text-sm font-semibold flex items-center gap-1.5 text-zinc-950 dark:text-white">
           <span aria-hidden>{icon}</span>
           {title}
         </span>
-        {badge && <span className="text-[11px] text-neutral-400">{badge}</span>}
+        {badge && <span className="text-[11px] text-zinc-500 dark:text-white/45">{badge}</span>}
       </div>
       <div className="flex-1">{children}</div>
       <Link
         href={href}
-        className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
       >
         {hrefLabel} →
       </Link>
