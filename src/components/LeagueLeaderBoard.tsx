@@ -155,7 +155,6 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 : "border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
             }`}
           >
-            <span className="mr-1">{c.emoji}</span>
             {c.label}
           </button>
         ))}
