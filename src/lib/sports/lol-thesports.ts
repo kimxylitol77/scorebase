@@ -5,13 +5,17 @@
 
 import { thesportsGet } from "./thesports/client";
 import type { League, MatchStatus, NormalizedMatch } from "./types";
+import lecStandings from "../../../data/lol-standings-LEC.json";
+import lcsStandings from "../../../data/lol-standings-LCS.json";
 
 // ts tournament id → 우리 League 코드. (테스트 2026-06-20 확인)
 //   LCK 본선·Cup = "LOL", Challengers = "LCK_CL". 해외(LPL/LEC/LCS)는 후속 단계.
 export const TS_LOL_TOURNAMENTS: Record<string, League> = {
   l7oqd9kb6y6m510: "LOL", // LCK 2026
   "4wyrnxyt8jgm86p": "LOL", // LCK Cup 2026
-  // LCK_CL(x7lm797bog7r2wd)·해외(LPL/LEC/LCS)는 후속 — 기존 BDL 저장명과 매핑 일치 작업 필요.
+  "4wyrnxyt8ggm86p": "LEC", // LEC Spring 2026 (해외 — 순위·인게임 수집)
+  l5erg5ef300m8k0: "LCS", // LCS Spring 2026
+  // LCK_CL(x7lm797bog7r2wd)·LPL(Split 2그룹제라 단일순위 부정확, 보류)은 후속.
 };
 
 // ts team id → 한글명·약자·로고. 한글명은 한국 통용 표기(기존 BDL 매핑 재활용).
@@ -30,6 +34,10 @@ export const TS_LOL_TEAMS: Record<string, TeamInfo> = {
   "2y8m4exu32pkql0": { name: "DN SOOPers", short: "DNS", logo: "https://eimg.thesports.com/lol/team/FiREL-9p9kEsrBd0LMbO_gmBv6qC" },
   y0or59wblpd4mwz: { name: "DRX", short: "DRX", logo: "https://eimg.thesports.com/lol/team/FrJTPfp5FygOCrCXcHyzETJXGi6c" },
 };
+// 해외(LEC/LCS) 팀은 순위 json(build-lol-standings --league 생성)에서 머지 — 한글명·로고 단일 진실.
+for (const d of [lecStandings, lcsStandings] as { standings: { teamId: string; name: string; short: string; logo: string }[] }[]) {
+  for (const t of d.standings) TS_LOL_TEAMS[t.teamId] = { name: t.name, short: t.short, logo: t.logo };
+}
 
 // TheSports Match State → 우리 MatchStatus.
 //   0 Abnormal(hide) · 1 Not started · 2 Ongoing · 3 End · 11 Interrupt · 12 Cancel

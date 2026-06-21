@@ -1,32 +1,24 @@
-// 해외 LoL 리그(LEC/LCS) 순위표 + 팀별 로스터 — 매치 미수집이라 KDA·통계 없이 순위·프로필만.
-// 데이터: data/lol-standings-{LEAGUE}.json (build-lol-standings.ts --league=). LCK 풍부 탭(LolStandings)과 별개.
+// 해외 LoL 리그(LEC/LCS) — 순위·로스터·통계 server wrapper.
+//   순위·로스터 = data/lol-standings-{LEAGUE}.json (build-lol-standings --league)
+//   선수·챔피언 = DB lolGames 집계(aggregateLol*(league)) — collect+backfill 로 수집된 인게임.
+// 탭 UI 는 LolForeignTabs(client). LCK 풍부탭(LolStandings)과 별개 컴포넌트(외과적).
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
+import LolForeignTabs, {
+  type ForeignTeamRow,
+  type ForeignPlayerRow,
+  type ForeignChampRow,
+} from "@/components/LolForeignTabs";
+import { aggregateLolPlayers, aggregateLolChampions } from "@/lib/sports/lol-player-stats";
 import lecData from "../../data/lol-standings-LEC.json";
 import lcsData from "../../data/lol-standings-LCS.json";
+import lolHeroes from "../../data/lol-heroes.json";
 
-interface RosterPlayer {
-  playerId: string;
-  name: string;
-  realName: string;
-  photo: string;
-  position: number | null;
-}
-interface Row {
-  rank: number;
-  teamId: string;
-  name: string;
-  short: string;
-  logo: string;
-  win: number;
-  lose: number;
-  roster: RosterPlayer[];
-}
 interface Data {
   league: string;
   name: string;
   updatedAt: string;
-  standings: Row[];
+  standings: ForeignTeamRow[];
 }
 
 const DATA: Record<string, Data> = {
@@ -34,17 +26,50 @@ const DATA: Record<string, Data> = {
   LCS: lcsData as Data,
 };
 
-// TheSports position 코드 → 역할 (1원딜·2미드·3탑·4정글·5서포터, T1 로스터로 검증).
-const POS_LABEL: Record<number, string> = { 1: "원딜", 2: "미드", 3: "탑", 4: "정글", 5: "서포터" };
-
 const REGION_SUB: Record<string, string> = {
   LEC: "유럽 · League of Legends EMEA Championship",
   LCS: "북미 · League of Legends Championship Series",
 };
 
-export default function LolSimpleStandings({ league, name }: { league: string; name: string }) {
+export default async function LolSimpleStandings({ league, name }: { league: string; name: string }) {
   const data = DATA[league];
   if (!data) return null;
+
+  const [playersAll, champsAll] = await Promise.all([
+    aggregateLolPlayers(league),
+    aggregateLolChampions(league),
+  ]);
+
+  // 선수 사진·팀 약자 — 순위 json roster 에서 매핑 (LEC/LCS 는 lol-players.json 없음).
+  const photoByPid: Record<string, string> = {};
+  const shortByTeam: Record<string, string> = {};
+  for (const t of data.standings) {
+    shortByTeam[t.teamId] = t.short;
+    for (const p of t.roster) photoByPid[p.playerId] = p.photo;
+  }
+
+  const players: ForeignPlayerRow[] = playersAll
+    .filter((p) => p.games >= 5)
+    .sort((a, b) => b.kda - a.kda)
+    .slice(0, 20)
+    .map((p) => ({
+      playerId: p.playerId,
+      name: p.name,
+      teamShort: shortByTeam[p.teamId] ?? "",
+      photo: photoByPid[p.playerId] ?? "",
+      kda: p.kda,
+      winRate: p.winRate,
+      csPerMin: p.csPerMin,
+      games: p.games,
+    }));
+
+  const heroLogos = (lolHeroes as { heroes: Record<string, string> }).heroes;
+  const champs: ForeignChampRow[] = champsAll.slice(0, 20).map((c) => ({
+    champ: c.champ,
+    logo: heroLogos[c.champ] ?? "",
+    picks: c.picks,
+    winRate: c.winRate,
+  }));
 
   return (
     <div className="relative max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
@@ -88,105 +113,10 @@ export default function LolSimpleStandings({ league, name }: { league: string; n
         ))}
       </div>
 
-      {/* 순위표 */}
-      <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-separate border-spacing-0">
-            <thead>
-              <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
-                <th className="text-right py-2.5 pl-4 pr-2 font-semibold">#</th>
-                <th className="text-left py-2.5 px-2 font-semibold">팀</th>
-                <th className="text-center py-2.5 px-2 font-semibold w-12">승</th>
-                <th className="text-center py-2.5 px-2 font-semibold w-12">패</th>
-                <th className="text-right py-2.5 pr-4 pl-2 font-semibold w-16">승률</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.standings.map((r) => {
-                const played = r.win + r.lose;
-                const wr = played ? Math.round((r.win / played) * 100) : 0;
-                return (
-                  <tr
-                    key={r.teamId}
-                    className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                  >
-                    <td className="text-right py-2.5 pl-4 pr-2 tabular-nums text-neutral-500 font-bold">{r.rank}</td>
-                    <td className="py-2.5 px-2">
-                      <span className="flex items-center gap-2.5">
-                        {r.logo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={r.logo} alt="" className="w-6 h-6 object-contain shrink-0" loading="lazy" />
-                        ) : (
-                          <span className="w-6 h-6 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
-                        )}
-                        <span className="font-semibold truncate max-w-[180px] sm:max-w-none">{r.name}</span>
-                        {r.short && <span className="text-[11px] text-neutral-400 hidden sm:inline">{r.short}</span>}
-                      </span>
-                    </td>
-                    <td className="text-center py-2.5 px-2 tabular-nums text-emerald-600 dark:text-emerald-400 font-semibold">{r.win}</td>
-                    <td className="text-center py-2.5 px-2 tabular-nums text-rose-500">{r.lose}</td>
-                    <td className="text-right py-2.5 pr-4 pl-2 tabular-nums font-black">{wr}%</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 팀별 로스터 */}
-      <section className="space-y-3">
-        <h2 className="text-lg sm:text-xl font-bold tracking-tight">팀 로스터</h2>
-        <div className="grid sm:grid-cols-2 gap-3">
-          {data.standings.map((r) => (
-            <div
-              key={r.teamId}
-              className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-4"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                {r.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.logo} alt="" className="w-6 h-6 object-contain shrink-0" loading="lazy" />
-                ) : (
-                  <span className="w-6 h-6 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
-                )}
-                <span className="font-bold text-sm">{r.name}</span>
-                <span className="text-xs text-neutral-400 tabular-nums ml-auto">{r.win}승 {r.lose}패</span>
-              </div>
-              {r.roster.length === 0 ? (
-                <p className="text-xs text-neutral-400">로스터 정보 없음</p>
-              ) : (
-                <ul className="space-y-1.5">
-                  {r.roster.map((p) => (
-                    <li key={p.playerId} className="flex items-center gap-2.5">
-                      {p.photo ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.photo} alt="" className="w-8 h-8 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
-                      ) : (
-                        <span className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-[11px] font-bold text-neutral-500">
-                          {p.name.slice(0, 1)}
-                        </span>
-                      )}
-                      <span className="min-w-0 flex-1">
-                        <span className="font-semibold text-sm">{p.name}</span>
-                        {p.realName && <span className="text-xs text-neutral-400 ml-1.5 truncate">{p.realName}</span>}
-                      </span>
-                      {p.position != null && POS_LABEL[p.position] && (
-                        <span className="text-[10px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 rounded px-1.5 py-0.5 shrink-0">
-                          {POS_LABEL[p.position]}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+      <LolForeignTabs league={league} standings={data.standings} players={players} champs={champs} />
 
       <p className="text-[11px] text-neutral-400 text-center pt-1">
-        ⓘ 정규 스플릿 순위 · 로스터는 TheSports 선수 DB 기준 · 경기 종료 후 갱신
+        ⓘ 정규 스플릿 순위 · 선수·챔피언 통계는 수집된 세트 기준 · 경기 종료 후 갱신
       </p>
     </div>
   );

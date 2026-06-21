@@ -66,9 +66,9 @@ interface GameSet {
   players: SetPlayer[];
 }
 
-async function loadSets(): Promise<GameSet[]> {
+async function loadSets(league: string = "LOL"): Promise<GameSet[]> {
   const matches = await prisma.match.findMany({
-    where: { league: "LOL", lolGames: { not: null } },
+    where: { league, lolGames: { not: null } },
     select: { lolGames: true },
   });
   const sets: GameSet[] = [];
@@ -79,8 +79,8 @@ async function loadSets(): Promise<GameSet[]> {
   return sets;
 }
 
-export async function aggregateLolPlayers(): Promise<LolPlayerAgg[]> {
-  const sets = await loadSets();
+export async function aggregateLolPlayers(league: string = "LOL"): Promise<LolPlayerAgg[]> {
+  const sets = await loadSets(league);
   const agg = new Map<
     string,
     { playerId: string; name: string; teamId: string; games: number; kills: number; deaths: number; assists: number; cs: number; sec: number; wins: number; champs: Set<string> }
@@ -119,8 +119,8 @@ export async function aggregateLolPlayers(): Promise<LolPlayerAgg[]> {
   }));
 }
 
-export async function aggregateLolChampions(): Promise<LolChampAgg[]> {
-  const sets = await loadSets();
+export async function aggregateLolChampions(league: string = "LOL"): Promise<LolChampAgg[]> {
+  const sets = await loadSets(league);
   const agg = new Map<string, { picks: number; wins: number; players: Set<string> }>();
   for (const s of sets)
     for (const p of s.players) {
@@ -136,15 +136,15 @@ export async function aggregateLolChampions(): Promise<LolChampAgg[]> {
     .sort((x, y) => y.picks - x.picks);
 }
 
-export async function aggregateLolBans(): Promise<LolBanAgg[]> {
-  const sets = await loadSets();
+export async function aggregateLolBans(league: string = "LOL"): Promise<LolBanAgg[]> {
+  const sets = await loadSets(league);
   const agg = new Map<string, number>();
   for (const s of sets) for (const b of s.bans || []) agg.set(b, (agg.get(b) || 0) + 1);
   return [...agg.entries()].map(([champ, bans]) => ({ champ, bans })).sort((x, y) => y.bans - x.bans);
 }
 
-export async function aggregateLolTeams(): Promise<LolTeamAgg[]> {
-  const sets = await loadSets();
+export async function aggregateLolTeams(league: string = "LOL"): Promise<LolTeamAgg[]> {
+  const sets = await loadSets(league);
   const agg = new Map<
     string,
     { name: string; short: string; sets: number; kills: number; dragons: number; towers: number; sec: number }

@@ -6,7 +6,8 @@ import { thesportsGet } from "@/lib/sports/thesports/client";
 import { TS_LOL_TOURNAMENTS, TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { buildLolGames } from "@/lib/sports/lol-ingame";
 
-const SINCE = Math.floor(new Date("2026-05-01T00:00:00Z").getTime() / 1000);
+// LEC Spring(3/28~)·LCS Spring(4/3~)·LCK 본선(4/1~) 커버. 시즌 전체 인게임 백필.
+const SINCE = Math.floor(new Date("2026-03-20T00:00:00Z").getTime() / 1000);
 
 async function g(path: string, params: Record<string, string | number>): Promise<any> {
   try {
@@ -100,7 +101,7 @@ async function fetchAllSince(path: string, since: number): Promise<any[]> {
     const lo = new Date(st.getTime() - 30 * 60000);
     const hi = new Date(st.getTime() + 30 * 60000);
     const dbm = await prisma.match.findFirst({
-      where: { league: { in: ["LOL", "LCK_CL"] }, startTime: { gte: lo, lte: hi } },
+      where: { league: { in: ["LOL", "LCK_CL", "LEC", "LCS"] }, startTime: { gte: lo, lte: hi } },
       select: { id: true, externalId: true },
     });
     if (!dbm) {
