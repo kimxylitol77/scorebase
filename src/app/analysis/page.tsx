@@ -41,8 +41,8 @@ const ANALYSIS_JSONLD = {
   inLanguage: "ko-KR",
 };
 
-// 데스크탑 그리드 컬럼 — 제목(1fr)을 넓게, 나머지는 고정폭. 작성자 뒤·등록일 앞 배당 컬럼.
-const COLS = "sm:grid-cols-[72px_minmax(0,1fr)_180px_70px_96px_80px_72px]";
+// 데스크탑 그리드 컬럼 — 제목(1fr)·작성자를 넓게, 부수 칸(분류·배당·등록일·조회·추천)은 좁게.
+const COLS = "sm:grid-cols-[60px_minmax(0,1fr)_240px_50px_52px_42px_42px]";
 
 const PAGE_SIZE = 20;
 
@@ -269,7 +269,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80">
           {/* header row (desktop) */}
           <div
-            className={`hidden sm:grid ${COLS} gap-4 px-6 py-3.5 bg-neutral-50 dark:bg-neutral-900 text-xs font-semibold text-neutral-500 border-b border-neutral-200 dark:border-neutral-800`}
+            className={`hidden sm:grid ${COLS} gap-3 px-6 py-3.5 bg-neutral-50 dark:bg-neutral-900 text-xs font-semibold text-neutral-500 border-b border-neutral-200 dark:border-neutral-800`}
           >
             <span>분류</span>
             <span>제목</span>
@@ -288,7 +288,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                 <li key={p.id}>
                   <Link
                     href={`/analysis/${p.id}`}
-                    className={`grid grid-cols-[1fr] ${COLS} gap-4 px-6 py-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition`}
+                    className={`grid grid-cols-[1fr] ${COLS} gap-3 px-6 py-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition`}
                   >
                     <span className="hidden sm:flex flex-col gap-0.5">
                       <span className="text-xs font-bold text-blue-600 dark:text-blue-400">분석</span>
