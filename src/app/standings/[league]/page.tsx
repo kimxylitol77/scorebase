@@ -18,6 +18,7 @@ import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import LolStandings from "@/components/LolStandings";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +37,7 @@ const VALID = new Set<string>([
   "NPB",
   "MLB",
   "CPBL",
+  "LOL",
 ]);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -71,6 +73,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // NHL 은 승점 체계(승 2·연장패 1) + OTL 컬럼이 축구식과 달라 — 공식 순위 전용 렌더
   if (upper === "NHL") return <NhlStandings name={name} />;
+
+  // LOL(LCK) — ts table/list JSON 백필(data/lol-standings.json) 정적 렌더
+  if (upper === "LOL") return <LolStandings name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
