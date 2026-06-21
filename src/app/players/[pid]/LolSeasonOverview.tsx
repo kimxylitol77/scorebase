@@ -1,0 +1,116 @@
+"use client";
+// LOL 시즌 개요 — 레이더(KDA·킬·어시·CS/분·승률·생존) + 전투/파밍/성과/챔프 카드.
+// DB lolGames 세트 집계(LolPlayerAgg) 기준. 수집된 LCK 경기 범위 내.
+
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
+import { Swords, Sprout, Trophy, Sparkles } from "lucide-react";
+import type { ReactNode } from "react";
+import type { LolPlayerAgg } from "@/lib/sports/lol-player-stats";
+
+const clamp = (v: number) => Math.max(0, Math.min(100, v));
+const cap = (v: number, c: number) => clamp((v / c) * 100);
+
+function Card({
+  title,
+  icon,
+  accent,
+  barCls,
+  rows,
+  bar,
+}: {
+  title: string;
+  icon: ReactNode;
+  accent: string;
+  barCls: string;
+  rows: [string, string][];
+  bar: number | null;
+}) {
+  return (
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3.5">
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <span className={accent}>{icon}</span>
+        <span className={`text-sm font-bold ${accent}`}>{title}</span>
+      </div>
+      <div className="space-y-1.5">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex items-baseline justify-between">
+            <span className="text-xs text-neutral-500">{k}</span>
+            <span className="text-sm font-bold tabular-nums">{v}</span>
+          </div>
+        ))}
+      </div>
+      {bar != null && (
+        <div className="mt-2.5 h-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+          <div className={`h-full rounded-full ${barCls}`} style={{ width: `${clamp(bar)}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function LolSeasonOverview({ agg }: { agg: LolPlayerAgg }) {
+  const g = agg.games || 1;
+  const kpg = agg.kills / g;
+  const dpg = agg.deaths / g;
+  const apg = agg.assists / g;
+  const winPctNum = agg.winRate * 100;
+
+  const radar = [
+    { axis: "KDA", value: Math.round(cap(agg.kda, 5)), raw: agg.kda.toFixed(2) },
+    { axis: "킬", value: Math.round(cap(kpg, 5)), raw: kpg.toFixed(1) },
+    { axis: "어시스트", value: Math.round(cap(apg, 12)), raw: apg.toFixed(1) },
+    { axis: "CS/분", value: Math.round(cap(agg.csPerMin, 10)), raw: agg.csPerMin.toFixed(1) },
+    { axis: "승률", value: Math.round(clamp(winPctNum)), raw: `${Math.round(winPctNum)}%` },
+    { axis: "생존", value: Math.round(clamp(((8 - dpg) / 8) * 100)), raw: `데스 ${dpg.toFixed(1)}` },
+  ];
+
+  return (
+    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 space-y-5">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-base font-bold tracking-tight">
+          <span className="bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">시즌 상세 기록</span>
+        </h2>
+        <span className="text-xs text-neutral-400">{agg.games}세트 집계</span>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-5">
+        <div className="min-w-0">
+          <div className="h-[260px] sm:h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={radar} outerRadius="72%">
+                <PolarGrid stroke="rgba(148,163,184,0.25)" />
+                <PolarAngleAxis dataKey="axis" tick={{ fill: "#64748b", fontSize: 11 }} />
+                <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar dataKey="value" stroke="#0891b2" fill="#06b6d4" fillOpacity={0.3} isAnimationActive={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 10, border: "1px solid rgba(148,163,184,0.3)", fontSize: 12 }}
+                  formatter={(_v, _k, p) => [p?.payload?.raw, p?.payload?.axis]}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-center text-[11px] text-neutral-400 mt-1">레이더에 마우스를 올리면 실제 수치가 표시됩니다</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 content-start">
+          <Card title="전투" icon={<Swords className="w-4 h-4" />} accent="text-cyan-600 dark:text-cyan-400" barCls="bg-cyan-500" bar={cap(agg.kda, 5)}
+            rows={[["KDA", agg.kda.toFixed(2)], ["K/D/A", `${kpg.toFixed(1)}/${dpg.toFixed(1)}/${apg.toFixed(1)}`]]} />
+          <Card title="파밍" icon={<Sprout className="w-4 h-4" />} accent="text-blue-600 dark:text-blue-400" barCls="bg-blue-500" bar={cap(agg.csPerMin, 10)}
+            rows={[["CS/분", agg.csPerMin.toFixed(1)], ["CS/게임", agg.csPerGame.toFixed(0)]]} />
+          <Card title="성과" icon={<Trophy className="w-4 h-4" />} accent="text-emerald-600 dark:text-emerald-400" barCls="bg-emerald-500" bar={winPctNum}
+            rows={[["승률", `${Math.round(winPctNum)}%`], ["세트", String(agg.games)]]} />
+          <Card title="챔프 폭" icon={<Sparkles className="w-4 h-4" />} accent="text-violet-600 dark:text-violet-400" barCls="bg-violet-500" bar={cap(agg.champs.length, 15)}
+            rows={[["플레이 챔프", `${agg.champs.length}종`], ["총 킬 / 어시", `${agg.kills} / ${agg.assists}`]]} />
+        </div>
+      </div>
+    </section>
+  );
+}

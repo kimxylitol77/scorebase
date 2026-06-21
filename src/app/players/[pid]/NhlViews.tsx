@@ -16,6 +16,7 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import PlayerTabs from "./PlayerTabs";
+import NhlSeasonOverview from "./NhlSeasonOverview";
 
 /* ---------- 공통 헬퍼 ---------- */
 
@@ -225,25 +226,10 @@ function NhlGoalieGames({ games }: { games: NhlGoalieGameLog[] }) {
  * ==========================================================*/
 
 function SkaterOverview({ profile, seasonStart }: { profile: NhlPlayerLanding; seasonStart: number }) {
-  const f = profile.featured ?? {};
   const c = profile.career;
   return (
     <>
-      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">{seasonStart} 시즌</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          <Stat label="G" value={numStr(f.goals)} accent />
-          <Stat label="A" value={numStr(f.assists)} accent />
-          <Stat label="PTS" value={numStr(f.points)} accent />
-          <Stat label="+/-" value={numStr(f.plusMinus)} />
-          <Stat label="PIM" value={numStr(f.pim)} />
-          <Stat label="GP" value={numStr(f.gamesPlayed)} />
-          <Stat label="SOG" value={numStr(f.shots)} />
-          <Stat label="PP G" value={numStr(f.powerPlayGoals)} />
-          <Stat label="SH G" value={numStr(f.shorthandedGoals)} />
-          <Stat label="GW G" value={numStr(f.gameWinningGoals)} />
-        </div>
-      </section>
+      <NhlSeasonOverview profile={profile} seasonStart={seasonStart} />
       {c && c.gamesPlayed != null && (
         <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">통산 (career)</h2>
@@ -262,20 +248,10 @@ function SkaterOverview({ profile, seasonStart }: { profile: NhlPlayerLanding; s
 }
 
 function GoalieOverview({ profile, seasonStart }: { profile: NhlPlayerLanding; seasonStart: number }) {
-  const f = profile.featured ?? {};
   const c = profile.career;
   return (
     <>
-      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">{seasonStart} 시즌</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          <Stat label="W-L-OT" value={`${f.wins ?? 0}-${f.losses ?? 0}-${f.otLosses ?? 0}`} accent />
-          <Stat label="SV%" value={pct3(f.savePctg)} accent />
-          <Stat label="GAA" value={dec2(f.goalsAgainstAvg)} accent />
-          <Stat label="SHO" value={numStr(f.shutouts)} />
-          <Stat label="GP" value={numStr(f.gamesPlayed)} />
-        </div>
-      </section>
+      <NhlSeasonOverview profile={profile} seasonStart={seasonStart} />
       {c && c.gamesPlayed != null && (
         <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">통산 (career)</h2>

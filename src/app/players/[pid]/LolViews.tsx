@@ -11,6 +11,7 @@ import {
   type LolPlayerChamp,
 } from "@/lib/sports/lol-player-stats";
 import PlayerTabs from "./PlayerTabs";
+import LolSeasonOverview from "./LolSeasonOverview";
 
 const POSITION_KO: Record<number, string> = { 1: "원딜", 2: "미드", 3: "탑", 4: "정글", 5: "서폿" };
 
@@ -25,21 +26,6 @@ interface LolProfile {
 }
 
 /* ---------- 공통 헬퍼 ---------- */
-
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div
-      className={`rounded-lg px-3 py-2 ${
-        accent
-          ? "bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30"
-          : "bg-neutral-50 dark:bg-neutral-900"
-      }`}
-    >
-      <div className="text-[10px] text-neutral-500">{label}</div>
-      <div className="text-lg font-bold tabular-nums">{value}</div>
-    </div>
-  );
-}
 
 const d1 = (n: number) => n.toFixed(1);
 const fmtDate = (d: Date) =>
@@ -152,21 +138,7 @@ export async function LolPlayerView({ pid }: { pid: string }) {
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
 
   const overview = agg ? (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
-      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">시즌 누적 ({games}세트)</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-        <Stat label="KDA" value={agg.kda.toFixed(2)} accent />
-        <Stat
-          label="평균 K/D/A"
-          value={`${d1(agg.kills / games)}/${d1(agg.deaths / games)}/${d1(agg.assists / games)}`}
-          accent
-        />
-        <Stat label="승률" value={`${Math.round(agg.winRate * 100)}%`} accent />
-        <Stat label="CS/분" value={d1(agg.csPerMin)} />
-        <Stat label="CS/게임" value={d1(agg.csPerGame)} />
-        <Stat label="챔프" value={`${agg.champs.length}종`} />
-      </div>
-    </section>
+    <LolSeasonOverview agg={agg} />
   ) : (
     <p className="text-sm text-neutral-500">집계된 경기 기록이 없습니다.</p>
   );
