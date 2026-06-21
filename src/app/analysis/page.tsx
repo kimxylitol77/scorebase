@@ -347,27 +347,27 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       </span>
                     </span>
                     <span
-                      className="hidden sm:flex flex-col justify-center text-sm text-neutral-600 dark:text-neutral-400 min-w-0"
+                      className="hidden sm:flex items-center gap-2.5 text-sm text-neutral-600 dark:text-neutral-400 min-w-0"
                       title={g.name}
                     >
-                      <span className="flex items-center gap-1.5">
-                        <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} />
+                      <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} size="h-10 w-10 text-xl" />
+                      <span className="flex flex-col min-w-0">
                         <span className="truncate">{a.nickname}</span>
+                        {a.predTotal > 0 ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                            <Target className="h-3 w-3" aria-hidden /> {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
+                            {a.predStreak >= 2 && (
+                              <span className="inline-flex items-center gap-0.5 ml-0.5">
+                                <Flame className="h-3 w-3" aria-hidden />{a.predStreak}
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
+                            <Target className="h-3 w-3" aria-hidden /> 예측 기록 없음
+                          </span>
+                        )}
                       </span>
-                      {a.predTotal > 0 ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          <Target className="h-3 w-3" aria-hidden /> {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
-                          {a.predStreak >= 2 && (
-                            <span className="inline-flex items-center gap-0.5 ml-0.5">
-                              <Flame className="h-3 w-3" aria-hidden />{a.predStreak}
-                            </span>
-                          )}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
-                          <Target className="h-3 w-3" aria-hidden /> 예측 기록 없음
-                        </span>
-                      )}
                     </span>
                     <span
                       className="hidden sm:block text-right text-sm font-bold tabular-nums"
