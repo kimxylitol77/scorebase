@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
 import LeagueStandingsTable from "@/components/leagues/LeagueStandingsTable";
 import LeagueFixtures from "@/components/leagues/LeagueFixtures";
+import LeagueHistory from "@/components/leagues/LeagueHistory";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
@@ -565,12 +566,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         </div>
       )}
       {isSoccer && view === "history" && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center space-y-2">
-            <div className="text-3xl">🏆</div>
-            <h3 className="text-base font-bold">역대 우승 기록 준비 중</h3>
-            <p className="text-sm text-neutral-500 max-w-md mx-auto">{info.name} 역대 우승팀·시즌별 기록을 수집 중입니다. 곧 추가됩니다.</p>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <LeagueHistory league={upper} leagueName={info.name} />
         </div>
       )}
 
