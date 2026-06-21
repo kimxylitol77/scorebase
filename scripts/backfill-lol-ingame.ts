@@ -6,7 +6,7 @@ import { thesportsGet } from "@/lib/sports/thesports/client";
 import { TS_LOL_TOURNAMENTS, TS_LOL_TEAMS } from "@/lib/sports/lol-thesports";
 import { buildLolGames } from "@/lib/sports/lol-ingame";
 
-const SINCE = Math.floor(new Date("2026-06-01T00:00:00Z").getTime() / 1000);
+const SINCE = Math.floor(new Date("2026-05-01T00:00:00Z").getTime() / 1000);
 
 async function g(path: string, params: Record<string, string | number>): Promise<any> {
   try {
@@ -20,7 +20,7 @@ async function g(path: string, params: Record<string, string | number>): Promise
 async function fetchAllSince(path: string, since: number): Promise<any[]> {
   const out: any[] = [];
   let t = since;
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 40; i++) {
     const r = await g(path, { time: t });
     const rs: any[] = r.results ?? [];
     if (!rs.length) break;

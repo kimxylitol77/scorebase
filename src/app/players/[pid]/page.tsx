@@ -33,13 +33,12 @@ import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
 import {
   fetchNbaPlayer,
-  fetchLolPlayerSeason,
   type NbaPlayerProfile,
   type NbaSeasonAverages,
   type NbaGameStat,
-  type LolPlayerStats,
-  type LolMatchRow,
 } from "@/lib/sports/balldontlie";
+import lolPlayersData from "../../../../data/lol-players.json";
+import { aggregateLolPlayers } from "@/lib/sports/lol-player-stats";
 import { fetchNbaEspnStats } from "@/lib/sports/espn-nba-player";
 import {
   fetchNhlPlayerLanding,
@@ -1505,21 +1504,18 @@ function renderNpbHitterView(
  * ==========================================================*/
 
 async function renderLolPlayerView(pid: string) {
-  const id = Number(pid);
-  if (!Number.isFinite(id)) notFound();
-  const now = new Date();
-  // LoL 시즌은 1~12월. 봄/여름 split 도 같은 tournament_id 안 — 1월 시작 기준.
-  const season = now.getUTCFullYear();
-  const { stats, recent } = await fetchLolPlayerSeason(id, season);
-  if (!stats) notFound();
-
-  const roleLabel = (r?: string) => {
-    if (!r) return "";
-    const m: Record<string, string> = {
-      top: "탑", jungle: "정글", mid: "미드", bottom: "원딜", support: "서폿",
-    };
-    return m[r.toLowerCase()] ?? r;
-  };
+  const profile = (
+    lolPlayersData as {
+      players: Record<
+        string,
+        { name: string; realName: string; photo: string; teamId: string }
+      >;
+    }
+  ).players[pid];
+  const agg = (await aggregateLolPlayers()).find((p) => p.playerId === pid);
+  if (!profile && !agg) notFound();
+  const name = agg?.name || profile?.name || "선수";
+  const games = agg?.games ?? 0;
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -1528,110 +1524,67 @@ async function renderLolPlayerView(pid: string) {
           ← LCK
         </Link>
         <div className="flex items-center gap-4 flex-wrap">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0 flex items-center justify-center text-3xl font-black text-white">
-            {stats.nickname.slice(0, 1).toUpperCase()}
-          </div>
+          {profile?.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.photo}
+              alt=""
+              className="w-24 h-24 rounded-full object-cover bg-neutral-100 dark:bg-neutral-900 shrink-0"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0 flex items-center justify-center text-3xl font-black text-white">
+              {name.slice(0, 1).toUpperCase()}
+            </div>
+          )}
           <div className="space-y-1">
-            <div className="flex items-baseline gap-3 flex-wrap">
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{stats.nickname}</h1>
-              {stats.primaryRole && (
-                <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-                  {roleLabel(stats.primaryRole)}
-                </span>
-              )}
-            </div>
-            <div className="text-sm text-neutral-500">
-              {stats.team ? `${stats.team} · ` : ""}
-              {stats.matches}경기 출전
-            </div>
-            <div className="text-[11px] text-neutral-400">
-              BALLDONTLIE · {season} 시즌 (LCK)
-            </div>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{name}</h1>
+            {profile?.realName && (
+              <div className="text-sm text-neutral-500">{profile.realName}</div>
+            )}
+            <div className="text-sm text-neutral-500">LCK · {games}세트 출전</div>
+            <div className="text-[11px] text-neutral-400">TheSports</div>
           </div>
         </div>
       </header>
 
-      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
-        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
-          시즌 누적 — 평균
-        </h2>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          <Stat label="KDA" value={stats.kda.toFixed(2)} accent />
-          <Stat
-            label="K/D/A"
-            value={`${stats.killsAvg.toFixed(1)}/${stats.deathsAvg.toFixed(1)}/${stats.assistsAvg.toFixed(1)}`}
-            accent
-          />
-          <Stat label="CS" value={stats.csAvg.toFixed(1)} accent />
-          <Stat label="골드" value={Math.round(stats.goldAvg).toLocaleString()} />
-          <Stat label="딜량" value={Math.round(stats.damageAvg).toLocaleString()} />
-          <Stat label="와드" value={stats.wardsAvg.toFixed(1)} />
-          <Stat label="총 킬" value={String(stats.kills)} />
-          <Stat label="총 데스" value={String(stats.deaths)} />
-          <Stat label="총 어시" value={String(stats.assists)} />
-          <Stat label="경기" value={String(stats.matches)} />
-        </div>
-      </section>
+      {agg && (
+        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+            시즌 누적
+          </h2>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            <Stat label="KDA" value={agg.kda.toFixed(2)} accent />
+            <Stat
+              label="K/D/A"
+              value={`${(agg.kills / agg.games).toFixed(1)}/${(agg.deaths / agg.games).toFixed(1)}/${(agg.assists / agg.games).toFixed(1)}`}
+              accent
+            />
+            <Stat label="CS" value={agg.csPerGame.toFixed(0)} accent />
+            <Stat label="총 킬" value={String(agg.kills)} />
+            <Stat label="총 어시" value={String(agg.assists)} />
+            <Stat label="세트" value={String(agg.games)} />
+          </div>
+        </section>
+      )}
 
-      {stats.topChampions.length > 0 && (
+      {agg && agg.champs.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">자주 픽한 챔피언 ({stats.topChampions.length})</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {stats.topChampions.map((c) => (
-              <div
-                key={c.name}
-                className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 text-center"
+          <h2 className="text-lg font-semibold mb-3">플레이한 챔피언 ({agg.champs.length})</h2>
+          <div className="flex flex-wrap gap-2">
+            {agg.champs.map((c) => (
+              <span
+                key={c}
+                className="px-2.5 py-1 rounded-md text-sm border border-neutral-200 dark:border-neutral-800"
               >
-                <div className="text-sm font-semibold truncate">{c.name}</div>
-                <div className="text-xs text-neutral-500 mt-1">{c.picks}판</div>
-              </div>
+                {c}
+              </span>
             ))}
           </div>
         </section>
       )}
 
-      {recent.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold mb-3">최근 경기 ({recent.length})</h2>
-          <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
-            <table className="w-full text-sm">
-              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
-                <tr>
-                  <th className="text-left px-3 py-2 font-medium">챔피언</th>
-                  <th className="text-left px-2 py-2 font-medium">포지션</th>
-                  <th className="text-right px-2 py-2 font-medium">K/D/A</th>
-                  <th className="text-right px-2 py-2 font-medium">CS</th>
-                  <th className="text-right px-2 py-2 font-medium">골드</th>
-                  <th className="text-right px-2 py-2 font-medium">딜량</th>
-                  <th className="text-right px-3 py-2 font-medium">와드</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {recent.map((m) => (
-                  <tr key={m.matchMapId}>
-                    <td className="px-3 py-2 font-semibold truncate">{m.champion}</td>
-                    <td className="px-2 py-2 text-xs text-neutral-500">{roleLabel(m.role)}</td>
-                    <td className="px-2 py-2 text-right tabular-nums">
-                      {m.kills}/{m.deaths}/{m.assists}
-                    </td>
-                    <td className="px-2 py-2 text-right tabular-nums">{m.cs}</td>
-                    <td className="px-2 py-2 text-right tabular-nums">
-                      {m.gold.toLocaleString()}
-                    </td>
-                    <td className="px-2 py-2 text-right tabular-nums">
-                      {m.damage.toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{m.wards}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
       <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ 데이터 출처: BALLDONTLIE LoL API (player_match_map_stats 집계).
+        ⓘ 데이터 출처: TheSports LoL (세트별 스코어보드 집계).
       </p>
     </article>
   );

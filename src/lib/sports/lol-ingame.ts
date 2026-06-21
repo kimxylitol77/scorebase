@@ -13,6 +13,7 @@ export interface LolTeamRef {
 }
 
 export interface LolGamePlayer {
+  playerId: string; // ts player id — 선수 페이지/랭킹 연결 키
   teamId: string; // 세트 red/blue 판별용 (set.red.id / set.blue.id 와 비교)
   name: string; // 선수 닉네임
   champ: string; // 챔피언명
@@ -79,6 +80,7 @@ export function buildLolGames(
         .filter((e): e is { name: string; logo: string } => !!e)
         .map((e) => ({ n: e.name, l: e.logo }));
       return {
+        playerId: String(p.player_id),
         teamId: String(p.team_id),
         name: nameMap.get(String(p.player_id)) ?? "?",
         champ: h?.name ?? "?",
