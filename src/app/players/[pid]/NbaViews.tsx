@@ -60,12 +60,14 @@ function slugToTeam(slug: string): string {
   const full = slugToFull(slug);
   return toKoreanTeamName(full) || full;
 }
+// 팀명 정규화 — 소문자+영숫자만. BDL fullName·DB name·ESPN slug 표기차(LA/La·하이픈·공백) 흡수.
+const normTeam = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-type TeamInfo = { id: number; logo: string | null };
+type TeamInfo = { id: number; logo: string | null; name: string };
 
 function NbaTeamCell({ slug, info }: { slug: string; info?: TeamInfo }) {
   if (!slug) return <>—</>;
-  const ko = slugToTeam(slug);
+  const ko = info ? toKoreanTeamName(info.name) || info.name : slugToTeam(slug);
   const inner = (
     <span className="inline-flex items-center gap-1.5 min-w-0">
       {info?.logo && (
@@ -152,7 +154,7 @@ function NbaSeasonTable({ rows, career, teamMap }: { rows: NbaSeasonRow[]; caree
             <tr key={`${r.year}-${r.teamSlug}-${i}`}>
               <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-900">{r.label}</td>
               <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[160px]">
-                <NbaTeamCell slug={r.teamSlug} info={teamMap.get(slugToFull(r.teamSlug))} />
+                <NbaTeamCell slug={r.teamSlug} info={teamMap.get(normTeam(r.teamSlug))} />
               </td>
               <SeasonCells r={r} />
             </tr>
@@ -324,8 +326,8 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
 
   // 시즌기록 팀 로고/링크 — DB NBA Team(영문 name 매칭)으로 logoUrl·팀페이지 id.
   const nbaTeams = await prisma.team.findMany({ where: { league: "NBA" }, select: { id: true, name: true, logoUrl: true } });
-  const teamMap = new Map<string, TeamInfo>(nbaTeams.map((t) => [t.name, { id: t.id, logo: t.logoUrl }]));
-  const currentTeam = profile.team ? teamMap.get(profile.team.fullName) : undefined;
+  const teamMap = new Map<string, TeamInfo>(nbaTeams.map((t) => [normTeam(t.name), { id: t.id, logo: t.logoUrl, name: t.name }]));
+  const currentTeam = profile.team ? teamMap.get(normTeam(profile.team.fullName)) : undefined;
 
   const birth = tsp?.birthday ? new Date(tsp.birthday * 1000) : null;
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
