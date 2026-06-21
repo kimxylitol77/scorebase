@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LolLiveDetail from "@/components/LolLiveDetail";
 import type { LolGamesData } from "@/lib/sports/lol-ingame";
+import type { LolLive } from "@/components/LolLiveDetail";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -70,6 +71,23 @@ export default async function LolLivePage({ params }: Props) {
   const lolGames = match.lolGames
     ? (JSON.parse(match.lolGames) as LolGamesData)
     : null;
+  // DB 기반 초기 시리즈 — BDL(e스포츠 401) 죽어도 점수·세트 dot 표시. bestOf 는 승자 점수로 추정(3승=BO5).
+  const lolBestOf: 3 | 5 =
+    Math.max(match.homeScore ?? 0, match.awayScore ?? 0) >= 3 ? 5 : 3;
+  const lolPlayed = (match.homeScore ?? 0) + (match.awayScore ?? 0);
+  const initialLive: LolLive = {
+    matchId: Number(matchId),
+    status: match.status === "FINISHED" ? "FINAL" : match.status === "LIVE" ? "LIVE" : "PRE",
+    bestOf: lolBestOf,
+    homeScore: match.homeScore ?? 0,
+    awayScore: match.awayScore ?? 0,
+    homeTeam: { id: match.homeTeam.id, name: homeKo },
+    awayTeam: { id: match.awayTeam.id, name: awayKo },
+    tournament: { id: 0, name: "LCK" },
+    startDate: date,
+    currentGame: match.status === "FINISHED" ? lolPlayed : lolPlayed + 1,
+    needToWin: Math.ceil(lolBestOf / 2),
+  };
 
   // 결론 3카드 데이터 (LoL — 무승부 없음)
   let lolFavored: "home" | "away" | null = null;
@@ -180,6 +198,7 @@ export default async function LolLivePage({ params }: Props) {
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
         games={lolGames}
+        initial={initialLive}
       />
       <MatchHeadToHead
         homeShortName={homeShort}

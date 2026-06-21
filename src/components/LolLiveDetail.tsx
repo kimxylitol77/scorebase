@@ -9,7 +9,7 @@ import CountUp from "./CountUp";
 import LolInGame from "./LolInGame";
 import type { LolGamesData } from "@/lib/sports/lol-ingame";
 
-interface LolLive {
+export interface LolLive {
   matchId: number;
   status: "PRE" | "LIVE" | "FINAL";
   bestOf: 3 | 5;
@@ -35,6 +35,8 @@ interface Props {
   awayTeamId?: number;
   /** 세트별 인게임 데이터 (TheSports lolGames). 있으면 op.gg식 상세 표시. */
   games?: LolGamesData | null;
+  /** DB 기반 초기 시리즈 (BDL 죽어도 점수 표시). BDL fetch 성공 시 갱신. */
+  initial?: LolLive | null;
 }
 
 const POLL_LIVE_MS = 30_000;
@@ -50,8 +52,9 @@ export default function LolLiveDetail({
   homeTeamId,
   awayTeamId,
   games,
+  initial,
 }: Props) {
-  const [live, setLive] = useState<LolLive | null>(null);
+  const [live, setLive] = useState<LolLive | null>(initial ?? null);
   const [loaded, setLoaded] = useState(false);
   const statusRef = useRef<LolLive["status"]>("PRE");
   if (live) statusRef.current = live.status;
@@ -115,7 +118,7 @@ export default function LolLiveDetail({
   // 인게임(games)은 SSR prop — BDL 라이브 fetch(loaded) 와 독립이라 게이트 밖에서 항상 렌더.
   const ingame = games && games.sets.length > 0 ? <LolInGame games={games} /> : null;
 
-  if (!loaded) {
+  if (!loaded && !initial) {
     return (
       <div className="space-y-4">
         <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-10 text-center text-sm text-neutral-500 animate-pulse">
