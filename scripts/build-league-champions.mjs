@@ -5,8 +5,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const DRY = process.argv.includes("--dry");
 
-// 리그코드 → 위키데이터 Q번호 (association football league)
+// 리그코드 → 위키데이터 Q번호 (association football league / WC 는 대회)
 const LEAGUE_WD = {
+  WORLD_CUP: "Q19317",
   EPL: "Q9448",
   LALIGA: "Q324867",
   BUNDESLIGA: "Q82595",
@@ -63,10 +64,13 @@ function parseSeason(label) {
   return { key: `${start}-${m[2]}`, start: +start };
 }
 
-// "아스널 FC" → "아스널", "맨체스터 유나이티드 FC" → "맨체스터 유나이티드"
+// "아스널 FC" → "아스널", "스페인 축구 국가대표팀" → "스페인"(WC 우승국)
 function cleanKo(ko) {
   if (!ko) return null;
-  return ko.replace(/\s+(F\.?C\.?|S\.?C\.?|A\.?F\.?C\.?|C\.?F\.?)$/i, "").trim() || ko;
+  return ko
+    .replace(/\s*(축구\s*)?(국가)?대표팀$/, "")
+    .replace(/\s+(F\.?C\.?|S\.?C\.?|A\.?F\.?C\.?|C\.?F\.?)$/i, "")
+    .trim() || ko;
 }
 
 const out = {};
