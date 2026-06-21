@@ -17,6 +17,8 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { lookupNbaPlayer } from "@/lib/sports/nba-players";
+import { ChevronLeft } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 import PlayerTabs from "./PlayerTabs";
 import NbaSeasonOverview from "./NbaSeasonOverview";
 
@@ -28,7 +30,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
       className={`rounded-lg px-3 py-2 ${
         accent
           ? "bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30"
-          : "bg-neutral-50 dark:bg-neutral-900"
+          : "bg-neutral-50 dark:bg-white/[0.04]"
       }`}
     >
       <div className="text-[10px] text-neutral-500">{label}</div>
@@ -99,11 +101,11 @@ function NbaSeasonTable({ rows, career }: { rows: NbaSeasonRow[]; career: NbaSea
   if (rows.length === 0) return <p className="text-sm text-neutral-500">시즌 기록이 없습니다.</p>;
   const ordered = rows.slice().reverse(); // 최신 시즌이 위로
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+    <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
           <tr>
-            <th className="px-3 py-2 text-left font-medium sticky left-0 bg-neutral-50 dark:bg-neutral-900">시즌</th>
+            <th className="px-3 py-2 text-left font-medium sticky left-0 bg-neutral-50 dark:bg-white/[0.04]">시즌</th>
             <th className="px-2.5 py-2 text-left font-medium whitespace-nowrap">팀</th>
             <Th>GP</Th>
             <Th>MIN</Th>
@@ -117,10 +119,10 @@ function NbaSeasonTable({ rows, career }: { rows: NbaSeasonRow[]; career: NbaSea
             <Th>FT%</Th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
           {ordered.map((r, i) => (
             <tr key={`${r.year}-${r.teamSlug}-${i}`}>
-              <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-950">{r.label}</td>
+              <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-900">{r.label}</td>
               <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[140px] truncate">{slugToTeam(r.teamSlug)}</td>
               <SeasonCells r={r} />
             </tr>
@@ -148,7 +150,7 @@ function SplitCard({ row }: { row: NbaSplitRow | null }) {
     { k: "AST", val: n1(row.ast) },
   ];
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3.5">
+    <div className="rounded-xl bg-white p-3.5 ring-1 ring-black/5 shadow-sm dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="text-xs font-bold text-neutral-500 mb-2.5">
         {row.label} <span className="font-normal text-neutral-400">{row.gp}경기</span>
       </div>
@@ -190,9 +192,9 @@ function NbaSplitsView({ splits }: { splits: NbaSplits }) {
       {splits.byMonth.length > 0 && (
         <div>
           <div className="text-xs font-bold text-neutral-500 mb-2">월별 추이</div>
-          <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+          <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
             <table className="w-full text-sm">
-              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+              <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
                 <tr>
                   <th className="px-3 py-2 text-left font-medium">월</th>
                   <th className="px-3 py-2 text-right font-medium">PTS</th>
@@ -201,7 +203,7 @@ function NbaSplitsView({ splits }: { splits: NbaSplits }) {
                   <th className="px-3 py-2 text-right font-medium">FG%</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              <tbody className="divide-y divide-black/5 dark:divide-white/5">
                 {splits.byMonth.map((r) => (
                   <tr key={r.label}>
                     <td className="px-3 py-2 text-left font-semibold">{r.label}</td>
@@ -227,9 +229,9 @@ type RecentGame = Awaited<ReturnType<typeof fetchNbaEspnStats>>["recent"][number
 function NbaRecentGames({ games }: { games: RecentGame[] }) {
   if (games.length === 0) return <p className="text-sm text-neutral-500">경기 기록이 없습니다.</p>;
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+    <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
           <tr>
             <th className="text-left px-3 py-2 font-medium">일자</th>
             <th className="text-left px-2 py-2 font-medium">매치</th>
@@ -241,7 +243,7 @@ function NbaRecentGames({ games }: { games: RecentGame[] }) {
             <th className="text-right px-3 py-2 font-medium">BLK</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
           {games.map((g) => (
             <tr key={g.id}>
               <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{g.game?.date?.slice(0, 10) ?? "—"}</td>
@@ -305,7 +307,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
       )}
 
       {career && (
-        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">통산 평균</h2>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             <Stat label="PTS" value={n1(career.pts)} accent />
@@ -341,10 +343,14 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
   );
 
   return (
-    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <AmbientGlow />
       <header className="space-y-3">
-        <Link href="/leagues/NBA" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
-          ← NBA
+        <Link
+          href="/leagues/NBA"
+          className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
+        >
+          <ChevronLeft className="h-3 w-3" aria-hidden /> NBA
         </Link>
         <div className="flex items-center gap-4 flex-wrap">
           {photo ? (
@@ -358,7 +364,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
           )}
           <div className="space-y-1">
             <div className="flex items-baseline gap-3 flex-wrap">
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{nameKo}</h1>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{nameKo}</h1>
               {profile.position && (
                 <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
                   {profile.position}

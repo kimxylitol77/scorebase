@@ -56,7 +56,7 @@ export default function PercentileBars({
   if (rows.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+    <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="flex items-baseline justify-between mb-3.5 flex-wrap gap-x-2">
         <h2 className="text-base font-bold tracking-tight">
           <span className="bg-gradient-to-r from-blue-500 to-rose-500 bg-clip-text text-transparent">

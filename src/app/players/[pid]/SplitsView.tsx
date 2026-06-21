@@ -23,7 +23,7 @@ function SplitCard({
           { k: "IP", val: row.ip ?? "—" },
         ];
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3.5">
+    <div className="rounded-xl bg-white p-3.5 ring-1 ring-black/5 shadow-sm dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="text-xs font-bold text-neutral-500 mb-2.5">{row.label}</div>
       <div className="grid grid-cols-3 gap-2">
         {primary.map((p, i) => (
@@ -69,9 +69,9 @@ function MonthTable({
   return (
     <div>
       <div className="text-xs font-bold text-neutral-500 mb-2">월별 추이</div>
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+      <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+          <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
             <tr>
               <th className="px-3 py-2 text-left font-medium">월</th>
               {cols2.map(([h]) => (
@@ -81,7 +81,7 @@ function MonthTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          <tbody className="divide-y divide-black/5 dark:divide-white/5">
             {rows.map((r) => (
               <tr key={r.label}>
                 <td className="px-3 py-2 text-left font-semibold">{r.label}</td>

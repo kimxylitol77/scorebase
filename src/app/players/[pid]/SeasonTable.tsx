@@ -50,11 +50,11 @@ export function HitterSeasonTable({
     return <p className="text-sm text-neutral-500">시즌 기록이 없습니다.</p>;
   const ordered = rows.slice().reverse();
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+    <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
           <tr>
-            <th className="px-3 py-2 text-left font-medium sticky left-0 bg-neutral-50 dark:bg-neutral-900">
+            <th className="px-3 py-2 text-left font-medium sticky left-0 bg-neutral-50 dark:bg-white/[0.04]">
               시즌
             </th>
             <th className="px-2.5 py-2 text-left font-medium whitespace-nowrap">팀</th>
@@ -81,10 +81,10 @@ export function HitterSeasonTable({
             )}
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
           {ordered.map((r) => (
             <tr key={`${r.season}-${r.teamLabel}`}>
-              <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-950">
+              <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-900">
                 {r.season}
               </td>
               <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[120px] truncate">
@@ -130,11 +130,11 @@ export function PitcherSeasonTable({
     return <p className="text-sm text-neutral-500">시즌 기록이 없습니다.</p>;
   const ordered = rows.slice().reverse();
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+    <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
           <tr>
-            <th className="px-3 py-2 text-left font-medium sticky left-0 bg-neutral-50 dark:bg-neutral-900">
+            <th className="px-3 py-2 text-left font-medium sticky left-0 bg-neutral-50 dark:bg-white/[0.04]">
               시즌
             </th>
             <th className="px-2.5 py-2 text-left font-medium whitespace-nowrap">팀</th>
@@ -159,10 +159,10 @@ export function PitcherSeasonTable({
             )}
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
           {ordered.map((r) => (
             <tr key={`${r.season}-${r.teamLabel}`}>
-              <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-950">
+              <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-900">
                 {r.season}
               </td>
               <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[120px] truncate">

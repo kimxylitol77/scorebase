@@ -12,6 +12,8 @@ import {
 } from "@/lib/sports/lol-player-stats";
 import PlayerTabs from "./PlayerTabs";
 import LolSeasonOverview from "./LolSeasonOverview";
+import AmbientGlow from "@/components/AmbientGlow";
+import { ChevronLeft } from "lucide-react";
 
 const POSITION_KO: Record<number, string> = { 1: "원딜", 2: "미드", 3: "탑", 4: "정글", 5: "서폿" };
 
@@ -52,9 +54,9 @@ const WinBadge = ({ win }: { win: boolean }) => (
 function LolGames({ games }: { games: LolPlayerGame[] }) {
   if (games.length === 0) return <p className="text-sm text-neutral-500">경기 기록이 없습니다.</p>;
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+    <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
           <tr>
             <th className="text-left px-3 py-2 font-medium">일자</th>
             <th className="text-left px-2 py-2 font-medium">상대</th>
@@ -65,7 +67,7 @@ function LolGames({ games }: { games: LolPlayerGame[] }) {
             <th className="text-right px-3 py-2 font-medium">결과</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
           {games.map((g, i) => (
             <tr key={i}>
               <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{fmtDate(g.date)}</td>
@@ -92,9 +94,9 @@ function LolGames({ games }: { games: LolPlayerGame[] }) {
 function LolChamps({ champs }: { champs: LolPlayerChamp[] }) {
   if (champs.length === 0) return <p className="text-sm text-neutral-500">챔피언 기록이 없습니다.</p>;
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
+    <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
           <tr>
             <th className="text-left px-3 py-2 font-medium">챔피언</th>
             <th className="text-right px-2 py-2 font-medium">게임</th>
@@ -103,7 +105,7 @@ function LolChamps({ champs }: { champs: LolPlayerChamp[] }) {
             <th className="text-right px-3 py-2 font-medium">승률</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
           {champs.map((c) => (
             <tr key={c.champ}>
               <td className="px-3 py-2 font-medium">{c.champ}</td>
@@ -144,10 +146,14 @@ export async function LolPlayerView({ pid }: { pid: string }) {
   );
 
   return (
-    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <AmbientGlow />
       <header className="space-y-3">
-        <Link href="/leagues/LOL" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
-          ← LCK
+        <Link
+          href="/leagues/LOL"
+          className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
+        >
+          <ChevronLeft className="h-3 w-3" aria-hidden /> LCK
         </Link>
         <div className="flex items-center gap-4 flex-wrap">
           {profile?.photo ? (
@@ -164,7 +170,7 @@ export async function LolPlayerView({ pid }: { pid: string }) {
           )}
           <div className="space-y-1">
             <div className="flex items-baseline gap-3 flex-wrap">
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{name}</h1>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name}</h1>
               {pos && (
                 <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
                   {pos}

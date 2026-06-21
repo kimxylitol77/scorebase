@@ -34,7 +34,7 @@ function Card({
   bar: number | null;
 }) {
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3.5">
+    <div className="rounded-xl bg-white p-3.5 ring-1 ring-black/5 shadow-sm dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="flex items-center gap-1.5 mb-2.5">
         <span className={accent}>{icon}</span>
         <span className={`text-sm font-bold ${accent}`}>{title}</span>
@@ -73,7 +73,7 @@ export default function LolSeasonOverview({ agg }: { agg: LolPlayerAgg }) {
   ];
 
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 space-y-5">
+    <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none space-y-5">
       <div className="flex items-baseline gap-2">
         <h2 className="text-base font-bold tracking-tight">
           <span className="bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">시즌 상세 기록</span>
