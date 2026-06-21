@@ -1,45 +1,57 @@
 "use client";
 
 // 아바타 사진 업로드 — 브라우저에서 160px 정사각으로 줄여 data URL 로 DB 저장.
-// 모바일 호환: accept=image/*(아이폰 HEIC 포함), webp 미지원 시 jpeg 폴백,
-// requestSubmit 대신 서버액션 직접 호출(자동제출이 일부 모바일에서 불안정).
+// iOS 호환: createImageBitmap 우선 디코드(메모리 안정·HEIC), jpeg 인코딩(iOS webp 미지원),
+// requestSubmit 대신 서버액션 직접 호출, 실패 단계별 구체 에러 노출.
 import { useState, useTransition } from "react";
 import { uploadAvatarAction } from "./actions";
 
-const MAX_SRC_BYTES = 12 * 1024 * 1024; // 원본 12MB 초과는 처리 전 차단(모바일 고화질 여유)
+const MAX_SRC_BYTES = 12 * 1024 * 1024; // 원본 12MB 초과는 처리 전 차단
 const SIZE = 160; // 저장 해상도(정사각)
 
-// 파일 → 160px 정사각 center-crop data URL (webp, 미지원 시 jpeg).
-function resizeToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
+// 파일 → 디코드. createImageBitmap(큰 사진·iOS 메모리에 안정) 우선, 실패 시 <img> 폴백.
+async function decode(file: File): Promise<ImageBitmap | HTMLImageElement> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(file);
+    } catch {
+      // <img> 폴백으로 진행
+    }
+  }
+  return await new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = SIZE;
-        canvas.height = SIZE;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("canvas unsupported"));
-        const min = Math.min(img.width, img.height);
-        const sx = (img.width - min) / 2;
-        const sy = (img.height - min) / 2;
-        ctx.drawImage(img, sx, sy, min, min, 0, 0, SIZE, SIZE);
-        let out = canvas.toDataURL("image/webp", 0.85);
-        if (!out.startsWith("data:image/webp")) out = canvas.toDataURL("image/jpeg", 0.85);
-        if (!out || out.length < 64) return reject(new Error("encode failed"));
-        resolve(out);
-      } catch (err) {
-        reject(err);
-      }
+      resolve(img);
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("image load failed"));
+      reject(new Error("사진을 불러오지 못했어요"));
     };
     img.src = url;
   });
+}
+
+// 디코드 → 160 정사각 center-crop → jpeg data URL.
+async function resizeToDataUrl(file: File): Promise<string> {
+  const src = await decode(file);
+  const w = (src as ImageBitmap).width || (src as HTMLImageElement).naturalWidth;
+  const h = (src as ImageBitmap).height || (src as HTMLImageElement).naturalHeight;
+  if (!w || !h) throw new Error("사진 크기를 읽지 못했어요");
+  const min = Math.min(w, h);
+  const sx = (w - min) / 2;
+  const sy = (h - min) / 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("브라우저가 이미지 처리를 지원하지 않아요");
+  ctx.drawImage(src, sx, sy, min, min, 0, 0, SIZE, SIZE);
+  if ("close" in src && typeof src.close === "function") src.close();
+  const out = canvas.toDataURL("image/jpeg", 0.85);
+  if (!out || out.length < 64) throw new Error("이미지 변환에 실패했어요");
+  return out;
 }
 
 export default function AvatarUpload() {
@@ -64,7 +76,9 @@ export default function AvatarUpload() {
           if (res?.error) setError(res.error);
         });
       })
-      .catch(() => setError("이미지를 처리하지 못했어요. 다른 사진을 시도해주세요."));
+      .catch((err) =>
+        setError(`${err?.message || "이미지를 처리하지 못했어요"} — 다른 사진을 시도해주세요.`),
+      );
   }
 
   return (
