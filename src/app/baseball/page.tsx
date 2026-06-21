@@ -7,6 +7,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { safeFetchTop3 } from "@/lib/sports/standings-overview";
+import { Clock, ListOrdered, Target, Swords, Coins, Star, type LucideIcon } from "lucide-react";
 
 export const revalidate = 300;
 
@@ -132,7 +133,14 @@ export default async function BaseballHub() {
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-5">
       <header className="space-y-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">⚾ 야구</h1>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" className="w-7 h-7 shrink-0" aria-hidden>
+              <circle cx="12" cy="12" r="9" />
+              <path d="M7.5 3.8a9 9 0 0 1 0 16.4" />
+              <path d="M16.5 3.8a9 9 0 0 0 0 16.4" />
+            </svg>
+            야구
+          </h1>
           <span className="text-sm text-neutral-400">KBO · MLB · NPB</span>
         </div>
         <p className="text-sm text-neutral-500">
@@ -157,7 +165,7 @@ export default async function BaseballHub() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {/* 오늘 경기 */}
-        <Card title="오늘 경기" icon="🗓️" badge={`${games.length}경기`} href="/scores" hrefLabel="전체 경기">
+        <Card title="오늘 경기" Icon={Clock} badge={`${games.length}경기`} href="/scores" hrefLabel="전체 경기">
           {games.length === 0 ? (
             <Empty>오늘 예정된 야구 경기가 없습니다.</Empty>
           ) : (
@@ -193,7 +201,7 @@ export default async function BaseballHub() {
         </Card>
 
         {/* KBO 순위 */}
-        <Card title="KBO 순위" icon="🏆" href="/standings/KBO" hrefLabel="전체 순위">
+        <Card title="KBO 순위" Icon={ListOrdered} href="/standings/KBO" hrefLabel="전체 순위">
           {kboTop3.length === 0 ? (
             <Empty>순위 데이터를 불러오는 중입니다.</Empty>
           ) : (
@@ -214,7 +222,7 @@ export default async function BaseballHub() {
         {/* AI 예측 */}
         <Card
           title="AI 예측"
-          icon="🎯"
+          Icon={Target}
           badge={spRate != null ? `Strong ${spRate}%` : undefined}
           href="/predictions/accuracy"
           hrefLabel="적중률 보드"
@@ -242,7 +250,7 @@ export default async function BaseballHub() {
         </Card>
 
         {/* 선발 매치업 */}
-        <Card title="오늘 선발" icon="⚔️" href="/predictions/starters" hrefLabel="선발 비교">
+        <Card title="오늘 선발" Icon={Swords} href="/predictions/starters" hrefLabel="선발 비교">
           {starterGame ? (
             (() => {
               const hs = parseStarter(starterGame.homeStarter)!;
@@ -270,7 +278,7 @@ export default async function BaseballHub() {
         </Card>
 
         {/* 연봉 랭킹 */}
-        <Card title="연봉 랭킹" icon="💰" badge="KBO" href="/salaries/kbo" hrefLabel="연봉 전체">
+        <Card title="연봉 랭킹" Icon={Coins} badge="KBO" href="/salaries/kbo" hrefLabel="연봉 전체">
           {salaries.length === 0 ? (
             <Empty>연봉 데이터를 불러오는 중입니다.</Empty>
           ) : (
@@ -289,7 +297,7 @@ export default async function BaseballHub() {
         </Card>
 
         {/* 주목 선수 */}
-        <Card title="주목 선수" icon="⭐" href="/search" hrefLabel="선수 검색">
+        <Card title="주목 선수" Icon={Star} href="/search" hrefLabel="선수 검색">
           <ul className="space-y-1.5">
             {STARS.map((p) => (
               <li key={p.href}>
@@ -312,14 +320,14 @@ export default async function BaseballHub() {
 
 function Card({
   title,
-  icon,
+  Icon,
   badge,
   href,
   hrefLabel,
   children,
 }: {
   title: string;
-  icon: string;
+  Icon: LucideIcon;
   badge?: string;
   href: string;
   hrefLabel: string;
@@ -329,7 +337,7 @@ function Card({
     <section className="group flex flex-col rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-semibold flex items-center gap-1.5 text-zinc-950 dark:text-white">
-          <span aria-hidden>{icon}</span>
+          <Icon className="w-4 h-4 text-zinc-700 dark:text-white/70" aria-hidden />
           {title}
         </span>
         {badge && <span className="text-[11px] text-zinc-500 dark:text-white/45">{badge}</span>}
