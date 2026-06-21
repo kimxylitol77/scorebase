@@ -163,7 +163,7 @@ function TeamHalf({
         // 라인 세로 위치 — 자기 진영(절반)을 n등분, GK 가 바깥(골문)쪽.
         // home: 위 절반(top 3~47%), away: 아래 절반(거울).
         const frac = (li + 0.5) / n; // 0~1, 0=골문쪽
-        const half = 3 + frac * 42; // 3~45% (중앙선 55~45=10% 갭 — 양팀 최전방 충돌 방지)
+        const half = 4 + frac * 38; // 4~42% (최전방을 위로 — 센터서클(42~58%)과 안 겹치게 spread 축소)
         // 라인 내 가로 — x 원좌표 정렬 유지 (home 그대로 / away 거울)
         const byX = [...line].sort((a, b) => (a.x ?? 50) - (b.x ?? 50));
         return byX.map((p, pi) => {
@@ -256,8 +256,8 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         <div className="absolute top-1/2 left-1/2 w-[28%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/25" />
         <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/40" />
         {/* 페널티 박스 (위/아래) — 실제 비율에 가깝게 폭 확대 */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1/2 h-[13%] border border-white/25 border-t-0" />
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1/2 h-[13%] border border-white/25 border-b-0" />
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1/2 h-[16%] border border-white/25 border-t-0" />
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1/2 h-[16%] border border-white/25 border-b-0" />
 
         {/* 선수 */}
         <TeamHalf players={homeStarters} side="home" nameById={nameById} />
