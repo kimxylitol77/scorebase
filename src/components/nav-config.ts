@@ -36,8 +36,9 @@ export const SPORT_CATEGORIES: NavCategory[] = [
   },
   {
     label: "야구",
-    href: "/previews?sport=BASEBALL",
+    href: "/baseball",
     items: [
+      { href: "/baseball", label: "야구 허브", desc: "오늘 경기·순위·예측·선수 한눈에" },
       { href: "/previews?sport=BASEBALL", label: "AI 프리뷰·분석", desc: "선발·타선 기반 예측" },
       { href: "/predictions/starters", label: "선발 매치업", desc: "선발 투수 맞대결 비교" },
       { href: "/predictions/KBO", label: "시즌 예측", desc: "KBO·MLB·NPB 우승 확률" },
