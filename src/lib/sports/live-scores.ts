@@ -1163,8 +1163,9 @@ export interface SoccerEvent {
  *   30  = PK shootout → Penalty Shootout
  *   19/11/12/26/27/15/16 = 시각 표시 / 미확정 — skip.
  */
-export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
+export function tsIncidentsToEvents(incidents: unknown, nameById?: Record<string, string>): SoccerEvent[] {
   if (!Array.isArray(incidents)) return [];
+  const loc = (n: string | null, id: string | null) => (nameById && id && nameById[id]) || n;
   const out: SoccerEvent[] = [];
   for (const raw of incidents) {
     const i = raw as Record<string, unknown>;
@@ -1215,8 +1216,8 @@ export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
         type,
         detail,
         side,
-        playerName: inName,
-        assistName: outName,
+        playerName: loc(inName, inId),
+        assistName: loc(outName, outId),
         playerId: inId,
         assistId: outId,
       });
@@ -1231,7 +1232,7 @@ export function tsIncidentsToEvents(incidents: unknown): SoccerEvent[] {
       continue; // 19, 11, 12, 26, 27, 15, 16 등 — skip
     }
 
-    out.push({ minute: time, extra, type, detail, side, playerName, assistName, playerId, assistId });
+    out.push({ minute: time, extra, type, detail, side, playerName: loc(playerName, playerId), assistName: loc(assistName, assistId), playerId, assistId });
   }
   // 최신 위로 정렬 (extra 포함)
   out.sort((a, b) => (b.minute * 100 + b.extra) - (a.minute * 100 + a.extra));

@@ -324,7 +324,26 @@ export async function GET(
         const dl = cache?.detailLive as { incidents?: unknown } | null;
         if (dl?.incidents) {
           const { tsIncidentsToEvents } = await import("@/lib/sports/live-scores");
-          const events = tsIncidentsToEvents(dl.incidents);
+          // 이벤트(골·도움·교체) 선수명 한글화 — incident player id 들의 nameKo 조회
+          const nameById: Record<string, string> = {};
+          if (Array.isArray(dl.incidents)) {
+            const pids = new Set<string>();
+            for (const inc of dl.incidents) {
+              const i = inc as Record<string, unknown>;
+              for (const k of ["player_id", "assist1_id", "assist2_id", "in_player_id", "out_player_id"]) {
+                const v = i[k];
+                if (typeof v === "string" && v) pids.add(v);
+              }
+            }
+            if (pids.size > 0) {
+              const rows = await db.theSportsPlayer.findMany({
+                where: { id: { in: Array.from(pids) }, nameKo: { not: null } },
+                select: { id: true, nameKo: true },
+              });
+              for (const r of rows) if (r.nameKo) nameById[r.id] = r.nameKo;
+            }
+          }
+          const events = tsIncidentsToEvents(dl.incidents, nameById);
           if (events.length > 0) out.soccerEvents = events;
         }
       }
