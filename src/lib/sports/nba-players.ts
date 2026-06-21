@@ -11,6 +11,8 @@ interface PlayerEntry {
   espnId: string;
   pos: string | null;
   bdlId?: number;
+  team?: string; // 소속팀명(= DB Team.name) — 팀 페이지 로스터 그룹핑용
+  number?: number; // 등번호
   // TheSports basketball player/list 보강 (enrich-nba-players-thesports.ts)
   tsId?: string;
   birthday?: number; // unix sec
@@ -66,4 +68,30 @@ export function lookupNbaPlayer(name: string | null | undefined): NbaPlayerInfo 
 /** balldontlie 선수 상세 href — bdlId 있을 때만. */
 export function nbaPlayerHref(info: NbaPlayerInfo | null): string | null {
   return info?.bdlId != null ? `/players/${info.bdlId}?league=NBA` : null;
+}
+
+export interface NbaRosterPlayer {
+  ko: string;
+  name: string;
+  photo: string;
+  pos: string | null;
+  number: number | null;
+  bdlId: number | null; // 선수 상세 링크용 (없으면 비링크)
+  espnId: string;
+}
+
+/** 팀명(= DB Team.name = ESPN displayName) → 로스터. 등번호순 정렬. 포지션 그룹은 호출부에서. */
+export function getNbaRoster(teamName: string): NbaRosterPlayer[] {
+  return Object.values(INDEX)
+    .filter((e) => e.team === teamName)
+    .map((e) => ({
+      ko: e.ko || e.name,
+      name: e.name,
+      photo: e.photo,
+      pos: e.pos,
+      number: e.number ?? null,
+      bdlId: e.bdlId ?? null,
+      espnId: e.espnId,
+    }))
+    .sort((a, b) => (a.number ?? 999) - (b.number ?? 999));
 }

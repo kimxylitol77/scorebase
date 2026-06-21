@@ -20,6 +20,8 @@ interface PlayerEntry {
   espnId: string;
   pos: string | null;
   bdlId?: number; // balldontlie player id — 선수 상세(/players/{bdlId}?league=NBA) 연결용
+  team?: string; // ESPN displayName(= DB Team.name) — 팀 페이지 로스터 그룹핑용
+  number?: number; // 등번호(ESPN jersey)
 }
 
 /** 이름 정규화 — 매칭 키 (악센트 제거·소문자·suffix 정리). player-names.ts 와 동일 정책. */
@@ -35,14 +37,18 @@ function normKey(s: string): string {
     .trim();
 }
 
-async function fetchTeamIds(): Promise<string[]> {
+async function fetchTeams(): Promise<{ id: string; name: string }[]> {
   const r = await (
     await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams", {
       headers: { "User-Agent": UA },
     })
   ).json();
   const teams = r.sports?.[0]?.leagues?.[0]?.teams ?? [];
-  return teams.map((t: { team: { id: string } }) => t.team.id);
+  // displayName = DB Team.name 과 일치 (30팀 검증 완료) → 로스터 팀 키
+  return teams.map((t: { team: { id: string; displayName: string } }) => ({
+    id: t.team.id,
+    name: t.team.displayName,
+  }));
 }
 
 /** balldontlie 현역 선수 → normKey(이름) → bdlId 맵. 선수 상세 페이지 연결용.
@@ -82,6 +88,7 @@ interface RosterAthlete {
   displayName?: string;
   headshot?: { href?: string };
   position?: { abbreviation?: string };
+  jersey?: string;
 }
 
 async function fetchRoster(teamId: string): Promise<RosterAthlete[]> {
@@ -126,13 +133,14 @@ async function transliterate(names: string[]): Promise<Record<string, string>> {
 
 async function main() {
   console.log("ESPN 팀 목록 fetch...");
-  const teamIds = await fetchTeamIds();
-  console.log(`${teamIds.length}팀`);
+  const teams = await fetchTeams();
+  console.log(`${teams.length}팀`);
 
-  const athletes: RosterAthlete[] = [];
-  for (const id of teamIds) {
-    const roster = await fetchRoster(id);
-    athletes.push(...roster);
+  // 각 선수에 소속팀명 태그 (팀 페이지 로스터 그룹핑용)
+  const athletes: (RosterAthlete & { team: string })[] = [];
+  for (const t of teams) {
+    const roster = await fetchRoster(t.id);
+    for (const a of roster) athletes.push({ ...a, team: t.name });
     await new Promise((r) => setTimeout(r, 150));
   }
   console.log(`총 ${athletes.length}명 로스터 수집`);
@@ -157,12 +165,15 @@ async function main() {
       ko = ""; // 음역 후 채움
     }
     index[key] = {
+      ...prev[key], // enrich 프로필(tsId·생일·연봉 등, enrich-nba-players-thesports.ts) 보존
       name,
       ko,
       photo: a.headshot?.href ?? `https://a.espncdn.com/i/headshots/nba/players/full/${a.id}.png`,
       espnId: a.id,
       pos: a.position?.abbreviation ?? null,
       bdlId: prev[key]?.bdlId, // 기존 매핑 보존, 아래서 갱신
+      team: a.team,
+      number: a.jersey ? Number(a.jersey) : undefined,
     };
   }
 

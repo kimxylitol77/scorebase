@@ -16,6 +16,7 @@ import TransfersSection from "@/components/teams/TransfersSection";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
+import { getNbaRoster, type NbaRosterPlayer } from "@/lib/sports/nba-players";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { getSportFromLeague } from "@/lib/players/types";
 import rawTOverrides from "../../../../data/player-overrides.json";
@@ -324,6 +325,9 @@ export default async function TeamPage({ params }: Props) {
     team.league === "KBO" || team.league === "NPB"
       ? (BASEBALL_ROSTERS[String(team.id)] ?? [])
       : [];
+  // NBA — 정적 인덱스(nba-players.json, ESPN 30팀 로스터·주간 빌드). team=DB name 매칭.
+  const nbaRoster: NbaRosterPlayer[] =
+    team.league === "NBA" ? getNbaRoster(team.name) : [];
 
   return (
     <div className="relative">
@@ -659,6 +663,56 @@ export default async function TeamPage({ params }: Props) {
           </section>
         )}
 
+        {/* NBA 로스터 — nba-players.json(ESPN 30팀 로스터), 클릭 → 선수 상세(/players/{bdlId}?league=NBA) */}
+        {nbaRoster.length > 0 && (
+          <section>
+            <SectionH title="🏀 로스터" subtitle={`${nbaRoster.length}명 · ESPN · 클릭 시 상세`} />
+            {([["G", "가드"], ["F", "포워드"], ["C", "센터"]] as const).map(([g, label]) => {
+              const ps = nbaRoster.filter((p) => nbaPosGroup(p.pos) === g);
+              if (!ps.length) return null;
+              return (
+                <div key={g} className="mb-3">
+                  <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ps.map((p) => {
+                      const inner = (
+                        <>
+                          <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                            {p.photo ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={p.photo} alt={p.ko} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-xs font-bold text-neutral-500">{p.ko.slice(0, 1)}</span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-sm truncate">{p.ko}</div>
+                            <div className="text-[11px] text-neutral-500 tabular-nums">{p.number ? `#${p.number} · ` : ""}{p.pos}</div>
+                          </div>
+                        </>
+                      );
+                      const base = "flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2";
+                      return p.bdlId != null ? (
+                        <Link
+                          key={p.espnId}
+                          href={`/players/${p.bdlId}?league=NBA`}
+                          className={`${base} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]`}
+                        >
+                          {inner}
+                        </Link>
+                      ) : (
+                        <div key={p.espnId} className={base}>
+                          {inner}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
         {/* LOL 로스터 + 팀 통계 — lolGames 집계(선수 KDA·승률)·lol-players(사진) */}
         {team.league === "LOL" && <LolTeamRoster teamId={team.id} />}
 
@@ -868,6 +922,13 @@ export default async function TeamPage({ params }: Props) {
       </div>
     </div>
   );
+}
+
+// ESPN NBA 포지션 약어(G/F/C/PF) → 3그룹. PF·기타는 포워드로.
+function nbaPosGroup(pos: string | null): "G" | "F" | "C" {
+  if (pos === "G") return "G";
+  if (pos === "C") return "C";
+  return "F";
 }
 
 function OppLogo({
