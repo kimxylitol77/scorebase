@@ -19,10 +19,9 @@ import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchNpbPitcherProfileCached as fetchNpbPitcherProfile } from "@/lib/sports/npb-cache";
 import { KboPlayerView, NpbPlayerView, npbDisplayName } from "./KboNpbViews";
 import { fetchSoccerPlayerProfile, type SoccerPlayerProfile } from "@/lib/sports/api-football-pro";
-import lolPlayersData from "../../../../data/lol-players.json";
-import { aggregateLolPlayers } from "@/lib/sports/lol-player-stats";
 import { NbaPlayerView } from "./NbaViews";
 import { NhlPlayerView } from "./NhlViews";
+import { LolPlayerView } from "./LolViews";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 
@@ -99,7 +98,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   if (league === "NPB") return <NpbPlayerView pid={pid} />;
   if (league === "NBA") return <NbaPlayerView pid={pid} />;
   if (league === "NHL") return <NhlPlayerView pid={pid} />;
-  if (league === "LOL") return renderLolPlayerView(pid);
+  if (league === "LOL") return <LolPlayerView pid={pid} />;
   // 축구 8개 리그
   if (
     league &&
@@ -291,97 +290,6 @@ async function renderSoccerPlayerView(pid: string, league: string) {
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
         ⓘ 데이터 출처: API-Football (api-sports.io). 시즌 stats 는 매일 자동 갱신됩니다.
-      </p>
-    </article>
-  );
-}
-
-/* ============================================================
- * LOL/LCK 선수 view (BALLDONTLIE match stats 집계)
- * ==========================================================*/
-
-async function renderLolPlayerView(pid: string) {
-  const profile = (
-    lolPlayersData as {
-      players: Record<
-        string,
-        { name: string; realName: string; photo: string; teamId: string }
-      >;
-    }
-  ).players[pid];
-  const agg = (await aggregateLolPlayers()).find((p) => p.playerId === pid);
-  if (!profile && !agg) notFound();
-  const name = agg?.name || profile?.name || "선수";
-  const games = agg?.games ?? 0;
-
-  return (
-    <article className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      <header className="space-y-3">
-        <Link href="/leagues/LOL" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
-          ← LCK
-        </Link>
-        <div className="flex items-center gap-4 flex-wrap">
-          {profile?.photo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.photo}
-              alt=""
-              className="w-24 h-24 rounded-full object-cover bg-neutral-100 dark:bg-neutral-900 shrink-0"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0 flex items-center justify-center text-3xl font-black text-white">
-              {name.slice(0, 1).toUpperCase()}
-            </div>
-          )}
-          <div className="space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{name}</h1>
-            {profile?.realName && (
-              <div className="text-sm text-neutral-500">{profile.realName}</div>
-            )}
-            <div className="text-sm text-neutral-500">LCK · {games}세트 출전</div>
-            <div className="text-[11px] text-neutral-400">TheSports</div>
-          </div>
-        </div>
-      </header>
-
-      {agg && (
-        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
-            시즌 누적
-          </h2>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-            <Stat label="KDA" value={agg.kda.toFixed(2)} accent />
-            <Stat
-              label="K/D/A"
-              value={`${(agg.kills / agg.games).toFixed(1)}/${(agg.deaths / agg.games).toFixed(1)}/${(agg.assists / agg.games).toFixed(1)}`}
-              accent
-            />
-            <Stat label="CS" value={agg.csPerGame.toFixed(0)} accent />
-            <Stat label="총 킬" value={String(agg.kills)} />
-            <Stat label="총 어시" value={String(agg.assists)} />
-            <Stat label="세트" value={String(agg.games)} />
-          </div>
-        </section>
-      )}
-
-      {agg && agg.champs.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold mb-3">플레이한 챔피언 ({agg.champs.length})</h2>
-          <div className="flex flex-wrap gap-2">
-            {agg.champs.map((c) => (
-              <span
-                key={c}
-                className="px-2.5 py-1 rounded-md text-sm border border-neutral-200 dark:border-neutral-800"
-              >
-                {c}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ 데이터 출처: TheSports LoL (세트별 스코어보드 집계).
       </p>
     </article>
   );

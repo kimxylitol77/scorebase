@@ -178,3 +178,122 @@ export async function aggregateLolTeams(): Promise<LolTeamAgg[]> {
     }))
     .sort((x, y) => y.avgKills - x.avgKills);
 }
+
+/* ============================================================
+ * 선수 1명 상세 — 개요 집계 + 세트별 경기 로그 + 챔피언별 숙련도.
+ * 선수페이지(/players/{id}?league=LOL) 3탭 전용. 한 번 로드로 셋 다 계산.
+ * ==========================================================*/
+
+export interface LolPlayerGame {
+  date: Date;
+  opponent: string;
+  champ: string;
+  k: number;
+  d: number;
+  a: number;
+  cs: number;
+  win: boolean;
+  durationSec: number;
+}
+
+export interface LolPlayerChamp {
+  champ: string;
+  games: number;
+  k: number; // 게임당 평균
+  d: number;
+  a: number;
+  kda: number;
+  wins: number;
+  winRate: number; // 0~1
+}
+
+// 날짜(Match.startTime) 포함 세트 로더 — 경기 로그용.
+async function loadSetsWithDate(): Promise<Array<GameSet & { date: Date }>> {
+  const matches = await prisma.match.findMany({
+    where: { league: "LOL", lolGames: { not: null } },
+    select: { startTime: true, lolGames: true },
+  });
+  const out: Array<GameSet & { date: Date }> = [];
+  for (const m of matches) {
+    const d = JSON.parse(m.lolGames!) as { sets: GameSet[] };
+    for (const s of d.sets) out.push({ ...s, date: m.startTime });
+  }
+  return out;
+}
+
+export async function getLolPlayerDetail(
+  playerId: string,
+): Promise<{ agg: LolPlayerAgg; games: LolPlayerGame[]; champs: LolPlayerChamp[] } | null> {
+  const sets = await loadSetsWithDate();
+  let name = "";
+  let teamId = "";
+  let games = 0,
+    kills = 0,
+    deaths = 0,
+    assists = 0,
+    cs = 0,
+    sec = 0,
+    wins = 0;
+  const champsSet = new Set<string>();
+  const gameLog: LolPlayerGame[] = [];
+  const champMap = new Map<string, { games: number; k: number; d: number; a: number; wins: number }>();
+
+  for (const s of sets) {
+    const me = s.players.find((p) => p.playerId === playerId);
+    if (!me) continue;
+    name = me.name;
+    teamId = me.teamId;
+    const win = s.winnerId === me.teamId;
+    games++;
+    kills += me.k;
+    deaths += me.d;
+    assists += me.a;
+    cs += me.cs;
+    sec += s.durationSec;
+    if (win) wins++;
+    champsSet.add(me.champ);
+    const opp = s.red.id === me.teamId ? s.blue : s.red;
+    gameLog.push({ date: s.date, opponent: opp.name, champ: me.champ, k: me.k, d: me.d, a: me.a, cs: me.cs, win, durationSec: s.durationSec });
+    if (me.champ && me.champ !== "?") {
+      const c = champMap.get(me.champ) ?? { games: 0, k: 0, d: 0, a: 0, wins: 0 };
+      c.games++;
+      c.k += me.k;
+      c.d += me.d;
+      c.a += me.a;
+      if (win) c.wins++;
+      champMap.set(me.champ, c);
+    }
+  }
+  if (games === 0) return null;
+
+  const agg: LolPlayerAgg = {
+    playerId,
+    name,
+    teamId,
+    games,
+    kills,
+    deaths,
+    assists,
+    kda: deaths ? (kills + assists) / deaths : kills + assists,
+    csPerGame: cs / games,
+    csPerMin: sec ? cs / (sec / 60) : 0,
+    wins,
+    winRate: wins / games,
+    champs: [...champsSet],
+  };
+  gameLog.sort((x, y) => y.date.getTime() - x.date.getTime());
+  const champs: LolPlayerChamp[] = [...champMap.entries()]
+    .map(([champ, c]) => ({
+      champ,
+      games: c.games,
+      k: c.k / c.games,
+      d: c.d / c.games,
+      a: c.a / c.games,
+      kda: c.d ? (c.k + c.a) / c.d : c.k + c.a,
+      wins: c.wins,
+      winRate: c.wins / c.games,
+    }))
+    .sort((x, y) => y.games - x.games);
+
+  return { agg, games: gameLog, champs };
+}
