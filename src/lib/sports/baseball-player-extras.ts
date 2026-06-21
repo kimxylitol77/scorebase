@@ -12,15 +12,15 @@ import { fetchNpbPitcherYearlyRaw, fetchNpbHitterYearlyRaw } from "./npb-officia
 
 export const getKboPitcherYearly = unstable_cache(
   fetchKboPitcherYearlyRaw,
-  ["kbo-pitcher-yearly-v2"],
+  ["kbo-pitcher-yearly-v3"],
   { revalidate: 3600 },
 );
 export const getKboHitterYearly = unstable_cache(
   fetchKboHitterYearlyRaw,
-  ["kbo-hitter-yearly-v2"],
+  ["kbo-hitter-yearly-v3"],
   { revalidate: 3600 },
 );
-export const getKboSplits = unstable_cache(fetchKboSplitsRaw, ["kbo-splits-v2"], {
+export const getKboSplits = unstable_cache(fetchKboSplitsRaw, ["kbo-splits-v3"], {
   revalidate: 3600,
 });
 export const getNpbPitcherYearly = unstable_cache(

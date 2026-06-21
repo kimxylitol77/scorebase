@@ -37,3 +37,19 @@ const KBO_SALARIES_2026: KboSalary[] = [
 export function getKboSalaries(): KboSalary[] {
   return KBO_SALARIES_2026;
 }
+
+// 연봉 랭킹 선수명 → koreabaseball playerId (선수 상세 /players/{id}?league=KBO 링크용).
+// PitcherBasic/HitterBasic 인덱스 + 검색으로 확보. 매년 연봉 배열 갱신 시 함께 갱신.
+// (김광현은 1군 등록 인덱스엔 없으나 playerId 직접 확보분.)
+export const KBO_SALARY_PLAYER_IDS: Record<string, string> = {
+  양의지: "76232",
+  고영표: "64001",
+  최정: "75847",
+  류현진: "76715",
+  박세웅: "64021",
+  최원태: "65320",
+  장현식: "63950",
+  김광현: "77829",
+  오지환: "79109",
+  박종훈: "60841",
+};

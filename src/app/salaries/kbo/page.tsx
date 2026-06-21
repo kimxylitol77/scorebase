@@ -5,6 +5,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { KBO_SALARY_PLAYER_IDS } from "@/lib/sports/kbo-salaries";
 
 export const revalidate = 3600;
 
@@ -80,19 +81,29 @@ export default async function KboSalariesPage() {
             <tbody>
               {rows.map((r) => {
                 const top3 = r.rank <= 3;
+                const pid = KBO_SALARY_PLAYER_IDS[r.playerName];
+                const cell = (
+                  <div className="flex items-center gap-2.5">
+                    <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
+                    <div className="leading-tight">
+                      <div className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${pid ? "group-hover:underline" : ""}`}>{r.playerName}</div>
+                      <div className="text-[11px] text-neutral-400">
+                        {r.teamName}{r.position ? ` · ${r.position}` : ""}
+                      </div>
+                    </div>
+                  </div>
+                );
                 return (
                   <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition">
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                     <td className="px-2 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
-                        <div className="leading-tight">
-                          <div className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{r.playerName}</div>
-                          <div className="text-[11px] text-neutral-400">
-                            {r.teamName}{r.position ? ` · ${r.position}` : ""}
-                          </div>
-                        </div>
-                      </div>
+                      {pid ? (
+                        <Link href={`/players/${pid}?league=KBO`} className="group block" aria-label={`${r.playerName} 선수 페이지`}>
+                          {cell}
+                        </Link>
+                      ) : (
+                        cell
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums font-bold">
                       {fmtManwon(r.salary)}
