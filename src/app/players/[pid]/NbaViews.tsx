@@ -323,10 +323,9 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
   ]);
 
   // 시즌기록 팀 로고/링크 — DB NBA Team(영문 name 매칭)으로 logoUrl·팀페이지 id.
-  const nbaTeams = seasons.length
-    ? await prisma.team.findMany({ where: { league: "NBA" }, select: { id: true, name: true, logoUrl: true } })
-    : [];
+  const nbaTeams = await prisma.team.findMany({ where: { league: "NBA" }, select: { id: true, name: true, logoUrl: true } });
   const teamMap = new Map<string, TeamInfo>(nbaTeams.map((t) => [t.name, { id: t.id, logo: t.logoUrl }]));
+  const currentTeam = profile.team ? teamMap.get(profile.team.fullName) : undefined;
 
   const birth = tsp?.birthday ? new Date(tsp.birthday * 1000) : null;
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
@@ -410,7 +409,18 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
               {age != null && <span className="text-sm text-neutral-500">{age}세</span>}
             </div>
             <div className="text-sm text-neutral-500">
-              {teamKo ? `${teamKo} · ` : ""}
+              {teamKo ? (
+                <>
+                  {currentTeam ? (
+                    <Link href={`/teams/${currentTeam.id}`} className="font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition">
+                      {teamKo}
+                    </Link>
+                  ) : (
+                    teamKo
+                  )}
+                  {" · "}
+                </>
+              ) : ""}
               {profile.height ? `${profile.height} · ` : ""}
               {profile.weight ? `${profile.weight} lbs` : ""}
               {profile.country ? ` · ${profile.country}` : ""}
