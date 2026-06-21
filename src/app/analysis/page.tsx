@@ -8,6 +8,7 @@ import { listTime, hitRate } from "@/lib/analysis/format";
 import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { SITE_URL } from "@/lib/site-url";
 import { Trophy, SquarePen, Target, Flame, X } from "lucide-react";
+import { avatarById } from "@/lib/avatars";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
@@ -76,6 +77,30 @@ function pageList(cur: number, total: number): (number | "…")[] {
   return out;
 }
 
+// 작성자 아이콘 — 회원이 설정한 아바타 우선, 미설정(봇 등)은 등급 이모지 fallback.
+function AuthorBadge({
+  avatarUrl,
+  gradeEmoji,
+  size = "h-5 w-5 text-[11px]",
+}: {
+  avatarUrl: string | null;
+  gradeEmoji: string;
+  size?: string;
+}) {
+  if (avatarUrl) {
+    const av = avatarById(avatarUrl);
+    return (
+      <span
+        className={`inline-flex shrink-0 items-center justify-center rounded-full ${av.bg} ${size}`}
+        aria-hidden
+      >
+        {av.emoji}
+      </span>
+    );
+  }
+  return <span aria-hidden>{gradeEmoji}</span>;
+}
+
 export default async function AnalysisListPage({ searchParams }: Props) {
   const { page, sport } = await searchParams;
   const cur = Math.max(1, Number(page) || 1);
@@ -118,6 +143,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         author: {
           select: {
             nickname: true,
+            avatarUrl: true,
             level: true,
             badge: true,
             predTotal: true,
@@ -299,8 +325,9 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                         {p.sport && SPORT_META[p.sport] && (
                           <span className="font-medium">{SPORT_META[p.sport].label}</span>
                         )}
-                        <span>
-                          {g.emoji} {a.nickname}
+                        <span className="inline-flex items-center gap-1">
+                          <AuthorBadge avatarUrl={a.avatarUrl} gradeEmoji={g.emoji} size="h-4 w-4 text-[10px]" />
+                          {a.nickname}
                         </span>
                         {a.predTotal > 0 ? (
                           <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -326,7 +353,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       title={g.name}
                     >
                       <span className="flex items-center gap-1.5">
-                        <span>{g.emoji}</span>
+                        <AuthorBadge avatarUrl={a.avatarUrl} gradeEmoji={g.emoji} />
                         <span className="truncate">{a.nickname}</span>
                       </span>
                       {a.predTotal > 0 ? (
