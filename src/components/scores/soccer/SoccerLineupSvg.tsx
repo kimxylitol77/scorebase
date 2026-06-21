@@ -81,7 +81,7 @@ function PlayerDot({
       className="absolute flex flex-col items-center"
       style={{ top: `${top}%`, left: `${left}%`, transform: "translate(-50%, -50%)" }}
     >
-      <div className="relative w-8 h-8 sm:w-11 sm:h-11 aspect-square shrink-0">
+      <div className="relative w-8 h-8 sm:w-10 sm:h-10 aspect-square shrink-0">
         {/* 윈도우 타원 깨짐 다중 방어: (1) aspect-square 로 높이 계산이 어긋나도 1:1 강제,
             (2) img 자체에 rounded-full → overflow-hidden 클립이 transform 조상 아래서 실패해도 self-clip,
             (3) wrapper overflow-hidden 으로 이중 클립. */}
@@ -163,7 +163,7 @@ function TeamHalf({
         // 라인 세로 위치 — 자기 진영(절반)을 n등분, GK 가 바깥(골문)쪽.
         // home: 위 절반(top 3~47%), away: 아래 절반(거울).
         const frac = (li + 0.5) / n; // 0~1, 0=골문쪽
-        const half = 4 + frac * 38; // 4~42% (최전방을 위로 — 센터서클(42~58%)과 안 겹치게 spread 축소)
+        const half = 3 + frac * 46; // 3~46% — 줄 간격 넓혀 이름이 아랫줄 선수와 안 겹치게 (센터서클 제거로 spread 확대 가능)
         // 라인 내 가로 — x 원좌표 정렬 유지 (home 그대로 / away 거울)
         const byX = [...line].sort((a, b) => (a.x ?? 50) - (b.x ?? 50));
         return byX.map((p, pi) => {
