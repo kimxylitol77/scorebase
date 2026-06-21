@@ -64,7 +64,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     nickname: u.nickname,
     level: u.level,
     badge: u.badge,
-    avatar: resolveAvatar(u.avatarUrl, u.nickname),
+    avatar: resolveAvatar(u.avatarUrl, u.nickname, u.level, u.badge),
     intro: analystIntro(u.nickname),
     total: u.predTotal,
     hit: u.predHit,

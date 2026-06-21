@@ -82,13 +82,17 @@ function pageList(cur: number, total: number): (number | "…")[] {
 function AuthorBadge({
   avatarUrl,
   nickname,
+  level,
+  badge,
   size = "h-8 w-8 text-base",
 }: {
   avatarUrl: string | null;
   nickname: string;
+  level?: number;
+  badge?: string | null;
   size?: string;
 }) {
-  const av = resolveAvatar(avatarUrl, nickname);
+  const av = resolveAvatar(avatarUrl, nickname, level, badge);
   if (av.imageUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
@@ -347,7 +351,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                           <span className="font-medium">{SPORT_META[p.sport].label}</span>
                         )}
                         <span className="inline-flex items-center gap-1">
-                          <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} size="h-6 w-6 text-sm" />
+                          <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} size="h-6 w-6 text-sm" />
                           {a.nickname}
                         </span>
                         {a.predTotal > 0 ? (
@@ -373,7 +377,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       className="hidden sm:flex items-center gap-2.5 text-sm text-neutral-600 dark:text-neutral-400 min-w-0"
                       title={g.name}
                     >
-                      <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} size="h-10 w-10 text-xl" />
+                      <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} size="h-10 w-10 text-xl" />
                       <span className="flex flex-col min-w-0">
                         <span className="truncate">{a.nickname}</span>
                         {a.predTotal > 0 ? (

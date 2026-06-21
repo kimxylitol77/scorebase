@@ -10,7 +10,7 @@ const MEDAL = ["🥇", "🥈", "🥉"];
 // 리더보드 1행 — 순위/메달 · 아바타 · 닉네임+연승+분석관칩 · 적중률. 클릭 → 프로필.
 export default function ExpertRow({ row, index }: { row: RankRow; index: number }) {
   const g = displayGrade(row.level, row.badge);
-  const avatar = resolveAvatar(row.avatarUrl, row.nickname);
+  const avatar = resolveAvatar(row.avatarUrl, row.nickname, row.level, row.badge);
   const medal = MEDAL[index];
 
   return (

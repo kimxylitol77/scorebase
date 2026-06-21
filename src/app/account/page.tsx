@@ -7,7 +7,8 @@ import { prisma } from "@/lib/db";
 import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
 import { logoutUserAction } from "@/app/(auth)/actions";
 import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
-import { avatarById } from "@/lib/avatars";
+import { AVATAR_EDIT_MIN_LEVEL } from "@/lib/avatars";
+import { resolveAvatar } from "@/lib/analysis/analysts";
 import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
 import NicknameEditor from "./NicknameEditor";
@@ -39,7 +40,7 @@ export default async function AccountPage({ searchParams }: Props) {
   const [user, myPosts, agg, settled, correct] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.userId },
-      select: { email: true, nickname: true, createdAt: true, exp: true, level: true, points: true, avatarUrl: true },
+      select: { email: true, nickname: true, createdAt: true, exp: true, level: true, points: true, avatarUrl: true, badge: true },
     }),
     prisma.post.findMany({
       where: { authorId: session.userId },
@@ -57,7 +58,8 @@ export default async function AccountPage({ searchParams }: Props) {
   ]);
   if (!user) redirect("/login?from=/account");
 
-  const avatar = avatarById(user.avatarUrl);
+  const avatar = resolveAvatar(user.avatarUrl, user.nickname, user.level, user.badge);
+  const canEditAvatar = user.level >= AVATAR_EDIT_MIN_LEVEL;
   const grade = gradeByExp(user.exp);
   const prog = levelProgress(user.exp);
   const totalPosts = agg._count._all;
@@ -124,11 +126,20 @@ export default async function AccountPage({ searchParams }: Props) {
               </div>
             </div>
 
-            {/* 아바타 선택 — 프리셋 또는 사진 업로드(프리셋 클릭 시 사진 해제) */}
+            {/* 아바타 — 1등급은 고정 기본 이미지, 2등급(유소년)부터 프리셋·사진 변경 가능 */}
             <div className="mt-5">
               <div className="text-xs font-semibold text-neutral-500 mb-2">아바타</div>
-              <AvatarPicker current={avatar.id} />
-              <AvatarUpload />
+              {canEditAvatar ? (
+                <>
+                  <AvatarPicker current={avatar.id} />
+                  <AvatarUpload />
+                </>
+              ) : (
+                <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 px-3 py-3 text-center">
+                  <p className="text-[11px] font-medium text-neutral-600 dark:text-neutral-300">2등급부터 아바타를 바꿀 수 있어요</p>
+                  <p className="text-[10px] text-neutral-400 mt-1">유소년 등급(경험치 1,000)에 도달하면 열려요</p>
+                </div>
+              )}
             </div>
 
             {/* 계정 정보 */}

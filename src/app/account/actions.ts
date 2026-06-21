@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
-import { AVATAR_IDS } from "@/lib/avatars";
+import { AVATAR_IDS, AVATAR_EDIT_MIN_LEVEL } from "@/lib/avatars";
 
 const MAX_AVATAR_DATAURL = 300_000; // ~225KB. 160px webp 면 보통 수십KB → 넉넉한 상한 가드.
 
@@ -18,6 +18,11 @@ export async function uploadAvatarAction(
   const c = await cookies();
   const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
   if (!session) return { error: "로그인이 필요합니다." };
+
+  const me = await prisma.user.findUnique({ where: { id: session.userId }, select: { level: true } });
+  if (!me || me.level < AVATAR_EDIT_MIN_LEVEL) {
+    return { error: "2등급(유소년)부터 아바타를 바꿀 수 있어요." };
+  }
 
   const dataUrl = String(formData.get("avatarData") ?? "");
   if (!dataUrl) return { error: "파일을 선택해주세요." };
@@ -41,6 +46,8 @@ export async function setAvatarAction(formData: FormData): Promise<void> {
   const c = await cookies();
   const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
   if (!session) return;
+  const me = await prisma.user.findUnique({ where: { id: session.userId }, select: { level: true } });
+  if (!me || me.level < AVATAR_EDIT_MIN_LEVEL) return;
   const avatarId = String(formData.get("avatarId") ?? "");
   if (!AVATAR_IDS.includes(avatarId)) return;
   await prisma.user.update({

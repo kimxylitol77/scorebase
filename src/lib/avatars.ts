@@ -35,3 +35,14 @@ export function avatarById(id: string | null | undefined): AvatarPreset {
   }
   return AVATARS.find((a) => a.id === id) ?? AVATARS[0];
 }
+
+/** 신규(1등급) 회원 기본 아바타 — 등급 게이팅 시 표시. 2등급부터 변경 가능. */
+export const ROOKIE_AVATAR: AvatarPreset = {
+  id: "rookie",
+  emoji: "",
+  bg: "bg-neutral-200 dark:bg-neutral-700",
+  imageUrl: "/rookie-avatar.png",
+};
+
+/** 2등급(유소년)부터 아바타 변경 가능 — 1등급은 모두 ROOKIE_AVATAR. */
+export const AVATAR_EDIT_MIN_LEVEL = 2;

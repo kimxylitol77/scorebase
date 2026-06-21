@@ -3,7 +3,7 @@
 //   - 봇은 avatarUrl 미설정 → 닉네임 해시로 결정적 프리셋 아바타(매번 동일).
 //   - 소개글(intro)은 스키마에 필드가 없어 정적 dict(봇) + 기본문구(나머지).
 
-import { AVATARS, avatarById, type AvatarPreset } from "@/lib/avatars";
+import { AVATARS, avatarById, ROOKIE_AVATAR, AVATAR_EDIT_MIN_LEVEL, type AvatarPreset } from "@/lib/avatars";
 import { FAKE_NICKNAMES } from "@/lib/analysis/fake-members";
 
 // 각 봇 파일 상수와 동기 (manager-bot.ts:23, ou-bot.ts:15).
@@ -29,10 +29,24 @@ function hash(s: string): number {
   return h;
 }
 
-/** 아바타 결정 — 실회원이 고른 프리셋 우선, 미설정(봇)은 닉네임 해시로 고정 선택. */
-export function resolveAvatar(avatarUrl: string | null, nickname: string): AvatarPreset {
-  if (avatarUrl) return avatarById(avatarUrl);
-  return AVATARS[hash(nickname) % AVATARS.length];
+/**
+ * 아바타 결정.
+ *  - 봇(AI 분석관): 설정된 아바타 우선, 없으면 닉네임 해시 프리셋(등급 무관).
+ *  - 실회원 1등급: 모두 기본 루키 이미지(저장된 아바타 무시).
+ *  - 실회원 2등급+: 본인이 설정한 아바타, 미설정이면 루키 이미지.
+ * level 을 안 넘기면(undefined) 게이팅 없이 설정값/해시로 폴백.
+ */
+export function resolveAvatar(
+  avatarUrl: string | null,
+  nickname: string,
+  level?: number,
+  badge?: string | null,
+): AvatarPreset {
+  if (isAiAnalyst(nickname, badge ?? null)) {
+    return avatarUrl ? avatarById(avatarUrl) : AVATARS[hash(nickname) % AVATARS.length];
+  }
+  if (level != null && level < AVATAR_EDIT_MIN_LEVEL) return ROOKIE_AVATAR;
+  return avatarUrl ? avatarById(avatarUrl) : ROOKIE_AVATAR;
 }
 
 // 봇별 소개글 — 미등록 봇/실회원은 analystIntro 의 기본문구.
