@@ -124,8 +124,8 @@ function PlayerDot({
           </span>
         )}
       </div>
-      {/* 이름 — 등번호·주장 배지(사진 아래로 4px 돌출)와 안 겹치게 mt 확보 + truncate 로 옆 선수와 가로 겹침 차단 */}
-      <span className="mt-2 inline-block max-w-[3.5rem] sm:max-w-[4.5rem] truncate px-1 py-px rounded text-[9px] sm:text-[10px] font-bold text-white bg-black/60 leading-tight text-center">
+      {/* 이름 — 등번호·주장 배지(사진 아래로 4px 돌출)와 명확히 떨어지게 mt 확보 + truncate 로 옆 선수와 가로 겹침 차단 */}
+      <span className="mt-3 inline-block max-w-[3.5rem] sm:max-w-[4.5rem] truncate px-1 py-px rounded text-[9px] sm:text-[10px] font-bold text-white bg-black/60 leading-tight text-center">
         {name}
       </span>
     </div>
