@@ -27,9 +27,11 @@ interface TeamStatsRow {
   duels?: number;
   duels_won?: number;
   possession?: number;
+  ball_possession?: number;
   fouls?: number;
   offsides?: number;
   corners?: number;
+  corner_kicks?: number;
   [key: string]: string | number | undefined;
 }
 
@@ -42,11 +44,11 @@ interface Props {
   awayTsTeamId?: string | null;
 }
 
-const DISPLAY_FIELDS: Array<{ key: keyof TeamStatsRow; label: string; isPct?: boolean }> = [
-  { key: "possession", label: "점유율 (%)", isPct: true },
+const DISPLAY_FIELDS: Array<{ key: keyof TeamStatsRow; alt?: keyof TeamStatsRow; label: string; isPct?: boolean }> = [
+  { key: "possession", alt: "ball_possession", label: "점유율 (%)", isPct: true },
   { key: "shots", label: "슈팅" },
   { key: "shots_on_target", label: "유효 슈팅" },
-  { key: "corners", label: "코너킥" },
+  { key: "corners", alt: "corner_kicks", label: "코너킥" },
   { key: "passes", label: "패스" },
   { key: "passes_accuracy", label: "패스 성공률 (%)", isPct: true },
   { key: "key_passes", label: "키패스" },
@@ -104,8 +106,8 @@ export default function SoccerTeamStatsCard({
   }
 
   const rows = DISPLAY_FIELDS.map((f) => {
-    const h = Number(homeRow![f.key] ?? 0);
-    const a = Number(awayRow![f.key] ?? 0);
+    const h = Number(homeRow![f.key] ?? (f.alt ? homeRow![f.alt] : undefined) ?? 0);
+    const a = Number(awayRow![f.key] ?? (f.alt ? awayRow![f.alt] : undefined) ?? 0);
     return { ...f, home: h, away: a };
   }).filter((r) => r.home + r.away > 0);
 

@@ -25,6 +25,7 @@ import { fetchFixtureOdds } from "@/lib/odds/api-sports-odds";
 import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeStatsCard";
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
+import SoccerMatchSummaryCard from "@/components/scores/soccer/SoccerMatchSummaryCard";
 import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
 import SoccerNowBlock, { type PredictedXiTeam } from "@/components/scores/soccer/SoccerNowBlock";
 import WcMatchAnalysisCard from "@/components/live/WcMatchAnalysisCard";
@@ -411,6 +412,8 @@ export default async function GenericLivePage({ params }: Props) {
   const soccerTabs: Array<{ key: string; label: string; enabled: boolean; content: ReactNode }> = [];
   // "지금" 블록 — 스코어보드 바로 아래 (2026-06-10 목업 확정: status 별 상단 답변).
   let soccerNowNode: ReactNode = null;
+  // 매치 "한눈에" 요약 — 결론 카드 아래, 탭 위 (핵심 지표만 크게)
+  let soccerSummaryNode: ReactNode = null;
   let nowIncidents: unknown = null;
   let nowLineup: { home: unknown[]; away: unknown[] } | null = null;
   let nowTrend: Parameters<typeof SoccerNowBlock>[0]["trend"] = null;
@@ -441,6 +444,33 @@ export default async function GenericLivePage({ params }: Props) {
       const h2h = analysis?.history?.vs ?? [];
       const homeTsId = tsTeamId(match.homeTeam.id);
       const awayTsId = tsTeamId(match.awayTeam.id);
+      // 매치 "한눈에" 요약 — 종료/라이브 핵심 지표(xG·점유율·슈팅)만 크게. 탭 진입 전 글랜스.
+      if (match.status === "LIVE" || match.status === "FINISHED") {
+        let xgH: number | null = null;
+        let xgA: number | null = null;
+        if (match.fixtureStats) {
+          try {
+            const fs = JSON.parse(match.fixtureStats) as { expectedGoals?: number | string }[];
+            const nh = Number(fs[0]?.expectedGoals);
+            const na = Number(fs[1]?.expectedGoals);
+            xgH = Number.isFinite(nh) ? nh : null;
+            xgA = Number.isFinite(na) ? na : null;
+          } catch {
+            // fixtureStats 파싱 실패 — xG 생략
+          }
+        }
+        soccerSummaryNode = (
+          <SoccerMatchSummaryCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            teamStats={teamStats}
+            homeTsTeamId={homeTsId}
+            awayTsTeamId={awayTsId}
+            xgHome={xgH}
+            xgAway={xgA}
+          />
+        );
+      }
       teamStatsNode =
         teamStats && Array.isArray(teamStats) && teamStats.length >= 2 ? (
           <SoccerTeamStatsCard
@@ -810,6 +840,9 @@ export default async function GenericLivePage({ params }: Props) {
           factors={conclFactors}
         />
       )}
+
+      {/* 매치 한눈에 — 핵심 지표(xG·점유율·슈팅) 글랜스. 탭 진입 전. (축구 LIVE/종료) */}
+      {soccerSummaryNode}
 
       <SportLiveDetail
         gameId={gameId}
