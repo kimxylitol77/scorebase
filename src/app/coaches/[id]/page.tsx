@@ -6,8 +6,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, Trophy, Award, ShoppingBag, UserRound } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import AmbientGlow from "@/components/AmbientGlow";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
@@ -238,7 +240,8 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
   const individualHonors = honors.filter((h) => h.club === "Individual");
 
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+    <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+      <AmbientGlow />
       <Link
         href={
           ourTeamId != null
@@ -247,9 +250,9 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
               : `/transfers?view=team&team=${ourTeamId}`
             : "/transfers"
         }
-        className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+        className="inline-flex items-center gap-1.5 text-sm text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-x-0.5 hover:text-neutral-900 dark:hover:text-white break-keep"
       >
-        ← {teamName ? (teamLeague && NATL.has(teamLeague) ? `${teamName} 대표팀` : `${teamName} 스쿼드`) : "이적시장"}
+        <ArrowLeft className="h-4 w-4" aria-hidden /> {teamName ? (teamLeague && NATL.has(teamLeague) ? `${teamName} 대표팀` : `${teamName} 스쿼드`) : "이적시장"}
       </Link>
 
       {/* 헤더 */}
@@ -263,8 +266,11 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
           )}
         </div>
         <div className="space-y-1.5 min-w-0">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 감독 프로필
+          </span>
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name}</h1>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name}</h1>
             <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">감독</span>
             {snap.age != null && <span className="text-sm text-neutral-500">{snap.age}세</span>}
             {career?.country && (
@@ -280,7 +286,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
           {teamName && (
             <Link
               href={ourTeamId != null ? (teamLeague && NATL.has(teamLeague) ? `/national-teams/${ourTeamId}` : `/teams/${ourTeamId}`) : "#"}
-              className="text-sm text-neutral-500 flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition w-fit"
+              className="text-sm text-neutral-500 flex items-center gap-1.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-neutral-900 dark:hover:text-white w-fit"
             >
               {teamLogo && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -302,7 +308,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
 
       {/* 전술 */}
       {(snap.preferredFormation || formationSummary) && (
-        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 flex items-center gap-8 flex-wrap">
+        <section className="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] p-4 sm:p-5 flex items-center gap-8 flex-wrap">
           {snap.preferredFormation && (
             <div className="leading-tight">
               <div className="text-[11px] text-neutral-400 mb-0.5">선호 포메이션</div>
@@ -321,11 +327,11 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       {/* 감독 경력 타임라인 — 재임 구간 안에 우승 트로피 표시 (어디서 어떤 우승인지 한눈에) */}
       {coachTimeline.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">
+          <h2 className="text-lg font-semibold mb-3 break-keep">
             감독 경력{" "}
             {trophyTotal > 0 && (
-              <span className="text-sm font-normal text-neutral-400">
-                🏆 우승 총 <span className="font-bold text-amber-600 dark:text-amber-400">{trophyTotal}</span>회
+              <span className="inline-flex items-center gap-1 text-sm font-normal text-neutral-400">
+                <Trophy className="h-3.5 w-3.5 text-amber-500" aria-hidden /> 우승 총 <span className="font-bold text-amber-600 dark:text-amber-400">{trophyTotal}</span>회
               </span>
             )}
           </h2>
@@ -384,8 +390,8 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
             </div>
           )}
           {individualHonors.length > 0 && (
-            <div className="mt-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
-              <div className="font-bold mb-2 text-sm">🎖 개인 수상</div>
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] p-4">
+              <div className="font-bold mb-2 text-sm inline-flex items-center gap-1.5"><Award className="h-4 w-4 text-amber-500" aria-hidden /> 개인 수상</div>
               <div className="space-y-1.5">
                 {individualHonors.map((h, i) => (
                   <div key={i} className="flex items-baseline gap-2 flex-wrap text-sm">
@@ -405,13 +411,13 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       {/* 경력 데이터가 없는 감독 — 우승 기록만이라도 클럽별 그룹으로 (폴백) */}
       {coachTimeline.length === 0 && honorsByClub.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">
-            🏆 우승 기록 <span className="text-sm font-normal text-neutral-400">총 {trophyTotal}회</span>
+          <h2 className="text-lg font-semibold mb-3 inline-flex items-center gap-1.5 break-keep">
+            <Trophy className="h-4 w-4 text-amber-500" aria-hidden /> 우승 기록 <span className="text-sm font-normal text-neutral-400">총 {trophyTotal}회</span>
           </h2>
           <div className="space-y-4">
             {honorsByClub.map((g) => (
-              <div key={g.club} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
-                <div className="font-bold mb-2">{g.club === "Individual" ? "🎖 개인 수상" : toKoreanTeamName(g.club) || g.club}</div>
+              <div key={g.club} className="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] p-4">
+                <div className="font-bold mb-2 break-keep">{g.club === "Individual" ? (<span className="inline-flex items-center gap-1.5"><Award className="h-4 w-4 text-amber-500" aria-hidden /> 개인 수상</span>) : toKoreanTeamName(g.club) || g.club}</div>
                 <div className="space-y-1.5">
                   {g.rows.map((h, i) => (
                     <div key={i} className="flex items-baseline gap-2 flex-wrap text-sm">
@@ -432,10 +438,10 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       {/* 재임 중 주요 영입 — 우리 이적 DB (커버 리그만) */}
       {signings.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">재임 중 주요 영입</h2>
-          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-900">
+          <h2 className="text-lg font-semibold mb-3 inline-flex items-center gap-1.5 break-keep"><ShoppingBag className="h-4 w-4 text-cyan-500" aria-hidden /> 재임 중 주요 영입</h2>
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] divide-y divide-neutral-100 dark:divide-white/5">
             {signings.map((s) => (
-              <Link key={`${s.playerId}-${s.fee}`} href={`/transfers/${s.playerId}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition">
+              <Link key={`${s.playerId}-${s.fee}`} href={`/transfers/${s.playerId}`} className="flex items-center gap-3 px-4 py-2.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]">
                 <span className="font-semibold truncate">{s.name}</span>
                 {s.fromTeam && <span className="text-xs text-neutral-500 truncate">← {s.fromTeam}</span>}
                 <span className="ml-auto font-bold text-cyan-600 dark:text-cyan-400 tabular-nums shrink-0">€{s.fee}M</span>
@@ -448,10 +454,10 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       {/* 선수 시절 */}
       {career?.playerCareer && career.playerCareer.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">선수 시절</h2>
+          <h2 className="text-lg font-semibold mb-3 inline-flex items-center gap-1.5 break-keep"><UserRound className="h-4 w-4 text-neutral-400" aria-hidden /> 선수 시절</h2>
           <div className="flex flex-wrap gap-1.5">
             {career.playerCareer.map((r, i) => (
-              <span key={i} className="px-2.5 py-1 rounded-full text-xs border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300">
+              <span key={i} className="px-2.5 py-1 rounded-full text-xs border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-white/[0.04] text-neutral-600 dark:text-neutral-300">
                 {toKoreanTeamName(r.club) || r.club}
                 <span className="text-neutral-400"> {yrRange(r.start, r.end)}</span>
               </span>
@@ -460,7 +466,7 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
         </section>
       )}
 
-      <p className="text-[11px] text-neutral-400 leading-relaxed">
+      <p className="text-[11px] text-neutral-400 leading-relaxed break-keep">
         ⓘ 현직·계약·선호 포메이션 = TheSports · 경력·국적 = Wikipedia/Wikidata · 최근 포메이션 = 스코어베이스 라인업 데이터.
       </p>
     </article>

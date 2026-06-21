@@ -5,6 +5,8 @@ import path from "path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { Trophy, CalendarDays } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 
 const GROUPS = "ABCDEFGHIJKL".split("");
 const COUNTRY_KO: Record<string, string> = {
@@ -71,29 +73,33 @@ export default async function Page({ params }: { params: Promise<{ group: string
   const csKo = countries.map((c) => ctyKo(c.name));
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white py-8 px-4">
+    <div className="relative min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white py-8 px-4">
+      <AmbientGlow />
       <div className="max-w-md mx-auto">
         <nav className="text-xs text-neutral-500 mb-3">
           <Link href="/predictions/WORLD_CUP" className="hover:text-neutral-700 dark:hover:text-neutral-300">월드컵 예측</Link>
           <span className="mx-1">›</span><span className="text-neutral-700 dark:text-neutral-300">{g}조 베스트11</span>
         </nav>
 
-        <div className="text-center mb-2">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/[0.06] dark:bg-white/10 text-sm font-bold tracking-[0.2em]">
-            {g}조 {countries.map((c) => c.flag).join(" ")}
+        <div className="flex justify-center mb-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <Trophy className="h-3.5 w-3.5" aria-hidden /> {g}조 베스트11
           </span>
         </div>
-        <h1 className="text-center text-3xl font-black tracking-tight mb-1">통합 베스트 11</h1>
+        <div className="text-center text-2xl mb-1" aria-hidden>{countries.map((c) => c.flag).join(" ")}</div>
+        <h1 className="text-center text-3xl sm:text-4xl font-bold tracking-tight break-keep mb-1">통합 베스트 11</h1>
         <div className="text-center text-amber-600 dark:text-amber-400 font-bold text-sm mb-1">
           조 전력 평점 {"★".repeat(Math.round(teamRating))}{"☆".repeat(5 - Math.round(teamRating))} {teamRating.toFixed(1)}
         </div>
-        <div className="text-center text-[11px] text-neutral-500 mb-3">📅 순위·선수 평점은 <span className="text-neutral-700 dark:text-neutral-300 font-semibold">매일 자동 갱신</span>됩니다</div>
+        <div className="flex items-center justify-center gap-1 text-center text-[11px] text-neutral-500 mb-3 break-keep">
+          <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden /> 순위·선수 평점은 <span className="text-neutral-700 dark:text-neutral-300 font-semibold">매일 자동 갱신</span>됩니다
+        </div>
 
         {/* 조 네비게이션 */}
         <div className="flex flex-wrap justify-center gap-1 mb-4">
           {GROUPS.map((gg) => (
             <Link key={gg} href={`/world-cup/best-xi/${gg.toLowerCase()}`}
-              className={`w-7 h-7 rounded-md text-xs font-bold inline-flex items-center justify-center ${gg === g ? "bg-amber-400 text-neutral-900" : "bg-black/[0.06] dark:bg-white/10 text-neutral-600 dark:text-neutral-300 hover:bg-black/10 dark:hover:bg-white/20"}`}>
+              className={`w-7 h-7 rounded-full text-xs font-bold inline-flex items-center justify-center ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${gg === g ? "bg-amber-400 text-neutral-900 ring-amber-400 shadow-[0_8px_24px_-10px_rgba(245,158,11,0.6)]" : "bg-black/[0.04] dark:bg-white/5 text-neutral-600 dark:text-neutral-300 ring-black/10 dark:ring-white/15 hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10"}`}>
               {gg}
             </Link>
           ))}
@@ -131,7 +137,7 @@ export default async function Page({ params }: { params: Promise<{ group: string
             return (
               <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${p.x}%`, top: `${p.y}%`, width: "88px" }}>
                 {p.hasMv ? (
-                  <Link href={`/transfers/${p.id}`} className="flex flex-col items-center hover:opacity-80 transition" title={`${koOf(p)} 시장가치·이적 보기`}>{inner}</Link>
+                  <Link href={`/transfers/${p.id}`} className="flex flex-col items-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:opacity-80" title={`${koOf(p)} 시장가치·이적 보기`}>{inner}</Link>
                 ) : (
                   <div className="flex flex-col items-center">{inner}</div>
                 )}
@@ -159,9 +165,9 @@ export default async function Page({ params }: { params: Promise<{ group: string
                     </div>
                   </>
                 );
-                const cls = "flex items-center gap-1.5 rounded-lg bg-black/[0.04] dark:bg-white/5 px-2 py-1.5";
+                const cls = "flex items-center gap-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] ring-1 ring-black/5 dark:ring-white/10 px-2 py-1.5";
                 return p.hasMv ? (
-                  <Link key={i} href={`/transfers/${p.id}`} className={`${cls} hover:bg-black/[0.07] dark:hover:bg-white/10 transition`}>{inner}</Link>
+                  <Link key={i} href={`/transfers/${p.id}`} className={`${cls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/[0.06]`}>{inner}</Link>
                 ) : (
                   <div key={i} className={cls}>{inner}</div>
                 );
@@ -170,7 +176,7 @@ export default async function Page({ params }: { params: Promise<{ group: string
           </div>
         )}
 
-        <article className="mt-8 space-y-4 text-[15px] leading-relaxed text-neutral-700 dark:text-neutral-300">
+        <article className="mt-8 space-y-4 text-[15px] leading-relaxed text-neutral-700 dark:text-neutral-300 break-keep">
           <h2 className="text-xl font-black text-neutral-900 dark:text-white">2026 FIFA 월드컵 {g}조 통합 베스트 11</h2>
           <p>2026 북중미 월드컵 {g}조에는 <strong className="text-neutral-900 dark:text-white">{csKo.join(" · ")}</strong>가 편성됐다. 스코어베이스는 TheSports 실시간 경기 평점과 선수 시장가치를 종합해 {g}조 네 나라 선수를 아우르는 <strong className="text-neutral-900 dark:text-white">통합 베스트 11</strong>을 4-2-3-1 포메이션으로 선정했다. 조 전체 전력은 별점 평균 <strong className="text-neutral-900 dark:text-white">{teamRating.toFixed(1)}</strong>점이다.</p>
           <h3 className="text-lg font-bold text-neutral-900 dark:text-white pt-1">최전방 스리톱</h3>

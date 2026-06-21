@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
 import SearchInput from "@/components/SearchInput";
+import AmbientGlow from "@/components/AmbientGlow";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -38,10 +39,14 @@ export default async function SearchPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+    <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-10">
+      <AmbientGlow />
       <header className="mb-8">
-        <h1 className="text-3xl font-black tracking-tight">검색</h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 통합 검색
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">검색</h1>
+        <p className="mt-4 text-sm leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           제목·본문에서 단어가 포함된 기사를 찾아 줍니다.
         </p>
       </header>
@@ -51,11 +56,11 @@ export default async function SearchPage({ searchParams }: Props) {
       </div>
 
       {q.length === 0 ? (
-        <div className="text-center text-neutral-500 py-16 text-sm">
+        <div className="text-center text-neutral-500 py-16 text-sm break-keep">
           검색어를 입력해주세요.
         </div>
       ) : articles.length === 0 ? (
-        <div className="text-center text-neutral-500 py-16 text-sm">
+        <div className="text-center text-neutral-500 py-16 text-sm break-keep">
           <p className="text-base font-semibold text-neutral-700 dark:text-neutral-300">
             &ldquo;{q}&rdquo; 검색 결과가 없습니다
           </p>

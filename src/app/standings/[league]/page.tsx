@@ -20,6 +20,8 @@ import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import LolStandings from "@/components/LolStandings";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Trophy, HeartPulse } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -168,9 +170,13 @@ export default async function StandingsPage({ params }: Props) {
   if (source === "calc") {
     if (matches.length === 0) {
       return (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-          <h1 className="text-2xl font-black tracking-tight mb-2">{name} 순위표</h1>
-          <p className="text-sm text-neutral-500">시즌 매치 데이터가 아직 수집되지 않았습니다.</p>
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <AmbientGlow />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+          </span>
+          <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+          <p className="mt-3 text-sm text-neutral-500 break-keep">시즌 매치 데이터가 아직 수집되지 않았습니다.</p>
         </div>
       );
     }
@@ -191,7 +197,8 @@ export default async function StandingsPage({ params }: Props) {
   const hasLeaders = Object.keys(leaderRows).length > 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores" className="hover:underline">
           라이브 스코어
@@ -205,13 +212,17 @@ export default async function StandingsPage({ params }: Props) {
       </nav>
 
       <header>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name} 순위표</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+        <p className="text-sm text-neutral-500 mt-2 break-keep">
           {rows!.length}팀 · 시즌 진행 중 · {source === "ts" ? "TheSports 실시간 갱신" : "FINISHED 매치 기반 계산"}
         </p>
       </header>
 
-      <div className="overflow-x-auto -mx-3 sm:mx-0">
+      <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm border-separate border-spacing-0">
           <thead>
             <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
@@ -238,7 +249,7 @@ export default async function StandingsPage({ params }: Props) {
                 <tr
                   key={r.teamId}
                   id={`team-${r.teamId}`}
-                  className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24 transition"
+                  className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] target:bg-amber-50 dark:target:bg-amber-500/10 scroll-mt-24 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   style={r.promotionColor ? { boxShadow: `inset 3px 0 0 0 ${r.promotionColor}` } : undefined}
                   title={r.promotionName || undefined}
                 >
@@ -278,6 +289,7 @@ export default async function StandingsPage({ params }: Props) {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="text-[11px] text-neutral-400 text-center pt-2">
@@ -350,7 +362,8 @@ async function WorldCupStandings({ name }: { name: string }) {
   const playedTotal = matches.filter((m) => m.status === "FINISHED").length;
 
   return (
-    <div className="max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+    <div className="relative max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores" className="hover:underline">라이브 스코어</Link>
         <span>›</span>
@@ -361,22 +374,25 @@ async function WorldCupStandings({ name }: { name: string }) {
 
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name} 조별 순위</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 조별 순위
+          </span>
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 조별 순위</h1>
+          <p className="text-sm text-neutral-500 mt-2 break-keep">
             48개국 12개 조 · 조별리그 {playedTotal}경기 종료 · 경기 종료 시 자동 갱신
           </p>
         </div>
         <Link
           href="/predictions/WORLD_CUP"
-          className="text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline shrink-0"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline shrink-0"
         >
-          🏆 우승 확률 시뮬레이션 →
+          <Trophy className="h-4 w-4" aria-hidden /> 우승 확률 시뮬레이션 →
         </Link>
       </header>
 
       <div className="grid sm:grid-cols-2 gap-4">
         {groupKeys.map((g) => (
-          <section key={g} className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden">
+          <section key={g} className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:hover:bg-white/[0.02]">
             <h2 className="px-4 py-2.5 text-sm font-black bg-neutral-50 dark:bg-white/[0.04] border-b border-neutral-200 dark:border-white/10">
               {g}조
             </h2>
@@ -401,7 +417,7 @@ async function WorldCupStandings({ name }: { name: string }) {
                   return (
                     <tr
                       key={r.teamId}
-                      className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition"
+                      className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                       style={stripe ? { boxShadow: `inset 3px 0 0 0 ${stripe}` } : undefined}
                       title={i < 2 ? "32강 직행권" : i === 2 ? "3위 — 상위 8팀 32강 진출 가능" : undefined}
                     >
@@ -470,7 +486,8 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
   const multi = groups.length > 1;
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores?sport=volleyball" className="hover:underline">배구 라이브 스코어</Link>
         <span>›</span>
@@ -478,20 +495,23 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
       </nav>
 
       <header>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name} 순위표</h1>
-        <p className="text-sm text-neutral-500 mt-1">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+        <p className="text-sm text-neutral-500 mt-2 break-keep">
           승점 · 승패 · 세트 득실 — TheSports 공식 순위, 경기 종료 후 자동 갱신
         </p>
       </header>
 
       {groups.length === 0 ? (
-        <p className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-5 py-10 text-center text-sm text-neutral-500">
+        <p className="rounded-xl border border-neutral-200 dark:border-white/10 px-5 py-10 text-center text-sm text-neutral-500 break-keep">
           순위 데이터 수집 중입니다. 잠시 후 다시 확인해주세요.
         </p>
       ) : (
         <div className={multi ? "grid sm:grid-cols-2 gap-4" : "space-y-4"}>
           {groups.map((g) => (
-            <section key={g.name} className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden">
+            <section key={g.name} className="rounded-2xl border border-neutral-200 dark:border-white/10 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:hover:bg-white/[0.02]">
               {multi && (
                 <h2 className="px-4 py-2.5 text-sm font-black bg-neutral-50 dark:bg-white/[0.04] border-b border-neutral-200 dark:border-white/10">
                   {g.name}
@@ -516,7 +536,7 @@ async function VolleyballStandings({ league, name }: { league: string; name: str
                     if (!t) return null;
                     const sd = r.setsWin - r.setsLoss;
                     return (
-                      <tr key={r.ourTeamId} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition">
+                      <tr key={r.ourTeamId} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                         <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">{r.position}</td>
                         <td className="py-2 px-2">
                           <span className="flex items-center gap-2">
@@ -576,9 +596,13 @@ async function NhlStandings({ name }: { name: string }) {
   const std = await fetchNhlStandings();
   if (!std || std.rows.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-2xl font-black tracking-tight mb-2">{name} 순위표</h1>
-        <p className="text-sm text-neutral-500">
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <AmbientGlow />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+        <p className="mt-3 text-sm text-neutral-500 break-keep">
           순위 데이터 수집 중입니다. 잠시 후 다시 확인해주세요.
         </p>
       </div>
@@ -620,7 +644,8 @@ async function NhlStandings({ name }: { name: string }) {
   const hasNhlLeaders = Object.keys(nhlLeaders).length > 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
@@ -639,28 +664,32 @@ async function NhlStandings({ name }: { name: string }) {
 
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">NHL 순위표</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+          </span>
+          <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NHL 순위표</h1>
+          <p className="text-sm text-neutral-500 mt-2 break-keep">
             {seasonLabel} 정규시즌 · 32팀 · NHL 공식 기록 (승 2점 · 연장패 1점)
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
           <Link
             href="/predictions/NHL"
-            className="text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline"
           >
-            🏆 AI 예측 →
+            <Trophy className="h-4 w-4" aria-hidden /> AI 예측 →
           </Link>
           <Link
             href="/injuries/NHL"
-            className="text-sm font-bold text-rose-600 dark:text-rose-400 hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-rose-600 dark:text-rose-400 hover:underline"
           >
-            🏥 부상자 →
+            <HeartPulse className="h-4 w-4" aria-hidden /> 부상자 →
           </Link>
         </div>
       </header>
 
-      <div className="overflow-x-auto -mx-3 sm:mx-0">
+      <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm border-separate border-spacing-0">
           <thead>
             <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
@@ -684,7 +713,7 @@ async function NhlStandings({ name }: { name: string }) {
               return (
                 <tr
                   key={r.abbrev}
-                  className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition"
+                  className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 >
                   <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">
                     {i + 1}
@@ -723,6 +752,7 @@ async function NhlStandings({ name }: { name: string }) {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="text-[11px] text-neutral-400 text-center pt-2">

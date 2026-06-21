@@ -8,6 +8,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { kboPhotoUrl } from "@/lib/sports/kbo-official";
 import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
 import PitcherAvatar from "@/components/predictions/PitcherAvatar";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const dynamic = "force-dynamic";
 
@@ -141,14 +142,18 @@ export default async function StartersPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <AmbientGlow />
       <nav className="text-xs text-neutral-500 mb-3">
         <Link href="/predictions/KBO" className="hover:text-neutral-700 dark:hover:text-neutral-300">예측</Link>
         <span className="mx-1">›</span>
         <span className="text-neutral-700 dark:text-neutral-300">선발 매치업</span>
       </nav>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">⚾ 오늘의 선발 투수 매치업</h1>
-      <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 선발 매치업
+      </span>
+      <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">오늘의 선발 투수 매치업</h1>
+      <p className="mt-3 text-sm text-neutral-600 leading-relaxed break-keep dark:text-neutral-400">
         KBO · MLB · NPB 선발 맞대결 — <strong>ERA · WHIP · K/9</strong> 와 최근 3등판 폼, AI 승률까지 한눈에.
         선발 발표 시 자동 갱신됩니다. <span className="text-emerald-600 dark:text-emerald-400 font-semibold">초록</span> = 해당 지표 우위.
       </p>
@@ -227,7 +232,7 @@ export default async function StartersPage() {
                           )}
                           {/* 지표 비교 바 */}
                           {(hs || as) && (
-                            <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 px-2.5 py-1.5">
+                            <div className="rounded-lg bg-neutral-50 dark:bg-white/[0.04] px-2.5 py-1.5">
                               <StatRow label="ERA" home={hs?.era} away={as?.era} lowerBetter />
                               <StatRow label="WHIP" home={hs?.whip} away={as?.whip} lowerBetter />
                               <StatRow label="K/9" home={hs?.k9} away={as?.k9} lowerBetter={false} />
@@ -238,9 +243,9 @@ export default async function StartersPage() {
                           )}
                         </>
                       );
-                      const cls = "block rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4";
+                      const cls = "block rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] p-4 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none";
                       return m.externalId ? (
-                        <Link key={m.id} href={`/live/${lg}/${m.externalId}`} prefetch={false} className={`${cls} hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md transition`}>
+                        <Link key={m.id} href={`/live/${lg}/${m.externalId}`} prefetch={false} className={`${cls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-emerald-400/50 hover:shadow-[0_28px_70px_-30px_rgba(15,23,30,0.28)] dark:hover:bg-white/[0.06] dark:hover:ring-emerald-500/40`}>
                           {inner}
                         </Link>
                       ) : (

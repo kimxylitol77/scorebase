@@ -13,6 +13,7 @@ import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
 import NicknameEditor from "./NicknameEditor";
 import FavoriteSummary from "./FavoriteSummary";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const dynamic = "force-dynamic";
 
@@ -68,19 +69,25 @@ export default async function AccountPage({ searchParams }: Props) {
   const winRate = settled > 0 ? Math.round((correct / settled) * 100) : null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <AmbientGlow />
       {welcome && (
-        <div className="mb-5 rounded-2xl border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
+        <div className="mb-5 rounded-2xl border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-800 break-keep dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300">
           👋 가입을 환영합니다! 아래 프로필에서 <strong>닉네임</strong>을 원하는 대로 바꿔보세요.
         </div>
       )}
-      <h1 className="text-2xl font-bold tracking-tight mb-8 px-1">내 정보</h1>
+      <div className="mb-8 px-1">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 마이페이지
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">내 정보</h1>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5">
         {/* 좌: 프로필 + 등급표 (데스크탑 sticky) */}
         <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
           {/* 프로필 카드 */}
-          <div className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 p-6">
+          <div className="rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-6">
             <div className="flex flex-col items-center text-center">
               {avatar.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -116,11 +123,11 @@ export default async function AccountPage({ searchParams }: Props) {
 
             {/* 포인트 / 글 수 */}
             <div className="mt-4 grid grid-cols-2 gap-2 text-center">
-              <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 py-2.5">
+              <div className="rounded-2xl bg-neutral-50 dark:bg-white/[0.04] py-2.5">
                 <div className="text-base font-bold tabular-nums">{user.points.toLocaleString()}</div>
                 <div className="text-[10px] text-neutral-500">포인트</div>
               </div>
-              <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 py-2.5">
+              <div className="rounded-2xl bg-neutral-50 dark:bg-white/[0.04] py-2.5">
                 <div className="text-base font-bold tabular-nums">{totalPosts}</div>
                 <div className="text-[10px] text-neutral-500">작성 글</div>
               </div>
@@ -143,7 +150,7 @@ export default async function AccountPage({ searchParams }: Props) {
             </div>
 
             {/* 계정 정보 */}
-            <div className="mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-800 space-y-1.5 text-xs">
+            <div className="mt-5 pt-4 border-t border-black/5 dark:border-white/10 space-y-1.5 text-xs">
               <div className="flex justify-between gap-2">
                 <span className="text-neutral-500 shrink-0">이메일</span>
                 <span className="font-medium truncate">{user.email}</span>
@@ -157,7 +164,7 @@ export default async function AccountPage({ searchParams }: Props) {
             <form action={logoutUserAction} className="mt-4">
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-2xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-sm font-medium transition"
+                className="w-full py-2.5 rounded-2xl bg-neutral-100 dark:bg-white/[0.06] hover:bg-neutral-200 dark:hover:bg-white/[0.1] text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               >
                 로그아웃
               </button>
@@ -165,11 +172,11 @@ export default async function AccountPage({ searchParams }: Props) {
           </div>
 
           {/* 등급표 */}
-          <div className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 overflow-hidden">
-            <div className="px-5 py-3.5 text-sm font-semibold border-b border-neutral-100 dark:border-neutral-800">
+          <div className="rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none overflow-hidden">
+            <div className="px-5 py-3.5 text-sm font-semibold border-b border-black/5 dark:border-white/10">
               등급표 <span className="text-neutral-400 font-normal">12단계</span>
             </div>
-            <div className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
+            <div className="divide-y divide-black/5 dark:divide-white/5">
               {GRADES.map((g) => {
                 const cur = g.level === grade.level;
                 return (
@@ -189,7 +196,7 @@ export default async function AccountPage({ searchParams }: Props) {
         {/* 우: 활동통계 + 즐겨찾기 + 내 글 */}
         <main className="space-y-5">
           {/* 활동 통계 */}
-          <section className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 p-6">
+          <section className="rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-6">
             <h2 className="text-sm font-semibold text-neutral-500 mb-4">활동 통계</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <Stat label="작성 글" value={totalPosts} />
@@ -207,8 +214,8 @@ export default async function AccountPage({ searchParams }: Props) {
           <FavoriteSummary />
 
           {/* 내가 쓴 글 */}
-          <section className="rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white dark:bg-neutral-900/40 overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
+          <section className="rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-black/5 dark:border-white/10">
               <h2 className="text-sm font-semibold">내가 쓴 글</h2>
               <Link href="/analysis/new" className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
                 + 글쓰기
@@ -222,15 +229,15 @@ export default async function AccountPage({ searchParams }: Props) {
                 </Link>
               </div>
             ) : (
-              <ul className="divide-y divide-neutral-50 dark:divide-neutral-800/50">
+              <ul className="divide-y divide-black/5 dark:divide-white/5">
                 {myPosts.map((p) => (
                   <li key={p.id}>
                     <Link
                       href={`/analysis/${p.id}`}
-                      className="flex items-center gap-3 px-6 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition"
+                      className="group flex items-center gap-3 px-6 py-3 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium truncate">{p.title}</div>
+                        <div className="text-sm font-medium truncate transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400">{p.title}</div>
                         <div className="text-[11px] text-neutral-500 mt-0.5">
                           조회 {p.views} · 추천 {p.likes} · {fmtKst(p.createdAt)}
                         </div>
@@ -260,7 +267,7 @@ export default async function AccountPage({ searchParams }: Props) {
 
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-2xl bg-neutral-50 dark:bg-neutral-800/40 p-3.5 text-center">
+    <div className="rounded-2xl bg-neutral-50 dark:bg-white/[0.04] p-3.5 text-center">
       <div className="text-xl font-bold tabular-nums">{value}</div>
       <div className="text-[11px] text-neutral-500 mt-0.5">{label}</div>
       {sub && <div className="text-[10px] text-neutral-400 mt-0.5">{sub}</div>}

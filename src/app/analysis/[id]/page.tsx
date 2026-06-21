@@ -179,7 +179,7 @@ export default async function PostDetailPage({ params }: Props) {
 
         {/* 예측 카드 */}
         {post.pick && post.match && (
-          <div className="mt-5 rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_18px_50px_-28px_rgba(15,23,30,0.3)] dark:bg-zinc-950 dark:ring-white/10">
+          <div className="mt-5 rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_18px_50px_-28px_rgba(15,23,30,0.3)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
             <div className="flex items-center justify-between mb-2">
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500">
                 <Target className="h-3.5 w-3.5 text-rose-500" aria-hidden /> 예측 · {MARKET_LABEL[post.market ?? "1X2"] ?? "승무패"}

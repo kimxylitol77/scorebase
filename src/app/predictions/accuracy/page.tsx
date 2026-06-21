@@ -1,7 +1,9 @@
 // AI 예측 적중률 보드 — 13개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Sparkles, Star } from "lucide-react";
 import { prisma } from "@/lib/db";
+import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
 import CiteBox from "@/components/CiteBox";
 import CumulativeAccuracyChart, {
@@ -261,17 +263,20 @@ export default async function AccuracyPage() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+    <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(accuracyJsonLd) }}
       />
       <header className="mb-10">
-        <p className="text-sm text-neutral-500 mb-2">데이터 분석</p>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> AI 예측 적중률
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep mb-2">
           AI 스포츠 예측 적중률 보드
         </h1>
-        <p className="text-neutral-600 dark:text-neutral-400">
+        <p className="text-neutral-600 break-keep dark:text-neutral-400">
           Elo 레이팅 + 홈 어드밴티지 + 선발/골리 + 시장 배당 블렌드 기반 매치 결과
           예측의 실제 적중률입니다.{" "}
           {sinceLabel ? `${sinceLabel}부터 ` : ""}종료된{" "}
@@ -338,9 +343,9 @@ export default async function AccuracyPage() {
 
       {/* 누적 적중률 추이 곡선 — 신뢰 증거 앵커 */}
       {accSeries.leagues.length > 0 && (
-        <section className="mb-10 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 sm:p-6">
+        <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
           <h2 className="text-lg font-semibold mb-1">리그별 누적 적중률 추이</h2>
-          <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
             시즌 첫 경기부터 현재까지, 경기가 쌓일수록 1X2 적중률이 어디로 수렴하는지
             보여줍니다. 표본이 커질수록 안정되는 곡선이 모델의 일관성을 뜻합니다.
           </p>
@@ -364,9 +369,9 @@ export default async function AccuracyPage() {
       </section>
 
       {/* 방법론 박스 */}
-      <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6">
+      <section className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-6">
         <h2 className="text-base font-semibold mb-3">계산 방법</h2>
-        <ul className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2 list-disc pl-5">
+        <ul className="text-sm text-neutral-600 break-keep dark:text-neutral-400 space-y-2 list-disc pl-5">
           <li>
             각 매치 시점 기준으로 그 이전까지의 데이터만 사용합니다 — 미래 데이터
             오염 없음. 마켓마다 쓰는 신호가 다릅니다 (아래 참고).
@@ -449,7 +454,7 @@ function ValueBetCard({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-2">
-            <span aria-hidden>✨</span>
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
             <span>Value Bet · 시장보다 자신 있는 픽</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
@@ -503,7 +508,7 @@ function StrongPickHero({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div>
           <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">
-            <span aria-hidden>⭐</span>
+            <Star className="h-3.5 w-3.5" aria-hidden />
             <span>AI Strong Pick</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
@@ -533,7 +538,7 @@ function StrongPickHero({
           {topLeagues.map((lg) => (
             <div
               key={lg.league}
-              className="rounded-xl bg-white/60 dark:bg-neutral-950/40 backdrop-blur px-3 py-2"
+              className="rounded-xl bg-white/60 dark:bg-white/[0.06] backdrop-blur px-3 py-2"
             >
               <div className="text-[10px] text-neutral-500 mb-0.5">
                 {LEAGUE_NAME[lg.league] ?? lg.league}
@@ -570,7 +575,7 @@ function SummaryCard({
   if (total === 0) return null;
   const pct = Math.round(rate * 100);
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5">
+    <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06] p-5">
       <p className="text-xs text-neutral-500">{label}</p>
       <p className="text-[10px] text-neutral-400 mt-0.5 mb-3">{subtitle}</p>
       <div className="flex items-baseline gap-2 mb-3">
@@ -598,7 +603,7 @@ function LeagueCard({ stat }: { stat: LeagueStat }) {
   return (
     <Link
       href={`/leagues/${stat.league}`}
-      className="block rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5 hover:border-neutral-300 dark:hover:border-neutral-700 transition"
+      className="block rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] p-5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -654,7 +659,7 @@ function MarketChip({ label, rate }: { label: string; rate: MarketRate }) {
   if (rate.evaluated === 0) return <div />;
   const pct = Math.round(rate.rate * 100);
   return (
-    <div className="rounded-lg bg-neutral-100 dark:bg-neutral-900 px-2 py-1.5">
+    <div className="rounded-lg bg-neutral-100 dark:bg-white/[0.06] px-2 py-1.5">
       <div className="text-[10px] text-neutral-500">{label}</div>
       <div className="font-bold tabular-nums text-neutral-900 dark:text-white text-sm">
         {pct}%

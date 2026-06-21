@@ -38,6 +38,8 @@ import ValueBetIndicator from "@/components/predictions/ValueBetIndicator";
 import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
 import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import AmbientGlow from "@/components/AmbientGlow";
+import { CircleDot, ClipboardList, BookOpen } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -653,19 +655,20 @@ export default async function LeaguePredictions({ params }: Props) {
   }
 
   return (
-    <div>
+    <div className="relative">
+      <AmbientGlow />
       {/* 히어로 */}
       <section className="relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
         <div
           className={`absolute inset-0 -z-10 bg-gradient-to-br ${info.gradient} opacity-10 dark:opacity-15`}
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-neutral-500 mb-2">
-            Predictions · Monte Carlo Simulation
-          </div>
-          <div className="flex items-center gap-3 mb-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> AI 예측
+          </span>
+          <div className="mt-4 flex items-center gap-3 mb-2">
             <LeagueBadge league={upper} size="md" />
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
               {info.name} 예측
             </h1>
           </div>
@@ -735,11 +738,11 @@ export default async function LeaguePredictions({ params }: Props) {
           <Link
             href="/predictions/starters"
             prefetch={false}
-            className="flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 hover:border-emerald-400 dark:hover:border-emerald-500 transition"
+            className="flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white px-5 py-4 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-emerald-400 dark:bg-white/[0.04] dark:shadow-none dark:hover:border-emerald-500 dark:hover:bg-white/[0.06]"
           >
             <div>
-              <p className="font-bold">⚾ 오늘의 선발 투수 매치업</p>
-              <p className="text-xs text-neutral-500 mt-0.5">KBO·MLB·NPB 선발 맞대결 — ERA·WHIP·K/9·최근 폼 비교, 발표 시 자동 갱신</p>
+              <p className="flex items-center gap-1.5 font-bold break-keep"><CircleDot className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden /> 오늘의 선발 투수 매치업</p>
+              <p className="text-xs text-neutral-500 mt-0.5 break-keep">KBO·MLB·NPB 선발 맞대결 — ERA·WHIP·K/9·최근 폼 비교, 발표 시 자동 갱신</p>
             </div>
             <span className="text-emerald-500 font-bold">→</span>
           </Link>
@@ -749,11 +752,11 @@ export default async function LeaguePredictions({ params }: Props) {
         {isWorldCup && (
           <Link
             href="/standings/WORLD_CUP"
-            className="flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 hover:border-amber-400 dark:hover:border-amber-500 transition"
+            className="flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white px-5 py-4 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-amber-400 dark:bg-white/[0.04] dark:shadow-none dark:hover:border-amber-500 dark:hover:bg-white/[0.06]"
           >
             <div>
-              <p className="font-bold">📋 조별 순위표 (실제 결과)</p>
-              <p className="text-xs text-neutral-500 mt-0.5">A~L조 승점·득실 — 경기 종료 시 자동 갱신</p>
+              <p className="flex items-center gap-1.5 font-bold break-keep"><ClipboardList className="h-4 w-4 shrink-0 text-amber-500" aria-hidden /> 조별 순위표 (실제 결과)</p>
+              <p className="text-xs text-neutral-500 mt-0.5 break-keep">A~L조 승점·득실 — 경기 종료 시 자동 갱신</p>
             </div>
             <span className="text-amber-500 font-bold">→</span>
           </Link>
@@ -856,9 +859,9 @@ export default async function LeaguePredictions({ params }: Props) {
             {/* 12개 조를 아우른 종합 분석 글 진입점 (글 #2105) */}
             <Link
               href="/articles/world-cup-best-xi-2026"
-              className="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-amber-600 dark:text-amber-400 hover:underline"
+              className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-amber-600 dark:text-amber-400 hover:underline"
             >
-              📖 12개 조 통합 베스트 11 종합 분석 글 보기 →
+              <BookOpen className="h-4 w-4 shrink-0" aria-hidden /> 12개 조 통합 베스트 11 종합 분석 글 보기 →
             </Link>
           </section>
         )}
@@ -978,7 +981,7 @@ export default async function LeaguePredictions({ params }: Props) {
               title={isNhl ? "스탠리컵 우승 확률" : "NBA 우승 확률"}
               subtitle="진행 중 시리즈 잔여 + 미시작 라운드 Monte Carlo 5,000회 (Elo 기반)"
             />
-            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
+            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400">
                   <tr className="border-b border-neutral-200 dark:border-neutral-800">
@@ -1451,10 +1454,10 @@ function PredTab({ l, active }: { l: string; active: boolean }) {
   return (
     <Link
       href={`/predictions/${l}`}
-      className={`shrink-0 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition ${
+      className={`shrink-0 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         active
-          ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-          : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+          ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
+          : "bg-neutral-100 text-neutral-600 ring-black/5 hover:-translate-y-0.5 hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-400 dark:ring-white/10 dark:hover:bg-white/[0.1]"
       }`}
     >
       {TAB_LABEL[l] ?? l}

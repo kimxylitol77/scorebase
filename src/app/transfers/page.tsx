@@ -15,6 +15,7 @@ import rawSquads from "../../../data/team-squads.json";
 import rawCoaches from "../../../data/team-coaches.json";
 import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const dynamic = "force-dynamic";
 
@@ -246,7 +247,7 @@ function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>, teamLogos?: Ma
 // 마켓 무브 요약 카드 (급상승/급락/빅딜 공통 틀)
 function PulseCard({ title, hint, more, children }: { title: string; hint?: string; more?: { href: string; label: string }; children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-3.5">
+    <div className="rounded-2xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] p-3.5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none">
       <div className="flex items-baseline justify-between mb-2">
         <h2 className="text-sm font-bold">{title}</h2>
         {more ? (
@@ -263,7 +264,7 @@ function PulseCard({ title, hint, more, children }: { title: string; hint?: stri
 // 무브 카드 행 공통 — 작은 사진 + 이름 + 우측 수치
 function PulseRow({ href, photo, name, right }: { href: string; photo: string | null; name: string; right: ReactNode }) {
   return (
-    <Link href={href} className="flex items-center gap-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900/40 rounded-lg px-1.5 py-1 -mx-1.5 transition">
+    <Link href={href} className="flex items-center gap-2 text-sm hover:bg-neutral-50 dark:hover:bg-white/[0.06] rounded-lg px-1.5 py-1 -mx-1.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -694,10 +695,13 @@ export default async function TransfersPage({
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-      <p className="text-sm text-neutral-500 mb-1">이적시장 · 시장가치</p>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{heading}</h1>
-      <p className="mt-2 text-sm text-neutral-500">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <AmbientGlow />
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 이적 시장
+      </span>
+      <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{heading}</h1>
+      <p className="mt-3 text-sm text-neutral-500 break-keep">
         {isBigdeals ? (
           <>{league ? LEAGUES[league] : "주요 리그"} <strong className="text-neutral-700 dark:text-neutral-300">이적료 TOP</strong> · {win.label} · {totalCount.toLocaleString()}건.</>
         ) : isInout ? (
@@ -737,7 +741,7 @@ export default async function TransfersPage({
       {/* 팀 스쿼드 요약 + 시장가치 Best XI (view=team) */}
       {squadSummary && (
         <>
-          <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-4 mt-4 flex items-center gap-4 flex-wrap">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-4 mt-4 flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-3 min-w-0">
               {squadSummary.logo && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -759,7 +763,7 @@ export default async function TransfersPage({
               </div>
               <Link
                 href={`/teams/${teamIdNum}`}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition shrink-0"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold border border-neutral-300 dark:border-white/15 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 shrink-0"
               >
                 팀 페이지 →
               </Link>
@@ -767,7 +771,7 @@ export default async function TransfersPage({
           </div>
           {/* 감독 · 전술 카드 — ts coach/list(선호 포메이션) + 라인업 cache(최근 실제 포메이션) */}
           {coach && (
-            <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-4 mt-3 flex items-center gap-3 flex-wrap">
+            <div className="rounded-2xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-4 mt-3 flex items-center gap-3 flex-wrap">
               <Link
                 href={coach.id ? `/coaches/${coach.id}` : "#"}
                 className="flex items-center gap-3 min-w-0 group"
@@ -882,7 +886,7 @@ export default async function TransfersPage({
         transferData.length === 0 ? (
           <p className="text-sm text-neutral-500 py-20 text-center">{isBigdeals ? "아직 집계된 빅딜이 없습니다." : "이적 데이터를 수집하는 중입니다."}</p>
         ) : (
-          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
+          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
             {transferData.map((t, ti) => {
               const rank = (safePage - 1) * PER + ti + 1;
               // 날짜 그룹 헤더 (최신 이적만) — 이전 행과 날짜 다를 때 섹션 구분
@@ -891,13 +895,13 @@ export default async function TransfersPage({
               return (
               <Fragment key={t.id}>
                 {dh && dh !== prevDh && (
-                  <div className="px-3 sm:px-4 py-1.5 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-neutral-900/60">
+                  <div className="px-3 sm:px-4 py-1.5 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-white/[0.03]">
                     {dh}{dateCounts?.get(dh) ? ` · ${dateCounts.get(dh)}건` : ""}
                   </div>
                 )}
               <Link
                 href={`/transfers/${t.playerId}`}
-                className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               >
                 {isBigdeals && (
                   <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{rank}</div>
@@ -969,8 +973,8 @@ export default async function TransfersPage({
         inoutData.length === 0 ? (
           <p className="text-sm text-neutral-500 py-20 text-center">집계할 이적 데이터가 없습니다.</p>
         ) : (
-          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-neutral-900/60">
+          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-white/[0.03]">
               <div className="w-6 sm:w-7 shrink-0" />
               <div className="flex-1">팀</div>
               <div className="w-[80px] sm:w-[104px] text-right shrink-0">IN · 지출</div>
@@ -984,7 +988,7 @@ export default async function TransfersPage({
                 <Link
                   key={t.teamId}
                   href={`/teams/${t.teamId}`}
-                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 >
                   <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${t.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{t.rank}</div>
                   <div className="flex-1 min-w-0 flex items-center gap-2">
@@ -1017,8 +1021,8 @@ export default async function TransfersPage({
         squadsData.length === 0 ? (
           <p className="text-sm text-neutral-500 py-20 text-center">집계할 시장가치 데이터가 없습니다.</p>
         ) : (
-          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-neutral-900/60">
+          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-white/[0.03]">
               <div className="w-6 sm:w-7 shrink-0" />
               <div className="flex-1">팀</div>
               <div className="hidden sm:block w-[120px] text-right shrink-0">최고가 선수</div>
@@ -1029,7 +1033,7 @@ export default async function TransfersPage({
               <Link
                 key={t.teamId}
                 href={`/transfers?view=team&team=${t.teamId}`}
-                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               >
                 <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${t.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{t.rank}</div>
                 <div className="flex-1 min-w-0 flex items-center gap-2">
@@ -1061,7 +1065,7 @@ export default async function TransfersPage({
       ) : data.length === 0 ? (
         <p className="text-sm text-neutral-500 py-20 text-center">{qSearch ? `"${qSearch}" 검색 결과가 없습니다.` : "조건에 맞는 선수가 없습니다."}</p>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80 divide-y divide-neutral-100 dark:divide-neutral-800/70 mt-4">
+        <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
           {data.map((p) => {
             const prevV = p.hist.length >= 2 ? p.hist[p.hist.length - 2] : 0;
             const chg = prevV > 0 ? Math.round(((p.value - prevV) / prevV) * 100) : 0;
@@ -1070,7 +1074,7 @@ export default async function TransfersPage({
               <Link
                 key={p.id}
                 href={`/transfers/${p.id}`}
-                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               >
                 <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
@@ -1128,17 +1132,17 @@ export default async function TransfersPage({
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
           {safePage > 1 && (
-            <Link href={pageUrl(safePage - 1)} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">‹</Link>
+            <Link href={pageUrl(safePage - 1)} className="px-3.5 py-1.5 rounded-full text-sm ring-1 ring-black/10 dark:ring-white/15 text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10">‹</Link>
           )}
           {pageNums(safePage, totalPages).map((n, i) =>
             typeof n === "number" ? (
               <Link
                 key={i}
                 href={pageUrl(n)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold border ${
+                className={`px-4 py-1.5 rounded-full text-sm font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   n === safePage
-                    ? "bg-cyan-600 text-white border-cyan-600"
-                    : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    ? "bg-cyan-600 text-white ring-cyan-600 shadow-[0_8px_24px_-10px_rgba(8,145,178,0.6)]"
+                    : "ring-black/10 dark:ring-white/15 text-neutral-600 dark:text-neutral-300 hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10"
                 }`}
               >
                 {n}
@@ -1148,7 +1152,7 @@ export default async function TransfersPage({
             ),
           )}
           {safePage < totalPages && (
-            <Link href={pageUrl(safePage + 1)} className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">›</Link>
+            <Link href={pageUrl(safePage + 1)} className="px-3.5 py-1.5 rounded-full text-sm ring-1 ring-black/10 dark:ring-white/15 text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10">›</Link>
           )}
         </div>
       )}

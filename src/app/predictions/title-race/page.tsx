@@ -11,6 +11,8 @@ import {
 } from "@/lib/sports/thesports/standings-helper";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Trophy } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 600;
@@ -107,15 +109,22 @@ export default async function TitleRacePage() {
   const decidedCount = races.filter((r) => (r.gap12 ?? 0) > 10).length;
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+      <AmbientGlow />
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xs text-neutral-500">
           <Link href="/predictions" className="hover:underline">시즌 예측</Link>
           <span>›</span>
           <span>우승 경쟁</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight">🏆 우승 경쟁 trackerboard</h1>
-        <p className="text-sm text-neutral-500 leading-relaxed">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 우승 경쟁
+        </span>
+        <h1 className="mt-4 flex items-center gap-2.5 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
+          <Trophy className="h-8 w-8 shrink-0 text-rose-500 sm:h-9 sm:w-9" aria-hidden />
+          우승 경쟁 trackerboard
+        </h1>
+        <p className="text-sm text-neutral-500 leading-relaxed break-keep">
           전 세계 {races.length}개 축구 리그의 우승 경쟁 현황. 1~3위 + 승점차로 정렬 — 격차 작은 리그가 위.
           초접전 (5점 이내) {hotCount}개 / 우승 굳히기 (10점+) {decidedCount}개.
         </p>
@@ -128,7 +137,7 @@ export default async function TitleRacePage() {
             <Link
               key={r.league}
               href={`/predictions/${r.league}`}
-              className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02] p-4 hover:-translate-y-0.5 hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-sm transition-all space-y-3"
+              className="rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.04] p-4 space-y-3 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-400 hover:shadow-[0_28px_70px_-30px_rgba(15,23,30,0.28)] dark:shadow-none dark:hover:border-neutral-600 dark:hover:bg-white/[0.06]"
             >
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-sm sm:text-base font-bold tracking-tight">
@@ -184,13 +193,13 @@ export default async function TitleRacePage() {
       </section>
 
       {races.length === 0 && (
-        <div className="rounded-xl border border-neutral-200 dark:border-white/10 px-5 py-10 text-center text-sm text-neutral-500">
+        <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-10 text-center text-sm text-neutral-500 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none break-keep">
           순위 데이터 수집 대기 중 — 첫 cron 실행 후 표시 (매일 05:00 KST)
         </div>
       )}
 
-      <section className="pt-6 border-t border-neutral-200 dark:border-neutral-800 text-sm text-neutral-600 dark:text-neutral-400">
-        <p>
+      <section className="pt-6 border-t border-black/5 dark:border-white/10 text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="break-keep">
           각 리그 카드를 클릭하면 Elo 기반 시즌 예측 + Monte Carlo 우승 확률 곡선을 볼 수 있습니다.
         </p>
       </section>

@@ -11,6 +11,8 @@ import GoalHeatmap from "@/components/charts/GoalHeatmap";
 import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
 import { getWcGroupStandings } from "@/lib/sports/world-cup-standings";
 import { getTeamGroup } from "@/lib/predict/world-cup-elos";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Trophy } from "lucide-react";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
@@ -203,11 +205,12 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-6">
+    <main className="relative max-w-3xl mx-auto px-4 py-6">
+      <AmbientGlow />
       {/* 브레드크럼 — 허브·48개국 목록으로 연결 (고아 페이지 방지) */}
       <nav className="mb-3 text-xs text-neutral-500 flex items-center gap-1.5">
-        <Link href="/world-cup" className="hover:underline" prefetch={false}>
-          🏆 2026 월드컵
+        <Link href="/world-cup" className="inline-flex items-center gap-1 hover:underline" prefetch={false}>
+          <Trophy className="h-3.5 w-3.5" aria-hidden /> 2026 월드컵
         </Link>
         <span>›</span>
         <Link href="/national-teams" className="hover:underline" prefetch={false}>
@@ -219,8 +222,11 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
         <div className="flex items-center gap-4">
           <span className="text-6xl leading-none" aria-hidden>{flag || "🏳️"}</span>
           <div className="min-w-0">
-            <h1 className="text-3xl font-bold tracking-tight">{koCountry}</h1>
-            <p className="text-white/70 text-sm mt-0.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/90 ring-1 ring-white/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/80" aria-hidden /> 국가대표
+            </span>
+            <h1 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{koCountry}</h1>
+            <p className="text-white/70 text-sm mt-1">
               {team.name}{fifaRank ? <span className="ml-2 font-semibold text-white/90">FIFA {fifaRank}위</span> : null}
             </p>
           </div>
@@ -228,7 +234,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
         {coach && (
           <Link
             href={coach.id ? `/coaches/${coach.id}` : "#"}
-            className="mt-5 flex items-center gap-3 bg-white/10 rounded-2xl p-3 backdrop-blur-sm hover:bg-white/15 transition"
+            className="mt-5 flex items-center gap-3 bg-white/10 rounded-2xl p-3 backdrop-blur-sm transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white/15"
           >
             {coach.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -277,7 +283,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
           <div className="space-y-2">
             {upcoming.slice(0, 5).map((m) => (
               <Link key={m.id} href={`/scores?sport=soccer&date=${new Date(m.startTime.getTime() + 9 * 3600e3).toISOString().slice(0, 10)}`}
-                className="flex items-center justify-between rounded-xl border border-neutral-200/80 dark:border-neutral-800/80 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition">
+                className="flex items-center justify-between rounded-xl border border-neutral-200/80 dark:border-neutral-800/80 px-4 py-3 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs text-neutral-400 tabular-nums shrink-0">{fmt(m.startTime)}</span>
                   <span className="font-semibold truncate">vs {oppName(m)}</span>
@@ -321,7 +327,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
               );
               const cls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
               return hasTsp.has(p.id) ? (
-                <Link key={p.id} href={`/transfers/${p.id}`} className={`${cls} hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition`}>
+                <Link key={p.id} href={`/transfers/${p.id}`} className={`${cls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}>
                   {inner}
                 </Link>
               ) : (
@@ -368,7 +374,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                       <Link
                         key={p.id}
                         href={`/transfers/${p.id}`}
-                        className={`${cardCls} hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition`}
+                        className={`${cardCls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}
                       >
                         {inner}
                       </Link>
@@ -422,7 +428,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
               );
               const cls = `grid grid-cols-[1.5rem_1fr_2rem_1.5rem_1.5rem_1.5rem_2.5rem_2.25rem] items-center gap-1 px-2.5 py-2.5 border-l-4 ${bar} ${isMe ? "bg-blue-50 dark:bg-blue-900/20" : ""}`;
               return tid && !isMe ? (
-                <Link key={r.team} href={`/national-teams/${tid}`} className={`${cls} hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition`}>{inner}</Link>
+                <Link key={r.team} href={`/national-teams/${tid}`} className={`${cls} transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}>{inner}</Link>
               ) : (
                 <div key={r.team} className={cls}>{inner}</div>
               );

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { formatDateKo } from "@/lib/format";
 import Markdown from "@/components/Markdown";
+import AmbientGlow from "@/components/AmbientGlow";
 import sanitizeHtml from "sanitize-html";
 
 export const revalidate = 600;
@@ -120,7 +121,8 @@ export default async function BlogDetailPage({ params }: Props) {
   const prepared = isHtmlContent ? prepareBlogContent(b.content) : null;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -128,22 +130,25 @@ export default async function BlogDetailPage({ params }: Props) {
       <div className="mb-6">
         <Link
           href="/blog"
-          className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+          className="text-sm text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-neutral-900 dark:hover:text-white"
         >
           ← 블로그 목록
         </Link>
       </div>
 
       <header className="mb-8">
-        <div className="flex items-center gap-2 mb-3 text-xs text-neutral-500">
-          <span>{formatDateKo(b.publishedAt)}</span>
-          {b.tags && <span>· {b.tags}</span>}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 블로그
+          </span>
+          <span className="text-xs text-neutral-500">{formatDateKo(b.publishedAt)}</span>
+          {b.tags && <span className="text-xs text-neutral-500">· {b.tags}</span>}
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight break-keep">
           {b.title}
         </h1>
         {b.excerpt && (
-          <p className="mt-3 text-base text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          <p className="mt-3 text-base text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
             {b.excerpt}
           </p>
         )}
@@ -167,11 +172,11 @@ export default async function BlogDetailPage({ params }: Props) {
       ) : (
         <Markdown>{b.content}</Markdown>
       )}
-      <p className="mt-8 border-t border-black/5 pt-4 text-xs leading-relaxed text-zinc-500 dark:border-white/10 dark:text-white/50">
+      <p className="mt-8 border-t border-black/5 pt-4 text-xs leading-relaxed text-zinc-500 break-keep dark:border-white/10 dark:text-white/50">
         © 스코어베이스. 이 글의 원문은{" "}
         <a
           href={`${SITE_URL}/blog/${slug}`}
-          className="underline underline-offset-2 hover:text-zinc-900 dark:hover:text-white"
+          className="underline underline-offset-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-900 dark:hover:text-white"
         >
           {`${SITE_URL}/blog/${slug}`.replace(/^https?:\/\//, "")}
         </a>

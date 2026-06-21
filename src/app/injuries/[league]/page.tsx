@@ -5,6 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Clock, CheckCircle2 } from "lucide-react";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { assertSportConsistency } from "@/lib/players/sanityCheck";
@@ -1012,7 +1014,8 @@ export default async function InjuriesByLeague({
   };
 
   return (
-    <div>
+    <div className="relative">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -1033,24 +1036,29 @@ export default async function InjuriesByLeague({
           }}
         />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-          <div className="text-[11px] font-bold tracking-[0.2em] uppercase text-neutral-500 mb-2">
-            Injuries · {sourceLabel} · {seasonLabel}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 부상자
+            </span>
+            <span className="text-[11px] font-semibold tracking-wide text-neutral-500">
+              {sourceLabel} · {seasonLabel}
+            </span>
           </div>
           <div className="flex items-center gap-3 mb-2">
             <LeagueBadge league={upper} size="md" />
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
               {lm.krFull} 부상자 명단
             </h1>
           </div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 break-keep">
             {isAsianBb
               ? upper === "KBO"
                 ? "팀별 현재 부상자 명단 + 치료·재활명단. KBO 공식 등록 기준이라 사유는 공개되지 않고 기간(10일/15일/30일+)으로 심각도를 분류."
                 : "팀별 1군 엔트리에서 빠진 선수 (지난 30일 누적, 복귀자 자동 제외). 일본 NPB 는 KBO/MLB 같은 별도 부상자 명단 제도가 없어 '出場選手登録抹消(출장 선수 등록 말소)' = 1군 결장으로 표시. 부상·재활·강등·컨디션 난조 등 사유는 구단이 공개하지 않음."
               : "팀별 시즌 누적 부상·결장 선수. 사유는 영문 의학용어를 한글로 자동 번역, 심각도별 분류."}
           </p>
-          <p className="text-[11px] text-neutral-500 mt-1">
-            🕒 마지막 업데이트: {lastUpdatedKst} · 출처: {sourceLabel}
+          <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-neutral-500">
+            <Clock className="h-3 w-3" aria-hidden /> 마지막 업데이트: {lastUpdatedKst} · 출처: {sourceLabel}
           </p>
         </div>
       </section>
@@ -1063,10 +1071,10 @@ export default async function InjuriesByLeague({
             <Link
               key={l}
               href={`/injuries/${l}`}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 active
-                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                  ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
+                  : "bg-white/60 text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
               }`}
             >
               {LEAGUE_META[l].krFull}
@@ -1115,7 +1123,7 @@ export default async function InjuriesByLeague({
 
         {/* SEO 분석 문단 */}
         {totalInjuries > 0 && (
-          <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/40 p-5 space-y-2 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
+          <section className="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-5 space-y-2 text-sm leading-relaxed text-neutral-700 break-keep dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-300">
             <p>
               <strong>
                 2025-26 시즌 {lm.krFull} 전체 부상·결장 선수는 총{" "}
@@ -1168,15 +1176,15 @@ export default async function InjuriesByLeague({
         {/* 풀스쿼드 별도 섹션 — 상단에서 강조 */}
         {fullSquadTeams.length > 0 && severityFilter === "ALL" && !query && (
           <section>
-            <h2 className="text-sm font-bold tracking-wider uppercase text-emerald-700 dark:text-emerald-400 mb-2">
-              ✅ 풀스쿼드 유지 {fullSquadTeams.length}팀
+            <h2 className="mb-2 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 className="h-4 w-4" aria-hidden /> 풀스쿼드 유지 {fullSquadTeams.length}팀
             </h2>
             <div className="flex flex-wrap gap-2">
               {fullSquadTeams.map((x) => (
                 <Link
                   key={x.team.id}
                   href={`/teams/${x.team.id}`}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-sm hover:border-emerald-500/60 transition"
+                  className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-1.5 text-sm transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-emerald-500/60 dark:bg-emerald-500/10"
                 >
                   {x.team.logoUrl &&
                     (x.team.logoUrl.includes("liquipedia.net") ? (
@@ -1215,7 +1223,7 @@ export default async function InjuriesByLeague({
 
         {/* 부상자 있는 팀 카드 그리드 */}
         {injuredTeams.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-10 text-center text-neutral-500 text-sm">
+          <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-10 text-center text-neutral-500 text-sm break-keep">
             {query || severityFilter !== "ALL"
               ? "필터에 일치하는 결과가 없습니다."
               : "현재 부상자 데이터가 없습니다."}
@@ -1256,13 +1264,13 @@ export default async function InjuriesByLeague({
         </p>
 
         <section className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
-          <h2 className="text-base sm:text-lg font-bold tracking-tight">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight break-keep">
             {lm.krFull} 부상자 명단 및 결장자 분석
           </h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
             {lm.krFull}의 팀별 부상자·결장자 명단을 실시간으로 정리해 제공합니다. 부상 부위·사유·심각도 분류로 라인업에 미치는 영향을 한눈에 확인할 수 있습니다.
           </p>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
             실시간 경기 진행은{" "}
             <Link href="/scores" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
               라이브스코어
@@ -1299,7 +1307,7 @@ function StatCard({
   positive?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 hover:-translate-y-0.5 transition-transform">
+    <div className="rounded-2xl bg-white p-4 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
       <div className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
         {label}
       </div>
@@ -1335,19 +1343,19 @@ function ControlsBar({
     <form
       action={`/injuries/${league}`}
       method="get"
-      className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 flex flex-wrap gap-2 items-center text-sm bg-white/40 dark:bg-neutral-900/40"
+      className="rounded-2xl bg-white p-3 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] flex flex-wrap gap-2 items-center text-sm dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none"
     >
       <input
         type="search"
         name="q"
         defaultValue={query}
         placeholder="🔍 선수명 검색"
-        className="flex-1 min-w-[200px] px-3 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
+        className="flex-1 min-w-[200px] px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
       />
       <select
         name="severity"
         defaultValue={severity}
-        className="px-3 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
+        className="px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
       >
         <option value="ALL">심각도 전체</option>
         <option value="long">🔴 장기 결장</option>
@@ -1359,7 +1367,7 @@ function ControlsBar({
       <select
         name="sort"
         defaultValue={sort}
-        className="px-3 py-1.5 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
+        className="px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
       >
         <option value="count_desc">부상자 많은 순</option>
         <option value="count_asc">부상자 적은 순</option>
@@ -1368,7 +1376,7 @@ function ControlsBar({
       </select>
       <button
         type="submit"
-        className="px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-semibold"
+        className="px-4 py-1.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-semibold shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5"
       >
         적용
       </button>
@@ -1429,8 +1437,8 @@ function TeamInjuryCard({
     null;
 
   return (
-    <details className="injury-card group rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden bg-white dark:bg-neutral-900/40 hover:-translate-y-0.5 transition-transform">
-      <summary className="list-none cursor-pointer flex items-start gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition select-none">
+    <details className="injury-card group overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
+      <summary className="list-none cursor-pointer flex items-start gap-3 px-4 py-3 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03] select-none">
         {logoUrl ? (
           logoUrl.includes("liquipedia.net") ? (
             <Image

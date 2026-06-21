@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
+import AmbientGlow from "@/components/AmbientGlow";
+import { CircleDollarSign } from "lucide-react";
 
 export const revalidate = 3600;
 
@@ -97,7 +99,8 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
   const pMap = new Map(tsP.map((p) => [p.name, p]));
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <AmbientGlow />
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
           <Link href="/scores" className="hover:underline">라이브 스코어</Link>
@@ -106,16 +109,21 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
           <span>›</span>
           <span className="text-neutral-600 dark:text-neutral-300">연봉 랭킹</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">💰 MLB 연봉 랭킹</h1>
-        <p className="text-sm text-neutral-500 leading-relaxed">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 연봉 랭킹
+        </span>
+        <h1 className="flex items-center gap-2.5 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
+          <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> MLB 연봉 랭킹
+        </h1>
+        <p className="text-sm text-neutral-500 leading-relaxed break-keep">
           {season} 시즌 선수별 연봉 순위 (달러·원화). 전체 {total.toLocaleString()}명 · 매주 자동 갱신 · 데이터 Spotrac.
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
-          <Link href="/leagues/MLB" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
-            ⚾ MLB 경기·순위
+          <Link href="/leagues/MLB" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
+            MLB 경기·순위
           </Link>
-          <Link href="/salaries/nba" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
-            🏀 NBA 연봉
+          <Link href="/salaries/nba" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
+            NBA 연봉
           </Link>
         </div>
       </header>
@@ -124,10 +132,10 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
         <p className="py-16 text-center text-sm text-neutral-400">연봉 데이터를 불러오는 중입니다.</p>
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 text-xs text-neutral-500">
+                <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                   <th className="px-3 py-2.5 text-center font-semibold w-10">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold">선수</th>
                   <th className="px-2 py-2.5 text-left font-semibold">팀</th>
@@ -144,7 +152,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                   const mlbamId = r.photoUrl?.match(/\/people\/(\d+)\//)?.[1];
                   const href = mlbamId ? `/players/${mlbamId}` : null;
                   return (
-                    <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition">
+                    <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                       <td className="px-2 py-2.5">
                         {href ? (
@@ -182,10 +190,10 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                     key={p}
                     href={p === 1 ? "/salaries/mlb" : `/salaries/mlb?page=${p}`}
                     aria-current={p === page ? "page" : undefined}
-                    className={`min-w-[34px] rounded-lg px-2.5 py-1.5 text-center font-medium transition ${
+                    className={`min-w-[34px] rounded-full px-2.5 py-1.5 text-center font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                       p === page
-                        ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                        : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                        ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
+                        : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"
                     }`}
                   >
                     {p}
@@ -215,12 +223,12 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
 
 function PageLink({ page, disabled, label }: { page: number; disabled: boolean; label: string }) {
   if (disabled) {
-    return <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 cursor-default select-none">{label}</span>;
+    return <span className="rounded-full px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 cursor-default select-none">{label}</span>;
   }
   return (
     <Link
       href={page === 1 ? "/salaries/mlb" : `/salaries/mlb?page=${page}`}
-      className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+      className="rounded-full border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"
     >
       {label}
     </Link>

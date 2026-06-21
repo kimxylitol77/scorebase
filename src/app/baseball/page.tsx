@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { safeFetchTop3 } from "@/lib/sports/standings-overview";
 import { Clock, ListOrdered, Target, Swords, Coins, Star, type LucideIcon } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 300;
 
@@ -130,11 +131,15 @@ export default async function BaseballHub() {
   ];
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+    <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+      <AmbientGlow />
       <header className="space-y-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 야구 허브
+        </span>
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" className="w-7 h-7 shrink-0" aria-hidden>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep flex items-center gap-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" className="w-8 h-8 shrink-0" aria-hidden>
               <circle cx="12" cy="12" r="9" />
               <path d="M7.5 3.8a9 9 0 0 1 0 16.4" />
               <path d="M16.5 3.8a9 9 0 0 0 0 16.4" />
@@ -143,7 +148,7 @@ export default async function BaseballHub() {
           </h1>
           <span className="text-sm text-neutral-400">KBO · MLB · NPB</span>
         </div>
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 break-keep">
           오늘 경기부터 순위·AI 예측·선발·연봉·주목 선수까지 한 페이지에서.
         </p>
         <nav className="flex gap-1 border-b border-neutral-200 dark:border-neutral-800 overflow-x-auto [&::-webkit-scrollbar]:hidden">
@@ -151,9 +156,9 @@ export default async function BaseballHub() {
             <Link
               key={t.label}
               href={t.href}
-              className={`shrink-0 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition ${
+              className={`shrink-0 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 t.active
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                  ? "border-rose-500 text-rose-600 dark:text-rose-400"
                   : "border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
               }`}
             >
@@ -301,8 +306,8 @@ export default async function BaseballHub() {
           <ul className="space-y-1.5">
             {STARS.map((p) => (
               <li key={p.href}>
-                <Link href={p.href} className="flex items-center justify-between text-sm group">
-                  <span className="font-medium group-hover:underline">{p.name}</span>
+                <Link href={p.href} className="flex items-center justify-between text-sm group transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                  <span className="font-medium group-hover:underline group-hover:text-rose-600 dark:group-hover:text-rose-400">{p.name}</span>
                   <span className="text-neutral-400 text-[11px]">{p.sub}</span>
                 </Link>
               </li>
@@ -334,7 +339,7 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="group flex flex-col rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
+    <section className="group flex flex-col rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-semibold flex items-center gap-1.5 text-zinc-950 dark:text-white">
           <Icon className="w-4 h-4 text-zinc-700 dark:text-white/70" aria-hidden />
@@ -345,7 +350,7 @@ function Card({
       <div className="flex-1">{children}</div>
       <Link
         href={href}
-        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
+        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
       >
         {hrefLabel} →
       </Link>

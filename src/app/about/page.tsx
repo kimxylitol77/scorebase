@@ -2,6 +2,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SITE_URL } from "@/lib/site-url";
+import AmbientGlow from "@/components/AmbientGlow";
+import { ArrowRight } from "lucide-react";
 
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
 
@@ -31,24 +33,28 @@ export default function AboutPage() {
     foundingDate: "2026",
   };
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-12">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
       />
 
-      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 사이트 소개
+      </span>
+      <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep mb-3">
         Scorebase 소개
       </h1>
-      <p className="text-neutral-500 dark:text-neutral-400 mb-6">
+      <p className="text-neutral-500 dark:text-neutral-400 mb-6 break-keep">
         데이터로 보는 글로벌 스포츠 미디어
       </p>
       <div className="mb-10">
         <Link
           href="/blog/about-scorebase"
-          className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-500/15 dark:text-cyan-300"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-800 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:text-neutral-200 dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
         >
-          스코어베이스 기능·사용법 자세히 보기 →
+          스코어베이스 기능·사용법 자세히 보기 <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
 

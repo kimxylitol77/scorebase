@@ -21,6 +21,8 @@ import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import TeamOfDayPitch from "@/components/TeamOfDayPitch";
 import { getTeamOfDay, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
+import AmbientGlow from "@/components/AmbientGlow";
+import { BarChart3, CalendarDays, Activity } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +35,11 @@ const BADGE_CLS =
 
 const TYPE_BADGE: Record<
   string,
-  { label: string; cls: string; icon?: string }
+  { label: string; cls: string; icon?: React.ReactNode }
 > = {
   PREVIEW: { label: "프리뷰", cls: BADGE_CLS },
   RECAP: { label: "리뷰", cls: BADGE_CLS },
-  ANALYSIS: { label: "분석", icon: "📊", cls: BADGE_CLS },
+  ANALYSIS: { label: "분석", icon: <BarChart3 className="h-3.5 w-3.5" aria-hidden />, cls: BADGE_CLS },
 };
 
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
@@ -531,7 +533,8 @@ export default async function ArticlePage({ params }: Props) {
   };
 
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+    <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -550,7 +553,7 @@ export default async function ArticlePage({ params }: Props) {
       <div className="mb-6 flex items-center justify-between gap-3">
         <Link
           href={`/leagues/${article.league}`}
-          className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+          className="text-sm text-neutral-500 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-neutral-900 dark:hover:text-white"
         >
           ← {article.league}
         </Link>
@@ -622,7 +625,7 @@ export default async function ArticlePage({ params }: Props) {
               {/* 홈 팀 */}
               <Link
                 href={`/teams/${article.match.homeTeam.id}`}
-                className="group flex flex-col items-center text-center transition hover:opacity-90"
+                className="group flex flex-col items-center text-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90"
               >
                 <TeamLogo
                   src={article.match.homeTeam.logoUrl}
@@ -663,7 +666,7 @@ export default async function ArticlePage({ params }: Props) {
               {/* 원정 팀 */}
               <Link
                 href={`/teams/${article.match.awayTeam.id}`}
-                className="group flex flex-col items-center text-center transition hover:opacity-90"
+                className="group flex flex-col items-center text-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-90"
               >
                 <TeamLogo
                   src={article.match.awayTeam.logoUrl}
@@ -684,9 +687,10 @@ export default async function ArticlePage({ params }: Props) {
       {/* LoL RECAP 본문은 길게 풀어쓴 Markdown (사용자 선호 — 카드 UI 대신 본문에 모든 정보 통합).
           lolRecapCtx 가 있어도 본문 안에 5라인 매치업·시즌·MVP 가 다 들어있으므로 Markdown 만. */}
       {article.match && (
-        <p className="mb-4 rounded-lg border border-amber-200/60 bg-amber-50/60 px-3 py-2 text-[12px] leading-relaxed text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200/85">
-          📅 이 분석은 <strong>{date} 발행 시점</strong>의 데이터 기준입니다. Elo·순위·선발 등은
-          이후 갱신될 수 있어, 아래 실시간 위젯과 차이가 있을 수 있습니다.
+        <p className="mb-4 flex items-start gap-1.5 rounded-lg border border-amber-200/60 bg-amber-50/60 px-3 py-2 text-[12px] leading-relaxed text-amber-800 break-keep dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200/85">
+          <CalendarDays className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>이 분석은 <strong>{date} 발행 시점</strong>의 데이터 기준입니다. Elo·순위·선발 등은
+          이후 갱신될 수 있어, 아래 실시간 위젯과 차이가 있을 수 있습니다.</span>
         </p>
       )}
       <Markdown>{article.content}</Markdown>
@@ -726,10 +730,11 @@ export default async function ArticlePage({ params }: Props) {
         <p className="mt-3 text-sm">
           <Link
             href={`/h2h/${Math.min(article.match.homeTeamId, article.match.awayTeamId)}-vs-${Math.max(article.match.homeTeamId, article.match.awayTeamId)}`}
-            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            className="inline-flex items-center gap-1.5 font-medium text-blue-600 break-keep hover:underline dark:text-blue-400"
             prefetch={false}
           >
-            📊 {toKoreanTeamName(article.match.homeTeam.name, article.league) || article.match.homeTeam.name} vs{" "}
+            <BarChart3 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            {toKoreanTeamName(article.match.homeTeam.name, article.league) || article.match.homeTeam.name} vs{" "}
             {toKoreanTeamName(article.match.awayTeam.name, article.league) || article.match.awayTeam.name} 역대
             상대전적 보기 →
           </Link>
@@ -774,18 +779,18 @@ export default async function ArticlePage({ params }: Props) {
         <Link
           href={`/live/${article.league}/${article.match.externalId}`}
           prefetch={false}
-          className="group mt-6 flex items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50/60 px-5 py-4 transition hover:border-blue-400 dark:border-blue-900/40 dark:bg-blue-950/30"
+          className="group mt-6 flex items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50/60 px-5 py-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-blue-400 dark:border-blue-900/40 dark:bg-blue-950/30"
         >
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-sm font-bold text-blue-700 dark:text-blue-300">
-              <span aria-hidden>⚽</span>
-              <span>이 경기 실시간 상세 보기</span>
+              <Activity className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="break-keep">이 경기 실시간 상세 보기</span>
             </div>
-            <p className="mt-0.5 text-[13px] text-neutral-600 dark:text-neutral-400">
+            <p className="mt-0.5 text-[13px] text-neutral-600 break-keep dark:text-neutral-400">
               라인업·팀 통계·경기 추이·맞대결을 라이브스코어에서 자세히
             </p>
           </div>
-          <span className="shrink-0 text-lg text-blue-500 transition group-hover:translate-x-0.5" aria-hidden>
+          <span className="shrink-0 text-lg text-blue-500 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden>
             →
           </span>
         </Link>
@@ -796,13 +801,13 @@ export default async function ArticlePage({ params }: Props) {
       <div className="mt-12 pt-6 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-sm">
         <Link
           href="/"
-          className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+          className="text-neutral-500 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-neutral-900 dark:hover:text-white"
         >
           ← 메인으로
         </Link>
         <Link
           href={`/leagues/${article.league}`}
-          className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+          className="text-neutral-500 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-neutral-900 dark:hover:text-white"
         >
           {article.league} 더 보기 →
         </Link>

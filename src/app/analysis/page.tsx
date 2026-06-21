@@ -293,7 +293,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             : "아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!"}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] dark:bg-zinc-950 dark:ring-white/10">
+        <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           {/* header row (desktop) */}
           <div
             className={`hidden sm:grid ${COLS} gap-3 px-6 py-3.5 bg-neutral-50/80 dark:bg-white/[0.03] text-[11px] uppercase tracking-wider font-semibold text-neutral-400 dark:text-neutral-500 border-b border-black/5 dark:border-white/5`}

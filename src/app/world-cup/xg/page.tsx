@@ -3,10 +3,12 @@
 // 데이터: Match.fixtureStats (af expected_goals, [home, away] 순서·predictionEngine.ts 검증). 신규 수집 없음 — 기존 데이터 집계만.
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Info } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 600;
@@ -167,12 +169,13 @@ export default async function WorldCupXgPage() {
   const rows = await fetchRows();
 
   return (
-    <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+    <main className="relative mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(XG_JSONLD) }}
       />
-      <header className="space-y-2">
+      <header className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-neutral-500">
           <Link href="/world-cup" className="hover:underline" prefetch={false}>
             2026 월드컵
@@ -180,8 +183,11 @@ export default async function WorldCupXgPage() {
           <span>/</span>
           <span>xG 트래커</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">월드컵 xG 트래커</h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> xG 트래커
+        </span>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">월드컵 xG 트래커</h1>
+        <p className="text-sm leading-relaxed text-neutral-500 break-keep dark:text-neutral-400">
           2026 월드컵 전 경기의 <strong>xG(기대득점)</strong>와 실제 스코어를 한 표로. 슈팅의 질로
           누가 <strong>이길 만했는지</strong>, 어디서 이변·결정력·불운이 갈렸는지 추적합니다.
           <br className="hidden sm:block" />
@@ -190,22 +196,22 @@ export default async function WorldCupXgPage() {
       </header>
 
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-10 text-center">
-          <div className="text-sm text-neutral-500">아직 집계할 xG 데이터가 없습니다.</div>
-          <div className="mt-2 text-[11px] text-neutral-400">
+        <div className="rounded-2xl border border-dashed border-neutral-200 dark:border-white/10 p-10 text-center">
+          <div className="text-sm text-neutral-500 break-keep">아직 집계할 xG 데이터가 없습니다.</div>
+          <div className="mt-2 text-[11px] text-neutral-400 break-keep">
             경기 종료 후 통계가 수집되면 자동으로 표시됩니다.
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
-          <div className="hidden md:grid grid-cols-[56px_minmax(0,1fr)_72px_120px_minmax(0,120px)] gap-3 px-4 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-100 dark:border-neutral-800">
+        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+          <div className="hidden md:grid grid-cols-[56px_minmax(0,1fr)_72px_120px_minmax(0,120px)] gap-3 px-4 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-black/5 dark:border-white/5">
             <div>날짜</div>
             <div>경기</div>
             <div className="text-center">스코어</div>
             <div className="text-center">xG (홈–원정)</div>
             <div className="text-right">판정</div>
           </div>
-          <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
+          <ul className="divide-y divide-black/5 dark:divide-white/5">
             {rows.map((r) => {
               const v = verdict(r);
               const score =
@@ -217,7 +223,7 @@ export default async function WorldCupXgPage() {
                   <Link
                     href={`/live/WORLD_CUP/${r.externalId}`}
                     prefetch={false}
-                    className="block px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition"
+                    className="block px-4 py-3 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                   >
                     {/* mobile */}
                     <div className="md:hidden space-y-1">
@@ -275,19 +281,19 @@ export default async function WorldCupXgPage() {
 
       {/* SEO 본문 — xG 개념 + WC 내부링크 (thin 탈출) */}
       <section className="border-t border-black/5 dark:border-white/10 pt-8 space-y-3">
-        <h2 className="text-base sm:text-lg font-bold tracking-tight">xG(기대득점)란?</h2>
-        <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+        <h2 className="text-base sm:text-lg font-bold tracking-tight break-keep">xG(기대득점)란?</h2>
+        <p className="text-sm leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           xG(expected goals, 기대득점)는 각 슈팅이 골로 연결될 확률을 합산해 한 팀이 그 경기에서
           <strong> 평균적으로 몇 골을 넣을 만했는지</strong>를 추정한 값입니다. 실제 스코어가 운·결정력·골키퍼
           선방에 좌우되는 반면, xG 는 만들어낸 <strong>기회의 질</strong>을 보여줍니다. 적은 xG 로 많이 넣었다면
           결정력(또는 행운), 높은 xG 로 못 넣었다면 불운·낭비로 읽을 수 있습니다.
         </p>
-        <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           이 표의 <strong>판정</strong>은 xG 우위 팀과 실제 승자를 비교한 것입니다. 둘이 다르면
           <strong> 이변</strong>, 같으면 <strong>xG대로</strong>, xG 차가 작으면 <strong>팽팽</strong>으로
           표시합니다. 경기를 누르면 라인업·팀 통계·모멘텀 상세로 이동합니다.
         </p>
-        <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           우승 확률·진출 시뮬레이션은{" "}
           <Link
             href="/predictions/WORLD_CUP"
@@ -306,8 +312,8 @@ export default async function WorldCupXgPage() {
           </Link>
           에서 확인할 수 있습니다.
         </p>
-        <p className="text-[11px] text-neutral-400">
-          ⓘ xG 출처: api-football(expected_goals). 일부 경기는 통계 미제공으로 누락될 수 있습니다.
+        <p className="inline-flex items-center gap-1.5 text-[11px] text-neutral-400 break-keep">
+          <Info className="h-3 w-3 shrink-0" aria-hidden /> xG 출처: api-football(expected_goals). 일부 경기는 통계 미제공으로 누락될 수 있습니다.
         </p>
       </section>
     </main>

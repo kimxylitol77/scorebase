@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { ArrowLeft, Star, Trophy } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaCountryKo } from "@/lib/sports/fifa-rankings";
 import rawOverrides from "../../../../data/player-overrides.json";
@@ -574,9 +576,13 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   };
 
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
-      <Link href={`/transfers${league ? `?league=${league}` : ""}`} className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
-        ← 이적시장
+    <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+      <AmbientGlow />
+      <Link
+        href={`/transfers${league ? `?league=${league}` : ""}`}
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-x-0.5 hover:text-neutral-900 dark:hover:text-white"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden /> 이적시장
       </Link>
 
       {/* 헤더 */}
@@ -591,15 +597,15 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         </div>
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{name}</h1>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name}</h1>
             {(ov?.pos || tsp?.position) && (
               <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
                 {ov?.pos || POS_LABEL[tsp!.position!]}
               </span>
             )}
             {ability != null && (
-              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" title="종합 능력치">
-                ⭐ 종합 {ability}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" title="종합 능력치">
+                <Star className="h-3 w-3" aria-hidden /> 종합 {ability}
               </span>
             )}
             {mv?.age != null && (
@@ -617,7 +623,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 <Link
                   href={`/national-teams/${natlTeamIds[0]}`}
                   prefetch={false}
-                  className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+                  className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   title={`${ov.country} 대표팀`}
                 >
                   {ov.flag && (
@@ -639,7 +645,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           </div>
           <Link
             href={ourTeamId != null ? `/teams/${ourTeamId}` : "#"}
-            className="text-sm text-neutral-500 flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition w-fit"
+            className="text-sm text-neutral-500 flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] w-fit"
           >
             {teamLogo && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -695,7 +701,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                     <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
                     <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
                       <table className="w-full text-sm">
-                        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                        <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                           <tr>
                             <th className="text-left px-3 py-2 font-medium">시점</th>
                             <th className="text-right px-3 py-2 font-medium">시장가치</th>
@@ -735,7 +741,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                     {natlGroups.map((grp, gi) => (
                       <details key={grp.label} open={gi === 0} className="group rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 overflow-hidden">
                         <summary className="flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
-                          <span className={`font-bold ${grp.wc ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{grp.wc ? "🏆 " : ""}{grp.label}</span>
+                          <span className={`inline-flex items-center gap-1.5 font-bold ${grp.wc ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{grp.wc && <Trophy className="h-3.5 w-3.5" aria-hidden />}{grp.label}</span>
                           <span className="text-xs text-neutral-500">{grp.games.length}경기 · ⚽{grp.goals} 🅰️{grp.assists}</span>
                           <span className="ml-auto text-neutral-400 text-xs transition-transform group-open:rotate-180">▾</span>
                         </summary>

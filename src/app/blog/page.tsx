@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatDateKo } from "@/lib/format";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 600; // 10분
 
@@ -28,13 +29,16 @@ export default async function BlogPage() {
   });
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12">
+      <AmbientGlow />
       <header className="mb-10">
-        <p className="text-sm text-neutral-500 mb-2">스코어베이스 블로그</p>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 블로그
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
           데이터로 보는 스포츠
         </h1>
-        <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+        <p className="text-neutral-600 dark:text-neutral-400 mt-3 break-keep">
           EPL · KBO · NBA · MLB · NHL 등 글로벌 스포츠 데이터 분석, Elo · 시뮬레이션 ·
           AI 모델 활용 인사이트를 담습니다.
         </p>
@@ -50,14 +54,14 @@ export default async function BlogPage() {
             <Link
               key={b.id}
               href={`/blog/${b.slug}`}
-              className="group block rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden hover:border-neutral-300 dark:hover:border-neutral-700 hover:shadow-md transition"
+              className="group block rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] overflow-hidden shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700 dark:hover:bg-white/[0.06]"
             >
               {b.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={b.thumbnailUrl}
                   alt=""
-                  className="w-full h-40 object-cover group-hover:opacity-90 transition"
+                  className="w-full h-40 object-cover group-hover:opacity-90 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   loading="lazy"
                 />
               ) : (
@@ -76,7 +80,7 @@ export default async function BlogPage() {
                     <span className="truncate min-w-0">· {b.tags}</span>
                   )}
                 </div>
-                <h2 className="text-sm sm:text-base font-semibold leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+                <h2 className="text-sm sm:text-base font-semibold leading-snug mb-2 line-clamp-2 break-keep group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
                   {b.title}
                 </h2>
                 {b.excerpt && (

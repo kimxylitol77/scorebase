@@ -3,10 +3,12 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Gem } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -175,37 +177,41 @@ export default async function ValueBetsPage() {
   const bets = await fetchValueBets();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+    <main className="relative mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <AmbientGlow />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(VALUE_BETS_JSONLD) }}
       />
-      <header className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-          💎 밸류 베트
+      <header className="space-y-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 밸류 베트
+        </span>
+        <h1 className="flex items-center gap-2.5 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
+          <Gem className="h-7 w-7 shrink-0 text-rose-500 sm:h-8 sm:w-8" aria-hidden /> 밸류 베트
         </h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="text-sm text-neutral-500 break-keep dark:text-neutral-400">
           Scorebase Elo 모델 예측 확률이 배당사 implied 보다 <strong>+{MIN_VALUE_PCT}% 이상</strong> 높은 매치만 표시.
           <br className="hidden sm:block" />
           value % 큰 순 정렬. 향후 {HORIZON_DAYS}일 안 SCHEDULED/LIVE 매치 대상.
         </p>
-        <div className="text-[11px] text-neutral-400">
+        <div className="text-[11px] text-neutral-400 break-keep">
           ⓘ 베팅 권유 X — 모델 cross-check 용. 종료된 매치는 적중률 보드 별도 페이지에서.
         </div>
       </header>
 
       {bets.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-10 text-center">
-          <div className="text-sm text-neutral-500">
+        <div className="rounded-2xl border border-dashed border-neutral-200 p-10 text-center dark:border-white/10 dark:bg-white/[0.02]">
+          <div className="text-sm text-neutral-500 break-keep">
             현재 value ≥ +{MIN_VALUE_PCT}% 매치 없음.
           </div>
-          <div className="mt-2 text-[11px] text-neutral-400">
+          <div className="mt-2 text-[11px] text-neutral-400 break-keep">
             배당사 implied 가 우리 Elo 와 비슷한 상태 — 시장이 효율적. 새 매치 들어오면 자동 표시.
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
-          <div className="hidden md:grid grid-cols-[100px_90px_minmax(0,1fr)_70px_120px_80px] gap-3 px-4 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-neutral-100 dark:border-neutral-800">
+        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+          <div className="hidden md:grid grid-cols-[100px_90px_minmax(0,1fr)_70px_120px_80px] gap-3 px-4 py-2 text-[10px] font-bold tracking-wider uppercase text-neutral-500 border-b border-black/5 dark:border-white/5">
             <div>리그</div>
             <div>시간</div>
             <div>매치</div>
@@ -213,7 +219,7 @@ export default async function ValueBetsPage() {
             <div className="text-center">Elo vs 배당사</div>
             <div className="text-right">Value</div>
           </div>
-          <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
+          <ul className="divide-y divide-black/5 dark:divide-white/5">
             {bets.map((b) => (
               <li key={b.matchId}>
                 <Link
@@ -221,7 +227,7 @@ export default async function ValueBetsPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   prefetch={false}
-                  className="block px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition"
+                  className="block px-4 py-3 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                 >
                   <div className="md:hidden space-y-1">
                     <div className="flex items-center justify-between text-[11px] text-neutral-500">

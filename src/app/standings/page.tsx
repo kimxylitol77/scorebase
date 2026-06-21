@@ -11,6 +11,7 @@ import {
   type TopThreeEntry,
 } from "@/lib/sports/standings-overview";
 import { SPORTS } from "@/lib/sports/sport-leagues";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 600;
 
@@ -55,7 +56,7 @@ function LeagueCardItem({ card, top3 }: { card: LeagueCard; top3?: TopThreeEntry
     <Link
       href={card.href ?? `/standings/${card.code}`}
       prefetch={false}
-      className="group rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 hover:-translate-y-0.5 hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-sm transition-all relative overflow-hidden"
+      className="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-400 hover:shadow-[0_28px_70px_-30px_rgba(15,23,30,0.28)] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none dark:hover:border-white/20 dark:hover:bg-white/[0.06]"
     >
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${card.gradient}`} />
       <div className="flex items-baseline gap-2">
@@ -90,7 +91,7 @@ function LeagueCardItem({ card, top3 }: { card: LeagueCard; top3?: TopThreeEntry
 function SoccerCountrySection({ groups }: { groups: CountryStandingsGroup[] }) {
   if (groups.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 px-4 py-8 text-center text-sm text-neutral-500">
+      <p className="rounded-2xl border border-dashed border-neutral-300 dark:border-white/15 px-4 py-8 text-center text-sm text-neutral-500 break-keep">
         진행 중인 축구 리그 순위가 없습니다. 시즌이 시작되면 자동으로 표시됩니다.
       </p>
     );
@@ -109,7 +110,7 @@ function SoccerCountrySection({ groups }: { groups: CountryStandingsGroup[] }) {
                 key={l.league}
                 href={`/standings/${l.league}`}
                 prefetch={false}
-                className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 hover:-translate-y-0.5 hover:shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600 transition"
+                className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-400 hover:shadow-[0_28px_70px_-30px_rgba(15,23,30,0.28)] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none dark:hover:border-white/20 dark:hover:bg-white/[0.06]"
               >
                 <div className="mb-2 flex items-baseline justify-between gap-2">
                   <span className="truncate text-sm font-semibold">{l.leagueDisplay}</span>
@@ -151,10 +152,14 @@ export default async function StandingsRoot() {
   );
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+    <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+      <AmbientGlow />
       <header className="space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-black tracking-tight">리그별 순위</h1>
-        <p className="text-sm text-neutral-500 leading-relaxed">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">리그별 순위</h1>
+        <p className="text-sm text-neutral-500 leading-relaxed break-keep">
           축구·야구·농구·하키·배구·e스포츠 — 종목별 시즌 순위와 득점왕·도움왕 리더보드를 한눈에.
           각 리그를 클릭해 상세 순위표와 시즌 리더보드를 확인하세요.
         </p>
@@ -166,7 +171,7 @@ export default async function StandingsRoot() {
           <a
             key={s.code}
             href={`#sport-${s.code}`}
-            className="rounded-full border border-neutral-200 dark:border-neutral-800 px-4 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+            className="rounded-full bg-white/60 px-4 py-1.5 font-medium text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
           >
             {s.emoji} {s.label}
           </a>
@@ -178,7 +183,7 @@ export default async function StandingsRoot() {
         const cards = LEAGUES.filter((l) => l.sport === sport.code);
         return (
           <section key={sport.code} id={`sport-${sport.code}`} className="space-y-4 scroll-mt-20">
-            <h2 className="flex items-center gap-2 text-xl sm:text-2xl font-bold tracking-tight border-b border-neutral-200 dark:border-neutral-800 pb-2">
+            <h2 className="flex items-center gap-2 text-xl sm:text-2xl font-bold tracking-tight border-b border-neutral-200 dark:border-white/10 pb-2 break-keep">
               <span className="text-2xl">{sport.emoji}</span>
               {sport.label}
             </h2>
@@ -197,14 +202,14 @@ export default async function StandingsRoot() {
       })}
 
       {/* SEO 텍스트 */}
-      <section className="mt-4 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
-        <h2 className="text-base sm:text-lg font-bold tracking-tight">
+      <section className="mt-4 pt-6 sm:pt-8 border-t border-neutral-200 dark:border-white/10 space-y-3">
+        <h2 className="text-base sm:text-lg font-bold tracking-tight break-keep">
           리그별 순위 및 시즌 데이터 분석
         </h2>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
           EPL, 라리가, 분데스리가, 세리에 A, MLB, NBA, KBO 등 주요 리그의 시즌 순위·승점·득실차·홈/원정 분리 성적을 Elo 레이팅 기반 분석과 함께 제공합니다. 각 리그 순위표에서는 득점왕·도움왕 등 시즌 리더보드도 함께 확인할 수 있습니다.
         </p>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
           실시간 경기 진행은{" "}
           <Link href="/scores" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
             라이브스코어

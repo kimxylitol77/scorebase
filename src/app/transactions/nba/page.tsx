@@ -7,6 +7,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Wallet, Trophy } from "lucide-react";
 
 export const revalidate = 1800; // 30분
 
@@ -93,7 +95,8 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <AmbientGlow />
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
           <Link href="/scores" className="hover:underline">라이브 스코어</Link>
@@ -102,22 +105,25 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
           <span>›</span>
           <span className="text-neutral-600 dark:text-neutral-300">트랜잭션</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">🏀 NBA 트랜잭션</h1>
-        <p className="text-sm text-neutral-500 leading-relaxed">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 이적 시장
+        </span>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NBA 트랜잭션</h1>
+        <p className="text-sm text-neutral-500 leading-relaxed break-keep">
           트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 한국어로. 매일 자동 갱신 · 데이터 ESPN.
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
           <Link
             href="/salaries/nba"
-            className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            💰 NBA 연봉 랭킹
+            <Wallet className="h-3.5 w-3.5" aria-hidden /> NBA 연봉 랭킹
           </Link>
           <Link
             href="/leagues/NBA"
-            className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           >
-            🏀 NBA 경기·순위
+            <Trophy className="h-3.5 w-3.5" aria-hidden /> NBA 경기·순위
           </Link>
         </div>
       </header>
@@ -126,10 +132,10 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
       <nav className="flex flex-wrap gap-1.5">
         <Link
           href="/transactions/nba"
-          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             !activeCat
-              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-              : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
+              : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
           }`}
         >
           전체 {total}
@@ -142,10 +148,10 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
             <Link
               key={c.key}
               href={txHref(c.key, 1)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 on
-                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
+                  : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
               }`}
             >
               {c.label} {n}
@@ -174,7 +180,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
                   return (
                     <li
                       key={t.id}
-                      className="flex items-start gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3.5 py-3"
+                      className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white px-3.5 py-3 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none dark:hover:bg-white/[0.06]"
                     >
                       {href ? (
                         <Link href={href}><TxAvatar photo={player?.photo} teamLogo={t.teamLogo} /></Link>
@@ -209,7 +215,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
       {totalPages > 1 && (
         <nav className="flex items-center justify-center gap-1 text-sm">
           {page > 1 ? (
-            <Link href={txHref(activeCat, page - 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">‹ 이전</Link>
+            <Link href={txHref(activeCat, page - 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">‹ 이전</Link>
           ) : (
             <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 select-none">‹ 이전</span>
           )}
@@ -221,10 +227,10 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
                 key={p}
                 href={txHref(activeCat, p)}
                 aria-current={p === page ? "page" : undefined}
-                className={`min-w-[34px] rounded-lg px-2.5 py-1.5 text-center font-medium transition ${
+                className={`min-w-[34px] rounded-lg px-2.5 py-1.5 text-center font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   p === page
-                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                    : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
+                    : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 }`}
               >
                 {p}
@@ -232,7 +238,7 @@ export default async function NbaTransactionsPage({ searchParams }: Props) {
             ),
           )}
           {page < totalPages ? (
-            <Link href={txHref(activeCat, page + 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">다음 ›</Link>
+            <Link href={txHref(activeCat, page + 1)} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">다음 ›</Link>
           ) : (
             <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 select-none">다음 ›</span>
           )}

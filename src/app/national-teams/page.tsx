@@ -4,6 +4,8 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Trophy } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
 
@@ -32,17 +34,19 @@ export default async function NationalTeamsIndex() {
   const byName = new Map(teams.map((t) => [t.name, t]));
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+    <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <AmbientGlow />
       <header>
-        <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-          <Link href="/world-cup" className="hover:underline">
-            🏆 2026 북중미 월드컵
-          </Link>
-        </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">
+        <Link
+          href="/world-cup"
+          className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
+        >
+          <Trophy className="h-3 w-3" aria-hidden /> 2026 북중미 월드컵
+        </Link>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
           출전국 48개국 — 조별 전력 한눈에
         </h1>
-        <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
+        <p className="mt-3 text-sm text-neutral-600 leading-relaxed break-keep dark:text-neutral-400">
           국가를 누르면 소집 스쿼드·감독·최근 폼·경기 일정 페이지로 이동합니다. Elo 는
           자체 전력 지수(높을수록 강팀), 괄호는 FIFA 랭킹.
         </p>
@@ -56,7 +60,7 @@ export default async function NationalTeamsIndex() {
           return (
             <section
               key={group}
-              className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4"
+              className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] p-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
             >
               <div className="flex items-baseline justify-between mb-3">
                 <h2 className="font-bold">{group}조</h2>
@@ -95,7 +99,7 @@ export default async function NationalTeamsIndex() {
                       {team ? (
                         <Link
                           href={`/national-teams/${team.id}`}
-                          className="block rounded-lg px-2 py-1.5 -mx-2 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                          className="block rounded-lg px-2 py-1.5 -mx-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                           prefetch={false}
                         >
                           {inner}
@@ -112,7 +116,7 @@ export default async function NationalTeamsIndex() {
         })}
       </div>
 
-      <p className="text-xs text-neutral-500 leading-relaxed">
+      <p className="text-xs text-neutral-500 leading-relaxed break-keep">
         ⓘ 조 편성은 2026 북중미 월드컵 본선 추첨 기준. 우승·진출 확률 시뮬레이션은{" "}
         <Link href="/world-cup" className="underline">
           월드컵 허브

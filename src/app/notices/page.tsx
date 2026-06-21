@@ -69,7 +69,7 @@ export default async function NoticesPage() {
               <li key={n.id}>
                 <Link
                   href={`/notices/${n.slug}`}
-                  className="group block rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_14px_40px_-26px_rgba(15,23,30,0.3)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-black/10 dark:bg-zinc-950 dark:ring-white/10 dark:hover:ring-white/20"
+                  className="group block rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_14px_40px_-26px_rgba(15,23,30,0.3)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-black/10 dark:bg-white/[0.04] dark:shadow-none dark:ring-white/10 dark:hover:bg-white/[0.06] dark:hover:ring-white/20"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span

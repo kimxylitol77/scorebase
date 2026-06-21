@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronLeft, Trophy } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import { prisma } from "@/lib/db";
@@ -63,34 +64,38 @@ export default async function ClubRankingPage() {
   const teamByTs = new Map<string, number>();
   for (const r of srcRows) if (!teamByTs.has(r.externalId)) teamByTs.set(r.externalId, r.teamId);
   return (
-    <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
+    <div className="relative min-h-screen">
+      <AmbientGlow />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
       <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-14">
         <Link
           href="/predictions"
-          className="inline-flex items-center gap-1 text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-white/45 dark:hover:text-white"
+          className="inline-flex items-center gap-1 text-sm text-zinc-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-900 dark:text-white/45 dark:hover:text-white"
         >
           <ChevronLeft className="h-4 w-4" /> 예측 대시보드
         </Link>
+        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 클럽 랭킹
+        </span>
         <div className="mt-4 flex items-baseline justify-between gap-3">
-          <h1 className="flex items-center gap-2 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-            <Trophy className="h-6 w-6 text-zinc-500 dark:text-white/50" />
+          <h1 className="flex items-center gap-2 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep text-zinc-950 dark:text-white">
+            <Trophy className="h-7 w-7 sm:h-8 sm:w-8 text-zinc-500 dark:text-white/50" />
             세계 클럽 랭킹
           </h1>
           <span className="shrink-0 text-xs sm:text-sm tabular-nums text-zinc-400 dark:text-white/40">
             TOP {CLUBS.length}
           </span>
         </div>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-white/50">
+        <p className="mt-3 text-sm text-zinc-500 break-keep dark:text-white/50">
           세계 축구 클럽 순위. 최근 경기 성적 기반 포인트 · 순위 변동 표시.
         </p>
-        <div className="mt-6 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        <div className="mt-6 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <ol className="grid grid-cols-1 lg:grid-cols-2 gap-x-5 gap-y-0.5">
             {CLUBS.map((c) => {
               const ko = toKoreanTeamName(c.name) || c.name;
               const up = c.change > 0, down = c.change < 0;
               const teamId = teamByTs.get(c.id);
-              const cardCls = "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]";
+              const cardCls = "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-black/[0.03] dark:hover:bg-white/[0.06]";
               const inner = (
                 <>
                   <span

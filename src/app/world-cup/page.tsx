@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Star, Info, ChevronRight, Radio, Globe, Newspaper, ListOrdered } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
@@ -97,19 +98,23 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
       </span>
     );
     return m.externalId ? (
-      <Link href={`/live/WORLD_CUP/${m.externalId}`} className="block px-2 -mx-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-900" prefetch={false}>{inner}</Link>
+      <Link href={`/live/WORLD_CUP/${m.externalId}`} className="block px-2 -mx-2 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]" prefetch={false}>{inner}</Link>
     ) : (
       <div className="px-2 -mx-2">{inner}</div>
     );
   };
 
-  const card = "rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5";
+  const card = "rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-5";
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <AmbientGlow />
       <header>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">2026 FIFA 월드컵 데이터 센터</h1>
-        <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 월드컵
+        </span>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">2026 FIFA 월드컵 데이터 센터</h1>
+        <p className="mt-3 text-sm text-neutral-500 leading-relaxed break-keep">
           북중미(미국·캐나다·멕시코) 개최 · 6/11 ~ 7/19 · 사상 첫 <strong>48개국</strong> 본선. 일정·결과, Monte Carlo 우승 확률, 선수 랭킹, xG까지 한곳에서. 대한민국은 개최국 멕시코와 <strong>A조</strong>.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -123,7 +128,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
               key={href}
               href={href}
               prefetch={false}
-              className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3.5 py-1.5 text-[13px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-700 transition"
+              className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] px-3.5 py-1.5 text-[13px] font-medium text-neutral-700 dark:text-neutral-200 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.08] hover:border-neutral-300 dark:hover:border-neutral-700"
             >
               <Icon className="w-3.5 h-3.5 text-neutral-400" aria-hidden />
               {label}
@@ -151,7 +156,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
           )}
 
           {koreaSim && (
-            <section className="rounded-2xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 p-5">
+            <section className="rounded-2xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-5">
               <div className="flex items-baseline justify-between mb-3">
                 <h2 className="font-semibold">대한민국 — A조</h2>
                 {koreaTeam && (
@@ -160,7 +165,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 {[["32강 진출", koreaSim.groupPass], ["16강", koreaSim.r16], ["8강", koreaSim.qf], ["우승", koreaSim.champion]].map(([label, v]) => (
-                  <div key={label as string} className="rounded-xl bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-3">
+                  <div key={label as string} className="rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-200 dark:border-neutral-800 p-3">
                     <div className="text-xs text-neutral-500">{label}</div>
                     <div className="mt-1 text-xl font-black tabular-nums">{((v as number) * 100).toFixed(1)}%</div>
                   </div>
@@ -191,10 +196,10 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
                       <span className="tabular-nums text-neutral-600 dark:text-neutral-300 font-semibold w-14 text-right">{(r.champion * 100).toFixed(1)}%</span>
                     </span>
                   );
-                  return <li key={r.teamName}>{team ? <Link href={`/national-teams/${team.id}`} className="block px-2 -mx-2 hover:bg-neutral-50 dark:hover:bg-neutral-900 rounded-lg" prefetch={false}>{row}</Link> : row}</li>;
+                  return <li key={r.teamName}>{team ? <Link href={`/national-teams/${team.id}`} className="block px-2 -mx-2 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.06]" prefetch={false}>{row}</Link> : row}</li>;
                 })}
               </ul>
-              <Link href="/world-cup?view=predictions" className="mt-4 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 text-sm font-semibold hover:bg-amber-100 dark:hover:bg-amber-500/20 transition" prefetch={false}>
+              <Link href="/world-cup?view=predictions" className="mt-4 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-amber-100 dark:hover:bg-amber-500/20" prefetch={false}>
                 전체 우승 확률·단계별 시뮬레이션 보기 <ChevronRight className="w-4 h-4" aria-hidden />
               </Link>
             </section>
@@ -240,7 +245,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
                   {ranked.slice(0, 20).map((r) => {
                     const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
                     return (
-                      <tr key={r.teamName} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
+                      <tr key={r.teamName} className="transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                         <td className="py-2 truncate"><span className="mr-1.5">{fifaFlag(r.teamName)}</span>{nameKo(r.teamName)}</td>
                         <td className="text-right tabular-nums py-2 px-2 text-neutral-500">{pct(r.groupPass)}</td>
                         <td className="text-right tabular-nums py-2 px-2 text-neutral-500">{pct(r.r16)}</td>
@@ -264,7 +269,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
       {/* ── 선수 (Best XI + 랭킹) ── */}
       {view === "players" && (
         <div className="space-y-6">
-          <Link href="/world-cup/team-of-day" prefetch={false} className="flex items-center justify-between gap-2 rounded-2xl border border-amber-300/60 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3.5 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition">
+          <Link href="/world-cup/team-of-day" prefetch={false} className="flex items-center justify-between gap-2 rounded-2xl border border-amber-300/60 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-amber-100 dark:hover:bg-amber-500/20">
             <span className="flex items-center gap-2.5">
               <Star className="w-5 h-5 text-amber-500 shrink-0" aria-hidden />
               <span>
@@ -291,7 +296,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
             {Object.entries(WORLD_CUP_GROUPS).map(([group, names]) => {
               const sorted = [...names].sort((a, b) => (WORLD_CUP_TEAM_ELO[b] ?? 0) - (WORLD_CUP_TEAM_ELO[a] ?? 0));
               return (
-                <div key={group} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
+                <div key={group} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5">
                   <div className="flex items-baseline justify-between mb-2">
                     <h3 className="font-bold text-sm">{group}조</h3>
                     <Link href={`/world-cup/best-xi/${group.toLowerCase()}`} className="text-[11px] text-neutral-500 hover:underline" prefetch={false}>베스트 XI</Link>

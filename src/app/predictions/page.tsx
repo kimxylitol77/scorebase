@@ -8,6 +8,7 @@ import {
 } from "@/lib/sports/standings-overview";
 import { toKoreanTeamName } from "@/lib/team-names";
 import PredictionsView from "./_view";
+import AmbientGlow from "@/components/AmbientGlow";
 import { SITE_URL } from "@/lib/site-url";
 import { LEAGUES, type TopThreeEntry } from "./_data";
 import {
@@ -148,6 +149,7 @@ export default async function PredictionsRoot() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(PREDICTIONS_JSONLD) }}
       />
+      <AmbientGlow />
       <PredictionsView
         top3={top3}
         countryGroups={countryGroups}

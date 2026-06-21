@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronLeft, Globe } from "lucide-react";
+import AmbientGlow from "@/components/AmbientGlow";
 import {
   FIFA_RANKINGS,
   FIFA_RANKING_DATE,
@@ -106,40 +107,46 @@ export default async function FifaRankingPage() {
     if (!teamByRank.has(rk) || t.league === "WORLD_CUP") teamByRank.set(rk, t.id);
   }
   return (
-    <div className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
+    <div className="relative min-h-screen">
+      <AmbientGlow />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-14">
         <Link
           href="/predictions"
-          className="inline-flex items-center gap-1 text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-white/45 dark:hover:text-white"
+          className="inline-flex items-center gap-1 text-sm text-zinc-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-900 dark:text-white/45 dark:hover:text-white"
         >
           <ChevronLeft className="h-4 w-4" /> 예측 대시보드
         </Link>
-        <div className="mt-4 flex items-baseline justify-between gap-3">
-          <h1 className="flex items-center gap-2 text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
-            <Globe className="h-6 w-6 text-zinc-500 dark:text-white/50" />
-            FIFA 국가 랭킹
-          </h1>
+        <div className="mt-4 flex items-end justify-between gap-3">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+            </span>
+            <h1 className="mt-4 flex items-center gap-2.5 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep text-zinc-950 dark:text-white">
+              <Globe className="h-7 w-7 sm:h-9 sm:w-9 text-zinc-400 dark:text-white/50" />
+              FIFA 국가 랭킹
+            </h1>
+          </div>
           <span className="shrink-0 text-xs sm:text-sm tabular-nums text-zinc-400 dark:text-white/40">
             {FIFA_RANKING_DATE} 기준 · {ranking.length}개국
           </span>
         </div>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-white/50">
+        <p className="mt-3 text-sm text-zinc-500 break-keep dark:text-white/50">
           국제축구연맹(FIFA) 공식 남자 국가대표 랭킹. 국가대항 매치(친선·예선)의 순위 표시 기준입니다.
         </p>
 
         {/* 대한민국 순위 강조 — "대한민국 FIFA 순위" 검색 의도 직답 */}
         {KOREA_RANK && (
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-900 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-900 break-keep dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200">
             🇰🇷 대한민국은 {FIFA_RANKING_DATE} 기준 <strong className="font-bold">FIFA {KOREA_RANK}위</strong>입니다.
           </div>
         )}
 
-        <div className="mt-6 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        <div className="mt-6 rounded-[1.5rem] sm:rounded-[2rem] bg-white p-3 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-0.5">
             {ranking.map((c) => {
               const tid = teamByRank.get(c.rank);
-              const cls = "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition hover:bg-black/[0.03] dark:hover:bg-white/[0.05]";
+              const cls = "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]";
               const inner = (
                 <>
                   <span
@@ -180,12 +187,12 @@ export default async function FifaRankingPage() {
           <h2 className="text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-white">
             FIFA 국가 랭킹이란?
           </h2>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
+          <p className="text-sm leading-relaxed text-zinc-600 break-keep dark:text-white/55">
             FIFA 국가 랭킹은 국제축구연맹(FIFA)이 발표하는 남자 국가대표팀 순위로, 경기 결과에 상대 전력과
             경기 중요도를 반영한 포인트(엘로 기반) 방식으로 산정됩니다. {FIFA_RANKING_DATE} 기준 1위는 {TOP3[0]},
             2위 {TOP3[1]}, 3위 {TOP3[2]} 순이며, {KOREA_RANK ? `대한민국은 ${KOREA_RANK}위입니다.` : "전체 순위는 위 표에서 확인할 수 있습니다."}
           </p>
-          <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
+          <p className="text-sm leading-relaxed text-zinc-600 break-keep dark:text-white/55">
             스코어베이스는 국가대항 매치(친선·예선·본선)의 순위 표시 기준으로 이 FIFA 랭킹을 사용합니다.
             리그별 시즌 우승 확률은{" "}
             <Link href="/predictions" className="font-medium text-blue-600 hover:underline dark:text-blue-400">예측 대시보드</Link>,
@@ -201,9 +208,9 @@ export default async function FifaRankingPage() {
             자주 묻는 질문
           </h2>
           {FAQ.map((f) => (
-            <div key={f.q} className="rounded-xl bg-white p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
-              <p className="text-sm font-semibold text-zinc-900 dark:text-white">Q. {f.q}</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-zinc-600 dark:text-white/60">{f.a}</p>
+            <div key={f.q} className="rounded-xl bg-white p-4 ring-1 ring-black/5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:hover:bg-white/[0.06]">
+              <p className="text-sm font-semibold text-zinc-900 break-keep dark:text-white">Q. {f.q}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-zinc-600 break-keep dark:text-white/60">{f.a}</p>
             </div>
           ))}
         </div>

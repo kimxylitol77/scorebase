@@ -27,6 +27,8 @@ import rawTSquads from "../../../../data/team-squads.json";
 import rawTeamVenues from "../../../../data/team-venues.json";
 import rawBaseballRosters from "../../../../data/baseball-rosters.json";
 import LolTeamRoster from "@/components/LolTeamRoster";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Globe, Landmark, Goal, BarChart3, Users, Target, Star, HeartPulse } from "lucide-react";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { calcForm } from "@/lib/predict/form";
@@ -324,7 +326,8 @@ export default async function TeamPage({ params }: Props) {
       : [];
 
   return (
-    <div>
+    <div className="relative">
+      <AmbientGlow />
       {/* 헤더 */}
       <section className="relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
         <div
@@ -334,7 +337,7 @@ export default async function TeamPage({ params }: Props) {
           <div className="flex items-center gap-3 mb-3">
             <Link
               href={`/leagues/${team.league}`}
-              className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+              className="text-xs text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-neutral-900 dark:hover:text-white"
             >
               ← {team.league}
             </Link>
@@ -370,14 +373,17 @@ export default async function TeamPage({ params }: Props) {
                 {clubRank && (
                   <Link
                     href="/predictions/club-ranking"
-                    className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 transition"
+                    className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-amber-200 dark:hover:bg-amber-900/60"
                     title="세계 클럽 랭킹"
                   >
-                    🌍 세계 {clubRank}위
+                    <Globe className="h-3 w-3" aria-hidden /> 세계 {clubRank}위
                   </Link>
                 )}
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 팀 프로필
+              </span>
+              <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
                 {toKoreanTeamName(team.name, team.league)}
               </h1>
               <div className="text-xs text-neutral-500 mt-1">{team.name}</div>
@@ -393,7 +399,7 @@ export default async function TeamPage({ params }: Props) {
         {/* 클럽 정보 — 홈구장·창단·스쿼드 (TheSports team/additional+venue) */}
         {teamVenue && (teamVenue.venueName || teamVenue.foundation || teamVenue.totalPlayers) && (
           <section>
-            <SectionH title="🏟️ 클럽 정보" />
+            <SectionH title="클럽 정보" icon={<Landmark className="h-5 w-5" aria-hidden />} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {teamVenue.venueName && (
                 <Stat label="홈구장" value={teamVenue.venueName} subtle={[teamVenue.capacity ? `${teamVenue.capacity.toLocaleString()}석` : "", teamVenue.city ?? ""].filter(Boolean).join(" · ")} />
@@ -473,7 +479,7 @@ export default async function TeamPage({ params }: Props) {
         {/* 골 위치 히트맵 (축구, goal/line 누적) */}
         {goalSpots.length >= 3 && (
           <section>
-            <SectionH title="⚽ 골 위치 히트맵" subtitle={`시즌 ${goalSpots.length}골의 슈팅 지점`} />
+            <SectionH title="골 위치 히트맵" subtitle={`시즌 ${goalSpots.length}골의 슈팅 지점`} icon={<Goal className="h-5 w-5" aria-hidden />} />
             <GoalHeatmap spots={goalSpots} teamName={toKoreanTeamName(team.name, team.league)} />
           </section>
         )}
@@ -481,7 +487,7 @@ export default async function TeamPage({ params }: Props) {
         {/* 팀 시즌 통계 (TheSports season/recent/team/stat) */}
         {teamStat && (
           <section>
-            <SectionH title="📊 팀 시즌 통계" subtitle={teamStat.matches ? `${teamStat.matches}경기 · 리그 집계` : "리그 집계"} />
+            <SectionH title="팀 시즌 통계" subtitle={teamStat.matches ? `${teamStat.matches}경기 · 리그 집계` : "리그 집계"} icon={<BarChart3 className="h-5 w-5" aria-hidden />} />
             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
               {([
                 { label: "득점", v: teamStat.goals },
@@ -511,13 +517,13 @@ export default async function TeamPage({ params }: Props) {
         {/* TheSports 선수단 — 이름 클릭 → 이적시장 상세(/transfers) */}
         {squad.length > 0 && (
           <section>
-            <SectionH title="👥 선수단" subtitle={`시장가치순 · ${squad.length}명 · 클릭 시 상세`} />
+            <SectionH title="선수단" subtitle={`시장가치순 · ${squad.length}명 · 클릭 시 상세`} icon={<Users className="h-5 w-5" aria-hidden />} />
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {squad.map((p) => (
                 <Link
                   key={p.id}
                   href={`/transfers/${p.id}`}
-                  className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                  className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                 >
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                     {p.photo ? (
@@ -542,7 +548,7 @@ export default async function TeamPage({ params }: Props) {
             </div>
             <Link
               href={`/transfers?view=team&team=${team.id}`}
-              className="mt-3 flex items-center justify-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-2.5 text-sm font-bold text-cyan-600 dark:text-cyan-400 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+              className="mt-3 flex items-center justify-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-2.5 text-sm font-bold text-cyan-600 dark:text-cyan-400 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
             >
               스쿼드 몸값 랭킹 · 시장가치 Best XI 전체보기 →
             </Link>
@@ -564,7 +570,7 @@ export default async function TeamPage({ params }: Props) {
                       <Link
                         key={p.id}
                         href={`/players/${p.id}?league=NHL`}
-                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                       >
                         <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                           {p.headshot ? (
@@ -602,7 +608,7 @@ export default async function TeamPage({ params }: Props) {
                       <Link
                         key={p.id}
                         href={`/players/${p.id}?league=MLB`}
-                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                       >
                         <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -636,7 +642,7 @@ export default async function TeamPage({ params }: Props) {
                       <Link
                         key={p.id}
                         href={`/players/${p.id}?league=${team.league}`}
-                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                        className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                       >
                         <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
                           <span className="text-xs font-bold text-neutral-500">{p.name.slice(0, 1)}</span>
@@ -661,10 +667,10 @@ export default async function TeamPage({ params }: Props) {
           <section className="grid md:grid-cols-2 gap-5">
             {INJURY_LEAGUES.has(team.league) && (
               <div>
-                <SectionH title="🩹 부상·결장 명단" />
+                <SectionH title="부상·결장 명단" icon={<HeartPulse className="h-5 w-5" aria-hidden />} />
                 <Link
                   href={`/injuries/${team.league}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                 >
                   <span className="min-w-0">
                     <span className="block text-sm font-semibold">{toKoreanTeamName(team.name, team.league)} 부상·결장 명단 보기</span>
@@ -677,16 +683,17 @@ export default async function TeamPage({ params }: Props) {
             {keyPlayers.length > 0 && (
               <div>
                 <SectionH
-                  title="⭐ 시즌 핵심 선수"
+                  title="시즌 핵심 선수"
                   subtitle="시즌 득점·도움 누적 Top"
+                  icon={<Star className="h-5 w-5" aria-hidden />}
                 />
                 <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                    <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                       <tr>
                         <th className="text-left px-4 py-2 font-medium">선수</th>
-                        <th className="text-right px-2 py-2 font-medium">⚽</th>
-                        <th className="text-right px-2 py-2 font-medium">🎯</th>
+                        <th className="px-2 py-2 font-medium"><Goal className="ml-auto h-4 w-4" aria-label="득점" /></th>
+                        <th className="px-2 py-2 font-medium"><Target className="ml-auto h-4 w-4" aria-label="도움" /></th>
                         <th className="text-right px-4 py-2 font-medium">출전</th>
                       </tr>
                     </thead>
@@ -697,7 +704,7 @@ export default async function TeamPage({ params }: Props) {
                             <Link
                               href={`/players/${p.playerId}?league=${team.league}`}
                               prefetch={false}
-                              className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                              className="flex items-center gap-2 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-blue-600 dark:hover:text-blue-400"
                             >
                               {p.photoUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
@@ -747,7 +754,7 @@ export default async function TeamPage({ params }: Props) {
                     const wp = calcWinProbability(homeElo, awayElo, m.league);
                     const myProb = isHome ? wp.home : wp.away;
                     return (
-                      <tr key={m.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
+                      <tr key={m.id} className="transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                         <td className="px-4 py-3 text-xs text-neutral-500 tabular-nums w-32">
                           {m.startTime.toLocaleString("ko-KR", {
                             month: "2-digit",
@@ -808,7 +815,7 @@ export default async function TeamPage({ params }: Props) {
                       L: "text-rose-600 dark:text-rose-400",
                     };
                     return (
-                      <tr key={m.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
+                      <tr key={m.id} className="transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                         <td className="px-4 py-3 text-xs text-neutral-500 tabular-nums w-24">
                           {m.startTime.toISOString().slice(0, 10)}
                         </td>
@@ -905,15 +912,20 @@ function OppLogo({
 function SectionH({
   title,
   subtitle,
+  icon,
 }: {
   title: string;
   subtitle?: string;
+  icon?: React.ReactNode;
 }) {
   return (
     <div className="border-b border-neutral-200 dark:border-neutral-800 pb-3 mb-5">
-      <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight break-keep">
+        {icon && <span className="text-rose-500" aria-hidden>{icon}</span>}
+        {title}
+      </h2>
       {subtitle && (
-        <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>
+        <p className="text-xs text-neutral-500 mt-0.5 break-keep">{subtitle}</p>
       )}
     </div>
   );

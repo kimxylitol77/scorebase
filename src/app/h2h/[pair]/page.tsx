@@ -8,6 +8,8 @@ import type { Metadata } from "next";
 import { cache } from "react";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import AmbientGlow from "@/components/AmbientGlow";
+import { Swords } from "lucide-react";
 
 export const revalidate = 3600;
 
@@ -164,27 +166,38 @@ export default async function H2hPage({ params }: Props) {
   const winPct = (w: number) => (t.n > 0 ? Math.round((w / t.n) * 100) : 0);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <AmbientGlow />
       <header>
-        <p className="text-xs text-neutral-500">
-          <Link href={`/leagues/${teamA.league}`} className="hover:underline" prefetch={false}>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+            <Swords className="h-3 w-3" aria-hidden /> 상대전적
+          </span>
+          <Link
+            href={`/leagues/${teamA.league}`}
+            className="text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-700 dark:hover:text-neutral-300"
+            prefetch={false}
+          >
             {leagueLabel}
-          </Link>{" "}
-          · 상대전적
-        </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">
+          </Link>
+        </div>
+        <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
           {koA} vs {koB} 상대전적
         </h1>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-3 text-sm text-neutral-500 break-keep">
           역대 맞대결 {t.n > 0 ? `${t.n}경기` : "기록"} 기준 — 우리 DB 에 수집된 경기 한정.
         </p>
       </header>
 
       {/* 전적 요약 */}
       {t.n > 0 && (
-        <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <div className="grid grid-cols-3 text-center items-center">
-            <Link href={`/teams/${teamA.id}`} className="group" prefetch={false}>
+            <Link
+              href={`/teams/${teamA.id}`}
+              className="group rounded-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5"
+              prefetch={false}
+            >
               <div className="text-3xl font-black tabular-nums text-blue-600 dark:text-blue-400">
                 {t.winA}
               </div>
@@ -196,7 +209,11 @@ export default async function H2hPage({ params }: Props) {
               <div className="mt-1 text-sm text-neutral-500">무승부</div>
               <div className="text-[11px] text-neutral-400">총 {t.n}전</div>
             </div>
-            <Link href={`/teams/${teamB.id}`} className="group" prefetch={false}>
+            <Link
+              href={`/teams/${teamB.id}`}
+              className="group rounded-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5"
+              prefetch={false}
+            >
               <div className="text-3xl font-black tabular-nums text-rose-600 dark:text-rose-400">
                 {t.winB}
               </div>
@@ -217,7 +234,7 @@ export default async function H2hPage({ params }: Props) {
 
       {/* 다음 맞대결 */}
       {next && (
-        <section className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 p-5">
+        <section className="rounded-2xl bg-emerald-50/60 p-5 ring-1 ring-emerald-500/20 shadow-[0_24px_70px_-30px_rgba(16,185,129,0.25)] dark:bg-emerald-500/[0.06] dark:ring-emerald-500/20 dark:shadow-none">
           <div className="flex items-baseline justify-between">
             <h2 className="font-semibold">다음 맞대결</h2>
             <span className="text-xs text-neutral-500">{kstDateTime(next.startTime)} KST</span>
@@ -240,7 +257,7 @@ export default async function H2hPage({ params }: Props) {
           {next.externalId && (
             <Link
               href={`/live/${next.league}/${next.externalId}`}
-              className="mt-2 inline-block text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+              className="mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-emerald-500/15 dark:text-emerald-400"
               prefetch={false}
             >
               경기 상세 →
@@ -251,9 +268,9 @@ export default async function H2hPage({ params }: Props) {
 
       {/* 최근 맞대결 */}
       {recent.length > 0 && (
-        <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="font-semibold mb-3">최근 맞대결</h2>
-          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          <ul className="divide-y divide-black/5 dark:divide-white/5">
             {recent.map((m) => {
               const aIsHome = m.homeTeamId === a;
               const sA = aIsHome ? m.homeScore : m.awayScore;
@@ -284,7 +301,7 @@ export default async function H2hPage({ params }: Props) {
         </section>
       )}
 
-      <p className="text-xs text-neutral-500 leading-relaxed">
+      <p className="text-xs text-neutral-500 leading-relaxed break-keep">
         ⓘ 전적은 스코어베이스 수집 범위(최근 시즌 위주) 기준이라 역대 통산과 다를 수 있습니다.
         팀 상세:{" "}
         <Link href={`/teams/${teamA.id}`} className="underline" prefetch={false}>

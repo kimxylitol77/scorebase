@@ -98,7 +98,7 @@ export default async function ExpertsPage({ searchParams }: Props) {
           아직 채점된 예측이 없습니다. 경기가 끝나면 적중 전적이 집계돼요.
         </p>
       ) : (
-        <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] divide-y divide-black/5 dark:bg-zinc-950 dark:ring-white/10 dark:divide-white/5">
+        <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] divide-y divide-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:divide-white/5 dark:shadow-none">
           {rows.map((r, i) => (
             <ExpertRow key={r.userId} row={r} index={i} />
           ))}

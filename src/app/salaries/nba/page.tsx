@@ -7,6 +7,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
+import AmbientGlow from "@/components/AmbientGlow";
+import { ArrowLeftRight, Trophy } from "lucide-react";
 
 export const revalidate = 3600; // 1시간 — 연봉 주1회·환율 시간당 갱신이면 충분
 
@@ -90,7 +92,8 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
   const season = rows[0]?.season ?? "2025-26";
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <AmbientGlow />
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
           <Link href="/scores" className="hover:underline">라이브 스코어</Link>
@@ -99,34 +102,37 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
           <span>›</span>
           <span className="text-neutral-600 dark:text-neutral-300">연봉 랭킹</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">💰 NBA 연봉 랭킹</h1>
-        <p className="text-sm text-neutral-500 leading-relaxed">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 연봉 랭킹
+        </span>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NBA 연봉 랭킹</h1>
+        <p className="text-sm text-neutral-500 leading-relaxed break-keep">
           {season} 시즌 선수별 연봉 순위 (달러·원화). 전체 {total.toLocaleString()}명 · 매주 자동 갱신 · 데이터 Basketball Reference.
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
           <Link
             href="/transactions/nba"
-            className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/60 px-3.5 py-1.5 font-semibold text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
           >
-            🔄 NBA 트랜잭션
+            <ArrowLeftRight className="h-3.5 w-3.5" aria-hidden /> NBA 트랜잭션
           </Link>
           <Link
             href="/leagues/NBA"
-            className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/60 px-3.5 py-1.5 font-semibold text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
           >
-            🏀 NBA 경기·순위
+            <Trophy className="h-3.5 w-3.5" aria-hidden /> NBA 경기·순위
           </Link>
         </div>
       </header>
 
       {rows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-neutral-400">연봉 데이터를 불러오는 중입니다.</p>
+        <p className="py-16 text-center text-sm text-neutral-400 break-keep">연봉 데이터를 불러오는 중입니다.</p>
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+          <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/50 text-xs text-neutral-500">
+                <tr className="border-b border-black/5 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.03] text-xs text-neutral-500">
                   <th className="px-3 py-2.5 text-center font-semibold w-10">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold" colSpan={2}>선수</th>
                   <th className="px-2 py-2.5 text-left font-semibold">팀</th>
@@ -147,7 +153,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                   return (
                     <tr
                       key={r.id}
-                      className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition"
+                      className="border-b border-black/5 dark:border-white/5 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
                     >
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                       <td className="pl-2 py-1.5 w-9">
@@ -184,10 +190,10 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                     key={p}
                     href={p === 1 ? "/salaries/nba" : `/salaries/nba?page=${p}`}
                     aria-current={p === page ? "page" : undefined}
-                    className={`min-w-[34px] rounded-lg px-2.5 py-1.5 text-center font-medium transition ${
+                    className={`min-w-[36px] rounded-full px-3 py-1.5 text-center font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                       p === page
-                        ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                        : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                        ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
+                        : "text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
                     }`}
                   >
                     {p}
@@ -200,7 +206,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
         </>
       )}
 
-      <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
+      <footer className="border-t border-black/5 dark:border-white/10 pt-4 text-xs text-neutral-400 leading-relaxed break-keep">
         연봉은 해당 시즌 실계약액(USD) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다. 데이터 제공{" "}
         <a href="https://www.basketball-reference.com/contracts/players.html" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
           Basketball Reference
@@ -219,7 +225,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
 function PageLink({ page, disabled, label }: { page: number; disabled: boolean; label: string }) {
   if (disabled) {
     return (
-      <span className="rounded-lg px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 cursor-default select-none">
+      <span className="rounded-full px-3 py-1.5 text-neutral-300 dark:text-neutral-700 cursor-default select-none">
         {label}
       </span>
     );
@@ -227,7 +233,7 @@ function PageLink({ page, disabled, label }: { page: number; disabled: boolean; 
   return (
     <Link
       href={page === 1 ? "/salaries/nba" : `/salaries/nba?page=${page}`}
-      className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+      className="rounded-full px-3 py-1.5 font-semibold text-neutral-600 ring-1 ring-black/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
     >
       {label}
     </Link>
