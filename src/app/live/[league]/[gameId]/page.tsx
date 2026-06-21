@@ -17,6 +17,7 @@ import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { getOddsHistory } from "@/lib/odds/snapshot-store";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
+import AmbientGlow from "@/components/AmbientGlow";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
 import SoccerH2HCard from "@/components/scores/soccer/SoccerH2HCard";
 import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
@@ -167,14 +168,15 @@ async function renderOrphanSoccerLive(live: LiveMatch, lg: string, gameId: strin
     </div>
   );
   return (
-    <main className="max-w-3xl mx-auto px-4 py-6 space-y-5">
+    <main className="relative max-w-3xl mx-auto px-4 py-6 space-y-5">
+      <AmbientGlow />
       <Link
         href="/scores?sport=soccer"
         className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
       >
         ← 라이브 스코어
       </Link>
-      <div className="rounded-2xl border border-[var(--score-border)] bg-white dark:bg-neutral-900 p-6">
+      <div className="rounded-2xl bg-white p-6 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
         <div className="text-center text-xs font-semibold text-neutral-500 mb-4">
           {flag && (
             <span className="mr-1" aria-hidden>
@@ -775,7 +777,8 @@ export default async function GenericLivePage({ params }: Props) {
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(sportsEventLd) }}
       />
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores" className="hover:underline">
           라이브 스코어
@@ -790,17 +793,17 @@ export default async function GenericLivePage({ params }: Props) {
         </span>
       </nav>
       <header>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight break-keep">
           <Link
             href={`/teams/${match.homeTeam.id}`}
-            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+            className="hover:underline hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           >
             {homeKo}
           </Link>{" "}
           <span className="text-neutral-400">vs</span>{" "}
           <Link
             href={`/teams/${match.awayTeam.id}`}
-            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+            className="hover:underline hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           >
             {awayKo}
           </Link>
@@ -1122,7 +1125,8 @@ async function renderBaseballPage(args: {
   const wpaSeries = computeWpaFromDetailLive(detailLive);
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
+      <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores" className="hover:underline">
           라이브 스코어
@@ -1137,17 +1141,17 @@ async function renderBaseballPage(args: {
         </span>
       </nav>
       <header>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight break-keep">
           <Link
             href={`/teams/${match.awayTeam.id}`}
-            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+            className="hover:underline hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           >
             {awayKo}
           </Link>{" "}
           <span className="text-neutral-400">vs</span>{" "}
           <Link
             href={`/teams/${match.homeTeam.id}`}
-            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition"
+            className="hover:underline hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           >
             {homeKo}
           </Link>
@@ -1297,7 +1301,8 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
       orderBy: { ts: "desc" },
     }));
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+    <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+      <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores?sport=volleyball" className="hover:underline">
           배구 라이브 스코어
@@ -1307,7 +1312,7 @@ async function renderVolleyballPage({ match, lg, gameId, homeKo, awayKo, label }
       </nav>
 
       <header>
-        <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight break-keep">
           {homeKo} vs {awayKo}
         </h1>
         <p className="text-sm text-neutral-500 mt-1 flex items-center gap-2 flex-wrap">
@@ -1420,7 +1425,7 @@ function VolleyballRecentForm({
   const awayNode = teamCol(awayId, awayKo);
   if (!homeNode && !awayNode) return null;
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+    <div className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-3">
         최근 5경기 (세트 스코어)
       </div>
@@ -1473,7 +1478,7 @@ function VolleyballOddsCard({
     : "";
   const company = odds ? (odds.companyId === "2" ? "bet365" : `북메이커 #${odds.companyId}`) : "";
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 space-y-3">
+    <div className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none space-y-3">
       <div className="flex items-center justify-between">
         <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
           {hasPred ? "AI 예측 (Elo + 시장)" : "승률 (배당 기반)"}
@@ -1545,7 +1550,7 @@ function VolleyballStatsCard({
     .filter((r) => VB_STAT_KO[r.id]);
   if (rows.length === 0) return null;
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+    <div className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-2">
         기술 통계 (풀코트)
       </div>
@@ -1559,7 +1564,7 @@ function VolleyballStatsCard({
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} className="border-t border-neutral-100 dark:border-neutral-800">
+            <tr key={r.id} className="border-t border-black/5 dark:border-white/5">
               <td className={`py-1.5 text-left font-bold ${r.h > r.a ? "text-emerald-600 dark:text-emerald-400" : ""}`}>{r.h}</td>
               <td className="py-1.5 text-center text-neutral-500 text-xs">{r.label}</td>
               <td className={`py-1.5 text-right font-bold ${r.a > r.h ? "text-emerald-600 dark:text-emerald-400" : ""}`}>{r.a}</td>

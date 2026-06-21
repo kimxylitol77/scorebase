@@ -12,7 +12,7 @@ import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
 import { getWcGroupStandings } from "@/lib/sports/world-cup-standings";
 import { getTeamGroup } from "@/lib/predict/world-cup-elos";
 import AmbientGlow from "@/components/AmbientGlow";
-import { Trophy } from "lucide-react";
+import { Trophy, Goal } from "lucide-react";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
@@ -271,7 +271,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
       {/* 골 위치 히트맵 (goal/line 누적) */}
       {goalSpots.length >= 3 && (
         <section className="mt-6">
-          <h2 className="text-sm font-bold text-neutral-500 mb-2">⚽ 골 위치 히트맵 <span className="text-neutral-400 font-normal">· 시즌 {goalSpots.length}골</span></h2>
+          <h2 className="text-sm font-bold text-neutral-500 mb-2"><Goal className="inline h-4 w-4 mr-1 text-rose-500 align-[-2px]" aria-hidden /> 골 위치 히트맵 <span className="text-neutral-400 font-normal">· 시즌 {goalSpots.length}골</span></h2>
           <GoalHeatmap spots={goalSpots} teamName={koCountry} />
         </section>
       )}
@@ -283,7 +283,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
           <div className="space-y-2">
             {upcoming.slice(0, 5).map((m) => (
               <Link key={m.id} href={`/scores?sport=soccer&date=${new Date(m.startTime.getTime() + 9 * 3600e3).toISOString().slice(0, 10)}`}
-                className="flex items-center justify-between rounded-xl border border-neutral-200/80 dark:border-neutral-800/80 px-4 py-3 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
+                className="flex items-center justify-between rounded-xl ring-1 ring-black/5 dark:ring-white/10 px-4 py-3 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs text-neutral-400 tabular-nums shrink-0">{fmt(m.startTime)}</span>
                   <span className="font-semibold truncate">vs {oppName(m)}</span>
@@ -325,9 +325,9 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                   </div>
                 </>
               );
-              const cls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
+              const cls = "flex items-center gap-2.5 rounded-xl ring-1 ring-black/5 dark:ring-white/10 p-2";
               return hasTsp.has(p.id) ? (
-                <Link key={p.id} href={`/transfers/${p.id}`} className={`${cls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}>
+                <Link key={p.id} href={`/transfers/${p.id}`} className={`${cls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-black/10 dark:hover:ring-white/20 hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}>
                   {inner}
                 </Link>
               ) : (
@@ -353,7 +353,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                 <h3 className="text-xs font-bold text-neutral-400 mb-2">{label}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {players.map((p) => {
-                    const cardCls = "flex items-center gap-2.5 rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 p-2";
+                    const cardCls = "flex items-center gap-2.5 rounded-xl ring-1 ring-black/5 dark:ring-white/10 p-2";
                     const inner = (
                       <>
                         <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden shrink-0 grid place-items-center">
@@ -374,7 +374,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
                       <Link
                         key={p.id}
                         href={`/transfers/${p.id}`}
-                        className={`${cardCls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}
+                        className={`${cardCls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-black/10 dark:hover:ring-white/20 hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}
                       >
                         {inner}
                       </Link>
@@ -395,8 +395,8 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
       {groupRows.length > 0 && (
         <section className="mt-6">
           <h2 className="text-sm font-bold text-neutral-500 mb-2">{group}조 순위</h2>
-          <div className="rounded-xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden">
-            <div className="grid grid-cols-[1.5rem_1fr_2rem_1.5rem_1.5rem_1.5rem_2.5rem_2.25rem] items-center gap-1 px-2.5 py-2 text-[11px] font-medium text-neutral-400 border-b border-neutral-200/80 dark:border-neutral-800/80">
+          <div className="rounded-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
+            <div className="grid grid-cols-[1.5rem_1fr_2rem_1.5rem_1.5rem_1.5rem_2.5rem_2.25rem] items-center gap-1 px-2.5 py-2 text-[11px] font-medium text-neutral-400 border-b border-black/5 dark:border-white/10">
               <span className="text-center">#</span>
               <span>팀</span>
               <span className="text-center">경기</span>
