@@ -63,17 +63,24 @@ function slugToTeam(slug: string): string {
 
 type TeamInfo = { id: number; logo: string | null };
 
-// NBA Team.logoUrl 은 현재 데이터가 뒤섞여 있어(예: 골든스테이트 row 에 덴버 로고)
-// 로고는 생략하고 팀명+팀페이지 링크만. 로고 데이터 정리 후 추가.
 function NbaTeamCell({ slug, info }: { slug: string; info?: TeamInfo }) {
   if (!slug) return <>—</>;
   const ko = slugToTeam(slug);
+  const inner = (
+    <span className="inline-flex items-center gap-1.5 min-w-0">
+      {info?.logo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={info.logo} alt="" className="w-4 h-4 object-contain shrink-0" />
+      )}
+      <span className="truncate">{ko}</span>
+    </span>
+  );
   return info ? (
-    <Link href={`/teams/${info.id}`} className="hover:text-neutral-900 dark:hover:text-white transition truncate inline-block max-w-full">
-      {ko}
+    <Link href={`/teams/${info.id}`} className="hover:text-neutral-900 dark:hover:text-white transition">
+      {inner}
     </Link>
   ) : (
-    <span className="truncate">{ko}</span>
+    inner
   );
 }
 
