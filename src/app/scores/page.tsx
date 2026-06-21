@@ -758,6 +758,27 @@ export default async function ScoresPage({ searchParams }: Props) {
     const basketballLabelIdSet = new Set(basketballLabelMatchIds);
     const volleyballIdSet = new Set(volleyballMatchIds);
     const idToExt = new Map(matches.map((m) => [m.id, m.externalId] as const));
+    // 골/카드 인시던트 선수 한글화 — 전 매치 incident player_id 수집 → nameKo 맵(1회 쿼리)
+    const incidentNameById: Record<string, string> = {};
+    {
+      const pids = new Set<string>();
+      for (const c of caches) {
+        if (!soccerIdSet.has(c.matchId)) continue;
+        const incs = (c.detailLive as { incidents?: unknown } | null)?.incidents;
+        if (!Array.isArray(incs)) continue;
+        for (const inc of incs) {
+          const v = (inc as Record<string, unknown>).player_id;
+          if (typeof v === "string" && v) pids.add(v);
+        }
+      }
+      if (pids.size > 0) {
+        const rows = await prisma.theSportsPlayer.findMany({
+          where: { id: { in: Array.from(pids) }, nameKo: { not: null } },
+          select: { id: true, nameKo: true },
+        });
+        for (const r of rows) if (r.nameKo) incidentNameById[r.id] = r.nameKo;
+      }
+    }
     for (const c of caches) {
       // 축구 라인업 L 배지 — SoccerLineupSvg 의 ready 조건과 동일하게: 양팀 선발(first=1) 중
       // 좌표 배치된(x>0||y>0) 선수 7명+ 일 때만. squad 명단만(좌표 0,0·선발 0)인 "확정 대기"
@@ -788,8 +809,8 @@ export default async function ScoresPage({ searchParams }: Props) {
         const fs = parseTsFootballScore(dl);
         if (fs) footballScoreByMatchId.set(c.matchId, fs);
         if (dl.incidents) {
-          const goals = tsIncidentsToGoals(dl.incidents);
-          const cards = tsIncidentsToCards(dl.incidents);
+          const goals = tsIncidentsToGoals(dl.incidents, incidentNameById);
+          const cards = tsIncidentsToCards(dl.incidents, incidentNameById);
           if (goals.length > 0) soccerGoalsByMatchId.set(c.matchId, goals);
           if (cards.length > 0) soccerCardsByMatchId.set(c.matchId, cards);
         }

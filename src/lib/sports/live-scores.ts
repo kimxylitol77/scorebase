@@ -1034,6 +1034,7 @@ function tsIncidentMinute(i: Record<string, unknown>): string {
 
 export function tsIncidentsToGoals(
   incidents: unknown,
+  nameById?: Record<string, string>,
 ): SoccerGoal[] {
   if (!Array.isArray(incidents)) return [];
   const out: SoccerGoal[] = [];
@@ -1048,7 +1049,7 @@ export function tsIncidentsToGoals(
     out.push({
       minute,
       side,
-      player: typeof i.player_name === "string" ? i.player_name : "",
+      player: (nameById && typeof i.player_id === "string" && nameById[i.player_id]) || (typeof i.player_name === "string" ? i.player_name : ""),
       ownGoal: false, // TheSports 에 own goal flag 없음 — 추후 보강
       penaltyKick: i.type === 17, // 추정 (관찰 기반)
     });
@@ -1058,6 +1059,7 @@ export function tsIncidentsToGoals(
 
 export function tsIncidentsToCards(
   incidents: unknown,
+  nameById?: Record<string, string>,
 ): SoccerCard[] {
   if (!Array.isArray(incidents)) return [];
   const out: SoccerCard[] = [];
@@ -1069,7 +1071,7 @@ export function tsIncidentsToCards(
     out.push({
       minute,
       side,
-      player: typeof i.player_name === "string" ? i.player_name : "",
+      player: (nameById && typeof i.player_id === "string" && nameById[i.player_id]) || (typeof i.player_name === "string" ? i.player_name : ""),
       kind: i.type === 4 ? "red" : "yellow",
     });
   }

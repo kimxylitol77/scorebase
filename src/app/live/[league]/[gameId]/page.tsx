@@ -375,14 +375,25 @@ export default async function GenericLivePage({ params }: Props) {
   // 라인업 선수 한글 이름 — TheSportsPlayer.nameKo (build-football-player-names-haiku 가 적재).
   // DB miss 시 영문 fallback (SoccerLineupSvg 내부 lastName).
   const lineupNameById: Record<string, string> = {};
-  if (isSoccer && match.theSportsCache?.lineup) {
-    const lu = (match.theSportsCache.lineup as { lineup?: { home?: Record<string, { id?: string; logo?: string }>; away?: Record<string, { id?: string; logo?: string }> } }).lineup;
+  if (isSoccer && match.theSportsCache) {
+    const lu = (match.theSportsCache.lineup as { lineup?: { home?: Record<string, { id?: string; logo?: string }>; away?: Record<string, { id?: string; logo?: string }> } } | null)?.lineup;
     const ids = new Set<string>();
     for (const side of [lu?.home, lu?.away]) {
       if (!side) continue;
       for (const p of Object.values(side)) {
         if (p?.id && p?.logo) playerLogoById[p.id] = p.logo;
         if (p?.id) ids.add(p.id);
+      }
+    }
+    // 골·카드·도움·교체 인시던트 선수도 한글화 (incident player_id 등) — 라인업과 같은 nameKo 맵에 합침
+    const incs = (match.theSportsCache.detailLive as { incidents?: unknown } | null)?.incidents;
+    if (Array.isArray(incs)) {
+      for (const inc of incs) {
+        const i = inc as Record<string, unknown>;
+        for (const k of ["player_id", "assist1_id", "assist2_id", "in_player_id", "out_player_id"]) {
+          const v = i[k];
+          if (typeof v === "string" && v) ids.add(v);
+        }
       }
     }
     if (ids.size > 0) {
@@ -467,7 +478,7 @@ export default async function GenericLivePage({ params }: Props) {
                         minute:
                           typeof i.add_time === "number" ? `${i.time}+${i.add_time}'` : `${i.time}'`,
                         side: (i.position === 1 ? "home" : "away") as "home" | "away",
-                        player: typeof i.player_name === "string" ? i.player_name : "",
+                        player: (typeof i.player_id === "string" && lineupNameById[i.player_id]) || (typeof i.player_name === "string" ? i.player_name : ""),
                         ownGoal: false,
                         penaltyKick: i.type === 17,
                       }));
@@ -538,8 +549,8 @@ export default async function GenericLivePage({ params }: Props) {
         status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
         homeNameKo={homeKo}
         awayNameKo={awayKo}
-        goals={nowIncidents ? tsIncidentsToGoals(nowIncidents) : null}
-        cards={nowIncidents ? tsIncidentsToCards(nowIncidents) : null}
+        goals={nowIncidents ? tsIncidentsToGoals(nowIncidents, lineupNameById) : null}
+        cards={nowIncidents ? tsIncidentsToCards(nowIncidents, lineupNameById) : null}
         trend={nowTrend}
         lineup={nowLineup as Parameters<typeof SoccerNowBlock>[0]["lineup"]}
         nameById={lineupNameById}
