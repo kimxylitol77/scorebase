@@ -186,6 +186,10 @@ model Match {
   playoffConference  String?
   playoffStageId     String?  // TheSports stage_id (시리즈 그룹 안정 키)
 
+  // LoL 인게임 (TheSports) — 세트별 스코어보드·골드추이. externalId=BDL id 라 ts 매치 id 별도 저장해 매칭.
+  lolGames      String?   // JSON: 세트별 선수보드·economy_lines·이벤트 (이름·로고 임베드)
+  lolTsMatchId  String?   // TheSports lol match uuid (인게임 조회·매칭 키)
+
   homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
   articles Article[]

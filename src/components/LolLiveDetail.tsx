@@ -6,6 +6,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CountUp from "./CountUp";
+import LolInGame from "./LolInGame";
+import type { LolGamesData } from "@/lib/sports/lol-ingame";
 
 interface LolLive {
   matchId: number;
@@ -31,6 +33,8 @@ interface Props {
   /** DB Team.id — 팀명/로고 클릭 시 /teams/{id} 이동 */
   homeTeamId?: number;
   awayTeamId?: number;
+  /** 세트별 인게임 데이터 (TheSports lolGames). 있으면 op.gg식 상세 표시. */
+  games?: LolGamesData | null;
 }
 
 const POLL_LIVE_MS = 30_000;
@@ -45,6 +49,7 @@ export default function LolLiveDetail({
   awayLogo,
   homeTeamId,
   awayTeamId,
+  games,
 }: Props) {
   const [live, setLive] = useState<LolLive | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -107,17 +112,26 @@ export default function LolLiveDetail({
     };
   }, [matchId, date]);
 
+  // 인게임(games)은 SSR prop — BDL 라이브 fetch(loaded) 와 독립이라 게이트 밖에서 항상 렌더.
+  const ingame = games && games.sets.length > 0 ? <LolInGame games={games} /> : null;
+
   if (!loaded) {
     return (
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-10 text-center text-sm text-neutral-500 animate-pulse">
-        라이브 정보를 불러오는 중…
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-10 text-center text-sm text-neutral-500 animate-pulse">
+          라이브 정보를 불러오는 중…
+        </div>
+        {ingame}
       </div>
     );
   }
   if (!live) {
     return (
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-10 text-center text-sm text-neutral-500">
-        라이브 정보를 가져오지 못했습니다.
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-10 text-center text-sm text-neutral-500">
+          라이브 정보를 가져오지 못했습니다.
+        </div>
+        {ingame}
       </div>
     );
   }
@@ -255,11 +269,13 @@ export default function LolLiveDetail({
         </div>
       </div>
 
-      {/* in-game stats 미제공 안내 */}
-      <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-3 sm:p-4 text-xs text-neutral-500">
-        ⓘ LCK 게임 내 상세 정보 (킬·골드·드래곤·바론·챔피언 픽/밴) 는 외부 데이터 소스
-        한계로 표시되지 않습니다. 시리즈 점수와 게임별 결과만 자동 갱신됩니다.
-      </div>
+      {/* 인게임 상세 (games 있으면) or 미제공 안내 */}
+      {ingame ?? (
+        <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-3 sm:p-4 text-xs text-neutral-500">
+          ⓘ 이 경기는 게임 내 상세(킬·골드·드래곤·챔피언 픽/밴) 커버리지가 없어 시리즈
+          점수와 게임별 결과만 표시됩니다.
+        </div>
+      )}
     </div>
   );
 }

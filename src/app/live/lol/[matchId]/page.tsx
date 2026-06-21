@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LolLiveDetail from "@/components/LolLiveDetail";
+import type { LolGamesData } from "@/lib/sports/lol-ingame";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
@@ -66,6 +67,9 @@ export default async function LolLivePage({ params }: Props) {
   const date = kstDate(match.startTime);
 
   const extras = await fetchMatchExtras(match);
+  const lolGames = match.lolGames
+    ? (JSON.parse(match.lolGames) as LolGamesData)
+    : null;
 
   // 결론 3카드 데이터 (LoL — 무승부 없음)
   let lolFavored: "home" | "away" | null = null;
@@ -175,6 +179,7 @@ export default async function LolLivePage({ params }: Props) {
         awayLogo={match.awayTeam.logoUrl ?? null}
         homeTeamId={match.homeTeam.id}
         awayTeamId={match.awayTeam.id}
+        games={lolGames}
       />
       <MatchHeadToHead
         homeShortName={homeShort}
