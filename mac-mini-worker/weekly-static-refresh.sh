@@ -46,9 +46,11 @@ log "⑫ NHL 부상자 한글명 (Haiku, ESPN injuries — /injuries/NHL)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nhl-injury-names-haiku.ts' 2>&1 | tail -2 || true
 log "⑬ KBO·NPB 로스터 (koreabaseball·npb scrape — 支配下 1군)"
 npx tsx --env-file=.env.local scripts/build-baseball-rosters.ts 2>&1 | tail -2 || true
+log "⑭ NBA 선수 인덱스·로스터 (ESPN 30팀 로스터 → nba-players.json — 팀페이지 로스터·트랜잭션 한글명·사진. ⑨ 이름사전 뒤 실행 필수)"
+env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-players.ts' 2>&1 | tail -2 || true
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
-for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/baseball-rosters.json; do
+for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/baseball-rosters.json data/nba-players.json; do
   SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
   if [ "$SIZE" -lt 10000 ]; then
     echo "❌ $f 비정상 (${SIZE}B) — push 중단"
