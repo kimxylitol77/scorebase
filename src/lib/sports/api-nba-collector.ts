@@ -14,6 +14,7 @@
 // 전환 시 기존 ESPN-id NBA 매치들과 duplicate 됨 → 마이그레이션 cleanup 필요.
 
 import axios from "axios";
+import { nbaEspnLogo } from "./nba-logos";
 import type { MatchCollector, MatchStatus, NormalizedMatch } from "./types";
 
 const BASE = "https://v2.nba.api-sports.io";
@@ -69,13 +70,14 @@ export async function fetchApiNbaByDate(date: string): Promise<NormalizedMatch[]
         externalId: String(home.id),
         name: home.name,
         shortName: home.code ?? home.nickname ?? undefined,
-        logoUrl: home.logo ?? undefined,
+        // 로고는 이름 기준 ESPN 으로 고정 — api-sports wikimedia(/fr/·/thumb/ 불안정) 대신.
+        logoUrl: nbaEspnLogo(home.name) ?? home.logo ?? undefined,
       },
       awayTeam: {
         externalId: String(visitors.id),
         name: visitors.name,
         shortName: visitors.code ?? visitors.nickname ?? undefined,
-        logoUrl: visitors.logo ?? undefined,
+        logoUrl: nbaEspnLogo(visitors.name) ?? visitors.logo ?? undefined,
       },
       homeScore: typeof homeScore === "number" ? homeScore : undefined,
       awayScore: typeof awayScore === "number" ? awayScore : undefined,
