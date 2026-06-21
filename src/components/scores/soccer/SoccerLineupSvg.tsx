@@ -81,20 +81,25 @@ function PlayerDot({
       className="absolute flex flex-col items-center"
       style={{ top: `${top}%`, left: `${left}%`, transform: "translate(-50%, -50%)" }}
     >
-      <div className="relative w-8 h-8 sm:w-11 sm:h-11 shrink-0">
-        {/* 원형 클립은 wrapper div(rounded-full+overflow-hidden)로 — img 에 직접 border-radius 주면
-            윈도우 브라우저에서 사진이 원이 아니라 타원으로 깨지는 케이스가 있어 회피. */}
-        <div className="w-full h-full rounded-full overflow-hidden border border-white/90 bg-white shadow">
+      <div className="relative w-8 h-8 sm:w-11 sm:h-11 aspect-square shrink-0">
+        {/* 윈도우 타원 깨짐 다중 방어: (1) aspect-square 로 높이 계산이 어긋나도 1:1 강제,
+            (2) img 자체에 rounded-full → overflow-hidden 클립이 transform 조상 아래서 실패해도 self-clip,
+            (3) wrapper overflow-hidden 으로 이중 클립. */}
+        <div
+          className="w-full aspect-square rounded-full overflow-hidden border border-white/90 bg-white shadow"
+          style={{ aspectRatio: "1 / 1" }}
+        >
           {player.logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={player.logo}
               alt={name}
-              className="block w-full h-full object-cover"
+              className="block w-full aspect-square object-cover rounded-full"
+              style={{ aspectRatio: "1 / 1" }}
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-emerald-900/60 flex items-center justify-center text-white text-[10px] sm:text-xs font-bold">
+            <div className="w-full aspect-square rounded-full bg-emerald-900/60 flex items-center justify-center text-white text-[10px] sm:text-xs font-bold">
               {num}
             </div>
           )}
@@ -247,12 +252,12 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         <div className="absolute inset-2 border border-white/25 rounded-sm" />
         {/* 중앙선 */}
         <div className="absolute left-0 right-0 top-1/2 h-px bg-white/25" />
-        {/* 센터 서클 */}
-        <div className="absolute top-1/2 left-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/25" />
+        {/* 센터 서클 — 피치 너비 비례(고정 px 대신) 라 어느 폭에서도 정렬·정원 유지 */}
+        <div className="absolute top-1/2 left-1/2 w-[28%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/25" />
         <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/40" />
-        {/* 페널티 박스 (위/아래) */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2/5 h-[12%] border border-white/25 border-t-0" />
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-2/5 h-[12%] border border-white/25 border-b-0" />
+        {/* 페널티 박스 (위/아래) — 실제 비율에 가깝게 폭 확대 */}
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1/2 h-[13%] border border-white/25 border-t-0" />
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1/2 h-[13%] border border-white/25 border-b-0" />
 
         {/* 선수 */}
         <TeamHalf players={homeStarters} side="home" nameById={nameById} />
