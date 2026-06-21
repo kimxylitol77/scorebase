@@ -39,6 +39,8 @@ export interface LolGameSet {
   redDragon: number;
   blueDragon: number;
   econ: { t: number; v: number }[]; // t=경과 초, v=blue팀 기준 골드차(음수=blue 열세)
+  winnerId: string; // 승팀 teamId (red_score > blue_score)
+  bans: string[]; // 밴 챔프명 (red+blue)
   players: LolGamePlayer[];
 }
 
@@ -109,6 +111,13 @@ export function buildLolGames(
         const [t, v] = String(x).split(":");
         return { t: Number(t) || 0, v: Number(v) || 0 };
       }),
+      winnerId:
+        (Number(s.red_score) || 0) > (Number(s.blue_score) || 0)
+          ? String(s.red_team_id)
+          : String(s.blue_team_id),
+      bans: [...((s.red_ban as string[]) ?? []), ...((s.blue_ban as string[]) ?? [])]
+        .map((id) => heroMap.get(id)?.name)
+        .filter((n): n is string => !!n),
       players: sp,
     };
     const mid = String(s.match_id);

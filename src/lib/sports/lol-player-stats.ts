@@ -1,24 +1,33 @@
-// LOL 시즌 집계 — DB lolGames 파싱 → 선수·챔피언·팀 통계. 선수랭킹·선수카드·강화 통계 공용.
+// LOL 시즌 집계 — DB lolGames 파싱 → 선수·챔피언·팀·밴 통계. 선수랭킹·선수카드·강화 통계 공용.
 import { prisma } from "@/lib/db";
 
 export interface LolPlayerAgg {
   playerId: string;
   name: string;
   teamId: string;
-  games: number; // 세트 수
+  games: number;
   kills: number;
   deaths: number;
   assists: number;
-  kda: number; // (K+A)/D
+  kda: number;
   csPerGame: number;
   csPerMin: number;
+  wins: number;
+  winRate: number; // 0~1
   champs: string[];
 }
 
 export interface LolChampAgg {
   champ: string;
-  picks: number; // 픽된 세트 수
-  players: number; // 픽한 선수 수
+  picks: number;
+  players: number;
+  wins: number;
+  winRate: number; // 0~1
+}
+
+export interface LolBanAgg {
+  champ: string;
+  bans: number;
 }
 
 export interface LolTeamAgg {
@@ -29,7 +38,7 @@ export interface LolTeamAgg {
   avgKills: number;
   avgDragons: number;
   avgTowers: number;
-  avgMin: number; // 평균 게임 시간(분)
+  avgMin: number;
 }
 
 interface SetPlayer {
@@ -52,10 +61,11 @@ interface GameSet {
   blueDragon: number;
   redTower: number;
   blueTower: number;
+  winnerId: string;
+  bans: string[];
   players: SetPlayer[];
 }
 
-// DB lolGames 전체 → 세트 배열 (모든 집계 공용 1회 로드).
 async function loadSets(): Promise<GameSet[]> {
   const matches = await prisma.match.findMany({
     where: { league: "LOL", lolGames: { not: null } },
@@ -73,14 +83,14 @@ export async function aggregateLolPlayers(): Promise<LolPlayerAgg[]> {
   const sets = await loadSets();
   const agg = new Map<
     string,
-    { playerId: string; name: string; teamId: string; games: number; kills: number; deaths: number; assists: number; cs: number; sec: number; champs: Set<string> }
+    { playerId: string; name: string; teamId: string; games: number; kills: number; deaths: number; assists: number; cs: number; sec: number; wins: number; champs: Set<string> }
   >();
   for (const s of sets)
     for (const p of s.players) {
       if (!p.playerId) continue;
       let a = agg.get(p.playerId);
       if (!a) {
-        a = { playerId: p.playerId, name: p.name, teamId: p.teamId, games: 0, kills: 0, deaths: 0, assists: 0, cs: 0, sec: 0, champs: new Set() };
+        a = { playerId: p.playerId, name: p.name, teamId: p.teamId, games: 0, kills: 0, deaths: 0, assists: 0, cs: 0, sec: 0, wins: 0, champs: new Set() };
         agg.set(p.playerId, a);
       }
       a.games++;
@@ -89,6 +99,7 @@ export async function aggregateLolPlayers(): Promise<LolPlayerAgg[]> {
       a.assists += p.a;
       a.cs += p.cs;
       a.sec += s.durationSec;
+      if (s.winnerId === p.teamId) a.wins++;
       a.champs.add(p.champ);
     }
   return [...agg.values()].map((a) => ({
@@ -102,24 +113,34 @@ export async function aggregateLolPlayers(): Promise<LolPlayerAgg[]> {
     kda: a.deaths ? (a.kills + a.assists) / a.deaths : a.kills + a.assists,
     csPerGame: a.games ? a.cs / a.games : 0,
     csPerMin: a.sec ? a.cs / (a.sec / 60) : 0,
+    wins: a.wins,
+    winRate: a.games ? a.wins / a.games : 0,
     champs: [...a.champs],
   }));
 }
 
 export async function aggregateLolChampions(): Promise<LolChampAgg[]> {
   const sets = await loadSets();
-  const agg = new Map<string, { picks: number; players: Set<string> }>();
+  const agg = new Map<string, { picks: number; wins: number; players: Set<string> }>();
   for (const s of sets)
     for (const p of s.players) {
       if (!p.champ || p.champ === "?") continue;
-      const a = agg.get(p.champ) ?? { picks: 0, players: new Set() };
+      const a = agg.get(p.champ) ?? { picks: 0, wins: 0, players: new Set() };
       a.picks++;
+      if (s.winnerId === p.teamId) a.wins++;
       if (p.playerId) a.players.add(p.playerId);
       agg.set(p.champ, a);
     }
   return [...agg.entries()]
-    .map(([champ, a]) => ({ champ, picks: a.picks, players: a.players.size }))
+    .map(([champ, a]) => ({ champ, picks: a.picks, players: a.players.size, wins: a.wins, winRate: a.picks ? a.wins / a.picks : 0 }))
     .sort((x, y) => y.picks - x.picks);
+}
+
+export async function aggregateLolBans(): Promise<LolBanAgg[]> {
+  const sets = await loadSets();
+  const agg = new Map<string, number>();
+  for (const s of sets) for (const b of s.bans || []) agg.set(b, (agg.get(b) || 0) + 1);
+  return [...agg.entries()].map(([champ, bans]) => ({ champ, bans })).sort((x, y) => y.bans - x.bans);
 }
 
 export async function aggregateLolTeams(): Promise<LolTeamAgg[]> {

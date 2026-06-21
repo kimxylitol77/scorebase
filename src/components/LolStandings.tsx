@@ -1,9 +1,10 @@
-// LCK 리그순위 + 선수/챔피언/팀 통계 — 팀순위=data/lol-standings.json(table 백필), 통계=lolGames DB 집계.
+// LCK 리그순위 + 선수/챔피언/밴/팀 통계 — 팀순위=data/lol-standings.json(table 백필), 통계=lolGames DB 집계.
 import rawStandings from "../../data/lol-standings.json";
 import Link from "next/link";
 import {
   aggregateLolPlayers,
   aggregateLolChampions,
+  aggregateLolBans,
   aggregateLolTeams,
 } from "@/lib/sports/lol-player-stats";
 
@@ -24,17 +25,17 @@ interface Data {
 }
 
 const TH = "py-2.5 px-3 text-center";
-const cardCls =
-  "rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden";
+const cardCls = "rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden";
 const headCls = "bg-neutral-50 dark:bg-neutral-900/60 text-xs text-neutral-500";
 
 export default async function LolStandings({ name }: { name: string }) {
   const data = rawStandings as Data;
   const rows = data.standings;
   const teamShort = new Map(rows.map((r) => [r.teamId, r.short]));
-  const [playersAll, champs, teams] = await Promise.all([
+  const [playersAll, champs, bans, teams] = await Promise.all([
     aggregateLolPlayers(),
     aggregateLolChampions(),
+    aggregateLolBans(),
     aggregateLolTeams(),
   ]);
   const players = playersAll.filter((p) => p.games >= 10).sort((a, b) => b.kda - a.kda);
@@ -97,8 +98,8 @@ export default async function LolStandings({ name }: { name: string }) {
                   <th className="py-2.5 px-3 text-left w-10">#</th>
                   <th className="py-2.5 px-2 text-left">선수</th>
                   <th className={TH + " w-16"}>KDA</th>
+                  <th className={TH + " w-16"}>승률</th>
                   <th className={TH + " w-16"}>분당 CS</th>
-                  <th className={TH + " w-14"}>세트</th>
                 </tr>
               </thead>
               <tbody>
@@ -112,8 +113,8 @@ export default async function LolStandings({ name }: { name: string }) {
                       <span className="text-neutral-400 text-xs ml-1.5">{teamShort.get(p.teamId) ?? ""}</span>
                     </td>
                     <td className={TH + " tabular-nums font-semibold"}>{p.kda.toFixed(2)}</td>
+                    <td className={TH + " tabular-nums text-neutral-500"}>{Math.round(p.winRate * 100)}%</td>
                     <td className={TH + " tabular-nums text-neutral-500"}>{p.csPerMin.toFixed(1)}</td>
-                    <td className={TH + " tabular-nums text-neutral-500"}>{p.games}</td>
                   </tr>
                 ))}
               </tbody>
@@ -126,15 +127,15 @@ export default async function LolStandings({ name }: { name: string }) {
       {champs.length > 0 && (
         <section>
           <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-1">챔피언 픽 랭킹</h2>
-          <p className="text-sm text-neutral-500 mb-5">가장 많이 픽된 챔피언</p>
+          <p className="text-sm text-neutral-500 mb-5">가장 많이 픽된 챔피언 · 승률</p>
           <div className={cardCls}>
             <table className="w-full text-sm">
               <thead className={headCls}>
                 <tr>
                   <th className="py-2.5 px-3 text-left w-10">#</th>
                   <th className="py-2.5 px-2 text-left">챔피언</th>
-                  <th className={TH + " w-16"}>픽</th>
-                  <th className={TH + " w-16"}>선수</th>
+                  <th className={TH + " w-14"}>픽</th>
+                  <th className={TH + " w-16"}>승률</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,7 +144,35 @@ export default async function LolStandings({ name }: { name: string }) {
                     <td className="py-2.5 px-3 font-bold tabular-nums">{i + 1}</td>
                     <td className="py-2.5 px-2 font-semibold">{c.champ}</td>
                     <td className={TH + " tabular-nums"}>{c.picks}</td>
-                    <td className={TH + " tabular-nums text-neutral-500"}>{c.players}</td>
+                    <td className={TH + " tabular-nums text-neutral-500"}>{Math.round(c.winRate * 100)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* 밴 랭킹 */}
+      {bans.length > 0 && (
+        <section>
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-1">밴 랭킹</h2>
+          <p className="text-sm text-neutral-500 mb-5">가장 많이 밴된 챔피언</p>
+          <div className={cardCls}>
+            <table className="w-full text-sm">
+              <thead className={headCls}>
+                <tr>
+                  <th className="py-2.5 px-3 text-left w-10">#</th>
+                  <th className="py-2.5 px-2 text-left">챔피언</th>
+                  <th className={TH + " w-16"}>밴</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bans.slice(0, 15).map((b, i) => (
+                  <tr key={b.champ} className="border-t border-neutral-100 dark:border-neutral-800">
+                    <td className="py-2.5 px-3 font-bold tabular-nums">{i + 1}</td>
+                    <td className="py-2.5 px-2 font-semibold">{b.champ}</td>
+                    <td className={TH + " tabular-nums"}>{b.bans}</td>
                   </tr>
                 ))}
               </tbody>
