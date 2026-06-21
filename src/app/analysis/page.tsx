@@ -7,6 +7,7 @@ import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, hitRate } from "@/lib/analysis/format";
 import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { SITE_URL } from "@/lib/site-url";
+import { Trophy, SquarePen, Target, Flame, X } from "lucide-react";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
@@ -46,16 +47,16 @@ const PAGE_SIZE = 20;
 
 // 종목 필터 탭 — Post.sport 값과 1:1 (sport-leagues SportCode 부분집합).
 const SPORT_TABS = [
-  { code: "soccer", label: "축구", emoji: "⚽" },
-  { code: "baseball", label: "야구", emoji: "⚾" },
-  { code: "basketball", label: "농구", emoji: "🏀" },
-  { code: "hockey", label: "하키", emoji: "🏒" },
-  { code: "esports", label: "롤", emoji: "🎮" },
-  { code: "volleyball", label: "배구", emoji: "🏐" },
-  { code: "mma", label: "UFC", emoji: "🥊" },
+  { code: "soccer", label: "축구" },
+  { code: "baseball", label: "야구" },
+  { code: "basketball", label: "농구" },
+  { code: "hockey", label: "하키" },
+  { code: "esports", label: "롤" },
+  { code: "volleyball", label: "배구" },
+  { code: "mma", label: "UFC" },
 ] as const;
-const SPORT_META: Record<string, { label: string; emoji: string }> = Object.fromEntries(
-  SPORT_TABS.map((s) => [s.code, { label: s.label, emoji: s.emoji }]),
+const SPORT_META: Record<string, { label: string }> = Object.fromEntries(
+  SPORT_TABS.map((s) => [s.code, { label: s.label }]),
 );
 
 interface Props {
@@ -152,13 +153,13 @@ export default async function AnalysisListPage({ searchParams }: Props) {
               href="/experts"
               className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 px-4 py-2.5 text-sm font-semibold transition"
             >
-              🏆 랭킹
+              <Trophy className="h-4 w-4" aria-hidden /> 랭킹
             </Link>
             <Link
               href="/analysis/new"
               className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-sm font-semibold transition"
             >
-              ✏️ 글쓰기
+              <SquarePen className="h-4 w-4" aria-hidden /> 글쓰기
             </Link>
           </div>
         </div>
@@ -168,7 +169,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
 
         <details className="group mt-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 px-4 py-3">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-neutral-800 dark:text-neutral-200 [&::-webkit-details-marker]:hidden">
-            <span>🎯 적중률은 어떻게 채점되나요? (= 승률이 아닙니다)</span>
+            <span className="flex items-center gap-1.5"><Target className="h-4 w-4 shrink-0" aria-hidden /> 적중률은 어떻게 채점되나요? (= 승률이 아닙니다)</span>
             <span className="shrink-0 text-neutral-400 transition-transform duration-200 group-open:rotate-45">+</span>
           </summary>
           <div className="mt-3 space-y-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
@@ -227,7 +228,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                   : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
               }`}
             >
-              {s.emoji} {s.label}
+              {s.label}
               {n > 0 && <span className="ml-1 opacity-60 tabular-nums">{n}</span>}
             </Link>
           );
@@ -237,7 +238,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
       {posts.length === 0 ? (
         <p className="text-sm text-neutral-500 py-24 text-center">
           {sportFilter
-            ? `${SPORT_META[sportFilter].emoji} ${SPORT_META[sportFilter].label} 분석글이 아직 없습니다. 첫 글을 남겨보세요!`
+            ? `${SPORT_META[sportFilter].label} 분석글이 아직 없습니다. 첫 글을 남겨보세요!`
             : "아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!"}
         </p>
       ) : (
@@ -269,7 +270,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       <span className="text-xs font-bold text-blue-600 dark:text-blue-400">분석</span>
                       {p.sport && SPORT_META[p.sport] && (
                         <span className="text-[11px] font-semibold text-neutral-500">
-                          {SPORT_META[p.sport].emoji} {SPORT_META[p.sport].label}
+                          {SPORT_META[p.sport].label}
                         </span>
                       )}
                     </span>
@@ -284,7 +285,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                           </span>
                         )}
                         {p.isCorrect === false && (
-                          <span title="예측 미적중" className="opacity-50">❌</span>
+                          <X className="h-3.5 w-3.5 shrink-0 text-neutral-400" aria-label="예측 미적중" />
                         )}
                         <span className="truncate font-semibold text-base">{p.title}</span>
                         {p.commentCount > 0 && (
@@ -296,17 +297,19 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       {/* mobile meta */}
                       <span className="sm:hidden mt-1.5 flex items-center gap-2 text-xs text-neutral-500">
                         {p.sport && SPORT_META[p.sport] && (
-                          <span title={SPORT_META[p.sport].label}>{SPORT_META[p.sport].emoji}</span>
+                          <span className="font-medium">{SPORT_META[p.sport].label}</span>
                         )}
                         <span>
                           {g.emoji} {a.nickname}
                         </span>
                         {a.predTotal > 0 ? (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                            🎯{hitRate(a.predHit, a.predTotal)}%
+                          <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                            <Target className="h-3 w-3" aria-hidden />{hitRate(a.predHit, a.predTotal)}%
                           </span>
                         ) : (
-                          <span className="text-neutral-400">🎯 기록없음</span>
+                          <span className="inline-flex items-center gap-0.5 text-neutral-400">
+                            <Target className="h-3 w-3" aria-hidden /> 기록없음
+                          </span>
                         )}
                         {odds != null && (
                           <>
@@ -327,12 +330,18 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                         <span className="truncate">{a.nickname}</span>
                       </span>
                       {a.predTotal > 0 ? (
-                        <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          🎯 {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
-                          {a.predStreak >= 2 && ` 🔥${a.predStreak}`}
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          <Target className="h-3 w-3" aria-hidden /> {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})
+                          {a.predStreak >= 2 && (
+                            <span className="inline-flex items-center gap-0.5 ml-0.5">
+                              <Flame className="h-3 w-3" aria-hidden />{a.predStreak}
+                            </span>
+                          )}
                         </span>
                       ) : (
-                        <span className="text-[11px] text-neutral-400">🎯 예측 기록 없음</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
+                          <Target className="h-3 w-3" aria-hidden /> 예측 기록 없음
+                        </span>
                       )}
                     </span>
                     <span
