@@ -14,7 +14,9 @@ import rawAbility from "../../../../data/player-ability.json";
 import rawTeamLogos from "../../../../data/team-logos.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
-import CompetitionStatsSection from "@/components/transfers/CompetitionStatsSection";
+import PlayerSeasonOverview from "./PlayerSeasonOverview";
+import PlayerTabs from "./PlayerTabs";
+import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
 import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
@@ -322,6 +324,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   }
   const value = mv?.currentValue ? Math.round(mv.currentValue / 1e6) : null;
   const league = mv?.league && LEAGUE_LABEL[mv.league] ? mv.league : null;
+  // af 선수 프로필(생년월일·키·몸무게) — 헤더 신체 + 대회별 스탯 공유 캐시. ts→af 매핑 없으면 null
+  const afProfile = await getSoccerPlayerBio(id, league);
 
   // 팀 resolve (ts → 우리 Team). 한 ts 가 여러 Team 에 매핑되면 해당 리그 Team 우선(동명 클럽 방지).
   let teamName = "—", teamLogo: string | null = null, ourTeamId: number | null = null;
@@ -476,7 +480,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     ? [...new Set((await prisma.teamSourceId.findMany({ where: { source: "thesports", externalId: natlTsId }, select: { teamId: true } })).map((s) => s.teamId))]
     : [];
   const natlWhere = natlTeamIds.length ? { OR: [{ homeTeamId: { in: natlTeamIds } }, { awayTeamId: { in: natlTeamIds } }] } : {};
-  const natlSelect = { id: true, league: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true } as const;
+  const natlSelect = { id: true, league: true, startTime: true, homeTeamId: true, awayTeamId: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } }, homeScore: true, awayScore: true } as const;
   const [wcMatchRows, frMatchRows] = await Promise.all([
     prisma.match.findMany({ where: { league: "WORLD_CUP", status: "FINISHED", ...natlWhere }, orderBy: { startTime: "desc" }, select: natlSelect }),
     prisma.match.findMany({ where: { league: "INTL_FRIENDLY", status: "FINISHED", ...natlWhere }, orderBy: { startTime: "desc" }, ...(natlTeamIds.length ? {} : { take: 100 }), select: natlSelect }),
@@ -486,23 +490,45 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const natlCaches = natlMatchList.length
     ? await prisma.theSportsMatchCache.findMany({ where: { matchId: { in: natlMatchList.map((m) => m.id) } }, select: { matchId: true, playerStats: true } })
     : [];
-  interface NatlGame { time: number; wc: boolean; year: number; home: string; away: string; hs: number | null; as: number | null; goals: number; assists: number; rating: number }
+  interface NatlGame { time: number; wc: boolean; year: number; home: string; away: string; hs: number | null; as: number | null; goals: number; assists: number; rating: number; keyPasses: number; shots: number; tackles: number; interceptions: number; result: "W" | "L" | "D" | null }
   const natlGames: NatlGame[] = [];
   const koNat = (n: string) => toKoreanTeamName(n) || fifaCountryKo(n) || n;
   for (const c of natlCaches) {
-    const ps = c.playerStats as Array<{ player_id: string; goals?: number; assists?: number; rating?: number; minutes_played?: number }> | null;
+    const ps = c.playerStats as Array<{ player_id: string; goals?: number; assists?: number; rating?: number; minutes_played?: number; key_passes?: number; shots?: number; tackles?: number; interceptions?: number }> | null;
     if (!Array.isArray(ps)) continue;
     const row = ps.find((s) => s.player_id === id);
     if (!row || (row.minutes_played ?? 0) === 0) continue; // 미출전 제외
     const m = natlById.get(c.matchId);
     if (!m) continue;
+    // 승무패 — 선수 소속 국대팀이 홈/원정 어느 쪽인지로 판정 (natlTeamIds 있을 때만)
+    const isHome = natlTeamIds.length ? natlTeamIds.includes(m.homeTeamId) : null;
+    let result: "W" | "L" | "D" | null = null;
+    if (isHome != null && m.homeScore != null && m.awayScore != null) {
+      const my = isHome ? m.homeScore : m.awayScore;
+      const opp = isHome ? m.awayScore : m.homeScore;
+      result = my > opp ? "W" : my < opp ? "L" : "D";
+    }
     natlGames.push({
       time: m.startTime.getTime(), wc: m.league === "WORLD_CUP", year: m.startTime.getUTCFullYear(),
       home: koNat(m.homeTeam.name), away: koNat(m.awayTeam.name), hs: m.homeScore, as: m.awayScore,
       goals: row.goals ?? 0, assists: row.assists ?? 0, rating: Number(row.rating) || 0,
+      keyPasses: row.key_passes ?? 0, shots: row.shots ?? 0, tackles: row.tackles ?? 0, interceptions: row.interceptions ?? 0,
+      result,
     });
   }
   natlGames.sort((a, b) => b.time - a.time);
+  // 월드컵 시즌 합산 — 현 시즌 대회별 스탯에 추가 (natlGames 의 WC 경기 집계)
+  const wcGamesPlayed = natlGames.filter((g) => g.wc);
+  const wcRated = wcGamesPlayed.filter((g) => g.rating > 0);
+  const wcCompRow: CompRow | null = wcGamesPlayed.length
+    ? {
+        leagueName: "World Cup",
+        appearances: wcGamesPlayed.length,
+        goals: wcGamesPlayed.reduce((s, g) => s + g.goals, 0),
+        assists: wcGamesPlayed.reduce((s, g) => s + g.assists, 0),
+        rating: wcRated.length ? wcRated.reduce((s, g) => s + g.rating, 0) / wcRated.length : null,
+      }
+    : null;
   // 대회/연도 그룹 ("{연도} 월드컵" / "{연도} 평가전") — 최신 연도·월드컵 우선, 최신만 펼침
   interface NatlGroup { label: string; wc: boolean; sort: number; games: NatlGame[]; goals: number; assists: number }
   const natlGroupMap = new Map<string, NatlGroup>();
@@ -513,18 +539,35 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     grp.games.push(g); grp.goals += g.goals; grp.assists += g.assists;
   }
   const natlGroups = [...natlGroupMap.values()].sort((a, b) => b.sort - a.sort);
+  const RES_CLS: Record<string, string> = {
+    W: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+    L: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+    D: "bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300",
+  };
   const natlGameRow = (g: NatlGame, i: number) => {
     const d = new Date(g.time + 9 * 3600e3).toISOString().slice(5, 10).replace("-", ".");
+    const chips: [string, number][] = [["도움", g.assists], ["키패스", g.keyPasses], ["슛", g.shots], ["태클", g.tackles], ["인터셉트", g.interceptions]];
     return (
-      <div key={i} className="flex items-center gap-2 rounded-lg border border-neutral-200/70 dark:border-neutral-800/70 px-3 py-2 text-sm">
-        <span className="text-xs text-neutral-400 tabular-nums shrink-0 w-11">{d}</span>
-        <span className="truncate min-w-0 flex-1 text-neutral-600 dark:text-neutral-300">{g.home} <span className="font-bold tabular-nums text-neutral-900 dark:text-white">{g.hs}-{g.as}</span> {g.away}</span>
-        <span className="flex items-center gap-1.5 shrink-0">
-          {g.goals >= 3 && <span className="text-[10px] font-bold text-rose-500">해트트릭</span>}
-          {g.goals > 0 && <span className="font-bold text-emerald-600 dark:text-emerald-400">⚽{g.goals}</span>}
-          {g.assists > 0 && <span className="text-neutral-500 text-xs">🅰️{g.assists}</span>}
-          {g.rating > 0 && <span className="text-amber-600 dark:text-amber-400 font-semibold text-xs">★{g.rating.toFixed(1)}</span>}
-        </span>
+      <div key={i} className="rounded-lg border border-neutral-200/70 dark:border-neutral-800/70 px-3 py-2">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-xs text-neutral-400 tabular-nums shrink-0 w-11">{d}</span>
+          {g.result && (
+            <span className={`shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${RES_CLS[g.result]}`}>{g.result}</span>
+          )}
+          <span className="truncate min-w-0 flex-1 text-neutral-600 dark:text-neutral-300">{g.home} <span className="font-bold tabular-nums text-neutral-900 dark:text-white">{g.hs}-{g.as}</span> {g.away}</span>
+          {g.goals >= 3 && <span className="text-[10px] font-bold text-rose-500 shrink-0">해트트릭</span>}
+          {g.goals > 0 && <span className="font-bold text-emerald-600 dark:text-emerald-400 shrink-0">⚽{g.goals}</span>}
+          {g.rating > 0 && <span className="text-amber-600 dark:text-amber-400 font-semibold text-xs shrink-0">★{g.rating.toFixed(1)}</span>}
+        </div>
+        {chips.some(([, v]) => v > 0) && (
+          <div className="flex flex-wrap gap-1 mt-1.5 pl-[52px]">
+            {chips.filter(([, v]) => v > 0).map(([k, v]) => (
+              <span key={k} className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                {k} {v}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
@@ -558,7 +601,16 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 ⭐ 종합 {ability}
               </span>
             )}
-            {mv?.age != null && <span className="text-sm text-neutral-500">{mv.age}세</span>}
+            {mv?.age != null && (
+              <span className="text-sm text-neutral-500">
+                {mv.age}세{afProfile?.birthDate ? ` (${afProfile.birthDate})` : ""}
+              </span>
+            )}
+            {afProfile?.height && afProfile?.weight && (
+              <span className="text-sm text-neutral-500">
+                {afProfile.height.replace(/\s*cm/i, "")}cm · {afProfile.weight.replace(/\s*kg/i, "")}kg
+              </span>
+            )}
             {ov?.country && (
               <span className="flex items-center gap-1 text-sm text-neutral-500">
                 {ov.flag && (
@@ -595,74 +647,94 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         )}
       </header>
 
-      {/* 국가대표 경기 기록 — 대회/연도 단위로 묶어 접기(최신 펼침, 과거 대회 보존). force-dynamic 실시간 */}
-      {natlGroups.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">국가대표 경기 기록</h2>
-          {natlGroups.map((grp, gi) => (
-            <details key={grp.label} open={gi === 0} className="group rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 overflow-hidden">
-              <summary className="flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
-                <span className={`font-bold ${grp.wc ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{grp.wc ? "🏆 " : ""}{grp.label}</span>
-                <span className="text-xs text-neutral-500">{grp.games.length}경기 · ⚽{grp.goals} 🅰️{grp.assists}</span>
-                <span className="ml-auto text-neutral-400 text-xs transition-transform group-open:rotate-180">▾</span>
-              </summary>
-              <div className="px-2.5 pb-2.5 pt-0.5 space-y-1.5">{grp.games.map(natlGameRow)}</div>
-            </details>
-          ))}
-        </section>
-      )}
-
-      {/* 현 시즌 대회별 스탯 (af) — 축구 선수 페이지 단일화: /players 의 대회별 정보를
-          여기로 통합 (2026-06-10). ts→af 매핑 없으면 자동 미표시. */}
-      <CompetitionStatsSection tsId={id} league={mv?.league ?? null} />
-
-      {/* 시즌별 성적 — 현 시즌(TheSports 상세) + 과거 시즌(Wikipedia). 시즌별 접기/펼치기 */}
-      {seasonEntries.length > 0 && <SeasonAccordion seasons={seasonEntries} />}
-
-      {/* 몸값 추이 차트 */}
-      {points.length >= 2 && (
-        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
-          <div className="flex items-baseline justify-between mb-3">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">시장가치 추이</h2>
-            <span className="text-xs text-neutral-400">최고 €{Math.round(peak)}M</span>
-          </div>
-          <ValueChart points={points} markers={markers} />
-        </section>
-      )}
-
-      {/* 커리어 & 몸값 변동 — 커리어 데이터 있으면 병합 타임라인, 없으면 단순 변동이력 테이블 */}
-      {careerView.length > 0 ? (
-        <CareerTimeline entries={careerView} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} clubLogos={clubLogos} arrivals={arrivals} />
-      ) : hist.length >= 1 ? (
-        <section>
-          <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
-          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
-            <table className="w-full text-sm">
-              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
-                <tr>
-                  <th className="text-left px-3 py-2 font-medium">시점</th>
-                  <th className="text-right px-3 py-2 font-medium">시장가치</th>
-                  <th className="text-right px-3 py-2 font-medium">원화</th>
-                  <th className="text-right px-3 py-2 font-medium">나이</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {[...hist].reverse().map((h, i) => {
-                  const v = Math.round((h.market_value || 0) / 1e6);
-                  return (
-                    <tr key={i}>
-                      <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{fmtDate(h.market_time)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums font-semibold text-cyan-600 dark:text-cyan-400">€{v}M</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">{krw(v)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">{h.age ?? "—"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
+      {/* 탭 — 개요 / 시즌별 / 경기 / 이적 (buildup IA). 헤더·출처는 탭 밖 고정 */}
+      <PlayerTabs
+        tabs={[
+          {
+            key: "overview",
+            label: "개요",
+            content: (
+              <>
+                {/* 시즌 상세 기록 — 레이더 + 90분당 + 슈팅/패스/수비 */}
+                {season && (season.minutes ?? 0) > 0 && (
+                  <PlayerSeasonOverview name={name} stat={season} />
+                )}
+                {/* 현 시즌 대회별 스탯 (af). ts→af 매핑 없으면 자동 미표시 */}
+                <CompetitionStatsSection tsId={id} league={mv?.league ?? null} extraRows={wcCompRow ? [wcCompRow] : []} />
+                {/* 몸값 추이 차트 */}
+                {points.length >= 2 && (
+                  <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+                    <div className="flex items-baseline justify-between mb-3">
+                      <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">시장가치 추이</h2>
+                      <span className="text-xs text-neutral-400">최고 €{Math.round(peak)}M</span>
+                    </div>
+                    <ValueChart points={points} markers={markers} />
+                  </section>
+                )}
+                {/* 커리어 & 몸값 변동 — 시장가치 추이 바로 아래 (개요) */}
+                {careerView.length > 0 ? (
+                  <CareerTimeline entries={careerView} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} clubLogos={clubLogos} arrivals={arrivals} />
+                ) : hist.length >= 1 ? (
+                  <section>
+                    <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
+                    <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+                      <table className="w-full text-sm">
+                        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+                          <tr>
+                            <th className="text-left px-3 py-2 font-medium">시점</th>
+                            <th className="text-right px-3 py-2 font-medium">시장가치</th>
+                            <th className="text-right px-3 py-2 font-medium">원화</th>
+                            <th className="text-right px-3 py-2 font-medium">나이</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                          {[...hist].reverse().map((h, i) => {
+                            const v = Math.round((h.market_value || 0) / 1e6);
+                            return (
+                              <tr key={i}>
+                                <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{fmtDate(h.market_time)}</td>
+                                <td className="px-3 py-2 text-right tabular-nums font-semibold text-cyan-600 dark:text-cyan-400">€{v}M</td>
+                                <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">{krw(v)}</td>
+                                <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">{h.age ?? "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                ) : null}
+              </>
+            ),
+          },
+          ...(seasonEntries.length > 0
+            ? [{ key: "seasons", label: "시즌별", content: <SeasonAccordion seasons={seasonEntries} /> }]
+            : []),
+          ...(natlGroups.length > 0
+            ? [{
+                key: "matches",
+                label: "경기",
+                content: (
+                  <section className="space-y-2">
+                    {natlGroups.map((grp, gi) => (
+                      <details key={grp.label} open={gi === 0} className="group rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 overflow-hidden">
+                        <summary className="flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
+                          <span className={`font-bold ${grp.wc ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{grp.wc ? "🏆 " : ""}{grp.label}</span>
+                          <span className="text-xs text-neutral-500">{grp.games.length}경기 · ⚽{grp.goals} 🅰️{grp.assists}</span>
+                          <span className="ml-auto text-neutral-400 text-xs transition-transform group-open:rotate-180">▾</span>
+                        </summary>
+                        <div className="px-2.5 pb-2.5 pt-0.5 space-y-1.5">{grp.games.map(natlGameRow)}</div>
+                      </details>
+                    ))}
+                  </section>
+                ),
+              }]
+            : []),
+          {
+            key: "transfers",
+            label: "이적",
+            content: (
+              <>
 
       {/* 이적 기록 */}
       <section>
@@ -705,6 +777,11 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           </div>
         )}
       </section>
+              </>
+            ),
+          },
+        ]}
+      />
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
         ⓘ 시장가치·이적·현 시즌 성적 = 스코어베이스 데이터 · 국적·커리어·과거 시즌 = Wikipedia·Wikidata. 원화는 €1 = ₩{EUR_KRW.toLocaleString()} 기준 환산.
