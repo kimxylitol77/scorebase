@@ -265,6 +265,39 @@ export interface NhlPlayerLanding {
   /** 시즌 누적 (skater 또는 goalie) */
   featured?: NhlFeaturedStats;
   career?: NhlCareerTotals;
+  /** 시즌별 NHL 정규시즌 기록 (최신순). seasonTotals 중 leagueAbbrev=NHL·정규만. */
+  seasons?: NhlSeasonRow[];
+  /** 수상 이력 (트로피명 + 횟수). */
+  awards?: NhlAward[];
+}
+
+export interface NhlSeasonRow {
+  season: number; // 20252026
+  label: string; // "2025-26"
+  team: string;
+  gp: number;
+  isGoalie: boolean;
+  // skater
+  goals: number;
+  assists: number;
+  points: number;
+  plusMinus: number;
+  pim: number;
+  ppGoals: number;
+  shots: number;
+  toi: string; // 평균 TOI "22:59"
+  // goalie
+  wins?: number;
+  losses?: number;
+  otLosses?: number;
+  savePctg?: number;
+  gaa?: number;
+  shutouts?: number;
+}
+
+export interface NhlAward {
+  name: string;
+  count: number;
 }
 
 export interface NhlFeaturedStats {
@@ -324,6 +357,34 @@ interface RawNhlLanding {
   draftDetails?: { year?: number; round?: number; overallPick?: number };
   featuredStats?: { regularSeason?: { subSeason?: Record<string, number> } };
   careerTotals?: { regularSeason?: Record<string, number> };
+  seasonTotals?: Array<{
+    season: number;
+    gameTypeId?: number;
+    leagueAbbrev?: string;
+    teamName?: { default?: string };
+    gamesPlayed?: number;
+    goals?: number;
+    assists?: number;
+    points?: number;
+    plusMinus?: number;
+    pim?: number;
+    powerPlayGoals?: number;
+    shots?: number;
+    avgToi?: string;
+    wins?: number;
+    losses?: number;
+    otLosses?: number;
+    savePctg?: number;
+    goalsAgainstAvg?: number;
+    shutouts?: number;
+  }>;
+  awards?: Array<{ trophy?: { default?: string }; seasons?: unknown[] }>;
+}
+
+// NHL 시즌 코드(20252026) → "2025-26".
+function nhlSeasonLabel(season: number): string {
+  const s = String(season);
+  return s.length === 8 ? `${s.slice(0, 4)}-${s.slice(6, 8)}` : s;
 }
 
 export async function fetchNhlPlayerLanding(
@@ -339,6 +400,34 @@ export async function fetchNhlPlayerLanding(
     if (!d.playerId) return null;
     const featured = d.featuredStats?.regularSeason?.subSeason ?? {};
     const career = d.careerTotals?.regularSeason ?? {};
+    const isGoalie = d.position === "G";
+    // seasonTotals 는 주니어·국제대회까지 섞여 있음 → NHL 정규시즌만.
+    const seasons: NhlSeasonRow[] = (d.seasonTotals ?? [])
+      .filter((s) => s.leagueAbbrev === "NHL" && s.gameTypeId === 2)
+      .map((s) => ({
+        season: s.season,
+        label: nhlSeasonLabel(s.season),
+        team: s.teamName?.default ?? "",
+        gp: s.gamesPlayed ?? 0,
+        isGoalie,
+        goals: s.goals ?? 0,
+        assists: s.assists ?? 0,
+        points: s.points ?? 0,
+        plusMinus: s.plusMinus ?? 0,
+        pim: s.pim ?? 0,
+        ppGoals: s.powerPlayGoals ?? 0,
+        shots: s.shots ?? 0,
+        toi: s.avgToi ?? "",
+        wins: s.wins,
+        losses: s.losses,
+        otLosses: s.otLosses,
+        savePctg: s.savePctg,
+        gaa: s.goalsAgainstAvg,
+        shutouts: s.shutouts,
+      }));
+    const awards: NhlAward[] = (d.awards ?? [])
+      .filter((a) => a.trophy?.default)
+      .map((a) => ({ name: a.trophy!.default as string, count: a.seasons?.length ?? 0 }));
     return {
       pid: d.playerId,
       firstName: d.firstName?.default ?? "",
@@ -361,6 +450,8 @@ export async function fetchNhlPlayerLanding(
       draftOverall: d.draftDetails?.overallPick,
       featured,
       career: career as NhlCareerTotals,
+      seasons,
+      awards,
     };
   } catch (e) {
     console.warn("[nhl] landing 실패:", (e as Error).message);

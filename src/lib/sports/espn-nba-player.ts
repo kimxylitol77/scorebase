@@ -96,3 +96,135 @@ export async function fetchNbaEspnStats(espnId: string): Promise<{ avg: NbaSeaso
   const [avg, recent] = await Promise.all([getEspnAvg(espnId), getEspnGames(espnId)]);
   return { avg, recent };
 }
+
+/* ============================================================
+ * 시즌별 career 기록 + 통산 평균 — /stats (averages category).
+ * ==========================================================*/
+
+export interface NbaSeasonRow {
+  year: number; // 2024 (없으면 0 = 통산)
+  label: string; // "2023-24" 또는 "통산"
+  teamSlug: string;
+  gp: number; gs: number; min: number;
+  pts: number; reb: number; oreb: number; dreb: number;
+  ast: number; stl: number; blk: number; to: number; pf: number;
+  fgPct: number; fg3Pct: number; ftPct: number;
+}
+
+interface EspnStatCat {
+  name: string; labels: string[];
+  statistics?: Array<{ season?: { year?: number; displayName?: string }; teamSlug?: string; stats: string[] }>;
+  totals?: string[];
+}
+
+// labels 동적 인덱싱(ESPN 순서 변동 대비). made-attempted 컬럼은 "7.9-18.9" 형식이라 % 만 사용.
+function seasonRow(labels: string[], stats: string[], year: number, label: string, teamSlug: string): NbaSeasonRow {
+  const num = (l: string) => {
+    const i = labels.indexOf(l);
+    return i >= 0 ? parseFloat(stats[i]) || 0 : 0;
+  };
+  return {
+    year, label, teamSlug,
+    gp: num("GP"), gs: num("GS"), min: num("MIN"),
+    pts: num("PTS"), reb: num("REB"), oreb: num("OR"), dreb: num("DR"),
+    ast: num("AST"), stl: num("STL"), blk: num("BLK"), to: num("TO"), pf: num("PF"),
+    fgPct: num("FG%"), fg3Pct: num("3P%"), ftPct: num("FT%"),
+  };
+}
+
+const getEspnSeasons = unstable_cache(
+  async (espnId: string): Promise<{ seasons: NbaSeasonRow[]; career: NbaSeasonRow | null }> => {
+    const d = await espnJson(`${ESPN}/${espnId}/stats`);
+    const cats = d?.categories as EspnStatCat[] | undefined;
+    const avg = cats?.find((c) => c.name === "averages");
+    if (!avg?.labels || !avg.statistics?.length) return { seasons: [], career: null };
+    const seasons = avg.statistics
+      .filter((s) => Array.isArray(s.stats) && s.stats.length === avg.labels.length)
+      .map((s) =>
+        seasonRow(avg.labels, s.stats, s.season?.year ?? 0, s.season?.displayName ?? "—", s.teamSlug ?? ""),
+      );
+    const career = avg.totals?.length === avg.labels.length
+      ? seasonRow(avg.labels, avg.totals, 0, "통산", "")
+      : null;
+    return { seasons, career };
+  },
+  ["espn-nba-seasons"], { revalidate: 1800 },
+);
+
+export const fetchNbaEspnSeasons = getEspnSeasons;
+
+/* ============================================================
+ * 스플릿 — /splits (홈/원정·승/패·월별). names 동적 매핑.
+ * ==========================================================*/
+
+export interface NbaSplitRow {
+  label: string;
+  gp: number; pts: number; reb: number; ast: number; fgPct: number;
+}
+export interface NbaSplits {
+  home: NbaSplitRow | null; away: NbaSplitRow | null;
+  wins: NbaSplitRow | null; losses: NbaSplitRow | null;
+  byMonth: NbaSplitRow[];
+}
+
+interface EspnSplitCat { name: string; splits?: Array<{ displayName: string; stats: string[] }> }
+
+const MONTH_KO: Record<string, string> = {
+  October: "10월", November: "11월", December: "12월", January: "1월",
+  February: "2월", March: "3월", April: "4월",
+};
+
+const getEspnSplits = unstable_cache(
+  async (espnId: string): Promise<NbaSplits | null> => {
+    const d = await espnJson(`${ESPN}/${espnId}/splits`);
+    const names = d?.names as string[] | undefined;
+    const cats = d?.splitCategories as EspnSplitCat[] | undefined;
+    if (!names || !cats) return null;
+    const row = (label: string, stats: string[]): NbaSplitRow => {
+      const v = (n: string) => {
+        const i = names.indexOf(n);
+        return i >= 0 ? parseFloat(stats[i]) || 0 : 0;
+      };
+      return { label, gp: v("gamesPlayed"), pts: v("avgPoints"), reb: v("avgRebounds"), ast: v("avgAssists"), fgPct: v("fieldGoalPct") };
+    };
+    const find = (catName: string, splitName: string, label: string): NbaSplitRow | null => {
+      const sp = cats.find((c) => c.name === catName)?.splits?.find((s) => s.displayName === splitName);
+      return sp?.stats ? row(label, sp.stats) : null;
+    };
+    // splitCategories.name 은 'split'/'byMonth'/'byResult' (displayName 은 'Month'/'Result').
+    const monthCat = cats.find((c) => c.name === "byMonth");
+    const byMonth = (monthCat?.splits ?? [])
+      .filter((s) => MONTH_KO[s.displayName] && s.stats)
+      .map((s) => row(MONTH_KO[s.displayName], s.stats));
+    return {
+      home: find("split", "Home", "홈"),
+      away: find("split", "Road", "원정"),
+      wins: find("byResult", "Wins", "승리"),
+      losses: find("byResult", "Losses", "패배"),
+      byMonth,
+    };
+  },
+  ["espn-nba-splits"], { revalidate: 1800 },
+);
+
+export const fetchNbaEspnSplits = getEspnSplits;
+
+/* ============================================================
+ * 수상 이력 — /bio (awards). All-NBA·All-Star·MVP 등.
+ * ==========================================================*/
+
+export interface NbaAward { name: string; count: string; seasons: string[] }
+
+const getEspnAwards = unstable_cache(
+  async (espnId: string): Promise<NbaAward[]> => {
+    const d = await espnJson(`${ESPN}/${espnId}/bio`);
+    const awards = d?.awards as Array<{ name?: string; displayCount?: string; seasons?: string[] }> | undefined;
+    if (!awards) return [];
+    return awards
+      .filter((a) => a.name)
+      .map((a) => ({ name: a.name as string, count: a.displayCount ?? "", seasons: a.seasons ?? [] }));
+  },
+  ["espn-nba-awards"], { revalidate: 86400 },
+);
+
+export const fetchNbaEspnAwards = getEspnAwards;
