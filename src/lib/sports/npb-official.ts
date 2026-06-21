@@ -17,6 +17,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { ipToInnings } from "./kbo-official";
+import type { PitcherSeasonRow, HitterSeasonRow } from "./mlb-player-extras";
 
 const BASE = "https://npb.jp";
 const HEADERS = {
@@ -40,6 +41,20 @@ const NPB_TEAM_JP_TO_KOR: Record<string, string> = {
   "オリックス・バファローズ": "오릭스 버팔로스",
   東北楽天ゴールデンイーグルス: "도호쿠 라쿠텐 골든이글스",
   埼玉西武ライオンズ: "사이타마 세이부 라이온스",
+  // 시즌 테이블 所属球団 약칭 표기 (year-by-year 팀 컬럼용)
+  読売: "요미우리",
+  阪神: "한신",
+  中日: "주니치",
+  広島: "히로시마",
+  横浜: "요코하마",
+  ＤｅＮＡ: "DeNA",
+  ヤクルト: "야쿠르트",
+  ソフトバンク: "소프트뱅크",
+  日本ハム: "닛폰햄",
+  ロッテ: "롯데",
+  オリックス: "오릭스",
+  楽天: "라쿠텐",
+  西武: "세이부",
 };
 
 export function npbTeamJpToKor(jp: string | undefined): string | undefined {
@@ -547,6 +562,130 @@ export async function fetchNpbHitterStats(pid: string): Promise<NpbHitterStats |
   } catch {
     return null;
   }
+}
+
+/* ============================================================
+ * 연도별(year-by-year) + 통산 — 같은 player 페이지가 곧 연도별 성적표.
+ * 기존 fetchNpb*Stats 는 최근 1행만 쓰므로, 전체 행을 PitcherSeasonRow/
+ * HitterSeasonRow 로 변환하는 별도 함수. (스플릿은 npb.jp 미제공.)
+ * ==========================================================*/
+
+const npbWhip = (h?: number, bb?: number, ip?: string): string | undefined => {
+  const innings = ipToInnings(ip);
+  if (!innings || innings <= 0 || h == null || bb == null) return undefined;
+  return ((h + bb) / innings).toFixed(2);
+};
+const npbK9 = (k?: number, ip?: string): string | undefined => {
+  const innings = ipToInnings(ip);
+  if (!innings || innings <= 0 || k == null) return undefined;
+  return ((k * 9) / innings).toFixed(1);
+};
+
+export async function fetchNpbPitcherYearlyRaw(
+  pid: string,
+): Promise<{ seasons: PitcherSeasonRow[]; career: PitcherSeasonRow | null }> {
+  const url = `${BASE}/bis/players/${pid}.html`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, { headers: HEADERS, timeout: 12000, responseType: "text" });
+    html = r.data;
+  } catch {
+    return { seasons: [], career: null };
+  }
+  const $ = cheerio.load(html);
+  const table = $("#tablefix_p").first();
+  if (table.length === 0) return { seasons: [], career: null };
+  const headers = table.find("thead th").map((_, th) => $(th).text().trim()).get();
+  if (headers.length === 0) return { seasons: [], career: null };
+  const ipIdx = headers.indexOf("投球回");
+  const seasons: PitcherSeasonRow[] = [];
+  let career: PitcherSeasonRow | null = null;
+  table.find("tbody tr.registerStats").each((_, tr) => {
+    const cells = $(tr).find("> td");
+    if (cells.length !== headers.length) return;
+    const at = (k: string): string | undefined => {
+      const i = headers.indexOf(k);
+      return i >= 0 ? cells.eq(i).text().trim() || undefined : undefined;
+    };
+    const yr = at("年度") ?? "";
+    const ip = ipIdx >= 0 ? parseInningCell(cells.eq(ipIdx)) : undefined;
+    const h = toNum(at("安打"));
+    const bb = toNum(at("四球"));
+    const so = toNum(at("三振"));
+    const row: PitcherSeasonRow = {
+      season: yr,
+      teamLabel: npbTeamJpToKor((at("所属球団") ?? "").replace(/\s+/g, "")) ?? "",
+      g: toNum(at("登板")),
+      w: toNum(at("勝利")),
+      l: toNum(at("敗北")),
+      sv: toNum(at("セーブ")),
+      ip,
+      era: at("防御率"),
+      whip: npbWhip(h, bb, ip),
+      so,
+      bb,
+      hr: toNum(at("本塁打")),
+      k9: npbK9(so, ip),
+    };
+    if (yr === "通算") career = row;
+    else if (/^\d{4}$/.test(yr)) seasons.push(row);
+  });
+  return { seasons, career };
+}
+
+export async function fetchNpbHitterYearlyRaw(
+  pid: string,
+): Promise<{ seasons: HitterSeasonRow[]; career: HitterSeasonRow | null }> {
+  const url = `${BASE}/bis/players/${pid}.html`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, { headers: HEADERS, timeout: 12000, responseType: "text" });
+    html = r.data;
+  } catch {
+    return { seasons: [], career: null };
+  }
+  const $ = cheerio.load(html);
+  const table = $("#tablefix_b").first();
+  if (table.length === 0) return { seasons: [], career: null };
+  const headers = table.find("thead th").map((_, th) => $(th).text().trim()).get();
+  if (headers.length === 0) return { seasons: [], career: null };
+  const seasons: HitterSeasonRow[] = [];
+  let career: HitterSeasonRow | null = null;
+  table.find("tbody tr.registerStats").each((_, tr) => {
+    const cells = $(tr).find("> td");
+    if (cells.length !== headers.length) return;
+    const at = (k: string): string | undefined => {
+      const i = headers.indexOf(k);
+      return i >= 0 ? cells.eq(i).text().trim() || undefined : undefined;
+    };
+    const yr = at("年度") ?? "";
+    const obp = at("出塁率");
+    const slg = at("長打率");
+    const ops =
+      obp && slg && Number.isFinite(parseFloat(obp)) && Number.isFinite(parseFloat(slg))
+        ? (parseFloat(obp) + parseFloat(slg)).toFixed(3)
+        : undefined;
+    const row: HitterSeasonRow = {
+      season: yr,
+      teamLabel: npbTeamJpToKor((at("所属球団") ?? "").replace(/\s+/g, "")) ?? "",
+      g: toNum(at("試合")),
+      pa: toNum(at("打席")),
+      avg: at("打率"),
+      obp,
+      slg,
+      ops,
+      hr: toNum(at("本塁打")),
+      rbi: toNum(at("打点")),
+      r: toNum(at("得点")),
+      h: toNum(at("安打")),
+      bb: toNum(at("四球")),
+      so: toNum(at("三振")),
+      sb: toNum(at("盗塁")),
+    };
+    if (yr === "通算") career = row;
+    else if (/^\d{4}$/.test(yr)) seasons.push(row);
+  });
+  return { seasons, career };
 }
 
 /** NPB player photo URL — pid 매칭된 선수의 npb.jp profile page 에서 추출. */

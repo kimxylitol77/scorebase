@@ -289,7 +289,7 @@ export async function MlbHitterView({
       <PlayerTabs
         tabs={[
           { key: "overview", label: "개요", content: overview },
-          { key: "seasons", label: "시즌기록", content: <HitterSeasonTable rows={career} /> },
+          { key: "seasons", label: "시즌기록", content: <HitterSeasonTable rows={career} advanced /> },
           { key: "games", label: "경기", content: <HitterGameLog games={recent} /> },
           { key: "splits", label: "스플릿", content: <SplitsView splits={splits} group="hitting" /> },
         ]}
@@ -461,7 +461,7 @@ export async function MlbPitcherView({
       <PlayerTabs
         tabs={[
           { key: "overview", label: "개요", content: overview },
-          { key: "seasons", label: "시즌기록", content: <PitcherSeasonTable rows={career} /> },
+          { key: "seasons", label: "시즌기록", content: <PitcherSeasonTable rows={career} advanced /> },
           { key: "games", label: "경기", content: <PitcherGameLog games={recent} /> },
           { key: "splits", label: "스플릿", content: <SplitsView splits={splits} group="pitching" /> },
         ]}

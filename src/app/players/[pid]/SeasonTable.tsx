@@ -1,5 +1,5 @@
-// 시즌별(year-by-year) 기록 테이블 — 기본 + 고급스탯(wRC+/WAR/ISO 또는 FIP/ERA-).
-// 최신 시즌이 위. 가로 스크롤.
+// 시즌별(year-by-year) 기록 테이블 — 기본 컬럼 + advanced(고급스탯) 토글.
+// MLB(advanced=true): wRC+/WAR/ISO·FIP/ERA-/WAR 표시. KBO/NPB(false): 전통 스탯만.
 
 import type { HitterSeasonRow, PitcherSeasonRow } from "@/lib/sports/mlb-player-extras";
 
@@ -39,7 +39,13 @@ function Td({
   );
 }
 
-export function HitterSeasonTable({ rows }: { rows: HitterSeasonRow[] }) {
+export function HitterSeasonTable({
+  rows,
+  advanced = false,
+}: {
+  rows: HitterSeasonRow[];
+  advanced?: boolean;
+}) {
   if (rows.length === 0)
     return <p className="text-sm text-neutral-500">시즌 기록이 없습니다.</p>;
   const ordered = rows.slice().reverse();
@@ -62,11 +68,17 @@ export function HitterSeasonTable({ rows }: { rows: HitterSeasonRow[] }) {
             <Th>RBI</Th>
             <Th>R</Th>
             <Th>SB</Th>
-            <Th>BB%</Th>
-            <Th>K%</Th>
-            <Th>ISO</Th>
-            <Th accent>wRC+</Th>
-            <Th accent>WAR</Th>
+            <Th>BB</Th>
+            <Th>SO</Th>
+            {advanced && (
+              <>
+                <Th>ISO</Th>
+                <Th>BB%</Th>
+                <Th>K%</Th>
+                <Th accent>wRC+</Th>
+                <Th accent>WAR</Th>
+              </>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -88,11 +100,17 @@ export function HitterSeasonTable({ rows }: { rows: HitterSeasonRow[] }) {
               <Td>{v(r.rbi)}</Td>
               <Td muted>{v(r.r)}</Td>
               <Td muted>{v(r.sb)}</Td>
-              <Td muted>{pct(r.bbPct)}</Td>
-              <Td muted>{pct(r.kPct)}</Td>
-              <Td>{v(r.iso)}</Td>
-              <Td accent>{v(r.wrcPlus)}</Td>
-              <Td accent>{v(r.war)}</Td>
+              <Td muted>{v(r.bb)}</Td>
+              <Td muted>{v(r.so)}</Td>
+              {advanced && (
+                <>
+                  <Td>{v(r.iso)}</Td>
+                  <Td muted>{pct(r.bbPct)}</Td>
+                  <Td muted>{pct(r.kPct)}</Td>
+                  <Td accent>{v(r.wrcPlus)}</Td>
+                  <Td accent>{v(r.war)}</Td>
+                </>
+              )}
             </tr>
           ))}
         </tbody>
@@ -101,7 +119,13 @@ export function HitterSeasonTable({ rows }: { rows: HitterSeasonRow[] }) {
   );
 }
 
-export function PitcherSeasonTable({ rows }: { rows: PitcherSeasonRow[] }) {
+export function PitcherSeasonTable({
+  rows,
+  advanced = false,
+}: {
+  rows: PitcherSeasonRow[];
+  advanced?: boolean;
+}) {
   if (rows.length === 0)
     return <p className="text-sm text-neutral-500">시즌 기록이 없습니다.</p>;
   const ordered = rows.slice().reverse();
@@ -124,10 +148,15 @@ export function PitcherSeasonTable({ rows }: { rows: PitcherSeasonRow[] }) {
             <Th accent>WHIP</Th>
             <Th>K</Th>
             <Th>BB</Th>
+            <Th>HR</Th>
             <Th>K/9</Th>
-            <Th accent>FIP</Th>
-            <Th>ERA-</Th>
-            <Th accent>WAR</Th>
+            {advanced && (
+              <>
+                <Th accent>FIP</Th>
+                <Th>ERA-</Th>
+                <Th accent>WAR</Th>
+              </>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -149,10 +178,15 @@ export function PitcherSeasonTable({ rows }: { rows: PitcherSeasonRow[] }) {
               <Td accent>{v(r.whip)}</Td>
               <Td>{v(r.so)}</Td>
               <Td muted>{v(r.bb)}</Td>
+              <Td muted>{v(r.hr)}</Td>
               <Td muted>{v(r.k9)}</Td>
-              <Td accent>{v(r.fip)}</Td>
-              <Td muted>{v(r.eraMinus)}</Td>
-              <Td accent>{v(r.war)}</Td>
+              {advanced && (
+                <>
+                  <Td accent>{v(r.fip)}</Td>
+                  <Td muted>{v(r.eraMinus)}</Td>
+                  <Td accent>{v(r.war)}</Td>
+                </>
+              )}
             </tr>
           ))}
         </tbody>

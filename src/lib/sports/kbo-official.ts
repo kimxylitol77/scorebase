@@ -11,6 +11,12 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
+import type {
+  PitcherSeasonRow,
+  HitterSeasonRow,
+  PlayerSplits,
+  SplitRow,
+} from "./mlb-player-extras";
 
 const BASE = "https://www.koreabaseball.com";
 const HEADERS = {
@@ -708,6 +714,223 @@ export async function fetchKboHitterStats(
   } catch {
     return null;
   }
+}
+
+/* ============================================================
+ * 연도별(year-by-year) + 통산 — Total.aspx
+ * 스플릿 — Situation.aspx(vs 좌우) + Game.aspx(홈/원정·월별)
+ * 선수 페이지 4탭 강화용. MLB 와 동일 타입(PitcherSeasonRow 등) 재사용.
+ * ==========================================================*/
+
+// Total/Situation/Game 공통 — 지정 헤더를 모두 가진 테이블의 헤더 + tbody 행 추출.
+// KBO 표는 행 첫 셀(연도/통산/구분)이 <th> 라서 헤더는 thead 로 한정하고,
+// 행은 th+td 를 모두 모은다. 통산행은 팀명 칸이 생략돼 1칸 짧으므로 보정.
+function parseKboStatTable(
+  html: string,
+  keyHeaders: string[],
+): { header: string[]; rows: string[][] } {
+  const $ = cheerio.load(html);
+  let header: string[] = [];
+  const rows: string[][] = [];
+  $("table").each((_, t) => {
+    let ths = $(t).find("thead th").map((_, e) => $(e).text().trim()).get();
+    if (ths.length === 0)
+      ths = $(t).find("tr").first().find("th").map((_, e) => $(e).text().trim()).get();
+    if (ths.length === 0 || !keyHeaders.every((k) => ths.includes(k))) return;
+    if (header.length === 0) header = ths;
+    $(t).find("tbody tr").each((_, tr) => {
+      let cells = $(tr).find("th, td").map((_, c) => $(c).text().trim()).get();
+      if (cells.length === ths.length - 1 && cells[0] === "통산") {
+        cells = [cells[0], "", ...cells.slice(1)];
+      }
+      if (cells.length === ths.length && cells[0]) rows.push(cells);
+    });
+  });
+  return { header, rows };
+}
+
+const kboWhip = (h?: number, bb?: number, ip?: string): string | undefined => {
+  const innings = ipToInnings(ip);
+  if (!innings || innings <= 0 || h == null || bb == null) return undefined;
+  return ((h + bb) / innings).toFixed(2);
+};
+const kboK9 = (k?: number, ip?: string): string | undefined => {
+  const innings = ipToInnings(ip);
+  if (!innings || innings <= 0 || k == null) return undefined;
+  return ((k * 9) / innings).toFixed(1);
+};
+
+/** 투수 연도별 + 통산 (Total.aspx). 첫 데이터행=통산, 이후 연도. */
+export async function fetchKboPitcherYearlyRaw(
+  kboId: string,
+): Promise<{ seasons: PitcherSeasonRow[]; career: PitcherSeasonRow | null }> {
+  const url = `${BASE}/Record/Player/PitcherDetail/Total.aspx?playerId=${kboId}`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, { headers: HEADERS, timeout: 12000, responseType: "text" });
+    html = r.data;
+  } catch {
+    return { seasons: [], career: null };
+  }
+  const { header, rows } = parseKboStatTable(html, ["연도", "ERA"]);
+  if (header.length === 0) return { seasons: [], career: null };
+  const at = (tds: string[], k: string) => {
+    const i = header.indexOf(k);
+    return i >= 0 ? tds[i] : undefined;
+  };
+  const map = (tds: string[]): PitcherSeasonRow => {
+    const ip = at(tds, "IP") || undefined;
+    const h = toNum(at(tds, "H"));
+    const bb = toNum(at(tds, "BB"));
+    const so = toNum(at(tds, "SO"));
+    return {
+      season: at(tds, "연도") ?? "",
+      teamLabel: at(tds, "팀명") ?? "",
+      g: toNum(at(tds, "G")),
+      w: toNum(at(tds, "W")),
+      l: toNum(at(tds, "L")),
+      sv: toNum(at(tds, "SV")),
+      ip,
+      era: at(tds, "ERA") || undefined,
+      whip: kboWhip(h, bb, ip),
+      so,
+      bb,
+      hr: toNum(at(tds, "HR")),
+      k9: kboK9(so, ip),
+    };
+  };
+  let career: PitcherSeasonRow | null = null;
+  const seasons: PitcherSeasonRow[] = [];
+  for (const tds of rows) {
+    const yr = at(tds, "연도") ?? "";
+    if (yr === "통산") career = map(tds);
+    else if (/^\d{4}$/.test(yr)) seasons.push(map(tds));
+  }
+  return { seasons, career };
+}
+
+/** 타자 연도별 + 통산 (Total.aspx). */
+export async function fetchKboHitterYearlyRaw(
+  kboId: string,
+): Promise<{ seasons: HitterSeasonRow[]; career: HitterSeasonRow | null }> {
+  const url = `${BASE}/Record/Player/HitterDetail/Total.aspx?playerId=${kboId}`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, { headers: HEADERS, timeout: 12000, responseType: "text" });
+    html = r.data;
+  } catch {
+    return { seasons: [], career: null };
+  }
+  const { header, rows } = parseKboStatTable(html, ["연도", "AVG"]);
+  if (header.length === 0) return { seasons: [], career: null };
+  const at = (tds: string[], k: string) => {
+    const i = header.indexOf(k);
+    return i >= 0 ? tds[i] : undefined;
+  };
+  const map = (tds: string[]): HitterSeasonRow => {
+    const obp = at(tds, "OBP");
+    const slg = at(tds, "SLG");
+    const ops =
+      obp && slg && Number.isFinite(parseFloat(obp)) && Number.isFinite(parseFloat(slg))
+        ? (parseFloat(obp) + parseFloat(slg)).toFixed(3)
+        : undefined;
+    return {
+      season: at(tds, "연도") ?? "",
+      teamLabel: at(tds, "팀명") ?? "",
+      g: toNum(at(tds, "G")),
+      pa: toNum(at(tds, "PA")),
+      avg: at(tds, "AVG") || undefined,
+      obp: obp || undefined,
+      slg: slg || undefined,
+      ops,
+      hr: toNum(at(tds, "HR")),
+      rbi: toNum(at(tds, "RBI")),
+      r: toNum(at(tds, "R")),
+      h: toNum(at(tds, "H")),
+      bb: toNum(at(tds, "BB")),
+      so: toNum(at(tds, "SO")),
+      sb: toNum(at(tds, "SB")),
+    };
+  };
+  let career: HitterSeasonRow | null = null;
+  const seasons: HitterSeasonRow[] = [];
+  for (const tds of rows) {
+    const yr = at(tds, "연도") ?? "";
+    if (yr === "통산") career = map(tds);
+    else if (/^\d{4}$/.test(yr)) seasons.push(map(tds));
+  }
+  return { seasons, career };
+}
+
+/** 스플릿 — Situation(vs 좌우) + Game(홈/원정·월별). 없으면 빈 값. */
+export async function fetchKboSplitsRaw(
+  kboId: string,
+  group: "hitting" | "pitching",
+): Promise<PlayerSplits> {
+  const detail = group === "pitching" ? "PitcherDetail" : "HitterDetail";
+  const opt = { headers: HEADERS, timeout: 12000, responseType: "text" as const };
+  const [sit, game] = await Promise.all([
+    axios
+      .get<string>(`${BASE}/Record/Player/${detail}/Situation.aspx?playerId=${kboId}`, opt)
+      .then((r) => r.data)
+      .catch(() => null),
+    axios
+      .get<string>(`${BASE}/Record/Player/${detail}/Game.aspx?playerId=${kboId}`, opt)
+      .then((r) => r.data)
+      .catch(() => null),
+  ]);
+  const res: PlayerSplits = { byMonth: [] };
+
+  if (sit) {
+    const { header, rows } = parseKboStatTable(sit, ["구분", "AVG"]);
+    const at = (tds: string[], k: string) => {
+      const i = header.indexOf(k);
+      return i >= 0 ? tds[i] : undefined;
+    };
+    const byLabel = new Map(rows.map((tds) => [tds[0], tds] as const));
+    const mk = (tds: string[], label: string): SplitRow =>
+      group === "pitching"
+        ? { label, avg: at(tds, "AVG") || undefined }
+        : { label, avg: at(tds, "AVG") || undefined, hr: toNum(at(tds, "HR")) };
+    if (group === "pitching") {
+      const l = byLabel.get("좌타자");
+      const r = byLabel.get("우타자");
+      if (l) res.vsLeft = mk(l, "vs 좌타");
+      if (r) res.vsRight = mk(r, "vs 우타");
+    } else {
+      const l = byLabel.get("좌투수");
+      const r = byLabel.get("우투수");
+      if (l) res.vsLeft = mk(l, "vs 좌투");
+      if (r) res.vsRight = mk(r, "vs 우투");
+    }
+  }
+
+  if (game) {
+    const { header, rows } = parseKboStatTable(game, ["구분", "AVG"]);
+    const at = (tds: string[], k: string) => {
+      const i = header.indexOf(k);
+      return i >= 0 ? tds[i] : undefined;
+    };
+    const byLabel = new Map(rows.map((tds) => [tds[0], tds] as const));
+    const mk = (tds: string[], label: string): SplitRow =>
+      group === "pitching"
+        ? {
+            label,
+            era: at(tds, "ERA") || undefined,
+            ip: at(tds, "IP") || undefined,
+            avg: at(tds, "AVG") || undefined,
+          }
+        : { label, avg: at(tds, "AVG") || undefined, hr: toNum(at(tds, "HR")) };
+    const home = byLabel.get("홈");
+    const away = byLabel.get("방문");
+    if (home) res.home = mk(home, "홈");
+    if (away) res.away = mk(away, "원정");
+    for (const ml of ["3월", "3~4월", "4월", "5월", "6월", "7월", "8월", "9월", "10월"]) {
+      const row = byLabel.get(ml);
+      if (row) res.byMonth.push(mk(row, ml));
+    }
+  }
+  return res;
 }
 
 /** Hitter profile (.player_basic li) — pitcher 와 동일 layout. */
