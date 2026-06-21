@@ -16,7 +16,7 @@ export default function ExpertRow({ row, index }: { row: RankRow; index: number 
   return (
     <Link
       href={`/experts/${row.userId}`}
-      className="grid grid-cols-[40px_1fr_auto] gap-3 items-center px-4 py-3.5 hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition"
+      className="group grid grid-cols-[40px_1fr_auto] gap-3 items-center px-4 py-3.5 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]"
     >
       <span className="text-center text-lg font-bold text-neutral-400">
         {medal ?? <span className="text-sm">{index + 1}</span>}
@@ -26,7 +26,7 @@ export default function ExpertRow({ row, index }: { row: RankRow; index: number 
         <Avatar avatar={avatar} size="md" />
         <span className="min-w-0">
           <span className="flex items-center gap-1.5">
-            <span className="truncate font-bold text-sm">{row.nickname}</span>
+            <span className="truncate font-bold text-sm transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400">{row.nickname}</span>
             <StreakBadge streak={row.streak} />
           </span>
           <span className="flex items-center gap-1.5 mt-1">

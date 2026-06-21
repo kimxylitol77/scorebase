@@ -47,11 +47,17 @@ export default async function NoticeDetailPage({ params }: Props) {
   const t = TYPE_LABEL[n.type] ?? TYPE_LABEL.NOTICE;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      {/* 앰비언트 배경 */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
+        <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
+        <div className="absolute -top-32 right-[12%] h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.06] blur-[140px] dark:bg-emerald-500/10" />
+      </div>
+
       <div className="mb-6">
         <Link
           href="/notices"
-          className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white hover:text-neutral-900 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10 dark:hover:text-white"
         >
           ← 공지사항 목록
         </Link>
@@ -60,7 +66,7 @@ export default async function NoticeDetailPage({ params }: Props) {
       <header className="mb-8">
         <div className="flex items-center gap-2 mb-3">
           <span
-            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${t.tone}`}
+            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${t.tone}`}
           >
             {t.label}
           </span>
@@ -68,7 +74,7 @@ export default async function NoticeDetailPage({ params }: Props) {
             {formatDateKo(n.publishedAt)}
           </span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight break-keep">
           {n.title}
         </h1>
       </header>

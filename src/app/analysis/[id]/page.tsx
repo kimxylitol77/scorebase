@@ -8,6 +8,7 @@ import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
 import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { toKoreanTeamName } from "@/lib/team-names";
 import Markdown from "@/components/Markdown";
+import { Target } from "lucide-react";
 import LikeButton from "./LikeButton";
 import CommentForm from "./CommentForm";
 import { DeletePostButton, DeleteCommentButton } from "./DeleteButtons";
@@ -128,19 +129,25 @@ export default async function PostDetailPage({ params }: Props) {
         : { t: "⏳ 경기 대기", c: "bg-amber-500/15 text-amber-600 dark:text-amber-400" };
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-14">
+    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-14">
+      {/* 앰비언트 배경 */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
+        <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
+        <div className="absolute -top-32 right-[12%] h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.06] blur-[140px] dark:bg-emerald-500/10" />
+      </div>
+
       <Link
         href="/analysis"
-        className="text-sm text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+        className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white hover:text-neutral-900 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10 dark:hover:text-white"
       >
         ← 목록
       </Link>
 
-      <article className="mt-4">
-        <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">분석</span>
-        <h1 className="text-xl sm:text-2xl font-bold mt-1 leading-snug">{post.title}</h1>
+      <article className="mt-5">
+        <span className="inline-flex w-fit rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">분석</span>
+        <h1 className="mt-2 text-2xl sm:text-3xl font-bold leading-snug tracking-tight break-keep">{post.title}</h1>
 
-        <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-neutral-200 dark:border-neutral-800 text-xs text-neutral-500">
+        <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-black/5 dark:border-white/10 text-xs text-neutral-500">
           <span className="font-semibold text-neutral-700 dark:text-neutral-300" title={g.name}>
             {g.emoji} {a.nickname}
           </span>
@@ -172,10 +179,10 @@ export default async function PostDetailPage({ params }: Props) {
 
         {/* 예측 카드 */}
         {post.pick && post.match && (
-          <div className="mt-5 rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-5 bg-neutral-50 dark:bg-neutral-900/40">
+          <div className="mt-5 rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_18px_50px_-28px_rgba(15,23,30,0.3)] dark:bg-zinc-950 dark:ring-white/10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-neutral-500">
-                🎯 예측 · {MARKET_LABEL[post.market ?? "1X2"] ?? "승무패"}
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500">
+                <Target className="h-3.5 w-3.5 text-rose-500" aria-hidden /> 예측 · {MARKET_LABEL[post.market ?? "1X2"] ?? "승무패"}
               </span>
               <div className="flex items-center gap-2">
                 {/* 1번: 연승 로고 (작성자 연승 중) */}
@@ -244,7 +251,7 @@ export default async function PostDetailPage({ params }: Props) {
       </article>
 
       {/* 댓글 */}
-      <section className="mt-12 border-t border-neutral-200 dark:border-neutral-800 pt-6">
+      <section className="mt-12 border-t border-black/5 dark:border-white/10 pt-6">
         <h2 className="text-sm font-bold mb-4">댓글 {post.commentCount}</h2>
 
         {post.comments.length > 0 && (

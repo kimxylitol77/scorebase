@@ -37,13 +37,21 @@ export default async function NoticesPage() {
   });
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      {/* 앰비언트 배경 — 상단에 은은한 메시 글로우 */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
+        <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
+        <div className="absolute -top-32 right-[12%] h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.06] blur-[140px] dark:bg-emerald-500/10" />
+      </div>
+
       <header className="mb-8">
-        <p className="text-sm text-neutral-500 mb-2">사이트 소식</p>
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 사이트 소식
+        </span>
+        <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight break-keep">
           공지사항 · 패치노트
         </h1>
-        <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+        <p className="mt-3 max-w-2xl leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           새 기능, 모델 개선, 점검 소식을 한 곳에서.
         </p>
       </header>
@@ -61,11 +69,11 @@ export default async function NoticesPage() {
               <li key={n.id}>
                 <Link
                   href={`/notices/${n.slug}`}
-                  className="block rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5 hover:border-neutral-300 dark:hover:border-neutral-700 transition"
+                  className="group block rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_14px_40px_-26px_rgba(15,23,30,0.3)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:ring-black/10 dark:bg-zinc-950 dark:ring-white/10 dark:hover:ring-white/20"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${t.tone}`}
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${t.tone}`}
                     >
                       {t.label}
                     </span>
@@ -73,7 +81,7 @@ export default async function NoticesPage() {
                       {formatDateKo(n.publishedAt)}
                     </span>
                   </div>
-                  <h2 className="text-base sm:text-lg font-semibold leading-snug">
+                  <h2 className="text-base sm:text-lg font-semibold leading-snug break-keep transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400">
                     {n.title}
                   </h2>
                 </Link>
