@@ -45,7 +45,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import { parseTsFootballScore, fetchSoccerLive, tsIncidentsToGoals, tsIncidentsToCards, type LiveMatch } from "@/lib/sports/live-scores";
+import { parseTsFootballScore, fetchSoccerLive, type LiveMatch } from "@/lib/sports/live-scores";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
@@ -414,9 +414,7 @@ export default async function GenericLivePage({ params }: Props) {
   let soccerNowNode: ReactNode = null;
   // 매치 "한눈에" 요약 — 결론 카드 아래, 탭 위 (핵심 지표만 크게)
   let soccerSummaryNode: ReactNode = null;
-  let nowIncidents: unknown = null;
   let nowLineup: { home: unknown[]; away: unknown[] } | null = null;
-  let nowTrend: Parameters<typeof SoccerNowBlock>[0]["trend"] = null;
   if (isSoccer) {
     let teamStatsNode: ReactNode = null;
     let halfTimeNode: ReactNode = null;
@@ -541,10 +539,9 @@ export default async function GenericLivePage({ params }: Props) {
             history={h2h}
           />
         ) : null;
-      // "지금" 블록 cache 데이터 — LIVE/FINISHED 골·카드 타임라인 (+LIVE 모멘텀) 재료.
+      // "지금" 블록 — 예정 매치 확정 라인업(키 플레이어 칩) 재료.
       // 라인업은 confirmed=1 이어도 선발(first=1) 미지정 사전 스쿼드 명단인 케이스가 있어
       // (2026-06-10 멕시코-남아공: 킥오프 19h 전 squad-only) 양팀 선발 7명+ 일 때만 "확정" 취급.
-      nowIncidents = (detailLive as { incidents?: unknown } | null)?.incidents ?? null;
       if (lineup && lineup.confirmed === 1 && lineup.lineup) {
         const home = Object.values(lineup.lineup.home ?? {});
         const away = Object.values(lineup.lineup.away ?? {});
@@ -552,7 +549,6 @@ export default async function GenericLivePage({ params }: Props) {
           arr.filter((p) => (p as { first?: number }).first === 1).length;
         nowLineup = starters(home) >= 7 && starters(away) >= 7 ? { home, away } : null;
       }
-      nowTrend = trend as Parameters<typeof SoccerNowBlock>[0]["trend"];
     }
 
     // 월드컵 예상 라인업 — build-wc-predicted-xi (cron-wc-xi.sh 매일 갱신) 산출물.
@@ -579,9 +575,6 @@ export default async function GenericLivePage({ params }: Props) {
         status={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
         homeNameKo={homeKo}
         awayNameKo={awayKo}
-        goals={nowIncidents ? tsIncidentsToGoals(nowIncidents, lineupNameById) : null}
-        cards={nowIncidents ? tsIncidentsToCards(nowIncidents, lineupNameById) : null}
-        trend={nowTrend}
         lineup={nowLineup as Parameters<typeof SoccerNowBlock>[0]["lineup"]}
         nameById={lineupNameById}
         predictedHome={predictedHome}
