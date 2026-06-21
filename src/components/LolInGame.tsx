@@ -4,6 +4,7 @@
 // 세트 탭으로 전환. red/blue 팀 구분. 이미지는 eimg.thesports.com 직접(차단 시 proxy 전환).
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   AreaChart,
   Area,
@@ -148,7 +149,12 @@ function PlayerRow({ p }: { p: LolGamePlayer }) {
         ) : (
           <div className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-neutral-800 shrink-0" />
         )}
-        <span className="font-semibold truncate">{p.name}</span>
+        <Link
+          href={`/players/${p.playerId}?league=LOL`}
+          className="font-semibold truncate hover:underline"
+        >
+          {p.name}
+        </Link>
         <span className="text-neutral-400 text-xs truncate hidden sm:inline">{p.champ}</span>
       </div>
       <span className="tabular-nums text-neutral-600 dark:text-neutral-300">
