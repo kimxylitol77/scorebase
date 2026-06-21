@@ -81,20 +81,24 @@ function PlayerDot({
       className="absolute flex flex-col items-center"
       style={{ top: `${top}%`, left: `${left}%`, transform: "translate(-50%, -50%)" }}
     >
-      <div className="relative">
-        {player.logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={player.logo}
-            alt={name}
-            className="w-8 h-8 sm:w-11 sm:h-11 rounded-full object-cover border border-white/90 bg-white shadow"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full border border-white/90 bg-emerald-900/60 shadow flex items-center justify-center text-white text-[10px] sm:text-xs font-bold">
-            {num}
-          </div>
-        )}
+      <div className="relative w-8 h-8 sm:w-11 sm:h-11 shrink-0">
+        {/* 원형 클립은 wrapper div(rounded-full+overflow-hidden)로 — img 에 직접 border-radius 주면
+            윈도우 브라우저에서 사진이 원이 아니라 타원으로 깨지는 케이스가 있어 회피. */}
+        <div className="w-full h-full rounded-full overflow-hidden border border-white/90 bg-white shadow">
+          {player.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={player.logo}
+              alt={name}
+              className="block w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-emerald-900/60 flex items-center justify-center text-white text-[10px] sm:text-xs font-bold">
+              {num}
+            </div>
+          )}
+        </div>
         {/* 평점 배지 — 사진 우상단 */}
         {rating > 0 && (
           <span
