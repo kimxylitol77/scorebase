@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { SPORTS, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import CountUp from "./CountUp";
@@ -13,6 +13,7 @@ import LiveOddsCard from "./live/LiveOddsCard";
 import SoccerEventsTimeline from "./live/SoccerEventsTimeline";
 import SoccerGoalsCard from "./live/SoccerGoalsCard";
 import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
+import MatchEventTabs from "./live/MatchEventTabs";
 
 // 축구 리그 집합 — SPORTS 단일 진실 (라이브 배당 카드 suppress 판정용)
 const VOLLEYBALL_SET = new Set(
@@ -435,37 +436,64 @@ export default function SportLiveDetail({
       {/* 축구 선발 라인업 — TheSports cache 의 lineup 을 page.tsx 에서 SoccerLineupSvg 로 별도 렌더.
           중복 방지를 위해 여기서는 api-football 기반 SoccerFormation 호출 안 함 (2026-05-25). */}
 
-      {/* GOALS — BeSoccer 스타일 (시간 + 골/어시 + 선수 사진) */}
-      {live?.soccerEvents && live.soccerEvents.length > 0 && (
-        <SoccerGoalsCard
-          events={live.soccerEvents}
-          homeNameKo={homeNameKo}
-          awayNameKo={awayNameKo}
-          homeLogoUrl={homeLogoUrl ?? null}
-          awayLogoUrl={awayLogoUrl ?? null}
-          playerLogoById={playerLogoById}
-        />
-      )}
-
-      {/* 이벤트 타임라인 (카드 / 교체 — 골은 위 GOALS 카드로 분리) */}
-      {live?.soccerEvents && live.soccerEvents.filter((e) => e.type !== "goal").length > 0 && (
-        <SoccerEventsTimeline
-          events={live.soccerEvents.filter((e) => e.type !== "goal")}
-          homeNameKo={homeNameKo}
-          awayNameKo={awayNameKo}
-          playerLogoById={playerLogoById}
-        />
-      )}
-
-      {/* 교체 영향 — 교체 후 ±10분 안 같은팀 골 매칭 */}
-      {live?.soccerEvents && live.soccerEvents.length > 0 && (
-        <SubstitutionImpactCard
-          events={live.soccerEvents}
-          homeNameKo={homeNameKo}
-          awayNameKo={awayNameKo}
-          playerLogoById={playerLogoById}
-        />
-      )}
+      {/* 골·이벤트·교체영향 — iOS 세그먼트 컨트롤 탭으로 묶음(세로로 길던 것 정리). 선수 사진은 카드 그대로 유지. */}
+      {(() => {
+        const sev = live?.soccerEvents ?? [];
+        if (sev.length === 0) return null;
+        const goalEvents = sev.filter((e) => e.type === "goal");
+        const nonGoalEvents = sev.filter((e) => e.type !== "goal");
+        const subs = sev.filter((e) => e.type === "subst");
+        // 교체영향 탭 노출 조건 = SubstitutionImpactCard 내부와 동일(교체 후 ±10분 같은팀 골)
+        const hasImpact = subs.some((s) => {
+          const sm = s.minute * 100 + s.extra;
+          return goalEvents.some(
+            (g) => g.side === s.side && g.minute * 100 + g.extra >= sm && g.minute * 100 + g.extra <= sm + 1000,
+          );
+        });
+        const tabs: { key: string; label: string; content: ReactNode }[] = [];
+        if (goalEvents.length > 0)
+          tabs.push({
+            key: "goals",
+            label: "골",
+            content: (
+              <SoccerGoalsCard
+                events={sev}
+                homeNameKo={homeNameKo}
+                awayNameKo={awayNameKo}
+                homeLogoUrl={homeLogoUrl ?? null}
+                awayLogoUrl={awayLogoUrl ?? null}
+                playerLogoById={playerLogoById}
+              />
+            ),
+          });
+        if (nonGoalEvents.length > 0)
+          tabs.push({
+            key: "events",
+            label: "이벤트",
+            content: (
+              <SoccerEventsTimeline
+                events={nonGoalEvents}
+                homeNameKo={homeNameKo}
+                awayNameKo={awayNameKo}
+                playerLogoById={playerLogoById}
+              />
+            ),
+          });
+        if (hasImpact)
+          tabs.push({
+            key: "subimpact",
+            label: "교체 영향",
+            content: (
+              <SubstitutionImpactCard
+                events={sev}
+                homeNameKo={homeNameKo}
+                awayNameKo={awayNameKo}
+                playerLogoById={playerLogoById}
+              />
+            ),
+          });
+        return tabs.length > 0 ? <MatchEventTabs tabs={tabs} /> : null;
+      })()}
 
       {/* 팀 stats 비교 — 농구는 MatchInsight "팀 통계" 탭(TheSports)으로 일원화 */}
       {!isBasketball && live?.summary && (live.summary.homeStats.length > 0 || live.summary.awayStats.length > 0) && (
@@ -485,8 +513,8 @@ export default function SportLiveDetail({
         />
       )}
 
-      {/* 데이터 없음 안내 */}
-      {loaded && !live?.periodLinescore && !live?.summary && (!live?.soccerGoals || live.soccerGoals.length === 0) && (
+      {/* 데이터 없음 안내 — 축구는 soccerEvents(골/카드/교체)도 비었을 때만 (soccerGoals 는 축구에서 항상 null) */}
+      {loaded && !live?.periodLinescore && !live?.summary && (!live?.soccerGoals || live.soccerGoals.length === 0) && (!live?.soccerEvents || live.soccerEvents.length === 0) && (
         <div className="rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 p-3 sm:p-4 text-xs text-neutral-500">
           ⓘ {league === "NBA" || league === "WNBA" || league === "NHL"
             ? "쿼터/피리어드 별 점수 데이터를 가져오지 못했습니다."
