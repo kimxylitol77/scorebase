@@ -30,7 +30,7 @@ interface Data {
 
 export default async function LolStandings({ name }: { name: string }) {
   const data = rawStandings as Data;
-  const teamShort = new Map(data.standings.map((r) => [r.teamId, r.short]));
+  const teamById = new Map(data.standings.map((r) => [r.teamId, r]));
   const photos = (lolPlayersData as { players: Record<string, { photo?: string }> }).players;
   const heroLogos = (lolHeroesData as { heroes: Record<string, string> }).heroes;
 
@@ -45,16 +45,21 @@ export default async function LolStandings({ name }: { name: string }) {
     .filter((p) => p.games >= 10)
     .sort((a, b) => b.kda - a.kda)
     .slice(0, 20)
-    .map((p) => ({
-      playerId: p.playerId,
-      name: p.name,
-      teamShort: teamShort.get(p.teamId) ?? "",
-      photo: photos[p.playerId]?.photo ?? "",
-      kda: p.kda,
-      winRate: p.winRate,
-      csPerMin: p.csPerMin,
-      games: p.games,
-    }));
+    .map((p) => {
+      const team = teamById.get(p.teamId);
+      return {
+        playerId: p.playerId,
+        name: p.name,
+        teamName: team?.name ?? "",
+        teamLogo: team?.logo ?? "",
+        teamDbId: team?.dbId ?? null,
+        photo: photos[p.playerId]?.photo ?? "",
+        kda: p.kda,
+        winRate: p.winRate,
+        csPerMin: p.csPerMin,
+        games: p.games,
+      };
+    });
 
   const champRows = champs.slice(0, 20).map((c) => ({
     champ: c.champ,
@@ -69,12 +74,11 @@ export default async function LolStandings({ name }: { name: string }) {
     bans: b.bans,
   }));
 
-  const teamMeta = new Map(data.standings.map((r) => [r.teamId, { logo: r.logo, dbId: r.dbId }]));
   const teamRows = teams.map((t) => ({
     teamId: t.teamId,
     name: t.name,
-    logo: teamMeta.get(t.teamId)?.logo ?? "",
-    dbId: teamMeta.get(t.teamId)?.dbId ?? null,
+    logo: teamById.get(t.teamId)?.logo ?? "",
+    dbId: teamById.get(t.teamId)?.dbId ?? null,
     avgKills: t.avgKills,
     avgDragons: t.avgDragons,
     avgTowers: t.avgTowers,

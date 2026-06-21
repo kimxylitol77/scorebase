@@ -17,7 +17,9 @@ export interface TeamRow {
 export interface PlayerRow {
   playerId: string;
   name: string;
-  teamShort: string;
+  teamName: string;
+  teamLogo: string;
+  teamDbId: number | null;
   photo: string;
   kda: number;
   winRate: number;
@@ -162,6 +164,7 @@ export default function LolStandingsTabs(p: Props) {
               <tr>
                 <th className="py-2.5 px-3 text-left w-10">#</th>
                 <th className="py-2.5 px-2 text-left">선수</th>
+                <th className="py-2.5 px-2 text-left">팀</th>
                 <th className={C + " w-16"}>KDA</th>
                 <th className={C + " w-16"}>승률</th>
                 <th className={C + " w-16"}>분당 CS</th>
@@ -181,7 +184,9 @@ export default function LolStandingsTabs(p: Props) {
                       )}
                       <span className="font-semibold">{pl.name}</span>
                     </Link>
-                    <span className="text-neutral-400 text-xs ml-1.5">{pl.teamShort}</span>
+                  </td>
+                  <td className="py-2.5 px-2">
+                    <TeamCell logo={pl.teamLogo} name={pl.teamName} dbId={pl.teamDbId} />
                   </td>
                   <td className={C + " tabular-nums font-semibold"}>{pl.kda.toFixed(2)}</td>
                   <td className={C + " tabular-nums text-neutral-500"}>{Math.round(pl.winRate * 100)}%</td>
