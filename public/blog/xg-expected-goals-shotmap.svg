@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="축구 xG 슛맵 — 슈팅 위치별 기대득점을 점 크기로 표현">
+  <defs>
+    <linearGradient id="pitch2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f8a4c"/>
+      <stop offset="1" stop-color="#15673a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#pitch2)"/>
+  <g opacity="0.06" fill="#ffffff">
+    <rect x="0" y="0" width="1200" height="84"/>
+    <rect x="0" y="169" width="1200" height="84"/>
+    <rect x="0" y="338" width="1200" height="84"/>
+    <rect x="0" y="507" width="1200" height="84"/>
+  </g>
+
+  <!-- 필드 마킹 -->
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="4">
+    <line x1="60" y1="44" x2="1140" y2="44"/>
+    <rect x="330" y="44" width="540" height="300"/>
+    <rect x="500" y="44" width="200" height="120"/>
+    <path d="M 470 344 A 150 150 0 0 0 730 344"/>
+  </g>
+  <rect x="510" y="22" width="180" height="22" fill="#ffffff" fill-opacity="0.95"/>
+  <circle cx="600" cy="255" r="7" fill="#ffffff"/>
+
+  <!-- 슛맵: 점 크기 = xG. 골문 가깝고 중앙일수록 크고 붉다 -->
+  <g stroke="#ffffff" stroke-width="2.5" stroke-opacity="0.85">
+    <circle cx="600" cy="135" r="40" fill="#ef4444" fill-opacity="0.9"/>
+    <circle cx="505" cy="180" r="30" fill="#f59e0b" fill-opacity="0.9"/>
+    <circle cx="690" cy="205" r="26" fill="#f59e0b" fill-opacity="0.88"/>
+    <circle cx="600" cy="290" r="20" fill="#eab308" fill-opacity="0.88"/>
+    <circle cx="410" cy="250" r="15" fill="#84cc16" fill-opacity="0.85"/>
+    <circle cx="790" cy="300" r="14" fill="#84cc16" fill-opacity="0.85"/>
+    <circle cx="600" cy="430" r="11" fill="#38bdf8" fill-opacity="0.85"/>
+    <circle cx="320" cy="380" r="9" fill="#38bdf8" fill-opacity="0.8"/>
+    <circle cx="880" cy="395" r="9" fill="#38bdf8" fill-opacity="0.8"/>
+  </g>
+</svg>
