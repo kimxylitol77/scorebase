@@ -82,7 +82,7 @@ function pageList(cur: number, total: number): (number | "…")[] {
 function AuthorBadge({
   avatarUrl,
   nickname,
-  size = "h-5 w-5 text-[11px]",
+  size = "h-8 w-8 text-base",
 }: {
   avatarUrl: string | null;
   nickname: string;
@@ -324,7 +324,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                           <span className="font-medium">{SPORT_META[p.sport].label}</span>
                         )}
                         <span className="inline-flex items-center gap-1">
-                          <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} size="h-4 w-4 text-[10px]" />
+                          <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} size="h-6 w-6 text-sm" />
                           {a.nickname}
                         </span>
                         {a.predTotal > 0 ? (
