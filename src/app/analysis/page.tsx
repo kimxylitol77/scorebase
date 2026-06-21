@@ -161,40 +161,51 @@ export default async function AnalysisListPage({ searchParams }: Props) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+    <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ANALYSIS_JSONLD) }}
       />
+      {/* 앰비언트 배경 — 상단에 은은한 메시 글로우 */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
+        <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
+        <div className="absolute -top-32 right-[12%] h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.06] blur-[140px] dark:bg-emerald-500/10" />
+      </div>
+
       <header className="mb-8">
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm text-neutral-500 mb-2">커뮤니티</p>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">스포츠 분석</h1>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 커뮤니티
+            </span>
+            <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight break-keep">스포츠 분석</h1>
           </div>
           <div className="flex items-center gap-2">
             <Link
               href="/experts"
-              className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 px-4 py-2.5 text-sm font-semibold transition"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-4 py-2.5 text-sm font-semibold ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:ring-white/15 dark:hover:bg-white/10"
             >
               <Trophy className="h-4 w-4" aria-hidden /> 랭킹
             </Link>
             <Link
               href="/analysis/new"
-              className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 text-sm font-semibold transition"
+              className="group inline-flex items-center gap-2 rounded-full bg-rose-600 py-2 pl-5 pr-2 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(225,29,72,0.6)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:bg-rose-700 active:scale-[0.98]"
             >
-              <SquarePen className="h-4 w-4" aria-hidden /> 글쓰기
+              글쓰기
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+                <SquarePen className="h-3.5 w-3.5" aria-hidden />
+              </span>
             </Link>
           </div>
         </div>
-        <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+        <p className="mt-4 max-w-2xl leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           회원이 올린 경기 분석·승부 예측이 실제 결과로 자동 채점되어 적중률·랭킹에 반영됩니다.
         </p>
 
-        <details className="group mt-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/40 px-4 py-3">
+        <details className="group mt-5 rounded-2xl bg-white/60 px-5 py-4 ring-1 ring-black/5 backdrop-blur dark:bg-white/[0.04] dark:ring-white/10">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-neutral-800 dark:text-neutral-200 [&::-webkit-details-marker]:hidden">
-            <span className="flex items-center gap-1.5"><Target className="h-4 w-4 shrink-0" aria-hidden /> 적중률은 어떻게 채점되나요? (= 승률이 아닙니다)</span>
-            <span className="shrink-0 text-neutral-400 transition-transform duration-200 group-open:rotate-45">+</span>
+            <span className="flex items-center gap-2"><Target className="h-4 w-4 shrink-0 text-rose-500" aria-hidden /> 적중률은 어떻게 채점되나요? (= 승률이 아닙니다)</span>
+            <span className="shrink-0 text-neutral-400 transition-transform duration-300 group-open:rotate-45">+</span>
           </summary>
           <div className="mt-3 space-y-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
             <p>
@@ -228,16 +239,16 @@ export default async function AnalysisListPage({ searchParams }: Props) {
       </header>
 
       {/* 종목 필터 탭 */}
-      <nav className="mb-5 flex flex-wrap items-center gap-1.5" aria-label="종목 필터">
+      <nav className="mb-6 flex flex-wrap items-center gap-2" aria-label="종목 필터">
         <Link
           href={href(1, null)}
-          className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition ${
+          className={`rounded-full px-4 py-1.5 text-sm font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             !sportFilter
-              ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white"
-              : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
+              : "bg-white/60 text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
           }`}
         >
-          전체 <span className="opacity-60 tabular-nums">{totalAll}</span>
+          전체 <span className="opacity-50 tabular-nums">{totalAll}</span>
         </Link>
         {SPORT_TABS.map((s) => {
           const n = countBySport.get(s.code) ?? 0;
@@ -246,14 +257,14 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             <Link
               key={s.code}
               href={href(1, s.code)}
-              className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition ${
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 active
-                  ? "bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white"
-                  : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
+                  : "bg-white/60 text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
               }`}
             >
               {s.label}
-              {n > 0 && <span className="ml-1 opacity-60 tabular-nums">{n}</span>}
+              {n > 0 && <span className="ml-1 opacity-50 tabular-nums">{n}</span>}
             </Link>
           );
         })}
@@ -266,10 +277,10 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             : "아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!"}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80">
+        <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] dark:bg-zinc-950 dark:ring-white/10">
           {/* header row (desktop) */}
           <div
-            className={`hidden sm:grid ${COLS} gap-3 px-6 py-3.5 bg-neutral-50 dark:bg-neutral-900 text-xs font-semibold text-neutral-500 border-b border-neutral-200 dark:border-neutral-800`}
+            className={`hidden sm:grid ${COLS} gap-3 px-6 py-3.5 bg-neutral-50/80 dark:bg-white/[0.03] text-[11px] uppercase tracking-wider font-semibold text-neutral-400 dark:text-neutral-500 border-b border-black/5 dark:border-white/5`}
           >
             <span>분류</span>
             <span>제목</span>
@@ -279,7 +290,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             <span className="text-right">조회</span>
             <span className="text-right">추천</span>
           </div>
-          <ul className="divide-y divide-neutral-100 dark:divide-neutral-800/70">
+          <ul className="divide-y divide-black/5 dark:divide-white/5">
             {posts.map((p) => {
               const g = displayGrade(p.author.level, p.author.badge);
               const a = p.author;
@@ -288,10 +299,10 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                 <li key={p.id}>
                   <Link
                     href={`/analysis/${p.id}`}
-                    className={`grid grid-cols-[1fr] ${COLS} gap-3 px-6 py-4 items-center hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition`}
+                    className={`group grid grid-cols-[1fr] ${COLS} gap-3 px-6 py-4 items-center transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]`}
                   >
-                    <span className="hidden sm:flex flex-col gap-0.5">
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400">분석</span>
+                    <span className="hidden sm:flex flex-col gap-1">
+                      <span className="w-fit rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">분석</span>
                       {p.sport && SPORT_META[p.sport] && (
                         <span className="text-[11px] font-semibold text-neutral-500">
                           {SPORT_META[p.sport].label}
@@ -311,7 +322,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                         {p.isCorrect === false && (
                           <X className="h-3.5 w-3.5 shrink-0 text-neutral-400" aria-label="예측 미적중" />
                         )}
-                        <span className="truncate font-semibold text-base">{p.title}</span>
+                        <span className="truncate font-semibold text-base transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400">{p.title}</span>
                         {p.commentCount > 0 && (
                           <span className="shrink-0 text-xs font-semibold text-rose-500">
                             [{p.commentCount}]
@@ -397,11 +408,11 @@ export default async function AnalysisListPage({ searchParams }: Props) {
       )}
 
       {totalPages > 1 && (
-        <nav className="flex justify-center items-center gap-1.5 mt-6">
+        <nav className="flex justify-center items-center gap-1.5 mt-8">
           {cur > 1 && (
             <Link
               href={href(cur - 1)}
-              className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="px-3.5 py-2 rounded-full text-sm ring-1 ring-black/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:ring-white/15 dark:hover:bg-white/10"
             >
               ‹
             </Link>
@@ -415,10 +426,10 @@ export default async function AnalysisListPage({ searchParams }: Props) {
               <Link
                 key={p}
                 href={href(p)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition ${
+                className={`px-4 py-2 rounded-full text-sm font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   p === cur
-                    ? "bg-rose-600 text-white border-rose-600"
-                    : "border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
+                    : "ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:ring-white/15 dark:hover:bg-white/10"
                 }`}
               >
                 {p}
@@ -428,7 +439,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           {cur < totalPages && (
             <Link
               href={href(cur + 1)}
-              className="px-3 py-1.5 rounded-lg text-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+              className="px-3.5 py-2 rounded-full text-sm ring-1 ring-black/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:ring-white/15 dark:hover:bg-white/10"
             >
               ›
             </Link>
@@ -447,7 +458,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
       )}
 
       {/* SEO 본문 — 게시판 소개 + 차별화(적중 자동채점) + 가치 페이지 내부링크 */}
-      <section className="mt-12 border-t border-neutral-200 dark:border-neutral-800 pt-8 space-y-3">
+      <section className="mt-14 border-t border-black/5 dark:border-white/10 pt-8 space-y-3">
         <h2 className="text-base sm:text-lg font-bold tracking-tight">
           스포츠 분석 게시판이란?
         </h2>
