@@ -19,6 +19,7 @@ import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import LolStandings from "@/components/LolStandings";
+import LolSimpleStandings from "@/components/LolSimpleStandings";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, HeartPulse } from "lucide-react";
@@ -40,6 +41,8 @@ const VALID = new Set<string>([
   "MLB",
   "CPBL",
   "LOL",
+  "LEC",
+  "LCS",
 ]);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -78,6 +81,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // LOL(LCK) — ts table/list JSON 백필(data/lol-standings.json) 정적 렌더
   if (upper === "LOL") return <LolStandings name={name} />;
+
+  // 해외 LoL(LEC/LCS) — 순위 + 로스터만(매치 미수집이라 KDA·통계 탭 없음)
+  if (upper === "LEC" || upper === "LCS") return <LolSimpleStandings league={upper} name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
