@@ -160,12 +160,18 @@ export default async function PreviewsPage({ searchParams }: Props) {
   };
 
   return (
-    <div>
+    <div className="relative">
+      {/* 앰비언트 배경 — 상단에 은은한 메시 글로우 */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
+        <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
+        <div className="absolute -top-32 right-[12%] h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.06] blur-[140px] dark:bg-emerald-500/10" />
+      </div>
+
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-medium text-zinc-700 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-white/70">
-          PREVIEW {current.key !== "ALL" ? `· ${current.label}` : ""}
-        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> PREVIEW {current.key !== "ALL" ? `· ${current.label}` : ""}
+        </span>
         <h1 className="mt-5 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-[-0.04em] leading-[1.05] text-zinc-950 dark:text-white">
           프리뷰 모음
         </h1>
@@ -186,7 +192,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
               <Link
                 key={s.key}
                 href={href}
-                className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition sm:px-4 ${
+                className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-4 ${
                   active
                     ? "border-zinc-900 text-zinc-950 dark:border-white dark:text-white"
                     : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
@@ -218,10 +224,10 @@ export default async function PreviewsPage({ searchParams }: Props) {
                 <Link
                   key={league}
                   href={`/previews?sport=BASEBALL&league=${league}`}
-                  className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                  className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     active
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-white/[0.06] dark:text-white/60 dark:hover:bg-white/[0.1]"
+                      ? "bg-zinc-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-zinc-900"
+                      : "bg-zinc-100 text-zinc-600 hover:-translate-y-0.5 hover:bg-zinc-200 dark:bg-white/[0.06] dark:text-white/60 dark:hover:bg-white/[0.1]"
                   }`}
                 >
                   {leagueLabel(league)}
@@ -265,7 +271,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
                 {pageNum > 1 && (
                   <Link
                     href={pageHref(pageNum - 1)}
-                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
+                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
                   >
                     ← 이전
                   </Link>
@@ -276,7 +282,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
                 {pageNum < totalPages && (
                   <Link
                     href={pageHref(pageNum + 1)}
-                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
+                    className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-black/5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-zinc-100 dark:bg-white/[0.04] dark:text-white/70 dark:ring-white/10 dark:hover:bg-white/[0.08]"
                   >
                     다음 →
                   </Link>
