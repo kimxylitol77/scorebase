@@ -67,6 +67,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 4 * HOUR,
     role: "종료 매치 골/카드 incidents 사후 백필 (4시간 주기)",
   },
+  "mac-mini-stale-ts-verify": {
+    ko: "ts 매치 stale 검증",
+    intervalMs: 4 * HOUR,
+    role: "TheSports ts- SCHEDULED 매치 diary verify (4시간 주기, 고정 IP)",
+  },
   "lightsail-football-transfers": {
     ko: "이적시장 증분 수집",
     intervalMs: 6 * HOUR,
