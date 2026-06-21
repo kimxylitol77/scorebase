@@ -523,6 +523,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const wcCompRow: CompRow | null = wcGamesPlayed.length
     ? {
         leagueName: "World Cup",
+        logo: "https://media.api-sports.io/football/leagues/1.png",
         appearances: wcGamesPlayed.length,
         goals: wcGamesPlayed.reduce((s, g) => s + g.goals, 0),
         assists: wcGamesPlayed.reduce((s, g) => s + g.assists, 0),
@@ -612,13 +613,28 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
               </span>
             )}
             {ov?.country && (
-              <span className="flex items-center gap-1 text-sm text-neutral-500">
-                {ov.flag && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={ov.flag} alt="" className="w-4 h-3 object-cover rounded-[1px]" />
-                )}
-                {ov.country}
-              </span>
+              natlTeamIds.length > 0 ? (
+                <Link
+                  href={`/national-teams/${natlTeamIds[0]}`}
+                  prefetch={false}
+                  className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
+                  title={`${ov.country} 대표팀`}
+                >
+                  {ov.flag && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={ov.flag} alt="" className="w-4 h-3 object-cover rounded-[1px]" />
+                  )}
+                  {ov.country}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-1 text-sm text-neutral-500">
+                  {ov.flag && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={ov.flag} alt="" className="w-4 h-3 object-cover rounded-[1px]" />
+                  )}
+                  {ov.country}
+                </span>
+              )
             )}
           </div>
           <Link

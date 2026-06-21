@@ -14,7 +14,7 @@ import {
 // af 호출 1h 캐시 — 선수 페이지 뷰마다 quota 소모 방지. 같은 (afId, season) 은 헤더 신체와 공유.
 export const getCachedSoccerProfile = unstable_cache(
   async (afId: number, season: number) => fetchSoccerPlayerProfile(afId, season),
-  ["transfers-competition-stats"],
+  ["transfers-competition-stats-v2-logo"],
   { revalidate: 3600 },
 );
 
@@ -28,6 +28,7 @@ export async function getSoccerPlayerBio(tsId: string, league: string | null) {
 
 export interface CompRow {
   leagueName: string;
+  logo?: string | null;
   appearances: number;
   goals: number;
   assists: number;
@@ -81,6 +82,7 @@ export default async function CompetitionStatsSection({
     .sort((a, b) => (b.appearances ?? 0) - (a.appearances ?? 0))
     .map((s) => ({
       leagueName: s.leagueName,
+      logo: s.leagueLogo ?? null,
       appearances: s.appearances ?? 0,
       goals: s.goals ?? 0,
       assists: s.assists ?? 0,
@@ -109,7 +111,15 @@ export default async function CompetitionStatsSection({
         <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
           {rows.map((s, i) => (
             <tr key={i}>
-              <td className="px-4 py-2.5 font-medium">{COMP_KO[s.leagueName] ?? s.leagueName}</td>
+              <td className="px-4 py-2.5 font-medium">
+                <span className="flex items-center gap-2">
+                  {s.logo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.logo} alt="" className="w-5 h-5 object-contain shrink-0" />
+                  )}
+                  <span>{COMP_KO[s.leagueName] ?? s.leagueName}</span>
+                </span>
+              </td>
               <td className="px-2 py-2.5 text-right tabular-nums">{s.appearances}</td>
               <td className="px-2 py-2.5 text-right tabular-nums font-bold">{s.goals}</td>
               <td className="px-2 py-2.5 text-right tabular-nums text-neutral-500">{s.assists}</td>

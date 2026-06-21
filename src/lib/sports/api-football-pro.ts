@@ -380,6 +380,7 @@ export interface SoccerPlayerProfile {
 
 export interface SoccerPlayerSeasonStat {
   leagueName: string;
+  leagueLogo?: string;
   teamName: string;
   position?: string;
   appearances?: number;
@@ -434,6 +435,7 @@ export async function fetchSoccerPlayerProfile(
       const penalty = (s.penalty as Record<string, unknown>) ?? {};
       return {
         leagueName: (league.name as string) ?? "",
+        leagueLogo: (league.logo as string) ?? undefined,
         teamName: (team.name as string) ?? "",
         position: games.position as string | undefined,
         appearances: games.appearences as number | undefined,
