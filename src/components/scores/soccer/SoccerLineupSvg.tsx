@@ -248,16 +248,9 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
             "repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 9.09%, rgba(0,0,0,0.05) 9.09%, rgba(0,0,0,0.05) 18.18%)",
         }}
       >
-        {/* 필드 라인 */}
-        <div className="absolute inset-2 border border-white/25 rounded-sm" />
-        {/* 중앙선 */}
-        <div className="absolute left-0 right-0 top-1/2 h-px bg-white/25" />
-        {/* 센터 서클 — 피치 너비 비례(고정 px 대신) 라 어느 폭에서도 정렬·정원 유지 */}
-        <div className="absolute top-1/2 left-1/2 w-[28%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/25" />
-        <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/40" />
-        {/* 페널티 박스 (위/아래) — 실제 비율에 가깝게 폭 확대 */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1/2 h-[16%] border border-white/25 border-t-0" />
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-1/2 h-[16%] border border-white/25 border-b-0" />
+        {/* 필드 외곽선 + 중앙선만 — 센터서클·페널티박스는 선수 위치와 어긋나 보여 제거(사용자 요청, 2026-06-21) */}
+        <div className="absolute inset-2 border border-white/20 rounded-sm" />
+        <div className="absolute left-0 right-0 top-1/2 h-px bg-white/20" />
 
         {/* 선수 */}
         <TeamHalf players={homeStarters} side="home" nameById={nameById} />
