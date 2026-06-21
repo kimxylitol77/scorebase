@@ -18,6 +18,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { lookupNbaPlayer } from "@/lib/sports/nba-players";
 import PlayerTabs from "./PlayerTabs";
+import NbaSeasonOverview from "./NbaSeasonOverview";
 
 /* ---------- 공통 헬퍼 ---------- */
 
@@ -298,23 +299,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
   const overview = (
     <>
       {avg ? (
-        <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
-            {season} 시즌 평균 ({avg.gamesPlayed}경기)
-          </h2>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-            <Stat label="PTS" value={avg.pts.toFixed(1)} accent />
-            <Stat label="REB" value={avg.reb.toFixed(1)} accent />
-            <Stat label="AST" value={avg.ast.toFixed(1)} accent />
-            <Stat label="STL" value={avg.stl.toFixed(1)} />
-            <Stat label="BLK" value={avg.blk.toFixed(1)} />
-            <Stat label="MIN" value={avg.min} />
-            <Stat label="FG%" value={(avg.fgPct * 100).toFixed(1)} />
-            <Stat label="3P%" value={(avg.fg3Pct * 100).toFixed(1)} />
-            <Stat label="FT%" value={(avg.ftPct * 100).toFixed(1)} />
-            <Stat label="TO" value={avg.turnover.toFixed(1)} />
-          </div>
-        </section>
+        <NbaSeasonOverview avg={avg} season={season} />
       ) : (
         <p className="text-sm text-neutral-500">{season} 시즌 통계가 없습니다.</p>
       )}
