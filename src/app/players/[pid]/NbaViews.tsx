@@ -2,6 +2,7 @@
 // 기본정보 BALLDONTLIE · 통계/시즌별/스플릿/수상 ESPN(athlete API) · 연봉/생일/출생지 TheSports.
 
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { fetchNbaPlayer } from "@/lib/sports/balldontlie";
@@ -49,11 +50,31 @@ function fmtUsdKrw(usd: number): string {
   return `$${(usd / 1e6).toFixed(1)}M · ₩${krw}`;
 }
 
-// teamSlug("los-angeles-lakers") → 한글 팀명(없으면 title-case 영문).
+// teamSlug("los-angeles-lakers") → "Los Angeles Lakers" (DB Team.name 매칭 키).
+function slugToFull(slug: string): string {
+  return slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+// teamSlug → 한글 팀명(없으면 title-case 영문).
 function slugToTeam(slug: string): string {
   if (!slug) return "—";
-  const full = slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  const full = slugToFull(slug);
   return toKoreanTeamName(full) || full;
+}
+
+type TeamInfo = { id: number; logo: string | null };
+
+// NBA Team.logoUrl 은 현재 데이터가 뒤섞여 있어(예: 골든스테이트 row 에 덴버 로고)
+// 로고는 생략하고 팀명+팀페이지 링크만. 로고 데이터 정리 후 추가.
+function NbaTeamCell({ slug, info }: { slug: string; info?: TeamInfo }) {
+  if (!slug) return <>—</>;
+  const ko = slugToTeam(slug);
+  return info ? (
+    <Link href={`/teams/${info.id}`} className="hover:text-neutral-900 dark:hover:text-white transition truncate inline-block max-w-full">
+      {ko}
+    </Link>
+  ) : (
+    <span className="truncate">{ko}</span>
+  );
 }
 
 type Tab = { key: string; label: string; content: ReactNode };
@@ -97,7 +118,7 @@ function SeasonCells({ r }: { r: NbaSeasonRow }) {
   );
 }
 
-function NbaSeasonTable({ rows, career }: { rows: NbaSeasonRow[]; career: NbaSeasonRow | null }) {
+function NbaSeasonTable({ rows, career, teamMap }: { rows: NbaSeasonRow[]; career: NbaSeasonRow | null; teamMap: Map<string, TeamInfo> }) {
   if (rows.length === 0) return <p className="text-sm text-neutral-500">시즌 기록이 없습니다.</p>;
   const ordered = rows.slice().reverse(); // 최신 시즌이 위로
   return (
@@ -123,7 +144,9 @@ function NbaSeasonTable({ rows, career }: { rows: NbaSeasonRow[]; career: NbaSea
           {ordered.map((r, i) => (
             <tr key={`${r.year}-${r.teamSlug}-${i}`}>
               <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-900">{r.label}</td>
-              <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[140px] truncate">{slugToTeam(r.teamSlug)}</td>
+              <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[160px]">
+                <NbaTeamCell slug={r.teamSlug} info={teamMap.get(slugToFull(r.teamSlug))} />
+              </td>
               <SeasonCells r={r} />
             </tr>
           ))}
@@ -292,6 +315,12 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
     espnId ? fetchNbaEspnAwards(espnId) : Promise.resolve([]),
   ]);
 
+  // 시즌기록 팀 로고/링크 — DB NBA Team(영문 name 매칭)으로 logoUrl·팀페이지 id.
+  const nbaTeams = seasons.length
+    ? await prisma.team.findMany({ where: { league: "NBA" }, select: { id: true, name: true, logoUrl: true } })
+    : [];
+  const teamMap = new Map<string, TeamInfo>(nbaTeams.map((t) => [t.name, { id: t.id, logo: t.logoUrl }]));
+
   const birth = tsp?.birthday ? new Date(tsp.birthday * 1000) : null;
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
   const birthStr = birth
@@ -401,7 +430,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
           seasons.length > 0 && {
             key: "seasons",
             label: "시즌기록",
-            content: <NbaSeasonTable rows={seasons} career={career} />,
+            content: <NbaSeasonTable rows={seasons} career={career} teamMap={teamMap} />,
           },
           recent.length > 0 && {
             key: "games",

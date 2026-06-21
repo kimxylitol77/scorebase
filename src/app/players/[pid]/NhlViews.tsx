@@ -2,6 +2,7 @@
 // 스플릿은 landing 에 없어 NPB 처럼 3탭. 골리(G)·스케이터(F/D) 분기.
 
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import {
@@ -62,7 +63,29 @@ function Td({ children, accent, muted }: { children: ReactNode; accent?: boolean
   );
 }
 
-function NhlSeasonTable({ rows, isGoalie }: { rows: NhlSeasonRow[]; isGoalie: boolean }) {
+type TeamInfo = { id: number; logo: string | null };
+
+function TeamCell({ team, info }: { team: string; info?: TeamInfo }) {
+  const ko = toKoreanTeamName(team) || team;
+  const inner = (
+    <span className="inline-flex items-center gap-1.5 min-w-0">
+      {info?.logo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={info.logo} alt="" className="w-4 h-4 object-contain shrink-0" />
+      )}
+      <span className="truncate">{ko}</span>
+    </span>
+  );
+  return info ? (
+    <Link href={`/teams/${info.id}`} className="hover:text-neutral-900 dark:hover:text-white transition">
+      {inner}
+    </Link>
+  ) : (
+    inner
+  );
+}
+
+function NhlSeasonTable({ rows, isGoalie, teamMap }: { rows: NhlSeasonRow[]; isGoalie: boolean; teamMap: Map<string, TeamInfo> }) {
   if (rows.length === 0) return <p className="text-sm text-neutral-500">시즌 기록이 없습니다.</p>;
   const ordered = rows.slice().reverse(); // 최신 시즌이 위로
   return (
@@ -99,8 +122,8 @@ function NhlSeasonTable({ rows, isGoalie }: { rows: NhlSeasonRow[]; isGoalie: bo
           {ordered.map((r, i) => (
             <tr key={`${r.season}-${r.team}-${i}`}>
               <td className="px-3 py-2 text-left font-semibold tabular-nums sticky left-0 bg-white dark:bg-neutral-900">{r.label}</td>
-              <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[140px] truncate">
-                {toKoreanTeamName(r.team) || r.team}
+              <td className="px-2.5 py-2 text-left text-xs text-neutral-500 whitespace-nowrap max-w-[160px]">
+                <TeamCell team={r.team} info={teamMap.get(r.team)} />
               </td>
               <Td muted>{r.gp}</Td>
               {isGoalie ? (
@@ -288,6 +311,11 @@ export async function NhlPlayerView({ pid }: { pid: string }) {
   const teamKo = profile.teamFullName ? toKoreanTeamName(profile.teamFullName) || profile.teamFullName : "";
   const seasons = profile.seasons ?? [];
   const awards = profile.awards ?? [];
+  // 시즌기록 팀 로고/링크 — DB NHL Team(영문 name 매칭)으로 logoUrl·팀페이지 id.
+  const nhlTeams = seasons.length
+    ? await prisma.team.findMany({ where: { league: "NHL" }, select: { id: true, name: true, logoUrl: true } })
+    : [];
+  const teamMap = new Map<string, TeamInfo>(nhlTeams.map((t) => [t.name, { id: t.id, logo: t.logoUrl }]));
 
   // 경기 탭 — 골리는 SV%·GAA 게임로그, 스케이터는 G·A·PTS.
   let gamesContent: ReactNode = null;
@@ -377,7 +405,7 @@ export async function NhlPlayerView({ pid }: { pid: string }) {
           seasons.length > 0 && {
             key: "seasons",
             label: "시즌기록",
-            content: <NhlSeasonTable rows={seasons} isGoalie={isGoalie} />,
+            content: <NhlSeasonTable rows={seasons} isGoalie={isGoalie} teamMap={teamMap} />,
           },
           gamesContent && {
             key: "games",
