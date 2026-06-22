@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
 import AmbientGlow from "@/components/AmbientGlow";
+import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { ArrowLeftRight, Trophy } from "lucide-react";
 
 export const revalidate = 3600; // 1시간 — 연봉 주1회·환율 시간당 갱신이면 충분
@@ -92,8 +93,9 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
   const season = rows[0]?.season ?? "2025-26";
 
   return (
-    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <AmbientGlow />
+      <PlayerValueTabs active="/salaries/nba" />
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
           <Link href="/scores" className="hover:underline">라이브 스코어</Link>
@@ -133,10 +135,11 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-black/5 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.03] text-xs text-neutral-500">
-                  <th className="px-3 py-2.5 text-center font-semibold w-10">#</th>
+                  <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold" colSpan={2}>선수</th>
                   <th className="px-2 py-2.5 text-left font-semibold">팀</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
+                  <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell">원화 환산</th>
                 </tr>
               </thead>
               <tbody>
@@ -167,10 +170,11 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                         {href ? <Link href={href}>{nameEl}</Link> : nameEl}
                       </td>
                       <td className="px-2 py-2.5 text-neutral-500">{toKoreanTeamName(r.teamName, "NBA")}</td>
-                      <td className="px-3 py-2 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
+                      <td className="px-3 py-2.5 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
                         <div className="tabular-nums font-bold">{fmtUsd(r.salary)}</div>
-                        <div className="text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>
+                        <div className="lg:hidden text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>
                       </td>
+                      <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{fmtKrw(r.salary, rate)}</td>
                     </tr>
                   );
                 })}

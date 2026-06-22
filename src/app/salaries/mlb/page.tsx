@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import AmbientGlow from "@/components/AmbientGlow";
+import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { CircleDollarSign } from "lucide-react";
 
 export const revalidate = 3600;
@@ -100,8 +101,9 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
   const pMap = new Map(tsP.map((p) => [p.name, p]));
 
   return (
-    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <AmbientGlow />
+      <PlayerValueTabs active="/salaries/mlb" />
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
           <Link href="/scores" className="hover:underline">라이브 스코어</Link>
@@ -123,9 +125,6 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
           <Link href="/leagues/MLB" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
             MLB 경기·순위
           </Link>
-          <Link href="/salaries/nba" className="rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
-            NBA 연봉
-          </Link>
         </div>
       </header>
 
@@ -137,10 +136,11 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
-                  <th className="px-3 py-2.5 text-center font-semibold w-10">#</th>
+                  <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold">선수</th>
                   <th className="px-2 py-2.5 text-left font-semibold">팀</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
+                  <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell">원화 환산</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,10 +169,11 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                         )}
                       </td>
                       <td className="px-2 py-2.5 text-neutral-500">{team ?? "—"}</td>
-                      <td className="px-3 py-2 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
+                      <td className="px-3 py-2.5 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
                         <div className="tabular-nums font-bold">{fmtUsd(r.salary)}</div>
-                        <div className="text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>
+                        <div className="lg:hidden text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>
                       </td>
+                      <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{fmtKrw(r.salary, rate)}</td>
                     </tr>
                   );
                 })}

@@ -16,6 +16,8 @@ import rawCoaches from "../../../data/team-coaches.json";
 import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
+import PlayerValueTabs from "@/components/PlayerValueTabs";
+import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -665,18 +667,30 @@ export default async function TransfersPage({
             : view === "country" && country ? country
               : "전체";
   const heading = isBigdeals
-    ? `💸 ${win.label} 빅딜`
+    ? `${win.label} 빅딜`
     : isInout
-      ? "🔁 팀별 IN/OUT"
+      ? "팀별 IN/OUT"
       : isSquads
-        ? `🏟️ ${league ? `${LEAGUES[league]} ` : ""}팀 스쿼드 가치`
+        ? `${league ? `${LEAGUES[league]} ` : ""}팀 스쿼드 가치`
         : isLatest
-          ? "🔄 최신 이적"
+          ? "최신 이적"
           : qSearch
-            ? `🔍 "${qSearch}" 검색`
+            ? `"${qSearch}" 검색`
             : squadSummary
-              ? `💰 ${squadSummary.name} 스쿼드`
-              : `💰 ${selectedLabel} 시장가치`;
+              ? `${squadSummary.name} 스쿼드`
+              : `${selectedLabel} 시장가치`;
+  // 헤더 아이콘 — 장식 이모지를 lucide 라인 아이콘으로 (디자인 시스템)
+  const HeadingIcon = isBigdeals
+    ? Banknote
+    : isInout
+      ? ArrowLeftRight
+      : isSquads
+        ? Users
+        : isLatest
+          ? RefreshCw
+          : qSearch
+            ? Search
+            : Wallet;
 
   // 페이지네이션 URL (필터 유지)
   const pageUrl = (n: number) => {
@@ -697,10 +711,14 @@ export default async function TransfersPage({
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
       <AmbientGlow />
+      <PlayerValueTabs active="/transfers" className="mb-6" />
       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 이적 시장
       </span>
-      <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{heading}</h1>
+      <h1 className="mt-4 flex items-center gap-2.5 sm:gap-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
+        <HeadingIcon className="w-7 h-7 sm:w-9 sm:h-9 lg:w-11 lg:h-11 text-rose-500 shrink-0" strokeWidth={2.25} aria-hidden />
+        <span>{heading}</span>
+      </h1>
       <p className="mt-3 text-sm text-neutral-500 break-keep">
         {isBigdeals ? (
           <>{league ? LEAGUES[league] : "주요 리그"} <strong className="text-neutral-700 dark:text-neutral-300">이적료 TOP</strong> · {win.label} · {totalCount.toLocaleString()}건.</>

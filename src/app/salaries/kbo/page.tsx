@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { KBO_SALARY_PLAYER_IDS } from "@/lib/sports/kbo-salaries";
 import AmbientGlow from "@/components/AmbientGlow";
+import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { Trophy } from "lucide-react";
 
 export const revalidate = 3600;
@@ -45,8 +46,9 @@ export default async function KboSalariesPage() {
   const photoOf = new Map(tsP.map((p) => [p.nameKo, p.photoUrl]));
 
   return (
-    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <AmbientGlow />
+      <PlayerValueTabs active="/salaries/kbo" />
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xs font-medium text-neutral-400">
           <Link href="/scores" className="hover:underline">라이브 스코어</Link>
@@ -66,9 +68,6 @@ export default async function KboSalariesPage() {
           <Link href="/leagues/KBO" className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
             <Trophy className="h-3.5 w-3.5" aria-hidden /> KBO 경기·순위
           </Link>
-          <Link href="/salaries/mlb" className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
-            <Trophy className="h-3.5 w-3.5" aria-hidden /> MLB 연봉
-          </Link>
         </div>
       </header>
 
@@ -79,8 +78,10 @@ export default async function KboSalariesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
-                <th className="px-3 py-2.5 text-center font-semibold w-10">#</th>
+                <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
                 <th className="px-2 py-2.5 text-left font-semibold">선수</th>
+                <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">팀</th>
+                <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">포지션</th>
                 <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
               </tr>
             </thead>
@@ -92,10 +93,8 @@ export default async function KboSalariesPage() {
                   <div className="flex items-center gap-2.5">
                     <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
                     <div className="leading-tight">
-                      <div className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${pid ? "group-hover:underline" : ""}`}>{r.playerName}</div>
-                      <div className="text-[11px] text-neutral-400">
-                        {r.teamName}{r.position ? ` · ${r.position}` : ""}
-                      </div>
+                      <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${pid ? "group-hover:underline" : ""}`}>{r.playerName}</span>
+                      <div className="lg:hidden text-[11px] text-neutral-400">{r.teamName}{r.position ? ` · ${r.position}` : ""}</div>
                     </div>
                   </div>
                 );
@@ -111,6 +110,8 @@ export default async function KboSalariesPage() {
                         cell
                       )}
                     </td>
+                    <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">{r.teamName}</td>
+                    <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">{r.position ?? "—"}</td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums font-bold">
                       {fmtManwon(r.salary)}
                     </td>
