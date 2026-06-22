@@ -1999,9 +1999,10 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   if (NHL_INJURY_NAMES_HAIKU_KO[trimmed]) return NHL_INJURY_NAMES_HAIKU_KO[trimmed];
   if (WNBA_PLAYER_NAMES_KO[trimmed]) return WNBA_PLAYER_NAMES_KO[trimmed];
   if (MLB_PLAYER_NAMES_KO[trimmed]) return MLB_PLAYER_NAMES_KO[trimmed];
-  if (MLB_PLAYER_NAMES_NAVER_KO[trimmed]) return MLB_PLAYER_NAMES_NAVER_KO[trimmed];
   if (MLB_PLAYER_NAMES_HAIKU_KO[trimmed]) return MLB_PLAYER_NAMES_HAIKU_KO[trimmed];
   if (MLB_INJURY_NAMES_HAIKU_KO[trimmed]) return MLB_INJURY_NAMES_HAIKU_KO[trimmed];
+  // 네이버 사전은 734/745 가 성(姓)만 표기라 풀네임(위키·Haiku) 뒤로 강등 — 최후 폴백
+  if (MLB_PLAYER_NAMES_NAVER_KO[trimmed]) return MLB_PLAYER_NAMES_NAVER_KO[trimmed];
   if (MLS_PLAYER_NAMES_KO[trimmed]) return MLS_PLAYER_NAMES_KO[trimmed];
   if (ESPN_LEADER_NAMES_KO[trimmed]) return ESPN_LEADER_NAMES_KO[trimmed];
   if (RAW[trimmed]) return RAW[trimmed];

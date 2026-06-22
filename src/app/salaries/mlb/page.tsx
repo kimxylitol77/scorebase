@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import AmbientGlow from "@/components/AmbientGlow";
 import { CircleDollarSign } from "lucide-react";
 
@@ -146,7 +147,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                 {rows.map((r) => {
                   const top3 = r.rank <= 3;
                   const p = pMap.get(r.playerName);
-                  const display = p?.nameKo ?? r.playerName;
+                  const display = p?.nameKo ?? toKoreanPlayerName(r.playerName);
                   const team = r.teamName ? toKoreanTeamName(r.teamName, "MLB") : null;
                   // 사진 URL(mlbstatic headshot)의 mlbamId → 통일 선수 페이지(/players/[pid], MLB 기본)
                   const mlbamId = r.photoUrl?.match(/\/people\/(\d+)\//)?.[1];

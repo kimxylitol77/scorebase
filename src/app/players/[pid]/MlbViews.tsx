@@ -24,6 +24,7 @@ import SplitsView from "./SplitsView";
 import PitchArsenal from "./PitchArsenal";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ChevronLeft } from "lucide-react";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 /* ---------- 공통 작은 컴포넌트 ---------- */
 
@@ -259,7 +260,7 @@ export async function MlbHitterView({
       <AmbientGlow />
       <PlayerHeader
         photoUrl={mlbHeadshotUrl(pid)}
-        name={profile.name}
+        name={toKoreanPlayerName(profile.name) || profile.name}
         number={profile.number}
         badges={
           <>
@@ -437,7 +438,7 @@ export async function MlbPitcherView({
       <AmbientGlow />
       <PlayerHeader
         photoUrl={mlbHeadshotUrl(pid)}
-        name={profile.name}
+        name={toKoreanPlayerName(profile.name) || profile.name}
         number={profile.number}
         badges={
           <>

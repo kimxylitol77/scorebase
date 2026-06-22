@@ -14,7 +14,8 @@ dotenv.config();
 import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { PrismaClient } from "@prisma/client";
-import { toKoreanPlayerName } from "../src/lib/player-names";
+import { MLB_PLAYER_NAMES_KO } from "../src/lib/sports/mlb-player-names";
+import { MLB_PLAYER_NAMES_HAIKU_KO } from "../src/lib/sports/mlb-player-names-haiku";
 
 const DAYS = parseInt(process.argv[2] ?? "14", 10);
 const UA = "Mozilla/5.0";
@@ -145,11 +146,12 @@ async function haikuTranslate(batch: string[]): Promise<Record<string, string>> 
 async function main() {
   const allNames = await collectNames();
 
-  // 기존 사전에 이미 있는 선수 제외
+  // 풀네임 사전(위키·Haiku)에 없으면 Haiku 음역 대상.
+  // 네이버 사전(734/745 가 성만)은 제외 판단에서 무시 — 성만 표기 선수도 풀네임으로 보강.
   const missing: string[] = [];
   for (const en of allNames) {
-    const ko = toKoreanPlayerName(en);
-    if (ko === en) missing.push(en);
+    if (MLB_PLAYER_NAMES_KO[en] || MLB_PLAYER_NAMES_HAIKU_KO[en]) continue;
+    missing.push(en);
   }
   console.log(`\n사전 누락: ${missing.length}명 (이미 매핑된 ${allNames.size - missing.length}명 skip)`);
 

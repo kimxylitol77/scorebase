@@ -78,13 +78,14 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     const profile = await fetchHitterProfile(id, yr);
     if (!profile) return { title: "선수 미발견" };
     const isPitcher = profile.position === "P";
+    const koName = toKoreanPlayerName(profile.name) || profile.name;
     return {
       title: isPitcher
-        ? `${profile.name} — MLB 선발 투수 통계`
-        : `${profile.name} — MLB 타자 통계`,
+        ? `${koName} — MLB 선발 투수 통계`
+        : `${koName} — MLB 타자 통계`,
       description: isPitcher
-        ? `${profile.team ?? ""} ${profile.name} 의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
-        : `${profile.team ?? ""} ${profile.name} 의 ${yr} 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
+        ? `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
+        : `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
       alternates: { canonical },
     };
   } catch {

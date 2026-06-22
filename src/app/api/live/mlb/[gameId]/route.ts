@@ -226,8 +226,8 @@ function normalize(data: EspnSummary): MlbLive | null {
         onFirst: !!s.onFirst,
         onSecond: !!s.onSecond,
         onThird: !!s.onThird,
-        batterName: s.batter?.athlete?.displayName ?? null,
-        pitcherName: s.pitcher?.athlete?.displayName ?? null,
+        batterName: toKoreanPlayerName(s.batter?.athlete?.displayName) || null,
+        pitcherName: toKoreanPlayerName(s.pitcher?.athlete?.displayName) || null,
         lastPlay: s.lastPlay?.text ?? null,
       }
     : null;
@@ -426,7 +426,7 @@ function extractLineups(
       .slice(0, 9);
     return starters.map((a, i) => ({
       order: a.batterRotation ?? i + 1,
-      name: a.athlete?.shortName ?? a.athlete?.displayName ?? "?",
+      name: toKoreanPlayerName(a.athlete?.displayName) || a.athlete?.shortName || "?",
       position: a.athlete?.position?.abbreviation ?? "",
       hitsAtBats: a.stats?.[iHA] ?? "0-0",
       runs: Number(a.stats?.[iR]) || 0,
