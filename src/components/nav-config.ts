@@ -75,6 +75,7 @@ export const COMMUNITY_CATEGORY: NavCategory = {
   items: [
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
+    { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
     { href: "/notices", label: "공지사항", desc: "사이트 공지 · 패치노트" },
     { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
     { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 글 · 예측 적중" },
