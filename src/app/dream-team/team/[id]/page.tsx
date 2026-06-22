@@ -9,6 +9,8 @@ import { grownOvr } from "@/lib/dream-team/grow";
 import { TIERS } from "@/lib/dream-team/tiers";
 import AmbientGlow from "@/components/AmbientGlow";
 import ChallengeButton from "./ChallengeButton";
+import { resolveAvatar } from "@/lib/analysis/analysts";
+import Avatar from "@/components/experts/Avatar";
 
 interface SquadPlayer {
   slot: string;
@@ -23,7 +25,7 @@ const POS_ORDER = ["FW", "MF", "DF", "GK"];
 
 export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const team = await prisma.dreamTeam.findUnique({ where: { id }, include: { user: { select: { nickname: true } } } });
+  const team = await prisma.dreamTeam.findUnique({ where: { id }, include: { user: { select: { nickname: true, avatarUrl: true, level: true, badge: true } } } });
   if (!team) notFound();
 
   const userId = await getCurrentUserId();
@@ -45,9 +47,12 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
           {TIERS[team.tier]?.name ?? team.tier} 리그
         </span>
         <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">{team.name}</h1>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          감독 {team.user.nickname} · {team.formation} · 팀 OVR {teamOvr}
-        </p>
+        <div className="mt-2 flex items-center gap-2">
+          <Avatar avatar={resolveAvatar(team.user.avatarUrl, team.user.nickname, team.user.level, team.user.badge)} size="sm" />
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            감독 {team.user.nickname} · {team.formation} · 팀 OVR {teamOvr}
+          </p>
+        </div>
         <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
           레이팅 {team.rating} · {team.wins}승 {team.draws}무 {team.losses}패
         </div>

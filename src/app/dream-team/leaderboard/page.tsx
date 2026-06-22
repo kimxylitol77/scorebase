@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { TIERS } from "@/lib/dream-team/tiers";
 import AmbientGlow from "@/components/AmbientGlow";
 import DreamTeamNav from "../DreamTeamNav";
+import { resolveAvatar } from "@/lib/analysis/analysts";
+import Avatar from "@/components/experts/Avatar";
 
 export const metadata: Metadata = {
   title: "드림팀 리더보드 | Scorebase",
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
 export default async function LeaderboardPage() {
   const userId = await getCurrentUserId();
   const teams = await prisma.dreamTeam.findMany({
-    include: { user: { select: { nickname: true } } },
+    include: { user: { select: { nickname: true, avatarUrl: true, level: true, badge: true } } },
     orderBy: { rating: "desc" },
     take: 100,
   });
@@ -57,8 +59,13 @@ export default async function LeaderboardPage() {
                     <tr key={t.id} className={`border-b border-neutral-100 last:border-0 dark:border-neutral-800/60 ${mine ? "bg-rose-500/5" : ""}`}>
                       <td className="px-3 py-2.5 font-medium text-neutral-900 dark:text-white">{i + 1}</td>
                       <td className="px-3 py-2.5">
-                        <a href={`/dream-team/team/${t.id}`} className="font-medium text-neutral-900 hover:text-rose-600 dark:text-white dark:hover:text-rose-400">{t.name}</a>
-                        <div className="text-xs text-neutral-500 dark:text-neutral-400">{t.user.nickname}</div>
+                        <div className="flex items-center gap-2">
+                          <Avatar avatar={resolveAvatar(t.user.avatarUrl, t.user.nickname, t.user.level, t.user.badge)} size="sm" />
+                          <div className="min-w-0">
+                            <a href={`/dream-team/team/${t.id}`} className="block truncate font-medium text-neutral-900 hover:text-rose-600 dark:text-white dark:hover:text-rose-400">{t.name}</a>
+                            <div className="truncate text-xs text-neutral-500 dark:text-neutral-400">{t.user.nickname}</div>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-3 py-2.5 text-neutral-600 dark:text-neutral-300">{TIERS[t.tier]?.name ?? t.tier}</td>
                       <td className="px-3 py-2.5 text-right font-medium text-neutral-900 dark:text-white">{t.rating}</td>

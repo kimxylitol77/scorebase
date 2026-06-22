@@ -9,11 +9,11 @@ export interface BotTeam {
 
 // 아마추어 티어 봇 5팀 (난이도 = avgOvr). 내 €15M 팀 평균 OVR(~60)과 비등~약우세.
 export const BOT_TEAMS: BotTeam[] = [
-  { id: "bot-amateur-1", name: "동네 조기축구회", tier: "amateur", avgOvr: 56 },
-  { id: "bot-amateur-2", name: "공원 FC", tier: "amateur", avgOvr: 60 },
-  { id: "bot-amateur-3", name: "직장인 유나이티드", tier: "amateur", avgOvr: 64 },
-  { id: "bot-amateur-4", name: "대학 동아리 SC", tier: "amateur", avgOvr: 68 },
-  { id: "bot-amateur-5", name: "세미프로 도전자", tier: "amateur", avgOvr: 72 },
+  { id: "bot-amateur-1", name: "동네 강호", tier: "amateur", avgOvr: 68 },
+  { id: "bot-amateur-2", name: "지역 클럽", tier: "amateur", avgOvr: 74 },
+  { id: "bot-amateur-3", name: "세미프로 도전자", tier: "amateur", avgOvr: 80 },
+  { id: "bot-amateur-4", name: "2부 리그 강호", tier: "amateur", avgOvr: 85 },
+  { id: "bot-amateur-5", name: "프로 워너비", tier: "amateur", avgOvr: 90 },
 ];
 
 export function botsForTier(tier: string): BotTeam[] {
