@@ -1,196 +1,171 @@
-// 선수 비교(head-to-head) 결과 — 두 선수 시즌 스탯을 레이더 오버레이 + 좌우 비교 표로. a,b = TheSports player id.
-import Link from "next/link";
+// 선수 비교 결과 — sport 디스패처. 축구·NBA·NHL·LOL 은 RadarCompareView(레이더+표). a,b = 종목별 선수 id.
+//   ?sport 없음=축구(ts id), NBA/NHL/LOL=각 종목 id. 야구는 별도 BaseballCompareView(추가 예정).
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, Repeat2 } from "lucide-react";
-import AmbientGlow from "@/components/AmbientGlow";
-import ComparePlayerRadar from "@/components/ComparePlayerRadar";
+import RadarCompareView, { type CmpHead, type CmpStatRow } from "@/components/RadarCompareView";
 import { toRadarAxes } from "@/lib/player-radar";
-import { loadComparePlayer, type ComparePlayer } from "../../loadComparePlayer";
+import { loadComparePlayer, type SeasonStat } from "../../loadComparePlayer";
+import {
+  loadLol, loadNba, loadNhl,
+  LOL_ROWS, NBA_ROWS, NHL_SKATER_ROWS, NHL_GOALIE_ROWS,
+  type RadarComparePlayer, type StatRowDef,
+} from "../../loaders";
 
 export const dynamic = "force-dynamic";
 
-const EUR_KRW = 1791.5;
-function krw(eurM: number): string {
-  const eok = (eurM * 1e6 * EUR_KRW) / 1e8;
-  if (eok >= 10000) return (eok / 10000).toFixed(2) + "조";
-  return Math.round(eok).toLocaleString() + "억";
-}
+const RADAR_SPORTS = ["NBA", "NHL", "LOL"] as const;
+type RadarSport = (typeof RADAR_SPORTS)[number];
+const isRadarSport = (s: string): s is RadarSport => (RADAR_SPORTS as readonly string[]).includes(s);
 
-// canonical = 두 id 정렬 순서로 정규화(A/B·B/A 중복 색인 방지). 페이지는 URL 순서대로 좌/우 렌더.
-function canonicalPair(a: string, b: string): string {
+function normSport(s?: string): string {
+  return (s || "SOCCER").toUpperCase();
+}
+function canonicalPair(a: string, b: string, sport: string): string {
   const [x, y] = [a, b].sort();
-  return `/compare/${x}/${y}`;
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ a: string; b: string }> }): Promise<Metadata> {
-  const { a, b } = await params;
-  const [pa, pb] = await Promise.all([loadComparePlayer(a), loadComparePlayer(b)]);
-  if (!pa || !pb) return { title: "선수 비교" };
-  const title = `${pa.name} vs ${pb.name} 비교 · 시즌 스탯·레이더 | 스코어베이스`;
-  const description = `${pa.name}과(와) ${pb.name}의 이번 시즌 골·도움·슈팅·패스·수비 지표를 레이더 차트와 표로 한눈에 비교. 스코어베이스 선수 비교.`;
-  return {
-    title,
-    description,
-    keywords: [`${pa.name} ${pb.name}`, `${pa.name} 비교`, "선수 비교", "스탯 비교", "스코어베이스"],
-    openGraph: { title, description, type: "website" },
-    alternates: { canonical: canonicalPair(a, b) },
-  };
+  return `/compare/${x}/${y}${sport === "SOCCER" ? "" : `?sport=${sport}`}`;
 }
 
 const num = (v: number | null | undefined) => v ?? 0;
 
-// 비교 표 행 정의 — pct=백분율, lowerBetter=낮을수록 우위(경고·퇴장), gk=골키퍼만.
-type NumStatKey =
-  | "matches" | "starts" | "goals" | "assists" | "minutes" | "shots" | "sot"
-  | "keyPasses" | "passAcc" | "tackles" | "interceptions" | "saves" | "yellow" | "red";
-const ROWS: { label: string; key: NumStatKey; pct?: boolean; lowerBetter?: boolean; gk?: boolean }[] = [
-  { label: "경기", key: "matches" },
-  { label: "선발", key: "starts" },
-  { label: "골", key: "goals" },
-  { label: "도움", key: "assists" },
-  { label: "출전 시간(분)", key: "minutes" },
-  { label: "슛", key: "shots" },
-  { label: "유효슛", key: "sot" },
-  { label: "키패스", key: "keyPasses" },
-  { label: "패스 정확도", key: "passAcc", pct: true },
-  { label: "태클", key: "tackles" },
-  { label: "인터셉트", key: "interceptions" },
-  { label: "세이브", key: "saves", gk: true },
-  { label: "경고", key: "yellow", lowerBetter: true },
-  { label: "퇴장", key: "red", lowerBetter: true },
-];
+// 스탯 행 비교 — 우위(lowerBetter 반영) 판정 + 포맷.
+function buildRows(defs: StatRowDef[], a: Record<string, number>, b: Record<string, number>, hasA: boolean, hasB: boolean): CmpStatRow[] {
+  return defs.map((d) => {
+    const va = a[d.key] ?? 0;
+    const vb = b[d.key] ?? 0;
+    let aBetter = false;
+    let bBetter = false;
+    if (hasA && hasB && va !== vb) {
+      const aWin = d.lowerBetter ? va < vb : va > vb;
+      aBetter = aWin;
+      bBetter = !aWin;
+    }
+    return { label: d.label, a: hasA ? d.fmt(va) : "—", b: hasB ? d.fmt(vb) : "—", aBetter, bBetter };
+  });
+}
 
-function PlayerHead({ p, side }: { p: ComparePlayer; side: "A" | "B" }) {
-  const accent = side === "A" ? "text-rose-600 dark:text-rose-400" : "text-cyan-600 dark:text-cyan-400";
-  const ring = side === "A" ? "ring-rose-500/30" : "ring-cyan-500/30";
+// ── 축구 ──
+const sInt = (v: number) => Math.round(v).toLocaleString();
+const SOCCER_ROWS: StatRowDef[] = [
+  { label: "경기", key: "matches", fmt: sInt },
+  { label: "선발", key: "starts", fmt: sInt },
+  { label: "골", key: "goals", fmt: sInt },
+  { label: "도움", key: "assists", fmt: sInt },
+  { label: "출전 시간(분)", key: "minutes", fmt: sInt },
+  { label: "슛", key: "shots", fmt: sInt },
+  { label: "유효슛", key: "sot", fmt: sInt },
+  { label: "키패스", key: "keyPasses", fmt: sInt },
+  { label: "패스 정확도", key: "passAcc", fmt: (v) => `${Math.round(v)}%` },
+  { label: "태클", key: "tackles", fmt: sInt },
+  { label: "인터셉트", key: "interceptions", fmt: sInt },
+  { label: "세이브", key: "saves", fmt: sInt },
+  { label: "경고", key: "yellow", lowerBetter: true, fmt: sInt },
+  { label: "퇴장", key: "red", lowerBetter: true, fmt: sInt },
+];
+function soccerStats(s: SeasonStat | null): Record<string, number> {
+  if (!s) return {};
+  return {
+    matches: num(s.matches), starts: num(s.starts), goals: num(s.goals), assists: num(s.assists),
+    minutes: num(s.minutes), shots: num(s.shots), sot: num(s.sot), keyPasses: num(s.keyPasses),
+    passAcc: num(s.passAcc), tackles: num(s.tackles), interceptions: num(s.interceptions),
+    saves: num(s.saves), yellow: num(s.yellow), red: num(s.red),
+  };
+}
+
+async function renderSoccer(a: string, b: string) {
+  const [pa, pb] = await Promise.all([loadComparePlayer(a), loadComparePlayer(b)]);
+  if (!pa || !pb) notFound();
+  const sa = pa.season;
+  const sb = pb.season;
+  const both = !!sa && !!sb && num(sa.minutes) > 0 && num(sb.minutes) > 0;
+  const hasGk = num(sa?.saves) > 0 || num(sb?.saves) > 0;
+  const rows = buildRows(SOCCER_ROWS, soccerStats(sa), soccerStats(sb), !!sa, !!sb).filter(
+    (r) => r.label !== "세이브" || num(sa?.saves) > 0 || num(sb?.saves) > 0,
+  );
+  const head = (p: typeof pa): CmpHead => ({
+    id: p.id, name: p.name, photo: p.photo,
+    sub: [p.posLabel, p.team, p.leagueLabel].filter(Boolean).join(" · ") || null,
+    valueEurM: p.value, href: `/transfers/${p.id}`,
+  });
   return (
-    <Link
-      href={`/transfers/${p.id}`}
-      className="flex flex-col items-center text-center gap-2 group min-w-0 flex-1"
-    >
-      <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 overflow-hidden flex items-center justify-center ring-2 ${ring}`}>
-        {p.photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.photo} alt={p.name} className="w-full h-full object-cover transition group-hover:scale-105" />
-        ) : (
-          <span className="text-2xl font-bold text-neutral-500">{p.name.slice(0, 1)}</span>
-        )}
-      </div>
-      <div className="min-w-0">
-        <div className="font-bold text-lg sm:text-xl tracking-tight break-keep group-hover:underline">{p.name}</div>
-        <div className="text-xs text-neutral-500 truncate">
-          {[p.posLabel, p.team, p.leagueLabel].filter(Boolean).join(" · ") || "—"}
-        </div>
-        {p.value != null && (
-          <div className={`mt-1 text-sm font-black tabular-nums ${accent}`}>€{p.value}M <span className="font-normal text-neutral-400">{krw(p.value)}</span></div>
-        )}
-      </div>
-    </Link>
+    <RadarCompareView
+      sport="SOCCER"
+      a={head(pa)} b={head(pb)}
+      axesA={both ? toRadarAxes(sa!) : null} axesB={both ? toRadarAxes(sb!) : null}
+      radarNote={hasGk ? "골키퍼는 필드플레이어 지표 기준이라 레이더가 낮게 보일 수 있습니다 — 세이브는 아래 표 참고." : null}
+      rows={rows}
+      caption="ⓘ 이번 시즌 성적 = 스코어베이스 데이터(TheSports). 레이더는 90분당·정확도 지표를 0~100 으로 정규화한 상대 비교용. 리그가 다르면 난이도 차이는 반영되지 않습니다."
+      swapHref={`/compare/${b}/${a}`}
+    />
   );
 }
 
-export default async function ComparePage({ params }: { params: Promise<{ a: string; b: string }> }) {
-  const { a, b } = await params;
-  const [pa, pb] = await Promise.all([loadComparePlayer(a), loadComparePlayer(b)]);
+// ── 레이더 종목 (NBA·NHL·LOL) ──
+async function renderRadarSport(a: string, b: string, sport: RadarSport) {
+  const load = sport === "NBA" ? loadNba : sport === "NHL" ? loadNhl : loadLol;
+  const [pa, pb] = await Promise.all([load(a), load(b)]);
   if (!pa || !pb) notFound();
 
-  const sa = pa.season;
-  const sb = pb.season;
-  const bothPlayable = !!sa && !!sb && num(sa.minutes) > 0 && num(sb.minutes) > 0;
-  const hasGk = pa.posLabel === "GK" || pb.posLabel === "GK" || num(sa?.saves) > 0 || num(sb?.saves) > 0;
-
-  // 표시할 행 — gk 행은 둘 중 하나라도 세이브 있을 때만
-  const rows = ROWS.filter((r) => !r.gk || num(sa?.saves) > 0 || num(sb?.saves) > 0);
-
+  let defs: StatRowDef[];
+  let radarNote: string | null = null;
+  if (sport === "NHL") {
+    defs = pa.radarKind === "goalie" ? NHL_GOALIE_ROWS : NHL_SKATER_ROWS;
+    if (pa.radarKind !== pb.radarKind) radarNote = "포지션(스케이터/골리)이 달라 같은 축으로 비교할 수 없습니다.";
+  } else {
+    defs = sport === "NBA" ? NBA_ROWS : LOL_ROWS;
+  }
+  const sameKind = sport !== "NHL" || pa.radarKind === pb.radarKind;
+  const hasA = Object.keys(pa.stats).length > 0;
+  const hasB = Object.keys(pb.stats).length > 0;
+  const rows = sameKind ? buildRows(defs, pa.stats, pb.stats, hasA, hasB) : [];
+  const head = (p: RadarComparePlayer): CmpHead => ({
+    id: p.id, name: p.name, photo: p.photo, sub: p.sub, href: `/players/${p.id}?league=${sport}`,
+  });
   return (
-    <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-7">
-      <AmbientGlow />
-      <div className="flex items-center justify-between gap-2">
-        <Link
-          href="/compare"
-          className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
-        >
-          <ArrowLeft className="h-3 w-3" aria-hidden /> 선수 비교
-        </Link>
-        <Link
-          href={`/compare/${b}/${a}`}
-          className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition"
-          title="좌우 바꾸기"
-        >
-          <Repeat2 className="h-3.5 w-3.5" aria-hidden /> 좌우 바꾸기
-        </Link>
-      </div>
-
-      <header>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-500 mb-3 text-center">선수 비교</p>
-        <div className="flex items-start gap-3">
-          <PlayerHead p={pa} side="A" />
-          <span className="self-center text-sm font-black text-neutral-400 shrink-0 pt-8">VS</span>
-          <PlayerHead p={pb} side="B" />
-        </div>
-      </header>
-
-      {/* 레이더 오버레이 */}
-      <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-        <h2 className="text-base font-bold tracking-tight mb-3">
-          <span className="bg-gradient-to-r from-rose-500 to-cyan-500 bg-clip-text text-transparent">시즌 지표 레이더</span>
-        </h2>
-        {bothPlayable ? (
-          <>
-            <ComparePlayerRadar axesA={toRadarAxes(sa!)} axesB={toRadarAxes(sb!)} nameA={pa.name} nameB={pb.name} />
-            <p className="text-center text-[11px] text-neutral-400 mt-1">레이더에 마우스를 올리면 실제 수치가 표시됩니다 · 골/도움/키패스/태클/인터셉트는 90분당 기준</p>
-            {hasGk && (
-              <p className="text-center text-[11px] text-amber-600 dark:text-amber-400 mt-1">골키퍼는 필드플레이어 지표(공격·수비) 기준이라 레이더가 낮게 보일 수 있습니다 — 세이브는 아래 표 참고</p>
-            )}
-          </>
-        ) : (
-          <p className="text-sm text-neutral-500 py-8 text-center">두 선수 모두 이번 시즌 출전 기록이 있어야 레이더를 표시합니다.</p>
-        )}
-      </section>
-
-      {/* 비교 표 */}
-      <section className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-sm dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-        <table className="w-full text-sm">
-          <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
-            <tr>
-              <th className="px-3 py-2.5 text-right font-semibold text-rose-600 dark:text-rose-400 w-1/3 truncate">{pa.name}</th>
-              <th className="px-2 py-2.5 text-center font-medium">지표</th>
-              <th className="px-3 py-2.5 text-left font-semibold text-cyan-600 dark:text-cyan-400 w-1/3 truncate">{pb.name}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5 dark:divide-white/5">
-            {rows.map((r) => {
-              const va = num(sa?.[r.key]);
-              const vb = num(sb?.[r.key]);
-              const hasData = sa != null || sb != null;
-              let aWin = false;
-              let bWin = false;
-              if (hasData && va !== vb) {
-                const aBetter = r.lowerBetter ? va < vb : va > vb;
-                aWin = aBetter;
-                bWin = !aBetter;
-              }
-              const fmt = (v: number) => (r.pct ? `${Math.round(v)}%` : v.toLocaleString());
-              return (
-                <tr key={r.key}>
-                  <td className={`px-3 py-2.5 text-right tabular-nums ${aWin ? "font-black text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
-                    {sa ? fmt(va) : "—"}
-                  </td>
-                  <td className="px-2 py-2.5 text-center text-xs text-neutral-500 whitespace-nowrap">{r.label}</td>
-                  <td className={`px-3 py-2.5 text-left tabular-nums ${bWin ? "font-black text-cyan-600 dark:text-cyan-400" : "text-neutral-700 dark:text-neutral-300"}`}>
-                    {sb ? fmt(vb) : "—"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
-
-      <p className="text-[11px] text-neutral-500 leading-relaxed">
-        ⓘ 이번 시즌 성적 = 스코어베이스 데이터(TheSports). 레이더는 90분당·정확도 지표를 0~100 으로 정규화한 상대 비교용. 리그가 다르면 난이도 차이는 반영되지 않습니다.
-      </p>
-    </article>
+    <RadarCompareView
+      sport={sport}
+      a={head(pa)} b={head(pb)}
+      axesA={sameKind ? pa.axes : null} axesB={sameKind ? pb.axes : null}
+      radarNote={radarNote}
+      rows={rows}
+      caption="ⓘ 이번 시즌 기록 = 스코어베이스 데이터. 레이더는 종목별 엘리트 시즌 상한으로 0~100 정규화한 상대 비교용."
+      swapHref={`/compare/${b}/${a}?sport=${sport}`}
+    />
   );
+}
+
+async function namesFor(a: string, b: string, sport: string): Promise<[string, string] | null> {
+  if (sport === "SOCCER") {
+    const [pa, pb] = await Promise.all([loadComparePlayer(a), loadComparePlayer(b)]);
+    return pa && pb ? [pa.name, pb.name] : null;
+  }
+  if (isRadarSport(sport)) {
+    const load = sport === "NBA" ? loadNba : sport === "NHL" ? loadNhl : loadLol;
+    const [pa, pb] = await Promise.all([load(a), load(b)]);
+    return pa && pb ? [pa.name, pb.name] : null;
+  }
+  return null;
+}
+
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ a: string; b: string }>; searchParams: Promise<{ sport?: string }> }): Promise<Metadata> {
+  const { a, b } = await params;
+  const sport = normSport((await searchParams).sport);
+  const names = await namesFor(a, b, sport);
+  if (!names) return { title: "선수 비교" };
+  const [na, nb] = names;
+  const title = `${na} vs ${nb} 비교 · 시즌 스탯 | 스코어베이스`;
+  const description = `${na}과(와) ${nb}의 이번 시즌 지표를 레이더와 표로 한눈에 비교. 스코어베이스 선수 비교.`;
+  return {
+    title, description,
+    keywords: [`${na} ${nb}`, `${na} 비교`, "선수 비교", "스탯 비교", "스코어베이스"],
+    openGraph: { title, description, type: "website" },
+    alternates: { canonical: canonicalPair(a, b, sport) },
+  };
+}
+
+export default async function ComparePage({ params, searchParams }: { params: Promise<{ a: string; b: string }>; searchParams: Promise<{ sport?: string }> }) {
+  const { a, b } = await params;
+  const sport = normSport((await searchParams).sport);
+  if (sport === "SOCCER") return renderSoccer(a, b);
+  if (isRadarSport(sport)) return renderRadarSport(a, b, sport);
+  notFound();
 }
