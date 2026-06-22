@@ -23,7 +23,7 @@ export default async function LeaderboardPage() {
   const myRank = userId ? teams.findIndex((t) => t.userId === userId) : -1;
 
   return (
-    <main className="relative mx-auto max-w-3xl px-4 py-10">
+    <main className="relative mx-auto max-w-5xl px-4 py-10">
       <AmbientGlow />
       <div className="relative">
         <DreamTeamNav />

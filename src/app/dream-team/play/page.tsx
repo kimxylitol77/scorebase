@@ -10,6 +10,7 @@ import { TIERS } from "@/lib/dream-team/tiers";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayClient from "./PlayClient";
 import DreamTeamNav from "../DreamTeamNav";
+import LeaderboardAside from "../LeaderboardAside";
 
 export const metadata: Metadata = { title: "드림팀 경기 | Scorebase" };
 
@@ -27,7 +28,7 @@ export default async function PlayPage() {
   const tierName = TIERS[team.tier]?.name ?? team.tier;
 
   return (
-    <main className="relative mx-auto max-w-3xl px-4 py-10">
+    <main className="relative mx-auto max-w-5xl px-4 py-10">
       <AmbientGlow />
       <div className="relative">
         <DreamTeamNav />
@@ -38,15 +39,18 @@ export default async function PlayPage() {
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
           같은 티어 봇과 겨뤄 레이팅과 이적 자금을 모으세요. 자금이 쌓이면 상위 티어가 열립니다.
         </p>
-        <PlayClient
-          teamName={team.name}
-          myOvr={myOvr}
-          rating={team.rating}
-          record={{ w: team.wins, d: team.draws, l: team.losses }}
-          points={team.points}
-          bots={bots}
-          ready={players.length === 11}
-        />
+        <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+          <PlayClient
+            teamName={team.name}
+            myOvr={myOvr}
+            rating={team.rating}
+            record={{ w: team.wins, d: team.draws, l: team.losses }}
+            points={team.points}
+            bots={bots}
+            ready={players.length === 11}
+          />
+          <LeaderboardAside />
+        </div>
       </div>
     </main>
   );
