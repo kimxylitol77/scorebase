@@ -97,9 +97,9 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
     const affordable = remaining + refund;
     return pool
       .filter((p) => p.pos === activeSlotObj.pos && !used.has(p.id) && (q === "" || p.name.includes(q)) && (freeMode || p.value <= affordable))
-      .sort((a, b) => b.ovr / Math.max(1, b.value) - a.ovr / Math.max(1, a.value))
+      .sort((a, b) => (freeMode ? b.value - a.value : b.ovr / Math.max(1, b.value) - a.ovr / Math.max(1, a.value)))
       .slice(0, 30);
-  }, [activeSlotObj, search, picks, pool, remaining, activeSlot, poolById]);
+  }, [activeSlotObj, search, picks, pool, remaining, activeSlot, poolById, freeMode]);
 
   const selectedPlayer = selected ? poolById[selected.playerId] ?? null : null;
   const selectedAffordable = useMemo(() => {
