@@ -2003,6 +2003,14 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   if (MLB_INJURY_NAMES_HAIKU_KO[trimmed]) return MLB_INJURY_NAMES_HAIKU_KO[trimmed];
   // 네이버 사전은 734/745 가 성(姓)만 표기라 풀네임(위키·Haiku) 뒤로 강등 — 최후 폴백
   if (MLB_PLAYER_NAMES_NAVER_KO[trimmed]) return MLB_PLAYER_NAMES_NAVER_KO[trimmed];
+  // MLB 분음부호 폴딩 재시도 — ESPN "Javier Báez" vs 사전 "Javier Baez" 불일치 구제 (중남미 선수)
+  const mlbDeburred = trimmed.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (mlbDeburred !== trimmed) {
+    if (MLB_PLAYER_NAMES_KO[mlbDeburred]) return MLB_PLAYER_NAMES_KO[mlbDeburred];
+    if (MLB_PLAYER_NAMES_HAIKU_KO[mlbDeburred]) return MLB_PLAYER_NAMES_HAIKU_KO[mlbDeburred];
+    if (MLB_INJURY_NAMES_HAIKU_KO[mlbDeburred]) return MLB_INJURY_NAMES_HAIKU_KO[mlbDeburred];
+    if (MLB_PLAYER_NAMES_NAVER_KO[mlbDeburred]) return MLB_PLAYER_NAMES_NAVER_KO[mlbDeburred];
+  }
   if (MLS_PLAYER_NAMES_KO[trimmed]) return MLS_PLAYER_NAMES_KO[trimmed];
   if (ESPN_LEADER_NAMES_KO[trimmed]) return ESPN_LEADER_NAMES_KO[trimmed];
   if (RAW[trimmed]) return RAW[trimmed];
