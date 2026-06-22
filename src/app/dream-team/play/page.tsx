@@ -45,9 +45,11 @@ export default async function PlayPage() {
           bots={bots}
           ready={players.length === 11}
         />
-        <a href="/dream-team" className="mt-6 inline-block text-sm text-neutral-500 hover:text-rose-600 dark:text-neutral-400">
-          ← 빌더로 돌아가기
-        </a>
+        <div className="mt-6 flex gap-4 text-sm">
+          <a href="/dream-team" className="text-neutral-500 hover:text-rose-600 dark:text-neutral-400">← 빌더</a>
+          <a href="/dream-team/versus" className="text-neutral-500 hover:text-rose-600 dark:text-neutral-400">유저 대전</a>
+          <a href="/dream-team/leaderboard" className="text-neutral-500 hover:text-rose-600 dark:text-neutral-400">리더보드 →</a>
+        </div>
       </div>
     </main>
   );
