@@ -1,11 +1,13 @@
 // 리그 역대 우승 — 리그 페이지 "역사" 탭. data/league-champions.json (위키데이터 P3450→P1346 수집).
 import championsData from "../../../data/league-champions.json";
+import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 
 type Champ = { season: string; ko: string; en: string };
 const DATA = championsData as Record<string, { champions: Champ[] }>;
 
 export default function LeagueHistory({ league, leagueName }: { league: string; leagueName: string }) {
   const champions = DATA[league]?.champions ?? [];
+  const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
 
   if (champions.length === 0) {
     return (
@@ -37,6 +39,7 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
               }`}
             >
               {i === 0 && <span className="text-sm">🏆</span>}
+              {showFlag && fifaFlag(club) && <span className="text-sm">{fifaFlag(club)}</span>}
               <span className="font-bold text-sm">{club}</span>
               <span className={`text-sm tabular-nums font-black ${i === 0 ? "text-amber-600 dark:text-amber-400" : "text-neutral-500"}`}>
                 {n}회
@@ -57,6 +60,9 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
               className="flex items-center gap-3 px-3.5 py-2 text-sm border-b border-neutral-100 dark:border-neutral-800/60 sm:[&:nth-last-child(2)]:border-b-0 [&:last-child]:border-b-0 odd:sm:border-r odd:sm:border-r-neutral-100 dark:odd:sm:border-r-neutral-800/60"
             >
               <span className="w-16 shrink-0 text-xs tabular-nums text-neutral-400">{c.season}</span>
+              {showFlag && fifaFlag(c.en, c.ko) && (
+                <span className="shrink-0">{fifaFlag(c.en, c.ko)}</span>
+              )}
               <span className="font-medium truncate">{c.ko}</span>
             </div>
           ))}

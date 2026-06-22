@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -37,6 +38,7 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     }),
   ]);
   const matches = [...recent.reverse(), ...upcoming]; // 과거(오름차순) → 미래
+  const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
 
   if (matches.length === 0) {
     return (
@@ -67,17 +69,25 @@ export default async function LeagueFixtures({ league }: { league: string }) {
             {g.matches.map((m) => {
               const h = toKoreanTeamName(m.homeTeam.name, league);
               const a = toKoreanTeamName(m.awayTeam.name, league);
+              const hFlag = showFlag ? fifaFlag(m.homeTeam.name, h) : "";
+              const aFlag = showFlag ? fifaFlag(m.awayTeam.name, a) : "";
               const live = m.status === "LIVE";
               const done = m.status === "FINISHED";
               const center = live || done ? `${m.homeScore ?? 0} - ${m.awayScore ?? 0}` : "vs";
               const right = live ? "🔴 LIVE" : done ? "종료" : kstParts(m.startTime).time;
               const inner = (
                 <span className="flex items-center gap-2 text-sm px-3 py-2.5">
-                  <span className="flex-1 text-right truncate font-medium">{h}</span>
+                  <span className="flex-1 text-right truncate font-medium">
+                    {h}
+                    {hFlag && <span className="ml-1.5 align-middle">{hFlag}</span>}
+                  </span>
                   <span className={`w-14 text-center tabular-nums font-bold shrink-0 ${live ? "text-rose-600 dark:text-rose-400" : done ? "" : "text-neutral-400 font-normal"}`}>
                     {center}
                   </span>
-                  <span className="flex-1 truncate font-medium">{a}</span>
+                  <span className="flex-1 truncate font-medium">
+                    {aFlag && <span className="mr-1.5 align-middle">{aFlag}</span>}
+                    {a}
+                  </span>
                   <span className={`ml-auto text-xs tabular-nums whitespace-nowrap shrink-0 ${live ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-neutral-400"}`}>
                     {right}
                   </span>

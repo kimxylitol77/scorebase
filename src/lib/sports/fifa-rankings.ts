@@ -349,12 +349,19 @@ function subdivisionFlag(sub: string): string {
   return s + String.fromCodePoint(0xe007f); // cancel tag
 }
 
-/** FIFA 영문 canonical 국가명 → 국기 emoji. 매핑 없으면 "" (graceful 미표시). */
-export function fifaFlag(nameEn: string): string {
-  // TheSports 등 변형 영문명을 FIFA canonical 로 정규화 후 ISO2 조회.
+/**
+ * 국가명 → 국기 emoji. 매핑 없으면 "" (graceful 미표시).
+ * @param nameEn 원문(주로 영문) 국가명 — 1순위 (TheSports 변형 영문명도 ENGLISH_ALIASES 로 정규화)
+ * @param nameKo 한글 국가명 — 영문 실패 시 안전망 (위키데이터 긴 영문명 "Argentina national football team" 등 대비)
+ */
+export function fifaFlag(nameEn: string, nameKo?: string | null): string {
   // 예: "South Korea"→"Korea Republic", "Türkiye"→"Turkey", "Czech Republic"→"Czechia".
-  const canonical = ENGLISH_ALIASES[nameEn] ?? nameEn;
-  if (SUBDIVISION_FLAG[canonical]) return subdivisionFlag(SUBDIVISION_FLAG[canonical]);
-  const iso2 = EN_TO_ISO2[canonical] ?? EN_TO_ISO2[nameEn];
-  return iso2 ? regionalIndicator(iso2) : "";
+  for (const candidate of [nameEn, nameKo]) {
+    if (!candidate) continue;
+    const canonical = ENGLISH_ALIASES[candidate] ?? KOREAN_ALIASES[candidate] ?? candidate;
+    if (SUBDIVISION_FLAG[canonical]) return subdivisionFlag(SUBDIVISION_FLAG[canonical]);
+    const iso2 = EN_TO_ISO2[canonical] ?? EN_TO_ISO2[candidate];
+    if (iso2) return regionalIndicator(iso2);
+  }
+  return "";
 }
