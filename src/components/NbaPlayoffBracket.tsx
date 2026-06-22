@@ -30,7 +30,7 @@ export default function NbaPlayoffBracket({ series, league = "NBA" }: Props) {
   const emoji = league === "NHL" ? "🏒" : "🏀";
   const title = league === "NHL" ? "NHL 플레이오프 브라켓" : "NBA 플레이오프 브라켓";
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
+    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] p-4 sm:p-5">
       <header className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span aria-hidden>{emoji}</span>

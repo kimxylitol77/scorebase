@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { TeamOfDay, TodPlayer } from "@/lib/sports/thesports/team-of-day";
 import TeamOfDayPitch from "@/components/TeamOfDayPitch";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const fmtDateKo = (d: string) => {
   const [, m, day] = d.split("-");
@@ -35,7 +36,8 @@ export default function TeamOfDayView({
   const latest = allDates[0] ?? date;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white py-8 px-4">
+    <div className="relative min-h-screen bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-white py-8 px-4">
+      <AmbientGlow />
       <div className="max-w-md mx-auto">
         <nav className="text-xs text-neutral-500 mb-3">
           <Link href="/predictions/WORLD_CUP" className="hover:text-neutral-700 dark:hover:text-neutral-300">월드컵</Link>

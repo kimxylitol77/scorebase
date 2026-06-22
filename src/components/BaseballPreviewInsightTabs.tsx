@@ -148,7 +148,7 @@ export default function BaseballPreviewInsightTabs(
   const activeTab = tab;
 
   return (
-    <section className="my-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 overflow-hidden">
+    <section className="my-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] overflow-hidden">
       {/* 헤더 */}
       <div className="px-4 sm:px-5 py-3 border-b border-neutral-100 dark:border-neutral-900 flex items-center gap-2">
         <span className="text-xs font-bold tracking-[0.18em] uppercase text-neutral-500">

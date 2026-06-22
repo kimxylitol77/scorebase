@@ -21,7 +21,7 @@ export default function InningScoreChart({
   if (!inningProbs?.length) return null;
 
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5">
+    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] p-4 sm:p-5">
       <header className="flex items-center justify-between mb-3 gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <span aria-hidden>🎯</span>

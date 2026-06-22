@@ -417,7 +417,7 @@ export default async function TeamPage({ params }: Props) {
               ) : null}
             </div>
             {teamVenue.website && (
-              <a href={teamVenue.website} target="_blank" rel="noopener noreferrer nofollow" className="mt-3 inline-block text-xs text-cyan-600 dark:text-cyan-400 hover:underline">
+              <a href={teamVenue.website} target="_blank" rel="noopener noreferrer nofollow" className="mt-3 inline-block text-xs text-rose-600 dark:text-rose-400 hover:underline">
                 공식 웹사이트 →
               </a>
             )}
@@ -552,7 +552,7 @@ export default async function TeamPage({ params }: Props) {
             </div>
             <Link
               href={`/transfers?view=team&team=${team.id}`}
-              className="mt-3 flex items-center justify-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-2.5 text-sm font-bold text-cyan-600 dark:text-cyan-400 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
+              className="mt-3 flex items-center justify-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-2.5 text-sm font-bold text-rose-600 dark:text-rose-400 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
             >
               스쿼드 몸값 랭킹 · 시장가치 Best XI 전체보기 →
             </Link>

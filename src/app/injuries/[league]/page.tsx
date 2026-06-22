@@ -1350,12 +1350,12 @@ function ControlsBar({
         name="q"
         defaultValue={query}
         placeholder="🔍 선수명 검색"
-        className="flex-1 min-w-[200px] px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
+        className="flex-1 min-w-[200px] px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04]"
       />
       <select
         name="severity"
         defaultValue={severity}
-        className="px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
+        className="px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04]"
       >
         <option value="ALL">심각도 전체</option>
         <option value="long">🔴 장기 결장</option>
@@ -1367,7 +1367,7 @@ function ControlsBar({
       <select
         name="sort"
         defaultValue={sort}
-        className="px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950"
+        className="px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04]"
       >
         <option value="count_desc">부상자 많은 순</option>
         <option value="count_asc">부상자 적은 순</option>

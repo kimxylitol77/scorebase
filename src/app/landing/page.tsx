@@ -2,7 +2,9 @@
 //  스코어베이스.com 도메인 진입점. 키워드 우선순위 = 검색량 데이터 기반(라이브스코어·리그 순위 중심).
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Zap, ListOrdered, Target, BarChart3, Banknote, Bandage, type LucideIcon } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
+import AmbientGlow from "@/components/AmbientGlow";
 
 // 스코어베이스.com (브랜드 랜딩 전용 도메인) 자기참조 canonical/OG.
 // 과거엔 canonical 이 scorebase.kr/landing 이라 구글이 .com 을 scorebase.kr 로 흡수 →
@@ -42,21 +44,21 @@ export const metadata: Metadata = {
   },
 };
 
-const FEATURES: { href: string; emoji: string; title: string; desc: string; live?: boolean }[] = [
-  { href: "/scores", emoji: "⚡", title: "라이브스코어", desc: "축구·야구·농구·아이스하키·e스포츠 실시간 스코어를 한 화면에서. 전반 점수·통계·배당까지 즉시 반영.", live: true },
-  { href: "/standings", emoji: "📋", title: "리그 순위 (실시간)", desc: "EPL·라리가·분데스리가·세리에 A·K리그·KBO·NBA·MLB 리그 순위와 득점왕·도움왕 리더보드를 실시간으로.", live: true },
-  { href: "/analysis", emoji: "🎯", title: "AI 스포츠 분석·승부예측", desc: "축구·야구·농구 경기별 승부 예측과 누적 적중률을 투명하게 공개. 데이터 기반 스포츠 분석과 예측 전문가 리더보드까지." },
-  { href: "/predictions", emoji: "📊", title: "AI 시즌 예측", desc: "Elo 레이팅 + Monte Carlo 5,000회로 우승·플레이오프·강등 확률을 계산. FIFA 랭킹·세계 클럽 랭킹도 함께." },
-  { href: "/transfers", emoji: "💰", title: "해외 이적시장", desc: "유럽 빅5 리그 선수 시장가치(몸값) 랭킹과 최신 이적을 빠르게 반영. 커리어·시즌 성적·몸값 변동 추이까지.", live: true },
-  { href: "/injuries", emoji: "🩹", title: "부상자 명단", desc: "전 팀 부상·결장 선수를 매일 갱신. 사유·심각도·복귀 전망까지 한눈에." },
+const FEATURES: { href: string; Icon: LucideIcon; title: string; desc: string; live?: boolean }[] = [
+  { href: "/scores", Icon: Zap, title: "라이브스코어", desc: "축구·야구·농구·아이스하키·e스포츠 실시간 스코어를 한 화면에서. 전반 점수·통계·배당까지 즉시 반영.", live: true },
+  { href: "/standings", Icon: ListOrdered, title: "리그 순위 (실시간)", desc: "EPL·라리가·분데스리가·세리에 A·K리그·KBO·NBA·MLB 리그 순위와 득점왕·도움왕 리더보드를 실시간으로.", live: true },
+  { href: "/analysis", Icon: Target, title: "AI 스포츠 분석·승부예측", desc: "축구·야구·농구 경기별 승부 예측과 누적 적중률을 투명하게 공개. 데이터 기반 스포츠 분석과 예측 전문가 리더보드까지." },
+  { href: "/predictions", Icon: BarChart3, title: "AI 시즌 예측", desc: "Elo 레이팅 + Monte Carlo 5,000회로 우승·플레이오프·강등 확률을 계산. FIFA 랭킹·세계 클럽 랭킹도 함께." },
+  { href: "/transfers", Icon: Banknote, title: "해외 이적시장", desc: "유럽 빅5 리그 선수 시장가치(몸값) 랭킹과 최신 이적을 빠르게 반영. 커리어·시즌 성적·몸값 변동 추이까지.", live: true },
+  { href: "/injuries", Icon: Bandage, title: "부상자 명단", desc: "전 팀 부상·결장 선수를 매일 갱신. 사유·심각도·복귀 전망까지 한눈에." },
 ];
 
 const SPORTS: { name: string; leagues: string }[] = [
-  { name: "⚽ 축구", leagues: "EPL · 라리가 · 분데스리가 · 세리에 A · 리그 1 · K리그 · J리그 · MLS · UCL · FIFA 월드컵 2026" },
-  { name: "⚾ 야구", leagues: "KBO · NPB · MLB" },
-  { name: "🏀 농구", leagues: "NBA · WNBA" },
-  { name: "🏒 아이스하키", leagues: "NHL" },
-  { name: "🎮 e스포츠", leagues: "LCK (리그 오브 레전드)" },
+  { name: "축구", leagues: "EPL · 라리가 · 분데스리가 · 세리에 A · 리그 1 · K리그 · J리그 · MLS · UCL · FIFA 월드컵 2026" },
+  { name: "야구", leagues: "KBO · NPB · MLB" },
+  { name: "농구", leagues: "NBA · WNBA" },
+  { name: "아이스하키", leagues: "NHL" },
+  { name: "e스포츠", leagues: "LCK (리그 오브 레전드)" },
 ];
 
 // 검색량 가장 높은 "OO 순위" 키워드 — 가시 칩 + 내부링크로 직접 노출(SEO 핵심).
@@ -101,6 +103,7 @@ const btnGhost = "inline-flex items-center justify-center gap-2 rounded-full bg-
 export default function LandingPage() {
   return (
     <main className="relative min-h-screen bg-[#f5f5f7] dark:bg-transparent">
+      <AmbientGlow />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />
 
       {/* Hero */}
@@ -151,7 +154,7 @@ export default function LandingPage() {
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> LIVE
                 </span>
               )}
-              <div className="text-2xl">{f.emoji}</div>
+              <f.Icon className="h-7 w-7 text-rose-500 dark:text-rose-400" strokeWidth={1.75} aria-hidden />
               <h3 className="mt-3 text-lg font-bold tracking-tight text-zinc-950 group-hover:underline underline-offset-4 decoration-2 dark:text-white">{f.title}</h3>
               <p className="mt-1.5 text-sm leading-6 text-zinc-600 dark:text-white/55">{f.desc}</p>
             </Link>
