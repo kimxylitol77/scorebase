@@ -55,7 +55,7 @@ export default async function LeaderboardPage() {
                     <tr key={t.id} className={`border-b border-neutral-100 last:border-0 dark:border-neutral-800/60 ${mine ? "bg-rose-500/5" : ""}`}>
                       <td className="px-3 py-2.5 font-medium text-neutral-900 dark:text-white">{i + 1}</td>
                       <td className="px-3 py-2.5">
-                        <div className="font-medium text-neutral-900 dark:text-white">{t.name}</div>
+                        <a href={`/dream-team/team/${t.id}`} className="font-medium text-neutral-900 hover:text-rose-600 dark:text-white dark:hover:text-rose-400">{t.name}</a>
                         <div className="text-xs text-neutral-500 dark:text-neutral-400">{t.user.nickname}</div>
                       </td>
                       <td className="px-3 py-2.5 text-neutral-600 dark:text-neutral-300">{TIERS[t.tier]?.name ?? t.tier}</td>
