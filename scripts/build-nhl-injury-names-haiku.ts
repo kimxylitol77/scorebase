@@ -11,6 +11,7 @@ import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fetchEspnInjuries } from "../src/lib/sports/espn-injuries";
 import { toKoreanPlayerName } from "../src/lib/player-names";
+import nhlPlayersRaw from "../data/nhl-players.json";
 
 const BATCH = 50;
 const OUT = "data/nhl-injury-names-haiku.json";
@@ -92,7 +93,11 @@ async function haikuTranslate(batch: string[]): Promise<Record<string, string>> 
 
 async function main() {
   const all = await collectInjuredNames();
-  console.log(`▶ NHL ESPN 부상자: ${all.length}명`);
+  // nhl-players.json 전체 로스터(875)도 음역 대상에 포함 — build-nhl-players 가 Haiku 음역을
+  // 안 해서 ko 가 영문 fallback 인 선수(702명)를 toKoreanPlayerName 미커버로 잡아 보강.
+  const idx = nhlPlayersRaw as Record<string, { name?: string }>;
+  for (const e of Object.values(idx)) if (e.name && !all.includes(e.name)) all.push(e.name);
+  console.log(`▶ NHL ESPN 부상자 + nhl-players.json 로스터: ${all.length}명`);
 
   const outPath = resolve(OUT);
   let existing: Record<string, string> = {};

@@ -26,6 +26,12 @@ const SPORT_CONFIG = {
     constName: "NBA_PLAYER_NAMES_WIKI_KO",
     label: "NBA",
   },
+  nhl: {
+    espnPath: "hockey/nhl",
+    outPath: "src/lib/sports/nhl-player-names-wiki.ts",
+    constName: "NHL_PLAYER_NAMES_WIKI_KO",
+    label: "NHL",
+  },
 } as const;
 
 const cfg = SPORT_CONFIG[SPORT as keyof typeof SPORT_CONFIG];
@@ -168,9 +174,9 @@ ${body}
 async function main() {
   console.log(`▶ ${cfg.label} — ESPN ${DAYS}일 boxscore 수집`);
   const names = await collectNames();
-  // NBA 는 시즌 종료 시 ESPN boxscore 가 비므로 nba-players.json 전체 로스터(537)도 위키 조회 대상에 포함
-  if (SPORT === "nba") {
-    const idxPath = resolve("data/nba-players.json");
+  // NBA·NHL 은 시즌 종료 시 ESPN boxscore 가 비므로 {sport}-players.json 전체 로스터도 위키 조회 대상에 포함
+  if (SPORT === "nba" || SPORT === "nhl") {
+    const idxPath = resolve(`data/${SPORT}-players.json`);
     if (existsSync(idxPath)) {
       const idx = JSON.parse(readFileSync(idxPath, "utf8")) as Record<string, { name?: string }>;
       let added = 0;

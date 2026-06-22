@@ -8,6 +8,7 @@ import { NBA_PLAYER_NAMES_KO } from "./sports/nba-player-names";
 import { NBA_PLAYER_NAMES_WIKI_KO } from "./sports/nba-player-names-wiki";
 import rawNbaHaikuKo from "../../data/nba-player-names-haiku.json"; // 주간 cron 이 갱신하는 data/*.json (mac-mini)
 import { NHL_PLAYER_NAMES_KO } from "./sports/nhl-player-names";
+import { NHL_PLAYER_NAMES_WIKI_KO } from "./sports/nhl-player-names-wiki";
 import rawNhlInjuryHaikuKo from "../../data/nhl-injury-names-haiku.json"; // NHL 부상자 보강, 주간 cron 갱신(mac-mini)
 import { WNBA_PLAYER_NAMES_KO } from "./sports/wnba-player-names";
 import { MLB_PLAYER_NAMES_KO } from "./sports/mlb-player-names";
@@ -1996,6 +1997,7 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   if (NBA_PLAYER_NAMES_WIKI_KO[trimmed]) return NBA_PLAYER_NAMES_WIKI_KO[trimmed];
   if (NBA_PLAYER_NAMES_HAIKU_KO[trimmed]) return NBA_PLAYER_NAMES_HAIKU_KO[trimmed];
   if (NHL_PLAYER_NAMES_KO[trimmed]) return NHL_PLAYER_NAMES_KO[trimmed];
+  if (NHL_PLAYER_NAMES_WIKI_KO[trimmed]) return NHL_PLAYER_NAMES_WIKI_KO[trimmed];
   if (NHL_INJURY_NAMES_HAIKU_KO[trimmed]) return NHL_INJURY_NAMES_HAIKU_KO[trimmed];
   if (WNBA_PLAYER_NAMES_KO[trimmed]) return WNBA_PLAYER_NAMES_KO[trimmed];
   if (MLB_PLAYER_NAMES_KO[trimmed]) return MLB_PLAYER_NAMES_KO[trimmed];
