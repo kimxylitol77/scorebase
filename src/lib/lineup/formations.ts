@@ -68,6 +68,20 @@ export const FORMATIONS: Record<string, Slot[]> = {
 };
 
 export const FORMATION_NAMES = Object.keys(FORMATIONS);
+// 포메이션 선택지 — "자유"는 슬롯 프리셋 없이 빈 피치(자유 배치).
+export const FREE_FORMATION = "자유";
+export const FORMATION_OPTIONS = [...FORMATION_NAMES, FREE_FORMATION];
+
+// 맞대결 양 팀 색 — home(하단)·away(상단) 배지 구분. 단일 모드는 미사용.
+export interface SideColor {
+  solid: string;
+  soft: string;
+  ring: string;
+}
+export const SIDE_COLORS: Record<"home" | "away", SideColor> = {
+  home: { solid: "#e11d48", soft: "rgba(225,29,72,0.20)", ring: "rgba(225,29,72,0.9)" },
+  away: { solid: "#2563eb", soft: "rgba(37,99,235,0.20)", ring: "rgba(37,99,235,0.9)" },
+};
 
 // 키트(피치 배경) 프리셋 — 카드·빌더 공용. 그라데이션 두 색.
 export interface Kit {

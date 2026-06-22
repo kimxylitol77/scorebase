@@ -1,26 +1,57 @@
-// 라인업 전술판 — 포메이션 보드에 선수를 배치해 베스트 11을 만들고 이미지 카드로 공유 (공개 도구).
+// 라인업 전술판 — 포메이션 보드에 선수를 배치해 베스트 11/맞대결을 만들고 이미지 카드로 공유 (공개 도구).
 import type { Metadata } from "next";
 import { allDreamPlayers } from "@/lib/dream-team/pool";
-import { decodeLineup } from "@/lib/lineup/lineup-state";
+import { decodeBoard } from "@/lib/lineup/lineup-state";
 import LineupBuilder from "./LineupBuilder";
+import type { ClubMeta } from "./types";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const metadata: Metadata = {
   title: "라인업 전술판 | Scorebase",
-  description: "포메이션 보드에 빅5 현역 선수를 배치해 나만의 베스트 11을 만들고 이미지 카드로 공유하세요.",
+  description: "포메이션 보드에 빅5 현역 선수를 배치해 나만의 베스트 11과 맞대결 라인업을 만들고 이미지 카드로 공유하세요.",
 };
+
+// 클럽 표기 정규화 — "Barcelona"와 "FC Barcelona"를 한 그룹으로 묶기 위한 키.
+function normClub(t: string): string {
+  return t
+    .toLowerCase()
+    .replace(/\b(fc|cf|afc|cd|ac|ssc|as|rc|sc|ud|rcd|sd|ca)\b/g, " ")
+    .replace(/[^a-z0-9]/g, "");
+}
 
 export default async function LineupPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
   const { d } = await searchParams;
-  const initial = d ? decodeLineup(d) : null;
-  // 빌더에는 필요한 6개 필드만 슬림하게 전달(radar 등 무거운 필드 제외).
-  const pool = allDreamPlayers().map((p) => ({
+  const initial = d ? decodeBoard(d) : null;
+
+  const all = allDreamPlayers();
+
+  // 클럽 메타 집계(표기 정규화·대표 라벨·베스트11 가능 여부).
+  const groups: Record<string, { labels: Record<string, number>; league: string; pos: Record<string, number>; count: number }> = {};
+  for (const p of all) {
+    const key = normClub(p.team);
+    if (!key) continue;
+    const g = (groups[key] ??= { labels: {}, league: p.league, pos: { GK: 0, DF: 0, MF: 0, FW: 0 }, count: 0 });
+    g.labels[p.team] = (g.labels[p.team] || 0) + 1;
+    g.pos[p.pos] = (g.pos[p.pos] || 0) + 1;
+    g.count++;
+  }
+  const clubs: ClubMeta[] = Object.entries(groups)
+    .map(([key, g]) => {
+      const label = Object.entries(g.labels).sort((a, b) => b[1] - a[1])[0][0];
+      const canBest11 = g.pos.GK >= 1 && g.pos.DF >= 4 && g.pos.MF >= 3 && g.pos.FW >= 3;
+      return { key, label, league: g.league, count: g.count, canBest11 };
+    })
+    .sort((a, b) => a.league.localeCompare(b.league) || b.count - a.count);
+
+  // 빌더에는 필요한 필드만 슬림하게(radar 등 제외) + 클럽 그룹 키.
+  const pool = all.map((p) => ({
     id: p.id,
     name: p.name,
     pos: p.pos,
     ovr: p.ovr,
     team: p.team,
     photo: p.photo,
+    clubKey: normClub(p.team),
   }));
 
   return (
@@ -32,9 +63,9 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
         </span>
         <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">라인업 전술판</h1>
         <p className="mt-1.5 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
-          포메이션을 고르고 빅5 현역 선수를 배치해 나만의 베스트 11을 완성하세요. 직접 이름을 입력할 수도 있고, 완성한 라인업은 이미지 카드로 저장·공유됩니다.
+          포메이션을 고르거나 자유롭게, 선수를 끌어 옮겨 나만의 라인업을 완성하세요. 실제 클럽을 불러오거나 두 팀 맞대결도 만들 수 있고, 완성한 보드는 이미지 카드로 저장·공유됩니다.
         </p>
-        <LineupBuilder pool={pool} initial={initial} />
+        <LineupBuilder pool={pool} clubs={clubs} initial={initial} />
       </div>
     </main>
   );

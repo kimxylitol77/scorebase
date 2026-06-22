@@ -1,128 +1,191 @@
 "use client";
-// 라인업 전술판 빌더 — 포메이션 피치에 실선수/커스텀 선수를 클릭 배치하고 이미지 카드로 공유.
-// 게임(드림팀)과 분리: 저장·예산·Elo 없음. 시각화 + 공유가 전부.
-
+// 라인업 전술판 빌더 — 포메이션/자유/맞대결 + 클럽 가져오기 + 드래그 이동 + 이미지 카드 공유.
+// 모든 선수가 자유 좌표(Placed)를 보유. 피치 렌더·드래그는 Pitch, 후보 선택은 CandidatePanel에 위임.
 import { useState, useMemo, useCallback } from "react";
-import { Share2, Download, Link2, Plus, X, UserPlus, Check, Shirt } from "lucide-react";
-import { FORMATIONS, FORMATION_NAMES, KITS, KIT_BY_KEY, type Slot } from "@/lib/lineup/formations";
-import { encodeLineup, type LineupState, type SlotPick } from "@/lib/lineup/lineup-state";
-
-// 빌더가 쓰는 선수 필드만 (페이지가 슬림 매핑해 전달 — radar 등 무거운 필드 제외).
-export interface PoolPlayer {
-  id: string;
-  name: string;
-  pos: "GK" | "DF" | "MF" | "FW";
-  ovr: number;
-  team: string;
-  photo: string | null;
-}
+import { Share2, Download, Link2, Check, Shirt, UserPlus } from "lucide-react";
+import Pitch from "./Pitch";
+import CandidatePanel from "./CandidatePanel";
+import type { PoolPlayer, ClubMeta } from "./types";
+import { FORMATIONS, FORMATION_OPTIONS, FREE_FORMATION, KITS, KIT_BY_KEY, type Pos } from "@/lib/lineup/formations";
+import { encodeBoard, newUid, type BoardState, type Side, type Placed } from "@/lib/lineup/lineup-state";
 
 interface Props {
   pool: PoolPlayer[];
-  initial: LineupState | null;
+  clubs: ClubMeta[];
+  initial: BoardState | null;
 }
 
-function ovrBadgeColor(ovr: number): string {
-  return ovr >= 90 ? "#be3455" : ovr >= 80 ? "#475569" : "#52525b";
+const POS_LABEL: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
+const LEAGUE_LABEL: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1" };
+const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+
+// 맞대결 시 y를 절반 영역으로 압축 — home은 하단(중앙선~바닥), away는 상단(미러).
+function placeY(rawY: number, side: "home" | "away", versus: boolean): number {
+  if (!versus) return rawY;
+  return side === "away" ? Math.round(50 - rawY * 0.46) : Math.round(50 + rawY * 0.46);
+}
+function emptySlots(fname: string, side: "home" | "away", versus: boolean): Placed[] {
+  const slots = FORMATIONS[fname] ?? FORMATIONS["4-3-3"];
+  return slots.map((s) => ({ uid: newUid(), pid: null, name: null, pos: s.pos, x: s.x, y: placeY(s.y, side, versus) }));
+}
+// 모드 전환 시 기존 선수 y 변환(단일↔맞대결).
+function compressY(players: Placed[], side: "home" | "away"): Placed[] {
+  return players.map((p) => ({ ...p, y: Math.max(2, Math.min(96, side === "away" ? 50 - p.y * 0.46 : 50 + p.y * 0.46)) }));
+}
+function expandY(players: Placed[]): Placed[] {
+  return players.map((p) => ({ ...p, y: Math.max(4, Math.min(96, (p.y - 50) / 0.46)) }));
+}
+// 순수 side 업데이트 — setBoard 함수형 안에서 최신 board로 판정(stale mode 회피).
+function updateSideIn(b: BoardState, which: "home" | "away", fn: (s: Side) => Side): BoardState {
+  if (which === "home") return { ...b, home: fn(b.home) };
+  return b.away ? { ...b, away: fn(b.away) } : b;
 }
 
-// initial(공유 링크 복원) → slotId 기준 picks 맵으로.
-function initialPicks(initial: LineupState | null): Record<string, SlotPick> {
-  if (!initial || !FORMATIONS[initial.f]) return {};
-  const out: Record<string, SlotPick> = {};
-  FORMATIONS[initial.f].forEach((slot, i) => {
-    const pick = initial.p[i];
-    if (pick) out[slot.id] = pick;
-  });
-  return out;
+function initBoard(initial: BoardState | null): BoardState {
+  if (initial) return initial;
+  return { mode: "single", title: "나의 베스트 11", subtitle: "", kit: "grass", home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
 }
 
-export default function LineupBuilder({ pool, initial }: Props) {
-  const [formation, setFormation] = useState(initial?.f && FORMATIONS[initial.f] ? initial.f : "4-3-3");
-  const [title, setTitle] = useState(initial?.t ?? "나의 베스트 11");
-  const [subtitle, setSubtitle] = useState(initial?.s ?? "");
-  const [kit, setKit] = useState(initial?.k && KIT_BY_KEY[initial.k] ? initial.k : "grass");
-  const [picks, setPicks] = useState<Record<string, SlotPick>>(() => initialPicks(initial));
-  const [activeSlot, setActiveSlot] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [customName, setCustomName] = useState("");
+export default function LineupBuilder({ pool, clubs, initial }: Props) {
+  const [board, setBoard] = useState<BoardState>(() => initBoard(initial));
+  const [activeSide, setActiveSide] = useState<"home" | "away">("home");
+  const [activeUid, setActiveUid] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const slots = FORMATIONS[formation];
   const poolById = useMemo(() => {
     const m: Record<string, PoolPlayer> = {};
     for (const p of pool) m[p.id] = p;
     return m;
   }, [pool]);
 
-  const activeSlotObj = activeSlot ? slots.find((s) => s.id === activeSlot) ?? null : null;
   const usedIds = useMemo(() => {
     const s = new Set<string>();
-    for (const v of Object.values(picks)) if (typeof v === "string") s.add(v);
+    for (const side of [board.home, board.away]) if (side) for (const p of side.players) if (p.pid) s.add(p.pid);
     return s;
-  }, [picks]);
+  }, [board]);
 
-  const candidates = useMemo(() => {
-    if (!activeSlotObj) return [];
-    const q = search.trim();
-    return pool
-      .filter((p) => p.pos === activeSlotObj.pos && !usedIds.has(p.id) && (q === "" || p.name.includes(q)))
-      .sort((a, b) => b.ovr - a.ovr)
-      .slice(0, 40);
-  }, [activeSlotObj, search, pool, usedIds]);
+  const clubsByLeague = useMemo(() => {
+    const g: Record<string, ClubMeta[]> = {};
+    for (const c of clubs) (g[c.league] ||= []).push(c);
+    return g;
+  }, [clubs]);
 
-  const filled = slots.filter((s) => picks[s.id]).length;
+  const curSide: Side | undefined = activeSide === "away" ? board.away : board.home;
+  const curFormation = (curSide?.formation) ?? FREE_FORMATION;
+  const activeNode = curSide?.players.find((p) => p.uid === activeUid) ?? null;
+  const activePos: Pos = activeNode ? (activeNode.pid ? poolById[activeNode.pid]?.pos ?? activeNode.pos : activeNode.pos) : "MF";
+  const activeLabel = activeNode
+    ? activeNode.pid
+      ? poolById[activeNode.pid]?.name ?? "선수"
+      : activeNode.name ?? `${POS_LABEL[activeNode.pos]} 자리`
+    : "";
 
-  const closePanel = useCallback(() => {
-    setActiveSlot(null);
-    setSearch("");
-    setCustomName("");
-  }, []);
+  const homeFilled = board.home.players.filter((p) => p.pid || p.name).length;
+  const awayFilled = board.away?.players.filter((p) => p.pid || p.name).length ?? 0;
 
-  function clickSlot(slot: Slot) {
-    setActiveSlot((cur) => (cur === slot.id ? null : slot.id));
-    setSearch("");
-    setCustomName("");
-  }
-  function pickPlayer(playerId: string) {
-    if (!activeSlot) return;
-    setPicks((p) => ({ ...p, [activeSlot]: playerId }));
-    closePanel();
-  }
-  function pickCustom() {
-    const n = customName.trim();
-    if (!activeSlot || !n) return;
-    setPicks((p) => ({ ...p, [activeSlot]: { n } }));
-    closePanel();
-  }
-  function removeSlot(slotId: string) {
-    setPicks((p) => {
-      const n = { ...p };
-      delete n[slotId];
-      return n;
+  // --- 상태 업데이트 헬퍼 ---
+  const updateSide = useCallback((which: "home" | "away", fn: (s: Side) => Side) => {
+    setBoard((b) => {
+      if (which === "home") return { ...b, home: fn(b.home) };
+      return b.away ? { ...b, away: fn(b.away) } : b;
     });
-    closePanel();
+  }, []);
+  const updatePlayers = useCallback(
+    (which: "home" | "away", fn: (ps: Placed[]) => Placed[]) => updateSide(which, (s) => ({ ...s, players: fn(s.players) })),
+    [updateSide],
+  );
+
+  // --- 액션 ---
+  function applyFormation(fname: string) {
+    setBoard((b) => {
+      const versus = b.mode === "versus";
+      if (fname === FREE_FORMATION) {
+        return updateSideIn(b, activeSide, (s) => ({ ...s, formation: null, players: s.players.filter((p) => p.pid || p.name) }));
+      }
+      return updateSideIn(b, activeSide, (s) => ({ ...s, formation: fname, players: emptySlots(fname, activeSide, versus) }));
+    });
+    setActiveUid(null);
   }
 
-  // 공유 상태 → 코드 → URL.
-  const code = useMemo(() => {
-    const state: LineupState = {
-      f: formation,
-      t: title.slice(0, 30),
-      s: subtitle.slice(0, 40),
-      k: kit,
-      p: slots.map((s) => picks[s.id] ?? null),
-    };
-    return encodeLineup(state);
-  }, [formation, title, subtitle, kit, slots, picks]);
+  function loadClub(clubKey: string) {
+    if (!clubKey) return;
+    const club = clubs.find((c) => c.key === clubKey);
+    const byPos: Record<Pos, PoolPlayer[]> = { GK: [], DF: [], MF: [], FW: [] };
+    for (const p of pool) if (p.clubKey === clubKey) byPos[p.pos].push(p);
+    (Object.keys(byPos) as Pos[]).forEach((k) => byPos[k].sort((a, b) => b.ovr - a.ovr));
+    setBoard((b) => {
+      const versus = b.mode === "versus";
+      const cur = activeSide === "away" ? b.away : b.home;
+      const fname = cur?.formation && cur.formation !== FREE_FORMATION && FORMATIONS[cur.formation] ? cur.formation : "4-3-3";
+      const cursor: Record<Pos, number> = { GK: 0, DF: 0, MF: 0, FW: 0 };
+      const players: Placed[] = FORMATIONS[fname].map((slot) => {
+        const cand = byPos[slot.pos][cursor[slot.pos]++];
+        return { uid: newUid(), pid: cand ? cand.id : null, name: null, pos: slot.pos, x: slot.x, y: placeY(slot.y, activeSide, versus) };
+      });
+      return updateSideIn(b, activeSide, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
+    });
+    setActiveUid(null);
+  }
 
+  function addPlayer() {
+    const uid = newUid();
+    const versus = board.mode === "versus";
+    const y = versus ? (activeSide === "away" ? 28 : 72) : 50;
+    updatePlayers(activeSide, (ps) => [...ps, { uid, pid: null, name: null, pos: "MF", x: 50, y }]);
+    setActiveUid(uid);
+  }
+
+  const nodeClick = useCallback((side: "home" | "away", uid: string) => {
+    setActiveSide(side);
+    setActiveUid(uid);
+  }, []);
+  const nodeMove = useCallback(
+    (side: "home" | "away", uid: string, x: number, y: number) => updatePlayers(side, (ps) => ps.map((p) => (p.uid === uid ? { ...p, x, y } : p))),
+    [updatePlayers],
+  );
+
+  function pickPlayer(p: PoolPlayer) {
+    if (!activeUid) return;
+    updatePlayers(activeSide, (ps) => ps.map((n) => (n.uid === activeUid ? { ...n, pid: p.id, name: null, pos: p.pos } : n)));
+    setActiveUid(null);
+  }
+  function pickCustom(name: string) {
+    if (!activeUid) return;
+    updatePlayers(activeSide, (ps) => ps.map((n) => (n.uid === activeUid ? { ...n, pid: null, name } : n)));
+    setActiveUid(null);
+  }
+  function deleteNode() {
+    if (!activeUid) return;
+    updatePlayers(activeSide, (ps) => ps.filter((n) => n.uid !== activeUid));
+    setActiveUid(null);
+  }
+
+  function changeMode(mode: "single" | "versus") {
+    setActiveUid(null);
+    setBoard((b) => {
+      if (b.mode === mode) return b;
+      if (mode === "versus") {
+        return {
+          ...b,
+          mode,
+          home: { ...b.home, players: compressY(b.home.players, "home") },
+          away: b.away ?? { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "away", true) },
+        };
+      }
+      return { ...b, mode, home: { ...b.home, players: expandY(b.home.players) } };
+    });
+    if (mode === "single") setActiveSide("home");
+  }
+
+  // --- 공유 ---
+  const code = useMemo(() => encodeBoard(board), [board]);
   const ogUrl = `/api/og/lineup?d=${code}`;
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/lineup?d=${code}` : `/lineup?d=${code}`;
 
   async function onShare() {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title: title || "나의 베스트 11", url: shareUrl });
+        await navigator.share({ title: board.title || "라인업", url: shareUrl });
         return;
       } catch {
         /* 취소·미지원 → 복사 폴백 */
@@ -136,31 +199,46 @@ export default function LineupBuilder({ pool, initial }: Props) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      /* 클립보드 거부 무시 */
+      /* 무시 */
     }
   }
 
-  const kitObj = KIT_BY_KEY[kit];
+  const kitObj = KIT_BY_KEY[board.kit] ?? KITS[0];
+  const segActive = "rounded-full bg-white px-3.5 py-1 text-sm font-medium text-neutral-900 shadow-sm dark:bg-white/15 dark:text-white";
+  const segIdle = "rounded-full px-3.5 py-1 text-sm font-medium text-neutral-500 dark:text-neutral-400";
 
   return (
     <div className="mt-6">
-      {/* 상단 컨트롤 */}
-      <div className="flex flex-wrap items-end gap-3">
+      {/* 모드 + 팀명 */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="inline-flex rounded-full bg-neutral-100 p-0.5 dark:bg-white/[0.06]">
+          <button type="button" onClick={() => changeMode("single")} className={board.mode === "single" ? segActive : segIdle}>
+            단일 라인업
+          </button>
+          <button type="button" onClick={() => changeMode("versus")} className={board.mode === "versus" ? segActive : segIdle}>
+            맞대결
+          </button>
+        </div>
+        <span className="text-sm text-neutral-500 dark:text-neutral-400">
+          {board.mode === "versus" ? `${homeFilled} vs ${awayFilled}` : `${homeFilled}/11명`}
+        </span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-end gap-3">
         <div className="min-w-[180px] flex-1">
-          <label className="mb-1 block text-xs text-neutral-500 dark:text-neutral-400">팀 이름</label>
+          <label className="mb-1 block text-xs text-neutral-500 dark:text-neutral-400">제목</label>
           <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={board.title}
+            onChange={(e) => setBoard((b) => ({ ...b, title: e.target.value }))}
             maxLength={30}
-            placeholder="나의 베스트 11"
             className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-base font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white"
           />
         </div>
         <div className="min-w-[160px] flex-1">
           <label className="mb-1 block text-xs text-neutral-500 dark:text-neutral-400">부제 (선택)</label>
           <input
-            value={subtitle}
-            onChange={(e) => setSubtitle(e.target.value)}
+            value={board.subtitle}
+            onChange={(e) => setBoard((b) => ({ ...b, subtitle: e.target.value }))}
             maxLength={40}
             placeholder="예) 2026 드림 스쿼드"
             className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white"
@@ -168,19 +246,56 @@ export default function LineupBuilder({ pool, initial }: Props) {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+      {/* 맞대결: 편집 팀 탭 */}
+      {board.mode === "versus" && (
+        <div className="mt-3 inline-flex rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-700">
+          <button
+            type="button"
+            onClick={() => { setActiveSide("home"); setActiveUid(null); }}
+            className={activeSide === "home" ? "rounded-md bg-rose-500/10 px-3 py-1 text-sm font-medium text-rose-600 dark:text-rose-300" : "px-3 py-1 text-sm text-neutral-500 dark:text-neutral-400"}
+          >
+            우리팀 (아래)
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveSide("away"); setActiveUid(null); }}
+            className={activeSide === "away" ? "rounded-md bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-300" : "px-3 py-1 text-sm text-neutral-500 dark:text-neutral-400"}
+          >
+            상대팀 (위)
+          </button>
+        </div>
+      )}
+
+      {/* 포메이션 · 클럽 · 키트 */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <span className="text-sm text-neutral-500 dark:text-neutral-400">포메이션</span>
           <select
-            value={formation}
-            onChange={(e) => {
-              setFormation(e.target.value);
-              closePanel();
-            }}
+            value={curFormation}
+            onChange={(e) => applyFormation(e.target.value)}
             className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white"
           >
-            {FORMATION_NAMES.map((f) => (
+            {FORMATION_OPTIONS.map((f) => (
               <option key={f}>{f}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value=""
+            onChange={(e) => loadClub(e.target.value)}
+            className="max-w-[200px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white"
+          >
+            <option value="">클럽에서 가져오기…</option>
+            {LEAGUE_ORDER.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
+              <optgroup key={lg} label={LEAGUE_LABEL[lg] ?? lg}>
+                {clubsByLeague[lg].map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
+                    {c.canBest11 ? "" : " (일부)"}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
@@ -193,76 +308,35 @@ export default function LineupBuilder({ pool, initial }: Props) {
               <button
                 key={k.key}
                 type="button"
-                onClick={() => setKit(k.key)}
+                onClick={() => setBoard((b) => ({ ...b, kit: k.key }))}
                 title={k.label}
                 aria-label={k.label}
-                className={`h-6 w-6 rounded-full ring-2 transition-transform ${kit === k.key ? "ring-rose-500 scale-110" : "ring-transparent hover:scale-105"}`}
+                className={`h-6 w-6 rounded-full ring-2 transition-transform ${board.kit === k.key ? "scale-110 ring-rose-500" : "ring-transparent hover:scale-105"}`}
                 style={{ background: `linear-gradient(135deg, ${k.from}, ${k.to})` }}
               />
             ))}
           </div>
         </div>
-        <span className="ml-auto text-sm text-neutral-500 dark:text-neutral-400">{filled}/11명</span>
       </div>
 
+      {/* 피치 + 우측 */}
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_340px]">
-        {/* 피치 */}
         <div>
-          <div
-            className="relative w-full overflow-hidden rounded-2xl"
-            style={{ aspectRatio: "4 / 5", background: `linear-gradient(to bottom, ${kitObj.from}, ${kitObj.to})` }}
-          >
-            {/* 라인 */}
-            <div className="pointer-events-none absolute inset-[4%] rounded-md border-2 border-white/15" />
-            <div className="pointer-events-none absolute inset-x-[4%] top-1/2 border-t-2 border-white/15" />
-            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[18%] w-[26%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/15" />
+          <Pitch
+            home={board.home}
+            away={board.away}
+            mode={board.mode}
+            poolById={poolById}
+            kitFrom={kitObj.from}
+            kitTo={kitObj.to}
+            activeUid={activeUid}
+            onNodeClick={nodeClick}
+            onNodeMove={nodeMove}
+          />
+          <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500">선수를 눌러 채우거나 끌어서 위치를 옮기세요.</p>
 
-            {slots.map((slot) => {
-              const pick = picks[slot.id];
-              const player = typeof pick === "string" ? poolById[pick] : null;
-              const customLabel = pick && typeof pick !== "string" ? pick.n : null;
-              const isActive = activeSlot === slot.id;
-              return (
-                <button
-                  key={slot.id}
-                  type="button"
-                  onClick={() => clickSlot(slot)}
-                  className="absolute flex flex-col items-center"
-                  style={{ left: `${slot.x}%`, top: `${slot.y}%`, transform: "translate(-50%, -50%)", width: "21%" }}
-                >
-                  <span className={`relative flex items-center justify-center rounded-full transition ${isActive ? "ring-4 ring-white" : ""}`}>
-                    {player ? (
-                      <span className="relative block h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] overflow-hidden rounded-full bg-white/90 ring-2 ring-white/70">
-                        {player.photo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={player.photo} alt={player.name} className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-sm font-bold text-emerald-800">{player.name.slice(0, 2)}</span>
-                        )}
-                        <span className="absolute -bottom-1 -right-1 rounded-full px-1.5 text-[10px] font-bold text-white ring-1 ring-white/60" style={{ background: ovrBadgeColor(player.ovr) }}>
-                          {player.ovr}
-                        </span>
-                      </span>
-                    ) : customLabel ? (
-                      <span className="flex h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] items-center justify-center rounded-full bg-white/85 text-sm font-bold text-neutral-700 ring-2 ring-white/70">
-                        {customLabel.slice(0, 2)}
-                      </span>
-                    ) : (
-                      <span className="flex h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] items-center justify-center rounded-full border-2 border-dashed border-white/60 bg-white/10 text-white/80">
-                        <Plus className="h-4 w-4" />
-                      </span>
-                    )}
-                  </span>
-                  <span className="mt-1 max-w-full truncate rounded px-1 text-[clamp(9px,2.4vw,12px)] font-semibold text-white" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.85)" }}>
-                    {player ? player.name : customLabel ?? slot.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 공유 액션 */}
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* 공유 */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <a
               href={ogUrl}
               target="_blank"
@@ -289,85 +363,32 @@ export default function LineupBuilder({ pool, initial }: Props) {
           </div>
         </div>
 
-        {/* 후보 패널 */}
+        {/* 우측: 후보 패널 or 안내 */}
         <div className="lg:sticky lg:top-4 lg:self-start">
-          {activeSlotObj ? (
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-white/[0.04]">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                  {activeSlotObj.label} 자리 · {activeSlotObj.pos}
-                </span>
-                <button type="button" onClick={closePanel} className="text-neutral-400 hover:text-neutral-600">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {picks[activeSlotObj.id] && (
-                <button
-                  type="button"
-                  onClick={() => removeSlot(activeSlotObj.id)}
-                  className="mb-3 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
-                >
-                  <X className="h-3.5 w-3.5" /> 이 자리 비우기
-                </button>
-              )}
-
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="선수 이름 검색"
-                className="mb-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white"
-              />
-
-              {/* 커스텀 이름 직접 입력 */}
-              <div className="mb-3 flex gap-1.5">
-                <input
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && pickCustom()}
-                  maxLength={16}
-                  placeholder="직접 입력 (이름)"
-                  className="w-full rounded-lg border border-dashed border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-600 dark:bg-white/[0.04] dark:text-white"
-                />
-                <button
-                  type="button"
-                  onClick={pickCustom}
-                  disabled={!customName.trim()}
-                  className="inline-flex flex-shrink-0 items-center gap-1 rounded-lg bg-neutral-800 px-3 text-xs font-medium text-white disabled:opacity-40 dark:bg-white/10"
-                >
-                  <UserPlus className="h-3.5 w-3.5" /> 추가
-                </button>
-              </div>
-
-              <div className="max-h-[420px] space-y-1.5 overflow-y-auto">
-                {candidates.length === 0 && <p className="py-4 text-center text-sm text-neutral-400">해당 선수가 없습니다.</p>}
-                {candidates.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => pickPlayer(p.id)}
-                    className="flex w-full items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2 text-left transition-colors hover:border-rose-300 dark:border-neutral-800 dark:bg-white/[0.03] dark:hover:border-rose-500/40"
-                  >
-                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
-                      {p.photo ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.photo} alt={p.name} className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="text-xs text-neutral-500">{p.name.slice(0, 2)}</span>
-                      )}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white">{p.name}</span>
-                      <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">{p.team}</span>
-                    </span>
-                    <span className="flex-shrink-0 text-sm font-semibold text-neutral-900 dark:text-white">{p.ovr}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {activeNode ? (
+            <CandidatePanel
+              pool={pool}
+              pos={activePos}
+              label={activeLabel}
+              filled={!!(activeNode.pid || activeNode.name)}
+              usedIds={usedIds}
+              onPick={pickPlayer}
+              onCustom={pickCustom}
+              onDelete={deleteNode}
+              onClose={() => setActiveUid(null)}
+            />
           ) : (
-            <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:bg-white/[0.02] dark:text-neutral-400">
-              피치의 빈자리를 눌러 선수를 채워보세요. 실제 빅5 선수를 검색하거나 직접 이름을 입력할 수 있어요.
+            <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                피치의 자리를 눌러 선수를 채우고, 끌어서 위치를 옮기세요. 포메이션·클럽을 고르거나 자유롭게 배치할 수 있어요.
+              </p>
+              <button
+                type="button"
+                onClick={addPlayer}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"
+              >
+                <UserPlus className="h-4 w-4" /> 선수 추가
+              </button>
             </div>
           )}
         </div>
