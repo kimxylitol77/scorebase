@@ -31,14 +31,14 @@ export async function saveDreamTeam(_prev: SaveState, formData: FormData): Promi
   const ids = players.map((p) => p.playerId);
   if (new Set(ids).size !== 11) return { ok: false, error: "중복 선수가 있습니다." };
 
-  // 서버에서 예산 재검증 (클라이언트 조작 방지)
+  // 서버에서 예산 재검증 (클라이언트 조작 방지) — 현재 티어 예산 기준
+  const existing = await prisma.dreamTeam.findFirst({ where: { userId } });
+  const budget = TIERS[existing?.tier ?? "amateur"]?.budget ?? 15;
   const pool = getDreamPlayers(ids);
   if (pool.length !== 11) return { ok: false, error: "유효하지 않은 선수가 포함됐습니다." };
   const total = pool.reduce((s, p) => s + p.value, 0);
-  const budget = TIERS.amateur.budget;
   if (total > budget) return { ok: false, error: `예산 초과 (€${total}M / €${budget}M)` };
 
-  const existing = await prisma.dreamTeam.findFirst({ where: { userId } });
   if (existing) {
     await prisma.dreamTeam.update({
       where: { id: existing.id },

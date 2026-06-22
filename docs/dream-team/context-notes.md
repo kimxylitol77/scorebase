@@ -37,3 +37,9 @@
 - 예측-결과 무승부 정합 24~25% 확인. 전력차 반영·난이도 곡선·현실 스코어(평균 1.4-1.3) OK
 - 봇: bots.ts 티어별 고정 avgOvr (아마추어 56~72)
 - WORLD_CUP 프로파일은 무승부 0.21로 높아 탈락 → EPL 양방향 채택
+
+## Phase 2 — 진행 시스템 (2026-06-22)
+- 티어 승급: 누적 자금(DreamTeam.points) 도달 시 자동 해금. unlock 동네30/유소년90/세미200/프로450/월클900(€M). 전승 기준 6→18→40→90→180승에 승급. 빌더 예산 = team.tier 동적(TIERS[tierKey])
+- 선수 육성: 출전 xp(승20·무12·패8), xp 100당 OVR+1, potential(나이) 상한. grow.ts grownOvr. play actions 가 grownOvr 로 전력 산출 + 출전 선수 xp 누적
+- 승급/육성 모두 play/actions.ts playMatch 한 곳에서 처리(레이팅·전적·자금·xp·승급 원샷 update). team.players Json cast 는 unknown 경유 필수
+- 남은 튜닝: €15M에 OVR83(저평가 노장·유망주 강세) — 플레이 후 예산/난이도 조정

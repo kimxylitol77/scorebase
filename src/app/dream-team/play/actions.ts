@@ -1,5 +1,5 @@
 "use server";
-// 드림팀 경기 실행 서버 액션 — 내 팀 vs 봇 시뮬, 레이팅·전적·자금 갱신
+// 드림팀 경기 실행 서버 액션 — 내 팀 vs 봇 시뮬, 레이팅·전적·자금·선수 육성·티어 승급 갱신
 import { getCurrentUserId } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
@@ -8,6 +8,8 @@ import { simulateMatch, type MatchSimResult } from "@/lib/dream-team/simulate";
 import { BOT_TEAMS } from "@/lib/dream-team/bots";
 import { matchCommentary } from "@/lib/dream-team/commentary";
 import { updateRating, matchReward } from "@/lib/dream-team/rating";
+import { grownOvr, matchXp } from "@/lib/dream-team/grow";
+import { nextTier } from "@/lib/dream-team/tiers";
 
 export interface PlayResult {
   myName: string;
@@ -22,12 +24,22 @@ export interface PlayResult {
   reward: number;
   myOvr: number;
   oppOvr: number;
+  xpGain: number; // 출전 선수가 받은 xp
+  pointsAfter: number; // 누적 자금(€M)
+  promoted: boolean; // 티어 승급 여부
+  newTierName: string | null; // 승급 시 새 티어 이름
 }
 
 export interface PlayState {
   ok: boolean;
   error?: string;
   result?: PlayResult;
+}
+
+interface SquadPlayer {
+  slot: string;
+  playerId: string;
+  xp?: number;
 }
 
 export async function playMatch(_prev: PlayState, formData: FormData): Promise<PlayState> {
@@ -40,23 +52,44 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
 
   const team = await prisma.dreamTeam.findFirst({ where: { userId } });
   if (!team) return { ok: false, error: "먼저 팀을 만들어주세요." };
-  const players = (team.players as { slot: string; playerId: string }[]) ?? [];
+  const players = (team.players as unknown as SquadPlayer[]) ?? [];
   if (players.length !== 11) return { ok: false, error: "11명을 채운 뒤 경기할 수 있습니다." };
 
+  // 육성 반영 OVR(grownOvr)로 팀 전력 산출
   const pool = getDreamPlayers(players.map((p) => p.playerId));
-  const myOvr = Math.round(teamAvgOvr(pool.map((p) => p.ovr)));
+  const byId = new Map(pool.map((p) => [p.id, p]));
+  const ovrs = players
+    .map((p) => {
+      const dp = byId.get(p.playerId);
+      return dp ? grownOvr(dp.ovr, dp.potential, p.xp ?? 0) : 0;
+    })
+    .filter((o) => o > 0);
+  const myOvr = Math.round(teamAvgOvr(ovrs));
+
   const seed = (Date.now() % 2147483647) ^ (team.rating * 31);
   const result: MatchSimResult = simulateMatch(myOvr, bot.avgOvr, seed);
 
   const oppElo = teamOvrToElo(bot.avgOvr);
   const ratingAfter = updateRating(team.rating, oppElo, result.outcome);
   const reward = matchReward(result.outcome);
+  const xpGain = matchXp(result.outcome);
+
+  // 출전 선수 xp 누적
+  const newPlayers = players.map((p) => ({ ...p, xp: (p.xp ?? 0) + xpGain }));
+
+  // 자금 누적 → 티어 승급 체크
+  const pointsAfter = team.points + reward;
+  const nt = nextTier(team.tier);
+  const promoted = !!(nt && pointsAfter >= nt.unlock);
+  const newTier = promoted && nt ? nt.key : team.tier;
 
   await prisma.dreamTeam.update({
     where: { id: team.id },
     data: {
       rating: ratingAfter,
-      points: { increment: reward },
+      points: pointsAfter,
+      tier: newTier,
+      players: newPlayers,
       wins: result.outcome === "win" ? { increment: 1 } : undefined,
       draws: result.outcome === "draw" ? { increment: 1 } : undefined,
       losses: result.outcome === "loss" ? { increment: 1 } : undefined,
@@ -78,6 +111,10 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
       reward,
       myOvr,
       oppOvr: bot.avgOvr,
+      xpGain,
+      pointsAfter,
+      promoted,
+      newTierName: promoted && nt ? nt.name : null,
     },
   };
 }

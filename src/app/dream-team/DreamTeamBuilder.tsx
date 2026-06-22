@@ -39,13 +39,14 @@ const FORMATIONS: Record<string, Slot[][]> = {
 interface Props {
   pool: DreamPlayer[];
   initial: { name: string; formation: string; players: unknown } | null;
+  tierKey: string;
 }
 
 function ovrBadgeColor(ovr: number): string {
   return ovr >= 90 ? "#be3455" : "#26263a";
 }
 
-export default function DreamTeamBuilder({ pool, initial }: Props) {
+export default function DreamTeamBuilder({ pool, initial, tierKey }: Props) {
   const [formation, setFormation] = useState(initial?.formation && FORMATIONS[initial.formation] ? initial.formation : "4-3-3");
   const [name, setName] = useState(initial?.name ?? "나의 드림팀");
   const [picks, setPicks] = useState<Record<string, string>>(() => {
@@ -58,7 +59,7 @@ export default function DreamTeamBuilder({ pool, initial }: Props) {
   const [search, setSearch] = useState("");
   const [state, formAction, pending] = useActionState(saveDreamTeam, { ok: false } as SaveState);
 
-  const tier = TIERS.amateur;
+  const tier = TIERS[tierKey] ?? TIERS.amateur;
   const rows = FORMATIONS[formation];
   const flatSlots = useMemo(() => rows.flat(), [rows]);
   const poolById = useMemo(() => {

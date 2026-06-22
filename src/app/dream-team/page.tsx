@@ -33,7 +33,7 @@ export default async function DreamTeamPage() {
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
           아마추어 예산 안에서 가성비 선수를 발굴해 11명을 채우세요. 몸값이 아니라 능력치(OVR)로 승부합니다.
         </p>
-        <DreamTeamBuilder pool={pool} initial={initial} />
+        <DreamTeamBuilder pool={pool} initial={initial} tierKey={existing?.tier ?? "amateur"} />
       </div>
     </main>
   );
