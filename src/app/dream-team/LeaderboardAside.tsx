@@ -9,7 +9,7 @@ export default async function LeaderboardAside() {
     take: 8,
   });
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-white/[0.04] lg:sticky lg:top-4 lg:self-start">
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-white/[0.04] lg:sticky lg:top-4 lg:mt-10 lg:self-start">
       <h3 className="mb-2 text-sm font-medium text-neutral-900 dark:text-white">상위 팀</h3>
       {teams.length === 0 ? (
         <p className="text-xs text-neutral-400">아직 등록된 팀이 없습니다.</p>
