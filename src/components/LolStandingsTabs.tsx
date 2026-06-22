@@ -102,7 +102,7 @@ function TeamCell({ logo, name, dbId }: { logo: string; name: string; dbId: numb
 export default function LolStandingsTabs(p: Props) {
   const [tab, setTab] = useState(0);
   return (
-    <div className="relative max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
       <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores?sport=esports" className="hover:underline">
@@ -212,9 +212,9 @@ export default function LolStandingsTabs(p: Props) {
                     <Link href={`/players/${pl.playerId}?league=LOL`} className="inline-flex items-center gap-2 hover:underline">
                       {pl.photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={pl.photo} alt="" className="w-7 h-7 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
+                        <img src={pl.photo} alt="" className="w-11 h-11 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
                       ) : (
-                        <span className="w-7 h-7 rounded-full shrink-0 bg-neutral-100 dark:bg-neutral-800" />
+                        <span className="w-11 h-11 rounded-full shrink-0 bg-neutral-100 dark:bg-neutral-800" />
                       )}
                       <span className="font-semibold">{pl.name}</span>
                     </Link>

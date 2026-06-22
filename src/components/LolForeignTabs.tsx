@@ -140,9 +140,9 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                     <li key={p.playerId} className="flex items-center gap-2.5">
                       {p.photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.photo} alt="" className="w-8 h-8 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
+                        <img src={p.photo} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
                       ) : (
-                        <span className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-[11px] font-bold text-neutral-500">
+                        <span className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-[11px] font-bold text-neutral-500">
                           {p.name.slice(0, 1)}
                         </span>
                       )}
@@ -186,9 +186,9 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                       <span className="inline-flex items-center gap-2">
                         {pl.photo ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={pl.photo} alt="" className="w-7 h-7 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
+                          <img src={pl.photo} alt="" className="w-11 h-11 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
                         ) : (
-                          <span className="w-7 h-7 rounded-full shrink-0 bg-neutral-100 dark:bg-neutral-800" />
+                          <span className="w-11 h-11 rounded-full shrink-0 bg-neutral-100 dark:bg-neutral-800" />
                         )}
                         <span className="font-semibold">{pl.name}</span>
                         <span className="text-neutral-400 text-xs">{pl.teamShort}</span>

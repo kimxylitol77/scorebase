@@ -72,7 +72,7 @@ export default async function LolSimpleStandings({ league, name }: { league: str
   }));
 
   return (
-    <div className="relative max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
+    <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
       <AmbientGlow />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores?sport=esports" className="hover:underline">
