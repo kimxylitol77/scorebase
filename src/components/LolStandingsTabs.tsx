@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export interface TeamRow {
   rank: number;
@@ -101,12 +102,45 @@ function TeamCell({ logo, name, dbId }: { logo: string; name: string; dbId: numb
 export default function LolStandingsTabs(p: Props) {
   const [tab, setTab] = useState(0);
   return (
-    <div className="max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-1">{p.name} 순위·통계</h1>
-      <p className="text-sm text-neutral-500 mb-4">2026 시즌 · TheSports</p>
+    <div className="relative max-w-3xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-5">
+      <AmbientGlow />
+      <nav className="flex items-center gap-2 text-xs text-neutral-500">
+        <Link href="/scores?sport=esports" className="hover:underline">
+          e스포츠 라이브
+        </Link>
+        <span>›</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{p.name} 순위·선수정보</span>
+      </nav>
+
+      <header>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{p.name} 순위·선수정보</h1>
+        <p className="text-sm text-neutral-500 mt-2 break-keep">
+          한국 · League of Legends Champions Korea · 2026 시즌 · TheSports
+        </p>
+      </header>
+
+      {/* 리그 스위처 — LCK ↔ LEC ↔ LCS */}
+      <div className="flex gap-1.5">
+        {([["LOL", "LCK"], ["LEC", "LEC"], ["LCS", "LCS"]] as const).map(([code, lbl]) => (
+          <Link
+            key={code}
+            href={`/standings/${code}`}
+            className={`px-3.5 py-1.5 rounded-lg text-sm font-bold transition ${
+              code === "LOL"
+                ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                : "bg-neutral-100 dark:bg-white/[0.06] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+            }`}
+          >
+            {lbl}
+          </Link>
+        ))}
+      </div>
 
       {/* 탭 */}
-      <div className="flex gap-1.5 mb-5 overflow-x-auto">
+      <div className="flex gap-1.5 overflow-x-auto">
         {TABS.map((t, i) => (
           <button
             key={t}

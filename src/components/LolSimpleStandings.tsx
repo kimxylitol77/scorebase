@@ -79,14 +79,14 @@ export default async function LolSimpleStandings({ league, name }: { league: str
           e스포츠 라이브
         </Link>
         <span>›</span>
-        <span className="text-neutral-700 dark:text-neutral-300">{name} 순위표</span>
+        <span className="text-neutral-700 dark:text-neutral-300">{name} 순위·선수정보</span>
       </nav>
 
       <header>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
         </span>
-        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+        <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name} 순위·선수정보</h1>
         <p className="text-sm text-neutral-500 mt-2 break-keep">
           {REGION_SUB[league] ?? "League of Legends"} · 2026 시즌 · TheSports
         </p>
