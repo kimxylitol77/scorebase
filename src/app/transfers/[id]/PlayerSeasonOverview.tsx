@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { Target, Compass, Shield, Hand, Clock } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface StatInput {
   lg: string;
@@ -48,23 +50,23 @@ const AXES: {
 
 function Card({
   title,
-  emoji,
+  icon,
   accent,
   barCls,
   rows,
   bar,
 }: {
   title: string;
-  emoji: string;
+  icon: ReactNode;
   accent: string;
   barCls: string;
   rows: [string, string][];
   bar: number | null;
 }) {
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3.5">
+    <div className="rounded-xl bg-white p-3.5 ring-1 ring-black/5 shadow-sm dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="flex items-center gap-1.5 mb-2.5">
-        <span className="text-sm">{emoji}</span>
+        <span className={accent}>{icon}</span>
         <span className={`text-sm font-bold ${accent}`}>{title}</span>
       </div>
       <div className="space-y-1.5">
@@ -107,7 +109,7 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
   ];
 
   return (
-    <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 space-y-5">
+    <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none space-y-5">
       <div className="flex items-baseline gap-2">
         <h2 className="text-base font-bold tracking-tight">
           <span className="bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">시즌 상세 기록</span>
@@ -137,18 +139,18 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
 
         {/* 카드 2x2 */}
         <div className="grid grid-cols-2 gap-3 content-start">
-          <Card title="슈팅" emoji="🎯" accent="text-cyan-600 dark:text-cyan-400" barCls="bg-cyan-500" bar={acc}
+          <Card title="슈팅" icon={<Target className="w-4 h-4" />} accent="text-cyan-600 dark:text-cyan-400" barCls="bg-cyan-500" bar={acc}
             rows={[["총 슛", String(n(stat.shots))], ["유효 / 정확도", `${n(stat.sot)} · ${acc}%`]]} />
-          <Card title="패스" emoji="🧭" accent="text-blue-600 dark:text-blue-400" barCls="bg-blue-500" bar={n(stat.passAcc)}
+          <Card title="패스" icon={<Compass className="w-4 h-4" />} accent="text-blue-600 dark:text-blue-400" barCls="bg-blue-500" bar={n(stat.passAcc)}
             rows={[["키패스", String(n(stat.keyPasses))], ["패스 정확도", `${Math.round(n(stat.passAcc))}%`]]} />
-          <Card title="수비" emoji="🛡️" accent="text-emerald-600 dark:text-emerald-400" barCls="bg-emerald-500"
+          <Card title="수비" icon={<Shield className="w-4 h-4" />} accent="text-emerald-600 dark:text-emerald-400" barCls="bg-emerald-500"
             bar={clamp(((p90(stat.tackles) + p90(stat.interceptions)) / 7) * 100)}
             rows={[["태클", String(n(stat.tackles))], ["인터셉트", String(n(stat.interceptions))]]} />
           {isGk ? (
-            <Card title="골키핑" emoji="🧤" accent="text-violet-600 dark:text-violet-400" barCls="bg-violet-500" bar={null}
+            <Card title="골키핑" icon={<Hand className="w-4 h-4" />} accent="text-violet-600 dark:text-violet-400" barCls="bg-violet-500" bar={null}
               rows={[["세이브", String(n(stat.saves))], ["출전 / 선발", `${n(stat.matches)} · ${n(stat.starts)}`]]} />
           ) : (
-            <Card title="출전" emoji="⏱️" accent="text-violet-600 dark:text-violet-400" barCls="bg-violet-500"
+            <Card title="출전" icon={<Clock className="w-4 h-4" />} accent="text-violet-600 dark:text-violet-400" barCls="bg-violet-500"
               bar={n(stat.matches) > 0 ? (n(stat.starts) / n(stat.matches)) * 100 : null}
               rows={[["경기 / 선발", `${n(stat.matches)} · ${n(stat.starts)}`], ["출전 시간", `${mins.toLocaleString()}'`]]} />
           )}
@@ -163,7 +165,7 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {per90.map((t) => (
-            <div key={t.label} className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2 py-2.5 text-center">
+            <div key={t.label} className="rounded-lg bg-white px-2 py-2.5 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 text-center">
               <div className="text-[10px] text-neutral-500">{t.label}</div>
               <div className={`text-base font-black tabular-nums ${t.cls}`}>{t.v}</div>
             </div>

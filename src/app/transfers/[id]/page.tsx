@@ -257,7 +257,7 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {}, ar
         </div>
       )}
       {clubs.length > 0 && (
-        <div className="relative border-l border-neutral-200 dark:border-neutral-800 ml-1.5">
+        <div className="relative border-l border-black/10 dark:border-white/10 ml-1.5">
           {clubs.map((c, i) => {
             const logo = logoFor(i);
             return (
@@ -278,7 +278,7 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {}, ar
                 )}
               </div>
               {byClub[i].length > 0 && (
-                <div className="mt-2 ml-1 pl-3 border-l border-dashed border-neutral-200 dark:border-neutral-800 space-y-1">
+                <div className="mt-2 ml-1 pl-3 border-l border-dashed border-black/10 dark:border-white/10 space-y-1">
                   {byClub[i].map((vp, j) => (
                     <div key={j} className="flex items-center gap-2 text-xs">
                       <span className="text-neutral-400 tabular-nums w-12 shrink-0">{fmtDate(vp.time)}</span>
@@ -551,7 +551,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     const d = new Date(g.time + 9 * 3600e3).toISOString().slice(5, 10).replace("-", ".");
     const chips: [string, number][] = [["도움", g.assists], ["키패스", g.keyPasses], ["슛", g.shots], ["태클", g.tackles], ["인터셉트", g.interceptions]];
     return (
-      <div key={i} className="rounded-lg border border-neutral-200/70 dark:border-neutral-800/70 px-3 py-2">
+      <div key={i} className="rounded-lg ring-1 ring-black/5 dark:ring-white/10 px-3 py-2">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-xs text-neutral-400 tabular-nums shrink-0 w-11">{d}</span>
           {g.result && (
@@ -580,9 +580,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       <AmbientGlow />
       <Link
         href={`/transfers${league ? `?league=${league}` : ""}`}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-x-0.5 hover:text-neutral-900 dark:hover:text-white"
+        className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
       >
-        <ArrowLeft className="h-4 w-4" aria-hidden /> 이적시장
+        <ArrowLeft className="h-3 w-3" aria-hidden /> 이적시장
       </Link>
 
       {/* 헤더 */}
@@ -685,7 +685,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 <CompetitionStatsSection tsId={id} league={mv?.league ?? null} extraRows={wcCompRow ? [wcCompRow] : []} />
                 {/* 몸값 추이 차트 */}
                 {points.length >= 2 && (
-                  <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+                  <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
                     <div className="flex items-baseline justify-between mb-3">
                       <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">시장가치 추이</h2>
                       <span className="text-xs text-neutral-400">최고 €{Math.round(peak)}M</span>
@@ -699,7 +699,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 ) : hist.length >= 1 ? (
                   <section>
                     <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
-                    <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800">
+                    <div className="overflow-hidden rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
                       <table className="w-full text-sm">
                         <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                           <tr>
@@ -709,7 +709,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                             <th className="text-right px-3 py-2 font-medium">나이</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                        <tbody className="divide-y divide-black/5 dark:divide-white/5">
                           {[...hist].reverse().map((h, i) => {
                             const v = Math.round((h.market_value || 0) / 1e6);
                             return (
@@ -739,7 +739,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 content: (
                   <section className="space-y-2">
                     {natlGroups.map((grp, gi) => (
-                      <details key={grp.label} open={gi === 0} className="group rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 overflow-hidden">
+                      <details key={grp.label} open={gi === 0} className="group rounded-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
                         <summary className="flex items-center gap-2 px-3 py-2.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden hover:bg-neutral-50 dark:hover:bg-neutral-900/40">
                           <span className={`inline-flex items-center gap-1.5 font-bold ${grp.wc ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{grp.wc && <Trophy className="h-3.5 w-3.5" aria-hidden />}{grp.label}</span>
                           <span className="text-xs text-neutral-500">{grp.games.length}경기 · ⚽{grp.goals} 🅰️{grp.assists}</span>
@@ -764,7 +764,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         {transfers.length === 0 ? (
           <p className="text-sm text-neutral-500">이적 기록이 아직 없습니다.</p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800/70">
+          <div className="overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10 divide-y divide-black/5 dark:divide-white/5">
             {transfers.map((t) => {
               const badge = badgeOf(t);
               return (

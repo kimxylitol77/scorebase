@@ -40,12 +40,12 @@ export default function SeasonAccordion({ seasons }: { seasons: SeasonEntry[] })
         {seasons.map((se, i) => {
           const isOpen = open[i] ?? false;
           return (
-            <div key={i} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+            <div key={i} className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10">
               <button
                 type="button"
                 onClick={() => setOpen((o) => ({ ...o, [i]: !isOpen }))}
                 aria-expanded={isOpen}
-                className="flex items-center justify-between w-full px-4 sm:px-5 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition"
+                className="flex items-center justify-between w-full px-4 sm:px-5 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.04] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               >
                 <span className="flex items-baseline gap-2 min-w-0">
                   <span className="text-sm font-bold text-neutral-700 dark:text-neutral-200 shrink-0">{se.label}</span>
@@ -56,7 +56,7 @@ export default function SeasonAccordion({ seasons }: { seasons: SeasonEntry[] })
               {isOpen && se.kind === "rich" && (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 px-4 sm:px-5 pb-4">
                   {tilesFor(se.stat).map((t) => (
-                    <div key={t.label} className="rounded-xl bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2.5 text-center">
+                    <div key={t.label} className="rounded-xl bg-neutral-50 dark:bg-white/[0.04] px-3 py-2.5 text-center">
                       <div className={`text-xl font-black tabular-nums ${t.hi ? "text-cyan-600 dark:text-cyan-400" : ""}`}>{t.val}</div>
                       <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
                     </div>
@@ -64,7 +64,7 @@ export default function SeasonAccordion({ seasons }: { seasons: SeasonEntry[] })
                 </div>
               )}
               {isOpen && se.kind === "wiki" && (
-                <div className="px-4 sm:px-5 pb-3 divide-y divide-neutral-100 dark:divide-neutral-800/70">
+                <div className="px-4 sm:px-5 pb-3 divide-y divide-black/5 dark:divide-white/5">
                   {se.rows.map((r, j) => (
                     <div key={j} className="flex items-center justify-between gap-2 py-2 text-sm">
                       <span className="font-medium truncate">{r.club}</span>

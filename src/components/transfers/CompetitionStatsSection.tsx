@@ -10,6 +10,7 @@ import {
   fetchSoccerPlayerProfile,
   getApiFootballSeason,
 } from "@/lib/sports/api-football-pro";
+import { Trophy, Goal, Target } from "lucide-react";
 
 // af 호출 1h 캐시 — 선수 페이지 뷰마다 quota 소모 방지. 같은 (afId, season) 은 헤더 신체와 공유.
 export const getCachedSoccerProfile = unstable_cache(
@@ -93,22 +94,22 @@ export default async function CompetitionStatsSection({
   if (rows.length === 0) return null;
 
   return (
-    <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+    <section className="rounded-xl bg-white ring-1 ring-black/5 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10">
       <div className="px-4 pt-3 pb-2 flex items-baseline justify-between">
-        <h2 className="text-sm font-bold">🏆 현 시즌 대회별 스탯</h2>
+        <h2 className="text-sm font-bold flex items-center gap-1.5"><Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 현 시즌 대회별 스탯</h2>
         <span className="text-[11px] text-neutral-500">{seasonLabel} 시즌 · 대회 {rows.length}개</span>
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+        <thead className="bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
           <tr>
             <th className="text-left px-4 py-2 font-medium">대회</th>
             <th className="text-right px-2 py-2 font-medium">출전</th>
-            <th className="text-right px-2 py-2 font-medium">⚽</th>
-            <th className="text-right px-2 py-2 font-medium">🎯</th>
+            <th className="px-2 py-2 font-medium"><Goal className="ml-auto h-4 w-4" aria-label="골" /></th>
+            <th className="px-2 py-2 font-medium"><Target className="ml-auto h-4 w-4" aria-label="도움" /></th>
             <th className="text-right px-4 py-2 font-medium">평점</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
           {rows.map((s, i) => (
             <tr key={i}>
               <td className="px-4 py-2.5 font-medium">
