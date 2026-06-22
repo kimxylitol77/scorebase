@@ -13,7 +13,7 @@ const FEATURES = fs.readFileSync(path.resolve(__dirname, "scorebase-features.md"
 const FOCUS_ROTATION = [
   "야구 데이터·세이버메트릭스 — FanGraphs, Baseball Savant, Statiz(KBO), 네이버 야구",   // 0 일
   "글로벌 데이터·예측 — Sofascore, FotMob, Opta(theanalyst), WhoScored, Understat",       // 1 월
-  "한국 축구 미디어 — 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아",   // 2 화
+  "한국 축구 데이터·미디어 — 빌드업(buildup-football.com·우리와 가장 직접 경쟁), 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아",   // 2 화
   "AI 픽·배팅 분석 — Forebet, WinDrawWin, PredictZ, Infogol(xG)",                          // 3 수
   "해외 프리미엄·종합 — The Athletic, ESPN, OneFootball, 365Scores",                       // 4 목
   "소셜·신흥 — Reddit r/soccer·r/baseball, 유튜브 전술·통계 분석 채널",                    // 5 금
@@ -53,7 +53,7 @@ ${FEATURES}
 
 ## 추적 대상 — web_search / web_fetch 로 최근 동향을 조사
 1. 글로벌 데이터·예측: Sofascore, FotMob, Opta(theanalyst.com), WhoScored, Understat, Flashscore
-2. 한국 스포츠 미디어: 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아, OSEN, 점프볼(농구)
+2. 한국 축구 데이터·미디어: 빌드업(buildup-football.com — 순위·매치픽 예측·선수비교·전술판·이적·커뮤니티, scorebase 와 가장 직접 경쟁하는 한국 축구 플랫폼·운영 트리플스퀘어), 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아, OSEN, 점프볼(농구)
 3. AI 픽·배팅 분석: Forebet, WinDrawWin, PredictZ, Infogol(xG 기반)
 4. 해외 프리미엄·종합: The Athletic, ESPN, OneFootball, 365Scores
 5. 야구 데이터(우리 KBO·MLB 강점군): FanGraphs, Baseball Savant, Statiz(KBO 세이버), 네이버 야구
