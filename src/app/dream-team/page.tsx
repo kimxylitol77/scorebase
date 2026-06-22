@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { allDreamPlayers } from "@/lib/dream-team/pool";
 import AmbientGlow from "@/components/AmbientGlow";
 import DreamTeamBuilder from "./DreamTeamBuilder";
+import TeamRecord from "./TeamRecord";
 
 export const metadata: Metadata = {
   title: "드림팀 빌더 | Scorebase",
@@ -33,6 +34,19 @@ export default async function DreamTeamPage() {
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
           아마추어 예산 안에서 가성비 선수를 발굴해 11명을 채우세요. 몸값이 아니라 능력치(OVR)로 승부합니다.
         </p>
+        {existing && (
+          <div className="mt-4">
+            <TeamRecord
+              tier={existing.tier}
+              rating={existing.rating}
+              wins={existing.wins}
+              draws={existing.draws}
+              losses={existing.losses}
+              points={existing.points}
+              matchLog={(existing.matchLog as { opp: string; my: number; op: number; outcome: string; ts: number }[]) ?? []}
+            />
+          </div>
+        )}
         <DreamTeamBuilder pool={pool} initial={initial} tierKey={existing?.tier ?? "amateur"} />
       </div>
     </main>

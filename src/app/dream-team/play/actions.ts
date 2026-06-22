@@ -1,5 +1,6 @@
 "use server";
 // 드림팀 경기 실행 서버 액션 — 내 팀 vs 봇 시뮬, 레이팅·전적·자금·선수 육성·티어 승급 갱신
+import type { Prisma } from "@prisma/client";
 import { getCurrentUserId } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
@@ -83,6 +84,9 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   const promoted = !!(nt && pointsAfter >= nt.unlock);
   const newTier = promoted && nt ? nt.key : team.tier;
 
+  const prevLog = Array.isArray(team.matchLog) ? (team.matchLog as unknown[]) : [];
+  const newLog = [{ opp: bot.name, my: result.myScore, op: result.oppScore, outcome: result.outcome, ts: Date.now() }, ...prevLog].slice(0, 20) as Prisma.InputJsonValue;
+
   await prisma.dreamTeam.update({
     where: { id: team.id },
     data: {
@@ -90,6 +94,7 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
       points: pointsAfter,
       tier: newTier,
       players: newPlayers,
+      matchLog: newLog,
       wins: result.outcome === "win" ? { increment: 1 } : undefined,
       draws: result.outcome === "draw" ? { increment: 1 } : undefined,
       losses: result.outcome === "loss" ? { increment: 1 } : undefined,

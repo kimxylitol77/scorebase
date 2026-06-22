@@ -889,6 +889,7 @@ model DreamTeam {
   wins      Int      @default(0)
   draws     Int      @default(0)
   losses    Int      @default(0)
+  matchLog  Json     @default("[]") // 최근 경기 기록 [{opp, my, op, outcome, ts}] 최신순
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

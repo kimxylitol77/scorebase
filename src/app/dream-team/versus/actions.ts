@@ -1,5 +1,6 @@
 "use server";
 // 드림팀 유저 대전 — 다른 회원 팀에 비동기 도전, 양쪽 레이팅·전적 갱신 (도전자만 자금·육성·승급)
+import type { Prisma } from "@prisma/client";
 import { getCurrentUserId } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
@@ -66,6 +67,9 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
   const oppOutcome = result.outcome === "win" ? "loss" : result.outcome === "loss" ? "win" : "draw";
   const oppRatingAfter = updateRating(opp.rating, myElo, oppOutcome);
 
+  const prevLog = Array.isArray(me.matchLog) ? (me.matchLog as unknown[]) : [];
+  const newLog = [{ opp: opp.name, my: result.myScore, op: result.oppScore, outcome: result.outcome, ts: Date.now() }, ...prevLog].slice(0, 20) as Prisma.InputJsonValue;
+
   await prisma.$transaction([
     prisma.dreamTeam.update({
       where: { id: me.id },
@@ -74,6 +78,7 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
         points: pointsAfter,
         tier: newTier,
         players: newMyPlayers,
+        matchLog: newLog,
         wins: result.outcome === "win" ? { increment: 1 } : undefined,
         draws: result.outcome === "draw" ? { increment: 1 } : undefined,
         losses: result.outcome === "loss" ? { increment: 1 } : undefined,
