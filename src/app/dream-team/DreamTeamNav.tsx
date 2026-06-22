@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/dream-team", label: "빌더" },
+  { href: "/dream-team/free", label: "자유 구성" },
   { href: "/dream-team/play", label: "봇 대전" },
   { href: "/dream-team/versus", label: "유저 대전" },
   { href: "/dream-team/leaderboard", label: "리더보드" },

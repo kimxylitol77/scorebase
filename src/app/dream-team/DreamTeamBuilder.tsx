@@ -42,6 +42,7 @@ interface Props {
   initial: { name: string; formation: string; players: unknown } | null;
   tierKey: string;
   topTeams: { id: string; name: string; nickname: string; rating: number; tier: string }[];
+  freeMode?: boolean;
 }
 interface Selected {
   playerId: string;
@@ -53,7 +54,7 @@ function ovrBadgeColor(ovr: number): string {
   return ovr >= 90 ? "#be3455" : "#26263a";
 }
 
-export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams }: Props) {
+export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, freeMode }: Props) {
   const [formation, setFormation] = useState(initial?.formation && FORMATIONS[initial.formation] ? initial.formation : "4-3-3");
   const [name, setName] = useState(initial?.name ?? "나의 드림팀");
   const [picks, setPicks] = useState<Record<string, string>>(() => {
@@ -95,7 +96,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams }: P
     const refund = activeSlot && picks[activeSlot] ? poolById[picks[activeSlot]]?.value ?? 0 : 0;
     const affordable = remaining + refund;
     return pool
-      .filter((p) => p.pos === activeSlotObj.pos && !used.has(p.id) && (q === "" || p.name.includes(q)) && p.value <= affordable)
+      .filter((p) => p.pos === activeSlotObj.pos && !used.has(p.id) && (q === "" || p.name.includes(q)) && (freeMode || p.value <= affordable))
       .sort((a, b) => b.ovr / Math.max(1, b.value) - a.ovr / Math.max(1, a.value))
       .slice(0, 30);
   }, [activeSlotObj, search, picks, pool, remaining, activeSlot, poolById]);
@@ -103,9 +104,10 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams }: P
   const selectedPlayer = selected ? poolById[selected.playerId] ?? null : null;
   const selectedAffordable = useMemo(() => {
     if (!selected || selected.mode !== "candidate" || !selectedPlayer) return false;
+    if (freeMode) return true;
     const refund = picks[selected.slot] ? poolById[picks[selected.slot]]?.value ?? 0 : 0;
     return selectedPlayer.value <= remaining + refund;
-  }, [selected, selectedPlayer, picks, remaining, poolById]);
+  }, [selected, selectedPlayer, picks, remaining, poolById, freeMode]);
 
   function clickSlot(slot: Slot) {
     if (picks[slot.id]) {
@@ -144,9 +146,11 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams }: P
 
   return (
     <div className="mt-6">
-      <div className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-relaxed text-neutral-600 dark:border-neutral-800 dark:bg-white/[0.03] dark:text-neutral-300">
-        <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 11명을 꾸려 다른 팀과 겨룹니다. 정해진 예산 안에서 <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>를 찾는 게 핵심입니다. 경기에서 이기면 자금이 쌓여 상위 리그로 승급하고, 어린 선수는 출전할수록 성장합니다. 선수를 누르면 오른쪽에서 능력치를 볼 수 있어요.
-      </div>
+      {!freeMode && (
+        <div className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-relaxed text-neutral-600 dark:border-neutral-800 dark:bg-white/[0.03] dark:text-neutral-300">
+          <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 11명을 꾸려 다른 팀과 겨룹니다. 정해진 예산 안에서 <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>를 찾는 게 핵심입니다. 경기에서 이기면 자금이 쌓여 상위 리그로 승급하고, 어린 선수는 출전할수록 성장합니다. 선수를 누르면 오른쪽에서 능력치를 볼 수 있어요.
+        </div>
+      )}
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -182,18 +186,27 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams }: P
           <div className="text-2xl font-semibold leading-none text-neutral-900 dark:text-white">{teamOvr || "-"}</div>
         </div>
         <div className="min-w-[230px] flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 dark:border-neutral-800 dark:bg-white/[0.04]">
-          <div className="mb-1.5 flex items-baseline justify-between">
-            <span className="text-sm text-neutral-500 dark:text-neutral-400">예산 ({tier.name})</span>
-            <span className="text-sm font-medium text-neutral-900 dark:text-white">
-              €{usedValue}M <span className="font-normal text-neutral-400">/ €{tier.budget}M</span>
-            </span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-            <div className="h-full rounded-full" style={{ width: `${budgetPct}%`, background: remaining < 0 ? "#dc2626" : "#be3455" }} />
-          </div>
-          <div className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-            {filled}/11명 · 남은 예산 €{remaining}M
-          </div>
+          {freeMode ? (
+            <div className="flex h-full flex-wrap items-center justify-between gap-1">
+              <span className="text-sm font-medium text-rose-600 dark:text-rose-400">자유 구성 모드</span>
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">{filled}/11명 · 예산 제한 없음</span>
+            </div>
+          ) : (
+            <>
+              <div className="mb-1.5 flex items-baseline justify-between">
+                <span className="text-sm text-neutral-500 dark:text-neutral-400">예산 ({tier.name})</span>
+                <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                  €{usedValue}M <span className="font-normal text-neutral-400">/ €{tier.budget}M</span>
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                <div className="h-full rounded-full" style={{ width: `${budgetPct}%`, background: remaining < 0 ? "#dc2626" : "#be3455" }} />
+              </div>
+              <div className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                {filled}/11명 · 남은 예산 €{remaining}M
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -310,27 +323,35 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams }: P
         </div>
       </div>
 
-      <form action={formAction} className="mt-5">
-        <input type="hidden" name="name" value={name} />
-        <input type="hidden" name="formation" value={formation} />
-        <input type="hidden" name="players" value={playersPayload} />
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={!canSave || pending}
-            className="rounded-full bg-rose-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {pending ? "저장 중…" : "팀 저장"}
-          </button>
-          {!canSave && <span className="text-xs text-neutral-400">11명을 예산 안에서 모두 채우면 저장할 수 있습니다.</span>}
-          {state.ok && (
-            <a href="/dream-team/play" className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-400">
-              저장됨 · 경기하러 가기 →
-            </a>
-          )}
-          {state.error && <span className="text-sm text-rose-600 dark:text-rose-400">{state.error}</span>}
-        </div>
-      </form>
+      {freeMode ? (
+        <p className="mt-5 text-sm text-neutral-500 dark:text-neutral-400">
+          {filled === 11
+            ? `완성! 팀 종합 OVR ${teamOvr} — 마음껏 구성하고 선수 능력치를 비교해보세요.`
+            : "예산 걱정 없이 좋아하는 현역 선수로 환상의 라인업을 채워보세요."}
+        </p>
+      ) : (
+        <form action={formAction} className="mt-5">
+          <input type="hidden" name="name" value={name} />
+          <input type="hidden" name="formation" value={formation} />
+          <input type="hidden" name="players" value={playersPayload} />
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={!canSave || pending}
+              className="rounded-full bg-rose-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {pending ? "저장 중…" : "팀 저장"}
+            </button>
+            {!canSave && <span className="text-xs text-neutral-400">11명을 예산 안에서 모두 채우면 저장할 수 있습니다.</span>}
+            {state.ok && (
+              <a href="/dream-team/play" className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-400">
+                저장됨 · 경기하러 가기 →
+              </a>
+            )}
+            {state.error && <span className="text-sm text-rose-600 dark:text-rose-400">{state.error}</span>}
+          </div>
+        </form>
+      )}
     </div>
   );
 }
