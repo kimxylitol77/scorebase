@@ -695,7 +695,7 @@ export default async function TransfersPage({
   };
 
   return (
-    <main className="relative max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
       <AmbientGlow />
       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 이적 시장
@@ -1065,67 +1065,152 @@ export default async function TransfersPage({
       ) : data.length === 0 ? (
         <p className="text-sm text-neutral-500 py-20 text-center">{qSearch ? `"${qSearch}" 검색 결과가 없습니다.` : "조건에 맞는 선수가 없습니다."}</p>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
-          {data.map((p) => {
-            const prevV = p.hist.length >= 2 ? p.hist[p.hist.length - 2] : 0;
-            const chg = prevV > 0 ? Math.round(((p.value - prevV) / prevV) * 100) : 0;
-            const up = chg >= 0;
-            return (
-              <Link
-                key={p.id}
-                href={`/transfers/${p.id}`}
-                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
-              >
-                <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
-                  {p.photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.photo} alt={p.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400">{p.name.slice(0, 1)}</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold flex items-center gap-1.5 min-w-0">
-                    {view === "team" && p.number != null && (
-                      <span className="text-xs font-bold text-neutral-400 tabular-nums shrink-0 w-6 text-right">{p.number}</span>
-                    )}
-                    <span className="truncate">{p.name}</span>
-                    {p.posCode && (
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500 shrink-0">
-                        {p.posCode}
-                      </span>
-                    )}
-                    {p.countryFlag && (
+        <>
+          {/* 모바일·태블릿 — 카드 리스트 (기존 유지) */}
+          <div className="lg:hidden overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
+            {data.map((p) => {
+              const prevV = p.hist.length >= 2 ? p.hist[p.hist.length - 2] : 0;
+              const chg = prevV > 0 ? Math.round(((p.value - prevV) / prevV) * 100) : 0;
+              const up = chg >= 0;
+              return (
+                <Link
+                  key={p.id}
+                  href={`/transfers/${p.id}`}
+                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                >
+                  <div className={`w-6 sm:w-7 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                    {p.photo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.countryFlag} alt={p.country || ""} title={p.country || ""} className="w-4 h-3 object-cover rounded-[1px] shrink-0" />
-                    )}
-                    {p.country && (
-                      <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 shrink-0 hidden sm:inline">{p.country}</span>
+                      <img src={p.photo} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400">{p.name.slice(0, 1)}</span>
                     )}
                   </div>
-                  <div className="text-xs text-neutral-500 truncate flex items-center gap-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold flex items-center gap-1.5 min-w-0">
+                      {view === "team" && p.number != null && (
+                        <span className="text-xs font-bold text-neutral-400 tabular-nums shrink-0 w-6 text-right">{p.number}</span>
+                      )}
+                      <span className="truncate">{p.name}</span>
+                      {p.posCode && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500 shrink-0">
+                          {p.posCode}
+                        </span>
+                      )}
+                      {p.countryFlag && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.countryFlag} alt={p.country || ""} title={p.country || ""} className="w-4 h-3 object-cover rounded-[1px] shrink-0" />
+                      )}
+                      {p.country && (
+                        <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 shrink-0 hidden sm:inline">{p.country}</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-neutral-500 truncate flex items-center gap-1">
+                      {p.teamLogo && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.teamLogo} alt="" className="w-3.5 h-3.5 object-contain inline-block" />
+                      )}
+                      {p.teamName}{p.league && view !== "league" ? ` · ${LEAGUES[p.league] || p.league}` : ""}{p.age ? ` · ${p.age}세` : ""}
+                    </div>
+                  </div>
+                  <Spark data={p.hist} />
+                  <div className="text-right w-[78px] sm:w-[92px] shrink-0 leading-tight">
+                    <div className="font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{p.value}M</div>
+                    <div className="text-[11px] text-neutral-500 tabular-nums">{krw(p.value)}</div>
+                    {p.hist.length >= 2 && (
+                      <div className={`text-[11px] font-semibold tabular-nums ${up ? "text-emerald-500" : "text-rose-500"}`}>
+                        {up ? "▲" : "▼"} {Math.abs(chg)}%
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* PC — 컬럼 테이블: 순위·이름·나이·포지션·소속팀·리그·국가·시장가치 */}
+          <div className="hidden lg:block overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
+            <div className="flex items-center gap-3 px-5 py-2.5 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-white/[0.03]">
+              <div className="w-12 text-center shrink-0">순위</div>
+              <div className="flex-1 min-w-0">이름</div>
+              <div className="w-12 text-center shrink-0">나이</div>
+              <div className="w-16 text-center shrink-0">포지션</div>
+              <div className="w-48 shrink-0">소속팀</div>
+              <div className="w-24 shrink-0">리그</div>
+              <div className="w-32 shrink-0">국가</div>
+              <div className="w-32 text-right shrink-0">시장가치</div>
+            </div>
+            {data.map((p) => {
+              const prevV = p.hist.length >= 2 ? p.hist[p.hist.length - 2] : 0;
+              const chg = prevV > 0 ? Math.round(((p.value - prevV) / prevV) * 100) : 0;
+              const up = chg >= 0;
+              return (
+                <Link
+                  key={p.id}
+                  href={`/transfers/${p.id}`}
+                  className="flex items-center gap-3 px-5 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                >
+                  {/* 순위 */}
+                  <div className={`w-12 text-center font-bold tabular-nums shrink-0 ${p.rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{p.rank}</div>
+                  {/* 이름 (+사진) */}
+                  <div className="flex-1 min-w-0 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                      {p.photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.photo} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400">{p.name.slice(0, 1)}</span>
+                      )}
+                    </div>
+                    {view === "team" && p.number != null && (
+                      <span className="text-xs font-bold text-neutral-400 tabular-nums shrink-0 w-5 text-right">{p.number}</span>
+                    )}
+                    <span className="font-bold truncate">{p.name}</span>
+                  </div>
+                  {/* 나이 */}
+                  <div className="w-12 text-center text-sm tabular-nums shrink-0 text-neutral-600 dark:text-neutral-300">{p.age ?? "—"}</div>
+                  {/* 포지션 */}
+                  <div className="w-16 text-center shrink-0">
+                    {p.posCode ? (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500">{p.posCode}</span>
+                    ) : (
+                      <span className="text-neutral-300 dark:text-neutral-600">—</span>
+                    )}
+                  </div>
+                  {/* 소속팀 */}
+                  <div className="w-48 shrink-0 flex items-center gap-2 min-w-0">
                     {p.teamLogo && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.teamLogo} alt="" className="w-3.5 h-3.5 object-contain inline-block" />
+                      <img src={p.teamLogo} alt="" className="w-5 h-5 object-contain shrink-0" />
                     )}
-                    {p.teamName}{p.league && view !== "league" ? ` · ${LEAGUES[p.league] || p.league}` : ""}{p.age ? ` · ${p.age}세` : ""}
+                    <span className="text-sm text-neutral-600 dark:text-neutral-300 truncate">{p.teamName}</span>
                   </div>
-                </div>
-                <Spark data={p.hist} />
-                <div className="text-right w-[78px] sm:w-[92px] shrink-0 leading-tight">
-                  <div className="font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{p.value}M</div>
-                  <div className="text-[11px] text-neutral-500 tabular-nums">{krw(p.value)}</div>
-                  {p.hist.length >= 2 && (
-                    <div className={`text-[11px] font-semibold tabular-nums ${up ? "text-emerald-500" : "text-rose-500"}`}>
-                      {up ? "▲" : "▼"} {Math.abs(chg)}%
-                    </div>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                  {/* 리그 */}
+                  <div className="w-24 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 truncate">{p.league ? (LEAGUES[p.league] || p.league) : "—"}</div>
+                  {/* 국가 */}
+                  <div className="w-32 shrink-0 flex items-center gap-2 min-w-0">
+                    {p.countryFlag && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.countryFlag} alt="" aria-hidden className="w-5 h-3.5 object-cover rounded-[1px] shrink-0" />
+                    )}
+                    <span className="text-sm text-neutral-600 dark:text-neutral-300 truncate">{p.country || "—"}</span>
+                  </div>
+                  {/* 시장가치 */}
+                  <div className="w-32 shrink-0 text-right leading-tight">
+                    <div className="font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{p.value}M</div>
+                    <div className="text-[11px] text-neutral-500 tabular-nums">{krw(p.value)}</div>
+                    {p.hist.length >= 2 && (
+                      <div className={`text-[11px] font-semibold tabular-nums ${up ? "text-emerald-500" : "text-rose-500"}`}>
+                        {up ? "▲" : "▼"} {Math.abs(chg)}%
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* 페이지네이션 */}
