@@ -100,6 +100,10 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
     : [];
   const pMap = new Map(tsP.map((p) => [p.name, p]));
 
+  // 팀 로고 — Team(MLB) logoUrl, 영문 풀네임(New York Mets) 정확 매칭.
+  const mlbTeams = await prisma.team.findMany({ where: { league: "MLB" }, select: { name: true, logoUrl: true } });
+  const teamLogoMap = new Map(mlbTeams.map((t) => [t.name, t.logoUrl]));
+
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <AmbientGlow />
@@ -149,6 +153,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                   const p = pMap.get(r.playerName);
                   const display = p?.nameKo ?? toKoreanPlayerName(r.playerName);
                   const team = r.teamName ? toKoreanTeamName(r.teamName, "MLB") : null;
+                  const teamLogo = r.teamName ? teamLogoMap.get(r.teamName) ?? null : null;
                   // 사진 URL(mlbstatic headshot)의 mlbamId → 통일 선수 페이지(/players/[pid], MLB 기본)
                   const mlbamId = r.photoUrl?.match(/\/people\/(\d+)\//)?.[1];
                   const href = mlbamId ? `/players/${mlbamId}` : null;
@@ -168,7 +173,15 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                           </div>
                         )}
                       </td>
-                      <td className="px-2 py-2.5 text-neutral-500">{team ?? "—"}</td>
+                      <td className="px-2 py-2.5 text-neutral-500">
+                        <span className="inline-flex items-center gap-1.5">
+                          {teamLogo && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={teamLogo} alt="" className="w-5 h-5 object-contain shrink-0 hidden lg:inline-block" />
+                          )}
+                          {team ?? "—"}
+                        </span>
+                      </td>
                       <td className="px-3 py-2.5 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
                         <div className="tabular-nums font-bold">{fmtUsd(r.salary)}</div>
                         <div className="lg:hidden text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>
@@ -241,11 +254,11 @@ function PageLink({ page, disabled, label }: { page: number; disabled: boolean; 
 function Avatar({ photo, name }: { photo?: string | null; name: string }) {
   if (photo) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
+    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 lg:h-9 lg:w-9 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
   }
   const initial = name.trim().charAt(0).toUpperCase();
   return (
-    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
+    <span className="inline-flex h-7 w-7 lg:h-9 lg:w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
       {initial}
     </span>
   );

@@ -45,6 +45,11 @@ export default async function KboSalariesPage() {
     : [];
   const photoOf = new Map(tsP.map((p) => [p.nameKo, p.photoUrl]));
 
+  // 팀 로고 — Team(KBO) logoUrl. 약칭(두산)→풀네임(두산 베어스) 부분 매칭.
+  const kboTeams = await prisma.team.findMany({ where: { league: "KBO" }, select: { name: true, logoUrl: true } });
+  const teamLogoOf = (short: string): string | null =>
+    kboTeams.find((t) => t.name.startsWith(short) || t.name.includes(short))?.logoUrl ?? null;
+
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <AmbientGlow />
@@ -89,6 +94,7 @@ export default async function KboSalariesPage() {
               {rows.map((r) => {
                 const top3 = r.rank <= 3;
                 const pid = KBO_SALARY_PLAYER_IDS[r.playerName];
+                const teamLogo = teamLogoOf(r.teamName);
                 const cell = (
                   <div className="flex items-center gap-2.5">
                     <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
@@ -110,7 +116,15 @@ export default async function KboSalariesPage() {
                         cell
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">{r.teamName}</td>
+                    <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">
+                      <span className="inline-flex items-center gap-1.5">
+                        {teamLogo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={teamLogo} alt="" className="w-5 h-5 object-contain shrink-0" />
+                        )}
+                        {r.teamName}
+                      </span>
+                    </td>
                     <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">{r.position ?? "—"}</td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums font-bold">
                       {fmtManwon(r.salary)}
@@ -138,11 +152,11 @@ export default async function KboSalariesPage() {
 function Avatar({ photo, name }: { photo?: string | null; name: string }) {
   if (photo) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
+    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 lg:h-9 lg:w-9 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
   }
   const initial = name.trim().charAt(0);
   return (
-    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
+    <span className="inline-flex h-7 w-7 lg:h-9 lg:w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
       {initial}
     </span>
   );
