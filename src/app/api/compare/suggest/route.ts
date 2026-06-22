@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { decomp, chosung, chosungQuery } from "@/lib/suggest-index";
 import nbaPlayersData from "../../../../../data/nba-players.json";
 import lolPlayersData from "../../../../../data/lol-players.json";
+import nhlPlayersData from "../../../../../data/nhl-players.json";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,11 +50,25 @@ function buildLol(): Cand[] {
   return out;
 }
 
+function buildNhl(): Cand[] {
+  const d = nhlPlayersData as Record<string, { name?: string; ko?: string; photo?: string; pos?: string; team?: string }>;
+  const out: Cand[] = [];
+  for (const [id, e] of Object.entries(d)) {
+    const ko = e.ko || e.name || "";
+    out.push({
+      id, name: ko, photo: e.photo || null, sub: [e.pos, e.team].filter(Boolean).join(" · ") || null,
+      nd: decomp(ko.toLowerCase()), nc: chosung(ko), ed: (e.name || "").toLowerCase(),
+    });
+  }
+  return out;
+}
+
 function candidates(sport: string): Cand[] {
   if (CACHE[sport]) return CACHE[sport];
   let list: Cand[] = [];
   if (sport === "NBA") list = buildNba();
   else if (sport === "LOL") list = buildLol();
+  else if (sport === "NHL") list = buildNhl();
   CACHE[sport] = list;
   return list;
 }

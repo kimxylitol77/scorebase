@@ -16,10 +16,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/compare" },
 };
 
-// 피커 검색 가능 종목(선수목록 보유). NHL·야구는 선수목록 빌드 후 추가 — 비교 페이지는 URL 로 동작.
+// 피커 검색 가능 종목(선수목록 보유). 야구는 선수목록 빌드 후 추가 — 비교 페이지는 URL 로 동작.
 const SPORTS: { code: string; label: string }[] = [
   { code: "SOCCER", label: "축구" },
   { code: "NBA", label: "NBA" },
+  { code: "NHL", label: "NHL" },
   { code: "LOL", label: "LCK" },
 ];
 
