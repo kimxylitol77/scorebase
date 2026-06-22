@@ -86,7 +86,7 @@ export default function ArticleCard({ article, variant = "default" }: Props) {
   return (
     <Link
       href={`/articles/${article.slug}`}
-      className="group flex flex-col h-full rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 hover:-translate-y-0.5 hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-sm transition-all"
+      className="group flex flex-col h-full rounded-[1.5rem] bg-white p-5 ring-1 ring-black/5 shadow-sm transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
     >
       <div className="flex items-center gap-2 text-xs flex-wrap">
         <LeagueBadge league={article.league} />

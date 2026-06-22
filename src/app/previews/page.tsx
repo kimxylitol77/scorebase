@@ -8,6 +8,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
+import AmbientGlow from "@/components/AmbientGlow";
 import { leagueLabel } from "@/lib/analysis/matches";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -161,11 +162,7 @@ export default async function PreviewsPage({ searchParams }: Props) {
 
   return (
     <div className="relative">
-      {/* 앰비언트 배경 — 상단에 은은한 메시 글로우 */}
-      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
-        <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
-        <div className="absolute -top-32 right-[12%] h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.06] blur-[140px] dark:bg-emerald-500/10" />
-      </div>
+      <AmbientGlow />
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-8">
@@ -192,9 +189,9 @@ export default async function PreviewsPage({ searchParams }: Props) {
               <Link
                 key={s.key}
                 href={href}
-                className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-4 ${
+                className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-4 ${
                   active
-                    ? "border-zinc-900 text-zinc-950 dark:border-white dark:text-white"
+                    ? "border-rose-500 text-rose-600 dark:text-rose-400"
                     : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
@@ -224,10 +221,10 @@ export default async function PreviewsPage({ searchParams }: Props) {
                 <Link
                   key={league}
                   href={`/previews?sport=BASEBALL&league=${league}`}
-                  className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`rounded-full px-4 py-1.5 text-sm font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     active
-                      ? "bg-zinc-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-zinc-900"
-                      : "bg-zinc-100 text-zinc-600 hover:-translate-y-0.5 hover:bg-zinc-200 dark:bg-white/[0.06] dark:text-white/60 dark:hover:bg-white/[0.1]"
+                      ? "bg-zinc-900 text-white ring-zinc-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-zinc-900 dark:ring-white"
+                      : "bg-white/60 text-zinc-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-white/60 dark:ring-white/15 dark:hover:bg-white/10"
                   }`}
                 >
                   {leagueLabel(league)}
