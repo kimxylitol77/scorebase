@@ -77,14 +77,14 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
       {tab === 0 && (
         <div className={card}>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border-separate border-spacing-0">
+            <table className="w-full text-sm">
               <thead>
                 <tr className={headRow}>
-                  <th className="text-right py-2.5 pl-4 pr-2 font-semibold">#</th>
+                  <th className="text-left py-2.5 px-3 font-semibold w-10">#</th>
                   <th className="text-left py-2.5 px-2 font-semibold">팀</th>
                   <th className="text-center py-2.5 px-2 font-semibold w-12">승</th>
                   <th className="text-center py-2.5 px-2 font-semibold w-12">패</th>
-                  <th className="text-right py-2.5 pr-4 pl-2 font-semibold w-16">승률</th>
+                  <th className="text-center py-2.5 px-3 font-semibold w-16">승률</th>
                 </tr>
               </thead>
               <tbody>
@@ -92,8 +92,8 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                   const played = r.win + r.lose;
                   const wr = played ? Math.round((r.win / played) * 100) : 0;
                   return (
-                    <tr key={r.teamId} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
-                      <td className="text-right py-2.5 pl-4 pr-2 tabular-nums text-neutral-500 font-bold">{r.rank}</td>
+                    <tr key={r.teamId} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
+                      <td className="text-left py-2.5 px-3 tabular-nums text-neutral-500 font-bold">{r.rank}</td>
                       <td className="py-2.5 px-2">
                         <span className="flex items-center gap-2.5">
                           {r.logo ? (
@@ -107,7 +107,7 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                       </td>
                       <td className="text-center py-2.5 px-2 tabular-nums text-emerald-600 dark:text-emerald-400 font-semibold">{r.win}</td>
                       <td className="text-center py-2.5 px-2 tabular-nums text-rose-500">{r.lose}</td>
-                      <td className="text-right py-2.5 pr-4 pl-2 tabular-nums font-black">{wr}%</td>
+                      <td className="text-center py-2.5 px-3 tabular-nums font-black">{wr}%</td>
                     </tr>
                   );
                 })}
@@ -168,20 +168,20 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
       {tab === 2 && (
         <div className={card}>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border-separate border-spacing-0">
+            <table className="w-full text-sm">
               <thead>
                 <tr className={headRow}>
-                  <th className="text-right py-2.5 pl-4 pr-2 font-semibold w-8">#</th>
+                  <th className="text-left py-2.5 px-3 font-semibold w-10">#</th>
                   <th className="text-left py-2.5 px-2 font-semibold">선수</th>
                   <th className="text-center py-2.5 px-2 font-semibold w-16">KDA</th>
                   <th className="text-center py-2.5 px-2 font-semibold w-16">승률</th>
-                  <th className="text-right py-2.5 pr-4 pl-2 font-semibold w-16">분당 CS</th>
+                  <th className="text-center py-2.5 px-3 font-semibold w-16">분당 CS</th>
                 </tr>
               </thead>
               <tbody>
                 {players.map((pl, i) => (
-                  <tr key={pl.playerId} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
-                    <td className="text-right py-2.5 pl-4 pr-2 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
+                  <tr key={pl.playerId} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
+                    <td className="text-left py-2.5 px-3 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
                     <td className="py-2.5 px-2">
                       <span className="inline-flex items-center gap-2">
                         {pl.photo ? (
@@ -196,7 +196,7 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                     </td>
                     <td className="text-center py-2.5 px-2 tabular-nums font-semibold">{pl.kda.toFixed(2)}</td>
                     <td className="text-center py-2.5 px-2 tabular-nums text-neutral-500">{Math.round(pl.winRate * 100)}%</td>
-                    <td className="text-right py-2.5 pr-4 pl-2 tabular-nums text-neutral-500">{pl.csPerMin.toFixed(1)}</td>
+                    <td className="text-center py-2.5 px-3 tabular-nums text-neutral-500">{pl.csPerMin.toFixed(1)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -210,19 +210,19 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
       {tab === 3 && (
         <div className={card}>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border-separate border-spacing-0">
+            <table className="w-full text-sm">
               <thead>
                 <tr className={headRow}>
-                  <th className="text-right py-2.5 pl-4 pr-2 font-semibold w-8">#</th>
+                  <th className="text-left py-2.5 px-3 font-semibold w-10">#</th>
                   <th className="text-left py-2.5 px-2 font-semibold">챔피언</th>
                   <th className="text-center py-2.5 px-2 font-semibold w-16">픽</th>
-                  <th className="text-right py-2.5 pr-4 pl-2 font-semibold w-16">승률</th>
+                  <th className="text-center py-2.5 px-3 font-semibold w-16">승률</th>
                 </tr>
               </thead>
               <tbody>
                 {champs.map((c, i) => (
-                  <tr key={c.champ} className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
-                    <td className="text-right py-2.5 pl-4 pr-2 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
+                  <tr key={c.champ} className="border-t border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors">
+                    <td className="text-left py-2.5 px-3 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
                     <td className="py-2.5 px-2">
                       <span className="inline-flex items-center gap-2">
                         {c.logo ? (
@@ -235,7 +235,7 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                       </span>
                     </td>
                     <td className="text-center py-2.5 px-2 tabular-nums">{c.picks}</td>
-                    <td className="text-right py-2.5 pr-4 pl-2 tabular-nums text-neutral-500">{Math.round(c.winRate * 100)}%</td>
+                    <td className="text-center py-2.5 px-3 tabular-nums text-neutral-500">{Math.round(c.winRate * 100)}%</td>
                   </tr>
                 ))}
               </tbody>
