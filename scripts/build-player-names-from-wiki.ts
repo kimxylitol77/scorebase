@@ -168,6 +168,16 @@ ${body}
 async function main() {
   console.log(`▶ ${cfg.label} — ESPN ${DAYS}일 boxscore 수집`);
   const names = await collectNames();
+  // NBA 는 시즌 종료 시 ESPN boxscore 가 비므로 nba-players.json 전체 로스터(537)도 위키 조회 대상에 포함
+  if (SPORT === "nba") {
+    const idxPath = resolve("data/nba-players.json");
+    if (existsSync(idxPath)) {
+      const idx = JSON.parse(readFileSync(idxPath, "utf8")) as Record<string, { name?: string }>;
+      let added = 0;
+      for (const e of Object.values(idx)) if (e?.name && !names.has(e.name)) { names.add(e.name); added++; }
+      console.log(`+ nba-players.json 로스터 ${added}명 추가`);
+    }
+  }
   console.log(`\n수집된 선수: ${names.size}명`);
 
   // 기존 사전에 있는 건 skip 가능 (단, 위키 매핑 더 정확할 수 있어 옵션). 일단 전부 조회.
