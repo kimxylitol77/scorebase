@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { PrismaClient } from "@prisma/client";
+import { toRadarAxes } from "@/lib/player-radar";
 
 const prisma = new PrismaClient();
 const BIG5 = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
@@ -115,6 +116,7 @@ async function main() {
       team: s.team,
       league: s.lg,
       photo: p?.photoUrl || null,
+      radar: toRadarAxes({ minutes: s.minutes, goals: s.goals, assists: s.assists, shots: s.shots, sot: s.sot, keyPasses: s.keyPasses, passAcc: s.passAcc, tackles: s.tackles, interceptions: s.interceptions }),
     };
   }
 

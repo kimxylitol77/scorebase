@@ -14,6 +14,7 @@ export interface DreamPlayer {
   team: string;
   league: string;
   photo: string | null;
+  radar: { axis: string; value: number; raw: string }[];
 }
 
 type PoolEntry = Omit<DreamPlayer, "id">;
