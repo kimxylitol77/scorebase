@@ -13,7 +13,7 @@ interface Props {
 export default function PlayerStatCard({ player, mode, affordable, onPick, onRemove }: Props) {
   if (!player) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 p-6 text-center text-sm leading-relaxed text-neutral-400 dark:border-neutral-700">
+      <div className="flex min-h-[120px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 p-5 text-center text-sm leading-relaxed text-neutral-400 dark:border-neutral-700">
         선수를 누르면
         <br />
         능력치를 볼 수 있어요.

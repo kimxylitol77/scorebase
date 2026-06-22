@@ -7,6 +7,7 @@ import { allDreamPlayers } from "@/lib/dream-team/pool";
 import AmbientGlow from "@/components/AmbientGlow";
 import DreamTeamBuilder from "./DreamTeamBuilder";
 import TeamRecord from "./TeamRecord";
+import DreamTeamNav from "./DreamTeamNav";
 
 export const metadata: Metadata = {
   title: "드림팀 빌더 | Scorebase",
@@ -19,6 +20,12 @@ export default async function DreamTeamPage() {
 
   const pool = allDreamPlayers();
   const existing = await prisma.dreamTeam.findFirst({ where: { userId } });
+  const topRaw = await prisma.dreamTeam.findMany({
+    include: { user: { select: { nickname: true } } },
+    orderBy: { rating: "desc" },
+    take: 5,
+  });
+  const topTeams = topRaw.map((t) => ({ id: t.id, name: t.name, nickname: t.user.nickname, rating: t.rating, tier: t.tier }));
   const initial = existing
     ? { name: existing.name, formation: existing.formation, players: existing.players as unknown }
     : null;
@@ -27,6 +34,7 @@ export default async function DreamTeamPage() {
     <main className="relative mx-auto max-w-5xl px-4 py-10">
       <AmbientGlow />
       <div className="relative">
+        <DreamTeamNav />
         <span className="inline-block rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30">
           드림팀 빌더
         </span>
@@ -47,7 +55,7 @@ export default async function DreamTeamPage() {
             />
           </div>
         )}
-        <DreamTeamBuilder pool={pool} initial={initial} tierKey={existing?.tier ?? "amateur"} />
+        <DreamTeamBuilder pool={pool} initial={initial} tierKey={existing?.tier ?? "amateur"} topTeams={topTeams} />
       </div>
     </main>
   );

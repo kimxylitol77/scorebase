@@ -9,6 +9,7 @@ import { grownOvr } from "@/lib/dream-team/grow";
 import { TIERS } from "@/lib/dream-team/tiers";
 import AmbientGlow from "@/components/AmbientGlow";
 import VersusClient from "./VersusClient";
+import DreamTeamNav from "../DreamTeamNav";
 
 export const metadata: Metadata = { title: "드림팀 유저 대전 | Scorebase" };
 
@@ -59,6 +60,7 @@ export default async function VersusPage() {
     <main className="relative mx-auto max-w-3xl px-4 py-10">
       <AmbientGlow />
       <div className="relative">
+        <DreamTeamNav />
         <span className="inline-block rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30">
           유저 대전
         </span>
@@ -67,10 +69,6 @@ export default async function VersusPage() {
           다른 회원의 드림팀에 도전합니다. 승패에 따라 양쪽 레이팅이 함께 변동됩니다.
         </p>
         <VersusClient teamName={me.name} myOvr={squadOvr(myPlayers)} rating={me.rating} opponents={opponents} ready={myPlayers.length === 11} />
-        <div className="mt-6 flex gap-4 text-sm">
-          <a href="/dream-team/play" className="text-neutral-500 hover:text-rose-600 dark:text-neutral-400">← 봇 대전</a>
-          <a href="/dream-team/leaderboard" className="text-neutral-500 hover:text-rose-600 dark:text-neutral-400">리더보드 →</a>
-        </div>
       </div>
     </main>
   );

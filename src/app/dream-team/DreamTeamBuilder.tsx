@@ -41,6 +41,7 @@ interface Props {
   pool: DreamPlayer[];
   initial: { name: string; formation: string; players: unknown } | null;
   tierKey: string;
+  topTeams: { id: string; name: string; nickname: string; rating: number; tier: string }[];
 }
 interface Selected {
   playerId: string;
@@ -52,7 +53,7 @@ function ovrBadgeColor(ovr: number): string {
   return ovr >= 90 ? "#be3455" : "#26263a";
 }
 
-export default function DreamTeamBuilder({ pool, initial, tierKey }: Props) {
+export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams }: Props) {
   const [formation, setFormation] = useState(initial?.formation && FORMATIONS[initial.formation] ? initial.formation : "4-3-3");
   const [name, setName] = useState(initial?.name ?? "나의 드림팀");
   const [picks, setPicks] = useState<Record<string, string>>(() => {
@@ -148,12 +149,15 @@ export default function DreamTeamBuilder({ pool, initial, tierKey }: Props) {
       </div>
 
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={30}
-          className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-base font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white"
-        />
+        <div>
+          <label className="mb-1 block text-xs text-neutral-500 dark:text-neutral-400">팀 이름</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={30}
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-base font-medium text-neutral-900 outline-none focus:ring-2 focus:ring-rose-500/30 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white"
+          />
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-neutral-500 dark:text-neutral-400">포메이션</span>
           <select
@@ -286,6 +290,23 @@ export default function DreamTeamBuilder({ pool, initial, tierKey }: Props) {
 
         <div ref={cardRef} className="scroll-mt-4 lg:sticky lg:top-4 lg:self-start">
           <PlayerStatCard player={selectedPlayer} mode={selected?.mode ?? null} affordable={selectedAffordable} onPick={doPick} onRemove={doRemove} />
+          {topTeams.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-white/[0.04]">
+              <h3 className="mb-2 text-sm font-medium text-neutral-900 dark:text-white">상위 팀</h3>
+              <div className="space-y-1.5">
+                {topTeams.map((t, i) => (
+                  <a key={t.id} href={`/dream-team/team/${t.id}`} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="w-4 flex-shrink-0 text-neutral-400">{i + 1}</span>
+                      <span className="truncate text-neutral-700 hover:text-rose-600 dark:text-neutral-200">{t.name}</span>
+                    </span>
+                    <span className="flex-shrink-0 text-xs text-neutral-500 dark:text-neutral-400">{TIERS[t.tier]?.name ?? t.tier} · {t.rating}</span>
+                  </a>
+                ))}
+              </div>
+              <a href="/dream-team/leaderboard" className="mt-3 block text-xs font-medium text-rose-600 hover:underline dark:text-rose-400">전체 리더보드 →</a>
+            </div>
+          )}
         </div>
       </div>
 
