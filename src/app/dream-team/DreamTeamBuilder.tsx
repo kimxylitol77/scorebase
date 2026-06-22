@@ -1,6 +1,6 @@
 "use client";
 // 드림팀 빌더 — 게임 설명 + 포메이션 피치 + 가성비 후보 + 우측 선수 능력치 카드
-import { useState, useMemo, useActionState } from "react";
+import { useState, useMemo, useActionState, useRef, useEffect } from "react";
 import { saveDreamTeam, type SaveState } from "./actions";
 import { TIERS } from "@/lib/dream-team/tiers";
 import type { DreamPlayer } from "@/lib/dream-team/pool";
@@ -65,6 +65,12 @@ export default function DreamTeamBuilder({ pool, initial, tierKey }: Props) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Selected | null>(null);
   const [state, formAction, pending] = useActionState(saveDreamTeam, { ok: false } as SaveState);
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (selected && cardRef.current && window.innerWidth < 1024) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [selected]);
 
   const tier = TIERS[tierKey] ?? TIERS.amateur;
   const rows = FORMATIONS[formation];
@@ -278,7 +284,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey }: Props) {
           )}
         </div>
 
-        <div className="lg:sticky lg:top-4 lg:self-start">
+        <div ref={cardRef} className="scroll-mt-4 lg:sticky lg:top-4 lg:self-start">
           <PlayerStatCard player={selectedPlayer} mode={selected?.mode ?? null} affordable={selectedAffordable} onPick={doPick} onRemove={doRemove} />
         </div>
       </div>

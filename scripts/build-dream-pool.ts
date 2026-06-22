@@ -117,6 +117,9 @@ async function main() {
       league: s.lg,
       photo: p?.photoUrl || null,
       radar: toRadarAxes({ minutes: s.minutes, goals: s.goals, assists: s.assists, shots: s.shots, sot: s.sot, keyPasses: s.keyPasses, passAcc: s.passAcc, tackles: s.tackles, interceptions: s.interceptions }),
+      saves: s.saves ?? 0,
+      cleanSheets: s.cleanSheets ?? null,
+      matches: s.matches ?? 0,
     };
   }
 

@@ -54,17 +54,41 @@ export default function PlayerStatCard({ player, mode, affordable, onPick, onRem
         </div>
       </div>
 
-      <div className="mt-3 space-y-1.5">
-        {player.radar.map((ax) => (
-          <div key={ax.axis} className="flex items-center gap-2">
-            <span className="w-[68px] flex-shrink-0 text-[11px] text-neutral-500 dark:text-neutral-400">{ax.axis}</span>
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-              <div className="h-full rounded-full bg-rose-500" style={{ width: `${ax.value}%` }} />
-            </div>
-            <span className="w-9 flex-shrink-0 text-right text-[11px] text-neutral-600 dark:text-neutral-300">{ax.raw}</span>
+      {player.pos === "GK" ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-[11px] text-neutral-400 dark:text-neutral-500">골키퍼는 선방 지표로 평가합니다</p>
+          <div className="flex justify-between text-sm">
+            <span className="text-neutral-500 dark:text-neutral-400">선방</span>
+            <span className="font-medium text-neutral-900 dark:text-white">{player.saves}회</span>
           </div>
-        ))}
-      </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-neutral-500 dark:text-neutral-400">경기당 선방</span>
+            <span className="font-medium text-neutral-900 dark:text-white">{player.matches > 0 ? (player.saves / player.matches).toFixed(1) : "-"}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-neutral-500 dark:text-neutral-400">출전</span>
+            <span className="font-medium text-neutral-900 dark:text-white">{player.matches}경기</span>
+          </div>
+          {player.cleanSheets != null && (
+            <div className="flex justify-between text-sm">
+              <span className="text-neutral-500 dark:text-neutral-400">클린시트</span>
+              <span className="font-medium text-neutral-900 dark:text-white">{player.cleanSheets}회</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mt-3 space-y-1.5">
+          {player.radar.map((ax) => (
+            <div key={ax.axis} className="flex items-center gap-2">
+              <span className="w-[68px] flex-shrink-0 text-[11px] text-neutral-500 dark:text-neutral-400">{ax.axis}</span>
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                <div className="h-full rounded-full bg-rose-500" style={{ width: `${ax.value}%` }} />
+              </div>
+              <span className="w-9 flex-shrink-0 text-right text-[11px] text-neutral-600 dark:text-neutral-300">{ax.raw}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {mode === "candidate" && (
         <button
