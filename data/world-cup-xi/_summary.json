@@ -34,7 +34,7 @@
     {
       "group": "G",
       "xi": 11,
-      "pool": 77
+      "pool": 78
     },
     {
       "group": "H",
@@ -49,17 +49,17 @@
     {
       "group": "J",
       "xi": 11,
-      "pool": 107
+      "pool": 111
     },
     {
       "group": "K",
       "xi": 11,
-      "pool": 81
+      "pool": 82
     },
     {
       "group": "L",
       "xi": 11,
-      "pool": 110
+      "pool": 113
     }
   ]
 }
