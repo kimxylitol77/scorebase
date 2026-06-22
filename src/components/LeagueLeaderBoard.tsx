@@ -142,9 +142,9 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
   const decimals = activeCat.decimals ?? 0;
 
   return (
-    <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+    <section className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] overflow-hidden dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       {/* 탭 */}
-      <div className="flex overflow-x-auto bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 [&::-webkit-scrollbar]:hidden">
+      <div className="flex overflow-x-auto bg-neutral-50 dark:bg-white/[0.03] border-b border-neutral-200 dark:border-white/10 [&::-webkit-scrollbar]:hidden">
         {cats.map((c) => (
           <button
             key={c.key}
@@ -178,7 +178,7 @@ export default function LeagueLeaderBoard({ league, season, rowsByCategory, foot
                 <Link
                   href={href}
                   prefetch={false}
-                  className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 ${rankBg} hover:bg-neutral-50 dark:hover:bg-neutral-900/60 transition`}
+                  className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 ${rankBg} hover:bg-neutral-50 dark:hover:bg-white/[0.04] transition`}
                 >
                   {children}
                 </Link>

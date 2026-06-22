@@ -65,7 +65,7 @@ export default async function LeagueFixtures({ league }: { league: string }) {
       {groups.map((g) => (
         <div key={g.label}>
           <h3 className="text-xs font-bold text-neutral-500 mb-1.5 px-1">{g.label}</h3>
-          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden">
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
             {g.matches.map((m) => {
               const h = toKoreanTeamName(m.homeTeam.name, league);
               const a = toKoreanTeamName(m.awayTeam.name, league);

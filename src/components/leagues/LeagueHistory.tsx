@@ -34,10 +34,10 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
             return (
             <div
               key={club}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
                 i === 0
-                  ? "border-amber-300 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/10"
-                  : "border-neutral-200 dark:border-neutral-800"
+                  ? "bg-amber-50 ring-1 ring-amber-300 dark:bg-amber-500/10 dark:ring-amber-500/40"
+                  : "bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10"
               }`}
             >
               {i === 0 && <span className="text-sm">🏆</span>}
@@ -56,7 +56,7 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
         <h2 className="text-sm font-bold text-neutral-500 uppercase tracking-wider">
           시즌별 우승 <span className="text-neutral-400 font-normal">({champions.length})</span>
         </h2>
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden grid sm:grid-cols-2">
+        <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] overflow-hidden grid sm:grid-cols-2 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           {champions.map((c, i) => {
             const flag = showFlag ? fifaFlag(c.en, c.ko) : "";
             return (

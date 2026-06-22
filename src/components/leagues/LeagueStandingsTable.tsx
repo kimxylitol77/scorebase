@@ -80,9 +80,9 @@ export default async function LeagueStandingsTable({ league }: { league: string 
           {sec.group && (
             <h3 className="text-sm font-bold text-neutral-700 dark:text-neutral-300 px-1">{sec.group}</h3>
           )}
-          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-x-auto">
+          <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] overflow-x-auto dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
             <table className="w-full text-sm">
-              <thead className="bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+              <thead className="bg-neutral-50 dark:bg-white/[0.06] text-xs text-neutral-500">
                 <tr>
                   <th className="text-right px-3 py-2 font-medium w-10">#</th>
                   <th className="text-left px-3 py-2 font-medium">팀</th>
@@ -100,7 +100,7 @@ export default async function LeagueStandingsTable({ league }: { league: string 
                   const gd = r.goalDiff ?? (r.goalsFor != null && r.goalsAgainst != null ? r.goalsFor - r.goalsAgainst : null);
                   const z = zoneOf(r.position);
                   return (
-                    <tr key={r.teamId} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50">
+                    <tr key={r.teamId} className="hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                       <td className={`px-3 py-2 text-right tabular-nums font-semibold text-neutral-500 border-l-4 ${z ? ZONE_BORDER[z] : "border-l-transparent"}`}>{r.position}</td>
                       <td className="px-3 py-2 truncate">
                         <div className="flex items-center gap-2 min-w-0">

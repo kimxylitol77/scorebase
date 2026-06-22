@@ -12,6 +12,7 @@ import LeagueHistory from "@/components/leagues/LeagueHistory";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import AmbientGlow from "@/components/AmbientGlow";
 
 export const dynamic = "force-dynamic";
 
@@ -463,7 +464,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   }
 
   return (
-    <div>
+    <div className="relative">
+      <AmbientGlow />
       {/* 히어로 */}
       <section className="relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
         <div
@@ -535,9 +537,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
                 <Link
                   key={v}
                   href={v === "standings" ? `/leagues/${upper}` : `/leagues/${upper}?view=${v}`}
-                  className={`px-3 sm:px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition ${
+                  className={`px-3 sm:px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     active
-                      ? "border-cyan-500 text-cyan-600 dark:text-cyan-400"
+                      ? "border-rose-500 text-rose-600 dark:text-rose-400"
                       : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
                   }`}
                 >
