@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, Star, Trophy } from "lucide-react";
+import { ArrowLeft, Star, Trophy, Users } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaCountryKo } from "@/lib/sports/fifa-rankings";
@@ -578,12 +578,20 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
-      <Link
-        href={`/transfers${league ? `?league=${league}` : ""}`}
-        className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
-      >
-        <ArrowLeft className="h-3 w-3" aria-hidden /> 이적시장
-      </Link>
+      <div className="flex items-center justify-between gap-2">
+        <Link
+          href={`/transfers${league ? `?league=${league}` : ""}`}
+          className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-rose-400"
+        >
+          <ArrowLeft className="h-3 w-3" aria-hidden /> 이적시장
+        </Link>
+        <Link
+          href={`/compare?a=${id}`}
+          className="inline-flex items-center gap-1 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-cyan-600 ring-1 ring-cyan-500/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 dark:text-cyan-400"
+        >
+          <Users className="h-3 w-3" aria-hidden /> 비교하기
+        </Link>
+      </div>
 
       {/* 헤더 */}
       <header className="flex items-center gap-4 flex-wrap">

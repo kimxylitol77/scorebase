@@ -31,6 +31,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/world-cup", label: "FIFA 월드컵 2026", desc: "북중미 · 일정·우승 확률" },
       { href: "/standings", label: "리그 순위", desc: "EPL·라리가·K리그 등" },
       { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
+      { href: "/compare", label: "선수 비교", desc: "선수 head-to-head 스탯 비교" },
       { href: "/value-bets", label: "밸류 베트", desc: "Elo 예측 vs 배당 implied" },
     ],
   },

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Target, Compass, Shield, Hand, Clock } from "lucide-react";
 import type { ReactNode } from "react";
+import { toRadarAxes } from "@/lib/player-radar";
 
 interface StatInput {
   lg: string;
@@ -33,20 +34,6 @@ interface StatInput {
 
 const n = (v: number | null | undefined) => v ?? 0;
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
-
-// 레이더 축 정의 — per90 지표는 cap 으로 0~100 정규화, %지표(정확도)는 그대로.
-const AXES: {
-  label: string;
-  raw: (s: StatInput, p90: (v: number | null) => number) => { v: number; text: string };
-}[] = [
-  { label: "골/90", raw: (s, p90) => ({ v: clamp((p90(s.goals) / 0.8) * 100), text: p90(s.goals).toFixed(2) }) },
-  { label: "도움/90", raw: (s, p90) => ({ v: clamp((p90(s.assists) / 0.6) * 100), text: p90(s.assists).toFixed(2) }) },
-  { label: "슈팅 정확도", raw: (s) => { const a = n(s.shots) > 0 ? (n(s.sot) / n(s.shots)) * 100 : 0; return { v: clamp(a), text: `${Math.round(a)}%` }; } },
-  { label: "키패스/90", raw: (s, p90) => ({ v: clamp((p90(s.keyPasses) / 3) * 100), text: p90(s.keyPasses).toFixed(2) }) },
-  { label: "패스 정확도", raw: (s) => ({ v: clamp(n(s.passAcc)), text: `${Math.round(n(s.passAcc))}%` }) },
-  { label: "태클/90", raw: (s, p90) => ({ v: clamp((p90(s.tackles) / 4.5) * 100), text: p90(s.tackles).toFixed(2) }) },
-  { label: "인터셉트/90", raw: (s, p90) => ({ v: clamp((p90(s.interceptions) / 2.5) * 100), text: p90(s.interceptions).toFixed(2) }) },
-];
 
 function Card({
   title,
@@ -90,10 +77,7 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
   const mins = n(stat.minutes);
   const p90 = (v: number | null) => (mins > 0 ? (n(v) / mins) * 90 : 0);
 
-  const radarData = AXES.map((a) => {
-    const { v, text } = a.raw(stat, p90);
-    return { axis: a.label, value: Math.round(v), raw: text };
-  });
+  const radarData = toRadarAxes(stat);
 
   const acc = n(stat.shots) > 0 ? Math.round((n(stat.sot) / n(stat.shots)) * 100) : 0;
   const isGk = n(stat.saves) > 0;
