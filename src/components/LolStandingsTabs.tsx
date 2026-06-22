@@ -60,8 +60,10 @@ interface Props {
 }
 
 const TABS = ["순위", "선수", "챔피언", "밴", "팀 통계"];
-const card = "rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden";
-const head = "bg-neutral-50 dark:bg-neutral-900/60 text-xs text-neutral-500";
+const card =
+  "overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none";
+const head =
+  "text-[11px] uppercase tracking-wider text-neutral-500 font-semibold border-b border-neutral-200 dark:border-white/10";
 const C = "py-2.5 px-3 text-center";
 
 function Champ({ logo, name }: { logo: string; name: string }) {
