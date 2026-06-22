@@ -17,20 +17,21 @@ const FEATURES = ["라이브", "AI예측", "시즌예측", "순위", "선수", "
 
 // SportCode → 기능별 커버리지 (FEATURES 순서). ● 완비 · ◐ 부분/일부리그 · ○ 미구현(갭) · – 종목상 해당없음.
 // 2026-06-19 코드 재검증: salaries=kbo/mlb/nba, transactions=nba, 시즌시뮬=KBO/NPB/MLB, 로스터=NHL/MLB.
+// 2026-06-22: e스포츠 LOL 수집 BDL→TheSports 전환(deeca3d) → 선수·팀 ◐(LCK·LEC·LCS 페이지 가동).
 const COVERAGE: Record<string, string[]> = {
   soccer:     ["●", "●", "●", "●", "●", "●", "○", "●", "●", "–", "●"],
   baseball:   ["●", "●", "●", "●", "●", "◐", "◐", "○", "◐", "●", "○"],
   basketball: ["●", "●", "○", "●", "●", "○", "●", "●", "●", "–", "○"],
   volleyball: ["●", "◐", "○", "●", "○", "◐", "○", "○", "○", "–", "○"],
   hockey:     ["●", "●", "○", "●", "●", "●", "○", "○", "○", "●", "○"],
-  esports:    ["◐", "◐", "○", "◐", "○", "○", "○", "○", "–", "–", "○"],
+  esports:    ["◐", "◐", "○", "◐", "◐", "◐", "○", "○", "–", "–", "○"],
   mma:        ["◐", "○", "–", "–", "○", "–", "–", "–", "○", "–", "○"],
 };
 
 // 지금 눈에 띄는 갭 — 우선순위 후보 (수동 큐레이션).
 const GAPS: { sport: string; level: "none" | "part"; text: string }[] = [
   { sport: "배구", level: "part", text: "라이브 스코어 종목 탭으로 노출(전용 헤더 메뉴는 사용자 판단으로 제외)·AI예측 가동중(volleyball-elo). 남은 갭=프리뷰 글 미생성, 배당 예정매치 미수집(value-bets 노출 불가)." },
-  { sport: "e스포츠(LCK)", level: "none", text: "BDL plan 막혀 수집 멈춤(401). 복구는 결제·plan 확인 필요." },
+  { sport: "e스포츠(LCK·LEC·LCS)", level: "part", text: "BDL plan 401 막힘 → TheSports LOL 로 수집 전환 완료(deeca3d). LCK 풀 커버(일정·결과·순위·선수·챔피언) + LEC·LCS 순위·로스터(6d8ba90). 남은 갭=LEC·LCS 매치/통계 미수집·미래 일정 수집 얇음·LPL 표시만." },
   { sport: "농구·하키", level: "part", text: "시즌 우승확률 예측 미구현 (야구·축구만 있음)." },
   { sport: "야구", level: "part", text: "NPB 연봉·이적 없음, KBO/NPB 팀 로스터 미완(scraping)." },
   { sport: "UFC", level: "none", text: "예측 데이터가 없어 회원봇 픽만, 정식 AI예측 없음." },
