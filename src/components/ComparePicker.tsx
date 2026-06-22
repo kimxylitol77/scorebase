@@ -11,6 +11,7 @@ export interface PickPlayer {
   team: string;
   photo: string | null;
   value: string;
+  type?: string; // 야구 타자(b)/투수(p)
 }
 
 function Slot({
@@ -48,8 +49,8 @@ function Slot({
             : `/api/compare/suggest?sport=${sport}&q=${encodeURIComponent(q)}`;
         const r = await fetch(url);
         const d = await r.json();
-        const raw: Array<{ id: string; name: string; team?: string; sub?: string; photo: string | null; value?: string }> = Array.isArray(d.players) ? d.players : [];
-        setResults(raw.map((p) => ({ id: p.id, name: p.name, team: p.team ?? p.sub ?? "", photo: p.photo ?? null, value: p.value ?? "" })));
+        const raw: Array<{ id: string; name: string; team?: string; sub?: string; photo: string | null; value?: string; type?: string }> = Array.isArray(d.players) ? d.players : [];
+        setResults(raw.map((p) => ({ id: p.id, name: p.name, team: p.team ?? p.sub ?? "", photo: p.photo ?? null, value: p.value ?? "", type: p.type })));
         setOpen(true);
       } catch {
         setResults([]);
@@ -131,9 +132,14 @@ export default function ComparePicker({ initialA = null, sport = "SOCCER" }: { i
   const router = useRouter();
   const [a, setA] = useState<PickPlayer | null>(initialA);
   const [b, setB] = useState<PickPlayer | null>(null);
+  const isBaseball = ["MLB", "KBO", "NPB"].includes(sport);
   const sameId = !!a && !!b && a.id === b.id;
-  const ready = !!a && !!b && !sameId;
-  const dest = (idA: string, idB: string) => `/compare/${idA}/${idB}${sport === "SOCCER" ? "" : `?sport=${sport}`}`;
+  const typeMismatch = isBaseball && !!a && !!b && (a.type ?? "b") !== (b.type ?? "b");
+  const ready = !!a && !!b && !sameId && !typeMismatch;
+  const dest = (idA: string, idB: string) =>
+    sport === "SOCCER"
+      ? `/compare/${idA}/${idB}`
+      : `/compare/${idA}/${idB}?sport=${sport}${isBaseball ? `&t=${a?.type ?? "b"}` : ""}`;
 
   return (
     <div className="space-y-4">
@@ -149,6 +155,7 @@ export default function ComparePicker({ initialA = null, sport = "SOCCER" }: { i
         비교 보기
       </button>
       {sameId && <p className="text-center text-xs text-rose-500">같은 선수는 비교할 수 없습니다.</p>}
+      {typeMismatch && <p className="text-center text-xs text-rose-500">타자와 투수는 비교할 수 없습니다.</p>}
     </div>
   );
 }

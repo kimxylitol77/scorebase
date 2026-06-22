@@ -3,6 +3,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import RadarCompareView, { type CmpHead, type CmpStatRow } from "@/components/RadarCompareView";
+import BaseballCompareView, { type PctSide } from "@/components/BaseballCompareView";
 import { toRadarAxes } from "@/lib/player-radar";
 import { loadComparePlayer, type SeasonStat } from "../../loadComparePlayer";
 import {
@@ -10,19 +11,26 @@ import {
   LOL_ROWS, NBA_ROWS, NHL_SKATER_ROWS, NHL_GOALIE_ROWS,
   type RadarComparePlayer, type StatRowDef,
 } from "../../loaders";
+import { loadBaseball, BAT_ROWS, PIT_ROWS, type BatPit, type BaseballComparePlayer } from "../../baseball";
 
 export const dynamic = "force-dynamic";
 
 const RADAR_SPORTS = ["NBA", "NHL", "LOL"] as const;
 type RadarSport = (typeof RADAR_SPORTS)[number];
 const isRadarSport = (s: string): s is RadarSport => (RADAR_SPORTS as readonly string[]).includes(s);
+const BASEBALL_SPORTS = ["MLB", "KBO", "NPB"];
+const isBaseball = (s: string): boolean => BASEBALL_SPORTS.includes(s);
 
 function normSport(s?: string): string {
   return (s || "SOCCER").toUpperCase();
 }
-function canonicalPair(a: string, b: string, sport: string): string {
+function normType(t?: string): BatPit {
+  return t === "p" ? "p" : "b";
+}
+function canonicalPair(a: string, b: string, sport: string, t?: string): string {
   const [x, y] = [a, b].sort();
-  return `/compare/${x}/${y}${sport === "SOCCER" ? "" : `?sport=${sport}`}`;
+  if (sport === "SOCCER") return `/compare/${x}/${y}`;
+  return `/compare/${x}/${y}?sport=${sport}${isBaseball(sport) ? `&t=${normType(t)}` : ""}`;
 }
 
 const num = (v: number | null | undefined) => v ?? 0;
@@ -133,7 +141,27 @@ async function renderRadarSport(a: string, b: string, sport: RadarSport) {
   );
 }
 
-async function namesFor(a: string, b: string, sport: string): Promise<[string, string] | null> {
+// ── 야구 (MLB·KBO·NPB) — 표 + MLB 퍼센타일, 레이더 없음 ──
+async function renderBaseball(a: string, b: string, sport: string, type: BatPit) {
+  const [pa, pb] = await Promise.all([loadBaseball(a, sport, type), loadBaseball(b, sport, type)]);
+  if (!pa || !pb) notFound();
+  const defs = type === "p" ? PIT_ROWS : BAT_ROWS;
+  const rows = buildRows(defs, pa.stats, pb.stats, true, true);
+  const head = (p: BaseballComparePlayer): CmpHead => ({ id: p.id, name: p.name, photo: p.photo, sub: p.sub, href: `/players/${p.id}?league=${sport}` });
+  const pct: PctSide | null = pa.percentiles || pb.percentiles ? { type: type === "p" ? "pitcher" : "batter", a: pa.percentiles, b: pb.percentiles } : null;
+  return (
+    <BaseballCompareView
+      sport={sport}
+      a={head(pa)} b={head(pb)}
+      rows={rows}
+      pct={pct}
+      swapHref={`/compare/${b}/${a}?sport=${sport}&t=${type}`}
+      caption="ⓘ 이번 시즌 성적 = 스코어베이스 데이터. 같은 보직(타자·투수)끼리 비교. MLB 는 Baseball Savant 퍼센타일(리그 백분위) 제공."
+    />
+  );
+}
+
+async function namesFor(a: string, b: string, sport: string, type: BatPit): Promise<[string, string] | null> {
   if (sport === "SOCCER") {
     const [pa, pb] = await Promise.all([loadComparePlayer(a), loadComparePlayer(b)]);
     return pa && pb ? [pa.name, pb.name] : null;
@@ -143,13 +171,18 @@ async function namesFor(a: string, b: string, sport: string): Promise<[string, s
     const [pa, pb] = await Promise.all([load(a), load(b)]);
     return pa && pb ? [pa.name, pb.name] : null;
   }
+  if (isBaseball(sport)) {
+    const [pa, pb] = await Promise.all([loadBaseball(a, sport, type), loadBaseball(b, sport, type)]);
+    return pa && pb ? [pa.name, pb.name] : null;
+  }
   return null;
 }
 
-export async function generateMetadata({ params, searchParams }: { params: Promise<{ a: string; b: string }>; searchParams: Promise<{ sport?: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ a: string; b: string }>; searchParams: Promise<{ sport?: string; t?: string }> }): Promise<Metadata> {
   const { a, b } = await params;
-  const sport = normSport((await searchParams).sport);
-  const names = await namesFor(a, b, sport);
+  const sp = await searchParams;
+  const sport = normSport(sp.sport);
+  const names = await namesFor(a, b, sport, normType(sp.t));
   if (!names) return { title: "선수 비교" };
   const [na, nb] = names;
   const title = `${na} vs ${nb} 비교 · 시즌 스탯 | 스코어베이스`;
@@ -158,14 +191,16 @@ export async function generateMetadata({ params, searchParams }: { params: Promi
     title, description,
     keywords: [`${na} ${nb}`, `${na} 비교`, "선수 비교", "스탯 비교", "스코어베이스"],
     openGraph: { title, description, type: "website" },
-    alternates: { canonical: canonicalPair(a, b, sport) },
+    alternates: { canonical: canonicalPair(a, b, sport, sp.t) },
   };
 }
 
-export default async function ComparePage({ params, searchParams }: { params: Promise<{ a: string; b: string }>; searchParams: Promise<{ sport?: string }> }) {
+export default async function ComparePage({ params, searchParams }: { params: Promise<{ a: string; b: string }>; searchParams: Promise<{ sport?: string; t?: string }> }) {
   const { a, b } = await params;
-  const sport = normSport((await searchParams).sport);
+  const sp = await searchParams;
+  const sport = normSport(sp.sport);
   if (sport === "SOCCER") return renderSoccer(a, b);
   if (isRadarSport(sport)) return renderRadarSport(a, b, sport);
+  if (isBaseball(sport)) return renderBaseball(a, b, sport, normType(sp.t));
   notFound();
 }

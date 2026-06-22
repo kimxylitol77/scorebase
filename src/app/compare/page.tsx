@@ -6,6 +6,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import ComparePicker, { type PickPlayer } from "@/components/ComparePicker";
 import { loadComparePlayer } from "./loadComparePlayer";
 import { loadNba, loadNhl, loadLol } from "./loaders";
+import { loadBaseball } from "./baseball";
 
 export const dynamic = "force-dynamic";
 
@@ -16,18 +17,27 @@ export const metadata: Metadata = {
   alternates: { canonical: "/compare" },
 };
 
-// 피커 검색 가능 종목(선수목록 보유). 야구는 선수목록 빌드 후 추가 — 비교 페이지는 URL 로 동작.
+// 피커 검색 가능 종목(선수목록 보유).
 const SPORTS: { code: string; label: string }[] = [
   { code: "SOCCER", label: "축구" },
   { code: "NBA", label: "NBA" },
   { code: "NHL", label: "NHL" },
   { code: "LOL", label: "LCK" },
+  { code: "MLB", label: "MLB" },
+  { code: "KBO", label: "KBO" },
+  { code: "NPB", label: "NPB" },
 ];
+const BASEBALL = ["MLB", "KBO", "NPB"];
 
-async function prefill(a: string, sport: string): Promise<PickPlayer | null> {
+async function prefill(a: string, sport: string, t: string): Promise<PickPlayer | null> {
   if (sport === "SOCCER") {
     const p = await loadComparePlayer(a);
     return p ? { id: p.id, name: p.name, team: [p.team, p.leagueLabel].filter(Boolean).join(" · "), photo: p.photo, value: p.value != null ? `€${p.value}M` : "" } : null;
+  }
+  if (BASEBALL.includes(sport)) {
+    const type = t === "p" ? "p" : "b";
+    const p = await loadBaseball(a, sport, type);
+    return p ? { id: p.id, name: p.name, team: p.sub ?? "", photo: p.photo, value: "", type } : null;
   }
   const load = sport === "NBA" ? loadNba : sport === "NHL" ? loadNhl : sport === "LOL" ? loadLol : null;
   if (!load) return null;
@@ -35,11 +45,11 @@ async function prefill(a: string, sport: string): Promise<PickPlayer | null> {
   return p ? { id: p.id, name: p.name, team: p.sub ?? "", photo: p.photo, value: "" } : null;
 }
 
-export default async function ComparePickerPage({ searchParams }: { searchParams: Promise<{ a?: string; sport?: string }> }) {
+export default async function ComparePickerPage({ searchParams }: { searchParams: Promise<{ a?: string; sport?: string; t?: string }> }) {
   const sp = await searchParams;
   const sport = (sp.sport || "SOCCER").toUpperCase();
   const validSport = SPORTS.some((s) => s.code === sport) ? sport : "SOCCER";
-  const initialA = sp.a ? await prefill(sp.a, validSport) : null;
+  const initialA = sp.a ? await prefill(sp.a, validSport, sp.t ?? "b") : null;
 
   return (
     <main className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
