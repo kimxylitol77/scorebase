@@ -63,8 +63,6 @@ export const SPORT_CATEGORIES: NavCategory[] = [
     items: [
       { href: "/leagues/NHL", label: "NHL 아이스하키", desc: "북미 · 골리 매치업" },
       { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국" },
-      { href: "/standings/LEC", label: "LEC 순위", desc: "유럽 LoL · 순위·로스터" },
-      { href: "/standings/LCS", label: "LCS 순위", desc: "북미 LoL · 순위·로스터" },
       { href: "/standings", label: "리그 순위", desc: "NHL·LCK·LEC·LCS" },
     ],
   },

@@ -48,6 +48,8 @@ const LEAGUES: LeagueCard[] = [
   { code: "AVC_NATIONS_W", sport: "volleyball", name: "AVC 네이션스컵", subtitle: "배구 여자 · 한국 출전", flag: "🏐", gradient: "from-sky-500 via-blue-500 to-indigo-600" },
   { code: "EGL_W", sport: "volleyball", name: "유럽 발리볼리그", subtitle: "배구 여자 · CEV", flag: "🏐", gradient: "from-violet-500 via-purple-500 to-fuchsia-500" },
   { code: "LOL", sport: "esports", name: "LCK", subtitle: "LOL · 순위·선수 정보", flag: "🎮", gradient: "from-fuchsia-600 via-purple-600 to-indigo-600" },
+  { code: "LEC", sport: "esports", name: "LEC", subtitle: "유럽 LoL · 순위·선수 정보", flag: "🎮", gradient: "from-sky-500 via-blue-600 to-indigo-700" },
+  { code: "LCS", sport: "esports", name: "LCS", subtitle: "북미 LoL · 순위·선수 정보", flag: "🎮", gradient: "from-rose-500 via-red-600 to-orange-600" },
 ];
 
 // 리그 카드 한 장 — gradient bar + 이름 + (있으면) 현재 순위 Top3 미리보기.
