@@ -29,7 +29,9 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
       <section className="space-y-2.5">
         <h2 className="text-sm font-bold text-neutral-500 uppercase tracking-wider">최다 우승</h2>
         <div className="flex flex-wrap gap-2">
-          {top.map(([club, n], i) => (
+          {top.map(([club, n], i) => {
+            const flag = showFlag ? fifaFlag(club) : "";
+            return (
             <div
               key={club}
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${
@@ -39,13 +41,14 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
               }`}
             >
               {i === 0 && <span className="text-sm">🏆</span>}
-              {showFlag && fifaFlag(club) && <span className="text-sm">{fifaFlag(club)}</span>}
+              {flag && <span className="text-sm" aria-hidden>{flag}</span>}
               <span className="font-bold text-sm">{club}</span>
               <span className={`text-sm tabular-nums font-black ${i === 0 ? "text-amber-600 dark:text-amber-400" : "text-neutral-500"}`}>
                 {n}회
               </span>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -54,18 +57,19 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
           시즌별 우승 <span className="text-neutral-400 font-normal">({champions.length})</span>
         </h2>
         <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden grid sm:grid-cols-2">
-          {champions.map((c, i) => (
+          {champions.map((c, i) => {
+            const flag = showFlag ? fifaFlag(c.en, c.ko) : "";
+            return (
             <div
               key={c.season + i}
               className="flex items-center gap-3 px-3.5 py-2 text-sm border-b border-neutral-100 dark:border-neutral-800/60 sm:[&:nth-last-child(2)]:border-b-0 [&:last-child]:border-b-0 odd:sm:border-r odd:sm:border-r-neutral-100 dark:odd:sm:border-r-neutral-800/60"
             >
               <span className="w-16 shrink-0 text-xs tabular-nums text-neutral-400">{c.season}</span>
-              {showFlag && fifaFlag(c.en, c.ko) && (
-                <span className="shrink-0">{fifaFlag(c.en, c.ko)}</span>
-              )}
+              {flag && <span className="shrink-0" aria-hidden>{flag}</span>}
               <span className="font-medium truncate">{c.ko}</span>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

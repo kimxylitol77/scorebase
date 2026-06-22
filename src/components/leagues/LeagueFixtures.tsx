@@ -77,16 +77,16 @@ export default async function LeagueFixtures({ league }: { league: string }) {
               const right = live ? "🔴 LIVE" : done ? "종료" : kstParts(m.startTime).time;
               const inner = (
                 <span className="flex items-center gap-2 text-sm px-3 py-2.5">
-                  <span className="flex-1 text-right truncate font-medium">
-                    {h}
-                    {hFlag && <span className="ml-1.5 align-middle">{hFlag}</span>}
+                  <span className="flex-1 flex items-center justify-end gap-1.5 min-w-0 font-medium">
+                    <span className="truncate">{h}</span>
+                    {hFlag && <span className="shrink-0" aria-hidden>{hFlag}</span>}
                   </span>
                   <span className={`w-14 text-center tabular-nums font-bold shrink-0 ${live ? "text-rose-600 dark:text-rose-400" : done ? "" : "text-neutral-400 font-normal"}`}>
                     {center}
                   </span>
-                  <span className="flex-1 truncate font-medium">
-                    {aFlag && <span className="mr-1.5 align-middle">{aFlag}</span>}
-                    {a}
+                  <span className="flex-1 flex items-center gap-1.5 min-w-0 font-medium">
+                    {aFlag && <span className="shrink-0" aria-hidden>{aFlag}</span>}
+                    <span className="truncate">{a}</span>
                   </span>
                   <span className={`ml-auto text-xs tabular-nums whitespace-nowrap shrink-0 ${live ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-neutral-400"}`}>
                     {right}
