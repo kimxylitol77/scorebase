@@ -10,6 +10,9 @@ import CumulativeAccuracyChart, {
   type AccSeriesPoint,
   type AccLeagueMeta,
 } from "@/components/charts/CumulativeAccuracyChart";
+import ReliabilityCurveChart, {
+  type RelPoint,
+} from "@/components/charts/ReliabilityCurveChart";
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -191,11 +194,94 @@ async function cumulativeAccuracySeries(): Promise<{
   };
 }
 
+// 캘리브레이션(reliability) — 1X2 예측확률을 10구간으로 묶어 (평균 예측확률 vs 실제 발생률) 산출.
+// 모델/시장 둘 다. home/draw/away 결과별 (확률, 발생 0/1) 쌍을 한 풀에 모으는 표준 멀티클래스 방식.
+// 무승부 없는 종목은 predDraw 가 비어 자동 제외됨. 구간 표본 5 미만은 노이즈라 버림.
+async function reliabilitySeries(): Promise<{
+  model: RelPoint[];
+  market: RelPoint[];
+  modelBrier: number;
+  marketBrier: number;
+}> {
+  const ms = await prisma.match.findMany({
+    where: {
+      league: { in: [...LEAGUES] },
+      predCorrect: { not: null },
+      homeScore: { not: null },
+      awayScore: { not: null },
+      predHome: { not: null },
+    },
+    select: {
+      predHome: true, predDraw: true, predAway: true,
+      marketHome: true, marketDraw: true, marketAway: true,
+      homeScore: true, awayScore: true,
+    },
+  });
+
+  const N = 10;
+  type Bin = { sumP: number; hits: number; n: number };
+  const mk = (): Bin[] => Array.from({ length: N }, () => ({ sumP: 0, hits: 0, n: 0 }));
+  const add = (bins: Bin[], p: number, hit: number) => {
+    const i = Math.min(N - 1, Math.max(0, Math.floor(p * N)));
+    bins[i].sumP += p;
+    bins[i].hits += hit;
+    bins[i].n++;
+  };
+
+  const modelBins = mk();
+  const marketBins = mk();
+  let brierM = 0, nM = 0, brierK = 0, nK = 0;
+
+  for (const m of ms) {
+    const h = m.homeScore!, a = m.awayScore!;
+    const act = h > a ? [1, 0, 0] : h === a ? [0, 1, 0] : [0, 0, 1]; // home / draw / away
+
+    const pp = [m.predHome, m.predDraw, m.predAway];
+    let bs = 0, used = false;
+    for (let k = 0; k < 3; k++) {
+      const p = pp[k];
+      if (p == null) continue;
+      add(modelBins, p, act[k]);
+      bs += (p - act[k]) ** 2;
+      used = true;
+    }
+    if (used) { brierM += bs; nM++; }
+
+    const mp = [m.marketHome, m.marketDraw, m.marketAway];
+    if (mp.every((p) => p != null)) {
+      let mbs = 0;
+      for (let k = 0; k < 3; k++) {
+        add(marketBins, mp[k]!, act[k]);
+        mbs += (mp[k]! - act[k]) ** 2;
+      }
+      brierK += mbs; nK++;
+    }
+  }
+
+  const toPts = (bins: Bin[]): RelPoint[] =>
+    bins
+      .filter((b) => b.n >= 5)
+      .map((b) => ({
+        x: +((b.sumP / b.n) * 100).toFixed(1),
+        y: +((b.hits / b.n) * 100).toFixed(1),
+        n: b.n,
+        size: Math.sqrt(b.n),
+      }));
+
+  return {
+    model: toPts(modelBins),
+    market: toPts(marketBins),
+    modelBrier: nM ? +(brierM / nM).toFixed(4) : 0,
+    marketBrier: nK ? +(brierK / nK).toFixed(4) : 0,
+  };
+}
+
 export default async function AccuracyPage() {
-  const [stats, valueBet, accSeries] = await Promise.all([
+  const [stats, valueBet, accSeries, reliability] = await Promise.all([
     Promise.all(LEAGUES.map((lg) => statForLeague(lg))),
     valueBetStats(),
     cumulativeAccuracySeries(),
+    reliabilitySeries(),
   ]);
   const totalEvaluated = stats.reduce((s, x) => s + x.oneXTwo.evaluated, 0);
   const totalCorrect = stats.reduce((s, x) => s + x.oneXTwo.correct, 0);
@@ -350,6 +436,24 @@ export default async function AccuracyPage() {
             보여줍니다. 표본이 커질수록 안정되는 곡선이 모델의 일관성을 뜻합니다.
           </p>
           <CumulativeAccuracyChart data={accSeries.points} leagues={accSeries.leagues} />
+        </section>
+      )}
+
+      {/* 예측 확률 정직도 — 캘리브레이션 곡선 */}
+      {reliability.model.length > 0 && (
+        <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
+          <h2 className="text-lg font-semibold mb-1">예측 확률은 얼마나 정직한가</h2>
+          <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
+            모델이 &ldquo;65% 승리&rdquo;라고 말한 경기가 실제로 그만큼 일어났는지를 봅니다. 점이
+            대각선에 가까울수록 확률이 정직하다는 뜻이며, 베팅시장 곡선과 나란히 둬 시장만큼
+            잘 보정됐는지 비교합니다.
+          </p>
+          <ReliabilityCurveChart
+            model={reliability.model}
+            market={reliability.market}
+            modelBrier={reliability.modelBrier}
+            marketBrier={reliability.marketBrier}
+          />
         </section>
       )}
 
