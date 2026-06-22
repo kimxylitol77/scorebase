@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
 import { nbaEspnLogo } from "@/lib/sports/nba-logos";
+import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { ArrowLeftRight, Trophy } from "lucide-react";
@@ -139,6 +140,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                   <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold" colSpan={2}>선수</th>
                   <th className="px-2 py-2.5 text-left font-semibold">팀</th>
+                  <th className="px-3 py-2.5 text-center font-semibold w-14 hidden lg:table-cell">나이</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell">원화 환산</th>
                 </tr>
@@ -150,6 +152,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                   const display = info?.ko ?? r.playerName;
                   const href = nbaPlayerHref(info);
                   const teamLogo = nbaEspnLogo(r.teamName);
+                  const age = calcAge(info?.birthday ? new Date(info.birthday * 1000) : null);
                   const nameEl = (
                     <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${href ? "hover:underline" : ""}`}>
                       {display}
@@ -180,6 +183,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                           {toKoreanTeamName(r.teamName, "NBA")}
                         </span>
                       </td>
+                      <td className="px-3 py-2.5 text-center tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{age ?? "—"}</td>
                       <td className="px-3 py-2.5 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
                         <div className="tabular-nums font-bold">{fmtUsd(r.salary)}</div>
                         <div className="lg:hidden text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>

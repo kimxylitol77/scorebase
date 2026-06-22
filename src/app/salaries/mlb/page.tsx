@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { CircleDollarSign } from "lucide-react";
@@ -51,6 +52,24 @@ async function fetchUsdKrw(): Promise<number> {
   } catch {
     return FX_FALLBACK;
   }
+}
+
+/** 페이지 내 mlbamId 들의 생년월일 일괄 조회 — MLB Stats people 배치(무료 공식, 1회 호출). 실패 시 빈 맵. */
+async function fetchMlbBirthdays(ids: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (ids.length === 0) return map;
+  try {
+    const res = await fetch(`https://statsapi.mlb.com/api/v1/people?personIds=${ids.join(",")}`, {
+      signal: AbortSignal.timeout(8000),
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return map;
+    const j = (await res.json()) as { people?: Array<{ id: number; birthDate?: string }> };
+    for (const p of j.people ?? []) if (p.birthDate) map.set(String(p.id), p.birthDate);
+  } catch {
+    /* 실패 시 나이 미표기(— ) */
+  }
+  return map;
 }
 
 function pageList(cur: number, total: number): (number | "…")[] {
@@ -104,6 +123,12 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
   const mlbTeams = await prisma.team.findMany({ where: { league: "MLB" }, select: { name: true, logoUrl: true } });
   const teamLogoMap = new Map(mlbTeams.map((t) => [t.name, t.logoUrl]));
 
+  // 나이 — 행 사진 URL(mlbstatic headshot)의 mlbamId → MLB Stats people 배치(1회 호출) → 생년월일
+  const mlbamIds = Array.from(
+    new Set(rows.map((r) => r.photoUrl?.match(/\/people\/(\d+)\//)?.[1]).filter((x): x is string => Boolean(x))),
+  );
+  const birthdayMap = await fetchMlbBirthdays(mlbamIds);
+
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <AmbientGlow />
@@ -143,6 +168,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                   <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold">선수</th>
                   <th className="px-2 py-2.5 text-left font-semibold">팀</th>
+                  <th className="px-3 py-2.5 text-center font-semibold w-14 hidden lg:table-cell">나이</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
                   <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap hidden lg:table-cell">원화 환산</th>
                 </tr>
@@ -157,6 +183,8 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                   // 사진 URL(mlbstatic headshot)의 mlbamId → 통일 선수 페이지(/players/[pid], MLB 기본)
                   const mlbamId = r.photoUrl?.match(/\/people\/(\d+)\//)?.[1];
                   const href = mlbamId ? `/players/${mlbamId}` : null;
+                  const bd = mlbamId ? birthdayMap.get(mlbamId) : undefined;
+                  const age = calcAge(bd ? new Date(bd) : null);
                   return (
                     <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
@@ -182,6 +210,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                           {team ?? "—"}
                         </span>
                       </td>
+                      <td className="px-3 py-2.5 text-center tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{age ?? "—"}</td>
                       <td className="px-3 py-2.5 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
                         <div className="tabular-nums font-bold">{fmtUsd(r.salary)}</div>
                         <div className="lg:hidden text-[11px] tabular-nums text-neutral-400">{fmtKrw(r.salary, rate)}</div>

@@ -13,6 +13,7 @@ export interface KboSalary {
   teamName: string; // 한글 구단명
   position: string; // 포수 | 투수 | 내야수 | 외야수
   salary: number; // 만원 단위
+  birthday: string; // 생년월일 "YYYY-MM-DD" (KBO 공식·위키 교차검증) — 나이 컬럼용
 }
 
 /** KBO 연봉 시즌 라벨 — 연 1회 발표. 매년 갱신 시 데이터와 함께 수정. */
@@ -21,22 +22,27 @@ export const KBO_SALARY_SEASON = "2026";
 // 2026 KBO 국내 선수 연봉 TOP 10 — KBO 공식 + 언론(taemano 등) 교차검증.
 // 양의지 42억(역대 최고)·고영표 26억·최정 22억·류현진/박세웅 21억·오지환 14억 = 공식·언론 일치 확인분.
 const KBO_SALARIES_2026: KboSalary[] = [
-  { rank: 1, playerName: "양의지", teamName: "두산", position: "포수", salary: 420000 },
-  { rank: 2, playerName: "고영표", teamName: "KT", position: "투수", salary: 260000 },
-  { rank: 3, playerName: "최정", teamName: "SSG", position: "내야수", salary: 220000 },
-  { rank: 4, playerName: "류현진", teamName: "한화", position: "투수", salary: 210000 },
-  { rank: 4, playerName: "박세웅", teamName: "롯데", position: "투수", salary: 210000 },
-  { rank: 6, playerName: "최원태", teamName: "삼성", position: "투수", salary: 160000 },
-  { rank: 7, playerName: "장현식", teamName: "LG", position: "투수", salary: 150000 },
-  { rank: 7, playerName: "김광현", teamName: "SSG", position: "투수", salary: 150000 },
-  { rank: 9, playerName: "오지환", teamName: "LG", position: "내야수", salary: 140000 },
-  { rank: 10, playerName: "박종훈", teamName: "SSG", position: "투수", salary: 110000 },
+  { rank: 1, playerName: "양의지", teamName: "두산", position: "포수", salary: 420000, birthday: "1987-06-05" },
+  { rank: 2, playerName: "고영표", teamName: "KT", position: "투수", salary: 260000, birthday: "1991-09-16" },
+  { rank: 3, playerName: "최정", teamName: "SSG", position: "내야수", salary: 220000, birthday: "1987-02-28" },
+  { rank: 4, playerName: "류현진", teamName: "한화", position: "투수", salary: 210000, birthday: "1987-03-25" },
+  { rank: 4, playerName: "박세웅", teamName: "롯데", position: "투수", salary: 210000, birthday: "1995-11-30" },
+  { rank: 6, playerName: "최원태", teamName: "삼성", position: "투수", salary: 160000, birthday: "1997-01-07" },
+  { rank: 7, playerName: "장현식", teamName: "LG", position: "투수", salary: 150000, birthday: "1995-02-24" },
+  { rank: 7, playerName: "김광현", teamName: "SSG", position: "투수", salary: 150000, birthday: "1988-07-22" },
+  { rank: 9, playerName: "오지환", teamName: "LG", position: "내야수", salary: 140000, birthday: "1990-03-12" },
+  { rank: 10, playerName: "박종훈", teamName: "SSG", position: "투수", salary: 110000, birthday: "1991-08-13" },
 ];
 
 /** KBO 국내 선수 연봉 큐레이션 반환. 정적 데이터(네트워크 호출 없음). */
 export function getKboSalaries(): KboSalary[] {
   return KBO_SALARIES_2026;
 }
+
+// 연봉 랭킹 선수명 → 생년월일("YYYY-MM-DD"). 나이 컬럼이 DB PlayerSalary 행에 매핑할 때 사용.
+export const KBO_SALARY_BIRTHDAYS: Record<string, string> = Object.fromEntries(
+  KBO_SALARIES_2026.map((s) => [s.playerName, s.birthday]),
+);
 
 // 연봉 랭킹 선수명 → koreabaseball playerId (선수 상세 /players/{id}?league=KBO 링크용).
 // PitcherBasic/HitterBasic 인덱스 + 검색으로 확보. 매년 연봉 배열 갱신 시 함께 갱신.

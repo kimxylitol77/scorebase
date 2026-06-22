@@ -5,7 +5,8 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { KBO_SALARY_PLAYER_IDS } from "@/lib/sports/kbo-salaries";
+import { KBO_SALARY_PLAYER_IDS, KBO_SALARY_BIRTHDAYS } from "@/lib/sports/kbo-salaries";
+import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { Trophy } from "lucide-react";
@@ -87,6 +88,7 @@ export default async function KboSalariesPage() {
                 <th className="px-2 py-2.5 text-left font-semibold">선수</th>
                 <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">팀</th>
                 <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">포지션</th>
+                <th className="px-3 py-2.5 text-center font-semibold w-14 hidden lg:table-cell">나이</th>
                 <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
               </tr>
             </thead>
@@ -95,6 +97,8 @@ export default async function KboSalariesPage() {
                 const top3 = r.rank <= 3;
                 const pid = KBO_SALARY_PLAYER_IDS[r.playerName];
                 const teamLogo = teamLogoOf(r.teamName);
+                const bd = KBO_SALARY_BIRTHDAYS[r.playerName];
+                const age = calcAge(bd ? new Date(bd) : null);
                 const cell = (
                   <div className="flex items-center gap-2.5">
                     <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
@@ -126,6 +130,7 @@ export default async function KboSalariesPage() {
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">{r.position ?? "—"}</td>
+                    <td className="px-3 py-2.5 text-center tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{age ?? "—"}</td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums font-bold">
                       {fmtManwon(r.salary)}
                     </td>
