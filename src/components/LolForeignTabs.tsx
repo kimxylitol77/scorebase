@@ -26,6 +26,7 @@ export interface ForeignPlayerRow {
   playerId: string;
   name: string;
   teamShort: string;
+  teamLogo: string;
   photo: string;
   kda: number;
   winRate: number;
@@ -191,7 +192,13 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                           <span className="w-11 h-11 rounded-full shrink-0 bg-neutral-100 dark:bg-neutral-800" />
                         )}
                         <span className="font-semibold">{pl.name}</span>
-                        <span className="text-neutral-400 text-xs">{pl.teamShort}</span>
+                        <span className="inline-flex items-center gap-1 text-neutral-400 text-xs">
+                          {pl.teamLogo && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={pl.teamLogo} alt="" className="w-4 h-4 object-contain shrink-0" loading="lazy" />
+                          )}
+                          {pl.teamShort}
+                        </span>
                       </span>
                     </td>
                     <td className="text-center py-2.5 px-2 tabular-nums font-semibold">{pl.kda.toFixed(2)}</td>

@@ -43,8 +43,10 @@ export default async function LolSimpleStandings({ league, name }: { league: str
   // 선수 사진·팀 약자 — 순위 json roster 에서 매핑 (LEC/LCS 는 lol-players.json 없음).
   const photoByPid: Record<string, string> = {};
   const shortByTeam: Record<string, string> = {};
+  const logoByTeam: Record<string, string> = {};
   for (const t of data.standings) {
     shortByTeam[t.teamId] = t.short;
+    logoByTeam[t.teamId] = t.logo;
     for (const p of t.roster) photoByPid[p.playerId] = p.photo;
   }
 
@@ -56,6 +58,7 @@ export default async function LolSimpleStandings({ league, name }: { league: str
       playerId: p.playerId,
       name: p.name,
       teamShort: shortByTeam[p.teamId] ?? "",
+      teamLogo: logoByTeam[p.teamId] ?? "",
       photo: photoByPid[p.playerId] ?? "",
       kda: p.kda,
       winRate: p.winRate,
