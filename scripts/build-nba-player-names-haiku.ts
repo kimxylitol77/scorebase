@@ -12,6 +12,7 @@ import { resolve } from "node:path";
 import { fetchBalldontlieInjuries } from "../src/lib/sports/balldontlie";
 import { fetchEspnInjuries } from "../src/lib/sports/espn-injuries";
 import { toKoreanPlayerName } from "../src/lib/player-names";
+import nbaPlayersRaw from "../data/nba-players.json";
 
 const BATCH = 50;
 const OUT = "data/nba-player-names-haiku.json";
@@ -85,11 +86,22 @@ async function main() {
   if (existsSync(outPath)) {
     try { existing = JSON.parse(readFileSync(outPath, "utf8")) as Record<string, string>; } catch {}
   }
+  // build-nba-players 산출 nba-players.json 의 확정 한글명(537명)을 사전에 통합 —
+  // toKoreanPlayerName 의 NBA 경로(선수페이지·라이브 박스스코어·로스터)가 전 선수 커버하도록.
+  const nbaIndex = nbaPlayersRaw as Record<string, { name?: string; ko?: string }>;
+  let fromPlayers = 0;
+  for (const e of Object.values(nbaIndex)) {
+    if (e.name && e.ko && /[가-힣]/.test(e.ko) && existing[e.name] !== e.ko) {
+      existing[e.name] = e.ko;
+      fromPlayers++;
+    }
+  }
+  if (fromPlayers > 0) console.log(`▶ nba-players.json 한글명 통합: +${fromPlayers}`);
+
   // 미커버 = 기존 사전(curated/import) 도 실패 + haiku 파일에도 없음
   let todo = all.filter((en) => toKoreanPlayerName(en) === en && !(en in existing));
   console.log(`▶ 기존 커버 제외 → 신규 음역 대상 ${todo.length} (haiku 파일 기존 ${Object.keys(existing).length})`);
   if (LIMIT > 0 && todo.length > LIMIT) { todo = todo.slice(0, LIMIT); console.log(`  LIMIT=${LIMIT}`); }
-  if (todo.length === 0) { console.log("✓ 신규 대상 없음 — 종료"); return; }
 
   const merged: Record<string, string> = { ...existing };
   let added = 0;
