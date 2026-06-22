@@ -14,6 +14,7 @@ import {
 import { Target, Zap, Sparkles, Clock, Shield, Trophy } from "lucide-react";
 import type { ReactNode } from "react";
 import type { NhlPlayerLanding } from "@/lib/sports/nhl-api";
+import { toNhlRadarAxes } from "@/lib/sport-radar";
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 const cap = (v: number, c: number) => clamp((v / c) * 100);
@@ -115,13 +116,7 @@ export default function NhlSeasonOverview({ profile, seasonStart }: { profile: N
     const gp = num(f.gamesPlayed);
     const decisions = w + l + ot;
     const winPct = decisions > 0 ? Math.round((w / decisions) * 100) : 0;
-    const radar: RadarPt[] = [
-      { axis: "승", value: Math.round(cap(w, 40)), raw: String(w) },
-      { axis: "SV%", value: Math.round(clamp(((sv - 0.88) / 0.05) * 100)), raw: sv.toFixed(3) },
-      { axis: "방어", value: Math.round(clamp(((3.5 - gaa) / 1.5) * 100)), raw: gaa.toFixed(2) },
-      { axis: "완봉", value: Math.round(cap(so, 8)), raw: String(so) },
-      { axis: "출전", value: Math.round(cap(gp, 60)), raw: String(gp) },
-    ];
+    const radar: RadarPt[] = toNhlRadarAxes(profile).axes;
     return (
       <Shell seasonStart={seasonStart}>
         <div className="grid lg:grid-cols-2 gap-5">
@@ -150,14 +145,7 @@ export default function NhlSeasonOverview({ profile, seasonStart }: { profile: N
   const gwg = num(f.gameWinningGoals);
   const pim = num(f.pim);
   const gp = num(f.gamesPlayed);
-  const radar: RadarPt[] = [
-    { axis: "골", value: Math.round(cap(g, 50)), raw: String(g) },
-    { axis: "어시스트", value: Math.round(cap(a, 70)), raw: String(a) },
-    { axis: "포인트", value: Math.round(cap(pts, 120)), raw: String(pts) },
-    { axis: "슈팅", value: Math.round(cap(sog, 350)), raw: String(sog) },
-    { axis: "PP골", value: Math.round(cap(ppg, 18)), raw: String(ppg) },
-    { axis: "출전", value: Math.round(cap(gp, 82)), raw: String(gp) },
-  ];
+  const radar: RadarPt[] = toNhlRadarAxes(profile).axes;
   return (
     <Shell seasonStart={seasonStart}>
       <div className="grid lg:grid-cols-2 gap-5">

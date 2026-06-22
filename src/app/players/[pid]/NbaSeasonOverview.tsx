@@ -14,20 +14,10 @@ import {
 import { Target, Zap, Shield, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 import type { NbaSeasonAverages } from "@/lib/sports/balldontlie";
+import { toNbaRadarAxes } from "@/lib/sport-radar";
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 const cap = (v: number, c: number) => clamp((v / c) * 100);
-
-// 레이더 축 — 엘리트 시즌 평균 상한 cap (득점왕 ~30점, 리바 ~12 등).
-const AXES: { label: string; cap: number; pick: (a: NbaSeasonAverages) => number; fmt: (v: number) => string }[] = [
-  { label: "득점", cap: 30, pick: (a) => a.pts, fmt: (v) => v.toFixed(1) },
-  { label: "리바운드", cap: 12, pick: (a) => a.reb, fmt: (v) => v.toFixed(1) },
-  { label: "어시스트", cap: 10, pick: (a) => a.ast, fmt: (v) => v.toFixed(1) },
-  { label: "스틸", cap: 2.2, pick: (a) => a.stl, fmt: (v) => v.toFixed(1) },
-  { label: "블록", cap: 2.2, pick: (a) => a.blk, fmt: (v) => v.toFixed(1) },
-  { label: "야투%", cap: 60, pick: (a) => a.fgPct * 100, fmt: (v) => `${v.toFixed(1)}%` },
-  { label: "3점%", cap: 45, pick: (a) => a.fg3Pct * 100, fmt: (v) => `${v.toFixed(1)}%` },
-];
 
 function Card({
   title,
@@ -68,10 +58,7 @@ function Card({
 }
 
 export default function NbaSeasonOverview({ avg, season }: { avg: NbaSeasonAverages; season: number }) {
-  const radarData = AXES.map((a) => {
-    const v = a.pick(avg);
-    return { axis: a.label, value: Math.round(cap(v, a.cap)), raw: a.fmt(v) };
-  });
+  const radarData = toNbaRadarAxes(avg);
 
   const fg = avg.fgPct * 100;
   const fg3 = avg.fg3Pct * 100;

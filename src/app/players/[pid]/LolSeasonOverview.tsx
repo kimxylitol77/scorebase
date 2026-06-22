@@ -14,6 +14,7 @@ import {
 import { Swords, Sprout, Trophy, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import type { LolPlayerAgg } from "@/lib/sports/lol-player-stats";
+import { toLolRadarAxes } from "@/lib/sport-radar";
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 const cap = (v: number, c: number) => clamp((v / c) * 100);
@@ -63,14 +64,7 @@ export default function LolSeasonOverview({ agg }: { agg: LolPlayerAgg }) {
   const apg = agg.assists / g;
   const winPctNum = agg.winRate * 100;
 
-  const radar = [
-    { axis: "KDA", value: Math.round(cap(agg.kda, 5)), raw: agg.kda.toFixed(2) },
-    { axis: "킬", value: Math.round(cap(kpg, 5)), raw: kpg.toFixed(1) },
-    { axis: "어시스트", value: Math.round(cap(apg, 12)), raw: apg.toFixed(1) },
-    { axis: "CS/분", value: Math.round(cap(agg.csPerMin, 10)), raw: agg.csPerMin.toFixed(1) },
-    { axis: "승률", value: Math.round(clamp(winPctNum)), raw: `${Math.round(winPctNum)}%` },
-    { axis: "생존", value: Math.round(clamp(((8 - dpg) / 8) * 100)), raw: `데스 ${dpg.toFixed(1)}` },
-  ];
+  const radar = toLolRadarAxes(agg);
 
   return (
     <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none space-y-5">

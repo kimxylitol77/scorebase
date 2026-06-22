@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, Repeat2 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import ComparePlayerRadar from "@/components/ComparePlayerRadar";
+import { toRadarAxes } from "@/lib/player-radar";
 import { loadComparePlayer, type ComparePlayer } from "../../loadComparePlayer";
 
 export const dynamic = "force-dynamic";
@@ -137,7 +138,7 @@ export default async function ComparePage({ params }: { params: Promise<{ a: str
         </h2>
         {bothPlayable ? (
           <>
-            <ComparePlayerRadar a={sa!} b={sb!} nameA={pa.name} nameB={pb.name} />
+            <ComparePlayerRadar axesA={toRadarAxes(sa!)} axesB={toRadarAxes(sb!)} nameA={pa.name} nameB={pb.name} />
             <p className="text-center text-[11px] text-neutral-400 mt-1">레이더에 마우스를 올리면 실제 수치가 표시됩니다 · 골/도움/키패스/태클/인터셉트는 90분당 기준</p>
             {hasGk && (
               <p className="text-center text-[11px] text-amber-600 dark:text-amber-400 mt-1">골키퍼는 필드플레이어 지표(공격·수비) 기준이라 레이더가 낮게 보일 수 있습니다 — 세이브는 아래 표 참고</p>
