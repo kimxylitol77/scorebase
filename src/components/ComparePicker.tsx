@@ -15,11 +15,13 @@ export interface PickPlayer {
 
 function Slot({
   side,
+  sport,
   player,
   onPick,
   onClear,
 }: {
   side: "A" | "B";
+  sport: string;
   player: PickPlayer | null;
   onPick: (p: PickPlayer) => void;
   onClear: () => void;
@@ -40,9 +42,14 @@ function Slot({
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/transfers/suggest?q=${encodeURIComponent(q)}`);
+        const url =
+          sport === "SOCCER"
+            ? `/api/transfers/suggest?q=${encodeURIComponent(q)}`
+            : `/api/compare/suggest?sport=${sport}&q=${encodeURIComponent(q)}`;
+        const r = await fetch(url);
         const d = await r.json();
-        setResults(Array.isArray(d.players) ? d.players : []);
+        const raw: Array<{ id: string; name: string; team?: string; sub?: string; photo: string | null; value?: string }> = Array.isArray(d.players) ? d.players : [];
+        setResults(raw.map((p) => ({ id: p.id, name: p.name, team: p.team ?? p.sub ?? "", photo: p.photo ?? null, value: p.value ?? "" })));
         setOpen(true);
       } catch {
         setResults([]);
@@ -51,7 +58,7 @@ function Slot({
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [q]);
+  }, [q, sport]);
 
   if (player) {
     return (
@@ -120,22 +127,23 @@ function Slot({
   );
 }
 
-export default function ComparePicker({ initialA = null }: { initialA?: PickPlayer | null }) {
+export default function ComparePicker({ initialA = null, sport = "SOCCER" }: { initialA?: PickPlayer | null; sport?: string }) {
   const router = useRouter();
   const [a, setA] = useState<PickPlayer | null>(initialA);
   const [b, setB] = useState<PickPlayer | null>(null);
   const sameId = !!a && !!b && a.id === b.id;
   const ready = !!a && !!b && !sameId;
+  const dest = (idA: string, idB: string) => `/compare/${idA}/${idB}${sport === "SOCCER" ? "" : `?sport=${sport}`}`;
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Slot side="A" player={a} onPick={setA} onClear={() => setA(null)} />
-        <Slot side="B" player={b} onPick={setB} onClear={() => setB(null)} />
+        <Slot side="A" sport={sport} player={a} onPick={setA} onClear={() => setA(null)} />
+        <Slot side="B" sport={sport} player={b} onPick={setB} onClear={() => setB(null)} />
       </div>
       <button
         disabled={!ready}
-        onClick={() => ready && router.push(`/compare/${a!.id}/${b!.id}`)}
+        onClick={() => ready && router.push(dest(a!.id, b!.id))}
         className="w-full rounded-xl bg-gradient-to-r from-rose-500 to-cyan-500 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] enabled:hover:-translate-y-0.5 enabled:hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
       >
         비교 보기
