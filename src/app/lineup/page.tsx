@@ -55,7 +55,7 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
   }));
 
   return (
-    <main className="relative mx-auto max-w-5xl px-4 py-10">
+    <main className="relative mx-auto max-w-6xl px-4 py-10">
       <AmbientGlow />
       <div className="relative">
         <span className="inline-block rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30">

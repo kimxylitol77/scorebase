@@ -331,8 +331,8 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
         {tool !== "select" && <span className="text-xs text-neutral-400 dark:text-neutral-500">그리기 모드 — 선수 이동은 ‘선택’</span>}
       </div>
 
-      <div className="mt-4 max-w-2xl">
-        <div>
+      <div className="mt-4">
+        <div className={board.orientation === "landscape" ? "w-full" : "max-w-2xl"}>
           <div ref={captureRef} className="relative">
             <Pitch home={board.home} away={board.away} mode={board.mode} displayMode={board.displayMode} orientation={board.orientation} poolById={poolById} kitFrom={kitObj.from} kitTo={kitObj.to} activeUid={activeUid} onNodeClick={nodeClick} onNodeMove={nodeMove} onDragStart={checkpoint} />
             <DrawLayer strokes={board.strokes} tool={tool} color={color} onCommitStroke={commitStroke} onErase={eraseStroke} />
@@ -347,7 +347,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 max-w-2xl">
           {activeNode ? (
             <CandidatePanel pool={pool} pos={activePos} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} />
           ) : (
