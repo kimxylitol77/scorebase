@@ -166,7 +166,7 @@ function PitchMarkings({ landscape, versus }: { landscape: boolean; versus: bool
   return (
     <>
       <div className={`${common} inset-[3.5%] rounded-[3px] ${lc}`} />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[26%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/20" />
+      <div className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/20 ${landscape ? "h-[26%] w-[16.25%]" : "h-[20.8%] w-[26%]"}`} />
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/35" />
       {landscape ? (
         <>
