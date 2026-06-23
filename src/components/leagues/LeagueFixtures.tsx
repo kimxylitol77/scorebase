@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
+import TeamBadge from "@/components/TeamBadge";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -25,8 +26,8 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     status: true,
     homeScore: true,
     awayScore: true,
-    homeTeam: { select: { name: true } },
-    awayTeam: { select: { name: true } },
+    homeTeam: { select: { name: true, logoUrl: true } },
+    awayTeam: { select: { name: true, logoUrl: true } },
   } as const;
   const [recent, upcoming] = await Promise.all([
     prisma.match.findMany({ where: { league, status: "FINISHED" }, orderBy: { startTime: "desc" }, take: 18, select: sel }),
@@ -71,6 +72,8 @@ export default async function LeagueFixtures({ league }: { league: string }) {
               const a = toKoreanTeamName(m.awayTeam.name, league);
               const hFlag = showFlag ? fifaFlag(m.homeTeam.name, h) : "";
               const aFlag = showFlag ? fifaFlag(m.awayTeam.name, a) : "";
+              const hLogo = showFlag ? null : m.homeTeam.logoUrl; // 국가대항은 국기, 클럽리그는 로고
+              const aLogo = showFlag ? null : m.awayTeam.logoUrl;
               const live = m.status === "LIVE";
               const done = m.status === "FINISHED";
               const center = live || done ? `${m.homeScore ?? 0} - ${m.awayScore ?? 0}` : "vs";
@@ -80,12 +83,14 @@ export default async function LeagueFixtures({ league }: { league: string }) {
                   <span className="flex-1 flex items-center justify-end gap-1.5 min-w-0 font-medium">
                     <span className="truncate">{h}</span>
                     {hFlag && <span className="shrink-0" aria-hidden>{hFlag}</span>}
+                    <TeamBadge logoUrl={hLogo} size={20} className="bg-white rounded-sm" />
                   </span>
                   <span className={`w-14 text-center tabular-nums font-bold shrink-0 ${live ? "text-rose-600 dark:text-rose-400" : done ? "" : "text-neutral-400 font-normal"}`}>
                     {center}
                   </span>
                   <span className="flex-1 flex items-center gap-1.5 min-w-0 font-medium">
                     {aFlag && <span className="shrink-0" aria-hidden>{aFlag}</span>}
+                    <TeamBadge logoUrl={aLogo} size={20} className="bg-white rounded-sm" />
                     <span className="truncate">{a}</span>
                   </span>
                   <span className={`ml-auto text-xs tabular-nums whitespace-nowrap shrink-0 ${live ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-neutral-400"}`}>

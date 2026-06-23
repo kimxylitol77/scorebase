@@ -1,11 +1,20 @@
 // 리그 역대 우승 — 리그 페이지 "역사" 탭. data/league-champions.json (위키데이터 P3450→P1346 수집).
 import championsData from "../../../data/league-champions.json";
+import { prisma } from "@/lib/db";
+import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
+import TeamBadge from "@/components/TeamBadge";
 
 type Champ = { season: string; ko: string; en: string };
 const DATA = championsData as Record<string, { champions: Champ[] }>;
 
-export default function LeagueHistory({ league, leagueName }: { league: string; leagueName: string }) {
+// 우승팀(위키데이터 풀네임) → DB 팀 매칭용 정규화. 영문=분음부호·축약(F.C. 등)·구두점 제거, 한글=공백 제거.
+const FOOTBALL_TOKENS = new Set(["fc", "afc", "cf", "sc", "ac", "cd", "ud", "as", "rcd", "sd", "ssc", "ss", "uc", "acf", "cfc", "fbc", "vfl", "vfb", "sv", "club"]);
+const normEn = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/\./g, "").split(/[^a-z0-9]+/).filter((w) => w && !FOOTBALL_TOKENS.has(w)).join("");
+const normKo = (s: string) => s.replace(/\s+/g, "").trim();
+
+export default async function LeagueHistory({ league, leagueName }: { league: string; leagueName: string }) {
   const champions = DATA[league]?.champions ?? [];
   const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
 
@@ -19,9 +28,40 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
     );
   }
 
-  // 최다 우승 집계
+  // 클럽 리그면 우승팀 → logoUrl 매처. 한글명 정확일치(EPL·라리가) → 영문 정확/부분일치(세리에·분데스, 풀네임 vs 짧은 DB명) 순.
+  // 매칭 안 되는 우승팀(강등·해체)은 DB 로고 자체가 없어 자연히 로고 없이 표시(graceful).
+  let logoOf: (ko: string, en: string) => string | null = () => null;
+  if (!showFlag) {
+    const teams = await prisma.team.findMany({ where: { league }, select: { name: true, logoUrl: true } });
+    const koMap = new Map<string, string>();
+    const enList: { norm: string; logo: string }[] = [];
+    for (const t of teams) {
+      if (!t.logoUrl) continue;
+      koMap.set(normKo(toKoreanTeamName(t.name, league)), t.logoUrl);
+      enList.push({ norm: normEn(t.name), logo: t.logoUrl });
+    }
+    logoOf = (ko, en) => {
+      const k = koMap.get(normKo(ko));
+      if (k) return k;
+      const q = normEn(en);
+      if (!q) return null;
+      const exact = enList.find((t) => t.norm === q);
+      if (exact) return exact.logo;
+      let best: { norm: string; logo: string } | null = null;
+      for (const t of enList) {
+        if (t.norm.length >= 4 && (q.includes(t.norm) || t.norm.includes(q)) && (!best || t.norm.length > best.norm.length)) best = t;
+      }
+      return best?.logo ?? null;
+    };
+  }
+
+  // 최다 우승 집계 (+ ko→en, 로고 조회용)
   const counts = new Map<string, number>();
-  for (const c of champions) counts.set(c.ko, (counts.get(c.ko) ?? 0) + 1);
+  const enByKo = new Map<string, string>();
+  for (const c of champions) {
+    counts.set(c.ko, (counts.get(c.ko) ?? 0) + 1);
+    if (!enByKo.has(c.ko)) enByKo.set(c.ko, c.en);
+  }
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
 
   return (
@@ -31,6 +71,7 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
         <div className="flex flex-wrap gap-2">
           {top.map(([club, n], i) => {
             const flag = showFlag ? fifaFlag(club) : "";
+            const logo = logoOf(club, enByKo.get(club) ?? club);
             return (
             <div
               key={club}
@@ -42,6 +83,7 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
             >
               {i === 0 && <span className="text-sm">🏆</span>}
               {flag && <span className="text-sm" aria-hidden>{flag}</span>}
+              <TeamBadge logoUrl={logo} size={18} className="bg-white rounded-sm" />
               <span className="font-bold text-sm">{club}</span>
               <span className={`text-sm tabular-nums font-black ${i === 0 ? "text-amber-600 dark:text-amber-400" : "text-neutral-500"}`}>
                 {n}회
@@ -59,6 +101,7 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
         <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] overflow-hidden grid sm:grid-cols-2 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           {champions.map((c, i) => {
             const flag = showFlag ? fifaFlag(c.en, c.ko) : "";
+            const logo = logoOf(c.ko, c.en);
             return (
             <div
               key={c.season + i}
@@ -66,6 +109,7 @@ export default function LeagueHistory({ league, leagueName }: { league: string; 
             >
               <span className="w-16 shrink-0 text-xs tabular-nums text-neutral-400">{c.season}</span>
               {flag && <span className="shrink-0" aria-hidden>{flag}</span>}
+              <TeamBadge logoUrl={logo} size={18} className="bg-white rounded-sm" />
               <span className="font-medium truncate">{c.ko}</span>
             </div>
             );
