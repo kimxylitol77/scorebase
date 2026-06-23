@@ -48,6 +48,7 @@
     "cheerio": "^1.2.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.4.2",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^1.16.0",
     "mqtt": "^5.15.1",
     "next": "16.2.6",

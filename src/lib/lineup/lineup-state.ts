@@ -1,6 +1,7 @@
 // 라인업 전술판 상태 ↔ 공유 URL 문자열(base64url) 인코딩/디코딩. 빌더(브라우저)·OG 카드(노드) 공용.
 // 슬롯키는 저장하지 않는다 — 포메이션이 슬롯 순서를 고정하므로 픽을 순서대로 11칸 배열로만 보관.
 import { FORMATIONS, type Pos } from "./formations";
+import type { Stroke } from "./drawing";
 
 // 픽: 실선수 = pid 문자열, 커스텀 = { n: 이름 }, 빈자리 = null.
 export type SlotPick = string | { n: string };
@@ -58,6 +59,7 @@ export interface BoardState {
   kit: string;
   home: Side;
   away?: Side;
+  strokes: Stroke[]; // 전술 그림 (URL 인코딩 제외, 화면 캡처로만 공유)
 }
 
 const POS_CODES: Pos[] = ["GK", "DF", "MF", "FW"];
@@ -142,6 +144,7 @@ export function decodeBoard(code: string): BoardState | null {
         kit: obj.kit ?? "grass",
         home: wireToSide(obj.h),
         away: obj.a ? wireToSide(obj.a) : undefined,
+        strokes: [],
       };
     }
     if (obj && typeof obj.f === "string" && Array.isArray(obj.p)) {
@@ -153,6 +156,7 @@ export function decodeBoard(code: string): BoardState | null {
         subtitle: obj.s ?? "",
         kit: obj.k ?? "grass",
         home: sideFromLegacy(obj as LineupState),
+        strokes: [],
       };
     }
     return null;

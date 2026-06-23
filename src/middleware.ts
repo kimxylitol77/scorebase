@@ -27,10 +27,12 @@ export function middleware(req: NextRequest) {
   // AI 학습봇은 robots 로 차단했고, robots 를 무시하는 악성 봇은 여기서 걸린다.
   const bot = detectBot(req.headers.get("user-agent"));
   const exemptFromLimit =
-    bot.isBot &&
-    (bot.category === "search" ||
-      bot.category === "social" ||
-      bot.category === "monitor");
+    // 라인업 캡처용 이미지 프록시는 정적 성격(한 보드에 11~22장) — rate limit 면제.
+    path.startsWith("/api/lineup/img") ||
+    (bot.isBot &&
+      (bot.category === "search" ||
+        bot.category === "social" ||
+        bot.category === "monitor"));
   if (!exemptFromLimit) {
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||

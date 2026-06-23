@@ -1,14 +1,16 @@
 "use client";
-// 라인업 전술판 빌더 — 포메이션/자유/맞대결 + 클럽 가져오기 + 드래그 + 표시모드/방향 + undo/redo + 공유.
-// 모든 선수가 자유 좌표(Placed)를 보유. 피치·드래그는 Pitch, 후보는 CandidatePanel, 이력은 useHistory에 위임.
-import { useMemo, useCallback, useState } from "react";
-import { Share2, Download, Link2, Check, Shirt, UserPlus, Undo2, Redo2, RotateCcw } from "lucide-react";
+// 라인업 전술판 빌더 — 포메이션/자유/맞대결 + 클럽 + 드래그 + 표시모드/방향 + 전술 그리기 + undo/redo + 캡처 공유.
+// 피치·드래그=Pitch, 후보=CandidatePanel, 그리기=DrawLayer, 이력=useHistory.
+import { useMemo, useCallback, useState, useRef, type ComponentType } from "react";
+import { Share2, Download, Link2, Check, Shirt, UserPlus, Undo2, Redo2, RotateCcw, MousePointer2, Pen, Minus, MoreHorizontal, MoveUpRight, Square, Circle, Volleyball, Eraser } from "lucide-react";
 import Pitch from "./Pitch";
 import CandidatePanel from "./CandidatePanel";
+import DrawLayer from "./DrawLayer";
 import { useHistory } from "./useHistory";
 import type { PoolPlayer, ClubMeta } from "./types";
 import { FORMATIONS, FORMATION_OPTIONS, FREE_FORMATION, KITS, KIT_BY_KEY, type Pos } from "@/lib/lineup/formations";
 import { encodeBoard, newUid, type BoardState, type Side, type Placed, type DisplayMode, type Orientation } from "@/lib/lineup/lineup-state";
+import { STROKE_COLORS, STROKE_COLOR_KEYS, type Tool, type StrokeColor, type Stroke } from "@/lib/lineup/drawing";
 
 interface Props {
   pool: PoolPlayer[];
@@ -21,8 +23,18 @@ const LEAGUE_LABEL: Record<string, string> = { EPL: "프리미어리그", LALIGA
 const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
 const DISPLAY_MODES: [DisplayMode, string][] = [["photo", "사진"], ["ovr", "능력치"], ["name", "이름"]];
 const ORIENTATIONS: [Orientation, string][] = [["portrait", "세로"], ["landscape", "가로"]];
+const TOOLS: [Tool, ComponentType<{ className?: string }>, string][] = [
+  ["select", MousePointer2, "선택"],
+  ["pen", Pen, "펜"],
+  ["line", Minus, "선"],
+  ["dashed", MoreHorizontal, "점선"],
+  ["arrow", MoveUpRight, "화살표"],
+  ["rect", Square, "사각형"],
+  ["ellipse", Circle, "원"],
+  ["ball", Volleyball, "공"],
+  ["eraser", Eraser, "지우개"],
+];
 
-// 맞대결 시 y를 절반 영역으로 압축 — home은 하단(중앙선~바닥), away는 상단(미러).
 function placeY(rawY: number, side: "home" | "away", versus: boolean): number {
   if (!versus) return rawY;
   return side === "away" ? Math.round(50 - rawY * 0.46) : Math.round(50 + rawY * 0.46);
@@ -37,15 +49,24 @@ function compressY(players: Placed[], side: "home" | "away"): Placed[] {
 function expandY(players: Placed[]): Placed[] {
   return players.map((p) => ({ ...p, y: Math.max(4, Math.min(96, (p.y - 50) / 0.46)) }));
 }
-// 순수 side 업데이트 — commit/transient 함수형 안에서 최신 board로 판정(stale mode 회피).
 function updateSideIn(b: BoardState, which: "home" | "away", fn: (s: Side) => Side): BoardState {
   if (which === "home") return { ...b, home: fn(b.home) };
   return b.away ? { ...b, away: fn(b.away) } : b;
 }
 
+// dataURL → Blob (fetch(data:)는 CSP connect-src에 막혀 직접 디코드).
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [head, b64] = dataUrl.split(",");
+  const mime = head.match(/:(.*?);/)?.[1] ?? "image/png";
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
 function initBoard(initial: BoardState | null): BoardState {
-  if (initial) return initial;
-  return { mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
+  if (initial) return { ...initial, strokes: initial.strokes ?? [] };
+  return { mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", strokes: [], home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
 }
 
 export default function LineupBuilder({ pool, clubs, initial }: Props) {
@@ -53,7 +74,11 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const { state: board, commit, setTransient, checkpoint, undo, redo, reset, canUndo, canRedo } = useHistory<BoardState>(init0);
   const [activeSide, setActiveSide] = useState<"home" | "away">("home");
   const [activeUid, setActiveUid] = useState<string | null>(null);
+  const [tool, setTool] = useState<Tool>("select");
+  const [color, setColor] = useState<StrokeColor>("white");
   const [copied, setCopied] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+  const captureRef = useRef<HTMLDivElement>(null);
 
   const poolById = useMemo(() => {
     const m: Record<string, PoolPlayer> = {};
@@ -77,16 +102,11 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const curFormation = curSide?.formation ?? FREE_FORMATION;
   const activeNode = curSide?.players.find((p) => p.uid === activeUid) ?? null;
   const activePos: Pos = activeNode ? (activeNode.pid ? poolById[activeNode.pid]?.pos ?? activeNode.pos : activeNode.pos) : "MF";
-  const activeLabel = activeNode
-    ? activeNode.pid
-      ? poolById[activeNode.pid]?.name ?? "선수"
-      : activeNode.name ?? `${POS_LABEL[activeNode.pos]} 자리`
-    : "";
+  const activeLabel = activeNode ? (activeNode.pid ? poolById[activeNode.pid]?.name ?? "선수" : activeNode.name ?? `${POS_LABEL[activeNode.pos]} 자리`) : "";
 
   const homeFilled = board.home.players.filter((p) => p.pid || p.name).length;
   const awayFilled = board.away?.players.filter((p) => p.pid || p.name).length ?? 0;
 
-  // --- 상태 업데이트 (commit=이력 적립 / setTransient=드래그 미리보기) ---
   const updateSide = useCallback((which: "home" | "away", fn: (s: Side) => Side) => commit((b) => updateSideIn(b, which, fn)), [commit]);
   const updatePlayers = useCallback((which: "home" | "away", fn: (ps: Placed[]) => Placed[]) => updateSide(which, (s) => ({ ...s, players: fn(s.players) })), [updateSide]);
 
@@ -127,14 +147,9 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     setActiveUid(uid);
   }
 
-  const nodeClick = useCallback((side: "home" | "away", uid: string) => {
-    setActiveSide(side);
-    setActiveUid(uid);
-  }, []);
-  // 드래그 이동은 transient(이력 미적립). 드래그 시작 시 checkpoint 1회 → undo로 드래그 취소.
+  const nodeClick = useCallback((side: "home" | "away", uid: string) => { setActiveSide(side); setActiveUid(uid); }, []);
   const nodeMove = useCallback(
-    (side: "home" | "away", uid: string, x: number, y: number) =>
-      setTransient((b) => updateSideIn(b, side, (s) => ({ ...s, players: s.players.map((p) => (p.uid === uid ? { ...p, x, y } : p)) }))),
+    (side: "home" | "away", uid: string, x: number, y: number) => setTransient((b) => updateSideIn(b, side, (s) => ({ ...s, players: s.players.map((p) => (p.uid === uid ? { ...p, x, y } : p)) }))),
     [setTransient],
   );
 
@@ -158,33 +173,60 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     setActiveUid(null);
     commit((b) => {
       if (b.mode === mode) return b;
-      if (mode === "versus") {
-        return { ...b, mode, home: { ...b.home, players: compressY(b.home.players, "home") }, away: b.away ?? { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "away", true) } };
-      }
+      if (mode === "versus") return { ...b, mode, home: { ...b.home, players: compressY(b.home.players, "home") }, away: b.away ?? { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "away", true) } };
       return { ...b, mode, home: { ...b.home, players: expandY(b.home.players) } };
     });
     if (mode === "single") setActiveSide("home");
   }
 
+  // 그리기: 새 stroke 추가/삭제 = 각 1 이력(undo로 stroke 제거).
+  const commitStroke = useCallback((s: Stroke) => commit((b) => ({ ...b, strokes: [...b.strokes, s] })), [commit]);
+  const eraseStroke = useCallback((id: string) => commit((b) => ({ ...b, strokes: b.strokes.filter((x) => x.id !== id) })), [commit]);
+
   function resetAll() {
     reset(initBoard(null));
     setActiveUid(null);
     setActiveSide("home");
+    setTool("select");
   }
 
   // --- 공유 ---
   const code = useMemo(() => encodeBoard(board), [board]);
-  const ogUrl = `/api/og/lineup?d=${code}`;
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/lineup?d=${code}` : `/lineup?d=${code}`;
 
+  async function onCapture() {
+    const node = captureRef.current;
+    if (!node || capturing) return;
+    setCapturing(true);
+    try {
+      const { toPng } = await import("html-to-image");
+      // skipFonts: cross-origin 폰트 CSS 에러 회피. cacheBust는 thesports URL에 query를 붙여 이미지 로드를 깨뜨려 미사용.
+      const dataUrl = await toPng(node, { pixelRatio: 2, skipFonts: true });
+      const fname = `${(board.title || "lineup").replace(/\s+/g, "-")}.png`;
+      if (typeof navigator !== "undefined" && navigator.canShare) {
+        try {
+          const file = new File([dataUrlToBlob(dataUrl)], fname, { type: "image/png" });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: board.title || "라인업" });
+            return;
+          }
+        } catch {
+          /* share 실패 → 다운로드 폴백 */
+        }
+      }
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = fname;
+      a.click();
+    } catch (e) {
+      console.error("[lineup] capture failed", e);
+    } finally {
+      setCapturing(false);
+    }
+  }
   async function onShare() {
     if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ title: board.title || "라인업", url: shareUrl });
-        return;
-      } catch {
-        /* 취소·미지원 → 복사 폴백 */
-      }
+      try { await navigator.share({ title: board.title || "라인업", url: shareUrl }); return; } catch { /* 폴백 */ }
     }
     onCopy();
   }
@@ -207,7 +249,6 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
 
   return (
     <div className="mt-6">
-      {/* 모드 + 카운트 */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="inline-flex rounded-full bg-neutral-100 p-0.5 dark:bg-white/[0.06]">
           <button type="button" onClick={() => changeMode("single")} className={board.mode === "single" ? segActive : segIdle}>단일 라인업</button>
@@ -234,7 +275,6 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
         </div>
       )}
 
-      {/* 포메이션 · 클럽 · 키트 */}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <span className="text-sm text-neutral-500 dark:text-neutral-400">포메이션</span>
@@ -260,17 +300,12 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
         </div>
       </div>
 
-      {/* 표시 모드 · 방향 · undo/redo/초기화 */}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="inline-flex rounded-lg bg-neutral-100 p-0.5 dark:bg-white/[0.06]">
-          {DISPLAY_MODES.map(([dm, label]) => (
-            <button key={dm} type="button" onClick={() => commit((b) => ({ ...b, displayMode: dm }))} className={board.displayMode === dm ? segSmActive : segSmIdle}>{label}</button>
-          ))}
+          {DISPLAY_MODES.map(([dm, label]) => (<button key={dm} type="button" onClick={() => commit((b) => ({ ...b, displayMode: dm }))} className={board.displayMode === dm ? segSmActive : segSmIdle}>{label}</button>))}
         </div>
         <div className="inline-flex rounded-lg bg-neutral-100 p-0.5 dark:bg-white/[0.06]">
-          {ORIENTATIONS.map(([o, label]) => (
-            <button key={o} type="button" onClick={() => commit((b) => ({ ...b, orientation: o }))} className={board.orientation === o ? segSmActive : segSmIdle}>{label}</button>
-          ))}
+          {ORIENTATIONS.map(([o, label]) => (<button key={o} type="button" onClick={() => commit((b) => ({ ...b, orientation: o }))} className={board.orientation === o ? segSmActive : segSmIdle}>{label}</button>))}
         </div>
         <div className="ml-auto flex items-center gap-1.5">
           <button type="button" onClick={undo} disabled={!canUndo} className={iconBtn} title="되돌리기" aria-label="되돌리기"><Undo2 className="h-4 w-4" /></button>
@@ -279,27 +314,34 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
         </div>
       </div>
 
-      {/* 피치 + 우측 */}
+      {/* 전술 그리기 툴바 */}
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <div className="inline-flex items-center gap-0.5 rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-700">
+          {TOOLS.map(([t, Icon, label]) => (
+            <button key={t} type="button" onClick={() => setTool(t)} title={label} aria-label={label} className={`inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors ${tool === t ? "bg-rose-500/15 text-rose-600 dark:text-rose-300" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white"}`}>
+              <Icon className="h-4 w-4" />
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1">
+          {STROKE_COLOR_KEYS.map((ck) => (
+            <button key={ck} type="button" onClick={() => setColor(ck)} aria-label={ck} className={`h-5 w-5 rounded-full ring-2 transition-transform ${color === ck ? "scale-110 ring-neutral-400 dark:ring-white/60" : "ring-transparent hover:scale-105"}`} style={{ background: STROKE_COLORS[ck], boxShadow: ck === "white" ? "inset 0 0 0 1px rgba(0,0,0,0.15)" : undefined }} />
+          ))}
+        </div>
+        {tool !== "select" && <span className="text-xs text-neutral-400 dark:text-neutral-500">그리기 모드 — 선수 이동은 ‘선택’</span>}
+      </div>
+
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_340px]">
         <div>
-          <Pitch
-            home={board.home}
-            away={board.away}
-            mode={board.mode}
-            displayMode={board.displayMode}
-            orientation={board.orientation}
-            poolById={poolById}
-            kitFrom={kitObj.from}
-            kitTo={kitObj.to}
-            activeUid={activeUid}
-            onNodeClick={nodeClick}
-            onNodeMove={nodeMove}
-            onDragStart={checkpoint}
-          />
-          <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500">선수를 눌러 채우거나 끌어서 위치를 옮기세요.</p>
+          <div ref={captureRef} className="relative">
+            <Pitch home={board.home} away={board.away} mode={board.mode} displayMode={board.displayMode} orientation={board.orientation} poolById={poolById} kitFrom={kitObj.from} kitTo={kitObj.to} activeUid={activeUid} onNodeClick={nodeClick} onNodeMove={nodeMove} onDragStart={checkpoint} />
+            <DrawLayer strokes={board.strokes} tool={tool} color={color} onCommitStroke={commitStroke} onErase={eraseStroke} />
+            <div className="pointer-events-none absolute bottom-1.5 right-2.5 text-[11px] font-semibold text-white/70" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.85)" }}>scorebase.kr</div>
+          </div>
+          <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500">선수를 눌러 채우거나 끌어서 이동, 도구로 전술을 그릴 수 있어요.</p>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <a href={ogUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-700"><Download className="h-4 w-4" /> 이미지로 저장</a>
+            <button type="button" onClick={onCapture} disabled={capturing} className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:opacity-50"><Download className="h-4 w-4" /> {capturing ? "저장 중…" : "이미지로 저장"}</button>
             <button type="button" onClick={onShare} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><Share2 className="h-4 w-4" /> 공유</button>
             <button type="button" onClick={onCopy} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200">{copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Link2 className="h-4 w-4" />}{copied ? "복사됨" : "링크 복사"}</button>
           </div>
@@ -310,7 +352,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             <CandidatePanel pool={pool} pos={activePos} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} />
           ) : (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우고, 끌어서 위치를 옮기세요. 포메이션·클럽을 고르거나 자유롭게 배치할 수 있어요.</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우고, 끌어서 위치를 옮기세요. 위 도구로 전술 화살표·선을 그릴 수도 있어요.</p>
               <button type="button" onClick={addPlayer} className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><UserPlus className="h-4 w-4" /> 선수 추가</button>
             </div>
           )}

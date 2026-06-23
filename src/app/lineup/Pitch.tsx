@@ -143,7 +143,7 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
                   <span className="relative block h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] overflow-hidden rounded-full bg-white/90" style={{ boxShadow: `0 0 0 2px ${ring}` }}>
                     {player.photo ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={player.photo} alt={player.name} crossOrigin="anonymous" className="h-full w-full object-cover" draggable={false} />
+                      <img src={`/api/lineup/img?u=${encodeURIComponent(player.photo)}`} alt={player.name} className="h-full w-full object-cover" draggable={false} />
                     ) : (
                       <span className="flex h-full w-full items-center justify-center text-sm font-bold text-emerald-800">{player.name.slice(0, 2)}</span>
                     )}
