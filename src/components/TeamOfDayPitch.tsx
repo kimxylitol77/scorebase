@@ -25,11 +25,27 @@ export default function TeamOfDayPitch({
       {/* 피치 — 4-2-3-1 */}
       <div className="relative w-full rounded-2xl overflow-hidden border border-emerald-700/40 shadow-2xl"
         style={{ aspectRatio: "3 / 4.2", background: "linear-gradient(to bottom, #0f5132 0%, #0c4429 50%, #0a3d27 100%)" }}>
-        <div className="absolute inset-3 border-2 border-white/15 rounded-sm" />
-        <div className="absolute left-3 right-3 top-1/2 border-t-2 border-white/15" />
-        <div className="absolute left-1/2 top-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 border-2 border-white/15 rounded-full" />
-        <div className="absolute left-1/2 bottom-3 w-32 h-12 -translate-x-1/2 border-2 border-t-0 border-white/15" />
-        <div className="absolute left-1/2 top-3 w-32 h-12 -translate-x-1/2 border-2 border-b-0 border-white/15" />
+        {/* 피치 마킹 — 단일 SVG 오버레이. viewBox(30×42 = 컨테이너 3/4.2 비율)가 통째로
+            스케일되므로 폭과 무관하게 선수(%)와 같은 비율 유지(기존 고정 px 마킹은 폭이 바뀌면 비율 어긋남). */}
+        <svg
+          className="absolute inset-0 h-full w-full pointer-events-none"
+          viewBox="0 0 30 42"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+          fill="none"
+          stroke="white"
+          strokeOpacity={0.15}
+          strokeWidth={0.13}
+        >
+          {/* 외곽선 + 중앙선 */}
+          <rect x="0.8" y="0.8" width="28.4" height="40.4" rx="0.5" />
+          <line x1="0.8" y1="21" x2="29.2" y2="21" />
+          {/* 센터 서클 */}
+          <circle cx="15" cy="21" r="3.1" />
+          {/* 페널티 박스 (위/아래 — 골라인 쪽은 외곽선과 만나는 3면) */}
+          <path d="M10.85 3.9 L10.85 0.8 L19.15 0.8 L19.15 3.9" />
+          <path d="M10.85 38.1 L10.85 41.2 L19.15 41.2 L19.15 38.1" />
+        </svg>
         {xi.map((p, i) => {
           const inner = (
             <>
