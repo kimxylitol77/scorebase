@@ -232,11 +232,21 @@ export async function GET(req: NextRequest) {
       (m.homeScore != null || m.awayScore != null) &&
       m.startTime.getTime() < now - SCORE_DRIFT_GRACE_MS
     ) {
+      // MLB 는 공식 statsapi 로 실제 상태 교차확인 — 연기/중단/취소면 "status updater 죽음"이
+      // 아니라 POSTPONED 미반영(0:0 은 실제값)이라 오진. inning_missing 과 동일하게 구분한다
+      // (2026-06-23 #540622 Mets vs Cubs 우천 연기를 stuck 으로 오진한 케이스).
+      let detail = `status=SCHEDULED 인데 점수=${m.homeScore ?? "-"}:${m.awayScore ?? "-"} (status updater 죽음 의심)`;
+      if (m.league === "MLB") {
+        const st = await mlbGameState(m.homeTeam.name, m.awayTeam.name, m.startTime, mlbSched);
+        if (st && /Postponed|Suspended|Cancelled/i.test(st)) {
+          detail = `실제 ${st} 인데 status=SCHEDULED+${m.homeScore ?? 0}:${m.awayScore ?? 0} stuck — POSTPONED 로 정정 필요 (status updater 죽음 아님)`;
+        }
+      }
       issues.push({
         ...matchInfo,
         kind: "score_drift",
         severity: "HIGH",
-        detail: `status=SCHEDULED 인데 점수=${m.homeScore ?? "-"}:${m.awayScore ?? "-"} (status updater 죽음 의심)`,
+        detail,
       });
     }
 
