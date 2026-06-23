@@ -10,9 +10,14 @@ const DATA = championsData as Record<string, { champions: Champ[] }>;
 
 // 우승팀(위키데이터 풀네임) → DB 팀 매칭용 정규화. 영문=분음부호·축약(F.C. 등)·구두점 제거, 한글=공백 제거.
 const FOOTBALL_TOKENS = new Set(["fc", "afc", "cf", "sc", "ac", "cd", "ud", "as", "rcd", "sd", "ssc", "ss", "uc", "acf", "cfc", "fbc", "vfl", "vfb", "sv", "club"]);
-const normEn = (s: string) =>
-  s.toLowerCase().normalize("NFD").replace(/\./g, "").split(/[^a-z0-9]+/).filter((w) => w && !FOOTBALL_TOKENS.has(w)).join("");
-const normKo = (s: string) => s.replace(/\s+/g, "").trim();
+// 독·불 이름 번역차 보정(위키데이터 München ↔ DB Munich 등). 양쪽 normEn 을 같은 형태로 수렴.
+const NAME_ALIAS: [RegExp, string][] = [[/munchen/g, "munich"], [/koln/g, "cologne"], [/nurnberg/g, "nuremberg"], [/monchengladbach/g, "gladbach"]];
+const normEn = (s: string) => {
+  let r = s.toLowerCase().normalize("NFD").replace(/\./g, "").split(/[^a-z0-9]+/).filter((w) => w && !FOOTBALL_TOKENS.has(w) && !/^\d+$/.test(w)).join("");
+  for (const [re, to] of NAME_ALIAS) r = r.replace(re, to);
+  return r;
+};
+const normKo = (s: string) => s.replace(/[a-zA-Z0-9.()]+/g, " ").replace(/\s+/g, "").trim(); // 한글만(위키데이터 ko 의 라틴 접두 "FC·SSC" strip)
 
 export default async function LeagueHistory({ league, leagueName }: { league: string; leagueName: string }) {
   const champions = DATA[league]?.champions ?? [];
