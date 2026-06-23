@@ -450,11 +450,15 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   };
   const isSoccer = ["EPL","LALIGA","BUNDESLIGA","SERIE_A","LIGUE_1","MLS","UCL","WORLD_CUP","K_LEAGUE_1","K_LEAGUE_2","J1_LEAGUE","J2_LEAGUE","AFC_CL","AFC_CL_TWO","AFC_U23","SAUDI_PL","UEL","UECL","CHAMPIONSHIP","LALIGA_2","BUNDESLIGA_2","SERIE_B","LIGUE_2","EREDIVISIE","PRIMEIRA_LIGA","SUPER_LIG","JUPILER_PL","SPL","GREEK_SL","BRASILEIRAO","LIGA_MX","COPA_LIB","COPA_SUD","CSL","A_LEAGUE","CLUB_WORLD_CUP"].includes(upper);
 
-  // view 결정 — 축구만 데이터 탭(순위 기본), 비축구는 기존 글 화면 유지
+  // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
+  const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
+    NHL: ["fixtures", "articles"],
+    LOL: ["fixtures", "articles"],
+  };
+  const dataViews: ViewKey[] = isSoccer ? [...VIEW_KEYS] : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
+  const hasDataTabs = dataViews.some((v) => v !== "articles");
   const reqView = (sp.view ?? "").toLowerCase();
-  const view: ViewKey = isSoccer
-    ? ((VIEW_KEYS as readonly string[]).includes(reqView) ? (reqView as ViewKey) : "standings")
-    : "articles";
+  const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
   const leaderboard = isSoccer && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
@@ -527,11 +531,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      {/* buildup식 데이터 탭 (축구) — 순위·일정·통계·역사·글 */}
-      {isSoccer && (
+      {/* 데이터 탭 — 축구 전체(순위·일정·통계·역사·글), 비축구(NHL/LOL)는 리그별 일부 */}
+      {hasDataTabs && (
         <div className="border-b border-neutral-200 dark:border-neutral-800 sticky top-16 bg-white/85 dark:bg-neutral-950/85 backdrop-blur z-10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-x-1 sm:gap-x-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-            {VIEW_KEYS.map((v) => {
+            {dataViews.map((v) => {
               const active = v === view;
               return (
                 <Link
@@ -557,7 +561,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <LeagueStandingsTable league={upper} />
         </div>
       )}
-      {isSoccer && view === "fixtures" && (
+      {view === "fixtures" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LeagueFixtures league={upper} />
         </div>
