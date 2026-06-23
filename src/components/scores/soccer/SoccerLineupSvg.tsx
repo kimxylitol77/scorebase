@@ -163,7 +163,7 @@ function TeamHalf({
         // 라인 세로 위치 — 자기 진영(절반)을 n등분, GK 가 바깥(골문)쪽.
         // home: 위 절반(top 3~47%), away: 아래 절반(거울).
         const frac = (li + 0.5) / n; // 0~1, 0=골문쪽
-        const half = 3 + frac * 46; // 3~46% — 줄 간격 넓혀 이름이 아랫줄 선수와 안 겹치게 (센터서클 제거로 spread 확대 가능)
+        const half = 3 + frac * 46; // 3~46% — 줄 간격 넓혀 이름이 아랫줄 선수와 안 겹치게 (센터서클은 장식 SVG라 spread 와 무관)
         // 라인 내 가로 — x 원좌표 정렬 유지 (home 그대로 / away 거울)
         const byX = [...line].sort((a, b) => (a.x ?? 50) - (b.x ?? 50));
         return byX.map((p, pi) => {
@@ -248,9 +248,36 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
             "repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 9.09%, rgba(0,0,0,0.05) 9.09%, rgba(0,0,0,0.05) 18.18%)",
         }}
       >
-        {/* 필드 외곽선 + 중앙선만 — 센터서클·페널티박스는 선수 위치와 어긋나 보여 제거(사용자 요청, 2026-06-21) */}
-        <div className="absolute inset-2 border border-white/20 rounded-sm" />
-        <div className="absolute left-0 right-0 top-1/2 h-px bg-white/20" />
+        {/* 피치 마킹 — 단일 SVG 오버레이. viewBox(56×100, 비율 0.56 = 컨테이너와 동일)를
+            통째로 스케일하므로 화면비·윈도우 aspect-square 타원버그에 영향 없음(원/박스가
+            div 가 아니라 SVG 도형이라 개별 종횡비 계산이 없음). 잔디·선수와 같은 컨테이너에 종속.
+            장식용 — 선수는 라인별 균등배치(실좌표 아님)라 최전방이 센터서클에 살짝 겹칠 수 있음(SofaScore 식). */}
+        <svg
+          className="absolute inset-0 h-full w-full pointer-events-none"
+          viewBox="0 0 56 100"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+          fill="none"
+          stroke="white"
+          strokeOpacity={0.25}
+          strokeWidth={0.2}
+        >
+          {/* 외곽선 + 중앙선 */}
+          <rect x="1.5" y="1.5" width="53" height="97" rx="1" />
+          <line x1="1.5" y1="50" x2="54.5" y2="50" />
+          {/* 센터 서클 + 스폿 */}
+          <circle cx="28" cy="50" r="7.5" />
+          <circle cx="28" cy="50" r="0.6" fill="white" fillOpacity={0.35} stroke="none" />
+          {/* 페널티 박스 (home 위 / away 아래) */}
+          <rect x="11.4" y="1.5" width="33.2" height="15.7" />
+          <rect x="11.4" y="82.8" width="33.2" height="15.7" />
+          {/* 골 에어리어 */}
+          <rect x="20.45" y="1.5" width="15.1" height="5.2" />
+          <rect x="20.45" y="93.3" width="15.1" height="5.2" />
+          {/* 페널티 스폿 */}
+          <circle cx="28" cy="12" r="0.6" fill="white" fillOpacity={0.35} stroke="none" />
+          <circle cx="28" cy="88" r="0.6" fill="white" fillOpacity={0.35} stroke="none" />
+        </svg>
 
         {/* 선수 */}
         <TeamHalf players={homeStarters} side="home" nameById={nameById} />
