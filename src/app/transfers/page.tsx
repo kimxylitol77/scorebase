@@ -187,6 +187,7 @@ interface TransferCard {
   fromTeam: string; toTeam: string; time: number; fee: number; desc: string | null; league: string | null;
   ttype: number | null; badge: string | null;
   flag: string | null; country: string | null; fromLogo: string | null; toLogo: string | null;
+  age: number | null;
 }
 
 interface TsPlayerLite { nameKo: string | null; name: string | null; photoUrl: string | null; position: string | null }
@@ -222,7 +223,7 @@ async function buildTeamLogoMap(rows: Array<{ fromTeamId: string | null; toTeamI
 }
 
 // FootballTransfer row → 표시 카드 (이름 한글 우선 + 사진 + 포지션 + 유형 배지 + 국기·팀마크)
-function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>, teamLogos?: Map<string, string>): TransferCard {
+function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>, teamLogos?: Map<string, string>, ageMap?: Map<string, number | null>): TransferCard {
   const tsp = tpMap.get(r.playerId);
   const ov = OVERRIDES[r.playerId];
   return {
@@ -243,6 +244,7 @@ function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>, teamLogos?: Ma
     country: ov?.country || null,
     fromLogo: (r.fromTeamId && teamLogos?.get(r.fromTeamId)) || null,
     toLogo: (r.toTeamId && teamLogos?.get(r.toTeamId)) || null,
+    age: ageMap?.get(r.playerId) ?? null,
   };
 }
 
@@ -578,8 +580,11 @@ export default async function TransfersPage({
       select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
     });
     const tpMap = new Map(tplayers.map((p) => [p.id, p]));
+    // 나이 — PlayerMarketValue.age (playerId=PMV.id 동일 ts player id). 빅5 위주라 비커버 선수는 null.
+    const ageRows = await prisma.playerMarketValue.findMany({ where: { id: { in: pids } }, select: { id: true, age: true } });
+    const ageMap = new Map(ageRows.map((a) => [a.id, a.age]));
     const logoMap = await buildTeamLogoMap(rows);
-    latestMainCards = rows.map((r) => toCard(r, tpMap, logoMap)).filter((c) => c.name !== "선수" || c.fee > 0);
+    latestMainCards = rows.map((r) => toCard(r, tpMap, logoMap, ageMap)).filter((c) => c.name !== "선수" || c.fee > 0);
     dateCounts = new Map();
     for (const c of latestMainCards) { const k = fmtDateHeader(c.time); dateCounts.set(k, (dateCounts.get(k) || 0) + 1); }
   }
@@ -619,8 +624,11 @@ export default async function TransfersPage({
       select: { id: true, nameKo: true, name: true, photoUrl: true, position: true },
     });
     const tpMap = new Map(tplayers.map((p) => [p.id, p]));
+    // 나이 — PlayerMarketValue.age (playerId=PMV.id 동일 ts player id). 빅5 위주라 비커버 선수는 null.
+    const ageRows = await prisma.playerMarketValue.findMany({ where: { id: { in: tids } }, select: { id: true, age: true } });
+    const ageMap = new Map(ageRows.map((a) => [a.id, a.age]));
     const logoMap = await buildTeamLogoMap(rows);
-    transferData = rows.map((r) => toCard(r, tpMap, logoMap));
+    transferData = rows.map((r) => toCard(r, tpMap, logoMap, ageMap));
     // TheSports 중복 transfer 레코드 방어 — 같은 선수·행선지·이적료는 페이지 내 1건만
     if (isBigdeals) {
       const seen = new Set<string>();
@@ -904,7 +912,9 @@ export default async function TransfersPage({
         transferData.length === 0 ? (
           <p className="text-sm text-neutral-500 py-20 text-center">{isBigdeals ? "아직 집계된 빅딜이 없습니다." : "이적 데이터를 수집하는 중입니다."}</p>
         ) : (
-          <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
+          <>
+          {/* 모바일·태블릿 — 카드 리스트 (기존 유지) */}
+          <div className="lg:hidden overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
             {transferData.map((t, ti) => {
               const rank = (safePage - 1) * PER + ti + 1;
               // 날짜 그룹 헤더 (최신 이적만) — 이전 행과 날짜 다를 때 섹션 구분
@@ -986,6 +996,106 @@ export default async function TransfersPage({
               );
             })}
           </div>
+
+          {/* PC — 컬럼 테이블: 순위·이름·나이·포지션·소속팀(이적 전→후)·리그·국가·이적료 */}
+          <div className="hidden lg:block overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
+            <div className="flex items-center gap-3 px-5 py-2.5 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-white/[0.03]">
+              <div className="w-12 text-center shrink-0">순위</div>
+              <div className="flex-1 min-w-0">이름</div>
+              <div className="w-12 text-center shrink-0">나이</div>
+              <div className="w-16 text-center shrink-0">포지션</div>
+              <div className="w-64 shrink-0">소속팀</div>
+              <div className="w-20 shrink-0">리그</div>
+              <div className="w-28 shrink-0">국가</div>
+              <div className="w-28 text-right shrink-0">이적료</div>
+            </div>
+            {transferData.map((t, ti) => {
+              const rank = (safePage - 1) * PER + ti + 1;
+              const dh = isLatest ? fmtDateHeader(t.time) : null;
+              const prevDh = isLatest && ti > 0 ? fmtDateHeader(transferData[ti - 1].time) : null;
+              return (
+                <Fragment key={t.id}>
+                  {dh && dh !== prevDh && (
+                    <div className="px-5 py-1.5 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-white/[0.03]">
+                      {dh}{dateCounts?.get(dh) ? ` · ${dateCounts.get(dh)}건` : ""}
+                    </div>
+                  )}
+                  <Link
+                    href={`/transfers/${t.playerId}`}
+                    className="flex items-center gap-3 px-5 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  >
+                    {/* 순위 */}
+                    <div className={`w-12 text-center font-bold tabular-nums shrink-0 ${rank <= 3 ? "text-cyan-500" : "text-neutral-400"}`}>{rank}</div>
+                    {/* 이름 (+사진 +유형 배지) */}
+                    <div className="flex-1 min-w-0 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shrink-0 overflow-hidden flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
+                        {t.photo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-sm font-bold text-neutral-500 dark:text-neutral-400">{t.name.slice(0, 1)}</span>
+                        )}
+                      </div>
+                      <span className="font-bold truncate">{t.name}</span>
+                      {t.badge && (
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${BADGE_CLS[t.badge] || "bg-neutral-100 dark:bg-neutral-800 text-neutral-500"}`}>{t.badge}</span>
+                      )}
+                    </div>
+                    {/* 나이 */}
+                    <div className="w-12 text-center text-sm tabular-nums shrink-0 text-neutral-600 dark:text-neutral-300">{t.age ?? "—"}</div>
+                    {/* 포지션 */}
+                    <div className="w-16 text-center shrink-0">
+                      {t.posCode ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-neutral-100 dark:bg-neutral-800 text-neutral-500">{t.posCode}</span>
+                      ) : (
+                        <span className="text-neutral-300 dark:text-neutral-600">—</span>
+                      )}
+                    </div>
+                    {/* 소속팀 (이적 전→후) */}
+                    <div className="w-64 shrink-0 flex items-center gap-1.5 min-w-0 text-sm">
+                      <span className="flex items-center gap-1 min-w-0 flex-1 text-neutral-500">
+                        {t.fromLogo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={t.fromLogo} alt="" className="w-4 h-4 object-contain shrink-0" />
+                        )}
+                        <span className="truncate">{t.fromTeam}</span>
+                      </span>
+                      <span className="shrink-0 text-neutral-400">→</span>
+                      <span className="flex items-center gap-1 min-w-0 flex-1 font-semibold text-neutral-700 dark:text-neutral-300">
+                        {t.toLogo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={t.toLogo} alt="" className="w-4 h-4 object-contain shrink-0" />
+                        )}
+                        <span className="truncate">{t.toTeam}</span>
+                      </span>
+                    </div>
+                    {/* 리그 */}
+                    <div className="w-20 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 truncate">{t.league ? (LEAGUES[t.league] || t.league) : "—"}</div>
+                    {/* 국가 */}
+                    <div className="w-28 shrink-0 flex items-center gap-2 min-w-0">
+                      {t.flag && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.flag} alt="" aria-hidden className="w-5 h-3.5 object-cover rounded-[1px] shrink-0" />
+                      )}
+                      <span className="text-sm text-neutral-600 dark:text-neutral-300 truncate">{t.country || "—"}</span>
+                    </div>
+                    {/* 이적료 (+날짜) */}
+                    <div className="w-28 text-right shrink-0 leading-tight">
+                      {t.fee > 0 ? (
+                        <div className="font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{Math.round(t.fee / 1e6)}M</div>
+                      ) : t.desc && DESC_KO[t.desc] ? (
+                        <div className="text-xs font-semibold text-neutral-500">{DESC_KO[t.desc]}</div>
+                      ) : (
+                        <span className="text-neutral-300 dark:text-neutral-600">—</span>
+                      )}
+                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(t.time)}</div>
+                    </div>
+                  </Link>
+                </Fragment>
+              );
+            })}
+          </div>
+          </>
         )
       ) : isInout ? (
         inoutData.length === 0 ? (
