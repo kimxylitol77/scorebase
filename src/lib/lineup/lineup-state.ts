@@ -47,8 +47,12 @@ export interface Side {
   formation: string | null; // 마지막 적용 포메이션 (UI 표시용, 자유면 null)
   players: Placed[];
 }
+export type DisplayMode = "photo" | "ovr" | "name"; // 선수 표시: 사진 / 능력치 / 이름만
+export type Orientation = "portrait" | "landscape"; // 피치 방향: 세로 / 가로
 export interface BoardState {
   mode: "single" | "versus";
+  displayMode: DisplayMode;
+  orientation: Orientation;
   title: string;
   subtitle: string;
   kit: string;
@@ -75,6 +79,8 @@ interface WireSide {
 interface WireBoard {
   v: 1;
   m: "s" | "v";
+  dm?: "o" | "n"; // displayMode (생략=photo)
+  o?: "l"; // orientation (생략=portrait)
   t: string;
   s: string;
   kit: string;
@@ -115,6 +121,9 @@ export function encodeBoard(b: BoardState): string {
     kit: b.kit,
     h: sideToWire(b.home),
   };
+  if (b.displayMode === "ovr") w.dm = "o";
+  else if (b.displayMode === "name") w.dm = "n";
+  if (b.orientation === "landscape") w.o = "l";
   if (b.mode === "versus" && b.away) w.a = sideToWire(b.away);
   return b64urlEncode(JSON.stringify(w));
 }
@@ -126,6 +135,8 @@ export function decodeBoard(code: string): BoardState | null {
     if (obj?.v === 1) {
       return {
         mode: obj.m === "v" ? "versus" : "single",
+        displayMode: obj.dm === "o" ? "ovr" : obj.dm === "n" ? "name" : "photo",
+        orientation: obj.o === "l" ? "landscape" : "portrait",
         title: obj.t ?? "",
         subtitle: obj.s ?? "",
         kit: obj.kit ?? "grass",
@@ -136,6 +147,8 @@ export function decodeBoard(code: string): BoardState | null {
     if (obj && typeof obj.f === "string" && Array.isArray(obj.p)) {
       return {
         mode: "single",
+        displayMode: "photo",
+        orientation: "portrait",
         title: obj.t ?? "",
         subtitle: obj.s ?? "",
         kit: obj.k ?? "grass",

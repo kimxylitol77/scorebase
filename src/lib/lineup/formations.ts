@@ -83,6 +83,16 @@ export const SIDE_COLORS: Record<"home" | "away", SideColor> = {
   away: { solid: "#2563eb", soft: "rgba(37,99,235,0.20)", ring: "rgba(37,99,235,0.9)" },
 };
 
+// 가로 피치 표시 좌표 변환 — 저장은 항상 세로(x,y)이고 가로는 90도 회전해 렌더만(공격=우측).
+// portrait: 위(y작음)=공격. landscape: 우(x큼)=공격 → dx=100-y, dy=x.
+export function toDisplayXY(x: number, y: number, landscape: boolean): { x: number; y: number } {
+  return landscape ? { x: 100 - y, y: x } : { x, y };
+}
+// 가로에서 포인터 입력(표시 좌표) → 저장 좌표 역변환.
+export function fromDisplayXY(dx: number, dy: number, landscape: boolean): { x: number; y: number } {
+  return landscape ? { x: dy, y: 100 - dx } : { x: dx, y: dy };
+}
+
 // 키트(피치 배경) 프리셋 — 카드·빌더 공용. 그라데이션 두 색.
 export interface Kit {
   key: string;

@@ -4,7 +4,7 @@
 import { ImageResponse } from "next/og";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
 import { decodeBoard, pidsFromBoard, type Side } from "@/lib/lineup/lineup-state";
-import { KIT_BY_KEY, SIDE_COLORS } from "@/lib/lineup/formations";
+import { KIT_BY_KEY, SIDE_COLORS, toDisplayXY } from "@/lib/lineup/formations";
 
 export const runtime = "nodejs";
 
@@ -56,15 +56,18 @@ export async function GET(req: Request) {
   for (const p of players) byId[p.id] = p;
 
   const versus = board.mode === "versus";
+  const landscape = board.orientation === "landscape";
+  const nameMode = board.displayMode === "name";
   const toSlots = (side: Side, sideKey: "home" | "away"): CardSlot[] =>
     side.players
       .filter((p) => p.pid || p.name)
       .map((pl) => {
+        const d = toDisplayXY(pl.x, pl.y, landscape);
         if (pl.pid) {
           const p = byId[pl.pid];
-          return { x: pl.x, y: pl.y, name: p?.name ?? null, ovr: p?.ovr ?? null, pos: p?.pos ?? pl.pos, side: versus ? sideKey : null };
+          return { x: d.x, y: d.y, name: p?.name ?? null, ovr: p?.ovr ?? null, pos: p?.pos ?? pl.pos, side: versus ? sideKey : null };
         }
-        return { x: pl.x, y: pl.y, name: pl.name, ovr: null, pos: pl.pos, side: versus ? sideKey : null };
+        return { x: d.x, y: d.y, name: pl.name, ovr: null, pos: pl.pos, side: versus ? sideKey : null };
       });
 
   const slots: CardSlot[] = [...toSlots(board.home, "home"), ...(board.away ? toSlots(board.away, "away") : [])];
@@ -82,9 +85,9 @@ export async function GET(req: Request) {
     slots.map((s) => s.name ?? "").join("");
   const font = await loadFont(fontText);
 
-  return new ImageResponse(<Card title={title} subtitle={subtitle} versus={versus} kit={kit} slots={slots} />, {
-    width: 1080,
-    height: 1350,
+  return new ImageResponse(<Card title={title} subtitle={subtitle} versus={versus} landscape={landscape} nameMode={nameMode} kit={kit} slots={slots} />, {
+    width: landscape ? 1350 : 1080,
+    height: landscape ? 1080 : 1350,
     headers: CACHE_HEADERS,
     fonts: font ? [{ name: "Noto Sans KR", data: font, weight: 700, style: "normal" }] : undefined,
   });
@@ -94,12 +97,16 @@ function Card({
   title,
   subtitle,
   versus,
+  landscape,
+  nameMode,
   kit,
   slots,
 }: {
   title: string;
   subtitle: string;
   versus: boolean;
+  landscape: boolean;
+  nameMode: boolean;
   kit: { from: string; to: string };
   slots: CardSlot[];
 }) {
@@ -144,10 +151,14 @@ function Card({
         }}
       >
         <div style={{ position: "absolute", left: "20px", right: "20px", top: "20px", bottom: "20px", border: "2px solid rgba(255,255,255,0.12)", borderRadius: "6px" }} />
-        <div style={{ position: "absolute", left: "20px", right: "20px", top: "50%", borderTop: `2px solid rgba(255,255,255,${versus ? 0.3 : 0.12})` }} />
+        {landscape ? (
+          <div style={{ position: "absolute", top: "20px", bottom: "20px", left: "50%", borderLeft: `2px solid rgba(255,255,255,${versus ? 0.3 : 0.12})` }} />
+        ) : (
+          <div style={{ position: "absolute", left: "20px", right: "20px", top: "50%", borderTop: `2px solid rgba(255,255,255,${versus ? 0.3 : 0.12})` }} />
+        )}
         <div style={{ position: "absolute", left: "50%", top: "50%", width: "160px", height: "160px", transform: "translate(-50%, -50%)", border: "2px solid rgba(255,255,255,0.12)", borderRadius: "999px" }} />
         {slots.map((s, i) => (
-          <CardPlayer key={i} s={s} />
+          <CardPlayer key={i} s={s} nameMode={nameMode} />
         ))}
       </div>
 
@@ -158,7 +169,7 @@ function Card({
   );
 }
 
-function CardPlayer({ s }: { s: CardSlot }) {
+function CardPlayer({ s, nameMode }: { s: CardSlot; nameMode: boolean }) {
   const sideC = s.side ? SIDE_COLORS[s.side] : null;
   const fg = sideC ? (s.side === "home" ? "#fda4af" : "#93c5fd") : s.ovr != null ? ovrColor(s.ovr).fg : "#e5e7eb";
   const bg = sideC ? sideC.soft : s.ovr != null ? ovrColor(s.ovr).bg : "rgba(255,255,255,0.12)";
@@ -188,10 +199,10 @@ function CardPlayer({ s }: { s: CardSlot }) {
           border: `3px solid ${bd}`,
         }}
       >
-        <span style={{ display: "flex", fontSize: s.ovr != null ? "38px" : "24px", fontWeight: 700, color: fg, lineHeight: 1 }}>{s.ovr != null ? s.ovr : s.pos}</span>
+        <span style={{ display: "flex", fontSize: nameMode ? "26px" : s.ovr != null ? "38px" : "24px", fontWeight: 700, color: fg, lineHeight: 1 }}>{nameMode ? (s.name ? s.name.slice(0, 2) : s.pos) : s.ovr != null ? s.ovr : s.pos}</span>
       </div>
       {s.name ? (
-        <div style={{ display: "flex", marginTop: "9px", fontSize: "22px", fontWeight: 700, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>{s.name}</div>
+        <div style={{ display: "flex", marginTop: "9px", fontSize: nameMode ? "26px" : "22px", fontWeight: 700, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>{s.name}</div>
       ) : null}
       <div style={{ display: "flex", marginTop: "3px", fontSize: "15px", fontWeight: 700, color: "rgba(255,255,255,0.6)", letterSpacing: "0.05em" }}>{s.pos}</div>
     </div>
