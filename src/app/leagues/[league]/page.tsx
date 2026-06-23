@@ -10,6 +10,7 @@ import LeagueStandingsTable from "@/components/leagues/LeagueStandingsTable";
 import LeagueFixtures from "@/components/leagues/LeagueFixtures";
 import LeagueHistory from "@/components/leagues/LeagueHistory";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
+import LolStandings from "@/components/LolStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
@@ -454,7 +455,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
     NHL: ["standings", "fixtures", "articles"],
-    LOL: ["fixtures", "articles"],
+    LOL: ["standings", "fixtures", "articles"],
   };
   const dataViews: ViewKey[] = isSoccer ? [...VIEW_KEYS] : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
   const hasDataTabs = dataViews.some((v) => v !== "articles");
@@ -565,6 +566,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {!isSoccer && view === "standings" && upper === "NHL" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <NhlStandingsTable />
+        </div>
+      )}
+      {!isSoccer && view === "standings" && upper === "LOL" && (
+        <div className="py-8">
+          <LolStandings name={info.name} />
         </div>
       )}
       {view === "fixtures" && (
