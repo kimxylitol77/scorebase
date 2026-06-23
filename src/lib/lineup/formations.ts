@@ -24,7 +24,7 @@ export const FORMATIONS: Record<string, Slot[]> = {
     { id: "lcb", pos: "DF", label: "CB", x: 38, y: 68 },
     { id: "rcb", pos: "DF", label: "CB", x: 62, y: 68 },
     { id: "rb", pos: "DF", label: "RB", x: 86, y: 66 },
-    { id: "gk", pos: "GK", label: "GK", x: 50, y: 89 },
+    { id: "gk", pos: "GK", label: "GK", x: 50, y: 92 },
   ],
   "4-4-2": [
     { id: "st1", pos: "FW", label: "ST", x: 35, y: 16 },
@@ -37,7 +37,7 @@ export const FORMATIONS: Record<string, Slot[]> = {
     { id: "lcb", pos: "DF", label: "CB", x: 38, y: 69 },
     { id: "rcb", pos: "DF", label: "CB", x: 62, y: 69 },
     { id: "rb", pos: "DF", label: "RB", x: 86, y: 67 },
-    { id: "gk", pos: "GK", label: "GK", x: 50, y: 89 },
+    { id: "gk", pos: "GK", label: "GK", x: 50, y: 92 },
   ],
   "4-2-3-1": [
     { id: "st", pos: "FW", label: "ST", x: 50, y: 14 },
@@ -50,7 +50,7 @@ export const FORMATIONS: Record<string, Slot[]> = {
     { id: "lcb", pos: "DF", label: "CB", x: 38, y: 76 },
     { id: "rcb", pos: "DF", label: "CB", x: 62, y: 76 },
     { id: "rb", pos: "DF", label: "RB", x: 86, y: 74 },
-    { id: "gk", pos: "GK", label: "GK", x: 50, y: 91 },
+    { id: "gk", pos: "GK", label: "GK", x: 50, y: 93 },
   ],
   "3-5-2": [
     { id: "st1", pos: "FW", label: "ST", x: 35, y: 16 },
@@ -63,7 +63,7 @@ export const FORMATIONS: Record<string, Slot[]> = {
     { id: "lcb", pos: "DF", label: "CB", x: 27, y: 67 },
     { id: "cb", pos: "DF", label: "CB", x: 50, y: 69 },
     { id: "rcb", pos: "DF", label: "CB", x: 73, y: 67 },
-    { id: "gk", pos: "GK", label: "GK", x: 50, y: 89 },
+    { id: "gk", pos: "GK", label: "GK", x: 50, y: 92 },
   ],
 };
 

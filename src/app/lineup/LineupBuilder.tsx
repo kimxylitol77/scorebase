@@ -1,7 +1,7 @@
 "use client";
 // 라인업 전술판 빌더 — 포메이션/자유/맞대결 + 클럽 + 드래그 + 표시모드/방향 + 전술 그리기 + undo/redo + 캡처 공유.
 // 피치·드래그=Pitch, 후보=CandidatePanel, 그리기=DrawLayer, 이력=useHistory.
-import { useMemo, useCallback, useState, useRef, type ComponentType } from "react";
+import { useMemo, useCallback, useState, useRef, useEffect, type ComponentType } from "react";
 import { Share2, Download, Link2, Check, Shirt, UserPlus, Undo2, Redo2, RotateCcw, MousePointer2, Pen, Minus, MoreHorizontal, MoveUpRight, Square, Circle, Volleyball, Eraser } from "lucide-react";
 import Pitch from "./Pitch";
 import CandidatePanel from "./CandidatePanel";
@@ -79,6 +79,24 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const [copied, setCopied] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
+
+  // 새로고침(F5) 시 작업 보존 — board를 sessionStorage에 저장하고, 공유 URL(?d=) 없이 들어오면 마운트 때 복원.
+  // 이게 없으면 새로고침마다 빈 세로 보드로 초기화돼 방향·배치가 사라진다.
+  // 첫 실행(빈 init0)은 저장을 건너뛴다 — 안 그러면 복원 effect보다 먼저 빈 보드로 sessionStorage를 덮어쓴다.
+  const savedOnce = useRef(false);
+  useEffect(() => {
+    if (!savedOnce.current) { savedOnce.current = true; return; }
+    try { sessionStorage.setItem("lineup-board", JSON.stringify(board)); } catch { /* 무시 */ }
+  }, [board]);
+  useEffect(() => {
+    if (initial) return;
+    try {
+      const saved = sessionStorage.getItem("lineup-board");
+      if (saved) reset(JSON.parse(saved) as BoardState);
+    } catch { /* 무시 */ }
+    // 마운트 1회만 복원.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const poolById = useMemo(() => {
     const m: Record<string, PoolPlayer> = {};
@@ -352,8 +370,18 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             <CandidatePanel pool={pool} pos={activePos} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} />
           ) : (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우고, 끌어서 위치를 옮기세요. 위 도구로 전술 화살표·선을 그릴 수도 있어요.</p>
-              <button type="button" onClick={addPlayer} className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><UserPlus className="h-4 w-4" /> 선수 추가</button>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우거나, 아래에서 클럽(팀)을 고르면 포메이션에 11명이 한 번에 채워집니다. 도구로 전술 화살표·선도 그릴 수 있어요.</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <select value="" onChange={(e) => loadClub(e.target.value)} className="max-w-[220px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white">
+                  <option value="">클럽(팀)에서 가져오기…</option>
+                  {LEAGUE_ORDER.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
+                    <optgroup key={lg} label={LEAGUE_LABEL[lg] ?? lg}>
+                      {clubsByLeague[lg].map((c) => (<option key={c.key} value={c.key}>{c.label}{c.canBest11 ? "" : " (일부)"}</option>))}
+                    </optgroup>
+                  ))}
+                </select>
+                <button type="button" onClick={addPlayer} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><UserPlus className="h-4 w-4" /> 선수 직접 추가</button>
+              </div>
             </div>
           )}
         </div>
