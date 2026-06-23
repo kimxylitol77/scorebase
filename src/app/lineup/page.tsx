@@ -1,12 +1,14 @@
 // 라인업 전술판 — 포메이션 보드에 선수를 배치해 베스트 11/맞대결을 만들고 이미지 카드로 공유 (공개 도구).
 import type { Metadata } from "next";
+import { readFileSync } from "fs";
+import path from "path";
 import { allDreamPlayers } from "@/lib/dream-team/pool";
 import { decodeBoard } from "@/lib/lineup/lineup-state";
 import { prisma } from "@/lib/db";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LineupBuilder from "./LineupBuilder";
-import type { ClubMeta } from "./types";
+import type { ClubMeta, PoolPlayer } from "./types";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const metadata: Metadata = {
@@ -21,6 +23,13 @@ function normClub(t: string): string {
     .replace(/\b(fc|cf|afc|cd|ac|ssc|as|rc|sc|ud|rcd|sd|ca)\b/g, " ")
     .replace(/[^a-z0-9]/g, "");
 }
+
+// 월드컵 국가별 예상 XI — data/wc-predicted-xi.json (48개국, formation+11명·한글명·사진·평점). 모듈 1회 로드.
+const WC_POS: Record<string, "GK" | "DF" | "MF" | "FW"> = { G: "GK", D: "DF", M: "MF", F: "FW" };
+interface WcXiPlayer { id: string; name: string; nameKo?: string; position: string; photo?: string | null; avgRating?: number }
+const WC_XI: Record<string, { formation: string; xi: WcXiPlayer[] }> = JSON.parse(
+  readFileSync(path.join(process.cwd(), "data/wc-predicted-xi.json"), "utf-8"),
+);
 
 export default async function LineupPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
   const { d } = await searchParams;
@@ -70,6 +79,29 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
     };
   });
 
+  // 월드컵 국가 — 클럽 드롭다운에 'WORLD_CUP' 그룹으로 추가. 선수 id는 wcx_ 접두로 빅5 클럽 선수와 분리(같은 선수가 클럽·국대 양쪽일 때 충돌 방지).
+  const wcClubs: ClubMeta[] = [];
+  const wcPool: PoolPlayer[] = [];
+  for (const [nation, entry] of Object.entries(WC_XI)) {
+    const key = "wc-" + nation.toLowerCase().replace(/[^a-z]/g, "");
+    const label = toKoreanTeamName(nation);
+    wcClubs.push({ key, label, league: "WORLD_CUP", count: entry.xi.length, canBest11: entry.xi.length >= 11 });
+    for (const p of entry.xi) {
+      wcPool.push({
+        id: "wcx_" + p.id,
+        name: p.nameKo || p.name,
+        pos: WC_POS[p.position] || "MF",
+        ovr: Math.round((p.avgRating || 6) * 10),
+        team: label,
+        photo: p.photo || null,
+        clubKey: key,
+      });
+    }
+  }
+  wcClubs.sort((a, b) => a.label.localeCompare(b.label, "ko"));
+  const allClubs = [...clubs, ...wcClubs];
+  const allPool = [...pool, ...wcPool];
+
   return (
     <main className="relative mx-auto max-w-6xl px-4 py-10">
       <AmbientGlow />
@@ -81,7 +113,7 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
         <p className="mt-1.5 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
           포메이션을 고르거나 자유롭게, 선수를 끌어 옮겨 나만의 라인업을 완성하세요. 실제 클럽을 불러오거나 두 팀 맞대결도 만들 수 있고, 완성한 보드는 이미지 카드로 저장·공유됩니다.
         </p>
-        <LineupBuilder pool={pool} clubs={clubs} initial={initial} />
+        <LineupBuilder pool={allPool} clubs={allClubs} initial={initial} />
       </div>
     </main>
   );

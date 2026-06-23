@@ -19,8 +19,8 @@ interface Props {
 }
 
 const POS_LABEL: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
-const LEAGUE_LABEL: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1" };
-const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+const LEAGUE_LABEL: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1", WORLD_CUP: "월드컵 대표팀" };
+const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "WORLD_CUP"];
 const DISPLAY_MODES: [DisplayMode, string][] = [["photo", "사진"], ["ovr", "능력치"], ["name", "이름"]];
 const ORIENTATIONS: [Orientation, string][] = [["portrait", "세로"], ["landscape", "가로"]];
 const TOOLS: [Tool, ComponentType<{ className?: string }>, string][] = [
@@ -157,6 +157,19 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     (Object.keys(byPos) as Pos[]).forEach((k) => byPos[k].sort((a, b) => b.ovr - a.ovr));
     commit((b) => {
       const versus = b.mode === "versus";
+      if (clubKey.startsWith("wc-")) {
+        // 월드컵 국가 = 예상 XI 11명을 포지션 줄(GK·DF·MF·FW)로 자동 배치 — formation 프리셋 없이(WC formation 10종 대응).
+        const ROWS: Record<Pos, number> = { GK: 92, DF: 70, MF: 46, FW: 18 };
+        const players: Placed[] = [];
+        (["FW", "MF", "DF", "GK"] as Pos[]).forEach((g) => {
+          const arr = byPos[g];
+          arr.forEach((p, i) => {
+            const x = arr.length === 1 ? 50 : Math.round(12 + (76 * i) / (arr.length - 1));
+            players.push({ uid: newUid(), pid: p.id, name: null, pos: g, x, y: placeY(ROWS[g], side, versus) });
+          });
+        });
+        return updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: FREE_FORMATION, players }));
+      }
       const cur = side === "away" ? b.away : b.home;
       const fname = cur?.formation && cur.formation !== FREE_FORMATION && FORMATIONS[cur.formation] ? cur.formation : "4-3-3";
       const cursor: Record<Pos, number> = { GK: 0, DF: 0, MF: 0, FW: 0 };
