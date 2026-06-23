@@ -137,7 +137,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     setActiveUid(null);
   }
 
-  function loadClub(clubKey: string) {
+  function loadClub(clubKey: string, side: "home" | "away" = activeSide) {
     if (!clubKey) return;
     const club = clubs.find((c) => c.key === clubKey);
     const byPos: Record<Pos, PoolPlayer[]> = { GK: [], DF: [], MF: [], FW: [] };
@@ -145,17 +145,30 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     (Object.keys(byPos) as Pos[]).forEach((k) => byPos[k].sort((a, b) => b.ovr - a.ovr));
     commit((b) => {
       const versus = b.mode === "versus";
-      const cur = activeSide === "away" ? b.away : b.home;
+      const cur = side === "away" ? b.away : b.home;
       const fname = cur?.formation && cur.formation !== FREE_FORMATION && FORMATIONS[cur.formation] ? cur.formation : "4-3-3";
       const cursor: Record<Pos, number> = { GK: 0, DF: 0, MF: 0, FW: 0 };
       const players: Placed[] = FORMATIONS[fname].map((slot) => {
         const cand = byPos[slot.pos][cursor[slot.pos]++];
-        return { uid: newUid(), pid: cand ? cand.id : null, name: null, pos: slot.pos, x: slot.x, y: placeY(slot.y, activeSide, versus) };
+        return { uid: newUid(), pid: cand ? cand.id : null, name: null, pos: slot.pos, x: slot.x, y: placeY(slot.y, side, versus) };
       });
-      return updateSideIn(b, activeSide, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
+      return updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
     });
+    setActiveSide(side);
     setActiveUid(null);
   }
+
+  // 클럽 드롭다운 — side 를 명시해 맞대결에서 우리팀/상대팀을 각각 불러온다(단일은 home 고정).
+  const clubPicker = (side: "home" | "away", label: string) => (
+    <select value="" onChange={(e) => loadClub(e.target.value, side)} className="max-w-[200px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white">
+      <option value="">{label}</option>
+      {LEAGUE_ORDER.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
+        <optgroup key={lg} label={LEAGUE_LABEL[lg] ?? lg}>
+          {clubsByLeague[lg].map((c) => (<option key={c.key} value={c.key}>{c.label}{c.canBest11 ? "" : " (일부)"}</option>))}
+        </optgroup>
+      ))}
+    </select>
+  );
 
   function addPlayer() {
     const uid = newUid();
@@ -300,14 +313,12 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             {FORMATION_OPTIONS.map((f) => (<option key={f}>{f}</option>))}
           </select>
         </div>
-        <select value="" onChange={(e) => loadClub(e.target.value)} className="max-w-[200px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white">
-          <option value="">클럽에서 가져오기…</option>
-          {LEAGUE_ORDER.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
-            <optgroup key={lg} label={LEAGUE_LABEL[lg] ?? lg}>
-              {clubsByLeague[lg].map((c) => (<option key={c.key} value={c.key}>{c.label}{c.canBest11 ? "" : " (일부)"}</option>))}
-            </optgroup>
-          ))}
-        </select>
+        {board.mode === "versus" ? (
+          <>
+            {clubPicker("home", "우리팀 클럽 불러오기…")}
+            {clubPicker("away", "상대팀 클럽 불러오기…")}
+          </>
+        ) : clubPicker("home", "클럽에서 가져오기…")}
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400"><Shirt className="h-3.5 w-3.5" /> 키트</span>
           <div className="flex gap-1.5">
@@ -372,14 +383,12 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우거나, 아래에서 클럽(팀)을 고르면 포메이션에 11명이 한 번에 채워집니다. 도구로 전술 화살표·선도 그릴 수 있어요.</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <select value="" onChange={(e) => loadClub(e.target.value)} className="max-w-[220px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white">
-                  <option value="">클럽(팀)에서 가져오기…</option>
-                  {LEAGUE_ORDER.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
-                    <optgroup key={lg} label={LEAGUE_LABEL[lg] ?? lg}>
-                      {clubsByLeague[lg].map((c) => (<option key={c.key} value={c.key}>{c.label}{c.canBest11 ? "" : " (일부)"}</option>))}
-                    </optgroup>
-                  ))}
-                </select>
+                {board.mode === "versus" ? (
+                  <>
+                    {clubPicker("home", "우리팀 클럽…")}
+                    {clubPicker("away", "상대팀 클럽…")}
+                  </>
+                ) : clubPicker("home", "클럽(팀)에서 가져오기…")}
                 <button type="button" onClick={addPlayer} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><UserPlus className="h-4 w-4" /> 선수 직접 추가</button>
               </div>
             </div>

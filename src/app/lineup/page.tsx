@@ -2,6 +2,8 @@
 import type { Metadata } from "next";
 import { allDreamPlayers } from "@/lib/dream-team/pool";
 import { decodeBoard } from "@/lib/lineup/lineup-state";
+import { prisma } from "@/lib/db";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import LineupBuilder from "./LineupBuilder";
 import type { ClubMeta } from "./types";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -43,16 +45,29 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
     })
     .sort((a, b) => a.league.localeCompare(b.league) || b.count - a.count);
 
+  // 선수 표시명 — dream-pool 의 한글명은 빌드 시점 theSportsPlayer.nameKo(구버전 음역)라
+  // 최신 교정 사전(player-names.ts)으로 덮어쓴다. 미커버(한글 안 나오면)는 dream-pool 이름 유지.
+  const ids = all.map((p) => p.id);
+  let engById = new Map<string, string>();
+  try {
+    const rows = await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } });
+    engById = new Map(rows.map((r) => [r.id, r.name]));
+  } catch { /* DB 실패 시 dream-pool 이름 유지 */ }
+
   // 빌더에는 필요한 필드만 슬림하게(radar 등 제외) + 클럽 그룹 키.
-  const pool = all.map((p) => ({
-    id: p.id,
-    name: p.name,
-    pos: p.pos,
-    ovr: p.ovr,
-    team: p.team,
-    photo: p.photo,
-    clubKey: normClub(p.team),
-  }));
+  const pool = all.map((p) => {
+    const eng = engById.get(p.id);
+    const ko = eng ? toKoreanPlayerName(eng) : "";
+    return {
+      id: p.id,
+      name: /[가-힣]/.test(ko) ? ko : p.name,
+      pos: p.pos,
+      ovr: p.ovr,
+      team: p.team,
+      photo: p.photo,
+      clubKey: normClub(p.team),
+    };
+  });
 
   return (
     <main className="relative mx-auto max-w-6xl px-4 py-10">
