@@ -5,11 +5,14 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #0a0a0a;
 }
 
 .dark {
+  /* 네이티브 컨트롤(select 드롭다운·스크롤바·날짜피커 등)도 다크로 렌더 */
+  color-scheme: dark;
   --background: #0a0a0a;
   --foreground: #ededed;
 }
