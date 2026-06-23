@@ -310,6 +310,13 @@ const VIEW_LABEL: Record<ViewKey, string> = {
   articles: "글",
 };
 
+// /predictions/[league] 에 대진표를 가진 리그 → 허브 히어로에 브래킷 CTA (라벨은 종목별)
+const BRACKET_CTA_LABEL: Record<string, string> = {
+  NHL: "플레이오프 브래킷",
+  NBA: "플레이오프 브래킷",
+  UCL: "토너먼트 브래킷",
+};
+
 const PAGE_SIZE = 24;
 
 export async function generateMetadata({
@@ -499,13 +506,13 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             {TYPE_DESC[currentType]}
           </p>
 
-          {/* 플레이오프 브래킷 — NBA/NHL 은 /predictions/{league} 에 대진표+우승 시뮬 보유 */}
-          {(upper === "NHL" || upper === "NBA") && (
+          {/* 토너먼트/플레이오프 브래킷 — /predictions/[league] 에 대진표 보유한 리그(NBA·NHL·UCL) */}
+          {BRACKET_CTA_LABEL[upper] && (
             <Link
               href={`/predictions/${upper}`}
               className="inline-flex items-center gap-1.5 mt-5 rounded-full bg-rose-500/10 px-4 py-2 text-sm font-bold text-rose-600 ring-1 ring-rose-500/20 transition hover:bg-rose-500/15 dark:text-rose-400"
             >
-              <Trophy className="h-4 w-4" aria-hidden /> 플레이오프 브래킷
+              <Trophy className="h-4 w-4" aria-hidden /> {BRACKET_CTA_LABEL[upper]}
               <span aria-hidden>→</span>
             </Link>
           )}
