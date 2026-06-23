@@ -33,12 +33,10 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
   const dragRef = useRef<{ uid: string; side: "home" | "away"; sx: number; sy: number; moved: boolean } | null>(null);
   const landscape = orientation === "landscape";
 
+  // 진영 제한 없음 — 단일·맞대결 모두 위아래 자유 이동(양 팀이 상대 진영까지 넘나들 수 있게).
   const clampY = useCallback(
-    (py: number, side: "home" | "away"): number => {
-      if (mode === "single") return Math.max(4, Math.min(96, py));
-      return side === "away" ? Math.max(4, Math.min(47, py)) : Math.max(53, Math.min(96, py));
-    },
-    [mode],
+    (py: number): number => Math.max(4, Math.min(96, py)),
+    [],
   );
 
   const onDown = useCallback((e: React.PointerEvent, uid: string, side: "home" | "away") => {
@@ -64,7 +62,7 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
       const dpy = ((e.clientY - r.top) / r.height) * 100;
       const stored = fromDisplayXY(dpx, dpy, landscape); // 표시 좌표 → 저장(세로) 좌표
       const x = Math.max(4, Math.min(96, stored.x));
-      const y = clampY(stored.y, d.side);
+      const y = clampY(stored.y);
       onNodeMove(d.side, d.uid, Math.round(x), Math.round(y));
     },
     [clampY, onNodeMove, landscape, onDragStart],

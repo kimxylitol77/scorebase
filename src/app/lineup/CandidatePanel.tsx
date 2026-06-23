@@ -8,6 +8,7 @@ import type { Pos } from "@/lib/lineup/formations";
 interface Props {
   pool: PoolPlayer[];
   pos: Pos;
+  clubKey?: string | null;
   label: string;
   filled: boolean;
   usedIds: Set<string>;
@@ -17,7 +18,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function CandidatePanel({ pool, pos, label, filled, usedIds, onPick, onCustom, onDelete, onClose }: Props) {
+export default function CandidatePanel({ pool, pos, clubKey, label, filled, usedIds, onPick, onCustom, onDelete, onClose }: Props) {
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");
 
@@ -25,9 +26,17 @@ export default function CandidatePanel({ pool, pos, label, filled, usedIds, onPi
     const q = search.trim();
     return pool
       .filter((p) => p.pos === pos && !usedIds.has(p.id) && (q === "" || p.name.includes(q)))
-      .sort((a, b) => b.ovr - a.ovr)
+      .sort((a, b) => {
+        // 선택한 팀의 선수를 먼저 — 선수 교체 시 같은 팀 후보가 위로 오게.
+        if (clubKey) {
+          const ac = a.clubKey === clubKey ? 1 : 0;
+          const bc = b.clubKey === clubKey ? 1 : 0;
+          if (ac !== bc) return bc - ac;
+        }
+        return b.ovr - a.ovr;
+      })
       .slice(0, 40);
-  }, [pool, pos, usedIds, search]);
+  }, [pool, pos, usedIds, search, clubKey]);
 
   function pickCustom() {
     const n = customName.trim();

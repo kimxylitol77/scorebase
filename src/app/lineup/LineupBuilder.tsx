@@ -119,6 +119,18 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const curSide: Side | undefined = activeSide === "away" ? board.away : board.home;
   const curFormation = curSide?.formation ?? FREE_FORMATION;
   const activeNode = curSide?.players.find((p) => p.uid === activeUid) ?? null;
+  // 활성 진영의 대표 클럽 — 그 팀 선수를 후보 상단에 올리기 위함(배치된 선수들의 clubKey 최빈값).
+  const activeClubKey = useMemo(() => {
+    if (!curSide) return null;
+    const counts: Record<string, number> = {};
+    for (const pl of curSide.players) {
+      const ck = pl.pid ? poolById[pl.pid]?.clubKey : undefined;
+      if (ck) counts[ck] = (counts[ck] || 0) + 1;
+    }
+    let best: string | null = null, max = 0;
+    for (const k in counts) if (counts[k] > max) { max = counts[k]; best = k; }
+    return best;
+  }, [curSide, poolById]);
   const activePos: Pos = activeNode ? (activeNode.pid ? poolById[activeNode.pid]?.pos ?? activeNode.pos : activeNode.pos) : "MF";
   const activeLabel = activeNode ? (activeNode.pid ? poolById[activeNode.pid]?.name ?? "선수" : activeNode.name ?? `${POS_LABEL[activeNode.pos]} 자리`) : "";
 
@@ -378,7 +390,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
 
         <div className="mt-4 max-w-2xl">
           {activeNode ? (
-            <CandidatePanel pool={pool} pos={activePos} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} />
+            <CandidatePanel pool={pool} pos={activePos} clubKey={activeClubKey} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} />
           ) : (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우거나, 아래에서 클럽(팀)을 고르면 포메이션에 11명이 한 번에 채워집니다. 도구로 전술 화살표·선도 그릴 수 있어요.</p>

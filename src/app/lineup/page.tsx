@@ -4,6 +4,7 @@ import { allDreamPlayers } from "@/lib/dream-team/pool";
 import { decodeBoard } from "@/lib/lineup/lineup-state";
 import { prisma } from "@/lib/db";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { toKoreanTeamName } from "@/lib/team-names";
 import LineupBuilder from "./LineupBuilder";
 import type { ClubMeta } from "./types";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -39,7 +40,7 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
   }
   const clubs: ClubMeta[] = Object.entries(groups)
     .map(([key, g]) => {
-      const label = Object.entries(g.labels).sort((a, b) => b[1] - a[1])[0][0];
+      const label = toKoreanTeamName(Object.entries(g.labels).sort((a, b) => b[1] - a[1])[0][0]);
       const canBest11 = g.pos.GK >= 1 && g.pos.DF >= 4 && g.pos.MF >= 3 && g.pos.FW >= 3;
       return { key, label, league: g.league, count: g.count, canBest11 };
     })
@@ -63,7 +64,7 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
       name: /[가-힣]/.test(ko) ? ko : p.name,
       pos: p.pos,
       ovr: p.ovr,
-      team: p.team,
+      team: toKoreanTeamName(p.team),
       photo: p.photo,
       clubKey: normClub(p.team),
     };
