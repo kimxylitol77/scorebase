@@ -185,7 +185,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
 
   // 클럽 드롭다운 — side 를 명시해 맞대결에서 우리팀/상대팀을 각각 불러온다(단일은 home 고정).
   const clubPicker = (side: "home" | "away", label: string) => (
-    <select value="" onChange={(e) => loadClub(e.target.value, side)} className="max-w-[200px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white">
+    <select value="" onChange={(e) => loadClub(e.target.value, side)} className="max-w-[200px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-500">
       <option value="">{label}</option>
       {LEAGUE_ORDER.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
         <optgroup key={lg} label={LEAGUE_LABEL[lg] ?? lg}>
@@ -334,7 +334,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <span className="text-sm text-neutral-500 dark:text-neutral-400">포메이션</span>
-          <select value={curFormation} onChange={(e) => applyFormation(e.target.value)} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-white">
+          <select value={curFormation} onChange={(e) => applyFormation(e.target.value)} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-500">
             {FORMATION_OPTIONS.map((f) => (<option key={f}>{f}</option>))}
           </select>
         </div>
