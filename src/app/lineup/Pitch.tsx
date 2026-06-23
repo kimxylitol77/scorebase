@@ -88,13 +88,7 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
       className="relative w-full overflow-hidden rounded-2xl"
       style={{ aspectRatio: landscape ? "16 / 10" : "4 / 5", background: `linear-gradient(${landscape ? "to right" : "to bottom"}, ${kitFrom}, ${kitTo})` }}
     >
-      <div className="pointer-events-none absolute inset-[4%] rounded-md border-2 border-white/15" />
-      {landscape ? (
-        <div className={`pointer-events-none absolute inset-y-[4%] left-1/2 border-l-2 ${mode === "versus" ? "border-white/30" : "border-white/15"}`} />
-      ) : (
-        <div className={`pointer-events-none absolute inset-x-[4%] top-1/2 border-t-2 ${mode === "versus" ? "border-white/30" : "border-white/15"}`} />
-      )}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[18%] w-[26%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/15" />
+      <PitchMarkings landscape={landscape} versus={mode === "versus"} />
 
       {sides.map(([sideKey, side]) =>
         side.players.map((pl) => {
@@ -167,5 +161,45 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
         }),
       )}
     </div>
+  );
+}
+
+// 축구장 라인 — 외곽·중앙선·센터서클/스팟·페널티 에어리어·골 에어리어·골대. 세로/가로 대응.
+function PitchMarkings({ landscape, versus }: { landscape: boolean; versus: boolean }) {
+  const lc = "border-white/20";
+  const mid = versus ? "border-white/35" : "border-white/20";
+  const goal = "border-white/35";
+  const common = "pointer-events-none absolute border-2";
+  return (
+    <>
+      <div className={`${common} inset-[3.5%] rounded-[3px] ${lc}`} />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[26%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/20" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/35" />
+      {landscape ? (
+        <>
+          <div className={`pointer-events-none absolute inset-y-[3.5%] left-1/2 border-l-2 ${mid}`} />
+          {/* 좌측 골 */}
+          <div className={`${common} left-[3.5%] top-1/2 h-[52%] w-[15%] -translate-y-1/2 rounded-r-[3px] border-l-0 ${lc}`} />
+          <div className={`${common} left-[3.5%] top-1/2 h-[24%] w-[6%] -translate-y-1/2 rounded-r-[2px] border-l-0 ${lc}`} />
+          <div className={`${common} left-[1.8%] top-1/2 h-[14%] w-[1.7%] -translate-y-1/2 rounded-l-[2px] border-r-0 ${goal}`} />
+          {/* 우측 골 */}
+          <div className={`${common} right-[3.5%] top-1/2 h-[52%] w-[15%] -translate-y-1/2 rounded-l-[3px] border-r-0 ${lc}`} />
+          <div className={`${common} right-[3.5%] top-1/2 h-[24%] w-[6%] -translate-y-1/2 rounded-l-[2px] border-r-0 ${lc}`} />
+          <div className={`${common} right-[1.8%] top-1/2 h-[14%] w-[1.7%] -translate-y-1/2 rounded-r-[2px] border-l-0 ${goal}`} />
+        </>
+      ) : (
+        <>
+          <div className={`pointer-events-none absolute inset-x-[3.5%] top-1/2 border-t-2 ${mid}`} />
+          {/* 위쪽 골 */}
+          <div className={`${common} left-1/2 top-[3.5%] h-[15%] w-[50%] -translate-x-1/2 rounded-b-[3px] border-t-0 ${lc}`} />
+          <div className={`${common} left-1/2 top-[3.5%] h-[6%] w-[24%] -translate-x-1/2 rounded-b-[2px] border-t-0 ${lc}`} />
+          <div className={`${common} left-1/2 top-[1.8%] h-[1.7%] w-[14%] -translate-x-1/2 rounded-t-[2px] border-b-0 ${goal}`} />
+          {/* 아래쪽 골 */}
+          <div className={`${common} bottom-[3.5%] left-1/2 h-[15%] w-[50%] -translate-x-1/2 rounded-t-[3px] border-b-0 ${lc}`} />
+          <div className={`${common} bottom-[3.5%] left-1/2 h-[6%] w-[24%] -translate-x-1/2 rounded-t-[2px] border-b-0 ${lc}`} />
+          <div className={`${common} bottom-[1.8%] left-1/2 h-[1.7%] w-[14%] -translate-x-1/2 rounded-b-[2px] border-t-0 ${goal}`} />
+        </>
+      )}
+    </>
   );
 }
