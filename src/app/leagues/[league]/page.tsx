@@ -454,8 +454,8 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
-    NHL: ["standings", "fixtures", "articles"],
-    LOL: ["standings", "fixtures", "articles"],
+    NHL: ["standings", "fixtures", "history", "articles"],
+    LOL: ["standings", "fixtures", "history", "articles"],
   };
   const dataViews: ViewKey[] = isSoccer ? [...VIEW_KEYS] : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
   const hasDataTabs = dataViews.some((v) => v !== "articles");
@@ -583,7 +583,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
         </div>
       )}
-      {isSoccer && view === "history" && (
+      {view === "history" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LeagueHistory league={upper} leagueName={info.name} />
         </div>
