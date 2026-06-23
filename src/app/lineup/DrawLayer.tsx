@@ -93,40 +93,68 @@ export default function DrawLayer({ strokes, tool, color, onCommitStroke, onEras
   }, [tool, setBoth, onCommitStroke]);
 
   const all = draft ? [...strokes, draft] : strokes;
+  // 공은 stretch(preserveAspectRatio="none") 되는 SVG 안 <circle> 로 그리면 계란형 → SVG 밖 HTML 레이어로 분리.
+  const balls = all.filter((s): s is Extract<Stroke, { kind: "ball" }> => s.kind === "ball");
+  const shapes = all.filter((s) => s.kind !== "ball");
   return (
-    <svg
-      ref={svgRef}
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      className="absolute inset-0 h-full w-full"
-      style={{ pointerEvents: tool === "select" ? "none" : "auto", touchAction: "none", cursor: tool === "select" ? "default" : "crosshair" }}
-      onPointerDown={onDown}
-      onPointerMove={onMove}
-      onPointerUp={onUp}
-    >
-      <defs>
-        {Object.entries(STROKE_COLORS).map(([k, c]) => (
-          <marker key={k} id={`arr-${k}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill={c} />
-          </marker>
+    <>
+      <svg
+        ref={svgRef}
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="absolute inset-0 h-full w-full"
+        style={{ pointerEvents: tool === "select" ? "none" : "auto", touchAction: "none", cursor: tool === "select" ? "default" : "crosshair" }}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+      >
+        <defs>
+          {Object.entries(STROKE_COLORS).map(([k, c]) => (
+            <marker key={k} id={`arr-${k}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill={c} />
+            </marker>
+          ))}
+        </defs>
+        {shapes.map((s) => (
+          <StrokeShape key={s.id} s={s} />
         ))}
-      </defs>
-      {all.map((s) => (
-        <StrokeShape key={s.id} s={s} />
-      ))}
+      </svg>
+      {balls.length > 0 && (
+        <div className="pointer-events-none absolute inset-0">
+          {balls.map((s) => (
+            <span
+              key={s.id}
+              className="absolute block h-[clamp(15px,3.6vw,24px)] w-[clamp(15px,3.6vw,24px)] -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${s.at[0]}%`, top: `${s.at[1]}%` }}
+            >
+              <SoccerBall />
+            </span>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// 축구공 — 흰 구체 + 중앙 검은 오각형 + 5개 솔기. 자체 viewBox(정사각)라 컨테이너가 약간 비뚤어도 정원 유지.
+function SoccerBall() {
+  return (
+    <svg viewBox="0 0 32 32" className="h-full w-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]" aria-hidden="true">
+      <circle cx="16" cy="16" r="15" fill="#ffffff" stroke="#171717" strokeWidth="1.6" />
+      <polygon points="16,10.5 21.2,14.3 19.2,20.5 12.8,20.5 10.8,14.3" fill="#171717" />
+      <path
+        d="M16,10.5 L16,2.5 M21.2,14.3 L28.8,11.8 M19.2,20.5 L23.9,26.9 M12.8,20.5 L8.1,26.9 M10.8,14.3 L3.2,11.8"
+        stroke="#171717"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 
 function StrokeShape({ s }: { s: Stroke }) {
-  if (s.kind === "ball") {
-    return (
-      <g>
-        <circle cx={s.at[0]} cy={s.at[1]} r={2.4} fill="#fff" stroke="#111" strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
-        <circle cx={s.at[0]} cy={s.at[1]} r={0.9} fill="#111" />
-      </g>
-    );
-  }
+  if (s.kind === "ball") return null; // 공은 SVG 밖 HTML 오버레이(SoccerBall)에서 렌더 — stretch 계란형 차단
   const c = STROKE_COLORS[s.color];
   if (s.kind === "pen") {
     const pts: string[] = [];
