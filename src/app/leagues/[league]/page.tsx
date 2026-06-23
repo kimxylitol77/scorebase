@@ -15,6 +15,7 @@ import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
+import { Trophy } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -497,6 +498,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <p className="mt-3 text-neutral-600 dark:text-neutral-400 max-w-xl">
             {TYPE_DESC[currentType]}
           </p>
+
+          {/* 플레이오프 브래킷 — NBA/NHL 은 /predictions/{league} 에 대진표+우승 시뮬 보유 */}
+          {(upper === "NHL" || upper === "NBA") && (
+            <Link
+              href={`/predictions/${upper}`}
+              className="inline-flex items-center gap-1.5 mt-5 rounded-full bg-rose-500/10 px-4 py-2 text-sm font-bold text-rose-600 ring-1 ring-rose-500/20 transition hover:bg-rose-500/15 dark:text-rose-400"
+            >
+              <Trophy className="h-4 w-4" aria-hidden /> 플레이오프 브래킷
+              <span aria-hidden>→</span>
+            </Link>
+          )}
 
           {r1x2.evaluated > 0 && (
             <div className="mt-5">
