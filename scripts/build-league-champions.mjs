@@ -8,6 +8,9 @@ const DRY = process.argv.includes("--dry");
 // 리그코드 → 위키데이터 Q번호 (association football league / WC 는 대회)
 const LEAGUE_WD = {
   WORLD_CUP: "Q19317",
+  UCL: "Q18756", // UEFA 챔피언스리그 (시즌 P3450→우승 P1346 — 컵도 동일 구조 작동)
+  UEL: "Q18760", // UEFA 유로파리그 (Q18762 아님 — 검증 필수)
+  MLS: "Q18543", // 메이저리그사커 (P1346=MLS컵 우승, "MLS is Back" 등 무연도는 parseSeason 자동 제외)
   EPL: "Q9448",
   LALIGA: "Q324867",
   BUNDESLIGA: "Q82595",

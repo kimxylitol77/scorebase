@@ -37,12 +37,18 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
   // 매칭 안 되는 우승팀(강등·해체)은 DB 로고 자체가 없어 자연히 로고 없이 표시(graceful).
   let logoOf: (ko: string, en: string) => string | null = () => null;
   if (!showFlag) {
-    const teams = await prisma.team.findMany({ where: { league }, select: { name: true, logoUrl: true } });
+    // 컵 대회(UCL/UEL 등) 우승팀은 여러 도메스틱 리그 소속(토트넘=EPL·아탈란타=세리에)이라 팀 풀을 빅리그까지 확장.
+    const CUP = new Set(["UCL", "UEL", "UECL"]);
+    const where = CUP.has(league)
+      ? { league: { in: [league, "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "MLS"] } }
+      : { league };
+    const teams = await prisma.team.findMany({ where, select: { name: true, logoUrl: true, league: true } });
     const koMap = new Map<string, string>();
     const enList: { norm: string; logo: string }[] = [];
     for (const t of teams) {
       if (!t.logoUrl) continue;
-      koMap.set(normKo(toKoreanTeamName(t.name, league)), t.logoUrl);
+      const ko = normKo(toKoreanTeamName(t.name, t.league));
+      if (ko && !koMap.has(ko)) koMap.set(ko, t.logoUrl);
       enList.push({ norm: normEn(t.name), logo: t.logoUrl });
     }
     logoOf = (ko, en) => {
