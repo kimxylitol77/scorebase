@@ -95,7 +95,9 @@ const RAW: Record<string, string> = {
   // 맨유
   "Bruno Fernandes": "브루누 페르난드스",
   "Marcus Rashford": "마커스 래시퍼드",
-  "Casemiro": "카세미루",
+  "Casemiro": "카제미루",
+  "Casimiro": "카제미루",
+  "Carlos Henrique Casimiro": "카제미루",
   "Alejandro Garnacho": "알레한드로 가르나초",
   "Rasmus Højlund": "라스무스 회일룬",
   "Rasmus Hojlund": "라스무스 회일룬",

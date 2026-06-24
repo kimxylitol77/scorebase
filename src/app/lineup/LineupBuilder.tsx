@@ -43,6 +43,22 @@ function emptySlots(fname: string, side: "home" | "away", versus: boolean): Plac
   const slots = FORMATIONS[fname] ?? FORMATIONS["4-3-3"];
   return slots.map((s) => ({ uid: newUid(), pid: null, name: null, pos: s.pos, x: s.x, y: placeY(s.y, side, versus) }));
 }
+// 포메이션 변경 시 기존 선수 보존 — 같은 포지션 슬롯에 우선 배치하고, 포지션이 남는 선수는 빈 슬롯에 채워 11명을 유지.
+// 빈 보드(채워진 선수 0)면 빈 슬롯만 반환. 이게 없으면 포메이션을 바꿀 때마다 배치한 선수가 전부 사라진다.
+function reflowSlots(prev: Placed[], fname: string, side: "home" | "away", versus: boolean): Placed[] {
+  const slots = FORMATIONS[fname] ?? FORMATIONS["4-3-3"];
+  const filled = prev.filter((p) => p.pid || p.name);
+  if (filled.length === 0) return emptySlots(fname, side, versus);
+  const byPos: Record<Pos, Placed[]> = { GK: [], DF: [], MF: [], FW: [] };
+  for (const p of filled) byPos[p.pos].push(p);
+  const assigned: (Placed | null)[] = slots.map((s) => byPos[s.pos].shift() ?? null);
+  const leftover = [...byPos.GK, ...byPos.DF, ...byPos.MF, ...byPos.FW];
+  for (let i = 0; i < assigned.length && leftover.length; i++) if (!assigned[i]) assigned[i] = leftover.shift()!;
+  return slots.map((s, i) => {
+    const p = assigned[i];
+    return { uid: newUid(), pid: p?.pid ?? null, name: p?.name ?? null, pos: p?.pos ?? s.pos, x: s.x, y: placeY(s.y, side, versus) };
+  });
+}
 function compressY(players: Placed[], side: "home" | "away"): Placed[] {
   return players.map((p) => ({ ...p, y: Math.max(2, Math.min(96, side === "away" ? 50 - p.y * 0.46 : 50 + p.y * 0.46)) }));
 }
@@ -146,7 +162,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     commit((b) => {
       const versus = b.mode === "versus";
       if (fname === FREE_FORMATION) return updateSideIn(b, side, (s) => ({ ...s, formation: null, players: s.players.filter((p) => p.pid || p.name) }));
-      return updateSideIn(b, side, (s) => ({ ...s, formation: fname, players: emptySlots(fname, side, versus) }));
+      return updateSideIn(b, side, (s) => ({ ...s, formation: fname, players: reflowSlots(s.players, fname, side, versus) }));
     });
     setActiveUid(null);
   }

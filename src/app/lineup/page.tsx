@@ -26,7 +26,7 @@ function normClub(t: string): string {
 
 // 월드컵 국가별 예상 XI — data/wc-predicted-xi.json (48개국, formation+11명·한글명·사진·평점). 모듈 1회 로드.
 const WC_POS: Record<string, "GK" | "DF" | "MF" | "FW"> = { G: "GK", D: "DF", M: "MF", F: "FW" };
-interface WcXiPlayer { id: string; name: string; nameKo?: string; position: string; photo?: string | null; avgRating?: number }
+interface WcXiPlayer { id: string; name: string; nameKo?: string; position: string; photo?: string | null; avgRating?: number; shirtNumber?: number }
 const WC_XI: Record<string, { formation: string; xi: WcXiPlayer[] }> = JSON.parse(
   readFileSync(path.join(process.cwd(), "data/wc-predicted-xi.json"), "utf-8"),
 );
@@ -115,14 +115,17 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
     const label = toKoreanTeamName(nation);
     wcClubs.push({ key, label, league: "WORLD_CUP", count: entry.xi.length, canBest11: entry.xi.length >= 11 });
     for (const p of entry.xi) {
+      // 이름: 교정 사전(player-names.ts) 우선 — wc-predicted-xi 의 nameKo 는 위키 빌더 음역이라
+      // 풀네임 오염("카를루스 카제미루")·오역("마테우스 쿤하")이 섞여 있어 사전 한글명이 있으면 그것을 쓴다.
+      const ko = toKoreanPlayerName(p.name);
       wcPool.push({
         id: "wcx_" + p.id,
-        name: p.nameKo || p.name,
+        name: /[가-힣]/.test(ko) ? ko : p.nameKo || p.name,
         pos: WC_POS[p.position] || "MF",
         ovr: Math.round((p.avgRating || 6) * 10),
         team: label,
         photo: p.photo || null,
-        number: null,
+        number: p.shirtNumber ?? null,
         clubKey: key,
       });
     }
