@@ -42,9 +42,10 @@ export async function saveDreamTeam(_prev: SaveState, formData: FormData): Promi
 
   let teamId: string;
   if (existing) {
+    // 티어·포인트·레이팅은 승급으로 쌓인 진행도 → 편집 저장 시 보존(tier 미기록)
     await prisma.dreamTeam.update({
       where: { id: existing.id },
-      data: { name, formation, players, tier: "amateur" },
+      data: { name, formation, players },
     });
     teamId = existing.id;
   } else {
