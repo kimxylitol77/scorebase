@@ -114,9 +114,13 @@ function extractInternalLinks(html, fromUrl) {
       if (abs.host !== base.host) continue;       // 외부 호스트 제외
       if (abs.pathname.startsWith("/api/")) continue; // API 제외
       if (abs.pathname.startsWith("/admin")) continue; // admin 제외 (인증 필요)
-      // hash/query 제거 — 같은 페이지 중복 방지
+      // hash/query 제거 — 같은 페이지 중복 방지.
+      // 단 ?view= 탭은 보존: 리그/선수 페이지의 탭은 각각 다른 콘텐츠(다른 링크 집합)라
+      // 쿼리를 통째로 버리면 탭 안에 숨은 깨진 링크(예: stats 탭의 선수 링크 404)를 영영 못 본다.
+      const view = abs.searchParams.get("view");
       abs.hash = "";
       abs.search = "";
+      if (view) abs.searchParams.set("view", view);
       found.add(abs.toString());
     } catch {
       // invalid URL
@@ -165,11 +169,19 @@ async function fetchPool(urls, onResult) {
   return results;
 }
 
+// BFS 추가 시드 — 탭 페이지(?view=)는 홈에서 depth 가 멀어(홈→종목허브→리그→탭) MAX_DEPTH 안에
+// 안 닿을 수 있어 직접 시드로 넣는다. 탭 안에 숨은 선수/팀 링크 깨짐(404)을 표면 페이지처럼 검사하기 위함.
+// (계기: /leagues/EPL?view=stats 의 선수 링크가 af→ts 미변환으로 /transfers/{afId} 404 였는데 봇이 못 잡음.)
+const EXTRA_SEEDS = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "WORLD_CUP"].map(
+  (lg) => `${SITE}/leagues/${lg}?view=stats`,
+);
+
 // ── 5. BFS 크롤 ──
-async function bfsCrawl(startUrl) {
-  const seen = new Set([startUrl]);
+async function bfsCrawl(startUrls) {
+  const seeds = Array.isArray(startUrls) ? startUrls : [startUrls];
+  const seen = new Set(seeds);
   const results = [];
-  let frontier = [{ url: startUrl, depth: 0 }];
+  let frontier = seeds.map((url) => ({ url, depth: 0 }));
 
   while (frontier.length > 0 && seen.size < BFS_MAX_URLS) {
     const batch = frontier.slice(0, CONCURRENCY * 4); // 한 번에 ~20개 처리
@@ -217,9 +229,9 @@ async function runOnce() {
   });
   console.log(`    → ${done}/${sitemapUrls.length} 완료`);
 
-  // Step B — BFS 크롤
-  console.log(`  • 홈에서 BFS 크롤 (max=${BFS_MAX_URLS}, depth=${BFS_MAX_DEPTH})...`);
-  const bfsResults = await bfsCrawl(`${SITE}/`);
+  // Step B — BFS 크롤 (홈 + 탭 시드)
+  console.log(`  • 홈+탭 시드에서 BFS 크롤 (max=${BFS_MAX_URLS}, depth=${BFS_MAX_DEPTH})...`);
+  const bfsResults = await bfsCrawl([`${SITE}/`, ...EXTRA_SEEDS]);
   console.log(`    → ${bfsResults.length}개 URL 탐색`);
 
   // ── 결과 합치기 (URL 중복 제거, BFS 결과가 더 최신이라 우선) ──
