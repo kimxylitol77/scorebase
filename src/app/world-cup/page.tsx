@@ -1,18 +1,19 @@
-// 2026 월드컵 허브 — 한 페이지 탭(개요·예측·선수·조별리그·xG). 애플 세그먼트 + lucide 라인 아이콘.
-// 조별리그·xG 는 뒤 탭으로. 무거운 시뮬(5000회)은 개요·예측 탭에서만 실행. 10분 ISR.
+// 2026 월드컵 허브 — 한 페이지 탭(조별리그·개요·예측·선수·xG). 애플 세그먼트 + lucide 라인 아이콘.
+// 기본 탭=조별리그 실제 순위(승무패·득실·승점, DB 집계). 무거운 시뮬(5000회)은 개요·예측 탭에서만. 10분 ISR.
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Star, Info, ChevronRight, Radio, Globe, Newspaper, ListOrdered } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
-import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
+import { WORLD_CUP_GROUPS } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
 import WcTabBar from "@/components/world-cup/WcTabBar";
 import WcXgList from "@/components/world-cup/WcXgList";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
+import { getWcGroupStandings } from "@/lib/sports/world-cup-standings";
 
 export const revalidate = 600;
 
@@ -39,11 +40,11 @@ function kstTime(d: Date): string {
   return `${k.getUTCMonth() + 1}/${k.getUTCDate()} (${days[k.getUTCDay()]}) ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
 }
 
-const VIEWS = ["overview", "predictions", "players", "groups", "xg"] as const;
+const VIEWS = ["groups", "overview", "predictions", "players", "xg"] as const;
 
 export default async function WorldCupHub({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const { view: rawView } = await searchParams;
-  const view = (VIEWS as readonly string[]).includes(rawView ?? "") ? (rawView as string) : "overview";
+  const view = (VIEWS as readonly string[]).includes(rawView ?? "") ? (rawView as string) : "groups";
 
   const teams = await prisma.team.findMany({ where: { league: "WORLD_CUP" }, select: { id: true, name: true } });
   const byName = new Map(teams.map((t) => [t.name, t]));
@@ -79,6 +80,9 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
   const allWcRows = view === "players" ? buildWcLeaderRows(await getWorldCupPlayerStats()) : null;
   const wcCoreRows = allWcRows ? pickCats(allWcRows, WC_CORE_CATS) : null;
   const wcFunRows = allWcRows ? pickCats(allWcRows, WC_FUN_CATS) : null;
+
+  // 조별리그 실제 순위 — 조별 탭만 (DB Match FINISHED 집계: 승무패·득실·승점)
+  const groupStandings = view === "groups" ? await getWcGroupStandings() : null;
 
   type MatchRow = (typeof recentOrLive)[number];
   const matchLine = (m: MatchRow) => {
@@ -285,35 +289,61 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
         </div>
       )}
 
-      {/* ── 조별리그 A~L ── */}
+      {/* ── 조별리그 순위 (실제 승무패·득실·승점, DB Match FINISHED 집계) ── */}
       {view === "groups" && (
-        <section>
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-lg font-bold tracking-tight">조별리그 A~L</h2>
-            <Link href="/national-teams" className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline" prefetch={false}>48개국 상세 →</Link>
+        <section className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">조별리그 순위</h2>
+              <p className="mt-1 text-xs text-neutral-500">상위 2팀 32강 직행 · 각 조 3위는 와일드카드 경쟁 · 경기 종료 시 자동 갱신</p>
+            </div>
+            <Link href="/standings/WORLD_CUP" className="shrink-0 text-xs text-emerald-600 dark:text-emerald-400 hover:underline" prefetch={false}>전체 순위 →</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Object.entries(WORLD_CUP_GROUPS).map(([group, names]) => {
-              const sorted = [...names].sort((a, b) => (WORLD_CUP_TEAM_ELO[b] ?? 0) - (WORLD_CUP_TEAM_ELO[a] ?? 0));
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {Object.keys(WORLD_CUP_GROUPS).map((group) => {
+              const standRows = groupStandings?.get(group) ?? [];
               return (
-                <div key={group} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-4 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5">
+                <div key={group} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none p-4">
                   <div className="flex items-baseline justify-between mb-2">
                     <h3 className="font-bold text-sm">{group}조</h3>
                     <Link href={`/world-cup/best-xi/${group.toLowerCase()}`} className="text-[11px] text-neutral-500 hover:underline" prefetch={false}>베스트 XI</Link>
                   </div>
-                  <ul className="space-y-1.5">
-                    {sorted.map((name) => {
-                      const team = byName.get(name);
-                      const label = (
-                        <span className="flex items-center gap-2 text-sm">
-                          <span>{fifaFlag(name)}</span>
-                          <span className="truncate">{nameKo(name)}</span>
-                          <span className="ml-auto tabular-nums text-[11px] text-neutral-400">{WORLD_CUP_TEAM_ELO[name] ?? ""}</span>
+                  <div className="grid grid-cols-[1.25rem_1fr_1.5rem_1.5rem_1.5rem_1.5rem_2.25rem_2rem] items-center gap-1 px-1 py-1.5 border-l-4 border-transparent text-[11px] font-medium text-neutral-400 border-b border-b-black/5 dark:border-b-white/10">
+                    <span className="text-center">#</span>
+                    <span>팀</span>
+                    <span className="text-center">경기</span>
+                    <span className="text-center">승</span>
+                    <span className="text-center">무</span>
+                    <span className="text-center">패</span>
+                    <span className="text-center">득실</span>
+                    <span className="text-center">승점</span>
+                  </div>
+                  {standRows.map((r) => {
+                    const team = byName.get(r.team);
+                    const isKorea = r.team === "South Korea";
+                    const bar = r.posInGroup <= 2 ? "border-emerald-500" : r.posInGroup === 3 ? "border-amber-500" : "border-rose-400";
+                    const inner = (
+                      <>
+                        <span className="text-center font-semibold text-neutral-500">{r.posInGroup}</span>
+                        <span className="flex items-center gap-1.5 min-w-0">
+                          <span aria-hidden>{fifaFlag(r.team) || "🏳️"}</span>
+                          <span className="truncate font-semibold">{nameKo(r.team)}</span>
                         </span>
-                      );
-                      return <li key={name}>{team ? <Link href={`/national-teams/${team.id}`} className="block hover:underline" prefetch={false}>{label}</Link> : label}</li>;
-                    })}
-                  </ul>
+                        <span className="text-center tabular-nums text-neutral-500">{r.played}</span>
+                        <span className="text-center tabular-nums text-emerald-600 dark:text-emerald-400">{r.won}</span>
+                        <span className="text-center tabular-nums text-neutral-400">{r.draw}</span>
+                        <span className="text-center tabular-nums text-rose-500">{r.loss}</span>
+                        <span className={`text-center tabular-nums font-medium ${r.gd > 0 ? "text-emerald-600 dark:text-emerald-400" : r.gd < 0 ? "text-rose-500" : "text-neutral-400"}`}>{r.gd > 0 ? `+${r.gd}` : r.gd}</span>
+                        <span className="text-center tabular-nums font-bold">{r.pts}</span>
+                      </>
+                    );
+                    const cls = `grid grid-cols-[1.25rem_1fr_1.5rem_1.5rem_1.5rem_1.5rem_2.25rem_2rem] items-center gap-1 px-1 py-2 text-sm border-l-4 ${bar} ${isKorea ? "bg-emerald-50/60 dark:bg-emerald-900/15" : ""}`;
+                    return team ? (
+                      <Link key={r.team} href={`/national-teams/${team.id}`} className={`${cls} transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]`} prefetch={false}>{inner}</Link>
+                    ) : (
+                      <div key={r.team} className={cls}>{inner}</div>
+                    );
+                  })}
                 </div>
               );
             })}
