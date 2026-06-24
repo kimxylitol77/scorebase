@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { SITE_URL } from "@/lib/site-url";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { Prisma } from "@prisma/client";
 import GoalHeatmap from "@/components/charts/GoalHeatmap";
@@ -126,15 +127,40 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+// 종목별 검색 의도 키워드 — "다저스 순위", "양키스 로스터" 등 한국 검색 수요를 title·description 에 반영.
+function teamIntentKeywords(league: string): string {
+  let sport: string;
+  try {
+    sport = getSportFromLeague(league);
+  } catch {
+    sport = "soccer";
+  }
+  switch (sport) {
+    case "baseball":
+      return "순위·일정·로스터·선수 통계";
+    case "basketball":
+      return "순위·일정·로스터·선수 기록";
+    case "hockey":
+      return "순위·일정·로스터";
+    default:
+      return "순위·일정·이적·라인업"; // soccer
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const team = await prisma.team.findUnique({ where: { id: Number(id) } });
   if (!team) return { title: "팀을 찾을 수 없습니다" };
   const ko = toKoreanTeamName(team.name, team.league);
+  const intent = teamIntentKeywords(team.league);
+  const enName = ko === team.name ? "" : `(${team.name})`;
+  const title = `${ko} ${intent}`;
+  const description = `${team.league} ${ko}${enName} ${intent} 정보. 현재 순위와 최근 폼, 다음 경기 일정, 주요 선수와 AI 승부예측을 실시간 데이터로 한 페이지에 모았습니다.`;
   return {
-    title: `${ko} — 시즌 통계·부상자·관련 기사`,
-    description: `${team.league} ${ko}(${team.name}) 팀의 시즌 통계, 최근 폼, 부상자 명단, 관련 기사를 한 페이지에 모았습니다.`,
+    title,
+    description,
     alternates: { canonical: `/teams/${id}` },
+    openGraph: { title: `${ko} · ${team.league}`, description, type: "profile" },
   };
 }
 
@@ -331,6 +357,28 @@ export default async function TeamPage({ params }: Props) {
 
   return (
     <div className="relative">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SportsTeam",
+            name: toKoreanTeamName(team.name, team.league),
+            alternateName: team.name,
+            sport:
+              sport === "baseball"
+                ? "Baseball"
+                : sport === "basketball"
+                  ? "Basketball"
+                  : sport === "hockey"
+                    ? "Ice Hockey"
+                    : "Soccer",
+            url: `${SITE_URL}/teams/${team.id}`,
+            ...(team.logoUrl ? { logo: team.logoUrl } : {}),
+            memberOf: { "@type": "SportsOrganization", name: team.league },
+          }),
+        }}
+      />
       <AmbientGlow />
       {/* 헤더 */}
       <section className="relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800">
@@ -391,6 +439,9 @@ export default async function TeamPage({ params }: Props) {
                 {toKoreanTeamName(team.name, team.league)}
               </h1>
               <div className="text-xs text-neutral-500 mt-1">{team.name}</div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 break-keep">
+                {toKoreanTeamName(team.name, team.league)} {teamIntentKeywords(team.league)} 정보를 실시간 데이터로 정리했습니다. 현재 순위·다음 경기 일정·로스터·AI 승부예측을 아래에서 확인하세요.
+              </p>
               <div className="mt-3">
                 <TeamFollowButton teamId={team.id} />
               </div>
