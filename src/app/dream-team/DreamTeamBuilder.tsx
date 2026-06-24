@@ -5,6 +5,7 @@ import { saveDreamTeam, type SaveState } from "./actions";
 import { TIERS } from "@/lib/dream-team/tiers";
 import type { DreamPlayer } from "@/lib/dream-team/pool";
 import PlayerStatCard from "./PlayerStatCard";
+import ShareButton from "./ShareButton";
 
 type Pos = "GK" | "DF" | "MF" | "FW";
 type Slot = { id: string; pos: Pos; label: string };
@@ -43,6 +44,7 @@ interface Props {
   tierKey: string;
   topTeams: { id: string; name: string; nickname: string; rating: number; tier: string }[];
   freeMode?: boolean;
+  siteUrl?: string;
 }
 interface Selected {
   playerId: string;
@@ -54,7 +56,7 @@ function ovrBadgeColor(ovr: number): string {
   return ovr >= 90 ? "#be3455" : "#26263a";
 }
 
-export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, freeMode }: Props) {
+export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, freeMode, siteUrl = "https://www.scorebase.kr" }: Props) {
   const [formation, setFormation] = useState(initial?.formation && FORMATIONS[initial.formation] ? initial.formation : "4-3-3");
   const [name, setName] = useState(initial?.name ?? "나의 드림팀");
   const [picks, setPicks] = useState<Record<string, string>>(() => {
@@ -347,6 +349,14 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
               <a href="/dream-team/play" className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-400">
                 저장됨 · 경기하러 가기 →
               </a>
+            )}
+            {state.ok && state.teamId && (
+              <ShareButton
+                url={`${siteUrl}/dream-team/team/${state.teamId}`}
+                title={`${name} · ${tier.name} 드림팀`}
+                text={`내 드림팀 "${name}" (${tier.name}·OVR ${teamOvr}) 이겨봐`}
+                mine
+              />
             )}
             {state.error && <span className="text-sm text-rose-600 dark:text-rose-400">{state.error}</span>}
           </div>

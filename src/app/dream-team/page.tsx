@@ -55,7 +55,7 @@ export default async function DreamTeamPage() {
             />
           </div>
         )}
-        <DreamTeamBuilder pool={pool} initial={initial} tierKey={existing?.tier ?? "amateur"} topTeams={topTeams} />
+        <DreamTeamBuilder pool={pool} initial={initial} tierKey={existing?.tier ?? "amateur"} topTeams={topTeams} siteUrl={process.env.SITE_URL ?? "https://www.scorebase.kr"} />
       </div>
     </main>
   );

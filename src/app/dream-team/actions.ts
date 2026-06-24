@@ -9,6 +9,7 @@ import { TIERS } from "@/lib/dream-team/tiers";
 export interface SaveState {
   ok: boolean;
   error?: string;
+  teamId?: string;
 }
 
 export async function saveDreamTeam(_prev: SaveState, formData: FormData): Promise<SaveState> {
@@ -39,17 +40,20 @@ export async function saveDreamTeam(_prev: SaveState, formData: FormData): Promi
   const total = pool.reduce((s, p) => s + p.value, 0);
   if (total > budget) return { ok: false, error: `예산 초과 (€${total}M / €${budget}M)` };
 
+  let teamId: string;
   if (existing) {
     await prisma.dreamTeam.update({
       where: { id: existing.id },
       data: { name, formation, players, tier: "amateur" },
     });
+    teamId = existing.id;
   } else {
-    await prisma.dreamTeam.create({
+    const created = await prisma.dreamTeam.create({
       data: { userId, name, formation, players, tier: "amateur" },
     });
+    teamId = created.id;
   }
 
   revalidatePath("/dream-team");
-  return { ok: true };
+  return { ok: true, teamId };
 }

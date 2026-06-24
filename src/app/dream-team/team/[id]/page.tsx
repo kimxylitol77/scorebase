@@ -9,6 +9,7 @@ import { grownOvr } from "@/lib/dream-team/grow";
 import { TIERS } from "@/lib/dream-team/tiers";
 import AmbientGlow from "@/components/AmbientGlow";
 import ChallengeButton from "./ChallengeButton";
+import ShareButton from "../../ShareButton";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
 
@@ -18,7 +19,31 @@ interface SquadPlayer {
   xp?: number;
 }
 
-export const metadata: Metadata = { title: "드림팀 | Scorebase" };
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const team = await prisma.dreamTeam.findUnique({
+    where: { id },
+    include: { user: { select: { nickname: true } } },
+  });
+  if (!team) return { title: "드림팀 | Scorebase" };
+  const tierName = TIERS[team.tier]?.name ?? team.tier;
+  const site = process.env.SITE_URL ?? "https://www.scorebase.kr";
+  const title = `${team.name} · ${tierName} 드림팀`;
+  const description = `감독 ${team.user.nickname} · ${team.formation} · 레이팅 ${team.rating} · ${team.wins}승 ${team.draws}무 ${team.losses}패. 빅5 현역 선수로 짠 가성비 드림팀에 도전해보세요.`;
+  const ogImage = `${site}/api/og/dream-team?teamId=${team.id}`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${site}/dream-team/team/${team.id}`,
+      images: [{ url: ogImage, width: 1080, height: 1350 }],
+      type: "website",
+    },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
+  };
+}
 
 const POS_LABEL: Record<string, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
 const POS_ORDER = ["FW", "MF", "DF", "GK"];
@@ -39,6 +64,12 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
   const byPos: Record<string, typeof squad> = { GK: [], DF: [], MF: [], FW: [] };
   squad.forEach((s) => byPos[s.pos]?.push(s));
 
+  const tierName = TIERS[team.tier]?.name ?? team.tier;
+  const siteUrl = process.env.SITE_URL ?? "https://www.scorebase.kr";
+  const shareText = isMine
+    ? `내 드림팀 "${team.name}" (${tierName}·OVR ${teamOvr}) 이겨봐`
+    : `"${team.name}" 드림팀 (${tierName}·OVR ${teamOvr})`;
+
   return (
     <main className="relative mx-auto max-w-2xl px-4 py-10">
       <AmbientGlow />
@@ -55,6 +86,15 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
         </div>
         <div className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">
           레이팅 {team.rating} · {team.wins}승 {team.draws}무 {team.losses}패
+        </div>
+
+        <div className="mt-4">
+          <ShareButton
+            url={`${siteUrl}/dream-team/team/${team.id}`}
+            title={`${team.name} · ${tierName} 드림팀`}
+            text={shareText}
+            mine={isMine}
+          />
         </div>
 
         {squad.length === 11 ? (
