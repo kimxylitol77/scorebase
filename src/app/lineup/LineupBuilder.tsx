@@ -21,7 +21,7 @@ interface Props {
 const POS_LABEL: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
 const LEAGUE_LABEL: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1", WORLD_CUP: "월드컵 대표팀" };
 const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "WORLD_CUP"];
-const DISPLAY_MODES: [DisplayMode, string][] = [["photo", "사진"], ["ovr", "능력치"], ["name", "이름"]];
+const DISPLAY_MODES: [DisplayMode, string][] = [["photo", "사진"], ["ovr", "능력치"], ["name", "번호"]];
 const ORIENTATIONS: [Orientation, string][] = [["portrait", "세로"], ["landscape", "가로"]];
 const TOOLS: [Tool, ComponentType<{ className?: string }>, string][] = [
   ["select", MousePointer2, "선택"],
@@ -117,7 +117,6 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   }, [clubs]);
 
   const curSide: Side | undefined = activeSide === "away" ? board.away : board.home;
-  const curFormation = curSide?.formation ?? FREE_FORMATION;
   const activeNode = curSide?.players.find((p) => p.uid === activeUid) ?? null;
   // 활성 진영의 대표 클럽 — 그 팀 선수를 후보 상단에 올리기 위함(배치된 선수들의 clubKey 최빈값).
   const activeClubKey = useMemo(() => {
@@ -140,14 +139,24 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const updateSide = useCallback((which: "home" | "away", fn: (s: Side) => Side) => commit((b) => updateSideIn(b, which, fn)), [commit]);
   const updatePlayers = useCallback((which: "home" | "away", fn: (ps: Placed[]) => Placed[]) => updateSide(which, (s) => ({ ...s, players: fn(s.players) })), [updateSide]);
 
-  function applyFormation(fname: string) {
+  function applyFormation(fname: string, side: "home" | "away" = activeSide) {
     commit((b) => {
       const versus = b.mode === "versus";
-      if (fname === FREE_FORMATION) return updateSideIn(b, activeSide, (s) => ({ ...s, formation: null, players: s.players.filter((p) => p.pid || p.name) }));
-      return updateSideIn(b, activeSide, (s) => ({ ...s, formation: fname, players: emptySlots(fname, activeSide, versus) }));
+      if (fname === FREE_FORMATION) return updateSideIn(b, side, (s) => ({ ...s, formation: null, players: s.players.filter((p) => p.pid || p.name) }));
+      return updateSideIn(b, side, (s) => ({ ...s, formation: fname, players: emptySlots(fname, side, versus) }));
     });
     setActiveUid(null);
   }
+
+  // 포메이션 셀렉터 — 맞대결에선 우리팀/상대팀 각각(클럽 픽커와 동일하게 side 별).
+  const formationSelect = (side: "home" | "away") => {
+    const f = (side === "away" ? board.away?.formation : board.home.formation) ?? FREE_FORMATION;
+    return (
+      <select value={f} onChange={(e) => applyFormation(e.target.value, side)} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-500">
+        {FORMATION_OPTIONS.map((ff) => (<option key={ff}>{ff}</option>))}
+      </select>
+    );
+  };
 
   function loadClub(clubKey: string, side: "home" | "away" = activeSide) {
     if (!clubKey) return;
@@ -332,12 +341,23 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-neutral-500 dark:text-neutral-400">포메이션</span>
-          <select value={curFormation} onChange={(e) => applyFormation(e.target.value)} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-500">
-            {FORMATION_OPTIONS.map((f) => (<option key={f}>{f}</option>))}
-          </select>
-        </div>
+        {board.mode === "versus" ? (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-rose-600 dark:text-rose-300">우리팀 포메이션</span>
+              {formationSelect("home")}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-blue-600 dark:text-blue-300">상대팀 포메이션</span>
+              {formationSelect("away")}
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-neutral-500 dark:text-neutral-400">포메이션</span>
+            {formationSelect("home")}
+          </div>
+        )}
         {board.mode === "versus" ? (
           <>
             {clubPicker("home", "우리팀 클럽 불러오기…")}

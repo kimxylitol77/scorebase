@@ -127,10 +127,10 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
                   </span>
                 ) : displayMode === "name" ? (
                   <span
-                    className="flex h-[clamp(30px,7vw,48px)] w-[clamp(30px,7vw,48px)] items-center justify-center rounded-full text-xs font-bold text-white"
+                    className="flex h-[clamp(30px,7vw,48px)] w-[clamp(30px,7vw,48px)] items-center justify-center rounded-full text-base font-bold text-white"
                     style={{ background: chipBg, boxShadow: `0 0 0 2px ${ring}` }}
                   >
-                    {(name ?? dispPos).slice(0, 2)}
+                    {number != null ? number : (name ?? dispPos).slice(0, 2)}
                   </span>
                 ) : player ? (
                   <>
@@ -155,7 +155,7 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
                 )}
               </span>
               <span className="mt-1 max-w-full truncate rounded px-1 text-[clamp(9px,2.4vw,12px)] font-semibold text-white" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.85)" }}>
-                {name ?? dispPos}{number != null ? ` (${number})` : ""}
+                {name ?? dispPos}{number != null && displayMode !== "name" ? ` (${number})` : ""}
               </span>
             </button>
           );
