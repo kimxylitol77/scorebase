@@ -62,17 +62,19 @@ async function checkUrl(u) {
   }
 }
 
-// Ollama(맥미니 로컬) 코드 리뷰
+// Ollama(맥미니 로컬) 코드 리뷰 — qwen 이 "3줄 요약" 지시를 무시하고 diff 를 장황히 나열하는
+// 경향이 있어 system 강화 + num_predict 로 길이를 강제(temperature 도 낮춰 결정적으로).
 async function ollamaReview(prompt, system) {
+  const strictSystem = system + " 엄수: diff 내용을 요약·나열·설명하지 마라. 발견한 404/회귀 위험만 최대 3줄로, 없으면 '이상 없음' 한 줄만 써라.";
   try {
     const r = await fetch(`${OLLAMA_HOST}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: OLLAMA_MODEL,
-        messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
+        messages: [{ role: "system", content: strictSystem }, { role: "user", content: prompt }],
         stream: false,
-        options: { temperature: 0.3 },
+        options: { temperature: 0.2, num_predict: 350 },
       }),
       signal: AbortSignal.timeout(Number(process.env.OLLAMA_TIMEOUT_MS) || 300000),
     });
