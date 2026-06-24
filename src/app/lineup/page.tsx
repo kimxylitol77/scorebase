@@ -31,11 +31,38 @@ const WC_XI: Record<string, { formation: string; xi: WcXiPlayer[] }> = JSON.pars
   readFileSync(path.join(process.cwd(), "data/wc-predicted-xi.json"), "utf-8"),
 );
 
+// 공식 스쿼드(team-squads) — 등번호 + 동일인 중복 제거 기준. dream-pool 에 같은 선수가 ts id 2개로
+// (풀네임/약식명) 들어온 케이스가 있어, 공식 스쿼드에 있는 정본을 우선해 1명만 남긴다.
+const T_SQUADS_RAW: Record<string, { squad: Array<{ id: string; number: number | null }> }> = JSON.parse(
+  readFileSync(path.join(process.cwd(), "data/team-squads.json"), "utf-8"),
+);
+const NUM_BY_ID = new Map<string, number>();
+const OFFICIAL_IDS = new Set<string>();
+for (const v of Object.values(T_SQUADS_RAW))
+  for (const sp of v.squad) {
+    OFFICIAL_IDS.add(sp.id);
+    if (sp.number != null) NUM_BY_ID.set(sp.id, sp.number);
+  }
+
+// 같은 클럽·이름 첫·끝 토큰·포지션이 같으면 동일인 → 공식 스쿼드 > 등번호 > 사진 보유 순으로 1명만.
+function dedupePlayers<T extends { id: string; name: string; pos: string; team: string; photo: string | null }>(players: T[]): T[] {
+  const tok = (n: string) => n.split(/\s+/).map((t) => t.replace(/[^0-9a-z가-힣]/gi, "").toLowerCase()).filter(Boolean);
+  const score = (p: T) => (OFFICIAL_IDS.has(p.id) ? 4 : 0) + (NUM_BY_ID.has(p.id) ? 2 : 0) + (p.photo ? 1 : 0);
+  const best = new Map<string, T>();
+  for (const p of players) {
+    const t = tok(p.name);
+    const key = t.length ? `${normClub(p.team)}|${t[0]}|${t[t.length - 1]}|${p.pos}` : `id:${p.id}`;
+    const cur = best.get(key);
+    if (!cur || score(p) > score(cur)) best.set(key, p);
+  }
+  return [...best.values()];
+}
+
 export default async function LineupPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
   const { d } = await searchParams;
   const initial = d ? decodeBoard(d) : null;
 
-  const all = allDreamPlayers();
+  const all = dedupePlayers(allDreamPlayers());
 
   // 클럽 메타 집계(표기 정규화·대표 라벨·베스트11 가능 여부).
   const groups: Record<string, { labels: Record<string, number>; league: string; pos: Record<string, number>; count: number }> = {};
@@ -75,6 +102,7 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
       ovr: p.ovr,
       team: toKoreanTeamName(p.team),
       photo: p.photo,
+      number: NUM_BY_ID.get(p.id) ?? null,
       clubKey: normClub(p.team),
     };
   });
@@ -94,6 +122,7 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
         ovr: Math.round((p.avgRating || 6) * 10),
         team: label,
         photo: p.photo || null,
+        number: null,
         clubKey: key,
       });
     }

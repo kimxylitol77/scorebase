@@ -9,6 +9,7 @@ export interface PoolPlayer {
   ovr: number;
   team: string;
   photo: string | null;
+  number: number | null; // 등번호 (team-squads 공식 스쿼드 기준, 없으면 null)
   clubKey: string; // 클럽 그룹 키(정규화)
 }
 

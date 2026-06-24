@@ -106,7 +106,10 @@ export default function CandidatePanel({ pool, pos, clubKey, label, filled, used
               )}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white">{p.name}</span>
+              <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white">
+                {p.name}
+                {p.number != null && <span className="ml-1 font-normal text-neutral-400">({p.number})</span>}
+              </span>
               <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">{p.team}</span>
             </span>
             <span className="flex-shrink-0 text-sm font-semibold text-neutral-900 dark:text-white">{p.ovr}</span>
