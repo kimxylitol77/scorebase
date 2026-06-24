@@ -79,7 +79,6 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/notices", label: "공지사항", desc: "사이트 공지 · 패치노트" },
     { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
     { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 글 · 예측 적중" },
-    { href: "/experts", label: "예측 전문가", desc: "분석가 적중률 순위 · 프로필" },
     { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   ],
 };
