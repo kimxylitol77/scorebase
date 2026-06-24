@@ -21,7 +21,7 @@ interface Props {
 const POS_LABEL: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
 const LEAGUE_LABEL: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1", WORLD_CUP: "월드컵 대표팀" };
 const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "WORLD_CUP"];
-const DISPLAY_MODES: [DisplayMode, string][] = [["photo", "사진"], ["ovr", "능력치"], ["name", "번호"]];
+const DISPLAY_MODES: [DisplayMode, string][] = [["photo", "사진"], ["name", "번호"]];
 const ORIENTATIONS: [Orientation, string][] = [["portrait", "세로"], ["landscape", "가로"]];
 const TOOLS: [Tool, ComponentType<{ className?: string }>, string][] = [
   ["select", MousePointer2, "선택"],

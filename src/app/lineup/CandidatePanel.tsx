@@ -112,7 +112,6 @@ export default function CandidatePanel({ pool, pos, clubKey, label, filled, used
               </span>
               <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">{p.team}</span>
             </span>
-            <span className="flex-shrink-0 text-sm font-semibold text-neutral-900 dark:text-white">{p.ovr}</span>
           </button>
         ))}
       </div>

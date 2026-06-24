@@ -9,10 +9,6 @@ import type { PoolPlayer } from "./types";
 
 const DRAG_THRESHOLD = 6;
 
-function ovrBadge(ovr: number): string {
-  return ovr >= 90 ? "#be3455" : ovr >= 80 ? "#475569" : "#52525b";
-}
-
 interface Props {
   home: Side;
   away?: Side;
@@ -92,7 +88,6 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
         side.players.map((pl) => {
           const player = pl.pid ? poolById[pl.pid] : null;
           const name = player ? player.name : pl.name;
-          const ovr = player ? player.ovr : null;
           const number = player ? player.number : null;
           const dispPos = player ? player.pos : pl.pos;
           const empty = !player && !name;
@@ -118,13 +113,6 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
                   >
                     <Plus className="h-4 w-4" />
                   </span>
-                ) : displayMode === "ovr" ? (
-                  <span
-                    className="flex h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] items-center justify-center rounded-xl text-base font-bold text-white"
-                    style={{ background: ovr != null ? ovrBadge(ovr) : "rgba(255,255,255,0.15)", boxShadow: `0 0 0 2px ${ring}` }}
-                  >
-                    {ovr != null ? ovr : dispPos}
-                  </span>
                 ) : displayMode === "name" ? (
                   <span
                     className="flex h-[clamp(30px,7vw,48px)] w-[clamp(30px,7vw,48px)] items-center justify-center rounded-full text-base font-bold text-white"
@@ -133,21 +121,14 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
                     {number != null ? number : (name ?? dispPos).slice(0, 2)}
                   </span>
                 ) : player ? (
-                  <>
-                    <span className="relative block h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] overflow-hidden rounded-full bg-white/90" style={{ boxShadow: `0 0 0 2px ${ring}` }}>
-                      {player.photo ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={`/api/lineup/img?u=${encodeURIComponent(player.photo)}`} alt={player.name} className="h-full w-full object-cover" draggable={false} />
-                      ) : (
-                        <span className="flex h-full w-full items-center justify-center text-sm font-bold text-emerald-800">{player.name.slice(0, 2)}</span>
-                      )}
-                    </span>
-                    {ovr != null && (
-                      <span className="absolute -bottom-1 -right-1 rounded px-1 text-[10px] font-bold leading-tight text-white" style={{ background: ovrBadge(ovr), boxShadow: "0 0 0 1px rgba(0,0,0,0.35)" }}>
-                        {ovr}
-                      </span>
+                  <span className="relative block h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] overflow-hidden rounded-full bg-white/90" style={{ boxShadow: `0 0 0 2px ${ring}` }}>
+                    {player.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={`/api/lineup/img?u=${encodeURIComponent(player.photo)}`} alt={player.name} className="h-full w-full object-cover" draggable={false} />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-sm font-bold text-emerald-800">{player.name.slice(0, 2)}</span>
                     )}
-                  </>
+                  </span>
                 ) : (
                   <span className="flex h-[clamp(34px,8vw,56px)] w-[clamp(34px,8vw,56px)] items-center justify-center rounded-full bg-white/85 text-sm font-bold text-neutral-700" style={{ boxShadow: `0 0 0 2px ${ring}` }}>
                     {name!.slice(0, 2)}

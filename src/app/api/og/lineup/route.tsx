@@ -5,6 +5,8 @@ import { ImageResponse } from "next/og";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
 import { decodeBoard, pidsFromBoard, type Side } from "@/lib/lineup/lineup-state";
 import { KIT_BY_KEY, SIDE_COLORS, toDisplayXY } from "@/lib/lineup/formations";
+import { readFileSync } from "fs";
+import path from "path";
 
 export const runtime = "nodejs";
 
@@ -27,17 +29,25 @@ async function loadFont(text: string): Promise<ArrayBuffer | null> {
   }
 }
 
-function ovrColor(o: number): { fg: string; bg: string; bd: string } {
-  if (o >= 90) return { fg: "#fda4af", bg: "rgba(190,52,85,0.24)", bd: "rgba(190,52,85,0.9)" };
-  if (o >= 80) return { fg: "#cbd5e1", bg: "rgba(100,116,139,0.22)", bd: "rgba(148,163,184,0.85)" };
-  return { fg: "#e5e7eb", bg: "rgba(82,82,91,0.22)", bd: "rgba(113,113,122,0.75)" };
-}
+// 등번호 — team-squads 공식 스쿼드(playerId→number). 실축 카드라 OVR(게임 값) 대신 등번호 표시.
+const NUM_BY_ID: Map<string, number> = (() => {
+  try {
+    const sq: Record<string, { squad: Array<{ id: string; number: number | null }> }> = JSON.parse(
+      readFileSync(path.join(process.cwd(), "data/team-squads.json"), "utf-8"),
+    );
+    const m = new Map<string, number>();
+    for (const v of Object.values(sq)) for (const p of v.squad) if (p.number != null) m.set(p.id, p.number);
+    return m;
+  } catch {
+    return new Map<string, number>();
+  }
+})();
 
 interface CardSlot {
   x: number;
   y: number;
   name: string | null;
-  ovr: number | null;
+  number: number | null;
   pos: string;
   side: "home" | "away" | null;
 }
@@ -65,9 +75,9 @@ export async function GET(req: Request) {
         const d = toDisplayXY(pl.x, pl.y, landscape);
         if (pl.pid) {
           const p = byId[pl.pid];
-          return { x: d.x, y: d.y, name: p?.name ?? null, ovr: p?.ovr ?? null, pos: p?.pos ?? pl.pos, side: versus ? sideKey : null };
+          return { x: d.x, y: d.y, name: p?.name ?? null, number: NUM_BY_ID.get(pl.pid) ?? null, pos: p?.pos ?? pl.pos, side: versus ? sideKey : null };
         }
-        return { x: d.x, y: d.y, name: pl.name, ovr: null, pos: pl.pos, side: versus ? sideKey : null };
+        return { x: d.x, y: d.y, name: pl.name, number: null, pos: pl.pos, side: versus ? sideKey : null };
       });
 
   const slots: CardSlot[] = [...toSlots(board.home, "home"), ...(board.away ? toSlots(board.away, "away") : [])];
@@ -171,9 +181,9 @@ function Card({
 
 function CardPlayer({ s, nameMode }: { s: CardSlot; nameMode: boolean }) {
   const sideC = s.side ? SIDE_COLORS[s.side] : null;
-  const fg = sideC ? (s.side === "home" ? "#fda4af" : "#93c5fd") : s.ovr != null ? ovrColor(s.ovr).fg : "#e5e7eb";
-  const bg = sideC ? sideC.soft : s.ovr != null ? ovrColor(s.ovr).bg : "rgba(255,255,255,0.12)";
-  const bd = sideC ? sideC.ring : s.ovr != null ? ovrColor(s.ovr).bd : "rgba(255,255,255,0.45)";
+  const fg = sideC ? (s.side === "home" ? "#fda4af" : "#93c5fd") : "#fda4af";
+  const bg = sideC ? sideC.soft : "rgba(190,52,85,0.24)";
+  const bd = sideC ? sideC.ring : "rgba(190,52,85,0.9)";
   return (
     <div
       style={{
@@ -199,7 +209,7 @@ function CardPlayer({ s, nameMode }: { s: CardSlot; nameMode: boolean }) {
           border: `3px solid ${bd}`,
         }}
       >
-        <span style={{ display: "flex", fontSize: nameMode ? "26px" : s.ovr != null ? "38px" : "24px", fontWeight: 700, color: fg, lineHeight: 1 }}>{nameMode ? (s.name ? s.name.slice(0, 2) : s.pos) : s.ovr != null ? s.ovr : s.pos}</span>
+        <span style={{ display: "flex", fontSize: s.number != null ? "36px" : "24px", fontWeight: 700, color: fg, lineHeight: 1 }}>{s.number != null ? s.number : s.name ? s.name.slice(0, 2) : s.pos}</span>
       </div>
       {s.name ? (
         <div style={{ display: "flex", marginTop: "9px", fontSize: nameMode ? "26px" : "22px", fontWeight: 700, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>{s.name}</div>
