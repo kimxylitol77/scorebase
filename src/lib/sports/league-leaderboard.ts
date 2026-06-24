@@ -4,7 +4,14 @@
 import { prisma } from "@/lib/db";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import type { LeaderRow } from "@/components/LeagueLeaderBoard";
+
+// LeagueLeaderBoard 가 /transfers/{id} 로 링크하는 리그 (= 컴포넌트의 TRANSFERS_LEADER_LEAGUES).
+// leagueLeader 테이블의 externalId 는 api-football player id 인데 /transfers 페이지는 TheSports
+// player id 만 조회 → 변환 없이 넘기면 /transfers/{afId} 가 전부 404. af→ts 로 변환해서 넘긴다.
+// (변환 실패 선수는 null → 링크 비활성. predictions/[league] 는 자체 ts id 라 이 함수를 안 씀.)
+const TRANSFERS_LEADER_LEAGUES = new Set(["EPL", "LALIGA", "BUNDESLIGA", "LIGUE_1", "WORLD_CUP"]);
 
 export async function loadLeagueLeaderboard(
   league: string,
@@ -16,6 +23,7 @@ export async function loadLeagueLeaderboard(
     take: 400,
   });
   const season = allRows[0]?.season ?? "";
+  const useTransfers = TRANSFERS_LEADER_LEAGUES.has(league);
   const rowsByCategory: Record<string, LeaderRow[]> = {};
   for (const r of allRows.filter((r) => r.season === season)) {
     if (!rowsByCategory[r.category]) rowsByCategory[r.category] = [];
@@ -29,7 +37,10 @@ export async function loadLeagueLeaderboard(
       unit: r.unit,
       appearances: r.appearances,
       photoUrl: r.photoUrl,
-      externalId: r.externalId,
+      // af player id → ts player id (transfers 링크 리그만). 매핑 없으면 null 로 링크 끊음.
+      externalId: useTransfers
+        ? (r.externalId ? afPlayerToTs(r.externalId) : null)
+        : r.externalId,
     });
   }
   return { rowsByCategory, season };

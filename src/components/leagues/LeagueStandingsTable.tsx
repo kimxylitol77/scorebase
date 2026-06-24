@@ -1,4 +1,5 @@
 // 리그 순위표 (표만) — 리그 페이지 "순위" 탭 콘텐츠. StandingsOnlyView 의 표 부분을 탭용으로 분리.
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -103,15 +104,15 @@ export default async function LeagueStandingsTable({ league }: { league: string 
                     <tr key={r.teamId} className="hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                       <td className={`px-3 py-2 text-right tabular-nums font-semibold text-neutral-500 border-l-4 ${z ? ZONE_BORDER[z] : "border-l-transparent"}`}>{r.position}</td>
                       <td className="px-3 py-2 truncate">
-                        <div className="flex items-center gap-2 min-w-0">
+                        <Link href={`/teams/${r.teamId}`} prefetch={false} className="group flex items-center gap-2 min-w-0">
                           {r.logoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={r.logoUrl} alt="" width={24} height={24} loading="lazy" className="w-6 h-6 object-contain shrink-0 bg-white rounded-sm" />
                           ) : (
                             <div className="w-6 h-6 rounded-sm bg-neutral-200 dark:bg-neutral-700 shrink-0" />
                           )}
-                          <span className="truncate">{r.teamName}</span>
-                        </div>
+                          <span className="truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">{r.teamName}</span>
+                        </Link>
                       </td>
                       <td className="px-2 py-2 text-right tabular-nums">{played}</td>
                       <td className="px-2 py-2 text-right tabular-nums">{r.won}</td>
