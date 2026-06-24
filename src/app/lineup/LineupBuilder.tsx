@@ -78,6 +78,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const [color, setColor] = useState<StrokeColor>("white");
   const [copied, setCopied] = useState(false);
   const [capturing, setCapturing] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
 
   // 새로고침(F5) 시 작업 보존 — board를 sessionStorage에 저장하고, 공유 URL(?d=) 없이 들어오면 마운트 때 복원.
@@ -89,11 +90,13 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     try { sessionStorage.setItem("lineup-board", JSON.stringify(board)); } catch { /* 무시 */ }
   }, [board]);
   useEffect(() => {
-    if (initial) return;
-    try {
-      const saved = sessionStorage.getItem("lineup-board");
-      if (saved) reset(JSON.parse(saved) as BoardState);
-    } catch { /* 무시 */ }
+    if (!initial) {
+      try {
+        const saved = sessionStorage.getItem("lineup-board");
+        if (saved) reset(JSON.parse(saved) as BoardState);
+      } catch { /* 무시 */ }
+    }
+    setMounted(true); // 복원이 끝난 뒤에야 보드를 그린다 → F5 시 세로→가로 깜빡임 제거
     // 마운트 1회만 복원.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -249,7 +252,8 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const eraseStroke = useCallback((id: string) => commit((b) => ({ ...b, strokes: b.strokes.filter((x) => x.id !== id) })), [commit]);
 
   function resetAll() {
-    reset(initBoard(null));
+    // 내용만 초기화 — 보기 설정(방향·표시모드·키트)은 유지해서 가로로 보던 사람이 세로로 튕기지 않게.
+    reset({ ...initBoard(null), orientation: board.orientation, displayMode: board.displayMode, kit: board.kit });
     setActiveUid(null);
     setActiveSide("home");
     setTool("select");
@@ -311,6 +315,13 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const segSmActive = "rounded-md bg-white px-2.5 py-1 text-xs font-medium text-neutral-900 shadow-sm dark:bg-white/15 dark:text-white";
   const segSmIdle = "rounded-md px-2.5 py-1 text-xs font-medium text-neutral-500 dark:text-neutral-400";
   const iconBtn = "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition-colors hover:border-rose-300 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-neutral-700 dark:text-neutral-300";
+
+  // 복원 전(F5 직후)엔 스켈레톤만 — 기본 세로 보드를 그렸다가 저장된 가로로 바뀌는 깜빡임 방지.
+  // ?d= 공유 링크는 서버에서 이미 올바른 보드라 즉시 렌더(initial).
+  const showBoard = !!initial || mounted;
+  if (!showBoard) {
+    return <div className="mt-6 h-[640px] animate-pulse rounded-2xl border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-white/[0.03]" />;
+  }
 
   return (
     <div className="mt-6">
