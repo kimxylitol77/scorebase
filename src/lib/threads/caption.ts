@@ -3,6 +3,8 @@
 // Threads 텍스트 제한 500자(한글 1자 = 1 char). 링크/해시태그는 항상 보존하고
 // 본문(경기 목록 · excerpt)만 남는 예산만큼 절삭한다.
 
+import type { ThreadsFeature } from "./features";
+
 export const THREADS_TEXT_LIMIT = 500;
 
 export interface DailyMatchLine {
@@ -80,4 +82,14 @@ export function buildBlogCaption(opts: {
     ? `\n\n${truncate(opts.excerpt.trim(), budget)}`
     : "";
   return `${header}${excerpt}${footer}`;
+}
+
+// scorebase 기능 소개 caption (매일 1개 로테이션). features.ts 데이터 사용.
+export function buildFeatureCaption(f: ThreadsFeature, opts: { url: string }): string {
+  const header = `${f.emoji} ${f.hook}`;
+  const intro = `scorebase 의 ${f.title} — ${f.sub}.`;
+  const points = f.points.map((p) => `✅ ${p}`).join("\n");
+  const footer = `👉 ${opts.url}\n\n${f.hashtags}`;
+  const body = `${header}\n\n${intro}\n\n${points}\n\n${footer}`;
+  return truncate(body, THREADS_TEXT_LIMIT);
 }
