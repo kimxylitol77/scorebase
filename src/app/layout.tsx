@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { cookies, headers } from "next/headers";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import ScoreboardHeader from "@/components/ScoreboardHeader";
 import Footer from "@/components/Footer";
 import LiveScoresBar from "@/components/LiveScoresBar";
+import SiteChromeHeader from "@/components/SiteChromeHeader";
+import SiteChromeFooter from "@/components/SiteChromeFooter";
 import PageViewTracker from "@/components/PageViewTracker";
 import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site-url";
@@ -82,30 +83,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // SSR 단에 cookie 의 theme 읽어 className 결정 — flash 완전 제거.
-  // cookie 없으면 default dark (사이트 기본 dark mode).
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme")?.value;
-  const isDark = themeCookie !== "light"; // 'light' 명시 외에는 모두 dark
-
-  // 스코어보드.kr — 라이브 스코어 전용 도메인. scorebase 메인 헤더/푸터 대신
-  // 전용 간소 헤더만 노출 (메인과 똑같아 보이지 않게). 한글 도메인 punycode 매칭.
-  const host = ((await headers()).get("host") || "").toLowerCase();
-  const isScoreboard =
-    host.includes("xn--hy1bm7m1yevrd8pq") || host.includes("스코어보드");
-  // 스코어베이스.com — 브랜드 랜딩 전용 도메인. 사이트 기능(헤더 nav·라이브 티커·로그인·
-  // 검색·푸터)을 전부 빼고 랜딩 본문만 노출하는 순수 랜딩 페이지. punycode host 매칭.
-  const isScoreBaseCom =
-    host.includes("xn--9k3b13iba842abwcsvs") || host.includes("스코어베이스");
+  // theme(다크모드)·host(도메인) 분기는 layout 에서 제거 — dynamic API(cookies/headers)를 쓰면
+  // 전체 페이지가 dynamic 으로 강제돼 ISR(엣지 캐시) 불가했음. 둘 다 클라이언트로 이전:
+  //   theme = <head> 블로킹 스크립트(아래)가 cookie>localStorage>OS 로 paint 전 html 에 적용(FOUC 없음).
+  //   host  = SiteChromeHeader/Footer 가 hostname 으로 헤더·푸터 분기(메인은 SSR=CSR 동일).
+  // SSR 은 기본 dark 로 고정 렌더 → 블로킹 스크립트가 light 사용자만 보정.
   return (
     <html
       lang="ko"
-      className={`${isDark ? "dark " : ""}${geistMono.variable} h-full antialiased`}
-      style={
-        isDark
-          ? { backgroundColor: "#0a0a0a", color: "#ededed", colorScheme: "dark" }
-          : { backgroundColor: "#ffffff", color: "#0a0a0a", colorScheme: "light" }
-      }
+      className={`dark ${geistMono.variable} h-full antialiased`}
+      style={{ backgroundColor: "#0a0a0a", color: "#ededed", colorScheme: "dark" }}
       suppressHydrationWarning
     >
       <head>
@@ -113,7 +100,7 @@ export default async function RootLayout({
             cookie 동기화 (다음 새로고침부터 SSR 가 cookie 인식). 동시에 첫 paint 도 맞춤. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);if(c){return;}var t=localStorage.getItem('theme');var wantLight=t==='light'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);var theme=wantLight?'light':'dark';document.cookie='theme='+theme+'; path=/; max-age=31536000; SameSite=Lax';var h=document.documentElement;if(wantLight){h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}else{h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}}catch(e){}})();`,
+            __html: `(function(){try{var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);var t=c?c[1]:localStorage.getItem('theme');var wantLight=t==='light'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);if(!c){document.cookie='theme='+(wantLight?'light':'dark')+'; path=/; max-age=31536000; SameSite=Lax';}var h=document.documentElement;if(wantLight){h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}else{h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}}catch(e){}})();`,
           }}
         />
         {/* Google Tag Manager + GA4 gtag.js — production 만 (dev/local 트래픽 제외).
@@ -143,7 +130,7 @@ export default async function RootLayout({
       {/* 깜빡임 방지: bg/color 를 Tailwind class 가 아닌 globals.css body 의 CSS var
           (--background/--foreground) 로 처리. inline script 가 html.dark 를 paint
           전에 set 하면 CSS var 가 바로 dark 값으로 적용된다. */}
-      <body className={`min-h-full flex flex-col selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900${isScoreboard ? " sb-mode" : ""}`}>
+      <body className="min-h-full flex flex-col selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900">
         {/* Google Tag Manager noscript fallback — JS 차단 환경 페이지뷰 보정 */}
         {process.env.NODE_ENV === "production" && (
           <noscript>
@@ -156,30 +143,33 @@ export default async function RootLayout({
           </noscript>
         )}
         <PageViewTracker />
-        {isScoreboard ? (
-          <ScoreboardHeader />
-        ) : isScoreBaseCom ? null : (
-          <>
-            <Header />
-            <LiveScoresBar />
-          </>
-        )}
+        <SiteChromeHeader
+          main={
+            <>
+              <Header />
+              <LiveScoresBar />
+            </>
+          }
+          scoreboard={<ScoreboardHeader />}
+        />
         <main className="flex-1 w-full">{children}</main>
-        {!isScoreboard && !isScoreBaseCom && <Footer />}
-        {isScoreboard && (
-          <footer className="mt-8 border-t border-neutral-200 dark:border-neutral-800 py-5 px-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
-            본 스코어는{" "}
-            {/* 사람만 통과: rel=nofollow + robots Disallow(/go) 경유 302 — 봇은 경유 차단 */}
-            <a
-              href="/go/scorebase"
-              rel="nofollow"
-              className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              스코어베이스
-            </a>
-            가 제공하는 서비스입니다.
-          </footer>
-        )}
+        <SiteChromeFooter
+          main={<Footer />}
+          scoreboard={
+            <footer className="mt-8 border-t border-neutral-200 dark:border-neutral-800 py-5 px-4 text-center text-xs text-neutral-500 dark:text-neutral-400">
+              본 스코어는{" "}
+              {/* 사람만 통과: rel=nofollow + robots Disallow(/go) 경유 302 — 봇은 경유 차단 */}
+              <a
+                href="/go/scorebase"
+                rel="nofollow"
+                className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                스코어베이스
+              </a>
+              가 제공하는 서비스입니다.
+            </footer>
+          }
+        />
         {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
         <Analytics />
       </body>
