@@ -24,7 +24,8 @@ import { getTeamOfDay, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/te
 import AmbientGlow from "@/components/AmbientGlow";
 import { BarChart3, CalendarDays, Activity } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+// ISR — 발행된 글 본문은 거의 불변. 10분 캐시로 페이지 이동 가속(새 글 첫 방문은 즉시 생성).
+export const revalidate = 600;
 
 interface Props {
   params: Promise<{ slug: string }>;

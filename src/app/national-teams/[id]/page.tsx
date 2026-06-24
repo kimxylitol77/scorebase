@@ -17,7 +17,8 @@ import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
 
-export const dynamic = "force-dynamic";
+// ISR — 스쿼드·일정·조별 순위 5분 캐시(WC 라이브 결과는 /world-cup·/standings 가 정본).
+export const revalidate = 300;
 
 const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글명 (build-coach-names-haiku)
 // 감독 스냅샷 (ts coach/list 정적 수집 — Vercel 은 ts 직접 호출 불가(IP whitelist)라 정적 json 사용)

@@ -14,7 +14,8 @@ import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
 
-export const dynamic = "force-dynamic";
+// ISR — 감독 정보·경력은 거의 불변. 10분 캐시.
+export const revalidate = 600;
 
 interface CoachSnap {
   id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null;

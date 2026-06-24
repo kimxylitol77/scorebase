@@ -46,7 +46,8 @@ import {
 } from "@/lib/sports/api-football-pro";
 import FormDots from "@/components/FormDots";
 
-export const dynamic = "force-dynamic";
+// ISR — 순위·로스터·경기 결과는 5분 캐시로 충분(라이브 점수는 /scores·/live 가 정본).
+export const revalidate = 300;
 
 // TheSports 선수단(이적시장 데이터) — 이름 → /transfers/{ts id} 링크용
 const T_OVERRIDES = rawTOverrides as Record<string, { nameKo?: string; flag?: string }>;
@@ -178,20 +179,43 @@ export default async function TeamPage({ params }: Props) {
   const gradient =
     LEAGUE_GRADIENT[team.league] ?? "from-neutral-700 to-neutral-900";
 
-  // 같은 리그 매치 전체 (계산용)
-  const dbMatches = await prisma.match.findMany({
-    where: { league: team.league },
-    select: {
-      id: true,
-      league: true,
-      status: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
-    },
-  });
+  // team 만 의존하는 독립 쿼리 5개 — 직렬 5왕복을 한 라운드로 병렬화 (페이지 이동 가속).
+  const [dbMatches, recentMatches, upcoming, articles, tsTeamRows] = await Promise.all([
+    // 같은 리그 매치 전체 (순위·Elo·폼 계산용)
+    prisma.match.findMany({
+      where: { league: team.league },
+      select: {
+        id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
+        homeScore: true, awayScore: true, startTime: true,
+      },
+    }),
+    // 최근 5개 끝난 매치
+    prisma.match.findMany({
+      where: { league: team.league, status: "FINISHED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },
+      include: { homeTeam: true, awayTeam: true },
+      orderBy: { startTime: "desc" },
+      take: 5,
+    }),
+    // 다가오는 5개 매치
+    prisma.match.findMany({
+      where: { league: team.league, status: "SCHEDULED", OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }] },
+      include: { homeTeam: true, awayTeam: true },
+      orderBy: { startTime: "asc" },
+      take: 5,
+    }),
+    // 관련 기사
+    prisma.article.findMany({
+      where: {
+        status: "PUBLISHED",
+        league: team.league,
+        OR: [{ match: { homeTeamId: teamId } }, { match: { awayTeamId: teamId } }],
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 9,
+    }),
+    // TheSports 선수단 매핑 (PlayerMarketValue·squad 빌드용)
+    prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } }),
+  ]);
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
 
   // 통계
@@ -204,44 +228,6 @@ export default async function TeamPage({ params }: Props) {
   const ha = calcHomeAway(matches, teamId);
   const attackRank = standings.attackRank.get(teamId);
   const defenseRank = standings.defenseRank.get(teamId);
-
-  // 최근 5개 끝난 매치
-  const recentMatches = await prisma.match.findMany({
-    where: {
-      league: team.league,
-      status: "FINISHED",
-      OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
-    },
-    include: { homeTeam: true, awayTeam: true },
-    orderBy: { startTime: "desc" },
-    take: 5,
-  });
-
-  // 다가오는 5개 매치
-  const upcoming = await prisma.match.findMany({
-    where: {
-      league: team.league,
-      status: "SCHEDULED",
-      OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
-    },
-    include: { homeTeam: true, awayTeam: true },
-    orderBy: { startTime: "asc" },
-    take: 5,
-  });
-
-  // 관련 기사
-  const articles = await prisma.article.findMany({
-    where: {
-      status: "PUBLISHED",
-      league: team.league,
-      OR: [
-        { match: { homeTeamId: teamId } },
-        { match: { awayTeamId: teamId } },
-      ],
-    },
-    orderBy: { publishedAt: "desc" },
-    take: 9,
-  });
 
   // 부상자 + 핵심 선수 (api-football Pro, 축구 리그만)
   let keyPlayers: Awaited<ReturnType<typeof getTeamKeyPlayers>> = [];
@@ -265,8 +251,8 @@ export default async function TeamPage({ params }: Props) {
   const koName = (id: number, en: string) =>
     playerNameResolved.get(id)?.ko ?? toKoreanPlayerName(en);
 
-  // TheSports 선수단 (PlayerMarketValue, ts player id) — 이름 클릭 → /transfers 상세
-  const tsTeamRows = await prisma.teamSourceId.findMany({ where: { source: "thesports", teamId: team.id }, select: { externalId: true } });
+  // TheSports 선수단 (PlayerMarketValue, ts player id) — 이름 클릭 → /transfers 상세.
+  // tsTeamRows 는 위 Promise.all 에서 미리 로드됨.
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
   const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
