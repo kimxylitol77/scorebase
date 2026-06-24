@@ -72,6 +72,12 @@ const QID_PIN: Record<string, string> = {
   n54qllhxl41yqvy: "Q61598452",  // 모건 로저스(아스톤 빌라·잉글랜드) — searchQid 가 웨일스 여자선수(Q98087876) 오매칭
   k82rekho9k97rep: "Q106778648", // 앨릭스 스콧(본머스·잉글랜드, 2003년생) — searchQid 가 여자 레전드 앨릭스 스콧(Q434354) 오매칭
 };
+
+// 국적 수동 교정 — Wikidata P1532[0]/P27 이 시니어 대표팀과 어긋나는 케이스(이중국적·귀화·유스 타국 차출).
+// 재실행에도 이 값이 Wikidata 산출 country 를 덮어쓴다. en = ts-countries.json 국기 매칭용.
+const COUNTRY_FIX: Record<string, { ko: string; en: string }> = {
+  "3glrw7hj7vjoqdy": { ko: "독일", en: "Germany" }, // 무시알라 — P1532[0]=England(유스), 시니어 대표는 독일
+};
 const yr = (t?: string): number | null => (t ? parseInt(t.slice(1, 5), 10) || null : null);
 const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
 const isNT = (en?: string | null, ko?: string | null) => /national/i.test(en || "") || /국가\s*대표/.test(ko || "");
@@ -262,6 +268,9 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
       const ko = c?.ko || c?.en;
       if (ko) { o.country = ko; const f = flagOf(c?.en || null); if (f) o.flag = f; countryFix++; }
     }
+    // 국적 수동 교정 — Wikidata 산출을 덮어씀 (시니어 대표팀 기준)
+    const cf = COUNTRY_FIX[id];
+    if (cf) { o.country = cf.ko; const f = flagOf(cf.en); if (f) o.flag = f; }
     // P413 주 포지션 — 첫 매핑 가능 라벨 (preferred rank 우선 정렬됨)
     for (const pq of e.p413) {
       const code = posCodeOfLabel(labels.get(pq)?.en ?? null);
