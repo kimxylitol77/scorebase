@@ -26,7 +26,6 @@ const SUBPAGES: Record<string, { label: string; href: string; dyn?: boolean }[]>
   "/standings": [{ label: "리그별 순위표", href: "/standings/EPL", dyn: true }],
   "/transfers": [{ label: "선수 개인 페이지", href: "/transfers", dyn: true }],
   "/injuries": [{ label: "리그별 부상자", href: "/injuries/EPL", dyn: true }],
-  "/experts": [{ label: "전문가 프로필", href: "/experts", dyn: true }],
   "/blog": [{ label: "블로그 글 상세", href: "/blog", dyn: true }],
   "/notices": [{ label: "공지 상세", href: "/notices", dyn: true }],
 };
