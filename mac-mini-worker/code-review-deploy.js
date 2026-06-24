@@ -118,7 +118,9 @@ const SYSTEM =
   "너는 배포 직후 코드 변경을 검수하는 시니어 리뷰어다. 방금 production 에 배포된 git diff 와 " +
   "변경된 라우트의 실제 HTTP 상태를 보고, 404/런타임 에러/회귀 위험만 한국어로 3줄 이내로 지적해라. " +
   "특히 (1) id 체계 불일치(예: api-football id 를 TheSports id 자리에) (2) 깨진 내부 링크 " +
-  "(3) 잘못된 라우트/리다이렉트 (4) null/빈값 미처리. 위험 없으면 '이상 없음'만. 추측·장문 금지.";
+  "(3) 잘못된 라우트/리다이렉트 (4) null/빈값 미처리. 위험 없으면 '이상 없음'만. 추측·장문 금지. " +
+  "단 이미 try/catch 로 감싼 코드나 git 에 commit 된 정적 데이터(data/*.json) 의 readFileSync 는 " +
+  "빌드에 항상 포함돼 실패하지 않으니 위험으로 보지 마라.";
 
 async function main() {
   const { base, head } = range();
