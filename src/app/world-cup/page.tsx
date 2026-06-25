@@ -13,7 +13,7 @@ import WcTabBar from "@/components/world-cup/WcTabBar";
 import WcXgList from "@/components/world-cup/WcXgList";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
-import { getWcGroupStandings } from "@/lib/sports/world-cup-standings";
+import { getWcGroupStandings, getWcThirdPlaceRace } from "@/lib/sports/world-cup-standings";
 
 export const revalidate = 600;
 
@@ -83,6 +83,9 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
 
   // 조별리그 실제 순위 — 조별 탭만 (DB Match FINISHED 집계: 승무패·득실·승점)
   const groupStandings = view === "groups" ? await getWcGroupStandings() : null;
+  // 조 3위 와일드카드 레이스 — 조별 탭만. 경기 기록이 하나라도 있을 때만 노출(개막 전엔 무의미).
+  const thirdsRaw = view === "groups" ? await getWcThirdPlaceRace() : [];
+  const wcThirds = thirdsRaw.some((t) => t.played > 0) ? thirdsRaw : [];
 
   type MatchRow = (typeof recentOrLive)[number];
   const matchLine = (m: MatchRow) => {
@@ -349,6 +352,55 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
               );
             })}
           </div>
+
+          {/* 조 3위 와일드카드 레이스 — 48개국 신규 룰: 12개 조 3위 중 상위 8팀 32강 진출 */}
+          {wcThirds.length > 0 && (
+            <div className={card}>
+              <h2 className="text-lg font-bold tracking-tight">조 3위 와일드카드 레이스</h2>
+              <p className="mt-1 mb-3 text-xs text-neutral-500 break-keep">12개 조 3위 중 상위 8팀이 32강 진출 — 승점 → 득실 → 다득점 순, 경기 종료 시 자동 갱신</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[420px]">
+                  <thead>
+                    <tr className="text-[11px] text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+                      <th className="py-2 pr-2 text-left font-medium w-8">#</th>
+                      <th className="py-2 px-2 text-left font-medium">팀</th>
+                      <th className="py-2 px-2 text-center font-medium w-10">조</th>
+                      <th className="py-2 px-2 text-center font-medium w-12">경기</th>
+                      <th className="py-2 px-2 text-center font-medium w-12">승점</th>
+                      <th className="py-2 px-2 text-center font-medium w-12">득실</th>
+                      <th className="py-2 pl-2 text-center font-medium w-12">득점</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                    {wcThirds.map((t, i) => {
+                      const team = byName.get(t.team);
+                      const isKorea = t.team === "South Korea";
+                      const nameCell = (
+                        <>
+                          {fifaFlag(t.team)} {nameKo(t.team)}
+                          {i < 8 && <span className="ml-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">진출권</span>}
+                        </>
+                      );
+                      return (
+                        <tr key={t.team} className={`${i < 8 ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "opacity-70"} ${i === 7 ? "border-b-2 !border-emerald-500/60" : ""} ${isKorea ? "font-bold" : ""}`}>
+                          <td className="py-2 pr-2 tabular-nums text-neutral-400 font-bold">{i + 1}</td>
+                          <td className="py-2 px-2 font-medium">
+                            {team ? <Link href={`/national-teams/${team.id}`} className="hover:underline" prefetch={false}>{nameCell}</Link> : nameCell}
+                          </td>
+                          <td className="py-2 px-2 text-center text-neutral-500">{t.group}</td>
+                          <td className="py-2 px-2 text-center tabular-nums text-neutral-500">{t.played}</td>
+                          <td className="py-2 px-2 text-center tabular-nums font-bold">{t.pts}</td>
+                          <td className="py-2 px-2 text-center tabular-nums">{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
+                          <td className="py-2 pl-2 text-center tabular-nums">{t.gf}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-[11px] text-neutral-400">초록 8팀이 현재 진출권 — 동률 시 FIFA 공식 기준(페어플레이 점수·추첨)은 미반영</p>
+            </div>
+          )}
         </section>
       )}
 
