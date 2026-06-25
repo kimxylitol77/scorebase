@@ -26,7 +26,6 @@ import { simulatePlayoff } from "@/lib/predict/playoff-mc";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import LeagueLeaderBoard, { type LeaderRow } from "@/components/LeagueLeaderBoard";
-import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import { getWcThirdPlaceRace, type WcGroupTeamRow } from "@/lib/sports/world-cup-standings";
 import { getBaseballH2H, type H2HMatrix } from "@/lib/sports/baseball-h2h";
 import WcChampionTrendChart, { type WcTrendPoint } from "@/components/charts/WcChampionTrendChart";
@@ -39,7 +38,7 @@ import KeyMatchPreview from "@/components/predictions/KeyMatchPreview";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
 import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
-import { CircleDot, ClipboardList, BookOpen } from "lucide-react";
+import { CircleDot, BookOpen } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -598,15 +597,9 @@ export default async function LeaguePredictions({ params }: Props) {
     hasTsLeader = (leaderRowsByCategory.GOAL?.length ?? 0) > 0;
   }
 
-  // 월드컵 — 선수 랭킹(코어) + 이색 랭킹. /world-cup 허브의 "선수 랭킹" 카드가 이 페이지
-  // anchor(#player-ranking)로 진입 → 예측·시뮬·랭킹을 한 페이지에 통합.
-  let wcRowsByCategory: Record<string, LeaderRow[]> | null = null;
-  let wcFunRows: Record<string, LeaderRow[]> | null = null;
+  // 월드컵 — 조 3위 와일드카드 레이스. 선수 랭킹·이색 랭킹·조별 순위표는 /world-cup 허브와 중복이라 여기선 제외.
   let wcThirds: WcGroupTeamRow[] = [];
   if (isWorldCup) {
-    const allRows = buildWcLeaderRows(await getWorldCupPlayerStats());
-    wcRowsByCategory = pickCats(allRows, WC_CORE_CATS);
-    wcFunRows = pickCats(allRows, WC_FUN_CATS);
     // 조 3위 와일드카드 레이스 — 경기 기록이 하나라도 있어야 의미
     const thirds = await getWcThirdPlaceRace();
     if (thirds.some((t) => t.played > 0)) wcThirds = thirds;
@@ -748,20 +741,6 @@ export default async function LeaguePredictions({ params }: Props) {
           </Link>
         )}
 
-        {/* 조별 순위표 진입 — 개막 후 실제 결과는 standings 에서 (시뮬 확률과 상호 보완) */}
-        {isWorldCup && (
-          <Link
-            href="/standings/WORLD_CUP"
-            className="flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white px-5 py-4 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-amber-400 dark:bg-white/[0.04] dark:shadow-none dark:hover:border-amber-500 dark:hover:bg-white/[0.06]"
-          >
-            <div>
-              <p className="flex items-center gap-1.5 font-bold break-keep"><ClipboardList className="h-4 w-4 shrink-0 text-amber-500" aria-hidden /> 조별 순위표 (실제 결과)</p>
-              <p className="text-xs text-neutral-500 mt-0.5 break-keep">A~L조 승점·득실 — 경기 종료 시 자동 갱신</p>
-            </div>
-            <span className="text-amber-500 font-bold">→</span>
-          </Link>
-        )}
-
         {/* 조 3위 와일드카드 레이스 — 48개국 체제 신규 룰: 12개 조 3위 중 상위 8팀 32강 진출 */}
         {isWorldCup && wcThirds.length > 0 && (
           <section>
@@ -806,38 +785,6 @@ export default async function LeaguePredictions({ params }: Props) {
                 초록 8팀이 현재 진출권 — 동률 시 FIFA 공식 기준(페어플레이 점수·추첨)은 미반영
               </div>
             </div>
-          </section>
-        )}
-
-        {/* 월드컵 선수 랭킹 — 득점왕·도움·평점·카드. /world-cup 허브 "선수 랭킹" 카드의 진입점(anchor) */}
-        {isWorldCup && wcRowsByCategory && (
-          <section id="player-ranking" className="scroll-mt-20">
-            <Heading
-              title="선수 랭킹"
-              subtitle="득점왕·도움·평점·카드 — 본선 전 경기 누적, 라이브 중에도 실시간 갱신"
-            />
-            <LeagueLeaderBoard
-              league="WORLD_CUP"
-              season="2026 본선"
-              rowsByCategory={wcRowsByCategory}
-              footer="2026 본선 누적 · 라이브 경기 약 2분 간격 실시간 갱신"
-            />
-          </section>
-        )}
-
-        {/* 이색 랭킹 — 가성비·파울유도·빅찬스미스·골대·제공권지배율·드리블성공률·결정력 (여기서만 보는 기록) */}
-        {isWorldCup && wcFunRows && (
-          <section>
-            <Heading
-              title="이색 랭킹"
-              subtitle="가성비(평점÷몸값)·파울유도·빅찬스미스·골대·제공권 지배율·드리블 성공률·결정력(골÷슛) — 데이터로만 보이는 기록들"
-            />
-            <LeagueLeaderBoard
-              league="WORLD_CUP"
-              season="2026 본선"
-              rowsByCategory={wcFunRows}
-              footer="2026 본선 누적 · 라이브 경기 약 2분 간격 실시간 갱신"
-            />
           </section>
         )}
 
