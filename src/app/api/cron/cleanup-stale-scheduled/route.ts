@@ -10,6 +10,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
 import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { League } from "@/lib/sports/types";
@@ -177,12 +178,15 @@ export async function GET(req: NextRequest) {
   });
   let liveFinished = 0;
   let livePostponed = 0;
+  const livePostponedIds: number[] = [];
   for (const m of staleLive) {
     const hasScore = m.homeScore != null && m.awayScore != null;
     const newStatus: "FINISHED" | "POSTPONED" = hasScore ? "FINISHED" : "POSTPONED";
     await prisma.match.update({ where: { id: m.id }, data: { status: newStatus } });
-    if (newStatus === "FINISHED") liveFinished++; else livePostponed++;
+    if (newStatus === "FINISHED") liveFinished++; else { livePostponed++; livePostponedIds.push(m.id); }
   }
+  // 무경기로 POSTPONED 된 매치의 PUBLISHED PREVIEW 글을 REJECTED 로 내림 (사이트 노출 차단).
+  let rejectedPreviews = await rejectPreviewsForPostponed(livePostponedIds);
 
   // 1b) future_live 매치 자동 롤백 — startTime 이 미래 (now + 1h+) 인데 status=LIVE.
   // 2026-05-27 NPB #328161 (5/31 시작) 발견. TheSports status_id=0/1 LIVE 잘못 매핑 잔재.
@@ -310,10 +314,10 @@ export async function GET(req: NextRequest) {
         key: "live-summary",
         message: `stale LIVE ${staleLive.length}건 정리 (FINISHED ${liveFinished} / POSTPONED ${livePostponed})`,
         // sample 은 메인 경로(아래 summary)와 동일 스키마 유지 — /admin/health 가 startTime 으로 렌더
-        metadata: { liveFinished, livePostponed, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, source: SOURCE_HINT[m.league] ?? "unknown", teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`, startTime: m.startTime.toISOString() })) },
+        metadata: { liveFinished, livePostponed, rejectedPreviews, sample: staleLive.slice(0, 5).map(m => ({ id: m.id, league: m.league, source: SOURCE_HINT[m.league] ?? "unknown", teams: `${m.awayTeam.name} vs ${m.homeTeam.name}`, startTime: m.startTime.toISOString() })) },
       },
     });
-    return NextResponse.json({ ok: true, marked: 0, liveFinished, livePostponed });
+    return NextResponse.json({ ok: true, marked: 0, liveFinished, livePostponed, rejectedPreviews });
   }
 
   if (toPostpone.length > 0) {
@@ -321,6 +325,7 @@ export async function GET(req: NextRequest) {
       where: { id: { in: toPostpone.map((m) => m.id) } },
       data: { status: "POSTPONED" },
     });
+    rejectedPreviews += await rejectPreviewsForPostponed(toPostpone.map((m) => m.id));
   }
 
   // 리그별 카운트 (POSTPONED 처리된 매치만) + sample + source hint
@@ -463,6 +468,7 @@ export async function GET(req: NextRequest) {
     verifiedFinished: verifiedFinished.length,
     verifiedLive: verifiedLive.length,
     verifyKept: verifyKept.length,
+    rejectedPreviews,
     byLeague,
     diagnosis,
     sample: toPostpone.slice(0, 5).map((m) => ({

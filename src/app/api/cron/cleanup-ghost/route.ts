@@ -13,6 +13,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -135,9 +136,13 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // ghost 로 POSTPONED 된 매치의 PUBLISHED PREVIEW 글을 REJECTED 로 내림 (사이트 노출 차단).
+  const rejectedPreviews = await rejectPreviewsForPostponed(cleaned.map((m) => m.id));
+
   return NextResponse.json({
     checked: slim.length,
     cleaned: cleaned.length,
+    rejectedPreviews,
     cleanedMatches: cleaned.map((m) => ({
       id: m.id,
       league: m.league,

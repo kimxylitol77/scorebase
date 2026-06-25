@@ -16,6 +16,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
 import {
   BASEBALL_LEAGUES,
   HOCKEY_LEAGUES,
@@ -234,6 +235,9 @@ export async function POST(req: NextRequest) {
 
   const changed = finished.length + postponed.length;
 
+  // POSTPONED 된 매치의 PUBLISHED PREVIEW 글을 REJECTED 로 내림 (사이트 노출 차단).
+  const rejectedPreviews = await rejectPreviewsForPostponed(postponed.map((m) => m.id));
+
   // HealthCheck row — /admin/health (category=stale-ts-verify) 노출.
   await prisma.healthCheck.create({
     data: {
@@ -290,5 +294,6 @@ export async function POST(req: NextRequest) {
     postponed: postponed.length,
     kept: kept.length,
     skipped,
+    rejectedPreviews,
   });
 }
