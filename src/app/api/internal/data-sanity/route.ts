@@ -352,7 +352,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 4. cache_inner_inconsistent — 야구 LIVE 의 cache.detailLive.score 내부 정합성.
-    // p1~p12 (각 이닝 [away, home]) 합산이 ft 와 다르면 TheSports push 일부 누락 의심
+    // p1~p12 (각 이닝 [away,home]) + ot (연장 합계) 합산이 ft 와 다르면 TheSports push 일부 누락 의심
     // (예: 1점차 매치인데 한 이닝 push 빠져서 sum 이 ft 보다 작음).
     // sumAway = sum(p_i[0]), sumHome = sum(p_i[1]). ft=[away, home] vs [sumAway, sumHome] 비교.
     const fullScore = scoreArr[3] as { [k: string]: unknown } | undefined;
@@ -369,6 +369,16 @@ export async function GET(req: NextRequest) {
           if (Number.isFinite(a)) sumAway += a;
           if (Number.isFinite(b)) sumHome += b;
         }
+      }
+      // 연장 득점은 TheSports 가 p10+ 대신 ot=[away,home] 에 뭉쳐 넣는다 (야구 한정) →
+      // ot 를 빼면 연장 간 경기마다 sum<ft 로 오탐. 합산 포함 (실측 FINISHED 120건 중
+      // ot!=0 인 10건 전부 p합+ot==ft, 진짜 불일치 0건 — LMB #590860 등).
+      const ot = fullScore["ot"];
+      if (Array.isArray(ot) && ot.length === 2) {
+        const oa = parseInt(String(ot[0]), 10);
+        const ob = parseInt(String(ot[1]), 10);
+        if (Number.isFinite(oa)) sumAway += oa;
+        if (Number.isFinite(ob)) sumHome += ob;
       }
       const ftAway = parseInt(ft[0], 10);
       const ftHome = parseInt(ft[1], 10);
