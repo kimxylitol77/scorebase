@@ -113,8 +113,17 @@ async function checkMatchCounts(now: Date): Promise<HealthFinding[]> {
       else progress = 1; // 6~7월 = 비시즌
     }
     const expected = Math.round(progress * cfg.total);
+    // 현재 진행 시즌 시작일 이후만 카운트 — 과거 시즌(작년) FINISHED 누적이 섞여 과대
+    // 판정되던 false positive 방지 (예: MLB 2025+2026 합산 2443 → 2026 시즌만 1645).
+    const seasonStartYear =
+      cfg.startMonth <= cfg.endMonth
+        ? now.getUTCFullYear()
+        : m >= cfg.startMonth
+          ? now.getUTCFullYear()
+          : now.getUTCFullYear() - 1;
+    const seasonStart = new Date(Date.UTC(seasonStartYear, cfg.startMonth - 1, 1));
     const finished = await prisma.match.count({
-      where: { league: cfg.league, status: "FINISHED" },
+      where: { league: cfg.league, status: "FINISHED", startTime: { gte: seasonStart } },
     });
     // ±50% 또는 100경기 이상 차이면 경고.
     const tolerance = Math.max(100, cfg.total * 0.25);
@@ -204,7 +213,11 @@ async function checkScheduledFreshness(now: Date): Promise<HealthFinding[]> {
       if (lastFinished) {
         const lastM = lastFinished.startTime.getUTCMonth() + 1;
         const lastD = lastFinished.startTime.getUTCDate();
-        if (lastM === endM && lastD >= 15) continue; // 시즌 막 종료
+        // 농구/하키 파이널은 6월 초·중순 종료라 날짜 변동이 커서 15일 기준에 걸렸다
+        // (6/14 종료가 하루 차이로 시즌중 오판). NBA/NHL 은 endMonth 안에 마지막 경기가
+        // 있으면 시즌 종료로 간주. 그 외 리그는 기존대로 15일 이후 종료만 막바지로 본다.
+        const finalsSport = league === "NBA" || league === "NHL";
+        if (lastM === endM && (finalsSport || lastD >= 15)) continue; // 시즌 막 종료
       }
     }
 
