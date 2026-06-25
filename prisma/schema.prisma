@@ -891,6 +891,9 @@ model DreamTeam {
   draws     Int      @default(0)
   losses    Int      @default(0)
   matchLog  Json     @default("[]") // 최근 경기 기록 [{opp, my, op, outcome, ts}] 최신순
+  seasonNo      Int  @default(1) // 현재 시즌 번호
+  seasonGames   Json @default("[]") // 이번 시즌 내 경기 [{botId, home, my, op, outcome, ts}]
+  seasonHistory Json @default("[]") // 지난 시즌 요약 [{seasonNo, rank, total, champion, w, d, l}]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

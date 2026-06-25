@@ -9,7 +9,6 @@ import { simulateMatch } from "@/lib/dream-team/simulate";
 import { matchCommentary } from "@/lib/dream-team/commentary";
 import { updateRating, matchReward } from "@/lib/dream-team/rating";
 import { grownOvr, matchXp } from "@/lib/dream-team/grow";
-import { nextTier } from "@/lib/dream-team/tiers";
 import { tacticNote, teamStrength, type TeamPower } from "@/lib/dream-team/tactics";
 import type { PlayState } from "../play/actions";
 
@@ -61,9 +60,7 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
   const xpGain = matchXp(result.outcome);
   const newMyPlayers = myPlayers.map((p) => ({ ...p, xp: (p.xp ?? 0) + xpGain }));
   const pointsAfter = me.points + reward;
-  const nt = nextTier(me.tier);
-  const promoted = !!(nt && pointsAfter >= nt.unlock);
-  const newTier = promoted && nt ? nt.key : me.tier;
+  // 승급은 봇 대전 시즌 정산에서만 — 유저 대전은 레이팅·자금·육성만
 
   // 상대 — 레이팅·전적만 (반대 결과)
   const oppOutcome = result.outcome === "win" ? "loss" : result.outcome === "loss" ? "win" : "draw";
@@ -78,7 +75,6 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
       data: {
         rating: myRatingAfter,
         points: pointsAfter,
-        tier: newTier,
         players: newMyPlayers,
         matchLog: newLog,
         wins: result.outcome === "win" ? { increment: 1 } : undefined,
@@ -117,8 +113,8 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
       tacticNote: tacticNote(me.mentality, opp.mentality, result.outcome, result.myScore + result.oppScore),
       xpGain,
       pointsAfter,
-      promoted,
-      newTierName: promoted && nt ? nt.name : null,
+      promoted: false,
+      newTierName: null,
     },
   };
 }
