@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Star, Info, ChevronRight, Radio, Globe, Newspaper, ListOrdered } from "lucide-react";
+import { Star, Info, ChevronRight, Radio, Globe, Newspaper, ListOrdered, Trophy } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { WORLD_CUP_GROUPS } from "@/lib/predict/world-cup-elos";
@@ -124,6 +124,7 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { href: "/scores", label: "라이브 스코어", Icon: Radio },
+            { href: "/predictions/WORLD_CUP", label: "우승 시뮬레이션", Icon: Trophy },
             { href: "/national-teams", label: "출전국 48개국", Icon: Globe },
             { href: "/leagues/WORLD_CUP", label: "분석 글", Icon: Newspaper },
             { href: "/predictions/fifa-ranking", label: "FIFA 랭킹", Icon: ListOrdered },
