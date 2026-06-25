@@ -424,7 +424,15 @@ export default async function GenericLivePage({ params }: Props) {
     let lineupNode: ReactNode = null;
     let goalDistNode: ReactNode = null;
     let h2hNode: ReactNode = null;
-    if (match.theSportsCache) {
+    // 라이브인데 cache.fetchedAt 이 경기 시작 전이면 다른 경기 오연결/미갱신 → 틀린 데이터
+    // (6/17 한국 경기 cache 가 6/25 남아공 매치에 매핑된 케이스). 라인업·통계 등 ts 카드 전부
+    // 숨김 (교체는 /api/live/match route 가 af 로 폴백). 정상 라이브는 fetchedAt > startTime.
+    const tsCacheReliable = !(
+      match.status === "LIVE" &&
+      match.theSportsCache != null &&
+      match.theSportsCache.fetchedAt < match.startTime
+    );
+    if (match.theSportsCache && tsCacheReliable) {
       const cache = match.theSportsCache;
       const analysis = cache.analysis as {
         goal_distribution?: { home: unknown; away: unknown };

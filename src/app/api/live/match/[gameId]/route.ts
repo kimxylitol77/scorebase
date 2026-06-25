@@ -313,13 +313,20 @@ export async function GET(
       const { prisma: db } = await import("@/lib/db");
       const ourMatch = await db.match.findFirst({
         where: { externalId: gameId, league },
-        select: { id: true, referee: true },
+        select: {
+          id: true,
+          referee: true,
+          startTime: true,
+          status: true,
+          homeTeam: { select: { externalId: true } },
+          awayTeam: { select: { externalId: true } },
+        },
       });
       if (ourMatch) {
         if (ourMatch.referee) out.referee = ourMatch.referee;
         const cache = await db.theSportsMatchCache.findUnique({
           where: { matchId: ourMatch.id },
-          select: { detailLive: true },
+          select: { detailLive: true, fetchedAt: true },
         });
         const dl = cache?.detailLive as { incidents?: unknown } | null;
         if (dl?.incidents) {
@@ -345,6 +352,31 @@ export async function GET(
           }
           const events = tsIncidentsToEvents(dl.incidents, nameById);
           if (events.length > 0) out.soccerEvents = events;
+        }
+        // af 폴백 — 라이브인데 ts cache 가 경기 시작 전 데이터(다른 경기 오연결/미갱신)거나
+        // 교체 이벤트가 비면 api-football /fixtures/events 로 보강. ts cache 가 엉뚱한 경기에
+        // 매핑된 케이스(WC South Africa 매치에 6/17 한국 경기 cache 오연결) 방어.
+        const tsStale = !cache || cache.fetchedAt < ourMatch.startTime;
+        const homeExt = ourMatch.homeTeam.externalId;
+        const awayExt = ourMatch.awayTeam.externalId;
+        if (
+          (ourMatch.status === "LIVE" || ourMatch.status === "FINISHED") &&
+          (tsStale || !out.soccerEvents?.length) &&
+          /^\d+$/.test(gameId) &&
+          homeExt &&
+          awayExt
+        ) {
+          try {
+            const { fetchSoccerEventsByFixture } = await import("@/lib/live/soccer-events");
+            const afEvents = await fetchSoccerEventsByFixture(
+              parseInt(gameId, 10),
+              parseInt(homeExt, 10),
+              parseInt(awayExt, 10),
+            );
+            if (afEvents?.length) out.soccerEvents = afEvents;
+          } catch (e) {
+            console.warn("[live/match] af events 폴백 fail:", (e as Error).message);
+          }
         }
       }
     } catch (e) {

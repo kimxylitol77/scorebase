@@ -112,3 +112,14 @@ export async function fetchSoccerEvents(
   if (!info) return null;
   return fetchEventsForFixture(info);
 }
+
+// fixture id 를 이미 아는 라이브 상세용 — resolveFixture(팀명 매칭) 우회 직접 호출.
+// externalId 가 af fixture id 인 매치에서 ts cache 가 오연결/stale 일 때 교체 폴백.
+export async function fetchSoccerEventsByFixture(
+  fixtureId: number,
+  homeTeamId: number,
+  awayTeamId: number,
+): Promise<SoccerEvent[] | null> {
+  if (!Number.isFinite(fixtureId) || !Number.isFinite(homeTeamId)) return null;
+  return fetchEventsForFixture({ id: fixtureId, homeTeamId, awayTeamId });
+}
