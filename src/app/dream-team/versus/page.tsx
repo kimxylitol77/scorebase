@@ -55,6 +55,7 @@ export default async function VersusPage() {
       rating: o.rating,
       tier: TIERS[o.tier]?.name ?? o.tier,
       ovr: squadOvr(o.players as unknown as SquadPlayer[]),
+      mentality: o.mentality,
     }));
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 // 드림팀 경기 결과 카드 — 봇·유저 대전 공용 (스코어·예측·중계·레이팅·육성·승급)
 import type { PlayResult } from "./play/actions";
+import { MENTALITIES } from "@/lib/dream-team/tactics";
 
 const pct = (n: number) => Math.round(n * 100);
 
@@ -14,6 +15,7 @@ export default function MatchResultCard({ r }: { r: PlayResult }) {
         <div className="flex-1 text-center">
           <div className="text-sm font-medium text-neutral-900 dark:text-white">{r.myName}</div>
           <div className="text-xs text-neutral-500">OVR {r.myOvr}</div>
+          <div className="text-[11px] text-neutral-400">{MENTALITIES[r.myMentality]?.name ?? "균형"} 전술</div>
         </div>
         <div className="px-3 text-center">
           <div className="text-3xl font-semibold leading-none text-neutral-900 dark:text-white">
@@ -26,12 +28,14 @@ export default function MatchResultCard({ r }: { r: PlayResult }) {
         <div className="flex-1 text-center">
           <div className="text-sm font-medium text-neutral-900 dark:text-white">{r.oppName}</div>
           <div className="text-xs text-neutral-500">OVR {r.oppOvr}</div>
+          <div className="text-[11px] text-neutral-400">{MENTALITIES[r.oppMentality]?.name ?? "균형"} 전술</div>
         </div>
       </div>
 
       <p className="mt-4 rounded-lg bg-neutral-50 px-4 py-3 text-sm leading-relaxed text-neutral-700 dark:bg-white/[0.03] dark:text-neutral-200" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>
         {r.commentary}
       </p>
+      {r.tacticNote && <p className="mt-2 px-1 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">{r.tacticNote}</p>}
 
       <div className="mt-4">
         <div className="mb-1.5 flex justify-between text-xs text-neutral-500 dark:text-neutral-400">

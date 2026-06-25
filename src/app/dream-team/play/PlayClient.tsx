@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { playMatch, type PlayState } from "./actions";
 import type { BotTeam } from "@/lib/dream-team/bots";
+import { MENTALITIES } from "@/lib/dream-team/tactics";
 import MatchResultCard from "../MatchResultCard";
 
 interface Props {
@@ -55,7 +56,7 @@ export default function PlayClient({ teamName, myOvr, rating, record, points, bo
             >
               <div>
                 <div className="text-sm font-medium text-neutral-900 dark:text-white">{b.name}</div>
-                <div className="text-xs text-neutral-500 dark:text-neutral-400">팀 OVR {b.avgOvr}</div>
+                <div className="text-xs text-neutral-500 dark:text-neutral-400">팀 OVR {b.avgOvr} · {MENTALITIES[b.mentality]?.name ?? "균형"} 전술</div>
               </div>
               <span className="flex-shrink-0 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-medium text-white">{pending ? "경기 중…" : "경기"}</span>
             </button>

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { playUserMatch } from "./actions";
 import type { PlayState } from "../play/actions";
+import { MENTALITIES } from "@/lib/dream-team/tactics";
 import MatchResultCard from "../MatchResultCard";
 
 interface Opp {
@@ -12,6 +13,7 @@ interface Opp {
   rating: number;
   tier: string;
   ovr: number;
+  mentality: string;
 }
 interface Props {
   teamName: string;
@@ -61,7 +63,7 @@ export default function VersusClient({ teamName, myOvr, rating, opponents, ready
               >
                 <div>
                   <div className="text-sm font-medium text-neutral-900 dark:text-white">{o.name}</div>
-                  <div className="text-xs text-neutral-500 dark:text-neutral-400">{o.nickname} · {o.tier} · 레이팅 {o.rating}</div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">{o.nickname} · {o.tier} · 레이팅 {o.rating} · {MENTALITIES[o.mentality]?.name ?? "균형"} 전술</div>
                 </div>
                 <span className="flex-shrink-0 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-medium text-white">{pending ? "경기 중…" : `OVR ${o.ovr} 도전`}</span>
               </button>

@@ -27,7 +27,7 @@ export default async function DreamTeamPage() {
   });
   const topTeams = topRaw.map((t) => ({ id: t.id, name: t.name, nickname: t.user.nickname, rating: t.rating, tier: t.tier }));
   const initial = existing
-    ? { name: existing.name, formation: existing.formation, players: existing.players as unknown }
+    ? { name: existing.name, formation: existing.formation, mentality: existing.mentality, players: existing.players as unknown }
     : null;
 
   return (

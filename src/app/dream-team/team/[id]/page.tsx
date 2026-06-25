@@ -7,6 +7,7 @@ import { getDreamPlayers } from "@/lib/dream-team/pool";
 import { teamAvgOvr } from "@/lib/dream-team/ovr-to-elo";
 import { grownOvr } from "@/lib/dream-team/grow";
 import { TIERS } from "@/lib/dream-team/tiers";
+import { ROLES } from "@/lib/dream-team/tactics";
 import AmbientGlow from "@/components/AmbientGlow";
 import ChallengeButton from "./ChallengeButton";
 import ShareButton from "../../ShareButton";
@@ -17,6 +18,7 @@ interface SquadPlayer {
   slot: string;
   playerId: string;
   xp?: number;
+  role?: string;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -58,8 +60,9 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
   const players = (team.players as unknown as SquadPlayer[]) ?? [];
   const pool = getDreamPlayers(players.map((p) => p.playerId));
   const xpById = new Map(players.map((p) => [p.playerId, p.xp ?? 0]));
+  const roleById = new Map(players.map((p) => [p.playerId, p.role ?? "balanced"]));
 
-  const squad = pool.map((dp) => ({ ...dp, cur: grownOvr(dp.ovr, dp.potential, xpById.get(dp.id) ?? 0) }));
+  const squad = pool.map((dp) => ({ ...dp, cur: grownOvr(dp.ovr, dp.potential, xpById.get(dp.id) ?? 0), role: roleById.get(dp.id) ?? "balanced" }));
   const teamOvr = squad.length ? Math.round(teamAvgOvr(squad.map((s) => s.cur))) : 0;
   const byPos: Record<string, typeof squad> = { GK: [], DF: [], MF: [], FW: [] };
   squad.forEach((s) => byPos[s.pos]?.push(s));
@@ -116,7 +119,14 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-xs font-medium text-neutral-900 dark:text-white">{s.name}</div>
+                            <div className="flex items-center gap-1">
+                              <span className="truncate text-xs font-medium text-neutral-900 dark:text-white">{s.name}</span>
+                              {s.pos !== "GK" && s.role !== "balanced" && (
+                                <span className={`flex-shrink-0 rounded px-1 text-[10px] font-medium ${s.role === "attack" ? "bg-rose-500/15 text-rose-600 dark:text-rose-400" : "bg-sky-500/15 text-sky-600 dark:text-sky-400"}`}>
+                                  {ROLES[s.role]?.short}
+                                </span>
+                              )}
+                            </div>
                             <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
                               OVR {s.cur}
                               {s.cur > s.ovr ? ` (+${s.cur - s.ovr})` : ""}

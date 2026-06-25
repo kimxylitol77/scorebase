@@ -1,6 +1,7 @@
 "use client";
-// 드림팀 선수 능력치 카드 — 클릭한 선수의 OVR·잠재력·몸값·7축 레이더 + 영입/제거
+// 드림팀 선수 능력치 카드 — 클릭한 선수의 OVR·잠재력·몸값·7축 레이더 + 역할 + 영입/제거
 import type { DreamPlayer } from "@/lib/dream-team/pool";
+import { ROLES, ROLE_ORDER } from "@/lib/dream-team/tactics";
 
 interface Props {
   player: DreamPlayer | null;
@@ -8,9 +9,12 @@ interface Props {
   affordable: boolean;
   onPick: () => void;
   onRemove: () => void;
+  role?: string | null;
+  onRoleChange?: (role: string) => void;
+  showRole?: boolean;
 }
 
-export default function PlayerStatCard({ player, mode, affordable, onPick, onRemove }: Props) {
+export default function PlayerStatCard({ player, mode, affordable, onPick, onRemove, role, onRoleChange, showRole }: Props) {
   if (!player) {
     return (
       <div className="flex min-h-[120px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 p-5 text-center text-sm leading-relaxed text-neutral-400 dark:border-neutral-700">
@@ -99,10 +103,33 @@ export default function PlayerStatCard({ player, mode, affordable, onPick, onRem
           {affordable ? "이 선수 영입" : "예산 부족"}
         </button>
       )}
+      {mode === "placed" && showRole && player.pos !== "GK" && onRoleChange && (
+        <div className="mt-4">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">역할</span>
+            <span className="text-[11px] text-neutral-400">{ROLES[role ?? "balanced"]?.name === "공격형" ? "공격에 가담" : ROLES[role ?? "balanced"]?.name === "수비형" ? "수비에 집중" : "공수 균형"}</span>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {ROLE_ORDER.map((rkey) => {
+              const active = (role ?? "balanced") === rkey;
+              return (
+                <button
+                  key={rkey}
+                  type="button"
+                  onClick={() => onRoleChange(rkey)}
+                  className={`rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${active ? "bg-rose-600 text-white" : "border border-neutral-200 text-neutral-600 hover:border-rose-300 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-rose-500/40"}`}
+                >
+                  {ROLES[rkey].name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {mode === "placed" && (
         <button
           onClick={onRemove}
-          className="mt-4 w-full rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-white/[0.04]"
+          className="mt-3 w-full rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-white/[0.04]"
         >
           라인업에서 빼기
         </button>

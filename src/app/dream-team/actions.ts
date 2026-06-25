@@ -5,6 +5,7 @@ import { getCurrentUserId } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
 import { TIERS } from "@/lib/dream-team/tiers";
+import { MENTALITIES, ROLES } from "@/lib/dream-team/tactics";
 
 export interface SaveState {
   ok: boolean;
@@ -18,8 +19,10 @@ export async function saveDreamTeam(_prev: SaveState, formData: FormData): Promi
 
   const name = (String(formData.get("name") ?? "").trim() || "나의 드림팀").slice(0, 30);
   const formation = String(formData.get("formation") ?? "4-3-3");
+  const rawMentality = String(formData.get("mentality") ?? "balanced");
+  const mentality = MENTALITIES[rawMentality] ? rawMentality : "balanced";
 
-  let players: { slot: string; playerId: string }[];
+  let players: { slot: string; playerId: string; role?: string }[];
   try {
     players = JSON.parse(String(formData.get("players") ?? "[]"));
   } catch {
@@ -31,6 +34,9 @@ export async function saveDreamTeam(_prev: SaveState, formData: FormData): Promi
 
   const ids = players.map((p) => p.playerId);
   if (new Set(ids).size !== 11) return { ok: false, error: "중복 선수가 있습니다." };
+
+  // 역할 정규화 (클라이언트 조작·구버전 대비 — 유효하지 않으면 균형)
+  players = players.map((p) => ({ slot: p.slot, playerId: p.playerId, role: ROLES[p.role ?? ""] ? p.role : "balanced" }));
 
   // 서버에서 예산 재검증 (클라이언트 조작 방지) — 현재 티어 예산 기준
   const existing = await prisma.dreamTeam.findFirst({ where: { userId } });
@@ -45,12 +51,12 @@ export async function saveDreamTeam(_prev: SaveState, formData: FormData): Promi
     // 티어·포인트·레이팅은 승급으로 쌓인 진행도 → 편집 저장 시 보존(tier 미기록)
     await prisma.dreamTeam.update({
       where: { id: existing.id },
-      data: { name, formation, players },
+      data: { name, formation, mentality, players },
     });
     teamId = existing.id;
   } else {
     const created = await prisma.dreamTeam.create({
-      data: { userId, name, formation, players, tier: "amateur" },
+      data: { userId, name, formation, mentality, players, tier: "amateur" },
     });
     teamId = created.id;
   }

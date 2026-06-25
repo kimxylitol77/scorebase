@@ -4,13 +4,14 @@ import type { Prisma } from "@prisma/client";
 import { getCurrentUserId } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
-import { teamAvgOvr, teamOvrToElo } from "@/lib/dream-team/ovr-to-elo";
-import { simulateMatch, type MatchSimResult } from "@/lib/dream-team/simulate";
+import { teamOvrToElo } from "@/lib/dream-team/ovr-to-elo";
+import { simulateMatch } from "@/lib/dream-team/simulate";
 import { BOT_TEAMS } from "@/lib/dream-team/bots";
 import { matchCommentary } from "@/lib/dream-team/commentary";
 import { updateRating, matchReward } from "@/lib/dream-team/rating";
 import { grownOvr, matchXp } from "@/lib/dream-team/grow";
 import { nextTier } from "@/lib/dream-team/tiers";
+import { tacticNote, teamStrength } from "@/lib/dream-team/tactics";
 
 export interface PlayResult {
   myName: string;
@@ -25,6 +26,9 @@ export interface PlayResult {
   reward: number;
   myOvr: number;
   oppOvr: number;
+  myMentality: string; // 내 전술 멘탈리티
+  oppMentality: string; // 상대 전술 멘탈리티
+  tacticNote: string; // 전술 한 줄 코멘트
   xpGain: number; // 출전 선수가 받은 xp
   pointsAfter: number; // 누적 자금(€M)
   promoted: boolean; // 티어 승급 여부
@@ -41,6 +45,7 @@ interface SquadPlayer {
   slot: string;
   playerId: string;
   xp?: number;
+  role?: string;
 }
 
 export async function playMatch(_prev: PlayState, formData: FormData): Promise<PlayState> {
@@ -56,19 +61,18 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   const players = (team.players as unknown as SquadPlayer[]) ?? [];
   if (players.length !== 11) return { ok: false, error: "11명을 채운 뒤 경기할 수 있습니다." };
 
-  // 육성 반영 OVR(grownOvr)로 팀 전력 산출
+  // 육성 반영 OVR(grownOvr) + 역할로 팀 공격력·수비력 산출
   const pool = getDreamPlayers(players.map((p) => p.playerId));
   const byId = new Map(pool.map((p) => [p.id, p]));
-  const ovrs = players
-    .map((p) => {
-      const dp = byId.get(p.playerId);
-      return dp ? grownOvr(dp.ovr, dp.potential, p.xp ?? 0) : 0;
-    })
-    .filter((o) => o > 0);
-  const myOvr = Math.round(teamAvgOvr(ovrs));
+  const squad = players.flatMap((p) => {
+    const dp = byId.get(p.playerId);
+    return dp ? [{ ovr: grownOvr(dp.ovr, dp.potential, p.xp ?? 0), pos: dp.pos as string, role: p.role }] : [];
+  });
+  const myPower = teamStrength(squad);
+  const myOvr = Math.round((myPower.atk + myPower.def) / 2);
 
   const seed = (Date.now() % 2147483647) ^ (team.rating * 31);
-  const result: MatchSimResult = simulateMatch(myOvr, bot.avgOvr, seed);
+  const result = simulateMatch(myPower, { atk: bot.avgOvr, def: bot.avgOvr }, seed, team.mentality, bot.mentality);
 
   const oppElo = teamOvrToElo(bot.avgOvr);
   const ratingAfter = updateRating(team.rating, oppElo, result.outcome);
@@ -116,6 +120,9 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
       reward,
       myOvr,
       oppOvr: bot.avgOvr,
+      myMentality: team.mentality,
+      oppMentality: bot.mentality,
+      tacticNote: tacticNote(team.mentality, bot.mentality, result.outcome, result.myScore + result.oppScore),
       xpGain,
       pointsAfter,
       promoted,
