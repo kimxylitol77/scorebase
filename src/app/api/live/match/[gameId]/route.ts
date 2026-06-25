@@ -316,7 +316,6 @@ export async function GET(
         select: {
           id: true,
           referee: true,
-          startTime: true,
           status: true,
           homeTeam: { select: { externalId: true } },
           awayTeam: { select: { externalId: true } },
@@ -326,7 +325,7 @@ export async function GET(
         if (ourMatch.referee) out.referee = ourMatch.referee;
         const cache = await db.theSportsMatchCache.findUnique({
           where: { matchId: ourMatch.id },
-          select: { detailLive: true, fetchedAt: true },
+          select: { detailLive: true },
         });
         const dl = cache?.detailLive as { incidents?: unknown } | null;
         if (dl?.incidents) {
@@ -353,15 +352,14 @@ export async function GET(
           const events = tsIncidentsToEvents(dl.incidents, nameById);
           if (events.length > 0) out.soccerEvents = events;
         }
-        // af 폴백 — 라이브인데 ts cache 가 경기 시작 전 데이터(다른 경기 오연결/미갱신)거나
-        // 교체 이벤트가 비면 api-football /fixtures/events 로 보강. ts cache 가 엉뚱한 경기에
-        // 매핑된 케이스(WC South Africa 매치에 6/17 한국 경기 cache 오연결) 방어.
-        const tsStale = !cache || cache.fetchedAt < ourMatch.startTime;
+        // af 폴백 — ts 교체가 아예 없을 때(ts 미커버 경기)만 api-football /fixtures/events 보강.
+        // ts in/out 반대는 위 tsIncidentsToEvents swap 으로 교정되므로 ts 교체가 있으면 그대로
+        // 신뢰한다 (ts nameKo 한글명 유지 — af 폴백은 영문이라 가능하면 ts 우선).
         const homeExt = ourMatch.homeTeam.externalId;
         const awayExt = ourMatch.awayTeam.externalId;
         if (
           (ourMatch.status === "LIVE" || ourMatch.status === "FINISHED") &&
-          (tsStale || !out.soccerEvents?.length) &&
+          !out.soccerEvents?.length &&
           /^\d+$/.test(gameId) &&
           homeExt &&
           awayExt

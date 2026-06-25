@@ -1204,7 +1204,9 @@ export function tsIncidentsToEvents(incidents: unknown, nameById?: Record<string
       detail = "Red Card";
     } else if (t === 9) {
       type = "subst";
-      // ts 의 교체는 in/out 둘 다 있음 → playerName = in 선수, assistName = out 선수 (api-football 호환)
+      // ⚠️ TheSports 의 in_player/out_player 는 api-football 과 반대 정의 — in_player_name 에
+      // 실제 "나간(OUT)" 선수가 담긴다 (정상 cache 경기 확인: ts in=Koivisto = af OUT, 남아공-한국
+      // 8교체 전부 반대). swap 해 playerName=실제 IN(out_player), assistName=실제 OUT(in_player).
       const inName = typeof i.in_player_name === "string" ? i.in_player_name : null;
       const outName = typeof i.out_player_name === "string" ? i.out_player_name : null;
       const inId = typeof i.in_player_id === "string" ? i.in_player_id : null;
@@ -1216,10 +1218,10 @@ export function tsIncidentsToEvents(incidents: unknown, nameById?: Record<string
         type,
         detail,
         side,
-        playerName: loc(inName, inId),
-        assistName: loc(outName, outId),
-        playerId: inId,
-        assistId: outId,
+        playerName: loc(outName, outId),
+        assistName: loc(inName, inId),
+        playerId: outId,
+        assistId: inId,
       });
       continue;
     } else if (t === 28) {
