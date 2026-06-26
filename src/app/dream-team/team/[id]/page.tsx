@@ -8,18 +8,12 @@ import { teamAvgOvr } from "@/lib/dream-team/ovr-to-elo";
 import { grownOvr } from "@/lib/dream-team/grow";
 import { TIERS } from "@/lib/dream-team/tiers";
 import { ROLES } from "@/lib/dream-team/tactics";
+import { lineupMembers, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import AmbientGlow from "@/components/AmbientGlow";
 import ChallengeButton from "./ChallengeButton";
 import ShareButton from "../../ShareButton";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "@/components/experts/Avatar";
-
-interface SquadPlayer {
-  slot: string;
-  playerId: string;
-  xp?: number;
-  role?: string;
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -57,12 +51,16 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
 
   const userId = await getCurrentUserId();
   const isMine = team.userId === userId;
-  const players = (team.players as unknown as SquadPlayer[]) ?? [];
-  const pool = getDreamPlayers(players.map((p) => p.playerId));
-  const xpById = new Map(players.map((p) => [p.playerId, p.xp ?? 0]));
-  const roleById = new Map(players.map((p) => [p.playerId, p.role ?? "balanced"]));
+  const lineup = (team.lineup as unknown as LineupSlot[]) ?? [];
+  const roster = (team.squad as unknown as SquadMember[]) ?? [];
+  const members = lineupMembers(roster, lineup);
+  const pool = getDreamPlayers(members.map((m) => m.playerId));
+  const byId = new Map(pool.map((p) => [p.id, p]));
 
-  const squad = pool.map((dp) => ({ ...dp, cur: grownOvr(dp.ovr, dp.potential, xpById.get(dp.id) ?? 0), role: roleById.get(dp.id) ?? "balanced" }));
+  const squad = members.flatMap((m) => {
+    const dp = byId.get(m.playerId);
+    return dp ? [{ ...dp, cur: grownOvr(dp.ovr, dp.potential, m.xp), role: m.role }] : [];
+  });
   const teamOvr = squad.length ? Math.round(teamAvgOvr(squad.map((s) => s.cur))) : 0;
   const byPos: Record<string, typeof squad> = { GK: [], DF: [], MF: [], FW: [] };
   squad.forEach((s) => byPos[s.pos]?.push(s));

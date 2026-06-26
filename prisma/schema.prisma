@@ -883,7 +883,10 @@ model DreamTeam {
   name      String // 팀 이름
   formation String   @default("4-3-3") // 4-3-3 | 4-4-2 | 4-2-3-1 | 3-5-2
   mentality String   @default("balanced") // 전술 멘탈리티(게임 전용): ultra_attack|attack|balanced|defend|ultra_defend
-  players   Json     @default("[]") // [{playerId, slot, xp}] 최대 11명. slot=포메이션 위치, xp=육성 경험치
+  players   Json     @default("[]") // (구) 11명 [{playerId, slot, xp, role}] — squad/lineup 으로 이전, 롤백용 유지
+  funds     Int      @default(0) // 이적 자금(€M) — 경기 보상·시즌 보너스↑, 영입 소비, 방출 회수
+  squad     Json     @default("[]") // 보유 선수 [{playerId, xp, role}] (11명 이상 = 벤치 포함)
+  lineup    Json     @default("[]") // 선발 11명 [{slot, playerId}] (squad 중 선택)
   tier      String   @default("amateur") // amateur|local|youth|semipro|pro|worldclass
   points    Int      @default(0) // 이적 자금 (경기 보상 → 영입·승급 소비, User.points 와 분리)
   rating    Int      @default(1000) // 대전 Elo 레이팅 (리더보드)

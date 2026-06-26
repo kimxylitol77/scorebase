@@ -67,7 +67,6 @@ function ovrColor(o: number): { fg: string; bg: string; bd: string } {
 }
 
 interface CardSlot { x: number; y: number; name: string; ovr: number; pos: string }
-interface SquadPlayer { slot: string; playerId: string; xp?: number }
 
 export async function GET(req: Request) {
   const teamId = new URL(req.url).searchParams.get("teamId");
@@ -86,14 +85,15 @@ export async function GET(req: Request) {
     });
   }
 
-  const players = (team.players as unknown as SquadPlayer[]) ?? [];
+  const lineup = (team.lineup as unknown as { slot: string; playerId: string }[]) ?? [];
+  const squad = (team.squad as unknown as { playerId: string; xp: number }[]) ?? [];
   const xy = SLOT_XY[team.formation] ?? SLOT_XY["4-3-3"];
-  const pool = getDreamPlayers(players.map((p) => p.playerId));
+  const pool = getDreamPlayers(lineup.map((p) => p.playerId));
   const byId = new Map(pool.map((p) => [p.id, p]));
-  const xpById = new Map(players.map((p) => [p.playerId, p.xp ?? 0]));
+  const xpById = new Map(squad.map((s) => [s.playerId, s.xp]));
 
   const slots: CardSlot[] = [];
-  for (const p of players) {
+  for (const p of lineup) {
     const dp = byId.get(p.playerId);
     const coord = xy[p.slot];
     if (!dp || !coord) continue;

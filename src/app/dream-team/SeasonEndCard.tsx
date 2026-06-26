@@ -20,7 +20,7 @@ export default function SeasonEndCard({ r }: { r: SeasonEndResult }) {
       <div className="mt-4 flex items-center justify-between rounded-lg border border-neutral-200 px-4 py-2.5 text-sm dark:border-neutral-800">
         <span className="text-neutral-500 dark:text-neutral-400">순위 보너스</span>
         <span className="font-medium text-neutral-900 dark:text-white">
-          +€{r.bonus}M · 누적 €{r.pointsAfter}M
+          +€{r.bonus}M · 누적 €{r.fundsAfter}M
         </span>
       </div>
       {r.promoted && (

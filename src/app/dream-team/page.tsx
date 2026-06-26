@@ -27,7 +27,7 @@ export default async function DreamTeamPage() {
   });
   const topTeams = topRaw.map((t) => ({ id: t.id, name: t.name, nickname: t.user.nickname, rating: t.rating, tier: t.tier }));
   const initial = existing
-    ? { name: existing.name, formation: existing.formation, mentality: existing.mentality, players: existing.players as unknown }
+    ? { name: existing.name, formation: existing.formation, mentality: existing.mentality, lineup: existing.lineup as unknown, squad: existing.squad as unknown }
     : null;
 
   return (
@@ -50,7 +50,7 @@ export default async function DreamTeamPage() {
               wins={existing.wins}
               draws={existing.draws}
               losses={existing.losses}
-              points={existing.points}
+              points={existing.funds}
               matchLog={(existing.matchLog as { opp: string; my: number; op: number; outcome: string; ts: number }[]) ?? []}
             />
           </div>

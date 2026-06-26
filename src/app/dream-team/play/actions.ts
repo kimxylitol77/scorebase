@@ -14,6 +14,7 @@ import { grownOvr, matchXp } from "@/lib/dream-team/grow";
 import { nextTier, TIERS } from "@/lib/dream-team/tiers";
 import { tacticNote, teamStrength } from "@/lib/dream-team/tactics";
 import { computeStandings, myRank, seasonBonus, seasonLength, type SeasonGame, type StandRow } from "@/lib/dream-team/season";
+import { lineupMembers, awardXp, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 
 export interface PlayResult {
   myName: string;
@@ -32,7 +33,7 @@ export interface PlayResult {
   oppMentality: string; // 상대 전술 멘탈리티
   tacticNote: string; // 전술 한 줄 코멘트
   xpGain: number; // 출전 선수가 받은 xp
-  pointsAfter: number; // 누적 자금(€M)
+  fundsAfter: number; // 누적 자금(€M)
   promoted: boolean; // 티어 승급 여부
   newTierName: string | null; // 승급 시 새 티어 이름
 }
@@ -41,13 +42,6 @@ export interface PlayState {
   ok: boolean;
   error?: string;
   result?: PlayResult;
-}
-
-interface SquadPlayer {
-  slot: string;
-  playerId: string;
-  xp?: number;
-  role?: string;
 }
 
 export async function playMatch(_prev: PlayState, formData: FormData): Promise<PlayState> {
@@ -61,8 +55,10 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
 
   const team = await prisma.dreamTeam.findFirst({ where: { userId } });
   if (!team) return { ok: false, error: "먼저 팀을 만들어주세요." };
-  const players = (team.players as unknown as SquadPlayer[]) ?? [];
-  if (players.length !== 11) return { ok: false, error: "11명을 채운 뒤 경기할 수 있습니다." };
+  const lineup = (team.lineup as unknown as LineupSlot[]) ?? [];
+  const roster = (team.squad as unknown as SquadMember[]) ?? [];
+  const members = lineupMembers(roster, lineup);
+  if (members.length !== 11) return { ok: false, error: "11명을 채운 뒤 경기할 수 있습니다." };
 
   // 시즌 일정 검증 — 현재 티어 봇만, 시즌 완료·중복 경기 방지
   if (bot.tier !== team.tier) return { ok: false, error: "상대를 찾을 수 없습니다." };
@@ -72,13 +68,13 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   if (seasonGames.some((g) => g.botId === botId && g.home === home)) return { ok: false, error: "이미 치른 경기입니다." };
 
   // 육성 반영 OVR(grownOvr) + 역할로 팀 공격력·수비력 산출
-  const pool = getDreamPlayers(players.map((p) => p.playerId));
+  const pool = getDreamPlayers(members.map((m) => m.playerId));
   const byId = new Map(pool.map((p) => [p.id, p]));
-  const squad = players.flatMap((p) => {
-    const dp = byId.get(p.playerId);
-    return dp ? [{ ovr: grownOvr(dp.ovr, dp.potential, p.xp ?? 0), pos: dp.pos as string, role: p.role }] : [];
+  const powerInput = members.flatMap((m) => {
+    const dp = byId.get(m.playerId);
+    return dp ? [{ ovr: grownOvr(dp.ovr, dp.potential, m.xp), pos: dp.pos as string, role: m.role }] : [];
   });
-  const myPower = teamStrength(squad);
+  const myPower = teamStrength(powerInput);
   const myOvr = Math.round((myPower.atk + myPower.def) / 2);
 
   const seed = (Date.now() % 2147483647) ^ (team.rating * 31) ^ (home ? 13 : 27);
@@ -89,11 +85,11 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   const reward = matchReward(result.outcome);
   const xpGain = matchXp(result.outcome);
 
-  // 출전 선수 xp 누적
-  const newPlayers = players.map((p) => ({ ...p, xp: (p.xp ?? 0) + xpGain }));
+  // 출전 선수 xp 누적 (보유 squad 갱신, 벤치는 성장 없음)
+  const newSquad = awardXp(roster, lineup, xpGain);
 
   // 자금 누적 (승급은 시즌 정산에서만 — 시즌 중 티어 변경 방지)
-  const pointsAfter = team.points + reward;
+  const fundsAfter = team.funds + reward;
 
   const newSeasonGames = [...seasonGames, { botId, home, my: result.myScore, op: result.oppScore, outcome: result.outcome, ts: Date.now() }] as unknown as Prisma.InputJsonValue;
   const prevLog = Array.isArray(team.matchLog) ? (team.matchLog as unknown[]) : [];
@@ -103,8 +99,8 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
     where: { id: team.id },
     data: {
       rating: ratingAfter,
-      points: pointsAfter,
-      players: newPlayers,
+      funds: fundsAfter,
+      squad: newSquad as unknown as Prisma.InputJsonValue,
       matchLog: newLog,
       seasonGames: newSeasonGames,
       wins: result.outcome === "win" ? { increment: 1 } : undefined,
@@ -133,7 +129,7 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
       oppMentality: bot.mentality,
       tacticNote: tacticNote(team.mentality, bot.mentality, result.outcome, result.myScore + result.oppScore),
       xpGain,
-      pointsAfter,
+      fundsAfter,
       promoted: false,
       newTierName: null,
     },
@@ -146,7 +142,7 @@ export interface SeasonEndResult {
   total: number;
   champion: boolean;
   bonus: number;
-  pointsAfter: number;
+  fundsAfter: number;
   promoted: boolean;
   newTierName: string | null;
   standings: StandRow[];
@@ -176,12 +172,14 @@ export async function endSeason(_prev: SeasonState, _formData: FormData): Promis
   const bonus = seasonBonus(rank);
   const champion = rank === 1;
   const me = standings.find((r) => r.isMe) ?? { w: 0, d: 0, l: 0 };
-  const pointsAfter = team.points + bonus;
-
-  // 승급 — 보너스로 여러 티어를 한 번에 넘을 수도 있어 반복 체크
+  const fundsAfter = team.funds + bonus;
+  // 구단가치 = 보유 스쿼드 몸값 + 자금. 다음 티어 규모(예산)에 도달하면 승급.
+  const roster = (team.squad as unknown as SquadMember[]) ?? [];
+  const squadValue = getDreamPlayers(roster.map((s) => s.playerId)).reduce((sum, p) => sum + p.value, 0);
+  const clubValue = squadValue + fundsAfter;
   let newTier = team.tier;
   let nt = nextTier(newTier);
-  while (nt && pointsAfter >= nt.unlock) {
+  while (nt && clubValue >= nt.budget) {
     newTier = nt.key;
     nt = nextTier(newTier);
   }
@@ -196,7 +194,7 @@ export async function endSeason(_prev: SeasonState, _formData: FormData): Promis
       seasonNo: team.seasonNo + 1,
       seasonGames: [],
       seasonHistory: newHistory,
-      points: pointsAfter,
+      funds: fundsAfter,
       tier: newTier,
     },
   });
@@ -210,7 +208,7 @@ export async function endSeason(_prev: SeasonState, _formData: FormData): Promis
       total: standings.length,
       champion,
       bonus,
-      pointsAfter,
+      fundsAfter,
       promoted,
       newTierName: promoted ? TIERS[newTier]?.name ?? null : null,
       standings,

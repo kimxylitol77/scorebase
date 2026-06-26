@@ -7,6 +7,7 @@ import { getDreamPlayers } from "@/lib/dream-team/pool";
 import { teamAvgOvr } from "@/lib/dream-team/ovr-to-elo";
 import { grownOvr } from "@/lib/dream-team/grow";
 import { TIERS } from "@/lib/dream-team/tiers";
+import { lineupMembers, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import AmbientGlow from "@/components/AmbientGlow";
 import VersusClient from "./VersusClient";
 import DreamTeamNav from "../DreamTeamNav";
@@ -14,21 +15,14 @@ import LeaderboardAside from "../LeaderboardAside";
 
 export const metadata: Metadata = { title: "드림팀 유저 대전 | Scorebase" };
 
-interface SquadPlayer {
-  slot: string;
-  playerId: string;
-  xp?: number;
-}
-
-function squadOvr(players: SquadPlayer[]): number {
-  const pool = getDreamPlayers(players.map((p) => p.playerId));
+function squadOvr(squad: SquadMember[], lineup: LineupSlot[]): number {
+  const members = lineupMembers(squad, lineup);
+  const pool = getDreamPlayers(members.map((m) => m.playerId));
   const byId = new Map(pool.map((p) => [p.id, p]));
-  const ovrs = players
-    .map((p) => {
-      const dp = byId.get(p.playerId);
-      return dp ? grownOvr(dp.ovr, dp.potential, p.xp ?? 0) : 0;
-    })
-    .filter((o) => o > 0);
+  const ovrs = members.flatMap((m) => {
+    const dp = byId.get(m.playerId);
+    return dp ? [grownOvr(dp.ovr, dp.potential, m.xp)] : [];
+  });
   return ovrs.length ? Math.round(teamAvgOvr(ovrs)) : 0;
 }
 
@@ -37,7 +31,8 @@ export default async function VersusPage() {
   if (!userId) redirect("/login?from=/dream-team/versus");
   const me = await prisma.dreamTeam.findFirst({ where: { userId } });
   if (!me) redirect("/dream-team");
-  const myPlayers = (me.players as unknown as SquadPlayer[]) ?? [];
+  const myLineup = (me.lineup as unknown as LineupSlot[]) ?? [];
+  const mySquad = (me.squad as unknown as SquadMember[]) ?? [];
 
   const raw = await prisma.dreamTeam.findMany({
     where: { userId: { not: userId } },
@@ -46,7 +41,7 @@ export default async function VersusPage() {
     take: 30,
   });
   const opponents = raw
-    .filter((o) => Array.isArray(o.players) && (o.players as unknown as SquadPlayer[]).length === 11)
+    .filter((o) => lineupMembers(o.squad as unknown as SquadMember[], o.lineup as unknown as LineupSlot[]).length === 11)
     .slice(0, 8)
     .map((o) => ({
       id: o.id,
@@ -54,7 +49,7 @@ export default async function VersusPage() {
       nickname: o.user.nickname,
       rating: o.rating,
       tier: TIERS[o.tier]?.name ?? o.tier,
-      ovr: squadOvr(o.players as unknown as SquadPlayer[]),
+      ovr: squadOvr(o.squad as unknown as SquadMember[], o.lineup as unknown as LineupSlot[]),
       mentality: o.mentality,
     }));
 
@@ -71,7 +66,7 @@ export default async function VersusPage() {
           다른 회원의 드림팀에 도전합니다. 승패에 따라 양쪽 레이팅이 함께 변동됩니다.
         </p>
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-          <VersusClient teamName={me.name} myOvr={squadOvr(myPlayers)} rating={me.rating} opponents={opponents} ready={myPlayers.length === 11} />
+          <VersusClient teamName={me.name} myOvr={squadOvr(mySquad, myLineup)} rating={me.rating} opponents={opponents} ready={lineupMembers(mySquad, myLineup).length === 11} />
           <LeaderboardAside />
         </div>
       </div>

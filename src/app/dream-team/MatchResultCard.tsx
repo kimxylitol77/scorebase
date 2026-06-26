@@ -62,7 +62,7 @@ export default function MatchResultCard({ r }: { r: PlayResult }) {
       </div>
 
       <div className="mt-2 rounded-lg bg-neutral-50 px-4 py-2.5 text-sm text-neutral-600 dark:bg-white/[0.03] dark:text-neutral-300">
-        출전 선수 <span className="font-medium text-neutral-900 dark:text-white">+{r.xpGain} XP</span> · 누적 자금 <span className="font-medium text-neutral-900 dark:text-white">€{r.pointsAfter}M</span>
+        출전 선수 <span className="font-medium text-neutral-900 dark:text-white">+{r.xpGain} XP</span> · 누적 자금 <span className="font-medium text-neutral-900 dark:text-white">€{r.fundsAfter}M</span>
       </div>
       {r.promoted && (
         <div className="mt-2 rounded-lg bg-rose-500/10 px-4 py-2.5 text-center text-sm font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300">

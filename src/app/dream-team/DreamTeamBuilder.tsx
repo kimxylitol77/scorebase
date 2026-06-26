@@ -41,7 +41,7 @@ const FORMATIONS: Record<string, Slot[][]> = {
 
 interface Props {
   pool: DreamPlayer[];
-  initial: { name: string; formation: string; mentality?: string; players: unknown } | null;
+  initial: { name: string; formation: string; mentality?: string; lineup: unknown; squad: unknown } | null;
   tierKey: string;
   topTeams: { id: string; name: string; nickname: string; rating: number; tier: string }[];
   freeMode?: boolean;
@@ -63,14 +63,21 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
   const [name, setName] = useState(initial?.name ?? "나의 드림팀");
   const [picks, setPicks] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    const ps = initial?.players;
-    if (Array.isArray(ps)) for (const p of ps) if (p?.slot && p?.playerId) init[p.slot] = p.playerId;
+    const ln = initial?.lineup;
+    if (Array.isArray(ln)) for (const p of ln) if (p?.slot && p?.playerId) init[p.slot] = p.playerId;
     return init;
   });
   const [roles, setRoles] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
-    const ps = initial?.players;
-    if (Array.isArray(ps)) for (const p of ps) if (p?.slot && p?.role) init[p.slot] = p.role;
+    const sq = initial?.squad;
+    const ln = initial?.lineup;
+    if (Array.isArray(sq) && Array.isArray(ln)) {
+      const slotOf = new Map(ln.map((l) => [l.playerId, l.slot]));
+      for (const s of sq) {
+        const slot = slotOf.get(s.playerId);
+        if (slot && s?.role) init[slot] = s.role;
+      }
+    }
     return init;
   });
   const [activeSlot, setActiveSlot] = useState<string | null>(null);
@@ -92,6 +99,18 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
     for (const p of pool) m[p.id] = p;
     return m;
   }, [pool]);
+  // 보유 스쿼드가 있으면(이적으로 영입한 팀) 빌더는 라인업 편성 — 후보를 보유 선수로 한정·예산 무관.
+  // 비었으면(신규) 전체 풀에서 예산 내 초기 구성.
+  const squadIds = useMemo(() => {
+    const sq = initial?.squad;
+    return Array.isArray(sq) ? (sq as { playerId?: string }[]).map((s) => s.playerId).filter((id): id is string => !!id) : [];
+  }, [initial]);
+  const hasSquad = !freeMode && squadIds.length > 0;
+  const candPool = useMemo(() => {
+    if (!hasSquad) return pool;
+    const set = new Set(squadIds);
+    return pool.filter((p) => set.has(p.id));
+  }, [pool, hasSquad, squadIds]);
 
   const usedValue = useMemo(() => flatSlots.reduce((s, sl) => s + (picks[sl.id] ? poolById[picks[sl.id]]?.value ?? 0 : 0), 0), [flatSlots, picks, poolById]);
   const remaining = tier.budget - usedValue;
@@ -114,19 +133,19 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
     const q = search.trim();
     const refund = activeSlot && picks[activeSlot] ? poolById[picks[activeSlot]]?.value ?? 0 : 0;
     const affordable = remaining + refund;
-    return pool
-      .filter((p) => p.pos === activeSlotObj.pos && !used.has(p.id) && (q === "" || p.name.includes(q)) && (freeMode || p.value <= affordable))
-      .sort((a, b) => (freeMode ? b.value - a.value : b.ovr / Math.max(1, b.value) - a.ovr / Math.max(1, a.value)))
+    return candPool
+      .filter((p) => p.pos === activeSlotObj.pos && !used.has(p.id) && (q === "" || p.name.includes(q)) && (freeMode || hasSquad || p.value <= affordable))
+      .sort((a, b) => (freeMode || hasSquad ? b.ovr - a.ovr : b.ovr / Math.max(1, b.value) - a.ovr / Math.max(1, a.value)))
       .slice(0, 30);
-  }, [activeSlotObj, search, picks, pool, remaining, activeSlot, poolById, freeMode]);
+  }, [activeSlotObj, search, picks, candPool, remaining, activeSlot, poolById, freeMode, hasSquad]);
 
   const selectedPlayer = selected ? poolById[selected.playerId] ?? null : null;
   const selectedAffordable = useMemo(() => {
     if (!selected || selected.mode !== "candidate" || !selectedPlayer) return false;
-    if (freeMode) return true;
+    if (freeMode || hasSquad) return true;
     const refund = picks[selected.slot] ? poolById[picks[selected.slot]]?.value ?? 0 : 0;
     return selectedPlayer.value <= remaining + refund;
-  }, [selected, selectedPlayer, picks, remaining, poolById, freeMode]);
+  }, [selected, selectedPlayer, picks, remaining, poolById, freeMode, hasSquad]);
 
   function clickSlot(slot: Slot) {
     if (picks[slot.id]) {
@@ -166,14 +185,22 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
   }
 
   const playersPayload = JSON.stringify(flatSlots.filter((s) => picks[s.id]).map((s) => ({ slot: s.id, playerId: picks[s.id], role: roles[s.id] ?? "balanced" })));
-  const canSave = filled === 11 && remaining >= 0;
+  const canSave = filled === 11 && (freeMode || hasSquad || remaining >= 0);
   const budgetPct = Math.min(100, Math.round((usedValue / tier.budget) * 100));
 
   return (
     <div className="mt-6">
       {!freeMode && (
         <div className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-relaxed text-neutral-600 dark:border-neutral-800 dark:bg-white/[0.03] dark:text-neutral-300">
-          <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 11명을 꾸려 다른 팀과 겨룹니다. 정해진 예산 안에서 <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>를 찾는 게 핵심입니다. 경기에서 이기면 자금이 쌓여 상위 리그로 승급하고, 어린 선수는 출전할수록 성장합니다. 선수를 누르면 오른쪽에서 능력치를 볼 수 있어요.
+          {hasSquad ? (
+            <>
+              <span className="font-medium text-neutral-900 dark:text-white">라인업 편성</span> — 보유한 선수 중 11명을 골라 선발로 배치하고 포메이션·전술·역할을 정합니다. 새 선수 영입·방출은 <a href="/dream-team/transfer" className="font-medium text-rose-600 hover:underline dark:text-rose-400">이적 시장</a>에서 자금으로 합니다.
+            </>
+          ) : (
+            <>
+              <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 11명을 꾸려 다른 팀과 겨룹니다. 정해진 예산 안에서 <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>를 찾는 게 핵심입니다. 경기에서 이기면 자금이 쌓이고, 어린 선수는 출전할수록 성장합니다.
+            </>
+          )}
         </div>
       )}
 
@@ -246,6 +273,11 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
             <div className="flex h-full flex-wrap items-center justify-between gap-1">
               <span className="text-sm font-medium text-rose-600 dark:text-rose-400">자유 구성 모드</span>
               <span className="text-sm text-neutral-500 dark:text-neutral-400">{filled}/11명 · 예산 제한 없음</span>
+            </div>
+          ) : hasSquad ? (
+            <div className="flex h-full flex-wrap items-center justify-between gap-1">
+              <span className="text-sm font-medium text-rose-600 dark:text-rose-400">라인업 편성</span>
+              <span className="text-sm text-neutral-500 dark:text-neutral-400">{filled}/11명 선발 · 보유 {squadIds.length}명</span>
             </div>
           ) : (
             <>

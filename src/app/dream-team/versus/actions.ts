@@ -10,23 +10,18 @@ import { matchCommentary } from "@/lib/dream-team/commentary";
 import { updateRating, matchReward } from "@/lib/dream-team/rating";
 import { grownOvr, matchXp } from "@/lib/dream-team/grow";
 import { tacticNote, teamStrength, type TeamPower } from "@/lib/dream-team/tactics";
+import { lineupMembers, awardXp, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import type { PlayState } from "../play/actions";
 
-interface SquadPlayer {
-  slot: string;
-  playerId: string;
-  xp?: number;
-  role?: string;
-}
-
-function squadPower(players: SquadPlayer[]): TeamPower {
-  const pool = getDreamPlayers(players.map((p) => p.playerId));
+function squadPower(squad: SquadMember[], lineup: LineupSlot[]): TeamPower {
+  const members = lineupMembers(squad, lineup);
+  const pool = getDreamPlayers(members.map((m) => m.playerId));
   const byId = new Map(pool.map((p) => [p.id, p]));
-  const squad = players.flatMap((p) => {
-    const dp = byId.get(p.playerId);
-    return dp ? [{ ovr: grownOvr(dp.ovr, dp.potential, p.xp ?? 0), pos: dp.pos as string, role: p.role }] : [];
+  const powerInput = members.flatMap((m) => {
+    const dp = byId.get(m.playerId);
+    return dp ? [{ ovr: grownOvr(dp.ovr, dp.potential, m.xp), pos: dp.pos as string, role: m.role }] : [];
   });
-  return teamStrength(squad);
+  return teamStrength(powerInput);
 }
 
 export async function playUserMatch(_prev: PlayState, formData: FormData): Promise<PlayState> {
@@ -36,16 +31,18 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
   const opponentId = String(formData.get("opponentId") ?? "");
   const me = await prisma.dreamTeam.findFirst({ where: { userId } });
   if (!me) return { ok: false, error: "먼저 팀을 만들어주세요." };
-  const myPlayers = (me.players as unknown as SquadPlayer[]) ?? [];
-  if (myPlayers.length !== 11) return { ok: false, error: "11명을 채운 뒤 도전할 수 있습니다." };
+  const myLineup = (me.lineup as unknown as LineupSlot[]) ?? [];
+  const mySquad = (me.squad as unknown as SquadMember[]) ?? [];
+  if (lineupMembers(mySquad, myLineup).length !== 11) return { ok: false, error: "11명을 채운 뒤 도전할 수 있습니다." };
 
   const opp = await prisma.dreamTeam.findUnique({ where: { id: opponentId } });
   if (!opp || opp.userId === userId) return { ok: false, error: "상대를 찾을 수 없습니다." };
-  const oppPlayers = (opp.players as unknown as SquadPlayer[]) ?? [];
-  if (oppPlayers.length !== 11) return { ok: false, error: "상대 팀이 미완성입니다." };
+  const oppLineup = (opp.lineup as unknown as LineupSlot[]) ?? [];
+  const oppSquad = (opp.squad as unknown as SquadMember[]) ?? [];
+  if (lineupMembers(oppSquad, oppLineup).length !== 11) return { ok: false, error: "상대 팀이 미완성입니다." };
 
-  const myPower = squadPower(myPlayers);
-  const oppPower = squadPower(oppPlayers);
+  const myPower = squadPower(mySquad, myLineup);
+  const oppPower = squadPower(oppSquad, oppLineup);
   const myOvr = Math.round((myPower.atk + myPower.def) / 2);
   const oppOvr = Math.round((oppPower.atk + oppPower.def) / 2);
   const myElo = teamOvrToElo(myOvr);
@@ -58,8 +55,8 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
   const myRatingAfter = updateRating(me.rating, oppElo, result.outcome);
   const reward = matchReward(result.outcome);
   const xpGain = matchXp(result.outcome);
-  const newMyPlayers = myPlayers.map((p) => ({ ...p, xp: (p.xp ?? 0) + xpGain }));
-  const pointsAfter = me.points + reward;
+  const newMySquad = awardXp(mySquad, myLineup, xpGain);
+  const fundsAfter = me.funds + reward;
   // 승급은 봇 대전 시즌 정산에서만 — 유저 대전은 레이팅·자금·육성만
 
   // 상대 — 레이팅·전적만 (반대 결과)
@@ -74,8 +71,8 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
       where: { id: me.id },
       data: {
         rating: myRatingAfter,
-        points: pointsAfter,
-        players: newMyPlayers,
+        funds: fundsAfter,
+        squad: newMySquad as unknown as Prisma.InputJsonValue,
         matchLog: newLog,
         wins: result.outcome === "win" ? { increment: 1 } : undefined,
         draws: result.outcome === "draw" ? { increment: 1 } : undefined,
@@ -112,7 +109,7 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
       oppMentality: opp.mentality,
       tacticNote: tacticNote(me.mentality, opp.mentality, result.outcome, result.myScore + result.oppScore),
       xpGain,
-      pointsAfter,
+      fundsAfter,
       promoted: false,
       newTierName: null,
     },

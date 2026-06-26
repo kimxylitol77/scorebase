@@ -22,8 +22,8 @@ export default async function PlayPage() {
   const team = await prisma.dreamTeam.findFirst({ where: { userId } });
   if (!team) redirect("/dream-team");
 
-  const players = (team.players as { slot: string; playerId: string }[]) ?? [];
-  const pool = getDreamPlayers(players.map((p) => p.playerId));
+  const lineup = (team.lineup as unknown as { slot: string; playerId: string }[]) ?? [];
+  const pool = getDreamPlayers(lineup.map((p) => p.playerId));
   const myOvr = pool.length ? Math.round(teamAvgOvr(pool.map((p) => p.ovr))) : 0;
   const bots = botsForTier(team.tier);
   const tierName = TIERS[team.tier]?.name ?? team.tier;
@@ -58,8 +58,8 @@ export default async function PlayPage() {
             myOvr={myOvr}
             rating={team.rating}
             record={{ w: team.wins, d: team.draws, l: team.losses }}
-            points={team.points}
-            ready={players.length === 11}
+            points={team.funds}
+            ready={lineup.length === 11}
             seasonNo={team.seasonNo}
             standings={standings}
             remaining={remaining}
