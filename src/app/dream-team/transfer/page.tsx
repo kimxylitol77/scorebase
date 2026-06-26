@@ -31,7 +31,7 @@ export default async function TransferPage() {
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
           자금으로 선수를 영입하고, 안 쓰는 선수는 방출해 자금을 회수하세요. 영입한 선수는 보유 스쿼드에 들어가고, 선발 라인업은 빌더에서 짭니다.
         </p>
-        <TransferClient funds={team.funds} pool={pool} ownedIds={squad.map((s) => s.playerId)} />
+        <TransferClient funds={team.funds} pool={pool} owned={squad} seasonNo={team.seasonNo} />
       </div>
     </main>
   );

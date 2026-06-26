@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUserId } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
+import { marketValue } from "@/lib/dream-team/pricing";
 import type { SquadMember, LineupSlot } from "@/lib/dream-team/squad";
 
 export interface TransferState {
@@ -29,18 +30,22 @@ export async function transferPlayer(_prev: TransferState, formData: FormData): 
 
   if (action === "in") {
     if (squad.some((s) => s.playerId === playerId)) return { ok: false, error: "이미 보유한 선수입니다." };
-    if (team.funds < dp.value) return { ok: false, error: `자금 부족 (€${dp.value}M 필요 / 보유 €${team.funds}M)` };
-    const newSquad = [...squad, { playerId, xp: 0, role: "balanced" }];
+    const price = marketValue(dp, 0, team.seasonNo);
+    if (team.funds < price) return { ok: false, error: `자금 부족 (€${price}M 필요 / 보유 €${team.funds}M)` };
+    const newSquad = [...squad, { playerId, xp: 0, role: "balanced", boughtValue: price }];
     await prisma.dreamTeam.update({
       where: { id: team.id },
-      data: { squad: newSquad as unknown as Prisma.InputJsonValue, funds: team.funds - dp.value },
+      data: { squad: newSquad as unknown as Prisma.InputJsonValue, funds: team.funds - price },
     });
     revalidatePath("/dream-team/transfer");
-    return { ok: true, message: `${dp.name} 영입 (−€${dp.value}M)` };
+    return { ok: true, message: `${dp.name} 영입 (−€${price}M)` };
   }
 
   if (action === "out") {
-    if (!squad.some((s) => s.playerId === playerId)) return { ok: false, error: "보유하지 않은 선수입니다." };
+    const member = squad.find((s) => s.playerId === playerId);
+    if (!member) return { ok: false, error: "보유하지 않은 선수입니다." };
+    const price = marketValue(dp, member.xp, team.seasonNo);
+    const profit = price - (member.boughtValue ?? dp.value);
     const newSquad = squad.filter((s) => s.playerId !== playerId);
     // 방출 선수가 선발에 있으면 라인업에서도 제거
     const newLineup = lineup.filter((l) => l.playerId !== playerId);
@@ -49,11 +54,12 @@ export async function transferPlayer(_prev: TransferState, formData: FormData): 
       data: {
         squad: newSquad as unknown as Prisma.InputJsonValue,
         lineup: newLineup as unknown as Prisma.InputJsonValue,
-        funds: team.funds + dp.value,
+        funds: team.funds + price,
       },
     });
     revalidatePath("/dream-team/transfer");
-    return { ok: true, message: `${dp.name} 방출 (+€${dp.value}M)` };
+    const profitStr = profit > 0 ? ` · 차익 +€${profit}M` : profit < 0 ? ` · 손실 −€${-profit}M` : "";
+    return { ok: true, message: `${dp.name} 방출 (+€${price}M)${profitStr}` };
   }
 
   return { ok: false, error: "잘못된 요청입니다." };

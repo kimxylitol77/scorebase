@@ -3,6 +3,7 @@ export interface SquadMember {
   playerId: string;
   xp: number;
   role: string;
+  boughtValue?: number; // 영입 시 시세(€M) — 방출 손익 계산용. 없으면 기본 몸값으로 폴백
 }
 export interface LineupSlot {
   slot: string;

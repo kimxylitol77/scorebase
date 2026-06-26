@@ -1,8 +1,11 @@
 "use client";
-// 드림팀 이적 시장 클라이언트 — 보유 선수 방출 + 풀에서 영입 (자금 거래)
+// 드림팀 이적 시장 클라이언트 — 시세 기반 영입/방출 (싸게 사서 키워 비싸게, 손익 표시)
 import { useState, useMemo, useActionState } from "react";
 import { transferPlayer, type TransferState } from "./actions";
+import { marketValue } from "@/lib/dream-team/pricing";
+import { grownOvr } from "@/lib/dream-team/grow";
 import type { DreamPlayer } from "@/lib/dream-team/pool";
+import type { SquadMember } from "@/lib/dream-team/squad";
 
 const POS = ["ALL", "FW", "MF", "DF", "GK"];
 const POS_LABEL: Record<string, string> = { ALL: "전체", FW: "공격", MF: "미드", DF: "수비", GK: "GK" };
@@ -10,29 +13,30 @@ const POS_LABEL: Record<string, string> = { ALL: "전체", FW: "공격", MF: "�
 interface Props {
   funds: number;
   pool: DreamPlayer[];
-  ownedIds: string[];
+  owned: SquadMember[];
+  seasonNo: number;
 }
 
-export default function TransferClient({ funds, pool, ownedIds }: Props) {
+export default function TransferClient({ funds, pool, owned, seasonNo }: Props) {
   const [state, formAction, pending] = useActionState(transferPlayer, { ok: false } as TransferState);
   const [pos, setPos] = useState("ALL");
   const [search, setSearch] = useState("");
 
-  const ownedSet = useMemo(() => new Set(ownedIds), [ownedIds]);
+  const ownedSet = useMemo(() => new Set(owned.map((m) => m.playerId)), [owned]);
   const poolById = useMemo(() => {
     const m: Record<string, DreamPlayer> = {};
     for (const p of pool) m[p.id] = p;
     return m;
   }, [pool]);
-  const owned = useMemo(() => ownedIds.map((id) => poolById[id]).filter(Boolean), [ownedIds, poolById]);
 
   const candidates = useMemo(() => {
     const q = search.trim();
     return pool
       .filter((p) => !ownedSet.has(p.id) && (pos === "ALL" || p.pos === pos) && (q === "" || p.name.includes(q)))
-      .sort((a, b) => b.ovr / Math.max(1, b.value) - a.ovr / Math.max(1, a.value))
+      .map((p) => ({ p, price: marketValue(p, 0, seasonNo) }))
+      .sort((a, b) => b.p.ovr / Math.max(1, b.price) - a.p.ovr / Math.max(1, a.price))
       .slice(0, 40);
-  }, [pool, pos, search, ownedSet]);
+  }, [pool, pos, search, ownedSet, seasonNo]);
 
   return (
     <div className="mt-6">
@@ -45,22 +49,34 @@ export default function TransferClient({ funds, pool, ownedIds }: Props) {
       {state.ok && state.message && <p className="mt-3 rounded-lg bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-700 dark:text-emerald-300">{state.message}</p>}
 
       <h2 className="mb-2 mt-6 text-sm font-medium text-neutral-900 dark:text-white">보유 선수 ({owned.length})</h2>
+      <p className="mb-2 text-xs text-neutral-400">시세는 육성(OVR 성장)과 시즌 폼에 따라 변합니다. 키워서 오른 선수를 방출하면 차익이 남습니다.</p>
       <div className="grid gap-2 sm:grid-cols-2">
-        {owned.map((p) => (
-          <div key={p.id} className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-white/[0.04]">
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-neutral-900 dark:text-white">{p.name}</div>
-              <div className="text-xs text-neutral-500 dark:text-neutral-400">{p.pos} · OVR {p.ovr} · €{p.value}M</div>
+        {owned.map((m) => {
+          const p = poolById[m.playerId];
+          if (!p) return null;
+          const price = marketValue(p, m.xp, seasonNo);
+          const profit = price - (m.boughtValue ?? p.value);
+          const ovr = grownOvr(p.ovr, p.potential, m.xp);
+          return (
+            <div key={m.playerId} className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-white/[0.04]">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-neutral-900 dark:text-white">{p.name}</div>
+                <div className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                  {p.pos} · OVR {ovr}
+                  {ovr > p.ovr ? <span className="text-emerald-600 dark:text-emerald-400"> (+{ovr - p.ovr})</span> : ""} · 시세 €{price}M
+                  {profit !== 0 && <span className={profit > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}> {profit > 0 ? `+${profit}` : profit}</span>}
+                </div>
+              </div>
+              <form action={formAction}>
+                <input type="hidden" name="action" value="out" />
+                <input type="hidden" name="playerId" value={p.id} />
+                <button type="submit" disabled={pending} className="flex-shrink-0 rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-white/[0.04]">
+                  방출 +€{price}M
+                </button>
+              </form>
             </div>
-            <form action={formAction}>
-              <input type="hidden" name="action" value="out" />
-              <input type="hidden" name="playerId" value={p.id} />
-              <button type="submit" disabled={pending} className="flex-shrink-0 rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-white/[0.04]">
-                방출 +€{p.value}M
-              </button>
-            </form>
-          </div>
-        ))}
+          );
+        })}
         {owned.length === 0 && <p className="text-sm text-neutral-400">보유 선수가 없습니다. 아래에서 영입하세요.</p>}
       </div>
 
@@ -81,19 +97,23 @@ export default function TransferClient({ funds, pool, ownedIds }: Props) {
         />
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
-        {candidates.map((p) => {
-          const afford = funds >= p.value;
+        {candidates.map(({ p, price }) => {
+          const afford = funds >= price;
+          const prospect = p.potential > p.ovr;
           return (
             <div key={p.id} className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-white/[0.04]">
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium text-neutral-900 dark:text-white">{p.name}</div>
-                <div className="truncate text-xs text-neutral-500 dark:text-neutral-400">{p.pos} · OVR {p.ovr} · {p.team}</div>
+                <div className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                  {p.pos} · OVR {p.ovr} · {p.team}
+                  {prospect && <span className="text-rose-500 dark:text-rose-400"> · 잠재 {p.potential}</span>}
+                </div>
               </div>
               <form action={formAction}>
                 <input type="hidden" name="action" value="in" />
                 <input type="hidden" name="playerId" value={p.id} />
                 <button type="submit" disabled={pending || !afford} className="flex-shrink-0 rounded-full bg-rose-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40">
-                  {afford ? `영입 €${p.value}M` : `€${p.value}M`}
+                  {afford ? `영입 €${price}M` : `€${price}M`}
                 </button>
               </form>
             </div>

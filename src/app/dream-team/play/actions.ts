@@ -15,6 +15,7 @@ import { nextTier, TIERS } from "@/lib/dream-team/tiers";
 import { tacticNote, teamStrength } from "@/lib/dream-team/tactics";
 import { computeStandings, myRank, seasonBonus, seasonLength, type SeasonGame, type StandRow } from "@/lib/dream-team/season";
 import { lineupMembers, awardXp, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
+import { marketValue } from "@/lib/dream-team/pricing";
 
 export interface PlayResult {
   myName: string;
@@ -175,7 +176,11 @@ export async function endSeason(_prev: SeasonState, _formData: FormData): Promis
   const fundsAfter = team.funds + bonus;
   // 구단가치 = 보유 스쿼드 몸값 + 자금. 다음 티어 규모(예산)에 도달하면 승급.
   const roster = (team.squad as unknown as SquadMember[]) ?? [];
-  const squadValue = getDreamPlayers(roster.map((s) => s.playerId)).reduce((sum, p) => sum + p.value, 0);
+  const priceById = new Map(getDreamPlayers(roster.map((s) => s.playerId)).map((p) => [p.id, p]));
+  const squadValue = roster.reduce((sum, m) => {
+    const p = priceById.get(m.playerId);
+    return sum + (p ? marketValue(p, m.xp, team.seasonNo) : 0);
+  }, 0);
   const clubValue = squadValue + fundsAfter;
   let newTier = team.tier;
   let nt = nextTier(newTier);
