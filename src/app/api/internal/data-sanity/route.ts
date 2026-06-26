@@ -232,20 +232,28 @@ export async function GET(req: NextRequest) {
       (m.homeScore != null || m.awayScore != null) &&
       m.startTime.getTime() < now - SCORE_DRIFT_GRACE_MS
     ) {
-      // MLB 는 공식 statsapi 로 실제 상태 교차확인 — 연기/중단/취소면 "status updater 죽음"이
-      // 아니라 POSTPONED 미반영(0:0 은 실제값)이라 오진. inning_missing 과 동일하게 구분한다
-      // (2026-06-23 #540622 Mets vs Cubs 우천 연기를 stuck 으로 오진한 케이스).
+      // MLB 는 공식 statsapi 로 실제 상태 교차확인 — inning_missing(아래) 과 동일 분기.
+      // 0:0 은 거의 항상 시작 전 초기값이라, "status updater 죽음" 단정 전에 실제 상태를 본다.
+      //   지연/미시작(Delayed/Warmup/Pre-Game/Scheduled) → 시작 시 자동 해소라 오경보 → skip
+      //   연기/중단(Postponed 등) → collect 가 POSTPONED 자동 갱신, 점수도 초기값이라 WARN
+      //   실제 In Progress/Final 인데 SCHEDULED → 진짜 status updater 죽음 → HIGH 유지
+      // (2026-06-23 #540622 Mets vs Cubs + 2026-06-26 #576674 Dbacks@Cards 우천연기 오진).
       let detail = `status=SCHEDULED 인데 점수=${m.homeScore ?? "-"}:${m.awayScore ?? "-"} (status updater 죽음 의심)`;
+      let severity: "HIGH" | "WARN" = "HIGH";
       if (m.league === "MLB") {
         const st = await mlbGameState(m.homeTeam.name, m.awayTeam.name, m.startTime, mlbSched);
-        if (st && /Postponed|Suspended|Cancelled/i.test(st)) {
-          detail = `실제 ${st} 인데 status=SCHEDULED+${m.homeScore ?? 0}:${m.awayScore ?? 0} stuck — POSTPONED 로 정정 필요 (status updater 죽음 아님)`;
+        if (st) {
+          if (/Delayed|Warmup|Pre-Game|Scheduled/i.test(st)) continue;
+          if (/Postponed|Suspended|Cancelled/i.test(st)) {
+            severity = "WARN";
+            detail = `실제 ${st} 인데 status=SCHEDULED+${m.homeScore ?? 0}:${m.awayScore ?? 0} — POSTPONED 미반영 (collect 자동정정 대기, status updater 죽음 아님)`;
+          }
         }
       }
       issues.push({
         ...matchInfo,
         kind: "score_drift",
-        severity: "HIGH",
+        severity,
         detail,
       });
     }
