@@ -140,23 +140,6 @@
       "y": 32
     },
     {
-      "id": "318q66hv24ezqo9",
-      "name": "Maximiliano Araujo",
-      "nameKo": "막시밀리아노 아라우호",
-      "hasMv": false,
-      "pos": "M",
-      "country": "Uruguay",
-      "flag": "🇺🇾",
-      "logo": "https://img.thesports.com/football/player/f44052ae64ce2c26ff9cbf4cbeb66a31.png",
-      "score": 8.38,
-      "star": 4,
-      "recentRating": 8.38,
-      "avgRating": 8.29,
-      "games": 2,
-      "x": 78,
-      "y": 32
-    },
-    {
       "id": "dj2ryohnl5gq1zp",
       "name": "Federico Valverde",
       "nameKo": "페데리코 발베르데",
@@ -167,8 +150,25 @@
       "logo": "https://img.thesports.com/football/player/d6d3089e29d6520fc9ca07ecf3809ff8.png",
       "score": 8.32,
       "star": 4,
-      "recentRating": 6.23,
-      "avgRating": 7.02,
+      "recentRating": 6.22,
+      "avgRating": 7.01,
+      "games": 2,
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "318q66hv24ezqo9",
+      "name": "Maximiliano Araujo",
+      "nameKo": "막시밀리아노 아라우호",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Uruguay",
+      "flag": "🇺🇾",
+      "logo": "https://img.thesports.com/football/player/f44052ae64ce2c26ff9cbf4cbeb66a31.png",
+      "score": 8.2,
+      "star": 4,
+      "recentRating": 8,
+      "avgRating": 8.1,
       "games": 2,
       "x": 35,
       "y": 52
@@ -255,21 +255,6 @@
       "games": 4
     },
     {
-      "id": "y0or5jhg789qwzv",
-      "name": "Agustín Canobbio",
-      "nameKo": "아구스틴 카노비오",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Uruguay",
-      "flag": "🇺🇾",
-      "logo": "https://img.thesports.com/football/player/a858469db63cd2dde1cf57cfbd6390d2.png",
-      "score": 8.07,
-      "star": 4,
-      "recentRating": 8.07,
-      "avgRating": 7.37,
-      "games": 2
-    },
-    {
       "id": "4wyrn4hvlloq86p",
       "name": "Rodrigo Hernandez Cascante",
       "nameKo": "로드리",
@@ -283,6 +268,21 @@
       "recentRating": 7.8,
       "avgRating": 7.29,
       "games": 3
+    },
+    {
+      "id": "y0or5jhg789qwzv",
+      "name": "Agustín Canobbio",
+      "nameKo": "아구스틴 카노비오",
+      "hasMv": false,
+      "pos": "F",
+      "country": "Uruguay",
+      "flag": "🇺🇾",
+      "logo": "https://img.thesports.com/football/player/a858469db63cd2dde1cf57cfbd6390d2.png",
+      "score": 7.9,
+      "star": 3,
+      "recentRating": 7.9,
+      "avgRating": 7.28,
+      "games": 2
     },
     {
       "id": "pxwrxlhjg9zryk0",

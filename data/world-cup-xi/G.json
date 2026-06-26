@@ -18,7 +18,7 @@
       "flag": "🇳🇿"
     }
   ],
-  "teamRating": 3.2,
+  "teamRating": 3.4,
   "xi": [
     {
       "id": "dn1m1ghn029zmoe",
@@ -106,6 +106,40 @@
       "y": 70
     },
     {
+      "id": "pxwrxlh1o1yryk0",
+      "name": "Mohamed Salah",
+      "nameKo": "모하메드 살라",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Egypt",
+      "flag": "🇪🇬",
+      "logo": "https://img.thesports.com/football/player/132e6334d8236eeb2b6347d628fbb676.png",
+      "score": 8.31,
+      "star": 4,
+      "recentRating": 8.95,
+      "avgRating": 7.51,
+      "games": 3,
+      "x": 22,
+      "y": 32
+    },
+    {
+      "id": "2y8m4zh8yl0nql0",
+      "name": "Mostafa Zico",
+      "nameKo": "모스타파 모하메드 자키 압델라우프",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Egypt",
+      "flag": "🇪🇬",
+      "logo": "https://img.thesports.com/football/player/eb5a406880d108b43fc792a6baca2c2d.png",
+      "score": 8.29,
+      "star": 4,
+      "recentRating": 8.29,
+      "avgRating": 7.25,
+      "games": 3,
+      "x": 50,
+      "y": 32
+    },
+    {
       "id": "n54qllhx4e7qvy9",
       "name": "Youri Tielemans",
       "nameKo": "유리 틸레만스",
@@ -119,7 +153,7 @@
       "recentRating": 7,
       "avgRating": 7.43,
       "games": 4,
-      "x": 22,
+      "x": 78,
       "y": 32
     },
     {
@@ -133,11 +167,11 @@
       "logo": "https://img.thesports.com/football/player/7caa0221827b3dce67da45f5fe68e878.png",
       "score": 7.8,
       "star": 3,
-      "recentRating": 7.8,
-      "avgRating": 6.96,
-      "games": 2,
-      "x": 50,
-      "y": 32
+      "recentRating": 6.63,
+      "avgRating": 6.85,
+      "games": 3,
+      "x": 35,
+      "y": 52
     },
     {
       "id": "l7oqdehen58r510",
@@ -153,40 +187,6 @@
       "recentRating": 7.02,
       "avgRating": 6.85,
       "games": 4,
-      "x": 78,
-      "y": 32
-    },
-    {
-      "id": "8yomo4hko79gq0j",
-      "name": "Amadou Onana",
-      "nameKo": "아마두 오나나",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/f9fcd3ba25c6cacc8d07b46cb7cce0e5.png",
-      "score": 7.68,
-      "star": 3,
-      "recentRating": 6.57,
-      "avgRating": 6.95,
-      "games": 3,
-      "x": 35,
-      "y": 52
-    },
-    {
-      "id": "l7oqdehnwz9r510",
-      "name": "Kevin De Bruyne",
-      "nameKo": "케빈 더 브라위너",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/42109088fe0c43b0bc4e7b098f8d52fb.png",
-      "score": 7.61,
-      "star": 3,
-      "recentRating": 6.93,
-      "avgRating": 6.95,
-      "games": 4,
       "x": 65,
       "y": 52
     },
@@ -201,9 +201,9 @@
       "logo": "https://img.thesports.com/football/player/653dfe275584ad95dd346e4de389bcd0.png",
       "score": 9.02,
       "star": 4,
-      "recentRating": 9.02,
-      "avgRating": 7.61,
-      "games": 2,
+      "recentRating": 6.42,
+      "avgRating": 7.21,
+      "games": 3,
       "x": 50,
       "y": 14
     }
@@ -285,19 +285,19 @@
       "games": 4
     },
     {
-      "id": "1l4rjnh692pm7vx",
-      "name": "Chris Wood",
-      "nameKo": "크리스 우드",
+      "id": "8yomo4hko79gq0j",
+      "name": "Amadou Onana",
+      "nameKo": "아마두 오나나",
       "hasMv": true,
-      "pos": "F",
-      "country": "New Zealand",
-      "flag": "🇳🇿",
-      "logo": "https://img.thesports.com/football/player/00c4c1d18a683c176b3daf7cd3fee842.png",
-      "score": 7.65,
+      "pos": "M",
+      "country": "Belgium",
+      "flag": "🇧🇪",
+      "logo": "https://img.thesports.com/football/player/f9fcd3ba25c6cacc8d07b46cb7cce0e5.png",
+      "score": 7.68,
       "star": 3,
-      "recentRating": 8.55,
-      "avgRating": 7.29,
-      "games": 2
+      "recentRating": 6.57,
+      "avgRating": 6.95,
+      "games": 3
     }
   ],
   "complete": true
