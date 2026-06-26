@@ -10,7 +10,7 @@ import { matchCommentary } from "@/lib/dream-team/commentary";
 import { updateRating, matchReward } from "@/lib/dream-team/rating";
 import { grownOvr, matchXp } from "@/lib/dream-team/grow";
 import { tacticNote, teamStrength, type TeamPower } from "@/lib/dream-team/tactics";
-import { lineupMembers, awardXp, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
+import { lineupMembers, awardXp, conditionPenalty, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import type { PlayState } from "../play/actions";
 
 function squadPower(squad: SquadMember[], lineup: LineupSlot[]): TeamPower {
@@ -19,7 +19,9 @@ function squadPower(squad: SquadMember[], lineup: LineupSlot[]): TeamPower {
   const byId = new Map(pool.map((p) => [p.id, p]));
   const powerInput = members.flatMap((m) => {
     const dp = byId.get(m.playerId);
-    return dp ? [{ ovr: grownOvr(dp.ovr, dp.potential, m.xp), pos: dp.pos as string, role: m.role }] : [];
+    if (!dp) return [];
+    const ovr = grownOvr(dp.ovr, dp.potential, m.xp);
+    return [{ ovr: Math.max(40, ovr - conditionPenalty(m.condition)), pos: dp.pos as string, role: m.role }];
   });
   return teamStrength(powerInput);
 }

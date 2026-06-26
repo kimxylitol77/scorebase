@@ -57,13 +57,21 @@ export default function TransferClient({ funds, pool, owned, seasonNo }: Props) 
           const price = marketValue(p, m.xp, seasonNo);
           const profit = price - (m.boughtValue ?? p.value);
           const ovr = grownOvr(p.ovr, p.potential, m.xp);
+          const cond = m.condition ?? 100;
+          const inj = m.injuryGames ?? 0;
           return (
             <div key={m.playerId} className="flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-white/[0.04]">
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-neutral-900 dark:text-white">{p.name}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-sm font-medium text-neutral-900 dark:text-white">{p.name}</span>
+                  {inj > 0 && <span className="flex-shrink-0 rounded bg-rose-500/15 px-1 text-[10px] font-medium text-rose-600 dark:text-rose-400">부상 {inj}경기</span>}
+                </div>
                 <div className="truncate text-xs text-neutral-500 dark:text-neutral-400">
                   {p.pos} · OVR {ovr}
-                  {ovr > p.ovr ? <span className="text-emerald-600 dark:text-emerald-400"> (+{ovr - p.ovr})</span> : ""} · 시세 €{price}M
+                  {ovr > p.ovr ? <span className="text-emerald-600 dark:text-emerald-400"> (+{ovr - p.ovr})</span> : ""} · 컨디션 <span className={cond < 50 ? "text-rose-500" : cond < 75 ? "text-amber-500 dark:text-amber-400" : ""}>{cond}</span>
+                </div>
+                <div className="truncate text-xs text-neutral-400">
+                  시세 €{price}M
                   {profit !== 0 && <span className={profit > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}> {profit > 0 ? `+${profit}` : profit}</span>}
                 </div>
               </div>

@@ -103,7 +103,8 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
   // 비었으면(신규) 전체 풀에서 예산 내 초기 구성.
   const squadIds = useMemo(() => {
     const sq = initial?.squad;
-    return Array.isArray(sq) ? (sq as { playerId?: string }[]).map((s) => s.playerId).filter((id): id is string => !!id) : [];
+    // 부상 선수(injuryGames>0)는 선발 후보에서 제외 — 회복해야 다시 선발 가능
+    return Array.isArray(sq) ? (sq as { playerId?: string; injuryGames?: number }[]).filter((s) => !s.injuryGames).map((s) => s.playerId).filter((id): id is string => !!id) : [];
   }, [initial]);
   const hasSquad = !freeMode && squadIds.length > 0;
   const candPool = useMemo(() => {

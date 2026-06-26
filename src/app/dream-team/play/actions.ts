@@ -14,7 +14,7 @@ import { grownOvr, matchXp } from "@/lib/dream-team/grow";
 import { nextTier, TIERS } from "@/lib/dream-team/tiers";
 import { tacticNote, teamStrength } from "@/lib/dream-team/tactics";
 import { computeStandings, myRank, seasonBonus, seasonLength, type SeasonGame, type StandRow } from "@/lib/dream-team/season";
-import { lineupMembers, awardXp, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
+import { lineupMembers, applyMatchEffects, conditionPenalty, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import { marketValue } from "@/lib/dream-team/pricing";
 
 export interface PlayResult {
@@ -60,6 +60,7 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   const roster = (team.squad as unknown as SquadMember[]) ?? [];
   const members = lineupMembers(roster, lineup);
   if (members.length !== 11) return { ok: false, error: "11명을 채운 뒤 경기할 수 있습니다." };
+  if (members.some((m) => m.injuryGames > 0)) return { ok: false, error: "부상 선수가 선발에 있습니다. 빌더에서 교체하세요." };
 
   // 시즌 일정 검증 — 현재 티어 봇만, 시즌 완료·중복 경기 방지
   if (bot.tier !== team.tier) return { ok: false, error: "상대를 찾을 수 없습니다." };
@@ -73,7 +74,9 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   const byId = new Map(pool.map((p) => [p.id, p]));
   const powerInput = members.flatMap((m) => {
     const dp = byId.get(m.playerId);
-    return dp ? [{ ovr: grownOvr(dp.ovr, dp.potential, m.xp), pos: dp.pos as string, role: m.role }] : [];
+    if (!dp) return [];
+    const ovr = grownOvr(dp.ovr, dp.potential, m.xp);
+    return [{ ovr: Math.max(40, ovr - conditionPenalty(m.condition)), pos: dp.pos as string, role: m.role }];
   });
   const myPower = teamStrength(powerInput);
   const myOvr = Math.round((myPower.atk + myPower.def) / 2);
@@ -86,8 +89,8 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   const reward = matchReward(result.outcome);
   const xpGain = matchXp(result.outcome);
 
-  // 출전 선수 xp 누적 (보유 squad 갱신, 벤치는 성장 없음)
-  const newSquad = awardXp(roster, lineup, xpGain);
+  // 출전=xp+·컨디션↓·부상 확률 / 벤치=컨디션 회복·부상 카운트↓
+  const newSquad = applyMatchEffects(roster, lineup, xpGain, seed);
 
   // 자금 누적 (승급은 시즌 정산에서만 — 시즌 중 티어 변경 방지)
   const fundsAfter = team.funds + reward;
