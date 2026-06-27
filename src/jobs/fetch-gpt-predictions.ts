@@ -497,7 +497,8 @@ export async function runEvaluateAiPredictions() {
 }
 
 /**
- * 백필 — 이미 1X2 가 채점된(scorecard 에 든) 종료 경기에 핸디/OU 픽을 소급 추가.
+ * 백필 — 1X2 가 있는데 핸디/OU 가 빠진 경기(종료·예정 모두)에 핸디/OU 픽을 소급 추가.
+ * 1X2 만 저장됐던 기존 예정 경기는 runFetchGptPredictions 가 doneIds 로 스킵하므로 여기서 메운다.
  * GPT 에는 팀·라인만 주고 결과는 주지 않으므로(점수 누설 없음) 사후 수집이어도 공정하다.
  * 우리 모델 핸디/OU 는 시점 기반(startTime asOf)으로 live 계산해 라인 일관성 유지.
  */
@@ -509,9 +510,9 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
   }
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  // 1X2 가 있는 종료 경기 중, 핸디 또는 OU 가 아직 없는 경기.
+  // 1X2 가 있는 경기(종료·예정 무관) 중, 핸디 또는 OU 가 아직 없는 경기.
   const oneX = await prisma.aiPrediction.findMany({
-    where: { model: GPT_MODEL, market: "1X2", match: { status: "FINISHED" } },
+    where: { model: GPT_MODEL, market: "1X2" },
     select: { matchId: true },
   });
   const haveHcOu = await prisma.aiPrediction.findMany({

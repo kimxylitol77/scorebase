@@ -110,8 +110,10 @@ export default async function ScorecardPage() {
     else if (r.model === MODELS.gpt.id) dp.gpt = cell;
   }
 
-  // 두 모델 모두 픽 + 채점된 데이터포인트만 비교.
-  const datapoints = [...byKey.values()].filter((d) => d.sb && d.gpt);
+  // 두 모델 모두 픽 + 채점된 데이터포인트만 비교 — 타입 가드로 sb/gpt 비-null 보장(이후 d.sb!/d.gpt! 안전).
+  const datapoints = [...byKey.values()].filter(
+    (d): d is DP & { sb: Cell; gpt: Cell } => Boolean(d.sb) && Boolean(d.gpt),
+  );
   const resolved = datapoints
     .filter((d) => d.sb!.correct !== null && d.gpt!.correct !== null)
     .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
@@ -149,12 +151,35 @@ export default async function ScorecardPage() {
   });
   const showTrend = trend.length >= 10;
 
-  // 예정 1X2 맞대결 픽.
-  const isSplit = (d: DP) => d.sb!.pick !== d.gpt!.pick;
-  const upcoming = datapoints
-    .filter((d) => d.market === "1X2" && d.status === "SCHEDULED" && d.sb!.correct === null)
+  // 예정 맞대결 픽 — 경기별로 3시장(1X2·핸디·OU) 묶음.
+  const marketOrder: Market[] = ["1X2", "HANDICAP", "OU"];
+  interface UpMatch {
+    matchId: number;
+    league: string;
+    startTime: Date;
+    home: string;
+    away: string;
+    markets: DP[];
+    split: boolean; // 1X2 픽이 갈렸나
+  }
+  const upByMatch = new Map<number, UpMatch>();
+  for (const d of datapoints) {
+    if (d.status !== "SCHEDULED" || d.sb!.correct !== null) continue;
+    let e = upByMatch.get(d.matchId);
+    if (!e) {
+      e = { matchId: d.matchId, league: d.league, startTime: d.startTime, home: d.home, away: d.away, markets: [], split: false };
+      upByMatch.set(d.matchId, e);
+    }
+    e.markets.push(d);
+  }
+  const upcoming = [...upByMatch.values()].map((e) => {
+    e.markets.sort((a, b) => marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market));
+    const one = e.markets.find((m) => m.market === "1X2");
+    e.split = one ? one.sb!.pick !== one.gpt!.pick : false;
+    return e;
+  })
     .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-    .sort((a, b) => Number(isSplit(b)) - Number(isSplit(a)));
+    .sort((a, b) => Number(b.split) - Number(a.split));
 
   const fmtDate = (d: Date) =>
     d.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
@@ -286,30 +311,37 @@ export default async function ScorecardPage() {
         </section>
       )}
 
-      {/* 예정 경기 맞대결 픽 (1X2) */}
+      {/* 예정 경기 맞대결 픽 — 1X2·핸디·OU 3시장 */}
       {upcoming.length > 0 && (
         <section className="mb-12">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
-            <Clock className="h-4 w-4 text-rose-500" aria-hidden /> 다가오는 맞대결 픽 (1X2)
+            <Clock className="h-4 w-4 text-rose-500" aria-hidden /> 다가오는 맞대결 픽
           </h2>
           <div className="space-y-2">
-            {upcoming.slice(0, 20).map((d) => (
-              <div key={d.matchId} className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
+            {upcoming.slice(0, 20).map((e) => (
+              <div key={e.matchId} className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
                 <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-white/40">
-                  <LeagueBadge league={d.league} />
-                  <span>{fmtDate(d.startTime)} {fmtTime(d.startTime)}</span>
-                  {isSplit(d) && (
+                  <LeagueBadge league={e.league} />
+                  <span>{fmtDate(e.startTime)} {fmtTime(e.startTime)}</span>
+                  {e.split && (
                     <span className="ml-auto rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
                       의견 갈림
                     </span>
                   )}
                 </div>
                 <div className="mt-2 text-[15px] font-semibold text-zinc-900 dark:text-white">
-                  {d.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {d.away}
+                  {e.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {e.away}
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <PickChip label={MODELS.scorebase.short} text={pickText("1X2", d.sb!.pick, d.home, d.away, null)} prob={d.sb!.prob} reason={null} accent="rose" />
-                  <PickChip label={MODELS.gpt.short} text={pickText("1X2", d.gpt!.pick, d.home, d.away, null)} prob={d.gpt!.prob} reason={d.gpt!.reason} accent="emerald" />
+                <div className="mt-3 space-y-1.5">
+                  {e.markets.map((d) => (
+                    <div key={d.market} className="grid grid-cols-[3.2rem_1fr_1fr] items-center gap-2">
+                      <span className="rounded-md bg-zinc-100 px-1.5 py-1 text-center text-[10px] font-semibold text-zinc-500 dark:bg-white/[0.06] dark:text-white/50">
+                        {MARKET_META.find((m) => m.key === d.market)?.label.replace(" 승부", "")}
+                      </span>
+                      <PickChip label={MODELS.scorebase.short} text={pickText(d.market, d.sb!.pick, e.home, e.away, d.sb!.line)} prob={d.sb!.prob} reason={null} accent="rose" />
+                      <PickChip label={MODELS.gpt.short} text={pickText(d.market, d.gpt!.pick, e.home, e.away, d.gpt!.line)} prob={d.gpt!.prob} reason={null} accent="emerald" />
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
