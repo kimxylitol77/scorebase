@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif">
+  <defs>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="barKr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f43f5e"/><stop offset="1" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="600" fill="#ffffff"/>
+  <text x="40" y="50" fill="#0f172a" font-size="30" font-weight="800">2026 월드컵 감독 연봉 TOP 8 + 홍명보</text>
+  <text x="40" y="82" fill="#64748b" font-size="17">단위: 억원(추정) · 막대 끝 수치는 연 추정 연봉 · £1≈2,000원 환산</text>
+
+  <!-- rows: x label end 270, bar start 290, scale 3.4px/억 -->
+  <!-- 1 안첼로티 166 -->
+  <text x="270" y="135" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">안첼로티 · 브라질</text>
+  <rect x="290" y="119" width="564" height="26" rx="5" fill="url(#bar)"/>
+  <text x="866" y="139" fill="#0f172a" font-size="19" font-weight="800">166</text>
+  <!-- 2 투헬 102 -->
+  <text x="270" y="183" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">투헬 · 잉글랜드</text>
+  <rect x="290" y="167" width="347" height="26" rx="5" fill="url(#bar)"/>
+  <text x="649" y="187" fill="#0f172a" font-size="19" font-weight="800">102</text>
+  <!-- 3 포체티노 90 -->
+  <text x="270" y="231" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">포체티노 · 미국</text>
+  <rect x="290" y="215" width="306" height="26" rx="5" fill="url(#bar)"/>
+  <text x="608" y="235" fill="#0f172a" font-size="19" font-weight="800">90</text>
+  <!-- 4 나겔스만 84 -->
+  <text x="270" y="279" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">나겔스만 · 독일</text>
+  <rect x="290" y="263" width="286" height="26" rx="5" fill="url(#bar)"/>
+  <text x="588" y="283" fill="#0f172a" font-size="19" font-weight="800">84</text>
+  <!-- 5 칸나바로 70 -->
+  <text x="270" y="327" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">칸나바로 · 우즈베키스탄</text>
+  <rect x="290" y="311" width="238" height="26" rx="5" fill="url(#bar)"/>
+  <text x="540" y="331" fill="#0f172a" font-size="19" font-weight="800">70</text>
+  <!-- 6 마르티네스 70 -->
+  <text x="270" y="375" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">마르티네스 · 포르투갈</text>
+  <rect x="290" y="359" width="238" height="26" rx="5" fill="url(#bar)"/>
+  <text x="540" y="379" fill="#0f172a" font-size="19" font-weight="800">70</text>
+  <!-- 7 데샴 66 -->
+  <text x="270" y="423" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">데샴 · 프랑스</text>
+  <rect x="290" y="407" width="224" height="26" rx="5" fill="url(#bar)"/>
+  <text x="526" y="427" fill="#0f172a" font-size="19" font-weight="800">66</text>
+  <!-- 8 스칼로니 52 -->
+  <text x="270" y="471" fill="#0f172a" font-size="19" font-weight="700" text-anchor="end">스칼로니 · 아르헨티나</text>
+  <rect x="290" y="455" width="177" height="26" rx="5" fill="url(#bar)"/>
+  <text x="479" y="475" fill="#0f172a" font-size="19" font-weight="800">52</text>
+  <!-- 홍명보 37 (강조) -->
+  <text x="270" y="519" fill="#e11d48" font-size="19" font-weight="800" text-anchor="end">홍명보 · 대한민국</text>
+  <rect x="290" y="503" width="126" height="26" rx="5" fill="url(#barKr)"/>
+  <text x="428" y="523" fill="#e11d48" font-size="19" font-weight="800">37</text>
+
+  <text x="40" y="572" fill="#94a3b8" font-size="15">※ 협회 공식 공시가 아닌 언론 보도·추정치. 성과급·스태프 비용 포함 여부에 따라 차이가 있습니다.</text>
+</svg>

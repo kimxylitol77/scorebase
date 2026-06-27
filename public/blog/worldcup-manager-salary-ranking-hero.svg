@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e5e7eb"/><stop offset="1" stop-color="#9ca3af"/>
+    </linearGradient>
+    <linearGradient id="bronze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fdba74"/><stop offset="1" stop-color="#c2693a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="80" y="100" fill="#fff" font-size="52" font-weight="800">2026 월드컵 감독 연봉 순위</text>
+  <text x="80" y="150" fill="#93c5fd" font-size="26" font-weight="600">48개국 사령탑 중 가장 비싼 명장은 누구인가</text>
+
+  <!-- 2위 -->
+  <rect x="300" y="330" width="180" height="200" rx="8" fill="url(#silver)"/>
+  <text x="390" y="305" fill="#e5e7eb" font-size="30" font-weight="800" text-anchor="middle">2위</text>
+  <text x="390" y="395" fill="#0f172a" font-size="26" font-weight="800" text-anchor="middle">투헬</text>
+  <text x="390" y="430" fill="#1e293b" font-size="20" font-weight="600" text-anchor="middle">잉글랜드</text>
+  <text x="390" y="470" fill="#0f172a" font-size="28" font-weight="800" text-anchor="middle">약 102억</text>
+
+  <!-- 1위 -->
+  <rect x="510" y="250" width="180" height="280" rx="8" fill="url(#gold)"/>
+  <text x="600" y="222" fill="#fde68a" font-size="34" font-weight="800" text-anchor="middle">1위</text>
+  <text x="600" y="315" fill="#0f172a" font-size="30" font-weight="800" text-anchor="middle">안첼로티</text>
+  <text x="600" y="352" fill="#1e293b" font-size="22" font-weight="700" text-anchor="middle">브라질</text>
+  <text x="600" y="405" fill="#0f172a" font-size="40" font-weight="800" text-anchor="middle">약 167억</text>
+
+  <!-- 3위 -->
+  <rect x="720" y="370" width="180" height="160" rx="8" fill="url(#bronze)"/>
+  <text x="810" y="345" fill="#fdba74" font-size="28" font-weight="800" text-anchor="middle">3위</text>
+  <text x="810" y="425" fill="#0f172a" font-size="25" font-weight="800" text-anchor="middle">포체티노</text>
+  <text x="810" y="458" fill="#1e293b" font-size="19" font-weight="600" text-anchor="middle">미국</text>
+  <text x="810" y="498" fill="#0f172a" font-size="26" font-weight="800" text-anchor="middle">약 91억</text>
+
+  <text x="970" y="600" fill="#64748b" font-size="18" text-anchor="end">단위: 연봉 추정(억원) · 언론 보도 기준</text>
+</svg>
