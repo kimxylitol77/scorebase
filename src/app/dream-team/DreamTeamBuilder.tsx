@@ -112,6 +112,13 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
     const set = new Set(squadIds);
     return pool.filter((p) => set.has(p.id));
   }, [pool, hasSquad, squadIds]);
+  // 피치 표시용 부상 정보 — playerId → 남은 부상 경기 수
+  const injuryByPid = useMemo(() => {
+    const m: Record<string, number> = {};
+    const sq = initial?.squad;
+    if (Array.isArray(sq)) for (const s of sq as { playerId?: string; injuryGames?: number }[]) if (s.playerId) m[s.playerId] = s.injuryGames ?? 0;
+    return m;
+  }, [initial]);
 
   const usedValue = useMemo(() => flatSlots.reduce((s, sl) => s + (picks[sl.id] ? poolById[picks[sl.id]]?.value ?? 0 : 0), 0), [flatSlots, picks, poolById]);
   const remaining = tier.budget - usedValue;
@@ -310,6 +317,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
                   {row.map((slot) => {
                     const pid = picks[slot.id];
                     const pl = pid ? poolById[pid] : null;
+                    const inj = pid ? injuryByPid[pid] ?? 0 : 0;
                     const isSel = selected?.slot === slot.id && selected.mode === "placed";
                     return (
                       <button
@@ -320,7 +328,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
                       >
                         {pl ? (
                           <div className="relative">
-                            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-white/90">
+                            <div className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-white/90 ${inj > 0 ? "ring-2 ring-rose-500" : ""}`}>
                               {pl.photo ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={pl.photo} alt={pl.name} className="h-full w-full object-cover" />
@@ -331,6 +339,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
                             <span className="absolute -bottom-1.5 -right-2 rounded-full px-1.5 text-[11px] font-medium text-white" style={{ background: ovrBadgeColor(pl.ovr) }}>
                               {pl.ovr}
                             </span>
+                            {inj > 0 && <span className="absolute -left-1 -top-1 rounded-full bg-rose-600 px-1 text-[9px] font-bold leading-tight text-white">부상</span>}
                           </div>
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-white/60 bg-white/10 text-lg text-white/80">+</div>
@@ -443,7 +452,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
             >
               {pending ? "저장 중…" : "팀 저장"}
             </button>
-            {!canSave && <span className="text-xs text-neutral-400">11명을 예산 안에서 모두 채우면 저장할 수 있습니다.</span>}
+            {!canSave && <span className="text-xs text-neutral-400">{hasSquad ? "11명을 모두 선발하면 저장할 수 있습니다." : "11명을 예산 안에서 모두 채우면 저장할 수 있습니다."}</span>}
             {state.ok && (
               <a href="/dream-team/play" className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-400">
                 저장됨 · 경기하러 가기 →
