@@ -24,6 +24,7 @@ import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
 import HomeFocusCards from "@/components/HomeFocusCards";
 import HomeAiInsightShowcase from "@/components/HomeAiInsightShowcase";
+import HomeAiScorecardShowcase from "@/components/HomeAiScorecardShowcase";
 import HomeRankingShowcase from "@/components/HomeRankingShowcase";
 import SectionHeading from "@/components/SectionHeading";
 import SeasonInsight from "@/components/SeasonInsight";
@@ -186,6 +187,8 @@ export default async function Home() {
       <HomeFocusCards />
 
       <HomeAiInsightShowcase />
+
+      <HomeAiScorecardShowcase />
 
       <HomeRankingShowcase />
 
