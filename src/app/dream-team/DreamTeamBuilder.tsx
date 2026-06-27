@@ -195,11 +195,11 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
         <div className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm leading-relaxed text-neutral-600 dark:border-neutral-800 dark:bg-white/[0.03] dark:text-neutral-300">
           {hasSquad ? (
             <>
-              <span className="font-medium text-neutral-900 dark:text-white">라인업 편성</span> — 보유한 선수 중 11명을 골라 선발로 배치하고 포메이션·전술·역할을 정합니다. 새 선수 영입·방출은 <a href="/dream-team/transfer" className="font-medium text-rose-600 hover:underline dark:text-rose-400">이적 시장</a>에서 자금으로 합니다.
+              <span className="font-medium text-neutral-900 dark:text-white">라인업 편성</span> — 보유 선수 중 11명을 골라 선발로 배치하고, 포메이션과 <span className="font-medium text-rose-600 dark:text-rose-400">전술(초공격~초수비 멘탈리티)·선수 역할(공격형/수비형)</span>을 정합니다. 같은 11명도 전술에 따라 경기 양상이 달라집니다. 새 선수 영입·방출은 <a href="/dream-team/transfer" className="font-medium text-rose-600 hover:underline dark:text-rose-400">이적 시장</a>에서, 부상 선수는 회복할 때까지 선발에서 빠집니다.
             </>
           ) : (
             <>
-              <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 11명을 꾸려 다른 팀과 겨룹니다. 정해진 예산 안에서 <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>를 찾는 게 핵심입니다. 경기에서 이기면 자금이 쌓이고, 어린 선수는 출전할수록 성장합니다.
+              <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 11명을 꾸려 다른 팀과 겨룹니다. 정해진 예산 안에서 <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>를 찾는 게 핵심입니다. 팀을 저장한 뒤 전술을 짜고 시즌 리그를 치르며, 이적 시장에서 선수를 사고팔아 구단을 키웁니다. 어린 선수는 출전할수록 성장하고 몸값도 오릅니다.
             </>
           )}
         </div>

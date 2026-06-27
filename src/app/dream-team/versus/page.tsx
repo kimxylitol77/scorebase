@@ -63,7 +63,7 @@ export default async function VersusPage() {
         </span>
         <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">다른 감독에게 도전</h1>
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-          다른 회원의 드림팀에 도전합니다. 승패에 따라 양쪽 레이팅이 함께 변동됩니다.
+          다른 회원의 드림팀에 도전합니다. 선발 선수의 현재 컨디션이 전력에 반영되며, 승패에 따라 양쪽 레이팅이 함께 변동됩니다.
         </p>
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <VersusClient teamName={me.name} myOvr={squadOvr(mySquad, myLineup)} rating={me.rating} opponents={opponents} ready={lineupMembers(mySquad, myLineup).length === 11} />

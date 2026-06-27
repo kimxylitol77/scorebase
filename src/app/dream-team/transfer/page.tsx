@@ -29,7 +29,7 @@ export default async function TransferPage() {
         </span>
         <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">이적 시장</h1>
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-          자금으로 선수를 영입하고, 안 쓰는 선수는 방출해 자금을 회수하세요. 영입한 선수는 보유 스쿼드에 들어가고, 선발 라인업은 빌더에서 짭니다.
+          자금으로 선수를 영입하고, 안 쓰는 선수는 방출해 회수합니다. 시세는 선수를 <span className="font-medium text-rose-600 dark:text-rose-400">키우면(OVR 성장) 오르고 시즌마다 변하니</span>, 싼 유망주를 영입해 경기로 키운 뒤 비싸게 팔면 차익이 남습니다. 영입한 선수는 보유 스쿼드에 들어가고, 선발 라인업은 빌더에서 짭니다.
         </p>
         <TransferClient funds={team.funds} pool={pool} owned={squad} seasonNo={team.seasonNo} />
       </div>

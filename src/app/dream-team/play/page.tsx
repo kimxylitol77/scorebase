@@ -50,7 +50,7 @@ export default async function PlayPage() {
         </span>
         <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">시즌 리그</h1>
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-          같은 티어 5팀과 홈·원정 10경기를 치러 순위를 다툽니다. 시즌이 끝나면 순위에 따라 보너스 자금을 받고, 자금이 쌓이면 상위 티어로 승급합니다.
+          같은 티어 5팀과 홈·원정 10경기를 치러 순위를 다툽니다. 선발로 뛴 선수는 컨디션이 떨어지고 드물게 부상도 나니, <span className="font-medium text-neutral-700 dark:text-neutral-300">보유 선수로 로테이션</span>을 돌려야 합니다. 시즌이 끝나면 순위 보너스 자금을 받고, 구단가치(스쿼드 몸값 + 자금)가 다음 티어 규모에 닿으면 승급합니다.
         </p>
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
           <PlayClient
