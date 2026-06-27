@@ -35,20 +35,20 @@ const BLOG_SANITIZE: sanitizeHtml.IOptions = {
 
 // 본문을 정화하고, 안에 든 JSON-LD(application/ld+json) 는 검증해 분리한다.
 // script 는 본문에서 모두 제거되며, JSON 으로 파싱 통과한 JSON-LD 만 별도 <script> 로 안전 재삽입한다.
-function prepareBlogContent(content: string): { body: string; ldJson: string | null } {
-  let ldJson: string | null = null;
-  const m = content.match(
-    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i,
-  );
-  if (m) {
+// 글 하나에 여러 스키마(BreadcrumbList + FAQPage 등)가 들어 있을 수 있으므로 전부 추출한다.
+function prepareBlogContent(content: string): { body: string; ldJsons: string[] } {
+  const ldJsons: string[] = [];
+  for (const m of content.matchAll(
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+  )) {
     try {
       // 임의 JS 차단(파싱돼야 통과) + "<" escape 로 </script> breakout 방지
-      ldJson = JSON.stringify(JSON.parse(m[1])).replace(/</g, "\\u003c");
+      ldJsons.push(JSON.stringify(JSON.parse(m[1])).replace(/</g, "\\u003c"));
     } catch {
-      ldJson = null;
+      // 파싱 실패한 블록은 버린다
     }
   }
-  return { body: sanitizeHtml(content, BLOG_SANITIZE), ldJson };
+  return { body: sanitizeHtml(content, BLOG_SANITIZE), ldJsons };
 }
 
 interface Props {
@@ -162,12 +162,13 @@ export default async function BlogDetailPage({ params }: Props) {
             className="blog-html prose prose-neutral dark:prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: prepared.body }}
           />
-          {prepared.ldJson && (
+          {prepared.ldJsons.map((ld, i) => (
             <script
+              key={i}
               type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: prepared.ldJson }}
+              dangerouslySetInnerHTML={{ __html: ld }}
             />
-          )}
+          ))}
         </>
       ) : (
         <Markdown>{b.content}</Markdown>
