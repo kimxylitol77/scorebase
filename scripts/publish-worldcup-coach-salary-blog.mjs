@@ -86,7 +86,7 @@ const html = `<article class="sb-post" style="max-width:820px;margin:0 auto;line
 <p>3위는 미국의 마우리시오 포체티노 감독(약 91억원)입니다. 토트넘 시절 손흥민을 키운 지도자로 한국 팬에게도 익숙하며, 개최국 미국의 흥행과 성적을 동시에 책임지는 자리입니다. 4위 독일의 율리안 나겔스만 감독(약 84억원)은 30대의 젊은 명장으로, 자국 개최 유로 이후 독일의 부활을 이어가고 있습니다.</p>
 <p>이들 모두 클럽 무대에서 검증된 뒤 대표팀으로 자리를 옮긴 공통점이 있습니다. 빅클럽 감독직이 점점 단명하는 흐름 속에서, 안정적인 대표팀 사령탑이 매력적인 선택지가 되고 있다는 분석도 나옵니다.</p>
 
-<figure style="margin:24px 0;"><img src="${SITE}/blog/worldcup-manager-salary-chart.svg" alt="2026 월드컵 감독 연봉 TOP 8 막대그래프 — 안첼로티 166억부터 홍명보 37억까지 비교" style="width:100%;border-radius:12px;display:block;" loading="lazy" /><figcaption style="text-align:center;font-size:14px;color:#888;margin-top:8px;">월드컵 감독 연봉 상위권과 홍명보 감독(빨간 막대) 비교 — 단위 억원(추정)</figcaption></figure>
+<figure style="margin:24px 0;"><img src="${SITE}/blog/worldcup-manager-salary-list.svg" alt="2026 월드컵 감독 연봉 순위 표 — 1위 안첼로티 약 167억부터 10위 쿠만, 한국 홍명보 약 37억까지 전체 순위" style="width:100%;max-width:560px;border-radius:14px;display:block;margin:0 auto;" loading="lazy" /><figcaption style="text-align:center;font-size:14px;color:#888;margin-top:8px;">2026 월드컵 감독 연봉 순위 TOP 10 + 홍명보 감독 — 단위 억원(추정)</figcaption></figure>
 
 <h2>홍명보 감독은 몇 위? — 한국 사령탑 연봉</h2>
 <p>한국 대표팀을 이끄는 홍명보 감독의 연봉은 약 37억원으로 추정됩니다. 48개 참가국 가운데 대략 16~21위권으로 보도되는데, 집계 기준과 보도 시점에 따라 순위는 달라집니다. 상위 10위권과는 거리가 있지만, 전체 참가국 평균보다는 위에 있는 중상위권입니다.</p>

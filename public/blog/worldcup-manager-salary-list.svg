@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 1180" font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif">
+  <defs>
+    <linearGradient id="lbg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1220"/><stop offset="1" stop-color="#111c2e"/>
+    </linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="rankbox" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="1180" fill="url(#lbg)"/>
+
+  <!-- 헤더 -->
+  <rect x="0" y="0" width="760" height="150" fill="url(#head)"/>
+  <text x="380" y="62" fill="#ffffff" font-size="40" font-weight="800" text-anchor="middle">2026 월드컵 감독 연봉 순위</text>
+  <text x="380" y="100" fill="#dbeafe" font-size="20" font-weight="600" text-anchor="middle">48개국 사령탑 추정 연봉 · 매체 보도 종합</text>
+  <text x="380" y="128" fill="#bfdbfe" font-size="15" text-anchor="middle">단위 억원(추정) · £1≈2,000원 환산 · 협회 미공시</text>
+
+  <!-- 컬럼 헤더 -->
+  <text x="55" y="190" fill="#93c5fd" font-size="15" font-weight="700" text-anchor="middle">순위</text>
+  <text x="120" y="190" fill="#93c5fd" font-size="15" font-weight="700">감독</text>
+  <text x="470" y="190" fill="#93c5fd" font-size="15" font-weight="700">국가</text>
+  <text x="730" y="190" fill="#93c5fd" font-size="15" font-weight="700" text-anchor="end">추정 연봉</text>
+  <line x1="30" y1="202" x2="730" y2="202" stroke="#1e3a5f" stroke-width="1.5"/>
+
+  <!-- 행 generator: y0=232, step 80 -->
+  <!-- 1 -->
+  <rect x="30" y="216" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="249" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">1</text>
+  <text x="120" y="244" fill="#f8fafc" font-size="23" font-weight="700">카를로 안첼로티</text>
+  <text x="120" y="266" fill="#64748b" font-size="13">Carlo Ancelotti</text>
+  <text x="470" y="252" fill="#e2e8f0" font-size="19" font-weight="600">🇧🇷 브라질</text>
+  <text x="730" y="252" fill="#fbbf24" font-size="22" font-weight="800" text-anchor="end">약 167억</text>
+  <line x1="30" y1="296" x2="730" y2="296" stroke="#16233a" stroke-width="1"/>
+  <!-- 2 -->
+  <rect x="30" y="296" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="329" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">2</text>
+  <text x="120" y="324" fill="#f8fafc" font-size="23" font-weight="700">토마스 투헬</text>
+  <text x="120" y="346" fill="#64748b" font-size="13">Thomas Tuchel</text>
+  <text x="470" y="332" fill="#e2e8f0" font-size="19" font-weight="600">잉글랜드</text>
+  <text x="730" y="332" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 102억</text>
+  <line x1="30" y1="376" x2="730" y2="376" stroke="#16233a" stroke-width="1"/>
+  <!-- 3 -->
+  <rect x="30" y="376" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="409" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">3</text>
+  <text x="120" y="404" fill="#f8fafc" font-size="23" font-weight="700">마우리시오 포체티노</text>
+  <text x="120" y="426" fill="#64748b" font-size="13">Mauricio Pochettino</text>
+  <text x="470" y="412" fill="#e2e8f0" font-size="19" font-weight="600">🇺🇸 미국</text>
+  <text x="730" y="412" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 91억</text>
+  <line x1="30" y1="456" x2="730" y2="456" stroke="#16233a" stroke-width="1"/>
+  <!-- 4 -->
+  <rect x="30" y="456" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="489" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">4</text>
+  <text x="120" y="484" fill="#f8fafc" font-size="23" font-weight="700">율리안 나겔스만</text>
+  <text x="120" y="506" fill="#64748b" font-size="13">Julian Nagelsmann</text>
+  <text x="470" y="492" fill="#e2e8f0" font-size="19" font-weight="600">🇩🇪 독일</text>
+  <text x="730" y="492" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 84억</text>
+  <line x1="30" y1="536" x2="730" y2="536" stroke="#16233a" stroke-width="1"/>
+  <!-- 5 -->
+  <rect x="30" y="536" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="569" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">5</text>
+  <text x="120" y="564" fill="#f8fafc" font-size="23" font-weight="700">파비오 칸나바로</text>
+  <text x="120" y="586" fill="#64748b" font-size="13">Fabio Cannavaro</text>
+  <text x="470" y="572" fill="#e2e8f0" font-size="19" font-weight="600">🇺🇿 우즈베키스탄</text>
+  <text x="730" y="572" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 70억</text>
+  <line x1="30" y1="616" x2="730" y2="616" stroke="#16233a" stroke-width="1"/>
+  <!-- 6 -->
+  <rect x="30" y="616" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="649" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">6</text>
+  <text x="120" y="644" fill="#f8fafc" font-size="23" font-weight="700">로베르토 마르티네스</text>
+  <text x="120" y="666" fill="#64748b" font-size="13">Roberto Martinez</text>
+  <text x="470" y="652" fill="#e2e8f0" font-size="19" font-weight="600">🇵🇹 포르투갈</text>
+  <text x="730" y="652" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 70억</text>
+  <line x1="30" y1="696" x2="730" y2="696" stroke="#16233a" stroke-width="1"/>
+  <!-- 7 -->
+  <rect x="30" y="696" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="729" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">7</text>
+  <text x="120" y="724" fill="#f8fafc" font-size="23" font-weight="700">디디에 데샴</text>
+  <text x="120" y="746" fill="#64748b" font-size="13">Didier Deschamps</text>
+  <text x="470" y="732" fill="#e2e8f0" font-size="19" font-weight="600">🇫🇷 프랑스</text>
+  <text x="730" y="732" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 66억</text>
+  <line x1="30" y1="776" x2="730" y2="776" stroke="#16233a" stroke-width="1"/>
+  <!-- 8 -->
+  <rect x="30" y="776" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="809" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">8</text>
+  <text x="120" y="804" fill="#f8fafc" font-size="23" font-weight="700">리오넬 스칼로니</text>
+  <text x="120" y="826" fill="#64748b" font-size="13">Lionel Scaloni</text>
+  <text x="470" y="812" fill="#e2e8f0" font-size="19" font-weight="600">🇦🇷 아르헨티나</text>
+  <text x="730" y="812" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 52억</text>
+  <line x1="30" y1="856" x2="730" y2="856" stroke="#16233a" stroke-width="1"/>
+  <!-- 9 -->
+  <rect x="30" y="856" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="889" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">9</text>
+  <text x="120" y="884" fill="#f8fafc" font-size="23" font-weight="700">마르셀로 비엘사</text>
+  <text x="120" y="906" fill="#64748b" font-size="13">Marcelo Bielsa</text>
+  <text x="470" y="892" fill="#e2e8f0" font-size="19" font-weight="600">🇺🇾 우루과이</text>
+  <text x="730" y="892" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 52억</text>
+  <line x1="30" y1="936" x2="730" y2="936" stroke="#16233a" stroke-width="1"/>
+  <!-- 10 -->
+  <rect x="30" y="936" width="50" height="50" rx="12" fill="url(#rankbox)"/>
+  <text x="55" y="969" fill="#fff" font-size="24" font-weight="800" text-anchor="middle">10</text>
+  <text x="120" y="964" fill="#f8fafc" font-size="23" font-weight="700">로날트 쿠만</text>
+  <text x="120" y="986" fill="#64748b" font-size="13">Ronald Koeman</text>
+  <text x="470" y="972" fill="#e2e8f0" font-size="19" font-weight="600">🇳🇱 네덜란드</text>
+  <text x="730" y="972" fill="#f8fafc" font-size="22" font-weight="800" text-anchor="end">약 52억</text>
+
+  <!-- 홍명보 강조 -->
+  <rect x="20" y="1016" width="720" height="74" rx="14" fill="#7f1d2e" stroke="#f43f5e" stroke-width="2"/>
+  <rect x="30" y="1029" width="50" height="50" rx="12" fill="#e11d48"/>
+  <text x="55" y="1062" fill="#fff" font-size="20" font-weight="800" text-anchor="middle">KOR</text>
+  <text x="120" y="1057" fill="#fff" font-size="23" font-weight="800">홍명보</text>
+  <text x="120" y="1079" fill="#fecdd3" font-size="13">Hong Myung-bo · 추정 16~21위권</text>
+  <text x="470" y="1065" fill="#fff" font-size="19" font-weight="700">🇰🇷 대한민국</text>
+  <text x="730" y="1065" fill="#fda4af" font-size="22" font-weight="800" text-anchor="end">약 37억</text>
+
+  <text x="380" y="1135" fill="#475569" font-size="14" text-anchor="middle">scorebase.kr · 협회 미공시 추정치, 성과급·스태프 포함 여부에 따라 차이</text>
+</svg>
