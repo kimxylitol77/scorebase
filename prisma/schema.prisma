@@ -817,6 +817,11 @@ model FootballTransfer {
   league       String? // 매핑 후 backfill
   updatedAt    DateTime @default(now())
 
+  // AI 이적 브리핑 — 주목 이적에 generate-transfer-briefs cron 이 채우는 한 줄 한국어 분석.
+  // 6h 이적 피드 upsert 가 건드리지 않는 필드라 보존됨. null = 미생성.
+  aiBrief   String?
+  aiBriefAt DateTime?
+
   @@index([league, transferTime])
   @@index([toTeamId])
   @@index([playerId])

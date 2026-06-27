@@ -17,7 +17,7 @@ import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
-import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search } from "lucide-react";
+import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -666,6 +666,38 @@ export default async function TransfersPage({
       .map((r) => toCard(r, dMap));
   }
 
+  // ── AI 이적 브리핑 (전체 view 1페이지 상단) — 주목 확정 이적 + haiku 한 줄 분석 ──
+  interface BriefCard { id: string; name: string; fromTeam: string; toTeam: string; valueM: number; league: string; brief: string }
+  let briefCards: BriefCard[] = [];
+  if (showPulse) {
+    const bRows = await prisma.footballTransfer.findMany({
+      where: { league: { in: FIVE }, aiBrief: { not: null }, transferTime: { gte: win.from, lte: win.to } },
+      select: { id: true, playerId: true, fromTeamName: true, toTeamName: true, league: true, aiBrief: true },
+    });
+    const bIds = [...new Set(bRows.map((r) => r.playerId))];
+    const [bPmv, bPlayers] = await Promise.all([
+      prisma.playerMarketValue.findMany({ where: { id: { in: bIds } }, select: { id: true, currentValue: true } }),
+      prisma.theSportsPlayer.findMany({ where: { id: { in: bIds } }, select: { id: true, nameKo: true, name: true } }),
+    ]);
+    const bVal = new Map(bPmv.map((p) => [p.id, p.currentValue ?? 0]));
+    const bName = new Map(bPlayers.map((p) => [p.id, p.nameKo || p.name || null]));
+    const bSeen = new Set<string>();
+    briefCards = bRows
+      .map((r) => ({
+        id: r.id,
+        name: bName.get(r.playerId) || "",
+        fromTeam: toKoreanTeamName(r.fromTeamName, r.league ?? undefined) || r.fromTeamName || "이전 팀",
+        toTeam: toKoreanTeamName(r.toTeamName, r.league ?? undefined) || r.toTeamName || "새 팀",
+        valueM: Math.round((bVal.get(r.playerId) ?? 0) / 1e6),
+        league: r.league ?? "",
+        brief: r.aiBrief ?? "",
+      }))
+      .filter((b) => b.name && b.name !== "선수" && b.brief)
+      .sort((a, b) => b.valueM - a.valueM)
+      .filter((b) => { const k = `${b.name}|${b.toTeam}`; if (bSeen.has(k)) return false; bSeen.add(k); return true; })
+      .slice(0, 6);
+  }
+
   // 제목
   const selectedLabel =
     isLatest ? "최신 이적"
@@ -905,6 +937,43 @@ export default async function TransfersPage({
             </PulseCard>
           )}
         </div>
+      )}
+
+      {/* AI 이적 브리핑 — 주목 확정 이적 + 한 줄 분석 (우리 데이터 강점) */}
+      {briefCards.length > 0 && (
+        <section className="mt-4 rounded-3xl border border-neutral-200/80 bg-white p-5 dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-bold tracking-tight text-neutral-900 dark:text-white">
+                <Sparkles className="h-4 w-4 text-rose-500" aria-hidden /> AI 이적 브리핑
+              </h2>
+              <p className="mt-0.5 text-xs text-neutral-500 dark:text-white/40">
+                {win.label} 주목 영입을 스코어베이스 AI가 한 줄로 분석합니다.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {briefCards.map((b) => (
+              <Link
+                key={b.id}
+                href={`/transfers/${b.id}`}
+                className="group block rounded-2xl bg-neutral-50 p-3.5 ring-1 ring-neutral-100 transition hover:ring-rose-200 dark:bg-white/[0.03] dark:ring-white/[0.06] dark:hover:ring-rose-400/30"
+              >
+                <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-white/40">
+                  <span className="font-semibold text-neutral-900 dark:text-white">{b.name}</span>
+                  {b.valueM > 0 && <span className="tabular-nums text-rose-600 dark:text-rose-400">€{b.valueM}M</span>}
+                </div>
+                <div className="mt-0.5 text-[12px] text-neutral-500 dark:text-white/45">
+                  {b.fromTeam} <span className="text-neutral-300 dark:text-white/20">→</span> {b.toTeam}
+                </div>
+                <p className="mt-1.5 text-[13px] leading-snug text-neutral-700 dark:text-white/70">{b.brief}</p>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] text-neutral-400 dark:text-white/30">
+            확정 이적 사실 + 시장가치 기반 AI 분석. 이적료·계약 조건 등 미공개 수치는 포함하지 않습니다.
+          </p>
+        </section>
       )}
 
       {/* 리스트 — 이적 피드(최신/빅딜) or 팀별 IN/OUT or 몸값 랭킹 */}

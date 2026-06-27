@@ -13,6 +13,10 @@
       "schedule": "30 4 * * *"
     },
     {
+      "path": "/api/cron/transfer-briefs",
+      "schedule": "0 5 * * *"
+    },
+    {
       "path": "/api/cron/collect",
       "schedule": "30 11 * * *"
     },
