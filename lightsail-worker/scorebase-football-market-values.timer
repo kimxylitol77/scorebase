@@ -1,0 +1,10 @@
+[Unit]
+Description=Scorebase Football Market Values — 1일 1회 증분 (KST 09:00 = UTC 00:00)
+
+[Timer]
+OnCalendar=*-*-* 00:00:00
+Persistent=true
+Unit=scorebase-football-market-values.service
+
+[Install]
+WantedBy=timers.target
