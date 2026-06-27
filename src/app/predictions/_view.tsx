@@ -75,6 +75,13 @@ export default function PredictionsView({
               <Target className="h-4 w-4" /> AI 적중률 보드
             </Link>
             <Link
+              href="/predictions/scorecard"
+              className="inline-flex items-center gap-1 rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-zinc-50 transition dark:bg-white/[0.06] dark:text-white dark:ring-white/10 dark:hover:bg-white/[0.1]"
+            >
+              <Sparkles className="h-4 w-4" /> AI 성적표 (vs GPT-5.5)
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+            <Link
               href="/predictions/title-race"
               className="inline-flex items-center gap-1 rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-zinc-50 transition dark:bg-white/[0.06] dark:text-white dark:ring-white/10 dark:hover:bg-white/[0.1]"
             >

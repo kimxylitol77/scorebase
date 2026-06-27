@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
 import CiteBox from "@/components/CiteBox";
+import ScorecardTrendChart, { type TrendPoint } from "@/components/charts/ScorecardTrendChart";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 export const revalidate = 1800; // 30분 ISR
@@ -141,6 +142,19 @@ export default async function ScorecardPage() {
   const sbTally = tallyOf((r) => r.scorebase!);
   const gptTally = tallyOf((r) => r.gpt!);
 
+  // 누적 적중률 추이 — 채점 경기가 충분히 쌓였을 때만 곡선 노출.
+  let sbHit = 0, gptHit = 0;
+  const trend: TrendPoint[] = resolvedAsc.map((r, i) => {
+    if (r.scorebase!.correct === true) sbHit++;
+    if (r.gpt!.correct === true) gptHit++;
+    return {
+      n: i + 1,
+      "우리 모델": +((sbHit / (i + 1)) * 100).toFixed(1),
+      "GPT-5.5": +((gptHit / (i + 1)) * 100).toFixed(1),
+    };
+  });
+  const showTrend = trend.length >= 10;
+
   // 정면 승부 — 한쪽만 맞춘 경기 집계 (누가 더 자주 단독 적중했나).
   let sbOnly = 0, gptOnly = 0, bothRight = 0, bothWrong = 0;
   for (const r of resolved) {
@@ -225,6 +239,21 @@ export default async function ScorecardPage() {
         <p className="-mt-4 mb-10 text-center text-[13px] text-zinc-500 dark:text-white/40">
           같은 {resolved.length}경기 기준 · 양쪽 적중 {bothRight} · 우리만 적중 {sbOnly} · GPT만 적중 {gptOnly} · 둘 다 실패 {bothWrong}
         </p>
+      )}
+
+      {/* 누적 적중률 추이 */}
+      {showTrend && (
+        <section className="mb-12">
+          <h2 className="mb-1 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+            <Sparkles className="h-4 w-4 text-rose-500" aria-hidden /> 누적 적중률 추이
+          </h2>
+          <p className="mb-4 text-[13px] text-zinc-500 dark:text-white/40">
+            채점 경기가 쌓일수록 두 AI의 누적 1X2 적중률이 어떻게 갈리는지.
+          </p>
+          <div className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
+            <ScorecardTrendChart data={trend} />
+          </div>
+        </section>
       )}
 
       {/* 예정 경기 맞대결 픽 */}

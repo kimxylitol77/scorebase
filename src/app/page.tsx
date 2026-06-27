@@ -336,6 +336,14 @@ async function RecentUpdatesSection() {
   const items: UpdateItem[] = [
     {
       tag: "NEW",
+      Icon: Trophy,
+      title: "AI 예측 성적표 · 우리 AI vs GPT-5.5",
+      body: "두 AI가 같은 경기를 경기 전에 예측하고 결과로 채점합니다. 누가 더 잘 맞히는지 경기별 적중·실패를 숨김 없이 누적 공개 — 월드컵·MLB·NBA 등 매일 자동 추가.",
+      href: "/predictions/scorecard",
+      cta: "AI 성적표 보기",
+    },
+    {
+      tag: "NEW",
       Icon: ClipboardList,
       title: "🏆 월드컵 예상 선발 라인업",
       body: wcXiBody,
