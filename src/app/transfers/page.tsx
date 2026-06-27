@@ -666,10 +666,10 @@ export default async function TransfersPage({
       .map((r) => toCard(r, dMap));
   }
 
-  // ── AI 이적 브리핑 (전체 view 1페이지 상단) — 주목 확정 이적 + haiku 한 줄 분석 ──
+  // ── AI 이적 브리핑 (최신 이적 view 1페이지 상단) — 주목 확정 이적 + haiku 한 줄 분석 ──
   interface BriefCard { id: string; name: string; fromTeam: string; toTeam: string; valueM: number; league: string; brief: string }
   let briefCards: BriefCard[] = [];
-  if (showPulse) {
+  if (isLatest && !qSearch && safePage === 1) {
     const bRows = await prisma.footballTransfer.findMany({
       where: { league: { in: FIVE }, aiBrief: { not: null }, transferTime: { gte: win.from, lte: win.to } },
       select: { id: true, playerId: true, fromTeamName: true, toTeamName: true, league: true, aiBrief: true },
@@ -680,14 +680,14 @@ export default async function TransfersPage({
       prisma.theSportsPlayer.findMany({ where: { id: { in: bIds } }, select: { id: true, nameKo: true, name: true } }),
     ]);
     const bVal = new Map(bPmv.map((p) => [p.id, p.currentValue ?? 0]));
-    const bName = new Map(bPlayers.map((p) => [p.id, p.nameKo || p.name || null]));
+    const bName = new Map(bPlayers.map((p) => [p.id, OVERRIDES[p.id]?.nameKo || p.nameKo || p.name || null]));
     const bSeen = new Set<string>();
     briefCards = bRows
       .map((r) => ({
         id: r.id,
         name: bName.get(r.playerId) || "",
-        fromTeam: toKoreanTeamName(r.fromTeamName, r.league ?? undefined) || r.fromTeamName || "이전 팀",
-        toTeam: toKoreanTeamName(r.toTeamName, r.league ?? undefined) || r.toTeamName || "새 팀",
+        fromTeam: koTeam(r.fromTeamName),
+        toTeam: koTeam(r.toTeamName),
         valueM: Math.round((bVal.get(r.playerId) ?? 0) / 1e6),
         league: r.league ?? "",
         brief: r.aiBrief ?? "",

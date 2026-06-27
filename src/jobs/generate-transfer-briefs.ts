@@ -3,7 +3,11 @@
 import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/claude";
-import { toKoreanTeamName } from "@/lib/team-names";
+import { koTeam } from "@/app/transfers/transfer-display";
+import rawOverrides from "../../data/player-overrides.json";
+
+// 선수명 수동 교정 사전 — nameKo 가 OV 우선 (예: Højlund=훌룬드→호일룬). 페이지와 동일 규칙.
+const OVERRIDES = rawOverrides as Record<string, { nameKo?: string }>;
 
 const BIG5 = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
 // 실제 이동만 — 3 완전이적 · 1 임대 · 7 자유계약 (2 복귀·6 방출 제외).
@@ -77,7 +81,7 @@ export async function runGenerateTransferBriefs(opts?: { max?: number }) {
     prisma.theSportsPlayer.findMany({ where: { id: { in: pids } }, select: { id: true, nameKo: true, name: true, position: true } }),
   ]);
   const valueMap = new Map(pmv.map((p) => [p.id, p.currentValue ?? 0]));
-  const nameMap = new Map(players.map((p) => [p.id, p.nameKo || p.name || null]));
+  const nameMap = new Map(players.map((p) => [p.id, OVERRIDES[p.id]?.nameKo || p.nameKo || p.name || null]));
   const posMap = new Map(players.map((p) => [p.id, (p.position && POS_KO[p.position]) || null]));
 
   // enrich + 이름 있는 것만 + 시장가치순 + 중복(선수+행선지) 제거
@@ -104,8 +108,8 @@ export async function runGenerateTransferBriefs(opts?: { max?: number }) {
   for (const e of todo) {
     const brief = await briefFor({
       name: e.name!,
-      fromKo: toKoreanTeamName(e.row.fromTeamName, e.row.league ?? undefined) || e.row.fromTeamName || "이전 팀",
-      toKo: toKoreanTeamName(e.row.toTeamName, e.row.league ?? undefined) || e.row.toTeamName || "새 팀",
+      fromKo: koTeam(e.row.fromTeamName),
+      toKo: koTeam(e.row.toTeamName),
       typeKo: TYPE_KO[e.row.transferType ?? 3] ?? "이적",
       valueM: e.valueM,
       posKo: posMap.get(e.row.playerId) ?? null,
