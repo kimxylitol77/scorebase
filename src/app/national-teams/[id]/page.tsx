@@ -50,9 +50,27 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const team = await prisma.team.findUnique({ where: { id: parseInt(id, 10) || 0 }, select: { name: true } });
   const ko = team ? toKoreanTeamName(team.name) || fifaCountryKo(team.name) || team.name : "국가대표";
-  const title = `${ko} 축구 국가대표팀 — 스쿼드·감독·일정 | 스코어베이스`;
-  const description = `${ko} 국가대표팀 소집 명단(스쿼드), 감독, 최근 경기 결과와 다음 일정, FIFA 랭킹을 한눈에. 2026 월드컵 대비 스코어베이스.`;
-  return { title, description, alternates: { canonical: `/national-teams/${id}` }, openGraph: { title, description, type: "website" } };
+  // 빙 검색어 패턴("{국가} 축구 팀" / "{국가} 축구 국가대표팀")을 타이틀·키워드에 정확 매칭 —
+  // 빙은 exact-match 키워드와 meta 를 구글보다 직접 반영한다.
+  const title = `${ko} 축구 국가대표팀 — 스쿼드·감독·일정·FIFA 랭킹 | 스코어베이스`;
+  const description = `${ko} 축구 국가대표팀(${ko} 축구 팀) 정보 — 최신 소집 명단(스쿼드), 감독, 최근 경기 결과와 다음 일정, FIFA 랭킹을 한눈에. 2026 북중미 월드컵 대비 스코어베이스.`;
+  const keywords = [
+    `${ko} 축구 팀`,
+    `${ko} 축구 국가대표팀`,
+    `${ko} 대표팀`,
+    `${ko} 스쿼드`,
+    `${ko} 감독`,
+    `${ko} FIFA 랭킹`,
+    `${ko} 월드컵`,
+    ...(team && team.name !== ko ? [`${team.name} national team`] : []),
+  ];
+  return {
+    title,
+    description,
+    keywords,
+    alternates: { canonical: `/national-teams/${id}` },
+    openGraph: { title, description, type: "website" },
+  };
 }
 
 export default async function NationalTeamPage({ params }: { params: Promise<{ id: string }> }) {
@@ -205,8 +223,20 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     for (const t of trows) if (!groupNameToId.has(t.name)) groupNameToId.set(t.name, t.id);
   }
 
+  // SportsTeam 구조화 데이터 — 빙·구글이 "국가대표 축구팀" 엔티티로 인식하게.
+  const teamJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsTeam",
+    name: `${koCountry} 축구 국가대표팀`,
+    alternateName: team.name,
+    sport: "Soccer",
+    url: `${process.env.SITE_URL || "https://www.scorebase.kr"}/national-teams/${team.id}`,
+    ...(team.logoUrl ? { logo: team.logoUrl } : {}),
+  };
+
   return (
     <main className="relative max-w-3xl mx-auto px-4 py-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(teamJsonLd) }} />
       <AmbientGlow />
       {/* 브레드크럼 — 허브·48개국 목록으로 연결 (고아 페이지 방지) */}
       <nav className="mb-3 text-xs text-neutral-500 flex items-center gap-1.5">
@@ -226,7 +256,11 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/90 ring-1 ring-white/20">
               <span className="h-1.5 w-1.5 rounded-full bg-white/80" aria-hidden /> 국가대표
             </span>
-            <h1 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{koCountry}</h1>
+            {/* H1 에 빙 검색어("{국가} 축구 국가대표팀") 포함 — 국가명은 크게, 키워드는 작게 */}
+            <h1 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
+              {koCountry}
+              <span className="ml-2 align-middle text-base sm:text-lg font-semibold text-white/80">축구 국가대표팀</span>
+            </h1>
             <p className="text-white/70 text-sm mt-1">
               {team.name}{fifaRank ? <span className="ml-2 font-semibold text-white/90">FIFA {fifaRank}위</span> : null}
             </p>
