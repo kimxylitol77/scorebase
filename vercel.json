@@ -9,6 +9,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/gpt-predictions",
+      "schedule": "30 4 * * *"
+    },
+    {
       "path": "/api/cron/collect",
       "schedule": "30 11 * * *"
     },

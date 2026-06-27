@@ -40,6 +40,7 @@ const TOOLS: Array<{ href: string; label: string }> = [
   { href: "/scores", label: "라이브 스코어" },
   { href: "/predictions", label: "시즌 예측 대시보드" },
   { href: "/predictions/accuracy", label: "적중률 보드" },
+  { href: "/predictions/scorecard", label: "AI 예측 성적표" },
   { href: "/predictions/starters", label: "선발 매치업" },
   { href: "/value-bets", label: "밸류 베트" },
   { href: "/transfers", label: "이적시장 · 몸값" },

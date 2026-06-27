@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runEvaluate, runEvaluateMatches, runBrierReport } from "@/jobs/evaluate-predictions";
+import { runEvaluateAiPredictions } from "@/jobs/fetch-gpt-predictions";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -25,12 +26,15 @@ export async function GET(req: Request) {
     ]);
     // Brier 리포트 — predCorrect 채운 뒤 실행 (확률 품질 + 시장 대비, cron 로그·응답으로 확인)
     const brier = await runBrierReport().catch(() => null);
+    // 멀티 AI 성적표 채점 — 종료 경기의 우리 모델·GPT 픽 correct 채움.
+    const aiScore = await runEvaluateAiPredictions().catch(() => null);
     await recordCronRun("evaluate");
     return NextResponse.json({
       ok: true,
       preview: previewResult,
       match: matchResult,
       brier,
+      aiScore,
     });
   } catch (e) {
     return NextResponse.json(

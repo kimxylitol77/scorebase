@@ -199,11 +199,32 @@ model Match {
   tsBaseballOdds TsBaseballOddsHistory[]
   liveCommentary LiveCommentary?
   matchStats     MatchStats?
+  aiPredictions  AiPrediction[]
 
   @@unique([league, externalId])
   @@index([league, startTime])
   @@index([status])
   @@index([league, predCorrect])
+}
+
+/// 멀티 AI 예측 성적표 — 한 경기를 여러 AI(우리 통계모델 vs GPT-5.5)가 경기 전에 예측한 기록.
+/// model 당 (match, market) 1행. correct 는 경기 종료 후 evaluate 가 채움. /predictions/scorecard 소스.
+model AiPrediction {
+  id          Int      @id @default(autoincrement())
+  matchId     Int
+  model       String   // "scorebase"(우리 통계모델) | "gpt-5.5"
+  market      String   // "1X2"
+  pick        String   // "HOME" | "DRAW" | "AWAY"
+  prob        Float    // 픽 확률 0~1
+  reason      String?  // GPT 한줄 근거 (있으면)
+  correct     Boolean? // 경기 종료 후 actual 과 일치 여부 (null = 미채점)
+  predictedAt DateTime @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, model, market])
+  @@index([model, correct])
+  @@index([matchId])
 }
 
 // 축구 경기 부가 스탯 (코너·카드·슈팅·점유율) — TheSports detailLive.stats 에서 종료 후 캡처.

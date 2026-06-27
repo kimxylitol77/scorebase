@@ -15,6 +15,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "wc-sim-snapshot", label: "WC 우승확률", maxAgeH: 28 },
   { name: "league-sim-snapshot", label: "시즌 시뮬", maxAgeH: 28 },
   { name: "evaluate", label: "적중률 평가", maxAgeH: 28 },
+  { name: "gpt-predictions", label: "멀티 AI 성적표", maxAgeH: 28 },
   // 6h 주기 — 기대 6h + 유예 4h = 10h
   { name: "lol-collect", label: "LOL(LCK) 수집", maxAgeH: 10 },
   // 위클리 — 기대 168h + 유예 12h = 180h
