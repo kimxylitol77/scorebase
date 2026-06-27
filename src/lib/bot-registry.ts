@@ -77,6 +77,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 6 * HOUR,
     role: "TheSports transfer/list 증분 → FootballTransfer (KST 00·06·12·18)",
   },
+  "lightsail-football-market-values": {
+    ko: "선수 몸값 증분 수집",
+    intervalMs: 1 * DAY,
+    role: "TheSports player/market/list 증분 → PlayerMarketValue (매일 KST 09:00)",
+  },
   "mac-mini-route-guardian": {
     ko: "라우트 가디언",
     intervalMs: 1 * DAY,
