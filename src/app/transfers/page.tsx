@@ -671,7 +671,7 @@ export default async function TransfersPage({
   let briefCards: BriefCard[] = [];
   if (isLatest && !qSearch && safePage === 1) {
     const bRows = await prisma.footballTransfer.findMany({
-      where: { league: { in: FIVE }, aiBrief: { not: null }, transferTime: { gte: win.from, lte: win.to } },
+      where: { league: { in: feedScope }, aiBrief: { not: null }, transferTime: { gte: win.from, lte: win.to } },
       select: { id: true, playerId: true, fromTeamName: true, toTeamName: true, league: true, aiBrief: true },
     });
     const bIds = [...new Set(bRows.map((r) => r.playerId))];

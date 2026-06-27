@@ -9,7 +9,8 @@ import rawOverrides from "../../data/player-overrides.json";
 // 선수명 수동 교정 사전 — nameKo 가 OV 우선 (예: Højlund=훌룬드→호일룬). 페이지와 동일 규칙.
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string }>;
 
-const BIG5 = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+// 커버 리그 — 이적 피드 범위(빅5 + 확장). MLS 그리즈만 같은 주목 영입도 포함.
+const COVERED_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "SAUDI_PL", "MLS"];
 // 실제 이동만 — 3 완전이적 · 1 임대 · 7 자유계약 (2 복귀·6 방출 제외).
 const MOVE_TYPES = [1, 3, 7];
 const MAX_BRIEFS = Number(process.env.TRANSFER_BRIEF_MAX ?? 14); // 1회 haiku 호출 상한
@@ -60,7 +61,7 @@ export async function runGenerateTransferBriefs(opts?: { max?: number }) {
   // 창 내 실제 이동 + 빅5. 미래 발효(여름 7/1 등) 포함 위해 to 까지 허용.
   const rows = await prisma.footballTransfer.findMany({
     where: {
-      league: { in: BIG5 },
+      league: { in: COVERED_LEAGUES },
       transferType: { in: MOVE_TYPES },
       transferTime: { gte: win.from, lte: win.to },
     },
