@@ -1,9 +1,10 @@
 // 월드컵 허브 탭 바 — iOS 세그먼트 컨트롤(애플) + lucide 라인 아이콘. ?view= 기반 SSR 탭.
 import Link from "next/link";
-import { LayoutGrid, Trophy, Users, ListOrdered, BarChart3, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Trophy, Users, ListOrdered, BarChart3, Network, type LucideIcon } from "lucide-react";
 
 const TABS: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "groups", label: "조별리그", icon: ListOrdered },
+  { key: "bracket", label: "대진표", icon: Network },
   { key: "overview", label: "개요", icon: LayoutGrid },
   { key: "predictions", label: "예측", icon: Trophy },
   { key: "players", label: "선수", icon: Users },

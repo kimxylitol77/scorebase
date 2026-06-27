@@ -11,6 +11,8 @@ import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
 import WcTabBar from "@/components/world-cup/WcTabBar";
 import WcXgList from "@/components/world-cup/WcXgList";
+import WcBracket from "@/components/world-cup/WcBracket";
+import { buildWcBracket, parseKnockoutRound, type WcKnockoutFixture } from "@/lib/predict/wc-bracket";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import { getWcGroupStandings, getWcThirdPlaceRace } from "@/lib/sports/world-cup-standings";
@@ -40,7 +42,7 @@ function kstTime(d: Date): string {
   return `${k.getUTCMonth() + 1}/${k.getUTCDate()} (${days[k.getUTCDay()]}) ${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
 }
 
-const VIEWS = ["groups", "overview", "predictions", "players", "xg"] as const;
+const VIEWS = ["groups", "bracket", "overview", "predictions", "players", "xg"] as const;
 
 export default async function WorldCupHub({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const { view: rawView } = await searchParams;
@@ -86,6 +88,45 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
   // 조 3위 와일드카드 레이스 — 조별 탭만. 경기 기록이 하나라도 있을 때만 노출(개막 전엔 무의미).
   const thirdsRaw = view === "groups" ? await getWcThirdPlaceRace() : [];
   const wcThirds = thirdsRaw.some((t) => t.played > 0) ? thirdsRaw : [];
+
+  // 녹아웃 브래킷 — 대진표 탭만. 고정 슬롯 + 현재 조별 순위 + 실제 녹아웃 fixture overlay.
+  let bracketSlots: ReturnType<typeof buildWcBracket> | null = null;
+  if (view === "bracket") {
+    const [standings, knockoutRows] = await Promise.all([
+      getWcGroupStandings(),
+      prisma.match.findMany({
+        where: { league: "WORLD_CUP", startTime: { gte: new Date("2026-06-28T00:00:00Z") } },
+        select: {
+          externalId: true, startTime: true, status: true, homeScore: true, awayScore: true,
+          homeTeamId: true, awayTeamId: true, raw: true,
+          homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+        },
+      }),
+    ]);
+    const knockout: WcKnockoutFixture[] = [];
+    for (const m of knockoutRows) {
+      let roundStr: string | null = null;
+      let winnerId: number | null = null;
+      try {
+        const j = JSON.parse(m.raw ?? "{}");
+        roundStr = j?.league?.round ?? null;
+        if (j?.teams?.home?.winner === true) winnerId = m.homeTeamId;
+        else if (j?.teams?.away?.winner === true) winnerId = m.awayTeamId;
+      } catch {}
+      const round = parseKnockoutRound(roundStr);
+      if (!round) continue;
+      knockout.push({
+        round, homeName: m.homeTeam.name, awayName: m.awayTeam.name,
+        homeId: m.homeTeamId, awayId: m.awayTeamId, homeScore: m.homeScore, awayScore: m.awayScore,
+        status: m.status, startTime: m.startTime.toISOString(), externalId: m.externalId, winnerId,
+      });
+    }
+    bracketSlots = buildWcBracket({
+      groupStandings: standings,
+      teamIdByName: new Map(teams.map((t) => [t.name, t.id])),
+      knockout,
+    });
+  }
 
   type MatchRow = (typeof recentOrLive)[number];
   const matchLine = (m: MatchRow) => {
@@ -400,6 +441,21 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
               </div>
               <p className="mt-2 text-[11px] text-neutral-400">초록 8팀이 현재 진출권 — 동률 시 FIFA 공식 기준(페어플레이 점수·추첨)은 미반영</p>
             </div>
+          )}
+        </section>
+      )}
+
+      {/* ── 대진표 (녹아웃 브래킷) ── */}
+      {view === "bracket" && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg font-bold tracking-tight">녹아웃 토너먼트 대진표</h2>
+            <p className="mt-1 text-xs text-neutral-500 break-keep">
+              32강부터 결승까지 · FIFA 고정 슬롯 기준 · 팀 위에 마우스를 올리면 결승까지 경로가 강조됩니다 · 데스크탑은 좌우 미러링, 모바일은 라운드별 탭.
+            </p>
+          </div>
+          {bracketSlots && (
+            <WcBracket slots={bracketSlots} koreaTeamId={koreaTeam?.id ?? null} />
           )}
         </section>
       )}
