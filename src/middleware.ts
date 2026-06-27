@@ -91,8 +91,9 @@ export function middleware(req: NextRequest) {
   if (isScoreboard) {
     // 중복 색인 방지(noindex). X-Frame-Options 는 안 붙여 iframe 위젯 임베드 허용(어디서나).
     res.headers.set("X-Robots-Tag", "noindex, nofollow");
-  } else {
+  } else if (!path.startsWith("/embed")) {
     // scorebase.kr — 클릭재킹 방지 (next.config 전역 대신 host별로 여기서 부여).
+    // /embed/* 는 외부 블로그에 iframe 으로 붙는 위젯이라 X-Frame-Options 미부여(어디서나 임베드 허용).
     res.headers.set("X-Frame-Options", "DENY");
   }
   return res;
