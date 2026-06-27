@@ -13,6 +13,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import MlbLiveDetail from "@/components/MlbLiveDetail";
 import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
+import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -66,7 +67,7 @@ async function findEspnMatch(gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league: "MLB" },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true, aiPredictions: { where: { market: "1X2" } } },
     });
   } catch {
     return null;
@@ -108,7 +109,7 @@ async function findByApiSportsId(gameId: string): Promise<FoundMatch | null> {
         homeTeam: { name: g.teams.home.name },
         awayTeam: { name: g.teams.away.name },
       },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true, aiPredictions: { where: { market: "1X2" } } },
     });
     if (m) return m;
     // 2) 마지막 토큰 (= 팀명) contains fallback
@@ -122,7 +123,7 @@ async function findByApiSportsId(gameId: string): Promise<FoundMatch | null> {
         homeTeam: { name: { contains: homeTok } },
         awayTeam: { name: { contains: awayTok } },
       },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true, aiPredictions: { where: { market: "1X2" } } },
     });
     return m;
   } catch {
@@ -312,6 +313,10 @@ export default async function MlbLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
         swapSides
       />
+
+      {match.aiPredictions && match.aiPredictions.length >= 2 && (
+        <AiMatchupCard homeKo={homeKo} awayKo={awayKo} predictions={match.aiPredictions} />
+      )}
 
       {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}
       <MatchInsight

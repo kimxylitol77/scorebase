@@ -44,6 +44,7 @@ import BasketballBoxScoreTab from "@/components/live/BasketballBoxScoreTab";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
+import AiMatchupCard from "@/components/AiMatchupCard";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import { parseTsFootballScore, fetchSoccerLive, type LiveMatch } from "@/lib/sports/live-scores";
@@ -132,7 +133,12 @@ async function findMatch(league: string, gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league },
-      include: { homeTeam: true, awayTeam: true, theSportsCache: true },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        theSportsCache: true,
+        aiPredictions: { where: { market: "1X2" } },
+      },
     });
   } catch {
     return null;
@@ -1001,6 +1007,14 @@ export default async function GenericLivePage({ params }: Props) {
           );
         })()}
 
+      {match.aiPredictions && match.aiPredictions.length >= 2 && (
+        <AiMatchupCard
+          homeKo={homeKo}
+          awayKo={awayKo}
+          predictions={match.aiPredictions}
+        />
+      )}
+
       <MatchInsight
         match={match}
         extraTabs={soccerTabs}
@@ -1202,6 +1216,13 @@ async function renderBaseballPage(args: {
         initialOdds={baseballOdds}
         wpaSeries={wpaSeries}
       />
+      {match.aiPredictions && match.aiPredictions.length >= 2 && (
+        <AiMatchupCard
+          homeKo={homeKo}
+          awayKo={awayKo}
+          predictions={match.aiPredictions}
+        />
+      )}
       <MatchInsight
         match={match}
         teamStatsContent={

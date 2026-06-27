@@ -9,6 +9,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
+import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { fetchNpbPhotoUrl } from "@/lib/sports/npb-official";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -63,7 +64,7 @@ async function findNpbMatch(gameId: string) {
   try {
     return await prisma.match.findFirst({
       where: { externalId: gameId, league: "NPB" },
-      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true },
+      include: { homeTeam: true, awayTeam: true, liveCommentary: true, theSportsCache: true, aiPredictions: { where: { market: "1X2" } } },
     });
   } catch {
     return null;
@@ -262,6 +263,10 @@ export default async function NpbLivePage({ params }: Props) {
         totalTeams={extras.totalTeams}
         swapSides
       />
+
+      {match.aiPredictions && match.aiPredictions.length >= 2 && (
+        <AiMatchupCard homeKo={homeKo} awayKo={awayKo} predictions={match.aiPredictions} />
+      )}
 
       {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}
       <MatchInsight
