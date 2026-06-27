@@ -18,7 +18,7 @@
       "flag": "🇹🇷"
     }
   ],
-  "teamRating": 3.6,
+  "teamRating": 3.8,
   "xi": [
     {
       "id": "3glrw7hynjzxqdy",
@@ -31,9 +31,9 @@
       "logo": "https://img.thesports.com/football/player/9b67228782074cfe908c0c9b071c790a.png",
       "score": 8.4,
       "star": 4,
-      "recentRating": 5.97,
-      "avgRating": 7.05,
-      "games": 3,
+      "recentRating": 7.14,
+      "avgRating": 7.07,
+      "games": 4,
       "x": 50,
       "y": 90
     },
@@ -48,9 +48,9 @@
       "logo": "https://img.thesports.com/football/player/0e61eeaba8be9d47caa0b723362004e5.png",
       "score": 8.7,
       "star": 4,
-      "recentRating": 8.7,
-      "avgRating": 7.49,
-      "games": 4,
+      "recentRating": 6.05,
+      "avgRating": 7.2,
+      "games": 5,
       "x": 16,
       "y": 70
     },
@@ -65,9 +65,9 @@
       "logo": "https://img.thesports.com/football/player/92744aa8e4ce60ac37f49666da7253ec.png",
       "score": 8.34,
       "star": 4,
-      "recentRating": 6.96,
-      "avgRating": 7.65,
-      "games": 2,
+      "recentRating": 6.5,
+      "avgRating": 7.27,
+      "games": 3,
       "x": 39,
       "y": 70
     },
@@ -82,9 +82,9 @@
       "logo": "https://img.thesports.com/football/player/25c0ed9fd773a7299c0d350962c539aa.png",
       "score": 8.2,
       "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 6.63,
-      "games": 3,
+      "recentRating": 6.09,
+      "avgRating": 6.49,
+      "games": 4,
       "x": 61,
       "y": 70
     },
@@ -99,11 +99,45 @@
       "logo": "https://img.thesports.com/football/player/4b6be5e0b1873903908353e121aeacaa.png",
       "score": 8.12,
       "star": 4,
-      "recentRating": 7.56,
-      "avgRating": 7.19,
-      "games": 4,
+      "recentRating": 6.03,
+      "avgRating": 6.96,
+      "games": 5,
       "x": 84,
       "y": 70
+    },
+    {
+      "id": "y39mp1hjo6vnmoj",
+      "name": "Sebastian Berhalter",
+      "nameKo": "세바스찬 베르할터",
+      "hasMv": false,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/dea145c5f225b6a8d6657887625bf5d7.png",
+      "score": 8.7,
+      "star": 4,
+      "recentRating": 8.7,
+      "avgRating": 6.84,
+      "games": 5,
+      "x": 22,
+      "y": 32
+    },
+    {
+      "id": "965mkyhn3gjr1ge",
+      "name": "Christian Pulisic",
+      "nameKo": "크리스천 풀리식",
+      "hasMv": true,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/59ea84ba1b15b3ea70f56f0766949f20.png",
+      "score": 8.64,
+      "star": 4,
+      "recentRating": 5.91,
+      "avgRating": 7.24,
+      "games": 4,
+      "x": 50,
+      "y": 32
     },
     {
       "id": "23xmvkhd6e7gqg8",
@@ -116,11 +150,28 @@
       "logo": "https://img.thesports.com/football/player/8ef889a9c080bf80f8fd15fe326329c9.png",
       "score": 8.3,
       "star": 4,
-      "recentRating": 8.3,
-      "avgRating": 8.25,
-      "games": 2,
-      "x": 22,
+      "recentRating": 6.94,
+      "avgRating": 7.81,
+      "games": 3,
+      "x": 78,
       "y": 32
+    },
+    {
+      "id": "vjxm8gh8xeyr6od",
+      "name": "Alejandro Romero Gamarra",
+      "nameKo": "알레한드로 세바스티안 로메로 가마라",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Paraguay",
+      "flag": "🇵🇾",
+      "logo": "https://img.thesports.com/football/player/8ff1b0158f3eab063382bcbc0dc00b7e.png",
+      "score": 7.8,
+      "star": 3,
+      "recentRating": 6.29,
+      "avgRating": 7.04,
+      "games": 2,
+      "x": 35,
+      "y": 52
     },
     {
       "id": "8yomo4hvy06zq0j",
@@ -133,82 +184,12 @@
       "logo": "https://img.thesports.com/football/player/8d26a5f09380a4bab9434ed074a8067c.png",
       "score": 7.73,
       "star": 3,
-      "recentRating": 6.38,
-      "avgRating": 6.68,
-      "games": 3,
-      "x": 50,
-      "y": 32
-    },
-    {
-      "id": "8yomo4h2gkkkq0j",
-      "name": "Maurício Magalhães Prado",
-      "nameKo": "마우리시우",
-      "hasMv": false,
-      "pos": "M",
-      "country": "Paraguay",
-      "flag": "🇵🇾",
-      "logo": "https://img.thesports.com/football/player/cbbd43e13fabb38bdf23914df00a58d4.png",
-      "score": 7.7,
-      "star": 3,
-      "recentRating": 7.5,
-      "avgRating": 7.6,
-      "games": 2,
-      "x": 78,
-      "y": 32
-    },
-    {
-      "id": "2y8m4zh8wd28ql0",
-      "name": "Paul Okon-Engstler",
-      "nameKo": "폴 오콘-엥스틀러",
-      "hasMv": false,
-      "pos": "M",
-      "country": "Australia",
-      "flag": "🇦🇺",
-      "logo": "https://img.thesports.com/football/player/16b1f60562fcd07d5b6385adc7518176.png",
-      "score": 7.7,
-      "star": 3,
-      "recentRating": 6.64,
-      "avgRating": 6.9,
-      "games": 3,
-      "x": 35,
-      "y": 52
-    },
-    {
-      "id": "23xmvkhd083jqg8",
-      "name": "Malik Tillman",
-      "nameKo": "말릭 틸먼",
-      "hasMv": true,
-      "pos": "M",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/d4c86ead1bcdde2d9bea2a02de94ad9d.png",
-      "score": 7.66,
-      "star": 3,
-      "recentRating": 6.87,
-      "avgRating": 6.95,
+      "recentRating": 6.24,
+      "avgRating": 6.57,
       "games": 4,
       "x": 65,
       "y": 52
     },
-    {
-      "id": "965mkyhn3gjr1ge",
-      "name": "Christian Pulisic",
-      "nameKo": "크리스천 풀리식",
-      "hasMv": true,
-      "pos": "F",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/59ea84ba1b15b3ea70f56f0766949f20.png",
-      "score": 8.64,
-      "star": 4,
-      "recentRating": 7.7,
-      "avgRating": 7.68,
-      "games": 3,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
     {
       "id": "pxwrxlh9577pryk",
       "name": "Folarin Balogun",
@@ -222,8 +203,12 @@
       "star": 4,
       "recentRating": 8.8,
       "avgRating": 7.78,
-      "games": 4
-    },
+      "games": 4,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "2y8m4zh8wj47ql0",
       "name": "Nestory Irankunda",
@@ -235,24 +220,9 @@
       "logo": "https://img.thesports.com/football/player/edc678422cc090a64813860ff2ebffaa.png",
       "score": 8.5,
       "star": 4,
-      "recentRating": 6.44,
-      "avgRating": 7.06,
-      "games": 3
-    },
-    {
-      "id": "vjxm8gh8xeyr6od",
-      "name": "Alejandro Romero Gamarra",
-      "nameKo": "알레한드로 세바스티안 로메로 가마라",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Paraguay",
-      "flag": "🇵🇾",
-      "logo": "https://img.thesports.com/football/player/8ff1b0158f3eab063382bcbc0dc00b7e.png",
-      "score": 7.8,
-      "star": 3,
-      "recentRating": 6.29,
-      "avgRating": 7.04,
-      "games": 2
+      "recentRating": 6.2,
+      "avgRating": 6.85,
+      "games": 4
     },
     {
       "id": "n54qllhx7x3gqvy",
@@ -265,9 +235,9 @@
       "logo": "https://img.thesports.com/football/player/c6696cf2a66c8c506554956459455801.png",
       "score": 7.8,
       "star": 3,
-      "recentRating": 7.8,
-      "avgRating": 6.86,
-      "games": 3
+      "recentRating": 7.56,
+      "avgRating": 7.04,
+      "games": 4
     },
     {
       "id": "dn1m1gho182moep",
@@ -280,9 +250,9 @@
       "logo": "https://img.thesports.com/football/player/69a4e3d5099e9ac72455e77f10a75208.png",
       "score": 7.8,
       "star": 3,
-      "recentRating": 5.63,
-      "avgRating": 6.78,
-      "games": 3
+      "recentRating": 7,
+      "avgRating": 6.83,
+      "games": 4
     },
     {
       "id": "6ypq3nhwpj2md7o",
@@ -298,6 +268,36 @@
       "recentRating": 7.38,
       "avgRating": 7.32,
       "games": 4
+    },
+    {
+      "id": "ednm9whzx15zryo",
+      "name": "Julio Enciso",
+      "nameKo": "후리오 엔시소",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Paraguay",
+      "flag": "🇵🇾",
+      "logo": "https://img.thesports.com/football/player/7d1e4e243185ff0caaaf799ac872c46d.png",
+      "score": 7.73,
+      "star": 3,
+      "recentRating": 6.22,
+      "avgRating": 6.82,
+      "games": 4
+    },
+    {
+      "id": "8yomo4h2gkkkq0j",
+      "name": "Maurício Magalhães Prado",
+      "nameKo": "마우리시우",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Paraguay",
+      "flag": "🇵🇾",
+      "logo": "https://img.thesports.com/football/player/cbbd43e13fabb38bdf23914df00a58d4.png",
+      "score": 7.7,
+      "star": 3,
+      "recentRating": 6.82,
+      "avgRating": 7.34,
+      "games": 3
     }
   ],
   "complete": true
