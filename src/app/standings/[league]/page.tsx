@@ -58,6 +58,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: { canonical: "https://www.scorebase.kr/standings/NHL" },
     };
   }
+  // KBO — 빙 검색어 "kbo 리그 팀 순위"(노출 561·5위)·"kbo순위"(98·6위) 정밀 매칭.
+  if (upper === "KBO") {
+    return {
+      title: "KBO 리그 팀 순위 — 2026 프로야구 순위표·승률·게임차 | 스코어베이스",
+      description:
+        "KBO 리그 팀 순위표. 10개 구단 승·패·무·승률·게임차와 최근 폼을 한눈에. 한국 프로야구 순위 매일 자동 갱신.",
+      keywords: [
+        "KBO 순위",
+        "KBO 리그 팀 순위",
+        "KBO 팀 순위",
+        "KBO 순위표",
+        "KBO 리그 순위",
+        "프로야구 순위",
+        "한국 프로야구 순위",
+      ],
+      alternates: { canonical: "https://www.scorebase.kr/standings/KBO" },
+    };
+  }
   return {
     title: `${name} 순위표 — 스코어베이스`,
     description: `${name} 시즌 순위표. 승점·승무패·골득실·득점·실점 한눈에. 매일 자동 갱신.`,
