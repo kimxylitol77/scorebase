@@ -29,19 +29,23 @@ function sh(cmd) {
 // uncommitted tracked 변경(git diff HEAD) + 새 파일(untracked) 을 하나의 diff 텍스트로.
 function collectDiff() {
   let diff = sh("git diff HEAD");
-  const untracked = sh("git ls-files --others --exclude-standard")
+  const codeExt = /\.(ts|tsx|js|jsx|mjs|css|sql|prisma|json|md)$/;
+  const allUntracked = sh("git ls-files --others --exclude-standard")
     .split("\n")
     .map((s) => s.trim())
-    .filter((f) => f && f !== SELF && /\.(ts|tsx|js|jsx|mjs|css|sql|prisma|json|md)$/.test(f));
-  for (const f of untracked) {
+    .filter((f) => f && f !== SELF);
+  for (const f of allUntracked.filter((f) => codeExt.test(f))) {
     try {
       diff += `\n\n=== NEW FILE: ${f} ===\n` + readFileSync(f, "utf-8");
     } catch {
       /* skip unreadable */
     }
   }
+  // 코드가 아닌 새 에셋(이미지·SVG 등)은 내용 대신 추가 사실만 알림 — 참조 깨짐 오탐 방지.
+  const assets = allUntracked.filter((f) => !codeExt.test(f));
+  if (assets.length) diff += `\n\n=== 새로 추가된 에셋(내용 생략, 저장소에 존재·참조 유효) ===\n` + assets.join("\n");
   const files = sh("git diff HEAD --name-only").split("\n").filter(Boolean).filter((f) => f !== SELF);
-  return { diff, files: [...files, ...untracked] };
+  return { diff, files: [...files, ...allUntracked] };
 }
 
 const SYSTEM = `당신은 Scorebase(Next.js 16 + Prisma + Neon Postgres 한국 스포츠 미디어)의 깐깐한 시니어 코드 리뷰 감독관입니다.
