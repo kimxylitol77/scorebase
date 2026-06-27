@@ -277,6 +277,12 @@ export default async function StatsPage({ searchParams }: Props) {
   const topSearchQueries = Array.from(searchQueryAgg.entries())
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 15);
+  // 네이버·다음 검색어 (referrer 기반 방문) — 3채널 통합 비교의 한 열.
+  const naverDaumQueries = Array.from(searchQueryAgg.entries())
+    .filter(([, v]) => v.channel === "naver" || v.channel === "daum")
+    .map(([query, v]) => ({ query, count: v.count, channel: v.channel }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
   const topExternalLandings = Array.from(externalLandingPathAgg.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
@@ -633,6 +639,72 @@ export default async function StatsPage({ searchParams }: Props) {
         </p>
       </section>
 
+      {/* === 검색 채널 종합 비교 (구글·빙·네이버/다음 한 화면) === */}
+      <section className="space-y-4 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">🔍</span>
+          <h2 className="text-lg font-bold tracking-tight">검색 채널 종합 비교</h2>
+          <span className="text-xs text-neutral-500">구글 · 빙 · 네이버/다음 한 화면</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SearchCompareColumn
+            emoji="🟢"
+            label="구글"
+            sub="GSC · 최근 28일"
+            metricLabel="클릭"
+            summary={
+              gsc.totals28
+                ? `클릭 ${gsc.totals28.clicks.toLocaleString()} · 노출 ${gsc.totals28.impressions.toLocaleString()}`
+                : gsc.configured
+                  ? "데이터 없음"
+                  : "연동 대기"
+            }
+            rows={gsc.queries28.slice(0, 10).map((r) => ({
+              query: r.keys[0] ?? "",
+              value: r.clicks.toLocaleString(),
+            }))}
+            emptyHint="구글 검색어 데이터 없음 (색인·노출 누적 대기)"
+          />
+          <SearchCompareColumn
+            emoji="🔷"
+            label="빙"
+            sub="Bing Webmaster"
+            metricLabel="클릭"
+            summary={
+              bing.totals
+                ? `클릭 ${bing.totals.clicks.toLocaleString()} · 노출 ${bing.totals.impressions.toLocaleString()}`
+                : bing.configured
+                  ? "데이터 없음"
+                  : "연동 대기"
+            }
+            rows={bing.queries.slice(0, 10).map((q) => ({
+              query: q.query,
+              value: q.clicks.toLocaleString(),
+            }))}
+            emptyHint="빙 검색어 데이터 없음"
+          />
+          <SearchCompareColumn
+            emoji="🟩"
+            label="네이버·다음"
+            sub={`referrer 방문 · ${rangeLabel}`}
+            metricLabel="방문"
+            summary={`방문 ${naverDaumQueries.reduce((s, q) => s + q.count, 0).toLocaleString()}회`}
+            rows={naverDaumQueries.map((q) => ({
+              query: q.query,
+              value: q.count.toLocaleString(),
+            }))}
+            emptyHint="네이버·다음 검색 유입 아직 없음"
+          />
+        </div>
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          ⓘ 측정 단위가 채널마다 다릅니다. <strong>구글·빙</strong>은 Search Console/Webmaster API 의
+          노출 기반 클릭(검색결과에 뜬 뒤 눌린 수), <strong>네이버·다음</strong>은 우리 사이트 PV
+          로그의 referrer 에 남은 실제 방문 검색어입니다. 기간도 제각각(구글 28일·빙 API 기본·
+          네이버/다음 {rangeLabel})이라 절대 수치 비교보다 <strong>채널별 검색어 구성</strong> 비교로
+          보세요. 채널별 상세·기회 검색어는 아래 각 섹션에 있습니다.
+        </p>
+      </section>
+
       {/* === 구글 검색 성과 (GSC) === */}
       <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-2 pt-6">
@@ -789,25 +861,49 @@ export default async function StatsPage({ searchParams }: Props) {
               <KpiCard label="클릭 (빙)" value={bing.totals?.clicks ?? 0} accent />
               <KpiCard label="노출 (빙)" value={bing.totals?.impressions ?? 0} />
             </div>
-            <SectionCard title="빙 검색어 TOP 20" subtitle="Bing Webmaster Tools 집계">
-              {bing.queries.length === 0 ? (
-                <EmptyHint message="빙 검색어 데이터가 아직 없습니다. 사이트 등록 직후면 며칠 뒤부터 쌓입니다." />
-              ) : (
-                <GscTable
-                  rows={bing.queries.map((q) => ({
-                    keys: [q.query],
-                    clicks: q.clicks,
-                    impressions: q.impressions,
-                    ctr: q.ctr,
-                    position: q.position,
-                  }))}
-                  keyLabel="검색어"
-                />
-              )}
-            </SectionCard>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SectionCard title="빙 검색어 TOP 20" subtitle="클릭순 · Bing Webmaster Tools 집계">
+                {bing.queries.length === 0 ? (
+                  <EmptyHint message="빙 검색어 데이터가 아직 없습니다. 사이트 등록 직후면 며칠 뒤부터 쌓입니다." />
+                ) : (
+                  <GscTable
+                    rows={bing.queries.map((q) => ({
+                      keys: [q.query],
+                      clicks: q.clicks,
+                      impressions: q.impressions,
+                      ctr: q.ctr,
+                      position: q.position,
+                    }))}
+                    keyLabel="검색어"
+                  />
+                )}
+              </SectionCard>
+
+              <SectionCard
+                title="기회 검색어 (보강 타겟)"
+                subtitle="노출 많은데 순위 낮아(4위 밖) 클릭 못 받는 검색어 · 노출순"
+              >
+                {bing.opportunities.length === 0 ? (
+                  <EmptyHint message="아직 기회 검색어가 없습니다 (노출 10회 이상 + 4위 밖 조건)." />
+                ) : (
+                  <GscTable
+                    rows={bing.opportunities.map((q) => ({
+                      keys: [q.query],
+                      clicks: q.clicks,
+                      impressions: q.impressions,
+                      ctr: q.ctr,
+                      position: q.position,
+                    }))}
+                    keyLabel="검색어"
+                  />
+                )}
+              </SectionCard>
+            </div>
             <p className="text-xs text-neutral-500 leading-relaxed">
               ⓘ 빙은 referrer 에 검색어를 안 남겨(구글과 동일) 위 &lsquo;검색어&rsquo; 표엔 안 잡힙니다 —
-              빙 검색어는 이 섹션이 유일한 소스입니다. 수치는 1시간 캐시됩니다.
+              빙 검색어는 이 섹션이 유일한 소스입니다. <strong>기회 검색어</strong>는 노출(검색 수요)은
+              있는데 순위가 낮아 클릭을 못 받는 것 — 해당 주제 글·페이지를 보강하거나 새로 쓰면
+              순위·클릭을 끌어올릴 수 있는 1순위 타겟입니다. 수치는 1시간 캐시됩니다.
               {bing.siteUrl && (
                 <>
                   {" "}
@@ -1152,6 +1248,58 @@ function EmptyHint({ message }: { message?: string } = {}) {
   return (
     <div className="text-sm text-neutral-500 py-8 text-center">
       {message ?? "아직 데이터가 충분하지 않습니다."}
+    </div>
+  );
+}
+
+/** 검색 채널 종합 비교의 한 열 — 채널 헤더 + 요약 + 검색어 TOP10 미니 리스트. */
+function SearchCompareColumn({
+  emoji,
+  label,
+  sub,
+  metricLabel,
+  summary,
+  rows,
+  emptyHint,
+}: {
+  emoji: string;
+  label: string;
+  sub: string;
+  metricLabel: string;
+  summary: string;
+  rows: { query: string; value: string }[];
+  emptyHint: string;
+}) {
+  return (
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 space-y-3">
+      <div className="flex items-baseline gap-2">
+        <span className="text-base">{emoji}</span>
+        <span className="font-bold text-sm">{label}</span>
+        <span className="text-[11px] text-neutral-400">{sub}</span>
+      </div>
+      <div className="text-xs font-semibold text-neutral-600 dark:text-neutral-300 tabular-nums">
+        {summary}
+      </div>
+      {rows.length === 0 ? (
+        <p className="text-xs text-neutral-400 py-2">{emptyHint}</p>
+      ) : (
+        <ol className="space-y-1.5">
+          {rows.map((r, i) => (
+            <li key={r.query || i} className="flex items-center gap-2 text-xs">
+              <span className="w-4 text-right tabular-nums text-neutral-400 font-bold shrink-0">
+                {i + 1}
+              </span>
+              <span className="truncate flex-1" title={r.query}>
+                {r.query}
+              </span>
+              <span className="tabular-nums text-neutral-500 font-semibold shrink-0">
+                {r.value}
+                <span className="text-neutral-400 font-normal"> {metricLabel}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }

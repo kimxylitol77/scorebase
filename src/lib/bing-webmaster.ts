@@ -27,6 +27,9 @@ export interface BingOverview {
   siteUrl: string | null;
   /** 검색어 TOP — 클릭순 */
   queries: BingQueryRow[];
+  /** 기회 검색어 — 노출은 많은데 순위가 낮아(4위 밖) 클릭을 못 받는 것, 노출순.
+   *  콘텐츠/타이틀 보강으로 순위를 끌어올릴 타겟. */
+  opportunities: BingQueryRow[];
   /** 전체 합계 (TOP 외 포함) */
   totals: { clicks: number; impressions: number } | null;
 }
@@ -75,20 +78,26 @@ const fetchBingOverviewCached = unstable_cache(
       e.posW += (r.AvgImpressionPosition ?? 0) * (r.Impressions ?? 0);
       map.set(q, e);
     }
-    const queries = Array.from(map.entries())
-      .map(([query, e]) => ({
-        query,
-        clicks: e.clicks,
-        impressions: e.impressions,
-        ctr: e.impressions > 0 ? e.clicks / e.impressions : 0,
-        position: e.impressions > 0 ? e.posW / e.impressions : 0,
-      }))
+    const all = Array.from(map.entries()).map(([query, e]) => ({
+      query,
+      clicks: e.clicks,
+      impressions: e.impressions,
+      ctr: e.impressions > 0 ? e.clicks / e.impressions : 0,
+      position: e.impressions > 0 ? e.posW / e.impressions : 0,
+    }));
+    const queries = [...all]
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
+      .slice(0, 20);
+    // 기회 검색어 — 노출 충분(>=10)한데 순위가 4위 밖이라 클릭을 못 받는 것. 노출순.
+    const opportunities = all
+      .filter((r) => r.impressions >= 10 && r.position >= 4)
+      .sort((a, b) => b.impressions - a.impressions)
       .slice(0, 20);
 
     return {
       siteUrl: site,
       queries,
+      opportunities,
       totals: {
         clicks: rows.reduce((s, r) => s + (r.Clicks ?? 0), 0),
         impressions: rows.reduce((s, r) => s + (r.Impressions ?? 0), 0),
@@ -102,7 +111,7 @@ const fetchBingOverviewCached = unstable_cache(
 /** /admin/stats 진입점 — 미설정/실패 모두 throw 없이 상태로 반환. */
 export async function getBingOverview(): Promise<BingOverview> {
   if (!process.env.BING_WEBMASTER_API_KEY) {
-    return { configured: false, error: null, siteUrl: null, queries: [], totals: null };
+    return { configured: false, error: null, siteUrl: null, queries: [], opportunities: [], totals: null };
   }
   try {
     const data = await fetchBingOverviewCached();
@@ -113,6 +122,7 @@ export async function getBingOverview(): Promise<BingOverview> {
       error: e instanceof Error ? e.message : String(e),
       siteUrl: null,
       queries: [],
+      opportunities: [],
       totals: null,
     };
   }
