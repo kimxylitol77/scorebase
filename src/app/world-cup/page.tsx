@@ -448,11 +448,16 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
       {/* ── 대진표 (녹아웃 브래킷) ── */}
       {view === "bracket" && (
         <section className="space-y-4">
-          <div>
-            <h2 className="text-lg font-bold tracking-tight">녹아웃 토너먼트 대진표</h2>
-            <p className="mt-1 text-xs text-neutral-500 break-keep">
-              32강부터 결승까지 · FIFA 고정 슬롯 기준 · 팀 위에 마우스를 올리면 결승까지 경로가 강조됩니다 · 데스크탑은 좌우 미러링, 모바일은 라운드별 탭.
-            </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">녹아웃 토너먼트 대진표</h2>
+              <p className="mt-1 text-xs text-neutral-500 break-keep">
+                32강부터 결승까지 · FIFA 고정 슬롯 기준 · 팀 위에 마우스를 올리면 결승까지 경로가 강조됩니다 · 데스크탑은 좌우 미러링, 모바일은 라운드별 탭.
+              </p>
+            </div>
+            <Link href="/widgets" className="shrink-0 inline-flex items-center gap-1 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-neutral-700 dark:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-700 transition whitespace-nowrap" prefetch={false}>
+              위젯으로 내 블로그에 →
+            </Link>
           </div>
           {bracketSlots && (
             <WcBracket slots={bracketSlots} koreaTeamId={koreaTeam?.id ?? null} />
