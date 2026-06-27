@@ -99,13 +99,17 @@ export default async function HomeAiScorecardShowcase() {
   const gptRate = graded.length > 0 ? (gptHit / graded.length) * 100 : 0;
 
   // 카드 — 다가오는 경기 우선, 없으면 최근 채점 경기. 리그 다양하게 최대 3개.
+  // 두 AI 픽이 "갈린" 경기를 먼저 (정면 대결이 핵심 볼거리).
   const now = Date.now();
+  const disagrees = (r: Row) => r.sb!.pick !== r.gpt!.pick;
   const upcoming = all
     .filter((r) => r.status === "SCHEDULED" && r.startTime.getTime() >= now)
     .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-  const pool = upcoming.length > 0
+  const base = upcoming.length > 0
     ? upcoming
-    : graded.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+    : [...graded].sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  // 갈린 경기 우선, 그 안에서는 기존(시간) 순서 유지.
+  const pool = [...base].sort((a, b) => Number(disagrees(b)) - Number(disagrees(a)));
 
   const seen = new Set<string>();
   const cards: Row[] = [];
@@ -173,8 +177,15 @@ export default async function HomeAiScorecardShowcase() {
               <span className="font-medium">{LEAGUE_DISPLAY[c.league] ?? c.league}</span>
               <span className="tabular-nums">{fmtKst(c.startTime)}</span>
             </div>
-            <div className="mb-3 text-sm font-bold tracking-tight text-neutral-900 dark:text-white">
-              {c.home} <span className="text-neutral-300 dark:text-white/20">vs</span> {c.away}
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-sm font-bold tracking-tight text-neutral-900 dark:text-white">
+                {c.home} <span className="text-neutral-300 dark:text-white/20">vs</span> {c.away}
+              </span>
+              {disagrees(c) && (
+                <span className="shrink-0 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
+                  의견 갈림
+                </span>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <PickMini label="우리 모델" cell={c.sb!} home={c.home} away={c.away} accent="rose" />

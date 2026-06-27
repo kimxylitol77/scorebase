@@ -119,9 +119,13 @@ export default async function ScorecardPage() {
   const resolved = all
     .filter((r) => r.scorebase!.correct !== null && r.gpt!.correct !== null)
     .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  // 두 AI 픽이 갈린 경기 = 정면 대결의 핵심 볼거리.
+  const isSplit = (r: Row) => r.scorebase!.pick !== r.gpt!.pick;
   const upcoming = all
     .filter((r) => r.status === "SCHEDULED" && r.scorebase!.correct === null)
-    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+    // 갈린 경기 먼저 (시간 순서는 그룹 내 유지)
+    .sort((a, b) => Number(isSplit(b)) - Number(isSplit(a)));
 
   // 누적 전적·연승 — startTime asc 로 계산.
   const resolvedAsc = [...resolved].reverse();
@@ -271,6 +275,11 @@ export default async function ScorecardPage() {
                 <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-white/40">
                   <LeagueBadge league={r.league} />
                   <span>{fmtDate(r.startTime)} {fmtTime(r.startTime)}</span>
+                  {isSplit(r) && (
+                    <span className="ml-auto rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
+                      의견 갈림
+                    </span>
+                  )}
                 </div>
                 <div className="mt-2 text-[15px] font-semibold text-zinc-900 dark:text-white">
                   {r.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {r.away}

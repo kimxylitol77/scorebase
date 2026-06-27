@@ -38,12 +38,18 @@ export default function AiMatchupCard({
   if (!sb || !gpt) return null;
 
   const graded = sb.correct !== null && gpt.correct !== null;
+  const split = sb.pick !== gpt.pick;
 
   return (
     <section className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-base font-bold text-zinc-900 dark:text-white">
           <Sparkles className="h-4 w-4 text-rose-500" aria-hidden /> AI 예측 대결
+          {split && (
+            <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
+              의견 갈림
+            </span>
+          )}
         </h3>
         <Link
           href="/predictions/scorecard"
