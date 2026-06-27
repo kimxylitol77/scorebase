@@ -213,9 +213,10 @@ model AiPrediction {
   id          Int      @id @default(autoincrement())
   matchId     Int
   model       String   // "scorebase"(우리 통계모델) | "gpt-5.5"
-  market      String   // "1X2"
-  pick        String   // "HOME" | "DRAW" | "AWAY"
+  market      String   // "1X2" | "HANDICAP" | "OU"
+  pick        String   // 1X2:"HOME"|"DRAW"|"AWAY" · HANDICAP:"HOME"|"AWAY" · OU:"OVER"|"UNDER"
   prob        Float    // 픽 확률 0~1
+  line        Float?   // HANDICAP/OU 채점 기준선 (홈 핸디 또는 총점 라인) — 양 모델 동일 라인으로 채점
   reason      String?  // GPT 한줄 근거 (있으면)
   correct     Boolean? // 경기 종료 후 actual 과 일치 여부 (null = 미채점)
   predictedAt DateTime @default(now())
