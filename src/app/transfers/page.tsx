@@ -667,7 +667,7 @@ export default async function TransfersPage({
   }
 
   // ── AI 이적 브리핑 (최신 이적 view 1페이지 상단) — 주목 확정 이적 + haiku 한 줄 분석 ──
-  interface BriefCard { id: string; name: string; fromTeam: string; toTeam: string; valueM: number; league: string; brief: string }
+  interface BriefCard { id: string; playerId: string; name: string; fromTeam: string; toTeam: string; valueM: number; league: string; brief: string }
   let briefCards: BriefCard[] = [];
   if (isLatest && !qSearch && safePage === 1) {
     const bRows = await prisma.footballTransfer.findMany({
@@ -685,6 +685,7 @@ export default async function TransfersPage({
     briefCards = bRows
       .map((r) => ({
         id: r.id,
+        playerId: r.playerId,
         name: bName.get(r.playerId) || "",
         fromTeam: koTeam(r.fromTeamName),
         toTeam: koTeam(r.toTeamName),
@@ -956,7 +957,7 @@ export default async function TransfersPage({
             {briefCards.map((b) => (
               <Link
                 key={b.id}
-                href={`/transfers/${b.id}`}
+                href={`/transfers/${b.playerId}`}
                 className="group block rounded-2xl bg-neutral-50 p-3.5 ring-1 ring-neutral-100 transition hover:ring-rose-200 dark:bg-white/[0.03] dark:ring-white/[0.06] dark:hover:ring-rose-400/30"
               >
                 <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-white/40">
