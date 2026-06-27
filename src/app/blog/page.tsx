@@ -12,11 +12,21 @@ const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   title: "스코어베이스 블로그 — 스포츠 데이터 분석 인사이트",
   description:
-    "EPL · KBO · NBA · MLB 등 글로벌 스포츠 데이터 분석, 통계 인사이트, AI 모델 활용법을 다룹니다.",
+    "EPL·KBO·NBA·MLB·NHL 등 글로벌 스포츠 데이터 분석과 통계 인사이트, Elo·몬테카를로 시뮬레이션, AI 예측 모델 활용법을 다루는 스포츠 데이터 분석 블로그입니다.",
+  keywords: [
+    "스포츠 데이터 분석",
+    "스포츠 통계 블로그",
+    "축구 데이터 분석",
+    "야구 통계 분석",
+    "AI 스포츠 예측",
+    "EPL 통계",
+    "KBO 분석",
+    "스코어베이스 블로그",
+  ],
   alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
-    title: "스코어베이스 블로그",
-    description: "데이터로 보는 스포츠 — 인사이트와 분석",
+    title: "스코어베이스 블로그 — 스포츠 데이터 분석 인사이트",
+    description: "데이터로 보는 스포츠 — 통계·시뮬레이션·AI 예측 인사이트",
     url: `${SITE_URL}/blog`,
     type: "website",
   },
@@ -28,8 +38,30 @@ export default async function BlogPage() {
     take: 50,
   });
 
+  // Blog 구조화 데이터 — 검색엔진이 블로그 글 목록을 인식·크롤하게(글 발견 + 색인 보조).
+  const blogLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "스코어베이스 블로그",
+    description:
+      "글로벌 스포츠 데이터 분석과 통계 인사이트, AI 예측 모델 활용법을 다루는 스포츠 데이터 분석 블로그.",
+    url: `${SITE_URL}/blog`,
+    blogPost: posts.slice(0, 20).map((b) => ({
+      "@type": "BlogPosting",
+      headline: b.title,
+      url: `${SITE_URL}/blog/${b.slug}`,
+      datePublished: b.publishedAt.toISOString(),
+      ...(b.excerpt ? { description: b.excerpt } : {}),
+      ...(b.thumbnailUrl ? { image: b.thumbnailUrl } : {}),
+    })),
+  };
+
   return (
     <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogLd) }}
+      />
       <AmbientGlow />
       <header className="mb-10">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
@@ -39,8 +71,9 @@ export default async function BlogPage() {
           데이터로 보는 스포츠
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400 mt-3 break-keep">
-          EPL · KBO · NBA · MLB · NHL 등 글로벌 스포츠 데이터 분석, Elo · 시뮬레이션 ·
-          AI 모델 활용 인사이트를 담습니다.
+          EPL · KBO · NBA · MLB · NHL 등 글로벌 스포츠 데이터 분석과 통계 인사이트를 다루는
+          블로그입니다. Elo 레이팅 · 몬테카를로 시뮬레이션 · AI 예측 모델 활용법부터 선수·팀
+          심층 분석까지, 데이터로 스포츠를 읽는 글을 모았습니다.
         </p>
       </header>
 
