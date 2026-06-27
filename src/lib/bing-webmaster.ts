@@ -46,65 +46,68 @@ function bingSiteUrl(): string {
   return process.env.BING_SITE_URL?.trim() || "https://www.scorebase.kr/";
 }
 
-const fetchBingOverviewCached = unstable_cache(
-  async (): Promise<Omit<BingOverview, "configured" | "error">> => {
-    const key = process.env.BING_WEBMASTER_API_KEY!;
-    const site = bingSiteUrl();
-    const url = `${API_BASE}/GetQueryStats?siteUrl=${encodeURIComponent(site)}&apikey=${encodeURIComponent(key)}`;
-    const res = await fetch(url, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      if (res.status === 401 || res.status === 403) {
-        throw new Error(
-          "권한 없음 — API 키가 올바른지, 그 키 계정에 이 사이트가 등록·인증됐는지 확인",
-        );
-      }
-      throw new Error(`Bing API ${res.status}: ${body.slice(0, 200)}`);
-    }
-    const data = (await res.json()) as { d?: RawQueryStat[] };
-    const rows = data.d ?? [];
+// 기회 검색어 기준 — 노출 충분 + 순위 4위 밖(클릭 못 받음). UI 표·주간 SEO 점검 job 공용.
+export const BING_OPP_MIN_IMPRESSIONS = 10;
+export const BING_OPP_MIN_POSITION = 4;
 
-    // 행은 검색어×날짜라 검색어 기준으로 합산 (position 은 노출 가중 평균).
-    const map = new Map<string, { clicks: number; impressions: number; posW: number }>();
-    for (const r of rows) {
-      const q = (r.Query ?? "").trim();
-      if (!q) continue;
-      const e = map.get(q) ?? { clicks: 0, impressions: 0, posW: 0 };
-      e.clicks += r.Clicks ?? 0;
-      e.impressions += r.Impressions ?? 0;
-      e.posW += (r.AvgImpressionPosition ?? 0) * (r.Impressions ?? 0);
-      map.set(q, e);
+/** 빙 전체 검색어(검색어별 집계, 노출순). 캐시 없음 — 호출부(UI 캐시·주간 job)에서 관리.
+ *  GetQueryStats 행은 검색어×날짜라 검색어 기준 합산(position 은 노출 가중 평균). */
+export async function fetchAllBingQueries(): Promise<BingQueryRow[]> {
+  const key = process.env.BING_WEBMASTER_API_KEY!;
+  const site = bingSiteUrl();
+  const url = `${API_BASE}/GetQueryStats?siteUrl=${encodeURIComponent(site)}&apikey=${encodeURIComponent(key)}`;
+  const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("권한 없음 — API 키가 올바른지, 그 키 계정에 이 사이트가 등록·인증됐는지 확인");
     }
-    const all = Array.from(map.entries()).map(([query, e]) => ({
+    throw new Error(`Bing API ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as { d?: RawQueryStat[] };
+  const rows = data.d ?? [];
+  const map = new Map<string, { clicks: number; impressions: number; posW: number }>();
+  for (const r of rows) {
+    const q = (r.Query ?? "").trim();
+    if (!q) continue;
+    const e = map.get(q) ?? { clicks: 0, impressions: 0, posW: 0 };
+    e.clicks += r.Clicks ?? 0;
+    e.impressions += r.Impressions ?? 0;
+    e.posW += (r.AvgImpressionPosition ?? 0) * (r.Impressions ?? 0);
+    map.set(q, e);
+  }
+  return Array.from(map.entries())
+    .map(([query, e]) => ({
       query,
       clicks: e.clicks,
       impressions: e.impressions,
       ctr: e.impressions > 0 ? e.clicks / e.impressions : 0,
       position: e.impressions > 0 ? e.posW / e.impressions : 0,
-    }));
+    }))
+    .sort((a, b) => b.impressions - a.impressions);
+}
+
+const fetchBingOverviewCached = unstable_cache(
+  async (): Promise<Omit<BingOverview, "configured" | "error">> => {
+    const all = await fetchAllBingQueries();
     const queries = [...all]
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
       .slice(0, 20);
-    // 기회 검색어 — 노출 충분(>=10)한데 순위가 4위 밖이라 클릭을 못 받는 것. 노출순.
+    // 기회 검색어 — 노출 충분한데 순위가 4위 밖이라 클릭을 못 받는 것. all 이 이미 노출순.
     const opportunities = all
-      .filter((r) => r.impressions >= 10 && r.position >= 4)
-      .sort((a, b) => b.impressions - a.impressions)
+      .filter((r) => r.impressions >= BING_OPP_MIN_IMPRESSIONS && r.position >= BING_OPP_MIN_POSITION)
       .slice(0, 20);
-
     return {
-      siteUrl: site,
+      siteUrl: bingSiteUrl(),
       queries,
       opportunities,
       totals: {
-        clicks: rows.reduce((s, r) => s + (r.Clicks ?? 0), 0),
-        impressions: rows.reduce((s, r) => s + (r.Impressions ?? 0), 0),
+        clicks: all.reduce((s, r) => s + r.clicks, 0),
+        impressions: all.reduce((s, r) => s + r.impressions, 0),
       },
     };
   },
-  ["bing-overview-v1"],
+  ["bing-overview-v2"],
   { revalidate: 3600 }, // 1시간 캐시 — quota 보호
 );
 

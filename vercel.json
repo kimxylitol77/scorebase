@@ -239,6 +239,10 @@
     {
       "path": "/api/cron/cron-freshness",
       "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/bing-seo",
+      "schedule": "0 23 * * 0"
     }
   ]
 }

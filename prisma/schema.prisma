@@ -888,6 +888,15 @@ model WorldCupSimSnapshot {
   createdAt DateTime @default(now())
 }
 
+/// 주간 빙 SEO 점검 스냅샷 — 전주 대비 기회 검색어 순위 변화 추적 (bing-seo cron).
+/// data: [{ query, impressions, position, clicks }] (빙 전체 검색어, 노출순).
+model BingSeoSnapshot {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique // KST YYYY-MM-DD
+  data      Json
+  createdAt DateTime @default(now())
+}
+
 /// 리그 시즌 시뮬 일일 스냅샷 — 우승·PO 확률 추이 (KBO 등 시즌 리그 범용).
 /// /api/cron/league-sim-snapshot?league=KBO (KST 07:00) 이 5,000회 시뮬 후 upsert.
 /// payload: [{ team, champion, po(top5), expectedPosition, currentPosition }]

@@ -22,6 +22,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   // 위클리 — 기대 168h + 유예 12h = 180h
   { name: "fetch-salaries", label: "선수 연봉", maxAgeH: 180 },
   { name: "blog-weekly", label: "주간 블로그", maxAgeH: 180 },
+  { name: "bing-seo", label: "빙 SEO 점검", maxAgeH: 180 },
 ];
 
 /**
