@@ -23,8 +23,9 @@ export function middleware(req: NextRequest) {
   const isScoreBaseCom = SCOREBASE_COM_HOSTS.some((h) => host.includes(h));
 
   // ── Rate limit — 단일 IP 의 공격적 스크래핑 속도 제한 ──
-  // 검색·SNS·모니터 봇은 면제(SEO 색인·공유 미리보기·헬스체크 보호).
-  // AI 학습봇은 robots 로 차단했고, robots 를 무시하는 악성 봇은 여기서 걸린다.
+  // 검색·SNS·모니터 봇 + AI 검색·인용봇(aiSearch)은 면제 — SEO 색인·공유 미리보기·헬스체크 +
+  // GEO(ChatGPT·Perplexity·Claude 등 AI 답변 인용) 색인 보호. 인덱싱 버스트가 429 로 막히면 인용 손실.
+  // AI 학습봇(GPTBot·CCBot 등)은 robots 차단 + 여기서도 미면제(robots 무시 시 rate limit).
   const bot = detectBot(req.headers.get("user-agent"));
   const exemptFromLimit =
     // 라인업 캡처용 이미지 프록시는 정적 성격(한 보드에 11~22장) — rate limit 면제.
@@ -32,7 +33,8 @@ export function middleware(req: NextRequest) {
     (bot.isBot &&
       (bot.category === "search" ||
         bot.category === "social" ||
-        bot.category === "monitor"));
+        bot.category === "monitor" ||
+        bot.aiSearch === true));
   if (!exemptFromLimit) {
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||

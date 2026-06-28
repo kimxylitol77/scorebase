@@ -22,7 +22,11 @@
 - [/predictions/{LEAGUE}](https://www.scorebase.kr/predictions/EPL): Monte Carlo 5000회 시뮬레이션 우승/플레이오프/강등 확률. Elo Rating 기반.
 - [/predictions](https://www.scorebase.kr/predictions): 19개 리그 시즌 시뮬레이션 인덱스.
 - [/predictions/title-race](https://www.scorebase.kr/predictions/title-race): 우승 경쟁 hot 리그 모음.
-- [/predictions/accuracy](https://www.scorebase.kr/predictions/accuracy): 백테스트 정확도.
+- [/predictions/accuracy](https://www.scorebase.kr/predictions/accuracy): 13개 리그 1X2·핸디캡·오버언더 시장별 실측 적중률(시즌 누적). 경기 전 예측을 결과로 채점한 적중률의 단일 출처.
+- [/predictions/scorecard](https://www.scorebase.kr/predictions/scorecard): AI 예측 성적표 — 스코어베이스 통계 모델 vs GPT-5.5 가 같은 경기를 경기 전 예측하고 결과로 채점한 정면 비교(1X2·핸디·OU 시장별).
+
+### 도구 (인터랙티브)
+- [/tools/kbo-win-probability](https://www.scorebase.kr/tools/kbo-win-probability): KBO 야구 상황별 승리확률 계산기 — 이닝·점수차·아웃·주자별 승률 + 번트·도루·고의4구 전술 손익(마르코프 + 몬테카를로). MLB(/tools/mlb-win-probability)·NPB(/tools/npb-win-probability) 버전도 제공.
 
 ### 선수/팀 데이터
 - [/teams/{teamId}](https://www.scorebase.kr/teams/1554): 팀 페이지 — 시즌 성적, 최근 매치, 선수 명단.

@@ -15,12 +15,15 @@ export interface BotInfo {
   category?: BotCategory;
   /** 식별된 봇의 짧은 이름 (예: "Googlebot", "GPTBot") */
   name?: string;
+  /** AI 검색·실시간 인용 봇(학습/스크래핑과 구분) — GEO 위해 rate limit 면제 대상 */
+  aiSearch?: boolean;
 }
 
 const PATTERNS: Array<{
   re: RegExp;
   category: BotCategory;
   name: string;
+  aiSearch?: boolean;
 }> = [
   // 🔍 검색엔진
   { re: /Googlebot/i, category: "search", name: "Googlebot" },
@@ -34,19 +37,21 @@ const PATTERNS: Array<{
   { re: /Daum(oa|Bot)/i, category: "search", name: "Daum" },
   { re: /SeznamBot/i, category: "search", name: "SeznamBot" },
 
-  // 🤖 AI 크롤러
-  { re: /GPTBot/i, category: "ai", name: "GPTBot (OpenAI)" },
-  { re: /ChatGPT-User/i, category: "ai", name: "ChatGPT-User" },
-  { re: /OAI-SearchBot/i, category: "ai", name: "OpenAI SearchBot" },
-  { re: /ClaudeBot/i, category: "ai", name: "ClaudeBot (Anthropic)" },
-  { re: /Claude-Web/i, category: "ai", name: "Claude-Web" },
-  { re: /anthropic-ai/i, category: "ai", name: "Anthropic" },
-  { re: /PerplexityBot/i, category: "ai", name: "PerplexityBot" },
-  { re: /Perplexity-User/i, category: "ai", name: "Perplexity-User" },
-  { re: /Google-Extended/i, category: "ai", name: "Google-Extended (Gemini)" },
-  { re: /Bytespider/i, category: "ai", name: "Bytespider (TikTok/Doubao)" },
-  { re: /CCBot/i, category: "ai", name: "CommonCrawl" },
-  { re: /Applebot/i, category: "ai", name: "Applebot" },
+  // 🤖 AI 크롤러 — 학습/스크래핑(robots 차단·rate limit 대상) vs 검색·인용(aiSearch: GEO 위해 면제)
+  { re: /GPTBot/i, category: "ai", name: "GPTBot (OpenAI)" }, // 학습
+  { re: /ChatGPT-User/i, category: "ai", name: "ChatGPT-User", aiSearch: true }, // 실시간 인용
+  { re: /OAI-SearchBot/i, category: "ai", name: "OpenAI SearchBot", aiSearch: true }, // 검색 색인
+  { re: /ClaudeBot/i, category: "ai", name: "ClaudeBot (Anthropic)" }, // 학습
+  { re: /Claude-SearchBot/i, category: "ai", name: "Claude-SearchBot", aiSearch: true }, // 검색 색인
+  { re: /Claude-User/i, category: "ai", name: "Claude-User", aiSearch: true }, // 실시간 인용(claude.ai)
+  { re: /Claude-Web/i, category: "ai", name: "Claude-Web" }, // 구형 학습
+  { re: /anthropic-ai/i, category: "ai", name: "Anthropic" }, // 구형 학습
+  { re: /PerplexityBot/i, category: "ai", name: "PerplexityBot", aiSearch: true }, // 검색 색인
+  { re: /Perplexity-User/i, category: "ai", name: "Perplexity-User", aiSearch: true }, // 실시간 인용
+  { re: /Google-Extended/i, category: "ai", name: "Google-Extended (Gemini)" }, // 학습
+  { re: /Bytespider/i, category: "ai", name: "Bytespider (TikTok/Doubao)" }, // 공격적 스크래핑
+  { re: /CCBot/i, category: "ai", name: "CommonCrawl" }, // 학습셋 원천
+  { re: /Applebot/i, category: "ai", name: "Applebot", aiSearch: true }, // Apple/Siri 검색
 
   // 💬 SNS / 미리보기
   { re: /facebookexternalhit/i, category: "social", name: "Facebook" },
@@ -89,7 +94,7 @@ export function detectBot(userAgent: string | null | undefined): BotInfo {
   if (!userAgent) return { isBot: false };
   for (const p of PATTERNS) {
     if (p.re.test(userAgent)) {
-      return { isBot: true, category: p.category, name: p.name };
+      return { isBot: true, category: p.category, name: p.name, aiSearch: p.aiSearch };
     }
   }
   return { isBot: false };
