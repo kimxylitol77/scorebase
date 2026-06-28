@@ -584,7 +584,10 @@ export default async function TransfersPage({
     const ageRows = await prisma.playerMarketValue.findMany({ where: { id: { in: pids } }, select: { id: true, age: true } });
     const ageMap = new Map(ageRows.map((a) => [a.id, a.age]));
     const logoMap = await buildTeamLogoMap(rows);
-    latestMainCards = rows.map((r) => toCard(r, tpMap, logoMap, ageMap)).filter((c) => c.name !== "선수" || c.fee > 0);
+    // [의도된 변경] 이전엔 `c.name !== "선수" || c.fee > 0` 로 고액(fee>0) 익명 이적을 노출했으나,
+    // 누가 이적했는지 모르는 "선수 / — / —" 카드는 정보 가치가 없고 깨져 보여 제외로 전환.
+    // bigdeals·AI브리핑 뷰와 동일 기준(이름 필수)으로 정합화. 이름이 주간 cron 으로 풀리면 자동 재노출.
+    latestMainCards = rows.map((r) => toCard(r, tpMap, logoMap, ageMap)).filter((c) => c.name !== "선수");
     dateCounts = new Map();
     for (const c of latestMainCards) { const k = fmtDateHeader(c.time); dateCounts.set(k, (dateCounts.get(k) || 0) + 1); }
   }
