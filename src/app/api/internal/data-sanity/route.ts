@@ -333,7 +333,7 @@ export async function GET(req: NextRequest) {
 
     // 3. cache_db_mismatch — ft = [home, away] 단일 인덱싱 (2026-05-27 CPBL 정정).
     // 양방향 검증은 race condition 이전엔 안전망 였으나, 워커 ft 인덱싱 통일 후엔
-    // 진짜 정합성만 확인. 단 sync lag (cache 신선 + Match stale) 5분 이내는 skip.
+    // 진짜 정합성만 확인. 단 sync lag (cache 신선 + Match stale) 8분 이내는 skip.
     const ft = scoreArr[3]?.ft;
     if (Array.isArray(ft) && ft.length === 2 && m.homeScore != null && m.awayScore != null) {
       const a = parseInt(ft[0], 10);
@@ -345,7 +345,8 @@ export async function GET(req: NextRequest) {
           const cacheUpd = cache?.updatedAt?.getTime() ?? 0;
           const matchUpd = m.updatedAt.getTime();
           const syncLagMs = cacheUpd > matchUpd ? cacheUpd - matchUpd : 0;
-          const SYNC_GRACE_MS = 5 * 60 * 1000;
+          // 야구 collector(점수)와 ws-subscriber(cache)는 경로가 달라 5~7분 차이가 정상 발생 → 8분 가드.
+          const SYNC_GRACE_MS = 8 * 60 * 1000;
           if (syncLagMs >= SYNC_GRACE_MS) {
             issues.push({
               ...matchInfo,
