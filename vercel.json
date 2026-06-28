@@ -243,6 +243,10 @@
     {
       "path": "/api/cron/bing-seo",
       "schedule": "0 23 * * 0"
+    },
+    {
+      "path": "/api/cron/indexnow",
+      "schedule": "0 1 * * *"
     }
   ]
 }
