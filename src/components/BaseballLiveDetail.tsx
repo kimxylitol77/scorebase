@@ -12,6 +12,10 @@ import BaseballDiamond from "./scores/baseball/BaseballDiamond";
 import LiveCommentaryBox, {
   type LiveCommentaryData,
 } from "./live/LiveCommentaryBox";
+import dynamic from "next/dynamic";
+
+// 라이브 승리확률 패널 — KBO 한정·51K 테이블 import 라 dynamic 으로 필요시에만 로드.
+const LiveWinProbability = dynamic(() => import("./live/LiveWinProbability"), { ssr: false });
 
 interface LiveOdds {
   h2h: { home: number; draw: number | null; away: number } | null;
@@ -468,6 +472,20 @@ export default function BaseballLiveDetail({
             </div>
           )}
         </div>
+      )}
+
+      {/* 라이브 승리확률 — KBO 한정(WE 테이블 보유). 현재 base-out 상태로 자동 산출 */}
+      {isLive && league === "KBO" && live.liveContext && currentInning != null && halfKo && (
+        <LiveWinProbability
+          bases={live.liveContext.bases}
+          outs={live.liveContext.outs}
+          inning={currentInning}
+          bottom={halfKo === "말"}
+          homeScore={homeScore}
+          awayScore={awayScore}
+          homeName={live.homeTeam.name}
+          awayName={live.awayTeam.name}
+        />
       )}
 
       {/* cache 없을 때 fallback — 공식 페이지 안내 */}
