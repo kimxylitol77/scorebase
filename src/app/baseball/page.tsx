@@ -316,11 +316,24 @@ export default async function BaseballHub() {
         </Card>
 
         {/* 승리확률 계산기 */}
-        <Card title="승리확률 계산기" Icon={Target} badge="KBO" href="/tools/kbo-win-probability" hrefLabel="계산기 열기">
-          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
+        <Card title="승리확률 계산기" Icon={Target} badge="KBO·MLB·NPB" href="/tools/kbo-win-probability" hrefLabel="KBO 계산기 열기">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep mb-3">
             이닝·점수차·아웃·주자를 넣으면 상황별 승리확률과 번트·도루의 승률 손익을 즉시 계산합니다.
           </p>
-          <p className="mt-2 text-[11px] text-neutral-400">예: 9회말 동점 무사 1루 → 공격팀 약 62%</p>
+          <ul className="space-y-1.5">
+            {[
+              { lg: "KBO", href: "/tools/kbo-win-probability" },
+              { lg: "MLB", href: "/tools/mlb-win-probability" },
+              { lg: "NPB", href: "/tools/npb-win-probability" },
+            ].map((t) => (
+              <li key={t.lg}>
+                <Link href={t.href} className="flex items-center justify-between text-sm group transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                  <span className="font-medium group-hover:underline group-hover:text-rose-600 dark:group-hover:text-rose-400">{t.lg} 승리확률 계산기</span>
+                  <span className="text-neutral-400 text-[11px]">열기</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Card>
       </div>
 

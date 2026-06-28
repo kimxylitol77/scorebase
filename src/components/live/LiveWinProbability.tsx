@@ -11,8 +11,13 @@ import {
   STEAL_SUCCESS,
 } from "@/lib/predict/win-expectancy";
 import weKbo from "../../../data/we-kbo.json";
+import weNpb from "../../../data/we-npb.json";
 
-const table = weKbo as unknown as WeTable;
+// 라이브 패널 지원 리그 — base-out 라이브 피드(TheSports detailLive.extra)가 있는 KBO·NPB.
+const TABLES: Record<string, WeTable> = {
+  KBO: weKbo as unknown as WeTable,
+  NPB: weNpb as unknown as WeTable,
+};
 
 function fmtDelta(v: number) {
   const p = v * 100;
@@ -23,6 +28,7 @@ function deltaColor(v: number) {
 }
 
 export default function LiveWinProbability({
+  league,
   bases,
   outs,
   inning,
@@ -32,6 +38,7 @@ export default function LiveWinProbability({
   homeName,
   awayName,
 }: {
+  league: string;
   bases: string;
   outs: number;
   inning: number;
@@ -41,6 +48,8 @@ export default function LiveWinProbability({
   homeName: string;
   awayName: string;
 }) {
+  const table = TABLES[league];
+  if (!table) return null;
   const safe = /^[01]{3}$/.test(bases) ? bases : "000";
   const battingName = bottom ? homeName : awayName;
   const diff = bottom ? homeScore - awayScore : awayScore - homeScore;
@@ -68,7 +77,7 @@ export default function LiveWinProbability({
     >
       <div className="flex items-center justify-between gap-2 mb-2">
         <span className="text-[11px] uppercase tracking-wider text-neutral-400">현재 승리확률</span>
-        <span className="text-[10px] text-neutral-500">KBO 리그평균 기준</span>
+        <span className="text-[10px] text-neutral-500">{league} 리그평균 기준</span>
       </div>
       <div className="flex items-baseline gap-2">
         <span className="text-sm font-semibold text-neutral-200 truncate max-w-[55%]">{battingName}</span>

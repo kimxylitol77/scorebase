@@ -474,9 +474,10 @@ export default function BaseballLiveDetail({
         </div>
       )}
 
-      {/* 라이브 승리확률 — KBO 한정(WE 테이블 보유). 현재 base-out 상태로 자동 산출 */}
-      {isLive && league === "KBO" && live.liveContext && currentInning != null && halfKo && (
+      {/* 라이브 승리확률 — KBO·NPB(WE 테이블 보유). 현재 base-out 상태로 자동 산출 */}
+      {isLive && (league === "KBO" || league === "NPB") && live.liveContext && currentInning != null && halfKo && (
         <LiveWinProbability
+          league={league}
           bases={live.liveContext.bases}
           outs={live.liveContext.outs}
           inning={currentInning}
