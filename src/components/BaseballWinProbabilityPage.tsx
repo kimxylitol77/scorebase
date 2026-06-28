@@ -5,7 +5,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import WinProbabilityTool from "@/components/WinProbabilityTool";
 import type { WeTable } from "@/lib/predict/win-expectancy";
 
-const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
+import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 interface LeagueCfg {
   label: string; // "KBO" | "MLB" | "NPB"

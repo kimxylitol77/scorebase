@@ -8,10 +8,9 @@ import LeagueBadge from "@/components/LeagueBadge";
 import CiteBox from "@/components/CiteBox";
 import ScorecardTrendChart, { type TrendPoint } from "@/components/charts/ScorecardTrendChart";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 export const revalidate = 1800; // 30분 ISR
-
-const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 
 const MODELS = {
   scorebase: { id: "scorebase", name: "스코어베이스 AI", short: "우리 모델", accent: "rose" },

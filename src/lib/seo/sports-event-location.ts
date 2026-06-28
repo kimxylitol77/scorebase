@@ -148,14 +148,23 @@ export function buildSportsEventLocation(opts: {
   const country = LEAGUE_COUNTRY[opts.league];
   const venue = extractVenue(opts.rawMatch);
   const stadiumName = venue.name ?? `${opts.homeName} Home Stadium`;
+  const locality = venue.city ?? country?.defaultCity;
+
+  // 주소는 실제로 아는 값만 채운다 — country 미상 시 "US"/"Unknown"/placeholder 로 날조하면
+  // 잘못된 SportsEvent location(예: 벨라루스 경기에 addressCountry=US)으로 신뢰도가 떨어진다.
+  const address: {
+    "@type": "PostalAddress";
+    streetAddress?: string;
+    addressLocality?: string;
+    addressCountry?: string;
+  } = { "@type": "PostalAddress" };
+  if (venue.name) address.streetAddress = venue.name;
+  if (locality) address.addressLocality = locality;
+  if (country?.code) address.addressCountry = country.code;
+
   return {
     "@type": "Place" as const,
     name: stadiumName,
-    address: {
-      "@type": "PostalAddress" as const,
-      streetAddress: stadiumName,
-      addressLocality: venue.city ?? country?.defaultCity ?? "Unknown",
-      addressCountry: country?.code ?? "US",
-    },
+    ...(Object.keys(address).length > 1 ? { address } : {}),
   };
 }

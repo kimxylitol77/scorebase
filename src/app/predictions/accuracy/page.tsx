@@ -13,6 +13,7 @@ import CumulativeAccuracyChart, {
 import ReliabilityCurveChart, {
   type RelPoint,
 } from "@/components/charts/ReliabilityCurveChart";
+import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -36,8 +37,6 @@ const LEAGUE_NAME: Record<string, string> = {
   NPB: "NPB",
   LOL: "LCK",
 };
-
-const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   title: "AI 스포츠 예측 적중률 — 축구·야구·농구 승부예측 정확도 공개",
@@ -446,7 +445,8 @@ export default async function AccuracyPage() {
           <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
             모델이 &ldquo;65% 승리&rdquo;라고 말한 경기가 실제로 그만큼 일어났는지를 봅니다. 점이
             대각선에 가까울수록 확률이 정직하다는 뜻이며, 베팅시장 곡선과 나란히 둬 시장만큼
-            잘 보정됐는지 비교합니다.
+            잘 보정됐는지 비교합니다. <strong>Brier 점수는 낮을수록 정확</strong>하며, 모델 값이
+            시장 값에 가까울수록 시장 수준으로 잘 보정된 것입니다(모델이 시장보다 높으면 보정 여지가 있다는 뜻).
           </p>
           <ReliabilityCurveChart
             model={reliability.model}

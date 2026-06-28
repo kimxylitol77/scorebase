@@ -7,10 +7,9 @@ import { formatDateKo } from "@/lib/format";
 import Markdown from "@/components/Markdown";
 import AmbientGlow from "@/components/AmbientGlow";
 import sanitizeHtml from "sanitize-html";
+import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 export const revalidate = 600;
-
-const SITE_URL = process.env.SITE_URL ?? "http://localhost:3000";
 
 // blog 본문 HTML 정화 정책 — script·이벤트핸들러(on*)·javascript: 는 제거하되
 // 레이아웃에 필요한 인라인 style 과 본문 태그(figure·table·iframe 등)는 보존한다.

@@ -16,6 +16,7 @@ import { Trophy, Goal } from "lucide-react";
 import rawCoachNames from "../../../../data/coach-names.json";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
+import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 // ISR — 스쿼드·일정·조별 순위 5분 캐시(WC 라이브 결과는 /world-cup·/standings 가 정본).
 export const revalidate = 300;
@@ -230,7 +231,7 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     name: `${koCountry} 축구 국가대표팀`,
     alternateName: team.name,
     sport: "Soccer",
-    url: `${process.env.SITE_URL || "https://www.scorebase.kr"}/national-teams/${team.id}`,
+    url: `${SITE_URL}/national-teams/${team.id}`,
     ...(team.logoUrl ? { logo: team.logoUrl } : {}),
   };
 
