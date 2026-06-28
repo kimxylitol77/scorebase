@@ -8,7 +8,9 @@ import HealthChatStream, { type ChatMessage } from "./HealthChatStream";
 
 const AI_NAME = "스코어베이스 AI";
 
-export const dynamic = "force-dynamic";
+// 30초 ISR — 헬스 데이터는 봇 주기(분 단위)라 실시간 불필요. 매 방문 DB 전체 재실행(force-dynamic) 회피
+// → 캐시 HTML 응답으로 체감 속도·DB 풀 부하 해소(2026-06-28). /admin 인증은 미들웨어가 담당.
+export const revalidate = 30;
 
 const SEVERITY_COLOR: Record<string, { bg: string; text: string; emoji: string; label: string }> = {
   HIGH: {
@@ -184,29 +186,48 @@ export default async function HealthPage() {
   const now = new Date();
   const since30 = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
 
-  // 최신 1회 run 의 모든 finding (한 run = 같은 분 안에 insert 된 row 들)
+  // 최신 1회 run 의 시각 (한 run = 같은 분 안에 insert 된 row 들)
   const latest = await prisma.healthCheck.findFirst({
     orderBy: { runAt: "desc" },
     select: { runAt: true },
   });
-  const latestFindings = latest
-    ? await prisma.healthCheck.findMany({
-        where: {
-          runAt: {
-            gte: new Date(latest.runAt.getTime() - 60 * 1000), // 같은 run 의 row들 (insert 시각 1분 이내)
-            lte: new Date(latest.runAt.getTime() + 60 * 1000),
-          },
-        },
-        orderBy: [{ severity: "asc" }, { category: "asc" }],
-      })
-    : [];
+  const runLo = latest ? new Date(latest.runAt.getTime() - 60 * 1000) : null;
+  const runHi = latest ? new Date(latest.runAt.getTime() + 60 * 1000) : null;
 
-  // 최근 30일 모든 row — 일별·심각도별 집계
-  const recent30 = await prisma.healthCheck.findMany({
-    where: { runAt: { gte: since30 } },
-    select: { runAt: true, severity: true, category: true },
-    take: 5000,
-  });
+  // 독립 쿼리는 병렬로 — 직렬 6회 round-trip 이 Neon 콜드 커넥션과 겹쳐 응답 16s+ 유발(2026-06-28 fix).
+  const [latestFindings, recent30, staleCleanups, bots, latestStale, recentCritical] = await Promise.all([
+    // 최신 run 의 모든 finding (insert 시각 1분 이내)
+    latest
+      ? prisma.healthCheck.findMany({
+          where: { runAt: { gte: runLo!, lte: runHi! } },
+          orderBy: [{ severity: "asc" }, { category: "asc" }],
+        })
+      : Promise.resolve([]),
+    // 최근 30일 모든 row — 일별·심각도별 집계
+    prisma.healthCheck.findMany({
+      where: { runAt: { gte: since30 } },
+      select: { runAt: true, severity: true, category: true },
+      take: 5000,
+    }),
+    // stale-cleanup 최근 10건 — 봇이 자동 정리한 매치 + Haiku 진단
+    prisma.healthCheck.findMany({ where: { category: "stale-cleanup" }, orderBy: { runAt: "desc" }, take: 10 }),
+    // 봇 heartbeat — 모든 워커
+    prisma.botHeartbeat.findMany({ orderBy: { lastAt: "desc" } }),
+    // 최근 stale-cleanup 1건 (요약 메시지 + Haiku 진단)
+    prisma.healthCheck.findFirst({ where: { category: "stale-cleanup" }, orderBy: { runAt: "desc" } }),
+    // 최근 HIGH/MED finding 1건 — 최신 run 으로 한정(과거 1회성 HIGH 가 AI 종합 카드에 영구 잔존 방지).
+    latest
+      ? prisma.healthCheck.findFirst({
+          where: {
+            severity: { in: ["HIGH", "MED"] },
+            category: { not: "stale-cleanup" },
+            runAt: { gte: runLo! },
+          },
+          orderBy: [{ severity: "asc" }, { runAt: "desc" }], // HIGH(H) < MED(M) → HIGH 우선
+        })
+      : Promise.resolve(null),
+  ]);
+
   // 일별 카운트 (KST 일자 키)
   const byDay = new Map<string, { HIGH: number; MED: number; LOW: number; OK: number }>();
   for (const r of recent30) {
@@ -224,18 +245,6 @@ export default async function HealthPage() {
   }
   const topCategories = Array.from(byCategory.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
-  // stale-cleanup 최근 10건 — 봇이 자동 정리한 매치 + Haiku 진단
-  const staleCleanups = await prisma.healthCheck.findMany({
-    where: { category: "stale-cleanup" },
-    orderBy: { runAt: "desc" },
-    take: 10,
-  });
-
-  // 봇 heartbeat — 모든 워커
-  const bots = await prisma.botHeartbeat.findMany({
-    orderBy: { lastAt: "desc" },
-  });
-
   // 봇 상태 통계 (채팅 요약용)
   let okCount = 0;
   let lagCount = 0;
@@ -248,26 +257,6 @@ export default async function HealthPage() {
     else if (s.label === "지연") lagCount++;
     else downCount++;
   }
-
-  // 최근 stale-cleanup 1건 (있으면 요약 메시지 + Haiku 진단)
-  const latestStale = await prisma.healthCheck.findFirst({
-    where: { category: "stale-cleanup" },
-    orderBy: { runAt: "desc" },
-  });
-
-  // 최근 HIGH/MED finding 1건 — 최신 run 으로 한정.
-  // (time bound 없으면 과거 1회성 HIGH 가 다음 critical 나올 때까지 AI 종합 카드에 영구 잔존 →
-  //  데이터 해소돼도 stale HIGH 표시. 최신 run 의 finding 만 봐야 현재 상태 정확 반영.)
-  const recentCritical = latest
-    ? await prisma.healthCheck.findFirst({
-        where: {
-          severity: { in: ["HIGH", "MED"] },
-          category: { not: "stale-cleanup" },
-          runAt: { gte: new Date(latest.runAt.getTime() - 60 * 1000) },
-        },
-        orderBy: [{ severity: "asc" }, { runAt: "desc" }], // HIGH(H) < MED(M) → HIGH 우선
-      })
-    : null;
 
   // 채팅 messages 생성 — 좌측 = 봇 보고, 우측 = AI 종합
   const chat: ChatMessage[] = [];
