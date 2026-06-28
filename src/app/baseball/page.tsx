@@ -314,6 +314,14 @@ export default async function BaseballHub() {
             ))}
           </ul>
         </Card>
+
+        {/* 승리확률 계산기 */}
+        <Card title="승리확률 계산기" Icon={Target} badge="KBO" href="/tools/kbo-win-probability" hrefLabel="계산기 열기">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
+            이닝·점수차·아웃·주자를 넣으면 상황별 승리확률과 번트·도루의 승률 손익을 즉시 계산합니다.
+          </p>
+          <p className="mt-2 text-[11px] text-neutral-400">예: 9회말 동점 무사 1루 → 공격팀 약 62%</p>
+        </Card>
       </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
