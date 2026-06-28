@@ -16,6 +16,8 @@ import { buildWcBracket, parseKnockoutRound, type WcKnockoutFixture } from "@/li
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import { getWcGroupStandings, getWcThirdPlaceRace } from "@/lib/sports/world-cup-standings";
+import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { SITE_URL } from "@/lib/site-url";
 
 export const revalidate = 600;
 
@@ -157,6 +159,33 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
 
   return (
     <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            breadcrumbLd([
+              { name: "홈", path: "/" },
+              { name: "2026 월드컵", path: "/world-cup" },
+            ]),
+            {
+              "@context": "https://schema.org",
+              "@type": "SportsEvent",
+              name: "2026 FIFA 월드컵",
+              sport: "Soccer",
+              startDate: "2026-06-11",
+              endDate: "2026-07-19",
+              eventStatus: "https://schema.org/EventScheduled",
+              location: [
+                { "@type": "Country", name: "미국" },
+                { "@type": "Country", name: "캐나다" },
+                { "@type": "Country", name: "멕시코" },
+              ],
+              organizer: { "@type": "Organization", name: "FIFA" },
+              url: `${SITE_URL}/world-cup`,
+            },
+          ]),
+        }}
+      />
       <AmbientGlow />
       <header>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">

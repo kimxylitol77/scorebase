@@ -8,6 +8,7 @@ import { Trophy } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { WORLD_CUP_GROUPS, WORLD_CUP_TEAM_ELO } from "@/lib/predict/world-cup-elos";
 import { fifaCountryKo, fifaFlag, getFifaRank } from "@/lib/sports/fifa-rankings";
+import { breadcrumbLd, itemListLd } from "@/lib/seo/jsonld";
 
 export const revalidate = 3600;
 
@@ -35,6 +36,25 @@ export default async function NationalTeamsIndex() {
 
   return (
     <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            breadcrumbLd([
+              { name: "홈", path: "/" },
+              { name: "2026 월드컵", path: "/world-cup" },
+              { name: "출전국 국가대표팀", path: "/national-teams" },
+            ]),
+            itemListLd({
+              name: "2026 FIFA 월드컵 출전국 국가대표팀",
+              items: teams.map((t) => ({
+                name: fifaCountryKo(t.name) ?? t.name,
+                path: `/national-teams/${t.id}`,
+              })),
+            }),
+          ]),
+        }}
+      />
       <AmbientGlow />
       <header>
         <Link

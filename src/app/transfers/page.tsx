@@ -17,6 +17,7 @@ import { DESC_KO, BADGE_CLS, koTeam, badgeOf } from "./transfer-display";
 import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
+import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
 import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -754,6 +755,24 @@ export default async function TransfersPage({
 
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            breadcrumbLd([
+              { name: "홈", path: "/" },
+              { name: "이적시장", path: "/transfers" },
+            ]),
+            datasetLd({
+              name: "축구 이적시장 데이터 — 선수 몸값·이적 기록",
+              description:
+                "유럽 빅5·K리그1·MLS·사우디 등 선수 시장가치(몸값) 랭킹과 이적료·임대·자유이적 기록을 정리한 데이터.",
+              path: "/transfers",
+              variableMeasured: ["시장가치(몸값)", "이적료", "이적 유형"],
+            }),
+          ]),
+        }}
+      />
       <AmbientGlow />
       <PlayerValueTabs active="/transfers" className="mb-6" />
       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
