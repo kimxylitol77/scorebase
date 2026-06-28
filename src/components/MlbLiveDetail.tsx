@@ -10,6 +10,10 @@ import CountUp from "./CountUp";
 import LiveCommentaryBox, {
   type LiveCommentaryData,
 } from "./live/LiveCommentaryBox";
+import dynamic from "next/dynamic";
+
+// 라이브 승리확률 패널 — MLB. 51K 테이블 import 라 dynamic 으로 필요시에만 로드.
+const LiveWinProbability = dynamic(() => import("./live/LiveWinProbability"), { ssr: false });
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
   if (url) {
@@ -458,6 +462,21 @@ export default function MlbLiveDetail({
               </div>
             </div>
           </div>
+        )}
+
+        {/* 라이브 승리확률 — 현재 base-out 상태로 자동 산출 (MLB Stats API situation) */}
+        {isLive && live.situation && currentInning != null && halfKo && (
+          <LiveWinProbability
+            league="MLB"
+            bases={`${live.situation.onFirst ? "1" : "0"}${live.situation.onSecond ? "1" : "0"}${live.situation.onThird ? "1" : "0"}`}
+            outs={live.situation.outs ?? 0}
+            inning={currentInning}
+            bottom={halfKo === "말"}
+            homeScore={homeScore}
+            awayScore={awayScore}
+            homeName={homeNameKo ?? live.homeTeam.name}
+            awayName={awayNameKo ?? live.awayTeam.name}
+          />
         )}
 
         {/* 이닝 박스 (LIVE/종료) */}

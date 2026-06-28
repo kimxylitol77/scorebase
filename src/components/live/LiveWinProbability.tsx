@@ -11,11 +11,13 @@ import {
   STEAL_SUCCESS,
 } from "@/lib/predict/win-expectancy";
 import weKbo from "../../../data/we-kbo.json";
+import weMlb from "../../../data/we-mlb.json";
 import weNpb from "../../../data/we-npb.json";
 
-// 라이브 패널 지원 리그 — base-out 라이브 피드(TheSports detailLive.extra)가 있는 KBO·NPB.
+// 라이브 패널 지원 리그 — KBO·NPB(TheSports detailLive.extra) + MLB(MLB Stats API situation).
 const TABLES: Record<string, WeTable> = {
   KBO: weKbo as unknown as WeTable,
+  MLB: weMlb as unknown as WeTable,
   NPB: weNpb as unknown as WeTable,
 };
 
