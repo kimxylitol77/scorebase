@@ -34,15 +34,19 @@ function collectDiff() {
     .split("\n")
     .map((s) => s.trim())
     .filter((f) => f && f !== SELF);
+  const MAX_FILE = 20000; // 생성 데이터 등 대용량 파일은 내용 제외(토큰 보호)
+  const bigFiles = [];
   for (const f of allUntracked.filter((f) => codeExt.test(f))) {
     try {
-      diff += `\n\n=== NEW FILE: ${f} ===\n` + readFileSync(f, "utf-8");
+      const body = readFileSync(f, "utf-8");
+      if (body.length > MAX_FILE) { bigFiles.push(f); continue; }
+      diff += `\n\n=== NEW FILE: ${f} ===\n` + body;
     } catch {
       /* skip unreadable */
     }
   }
-  // 코드가 아닌 새 에셋(이미지·SVG 등)은 내용 대신 추가 사실만 알림 — 참조 깨짐 오탐 방지.
-  const assets = allUntracked.filter((f) => !codeExt.test(f));
+  // 코드가 아닌 새 에셋(이미지·SVG 등) + 대용량 생성 파일은 내용 대신 추가 사실만 알림.
+  const assets = [...allUntracked.filter((f) => !codeExt.test(f)), ...bigFiles];
   if (assets.length) diff += `\n\n=== 새로 추가된 에셋(내용 생략, 저장소에 존재·참조 유효) ===\n` + assets.join("\n");
   const files = sh("git diff HEAD --name-only").split("\n").filter(Boolean).filter((f) => f !== SELF);
   return { diff, files: [...files, ...allUntracked] };
