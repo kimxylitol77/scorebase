@@ -13,7 +13,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { LOL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import ConclusionCards, {
   type ConclusionPred,
   type KeyFactor,
@@ -47,19 +47,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!match) return { title: "라이브 매치를 찾을 수 없습니다" };
   const home = toKoreanTeamName(match.homeTeam.name);
   const away = toKoreanTeamName(match.awayTeam.name);
+  const lbl = LEAGUE_DISPLAY[match.league] ?? match.league;
   return {
-    title: `${away} vs ${home} 라이브 — LCK`,
-    description: `${away} vs ${home} LCK 매치 라이브 시리즈 점수. BO3/BO5 진행 자동 갱신.`,
+    title: `${away} vs ${home} 라이브 — ${lbl}`,
+    description: `${away} vs ${home} ${lbl} 매치 라이브 시리즈 점수. BO3/BO5 진행 자동 갱신.`,
     alternates: { canonical: `https://www.scorebase.kr/live/lol/${matchId}` },
   };
 }
 
 export default async function LolLivePage({ params }: Props) {
   const { matchId } = await params;
-  if (!/^\d+$/.test(matchId)) notFound();
+  // externalId 는 BDL(숫자) 또는 TheSports(영숫자) — 둘 다 허용. 실제 존재 여부는 DB 조회로 판정.
+  if (!/^[a-zA-Z0-9]+$/.test(matchId)) notFound();
 
   const match = await findLolMatch(matchId);
   if (!match) notFound();
+
+  const leagueLabel = LEAGUE_DISPLAY[match.league] ?? match.league;
 
   const homeKo = toKoreanTeamName(match.homeTeam.name);
   const awayKo = toKoreanTeamName(match.awayTeam.name);
@@ -83,7 +87,7 @@ export default async function LolLivePage({ params }: Props) {
     awayScore: match.awayScore ?? 0,
     homeTeam: { id: match.homeTeam.id, name: homeKo },
     awayTeam: { id: match.awayTeam.id, name: awayKo },
-    tournament: { id: 0, name: "LCK" },
+    tournament: { id: 0, name: leagueLabel },
     startDate: date,
     currentGame: match.status === "FINISHED" ? lolPlayed : lolPlayed + 1,
     needToWin: Math.ceil(lolBestOf / 2),
@@ -143,8 +147,8 @@ export default async function LolLivePage({ params }: Props) {
           라이브 스코어
         </Link>
         <span>›</span>
-        <Link href="/leagues/LOL" className="hover:underline">
-          LCK
+        <Link href={`/leagues/${match.league}`} className="hover:underline">
+          {leagueLabel}
         </Link>
         <span>›</span>
         <span className="text-neutral-700 dark:text-neutral-300 truncate">
@@ -168,7 +172,7 @@ export default async function LolLivePage({ params }: Props) {
           </Link>
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
-          LCK · 시리즈 점수 자동 갱신
+          {leagueLabel} · 시리즈 점수 자동 갱신
         </p>
       </header>
       <MatchArticleLinks
