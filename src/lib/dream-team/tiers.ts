@@ -7,13 +7,14 @@ export interface Tier {
   unlock: number; // 이 티어 해금에 필요한 누적 자금(€M). amateur=0
 }
 
+// budget = 스쿼드(선발 11 + 벤치 7 = 18명) 가치 상한 겸 승급 기준(구단가치 ≥ 다음 티어 budget).
 export const TIERS: Record<string, Tier> = {
-  amateur: { key: "amateur", name: "아마추어", budget: 15, unlock: 0 },
-  local: { key: "local", name: "동네축구", budget: 40, unlock: 30 },
-  youth: { key: "youth", name: "유소년", budget: 80, unlock: 90 },
-  semipro: { key: "semipro", name: "세미프로", budget: 150, unlock: 200 },
-  pro: { key: "pro", name: "프로", budget: 220, unlock: 450 },
-  worldclass: { key: "worldclass", name: "월드클래스", budget: 300, unlock: 900 },
+  amateur: { key: "amateur", name: "아마추어", budget: 25, unlock: 0 },
+  local: { key: "local", name: "동네축구", budget: 65, unlock: 30 },
+  youth: { key: "youth", name: "유소년", budget: 130, unlock: 90 },
+  semipro: { key: "semipro", name: "세미프로", budget: 240, unlock: 200 },
+  pro: { key: "pro", name: "프로", budget: 360, unlock: 450 },
+  worldclass: { key: "worldclass", name: "월드클래스", budget: 500, unlock: 900 },
 };
 
 export const TIER_ORDER = ["amateur", "local", "youth", "semipro", "pro", "worldclass"];

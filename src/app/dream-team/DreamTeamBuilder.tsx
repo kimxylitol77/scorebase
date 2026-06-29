@@ -202,7 +202,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
             </>
           ) : (
             <>
-              <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 11명을 꾸려 다른 팀과 겨룹니다. 정해진 예산 안에서 <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>를 찾는 게 핵심입니다. 팀을 저장한 뒤 전술을 짜고 시즌 리그를 치르며, 이적 시장에서 선수를 사고팔아 구단을 키웁니다. 어린 선수는 출전할수록 성장하고 몸값도 오릅니다.
+              <span className="font-medium text-neutral-900 dark:text-white">드림팀이란</span> — 빅5 현역 선수로 선발 11명을 꾸려 다른 팀과 겨룹니다. <span className="font-medium text-rose-600 dark:text-rose-400">몸값 대비 능력치(OVR)가 높은 가성비 선수</span>로 11명을 채우는 게 첫 단계. 채우면 남는 자금으로 <a href="/dream-team/transfer" className="font-medium text-rose-600 hover:underline dark:text-rose-400">이적 시장</a>에서 벤치를 보강하세요 — 부상·로테이션 대비 16~18명이 적당합니다. 이후 전술을 짜고 시즌 리그를 치르며 선수를 사고팔아 구단을 키웁니다.
             </>
           )}
         </div>

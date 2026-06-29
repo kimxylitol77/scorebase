@@ -40,7 +40,7 @@ export default async function DreamTeamPage() {
         </span>
         <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">나만의 드림팀 만들기</h1>
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-          아마추어 예산 안에서 가성비 선수를 발굴해 11명을 채우세요. 몸값이 아니라 능력치(OVR)로 승부합니다.
+          가성비 선수로 선발 11명을 채운 뒤, 이적 시장에서 벤치를 보강해 16~18명 스쿼드를 만드세요. 몸값이 아니라 능력치(OVR)로 승부합니다.
         </p>
         {existing && (
           <div className="mt-4">
