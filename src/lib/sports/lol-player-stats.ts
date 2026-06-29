@@ -1,5 +1,6 @@
 // LOL 시즌 집계 — DB lolGames 파싱 → 선수·챔피언·팀·밴 통계. 선수랭킹·선수카드·강화 통계 공용.
 import { prisma } from "@/lib/db";
+import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export interface LolPlayerAgg {
   playerId: string;
@@ -208,9 +209,11 @@ export interface LolPlayerChamp {
 }
 
 // 날짜(Match.startTime) 포함 세트 로더 — 경기 로그용.
+// 선수 상세는 region 무관(LCK/LEC/LCS 어느 리그 선수든 같은 /players/[pid]?league=LOL 로 들어옴)
+// 이라 전 LoL 리그 세트를 로드한다. LCK 전용으로 두면 LEC/LCS 선수가 404 가 된다.
 async function loadSetsWithDate(): Promise<Array<GameSet & { date: Date }>> {
   const matches = await prisma.match.findMany({
-    where: { league: "LOL", lolGames: { not: null } },
+    where: { league: { in: [...LOL_LEAGUES] }, lolGames: { not: null } },
     select: { startTime: true, lolGames: true },
   });
   const out: Array<GameSet & { date: Date }> = [];

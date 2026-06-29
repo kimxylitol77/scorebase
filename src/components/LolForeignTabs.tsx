@@ -4,6 +4,7 @@
 // 데이터는 server(LolSimpleStandings)에서 props. 순위·로스터=순위 json, 선수·챔피언=lolGames 집계.
 
 import { useState } from "react";
+import Link from "next/link";
 
 export interface ForeignRosterPlayer {
   playerId: string;
@@ -185,13 +186,15 @@ export default function LolForeignTabs({ standings, players, champs }: Props) {
                     <td className="text-left py-2.5 px-3 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
                     <td className="py-2.5 px-2">
                       <span className="inline-flex items-center gap-2">
-                        {pl.photo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={pl.photo} alt="" className="w-11 h-11 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
-                        ) : (
-                          <span className="w-11 h-11 rounded-full shrink-0 bg-neutral-100 dark:bg-neutral-800" />
-                        )}
-                        <span className="font-semibold">{pl.name}</span>
+                        <Link href={`/players/${pl.playerId}?league=LOL`} className="inline-flex items-center gap-2 hover:underline">
+                          {pl.photo ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={pl.photo} alt="" className="w-11 h-11 rounded-full object-cover shrink-0 bg-neutral-100 dark:bg-neutral-800" loading="lazy" />
+                          ) : (
+                            <span className="w-11 h-11 rounded-full shrink-0 bg-neutral-100 dark:bg-neutral-800" />
+                          )}
+                          <span className="font-semibold">{pl.name}</span>
+                        </Link>
                         <span className="inline-flex items-center gap-1 text-neutral-400 text-xs">
                           {pl.teamLogo && (
                             // eslint-disable-next-line @next/next/no-img-element
