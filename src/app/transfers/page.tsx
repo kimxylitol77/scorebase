@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { ogPageImage } from "@/lib/seo/og";
 import rawDetailPos from "../../../data/player-positions.json";
 import rawOverrides from "../../../data/player-overrides.json";
 import rawPhotos from "../../../data/player-photos.json";
@@ -69,7 +70,12 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title,
     description,
     keywords: [...teamKeywords, "선수 몸값", "시장가치", "이적시장", "축구 이적", "이적료", "선수 시장가치", "스코어베이스", "빅5 리그"],
-    openGraph: { title, description, type: "website" },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: ogPageImage({ title: title.replace(/\s*\|\s*스코어베이스\s*$/, ""), subtitle: "선수 몸값·시장가치·이적 기록을 한눈에", tag: "이적시장" }),
+    },
     alternates: { canonical },
     ...(sp.q ? { robots: { index: false } } : {}), // 검색 결과 페이지는 색인 제외
   };

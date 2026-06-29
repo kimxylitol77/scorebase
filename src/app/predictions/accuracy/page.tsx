@@ -14,6 +14,7 @@ import ReliabilityCurveChart, {
   type RelPoint,
 } from "@/components/charts/ReliabilityCurveChart";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
+import { ogPageImage } from "@/lib/seo/og";
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -52,6 +53,7 @@ export const metadata: Metadata = {
     title: "AI 스포츠 예측 적중률 — Scorebase",
     description: "리그별·시장별 AI 매치 예측 적중률을 표본 수와 함께 데이터로 투명 공개.",
     url: `${SITE_URL}/predictions/accuracy`,
+    images: ogPageImage({ title: "AI 스포츠 예측 적중률", subtitle: "13개 리그·시장별 적중률을 표본 수와 함께 공개", tag: "적중률" }),
   },
 };
 

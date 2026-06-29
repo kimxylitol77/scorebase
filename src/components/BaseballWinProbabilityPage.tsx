@@ -6,6 +6,7 @@ import WinProbabilityTool from "@/components/WinProbabilityTool";
 import type { WeTable } from "@/lib/predict/win-expectancy";
 
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
+import { ogPageImage } from "@/lib/seo/og";
 
 interface LeagueCfg {
   label: string; // "KBO" | "MLB" | "NPB"
@@ -36,6 +37,7 @@ export function buildWpMetadata(slug: string): Metadata {
       description: `이닝·점수차·아웃·주자로 ${c.label} 승리확률을 즉시 계산. 번트·도루의 승률 손익까지.`,
       url: `${SITE_URL}/tools/${c.slug}-win-probability`,
       type: "website",
+      images: ogPageImage({ title: `${c.label} 승리확률 계산기`, subtitle: "상황별 승률·전술 손익을 즉시 계산", tag: "야구 도구" }),
     },
   };
 }

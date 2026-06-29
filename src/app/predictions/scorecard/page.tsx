@@ -9,6 +9,7 @@ import CiteBox from "@/components/CiteBox";
 import ScorecardTrendChart, { type TrendPoint } from "@/components/charts/ScorecardTrendChart";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
+import { ogPageImage } from "@/lib/seo/og";
 
 export const revalidate = 1800; // 30분 ISR
 
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
     title: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.5",
     description: "두 AI가 같은 경기를 두고 맞붙은 승부예측 성적표. 1X2·핸디·OU 시장별 적중 누적 공개.",
     url: `${SITE_URL}/predictions/scorecard`,
+    images: ogPageImage({ title: "AI 예측 성적표", subtitle: "스코어베이스 AI vs GPT-5.5 정면 비교", tag: "AI 대결" }),
   },
 };
 

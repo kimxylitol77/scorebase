@@ -8,6 +8,7 @@ import { Target, LineChart, Calculator, Trophy, CircleDot, Goal, Activity, Snowf
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 import { breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
+import { ogPageImage } from "@/lib/seo/og";
 
 const PAGE_URL = `${SITE_URL}/ai-sports-prediction`;
 
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     title: "AI 스포츠 분석·예측 사이트 — 적중률 공개 | 스코어베이스",
     description:
       "축구·야구·농구·하키 경기를 AI로 분석·예측하고 실제 적중률을 그대로 공개. 13개 리그 백테스트와 GPT-5.5 정면 비교 성적표.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "스코어베이스 — AI 스포츠 분석·예측 사이트" }],
+    images: ogPageImage({ title: "AI 스포츠 분석·예측 사이트", subtitle: "적중률을 그대로 공개하는 스포츠 예측", tag: "AI 예측" }),
   },
 };
 
