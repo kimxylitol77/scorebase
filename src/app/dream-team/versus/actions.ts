@@ -11,6 +11,7 @@ import { updateRating, matchReward } from "@/lib/dream-team/rating";
 import { grownOvr, matchXp } from "@/lib/dream-team/grow";
 import { tacticNote, teamStrength, type TeamPower } from "@/lib/dream-team/tactics";
 import { lineupMembers, awardXp, conditionPenalty, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
+import { generateMatchEvents } from "@/lib/dream-team/match-events";
 import type { PlayState } from "../play/actions";
 
 function squadPower(squad: SquadMember[], lineup: LineupSlot[]): TeamPower {
@@ -114,6 +115,7 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
       fundsAfter,
       promoted: false,
       newTierName: null,
+      events: generateMatchEvents(result.myScore, result.oppScore, seed),
     },
   };
 }

@@ -16,6 +16,7 @@ import { tacticNote, teamStrength } from "@/lib/dream-team/tactics";
 import { computeStandings, myRank, seasonBonus, seasonLength, type SeasonGame, type StandRow } from "@/lib/dream-team/season";
 import { lineupMembers, applyMatchEffects, conditionPenalty, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import { marketValue } from "@/lib/dream-team/pricing";
+import { generateMatchEvents, type MatchEvent } from "@/lib/dream-team/match-events";
 
 export interface PlayResult {
   myName: string;
@@ -37,6 +38,7 @@ export interface PlayResult {
   fundsAfter: number; // 누적 자금(€M)
   promoted: boolean; // 티어 승급 여부
   newTierName: string | null; // 승급 시 새 티어 이름
+  events: MatchEvent[]; // 라이브 중계용 분 단위 타임라인
 }
 
 export interface PlayState {
@@ -136,6 +138,7 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
       fundsAfter,
       promoted: false,
       newTierName: null,
+      events: generateMatchEvents(result.myScore, result.oppScore, seed),
     },
   };
 }
