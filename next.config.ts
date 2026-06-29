@@ -72,6 +72,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.nba.com" }, // NBA (BDL id 매칭 불가 — placeholder만)
       { protocol: "https", hostname: "a.espncdn.com" }, // NBA headshot (ESPN roster fetch 후 매핑)
       { protocol: "https", hostname: "6ptotvmi5753.edge.naverncp.com" }, // KBO 공식 (네이버 클라우드 edge)
+      { protocol: "https", hostname: "**.thesports.com" }, // TheSports (LOL 팀/챔프/아이템/선수 로고 eimg.thesports.com)
     ],
   },
   async headers() {
