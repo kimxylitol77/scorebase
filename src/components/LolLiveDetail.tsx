@@ -121,7 +121,7 @@ export default function LolLiveDetail({
   if (!loaded && !initial) {
     return (
       <div className="space-y-4">
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-10 text-center text-sm text-neutral-500 animate-pulse">
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-10 text-center text-sm text-neutral-500 animate-pulse">
           라이브 정보를 불러오는 중…
         </div>
         {ingame}
@@ -131,7 +131,7 @@ export default function LolLiveDetail({
   if (!live) {
     return (
       <div className="space-y-4">
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-10 text-center text-sm text-neutral-500">
+        <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-10 text-center text-sm text-neutral-500">
           라이브 정보를 가져오지 못했습니다.
         </div>
         {ingame}
@@ -228,7 +228,7 @@ export default function LolLiveDetail({
       </div>
 
       {/* 시리즈 진행 dot */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-4 sm:p-5">
         <div className="flex items-center justify-between text-xs text-neutral-500 mb-3">
           <span className="font-semibold">
             BO{live.bestOf} 시리즈 · {live.needToWin}승 필요
@@ -255,7 +255,7 @@ export default function LolLiveDetail({
       </div>
 
       {/* 토너먼트 */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5">
+      <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-4 sm:p-5">
         <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mb-1">
           토너먼트
         </div>
@@ -305,7 +305,7 @@ function TeamCol({
           loading="lazy"
         />
       ) : (
-        <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 inline-flex items-center justify-center text-base font-bold text-neutral-400">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-1.5 rounded-full bg-neutral-100 dark:bg-white/[0.06] inline-flex items-center justify-center text-base font-bold text-neutral-400">
           {name.slice(0, 1)}
         </div>
       )}

@@ -31,7 +31,7 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
   }));
 
   return (
-    <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 space-y-4">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-4 sm:p-5 space-y-4">
       {/* 헤더 + 세트 탭 */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
@@ -45,7 +45,7 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
               className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
                 i === sel
                   ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+                  : "bg-neutral-100 dark:bg-white/[0.06] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
               }`}
             >
               SET {s.box}
@@ -145,9 +145,9 @@ function PlayerRow({ p }: { p: LolGamePlayer }) {
       <div className="flex items-center gap-1.5 min-w-0">
         {p.cimg ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.cimg} alt="" className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-neutral-800 shrink-0" loading="lazy" />
+          <img src={p.cimg} alt="" className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-white/[0.06] shrink-0" loading="lazy" />
         ) : (
-          <div className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-neutral-800 shrink-0" />
+          <div className="w-7 h-7 rounded-md bg-neutral-100 dark:bg-white/[0.06] shrink-0" />
         )}
         <Link
           href={`/players/${p.playerId}?league=LOL`}
@@ -169,7 +169,7 @@ function PlayerRow({ p }: { p: LolGamePlayer }) {
             src={it.l}
             alt=""
             title={it.n}
-            className="w-5 h-5 rounded bg-neutral-100 dark:bg-neutral-800"
+            className="w-5 h-5 rounded bg-neutral-100 dark:bg-white/[0.06]"
             loading="lazy"
           />
         ))}
