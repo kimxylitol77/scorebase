@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Trophy } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -15,6 +16,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import type { LolGamesData, LolGameSet, LolGamePlayer } from "@/lib/sports/lol-ingame";
+import { computeLolMvp } from "@/lib/sports/lol-ingame";
 
 const RED = "#e24b4a";
 const BLUE = "#5b9bd5";
@@ -22,6 +24,7 @@ const BLUE = "#5b9bd5";
 export default function LolInGame({ games }: { games: LolGamesData }) {
   const [sel, setSel] = useState(0);
   if (!games?.sets?.length) return null;
+  const mvp = computeLolMvp(games);
   const set = games.sets[Math.min(sel, games.sets.length - 1)];
   const redP = set.players.filter((p) => p.teamId === set.red.id);
   const blueP = set.players.filter((p) => p.teamId === set.blue.id);
@@ -32,6 +35,53 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
 
   return (
     <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-4 sm:p-5 space-y-4">
+      {/* 경기 MVP — 시리즈 전체 집계로 1명 */}
+      {mvp && (
+        <div className="flex items-center gap-3 rounded-xl bg-rose-500/[0.06] ring-1 ring-rose-500/20 dark:bg-rose-500/[0.08] p-3 sm:p-3.5">
+          {mvp.cimg ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`/_next/image?url=${encodeURIComponent(mvp.cimg)}&w=96&q=75`}
+              alt={mvp.champ}
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg object-cover shrink-0 ring-1 ring-rose-500/20"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-rose-500/10 shrink-0 inline-flex items-center justify-center font-bold text-rose-500">
+              {mvp.name.slice(0, 1)}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/20">
+                <Trophy className="w-3 h-3" /> MVP
+              </span>
+              <Link
+                href={`/players/${mvp.playerId}?league=LOL`}
+                className="font-extrabold truncate hover:underline"
+              >
+                {mvp.name}
+              </Link>
+              <span className="text-xs text-neutral-500 truncate">
+                {mvp.teamShort} · {mvp.champ}
+                {mvp.games > 1 ? ` 외 ${mvp.games}세트` : ""}
+              </span>
+            </div>
+            <div className="mt-0.5 flex items-center gap-x-3 gap-y-0.5 flex-wrap text-xs text-neutral-600 dark:text-neutral-300 tabular-nums">
+              <span>
+                <b className="text-neutral-800 dark:text-neutral-100">
+                  {mvp.k}/{mvp.d}/{mvp.a}
+                </b>{" "}
+                KDA {mvp.kda.toFixed(2)}
+              </span>
+              <span>킬관여 {Math.round(mvp.kp * 100)}%</span>
+              <span className="hidden sm:inline">CS {mvp.cs}</span>
+              <span className="hidden sm:inline">{(mvp.gold / 1000).toFixed(1)}k G</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 헤더 + 세트 탭 */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">

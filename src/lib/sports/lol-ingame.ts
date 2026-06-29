@@ -133,3 +133,130 @@ export function buildLolGames(
   }
   return out;
 }
+
+// ── 경기 MVP 선정 ──────────────────────────────────────────────
+// 시리즈 전체(전 세트) 집계로 단 한 명. KDA + 킬관여율 중심, 승리팀 가중.
+
+export interface LolMvp {
+  playerId: string;
+  name: string;
+  teamId: string;
+  teamName: string;
+  teamShort: string;
+  onWinner: boolean; // 시리즈 승리팀 소속
+  games: number; // 출전 세트 수
+  k: number;
+  d: number;
+  a: number;
+  cs: number;
+  gold: number;
+  kda: number; // (K+A)/max(1,D)
+  kp: number; // 킬 관여율 0..1
+  champ: string; // 대표(최다 출전) 챔피언
+  cimg: string;
+}
+
+export function computeLolMvp(games: LolGamesData): LolMvp | null {
+  const sets = games?.sets ?? [];
+  if (!sets.length) return null;
+
+  // 1. 시리즈 승리팀 — 세트 승 최다.
+  const setWins = new Map<string, number>();
+  for (const s of sets) setWins.set(s.winnerId, (setWins.get(s.winnerId) ?? 0) + 1);
+  let seriesWinnerId = "";
+  let bestWins = -1;
+  for (const [tid, w] of setWins) if (w > bestWins) ((bestWins = w), (seriesWinnerId = tid));
+
+  // 팀 id → 이름/약자
+  const teamInfo = new Map<string, { name: string; short: string }>();
+  for (const s of sets) {
+    teamInfo.set(s.red.id, { name: s.red.name, short: s.red.short });
+    teamInfo.set(s.blue.id, { name: s.blue.name, short: s.blue.short });
+  }
+
+  // 2. 선수 누적 (출전 세트의 팀 총킬도 합산 → 킬관여율).
+  type Agg = {
+    name: string;
+    teamId: string;
+    games: number;
+    k: number;
+    d: number;
+    a: number;
+    cs: number;
+    gold: number;
+    teamKills: number;
+    champ: Map<string, { n: number; cimg: string }>;
+  };
+  const agg = new Map<string, Agg>();
+  for (const s of sets) {
+    for (const p of s.players) {
+      const teamKills = p.teamId === s.red.id ? s.redKills : s.blueKills;
+      const cur =
+        agg.get(p.playerId) ??
+        {
+          name: p.name,
+          teamId: p.teamId,
+          games: 0,
+          k: 0,
+          d: 0,
+          a: 0,
+          cs: 0,
+          gold: 0,
+          teamKills: 0,
+          champ: new Map<string, { n: number; cimg: string }>(),
+        };
+      cur.games += 1;
+      cur.k += p.k;
+      cur.d += p.d;
+      cur.a += p.a;
+      cur.cs += p.cs;
+      cur.gold += p.gold;
+      cur.teamKills += teamKills;
+      cur.teamId = p.teamId;
+      cur.name = p.name;
+      const c = cur.champ.get(p.champ) ?? { n: 0, cimg: p.cimg };
+      c.n += 1;
+      if (p.cimg) c.cimg = p.cimg;
+      cur.champ.set(p.champ, c);
+      agg.set(p.playerId, cur);
+    }
+  }
+
+  // 3. 점수 — KDA + 킬관여율×5 + 골드/CS 보정, 승리팀 ×1.6.
+  let best: LolMvp | null = null;
+  let bestScore = -Infinity;
+  for (const [playerId, a] of agg) {
+    const ka = a.k + a.a;
+    const kda = ka / Math.max(1, a.d);
+    const kp = ka / Math.max(1, a.teamKills);
+    const onWinner = a.teamId === seriesWinnerId;
+    const score = (kda + kp * 5 + a.gold / 100000 + a.cs / 3000) * (onWinner ? 1.6 : 1);
+    if (score <= bestScore) continue;
+    bestScore = score;
+    // 대표 챔프 = 최다 출전.
+    let champ = "";
+    let cimg = "";
+    let cn = -1;
+    for (const [name, v] of a.champ) if (v.n > cn) ((cn = v.n), (champ = name), (cimg = v.cimg));
+    const ti = teamInfo.get(a.teamId);
+    best = {
+      playerId,
+      name: a.name,
+      teamId: a.teamId,
+      teamName: ti?.name ?? a.teamId,
+      teamShort: ti?.short ?? "?",
+      onWinner,
+      games: a.games,
+      k: a.k,
+      d: a.d,
+      a: a.a,
+      cs: a.cs,
+      gold: a.gold,
+      kda: Math.round(kda * 100) / 100,
+      kp: Math.round(kp * 100) / 100,
+      champ,
+      cimg,
+    };
+  }
+  return best;
+}
