@@ -103,6 +103,9 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
           externalId: true, startTime: true, status: true, homeScore: true, awayScore: true,
           homeTeamId: true, awayTeamId: true, raw: true,
           homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+          // 승부차기 승자용 — diary 수집기는 정규시간 점수만 줘서(PK 무승부=동점) 캐시 detailLive 의
+          // score 배열(home/away[6]=승부차기)에서 PK 결과를 읽는다.
+          theSportsCache: { select: { detailLive: true } },
         },
       }),
     ]);
@@ -120,9 +123,23 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
       // roundStr 없음 → 날짜로 라운드 유추(둘 다 없으면 skip).
       const round = roundStr ? parseKnockoutRound(roundStr) : knockoutRoundFromDate(m.startTime);
       if (!round) continue;
+      // 승부차기 — detailLive.score = [id, status, homeArr, awayArr, ...], 배열 [6]=PK 득점.
+      // PK 가 있었으면(합>0·승부갈림) 그 점수로 표기하고 승자를 확정(정규시간 동점이라 점수폴백 불가).
+      let homeScore = m.homeScore;
+      let awayScore = m.awayScore;
+      const sc = (m.theSportsCache?.detailLive as { score?: unknown[] } | null)?.score;
+      if (Array.isArray(sc)) {
+        const hp = (sc[2] as number[] | undefined)?.[6];
+        const ap = (sc[3] as number[] | undefined)?.[6];
+        if (typeof hp === "number" && typeof ap === "number" && hp + ap > 0 && hp !== ap) {
+          homeScore = hp;
+          awayScore = ap;
+          winnerId = hp > ap ? m.homeTeamId : m.awayTeamId;
+        }
+      }
       knockout.push({
         round, homeName: m.homeTeam.name, awayName: m.awayTeam.name,
-        homeId: m.homeTeamId, awayId: m.awayTeamId, homeScore: m.homeScore, awayScore: m.awayScore,
+        homeId: m.homeTeamId, awayId: m.awayTeamId, homeScore, awayScore,
         status: m.status, startTime: m.startTime.toISOString(), externalId: m.externalId, winnerId,
       });
     }
