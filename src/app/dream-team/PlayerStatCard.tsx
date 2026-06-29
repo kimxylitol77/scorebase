@@ -12,9 +12,10 @@ interface Props {
   role?: string | null;
   onRoleChange?: (role: string) => void;
   showRole?: boolean;
+  lineupMode?: boolean; // 라인업 편성(보유 선수 선발) — 버튼 "영입"→"선발"
 }
 
-export default function PlayerStatCard({ player, mode, affordable, onPick, onRemove, role, onRoleChange, showRole }: Props) {
+export default function PlayerStatCard({ player, mode, affordable, onPick, onRemove, role, onRoleChange, showRole, lineupMode }: Props) {
   if (!player) {
     return (
       <div className="flex min-h-[120px] items-center justify-center rounded-2xl border border-dashed border-neutral-300 p-5 text-center text-sm leading-relaxed text-neutral-400 dark:border-neutral-700">
@@ -100,7 +101,7 @@ export default function PlayerStatCard({ player, mode, affordable, onPick, onRem
           disabled={!affordable}
           className="mt-4 w-full rounded-full bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {affordable ? "이 선수 영입" : "예산 부족"}
+          {lineupMode ? "선발로 투입" : affordable ? "이 선수 영입" : "예산 부족"}
         </button>
       )}
       {mode === "placed" && showRole && player.pos !== "GK" && onRoleChange && (

@@ -156,14 +156,10 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
   }, [selected, selectedPlayer, picks, remaining, poolById, freeMode, hasSquad]);
 
   function clickSlot(slot: Slot) {
-    if (picks[slot.id]) {
-      setSelected({ playerId: picks[slot.id], slot: slot.id, mode: "placed" });
-      setActiveSlot(null);
-    } else {
-      setActiveSlot(slot.id);
-      setSelected(null);
-      setSearch("");
-    }
+    // 슬롯을 누르면 항상 후보를 띄운다 — 선수가 있어도 다른 보유 선수로 바로 교체 가능
+    setActiveSlot(slot.id);
+    setSearch("");
+    setSelected(picks[slot.id] ? { playerId: picks[slot.id], slot: slot.id, mode: "placed" } : null);
   }
   function viewCandidate(playerId: string) {
     if (!activeSlot) return;
@@ -411,6 +407,7 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
               if (selected) setRoles((prev) => ({ ...prev, [selected.slot]: rkey }));
             }}
             showRole={!freeMode}
+            lineupMode={hasSquad}
           />
           {topTeams.length > 0 && (
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-white/[0.04]">

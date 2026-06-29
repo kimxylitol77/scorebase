@@ -54,8 +54,8 @@ export function applyMatchEffects(squad: SquadMember[], lineup: LineupSlot[], xp
     const cond = m.condition ?? 100;
     const inj = m.injuryGames ?? 0;
     if (ids.has(m.playerId)) {
-      const injured = inj === 0 && rand() < 0.04;
-      return { ...m, xp: m.xp + xpGain, condition: Math.max(0, cond - 25), injuryGames: injured ? 2 + Math.floor(rand() * 3) : inj };
+      const injured = inj === 0 && rand() < 0.02;
+      return { ...m, xp: m.xp + xpGain, condition: Math.max(0, cond - 20), injuryGames: injured ? 1 + Math.floor(rand() * 2) : inj };
     }
     return { ...m, condition: Math.min(100, cond + 40), injuryGames: Math.max(0, inj - 1) };
   });
