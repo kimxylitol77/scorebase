@@ -102,6 +102,7 @@ export default async function LolSimpleStandings({ league, name }: { league: str
           ["LEC", "LEC"],
           ["LCS", "LCS"],
           ["LPL", "LPL"],
+          ["EWC", "EWC"],
         ].map(([code, lbl]) => (
           <Link
             key={code}

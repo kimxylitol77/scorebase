@@ -21,6 +21,7 @@ import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import LolStandings from "@/components/LolStandings";
 import LolSimpleStandings from "@/components/LolSimpleStandings";
 import LolLplStandings from "@/components/LolLplStandings";
+import EwcStandings from "@/components/EwcStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -46,6 +47,7 @@ const VALID = new Set<string>([
   "LEC",
   "LCS",
   "LPL",
+  "EWC",
 ]);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -76,6 +78,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         "한국 프로야구 순위",
       ],
       alternates: { canonical: "https://www.scorebase.kr/standings/KBO" },
+    };
+  }
+  if (upper === "EWC") {
+    return {
+      title: "이스포츠 월드컵 LoL 순위 — 그룹 스테이지 결과·일정 | 스코어베이스",
+      description:
+        "이스포츠 월드컵(Esports World Cup) 리그 오브 레전드 그룹 스테이지 순위·경기 결과·일정. T1 등 출전팀의 승패와 세트 스코어를 한눈에. 매일 자동 갱신.",
+      keywords: ["이스포츠 월드컵 LoL", "EWC 롤", "이스포츠 월드컵 순위", "EWC T1", "Esports World Cup LoL"],
+      alternates: { canonical: "https://www.scorebase.kr/standings/EWC" },
     };
   }
   if (upper === "LPL") {
@@ -117,6 +128,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // LPL(중국) — 그룹(part_stage)별 순위 + 로스터. 매치 미수집이라 통계 탭 없음.
   if (upper === "LPL") return <LolLplStandings name={name} />;
+
+  // EWC(이스포츠 월드컵) — 녹아웃 토너먼트라 TheSports 순위표 없음 → DB 매치로 그룹 순위 계산.
+  if (upper === "EWC") return <EwcStandings name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback

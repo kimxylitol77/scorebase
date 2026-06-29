@@ -45,6 +45,7 @@ export default function LolLplStandings({ name }: { name: string }) {
           ["LEC", "LEC"],
           ["LCS", "LCS"],
           ["LPL", "LPL"],
+          ["EWC", "EWC"],
         ].map(([code, lbl]) => (
           <Link
             key={code}
