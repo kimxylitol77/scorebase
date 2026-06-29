@@ -161,7 +161,8 @@ export default async function RootLayout({
               {/* 사람만 통과: rel=nofollow + robots Disallow(/go) 경유 302 — 봇은 경유 차단 */}
               <a
                 href="/go/scorebase"
-                rel="nofollow"
+                target="_blank"
+                rel="nofollow noopener noreferrer"
                 className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
               >
                 스코어베이스
