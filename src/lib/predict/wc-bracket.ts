@@ -153,6 +153,9 @@ export interface BracketSlot {
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/[\s.&'-]/g, "");
+// 분음부호까지 접는 강한 정규화 — 조별(api-football)·녹아웃(TheSports) 소스 팀명 변형 흡수.
+const nfold = (s: string | null | undefined) =>
+  (s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s.&'-]/g, "");
 const koOf = (en: string) => fifaCountryKo(en) ?? toKoreanTeamName(en) ?? en;
 const eloOf = (en: string) => getWorldCupSeedElo(en) ?? 1500;
 
@@ -236,53 +239,62 @@ export function buildWcBracket(input: {
   const overlay = (slot: BracketSlot, src: SlotTemplate) => {
     const cands = fxByRound.get(slot.round);
     if (!cands?.length) return;
-    const hId = slot.home.teamId;
-    const aId = slot.away.teamId;
-    for (const fx of cands) {
-      const pair = new Set([fx.homeId, fx.awayId]);
-      let hit = false;
-      if (hId != null && aId != null) {
-        hit = pair.has(hId) && pair.has(aId);
-      } else if (hId != null) {
-        hit = pair.has(hId);
-      } else if (aId != null) {
-        hit = pair.has(aId);
-      }
-      if (!hit) continue;
+    // ref(슬롯 팀)가 fixture 의 어느 쪽인지 — id 우선, 없으면 팀명(분음부호 폴딩).
+    // ⚠️ 소스별 teamId 가 달라(조별=api-football, 녹아웃=TheSports) id 매칭만으론 안 붙음 → 이름 병행.
+    const sideOf = (ref: BracketTeamRef, fx: WcKnockoutFixture): "home" | "away" | null => {
+      const id = ref.teamId;
+      const nm = ref.name ? nfold(ref.name) : null;
+      if (id != null && fx.homeId === id) return "home";
+      if (id != null && fx.awayId === id) return "away";
+      if (nm && nfold(fx.homeName) === nm) return "home";
+      if (nm && nfold(fx.awayName) === nm) return "away";
+      return null;
+    };
+    const homeResolved = slot.home.teamId != null || slot.home.name != null;
+    const awayResolved = slot.away.teamId != null || slot.away.name != null;
+    if (!homeResolved && !awayResolved) return; // 양쪽 미해석 — 앵커 없음
 
-      // 미해석 측을 fixture 의 나머지 팀으로 채움
-      const fillUnknown = (knownId: number | null): BracketTeamRef | null => {
-        if (knownId == null) return null;
-        const otherId = fx.homeId === knownId ? fx.awayId : fx.homeId;
-        const otherName = fx.homeId === knownId ? fx.awayName : fx.homeName;
-        return resolvedRef(otherName, otherId, null, false);
-      };
-      if (hId == null && aId != null) {
-        const filled = fillUnknown(aId);
-        if (filled) slot.home = filled;
-      } else if (aId == null && hId != null) {
-        const filled = fillUnknown(hId);
-        if (filled) slot.away = filled;
+    for (const fx of cands) {
+      const sHome = homeResolved ? sideOf(slot.home, fx) : null;
+      const sAway = awayResolved ? sideOf(slot.away, fx) : null;
+
+      // 매칭 + orientation(슬롯 home 이 fixture 의 어느 쪽인지)
+      let homeIsFxHome: boolean;
+      if (homeResolved && awayResolved) {
+        if (!sHome || !sAway || sHome === sAway) continue; // 둘이 서로 다른 쪽에 매칭돼야
+        homeIsFxHome = sHome === "home";
+      } else if (homeResolved) {
+        if (!sHome) continue;
+        homeIsFxHome = sHome === "home";
+        slot.away = homeIsFxHome // 상대(미해석)를 fixture 반대쪽으로 채움
+          ? resolvedRef(fx.awayName, fx.awayId, null, false)
+          : resolvedRef(fx.homeName, fx.homeId, null, false);
+      } else {
+        if (!sAway) continue;
+        homeIsFxHome = sAway === "away";
+        slot.home = homeIsFxHome
+          ? resolvedRef(fx.homeName, fx.homeId, null, false)
+          : resolvedRef(fx.awayName, fx.awayId, null, false);
       }
 
       // 스코어를 슬롯 home/away 방향에 맞춰 배치
-      const homeTeamId = slot.home.teamId;
-      const homeIsFxHome = homeTeamId === fx.homeId;
       slot.homeScore = homeIsFxHome ? fx.homeScore : fx.awayScore;
       slot.awayScore = homeIsFxHome ? fx.awayScore : fx.homeScore;
       slot.status = fx.status === "LIVE" ? "LIVE" : fx.status === "FINISHED" ? "FINISHED" : "SCHEDULED";
       slot.startTime = fx.startTime;
       slot.externalId = fx.externalId;
 
-      // 승자/패자 판정
+      // 승자/패자 판정 — 이긴 fixture 쪽(home/away) → orientation 으로 슬롯에 매핑
       if (slot.status === "FINISHED") {
-        let winId = fx.winnerId;
-        if (winId == null && fx.homeScore != null && fx.awayScore != null && fx.homeScore !== fx.awayScore) {
-          winId = fx.homeScore > fx.awayScore ? fx.homeId : fx.awayId;
+        let winFxSide: "home" | "away" | null = null;
+        if (fx.winnerId != null) winFxSide = fx.winnerId === fx.homeId ? "home" : fx.winnerId === fx.awayId ? "away" : null;
+        if (!winFxSide && fx.homeScore != null && fx.awayScore != null && fx.homeScore !== fx.awayScore) {
+          winFxSide = fx.homeScore > fx.awayScore ? "home" : "away";
         }
-        if (winId != null) {
-          const winSide = slot.home.teamId === winId ? slot.home : slot.away;
-          const loseSide = slot.home.teamId === winId ? slot.away : slot.home;
+        if (winFxSide) {
+          const homeWon = (winFxSide === "home") === homeIsFxHome;
+          const winSide = homeWon ? slot.home : slot.away;
+          const loseSide = homeWon ? slot.away : slot.home;
           winSide.won = true;
           loseSide.out = true;
           winnerRef.set(slot.matchNo, { ...winSide, won: false, out: false, label: winSide.nameKo ?? winSide.label });
@@ -340,5 +352,27 @@ export function parseKnockoutRound(roundStr: string | undefined | null): WcRound
   if (r.includes("semi")) return "sf";
   if (r.includes("3rd place") || r.includes("third place")) return "third";
   if (r.includes("final")) return "final";
+  return null;
+}
+
+// 라운드 라벨이 없는 매치(TheSports 소스는 raw 가 비어 round 미제공)용 — 경기 날짜로 라운드 유추.
+// 2026 FIFA 월드컵 녹아웃 일정은 사전 확정이라 날짜 구간이 라운드와 1:1. (UTC 경계, 구간 겹침 없음)
+// ⚠️ round 가 "있는데" 녹아웃이 아닌(=그룹) 경기엔 쓰면 안 됨 — 호출부에서 round 부재 시에만 사용.
+const KO_DATE_WINDOWS: { from: string; to: string; round: WcRound }[] = [
+  { from: "2026-06-28", to: "2026-07-04", round: "r32" },
+  { from: "2026-07-04", to: "2026-07-08", round: "r16" },
+  { from: "2026-07-08", to: "2026-07-13", round: "qf" },
+  { from: "2026-07-13", to: "2026-07-17", round: "sf" },
+  { from: "2026-07-17", to: "2026-07-19", round: "third" },
+  { from: "2026-07-19", to: "2026-07-21", round: "final" },
+];
+
+export function knockoutRoundFromDate(d: Date): WcRound | null {
+  const t = d.getTime();
+  for (const w of KO_DATE_WINDOWS) {
+    if (t >= new Date(w.from + "T00:00:00Z").getTime() && t < new Date(w.to + "T00:00:00Z").getTime()) {
+      return w.round;
+    }
+  }
   return null;
 }

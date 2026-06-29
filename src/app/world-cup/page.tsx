@@ -12,7 +12,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import WcTabBar from "@/components/world-cup/WcTabBar";
 import WcXgList from "@/components/world-cup/WcXgList";
 import WcBracket from "@/components/world-cup/WcBracket";
-import { buildWcBracket, parseKnockoutRound, type WcKnockoutFixture } from "@/lib/predict/wc-bracket";
+import { buildWcBracket, parseKnockoutRound, knockoutRoundFromDate, type WcKnockoutFixture } from "@/lib/predict/wc-bracket";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_FUN_CATS } from "@/lib/sports/thesports/world-cup-player-stats";
 import { getWcGroupStandings, getWcThirdPlaceRace } from "@/lib/sports/world-cup-standings";
@@ -116,7 +116,9 @@ export default async function WorldCupHub({ searchParams }: { searchParams: Prom
         if (j?.teams?.home?.winner === true) winnerId = m.homeTeamId;
         else if (j?.teams?.away?.winner === true) winnerId = m.awayTeamId;
       } catch {}
-      const round = parseKnockoutRound(roundStr);
+      // api-football 그룹경기는 roundStr 있음(그룹→null=skip). TheSports 녹아웃은 raw 비어
+      // roundStr 없음 → 날짜로 라운드 유추(둘 다 없으면 skip).
+      const round = roundStr ? parseKnockoutRound(roundStr) : knockoutRoundFromDate(m.startTime);
       if (!round) continue;
       knockout.push({
         round, homeName: m.homeTeam.name, awayName: m.awayTeam.name,
