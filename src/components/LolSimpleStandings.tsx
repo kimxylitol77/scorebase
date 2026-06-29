@@ -95,12 +95,13 @@ export default async function LolSimpleStandings({ league, name }: { league: str
         </p>
       </header>
 
-      {/* 리그 스위처 — LCK ↔ LEC ↔ LCS */}
-      <div className="flex gap-1.5">
+      {/* 리그 스위처 — LCK ↔ LEC ↔ LCS ↔ LPL */}
+      <div className="flex gap-1.5 flex-wrap">
         {[
           ["LOL", "LCK"],
           ["LEC", "LEC"],
           ["LCS", "LCS"],
+          ["LPL", "LPL"],
         ].map(([code, lbl]) => (
           <Link
             key={code}

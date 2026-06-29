@@ -17,6 +17,28 @@ const FOREIGN_TOURNAMENTS: Record<string, string> = {
   LCS: "l5erg5ef300m8k0", // LCS Spring 2026
 };
 
+// LPL — split 마다 part_stage(그룹)로 나뉘어 그룹별 순위가 1부터 재시작 → 단일표 부정확.
+//   현재 split tournament uuid (시즌/스플릿 갱신 시 tournament/list 에서 "LPL Split N 2026" 재발굴).
+const LPL_TOURNAMENT = "23xmvxjtov6rg8n"; // LPL Split 2 2026
+
+// LPL 팀 한글명 (abbr 키 — uuid 보다 안정적). 로고·영문명은 team/list 자동.
+const LPL_KO: Record<string, string> = {
+  BLG: "빌리빌리 게이밍",
+  JDG: "JD 게이밍",
+  TES: "탑 e스포츠",
+  AL: "애니원스 레전드",
+  NIP: "닌자 인 파자마스",
+  WBG: "웨이보 게이밍",
+  IG: "인빅터스 게이밍",
+  WE: "팀 WE",
+  LNG: "LNG e스포츠",
+  TT: "썬더토크 게이밍",
+  EDG: "에드워드 게이밍",
+  LGD: "LGD 게이밍",
+  UP: "울트라 프라임",
+  OMG: "OMG",
+};
+
 // 해외 팀 한글명 (ts team_id → 한국 통용 표기). 로고·영문명은 team/list 에서 자동.
 const FOREIGN_KO: Record<string, string> = {
   // LEC
@@ -196,10 +218,79 @@ async function buildForeign(league: string) {
   for (const s of standings) console.log(`  ${s.rank}. ${(s.short || "?").padEnd(5)} ${s.name} ${s.win}-${s.lose} 로스터=${s.roster.length}`);
 }
 
+// 특정 tournament 의 table 행만 (그룹/part_stage 보존). 해외 fetchTableRows 와 동일하나 stage 필터 안 함.
+async function fetchTournamentRows(tid: string): Promise<any[]> {
+  const rows: any[] = [];
+  for (let pg = 1; pg <= 15; pg++) {
+    const r: any = await g("/v1/lol/tournament/table/list", { page: pg });
+    const rs: any[] = r.results ?? [];
+    if (!rs.length) break;
+    rows.push(...rs.filter((x: any) => x.tournament_id === tid));
+  }
+  return rows;
+}
+
+// ── LPL — part_stage(그룹)별 분리 표. 그룹마다 position 이 1부터라 합치지 않는다 ──
+async function buildLpl() {
+  const rows = await fetchTournamentRows(LPL_TOURNAMENT);
+  console.log(`LPL table 행: ${rows.length}`);
+  if (!rows.length) return;
+
+  // part_stage 별 그룹화 (등장 순서 유지)
+  const byPart = new Map<string, any[]>();
+  for (const r of rows) {
+    const arr = byPart.get(r.part_stage_id) ?? [];
+    arr.push(r);
+    byPart.set(r.part_stage_id, arr);
+  }
+
+  const teamIds = new Set<string>(rows.map((r) => r.team_id));
+  const rosters = await fetchRosters(teamIds);
+  const teamMeta = new Map<string, any>();
+  for (const id of teamIds) {
+    const r: any = await g("/v1/lol/team/list", { uuid: id });
+    teamMeta.set(id, r.results?.[0] ?? null);
+  }
+
+  // 그룹은 팀 수 많은 순(주력 그룹 먼저) → A·B·C 라벨
+  const groupsRaw = [...byPart.entries()].sort((a, b) => b[1].length - a[1].length);
+  const groups = groupsRaw.map(([, prows], gi) => {
+    const standings = prows
+      .sort((a, b) => (Number(a.position) || 99) - (Number(b.position) || 99))
+      .map((r, i) => {
+        const t = teamMeta.get(r.team_id);
+        const abbr = t?.abbr || "";
+        return {
+          rank: Number(r.position) || i + 1,
+          teamId: r.team_id,
+          name: LPL_KO[abbr] ?? t?.name ?? r.team_id,
+          short: abbr || "?",
+          logo: t?.logo ?? "",
+          win: Number(r.win) || 0,
+          lose: Number(r.lose) || 0,
+          roster: rosters.get(r.team_id) ?? [],
+        };
+      });
+    return { name: `그룹 ${String.fromCharCode(65 + gi)}`, standings };
+  });
+
+  const out = "data/lol-standings-LPL.json";
+  fs.writeFileSync(
+    out,
+    JSON.stringify({ league: "LPL", name: "LPL", updatedAt: new Date().toISOString(), groups }, null, 2),
+  );
+  console.log(`저장 ${groups.length}그룹 → ${out}`);
+  for (const grp of groups) {
+    console.log(`  [${grp.name}] ${grp.standings.length}팀`);
+    for (const s of grp.standings) console.log(`    ${s.rank}. ${s.short.padEnd(5)} ${s.name} ${s.win}-${s.lose} 로스터=${s.roster.length}`);
+  }
+}
+
 (async () => {
   const arg = process.argv.find((a) => a.startsWith("--league="));
   const league = arg ? arg.split("=")[1].toUpperCase() : "LOL";
   if (league === "LOL") await buildLck();
+  else if (league === "LPL") await buildLpl();
   else await buildForeign(league);
   await prisma.$disconnect();
 })().catch((e) => {

@@ -20,6 +20,7 @@ import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import LolStandings from "@/components/LolStandings";
 import LolSimpleStandings from "@/components/LolSimpleStandings";
+import LolLplStandings from "@/components/LolLplStandings";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -44,6 +45,7 @@ const VALID = new Set<string>([
   "LOL",
   "LEC",
   "LCS",
+  "LPL",
 ]);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -76,6 +78,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: { canonical: "https://www.scorebase.kr/standings/KBO" },
     };
   }
+  if (upper === "LPL") {
+    return {
+      title: "LPL 순위 — 2026 중국 롤 프로리그 그룹별 순위표 | 스코어베이스",
+      description:
+        "LPL(중국 League of Legends Pro League) 2026 스플릿 순위표. 그룹(조)별 팀 순위·승패·승률과 팀 로스터를 한눈에. 매일 자동 갱신.",
+      keywords: ["LPL 순위", "LPL 순위표", "중국 롤 순위", "LPL 팀 순위", "LoL Pro League"],
+      alternates: { canonical: "https://www.scorebase.kr/standings/LPL" },
+    };
+  }
   return {
     title: `${name} 순위표 — 스코어베이스`,
     description: `${name} 시즌 순위표. 승점·승무패·골득실·득점·실점 한눈에. 매일 자동 갱신.`,
@@ -103,6 +114,9 @@ export default async function StandingsPage({ params }: Props) {
 
   // 해외 LoL(LEC/LCS) — 순위 + 로스터만(매치 미수집이라 KDA·통계 탭 없음)
   if (upper === "LEC" || upper === "LCS") return <LolSimpleStandings league={upper} name={name} />;
+
+  // LPL(중국) — 그룹(part_stage)별 순위 + 로스터. 매치 미수집이라 통계 탭 없음.
+  if (upper === "LPL") return <LolLplStandings name={name} />;
 
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback

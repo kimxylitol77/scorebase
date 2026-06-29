@@ -50,6 +50,7 @@ const LEAGUES: LeagueCard[] = [
   { code: "LOL", sport: "esports", name: "LCK", subtitle: "LOL · 순위·선수 정보", flag: "🎮", gradient: "from-fuchsia-600 via-purple-600 to-indigo-600" },
   { code: "LEC", sport: "esports", name: "LEC", subtitle: "유럽 LoL · 순위·선수 정보", flag: "🎮", gradient: "from-sky-500 via-blue-600 to-indigo-700" },
   { code: "LCS", sport: "esports", name: "LCS", subtitle: "북미 LoL · 순위·선수 정보", flag: "🎮", gradient: "from-rose-500 via-red-600 to-orange-600" },
+  { code: "LPL", sport: "esports", name: "LPL", subtitle: "중국 LoL · 그룹별 순위", flag: "🎮", gradient: "from-red-600 via-rose-600 to-pink-600" },
 ];
 
 // 리그 카드 한 장 — gradient bar + 이름 + (있으면) 현재 순위 Top3 미리보기.

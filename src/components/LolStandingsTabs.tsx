@@ -124,9 +124,9 @@ export default function LolStandingsTabs(p: Props) {
         </p>
       </header>
 
-      {/* 리그 스위처 — LCK ↔ LEC ↔ LCS */}
-      <div className="flex gap-1.5">
-        {([["LOL", "LCK"], ["LEC", "LEC"], ["LCS", "LCS"]] as const).map(([code, lbl]) => (
+      {/* 리그 스위처 — LCK ↔ LEC ↔ LCS ↔ LPL */}
+      <div className="flex gap-1.5 flex-wrap">
+        {([["LOL", "LCK"], ["LEC", "LEC"], ["LCS", "LCS"], ["LPL", "LPL"]] as const).map(([code, lbl]) => (
           <Link
             key={code}
             href={`/standings/${code}`}
