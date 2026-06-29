@@ -100,7 +100,7 @@ export default async function RootLayout({
             cookie 동기화 (다음 새로고침부터 SSR 가 cookie 인식). 동시에 첫 paint 도 맞춤. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);var t=c?c[1]:localStorage.getItem('theme');var wantLight=t==='light'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);if(!c){document.cookie='theme='+(wantLight?'light':'dark')+'; path=/; max-age=31536000; SameSite=Lax';}var h=document.documentElement;if(wantLight){h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}else{h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}}catch(e){}})();`,
+            __html: `(function(){try{var host=(location.hostname||'').toLowerCase();var sb=host.indexOf('스코어보드')>=0||host.indexOf('xn--hy1bm7m1yevrd8pq')>=0;var c=document.cookie.match(/(?:^|; )theme=([^;]+)/);var t=c?c[1]:localStorage.getItem('theme');var wantLight=sb||t==='light'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches);if(!c&&!sb){document.cookie='theme='+(wantLight?'light':'dark')+'; path=/; max-age=31536000; SameSite=Lax';}var h=document.documentElement;if(wantLight){h.classList.remove('dark');h.style.backgroundColor='#ffffff';h.style.color='#0a0a0a';h.style.colorScheme='light';}else{h.classList.add('dark');h.style.backgroundColor='#0a0a0a';h.style.color='#ededed';h.style.colorScheme='dark';}}catch(e){}})();`,
           }}
         />
         {/* Google Tag Manager + GA4 gtag.js — production 만 (dev/local 트래픽 제외).
