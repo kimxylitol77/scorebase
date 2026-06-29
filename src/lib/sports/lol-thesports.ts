@@ -15,7 +15,9 @@ export const TS_LOL_TOURNAMENTS: Record<string, League> = {
   "4wyrnxyt8jgm86p": "LOL", // LCK Cup 2026
   "4wyrnxyt8ggm86p": "LEC", // LEC Spring 2026 (해외 — 순위·인게임 수집)
   l5erg5ef300m8k0: "LCS", // LCS Spring 2026
+  "6ypq3e3u501md7o": "EWC", // 2026 Esports World Cup (국제 — T1·TL·KC·DCG 등 지역 혼합, 6/28~7월)
   // LCK_CL(x7lm797bog7r2wd)·LPL(Split 2그룹제라 단일순위 부정확, 보류)은 후속.
+  // LCK 서머 새 UUID 는 TheSports 일정에 뜨면 "LOL" 로 추가.
 };
 
 // ts team id → 한글명·약자·로고. 한글명은 한국 통용 표기(기존 BDL 매핑 재활용).
@@ -33,6 +35,10 @@ export const TS_LOL_TEAMS: Record<string, TeamInfo> = {
   ednm926hky17ryo: { name: "한진 브리온", short: "BRO", logo: "https://eimg.thesports.com/lol/team/FlFdQU07TgJrOF4wvMOGFRJzg8KK" },
   "2y8m4exu32pkql0": { name: "DN SOOPers", short: "DNS", logo: "https://eimg.thesports.com/lol/team/FiREL-9p9kEsrBd0LMbO_gmBv6qC" },
   y0or59wblpd4mwz: { name: "DRX", short: "DRX", logo: "https://eimg.thesports.com/lol/team/FrJTPfp5FygOCrCXcHyzETJXGi6c" },
+  // === EWC(이스포츠 월드컵) 해외 참가팀 — LCK 외 지역. (TBD 슬롯은 미매핑 → route 가 skip) ===
+  y39mp8xu3g6yqoj: { name: "팀 리퀴드", short: "TL", logo: "https://eimg.thesports.com/lol/team/Fr_aqE1CaVsWXV-j7QqFquzknuvz" },
+  "318q6g8to50vro9": { name: "카민 코프", short: "KC", logo: "https://eimg.thesports.com/lol/team/FpvzFLOCAur7cd59-22EEQlzsSw0" },
+  "2y8m4exu3kx7ql0": { name: "딥 크로스 게이밍", short: "DCG", logo: "https://eimg.thesports.com/lol/team/FvoIo9QMK8gFby_e2GafGA_971_j" },
 };
 // 해외(LEC/LCS) 팀은 순위 json(build-lol-standings --league 생성)에서 머지 — 한글명·로고 단일 진실.
 for (const d of [lecStandings, lcsStandings] as { standings: { teamId: string; name: string; short: string; logo: string }[] }[]) {

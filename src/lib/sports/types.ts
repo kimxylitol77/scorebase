@@ -23,6 +23,7 @@ export type League =
   | "LPL" // 중국 LPL — 표시만
   | "LEC" // 유럽 LEC — 표시만
   | "LCS" // 북미 LCS — 표시만
+  | "EWC" // 이스포츠 월드컵 (국제 — 지역 혼합) — TheSports 수집
   // 아시아 축구
   | "K_LEAGUE_1" // K리그 1 (한국 1부) — api-football
   | "K_LEAGUE_2" // K리그 2 (한국 2부) — api-football

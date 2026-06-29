@@ -47,7 +47,7 @@ export const ALL_LEAGUES = [
   // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
-  "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "UFC",
+  "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "UFC",
   // 2026-06-12 배구 — TheSports unique_tournament 기반 (VNL 남자 / AVC 네이션스컵 여자 / 유럽 골든리그 여자)
   "VNL", "AVC_NATIONS_W", "EGL_W",
   // 2026-05-24 추가
@@ -155,8 +155,9 @@ export const SPORTS: SportMeta[] = [
     label: "e스포츠",
     emoji: "🎮",
     // "LOL"=LCK 본선(+Road to MSI, 코드 유지). "LCK_CL"=2군. "LPL/LEC/LCS"=해외(표시만).
-    // BDL tournament→league 는 lol.ts 단일 소스(TOURNAMENT_TO_LEAGUE).
-    leagues: ["LOL", "LCK_CL", "LPL", "LEC", "LCS"],
+    // "EWC"=이스포츠 월드컵(국제 — T1·TL·KC 등 지역 혼합). BDL tournament→league 는 lol.ts,
+    // TheSports tournament→league 는 lol-thesports.ts(TS_LOL_TOURNAMENTS) 소스.
+    leagues: ["LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC"],
   },
   {
     code: "mma",
@@ -375,6 +376,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   LPL: "LPL",
   LEC: "LEC",
   LCS: "LCS",
+  EWC: "이스포츠 월드컵",
   UFC: "UFC",
   // 2026-05-24 추가
   SUI_CUP: "스위스컵",
@@ -569,6 +571,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   LPL: 30.6,
   LEC: 30.7,
   LCS: 30.8,
+  EWC: 30.9,
   UFC: 40,
 };
 

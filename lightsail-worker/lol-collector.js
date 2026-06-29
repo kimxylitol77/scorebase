@@ -15,7 +15,7 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 
 // LCK 계열 토너먼트 id — src/lib/sports/lol-thesports.ts TS_LOL_TOURNAMENTS 와 일치.
 // 워커는 어느 토너먼트를 호출할지만 알면 됨(League 결정은 route 가 tournament_id 로).
-const TOURNAMENTS = ["l7oqd9kb6y6m510", "4wyrnxyt8jgm86p"]; // LCK 2026, LCK Cup 2026
+const TOURNAMENTS = ["l7oqd9kb6y6m510", "4wyrnxyt8jgm86p", "6ypq3e3u501md7o"]; // LCK 2026, LCK Cup 2026, EWC 2026(이스포츠 월드컵)
 
 if (!TS_USER || !TS_SECRET) {
   console.error("❌ THESPORTS_USER/SECRET missing");

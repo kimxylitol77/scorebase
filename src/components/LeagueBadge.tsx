@@ -20,6 +20,7 @@ const LABELS: Record<string, string> = {
   UCL: "챔스",
   WORLD_CUP: "월드컵",
   LOL: "LCK",
+  EWC: "EWC",
 };
 
 interface Props {

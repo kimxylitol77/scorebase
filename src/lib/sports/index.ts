@@ -53,6 +53,7 @@ export const collectors: Record<League, MatchCollector> = {
   LPL: lolCollector, // 중국 LPL (표시만)
   LEC: lolCollector, // 유럽 LEC (표시만)
   LCS: lolCollector, // 북미 LCS (표시만)
+  EWC: lolCollector, // 이스포츠 월드컵 — 실제 수집은 Lightsail 워커(TheSports), Record 타입 충족용
   // 신규 — 아시아 축구
   J1_LEAGUE: buildApiFootballCollector("J1_LEAGUE"), // api-football (ESPN 80일 백필 timeout 회피)
   AFC_CL: buildApiFootballCollector("AFC_CL"), // api-football 통일

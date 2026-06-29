@@ -101,6 +101,7 @@ const LEAGUE_LABEL: Record<string, string> = {
   LPL: "LPL",
   LEC: "LEC",
   LCS: "LCS",
+  EWC: "EWC",
 };
 
 // 티커/라이브 라벨 — 짧은 LEAGUE_LABEL 우선, 없으면 sport-leagues 의 정식 한글(LEAGUE_DISPLAY),
