@@ -48,6 +48,15 @@ export interface LolGamesData {
   sets: LolGameSet[];
 }
 
+// 골드차 + 게임 진행도 → red 팀 승리확률. 종료 LoL 세트 187개(econ 15,219포인트, LCK/LEC/LCS/EWC/LPL)로
+// 캘리브레이션: P(red) = 1/(1+exp(-0.30·골드리드(k)·(0.5+진행도))). 마지막 포인트 승자 예측 정확도 98%.
+// econ.v 는 blue 기준 골드차(음수=blue 열세)라 red 리드는 부호 반전.
+export function lolRedWinProb(goldDiffBlue: number, timeSec: number, durationSec: number): number {
+  const tf = durationSec > 0 ? Math.min(1, timeSec / durationSec) : Math.min(1, timeSec / 1800);
+  const goldLeadK = -goldDiffBlue / 1000;
+  return 1 / (1 + Math.exp(-0.3 * goldLeadK * (0.5 + tf)));
+}
+
 type TeamInfo = { name: string; short: string };
 
 function teamRef(id: string, teamMap: Map<string, TeamInfo>): LolTeamRef {

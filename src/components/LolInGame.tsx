@@ -14,9 +14,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  ReferenceLine,
 } from "recharts";
 import type { LolGamesData, LolGameSet, LolGamePlayer } from "@/lib/sports/lol-ingame";
-import { computeLolMvp } from "@/lib/sports/lol-ingame";
+import { computeLolMvp, lolRedWinProb } from "@/lib/sports/lol-ingame";
 
 const RED = "#e24b4a";
 const BLUE = "#5b9bd5";
@@ -31,7 +32,12 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
   const chartData = set.econ.map((e) => ({
     min: Math.round(e.t / 60),
     lead: Math.round(-e.v / 100) / 10, // red팀 기준 골드 리드(k)
+    redWp: Math.round(lolRedWinProb(e.v, e.t, set.durationSec) * 1000) / 10, // red 승리확률(%)
   }));
+  // 세트 승자 — red/blue 어느 쪽인지
+  const redWon = set.winnerId === set.red.id;
+  const winnerShort = redWon ? set.red.short : set.blue.short;
+  const winnerColor = redWon ? RED : BLUE;
 
   return (
     <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-4 sm:p-5 space-y-4">
@@ -88,19 +94,27 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
           게임별 인게임 상세
         </div>
         <div className="flex gap-1">
-          {games.sets.map((s, i) => (
-            <button
-              key={s.box}
-              onClick={() => setSel(i)}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
-                i === sel
-                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                  : "bg-neutral-100 dark:bg-white/[0.06] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
-              }`}
-            >
-              SET {s.box}
-            </button>
-          ))}
+          {games.sets.map((s, i) => {
+            const sWinShort = s.winnerId === s.red.id ? s.red.short : s.winnerId === s.blue.id ? s.blue.short : null;
+            return (
+              <button
+                key={s.box}
+                onClick={() => setSel(i)}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition inline-flex items-center gap-1.5 ${
+                  i === sel
+                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                    : "bg-neutral-100 dark:bg-white/[0.06] text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
+                }`}
+              >
+                SET {s.box}
+                {sWinShort && (
+                  <span className={`text-[10px] font-semibold ${i === sel ? "opacity-70" : "text-neutral-400"}`}>
+                    {sWinShort}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -110,6 +124,11 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
         <span>킬 {set.redKills}:{set.blueKills}</span>
         <span>타워 {set.redTower}:{set.blueTower}</span>
         <span>드래곤 {set.redDragon}:{set.blueDragon}</span>
+        {winnerShort && (
+          <span className="inline-flex items-center gap-1 font-semibold" style={{ color: winnerColor }}>
+            <Trophy className="w-3 h-3" /> {winnerShort} 승
+          </span>
+        )}
       </div>
 
       {/* 스코어보드 */}
@@ -118,16 +137,19 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
         <TeamBoard team={set.blue.name} kills={set.blueKills} players={blueP} color={BLUE} />
       </div>
 
-      {/* 골드 추이 */}
+      {/* AI 승리확률 추이 — 골드차·진행도 기반(우리 종료세트 캘리브레이션). 50% 위=red 우세. */}
       {chartData.length > 1 && (
         <div>
-          <div className="text-xs text-neutral-500 mb-1">
-            골드 추이 — <span style={{ color: RED }} className="font-semibold">{set.red.short}</span> 리드폭
+          <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1.5 flex-wrap">
+            <span className="font-semibold text-neutral-600 dark:text-neutral-300">AI 승리확률 추이</span>
+            <span style={{ color: RED }} className="font-semibold">{set.red.short}</span>
+            <span className="text-neutral-400">기준 · 골드·진행도 기반 추정</span>
           </div>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 0, left: -12 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#888" opacity={0.2} />
+                <ReferenceLine y={50} stroke="#888" strokeDasharray="4 4" opacity={0.5} />
                 <XAxis
                   dataKey="min"
                   stroke="#737373"
@@ -136,13 +158,18 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
                   tickFormatter={(v: number) => `${v}분`}
                 />
                 <YAxis
+                  domain={[0, 100]}
+                  ticks={[0, 25, 50, 75, 100]}
                   stroke="#737373"
                   fontSize={11}
                   tick={{ fill: "currentColor" }}
-                  tickFormatter={(v: number) => `${v}k`}
+                  tickFormatter={(v: number) => `${v}%`}
                 />
                 <Tooltip
-                  formatter={(v) => [`${Number(v).toFixed(1)}k`, `${set.red.short} 리드`]}
+                  formatter={(v, _n, item) => [
+                    `${Number(v).toFixed(0)}% (골드 ${Number((item?.payload as { lead?: number })?.lead ?? 0).toFixed(1)}k)`,
+                    `${set.red.short} 승률`,
+                  ]}
                   labelFormatter={(l) => `${l}분`}
                   contentStyle={{
                     backgroundColor: "var(--tooltip-bg, #fff)",
@@ -151,7 +178,7 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
                     fontSize: 12,
                   }}
                 />
-                <Area type="monotone" dataKey="lead" stroke={RED} fill={RED} fillOpacity={0.12} strokeWidth={2} />
+                <Area type="monotone" dataKey="redWp" stroke={RED} fill={RED} fillOpacity={0.12} strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
