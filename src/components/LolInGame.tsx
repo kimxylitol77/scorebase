@@ -18,9 +18,12 @@ import {
 } from "recharts";
 import type { LolGamesData, LolGameSet, LolGamePlayer } from "@/lib/sports/lol-ingame";
 import { computeLolMvp, lolRedWinProb } from "@/lib/sports/lol-ingame";
+import lolHeroes from "../../data/lol-heroes.json";
 
 const RED = "#e24b4a";
 const BLUE = "#5b9bd5";
+// 밴 챔프명 → 아이콘 (스코어보드 챔프와 동일 소스, build-lol-heroes.ts).
+const HERO_ICONS = (lolHeroes as { heroes: Record<string, string> }).heroes;
 
 export default function LolInGame({ games }: { games: LolGamesData }) {
   const [sel, setSel] = useState(0);
@@ -130,6 +133,31 @@ export default function LolInGame({ games }: { games: LolGamesData }) {
           </span>
         )}
       </div>
+
+      {/* 밴 — 이 세트에서 금지된 챔피언 (픽은 스코어보드 챔피언). 회색+사선으로 밴 표시. */}
+      {set.bans.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 mr-0.5">밴</span>
+          {set.bans.map((b, i) => {
+            const icon = HERO_ICONS[b];
+            return (
+              <span key={`${b}-${i}`} title={b} className="relative inline-flex shrink-0">
+                {icon ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={icon} alt={b} className="w-6 h-6 rounded grayscale opacity-55" loading="lazy" />
+                ) : (
+                  <span className="w-6 h-6 rounded bg-neutral-100 dark:bg-white/[0.06] inline-flex items-center justify-center text-[8px] text-neutral-400">
+                    {b.slice(0, 3)}
+                  </span>
+                )}
+                <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="block w-[140%] h-px bg-rose-500/70 -rotate-45" />
+                </span>
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* 스코어보드 */}
       <div className="space-y-3">
