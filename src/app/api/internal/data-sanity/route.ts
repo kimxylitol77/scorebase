@@ -435,6 +435,15 @@ export async function GET(req: NextRequest) {
   });
   const hasUpcoming = new Set(upcoming.filter((g) => g._count._all > 0).map((g) => g.league));
 
+  // 유럽 컵(UCL/UEL/UECL)은 league phase(9~1월)에만 순위표가 갱신되고, 예선·knockout 구간엔
+  // 멈춘 게 정상이다. 단 예선 경기가 "미래 경기"라 hasUpcoming 면제를 빠져나가 여름마다 stale
+  // 오탐을 낸다. poller 가 다른 리그를 fresh 갱신 중(=살아있음)이면 컵만 stale = 시즌 경계 →
+  // 면제. poller 전체가 죽으면 in-season 리그(MLS 등)가 따로 잡으므로 진짜 죽음은 안 놓친다.
+  const EUROPEAN_CUPS = new Set(["UCL", "UEL", "UECL"]);
+  const pollerAlive = tsStandings.some(
+    (s) => !EUROPEAN_CUPS.has(s.league) && now - s.updatedAt.getTime() < STANDINGS_TS_STALE_MS,
+  );
+
   const placeholderInfo = (league: string) => ({
     matchId: 0,
     externalId: "",
@@ -447,11 +456,13 @@ export async function GET(req: NextRequest) {
     if (!hasUpcoming.has(league)) continue; // 시즌 종료(미래 경기 없음) → standings stale·mismatch 무시
     const ts = tsByLeague.get(league);
     const af = afByLeague.get(league);
+    // 유럽 컵 + poller 살아있음 = league phase 사이 시즌 경계 → stale 알림 면제(위 EUROPEAN_CUPS 주석).
+    const cupExempt = EUROPEAN_CUPS.has(league) && pollerAlive;
 
     // 5a. TheSports stale (1.5h+)
     if (ts) {
       const ageMs = now - ts.updatedAt.getTime();
-      if (ageMs > STANDINGS_TS_STALE_MS) {
+      if (ageMs > STANDINGS_TS_STALE_MS && !cupExempt) {
         issues.push({
           ...placeholderInfo(league),
           kind: "standings_stale",
@@ -469,7 +480,7 @@ export async function GET(req: NextRequest) {
       const ageMs = now - af.updatedAt.getTime();
       const tsAge = ts ? now - ts.updatedAt.getTime() : Infinity;
       const tsFresh = tsAge < STANDINGS_TS_STALE_MS;
-      if (ageMs > STANDINGS_AF_STALE_MS && !tsFresh) {
+      if (ageMs > STANDINGS_AF_STALE_MS && !tsFresh && !cupExempt) {
         issues.push({
           ...placeholderInfo(league),
           kind: "standings_stale",
