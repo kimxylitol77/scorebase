@@ -1,8 +1,11 @@
-// lol-collector.js — TheSports lol → Scorebase push. systemd timer(oneshot, 6h 주기).
-// ① 일정·결과: match/tournament → /api/internal/lol-matches (League·팀 매핑은 route).
+// lol-collector.js — TheSports lol → Scorebase push.
+// ① 일정·결과: match/tournament → /api/internal/lol-matches (League·팀 매핑은 route). ← 항상 cheap
 // ② 인게임 상세: mlive=1 매치의 세트·선수보드(single/list·player/stat/list) + 사전(hero·equipment·player)
 //    → /api/internal/lol-ingame (buildLolGames 조립·픽밴/골드추이/선수KDA). BDL /lol/v1 401 대체.
 //
+// 두 모드(같은 스크립트, INGAME 윈도우만 env 로 다름):
+//   - full(6h timer): LOL_INGAME_WINDOW_SEC 미설정 → 14일. 과거 시리즈 catch-up.
+//   - fast(2분 timer): LOL_INGAME_WINDOW_SEC=10800(3h) → 라이브 매치만 가볍게. 라이브 스코어용.
 // 환경변수 (/home/ubuntu/.env): THESPORTS_USER, THESPORTS_SECRET, SITE_URL, INTERNAL_API_TOKEN
 
 require("dotenv").config({ path: "/home/ubuntu/.env" });
@@ -27,8 +30,9 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-// 인게임 raw 윈도우 — 최근 14일 내 종료/진행 매치 커버(시리즈는 며칠 안에 끝남).
-const INGAME_WINDOW_SEC = 14 * 24 * 3600;
+// 인게임 raw 윈도우 — full=14일(과거 catch-up), fast=env 로 3h(라이브 매치만 가볍게).
+// single/list·player/stat 는 time 윈도우만큼 데이터를 받으므로 윈도우가 짧을수록 API·시간 절약.
+const INGAME_WINDOW_SEC = Number(process.env.LOL_INGAME_WINDOW_SEC) || 14 * 24 * 3600;
 
 async function tsGet(path, params) {
   const { data } = await axios.get(`${TS_BASE}${path}`, {
