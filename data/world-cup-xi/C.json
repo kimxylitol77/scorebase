@@ -31,9 +31,9 @@
       "logo": "https://img.thesports.com/football/player/5c89a33cf034c8fbd79e593a1800cf37.png",
       "score": 7.75,
       "star": 3,
-      "recentRating": 8.07,
-      "avgRating": 7.3,
-      "games": 5,
+      "recentRating": 6.13,
+      "avgRating": 7.11,
+      "games": 6,
       "x": 50,
       "y": 90
     },
@@ -65,9 +65,9 @@
       "logo": "https://img.thesports.com/football/player/922207e8f1f6c15e7d7c6c73321037ce.png",
       "score": 8.16,
       "star": 4,
-      "recentRating": 7.81,
-      "avgRating": 7.36,
-      "games": 3,
+      "recentRating": 7.8,
+      "avgRating": 7.47,
+      "games": 4,
       "x": 39,
       "y": 70
     },
@@ -99,9 +99,9 @@
       "logo": "https://img.thesports.com/football/player/9778151565da5b533037788375468434.png",
       "score": 7.83,
       "star": 3,
-      "recentRating": 7.39,
-      "avgRating": 7.17,
-      "games": 4,
+      "recentRating": 7.4,
+      "avgRating": 7.22,
+      "games": 5,
       "x": 84,
       "y": 70
     },
@@ -133,9 +133,9 @@
       "logo": "https://img.thesports.com/football/player/dd6132559f62ad6ab1c2b428fd0eca27.png",
       "score": 8.91,
       "star": 4,
-      "recentRating": 7.2,
-      "avgRating": 7.67,
-      "games": 5,
+      "recentRating": 6.53,
+      "avgRating": 7.48,
+      "games": 6,
       "x": 50,
       "y": 32
     },
@@ -150,9 +150,9 @@
       "logo": "https://img.thesports.com/football/player/7f32ed1c2c4c3e3e2fc3c6c1cf4605f2.png",
       "score": 8.63,
       "star": 4,
-      "recentRating": 8.8,
-      "avgRating": 7.53,
-      "games": 5,
+      "recentRating": 7.7,
+      "avgRating": 7.55,
+      "games": 6,
       "x": 78,
       "y": 32
     },
@@ -184,9 +184,9 @@
       "logo": "https://img.thesports.com/football/player/86aecdccff7596e34561292e68b28f8a.png",
       "score": 8.13,
       "star": 4,
-      "recentRating": 7.5,
-      "avgRating": 7.15,
-      "games": 5,
+      "recentRating": 8.2,
+      "avgRating": 7.33,
+      "games": 6,
       "x": 65,
       "y": 52
     },
@@ -201,9 +201,9 @@
       "logo": "https://img.thesports.com/football/player/bed7e5fcda1aaa06af23fbc49b8e99aa.png",
       "score": 9.24,
       "star": 4,
-      "recentRating": 9.24,
-      "avgRating": 8.44,
-      "games": 5,
+      "recentRating": 7.6,
+      "avgRating": 8.3,
+      "games": 6,
       "x": 50,
       "y": 14
     }
@@ -220,9 +220,9 @@
       "logo": "https://img.thesports.com/football/player/a5b1cafbef00050ebda4618043b5d7d8.png",
       "score": 8.85,
       "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 7.39,
-      "games": 5
+      "recentRating": 6.41,
+      "avgRating": 7.23,
+      "games": 6
     },
     {
       "id": "y0or5jhe033wqwz",
@@ -236,7 +236,7 @@
       "score": 8.53,
       "star": 4,
       "recentRating": 8.53,
-      "avgRating": 7.13,
+      "avgRating": 7.05,
       "games": 5
     },
     {
@@ -266,7 +266,7 @@
       "score": 8.38,
       "star": 4,
       "recentRating": 6.52,
-      "avgRating": 7.07,
+      "avgRating": 7.13,
       "games": 3
     },
     {
@@ -285,19 +285,19 @@
       "games": 4
     },
     {
-      "id": "vjxm8ghp03nr6od",
-      "name": "Brahim Díaz",
-      "nameKo": "브라힘 디아스",
+      "id": "x7lm7phn0pgm2wd",
+      "name": "Gabriel Martinelli",
+      "nameKo": "가브리엘 마르티넬리",
       "hasMv": true,
       "pos": "F",
-      "country": "Morocco",
-      "flag": "🇲🇦",
-      "logo": "https://img.thesports.com/football/player/fe3830bdc1731c1bdaa54f2f290082f0.png",
-      "score": 8.1,
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/a9771229617cc64e38ef5e6100e6dc94.png",
+      "score": 8.18,
       "star": 4,
-      "recentRating": 6.3,
-      "avgRating": 7.2,
-      "games": 5
+      "recentRating": 8.2,
+      "avgRating": 7.01,
+      "games": 4
     }
   ],
   "complete": true

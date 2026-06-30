@@ -18,21 +18,21 @@
       "flag": "🇨🇿"
     }
   ],
-  "teamRating": 3.5,
+  "teamRating": 3.6,
   "xi": [
     {
-      "id": "3glrw7hj1p6qdyj",
-      "name": "Kim Seung-Gyu",
-      "nameKo": "김승규",
+      "id": "4jwq2ghv8o4m0ve",
+      "name": "Ronwen Williams",
+      "nameKo": "론웬 윌리엄스",
       "hasMv": false,
       "pos": "G",
-      "country": "South Korea",
-      "flag": "🇰🇷",
-      "logo": "https://img.thesports.com/football/player/7791ae49d8c78177fecee9bf0f229138.png",
-      "score": 7.6,
-      "star": 3,
-      "recentRating": 6.66,
-      "avgRating": 6.92,
+      "country": "South Africa",
+      "flag": "🇿🇦",
+      "logo": "https://img.thesports.com/football/player/1e34d2d0196b1ae1e63357c02a4541ff.png",
+      "score": 8.3,
+      "star": 4,
+      "recentRating": 8.3,
+      "avgRating": 7,
       "games": 4,
       "x": 50,
       "y": 90
@@ -150,9 +150,9 @@
       "logo": "https://img.thesports.com/football/player/b41966ec3bf319fa1bd25dd70b29d3c2.png",
       "score": 7.89,
       "star": 3,
-      "recentRating": 7.89,
-      "avgRating": 7.2,
-      "games": 2,
+      "recentRating": 6.57,
+      "avgRating": 6.99,
+      "games": 3,
       "x": 78,
       "y": 32
     },
@@ -235,9 +235,9 @@
       "logo": "https://img.thesports.com/football/player/409f6d7a77da95edb0403b271566e2f9.png",
       "score": 7.94,
       "star": 3,
-      "recentRating": 7.94,
-      "avgRating": 7.18,
-      "games": 2
+      "recentRating": 6.33,
+      "avgRating": 6.9,
+      "games": 3
     },
     {
       "id": "jw2r09hxv7jyrz8",
@@ -270,6 +270,21 @@
       "games": 4
     },
     {
+      "id": "3glrw7hj1p6qdyj",
+      "name": "Kim Seung-Gyu",
+      "nameKo": "김승규",
+      "hasMv": false,
+      "pos": "G",
+      "country": "South Korea",
+      "flag": "🇰🇷",
+      "logo": "https://img.thesports.com/football/player/7791ae49d8c78177fecee9bf0f229138.png",
+      "score": 7.6,
+      "star": 3,
+      "recentRating": 6.66,
+      "avgRating": 6.92,
+      "games": 4
+    },
+    {
       "id": "zp5rzghz27j2q82",
       "name": "Khuliso Mudau",
       "nameKo": "쿨리소 존슨 무다우",
@@ -280,23 +295,8 @@
       "logo": "https://img.thesports.com/football/player/cb3ef694196f4aca7b6bdc5ce606e8de.png",
       "score": 7.59,
       "star": 3,
-      "recentRating": 7.59,
-      "avgRating": 7.01,
-      "games": 3
-    },
-    {
-      "id": "l7oqdeh0lol0r51",
-      "name": "Lee Gi-Hyuk",
-      "nameKo": "이기혁",
-      "hasMv": false,
-      "pos": "D",
-      "country": "South Korea",
-      "flag": "🇰🇷",
-      "logo": "https://img.thesports.com/football/player/a5025e5910821dd56a34411e9f47167a.png",
-      "score": 7.53,
-      "star": 3,
-      "recentRating": 7.13,
-      "avgRating": 7.08,
+      "recentRating": 7.38,
+      "avgRating": 7.1,
       "games": 4
     }
   ],

@@ -38,23 +38,6 @@
       "y": 90
     },
     {
-      "id": "23xmvkh457jqg8n",
-      "name": "Alphonso Davies",
-      "nameKo": "알폰소 데이비스",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Canada",
-      "flag": "🇨🇦",
-      "logo": "https://img.thesports.com/football/player/4c15ff675b234d478ecf6727fdb094b7.png",
-      "score": 8.08,
-      "star": 4,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0,
-      "x": 16,
-      "y": 70
-    },
-    {
       "id": "pxwrxlh9lykoryk",
       "name": "Alistair Johnston",
       "nameKo": "앨리스테어 존스턴",
@@ -65,10 +48,10 @@
       "logo": "https://img.thesports.com/football/player/b70b6633865df87e4624efe306086f47.png",
       "score": 8,
       "star": 4,
-      "recentRating": 5.74,
-      "avgRating": 6.66,
-      "games": 5,
-      "x": 39,
+      "recentRating": 6.97,
+      "avgRating": 6.71,
+      "games": 6,
+      "x": 16,
       "y": 70
     },
     {
@@ -85,6 +68,23 @@
       "recentRating": 7.19,
       "avgRating": 7.08,
       "games": 4,
+      "x": 39,
+      "y": 70
+    },
+    {
+      "id": "318q66h4w7enqo9",
+      "name": "Luc De Fougerolles",
+      "nameKo": "루크 롤레 드 푸제롤",
+      "hasMv": false,
+      "pos": "D",
+      "country": "Canada",
+      "flag": "🇨🇦",
+      "logo": "https://img.thesports.com/football/player/01f26820ac6ee0728175d941afe1e867.png",
+      "score": 7.44,
+      "star": 3,
+      "recentRating": 7.44,
+      "avgRating": 6.86,
+      "games": 6,
       "x": 61,
       "y": 70
     },
@@ -116,9 +116,9 @@
       "logo": "https://img.thesports.com/football/player/0815ce051a0f4be5bb79a21d13c7adbc.png",
       "score": 8.64,
       "star": 4,
-      "recentRating": 7.51,
-      "avgRating": 7.53,
-      "games": 4,
+      "recentRating": 6.8,
+      "avgRating": 7.38,
+      "games": 5,
       "x": 22,
       "y": 32
     },
@@ -140,6 +140,23 @@
       "y": 32
     },
     {
+      "id": "l5ergph50jvr8k0",
+      "name": "Stephen Eustáquio",
+      "nameKo": "스테픈 유스타키오",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Canada",
+      "flag": "🇨🇦",
+      "logo": "https://img.thesports.com/football/player/d97408161ce7d3ba9d0131e08d874d66.png",
+      "score": 8.6,
+      "star": 4,
+      "recentRating": 8.6,
+      "avgRating": 7.26,
+      "games": 6,
+      "x": 78,
+      "y": 32
+    },
+    {
       "id": "ednm9whzd48ryox",
       "name": "Jonathan Osorio",
       "nameKo": "조너선 오소리오",
@@ -153,8 +170,8 @@
       "recentRating": 6.24,
       "avgRating": 7.22,
       "games": 2,
-      "x": 78,
-      "y": 32
+      "x": 35,
+      "y": 52
     },
     {
       "id": "k82rekhon5dvrep",
@@ -170,23 +187,6 @@
       "recentRating": 7.2,
       "avgRating": 7.46,
       "games": 4,
-      "x": 35,
-      "y": 52
-    },
-    {
-      "id": "l5ergph50jvr8k0",
-      "name": "Stephen Eustáquio",
-      "nameKo": "스테픈 유스타키오",
-      "hasMv": false,
-      "pos": "M",
-      "country": "Canada",
-      "flag": "🇨🇦",
-      "logo": "https://img.thesports.com/football/player/d97408161ce7d3ba9d0131e08d874d66.png",
-      "score": 7.59,
-      "star": 3,
-      "recentRating": 6.87,
-      "avgRating": 7.14,
-      "games": 5,
       "x": 65,
       "y": 52
     },
@@ -201,9 +201,9 @@
       "logo": "https://img.thesports.com/football/player/9de146bd66bd42d984f0e451e11635cb.png",
       "score": 8.7,
       "star": 4,
-      "recentRating": 6.26,
-      "avgRating": 7.04,
-      "games": 5,
+      "recentRating": 6.25,
+      "avgRating": 6.91,
+      "games": 6,
       "x": 50,
       "y": 14
     }
@@ -250,9 +250,9 @@
       "logo": "https://img.thesports.com/football/player/feaa2dc6a4184a0f96a44cc518e11a34.png",
       "score": 7.8,
       "star": 3,
-      "recentRating": 7.8,
-      "avgRating": 6.79,
-      "games": 4
+      "recentRating": 6.63,
+      "avgRating": 6.75,
+      "games": 5
     },
     {
       "id": "dn1m1ghnkz8kmoe",
@@ -281,7 +281,7 @@
       "score": 7.6,
       "star": 3,
       "recentRating": 5.8,
-      "avgRating": 6.77,
+      "avgRating": 6.84,
       "games": 4
     },
     {
