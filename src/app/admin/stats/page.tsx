@@ -151,6 +151,47 @@ export default async function StatsPage({ searchParams }: Props) {
   const humanRangeUnique = new Set(
     humansRange.map((r) => r.sessionId).filter(Boolean) as string[],
   ).size;
+
+  // 실제 체류·이탈률 — sessionId 는 localStorage 영구 ID(방문자 식별)라 세션이 아니므로,
+  // 같은 sessionId 의 PV 를 시간순으로 훑어 30분 이상 공백이 나면 새 세션으로 끊는다.
+  // 세션 체류 = 첫~마지막 PV 간격, 이탈 = PV 1개짜리 세션.
+  const SESSION_GAP_MS = 30 * 60 * 1000;
+  const sessionDurations: number[] = [];
+  let sessionBounces = 0;
+  {
+    const bySid = new Map<string, number[]>();
+    for (const r of humansRange) {
+      if (!r.sessionId) continue;
+      const arr = bySid.get(r.sessionId);
+      if (arr) arr.push(r.ts.getTime());
+      else bySid.set(r.sessionId, [r.ts.getTime()]);
+    }
+    const close = (start: number, end: number, count: number) => {
+      sessionDurations.push((end - start) / 1000);
+      if (count === 1) sessionBounces++;
+    };
+    for (const times of bySid.values()) {
+      times.sort((a, b) => a - b);
+      let start = times[0];
+      let prev = times[0];
+      let count = 1;
+      for (let i = 1; i < times.length; i++) {
+        if (times[i] - prev > SESSION_GAP_MS) {
+          close(start, prev, count);
+          start = times[i];
+          count = 1;
+        } else {
+          count++;
+        }
+        prev = times[i];
+      }
+      close(start, prev, count);
+    }
+  }
+  const sessionCount = sessionDurations.length;
+  const avgSessionSec = sessionCount ? Math.round(sessionDurations.reduce((a, b) => a + b, 0) / sessionCount) : 0;
+  const bounceRate = sessionCount ? Math.round((sessionBounces / sessionCount) * 100) : 0;
+  const avgSessionLabel = avgSessionSec >= 60 ? `${Math.floor(avgSessionSec / 60)}분 ${avgSessionSec % 60}초` : `${avgSessionSec}초`;
   const botToday = filterRange(bots30 as Row[], today00KST);
   const botYesterday = filterRange(bots30 as Row[], yesterday00KST, today00KST);
   const botRangeCount = botsRange.length;
@@ -398,6 +439,13 @@ export default async function StatsPage({ searchParams }: Props) {
             value={humanRangeUnique}
             sub={`PV ${humanRangePV.toLocaleString()}`}
           />
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <KpiCard label={`${rangeLabel} 평균 체류`} value={avgSessionLabel} accent sub="30분 무활동=새 세션" />
+          <KpiCard label="이탈률" value={bounceRate} suffix="%" sub="1페이지짜리 세션 비율" />
+          <KpiCard label="세션 수" value={sessionCount} sub={`방문자 ${humanRangeUnique.toLocaleString()}명 기준`} />
+          <KpiCard label="세션당 PV" value={sessionCount ? (humanRangePV / sessionCount).toFixed(1) : "0"} sub="페이지 깊이" />
         </div>
 
         <SectionCard title="디바이스 분포" subtitle={rangeLabel}>
@@ -1191,7 +1239,7 @@ function KpiCard({
   sub,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   accent?: boolean;
   suffix?: string;
   sub?: string;
@@ -1208,7 +1256,7 @@ function KpiCard({
         {label}
       </div>
       <div className="mt-1 text-2xl font-black tabular-nums">
-        {value.toLocaleString()}
+        {typeof value === "number" ? value.toLocaleString() : value}
         {suffix && (
           <span className="text-base font-bold text-neutral-500">{suffix}</span>
         )}
