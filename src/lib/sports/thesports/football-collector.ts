@@ -105,7 +105,7 @@ function normalizeFootballMatch(
     },
     homeScore,
     awayScore,
-    status: mapFootballStatus(m.status_id),
+    status: mapFootballStatus(m.status_id, new Date(m.match_time * 1000)),
     startTime: new Date(m.match_time * 1000),
     raw: m,
   };
@@ -116,7 +116,7 @@ function normalizeFootballMatch(
  * 5/17 sample 본 status_id=8 (종료). docs Status Code 페이지 확인 필요.
  * 임시 매핑 — 화요일 라이브 매치 받으면 진행 중 코드 검증 후 정정.
  */
-export function mapFootballStatus(statusId: number): NormalizedMatch["status"] {
+export function mapFootballStatus(statusId: number, startTime?: Date): NormalizedMatch["status"] {
   // 8 = End(종료). (5/17 sample + production 397건 검증)
   if (statusId === 8) return "FINISHED";
   // 2=전반, 3=하프타임, 4=후반, 5/6=연장, 7=승부차기 → 진행 중(LIVE).
@@ -126,10 +126,17 @@ export function mapFootballStatus(statusId: number): NormalizedMatch["status"] {
   //   - 1 을 LIVE 로 묶으면 킥오프 직후~지연 킥오프 구간의 예정 경기가 LIVE 로 오표시됨
   //     (cache route blockByFuture 가드는 미래 매치만 막아 이 구간은 못 거름, 2026-06-05 검증).
   if (statusId >= 2 && statusId <= 7) return "LIVE";
-  // 9=Delay, 10=Interrupt, 12=Cancel — 연기/취소.
-  // 12 누락 시 취소 경기가 SCHEDULED 로 방치돼 stale stuck → cleanup 봇이 뒤처리
+  // 12=Cancel(취소)은 시점 무관 POSTPONED. 12 누락 시 취소 경기가 SCHEDULED 로 방치돼 stale stuck
   // (2026-06-05 적도기니 vs 부룬디 #314637, TheSports 는 12 로 정확히 줬으나 미매핑).
-  if (statusId === 9 || statusId === 10 || statusId === 12) return "POSTPONED";
+  if (statusId === 12) return "POSTPONED";
+  // 9=Delay·10=Interrupt = 킥오프 지연·경기 중 중단. "완전 연기"가 아니라 곧 재개될 수 있는 코드다.
+  // 미래~킥오프 6h 이내면 SCHEDULED 유지(/scores 에서 안 사라짐), 6h 넘게 지나야 연기 확정 POSTPONED.
+  //   - TheSports 가 예정/킥오프 임박 경기에 일시 9 를 부여하면 사라졌던 문제
+  //     (2026-07-01 멕시코 vs 에콰도르 #677025, 킥오프 직후에도 9 로 POSTPONED 돼 /scores 에서 빠짐).
+  if (statusId === 9 || statusId === 10) {
+    const sinceKickoff = startTime ? Date.now() - startTime.getTime() : Infinity;
+    return sinceKickoff < 6 * 3600 * 1000 ? "SCHEDULED" : "POSTPONED";
+  }
   // 1=Not started, 11=Cut in half, 13=TBD 등 → SCHEDULED.
   return "SCHEDULED";
 }
