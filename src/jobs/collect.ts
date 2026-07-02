@@ -217,6 +217,9 @@ export async function upsertMatch(m: NormalizedMatch) {
     console.log(
       `[upsertMatch/dedup] ${m.league} new=${m.externalId} ≈ existing=${existing.externalId} (matchId=${existing.id}) — update only`,
     );
+    // raw 는 방향 일치일 때만 전파. WC 브래킷(page.tsx)은 raw 의 teams.home/away.winner 를
+    // DB row 의 home/away 위치로 매핑하므로, 방향 불일치 row 에 af raw 를 그대로 저장하면
+    // 승자가 반대로 잡힌다. ts- 소스 row 는 Match.raw 가 비어 있어(전 리그 0/N) 덮어쓸 값 없음.
     await prisma.match.update({
       where: { id: existing.id },
       data: {
@@ -224,6 +227,7 @@ export async function upsertMatch(m: NormalizedMatch) {
         awayScore: sameDirection ? (m.awayScore ?? null) : (m.homeScore ?? null),
         status: mergeStatus(existing.status as MatchStatus, m.status),
         startTime: m.startTime,
+        ...(sameDirection ? { raw: JSON.stringify(m.raw) } : {}),
       },
     });
     return;
