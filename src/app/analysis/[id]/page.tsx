@@ -1,4 +1,5 @@
 // 분석 게시판 글 상세 — 픽·근거 본문 + 댓글 + 경기 결과 적중 판정.
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
@@ -17,6 +18,20 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+// 봇 자동 발행 + 회원 UGC 가 매일 쌓이는 섹션 — 전 글이 루트 제네릭 타이틀을 공유하며
+// 색인 품질 신호를 희석하던 것 수정 (2026-07 감사 D8). 글 제목은 채우되 noindex,follow.
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const postId = Number(id);
+  if (!Number.isFinite(postId)) return { title: "글을 찾을 수 없습니다" };
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { title: true },
+  });
+  if (!post) return { title: "글을 찾을 수 없습니다" };
+  return { title: post.title, robots: { index: false, follow: true } };
 }
 
 const MARKET_LABEL: Record<string, string> = {
