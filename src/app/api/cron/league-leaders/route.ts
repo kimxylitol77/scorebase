@@ -31,9 +31,16 @@ export async function GET(req: Request) {
     | null;
   try {
     const result = await runFetchLeagueLeaders({ sport: sport ?? undefined });
-    await recordCronRun("league-leaders");
+    // 종목별 격리로 부분 실패는 result.errors 로 올라옴 — 실패 있으면 ok:false 로 기록해 감시에 노출
+    const errors = (result as { errors?: string[] }).errors;
+    await recordCronRun(
+      "league-leaders",
+      errors?.length ? { ok: false, error: errors.join("; ") } : undefined,
+    );
     return NextResponse.json({ ok: true, ...result });
   } catch (e) {
+    // 실패도 실행 기록 — dead-man's switch 가 "미실행" 오탐 대신 "실행 실패" 로 알리게 (registry 의도)
+    await recordCronRun("league-leaders", { ok: false, error: (e as Error).message });
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
       { status: 500 },

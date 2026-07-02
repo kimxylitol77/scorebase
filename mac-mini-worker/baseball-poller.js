@@ -89,15 +89,19 @@ async function ensureMeta(tsMatchId) {
 function findOurMatch(ourMatches, meta) {
   if (!meta || !meta.homeTeamId || !meta.awayTeamId) return null;
   const tsStart = (meta.matchTime ?? 0) * 1000;
+  // 더블헤더(같은 팀쌍, 2~3h 간격) 는 ±3h 창에 두 매치가 다 걸림 —
+  // 첫 후보 반환이 아니라 시작시각 최근접 매치를 골라야 게임1/게임2 가 안 섞인다 (LMB 2026-07-02)
+  let best = null;
   for (const our of ourMatches) {
     if (!our.home.tsTeamId || !our.away.tsTeamId) continue;
     const ourStart = new Date(our.startTime).getTime();
-    if (tsStart && Math.abs(tsStart - ourStart) > 3 * 3600 * 1000) continue;
+    const diff = tsStart ? Math.abs(tsStart - ourStart) : 0;
+    if (tsStart && diff > 3 * 3600 * 1000) continue;
     const same = meta.homeTeamId === our.home.tsTeamId && meta.awayTeamId === our.away.tsTeamId;
     const swap = meta.homeTeamId === our.away.tsTeamId && meta.awayTeamId === our.home.tsTeamId;
-    if (same || swap) return our.matchId;
+    if ((same || swap) && (!best || diff < best.diff)) best = { matchId: our.matchId, diff };
   }
-  return null;
+  return best ? best.matchId : null;
 }
 
 async function poll() {

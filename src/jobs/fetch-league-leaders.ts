@@ -255,7 +255,11 @@ async function runNba(seasonStartYear: number) {
       console.warn(`[leaders/nba] ${cat.stat}`, (e as Error).message);
     }
   }
-  await clearStaleSeasons("NBA", seasonLabel);
+  // 이번 run 에 실제 upsert 가 있을 때만 정리 — 오프시즌(7월 시즌라벨 롤오버 직후)에
+  // 빈 결과로 직전 시즌 리더보드 전체가 삭제되는 것을 방지
+  if (Object.values(summary).some((n) => n > 0)) {
+    await clearStaleSeasons("NBA", seasonLabel);
+  }
   return { season: seasonLabel, result: summary };
 }
 
@@ -373,7 +377,10 @@ async function runNhl(seasonLabel: string) {
   };
   await fetchOne("skater", NHL_SKATER_CATS);
   await fetchOne("goalie", NHL_GOALIE_CATS);
-  await clearStaleSeasons("NHL", seasonLabel);
+  // NBA 와 동일 — 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 가드
+  if (Object.values(summary).some((n) => n > 0)) {
+    await clearStaleSeasons("NHL", seasonLabel);
+  }
   return { season: seasonLabel, result: summary };
 }
 
@@ -910,7 +917,10 @@ async function runLol(season: number) {
   await writeCat("KDA", "KDA", "kda", 2);
   await writeCat("CS", "CS", "cs", 1);
   await writeCat("KILL", "킬/경기", "killsAvg", 1);
-  await clearStaleSeasons("LOL", String(season));
+  // NBA 와 동일 — 빈 결과 run 이 직전 시즌 리더보드를 지우지 않게 가드
+  if (Object.values(summary).some((n) => n > 0)) {
+    await clearStaleSeasons("LOL", String(season));
+  }
   return { season: String(season), result: summary };
 }
 
@@ -931,14 +941,26 @@ export async function runFetchLeagueLeaders(opts?: {
   const nhlSeasonStartYear = m >= 7 ? yearNow : yearNow - 1;
   const nhlSeasonLabel = `${nhlSeasonStartYear}-${String(nhlSeasonStartYear + 1).slice(2)}`;
   const summary: Record<string, unknown> = {};
-  if (!sport || sport === "soccer") summary.soccer = await runSoccer();
-  if (!sport || sport === "basketball") summary.nba = await runNba(nbaSeason);
-  if (!sport || sport === "hockey") summary.nhl = await runNhl(nhlSeasonLabel);
+  // 종목별 격리 — 한 종목의 unhandled throw (예: 2026-07-01 NBA BDL fetch) 가
+  // 이후 종목 전체와 recordCronRun 까지 죽이는 것을 방지
+  const errors: string[] = [];
+  const safe = async (name: string, fn: () => Promise<unknown>) => {
+    try {
+      summary[name] = await fn();
+    } catch (e) {
+      errors.push(`${name}: ${(e as Error).message}`);
+      console.warn(`[league-leaders/${name}]`, (e as Error).message);
+    }
+  };
+  if (!sport || sport === "soccer") await safe("soccer", () => runSoccer());
+  if (!sport || sport === "basketball") await safe("nba", () => runNba(nbaSeason));
+  if (!sport || sport === "hockey") await safe("nhl", () => runNhl(nhlSeasonLabel));
   if (!sport || sport === "baseball") {
-    summary.mlb = await runMlb(yearNow);
-    summary.kbo = await runKbo(yearNow);
-    summary.npb = await runNpb(yearNow);
+    await safe("mlb", () => runMlb(yearNow));
+    await safe("kbo", () => runKbo(yearNow));
+    await safe("npb", () => runNpb(yearNow));
   }
-  if (!sport || sport === "esports") summary.lol = await runLol(yearNow);
+  if (!sport || sport === "esports") await safe("lol", () => runLol(yearNow));
+  if (errors.length) summary.errors = errors;
   return summary;
 }
