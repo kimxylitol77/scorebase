@@ -3,6 +3,7 @@
 // 방문자가 라이브 페이지의 매치 인사이트 (5탭) 기능을 메인에서 즉시 인지하게.
 
 import Link from "next/link";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
@@ -139,7 +140,7 @@ export default async function HomeAiInsightShowcase() {
     const pAway = total > 0 ? winProb.away / total : 0.5;
     const pDraw = total > 0 ? drawRaw / total : 0;
     const topConf = Math.max(pHome, pAway, pDraw);
-    const isStrong = topConf >= 0.65;
+    const isStrong = topConf >= strongPickThreshold(m.league);
     const pickName =
       pHome >= pAway && pHome >= pDraw
         ? toKoreanTeamName(m.homeTeam.name, m.league)

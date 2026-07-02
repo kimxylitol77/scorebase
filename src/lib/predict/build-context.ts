@@ -1,6 +1,7 @@
 // 한 매치에 대한 PreviewContext / RecapContext 를 한 번에 빌드.
 
 import type { PredictMatch } from "./types";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { resolvePlayerNames } from "@/lib/players/resolvePlayerName";
 import { calcEloTable, getElo, eloSpread, type EloTable } from "./elo";
@@ -78,12 +79,16 @@ export function nationalElo(name: string): number {
   return 1500;
 }
 
-/** winProb 최고 확률 → 신뢰도 등급 (코드 단일 소스 — 본문·위젯 동일값). */
-export function computeConfidence(wp: {
-  home: number;
-  draw: number;
-  away: number;
-}): { pick: "HOME" | "DRAW" | "AWAY"; prob: number; level: "high" | "medium" | "low" } {
+/** winProb 최고 확률 → 신뢰도 등급 (코드 단일 소스 — 본문·위젯 동일값).
+ *  "high" 컷은 Strong Pick 리그별 임계와 동일 — 배지와 신뢰도 라벨이 어긋나지 않게. */
+export function computeConfidence(
+  wp: {
+    home: number;
+    draw: number;
+    away: number;
+  },
+  league?: string,
+): { pick: "HOME" | "DRAW" | "AWAY"; prob: number; level: "high" | "medium" | "low" } {
   const entries: Array<["HOME" | "DRAW" | "AWAY", number]> = [
     ["HOME", wp.home],
     ["DRAW", wp.draw],
@@ -91,7 +96,7 @@ export function computeConfidence(wp: {
   ];
   const top = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
   const prob = top[1];
-  const level = prob >= 0.65 ? "high" : prob >= 0.5 ? "medium" : "low";
+  const level = prob >= strongPickThreshold(league) ? "high" : prob >= 0.5 ? "medium" : "low";
   return { pick: top[0], prob, level };
 }
 
@@ -214,7 +219,7 @@ export function buildMatchContext(
   const h2h = calcH2H(matches, homeTeamId, awayTeamId, referenceTime, 5);
 
   // ── 예측 신뢰도 / 데이터부족 / 휴식일 / 핵심 이유 (코드 산출 — LLM 추측 X) ──
-  const confidence = computeConfidence(wp);
+  const confidence = computeConfidence(wp, league);
   const homePlayed = countPlayedBefore(matches, homeTeamId, referenceTime.getTime());
   const awayPlayed = countPlayedBefore(matches, awayTeamId, referenceTime.getTime());
   const dataSparse = {

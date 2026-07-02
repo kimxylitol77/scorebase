@@ -3,6 +3,7 @@
 // ⚠️ /scores 페이지는 미수정 — prisma.match 만 직접 읽음.
 
 import type { Metadata } from "next";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -87,7 +88,7 @@ export default async function BaseballHub() {
     safeFetchTop3("KBO").catch(() => []),
     prisma.match.findMany({
       where: { league: { in: BASEBALL }, predCorrect: { not: null } },
-      select: { predCorrect: true, predHome: true, predAway: true },
+      select: { predCorrect: true, predHome: true, predAway: true, league: true },
     }),
     prisma.playerSalary.findMany({
       where: { league: "KBO" },
@@ -96,12 +97,12 @@ export default async function BaseballHub() {
     }),
   ]);
 
-  // 야구 Strong Pick(≥65%) 적중률
+  // 야구 Strong Pick(리그별 임계) 적중률
   let hit = 0;
   let total = 0;
   for (const m of spMatches) {
     const top = Math.max(m.predHome ?? 0, m.predAway ?? 0);
-    if (top < 0.65) continue;
+    if (top < strongPickThreshold(m.league)) continue;
     total++;
     if (m.predCorrect) hit++;
   }

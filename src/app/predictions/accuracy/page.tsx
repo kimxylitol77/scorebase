@@ -1,5 +1,6 @@
 // AI 예측 적중률 보드 — 13개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
 import type { Metadata } from "next";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import Link from "next/link";
 import { Sparkles, Star } from "lucide-react";
 import { prisma } from "@/lib/db";
@@ -70,7 +71,7 @@ interface LeagueStat {
   over: MarketRate;
   hc: MarketRate;
   btts: MarketRate;
-  /** 1X2 가장 높은 확률 65%+ 인 매치만의 적중률 (AI Strong Pick) */
+  /** 1X2 최고 확률이 리그별 Strong Pick 임계 이상인 매치만의 적중률 */
   strong: MarketRate;
   recent10: MarketRate;
 }
@@ -112,11 +113,11 @@ async function statForLeague(league: string): Promise<LeagueStat> {
   const hc = rateOf(all.map((m) => ({ ok: m.predHcCorrect })));
   const btts = rateOf(all.map((m) => ({ ok: m.predBttsCorrect })));
 
-  // AI Strong Pick — 가장 높은 확률 65% 이상
+  // AI Strong Pick — 리그별 임계(strong-pick.ts) 이상
   const strong = all
     .filter((m) => {
       const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
-      return top >= 0.65;
+      return top >= strongPickThreshold(league);
     })
     .map((m) => ({ ok: m.predCorrect }));
   const recent10 = all.slice(0, 10).map((m) => ({ ok: m.predCorrect }));
@@ -372,7 +373,7 @@ export default async function AccuracyPage() {
         </p>
       </header>
 
-      {/* AI Strong Pick — 65%+ 고신뢰 픽만의 적중률 (마케팅 강조) */}
+      {/* AI Strong Pick — 리그별 고신뢰 임계 초과 픽만의 적중률 (마케팅 강조) */}
       <StrongPickHero stats={stats} overallTotal={totalEvaluated} overallCorrect={totalCorrect} />
 
       {/* Value Bet — 시장 odds 데이터 있을 때만 */}

@@ -1,5 +1,6 @@
 // 리그 페이지 — 리그별 일정·결과·순위 허브.
 import { Prisma } from "@prisma/client";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
 import { notFound } from "next/navigation";
@@ -459,7 +460,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   // AI Strong Pick — 65%+ 고신뢰
   const strongArr = accStats.filter((m) => {
     const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
-    return top >= 0.65;
+    return top >= strongPickThreshold(upper);
   });
   const rStrong = {
     evaluated: strongArr.length,

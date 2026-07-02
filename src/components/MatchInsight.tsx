@@ -2,6 +2,7 @@
 // 차트 시각화 강화 버전 (recharts 기반).
 
 import { prisma } from "@/lib/db";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { leagueHasDraw } from "@/lib/sports/sport-leagues";
 import {
@@ -593,7 +594,7 @@ export default async function MatchInsight({
 
   // Strong Pick / Value Bet 판정
   const topConfidence = Math.max(winProb.home, winProb.away, winProb.draw);
-  const isStrongPick = topConfidence >= 0.65;
+  const isStrongPick = topConfidence >= strongPickThreshold(match.league);
   const isValueBet =
     match.marketHome != null &&
     match.marketAway != null &&

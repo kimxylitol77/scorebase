@@ -1,5 +1,6 @@
 // 홈(메인) — 통계 기반 AI 스포츠 분석 랜딩. 오늘 경기·AI 예측·최신 콘텐츠 입구.
 import type { Metadata } from "next";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import Link from "next/link";
 import {
   Activity,
@@ -303,7 +304,7 @@ type UpdateItem = {
 
 async function RecentUpdatesSection() {
   // AI Strong Pick 적중률 — DB 실시간 산출(하드코딩 금지, 적중률 보드와 동일 소스).
-  // 65%+ 자신 매치의 리그별 적중률 top 3 (표본 30+). 1시간 ISR 로 비용 흡수.
+  // 리그별 Strong Pick 임계(strong-pick.ts) 초과 매치의 리그별 적중률 top 3 (표본 30+). 1시간 ISR 로 비용 흡수.
   const spMatches = await prisma.match.findMany({
     where: { predCorrect: { not: null } },
     select: { league: true, predCorrect: true, predHome: true, predDraw: true, predAway: true },
@@ -311,7 +312,7 @@ async function RecentUpdatesSection() {
   const spByLeague = new Map<string, { hit: number; total: number }>();
   for (const m of spMatches) {
     const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
-    if (top < 0.65) continue;
+    if (top < strongPickThreshold(m.league)) continue;
     const e = spByLeague.get(m.league) ?? { hit: 0, total: 0 };
     e.total++;
     if (m.predCorrect) e.hit++;
@@ -324,8 +325,8 @@ async function RecentUpdatesSection() {
     .slice(0, 3);
   const strongBody =
     topStrong.length >= 2
-      ? `모델이 65% 이상 자신한 매치만 따로 추적 — ${topStrong.map((t) => `${t.league} ${t.rate}%`).join(", ")} 적중. 종료된 모든 매치 백테스트로 검증.`
-      : "모델이 65% 이상 자신한 매치만 따로 추적합니다. 실제 적중률은 적중률 보드에서 실시간 공개합니다.";
+      ? `모델이 리그별 고신뢰 임계를 넘긴 매치만 따로 추적 — ${topStrong.map((t) => `${t.league} ${t.rate}%`).join(", ")} 적중. 종료된 모든 매치 백테스트로 검증.`
+      : "모델이 리그별 고신뢰 임계를 넘긴 매치만 따로 추적합니다. 실제 적중률은 적중률 보드에서 실시간 공개합니다.";
 
   // 월드컵 예상 선발 라인업 — 다음 예정 WC 매치로 동적 연결 (1h ISR 로 자동 추적).
   // 데이터: data/wc-predicted-xi.json (cron-wc-xi.sh 매일 갱신, 46/48개국).
@@ -370,7 +371,7 @@ async function RecentUpdatesSection() {
     {
       tag: "NEW",
       Icon: Star,
-      title: "AI Strong Pick · 65% 이상 자신 있는 픽",
+      title: "AI Strong Pick · 모델이 강하게 확신한 픽",
       body: strongBody,
       href: "/predictions/accuracy",
       cta: "적중률 보드 보기",
