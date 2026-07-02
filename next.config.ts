@@ -94,6 +94,17 @@ const nextConfig: NextConfig = {
         destination: "https://www.scorebase.kr/:path*",
         permanent: true,
       },
+      // 인덱스 page 가 없는 상위 경로 — 주소창 직접 입력·외부 링크 404 방지 (2026-07 감사).
+      // 추후 진짜 인덱스 페이지가 생길 수 있어 permanent: false.
+      { source: "/live", destination: "/scores", permanent: false },
+      { source: "/leagues", destination: "/standings", permanent: false },
+      { source: "/articles", destination: "/previews", permanent: false },
+      { source: "/teams", destination: "/standings", permanent: false },
+      { source: "/salaries", destination: "/salaries/kbo", permanent: false },
+      { source: "/coaches", destination: "/transfers", permanent: false },
+      { source: "/h2h", destination: "/scores", permanent: false },
+      { source: "/tools", destination: "/tools/kbo-win-probability", permanent: false },
+      { source: "/transactions", destination: "/transactions/nba", permanent: false },
     ];
   },
 };

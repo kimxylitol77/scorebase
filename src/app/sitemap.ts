@@ -45,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/value-bets`, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/analysis`, changeFrequency: "hourly", priority: 0.85 },
     { url: `${base}/standings`, changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/injuries`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${base}/injuries/EPL`, changeFrequency: "daily", priority: 0.7 }, // /injuries 는 redirect 페이지 — 실대상 등록
     { url: `${base}/transfers`, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/predictions/club-ranking`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/tools/kbo-win-probability`, changeFrequency: "monthly", priority: 0.8 },
