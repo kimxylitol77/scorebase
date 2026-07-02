@@ -509,7 +509,7 @@ export default async function AccuracyPage() {
             양 팀이 각각 한 골 이상 기록할 확률 산출 (P(0골) 보수).
           </li>
           <li>
-            <strong>강한 예측</strong> = 1X2 가장 높은 확률이 65% 이상인 매치만의
+            <strong>강한 예측</strong> = 1X2 가장 높은 확률이 리그별 고신뢰 임계(56~75%, 백테스트 재산정) 이상인 매치만의
             적중률.
           </li>
           <li>
@@ -622,7 +622,7 @@ function StrongPickHero({
             모델이 자신 있게 찍은 경기 적중률
           </h2>
           <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
-            1X2 가장 높은 확률 65% 이상인 매치만 — 모델이 명확한 신호를 잡은
+            1X2 가장 높은 확률이 리그별 고신뢰 임계(56~75%)를 넘긴 매치만 — 모델이 명확한 신호를 잡은
             경기들
           </p>
         </div>

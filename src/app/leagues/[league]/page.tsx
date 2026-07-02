@@ -457,7 +457,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const rOver = rateOf("predOverCorrect");
   const rHc = rateOf("predHcCorrect");
   const rBtts = rateOf("predBttsCorrect");
-  // AI Strong Pick — 65%+ 고신뢰
+  // AI Strong Pick — 리그별 고신뢰 임계(strong-pick.ts)
   const strongArr = accStats.filter((m) => {
     const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
     return top >= strongPickThreshold(upper);
