@@ -41,15 +41,31 @@ function isTransient(err: unknown): boolean {
 }
 
 /**
- * 단발 텍스트 생성. 기사 초안 작성에 사용.
+ * max_tokens 절단 본문 마무리 — 문장 중간에서 끊긴 채 발행되는 것 방지 (2026-07-02 감사 A4).
+ * 마지막 문단/문장 종결 지점까지 트림. 절반 이상 잘리는 경우엔 원문 유지(과도 손실 방지).
+ */
+function trimToCompleteSentence(text: string): string {
+  const t = text.trimEnd();
+  if (/[.!?다요)\]」』*]$/.test(t)) return t; // 이미 문장 종결로 끝남
+  const floor = Math.floor(t.length * 0.5);
+  const cut = t.lastIndexOf("\n\n");
+  if (cut > floor) return t.slice(0, cut).trimEnd();
+  for (let i = t.length - 1; i >= floor; i--) {
+    if (".!?".includes(t[i])) return t.slice(0, i + 1);
+  }
+  return t;
+}
+
+/**
+ * 단발 텍스트 생성 1회 시도 (transient retry 포함).
  * 일시 에러는 점진 backoff retry (5회 — 5s / 10s / 20s / 40s / 80s, ±20% jitter).
  * 총 최대 대기 ~155s — 529 overloaded burst 통과용 (2026-05-21 확장).
  * cron maxDuration 300s 의 1/2 미만 — 매치 1건 fail 후에도 다른 매치 처리 여유.
  */
-async function generateAnthropic(
+async function callAnthropicOnce(
   prompt: string,
   opts: GenerateOptions = {},
-): Promise<string> {
+): Promise<{ text: string; truncated: boolean }> {
   // 8KB+ prompt + maxTokens 4096 인 NPB/MLB 매치 1건 sonnet generate 가 90~150s
   // 걸리는 케이스 흔함 (2026-05-27 진단). cron maxDuration 300s 안에 1-2 매치
   // 처리 + 일시 hang 회피 위해 backoff 짧게 + per-attempt 180s.
@@ -77,7 +93,10 @@ async function generateAnthropic(
         throw new Error("Claude 응답에 텍스트 블록이 없습니다.");
       }
       clearTimeout(t);
-      return textBlocks.join("\n");
+      return {
+        text: textBlocks.join("\n"),
+        truncated: response.stop_reason === "max_tokens",
+      };
     } catch (err) {
       clearTimeout(t);
       lastErr = err;
@@ -96,6 +115,30 @@ async function generateAnthropic(
     }
   }
   throw lastErr;
+}
+
+/**
+ * 단발 텍스트 생성. 기사 초안 작성에 사용.
+ * max_tokens 절단 감지 시 상향(2배, 최대 8192) 재시도 1회 — 그래도 잘리면 완결 문장까지 트림
+ * 후 반환 (문장 중간에서 끊긴 본문이 그대로 발행되던 문제 수정, 2026-07-02 감사 A4).
+ */
+async function generateAnthropic(
+  prompt: string,
+  opts: GenerateOptions = {},
+): Promise<string> {
+  let r = await callAnthropicOnce(prompt, opts);
+  if (r.truncated) {
+    const bumped = Math.min(8192, (opts.maxTokens ?? 4096) * 2);
+    console.warn(
+      `[claude] max_tokens 절단 감지 — maxTokens ${opts.maxTokens ?? 4096}→${bumped} 재시도`,
+    );
+    r = await callAnthropicOnce(prompt, { ...opts, maxTokens: bumped });
+    if (r.truncated) {
+      console.warn("[claude] 재시도도 절단 — 완결 문장까지 트림 후 반환");
+      return trimToCompleteSentence(r.text);
+    }
+  }
+  return r.text;
 }
 
 /**
