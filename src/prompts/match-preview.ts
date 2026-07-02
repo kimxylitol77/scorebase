@@ -583,7 +583,7 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     const h = context.homeAway.home;
     const a = context.homeAway.away;
     ctxLines.push(
-      `- 홈/원정 강도: ${home} 홈에서 ${h.wins}승${h.draws}무${h.losses}패 (경기당 ${h.ppg.toFixed(2)}점) / ${away} 원정에서 ${a.wins}승${a.draws}무${a.losses}패 (경기당 ${a.ppg.toFixed(2)}점)`,
+      `- 홈/원정 강도: ${home} 홈에서 ${h.wins}승${h.draws}무${h.losses}패 (경기당 승점 ${h.ppg.toFixed(2)} — 득점 아님) / ${away} 원정에서 ${a.wins}승${a.draws}무${a.losses}패 (경기당 승점 ${a.ppg.toFixed(2)} — 득점 아님)`,
     );
   }
   if (context.recentForm) {
@@ -604,7 +604,7 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
   }
   if (context.trend) {
     ctxLines.push(
-      `- 최근 5경기 평균 득실: ${home} ${context.trend.home.gf.toFixed(1)}득점/${context.trend.home.ga.toFixed(1)}실점 (경기당 ${context.trend.home.ppg.toFixed(2)}점) / ${away} ${context.trend.away.gf.toFixed(1)}득점/${context.trend.away.ga.toFixed(1)}실점 (경기당 ${context.trend.away.ppg.toFixed(2)}점)`,
+      `- 최근 5경기 평균 득실: ${home} ${context.trend.home.gf.toFixed(1)}득점/${context.trend.home.ga.toFixed(1)}실점 (경기당 승점 ${context.trend.home.ppg.toFixed(2)} — 득점 아님) / ${away} ${context.trend.away.gf.toFixed(1)}득점/${context.trend.away.ga.toFixed(1)}실점 (경기당 승점 ${context.trend.away.ppg.toFixed(2)} — 득점 아님)`,
     );
   }
   if (context.h2h && context.h2h.total > 0) {
@@ -743,6 +743,10 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
 7. "전망", "관전 포인트"는 데이터로 뒷받침된 것만 쓴다.
 8. 도박 권유 표현 절대 금지: "베팅", "픽", "건다", "찍는다" 등의 단어 사용 X.
    대신 "추정", "예측", "기댓값", "통계적으로", "모델 관점에서".
+9. **수치 무결성 (반드시 준수)**: 본문의 모든 승률·득점·승점·기록 수치는 입력
+   ctxLines 에 적힌 값을 그대로 옮겨 쓴다 — 재계산·어림 추정·단위 혼용 금지.
+   특히 "경기당 승점"(ppg)을 득점으로 바꿔 쓰지 말 것 (승점 1.33 ≠ 1.33득점).
+   1X2 확률은 "통계 추정 승률" 한 세트만 사용 — 다른 확률 값과 섞어 표에 쓰지 말 것.
 9. 단정 X, 신중한 표현: "~할 가능성이 높다", "~로 추정된다", "데이터는 ~를 시사한다".
 10. 팀명 첫 등장 시 한국어 + 영문 병기. 예: 아스널(Arsenal). 이후엔 한국어.
 11. **데이터 활용 적극성**: 입력 ctxLines 의 standings·elo·form·h2h·attack_defense·
