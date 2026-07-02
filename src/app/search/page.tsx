@@ -27,11 +27,14 @@ export default async function SearchPage({ searchParams }: Props) {
 
   let articles: Awaited<ReturnType<typeof prisma.article.findMany>> = [];
   if (q.length >= 1) {
-    // SQLite 의 contains — 한글 부분 일치 검색에 충분
+    // Postgres contains + 대소문자 무시 — 소문자 영문 검색("arsenal")이 전멸하던 버그 수정
     articles = await prisma.article.findMany({
       where: {
         status: "PUBLISHED",
-        OR: [{ title: { contains: q } }, { content: { contains: q } }],
+        OR: [
+          { title: { contains: q, mode: "insensitive" } },
+          { content: { contains: q, mode: "insensitive" } },
+        ],
       },
       orderBy: { publishedAt: "desc" },
       take: 50,
