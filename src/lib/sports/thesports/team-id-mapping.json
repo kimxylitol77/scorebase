@@ -12499,6 +12499,17 @@
     "matchType": "substr"
   },
   {
+    "ourId": 600086,
+    "ourName": "Kairat Almaty",
+    "ourLeague": "KAZAKHSTAN_PL",
+    "ourExternalId": "664",
+    "tsId": "9k82rekh734repz",
+    "tsName": "FC Kairat Almaty",
+    "tsKo": "FC 카이라트 알마티",
+    "matchType": "exact",
+    "tsVenueId": "yl5ergph3pnr8k0"
+  },
+  {
     "ourId": 600056,
     "ourName": "ML Vitebsk",
     "ourLeague": "BELARUS_PL",
