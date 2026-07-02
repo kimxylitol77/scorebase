@@ -184,7 +184,7 @@ export default function Footer() {
             </strong>{" "}
             · Powered by{" "}
             <strong className="text-neutral-600 dark:text-white/80">
-              Claude + Gemini + ChatGPT
+              Claude Fable 5 + Gemini + ChatGPT
             </strong>{" "}
             · Next.js
           </div>
