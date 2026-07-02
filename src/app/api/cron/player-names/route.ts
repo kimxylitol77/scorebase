@@ -7,6 +7,7 @@
 // 라인업에 안 나오는 벤치/하위 선수는 별도 season-stat 백필(whitelisted 머신)로 보강.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -89,11 +90,7 @@ async function haikuTranslate(batch: { id: string; en: string }[]): Promise<Reco
 }
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get("authorization") ?? "";
-  const ok =
-    (process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`) ||
-    (process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`);
-  if (!ok) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isCronAuthorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ ok: false, error: "ANTHROPIC_API_KEY 미설정" }, { status: 500 });

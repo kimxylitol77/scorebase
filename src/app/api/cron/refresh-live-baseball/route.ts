@@ -4,18 +4,12 @@
 // 매 2분 vercel cron — list 페이지의 SSR 도 stale 안 됨.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { runFetchMlbStartersLive } from "@/jobs/fetch-mlb-starters";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 const SITE = process.env.SITE_URL ?? "https://www.scorebase.kr";
 

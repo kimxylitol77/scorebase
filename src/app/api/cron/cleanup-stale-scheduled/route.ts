@@ -8,6 +8,7 @@
 //   2) HealthCheck row insert → /admin/health 페이지에 자동 노출
 
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
@@ -144,13 +145,7 @@ async function diagnoseWithHaiku(prompt: string): Promise<string | null> {
 
 export async function GET(req: NextRequest) {
   // Vercel cron secret auth (CRON_SECRET) 또는 INTERNAL_API_TOKEN
-  const auth = req.headers.get("authorization") ?? "";
-  const cronOk =
-    process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
-  const intOk =
-    process.env.INTERNAL_API_TOKEN &&
-    auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
-  if (!cronOk && !intOk) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

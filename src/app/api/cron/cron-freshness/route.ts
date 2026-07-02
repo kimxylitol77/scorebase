@@ -3,6 +3,7 @@
 // 실행이 실패했으면 텔레그램 알림. "데이터 나이"가 아니라 "cron 실행 여부"를 봐서
 // 시즌종료·비수기의 0건 처리(실행은 됨)와 진짜 미실행을 구분한다.
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { CRON_REGISTRY } from "@/lib/cron-registry";
 import { sendTelegram } from "@/lib/notify/telegram";
@@ -11,13 +12,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 const NOTIFY_DEDUP_MS = 6 * 3600 * 1000; // 같은 cron 6h 내 중복 알림 방지
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) return new NextResponse("Unauthorized", { status: 401 });

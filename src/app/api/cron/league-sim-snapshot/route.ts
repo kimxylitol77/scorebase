@@ -4,6 +4,7 @@
 // (league, date) 당 1 row upsert — 재실행 시 최신으로 덮음. 월드컵은 wc-sim-snapshot 별도.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import { recordCronRun } from "@/lib/cron-registry";
@@ -13,13 +14,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const SUPPORTED = new Set(["KBO", "NPB", "MLB"]);
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

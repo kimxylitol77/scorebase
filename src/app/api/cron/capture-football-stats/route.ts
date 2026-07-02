@@ -3,17 +3,12 @@
 // 코너/카드 예측 모델 학습 데이터셋을 누적한다. cache 는 유지되므로 6h 주기로 충분.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { captureFootballMatchStats } from "@/lib/sports/thesports/football-match-stats";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  return req.headers.get("authorization") === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

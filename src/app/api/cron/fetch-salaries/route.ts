@@ -2,6 +2,7 @@
 // 주 1회 cron (연봉은 거의 불변 — 트레이드/계약 때만 변동).
 
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchSalaries } from "@/jobs/fetch-salaries";
 
@@ -10,12 +11,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get("authorization") ?? "";
-  const cronOk = process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
-  if (!cronOk) {
-    const intOk =
-      process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
-    if (!intOk) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   try {

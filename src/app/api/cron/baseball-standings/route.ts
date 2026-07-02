@@ -8,6 +8,7 @@
 // 응답: { ok, leagues: [{ league, rows, error? }] }
 
 import { NextRequest, NextResponse } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { recordCronRun } from "@/lib/cron-registry";
 import type { Prisma } from "@prisma/client";
@@ -64,10 +65,7 @@ function unauthorized(msg = "Unauthorized") {
 }
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get("authorization") ?? "";
-  const cronOk = process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
-  const intOk = process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
-  if (!cronOk && !intOk) return unauthorized();
+  if (!isCronAuthorized(req)) return unauthorized();
 
   const apiKey = process.env.API_BASEBALL_KEY;
   if (!apiKey) return NextResponse.json({ error: "API_BASEBALL_KEY 미설정" }, { status: 500 });

@@ -3,6 +3,7 @@
 // 매핑 dictionary 없이 Team.externalId 로 매칭 — TheSports mapping 누락 회피 + 신규 리그도 즉시 cover.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { Prisma } from "@prisma/client";
 import { recordCronRun } from "@/lib/cron-registry";
 import { prisma } from "@/lib/db";
@@ -120,14 +121,8 @@ async function fetchStandings(
 }
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get("authorization") ?? "";
-  const cronOk =
-    process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
-  if (!cronOk) {
-    const intOk =
-      process.env.INTERNAL_API_TOKEN &&
-      auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
-    if (!intOk) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const apiKey = process.env.API_FOOTBALL_KEY;

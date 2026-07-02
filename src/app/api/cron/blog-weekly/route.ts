@@ -3,19 +3,13 @@
 // 얇은 주는 잡이 자체 skip (thin-week). GENERATE_DISABLED=1 시 다른 글 생성 cron 과 동일하게 중단.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runBlogWeekly } from "@/jobs/generate-blog-weekly";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // claude.ts transient retry (최대 ~155s) 여유
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

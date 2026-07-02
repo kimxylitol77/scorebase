@@ -4,6 +4,7 @@
 // backlog 소진 후엔 신규 종료경기만 처리(self-limiting). limit 60 = 60s 한도 내.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { backfillMajorCornersMapped } from "@/lib/sports/api-football-corners";
 import { prisma } from "@/lib/db";
 
@@ -11,12 +12,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const MAJOR = ["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL"];
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  return req.headers.get("authorization") === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

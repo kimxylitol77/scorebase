@@ -3,19 +3,13 @@
 // date(KST) 당 1 row upsert — 같은 날 재실행 시 최신으로 덮음.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { recordCronRun } from "@/lib/cron-registry";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

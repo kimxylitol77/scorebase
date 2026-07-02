@@ -12,6 +12,7 @@
 // false POSTPONED 사고) 차단. 시작 후엔 등록되어 있어야 정상.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
 
@@ -72,13 +73,9 @@ async function isGhost(league: string, externalId: string): Promise<boolean> {
 }
 
 export async function GET(req: NextRequest) {
-  // Vercel cron 보안 — Authorization 헤더 검증
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    }
+  // Vercel cron 보안 — 공용 인증 (fail-closed)
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const now = new Date();

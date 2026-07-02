@@ -3,6 +3,7 @@
 // CRON_SECRET 인증 (기존 cron 패턴 동일).
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { BOT_INTERVAL_MS } from "@/lib/bot-registry";
@@ -23,13 +24,6 @@ function staleThreshold(name: string): number {
   return Math.max(DEFAULT_STALE_MS, Math.min(interval * 4, 14 * 24 * 60 * 60 * 1000));
 }
 
-function authOK(req: Request): boolean {
-  const sec = process.env.CRON_SECRET;
-  if (!sec) return true; // 로컬 dev — 비밀 없으면 허용.
-  const header = req.headers.get("authorization") ?? "";
-  return header === `Bearer ${sec}`;
-}
-
 function formatKst(date: Date): string {
   return new Intl.DateTimeFormat("ko-KR", {
     timeZone: "Asia/Seoul",
@@ -43,7 +37,7 @@ function formatKst(date: Date): string {
 }
 
 export async function GET(req: Request) {
-  if (!authOK(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isCronAuthorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const now = Date.now();
   const rows = await prisma.botHeartbeat.findMany();

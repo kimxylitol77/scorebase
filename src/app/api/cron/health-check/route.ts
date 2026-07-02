@@ -2,6 +2,7 @@
 // 17개 체크 함수 직렬 실행 → HealthCheck DB row insert → HIGH 발견 시 텔레그램 발송.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { runHealthChecks } from "@/lib/health-checks";
 import { runAiReview } from "@/lib/health-checks/ai-review";
@@ -11,13 +12,6 @@ export const dynamic = "force-dynamic";
 // 17개 rule 체크 + (월요일) AI 페이지 5개 검토 (OpenAI 5회 호출 ~10초) — 90초로 늘림.
 export const maxDuration = 90;
 
-function authOK(req: Request): boolean {
-  const sec = process.env.CRON_SECRET;
-  if (!sec) return true; // 로컬 dev — 비밀 없으면 허용.
-  const header = req.headers.get("authorization") ?? "";
-  return header === `Bearer ${sec}`;
-}
-
 const SEVERITY_EMOJI: Record<string, string> = {
   HIGH: "🚨",
   MED: "⚠️",
@@ -26,7 +20,7 @@ const SEVERITY_EMOJI: Record<string, string> = {
 };
 
 export async function GET(req: Request) {
-  if (!authOK(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isCronAuthorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const startedAt = Date.now();
   const findings = await runHealthChecks();
 

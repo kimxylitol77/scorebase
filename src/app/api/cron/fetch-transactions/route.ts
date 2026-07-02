@@ -3,6 +3,7 @@
 // 수동: ?leagues=NBA,MLB 로 종목 지정.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchTransactions } from "@/jobs/fetch-transactions";
 import type { TxLeague } from "@/lib/sports/espn-transactions";
@@ -12,12 +13,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get("authorization") ?? "";
-  const cronOk = process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
-  if (!cronOk) {
-    const intOk =
-      process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
-    if (!intOk) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const param = new URL(req.url).searchParams.get("leagues");

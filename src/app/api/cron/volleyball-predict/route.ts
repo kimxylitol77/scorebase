@@ -8,6 +8,7 @@
 // ?dry=1 → 저장 없이 미리보기.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { prisma } from "@/lib/db";
 import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { calcVolleyballElo, vbEloWinProb, type VbEloMatch } from "@/lib/predict/volleyball-elo";
@@ -15,12 +16,6 @@ import { calcVolleyballElo, vbEloWinProb, type VbEloMatch } from "@/lib/predict/
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  return req.headers.get("authorization") === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) return new NextResponse("Unauthorized", { status: 401 });

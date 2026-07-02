@@ -8,6 +8,7 @@
 // 효과: 매치 종료 ~ RECAP 발행까지 평균 5분, 최악 10분 (기존 1시간 30분에서 단축)
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runCollect } from "@/jobs/collect";
 import { runRecap } from "@/jobs/generate-articles";
 import { prisma } from "@/lib/db";
@@ -59,13 +60,6 @@ const ALL_LEAGUES: League[] = [
   "NPB",
   "LOL",
 ];
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

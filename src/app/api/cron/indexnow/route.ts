@@ -1,5 +1,6 @@
 // IndexNow 제출 cron — 최근 26h 내 발행/갱신된 Article·Blog URL 을 빙·얀덱스에 색인 요청. 매일.
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { submitIndexNow } from "@/lib/indexnow";
 import { prisma } from "@/lib/db";
@@ -7,12 +8,6 @@ import { SITE_URL } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  return req.headers.get("authorization") === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) return new NextResponse("Unauthorized", { status: 401 });

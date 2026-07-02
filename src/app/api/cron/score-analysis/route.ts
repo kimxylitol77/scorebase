@@ -3,17 +3,12 @@
 // evaluate(모델 예측 채점)와 분리 — 기존 동작 무수정, 독립 실행.
 
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { scoreAnalysisPredictions } from "@/lib/analysis/scoring";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  return req.headers.get("authorization") === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

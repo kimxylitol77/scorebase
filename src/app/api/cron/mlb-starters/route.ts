@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchMlbStarters } from "@/jobs/fetch-mlb-starters";
 import { prisma } from "@/lib/db";
@@ -6,13 +7,6 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 // 불펜 3일 집계 (updateMlbBullpen — boxscore 병렬 fetch) 추가로 60→120s 여유 확보
 export const maxDuration = 120;
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {

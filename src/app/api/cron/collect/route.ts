@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runCollect } from "@/jobs/collect";
 import { prisma } from "@/lib/db";
 import type { League } from "@/lib/sports/types";
@@ -150,13 +151,6 @@ const ALL_LEAGUES: League[] = [
   "LCK_CL", // LCK 2군
   "LPL", "LEC", "LCS", // 해외 (표시만) — collect 가 fetchLolAll 1회 캐시 공유
 ];
-
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
