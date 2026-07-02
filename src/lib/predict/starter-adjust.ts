@@ -22,6 +22,9 @@ interface StarterStats {
 //   KBO n=125: w=0.35 에서 Brier 0.4860→0.4838, 적중률 59.2→60.0%,
 //             Strong Pick 60.7→66.7% 모두 개선 (w 스윕 0~0.8 중 적중률 피크).
 //   MLB n=777: w=0.1 부터 단조 악화 (Brier 0.5115→0.5126~0.5237) — 미적용.
+//   NPB n=52/82 (2026-07-02, scripts/_backtest-npb-recent-era.ts — DB 스냅샷 차분 복원):
+//             3등판 기준 w=0.2 +1픽·2등판 완화 기준 w=0.35 적중률 악화(56.1→53.7%)로
+//             일관성 없음 — 미적용. 스냅샷 커버리지 늘어난 뒤(8월~) 재검.
 //   양쪽 선발 모두 recentEra 있을 때만 블렌드 (한쪽만 있으면 비대칭 편향).
 const RECENT_ERA_WEIGHT: Record<string, number> = {
   KBO: 0.35,
