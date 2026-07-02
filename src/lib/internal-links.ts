@@ -18,12 +18,18 @@ interface LinkRule {
 
 // 우선순위 — 더 구체적인(긴) 키워드부터 위에 둔다
 const RULES: LinkRule[] = [
-  // 월드컵
-  { keyword: "FIFA 월드컵 2026", href: "/leagues/WORLD_CUP" },
-  { keyword: "FIFA 월드컵", href: "/leagues/WORLD_CUP" },
-  { keyword: "북중미 월드컵", href: "/leagues/WORLD_CUP" },
-  { keyword: "2026 월드컵", href: "/leagues/WORLD_CUP" },
-  { keyword: "월드컵", href: "/leagues/WORLD_CUP" },
+  // 월드컵 — 대진표 인텐트는 브래킷 뷰로, 일반 언급은 허브(/world-cup)로 집중 (SEO 링크 집중 2026-07)
+  // 주의: "16강 대진표" 같은 무접두 키워드 금지 — UCL·플레이오프 글에서 월드컵으로 오링크된다.
+  { keyword: "월드컵 32강 대진표", href: "/world-cup?view=bracket" },
+  { keyword: "월드컵 16강 대진표", href: "/world-cup?view=bracket" },
+  { keyword: "월드컵 8강 대진표", href: "/world-cup?view=bracket" },
+  { keyword: "월드컵 대진표", href: "/world-cup?view=bracket" },
+  { keyword: "월드컵 우승 확률", href: "/world-cup?view=predictions" },
+  { keyword: "FIFA 월드컵 2026", href: "/world-cup" },
+  { keyword: "FIFA 월드컵", href: "/world-cup" },
+  { keyword: "북중미 월드컵", href: "/world-cup" },
+  { keyword: "2026 월드컵", href: "/world-cup" },
+  { keyword: "월드컵", href: "/world-cup" },
 
   // 축구
   { keyword: "프리미어리그", href: "/leagues/EPL" },
@@ -114,8 +120,12 @@ export function autoLinkInternal(
     );
 
     if (!re.test(text)) continue;
+    // 삽입 결과를 즉시 placeholder 로 보호 — 뒤 규칙이 새 링크 텍스트 내부를 다시 매칭해
+    // 중첩 링크([[월드컵](..) 대진표](..))로 마크다운을 깨는 것 방지.
     text = text.replace(re, (_full, prefix) => {
-      return `${prefix}[${rule.keyword}](${rule.href})`;
+      const i = placeholders.length;
+      placeholders.push(`[${rule.keyword}](${rule.href})`);
+      return `${prefix}${PH_PREFIX}${i}${PH_SUFFIX}`;
     });
     inserted++;
     usedKeywords.add(rule.keyword);
