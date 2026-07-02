@@ -456,7 +456,7 @@ export function predictMatch(input: PredictionInput): PredictionResult {
       draw: odds.draw ?? 0,
       away: odds.away,
     };
-    const blended = blendWithMarket(probs, market, { marketWeight: 0.4 });
+    const blended = blendWithMarket(probs, market, { marketWeight: 0.4, league: input.league });
     if (blended.blended) {
       probs = normalizeProbs({
         home: blended.home,

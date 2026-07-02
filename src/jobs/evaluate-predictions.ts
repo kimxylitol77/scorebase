@@ -284,12 +284,16 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
 
     // 시장 odds blending — 베팅사이트 평균과 ensemble (시장 60% / 우리 40%)
     if (m.marketHome != null && m.marketAway != null) {
-      const blended = blendWithMarket(wp, {
-        home: m.marketHome,
-        draw: m.marketDraw,
-        away: m.marketAway,
-        bookmakers: m.marketBookmakers,
-      });
+      const blended = blendWithMarket(
+        wp,
+        {
+          home: m.marketHome,
+          draw: m.marketDraw,
+          away: m.marketAway,
+          bookmakers: m.marketBookmakers,
+        },
+        { league: m.league },
+      );
       wp = blended;
     }
 

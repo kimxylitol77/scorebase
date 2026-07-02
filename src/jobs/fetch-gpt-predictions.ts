@@ -127,12 +127,16 @@ function scorebasePick(
   if (gAdj.applied) wp = applyGoalieToWinProb(wp, gAdj);
 
   if (match.marketHome != null && match.marketAway != null) {
-    wp = blendWithMarket(wp, {
-      home: match.marketHome,
-      draw: match.marketDraw,
-      away: match.marketAway,
-      bookmakers: match.marketBookmakers,
-    });
+    wp = blendWithMarket(
+      wp,
+      {
+        home: match.marketHome,
+        draw: match.marketDraw,
+        away: match.marketAway,
+        bookmakers: match.marketBookmakers,
+      },
+      { league: match.league },
+    );
   }
 
   if (hasHomeCalibration(league)) {

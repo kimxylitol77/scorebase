@@ -11,6 +11,14 @@
 
 const DEFAULT_MARKET_WEIGHT = 0.6;
 
+// 리그별 시장 가중 오버라이드 — 2026-07-02 walk-forward(70/30): MLB 는 시장 비중을 실효
+// 0.75 로 올리면 test +2.4~6.5%p·Brier 개선 (calibration 교란을 분리한 baseline 에서도 생존,
+// 곡선이 w↑ 방향 단조). NPB 는 역방향(악화)이라 미적용, KBO 는 표본<200 보류.
+// 오버라이드는 호출자 지정 marketWeight 보다 우선 — 경로(위젯 0.4 vs 채점 0.6) 간 MLB 불일치 통일.
+const LEAGUE_MARKET_WEIGHT: Record<string, number> = {
+  MLB: 0.75,
+};
+
 export interface MarketProb {
   home: number;
   draw?: number | null;
@@ -25,13 +33,15 @@ export interface MarketProb {
 export function blendWithMarket(
   ours: { home: number; draw: number; away: number },
   market: MarketProb | null | undefined,
-  opts?: { marketWeight?: number },
+  opts?: { marketWeight?: number; league?: string },
 ): { home: number; draw: number; away: number; blended: boolean } {
   if (!market || market.home == null || market.away == null) {
     return { ...ours, blended: false };
   }
   // 시장이 너무 적은 북메이커만 보고 있으면 신뢰도↓ (3개 미만이면 weight 절반)
-  let w = opts?.marketWeight ?? DEFAULT_MARKET_WEIGHT;
+  let w =
+    (opts?.league && LEAGUE_MARKET_WEIGHT[opts.league]) ||
+    (opts?.marketWeight ?? DEFAULT_MARKET_WEIGHT);
   if (market.bookmakers != null && market.bookmakers < 3) w *= 0.5;
 
   const mDraw = market.draw ?? 0;
