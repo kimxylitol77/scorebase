@@ -7,6 +7,10 @@ import { finishedDatesKst } from "@/lib/sports/thesports/team-of-day";
 // 자동 생성되는 sitemap.xml
 // 검색 엔진(Google, 네이버 등)에 사이트 구조를 알려준다.
 // 빌드 시점 정적 스냅샷이면 cron 발행 글(Article)·블로그가 다음 배포까지 누락 → 1시간 재생성
+//
+// lastmod 정책 (2026-07 감사 D6): 실제 변경 시점을 추적할 수 있는 URL 에만 기입하고
+// 나머지는 생략한다. 생성 시각(now)을 일괄 기입하면 매시 전 URL 이 "방금 수정됨"이 되어
+// Google 이 사이트 전체의 lastmod 신호를 무시하게 된다 — articles·blog 의 정확한 신호까지 죽음.
 export const revalidate = 3600;
 
 // sitemap 등록 리그 — 한국 검색수요 있는 핵심만. 나머지 ~120개 군소·해외 하부리그는
@@ -29,51 +33,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 정적 페이지
   const staticPages: MetadataRoute.Sitemap = [
-    { url: `${base}/`, lastModified: now, changeFrequency: "hourly", priority: 1.0 },
-    { url: `${base}/landing`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/ai-sports-prediction`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
-    { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/notices`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/predictions`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
-    { url: `${base}/predictions/accuracy`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${base}/predictions/scorecard`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
-    { url: `${base}/value-bets`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
-    { url: `${base}/analysis`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
-    { url: `${base}/standings`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
-    { url: `${base}/injuries`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
-    { url: `${base}/transfers`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
-    { url: `${base}/predictions/club-ranking`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${base}/tools/kbo-win-probability`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${base}/tools/mlb-win-probability`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${base}/tools/npb-win-probability`, lastModified: now, changeFrequency: "monthly", priority: 0.75 },
-    { url: `${base}/previews`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${base}/`, changeFrequency: "hourly", priority: 1.0 },
+    { url: `${base}/landing`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/ai-sports-prediction`, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${base}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${base}/notices`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/predictions`, changeFrequency: "hourly", priority: 0.95 },
+    { url: `${base}/predictions/accuracy`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${base}/predictions/scorecard`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/value-bets`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/analysis`, changeFrequency: "hourly", priority: 0.85 },
+    { url: `${base}/standings`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/injuries`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${base}/transfers`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/predictions/club-ranking`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/tools/kbo-win-probability`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/tools/mlb-win-probability`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/tools/npb-win-probability`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/previews`, changeFrequency: "hourly", priority: 0.9 },
     ...["SOCCER", "BASEBALL", "BASKETBALL", "HOCKEY", "ESPORTS"].map((sport) => ({
       url: `${base}/previews?sport=${sport}`,
-      lastModified: now,
       changeFrequency: "hourly" as const,
       priority: 0.85,
     })),
     ...SITEMAP_LEAGUES.map((lg) => ({
       url: `${base}/leagues/${lg}`,
-      lastModified: now,
       changeFrequency: "daily" as const,
       priority: 0.9,
     })),
     ...SITEMAP_LEAGUES.map((lg) => ({
       url: `${base}/predictions/${lg}`,
-      lastModified: now,
       changeFrequency: "hourly" as const,
       priority: 0.85,
     })),
     // 월드컵 허브 + 출전국 목록 (2026-06 신설 — 고아였던 national-teams/[id] 입구)
-    { url: `${base}/world-cup`, lastModified: now, changeFrequency: "hourly", priority: 0.95 },
-    { url: `${base}/world-cup/team-of-day`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${base}/national-teams`, lastModified: now, changeFrequency: "daily", priority: 0.85 },
+    { url: `${base}/world-cup`, changeFrequency: "hourly", priority: 0.95 },
+    { url: `${base}/world-cup/team-of-day`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${base}/national-teams`, changeFrequency: "daily", priority: 0.85 },
     // 월드컵 조별 통합 베스트11 (A~L, 12조) — 평점·순위 매일 갱신
     ...["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"].map((g) => ({
       url: `${base}/world-cup/best-xi/${g}`,
-      lastModified: now,
       changeFrequency: "daily" as const,
       priority: 0.85,
     })),
@@ -86,7 +86,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
   const nationalTeamPages: MetadataRoute.Sitemap = wcTeams.map((t) => ({
     url: `${base}/national-teams/${t.id}`,
-    lastModified: now,
     changeFrequency: "daily" as const,
     priority: 0.8,
   }));
@@ -96,15 +95,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const todDates = await finishedDatesKst();
   const todDatePages: MetadataRoute.Sitemap = todDates.slice(1).map((d) => ({
     url: `${base}/world-cup/team-of-day/${d}`,
-    lastModified: now,
+    lastModified: new Date(`${d}T23:59:59+09:00`), // 과거일 평점은 그 날짜에 확정
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
 
   // 상대전적(H2H) — 활발한 페어만 (5전 이상 + 최근 180일 내 맞대결 = KBO 전 페어·
   // MLB 동지구·유럽 라이벌전). 회복기 크롤 예산 고려해 상한 500 — 나머지는 on-demand 렌더.
-  const h2hPairs = await prisma.$queryRaw<Array<{ a: number; b: number }>>`
-    SELECT LEAST("homeTeamId","awayTeamId") a, GREATEST("homeTeamId","awayTeamId") b
+  const h2hPairs = await prisma.$queryRaw<Array<{ a: number; b: number; last: Date }>>`
+    SELECT LEAST("homeTeamId","awayTeamId") a, GREATEST("homeTeamId","awayTeamId") b, MAX("startTime") last
     FROM "Match" WHERE status = 'FINISHED'
     GROUP BY 1, 2
     HAVING COUNT(*) >= 5 AND MAX("startTime") > NOW() - INTERVAL '180 days'
@@ -112,7 +111,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     LIMIT 500`;
   const h2hPages: MetadataRoute.Sitemap = h2hPairs.map((p) => ({
     url: `${base}/h2h/${p.a}-vs-${p.b}`,
-    lastModified: now,
+    lastModified: p.last, // 마지막 맞대결 시점 = 실제 내용 변경 시점
     changeFrequency: "daily" as const,
     priority: 0.7,
   }));
@@ -215,11 +214,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     where: { league: { in: ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] }, currentValue: { not: null } },
     orderBy: { currentValue: "desc" },
     take: 600,
-    select: { id: true },
+    select: { id: true, updatedAt: true },
   });
   const playerPages: MetadataRoute.Sitemap = topPlayers.map((p) => ({
     url: `${base}/transfers/${p.id}`,
-    lastModified: now,
+    lastModified: p.updatedAt, // 몸값 갱신 시점
     changeFrequency: "weekly",
     priority: 0.6,
   }));
@@ -238,15 +237,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
   const squadTeamIds = [...new Set(mvTsRows.filter((r) => BIG5.includes(r.team.league)).map((r) => r.teamId))];
   const squadPages: MetadataRoute.Sitemap = [
-    { url: `${base}/transfers?view=squads`, lastModified: now, changeFrequency: "daily", priority: 0.75 },
+    { url: `${base}/transfers?view=squads`, changeFrequency: "daily", priority: 0.75 },
     // Next sitemap 빌더는 loc 를 이스케이프하지 않음 — raw "&" 는 invalid XML 이라 "&amp;" 직접 기입
     ...squadTeamIds.map((id) => ({
       url: `${base}/transfers?view=team&amp;team=${id}`,
-      lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
   ];
 
-  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages];
+  // 팀 페이지 — 검색노출 대부분을 차지하는 섹션인데 sitemap 0개였던 것 보강 (2026-07 감사 D7).
+  // 최근 1년 내 경기가 있는 활성 팀만 등록 — 중복 row·휴면 팀 thin 회피.
+  const TEAM_PAGE_LEAGUES = ["MLB", "KBO", "NPB", "NBA", "NHL", "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+  const teamMatchRows = await prisma.match.findMany({
+    where: {
+      league: { in: TEAM_PAGE_LEAGUES },
+      startTime: { gte: new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000) },
+    },
+    select: { homeTeamId: true, awayTeamId: true },
+  });
+  const activeTeamIds = new Set<number>();
+  for (const r of teamMatchRows) {
+    activeTeamIds.add(r.homeTeamId);
+    activeTeamIds.add(r.awayTeamId);
+  }
+  const teamPages: MetadataRoute.Sitemap = [...activeTeamIds].map((id) => ({
+    url: `${base}/teams/${id}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.75,
+  }));
+
+  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages, ...teamPages];
 }
