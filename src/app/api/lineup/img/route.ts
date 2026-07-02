@@ -3,7 +3,14 @@
 
 export const runtime = "nodejs";
 
+import { rateLimit } from "@/lib/rate-limit";
+
 export async function GET(req: Request) {
+  // 미들웨어 rate limit 면제 경로라 자체 제한 — 라인업 보드 1회 로드가 11~22장이므로 넉넉히.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!rateLimit(`lineup-img:${ip}`, { max: 120, windowMs: 60_000, lockMs: 60_000 }).allowed) {
+    return new Response("too many requests", { status: 429 });
+  }
   const u = new URL(req.url).searchParams.get("u");
   if (!u || !u.startsWith("https://img.thesports.com/")) {
     return new Response("bad request", { status: 400 });
@@ -15,8 +22,8 @@ export async function GET(req: Request) {
     return new Response(buf, {
       headers: {
         "Content-Type": res.headers.get("content-type") ?? "image/png",
+        // 캡처(html-to-image)는 same-origin fetch 라 CORS 헤더 불필요 — "*" 는 타 사이트 hotlink 경유만 허용해 제거.
         "Cache-Control": "public, max-age=604800, immutable",
-        "Access-Control-Allow-Origin": "*",
       },
     });
   } catch {

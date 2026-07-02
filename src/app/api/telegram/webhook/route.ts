@@ -44,13 +44,11 @@ function ok() {
 }
 
 export async function POST(req: Request) {
-  // 1. secret 헤더 검증
+  // 1. secret 헤더 검증 — fail-closed: env 미설정이면 전부 거부 (미설정 시 전면 개방이던 것 수정, 2026-07 감사 C4)
   const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (expectedSecret) {
-    const got = req.headers.get("x-telegram-bot-api-secret-token") ?? "";
-    if (got !== expectedSecret) {
-      return NextResponse.json({ error: "bad secret" }, { status: 403 });
-    }
+  const got = req.headers.get("x-telegram-bot-api-secret-token") ?? "";
+  if (!expectedSecret || got !== expectedSecret) {
+    return NextResponse.json({ error: "bad secret" }, { status: 403 });
   }
 
   let body: TgUpdate;
@@ -65,7 +63,7 @@ export async function POST(req: Request) {
   // 2. chat_id 화이트리스트 (외부 spoofing 차단)
   const expectedChatId = process.env.TELEGRAM_CHAT_ID;
   const incomingChatId = String(msg.chat?.id ?? "");
-  if (expectedChatId && incomingChatId !== expectedChatId) {
+  if (!expectedChatId || incomingChatId !== expectedChatId) {
     console.warn(`[tg-webhook] unauthorized chat_id=${incomingChatId}`);
     return ok();
   }
