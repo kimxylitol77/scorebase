@@ -25,7 +25,8 @@ const CATEGORIES: Category[] = [
       { name: "Neon DB Console", url: "https://console.neon.tech", desc: "PostgreSQL · SQL editor", ext: true },
       { name: "GitHub repo", url: "https://github.com/kimxylitol77/scorebase", desc: "commits · PR · actions", ext: true },
       { name: "GoDaddy DNS", url: "https://dcc.godaddy.com/control/dnsmanagement?domainName=scorebase.kr", desc: "도메인 · DNS 관리", ext: true },
-      { name: "AWS Lightsail", url: "https://lightsail.aws.amazon.com/", desc: "worker 인스턴스 · SSH · reboot", ext: true },
+      { name: "Vultr Console", url: "https://console.vultr.com/", desc: "worker 서버 (서울 64.176.230.240) · ssh root@ · reboot", ext: true },
+      { name: "AWS Lightsail (구)", url: "https://lightsail.aws.amazon.com/", desc: "구 worker — 2026-07 Vultr 이전 완료 · 인스턴스 삭제 예정", ext: true },
     ],
   },
   {
