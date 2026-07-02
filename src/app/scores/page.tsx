@@ -24,6 +24,10 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
+import { fetchBaseballTable } from "@/lib/sports/thesports/baseball-table";
+import { calcStandings } from "@/lib/predict/standings";
+import { currentSeasonStart } from "@/lib/predict/season-window";
+import type { PredictMatch } from "@/lib/predict/types";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { buildSportsEventLocation } from "@/lib/seo/sports-event-location";
@@ -1188,6 +1192,52 @@ export default async function ScoresPage({ searchParams }: Props) {
       if (posMap.size > 0) vbPositionByLeague.set(lg, posMap);
     } catch {
       // cache miss — 순위 없이 렌더
+    }
+  }
+
+  // 야구·농구 [순위] 재활성 (2026-07-02) — 5/27 /predictions 500 사고 재발 방지:
+  // 리그별 try-catch 격리 + position number 강제, 실패 시 칩 없이 렌더.
+  // KBO/NPB = TheSports 공식 table(/standings 와 동일 정본), 그 외 클럽 리그 =
+  // 시즌 창 DB 계산(currentSeasonStart — 지난 시즌·MLB 시범경기 오염 차단).
+  // 토너먼트성 야구(WBC 등)는 명단 제외 = 칩 없음.
+  const RANK_CHIP_CALC_LEAGUES = new Set(["MLB", "CPBL", "LMB", "NBA", "WNBA"]);
+  const rankChipLeaguesInPage = Array.from(
+    new Set(
+      matches
+        .map((m) => m.league)
+        .filter((lg) => lg === "KBO" || lg === "NPB" || RANK_CHIP_CALC_LEAGUES.has(lg)),
+    ),
+  );
+  for (const lg of rankChipLeaguesInPage) {
+    try {
+      const posMap = new Map<number, number>();
+      if (lg === "KBO" || lg === "NPB") {
+        for (const r of await fetchBaseballTable(lg)) {
+          const pos = Number(r.position);
+          if (Number.isFinite(pos) && pos > 0) posMap.set(r.ourTeamId, pos);
+        }
+      } else {
+        const seasonStart = currentSeasonStart(lg);
+        const finished = await prisma.match.findMany({
+          where: {
+            league: lg,
+            status: "FINISHED",
+            homeScore: { not: null },
+            awayScore: { not: null },
+            ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
+          },
+          select: {
+            id: true, league: true, status: true, homeTeamId: true, awayTeamId: true,
+            homeScore: true, awayScore: true, startTime: true,
+          },
+        });
+        for (const row of calcStandings(finished as PredictMatch[]).rows) {
+          posMap.set(row.teamId, row.position);
+        }
+      }
+      if (posMap.size > 0) vbPositionByLeague.set(lg, posMap); // 기존 소비 경로 재사용 (배구와 동일)
+    } catch {
+      // standings 실패 — 칩 없이 렌더 (페이지는 정상)
     }
   }
 

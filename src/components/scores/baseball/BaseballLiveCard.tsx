@@ -20,8 +20,8 @@ export interface BaseballLiveCardProps {
   status: "live" | "finished" | "scheduled" | "postponed";
   league: string;
   leagueLabel?: string;
-  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
-  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
+  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
   timeLabel: string;
   liveStatusLabel?: string | null;
   baseballLinescore?: BaseballLinescoreData | null;
@@ -190,6 +190,11 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
           <div className="min-w-0">
             <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold text-neutral-900 dark:text-neutral-100">
               {away.name}
+              {away.position != null && (
+                <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+                  [{away.position}]
+                </span>
+              )}
             </div>
             {awayStarter && (
               <div className="truncate text-[10px] text-neutral-500 dark:text-neutral-500">
@@ -222,6 +227,11 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
                 홈
               </span>
               {home.name}
+              {home.position != null && (
+                <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+                  [{home.position}]
+                </span>
+              )}
             </div>
             {homeStarter && (
               <div className="truncate text-[10px] text-neutral-500 dark:text-neutral-500">

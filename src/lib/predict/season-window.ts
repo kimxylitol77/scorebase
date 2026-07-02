@@ -21,6 +21,8 @@ const SEASON_BOUNDARY: Record<string, { month: number; day: number }> = {
   J1_LEAGUE: { month: 2, day: 1 },
   J2_LEAGUE: { month: 2, day: 1 },
   WNBA: { month: 2, day: 1 },
+  CPBL: { month: 2, day: 1 },
+  LMB: { month: 2, day: 1 },
   // 여름 개막 유럽 축구 (8월 개막 · 이듬해 5월 종료)
   EPL: { month: 7, day: 1 },
   LALIGA: { month: 7, day: 1 },

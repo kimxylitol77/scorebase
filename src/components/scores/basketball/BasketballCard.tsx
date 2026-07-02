@@ -14,8 +14,8 @@ export interface BasketballCardProps {
   status: "live" | "finished" | "scheduled" | "postponed";
   league: string;
   leagueLabel?: string;
-  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
-  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null };
+  home: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
+  away: { name: string; abbr?: string | null; logo?: string | null; score?: number | null; position?: number | null };
   timeLabel: string;
   /** "3Q 8:42" / "1Q" / "LIVE" 등 */
   liveStatusLabel?: string | null;
@@ -157,7 +157,14 @@ export default function BasketballCard(props: BasketballCardProps) {
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
         <div className="min-w-0 flex items-center gap-2">
           <Logo url={away.logo} name={away.name} />
-          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">{away.name}</div>
+          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
+            {away.name}
+            {away.position != null && (
+              <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+                [{away.position}]
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-center font-black tabular-nums tracking-tight text-2xl sm:text-3xl">
           {hasScore ? (
@@ -187,7 +194,14 @@ export default function BasketballCard(props: BasketballCardProps) {
           )}
         </div>
         <div className="min-w-0 flex items-center gap-2 justify-end text-right">
-          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">{home.name}</div>
+          <div className="line-clamp-2 break-keep leading-tight text-xs sm:text-sm font-bold">
+            {home.name}
+            {home.position != null && (
+              <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+                [{home.position}]
+              </span>
+            )}
+          </div>
           <Logo url={home.logo} name={home.name} />
         </div>
       </div>

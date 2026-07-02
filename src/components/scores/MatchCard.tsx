@@ -396,6 +396,11 @@ export default function MatchCard(props: MatchCardProps) {
           <Logo url={home.logo} name={home.name} big={sport === "mma"} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
             {home.name}
+            {home.position != null && (
+              <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+                [{home.position}]
+              </span>
+            )}
           </div>
           {homeStarter && (
             <div className="truncate text-[10px] text-neutral-500 w-full">
@@ -439,6 +444,11 @@ export default function MatchCard(props: MatchCardProps) {
           <Logo url={away.logo} name={away.name} big={sport === "mma"} />
           <div className="truncate text-xs sm:text-sm font-bold w-full">
             {away.name}
+            {away.position != null && (
+              <span className="ml-1 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 tabular-nums">
+                [{away.position}]
+              </span>
+            )}
           </div>
           {awayStarter && (
             <div className="truncate text-[10px] text-neutral-500 w-full">
