@@ -35,6 +35,8 @@ interface Props {
   searchParams: Promise<{ league?: string }>;
 }
 
+import { ogPageImage } from "@/lib/seo/og";
+
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { pid } = await params;
   const { league } = await searchParams;
@@ -47,6 +49,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       title: `${info.name} — KBO 선발 투수 통계`,
       description: `${info.team ?? "KBO"} ${info.name} 의 시즌 ERA·WHIP·IP·W-L·최근 등판 결과.`,
       alternates: { canonical },
+      openGraph: {
+        title: `${info.name} — KBO 선발 투수 통계`,
+        images: ogPageImage({ title: info.name, subtitle: "KBO 선발 투수 시즌 통계·최근 등판", tag: "KBO" }),
+      },
     };
   }
   if (league === "NPB") {
@@ -58,6 +64,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       title: `${koName} — NPB 선발 투수 통계`,
       description: `${teamKo} ${koName} 의 시즌 ERA·WHIP·IP·승패·최근 등판.`,
       alternates: { canonical },
+      openGraph: {
+        title: `${koName} — NPB 선발 투수 통계`,
+        images: ogPageImage({ title: koName, subtitle: "NPB 선발 투수 시즌 통계·최근 등판", tag: "NPB" }),
+      },
     };
   }
   // 축구/NBA/NHL/LOL 등은 metadata 단에서는 generic title 만 반환 (본문에서 별도 fetch).
@@ -87,6 +97,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         ? `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
         : `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
       alternates: { canonical },
+      openGraph: {
+        title: `${koName} — MLB ${isPitcher ? "선발 투수" : "타자"} 통계`,
+        images: ogPageImage({ title: koName, subtitle: `MLB ${yr} 시즌 통계·최근 경기`, tag: "MLB" }),
+      },
     };
   } catch {
     return { title: "선수 미발견" };

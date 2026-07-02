@@ -8,6 +8,7 @@ import Markdown from "@/components/Markdown";
 import AmbientGlow from "@/components/AmbientGlow";
 import sanitizeHtml from "sanitize-html";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
+import { ogPageImage } from "@/lib/seo/og";
 
 export const revalidate = 600;
 
@@ -63,6 +64,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const keywords = b.tags
     ? b.tags.split(",").map((s) => s.trim()).filter(Boolean)
     : undefined;
+  // 카카오톡·페이스북·X 스크레이퍼는 og:image SVG 를 렌더하지 못함 → PNG 카드로 대체.
+  const svgThumb = b.thumbnailUrl?.toLowerCase().endsWith(".svg") ?? false;
+  const ogImages =
+    b.thumbnailUrl && !svgThumb
+      ? [{ url: b.thumbnailUrl }]
+      : ogPageImage({ title: b.title, tag: "블로그" });
   return {
     title: `${b.title}`,
     description,
@@ -74,13 +81,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `${SITE_URL}/blog/${slug}`,
       type: "article",
       publishedTime: b.publishedAt.toISOString(),
-      images: b.thumbnailUrl ? [{ url: b.thumbnailUrl }] : undefined,
+      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title: b.title,
       description,
-      images: b.thumbnailUrl ? [b.thumbnailUrl] : undefined,
+      images: [ogImages[0].url],
     },
   };
 }

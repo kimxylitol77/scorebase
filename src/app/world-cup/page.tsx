@@ -18,6 +18,7 @@ import { getWorldCupPlayerStats, buildWcLeaderRows, pickCats, WC_CORE_CATS, WC_F
 import { getWcGroupStandings, getWcThirdPlaceRace } from "@/lib/sports/world-cup-standings";
 import { breadcrumbLd } from "@/lib/seo/jsonld";
 import { SITE_URL } from "@/lib/site-url";
+import { ogPageImage } from "@/lib/seo/og";
 
 export const revalidate = 600;
 
@@ -37,6 +38,12 @@ export const metadata: Metadata = {
   // 빙 검색어 "월드컵 결과"(노출 489·8위)·"월드컵일정"(153·7위)·"월드컵 경기결과"(141·9위) 정밀 매칭.
   keywords: ["2026 월드컵", "월드컵 일정", "월드컵 결과", "월드컵 경기결과", "월드컵 경기 일정", "월드컵 우승 후보", "월드컵 조별리그", "한국 월드컵 조", "월드컵 예측", "월드컵 우승 확률", "스코어베이스"],
   alternates: { canonical: "/world-cup" },
+  openGraph: {
+    title: "2026 월드컵 — 일정·결과·우승 확률·대진표",
+    description: "북중미 월드컵 48개국 데이터 허브 — 조별 순위·토너먼트 대진표·AI 우승 확률 매일 갱신.",
+    url: `${SITE_URL}/world-cup`,
+    images: ogPageImage({ title: "2026 월드컵 데이터 센터", subtitle: "일정·결과·대진표·AI 우승 확률 — 매일 갱신", tag: "WORLD CUP" }),
+  },
 };
 
 function kstTime(d: Date): string {

@@ -16,6 +16,7 @@ import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
+import { ogPageImage } from "@/lib/seo/og";
 
 export const dynamic = "force-dynamic";
 
@@ -335,6 +336,11 @@ export async function generateMetadata({
         title: `${name} 순위`,
         description: `${name} 현재 시즌 순위표.`,
         alternates: { canonical },
+        openGraph: {
+          title: `${name} 순위`,
+          description: `${name} 현재 시즌 순위표.`,
+          images: ogPageImage({ title: `${name} 순위`, tag: upper }),
+        },
       };
     }
     return { title: "Not Found" };
@@ -350,6 +356,11 @@ export async function generateMetadata({
     title: `${info.name} 경기 프리뷰·결과·분석${titleSuffix}`,
     description: TYPE_DESC[validType] + " — " + info.copy,
     alternates: { canonical },
+    openGraph: {
+      title: `${info.name} 경기 프리뷰·결과·분석`,
+      description: info.copy,
+      images: ogPageImage({ title: info.name, subtitle: "경기 프리뷰·결과·AI 분석", tag: upper }),
+    },
   };
 }
 

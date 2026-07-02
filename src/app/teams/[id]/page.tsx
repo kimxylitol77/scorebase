@@ -8,6 +8,7 @@ import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
+import { ogPageImage } from "@/lib/seo/og";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { Prisma } from "@prisma/client";
 import GoalHeatmap from "@/components/charts/GoalHeatmap";
@@ -161,7 +162,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: `/teams/${id}` },
-    openGraph: { title: `${ko} · ${team.league}`, description, type: "profile" },
+    openGraph: {
+      title: `${ko} · ${team.league}`,
+      description,
+      type: "profile",
+      images: ogPageImage({ title: ko, subtitle: `${team.league} 순위·일정·로스터·AI 승부예측`, tag: team.league }),
+    },
   };
 }
 
