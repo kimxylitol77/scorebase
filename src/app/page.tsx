@@ -515,7 +515,32 @@ function FeaturesSection() {
   );
 }
 
+// 월드컵 배너 카피 — 대회 단계별 자동 전환 (진행 중 라운드 → 종료 후 fallback). revalidate 3600 으로 매시 갱신.
+function wcBannerCopy(): { badge: string; title: string; sub: string; href: string } {
+  const kstYmd = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  if (kstYmd > "2026-07-20") {
+    return {
+      badge: "FIFA World Cup 2026",
+      title: "북중미 월드컵 — 대회 종료",
+      sub: "최종 대진표·우승 확률 추이·조별 베스트 XI 다시 보기",
+      href: "/world-cup",
+    };
+  }
+  const round =
+    kstYmd <= "2026-07-04" ? "32강" :
+    kstYmd <= "2026-07-08" ? "16강" :
+    kstYmd <= "2026-07-13" ? "8강" :
+    kstYmd <= "2026-07-17" ? "4강" : "결승";
+  return {
+    badge: "FIFA World Cup 2026 · KNOCKOUT",
+    title: `북중미 월드컵 — ${round} 토너먼트 진행 중`,
+    sub: `월드컵 ${round} 대진표·경기 일정(한국시간)·AI 우승 확률 한눈에`,
+    href: "/world-cup?view=bracket",
+  };
+}
+
 function LeagueDirectory() {
+  const wcBanner = wcBannerCopy();
   const tiles = [
     { href: "/leagues/EPL", name: "프리미어리그", sub: "EPL · 잉글랜드" },
     { href: "/leagues/LALIGA", name: "라리가", sub: "스페인" },
@@ -538,9 +563,9 @@ function LeagueDirectory() {
         subtitle="원하는 리그의 프리뷰·리뷰·시즌 분석으로 바로 이동"
       />
 
-      {/* 월드컵 강조 카드 — 개막 임박 */}
+      {/* 월드컵 강조 카드 — 대회 단계별 카피 (wcBannerCopy) */}
       <Link
-        href="/leagues/WORLD_CUP"
+        href={wcBanner.href}
         className="group relative mb-4 block overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       >
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600" />
@@ -549,13 +574,13 @@ function LeagueDirectory() {
           <Trophy className="h-9 w-9 shrink-0 drop-shadow" aria-hidden />
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.25em] opacity-85">
-              FIFA World Cup 2026 · LIVE SOON
+              {wcBanner.badge}
             </div>
             <div className="text-lg font-semibold tracking-tight sm:text-xl">
-              북중미 월드컵 — 6/11 개막
+              {wcBanner.title}
             </div>
             <div className="mt-0.5 text-xs opacity-90 sm:text-sm">
-              한국 첫 경기 6/12 11:00 KST vs 체코 · 우승 후보·조별 통과 확률 보러가기
+              {wcBanner.sub}
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm font-semibold sm:ml-auto">
