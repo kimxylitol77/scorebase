@@ -3040,6 +3040,18 @@ const RAW_LOWER: Record<string, string> = Object.fromEntries(
   Object.entries(RAW).map(([k, v]) => [k.toLowerCase(), v]),
 );
 
+/** 한글 팀명 부분일치 → 영문 원문 팀명 목록 (통합 검색의 역매핑용). */
+export function searchTeamNamesByKo(q: string, limit = 30): string[] {
+  const out: string[] = [];
+  for (const [en, ko] of Object.entries(RAW)) {
+    if (ko.includes(q)) {
+      out.push(en);
+      if (out.length >= limit) break;
+    }
+  }
+  return out;
+}
+
 const STRIP_RE = /\s+(fc|cf|sc|afc|ac|cfc|club|football club)\.?$/i;
 
 // 동음이의 클럽 (Al Ittihad = 사우디 SAUDI_PL / 이집트 EGYPT_PL / ...)
