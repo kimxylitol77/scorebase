@@ -126,6 +126,14 @@ export default async function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
+        {/* 블로그 RSS — 네이버 서치어드바이저 RSS 제출·피드 리더 자동 발견용.
+            metadata.alternates 대신 직접 link 태그 — 하위 라우트 alternates 상속 오염 회피(31행 주석 참고). */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="스코어베이스 블로그 RSS"
+          href="/feed.xml"
+        />
       </head>
       {/* 깜빡임 방지: bg/color 를 Tailwind class 가 아닌 globals.css body 의 CSS var
           (--background/--foreground) 로 처리. inline script 가 html.dark 를 paint
