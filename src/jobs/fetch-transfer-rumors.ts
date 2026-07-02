@@ -147,40 +147,22 @@ JSON 배열만 출력(코드펜스·설명 금지). 각 원소:
   }
 }
 
-/** 딜 병합 규칙 — 성(마지막 토큰)+행선팀(첫 토큰)이 같고 **이름이 호환**될 때만 같은 딜.
- *  "Tonali"⊆"Sandro Tonali" 는 병합, "Bruno Fernandes" vs "Matheus Fernandes" 는
- *  성이 같아도 분리 (2026-07-02 실사고 — 성만으로 병합해 다른 선수 기사가 덮임). */
+/** 딜 식별 키 — 선수 성(마지막 토큰)+행선팀(첫 토큰) 정규화 해시. "Tonali"/"Sandro
+ *  Tonali", "Tottenham"/"Tottenham Hotspur" 처럼 기사마다 표기가 갈려도 같은 딜로
+ *  병합된다. 같은 성 선수가 같은 팀으로 동시에 가는 충돌은 드물어 감수. */
 function dealNorm(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9가-힣\s]/g, "").trim();
-}
-function nameTokens(s: string): string[] {
-  return dealNorm(s).split(/\s+/).filter(Boolean);
-}
-/** 짧은 표기의 토큰이 긴 표기에 전부 포함되면 같은 선수로 간주. */
-function namesCompatible(a: string, b: string): boolean {
-  const ta = nameTokens(a), tb = nameTokens(b);
-  const [short, long] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
-  return short.length > 0 && short.every((t) => long.includes(t));
 }
 // 언론별 팀 약칭 통일 — "Man Utd" vs "Manchester United" 가 다른 딜로 갈라지는 것 방지
 const TEAM_ALIAS: Record<string, string> = {
   man: "manchester", utd: "manchester", spurs: "tottenham", barca: "barcelona",
   psg: "paris", 맨유: "맨체스터", 맨시티: "맨체스터",
 };
-function teamKeyOf(toTeam: string | null | undefined): string {
+function dealId(player: string, toTeam: string | null | undefined): string {
+  const lastName = dealNorm(player).split(/\s+/).pop() ?? "";
   const first = dealNorm(toTeam ?? "").split(/\s+/)[0] ?? "";
-  return TEAM_ALIAS[first] ?? first;
-}
-/** 그룹 키 — 성+행선팀. 같은 키 안에서 namesCompatible 로 최종 판별. */
-function dealKey(player: string, toTeam: string | null | undefined): string {
-  return `${nameTokens(player).pop() ?? ""}|${teamKeyOf(toTeam)}`;
-}
-// 한글 표기 수동 교정 — haiku 음역 오기 반복분 (player-name-manual-fix 패턴)
-const KO_NAME_FIX: Record<string, string> = { 촉아메니: "추아메니" };
-function fixKo(s: string): string {
-  let out = s;
-  for (const [bad, good] of Object.entries(KO_NAME_FIX)) out = out.split(bad).join(good);
-  return out;
+  const teamKey = TEAM_ALIAS[first] ?? first;
+  return createHash("sha1").update(`${lastName}|${teamKey}`).digest("hex").slice(0, 16);
 }
 
 export async function runFetchTransferRumors() {
@@ -211,9 +193,8 @@ export async function runFetchTransferRumors() {
     classified.push(...(await classifyBatch(candidates.slice(i, i + BATCH), i)));
   }
 
-  // 3) 딜만 추려 딜 단위 병합 — 같은 그룹키(성+행선팀)여도 이름 호환일 때만 같은 딜
-  interface DealAcc { c: Classified; item: RssItem; fullPlayer: string; fullPlayerKo: string }
-  const merged: DealAcc[] = [];
+  // 3) 딜만 추려 딜 단위 병합 (여러 기사 → 최고 stage 1건)
+  const byDeal = new Map<string, { c: Classified; item: RssItem }>();
   for (const c of classified) {
     if (!c.deal || !c.player || !c.playerKo || !c.summaryKo) continue;
     // haiku 가 deal=true 로 흘려보낸 노이즈 방어 — 실명 없음 / 재계약(from=to) / 부정 보도
@@ -222,52 +203,27 @@ export async function runFetchTransferRumors() {
     if (/무산|결렬|거절|철회|재계약|연장|방출/.test(c.summaryKo)) continue;
     const item = candidates[c.i];
     if (!item) continue;
-    const key = dealKey(c.player, c.toTeam);
+    const id = dealId(c.player, c.toTeam);
+    const prev = byDeal.get(id);
     const rank = STAGE_RANK[c.stage ?? ""] ?? 0;
-    const prev = merged.find(
-      (m) => dealKey(m.fullPlayer, m.c.toTeam) === key && namesCompatible(m.fullPlayer, c.player!),
-    );
-    if (!prev) {
-      merged.push({ c, item, fullPlayer: c.player, fullPlayerKo: c.playerKo });
-      continue;
-    }
-    // 더 긴(완전한) 표기 유지 + 높은 stage/최신 기사 내용으로 갱신
-    if (nameTokens(c.player).length > nameTokens(prev.fullPlayer).length) {
-      prev.fullPlayer = c.player;
-      prev.fullPlayerKo = c.playerKo;
-    }
-    const prevRank = STAGE_RANK[prev.c.stage ?? ""] ?? 0;
-    if (rank > prevRank || (rank === prevRank && item.publishedAt > prev.item.publishedAt)) {
-      prev.c = c;
-      prev.item = item;
+    const prevRank = prev ? STAGE_RANK[prev.c.stage ?? ""] ?? 0 : -1;
+    if (!prev || rank > prevRank || (rank === prevRank && item.publishedAt > prev.item.publishedAt)) {
+      byDeal.set(id, { c, item });
     }
   }
 
-  // 4) upsert — 지난 14일 내 같은 딜(이름 호환+같은 행선팀) 행이 있으면 그 id 재사용해
-  //    표기 변형으로 인한 중복 행 방지. 기존 행보다 낮은 stage 로는 강등하지 않음.
-  const recentRows = await prisma.transferRumor.findMany({
-    where: { publishedAt: { gte: new Date(Date.now() - 14 * 86400 * 1000) } },
-    select: { id: true, playerName: true, playerKo: true, toTeam: true, stage: true },
-  });
+  // 4) upsert — 기존 행보다 낮은 stage 로는 강등하지 않음 (오래된 기사 재수집 가드)
   let upserted = 0;
-  for (const { c, item, fullPlayer, fullPlayerKo } of merged) {
+  for (const [id, { c, item }] of byDeal) {
     const stage = STAGE_RANK[c.stage ?? ""] ? c.stage! : "TALKS";
-    const key = dealKey(fullPlayer, c.toTeam);
-    const ex = recentRows.find(
-      (r) => dealKey(r.playerName, r.toTeam) === key && namesCompatible(r.playerName, fullPlayer),
-    );
-    const id = ex
-      ? ex.id
-      : createHash("sha1").update(`${dealNorm(fullPlayer)}|${teamKeyOf(c.toTeam)}`).digest("hex").slice(0, 16);
-    if (ex && (STAGE_RANK[ex.stage] ?? 0) > (STAGE_RANK[stage] ?? 0)) continue;
-    // 기존 행 이름이 더 완전하면 유지 — 짧은 표기 헤드라인이 풀네임을 덮지 않게
-    const keepExName = ex && nameTokens(ex.playerName).length >= nameTokens(fullPlayer).length;
+    const existing = await prisma.transferRumor.findUnique({ where: { id }, select: { stage: true } });
+    if (existing && (STAGE_RANK[existing.stage] ?? 0) > (STAGE_RANK[stage] ?? 0)) continue;
     await prisma.transferRumor.upsert({
       where: { id },
       create: {
         id,
-        playerName: fullPlayer,
-        playerKo: fixKo(fullPlayerKo),
+        playerName: c.player!,
+        playerKo: c.playerKo!,
         fromTeam: c.fromTeam ?? null,
         toTeam: c.toTeam ?? null,
         fromTeamKo: c.fromKo ?? null,
@@ -275,16 +231,15 @@ export async function runFetchTransferRumors() {
         stage,
         fee: c.fee ?? null,
         league: c.league ?? null,
-        summaryKo: fixKo(c.summaryKo!),
+        summaryKo: c.summaryKo!,
         sourceName: item.sourceName,
         sourceUrl: item.link,
         publishedAt: item.publishedAt,
       },
       update: {
-        ...(keepExName ? {} : { playerName: fullPlayer, playerKo: fixKo(fullPlayerKo) }),
         stage,
         fee: c.fee ?? undefined,
-        summaryKo: fixKo(c.summaryKo!),
+        summaryKo: c.summaryKo!,
         sourceName: item.sourceName,
         sourceUrl: item.link,
         publishedAt: item.publishedAt,
@@ -298,7 +253,7 @@ export async function runFetchTransferRumors() {
     where: { publishedAt: { lt: new Date(Date.now() - KEEP_DAYS * 86400 * 1000) } },
   });
 
-  console.log(`[rumors] 후보 ${candidates.length} → 딜 ${merged.length} → upsert ${upserted}, purge ${purged.count}`);
+  console.log(`[rumors] 후보 ${candidates.length} → 딜 ${byDeal.size} → upsert ${upserted}, purge ${purged.count}`);
   return { candidates: candidates.length, upserted };
 }
 
