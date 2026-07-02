@@ -20,7 +20,7 @@ import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores/soccer/buildSoccerCacheTabs";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import TeamOfDayPitch from "@/components/TeamOfDayPitch";
-import { getTeamOfDay, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
+import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
 import AmbientGlow from "@/components/AmbientGlow";
 import { BarChart3, CalendarDays, Activity } from "lucide-react";
 
@@ -451,8 +451,13 @@ export default async function ArticlePage({ params }: Props) {
   const desc = makeDescription(article.content);
 
   // '오늘의 베스트 XI' 분석 글 — 본문 위에 그날 베스트11 피치 렌더 (slug 의 날짜로 재집계).
+  // 본문 표(발행 시점 고정)의 11인을 파싱해 그래픽을 표와 동일 명단으로 고정 — 사후 평점
+  // 정정으로 그래픽·표가 다른 11인이 되던 불일치 방지 (2026-07-02 감사 A9).
   const tod = article.slug.startsWith(TOD_ARTICLE_SLUG_PREFIX)
-    ? await getTeamOfDay(article.slug.slice(TOD_ARTICLE_SLUG_PREFIX.length))
+    ? await getTeamOfDay(
+        article.slug.slice(TOD_ARTICLE_SLUG_PREFIX.length),
+        parseXiTableNames(article.content),
+      )
     : null;
 
   // 축구 글 — TheSports 캐시 기반 탭(라인업·팀통계·모멘텀·하프타임·H2H) 주입 (live 페이지와 동등).
