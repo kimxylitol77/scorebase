@@ -237,6 +237,10 @@
       "schedule": "0 0 * * *"
     },
     {
+      "path": "/api/cron/transfer-rumors",
+      "schedule": "20 */6 * * *"
+    },
+    {
       "path": "/api/cron/fetch-salaries",
       "schedule": "30 0 * * 1"
     },

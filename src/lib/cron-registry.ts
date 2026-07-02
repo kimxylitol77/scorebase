@@ -20,6 +20,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   // 6h 주기 — 기대 6h + 유예 4h = 10h
   { name: "lol-collect", label: "LOL(LCK·EWC) 수집", maxAgeH: 10 },
   { name: "lol-ingame", label: "LOL 인게임 상세 수집", maxAgeH: 10 },
+  { name: "transfer-rumors", label: "이적 루머 수집", maxAgeH: 10 },
   // 위클리 — 기대 168h + 유예 12h = 180h
   { name: "fetch-salaries", label: "선수 연봉", maxAgeH: 180 },
   { name: "blog-weekly", label: "주간 블로그", maxAgeH: 180 },
