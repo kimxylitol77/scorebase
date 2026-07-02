@@ -2,7 +2,7 @@
 //
 // 데이터 소스:
 //   - 축구 7개 리그: API-Football /players/topscorers · topassists · topyellow · topred
-//   - NBA: BALLDONTLIE /nba/v1/leaders (pts · ast · reb · stl · blk)
+//   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
 //   - MLB: MLB Stats API /v1/stats/leaders (타격 4 + 투구 4)
 //   - KBO: koreabaseball.com (시즌 hitter/pitcher basic — ajax JSON)
@@ -23,6 +23,7 @@ import {
 } from "@/lib/sports/api-football-pro";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { lookupNbaPlayer } from "@/lib/sports/nba-players";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 import {
   fetchNpbPlayerIndex,
@@ -183,130 +184,90 @@ async function runSoccer() {
 }
 
 /* ============================================================
- * NBA (BALLDONTLIE)
+ * NBA (ESPN unofficial site v3 leaders)
  * ==========================================================*/
 
+// ESPN category name → 우리 카테고리 코드. value 는 경기당 평균 (프론트 decimals:1).
 const NBA_CATS = [
-  { stat: "pts", code: "PTS", unit: "득점" },
-  { stat: "ast", code: "AST", unit: "도움" },
-  { stat: "reb", code: "REB", unit: "리바" },
-  { stat: "stl", code: "STL", unit: "스틸" },
-  { stat: "blk", code: "BLK", unit: "블록" },
+  { espn: "pointsPerGame", code: "PTS", unit: "득점" },
+  { espn: "assistsPerGame", code: "AST", unit: "도움" },
+  { espn: "reboundsPerGame", code: "REB", unit: "리바" },
+  { espn: "stealsPerGame", code: "STL", unit: "스틸" },
+  { espn: "blocksPerGame", code: "BLK", unit: "블록" },
 ] as const;
 
-async function runNba(seasonStartYear: number) {
-  const key = process.env.BALLDONTLIE_KEY;
+interface EspnNbaLeaderEntry {
+  value: number;
+  athlete?: {
+    displayName?: string;
+    fullName?: string;
+    headshot?: { href?: string };
+  };
+  team?: { displayName?: string; abbreviation?: string };
+}
+
+export async function runNba(seasonStartYear: number) {
   const seasonLabel = `${seasonStartYear}-${String(seasonStartYear + 1).slice(2)}`;
-  if (!key) return { season: seasonLabel, result: {} };
   const summary: Record<string, number> = {};
-  // 30팀 lookup
-  const teamsRes = await fetch(`https://api.balldontlie.io/nba/v1/teams?per_page=50`, {
-    headers: { Authorization: key },
-  });
-  const teamsData = (await teamsRes.json()) as { data?: Array<{ id: number; full_name: string; abbreviation: string }> };
-  const teamById = new Map<number, { fullName: string; abbr: string }>();
-  for (const t of teamsData.data ?? []) {
-    teamById.set(t.id, { fullName: t.full_name, abbr: t.abbreviation });
-  }
-
-  // ESPN roster API 로 선수 이름 → headshot URL 매핑 build (NBA 30팀).
-  // BDL 응답에 photo URL 없어 외부 source 필요. ESPN 무료, 안정적.
-  const photoByName = await buildEspnNbaPhotoMap();
-
-  for (const cat of NBA_CATS) {
-    try {
-      const r = await fetch(
-        `https://api.balldontlie.io/nba/v1/leaders?season=${seasonStartYear}&stat_type=${cat.stat}`,
-        { headers: { Authorization: key }, cache: "no-store" },
-      );
-      if (!r.ok) continue;
-      const data = (await r.json()) as {
-        data: Array<{
-          player: { id: number; first_name: string; last_name: string; team_id: number };
-          value: number;
-          games_played: number;
-          rank: number;
-        }>;
-      };
-      const top = data.data.slice(0, TOP_N);
+  // ESPN season 파라미터는 시즌 종료 연도 (2026-27 → 2027). seasontype=2 = 정규시즌
+  // (생략 시 포스트시즌 중엔 플레이오프 리더가 나옴). 오프시즌에 미래 시즌 요청 시
+  // categories 빈 배열 → 아래서 자연 skip.
+  const espnSeason = seasonStartYear + 1;
+  try {
+    const r = await fetch(
+      `https://site.api.espn.com/apis/site/v3/sports/basketball/nba/leaders?season=${espnSeason}&seasontype=2`,
+      { cache: "no-store", signal: AbortSignal.timeout(15000) },
+    );
+    if (!r.ok) {
+      console.warn(`[leaders/nba] ESPN leaders HTTP ${r.status} — skip`);
+      return { season: seasonLabel, result: summary };
+    }
+    const data = (await r.json()) as {
+      requestedSeason?: { year?: number };
+      leaders?: { categories?: Array<{ name: string; leaders?: EspnNbaLeaderEntry[] }> };
+    };
+    // 응답 시즌이 요청과 다르면(폴백) 이전 시즌 데이터가 새 라벨로 저장되는 사고 방지
+    if (data.requestedSeason?.year && data.requestedSeason.year !== espnSeason) {
+      console.warn(`[leaders/nba] season mismatch: requested ${espnSeason}, got ${data.requestedSeason.year} — skip`);
+      return { season: seasonLabel, result: summary };
+    }
+    const categories = data.leaders?.categories ?? [];
+    for (const cat of NBA_CATS) {
+      const top = (categories.find((c) => c.name === cat.espn)?.leaders ?? []).slice(0, TOP_N);
       for (let i = 0; i < top.length; i++) {
         const d = top[i];
-        const fullName = `${d.player.first_name} ${d.player.last_name}`.trim();
-        const team = teamById.get(d.player.team_id);
+        const fullName = (d.athlete?.displayName ?? d.athlete?.fullName ?? "").trim();
+        if (!fullName) continue;
+        // /players/[pid]?league=NBA 는 BDL id 기대 → 정적 사전(nba-players.json)으로 역매핑
+        const bdlId = lookupNbaPlayer(fullName)?.bdlId;
         await upsertLeader({
           league: "NBA",
           category: cat.code,
-          rank: d.rank,
+          rank: i + 1,
           playerName: toKoreanPlayerName(fullName) || fullName,
           playerNameEn: fullName,
-          externalId: String(d.player.id),
-          teamName: toKoreanTeamName(team?.fullName ?? "") || team?.fullName || `Team ${d.player.team_id}`,
-          teamShort: team?.abbr,
+          externalId: bdlId != null ? String(bdlId) : undefined,
+          teamName: toKoreanTeamName(d.team?.displayName ?? "") || d.team?.displayName || "",
+          teamShort: d.team?.abbreviation,
           value: d.value,
           unit: cat.unit,
-          appearances: d.games_played,
           season: seasonLabel,
-          photoUrl: photoByName.get(fullName.toLowerCase()),
+          photoUrl: d.athlete?.headshot?.href,
         });
       }
-      await clearOldRanks("NBA", cat.code, seasonLabel, top.length);
+      if (top.length > 0) {
+        await clearOldRanks("NBA", cat.code, seasonLabel, top.length);
+      }
       summary[cat.code] = top.length;
-    } catch (e) {
-      console.warn(`[leaders/nba] ${cat.stat}`, (e as Error).message);
     }
+  } catch (e) {
+    console.warn("[leaders/nba] ESPN leaders", (e as Error).message);
   }
-  // 이번 run 에 실제 upsert 가 있을 때만 정리 — 오프시즌(7월 시즌라벨 롤오버 직후)에
-  // 빈 결과로 직전 시즌 리더보드 전체가 삭제되는 것을 방지
+  // 오프시즌 빈 응답이면 삭제 없이 skip — 데이터 확보 시에만 stale 시즌 정리
   if (Object.values(summary).some((n) => n > 0)) {
     await clearStaleSeasons("NBA", seasonLabel);
   }
   return { season: seasonLabel, result: summary };
-}
-
-/**
- * ESPN NBA 30팀 roster 를 모두 fetch 해서 displayName(소문자) → headshot URL 매핑 반환.
- * 한 번 호출 = 30개 HTTP 요청, ~3초. cron 1회/일이라 비용 무시 가능.
- */
-async function buildEspnNbaPhotoMap(): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  try {
-    const teamsRes = await fetch(
-      "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams",
-      { cache: "no-store" },
-    );
-    if (!teamsRes.ok) return out;
-    const teamsJson = (await teamsRes.json()) as {
-      sports?: Array<{ leagues?: Array<{ teams?: Array<{ team: { id: string } }> }> }>;
-    };
-    const teamIds = teamsJson.sports?.[0]?.leagues?.[0]?.teams?.map((t) => t.team.id) ?? [];
-    await Promise.all(
-      teamIds.map(async (tid) => {
-        try {
-          const r = await fetch(
-            `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${tid}/roster`,
-            { cache: "no-store" },
-          );
-          if (!r.ok) return;
-          const j = (await r.json()) as {
-            athletes?: Array<{
-              displayName?: string;
-              headshot?: { href?: string };
-            }>;
-          };
-          for (const a of j.athletes ?? []) {
-            const name = a.displayName?.trim().toLowerCase();
-            const url = a.headshot?.href;
-            if (name && url) out.set(name, url);
-          }
-        } catch (e) {
-          console.warn(`[leaders/nba] ESPN roster ${tid}`, (e as Error).message);
-        }
-      }),
-    );
-  } catch (e) {
-    console.warn("[leaders/nba] ESPN teams fetch", (e as Error).message);
-  }
-  return out;
 }
 
 /* ============================================================
