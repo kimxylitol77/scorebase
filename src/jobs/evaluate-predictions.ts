@@ -34,17 +34,22 @@ import type { PredictMatch } from "@/lib/predict/types";
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
 
 /**
- * 채점용 실제 점수 — 축구는 1X2/OU/핸디캡 모두 90분(정규시간) 기준.
+ * 채점용 실제 점수 — 축구는 1X2/OU/핸디캡/BTTS 모두 90분(정규시간) 기준.
  * DB.homeScore 는 승부차기 합산 오염 가능(예 UCL 결승 4-3) → cache 의 정규시간(regHome/regAway) 우선.
  * cache 없거나 축구 아니면 DB 점수 그대로.
+ *
+ * 정규화 대상은 마켓 적용 세트(SOCCER_LEAGUES_FOR_MARKETS = BTTS/DC 적용 리그)와 별개 —
+ * 연장·승부차기가 실제 발생하는 WORLD_CUP 넉아웃을 반드시 포함해야 한다.
  */
+const GRADING_REGTIME_LEAGUES = new Set([...SOCCER_LEAGUES_FOR_MARKETS, "WORLD_CUP"]);
+
 function gradingScore(
   league: string,
   dbHome: number,
   dbAway: number,
   detailLive: unknown,
 ): { home: number; away: number } {
-  if (SOCCER_LEAGUES_FOR_MARKETS.has(league)) {
+  if (GRADING_REGTIME_LEAGUES.has(league)) {
     const fs = parseTsFootballScore(detailLive);
     if (fs) return { home: fs.regHome, away: fs.regAway };
   }
@@ -395,7 +400,7 @@ export async function runEvaluateMatches(opts?: { limit?: number }) {
         data.predBttsProb = btts.pBtts;
         data.predBttsPick = btPick;
         data.predBttsCorrect =
-          btPick === bttsActual(m.homeScore, m.awayScore);
+          btPick === bttsActual(gs.home, gs.away);
       }
     }
 
