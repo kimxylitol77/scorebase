@@ -828,34 +828,6 @@ model FootballTransfer {
   @@index([playerId])
 }
 
-/// 이적 루머/임박 피드 — RSS(구글뉴스·한국 축구지) 수집 후 haiku 분류·한 줄 요약.
-/// 공식 확정 피드(FootballTransfer)는 공식 등록만 기록해 뉴스 대비 시차 존재 →
-/// "히위고(합의)" 단계 보도를 이 테이블이 메운다. 미확정 정보라 별도 탭으로만 노출.
-/// id = 정규화 "선수|행선팀" 해시 — 같은 딜의 후속 기사는 upsert 로 stage 승급.
-/// 테이블 생성은 raw SQL (prod drift 로 db push 금지 — AiPrediction 전례).
-model TransferRumor {
-  id          String   @id
-  playerName  String // 뉴스 원문 선수명
-  playerKo    String // haiku 한글 표기
-  fromTeam    String?
-  toTeam      String?
-  fromTeamKo  String?
-  toTeamKo    String?
-  stage       String // OFFICIAL | HERE_WE_GO | MEDICAL | TALKS
-  fee         String? // 표기 문자열 ("€65M" 등) — 보도 값이라 숫자 정규화 안 함
-  league      String? // 행선팀 리그 코드 (EPL 등), 불명이면 null
-  summaryKo   String // haiku 한 줄 한국어 요약
-  sourceName  String
-  sourceUrl   String
-  publishedAt DateTime
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  hidden      Boolean  @default(false) // 오보 판명 시 수동 숨김
-
-  @@index([publishedAt])
-  @@index([stage, publishedAt])
-}
-
 /// ESPN 트랜잭션 피드 — 북미 종목(NBA/MLB/NHL) 의 트레이드·FA계약·방출·단기계약·감독인사.
 /// ESPN transactions 엔드포인트는 세 종목 응답 형태가 동일 → league 필드로 단일 모델 재사용.
 /// ESPN 응답엔 안정적 고유 id 가 없어 id = `${league}:${date}:${desc 해시}` 합성 (멱등 upsert).

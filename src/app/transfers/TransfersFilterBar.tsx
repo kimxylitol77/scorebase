@@ -34,13 +34,12 @@ const CATS = [
   { key: "country", label: "국가별" },
   { key: "pos", label: "포지션별" },
   { key: "latest", label: "최신 이적" },
-  { key: "rumors", label: "⚡ 임박·루머" },
   { key: "bigdeals", label: "💸 빅딜" },
   { key: "inout", label: "IN/OUT" },
   { key: "squads", label: "🏟️ 팀 가치" },
 ];
 // 이적 피드형·집계형 view — 선수 검색은 몸값 랭킹에서만 동작하므로 검색 시 전체로 전환
-const FEED_VIEWS = ["latest", "rumors", "bigdeals", "inout", "squads"];
+const FEED_VIEWS = ["latest", "bigdeals", "inout", "squads"];
 // 세부 포지션 — 수비→공격 순. CB 중앙수비·FB 윙백·DM/CM/AM 미드·W 윙어·ST 스트라이커
 const POSITIONS = [
   { code: "GK", label: "GK" },
