@@ -276,9 +276,11 @@ for (const [ko, en] of Object.entries(KOREAN_ALIASES)) {
   if (EN_TO_KO_DISPLAY[en] === undefined) EN_TO_KO_DISPLAY[en] = ko;
 }
 
-/** FIFA 영문 canonical 국가명 → 한글 표시명. 매핑 없으면 null (호출측에서 영문 fallback). */
+/** FIFA 영문 국가명 → 한글 표시명. 변형 표기("South Korea"·"Czech Republic" 등)도
+ *  ENGLISH_ALIASES 로 canonical 정규화 후 매칭. 매핑 없으면 null (호출측에서 영문 fallback). */
 export function fifaCountryKo(nameEn: string): string | null {
-  return EN_TO_KO_DISPLAY[nameEn] ?? null;
+  const canonical = ENGLISH_ALIASES[nameEn] ?? nameEn;
+  return EN_TO_KO_DISPLAY[canonical] ?? null;
 }
 
 // FIFA 영문 canonical → ISO 3166-1 alpha-2 (국기 emoji 생성용).

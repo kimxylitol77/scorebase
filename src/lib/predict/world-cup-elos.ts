@@ -39,6 +39,7 @@ export const WORLD_CUP_TEAM_ELO: Record<string, number> = {
   Panama: 1737,
   Uzbekistan: 1727,
   "Czech Republic": 1726,
+  Czechia: 1726,
   USA: 1721,
   "Korea Republic": 1721,
   "South Korea": 1721,
@@ -63,9 +64,10 @@ export const WORLD_CUP_TEAM_ELO: Record<string, number> = {
   Haiti: 1532,
 };
 
-/** 12조 분배 (api-football standings 2026 시점) */
+/** 12조 분배 (api-football standings 2026 시점).
+ *  주의: 팀명은 DB Team.name 과 정확히 일치해야 순위 집계·시뮬에 잡힌다 (체코는 "Czechia"). */
 export const WORLD_CUP_GROUPS: Record<string, string[]> = {
-  A: ["Mexico", "South Africa", "South Korea", "Czech Republic"],
+  A: ["Mexico", "South Africa", "South Korea", "Czechia"],
   B: ["Canada", "Bosnia & Herzegovina", "Qatar", "Switzerland"],
   C: ["Brazil", "Morocco", "Haiti", "Scotland"],
   D: ["USA", "Paraguay", "Australia", "Türkiye"],

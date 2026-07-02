@@ -14,7 +14,7 @@ const p = new PrismaClient();
 const OV = rawOv as Record<string, { nameKo?: string }>;
 
 const ISO2: Record<string, string> = {
-  Mexico: "MX", "South Africa": "ZA", "South Korea": "KR", "Czech Republic": "CZ",
+  Mexico: "MX", "South Africa": "ZA", "South Korea": "KR", "Czech Republic": "CZ", Czechia: "CZ",
   Canada: "CA", "Bosnia & Herzegovina": "BA", Qatar: "QA", Switzerland: "CH",
   Brazil: "BR", Morocco: "MA", Haiti: "HT", Scotland: "GB-SCT",
   USA: "US", Paraguay: "PY", Australia: "AU", "Türkiye": "TR",

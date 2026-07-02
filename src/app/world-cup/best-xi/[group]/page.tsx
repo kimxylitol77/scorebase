@@ -10,7 +10,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 
 const GROUPS = "ABCDEFGHIJKL".split("");
 const COUNTRY_KO: Record<string, string> = {
-  Mexico: "멕시코", "South Africa": "남아공", "South Korea": "대한민국", "Czech Republic": "체코",
+  Mexico: "멕시코", "South Africa": "남아공", "South Korea": "대한민국", "Czech Republic": "체코", Czechia: "체코",
   Canada: "캐나다", "Bosnia & Herzegovina": "보스니아", Qatar: "카타르", Switzerland: "스위스",
   Brazil: "브라질", Morocco: "모로코", Haiti: "아이티", Scotland: "스코틀랜드",
   USA: "미국", Paraguay: "파라과이", Australia: "호주", "Türkiye": "튀르키예",

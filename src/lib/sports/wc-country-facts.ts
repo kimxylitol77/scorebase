@@ -19,6 +19,7 @@ export const WC_COUNTRY_FACTS: Record<string, WcCountryFacts> = {
   "South Africa": { continent: "아프리카", appearances: 4, best: "조별리그", last: "미출전" },
   "South Korea": { continent: "아시아", appearances: 12, best: "4위 (2002)", last: "16강" },
   "Czech Republic": { continent: "유럽", appearances: 10, best: "준우승 (2회)", last: "미출전" },
+  Czechia: { continent: "유럽", appearances: 10, best: "준우승 (2회)", last: "미출전" }, // DB Team.name 표기 별칭
   // B조
   Canada: { continent: "북중미", appearances: 3, best: "조별리그", last: "조별리그" },
   "Bosnia & Herzegovina": { continent: "유럽", appearances: 2, best: "조별리그 (2014)", last: "미출전" },
