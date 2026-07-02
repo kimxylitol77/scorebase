@@ -9,6 +9,7 @@ import { logoutUserAction } from "@/app/(auth)/actions";
 import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
 import { AVATAR_EDIT_MIN_LEVEL } from "@/lib/avatars";
 import { resolveAvatar } from "@/lib/analysis/analysts";
+import DeleteAccountButton from "./DeleteAccountButton";
 import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
 import NicknameEditor from "./NicknameEditor";
@@ -258,6 +259,15 @@ export default async function AccountPage({ searchParams }: Props) {
                 ))}
               </ul>
             )}
+          </section>
+
+          {/* 회원 탈퇴 — 개인정보 삭제권 행사 지점 (개인정보처리방침 6조) */}
+          <section className="flex items-center justify-between rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-6">
+            <div className="text-xs text-neutral-500">
+              더 이상 이용하지 않으시나요?{" "}
+              <Link href="/privacy" className="hover:underline">개인정보처리방침</Link>
+            </div>
+            <DeleteAccountButton />
           </section>
         </main>
       </div>

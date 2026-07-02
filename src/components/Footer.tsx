@@ -173,9 +173,13 @@ export default function Footer() {
 
         {/* 하단 — 좌우 */}
         <div className="mt-6 flex flex-col gap-2 border-t border-black/5 pt-5 text-xs text-neutral-400 dark:border-white/10 dark:text-white/45 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            © 2026 스코어베이스 (Scorebase). All rights reserved. · 무단
-            전재·재배포 금지
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>
+              © 2026 스코어베이스 (Scorebase). All rights reserved. · 무단
+              전재·재배포 금지
+            </span>
+            <Link href="/terms" className="hover:underline">이용약관</Link>
+            <Link href="/privacy" className="font-semibold hover:underline">개인정보처리방침</Link>
           </div>
           <div>
             Built with{" "}

@@ -59,6 +59,23 @@ export default function SignupForm({ from }: { from: string }) {
         />
       </div>
 
+      <div className="space-y-2 pt-1">
+        <label className="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+          <input type="checkbox" name="agreeTerms" required className="mt-0.5" />
+          <span>
+            <a href="/terms" target="_blank" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">이용약관</a>에
+            동의합니다. (필수)
+          </span>
+        </label>
+        <label className="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+          <input type="checkbox" name="agreePrivacy" required className="mt-0.5" />
+          <span>
+            <a href="/privacy" target="_blank" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">개인정보처리방침</a>에
+            따른 개인정보 수집·이용에 동의합니다. (필수)
+          </span>
+        </label>
+      </div>
+
       {state.error && (
         <div className="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 p-2.5 text-xs text-red-700 dark:text-red-300">
           ❗ {state.error}

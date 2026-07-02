@@ -1,8 +1,10 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
 import { AVATAR_IDS, AVATAR_EDIT_MIN_LEVEL } from "@/lib/avatars";
 
@@ -69,4 +71,27 @@ export async function setNicknameAction(formData: FormData): Promise<void> {
     data: { nickname },
   });
   revalidatePath("/account");
+}
+
+export type DeleteAccountState = { error?: string } | null;
+
+/** 회원 탈퇴 — 본인 세션 확인 후 계정 삭제. 게시글·댓글·예측·드림팀은 onDelete: Cascade 로 일괄 삭제.
+ *  실패를 삼키면 "탈퇴됐다고 믿는데 계정이 남는" 최악 케이스라, P2025(이미 없음) 외에는 에러로 알린다. */
+export async function deleteAccountAction(
+  _prev: DeleteAccountState,
+  _formData: FormData,
+): Promise<DeleteAccountState> {
+  const c = await cookies();
+  const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
+  if (!session) redirect("/login");
+
+  try {
+    await prisma.user.delete({ where: { id: session.userId } });
+  } catch (e) {
+    if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025")) {
+      return { error: "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." };
+    }
+  }
+  c.delete(USER_COOKIE_NAME);
+  redirect("/");
 }

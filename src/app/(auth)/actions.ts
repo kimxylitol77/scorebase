@@ -62,6 +62,9 @@ export async function signupUserAction(
   if (nickname.length < 1 || nickname.length > 20) {
     return { ok: false, error: "닉네임은 1~20자로 입력해주세요." };
   }
+  if (formData.get("agreeTerms") !== "on" || formData.get("agreePrivacy") !== "on") {
+    return { ok: false, error: "이용약관과 개인정보처리방침에 동의해주세요." };
+  }
 
   const ip = await clientKey();
   const rl = rateLimit(`user-signup:${ip}`, {

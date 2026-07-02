@@ -18,6 +18,10 @@ export default async function LoginPage({ searchParams }: Props) {
           <div className="mt-1 text-sm text-neutral-500">스코어베이스 회원 로그인</div>
         </div>
         <GoogleButton from={from ?? "/"} label="구글로 로그인" />
+        <p className="mt-2 text-center text-[11px] text-neutral-400">
+          구글 계정으로 처음 로그인하면 가입되며, <a href="/terms" target="_blank" className="underline">이용약관</a>과{" "}
+          <a href="/privacy" target="_blank" className="underline">개인정보처리방침</a>에 동의한 것으로 간주됩니다.
+        </p>
         <div className="my-5 flex items-center gap-3">
           <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
           <span className="text-xs text-neutral-400">또는 이메일로</span>
