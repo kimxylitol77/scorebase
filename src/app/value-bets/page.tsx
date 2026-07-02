@@ -193,7 +193,7 @@ export default async function ValueBetsPage() {
         <p className="text-sm text-neutral-500 break-keep dark:text-neutral-400">
           Scorebase Elo 모델 예측 확률이 배당사 implied 보다 <strong>+{MIN_VALUE_PCT}% 이상</strong> 높은 매치만 표시.
           <br className="hidden sm:block" />
-          value % 큰 순 정렬. 향후 {HORIZON_DAYS}일 안 SCHEDULED/LIVE 매치 대상.
+          value % 큰 순 정렬. 향후 {HORIZON_DAYS}일 안 시작 전(SCHEDULED) 매치만 대상.
         </p>
         <div className="text-[11px] text-neutral-400 break-keep">
           ⓘ 베팅 권유 X — 모델 cross-check 용. 종료된 매치는 적중률 보드 별도 페이지에서.
