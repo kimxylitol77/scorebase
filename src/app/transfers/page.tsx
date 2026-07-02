@@ -35,35 +35,35 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     const t = await prisma.team.findUnique({ where: { id: Number(sp.team) }, select: { name: true } });
     const nm = t ? toKoreanTeamName(t.name) || t.name : null;
     if (nm) {
-      title = `${nm} 스쿼드 · 선수단 몸값 랭킹 | 스코어베이스`;
+      title = `${nm} 스쿼드 · 선수단 몸값 랭킹`;
       description = `${nm} 선수단 시장가치 총정리 — 스쿼드 총 가치와 베스트11, 선수별 몸값·변동 추이·포지션·연령까지 한눈에. 스코어베이스 이적시장.`;
       canonical = `/transfers?view=team&team=${Number(sp.team)}`;
       teamKeywords = [`${nm} 스쿼드`, `${nm} 선수단`, `${nm} 선수 몸값`];
     } else {
-      title = "팀 스쿼드 · 선수단 몸값 랭킹 | 스코어베이스";
+      title = "팀 스쿼드 · 선수단 몸값 랭킹";
       description = "유럽 빅5 리그 팀별 선수단 시장가치(몸값) 랭킹 — 스코어베이스 이적시장.";
     }
   } else if (sp.view === "squads") {
     const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
-    title = `${scope}팀 스쿼드 가치 랭킹 · 선수단 총액 | 스코어베이스`;
+    title = `${scope}팀 스쿼드 가치 랭킹 · 선수단 총액`;
     description = `${scope}리그 팀별 스쿼드 시장가치 총액 랭킹. 선수단 가치·평균 연령·최고가 선수를 팀 단위로 비교 — 스코어베이스 이적시장.`;
     canonical = lgLabel ? `/transfers?view=squads&league=${sp.league}` : "/transfers?view=squads";
   } else if (sp.view === "bigdeals") {
-    title = `${win.label} 빅딜 랭킹 · 이적료 TOP | 스코어베이스`;
+    title = `${win.label} 빅딜 랭킹 · 이적료 TOP`;
     description = `${win.label} 유럽 빅5 리그 최고 이적료 랭킹. 확정 이적 빅딜을 이적료 순으로 한눈에 — 스코어베이스 이적시장.`;
     canonical = "/transfers?view=bigdeals";
   } else if (sp.view === "inout") {
-    title = `팀별 영입·방출 IN/OUT · ${win.label} | 스코어베이스`;
+    title = `팀별 영입·방출 IN/OUT · ${win.label}`;
     description = `${win.label} 유럽 빅5 리그 팀별 영입(IN)·방출(OUT) 현황과 이적 지출·수입·순지출 총정리 — 스코어베이스 이적시장.`;
     canonical = "/transfers?view=inout";
   } else if (sp.view === "latest") {
     const scope = lgLabel || "유럽 빅5·K리그1·사우디·MLS";
-    title = `최신 축구 이적 현황 · ${lgLabel || "주요 리그"} | 스코어베이스`;
+    title = `최신 축구 이적 현황 · ${lgLabel || "주요 리그"}`;
     description = `${scope} 선수 이적 소식을 최신순으로. 이적료·임대·자유이적까지 매일 업데이트 — 스코어베이스 이적시장.`;
     canonical = lgLabel ? `/transfers?view=latest&league=${sp.league}` : "/transfers?view=latest";
   } else {
     const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
-    title = `${scope}선수 몸값 랭킹 · 이적시장 시장가치 | 스코어베이스`;
+    title = `${scope}선수 몸값 랭킹 · 이적시장 시장가치`;
     description = `${scope}리그 선수 시장가치(몸값) 랭킹과 변동 추이, 이적 기록, 커리어·시즌별 성적까지. 스코어베이스에서 선수 몸값을 한눈에.`;
   }
   return {

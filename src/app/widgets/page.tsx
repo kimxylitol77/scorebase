@@ -11,7 +11,7 @@ export const revalidate = 3600;
 const SITE_URL = process.env.SITE_URL ?? "https://www.scorebase.kr";
 
 export const metadata: Metadata = {
-  title: "무료 스포츠 위젯 임베드 — 2026 월드컵 대진표 위젯 | 스코어베이스",
+  title: "무료 스포츠 위젯 임베드 — 2026 월드컵 대진표 위젯",
   description:
     "2026 월드컵 대진표 등 스코어베이스 위젯을 블로그·홈페이지에 무료로 임베드하세요. 복사·붙여넣기 한 번으로 실시간 데이터 위젯을 넣을 수 있습니다.",
   keywords: ["월드컵 대진표 위젯", "스포츠 위젯", "축구 위젯 임베드", "무료 위젯", "스코어베이스 위젯"],

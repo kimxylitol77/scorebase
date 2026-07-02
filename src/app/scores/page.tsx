@@ -378,7 +378,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const leagueQ = sp.league ? `&league=${sp.league}` : "";
   const url = `${SITE_URL}/scores?sport=${sportCode}&date=${dateStr}${leagueQ}`;
 
-  const title = `${dateKo} ${sportKo} 라이브 스코어 · 일정 · 결과 — 스코어베이스`;
+  const title = `${dateKo} ${sportKo} 라이브 스코어 · 일정 · 결과`;
   const description =
     `${dateKo} ${sportKo} 경기 일정·라이브 스코어·종료 결과. ` +
     `${leagueBlurb} 통합. Elo 모델 승률 추정·Value Bet·라이브 푸시 평균 2-3초 갱신. 스코어베이스.`;

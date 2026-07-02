@@ -16,7 +16,7 @@ const TOP = CLUBS.slice(0, 10).map((c) => ({ ...c, ko: toKoreanTeamName(c.name) 
 const TOP_NAMES = TOP.slice(0, 5).map((c) => c.ko).join("·");
 
 export const metadata: Metadata = {
-  title: `세계 축구 클럽 랭킹 TOP ${CLUBS.length} · 클럽 순위·포인트 | 스코어베이스`,
+  title: `세계 축구 클럽 랭킹 TOP ${CLUBS.length} · 클럽 순위·포인트`,
   description: `세계 축구 클럽 랭킹 ${CLUBS.length}위까지 한눈에. ${TOP_NAMES} 등 상위 클럽의 순위·포인트·순위 변동을 정기 갱신해 제공합니다. 리그 순위·시즌 우승 확률·선수 몸값과 함께 확인하세요.`,
   keywords: [
     "클럽 랭킹", "세계 클럽 랭킹", "축구 클럽 순위", "축구 팀 순위", "세계 축구 순위",

@@ -108,8 +108,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const photo = PHOTOS[id] || p.tsp?.photoUrl || null;
   // mv(시장가치) 없는 라이트 프로필은 몸값 문구 대신 프로필·이적 기록 중심 타이틀
   const title = p.mv
-    ? `${name} 시장가치${val ? ` €${val}M` : ""} · 몸값 추이 | 스코어베이스`
-    : `${name} 프로필 · 이적 기록 | 스코어베이스`;
+    ? `${name} 시장가치${val ? ` €${val}M` : ""} · 몸값 추이`
+    : `${name} 프로필 · 이적 기록`;
   const description = p.mv
     ? `${name} 선수의 시장가치(몸값) 변동 추이와 이적 기록, 시즌별 성적·커리어. 스코어베이스 이적시장에서 ${name} 몸값을 한눈에.`
     : `${name} 선수의 프로필과 이적 기록, 시즌별 성적·커리어 — 스코어베이스 이적시장.`;

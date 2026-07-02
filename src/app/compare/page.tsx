@@ -11,7 +11,7 @@ import { loadBaseball } from "./baseball";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "선수 비교 · head-to-head 스탯 | 스코어베이스",
+  title: "선수 비교 · head-to-head 스탯",
   description: "축구·NBA·NHL·LCK 선수 두 명을 골라 이번 시즌 지표를 레이더와 표로 비교하세요. 스코어베이스 선수 비교.",
   keywords: ["선수 비교", "축구 선수 비교", "NBA 선수 비교", "스탯 비교", "스코어베이스"],
   alternates: { canonical: "/compare" },

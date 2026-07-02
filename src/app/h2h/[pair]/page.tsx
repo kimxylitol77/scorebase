@@ -127,7 +127,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const koA = toKoreanTeamName(teamA.name, teamA.league) || teamA.name;
   const koB = toKoreanTeamName(teamB.name, teamB.league) || teamB.name;
   const t = tally(finished, a);
-  const record = t.n > 0 ? ` — ${t.n}전 ${t.winA}승 ${t.draw}무 ${t.winB}승` : " — 첫 맞대결";
+  const record = t.n > 0 ? ` — ${t.n}전 ${t.winA}승 ${t.draw}무 ${t.winB}패` : " — 첫 맞대결";
   return {
     title: `${koA} ${koB} 상대전적${record}`,
     description: `${koA} vs ${koB} 역대 맞대결 전적${record}. 최근 경기 결과, 평균 득점${

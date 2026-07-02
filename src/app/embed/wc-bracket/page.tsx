@@ -12,7 +12,7 @@ export const revalidate = 600;
 const SITE_URL = process.env.SITE_URL ?? "https://www.scorebase.kr";
 
 export const metadata: Metadata = {
-  title: "2026 월드컵 대진표 위젯 — 스코어베이스",
+  title: "2026 월드컵 대진표 위젯",
   robots: { index: false, follow: true },
 };
 

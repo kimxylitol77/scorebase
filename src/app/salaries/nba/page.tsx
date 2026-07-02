@@ -19,7 +19,7 @@ const PER_PAGE = 25;
 const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520). API 실패 시.
 
 export const metadata: Metadata = {
-  title: "NBA 선수·팀별 연봉 랭킹 — 2025-26 (한화) | 스코어베이스",
+  title: "NBA 선수·팀별 연봉 랭킹 — 2025-26 (한화)",
   description:
     "NBA 선수 연봉 순위 + 팀별 총 연봉(페이롤) 랭킹. 스테판 커리·요키치 등 최고 연봉 선수와 레이커스·닉스 구단 페이롤을 달러·원화로. 한국어 표기, 매주 자동 갱신. 데이터 Basketball Reference.",
   keywords: ["NBA 연봉", "NBA 팀 연봉", "NBA 페이롤", "NBA 팀별 연봉", "NBA 샐러리캡", "커리 연봉", "NBA 선수 연봉 순위"],

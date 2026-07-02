@@ -185,7 +185,7 @@ export async function generateMetadata({ params, searchParams }: { params: Promi
   const names = await namesFor(a, b, sport, normType(sp.t));
   if (!names) return { title: "선수 비교" };
   const [na, nb] = names;
-  const title = `${na} vs ${nb} 비교 · 시즌 스탯 | 스코어베이스`;
+  const title = `${na} vs ${nb} 비교 · 시즌 스탯`;
   const description = `${na}과(와) ${nb}의 이번 시즌 지표를 레이더와 표로 한눈에 비교. 스코어베이스 선수 비교.`;
   return {
     title, description,

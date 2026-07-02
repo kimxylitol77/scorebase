@@ -18,7 +18,7 @@ const PER_PAGE = 25;
 const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)
 
 export const metadata: Metadata = {
-  title: "MLB 선수·팀별 연봉 랭킹 — 2026 (한화) | 스코어베이스",
+  title: "MLB 선수·팀별 연봉 랭킹 — 2026 (한화)",
   description:
     "MLB 선수 연봉 순위 + 팀별 총 연봉(페이롤) 랭킹. 후안 소토·오타니 등 최고 연봉 선수와 다저스·메츠·양키스 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 Spotrac.",
   keywords: ["MLB 연봉", "MLB 팀 연봉", "MLB 페이롤", "MLB 팀별 연봉", "다저스 연봉", "MLB 선수 연봉 순위", "오타니 연봉"],

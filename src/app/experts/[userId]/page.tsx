@@ -23,9 +23,9 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { userId } = await params;
   const p = await getUserProfile(userId);
-  if (!p) return { title: "전문가 — 스코어베이스" };
+  if (!p) return { title: "전문가" };
   return {
-    title: `${p.nickname}님의 예측 — 스코어베이스`,
+    title: `${p.nickname}님의 예측`,
     description: `${p.nickname} 적중률 ${p.rate}% (${p.hit}/${p.total}). 리그별 정확도와 과거 예측 이력을 확인하세요.`,
   };
 }

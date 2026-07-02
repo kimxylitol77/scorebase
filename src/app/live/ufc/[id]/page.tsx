@@ -162,13 +162,13 @@ async function getMatch(id: number) {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const id = Number((await params).id);
-  if (!Number.isFinite(id)) return { title: "UFC 경기 — 스코어베이스" };
+  if (!Number.isFinite(id)) return { title: "UFC 경기" };
   const m = await getMatch(id);
-  if (!m || m.league !== "UFC") return { title: "UFC 경기 — 스코어베이스" };
+  if (!m || m.league !== "UFC") return { title: "UFC 경기" };
   const h = view(m.homeTeam).ko;
   const a = view(m.awayTeam).ko;
   return {
-    title: `${h} vs ${a} — UFC 분석 | 스코어베이스`,
+    title: `${h} vs ${a} — UFC 분석`,
     description: `${h} vs ${a} UFC 경기. 전적·체급·신체 비교(Tale of the Tape)와 머니라인 배당.`,
   };
 }

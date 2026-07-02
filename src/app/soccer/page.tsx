@@ -17,7 +17,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "축구 — 빅5 리그·순위·AI 예측·이적시장 한눈에 | 스코어베이스",
+  title: "축구 — 빅5 리그·순위·AI 예측·이적시장 한눈에",
   description:
     "프리미어리그·라리가·분데스리가·세리에A·리그1 빅5와 챔피언스리그·월드컵의 순위·일정·AI 예측·이적시장을 한 페이지에서. 스코어베이스 축구 허브.",
   alternates: { canonical: "https://www.scorebase.kr/soccer" },

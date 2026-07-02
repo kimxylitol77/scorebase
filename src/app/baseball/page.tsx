@@ -13,7 +13,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "야구 — 오늘 경기·순위·AI 예측·연봉 한눈에 | 스코어베이스",
+  title: "야구 — 오늘 경기·순위·AI 예측·연봉 한눈에",
   description:
     "KBO·MLB·NPB 오늘 경기, 리그 순위, AI 승부 예측, 선발 매치업, 연봉 랭킹, 주목 선수를 한 페이지에서. 스코어베이스 야구 허브.",
   alternates: { canonical: "https://www.scorebase.kr/baseball" },

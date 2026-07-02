@@ -20,7 +20,7 @@ const TOP3 = FIFA_RANKINGS.slice(0, 3).map((r) => fifaCountryKo(r.name) ?? r.nam
 const KO_SUFFIX = KOREA_RANK ? ` (대한민국 ${KOREA_RANK}위)` : "";
 
 export const metadata: Metadata = {
-  title: `FIFA 국가 랭킹 ${FIFA_RANKINGS.length}개국 · 축구 국가대표 순위${KO_SUFFIX} | 스코어베이스`,
+  title: `FIFA 국가 랭킹 ${FIFA_RANKINGS.length}개국 · 축구 국가대표 순위${KO_SUFFIX}`,
   description: `${FIFA_RANKING_DATE} 기준 FIFA 남자 국가대표 랭킹 ${FIFA_RANKINGS.length}개국 전체. ${TOP3.join("·")} 등 상위국과 ${KOREA_RANK ? `대한민국(${KOREA_RANK}위)` : "대한민국"} 순위를 국기와 함께 한눈에. FIFA 랭킹 계산법·갱신 주기도 정리했습니다.`,
   keywords: [
     "FIFA 랭킹", "FIFA 국가 랭킹", "축구 국가대표 순위", "월드컵 랭킹", "FIFA 랭킹 2026",

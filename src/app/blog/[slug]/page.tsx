@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? b.tags.split(",").map((s) => s.trim()).filter(Boolean)
     : undefined;
   return {
-    title: `${b.title} — 스코어베이스`,
+    title: `${b.title}`,
     description,
     keywords,
     alternates: { canonical: `${SITE_URL}/blog/${slug}` },

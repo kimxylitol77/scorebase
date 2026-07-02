@@ -25,7 +25,7 @@ const CATS: { key: string; label: string; cls: string }[] = [
 const CAT_MAP = Object.fromEntries(CATS.map((c) => [c.key, c]));
 
 export const metadata: Metadata = {
-  title: "NBA 트랜잭션 — 트레이드·FA·방출 | 스코어베이스",
+  title: "NBA 트랜잭션 — 트레이드·FA·방출",
   description:
     "NBA 트레이드·자유계약(FA)·방출·단기계약·감독 선임 등 선수 이동 소식을 한국어로 한눈에. 선수 사진·유형별 필터 제공. 매일 자동 갱신.",
   alternates: { canonical: "https://www.scorebase.kr/transactions/nba" },

@@ -83,7 +83,7 @@ export async function generateMetadata({
       : "";
   const titleSuffix = sport.key === "ALL" ? "" : ` · ${sport.label}${bleague}`;
   return {
-    title: `프리뷰${titleSuffix} — 스코어베이스`,
+    title: `프리뷰${titleSuffix}`,
     description: `축구·야구·농구·하키·e스포츠 프리뷰를 한 곳에서. ${sport.label}${bleague} 카테고리의 최신 프리뷰 글 모음.`,
     // sport 탭까지만 canonical 변형 — 야구 하위 리그 탭은 sport 페이지로 정규화
     alternates: {

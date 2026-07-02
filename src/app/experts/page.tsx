@@ -8,7 +8,7 @@ import { Trophy, Target } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "예측 전문가 순위 — 스코어베이스",
+  title: "예측 전문가 순위",
   description:
     "회원들의 실제 예측 적중률 랭킹. 경기 종료 후 자동 채점되는 정직한 순위표.",
 };

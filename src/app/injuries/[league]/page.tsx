@@ -598,7 +598,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           : ESPN_LEAGUES.includes(upper)
             ? "ESPN"
             : "api-football Pro";
-  const title = `${lm.krFull} 부상자 명단 ${seasonLabel}${totalInjuries > 0 ? ` · 총 ${totalInjuries}명 결장` : ""} | 스코어베이스`;
+  const title = `${lm.krFull} 부상자 명단 ${seasonLabel}${totalInjuries > 0 ? ` · 총 ${totalInjuries}명 결장` : ""}`;
   const description = totalInjuries > 0
     ? `${lm.krFull} 전 팀 부상·결장 선수 ${totalInjuries}명 현황${topTeam ? `. 가장 많은 결장자 보유: ${topTeam.name}(${topTeam.count}명)` : ""}${fullSquadCount > 0 ? `. 풀스쿼드 팀 ${fullSquadCount}개` : ""}. 매일 업데이트 · 출처 ${sourceLabel}.`
     : `${lm.krFull} 전 팀의 현재 부상·결장 선수 한 페이지 정리. 사유·심각도·복귀 가늠 — 매일 업데이트.`;

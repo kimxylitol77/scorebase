@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: `${SITE_URL}/analysis` },
   openGraph: {
-    title: "스포츠 분석 게시판 — 스코어베이스",
+    title: "스포츠 분석 게시판",
     description: "회원 경기 분석·승부 예측 + 적중 자동채점·랭킹.",
     url: `${SITE_URL}/analysis`,
   },
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 const ANALYSIS_JSONLD = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
-  name: "스포츠 분석 게시판 — 스코어베이스",
+  name: "스포츠 분석 게시판",
   description:
     "회원이 직접 올리는 축구·야구·농구·하키 경기 분석과 승부 예측. 예측 적중은 실제 경기 결과로 자동 채점됩니다.",
   url: `${SITE_URL}/analysis`,

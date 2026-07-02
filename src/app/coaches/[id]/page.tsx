@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!c) return { title: "감독 미발견" };
   const career = CAREERS[id];
   const name = career?.nameKo || c.snap.nameKo || c.snap.name;
-  const title = `${name} 감독 프로필 · 경력 | 스코어베이스`;
+  const title = `${name} 감독 프로필 · 경력`;
   const description = `${name} 감독의 커리어 — 역임 클럽 타임라인, 선호 포메이션, 부임·계약 정보${career?.playerCareer?.length ? "와 선수 시절" : ""}. 스코어베이스.`;
   return {
     title,
