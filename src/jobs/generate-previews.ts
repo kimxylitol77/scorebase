@@ -8,6 +8,7 @@ import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildPreviewPrompt } from "@/prompts/match-preview";
 import { buildLolPreviewPrompt } from "@/prompts/lol-preview";
+import { parseKnockoutRound } from "@/lib/predict/wc-bracket";
 import {
   fetchCurrentLolPatch,
   calcLckStandings,
@@ -290,6 +291,15 @@ export async function runPreview(opts?: {
         m.awayTeam.name,
         m.startTime,
       );
+
+      // 월드컵 넉아웃 매치 — raw.league.round 를 프롬프트 가드로 전달 (조별리그 개념 서술 환각 차단)
+      if (m.league === "WORLD_CUP" && m.raw) {
+        try {
+          const j = JSON.parse(m.raw);
+          const round = parseKnockoutRound(j?.league?.round ?? null);
+          if (round) context.wcKnockoutRound = round;
+        } catch {}
+      }
 
       // TheSports analysis 보강 (축구만) — 모든 대회 H2H + 양 팀 최근 7경기 + 시간대별 골 분포.
       // Lightsail football-poller 가 SCHEDULED 매치 포함 5분 주기로 TheSportsMatchCache.analysis 갱신.

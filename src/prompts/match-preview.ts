@@ -2,6 +2,7 @@
 
 import type { NormalizedMatch } from "@/lib/sports/types";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { WC_ROUND_LABEL, type WcRound } from "@/lib/predict/wc-bracket";
 
 /** LoL 로스터 1인 — BDL/Leaguepedia 양쪽 호환 */
 export interface LolRosterPlayer {
@@ -49,8 +50,11 @@ export interface PreviewContext {
   aiReasons?: { tag: string; detail: string }[];
   /** OVER/UNDER 모델 확정값 (build-context, referenceTime=startTime 결정적 — 위젯과 동일 함수·동일 입력). */
   ouMarket?: { line: number; expectedTotal: number; pOver: number; pick: "OVER" | "UNDER" };
-  /** 핸디캡 모델 확정값. pick=우세팀. 본문 표 방향 고정용(LLM 추측·반대표시 차단). */
+  /** 핸디캡 모델 확정값. pick=커버 확률이 높은 쪽 (HOME=홈 -line, AWAY=언더독 +line).
+   *  본문 표 방향·부호 고정용(LLM 추측·반대표시 차단). */
   handicapMarket?: { pick: "HOME" | "AWAY"; line: number; prob: number };
+  /** 월드컵 넉아웃 라운드 (조별리그·비월드컵이면 undefined) — 조별리그 개념 서술 환각 차단 가드용. */
+  wcKnockoutRound?: WcRound;
   /** 더블찬스 모델 확정값(축구). pick: 1X=홈/무, X2=무/원정, 12=홈/원정. */
   doubleChance?: { pick: "1X" | "X2" | "12"; prob: number };
   /** BTTS(양 팀 모두 득점) 모델 확정값(축구·하키). */
@@ -335,9 +339,17 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
     ctxLines.push(
       `- ⚠️ 대회 사실(반드시 준수): 2026 FIFA 월드컵 본선은 미국·캐나다·멕시코 공동개최로, 모든 경기가 북중미 현지 경기장에서 열린다. ${home}·${away} 모두 개최국이 아니라면 이 경기는 중립 구장 경기다 — "홈 구장", "홈 관중의 응원", 자국 도시 개최(예: 서울 개최) 같은 서술 절대 금지. 표기상 홈팀은 대진표 형식일 뿐이다. 개최국(미국·캐나다·멕시코)이 자국에서 치르는 경기만 실제 홈 이점을 언급할 수 있다.`,
     );
+    if (context.wcKnockoutRound) {
+      const roundKo = WC_ROUND_LABEL[context.wcKnockoutRound];
+      ctxLines.push(
+        `- ⚠️ 대회 단계(반드시 준수): 이 경기는 조별리그가 아니라 ${roundKo} 단판 넉아웃 토너먼트다. "조별 리그", "조 1위 경쟁", "승점이 N점으로 올라간다", "조별 순위를 좌우한다" 같은 조별리그 개념 서술 절대 금지 — 조별리그는 이미 끝났고 순위·승점 개념 자체가 없다. 90분 무승부면 연장전, 그래도 동점이면 승부차기로 반드시 승자를 가린다. "시즌 함의" 섹션은 오직 "${roundKo}에서 이기면 다음 라운드 진출, 지면 즉시 탈락"의 토너먼트 관점으로만 서술하라 (우승/강등/플레이오프 확률 언급 금지).`,
+      );
+    }
   }
 
-  if (context.position) {
+  // 넉아웃 매치는 순위·승점 라인 생략 — calcStandings 가 넉아웃 승점까지 합산한 값(조별 최대 9점 초과)이라
+  // "조별리그 성적" 으로 라벨링할 수 없고, 48팀 통합 순위는 오서술만 유발한다.
+  if (context.position && !(match.league === "WORLD_CUP" && context.wcKnockoutRound)) {
     ctxLines.push(
       `- 시즌 순위: ${home} ${context.position.home}위 (${context.points?.home ?? "?"}점) / ${away} ${context.position.away}위 (${context.points?.away ?? "?"}점) — 총 ${context.position.total}팀`,
     );
@@ -368,9 +380,15 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
   }
   if (context.handicapMarket) {
     const h = context.handicapMarket;
-    const fav = h.pick === "HOME" ? home : away;
+    // pick=HOME → 홈 -line (line 차 초과 승리), pick=AWAY → 어웨이 +line (line 차 미만 패배 또는 승리)
+    const hcTeam = h.pick === "HOME" ? home : away;
+    const hcSign = h.pick === "HOME" ? "-" : "+";
+    const hcMeaning =
+      h.pick === "HOME"
+        ? `${hcTeam}이 ${h.line}점차 초과로 승리해야 적중`
+        : `${hcTeam}이 ${h.line}점차 미만으로 지거나 비기거나 이기면 적중`;
     ctxLines.push(
-      `- 핸디캡 예측(모델 확정값): 우세팀 ${fav} -${h.line} cover ${pct(h.prob)} — 방향=${fav} 고정, 절대 반대 팀으로 쓰지 말 것`,
+      `- 핸디캡 예측(모델 확정값): 픽 ${hcTeam} ${hcSign}${h.line} 커버 ${pct(h.prob)} (의미: ${hcMeaning}) — 팀·부호 그대로 쓸 것, 절대 반대 팀이나 반대 부호로 쓰지 말 것`,
     );
   }
   if (context.doubleChance) {
