@@ -67,9 +67,7 @@ export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") ?? "";
   const cronOk = process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
   const intOk = process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
-  const ua = req.headers.get("user-agent") ?? "";
-  const vercelCron = ua.includes("vercel-cron");
-  if (!cronOk && !intOk && !vercelCron) return unauthorized();
+  if (!cronOk && !intOk) return unauthorized();
 
   const apiKey = process.env.API_BASEBALL_KEY;
   if (!apiKey) return NextResponse.json({ error: "API_BASEBALL_KEY 미설정" }, { status: 500 });

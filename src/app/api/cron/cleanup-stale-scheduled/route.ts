@@ -150,10 +150,7 @@ export async function GET(req: NextRequest) {
   const intOk =
     process.env.INTERNAL_API_TOKEN &&
     auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
-  // Vercel cron 은 user-agent vercel-cron/1.0
-  const ua = req.headers.get("user-agent") ?? "";
-  const vercelCron = ua.includes("vercel-cron");
-  if (!cronOk && !intOk && !vercelCron) {
+  if (!cronOk && !intOk) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

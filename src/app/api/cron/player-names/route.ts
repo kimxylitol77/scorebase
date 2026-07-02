@@ -90,11 +90,9 @@ async function haikuTranslate(batch: { id: string; en: string }[]): Promise<Reco
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") ?? "";
-  const ua = req.headers.get("user-agent") ?? "";
   const ok =
     (process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`) ||
-    (process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`) ||
-    ua.includes("vercel-cron");
+    (process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`);
   if (!ok) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   if (!process.env.ANTHROPIC_API_KEY) {

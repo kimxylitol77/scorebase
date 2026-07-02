@@ -13,10 +13,8 @@ export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization") ?? "";
-  const ua = req.headers.get("user-agent") ?? "";
   const cronOk = process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
-  const vercelCron = ua.includes("vercel-cron");
-  if (!cronOk && !vercelCron) {
+  if (!cronOk) {
     const intOk =
       process.env.INTERNAL_API_TOKEN && auth === `Bearer ${process.env.INTERNAL_API_TOKEN}`;
     if (!intOk) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
