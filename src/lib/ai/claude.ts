@@ -45,13 +45,25 @@ function isTransient(err: unknown): boolean {
  * 마지막 문단/문장 종결 지점까지 트림. 절반 이상 잘리는 경우엔 원문 유지(과도 손실 방지).
  */
 function trimToCompleteSentence(text: string): string {
-  const t = text.trimEnd();
-  if (/[.!?다요)\]」』*]$/.test(t)) return t; // 이미 문장 종결로 끝남
+  let t = text.trimEnd();
   const floor = Math.floor(t.length * 0.5);
-  const cut = t.lastIndexOf("\n\n");
-  if (cut > floor) return t.slice(0, cut).trimEnd();
-  for (let i = t.length - 1; i >= floor; i--) {
-    if (".!?".includes(t[i])) return t.slice(0, i + 1);
+  // 문단 트림이 고아 헤딩("## …"만 남음)·수평선을 남기지 않게 반복 정리
+  for (let iter = 0; iter < 6; iter++) {
+    const stripped = t.replace(/(\n#{1,6} [^\n]*|\n-{3,})\s*$/g, "").trimEnd();
+    if (stripped !== t) {
+      t = stripped;
+      continue;
+    }
+    if (/[.!?다요)\]」』*|>~%]$/.test(t)) return t; // 문장 종결·표행·인용으로 끝남
+    const cut = t.lastIndexOf("\n\n");
+    if (cut > floor) {
+      t = t.slice(0, cut).trimEnd();
+      continue;
+    }
+    for (let i = t.length - 1; i >= floor; i--) {
+      if (".!?".includes(t[i])) return t.slice(0, i + 1);
+    }
+    return t; // 더 자를 수 없음 — 원문 유지 (과도 손실 방지)
   }
   return t;
 }
