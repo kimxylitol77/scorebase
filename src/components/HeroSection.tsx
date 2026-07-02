@@ -1,6 +1,17 @@
 // 메인 페이지 최상단 인트로 섹션. 글씨만 — 4개 진입 카드는 HomeFocusCards 분리.
+// 포지셔닝: "적중률을 숨기지 않는 AI 예측" — 실측 채점 경기 수를 DB 에서 세어 근거로 노출.
+import Link from "next/link";
+import { prisma } from "@/lib/db";
 
-export default function HeroSection() {
+export default async function HeroSection() {
+  // 실측 채점 경기 수 (predCorrect 채움 기준) — 홈 revalidate 3600 로 매시 갱신, 백단위 내림 표기.
+  let graded = 0;
+  try {
+    graded = await prisma.match.count({ where: { predCorrect: { not: null } } });
+  } catch {}
+  const gradedLabel =
+    graded >= 1000 ? `${(Math.floor(graded / 100) * 100).toLocaleString()}` : null;
+
   return (
     <section
       className="hero relative overflow-hidden border-b border-neutral-200 dark:border-neutral-800"
@@ -17,7 +28,7 @@ export default function HeroSection() {
       />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <p className="eyebrow text-[11px] font-semibold tracking-[0.2em] uppercase text-neutral-500 mb-4">
-          통계 기반 AI 스포츠 분석
+          적중률을 숨기지 않는 AI 스포츠 분석
         </p>
         <h1
           id="hero-title"
@@ -33,6 +44,19 @@ export default function HeroSection() {
           <strong>Elo 모델</strong>과 <strong>멀티 AI</strong>가 매일 분석하는
           글로벌 스포츠 데이터.
         </p>
+        {gradedLabel && (
+          <Link
+            href="/predictions/accuracy"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-neutral-800 ring-1 ring-black/10 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.06] dark:text-white dark:ring-white/15"
+          >
+            <span className="relative inline-flex w-1.5 h-1.5">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+            </span>
+            {gradedLabel}+ 경기 실측 채점 — 리그·시장별 적중률 전부 공개
+            <span aria-hidden>→</span>
+          </Link>
+        )}
       </div>
     </section>
   );
