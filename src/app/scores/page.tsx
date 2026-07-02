@@ -1735,7 +1735,7 @@ export default async function ScoresPage({ searchParams }: Props) {
             라이브 스코어
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 flex flex-wrap items-center gap-x-2 gap-y-1.5">
-            <span>{dateKo} · 총 {normalized.length}경기</span>
+            <span>{dateKo} · 총 {liveList.length + scheduledList.length + finishedList.length + postponedList.length}경기</span>
             {liveList.length > 0 && (
               <span className="text-rose-600 dark:text-rose-400 font-semibold">
                 ● LIVE {liveList.length}
@@ -1795,7 +1795,8 @@ export default async function ScoresPage({ searchParams }: Props) {
             <SoccerStatusTabs
               active={statusFilter}
               counts={{
-                all: normalized.length,
+                // orphanCards(DB 미적재 경기)를 포함하는 리스트 합과 일치시킴 — "전체(9)·종료(10)" 모순 방지
+                all: liveList.length + scheduledList.length + finishedList.length + postponedList.length,
                 live: liveList.length,
                 scheduled: scheduledList.length,
                 finished: finishedList.length,
