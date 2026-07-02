@@ -1,7 +1,7 @@
 // AI 예측 성적표 — 우리 통계모델 vs GPT-5.5 가 같은 경기를 맞춰온 정면 비교(1X2·핸디·OU 3개 시장) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, X, Trophy, Sparkles, Clock } from "lucide-react";
+import { Check, X, Trophy, Sparkles, Clock, Target, Shuffle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -139,6 +139,30 @@ export default async function ScorecardPage() {
     };
   }).filter((m) => m.sb.graded > 0);
 
+  // 확률 정밀도(Brier) — 픽 확신도(prob)와 결과(1/0)의 제곱 오차 평균. 낮을수록 좋음.
+  // 두 AI 픽이 일치하면 적중률은 자동 동점이라, 확률을 얼마나 정직하게 내는지가 변별 지표.
+  const brierOf = (list: DP[], sel: (d: DP) => Cell): number | null => {
+    if (list.length === 0) return null;
+    let s = 0;
+    for (const d of list) {
+      const c = sel(d);
+      s += (c.prob - (c.correct ? 1 : 0)) ** 2;
+    }
+    return s / list.length;
+  };
+  const sbBrier = brierOf(resolved, (d) => d.sb!);
+  const gptBrier = brierOf(resolved, (d) => d.gpt!);
+  const perMarketBrier = MARKET_META.map((mm) => {
+    const list = resolved.filter((d) => d.market === mm.key);
+    return { ...mm, n: list.length, sb: brierOf(list, (d) => d.sb!), gpt: brierOf(list, (d) => d.gpt!) };
+  }).filter((m) => m.n > 0 && m.sb != null && m.gpt != null);
+
+  // 픽이 갈린 경기 — 일치 픽은 자동 동점이므로 실력 차는 이 구간에서만 벌어진다.
+  const splitList = resolved.filter((d) => d.sb!.pick !== d.gpt!.pick);
+  const splitSb = tallyOf(splitList, (d) => d.sb!);
+  const splitGpt = tallyOf(splitList, (d) => d.gpt!);
+  const agreeCount = resolved.length - splitList.length;
+
   // 누적 적중률 추이 — 종합.
   let sbHit = 0, gptHit = 0;
   const trend: TrendPoint[] = resolvedAsc.map((d, i) => {
@@ -244,6 +268,59 @@ export default async function ScorecardPage() {
           1X2·핸디캡·오버언더 합산 · 같은 경기 {resolved.length}개 데이터포인트 기준
           {resolved.length < 50 && <span className="text-amber-600 dark:text-amber-400"> · 표본 누적 중(아직 통계적 결론은 이름)</span>}
         </p>
+      )}
+
+      {/* 정밀 비교 — 확률 정밀도(Brier) + 픽이 갈린 경기 */}
+      {resolved.length > 0 && sbBrier != null && gptBrier != null && (
+        <section className="mb-12 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
+            <h2 className="flex items-center gap-2 text-[15px] font-bold text-zinc-900 dark:text-white">
+              <Target className="h-4 w-4 text-rose-500" aria-hidden /> 확률 정밀도 (Brier)
+            </h2>
+            <p className="mt-1 text-[12px] leading-relaxed text-zinc-500 dark:text-white/40">
+              픽 확신도와 실제 결과의 오차 — <strong>낮을수록 좋습니다</strong>. 적중률이
+              비슷해도, 확률을 얼마나 정직하게 내는지는 여기서 갈립니다.
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <BrierBig label={MODELS.scorebase.short} value={sbBrier} best={sbBrier <= gptBrier} accent="rose" />
+              <BrierBig label={MODELS.gpt.short} value={gptBrier} best={gptBrier <= sbBrier} accent="emerald" />
+            </div>
+            <div className="mt-3 space-y-1">
+              {perMarketBrier.map((m) => (
+                <div key={m.key} className="flex items-center justify-between text-[12px] tabular-nums">
+                  <span className="text-zinc-500 dark:text-white/40">{m.label}</span>
+                  <span>
+                    <span className={m.sb! <= m.gpt! ? "font-semibold text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-white/50"}>{m.sb!.toFixed(3)}</span>
+                    <span className="mx-1 text-zinc-300 dark:text-white/20">vs</span>
+                    <span className={m.gpt! < m.sb! ? "font-semibold text-emerald-600 dark:text-emerald-400" : "text-zinc-500 dark:text-white/50"}>{m.gpt!.toFixed(3)}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
+            <h2 className="flex items-center gap-2 text-[15px] font-bold text-zinc-900 dark:text-white">
+              <Shuffle className="h-4 w-4 text-rose-500" aria-hidden /> 픽이 갈린 경기
+            </h2>
+            <p className="mt-1 text-[12px] leading-relaxed text-zinc-500 dark:text-white/40">
+              두 AI 픽이 일치한 {agreeCount}건은 자동 동점 — 실력 차는{" "}
+              <strong>서로 다른 쪽을 찍은 {splitList.length}건</strong>에서만 벌어집니다.
+            </p>
+            {splitList.length > 0 ? (
+              <>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <SplitBig label={MODELS.scorebase.short} tally={splitSb} best={splitSb.rate >= splitGpt.rate} accent="rose" />
+                  <SplitBig label={MODELS.gpt.short} tally={splitGpt} best={splitGpt.rate >= splitSb.rate} accent="emerald" />
+                </div>
+                <p className="mt-3 text-[11px] text-zinc-400 dark:text-white/30">
+                  같은 경기에서 정반대 픽 — 한쪽이 맞으면 다른 쪽은 대부분 틀리는 정면 승부 구간입니다.
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-[13px] text-zinc-500 dark:text-white/40">아직 픽이 갈린 채점 경기가 없습니다.</p>
+            )}
+          </div>
+        </section>
       )}
 
       {/* 시장별 성적 */}
@@ -414,6 +491,7 @@ export default async function ScorecardPage() {
             Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, GPT-5.5는 팀·리그·일정과
             <strong> 동일한 기준선(핸디/총점 라인)</strong>만 받아 (우리 모델 수치는 보지 않고) 독립 예측합니다.
             경기가 끝나면 같은 라인으로 채점합니다(축구는 정규시간 기준). 공정성을 위해 두 AI가 모두 예측한 동일 경기·시장만 비교합니다.
+            확률 정밀도(Brier)는 픽 확신도와 실제 결과(적중=1·실패=0)의 제곱 오차 평균으로, 낮을수록 확률을 정직하게 낸 것입니다.
           </p>
           <p className="mt-2 text-zinc-500 dark:text-white/40">
             전체 리그·시장별 적중률은{" "}
@@ -459,6 +537,51 @@ function ModelCard({
       <div className="mt-1 text-[13px] text-zinc-500 dark:text-white/40 tabular-nums">
         {tally.graded > 0 ? `${tally.correct} / ${tally.graded} 적중` : "채점 대기"}
       </div>
+    </div>
+  );
+}
+
+function BrierBig({
+  label,
+  value,
+  best,
+  accent,
+}: {
+  label: string;
+  value: number;
+  best: boolean;
+  accent: "rose" | "emerald";
+}) {
+  const color = accent === "rose" ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400";
+  return (
+    <div className={`rounded-xl px-3 py-2.5 ring-1 ${best ? "bg-zinc-50 ring-zinc-200/80 dark:bg-white/[0.05] dark:ring-white/15" : "bg-white ring-zinc-100 dark:bg-white/[0.02] dark:ring-white/[0.06]"}`}>
+      <div className="text-[11px] font-medium text-zinc-400 dark:text-white/40">{label}</div>
+      <div className={`mt-0.5 text-xl font-bold tabular-nums ${best ? color : "text-zinc-500 dark:text-white/50"}`}>
+        {value.toFixed(4)}
+      </div>
+    </div>
+  );
+}
+
+function SplitBig({
+  label,
+  tally,
+  best,
+  accent,
+}: {
+  label: string;
+  tally: Tally;
+  best: boolean;
+  accent: "rose" | "emerald";
+}) {
+  const color = accent === "rose" ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400";
+  return (
+    <div className={`rounded-xl px-3 py-2.5 ring-1 ${best ? "bg-zinc-50 ring-zinc-200/80 dark:bg-white/[0.05] dark:ring-white/15" : "bg-white ring-zinc-100 dark:bg-white/[0.02] dark:ring-white/[0.06]"}`}>
+      <div className="text-[11px] font-medium text-zinc-400 dark:text-white/40">{label}</div>
+      <div className={`mt-0.5 text-xl font-bold tabular-nums ${best ? color : "text-zinc-500 dark:text-white/50"}`}>
+        {(tally.rate * 100).toFixed(1)}%
+      </div>
+      <div className="text-[11px] text-zinc-400 dark:text-white/30 tabular-nums">{tally.correct}/{tally.graded} 적중</div>
     </div>
   );
 }
