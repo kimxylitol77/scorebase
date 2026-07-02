@@ -54,10 +54,9 @@ import { nationalElo } from "@/lib/predict/build-context";
 import type { PredictMatch } from "@/lib/predict/types";
 import type { ReactNode } from "react";
 import EloMeter from "./EloMeter";
-import WinProbDonut from "./charts/WinProbDonut";
-import EloTrendChart from "./charts/EloTrendChart";
+// recharts 3종은 지연 로딩(청크 분리) — 글 상세 초기 번들 경량화 (감사 B3)
+import { WinProbDonut, EloTrendChart, GoalScatter } from "./charts/lazy-insight-charts";
 import SeasonFormHeatmap from "./charts/SeasonFormHeatmap";
-import GoalScatter from "./charts/GoalScatter";
 import TeamMatchup from "./TeamMatchup";
 import MatchInsightTabs, { type InsightTab } from "./MatchInsightTabs";
 import MatchStatsCard from "./MatchStatsCard";

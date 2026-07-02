@@ -121,7 +121,9 @@ export default async function RootLayout({
             />
           </>
         )}
-        {/* Pretendard — 한국어 본문에 최적화된 변폭 폰트 */}
+        {/* Pretendard — 한국어 본문에 최적화된 변폭 폰트.
+            preconnect 로 CSS·woff2 왕복의 TLS 핸드셰이크 선행(감사 B4 즉효약 — 근본책은 next/font/local 셀프호스팅). */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
