@@ -1,3 +1,4 @@
+// 회원 로그인 — 이메일/비밀번호 + 구글 OAuth
 import Link from "next/link";
 import LoginForm from "./LoginForm";
 import GoogleButton from "../GoogleButton";

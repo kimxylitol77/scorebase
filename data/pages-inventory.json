@@ -267,7 +267,7 @@
   },
   {
     "route": "/login",
-    "desc": "",
+    "desc": "회원 로그인 — 이메일/비밀번호 + 구글 OAuth",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
@@ -421,7 +421,7 @@
   },
   {
     "route": "/signup",
-    "desc": "",
+    "desc": "회원가입 — 이메일 가입 + 구글 OAuth",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
