@@ -57,7 +57,10 @@ export async function GET(req: NextRequest) {
     where: {
       league: { in: baseballLeagues },
       startTime: { gte: start, lt: end },
-      status: { in: ["SCHEDULED", "LIVE"] },
+      // FINISHED 포함 필수 — 더블헤더에서 게임1이 끝나 후보에서 빠지면, ts detail_live 에
+      // 잔류하는 게임1 데이터가 유일 후보인 게임2로 오매핑됨 (2026-07-02 LMB 사고).
+      // 후보가 완전해야 poller 의 시작시각 최근접 매칭이 게임1/2 를 올바르게 가른다.
+      status: { in: ["SCHEDULED", "LIVE", "FINISHED"] },
     },
     select: {
       id: true,
