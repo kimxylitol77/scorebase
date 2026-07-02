@@ -22,6 +22,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
+import MyTeamsStrip from "@/components/MyTeamsStrip";
 import HomeFocusCards from "@/components/HomeFocusCards";
 import HomeAiInsightShowcase from "@/components/HomeAiInsightShowcase";
 import HomeAiScorecardShowcase from "@/components/HomeAiScorecardShowcase";
@@ -183,6 +184,11 @@ export default async function Home() {
       />
 
       <HeroSection />
+
+      {/* 내 팀 바로가기 — 즐겨찾기 팀 보유 방문자만 렌더 */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-5">
+        <MyTeamsStrip />
+      </div>
 
       <HomeFocusCards />
 
