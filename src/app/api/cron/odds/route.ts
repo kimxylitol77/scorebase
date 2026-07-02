@@ -12,7 +12,11 @@ export async function GET(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   try {
-    const tally = await runFetchOdds();
+    // ?leagues=MLB — US 데이게임(KST 01~05시) odds 가 21:00 UTC 단일 런보다 늦게 게시되는
+    // 갭을 메우는 15:00 UTC MLB 단독 런용. 미지정 시 기존 전체 수집.
+    const leaguesParam = new URL(req.url).searchParams.get("leagues");
+    const leagues = leaguesParam?.split(",").map((s) => s.trim()).filter(Boolean);
+    const tally = await runFetchOdds(leagues?.length ? { leagues } : undefined);
     await recordCronRun("odds");
     return NextResponse.json({ ok: true, tally });
   } catch (e) {

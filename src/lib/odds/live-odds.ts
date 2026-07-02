@@ -128,7 +128,9 @@ interface OddsCacheEntry {
   at: number;
 }
 const oddsCache = new Map<string, OddsCacheEntry>();
-const ODDS_TTL_MS = 60_000; // 1분 폴링
+// 3분 폴링 — 라이브 폴링이 일 ~1,000크레딧을 소모해 월 쿼터(20,000)를 6/23~25 소진시킨
+// 주범(전 경기 3일 블랙아웃). TTL 1분→3분 + regions 축소로 소모 ~1/6 로 절감 (2026-07 분석).
+const ODDS_TTL_MS = 180_000;
 
 function avgH2h(event: RawEvent): LiveOddsSnapshot["h2h"] {
   let hSum = 0,
@@ -255,7 +257,7 @@ async function fetchEventOdds(
     const timer = setTimeout(() => ctrl.abort(), 10_000);
     const params = new URLSearchParams({
       apiKey,
-      regions: "us,eu",
+      regions: "us", // eu 제외 — 호출당 6→3크레딧 (쿼터 소진 방지, 표시값은 북메이커 평균이라 영향 미미)
       markets: "h2h,totals,spreads",
       oddsFormat: "decimal",
     });

@@ -153,6 +153,13 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
     }
   }
 
+  // 리그 명시 런(예: 15:00 UTC MLB 단독)은 아래 부가 수집(LoL·타 API 백필)을 건너뜀 —
+  // 전체 런(21:00)에서만 1회 실행하면 충분하고, 단독 런에서 중복 실행하면 호출·시간만 낭비.
+  if (opts?.leagues) {
+    console.log("[odds] 리그 명시 런 — 부가 수집 skip:", tally);
+    return tally;
+  }
+
   // LoL/LCK — 별도 source (The Odds API esports 미지원)
   try {
     const lolMatched = await fetchLolOdds();
