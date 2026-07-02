@@ -378,6 +378,13 @@
     "group": "menu"
   },
   {
+    "route": "/privacy",
+    "desc": "개인정보처리방침 — 개인정보보호법 제30조 필수 기재사항을 담은 정적 고지 페이지.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/salaries/kbo",
     "desc": "KBO 국내 선수 연봉 랭킹 (원화, 상위 큐레이션). 데이터: KBO 공식 + 언론 교차검증 → PlayerSalary(KBO) (만원 단위). 선수명·구단 한글 그대로. ⚠️ KBO 연봉 전체 DB 무료 소스 없음(statiz 로그인 벽) → 국내 선수 TOP 10 큐레이션. 외국인은 달러 별도라 제외.",
     "inMenu": true,
@@ -407,7 +414,7 @@
   },
   {
     "route": "/search",
-    "desc": "통합 검색 — 팀·선수·리그 검색 결과.",
+    "desc": "통합 검색 — 팀·선수·리그(엔티티) + 기사. 엔티티 우선, 기사 후순위.",
     "inMenu": false,
     "dynamic": false,
     "group": "other"
@@ -446,6 +453,13 @@
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
+  },
+  {
+    "route": "/terms",
+    "desc": "이용약관 — 서비스 성격(참고용 데이터·예측 정보)과 면책, 게시물 규칙을 담은 정적 고지 페이지.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/tools/kbo-win-probability",
