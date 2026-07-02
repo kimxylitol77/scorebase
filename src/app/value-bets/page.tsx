@@ -60,10 +60,11 @@ interface ValueBet {
 async function fetchValueBets(): Promise<ValueBet[]> {
   const now = new Date();
   const horizon = new Date(now.getTime() + HORIZON_DAYS * 24 * 3600 * 1000);
-  // 1) Elo 예측 있는 SCHEDULED/LIVE 매치
+  // 1) Elo 예측 있는 SCHEDULED 매치만 — LIVE 는 배당이 인플레이 값으로 갱신되는데
+  // 모델 확률은 경기 전 값이라 비교가 성립하지 않음 (지는 팀 @11.94 가 "+44% 밸류" 1위로 뜨던 버그).
   const matches = await prisma.match.findMany({
     where: {
-      status: { in: ["SCHEDULED", "LIVE"] },
+      status: "SCHEDULED",
       startTime: { gte: new Date(now.getTime() - 3 * 3600 * 1000), lte: horizon },
       predHome: { not: null },
       predAway: { not: null },
