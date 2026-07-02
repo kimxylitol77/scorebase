@@ -3,11 +3,20 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 
+// 링크 대상인 /predictions/accuracy 페이지의 LEAGUES 와 동일 기준(13개 리그) —
+// 뱃지 숫자와 페이지 표본 수가 어긋나면 신뢰 뱃지가 역효과라 반드시 같은 필터 유지.
+const ACCURACY_LEAGUES = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
+  "NBA", "NHL", "MLB", "KBO", "NPB", "LOL",
+];
+
 export default async function HeroSection() {
   // 실측 채점 경기 수 (predCorrect 채움 기준) — 홈 revalidate 3600 로 매시 갱신, 백단위 내림 표기.
   let graded = 0;
   try {
-    graded = await prisma.match.count({ where: { predCorrect: { not: null } } });
+    graded = await prisma.match.count({
+      where: { predCorrect: { not: null }, league: { in: ACCURACY_LEAGUES } },
+    });
   } catch {}
   const gradedLabel =
     graded >= 1000 ? `${(Math.floor(graded / 100) * 100).toLocaleString()}` : null;
