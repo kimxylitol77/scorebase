@@ -875,7 +875,7 @@ export default async function MatchInsight({
           {hc && (
             <MarketCard
               label={`핸디캡 ${hc.line > 0 ? `±${hc.line}` : ""}`}
-              pick={`${hc.pick === "HOME" ? toKoreanTeamName(match.homeTeam.name) : toKoreanTeamName(match.awayTeam.name)} -${hc.line}`}
+              pick={`${hc.pick === "HOME" ? toKoreanTeamName(match.homeTeam.name) : toKoreanTeamName(match.awayTeam.name)} ${hc.pick === "HOME" ? "-" : "+"}${hc.line}`}
               prob={hc.prob}
               correct={hcOk}
               isFinished={isFinished}

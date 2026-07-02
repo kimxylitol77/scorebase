@@ -53,7 +53,7 @@ function rate(correct: number, graded: number): number {
 
 function pickText(market: Market, pick: string, home: string, away: string, line: number | null): string {
   if (market === "OU") return `${pick === "OVER" ? "오버" : "언더"}${line != null ? ` ${line}` : ""}`;
-  if (market === "HANDICAP") return `${pick === "HOME" ? home : away}${line != null ? ` ${line > 0 ? "-" : "+"}${Math.abs(line)}` : ""}`;
+  if (market === "HANDICAP") return `${pick === "HOME" ? home : away}${line != null ? ` ${pick === "HOME" ? "-" : "+"}${Math.abs(line)}` : ""}`;
   if (pick === "HOME") return home;
   if (pick === "AWAY") return away;
   return "무승부";
