@@ -10,7 +10,7 @@ import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
 import PitcherAvatar from "@/components/predictions/PitcherAvatar";
 import AmbientGlow from "@/components/AmbientGlow";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600; // ISR — 선발은 cron(12:00·12:30) 갱신, 10분 캐시로 충분
 
 export const metadata: Metadata = {
   title: "오늘의 선발 투수 매치업 — KBO·MLB·NPB | Scorebase",

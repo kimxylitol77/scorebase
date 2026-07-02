@@ -11,6 +11,7 @@ import { runMonteCarlo } from "@/lib/predict/monte-carlo";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import { buildWorldCupSeedTable } from "@/lib/predict/world-cup-elos";
 import type { PredictMatch } from "@/lib/predict/types";
+import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import MonteCarloBar from "@/components/charts/MonteCarloBar";
 import LeagueBadge from "@/components/LeagueBadge";
 import UclBracket from "@/components/UclBracket";
@@ -39,7 +40,7 @@ import { ALL_LEAGUES, LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import AmbientGlow from "@/components/AmbientGlow";
 import { CircleDot, BookOpen } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600; // ISR — 시즌 시뮬은 일 단위 데이터, 10분 캐시로 충분
 
 // TheSports 시즌 통계 기반 리그 리더보드 (빅5) — 기존 api-football LeagueLeader 대체.
 //  SERIE_A 는 시즌스탯이 2026-27 롤오버로 비어 제외 → 기존 LeagueLeader 유지.
@@ -325,19 +326,38 @@ export default async function LeaguePredictions({ params }: Props) {
   }
   const info = LEAGUE_INFO[upper as ValidLeague];
 
-  const dbMatches = await prisma.match.findMany({
-    where: { league: upper },
-    select: {
-      id: true,
-      league: true,
-      status: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
+  // 시즌 경계 하한 — 지난 시즌까지 합산되던 버그 수정 (KBO 승점 231, 2026-07-02 감사 A2).
+  // 새 시즌 개막 직후·오프시즌(완료 <10)은 직전 시즌 창으로 폴백 — 두 시즌이 섞이는 일은 없음.
+  const matchSelect = {
+    id: true,
+    league: true,
+    status: true,
+    homeTeamId: true,
+    awayTeamId: true,
+    homeScore: true,
+    awayScore: true,
+    startTime: true,
+  } as const;
+  const seasonStart = currentSeasonStart(upper);
+  let dbMatches = await prisma.match.findMany({
+    where: {
+      league: upper,
+      ...(seasonStart ? { startTime: { gte: seasonStart } } : {}),
     },
+    select: matchSelect,
   });
+  if (
+    seasonStart &&
+    dbMatches.filter((m) => m.status === "FINISHED").length < 10
+  ) {
+    dbMatches = await prisma.match.findMany({
+      where: {
+        league: upper,
+        startTime: { gte: previousSeasonStart(seasonStart), lt: seasonStart },
+      },
+      select: matchSelect,
+    });
+  }
   // NBA — 정규 30팀만 화이트리스트 (DB 에 친선·올스타·국제 팀 9개 섞여 있어 시뮬 노이즈 제거)
   const NBA_REGULAR_30 = new Set([
     "TOR","MIA","NY","CHI","BKN","IND","BOS","HOU","PHI","GS",

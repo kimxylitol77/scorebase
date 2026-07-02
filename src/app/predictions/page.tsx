@@ -22,12 +22,10 @@ import rawClubRankings from "../../../data/club-rankings.json";
 // 세계 클럽 랭킹 top5 — 대시보드 FIFA 랭킹 옆 카드용 (정적 JSON)
 const CLUB_RANKINGS = rawClubRankings as { rank: number; name: string; logo: string | null }[];
 
-// b14e3e6 baseline 동일 — 둘 다 export. (force-dynamic 우선 + revalidate hint)
-export const dynamic = "force-dynamic";
-export const revalidate = 600;
+export const revalidate = 600; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
 export const metadata: Metadata = {
-  title: "시즌 예측 — 우승 확률·플레이오프·리더보드 | 스코어베이스",
+  title: "시즌 예측 — 우승 확률·플레이오프·리더보드",
   description:
     "시즌 우승·플레이오프·강등 확률과 득점·홈런·타율·ERA 리더보드를 Monte Carlo 5,000회 + Elo 레이팅으로 분석합니다. EPL·라리가·K리그·KBO·MLB·NPB·NBA·NHL·LCK — 전체 리그 순위는 순위 허브에서.",
   alternates: { canonical: "/predictions" },

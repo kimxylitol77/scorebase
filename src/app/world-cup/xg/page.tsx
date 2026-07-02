@@ -10,8 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 600;
+export const revalidate = 600; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
 export const metadata: Metadata = {
   title: "월드컵 xG 트래커 — 전 경기 기대득점 vs 실제 결과",

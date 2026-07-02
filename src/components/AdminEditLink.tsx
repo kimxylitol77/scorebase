@@ -1,18 +1,13 @@
-// admin 로그인 중일 때만 본문 페이지에 노출되는 편집 링크.
-// 클릭 시 /admin/review/[id] 로 이동해 제목/본문 수정.
+"use client";
+// admin 로그인 중일 때만 본문 페이지에 노출되는 편집 링크. 클릭 시 /admin/review/[id] 로 이동.
+// cookies() 서버 렌더가 articles/[slug] ISR 을 dynamic 강등시키던 회귀 수정 — /api/me 조회 (use-me.ts).
 
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { COOKIE_NAME, readSessionCookie } from "@/lib/auth";
+import { useMe } from "./use-me";
 
-export default async function AdminEditLink({
-  articleId,
-}: {
-  articleId: number;
-}) {
-  const c = await cookies();
-  const session = readSessionCookie(c.get(COOKIE_NAME)?.value);
-  if (!session) return null;
+export default function AdminEditLink({ articleId }: { articleId: number }) {
+  const me = useMe();
+  if (!me?.admin) return null;
   return (
     <Link
       href={`/admin/review/${articleId}`}

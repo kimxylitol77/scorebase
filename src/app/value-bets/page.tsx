@@ -10,8 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 60;
+export const revalidate = 60; // ISR — force-dynamic 제거(2026-07-02, searchParams 없음)
 
 export const metadata: Metadata = {
   title: "밸류 베트 — AI Elo 예측 vs 배당사 implied 확률 비교",

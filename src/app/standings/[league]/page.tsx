@@ -27,7 +27,7 @@ import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy, HeartPulse } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600; // ISR — 순위는 경기 종료 후 poller 가 갱신, 10분 캐시로 충분
 
 interface Props {
   params: Promise<{ league: string }>;
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = LEAGUE_DISPLAY[upper] ?? upper;
   if (upper === "NHL") {
     return {
-      title: "NHL 순위표 — 동·서부 컨퍼런스 전체 순위 | 스코어베이스",
+      title: "NHL 순위표 — 동·서부 컨퍼런스 전체 순위",
       description:
         "NHL 정규시즌 순위표. 동부·서부 컨퍼런스 32팀의 경기·승·패·연장패·승점 전체 순위를 NHL 공식 기록으로 매일 자동 갱신.",
       alternates: { canonical: "https://www.scorebase.kr/standings/NHL" },
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // KBO — 빙 검색어 "kbo 리그 팀 순위"(노출 561·5위)·"kbo순위"(98·6위) 정밀 매칭.
   if (upper === "KBO") {
     return {
-      title: "KBO 리그 팀 순위 — 2026 프로야구 순위표·승률·게임차 | 스코어베이스",
+      title: "KBO 리그 팀 순위 — 2026 프로야구 순위표·승률·게임차",
       description:
         "KBO 리그 팀 순위표. 10개 구단 승·패·무·승률·게임차와 최근 폼을 한눈에. 한국 프로야구 순위 매일 자동 갱신.",
       keywords: [
@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   if (upper === "EWC") {
     return {
-      title: "이스포츠 월드컵 LoL 순위 — 그룹 스테이지 결과·일정 | 스코어베이스",
+      title: "이스포츠 월드컵 LoL 순위 — 그룹 스테이지 결과·일정",
       description:
         "이스포츠 월드컵(Esports World Cup) 리그 오브 레전드 그룹 스테이지 순위·경기 결과·일정. T1 등 출전팀의 승패와 세트 스코어를 한눈에. 매일 자동 갱신.",
       keywords: ["이스포츠 월드컵 LoL", "EWC 롤", "이스포츠 월드컵 순위", "EWC T1", "Esports World Cup LoL"],
@@ -91,7 +91,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   if (upper === "LPL") {
     return {
-      title: "LPL 순위 — 2026 중국 롤 프로리그 그룹별 순위표 | 스코어베이스",
+      title: "LPL 순위 — 2026 중국 롤 프로리그 그룹별 순위표",
       description:
         "LPL(중국 League of Legends Pro League) 2026 스플릿 순위표. 그룹(조)별 팀 순위·승패·승률과 팀 로스터를 한눈에. 매일 자동 갱신.",
       keywords: ["LPL 순위", "LPL 순위표", "중국 롤 순위", "LPL 팀 순위", "LoL Pro League"],
@@ -99,7 +99,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
   return {
-    title: `${name} 순위표 — 스코어베이스`,
+    title: `${name} 순위표`,
     description: `${name} 시즌 순위표. 승점·승무패·골득실·득점·실점 한눈에. 매일 자동 갱신.`,
     alternates: { canonical: `https://www.scorebase.kr/standings/${upper}` },
   };
