@@ -119,6 +119,13 @@
     "group": "menu"
   },
   {
+    "route": "/dream-team/fantasy",
+    "desc": "드림팀 월드컵 판타지 — 선발 11명의 실경기(월드컵) 포인트 랭킹 + 폼 보너스 선수 (공개)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/dream-team/free",
     "desc": "자유 드림팀 구성 — 예산·제약 없이 현역 선수 자유 배치 (공개, 재미용)",
     "inMenu": false,
