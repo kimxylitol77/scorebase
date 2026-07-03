@@ -578,8 +578,13 @@ export default async function TransfersPage({
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [1, 2] } } : {}),
       },
-      // 같은 발효일(7/1 무더기) 안에서는 최근 수집(발표)분 먼저
-      orderBy: [{ transferTime: "desc" }, { updatedAt: "desc" }],
+      // 같은 발효일(7/1 무더기) 안에서는 이적료 큰 순 — updatedAt(재수집 시각) 2차 정렬은
+      // cron 사이클 순서라 임대·자유이적이 빅딜 위로 올라오는 문제 (2026-07-03 실사고)
+      orderBy: [
+        { transferTime: "desc" },
+        { transferFee: { sort: "desc", nulls: "last" } },
+        { updatedAt: "desc" },
+      ],
     });
     const pids = [...new Set(rows.map((r) => r.playerId))];
     const tplayers = await prisma.theSportsPlayer.findMany({
@@ -624,7 +629,10 @@ export default async function TransfersPage({
   } else if (isFeed) {
     const rows = await prisma.footballTransfer.findMany({
       where: feedWhere,
-      orderBy: isBigdeals ? { transferFee: "desc" } : { transferTime: "desc" },
+      // 전체 이력도 같은 발효일 안에서는 이적료 큰 순 (latest 주요 뷰와 동일 기준)
+      orderBy: isBigdeals
+        ? { transferFee: "desc" }
+        : [{ transferTime: "desc" }, { transferFee: { sort: "desc", nulls: "last" } }],
       skip: (safePage - 1) * PER,
       take: PER,
     });
