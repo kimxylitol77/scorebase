@@ -148,15 +148,19 @@ function fmtDate(unix?: number | null): string {
 // 이적 표시 공통(DESC_KO·SPECIAL_TEAM_KO·BADGE_CLS·koTeam·badgeOf)은 transfer-display.ts 공유 —
 // 선수 페이지(/transfers/[id]) 이적 기록과 동일 규칙.
 
-// 이적일 → 날짜 그룹 헤더 "7월 1일 (수)" / 타년도 "2025년 12월 30일 (화)" (UTC 고정 — Vercel/로컬 동일)
-function fmtDateHeader(unix: number): string {
-  const d = new Date(unix * 1000);
+// 소식일(행 첫 수집 시각, KST) → 그룹 헤더 — 최신 이적은 발효일이 아니라 "소식이 뜬 날" 기준.
+// 발효일(transferTime)은 날짜 단위 무더기(7/1 시즌 전환)라 최신순 구분이 안 됨.
+function fmtNewsHeader(unix: number): string {
+  const d = new Date((unix + 9 * 3600) * 1000); // KST 보정 후 UTC getter 사용
   const wd = ["일", "월", "화", "수", "목", "금", "토"][d.getUTCDay()];
   const y = d.getUTCFullYear();
-  const cur = new Date().getUTCFullYear();
-  const base = `${y !== cur ? `${y}년 ` : ""}${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${wd})`;
-  // 미래 발효(7/1 시즌 전환 등) 그룹은 헤더에 명시 — "이미 일어난 이적"으로 오독 방지
-  return unix * 1000 > Date.now() ? `${base} 발효 예정` : base;
+  const cur = new Date(Date.now() + 9 * 3600 * 1000).getUTCFullYear();
+  return `${y !== cur ? `${y}년 ` : ""}${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${wd}) 소식`;
+}
+
+// 발효일 셀 — 미래 발효는 "예정" 명시 (소식일 그룹 안에 섞여 들어오므로 카드에서 구분)
+function fmtDateCell(unix: number): string {
+  return unix * 1000 > Date.now() ? `${fmtDate(unix)} 예정` : fmtDate(unix);
 }
 
 function pageNums(cur: number, total: number): (number | string)[] {
@@ -195,6 +199,7 @@ interface TransferCard {
   ttype: number | null; badge: string | null;
   flag: string | null; country: string | null; fromLogo: string | null; toLogo: string | null;
   age: number | null;
+  newsAt: number; // 소식일 — 행 첫 수집 시각 unix 초 (upsert 가 updatedAt 을 안 건드려 first-seen)
 }
 
 interface TsPlayerLite { nameKo: string | null; name: string | null; photoUrl: string | null; position: string | null }
@@ -203,6 +208,7 @@ interface TransferRow {
   fromTeamId: string | null; toTeamId: string | null;
   transferTime: number | null; transferFee: number | null; transferDesc: string | null; league: string | null;
   transferType: number | null;
+  updatedAt: Date;
 }
 
 // 피드 행의 ts 팀 id → 로고 URL. ① TeamSourceId→Team.logoUrl(빅5 우선 — 동명 클럽 방지)
@@ -252,6 +258,7 @@ function toCard(r: TransferRow, tpMap: Map<string, TsPlayerLite>, teamLogos?: Ma
     fromLogo: (r.fromTeamId && teamLogos?.get(r.fromTeamId)) || null,
     toLogo: (r.toTeamId && teamLogos?.get(r.toTeamId)) || null,
     age: ageMap?.get(r.playerId) ?? null,
+    newsAt: Math.floor(r.updatedAt.getTime() / 1000),
   };
 }
 
@@ -578,13 +585,9 @@ export default async function TransfersPage({
         ...(tFilter === "fee" ? { transferFee: { gt: 0 } } : {}),
         ...(tFilter === "loan" ? { transferType: { in: [1, 2] } } : {}),
       },
-      // 같은 발효일(7/1 무더기) 안에서는 이적료 큰 순 — updatedAt(재수집 시각) 2차 정렬은
-      // cron 사이클 순서라 임대·자유이적이 빅딜 위로 올라오는 문제 (2026-07-03 실사고)
-      orderBy: [
-        { transferTime: "desc" },
-        { transferFee: { sort: "desc", nulls: "last" } },
-        { updatedAt: "desc" },
-      ],
+      // 소식순 — 발효일(transferTime)은 7/1 무더기라 최신 구분이 안 됨.
+      // updatedAt = 첫 수집 시각(upsert 가 안 건드림) = 소식이 피드에 뜬 시점.
+      orderBy: { updatedAt: "desc" },
     });
     const pids = [...new Set(rows.map((r) => r.playerId))];
     const tplayers = await prisma.theSportsPlayer.findMany({
@@ -600,8 +603,11 @@ export default async function TransfersPage({
     // 누가 이적했는지 모르는 "선수 / — / —" 카드는 정보 가치가 없고 깨져 보여 제외로 전환.
     // bigdeals·AI브리핑 뷰와 동일 기준(이름 필수)으로 정합화. 이름이 주간 cron 으로 풀리면 자동 재노출.
     latestMainCards = rows.map((r) => toCard(r, tpMap, logoMap, ageMap)).filter((c) => c.name !== "선수");
+    // 같은 소식일(KST) 안에서는 이적료 큰 순 — 빅딜이 그날 소식 상단에 오도록
+    const newsDay = (c: TransferCard) => Math.floor((c.newsAt + 9 * 3600) / 86400);
+    latestMainCards.sort((a, b) => newsDay(b) - newsDay(a) || b.fee - a.fee || b.newsAt - a.newsAt);
     dateCounts = new Map();
-    for (const c of latestMainCards) { const k = fmtDateHeader(c.time); dateCounts.set(k, (dateCounts.get(k) || 0) + 1); }
+    for (const c of latestMainCards) { const k = fmtNewsHeader(c.newsAt); dateCounts.set(k, (dateCounts.get(k) || 0) + 1); }
   }
 
   const feedScope = league ? [league] : FEED_LEAGUES;
@@ -629,10 +635,8 @@ export default async function TransfersPage({
   } else if (isFeed) {
     const rows = await prisma.footballTransfer.findMany({
       where: feedWhere,
-      // 전체 이력도 같은 발효일 안에서는 이적료 큰 순 (latest 주요 뷰와 동일 기준)
-      orderBy: isBigdeals
-        ? { transferFee: "desc" }
-        : [{ transferTime: "desc" }, { transferFee: { sort: "desc", nulls: "last" } }],
+      // 전체 이력도 소식순 (latest 주요 뷰와 동일 기준 — DB 페이지네이션이라 일내 재정렬은 생략)
+      orderBy: isBigdeals ? { transferFee: "desc" } : { updatedAt: "desc" },
       skip: (safePage - 1) * PER,
       take: PER,
     });
@@ -1023,9 +1027,9 @@ export default async function TransfersPage({
           <div className="lg:hidden overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
             {transferData.map((t, ti) => {
               const rank = (safePage - 1) * PER + ti + 1;
-              // 날짜 그룹 헤더 (최신 이적만) — 이전 행과 날짜 다를 때 섹션 구분
-              const dh = isLatest ? fmtDateHeader(t.time) : null;
-              const prevDh = isLatest && ti > 0 ? fmtDateHeader(transferData[ti - 1].time) : null;
+              // 날짜 그룹 헤더 (최신 이적만) — 소식일(첫 수집) 기준, 이전 행과 다를 때 섹션 구분
+              const dh = isLatest ? fmtNewsHeader(t.newsAt) : null;
+              const prevDh = isLatest && ti > 0 ? fmtNewsHeader(transferData[ti - 1].newsAt) : null;
               return (
               <Fragment key={t.id}>
                 {dh && dh !== prevDh && (
@@ -1084,11 +1088,11 @@ export default async function TransfersPage({
                   {isBigdeals ? (
                     <>
                       <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{Math.round(t.fee / 1e6)}M</div>
-                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(t.time)}</div>
+                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDateCell(t.time)}</div>
                     </>
                   ) : (
                     <>
-                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(t.time)}</div>
+                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDateCell(t.time)}</div>
                       {t.fee > 0 ? (
                         <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">€{Math.round(t.fee / 1e6)}M</div>
                       ) : t.desc && DESC_KO[t.desc] ? (
@@ -1117,8 +1121,8 @@ export default async function TransfersPage({
             </div>
             {transferData.map((t, ti) => {
               const rank = (safePage - 1) * PER + ti + 1;
-              const dh = isLatest ? fmtDateHeader(t.time) : null;
-              const prevDh = isLatest && ti > 0 ? fmtDateHeader(transferData[ti - 1].time) : null;
+              const dh = isLatest ? fmtNewsHeader(t.newsAt) : null;
+              const prevDh = isLatest && ti > 0 ? fmtNewsHeader(transferData[ti - 1].newsAt) : null;
               return (
                 <Fragment key={t.id}>
                   {dh && dh !== prevDh && (
@@ -1194,7 +1198,7 @@ export default async function TransfersPage({
                       ) : (
                         <span className="text-neutral-300 dark:text-neutral-600">—</span>
                       )}
-                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(t.time)}</div>
+                      <div className="text-[11px] text-neutral-400 tabular-nums">{fmtDateCell(t.time)}</div>
                     </div>
                   </Link>
                 </Fragment>
