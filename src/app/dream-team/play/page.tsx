@@ -11,6 +11,7 @@ import { computeStandings, seasonFixtures, seasonLength, type SeasonGame } from 
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayClient from "./PlayClient";
 import DreamTeamNav from "../DreamTeamNav";
+import WcEventBanner from "../WcEventBanner";
 import LeaderboardAside from "../LeaderboardAside";
 
 export const metadata: Metadata = { title: "드림팀 경기 | Scorebase" };
@@ -45,6 +46,7 @@ export default async function PlayPage() {
       <AmbientGlow />
       <div className="relative">
         <DreamTeamNav />
+        <WcEventBanner />
         <span className="inline-block rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-300 dark:ring-rose-500/30">
           {tierName} 리그
         </span>

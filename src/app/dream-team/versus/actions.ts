@@ -12,16 +12,18 @@ import { grownOvr, matchXp } from "@/lib/dream-team/grow";
 import { tacticNote, teamStrength, type TeamPower } from "@/lib/dream-team/tactics";
 import { lineupMembers, awardXp, conditionPenalty, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import { generateMatchEvents } from "@/lib/dream-team/match-events";
+import { getWcFormMap, wcPowerBonus, type WcForm } from "@/lib/dream-team/wc-event";
 import type { PlayState } from "../play/actions";
 
-function squadPower(squad: SquadMember[], lineup: LineupSlot[]): TeamPower {
+// 월드컵 폼 보너스는 양 팀 동일 규칙 적용 (유저 대전 공정성)
+function squadPower(squad: SquadMember[], lineup: LineupSlot[], wcForm: Record<string, WcForm>): TeamPower {
   const members = lineupMembers(squad, lineup);
   const pool = getDreamPlayers(members.map((m) => m.playerId));
   const byId = new Map(pool.map((p) => [p.id, p]));
   const powerInput = members.flatMap((m) => {
     const dp = byId.get(m.playerId);
     if (!dp) return [];
-    const ovr = grownOvr(dp.ovr, dp.potential, m.xp);
+    const ovr = grownOvr(dp.ovr, dp.potential, m.xp) + wcPowerBonus(wcForm, m.playerId);
     return [{ ovr: Math.max(40, ovr - conditionPenalty(m.condition)), pos: dp.pos as string, role: m.role }];
   });
   return teamStrength(powerInput);
@@ -44,8 +46,9 @@ export async function playUserMatch(_prev: PlayState, formData: FormData): Promi
   const oppSquad = (opp.squad as unknown as SquadMember[]) ?? [];
   if (lineupMembers(oppSquad, oppLineup).length !== 11) return { ok: false, error: "상대 팀이 미완성입니다." };
 
-  const myPower = squadPower(mySquad, myLineup);
-  const oppPower = squadPower(oppSquad, oppLineup);
+  const wcForm = await getWcFormMap();
+  const myPower = squadPower(mySquad, myLineup, wcForm);
+  const oppPower = squadPower(oppSquad, oppLineup, wcForm);
   const myOvr = Math.round((myPower.atk + myPower.def) / 2);
   const oppOvr = Math.round((oppPower.atk + oppPower.def) / 2);
   const myElo = teamOvrToElo(myOvr);

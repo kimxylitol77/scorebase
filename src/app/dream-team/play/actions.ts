@@ -17,6 +17,7 @@ import { computeStandings, myRank, seasonBonus, seasonLength, type SeasonGame, t
 import { lineupMembers, applyMatchEffects, conditionPenalty, type SquadMember, type LineupSlot } from "@/lib/dream-team/squad";
 import { marketValue } from "@/lib/dream-team/pricing";
 import { generateMatchEvents, type MatchEvent } from "@/lib/dream-team/match-events";
+import { getWcFormMap, wcPowerBonus } from "@/lib/dream-team/wc-event";
 
 export interface PlayResult {
   myName: string;
@@ -71,13 +72,14 @@ export async function playMatch(_prev: PlayState, formData: FormData): Promise<P
   if (seasonGames.length >= seasonLength(bots)) return { ok: false, error: "시즌 일정을 모두 치렀습니다. 시즌을 정산하세요." };
   if (seasonGames.some((g) => g.botId === botId && g.home === home)) return { ok: false, error: "이미 치른 경기입니다." };
 
-  // 육성 반영 OVR(grownOvr) + 역할로 팀 공격력·수비력 산출
+  // 육성 반영 OVR(grownOvr) + 월드컵 폼 보너스 + 역할로 팀 공격력·수비력 산출
+  const wcForm = await getWcFormMap();
   const pool = getDreamPlayers(members.map((m) => m.playerId));
   const byId = new Map(pool.map((p) => [p.id, p]));
   const powerInput = members.flatMap((m) => {
     const dp = byId.get(m.playerId);
     if (!dp) return [];
-    const ovr = grownOvr(dp.ovr, dp.potential, m.xp);
+    const ovr = grownOvr(dp.ovr, dp.potential, m.xp) + wcPowerBonus(wcForm, m.playerId);
     return [{ ovr: Math.max(40, ovr - conditionPenalty(m.condition)), pos: dp.pos as string, role: m.role }];
   });
   const myPower = teamStrength(powerInput);
