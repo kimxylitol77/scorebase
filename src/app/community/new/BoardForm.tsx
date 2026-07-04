@@ -6,7 +6,13 @@ import { createPostAction, type PostFormState } from "@/app/analysis/actions";
 
 const initialState: PostFormState = { ok: false };
 
-export default function BoardForm({ myTeam }: { myTeam: { name: string; tierName: string } | null }) {
+export default function BoardForm({
+  myTeam,
+  defaultLineup,
+}: {
+  myTeam: { name: string; tierName: string } | null;
+  defaultLineup?: string | null;
+}) {
   const [state, formAction, pending] = useActionState(createPostAction, initialState);
 
   return (
@@ -86,13 +92,22 @@ export default function BoardForm({ myTeam }: { myTeam: { name: string; tierName
           <input
             id="lineupUrl"
             name="lineupUrl"
+            defaultValue={defaultLineup ? `/lineup?d=${defaultLineup}` : undefined}
             placeholder="https://www.scorebase.kr/lineup?d=..."
             className="w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-sm outline-none focus:border-rose-400 dark:border-neutral-700 dark:bg-white/[0.04]"
           />
-          <p className="mt-1 text-[11px] text-neutral-400">
-            <Link href="/lineup" className="underline" target="_blank">전술판</Link>
-            에서 포메이션을 짠 뒤 공유 버튼으로 복사한 링크를 붙여넣으면 글에 이미지로 첨부됩니다.
-          </p>
+          {defaultLineup ? (
+            <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/api/og/lineup?d=${defaultLineup}`} alt="첨부될 전술판 미리보기" className="w-full" loading="lazy" />
+              <p className="bg-neutral-50 px-3 py-1.5 text-[11px] text-neutral-500 dark:bg-white/[0.04]">전술판에서 가져온 라인업 — 이대로 글에 첨부됩니다.</p>
+            </div>
+          ) : (
+            <p className="mt-1 text-[11px] text-neutral-400">
+              <Link href="/lineup" className="underline" target="_blank">전술판</Link>
+              에서 포메이션을 짠 뒤 "게시판에 올리기" 버튼을 누르거나, 공유 링크를 붙여넣으면 글에 이미지로 첨부됩니다.
+            </p>
+          )}
         </div>
       </fieldset>
 

@@ -2,7 +2,7 @@
 // 라인업 전술판 빌더 — 포메이션/자유/맞대결 + 클럽 + 드래그 + 표시모드/방향 + 전술 그리기 + undo/redo + 캡처 공유.
 // 피치·드래그=Pitch, 후보=CandidatePanel, 그리기=DrawLayer, 이력=useHistory.
 import { useMemo, useCallback, useState, useRef, useEffect, type ComponentType } from "react";
-import { Share2, Download, Link2, Check, Shirt, UserPlus, Undo2, Redo2, RotateCcw, MousePointer2, Pen, Minus, MoreHorizontal, MoveUpRight, Square, Circle, Volleyball, Eraser } from "lucide-react";
+import { Share2, Download, Link2, Check, Shirt, UserPlus, Undo2, Redo2, RotateCcw, MousePointer2, Pen, Minus, MoreHorizontal, MoveUpRight, Square, Circle, Volleyball, Eraser, PenLine } from "lucide-react";
 import Pitch from "./Pitch";
 import CandidatePanel from "./CandidatePanel";
 import DrawLayer from "./DrawLayer";
@@ -445,6 +445,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             <button type="button" onClick={onCapture} disabled={capturing} className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:opacity-50"><Download className="h-4 w-4" /> {capturing ? "저장 중…" : "이미지로 저장"}</button>
             <button type="button" onClick={onShare} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><Share2 className="h-4 w-4" /> 공유</button>
             <button type="button" onClick={onCopy} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200">{copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Link2 className="h-4 w-4" />}{copied ? "복사됨" : "링크 복사"}</button>
+            <a href={`/community/new?lineup=${encodeURIComponent(code)}`} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><PenLine className="h-4 w-4" /> 게시판에 올리기</a>
           </div>
         </div>
 

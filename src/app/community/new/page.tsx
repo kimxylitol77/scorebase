@@ -10,9 +10,14 @@ import BoardForm from "./BoardForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewBoardPostPage() {
+export default async function NewBoardPostPage({ searchParams }: { searchParams: Promise<{ lineup?: string }> }) {
+  // 전술판 "게시판에 올리기" 진입 — ?lineup={d코드} 를 폼에 미리 채움 (로그인 리다이렉트에도 보존)
+  const { lineup } = await searchParams;
+  const lineupCode = lineup && /^[A-Za-z0-9_\-~.%]+$/.test(lineup) && lineup.length <= 4000 ? lineup : null;
   const user = await getCurrentUser();
-  if (!user) redirect("/login?from=/community/new");
+  if (!user) {
+    redirect(`/login?from=${encodeURIComponent(`/community/new${lineupCode ? `?lineup=${lineupCode}` : ""}`)}`);
+  }
 
   // 내 드림팀 — 있으면 첨부 체크박스에 팀명 노출
   const team = await prisma.dreamTeam.findFirst({
@@ -37,7 +42,10 @@ export default async function NewBoardPostPage() {
           <ChevronLeft className="h-4 w-4" aria-hidden /> 목록
         </Link>
       </div>
-      <BoardForm myTeam={team ? { name: team.name, tierName: TIERS[team.tier]?.name ?? team.tier } : null} />
+      <BoardForm
+        myTeam={team ? { name: team.name, tierName: TIERS[team.tier]?.name ?? team.tier } : null}
+        defaultLineup={lineupCode}
+      />
     </main>
   );
 }
