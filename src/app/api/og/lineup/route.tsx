@@ -3,6 +3,8 @@
 
 import { ImageResponse } from "next/og";
 import { getDreamPlayers } from "@/lib/dream-team/pool";
+import { prisma } from "@/lib/db";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { decodeBoard, pidsFromBoard, type Side } from "@/lib/lineup/lineup-state";
 import { KIT_BY_KEY, SIDE_COLORS, toDisplayXY } from "@/lib/lineup/formations";
 import { readFileSync } from "fs";
@@ -75,9 +77,32 @@ export async function GET(req: Request) {
     return new ImageResponse(<Fallback />, { width: 1080, height: 1350, headers: { "Cache-Control": "public, max-age=60" } });
   }
 
-  const players = getDreamPlayers(pidsFromBoard(board));
-  const byId: Record<string, (typeof players)[number]> = {};
-  for (const p of players) byId[p.id] = p;
+  // 이름·사진 해석 — 빌더와 동일 우선순위(교정 사전 → DB nameKo → dream-pool).
+  // 풀은 빅5 출전자만이라 스쿼드 전용 선수(신입·로테이션)는 DB 보강이 없으면 이름이 빠진다.
+  const pids = pidsFromBoard(board);
+  const players = getDreamPlayers(pids);
+  const dreamById: Record<string, (typeof players)[number]> = {};
+  for (const p of players) dreamById[p.id] = p;
+  const DB_POS: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
+  const byId: Record<string, { name: string; pos: string | null; photo: string | null }> = {};
+  try {
+    const rows = await prisma.theSportsPlayer.findMany({
+      where: { id: { in: pids } },
+      select: { id: true, name: true, nameKo: true, position: true, photoUrl: true },
+    });
+    for (const r of rows) {
+      const fixed = toKoreanPlayerName(r.name);
+      const dream = dreamById[r.id];
+      byId[r.id] = {
+        name: /[가-힣]/.test(fixed) ? fixed : (r.nameKo && /[가-힣]/.test(r.nameKo) ? r.nameKo : dream?.name ?? r.name),
+        pos: dream?.pos ?? DB_POS[r.position ?? ""] ?? null,
+        photo: dream?.photo ?? r.photoUrl ?? null,
+      };
+    }
+  } catch { /* DB 실패 시 dream-pool 폴백 */ }
+  for (const p of players) {
+    if (!byId[p.id]) byId[p.id] = { name: p.name, pos: p.pos, photo: p.photo };
+  }
 
   const versus = board.mode === "versus";
   const landscape = board.orientation === "landscape";
@@ -90,7 +115,7 @@ export async function GET(req: Request) {
         const d = toDisplayXY(pl.x, pl.y, landscape);
         if (pl.pid) {
           const p = byId[pl.pid];
-          return { x: d.x, y: d.y, name: p?.name ?? null, number: NUM_BY_ID.get(pl.pid) ?? null, pos: p?.pos ?? pl.pos, side: versus ? sideKey : null, photo: photoMode ? (p?.photo ?? null) : null };
+          return { x: d.x, y: d.y, name: p?.name ?? null, number: NUM_BY_ID.get(pl.pid) ?? null, pos: (p?.pos ?? pl.pos) as string, side: versus ? sideKey : null, photo: photoMode ? (p?.photo ?? null) : null };
         }
         return { x: d.x, y: d.y, name: pl.name, number: null, pos: pl.pos, side: versus ? sideKey : null, photo: null };
       });

@@ -10,14 +10,17 @@ export interface PoolPlayer {
   team: string;
   photo: string | null;
   number: number | null; // 등번호 (team-squads 공식 스쿼드 기준, 없으면 null)
-  clubKey: string; // 클럽 그룹 키(정규화)
+  clubKey: string; // 클럽 그룹 키 (스쿼드 클럽 = "ts-{teamId}", 검색 전용 = 정규화 팀명)
+  isNew?: boolean; // 이번 여름 이적창 신규 영입 (NEW 배지)
 }
 
 // 클럽 가져오기 드롭다운용 메타.
 export interface ClubMeta {
-  key: string; // 정규화 그룹 키
-  label: string; // 대표 표기(최다)
+  key: string; // 그룹 키 (ts-{teamId} / wc-{nation})
+  label: string; // 한글 표기
   league: string;
   count: number;
   canBest11: boolean; // GK1/DF4/MF3/FW3 충족 여부
+  coachName?: string | null; // 감독 한글명 (team-coaches)
+  coachFormation?: string | null; // 감독 선호 포메이션 ("4-4-2" 등)
 }

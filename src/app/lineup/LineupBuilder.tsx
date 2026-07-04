@@ -19,8 +19,13 @@ interface Props {
 }
 
 const POS_LABEL: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
-const LEAGUE_LABEL: Record<string, string> = { EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1", WORLD_CUP: "월드컵 대표팀" };
-const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "WORLD_CUP"];
+const LEAGUE_LABEL: Record<string, string> = {
+  EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A", LIGUE_1: "리그 1",
+  WORLD_CUP: "월드컵 대표팀", K_LEAGUE_1: "K리그1", K_LEAGUE_2: "K리그2", MLS: "MLS", SAUDI_PL: "사우디 프로리그",
+  CHAMPIONSHIP: "챔피언십", EREDIVISIE: "에레디비시", PRIMEIRA_LIGA: "프리메이라리가", SUPER_LIG: "쉬페르리그",
+  J1_LEAGUE: "J1리그", J2_LEAGUE: "J2리그", BRASILEIRAO: "브라질레이랑", LIGA_MX: "리가 MX", CSL: "중국 슈퍼리그", A_LEAGUE: "A리그",
+};
+const LEAGUE_ORDER = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "WORLD_CUP"];
 const DISPLAY_MODES: [DisplayMode, string][] = [["photo", "사진"], ["name", "번호"]];
 const ORIENTATIONS: [Orientation, string][] = [["portrait", "세로"], ["landscape", "가로"]];
 const TOOLS: [Tool, ComponentType<{ className?: string }>, string][] = [
@@ -198,30 +203,71 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
         });
         return updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: FREE_FORMATION, players }));
       }
+      // 감독 선호 포메이션이 프리셋에 있으면 그것으로 자동 배치 (감독 전술 추천)
+      const coachF = club?.coachFormation && FORMATIONS[club.coachFormation] ? club.coachFormation : null;
       const cur = side === "away" ? b.away : b.home;
-      const fname = cur?.formation && cur.formation !== FREE_FORMATION && FORMATIONS[cur.formation] ? cur.formation : "4-3-3";
+      const fname = coachF ?? (cur?.formation && cur.formation !== FREE_FORMATION && FORMATIONS[cur.formation] ? cur.formation : "4-3-3");
       const cursor: Record<Pos, number> = { GK: 0, DF: 0, MF: 0, FW: 0 };
       const players: Placed[] = FORMATIONS[fname].map((slot) => {
         const cand = byPos[slot.pos][cursor[slot.pos]++];
         return { uid: newUid(), pid: cand ? cand.id : null, name: null, pos: slot.pos, x: slot.x, y: placeY(slot.y, side, versus) };
       });
-      return updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
+      const next = updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
+      // 부제가 비어 있으면 감독명 자동 병기 — 보드·OG 카드에 감독 노출
+      if (!next.subtitle && club?.coachName) return { ...next, subtitle: `감독 ${club.coachName} · ${fname}` };
+      return next;
     });
     setActiveSide(side);
     setActiveUid(null);
   }
 
   // 클럽 드롭다운 — side 를 명시해 맞대결에서 우리팀/상대팀을 각각 불러온다(단일은 home 고정).
+  // 리그 순서 — 우선순위 리그 먼저, 나머지 커버 리그는 뒤에 알파벳순
+  const leagueOrder = useMemo(() => {
+    const rest = Object.keys(clubsByLeague).filter((lg) => !LEAGUE_ORDER.includes(lg)).sort();
+    return [...LEAGUE_ORDER, ...rest];
+  }, [clubsByLeague]);
+
   const clubPicker = (side: "home" | "away", label: string) => (
     <select value="" onChange={(e) => loadClub(e.target.value, side)} className="max-w-[200px] rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 outline-none dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-500">
       <option value="">{label}</option>
-      {LEAGUE_ORDER.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
+      {leagueOrder.filter((lg) => clubsByLeague[lg]?.length).map((lg) => (
         <optgroup key={lg} label={LEAGUE_LABEL[lg] ?? lg}>
           {clubsByLeague[lg].map((c) => (<option key={c.key} value={c.key}>{c.label}{c.canBest11 ? "" : " (일부)"}</option>))}
         </optgroup>
       ))}
     </select>
   );
+
+  // 불러온 클럽의 감독 메타 — Side.club 은 라벨 문자열이라 라벨로 역조회
+  const coachOf = (side: "home" | "away") => {
+    const clubLabel = side === "away" ? board.away?.club : board.home.club;
+    if (!clubLabel) return null;
+    const c = clubs.find((x) => x.label === clubLabel);
+    return c?.coachName ? c : null;
+  };
+
+  const coachChip = (side: "home" | "away") => {
+    const c = coachOf(side);
+    if (!c) return null;
+    const cur = side === "away" ? board.away?.formation : board.home.formation;
+    const applicable = c.coachFormation && FORMATIONS[c.coachFormation] && cur !== c.coachFormation;
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-300">
+        감독 <span className="font-semibold text-neutral-900 dark:text-white">{c.coachName}</span>
+        {c.coachFormation && <span className="text-neutral-400">· 선호 {c.coachFormation}</span>}
+        {applicable && (
+          <button
+            type="button"
+            onClick={() => applyFormation(c.coachFormation!, side)}
+            className="rounded-full bg-rose-600 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-rose-500"
+          >
+            전술 적용
+          </button>
+        )}
+      </span>
+    );
+  };
 
   function addPlayer() {
     const uid = newUid();
@@ -391,6 +437,8 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             {clubPicker("away", "상대팀 클럽 불러오기…")}
           </>
         ) : clubPicker("home", "클럽에서 가져오기…")}
+        {coachChip("home")}
+        {board.mode === "versus" && coachChip("away")}
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400"><Shirt className="h-3.5 w-3.5" /> 키트</span>
           <div className="flex gap-1.5">

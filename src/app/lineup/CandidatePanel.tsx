@@ -24,6 +24,13 @@ export default function CandidatePanel({ pool, pos, clubKey, label, filled, used
 
   const candidates = useMemo(() => {
     const q = search.trim();
+    // 검색 없음 + 클럽 로드됨 → 그 클럽 스쿼드 전원(해당 포지션)만 — 검색 안 해도 선수단이 다 보이게.
+    // 검색어가 있으면 전체 풀 검색 (다른 팀 선수 영입 가능).
+    if (q === "" && clubKey) {
+      return pool
+        .filter((p) => p.pos === pos && !usedIds.has(p.id) && p.clubKey === clubKey)
+        .sort((a, b) => (a.number ?? 999) - (b.number ?? 999) || b.ovr - a.ovr);
+    }
     return pool
       .filter((p) => p.pos === pos && !usedIds.has(p.id) && (q === "" || p.name.includes(q)))
       .sort((a, b) => {
@@ -109,6 +116,7 @@ export default function CandidatePanel({ pool, pos, clubKey, label, filled, used
               <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white">
                 {p.name}
                 {p.number != null && <span className="ml-1 font-normal text-neutral-400">({p.number})</span>}
+                {p.isNew && <span className="ml-1.5 rounded bg-rose-500/10 px-1 py-0.5 align-middle text-[9px] font-bold text-rose-600 dark:text-rose-400">NEW</span>}
               </span>
               <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">{p.team}</span>
             </span>
