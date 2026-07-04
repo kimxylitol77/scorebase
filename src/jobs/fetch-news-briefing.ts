@@ -293,6 +293,7 @@ async function classify(items: RssItem[]): Promise<Classified[]> {
     "- 5-6: 실명·구단이 특정된 신빙성 있는 이적 협상 보도·주요 구단 소식",
     "- 0-4: 칼럼·의견·경기 리뷰·평점·중계 안내·사소한 소식",
     "찌라시성 실명 없는 낚시, 단순 링크 모음은 무조건 0-4.",
+    "이적(TRANSFER) 기사인데 헤드라인·요약에 대상 선수의 실명이 없으면 — '월드컵 스타', '5000만 유로 자원' 식 낚시 헤드라인 — 무조건 0-4. 이름 없는 이적 기사는 브리핑 가치가 없다.",
     "",
     list,
   ].join("\n");
@@ -318,7 +319,7 @@ const REWRITE_SYSTEM = [
   "2. 직접 인용은 최대 1문장. 반드시 따옴표로 감싸고 발화자를 명시한다. 인용이 꼭 필요하지 않으면 쓰지 마라.",
   "3. 원문에 없는 사실·수치·추측을 추가하지 마라. 환율 환산도 금지. 확정이 아닌 내용은 '~라고 보도했다', '~로 알려졌다'로 명확히 귀속시켜라.",
   "4. 이적 소식은 단계를 명확히 구분하라 (보도/협상 중/합의/메디컬/오피셜).",
-  "5. 선수·팀 이름은 한국 축구 커뮤니티 통용 표기를 쓴다 (예: 맨시티, 아스널, 손흥민).",
+  "5. 선수·팀 이름은 한국 축구 커뮤니티 통용 표기를 쓴다 (예: 맨시티, 아스널, 손흥민). 'here we go' 는 '히위고'로 표기한다.",
   "6. 문체는 존댓말 게시판 톤. 담백하고 정확하게. 과장·이모지 금지.",
   "7. 재료가 헤드라인·요약뿐이면 확인된 사실만 2~3문장으로 짧게 써라. 배경 설명·전망·구단의 과거 행보 등 원문에 없는 내용은 한 문장도 추가하지 마라. 짧고 정확한 글이 길고 틀린 글보다 낫다.",
   "8. 본문에서 매체·기자를 언급할 땐 위에 제공된 소스명·기자명만 그대로 사용하라. 다른 매체명을 지어내지 마라.",
@@ -363,7 +364,14 @@ interface Verdict {
 }
 
 async function verify(
-  input: { title: string; desc: string; body: string | null; sourceName: string; journalist: string | null },
+  input: {
+    title: string;
+    desc: string;
+    body: string | null;
+    sourceName: string;
+    journalist: string | null;
+    category: string | null;
+  },
   out: Rewritten,
 ): Promise<Verdict> {
   const prompt = [
@@ -375,6 +383,9 @@ async function verify(
     "3. 직접 인용이 2문장 이상이거나 발화자 표기가 없다.",
     "4. 선수·팀 한글 표기가 명백히 틀렸다.",
     "5. 원문 자료가 빈약한데 브리핑이 그 이상을 단정한다.",
+    ...(input.category === "TRANSFER"
+      ? ["6. 이적 브리핑인데 대상 선수의 실명이 본문에 없다 ('이름 미확인' 류 — 정보 가치 없음)."]
+      : []),
     "",
     '출력은 JSON 하나만: {"ok": true/false, "problems": ["문제 요약", ...]}',
     "",
@@ -601,7 +612,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
         }
 
         const verdict = await verify(
-          { title: item.title, desc: item.desc, body, sourceName: item.sourceName, journalist },
+          { title: item.title, desc: item.desc, body, sourceName: item.sourceName, journalist, category: c.category ?? null },
           out,
         );
         if (!verdict.ok) {
