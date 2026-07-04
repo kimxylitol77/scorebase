@@ -289,11 +289,11 @@ export default async function PostDetailPage({ params }: Props) {
           </Link>
         )}
 
-        {/* 첨부 — 전술판 (세로 1080×1350 카드라 본문 폭 그대로면 과대 — 중앙 정렬 축소) */}
+        {/* 첨부 — 전술판 (본문 폭 그대로 크게 — 사용자 피드백: 축소판은 너무 작음) */}
         {post.lineupCode && (
           <Link
             href={`/lineup?d=${post.lineupCode}`}
-            className="mx-auto mt-5 block max-w-md overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_18px_50px_-28px_rgba(15,23,30,0.3)] transition-colors hover:ring-rose-300/60 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:ring-rose-500/40"
+            className="mt-5 block overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_18px_50px_-28px_rgba(15,23,30,0.3)] transition-colors hover:ring-rose-300/60 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:ring-rose-500/40"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`/api/og/lineup?d=${post.lineupCode}`} alt="첨부된 전술판" className="w-full" loading="lazy" />
