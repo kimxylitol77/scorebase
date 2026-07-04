@@ -53,6 +53,7 @@ interface CardSlot {
   pos: string;
   side: "home" | "away" | null;
   photo: string | null; // 사진 모드용 data URL (프리페치 실패 시 null → 번호 칩 폴백)
+  alt: boolean; // 대체자원(뎁스 차트) — 빨강 링, 있으면 선발은 파랑 링
 }
 
 // satori 는 img 로드 실패 시 렌더 전체가 깨진다 — 사진을 서버에서 미리 받아 data URL 로 주입.
@@ -115,9 +116,9 @@ export async function GET(req: Request) {
         const d = toDisplayXY(pl.x, pl.y, landscape);
         if (pl.pid) {
           const p = byId[pl.pid];
-          return { x: d.x, y: d.y, name: p?.name ?? null, number: NUM_BY_ID.get(pl.pid) ?? null, pos: (p?.pos ?? pl.pos) as string, side: versus ? sideKey : null, photo: photoMode ? (p?.photo ?? null) : null };
+          return { x: d.x, y: d.y, name: p?.name ?? null, number: NUM_BY_ID.get(pl.pid) ?? null, pos: (p?.pos ?? pl.pos) as string, side: versus ? sideKey : null, photo: photoMode ? (p?.photo ?? null) : null, alt: !!pl.alt };
         }
-        return { x: d.x, y: d.y, name: pl.name, number: null, pos: pl.pos, side: versus ? sideKey : null, photo: null };
+        return { x: d.x, y: d.y, name: pl.name, number: null, pos: pl.pos, side: versus ? sideKey : null, photo: null, alt: !!pl.alt };
       });
 
   const slots: CardSlot[] = [...toSlots(board.home, "home"), ...(board.away ? toSlots(board.away, "away") : [])];
@@ -150,7 +151,7 @@ export async function GET(req: Request) {
     subtitle +
     "Scorebase scorebase.kr vs HOMEAWAY GKDFMFW0123456789 abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" +
     slots.map((s) => s.name ?? "").join("") +
-    "후보" +
+    "후보선발대체자원" +
     bench.map((b) => b.name).join("");
   const font = await loadFont(fontText);
 
@@ -229,8 +230,14 @@ function Card({
         )}
         <div style={{ position: "absolute", left: "50%", top: "50%", width: "160px", height: "160px", transform: "translate(-50%, -50%)", border: "2px solid rgba(255,255,255,0.12)", borderRadius: "999px" }} />
         {slots.map((s, i) => (
-          <CardPlayer key={i} s={s} nameMode={nameMode} />
+          <CardPlayer key={i} s={s} nameMode={nameMode} depthMode={slots.some((x) => x.alt)} />
         ))}
+        {slots.some((x) => x.alt) && (
+          <div style={{ position: "absolute", left: "26px", bottom: "24px", display: "flex", alignItems: "center", gap: "16px", fontSize: "17px", fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><span style={{ display: "flex", width: "12px", height: "12px", borderRadius: "999px", background: "rgba(59,130,246,0.95)" }} /> 선발</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><span style={{ display: "flex", width: "12px", height: "12px", borderRadius: "999px", background: "rgba(239,68,68,0.95)" }} /> 대체자원</span>
+          </div>
+        )}
       </div>
 
       {bench.length > 0 && (
@@ -263,11 +270,12 @@ function Card({
   );
 }
 
-function CardPlayer({ s, nameMode }: { s: CardSlot; nameMode: boolean }) {
+function CardPlayer({ s, nameMode, depthMode }: { s: CardSlot; nameMode: boolean; depthMode: boolean }) {
   const sideC = s.side ? SIDE_COLORS[s.side] : null;
   const fg = sideC ? (s.side === "home" ? "#fda4af" : "#93c5fd") : "#fda4af";
   const bg = sideC ? sideC.soft : "rgba(190,52,85,0.24)";
-  const bd = sideC ? sideC.ring : "rgba(190,52,85,0.9)";
+  // 뎁스 차트 — 대체자원 빨강, (있으면) 선발 파랑. 아니면 기존 색.
+  const bd = s.alt ? "rgba(239,68,68,0.95)" : depthMode && !sideC ? "rgba(59,130,246,0.95)" : sideC ? sideC.ring : "rgba(190,52,85,0.9)";
   return (
     <div
       style={{

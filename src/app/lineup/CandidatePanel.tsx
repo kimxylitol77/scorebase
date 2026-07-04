@@ -17,11 +17,13 @@ interface Props {
   onDelete: () => void;
   onClose: () => void;
   benchMode?: boolean; // 후보 명단 추가 모드 — 삭제 버튼 숨김, 다중 선택(패널 유지)
+  altOn?: boolean; // 이 노드가 대체자원(빨강)인지
+  onToggleAlt?: () => void; // 선발↔대체 토글 (filled 노드에서만 노출)
 }
 
 const POS_KO: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
 
-export default function CandidatePanel({ pool, pos, clubKey, label, filled, usedIds, onPick, onCustom, onDelete, onClose, benchMode }: Props) {
+export default function CandidatePanel({ pool, pos, clubKey, label, filled, usedIds, onPick, onCustom, onDelete, onClose, benchMode, altOn, onToggleAlt }: Props) {
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");
 
@@ -78,13 +80,29 @@ export default function CandidatePanel({ pool, pos, clubKey, label, filled, used
       </div>
 
       {!benchMode && (
-        <button
-          type="button"
-          onClick={onDelete}
-          className="mb-3 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
-        >
-          <Trash2 className="h-3.5 w-3.5" /> {filled ? "이 선수 빼기" : "이 자리 삭제"}
-        </button>
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={onDelete}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> {filled ? "이 선수 빼기" : "이 자리 삭제"}
+          </button>
+          {filled && onToggleAlt && (
+            <button
+              type="button"
+              onClick={onToggleAlt}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                altOn
+                  ? "border-red-400 bg-red-50 text-red-600 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400"
+                  : "border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-500/30 dark:text-blue-400 dark:hover:bg-blue-500/10"
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full" style={{ background: altOn ? "#ef4444" : "#3b82f6" }} />
+              {altOn ? "대체자원 (빨강) — 선발로 전환" : "선발 — 대체자원으로 표시"}
+            </button>
+          )}
+        </div>
       )}
 
       <input

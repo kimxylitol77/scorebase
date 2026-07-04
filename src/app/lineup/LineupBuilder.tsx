@@ -301,6 +301,12 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     updatePlayers(activeSide, (ps) => ps.map((n) => (n.uid === activeUid ? { ...n, pid: null, name } : n)));
     setActiveUid(null);
   }
+  // 대체자원 토글 — 선택된 노드를 뎁스 차트의 대체(빨강)로/선발로 전환
+  function toggleAlt() {
+    if (!activeUid) return;
+    updatePlayers(activeSide, (ps) => ps.map((n) => (n.uid === activeUid ? { ...n, alt: !n.alt || undefined } : n)));
+  }
+
   const BENCH_MAX = 12;
   function benchAdd(pp: PoolPlayer) {
     commit((b) => ((b.bench ?? []).length >= BENCH_MAX ? b : { ...b, bench: [...(b.bench ?? []), { pid: pp.id, name: null }] }));
@@ -544,7 +550,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
           {benchPicking ? (
             <CandidatePanel pool={pool} pos="MF" clubKey={activeClubKey} label={`후보 명단에 추가 · ${(board.bench ?? []).length}/12`} filled={false} usedIds={usedIds} onPick={benchAdd} onCustom={benchAddCustom} onDelete={() => {}} onClose={() => setBenchPicking(false)} benchMode />
           ) : activeNode ? (
-            <CandidatePanel pool={pool} pos={activePos} clubKey={activeClubKey} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} />
+            <CandidatePanel pool={pool} pos={activePos} clubKey={activeClubKey} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} altOn={!!activeNode.alt} onToggleAlt={toggleAlt} />
           ) : (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우거나, 아래에서 클럽(팀)을 고르면 포메이션에 11명이 한 번에 채워집니다. 도구로 전술 화살표·선도 그릴 수 있어요.</p>

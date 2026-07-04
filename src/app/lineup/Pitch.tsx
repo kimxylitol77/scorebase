@@ -28,6 +28,8 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
   const pitchRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ uid: string; side: "home" | "away"; sx: number; sy: number; moved: boolean } | null>(null);
   const landscape = orientation === "landscape";
+  // 뎁스 차트 모드 — 대체자원(alt)이 하나라도 있으면 선발/대체 색 구분 활성
+  const depthMode = [home, away].some((s) => s?.players.some((p) => p.alt));
 
   // 진영 제한 없음 — 단일·맞대결 모두 위아래 자유 이동(양 팀이 상대 진영까지 넘나들 수 있게).
   const clampY = useCallback(
@@ -83,6 +85,12 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
       style={{ aspectRatio: landscape ? "16 / 10" : "4 / 5", background: `linear-gradient(${landscape ? "to right" : "to bottom"}, ${kitFrom}, ${kitTo})` }}
     >
       <PitchMarkings landscape={landscape} versus={mode === "versus"} />
+      {depthMode && (
+        <div className="pointer-events-none absolute bottom-1.5 left-2.5 flex items-center gap-2.5 text-[10px] font-semibold text-white/85" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "rgba(59,130,246,0.95)" }} /> 선발</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "rgba(239,68,68,0.95)" }} /> 대체자원</span>
+        </div>
+      )}
 
       {sides.map(([sideKey, side]) =>
         side.players.map((pl) => {
@@ -92,7 +100,16 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
           const dispPos = player ? player.pos : pl.pos;
           const empty = !player && !name;
           const isActive = activeUid === pl.uid;
-          const ring = mode === "versus" ? SIDE_COLORS[sideKey].ring : "rgba(255,255,255,0.7)";
+          // 뎁스 차트 — 대체자원은 빨강, (대체가 하나라도 있으면) 선발은 파랑으로 구분
+          const RED = "rgba(239,68,68,0.95)";
+          const BLUE = "rgba(59,130,246,0.95)";
+          const ring = pl.alt
+            ? RED
+            : mode === "versus"
+              ? SIDE_COLORS[sideKey].ring
+              : depthMode
+                ? BLUE
+                : "rgba(255,255,255,0.7)";
           const chipBg = mode === "versus" ? SIDE_COLORS[sideKey].solid : "rgba(255,255,255,0.25)";
           const disp = toDisplayXY(pl.x, pl.y, landscape);
           return (

@@ -42,6 +42,7 @@ export interface Placed {
   pos: Pos; // 커스텀 선수의 포지션 (실선수는 렌더 시 pool.pos 우선)
   x: number; // 0~100 %
   y: number; // 0~100 %
+  alt?: boolean; // 대체자원(뎁스 차트) — true 면 빨강 링, 있으면 선발은 파랑 링
 }
 export interface Side {
   club: string | null; // 가져온 클럽명 (라벨·맞대결 헤더용)
@@ -80,7 +81,7 @@ export function newUid(): string {
 }
 
 // 와이어(축약) 포맷 — URL 길이 절감. 선수 [pid,x,y] | 커스텀 [0,x,y,name,posCode]. 좌표는 정수.
-type WirePlayer = [string, number, number] | [0, number, number, string, number];
+type WirePlayer = [string, number, number] | [string, number, number, 1] | [0, number, number, string, number] | [0, number, number, string, number, 1];
 interface WireSide {
   c?: string;
   pl: WirePlayer[];
@@ -99,11 +100,16 @@ interface WireBoard {
 }
 
 function sideToWire(side: Side): WireSide {
-  const pl: WirePlayer[] = side.players.map((p) =>
-    p.pid
-      ? [p.pid, Math.round(p.x), Math.round(p.y)]
-      : [0, Math.round(p.x), Math.round(p.y), p.name ?? "", posToCode(p.pos)],
-  );
+  const pl: WirePlayer[] = side.players.map((p) => {
+    if (p.pid) {
+      return p.alt
+        ? ([p.pid, Math.round(p.x), Math.round(p.y), 1] as WirePlayer)
+        : ([p.pid, Math.round(p.x), Math.round(p.y)] as WirePlayer);
+    }
+    return p.alt
+      ? ([0, Math.round(p.x), Math.round(p.y), p.name ?? "", posToCode(p.pos), 1] as WirePlayer)
+      : ([0, Math.round(p.x), Math.round(p.y), p.name ?? "", posToCode(p.pos)] as WirePlayer);
+  });
   const w: WireSide = { pl };
   if (side.club) w.c = side.club;
   return w;
@@ -113,11 +119,11 @@ function sideToWire(side: Side): WireSide {
 function wireToSide(w: WireSide): Side {
   const players: Placed[] = (w.pl ?? []).map((t) => {
     if (t[0] === 0) {
-      const [, x, y, name, code] = t as [0, number, number, string, number];
-      return { uid: newUid(), pid: null, name: name || null, pos: codeToPos(code), x, y };
+      const [, x, y, name, code, altFlag] = t as [0, number, number, string, number, 1?];
+      return { uid: newUid(), pid: null, name: name || null, pos: codeToPos(code), x, y, alt: altFlag === 1 || undefined };
     }
-    const [pid, x, y] = t as [string, number, number];
-    return { uid: newUid(), pid, name: null, pos: "MF" as Pos, x, y };
+    const [pid, x, y, altFlag] = t as [string, number, number, 1?];
+    return { uid: newUid(), pid, name: null, pos: "MF" as Pos, x, y, alt: altFlag === 1 || undefined };
   });
   return { club: w.c ?? null, formation: null, players };
 }
