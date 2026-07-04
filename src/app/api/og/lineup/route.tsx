@@ -122,6 +122,15 @@ export async function GET(req: Request) {
 
   const slots: CardSlot[] = [...toSlots(board.home, "home"), ...(board.away ? toSlots(board.away, "away") : [])];
 
+  // 후보 명단 (더블 스쿼드) — 이름·등번호 텍스트 바
+  const bench = (board.bench ?? []).map((e) => {
+    if (e.pid) {
+      const p = byId[e.pid];
+      return { name: p?.name ?? "선수", number: NUM_BY_ID.get(e.pid) ?? null };
+    }
+    return { name: e.name ?? "", number: null };
+  }).filter((b) => b.name);
+
   // 사진 모드 — 프리페치해 data URL 로 (같은 URL 은 1회만, 실패는 번호 칩 폴백)
   if (photoMode) {
     const urls = [...new Set(slots.map((s) => s.photo).filter((u): u is string => !!u && u.startsWith("http")))];
@@ -140,10 +149,12 @@ export async function GET(req: Request) {
     title +
     subtitle +
     "Scorebase scorebase.kr vs HOMEAWAY GKDFMFW0123456789 abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-    slots.map((s) => s.name ?? "").join("");
+    slots.map((s) => s.name ?? "").join("") +
+    "후보" +
+    bench.map((b) => b.name).join("");
   const font = await loadFont(fontText);
 
-  return new ImageResponse(<Card title={title} subtitle={subtitle} versus={versus} landscape={landscape} nameMode={nameMode} kit={kit} slots={slots} />, {
+  return new ImageResponse(<Card title={title} subtitle={subtitle} versus={versus} landscape={landscape} nameMode={nameMode} kit={kit} slots={slots} bench={bench} />, {
     width: landscape ? 1350 : 1080,
     height: landscape ? 1080 : 1350,
     headers: CACHE_HEADERS,
@@ -159,6 +170,7 @@ function Card({
   nameMode,
   kit,
   slots,
+  bench,
 }: {
   title: string;
   subtitle: string;
@@ -167,6 +179,7 @@ function Card({
   nameMode: boolean;
   kit: { from: string; to: string };
   slots: CardSlot[];
+  bench: { name: string; number: number | null }[];
 }) {
   return (
     <div
@@ -220,6 +233,29 @@ function Card({
         ))}
       </div>
 
+      {bench.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: "8px 18px",
+            marginTop: "14px",
+            padding: "14px 20px",
+            borderRadius: "16px",
+            background: `linear-gradient(135deg, ${kit.from}, ${kit.to})`,
+            border: "2px solid rgba(255,255,255,0.18)",
+          }}
+        >
+          <span style={{ display: "flex", fontSize: "18px", fontWeight: 700, letterSpacing: "0.08em", color: "rgba(255,255,255,0.75)" }}>후보</span>
+          {bench.map((b, i) => (
+            <span key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "21px", fontWeight: 700, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>
+              {b.name}
+              {b.number != null ? <span style={{ display: "flex", fontSize: "17px", fontWeight: 400, color: "rgba(255,255,255,0.6)" }}>{b.number}</span> : null}
+            </span>
+          ))}
+        </div>
+      )}
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", fontSize: "20px", opacity: 0.7, letterSpacing: "0.05em", marginTop: "14px" }}>
         scorebase.kr
       </div>

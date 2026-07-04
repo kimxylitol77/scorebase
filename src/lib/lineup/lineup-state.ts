@@ -59,7 +59,14 @@ export interface BoardState {
   kit: string;
   home: Side;
   away?: Side;
+  bench: BenchEntry[]; // 후보 명단 (더블 스쿼드) — 실선수 pid 또는 커스텀 이름
   strokes: Stroke[]; // 전술 그림 (URL 인코딩 제외, 화면 캡처로만 공유)
+}
+
+// 후보 명단 항목 — 좌표 없이 pid(실선수) 또는 name(커스텀)만.
+export interface BenchEntry {
+  pid: string | null;
+  name: string | null;
 }
 
 const POS_CODES: Pos[] = ["GK", "DF", "MF", "FW"];
@@ -88,6 +95,7 @@ interface WireBoard {
   kit: string;
   h: WireSide;
   a?: WireSide;
+  b?: (string | [0, string])[]; // 후보 명단 — pid 또는 [0, 커스텀이름]
 }
 
 function sideToWire(side: Side): WireSide {
@@ -127,6 +135,7 @@ export function encodeBoard(b: BoardState): string {
   else if (b.displayMode === "name") w.dm = "n";
   if (b.orientation === "landscape") w.o = "l";
   if (b.mode === "versus" && b.away) w.a = sideToWire(b.away);
+  if (b.bench.length) w.b = b.bench.map((e) => (e.pid ? e.pid : ([0, e.name ?? ""] as [0, string])));
   return b64urlEncode(JSON.stringify(w));
 }
 
@@ -144,6 +153,10 @@ export function decodeBoard(code: string): BoardState | null {
         kit: obj.kit ?? "grass",
         home: wireToSide(obj.h),
         away: obj.a ? wireToSide(obj.a) : undefined,
+        bench: Array.isArray(obj.b)
+          ? obj.b.map((e: string | [0, string]) =>
+              typeof e === "string" ? { pid: e, name: null } : { pid: null, name: e[1] || null })
+          : [],
         strokes: [],
       };
     }
@@ -156,6 +169,7 @@ export function decodeBoard(code: string): BoardState | null {
         subtitle: obj.s ?? "",
         kit: obj.k ?? "grass",
         home: sideFromLegacy(obj as LineupState),
+        bench: [],
         strokes: [],
       };
     }
@@ -191,5 +205,6 @@ export function pidsFromBoard(b: BoardState): string[] {
     if (!side) continue;
     for (const p of side.players) if (p.pid) ids.push(p.pid);
   }
+  for (const e of b.bench) if (e.pid) ids.push(e.pid);
   return ids;
 }

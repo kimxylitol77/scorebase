@@ -16,11 +16,12 @@ interface Props {
   onCustom: (name: string) => void;
   onDelete: () => void;
   onClose: () => void;
+  benchMode?: boolean; // 후보 명단 추가 모드 — 삭제 버튼 숨김, 다중 선택(패널 유지)
 }
 
 const POS_KO: Record<Pos, string> = { GK: "골키퍼", DF: "수비수", MF: "미드필더", FW: "공격수" };
 
-export default function CandidatePanel({ pool, pos, clubKey, label, filled, usedIds, onPick, onCustom, onDelete, onClose }: Props) {
+export default function CandidatePanel({ pool, pos, clubKey, label, filled, usedIds, onPick, onCustom, onDelete, onClose, benchMode }: Props) {
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");
 
@@ -76,13 +77,15 @@ export default function CandidatePanel({ pool, pos, clubKey, label, filled, used
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={onDelete}
-        className="mb-3 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
-      >
-        <Trash2 className="h-3.5 w-3.5" /> {filled ? "이 선수 빼기" : "이 자리 삭제"}
-      </button>
+      {!benchMode && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="mb-3 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
+        >
+          <Trash2 className="h-3.5 w-3.5" /> {filled ? "이 선수 빼기" : "이 자리 삭제"}
+        </button>
+      )}
 
       <input
         value={search}

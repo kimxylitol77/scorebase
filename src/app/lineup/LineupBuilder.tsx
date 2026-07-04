@@ -87,7 +87,7 @@ function dataUrlToBlob(dataUrl: string): Blob {
 
 function initBoard(initial: BoardState | null): BoardState {
   if (initial) return { ...initial, strokes: initial.strokes ?? [] };
-  return { mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", strokes: [], home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
+  return { mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", bench: [], strokes: [], home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
 }
 
 export default function LineupBuilder({ pool, clubs, initial }: Props) {
@@ -95,6 +95,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const { state: board, commit, setTransient, checkpoint, undo, redo, reset, canUndo, canRedo } = useHistory<BoardState>(init0);
   const [activeSide, setActiveSide] = useState<"home" | "away">("home");
   const [activeUid, setActiveUid] = useState<string | null>(null);
+  const [benchPicking, setBenchPicking] = useState(false); // 후보 명단 추가 패널
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<StrokeColor>("white");
   const [copied, setCopied] = useState(false);
@@ -131,6 +132,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
   const usedIds = useMemo(() => {
     const s = new Set<string>();
     for (const side of [board.home, board.away]) if (side) for (const p of side.players) if (p.pid) s.add(p.pid);
+    for (const e of board.bench) if (e.pid) s.add(e.pid);
     return s;
   }, [board]);
 
@@ -293,6 +295,17 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
     updatePlayers(activeSide, (ps) => ps.map((n) => (n.uid === activeUid ? { ...n, pid: null, name } : n)));
     setActiveUid(null);
   }
+  const BENCH_MAX = 12;
+  function benchAdd(pp: PoolPlayer) {
+    commit((b) => (b.bench.length >= BENCH_MAX ? b : { ...b, bench: [...b.bench, { pid: pp.id, name: null }] }));
+  }
+  function benchAddCustom(name: string) {
+    commit((b) => (b.bench.length >= BENCH_MAX ? b : { ...b, bench: [...b.bench, { pid: null, name }] }));
+  }
+  function benchRemove(i: number) {
+    commit((b) => ({ ...b, bench: b.bench.filter((_, idx) => idx !== i) }));
+  }
+
   function deleteNode() {
     if (!activeUid) return;
     updatePlayers(activeSide, (ps) => ps.filter((n) => n.uid !== activeUid));
@@ -486,6 +499,29 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             <Pitch home={board.home} away={board.away} mode={board.mode} displayMode={board.displayMode} orientation={board.orientation} poolById={poolById} kitFrom={kitObj.from} kitTo={kitObj.to} activeUid={activeUid} onNodeClick={nodeClick} onNodeMove={nodeMove} onDragStart={checkpoint} />
             <DrawLayer strokes={board.strokes} tool={tool} color={color} onCommitStroke={commitStroke} onErase={eraseStroke} />
             <div className="pointer-events-none absolute bottom-1.5 right-2.5 text-[11px] font-semibold text-white/70" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.85)" }}>scorebase.kr</div>
+            {board.bench.length > 0 && (
+              <div className="mt-1.5 rounded-xl px-3 py-2.5" style={{ background: `linear-gradient(135deg, ${kitObj.from}, ${kitObj.to})` }}>
+                <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-white/75">후보</span>
+                  {board.bench.map((e, i) => {
+                    const pp = e.pid ? poolById[e.pid] : null;
+                    return (
+                      <span key={i} className="inline-flex items-center gap-1.5 text-xs font-semibold text-white" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>
+                        {pp?.photo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={pp.photo} alt="" className="h-5 w-5 rounded-full bg-white/80 object-cover ring-1 ring-white/40" />
+                        )}
+                        {pp?.name ?? e.name}
+                        {pp?.number != null && <span className="font-normal text-white/60">{pp.number}</span>}
+                        {!capturing && (
+                          <button type="button" onClick={() => benchRemove(i)} aria-label="후보에서 빼기" className="text-white/50 hover:text-white">×</button>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
           <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500">선수를 눌러 채우거나 끌어서 이동, 도구로 전술을 그릴 수 있어요.</p>
 
@@ -494,11 +530,14 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             <button type="button" onClick={onShare} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><Share2 className="h-4 w-4" /> 공유</button>
             <button type="button" onClick={onCopy} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200">{copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Link2 className="h-4 w-4" />}{copied ? "복사됨" : "링크 복사"}</button>
             <a href={`/community/new?lineup=${encodeURIComponent(code)}`} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><PenLine className="h-4 w-4" /> 게시판에 올리기</a>
+            <button type="button" onClick={() => { setActiveUid(null); setBenchPicking(true); }} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200"><UserPlus className="h-4 w-4" /> 후보 추가{board.bench.length > 0 ? ` (${board.bench.length})` : ""}</button>
           </div>
         </div>
 
         <div className="mt-4 max-w-2xl">
-          {activeNode ? (
+          {benchPicking ? (
+            <CandidatePanel pool={pool} pos="MF" clubKey={activeClubKey} label={`후보 명단에 추가 · ${board.bench.length}/12`} filled={false} usedIds={usedIds} onPick={benchAdd} onCustom={benchAddCustom} onDelete={() => {}} onClose={() => setBenchPicking(false)} benchMode />
+          ) : activeNode ? (
             <CandidatePanel pool={pool} pos={activePos} clubKey={activeClubKey} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} />
           ) : (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
