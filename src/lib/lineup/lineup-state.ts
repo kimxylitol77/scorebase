@@ -135,7 +135,7 @@ export function encodeBoard(b: BoardState): string {
   else if (b.displayMode === "name") w.dm = "n";
   if (b.orientation === "landscape") w.o = "l";
   if (b.mode === "versus" && b.away) w.a = sideToWire(b.away);
-  if (b.bench.length) w.b = b.bench.map((e) => (e.pid ? e.pid : ([0, e.name ?? ""] as [0, string])));
+  if ((b.bench ?? []).length) w.b = (b.bench ?? []).map((e) => (e.pid ? e.pid : ([0, e.name ?? ""] as [0, string])));
   return b64urlEncode(JSON.stringify(w));
 }
 
@@ -205,6 +205,6 @@ export function pidsFromBoard(b: BoardState): string[] {
     if (!side) continue;
     for (const p of side.players) if (p.pid) ids.push(p.pid);
   }
-  for (const e of b.bench) if (e.pid) ids.push(e.pid);
+  for (const e of b.bench ?? []) if (e.pid) ids.push(e.pid);
   return ids;
 }
