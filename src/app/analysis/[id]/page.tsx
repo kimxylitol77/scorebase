@@ -56,6 +56,7 @@ export default async function PostDetailPage({ params }: Props) {
       category: true,
       dreamTeamId: true,
       lineupCode: true,
+      sport: true,
       views: true,
       likes: true,
       commentCount: true,
@@ -173,7 +174,11 @@ export default async function PostDetailPage({ params }: Props) {
 
       <article className="mt-5">
         {isFree ? (
-          <span className="inline-flex w-fit rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">자유</span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-flex w-fit rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">자유</span>
+            {post.sport === "soccer" && <span className="inline-flex w-fit rounded-md bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-white/10 dark:text-neutral-300">축구</span>}
+            {post.sport === "baseball" && <span className="inline-flex w-fit rounded-md bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-white/10 dark:text-neutral-300">야구</span>}
+          </span>
         ) : (
           <span className="inline-flex w-fit rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">분석</span>
         )}

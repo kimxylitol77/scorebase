@@ -14,6 +14,24 @@ export default function BoardForm({ myTeam }: { myTeam: { name: string; tierName
       <input type="hidden" name="category" value="FREE" />
 
       <div>
+        <span className="mb-1.5 block text-sm font-semibold">말머리</span>
+        <div className="flex gap-1.5">
+          {[
+            { v: "", label: "잡담" },
+            { v: "soccer", label: "축구" },
+            { v: "baseball", label: "야구" },
+          ].map((t, i) => (
+            <label key={t.v} className="flex-1 cursor-pointer">
+              <input type="radio" name="tag" value={t.v} defaultChecked={i === 0} className="peer sr-only" />
+              <span className="block rounded-xl border border-neutral-200 bg-white py-2 text-center text-sm font-medium text-neutral-600 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:font-bold peer-checked:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-300 dark:peer-checked:text-rose-300">
+                {t.label}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <label htmlFor="title" className="mb-1.5 block text-sm font-semibold">제목</label>
         <input
           id="title"

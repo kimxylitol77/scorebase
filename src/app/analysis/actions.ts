@@ -40,9 +40,11 @@ export async function createPostAction(
     return { ok: false, error: "내용을 5자 이상 입력해주세요." };
   }
 
-  // 자유글 첨부 — 내 드림팀 / 전술판 공유 코드 (모두 선택)
-  const attachData: { dreamTeamId?: string; lineupCode?: string } = {};
+  // 자유글 첨부 — 내 드림팀 / 전술판 공유 코드 (모두 선택) + 말머리(sport 재사용)
+  const attachData: { dreamTeamId?: string; lineupCode?: string; sport?: string } = {};
   if (isFree) {
+    const tag = String(formData.get("tag") ?? "").trim();
+    if (tag === "soccer" || tag === "baseball") attachData.sport = tag;
     const wantTeam = String(formData.get("attachDreamTeam") ?? "") === "on";
     const lineupRaw = String(formData.get("lineupUrl") ?? "").trim();
     if (wantTeam) {

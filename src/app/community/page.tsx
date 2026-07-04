@@ -16,24 +16,45 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 20;
 
-export default async function CommunityBoardPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const { page } = await searchParams;
+// 말머리 탭 — Post.sport 재사용 (soccer/baseball, null=잡담). 글이 늘면 URL 분리 검토.
+const TAGS = [
+  { key: "", label: "전체" },
+  { key: "soccer", label: "축구" },
+  { key: "baseball", label: "야구" },
+  { key: "talk", label: "잡담" },
+] as const;
+const TAG_BADGE: Record<string, string> = { soccer: "축구", baseball: "야구" };
+
+export default async function CommunityBoardPage({ searchParams }: { searchParams: Promise<{ page?: string; tag?: string }> }) {
+  const { page, tag: tagRaw } = await searchParams;
   const cur = Math.max(1, Number(page) || 1);
+  const tag = TAGS.some((t) => t.key === tagRaw) ? (tagRaw ?? "") : "";
+  const where = {
+    category: "FREE",
+    ...(tag === "talk" ? { sport: null } : tag ? { sport: tag } : {}),
+  };
   const [posts, total, userId] = await Promise.all([
     prisma.post.findMany({
-      where: { category: "FREE" },
+      where,
       orderBy: { createdAt: "desc" },
       skip: (cur - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       select: {
         id: true, title: true, views: true, likes: true, commentCount: true, createdAt: true,
-        dreamTeamId: true, lineupCode: true,
+        dreamTeamId: true, lineupCode: true, sport: true,
         author: { select: { nickname: true, level: true, badge: true } },
       },
     }),
-    prisma.post.count({ where: { category: "FREE" } }),
+    prisma.post.count({ where }),
     getCurrentUserId(),
   ]);
+  const tagHref = (t: string, p = 1) => {
+    const q = new URLSearchParams();
+    if (t) q.set("tag", t);
+    if (p > 1) q.set("page", String(p));
+    const qs = q.toString();
+    return qs ? `/community?${qs}` : "/community";
+  };
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
@@ -57,6 +78,23 @@ export default async function CommunityBoardPage({ searchParams }: { searchParam
         </Link>
       </div>
 
+      {/* 말머리 탭 */}
+      <div className="mb-4 flex gap-1 rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04] sm:inline-flex">
+        {TAGS.map((t) => (
+          <Link
+            key={t.key}
+            href={tagHref(t.key)}
+            className={`flex-1 rounded-full px-4 py-1.5 text-center text-sm font-medium transition-colors sm:flex-none ${
+              tag === t.key
+                ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300"
+                : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+            }`}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </div>
+
       {posts.length === 0 ? (
         <div className="rounded-2xl bg-white px-4 py-14 text-center ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
           <p className="text-sm text-neutral-500">아직 글이 없습니다. 첫 글의 주인공이 되어보세요.</p>
@@ -70,6 +108,11 @@ export default async function CommunityBoardPage({ searchParams }: { searchParam
               <li key={p.id}>
                 <Link href={`/analysis/${p.id}`} className="block px-4 py-3.5 transition-colors hover:bg-neutral-50 dark:hover:bg-white/[0.04] sm:px-5">
                   <div className="flex items-center gap-2">
+                    {p.sport && TAG_BADGE[p.sport] && (
+                      <span className="shrink-0 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-white/10 dark:text-neutral-300">
+                        {TAG_BADGE[p.sport]}
+                      </span>
+                    )}
                     <span className="min-w-0 truncate font-semibold text-neutral-900 dark:text-white">{p.title}</span>
                     {p.dreamTeamId && (
                       <span className="shrink-0 rounded bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">드림팀</span>
@@ -105,7 +148,7 @@ export default async function CommunityBoardPage({ searchParams }: { searchParam
               <span key={p} className="flex items-center gap-1.5">
                 {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-neutral-400">…</span>}
                 <Link
-                  href={p === 1 ? "/community" : `/community?page=${p}`}
+                  href={tagHref(tag, p)}
                   className={`rounded-lg px-3 py-1.5 ${p === cur ? "bg-rose-600 font-semibold text-white" : "bg-white text-neutral-600 ring-1 ring-black/10 hover:bg-neutral-50 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15"}`}
                 >
                   {p}
