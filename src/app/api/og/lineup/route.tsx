@@ -50,6 +50,20 @@ interface CardSlot {
   number: number | null;
   pos: string;
   side: "home" | "away" | null;
+  photo: string | null; // 사진 모드용 data URL (프리페치 실패 시 null → 번호 칩 폴백)
+}
+
+// satori 는 img 로드 실패 시 렌더 전체가 깨진다 — 사진을 서버에서 미리 받아 data URL 로 주입.
+async function fetchPhotoDataUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    const type = res.headers.get("content-type") ?? "image/png";
+    return `data:${type};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(req: Request) {
@@ -68,6 +82,7 @@ export async function GET(req: Request) {
   const versus = board.mode === "versus";
   const landscape = board.orientation === "landscape";
   const nameMode = board.displayMode === "name";
+  const photoMode = board.displayMode === "photo"; // 빌더 기본값 — 카드도 사진으로 (표시모드 일치)
   const toSlots = (side: Side, sideKey: "home" | "away"): CardSlot[] =>
     side.players
       .filter((p) => p.pid || p.name)
@@ -75,12 +90,20 @@ export async function GET(req: Request) {
         const d = toDisplayXY(pl.x, pl.y, landscape);
         if (pl.pid) {
           const p = byId[pl.pid];
-          return { x: d.x, y: d.y, name: p?.name ?? null, number: NUM_BY_ID.get(pl.pid) ?? null, pos: p?.pos ?? pl.pos, side: versus ? sideKey : null };
+          return { x: d.x, y: d.y, name: p?.name ?? null, number: NUM_BY_ID.get(pl.pid) ?? null, pos: p?.pos ?? pl.pos, side: versus ? sideKey : null, photo: photoMode ? (p?.photo ?? null) : null };
         }
-        return { x: d.x, y: d.y, name: pl.name, number: null, pos: pl.pos, side: versus ? sideKey : null };
+        return { x: d.x, y: d.y, name: pl.name, number: null, pos: pl.pos, side: versus ? sideKey : null, photo: null };
       });
 
   const slots: CardSlot[] = [...toSlots(board.home, "home"), ...(board.away ? toSlots(board.away, "away") : [])];
+
+  // 사진 모드 — 프리페치해 data URL 로 (같은 URL 은 1회만, 실패는 번호 칩 폴백)
+  if (photoMode) {
+    const urls = [...new Set(slots.map((s) => s.photo).filter((u): u is string => !!u && u.startsWith("http")))];
+    const fetched = await Promise.all(urls.map(async (u) => [u, await fetchPhotoDataUrl(u)] as const));
+    const dataByUrl = new Map(fetched);
+    for (const s of slots) s.photo = s.photo ? (dataByUrl.get(s.photo) ?? null) : null;
+  }
 
   const title = board.title?.trim() || "나의 라인업";
   const subtitle = versus
@@ -197,20 +220,26 @@ function CardPlayer({ s, nameMode }: { s: CardSlot; nameMode: boolean }) {
         width: "150px",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "84px",
-          height: "84px",
-          borderRadius: "20px",
-          background: bg,
-          border: `3px solid ${bd}`,
-        }}
-      >
-        <span style={{ display: "flex", fontSize: s.number != null ? "36px" : "24px", fontWeight: 700, color: fg, lineHeight: 1 }}>{s.number != null ? s.number : s.name ? s.name.slice(0, 2) : s.pos}</span>
-      </div>
+      {s.photo ? (
+        // 래퍼 div(보더+overflow hidden) 안의 img 는 satori 가 뭉갬 — 맨 img 에 직접 스타일 (검증됨)
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={s.photo} alt="" width={88} height={88} style={{ width: "88px", height: "88px", borderRadius: "999px", border: `3px solid ${bd}`, background: "rgba(255,255,255,0.92)" }} />
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "84px",
+            height: "84px",
+            borderRadius: "20px",
+            background: bg,
+            border: `3px solid ${bd}`,
+          }}
+        >
+          <span style={{ display: "flex", fontSize: s.number != null ? "36px" : "24px", fontWeight: 700, color: fg, lineHeight: 1 }}>{s.number != null ? s.number : s.name ? s.name.slice(0, 2) : s.pos}</span>
+        </div>
+      )}
       {s.name ? (
         <div style={{ display: "flex", marginTop: "9px", fontSize: nameMode ? "26px" : "22px", fontWeight: 700, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>{s.name}</div>
       ) : null}
