@@ -130,7 +130,7 @@ export async function createPostAction(
     "post_create",
   );
 
-  revalidatePath(isFree ? "/community" : "/analysis");
+  revalidatePath("/analysis"); // 두 보드가 같은 라우트 (?board=free)
   redirect(`/analysis/${post.id}`);
 }
 
@@ -220,7 +220,7 @@ export async function deletePostAction(formData: FormData): Promise<void> {
     "post_delete",
   );
 
-  const listPath = post.category === "FREE" ? "/community" : "/analysis";
+  const listPath = post.category === "FREE" ? "/analysis?board=free" : "/analysis";
   revalidatePath(listPath);
   redirect(listPath);
 }

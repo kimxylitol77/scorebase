@@ -166,7 +166,7 @@ export default async function PostDetailPage({ params }: Props) {
       </div>
 
       <Link
-        href={isFree ? "/community" : "/analysis"}
+        href={isFree ? "/analysis?board=free" : "/analysis"}
         className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white hover:text-neutral-900 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10 dark:hover:text-white"
       >
         ← 목록
