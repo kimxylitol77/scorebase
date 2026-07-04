@@ -73,7 +73,8 @@ export const COMMUNITY_CATEGORY: NavCategory = {
   label: "커뮤니티",
   href: "/analysis",
   items: [
-    { href: "/analysis?board=free", label: "자유게시판", desc: "잡담 · 드림팀 자랑 · 전술판 공유" },
+    // 게시판 통합(?board=free) — 스포츠 분석·자유게시판이 한 페이지의 보드 탭이라 메뉴도 1개
+    { href: "/analysis", label: "게시판", desc: "스포츠 분석 · 자유게시판 · 예측 적중" },
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.5 적중률 대결" },
@@ -81,7 +82,6 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
     { href: "/notices", label: "공지사항", desc: "사이트 공지 · 패치노트" },
     { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
-    { href: "/analysis", label: "스포츠 분석", desc: "회원 분석 글 · 예측 적중" },
     { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   ],
 };
