@@ -875,6 +875,32 @@ model NewsBriefing {
   @@index([createdAt])
 }
 
+/// 이적 임박·루머 — Tier1 소스 보도의 딜 단위 상태 추적 (fetch-news-briefing 통합 러닝이 채움).
+/// 2026-07-02 철회분(810bbf4) 부활 — prod 테이블은 revert 때 보존됐음 (db push 금지).
+/// 단계는 코드 정규식 클램프 + 강한 주장(HERE_WE_GO/OFFICIAL)만 sonnet 검증. /transfers?view=rumors 소스.
+model TransferRumor {
+  id          String   @id // 풀네임+행선팀 해시 (14일 내 이름 호환 행 id 재사용 — 8ae70d9)
+  playerName  String // 뉴스 원문 선수명
+  playerKo    String // 한글 표기 (KO_NAME_FIX 교정 사전 적용)
+  fromTeam    String?
+  toTeam      String?
+  fromTeamKo  String?
+  toTeamKo    String?
+  stage       String // OFFICIAL | HERE_WE_GO | MEDICAL | TALKS (강등 없이 승급만)
+  fee         String? // 표기 문자열 ("€65M" 등) — 보도 값이라 숫자 정규화 안 함
+  league      String? // 행선팀 리그 코드 (EPL 등), 불명이면 null
+  summaryKo   String // 한 줄 한국어 요약
+  sourceName  String
+  sourceUrl   String
+  publishedAt DateTime
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  hidden      Boolean  @default(false) // 오보 판명 시 수동 숨김 (/api/admin/rumor-hide)
+
+  @@index([publishedAt])
+  @@index([stage, publishedAt])
+}
+
 /// ESPN 트랜잭션 피드 — 북미 종목(NBA/MLB/NHL) 의 트레이드·FA계약·방출·단기계약·감독인사.
 /// ESPN transactions 엔드포인트는 세 종목 응답 형태가 동일 → league 필드로 단일 모델 재사용.
 /// ESPN 응답엔 안정적 고유 id 가 없어 id = `${league}:${date}:${desc 해시}` 합성 (멱등 upsert).

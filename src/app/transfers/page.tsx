@@ -19,7 +19,7 @@ import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
-import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles } from "lucide-react";
+import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +61,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     title = `최신 축구 이적 현황 · ${lgLabel || "주요 리그"}`;
     description = `${scope} 선수 이적 소식을 최신순으로. 이적료·임대·자유이적까지 매일 업데이트 — 스코어베이스 이적시장.`;
     canonical = lgLabel ? `/transfers?view=latest&league=${sp.league}` : "/transfers?view=latest";
+  } else if (sp.view === "rumors") {
+    title = "이적 임박·루머 · 히위고 단계 실시간";
+    description = "합의(히위고)·메디컬·협상 단계의 축구 이적 보도를 공신력 있는 소스만 골라 한국어 요약으로. 공식 발표 전 이적 흐름을 가장 빠르게 — 스코어베이스 이적시장.";
+    canonical = "/transfers?view=rumors";
   } else {
     const scope = lgLabel ? `${lgLabel} ` : "유럽 빅5 ";
     title = `${scope}선수 몸값 랭킹 · 이적시장 시장가치`;
@@ -92,6 +96,13 @@ const LEAGUES: Record<string, string> = {
   MLS: "MLS",
 };
 const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, label }));
+// 임박·루머 단계 배지 — TransferRumor.stage (news-briefing 통합 러닝이 채움)
+const RUMOR_STAGES: Record<string, { label: string; cls: string }> = {
+  OFFICIAL: { label: "공식 발표", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20" },
+  HERE_WE_GO: { label: "히위고 · 합의", cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/20" },
+  MEDICAL: { label: "메디컬", cls: "bg-sky-500/10 text-sky-600 dark:text-sky-400 ring-sky-500/20" },
+  TALKS: { label: "협상 중", cls: "bg-neutral-500/10 text-neutral-500 dark:text-neutral-400 ring-neutral-500/20" },
+};
 // 빅5 — 시장가치 기반 뷰(머니파워·스쿼드 가치·IN/OUT·팀 옵션) 범위.
 // 확장 리그(K리그1·사우디·MLS)는 PlayerMarketValue 커버리지가 얇아(17~179명) 피드·빅딜만 노출.
 const FIVE = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
@@ -303,9 +314,10 @@ export default async function TransfersPage({
   searchParams: Promise<{ view?: string; league?: string; team?: string; pos?: string; country?: string; page?: string; q?: string; mode?: string; t?: string }>;
 }) {
   const sp = await searchParams;
-  const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout", "squads"].includes(sp.view || "") ? sp.view! : "all";
+  const view = ["all", "league", "team", "country", "pos", "latest", "bigdeals", "inout", "squads", "rumors"].includes(sp.view || "") ? sp.view! : "all";
   const isLatest = view === "latest";
   const isBigdeals = view === "bigdeals";
+  const isRumors = view === "rumors"; // 임박·루머 — TransferRumor(Tier1 소스+검증 게이트) 피드, 몸값 파이프라인 안 탐
   const isFeed = isLatest || isBigdeals; // 이적 피드형 (최신순/이적료순)
   const isInout = view === "inout";
   const isSquads = view === "squads"; // 팀 스쿼드 가치 랭킹 — enriched(18개월 활성·dedup 적용) 팀 단위 집계
@@ -384,7 +396,7 @@ export default async function TransfersPage({
     where = { league, currentValue: { not: null } };
   }
 
-  const raw = isFeed || isInout ? [] : await prisma.playerMarketValue.findMany({ where, orderBy: { currentValue: "desc" } });
+  const raw = isFeed || isInout || isRumors ? [] : await prisma.playerMarketValue.findMany({ where, orderBy: { currentValue: "desc" } });
   const ids = raw.map((r) => r.id);
   const players = await prisma.theSportsPlayer.findMany({
     where: { id: { in: ids } },
@@ -621,7 +633,15 @@ export default async function TransfersPage({
         ...(tFilter === "loan" ? { transferType: { in: [1, 2] } } : {}),
       };
   const transferTotal = isBigdeals || latestAll ? await prisma.footballTransfer.count({ where: feedWhere }) : 0;
-  const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : isSquads ? squadsTotal : enriched.length;
+  // ── 임박·루머 피드 (view=rumors) — TransferRumor 최근 7일 ──
+  const rumorRows = isRumors
+    ? await prisma.transferRumor.findMany({
+        where: { hidden: false, publishedAt: { gte: new Date(Date.now() - 7 * 86400 * 1000) } },
+        orderBy: { publishedAt: "desc" },
+        take: 100,
+      })
+    : [];
+  const totalCount = latestMainCards ? latestMainCards.length : isFeed ? transferTotal : isInout ? inoutTotal : isSquads ? squadsTotal : isRumors ? rumorRows.length : enriched.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / PER));
   const safePage = Math.min(page, totalPages);
   inoutData = inoutData.map((r, i) => ({ ...r, rank: (safePage - 1) * PER + i + 1 }));
@@ -737,11 +757,13 @@ export default async function TransfersPage({
         ? `${league ? `${LEAGUES[league]} ` : ""}팀 스쿼드 가치`
         : isLatest
           ? "최신 이적"
-          : qSearch
-            ? `"${qSearch}" 검색`
-            : squadSummary
-              ? `${squadSummary.name} 스쿼드`
-              : `${selectedLabel} 시장가치`;
+          : isRumors
+            ? "이적 임박·루머"
+            : qSearch
+              ? `"${qSearch}" 검색`
+              : squadSummary
+                ? `${squadSummary.name} 스쿼드`
+                : `${selectedLabel} 시장가치`;
   // 헤더 아이콘 — 장식 이모지를 lucide 라인 아이콘으로 (디자인 시스템)
   const HeadingIcon = isBigdeals
     ? Banknote
@@ -751,9 +773,11 @@ export default async function TransfersPage({
         ? Users
         : isLatest
           ? RefreshCw
-          : qSearch
-            ? Search
-            : Wallet;
+          : isRumors
+            ? Zap
+            : qSearch
+              ? Search
+              : Wallet;
 
   // 페이지네이션 URL (필터 유지)
   const pageUrl = (n: number) => {
@@ -815,6 +839,8 @@ export default async function TransfersPage({
           ) : (
             <>{win.label} <strong className="text-neutral-700 dark:text-neutral-300">주요 이적</strong> · 이름·이적료 확인분 · {totalCount.toLocaleString()}건.</>
           )
+        ) : isRumors ? (
+          <>공식 발표 전 <strong className="text-neutral-700 dark:text-neutral-300">합의(히위고)·메디컬·협상</strong> 단계 보도 · BBC·Sky·로마노 등 공신력 소스만 · 최근 7일 · {totalCount}건.</>
         ) : (
           <>선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.</>
         )}
@@ -1017,8 +1043,58 @@ export default async function TransfersPage({
         </section>
       )}
 
-      {/* 리스트 — 이적 피드(최신/빅딜) or 팀별 IN/OUT or 몸값 랭킹 */}
-      {isFeed ? (
+      {/* 임박·루머 (view=rumors) — 미확정 보도 피드, 확정 피드와 분리 */}
+      {isRumors && (
+        <>
+          <div className="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50/70 px-4 py-3 text-[12px] leading-relaxed text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/[0.06] dark:text-amber-200/80">
+            언론 보도 기반의 <strong>미확정</strong> 정보입니다. 공식 발표 전 내용은 바뀌거나 무산될 수 있으며,
+            확정되면 <Link href="/transfers?view=latest" className="underline underline-offset-2">최신 이적</Link> 탭에 반영됩니다.
+          </div>
+          {rumorRows.length === 0 ? (
+            <p className="text-sm text-neutral-500 py-20 text-center">최근 7일 내 수집된 임박·루머 소식이 없습니다.</p>
+          ) : (
+            <div className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-white dark:border-white/10 dark:bg-white/[0.04] shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:shadow-none divide-y divide-neutral-100 dark:divide-white/5 mt-4">
+              {rumorRows.map((r, ri) => {
+                const dh = fmtNewsHeader(Math.floor(r.publishedAt.getTime() / 1000));
+                const prevDh = ri > 0 ? fmtNewsHeader(Math.floor(rumorRows[ri - 1].publishedAt.getTime() / 1000)) : null;
+                const st = RUMOR_STAGES[r.stage] ?? RUMOR_STAGES.TALKS;
+                const from = r.fromTeamKo || r.fromTeam;
+                const to = r.toTeamKo || r.toTeam;
+                return (
+                  <Fragment key={r.id}>
+                    {dh !== prevDh && (
+                      <div className="px-3 sm:px-4 py-1.5 text-[11px] font-semibold text-neutral-400 bg-neutral-50 dark:bg-white/[0.03]">{dh}</div>
+                    )}
+                    <a
+                      href={r.sourceUrl}
+                      target="_blank"
+                      rel="nofollow noopener noreferrer"
+                      className="block px-3 sm:px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ring-1 shrink-0 ${st.cls}`}>{st.label}</span>
+                        <span className="font-bold">{r.playerKo}</span>
+                        {r.fee && <span className="text-xs font-bold tabular-nums text-rose-600 dark:text-rose-400">{r.fee}</span>}
+                        {r.league && LEAGUES[r.league] && <span className="text-[11px] text-neutral-400">{LEAGUES[r.league]}</span>}
+                        <span className="ml-auto text-[11px] text-neutral-400 shrink-0">{r.sourceName} ↗</span>
+                      </div>
+                      {(from || to) && (
+                        <div className="mt-0.5 text-[12px] text-neutral-500">
+                          {from ?? "—"} <span className="text-neutral-300 dark:text-white/20">→</span> {to ?? "—"}
+                        </div>
+                      )}
+                      <p className="mt-1 text-[13px] leading-snug text-neutral-700 dark:text-white/70">{r.summaryKo}</p>
+                    </a>
+                  </Fragment>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* 리스트 — 이적 피드(최신/빅딜) or 팀별 IN/OUT or 몸값 랭킹 (루머 뷰는 위 전용 섹션만) */}
+      {isRumors ? null : isFeed ? (
         transferData.length === 0 ? (
           <p className="text-sm text-neutral-500 py-20 text-center">{isBigdeals ? "아직 집계된 빅딜이 없습니다." : "이적 데이터를 수집하는 중입니다."}</p>
         ) : (
@@ -1452,7 +1528,7 @@ export default async function TransfersPage({
       )}
 
       {/* 페이지네이션 */}
-      {totalPages > 1 && (
+      {!isRumors && totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
           {safePage > 1 && (
             <Link href={pageUrl(safePage - 1)} className="px-3.5 py-1.5 rounded-full text-sm ring-1 ring-black/10 dark:ring-white/15 text-neutral-500 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:hover:bg-white/10">‹</Link>

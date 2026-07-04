@@ -7,6 +7,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/claude";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { extractTransferRumors } from "@/jobs/extract-transfer-rumors";
 
 // 재작성·검증 모델 — 품질 사고 재발 방지용 상위 모델 (haiku 오분류로 출시 당일 철회 이력).
 // sonnet-5: temperature 미지원 → claude.ts 가 model 지정 시 sampling 파라미터 미전송.
@@ -34,6 +35,9 @@ interface SourceDef {
   tag: string; // 게시글 제목 말머리 [tag]
   journalist?: string; // 기자 단위 피드는 고정 (분류 추출보다 정확)
   promote?: boolean;
+  // 루머 피드 전용 소스 (국내 매체) — 브리핑 후보에서 제외. 한국어 기사를 한국어로
+  // "재구성"하면 번역이 아니라 표절 위험이라 브리핑으론 절대 안 씀.
+  rumorOnly?: boolean;
 }
 
 const SOURCES: SourceDef[] = [
@@ -74,11 +78,23 @@ const SOURCES: SourceDef[] = [
     kind: "gnews",
     tag: "PL 공식",
   },
+  {
+    // 국내 축구 전문지 — 이적 루머 피드 전용 (KO_RUMOR_KEYWORDS 프리필터, 브리핑 제외)
+    name: "풋볼리스트",
+    url: "https://www.footballist.co.kr/rss/allArticle.xml",
+    kind: "direct",
+    tag: "국내",
+    rumorOnly: true,
+  },
 ];
+
+// 국내 매체 이적 키워드 프리필터 — 루머 전용 소스의 비이적 기사 컷 (철회분 로직 계승)
+const KO_RUMOR_KEYWORDS =
+  /(히위고|메디컬|이적\s*합의|영입\s*합의|이적\s*임박|영입\s*임박|오피셜.*(이적|영입|임대|행)|\[오피셜\]|완전\s*이적|임대\s*영입|이적료)/;
 
 // 기자 검색 피드에 섞여 오는 찌라시·탭로이드 중계 매체 — 화이트리스트 원칙 방어선
 const TABLOID_RE =
-  /daily ?mail|mailonline|the ?sun\b|daily ?star|express|mirror|caughtoffside|teamtalk|tbr ?football|football ?insider|hitc|givemesport|sport ?bible|footballtransfers|fichajes|talksport/i;
+  /daily ?mail|mailonline|the ?sun\b|daily ?star|express|mirror|caughtoffside|teamtalk|tbr ?football|football ?insider|hitc|givemesport|sport ?bible|footballtransfers|fichajes|talksport|tribuna|90min/i;
 
 // 제목 프리필터 — LLM 비용 절감용 노이즈 컷 (최종 판별은 분류 단계가 함)
 const NOISE_RE =
@@ -94,6 +110,7 @@ interface RssItem {
   kind: "direct" | "gnews";
   tag: string;
   journalist: string | null;
+  rumorOnly: boolean;
 }
 
 // ── RSS 파싱 (의존성 없이 정규식 — 과거 fetch-transfer-rumors 검증 로직 계승) ──
@@ -146,7 +163,10 @@ function parseRss(xml: string, src: SourceDef): RssItem[] {
     // 기자 피드의 찌라시·탭로이드 중계는 화이트리스트 원칙에 따라 제외
     if (TABLOID_RE.test(sourceName)) continue;
     const link = stripCdata(l[1]).trim();
-    const dateStr = d ? stripCdata(d[1]) : "";
+    // 한국 축구지 RSS 는 pubDate 에 타임존 표기가 없는 KST — 그대로 파싱하면 UTC 취급돼
+    // 9시간 미래로 밀린다 (철회분에서 검증된 함정). TZ 표기 없으면 +0900 명시.
+    let dateStr = d ? stripCdata(d[1]) : "";
+    if (dateStr && !/GMT|UTC|[+-]\d{4}|Z$/i.test(dateStr)) dateStr += " +0900";
     const publishedAt = dateStr ? new Date(dateStr) : new Date();
     if (Number.isNaN(publishedAt.getTime())) continue;
     out.push({
@@ -159,6 +179,7 @@ function parseRss(xml: string, src: SourceDef): RssItem[] {
       kind: src.kind,
       tag: src.tag,
       journalist: src.journalist ?? null,
+      rumorOnly: src.rumorOnly ?? false,
     });
   }
   return out;
@@ -424,6 +445,8 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
   const items = fetched.filter((it) => {
     if (it.publishedAt.getTime() < cutoff) return false;
     if (NOISE_RE.test(it.title)) return false;
+    // 루머 전용 국내 소스는 이적 키워드 기사만 (전체 기사 RSS 라 비이적 노이즈 큼)
+    if (it.rumorOnly && !KO_RUMOR_KEYWORDS.test(it.title)) return false;
     if (seen.has(it.id)) return false;
     seen.add(it.id);
     return true;
@@ -443,7 +466,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
     .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
     .slice(0, MAX_NEW_PER_RUN);
   console.log(`[briefing] RSS ${fetched.length}건 → 최신 ${items.length}건 → 신규 ${fresh.length}건`);
-  if (fresh.length === 0) return { fetched: fetched.length, fresh: 0, published: 0 };
+  if (fresh.length === 0) return { fetched: fetched.length, fresh: 0, published: 0, rumors: 0 };
 
   // 3. 분류
   const classified = await classify(fresh);
@@ -481,6 +504,31 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
     });
   }
 
+  // 4.5 이적 루머 추출 (통합 러닝) — TRANSFER 분류 항목 + 국내 루머 전용 소스.
+  //     실패해도 브리핑 발행을 막지 않도록 격리. 상세: extract-transfer-rumors.ts
+  let rumors = 0;
+  try {
+    const rumorIdx = new Set<number>();
+    for (const c of classified) if (c.category === "TRANSFER") rumorIdx.add(c.i);
+    fresh.forEach((it, i) => {
+      if (it.rumorOnly) rumorIdx.add(i);
+    });
+    const rumorInputs = [...rumorIdx]
+      .map((i) => fresh[i])
+      .filter(Boolean)
+      .map((it) => ({
+        title: it.title,
+        desc: it.desc,
+        link: it.link,
+        publishedAt: it.publishedAt,
+        sourceName: it.sourceName,
+        tag: it.tag,
+      }));
+    rumors = await extractTransferRumors(rumorInputs, { dry });
+  } catch (e) {
+    console.warn(`[briefing] 루머 추출 실패 (브리핑엔 영향 없음): ${(e as Error).message}`);
+  }
+
   // 5. 후보 선별 — score>=6, 스토리(storyKey)당 1건, 런·일일 캡
   const dayStartUtc = new Date(
     Date.UTC(
@@ -509,6 +557,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
   // keep 불리언은 haiku 가 런마다 일관성이 낮아 참고만 하고, 게이트는 score 로 판정
   const storyBest = new Map<string, Classified>();
   for (const c of classified) {
+    if (fresh[c.i]?.rumorOnly) continue; // 국내 소스는 브리핑 금지 (루머 피드 전용)
     if (c.score < MIN_SCORE) continue;
     if (recentKeys.has(c.storyKey)) continue;
     const cur = storyBest.get(c.storyKey);
@@ -518,7 +567,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
   console.log(
     `[briefing] 후보 ${storyBest.size}건 → 처리 ${candidates.length}건 (오늘 발행 ${publishedToday}/${MAX_PUBLISH_PER_DAY})`,
   );
-  if (candidates.length === 0) return { fetched: fetched.length, fresh: fresh.length, published: 0 };
+  if (candidates.length === 0) return { fetched: fetched.length, fresh: fresh.length, published: 0, rumors };
 
   const botId = dry ? "" : await ensureBriefingBot();
   let published = 0;
@@ -618,7 +667,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
   }
 
   console.log(`[briefing] 완료 — 발행 ${published}건, ${Math.round((Date.now() - started) / 1000)}s`);
-  return { fetched: fetched.length, fresh: fresh.length, published };
+  return { fetched: fetched.length, fresh: fresh.length, published, rumors };
 }
 
 // tsx 직접 실행 (npm run job:news-briefing / DRY=1 npm run job:news-briefing)
