@@ -50,12 +50,20 @@ const getClubData = unstable_cache(
   async (): Promise<{ pool: PoolPlayer[]; clubs: ClubMeta[] }> => {
     const tsTeamIds = Object.keys(T_SQUADS);
 
-    // ts team id → 우리 Team (이름·리그)
+    // ts team id → 우리 Team (이름·리그). 같은 팀이 EPL+UCL 등 리그별 row 로 중복 매핑돼
+    // (81팀) 마지막 row 가 이기면 빅클럽이 UCL 그룹으로 밀림 — 국내 리그 row 우선.
+    const CUP_LEAGUES = new Set(["UCL", "UEL", "UECL", "AFC_CL", "AFC_CL_TWO", "CLUB_WORLD_CUP", "COPA_LIB", "COPA_SUD"]);
     const srcRows = await prisma.teamSourceId.findMany({
       where: { source: "thesports", externalId: { in: tsTeamIds } },
       select: { externalId: true, team: { select: { name: true, league: true } } },
     });
-    const teamByTsId = new Map(srcRows.map((r) => [r.externalId, r.team]));
+    const teamByTsId = new Map<string, { name: string; league: string }>();
+    for (const r of srcRows) {
+      const cur = teamByTsId.get(r.externalId);
+      if (!cur || (CUP_LEAGUES.has(cur.league) && !CUP_LEAGUES.has(r.team.league))) {
+        teamByTsId.set(r.externalId, r.team);
+      }
+    }
 
     // 여름 이적 오버레이 — 선수별 최신 1건만 (여러 번 이동 시 마지막 행선지 기준).
     // 스쿼드 파일 갱신일 이전 발효분은 파일에 이미 반영돼 있으므로, 팀별 updatedAt 이후만 얹는다
@@ -179,7 +187,7 @@ const getClubData = unstable_cache(
     clubs.sort((a, b) => a.league.localeCompare(b.league) || a.label.localeCompare(b.label, "ko"));
     return { pool, clubs };
   },
-  ["lineup-club-data-v2"],
+  ["lineup-club-data-v3"],
   { revalidate: 3 * 3600 },
 );
 
