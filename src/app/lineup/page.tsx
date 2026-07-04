@@ -40,6 +40,10 @@ const T_SQUADS: Record<string, { updatedAt?: string; squad: Array<{ id: string; 
 const T_COACHES: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null }> = JSON.parse(
   readFileSync(path.join(process.cwd(), "data/team-coaches.json"), "utf-8"),
 );
+// 로스터 수동 오버라이드 — 공식 이적 피드가 늦을 때 운영자 선반영 (스쿼드 반영 시 자동 중복 제거)
+const ROSTER_OV: { moves: Array<{ playerId: string; toTeamId: string }> } = JSON.parse(
+  readFileSync(path.join(process.cwd(), "data/lineup-roster-overrides.json"), "utf-8"),
+);
 
 const SQUAD_POS: Record<string, "GK" | "DF" | "MF" | "FW"> = { G: "GK", D: "DF", M: "MF", F: "FW" };
 // 여름 이적창 시작 — 이 이후 발효 이적을 스쿼드에 오버레이 (주간 스쿼드 갱신 사이의 공백 커버)
@@ -92,6 +96,13 @@ const getClubData = unstable_cache(
         (insByTeam.get(t.toTeamId) ?? insByTeam.set(t.toTeamId, []).get(t.toTeamId)!).push(pid);
       if (t.fromTeamId && T_SQUADS[t.fromTeamId] && t.toTeamId !== t.fromTeamId && ts > squadTs(t.fromTeamId))
         outIds.set(pid, t.fromTeamId);
+    }
+    // 수동 오버라이드 — 지정 팀에 IN, 다른 팀 스쿼드에 남아 있으면 그쪽에선 제외
+    const ovTeamByPlayer = new Map<string, string>();
+    for (const m of ROSTER_OV.moves) {
+      if (!T_SQUADS[m.toTeamId]) continue;
+      ovTeamByPlayer.set(m.playerId, m.toTeamId);
+      (insByTeam.get(m.toTeamId) ?? insByTeam.set(m.toTeamId, []).get(m.toTeamId)!).push(m.playerId);
     }
 
     // 한글명·포지션·사진 배치 조회 (스쿼드 전원 + 이적 IN)
@@ -150,6 +161,7 @@ const getClubData = unstable_cache(
 
       for (const sp of entry.squad) {
         if (outIds.get(sp.id) === tsId) continue; // 이번 창에 떠난 선수 제외
+        if (ovTeamByPlayer.has(sp.id) && ovTeamByPlayer.get(sp.id) !== tsId) continue; // 오버라이드로 이적한 선수는 원소속에서 제외
         pushPlayer(sp.id, sp.name, sp.position, sp.number, false);
       }
       for (const pid of insByTeam.get(tsId) ?? []) {
@@ -187,7 +199,7 @@ const getClubData = unstable_cache(
     clubs.sort((a, b) => a.league.localeCompare(b.league) || a.label.localeCompare(b.label, "ko"));
     return { pool, clubs };
   },
-  ["lineup-club-data-v3"],
+  ["lineup-club-data-v4"],
   { revalidate: 3 * 3600 },
 );
 

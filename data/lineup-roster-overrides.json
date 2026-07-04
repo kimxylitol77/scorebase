@@ -1,0 +1,6 @@
+{
+  "_readme": "전술판 로스터 수동 오버라이드 — 공식 이적 피드(FootballTransfer)가 늦을 때 운영자가 선반영. 공식 스쿼드 파일에 반영되면 자동으로 중복 제거되므로 정리 필수 아님. playerId/toTeamId = TheSports id.",
+  "moves": [
+    { "playerId": "pxwrxlh21j1ryk0", "toTeamId": "l965mkyh90gr1ge", "note": "산드로 토날리 → 토트넘 (2026-07 합의 보도, ts 공식 피드 지연)" }
+  ]
+}
