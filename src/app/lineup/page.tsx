@@ -90,18 +90,22 @@ const getClubData = unstable_cache(
     for (const t of transfers) if (!latestByPlayer.has(t.playerId)) latestByPlayer.set(t.playerId, t);
     const insByTeam = new Map<string, string[]>();
     const outIds = new Map<string, string>(); // playerId → 떠난 팀(ts id)
+    // 이적 목적지 전역 맵 — 새 영입이 옛 소속팀 스쿼드 파일에 아직 남아 있으면(파일이
+    // 이적보다 오래됨 / fromTeamId 누락) 옛 팀 등록이 먼저 되며 IN 이 막힘 → 목적지 우선.
+    const movedTo = new Map<string, string>();
     for (const [pid, t] of latestByPlayer) {
       const ts = t.transferTime ?? 0;
-      if (t.toTeamId && T_SQUADS[t.toTeamId] && ts > squadTs(t.toTeamId))
+      if (t.toTeamId && T_SQUADS[t.toTeamId] && ts > squadTs(t.toTeamId)) {
         (insByTeam.get(t.toTeamId) ?? insByTeam.set(t.toTeamId, []).get(t.toTeamId)!).push(pid);
+        movedTo.set(pid, t.toTeamId);
+      }
       if (t.fromTeamId && T_SQUADS[t.fromTeamId] && t.toTeamId !== t.fromTeamId && ts > squadTs(t.fromTeamId))
         outIds.set(pid, t.fromTeamId);
     }
     // 수동 오버라이드 — 지정 팀에 IN, 다른 팀 스쿼드에 남아 있으면 그쪽에선 제외
-    const ovTeamByPlayer = new Map<string, string>();
     for (const m of ROSTER_OV.moves) {
       if (!T_SQUADS[m.toTeamId]) continue;
-      ovTeamByPlayer.set(m.playerId, m.toTeamId);
+      movedTo.set(m.playerId, m.toTeamId);
       (insByTeam.get(m.toTeamId) ?? insByTeam.set(m.toTeamId, []).get(m.toTeamId)!).push(m.playerId);
     }
 
@@ -161,7 +165,7 @@ const getClubData = unstable_cache(
 
       for (const sp of entry.squad) {
         if (outIds.get(sp.id) === tsId) continue; // 이번 창에 떠난 선수 제외
-        if (ovTeamByPlayer.has(sp.id) && ovTeamByPlayer.get(sp.id) !== tsId) continue; // 오버라이드로 이적한 선수는 원소속에서 제외
+        if (movedTo.has(sp.id) && movedTo.get(sp.id) !== tsId) continue; // 다른 팀으로 이적 확정 — 원소속에서 제외
         pushPlayer(sp.id, sp.name, sp.position, sp.number, false);
       }
       for (const pid of insByTeam.get(tsId) ?? []) {
@@ -199,7 +203,7 @@ const getClubData = unstable_cache(
     clubs.sort((a, b) => a.league.localeCompare(b.league) || a.label.localeCompare(b.label, "ko"));
     return { pool, clubs };
   },
-  ["lineup-club-data-v4"],
+  ["lineup-club-data-v5"],
   { revalidate: 3 * 3600 },
 );
 
