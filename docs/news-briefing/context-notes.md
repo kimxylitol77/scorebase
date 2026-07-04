@@ -48,6 +48,20 @@
 - **verify 프롬프트에 소스명 필수**: 원문 자료에 소스명을 안 넣으면 브리핑의 정당한 출처
   표기를 '날조'로 오판해 리젝함.
 
+## 2026-07-04 운영 첫날 보정 (post 648 사후)
+
+- **실명 없는 이적 낚시 헤드라인 차단** (94b576a): 로마노 중계 매체의 "5000만 유로 자원"
+  류 낚시 헤드라인 + 구글뉴스 본문 fetch 불가 조합 → "이름 미확인" 브리핑이 발행됨
+  (648·640·646, 전부 숨김 처리). 분류 rubric "실명 없는 이적 기사 = score ≤4" +
+  검증 기준 6번(TRANSFER 인데 실명 없으면 불합격) 이중 차단. 'here we go' 표기는
+  '히위고'로 통일.
+- **ADMIN_SECRET 로컬 ≠ Vercel**: .env.local 값으로 prod 숨김 링크 호출하면 401.
+  텔레그램 알림 링크는 prod env 로 생성되므로 정상. 로컬에서 수동 숨김이 필요하면
+  DB 직접(post delete + briefing HIDDEN)이 빠름. .env.local 동기화는 사용자 결정 대기.
+- **Neon 일시 블립 → Vercel 빌드 실패 가능**: 정적 생성 페이지(/value-bets 등)가
+  빌드 타임에 DB 를 호출해서, DB 블립 타이밍의 빌드는 실패한다. 배포가 안 뜨면
+  GitHub deployments API 로 상태 확인 후 빈 커밋으로 재트리거.
+
 ## 함정 (다음 세션 주의)
 
 - vercel.json cron 추가 시 CRON_REGISTRY 등록 필수 (cron-execution-monitor 메모리).
