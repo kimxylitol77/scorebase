@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/current-user";
 import { displayGrade } from "@/lib/user-level";
 import { listTime } from "@/lib/analysis/format";
-import AmbientGlow from "@/components/AmbientGlow";
 import { MessageSquare, Eye, ThumbsUp, PenLine } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -58,25 +57,32 @@ export default async function CommunityBoardPage({ searchParams }: { searchParam
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <main className="relative mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12">
-      <AmbientGlow />
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden /> 커뮤니티
-          </span>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight break-keep sm:text-4xl">자유게시판</h1>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-            잡담부터 드림팀 자랑, 전술판 공유까지 자유롭게.
-          </p>
-        </div>
-        <Link
-          href={userId ? "/community/new" : "/login?from=/community/new"}
-          className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-rose-500"
-        >
-          <PenLine className="h-4 w-4" aria-hidden /> 글쓰기
-        </Link>
+    <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      {/* 앰비언트 배경 — /analysis 와 동일 헤더 톤 (커뮤니티 섹션 일관) */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
+        <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
+        <div className="absolute -top-32 right-[12%] h-[26rem] w-[26rem] rounded-full bg-emerald-500/[0.06] blur-[140px] dark:bg-emerald-500/10" />
       </div>
+
+      <header className="mb-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 커뮤니티
+            </span>
+            <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight break-keep">자유게시판</h1>
+            <p className="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
+              잡담부터 드림팀 자랑, 전술판 공유까지 자유롭게.
+            </p>
+          </div>
+          <Link
+            href={userId ? "/community/new" : "/login?from=/community/new"}
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-rose-500"
+          >
+            <PenLine className="h-4 w-4" aria-hidden /> 글쓰기
+          </Link>
+        </div>
+      </header>
 
       {/* 말머리 탭 */}
       <div className="mb-4 flex gap-1 rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04] sm:inline-flex">
