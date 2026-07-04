@@ -3,6 +3,7 @@ import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runEvaluate, runEvaluateMatches, runBrierReport } from "@/jobs/evaluate-predictions";
 import { runEvaluateAiPredictions } from "@/jobs/fetch-gpt-predictions";
+import { runScoreMatchVotes } from "@/jobs/score-match-votes";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,8 @@ export async function GET(req: Request) {
     const brier = await runBrierReport().catch(() => null);
     // 멀티 AI 성적표 채점 — 종료 경기의 우리 모델·GPT 픽 correct 채움.
     const aiScore = await runEvaluateAiPredictions().catch(() => null);
+    // 승부예측 투표 채점 — 회원·익명 투표의 correct 채움 (/picks 랭킹 소스)
+    const votes = await runScoreMatchVotes().catch(() => null);
     await recordCronRun("evaluate");
     return NextResponse.json({
       ok: true,
@@ -29,6 +32,7 @@ export async function GET(req: Request) {
       match: matchResult,
       brier,
       aiScore,
+      votes,
     });
   } catch (e) {
     return NextResponse.json(

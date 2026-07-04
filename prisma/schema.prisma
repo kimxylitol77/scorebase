@@ -759,6 +759,23 @@ model PostLike {
   @@index([userId])
 }
 
+/// 승부예측 원클릭 투표 — 비로그인(sessionId)·로그인(userId) 겸용. correct 는 evaluate cron 이 채움.
+/// 테이블은 raw SQL 로 생성(db push 금지 패턴) — 관계 없이 manual join.
+model MatchVote {
+  id        Int      @id @default(autoincrement())
+  matchId   Int
+  userId    String? // 로그인 회원 (null = 익명)
+  sessionId String? // 익명 식별 — PageViewTracker 의 scorebase-sid 재사용
+  pick      String // "home" | "draw" | "away"
+  correct   Boolean? // 경기 종료 후 채점 (null = 미채점)
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, userId])
+  @@unique([matchId, sessionId])
+  @@index([userId])
+  @@index([matchId])
+}
+
 /// 분석글 댓글. 로그인 회원만 작성. 작성 시 경험치 +50 (도배 방지 rate limit).
 model Comment {
   id        Int      @id @default(autoincrement())

@@ -10,6 +10,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
+import MatchVoteCard from "@/components/MatchVoteCard";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -263,6 +264,8 @@ export default async function KboLivePage({ params }: Props) {
       )}
 
       {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}
+      <MatchVoteCard matchId={match.id} />
+
       <MatchInsight
         match={match}
         teamStatsContent={

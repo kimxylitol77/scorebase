@@ -308,6 +308,13 @@
     "group": "detail"
   },
   {
+    "route": "/picks",
+    "desc": "승부예측 허브: 오늘·내일 경기 원클릭 투표 + 내 적중 기록 + 회원 랭킹 (나 vs AI)",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/players/[pid]",
     "desc": "선수(투수) 상세 페이지 — league 별 분기.   ?league=KBO  → KBO 공식 (koreabaseball.com) scraping   ?league=NPB  → NPB 공식 (npb.jp) scraping + DB 최근 등판   default      → MLB Stats API (statsapi.mlb.com)",
     "inMenu": false,

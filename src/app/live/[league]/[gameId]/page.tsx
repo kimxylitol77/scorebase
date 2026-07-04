@@ -44,6 +44,7 @@ import BasketballBoxScoreTab from "@/components/live/BasketballBoxScoreTab";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchInsight from "@/components/MatchInsight";
+import MatchVoteCard from "@/components/MatchVoteCard";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
@@ -1015,6 +1016,8 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
+      <MatchVoteCard matchId={match.id} />
+
       <MatchInsight
         match={match}
         extraTabs={soccerTabs}
@@ -1223,6 +1226,8 @@ async function renderBaseballPage(args: {
           predictions={match.aiPredictions}
         />
       )}
+      <MatchVoteCard matchId={match.id} />
+
       <MatchInsight
         match={match}
         teamStatsContent={

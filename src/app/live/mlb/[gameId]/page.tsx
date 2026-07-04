@@ -13,6 +13,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import MlbLiveDetail from "@/components/MlbLiveDetail";
 import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
+import MatchVoteCard from "@/components/MatchVoteCard";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -319,6 +320,8 @@ export default async function MlbLivePage({ params }: Props) {
       )}
 
       {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}
+      <MatchVoteCard matchId={match.id} />
+
       <MatchInsight
         match={match}
         teamStatsContent={

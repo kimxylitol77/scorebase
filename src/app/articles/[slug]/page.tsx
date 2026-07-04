@@ -6,6 +6,7 @@ import InningScoreChart from "@/components/InningScoreChart";
 import type { InningProb } from "@/lib/predict/baseball-poisson";
 import LeagueBadge from "@/components/LeagueBadge";
 import MatchInsight from "@/components/MatchInsight";
+import MatchVoteCard from "@/components/MatchVoteCard";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
 import RelatedArticles from "@/components/RelatedArticles";
 import { notFound } from "next/navigation";
@@ -712,6 +713,7 @@ export default async function ArticlePage({ params }: Props) {
           본문(글 작성 시점 고정)과 벌어짐(예: 본문 76% vs 위젯 64%). 글 페이지에서는
           글이 보여주는 예측을 위젯도 그대로 쓰게 강제 → 한 화면 안 100% 일치.
           (article.pred* 없으면 Match 값 fallback) */}
+      {article.match && <MatchVoteCard matchId={article.match.id} />}
       {article.match && (
         <MatchInsight
           match={{
