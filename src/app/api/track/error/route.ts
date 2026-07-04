@@ -5,6 +5,13 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sendTelegram } from "@/lib/notify/telegram";
 
 export async function POST(req: NextRequest) {
+  // 로컬 dev·worktree 서버는 .env.local 공유로 텔레그램 발송이 가능해
+  // production 사고처럼 보이는 오알림이 온다 — 운영 도메인 요청만 발송.
+  const host = req.headers.get("host") ?? "";
+  if (!host.endsWith("scorebase.kr")) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const perIp = rateLimit(`error-report:${ip}`, { max: 3, windowMs: 60_000 });
