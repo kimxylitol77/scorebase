@@ -723,6 +723,10 @@ model Post {
   likes        Int @default(0) // PostLike 집계 캐시 (목록 정렬·표시용)
   commentCount Int @default(0) // Comment 수 캐시 (목록 표시용)
 
+  // 첨부 (선택, 자유게시판) — 드림팀 자랑·전술판 공유. raw SQL ALTER 로 추가된 컬럼.
+  dreamTeamId String? // 내 DreamTeam.id cuid (관계 없이 manual join — 삭제된 팀은 렌더 생략)
+  lineupCode  String? // /lineup?d={code} 의 공유 코드
+
   // 예측 (선택) — 특정 예정 경기에 대한 픽. 경기 종료 후 자동 채점.
   sport     String?   // soccer | baseball | basketball | hockey (예측 있을 때만)
   matchId   Int?      // 대상 경기 (Match.id)

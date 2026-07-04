@@ -98,6 +98,20 @@
     "group": "detail"
   },
   {
+    "route": "/community",
+    "desc": "자유게시판 목록 — 잡담·드림팀 자랑·전술판 공유 (Post category=FREE, 상세는 /analysis/[id] 공용)",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/community/new",
+    "desc": "자유게시판 글쓰기 — 제목·본문 + 선택 첨부(내 드림팀 자랑 / 전술판 공유 링크)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/compare",
     "desc": "선수 비교 입구 — 종목 선택 + 선수 2명 검색. ?sport=종목, ?a={id} 로 한 명 프리필(선수페이지 \"비교하기\").",
     "inMenu": true,

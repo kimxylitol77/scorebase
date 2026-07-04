@@ -8,6 +8,7 @@ import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
 import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { TIERS } from "@/lib/dream-team/tiers";
 import Markdown from "@/components/Markdown";
 import { Target } from "lucide-react";
 import LikeButton from "./LikeButton";
@@ -52,6 +53,9 @@ export default async function PostDetailPage({ params }: Props) {
       id: true,
       title: true,
       content: true,
+      category: true,
+      dreamTeamId: true,
+      lineupCode: true,
       views: true,
       likes: true,
       commentCount: true,
@@ -103,12 +107,21 @@ export default async function PostDetailPage({ params }: Props) {
     },
   });
   if (!post) notFound();
+  const isFree = post.category === "FREE";
 
   // 조회수 +1
   await prisma.post.update({
     where: { id: postId },
     data: { views: { increment: 1 } },
   });
+
+  // 자유글 첨부 — 드림팀 (삭제된 팀이면 조용히 생략)
+  const dreamTeam = post.dreamTeamId
+    ? await prisma.dreamTeam.findUnique({
+        where: { id: post.dreamTeamId },
+        select: { id: true, name: true, tier: true, rating: true, wins: true, draws: true, losses: true },
+      })
+    : null;
 
   const userId = await getCurrentUserId();
   const isAuthor = userId === post.authorId;
@@ -152,14 +165,18 @@ export default async function PostDetailPage({ params }: Props) {
       </div>
 
       <Link
-        href="/analysis"
+        href={isFree ? "/community" : "/analysis"}
         className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white hover:text-neutral-900 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10 dark:hover:text-white"
       >
         ← 목록
       </Link>
 
       <article className="mt-5">
-        <span className="inline-flex w-fit rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">분석</span>
+        {isFree ? (
+          <span className="inline-flex w-fit rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">자유</span>
+        ) : (
+          <span className="inline-flex w-fit rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">분석</span>
+        )}
         <h1 className="mt-2 text-2xl sm:text-3xl font-bold leading-snug tracking-tight break-keep">{post.title}</h1>
 
         <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-black/5 dark:border-white/10 text-xs text-neutral-500">
@@ -248,6 +265,38 @@ export default async function PostDetailPage({ params }: Props) {
               )}
             </div>
           </div>
+        )}
+
+        {/* 첨부 — 드림팀 자랑 */}
+        {dreamTeam && (
+          <Link
+            href={`/dream-team/team/${dreamTeam.id}`}
+            className="mt-5 flex items-center justify-between gap-3 rounded-2xl bg-white p-4 ring-1 ring-black/5 shadow-[0_18px_50px_-28px_rgba(15,23,30,0.3)] transition-colors hover:ring-rose-300/60 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:ring-rose-500/40"
+          >
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold text-rose-500">드림팀 첨부</div>
+              <div className="mt-0.5 truncate font-bold">{dreamTeam.name}</div>
+              <div className="mt-0.5 text-xs text-neutral-500">
+                {TIERS[dreamTeam.tier]?.name ?? dreamTeam.tier} · 레이팅 {dreamTeam.rating} · {dreamTeam.wins}승 {dreamTeam.draws}무 {dreamTeam.losses}패
+              </div>
+            </div>
+            <span className="shrink-0 rounded-full bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white">스쿼드 보기</span>
+          </Link>
+        )}
+
+        {/* 첨부 — 전술판 */}
+        {post.lineupCode && (
+          <Link
+            href={`/lineup?d=${post.lineupCode}`}
+            className="mt-5 block overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_18px_50px_-28px_rgba(15,23,30,0.3)] transition-colors hover:ring-rose-300/60 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:ring-rose-500/40"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/api/og/lineup?d=${post.lineupCode}`} alt="첨부된 전술판" className="w-full" loading="lazy" />
+            <div className="flex items-center justify-between px-4 py-2.5">
+              <span className="text-[11px] font-semibold text-rose-500">전술판 첨부</span>
+              <span className="text-xs font-medium text-neutral-500">전술판에서 열기 →</span>
+            </div>
+          </Link>
         )}
 
         {/* 본문 (Markdown) */}

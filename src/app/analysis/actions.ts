@@ -17,7 +17,7 @@ export interface PostFormState {
 const VALID_SPORTS = new Set(["soccer", "baseball", "basketball", "hockey", "esports", "volleyball", "mma"]);
 const VALID_MARKETS = new Set(["1X2", "HANDICAP", "OU"]);
 
-/** 분석글 작성 (회원 전용). 예측은 선택 — 종목·경기·마켓·픽을 채우면 저장. */
+/** 분석글·자유글 작성 (회원 전용). category=FREE 면 예측 대신 첨부(드림팀·전술판) 선택 가능. */
 export async function createPostAction(
   _prev: PostFormState,
   formData: FormData,
@@ -31,6 +31,7 @@ export async function createPostAction(
   const matchIdRaw = String(formData.get("matchId") ?? "").trim();
   const market = String(formData.get("market") ?? "").trim();
   const pick = String(formData.get("pick") ?? "").trim();
+  const isFree = String(formData.get("category") ?? "") === "FREE";
 
   if (title.length < 2 || title.length > 120) {
     return { ok: false, error: "제목은 2~120자로 입력해주세요." };
@@ -39,11 +40,32 @@ export async function createPostAction(
     return { ok: false, error: "내용을 5자 이상 입력해주세요." };
   }
 
+  // 자유글 첨부 — 내 드림팀 / 전술판 공유 코드 (모두 선택)
+  const attachData: { dreamTeamId?: string; lineupCode?: string } = {};
+  if (isFree) {
+    const wantTeam = String(formData.get("attachDreamTeam") ?? "") === "on";
+    const lineupRaw = String(formData.get("lineupUrl") ?? "").trim();
+    if (wantTeam) {
+      const team = await prisma.dreamTeam.findFirst({ where: { userId }, select: { id: true } });
+      if (!team) return { ok: false, error: "아직 드림팀이 없습니다. 빌더에서 먼저 팀을 만들어주세요." };
+      attachData.dreamTeamId = team.id;
+    }
+    if (lineupRaw) {
+      // /lineup?d={code} 공유 URL 또는 코드 원문 허용
+      const m = lineupRaw.match(/[?&]d=([^&\s]+)/);
+      const code = (m ? m[1] : lineupRaw).trim();
+      if (!/^[A-Za-z0-9_\-~.%]+$/.test(code) || code.length > 4000) {
+        return { ok: false, error: "전술판 공유 링크가 올바르지 않습니다. 전술판의 '공유' 버튼으로 복사한 링크를 붙여넣어주세요." };
+      }
+      attachData.lineupCode = code;
+    }
+  }
+
   let predData:
     | { sport: string; matchId: number; market: string; line: number | null; pick: string }
     | null = null;
 
-  if (sport || matchIdRaw || market || pick) {
+  if (!isFree && (sport || matchIdRaw || market || pick)) {
     const matchId = Number(matchIdRaw);
     if (
       !VALID_SPORTS.has(sport) ||
@@ -90,7 +112,13 @@ export async function createPostAction(
   }
 
   const post = await prisma.post.create({
-    data: { authorId: userId, title, content, ...(predData ?? {}) },
+    data: {
+      authorId: userId,
+      title,
+      content,
+      ...(isFree ? { category: "FREE", ...attachData } : {}),
+      ...(predData ?? {}),
+    },
     select: { id: true },
   });
 
@@ -100,7 +128,7 @@ export async function createPostAction(
     "post_create",
   );
 
-  revalidatePath("/analysis");
+  revalidatePath(isFree ? "/community" : "/analysis");
   redirect(`/analysis/${post.id}`);
 }
 
@@ -179,7 +207,7 @@ export async function deletePostAction(formData: FormData): Promise<void> {
 
   const post = await prisma.post.findUnique({
     where: { id: postId },
-    select: { authorId: true },
+    select: { authorId: true, category: true },
   });
   if (!post || post.authorId !== userId) return; // 본인만
 
@@ -190,8 +218,9 @@ export async function deletePostAction(formData: FormData): Promise<void> {
     "post_delete",
   );
 
-  revalidatePath("/analysis");
-  redirect("/analysis");
+  const listPath = post.category === "FREE" ? "/community" : "/analysis";
+  revalidatePath(listPath);
+  redirect(listPath);
 }
 
 /** 댓글 삭제 (본인만). 댓글 경험치 회수 + commentCount 감소. */

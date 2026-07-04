@@ -73,6 +73,7 @@ export const COMMUNITY_CATEGORY: NavCategory = {
   label: "커뮤니티",
   href: "/analysis",
   items: [
+    { href: "/community", label: "자유게시판", desc: "잡담 · 드림팀 자랑 · 전술판 공유" },
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.5 적중률 대결" },

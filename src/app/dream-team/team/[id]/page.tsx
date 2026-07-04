@@ -89,13 +89,21 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
           레이팅 {team.rating} · {team.wins}승 {team.draws}무 {team.losses}패
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <ShareButton
             url={`${siteUrl}/dream-team/team/${team.id}`}
             title={`${team.name} · ${tierName} 드림팀`}
             text={shareText}
             mine={isMine}
           />
+          {isMine && (
+            <a
+              href="/community/new"
+              className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-neutral-700 dark:bg-white/[0.04] dark:text-neutral-200 dark:hover:border-rose-500/50 dark:hover:text-rose-300"
+            >
+              자유게시판에 자랑하기
+            </a>
+          )}
         </div>
 
         {squad.length === 11 ? (

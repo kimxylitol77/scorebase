@@ -128,7 +128,8 @@ export default async function AnalysisListPage({ searchParams }: Props) {
   };
   const [posts, sportCounts, userId] = await Promise.all([
     prisma.post.findMany({
-      where: sportFilter ? { sport: sportFilter } : {},
+      // 자유게시판(FREE) 글은 /board 전용 — 분석 목록에서 제외
+      where: { category: "ANALYSIS", ...(sportFilter ? { sport: sportFilter } : {}) },
       orderBy: { createdAt: "desc" },
       skip: (cur - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -168,7 +169,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
       },
     }),
     // 종목별 글 수 — 탭 카운트 + 필터된 총 페이지 계산 (한 쿼리)
-    prisma.post.groupBy({ by: ["sport"], _count: true }),
+    prisma.post.groupBy({ by: ["sport"], _count: true, where: { category: "ANALYSIS" } }),
     getCurrentUserId(),
   ]);
   const countBySport = new Map(sportCounts.map((g) => [g.sport, g._count]));
