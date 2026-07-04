@@ -22,6 +22,10 @@ export interface GenerateOptions {
   system?: string;
   maxTokens?: number;
   temperature?: number;
+  // 호출별 모델 override (예: 해외 브리핑 재작성 = claude-sonnet-5).
+  // 주의: Claude 5 계열·Opus 4.7+ 는 temperature 등 sampling 파라미터에 400 을 던지므로
+  // model 지정 시 temperature 를 아예 전송하지 않는다 (톤은 프롬프트로 제어).
+  model?: string;
 }
 
 /**
@@ -90,9 +94,9 @@ async function callAnthropicOnce(
     try {
       const response = await claude.messages.create(
         {
-          model: CLAUDE_MODEL,
+          model: opts.model ?? CLAUDE_MODEL,
           max_tokens: opts.maxTokens ?? 4096,
-          temperature: opts.temperature ?? 0.7,
+          ...(opts.model ? {} : { temperature: opts.temperature ?? 0.7 }),
           system: opts.system,
           messages: [{ role: "user", content: prompt }],
         },

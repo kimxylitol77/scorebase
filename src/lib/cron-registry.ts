@@ -17,6 +17,8 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "evaluate", label: "적중률 평가", maxAgeH: 28 },
   { name: "gpt-predictions", label: "멀티 AI 성적표", maxAgeH: 28 },
   { name: "transfer-briefs", label: "AI 이적 브리핑", maxAgeH: 28 },
+  // 2h 주기 — 기대 2h + 유예 4h = 6h
+  { name: "news-briefing", label: "해외 브리핑", maxAgeH: 6 },
   // 6h 주기 — 기대 6h + 유예 4h = 10h
   { name: "lol-collect", label: "LOL(LCK·EWC) 수집", maxAgeH: 10 },
   { name: "lol-ingame", label: "LOL 인게임 상세 수집", maxAgeH: 10 },

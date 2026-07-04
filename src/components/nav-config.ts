@@ -73,8 +73,8 @@ export const COMMUNITY_CATEGORY: NavCategory = {
   label: "커뮤니티",
   href: "/analysis",
   items: [
-    // 게시판 통합(?board=free) — 스포츠 분석·자유게시판이 한 페이지의 보드 탭이라 메뉴도 1개
-    { href: "/analysis", label: "게시판", desc: "스포츠 분석 · 자유게시판 · 예측 적중" },
+    // 게시판 통합(?board=free/briefing) — 스포츠 분석·자유게시판·해외 브리핑이 한 페이지 보드 탭이라 메뉴도 1개
+    { href: "/analysis", label: "게시판", desc: "스포츠 분석 · 자유게시판 · 해외 브리핑" },
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.5 적중률 대결" },

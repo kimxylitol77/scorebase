@@ -15,6 +15,7 @@
     "db:studio": "prisma studio",
     "job:collect": "tsx src/jobs/collect.ts",
     "job:daily-topic": "tsx src/jobs/post-daily-topic.ts",
+    "job:news-briefing": "tsx --env-file=.env.local src/jobs/fetch-news-briefing.ts",
     "job:backfill": "tsx src/jobs/backfill.ts",
     "job:generate": "tsx src/jobs/generate-articles.ts",
     "job:preview": "tsx src/jobs/generate-previews.ts",

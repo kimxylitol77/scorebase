@@ -124,21 +124,26 @@ function AuthorBadge({
 
 export default async function AnalysisListPage({ searchParams }: Props) {
   const { page, sport, board } = await searchParams;
-  // 한 페이지 두 보드 — 스포츠 분석(기본) | 자유게시판(?board=free). 같은 테이블 UI 공유.
+  // 한 페이지 세 보드 — 스포츠 분석(기본) | 자유게시판(?board=free) | 해외 브리핑(?board=briefing).
+  // 같은 테이블 UI 공유. 브리핑은 봇 전용 발행 보드 (글쓰기·종목 탭 없음).
   const isFreeBoard = board === "free";
+  const isBriefing = board === "briefing";
   const cur = Math.max(1, Number(page) || 1);
-  const sportFilter = isFreeBoard
-    ? FREE_TABS.some((t) => t.code === sport) ? sport! : null
-    : SPORT_META[sport ?? ""] ? sport! : null;
+  const sportFilter = isBriefing
+    ? null
+    : isFreeBoard
+      ? FREE_TABS.some((t) => t.code === sport) ? sport! : null
+      : SPORT_META[sport ?? ""] ? sport! : null;
   const href = (p: number, s: string | null = sportFilter) => {
     const q = new URLSearchParams();
     if (isFreeBoard) q.set("board", "free");
+    if (isBriefing) q.set("board", "briefing");
     if (s) q.set("sport", s);
     if (p > 1) q.set("page", String(p));
     const qs = q.toString();
     return qs ? `/analysis?${qs}` : "/analysis";
   };
-  const catWhere = { category: isFreeBoard ? "FREE" : "ANALYSIS" };
+  const catWhere = { category: isBriefing ? "BRIEFING" : isFreeBoard ? "FREE" : "ANALYSIS" };
   const sportWhere = sportFilter ? (sportFilter === "talk" ? { sport: null } : { sport: sportFilter }) : {};
   const [posts, sportCounts, userId] = await Promise.all([
     prisma.post.findMany({
@@ -212,7 +217,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
               <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 커뮤니티
             </span>
-            <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight break-keep">{isFreeBoard ? "자유게시판" : "스포츠 분석"}</h1>
+            <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight break-keep">{isBriefing ? "해외 브리핑" : isFreeBoard ? "자유게시판" : "스포츠 분석"}</h1>
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -221,6 +226,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             >
               <Trophy className="h-4 w-4" aria-hidden /> 랭킹
             </Link>
+            {!isBriefing && (
             <Link
               href={isFreeBoard ? "/community/new" : "/analysis/new"}
               className="group inline-flex items-center gap-2 rounded-full bg-rose-600 py-2 pl-5 pr-2 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(225,29,72,0.6)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:bg-rose-700 active:scale-[0.98]"
@@ -230,19 +236,22 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                 <SquarePen className="h-3.5 w-3.5" aria-hidden />
               </span>
             </Link>
+            )}
           </div>
         </div>
         <p className="mt-4 max-w-2xl leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
-          {isFreeBoard
-            ? "잡담부터 드림팀 자랑, 전술판 공유까지 자유롭게."
-            : "회원이 올린 경기 분석·승부 예측이 실제 결과로 자동 채점되어 적중률·랭킹에 반영됩니다."}
+          {isBriefing
+            ? "BBC·스카이스포츠·디 애슬레틱 등 공신력 있는 해외 보도만 골라 사실 기반으로 재구성해 전합니다. 찌라시 없음, 출처는 글마다 명시."
+            : isFreeBoard
+              ? "잡담부터 드림팀 자랑, 전술판 공유까지 자유롭게."
+              : "회원이 올린 경기 분석·승부 예측이 실제 결과로 자동 채점되어 적중률·랭킹에 반영됩니다."}
         </p>
 
-        {/* 보드 탭 — 스포츠 분석 | 자유게시판 (한 커뮤니티, 두 보드) */}
+        {/* 보드 탭 — 스포츠 분석 | 자유게시판 | 해외 브리핑 (한 커뮤니티, 세 보드) */}
         <div className="mt-5 inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
           <Link
             href="/analysis"
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${!isFreeBoard ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"}`}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${!isFreeBoard && !isBriefing ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"}`}
           >
             스포츠 분석
           </Link>
@@ -252,9 +261,15 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           >
             자유게시판
           </Link>
+          <Link
+            href="/analysis?board=briefing"
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${isBriefing ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"}`}
+          >
+            해외 브리핑
+          </Link>
         </div>
 
-        {!isFreeBoard && (
+        {!isFreeBoard && !isBriefing && (
         <details className="group mt-5 rounded-2xl bg-white/60 px-5 py-4 ring-1 ring-black/5 backdrop-blur dark:bg-white/[0.04] dark:ring-white/10">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-neutral-800 dark:text-neutral-200 [&::-webkit-details-marker]:hidden">
             <span className="flex items-center gap-2"><Target className="h-4 w-4 shrink-0 text-rose-500" aria-hidden /> 적중률은 어떻게 채점되나요? (= 승률이 아닙니다)</span>
@@ -292,7 +307,8 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         )}
       </header>
 
-      {/* 종목·말머리 필터 탭 */}
+      {/* 종목·말머리 필터 탭 — 브리핑 보드는 전부 축구라 탭 없음 */}
+      {!isBriefing && (
       <nav className="mb-6 flex flex-wrap items-center gap-2" aria-label="종목 필터">
         <Link
           href={href(1, null)}
@@ -323,14 +339,17 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           );
         })}
       </nav>
+      )}
 
       {posts.length === 0 ? (
         <p className="text-sm text-neutral-500 py-24 text-center">
-          {isFreeBoard
-            ? "아직 글이 없습니다. 첫 글의 주인공이 되어보세요!"
-            : sportFilter
-              ? `${SPORT_META[sportFilter].label} 분석글이 아직 없습니다. 첫 글을 남겨보세요!`
-              : "아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!"}
+          {isBriefing
+            ? "아직 브리핑이 없습니다. 곧 첫 소식이 올라옵니다."
+            : isFreeBoard
+              ? "아직 글이 없습니다. 첫 글의 주인공이 되어보세요!"
+              : sportFilter
+                ? `${SPORT_META[sportFilter].label} 분석글이 아직 없습니다. 첫 글을 남겨보세요!`
+                : "아직 등록된 분석글이 없습니다. 첫 글을 남겨보세요!"}
         </p>
       ) : (
         <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
@@ -358,13 +377,15 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                     className={`group grid grid-cols-[1fr] ${COLS} gap-3 px-6 py-4 items-center transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.03]`}
                   >
                     <span className="hidden sm:flex flex-col gap-1">
-                      {p.category === "FREE" ? (
+                      {p.category === "BRIEFING" ? (
+                        <span className="w-fit rounded-md bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-bold text-sky-600 ring-1 ring-sky-500/20 dark:text-sky-400">해외</span>
+                      ) : p.category === "FREE" ? (
                         <span className="w-fit rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">자유</span>
                       ) : (
                         <span className="w-fit rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">분석</span>
                       )}
                       <span className="text-[11px] font-semibold text-neutral-500">
-                        {p.sport && SPORT_META[p.sport] ? SPORT_META[p.sport].label : p.category === "FREE" ? "잡담" : null}
+                        {p.category === "BRIEFING" ? null : p.sport && SPORT_META[p.sport] ? SPORT_META[p.sport].label : p.category === "FREE" ? "잡담" : null}
                       </span>
                     </span>
                     <span className="min-w-0">

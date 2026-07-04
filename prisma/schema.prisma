@@ -849,6 +849,32 @@ model FootballTransfer {
   @@index([playerId])
 }
 
+/// 해외 축구 브리핑 — Tier1 소스(BBC·Sky·Athletic·구단 공식) RSS 항목의 수집·검증·발행 상태.
+/// RSS 에서 본 모든 항목을 기록해 dedup (id = sha1(sourceUrl)). raw SQL 생성 — db push 금지.
+/// 발행물은 Post(category=BRIEFING) 로 나가고 postId 로 연결. 파이프라인: fetch-news-briefing.ts
+model NewsBriefing {
+  id          String   @id // sha1(sourceUrl)
+  title       String // 원문 헤드라인
+  sourceName  String // "BBC Sport" | "Sky Sports" | "The Athletic" | 구단명 등
+  sourceUrl   String
+  journalist  String? // 기자명 (분류 단계에서 추출되면)
+  tier        Int      @default(1) // 공신력 등급 (v1 은 화이트리스트만이라 전부 1)
+  category    String? // TRANSFER | INJURY | MATCH | MANAGER | CLUB | OTHER
+  league      String? // EPL 등 리그 코드, 불명이면 null
+  storyKey    String? // 사건 클러스터 슬러그 — 48h 내 같은 스토리 재발행 방지
+  titleKo     String? // 발행 제목 (재작성 결과)
+  bodyKo      String? // 발행 본문 markdown (재작성 결과)
+  status      String   @default("SEEN") // SEEN | SKIPPED | REJECTED | PUBLISHED | HIDDEN
+  note        String? // 분류 점수·스킵/리젝 사유 (운영 진단용)
+  postId      Int? // 발행된 커뮤니티 Post.id (관계 없이 manual join — Post 삭제 허용)
+  publishedAt DateTime // 원문 발행 시각
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
 /// ESPN 트랜잭션 피드 — 북미 종목(NBA/MLB/NHL) 의 트레이드·FA계약·방출·단기계약·감독인사.
 /// ESPN transactions 엔드포인트는 세 종목 응답 형태가 동일 → league 필드로 단일 모델 재사용.
 /// ESPN 응답엔 안정적 고유 id 가 없어 id = `${league}:${date}:${desc 해시}` 합성 (멱등 upsert).

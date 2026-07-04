@@ -166,14 +166,16 @@ export default async function PostDetailPage({ params }: Props) {
       </div>
 
       <Link
-        href={isFree ? "/analysis?board=free" : "/analysis"}
+        href={post.category === "BRIEFING" ? "/analysis?board=briefing" : isFree ? "/analysis?board=free" : "/analysis"}
         className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3.5 py-1.5 text-sm font-medium text-neutral-600 ring-1 ring-black/10 backdrop-blur transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white hover:text-neutral-900 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10 dark:hover:text-white"
       >
         ← 목록
       </Link>
 
       <article className="mt-5">
-        {isFree ? (
+        {post.category === "BRIEFING" ? (
+          <span className="inline-flex w-fit rounded-md bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-bold text-sky-600 ring-1 ring-sky-500/20 dark:text-sky-400">해외 브리핑</span>
+        ) : isFree ? (
           <span className="inline-flex items-center gap-1">
             <span className="inline-flex w-fit rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">자유</span>
             {post.sport === "soccer" && <span className="inline-flex w-fit rounded-md bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-white/10 dark:text-neutral-300">축구</span>}
