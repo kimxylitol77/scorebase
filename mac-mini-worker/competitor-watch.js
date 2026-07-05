@@ -12,7 +12,7 @@ const FEATURES = fs.readFileSync(path.resolve(__dirname, "scorebase-features.md"
 // 요일별 중점 추적군 — 대상이 늘어도 매일 깊이를 유지하려 하루 한 군에 집중(나머지 군은 큰 변화만).
 const FOCUS_ROTATION = [
   "야구 데이터·세이버메트릭스 — FanGraphs, Baseball Savant, Statiz(KBO), 네이버 야구",   // 0 일
-  "글로벌 데이터·예측 — Sofascore, FotMob, Opta(theanalyst), WhoScored, Understat",       // 1 월
+  "글로벌 데이터·예측 — Sofascore, FotMob, Opta(theanalyst), WhoScored, Understat, AiScore(aiscore.com/ko — 우리와 데이터소스 TheSports 동일·한국어판 운영)",       // 1 월
   "한국 축구 데이터·미디어 — 빌드업(buildup-football.com·우리와 가장 직접 경쟁), 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아",   // 2 화
   "AI 픽·예측·시뮬 — Forebet, WinDrawWin, PredictZ, Infogol(xG), worldcup26simulator.com(WC 토너먼트 시뮬레이터)",   // 3 수
   "해외 프리미엄·종합 — The Athletic, ESPN, OneFootball, 365Scores",                       // 4 목
@@ -52,7 +52,7 @@ function buildPrompt(prev, focus) {
 ${FEATURES}
 
 ## 추적 대상 — web_search / web_fetch 로 최근 동향을 조사
-1. 글로벌 데이터·예측: Sofascore, FotMob, Opta(theanalyst.com), WhoScored, Understat, Flashscore
+1. 글로벌 데이터·예측: Sofascore, FotMob, Opta(theanalyst.com), WhoScored, Understat, Flashscore, AiScore(aiscore.com/ko — TheSports 데이터소스가 우리와 동일한 글로벌 라이브스코어+기초 AI예측 애그리게이터, 한국어판 운영·우리와 가장 직접적 데이터 겹침. 같은 원천으로 저들이 무엇을 더/다르게 노출하는지에 주목)
 2. 한국 축구 데이터·미디어: 빌드업(buildup-football.com — 순위·매치픽 예측·선수비교·전술판·이적·커뮤니티, scorebase 와 가장 직접 경쟁하는 한국 축구 플랫폼·운영 트리플스퀘어), 네이버 스포츠, 풋볼리스트, 인터풋볼, 베스트일레븐, 스포탈코리아, OSEN, 점프볼(농구)
 3. AI 픽·예측·시뮬: Forebet, WinDrawWin, PredictZ, Infogol(xG 기반), worldcup26simulator.com(드래그앤드롭 조별순위·스코어입력 2모드·104경기 풀브래킷·한국어 지원·우리 /world-cup 대진표빌더·조별 시뮬과 직접 경쟁)
 4. 해외 프리미엄·종합: The Athletic, ESPN, OneFootball, 365Scores
