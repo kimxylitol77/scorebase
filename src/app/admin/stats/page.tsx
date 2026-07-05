@@ -128,6 +128,27 @@ export default async function StatsPage({ searchParams }: Props) {
   const humansRange = rangeRaw.filter((r) => !detectBot(r.userAgent).isBot);
   const botsRange = rangeRaw.filter((r) => detectBot(r.userAgent).isBot);
 
+  // ── 의심 봇(위장 스크레이퍼) 세션 분리 — 2026-07-05 실측: 사람 UA(가짜 Safari)로 매 요청
+  // localStorage 를 초기화해 sessionId 가 전부 1PV 로 남는 크롤러가 체류·이탈률을 오염.
+  // 휴리스틱: 기간 내 PV 1개 + 랜딩 referrer·utm 없음 + 진입 페이지(홈·스코어)가 아닌 상세 랜딩.
+  // 진짜 방문자는 대부분 referrer 를 달고 오거나(검색·SNS) 재방문으로 PV 가 누적된다 —
+  // 북마크로 상세 페이지 1번 본 진짜 사람도 일부 섞이지만(과소집계) 스크레이퍼 오염보다 작다.
+  const ENTRY_PATHS = new Set(["/", "/scores", "/landing"]);
+  const pvBySid = new Map<string, number>();
+  for (const r of humansRange) {
+    if (r.sessionId) pvBySid.set(r.sessionId, (pvBySid.get(r.sessionId) ?? 0) + 1);
+  }
+  const suspiciousSids = new Set<string>();
+  for (const l of landingRaw) {
+    if (!l.sessionId || l.referrer || l.utmSource) continue;
+    if (detectBot(l.userAgent).isBot) continue;
+    if (pvBySid.get(l.sessionId) !== 1) continue;
+    if (ENTRY_PATHS.has(l.path.split("?")[0])) continue;
+    suspiciousSids.add(l.sessionId);
+  }
+  // 사람 지표는 의심 봇 제외본으로 계산 (원본 humansRange 는 봇 대비 비율 등에 유지)
+  const humansClean = humansRange.filter((r) => !r.sessionId || !suspiciousSids.has(r.sessionId));
+
   // KPI 계산 헬퍼
   const filterRange = (rows: Row[], from: Date, to?: Date) =>
     rows.filter((r) =>
@@ -147,9 +168,9 @@ export default async function StatsPage({ searchParams }: Props) {
   const humanTodayUnique = uniqueRange(humans30 as Row[], today00KST);
   const humanYesterdayPV = filterRange(humans30 as Row[], yesterday00KST, today00KST);
   const humanYesterdayUnique = uniqueRange(humans30 as Row[], yesterday00KST, today00KST);
-  const humanRangePV = humansRange.length;
+  const humanRangePV = humansClean.length;
   const humanRangeUnique = new Set(
-    humansRange.map((r) => r.sessionId).filter(Boolean) as string[],
+    humansClean.map((r) => r.sessionId).filter(Boolean) as string[],
   ).size;
 
   // 실제 체류·이탈률 — sessionId 는 localStorage 영구 ID(방문자 식별)라 세션이 아니므로,
@@ -160,7 +181,7 @@ export default async function StatsPage({ searchParams }: Props) {
   let sessionBounces = 0;
   {
     const bySid = new Map<string, number[]>();
-    for (const r of humansRange) {
+    for (const r of humansClean) {
       if (!r.sessionId) continue;
       const arr = bySid.get(r.sessionId);
       if (arr) arr.push(r.ts.getTime());
@@ -241,7 +262,7 @@ export default async function StatsPage({ searchParams }: Props) {
   deviceCount.set("mobile", 0);
   deviceCount.set("tablet", 0);
   deviceCount.set("desktop", 0);
-  for (const r of humansRange) {
+  for (const r of humansClean) {
     const d = detectDevice(r.userAgent);
     deviceCount.set(d.type, (deviceCount.get(d.type) ?? 0) + 1);
   }
@@ -260,7 +281,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 인기 페이지 (사람만, 선택 기간)
   const humanPathCount = new Map<string, number>();
-  for (const r of humansRange) {
+  for (const r of humansClean) {
     humanPathCount.set(r.path, (humanPathCount.get(r.path) ?? 0) + 1);
   }
   const topHumanPaths = Array.from(humanPathCount.entries())
@@ -269,7 +290,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 도메인별 (사람만, 선택 기간) — scorebase.kr vs 스코어보드.kr 분리.
   const hostAgg = new Map<string, { pv: number; ids: Set<string> }>();
-  for (const r of humansRange) {
+  for (const r of humansClean) {
     const label = friendlyHost(r.host);
     const e = hostAgg.get(label) ?? { pv: 0, ids: new Set<string>() };
     e.pv++;
@@ -291,6 +312,7 @@ export default async function StatsPage({ searchParams }: Props) {
   let landingTotal = 0;
   for (const r of landingRaw) {
     if (detectBot(r.userAgent).isBot) continue;
+    if (r.sessionId && suspiciousSids.has(r.sessionId)) continue; // 위장 스크레이퍼 랜딩 제외
     const { channel, domain } = classifyLanding(r.referrer, r.utmSource);
     const e = channelAgg.get(channel) ?? { count: 0, ids: new Set<string>() };
     e.count++;
@@ -394,8 +416,10 @@ export default async function StatsPage({ searchParams }: Props) {
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 12);
 
-  const totalBots = botsRange.length;
-  const totalHumans = humansRange.length;
+  // 의심 봇(위장 스크레이퍼) PV 는 봇 쪽으로 집계 — 사람 vs 봇 비율을 정직하게
+  const suspectPv = humansRange.length - humansClean.length;
+  const totalBots = botsRange.length + suspectPv;
+  const totalHumans = humansClean.length;
   const botRatio =
     totalBots + totalHumans > 0
       ? Math.round((totalBots / (totalBots + totalHumans)) * 100)
@@ -443,7 +467,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
         <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <KpiCard label={`${rangeLabel} 평균 체류`} value={avgSessionLabel} accent sub="30분 무활동=새 세션" />
-          <KpiCard label="이탈률" value={bounceRate} suffix="%" sub="1페이지짜리 세션 비율" />
+          <KpiCard label="이탈률" value={bounceRate} suffix="%" sub={`1페이지짜리 세션 비율 · 의심 봇 ${suspiciousSids.size.toLocaleString()}세션 제외`} />
           <KpiCard label="세션 수" value={sessionCount} sub={`방문자 ${humanRangeUnique.toLocaleString()}명 기준`} />
           <KpiCard label="세션당 PV" value={sessionCount ? (humanRangePV / sessionCount).toFixed(1) : "0"} sub="페이지 깊이" />
         </div>
