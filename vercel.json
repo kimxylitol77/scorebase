@@ -113,6 +113,10 @@
       "schedule": "*/30 * * * *"
     },
     {
+      "path": "/api/cron/daily-thread",
+      "schedule": "0 22 * * *"
+    },
+    {
       "path": "/api/cron/ou-picks",
       "schedule": "25 11,20 * * *"
     },

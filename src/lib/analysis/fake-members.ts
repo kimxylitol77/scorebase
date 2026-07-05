@@ -133,6 +133,8 @@ interface FakeCand {
   away: string;
   hcLine: number | null;
   ouLine: number | null;
+  /** MLB 선발 매치업 — 있으면 프롬프트에 주입 (커뮤니티 문법: 선수 실명 재료) */
+  starters: string | null;
 }
 
 interface ShortPick {
@@ -182,6 +184,8 @@ async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCan
       oddsHome: true, // 배당 유무 판단용 (배당 있는 경기 우선 선택)
       oddsHcLine: true,
       oddsTotalLine: true,
+      homeStarter: true, // MLB 선발 — 제목·본문에 선수 실명 재료
+      awayStarter: true,
     },
     take: 50,
   });
@@ -208,6 +212,19 @@ async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCan
   if (withOdds.length > 0) valid = withOdds;
 
   const { m, sport } = valid[Math.floor(Math.random() * valid.length)];
+  // MLB 선발 이름·ERA — 커뮤니티 문법(선수 실명) 재료. 없으면 null.
+  let starters: string | null = null;
+  try {
+    const hs = m.homeStarter ? (JSON.parse(m.homeStarter) as { name?: string; era?: number }) : null;
+    const as = m.awayStarter ? (JSON.parse(m.awayStarter) as { name?: string; era?: number }) : null;
+    if (hs?.name && as?.name) {
+      const fmt = (s: { name?: string; era?: number }) =>
+        `${s.name}${s.era != null ? `(ERA ${s.era.toFixed(2)})` : ""}`;
+      starters = `${fmt(hs)} vs ${fmt(as)}`;
+    }
+  } catch {
+    // 선발 JSON 파싱 실패는 무시 — 재료가 없을 뿐
+  }
   return {
     id: m.id,
     league: m.league,
@@ -217,6 +234,7 @@ async function randomMatch(userId: string, preferSport?: Sport): Promise<FakeCan
     away: botTeamName(toKoreanTeamName(m.awayTeam.name, m.league), m.league),
     hcLine: m.oddsHcLine,
     ouLine: m.oddsTotalLine,
+    starters,
   };
 }
 
@@ -270,7 +288,7 @@ function buildSystem(nickname: string, p: Persona, market: string, drawAllowed: 
 [이번 글]
 - market 은 "${market}" 으로 정해져 있음. ${pickRule}
 - 본문 길이: ${lenHint}. 길이가 매번 똑같지 않게.
-- 제목: 25자 이내. 게시판에 사람이 대충 치고 올리는 제목처럼 — 혼잣말·질문·감탄·반토막 문장 다 가능. 팀명이 안 들어가도 됨. 느낌 예시(문구·구조 베끼기 금지, 톤만 참고): "오늘 느낌은 여기다", "라인업 보니 홈이 이길 거 같은데?", "이 경기 오버 각 아닌가", "샌디에이고 요즘 왜 이럼".
+- 제목: 25자 이내 단문. 게시판에 사람이 대충 치고 올리는 제목처럼 — 혼잣말·질문·감탄·반토막 문장 다 가능. 팀명·선수 실명이나 구체 숫자(배당·라인·ERA) 하나가 들어가면 더 좋지만 강제는 아님. 느낌 예시(문구·구조 베끼기 금지, 톤만 참고): "오늘 느낌은 여기다", "라인업 보니 홈이 이길 거 같은데?", "이 배당이 2.1이라고?", "샌디에이고 요즘 왜 이럼", "글라스나우 ERA 보고 왔습니다".
 - 제목 금지: 기사 헤드라인·시적 은유 톤. 특히 "아침 8시, ~가 먼저 깬다"처럼 [시간대·날짜 + 쉼표 + 은유] 구조 절대 금지. 킥오프 시각·요일·기념일을 제목에 넣지 말 것.
 - 팀명을 쓸 땐 별명 단독 금지. 예: "파드리스"(X)→"샌디에이고", "내셔널스"(X)→"워싱턴".
 
@@ -295,6 +313,7 @@ async function generateShortPick(c: FakeCand, nickname: string, persona: Persona
   const data = [
     `경기: ${c.home}(홈) vs ${c.away}(원정)`,
     `리그: ${leagueLabel(c.league)} · ${kickoffLabel(c.startTime)}`,
+    c.starters ? `선발 매치업: ${c.starters}` : null,
     market === "HANDICAP" ? `핸디캡 라인(홈 기준): ${c.hcLine}` : null,
     market === "OU" ? `오버언더 기준선: ${c.ouLine}` : null,
   ]
@@ -331,12 +350,14 @@ async function generateShortPick(c: FakeCand, nickname: string, persona: Persona
 }
 
 // 분단위 cron(30분 간격) 호출 → 시간대별 확률로 1글만 발행. 하루 5~10글이 시간에 분산(몰아쓰기 X).
-// 야구 시즌이라 종목 가중 야구 70% / 축구 30%.
-export async function runFakeMemberPicks(): Promise<{ created: number; skipped: number }> {
-  // 시간대별 발행 확률(KST) — 저녁 활발·새벽 한산. 30분 간격 호출 기준 일 평균 ~7글 유지.
+// 야구 시즌이라 종목 가중 야구 70% / 축구 30%. force=true 면 확률 게이트 생략(검증·수동용).
+export async function runFakeMemberPicks(force = false): Promise<{ created: number; skipped: number }> {
+  // 시간대별 발행 확률(KST) — 커뮤니티 3파도(경기중 저녁·종료 직후 밤·익일 아침 출근) 반영.
+  // 아침 07~09시 상향: 커뮤니티 실측(2026-07-05)상 스탯 정리 글 소비가 출근 시간대에 최고.
   const kstHour = (new Date().getUTCHours() + 9) % 24;
-  const rate = kstHour >= 18 ? 0.22 : kstHour >= 9 ? 0.12 : kstHour >= 3 ? 0.07 : 0.15;
-  if (Math.random() > rate) return { created: 0, skipped: 0 };
+  const rate =
+    kstHour >= 18 ? 0.22 : kstHour >= 9 ? 0.12 : kstHour >= 7 ? 0.2 : kstHour >= 3 ? 0.07 : 0.15;
+  if (!force && Math.random() > rate) return { created: 0, skipped: 0 };
 
   const i = Math.floor(Math.random() * FAKE_NICKNAMES.length);
   // 페르소나에 종목이 고정돼 있으면(월드컵 8명 = soccer) 그 종목, 아니면 가중 랜덤(야구 시즌 주력).
@@ -355,11 +376,16 @@ export async function runFakeMemberPicks(): Promise<{ created: number; skipped: 
     // 1~29분 빼면 :00 발행 → 31~59분, :30 발행 → 1~29분으로 모든 분(10분·13분…)에 고르게 분포.
     // 과거 방향이라 킥오프 전 보장 유지. 초도 랜덤(0~59).
     const createdAt = new Date(Date.now() - (1 + Math.floor(Math.random() * 29)) * 60_000 - Math.floor(Math.random() * 60) * 1000);
+    // 스탯카드 짤 확률 첨부(35%) — 커뮤니티 승자 포맷 "캡처 1장". 전원 첨부하면 봇 티가 나 확률로.
+    const withCard = Math.random() < 0.35;
+    const content = withCard
+      ? `${pick.analysis}\n\n![${c.home} vs ${c.away} 경기 데이터](/api/og/match-card?m=${c.id})`
+      : pick.analysis;
     await prisma.post.create({
       data: {
         authorId: userId,
         title: pick.title,
-        content: pick.analysis,
+        content,
         sport: c.sport,
         matchId: c.id,
         market: pick.market,

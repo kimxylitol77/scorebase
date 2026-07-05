@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runFakeMemberPicks } from "@/lib/analysis/fake-members";
+import { runBotComments } from "@/lib/analysis/bot-comments";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +15,12 @@ export async function GET(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   try {
-    const result = await runFakeMemberPicks();
-    return NextResponse.json({ ok: true, ...result });
+    // ?force=1 — 확률 게이트 생략(검증·수동 시딩용). 정규 cron 은 미지정.
+    const force = new URL(req.url).searchParams.get("force") === "1";
+    const result = await runFakeMemberPicks(force);
+    // 봇 댓글 시딩 — 같은 30분 주기에 편승(별도 cron 슬롯 없이). 내부 확률 게이트로 하루 10~20개 분산.
+    const comments = await runBotComments(force);
+    return NextResponse.json({ ok: true, ...result, comments });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },

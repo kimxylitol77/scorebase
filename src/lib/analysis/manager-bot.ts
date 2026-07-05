@@ -295,11 +295,13 @@ export async function runManagerPicks(limit = 4): Promise<{
         skipped++;
         continue;
       }
+      // 스탯카드 짤 상시 첨부 — 공식 분석팀 글의 시각 규격(AI 승률 바 + 배당).
+      const card = `\n\n![${c.home} vs ${c.away} 경기 데이터 카드](/api/og/match-card?m=${c.id})`;
       await prisma.post.create({
         data: {
           authorId: managerId,
           title: pick.title,
-          content: pick.analysis + DISCLAIMER,
+          content: pick.analysis + card + DISCLAIMER,
           sport: c.sport,
           matchId: c.id,
           market: pick.market,
