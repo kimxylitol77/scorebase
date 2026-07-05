@@ -18,6 +18,7 @@ import rawTeamLogos from "../../../../data/team-logos.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
+import PlayerAdvancedStats from "./PlayerAdvancedStats";
 import PlayerTabs from "./PlayerTabs";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
 import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
@@ -31,8 +32,73 @@ interface SeasonStat {
   minutes: number | null; shots: number | null; sot: number | null; keyPasses: number | null;
   passAcc: number | null; tackles: number | null; interceptions: number | null;
   yellow: number | null; red: number | null; saves: number | null;
+  // 상세 스탯 (build-ts-af-player-map 확장분 — 재빌드 전 기존 항목은 undefined)
+  blocks?: number | null; dribbles?: number | null; dribbleAtt?: number | null;
+  dribbledPast?: number | null; duelsWon?: number | null; duelsTotal?: number | null;
+  foulsDrawn?: number | null; foulsCommitted?: number | null;
 }
 const SEASON = rawSeason as Record<string, SeasonStat>;
+
+// 상세 스탯 순위 바용 백분위 — 같은 포지션군(F/M/D/G) + 최소 450분 대비 90분당 값 순위.
+// 반칙·제쳐짐 등 invert 스탯은 낮을수록 높은 백분위. 비율(정확도·성공률)은 원값 순위.
+const PCT_STATS: Array<{ key: string; field: keyof SeasonStat; ratio?: [keyof SeasonStat, keyof SeasonStat]; invert?: boolean; pctType: "per90" | "ratio" }> = [
+  { key: "goals", field: "goals", pctType: "per90" },
+  { key: "shots", field: "shots", pctType: "per90" },
+  { key: "sot", field: "sot", pctType: "per90" },
+  { key: "shotAcc", field: "sot", ratio: ["sot", "shots"], pctType: "ratio" },
+  { key: "assists", field: "assists", pctType: "per90" },
+  { key: "keyPasses", field: "keyPasses", pctType: "per90" },
+  { key: "passAcc", field: "passAcc", pctType: "ratio" },
+  { key: "dribbles", field: "dribbles", pctType: "per90" },
+  { key: "dribbleRate", field: "dribbles", ratio: ["dribbles", "dribbleAtt"], pctType: "ratio" },
+  { key: "duelsWon", field: "duelsWon", pctType: "per90" },
+  { key: "duelRate", field: "duelsWon", ratio: ["duelsWon", "duelsTotal"], pctType: "ratio" },
+  { key: "tackles", field: "tackles", pctType: "per90" },
+  { key: "interceptions", field: "interceptions", pctType: "per90" },
+  { key: "blocks", field: "blocks", pctType: "per90" },
+  { key: "dribbledPast", field: "dribbledPast", pctType: "per90", invert: true },
+  { key: "foulsDrawn", field: "foulsDrawn", pctType: "per90" },
+  { key: "foulsCommitted", field: "foulsCommitted", pctType: "per90", invert: true },
+  { key: "yellow", field: "yellow", pctType: "per90", invert: true },
+  { key: "red", field: "red", pctType: "per90", invert: true },
+];
+
+function coarsePos(pos: string | null): string {
+  const p = (pos ?? "").toUpperCase()[0];
+  return ["F", "M", "D", "G"].includes(p) ? p : "M";
+}
+
+function computeStatPercentiles(target: SeasonStat): Record<string, number> {
+  const grp = coarsePos(target.pos);
+  const peers = Object.values(SEASON).filter(
+    (s) => coarsePos(s.pos) === grp && (s.minutes ?? 0) >= 450,
+  );
+  const valOf = (s: SeasonStat, spec: (typeof PCT_STATS)[number]): number | null => {
+    if (spec.pctType === "ratio") {
+      if (spec.ratio) {
+        const a = s[spec.ratio[0]] as number | null, b = s[spec.ratio[1]] as number | null;
+        return a != null && b != null && b > 0 ? a / b : null;
+      }
+      const v = s[spec.field] as number | null;
+      return v ?? null;
+    }
+    const raw = s[spec.field] as number | null;
+    const mins = s.minutes ?? 0;
+    return raw != null && mins > 0 ? (raw / mins) * 90 : null;
+  };
+  const out: Record<string, number> = {};
+  for (const spec of PCT_STATS) {
+    const tv = valOf(target, spec);
+    if (tv == null) continue;
+    const vals = peers.map((p) => valOf(p, spec)).filter((v): v is number => v != null);
+    if (vals.length < 10) { out[spec.key] = 50; continue; }
+    const below = vals.filter((v) => v <= tv).length;
+    let p = Math.round((below / vals.length) * 100);
+    if (spec.invert) p = 100 - p;
+    out[spec.key] = Math.max(0, Math.min(100, p));
+  }
+  return out;
+}
 // 선수 사진 (TheSports season player.logo). DB photoUrl(라인업)보다 커버리지 높아 우선.
 const PHOTOS = rawPhotos as Record<string, string>;
 // 과거 시즌 (Wikipedia Career statistics) — 시즌별 클럽 리그/총 출장·골
@@ -692,6 +758,10 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 {/* 시즌 상세 기록 — 레이더 + 90분당 + 슈팅/패스/수비 */}
                 {season && (season.minutes ?? 0) > 0 && (
                   <PlayerSeasonOverview name={name} stat={season} />
+                )}
+                {/* 시즌 성적 상세 — FotMob식 카테고리별 스탯 + 포지션 백분위 순위 바 (펼치기) */}
+                {season && (season.minutes ?? 0) > 0 && (
+                  <PlayerAdvancedStats stat={season} pct={computeStatPercentiles(season)} />
                 )}
                 {/* 현 시즌 대회별 스탯 (af). ts→af 매핑 없으면 자동 미표시 */}
                 <CompetitionStatsSection tsId={id} league={mv?.league ?? null} extraRows={wcCompRow ? [wcCompRow] : []} />

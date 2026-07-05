@@ -82,16 +82,6 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
   const acc = n(stat.shots) > 0 ? Math.round((n(stat.sot) / n(stat.shots)) * 100) : 0;
   const isGk = n(stat.saves) > 0;
 
-  // 90분당 타일
-  const per90 = [
-    { label: "골/90", v: p90(stat.goals).toFixed(2), cls: "text-cyan-600 dark:text-cyan-400" },
-    { label: "도움/90", v: p90(stat.assists).toFixed(2), cls: "text-blue-600 dark:text-blue-400" },
-    { label: "슛/90", v: p90(stat.shots).toFixed(2), cls: "text-sky-600 dark:text-sky-400" },
-    { label: "키패스/90", v: p90(stat.keyPasses).toFixed(2), cls: "text-indigo-600 dark:text-indigo-400" },
-    { label: "태클/90", v: p90(stat.tackles).toFixed(2), cls: "text-emerald-600 dark:text-emerald-400" },
-    { label: "인터셉트/90", v: p90(stat.interceptions).toFixed(2), cls: "text-teal-600 dark:text-teal-400" },
-  ];
-
   return (
     <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none space-y-5">
       <div className="flex items-baseline gap-2">
@@ -138,22 +128,6 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
               bar={n(stat.matches) > 0 ? (n(stat.starts) / n(stat.matches)) * 100 : null}
               rows={[["경기 / 선발", `${n(stat.matches)} · ${n(stat.starts)}`], ["출전 시간", `${mins.toLocaleString()}'`]]} />
           )}
-        </div>
-      </div>
-
-      {/* 90분당 */}
-      <div>
-        <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-xs font-bold text-neutral-500">90분당 기록</span>
-          <span className="text-[11px] text-neutral-400">{mins.toLocaleString()}분 기준</span>
-        </div>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {per90.map((t) => (
-            <div key={t.label} className="rounded-lg bg-white px-2 py-2.5 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 text-center">
-              <div className="text-[10px] text-neutral-500">{t.label}</div>
-              <div className={`text-base font-black tabular-nums ${t.cls}`}>{t.v}</div>
-            </div>
-          ))}
         </div>
       </div>
     </section>
