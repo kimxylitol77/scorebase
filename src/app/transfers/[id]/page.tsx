@@ -19,6 +19,7 @@ import rawWcSquads from "../../../../data/wc-national-squads.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
+import PlayerBioPanel from "./PlayerBioPanel";
 import PlayerTabs from "./PlayerTabs";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
 import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
@@ -686,66 +687,28 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 <Star className="h-3 w-3" aria-hidden /> 종합 {ability}
               </span>
             )}
-            {mv?.age != null && (
-              <span className="text-sm text-neutral-500">
-                {mv.age}세{afProfile?.birthDate ? ` (${afProfile.birthDate})` : ""}
-              </span>
-            )}
-            {afProfile?.height && afProfile?.weight && (
-              <span className="text-sm text-neutral-500">
-                {afProfile.height.replace(/\s*cm/i, "")}cm · {afProfile.weight.replace(/\s*kg/i, "")}kg
-              </span>
-            )}
-            {ov?.country && (
-              natlTeamIds.length > 0 ? (
-                <Link
-                  href={`/national-teams/${natlTeamIds[0]}`}
-                  prefetch={false}
-                  className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                  title={`${ov.country} 대표팀`}
-                >
-                  {ov.flag && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ov.flag} alt="" className="w-4 h-3 object-cover rounded-[1px]" />
-                  )}
-                  {ov.country}
-                </Link>
-              ) : (
-                <span className="flex items-center gap-1 text-sm text-neutral-500">
-                  {ov.flag && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ov.flag} alt="" className="w-4 h-3 object-cover rounded-[1px]" />
-                  )}
-                  {ov.country}
-                </span>
-              )
-            )}
           </div>
-          <Link
-            href={ourTeamId != null ? `/teams/${ourTeamId}` : "#"}
-            className="text-sm text-neutral-500 flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] w-fit"
-          >
-            {teamLogo && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={teamLogo} alt="" className="w-4 h-4 object-contain" />
-            )}
-            {teamName}
-            {league && <span className="text-neutral-400">· {LEAGUE_LABEL[league]}</span>}
-          </Link>
         </div>
-        {value != null && (
-          <div className="ml-auto text-right leading-tight">
-            <div className="text-xs text-neutral-400">현재 시장가치</div>
-            <div className="text-2xl sm:text-3xl font-black text-cyan-600 dark:text-cyan-400 tabular-nums">€{value}M</div>
-            <div className="text-xs text-neutral-500 tabular-nums">{krw(value)}</div>
-            {points.length >= 2 && (
-              <div className={`text-xs font-semibold tabular-nums ${recentChg >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
-                {recentChg >= 0 ? "▲" : "▼"} {Math.abs(recentChg)}% <span className="text-neutral-400 font-normal">최근</span>
-              </div>
-            )}
-          </div>
-        )}
       </header>
+
+      {/* 바이오 + 포지션 패널 (정보 왼쪽 / 포지션 오른쪽) */}
+      <PlayerBioPanel
+        age={mv?.age ?? null}
+        birthDate={afProfile?.birthDate ?? null}
+        height={afProfile?.height ?? null}
+        weight={afProfile?.weight ?? null}
+        country={ov?.country ?? null}
+        flag={ov?.flag ?? null}
+        natlHref={natlTeamIds.length > 0 ? `/national-teams/${natlTeamIds[0]}` : null}
+        teamName={teamName}
+        teamLogo={teamLogo ?? null}
+        leagueLabel={league ? LEAGUE_LABEL[league] : null}
+        teamHref={ourTeamId != null ? `/teams/${ourTeamId}` : null}
+        valueEur={value ?? null}
+        valueKrw={value != null ? krw(value) : null}
+        recentChg={points.length >= 2 ? recentChg : null}
+        posCode={tsp?.position ?? null}
+      />
 
       {/* 탭 — 개요 / 시즌별 / 경기 / 이적 (buildup IA). 헤더·출처는 탭 밖 고정 */}
       <PlayerTabs
