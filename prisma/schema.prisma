@@ -795,6 +795,19 @@ model Comment {
   @@index([authorId])
 }
 
+/// 게시판 업로드 파일(이미지·짧은 동영상) — bytea 로 DB 저장, /api/file/[id] 로 서빙.
+/// prod 테이블은 raw SQL 로 생성(db push 금지 — prod DDL 락 절차). FK 없이 ownerId 만 기록.
+model Attachment {
+  id        String   @id @default(cuid())
+  ownerId   String // User.id — 업로더 (rate limit·삭제 권한 판단용)
+  mime      String // image/jpeg 등 허용목록 검증 후 저장
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  @@index([ownerId])
+}
+
 /// 경험치/포인트 변동 이력 — 어뷰징 추적·롤백용. awardExp() 가 기록.
 model ExpLog {
   id        Int      @id @default(autoincrement())

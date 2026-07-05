@@ -18,7 +18,22 @@ export default function Markdown({ children, disableAutoLink, selfHref }: Props)
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h1:leading-tight prose-h1:mb-4 prose-h2:text-xl prose-h2:mt-8 prose-h3:text-lg prose-p:leading-7 prose-strong:font-semibold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{processed}</ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          // 업로드 동영상(/api/file/{id}?v=1) — 마크다운엔 이미지 문법으로 넣고 여기서 <video> 로 렌더.
+          img: ({ src, alt }) => {
+            const s = typeof src === "string" ? src : "";
+            if (s.startsWith("/api/file/") && s.includes("v=1")) {
+              return <video src={s} controls playsInline preload="metadata" className="w-full rounded-xl" />;
+            }
+            // eslint-disable-next-line @next/next/no-img-element
+            return <img src={s} alt={alt ?? ""} loading="lazy" className="rounded-xl" />;
+          },
+        }}
+      >
+        {processed}
+      </ReactMarkdown>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { createPostAction, type PostFormState } from "../actions";
 import { EXP_REWARDS } from "@/lib/user-level";
+import MediaUpload from "@/components/board/MediaUpload";
 
 export interface MatchOption {
   id: number;
@@ -348,12 +349,16 @@ export default function AnalysisForm({ matchesBySport }: Props) {
           </span>
         </div>
         <textarea
+          id="post-content"
           name="content"
           placeholder="분석 내용을 적어주세요. (마크다운 문법 사용 가능)"
           required
           rows={10}
           className={inputCls}
         />
+        <div className="mt-2">
+          <MediaUpload targetId="post-content" />
+        </div>
       </div>
 
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}

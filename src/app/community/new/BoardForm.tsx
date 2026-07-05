@@ -1,8 +1,9 @@
 "use client";
-// 자유글 작성 폼 — createPostAction(category=FREE) + 첨부(드림팀 체크 / 전술판 공유 링크)
+// 자유글 작성 폼 — createPostAction(category=FREE) + 첨부(사진·동영상 / 드림팀 체크 / 전술판 공유 링크)
 import { useActionState } from "react";
 import Link from "next/link";
 import { createPostAction, type PostFormState } from "@/app/analysis/actions";
+import MediaUpload from "@/components/board/MediaUpload";
 
 const initialState: PostFormState = { ok: false };
 
@@ -66,6 +67,8 @@ export default function BoardForm({
       {/* 첨부 */}
       <fieldset className="rounded-2xl border border-neutral-200 p-4 dark:border-neutral-700">
         <legend className="px-1.5 text-xs font-bold text-neutral-500">첨부 (선택)</legend>
+
+        <MediaUpload targetId="content" />
 
         {myTeam ? (
           <label className="flex cursor-pointer items-center gap-2.5 text-sm">
