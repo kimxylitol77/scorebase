@@ -15,6 +15,13 @@ function kstParts(d: Date) {
 const p2 = (n: number) => String(n).padStart(2, "0");
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 
+/** 목록 등록일: 항상 날짜만 MM/DD (타년도는 YY/MM/DD). */
+export function listDate(d: Date): string {
+  const a = kstParts(d);
+  const b = kstParts(new Date());
+  return a.y === b.y ? `${p2(a.mo)}/${p2(a.da)}` : `${String(a.y).slice(2)}/${p2(a.mo)}/${p2(a.da)}`;
+}
+
 /** 목록 등록일: 오늘이면 HH:MM, 아니면 MM/DD. */
 export function listTime(d: Date): string {
   const a = kstParts(d);

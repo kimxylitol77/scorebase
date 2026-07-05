@@ -4,7 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { displayGrade } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
-import { listTime, hitRate } from "@/lib/analysis/format";
+import { listDate, hitRate } from "@/lib/analysis/format";
 import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { SITE_URL } from "@/lib/site-url";
 import { Trophy, SquarePen, Target, Flame, X } from "lucide-react";
@@ -439,7 +439,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                           </>
                         )}
                         <span>·</span>
-                        <span>{listTime(p.createdAt)}</span>
+                        <span>{listDate(p.createdAt)}</span>
                       </span>
                     </span>
                     <span
@@ -476,7 +476,7 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       )}
                     </span>
                     <span className="hidden sm:block text-right text-sm text-neutral-500">
-                      {listTime(p.createdAt)}
+                      {listDate(p.createdAt)}
                     </span>
                     <span className="hidden sm:block text-right text-sm text-neutral-500">
                       {p.views}
