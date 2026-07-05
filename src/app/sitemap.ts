@@ -195,9 +195,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const livePages: MetadataRoute.Sitemap = matches.map((m) => {
     const lg = m.league.toLowerCase();
-    // MLB/KBO/NPB/LOL = 전용 라우트, 나머지(NBA/NHL/축구) = [league] 동적 라우트
+    // MLB/KBO/NPB/LOL/UFC = 소문자 전용 라우트, 나머지(NBA/NHL/축구) = [league] 동적 라우트.
+    // 동적 라우트는 canonical·내부링크가 대문자(m.league) — sitemap 만 소문자면 신호가 갈려
+    // 빙/구글이 두 벌을 따로 색인 (2026-07-05 Bing page stats 실측) → 대문자로 통일.
     const slug = LOL_LEAGUES.has(m.league) ? "lol" : lg;
-    const segment = ["mlb", "kbo", "npb", "lol"].includes(slug) ? slug : lg;
+    const segment = ["mlb", "kbo", "npb", "lol", "ufc"].includes(slug) ? slug : m.league;
     // UFC 라우트는 Match.id(숫자) 기반 — externalId(hash)는 404 (2026-06-04 route-guardian).
     // /scores 내부링크와 동일하게 Match.id 로 sitemap 등록 (야구 ts- 제외와 다른 처리: UFC 는 전부 Match.id 라우팅).
     const routeId = m.league === "UFC" ? m.id : m.externalId;

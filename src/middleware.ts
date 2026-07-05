@@ -53,6 +53,20 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // ── /live/{league} 대소문자 정규화 — canonical·내부링크는 대문자인데 소문자 URL 이
+  // 구 sitemap 으로 색인돼 랭킹 신호가 갈림(2026-07-05 Bing 실측) → 대문자 308 영구 redirect.
+  // mlb·kbo·npb·lol·ufc 는 소문자 전용 라우트라 제외.
+  const liveSeg = path.match(/^\/live\/([^/]+)\/(.+)$/);
+  if (liveSeg) {
+    const seg = liveSeg[1];
+    const upper = seg.toUpperCase();
+    if (seg !== upper && !["mlb", "kbo", "npb", "lol", "ufc"].includes(seg)) {
+      const url = req.nextUrl.clone();
+      url.pathname = `/live/${upper}/${liveSeg[2]}`;
+      return NextResponse.redirect(url, 308);
+    }
+  }
+
   // 스코어보드.kr — scorebase.kr 와 콘텐츠가 동일해 구글 중복 색인을 막기 위해 전 경로 noindex.
   // robots.txt 는 크롤 허용 상태라 구글이 이 헤더를 읽고 색인에서 제외한다 (Disallow 면 헤더를 못 읽음).
   // 루트는 /scores 내용으로 rewrite (URL 은 스코어보드.kr 유지).

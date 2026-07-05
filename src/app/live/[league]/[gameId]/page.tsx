@@ -225,8 +225,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         const a = toKoreanTeamName(live.awayName, lg);
         const lb = LEAGUE_DISPLAY[lg] ?? lg;
         return {
-          title: `${h} vs ${a} 라이브 — ${lb}`,
-          description: `${h} vs ${a} ${lb} 라이브 스코어 · 실시간 점수.`,
+          title: `${h} vs ${a} 중계·라이브 스코어 — ${lb}`,
+          description: `${h} vs ${a} ${lb} 실시간 중계 · 라이브 스코어.`,
           alternates: { canonical: `https://www.scorebase.kr/live/${lg}/${gameId}` },
         };
       }
@@ -236,9 +236,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const home = toKoreanTeamName(match.homeTeam.name, lg);
   const away = toKoreanTeamName(match.awayTeam.name, lg);
   const label = LEAGUE_DISPLAY[lg] ?? lg;
+  // 검색어가 경기 국면 따라 바뀜(전·중 "중계", 후 "결과") — 빙은 title 정확 매칭 가중치가 높아
+  // 상태별 title 분기 (2026-07-05 Bing 검색어 실측: "A vs B" 4~6위 노출·"결과" 클러스터 8~9위).
+  const finished = match.status === "FINISHED";
   return {
-    title: `${home} vs ${away} 라이브 — ${label}`,
-    description: `${home} vs ${away} ${label} 라이브 스코어 · 쿼터/피리어드 별 점수 또는 골 이벤트.`,
+    title: finished
+      ? `${home} vs ${away} 결과·스코어 — ${label}`
+      : `${home} vs ${away} 중계·라이브 스코어 — ${label}`,
+    description: finished
+      ? `${home} vs ${away} ${label} 경기 결과 — 최종 스코어와 쿼터/피리어드 별 점수, 골 이벤트.`
+      : `${home} vs ${away} ${label} 실시간 중계 · 라이브 스코어 · 쿼터/피리어드 별 점수 또는 골 이벤트.`,
     alternates: { canonical: `https://www.scorebase.kr/live/${lg}/${gameId}` },
   };
 }
