@@ -40,7 +40,7 @@ export const FAKE_NICKNAMES = [
 type Sport = "soccer" | "baseball" | "basketball" | "hockey" | "esports" | "mma" | "volleyball";
 type Bias = "underdog" | "safe" | "over" | "under" | "handicap" | "balanced";
 
-interface Persona {
+export interface Persona {
   tone: string; // 말투·캐릭터 (시스템 프롬프트 주입)
   bias: Bias; // 픽 성향 — 마켓 가중 + 프롬프트 힌트
   len: "short" | "mid"; // 글 길이 힌트
@@ -48,7 +48,8 @@ interface Persona {
 }
 
 // 닉네임 인덱스와 1:1 — FAKE_NICKNAMES 순서 동기. 닉네임이 풍기는 캐릭터와 일치시킴.
-const PERSONAS: Persona[] = [
+// export — 자유게시판 봇(free-board-bot.ts)이 같은 페르소나 풀을 공유.
+export const PERSONAS: Persona[] = [
   { tone: "텐션 높은 반말. 시원시원하게 지르는 스타일, 가끔 ㅋㅋ", bias: "balanced", len: "mid" }, // 오늘은간다
   { tone: "직감 위주. '느낌이 온다'는 식의 감 표현을 즐김, 근거는 대충", bias: "balanced", len: "short" }, // 느낌충만
   { tone: "직관 다니는 팬. 현장에서 본 경험을 슬쩍 끼워 말함", bias: "balanced", len: "mid" }, // 직관러
@@ -145,8 +146,8 @@ interface ShortPick {
   analysis: string;
 }
 
-/** 가짜 회원 계정 보장 (i = 닉네임 인덱스). */
-async function ensureFakeMember(i: number): Promise<string> {
+/** 가짜 회원 계정 보장 (i = 닉네임 인덱스). export — 자유게시판 봇 공용. */
+export async function ensureFakeMember(i: number): Promise<string> {
   const email = `fake${i}@scorebase.internal`;
   const existing = await prisma.user.findUnique({
     where: { email },
