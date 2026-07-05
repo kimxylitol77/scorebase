@@ -113,11 +113,18 @@ export async function createPostAction(
     return { ok: false, error: `글 작성이 너무 많습니다. ${min}분 후 다시 시도해주세요.` };
   }
 
+  // 경기 데이터 카드 첨부 — 예측 경기를 고른 글에서 체크 시 스탯카드 짤을 본문 끝에 삽입.
+  // 서버에서 붙여서 경기 재선택·본문 수정과 어긋날 일이 없다 (matchId 는 위에서 검증됨).
+  const finalContent =
+    predData && String(formData.get("attachMatchCard") ?? "") === "on"
+      ? `${content}\n\n![경기 데이터 카드](/api/og/match-card?m=${predData.matchId})`
+      : content;
+
   const post = await prisma.post.create({
     data: {
       authorId: userId,
       title,
-      content,
+      content: finalContent,
       ...(isFree ? { category: "FREE", ...attachData } : {}),
       ...(predData ?? {}),
     },

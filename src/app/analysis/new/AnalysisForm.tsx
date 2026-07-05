@@ -91,6 +91,7 @@ export default function AnalysisForm({ matchesBySport }: Props) {
   const [pick, setPick] = useState("");
   const [title, setTitle] = useState("");
   const [titleTouched, setTitleTouched] = useState(false);
+  const [attachCard, setAttachCard] = useState(false); // 경기 데이터 카드 첨부 (스탯카드 짤)
 
   const sportMatches = matchesBySport[sport] ?? [];
 
@@ -314,6 +315,31 @@ export default function AnalysisForm({ matchesBySport }: Props) {
               )}
             </div>
           </>
+        )}
+
+        {/* 경기 데이터 카드 첨부 — 봇 글과 같은 스탯카드 짤(AI 승률·배당)을 본문 끝에 자동 삽입 */}
+        {predReady && selected && (
+          <div className="mt-3">
+            <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+              <input
+                type="checkbox"
+                name="attachMatchCard"
+                checked={attachCard}
+                onChange={(e) => setAttachCard(e.target.checked)}
+                className="h-4 w-4 accent-rose-600"
+              />
+              <span>
+                경기 데이터 카드 첨부
+                <span className="ml-1 text-xs text-neutral-500">— AI 승률·배당 이미지가 글 끝에 붙습니다</span>
+              </span>
+            </label>
+            {attachCard && (
+              <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api/og/match-card?m=${matchId}`} alt="첨부될 경기 데이터 카드 미리보기" className="w-full" loading="lazy" />
+              </div>
+            )}
+          </div>
         )}
 
         {/* hidden — 예측 완성됐을 때만 전송 */}
