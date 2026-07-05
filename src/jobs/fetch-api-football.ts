@@ -16,7 +16,10 @@ import {
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
 
-const SOCCER_LEAGUES = Object.keys(API_FOOTBALL_LEAGUE_ID);
+// CLUB_FRIENDLY(프리시즌 클럽 친선)는 스코어 피드 전용 — 라인업·예측 보강 제외(quota 절약).
+const SOCCER_LEAGUES = Object.keys(API_FOOTBALL_LEAGUE_ID).filter(
+  (l) => l !== "CLUB_FRIENDLY",
+);
 
 export async function runApiFootball(opts?: { limit?: number }) {
   const limit = opts?.limit ?? 80;

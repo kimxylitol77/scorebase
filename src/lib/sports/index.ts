@@ -173,6 +173,7 @@ export const collectors: Record<League, MatchCollector> = {
   EURO_QUAL: buildApiFootballCollector("EURO_QUAL"),
   CONCACAF_GOLD: buildApiFootballCollector("CONCACAF_GOLD"),
   INTL_FRIENDLY: buildApiFootballCollector("INTL_FRIENDLY"),
+  CLUB_FRIENDLY: buildApiFootballCollector("CLUB_FRIENDLY"), // 프리시즌 클럽 친선 (af 667) — 스코어 피드 전용
   U20_WC: buildApiFootballCollector("U20_WC"),
   U17_WC: buildApiFootballCollector("U17_WC"),
   UEFA_U21_Q: buildApiFootballCollector("UEFA_U21_Q"),

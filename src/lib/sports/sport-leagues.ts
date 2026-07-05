@@ -38,6 +38,7 @@ export const ALL_LEAGUES = [
   "AFCON", "UEFA_NL", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
   "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
   "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
+  "CLUB_FRIENDLY", // 국제 클럽 친선 (프리시즌) — 스코어 피드 전용
   // 여자 축구
   "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
   // 컵 대회
@@ -100,6 +101,7 @@ export const SPORTS: SportMeta[] = [
       "AFCON", "UEFA_NL", "WC_QUAL", "EURO_QUAL", "CONCACAF_GOLD",
       "INTL_FRIENDLY", "U20_WC", "U17_WC", "OLYMPICS_FOOTBALL",
       "UEFA_U21_Q", "UEFA_U21", "UEFA_U19", "UEFA_U17",
+      "CLUB_FRIENDLY", // 국제 클럽 친선 (프리시즌) — 스코어 피드 전용
       // 여자 축구
       "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
       // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC + 스위스
@@ -337,6 +339,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   EURO_QUAL: "유로 예선",
   CONCACAF_GOLD: "CONCACAF 골드컵",
   INTL_FRIENDLY: "국가대표 친선",
+  CLUB_FRIENDLY: "클럽 친선",
   U20_WC: "U-20 월드컵",
   U17_WC: "U-17 월드컵",
   UEFA_U21_Q: "UEFA U21 챔피언십 예선",
@@ -746,6 +749,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   EURO_QUAL: "국제",
   CONCACAF_GOLD: "국제",
   INTL_FRIENDLY: "국제",
+  CLUB_FRIENDLY: "국제",
   U20_WC: "국제",
   U17_WC: "국제",
   UEFA_U21_Q: "국제",

@@ -146,6 +146,7 @@ export type League =
   | "EURO_QUAL" // 유로 예선
   | "CONCACAF_GOLD" // CONCACAF 골드컵
   | "INTL_FRIENDLY" // 국가대표 친선 (A매치)
+  | "CLUB_FRIENDLY" // 국제 클럽 친선 (프리시즌 클럽 친선 — af 667, 스코어 피드 전용·글/예측 없음)
   | "U20_WC" // U-20 월드컵
   | "U17_WC" // U-17 월드컵
   | "UEFA_U21_Q" // UEFA U21 챔피언십 예선
@@ -307,6 +308,7 @@ export const SOCCER_LEAGUES = [
   "EURO_QUAL",
   "CONCACAF_GOLD",
   "INTL_FRIENDLY",
+  "CLUB_FRIENDLY",
   "U20_WC",
   "U17_WC",
   "UEFA_U21_Q",

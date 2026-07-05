@@ -122,6 +122,7 @@ const ALL_LEAGUES: League[] = [
   "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
   "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD", "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
+  "CLUB_FRIENDLY", // 프리시즌 국제 클럽 친선 (af 667) — 스코어 피드 전용 (글/예측 없음)
   "LOL", "LCK_CL", "LPL", "LEC", "LCS", // NHL/NBA/WNBA 제거 — TheSports ice_hockey/basketball worker 가 매치 소스 (2026-05-28 마이그레이션)
   // stale-cleanup 알림 발견 12개 리그 추가 (2026-05-23) — cron 미호출로 SCHEDULED 자동 POSTPONED 발생
   "URVALSDEILD", "IRELAND_PD", "ICELAND_1L", "SLOVENIA_SNL",

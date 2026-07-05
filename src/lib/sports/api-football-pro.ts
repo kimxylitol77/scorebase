@@ -131,6 +131,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   EURO_QUAL: 960, // Euro Qualifying
   CONCACAF_GOLD: 22, // CONCACAF Gold Cup
   INTL_FRIENDLY: 10, // International Friendlies
+  CLUB_FRIENDLY: 667, // Friendlies Clubs (프리시즌 클럽 친선) — 스코어 피드 전용
   U20_WC: 490, // FIFA U-20 World Cup (2026-05-25 정정: 이전 38 은 UEFA U21)
   U17_WC: 587, // FIFA U-17 World Cup (2026-05-25 정정: 이전 488 은 독일 U19 Bundesliga)
   // 청소년 대표 (2026-05-25 추가)
