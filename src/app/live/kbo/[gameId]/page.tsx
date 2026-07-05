@@ -11,6 +11,7 @@ import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
 import MatchVoteCard from "@/components/MatchVoteCard";
+import NextUpCard from "@/components/live/NextUpCard";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
@@ -343,6 +344,13 @@ export default async function KboLivePage({ params }: Props) {
           matchStatus={match.status as "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED"}
         />
       </CollapsibleSection>
+      <NextUpCard
+        matchId={match.id}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        homeKo={homeKo}
+        awayKo={awayKo}
+      />
     </div>
   );
 }

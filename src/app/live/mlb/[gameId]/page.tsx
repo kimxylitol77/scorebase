@@ -14,6 +14,7 @@ import MlbLiveDetail from "@/components/MlbLiveDetail";
 import type { StarterInfo } from "@/components/BaseballPreMatchInsight";
 import MatchInsight from "@/components/MatchInsight";
 import MatchVoteCard from "@/components/MatchVoteCard";
+import NextUpCard from "@/components/live/NextUpCard";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import LiveOddsCard from "@/components/live/LiveOddsCard";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -395,6 +396,13 @@ export default async function MlbLivePage({ params }: Props) {
           initialOdds={baseballOdds}
         />
       </CollapsibleSection>
+      <NextUpCard
+        matchId={match.id}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        homeKo={homeKo}
+        awayKo={awayKo}
+      />
     </div>
   );
 }

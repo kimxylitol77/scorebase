@@ -18,6 +18,7 @@ import { getOddsHistory } from "@/lib/odds/snapshot-store";
 import { toKoreanTeamName } from "@/lib/team-names";
 import SportLiveDetail from "@/components/SportLiveDetail";
 import AmbientGlow from "@/components/AmbientGlow";
+import NextUpCard from "@/components/live/NextUpCard";
 import SoccerGoalDistributionCard from "@/components/scores/soccer/SoccerGoalDistributionCard";
 import SoccerH2HCard from "@/components/scores/soccer/SoccerH2HCard";
 import SoccerLineupSvg from "@/components/scores/soccer/SoccerLineupSvg";
@@ -1111,6 +1112,13 @@ export default async function GenericLivePage({ params }: Props) {
           ) : undefined
         }
       />
+      <NextUpCard
+        matchId={match.id}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        homeKo={homeKo}
+        awayKo={awayKo}
+      />
     </div>
     </>
   );
@@ -1257,6 +1265,13 @@ async function renderBaseballPage(args: {
             />
           ) : null
         }
+      />
+      <NextUpCard
+        matchId={match.id}
+        homeTeamId={match.homeTeam.id}
+        awayTeamId={match.awayTeam.id}
+        homeKo={homeKo}
+        awayKo={awayKo}
       />
     </div>
   );
