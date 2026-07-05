@@ -281,7 +281,15 @@ export default async function Home() {
             <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
               리그별 분석
             </Link>
-            은 매일 자동 갱신됩니다.
+            은 매일 자동 갱신됩니다.{" "}
+            <Link href="/standings/KBO" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              KBO 순위
+            </Link>
+            와{" "}
+            <Link href="/world-cup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              2026 월드컵
+            </Link>{" "}
+            일정·결과·우승 확률도 실시간으로 확인할 수 있습니다.
           </p>
         </section>
       </div>

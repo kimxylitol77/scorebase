@@ -234,10 +234,21 @@ export default async function NationalTeamPage({ params }: { params: Promise<{ i
     url: `${SITE_URL}/national-teams/${team.id}`,
     ...(team.logoUrl ? { logo: team.logoUrl } : {}),
   };
+  // BreadcrumbList — SERP 에 "월드컵 › 출전국" 경로 노출 (노출 대비 클릭 0 페이지의 CTR 보강).
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "2026 월드컵", item: `${SITE_URL}/world-cup` },
+      { "@type": "ListItem", position: 2, name: "출전국 48개국", item: `${SITE_URL}/national-teams` },
+      { "@type": "ListItem", position: 3, name: `${koCountry} 축구 국가대표팀`, item: `${SITE_URL}/national-teams/${team.id}` },
+    ],
+  };
 
   return (
     <main className="relative max-w-3xl mx-auto px-4 py-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(teamJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <AmbientGlow />
       {/* 브레드크럼 — 허브·48개국 목록으로 연결 (고아 페이지 방지) */}
       <nav className="mb-3 text-xs text-neutral-500 flex items-center gap-1.5">

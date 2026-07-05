@@ -19,6 +19,8 @@ export default async function StandingsLeagueLayout({
   if (!name) return <>{children}</>;
 
   const path = `/standings/${upper}`;
+  // 야구(KBO/NPB)는 표가 승률·게임차 기준 — Dataset 서술도 실제 표와 일치시킴 (축구식 승점·득실 아님).
+  const isBaseball = upper === "KBO" || upper === "NPB";
   const ld = {
     "@context": "https://schema.org",
     "@graph": [
@@ -29,9 +31,13 @@ export default async function StandingsLeagueLayout({
       ]),
       datasetLd({
         name: `${name} 순위표`,
-        description: `${name} 시즌 순위표 — 순위·승점·승무패·득점·실점·득실차를 매일 자동 갱신.`,
+        description: isBaseball
+          ? `${name} 시즌 팀 순위표 — 순위·승·무·패·승률·게임차를 매일 자동 갱신.`
+          : `${name} 시즌 순위표 — 순위·승점·승무패·득점·실점·득실차를 매일 자동 갱신.`,
         path,
-        variableMeasured: ["순위", "승점", "승", "무", "패", "득점", "실점", "득실차"],
+        variableMeasured: isBaseball
+          ? ["순위", "승", "무", "패", "승률", "게임차"]
+          : ["순위", "승점", "승", "무", "패", "득점", "실점", "득실차"],
       }),
     ],
   };

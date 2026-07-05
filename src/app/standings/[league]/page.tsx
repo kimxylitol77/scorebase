@@ -249,6 +249,19 @@ export default async function StandingsPage({ params }: Props) {
   const { rowsByCategory: leaderRows, season: leaderSeason } = await loadLeagueLeaderboard(upper);
   const hasLeaders = Object.keys(leaderRows).length > 0;
 
+  // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
+  // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
+  const isBaseball = upper === "KBO" || upper === "NPB";
+  // 게임차는 단일 리그 표에서만 의미 — NPB 는 센트럴·퍼시픽 합산 렌더라 생략.
+  const showGb = upper === "KBO";
+  const leader = rows![0];
+  const winPct = (r: { wins: number; losses: number }) =>
+    r.wins + r.losses > 0 ? (r.wins / (r.wins + r.losses)).toFixed(3) : "-";
+  const gamesBehind = (r: { wins: number; losses: number }) => {
+    const gb = (leader.wins - r.wins + (r.losses - leader.losses)) / 2;
+    return gb <= 0 ? "-" : gb.toFixed(1);
+  };
+
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
@@ -272,6 +285,13 @@ export default async function StandingsPage({ params }: Props) {
         <p className="text-sm text-neutral-500 mt-2 break-keep">
           {rows!.length}팀 · 시즌 진행 중 · {source === "ts" ? "TheSports 실시간 갱신" : "FINISHED 매치 기반 계산"}
         </p>
+        {isBaseball && (
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 leading-relaxed break-keep">
+            {upper === "KBO"
+              ? "2026 한국 프로야구(KBO 리그) 10개 구단 팀 순위표. 승·무·패와 승률, 게임차 기준 공식 순위를 매일 자동 갱신합니다."
+              : "2026 일본 프로야구(NPB) 12개 구단 팀 순위표. 승·무·패와 승률 기준 공식 순위를 매일 자동 갱신합니다."}
+          </p>
+        )}
       </header>
 
       <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
@@ -285,11 +305,21 @@ export default async function StandingsPage({ params }: Props) {
               <th className="text-center py-2 px-2 font-semibold w-10">승</th>
               <th className="text-center py-2 px-2 font-semibold w-10">무</th>
               <th className="text-center py-2 px-2 font-semibold w-10">패</th>
-              <th className="text-center py-2 px-2 font-semibold w-12">득점</th>
-              <th className="text-center py-2 px-2 font-semibold w-12">실점</th>
-              <th className="text-center py-2 px-2 font-semibold w-12">득실</th>
-              <th className="text-center py-2 px-2 font-semibold w-20 hidden sm:table-cell">최근 5</th>
-              <th className="text-right py-2 pr-3 pl-2 font-semibold w-12">승점</th>
+              {isBaseball ? (
+                <>
+                  {showGb && <th className="text-center py-2 px-2 font-semibold w-14">게임차</th>}
+                  <th className="text-center py-2 px-2 font-semibold w-20 hidden sm:table-cell">최근 5</th>
+                  <th className="text-right py-2 pr-3 pl-2 font-semibold w-14">승률</th>
+                </>
+              ) : (
+                <>
+                  <th className="text-center py-2 px-2 font-semibold w-12">득점</th>
+                  <th className="text-center py-2 px-2 font-semibold w-12">실점</th>
+                  <th className="text-center py-2 px-2 font-semibold w-12">득실</th>
+                  <th className="text-center py-2 px-2 font-semibold w-20 hidden sm:table-cell">최근 5</th>
+                  <th className="text-right py-2 pr-3 pl-2 font-semibold w-12">승점</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -328,15 +358,31 @@ export default async function StandingsPage({ params }: Props) {
                   <td className="text-center py-2 px-2 tabular-nums text-emerald-600 dark:text-emerald-400">{r.wins}</td>
                   <td className="text-center py-2 px-2 tabular-nums text-neutral-500">{r.draws}</td>
                   <td className="text-center py-2 px-2 tabular-nums text-rose-500">{r.losses}</td>
-                  <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300">{r.goalsFor}</td>
-                  <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300">{r.goalsAgainst}</td>
-                  <td className={`text-center py-2 px-2 tabular-nums font-semibold ${gd > 0 ? "text-emerald-600 dark:text-emerald-400" : gd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
-                    {gd > 0 ? `+${gd}` : gd}
-                  </td>
-                  <td className="text-center py-2 px-2 hidden sm:table-cell">
-                    <RecentFormDots form={getRecentForm(matches, r.teamId, 5)} size="sm" />
-                  </td>
-                  <td className="text-right py-2 pr-3 pl-2 tabular-nums font-black text-base">{r.points}</td>
+                  {isBaseball ? (
+                    <>
+                      {showGb && (
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-600 dark:text-neutral-400">
+                          {gamesBehind(r)}
+                        </td>
+                      )}
+                      <td className="text-center py-2 px-2 hidden sm:table-cell">
+                        <RecentFormDots form={getRecentForm(matches, r.teamId, 5)} size="sm" />
+                      </td>
+                      <td className="text-right py-2 pr-3 pl-2 tabular-nums font-black text-base">{winPct(r)}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300">{r.goalsFor}</td>
+                      <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300">{r.goalsAgainst}</td>
+                      <td className={`text-center py-2 px-2 tabular-nums font-semibold ${gd > 0 ? "text-emerald-600 dark:text-emerald-400" : gd < 0 ? "text-rose-500" : "text-neutral-500"}`}>
+                        {gd > 0 ? `+${gd}` : gd}
+                      </td>
+                      <td className="text-center py-2 px-2 hidden sm:table-cell">
+                        <RecentFormDots form={getRecentForm(matches, r.teamId, 5)} size="sm" />
+                      </td>
+                      <td className="text-right py-2 pr-3 pl-2 tabular-nums font-black text-base">{r.points}</td>
+                    </>
+                  )}
                 </tr>
               );
             })}
