@@ -4,7 +4,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runFakeMemberPicks } from "@/lib/analysis/fake-members";
-import { runBotComments } from "@/lib/analysis/bot-comments";
+import { runBotComments, runHitCongrats } from "@/lib/analysis/bot-comments";
 import { runFreeBoardPost } from "@/lib/analysis/free-board-bot";
 import { prisma } from "@/lib/db";
 
@@ -21,10 +21,11 @@ export async function GET(req: Request) {
     const force = url.searchParams.get("force") === "1";
     const freeForce = url.searchParams.get("free") === "1";
     const result = await runFakeMemberPicks(force);
-    // 봇 댓글·자유게시판 글 — 같은 30분 주기에 편승(별도 cron 슬롯 없이). 내부 확률 게이트로 분산.
+    // 봇 댓글·적중 축하·자유게시판 글 — 같은 30분 주기에 편승(별도 cron 슬롯 없이). 내부 게이트로 분산.
     const comments = await runBotComments(force);
+    const congrats = await runHitCongrats(force);
     const free = await runFreeBoardPost(freeForce);
-    return NextResponse.json({ ok: true, ...result, comments, free });
+    return NextResponse.json({ ok: true, ...result, comments, congrats, free });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
