@@ -4,6 +4,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toUfcFighterKo } from "@/lib/sports/ufc-fighter-names";
@@ -170,6 +171,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title: `${h} vs ${a} — UFC 분석`,
     description: `${h} vs ${a} UFC 경기. 전적·체급·신체 비교(Tale of the Tape)와 머니라인 배당.`,
+    robots: GOOGLE_NOINDEX,
   };
 }
 

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { ArrowLeft, Star, Trophy, Users } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -119,6 +120,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     keywords: [name, `${name} 몸값`, `${name} 시장가치`, "이적시장", "선수 몸값", "스코어베이스"],
     openGraph: { title, description, type: "profile", ...(photo ? { images: [{ url: photo }] } : {}) },
     alternates: { canonical: `/transfers/${id}` },
+    // 시장가치 데이터 없는 라이트 프로필은 thin → 구글 색인 제외(빙 등은 유지).
+    ...(!p.mv && { robots: GOOGLE_NOINDEX }),
   };
 }
 

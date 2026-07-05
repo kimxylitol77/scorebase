@@ -2,6 +2,7 @@
 // matchId = BALLDONTLIE match id (= 우리 Match.externalId).
 
 import type { Metadata } from "next";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -52,6 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${away} vs ${home} 라이브 — ${lbl}`,
     description: `${away} vs ${home} ${lbl} 매치 라이브 시리즈 점수. BO3/BO5 진행 자동 갱신.`,
     alternates: { canonical: `https://www.scorebase.kr/live/lol/${matchId}` },
+    robots: GOOGLE_NOINDEX,
   };
 }
 

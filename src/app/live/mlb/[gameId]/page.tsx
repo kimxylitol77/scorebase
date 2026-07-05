@@ -6,6 +6,7 @@
 // → api-sports 에서 game info fetch → home/away/date 매칭 → 진짜 ESPN id 로 redirect.
 
 import type { Metadata } from "next";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -145,6 +146,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${away} vs ${home} 라이브 — MLB`,
     description: `${away} vs ${home} MLB 라이브 스코어 · 이닝별 점수 · 베이스 상황 · 볼/스트라이크/아웃 · 현재 투수/타자.`,
     alternates: { canonical: `https://www.scorebase.kr/live/mlb/${match.externalId}` },
+    robots: GOOGLE_NOINDEX,
   };
 }
 

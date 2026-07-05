@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { cache } from "react";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
@@ -142,6 +143,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "스코어베이스",
     ],
     alternates: { canonical: `/h2h/${a}-vs-${b}` },
+    robots: GOOGLE_NOINDEX,
   };
 }
 

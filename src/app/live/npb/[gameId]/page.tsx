@@ -2,6 +2,7 @@
 // gameId = api-sports Baseball game id (= 우리 Match.externalId).
 
 import type { Metadata } from "next";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -83,6 +84,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${away} vs ${home} 라이브 — NPB`,
     description: `${away} vs ${home} NPB 일본프로야구 라이브 스코어 · 이닝별 점수 · 안타·실책 · 양팀 선발투수.`,
     alternates: { canonical: `https://www.scorebase.kr/live/npb/${gameId}` },
+    robots: GOOGLE_NOINDEX,
   };
 }
 

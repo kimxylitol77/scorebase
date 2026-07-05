@@ -6,6 +6,7 @@
 //   야구 9개 리그 = TheSports ts-{tsMatchId} (thesports-matches route 가 prefix 부여).
 
 import type { Metadata } from "next";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 import { cache } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -229,6 +230,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           title: `${h} vs ${a} 중계·라이브 스코어 — ${lb}`,
           description: `${h} vs ${a} ${lb} 실시간 중계 · 라이브 스코어.`,
           alternates: { canonical: `https://www.scorebase.kr/live/${lg}/${gameId}` },
+          robots: GOOGLE_NOINDEX,
         };
       }
     }
@@ -248,6 +250,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? `${home} vs ${away} ${label} 경기 결과 — 최종 스코어와 쿼터/피리어드 별 점수, 골 이벤트.`
       : `${home} vs ${away} ${label} 실시간 중계 · 라이브 스코어 · 쿼터/피리어드 별 점수 또는 골 이벤트.`,
     alternates: { canonical: `https://www.scorebase.kr/live/${lg}/${gameId}` },
+    robots: GOOGLE_NOINDEX,
   };
 }
 
