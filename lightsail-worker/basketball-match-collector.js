@@ -1,5 +1,5 @@
 // basketball-match-collector.js — TheSports basketball match/diary → Scorebase API push
-// 30분 주기. NBA/WNBA/KBL/WKBL 매치 자동 수집 (스케줄 + 점수).
+// 30분 주기. NBA/WNBA/KBL/WKBL/NBA_SL 매치 자동 수집 (스케줄 + 점수).
 //
 // 환경변수 (/home/ubuntu/.env): THESPORTS_USER, THESPORTS_SECRET, SITE_URL, INTERNAL_API_TOKEN
 
@@ -36,6 +36,7 @@ const COMP_TO_LEAGUE = {
   "0gx7lm73tor2wdk": "WNBA",
   "9d23xmv1t4mg8ny": "KBL",
   "kn54ql7t28rvy9d": "WKBL",
+  "p3glrwyt7pqdyjv": "NBA_SL", // NBA 서머리그 (7월 한시) — 팀 tsId 는 정규 NBA 30팀과 동일, 표시 전용
 };
 
 // TheSports basketball status_id — src/lib/sports/thesports/status-codes.ts 의 mapBasketballStatus 와 단일 진실.

@@ -64,6 +64,8 @@ function nationalTeamElo(name: string): number {
 
 const CONFIDENCE_GATE = 58;
 const BASKETBALL_LEAGUES = new Set(["NBA", "WNBA", "KBL", "WKBL"]);
+// 예측·적중률에서 제외하는 표시 전용 리그 (NBA 서머리그 = 유망주 리그, Elo 무의미).
+const DISPLAY_ONLY_LEAGUES = new Set(["NBA_SL"]);
 const HOCKEY_LEAGUES = new Set(["NHL"]);
 const FOOTBALL_LEAGUES_DRAW = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
@@ -553,6 +555,9 @@ export async function predictMatchById(matchId: number): Promise<PredictionResul
     },
   });
   if (!match) return null;
+
+  // 표시 전용 리그 — 예측 미생성 (유망주 스쿼드라 정규 Elo 로 승률 산출 시 오해 소지 + 적중률 통계 오염 방지).
+  if (DISPLAY_ONLY_LEAGUES.has(match.league)) return null;
 
   const sport = classifySport(match.league);
 

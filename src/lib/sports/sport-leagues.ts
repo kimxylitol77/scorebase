@@ -47,7 +47,7 @@ export const ALL_LEAGUES = [
   // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
-  "NBA", "WNBA", "KBL", "WKBL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "UFC",
+  "NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "UFC",
   // 2026-06-12 배구 — TheSports unique_tournament 기반 (VNL 남자 / AVC 네이션스컵 여자 / 유럽 골든리그 여자)
   "VNL", "AVC_NATIONS_W", "EGL_W",
   // 2026-05-24 추가
@@ -135,7 +135,7 @@ export const SPORTS: SportMeta[] = [
     code: "basketball",
     label: "농구",
     emoji: "🏀",
-    leagues: ["NBA", "WNBA", "KBL", "WKBL"],
+    leagues: ["NBA", "WNBA", "KBL", "WKBL", "NBA_SL"],
   },
   {
     code: "volleyball",
@@ -364,6 +364,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   LMB: "멕시칸 리그",
   NBA: "NBA",
   WNBA: "WNBA",
+  NBA_SL: "NBA 서머리그",
   NHL: "NHL",
   IIHF_WC: "세계선수권",
   KBL: "KBL",
@@ -559,6 +560,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   MEXICO_2: 16.6, CHINA_2: 17.6, IRELAND_2: 15.5, DENMARK_2: 16.3,
   HUNGARY_2: 16.4, CZECH_2: 16.35, AUSTRIA_2: 16.25, BELGIUM_2: 16.2, TURKEY_2: 16.55,
   NBA: 20,
+  NBA_SL: 20.5,
   NHL: 21,
   IIHF_WC: 22,
   KBL: 23,
@@ -712,6 +714,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   CARIBBEAN_SERIES: "국제",
   NBA: "미국",
   WNBA: "미국",
+  NBA_SL: "미국",
   NHL: "미국",
   IIHF_WC: "국제",
   KBL: "대한민국",

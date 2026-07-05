@@ -31,6 +31,7 @@ const VALID_LEAGUES = [
   "UCL",
   "WORLD_CUP",
   "NBA",
+  "NBA_SL",
   "NHL",
   "MLB",
   "KBO",
@@ -135,6 +136,12 @@ const LEAGUE_INFO: Partial<Record<
     subtitle: "National Basketball Association",
     gradient: "from-orange-500 via-amber-500 to-yellow-500",
     copy: "미국 프로농구 NBA 의 경기 결과와 분석.",
+  },
+  NBA_SL: {
+    name: "NBA 서머리그",
+    subtitle: "NBA Summer League",
+    gradient: "from-orange-500 via-amber-500 to-yellow-500",
+    copy: "매년 7월 라스베이거스에서 열리는 NBA 유망주 무대. 신인·2년차 선수의 여름 리그 일정과 결과.",
   },
   NHL: {
     name: "NHL",
