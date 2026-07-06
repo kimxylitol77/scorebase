@@ -1764,6 +1764,13 @@ export default async function ScoresPage({ searchParams }: Props) {
   const visiblePostponed = showPostponed ? postponedList : [];
   const visibleCount =
     visibleLive.length + visibleScheduled.length + visibleFinished.length + visiblePostponed.length;
+  // 좌측 사이드바용 — 오늘 리그별 경기 수(전 상태 합산). 경기 있는 리그만 노출 + 카운트.
+  const leagueMatchCounts: Record<string, number> = {};
+  for (const m of [...liveList, ...scheduledList, ...finishedList, ...postponedList]) {
+    leagueMatchCounts[m.league] = (leagueMatchCounts[m.league] ?? 0) + 1;
+  }
+  const soccerDayTotal =
+    liveList.length + scheduledList.length + finishedList.length + postponedList.length;
 
   return (
     <div data-scores-root className={`${containerMaxW} mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4`}>
@@ -1874,6 +1881,8 @@ export default async function ScoresPage({ searchParams }: Props) {
                   activeLeague={leagueFilter}
                   date={dateStr}
                   status={statusFilter}
+                  matchCounts={leagueMatchCounts}
+                  totalCount={soccerDayTotal}
                 />
                 <div className="min-w-0 space-y-6">
                 <FavoriteMatches

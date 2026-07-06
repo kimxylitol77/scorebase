@@ -22,6 +22,10 @@ interface Props {
   date: string;
   /** 상태 필터 유지용 */
   status?: string | null;
+  /** 리그별 오늘 경기 수 — 주어지면 경기 있는 리그만 표시 + 카운트 뱃지. */
+  matchCounts?: Record<string, number>;
+  /** 전체 경기 수 ("전체 리그" 옆 카운트) */
+  totalCount?: number;
 }
 
 function buildHref(date: string, status: string | null | undefined, league?: string | null): string {
@@ -50,13 +54,20 @@ export default function SoccerLeagueSidebar({
   activeLeague,
   date,
   status,
+  matchCounts,
+  totalCount,
 }: Props) {
-  // 인기 리그 — POPULAR_SOCCER_LEAGUES 중 leagues 에 있는 것만
-  const popular = POPULAR_SOCCER_LEAGUES.filter((l) => leagues.includes(l));
+  // matchCounts 주어지면 경기 있는 리그만 노출. 없으면(하위호환) 전체.
+  const cnt = (l: string) => matchCounts?.[l] ?? 0;
+  const hasMatch = (l: string) => !matchCounts || cnt(l) > 0;
 
-  // 국가별 그룹 — POPULAR 에 포함된 리그도 모두 표시 (중복 노출 허용)
+  // 인기 리그 — POPULAR_SOCCER_LEAGUES 중 leagues 에 있고 경기 있는 것만
+  const popular = POPULAR_SOCCER_LEAGUES.filter((l) => leagues.includes(l) && hasMatch(l));
+
+  // 국가별 그룹 — 경기 있는 리그만
   const byCountry = new Map<string, string[]>();
   for (const l of leagues) {
+    if (!hasMatch(l)) continue;
     const country = COUNTRY_BY_LEAGUE[l];
     if (!country) continue;
     const arr = byCountry.get(country) ?? [];
@@ -89,6 +100,11 @@ export default function SoccerLeagueSidebar({
       >
         <span className="text-[14px] leading-none">⚽</span>
         <span className="truncate">전체 리그</span>
+        {totalCount != null && (
+          <span className="ml-auto pl-1 text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 tabular-nums">
+            {totalCount}
+          </span>
+        )}
       </Link>
 
       {/* 인기 리그 */}
@@ -119,6 +135,9 @@ export default function SoccerLeagueSidebar({
                       <span className="inline-block w-4 shrink-0" />
                     )}
                     <span className="truncate">{LEAGUE_DISPLAY[l] ?? l}</span>
+                    <span className="ml-auto pl-1 text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 tabular-nums">
+                      {cnt(l)}
+                    </span>
                   </Link>
                 </li>
               );
@@ -172,6 +191,9 @@ export default function SoccerLeagueSidebar({
                             )}
                             <span className="truncate">
                               {LEAGUE_DISPLAY[l] ?? l}
+                            </span>
+                            <span className="ml-auto pl-1 text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 tabular-nums">
+                              {cnt(l)}
                             </span>
                           </Link>
                         </li>
