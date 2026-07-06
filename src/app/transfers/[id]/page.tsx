@@ -11,6 +11,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaCountryKo } from "@/lib/sports/fifa-rankings";
 import rawOverrides from "../../../../data/player-overrides.json";
 import rawSeason from "../../../../data/player-season-stats.json";
+import rawDetailPos from "../../../../data/player-positions-detail.json";
+import type { PosCode } from "@/lib/players/grid-position";
 import rawPhotos from "../../../../data/player-photos.json";
 import rawWiki from "../../../../data/player-wiki-seasons.json";
 import rawAbility from "../../../../data/player-ability.json";
@@ -39,6 +41,7 @@ interface SeasonStat {
   foulsDrawn?: number | null; foulsCommitted?: number | null;
 }
 const SEASON = rawSeason as Record<string, SeasonStat>;
+const DETAIL_POS = rawDetailPos as Record<string, { primary: PosCode; others: PosCode[]; apps: number }>;
 
 // 상세 스탯 순위 바용 백분위 — 같은 포지션군(F/M/D/G) + 최소 450분 대비 90분당 값 순위.
 // 반칙·제쳐짐 등 invert 스탯은 낮을수록 높은 백분위. 비율(정확도·성공률)은 원값 순위.
@@ -677,9 +680,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{name}</h1>
-            {(ov?.pos || tsp?.position) && (
+            {(DETAIL_POS[id]?.primary || ov?.pos || tsp?.position) && (
               <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-                {ov?.pos || POS_LABEL[tsp!.position!]}
+                {DETAIL_POS[id]?.primary || ov?.pos || POS_LABEL[tsp!.position!]}
               </span>
             )}
             {ability != null && (
@@ -707,6 +710,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         valueEur={value ?? null}
         valueKrw={value != null ? krw(value) : null}
         recentChg={points.length >= 2 ? recentChg : null}
+        positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
       />
 

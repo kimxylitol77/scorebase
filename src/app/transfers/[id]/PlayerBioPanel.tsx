@@ -1,15 +1,17 @@
 // 선수 헤더 바이오 패널 — FotMob식 2열(정보 왼쪽 + 포지션 오른쪽 미니 피치).
-// 포지션은 현재 coarse(G/D/M/F) 단일 = "기본"만. 세부 다중 포지션(기타)은 좌표 집계 데이터 확보 후.
+// 포지션 = data/player-positions.json(라인업 grid 집계) 의 선호(primary) + 뛸 수 있는(others).
+// 없으면 coarse(G/D/M/F) 단일 폴백.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { POS_KO, POS_XY, type PosCode } from "@/lib/players/grid-position";
 
-// coarse 포지션 → 한글 라벨 + 미니 피치 좌표(x,y: 0~100, 하단=자기 골문). 세부 포지션 데이터 생기면 교체.
-const POS_META: Record<string, { label: string; x: number; y: number }> = {
-  F: { label: "공격수", x: 50, y: 22 },
-  M: { label: "미드필더", x: 50, y: 50 },
-  D: { label: "수비수", x: 50, y: 76 },
-  G: { label: "골키퍼", x: 50, y: 92 },
+// coarse 폴백용 라벨/좌표
+const COARSE: Record<string, { label: string; code: PosCode }> = {
+  F: { label: "공격수", code: "ST" },
+  M: { label: "미드필더", code: "CM" },
+  D: { label: "수비수", code: "CB" },
+  G: { label: "골키퍼", code: "GK" },
 };
 
 function InfoCell({ label, children }: { label: string; children: ReactNode }) {
@@ -21,29 +23,27 @@ function InfoCell({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function MiniPitch({ codes }: { codes: string[] }) {
-  // codes: 표시할 coarse 포지션 코드 목록(첫 번째=기본). 현재는 1개.
-  const primary = codes[0];
+function MiniPitch({ primary, others }: { primary: PosCode; others: PosCode[] }) {
+  const markers: { code: PosCode; primary: boolean }[] = [
+    { code: primary, primary: true },
+    ...others.map((c) => ({ code: c, primary: false })),
+  ];
   return (
     <svg viewBox="0 0 100 130" className="w-full h-full" role="img" aria-label="포지션">
       <rect x="1" y="1" width="98" height="128" rx="4" className="fill-neutral-100 dark:fill-white/[0.05] stroke-black/10 dark:stroke-white/10" strokeWidth="0.6" />
-      {/* 하프라인 + 센터서클 */}
       <line x1="1" y1="65" x2="99" y2="65" className="stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
       <circle cx="50" cy="65" r="11" className="fill-none stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
-      {/* 상단/하단 박스 */}
       <rect x="30" y="1" width="40" height="16" className="fill-none stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
       <rect x="30" y="113" width="40" height="16" className="fill-none stroke-black/10 dark:stroke-white/10" strokeWidth="0.5" />
-      {codes.map((code, i) => {
-        const m = POS_META[code];
-        if (!m) return null;
-        const isPrimary = code === primary;
-        // y는 0~100 스케일 → 130 뷰박스로 환산
-        const cy = (m.y / 100) * 130;
+      {markers.map((m, i) => {
+        const xy = POS_XY[m.code];
+        if (!xy) return null;
+        const cy = (xy.y / 100) * 130;
         return (
-          <g key={code + i}>
-            <circle cx={m.x} cy={cy} r={isPrimary ? 11 : 8} className={isPrimary ? "fill-rose-500" : "fill-neutral-400 dark:fill-neutral-500"} />
-            <text x={m.x} y={cy} textAnchor="middle" dominantBaseline="central" className="fill-white font-bold" fontSize={isPrimary ? 8 : 6.5}>
-              {code === "F" ? "FW" : code === "M" ? "MF" : code === "D" ? "DF" : "GK"}
+          <g key={m.code + i}>
+            <circle cx={xy.x} cy={cy} r={m.primary ? 11 : 8.5} className={m.primary ? "fill-rose-500" : "fill-neutral-400 dark:fill-neutral-500"} />
+            <text x={xy.x} y={cy} textAnchor="middle" dominantBaseline="central" className="fill-white font-bold" fontSize={m.primary ? 7.5 : 6}>
+              {m.code}
             </text>
           </g>
         );
@@ -54,7 +54,8 @@ function MiniPitch({ codes }: { codes: string[] }) {
 
 export default function PlayerBioPanel({
   age, birthDate, height, weight, country, flag, natlHref,
-  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, posCode,
+  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg,
+  positions, posCode,
 }: {
   age: number | null;
   birthDate: string | null;
@@ -70,9 +71,14 @@ export default function PlayerBioPanel({
   valueEur: number | null;
   valueKrw: string | null;
   recentChg: number | null;
-  posCode: string | null; // coarse G/D/M/F
+  positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
+  posCode: string | null; // coarse G/D/M/F 폴백
 }) {
-  const pm = posCode ? POS_META[posCode] : null;
+  // 구체 포지션 우선, 없으면 coarse 폴백
+  const coarse = posCode ? COARSE[posCode] : null;
+  const primary: PosCode | null = positions?.primary ?? coarse?.code ?? null;
+  const others: PosCode[] = positions?.others ?? [];
+  const primaryLabel = positions ? POS_KO[positions.primary] : coarse?.label ?? null;
 
   return (
     <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none overflow-hidden grid sm:grid-cols-[1fr_auto]">
@@ -121,15 +127,33 @@ export default function PlayerBioPanel({
       </div>
 
       {/* 오른쪽 — 포지션 */}
-      {pm && (
-        <div className="p-5 sm:border-l border-t sm:border-t-0 border-black/5 dark:border-white/10 flex gap-4 sm:w-[260px]">
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-bold text-neutral-500 mb-3">포지션</div>
-            <div className="text-xs text-neutral-400">기본</div>
-            <div className="text-lg font-bold">{pm.label}</div>
+      {primary && (
+        <div className="p-5 sm:border-l border-t sm:border-t-0 border-black/5 dark:border-white/10 flex gap-4 sm:w-[280px]">
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="text-sm font-bold text-neutral-500">포지션</div>
+            <div>
+              <div className="text-xs text-neutral-400">선호</div>
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[11px] font-bold">{primary}</span>
+                {primaryLabel && <span className="text-base font-bold">{primaryLabel}</span>}
+              </div>
+            </div>
+            {others.length > 0 && (
+              <div>
+                <div className="text-xs text-neutral-400">뛸 수 있는</div>
+                <div className="flex flex-wrap gap-1 mt-0.5">
+                  {others.map((c) => (
+                    <span key={c} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-white/[0.08] text-xs font-semibold">
+                      <span className="text-neutral-500">{c}</span>
+                      <span className="text-neutral-400 font-normal">{POS_KO[c]}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="w-[88px] shrink-0">
-            <MiniPitch codes={posCode ? [posCode] : []} />
+          <div className="w-[92px] shrink-0">
+            <MiniPitch primary={primary} others={others} />
           </div>
         </div>
       )}

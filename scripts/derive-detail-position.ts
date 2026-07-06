@@ -22,6 +22,23 @@ function classify(pos: string, x: number, y: number): string | null {
   return null;
 }
 
+// 좌우 구체 포지션(헤더 "선호/뛸 수 있는"용). x<50=오른쪽, x>50=왼쪽 (실측 검증: 야말·사카·살라 RW=저x / 레앙·크바라 LW=고x).
+function classifyDetail(pos: string, x: number, y: number): string | null {
+  if (!(x > 0)) return null;
+  const lat = Math.abs(x - 50);
+  const R = x < 50; // 낮은 x = 오른쪽
+  if (pos === "G") return "GK";
+  if (pos === "D") { if (lat < 22) return "CB"; return R ? "RB" : "LB"; }
+  if (pos === "F") { if (lat < 22) return "ST"; return R ? "RW" : "LW"; }
+  if (pos === "M") {
+    if (lat >= 30) return R ? "RW" : "LW";
+    if (y < 60) return "CDM";
+    if (y < 70) return "CM";
+    return "CAM";
+  }
+  return null;
+}
+
 // 출장 경기마다 push — 단일 경기 좌표는 임시 포지션(백3 좌CB·임시 LB 등) 노이즈가 커서
 // 전 경기 분류 후 최빈값을 채택한다 (예: 반 데 벤이 마지막 경기 좌표로 FB 오분류되던 버그).
 function collectCache(lu: unknown, m: Map<string, Array<{ pos: string; x: number; y: number }>>) {
@@ -82,6 +99,27 @@ async function main() {
   const dist: Record<string, number> = {};
   for (const v of Object.values(map)) dist[v] = (dist[v] || 0) + 1;
   console.log("분포:", JSON.stringify(dist));
+
+  // 좌우 구체 포지션 + 다중(선호/뛸 수 있는) — 헤더 바이오 패널용. player-positions-detail.json.
+  // 선호 = 최빈, 뛸 수 있는 = 그 외 코드 중 2회+ & 20%+ (최대 3). 표본<3 제외.
+  const DETAIL_PRIORITY = ["ST", "CB", "GK", "CAM", "CDM", "CM", "RW", "LW", "RB", "LB"];
+  const detail: Record<string, { primary: string; others: string[]; apps: number }> = {};
+  for (const [id, apps] of xy) {
+    const codes = apps.map((a) => classifyDetail(a.pos, a.x, a.y)).filter((c): c is string => !!c);
+    if (codes.length < 3) continue;
+    const cnt = new Map<string, number>();
+    for (const c of codes) cnt.set(c, (cnt.get(c) || 0) + 1);
+    const total = codes.length;
+    const sorted = [...cnt.entries()].sort((a, b) => b[1] - a[1] || DETAIL_PRIORITY.indexOf(a[0]) - DETAIL_PRIORITY.indexOf(b[0]));
+    const primary = sorted[0][0];
+    const others = sorted.slice(1)
+      .filter(([, n]) => n >= 2 && n / total >= 0.2)
+      .slice(0, 3)
+      .map(([c]) => c);
+    detail[id] = { primary, others, apps: total };
+  }
+  fs.writeFileSync("data/player-positions-detail.json", JSON.stringify(detail));
+  console.log("좌우 구체 포지션:", Object.keys(detail).length, "| 야말:", JSON.stringify(detail["4jwq2ghxjzkvm0v"]));
 
   const rows = await prisma.playerMarketValue.findMany({
     where: { league: { in: ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] }, currentValue: { not: null } },
