@@ -65,6 +65,7 @@ import SoccerStatusTabs, {
 } from "@/components/scores/SoccerStatusTabs";
 import MatchCard from "@/components/scores/MatchCard";
 import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
+import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
@@ -1742,7 +1743,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   };
 
   // 모든 종목 동일 max-w-6xl (헤더와 일치) — 사이드바 + 메인이 그 안에 fit
-  const containerMaxW = "max-w-6xl";
+  const containerMaxW = sport === "soccer" ? "max-w-7xl" : "max-w-6xl";
 
   // 축구 상태 필터 — 표시할 매치 결정
   // 기본은 오늘 KST 만 LIVE 섹션 표시. 단 자정 boundary 매치(예: 5/28 23:20 시작 →
@@ -1867,7 +1868,14 @@ export default async function ScoresPage({ searchParams }: Props) {
                 선택한 상태에 해당하는 경기가 없습니다.
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-6 lg:items-start">
+                <SoccerLeagueSidebar
+                  leagues={leaguesAll}
+                  activeLeague={leagueFilter}
+                  date={dateStr}
+                  status={statusFilter}
+                />
+                <div className="min-w-0 space-y-6">
                 <FavoriteMatches
                   matches={normalizedAll.map((m) => ({
                     id: String(m.id),
@@ -1912,6 +1920,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   postponedList={visiblePostponed}
                   lineupSet={lineupMatchIdSet}
                 />
+                </div>
               </div>
             )}
         </div>

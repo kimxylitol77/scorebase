@@ -79,7 +79,7 @@ export default function SoccerLeagueSidebar({
 
   return (
     <aside
-      className="hidden lg:block w-36 shrink-0 sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden"
+      className="hidden lg:block w-48 shrink-0 sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden"
       aria-label="축구 리그 목록"
     >
       {/* 전체 */}
