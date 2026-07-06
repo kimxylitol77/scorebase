@@ -8,8 +8,6 @@ import { useState } from "react";
 import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
 import { teamColor } from "@/lib/team-colors";
-import { getLeagueBadge } from "./leagueBadge";
-import { getLeagueFlag } from "@/lib/sports/sport-leagues";
 import { useScoreFlash } from "../useScoreFlash";
 
 interface Props {
@@ -55,7 +53,6 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
 export default function SoccerCompactCard(props: Props) {
   const {
     matchId,
-    league,
     status,
     timeLabel,
     liveStatusLabel,
@@ -65,9 +62,6 @@ export default function SoccerCompactCard(props: Props) {
     penaltyHome,
     penaltyAway,
   } = props;
-  const badge = getLeagueBadge(league);
-  const flag = getLeagueFlag(league);
-
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
@@ -117,21 +111,20 @@ export default function SoccerCompactCard(props: Props) {
 
   const row = (
     <div
-      className="flex items-center gap-2 px-2 py-2 bg-white dark:bg-neutral-950 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors border-l-[3px]"
-      style={homeColor ? { borderLeftColor: homeColor } : undefined}
+      className={`flex items-center gap-2 px-3 py-2.5 transition-colors ${
+        isLive
+          ? "bg-rose-50/70 dark:bg-rose-500/[0.07] border-l-[3px] border-rose-500"
+          : "hover:bg-neutral-50 dark:hover:bg-white/[0.03]"
+      }`}
     >
       {/* ★ */}
       <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavoriteStar matchId={String(matchId)} />
       </div>
 
-      {/* 시간/상태 + 리그명 — 2줄, 가운데 정렬, 폭 확장 (리그명 노출) */}
-      <div className="shrink-0 w-16 text-center leading-tight">
+      {/* 시간/상태 — 리그명은 그룹 카드 헤더로 이동 */}
+      <div className="shrink-0 w-12 text-center leading-tight">
         <div className={`text-[11px] ${leftClass}`}>{leftPrimary}</div>
-        <div className="text-[9px] font-semibold text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
-          {flag && <span className="mr-0.5" aria-hidden>{flag}</span>}
-          {badge.label}
-        </div>
       </div>
 
       {/* 팀 2줄 — 최근 골 측 row flash (7m 스타일) */}

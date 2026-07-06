@@ -64,6 +64,8 @@ export interface SoccerLiveRowProps {
   enableScoreFlash?: boolean;
   /** TheSports cache.lineup 실제 존재 시 true → L 배지 표시 (리그 whitelist 대신 실제 라인업 유무). */
   hasLineup?: boolean;
+  /** 리그 그룹 카드 안에서 렌더 시 true → 리그 배지 컬럼 접기(리그는 카드 헤더로). */
+  hideLeague?: boolean;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -118,6 +120,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayFifaRank,
     awayFirst,
     hasLineup,
+    hideLeague,
   } = props;
 
   // 행 전체가 <a>/<Link> 라 내부 링크를 anchor 로 두면 nested anchor (invalid HTML +
@@ -180,27 +183,34 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const rowContent = (
     <div
       data-srow
-      className="grid items-center gap-3 px-0 py-2 text-sm transition hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
+      className={`grid items-center gap-3 px-0 py-2 text-sm transition ${
+        isLive
+          ? "bg-rose-50/70 dark:bg-rose-500/[0.07] hover:bg-rose-100/70 dark:hover:bg-rose-500/[0.12]"
+          : "hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
+      }`}
       style={{
         // 좌측 fixed (110+56+64=230) vs 우측 fixed (28+48=76) 비대칭으로 vs/점수가 우측 쏠림.
         // 우측에 154px spacer 컬럼 추가 → vs 가 row 가운데 정렬 (날짜 header 와 일치).
         // 7=관심(28px), 8=글(48px) — 사용자 요청으로 위치 swap (2026-05-24)
         // 5=점수: auto→72px 고정 (auto 면 vs(예정)·0-1(진행) 내용폭 차이로 행마다 팀명 정렬 어긋남, 2026-06-14)
-        gridTemplateColumns:
-          "110px 56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,154px)",
+        gridTemplateColumns: hideLeague
+          ? "56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,154px)"
+          : "110px 56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,154px)",
       }}
     >
-      {/* 1. 리그 배지 — 클릭 시 새창에서 리그 순위 페이지 (nested anchor 회피 위해 button) */}
-      <button
-        type="button"
-        onClick={openInNewTab(`/predictions/${league}`)}
-        className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate hover:opacity-80 transition w-full cursor-pointer"
-        style={{ background: badge.bg, color: badge.fg }}
-        title={`${badge.label} 리그 순위 보기 (새창)`}
-      >
-        {flag && <span className="mr-0.5" aria-hidden>{flag}</span>}
-        {badge.label}
-      </button>
+      {/* 1. 리그 배지 — 그룹 카드 안(hideLeague)에서는 헤더로 이동해 접음. */}
+      {!hideLeague && (
+        <button
+          type="button"
+          onClick={openInNewTab(`/predictions/${league}`)}
+          className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate hover:opacity-80 transition w-full cursor-pointer"
+          style={{ background: badge.bg, color: badge.fg }}
+          title={`${badge.label} 리그 순위 보기 (새창)`}
+        >
+          {flag && <span className="mr-0.5" aria-hidden>{flag}</span>}
+          {badge.label}
+        </button>
+      )}
 
       {/* 2. KST 시간 */}
       <div className="text-[12px] text-neutral-600 dark:text-neutral-400 tabular-nums">
@@ -274,7 +284,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       {/* 5. 점수 — awayFirst=true 면 away score 좌측 / home score 우측. hover 시 z-50 으로 tooltip 이 다른 row 위로.
            승부차기는 점수 아래 absolute 로 (6) (5) — 행 높이에 영향 안 주게 (다른 행과 높이 통일). */}
       <div
-        className="relative text-center font-black text-[14px] tabular-nums whitespace-nowrap px-2 group hover:z-50"
+        className="relative text-center font-black text-[18px] tabular-nums whitespace-nowrap px-2 group hover:z-50"
         onMouseEnter={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
           setTipPos({
@@ -288,10 +298,12 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
           <>
             <span
               className={`relative isolate inline-block ${
-                (awayFirst ? awayWin : homeWin)
+                isLive
                   ? "text-rose-600 dark:text-rose-400"
-                  : isFinished || isLive
-                    ? "text-neutral-700 dark:text-neutral-300"
+                  : isFinished
+                    ? (awayFirst ? awayWin : homeWin)
+                      ? "text-neutral-900 dark:text-white"
+                      : "text-neutral-400 dark:text-neutral-600"
                     : "text-neutral-500"
               }`}
             >
@@ -300,13 +312,15 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
               )}
               {awayFirst ? awayScore : homeScore}
             </span>
-            <span className="mx-1 text-neutral-500">-</span>
+            <span className="mx-1 text-neutral-300 dark:text-neutral-700 font-normal">-</span>
             <span
               className={`relative isolate inline-block ${
-                (awayFirst ? homeWin : awayWin)
+                isLive
                   ? "text-rose-600 dark:text-rose-400"
-                  : isFinished || isLive
-                    ? "text-neutral-700 dark:text-neutral-300"
+                  : isFinished
+                    ? (awayFirst ? homeWin : awayWin)
+                      ? "text-neutral-900 dark:text-white"
+                      : "text-neutral-400 dark:text-neutral-600"
                     : "text-neutral-500"
               }`}
             >
@@ -500,15 +514,15 @@ function OddsCell({ odds }: { odds: MatchOdds | null }) {
       }}
       onMouseLeave={() => setPos(null)}
     >
-      {/* 1X2 (승/무/패) */}
-      <div className="flex gap-1">
-        <span className="text-rose-600 dark:text-rose-400 font-semibold">{f(odds.home)}</span>
-        <span className="text-neutral-400">{f(odds.draw)}</span>
-        <span className="text-blue-600 dark:text-blue-400 font-semibold">{f(odds.away)}</span>
+      {/* 1X2 (승/무/패) — 스코어·결과가 먼저 읽히게 배당은 뮤트(hover 팝업에서 강조). */}
+      <div className="flex gap-1 text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-500">
+        <span>{f(odds.home)}</span>
+        <span className="opacity-70">{f(odds.draw)}</span>
+        <span>{f(odds.away)}</span>
       </div>
       {/* 오버언더 */}
       {odds.over != null && (
-        <div className="flex gap-1 text-neutral-500">
+        <div className="flex gap-1 text-neutral-400/70 dark:text-neutral-600">
           <span>O{f(odds.over)}</span>
           <span>U{f(odds.under)}</span>
         </div>

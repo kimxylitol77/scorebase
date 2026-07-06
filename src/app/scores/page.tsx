@@ -64,13 +64,12 @@ import SoccerStatusTabs, {
   type SoccerStatusFilter,
 } from "@/components/scores/SoccerStatusTabs";
 import MatchCard from "@/components/scores/MatchCard";
+import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
 import SoccerCompactCard from "@/components/scores/soccer/SoccerCompactCard";
-import SoccerLiveRow, {
-  SoccerLiveRowHeader,
-} from "@/components/scores/soccer/SoccerLiveRow";
+import SoccerLiveRow from "@/components/scores/soccer/SoccerLiveRow";
 import type { SoccerContext } from "@/components/scores/SoccerMiniBoard";
 import type { BaseballLinescoreData } from "@/components/scores/BaseballLinescore";
 import type { BaseballContext } from "@/components/scores/BaseballMiniBoard";
@@ -2123,6 +2122,7 @@ function SoccerRowLayout({
         awayFifaRank={m.away.fifaRank ?? null}
         awayFirst={BASEBALL_LEAGUES.has(m.league)}
         hasLineup={lineupSet.has(Number(m.id))}
+        hideLeague
       />
     );
   };
@@ -2166,6 +2166,26 @@ function SoccerRowLayout({
       else groups.push({ day: k, label: dayLabel(m.startTime), items: [m] });
     }
     return groups;
+  };
+
+  // 리그별 그룹 — LeagueGroupCard 로 묶기 위해 리그 단위로 분할. 리그 순서는 LEAGUE_ORDER(인기순),
+  // 리그 내 매치는 입력 정렬(byStartThenLeague=시작시각) 유지.
+  const leagueGroupsOf = (
+    list: NormalizedMatch[],
+  ): Array<{ league: string; items: NormalizedMatch[] }> => {
+    const map = new Map<string, NormalizedMatch[]>();
+    for (const m of list) {
+      const arr = map.get(m.league);
+      if (arr) arr.push(m);
+      else map.set(m.league, [m]);
+    }
+    return [...map.entries()]
+      .map(([league, items]) => ({ league, items }))
+      .sort(
+        (a, b) =>
+          ((LEAGUE_ORDER as Record<string, number>)[a.league] ?? 999) -
+          ((LEAGUE_ORDER as Record<string, number>)[b.league] ?? 999),
+      );
   };
   const scheduledGroups = dayGroupsOf(scheduledSorted);
   const finishedGroups = dayGroupsOf(finishedSorted);
@@ -2257,6 +2277,31 @@ function SoccerRowLayout({
     </div>
   );
 
+  // SoccerRowLayout = 축구 전용 → 리그 그룹 카드(얇은 행)로 묶는다.
+  const renderMobileList = (items: NormalizedMatch[]) => (
+    <div className="space-y-2.5">
+      {leagueGroupsOf(items).map((lg) => (
+        <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
+          <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+            {lg.items.map((m) => mobileCardFor(m))}
+          </ul>
+        </LeagueGroupCard>
+      ))}
+    </div>
+  );
+  // 데스크톱도 동일 그룹 카드 — 행은 SoccerLiveRow(hideLeague). 전역 테이블 헤더 대신 카드 헤더.
+  const renderDesktopList = (items: NormalizedMatch[]) => (
+    <div className="space-y-3">
+      {leagueGroupsOf(items).map((lg) => (
+        <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
+          <div className="px-3 sm:px-4 divide-y divide-neutral-100 dark:divide-white/[0.06]">
+            {lg.items.map(renderRow)}
+          </div>
+        </LeagueGroupCard>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-5">
       {/* 모바일 */}
@@ -2274,9 +2319,7 @@ function SoccerRowLayout({
         {liveSorted.length > 0 && (
           <section className="space-y-2">
             {statusHeader(`● 진행 중 (${liveSorted.length})`, "text-rose-600 dark:text-rose-500", "sm")}
-            <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
-              {liveSorted.map((m) => mobileCardFor(m))}
-            </ul>
+            {renderMobileList(liveSorted)}
           </section>
         )}
         {scheduledGroups.length > 0 && (
@@ -2285,9 +2328,7 @@ function SoccerRowLayout({
             {scheduledGroups.map((g) => (
               <div key={g.day} className="space-y-2">
                 {dateHeaderMobile(g.label)}
-                <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
-                  {g.items.map((m) => mobileCardFor(m))}
-                </ul>
+                {renderMobileList(g.items)}
               </div>
             ))}
           </section>
@@ -2298,9 +2339,7 @@ function SoccerRowLayout({
             {finishedGroups.map((g) => (
               <div key={g.day} className="space-y-2">
                 {dateHeaderMobile(g.label)}
-                <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
-                  {g.items.map((m) => mobileCardFor(m))}
-                </ul>
+                {renderMobileList(g.items)}
               </div>
             ))}
           </section>
@@ -2311,74 +2350,65 @@ function SoccerRowLayout({
             {postponedGroups.map((g) => (
               <div key={g.day} className="space-y-2">
                 {dateHeaderMobile(g.label)}
-                <ul className="divide-y divide-neutral-200 dark:divide-white/10 rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 overflow-hidden">
-                  {g.items.map((m) => mobileCardFor(m))}
-                </ul>
+                {renderMobileList(g.items)}
               </div>
             ))}
           </section>
         )}
       </div>
 
-      {/* 데스크탑 — row table. overflow-x-auto = 좁은 창에서 잘림 대신 가로 스크롤(fallback).
-          스코어보드.kr(sb-mode)은 data-srow-table min-width 해제로 화면폭에 맞춰 압축(스크롤 불필요). */}
-      <div className="hidden md:block overflow-x-auto rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-white/[0.02]">
-        <div data-srow-table className="min-w-[860px] px-4 pt-1 pb-16">
-          <SoccerLiveRowHeader />
-          {wcAll.length > 0 && (
-            <div className="mt-2 mb-1 rounded-lg border-2 border-amber-400/70 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/[0.04] overflow-hidden">
-              {wcSectionHeader}
-              <div className="px-3 pb-1.5">{wcAll.map(renderRow)}</div>
+      {/* 데스크탑 — 모바일과 동일한 리그 그룹 카드(얇은 행). 전역 테이블 헤더 대신 카드별 헤더. */}
+      <div className="hidden md:block space-y-4">
+        {wcAll.length > 0 && (
+          <LeagueGroupCard league="WORLD_CUP" count={wcAll.length} accent="wc" href="/world-cup" linkLabel="우승 확률">
+            <div className="px-3 sm:px-4 divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {wcAll.map(renderRow)}
             </div>
-          )}
-          {liveSorted.length > 0 && (
-            <>
-              <div className="px-0 pt-3 pb-1 text-[12px] font-bold text-rose-600 dark:text-rose-500">
-                ● 진행 중 ({liveSorted.length})
+          </LeagueGroupCard>
+        )}
+        {liveSorted.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-rose-600 dark:text-rose-500">
+              ● 진행 중 ({liveSorted.length})
+            </div>
+            {renderDesktopList(liveSorted)}
+          </section>
+        )}
+        {scheduledGroups.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-neutral-600 dark:text-neutral-400">⏳ 예정</div>
+            {scheduledGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderDesktop(g.label)}
+                {renderDesktopList(g.items)}
               </div>
-              {liveSorted.map(renderRow)}
-            </>
-          )}
-          {scheduledGroups.length > 0 && (
-            <>
-              <div className="px-0 pt-3 pb-1 text-[12px] font-bold text-neutral-600 dark:text-neutral-400">
-                ⏳ 예정
+            ))}
+          </section>
+        )}
+        {finishedGroups.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-neutral-500">✅ 종료</div>
+            {finishedGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderDesktop(g.label)}
+                {renderDesktopList(g.items)}
               </div>
-              {scheduledGroups.map((g) => (
-                <div key={g.day}>
-                  {dateHeaderDesktop(g.label)}
-                  {g.items.map(renderRow)}
-                </div>
-              ))}
-            </>
-          )}
-          {finishedGroups.length > 0 && (
-            <>
-              <div className="px-0 pt-3 pb-1 text-[12px] font-bold text-neutral-500">
-                ✅ 종료
+            ))}
+          </section>
+        )}
+        {postponedGroups.length > 0 && (
+          <section className="space-y-2">
+            <div className="text-[12px] font-bold text-amber-600 dark:text-amber-500">
+              🚫 연기 ({postponedSorted.length})
+            </div>
+            {postponedGroups.map((g) => (
+              <div key={g.day} className="space-y-2">
+                {dateHeaderDesktop(g.label)}
+                {renderDesktopList(g.items)}
               </div>
-              {finishedGroups.map((g) => (
-                <div key={g.day}>
-                  {dateHeaderDesktop(g.label)}
-                  {g.items.map(renderRow)}
-                </div>
-              ))}
-            </>
-          )}
-          {postponedGroups.length > 0 && (
-            <>
-              <div className="px-0 pt-3 pb-1 text-[12px] font-bold text-amber-600 dark:text-amber-500">
-                🚫 연기 ({postponedSorted.length})
-              </div>
-              {postponedGroups.map((g) => (
-                <div key={g.day}>
-                  {dateHeaderDesktop(g.label)}
-                  {g.items.map(renderRow)}
-                </div>
-              ))}
-            </>
-          )}
-        </div>
+            ))}
+          </section>
+        )}
       </div>
     </div>
   );
