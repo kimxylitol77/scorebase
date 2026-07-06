@@ -32,7 +32,9 @@ log "⑤ 감독 트로피 (위키 Honours)"
 npx tsx --env-file=.env.local scripts/build-coach-honors.ts 2>&1 | tail -1 || true
 log "⑥ 국기·국적 (130시즌)"
 npx tsx --env-file=.env.local scripts/build-player-flags.ts 2>&1 | tail -1 || true
-log "⑦ 세부 포지션 (라인업 최빈값)"
+log "⑦ api-football 그리드 포지션 (빅5·UCL·WC — 스타 포괄 커버리지)"
+npx tsx --env-file=.env.local scripts/build-player-positions.ts 2>&1 | tail -2 || true
+log "⑦-b 세부 포지션 (라인업 x/y 최빈 + af그리드 우선 병합)"
 npx tsx --env-file=.env.local scripts/derive-detail-position.ts 2>&1 | tail -2 || true
 log "⑧ 선수 ts↔af 매핑 + af 시즌스탯 (17개 리그 — 대회별·시즌별 스탯 섹션 동력)"
 npx tsx --env-file=.env.local scripts/build-ts-af-player-map.ts 2>&1 | tail -3 || true

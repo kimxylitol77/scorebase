@@ -118,8 +118,15 @@ async function main() {
       .map(([c]) => c);
     detail[id] = { primary, others, apps: total };
   }
+  // api-football 그리드 집계(build-player-positions.ts) 우선 병합 — 빅5·UCL·WC 는 af 가 경기수 훨씬 많음
+  // (ts 캐시는 빅5 시즌종료로 희박). af 커버 선수는 af 값으로 덮고, 나머지는 ts x/y 값 유지.
+  let afMerged = 0;
+  try {
+    const afgrid = JSON.parse(fs.readFileSync("data/player-positions-afgrid.json", "utf8"));
+    for (const [id, v] of Object.entries(afgrid)) { detail[id] = v as typeof detail[string]; afMerged++; }
+  } catch { /* afgrid 없으면 ts 만 */ }
   fs.writeFileSync("data/player-positions-detail.json", JSON.stringify(detail));
-  console.log("좌우 구체 포지션:", Object.keys(detail).length, "| 야말:", JSON.stringify(detail["4jwq2ghxjzkvm0v"]));
+  console.log(`좌우 구체 포지션: ${Object.keys(detail).length} (af병합 ${afMerged}) | 야말: ${JSON.stringify(detail["4jwq2ghxjzkvm0v"])}`);
 
   const rows = await prisma.playerMarketValue.findMany({
     where: { league: { in: ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"] }, currentValue: { not: null } },
