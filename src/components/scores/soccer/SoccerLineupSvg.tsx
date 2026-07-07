@@ -37,6 +37,10 @@ interface Props {
   awayNameKo: string;
   /** ts player id → 한글 이름 (TheSportsPlayer.nameKo). 없으면 영문 last name fallback. */
   nameById?: Record<string, string>;
+  /** 헤더 아래 부제(예상 라인업 안내 문구 등). 없으면 미표시. */
+  subtitle?: string;
+  /** 현재 부상·결장 중인 ts player id — 피치 위에서 반투명 + OUT 배지 처리. */
+  injuredIds?: Set<string>;
 }
 
 /** 표시 이름: nameKo(DB) 우선 → 영문 last name. */
@@ -64,11 +68,13 @@ function PlayerDot({
   top,
   left,
   nameById,
+  injured,
 }: {
   player: Player;
   top: number;
   left: number;
   nameById?: Record<string, string>;
+  injured?: boolean;
 }) {
   const name = displayName(player, nameById);
   const num = player.shirt_number ?? "";
@@ -78,10 +84,10 @@ function PlayerDot({
 
   return (
     <div
-      className="absolute flex flex-col items-center"
+      className={`absolute flex flex-col items-center ${injured ? "opacity-60" : ""}`}
       style={{ top: `${top}%`, left: `${left}%`, transform: "translate(-50%, -50%)" }}
     >
-      <div className="relative w-8 h-8 sm:w-10 sm:h-10 aspect-square shrink-0">
+      <div className={`relative w-8 h-8 sm:w-10 sm:h-10 aspect-square shrink-0 ${injured ? "rounded-full ring-2 ring-red-500" : ""}`}>
         {/* 윈도우 타원 깨짐 다중 방어: (1) aspect-square 로 높이 계산이 어긋나도 1:1 강제,
             (2) img 자체에 rounded-full → overflow-hidden 클립이 transform 조상 아래서 실패해도 self-clip,
             (3) wrapper overflow-hidden 으로 이중 클립. */}
@@ -104,14 +110,20 @@ function PlayerDot({
             </div>
           )}
         </div>
-        {/* 평점 배지 — 사진 우상단 */}
-        {rating > 0 && (
-          <span
-            className="absolute -top-1 -right-1.5 text-center px-0.5 rounded-sm text-[7px] sm:text-[9px] font-extrabold text-white leading-[1.3] shadow"
-            style={{ background: ratingColor(rating) }}
-          >
-            {rating.toFixed(1)}
+        {/* 우상단 — 부상이면 OUT, 아니면 평점 배지 */}
+        {injured ? (
+          <span className="absolute -top-1 -right-1.5 px-0.5 rounded-sm text-[7px] sm:text-[9px] font-extrabold text-white leading-[1.3] shadow bg-red-600">
+            OUT
           </span>
+        ) : (
+          rating > 0 && (
+            <span
+              className="absolute -top-1 -right-1.5 text-center px-0.5 rounded-sm text-[7px] sm:text-[9px] font-extrabold text-white leading-[1.3] shadow"
+              style={{ background: ratingColor(rating) }}
+            >
+              {rating.toFixed(1)}
+            </span>
+          )
         )}
         {/* 등번호 — 사진 좌하단 작은 원 */}
         <span className="absolute -bottom-1 -left-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-neutral-900/85 text-white text-[7px] sm:text-[8px] font-bold flex items-center justify-center tabular-nums leading-none">
@@ -141,10 +153,12 @@ function TeamHalf({
   players,
   side,
   nameById,
+  injuredIds,
 }: {
   players: Player[];
   side: "home" | "away";
   nameById?: Record<string, string>;
+  injuredIds?: Set<string>;
 }) {
   // 1) y 오름차순 정렬 후 인접 y 차이 8 이내면 같은 라인으로 묶음
   const sorted = [...players].sort((a, b) => (a.y ?? 50) - (b.y ?? 50));
@@ -177,6 +191,7 @@ function TeamHalf({
               top={top}
               left={left}
               nameById={nameById}
+              injured={p.id ? injuredIds?.has(p.id) : false}
             />
           );
         });
@@ -185,7 +200,7 @@ function TeamHalf({
   );
 }
 
-export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById }: Props) {
+export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById, subtitle, injuredIds }: Props) {
   const lu = data.lineup;
   if (!lu) return null;
   const homeStarters = (lu.home ?? []).filter((p) => p.first === 1);
@@ -215,12 +230,16 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-3 sm:p-4">
-      <header className="flex items-center justify-between mb-3">
+      <header className="flex items-center justify-between mb-1">
         <h2 className="text-sm sm:text-base font-bold tracking-tight">라인업</h2>
         <span className="text-[11px] text-neutral-500">
           {data.confirmed === 1 ? "확정 라인업" : "예상 라인업"}
         </span>
       </header>
+      {subtitle && (
+        <p className="text-[11px] text-neutral-500 mb-3 leading-snug">{subtitle}</p>
+      )}
+      {!subtitle && <div className="mb-2" />}
 
       {/* 양 팀 헤더 — home(위) / away(아래) 포메이션 */}
       <div className="grid grid-cols-2 gap-2 mb-2 text-center text-xs">
@@ -280,8 +299,8 @@ export default function SoccerLineupSvg({ data, homeNameKo, awayNameKo, nameById
         </svg>
 
         {/* 선수 */}
-        <TeamHalf players={homeStarters} side="home" nameById={nameById} />
-        <TeamHalf players={awayStarters} side="away" nameById={nameById} />
+        <TeamHalf players={homeStarters} side="home" nameById={nameById} injuredIds={injuredIds} />
+        <TeamHalf players={awayStarters} side="away" nameById={nameById} injuredIds={injuredIds} />
       </div>
 
       {/* 평점 색 범례 */}

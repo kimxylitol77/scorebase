@@ -5,7 +5,19 @@
 //   SCHEDULED + 예상 라인업 → 예상 XI 카드
 // 데이터 없으면 null — 빈 카드는 렌더하지 않는다.
 
-import Link from "next/link";
+import SoccerLineupSvg from "./SoccerLineupSvg";
+import { predictedToLineupData } from "@/lib/predict/formation-layout";
+import type { Severity } from "@/lib/sports/injury-format";
+
+/** 부상·결장 명단 한 줄 (팀별). */
+export interface InjuryLine {
+  name: string;
+  reason: string;
+  /** 심각도 — 색 구분용(injury-format Severity). */
+  sev: Severity;
+  /** 예상 XI 에 포함된 선수인지 — 명단에서 강조 */
+  inXi?: boolean;
+}
 
 interface LineupPlayer {
   id?: string;
@@ -19,9 +31,12 @@ export interface PredictedXiTeam {
   formation: string;
   basedOnGames: number;
   xi: Array<{
+    /** TheSports player id — 피치 좌표 key + 부상 매칭 */
+    id?: string;
     name: string;
     nameKo?: string;
     position: string;
+    shirtNumber?: number;
     confidence: number;
     photo?: string;
     avgRating?: number;
@@ -42,6 +57,11 @@ interface Props {
   /** 예상 라인업 (월드컵 — 최근 국제경기 XI 가중투표). 확정 라인업 없을 때만 표시. */
   predictedHome?: PredictedXiTeam | null;
   predictedAway?: PredictedXiTeam | null;
+  /** 예상 XI 중 현재 부상·결장인 선수 ts id — 피치 OUT 배지. */
+  injuredXiIds?: string[];
+  /** 홈/원정 팀의 현재 부상·결장 명단 (예상 라인업 아래 표시). */
+  injuriesHome?: InjuryLine[];
+  injuriesAway?: InjuryLine[];
 }
 
 /** 킥오프 전 키 플레이어 칩 — 선발 중 평점 상위 (평점 없으면 공격수·미드필더 우선). */
@@ -112,70 +132,34 @@ function KeyPlayerChips({
   );
 }
 
-const POS_LABEL: Record<string, { ko: string; cls: string }> = {
-  G: { ko: "GK", cls: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
-  D: { ko: "DF", cls: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
-  M: { ko: "MF", cls: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" },
-  F: { ko: "FW", cls: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300" },
+const SEV_DOT: Record<InjuryLine["sev"], string> = {
+  long: "bg-red-500",
+  short: "bg-amber-500",
+  returning: "bg-emerald-500",
+  non_injury: "bg-neutral-400",
+  unknown: "bg-neutral-400",
 };
 
-/** 예상 라인업 — 한 팀 분량. 선수 카드(사진·포지션·평점), afId 있으면 선수 상세 링크. */
-function PredictedXiRow({ team, label }: { team: PredictedXiTeam; label: string }) {
-  const order: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
-  const sorted = [...team.xi].sort(
-    (a, b) => (order[a.position] ?? 9) - (order[b.position] ?? 9),
-  );
+/** 부상·결장 명단 — 한 팀. 예상 XI 포함 선수는 강조. 없으면 null. */
+function InjuryList({ label, tone, items }: { label: string; tone: "home" | "away"; items: InjuryLine[] }) {
+  if (items.length === 0) return null;
   return (
     <div>
-      <div className="flex justify-between text-[11px] text-neutral-500 mb-1.5">
-        <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-          {label} <span className="font-normal text-neutral-500">· {team.formation}</span>
-        </span>
-        <span>최근 {team.basedOnGames}경기 기반</span>
+      <div className={`text-[11px] font-semibold mb-1 ${tone === "home" ? "text-rose-600 dark:text-rose-400" : "text-blue-600 dark:text-blue-400"}`}>
+        {label} · 부상·결장 {items.length}명
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-        {sorted.map((p) => {
-          const pos = POS_LABEL[p.position] ?? POS_LABEL.M;
-          const card = (
-            <span
-              className={`flex items-center gap-1.5 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/60 px-1.5 py-1 min-w-0 ${p.confidence < 0.6 ? "opacity-60" : ""} ${p.afId ? "hover:border-blue-400 dark:hover:border-blue-500 transition cursor-pointer" : ""}`}
-              title={`선발 확률 ${Math.round(p.confidence * 100)}%${p.lastRating ? ` · 직전 평점 ${p.lastRating}` : ""}`}
-            >
-              {p.photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.photo}
-                  alt=""
-                  loading="lazy"
-                  className="w-7 h-7 rounded-full object-cover bg-neutral-200 dark:bg-neutral-700 shrink-0"
-                />
-              ) : (
-                <span className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-neutral-700 shrink-0" />
-              )}
-              <span className="min-w-0 flex-1">
-                <span className="block text-[11.5px] leading-tight truncate text-neutral-800 dark:text-neutral-200">
-                  {p.nameKo ?? p.name}
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className={`text-[9px] px-1 rounded font-semibold ${pos.cls}`}>{pos.ko}</span>
-                  {p.avgRating != null && (
-                    <span className={`text-[10px] tabular-nums font-semibold ${p.avgRating >= 7 ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-500"}`}>
-                      ★ {p.avgRating.toFixed(1)}
-                    </span>
-                  )}
-                </span>
-              </span>
-            </span>
-          );
-          return p.afId ? (
-            <Link key={p.name} href={`/players/${p.afId}?league=WORLD_CUP`} prefetch={false}>
-              {card}
-            </Link>
-          ) : (
-            <span key={p.name}>{card}</span>
-          );
-        })}
-      </div>
+      <ul className="space-y-0.5">
+        {items.map((it, i) => (
+          <li key={`${it.name}-${i}`} className="flex items-center gap-1.5 text-[12px] text-neutral-700 dark:text-neutral-300">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${SEV_DOT[it.sev]}`} />
+            <span className={it.inXi ? "font-semibold" : ""}>{it.name}</span>
+            <span className="text-neutral-400 dark:text-neutral-500">· {it.reason}</span>
+            {it.inXi && (
+              <span className="text-[9px] px-1 rounded bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-bold">예상 XI</span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -188,6 +172,9 @@ export default function SoccerNowBlock({
   nameById = {},
   predictedHome,
   predictedAway,
+  injuredXiIds,
+  injuriesHome,
+  injuriesAway,
 }: Props) {
   const showChips = status === "SCHEDULED" && lineup;
   // 예상 라인업 — 확정 라인업이 아직 없는 예정 매치에서만 (확정 도착 시 자동 교체)
@@ -196,26 +183,59 @@ export default function SoccerNowBlock({
 
   if (!showChips && !showPredicted) return null;
 
-  return (
-    <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 space-y-3">
-      {showChips && (
-        <KeyPlayerChips
-          lineup={lineup!}
-          nameById={nameById}
+  // 예상 라인업 — 피치 뷰(확정 라인업과 동일한 SoccerLineupSvg 재사용) + 부상·결장 명단.
+  if (showPredicted) {
+    const data = predictedToLineupData(predictedHome, predictedAway);
+    if (!data) return null;
+    // 예상 XI 자체 nameKo → SoccerLineupSvg nameById 로 전달
+    const nameByIdKo: Record<string, string> = {};
+    for (const t of [predictedHome, predictedAway]) {
+      if (!t) continue;
+      for (const p of t.xi) if (p.id && p.nameKo) nameByIdKo[p.id] = p.nameKo;
+    }
+    const injured = new Set(injuredXiIds ?? []);
+    const basedOn = predictedHome?.basedOnGames ?? predictedAway?.basedOnGames;
+    const hasInjuries = (injuriesHome?.length ?? 0) + (injuriesAway?.length ?? 0) > 0;
+    return (
+      <div className="space-y-3">
+        <SoccerLineupSvg
+          data={data as Parameters<typeof SoccerLineupSvg>[0]["data"]}
           homeNameKo={homeNameKo}
           awayNameKo={awayNameKo}
+          nameById={nameByIdKo}
+          injuredIds={injured}
+          subtitle={`최근 국제경기 선발 가중 예상${basedOn ? ` · 최근 ${basedOn}경기 기반` : ""} · 공식 발표(킥오프 ~1시간 전) 시 확정 라인업으로 자동 교체`}
         />
-      )}
-      {showPredicted && (
-        <div className="space-y-2.5">
-          <div className="flex justify-between text-[11px] text-neutral-500">
-            <span>📋 예상 선발 라인업</span>
-            <span>공식 발표(킥오프 ~1시간 전) 시 자동 교체</span>
-          </div>
-          {predictedHome && <PredictedXiRow team={predictedHome} label={homeNameKo} />}
-          {predictedAway && <PredictedXiRow team={predictedAway} label={awayNameKo} />}
-        </div>
-      )}
+        {hasInjuries && (
+          <section className="rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-neutral-950 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold tracking-tight">부상·결장 명단</h3>
+              <span className="text-[10px] text-neutral-500">데이터 기반</span>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3">
+              <InjuryList label={homeNameKo} tone="home" items={injuriesHome ?? []} />
+              <InjuryList label={awayNameKo} tone="away" items={injuriesAway ?? []} />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-neutral-500 pt-1 border-t border-neutral-100 dark:border-white/5">
+              <span><span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1 align-middle" />장기</span>
+              <span><span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-1 align-middle" />단기</span>
+              <span><span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 align-middle" />복귀 임박</span>
+              <span><span className="inline-block w-1.5 h-1.5 rounded-full bg-neutral-400 mr-1 align-middle" />출전정지·기타</span>
+            </div>
+          </section>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 space-y-3">
+      <KeyPlayerChips
+        lineup={lineup!}
+        nameById={nameById}
+        homeNameKo={homeNameKo}
+        awayNameKo={awayNameKo}
+      />
     </section>
   );
 }
