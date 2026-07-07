@@ -434,10 +434,24 @@ export default async function TransfersPage({
     })
     .filter((e) => e.lastTime >= cutoff);
 
-  // 동일 표시명+팀 중복 제거 (TheSports 중복 선수 레코드 — 예: 패트릭 도르구 2건).
-  // raw 가 가치순(desc)이라 첫 등장 = 최고가 → 그것만 유지.
-  const dedupSeen = new Set<string>();
-  enriched = enriched.filter((e) => { const k = `${e.name}|${e.teamName}`; if (dedupSeen.has(k)) return false; dedupSeen.add(k); return true; });
+  // 동일 선수 중복 제거 (TheSports 가 한 선수에 복수 id 부여 — 예: "파트리크 도르구"·"패트릭 도르구").
+  // 표시명이 음역차로 달라도 영문명 정규화(발음기호·대소문자·공백 무시)로 같은 선수를 잡는다.
+  // 같은 키 중 공식 스쿼드(등번호 보유) 레코드 우선, 없으면 최고가(raw 가치 desc) 유지.
+  const normEn = (s: string) =>
+    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, " ").replace(/\s+/g, " ").trim();
+  const keyOf = (e: (typeof enriched)[number]) => {
+    const en = normEn(e.nameEn || "");
+    return en ? `en:${en}|${e.teamName}` : `ko:${e.name}|${e.teamName}`;
+  };
+  const bestByKey = new Map<string, (typeof enriched)[number]>();
+  for (const e of enriched) {
+    const k = keyOf(e);
+    const cur = bestByKey.get(k);
+    // 등번호(공식 스쿼드) 보유 레코드를 우선 승격. 동급이면 먼저 온(=고가) 것 유지.
+    if (!cur || (e.number != null && cur.number == null)) bestByKey.set(k, e);
+  }
+  const keepSet = new Set(bestByKey.values());
+  enriched = enriched.filter((e) => keepSet.has(e));
 
   // 이름 데이터 없는 선수(name="선수" fallback)는 랭킹에서 제외 — TheSports player API
   // 미인가로 이름 backfill 불가. 라인업 등장/플랜 추가로 이름이 생기면 자동 재노출됨.
