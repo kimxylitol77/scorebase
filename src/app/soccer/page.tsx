@@ -10,7 +10,6 @@ import {
   GitCompare,
   Target,
   ListOrdered,
-  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -100,8 +99,14 @@ export default async function SoccerHub() {
             badge={lg.sub}
             href={`/leagues/${lg.code}`}
             hrefLabel="리그 상세"
-            secondaryHref={`/leagues/${lg.code}?view=power`}
-            secondaryLabel="AI 파워랭킹"
+            links={[
+              { label: "순위", href: `/leagues/${lg.code}` },
+              { label: "파워랭킹", href: `/leagues/${lg.code}?view=power` },
+              { label: "AI 예측", href: `/predictions/${lg.code}` },
+              { label: "역사", href: `/leagues/${lg.code}?view=history` },
+              { label: "글·분석", href: `/leagues/${lg.code}?view=articles` },
+              { label: "부상자", href: `/injuries/${lg.code}` },
+            ]}
           >
             {top3s[i].length === 0 ? (
               <Empty>시즌 순위가 아직 없습니다.</Empty>
@@ -124,7 +129,18 @@ export default async function SoccerHub() {
         ))}
 
         {/* 챔피언스리그 */}
-        <Card title="챔피언스리그" Icon={Trophy} href="/leagues/UCL" hrefLabel="UCL 상세">
+        <Card
+          title="챔피언스리그"
+          Icon={Trophy}
+          href="/leagues/UCL"
+          hrefLabel="UCL 상세"
+          links={[
+            { label: "대진·예측", href: "/predictions/UCL" },
+            { label: "순위", href: "/leagues/UCL" },
+            { label: "역사", href: "/leagues/UCL?view=history" },
+            { label: "글·분석", href: "/leagues/UCL?view=articles" },
+          ]}
+        >
           <p className="text-sm text-neutral-500 break-keep">
             유럽 최강 클럽 토너먼트 · 대진·일정·AI 예측.
           </p>
@@ -158,8 +174,7 @@ function Card({
   badge,
   href,
   hrefLabel,
-  secondaryHref,
-  secondaryLabel,
+  links,
   children,
 }: {
   title: string;
@@ -167,8 +182,7 @@ function Card({
   badge?: string;
   href: string;
   hrefLabel: string;
-  secondaryHref?: string;
-  secondaryLabel?: string;
+  links?: { label: string; href: string }[];
   children: React.ReactNode;
 }) {
   return (
@@ -181,23 +195,25 @@ function Card({
         {badge && <span className="text-[11px] text-zinc-500 dark:text-white/45">{badge}</span>}
       </div>
       <div className="flex-1">{children}</div>
-      <div className="mt-3 flex items-center gap-4">
-        <Link
-          href={href}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
-        >
-          {hrefLabel} →
-        </Link>
-        {secondaryHref && secondaryLabel && (
-          <Link
-            href={secondaryHref}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 dark:text-rose-400"
-          >
-            <TrendingUp className="w-3 h-3" aria-hidden />
-            {secondaryLabel} →
-          </Link>
-        )}
-      </div>
+      {links && links.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="inline-flex items-center rounded-full border border-neutral-200 dark:border-white/10 px-2.5 py-1 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-rose-400 hover:text-rose-600 dark:hover:text-rose-400"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
+      <Link
+        href={href}
+        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
+      >
+        {hrefLabel} →
+      </Link>
     </section>
   );
 }
