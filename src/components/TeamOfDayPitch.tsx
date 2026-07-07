@@ -1,6 +1,7 @@
 // 월드컵 '오늘의 베스트 XI' 4-2-3-1 피치 시각화 — team-of-day 페이지와 분석 글에서 공용.
 import Link from "next/link";
 import type { TodPlayer, TeamOfDay } from "@/lib/sports/thesports/team-of-day";
+import Pitch, { PitchMarker } from "@/components/pitch/Pitch";
 
 const koName = (p: TodPlayer) => p.name;
 
@@ -22,30 +23,15 @@ export default function TeamOfDayPitch({
         ))}
       </div>
 
-      {/* 피치 — 4-2-3-1 */}
-      <div className="relative w-full rounded-2xl overflow-hidden border border-emerald-700/40 shadow-2xl"
-        style={{ aspectRatio: "3 / 4.2", background: "linear-gradient(to bottom, #0f5132 0%, #0c4429 50%, #0a3d27 100%)" }}>
-        {/* 피치 마킹 — 단일 SVG 오버레이. viewBox(30×42 = 컨테이너 3/4.2 비율)가 통째로
-            스케일되므로 폭과 무관하게 선수(%)와 같은 비율 유지(기존 고정 px 마킹은 폭이 바뀌면 비율 어긋남). */}
-        <svg
-          className="absolute inset-0 h-full w-full pointer-events-none"
-          viewBox="0 0 30 42"
-          preserveAspectRatio="xMidYMid meet"
-          aria-hidden="true"
-          fill="none"
-          stroke="white"
-          strokeOpacity={0.15}
-          strokeWidth={0.13}
-        >
-          {/* 외곽선 + 중앙선 */}
-          <rect x="0.8" y="0.8" width="28.4" height="40.4" rx="0.5" />
-          <line x1="0.8" y1="21" x2="29.2" y2="21" />
-          {/* 센터 서클 */}
-          <circle cx="15" cy="21" r="3.1" />
-          {/* 페널티 박스 (위/아래 — 골라인 쪽은 외곽선과 만나는 3면) */}
-          <path d="M10.85 3.9 L10.85 0.8 L19.15 0.8 L19.15 3.9" />
-          <path d="M10.85 38.1 L10.85 41.2 L19.15 41.2 L19.15 38.1" />
-        </svg>
+      {/* 피치 — 4-2-3-1 (공용 Pitch) */}
+      <Pitch
+        orientation="vertical"
+        aspect={3 / 4.2}
+        markingOpacity={0.15}
+        grassFrom="#0f5132"
+        grassTo="#0a3d27"
+        className="rounded-2xl border border-emerald-700/40 shadow-2xl"
+      >
         {xi.map((p, i) => {
           const inner = (
             <>
@@ -68,16 +54,16 @@ export default function TeamOfDayPitch({
             </>
           );
           return (
-            <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${p.x}%`, top: `${p.y}%`, width: "88px" }}>
+            <PitchMarker key={i} x={p.x} y={p.y} style={{ width: "88px" }}>
               {p.hasMv ? (
                 <Link href={`/transfers/${p.id}`} className="flex flex-col items-center hover:opacity-80 transition" title={`${koName(p)} 시장가치·이적 보기`}>{inner}</Link>
               ) : (
                 <div className="flex flex-col items-center">{inner}</div>
               )}
-            </div>
+            </PitchMarker>
           );
         })}
-      </div>
+      </Pitch>
     </>
   );
 }

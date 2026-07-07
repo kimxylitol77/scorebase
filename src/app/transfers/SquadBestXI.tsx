@@ -2,6 +2,7 @@
 // 4-3-3 슬롯에 가치순 그리디 배치. 세부 포지션(GK/CB/FB/DM/CM/AM/W/ST) 우선,
 // coarse fallback(DF/MF/FW)은 accept 후순위로 흡수.
 import Link from "next/link";
+import Pitch, { PitchMarker } from "@/components/pitch/Pitch";
 
 export interface XIPlayer {
   id: string;
@@ -97,58 +98,47 @@ export default function SquadBestXI({ slots, teamName }: { slots: FilledSlot[]; 
           XI 합계 <strong className="text-cyan-600 dark:text-cyan-400">€{total}M</strong> · {krwEok(total)}억
         </span>
       </div>
-      <div className="relative w-full max-w-md mx-auto aspect-[3/4] rounded-3xl overflow-hidden border border-neutral-200/80 dark:border-neutral-800/80 bg-gradient-to-b from-emerald-700 to-emerald-900">
-        {/* 피치 라인 */}
-        <svg viewBox="0 0 100 133" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden>
-          <g fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="0.45">
-            <rect x="3" y="3" width="94" height="127" rx="1.5" />
-            <line x1="3" y1="66.5" x2="97" y2="66.5" />
-            <circle cx="50" cy="66.5" r="10" />
-            <rect x="26" y="110" width="48" height="20" />
-            <rect x="38" y="123" width="24" height="7" />
-            <rect x="26" y="3" width="48" height="20" />
-            <rect x="38" y="3" width="24" height="7" />
-          </g>
-        </svg>
-        {/* 잔디 스트라이프 */}
-        <div className="absolute inset-0 opacity-[0.06] bg-[repeating-linear-gradient(0deg,transparent_0,transparent_24px,#fff_24px,#fff_48px)]" aria-hidden />
+      <Pitch
+        orientation="vertical"
+        aspect={3 / 4}
+        stripes
+        markingOpacity={0.24}
+        grassFrom="#047857"
+        grassTo="#064e3b"
+        className="max-w-md mx-auto rounded-3xl border border-neutral-200/80 dark:border-neutral-800/80"
+      >
         {slots.map((s) =>
           s.player ? (
-            <Link
-              key={s.key}
-              href={`/transfers/${s.player.id}`}
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group w-[88px]"
-              style={{ left: `${s.x}%`, top: `${s.y}%` }}
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-white/70 bg-gradient-to-br from-neutral-200 to-neutral-400 shadow-lg group-hover:ring-cyan-300 transition flex items-center justify-center">
-                {s.player.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={s.player.photo} alt={s.player.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-sm font-bold text-neutral-600">{s.player.name.slice(0, 1)}</span>
-                )}
-              </div>
-              <span className="mt-1 max-w-full truncate text-[10px] sm:text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] leading-tight">
-                {s.player.name}
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-semibold text-emerald-100/90 tabular-nums leading-tight">
-                {s.label} · €{s.player.value}M
-              </span>
-            </Link>
+            <PitchMarker key={s.key} x={s.x} y={s.y} style={{ width: "88px" }}>
+              <Link
+                href={`/transfers/${s.player.id}`}
+                className="flex flex-col items-center group"
+              >
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden ring-2 ring-white/70 bg-gradient-to-br from-neutral-200 to-neutral-400 shadow-lg group-hover:ring-cyan-300 transition flex items-center justify-center">
+                  {s.player.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.player.photo} alt={s.player.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-neutral-600">{s.player.name.slice(0, 1)}</span>
+                  )}
+                </div>
+                <span className="mt-1 max-w-full truncate text-[10px] sm:text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] leading-tight">
+                  {s.player.name}
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-semibold text-emerald-100/90 tabular-nums leading-tight">
+                  {s.label} · €{s.player.value}M
+                </span>
+              </Link>
+            </PitchMarker>
           ) : (
-            <div
-              key={s.key}
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center w-[88px]"
-              style={{ left: `${s.x}%`, top: `${s.y}%` }}
-              aria-hidden
-            >
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-white/30 flex items-center justify-center">
+            <PitchMarker key={s.key} x={s.x} y={s.y} className="flex flex-col items-center" style={{ width: "88px" }}>
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-white/30 flex items-center justify-center" aria-hidden>
                 <span className="text-[10px] font-bold text-white/40">{s.label}</span>
               </div>
-            </div>
+            </PitchMarker>
           ),
         )}
-      </div>
+      </Pitch>
       <p className="mt-1.5 text-[11px] text-neutral-400 text-center">{teamName} 시장가치 기준 베스트11 (4-3-3) · 스코어베이스</p>
     </section>
   );

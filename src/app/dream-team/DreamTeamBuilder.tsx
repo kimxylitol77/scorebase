@@ -305,8 +305,10 @@ export default function DreamTeamBuilder({ pool, initial, tierKey, topTeams, fre
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_320px]">
         <div>
           <div className="relative overflow-hidden rounded-2xl px-2 py-5" style={{ background: "#2f7d4a" }}>
+            {/* 배경 마킹 — 중앙선 + 정원 센터서클. 고정px 대신 폭 기준 %+aspect-square 라
+                컨테이너 크기(화면비·창폭)가 바뀌어도 항상 정원·비율 유지. */}
             <div className="absolute left-0 right-0 top-1/2 border-t border-white/20" />
-            <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20" />
+            <div className="absolute left-1/2 top-1/2 w-[18%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20" />
             <div className="relative flex flex-col gap-4">
               {rows.map((row, ri) => (
                 <div key={ri} className="flex justify-around">
