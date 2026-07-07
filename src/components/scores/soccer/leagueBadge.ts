@@ -29,8 +29,8 @@ const LEAGUE_BADGES: Record<string, LeagueBadgeStyle> = {
   J2_LEAGUE: { label: "J2 리그", bg: "#f48fb1", fg: "#ffffff" },
   AFC_CL: { label: "AFC 챔스", bg: "#ff6600", fg: "#ffffff" },
   SAUDI_PL: { label: "사우디 PL", bg: "#006c35", fg: "#ffffff" }, // 사우디 국기색
-  UEL: { label: "유로파", bg: "#ff6900", fg: "#ffffff" },
-  UECL: { label: "컨퍼런스", bg: "#00b04f", fg: "#ffffff" },
+  UEL: { label: "유로파 리그", bg: "#ff6900", fg: "#ffffff" },
+  UECL: { label: "컨퍼런스 리그", bg: "#00b04f", fg: "#ffffff" },
   CHAMPIONSHIP: { label: "챔피언십", bg: "#6c3483", fg: "#ffffff" },
   LALIGA_2: { label: "라리가 2", bg: "#c54838", fg: "#ffffff" },
   BUNDESLIGA_2: { label: "분데스 2", bg: "#9e1b1b", fg: "#ffffff" },

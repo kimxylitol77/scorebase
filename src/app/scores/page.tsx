@@ -1624,6 +1624,23 @@ export default async function ScoresPage({ searchParams }: Props) {
         `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
     ),
   );
+  // 정확 키가 어긋나는 표기 차이 보강 — DB "FK Qarabag" ↔ date 소스 "Qarabag" 처럼 접두/접미가
+  // 달라 정규화 키가 안 맞으면 orphan 이 중복 카드로 뜬다. matchLive 와 동일한 substring 포함
+  // 매칭으로 한 번 더 거른다(3자 미만은 오매칭 방지로 제외).
+  const dbNameNorms = matches.map((m) => ({
+    league: m.league,
+    h: normalizeName(m.homeTeam.name),
+    a: normalizeName(m.awayTeam.name),
+  }));
+  const nameOverlap = (x: string, y: string) =>
+    x.length >= 3 && y.length >= 3 && (x.includes(y) || y.includes(x));
+  const coveredByDbName = (dm: DatedMatch) => {
+    const h = normalizeName(dm.homeName);
+    const a = normalizeName(dm.awayName);
+    return dbNameNorms.some(
+      (d) => d.league === dm.league && nameOverlap(d.h, h) && nameOverlap(d.a, a),
+    );
+  };
   // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
   // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.
   const isYouthOrWomenFriendly = (dm: DatedMatch) =>
@@ -1639,6 +1656,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         !dbNameKeys.has(
           `${dm.league}|${normalizeName(dm.homeName)}|${normalizeName(dm.awayName)}`,
         ) &&
+        !coveredByDbName(dm) &&
         !matchedLiveIds.has(dm.id),
     )
     .map((dm) => orphanCard(dm));
