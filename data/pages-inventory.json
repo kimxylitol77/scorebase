@@ -70,6 +70,13 @@
     "group": "menu"
   },
   {
+    "route": "/baseball/statcast",
+    "desc": "MLB Statcast 리더보드 페이지 — Baseball Savant 공개 데이터로 타구질(배럴·타구속도·하드히트·xwOBA) 상위. 선수 페이지 percentile 과 같은 소스를 리그 전체 순위로 확장.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/blog",
     "desc": "블로그 목록 — 스포츠 데이터 분석 인사이트 글 모음.",
     "inMenu": true,

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { safeFetchTop3 } from "@/lib/sports/standings-overview";
-import { Clock, ListOrdered, Target, Swords, Coins, Star, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, type LucideIcon } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 300;
@@ -314,6 +314,13 @@ export default async function BaseballHub() {
               </li>
             ))}
           </ul>
+        </Card>
+
+        {/* MLB Statcast 리더보드 */}
+        <Card title="Statcast 리더보드" Icon={Radar} badge="MLB" href="/baseball/statcast" hrefLabel="전체 순위 보기">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
+            배럴%·평균 타구속도·하드히트%·xwOBA — 타구질로 본 메이저리그 타자 상위. 선수·팀 단위, Baseball Savant 공식 데이터.
+          </p>
         </Card>
 
         {/* 승리확률 계산기 */}
