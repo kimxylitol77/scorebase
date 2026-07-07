@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Trophy, CalendarDays } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import Pitch, { PitchMarker } from "@/components/pitch/Pitch";
 
 const GROUPS = "ABCDEFGHIJKL".split("");
 const COUNTRY_KO: Record<string, string> = {
@@ -105,13 +106,8 @@ export default async function Page({ params }: { params: Promise<{ group: string
           ))}
         </div>
 
-        <div className="relative w-full rounded-2xl overflow-hidden border border-emerald-700/40 shadow-2xl"
-          style={{ aspectRatio: "3 / 4.2", background: "linear-gradient(to bottom, #0f5132 0%, #0c4429 50%, #0a3d27 100%)" }}>
-          <div className="absolute inset-3 border-2 border-white/15 rounded-sm" />
-          <div className="absolute left-3 right-3 top-1/2 border-t-2 border-white/15" />
-          <div className="absolute left-1/2 top-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 border-2 border-white/15 rounded-full" />
-          <div className="absolute left-1/2 bottom-3 w-32 h-12 -translate-x-1/2 border-2 border-t-0 border-white/15" />
-          <div className="absolute left-1/2 top-3 w-32 h-12 -translate-x-1/2 border-2 border-b-0 border-white/15" />
+        <Pitch orientation="vertical" aspect={3 / 4.2} grassFrom="#0f5132" grassTo="#0a3d27" markingOpacity={0.15}
+          className="rounded-2xl border border-emerald-700/40 shadow-2xl">
           {xi.map((p, i) => {
             const inner = (
               <>
@@ -135,16 +131,16 @@ export default async function Page({ params }: { params: Promise<{ group: string
               </>
             );
             return (
-              <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${p.x}%`, top: `${p.y}%`, width: "88px" }}>
+              <PitchMarker key={i} x={p.x} y={p.y} style={{ width: "88px" }}>
                 {p.hasMv ? (
                   <Link href={`/transfers/${p.id}`} className="flex flex-col items-center transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:opacity-80" title={`${koOf(p)} 시장가치·이적 보기`}>{inner}</Link>
                 ) : (
                   <div className="flex flex-col items-center">{inner}</div>
                 )}
-              </div>
+              </PitchMarker>
             );
           })}
-        </div>
+        </Pitch>
 
         {bench && bench.length > 0 && (
           <div className="mt-5">
