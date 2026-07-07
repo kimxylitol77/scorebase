@@ -21,6 +21,7 @@
     "job:preview": "tsx src/jobs/generate-previews.ts",
     "job:analysis": "tsx src/jobs/generate-analysis.ts",
     "job:tod": "tsx src/jobs/generate-team-of-day-article.ts",
+    "job:wc-star": "tsx src/jobs/generate-wc-star-report.ts",
     "job:blog-weekly": "tsx src/jobs/generate-blog-weekly.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
     "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",

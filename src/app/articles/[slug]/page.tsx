@@ -22,6 +22,7 @@ import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import TeamOfDayPitch from "@/components/TeamOfDayPitch";
 import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
+import { parseStarSlug } from "@/lib/sports/thesports/wc-star-report";
 import AmbientGlow from "@/components/AmbientGlow";
 import { BarChart3, CalendarDays, Activity } from "lucide-react";
 
@@ -461,6 +462,30 @@ export default async function ArticlePage({ params }: Props) {
       )
     : null;
 
+  // STAR 리포트(선수 단독 글) — Person 구조화 데이터로 선수 엔티티 신호 강화.
+  const star = parseStarSlug(article.slug);
+  const starPlayer = star
+    ? await prisma.theSportsPlayer.findUnique({
+        where: { id: star.playerId },
+        select: { name: true, nameKo: true, photoUrl: true },
+      })
+    : null;
+  const starHasMv = star
+    ? (await prisma.playerMarketValue.findUnique({ where: { id: star.playerId }, select: { id: true } })) != null
+    : false;
+  const personJsonLd = star
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: starPlayer?.nameKo || starPlayer?.name || article.title,
+        ...(starPlayer?.name ? { alternateName: starPlayer.name } : {}),
+        ...(starPlayer?.photoUrl ? { image: starPlayer.photoUrl } : {}),
+        jobTitle: "축구 선수",
+        ...(starHasMv ? { url: `${SITE_URL}/transfers/${star.playerId}` } : {}),
+        subjectOf: { "@type": "NewsArticle", "@id": url, name: article.title },
+      }
+    : null;
+
   // 축구 글 — TheSports 캐시 기반 탭(라인업·팀통계·모멘텀·하프타임·H2H) 주입 (live 페이지와 동등).
   let soccerTabs: SoccerInsightTab[] = [];
   if (article.match && SOCCER_LEAGUES.has(article.league) && article.match.theSportsCache) {
@@ -556,6 +581,12 @@ export default async function ArticlePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {personJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
+      )}
 
       <div className="mb-6 flex items-center justify-between gap-3">
         <Link

@@ -1,11 +1,13 @@
-// 월드컵 '오늘의 베스트 XI' 평점 분석 글 자동 발행 cron — 매일 KST 오후(그날 경기 평점 집계 후).
+// 월드컵 '오늘의 베스트 XI' 평점 분석 글 + STAR 리포트(주인공 선수 단독 글) 자동 발행 cron.
+// 매일 KST 오후(그날 경기 평점 집계 후). 둘 다 전 경기 종료 가드로 idempotent.
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runTeamOfDayArticle } from "@/jobs/generate-team-of-day-article";
+import { runWcStarReport } from "@/jobs/generate-wc-star-report";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120; // 베스트11 1글 + STAR 최대 2글(haiku) 여유
 
 export async function GET(req: Request) {
   if (!authorized(req)) {
@@ -18,6 +20,12 @@ export async function GET(req: Request) {
   }
   try {
     await runTeamOfDayArticle();
+    // STAR 리포트는 베스트11 에 피기백 — 실패해도 베스트11 발행은 유지되도록 격리.
+    try {
+      await runWcStarReport();
+    } catch (e) {
+      console.warn("[cron/team-of-day] STAR 리포트 실패:", (e as Error).message);
+    }
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

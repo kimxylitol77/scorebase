@@ -35,7 +35,7 @@ function kstRange(date: string): { gte: Date; lt: Date } {
 }
 
 /** 그날(KST) 아직 끝나지 않은(SCHEDULED/LIVE 등) 월드컵 경기 수. 0 이면 전부 종료. */
-async function pendingMatchCount(date: string): Promise<number> {
+export async function pendingMatchCount(date: string): Promise<number> {
   const { gte, lt } = kstRange(date);
   const ms = await prisma.match.findMany({
     where: { league: "WORLD_CUP", startTime: { gte, lt } },
