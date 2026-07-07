@@ -133,6 +133,28 @@ export default async function StandingsPage({ params }: Props) {
   // EWC(이스포츠 월드컵) — 녹아웃 토너먼트라 TheSports 순위표 없음 → DB 매치로 그룹 순위 계산.
   if (upper === "EWC") return <EwcStandings name={name} />;
 
+  // NBA — 데이터 소스 정비 중. ESPN↔TheSports 팀 id 충돌로 2025-26 매치가 오염돼(같은 팀 2행)
+  // calcStandings 가 중복 팀·왜곡 승패를 내므로, TheSports 재수집 전까지 순위표를 막고 안내.
+  // 정확한 시즌 기록은 역대 챔피언 + 결산글로 유도.
+  if (upper === "NBA") {
+    return (
+      <div className="relative max-w-2xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center space-y-5">
+        <AmbientGlow />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 리그 순위
+        </span>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight break-keep">{name} 순위표</h1>
+        <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed break-keep">
+          NBA 순위 데이터는 현재 소스 정비 중입니다. 정확한 시즌 기록은 아래에서 확인하세요.
+        </p>
+        <div className="flex flex-wrap justify-center gap-2 pt-1">
+          <Link href="/leagues/NBA?view=history" className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 dark:bg-white dark:text-neutral-900">역대 챔피언</Link>
+          <Link href="/leagues/NBA?view=articles" className="rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:ring-white/15">시즌 결산·분석</Link>
+        </div>
+      </div>
+    );
+  }
+
   // 1차: ts season standings 시도 (78개 축구 리그 cover, 자체 계산보다 정확)
   // 2차: DB FINISHED 매치 기반 calcStandings fallback
   const isSoccerLeague = (SOCCER_LEAGUES as readonly string[]).includes(upper);
