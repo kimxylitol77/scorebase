@@ -35,6 +35,7 @@ import AmbientGlow from "@/components/AmbientGlow";
 import { Globe, Landmark, Goal, BarChart3, Users, Target, Star, HeartPulse } from "lucide-react";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
+import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { calcForm } from "@/lib/predict/form";
 import { calcStreaks } from "@/lib/predict/streak";
 import { calcHomeAway } from "@/lib/predict/home-away";
@@ -225,14 +226,23 @@ export default async function TeamPage({ params }: Props) {
   ]);
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
 
+  // 순위·폼·스트릭·홈원정은 현재 시즌만 (지난 시즌 접기·롤오버 자동, 구시즌/중복 매치 합산 방지).
+  // Elo 는 시즌을 넘어 누적돼야 하므로 전체 매치 유지 (윈도잉하면 시즌마다 레이팅 리셋되는 회귀).
+  const seasonStart = currentSeasonStart(team.league);
+  let seasonMatches = seasonStart ? matches.filter((m) => m.startTime >= seasonStart) : matches;
+  if (seasonStart && seasonMatches.filter((m) => m.status === "FINISHED").length < 10) {
+    const prev = previousSeasonStart(seasonStart);
+    seasonMatches = matches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+  }
+
   // 통계
-  const standings = calcStandings(matches);
+  const standings = calcStandings(seasonMatches);
   const row = standings.byTeam.get(teamId);
-  const eloTable = calcEloTable(matches);
+  const eloTable = calcEloTable(matches); // 전체 — Elo 는 시즌 누적
   const elo = getElo(eloTable, teamId);
-  const recentForm = calcForm(matches, teamId, undefined, 5);
-  const streak = calcStreaks(matches, teamId);
-  const ha = calcHomeAway(matches, teamId);
+  const recentForm = calcForm(seasonMatches, teamId, undefined, 5);
+  const streak = calcStreaks(seasonMatches, teamId);
+  const ha = calcHomeAway(seasonMatches, teamId);
   const attackRank = standings.attackRank.get(teamId);
   const defenseRank = standings.defenseRank.get(teamId);
 

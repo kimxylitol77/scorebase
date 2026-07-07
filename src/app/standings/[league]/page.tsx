@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { calcStandings } from "@/lib/predict/standings";
+import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import { getRecentForm } from "@/lib/predict/recent-form";
 import RecentFormDots from "@/components/scores/RecentFormDots";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -140,8 +141,10 @@ export default async function StandingsPage({ params }: Props) {
   const baseballTable =
     upper === "KBO" || upper === "NPB" ? await fetchBaseballTable(upper) : null;
 
-  // 시즌 매치 (recent form dots 용 + fallback 계산용)
-  const matches = await prisma.match.findMany({
+  // 시즌 매치 (recent form dots 용 + fallback 계산용) — 현재 시즌만.
+  // 지난 시즌을 접어 롤오버 자동화 + 중복/구시즌 매치가 순위에 합산되는 것 방지
+  // (NBA 는 시즌 필드가 없어 startTime 경계로만 구분. season-window 는 리그별 자동).
+  const allMatches = await prisma.match.findMany({
     where: { league: upper },
     select: {
       id: true,
@@ -154,6 +157,13 @@ export default async function StandingsPage({ params }: Props) {
       startTime: true,
     },
   });
+  const seasonStart = currentSeasonStart(upper);
+  let matches = seasonStart ? allMatches.filter((m) => m.startTime >= seasonStart) : allMatches;
+  // 오프시즌 등으로 현재 시즌 완료 매치가 너무 적으면 직전 시즌 창으로 폴백 (predictions 와 동일).
+  if (seasonStart && matches.filter((m) => m.status === "FINISHED").length < 10) {
+    const prev = previousSeasonStart(seasonStart);
+    matches = allMatches.filter((m) => m.startTime >= prev && m.startTime < seasonStart);
+  }
 
   // 데이터 source 분기
   let rows: Array<{
