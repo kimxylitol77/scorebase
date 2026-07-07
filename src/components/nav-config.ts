@@ -49,10 +49,11 @@ export const SPORT_CATEGORIES: NavCategory[] = [
   },
   {
     label: "농구",
-    href: "/leagues/NBA",
+    href: "/basketball",
     items: [
-      { href: "/leagues/NBA", label: "NBA 허브", desc: "순위·일정·예측·기록" },
-      { href: "/standings", label: "리그 순위", desc: "NBA 컨퍼런스 순위" },
+      { href: "/basketball", label: "농구 허브", desc: "NBA·WNBA·KBL 순위·예측·기록 한눈에" },
+      { href: "/predictions/NBA", label: "시즌 예측", desc: "NBA·WNBA 우승·플레이오프 확률" },
+      { href: "/standings", label: "리그 순위", desc: "NBA·WNBA 컨퍼런스 순위" },
       { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드·FA·방출" },
       { href: "/salaries/nba", label: "NBA 연봉 랭킹", desc: "선수별 연봉 순위" },
     ],

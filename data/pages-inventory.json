@@ -77,6 +77,13 @@
     "group": "other"
   },
   {
+    "route": "/basketball",
+    "desc": "농구 종목 허브 — 오늘 경기·리그별 순위/예측/글/역사·AI 예측을 한 페이지에. 축구(/soccer)·야구(/baseball) 허브와 동일 패턴. 국내(KBL/WKBL)는 데이터 수집 시작 단계라 순위만 graceful.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/blog",
     "desc": "블로그 목록 — 스포츠 데이터 분석 인사이트 글 모음.",
     "inMenu": true,

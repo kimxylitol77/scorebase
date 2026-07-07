@@ -52,6 +52,7 @@ const TOOLS: Array<{ href: string; label: string }> = [
 const COMMUNITY: Array<{ href: string; label: string }> = [
   { href: "/ai-sports-prediction", label: "AI 스포츠 분석·예측" },
   { href: "/baseball", label: "야구 허브" },
+  { href: "/basketball", label: "농구 허브" },
   { href: "/world-cup", label: "FIFA 월드컵 2026" },
   { href: "/blog", label: "블로그" },
   { href: "/analysis", label: "스포츠 분석" },
