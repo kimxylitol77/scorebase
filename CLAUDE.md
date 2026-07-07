@@ -114,6 +114,7 @@ src/lib/
 src/components/
   MatchInsight.tsx        # 핵심 — winProb + StarterCard + GoalieCard + 배지
   Markdown.tsx            # autoLinkInternal 자동 적용
+  pitch/Pitch.tsx         # 공용 축구 피치 (아래 규칙 필독)
 
 src/app/
   articles/[slug]/        # 본문 + AiDisclosure + ExternalSources + JSON-LD
@@ -123,6 +124,16 @@ src/app/
   notices/                # 패치노트
   admin/stats/            # 사람 vs 봇 트래픽
 ```
+
+## 축구 피치 렌더링 규칙 (필수)
+
+**새 축구 피치(잔디+라인+선수 마커)는 반드시 `src/components/pitch/Pitch.tsx` + `PitchMarker` 를 쓴다. 손으로 새로 그리지 말 것.**
+
+- 선수는 `<PitchMarker x={0~100} y={0~100}>` (피치 % 좌표)로 배치. 비율은 `aspect` prop 으로 페이지별 지정.
+- **금지 1**: 센터서클·페널티박스를 고정 px div(`w-24 h-24` 등)로 그리기 → 창폭·화면비 바뀌면 선수(%)와 어긋난다(과거 world-cup/best-xi 버그).
+- **금지 2**: 피치 라인 SVG 에 `preserveAspectRatio="none"` → 센터서클이 타원 됨. Pitch 는 `xMidYMid meet` + `viewBox==컨테이너 비율`이라 항상 정원.
+- 원형 선수사진은 고정 정사각(`w-12 h-12`) 또는 `aspect-square` 로 — 윈도우 타원 깨짐 방어.
+- 예외(공용 미적용, 손대지 말 것): `lineup/Pitch.tsx`(드래그·게임 핵심), `scores/soccer/SoccerLineupSvg.tsx`(line-spread 복잡), `api/og/*`(satori 엔진). 상세는 메모리 `pitch-component-unification`.
 
 ## 환경 변수 (.env.local + Vercel 양쪽 등록)
 
