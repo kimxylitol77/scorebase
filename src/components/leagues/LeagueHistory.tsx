@@ -1,11 +1,13 @@
 // 리그 역대 우승 — 리그 페이지 "역사" 탭. data/league-champions.json (위키데이터 P3450→P1346 수집).
+import Link from "next/link";
 import championsData from "../../../data/league-champions.json";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import TeamBadge from "@/components/TeamBadge";
 
-type Champ = { season: string; ko: string; en: string };
+// article: 그 시즌 우승 기록(결산글) slug — 있으면 "우승 기록" 링크 노출.
+type Champ = { season: string; ko: string; en: string; article?: string };
 const DATA = championsData as Record<string, { champions: Champ[] }>;
 
 // 우승팀(위키데이터 풀네임) → DB 팀 매칭용 정규화. 영문=분음부호·축약(F.C. 등)·구두점 제거, 한글=공백 제거.
@@ -122,6 +124,14 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
               {flag && <span className="shrink-0" aria-hidden>{flag}</span>}
               <TeamBadge logoUrl={logo} size={18} className="bg-white rounded-sm" />
               <span className="font-medium truncate">{c.ko}</span>
+              {c.article && (
+                <Link
+                  href={`/articles/${c.article}`}
+                  className="ml-auto shrink-0 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 ring-1 ring-rose-500/20 transition hover:-translate-y-0.5 dark:text-rose-400"
+                >
+                  우승 기록 →
+                </Link>
+              )}
             </div>
             );
           })}
