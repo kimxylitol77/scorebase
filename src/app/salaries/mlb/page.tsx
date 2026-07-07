@@ -352,7 +352,7 @@ function ViewToggle({ view, teamLabel }: { view: "player" | "team"; teamLabel?: 
       <Link href="/salaries/mlb?view=team" className={pill(view === "team")}>팀별</Link>
       {teamLabel && (
         <Link
-          href="/salaries/mlb?view=team"
+          href="/salaries/mlb"
           className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
         >
           {teamLabel} <span aria-hidden className="opacity-70">×</span>

@@ -977,6 +977,14 @@ export default async function InjuriesByLeague({
   });
 
   const pageUrl = `${CANONICAL}/injuries/${upper}`;
+
+  // 리그 탭 전환 시 뷰 설정(심각도·정렬)을 유지 (빠뜨리면 리그 바꿀 때마다 초기화됨).
+  // 검색어(q)는 선수·팀명이라 리그마다 무의미 → 일부러 리그 전환 시 리셋.
+  const tabQs = new URLSearchParams();
+  if (severityFilter !== "ALL") tabQs.set("severity", severityFilter);
+  if (sort !== "count_desc") tabQs.set("sort", sort);
+  const tabSuffix = tabQs.toString() ? `?${tabQs}` : "";
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -1070,7 +1078,7 @@ export default async function InjuriesByLeague({
           return (
             <Link
               key={l}
-              href={`/injuries/${l}`}
+              href={`/injuries/${l}${tabSuffix}`}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 active
                   ? "bg-neutral-900 text-white ring-neutral-900 shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900 dark:ring-white"
