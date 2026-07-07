@@ -635,10 +635,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           {VALID_TYPES.map((t) => {
             const active = t === currentType;
             const count = countMap.get(t) ?? 0;
+            // view=articles 유지 — 빠지면 축구 리그(기본 뷰=순위)에서 종류 탭 클릭 시 순위로 튕김.
             const href =
               t === "ALL"
-                ? `/leagues/${upper}`
-                : `/leagues/${upper}?type=${t}`;
+                ? `/leagues/${upper}?view=articles`
+                : `/leagues/${upper}?view=articles&type=${t}`;
             return (
               <Link
                 key={t}
@@ -735,10 +736,10 @@ function Pagination({
 
   function makeHref(p: number) {
     const params = new URLSearchParams();
+    params.set("view", "articles");
     if (type !== "ALL") params.set("type", type);
     if (p > 1) params.set("page", String(p));
-    const qs = params.toString();
-    return qs ? `/leagues/${league}?${qs}` : `/leagues/${league}`;
+    return `/leagues/${league}?${params.toString()}`;
   }
 
   // 페이지 번호 윈도우 — 현재 ±2 + 처음/마지막
