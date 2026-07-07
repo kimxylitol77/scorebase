@@ -22,15 +22,15 @@ interface Slot {
 // 4-3-3 — y 작을수록 공격진. coarse(DF/MF/FW)는 마지막 fallback.
 const SLOT_DEFS: Slot[] = [
   { key: "ST", label: "ST", x: 50, y: 14, accept: ["ST", "W", "AM", "FW"] },
-  { key: "LW", label: "LW", x: 15, y: 24, accept: ["W", "AM", "ST", "FW"] },
-  { key: "RW", label: "RW", x: 85, y: 24, accept: ["W", "AM", "ST", "FW"] },
-  { key: "LM", label: "CM", x: 25, y: 46, accept: ["CM", "AM", "DM", "MF"] },
+  { key: "LW", label: "LW", x: 20, y: 24, accept: ["W", "AM", "ST", "FW"] },
+  { key: "RW", label: "RW", x: 80, y: 24, accept: ["W", "AM", "ST", "FW"] },
+  { key: "LM", label: "CM", x: 28, y: 46, accept: ["CM", "AM", "DM", "MF"] },
   { key: "CM", label: "DM", x: 50, y: 53, accept: ["DM", "CM", "MF"] },
-  { key: "RM", label: "CM", x: 75, y: 46, accept: ["AM", "CM", "DM", "MF"] },
-  { key: "LB", label: "LB", x: 13, y: 70, accept: ["FB", "CB", "DF"] },
-  { key: "LCB", label: "CB", x: 36, y: 76, accept: ["CB", "DF"] },
-  { key: "RCB", label: "CB", x: 64, y: 76, accept: ["CB", "DF"] },
-  { key: "RB", label: "RB", x: 87, y: 70, accept: ["FB", "CB", "DF"] },
+  { key: "RM", label: "CM", x: 72, y: 46, accept: ["AM", "CM", "DM", "MF"] },
+  { key: "LB", label: "LB", x: 18, y: 70, accept: ["FB", "CB", "DF"] },
+  { key: "LCB", label: "CB", x: 39, y: 76, accept: ["CB", "DF"] },
+  { key: "RCB", label: "CB", x: 61, y: 76, accept: ["CB", "DF"] },
+  { key: "RB", label: "RB", x: 82, y: 70, accept: ["FB", "CB", "DF"] },
   { key: "GK", label: "GK", x: 50, y: 91, accept: ["GK"] },
 ];
 
