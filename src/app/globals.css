@@ -700,26 +700,21 @@ body {
 body.sb-mode [data-sinfo] {
   display: none !important;
 }
-/* 7컬럼: 리그150 · 시간52 · 상태44 · 홈팀 · 점수72(고정) · 원정팀1fr · 별32.
-   정보(48)·spacer(154) 트랙 완전 제거.
-   점수(vs)를 "행의 정중앙"(아래 예정 카드의 VS 위치와 동일)에 고정 — 좌측 고정폭
-   (246) > 우측 고정폭(32) 비대칭이라 좌우를 같은 1fr 로 두면 점수가 우측으로 ~120px
-   쏠림(사용자 빨간선 요구). 홈팀 트랙 = 50% − 330px(좌측 고정 246 + gap 4개 48 +
-   점수폭 절반 36) 이면 점수 트랙 중앙 = 행 50%. 행 폭 900px(뷰포트 ~975px) 미만의
-   좁은 폭(임베드 등)은 max() 의 120px 바닥으로 팀명을 보호 — 그 구간만 점진 이탈. */
+/* 리그 그룹 카드 리디자인 후 SoccerLiveRow 는 hideLeague 로 리그 배지 칸을 접어
+   9개 자식만 렌더: 1시간 · 2상태 · 3홈팀 · 4점수 · 5원정팀 · 6전반 · 7별 · 8정보(data-sinfo) · 9배당.
+   6컬럼(시간56·상태64·홈팀1fr·점수72·원정팀1fr·별28)만 남기고 전반·정보·배당은 숨김.
+   홈팀·원정팀을 동일 1fr 로 균등 배분 → 좁은 화면에서도 팀명 노출
+   (이전 grid 는 리그 배지가 있던 옛 10컬럼 기준이라, 리디자인 후 자식이 한 칸씩 밀려
+    홈팀이 44px 로 붕괴하고 배당이 안 숨겨지던 버그 — 사용자 보고: 스코어보드.kr 팀명 안 보임). */
 body.sb-mode [data-srow] {
-  grid-template-columns: 150px 52px 44px max(120px, calc(50% - 330px)) 72px 1fr 32px !important;
+  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px !important;
 }
-/* 스코어보드.kr 만 전반(7번째)·배당(10번째) 칸 숨김 → 라이브 스코어 전용 간결 뷰.
-   글(9, data-sinfo)도 숨겨져 남는 7개(리그·시간·상태·홈팀·점수·원정팀·별)가 7컬럼을 채움.
+/* 전반(6번째)·배당(9번째) 칸 숨김 → 라이브 스코어 전용 간결 뷰. 정보(8, data-sinfo)는 위에서 숨김.
+   남는 6개(시간·상태·홈팀·점수·원정팀·별)가 6컬럼을 채운다.
    scorebase.kr(메인)은 sb-mode 미부여라 전반·배당 그대로 노출. */
-body.sb-mode [data-srow] > :nth-child(7),
-body.sb-mode [data-srow] > :nth-child(10) {
+body.sb-mode [data-srow] > :nth-child(6),
+body.sb-mode [data-srow] > :nth-child(9) {
   display: none !important;
-}
-/* 관심별 — 전반 칸 추가로 8번째 자식이 됨. 32px 컬럼 우측 끝 정렬. */
-body.sb-mode [data-srow] > :nth-child(8) {
-  justify-self: end !important;
 }
 /* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제해 화면(노란칸) 폭 사용.
    좌우 대칭(좌12·우16) — 우측은 스크롤바/관심별 가장자리 걸침 방지로만 살짝 더.
