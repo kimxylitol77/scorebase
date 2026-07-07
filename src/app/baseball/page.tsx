@@ -61,7 +61,7 @@ export default async function BaseballHub() {
   const startUtc = new Date(midnightUtcMs);
   const endUtc = new Date(midnightUtcMs + 24 * 3600_000);
 
-  const [games, kboTop3, spMatches, salaries] = await Promise.all([
+  const [games, kboTop3, mlbTop3, npbTop3, spMatches, salaries] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: BASEBALL },
@@ -86,6 +86,8 @@ export default async function BaseballHub() {
       orderBy: { startTime: "asc" },
     }),
     safeFetchTop3("KBO").catch(() => []),
+    safeFetchTop3("MLB").catch(() => []),
+    safeFetchTop3("NPB").catch(() => []),
     prisma.match.findMany({
       where: { league: { in: BASEBALL }, predCorrect: { not: null } },
       select: { predCorrect: true, predHome: true, predAway: true, league: true },
@@ -125,10 +127,55 @@ export default async function BaseballHub() {
   );
 
   const tabs = [
-    { label: "오늘", href: "/baseball", active: true },
-    { label: "순위", href: "/standings/KBO", active: false },
-    { label: "예측", href: "/predictions/KBO", active: false },
-    { label: "선수·연봉", href: "/salaries/kbo", active: false },
+    { label: "야구 홈", href: "/baseball", active: true },
+    { label: "라이브 스코어", href: "/scores", active: false },
+    { label: "AI 적중률", href: "/predictions/accuracy", active: false },
+    { label: "선수 비교", href: "/compare", active: false },
+  ];
+
+  // 리그별 블록 — 순위 Top3 + 순위·예측·글·부상 등 모든 진입로
+  const LEAGUE_BLOCKS: {
+    code: string;
+    name: string;
+    top3: typeof kboTop3;
+    links: { label: string; href: string }[];
+  }[] = [
+    {
+      code: "KBO",
+      name: "KBO 리그",
+      top3: kboTop3,
+      links: [
+        { label: "순위", href: "/standings/KBO" },
+        { label: "AI 예측", href: "/predictions/KBO" },
+        { label: "글·분석", href: "/leagues/KBO" },
+        { label: "부상자", href: "/injuries/KBO" },
+        { label: "연봉", href: "/salaries/kbo" },
+      ],
+    },
+    {
+      code: "MLB",
+      name: "MLB",
+      top3: mlbTop3,
+      links: [
+        { label: "순위", href: "/standings/MLB" },
+        { label: "AI 예측", href: "/predictions/MLB" },
+        { label: "글·분석", href: "/leagues/MLB" },
+        { label: "부상자", href: "/injuries/MLB" },
+        { label: "Statcast", href: "/baseball/statcast" },
+        { label: "연봉", href: "/salaries/mlb" },
+      ],
+    },
+    {
+      code: "NPB",
+      name: "NPB",
+      top3: npbTop3,
+      links: [
+        { label: "순위", href: "/standings/NPB" },
+        { label: "AI 예측", href: "/predictions/NPB" },
+        { label: "글·분석", href: "/leagues/NPB" },
+        { label: "부상자", href: "/injuries/NPB" },
+      ],
+    },
   ];
 
   return (
@@ -169,6 +216,16 @@ export default async function BaseballHub() {
         </nav>
       </header>
 
+      {/* 리그별 — 순위·예측·글·분석·부상 모든 진입로 */}
+      <section className="space-y-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500">리그별</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {LEAGUE_BLOCKS.map((lg) => (
+            <LeagueBlock key={lg.code} name={lg.name} top3={lg.top3} links={lg.links} />
+          ))}
+        </div>
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-2">
         {/* 오늘 경기 */}
         <Card title="오늘 경기" Icon={Clock} badge={`${games.length}경기`} href="/scores" hrefLabel="전체 경기">
@@ -202,25 +259,6 @@ export default async function BaseballHub() {
                   </li>
                 );
               })}
-            </ul>
-          )}
-        </Card>
-
-        {/* KBO 순위 */}
-        <Card title="KBO 순위" Icon={ListOrdered} href="/standings/KBO" hrefLabel="전체 순위">
-          {kboTop3.length === 0 ? (
-            <Empty>순위 데이터를 불러오는 중입니다.</Empty>
-          ) : (
-            <ul className="space-y-1.5">
-              {kboTop3.map((t) => (
-                <li key={t.teamId} className="flex items-center justify-between text-sm">
-                  <span>
-                    <span className="inline-block w-5 text-neutral-400 font-bold tabular-nums">{t.position}</span>
-                    {t.name}
-                  </span>
-                  <span className="text-neutral-500 tabular-nums text-xs">{t.points}승</span>
-                </li>
-              ))}
             </ul>
           )}
         </Card>
@@ -349,6 +387,54 @@ export default async function BaseballHub() {
         오늘 경기·예측은 5분마다 갱신됩니다. 각 카드의 링크에서 전체 데이터를 볼 수 있습니다. 데이터 출처 KBO 공식·MLB Stats API·api-baseball.
       </footer>
     </main>
+  );
+}
+
+// 리그별 블록 — 순위 Top3 미리보기 + 순위·예측·글·부상 등 모든 진입로 링크.
+function LeagueBlock({
+  name,
+  top3,
+  links,
+}: {
+  name: string;
+  top3: { teamId: number; position: number; name: string; points: number }[];
+  links: { label: string; href: string }[];
+}) {
+  return (
+    <section className="flex flex-col rounded-[1.5rem] sm:rounded-[2rem] bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]">
+      <div className="flex items-center gap-1.5 mb-3">
+        <ListOrdered className="w-4 h-4 text-zinc-700 dark:text-white/70" aria-hidden />
+        <span className="text-sm font-semibold text-zinc-950 dark:text-white">{name}</span>
+      </div>
+      <div className="flex-1">
+        {top3.length === 0 ? (
+          <p className="text-xs text-neutral-400 py-2">순위 데이터 준비 중 (시즌 외일 수 있음).</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {top3.map((t) => (
+              <li key={t.teamId} className="flex items-center justify-between text-sm">
+                <span className="truncate">
+                  <span className="inline-block w-5 text-neutral-400 font-bold tabular-nums">{t.position}</span>
+                  {t.name}
+                </span>
+                <span className="text-neutral-500 tabular-nums text-xs">{t.points}승</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {links.map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className="inline-flex items-center rounded-full border border-neutral-200 dark:border-white/10 px-2.5 py-1 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-rose-400 hover:text-rose-600 dark:hover:text-rose-400"
+          >
+            {l.label}
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
