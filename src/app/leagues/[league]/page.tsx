@@ -16,6 +16,7 @@ import LolStandings from "@/components/LolStandings";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
 import { loadLeagueLeaderboard } from "@/lib/sports/league-leaderboard";
 import { ALL_LEAGUES, LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Trophy } from "lucide-react";
 import { ogPageImage } from "@/lib/seo/og";
@@ -519,9 +520,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
             {info.subtitle}
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
-            {getLeagueFlag(upper) && (
+            {/* 리그 마크(로고) 우선 — 축구/UCL/WC=api-football, NBA/NHL/MLB=ESPN. 없으면 국기 폴백. */}
+            {leagueLogoUrl(upper) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={leagueLogoUrl(upper)!}
+                alt={`${info.name} 로고`}
+                className="inline-block mr-2.5 h-9 w-9 sm:h-11 sm:w-11 object-contain align-middle"
+              />
+            ) : getLeagueFlag(upper) ? (
               <span className="mr-2 align-middle" aria-hidden>{getLeagueFlag(upper)}</span>
-            )}
+            ) : null}
             {info.name}
             {currentType !== "ALL" && (
               <span className="ml-3 text-2xl sm:text-3xl text-neutral-400 font-bold">
