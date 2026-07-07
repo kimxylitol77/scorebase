@@ -59,6 +59,7 @@ import {
   buildMatchContext,
   enrichContextWithApiFootball,
 } from "@/lib/predict/build-context";
+import { STARTING_ELO } from "@/lib/predict/elo";
 import { enrichBaseballContext } from "@/lib/predict/baseball-context";
 import {
   computeStarterAdjustment,
@@ -816,6 +817,18 @@ export async function runPreview(opts?: {
         }
       } catch (err) {
         console.warn(`[preview] recentRecap fetch 실패:`, (err as Error).message);
+      }
+
+      // 양 팀 Elo 가 둘 다 기본값(STARTING_ELO) = 우리 데이터에 없는 무명 팀(예: UCL 예선
+      // ML 비텝스크·Universitatea Craiova). 예측 근거가 없어 "동등한 Elo 가 만드는 열린 경기"
+      // 식 공허한 글만 나오고 한국 독자 수요·SEO 가치도 없으므로 발행하지 않는다.
+      if (
+        context.elo &&
+        Math.round(context.elo.home) === STARTING_ELO &&
+        Math.round(context.elo.away) === STARTING_ELO
+      ) {
+        console.log(`[preview] skip — 양 팀 Elo 기본값(무명 팀): ${m.homeTeam.name} vs ${m.awayTeam.name}`);
+        continue;
       }
 
       // 풀엔진 일원화 (2026-06-10) — predictionEngine 의 전체 시그널 체인
