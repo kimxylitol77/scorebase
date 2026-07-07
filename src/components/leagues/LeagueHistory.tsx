@@ -124,14 +124,23 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
               {flag && <span className="shrink-0" aria-hidden>{flag}</span>}
               <TeamBadge logoUrl={logo} size={18} className="bg-white rounded-sm" />
               <span className="font-medium truncate">{c.ko}</span>
-              {c.article && (
-                <Link
-                  href={`/articles/${c.article}`}
-                  className="ml-auto shrink-0 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 ring-1 ring-rose-500/20 transition hover:-translate-y-0.5 dark:text-rose-400"
-                >
-                  우승 기록 →
-                </Link>
-              )}
+              <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                {c.article && (
+                  <Link
+                    href={`/articles/${c.article}`}
+                    className="rounded-full bg-rose-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600 ring-1 ring-rose-500/20 transition hover:-translate-y-0.5 dark:text-rose-400"
+                  >
+                    우승 기록
+                  </Link>
+                )}
+                {/* 최신 시즌 챔피언 옆에만 리그 예측·순위 바로가기 (현재 시즌 페이지). NBA 한정. */}
+                {i === 0 && league === "NBA" && (
+                  <>
+                    <Link href={`/predictions/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">예측</Link>
+                    <Link href={`/standings/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">순위</Link>
+                  </>
+                )}
+              </div>
             </div>
             );
           })}
