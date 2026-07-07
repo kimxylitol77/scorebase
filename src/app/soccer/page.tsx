@@ -10,6 +10,7 @@ import {
   GitCompare,
   Target,
   ListOrdered,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -99,6 +100,8 @@ export default async function SoccerHub() {
             badge={lg.sub}
             href={`/leagues/${lg.code}`}
             hrefLabel="리그 상세"
+            secondaryHref={`/leagues/${lg.code}?view=power`}
+            secondaryLabel="AI 파워랭킹"
           >
             {top3s[i].length === 0 ? (
               <Empty>시즌 순위가 아직 없습니다.</Empty>
@@ -155,6 +158,8 @@ function Card({
   badge,
   href,
   hrefLabel,
+  secondaryHref,
+  secondaryLabel,
   children,
 }: {
   title: string;
@@ -162,6 +167,8 @@ function Card({
   badge?: string;
   href: string;
   hrefLabel: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -174,12 +181,23 @@ function Card({
         {badge && <span className="text-[11px] text-zinc-500 dark:text-white/45">{badge}</span>}
       </div>
       <div className="flex-1">{children}</div>
-      <Link
-        href={href}
-        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
-      >
-        {hrefLabel} →
-      </Link>
+      <div className="mt-3 flex items-center gap-4">
+        <Link
+          href={href}
+          className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-zinc-950 dark:text-white/70 dark:hover:text-white"
+        >
+          {hrefLabel} →
+        </Link>
+        {secondaryHref && secondaryLabel && (
+          <Link
+            href={secondaryHref}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:opacity-80 dark:text-rose-400"
+          >
+            <TrendingUp className="w-3 h-3" aria-hidden />
+            {secondaryLabel} →
+          </Link>
+        )}
+      </div>
     </section>
   );
 }

@@ -8,6 +8,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import StandingsOnlyView from "@/components/StandingsOnlyView";
 import LeagueStandingsTable from "@/components/leagues/LeagueStandingsTable";
+import LeaguePowerRanking from "@/components/leagues/LeaguePowerRanking";
 import LeagueFixtures from "@/components/leagues/LeagueFixtures";
 import LeagueHistory from "@/components/leagues/LeagueHistory";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
@@ -308,11 +309,12 @@ interface Props {
   searchParams: Promise<{ type?: string; page?: string; view?: string }>;
 }
 
-// buildup식 데이터 탭 (축구 리그) — 순위·일정·통계·역사·글
-const VIEW_KEYS = ["standings", "fixtures", "stats", "history", "articles"] as const;
+// buildup식 데이터 탭 (축구 리그) — 순위·파워랭킹·일정·통계·역사·글
+const VIEW_KEYS = ["standings", "power", "fixtures", "stats", "history", "articles"] as const;
 type ViewKey = (typeof VIEW_KEYS)[number];
 const VIEW_LABEL: Record<ViewKey, string> = {
   standings: "순위",
+  power: "파워랭킹",
   fixtures: "일정",
   stats: "통계",
   history: "역사",
@@ -601,6 +603,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {isSoccer && view === "standings" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LeagueStandingsTable league={upper} />
+        </div>
+      )}
+      {isSoccer && view === "power" && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <LeaguePowerRanking league={upper} leagueName={info.name} />
         </div>
       )}
       {!isSoccer && view === "standings" && upper === "NHL" && (
