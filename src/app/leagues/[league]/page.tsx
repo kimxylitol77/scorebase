@@ -487,6 +487,10 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     LOL: ["standings", "fixtures", "history", "articles"],
     // NBA — 순위·일정은 시즌 데이터 정비(중복 팀) 전이라 제외. 역대 챔피언(history)+글(archive)만.
     NBA: ["history", "articles"],
+    // 야구 — 순위는 /standings/{league} 전용 페이지라 리그 탭에는 일정·역사·글.
+    KBO: ["fixtures", "history", "articles"],
+    MLB: ["fixtures", "history", "articles"],
+    NPB: ["fixtures", "history", "articles"],
   };
   const dataViews: ViewKey[] = isSoccer ? [...VIEW_KEYS] : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
   const hasDataTabs = dataViews.some((v) => v !== "articles");

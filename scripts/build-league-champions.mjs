@@ -1,12 +1,22 @@
 // 리그별 역대 우승팀을 위키데이터 SPARQL 로 수집 → data/league-champions.json
-// 실행: node scripts/build-league-champions.mjs [--dry]
+// 실행: node scripts/build-league-champions.mjs [--dry] [--only=KBO,MLB,NPB]
+//   --only : 지정한 리그만 재수집하고 나머지는 기존 json 유지(머지). 검증된 리그 재조회로 인한 노이즈 유입 방지.
 // 리그 Q번호 = 위키데이터 league 엔티티. 시즌(P3450 of league) → 우승팀(P1346).
+// ⚠️ NBA 는 별도 경로로 json 에만 존재(LEAGUE_WD 부재) → 머지 로직이 보존. 전체 재빌드 시 유실 주의.
 import { readFileSync, writeFileSync } from "node:fs";
 
 const DRY = process.argv.includes("--dry");
+const ONLY = (process.argv.find((a) => a.startsWith("--only=")) || "")
+  .split("=")[1]
+  ?.split(",")
+  .filter(Boolean);
 
 // 리그코드 → 위키데이터 Q번호 (association football league / WC 는 대회)
 const LEAGUE_WD = {
+  // 야구 (2026-07-07 검증 — 시즌 P3450→P1346=한국시리즈/월드시리즈/재팬시리즈 우승)
+  KBO: "Q625168", // KBO 리그 (위키 14시즌·부분, 최근 2021 KT 위즈)
+  MLB: "Q1163715", // 메이저리그 (119시즌·월드시리즈 챔피언 전량)
+  NPB: "Q1146127", // 일본프로야구 (49시즌·재팬시리즈 챔피언)
   WORLD_CUP: "Q19317",
   UCL: "Q18756", // UEFA 챔피언스리그 (시즌 P3450→우승 P1346 — 컵도 동일 구조 작동)
   UEL: "Q18760", // UEFA 유로파리그 (Q18762 아님 — 검증 필수)
@@ -78,8 +88,13 @@ function cleanKo(ko) {
     .trim() || ko;
 }
 
-const out = {};
+// 기존 json 을 베이스로 로드(머지) — LEAGUE_WD 에 없는 리그(NBA)·--only 미지정 리그 보존.
+let out = {};
+try {
+  out = JSON.parse(readFileSync("data/league-champions.json", "utf8"));
+} catch {}
 for (const [code, qid] of Object.entries(LEAGUE_WD)) {
+  if (ONLY && !ONLY.includes(code)) continue;
   try {
     const rows = await sparql(qid);
     const bySeason = new Map();
