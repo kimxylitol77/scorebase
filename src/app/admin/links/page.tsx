@@ -57,6 +57,43 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
+    title: "경쟁사 — 한국 · 직접",
+    emoji: "🥊",
+    links: [
+      { name: "빌드업 (Buildup)", url: "https://buildup-football.com", desc: "한국 최대 직접 경쟁 · 매치픽·선수비교·전술판·이적·커뮤니티", ext: true },
+      { name: "AiScore 한국어", url: "https://www.aiscore.com/ko", desc: "TheSports 동일 소스 · 2600+리그·앱 · 예측 비공개·기계번역", ext: true },
+      { name: "네이버 스포츠", url: "https://sports.naver.com", desc: "한국 최대 스포츠 포털 · 트래픽·검색 벤치마크", ext: true },
+    ],
+  },
+  {
+    title: "경쟁사 — 축구 글로벌",
+    emoji: "⚽",
+    links: [
+      { name: "Sofascore", url: "https://www.sofascore.com", desc: "라이브스코어·평점·momentum 사실상 표준", ext: true },
+      { name: "FotMob", url: "https://www.fotmob.com", desc: "축구 앱 · xG·매치센터", ext: true },
+      { name: "WhoScored", url: "https://www.whoscored.com", desc: "Opta 기반 평점·상세 통계", ext: true },
+      { name: "Forebet", url: "https://www.forebet.com", desc: "수학적 축구 예측 · 확률 공개", ext: true },
+      { name: "PredictZ", url: "https://www.predictz.com", desc: "무료 축구 예측·통계 벤치마크", ext: true },
+    ],
+  },
+  {
+    title: "경쟁사 — NBA · MLB · 야구 예측/데이터",
+    emoji: "🏀",
+    links: [
+      { name: "Dimers", url: "https://www.dimers.com", desc: "ML 모델 전경기 승률 · NBA/MLB/전종목 · in-game 예측", ext: true },
+      { name: "Rithmm", url: "https://www.rithmm.com", desc: "AI 픽 + 사용자 모델 빌더 · NBA·MLB prop", ext: true },
+      { name: "OddsTrader", url: "https://www.oddstrader.com", desc: "시뮬레이션 픽 · 별점 정확도 공개(5성 73%) — 우리 accuracy 벤치", ext: true },
+      { name: "Odds Shark computer picks", url: "https://www.oddsshark.com/nba/computer-picks", desc: "최근 100경기 기반 컴퓨터 픽", ext: true },
+      { name: "The Stat Wire", url: "https://thestatwire.com", desc: "AI 파워랭킹 ELO+선발투수 — 우리 Elo 접근과 유사", ext: true },
+      { name: "PropsBot.AI", url: "https://propsbot.ai", desc: "MLB prop AI · 검증 ROI 31.7% 투명성", ext: true },
+      { name: "Baseball Predict", url: "https://baseballpredict.com/en/", desc: "신경망 MLB 예측·스코어·통계", ext: true },
+      { name: "Covers (MLB picks)", url: "https://www.covers.com/picks/mlb", desc: "MLB 픽·대중 컨센서스 (consensus-pickster 소스)", ext: true },
+      { name: "FanGraphs", url: "https://www.fangraphs.com", desc: "MLB 세이버·프로젝션(ZiPS) 표준", ext: true },
+      { name: "Baseball Savant", url: "https://baseballsavant.mlb.com", desc: "Statcast 공식 · exit velo·xwOBA", ext: true },
+      { name: "Statiz", url: "https://statiz.sporki.com", desc: "KBO 세이버메트릭스 한국 표준", ext: true },
+    ],
+  },
+  {
     title: "운영 · admin",
     emoji: "🛠",
     links: [
