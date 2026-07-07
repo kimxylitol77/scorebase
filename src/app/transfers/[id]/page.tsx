@@ -23,6 +23,7 @@ import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
 import PlayerBioPanel from "./PlayerBioPanel";
 import PlayerTabs from "./PlayerTabs";
+import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
 import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
 
@@ -649,6 +650,14 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     );
   };
 
+  // 이 선수 관련 글 — STAR 리포트(slug=world-cup-star-{date}-{playerId} → -id 로 끝남)
+  const relatedArticles = await prisma.article.findMany({
+    where: { status: "PUBLISHED", slug: { startsWith: WC_STAR_SLUG_PREFIX, endsWith: `-${id}` } },
+    orderBy: { publishedAt: "desc" },
+    select: { slug: true, title: true, publishedAt: true },
+    take: 12,
+  });
+
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
@@ -853,6 +862,26 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
           },
         ]}
       />
+
+      {/* 이 선수 관련 글 — STAR 리포트 등 (선수 페이지 → 글 바로가기) */}
+      {relatedArticles.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">{name} 관련 글 ({relatedArticles.length})</h2>
+          <div className="overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10 divide-y divide-black/5 dark:divide-white/5">
+            {relatedArticles.map((a) => (
+              <Link
+                key={a.slug}
+                href={`/articles/${a.slug}`}
+                className="flex items-center gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+              >
+                <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">STAR</span>
+                <span className="truncate font-semibold min-w-0 flex-1">{a.title}</span>
+                <span className="ml-auto shrink-0 text-xs text-neutral-400 tabular-nums">{fmtDate(a.publishedAt ? Math.floor(a.publishedAt.getTime() / 1000) : undefined)}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <p className="text-[11px] text-neutral-500 leading-relaxed">
         ⓘ 시장가치·이적·현 시즌 성적 = 스코어베이스 데이터 · 국적·커리어·과거 시즌 = Wikipedia·Wikidata. 원화는 €1 = ₩{EUR_KRW.toLocaleString()} 기준 환산.
