@@ -238,6 +238,13 @@
     "group": "detail"
   },
   {
+    "route": "/k-league-cards",
+    "desc": "2026 K리그 공식 트레이딩 카드(파니니·세븐일레븐) 연계 SEO 랜딩.  카드 수집 검색 수요(\"K리그 카드\"·\"○○○ 카드\")를 잡아 각 선수의 실제 시즌 데이터 페이지(/transfers/{id})로  유입시키는 훅. 데이터는 player-season-stats.json(TheSports 시즌 스탯 백필) + TheSportsPlayer 한글명·사진.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/landing",
     "desc": "스코어베이스 브랜드 랜딩(소개) 페이지. 검색 노출용 키워드 풍부 가시 콘텐츠 + SEO.  스코어베이스.com 도메인 진입점. 키워드 우선순위 = 검색량 데이터 기반(라이브스코어·리그 순위 중심).",
     "inMenu": false,
