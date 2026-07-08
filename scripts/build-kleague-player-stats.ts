@@ -6,11 +6,17 @@
 //   실행: npx tsx --env-file=.env.local scripts/build-kleague-player-stats.ts
 import "../src/lib/env";
 import * as fs from "fs";
+import { PrismaClient } from "@prisma/client";
 import { fetchFootballSeasonPlayerStat } from "../src/lib/sports/thesports/football-collector";
 
-// league-id-mapping.json 의 tsSeasonId. 카드 대상은 K리그1(top). 필요 시 K_LEAGUE_2·J1_LEAGUE 추가.
+const prisma = new PrismaClient();
+
+// league-id-mapping.json 의 tsSeasonId.
+//   J1_LEAGUE 는 제외 — ts season player stat 이 405(매핑 시즌 stale, J1 은 그룹 순위라 af 위주 운영 →
+//   ts 현재 시즌 uuid 미유지). 필요 시 올바른 J1 ts season uuid 확보 후 추가.
 const LEAGUES: { code: string; seasonId: string; season: string }[] = [
   { code: "K_LEAGUE_1", seasonId: "jw2r09hl4xprz84", season: "2026" },
+  { code: "K_LEAGUE_2", seasonId: "l5ergpho0epr8k0", season: "2026" },
 ];
 
 // TheSports season player row → SeasonStat (data/player-season-stats.json 스키마).
@@ -46,14 +52,18 @@ async function main() {
   const stats: Record<string, any> = JSON.parse(fs.readFileSync("data/player-season-stats.json", "utf8"));
   const photos: Record<string, string> = JSON.parse(fs.readFileSync("data/player-photos.json", "utf8"));
 
-  let statAdded = 0, statUpdated = 0, photoAdded = 0;
+  let statAdded = 0, statUpdated = 0, photoAdded = 0, skipped = 0;
   for (const { code, seasonId, season } of LEAGUES) {
     const res: any = await fetchFootballSeasonPlayerStat(seasonId);
     const rows: any[] = res?.results ?? [];
-    console.log(`${code}: TheSports ${rows.length}명`);
+    // /transfers/{id} 페이지는 TheSportsPlayer(또는 PlayerMarketValue) 있어야 렌더 → 미존재 선수 스탯은 도달 불가라 skip.
+    const ids = rows.map((r) => r.player?.id).filter(Boolean);
+    const exist = new Set((await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true } })).map((p) => p.id));
+    console.log(`${code}: TheSports ${rows.length}명 (렌더가능 ${exist.size})`);
     for (const r of rows) {
       const pid = r.player?.id;
       if (!pid) continue;
+      if (!exist.has(pid)) { skipped++; continue; }
       if (stats[pid]) statUpdated++; else statAdded++;
       stats[pid] = toSeasonStat(code, season, r);
       const logo = r.player?.logo;
@@ -61,6 +71,7 @@ async function main() {
     }
   }
 
+  console.log(`미존재(skip) ${skipped}명`);
   fs.writeFileSync("data/player-season-stats.json", JSON.stringify(stats, null, 0));
   fs.writeFileSync("data/player-photos.json", JSON.stringify(photos, null, 0));
   console.log(`시즌스탯: 신규 ${statAdded} + 갱신 ${statUpdated} → 총 ${Object.keys(stats).length}`);
