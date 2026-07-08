@@ -159,6 +159,7 @@ export default async function BaseballHub() {
       top3: mlbTop3,
       links: [
         { label: "순위", href: "/standings/MLB" },
+        { label: "파워랭킹", href: "/leagues/MLB?view=power" },
         { label: "AI 예측", href: "/predictions/MLB" },
         { label: "글·분석", href: "/leagues/MLB" },
         { label: "역사", href: "/leagues/MLB?view=history" },
