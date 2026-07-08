@@ -12,6 +12,7 @@ import LeaguePowerRanking from "@/components/leagues/LeaguePowerRanking";
 import BaseballPowerRanking from "@/components/leagues/BaseballPowerRanking";
 import TeamPowerRanking from "@/components/leagues/TeamPowerRanking";
 import LeagueFixtures from "@/components/leagues/LeagueFixtures";
+import BasketballFixtures from "@/components/leagues/BasketballFixtures";
 import LeagueHistory from "@/components/leagues/LeagueHistory";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
 import LolStandings from "@/components/LolStandings";
@@ -36,6 +37,8 @@ const VALID_LEAGUES = [
   "WORLD_CUP",
   "NBA",
   "NBA_SL",
+  "KBL",
+  "WKBL",
   "NHL",
   "MLB",
   "KBO",
@@ -488,13 +491,17 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
     NHL: ["standings", "power", "fixtures", "history", "articles"],
     LOL: ["standings", "power", "fixtures", "history", "articles"],
-    // NBA — 순위·일정은 시즌 데이터 정비(중복 팀) 전이라 제외. 역대 챔피언(history)+글(archive)만.
-    NBA: ["history", "articles"],
+    // NBA — 일정 탭(이번 시즌 서머리그 + 지난 시즌 접기). 순위는 중복 팀 정비 전이라 아직 제외.
+    NBA: ["fixtures", "history", "articles"],
+    // KBL/WKBL — 순위(StandingsOnlyView 임베드) + 일정(이번/지난 시즌 접기).
+    KBL: ["standings", "fixtures", "articles"],
+    WKBL: ["standings", "fixtures", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
     KBO: ["power", "fixtures", "history", "articles"],
     MLB: ["power", "fixtures", "history", "articles"],
     NPB: ["power", "fixtures", "history", "articles"],
   };
+  const isBasketball = ["NBA", "KBL", "WKBL", "WNBA"].includes(upper);
   const dataViews: ViewKey[] = isSoccer ? [...VIEW_KEYS] : (NON_SOCCER_VIEWS[upper] ?? ["articles"]);
   const hasDataTabs = dataViews.some((v) => v !== "articles");
   const reqView = (sp.view ?? "").toLowerCase();
@@ -645,9 +652,18 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <LolStandings name={info.name} />
         </div>
       )}
+      {!isSoccer && view === "standings" && isBasketball && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <StandingsOnlyView league={upper} embedded />
+        </div>
+      )}
       {view === "fixtures" && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <LeagueFixtures league={upper} />
+          {isBasketball ? (
+            <BasketballFixtures league={upper} />
+          ) : (
+            <LeagueFixtures league={upper} />
+          )}
         </div>
       )}
       {isSoccer && view === "stats" && leaderboard && (
