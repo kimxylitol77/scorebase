@@ -39,7 +39,6 @@ export default async function LeagueFixtures({ league }: { league: string }) {
       select: sel,
     }),
   ]);
-  const matches = [...recent.reverse(), ...upcoming]; // 과거(오름차순) → 미래
   const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
 
   // 프리시즌 클럽 친선 — 이 리그 소속 팀이 뛰는 CLUB_FRIENDLY 매치(친선은 팀이 도메스틱 리그 행 유지 →
@@ -65,7 +64,16 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     }
   }
 
-  if (matches.length === 0 && friendlies.length === 0) {
+  // 다가오는 경기(이번 시즌 정규 일정 + 프리시즌 친선) = 메인, 가까운 순. 친선은 isFriendly 로 배지.
+  type Row = (typeof recent)[number] & { isFriendly: boolean };
+  const upcomingRows: Row[] = [
+    ...upcoming.map((m) => ({ ...m, isFriendly: false })),
+    ...friendlies.map((m) => ({ ...m, isFriendly: true })),
+  ].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  // 지난 경기 결과 = 기본 접힘(<details>), 최신순.
+  const pastRows: Row[] = recent.map((m) => ({ ...m, isFriendly: false }));
+
+  if (upcomingRows.length === 0 && pastRows.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center text-sm text-neutral-500">
         표시할 일정이 없습니다. 경기가 가까워지면 자동으로 채워집니다.
@@ -73,24 +81,22 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     );
   }
 
-  // 정규 일정 + 친선을 하나로 합쳐 날짜순 정렬 (친선은 isFriendly 로 구분·배지 표시).
-  type Row = (typeof matches)[number] & { isFriendly: boolean };
-  const merged: Row[] = [
-    ...matches.map((m) => ({ ...m, isFriendly: false })),
-    ...friendlies.map((m) => ({ ...m, isFriendly: true })),
-  ].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-
   // 날짜별 그룹 (KST)
-  const groups: { label: string; matches: Row[] }[] = [];
-  let curKey = "";
-  for (const m of merged) {
-    const { dateKey, label } = kstParts(m.startTime);
-    if (dateKey !== curKey) {
-      groups.push({ label, matches: [] });
-      curKey = dateKey;
+  const groupByDate = (rows: Row[]) => {
+    const g: { label: string; matches: Row[] }[] = [];
+    let cur = "";
+    for (const m of rows) {
+      const { dateKey, label } = kstParts(m.startTime);
+      if (dateKey !== cur) {
+        g.push({ label, matches: [] });
+        cur = dateKey;
+      }
+      g[g.length - 1].matches.push(m);
     }
-    groups[groups.length - 1].matches.push(m);
-  }
+    return g;
+  };
+  const upcomingGroups = groupByDate(upcomingRows);
+  const pastGroups = groupByDate(pastRows);
 
   // 공통 매치 행 렌더 — 정규 일정 + 친선 동일 렌더. 친선은 우측에 "친선" 배지, 링크는 CLUB_FRIENDLY.
   const renderRow = (m: Row) => {
@@ -139,17 +145,36 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     );
   };
 
+  const renderGroup = (g: { label: string; matches: Row[] }) => (
+    <div key={g.label}>
+      <h3 className="text-xs font-bold text-neutral-500 mb-1.5 px-1">{g.label}</h3>
+      <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        {g.matches.map((m) => renderRow(m))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-5">
-      {groups.map((g) => (
-        <div key={g.label}>
-          <h3 className="text-xs font-bold text-neutral-500 mb-1.5 px-1">{g.label}</h3>
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-            {g.matches.map((m) => renderRow(m))}
-          </div>
+      {upcomingGroups.length > 0 ? (
+        upcomingGroups.map(renderGroup)
+      ) : (
+        <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-6 text-center text-sm text-neutral-500">
+          다가오는 경기가 아직 없습니다. 일정이 확정되면 자동으로 채워집니다.
         </div>
-      ))}
-      <p className="text-[11px] text-neutral-400">한국시간 · 최근 결과 + 다음 일정{friendlies.length > 0 ? " · 프리시즌 클럽 친선 포함" : ""}</p>
+      )}
+
+      {/* 지난 시즌·최근 경기 결과 — 기본 접힘. 이번 시즌 일정을 위에 두고 과거는 접어 정리. */}
+      {pastGroups.length > 0 && (
+        <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
+          <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
+            <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
+            지난 경기 결과 <span className="font-normal text-neutral-400">({pastRows.length})</span>
+          </summary>
+          <div className="space-y-5 px-2 pb-3">{pastGroups.map(renderGroup)}</div>
+        </details>
+      )}
+      <p className="text-[11px] text-neutral-400">한국시간 · 다가오는 일정{friendlies.length > 0 ? " · 프리시즌 친선 포함" : ""}</p>
     </div>
   );
 }
