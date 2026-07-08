@@ -10,6 +10,7 @@ import {
   GitCompare,
   Target,
   ListOrdered,
+  IdCard,
   type LucideIcon,
 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -159,6 +160,7 @@ export default async function SoccerHub() {
         <FnChip href="/transfers" Icon={ArrowLeftRight} label="이적시장 · 몸값 랭킹" />
         <FnChip href="/compare" Icon={GitCompare} label="선수 비교" />
         <FnChip href="/predictions" Icon={Target} label="시즌 예측" />
+        <FnChip href="/k-league-cards" Icon={IdCard} label="K리그 카드 선수 데이터" />
       </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
