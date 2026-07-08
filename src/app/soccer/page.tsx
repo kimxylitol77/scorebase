@@ -30,6 +30,7 @@ const LEAGUES = [
   { code: "BUNDESLIGA", name: "분데스리가", sub: "독일" },
   { code: "SERIE_A", name: "세리에 A", sub: "이탈리아" },
   { code: "LIGUE_1", name: "리그 1", sub: "프랑스" },
+  { code: "K_LEAGUE_1", name: "K리그1", sub: "대한민국" },
 ];
 
 export default async function SoccerHub() {
@@ -69,7 +70,7 @@ export default async function SoccerHub() {
             </svg>
             축구
           </h1>
-          <span className="text-sm text-neutral-400">빅5 · UCL · 월드컵</span>
+          <span className="text-sm text-neutral-400">빅5 · K리그 · UCL · 월드컵</span>
         </div>
         <p className="text-sm text-neutral-500 break-keep">
           리그를 선택해 순위·일정·AI 예측을 확인하세요. 이적시장·선수 비교도 한 곳에서.
