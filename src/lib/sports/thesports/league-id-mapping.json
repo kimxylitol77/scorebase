@@ -1125,5 +1125,12 @@
     "tsEn": "Paraguayan Primera Division",
     "tsKo": "파라과이 프리메라",
     "tsSeasonId": "9dn1m1gh666moep"
+  },
+  {
+    "code": "CLUB_FRIENDLY",
+    "ourLabel": "클럽 친선",
+    "tsId": "gpxwrxlhgpryk0j",
+    "tsEn": "Club Friendlies",
+    "tsKo": "클럽 친선"
   }
 ]
