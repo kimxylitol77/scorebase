@@ -73,10 +73,17 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     );
   }
 
+  // 정규 일정 + 친선을 하나로 합쳐 날짜순 정렬 (친선은 isFriendly 로 구분·배지 표시).
+  type Row = (typeof matches)[number] & { isFriendly: boolean };
+  const merged: Row[] = [
+    ...matches.map((m) => ({ ...m, isFriendly: false })),
+    ...friendlies.map((m) => ({ ...m, isFriendly: true })),
+  ].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
   // 날짜별 그룹 (KST)
-  const groups: { label: string; matches: typeof matches }[] = [];
+  const groups: { label: string; matches: Row[] }[] = [];
   let curKey = "";
-  for (const m of matches) {
+  for (const m of merged) {
     const { dateKey, label } = kstParts(m.startTime);
     if (dateKey !== curKey) {
       groups.push({ label, matches: [] });
@@ -85,8 +92,9 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     groups[groups.length - 1].matches.push(m);
   }
 
-  // 공통 매치 행 렌더 — 정규 일정 + 친선 재사용. showDate=친선처럼 날짜가 흩어질 때 우측에 날짜 표기.
-  const renderRow = (m: (typeof matches)[number], linkLeague: string, showDate: boolean) => {
+  // 공통 매치 행 렌더 — 정규 일정 + 친선 동일 렌더. 친선은 우측에 "친선" 배지, 링크는 CLUB_FRIENDLY.
+  const renderRow = (m: Row) => {
+    const linkLeague = m.isFriendly ? "CLUB_FRIENDLY" : league;
     const h = toKoreanTeamName(m.homeTeam.name, league);
     const a = toKoreanTeamName(m.awayTeam.name, league);
     const hFlag = showFlag ? fifaFlag(m.homeTeam.name, h) : "";
@@ -96,8 +104,7 @@ export default async function LeagueFixtures({ league }: { league: string }) {
     const live = m.status === "LIVE";
     const done = m.status === "FINISHED";
     const center = live || done ? `${m.homeScore ?? 0} - ${m.awayScore ?? 0}` : "vs";
-    const kp = kstParts(m.startTime);
-    const right = live ? "🔴 LIVE" : done ? "종료" : showDate ? `${kp.label.replace(/\s*\(.*\)/, "")} ${kp.time}` : kp.time;
+    const right = live ? "🔴 LIVE" : done ? "종료" : kstParts(m.startTime).time;
     const inner = (
       <span className="flex items-center gap-2 text-sm px-3 py-2.5">
         <span className="flex-1 flex items-center justify-end gap-1.5 min-w-0 font-medium">
@@ -113,8 +120,13 @@ export default async function LeagueFixtures({ league }: { league: string }) {
           <TeamBadge logoUrl={aLogo} size={20} className="bg-white rounded-sm" />
           <span className="truncate">{a}</span>
         </span>
-        <span className={`ml-auto text-xs tabular-nums whitespace-nowrap shrink-0 ${live ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-neutral-400"}`}>
-          {right}
+        <span className="ml-auto flex items-center gap-1.5 shrink-0">
+          {m.isFriendly && (
+            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 ring-1 ring-amber-500/20 dark:text-amber-400">친선</span>
+          )}
+          <span className={`text-xs tabular-nums whitespace-nowrap ${live ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-neutral-400"}`}>
+            {right}
+          </span>
         </span>
       </span>
     );
@@ -133,22 +145,10 @@ export default async function LeagueFixtures({ league }: { league: string }) {
         <div key={g.label}>
           <h3 className="text-xs font-bold text-neutral-500 mb-1.5 px-1">{g.label}</h3>
           <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-            {g.matches.map((m) => renderRow(m, league, false))}
+            {g.matches.map((m) => renderRow(m))}
           </div>
         </div>
       ))}
-
-      {friendlies.length > 0 && (
-        <div>
-          <h3 className="text-xs font-bold text-neutral-500 mb-1.5 px-1 flex items-center gap-1.5">
-            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 ring-1 ring-amber-500/20 dark:text-amber-400">친선</span>
-            프리시즌 친선
-          </h3>
-          <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] divide-y divide-neutral-100 dark:divide-neutral-800/70 overflow-hidden dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
-            {friendlies.map((m) => renderRow(m, "CLUB_FRIENDLY", true))}
-          </div>
-        </div>
-      )}
       <p className="text-[11px] text-neutral-400">한국시간 · 최근 결과 + 다음 일정{friendlies.length > 0 ? " · 프리시즌 클럽 친선 포함" : ""}</p>
     </div>
   );
