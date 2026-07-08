@@ -85,8 +85,9 @@ export async function runWcStarReport(opts: RunOpts = {}) {
 
     const content = await generateWithMinLength(prompt, {
       system: SYSTEM_PROMPT,
-      maxTokens: 4096,
+      maxTokens: 7000,
       temperature: 0.6,
+      minLength: 2400,
       label: "wc-star",
     });
     if (!content) {

@@ -14,6 +14,31 @@ const euroM = (v: number) => {
   return m >= 10 ? `${Math.round(m)}` : m.toFixed(1);
 };
 
+/**
+ * 대회 누적 수치에서 파생한 효율 지표 — 전부 순수 산술(주입값의 나눗셈)이라 창작 아님.
+ * 분모 0 이거나 무의미한 항목은 생략. 서사는 이 계산값을 그대로 인용만 한다.
+ */
+function effMetrics(tq: StarReportData["tourney"]): string[] {
+  const m: string[] = [];
+  const per = (v: number) => (tq.games > 0 ? (v / tq.games).toFixed(1) : null);
+  if (tq.games > 0) {
+    m.push(`경기당 평점 ${tq.avgRating.toFixed(2)} · 경기당 ${Math.round(tq.minutes / tq.games)}분 출전`);
+    if (tq.goals > 0) m.push(`경기당 ${per(tq.goals)}골`);
+    if (tq.assists > 0) m.push(`경기당 ${per(tq.assists)}도움`);
+    if (tq.keyPasses > 0) m.push(`경기당 키패스 ${per(tq.keyPasses)}회`);
+    if (tq.shots > 0) m.push(`경기당 슛 ${per(tq.shots)}개`);
+  }
+  if (tq.shots > 0 && tq.goals > 0)
+    m.push(`슛 결정력 ${Math.round((tq.goals / tq.shots) * 100)}% (슛 ${tq.shots}개 중 ${tq.goals}골)`);
+  if (tq.minutes > 0 && tq.goals + tq.assists > 0)
+    m.push(`90분당 공격포인트 ${((tq.goals + tq.assists) / (tq.minutes / 90)).toFixed(2)} (골+도움 ${tq.goals + tq.assists})`);
+  if (tq.goals > 0)
+    m.push(`골 1개당 평균 출전시간 ${Math.round(tq.minutes / tq.goals)}분 (출전 시간 대비 득점 빈도 — 경기 내 득점 시점과는 무관)`);
+  if (tq.dribbleAtt > 0)
+    m.push(`드리블 성공률 ${Math.round((tq.dribbleSucc / tq.dribbleAtt) * 100)}% (${tq.dribbleSucc}/${tq.dribbleAtt})`);
+  return m;
+}
+
 export function buildStarReportPrompt(d: StarReportData): string {
   const L: string[] = [];
   const reasonKo =
@@ -66,6 +91,12 @@ export function buildStarReportPrompt(d: StarReportData): string {
     L.push("[대회 순위 — 이 수치만 인용, 임의 순위 창작 금지]");
     for (const r of ranks) L.push(` - ${r}`);
   }
+  const eff = effMetrics(tq);
+  if (eff.length > 0) {
+    L.push("");
+    L.push("[효율 지표 — 위 누적 수치에서 계산된 값. 그대로 인용, 재계산·변형 금지]");
+    for (const e of eff) L.push(` - ${e}`);
+  }
   L.push("");
 
   // --- 다음 경기 (있을 때만) — 모델 예측 %는 있을 때만 붙는다. ---
@@ -90,25 +121,25 @@ export function buildStarReportPrompt(d: StarReportData): string {
   L.push("");
   L.push(`# (제목: 선수명 + '${d.countryKo}' + 대회 맥락 + 숫자 기록을 결합. 예: "'${d.countryKo}의 심장' ${d.name}, 16강 평점 ${d.rating.toFixed(1)}로 토너먼트를 지배하다". 이모지 없이, 검색 친화적으로)`);
   L.push("");
-  L.push("> **한눈에 요약** — 이 경기 핵심 3줄 (활약 요약 / 대회 위치 / 다음 관전 포인트). 각 줄 한 문장.");
+  L.push("> **한눈에 요약** — 이 경기 핵심 4줄 (활약 요약 / 대회 위치 / 효율·기록의 의미 / 다음 관전 포인트). 각 줄 한 문장.");
   L.push("");
   L.push(`## ${d.name} 누구? — 프로필`);
-  L.push("국적·포지션·나이·시장가치를 자연스러운 markdown 표 또는 리스트로. 위 프로필 데이터만 사용.");
+  L.push("국적·포지션·나이·시장가치를 자연스러운 markdown 표로 정리하고, 표 아래에 이 선수가 이번 대회에서 맡은 역할을 한 단락으로 소개. 위 프로필 데이터만 사용.");
   L.push("");
   L.push(`## ${d.dateKo}, 무엇을 보여줬나`);
-  L.push("이번 경기 활약을 서사 중심 2~3단락으로. 평점과 상세 기록(위 '이번 경기' 데이터)을 근거로 팀 내 역할을 해석. 골/도움/키패스 등 실제 장면을 스탯으로 설명. 없는 장면·감독 발언·부상은 지어내지 말 것.");
+  L.push("이번 경기 활약을 서사 중심 3~4단락으로 깊이 있게. 평점과 상세 기록(위 '이번 경기' 데이터)을 근거로 팀 내 역할·경기 흐름 속 기여를 해석. 골/도움/키패스/슛/드리블 등 실제 스탯을 장면으로 풀어 설명하되, 위 데이터에 있는 수치만 사용. 이 섹션 안에 이번 경기 상세 기록을 담은 작은 markdown 표(지표 | 기록)를 하나 넣어라. 없는 장면·감독 발언·부상은 지어내지 말 것.");
   L.push("");
   L.push("## 숫자로 보는 " + d.name);
-  L.push("대회 누적 기록과 순위를 데이터 저널리즘 문체로. '대회 득점 N위', '평점 N위' 같이 위 순위 데이터를 그대로 인용. 순위가 주어지지 않은 지표는 순위를 지어내지 말고 수치만 서술. 강조 수치는 굵게.");
+  L.push("대회 누적 기록·순위·효율 지표를 데이터 저널리즘 문체로 3단락 이상. 먼저 누적 기록과 순위를 담은 markdown 표(지표 | 값 | 대회 순위)를 제시하고, 이어서 '효율 지표' 데이터(경기당·90분당·결정력 등)를 인용해 이 선수의 생산성이 무엇을 의미하는지 해석하는 단락을 붙여라. '대회 득점 N위', '평점 N위' 같이 위 순위 데이터를 그대로 인용. 순위가 주어지지 않은 지표는 순위를 지어내지 말고 수치만 서술. 강조 수치는 굵게.");
   L.push("");
   if (d.market) {
     L.push(`## ${d.name} 몸값·시장가치`);
-    L.push("시장가치(€)를 언급하고, 증감 데이터가 있으면 그 흐름을 한 단락으로. 증감 데이터가 없으면 현재 가치와 포지션 맥락만. 추측성 이적설은 금지.");
+    L.push("시장가치(€)를 언급하고 이 대회 활약이 몸값 관점에서 갖는 의미를 2단락으로. 증감 데이터가 있으면 그 흐름과 배경(대회 퍼포먼스와의 연결)을 서술하고, 나이·포지션 맥락에서 시장가치가 어느 위치인지 해석. 증감 데이터가 없으면 현재 가치와 포지션 맥락만. 추측성 이적설·구체적 이적 행선지는 금지.");
     L.push("");
   }
   if (hasPred) {
     L.push("## AI가 본 다음 경기 전망");
-    L.push(`위 '다음 경기' 모델 예측(승/무/패 %)을 인용해 ${d.countryKo}의 다음 경기와 이 선수의 관전 포인트를 한 단락. 예측은 Scorebase 데이터 모델 산출값임을 명시. 베팅·픽 추천 어조 금지.`);
+    L.push(`위 '다음 경기' 모델 예측(승/무/패 %)을 인용해 ${d.countryKo}의 다음 경기와 이 선수의 관전 포인트를 2단락으로. 첫 단락은 예측 수치와 대진, 둘째 단락은 이 선수가 다음 경기에서 어떤 역할을 이어갈지 이번 대회 누적·효율 데이터에 근거해 전망. 예측은 Scorebase 데이터 모델 산출값임을 명시. 베팅·픽 추천 어조 금지.`);
     L.push("");
   }
   L.push("## 더 보기");
@@ -122,9 +153,10 @@ export function buildStarReportPrompt(d: StarReportData): string {
   L.push("[규칙]");
   L.push("- 모든 평점·스탯·순위·몸값 수치는 위 데이터를 그대로 인용. 창작·반올림 변형·없는 기록 추가 절대 금지.");
   L.push("- 위 데이터에 없는 사실(부상·교체 이유·감독/선수 발언·이적설·과거 시즌 기록)은 만들어내지 말 것.");
+  L.push("- 효율 지표는 제시된 계산값의 의미만 서술. 경기 내 시점(초반·후반 득점 등)·시간에 따른 추세(점점 나아진다·상승세)·컨디션 변화는 경기별 데이터가 없으니 추론·단정 금지.");
   L.push("- 평점은 TheSports 종합 경기 평점임을 본문에서 한 번 명시.");
   L.push("- 베팅·도박·픽 추천 어조 금지. 데이터 저널리즘 톤.");
-  L.push("- 본문 1,500~2,500자 (표 포함). 표는 markdown 문법(`|`)으로만, ASCII art 금지.");
+  L.push("- 본문 3,000~4,500자 (표 포함). 분량은 같은 말 반복이 아니라 데이터 해석·맥락·서사의 깊이로 채울 것. 표는 markdown 문법(`|`)으로만, ASCII art 금지.");
   L.push("- 마지막 섹션은 '더 보기'. 별도 '결론' 헤딩 추가 금지.");
   L.push("- 한국어 문장은 마침표로 끝낼 것. 콜론(:)으로 문장을 끝내지 말 것.");
 
