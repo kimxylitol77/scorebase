@@ -1,4 +1,6 @@
 // 리그 순위표 (표만) — 리그 페이지 "순위" 탭 콘텐츠. StandingsOnlyView 의 표 부분을 탭용으로 분리.
+// 시즌 전환기(지난 시즌 종료 + 새 시즌 개막 전): 새 시즌 참가팀 표(0-0-0)를 메인으로, 지난 시즌
+// 최종 순위는 접기(<details>). 라이브 순위 파이프라인(getFullStandings)은 건드리지 않음.
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
@@ -35,43 +37,30 @@ const ZONE_LABEL: Record<ZoneType, string> = {
   releg: "강등",
 };
 
-export default async function LeagueStandingsTable({ league }: { league: string }) {
-  const standings = await getFullStandings(league);
-  const teamIds = [...new Set(standings.map((r) => r.teamId))];
-  const teams = teamIds.length
-    ? await prisma.team.findMany({
-        where: { id: { in: teamIds } },
-        select: { id: true, name: true, logoUrl: true },
-      })
-    : [];
-  const teamMap = new Map(teams.map((t) => [t.id, t]));
+type DisplayRow = {
+  teamId: number;
+  teamName: string;
+  logoUrl: string | null;
+  position: number;
+  won: number;
+  draw: number;
+  loss: number;
+  points: number;
+  goalDiff?: number | null;
+  goalsFor?: number | null;
+  goalsAgainst?: number | null;
+  group?: string | null;
+};
 
-  const rows = standings
-    .map((r) => {
-      const team = teamMap.get(r.teamId);
-      const en = team?.name ?? `Team #${r.teamId}`;
-      return { ...r, teamName: toKoreanTeamName(en, league), logoUrl: team?.logoUrl ?? null };
-    })
-    .sort((a, b) => (a.group ?? "").localeCompare(b.group ?? "") || a.position - b.position);
-
-  if (rows.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center text-sm text-neutral-500">
-        순위 데이터를 수집 중입니다. 잠시 후 다시 확인해주세요.
-      </div>
-    );
-  }
-
+// 순위표 렌더 — 그룹(J리그 East/West 등) 분리 + 진출권/강등 구역(showZones). 새 시즌 0-0-0 표는 zones off.
+function renderStandingsTable(rows: DisplayRow[], league: string, showZones: boolean) {
   const groupNames = [...new Set(rows.map((r) => r.group).filter(Boolean))] as string[];
   const isGrouped = groupNames.length >= 2;
   const sections = isGrouped
     ? groupNames.map((g) => ({ group: g, rows: rows.filter((r) => r.group === g) }))
     : [{ group: null as string | null, rows }];
-
-  // 진출권·강등 구역 (그룹 리그는 순위 의미가 달라 미적용)
-  const zones = isGrouped ? [] : ZONES[league] ?? [];
-  const zoneOf = (pos: number): ZoneType | null =>
-    zones.find((z) => pos >= z.from && pos <= z.to)?.type ?? null;
+  const zones = showZones && !isGrouped ? ZONES[league] ?? [] : [];
+  const zoneOf = (pos: number): ZoneType | null => zones.find((z) => pos >= z.from && pos <= z.to)?.type ?? null;
   const presentZones = [...new Set(zones.map((z) => z.type))];
 
   return (
@@ -140,6 +129,87 @@ export default async function LeagueStandingsTable({ league }: { league: string 
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+export default async function LeagueStandingsTable({ league }: { league: string }) {
+  const now = new Date();
+  const live = await getFullStandings(league);
+
+  // 시즌 전환 감지 — 지난 시즌 종료(40일+ 경과) + 새 시즌 예정 매치의 참가팀이 리그 규모면 프리시즌으로 판단.
+  const [lastFinished, upcoming] = await Promise.all([
+    prisma.match.findFirst({ where: { league, status: "FINISHED" }, orderBy: { startTime: "desc" }, select: { startTime: true } }),
+    prisma.match.findMany({ where: { league, status: "SCHEDULED" }, orderBy: { startTime: "asc" }, select: { homeTeamId: true, awayTeamId: true, startTime: true } }),
+  ]);
+  const nextTeamIds = [...new Set(upcoming.flatMap((m) => [m.homeTeamId, m.awayTeamId]))];
+  const daysSinceLast = lastFinished ? (now.getTime() - lastFinished.startTime.getTime()) / 86400_000 : 0;
+  const inTransition = nextTeamIds.length >= 16 && daysSinceLast >= 40 && live.length > 0;
+
+  // 새 시즌 프리시즌 표(0-0-0) — 예정 참가팀 알파벳(한글명)순.
+  let newRows: DisplayRow[] = [];
+  let labels: { neu: string; old: string } | null = null;
+  if (inTransition && upcoming.length) {
+    const nt = await prisma.team.findMany({ where: { id: { in: nextTeamIds } }, select: { id: true, name: true, logoUrl: true } });
+    newRows = nt
+      .map((t) => ({ teamId: t.id, teamName: toKoreanTeamName(t.name, league), logoUrl: t.logoUrl, position: 0, won: 0, draw: 0, loss: 0, points: 0, goalDiff: null, group: null }))
+      .sort((a, b) => a.teamName.localeCompare(b.teamName, "ko"))
+      .map((r, i) => ({ ...r, position: i + 1 }));
+    const ny = upcoming[0].startTime.getUTCFullYear();
+    labels = { neu: `${ny}-${String((ny + 1) % 100).padStart(2, "0")}`, old: `${ny - 1}-${String(ny % 100).padStart(2, "0")}` };
+  }
+
+  // 라이브(현재/지난 시즌) 표 rows.
+  const teamIds = [...new Set(live.map((r) => r.teamId))];
+  const teams = teamIds.length
+    ? await prisma.team.findMany({ where: { id: { in: teamIds } }, select: { id: true, name: true, logoUrl: true } })
+    : [];
+  const teamMap = new Map(teams.map((t) => [t.id, t]));
+  const liveRows: DisplayRow[] = live
+    .map((r) => {
+      const team = teamMap.get(r.teamId);
+      const en = team?.name ?? `Team #${r.teamId}`;
+      return { ...r, teamName: toKoreanTeamName(en, league), logoUrl: team?.logoUrl ?? null };
+    })
+    .sort((a, b) => (a.group ?? "").localeCompare(b.group ?? "") || a.position - b.position);
+
+  if (liveRows.length === 0 && newRows.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 p-8 text-center text-sm text-neutral-500">
+        순위 데이터를 수집 중입니다. 잠시 후 다시 확인해주세요.
+      </div>
+    );
+  }
+
+  // 전환기: 새 시즌 표(메인) + 지난 시즌 최종 순위(접기).
+  if (inTransition && newRows.length > 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 px-1">
+          <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-bold text-blue-600 ring-1 ring-blue-500/20 dark:text-blue-400">
+            {labels?.neu} 시즌
+          </span>
+          <span className="text-xs text-neutral-400">개막 대기 · 참가팀</span>
+        </div>
+        {renderStandingsTable(newRows, league, false)}
+        {liveRows.length > 0 && (
+          <details className="group rounded-2xl bg-white/60 ring-1 ring-black/5 dark:bg-white/[0.02] dark:ring-white/10">
+            <summary className="flex cursor-pointer list-none select-none items-center gap-1.5 px-4 py-3 text-xs font-bold text-neutral-500 transition hover:text-neutral-700 dark:hover:text-neutral-300">
+              <span className="text-[10px] transition group-open:rotate-90" aria-hidden>▶</span>
+              지난 시즌 최종 순위 <span className="font-normal text-neutral-400">({labels?.old})</span>
+            </summary>
+            <div className="px-2 pb-3 pt-1">{renderStandingsTable(liveRows, league, true)}</div>
+          </details>
+        )}
+        <p className="text-[11px] text-neutral-400">{labels?.neu} 시즌 개막 후 자동으로 실시간 순위로 전환됩니다.</p>
+      </div>
+    );
+  }
+
+  // 평시: 현재 시즌 순위.
+  return (
+    <div className="space-y-2">
+      {renderStandingsTable(liveRows, league, true)}
       <p className="text-[11px] text-neutral-400">현재 시즌 · 매일 자동 갱신</p>
     </div>
   );
