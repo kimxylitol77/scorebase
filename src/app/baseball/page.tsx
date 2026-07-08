@@ -146,6 +146,7 @@ export default async function BaseballHub() {
       top3: kboTop3,
       links: [
         { label: "순위", href: "/standings/KBO" },
+        { label: "파워랭킹", href: "/leagues/KBO?view=power" },
         { label: "AI 예측", href: "/predictions/KBO" },
         { label: "글·분석", href: "/leagues/KBO" },
         { label: "역사", href: "/leagues/KBO?view=history" },
@@ -174,6 +175,7 @@ export default async function BaseballHub() {
       top3: npbTop3,
       links: [
         { label: "순위", href: "/standings/NPB" },
+        { label: "파워랭킹", href: "/leagues/NPB?view=power" },
         { label: "AI 예측", href: "/predictions/NPB" },
         { label: "글·분석", href: "/leagues/NPB" },
         { label: "역사", href: "/leagues/NPB?view=history" },

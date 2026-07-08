@@ -1,6 +1,6 @@
-// MLB AI 파워랭킹 — 팀 Elo(전력) + 팀 투수력(ERA·WHIP) 결합 스냅샷.
-// Elo 로 줄세우고, MLB Stats API 팀 시즌 투수 스탯(ERA/WHIP)을 함께 보여준다. 매 경기 후 자동 갱신.
-// 참조: The Stat Wire 식 파워랭킹. 소스: 우리 Elo(경기 결과) + statsapi.mlb.com(무료 공식).
+// 야구 AI 파워랭킹 — 팀 Elo(전력) + 팀 투수력(ERA·WHIP). MLB·KBO·NPB 공용.
+// Elo 로 줄세우고 팀 시즌 ERA/WHIP 을 함께 노출. 매 경기 후 자동 갱신.
+// 소스: 우리 Elo(경기 결과) + BaseballTeamSeasonStats(era/whip — MLB statsapi·KBO/NPB 시즌스탯 잡).
 import Link from "next/link";
 import { TrendingUp, Info } from "lucide-react";
 import { prisma } from "@/lib/db";
@@ -22,7 +22,7 @@ interface Row {
   era: number | null; whip: number | null; form: FormChip[];
 }
 
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9가-힣]/g, "");
 
 function rankMap(elo: Map<number, number>): Map<number, number> {
   const sorted = [...elo.entries()].sort((a, b) => b[1] - a[1]);
@@ -31,29 +31,33 @@ function rankMap(elo: Map<number, number>): Map<number, number> {
   return m;
 }
 
-/** MLB Stats API 팀 시즌 투수 스탯 — 정규팀 ERA·WHIP. 실패 시 빈 맵(graceful). 1h 캐시. */
-async function fetchTeamPitching(): Promise<Map<string, { era: number; whip: number }>> {
-  const year = new Date().getUTCFullYear();
-  const out = new Map<string, { era: number; whip: number }>();
-  try {
-    const res = await fetch(
-      `https://statsapi.mlb.com/api/v1/teams/stats?stats=season&group=pitching&season=${year}&sportIds=1`,
-      { next: { revalidate: 3600 } },
-    );
-    if (!res.ok) return out;
-    const j = await res.json();
-    for (const sp of j?.stats?.[0]?.splits ?? []) {
-      const name = sp?.team?.name;
-      const era = Number(sp?.stat?.era);
-      const whip = Number(sp?.stat?.whip);
-      if (name && Number.isFinite(era)) out.set(norm(name), { era, whip: Number.isFinite(whip) ? whip : 0 });
-    }
-  } catch {}
-  return out;
+/** BaseballTeamSeasonStats(league) 의 era/whip 을 정규화 팀명 키로. 최신 시즌 우선. */
+async function fetchTeamEra(league: string): Promise<{ norm: string; era: number; whip: number | null }[]> {
+  const rows = await prisma.$queryRaw<{ teamName: string; era: number | null; whip: number | null }[]>`
+    SELECT "teamName", era, whip FROM "BaseballTeamSeasonStats"
+    WHERE league = ${league} AND season = (
+      SELECT MAX(season) FROM "BaseballTeamSeasonStats" WHERE league = ${league}
+    )`;
+  return rows
+    .filter((r) => r.era != null)
+    .map((r) => ({ norm: norm(r.teamName), era: Number(r.era), whip: r.whip != null ? Number(r.whip) : null }));
 }
 
-export default async function MlbPowerRanking({ leagueName }: { leagueName: string }) {
-  const upper = "MLB";
+/** 우리 팀명(영문+한글) ↔ 스탯 팀명(약칭) 매칭 — 정확/부분(약칭 포함). */
+function eraFor(
+  stats: { norm: string; era: number; whip: number | null }[],
+  cands: string[],
+): { era: number; whip: number | null } | null {
+  const cs = cands.filter(Boolean);
+  // 정확 일치 우선
+  for (const s of stats) if (cs.includes(s.norm)) return { era: s.era, whip: s.whip };
+  // 약칭 포함(예: 스탯 "nc" ⊂ 우리 "nc다이노스")
+  for (const s of stats) if (s.norm.length >= 2 && cs.some((c) => c.includes(s.norm) || s.norm.includes(c))) return { era: s.era, whip: s.whip };
+  return null;
+}
+
+export default async function BaseballPowerRanking({ league, leagueName }: { league: string; leagueName: string }) {
+  const upper = league.toUpperCase();
   const seasonStart = currentSeasonStart(upper);
   let dbMatches = await prisma.match.findMany({
     where: { league: upper, ...(seasonStart ? { startTime: { gte: seasonStart } } : {}) },
@@ -82,9 +86,9 @@ export default async function MlbPowerRanking({ leagueName }: { leagueName: stri
   const priorRank = rankMap(calcEloTable(matches.filter((m) => m.startTime <= cutoff)).ratings);
   const currRank = rankMap(elo.ratings);
 
-  const [teams, pitching] = await Promise.all([
+  const [teams, eraStats] = await Promise.all([
     prisma.team.findMany({ where: { id: { in: [...elo.ratings.keys()] } }, select: { id: true, name: true, logoUrl: true } }),
-    fetchTeamPitching(),
+    fetchTeamEra(upper),
   ]);
   const nameById = new Map(teams.map((t) => [t.id, t.name] as const));
   const logoById = new Map(teams.map((t) => [t.id, t.logoUrl ?? null] as const));
@@ -105,32 +109,26 @@ export default async function MlbPowerRanking({ leagueName }: { leagueName: stri
     const t = m.startTime.getTime();
     if (hs > as_) { h.w++; a.l++; h.form.push({ r: "W", t }); a.form.push({ r: "L", t }); }
     else if (hs < as_) { h.l++; a.w++; h.form.push({ r: "L", t }); a.form.push({ r: "W", t }); }
-    // 야구는 무승부 사실상 없음 — 동점(서스펜디드 등)은 폼에 미반영
   }
 
   const rows: Row[] = [...elo.ratings.entries()]
     .map(([teamId, rating]): Row => {
       const a = agg.get(teamId);
       const en = nameById.get(teamId) ?? String(teamId);
-      const p = pitching.get(norm(en));
+      const ko = toKoreanTeamName(en, upper) ?? en;
+      const p = eraFor(eraStats, [norm(en), norm(ko)]);
       const pr = priorRank.get(teamId);
       return {
-        teamId,
-        name: toKoreanTeamName(en, upper),
-        logoUrl: logoById.get(teamId) ?? null,
-        elo: Math.round(rating),
-        rank: currRank.get(teamId) ?? 0,
+        teamId, name: ko, logoUrl: logoById.get(teamId) ?? null,
+        elo: Math.round(rating), rank: currRank.get(teamId) ?? 0,
         move: pr != null ? pr - (currRank.get(teamId) ?? 0) : null,
-        played: (a?.w ?? 0) + (a?.l ?? 0),
-        w: a?.w ?? 0,
-        l: a?.l ?? 0,
+        played: (a?.w ?? 0) + (a?.l ?? 0), w: a?.w ?? 0, l: a?.l ?? 0,
         rd: (a?.rf ?? 0) - (a?.ra ?? 0),
-        era: p?.era ?? null,
-        whip: p?.whip ?? null,
+        era: p?.era ?? null, whip: p?.whip ?? null,
         form: (a?.form ?? []).slice(-5).map((f) => f.r),
       };
     })
-    // 정규 30팀만 — 올스타/친선(National/American All-Stars 등) 제외
+    // 정규팀만 — 올스타/친선 제외
     .filter((r) => r.played > 0 && !/all.?star|올스타/i.test(nameById.get(r.teamId) ?? ""))
     .sort((a, b) => b.elo - a.elo)
     .map((r, i) => ({ ...r, rank: i + 1 }));
@@ -157,7 +155,7 @@ export default async function MlbPowerRanking({ leagueName }: { leagueName: stri
           </div>
           <ul className="mt-2 space-y-1.5 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
             <li><strong className="text-neutral-900 dark:text-white">Elo</strong> — 현재 전력. 평균 {STARTING_ELO}, 강팀을 이기면 크게 오릅니다.</li>
-            <li><strong className="text-neutral-900 dark:text-white">ERA·WHIP</strong> — 팀 투수력(낮을수록 강함). MLB 공식 시즌 스탯.</li>
+            <li><strong className="text-neutral-900 dark:text-white">ERA·WHIP</strong> — 팀 투수력(낮을수록 강함). 팀 시즌 스탯.</li>
             <li><strong className="text-emerald-600 dark:text-emerald-400">▲</strong>/<strong className="text-rose-600 dark:text-rose-400">▼</strong> 최근 7일 순위 변동 · <strong>최근 5</strong> 마지막 5경기.</li>
           </ul>
         </div>
@@ -250,11 +248,11 @@ export default async function MlbPowerRanking({ leagueName }: { leagueName: stri
         <Link href={`/predictions/${upper}`} className="inline-flex items-center gap-1.5 font-semibold text-rose-600 dark:text-rose-400 hover:opacity-80 transition">
           더 깊게 — {leagueName} 시즌 시뮬레이션(우승·순위 확률) <span aria-hidden>→</span>
         </Link>
-        <Link href="/standings/MLB" className="inline-flex items-center gap-1.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
+        <Link href={`/standings/${upper}`} className="inline-flex items-center gap-1.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition">
           정규 순위표 <span aria-hidden>→</span>
         </Link>
       </div>
-      <p className="text-[11px] text-neutral-400">ERA·WHIP 출처: MLB 공식(statsapi.mlb.com) · Elo·전적: 스코어베이스.</p>
+      <p className="text-[11px] text-neutral-400">ERA·WHIP = 팀 시즌 투수 스탯 · Elo·전적 = 스코어베이스 (경기 결과 기반).</p>
     </div>
   );
 }
