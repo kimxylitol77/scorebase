@@ -178,6 +178,7 @@ export default async function BasketballHub() {
       top3: wnbaTop3,
       links: [
         { label: "순위", href: "/standings/WNBA" },
+        { label: "파워랭킹", href: "/leagues/WNBA?view=power" },
         { label: "AI 예측", href: "/predictions/WNBA" },
       ],
     },

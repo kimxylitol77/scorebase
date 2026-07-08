@@ -10,6 +10,7 @@ import StandingsOnlyView from "@/components/StandingsOnlyView";
 import LeagueStandingsTable from "@/components/leagues/LeagueStandingsTable";
 import LeaguePowerRanking from "@/components/leagues/LeaguePowerRanking";
 import BaseballPowerRanking from "@/components/leagues/BaseballPowerRanking";
+import TeamPowerRanking from "@/components/leagues/TeamPowerRanking";
 import LeagueFixtures from "@/components/leagues/LeagueFixtures";
 import LeagueHistory from "@/components/leagues/LeagueHistory";
 import NhlStandingsTable from "@/components/NhlStandingsTable";
@@ -485,8 +486,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
-    NHL: ["standings", "fixtures", "history", "articles"],
-    LOL: ["standings", "fixtures", "history", "articles"],
+    NHL: ["standings", "power", "fixtures", "history", "articles"],
+    LOL: ["standings", "power", "fixtures", "history", "articles"],
+    WNBA: ["power", "articles"],
     // NBA — 순위·일정은 시즌 데이터 정비(중복 팀) 전이라 제외. 역대 챔피언(history)+글(archive)만.
     NBA: ["history", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
@@ -627,6 +629,11 @@ export default async function LeaguePage({ params, searchParams }: Props) {
       {!isSoccer && view === "power" && ["MLB", "KBO", "NPB"].includes(upper) && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <BaseballPowerRanking league={upper} leagueName={info.name} />
+        </div>
+      )}
+      {!isSoccer && view === "power" && ["NHL", "LOL", "WNBA"].includes(upper) && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <TeamPowerRanking league={upper} leagueName={info.name} />
         </div>
       )}
       {!isSoccer && view === "standings" && upper === "NHL" && (
