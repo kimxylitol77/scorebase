@@ -21,6 +21,13 @@ const normEn = (s: string) => {
 };
 const normKo = (s: string) => s.replace(/[a-zA-Z0-9.()]+/g, " ").replace(/\s+/g, "").trim(); // 한글만(위키데이터 ko 의 라틴 접두 "FC·SSC" strip)
 
+// 최신 시즌 챔피언 옆에 예측·순위 바로가기를 노출할 리그 — 실제 /predictions·/standings 페이지가 있는 주요 리그.
+const CHAMPION_QUICKLINK_LEAGUES = new Set([
+  "NBA", "NHL",
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "UEL",
+  "K_LEAGUE_1", "J1_LEAGUE",
+]);
+
 export default async function LeagueHistory({ league, leagueName }: { league: string; leagueName: string }) {
   const champions = DATA[league]?.champions ?? [];
   const showFlag = isNationalTeamLeague(league); // 국가대항(월드컵 등)만 국기 표시
@@ -133,8 +140,8 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
                     우승 기록
                   </Link>
                 )}
-                {/* 최신 시즌 챔피언 옆에만 리그 예측·순위 바로가기 (현재 시즌 페이지). NBA 한정. */}
-                {i === 0 && league === "NBA" && (
+                {/* 최신 시즌 챔피언 옆에만 리그 예측·순위 바로가기 (현재 시즌 페이지). 예측·순위 페이지가 있는 리그 한정. */}
+                {i === 0 && CHAMPION_QUICKLINK_LEAGUES.has(league) && (
                   <>
                     <Link href={`/predictions/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">예측</Link>
                     <Link href={`/standings/${league}`} className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-neutral-600 ring-1 ring-black/10 transition hover:-translate-y-0.5 dark:text-neutral-300 dark:ring-white/15">순위</Link>
