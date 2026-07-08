@@ -488,7 +488,6 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
     NHL: ["standings", "power", "fixtures", "history", "articles"],
     LOL: ["standings", "power", "fixtures", "history", "articles"],
-    WNBA: ["power", "articles"],
     // NBA — 순위·일정은 시즌 데이터 정비(중복 팀) 전이라 제외. 역대 챔피언(history)+글(archive)만.
     NBA: ["history", "articles"],
     // 야구 — 순위는 /standings/{league} 전용 페이지. 리그 탭엔 AI 파워랭킹(Elo+ERA)·일정·역사·글.
@@ -631,7 +630,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <BaseballPowerRanking league={upper} leagueName={info.name} />
         </div>
       )}
-      {!isSoccer && view === "power" && ["NHL", "LOL", "WNBA"].includes(upper) && (
+      {!isSoccer && view === "power" && ["NHL", "LOL"].includes(upper) && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <TeamPowerRanking league={upper} leagueName={info.name} />
         </div>
