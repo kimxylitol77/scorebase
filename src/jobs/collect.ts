@@ -122,7 +122,8 @@ const ALL_LEAGUES: League[] = [
   "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
   "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD", "CSL", "A_LEAGUE",
   "CLUB_WORLD_CUP",
-  "CLUB_FRIENDLY", // 프리시즌 국제 클럽 친선 (af 667) — 스코어 피드 전용 (글/예측 없음)
+  // CLUB_FRIENDLY 는 Vercel af(667) 에서 제외 — TheSports 가 빅클럽 프리시즌 커버가 넓어
+  //   워커(collect-friendlies, TheSports)로 이관. af 는 ts 팀 id 와 충돌(별도 행 양산)하기도 함.
   "LOL", "LCK_CL", "LPL", "LEC", "LCS", // NHL/NBA/WNBA 제거 — TheSports ice_hockey/basketball worker 가 매치 소스 (2026-05-28 마이그레이션)
   // stale-cleanup 알림 발견 12개 리그 추가 (2026-05-23) — cron 미호출로 SCHEDULED 자동 POSTPONED 발생
   "URVALSDEILD", "IRELAND_PD", "ICELAND_1L", "SLOVENIA_SNL",

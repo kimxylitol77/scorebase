@@ -75,6 +75,8 @@ export const TS_FOOTBALL_COMPETITION_ID: Partial<Record<League, string>> = {
   PRIMEIRA_LIGA_2: "gx7lm7phpnm2wdk",
   TURKEY_2: "9k82rekhgorepzj",
   BELGIUM_2: "gx7lm7ph5nm2wdk",
+  // 클럽 친선 (프리시즌 등) — 전 세계 클럽 친선이 이 한 comp 에 모임. 워커(collect-friendlies)에서 TheSports 수집.
+  CLUB_FRIENDLY: "gpxwrxlhgpryk0j",
 };
 
 /**

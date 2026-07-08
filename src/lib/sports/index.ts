@@ -265,6 +265,9 @@ export function getPrimarySource(league: League): string {
   if (league === "EPL") {
     return process.env.FOOTBALL_DATA_KEY ? "football-data" : "api-football";
   }
+  // 클럽 친선은 워커(collect-friendlies)에서 TheSports 로 수집 — 팀은 thesports source 로 해석해야
+  // cross-league lookup 이 도메스틱 리그 행(EPL 맨유 등)을 재사용한다(별도 친선 행 양산 방지).
+  if (league === "CLUB_FRIENDLY") return "thesports";
   if (league === "NBA") return "thesports";
   if (league === "NHL") return "thesports";
   if (league === "MLB") return "espn";
