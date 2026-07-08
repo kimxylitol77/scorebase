@@ -14149,5 +14149,25 @@
     "tsId": "6ypq3nhw4d5md7o",
     "tsName": "Harju JK Laagri",
     "matchType": "stat-bridge"
+  },
+  {
+    "ourId": 116429,
+    "ourName": "Ulsan Hyundai FC",
+    "ourLeague": "K_LEAGUE_1",
+    "ourExternalId": "2767",
+    "tsId": "9k82rekh49zrepz",
+    "tsName": "Ulsan Hyundai FC",
+    "tsKo": "울산",
+    "matchType": "manual"
+  },
+  {
+    "ourId": 116422,
+    "ourName": "Jeju United FC",
+    "ourLeague": "K_LEAGUE_1",
+    "ourExternalId": "2761",
+    "tsId": "8y39mp1hn57mojx",
+    "tsName": "Jeju SK FC",
+    "tsKo": "제주",
+    "matchType": "manual"
   }
 ]
