@@ -162,7 +162,8 @@ export default async function BasketballHub() {
       name: "NBA",
       top3: nbaTop3,
       links: [
-        { label: "순위", href: "/standings/NBA" },
+        // 순위 링크 제거 — /standings/NBA 는 Team 중복(ESPN↔TheSports id 충돌)으로 순위표를 막아둔 빈 페이지.
+        // Top3 미리보기는 위 카드에 이미 노출. 재수집 후 순위표 복구되면 링크 부활.
         { label: "AI 예측", href: "/predictions/NBA" },
         { label: "글·분석", href: "/leagues/NBA" },
         { label: "역사", href: "/leagues/NBA?view=history" },
