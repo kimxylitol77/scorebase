@@ -886,8 +886,11 @@ const RAW: Record<string, string> = {
   "Bragantino": "브라간치누",
   "RB Bragantino": "브라간치누",
   "Red Bull Bragantino": "브라간치누",
-  "Athletico-PR": "아틀레치쿠 파라넨세",
-  "Athletico Paranaense": "아틀레치쿠 파라넨세",
+  // 표기 통일: af="Atletico Paranaense"·ts="Athletico Paranaense - PR" 가 같은 팀 —
+  // 한글이 갈리면 /scores orphan dedup(normalizeName 키)이 어긋나 중복 카드 발생 (2026-07-09 보카전).
+  "Athletico-PR": "아틀레치쿠 파라나엔시",
+  "Athletico Paranaense": "아틀레치쿠 파라나엔시",
+  "Athletico Paranaense - PR": "아틀레치쿠 파라나엔시",
   "Juventude": "주벤투지",
   "Mirassol": "미라솔",
 
