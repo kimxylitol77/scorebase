@@ -104,7 +104,7 @@ const RAW: Record<string, string> = {
   "André Onana": "앙드레 오나나",
   "Andre Onana": "앙드레 오나나",
   "Matheus Cunha": "마테우스 쿠냐",
-  "Bryan Mbeumo": "브라이언 음베우모",
+  "Bryan Mbeumo": "브라이언 음베모",
   "Benjamin Šeško": "벤야민 셰슈코",
   "Benjamin Sesko": "벤야민 셰슈코",
   "Patrick Dorgu": "패트릭 도르구",
