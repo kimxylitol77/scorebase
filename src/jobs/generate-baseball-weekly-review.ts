@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { generateWithMinLength } from "@/lib/ai/generate-with-min-length";
 import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildBaseballWeeklyReview } from "@/lib/sports/baseball/weekly-review";
+import { insertStandingsCards } from "@/lib/sports/baseball/weekly-review-cards";
 import { buildBaseballWeeklyReviewPrompt } from "@/prompts/baseball-weekly-review";
 
 const DEFAULT_LEAGUES = ["KBO", "NPB", "MLB"] as const;
@@ -73,13 +74,14 @@ export async function runBaseballWeeklyReview(opts: RunOpts = {}) {
       }
 
       const title = extractTitle(content);
+      const withCards = insertStandingsCards(content, data); // 순위 카드 이미지 삽입(롱테일 alt)
       const article = await prisma.article.create({
         data: {
           type: "ANALYSIS",
           league,
           title,
           slug,
-          content,
+          content: withCards,
           status: "PUBLISHED",
           publishedAt: new Date(),
         },
