@@ -6,6 +6,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 const ALLOWED_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
@@ -199,14 +200,14 @@ async function getTodayMatches(leagueRaw?: string): Promise<string> {
   }
   const lines = matches.map((m) => {
     const winner =
-      m.predWinner === "HOME" ? m.homeTeam.name
-      : m.predWinner === "AWAY" ? m.awayTeam.name
+      m.predWinner === "HOME" ? toKoreanTeamName(m.homeTeam.name, m.league)
+      : m.predWinner === "AWAY" ? toKoreanTeamName(m.awayTeam.name, m.league)
       : m.predWinner === "DRAW" ? "무승부" : "-";
     const score =
       m.homeScore != null && m.awayScore != null
         ? ` ${m.homeScore}:${m.awayScore}`
         : "";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${m.homeTeam.name} vs ${m.awayTeam.name}${score} (${m.status}) · 모델픽: ${winner} (H ${pct(m.predHome)} / D ${pct(m.predDraw)} / A ${pct(m.predAway)})`;
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)}${score} (${m.status}) · 모델픽: ${winner} (H ${pct(m.predHome)} / D ${pct(m.predDraw)} / A ${pct(m.predAway)})`;
   });
   return lines.join("\n");
 }
@@ -228,10 +229,10 @@ async function getUpcomingMatches(leagueRaw?: string, days = 3): Promise<string>
   if (matches.length === 0) return `향후 ${days}일 예정 경기 없음.`;
   const lines = matches.map((m) => {
     const winner =
-      m.predWinner === "HOME" ? m.homeTeam.name
-      : m.predWinner === "AWAY" ? m.awayTeam.name
+      m.predWinner === "HOME" ? toKoreanTeamName(m.homeTeam.name, m.league)
+      : m.predWinner === "AWAY" ? toKoreanTeamName(m.awayTeam.name, m.league)
       : m.predWinner === "DRAW" ? "무승부" : "-";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${m.homeTeam.name} vs ${m.awayTeam.name} · 픽: ${winner}`;
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)} · 픽: ${winner}`;
   });
   return lines.join("\n");
 }
@@ -257,7 +258,7 @@ async function getRecentResults(leagueRaw?: string, days = 3): Promise<string> {
       m.predCorrect === true ? "✓적중"
       : m.predCorrect === false ? "✗오답"
       : "-";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${m.homeTeam.name} ${score} ${m.awayTeam.name} · 모델 1X2: ${correct}`;
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} ${score} ${toKoreanTeamName(m.awayTeam.name, m.league)} · 모델 1X2: ${correct}`;
   });
   return lines.join("\n");
 }
@@ -272,7 +273,7 @@ async function getMatchPrediction(matchId: number): Promise<string> {
 
   const isSoccer = SOCCER_LEAGUES.has(m.league);
   const out: string[] = [];
-  out.push(`경기: ${m.homeTeam.name} vs ${m.awayTeam.name}`);
+  out.push(`경기: ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)}`);
   out.push(`리그/시간: ${m.league} · ${fmtKstDateTime(m.startTime)}`);
   out.push(`상태: ${m.status}${m.homeScore != null ? ` (${m.homeScore}:${m.awayScore})` : ""}`);
 
