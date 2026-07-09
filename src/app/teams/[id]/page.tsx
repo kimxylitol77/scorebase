@@ -11,9 +11,6 @@ import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
 import { NATIONAL_TEAM_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
-import { Prisma } from "@prisma/client";
-import GoalHeatmap from "@/components/charts/GoalHeatmap";
-import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
 import TeamFollowButton from "@/components/teams/TeamFollowButton";
 import TeamAbout from "@/components/teams/TeamAbout";
 import TransfersSection from "@/components/teams/TransfersSection";
@@ -323,32 +320,6 @@ export default async function TeamPage({ params }: Props) {
       .sort((a, b) => b.value - a.value || (a.number ?? 99) - (b.number ?? 99));
   }
 
-  // 골 위치 히트맵 — 시즌 득점 슈터 좌표 누적 (축구만, away 골은 공격 방향 오른쪽으로 정규화)
-  const goalSpots: { x: number; y: number }[] = [];
-  if (SOCCER_LEAGUES.has(team.league)) {
-    const goalMatches = await prisma.match.findMany({
-      where: {
-        league: team.league,
-        status: "FINISHED",
-        OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
-        theSportsCache: { goalLine: { not: Prisma.JsonNull } },
-      },
-      select: { homeTeamId: true, theSportsCache: { select: { goalLine: true } } },
-    });
-    for (const m of goalMatches) {
-      const belong = m.homeTeamId === teamId ? 1 : 2;
-      const goals = (m.theSportsCache?.goalLine as GoalLineGoal[] | null) ?? [];
-      for (const g of goals) {
-        const shooter = g.pass?.find((p) => p.shooter === 1);
-        if (!shooter || shooter.belong !== belong) continue;
-        let x = parseFloat(shooter.x);
-        const y = parseFloat(shooter.y);
-        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-        if (belong === 2) x = 100 - x;
-        goalSpots.push({ x, y });
-      }
-    }
-  }
 
   // NHL 로스터 (NHL 공식 API, id=nhlId) — 팀 페이지 선수 명단 → 선수 상세(/players/{id}?league=NHL) 연결.
   //  shortName=팀 약어(FLA 등). roster/current 는 여름 빈 응답이라 fetchNhlRoster 가 시즌 명시+직전 fallback.
@@ -567,14 +538,6 @@ export default async function TeamPage({ params }: Props) {
             </div>
           </Card>
         </section>
-
-        {/* 골 위치 히트맵 (축구, goal/line 누적) */}
-        {goalSpots.length >= 3 && (
-          <section>
-            <SectionH title="골 위치 히트맵" subtitle={`시즌 ${goalSpots.length}골의 슈팅 지점`} icon={<Goal className="h-5 w-5" aria-hidden />} />
-            <GoalHeatmap spots={goalSpots} teamName={toKoreanTeamName(team.name, team.league)} />
-          </section>
-        )}
 
         {/* 팀 시즌 통계 (TheSports season/recent/team/stat) */}
         {teamStat && (
