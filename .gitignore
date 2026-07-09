@@ -50,10 +50,9 @@ prisma/migrations/
 # logs
 *.log
 
-# 사용자 작업 중 (chatbot) - 통째로 ready 될 때만 staging
-src/app/api/chat/
-src/components/Chatbot.tsx
-src/lib/chatbot/
+# chatbot 로컬 전용 파일만 배포 제외 (챗봇 본체는 2026-07-09 배포, AI 는 CHATBOT_AI_ENABLED 로 게이트)
+src/lib/chatbot/match-brief.ts
+src/lib/chatbot/run-brief.ts
 
 # 로컬 dev 도구 (preview 등)
 .claude/

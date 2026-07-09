@@ -10,7 +10,7 @@ import SiteChromeFooter from "@/components/SiteChromeFooter";
 import PageViewTracker from "@/components/PageViewTracker";
 import { Analytics } from "@vercel/analytics/next";
 import { SITE_URL } from "@/lib/site-url";
-// import Chatbot from "@/components/Chatbot"; // 결제(크레딧) 이슈 해결 시까지 비활성
+import Chatbot from "@/components/Chatbot";
 
 // 한글 콘텐츠가 메인이므로 본문 sans 는 Pretendard 를 우선.
 // 영문 코드/숫자는 Geist Mono 를 보조 폰트로.
@@ -181,7 +181,7 @@ export default async function RootLayout({
             </footer>
           }
         />
-        {/* <Chatbot />  결제(크레딧) 이슈 해결 시까지 비활성 */}
+        <Chatbot />
         <Analytics />
       </body>
     </html>
