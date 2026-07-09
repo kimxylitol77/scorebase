@@ -20,9 +20,9 @@ interface Props {
   search: string;
   mode: string; // 최신 이적: "" = 주요(기본) | "all" = 전체 이력
   ttype: string; // 최신 이적 유형 필터: "" | "fee" | "loan"
-  leagues: { code: string; label: string }[];
+  leagues: { code: string; label: string; logo?: string | null }[];
   // 시장가치 기반 뷰(팀 가치) 리그 범위 — PMV 커버리지 얇은 확장 리그 제외(빅5)
-  valueLeagues: { code: string; label: string }[];
+  valueLeagues: { code: string; label: string; logo?: string | null }[];
   teams: TeamOpt[];
   countries: CountryOpt[];
 }
@@ -144,6 +144,18 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
         ? "bg-cyan-600 text-white border-cyan-600"
         : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
     }`;
+
+  // 리그 칩 내용 — 리그 마크(로고) + 라벨. 로고 없으면 라벨만.
+  const leagueChip = (l: { label: string; logo?: string | null }) =>
+    l.logo ? (
+      <span className="inline-flex items-center gap-1.5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={l.logo} alt="" className="w-4 h-4 object-contain shrink-0" />
+        {l.label}
+      </span>
+    ) : (
+      l.label
+    );
 
   const teamName = team ? teams.find((t) => String(t.id) === team)?.name : null;
   const countryName = country || null;
@@ -317,7 +329,7 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
                 onClick={() => go({ view: "latest", mode: mode || undefined, t: ttype || undefined, league: l.code })}
                 className={chip(league === l.code)}
               >
-                {l.label}
+                {leagueChip(l)}
               </button>
             ))}
           </div>
@@ -332,7 +344,7 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
           </button>
           {valueLeagues.map((l) => (
             <button key={l.code} onClick={() => go({ view: "squads", league: l.code })} className={chip(league === l.code)}>
-              {l.label}
+              {leagueChip(l)}
             </button>
           ))}
         </div>
@@ -343,7 +355,7 @@ export default function TransfersFilterBar({ view, league, team, pos, country, s
         <div className="flex flex-wrap gap-1.5">
           {leagues.map((l) => (
             <button key={l.code} onClick={() => go({ view: "league", league: l.code })} className={chip(league === l.code)}>
-              {l.label}
+              {leagueChip(l)}
             </button>
           ))}
         </div>

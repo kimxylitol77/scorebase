@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import { ogPageImage } from "@/lib/seo/og";
 import rawDetailPos from "../../../data/player-positions.json";
 import rawOverrides from "../../../data/player-overrides.json";
@@ -95,7 +96,7 @@ const LEAGUES: Record<string, string> = {
   SAUDI_PL: "사우디 프로리그",
   MLS: "MLS",
 };
-const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, label }));
+const LEAGUE_LIST = Object.entries(LEAGUES).map(([code, label]) => ({ code, label, logo: leagueLogoUrl(code) }));
 // 임박·루머 단계 배지 — TransferRumor.stage (news-briefing 통합 러닝이 채움)
 const RUMOR_STAGES: Record<string, { label: string; cls: string }> = {
   OFFICIAL: { label: "공식 발표", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20" },
@@ -305,6 +306,23 @@ function PulseRow({ href, photo, name, right }: { href: string; photo: string | 
       <span className="flex-1 truncate font-semibold">{name}</span>
       {right}
     </Link>
+  );
+}
+
+// 리그 코드 → 리그 로고 + 한글명 인라인 태그. 로고 없으면 이름만(폴백).
+// 리스트(테이블 리그 컬럼·팀 부제)에서 텍스트만 있던 리그 표기에 마크를 붙인다.
+function LeagueTag({ code, imgClass = "w-4 h-4" }: { code: string | null; imgClass?: string }) {
+  if (!code) return <>—</>;
+  const label = LEAGUES[code] || code;
+  const logo = leagueLogoUrl(code);
+  return (
+    <span className="inline-flex items-center gap-1 min-w-0 align-middle">
+      {logo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt="" className={`${imgClass} object-contain shrink-0`} />
+      )}
+      <span className="truncate">{label}</span>
+    </span>
   );
 }
 
@@ -1089,7 +1107,7 @@ export default async function TransfersPage({
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ring-1 shrink-0 ${st.cls}`}>{st.label}</span>
                         <span className="font-bold">{r.playerKo}</span>
                         {r.fee && <span className="text-xs font-bold tabular-nums text-rose-600 dark:text-rose-400">{r.fee}</span>}
-                        {r.league && LEAGUES[r.league] && <span className="text-[11px] text-neutral-400">{LEAGUES[r.league]}</span>}
+                        {r.league && LEAGUES[r.league] && <span className="text-[11px] text-neutral-400"><LeagueTag code={r.league} imgClass="w-3.5 h-3.5" /></span>}
                         <span className="ml-auto text-[11px] text-neutral-400 shrink-0">{r.sourceName} ↗</span>
                       </div>
                       {(from || to) && (
@@ -1270,7 +1288,7 @@ export default async function TransfersPage({
                       </span>
                     </div>
                     {/* 리그 */}
-                    <div className="w-20 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 truncate">{t.league ? (LEAGUES[t.league] || t.league) : "—"}</div>
+                    <div className="w-20 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 min-w-0"><LeagueTag code={t.league} /></div>
                     {/* 국가 */}
                     <div className="w-28 shrink-0 flex items-center gap-2 min-w-0">
                       {t.flag && (
@@ -1326,7 +1344,7 @@ export default async function TransfersPage({
                     )}
                     <div className="min-w-0">
                       <div className="font-bold truncate">{t.name}</div>
-                      <div className="text-[11px] text-neutral-500">{LEAGUES[t.league] || t.league}</div>
+                      <div className="text-[11px] text-neutral-500"><LeagueTag code={t.league} imgClass="w-3.5 h-3.5" /></div>
                     </div>
                   </div>
                   <div className="w-[80px] sm:w-[104px] text-right leading-tight shrink-0">
@@ -1371,9 +1389,9 @@ export default async function TransfersPage({
                   )}
                   <div className="min-w-0">
                     <div className="font-bold truncate">{t.name}</div>
-                    <div className="text-[11px] text-neutral-500">
-                      {LEAGUES[t.league] || t.league}
-                      {t.avgAge ? ` · 평균 ${t.avgAge}세` : ""}
+                    <div className="text-[11px] text-neutral-500 flex items-center gap-1 min-w-0">
+                      <LeagueTag code={t.league} imgClass="w-3.5 h-3.5" />
+                      {t.avgAge ? <span className="shrink-0">· 평균 {t.avgAge}세</span> : null}
                     </div>
                   </div>
                 </div>
@@ -1439,7 +1457,11 @@ export default async function TransfersPage({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={p.teamLogo} alt="" className="w-3.5 h-3.5 object-contain inline-block" />
                       )}
-                      {p.teamName}{p.league && view !== "league" ? ` · ${LEAGUES[p.league] || p.league}` : ""}{p.age ? ` · ${p.age}세` : ""}
+                      <span className="truncate">{p.teamName}</span>
+                      {p.league && view !== "league" && (
+                        <><span className="shrink-0 text-neutral-300 dark:text-white/20">·</span><LeagueTag code={p.league} imgClass="w-3.5 h-3.5" /></>
+                      )}
+                      {p.age ? <span className="shrink-0">· {p.age}세</span> : null}
                     </div>
                   </div>
                   <Spark data={p.hist} />
@@ -1515,7 +1537,7 @@ export default async function TransfersPage({
                     <span className="text-sm text-neutral-600 dark:text-neutral-300 truncate">{p.teamName}</span>
                   </div>
                   {/* 리그 */}
-                  <div className="w-24 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 truncate">{p.league ? (LEAGUES[p.league] || p.league) : "—"}</div>
+                  <div className="w-24 shrink-0 text-sm text-neutral-500 dark:text-neutral-400 min-w-0"><LeagueTag code={p.league} /></div>
                   {/* 국가 */}
                   <div className="w-32 shrink-0 flex items-center gap-2 min-w-0">
                     {p.countryFlag && (
