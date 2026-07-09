@@ -133,16 +133,16 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
     },
   },
   {
-    name: "report_bug",
+    name: "forward_to_admin",
     description:
-      "사용자가 사이트 버그·오류·기능 문제(작동 안 함·에러·화면 깨짐 등)를 제보하면 이 도구로 운영자에게 전달한다. 단순 질문이나 예측 결과 불만이 아니라 실제 문제 제보일 때만 호출.",
+      "사용자의 문의를 운영자에게 텔레그램으로 전달한다. 버그·오류 제보뿐 아니라 광고·제휴 문의, 관리자·운영팀 연락 요청, 기타 운영팀에 닿아야 하는 내용은 모두 이 도구로 전달한다. 단순 경기·데이터 질문에는 쓰지 않는다.",
     input_schema: {
       type: "object",
       properties: {
-        summary: { type: "string", description: "제보 내용 요약 (무엇이 어떻게 문제인지)" },
-        page: { type: "string", description: "문제가 난 페이지·경기 (사용자가 언급했으면)" },
+        message: { type: "string", description: "전달할 내용 요약" },
+        category: { type: "string", description: "분류: 버그 · 광고 · 제휴 · 문의 · 기타 중 하나" },
       },
-      required: ["summary"],
+      required: ["message"],
     },
   },
 ];
@@ -171,10 +171,10 @@ export async function executeTool(
       return await getMatchPrediction(input.matchId as number);
     case "search_articles":
       return await searchArticles(String(input.query ?? ""));
-    case "report_bug":
-      return await reportBug(
-        String(input.summary ?? ""),
-        input.page as string | undefined,
+    case "forward_to_admin":
+      return await forwardToAdmin(
+        String(input.message ?? ""),
+        String(input.category ?? "문의"),
       );
     default:
       return `(알 수 없는 도구: ${name})`;
@@ -362,17 +362,16 @@ async function searchArticles(query: string): Promise<string> {
     .join("\n");
 }
 
-// 버그·오류 제보를 운영자 텔레그램으로 전달. sendTelegram(HTML) 재사용 — 사용자 입력은 이스케이프.
-async function reportBug(summary: string, page?: string): Promise<string> {
-  const s = summary.trim();
-  if (!s) return "제보 내용이 비어 있어 전달하지 못함.";
+// 사용자 문의(버그·광고·제휴·관리자 연락 등)를 운영자 텔레그램으로 전달. HTML 이스케이프.
+async function forwardToAdmin(message: string, category = "문의"): Promise<string> {
+  const s = message.trim();
+  if (!s) return "전달할 내용이 비어 있어 전달하지 못함.";
   const esc = (t: string) =>
     t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const text = [
-    "🐛 <b>챗봇 버그 제보</b>",
+    `📩 <b>챗봇 문의</b> (${esc(category)})`,
     "",
     `내용: ${esc(s)}`,
-    page ? `위치: ${esc(page)}` : "",
     `시각: ${fmtKstDateTime(new Date())}`,
   ]
     .filter(Boolean)
