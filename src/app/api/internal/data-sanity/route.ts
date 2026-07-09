@@ -279,7 +279,12 @@ export async function GET(req: NextRequest) {
     const cache = cacheByMatchId.get(m.id);
     const dl = cache?.detailLive as
       | {
-          score?: [string, number, number, { ft?: [string, string] }];
+          score?: [
+            string,
+            number,
+            number,
+            { ft?: [string, string]; [k: string]: unknown },
+          ];
         }
       | null;
     const scoreArr = dl?.score;
@@ -306,6 +311,16 @@ export async function GET(req: NextRequest) {
       // sid=15 등 다른 "시작 전/지연" 코드를 못 걸러 시작 직후 오탐 (2026-06-18 LMB #503512).
       const elapsedMs = now - m.startTime.getTime();
       if (elapsedMs < 30 * 60 * 1000) continue;
+      // half=0 이어도 이닝별 점수(pN)가 있으면 이닝 번호는 "N회" 로 정상 표시된다.
+      // score[2]=초/말 지시자만 0 인 것 — LMB TheSports 피드는 초/말을 자주 0 으로 보낸다.
+      // 이닝 데이터가 있는데 half=0 만으로 "이닝 표시 불가" 를 띄우던 반복 오탐(LMB) 차단.
+      // 진짜 누락(연기/source drop)은 scoresObj 가 비어(pN 없음, sid=1) 아래로 그대로 흘러 걸린다.
+      const sObj = scoreArr[3];
+      const hasInningData =
+        sObj != null &&
+        typeof sObj === "object" &&
+        Object.keys(sObj).some((k) => /^p\d+$/.test(k));
+      if (hasInningData) continue;
       let reason = sid === 1
         ? `TheSports source 누락 또는 매치 연기 (시작 +${Math.round(elapsedMs / 60000)}분, sid=1 Not Started)`
         : `cache half=${half} (이닝 표시 불가)`;
