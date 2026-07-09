@@ -41,8 +41,12 @@ const TS_COVERED = new Set(
 // 3경기(#316277·#316278·#316807)가 startTime 동결(6/13→6/14 연기 누락)로 발견 — 매치의
 // 96%+ 가 af 생성(BELARUS 238/247·KAZAKHSTAN 240/241, ts 는 9·1건뿐)인데 TS_COVERED 로
 // af 수집이 skip 돼 5/25 이후 갱신 경로 전무. ts 워커가 실커버리지를 못 채우므로 af 수집 유지.
+// ECUADOR_LP (2026-07-09): 동일 패턴. stale-cleanup 알림 8경기가 startTime 동결
+// (07-05→07-10~12 연기 누락)로 발견 — ts 부분커버(29/251)라 ts 미생성 매치는 af skip 으로
+// 갱신 경로 없음. api-football verify 결과 전부 NS(미래) = false positive 였으나 근본 = af 재개.
 const TS_COVERED_EXCEPTIONS = new Set<League>([
   "K_LEAGUE_1", "YKKONEN", "LATVIA_VL", "BELARUS_PL", "KAZAKHSTAN_PL",
+  "ECUADOR_LP",
 ]);
 
 const ALL_LEAGUES: League[] = [
