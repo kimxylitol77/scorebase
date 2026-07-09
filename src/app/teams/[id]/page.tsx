@@ -29,6 +29,8 @@ import rawTeamStats from "../../../../data/team-season-stats.json";
 import rawTSquads from "../../../../data/team-squads.json";
 import rawTeamVenues from "../../../../data/team-venues.json";
 import rawBaseballRosters from "../../../../data/baseball-rosters.json";
+import rawTeamHistory from "../../../../data/team-history.json";
+import TeamHistory, { type TeamHistoryData } from "@/components/teams/TeamHistory";
 import LolTeamRoster from "@/components/LolTeamRoster";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Globe, Landmark, Goal, BarChart3, Users, Target, Star, HeartPulse } from "lucide-react";
@@ -68,6 +70,7 @@ const TEAM_VENUES = rawTeamVenues as Record<string, TeamVenue>;
 // KBO·NPB 팀 로스터 (build-baseball-rosters.ts — koreabaseball·npb scrape, key=DB Team.id)
 interface BaseballRosterPlayer { id: string; name: string; group: "P" | "B" }
 const BASEBALL_ROSTERS = rawBaseballRosters as Record<string, BaseballRosterPlayer[]>;
+const T_HISTORY = rawTeamHistory as Record<string, TeamHistoryData>;
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -458,6 +461,11 @@ export default async function TeamPage({ params }: Props) {
           defenseRank={defenseRank ?? null}
           seasonLabel={aboutSeasonLabel}
         />
+
+        {/* 역대 우승·명장·레전드 — 위키피디아 사실 기반(data/team-history.json). 데이터 있는 팀만 */}
+        {T_HISTORY[String(teamId)] && (
+          <TeamHistory data={T_HISTORY[String(teamId)]} teamName={toKoreanTeamName(team.name, team.league)} />
+        )}
 
         {/* 클럽 정보 — 홈구장·창단·스쿼드 (TheSports team/additional+venue) */}
         {teamVenue && (teamVenue.venueName || teamVenue.foundation || teamVenue.totalPlayers) && (
