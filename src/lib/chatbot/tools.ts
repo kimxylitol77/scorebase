@@ -7,6 +7,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { SITE_URL } from "@/lib/site-url";
 
 const ALLOWED_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
@@ -64,6 +65,17 @@ function fmtKstDateTime(dt: Date): string {
 function pct(p?: number | null): string {
   if (p == null || Number.isNaN(p)) return "-";
   return `${(p * 100).toFixed(1)}%`;
+}
+
+// 경기 상세 URL — 사이트 liveHref 규칙과 동일(야구·LoL 은 전용 소문자 라우트).
+function matchUrl(league: string, externalId: string): string {
+  const path =
+    league === "KBO" || league === "NPB" || league === "MLB"
+      ? `/live/${league.toLowerCase()}/${externalId}`
+      : league === "LOL"
+        ? `/live/lol/${externalId}`
+        : `/live/${league}/${externalId}`;
+  return `${SITE_URL}${path}`;
 }
 
 // ============================================================
@@ -207,7 +219,7 @@ async function getTodayMatches(leagueRaw?: string): Promise<string> {
       m.homeScore != null && m.awayScore != null
         ? ` ${m.homeScore}:${m.awayScore}`
         : "";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)}${score} (${m.status}) · 모델픽: ${winner} (H ${pct(m.predHome)} / D ${pct(m.predDraw)} / A ${pct(m.predAway)})`;
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)}${score} (${m.status}) · 모델픽: ${winner} (H ${pct(m.predHome)} / D ${pct(m.predDraw)} / A ${pct(m.predAway)}) · ${matchUrl(m.league, m.externalId)}`;
   });
   return lines.join("\n");
 }
@@ -232,7 +244,7 @@ async function getUpcomingMatches(leagueRaw?: string, days = 3): Promise<string>
       m.predWinner === "HOME" ? toKoreanTeamName(m.homeTeam.name, m.league)
       : m.predWinner === "AWAY" ? toKoreanTeamName(m.awayTeam.name, m.league)
       : m.predWinner === "DRAW" ? "무승부" : "-";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)} · 픽: ${winner}`;
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)} · 픽: ${winner} · ${matchUrl(m.league, m.externalId)}`;
   });
   return lines.join("\n");
 }
@@ -258,7 +270,7 @@ async function getRecentResults(leagueRaw?: string, days = 3): Promise<string> {
       m.predCorrect === true ? "✓적중"
       : m.predCorrect === false ? "✗오답"
       : "-";
-    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} ${score} ${toKoreanTeamName(m.awayTeam.name, m.league)} · 모델 1X2: ${correct}`;
+    return `[#${m.id}] ${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} ${score} ${toKoreanTeamName(m.awayTeam.name, m.league)} · 모델 1X2: ${correct} · ${matchUrl(m.league, m.externalId)}`;
   });
   return lines.join("\n");
 }
@@ -274,6 +286,7 @@ async function getMatchPrediction(matchId: number): Promise<string> {
   const isSoccer = SOCCER_LEAGUES.has(m.league);
   const out: string[] = [];
   out.push(`경기: ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)}`);
+  out.push(`링크: ${matchUrl(m.league, m.externalId)}`);
   out.push(`리그/시간: ${m.league} · ${fmtKstDateTime(m.startTime)}`);
   out.push(`상태: ${m.status}${m.homeScore != null ? ` (${m.homeScore}:${m.awayScore})` : ""}`);
 

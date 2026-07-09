@@ -3,7 +3,7 @@
 // 우측 하단 플로팅 챗봇. /api/chat 으로 POST.
 // Phase 1 — 대화 히스토리는 클라이언트 메모리만 (새로고침 시 사라짐).
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface Message {
   role: "user" | "assistant";
@@ -15,6 +15,34 @@ const GREETING: Message = {
   content:
     "안녕하세요! Scorebase 챗봇이에요.\n궁금한 점이나 버그·오류 제보를 남겨주세요. 운영자에게 전달해 드립니다.",
 };
+
+// 메시지 안의 마크다운 링크 [텍스트](url) 와 생 URL 을 클릭 가능한 링크로 렌더. 나머지는 평문.
+function renderContent(text: string): ReactNode {
+  const re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    const label = m[1] ?? m[3];
+    const url = m[2] ?? m[3];
+    nodes.push(
+      <a
+        key={key++}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline text-cyan-600 dark:text-cyan-400"
+      >
+        {label}
+      </a>,
+    );
+    last = re.lastIndex;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -117,7 +145,7 @@ export default function Chatbot() {
                 : "mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-neutral-100 px-3 py-2 text-sm text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100"
             }
           >
-            {m.content}
+            {renderContent(m.content)}
           </div>
         ))}
         {loading && (
