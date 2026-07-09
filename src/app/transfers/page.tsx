@@ -20,7 +20,7 @@ import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
-import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap } from "lucide-react";
+import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap, Newspaper } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -1082,6 +1082,16 @@ export default async function TransfersPage({
             언론 보도 기반의 <strong>미확정</strong> 정보입니다. 공식 발표 전 내용은 바뀌거나 무산될 수 있으며,
             확정되면 <Link href="/transfers?view=latest" className="underline underline-offset-2">최신 이적</Link> 탭에 반영됩니다.
           </div>
+          {/* 해외 브리핑 연결 — 루머 피드(한눈 스캔)와 브리핑 글(맥락·해설)은 같은 파이프라인의 두 얼굴 */}
+          <Link
+            href="/analysis?board=briefing"
+            prefetch={false}
+            className="mt-3 flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white px-4 py-3 hover:bg-neutral-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.07] transition"
+          >
+            <Newspaper className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden />
+            <span className="text-[13px] font-semibold">이 소식들의 자세한 맥락은 해외 브리핑에서</span>
+            <span className="ml-auto text-[12px] text-neutral-400 shrink-0">브리핑 보러가기 →</span>
+          </Link>
           {rumorRows.length === 0 ? (
             <p className="text-sm text-neutral-500 py-20 text-center">최근 7일 내 수집된 임박·루머 소식이 없습니다.</p>
           ) : (
