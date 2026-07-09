@@ -159,7 +159,11 @@ function mergeStatus(
   return incoming;
 }
 
-export async function upsertMatch(m: NormalizedMatch) {
+// opts.source: 팀 resolve 에 쓸 source 명시 — 기본은 getPrimarySource(league).
+// EPL 처럼 primary=football-data 인 리그에 api-football 데이터를 넣을 때 반드시 명시할 것.
+// 소스 라벨이 거짓이면 (league, source, ext) 매핑이 다른 체계의 팀을 가리켜 Team 이름
+// 덮어쓰기 오염 발생 (2026-07-09 EPL Arsenal→Ipswich 사고).
+export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }) {
   // TBD placeholder skip — NBA/NHL 컨퍼런스 파이널 차기 라운드 매치업 미정 시 ESPN 이
   // "TBD vs TBD" 로 placeholder 매치 제공. 실제 매치업 확정 시 별도 매치로 등장하므로
   // placeholder 는 DB 에 저장 안 함 (페이지 노출 방지 + LIVE 잘못된 status 회피).
@@ -169,7 +173,7 @@ export async function upsertMatch(m: NormalizedMatch) {
   }
   const homeShort = resolveShortName(m.league, m.homeTeam.shortName, m.homeTeam.name);
   const awayShort = resolveShortName(m.league, m.awayTeam.shortName, m.awayTeam.name);
-  const source = getPrimarySource(m.league);
+  const source = opts?.source ?? getPrimarySource(m.league);
   const homeTeamId = await resolveTeamId({
     league: m.league,
     source,
