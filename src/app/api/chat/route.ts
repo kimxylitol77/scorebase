@@ -70,10 +70,9 @@ export async function POST(req: Request) {
   const lastUser =
     [...incoming].reverse().find((m) => m.role === "user")?.content?.slice(0, MAX_USER_LEN).trim() ?? "";
 
-  // 과금(Claude) OFF 스위치 — CHATBOT_AI_ENABLED=true 일 때만 AI 응답한다.
-  // 꺼져 있어도 사용자가 남긴 메시지는 문의·제보로 운영자 텔레그램에 전달한다(Claude 미호출=무과금).
-  // 켤 때: Vercel 환경변수 CHATBOT_AI_ENABLED=true + ANTHROPIC_API_KEY.
-  if (process.env.CHATBOT_AI_ENABLED !== "true") {
+  // AI 킬스위치 — 기본은 켜짐(질문에 답변). CHATBOT_AI_ENABLED=false 로 끄면
+  // Claude 미호출·무과금 모드가 되어 사용자 메시지를 제보로 텔레그램 전달만 한다.
+  if (process.env.CHATBOT_AI_ENABLED === "false") {
     if (lastUser) {
       try {
         await executeTool("report_bug", { summary: lastUser });
