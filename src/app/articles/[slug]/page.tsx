@@ -24,7 +24,7 @@ import TeamOfDayPitch from "@/components/TeamOfDayPitch";
 import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
 import { parseStarSlug } from "@/lib/sports/thesports/wc-star-report";
 import AmbientGlow from "@/components/AmbientGlow";
-import { BarChart3, CalendarDays, Activity } from "lucide-react";
+import { BarChart3, CalendarDays, Activity, Star } from "lucide-react";
 
 // ISR — 발행된 글 본문은 거의 불변. 10분 캐시로 페이지 이동 가속(새 글 첫 방문은 즉시 생성).
 export const revalidate = 600;
@@ -619,6 +619,31 @@ export default async function ArticlePage({ params }: Props) {
       {tod && tod.xi.length > 0 && (
         <div className="mb-8 mx-auto max-w-md">
           <TeamOfDayPitch matches={tod.matches} xi={tod.xi} />
+        </div>
+      )}
+
+      {/* STAR 리포트 — 선수 사진 히어로. photoUrl 은 위에서 이미 로드한 TheSportsPlayer 조회값. */}
+      {star && starPlayer?.photoUrl && (
+        <div className="mb-8 flex items-center gap-4 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-zinc-100 to-zinc-50 p-5 ring-1 ring-black/5 sm:gap-5 sm:rounded-[2rem] sm:p-6 dark:from-white/[0.06] dark:to-white/[0.02] dark:ring-white/10">
+          <Image
+            src={starPlayer.photoUrl}
+            alt={starPlayer.nameKo || starPlayer.name || "선수 사진"}
+            width={128}
+            height={128}
+            className="h-24 w-24 shrink-0 rounded-2xl object-cover object-top ring-1 ring-black/5 sm:h-28 sm:w-28 dark:ring-white/10"
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">
+              <Star className="h-3.5 w-3.5 fill-current" aria-hidden />
+              STAR 리포트
+            </div>
+            <div className="mt-1 truncate text-lg font-bold text-zinc-900 sm:text-xl dark:text-white">
+              {starPlayer.nameKo || starPlayer.name}
+            </div>
+            {starPlayer.nameKo && starPlayer.name && (
+              <div className="truncate text-sm text-zinc-500 dark:text-white/50">{starPlayer.name}</div>
+            )}
+          </div>
         </div>
       )}
 

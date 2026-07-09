@@ -171,12 +171,12 @@ function todayStatLine(pos: string, s: TsStatRow | null): string {
   } else if (pos === "M") {
     if (s.key_passes) p.push(`키패스 ${s.key_passes}`);
     if (s.big_chance_created) p.push(`결정적기회 ${s.big_chance_created}`);
-    if (s.dribble_succ) p.push(`드리블 ${s.dribble_succ}/${s.dribble ?? 0}`);
+    if (s.dribble_succ) p.push(`드리블 성공 ${s.dribble_succ}(시도 ${s.dribble ?? 0})`);
     if (s.tackles) p.push(`태클 ${s.tackles}`);
   } else {
     if (s.shots) p.push(`슛 ${s.shots}(유효 ${s.shots_on_target ?? 0})`);
     if (s.key_passes) p.push(`키패스 ${s.key_passes}`);
-    if (s.dribble_succ) p.push(`드리블 ${s.dribble_succ}/${s.dribble ?? 0}`);
+    if (s.dribble_succ) p.push(`드리블 성공 ${s.dribble_succ}(시도 ${s.dribble ?? 0})`);
   }
   if (s.passes) p.push(`패스 ${pct(s.passes_accuracy ?? 0, s.passes)}%(${s.passes_accuracy ?? 0}/${s.passes})`);
   if (s.was_fouled) p.push(`피파울 ${s.was_fouled}`);
