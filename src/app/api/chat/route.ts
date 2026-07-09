@@ -161,9 +161,17 @@ export async function POST(req: Request) {
     );
   } catch (err) {
     console.error("[chat]", err);
-    return NextResponse.json(
-      { error: "챗봇 응답 생성 실패." },
-      { status: 500 },
-    );
+    // Claude 실패(크레딧 소진·API 오류 등) 시 — 사용자에겐 에러 대신 제보 접수로 응대하고 운영자에게 전달.
+    if (lastUser) {
+      try {
+        await executeTool("forward_to_admin", { message: lastUser, category: "문의" });
+      } catch {
+        // 전달 실패는 무시
+      }
+    }
+    return NextResponse.json({
+      reply:
+        "죄송해요, 지금은 답변을 드리기 어려워요. 남겨주신 내용은 관리자에게 전달해 드렸어요. 연락 받으실 텔레그램이나 이메일을 남겨주시면 확인 후 연락드립니다.",
+    });
   }
 }
