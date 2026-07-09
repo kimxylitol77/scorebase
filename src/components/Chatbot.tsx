@@ -44,6 +44,15 @@ function renderContent(text: string): ReactNode {
   return nodes;
 }
 
+// 자주 하는 질문 — 클릭하면 바로 전송.
+const SUGGESTIONS = [
+  "오늘 경기 알려줘",
+  "가장 신뢰도 높은 예측은?",
+  "예측 적중률은 어때?",
+  "광고·제휴 문의하고 싶어요",
+  "버그·오류 제보하기",
+];
+
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -58,8 +67,8 @@ export default function Chatbot() {
     }
   }, [messages, loading]);
 
-  async function send() {
-    const text = input.trim();
+  async function send(preset?: string) {
+    const text = (preset ?? input).trim();
     if (!text || loading) return;
     setError(null);
     const next: Message[] = [...messages, { role: "user", content: text }];
@@ -160,6 +169,20 @@ export default function Chatbot() {
         {error && (
           <div className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">
             {error}
+          </div>
+        )}
+        {messages.length <= 1 && !loading && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {SUGGESTIONS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => send(s)}
+                className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-600 transition hover:border-cyan-400 hover:text-cyan-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-cyan-500 dark:hover:text-cyan-400"
+              >
+                {s}
+              </button>
+            ))}
           </div>
         )}
       </div>
