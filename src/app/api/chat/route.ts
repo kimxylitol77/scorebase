@@ -7,6 +7,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { claude, CLAUDE_MODEL } from "@/lib/ai/claude";
 import { TOOL_DEFS, executeTool } from "@/lib/chatbot/tools";
 import { rateLimit } from "@/lib/rate-limit";
+import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -150,6 +151,15 @@ export async function POST(req: Request) {
         .map((b) => b.text)
         .join("\n")
         .trim();
+
+      // 대화 저장 (실패는 무시 — 응답을 막지 않음)
+      try {
+        await prisma.chatLog.create({
+          data: { question: lastUser, answer: text, ip },
+        });
+      } catch (e) {
+        console.error("[chat] 로그 저장 실패", e);
+      }
 
       return NextResponse.json({
         reply: text || "(빈 응답)",

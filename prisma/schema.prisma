@@ -1027,3 +1027,14 @@ model DreamTeam {
   @@index([userId])
   @@index([tier, rating])
 }
+
+// 챗봇 대화 로그 — 회원이 무엇을 묻는지 저장(개선·분석용).
+model ChatLog {
+  id        Int      @id @default(autoincrement())
+  question  String // 사용자 질문
+  answer    String // 챗봇 답변
+  ip        String? // 요청 IP (세션 구분·어뷰징 대응)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
