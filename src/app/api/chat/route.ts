@@ -82,8 +82,7 @@ export async function POST(req: Request) {
       }
     }
     return NextResponse.json({
-      reply:
-        "남겨주신 내용은 관리자에게 전달해 드렸어요. 감사합니다. AI 상담은 곧 정식 오픈 예정입니다.",
+      reply: "남겨주신 내용은 관리자에게 전달해 드렸어요. 감사합니다.",
     });
   }
 
