@@ -332,6 +332,12 @@ const RAW: Record<string, string> = {
 
   // ─── 축구 추가 (2026-05-21) — Ollama 14B/32B 가 멀티스크립트 혼입·hallucination
   //                                   해서 정확한 한국 미디어 표기 직접 추가.
+  // 2026-27 승격/신규 팀 — 새 시즌 준비 감사에서 한글 미등록 발견 (2026-07-09)
+  "Schalke 04": "샬케 04",
+  "Le Mans": "르망",
+  "Troyes": "트루아",
+  "FK Qarabag": "카라바흐",
+  "Universitatea Cluj": "우니베르시타테아 클루지",
   // 독일 분데스리가 2 — 잔여 6팀
   "FC Schalke 04": "FC 샬케 04",
   "Fortuna Düsseldorf": "포르투나 뒤셀도르프",
