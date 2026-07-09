@@ -190,7 +190,7 @@ export default async function LeagueStandingsTable({ league }: { league: string 
     const topScorer = labels
       ? await prisma.leagueLeader.findFirst({
           where: { league, category: "GOAL", rank: 1, season: labels.old },
-          select: { playerName: true, teamName: true, value: true, photoUrl: true },
+          select: { playerName: true, teamName: true, value: true, photoUrl: true, externalId: true },
         })
       : null;
     const factCards = [
@@ -199,20 +199,24 @@ export default async function LeagueStandingsTable({ league }: { league: string 
         img: champion.logoUrl,
         main: champion.teamName,
         sub: `${labels?.old} 우승`,
+        href: `/teams/${champion.teamId}`,
       },
       topScorer && {
         label: "직전 시즌 득점왕",
         img: topScorer.photoUrl,
         main: topScorer.playerName,
         sub: `${topScorer.teamName} · ${Math.round(topScorer.value)}골`,
+        // /players/[pid] 어댑터가 af id 를 선수 상세(/transfers/{tsId} 등)로 리다이렉트
+        href: topScorer.externalId ? `/players/${topScorer.externalId}?league=${league}` : null,
       },
       promoted.length > 0 && {
         label: "승격·새 얼굴",
         img: null,
         main: promoted.map((t) => t.teamName).slice(0, 3).join(" · "),
         sub: `${promoted.length}팀 합류`,
+        href: null,
       },
-    ].filter(Boolean) as { label: string; img: string | null; main: string; sub: string }[];
+    ].filter(Boolean) as { label: string; img: string | null; main: string; sub: string; href: string | null }[];
 
     return (
       <div className="space-y-4">
@@ -224,21 +228,31 @@ export default async function LeagueStandingsTable({ league }: { league: string 
         </div>
         {factCards.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {factCards.map((c) => (
-              <div key={c.label} className="rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3 dark:bg-white/[0.04] dark:ring-white/10">
-                <div className="text-[11px] font-bold text-neutral-400 mb-1.5">{c.label}</div>
-                <div className="flex items-center gap-2 min-w-0">
-                  {c.img && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.img} alt="" width={28} height={28} loading="lazy" className="w-7 h-7 object-contain shrink-0 bg-white rounded-full ring-1 ring-black/5" />
-                  )}
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold truncate">{c.main}</div>
-                    <div className="text-[11px] text-neutral-500 truncate">{c.sub}</div>
+            {factCards.map((c) => {
+              const inner = (
+                <>
+                  <div className="text-[11px] font-bold text-neutral-400 mb-1.5">{c.label}</div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {c.img && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.img} alt="" width={28} height={28} loading="lazy" className="w-7 h-7 object-contain shrink-0 bg-white rounded-full ring-1 ring-black/5" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold truncate">{c.main}</div>
+                      <div className="text-[11px] text-neutral-500 truncate">{c.sub}</div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </>
+              );
+              const cls = "rounded-2xl bg-white ring-1 ring-black/5 px-4 py-3 dark:bg-white/[0.04] dark:ring-white/10";
+              return c.href ? (
+                <Link key={c.label} href={c.href} prefetch={false} className={`${cls} block hover:bg-neutral-50 dark:hover:bg-white/[0.07] transition`}>
+                  {inner}
+                </Link>
+              ) : (
+                <div key={c.label} className={cls}>{inner}</div>
+              );
+            })}
           </div>
         )}
         {renderStandingsTable(newRows, league, false)}
