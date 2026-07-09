@@ -15,7 +15,9 @@ import { Prisma } from "@prisma/client";
 import GoalHeatmap from "@/components/charts/GoalHeatmap";
 import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
 import TeamFollowButton from "@/components/teams/TeamFollowButton";
+import TeamAbout from "@/components/teams/TeamAbout";
 import TransfersSection from "@/components/teams/TransfersSection";
+import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { fetchNhlRoster, type NhlRosterPlayer } from "@/lib/sports/nhl-api";
 import { fetchMlbRoster, type MlbRosterPlayer } from "@/lib/sports/mlb-stats-api";
@@ -273,6 +275,17 @@ export default async function TeamPage({ params }: Props) {
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
   const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
+
+  // TeamAbout(SEO 소개 문단)용 — 이미 계산된 값 재사용, 시즌 라벨·종목명만 파생.
+  const aboutSeasonLabel = (() => {
+    const s = seasonMatches.find((m) => m.status === "FINISHED")?.startTime;
+    if (!s) return null;
+    const d = new Date(s);
+    const y = d.getUTCMonth() >= 7 ? d.getUTCFullYear() : d.getUTCFullYear() - 1;
+    return `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
+  })();
+  const sportLabel =
+    ({ soccer: "축구", baseball: "야구", basketball: "농구", ice_hockey: "아이스하키", esports: "e스포츠" } as Record<string, string>)[sport] ?? "축구";
   let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; number: number | null; flag: string | null }[] = [];
   if (tsTeamRows.length) {
     const extIds = tsTeamRows.map((t) => t.externalId);
@@ -461,6 +474,20 @@ export default async function TeamPage({ params }: Props) {
       </section>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-10">
+        {/* 팀 소개 — SEO 서술 문단 (홈구장·지난 시즌 성적, 이미 계산된 값 조립) */}
+        <TeamAbout
+          name={toKoreanTeamName(team.name, team.league)}
+          enName={toKoreanTeamName(team.name, team.league) === team.name ? "" : team.name}
+          leagueLabel={LEAGUE_DISPLAY[team.league] ?? team.league}
+          sportLabel={sportLabel}
+          isSoccer={SOCCER_LEAGUES.has(team.league)}
+          venue={teamVenue}
+          record={row ?? null}
+          attackRank={attackRank ?? null}
+          defenseRank={defenseRank ?? null}
+          seasonLabel={aboutSeasonLabel}
+        />
+
         {/* 클럽 정보 — 홈구장·창단·스쿼드 (TheSports team/additional+venue) */}
         {teamVenue && (teamVenue.venueName || teamVenue.foundation || teamVenue.totalPlayers) && (
           <section>
