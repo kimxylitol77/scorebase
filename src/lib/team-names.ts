@@ -336,8 +336,17 @@ const RAW: Record<string, string> = {
   "Schalke 04": "샬케 04",
   "Le Mans": "르망",
   "Troyes": "트루아",
+  "Estac Troyes": "트루아",
   "FK Qarabag": "카라바흐",
   "Universitatea Cluj": "우니베르시타테아 클루지",
+  // af 소스가 짧은 표기로 덮은 팀 + 변형 키 (새 시즌 참가팀 전수 스캔, 2026-07-09)
+  "Ipswich": "입스위치",
+  "1899 Hoffenheim": "호펜하임",
+  "FSV Mainz 05": "마인츠",
+  "Wrexham": "렉섬",
+  "Charlton": "찰턴",
+  "Bolton": "볼턴",
+  "Lincoln": "링컨 시티",
   // 독일 분데스리가 2 — 잔여 6팀
   "FC Schalke 04": "FC 샬케 04",
   "Fortuna Düsseldorf": "포르투나 뒤셀도르프",
