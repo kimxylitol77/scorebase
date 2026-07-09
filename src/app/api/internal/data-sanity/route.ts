@@ -466,9 +466,15 @@ export async function GET(req: NextRequest) {
 
   // 시즌 종료(미래 경기 없음) 리그는 standings 갱신이 불필요 → stale 검사 제외.
   // 5/24 종료된 SERIE_A 등 유럽 리그가 시즌오프 내내 stale 알림 쏟는 것 방지.
+  // 2026-07-09: "미래 경기 존재" → "14일 내 경기 존재" 로 좁힘 — 새 시즌 일정이 미리
+  // 수집되면(EPL 8/21 개막 50건) 개막 6주 전인데도 면제를 빠져나가 stale 오탐.
+  // 개막 전엔 순위표가 존재하지 않아 갱신될 수 없음. 개막 2주 전부터 검사 재개.
   const upcoming = await prisma.match.groupBy({
     by: ["league"],
-    where: { league: { in: STANDINGS_CHECK_LEAGUES }, startTime: { gt: new Date(now) } },
+    where: {
+      league: { in: STANDINGS_CHECK_LEAGUES },
+      startTime: { gt: new Date(now), lt: new Date(now + 14 * 86400_000) },
+    },
     _count: { _all: true },
   });
   const hasUpcoming = new Set(upcoming.filter((g) => g._count._all > 0).map((g) => g.league));
