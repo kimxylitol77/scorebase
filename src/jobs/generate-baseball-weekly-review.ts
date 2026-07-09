@@ -8,7 +8,7 @@ import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildBaseballWeeklyReview } from "@/lib/sports/baseball/weekly-review";
 import { buildBaseballWeeklyReviewPrompt } from "@/prompts/baseball-weekly-review";
 
-const DEFAULT_LEAGUES = ["KBO"] as const;
+const DEFAULT_LEAGUES = ["KBO", "NPB"] as const;
 
 function extractTitle(md: string): string {
   const m = md.match(/^#\s+(.+)$/m);

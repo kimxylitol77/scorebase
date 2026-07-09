@@ -4,8 +4,25 @@
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 
+// NPB 양대리그 구분 — 팀 시즌 스탯에 리그 필드가 없어 팀명으로 매핑(팀 이동 없어 고정).
+const NPB_DIVISION: Record<string, string> = {
+  요미우리: "센트럴",
+  한신: "센트럴",
+  요코하마: "센트럴",
+  주니치: "센트럴",
+  히로시마: "센트럴",
+  야쿠르트: "센트럴",
+  소프트뱅크: "퍼시픽",
+  닛폰햄: "퍼시픽",
+  세이부: "퍼시픽",
+  오릭스: "퍼시픽",
+  라쿠텐: "퍼시픽",
+  롯데: "퍼시픽",
+};
+
 export interface WeeklyStanding {
   rank: number;
+  division?: string; // NPB 양대리그("센트럴"/"퍼시픽"). 단일 리그(KBO 등)는 undefined.
   team: string; // 짧은 한글 팀명 (season stats 기준)
   games: number; // 소화 경기수 (승+패+무)
   wins: number;
@@ -92,12 +109,6 @@ export async function buildBaseballWeeklyReview(
   });
   if (teams.length < 4) return null;
 
-  // 승률 정렬 + 게임차
-  const ranked = teams
-    .map((t) => ({ ...t, pct: t.wins + t.losses > 0 ? t.wins / (t.wins + t.losses) : 0 }))
-    .sort((a, b) => b.pct - a.pct);
-  const leader = ranked[0];
-
   const shortNames = teams.map((t) => t.teamName);
   const canon = makeCanonicalizer(shortNames);
 
@@ -146,22 +157,39 @@ export async function buildBaseballWeeklyReview(
     push(g.away, homeWon ? "L" : "W");
   }
 
-  const standings: WeeklyStanding[] = ranked.map((t, i) => ({
-    rank: i + 1,
-    team: t.teamName,
-    games: t.wins + t.losses + t.draws,
-    wins: t.wins,
-    losses: t.losses,
-    draws: t.draws,
-    pct: t.pct,
-    gb: (leader.wins - t.wins + (t.losses - leader.losses)) / 2,
-    avg: t.avg,
-    era: t.era,
-    homeRuns: t.homeRuns,
-    weekW: weekW.get(t.teamName) ?? 0,
-    weekL: weekL.get(t.teamName) ?? 0,
-    streak: computeStreak(seq.get(t.teamName) ?? []),
-  }));
+  // 순위 그룹 빌더 — 승률 정렬 + 그룹 1위 대비 게임차. NPB 는 양대리그로 분리 호출.
+  type TeamRow = (typeof teams)[number];
+  const buildGroup = (rows: TeamRow[], division?: string): WeeklyStanding[] => {
+    const sorted = rows
+      .map((t) => ({ ...t, pct: t.wins + t.losses > 0 ? t.wins / (t.wins + t.losses) : 0 }))
+      .sort((a, b) => b.pct - a.pct);
+    const lead = sorted[0];
+    return sorted.map((t, i) => ({
+      rank: i + 1,
+      division,
+      team: t.teamName,
+      games: t.wins + t.losses + t.draws,
+      wins: t.wins,
+      losses: t.losses,
+      draws: t.draws,
+      pct: t.pct,
+      gb: (lead.wins - t.wins + (t.losses - lead.losses)) / 2,
+      avg: t.avg,
+      era: t.era,
+      homeRuns: t.homeRuns,
+      weekW: weekW.get(t.teamName) ?? 0,
+      weekL: weekL.get(t.teamName) ?? 0,
+      streak: computeStreak(seq.get(t.teamName) ?? []),
+    }));
+  };
+
+  const standings: WeeklyStanding[] =
+    league === "NPB"
+      ? [
+          ...buildGroup(teams.filter((t) => NPB_DIVISION[t.teamName] === "센트럴"), "센트럴"),
+          ...buildGroup(teams.filter((t) => NPB_DIVISION[t.teamName] === "퍼시픽"), "퍼시픽"),
+        ]
+      : buildGroup(teams);
 
   // 팀 지표 리더 (상위 3)
   const topBy = <T>(sel: (s: WeeklyStanding) => number | null, desc: boolean): WeeklyLeader[] =>
