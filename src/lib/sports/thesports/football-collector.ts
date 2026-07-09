@@ -90,7 +90,9 @@ function normalizeFootballMatch(
 
   return {
     league,
-    externalId: m.id,
+    // worker ws-push(thesports-matches route)가 `ts-{id}` 로 저장하므로 동일 prefix 사용.
+    // prefix 불일치 시 같은 ts 매치가 `id` 와 `ts-id` 두 row 로 중복됨(CLUB_FRIENDLY 20쌍 사고).
+    externalId: `ts-${m.id}`,
     homeTeam: {
       externalId: m.home_team_id,
       name: home.name,
