@@ -75,7 +75,8 @@ function parseScore(v: number | string | null | undefined): number | undefined {
 function mapStatus(short: string): MatchStatus {
   const s = (short ?? "").toUpperCase();
   if (s === "FT" || s === "AOT" || s === "CANC_FT") return "FINISHED";
-  if (s === "POST" || s === "CANC") return "POSTPONED";
+  // ABD(Abandoned)·SUSP(Suspended) 도 미성립/중단 경기 — POSTPONED 로. (kbo.ts 와 동일)
+  if (s === "POST" || s === "CANC" || s === "ABD" || s === "SUSP") return "POSTPONED";
   if (s.startsWith("IN") || s === "LIVE" || s === "INPL" || s === "ITC") return "LIVE";
   return "SCHEDULED";
 }

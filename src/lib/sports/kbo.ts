@@ -63,7 +63,9 @@ function parseScore(v: number | string | null | undefined): number | undefined {
 function mapApiBaseballStatus(short: string): MatchStatus {
   const s = (short ?? "").toUpperCase();
   if (s === "FT" || s === "AOT" || s === "CANC_FT") return "FINISHED";
-  if (s === "POST" || s === "CANC") return "POSTPONED";
+  // ABD(Abandoned)·SUSP(Suspended) 도 미성립/중단 경기 — 축구 collector 와 동일하게 POSTPONED.
+  // 누락 시 fallback SCHEDULED 로 떨어져 진행 중 점수가 "예정" 으로 오표시됨.
+  if (s === "POST" || s === "CANC" || s === "ABD" || s === "SUSP") return "POSTPONED";
   if (
     s.startsWith("IN") || // IN1~IN9 (이닝 진행 중)
     s === "LIVE" ||
