@@ -12,16 +12,19 @@ export function buildBaseballWeeklyReviewPrompt(d: BaseballWeeklyReviewData): st
   L.push(`[이번 주 완료 경기] ${d.gamesThisWeek}경기`);
   L.push("");
 
-  // --- 순위 (결정론적). NPB 는 양대리그(센트럴·퍼시픽)로 분리. ---
+  // --- 순위 (결정론적). NPB(양대리그)·MLB(6지구)는 그룹별로 분리. ---
   const hasDiv = d.standings.some((s) => s.division);
+  const divOrder = [...new Set(d.standings.map((s) => s.division))].filter(
+    (x): x is string => Boolean(x),
+  );
   const fmtRow = (s: (typeof d.standings)[number]) => {
     const wk = s.weekW + s.weekL > 0 ? ` · 이번주 ${s.weekW}승${s.weekL}패` : "";
     const st = s.streak ? ` · ${s.streak}` : "";
     return ` ${s.rank}. ${s.team} ${s.wins}승${s.losses}패${s.draws > 0 ? `${s.draws}무` : ""} (${s.games}경기) 승률 ${pctStr(s.pct)} · ${s.rank === 1 ? "선두" : `${s.gb}게임차`}${wk}${st}`;
   };
   if (hasDiv) {
-    for (const div of ["센트럴", "퍼시픽"]) {
-      L.push(`[${div}리그 순위 — 승률 순. 이 수치만 인용, 창작 금지]`);
+    for (const div of divOrder) {
+      L.push(`[${div} 순위 — 승률 순. 이 수치만 인용, 창작 금지]`);
       for (const s of d.standings.filter((x) => x.division === div)) L.push(fmtRow(s));
       L.push("");
     }
@@ -33,8 +36,8 @@ export function buildBaseballWeeklyReviewPrompt(d: BaseballWeeklyReviewData): st
 
   // --- 팀 지표 리더 (결정론적). 양대리그면 소속 리그 약자(센/퍼)를 붙여 오분류 방지. ---
   const divOf = new Map(d.standings.map((s) => [s.team, s.division]));
-  const tag = (team: string) => (hasDiv && divOf.get(team) ? `(${divOf.get(team)!.slice(0, 1)})` : "");
-  L.push(hasDiv ? "[팀 지표 리더 (양 리그 통합) — 이 수치만 인용. 괄호는 소속 리그(센=센트럴·퍼=퍼시픽)]" : "[팀 지표 리더 — 이 수치만 인용]");
+  const tag = (team: string) => (hasDiv && divOf.get(team) ? `(${divOf.get(team)})` : "");
+  L.push(hasDiv ? "[팀 지표 리더 (전체 통합) — 이 수치만 인용. 괄호는 소속 지구/리그]" : "[팀 지표 리더 — 이 수치만 인용]");
   if (d.leaders.avg.length) L.push(` - 팀 타율: ${d.leaders.avg.map((x) => `${x.team}${tag(x.team)} ${pctStr(x.value)}`).join(" · ")}`);
   if (d.leaders.homeRuns.length) L.push(` - 팀 홈런: ${d.leaders.homeRuns.map((x) => `${x.team}${tag(x.team)} ${x.value}개`).join(" · ")}`);
   if (d.leaders.era.length) L.push(` - 팀 평균자책점(낮은 순): ${d.leaders.era.map((x) => `${x.team}${tag(x.team)} ${x.value}`).join(" · ")}`);
@@ -55,7 +58,7 @@ export function buildBaseballWeeklyReviewPrompt(d: BaseballWeeklyReviewData): st
   L.push("[필수 구조 — 이 순서·헤딩 그대로]");
   L.push("");
   if (hasDiv) {
-    L.push(`# (제목: 센트럴·퍼시픽 양대리그의 이번 주 핵심 흐름을 결합. 예: "센트럴·퍼시픽 선두 경쟁 가열 — ${d.league} ${d.weekLabelKo} 판도". 이모지 없이, 검색 친화적으로. 두 리그 선두 등 위 데이터에 있는 사실만 반영)`);
+    L.push(`# (제목: ${d.league} ${d.weekLabelKo} 의 이번 주 가장 두드러진 흐름(특정 지구의 선두 경쟁·급상승 팀 등)을 담아라. 예: "${divOrder[0]} 선두 경쟁 가열 — ${d.league} ${d.weekLabelKo} 판도". 이모지 없이, 검색 친화적으로. 위 데이터에 있는 사실만 반영)`);
   } else {
     L.push(`# (제목: '${d.league}' + 주차 맥락 + 이번 주 핵심 흐름을 결합. 예: "선두 ${d.standings[0].team} 주춤·추격전 가열 — ${d.league} ${d.weekLabelKo} 판도". 이모지 없이, 검색 친화적으로. 순위·연속기록 등 위 데이터에 있는 사실만 제목에 반영)`);
   }
@@ -64,7 +67,7 @@ export function buildBaseballWeeklyReviewPrompt(d: BaseballWeeklyReviewData): st
   L.push("");
   L.push("## 순위 판도");
   if (hasDiv) {
-    L.push("이 리그는 센트럴·퍼시픽 양대리그다. **센트럴리그 순위 표와 퍼시픽리그 순위 표를 각각 별도의 markdown 표**(순위 | 팀 | 승-패 | 승률 | 게임차 | 이번주)로 나눠 제시하라 — 두 리그를 한 표에 섞지 말 것. 이어서 각 리그의 선두 경쟁·중위권·하위권 상황을 합쳐 3단락 이상으로 해석. 게임차는 같은 리그 안에서만 의미가 있으므로 리그를 넘어 비교하지 말 것. 승점·골득실·강등 같은 축구 용어 금지.");
+    L.push(`이 리그는 ${divOrder.join("·")} ${divOrder.length}개 그룹으로 나뉜다. **각 그룹의 순위 표를 별도의 markdown 표**(순위 | 팀 | 승-패 | 승률 | 게임차 | 이번주)로 나눠 제시하라 — 서로 다른 그룹을 한 표에 섞지 말 것. 이어서 각 그룹의 선두 경쟁과 이번 주 두드러진 팀을 합쳐 ${divOrder.length >= 4 ? "5단락" : "3단락"} 이상으로 해석. 게임차는 같은 그룹 안에서만 의미가 있으므로 그룹을 넘어 비교하지 말 것. 승점·골득실·강등 같은 축구 용어 금지.`);
   } else {
     L.push("먼저 전체 순위를 markdown 표(순위 | 팀 | 승-패 | 승률 | 게임차 | 이번주)로 제시하라. 이어서 선두 경쟁·중위권 다툼·하위권 상황을 3단락 이상으로 해석. 게임차와 승률 수치를 근거로 순위 흐름을 서술하되, 위 데이터에 있는 숫자만 사용. 야구는 승률·게임차로 순위를 매기며 승점·골득실·강등 개념은 없다 — 이 용어들을 쓰지 말 것.");
   }
@@ -84,18 +87,19 @@ export function buildBaseballWeeklyReviewPrompt(d: BaseballWeeklyReviewData): st
   L.push("[규칙]");
   L.push(
     hasDiv
-      ? "- [표 3개 필수] '순위 판도'의 센트럴리그 순위 표·퍼시픽리그 순위 표, 그리고 '팀 타격·투구 지표'의 리더 표를 반드시 모두 포함하라. 표 누락은 실패로 간주한다."
+      ? `- [표 ${divOrder.length + 1}개 필수] '순위 판도'의 ${divOrder.length}개 그룹(${divOrder.join("·")}) 순위 표를 각각 하나씩, 그리고 '팀 타격·투구 지표'의 리더 표를 반드시 모두 포함하라. 표 누락은 실패로 간주한다.`
       : "- [표 2개 필수] '순위 판도'의 전체 순위 표와 '팀 타격·투구 지표'의 리더 표를 반드시 모두 포함하라. 표 누락은 실패로 간주한다.",
   );
   L.push("- [섹션 분량 필수] 각 ## 섹션은 지정한 단락 수(순위 판도 3단락+, 핫이슈 3단락+, 지표 2단락+, 관전포인트 2단락)를 반드시 채운다. 표는 단락 수에 포함하지 않는다.");
   L.push("- 모든 승률·게임차·전적·타율·ERA·홈런 수치는 위 데이터를 그대로 인용. 창작·반올림 변형·없는 기록 추가 절대 금지.");
+  L.push("- 팀명은 위 데이터의 표기를 한 글자도 바꾸지 말 것(음역 변형 금지 — 예: '탬파베이'를 '탐바베이'로 쓰지 말 것).");
   L.push("- 위 데이터에 없는 사실(개별 선수 성적·감독/선수 발언·부상·트레이드·다음 주 구체 일정)은 만들어내지 말 것.");
   L.push("- 소화 경기수·승차 등은 위 순위 데이터에 주어진 각 팀의 값만 사용하고, 여러 팀을 하나의 수치로 뭉뚱그리지 말 것(팀마다 경기수가 다르다).");
   L.push("- 게임차는 각 팀의 '선두 대비' 값만 주어진다. 두 팀 사이의 게임차를 직접 계산해 인용하지 말 것 — 순위 흐름은 선두 대비 게임차와 승패·승률로만 서술하라.");
   L.push("- 야구 용어를 지킬 것: 순위는 승률과 게임차로 매긴다. 승점·골득실·강등권 같은 축구 용어 금지. 무승부는 극소수이니 없으면 언급하지 말 것.");
-  if (hasDiv) L.push("- 팀의 소속 리그(센트럴/퍼시픽)를 언급할 때는 위 순위·리더의 리그 구분을 그대로 따를 것. 팀을 다른 리그로 잘못 분류하지 말 것.");
+  if (hasDiv) L.push("- 팀의 소속 지구/리그를 언급할 때는 위 순위·리더의 구분을 그대로 따를 것. 팀을 다른 지구/리그로 잘못 분류하지 말 것.");
   L.push("- 베팅·도박·픽 추천 어조 금지. 데이터 저널리즘 톤.");
-  L.push("- 본문 3,000~4,500자 (표 포함). 분량은 같은 말 반복이 아니라 데이터 해석·맥락·서사의 깊이로 채울 것. 표는 markdown 문법(`|`)으로만, ASCII art 금지.");
+  L.push(`- 본문 ${divOrder.length >= 4 ? "4,500~6,000" : "3,000~4,500"}자 (표 포함). 분량은 같은 말 반복이 아니라 데이터 해석·맥락·서사의 깊이로 채울 것. 표는 markdown 문법(\`|\`)으로만, ASCII art 금지.`);
   L.push("- 마지막 섹션은 '더 보기'. 별도 '결론' 헤딩 추가 금지.");
   L.push("- 한국어 문장은 마침표로 끝낼 것. 콜론(:)으로 문장을 끝내지 말 것.");
 

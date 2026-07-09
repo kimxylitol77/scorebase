@@ -4,20 +4,29 @@
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 
-// NPB 양대리그 구분 — 팀 시즌 스탯에 리그 필드가 없어 팀명으로 매핑(팀 이동 없어 고정).
-const NPB_DIVISION: Record<string, string> = {
-  요미우리: "센트럴",
-  한신: "센트럴",
-  요코하마: "센트럴",
-  주니치: "센트럴",
-  히로시마: "센트럴",
-  야쿠르트: "센트럴",
-  소프트뱅크: "퍼시픽",
-  닛폰햄: "퍼시픽",
-  세이부: "퍼시픽",
-  오릭스: "퍼시픽",
-  라쿠텐: "퍼시픽",
-  롯데: "퍼시픽",
+// 지구/리그 구분 — 팀 시즌 스탯에 구분 필드가 없어 팀명으로 매핑(팀 이동 없어 고정).
+// NPB=양대리그, MLB=양대리그 6지구. KBO 등 단일 리그는 여기 없음(→ 단일 순위).
+const DIVISION_BY_LEAGUE: Record<string, Record<string, string>> = {
+  NPB: {
+    요미우리: "센트럴", 한신: "센트럴", 요코하마: "센트럴",
+    주니치: "센트럴", 히로시마: "센트럴", 야쿠르트: "센트럴",
+    소프트뱅크: "퍼시픽", 닛폰햄: "퍼시픽", 세이부: "퍼시픽",
+    오릭스: "퍼시픽", 라쿠텐: "퍼시픽", 롯데: "퍼시픽",
+  },
+  MLB: {
+    뉴욕양키스: "AL 동부", 보스턴: "AL 동부", 토론토: "AL 동부", 탬파베이: "AL 동부", 볼티모어: "AL 동부",
+    클리블랜드: "AL 중부", 미네소타: "AL 중부", 디트로이트: "AL 중부", 캔자스시티: "AL 중부", 시카고W: "AL 중부",
+    휴스턴: "AL 서부", 시애틀: "AL 서부", 텍사스: "AL 서부", LA에인절스: "AL 서부", 오클랜드: "AL 서부",
+    애틀랜타: "NL 동부", 필라델피아: "NL 동부", 뉴욕메츠: "NL 동부", 마이애미: "NL 동부", 워싱턴: "NL 동부",
+    밀워키: "NL 중부", 시카고C: "NL 중부", 세인트루이스: "NL 중부", 신시내티: "NL 중부", 피츠버그: "NL 중부",
+    LA다저스: "NL 서부", 샌디에이고: "NL 서부", 샌프란시스코: "NL 서부", 애리조나: "NL 서부", 콜로라도: "NL 서부",
+  },
+};
+
+// 리그별 지구 표시 순서.
+const DIVISION_ORDER: Record<string, string[]> = {
+  NPB: ["센트럴", "퍼시픽"],
+  MLB: ["AL 동부", "AL 중부", "AL 서부", "NL 동부", "NL 중부", "NL 서부"],
 };
 
 export interface WeeklyStanding {
@@ -183,13 +192,11 @@ export async function buildBaseballWeeklyReview(
     }));
   };
 
-  const standings: WeeklyStanding[] =
-    league === "NPB"
-      ? [
-          ...buildGroup(teams.filter((t) => NPB_DIVISION[t.teamName] === "센트럴"), "센트럴"),
-          ...buildGroup(teams.filter((t) => NPB_DIVISION[t.teamName] === "퍼시픽"), "퍼시픽"),
-        ]
-      : buildGroup(teams);
+  const divisions = DIVISION_ORDER[league];
+  const divMap = DIVISION_BY_LEAGUE[league];
+  const standings: WeeklyStanding[] = divisions
+    ? divisions.flatMap((div) => buildGroup(teams.filter((t) => divMap[t.teamName] === div), div))
+    : buildGroup(teams);
 
   // 팀 지표 리더 (상위 3)
   const topBy = <T>(sel: (s: WeeklyStanding) => number | null, desc: boolean): WeeklyLeader[] =>

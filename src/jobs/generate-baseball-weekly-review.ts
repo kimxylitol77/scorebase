@@ -8,7 +8,7 @@ import { SYSTEM_PROMPT } from "@/prompts/system";
 import { buildBaseballWeeklyReview } from "@/lib/sports/baseball/weekly-review";
 import { buildBaseballWeeklyReviewPrompt } from "@/prompts/baseball-weekly-review";
 
-const DEFAULT_LEAGUES = ["KBO", "NPB"] as const;
+const DEFAULT_LEAGUES = ["KBO", "NPB", "MLB"] as const;
 
 function extractTitle(md: string): string {
   const m = md.match(/^#\s+(.+)$/m);
@@ -62,7 +62,7 @@ export async function runBaseballWeeklyReview(opts: RunOpts = {}) {
 
       const content = await generateWithMinLength(prompt, {
         system: SYSTEM_PROMPT,
-        maxTokens: 6000,
+        maxTokens: league === "MLB" ? 10000 : 6000, // MLB 는 6지구라 본문이 길다
         temperature: 0.6,
         minLength: 2400,
         label: `baseball-weekly ${league}`,
