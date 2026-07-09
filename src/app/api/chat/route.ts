@@ -42,22 +42,6 @@ function getClientIp(h: Headers): string {
 }
 
 export async function POST(req: Request) {
-  // 과금(Claude) OFF 스위치 — CHATBOT_AI_ENABLED=true 일 때만 AI 응답한다.
-  // 기본은 꺼짐: 챗봇 UI 는 뜨지만 Claude 를 호출하지 않아 과금이 없다.
-  // 켤 때: Vercel 환경변수에 CHATBOT_AI_ENABLED=true + ANTHROPIC_API_KEY 설정.
-  if (process.env.CHATBOT_AI_ENABLED !== "true") {
-    return NextResponse.json({
-      reply: "챗봇은 곧 정식 오픈 예정이에요. 지금은 준비 중입니다. 조금만 기다려 주세요.",
-    });
-  }
-
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY 가 설정되지 않았습니다." },
-      { status: 503 },
-    );
-  }
-
   const h = await headers();
   const ip = getClientIp(h);
   const limit = rateLimit(`chat:${ip}`, { max: 15, windowMs: 5 * 60 * 1000 });
@@ -81,6 +65,33 @@ export async function POST(req: Request) {
   }
   if (incoming.length > MAX_MESSAGES) {
     return NextResponse.json({ error: "대화가 너무 깁니다." }, { status: 400 });
+  }
+
+  const lastUser =
+    [...incoming].reverse().find((m) => m.role === "user")?.content?.slice(0, MAX_USER_LEN).trim() ?? "";
+
+  // 과금(Claude) OFF 스위치 — CHATBOT_AI_ENABLED=true 일 때만 AI 응답한다.
+  // 꺼져 있어도 사용자가 남긴 메시지는 문의·제보로 운영자 텔레그램에 전달한다(Claude 미호출=무과금).
+  // 켤 때: Vercel 환경변수 CHATBOT_AI_ENABLED=true + ANTHROPIC_API_KEY.
+  if (process.env.CHATBOT_AI_ENABLED !== "true") {
+    if (lastUser) {
+      try {
+        await executeTool("report_bug", { summary: lastUser });
+      } catch (err) {
+        console.error("[chat] off-mode 제보 전달 실패", err);
+      }
+    }
+    return NextResponse.json({
+      reply:
+        "남겨주신 내용은 관리자에게 전달해 드렸어요. 감사합니다. AI 상담은 곧 정식 오픈 예정입니다.",
+    });
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      { error: "ANTHROPIC_API_KEY 가 설정되지 않았습니다." },
+      { status: 503 },
+    );
   }
 
   const messages: Anthropic.MessageParam[] = incoming.map((m) => ({

@@ -13,7 +13,7 @@ interface Message {
 const GREETING: Message = {
   role: "assistant",
   content:
-    "안녕하세요! Scorebase 안내 챗봇입니다.\n오늘 EPL 경기, 특정 매치 예측 근거, 최근 결과 같은 질문에 답해드려요.",
+    "안녕하세요! Scorebase 챗봇이에요.\n궁금한 점이나 버그·오류 제보를 남겨주세요. 운영자에게 전달해 드립니다.",
 };
 
 export default function Chatbot() {
