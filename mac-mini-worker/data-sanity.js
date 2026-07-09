@@ -64,6 +64,7 @@ const KIND_LABEL = {
   future_live: "⏭ 미래 매치 LIVE stuck",
   standings_stale: "🏆 순위 cache stale",
   standings_mismatch: "⚠️ 순위 source 불일치",
+  friendly_dup: "👥 친선 매치 소스 중복",
 };
 
 const KIND_CAUSE = {
@@ -76,6 +77,7 @@ const KIND_CAUSE = {
   future_live: "status_id 매핑 오류 또는 status update path 가 미래 매치 가드 누락",
   standings_stale: "Lightsail standings-poller 죽음 또는 Vercel standings-collect cron 실패",
   standings_mismatch: "두 source 중 하나가 stale — fresh source 우선순위 확인",
+  friendly_dup: "옛 collect-friendlies(prefix 없는 externalId) 재실행 또는 과거 raw 매치의 연기 재편성",
 };
 
 const KIND_ACTION = {
@@ -88,6 +90,7 @@ const KIND_ACTION = {
   future_live: "Match.status=SCHEDULED + score null 로 즉시 롤백. status updater 의 status_id 매핑 검증",
   standings_stale: "Lightsail: sudo systemctl status scorebase-standings-poller / Vercel cron: /api/cron/standings-collect 로그",
   standings_mismatch: "src/lib/sports/thesports/standings-helper.ts 의 source 우선순위 확인",
+  friendly_dup: "raw row(prefix 없는 externalId) 삭제 — ts- row 가 canonical (2026-07-09 보카전 참고)",
 };
 
 async function poll() {

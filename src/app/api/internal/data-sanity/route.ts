@@ -46,7 +46,8 @@ type IssueKind =
   | "stale_live"
   | "future_live"
   | "standings_stale"
-  | "standings_mismatch";
+  | "standings_mismatch"
+  | "friendly_dup";
 
 interface Issue {
   kind: IssueKind;
@@ -412,6 +413,43 @@ export async function GET(req: NextRequest) {
         });
       }
     }
+  }
+
+  // ───── 4.5. CLUB_FRIENDLY 소스 prefix 중복 — 같은 ts 매치가 raw + ts- 두 row ─────
+  // 원인: 옛 collect-friendlies(prefix 없는 externalId) 재실행 or 과거 raw 의 연기 재편성
+  // (2026-07-09 보카전 중복 카드). 같은 tsMatchId 두 row = false positive 여지 없는 확정
+  // 중복이라 /scores 에 두 카드로 노출. ts- row 가 canonical(worker LIVE 갱신 owner) —
+  // 조치는 raw row 삭제.
+  const cfRows = await prisma.match.findMany({
+    where: { league: "CLUB_FRIENDLY" },
+    select: {
+      id: true,
+      externalId: true,
+      status: true,
+      homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
+    },
+  });
+  const cfByTs = new Map<string, typeof cfRows>();
+  for (const m of cfRows) {
+    const tsId = m.externalId.replace(/^ts-/, "");
+    if (!cfByTs.has(tsId)) cfByTs.set(tsId, []);
+    cfByTs.get(tsId)!.push(m);
+  }
+  for (const [tsId, rows] of cfByTs) {
+    if (rows.length < 2) continue;
+    const raw = rows.find((r) => !r.externalId.startsWith("ts-"));
+    if (!raw) continue; // ts- 끼리 2개면 별개 매치(다른 id) — 여기 대상 아님
+    issues.push({
+      kind: "friendly_dup",
+      severity: "HIGH",
+      matchId: raw.id,
+      externalId: raw.externalId,
+      league: "CLUB_FRIENDLY",
+      home: raw.homeTeam.name,
+      away: raw.awayTeam.name,
+      detail: `같은 ts 매치(${tsId})가 ${rows.length} row — raw #${raw.id} 삭제 필요 (ts- 가 canonical)`,
+    });
   }
 
   // ───── 5/6. standings 검사 — 메이저 리그 source stale + 두 source 1위 팀 mismatch ─────
