@@ -44,34 +44,36 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
 
   // 클럽 리그면 우승팀 → logoUrl 매처. 한글명 정확일치(EPL·라리가) → 영문 정확/부분일치(세리에·분데스, 풀네임 vs 짧은 DB명) 순.
   // 매칭 안 되는 우승팀(강등·해체)은 DB 로고 자체가 없어 자연히 로고 없이 표시(graceful).
-  let logoOf: (ko: string, en: string) => string | null = () => null;
+  // 우승팀(위키데이터 이름) → DB 팀 매칭. 로고 + 팀 id(팀명·로고 클릭 시 /teams/[id] 이동).
+  type TeamHit = { id: number; logo: string | null };
+  let teamOf: (ko: string, en: string) => TeamHit | null = () => null;
   if (!showFlag) {
     // 컵 대회(UCL/UEL 등) 우승팀은 여러 도메스틱 리그 소속(토트넘=EPL·아탈란타=세리에)이라 팀 풀을 빅리그까지 확장.
     const CUP = new Set(["UCL", "UEL", "UECL"]);
     const where = CUP.has(league)
       ? { league: { in: [league, "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "MLS"] } }
       : { league };
-    const teams = await prisma.team.findMany({ where, select: { name: true, logoUrl: true, league: true } });
-    const koMap = new Map<string, string>();
-    const enList: { norm: string; logo: string }[] = [];
+    // 로고 없는 팀도 팀 페이지 링크를 위해 포함(로고는 graceful null).
+    const teams = await prisma.team.findMany({ where, select: { id: true, name: true, logoUrl: true, league: true } });
+    const koMap = new Map<string, TeamHit>();
+    const enList: { norm: string; id: number; logo: string | null }[] = [];
     for (const t of teams) {
-      if (!t.logoUrl) continue;
       const ko = normKo(toKoreanTeamName(t.name, t.league));
-      if (ko && !koMap.has(ko)) koMap.set(ko, t.logoUrl);
-      enList.push({ norm: normEn(t.name), logo: t.logoUrl });
+      if (ko && !koMap.has(ko)) koMap.set(ko, { id: t.id, logo: t.logoUrl });
+      enList.push({ norm: normEn(t.name), id: t.id, logo: t.logoUrl });
     }
-    logoOf = (ko, en) => {
+    teamOf = (ko, en) => {
       const k = koMap.get(normKo(ko));
       if (k) return k;
       const q = normEn(en);
       if (!q) return null;
       const exact = enList.find((t) => t.norm === q);
-      if (exact) return exact.logo;
-      let best: { norm: string; logo: string } | null = null;
+      if (exact) return { id: exact.id, logo: exact.logo };
+      let best: { norm: string; id: number; logo: string | null } | null = null;
       for (const t of enList) {
         if (t.norm.length >= 4 && (q.includes(t.norm) || t.norm.includes(q)) && (!best || t.norm.length > best.norm.length)) best = t;
       }
-      return best?.logo ?? null;
+      return best ? { id: best.id, logo: best.logo } : null;
     };
   }
 
@@ -91,7 +93,7 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
         <div className="flex flex-wrap gap-2">
           {top.map(([club, n], i) => {
             const flag = showFlag ? fifaFlag(club) : "";
-            const logo = logoOf(club, enByKo.get(club) ?? club);
+            const t = teamOf(club, enByKo.get(club) ?? club);
             return (
             <div
               key={club}
@@ -103,8 +105,17 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
             >
               {i === 0 && <span className="text-sm">🏆</span>}
               {flag && <span className="text-sm" aria-hidden>{flag}</span>}
-              <TeamBadge logoUrl={logo} size={18} className="bg-white rounded-sm" />
-              <span className="font-bold text-sm">{club}</span>
+              {t ? (
+                <Link href={`/teams/${t.id}`} className="flex items-center gap-2 min-w-0 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                  <TeamBadge logoUrl={t.logo} size={18} className="bg-white rounded-sm" />
+                  <span className="font-bold text-sm">{club}</span>
+                </Link>
+              ) : (
+                <>
+                  <TeamBadge logoUrl={null} size={18} className="bg-white rounded-sm" />
+                  <span className="font-bold text-sm">{club}</span>
+                </>
+              )}
               <span className={`text-sm tabular-nums font-black ${i === 0 ? "text-amber-600 dark:text-amber-400" : "text-neutral-500"}`}>
                 {n}회
               </span>
@@ -121,7 +132,7 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
         <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] overflow-hidden grid sm:grid-cols-2 dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           {champions.map((c, i) => {
             const flag = showFlag ? fifaFlag(c.en, c.ko) : "";
-            const logo = logoOf(c.ko, c.en);
+            const t = teamOf(c.ko, c.en);
             return (
             <div
               key={c.season + i}
@@ -129,8 +140,17 @@ export default async function LeagueHistory({ league, leagueName }: { league: st
             >
               <span className="w-16 shrink-0 text-xs tabular-nums text-neutral-400">{c.season}</span>
               {flag && <span className="shrink-0" aria-hidden>{flag}</span>}
-              <TeamBadge logoUrl={logo} size={18} className="bg-white rounded-sm" />
-              <span className="font-medium truncate">{c.ko}</span>
+              {t ? (
+                <Link href={`/teams/${t.id}`} className="flex items-center gap-2 min-w-0 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                  <TeamBadge logoUrl={t.logo} size={18} className="bg-white rounded-sm" />
+                  <span className="font-medium truncate">{c.ko}</span>
+                </Link>
+              ) : (
+                <>
+                  <TeamBadge logoUrl={null} size={18} className="bg-white rounded-sm" />
+                  <span className="font-medium truncate">{c.ko}</span>
+                </>
+              )}
               <div className="ml-auto flex shrink-0 items-center gap-1.5">
                 {c.article && (
                   <Link
