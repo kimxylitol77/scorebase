@@ -93,6 +93,10 @@
       "schedule": "0 2 * * 4"
     },
     {
+      "path": "/api/cron/tactical",
+      "schedule": "0 3 * * 1,4"
+    },
+    {
       "path": "/api/cron/team-of-day",
       "schedule": "0 1,3,5,7,9 * * *"
     },

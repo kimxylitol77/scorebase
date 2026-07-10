@@ -53,9 +53,12 @@
 - [!] 시각 렌더 검증은 PUBLISHED TACTICAL 글 필요 → DRAFT 미생성 결정으로 보류(tsc 통과로 갈음)
 
 ## Phase 6 — 품질 검증 후 자동화
-- [ ] DRAFT 5~10편 수동 검수 — 사실 정확성·전술 깊이·중복 표현 → 검증: 합격선 통과
-- [ ] 합격 시 status 기본값 PUBLISHED 전환 → 검증: 자동 발행 1편 end-to-end
-- [ ] cron 등록(빈도 확정 후) → 검증: 스케줄 1회 정상 동작
+- [x] cron 배선 준비 — [api/cron/tactical/route.ts](../../src/app/api/cron/tactical/route.ts) + vercel.json `0 3 * * 1,4`(월·목 12시 KST). tsc·JSON 유효성 통과.
+  - **기본 OFF 게이트**: `TACTICAL_ENABLED=1` 아니면 skip(`?force=1` override). DRAFT INSERT 는 env 켜야 발생 → "아직 만들지 마" 준수.
+  - `?dry=1` = DB 쓰기 없는 스모크 테스트(게이트 무관). 배포 후 `curl -H "Authorization: Bearer $CRON_SECRET" ".../api/cron/tactical?dry=1"` 로 확인.
+- [ ] (새 시즌) 실제 DRAFT 생성 승인 → 5~10편 수동 검수 — 사실·전술 깊이·중복 표현
+- [ ] 합격 시 generate-tactical status 기본값 DRAFT→PUBLISHED 전환 → 자동 발행 end-to-end
+- [ ] 준비 완료 후 `TACTICAL_ENABLED=1` (Vercel env) 켜서 cron 가동
 
 ## 절대 하지 말 것
 - 데이터 없는 경기에 LLM 일반론글 생성(= thin content, SEO 역효과)
