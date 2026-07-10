@@ -1068,6 +1068,26 @@ export default async function ScoresPage({ searchParams }: Props) {
     }
     return ko.toLowerCase().replace(/[\s.·\-_]/g, "");
   }
+  // 순수 로마자 키 — 한글 매핑을 거치지 않고 발음기호·특수문자만 정규화. DB 매치와
+  // api-football orphan 이 같은 경기라도 철자(é/æ/ø/ł 등)가 달라 중복 카드로 뜨던 것 방지.
+  // normalizeName 은 toKoreanTeamName 을 먼저 태워서, 한쪽 철자만 한글 매핑에 걸리면
+  // 키가 갈린다(예: "Bodø/Glimt"→한글 vs "Bodo Glimt"→로마자). 이 키는 그 우회로.
+  function romanizeName(s: string): string {
+    return s
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "") // 결합 diacritic (é á ñ ü …)
+      .normalize("NFC")
+      .toLowerCase()
+      .replace(/æ/g, "ae")
+      .replace(/œ/g, "oe")
+      .replace(/ø/g, "o")
+      .replace(/ł/g, "l")
+      .replace(/đ|ð/g, "d")
+      .replace(/þ/g, "th")
+      .replace(/ß/g, "ss")
+      .replace(/ı/g, "i")
+      .replace(/[\s.·\-_/]/g, "");
+  }
   // 라이브 매치를 페이지의 KST 일자로 필터 — 다른 날짜 매치가 같은 팀명으로 false-match 되는 것 방지.
   // (예: 5/15 한화-KT 라이브 데이터가 5/16 한화-KT DB 매치에 잘못 붙어 "진행 중" 으로 보이던 버그)
   const liveForThisDay = liveMatches.filter((lm) => {
@@ -1643,6 +1663,20 @@ export default async function ScoresPage({ searchParams }: Props) {
       (d) => d.league === dm.league && nameOverlap(d.h, h) && nameOverlap(d.a, a),
     );
   };
+  // 로마자 키 보강 — 발음기호·특수문자만 다른 같은 경기(예: DB "Hradec Kralove" ↔
+  // date "Hradec Králové", "Bodo Glimt" ↔ "Bodø/Glimt")를 한글 매핑 우회로 한 번 더 거른다.
+  const dbRomanNorms = matches.map((m) => ({
+    league: m.league,
+    h: romanizeName(m.homeTeam.name),
+    a: romanizeName(m.awayTeam.name),
+  }));
+  const coveredByRoman = (dm: DatedMatch) => {
+    const h = romanizeName(dm.homeName);
+    const a = romanizeName(dm.awayName);
+    return dbRomanNorms.some(
+      (d) => d.league === dm.league && nameOverlap(d.h, h) && nameOverlap(d.a, a),
+    );
+  };
   // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
   // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.
   const isYouthOrWomenFriendly = (dm: DatedMatch) =>
@@ -1659,6 +1693,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           `${dm.league}|${normalizeName(dm.homeName)}|${normalizeName(dm.awayName)}`,
         ) &&
         !coveredByDbName(dm) &&
+        !coveredByRoman(dm) &&
         !matchedLiveIds.has(dm.id),
     )
     .map((dm) => orphanCard(dm));
