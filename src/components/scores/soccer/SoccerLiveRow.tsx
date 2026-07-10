@@ -507,7 +507,16 @@ function OddsCell({ odds }: { odds: MatchOdds | null }) {
   if (!odds) return null;
   return (
     <div
-      className="relative flex flex-col items-end justify-center gap-0.5 text-[9px] leading-none tabular-nums"
+      role="link"
+      title="이 배당이 어디로 움직이는지 — 배당 흐름 보기"
+      onClick={(e) => {
+        // 행 전체가 <Link> 라 nested anchor 회피 — button 배지들과 동일하게 window.open 우회.
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window !== "undefined")
+          window.open("/odds?sport=soccer", "_blank", "noopener,noreferrer");
+      }}
+      className="relative flex cursor-pointer flex-col items-end justify-center gap-0.5 text-[9px] leading-none tabular-nums hover:text-neutral-600 dark:hover:text-neutral-300"
       onMouseEnter={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         setPos({ right: window.innerWidth - r.right, bottom: r.bottom });
