@@ -85,6 +85,7 @@ export const SPORT_KEY: Record<string, string> = {
 interface OddsApiOutcome {
   name: string;
   price: number; // decimal odds (e.g. 2.10)
+  point?: number; // totals/spreads 기준선 (h2h 는 없음)
 }
 interface OddsApiMarket {
   key: string; // "h2h" / "spreads" / "totals"

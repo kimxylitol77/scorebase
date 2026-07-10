@@ -5,6 +5,7 @@
 
 import "@/lib/env";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import {
   fetchLeagueOdds,
   impliedFromOdds,
@@ -106,6 +107,33 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
         const btts = averageBtts(ev);
         const dc = averageDoubleChance(ev);
 
+        // 배당업체별 배당 (드롭다운용) — ev.bookmakers 를 3마켓(1X2/오버언더/핸디캡)으로 정리.
+        const bmList: Record<string, unknown>[] = [];
+        for (const b of ev.bookmakers ?? []) {
+          const mk: Record<string, { name: string; price: number; point?: number }[]> = {};
+          for (const mm of b.markets ?? []) mk[mm.key] = mm.outcomes ?? [];
+          const h2hO = mk.h2h;
+          if (!h2hO) continue;
+          const hv = h2hO.find((o) => o.name === ev.home_team)?.price;
+          const av = h2hO.find((o) => o.name === ev.away_team)?.price;
+          const dv = h2hO.find((o) => o.name === "Draw")?.price;
+          if (hv == null || av == null) continue;
+          const rec: Record<string, unknown> = { nm: b.title, h: hv, d: dv ?? null, a: av };
+          const totO = mk.totals;
+          if (totO) {
+            const ov = totO.find((o) => o.name === "Over");
+            const un = totO.find((o) => o.name === "Under");
+            if (ov && un) { rec.tl = ov.point; rec.ov = ov.price; rec.un = un.price; }
+          }
+          const sprO = mk.spreads;
+          if (sprO) {
+            const hh = sprO.find((o) => o.name === ev.home_team);
+            const ha = sprO.find((o) => o.name === ev.away_team);
+            if (hh && ha) { rec.hl = hh.point; rec.hh = hh.price; rec.ha = ha.price; }
+          }
+          bmList.push(rec);
+        }
+
         // 오프닝 odds — 매치당 한 번만 저장 (이미 있으면 미터치)
         const openingPatch =
           m.openingMarketHome == null
@@ -140,8 +168,31 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
             oddsDc1X: dc?.oneX ?? null,
             oddsDc12: dc?.twelve ?? null,
             oddsDcX2: dc?.xTwo ?? null,
+            oddsBookmakers: bmList.length
+              ? ({ updatedAt: Date.now(), books: bmList } as unknown as Prisma.InputJsonValue)
+              : undefined,
           },
         });
+
+        // 배당 변동 차트용 시계열 스냅샷 — 이미 가져온 배당이라 추가 API 호출 없음. 같은 분 중복만 회피.
+        if (h2h?.home != null && h2h?.away != null) {
+          const oneMinAgo = new Date(Date.now() - 60_000);
+          const recentSnap = await prisma.oddsSnapshot.findFirst({
+            where: { matchId: m.id, fetchedAt: { gte: oneMinAgo } },
+            select: { id: true },
+          });
+          if (!recentSnap) {
+            await prisma.oddsSnapshot.create({
+              data: {
+                matchId: m.id,
+                homeOdds: h2h.home,
+                drawOdds: h2h.draw ?? null,
+                awayOdds: h2h.away,
+                bookmakers: implied.consensus,
+              },
+            });
+          }
+        }
         matched++;
       }
       tally[league] = matched;

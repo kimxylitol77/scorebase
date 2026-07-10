@@ -283,7 +283,12 @@ export default function LiveOddsCard({
               last={oddsHistory[oddsHistory.length - 1]}
             />
           </div>
-          <Sparklines points={oddsHistory} hasDraw={hasDraw} />
+          <Sparklines
+            points={oddsHistory}
+            hasDraw={hasDraw}
+            homeNameKo={homeNameKo}
+            awayNameKo={awayNameKo}
+          />
         </div>
       )}
 
@@ -418,43 +423,122 @@ function OddsCellRich({
   );
 }
 
-/** 1X2 sparkline — home/draw/away 3 라인 (draw 는 hasDraw 일 때만). y축 = odds (역수 = implied %) */
-function Sparklines({ points, hasDraw }: { points: OddsHistoryPoint[]; hasDraw?: boolean }) {
-  const W = 280;
-  const H = 56;
-  const pad = 4;
+/** 1X2 배당 변동 차트 — home/draw/away 3 라인 + y축 배당 눈금 + x축 시각 + 끝점 현재값.
+ * y축 = odds (내려갈수록 승리확률 ↑). draw 는 hasDraw(축구) 일 때만. */
+function Sparklines({
+  points,
+  hasDraw,
+  homeNameKo,
+  awayNameKo,
+}: {
+  points: OddsHistoryPoint[];
+  hasDraw?: boolean;
+  homeNameKo: string;
+  awayNameKo: string;
+}) {
+  const W = 560;
+  const H = 190;
+  const padL = 12;
+  const padR = 50;
+  const padT = 12;
+  const padB = 20;
   const n = points.length;
   if (n < 2) return null;
 
-  // y 범위 — 전체 odds (home + away + draw if any) min/max
+  const series: { key: "home" | "draw" | "away"; color: string; name: string }[] = [
+    { key: "home", color: "#f43f5e", name: homeNameKo },
+    ...(hasDraw ? [{ key: "draw" as const, color: "#94a3b8", name: "무" }] : []),
+    { key: "away", color: "#3b82f6", name: awayNameKo },
+  ];
+  const val = (p: OddsHistoryPoint, key: "home" | "draw" | "away") =>
+    key === "draw" ? p.draw : p[key];
+
+  // y 범위 — 전체 odds min/max (위아래 10% 여백)
   const allOdds: number[] = [];
-  for (const p of points) {
-    allOdds.push(p.home, p.away);
-    if (hasDraw && p.draw != null) allOdds.push(p.draw);
-  }
+  for (const p of points)
+    for (const s of series) {
+      const v = val(p, s.key);
+      if (v != null) allOdds.push(v);
+    }
   const minY = Math.min(...allOdds);
   const maxY = Math.max(...allOdds);
   const rangeY = maxY - minY || 1;
-  const xOf = (i: number) => pad + (i / (n - 1)) * (W - pad * 2);
-  const yOf = (v: number) => pad + (1 - (v - minY) / rangeY) * (H - pad * 2);
-  const path = (key: "home" | "draw" | "away") =>
+  const y0 = minY - rangeY * 0.1;
+  const y1 = maxY + rangeY * 0.1;
+  const rY = y1 - y0;
+
+  const xOf = (i: number) => padL + (i / (n - 1)) * (W - padL - padR);
+  const yOf = (v: number) => padT + (1 - (v - y0) / rY) * (H - padT - padB);
+  const line = (key: "home" | "draw" | "away") =>
     points
       .map((p, i) => {
-        const v = key === "draw" ? p.draw : p[key];
+        const v = val(p, key);
         if (v == null) return "";
         return `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yOf(v).toFixed(1)}`;
       })
       .filter(Boolean)
       .join(" ");
 
+  const fmtTime = (ms: number) => {
+    const d = new Date(ms);
+    const p2 = (x: number) => String(x).padStart(2, "0");
+    return `${d.getMonth() + 1}/${d.getDate()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  };
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-14" preserveAspectRatio="none">
-      {/* home 라인 — rose */}
-      <path d={path("home")} fill="none" stroke="#f43f5e" strokeWidth="1.5" />
-      {/* draw 라인 — gray (축구만) */}
-      {hasDraw && <path d={path("draw")} fill="none" stroke="#94a3b8" strokeWidth="1.2" strokeDasharray="3,2" />}
-      {/* away 라인 — blue */}
-      <path d={path("away")} fill="none" stroke="#3b82f6" strokeWidth="1.5" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "auto" }}>
+      {/* y 눈금 — min/max 수평선 + 배당값 */}
+      {[minY, maxY].map((v) => (
+        <g key={v}>
+          <line
+            x1={padL}
+            x2={W - padR}
+            y1={yOf(v)}
+            y2={yOf(v)}
+            className="stroke-neutral-200 dark:stroke-neutral-700"
+            strokeWidth="0.5"
+          />
+          <text x={padL} y={yOf(v) - 3} className="fill-neutral-400 dark:fill-neutral-500" fontSize="9">
+            {v.toFixed(2)}
+          </text>
+        </g>
+      ))}
+      {/* x 시각 — 첫/끝 */}
+      <text x={padL} y={H - 5} className="fill-neutral-400 dark:fill-neutral-500" fontSize="9">
+        {fmtTime(points[0].fetchedAt)}
+      </text>
+      <text
+        x={W - padR}
+        y={H - 5}
+        textAnchor="end"
+        className="fill-neutral-400 dark:fill-neutral-500"
+        fontSize="9"
+      >
+        {fmtTime(points[n - 1].fetchedAt)}
+      </text>
+      {/* 라인 + 끝점 dot + 현재 배당값 */}
+      {series.map((s) => {
+        const lastV = val(points[n - 1], s.key);
+        return (
+          <g key={s.key}>
+            <path
+              d={line(s.key)}
+              fill="none"
+              stroke={s.color}
+              strokeWidth="1.8"
+              strokeDasharray={s.key === "draw" ? "3,2" : undefined}
+            />
+            {lastV != null && (
+              <>
+                <circle cx={xOf(n - 1)} cy={yOf(lastV)} r="2.5" fill={s.color} />
+                <text x={W - padR + 5} y={yOf(lastV) + 3} fontSize="10" fontWeight="600" fill={s.color}>
+                  {lastV.toFixed(2)}
+                </text>
+              </>
+            )}
+          </g>
+        );
+      })}
     </svg>
   );
 }

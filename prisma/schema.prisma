@@ -147,6 +147,9 @@ model Match {
   oddsDc1X        Float?  // 더블 찬스 홈승 OR 무
   oddsDc12        Float?  // 더블 찬스 홈승 OR 원정승 (무 제외)
   oddsDcX2        Float?  // 더블 찬스 무 OR 원정승
+  // 배당업체별 배당 (oddsportal 스타일 드롭다운용). fetch-odds 가 The Odds events 의 bookmakers 를 그대로 저장.
+  // 구조: { updatedAt: number, books: [{ nm, h, d, a, tl?, ov?, un?, hl?, hh?, ha? }] } — nm=업체명, h/d/a=1X2, tl/ov/un=오버언더, hl/hh/ha=핸디캡.
+  oddsBookmakers  Json?
 
   // API-Football Pro 통합 (축구만)
   apiFixtureId    Int?     // api-football fixture ID — 한 번 매칭 후 재사용

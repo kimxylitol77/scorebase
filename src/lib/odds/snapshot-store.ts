@@ -46,11 +46,17 @@ export async function saveOddsSnapshot(
   }
 }
 
-/** 매치 디테일 페이지 — 최근 30개 snapshot (오래된→최신 순). 최대 3시간 window. */
-export async function getOddsHistory(matchId: number, limit = 30): Promise<OddsHistoryPoint[]> {
-  const since = new Date(Date.now() - 3 * 3600 * 1000);
+/** 매치 디테일 배당 변동 차트용 — 최근 snapshot (오래된→최신 순). 최대 72시간 window(오프닝~킥오프 흐름).
+ * 킥오프 이후 스냅샷은 제외 — in-play 정지/종료 배당(한쪽 무한대 근접)이 y축을 지배해 pre-match 흐름을 뭉개는 것 방지. */
+export async function getOddsHistory(matchId: number, limit = 150): Promise<OddsHistoryPoint[]> {
+  const since = new Date(Date.now() - 72 * 3600 * 1000);
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    select: { startTime: true },
+  });
+  const before = match?.startTime ?? new Date();
   const rows = await prisma.oddsSnapshot.findMany({
-    where: { matchId, fetchedAt: { gte: since } },
+    where: { matchId, fetchedAt: { gte: since, lte: before } },
     orderBy: { fetchedAt: "desc" },
     take: limit,
     select: { fetchedAt: true, homeOdds: true, drawOdds: true, awayOdds: true },
