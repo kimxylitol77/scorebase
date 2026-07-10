@@ -30,8 +30,20 @@ export type OddsMatch = {
   awayLogo: string | null;
   hs: number | null;
   as: number | null;
+  dirH: -1 | 0 | 1; // 홈 배당 방향: +1 오름 / -1 내림 / 0 변화없음
+  dirA: -1 | 0 | 1; // 원정 배당 방향
   books: BookRec[];
 };
+
+// 배당 방향 화살표 — 배당 오름(+1)=빨강▲, 내림(-1)=초록▼(스팀무브: 돈 몰리면 배당 내림)
+function Arrow({ dir }: { dir: -1 | 0 | 1 }) {
+  if (dir === 0) return null;
+  return dir > 0 ? (
+    <span className="ml-0.5 align-top text-[8px] text-rose-500">▲</span>
+  ) : (
+    <span className="ml-0.5 align-top text-[8px] text-emerald-500">▼</span>
+  );
+}
 
 function fmtTime(ms: number): string {
   const d = new Date(ms);
@@ -196,9 +208,15 @@ export default function OddsHubList({ matches }: { matches: OddsMatch[] }) {
                       {m.as != null && <span className="ml-auto font-medium">{m.as}</span>}
                     </div>
                   </div>
-                  <div className="text-center text-xs font-medium">{bh.toFixed(2)}</div>
+                  <div className="text-center text-xs font-medium">
+                    {bh.toFixed(2)}
+                    <Arrow dir={m.dirH} />
+                  </div>
                   <div className="text-center text-xs font-medium">{bd > 0 ? bd.toFixed(2) : "-"}</div>
-                  <div className="text-center text-xs font-medium">{ba.toFixed(2)}</div>
+                  <div className="text-center text-xs font-medium">
+                    {ba.toFixed(2)}
+                    <Arrow dir={m.dirA} />
+                  </div>
                   <div
                     className={`text-center text-neutral-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
                   >

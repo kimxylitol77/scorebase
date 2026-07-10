@@ -23,6 +23,14 @@ export default async function OddsPage() {
     take: 300,
   });
 
+  // 배당 방향 — 오프닝 대비 현재 확률 비교. 확률 내리면(op>mk) 배당 오름(+1), 오르면 배당 내림(-1).
+  const dirOf = (op: number | null, mk: number | null): -1 | 0 | 1 => {
+    if (op == null || mk == null) return 0;
+    const d = op - mk;
+    if (Math.abs(d) < 0.008) return 0;
+    return d > 0 ? 1 : -1;
+  };
+
   const matches: OddsMatch[] = rows
     .map((m) => {
       const ob = m.oddsBookmakers as { books?: BookRec[] } | null;
@@ -38,13 +46,15 @@ export default async function OddsPage() {
         awayLogo: m.awayTeam.logoUrl ?? null,
         hs: m.homeScore,
         as: m.awayScore,
+        dirH: dirOf(m.openingMarketHome, m.marketHome),
+        dirA: dirOf(m.openingMarketAway, m.marketAway),
         books,
       };
     })
     .filter((m) => m.books.length > 0);
 
   return (
-    <div className="mx-auto max-w-2xl px-3 py-4">
+    <div className="mx-auto max-w-5xl px-4 py-4">
       <div className="mb-1 flex items-center gap-2">
         <span className="text-lg font-medium">축구 배당</span>
         <span className="text-xs text-neutral-400">{matches.length}경기</span>
