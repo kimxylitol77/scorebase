@@ -339,8 +339,11 @@ function FlowCard({ m }: { m: FlowMatch }) {
         </div>
         <Spark points={m.points} color={color} w={110} h={46} />
         {dl && (
-          <div className="w-12 flex-shrink-0 text-right text-[17px] font-medium tabular-nums" style={{ color }}>
-            {dl}
+          <div className="w-16 flex-shrink-0 text-right" style={{ color }}>
+            <div className="text-[18px] font-medium leading-none tabular-nums">{dl}</div>
+            <div className="mt-1 text-[10px] font-normal text-neutral-400">
+              {m.deltaPct < 0 ? "홈 배당 하락" : "홈 배당 상승"}
+            </div>
           </div>
         )}
       </button>
