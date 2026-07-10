@@ -35,9 +35,9 @@ export type FlowMatch = {
   books: BookRec[];
 };
 
-const C_DROP = "#1d9e75"; // 배당 하락 = 돈 몰림
-const C_RISE = "#ba7517"; // 배당 상승 = 돈 빠짐
-const C_FLAT = "#b4b2a9";
+const C_DROP = "#1d9e75"; // 배당 내려감 = 돈 몰림 (초록)
+const C_RISE = "#e24b4a"; // 배당 올라감 = 돈 빠짐 (빨강)
+const C_FLAT = "#b4b2a9"; // 잠잠
 
 type Tone = -1 | 0 | 1;
 
@@ -49,7 +49,7 @@ function narrate(m: FlowMatch): { tone: Tone; text: string } {
   const d = m.deltaPct;
   const op = (m.openH as number).toFixed(2);
   const cu = (m.curH as number).toFixed(2);
-  if (Math.abs(d) < 3)
+  if (Math.abs(d) < 1.5)
     return { tone: 0, text: `${m.homeKo} vs ${m.awayKo} · 아직 큰 움직임 없음` };
   if ((m.curH as number) < (m.openH as number))
     return { tone: 1, text: `${m.homeKo} 쪽으로 돈이 몰리는 중 (${op} → ${cu})` };
@@ -115,7 +115,7 @@ function Spark({
 function deltaLabel(m: FlowMatch): string {
   if (m.points.length < 2 || m.openH == null || m.curH == null) return "";
   const d = m.deltaPct;
-  if (Math.abs(d) < 3) return "";
+  if (Math.abs(d) < 1.5) return "";
   return `${d < 0 ? "−" : "+"}${Math.abs(d).toFixed(0)}%`;
 }
 
@@ -352,7 +352,7 @@ function FlowCard({ m }: { m: FlowMatch }) {
               href={`/live/${m.league.toLowerCase()}/${m.id}`}
               className="text-[12px] text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
             >
-              경기 상세 · 전체 배당 변동 그래프 →
+              이 경기 자세히 보기 — 승·무·패 변동 + 업체별 배당 →
             </Link>
           </div>
         </div>
@@ -382,6 +382,20 @@ export default function OddsFlowList({ matches }: { matches: FlowMatch[] }) {
       <p className="mt-1 text-[14px] text-neutral-500 dark:text-neutral-400">
         배당이 어느 쪽으로 움직이는지 — 내려갈수록 그쪽으로 돈이 몰리는 거예요.
       </p>
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px]">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-1 w-6 rounded-full" style={{ background: C_DROP }} />
+          <span style={{ color: C_DROP }}>내려감 = 돈 몰림</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-1 w-6 rounded-full" style={{ background: C_RISE }} />
+          <span style={{ color: C_RISE }}>올라감 = 돈 빠짐</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-1 w-6 rounded-full" style={{ background: C_FLAT }} />
+          <span className="text-neutral-400">잠잠</span>
+        </span>
+      </div>
 
       {heroMoves && (
         <div className="mt-5">
