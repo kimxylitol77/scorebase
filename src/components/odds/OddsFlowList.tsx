@@ -79,9 +79,11 @@ function toneColor(t: Tone): string {
 }
 
 function fmtTime(ms: number): string {
-  const d = new Date(ms);
+  // KST 고정 — 서버(UTC)·클라(로컬) TZ 차이로 텍스트가 갈리면 hydration mismatch(React #418)가
+  // 나고, 그러면 클라가 트리를 재렌더하며 SSR 의 html.dark 를 복원해 라이트 사용자에게 다크로 튄다.
+  const d = new Date(ms + 9 * 3600 * 1000);
   const z = (x: number) => String(x).padStart(2, "0");
-  return `${d.getMonth() + 1}/${d.getDate()} ${z(d.getHours())}:${z(d.getMinutes())}`;
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${z(d.getUTCHours())}:${z(d.getUTCMinutes())}`;
 }
 
 // 홈 배당 시계열 그래프
@@ -551,7 +553,9 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: "
   return (
     <div className="rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-800">
       <div className="text-[10px] text-neutral-400">{label}</div>
-      <div className={`mt-0.5 truncate font-medium tabular-nums ${tone === "positive" ? "text-emerald-700 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{value}</div>
+      {/* value 에 상대시각(Date.now 기반)이 올 수 있어 서버/클라 렌더 시각차로 텍스트가 갈린다.
+          suppressHydrationWarning 으로 mismatch(React #418)를 억제해 클라 재렌더=다크 복원을 막는다. */}
+      <div suppressHydrationWarning className={`mt-0.5 truncate font-medium tabular-nums ${tone === "positive" ? "text-emerald-700 dark:text-emerald-400" : "text-neutral-700 dark:text-neutral-200"}`}>{value}</div>
     </div>
   );
 }
@@ -614,7 +618,7 @@ function FlowCard({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw:
         <div className="border-t border-neutral-100 bg-neutral-50/50 dark:border-neutral-800 dark:bg-white/[0.02]">
           <Detail m={m} sport={sport} hasDraw={hasDraw} />
           <div className="px-3 pb-3 pt-1">
-            <div className="mb-2 text-[11px] text-neutral-400">{relativeTime(m.lastUpdatedAt)} · 최고 배당은 초록색으로 표시됩니다.</div>
+            <div suppressHydrationWarning className="mb-2 text-[11px] text-neutral-400">{relativeTime(m.lastUpdatedAt)} · 최고 배당은 초록색으로 표시됩니다.</div>
             <Link
               href={`/live/${m.league.toLowerCase()}/${m.id}`}
               className="text-[12px] text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
