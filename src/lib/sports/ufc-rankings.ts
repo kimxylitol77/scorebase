@@ -3,6 +3,7 @@
 //   - ESPN core rankings 는 2021 년경 데이터로 얼어붙어 사용 불가 → octagon-api 로 교체.
 //   - octagon 파이터는 {id,name} 뿐이라 상세(전적·사진·한글)는 DB 매칭에 의존, 미스는 영문 fallback.
 import { prisma } from "@/lib/db";
+import { UFC_FIGHTER_NAMES_KO } from "@/lib/sports/ufc-fighter-names";
 
 const RANKINGS_URL = "https://api.octagon-api.com/rankings";
 
@@ -59,6 +60,11 @@ function normName(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
 }
 
+// UFC 파이터 한글 dict 를 정규화 키로 색인 — octagon 의 악센트 표기차(Rakić↔Rakic 등) 흡수.
+const DICT_BY_NORM: Map<string, string> = new Map(
+  Object.entries(UFC_FIGHTER_NAMES_KO).map(([en, ko]) => [normName(en), ko]),
+);
+
 // 전 카테고리 랭킹을 긁어 DB 매칭까지 끝낸 스냅샷 배열을 반환. octagon 실패 시 빈 배열.
 export async function fetchUfcRankings(): Promise<RankingSnapshot[]> {
   let divisions: OctagonDivision[];
@@ -88,7 +94,8 @@ export async function fetchUfcRankings(): Promise<RankingSnapshot[]> {
     return {
       rank,
       name,
-      nameKo: db?.nameKo ?? null,
+      // 한글명: DB(본인 nameKo) 1순위 → UFC 파이터 dict(haiku 음역, 악센트 무시 매칭) fallback.
+      nameKo: db?.nameKo ?? DICT_BY_NORM.get(normName(name)) ?? null,
       record: db?.record ?? null,
       headshot: db?.headshot ?? null,
     };
