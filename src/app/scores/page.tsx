@@ -1927,6 +1927,27 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* 일자 슬라이더 */}
       <DateSlider selectedDate={dateStr} sport={sport} extraQuery={extraQuery} />
 
+      {/* UFC 랭킹 진입 배너 — MMA 뷰에서만. 체급별·P4P 랭킹 페이지로 유도. */}
+      {sport === "mma" && (
+        <Link
+          href="/rankings/ufc"
+          prefetch={false}
+          className="block rounded-xl bg-gradient-to-r from-rose-500 via-red-500 to-amber-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+        >
+          <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+            <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+              🥊 UFC 랭킹{" "}
+              <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                — 체급별 챔피언·컨텐더, 파운드-포-파운드
+              </span>
+            </span>
+            <span className="shrink-0 text-[12px] font-bold text-rose-600 dark:text-rose-400">
+              랭킹 보기 →
+            </span>
+          </span>
+        </Link>
+      )}
+
       {/* 축구: 사이드바 제거 — 매치 list 만 가운데 정렬 / 다른 종목: 기존 그대로 */}
       {sport === "soccer" ? (
         <div className="space-y-4">

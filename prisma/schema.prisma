@@ -675,6 +675,20 @@ model MmaFighter {
   team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
+/// UFC 체급별·파운드-포-파운드 랭킹 스냅샷 — ESPN core API 를 주간 cron 으로 갱신, /rankings/ufc 렌더용.
+/// 파이터 상세는 MmaFighter.espnId 매칭으로 채우고(한글명·사진·전적), 미스는 영문 fallback.
+model MmaRanking {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique  // ESPN 카테고리 slug (예: "heavyweight", "pound-for-pound")
+  displayName String            // 한글 표시명 (예: "헤비급")
+  gender      String            // "M" | "F"
+  isP4p       Boolean  @default(false)  // 파운드-포-파운드 여부 (챔피언 없음)
+  sortOrder   Int               // 페이지 표시 순서 (경량→중량, P4P 최상단)
+  champion    String?           // 챔피언 JSON {espnId,name,nameKo,record,headshot,defenses} — P4P/공석이면 null
+  ranks       String            // 컨텐더 JSON 배열 [{rank,trend,espnId,name,nameKo,record,headshot}]
+  updatedAt   DateTime @updatedAt
+}
+
 /// 방문자(일반 사용자) 계정 — 이메일+비밀번호 로그인. admin(env ADMIN_*) 과 완전 분리.
 /// 세션: HMAC 서명 쿠키 user_session (src/lib/user-auth.ts).
 model User {
