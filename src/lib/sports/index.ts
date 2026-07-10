@@ -3,7 +3,6 @@ import { eplCollectorViaFootballData } from "./football-data";
 import { nbaCollector as nbaCollectorMSF } from "./mysportsfeeds";
 import { nbaCollectorEspn } from "./espn-nba";
 import { nbaCollectorApiSports } from "./api-nba-collector";
-import { wnbaCollectorApiSports } from "./api-wnba-collector";
 import { nhlCollectorEspn } from "./espn-nhl";
 import { mlbCollectorEspn } from "./espn-mlb";
 import { buildSoccerCollector } from "./espn-soccer";
@@ -155,8 +154,9 @@ export const collectors: Record<League, MatchCollector> = {
   EMPEROR_CUP: buildApiFootballCollector("EMPEROR_CUP"),
   CONCACAF_CCUP: buildApiFootballCollector("CONCACAF_CCUP"),
   AFC_CUP: buildApiFootballCollector("AFC_CUP"),
-  // 농구 — 여자 (2026-05-21 추가) — api-sports basketball v1, league=13
-  WNBA: wnbaCollectorApiSports,
+  // 농구 — 여자. 매치/스코어는 TheSports 워커(basketball-match-collector)가 수집 (KBL/WKBL 동일).
+  // api-sports basketball(Free 100/day) collector 는 quota 소진 유발해 2026-07-10 제거.
+  WNBA: { league: "WNBA", async fetchByDate() { return []; } },
   // ── 축구 23개 신규 (2026-05-22) — 모두 api-football 통합 ──
   K3_LEAGUE: buildApiFootballCollector("K3_LEAGUE"),
   K4_LEAGUE: buildApiFootballCollector("K4_LEAGUE"),
