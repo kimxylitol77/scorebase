@@ -7,6 +7,7 @@ import {
   BASKETBALL_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 import OddsFlowList, { type FlowMatch, type BookRec } from "@/components/odds/OddsFlowList";
+import { getFlowHitrate } from "@/lib/odds/flow-hitrate";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -126,9 +127,12 @@ export default async function OddsPage({
 
   matches.sort((a, b) => a.deltaPct - b.deltaPct || Math.abs(b.deltaPct) - Math.abs(a.deltaPct));
 
+  // 흐름 통계(배당 하락 경기의 실제 승률)는 표본이 쌓인 야구만 노출.
+  const hitrate = sport === "baseball" ? await getFlowHitrate(Array.from(cfg.leagues)) : null;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-5">
-      <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} />
+      <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} />
     </div>
   );
 }

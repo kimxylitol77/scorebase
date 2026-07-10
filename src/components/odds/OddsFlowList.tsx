@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import TeamBadge from "@/components/TeamBadge";
 import { LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import type { FlowHitrate } from "@/lib/odds/flow-hitrate";
 
 export type BookRec = {
   nm: string;
@@ -499,6 +500,42 @@ function Hero({ m, hasDraw }: { m: FlowMatch; hasDraw: boolean }) {
   );
 }
 
+// 흐름 통계 — "배당이 하락한 쪽이 실제로 이긴 비율". 우리 예측이 아니라 시장 흐름의 중립 팩트.
+function FlowStats({ hr }: { hr: FlowHitrate }) {
+  if (hr.total < 10 || hr.hitPct == null) return null; // 표본 부족하면 숨김
+  const shown = hr.buckets.filter((b) => b.total >= 3 && b.hitPct != null);
+  return (
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50/60 px-4 py-3 dark:border-white/10 dark:bg-white/[0.03]">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+        흐름 통계 · 최근 {hr.windowDays}일
+      </span>
+      <div className="mt-1 flex items-baseline gap-2">
+        <span className="text-2xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-50">
+          {hr.hitPct.toFixed(1)}%
+        </span>
+        <span className="text-[13px] text-neutral-600 dark:text-neutral-300">
+          배당이 하락한(돈 몰린) 쪽이 실제로 이긴 비율
+        </span>
+      </div>
+      <div className="mt-1 text-[12px] text-neutral-400">
+        {hr.total}경기 기준 · 무승부 제외 · 홈/원정 무작위 기준선 50%
+      </div>
+      {shown.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-neutral-500 dark:text-neutral-400">
+          <span className="text-neutral-400">하락폭별</span>
+          {shown.map((b) => (
+            <span key={b.label} className="tabular-nums">
+              {b.label}{" "}
+              <span className="font-medium text-neutral-700 dark:text-neutral-200">{b.hitPct!.toFixed(0)}%</span>
+              <span className="text-neutral-400"> ({b.total})</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LineKey({ color, label, emph }: { color: string; label: string; emph: boolean }) {
   return (
     <span className="flex items-center gap-1.5">
@@ -651,10 +688,12 @@ export default function OddsFlowList({
   matches,
   sport,
   hasDraw,
+  hitrate,
 }: {
   matches: FlowMatch[];
   sport: string;
   hasDraw: boolean;
+  hitrate: FlowHitrate | null;
 }) {
   // 전체 목록을 기본으로 두고, 사용자가 필요할 때만 강한 변동을 거른다.
   const [movementFilter, setMovementFilter] = useState<MovementFilter>("all");
@@ -693,6 +732,8 @@ export default function OddsFlowList({
         <LineKey color={C_AWAY} label="원정" emph />
         <span className="text-neutral-400">굵은 선 = 가장 크게 움직인 결과</span>
       </div>
+
+      {hitrate && <FlowStats hr={hitrate} />}
 
       <MovementFilters value={movementFilter} onChange={setMovementFilter} />
 
