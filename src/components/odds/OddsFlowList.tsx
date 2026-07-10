@@ -119,8 +119,12 @@ function deltaLabel(m: FlowMatch): string {
   return `${d < 0 ? "−" : "+"}${Math.abs(d).toFixed(0)}%`;
 }
 
-// ── 업체별 상세 (클릭 시) ──
-const MARKETS = ["1X2", "오버언더", "핸디캡"] as const;
+// ── 업체별 상세 (클릭 시) — 종목별 마켓 라벨 ──
+const MARKET_LABELS: Record<string, string[]> = {
+  soccer: ["승·무·패", "오버언더", "핸디캡"],
+  baseball: ["머니라인", "오버언더", "런라인"],
+  basketball: ["머니라인", "오버언더", "스프레드"],
+};
 
 function mode(arr: number[]): number {
   const c: Record<number, number> = {};
@@ -150,22 +154,40 @@ function Cell({ v, best }: { v: number | null | undefined; best: number }) {
   );
 }
 
-function MarketTable({ books, tab }: { books: BookRec[]; tab: number }) {
+function MarketTable({ books, tab, hasDraw }: { books: BookRec[]; tab: number; hasDraw: boolean }) {
   if (tab === 0) {
     const bh = Math.max(...books.map((b) => b.h));
-    const bd = Math.max(...books.filter((b) => b.d != null).map((b) => b.d as number), 0);
     const ba = Math.max(...books.map((b) => b.a));
+    // 축구=승/무/패(3), 야구·농구=승/패(2, 무승부 없음)
+    if (hasDraw) {
+      const bd = Math.max(...books.filter((b) => b.d != null).map((b) => b.d as number), 0);
+      return (
+        <div>
+          <div className="px-3 pb-1 pt-1 text-[11px] text-neutral-400">승 · 무 · 패</div>
+          {books.map((b) => (
+            <div
+              key={b.nm}
+              className="grid grid-cols-[1fr_52px_52px_52px] items-center gap-1.5 border-b border-neutral-100 px-3 py-2 text-[13px] dark:border-neutral-800"
+            >
+              <div className="truncate text-neutral-600 dark:text-neutral-300">{b.nm}</div>
+              <Cell v={b.h} best={bh} />
+              <Cell v={b.d} best={bd} />
+              <Cell v={b.a} best={ba} />
+            </div>
+          ))}
+        </div>
+      );
+    }
     return (
       <div>
-        <div className="px-3 pb-1 pt-1 text-[11px] text-neutral-400">승 · 무 · 패</div>
+        <div className="px-3 pb-1 pt-1 text-[11px] text-neutral-400">홈 승 · 원정 승</div>
         {books.map((b) => (
           <div
             key={b.nm}
-            className="grid grid-cols-[1fr_52px_52px_52px] items-center gap-1.5 border-b border-neutral-100 px-3 py-2 text-[13px] dark:border-neutral-800"
+            className="grid grid-cols-[1fr_60px_60px] items-center gap-1.5 border-b border-neutral-100 px-3 py-2 text-[13px] dark:border-neutral-800"
           >
             <div className="truncate text-neutral-600 dark:text-neutral-300">{b.nm}</div>
             <Cell v={b.h} best={bh} />
-            <Cell v={b.d} best={bd} />
             <Cell v={b.a} best={ba} />
           </div>
         ))}
@@ -223,8 +245,9 @@ function MarketTable({ books, tab }: { books: BookRec[]; tab: number }) {
 }
 
 // ── 상세 펼침 (업체별) ──
-function Detail({ m }: { m: FlowMatch }) {
+function Detail({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw: boolean }) {
   const [tab, setTab] = useState(0);
+  const labels = MARKET_LABELS[sport] ?? MARKET_LABELS.soccer;
   if (!m.books.length)
     return (
       <div className="px-3 py-3 text-[13px] text-neutral-400">업체별 배당은 아직 수집 전이에요.</div>
@@ -232,7 +255,7 @@ function Detail({ m }: { m: FlowMatch }) {
   return (
     <div>
       <div className="flex gap-2 px-2 py-3">
-        {MARKETS.map((label, i) => (
+        {labels.map((label, i) => (
           <button
             key={label}
             type="button"
@@ -247,7 +270,7 @@ function Detail({ m }: { m: FlowMatch }) {
           </button>
         ))}
       </div>
-      <MarketTable books={m.books} tab={tab} />
+      <MarketTable books={m.books} tab={tab} hasDraw={hasDraw} />
     </div>
   );
 }
@@ -296,7 +319,7 @@ function Hero({ m }: { m: FlowMatch }) {
       <div
         className="flex items-start gap-2 rounded-xl px-4 py-3 text-[15px] leading-relaxed"
         style={{
-          background: nar.tone === 1 ? "rgba(29,158,117,0.1)" : nar.tone === -1 ? "rgba(186,117,23,0.1)" : "rgba(180,178,169,0.12)",
+          background: nar.tone === 1 ? "rgba(29,158,117,0.1)" : nar.tone === -1 ? "rgba(226,75,74,0.1)" : "rgba(180,178,169,0.12)",
           color,
         }}
       >
@@ -311,7 +334,7 @@ function Hero({ m }: { m: FlowMatch }) {
 }
 
 // ── 일반 흐름 카드 ──
-function FlowCard({ m }: { m: FlowMatch }) {
+function FlowCard({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw: boolean }) {
   const [open, setOpen] = useState(false);
   const nar = narrate(m);
   const color = toneColor(nar.tone);
@@ -349,7 +372,7 @@ function FlowCard({ m }: { m: FlowMatch }) {
       </button>
       {open && (
         <div className="border-t border-neutral-100 bg-neutral-50/50 dark:border-neutral-800 dark:bg-white/[0.02]">
-          <Detail m={m} />
+          <Detail m={m} sport={sport} hasDraw={hasDraw} />
           <div className="px-3 pb-3 pt-1">
             <Link
               href={`/live/${m.league.toLowerCase()}/${m.id}`}
@@ -364,13 +387,48 @@ function FlowCard({ m }: { m: FlowMatch }) {
   );
 }
 
-export default function OddsFlowList({ matches }: { matches: FlowMatch[] }) {
+const SPORT_TABS: [string, string][] = [
+  ["soccer", "축구"],
+  ["baseball", "야구"],
+  ["basketball", "농구"],
+];
+
+function SportTabs({ sport }: { sport: string }) {
+  return (
+    <div className="mt-4 flex gap-2">
+      {SPORT_TABS.map(([s, label]) => (
+        <a
+          key={s}
+          href={`/odds?sport=${s}`}
+          className={`rounded-lg px-4 py-1.5 text-[14px] ${
+            s === sport
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+              : "border border-neutral-200 text-neutral-500 dark:border-neutral-700"
+          }`}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+export default function OddsFlowList({
+  matches,
+  sport,
+  hasDraw,
+}: {
+  matches: FlowMatch[];
+  sport: string;
+  hasDraw: boolean;
+}) {
   if (!matches.length)
     return (
       <div>
-        <h1 className="text-2xl font-medium">축구 배당 흐름</h1>
+        <h1 className="text-2xl font-medium">배당 흐름</h1>
+        <SportTabs sport={sport} />
         <div className="py-16 text-center text-[15px] text-neutral-400">
-          배당 흐름을 모으는 중이에요. 잠시 후 다시 확인해 주세요.
+          아직 배당 흐름을 모으는 중이에요. 잠시 후 다시 확인해 주세요.
         </div>
       </div>
     );
@@ -381,8 +439,9 @@ export default function OddsFlowList({ matches }: { matches: FlowMatch[] }) {
 
   return (
     <div>
-      <h1 className="text-2xl font-medium">축구 배당 흐름</h1>
-      <p className="mt-1 text-[14px] text-neutral-500 dark:text-neutral-400">
+      <h1 className="text-2xl font-medium">배당 흐름</h1>
+      <SportTabs sport={sport} />
+      <p className="mt-4 text-[14px] text-neutral-500 dark:text-neutral-400">
         배당이 어느 쪽으로 움직이는지 — 내려갈수록 그쪽으로 돈이 몰리는 거예요.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px]">
@@ -411,7 +470,7 @@ export default function OddsFlowList({ matches }: { matches: FlowMatch[] }) {
       </div>
       <div className="space-y-2">
         {(heroMoves ? rest : matches).map((m) => (
-          <FlowCard key={m.id} m={m} />
+          <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
         ))}
       </div>
     </div>
