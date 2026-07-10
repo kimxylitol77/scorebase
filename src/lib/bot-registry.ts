@@ -117,10 +117,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 7 * DAY,
     role: "네이버 → MLB 선수명 사전 자동 PR",
   },
-  "mac-mini-db-backup": {
+  "vultr-db-backup": {
     ko: "DB 일일 백업",
     intervalMs: 1 * DAY,
-    role: "Neon pg_dump → mac-mini 로컬 30일 보존 (매일 04:30)",
+    // 2026-07-10 맥미니→Vultr 이관 — 집 회선 저하로 12시간 걸리던 덤프가 Vultr(AWS 아님, 서울 DC)에선 39초.
+    role: "Neon pg_dump → Vultr(64.176.230.240) /root/scorebase-backup 30일 보존 (매일 04:30 KST)",
   },
   "mac-mini-weekly-static-refresh": {
     ko: "정적 데이터 주간 갱신",
