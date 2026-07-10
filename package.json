@@ -20,6 +20,7 @@
     "job:generate": "tsx src/jobs/generate-articles.ts",
     "job:preview": "tsx src/jobs/generate-previews.ts",
     "job:analysis": "tsx src/jobs/generate-analysis.ts",
+    "job:tactical": "tsx --env-file=.env.local src/jobs/generate-tactical.ts",
     "job:tod": "tsx src/jobs/generate-team-of-day-article.ts",
     "job:wc-star": "tsx src/jobs/generate-wc-star-report.ts",
     "job:baseball-weekly": "tsx src/jobs/generate-baseball-weekly-review.ts",
