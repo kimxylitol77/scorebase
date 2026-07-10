@@ -179,6 +179,20 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
               {timeLabel}
             </span>
           )}
+          <button
+            type="button"
+            title="이 종목 배당이 어디로 움직이는지 — 배당 흐름 보기"
+            onClick={(e) => {
+              // 카드 전체가 <Link> 라 nested anchor 회피 — window.open 우회.
+              e.preventDefault();
+              e.stopPropagation();
+              if (typeof window !== "undefined")
+                window.open("/odds?sport=baseball", "_blank", "noopener,noreferrer");
+            }}
+            className="inline-flex items-center px-1.5 h-5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/25 transition whitespace-nowrap cursor-pointer"
+          >
+            배당흐름
+          </button>
           {matchId != null && <FavoriteStar matchId={String(matchId)} className="-mr-1" />}
         </div>
       </div>
