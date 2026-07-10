@@ -14,11 +14,11 @@
       "flag": "🇰🇷"
     },
     {
-      "name": "Czech Republic",
+      "name": "Czechia",
       "flag": "🇨🇿"
     }
   ],
-  "teamRating": 3.6,
+  "teamRating": 3.5,
   "xi": [
     {
       "id": "4jwq2ghv8o4m0ve",
@@ -49,8 +49,8 @@
       "score": 8.6,
       "star": 4,
       "recentRating": 8.6,
-      "avgRating": 7.48,
-      "games": 2,
+      "avgRating": 8.6,
+      "games": 1,
       "x": 16,
       "y": 70
     },
@@ -65,9 +65,9 @@
       "logo": "https://img.thesports.com/football/player/128f7a26b34b2780c648e13a135ced56.png",
       "score": 8.51,
       "star": 4,
-      "recentRating": 8.51,
-      "avgRating": 7.37,
-      "games": 3,
+      "recentRating": 5.94,
+      "avgRating": 7.23,
+      "games": 4,
       "x": 39,
       "y": 70
     },
@@ -82,9 +82,9 @@
       "logo": "https://img.thesports.com/football/player/3252552d7eaa20b761346439958bafed.png",
       "score": 8.2,
       "star": 4,
-      "recentRating": 7.59,
-      "avgRating": 7.34,
-      "games": 3,
+      "recentRating": 6.11,
+      "avgRating": 7.3,
+      "games": 4,
       "x": 61,
       "y": 70
     },
@@ -99,8 +99,8 @@
       "logo": "https://img.thesports.com/football/player/f53b32116f27816e2db74c2b605acc6a.png",
       "score": 7.84,
       "star": 3,
-      "recentRating": 7.84,
-      "avgRating": 7.15,
+      "recentRating": 7.08,
+      "avgRating": 7.44,
       "games": 4,
       "x": 84,
       "y": 70
@@ -117,26 +117,9 @@
       "score": 9,
       "star": 4,
       "recentRating": 7.2,
-      "avgRating": 7.54,
-      "games": 4,
+      "avgRating": 7.59,
+      "games": 3,
       "x": 22,
-      "y": 32
-    },
-    {
-      "id": "l7oqdehd17nr510",
-      "name": "Lee Dong-gyeong",
-      "nameKo": "이동경",
-      "hasMv": false,
-      "pos": "M",
-      "country": "South Korea",
-      "flag": "🇰🇷",
-      "logo": "https://img.thesports.com/football/player/bcd6b6d94dcd6f2797d685f3e023300e.png",
-      "score": 8.2,
-      "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 8.2,
-      "games": 1,
-      "x": 50,
       "y": 32
     },
     {
@@ -153,6 +136,23 @@
       "recentRating": 6.57,
       "avgRating": 6.99,
       "games": 3,
+      "x": 50,
+      "y": 32
+    },
+    {
+      "id": "4wyrn4hv2dzq86p",
+      "name": "Michal Sadílek",
+      "nameKo": "미할 사딜렉",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Czechia",
+      "flag": "🇨🇿",
+      "logo": "https://img.thesports.com/football/player/a2338f017e327a5ce8bdafba0d394b60.png",
+      "score": 7.87,
+      "star": 3,
+      "recentRating": 6.24,
+      "avgRating": 6.82,
+      "games": 3,
       "x": 78,
       "y": 32
     },
@@ -168,8 +168,8 @@
       "score": 7.77,
       "star": 3,
       "recentRating": 6.36,
-      "avgRating": 7.21,
-      "games": 4,
+      "avgRating": 7.09,
+      "games": 3,
       "x": 35,
       "y": 52
     },
@@ -184,9 +184,9 @@
       "logo": "https://img.thesports.com/football/player/0953236b91d50d6541d6ec1e82002e63.png",
       "score": 7.7,
       "star": 3,
-      "recentRating": 7.1,
+      "recentRating": 6.84,
       "avgRating": 7.19,
-      "games": 3,
+      "games": 4,
       "x": 65,
       "y": 52
     },
@@ -199,11 +199,11 @@
       "country": "Mexico",
       "flag": "🇲🇽",
       "logo": "https://img.thesports.com/football/player/0ba7dc1cfcb83d64dfa795a6f6a7cde8.png",
-      "score": 8.5,
+      "score": 8.84,
       "star": 4,
-      "recentRating": 7.7,
-      "avgRating": 7.35,
-      "games": 4,
+      "recentRating": 8.1,
+      "avgRating": 7.95,
+      "games": 5,
       "x": 50,
       "y": 14
     }
@@ -221,8 +221,8 @@
       "score": 8.2,
       "star": 4,
       "recentRating": 6.46,
-      "avgRating": 6.85,
-      "games": 4
+      "avgRating": 6.99,
+      "games": 3
     },
     {
       "id": "23xmvkhk6973qg8",
@@ -240,18 +240,18 @@
       "games": 3
     },
     {
-      "id": "jw2r09hxv7jyrz8",
-      "name": "Brian Gutierrez",
-      "nameKo": "브라이언 구티에레스",
-      "hasMv": false,
-      "pos": "M",
-      "country": "Mexico",
-      "flag": "🇲🇽",
-      "logo": "https://img.thesports.com/football/player/5914273928a363af3043ad80d0d66081.png",
-      "score": 7.7,
+      "id": "1l4rjnhexnom7vx",
+      "name": "Ladislav Krejčí",
+      "nameKo": "라디슬라프 크레이치",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Czechia",
+      "flag": "🇨🇿",
+      "logo": "https://img.thesports.com/football/player/d3ed9dbabbc98b4bf7f392bc558dc3df.png",
+      "score": 7.72,
       "star": 3,
-      "recentRating": 6.6,
-      "avgRating": 7.09,
+      "recentRating": 6.45,
+      "avgRating": 7.07,
       "games": 3
     },
     {
@@ -265,9 +265,9 @@
       "logo": "https://img.thesports.com/football/player/f52b07bd9b143cf37312afcda79c3413.png",
       "score": 7.6,
       "star": 3,
-      "recentRating": 7.6,
-      "avgRating": 7.1,
-      "games": 4
+      "recentRating": 6.24,
+      "avgRating": 7.01,
+      "games": 5
     },
     {
       "id": "3glrw7hj1p6qdyj",
@@ -281,8 +281,8 @@
       "score": 7.6,
       "star": 3,
       "recentRating": 6.66,
-      "avgRating": 6.92,
-      "games": 4
+      "avgRating": 6.95,
+      "games": 3
     },
     {
       "id": "zp5rzghz27j2q82",

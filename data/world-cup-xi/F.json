@@ -29,11 +29,11 @@
       "country": "Netherlands",
       "flag": "🇳🇱",
       "logo": "https://img.thesports.com/football/player/0569c6341724a5a6a30dd4d355e2a345.png",
-      "score": 8.11,
+      "score": 8.19,
       "star": 4,
-      "recentRating": 6.96,
-      "avgRating": 6.85,
-      "games": 5,
+      "recentRating": 8.3,
+      "avgRating": 7.31,
+      "games": 4,
       "x": 50,
       "y": 90
     },
@@ -48,9 +48,9 @@
       "logo": "https://img.thesports.com/football/player/88ca75b59cab2b3fa6f6c77f0b0d4cfc.png",
       "score": 8.18,
       "star": 4,
-      "recentRating": 8.2,
-      "avgRating": 7.51,
-      "games": 5,
+      "recentRating": 7.03,
+      "avgRating": 7.31,
+      "games": 4,
       "x": 16,
       "y": 70
     },
@@ -65,9 +65,9 @@
       "logo": "https://img.thesports.com/football/player/d83e2a4e70d174250039448be60161f4.png",
       "score": 8.01,
       "star": 4,
-      "recentRating": 7.98,
-      "avgRating": 7.55,
-      "games": 5,
+      "recentRating": 7.04,
+      "avgRating": 7.62,
+      "games": 4,
       "x": 39,
       "y": 70
     },
@@ -82,22 +82,22 @@
       "logo": "https://img.thesports.com/football/player/a77e1c997ce3f3a96ff333b7460d087b.png",
       "score": 8,
       "star": 3,
-      "recentRating": 7.17,
-      "avgRating": 7.43,
+      "recentRating": 6.33,
+      "avgRating": 7.16,
       "games": 4,
       "x": 61,
       "y": 70
     },
     {
-      "id": "3glrw7hj6z71qdy",
-      "name": "Ian Maatsen",
-      "nameKo": "이안 마트센",
+      "id": "k82rekhy842yrep",
+      "name": "Mats Wieffer",
+      "nameKo": "마츠 비퍼르",
       "hasMv": true,
       "pos": "D",
       "country": "Netherlands",
       "flag": "🇳🇱",
-      "logo": "https://img.thesports.com/football/player/b8ab154cc8f2c826f716f33fd3ef9539.png",
-      "score": 7.89,
+      "logo": "https://img.thesports.com/football/player/56c27a45a859782a6b1a3f12d5035df4.png",
+      "score": 7.76,
       "star": 3,
       "recentRating": 0,
       "avgRating": 0,
@@ -116,9 +116,9 @@
       "logo": "https://img.thesports.com/football/player/920ab06e898dfa8032f36739cb97dd91.png",
       "score": 8.12,
       "star": 4,
-      "recentRating": 6.64,
-      "avgRating": 6.86,
-      "games": 5,
+      "recentRating": 6.48,
+      "avgRating": 6.84,
+      "games": 4,
       "x": 22,
       "y": 32
     },
@@ -133,9 +133,9 @@
       "logo": "https://img.thesports.com/football/player/7aaa1e950802bc23036a8bbe71f6a745.png",
       "score": 8.02,
       "star": 4,
-      "recentRating": 6.89,
-      "avgRating": 6.62,
-      "games": 5,
+      "recentRating": 6.41,
+      "avgRating": 6.72,
+      "games": 4,
       "x": 50,
       "y": 32
     },
@@ -151,7 +151,7 @@
       "score": 7.94,
       "star": 3,
       "recentRating": 7.79,
-      "avgRating": 7.17,
+      "avgRating": 7.16,
       "games": 3,
       "x": 78,
       "y": 32
@@ -168,8 +168,8 @@
       "score": 7.8,
       "star": 3,
       "recentRating": 7.36,
-      "avgRating": 6.74,
-      "games": 5,
+      "avgRating": 6.73,
+      "games": 3,
       "x": 35,
       "y": 52
     },
@@ -184,9 +184,9 @@
       "logo": "https://img.thesports.com/football/player/e6c346173618f2367a7093af483318c5.png",
       "score": 7.64,
       "star": 3,
-      "recentRating": 6.85,
-      "avgRating": 6.96,
-      "games": 5,
+      "recentRating": 6.61,
+      "avgRating": 6.84,
+      "games": 4,
       "x": 65,
       "y": 52
     },
@@ -220,9 +220,9 @@
       "logo": "https://img.thesports.com/football/player/e75d5b0002cd450cc117ef8137868bb6.png",
       "score": 8.85,
       "star": 4,
-      "recentRating": 6.24,
-      "avgRating": 7.48,
-      "games": 5
+      "recentRating": 7.7,
+      "avgRating": 7.37,
+      "games": 4
     },
     {
       "id": "l7oqdehleg1r510",
@@ -235,9 +235,9 @@
       "logo": "https://img.thesports.com/football/player/22ad3876a52536da32eb31c9de316e3a.png",
       "score": 8.85,
       "star": 4,
-      "recentRating": 6.36,
-      "avgRating": 7.37,
-      "games": 5
+      "recentRating": 6.24,
+      "avgRating": 7.35,
+      "games": 4
     },
     {
       "id": "4jwq2ghxjoym0ve",
@@ -250,8 +250,8 @@
       "logo": "https://img.thesports.com/football/player/518ef8929fa54625a4bb2f7c327b1c0d.png",
       "score": 8.71,
       "star": 4,
-      "recentRating": 6.33,
-      "avgRating": 7.36,
+      "recentRating": 6.46,
+      "avgRating": 7.25,
       "games": 4
     },
     {
@@ -265,9 +265,9 @@
       "logo": "https://img.thesports.com/football/player/6542f52db8b0b944e29e09dc758b3af5.png",
       "score": 8.54,
       "star": 4,
-      "recentRating": 8.5,
-      "avgRating": 7.43,
-      "games": 5
+      "recentRating": 6.27,
+      "avgRating": 7.62,
+      "games": 4
     },
     {
       "id": "vjxm8ghg6vkkr6o",
@@ -296,8 +296,8 @@
       "score": 8.2,
       "star": 4,
       "recentRating": 8.2,
-      "avgRating": 7.19,
-      "games": 2
+      "avgRating": 8.2,
+      "games": 1
     }
   ],
   "complete": true

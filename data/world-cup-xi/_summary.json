@@ -4,17 +4,17 @@
     {
       "group": "A",
       "xi": 11,
-      "pool": 78
+      "pool": 104
     },
     {
       "group": "B",
       "xi": 11,
-      "pool": 82
+      "pool": 78
     },
     {
       "group": "C",
       "xi": 11,
-      "pool": 109
+      "pool": 104
     },
     {
       "group": "D",
@@ -24,12 +24,12 @@
     {
       "group": "E",
       "xi": 11,
-      "pool": 54
+      "pool": 52
     },
     {
       "group": "F",
       "xi": 11,
-      "pool": 106
+      "pool": 104
     },
     {
       "group": "G",
@@ -39,27 +39,27 @@
     {
       "group": "H",
       "xi": 11,
-      "pool": 89
+      "pool": 78
     },
     {
       "group": "I",
       "xi": 11,
-      "pool": 108
+      "pool": 104
     },
     {
       "group": "J",
       "xi": 11,
-      "pool": 111
+      "pool": 104
     },
     {
       "group": "K",
       "xi": 11,
-      "pool": 82
+      "pool": 79
     },
     {
       "group": "L",
       "xi": 11,
-      "pool": 114
+      "pool": 105
     }
   ]
 }
