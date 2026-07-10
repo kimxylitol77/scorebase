@@ -629,7 +629,9 @@ function SportTabs({ sport }: { sport: string }) {
   return (
     <div className="mt-4 flex gap-2">
       {SPORT_TABS.map(([s, label]) => (
-        <a
+        // 풀 리로드(<a>)면 <head> 테마 스크립트가 재실행돼 쿠키 미저장/OS 라이트 환경에서
+        // 다크→라이트로 튄다. Link 클라 라우팅은 리로드가 없어 테마(html.dark)가 유지된다.
+        <Link
           key={s}
           href={`/odds?sport=${s}`}
           className={`rounded-lg px-4 py-1.5 text-[14px] ${
@@ -639,7 +641,7 @@ function SportTabs({ sport }: { sport: string }) {
           }`}
         >
           {label}
-        </a>
+        </Link>
       ))}
     </div>
   );
