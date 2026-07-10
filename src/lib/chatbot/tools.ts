@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url";
+import { strongPickThreshold } from "@/lib/predict/strong-pick";
 
 const ALLOWED_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
@@ -145,6 +146,17 @@ export const TOOL_DEFS: Anthropic.Tool[] = [
     },
   },
   {
+    name: "get_top_picks",
+    description:
+      "가장 신뢰도 높은 예측·Strong Pick·오늘의 추천 픽을 묻는 질문에 사용. 아직 시작하지 않은 예정 경기 중 모델 최고 확률이 높은 순으로 최대 6개 반환. 경기를 되묻지 말고 이 도구를 바로 호출. league 로 특정 리그만 필터 가능.",
+    input_schema: {
+      type: "object",
+      properties: {
+        league: { type: "string", description: "특정 리그만 보고 싶을 때 (선택)" },
+      },
+    },
+  },
+  {
     name: "forward_to_admin",
     description:
       "사용자의 문의를 운영자에게 텔레그램으로 전달한다. 버그·오류 제보뿐 아니라 광고·제휴 문의, 관리자·운영팀 연락 요청, 기타 운영팀에 닿아야 하는 내용은 모두 이 도구로 전달한다. 단순 경기·데이터 질문에는 쓰지 않는다.",
@@ -183,6 +195,8 @@ export async function executeTool(
       return await getMatchPrediction(input.matchId as number);
     case "search_articles":
       return await searchArticles(String(input.query ?? ""));
+    case "get_top_picks":
+      return await getTopPicks(input.league as string | undefined);
     case "forward_to_admin":
       return await forwardToAdmin(
         String(input.message ?? ""),
@@ -372,6 +386,43 @@ async function searchArticles(query: string): Promise<string> {
   if (articles.length === 0) return `"${q}" 관련 게시 글 없음.`;
   return articles
     .map((a) => `- [${a.type}] ${a.title} (/articles/${a.slug})`)
+    .join("\n");
+}
+
+// 예정 경기 중 모델 최고 확률이 높은 순으로 Strong Pick 후보 반환. "가장 신뢰도 높은 예측" 류 질문용.
+async function getTopPicks(leagueRaw?: string): Promise<string> {
+  const league = normalizeLeague(leagueRaw);
+  const now = new Date();
+  const horizon = new Date(now.getTime() + 3 * 24 * 3600 * 1000);
+  const matches = await prisma.match.findMany({
+    where: {
+      ...(league ? { league } : {}),
+      startTime: { gte: now, lt: horizon },
+      predHome: { not: null },
+    },
+    include: { homeTeam: true, awayTeam: true },
+    orderBy: { startTime: "asc" },
+    take: 100,
+  });
+  if (matches.length === 0) return "예정 경기 중 예측이 있는 경기가 없습니다.";
+  const ranked = matches
+    .map((m) => {
+      const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
+      const pickName =
+        m.predWinner === "HOME"
+          ? toKoreanTeamName(m.homeTeam.name, m.league)
+          : m.predWinner === "AWAY"
+            ? toKoreanTeamName(m.awayTeam.name, m.league)
+            : "무승부";
+      return { m, top, strong: top >= strongPickThreshold(m.league), pickName };
+    })
+    .sort((a, b) => b.top - a.top)
+    .slice(0, 6);
+  return ranked
+    .map(
+      ({ m, top, strong, pickName }) =>
+        `${fmtKstDateTime(m.startTime)} · ${m.league} · ${toKoreanTeamName(m.homeTeam.name, m.league)} vs ${toKoreanTeamName(m.awayTeam.name, m.league)} · 픽: ${pickName} ${pct(top)}${strong ? " (Strong Pick)" : ""} · ${matchUrl(m.league, m.externalId)}`,
+    )
     .join("\n");
 }
 
