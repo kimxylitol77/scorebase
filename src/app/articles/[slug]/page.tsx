@@ -24,7 +24,7 @@ import TeamOfDayPitch from "@/components/TeamOfDayPitch";
 import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
 import { parseStarSlug } from "@/lib/sports/thesports/wc-star-report";
 import AmbientGlow from "@/components/AmbientGlow";
-import { BarChart3, CalendarDays, Activity, Star } from "lucide-react";
+import { BarChart3, CalendarDays, Activity, Star, Swords } from "lucide-react";
 
 // ISR — 발행된 글 본문은 거의 불변. 10분 캐시로 페이지 이동 가속(새 글 첫 방문은 즉시 생성).
 export const revalidate = 600;
@@ -43,6 +43,7 @@ const TYPE_BADGE: Record<
   PREVIEW: { label: "프리뷰", cls: BADGE_CLS },
   RECAP: { label: "리뷰", cls: BADGE_CLS },
   ANALYSIS: { label: "분석", icon: <BarChart3 className="h-3.5 w-3.5" aria-hidden />, cls: BADGE_CLS },
+  TACTICAL: { label: "전술", icon: <Swords className="h-3.5 w-3.5" aria-hidden />, cls: BADGE_CLS },
 };
 
 const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";

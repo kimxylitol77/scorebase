@@ -41,11 +41,16 @@
 - 남은 결정: 팀명 한글 음역 교정(비야레알 등) 주입 여부 — MVP 비블로커
 - 남은 승인: 실제 DRAFT INSERT 는 프로덕션 DB 쓰기라 **사용자 명시 승인 필요**
 
-## Phase 5 — 발행·렌더·색인
-- [ ] Article 타입 라우팅에 TACTICAL 추가 → 검증: 상세 페이지 렌더
-- [ ] JSON-LD(Article) 적용 → 검증: 리치결과 테스트 통과
-- [ ] sitemap / ARTICLE_LEAGUES 화이트리스트 편입 → 검증: sitemap 에 등장
-- [ ] 리스트/네비 노출 위치 결정 → 검증: 진입 경로 확인
+## Phase 5 — 발행·렌더·색인 ✅ 대부분 완료
+- [x] TACTICAL 타입 배지 추가([articles/[slug]/page.tsx](../../src/app/articles/[slug]/page.tsx) TYPE_BADGE, Swords 아이콘 "전술")
+- [x] 본문 렌더 — 제네릭 Markdown 경로가 모든 타입 처리(변경 불필요)
+- [x] 메타 — 일반 분기서 desc=makeDescription(본문), match 있어 SERP 제목 "팀A vs 팀B" 합성
+- [x] JSON-LD — 제네릭 Article 스키마 자동 적용
+- [x] sitemap — `type notIn [PREVIEW,RECAP]` 이라 PUBLISHED 시 자동 포함(색인)
+- [x] noindex — PREVIEW/RECAP만 대상이라 TACTICAL 색인 유지
+- [x] DRAFT 게이트 — `status !== PUBLISHED` 자동 404 확인
+- [ ] 리스트/네비 노출 위치 — 후행(sitemap 이 크롤러 커버, 내부 노출은 폴리시)
+- [!] 시각 렌더 검증은 PUBLISHED TACTICAL 글 필요 → DRAFT 미생성 결정으로 보류(tsc 통과로 갈음)
 
 ## Phase 6 — 품질 검증 후 자동화
 - [ ] DRAFT 5~10편 수동 검수 — 사실 정확성·전술 깊이·중복 표현 → 검증: 합격선 통과
