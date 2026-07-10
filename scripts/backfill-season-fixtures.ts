@@ -12,9 +12,11 @@ const KEY = process.env.API_FOOTBALL_KEY;
 if (!KEY) { console.error("API_FOOTBALL_KEY 없음"); process.exit(1); }
 
 // 8~5월 유럽 시즌 리그 (달력연도 리그 K/J/MLS 등은 cron 이 순차 수집 — 제외)
+// UCL/UEL/UECL 제외 — UEFA 대회는 TheSports 가 ts- 로 적재(1순위 원칙). af 로 여기서
+// 넣으면 숫자-ext Match 행 + af Team 행이 ts 행과 중복돼 /scores 에 두 카드로 뜬다
+// (2026-07-10 카라바흐·디나모 키에프 사건). UEFA 사전 일정도 ts 수집으로 커버.
 const DEFAULT_LEAGUES: League[] = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
-  "UCL", "UEL", "UECL",
   "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
   "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL", "SAUDI_PL",
 ];

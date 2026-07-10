@@ -1266,7 +1266,7 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 매치 → 정규화 (sport 분기 + 라이브 보강)
   // 라이브 API 매치 중 DB 매치에 매칭된 id 추적 — 나머지(orphan)는 메인 카드 누락 방지용으로 따로 추가.
   const matchedLiveIds = new Set<string>();
-  const normalizedAll = matches.map((m) => {
+  const normalizedAllRaw = matches.map((m) => {
     const live = matchLive(m);
     if (live) matchedLiveIds.add(live.id);
     const elapsedMs = Date.now() - m.startTime.getTime();
@@ -1601,6 +1601,50 @@ export default async function ScoresPage({ searchParams }: Props) {
   })
     // 유령/stale SCHEDULED 는 favorites·doubleheader·데이터 payload 등 모든 소비에서 제외.
     .filter((m) => !m.hidden);
+
+  // DB 내부 중복 카드 제거 (축구) — 같은 실경기가 api-football backfill(ext=숫자) 행과
+  // TheSports(ext=ts-) 행 두 개로 적재돼 카드가 두 장 뜨던 것 방지 (2026-07-10 카라바흐·
+  // 디나모 키에프). 두 행은 Team row 도 달라(Qarabag vs FK Qarabag) teamId 기반 doubleheader
+  // 버킷엔 안 걸린다. 같은 리그·같은 날·홈/원정 원어명 overlap 이면 동일 경기로 보고 한 장만 남김.
+  // ⚠️ 비교는 한글 표시명 아닌 원어 Team.name — af "Qarabag" vs ts "FK Qarabag" 처럼 한쪽만
+  // 한글 매핑돼 표시명이 갈리므로. 남길 우선순위: ts- ext > 데이터 풍부 > 먼저 온 것.
+  const dupLoserIds = new Set<number>();
+  {
+    const rawById = new Map(
+      matches.map((m) => [m.id, { h: m.homeTeam.name, a: m.awayTeam.name, ext: m.externalId ?? "" }] as const),
+    );
+    const overlap = (x: string, y: string) =>
+      x.length >= 3 && y.length >= 3 && (x.includes(y) || y.includes(x));
+    const richness = (m: (typeof normalizedAllRaw)[number]) =>
+      (m.odds ? 1 : 0) + (m.liveCommentary ? 1 : 0) +
+      (m.soccerGoals ? 1 : 0) + (m.home.logo ? 1 : 0) + (m.away.logo ? 1 : 0);
+    // ts- ext 우선(100) + 데이터 풍부 — 점수 높은 쪽이 keeper.
+    const score = (m: (typeof normalizedAllRaw)[number]) =>
+      ((rawById.get(m.id)?.ext ?? "").startsWith("ts-") ? 100 : 0) + richness(m);
+    const soccer = normalizedAllRaw.filter((m) => SOCCER_LEAGUES.has(m.league));
+    for (let i = 0; i < soccer.length; i++) {
+      const a = soccer[i];
+      if (dupLoserIds.has(a.id)) continue;
+      const ra = rawById.get(a.id);
+      if (!ra) continue;
+      for (let j = i + 1; j < soccer.length; j++) {
+        const b = soccer[j];
+        if (dupLoserIds.has(b.id)) continue;
+        if (a.league !== b.league) continue;
+        if (dateQuery(a.startTime) !== dateQuery(b.startTime)) continue;
+        const rb = rawById.get(b.id);
+        if (!rb) continue;
+        if (
+          overlap(romanizeName(ra.h), romanizeName(rb.h)) &&
+          overlap(romanizeName(ra.a), romanizeName(rb.a))
+        ) {
+          const loser = score(a) >= score(b) ? b : a;
+          dupLoserIds.add(loser.id);
+        }
+      }
+    }
+  }
+  const normalizedAll = normalizedAllRaw.filter((m) => !dupLoserIds.has(m.id));
 
   // 더블헤더 감지 — 같은 league + 두 팀 페어 + 같은 KST 일자에 2경기 이상.
   // 시작 시간 순서로 1, 2 번호 부여. MLB 정규 더블헤더 + KBO/NPB 가능성 모두 대응.
