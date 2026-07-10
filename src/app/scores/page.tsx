@@ -57,6 +57,8 @@ import {
 } from "@/lib/sports/live-scores";
 import SportTabs from "@/components/scores/SportTabs";
 import MyTeamsStrip from "@/components/MyTeamsStrip";
+import FavTeamOnboarding from "@/components/scores/FavTeamOnboarding";
+import AppInstallBanner from "@/components/scores/AppInstallBanner";
 import DateSlider from "@/components/scores/DateSlider";
 import LeagueChips from "@/components/scores/LeagueChips";
 import LeagueDropdown from "@/components/scores/LeagueDropdown";
@@ -1806,6 +1808,9 @@ export default async function ScoresPage({ searchParams }: Props) {
 
       {/* 내 팀 바로가기 — 즐겨찾기 팀(localStorage) chips, 비어 있으면 미렌더 */}
       <MyTeamsStrip />
+      {/* 재방문 유도 — 관심팀 미등록자 온보딩 + PWA 홈화면 추가 (각자 조건부·닫기 가능) */}
+      <FavTeamOnboarding />
+      <AppInstallBanner />
 
       {/* 헤더 */}
       <header className="flex flex-wrap items-end justify-between gap-3">
