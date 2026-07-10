@@ -18,7 +18,20 @@ mkdir -p "$DIR"
 OUT="$DIR/scorebase-$(date +%F).dump"
 
 echo "[db-backup $(date '+%F %T')] ▶ pg_dump 시작"
-pg_dump "$DATABASE_URL" -Fc --no-owner --no-privileges -f "$OUT"
+# 90분 타임아웃 가드 — 회선 저하로 백업이 낮까지 돌면 daytime db push 와 락 컨보이를
+# 일으켜 전면 500 유발 (2026-07-10 인시던트). 초과 시 중단 → 실패 처리(hb_trap 텔레그램 보고).
+pg_dump "$DATABASE_URL" -Fc --no-owner --no-privileges -f "$OUT" &
+PG_PID=$!
+( sleep 5400 && kill -TERM "$PG_PID" 2>/dev/null ) &
+WD_PID=$!
+RC=0
+wait "$PG_PID" || RC=$?
+kill "$WD_PID" 2>/dev/null || true
+if [ "$RC" -ne 0 ]; then
+  echo "❌ pg_dump 실패 또는 90분 타임아웃 (rc=$RC) — 부분 덤프 삭제"
+  rm -f "$OUT"
+  exit 1
+fi
 
 SIZE=$(stat -f%z "$OUT")
 if [ "$SIZE" -lt 1000000 ]; then
