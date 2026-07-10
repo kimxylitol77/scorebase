@@ -26,7 +26,6 @@ const CATEGORIES: Category[] = [
       { name: "GitHub repo", url: "https://github.com/kimxylitol77/scorebase", desc: "commits · PR · actions", ext: true },
       { name: "GoDaddy DNS", url: "https://dcc.godaddy.com/control/dnsmanagement?domainName=scorebase.kr", desc: "도메인 · DNS 관리", ext: true },
       { name: "Vultr Console", url: "https://console.vultr.com/subs/?id=86e6726e-add0-4b22-95cb-24934a6a304a", desc: "worker 서버 관리 직행 (서울 64.176.230.240) · ssh root@ · reboot · DB백업", ext: true },
-      { name: "AWS Lightsail (구)", url: "https://lightsail.aws.amazon.com/", desc: "구 worker — 2026-07 Vultr 이전 완료 · 인스턴스 삭제 예정", ext: true },
     ],
   },
   {
