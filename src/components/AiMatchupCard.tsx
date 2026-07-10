@@ -1,4 +1,4 @@
-// 매치 페이지 AI 예측 대결 카드 — 이 경기에 대한 우리 모델 vs GPT-5.5 의 1X2 픽을 나란히.
+// 매치 페이지 AI 예측 대결 카드 — 이 경기에 대한 우리 모델 vs GPT-5.6 의 1X2 픽을 나란히.
 // 데이터 = Match.aiPredictions (없으면 렌더 안 함). 종료 경기는 적중/실패 배지도 표시.
 import Link from "next/link";
 import { Check, X, Sparkles } from "lucide-react";
@@ -15,7 +15,7 @@ export interface AiMatchupPrediction {
 
 const LABEL: Record<string, { name: string; dot: string; text: string }> = {
   scorebase: { name: "스코어베이스 AI", dot: "bg-rose-500", text: "text-rose-600 dark:text-rose-400" },
-  "gpt-5.5": { name: "GPT-5.5", dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
+  "gpt-5.5": { name: "GPT-5.6", dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
 };
 
 function pickLabel(pick: string, home: string, away: string): string {
@@ -98,7 +98,7 @@ export default function AiMatchupCard({
         })}
       </div>
       <p className="mt-3 text-[11px] text-zinc-400 dark:text-white/30">
-        두 AI가 경기 전 제출한 1X2 픽. GPT-5.5는 우리 모델 수치를 보지 않고 독립 예측합니다.
+        두 AI가 경기 전 제출한 1X2 픽. GPT-5.6는 우리 모델 수치를 보지 않고 독립 예측합니다.
       </p>
     </section>
   );

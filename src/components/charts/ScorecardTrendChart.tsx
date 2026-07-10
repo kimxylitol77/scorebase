@@ -1,7 +1,7 @@
 "use client";
 
 // AI 예측 성적표 누적 적중률 추이 — 채점 경기수(x) 대비 두 AI 의 누적 1X2 적중률(y) 라인.
-// 우리 모델(로즈) vs GPT-5.5(에메랄드). 경기가 쌓일수록 누가 앞서가는지 수렴 곡선으로 보여준다.
+// 우리 모델(로즈) vs GPT-5.6(에메랄드). 경기가 쌓일수록 누가 앞서가는지 수렴 곡선으로 보여준다.
 
 import {
   LineChart,
@@ -18,7 +18,7 @@ import {
 export interface TrendPoint {
   n: number; // 채점 누적 경기수
   "우리 모델": number; // 누적 적중률 %
-  "GPT-5.5": number;
+  "GPT-5.6": number;
 }
 
 export default function ScorecardTrendChart({ data }: { data: TrendPoint[] }) {
@@ -64,7 +64,7 @@ export default function ScorecardTrendChart({ data }: { data: TrendPoint[] }) {
           />
           <Line
             type="monotone"
-            dataKey="GPT-5.5"
+            dataKey="GPT-5.6"
             stroke="#10b981"
             strokeWidth={2.5}
             dot={false}

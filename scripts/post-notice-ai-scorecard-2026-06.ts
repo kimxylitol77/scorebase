@@ -1,14 +1,14 @@
-// 공지 (CHANGELOG) 게시 — AI 예측 성적표 신설 (우리 모델 vs GPT-5.5).
+// 공지 (CHANGELOG) 게시 — AI 예측 성적표 신설 (우리 모델 vs GPT-5.6).
 // 실행: npx tsx --env-file=.env.local scripts/post-notice-ai-scorecard-2026-06.ts
 import { prisma } from "@/lib/db";
 
 const slug = "ai-scorecard-gpt-vs-model-2026-06";
-const title = "AI 예측 성적표 신설 — 우리 AI vs GPT-5.5, 같은 경기로 정면 비교";
+const title = "AI 예측 성적표 신설 — 우리 AI vs GPT-5.6, 같은 경기로 정면 비교";
 
 const content = `
 ## 한 줄 요약
 
-스코어베이스 통계모델과 **GPT-5.5**가 **정확히 같은 경기**를 경기 전에 예측하고, 결과로 채점합니다. 누가 더 잘 맞히는지 경기별 적중·실패를 숨김 없이 누적 공개하는 **AI 예측 성적표**를 새로 열었습니다.
+스코어베이스 통계모델과 **GPT-5.6**가 **정확히 같은 경기**를 경기 전에 예측하고, 결과로 채점합니다. 누가 더 잘 맞히는지 경기별 적중·실패를 숨김 없이 누적 공개하는 **AI 예측 성적표**를 새로 열었습니다.
 
 [AI 예측 성적표 바로가기 →](/predictions/scorecard)
 
@@ -25,7 +25,7 @@ const content = `
 ## 공정성 원칙
 
 - 스코어베이스 AI는 Elo·Dixon-Coles에 선발 투수·골리·시장 배당을 더한 통계모델입니다.
-- GPT-5.5는 팀·리그·일정 정보만 받아 **우리 모델 수치를 보지 않고** 독립적으로 예측합니다.
+- GPT-5.6는 팀·리그·일정 정보만 받아 **우리 모델 수치를 보지 않고** 독립적으로 예측합니다.
 - 두 픽 모두 **경기 전에 저장**되며, 사후 수정은 없습니다.
 
 ---

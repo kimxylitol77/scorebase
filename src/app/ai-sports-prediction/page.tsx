@@ -15,7 +15,7 @@ const PAGE_URL = `${SITE_URL}/ai-sports-prediction`;
 export const metadata: Metadata = {
   title: "AI 스포츠 분석·예측 사이트 — 적중률 공개 | 스코어베이스",
   description:
-    "스코어베이스는 축구·야구·농구·아이스하키 경기를 AI로 분석·승부예측하고, 실제 적중률을 그대로 공개하는 스포츠 분석·예측 사이트입니다. EPL·MLB·KBO·NBA·NHL 경기별 예측과 13개 리그 백테스트 적중률, GPT-5.5와의 정면 비교 성적표, 승리확률 계산기까지 한 곳에서.",
+    "스코어베이스는 축구·야구·농구·아이스하키 경기를 AI로 분석·승부예측하고, 실제 적중률을 그대로 공개하는 스포츠 분석·예측 사이트입니다. EPL·MLB·KBO·NBA·NHL 경기별 예측과 13개 리그 백테스트 적중률, GPT-5.6와의 정면 비교 성적표, 승리확률 계산기까지 한 곳에서.",
   keywords: [
     // 정체성 클러스터 (GSC 노출·0클릭 → 정조준)
     "AI 승부예측 사이트", "스포츠 예측 사이트", "스포츠 분석 사이트", "예측 사이트",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: "스코어베이스",
     title: "AI 스포츠 분석·예측 사이트 — 적중률 공개 | 스코어베이스",
     description:
-      "축구·야구·농구·하키 경기를 AI로 분석·예측하고 실제 적중률을 그대로 공개. 13개 리그 백테스트와 GPT-5.5 정면 비교 성적표.",
+      "축구·야구·농구·하키 경기를 AI로 분석·예측하고 실제 적중률을 그대로 공개. 13개 리그 백테스트와 GPT-5.6 정면 비교 성적표.",
     images: ogPageImage({ title: "AI 스포츠 분석·예측 사이트", subtitle: "적중률을 그대로 공개하는 스포츠 예측", tag: "AI 예측" }),
   },
 };
@@ -50,8 +50,8 @@ const PROOF: { href: string; Icon: LucideIcon; title: string; desc: string }[] =
   {
     href: "/predictions/scorecard",
     Icon: LineChart,
-    title: "AI vs GPT-5.5 성적표",
-    desc: "같은 경기를 두고 스코어베이스 통계모델과 GPT-5.5가 경기 전에 각각 예측하고, 결과로 채점합니다. 1X2·핸디캡·오버언더 시장별 적중을 누적으로 비교 공개합니다.",
+    title: "AI vs GPT-5.6 성적표",
+    desc: "같은 경기를 두고 스코어베이스 통계모델과 GPT-5.6가 경기 전에 각각 예측하고, 결과로 채점합니다. 1X2·핸디캡·오버언더 시장별 적중을 누적으로 비교 공개합니다.",
   },
   {
     href: "/tools/kbo-win-probability",
@@ -114,7 +114,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "다른 AI 예측과 무엇이 다른가요?",
-    a: "스코어베이스 통계모델과 GPT-5.5가 같은 경기를 경기 전에 각각 예측하고 결과로 채점하는 성적표를 공개합니다. 예측이 맞았는지 틀렸는지 매 경기 그대로 표시해, 사후 보정 없이 검증 가능한 형태로 적중률을 드러냅니다.",
+    a: "스코어베이스 통계모델과 GPT-5.6가 같은 경기를 경기 전에 각각 예측하고 결과로 채점하는 성적표를 공개합니다. 예측이 맞았는지 틀렸는지 매 경기 그대로 표시해, 사후 보정 없이 검증 가능한 형태로 적중률을 드러냅니다.",
   },
   {
     q: "무료인가요? 베팅 사이트인가요?",
@@ -292,7 +292,7 @@ export default function AiSportsPredictionPage() {
         <div className="rounded-[2rem] bg-zinc-950 p-8 sm:p-12 dark:bg-white/[0.06] dark:ring-1 dark:ring-white/10">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">예측 적중률부터 확인하세요</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm sm:text-base text-white/70">
-            회원가입 없이 무료로 경기별 AI 분석·승부예측과 13개 리그 적중률, GPT-5.5 정면 비교 성적표를 바로 볼 수 있습니다.
+            회원가입 없이 무료로 경기별 AI 분석·승부예측과 13개 리그 적중률, GPT-5.6 정면 비교 성적표를 바로 볼 수 있습니다.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link href="/predictions/accuracy" className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white/90">

@@ -1,4 +1,4 @@
-// 멀티 AI 성적표 수집 cron — 예정 경기에 우리 모델 + GPT-5.5 1X2 픽 저장.
+// 멀티 AI 성적표 수집 cron — 예정 경기에 우리 모델 + GPT-5.6 1X2 픽 저장.
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";

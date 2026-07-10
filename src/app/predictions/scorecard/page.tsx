@@ -1,4 +1,4 @@
-// AI 예측 성적표 — 우리 통계모델 vs GPT-5.5 가 같은 경기를 맞춰온 정면 비교(1X2·핸디·OU 3개 시장) + 시장별·경기별 누적.
+// AI 예측 성적표 — 우리 통계모델 vs GPT-5.6 가 같은 경기를 맞춰온 정면 비교(1X2·핸디·OU 3개 시장) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, X, Trophy, Sparkles, Clock, Target, Shuffle } from "lucide-react";
@@ -15,7 +15,7 @@ export const revalidate = 1800; // 30분 ISR
 
 const MODELS = {
   scorebase: { id: "scorebase", name: "스코어베이스 AI", short: "우리 모델", accent: "rose" },
-  gpt: { id: "gpt-5.5", name: "GPT-5.5", short: "GPT-5.5", accent: "emerald" },
+  gpt: { id: "gpt-5.5", name: "GPT-5.6", short: "GPT-5.6", accent: "emerald" },
 } as const;
 
 type Market = "1X2" | "HANDICAP" | "OU";
@@ -26,19 +26,19 @@ const MARKET_META: { key: Market; label: string }[] = [
 ];
 
 export const metadata: Metadata = {
-  title: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.5 승부예측 정면 비교",
+  title: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6 승부예측 정면 비교",
   description:
-    "두 AI가 같은 경기를 경기 전에 예측하고, 결과로 채점합니다. 스코어베이스 통계모델과 GPT-5.5의 1X2·핸디캡·오버언더 적중률을 시장별·경기별 기록과 함께 투명하게 공개합니다.",
+    "두 AI가 같은 경기를 경기 전에 예측하고, 결과로 채점합니다. 스코어베이스 통계모델과 GPT-5.6의 1X2·핸디캡·오버언더 적중률을 시장별·경기별 기록과 함께 투명하게 공개합니다.",
   keywords: [
-    "AI 예측 성적표", "GPT 승부예측", "AI 스포츠 예측 비교", "GPT-5.5 예측",
+    "AI 예측 성적표", "GPT 승부예측", "AI 스포츠 예측 비교", "GPT-5.6 예측",
     "AI 적중률", "핸디캡 예측", "오버언더 예측", "AI 예측 대결",
   ],
   alternates: { canonical: `${SITE_URL}/predictions/scorecard` },
   openGraph: {
-    title: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.5",
+    title: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6",
     description: "두 AI가 같은 경기를 두고 맞붙은 승부예측 성적표. 1X2·핸디·OU 시장별 적중 누적 공개.",
     url: `${SITE_URL}/predictions/scorecard`,
-    images: ogPageImage({ title: "AI 예측 성적표", subtitle: "스코어베이스 AI vs GPT-5.5 정면 비교", tag: "AI 대결" }),
+    images: ogPageImage({ title: "AI 예측 성적표", subtitle: "스코어베이스 AI vs GPT-5.6 정면 비교", tag: "AI 대결" }),
   },
 };
 
@@ -171,7 +171,7 @@ export default async function ScorecardPage() {
     return {
       n: i + 1,
       "우리 모델": +((sbHit / (i + 1)) * 100).toFixed(1),
-      "GPT-5.5": +((gptHit / (i + 1)) * 100).toFixed(1),
+      "GPT-5.6": +((gptHit / (i + 1)) * 100).toFixed(1),
     };
   });
   const showTrend = trend.length >= 10;
@@ -220,13 +220,13 @@ export default async function ScorecardPage() {
   const citeUrl = `${SITE_URL}/predictions/scorecard`;
   const citation =
     sbTally.graded > 0
-      ? `AI 예측 성적표 — 같은 경기 ${sbTally.graded}개 데이터포인트(1X2·핸디·OU)에서 스코어베이스 AI ${(sbTally.rate * 100).toFixed(1)}% vs GPT-5.5 ${(gptTally.rate * 100).toFixed(1)}% 적중률 (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`
-      : `AI 예측 성적표 — 스코어베이스 AI vs GPT-5.5 승부예측 정면 비교 (출처: Scorebase ${citeUrl})`;
+      ? `AI 예측 성적표 — 같은 경기 ${sbTally.graded}개 데이터포인트(1X2·핸디·OU)에서 스코어베이스 AI ${(sbTally.rate * 100).toFixed(1)}% vs GPT-5.6 ${(gptTally.rate * 100).toFixed(1)}% 적중률 (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`
+      : `AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6 승부예측 정면 비교 (출처: Scorebase ${citeUrl})`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    name: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.5",
+    name: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6",
     description:
       "두 AI가 같은 경기를 경기 전에 예측하고 결과로 채점한 1X2·핸디캡·오버언더 적중률 비교 데이터셋.",
     url: citeUrl,
@@ -248,7 +248,7 @@ export default async function ScorecardPage() {
           AI 예측 성적표
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">
-          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT-5.5</strong>가
+          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT-5.6</strong>가
           <strong className="text-zinc-800 dark:text-white/80"> 정확히 같은 경기</strong>를 경기 전에 예측합니다.
           1X2 승부뿐 아니라 <strong className="text-zinc-800 dark:text-white/80">핸디캡·오버언더</strong>까지
           세 시장을 두고 맞붙어, 결과가 나오면 채점해 그대로 쌓습니다.
@@ -335,7 +335,7 @@ export default async function ScorecardPage() {
                 <tr className="border-b border-zinc-100 text-left text-[11px] uppercase tracking-wide text-zinc-400 dark:border-white/10 dark:text-white/30">
                   <th className="px-4 py-2.5 font-medium">시장</th>
                   <th className="px-2 py-2.5 text-center font-medium text-rose-500">우리 모델</th>
-                  <th className="px-2 py-2.5 text-center font-medium text-emerald-600 dark:text-emerald-400">GPT-5.5</th>
+                  <th className="px-2 py-2.5 text-center font-medium text-emerald-600 dark:text-emerald-400">GPT-5.6</th>
                   <th className="px-3 py-2.5 text-center font-medium">우세</th>
                 </tr>
               </thead>
@@ -488,7 +488,7 @@ export default async function ScorecardPage() {
           <p className="font-semibold text-zinc-700 dark:text-white/70">계산 방법</p>
           <p className="mt-1.5">
             두 AI 모두 <strong>경기 시작 전</strong>에 1X2(승·무·패)·핸디캡·오버언더 픽을 제출합니다. 스코어베이스 AI는
-            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, GPT-5.5는 팀·리그·일정과
+            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, GPT-5.6는 팀·리그·일정과
             <strong> 동일한 기준선(핸디/총점 라인)</strong>만 받아 (우리 모델 수치는 보지 않고) 독립 예측합니다.
             경기가 끝나면 같은 라인으로 채점합니다(축구는 정규시간 기준). 공정성을 위해 두 AI가 모두 예측한 동일 경기·시장만 비교합니다.
             확률 정밀도(Brier)는 픽 확신도와 실제 결과(적중=1·실패=0)의 제곱 오차 평균으로, 낮을수록 확률을 정직하게 낸 것입니다.

@@ -63,6 +63,13 @@
     "group": "detail"
   },
   {
+    "route": "/assistant",
+    "desc": "",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/baseball",
     "desc": "야구 종목 허브 — 오늘 경기·KBO 순위·AI 예측·선발·연봉·주목 선수를 한 페이지에. 기존 데이터/페이지 재사용(중복 구현 X), 각 카드는 상세 페이지로 연결되는 \"입구\". ⚠️ /scores 페이지는 미수정 — prisma.match 만 직접 읽음.",
     "inMenu": true,
@@ -393,7 +400,7 @@
   },
   {
     "route": "/predictions/scorecard",
-    "desc": "AI 예측 성적표 — 우리 통계모델 vs GPT-5.5 가 같은 경기를 맞춰온 정면 비교(1X2·핸디·OU 3개 시장) + 시장별·경기별 누적.",
+    "desc": "AI 예측 성적표 — 우리 통계모델 vs GPT-5.6 가 같은 경기를 맞춰온 정면 비교(1X2·핸디·OU 3개 시장) + 시장별·경기별 누적.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"

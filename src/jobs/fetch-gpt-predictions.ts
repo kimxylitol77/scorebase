@@ -1,4 +1,4 @@
-// 멀티 AI 성적표 수집 — 예정 경기에 우리 통계모델 + GPT-5.5 의 1X2 픽을 경기 전 저장.
+// 멀티 AI 성적표 수집 — 예정 경기에 우리 통계모델 + GPT-5.6 의 1X2 픽을 경기 전 저장.
 // 두 AI 가 "정확히 같은 경기"를 예측하게 해 정면 비교. 채점은 evaluate 가 종료 후 채움.
 // /predictions/scorecard 의 데이터 소스. cron: /api/cron/gpt-predictions.
 import "@/lib/env";
@@ -201,7 +201,7 @@ interface GptMarketPick {
 }
 
 /**
- * GPT-5.5 에 1X2 + (라인 제공 시) 핸디캡·OU 를 한 번에 묻는다(호출 1회 = 비용 절약).
+ * GPT-5.6 에 1X2 + (라인 제공 시) 핸디캡·OU 를 한 번에 묻는다(호출 1회 = 비용 절약).
  * 공정성 위해 우리 모델의 확률은 주지 않고, 채점 기준선(line)만 제공한다.
  */
 async function gptMarkets(

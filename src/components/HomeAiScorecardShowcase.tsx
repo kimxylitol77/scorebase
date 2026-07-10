@@ -1,4 +1,4 @@
-// 메인 페이지 — "AI 예측 대결" 쇼케이스 (우리 모델 vs GPT-5.5).
+// 메인 페이지 — "AI 예측 대결" 쇼케이스 (우리 모델 vs GPT-5.6).
 // 다가오는 경기의 두 AI 1X2 픽을 나란히 + 채점 누적 전적 요약. /predictions/scorecard 유도.
 
 import Link from "next/link";
@@ -138,7 +138,7 @@ export default async function HomeAiScorecardShowcase() {
             <Sparkles className="h-5 w-5 text-rose-500" aria-hidden /> AI 예측 대결
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-            스코어베이스 AI vs GPT-5.5 — 같은 경기를 경기 전 예측하고 결과로 채점합니다.
+            스코어베이스 AI vs GPT-5.6 — 같은 경기를 경기 전 예측하고 결과로 채점합니다.
           </p>
         </div>
         <Link
@@ -157,7 +157,7 @@ export default async function HomeAiScorecardShowcase() {
           </span>
           <span className="text-neutral-300 dark:text-white/20">vs</span>
           <span className={`font-bold tabular-nums ${leader === "gpt" ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-white/70"}`}>
-            GPT-5.5 {gptRate.toFixed(0)}%
+            GPT-5.6 {gptRate.toFixed(0)}%
           </span>
         </div>
       )}
@@ -189,7 +189,7 @@ export default async function HomeAiScorecardShowcase() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <PickMini label="우리 모델" cell={c.sb!} home={c.home} away={c.away} accent="rose" />
-              <PickMini label="GPT-5.5" cell={c.gpt!} home={c.home} away={c.away} accent="emerald" />
+              <PickMini label="GPT-5.6" cell={c.gpt!} home={c.home} away={c.away} accent="emerald" />
             </div>
             <div className="mt-3 text-[11px] font-medium text-rose-600 group-hover:underline dark:text-rose-400">
               경기 상세 보기 →
