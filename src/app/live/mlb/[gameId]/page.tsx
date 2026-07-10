@@ -319,7 +319,14 @@ export default async function MlbLivePage({ params }: Props) {
       />
 
       {match.aiPredictions && match.aiPredictions.length >= 2 && (
-        <AiMatchupCard homeKo={homeKo} awayKo={awayKo} predictions={match.aiPredictions} />
+        <AiMatchupCard
+          homeKo={homeKo}
+          awayKo={awayKo}
+          predictions={match.aiPredictions}
+          marketHome={match.marketHome}
+          marketAway={match.marketAway}
+          allowDraw={false}
+        />
       )}
 
       {/* 결론/예측 — 항상 표시 (승률·선발·AI예측) */}

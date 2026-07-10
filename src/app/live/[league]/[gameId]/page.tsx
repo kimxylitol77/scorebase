@@ -1072,6 +1072,9 @@ export default async function GenericLivePage({ params }: Props) {
           homeKo={homeKo}
           awayKo={awayKo}
           predictions={match.aiPredictions}
+          marketHome={match.marketHome}
+          marketDraw={match.marketDraw}
+          marketAway={match.marketAway}
         />
       )}
 
@@ -1290,6 +1293,9 @@ async function renderBaseballPage(args: {
           homeKo={homeKo}
           awayKo={awayKo}
           predictions={match.aiPredictions}
+          marketHome={match.marketHome}
+          marketDraw={match.marketDraw}
+          marketAway={match.marketAway}
         />
       )}
       <MatchVoteCard matchId={match.id} />
