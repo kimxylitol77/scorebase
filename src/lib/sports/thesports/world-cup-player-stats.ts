@@ -9,6 +9,15 @@ import rawOv from "../../../../data/player-overrides.json";
 
 const OV = rawOv as Record<string, { nameKo?: string }>;
 
+/**
+ * override JSON 의 수동 교정 한글명. STAR 리포트 헤더·JSON-LD 가 본문과 같은
+ * 이름(override 우선)을 쓰도록 노출 — theSportsPlayer.nameKo 는 daily 봇이 TheSports
+ * 값으로 덮어 override(예: 킬리안 음바페)와 어긋날 수 있음.
+ */
+export function playerOverrideNameKo(id: string): string | null {
+  return OV[id]?.nameKo ?? null;
+}
+
 export interface WcPlayerStat {
   id: string; // ts player id
   name: string; // 한글 우선 (override → TheSportsPlayer.nameKo → lineup 영문)

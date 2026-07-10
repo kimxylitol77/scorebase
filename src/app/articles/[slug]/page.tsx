@@ -23,6 +23,7 @@ import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import TeamOfDayPitch from "@/components/TeamOfDayPitch";
 import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
 import { parseStarSlug } from "@/lib/sports/thesports/wc-star-report";
+import { playerOverrideNameKo } from "@/lib/sports/thesports/world-cup-player-stats";
 import AmbientGlow from "@/components/AmbientGlow";
 import { BarChart3, CalendarDays, Activity, Star, Swords } from "lucide-react";
 
@@ -474,11 +475,16 @@ export default async function ArticlePage({ params }: Props) {
   const starHasMv = star
     ? (await prisma.playerMarketValue.findUnique({ where: { id: star.playerId }, select: { id: true } })) != null
     : false;
+  // 표시용 한글명 — 본문과 동일하게 override 우선. theSportsPlayer.nameKo 는 daily 봇이
+  // TheSports 값으로 덮어 override(수동 교정)와 어긋날 수 있어(예: 엠바페 vs 음바페) 헤더가 틀렸음.
+  const starNameKo = star
+    ? playerOverrideNameKo(star.playerId) || starPlayer?.nameKo || null
+    : null;
   const personJsonLd = star
     ? {
         "@context": "https://schema.org",
         "@type": "Person",
-        name: starPlayer?.nameKo || starPlayer?.name || article.title,
+        name: starNameKo || starPlayer?.name || article.title,
         ...(starPlayer?.name ? { alternateName: starPlayer.name } : {}),
         ...(starPlayer?.photoUrl ? { image: starPlayer.photoUrl } : {}),
         jobTitle: "축구 선수",
@@ -628,7 +634,7 @@ export default async function ArticlePage({ params }: Props) {
         <div className="mb-8 flex items-center gap-4 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-zinc-100 to-zinc-50 p-5 ring-1 ring-black/5 sm:gap-5 sm:rounded-[2rem] sm:p-6 dark:from-white/[0.06] dark:to-white/[0.02] dark:ring-white/10">
           <Image
             src={starPlayer.photoUrl}
-            alt={starPlayer.nameKo || starPlayer.name || "선수 사진"}
+            alt={starNameKo || starPlayer.name || "선수 사진"}
             width={128}
             height={128}
             className="h-24 w-24 shrink-0 rounded-2xl object-cover object-top ring-1 ring-black/5 sm:h-28 sm:w-28 dark:ring-white/10"
@@ -639,9 +645,9 @@ export default async function ArticlePage({ params }: Props) {
               STAR 리포트
             </div>
             <div className="mt-1 truncate text-lg font-bold text-zinc-900 sm:text-xl dark:text-white">
-              {starPlayer.nameKo || starPlayer.name}
+              {starNameKo || starPlayer.name}
             </div>
-            {starPlayer.nameKo && starPlayer.name && (
+            {starNameKo && starPlayer.name && (
               <div className="truncate text-sm text-zinc-500 dark:text-white/50">{starPlayer.name}</div>
             )}
           </div>
