@@ -28,7 +28,8 @@ export const SPORT_KEY: Record<string, string> = {
   UECL: "soccer_uefa_europa_conference_league",
   WORLD_CUP: "soccer_fifa_world_cup",
   // 유럽 2부
-  CHAMPIONSHIP: "soccer_england_championship",
+  // 2026-07-10 교정 — The Odds 가 키를 soccer_england_championship → soccer_efl_champ 로 변경, stale 로 배당 미수집이었음.
+  CHAMPIONSHIP: "soccer_efl_champ",
   LEAGUE_ONE: "soccer_england_league1",
   LEAGUE_TWO: "soccer_england_league2",
   BUNDESLIGA_2: "soccer_germany_bundesliga2",
@@ -53,6 +54,32 @@ export const SPORT_KEY: Record<string, string> = {
   COPA_SUD: "soccer_conmebol_copa_sudamericana",
   // 아시아
   CSL: "soccer_china_superleague",
+  // 2026-07-10 추가 — 우리 커버 리그 ∩ The Odds 제공(all=true 검증) 신규 매핑
+  K_LEAGUE_1: "soccer_korea_kleague1",
+  SUPER_LIG: "soccer_turkey_super_league",
+  PRIMEIRA_LIGA: "soccer_portugal_primeira_liga",
+  RPL: "soccer_russia_premier_league",
+  SAUDI_PL: "soccer_saudi_arabia_pro_league",
+  GREEK_SL: "soccer_greece_super_league",
+  DENMARK_SL: "soccer_denmark_superliga",
+  SWISS_SL: "soccer_switzerland_superleague",
+  EKSTRAKLASA: "soccer_poland_ekstraklasa",
+  LIGUE_2: "soccer_france_ligue_two",
+  A_LEAGUE: "soccer_australia_aleague",
+  // 국가대표 / 대륙 대회
+  UEL: "soccer_uefa_europa_league",
+  UEFA_NL: "soccer_uefa_nations_league",
+  EURO_QUAL: "soccer_uefa_euro_qualification",
+  CLUB_WORLD_CUP: "soccer_fifa_club_world_cup",
+  AFCON: "soccer_africa_cup_of_nations",
+  CONCACAF_GOLD: "soccer_concacaf_gold_cup",
+  // 컵 대회
+  FA_CUP: "soccer_fa_cup",
+  EFL_CUP: "soccer_england_efl_cup",
+  COPA_DEL_REY: "soccer_spain_copa_del_rey",
+  COPPA_ITALIA: "soccer_italy_coppa_italia",
+  DFB_POKAL: "soccer_germany_dfb_pokal",
+  COUPE_DE_FRANCE: "soccer_france_coupe_de_france",
 };
 
 interface OddsApiOutcome {
@@ -94,7 +121,9 @@ export async function fetchLeagueOdds(
     {
       params: {
         apiKey,
-        regions: opts?.regions ?? "uk,eu,us",
+        // 축구는 eu 단일(유럽 대형 북메이커 다수로 컨센서스 충분) → 호출당 credit 3(=1×markets).
+        // 미국계(야구/농구/하키)는 us 라인이 핵심이라 uk,eu,us 유지. 2026-07-10 quota 절감.
+        regions: opts?.regions ?? (sportKey.startsWith("soccer_") ? "eu" : "uk,eu,us"),
         // h2h(1X2) + totals(O/U) + spreads(HC) — 무료/Standard plan 지원.
         // btts, double_chance 는 Pro plan ($99/월~) 추가 markets — 추후 결제 시 markets에 추가
         markets: opts?.markets ?? "h2h,totals,spreads",
