@@ -191,6 +191,24 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
                 bookmakers: implied.consensus,
               },
             });
+            // 샤프무브 분석용 업체별 스냅샷 — ODDS_BOOK_HISTORY=1 일 때만 (기본 OFF).
+            // 테이블은 Neon SQL 로 먼저 생성 후 활성화. "어느 업체가 먼저 움직였나" 추적 기반.
+            // 스냅샷 생성과 같은 분기 안이라 같은 분 중복도 자동 회피.
+            if (process.env.ODDS_BOOK_HISTORY === "1" && bmList.length) {
+              try {
+                await prisma.oddsBookSnapshot.createMany({
+                  data: (bmList as unknown as { nm: string; h: number; d: number | null; a: number }[]).map((b) => ({
+                    matchId: m.id,
+                    book: b.nm,
+                    homeOdds: b.h,
+                    drawOdds: b.d ?? null,
+                    awayOdds: b.a,
+                  })),
+                });
+              } catch {
+                // 테이블 미생성 등 — 메인 배당 적재는 영향 없이 계속
+              }
+            }
           }
         }
         matched++;

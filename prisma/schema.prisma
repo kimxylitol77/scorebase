@@ -199,6 +199,7 @@ model Match {
   posts    Post[]
   theSportsCache TheSportsMatchCache?
   oddsSnapshots  OddsSnapshot[]
+  oddsBookSnapshots OddsBookSnapshot[]
   tsBaseballOdds TsBaseballOddsHistory[]
   liveCommentary LiveCommentary?
   matchStats     MatchStats?
@@ -638,6 +639,24 @@ model OddsSnapshot {
   awayOdds    Float
   bookmakers  Int                                  // 평균에 들어간 북메이커 수
   match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, fetchedAt])
+  @@index([fetchedAt])
+}
+
+/// 업체별 배당 스냅샷 시계열 — 샤프무브(어느 업체가 먼저 움직였나) 분석 기반.
+/// fetch-odds 가 ODDS_BOOK_HISTORY=1 일 때만 적재 (기본 OFF — 볼륨 안전 게이트).
+/// 테이블 생성은 Neon SQL 직접 실행 (db push 프로덕션 hang 회피 원칙).
+/// 보존 14일 — odds-mover-alert cron 이 오래된 row 정리.
+model OddsBookSnapshot {
+  id        BigInt   @id @default(autoincrement())
+  matchId   Int
+  book      String
+  fetchedAt DateTime @default(now())
+  homeOdds  Float
+  drawOdds  Float?
+  awayOdds  Float
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@index([matchId, fetchedAt])
   @@index([fetchedAt])
