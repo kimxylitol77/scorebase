@@ -19,6 +19,7 @@ const LABELS: Record<string, string> = {
   MLS: "MLS",
   UCL: "챔스",
   WORLD_CUP: "월드컵",
+  NATIONAL: "국가대표",
   LOL: "LCK",
   EWC: "EWC",
 };

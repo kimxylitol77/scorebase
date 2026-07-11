@@ -39,6 +39,7 @@ import {
 } from "@/lib/sports/npb-cache";
 import { jpPitcherToKorean } from "@/lib/sports/npb-starters";
 import { getTheSportsInjuriesByTeam, type TSInjuryRaw } from "@/lib/sports/thesports/injuries";
+import { NATIONAL_TEAM_LEAGUES, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { translateReason, classifySeverity, SEVERITY_META, type Severity } from "@/lib/sports/injury-format";
 
 function classifyKboDuration(
@@ -70,11 +71,14 @@ const VALID = [
   "NBA", "MLB", "NHL", "KBO", "NPB",
   // 2026-05-21 추가 — api-football 부상자 endpoint cover
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
+  // 국가대표 통합 — NATIONAL_TEAM_LEAGUES(월드컵·예선·네이션스리그·친선 등) 팀 부상자 집계
+  "NATIONAL",
 ] as const;
 type Lg = (typeof VALID)[number];
 const SOCCER: Lg[] = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS",
   "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "SAUDI_PL",
+  "NATIONAL",
 ];
 const ESPN_LEAGUES: Lg[] = ["NBA", "MLB", "NHL"];
 const ASIAN_BB: Lg[] = ["KBO", "NPB"];
@@ -90,6 +94,21 @@ interface LeagueMeta {
 }
 
 const LEAGUE_META: Record<Lg, LeagueMeta> = {
+  NATIONAL: {
+    krFull: "국가대표",
+    krShort: "국대",
+    enFull: "National Teams",
+    starKeywords: [
+      "국가대표 부상",
+      "월드컵 부상자",
+      "손흥민 부상",
+      "음바페 부상",
+      "네이마르 부상",
+      "브라질 대표팀 부상자",
+      "프랑스 대표팀 부상자",
+      "A매치 부상자",
+    ],
+  },
   EPL: {
     krFull: "프리미어리그",
     krShort: "EPL",
@@ -297,6 +316,29 @@ interface Props {
   searchParams: Promise<{ q?: string; severity?: string; sort?: string }>;
 }
 
+// 유스 연령별 대표팀(U17·U20·U23·올림픽 등) 판별 — 국가대표(성인) 부상자에서 제외.
+const YOUTH_NT = /\bU-?\d{2}\b|olympic|올림픽/i;
+
+// 리그별 팀 조회 — NATIONAL 은 국가대표 대회(NATIONAL_TEAM_LEAGUES) 팀을 모아
+// 유스 연령별팀 제외 + 이름 기준 dedup.
+async function getInjuryTeams(upper: Lg) {
+  if (upper === "NATIONAL") {
+    const rows = await prisma.team.findMany({
+      where: { league: { in: [...NATIONAL_TEAM_LEAGUES] } },
+      orderBy: { name: "asc" },
+    });
+    const seen = new Set<string>();
+    return rows.filter((t) => {
+      if (YOUTH_NT.test(t.name)) return false;
+      const k = t.name.trim().toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }
+  return prisma.team.findMany({ where: { league: upper }, orderBy: { name: "asc" } });
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { league } = await params;
   const upper = league.toUpperCase() as Lg;
@@ -309,7 +351,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let fullSquadCount = 0;
   let soccerSource = "api-football Pro";
   try {
-    const teams = await prisma.team.findMany({ where: { league: upper } });
+    const teams = await getInjuryTeams(upper);
     const isEspn = ESPN_LEAGUES.includes(upper);
     const isSoccer = SOCCER.includes(upper);
     let teamLists: Array<{ teamName: string; count: number }> = [];
@@ -317,7 +359,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (isSoccer) {
       // 본문과 동일 — TheSports 1순위 + cache 없는 팀만 api-football 보강
       const tsInj = await getTheSportsInjuriesByTeam(teams.map((t) => t.id));
-      const needAf = teams.some((t) => !tsInj.has(t.id));
+      const needAf = !!API_FOOTBALL_LEAGUE_ID[upper] && teams.some((t) => !tsInj.has(t.id));
       const all = needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0
         ? await fetchSeasonInjuries(upper, getApiFootballSeason(new Date(), upper))
         : [];
@@ -361,9 +403,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const url = `${CANONICAL}/injuries/${upper}`;
   const seasonLabel =
-    upper === "KBO" || upper === "NPB" || upper === "MLB"
-      ? `${new Date().getUTCFullYear()} 시즌`
-      : "2025-26 시즌";
+    upper === "NATIONAL"
+      ? "국가대표 A매치"
+      : upper === "KBO" || upper === "NPB" || upper === "MLB"
+        ? `${new Date().getUTCFullYear()} 시즌`
+        : "2025-26 시즌";
   const sourceLabel =
     upper === "KBO"
       ? "KBO 공식 (koreabaseball.com)"
@@ -376,7 +420,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             : "api-football Pro";
   const title = `${lm.krFull} 부상자 명단 ${seasonLabel}${totalInjuries > 0 ? ` · 총 ${totalInjuries}명 결장` : ""}`;
   const description = totalInjuries > 0
-    ? `${lm.krFull} 전 팀 부상·결장 선수 ${totalInjuries}명 현황${topTeam ? `. 가장 많은 결장자 보유: ${topTeam.name}(${topTeam.count}명)` : ""}${fullSquadCount > 0 ? `. 풀스쿼드 팀 ${fullSquadCount}개` : ""}. 매일 업데이트 · 출처 ${sourceLabel}.`
+    ? `${lm.krFull} 전 팀 부상·결장 선수 ${totalInjuries}명 현황${topTeam ? `. 가장 많은 결장자 보유: ${topTeam.name}(${topTeam.count}명)` : ""}${upper !== "NATIONAL" && fullSquadCount > 0 ? `. 풀스쿼드 팀 ${fullSquadCount}개` : ""}. 매일 업데이트 · 출처 ${sourceLabel}.`
     : `${lm.krFull} 전 팀의 현재 부상·결장 선수 한 페이지 정리. 사유·심각도·복귀 가늠 — 매일 업데이트.`;
 
   return {
@@ -421,12 +465,11 @@ export default async function InjuriesByLeague({
   if (!VALID.includes(upper)) notFound();
   const lm = LEAGUE_META[upper];
 
-  const teams = await prisma.team.findMany({
-    where: { league: upper },
-    orderBy: { name: "asc" },
-  });
+  const teams = await getInjuryTeams(upper);
 
   // 리그 매치 데이터 (순위 + 다음 경기 계산용)
+  // NATIONAL 은 실제 매치 league 가 "NATIONAL" 이 아니라 대회별(WORLD_CUP 등)이므로
+  // 아래 순위/다음경기는 자연히 빈값 → 국가대표는 순위·일정 미표시(대회 혼재라 무의미).
   const dbMatches = await prisma.match.findMany({
     where: { league: upper },
     select: {
@@ -495,7 +538,8 @@ export default async function InjuriesByLeague({
     try { tsInjByTeam = await getTheSportsInjuriesByTeam(teams.map((t) => t.id)); } catch {}
   }
   // cache 없는 팀(오프시즌 등)이 있을 때만 api-football 보강 — 전부 cover 면 호출 skip(rate-limit 절약).
-  const needAf = isSoccer && teams.some((t) => !tsInjByTeam.has(t.id));
+  // NATIONAL 처럼 api-football 리그 id 가 없는 경우는 애초에 보강 대상 아님(라벨도 "TheSports" 로).
+  const needAf = isSoccer && !!API_FOOTBALL_LEAGUE_ID[upper] && teams.some((t) => !tsInjByTeam.has(t.id));
   const hasKey = isSoccer ? tsInjByTeam.size > 0 || !!process.env.API_FOOTBALL_KEY : true;
   if (isSoccer && needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
     try {
@@ -533,9 +577,11 @@ export default async function InjuriesByLeague({
   }
 
   const seasonLabel =
-    isAsianBb || upper === "MLB"
-      ? `${new Date().getUTCFullYear()} 시즌`
-      : "2025-26 시즌";
+    upper === "NATIONAL"
+      ? "국가대표 A매치"
+      : isAsianBb || upper === "MLB"
+        ? `${new Date().getUTCFullYear()} 시즌`
+        : "2025-26 시즌";
   const sourceLabel =
     upper === "KBO"
       ? "KBO 공식 (koreabaseball.com)"
@@ -705,12 +751,16 @@ export default async function InjuriesByLeague({
     return b.all.length - a.all.length;
   });
 
-  // 풀스쿼드 vs 부상자 있는 팀
-  const fullSquadTeams = byTeam.filter((x) => x.all.length === 0);
-  const injuredTeams = byTeam.filter((x) => x.all.length > 0);
+  // 국가대표는 대회·소속팀이 수백개(유스 제외해도) → 부상자 있는 팀만 노출.
+  // "누가 부상인가" 에 집중 + 빈 풀스쿼드 수백팀 노이즈 제거. (클럽 리그는 전 팀 유지)
+  const displayTeams = upper === "NATIONAL" ? byTeam.filter((x) => x.all.length > 0) : byTeam;
 
-  const totalInjuries = byTeam.reduce((s, x) => s + x.all.length, 0);
-  const avgPerTeam = byTeam.length > 0 ? totalInjuries / byTeam.length : 0;
+  // 풀스쿼드 vs 부상자 있는 팀
+  const fullSquadTeams = displayTeams.filter((x) => x.all.length === 0);
+  const injuredTeams = displayTeams.filter((x) => x.all.length > 0);
+
+  const totalInjuries = displayTeams.reduce((s, x) => s + x.all.length, 0);
+  const avgPerTeam = displayTeams.length > 0 ? totalInjuries / displayTeams.length : 0;
 
   // 상위 3팀
   const top3 = [...byTeam]
@@ -880,7 +930,9 @@ export default async function InjuriesByLeague({
             <StatCard
               label="총 결장자"
               value={`${totalInjuries}명`}
-              subtle={`${byTeam.length}개 팀 평균 ${avgPerTeam.toFixed(1)}명`}
+              subtle={upper === "NATIONAL"
+                ? `부상자 보유 ${injuredTeams.length}개 대표팀`
+                : `${displayTeams.length}개 팀 평균 ${avgPerTeam.toFixed(1)}명`}
             />
             {topPart && (
               <StatCard
@@ -896,12 +948,20 @@ export default async function InjuriesByLeague({
                 .map((x) => toKoreanTeamName(x.team.name, upper))
                 .join(" · ")}
             />
-            <StatCard
-              label="풀스쿼드"
-              value={`${fullSquadTeams.length}팀`}
-              subtle={fullSquadTeams.length > 0 ? "부상자 0명" : "없음"}
-              positive={fullSquadTeams.length > 0}
-            />
+            {upper === "NATIONAL" ? (
+              <StatCard
+                label="부상 대표팀"
+                value={`${injuredTeams.length}팀`}
+                subtle="부상자 1명 이상"
+              />
+            ) : (
+              <StatCard
+                label="풀스쿼드"
+                value={`${fullSquadTeams.length}팀`}
+                subtle={fullSquadTeams.length > 0 ? "부상자 0명" : "없음"}
+                positive={fullSquadTeams.length > 0}
+              />
+            )}
           </section>
         )}
 
@@ -910,10 +970,10 @@ export default async function InjuriesByLeague({
           <section className="rounded-2xl border border-neutral-200 bg-neutral-50/50 p-5 space-y-2 text-sm leading-relaxed text-neutral-700 break-keep dark:border-white/10 dark:bg-white/[0.04] dark:text-neutral-300">
             <p>
               <strong>
-                2025-26 시즌 {lm.krFull} 전체 부상·결장 선수는 총{" "}
+                {upper === "NATIONAL" ? "" : "2025-26 시즌 "}{lm.krFull} 전체 부상·결장 선수는 총{" "}
                 {totalInjuries}명
               </strong>
-              으로 집계됐다. {byTeam.length}개 팀 평균 {avgPerTeam.toFixed(1)}
+              으로 집계됐다. {displayTeams.length}개 {upper === "NATIONAL" ? "대표팀" : "팀"} 평균 {avgPerTeam.toFixed(1)}
               명이 결장 중이며
               {top3.length > 0 && (
                 <>
@@ -1025,7 +1085,8 @@ export default async function InjuriesByLeague({
                   teamId={team.id}
                   teamName={team.name}
                   logoUrl={team.logoUrl}
-                  league={upper}
+                  league={upper === "NATIONAL" ? team.league : upper}
+                  flag={upper === "NATIONAL" ? fifaFlag(team.name, toKoreanTeamName(team.name, team.league)) : undefined}
                   rank={standings.byTeam.get(team.id)?.position}
                   nextMatch={nextMatchByTeam.get(team.id)}
                   all={all}
@@ -1181,6 +1242,7 @@ function TeamInjuryCard({
   teamName,
   logoUrl,
   league,
+  flag,
   rank,
   nextMatch,
   all,
@@ -1191,6 +1253,7 @@ function TeamInjuryCard({
   teamName: string;
   logoUrl: string | null;
   league: string;
+  flag?: string;
   rank?: number;
   nextMatch?: {
     startTime: Date;
@@ -1252,7 +1315,7 @@ function TeamInjuryCard({
               href={`/teams/${teamId}`}
               className="font-bold truncate hover:underline"
             >
-              {toKoreanTeamName(teamName, league)}
+              {flag ? `${flag} ` : ""}{toKoreanTeamName(teamName, league)}
             </Link>
             {rank && (
               <span className="text-[11px] text-neutral-500">
