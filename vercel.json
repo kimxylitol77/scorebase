@@ -61,6 +61,10 @@
       "schedule": "0 15 * * *"
     },
     {
+      "path": "/api/cron/odds-mover-alert",
+      "schedule": "10 */2 * * *"
+    },
+    {
       "path": "/api/cron/mma",
       "schedule": "0 21 * * *"
     },
