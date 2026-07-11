@@ -178,9 +178,13 @@ export default async function ScorecardPage() {
       if (ag) return b.tally.rate - a.tally.rate;
       return b.tally.predicted - a.tally.predicted;
     });
-  const maxRate = Math.max(0.0001, ...board.filter((b) => b.tally.graded > 0).map((b) => b.tally.rate));
-  const gradedModels = board.filter((b) => b.tally.graded > 0);
+  // 소표본 왜곡 방지 — 채점 30건 미만 모델은 순위에 안 올리고 "표본 누적 중" 구간에 성적만 표시.
+  // (예: 첫날 12건 중 8건 맞춘 모델이 900건짜리 기록 위에 1위로 뜨는 왜곡 차단)
+  const RANK_MIN = 30;
+  const gradedModels = board.filter((b) => b.tally.graded >= RANK_MIN);
+  const provisionalModels = board.filter((b) => b.tally.graded > 0 && b.tally.graded < RANK_MIN);
   const pendingModels = board.filter((b) => b.tally.graded === 0);
+  const maxRate = Math.max(0.0001, ...gradedModels.map((b) => b.tally.rate));
 
   // 시장별 성적(채점된 모델만).
   const perMarket = MARKET_META.map((mm) => ({
@@ -351,17 +355,30 @@ export default async function ScorecardPage() {
           })}
         </div>
 
-        {pendingModels.length > 0 && (
+        {(provisionalModels.length > 0 || pendingModels.length > 0) && (
           <div className="mt-3 rounded-2xl bg-zinc-50 p-4 ring-1 ring-zinc-200/70 dark:bg-white/[0.02] dark:ring-white/10">
-            <div className="mb-2 text-[12px] font-medium text-zinc-500 dark:text-white/40">채점 대기 — 예측은 쌓였고 경기 종료 후 성적이 채워집니다</div>
+            <div className="mb-2 text-[12px] font-medium text-zinc-500 dark:text-white/40">
+              표본 누적 중 — 채점 {RANK_MIN}건부터 순위에 반영됩니다
+            </div>
             <div className="flex flex-wrap gap-2">
+              {provisionalModels.map((b) => {
+                const a = ACCENT[b.accent];
+                return (
+                  <span key={b.model} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium ${a.soft} ${a.text}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
+                    {b.label}
+                    <span className="tabular-nums">{(b.tally.rate * 100).toFixed(1)}%</span>
+                    <span className="tabular-nums opacity-70">{b.tally.correct}/{b.tally.graded}</span>
+                  </span>
+                );
+              })}
               {pendingModels.map((b) => {
                 const a = ACCENT[b.accent];
                 return (
                   <span key={b.model} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium ${a.soft} ${a.text}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
                     {b.label}
-                    <span className="tabular-nums opacity-70">예측 {b.tally.predicted}</span>
+                    <span className="tabular-nums opacity-70">예측 {b.tally.predicted} · 채점 대기</span>
                   </span>
                 );
               })}
