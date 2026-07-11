@@ -56,6 +56,7 @@ export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
       id: true, league: true, homeTeamId: true, awayTeamId: true, startTime: true,
       marketHome: true, marketDraw: true, marketAway: true, marketBookmakers: true,
       homeStarter: true, awayStarter: true, homeGoalie: true, awayGoalie: true,
+      predHome: true, predAway: true, // 배구 앵커
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
     },

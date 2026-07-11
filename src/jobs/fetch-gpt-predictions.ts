@@ -33,16 +33,27 @@ import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
 import { activePanelists, PANELISTS, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
+// 배구는 predHome(검증된 배구 Elo+시장 블렌드) 앵커, LoL 은 일반 Elo 파이프라인
+// (백테스트 2026-07-11: LCK 70.0%·LPL 65.1%·LEC 58.3% — 2군 LCK_CL·LCS 는 미검증이라 제외).
+// 배구·LoL 은 SPORT_PROFILE 없음 → 핸디/OU 없이 1X2(승패)만.
 export const MAJOR_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
   "WORLD_CUP", "NBA", "NHL", "MLB", "KBO", "NPB",
+  "VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W",
+  "LOL", "LPL", "LEC",
 ];
+
+// predHome 앵커를 쓰는 배구 리그 (volleyball-predict cron 이 매시간 채움).
+const VB_ANCHOR_LEAGUES = new Set(["VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W"]);
 
 const LEAGUE_NAME: Record<string, string> = {
   EPL: "프리미어리그", LALIGA: "라리가", BUNDESLIGA: "분데스리가",
   SERIE_A: "세리에 A", LIGUE_1: "리그 1", MLS: "MLS", UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵", NBA: "NBA", NHL: "NHL", MLB: "MLB",
   KBO: "KBO", NPB: "NPB",
+  VNL: "발리볼네이션스리그 남자", VNL_W: "발리볼네이션스리그 여자",
+  EGL_W: "유럽 골든리그 여자배구", AVC_NATIONS_W: "AVC 네이션스컵 여자배구",
+  LOL: "LoL 챔피언스 코리아(LCK)", LPL: "LoL LPL(중국)", LEC: "LoL LEC(유럽)",
 };
 
 const DAILY_CAP = Number(process.env.GPT_PREDICT_CAP ?? 40);
@@ -129,10 +140,20 @@ export function scorebasePick(
     awayStarter: string | null;
     homeGoalie: string | null;
     awayGoalie: string | null;
+    predHome?: number | null;
+    predAway?: number | null;
   },
   leagueMatches: PredictMatch[],
 ): { pick: Winner; prob: number } | null {
   const { league, homeTeamId, awayTeamId, startTime } = match;
+
+  // 배구 — volleyball-predict cron 이 채운 predHome(배구 Elo+시장 블렌드, 백테스트 83.3%)을
+  // 앵커로 재사용. 아직 안 채워졌으면 스킵(다음 실행에서 잡힘).
+  if (VB_ANCHOR_LEAGUES.has(league)) {
+    const ph = match.predHome, pa = match.predAway;
+    if (ph == null || pa == null) return null;
+    return ph >= pa ? { pick: "HOME", prob: ph } : { pick: "AWAY", prob: pa };
+  }
 
   if (league !== "WORLD_CUP") {
     const homePrior = leagueMatches.filter(
@@ -489,6 +510,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
       id: true, league: true, homeTeamId: true, awayTeamId: true, startTime: true,
       marketHome: true, marketDraw: true, marketAway: true, marketBookmakers: true,
       homeStarter: true, awayStarter: true, homeGoalie: true, awayGoalie: true,
+      predHome: true, predAway: true, // 배구 앵커
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
     },
