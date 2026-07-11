@@ -44,11 +44,27 @@ const LEAGUE_NAME: Record<string, string> = {
 };
 
 const DAILY_CAP = Number(process.env.GPT_PREDICT_CAP ?? 40);
-const GPT_MODEL = process.env.GPT_PREDICT_MODEL ?? "gpt-5.5";
+const GPT_MODEL = process.env.GPT_PREDICT_MODEL ?? "gpt-5.6";
 const LOOKAHEAD_HOURS = 72; // 향후 3일 예정 경기
 const MIN_PRIOR = 5; // 양 팀 모두 5경기 이상 학습 후 (random 픽 방지) — evaluate 와 동일
 
 type Winner = "HOME" | "DRAW" | "AWAY";
+
+type GptMatchFacts = {
+  position?: { home: number; away: number; total: number };
+  points?: { home: number; away: number };
+  homeAway?: {
+    home: { wins: number; draws: number; losses: number; ppg: number };
+    away: { wins: number; draws: number; losses: number; ppg: number };
+  };
+  recentForm?: { home: string[]; away: string[] };
+  trend?: {
+    home: { gf: number; ga: number; ppg: number };
+    away: { gf: number; ga: number; ppg: number };
+  };
+  restDays?: { home: number | null; away: number | null };
+  h2h?: { homeWins: number; draws: number; awayWins: number; total: number };
+};
 
 function drawAllowed(league: string): boolean {
   return SOCCER_LEAGUES_FOR_MARKETS.has(league) || league === "WORLD_CUP";
@@ -211,6 +227,7 @@ async function gptMarkets(
   awayKo: string,
   startTime: Date,
   lines: { hc: number | null; ou: number | null },
+  facts: GptMatchFacts,
 ): Promise<GptMarketPick | null> {
   const allowDraw = drawAllowed(league);
   const picks = allowDraw ? '"HOME"|"DRAW"|"AWAY"' : '"HOME"|"AWAY"';
@@ -232,11 +249,18 @@ async function gptMarkets(
       `3) 오버언더: 총점 기준선 ${lines.ou} (홈+원정 득점 > ${lines.ou} 이면 OVER). "ou": {"pick":"OVER"|"UNDER","prob":0~1}`,
     );
   }
+  const factsText = formatGptFacts(facts, homeKo, awayKo);
   const system =
-    "당신은 스포츠 베팅 분석가입니다. 주어진 경기의 시장별 결과를 예측해 JSON 으로만 답합니다. 설명 문장 금지.";
+    "당신은 보수적인 스포츠 경기 분석가입니다. 제공된 사실만 사용해 시장별 결과를 예측합니다. " +
+    "제공되지 않은 부상, 라인업, 최근 뉴스, 배당 정보는 추정하거나 만들어내지 마세요. " +
+    "근거가 엇비슷하거나 데이터가 부족하면 확률을 0.50~0.58 범위로 낮추고, 0.70을 넘기는 확률은 명확한 수치 우위가 있을 때만 사용하세요. " +
+    "JSON 외 문장은 답하지 마세요.";
   const user = `${LEAGUE_NAME[league] ?? league} 경기 (${dateStr}).
 홈: ${homeKo}
 원정: ${awayKo}
+
+검증된 경기 데이터:
+${factsText}
 
 아래 시장을 예측하세요.
 ${parts.join("\n")}
@@ -295,6 +319,32 @@ ${parts.join("\n")}
 
   const reason = String(parsed.reason ?? "").slice(0, 120);
   return { oneXtwo, handicap, ou, reason };
+}
+
+/** 우리 모델의 확률·픽·배당은 제외하고, GPT가 독립 판단할 수 있는 경기 사실만 전달한다. */
+function formatGptFacts(facts: GptMatchFacts, home: string, away: string): string {
+  const lines: string[] = [];
+  if (facts.position && facts.points) {
+    lines.push(`순위/승점: ${home} ${facts.position.home}/${facts.position.total}위 (${facts.points.home}점), ${away} ${facts.position.away}/${facts.position.total}위 (${facts.points.away}점)`);
+  }
+  if (facts.homeAway) {
+    const { home: h, away: a } = facts.homeAway;
+    lines.push(`홈-원정 성적: ${home} 홈 ${h.wins}승 ${h.draws}무 ${h.losses}패, 경기당 승점 ${h.ppg.toFixed(2)} / ${away} 원정 ${a.wins}승 ${a.draws}무 ${a.losses}패, 경기당 승점 ${a.ppg.toFixed(2)}`);
+  }
+  if (facts.recentForm) {
+    lines.push(`최근 5경기: ${home} ${facts.recentForm.home.join("-")} / ${away} ${facts.recentForm.away.join("-")}`);
+  }
+  if (facts.trend) {
+    const { home: h, away: a } = facts.trend;
+    lines.push(`최근 평균: ${home} 득점 ${h.gf.toFixed(2)}, 실점 ${h.ga.toFixed(2)}, 승점 ${h.ppg.toFixed(2)} / ${away} 득점 ${a.gf.toFixed(2)}, 실점 ${a.ga.toFixed(2)}, 승점 ${a.ppg.toFixed(2)}`);
+  }
+  if (facts.restDays?.home != null && facts.restDays.away != null) {
+    lines.push(`휴식일: ${home} ${facts.restDays.home}일 / ${away} ${facts.restDays.away}일`);
+  }
+  if (facts.h2h && facts.h2h.total > 0) {
+    lines.push(`최근 상대전적 ${facts.h2h.total}경기: ${home} ${facts.h2h.homeWins}승, 무승부 ${facts.h2h.draws}, ${away} ${facts.h2h.awayWins}승`);
+  }
+  return lines.length > 0 ? lines.join("\n") : "검증된 추가 통계 없음. 팀 명성과 추측에 의존하지 말고 보수적으로 판단하세요.";
 }
 
 export async function runFetchGptPredictions(opts?: { cap?: number }) {
@@ -358,13 +408,22 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
     const oursHcOu = scorebaseHcOu(m, pool);
+    const gptFacts = buildMatchContext(
+      pool,
+      m.league,
+      m.homeTeamId,
+      m.awayTeamId,
+      m.startTime,
+      homeKo,
+      awayKo,
+    );
 
     let gpt: GptMarketPick | null = null;
     try {
       gpt = await gptMarkets(client, m.league, homeKo, awayKo, m.startTime, {
         hc: oursHcOu.hc?.line ?? null,
         ou: oursHcOu.ou?.line ?? null,
-      });
+      }, gptFacts);
     } catch (e) {
       console.warn(`[gpt-pred] GPT 호출 실패 match=${m.id}: ${(e as Error).message}`);
     }
@@ -557,13 +616,22 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
     if (!oursHcOu.hc && !oursHcOu.ou) continue; // 우리 모델이 줄 라인이 없으면 비교 불가
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
+    const gptFacts = buildMatchContext(
+      pool,
+      m.league,
+      m.homeTeamId,
+      m.awayTeamId,
+      m.startTime,
+      homeKo,
+      awayKo,
+    );
 
     let gpt: GptMarketPick | null = null;
     try {
       gpt = await gptMarkets(client, m.league, homeKo, awayKo, m.startTime, {
         hc: oursHcOu.hc?.line ?? null,
         ou: oursHcOu.ou?.line ?? null,
-      });
+      }, gptFacts);
     } catch (e) {
       console.warn(`[gpt-pred] 백필 GPT 실패 match=${m.id}: ${(e as Error).message}`);
     }

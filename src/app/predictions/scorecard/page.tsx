@@ -15,7 +15,7 @@ export const revalidate = 1800; // 30분 ISR
 
 const MODELS = {
   scorebase: { id: "scorebase", name: "스코어베이스 AI", short: "우리 모델", accent: "rose" },
-  gpt: { id: "gpt-5.5", name: "GPT-5.6", short: "GPT-5.6", accent: "emerald" },
+  gpt: { id: "gpt-5.6", name: "GPT-5.6 Sol", short: "GPT-5.6", accent: "emerald" },
 } as const;
 
 type Market = "1X2" | "HANDICAP" | "OU";
@@ -269,6 +269,11 @@ export default async function ScorecardPage() {
           {resolved.length < 50 && <span className="text-amber-600 dark:text-amber-400"> · 표본 누적 중(아직 통계적 결론은 이름)</span>}
         </p>
       )}
+      {resolved.length === 0 && (
+        <p className="mb-10 text-center text-[13px] text-zinc-500 dark:text-white/40">
+          GPT-5.6 신규 기록을 분리 집계 중입니다. 기존 GPT-5.5 성적은 GPT-5.6 성적에 포함하지 않습니다.
+        </p>
+      )}
 
       {/* 정밀 비교 — 확률 정밀도(Brier) + 픽이 갈린 경기 */}
       {resolved.length > 0 && sbBrier != null && gptBrier != null && (
@@ -488,8 +493,8 @@ export default async function ScorecardPage() {
           <p className="font-semibold text-zinc-700 dark:text-white/70">계산 방법</p>
           <p className="mt-1.5">
             두 AI 모두 <strong>경기 시작 전</strong>에 1X2(승·무·패)·핸디캡·오버언더 픽을 제출합니다. 스코어베이스 AI는
-            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, GPT-5.6는 팀·리그·일정과
-            <strong> 동일한 기준선(핸디/총점 라인)</strong>만 받아 (우리 모델 수치는 보지 않고) 독립 예측합니다.
+            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, GPT-5.6는 순위·최근 폼·홈/원정 성적·휴식일·상대전적과
+            <strong> 동일한 기준선(핸디/총점 라인)</strong>을 받아 (우리 모델 수치는 보지 않고) 독립 예측합니다.
             경기가 끝나면 같은 라인으로 채점합니다(축구는 정규시간 기준). 공정성을 위해 두 AI가 모두 예측한 동일 경기·시장만 비교합니다.
             확률 정밀도(Brier)는 픽 확신도와 실제 결과(적중=1·실패=0)의 제곱 오차 평균으로, 낮을수록 확률을 정직하게 낸 것입니다.
           </p>

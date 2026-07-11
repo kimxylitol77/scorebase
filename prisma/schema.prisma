@@ -210,12 +210,12 @@ model Match {
   @@index([league, predCorrect])
 }
 
-/// 멀티 AI 예측 성적표 — 한 경기를 여러 AI(우리 통계모델 vs GPT-5.5)가 경기 전에 예측한 기록.
+/// 멀티 AI 예측 성적표 — 한 경기를 여러 AI(우리 통계모델 vs GPT-5.6)가 경기 전에 예측한 기록.
 /// model 당 (match, market) 1행. correct 는 경기 종료 후 evaluate 가 채움. /predictions/scorecard 소스.
 model AiPrediction {
   id          Int      @id @default(autoincrement())
   matchId     Int
-  model       String   // "scorebase"(우리 통계모델) | "gpt-5.5"
+  model       String   // "scorebase"(우리 통계모델) | GPT 모델 버전(예: "gpt-5.6")
   market      String   // "1X2" | "HANDICAP" | "OU"
   pick        String   // 1X2:"HOME"|"DRAW"|"AWAY" · HANDICAP:"HOME"|"AWAY" · OU:"OVER"|"UNDER"
   prob        Float    // 픽 확률 0~1

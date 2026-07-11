@@ -30,7 +30,7 @@ const STATUS_CLS: Record<Grade, string> = {
 
 const LABEL: Record<string, { name: string; dot: string; text: string }> = {
   scorebase: { name: "스코어베이스 AI", dot: "bg-rose-500", text: "text-rose-600 dark:text-rose-400" },
-  "gpt-5.5": { name: "GPT-5.6", dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
+  "gpt-5.6": { name: "GPT-5.6", dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
 };
 
 function pickLabel(pick: string, home: string, away: string): string {
@@ -57,7 +57,7 @@ export default function AiMatchupCard({
   allowDraw?: boolean;
 }) {
   const sb = predictions.find((p) => p.model === "scorebase");
-  const gpt = predictions.find((p) => p.model === "gpt-5.5");
+  const gpt = predictions.find((p) => p.model === "gpt-5.6");
   if (!sb || !gpt) return null;
 
   const graded = sb.correct !== null && gpt.correct !== null;

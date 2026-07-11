@@ -87,7 +87,7 @@ export default async function HomeAiScorecardShowcase() {
     }
     const cell: Cell = { pick: r.pick as Winner, prob: r.prob, correct: r.correct };
     if (r.model === "scorebase") row.sb = cell;
-    else if (r.model === "gpt-5.5") row.gpt = cell;
+    else if (r.model === "gpt-5.6") row.gpt = cell;
   }
   const all = [...byMatch.values()].filter((r) => r.sb && r.gpt);
 
