@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { Check, X, Sparkles } from "lucide-react";
 import { computeMetaVerdict, type Winner as MetaWinner, type Grade } from "@/lib/predict/meta-verdict";
+import {
+  GPT_SCORECARD_ACTIVE_MODEL,
+  gptScorecardModelLabel,
+  isGptScorecardModel,
+} from "@/lib/predict/gpt-scorecard-model";
 
 type Winner = "HOME" | "DRAW" | "AWAY";
 
@@ -30,7 +35,6 @@ const STATUS_CLS: Record<Grade, string> = {
 
 const LABEL: Record<string, { name: string; dot: string; text: string }> = {
   scorebase: { name: "스코어베이스 AI", dot: "bg-rose-500", text: "text-rose-600 dark:text-rose-400" },
-  "gpt-5.6": { name: "GPT-5.6", dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
 };
 
 function pickLabel(pick: string, home: string, away: string): string {
@@ -57,7 +61,9 @@ export default function AiMatchupCard({
   allowDraw?: boolean;
 }) {
   const sb = predictions.find((p) => p.model === "scorebase");
-  const gpt = predictions.find((p) => p.model === "gpt-5.6");
+  const gpt =
+    predictions.find((p) => p.model === GPT_SCORECARD_ACTIVE_MODEL) ??
+    predictions.find((p) => isGptScorecardModel(p.model));
   if (!sb || !gpt) return null;
 
   const graded = sb.correct !== null && gpt.correct !== null;
@@ -97,7 +103,9 @@ export default function AiMatchupCard({
       </div>
       <div className="grid grid-cols-2 gap-3">
         {[sb, gpt].map((p) => {
-          const meta = LABEL[p.model] ?? { name: p.model, dot: "bg-zinc-400", text: "text-zinc-600" };
+          const meta = LABEL[p.model] ?? (isGptScorecardModel(p.model)
+            ? { name: gptScorecardModelLabel(p.model), dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" }
+            : { name: p.model, dot: "bg-zinc-400", text: "text-zinc-600" });
           return (
             <div
               key={p.model}
@@ -157,7 +165,7 @@ export default function AiMatchupCard({
         <p className="mt-1.5 text-[12px] leading-snug text-zinc-500 dark:text-white/45">{verdict.line}</p>
       </div>
       <p className="mt-3 text-[11px] text-zinc-400 dark:text-white/30">
-        두 AI가 경기 전 제출한 1X2 픽. GPT-5.6는 우리 모델 수치를 보지 않고 독립 예측합니다.
+        두 AI가 경기 전 제출한 1X2 픽. {gptScorecardModelLabel(gpt.model)}는 우리 모델 수치를 보지 않고 독립 예측합니다.
         최종 판단은 두 픽과 시장을 규칙으로 종합한 것으로, 각 확률을 바꾸지 않습니다.
       </p>
     </section>

@@ -6,6 +6,10 @@ import { Sparkles } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
+import {
+  gptScorecardModelLabel,
+  preferGptScorecardModel,
+} from "@/lib/predict/gpt-scorecard-model";
 
 type Winner = "HOME" | "DRAW" | "AWAY";
 
@@ -59,7 +63,7 @@ export default async function HomeAiScorecardShowcase() {
   });
   if (rows.length === 0) return null;
 
-  interface Cell { pick: Winner; prob: number; correct: boolean | null }
+  interface Cell { model: string; pick: Winner; prob: number; correct: boolean | null }
   interface Row {
     externalId: string;
     league: string;
@@ -85,9 +89,9 @@ export default async function HomeAiScorecardShowcase() {
       };
       byMatch.set(m.externalId, row);
     }
-    const cell: Cell = { pick: r.pick as Winner, prob: r.prob, correct: r.correct };
+    const cell: Cell = { model: r.model, pick: r.pick as Winner, prob: r.prob, correct: r.correct };
     if (r.model === "scorebase") row.sb = cell;
-    else if (r.model === "gpt-5.6") row.gpt = cell;
+    else if (preferGptScorecardModel(row.gpt?.model, r.model)) row.gpt = cell;
   }
   const all = [...byMatch.values()].filter((r) => r.sb && r.gpt);
 
@@ -138,7 +142,7 @@ export default async function HomeAiScorecardShowcase() {
             <Sparkles className="h-5 w-5 text-rose-500" aria-hidden /> AI 예측 대결
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-1">
-            스코어베이스 AI vs GPT-5.6 — 같은 경기를 경기 전 예측하고 결과로 채점합니다.
+            스코어베이스 AI vs GPT 누적(5.5 → 5.6 Sol) — 같은 경기를 경기 전 예측하고 결과로 채점합니다.
           </p>
         </div>
         <Link
@@ -157,7 +161,7 @@ export default async function HomeAiScorecardShowcase() {
           </span>
           <span className="text-neutral-300 dark:text-white/20">vs</span>
           <span className={`font-bold tabular-nums ${leader === "gpt" ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-700 dark:text-white/70"}`}>
-            GPT-5.6 {gptRate.toFixed(0)}%
+            GPT 누적 {gptRate.toFixed(0)}%
           </span>
         </div>
       )}
@@ -189,7 +193,7 @@ export default async function HomeAiScorecardShowcase() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <PickMini label="우리 모델" cell={c.sb!} home={c.home} away={c.away} accent="rose" />
-              <PickMini label="GPT-5.6" cell={c.gpt!} home={c.home} away={c.away} accent="emerald" />
+              <PickMini label={gptScorecardModelLabel(c.gpt!.model)} cell={c.gpt!} home={c.home} away={c.away} accent="emerald" />
             </div>
             <div className="mt-3 text-[11px] font-medium text-rose-600 group-hover:underline dark:text-rose-400">
               경기 상세 보기 →

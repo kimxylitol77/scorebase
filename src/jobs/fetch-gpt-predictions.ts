@@ -29,6 +29,7 @@ import {
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 const MAJOR_LEAGUES = [
@@ -44,7 +45,7 @@ const LEAGUE_NAME: Record<string, string> = {
 };
 
 const DAILY_CAP = Number(process.env.GPT_PREDICT_CAP ?? 40);
-const GPT_MODEL = process.env.GPT_PREDICT_MODEL ?? "gpt-5.6";
+const GPT_MODEL = GPT_SCORECARD_ACTIVE_MODEL;
 const LOOKAHEAD_HOURS = 72; // 향후 3일 예정 경기
 const MIN_PRIOR = 5; // 양 팀 모두 5경기 이상 학습 후 (random 픽 방지) — evaluate 와 동일
 

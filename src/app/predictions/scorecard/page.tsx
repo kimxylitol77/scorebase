@@ -10,12 +10,17 @@ import ScorecardTrendChart, { type TrendPoint } from "@/components/charts/Scorec
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
+import {
+  GPT_SCORECARD_ACTIVE_MODEL,
+  gptScorecardModelLabel,
+  preferGptScorecardModel,
+} from "@/lib/predict/gpt-scorecard-model";
 
 export const revalidate = 1800; // 30분 ISR
 
 const MODELS = {
   scorebase: { id: "scorebase", name: "스코어베이스 AI", short: "우리 모델", accent: "rose" },
-  gpt: { id: "gpt-5.6", name: "GPT-5.6 Sol", short: "GPT-5.6", accent: "emerald" },
+  gpt: { id: GPT_SCORECARD_ACTIVE_MODEL, name: "GPT 누적 (5.5 → 5.6 Sol)", short: "GPT", accent: "emerald" },
 } as const;
 
 type Market = "1X2" | "HANDICAP" | "OU";
@@ -76,7 +81,7 @@ export default async function ScorecardPage() {
     },
   });
 
-  type Cell = { pick: string; prob: number; line: number | null; reason: string | null; correct: boolean | null };
+  type Cell = { model: string; pick: string; prob: number; line: number | null; reason: string | null; correct: boolean | null };
   interface DP {
     matchId: number;
     market: Market;
@@ -106,9 +111,9 @@ export default async function ScorecardPage() {
       };
       byKey.set(key, dp);
     }
-    const cell: Cell = { pick: r.pick, prob: r.prob, line: r.line, reason: r.reason, correct: r.correct };
+    const cell: Cell = { model: r.model, pick: r.pick, prob: r.prob, line: r.line, reason: r.reason, correct: r.correct };
     if (r.model === MODELS.scorebase.id) dp.sb = cell;
-    else if (r.model === MODELS.gpt.id) dp.gpt = cell;
+    else if (preferGptScorecardModel(dp.gpt?.model, r.model)) dp.gpt = cell;
   }
 
   // 두 모델 모두 픽 + 채점된 데이터포인트만 비교 — 타입 가드로 sb/gpt 비-null 보장(이후 d.sb!/d.gpt! 안전).
@@ -171,7 +176,7 @@ export default async function ScorecardPage() {
     return {
       n: i + 1,
       "우리 모델": +((sbHit / (i + 1)) * 100).toFixed(1),
-      "GPT-5.6": +((gptHit / (i + 1)) * 100).toFixed(1),
+      "GPT 누적": +((gptHit / (i + 1)) * 100).toFixed(1),
     };
   });
   const showTrend = trend.length >= 10;
@@ -220,7 +225,7 @@ export default async function ScorecardPage() {
   const citeUrl = `${SITE_URL}/predictions/scorecard`;
   const citation =
     sbTally.graded > 0
-      ? `AI 예측 성적표 — 같은 경기 ${sbTally.graded}개 데이터포인트(1X2·핸디·OU)에서 스코어베이스 AI ${(sbTally.rate * 100).toFixed(1)}% vs GPT-5.6 ${(gptTally.rate * 100).toFixed(1)}% 적중률 (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`
+      ? `AI 예측 성적표 — 같은 경기 ${sbTally.graded}개 데이터포인트(1X2·핸디·OU)에서 스코어베이스 AI ${(sbTally.rate * 100).toFixed(1)}% vs GPT 누적(5.5→5.6) ${(gptTally.rate * 100).toFixed(1)}% 적중률 (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`
       : `AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6 승부예측 정면 비교 (출처: Scorebase ${citeUrl})`;
 
   const jsonLd = {
@@ -248,7 +253,7 @@ export default async function ScorecardPage() {
           AI 예측 성적표
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">
-          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT-5.6</strong>가
+          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT (5.5 → 5.6 Sol)</strong>가
           <strong className="text-zinc-800 dark:text-white/80"> 정확히 같은 경기</strong>를 경기 전에 예측합니다.
           1X2 승부뿐 아니라 <strong className="text-zinc-800 dark:text-white/80">핸디캡·오버언더</strong>까지
           세 시장을 두고 맞붙어, 결과가 나오면 채점해 그대로 쌓습니다.
@@ -271,7 +276,7 @@ export default async function ScorecardPage() {
       )}
       {resolved.length === 0 && (
         <p className="mb-10 text-center text-[13px] text-zinc-500 dark:text-white/40">
-          GPT-5.6 신규 기록을 분리 집계 중입니다. 기존 GPT-5.5 성적은 GPT-5.6 성적에 포함하지 않습니다.
+          두 모델의 동일 경기 기록을 누적 중입니다.
         </p>
       )}
 
@@ -340,7 +345,7 @@ export default async function ScorecardPage() {
                 <tr className="border-b border-zinc-100 text-left text-[11px] uppercase tracking-wide text-zinc-400 dark:border-white/10 dark:text-white/30">
                   <th className="px-4 py-2.5 font-medium">시장</th>
                   <th className="px-2 py-2.5 text-center font-medium text-rose-500">우리 모델</th>
-                  <th className="px-2 py-2.5 text-center font-medium text-emerald-600 dark:text-emerald-400">GPT-5.6</th>
+                  <th className="px-2 py-2.5 text-center font-medium text-emerald-600 dark:text-emerald-400">GPT 누적</th>
                   <th className="px-3 py-2.5 text-center font-medium">우세</th>
                 </tr>
               </thead>
@@ -422,7 +427,7 @@ export default async function ScorecardPage() {
                         {MARKET_META.find((m) => m.key === d.market)?.label.replace(" 승부", "")}
                       </span>
                       <PickChip label={MODELS.scorebase.short} text={pickText(d.market, d.sb!.pick, e.home, e.away, d.sb!.line)} prob={d.sb!.prob} reason={null} accent="rose" />
-                      <PickChip label={MODELS.gpt.short} text={pickText(d.market, d.gpt!.pick, e.home, e.away, d.gpt!.line)} prob={d.gpt!.prob} reason={null} accent="emerald" />
+                      <PickChip label={gptScorecardModelLabel(d.gpt!.model)} text={pickText(d.market, d.gpt!.pick, e.home, e.away, d.gpt!.line)} prob={d.gpt!.prob} reason={null} accent="emerald" />
                     </div>
                   ))}
                 </div>
@@ -478,6 +483,9 @@ export default async function ScorecardPage() {
                     </td>
                     <td className="px-2 py-2.5">
                       <ResultCell correct={d.gpt!.correct === true} text={pickText(d.market, d.gpt!.pick, d.home, d.away, d.gpt!.line)} />
+                      <div className="mt-0.5 text-center text-[10px] text-zinc-400 dark:text-white/30">
+                        {gptScorecardModelLabel(d.gpt!.model)}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -493,7 +501,8 @@ export default async function ScorecardPage() {
           <p className="font-semibold text-zinc-700 dark:text-white/70">계산 방법</p>
           <p className="mt-1.5">
             두 AI 모두 <strong>경기 시작 전</strong>에 1X2(승·무·패)·핸디캡·오버언더 픽을 제출합니다. 스코어베이스 AI는
-            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, GPT-5.6는 순위·최근 폼·홈/원정 성적·휴식일·상대전적과
+            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델입니다. GPT 기록은 기존 GPT-5.5 성적을 보존하고,
+            전환 이후부터 GPT-5.6 Sol이 순위·최근 폼·홈/원정 성적·휴식일·상대전적과
             <strong> 동일한 기준선(핸디/총점 라인)</strong>을 받아 (우리 모델 수치는 보지 않고) 독립 예측합니다.
             경기가 끝나면 같은 라인으로 채점합니다(축구는 정규시간 기준). 공정성을 위해 두 AI가 모두 예측한 동일 경기·시장만 비교합니다.
             확률 정밀도(Brier)는 픽 확신도와 실제 결과(적중=1·실패=0)의 제곱 오차 평균으로, 낮을수록 확률을 정직하게 낸 것입니다.
