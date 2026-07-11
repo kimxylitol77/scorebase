@@ -19,9 +19,10 @@
 - [x] launchd plist `com.scorebase.qwen-panel.plist` (09:00·21:00 KST 2회)
 - [x] `model` 키 확정 `qwen2.5-32b` (panelists.ts ↔ qwen-panel.ts 일치)
 - [x] tsc 통과 + 워커 node --check OK
-- [ ] **배포1(Vercel)**: 엔드포인트 라이브 (커밋+push)
-- [ ] **배포2(맥미니)**: 워커 반영(scorebase-macmini) + plist install + PANEL_QWEN 게이트 ON + 1회 실행 검증
-- [ ] 검증: `model=qwen2.5-32b` 행 저장 → 종료 경기 채점 확인
+- [x] **배포1(Vercel)**: 엔드포인트 라이브 (c292e47+2c77c25). 게이트 실증(배포전 40태스크→배포후 0=OFF)
+- [x] **배포2(맥미니)**: 워커+plist 설치·bootstrap(com.scorebase.qwen-panel, 09:00·21:00). env·axios·qwen2.5:32b·40태스크 GET 확인
+- [ ] **남음(사용자)**: Vercel env `PANEL_QWEN=1` → 그다음 워커 1회 실행해 저장·채점 최종 검증
+- [ ] 검증: `model=qwen2.5-32b` 행 저장 → 종료 경기 채점 확인 (PANEL_QWEN ON 후)
 
 ## P3 — OpenRouter 클라우드 패널
 - [ ] OpenRouter 런타임 패널 3개 등록(Claude·Grok·Gemini), modelId 매핑
