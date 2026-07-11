@@ -30,6 +30,7 @@ import { parseTsFootballScore } from "@/lib/sports/live-scores";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
+import { activePanelists, type Panelist } from "@/lib/predict/panelists";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 const MAJOR_LEAGUES = [
@@ -79,6 +80,34 @@ function parseJson(s: string | null): any {
   } catch {
     return null;
   }
+}
+
+// 패널 하나에 대한 OpenAI 호환 클라이언트. openai/openrouter/ollama 모두 같은 SDK.
+function panelClient(p: Panelist): OpenAI {
+  return new OpenAI({
+    apiKey: p.apiKeyEnv ? process.env[p.apiKeyEnv] : "ollama", // ollama 는 키 불필요
+    baseURL: p.baseURL, // openai 는 undefined = 기본 endpoint
+    ...(p.runtime === "openrouter"
+      ? { defaultHeaders: { "HTTP-Referer": "https://www.scorebase.kr", "X-Title": "Scorebase" } }
+      : {}),
+  });
+}
+
+// AiPrediction 한 행 upsert — 모든 패널·scorebase 공용.
+function upsertPrediction(
+  matchId: number,
+  model: string,
+  market: string,
+  pick: string,
+  prob: number,
+  line: number | null,
+  reason: string | null,
+) {
+  return prisma.aiPrediction.upsert({
+    where: { matchId_model_market: { matchId, model, market } },
+    create: { matchId, model, market, pick, prob, line, reason },
+    update: { pick, prob, line, reason },
+  });
 }
 
 /**
@@ -218,11 +247,13 @@ interface GptMarketPick {
 }
 
 /**
- * GPT-5.6 에 1X2 + (라인 제공 시) 핸디캡·OU 를 한 번에 묻는다(호출 1회 = 비용 절약).
+ * 한 LLM 패널에 1X2 + (라인 제공 시) 핸디캡·OU 를 한 번에 묻는다(호출 1회 = 비용 절약).
  * 공정성 위해 우리 모델의 확률은 주지 않고, 채점 기준선(line)만 제공한다.
+ * modelId 만 바꾸면 GPT·Claude·Grok·Gemini·Qwen 동일 함수로 호출된다(OpenAI 호환).
  */
-async function gptMarkets(
+async function llmMarkets(
   client: OpenAI,
+  modelId: string,
   league: string,
   homeKo: string,
   awayKo: string,
@@ -269,7 +300,7 @@ ${parts.join("\n")}
 요청한 키만 포함한 JSON 으로만 답하세요.`;
 
   const res = await client.chat.completions.create({
-    model: GPT_MODEL,
+    model: modelId,
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
@@ -350,21 +381,28 @@ function formatGptFacts(facts: GptMatchFacts, home: string, away: string): strin
 
 export async function runFetchGptPredictions(opts?: { cap?: number }) {
   const cap = opts?.cap ?? DAILY_CAP;
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("[gpt-pred] OPENAI_API_KEY 없음 — 스킵");
-    return { targeted: 0, stored: 0, skipped: 0, failed: 0 };
+
+  // 이 실행 위치(Vercel)에서 활성화된 LLM 패널 — 게이트 OFF·키 없음은 제외.
+  // Qwen 은 location=macmini 라 여기 안 잡힘(맥미니 워커가 담당).
+  const panels = activePanelists("vercel");
+  if (panels.length === 0) {
+    console.warn("[llm-pred] 활성 패널 없음(게이트 OFF 또는 키 없음) — 스킵");
+    return { targeted: 0, stored: 0, storedMarkets: 0, skipped: 0, failed: 0 };
   }
-  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const clients = new Map(panels.map((p) => [p.key, panelClient(p)]));
 
   const now = new Date();
   const until = new Date(now.getTime() + LOOKAHEAD_HOURS * 3600 * 1000);
 
-  // 대상 — 예정 경기 중 GPT 픽이 아직 없는 것 (이미 픽한 경기는 재호출 안 함 = 비용 절약).
-  const done = await prisma.aiPrediction.findMany({
-    where: { model: GPT_MODEL, market: "1X2" },
-    select: { matchId: true },
-  });
-  const doneIds = new Set(done.map((d) => d.matchId));
+  // 패널별 이미 1X2 픽한 매치 집합 — 재호출 방지(비용 절약). 패널마다 진행도가 다르므로 개별 추적.
+  const doneByPanel = new Map<string, Set<number>>();
+  for (const p of panels) {
+    const done = await prisma.aiPrediction.findMany({
+      where: { model: p.key, market: "1X2" },
+      select: { matchId: true },
+    });
+    doneByPanel.set(p.key, new Set(done.map((d) => d.matchId)));
+  }
 
   const candidates = await prisma.match.findMany({
     where: {
@@ -381,7 +419,10 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
       awayTeam: { select: { name: true } },
     },
   });
-  const targets = candidates.filter((m) => !doneIds.has(m.id)).slice(0, cap);
+  // 아직 픽 필요한 패널이 하나라도 있는 매치만, cap 만큼.
+  const targets = candidates
+    .filter((m) => panels.some((p) => !doneByPanel.get(p.key)!.has(m.id)))
+    .slice(0, cap);
 
   // 관련 리그의 매치 풀 1회 로드 (우리 모델 컨텍스트용).
   const leagues = [...new Set(targets.map((t) => t.league))];
@@ -402,14 +443,14 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     const pool = poolByLeague.get(m.league)!;
     const ours = scorebasePick(m, pool);
     if (!ours) {
-      skipped++; // 학습 부족 — GPT 호출도 안 해 비용 절약 (같은 경기 집합 유지)
+      skipped++; // 학습 부족 — 패널 호출도 안 해 비용 절약 (같은 경기 집합 유지)
       continue;
     }
 
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
     const oursHcOu = scorebaseHcOu(m, pool);
-    const gptFacts = buildMatchContext(
+    const facts = buildMatchContext(
       pool,
       m.league,
       m.homeTeamId,
@@ -419,73 +460,75 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
       awayKo,
     );
 
-    let gpt: GptMarketPick | null = null;
-    try {
-      gpt = await gptMarkets(client, m.league, homeKo, awayKo, m.startTime, {
-        hc: oursHcOu.hc?.line ?? null,
-        ou: oursHcOu.ou?.line ?? null,
-      }, gptFacts);
-    } catch (e) {
-      console.warn(`[gpt-pred] GPT 호출 실패 match=${m.id}: ${(e as Error).message}`);
-    }
-    if (!gpt) {
-      failed++;
-      continue; // GPT 실패 시 우리 모델만 저장하면 비교 불공정 → 둘 다 스킵
-    }
+    // scorebase 앵커는 패널 성패와 무관하게 1회 저장(독립). 채점 기준선(line)의 출처.
+    await storeAnchor(m.id, ours, oursHcOu);
+    let matchStored = false;
 
-    const n = await storeMarkets(m.id, ours, oursHcOu, gpt);
-    stored += n > 0 ? 1 : 0;
-    storedMarkets += n;
-    await new Promise((r) => setTimeout(r, 50));
+    for (const p of panels) {
+      if (doneByPanel.get(p.key)!.has(m.id)) continue; // 이미 픽함 → 재호출 안 함
+      let res: GptMarketPick | null = null;
+      try {
+        res = await llmMarkets(clients.get(p.key)!, p.modelId, m.league, homeKo, awayKo, m.startTime, {
+          hc: oursHcOu.hc?.line ?? null,
+          ou: oursHcOu.ou?.line ?? null,
+        }, facts);
+      } catch (e) {
+        console.warn(`[llm-pred] ${p.key} 호출 실패 match=${m.id}: ${(e as Error).message}`);
+      }
+      if (!res) {
+        failed++; // 이 패널만 스킵 — 다른 패널·scorebase 는 그대로 저장(독립)
+        continue;
+      }
+      const n = await storePanel(m.id, p.key, oursHcOu, res);
+      storedMarkets += n;
+      matchStored = true;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    if (matchStored) stored++;
   }
 
   console.log(
-    `[gpt-pred] 완료 — 대상 ${targets.length} / 경기 ${stored}(시장 ${storedMarkets}) / 스킵(학습부족) ${skipped} / GPT실패 ${failed}`,
+    `[llm-pred] 완료 — 패널 ${panels.map((p) => p.key).join(",")} / 대상 ${targets.length} / 경기 ${stored}(시장 ${storedMarkets}) / 스킵(학습부족) ${skipped} / 패널실패 ${failed}`,
   );
   return { targeted: targets.length, stored, storedMarkets, skipped, failed };
 }
 
-/**
- * 한 경기의 시장별 픽을 양 모델 모두 저장 — 양쪽이 모두 픽한 시장만 저장(공정 비교 유지).
- * 반환: 저장한 시장 수.
- */
-async function storeMarkets(
+/** scorebase 정량 앵커 저장 — 1X2 는 항상, 핸디/OU 는 라인이 있을 때. 패널과 독립. */
+async function storeAnchor(
   matchId: number,
   ours1x2: { pick: Winner; prob: number },
   oursHcOu: ReturnType<typeof scorebaseHcOu>,
-  gpt: GptMarketPick,
+): Promise<void> {
+  await upsertPrediction(matchId, "scorebase", "1X2", ours1x2.pick, ours1x2.prob, null, null);
+  if (oursHcOu.hc) {
+    await upsertPrediction(matchId, "scorebase", "HANDICAP", oursHcOu.hc.pick, oursHcOu.hc.prob, oursHcOu.hc.line, null);
+  }
+  if (oursHcOu.ou) {
+    await upsertPrediction(matchId, "scorebase", "OU", oursHcOu.ou.pick, oursHcOu.ou.prob, oursHcOu.ou.line, null);
+  }
+}
+
+/**
+ * 한 패널의 시장별 픽 저장 — 1X2 는 필수, 핸디/OU 는 scorebase 라인이 있고 패널도 픽했을 때만
+ * (양 모델 동일 라인으로 채점하는 공정성 유지). 반환: 저장한 시장 수.
+ */
+async function storePanel(
+  matchId: number,
+  model: string,
+  oursHcOu: ReturnType<typeof scorebaseHcOu>,
+  res: GptMarketPick,
 ): Promise<number> {
   let count = 0;
-  const upsert = (
-    model: string,
-    market: string,
-    pick: string,
-    prob: number,
-    line: number | null,
-    reason: string | null,
-  ) =>
-    prisma.aiPrediction.upsert({
-      where: { matchId_model_market: { matchId, model, market } },
-      create: { matchId, model, market, pick, prob, line, reason },
-      update: { pick, prob, line, reason },
-    });
-
-  // 1X2 — 양쪽 모두 있음(gpt.oneXtwo 는 필수)
-  if (gpt.oneXtwo) {
-    await upsert("scorebase", "1X2", ours1x2.pick, ours1x2.prob, null, null);
-    await upsert(GPT_MODEL, "1X2", gpt.oneXtwo.pick, gpt.oneXtwo.prob, null, gpt.reason);
+  if (res.oneXtwo) {
+    await upsertPrediction(matchId, model, "1X2", res.oneXtwo.pick, res.oneXtwo.prob, null, res.reason);
     count++;
   }
-  // 핸디캡 — 양쪽 모두 픽했을 때만
-  if (oursHcOu.hc && gpt.handicap) {
-    await upsert("scorebase", "HANDICAP", oursHcOu.hc.pick, oursHcOu.hc.prob, oursHcOu.hc.line, null);
-    await upsert(GPT_MODEL, "HANDICAP", gpt.handicap.pick, gpt.handicap.prob, oursHcOu.hc.line, null);
+  if (oursHcOu.hc && res.handicap) {
+    await upsertPrediction(matchId, model, "HANDICAP", res.handicap.pick, res.handicap.prob, oursHcOu.hc.line, null);
     count++;
   }
-  // OU — 양쪽 모두 픽했을 때만
-  if (oursHcOu.ou && gpt.ou) {
-    await upsert("scorebase", "OU", oursHcOu.ou.pick, oursHcOu.ou.prob, oursHcOu.ou.line, null);
-    await upsert(GPT_MODEL, "OU", gpt.ou.pick, gpt.ou.prob, oursHcOu.ou.line, null);
+  if (oursHcOu.ou && res.ou) {
+    await upsertPrediction(matchId, model, "OU", res.ou.pick, res.ou.prob, oursHcOu.ou.line, null);
     count++;
   }
   return count;
@@ -629,7 +672,7 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
 
     let gpt: GptMarketPick | null = null;
     try {
-      gpt = await gptMarkets(client, m.league, homeKo, awayKo, m.startTime, {
+      gpt = await llmMarkets(client, GPT_MODEL, m.league, homeKo, awayKo, m.startTime, {
         hc: oursHcOu.hc?.line ?? null,
         ou: oursHcOu.ou?.line ?? null,
       }, gptFacts);

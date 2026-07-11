@@ -1,0 +1,102 @@
+// 멀티 LLM 성적표의 패널(예측 모델) 레지스트리 — 좌석을 한 곳에서 정의한다.
+// 모든 패널은 OpenAI 호환 규격(chat.completions + json_object)으로 호출된다:
+//   - openai:     OpenAI 직접 (기존 GPT)
+//   - openrouter: 키 1개로 Claude·Grok·Gemini (baseURL=openrouter)
+//   - ollama:     로컬 Qwen (맥미니 localhost:11434, Vercel 에선 못 닿음 → 워커 실행)
+// scorebase(정량 결정론 모델)는 LLM 이 아니라 앵커이므로 이 레지스트리 밖에 있다.
+import { GPT_SCORECARD_ACTIVE_MODEL } from "./gpt-scorecard-model";
+
+export type PanelRuntime = "openai" | "openrouter" | "ollama";
+
+export interface Panelist {
+  /** AiPrediction.model 에 저장되는 문자열. 채점·집계의 안정 키이므로 변경 금지. */
+  key: string;
+  /** 화면 표기용 라벨. */
+  label: string;
+  /** 페이지 액센트 색(P4 리더보드에서 사용). */
+  accent: string;
+  runtime: PanelRuntime;
+  /** provider 에 넘길 모델 id (OpenRouter/Ollama 는 provider 규격). */
+  modelId: string;
+  /** OpenAI 호환 baseURL. openai 는 기본값이므로 생략. */
+  baseURL?: string;
+  /** API 키 env 이름. ollama 는 불필요. */
+  apiKeyEnv?: string;
+  /** 활성 게이트 env 이름. 없으면 항상 활성(기존 gpt 하위호환). 값이 "1"|"true" 일 때만 호출. */
+  enabledEnv?: string;
+  /** 실행 위치. ollama 패널은 macmini 에서만(Vercel 잡은 스킵). */
+  location: "vercel" | "macmini";
+}
+
+// OpenRouter 모델 id 는 P3 에서 실제 호출로 검증할 것(게이트 OFF 라 P1~2 미호출).
+export const PANELISTS: Panelist[] = [
+  {
+    key: GPT_SCORECARD_ACTIVE_MODEL, // "gpt-5.6" — 기존 GPT, 하위호환(게이트 없음=항상 활성)
+    label: "GPT",
+    accent: "emerald",
+    runtime: "openai",
+    modelId: GPT_SCORECARD_ACTIVE_MODEL,
+    apiKeyEnv: "OPENAI_API_KEY",
+    location: "vercel",
+  },
+  {
+    key: "claude-opus",
+    label: "Claude",
+    accent: "violet",
+    runtime: "openrouter",
+    modelId: "anthropic/claude-opus-4.8", // TODO(P3): OpenRouter 실제 id 검증
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKeyEnv: "OPENROUTER_API_KEY",
+    enabledEnv: "PANEL_CLAUDE",
+    location: "vercel",
+  },
+  {
+    key: "grok",
+    label: "Grok",
+    accent: "sky",
+    runtime: "openrouter",
+    modelId: "x-ai/grok-4", // TODO(P3): OpenRouter 실제 id 검증
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKeyEnv: "OPENROUTER_API_KEY",
+    enabledEnv: "PANEL_GROK",
+    location: "vercel",
+  },
+  {
+    key: "gemini",
+    label: "Gemini",
+    accent: "amber",
+    runtime: "openrouter",
+    modelId: "google/gemini-2.5-flash", // TODO(P3): OpenRouter 실제 id 검증
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKeyEnv: "OPENROUTER_API_KEY",
+    enabledEnv: "PANEL_GEMINI",
+    location: "vercel",
+  },
+  {
+    key: "qwen2.5-32b",
+    label: "Qwen (로컬)",
+    accent: "teal",
+    runtime: "ollama",
+    modelId: "qwen2.5:32b", // 맥미니 Ollama 실 모델
+    baseURL: "http://localhost:11434/v1",
+    enabledEnv: "PANEL_QWEN",
+    location: "macmini",
+  },
+];
+
+/** 게이트 env 가 켜졌는지. 게이트가 없으면 항상 true(기존 gpt). */
+export function isPanelEnabled(p: Panelist): boolean {
+  if (!p.enabledEnv) return true;
+  const v = process.env[p.enabledEnv]?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "on";
+}
+
+/** 특정 실행 위치에서 활성화되고 키가 준비된 패널만. */
+export function activePanelists(location: "vercel" | "macmini"): Panelist[] {
+  return PANELISTS.filter((p) => {
+    if (p.location !== location) return false;
+    if (!isPanelEnabled(p)) return false;
+    if (p.apiKeyEnv && !process.env[p.apiKeyEnv]) return false;
+    return true;
+  });
+}
