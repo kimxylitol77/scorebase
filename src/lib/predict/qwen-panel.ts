@@ -108,9 +108,12 @@ export async function saveQwenPicks(
   for (const it of items) {
     const anchor = await prisma.aiPrediction.findMany({
       where: { matchId: it.matchId, model: "scorebase", market: { in: ["1X2", "HANDICAP", "OU"] } },
-      select: { market: true, line: true, match: { select: { league: true } } },
+      select: { market: true, line: true, match: { select: { league: true, startTime: true } } },
     });
     if (anchor.length === 0) { failed++; continue; } // 앵커 없음 = 부적격
+    // 킥오프 가드 — 워커가 Ollama 를 순차 실행하는 동안(경기당 ~1분) 시작된 경기의 픽은
+    // 사후 픽이므로 거부. "경기 시작 전 예측" 원칙의 서버측 방어선.
+    if (anchor[0].match.startTime.getTime() <= Date.now()) { failed++; continue; }
     const league = anchor[0].match.league;
     const lines: MarketLines = {
       hc: anchor.find((a) => a.market === "HANDICAP")?.line ?? null,

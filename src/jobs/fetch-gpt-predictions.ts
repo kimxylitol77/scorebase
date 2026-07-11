@@ -537,6 +537,12 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
 
   let stored = 0, storedMarkets = 0, skipped = 0, failed = 0;
   for (const m of targets) {
+    // 킥오프 가드 — 잡 실행 중 경기가 시작되면(순차 LLM 호출로 수십 초 소요) 픽 무결성이
+    // 깨지므로 매치 처리 직전 재확인. "경기 시작 전 예측" 원칙의 방어선.
+    if (m.startTime.getTime() <= Date.now()) {
+      skipped++;
+      continue;
+    }
     const pool = poolByLeague.get(m.league)!;
     const ours = scorebasePick(m, pool);
     if (!ours) {
@@ -563,6 +569,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
 
     for (const p of panels) {
       if (doneByPanel.get(p.key)!.has(m.id)) continue; // 이미 픽함 → 재호출 안 함
+      if (m.startTime.getTime() <= Date.now()) break; // 패널 순회 중 킥오프 지나면 잔여 패널 중단
       let res: GptMarketPick | null = null;
       try {
         res = await llmMarkets(clients.get(p.key)!, p.modelId, p.runtime, m.league, homeKo, awayKo, m.startTime, {
