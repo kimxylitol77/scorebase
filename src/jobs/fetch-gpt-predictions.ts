@@ -31,6 +31,7 @@ import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
 import { activePanelists, PANELISTS, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
+import { capturePredictionContext } from "@/jobs/prediction-postmortems";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 // 배구는 predHome(검증된 배구 Elo+시장 블렌드) 앵커, LoL 은 일반 Elo 파이프라인
@@ -595,6 +596,7 @@ export async function storeAnchor(
   ours1x2: { pick: Winner; prob: number },
   oursHcOu: ReturnType<typeof scorebaseHcOu>,
 ): Promise<void> {
+  await capturePredictionContext(matchId, "scorebase");
   await upsertPrediction(matchId, "scorebase", "1X2", ours1x2.pick, ours1x2.prob, null, null);
   if (oursHcOu.hc) {
     await upsertPrediction(matchId, "scorebase", "HANDICAP", oursHcOu.hc.pick, oursHcOu.hc.prob, oursHcOu.hc.line, null);
@@ -615,6 +617,7 @@ export async function storePanel(
   lines: MarketLines,
   res: GptMarketPick,
 ): Promise<number> {
+  await capturePredictionContext(matchId, model);
   let count = 0;
   if (res.oneXtwo) {
     await upsertPrediction(matchId, model, "1X2", res.oneXtwo.pick, res.oneXtwo.prob, null, res.reason);

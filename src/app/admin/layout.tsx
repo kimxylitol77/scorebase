@@ -113,6 +113,12 @@ function AdminBar({ username }: { username: string }) {
             사이트 상태
           </Link>
           <Link
+            href="/admin/prediction-audit"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            AI 감사
+          </Link>
+          <Link
             href="/admin/ad"
             className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
           >

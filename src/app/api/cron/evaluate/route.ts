@@ -3,6 +3,7 @@ import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runEvaluate, runEvaluateMatches, runBrierReport } from "@/jobs/evaluate-predictions";
 import { runEvaluateAiPredictions } from "@/jobs/fetch-gpt-predictions";
+import { runPredictionPostmortems } from "@/jobs/prediction-postmortems";
 import { runScoreMatchVotes } from "@/jobs/score-match-votes";
 import { prisma } from "@/lib/db";
 
@@ -23,6 +24,10 @@ export async function GET(req: Request) {
     const brier = await runBrierReport().catch(() => null);
     // 멀티 AI 성적표 채점 — 종료 경기의 우리 모델·GPT 픽 correct 채움.
     const aiScore = await runEvaluateAiPredictions().catch(() => null);
+    // 관리자 전용 예측 감사 — 최초 예측 스냅샷과 종료 데이터를 비교해 원인·위험 신호 저장.
+    const postmortems = aiScore
+      ? await runPredictionPostmortems().catch(() => null)
+      : null;
     // 승부예측 투표 채점 — 회원·익명 투표의 correct 채움 (/picks 랭킹 소스)
     const votes = await runScoreMatchVotes().catch(() => null);
     await recordCronRun("evaluate");
@@ -32,6 +37,7 @@ export async function GET(req: Request) {
       match: matchResult,
       brier,
       aiScore,
+      postmortems,
       votes,
     });
   } catch (e) {

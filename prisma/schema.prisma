@@ -203,6 +203,8 @@ model Match {
   liveCommentary LiveCommentary?
   matchStats     MatchStats?
   aiPredictions  AiPrediction[]
+  predictionContextSnapshots PredictionContextSnapshot[]
+  predictionPostmortems      PredictionPostmortem[]
 
   @@unique([league, externalId])
   @@index([league, startTime])
@@ -225,9 +227,55 @@ model AiPrediction {
   predictedAt DateTime @default(now())
 
   match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  postmortem PredictionPostmortem?
 
   @@unique([matchId, model, market])
   @@index([model, correct])
+  @@index([matchId])
+}
+
+/// AI 픽이 생성된 순간의 경기 전 정보. 경기 종료 후 값으로 덮어쓰지 않는 내부 감사 로그.
+/// 같은 경기·모델의 1X2/HANDICAP/OU 는 동일한 컨텍스트를 공유한다.
+model PredictionContextSnapshot {
+  id         Int      @id @default(autoincrement())
+  matchId    Int
+  model      String
+  stage      String   @default("PREDICTION") // 현재는 PREDICTION, 향후 LINEUP/KICKOFF 확장 가능
+  context    Json
+  capturedAt DateTime @default(now())
+  reviewedAt DateTime?
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, model, stage])
+  @@index([model, capturedAt])
+  @@index([matchId, capturedAt])
+  @@index([stage, reviewedAt, capturedAt])
+}
+
+/// 종료 경기의 예측 품질·오답 원인 분석. 관리자 화면과 모델 개선 검증에만 사용한다.
+/// 정답 행도 위험 신호를 함께 저장해야 PASS 필터가 버릴 정답 수까지 백테스트할 수 있다.
+model PredictionPostmortem {
+  id             Int      @id @default(autoincrement())
+  predictionId   Int      @unique
+  matchId        Int
+  model          String
+  market         String
+  correct        Boolean
+  primaryCause   String
+  actionable     Boolean  @default(false)
+  severity       String   @default("INFO")
+  dataQuality    Int
+  marketMovePp   Float?
+  ruleVersion    String   @default("v1")
+  evidence       Json
+  analyzedAt     DateTime @default(now())
+
+  prediction AiPrediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+  match      Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([model, correct, analyzedAt])
+  @@index([primaryCause, analyzedAt])
   @@index([matchId])
 }
 
