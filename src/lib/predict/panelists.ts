@@ -40,11 +40,11 @@ export const PANELISTS: Panelist[] = [
     location: "vercel",
   },
   {
-    key: "claude-opus",
+    key: "claude",
     label: "Claude",
     accent: "violet",
     runtime: "openrouter",
-    modelId: "anthropic/claude-opus-4.8", // TODO(P3): OpenRouter 실제 id 검증
+    modelId: "anthropic/claude-haiku-4.5", // Haiku=저렴, 단발 JSON 픽에 충분(Opus 는 과비용)
     baseURL: "https://openrouter.ai/api/v1",
     apiKeyEnv: "OPENROUTER_API_KEY",
     enabledEnv: "PANEL_CLAUDE",
@@ -66,7 +66,7 @@ export const PANELISTS: Panelist[] = [
     label: "Gemini",
     accent: "amber",
     runtime: "openrouter",
-    modelId: "google/gemini-2.5-flash", // TODO(P3): OpenRouter 실제 id 검증
+    modelId: "google/gemini-2.5-flash", // 저렴·빠름, JSON 픽에 적합
     baseURL: "https://openrouter.ai/api/v1",
     apiKeyEnv: "OPENROUTER_API_KEY",
     enabledEnv: "PANEL_GEMINI",
