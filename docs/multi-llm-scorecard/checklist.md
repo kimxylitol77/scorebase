@@ -21,8 +21,11 @@
 - [x] tsc 통과 + 워커 node --check OK
 - [x] **배포1(Vercel)**: 엔드포인트 라이브 (c292e47+2c77c25). 게이트 실증(배포전 40태스크→배포후 0=OFF)
 - [x] **배포2(맥미니)**: 워커+plist 설치·bootstrap(com.scorebase.qwen-panel, 09:00·21:00). env·axios·qwen2.5:32b·40태스크 GET 확인
-- [ ] **남음(사용자)**: Vercel env `PANEL_QWEN=1` → 그다음 워커 1회 실행해 저장·채점 최종 검증
-- [ ] 검증: `model=qwen2.5-32b` 행 저장 → 종료 경기 채점 확인 (PANEL_QWEN ON 후)
+- [x] Vercel env `PANEL_QWEN=1` 설정·재배포 (사용자, 2026-07-11)
+- [x] 최종 검증 완료 — cap=2 실행: 대상 2경기→Ollama 2/2→저장 saved 2/failed 0. 전 구간 실증
+- 채점은 evaluate cron 이 종료 경기에서 자동(model 불문) — 별도 작업 불요
+
+## P2 완료 (2026-07-11). Qwen 무료 데이터 축적 시작 — 09:00·21:00 KST 자동.
 
 ## P3 — OpenRouter 클라우드 패널
 - [ ] OpenRouter 런타임 패널 3개 등록(Claude·Grok·Gemini), modelId 매핑
