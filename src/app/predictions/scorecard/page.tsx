@@ -1,27 +1,18 @@
-// AI 예측 성적표 — 우리 통계모델 vs GPT-5.6 가 같은 경기를 맞춰온 정면 비교(1X2·핸디·OU 3개 시장) + 시장별·경기별 누적.
+// AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Grok·Gemini·Qwen)가 같은 경기를 경기 전 예측하고
+// 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, X, Trophy, Sparkles, Clock, Target, Shuffle } from "lucide-react";
+import { Check, X, Trophy, Sparkles, Clock, Users } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
 import CiteBox from "@/components/CiteBox";
-import ScorecardTrendChart, { type TrendPoint } from "@/components/charts/ScorecardTrendChart";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
-import {
-  GPT_SCORECARD_ACTIVE_MODEL,
-  gptScorecardModelLabel,
-  preferGptScorecardModel,
-} from "@/lib/predict/gpt-scorecard-model";
+import { isGptScorecardModel } from "@/lib/predict/gpt-scorecard-model";
 
 export const revalidate = 1800; // 30분 ISR
-
-const MODELS = {
-  scorebase: { id: "scorebase", name: "스코어베이스 AI", short: "우리 모델", accent: "rose" },
-  gpt: { id: GPT_SCORECARD_ACTIVE_MODEL, name: "GPT 누적 (5.5 → 5.6 Sol)", short: "GPT", accent: "emerald" },
-} as const;
 
 type Market = "1X2" | "HANDICAP" | "OU";
 const MARKET_META: { key: Market; label: string }[] = [
@@ -30,30 +21,74 @@ const MARKET_META: { key: Market; label: string }[] = [
   { key: "OU", label: "오버언더" },
 ];
 
+// 모델 표시 메타 — gpt-5.5/5.6 은 "gpt" 로 통합. accent 는 panelists.ts 와 맞춤.
+type Accent = "rose" | "emerald" | "sky" | "amber" | "teal" | "violet";
+const MODEL_META: Record<string, { label: string; accent: Accent; order: number }> = {
+  scorebase: { label: "스코어베이스", accent: "rose", order: 0 },
+  gpt: { label: "GPT", accent: "emerald", order: 1 },
+  grok: { label: "Grok", accent: "sky", order: 2 },
+  gemini: { label: "Gemini", accent: "amber", order: 3 },
+  "qwen2.5-32b": { label: "Qwen", accent: "teal", order: 4 },
+  claude: { label: "Claude", accent: "violet", order: 5 },
+};
+function normModel(m: string): string {
+  return isGptScorecardModel(m) ? "gpt" : m;
+}
+function metaOf(m: string) {
+  return MODEL_META[m] ?? { label: m, accent: "emerald" as Accent, order: 9 };
+}
+
+// 정적 Tailwind 클래스(동적 문자열 조합 금지 — purge 회피).
+const ACCENT: Record<Accent, { text: string; dot: string; bar: string; soft: string; ring: string }> = {
+  rose: { text: "text-rose-600 dark:text-rose-400", dot: "bg-rose-500", bar: "bg-rose-500", soft: "bg-rose-500/10", ring: "ring-rose-400/60 dark:ring-rose-400/40" },
+  emerald: { text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", bar: "bg-emerald-500", soft: "bg-emerald-500/10", ring: "ring-emerald-400/60 dark:ring-emerald-400/40" },
+  sky: { text: "text-sky-600 dark:text-sky-400", dot: "bg-sky-500", bar: "bg-sky-500", soft: "bg-sky-500/10", ring: "ring-sky-400/60 dark:ring-sky-400/40" },
+  amber: { text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", bar: "bg-amber-500", soft: "bg-amber-500/10", ring: "ring-amber-400/60 dark:ring-amber-400/40" },
+  teal: { text: "text-teal-600 dark:text-teal-400", dot: "bg-teal-500", bar: "bg-teal-500", soft: "bg-teal-500/10", ring: "ring-teal-400/60 dark:ring-teal-400/40" },
+  violet: { text: "text-violet-600 dark:text-violet-400", dot: "bg-violet-500", bar: "bg-violet-500", soft: "bg-violet-500/10", ring: "ring-violet-400/60 dark:ring-violet-400/40" },
+};
+
 export const metadata: Metadata = {
-  title: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6 승부예측 정면 비교",
+  title: "AI 예측 성적표 — 스코어베이스·GPT·Grok·Gemini·Qwen 승부예측 리더보드",
   description:
-    "두 AI가 같은 경기를 경기 전에 예측하고, 결과로 채점합니다. 스코어베이스 통계모델과 GPT-5.6의 1X2·핸디캡·오버언더 적중률을 시장별·경기별 기록과 함께 투명하게 공개합니다.",
+    "여러 AI가 같은 경기를 경기 전에 예측하고 결과로 채점합니다. 스코어베이스 통계모델·GPT·Grok·Gemini·Qwen의 1X2·핸디캡·오버언더 적중률을 투명하게 공개하는 멀티 AI 리더보드.",
   keywords: [
-    "AI 예측 성적표", "GPT 승부예측", "AI 스포츠 예측 비교", "GPT-5.6 예측",
-    "AI 적중률", "핸디캡 예측", "오버언더 예측", "AI 예측 대결",
+    "AI 예측 성적표", "멀티 AI 승부예측", "AI 적중률 비교", "GPT 예측", "Grok 예측",
+    "Gemini 예측", "AI 스포츠 예측 리더보드", "핸디캡 예측", "오버언더 예측",
   ],
   alternates: { canonical: `${SITE_URL}/predictions/scorecard` },
   openGraph: {
-    title: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6",
-    description: "두 AI가 같은 경기를 두고 맞붙은 승부예측 성적표. 1X2·핸디·OU 시장별 적중 누적 공개.",
+    title: "AI 예측 성적표 — 멀티 AI 승부예측 리더보드",
+    description: "스코어베이스·GPT·Grok·Gemini·Qwen이 같은 경기를 두고 맞붙는 승부예측 성적표.",
     url: `${SITE_URL}/predictions/scorecard`,
-    images: ogPageImage({ title: "AI 예측 성적표", subtitle: "스코어베이스 AI vs GPT-5.6 정면 비교", tag: "AI 대결" }),
+    images: ogPageImage({ title: "AI 예측 성적표", subtitle: "멀티 AI 승부예측 리더보드", tag: "AI 대결" }),
   },
 };
 
+interface Cell {
+  pick: string;
+  prob: number;
+  line: number | null;
+  reason: string | null;
+  correct: boolean | null;
+}
+interface DP {
+  matchId: number;
+  market: Market;
+  league: string;
+  startTime: Date;
+  status: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  home: string;
+  away: string;
+  cells: Map<string, Cell>; // model → cell
+}
 interface Tally {
+  predicted: number;
   graded: number;
   correct: number;
   rate: number;
-}
-function rate(correct: number, graded: number): number {
-  return graded > 0 ? correct / graded : 0;
 }
 
 function pickText(market: Market, pick: string, home: string, away: string, line: number | null): string {
@@ -62,6 +97,12 @@ function pickText(market: Market, pick: string, home: string, away: string, line
   if (pick === "HOME") return home;
   if (pick === "AWAY") return away;
   return "무승부";
+}
+function shortPick(pick: string, home: string, away: string): string {
+  if (pick === "HOME") return home;
+  if (pick === "AWAY") return away;
+  if (pick === "DRAW") return "무";
+  return pick;
 }
 
 export default async function ScorecardPage() {
@@ -72,8 +113,7 @@ export default async function ScorecardPage() {
       model: true, market: true, pick: true, prob: true, line: true, reason: true, correct: true,
       match: {
         select: {
-          id: true, league: true, startTime: true, status: true,
-          homeScore: true, awayScore: true,
+          id: true, league: true, startTime: true, status: true, homeScore: true, awayScore: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
         },
@@ -81,21 +121,7 @@ export default async function ScorecardPage() {
     },
   });
 
-  type Cell = { model: string; pick: string; prob: number; line: number | null; reason: string | null; correct: boolean | null };
-  interface DP {
-    matchId: number;
-    market: Market;
-    league: string;
-    startTime: Date;
-    status: string;
-    homeScore: number | null;
-    awayScore: number | null;
-    home: string;
-    away: string;
-    sb?: Cell;
-    gpt?: Cell;
-  }
-  // (matchId, market) 단위로 두 모델 픽을 한 행으로 묶음.
+  // (matchId, market) 단위로 전 모델 픽을 한 데이터포인트로 묶음.
   const byKey = new Map<string, DP>();
   for (const r of rows) {
     const m = r.match;
@@ -108,134 +134,118 @@ export default async function ScorecardPage() {
         homeScore: m.homeScore, awayScore: m.awayScore,
         home: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
         away: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
+        cells: new Map(),
       };
       byKey.set(key, dp);
     }
-    const cell: Cell = { model: r.model, pick: r.pick, prob: r.prob, line: r.line, reason: r.reason, correct: r.correct };
-    if (r.model === MODELS.scorebase.id) dp.sb = cell;
-    else if (preferGptScorecardModel(dp.gpt?.model, r.model)) dp.gpt = cell;
+    const nm = normModel(r.model);
+    const existing = dp.cells.get(nm);
+    // gpt 통합 시 채점된 쪽(과거 5.5)을 우선 보존.
+    if (!existing || (existing.correct === null && r.correct !== null)) {
+      dp.cells.set(nm, { pick: r.pick, prob: r.prob, line: r.line, reason: r.reason, correct: r.correct });
+    }
   }
 
-  // 두 모델 모두 픽 + 채점된 데이터포인트만 비교 — 타입 가드로 sb/gpt 비-null 보장(이후 d.sb!/d.gpt! 안전).
-  const datapoints = [...byKey.values()].filter(
-    (d): d is DP & { sb: Cell; gpt: Cell } => Boolean(d.sb) && Boolean(d.gpt),
+  const datapoints = [...byKey.values()];
+
+  // 데이터에 실제 존재하는 모델(정렬은 MODEL_META order).
+  const present = [...new Set(rows.map((r) => normModel(r.model)))].sort(
+    (a, b) => metaOf(a).order - metaOf(b).order,
   );
-  const resolved = datapoints
-    .filter((d) => d.sb!.correct !== null && d.gpt!.correct !== null)
-    .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
-  const resolvedAsc = [...resolved].reverse();
 
-  const tallyOf = (list: DP[], sel: (d: DP) => Cell): Tally => {
-    let correct = 0;
-    for (const d of list) if (sel(d).correct === true) correct++;
-    return { graded: list.length, correct, rate: rate(correct, list.length) };
-  };
-  // 종합(3시장 합)
-  const sbTally = tallyOf(resolved, (d) => d.sb!);
-  const gptTally = tallyOf(resolved, (d) => d.gpt!);
-
-  // 시장별 성적
-  const perMarket = MARKET_META.map((mm) => {
-    const list = resolved.filter((d) => d.market === mm.key);
-    return {
-      ...mm,
-      sb: tallyOf(list, (d) => d.sb!),
-      gpt: tallyOf(list, (d) => d.gpt!),
-    };
-  }).filter((m) => m.sb.graded > 0);
-
-  // 확률 정밀도(Brier) — 픽 확신도(prob)와 결과(1/0)의 제곱 오차 평균. 낮을수록 좋음.
-  // 두 AI 픽이 일치하면 적중률은 자동 동점이라, 확률을 얼마나 정직하게 내는지가 변별 지표.
-  const brierOf = (list: DP[], sel: (d: DP) => Cell): number | null => {
-    if (list.length === 0) return null;
-    let s = 0;
-    for (const d of list) {
-      const c = sel(d);
-      s += (c.prob - (c.correct ? 1 : 0)) ** 2;
+  // 모델별 누적 성적(채점된 것 기준) + 예측 수.
+  const tallyOf = (model: string, filter?: (d: DP) => boolean): Tally => {
+    let predicted = 0, graded = 0, correct = 0;
+    for (const d of datapoints) {
+      if (filter && !filter(d)) continue;
+      const c = d.cells.get(model);
+      if (!c) continue;
+      predicted++;
+      if (c.correct !== null) {
+        graded++;
+        if (c.correct) correct++;
+      }
     }
-    return s / list.length;
+    return { predicted, graded, correct, rate: graded > 0 ? correct / graded : 0 };
   };
-  const sbBrier = brierOf(resolved, (d) => d.sb!);
-  const gptBrier = brierOf(resolved, (d) => d.gpt!);
-  const perMarketBrier = MARKET_META.map((mm) => {
-    const list = resolved.filter((d) => d.market === mm.key);
-    return { ...mm, n: list.length, sb: brierOf(list, (d) => d.sb!), gpt: brierOf(list, (d) => d.gpt!) };
-  }).filter((m) => m.n > 0 && m.sb != null && m.gpt != null);
 
-  // 픽이 갈린 경기 — 일치 픽은 자동 동점이므로 실력 차는 이 구간에서만 벌어진다.
-  const splitList = resolved.filter((d) => d.sb!.pick !== d.gpt!.pick);
-  const splitSb = tallyOf(splitList, (d) => d.sb!);
-  const splitGpt = tallyOf(splitList, (d) => d.gpt!);
-  const agreeCount = resolved.length - splitList.length;
+  const board = present
+    .map((m) => ({ model: m, ...metaOf(m), tally: tallyOf(m) }))
+    // 실적 있는 모델 먼저(적중률 desc), 채점 대기 모델은 뒤로(예측 수 desc).
+    .sort((a, b) => {
+      const ag = a.tally.graded > 0, bg = b.tally.graded > 0;
+      if (ag !== bg) return ag ? -1 : 1;
+      if (ag) return b.tally.rate - a.tally.rate;
+      return b.tally.predicted - a.tally.predicted;
+    });
+  const maxRate = Math.max(0.0001, ...board.filter((b) => b.tally.graded > 0).map((b) => b.tally.rate));
+  const gradedModels = board.filter((b) => b.tally.graded > 0);
+  const pendingModels = board.filter((b) => b.tally.graded === 0);
 
-  // 누적 적중률 추이 — 종합.
-  let sbHit = 0, gptHit = 0;
-  const trend: TrendPoint[] = resolvedAsc.map((d, i) => {
-    if (d.sb!.correct === true) sbHit++;
-    if (d.gpt!.correct === true) gptHit++;
-    return {
-      n: i + 1,
-      "우리 모델": +((sbHit / (i + 1)) * 100).toFixed(1),
-      "GPT 누적": +((gptHit / (i + 1)) * 100).toFixed(1),
-    };
-  });
-  const showTrend = trend.length >= 10;
+  // 시장별 성적(채점된 모델만).
+  const perMarket = MARKET_META.map((mm) => ({
+    ...mm,
+    models: present
+      .map((m) => ({ model: m, ...metaOf(m), tally: tallyOf(m, (d) => d.market === mm.key) }))
+      .filter((x) => x.tally.graded > 0)
+      .sort((a, b) => b.tally.rate - a.tally.rate),
+  })).filter((mm) => mm.models.length > 0);
 
-  // 예정 맞대결 픽 — 경기별로 3시장(1X2·핸디·OU) 묶음.
-  const marketOrder: Market[] = ["1X2", "HANDICAP", "OU"];
+  // 다가오는 맞대결(AI 원탁) — 예정 경기의 1X2 를 전 모델 나란히 + 컨센서스.
   interface UpMatch {
     matchId: number;
     league: string;
     startTime: Date;
     home: string;
     away: string;
-    markets: DP[];
-    split: boolean; // 1X2 픽이 갈렸나
+    picks: { model: string; pick: string; prob: number }[];
   }
-  const upByMatch = new Map<number, UpMatch>();
+  const upMap = new Map<number, UpMatch>();
   for (const d of datapoints) {
-    if (d.status !== "SCHEDULED" || d.sb!.correct !== null) continue;
-    let e = upByMatch.get(d.matchId);
-    if (!e) {
-      e = { matchId: d.matchId, league: d.league, startTime: d.startTime, home: d.home, away: d.away, markets: [], split: false };
-      upByMatch.set(d.matchId, e);
-    }
-    e.markets.push(d);
+    if (d.market !== "1X2" || d.status !== "SCHEDULED") continue;
+    const picks = present
+      .map((m) => {
+        const c = d.cells.get(m);
+        return c ? { model: m, pick: c.pick, prob: c.prob } : null;
+      })
+      .filter((x): x is { model: string; pick: string; prob: number } => x !== null);
+    if (picks.length === 0) continue;
+    upMap.set(d.matchId, { matchId: d.matchId, league: d.league, startTime: d.startTime, home: d.home, away: d.away, picks });
   }
-  const upcoming = [...upByMatch.values()].map((e) => {
-    e.markets.sort((a, b) => marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market));
-    const one = e.markets.find((m) => m.market === "1X2");
-    e.split = one ? one.sb!.pick !== one.gpt!.pick : false;
-    return e;
-  })
-    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-    .sort((a, b) => Number(b.split) - Number(a.split));
+  const upcoming = [...upMap.values()].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
-  const fmtDate = (d: Date) =>
-    d.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
-  const fmtTime = (d: Date) =>
-    d.toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false });
+  // 컨센서스(다수결) 계산.
+  const consensusOf = (picks: { pick: string }[]) => {
+    const cnt = new Map<string, number>();
+    for (const p of picks) cnt.set(p.pick, (cnt.get(p.pick) ?? 0) + 1);
+    let best = "", n = 0;
+    for (const [k, v] of cnt) if (v > n) { best = k; n = v; }
+    return { pick: best, agree: n, total: picks.length };
+  };
 
-  const leader =
-    sbTally.graded === 0 ? null
-      : sbTally.rate > gptTally.rate ? "scorebase"
-      : gptTally.rate > sbTally.rate ? "gpt" : "tie";
+  // 경기별 성적 피드 — 채점된 데이터포인트, 최근순.
+  const resolved = datapoints
+    .filter((d) => [...d.cells.values()].some((c) => c.correct !== null))
+    .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
 
+  const fmtDate = (d: Date) => d.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
+  const fmtTime = (d: Date) => d.toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false });
+
+  const leader = gradedModels[0];
   const citeDate = new Date().toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" });
   const citeUrl = `${SITE_URL}/predictions/scorecard`;
   const citation =
-    sbTally.graded > 0
-      ? `AI 예측 성적표 — 같은 경기 ${sbTally.graded}개 데이터포인트(1X2·핸디·OU)에서 스코어베이스 AI ${(sbTally.rate * 100).toFixed(1)}% vs GPT 누적(5.5→5.6) ${(gptTally.rate * 100).toFixed(1)}% 적중률 (출처: Scorebase ${citeUrl}, ${citeDate} 기준)`
-      : `AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6 승부예측 정면 비교 (출처: Scorebase ${citeUrl})`;
+    leader
+      ? `AI 예측 성적표 — ${gradedModels.map((m) => `${m.label} ${(m.tally.rate * 100).toFixed(1)}%`).join(", ")} (채점 ${leader.tally.graded}경기 기준, ${present.length}개 AI 리더보드 · 출처 Scorebase ${citeUrl}, ${citeDate})`
+      : `AI 예측 성적표 — 멀티 AI 승부예측 리더보드 (출처 Scorebase ${citeUrl})`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    name: "AI 예측 성적표 — 스코어베이스 AI vs GPT-5.6",
-    description:
-      "두 AI가 같은 경기를 경기 전에 예측하고 결과로 채점한 1X2·핸디캡·오버언더 적중률 비교 데이터셋.",
+    name: "AI 예측 성적표 — 멀티 AI 승부예측 리더보드",
+    description: "여러 AI가 같은 경기를 경기 전에 예측하고 결과로 채점한 1X2·핸디캡·오버언더 적중률 비교 데이터셋.",
     url: citeUrl,
-    keywords: ["AI 예측 성적표", "GPT 승부예측", "AI 적중률 비교", "핸디캡 예측", "오버언더 예측"],
+    keywords: ["AI 예측 성적표", "멀티 AI 승부예측", "AI 적중률 비교", "Grok 예측", "Gemini 예측"],
     creator: { "@type": "Organization", name: "스코어베이스", url: SITE_URL },
     isAccessibleForFree: true,
   };
@@ -247,88 +257,125 @@ export default async function ScorecardPage() {
 
       <header className="mb-10">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
-          <Sparkles className="h-3 w-3" aria-hidden /> 멀티 AI 비교
+          <Users className="h-3 w-3" aria-hidden /> 멀티 AI 리더보드
         </span>
         <h1 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white">
           AI 예측 성적표
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">
-          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT (5.5 → 5.6 Sol)</strong>가
-          <strong className="text-zinc-800 dark:text-white/80"> 정확히 같은 경기</strong>를 경기 전에 예측합니다.
-          1X2 승부뿐 아니라 <strong className="text-zinc-800 dark:text-white/80">핸디캡·오버언더</strong>까지
-          세 시장을 두고 맞붙어, 결과가 나오면 채점해 그대로 쌓습니다.
+          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT·Grok·Gemini·Qwen</strong> 등
+          여러 AI가 <strong className="text-zinc-800 dark:text-white/80">정확히 같은 경기</strong>를 경기 전에 예측합니다.
+          1X2·핸디캡·오버언더 세 시장을 두고 맞붙어, 결과가 나오면 <strong className="text-zinc-800 dark:text-white/80">전패까지 그대로</strong> 채점해 쌓습니다.
         </p>
       </header>
 
-      {/* 종합 정면 비교 스코어보드 */}
-      <section className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-3 sm:gap-4 mb-3">
-        <ModelCard tally={sbTally} model={MODELS.scorebase} isLeader={leader === "scorebase"} />
-        <div className="flex flex-col items-center justify-center px-1">
-          <span className="text-xs font-bold text-zinc-400 dark:text-white/30">VS</span>
-        </div>
-        <ModelCard tally={gptTally} model={MODELS.gpt} isLeader={leader === "gpt"} />
-      </section>
-      {resolved.length > 0 && (
-        <p className="mb-10 text-center text-[13px] text-zinc-500 dark:text-white/40">
-          1X2·핸디캡·오버언더 합산 · 같은 경기 {resolved.length}개 데이터포인트 기준
-          {resolved.length < 50 && <span className="text-amber-600 dark:text-amber-400"> · 표본 누적 중(아직 통계적 결론은 이름)</span>}
-        </p>
-      )}
-      {resolved.length === 0 && (
-        <p className="mb-10 text-center text-[13px] text-zinc-500 dark:text-white/40">
-          두 모델의 동일 경기 기록을 누적 중입니다.
-        </p>
-      )}
-
-      {/* 정밀 비교 — 확률 정밀도(Brier) + 픽이 갈린 경기 */}
-      {resolved.length > 0 && sbBrier != null && gptBrier != null && (
-        <section className="mb-12 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
-            <h2 className="flex items-center gap-2 text-[15px] font-bold text-zinc-900 dark:text-white">
-              <Target className="h-4 w-4 text-rose-500" aria-hidden /> 확률 정밀도 (Brier)
-            </h2>
-            <p className="mt-1 text-[12px] leading-relaxed text-zinc-500 dark:text-white/40">
-              픽 확신도와 실제 결과의 오차 — <strong>낮을수록 좋습니다</strong>. 적중률이
-              비슷해도, 확률을 얼마나 정직하게 내는지는 여기서 갈립니다.
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <BrierBig label={MODELS.scorebase.short} value={sbBrier} best={sbBrier <= gptBrier} accent="rose" />
-              <BrierBig label={MODELS.gpt.short} value={gptBrier} best={gptBrier <= sbBrier} accent="emerald" />
-            </div>
-            <div className="mt-3 space-y-1">
-              {perMarketBrier.map((m) => (
-                <div key={m.key} className="flex items-center justify-between text-[12px] tabular-nums">
-                  <span className="text-zinc-500 dark:text-white/40">{m.label}</span>
-                  <span>
-                    <span className={m.sb! <= m.gpt! ? "font-semibold text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-white/50"}>{m.sb!.toFixed(3)}</span>
-                    <span className="mx-1 text-zinc-300 dark:text-white/20">vs</span>
-                    <span className={m.gpt! < m.sb! ? "font-semibold text-emerald-600 dark:text-emerald-400" : "text-zinc-500 dark:text-white/50"}>{m.gpt!.toFixed(3)}</span>
+      {/* 리더보드 */}
+      <section className="mb-12">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+          <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 누적 적중률 리더보드
+        </h2>
+        <div className="space-y-2">
+          {gradedModels.map((b, i) => {
+            const a = ACCENT[b.accent];
+            return (
+              <div
+                key={b.model}
+                className={`relative overflow-hidden rounded-2xl bg-white p-4 shadow-sm ring-1 dark:bg-white/[0.04] ${i === 0 ? a.ring + " ring-2" : "ring-zinc-200/70 dark:ring-white/10"}`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 shrink-0 text-center text-sm font-bold ${i === 0 ? a.text : "text-zinc-400 dark:text-white/30"}`}>
+                    {i + 1}
                   </span>
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${a.dot}`} aria-hidden />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-[15px] font-semibold text-zinc-900 dark:text-white">
+                        {b.label}
+                        {i === 0 && <span className="ml-1.5 align-middle text-[10px] font-bold text-amber-500">1위</span>}
+                      </span>
+                      <span className={`shrink-0 text-xl font-bold tabular-nums ${a.text}`}>
+                        {(b.tally.rate * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-white/[0.06]">
+                      <div className={`h-full rounded-full ${a.bar}`} style={{ width: `${(b.tally.rate / maxRate) * 100}%` }} />
+                    </div>
+                    <div className="mt-1 text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
+                      {b.tally.correct} / {b.tally.graded} 적중
+                    </div>
+                  </div>
                 </div>
-              ))}
+              </div>
+            );
+          })}
+        </div>
+
+        {pendingModels.length > 0 && (
+          <div className="mt-3 rounded-2xl bg-zinc-50 p-4 ring-1 ring-zinc-200/70 dark:bg-white/[0.02] dark:ring-white/10">
+            <div className="mb-2 text-[12px] font-medium text-zinc-500 dark:text-white/40">채점 대기 — 예측은 쌓였고 경기 종료 후 성적이 채워집니다</div>
+            <div className="flex flex-wrap gap-2">
+              {pendingModels.map((b) => {
+                const a = ACCENT[b.accent];
+                return (
+                  <span key={b.model} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium ${a.soft} ${a.text}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
+                    {b.label}
+                    <span className="tabular-nums opacity-70">예측 {b.tally.predicted}</span>
+                  </span>
+                );
+              })}
             </div>
           </div>
-          <div className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
-            <h2 className="flex items-center gap-2 text-[15px] font-bold text-zinc-900 dark:text-white">
-              <Shuffle className="h-4 w-4 text-rose-500" aria-hidden /> 픽이 갈린 경기
-            </h2>
-            <p className="mt-1 text-[12px] leading-relaxed text-zinc-500 dark:text-white/40">
-              두 AI 픽이 일치한 {agreeCount}건은 자동 동점 — 실력 차는{" "}
-              <strong>서로 다른 쪽을 찍은 {splitList.length}건</strong>에서만 벌어집니다.
-            </p>
-            {splitList.length > 0 ? (
-              <>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <SplitBig label={MODELS.scorebase.short} tally={splitSb} best={splitSb.rate >= splitGpt.rate} accent="rose" />
-                  <SplitBig label={MODELS.gpt.short} tally={splitGpt} best={splitGpt.rate >= splitSb.rate} accent="emerald" />
+        )}
+        {leader && (
+          <p className="mt-3 text-center text-[13px] text-zinc-500 dark:text-white/40">
+            채점 {leader.tally.graded}경기 기준 · 같은 경기·같은 라인으로 공정 비교
+            {leader.tally.graded < 50 && <span className="text-amber-600 dark:text-amber-400"> · 표본 누적 중</span>}
+          </p>
+        )}
+      </section>
+
+      {/* 다가오는 맞대결 — AI 원탁 */}
+      {upcoming.length > 0 && (
+        <section className="mb-12">
+          <h2 className="mb-1 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+            <Clock className="h-4 w-4 text-rose-500" aria-hidden /> 다가오는 맞대결 — AI 원탁
+          </h2>
+          <p className="mb-4 text-[13px] text-zinc-500 dark:text-white/40">
+            예정 경기를 두고 각 AI가 낸 1X2 픽. 다수결이 갈릴수록 어려운 경기입니다.
+          </p>
+          <div className="space-y-2">
+            {upcoming.slice(0, 20).map((e) => {
+              const con = consensusOf(e.picks);
+              const split = con.agree < con.total;
+              return (
+                <div key={e.matchId} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
+                  <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-white/40">
+                    <LeagueBadge league={e.league} />
+                    <span>{fmtDate(e.startTime)} {fmtTime(e.startTime)}</span>
+                    <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${split ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`}>
+                      {split ? `의견 갈림 ${con.agree}/${con.total}` : `만장일치 ${con.total}`}
+                    </span>
+                  </div>
+                  <div className="mt-2 text-[15px] font-semibold text-zinc-900 dark:text-white">
+                    {e.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {e.away}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {e.picks.map((p) => {
+                      const a = ACCENT[metaOf(p.model).accent];
+                      return (
+                        <span key={p.model} className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-50 px-2.5 py-1.5 text-[12px] ring-1 ring-zinc-100 dark:bg-white/[0.03] dark:ring-white/[0.06]">
+                          <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
+                          <span className="text-zinc-400 dark:text-white/40">{metaOf(p.model).label}</span>
+                          <span className="font-semibold text-zinc-800 dark:text-white/80">{shortPick(p.pick, e.home, e.away)}</span>
+                          <span className="tabular-nums text-zinc-400 dark:text-white/30">{(p.prob * 100).toFixed(0)}%</span>
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p className="mt-3 text-[11px] text-zinc-400 dark:text-white/30">
-                  같은 경기에서 정반대 픽 — 한쪽이 맞으면 다른 쪽은 대부분 틀리는 정면 승부 구간입니다.
-                </p>
-              </>
-            ) : (
-              <p className="mt-3 text-[13px] text-zinc-500 dark:text-white/40">아직 픽이 갈린 채점 경기가 없습니다.</p>
-            )}
+              );
+            })}
           </div>
         </section>
       )}
@@ -337,99 +384,27 @@ export default async function ScorecardPage() {
       {perMarket.length > 0 && (
         <section className="mb-12">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
-            <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 시장별 성적
+            <Sparkles className="h-4 w-4 text-rose-500" aria-hidden /> 시장별 성적
           </h2>
-          <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-zinc-100 text-left text-[11px] uppercase tracking-wide text-zinc-400 dark:border-white/10 dark:text-white/30">
-                  <th className="px-4 py-2.5 font-medium">시장</th>
-                  <th className="px-2 py-2.5 text-center font-medium text-rose-500">우리 모델</th>
-                  <th className="px-2 py-2.5 text-center font-medium text-emerald-600 dark:text-emerald-400">GPT 누적</th>
-                  <th className="px-3 py-2.5 text-center font-medium">우세</th>
-                </tr>
-              </thead>
-              <tbody>
-                {perMarket.map((m) => {
-                  const win = m.sb.rate > m.gpt.rate ? "sb" : m.gpt.rate > m.sb.rate ? "gpt" : "tie";
-                  return (
-                    <tr key={m.key} className="border-b border-zinc-50 last:border-0 dark:border-white/[0.04]">
-                      <td className="px-4 py-3 font-medium text-zinc-800 dark:text-white/80">
-                        {m.label}
-                        <span className="ml-1.5 text-[11px] text-zinc-400 dark:text-white/30">n={m.sb.graded}</span>
-                      </td>
-                      <td className={`px-2 py-3 text-center tabular-nums font-semibold ${win === "sb" ? "text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-white/50"}`}>
-                        {(m.sb.rate * 100).toFixed(1)}%
-                        <span className="block text-[11px] font-normal text-zinc-400 dark:text-white/30">{m.sb.correct}/{m.sb.graded}</span>
-                      </td>
-                      <td className={`px-2 py-3 text-center tabular-nums font-semibold ${win === "gpt" ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500 dark:text-white/50"}`}>
-                        {(m.gpt.rate * 100).toFixed(1)}%
-                        <span className="block text-[11px] font-normal text-zinc-400 dark:text-white/30">{m.gpt.correct}/{m.gpt.graded}</span>
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        {win === "sb" ? (
-                          <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[11px] font-bold text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">우리</span>
-                        ) : win === "gpt" ? (
-                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">GPT</span>
-                        ) : (
-                          <span className="text-[11px] text-zinc-400 dark:text-white/30">동률</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
-      {/* 누적 적중률 추이 */}
-      {showTrend && (
-        <section className="mb-12">
-          <h2 className="mb-1 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
-            <Sparkles className="h-4 w-4 text-rose-500" aria-hidden /> 누적 적중률 추이
-          </h2>
-          <p className="mb-4 text-[13px] text-zinc-500 dark:text-white/40">
-            채점이 쌓일수록 두 AI의 누적 적중률(3시장 합)이 어떻게 갈리는지.
-          </p>
-          <div className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
-            <ScorecardTrendChart data={trend} />
-          </div>
-        </section>
-      )}
-
-      {/* 예정 경기 맞대결 픽 — 1X2·핸디·OU 3시장 */}
-      {upcoming.length > 0 && (
-        <section className="mb-12">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
-            <Clock className="h-4 w-4 text-rose-500" aria-hidden /> 다가오는 맞대결 픽
-          </h2>
-          <div className="space-y-2">
-            {upcoming.slice(0, 20).map((e) => (
-              <div key={e.matchId} className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
-                <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-white/40">
-                  <LeagueBadge league={e.league} />
-                  <span>{fmtDate(e.startTime)} {fmtTime(e.startTime)}</span>
-                  {e.split && (
-                    <span className="ml-auto rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-amber-500/20 dark:text-amber-300 dark:ring-amber-300/30">
-                      의견 갈림
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 text-[15px] font-semibold text-zinc-900 dark:text-white">
-                  {e.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {e.away}
-                </div>
-                <div className="mt-3 space-y-1.5">
-                  {e.markets.map((d) => (
-                    <div key={d.market} className="grid grid-cols-[3.2rem_1fr_1fr] items-center gap-2">
-                      <span className="rounded-md bg-zinc-100 px-1.5 py-1 text-center text-[10px] font-semibold text-zinc-500 dark:bg-white/[0.06] dark:text-white/50">
-                        {MARKET_META.find((m) => m.key === d.market)?.label.replace(" 승부", "")}
-                      </span>
-                      <PickChip label={MODELS.scorebase.short} text={pickText(d.market, d.sb!.pick, e.home, e.away, d.sb!.line)} prob={d.sb!.prob} reason={null} accent="rose" />
-                      <PickChip label={gptScorecardModelLabel(d.gpt!.model)} text={pickText(d.market, d.gpt!.pick, e.home, e.away, d.gpt!.line)} prob={d.gpt!.prob} reason={null} accent="emerald" />
-                    </div>
-                  ))}
+          <div className="grid gap-3 sm:grid-cols-3">
+            {perMarket.map((mm) => (
+              <div key={mm.key} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
+                <div className="mb-2 text-[13px] font-bold text-zinc-800 dark:text-white/80">{mm.label}</div>
+                <div className="space-y-1.5">
+                  {mm.models.map((x) => {
+                    const a = ACCENT[x.accent];
+                    return (
+                      <div key={x.model} className="flex items-center justify-between text-[12px]">
+                        <span className="flex items-center gap-1.5 text-zinc-500 dark:text-white/50">
+                          <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden /> {x.label}
+                        </span>
+                        <span className={`font-semibold tabular-nums ${a.text}`}>
+                          {(x.tally.rate * 100).toFixed(1)}%
+                          <span className="ml-1 font-normal text-zinc-400 dark:text-white/30">({x.tally.correct}/{x.tally.graded})</span>
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -437,75 +412,58 @@ export default async function ScorecardPage() {
         </section>
       )}
 
-      {/* 경기별 결과 피드 (시장 포함) */}
-      <section className="mb-12">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
-          <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 경기별 성적
-        </h2>
-        {resolved.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
-            <p className="text-[15px] text-zinc-600 dark:text-white/60">
-              아직 채점된 경기가 없습니다. 예정 경기가 끝나는 대로 적중·실패가 이곳에 쌓입니다.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-zinc-200/70 shadow-sm dark:bg-white/[0.04] dark:ring-white/10">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-zinc-100 text-left text-[11px] uppercase tracking-wide text-zinc-400 dark:border-white/10 dark:text-white/30">
-                  <th className="px-3 py-2.5 font-medium">경기</th>
-                  <th className="px-2 py-2.5 text-center font-medium">시장</th>
-                  <th className="px-2 py-2.5 text-center font-medium text-rose-500">우리</th>
-                  <th className="px-2 py-2.5 text-center font-medium text-emerald-600 dark:text-emerald-400">GPT</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resolved.slice(0, 60).map((d) => (
-                  <tr key={`${d.matchId}:${d.market}`} className="border-b border-zinc-50 last:border-0 dark:border-white/[0.04]">
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <LeagueBadge league={d.league} />
-                        <span className="font-medium text-zinc-800 dark:text-white/80">
-                          {d.home} <span className="text-zinc-300 dark:text-white/20">·</span> {d.away}
-                        </span>
-                      </div>
-                      <div className="mt-0.5 text-[11px] text-zinc-400 dark:text-white/30">
-                        {fmtDate(d.startTime)} · {d.homeScore ?? "-"}:{d.awayScore ?? "-"}
-                      </div>
-                    </td>
-                    <td className="px-2 py-2.5 text-center">
-                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-white/[0.06] dark:text-white/50">
-                        {MARKET_META.find((m) => m.key === d.market)?.label}
+      {/* 경기별 성적 피드 */}
+      {resolved.length > 0 && (
+        <section className="mb-12">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+            <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 경기별 성적
+          </h2>
+          <div className="space-y-2">
+            {resolved.slice(0, 40).map((d) => (
+              <div key={`${d.matchId}:${d.market}`} className="rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-white/40">
+                  <LeagueBadge league={d.league} />
+                  <span className="font-medium text-zinc-700 dark:text-white/70">{d.home} · {d.away}</span>
+                  <span className="ml-auto rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-white/[0.06] dark:text-white/50">
+                    {MARKET_META.find((m) => m.key === d.market)?.label}
+                  </span>
+                  <span className="tabular-nums text-zinc-400 dark:text-white/30">{d.homeScore ?? "-"}:{d.awayScore ?? "-"}</span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {present.map((m) => {
+                    const c = d.cells.get(m);
+                    if (!c || c.correct === null) return null;
+                    const a = ACCENT[metaOf(m).accent];
+                    return (
+                      <span key={m} className="inline-flex items-center gap-1 rounded-lg bg-zinc-50 px-2 py-1 text-[11px] ring-1 ring-zinc-100 dark:bg-white/[0.03] dark:ring-white/[0.06]">
+                        <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
+                        <span className="text-zinc-400 dark:text-white/40">{metaOf(m).label}</span>
+                        <span className="font-medium text-zinc-700 dark:text-white/70">{pickText(d.market, c.pick, d.home, d.away, c.line)}</span>
+                        {c.correct ? (
+                          <Check className="h-3 w-3 text-emerald-500" aria-hidden />
+                        ) : (
+                          <X className="h-3 w-3 text-rose-500" aria-hidden />
+                        )}
                       </span>
-                    </td>
-                    <td className="px-2 py-2.5">
-                      <ResultCell correct={d.sb!.correct === true} text={pickText(d.market, d.sb!.pick, d.home, d.away, d.sb!.line)} />
-                    </td>
-                    <td className="px-2 py-2.5">
-                      <ResultCell correct={d.gpt!.correct === true} text={pickText(d.market, d.gpt!.pick, d.home, d.away, d.gpt!.line)} />
-                      <div className="mt-0.5 text-center text-[10px] text-zinc-400 dark:text-white/30">
-                        {gptScorecardModelLabel(d.gpt!.model)}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {/* 방법론 + 인용 */}
       <section className="space-y-4">
         <div className="rounded-2xl bg-zinc-50 p-5 text-[13px] leading-relaxed text-zinc-600 ring-1 ring-zinc-200/70 dark:bg-white/[0.03] dark:text-white/50 dark:ring-white/10">
           <p className="font-semibold text-zinc-700 dark:text-white/70">계산 방법</p>
           <p className="mt-1.5">
-            두 AI 모두 <strong>경기 시작 전</strong>에 1X2(승·무·패)·핸디캡·오버언더 픽을 제출합니다. 스코어베이스 AI는
-            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델입니다. GPT 기록은 기존 GPT-5.5 성적을 보존하고,
-            전환 이후부터 GPT-5.6 Sol이 순위·최근 폼·홈/원정 성적·휴식일·상대전적과
-            <strong> 동일한 기준선(핸디/총점 라인)</strong>을 받아 (우리 모델 수치는 보지 않고) 독립 예측합니다.
-            경기가 끝나면 같은 라인으로 채점합니다(축구는 정규시간 기준). 공정성을 위해 두 AI가 모두 예측한 동일 경기·시장만 비교합니다.
-            확률 정밀도(Brier)는 픽 확신도와 실제 결과(적중=1·실패=0)의 제곱 오차 평균으로, 낮을수록 확률을 정직하게 낸 것입니다.
+            모든 AI가 <strong>경기 시작 전</strong>에 1X2·핸디캡·오버언더 픽을 제출합니다. 스코어베이스 AI는
+            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, 나머지 AI(GPT·Grok·Gemini·Qwen)는
+            같은 경기 데이터(순위·최근 폼·홈/원정·휴식일·상대전적)와 <strong>동일한 기준선</strong>을 받아
+            (우리 모델 수치는 보지 않고) 독립 예측합니다. 경기가 끝나면 같은 라인으로 채점합니다(축구는 정규시간 기준).
+            공정성을 위해 같은 경기·같은 시장만 비교하며, 각 모델의 예측 시점 이후 종료된 경기부터 성적에 반영됩니다.
           </p>
           <p className="mt-2 text-zinc-500 dark:text-white/40">
             전체 리그·시장별 적중률은{" "}
@@ -518,133 +476,5 @@ export default async function ScorecardPage() {
         <CiteBox citation={citation} url={citeUrl} />
       </section>
     </main>
-  );
-}
-
-function ModelCard({
-  tally,
-  model,
-  isLeader,
-}: {
-  tally: Tally;
-  model: { name: string; short: string; accent: string };
-  isLeader: boolean;
-}) {
-  const accent = model.accent === "rose" ? "rose" : "emerald";
-  const ring = isLeader
-    ? accent === "rose"
-      ? "ring-2 ring-rose-400/60 dark:ring-rose-400/40"
-      : "ring-2 ring-emerald-400/60 dark:ring-emerald-400/40"
-    : "ring-1 ring-zinc-200/70 dark:ring-white/10";
-  const rateColor = accent === "rose" ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400";
-  return (
-    <div className={`relative rounded-3xl bg-white p-5 sm:p-6 shadow-sm dark:bg-white/[0.04] ${ring}`}>
-      {isLeader && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-bold text-amber-950 shadow">
-          <Trophy className="h-2.5 w-2.5" aria-hidden /> 우세
-        </span>
-      )}
-      <div className="text-[13px] font-semibold text-zinc-500 dark:text-white/50">{model.name}</div>
-      <div className={`mt-2 text-4xl sm:text-5xl font-bold tabular-nums ${rateColor}`}>
-        {tally.graded > 0 ? `${(tally.rate * 100).toFixed(1)}%` : "—"}
-      </div>
-      <div className="mt-1 text-[13px] text-zinc-500 dark:text-white/40 tabular-nums">
-        {tally.graded > 0 ? `${tally.correct} / ${tally.graded} 적중` : "채점 대기"}
-      </div>
-    </div>
-  );
-}
-
-function BrierBig({
-  label,
-  value,
-  best,
-  accent,
-}: {
-  label: string;
-  value: number;
-  best: boolean;
-  accent: "rose" | "emerald";
-}) {
-  const color = accent === "rose" ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400";
-  return (
-    <div className={`rounded-xl px-3 py-2.5 ring-1 ${best ? "bg-zinc-50 ring-zinc-200/80 dark:bg-white/[0.05] dark:ring-white/15" : "bg-white ring-zinc-100 dark:bg-white/[0.02] dark:ring-white/[0.06]"}`}>
-      <div className="text-[11px] font-medium text-zinc-400 dark:text-white/40">{label}</div>
-      <div className={`mt-0.5 text-xl font-bold tabular-nums ${best ? color : "text-zinc-500 dark:text-white/50"}`}>
-        {value.toFixed(4)}
-      </div>
-    </div>
-  );
-}
-
-function SplitBig({
-  label,
-  tally,
-  best,
-  accent,
-}: {
-  label: string;
-  tally: Tally;
-  best: boolean;
-  accent: "rose" | "emerald";
-}) {
-  const color = accent === "rose" ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400";
-  return (
-    <div className={`rounded-xl px-3 py-2.5 ring-1 ${best ? "bg-zinc-50 ring-zinc-200/80 dark:bg-white/[0.05] dark:ring-white/15" : "bg-white ring-zinc-100 dark:bg-white/[0.02] dark:ring-white/[0.06]"}`}>
-      <div className="text-[11px] font-medium text-zinc-400 dark:text-white/40">{label}</div>
-      <div className={`mt-0.5 text-xl font-bold tabular-nums ${best ? color : "text-zinc-500 dark:text-white/50"}`}>
-        {(tally.rate * 100).toFixed(1)}%
-      </div>
-      <div className="text-[11px] text-zinc-400 dark:text-white/30 tabular-nums">{tally.correct}/{tally.graded} 적중</div>
-    </div>
-  );
-}
-
-function PickChip({
-  label,
-  text,
-  prob,
-  reason,
-  accent,
-}: {
-  label: string;
-  text: string;
-  prob: number;
-  reason: string | null;
-  accent: "rose" | "emerald";
-}) {
-  const dot = accent === "rose" ? "bg-rose-500" : "bg-emerald-500";
-  return (
-    <div className="rounded-xl bg-zinc-50 px-3 py-2 ring-1 ring-zinc-100 dark:bg-white/[0.03] dark:ring-white/[0.06]">
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400 dark:text-white/40">
-        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden /> {label}
-      </div>
-      <div className="mt-0.5 text-[13px] font-semibold text-zinc-800 dark:text-white/80">
-        {text}
-        <span className="ml-1 text-[11px] font-normal text-zinc-400 dark:text-white/30 tabular-nums">
-          {(prob * 100).toFixed(0)}%
-        </span>
-      </div>
-      {reason && (
-        <div className="mt-0.5 line-clamp-1 text-[11px] text-zinc-400 dark:text-white/30">{reason}</div>
-      )}
-    </div>
-  );
-}
-
-function ResultCell({ correct, text }: { correct: boolean; text: string }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span
-        className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${
-          correct
-            ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
-            : "bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"
-        }`}
-      >
-        {correct ? <Check className="h-3 w-3" aria-hidden /> : <X className="h-3 w-3" aria-hidden />}
-      </span>
-      <span className="text-[10px] text-zinc-400 dark:text-white/30 truncate max-w-[72px]">{text}</span>
-    </div>
   );
 }
