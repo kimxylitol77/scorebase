@@ -43,6 +43,8 @@ const FB_SNAPSHOT_PATH = path.resolve(
   __dirname,
   "../data/thesports-translations/_competition-mapping.json",
 );
+// 국가 id→영문명 (대회명에 국가 병기해 동명 대회 오배정 방지). git 추적 파일.
+const COUNTRIES_PATH = path.resolve(__dirname, "../data/ts-countries.json");
 
 if (!TS_USER || !TS_SECRET) {
   console.error("❌ THESPORTS_USER / THESPORTS_SECRET 미설정 — .env 확인");
@@ -218,7 +220,8 @@ function saveSeen(seen) {
 }
 
 // 한 종목의 미커버 후보 계산
-async function collectSport(sport, snapshotKo) {
+// compCountry = 대회 id→country_id (축구만 채워짐 — 타종목은 country API 미인가라 빈 맵)
+async function collectSport(sport, snapshotKo, countryName, compCountry) {
   const counts = new Map(); // id -> 매치 수
   const nameEn = new Map(); // id -> 영문명(diary 제공)
   let total = 0;
@@ -244,11 +247,34 @@ async function collectSport(sport, snapshotKo) {
     const ko = snapshotKo.get(cid) || "";
     if (sport.noiseEn && en && sport.noiseEn.test(en)) continue;
     if (sport.noiseKo && ko && sport.noiseKo.test(ko)) continue;
-    candidates.push({ cid, n, en, label: ko || en || "(이름 미상)" });
+    // 국가명 병기(축구) — 매핑되면 영문 국가명, 미매핑이면 country_id 원문, 국제대회/타종목은 생략
+    const ctyId = compCountry.get(cid);
+    const cty = ctyId ? countryName.get(ctyId) || ctyId : "";
+    const name = ko || en || "(이름 미상)";
+    const label = cty ? `[${cty}] ${name}` : name;
+    candidates.push({ cid, n, en, country: cty, label });
   }
   candidates.sort((a, b) => b.n - a.n);
   console.error(`[${sport.key}] 매치 ${total}, 미커버 후보 ${candidates.length}`);
   return candidates;
+}
+
+// 축구 대회 id→country_id 맵. competition/additional/list 순회(3페이지, ~2600개).
+// 타종목은 이 API 가 미인가라 국가 병기 불가 — 축구 전용.
+async function fetchFootballCompetitionCountry() {
+  const map = new Map();
+  for (let page = 1; page <= 10; page++) {
+    const { data } = await axios.get(
+      `${TS_BASE}/v1/football/competition/additional/list`,
+      { params: { user: TS_USER, secret: TS_SECRET, page }, timeout: 30_000 },
+    );
+    if (data.code !== 0) throw new Error(`competition/additional/list code=${data.code}`);
+    const rs = Array.isArray(data.results) ? data.results : [];
+    if (!rs.length) break;
+    for (const c of rs) if (c.id && c.country_id) map.set(c.id, c.country_id);
+    if (rs.length < 1000) break; // 마지막 페이지
+  }
+  return map;
 }
 
 async function main() {
@@ -265,11 +291,32 @@ async function main() {
     /* 스냅샷 없으면 영문명만 */
   }
 
+  // 국가 id→영문명 (없으면 country_id 원문으로 폴백)
+  let countryName = new Map();
+  try {
+    const cs = JSON.parse(fs.readFileSync(COUNTRIES_PATH, "utf8"));
+    countryName = new Map(cs.map((c) => [c.id, c.name]));
+  } catch {
+    /* 파일 없으면 country_id 원문 표시 */
+  }
+
   const targets = ONLY_SPORT ? SPORTS.filter((s) => s.key === ONLY_SPORT) : SPORTS;
+
+  // 축구 대회 id→country_id (축구 대상일 때만 조회 — 타종목은 country API 미인가)
+  let compCountry = new Map();
+  if (targets.some((s) => s.key === "football")) {
+    try {
+      compCountry = await fetchFootballCompetitionCountry();
+    } catch (e) {
+      console.error(`competition country map 로드 실패(국가 병기 생략): ${e.message}`);
+    }
+  }
+
   const perSport = [];
   for (const sport of targets) {
     const koMap = sport.key === "football" ? footballKo : new Map();
-    const candidates = await collectSport(sport, koMap);
+    const ctyMap = sport.key === "football" ? compCountry : new Map();
+    const candidates = await collectSport(sport, koMap, countryName, ctyMap);
     perSport.push({ sport, candidates });
   }
 
