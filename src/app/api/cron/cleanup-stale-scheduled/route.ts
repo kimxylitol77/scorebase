@@ -158,10 +158,16 @@ export async function GET(req: NextRequest) {
   //    mac-mini stale-ts-verify(diary status_id)가 먼저 처리하고, 이 cron 은 worker 중단 시 백스톱.
   const liveCutoffSoccer = new Date(Date.now() - 3.5 * 3600 * 1000);
   const liveCutoffDefault = new Date(Date.now() - 6 * 3600 * 1000);
+  // 친선(CLUB_FRIENDLY)은 종료 후 TheSports diary/recent 에서 빠르게 사라져 stale-ts-verify
+  // 의 diary status_id verify 가 못 잡고 KEPT 로 쌓임 → 이 시간 백스톱만 실효. 연장·승부차기
+  // 포함 최대 2.5h 면 확실히 종료라 3.5h(연장 컵대회 여유) 대신 2.5h 로 당겨 유령 LIVE 노출·
+  // data-sanity 반복 알림 공백 단축 (2026-07-11 #1159143/#1159129 207분 stuck 진단).
+  const liveCutoffFriendly = new Date(Date.now() - 2.5 * 3600 * 1000);
   const staleLive = await prisma.match.findMany({
     where: {
       status: "LIVE",
       OR: [
+        { league: "CLUB_FRIENDLY", startTime: { lt: liveCutoffFriendly } },
         { league: { in: [...SOCCER_LEAGUES] }, startTime: { lt: liveCutoffSoccer } },
         { league: { notIn: [...SOCCER_LEAGUES] }, startTime: { lt: liveCutoffDefault } },
       ],

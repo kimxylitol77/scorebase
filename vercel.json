@@ -130,7 +130,7 @@
     },
     {
       "path": "/api/cron/cleanup-stale-scheduled",
-      "schedule": "0 */4 * * *"
+      "schedule": "0 */2 * * *"
     },
     {
       "path": "/api/cron/capture-football-stats",
