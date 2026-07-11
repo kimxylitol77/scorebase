@@ -2,6 +2,7 @@
 // 카테고리: 전체 / 리그별 / 팀별 / 국가별 / 포지션별 / 최신 이적 / 빅딜 / 팀별 IN·OUT + 선수·팀 검색(q).
 // 기본 = 전체(빅5 통합) — 상단 마켓 무브(급상승·급락·빅딜) 요약. 행 클릭 → /transfers/[id].
 import { prisma } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
@@ -107,6 +108,56 @@ const RUMOR_STAGES: Record<string, { label: string; cls: string }> = {
 // 빅5 — 시장가치 기반 뷰(머니파워·스쿼드 가치·IN/OUT·팀 옵션) 범위.
 // 확장 리그(K리그1·사우디·MLS)는 PlayerMarketValue 커버리지가 얇아(17~179명) 피드·빅딜만 노출.
 const FIVE = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1"];
+
+// 팀 필터 드롭다운 옵션 + 팀 메타/매핑 인덱스.
+// 빅5 전 선수 groupBy(수천 row)는 무거운데 view 와 무관하게 매 요청 필요 →
+// force-dynamic 이라도 이 데이터만 시장가치 수집 주기(주기적 cron)에 맞춰 30분 캐시.
+// Map 은 직렬화 불가 → entries 배열로 반환, 호출부에서 재구성.
+const getTransferTeamIndex = unstable_cache(
+  async () => {
+    const teamGroups = await prisma.playerMarketValue.groupBy({
+      by: ["teamId"],
+      where: { league: { in: FIVE }, currentValue: { not: null }, teamId: { not: null } },
+      _count: { _all: true },
+    });
+    const allTsTeamIds = teamGroups.map((g) => g.teamId).filter((x): x is string => !!x);
+    const tsT = await prisma.teamSourceId.findMany({
+      where: { source: "thesports", externalId: { in: allTsTeamIds } },
+      select: { externalId: true, teamId: true },
+    });
+    // 한 ts팀 id 가 여러 Team 에 매핑된 경우 빅5 리그 Team 우선(엉뚱한 동명 클럽 방지).
+    const candByTs = new Map<string, number[]>();
+    for (const t of tsT) { const a = candByTs.get(t.externalId) || []; a.push(t.teamId); candByTs.set(t.externalId, a); }
+    const ourTeamRows = await prisma.team.findMany({
+      where: { id: { in: [...new Set(tsT.map((t) => t.teamId))] } },
+      select: { id: true, name: true, logoUrl: true, league: true },
+    });
+    const teamMeta = new Map(ourTeamRows.map((t) => [t.id, t]));
+    const FIVE_SET = new Set(FIVE);
+    const tsToOur = new Map<string, number>();
+    for (const [ext, idsArr] of candByTs) {
+      const big5 = idsArr.find((id) => { const tm = teamMeta.get(id); return tm && FIVE_SET.has(tm.league); });
+      tsToOur.set(ext, big5 ?? idsArr[0]);
+    }
+    const teamCount = new Map<number, number>();
+    for (const g of teamGroups) {
+      const our = g.teamId ? tsToOur.get(g.teamId) : undefined;
+      if (our != null) teamCount.set(our, (teamCount.get(our) || 0) + g._count._all);
+    }
+    const teamOptions = [...teamCount.entries()]
+      .map(([id, count]) => ({ id, name: toKoreanTeamName(teamMeta.get(id)?.name) || teamMeta.get(id)?.name || "", count }))
+      .filter((t) => t.name)
+      .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+    return {
+      teamOptions,
+      teamMetaEntries: [...teamMeta.entries()],
+      tsToOurEntries: [...tsToOur.entries()],
+    };
+  },
+  ["transfers-team-index"],
+  { revalidate: 1800, tags: ["transfers-team-index"] },
+);
+
 // 이적 피드(최신·빅딜) 범위 — 전체 커버 리그.
 const FEED_LEAGUES = Object.keys(LEAGUES);
 // 세부 포지션 — 라인업 x/y 도출(data/player-positions.json). 없으면 coarse(G/D/M/F)로 fallback.
@@ -353,41 +404,10 @@ export default async function TransfersPage({
   const cutoff = Math.floor(Date.now() / 1000) - 18 * 30 * 86400; // 18개월 활성
   const win = transferWindow();
 
-  // ── 팀 옵션 (빅5 전체에서 distinct, 인원수) ──
-  const teamGroups = await prisma.playerMarketValue.groupBy({
-    by: ["teamId"],
-    where: { league: { in: FIVE }, currentValue: { not: null }, teamId: { not: null } },
-    _count: { _all: true },
-  });
-  const allTsTeamIds = teamGroups.map((g) => g.teamId).filter((x): x is string => !!x);
-  const tsT = await prisma.teamSourceId.findMany({
-    where: { source: "thesports", externalId: { in: allTsTeamIds } },
-    select: { externalId: true, teamId: true },
-  });
-  // 한 ts팀 id 가 여러 Team 에 매핑된 경우(예: FC 바르셀로나 ts → 바르셀로나 LALIGA·UCL·Barcelona SC 에콰도르)
-  // 빅5 리그 Team 을 우선 선택 — 엉뚱한 동명 클럽 표시 방지.
-  const candByTs = new Map<string, number[]>();
-  for (const t of tsT) { const a = candByTs.get(t.externalId) || []; a.push(t.teamId); candByTs.set(t.externalId, a); }
-  const ourTeamRows = await prisma.team.findMany({
-    where: { id: { in: [...new Set(tsT.map((t) => t.teamId))] } },
-    select: { id: true, name: true, logoUrl: true, league: true },
-  });
-  const teamMeta = new Map(ourTeamRows.map((t) => [t.id, t]));
-  const FIVE_SET = new Set(FIVE);
-  const tsToOur = new Map<string, number>();
-  for (const [ext, idsArr] of candByTs) {
-    const big5 = idsArr.find((id) => { const tm = teamMeta.get(id); return tm && FIVE_SET.has(tm.league); });
-    tsToOur.set(ext, big5 ?? idsArr[0]);
-  }
-  const teamCount = new Map<number, number>();
-  for (const g of teamGroups) {
-    const our = g.teamId ? tsToOur.get(g.teamId) : undefined;
-    if (our != null) teamCount.set(our, (teamCount.get(our) || 0) + g._count._all);
-  }
-  const teamOptions = [...teamCount.entries()]
-    .map(([id, count]) => ({ id, name: toKoreanTeamName(teamMeta.get(id)?.name) || teamMeta.get(id)?.name || "", count }))
-    .filter((t) => t.name)
-    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+  // ── 팀 옵션 + 팀 메타/매핑 (빅5 전체 groupBy — 30분 캐시, 위 getTransferTeamIndex) ──
+  const { teamOptions, teamMetaEntries, tsToOurEntries } = await getTransferTeamIndex();
+  const teamMeta = new Map(teamMetaEntries);
+  const tsToOur = new Map(tsToOurEntries);
 
   // ── 국가 옵션 (데이터 적재 전 = 빈 목록 → "수집 중") ──
   const countryAgg = new Map<string, { flag: string | null; count: number }>();
