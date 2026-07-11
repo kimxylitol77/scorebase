@@ -33,6 +33,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/transfers", label: "선수 몸값 랭킹", desc: "이적시장 · 시장가치" },
       { href: "/compare", label: "선수 비교", desc: "선수 head-to-head 스탯 비교" },
       { href: "/value-bets", label: "밸류 베트", desc: "Elo 예측 vs 배당 implied" },
+      { href: "/odds?sport=soccer", label: "배당 흐름", desc: "시장이 움직이는 방향 실시간" },
     ],
   },
   {
@@ -45,6 +46,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/standings", label: "리그 순위", desc: "KBO·MLB·NPB" },
       { href: "/salaries/kbo", label: "KBO 연봉 랭킹", desc: "국내 선수 연봉 순위" },
       { href: "/salaries/mlb", label: "MLB 연봉 랭킹", desc: "선수별 연봉·한화 환산" },
+      { href: "/odds?sport=baseball", label: "배당 흐름", desc: "머니라인이 움직이는 방향" },
     ],
   },
   {
@@ -56,6 +58,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
       { href: "/standings", label: "리그 순위", desc: "NBA·WNBA 컨퍼런스 순위" },
       { href: "/transactions/nba", label: "NBA 트랜잭션", desc: "트레이드·FA·방출" },
       { href: "/salaries/nba", label: "NBA 연봉 랭킹", desc: "선수별 연봉 순위" },
+      { href: "/odds?sport=basketball", label: "배당 흐름", desc: "머니라인이 움직이는 방향" },
     ],
   },
   {

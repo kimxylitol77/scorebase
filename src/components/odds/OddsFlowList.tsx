@@ -41,6 +41,16 @@ export type FlowMatch = {
   marketProb: number | null;
   lastUpdatedAt: number | null;
   books: BookRec[];
+  // 인플레이 배당 구간 포함 여부 (LIVE 매치 — 킥오프 이후 스냅샷 존재)
+  liveFlow: boolean;
+  // 라인업/선발 발표됨 — 배당 급변의 맥락 배지
+  lineupOut: boolean;
+  // BTTS·더블찬스 컨센서스 평균 (업체별 JSON 미보유라 매치 레벨 값)
+  bttsYes: number | null;
+  bttsNo: number | null;
+  dc1x: number | null;
+  dc12: number | null;
+  dcX2: number | null;
 };
 
 const C_DROP = "#d97706"; // 배당 하락
@@ -155,6 +165,7 @@ function MultiSpark({
   w,
   h,
   strokeW = 2,
+  kickoffT,
 }: {
   series: FlowMatch["series"];
   hasDraw: boolean;
@@ -162,6 +173,8 @@ function MultiSpark({
   w: number;
   h: number;
   strokeW?: number;
+  /** 킥오프 시각(ms) — 인플레이 구간이 있으면 세로 점선으로 경계 표시 */
+  kickoffT?: number;
 }) {
   const probs = impliedSeries(series, hasDraw);
   const n = probs.length;
@@ -189,8 +202,22 @@ function MultiSpark({
   ];
   // 강조 궤적을 마지막에 그려 맨 위에 오게 한다.
   lines.sort((a, b) => (a.key === movementSide ? 1 : 0) - (b.key === movementSide ? 1 : 0));
+  // 킥오프 경계 — 인플레이 포인트가 섞여 있을 때만 (킥오프 이후 첫 포인트 위치에 점선).
+  const liveIdx = kickoffT != null ? series.findIndex((p) => p.t > kickoffT) : -1;
   return (
     <svg viewBox={`0 0 ${w} ${h}`} style={{ width: w, height: h }} preserveAspectRatio="none" aria-hidden="true">
+      {liveIdx > 0 && (
+        <line
+          x1={xOf(liveIdx)}
+          x2={xOf(liveIdx)}
+          y1={0}
+          y2={h}
+          stroke={C_FLAT}
+          strokeWidth="1"
+          strokeDasharray="3,3"
+          strokeOpacity="0.7"
+        />
+      )}
       {lines.map((ln) => {
         const emph = ln.key === movementSide;
         const d = ln.vals.map((v, i) => `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yOf(v).toFixed(1)}`).join(" ");
@@ -255,10 +282,38 @@ function edgeNote(m: FlowMatch): { text: string; tag: string; tone: "agree" | "c
 
 // ── 업체별 상세 (클릭 시) — 종목별 마켓 라벨 ──
 const MARKET_LABELS: Record<string, string[]> = {
-  soccer: ["승·무·패", "오버언더", "핸디캡"],
+  soccer: ["승·무·패", "오버언더", "핸디캡", "BTTS·더블찬스"],
   baseball: ["머니라인", "오버언더", "런라인"],
   basketball: ["머니라인", "오버언더", "스프레드"],
 };
+
+// BTTS·더블찬스 — 업체별 JSON 엔 없어 매치 레벨 컨센서스 평균으로 표시 (축구 전용 탭).
+function ExtraMarkets({ m }: { m: FlowMatch }) {
+  const hasBtts = m.bttsYes != null || m.bttsNo != null;
+  const hasDc = m.dc1x != null || m.dc12 != null || m.dcX2 != null;
+  if (!hasBtts && !hasDc)
+    return <div className="px-3 py-2 text-[13px] text-neutral-400">이 경기의 BTTS·더블찬스는 아직 수집 전이에요.</div>;
+  const Row = ({ label, cells }: { label: string; cells: [string, number | null][] }) => (
+    <div className="border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
+      <div className="mb-1 text-[11px] text-neutral-400">{label}</div>
+      <div className="flex gap-4 text-[13px]">
+        {cells.map(([k, v]) => (
+          <span key={k} className="tabular-nums">
+            <span className="text-neutral-500 dark:text-neutral-400">{k} </span>
+            <span className="font-medium text-neutral-700 dark:text-neutral-200">{v != null ? v.toFixed(2) : "-"}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <div>
+      <div className="px-3 pb-1 pt-1 text-[11px] text-neutral-400">업체 평균 (컨센서스)</div>
+      {hasBtts && <Row label="양팀 득점 (BTTS)" cells={[["예", m.bttsYes], ["아니오", m.bttsNo]]} />}
+      {hasDc && <Row label="더블찬스" cells={[["홈 또는 무", m.dc1x], ["홈 또는 원정", m.dc12], ["무 또는 원정", m.dcX2]]} />}
+    </div>
+  );
+}
 
 function mode(arr: number[]): number {
   const c: Record<number, number> = {};
@@ -404,7 +459,7 @@ function Detail({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw: b
           </button>
         ))}
       </div>
-      <MarketTable books={m.books} tab={tab} hasDraw={hasDraw} />
+      {tab === 3 ? <ExtraMarkets m={m} /> : <MarketTable books={m.books} tab={tab} hasDraw={hasDraw} />}
     </div>
   );
 }
@@ -431,8 +486,11 @@ function Hero({ m, hasDraw }: { m: FlowMatch; hasDraw: boolean }) {
             <TeamBadge logoUrl={m.awayLogo} size={18} />
             <span className="truncate">{m.awayKo}</span>
           </div>
-          <div className="mt-2 text-[12px] text-neutral-400">
-            {getLeagueFlag(m.league)} {LEAGUE_DISPLAY[m.league] ?? m.league} · {fmtTime(m.startTime)}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px] text-neutral-400">
+            <span>
+              {getLeagueFlag(m.league)} {LEAGUE_DISPLAY[m.league] ?? m.league} · {fmtTime(m.startTime)}
+            </span>
+            <FlowChips m={m} moved />
           </div>
         </div>
         {m.currentOdds != null && (
@@ -450,7 +508,7 @@ function Hero({ m, hasDraw }: { m: FlowMatch; hasDraw: boolean }) {
       </div>
       <div className="mb-1 mt-4">
         {m.series.length >= 2 ? (
-          <MultiSpark series={m.series} hasDraw={hasDraw} movementSide={m.movementSide} w={600} h={80} strokeW={3} />
+          <MultiSpark series={m.series} hasDraw={hasDraw} movementSide={m.movementSide} w={600} h={80} strokeW={3} kickoffT={m.liveFlow ? m.startTime : undefined} />
         ) : (
           <Spark points={m.points} color={color} w={600} h={80} strokeW={3} />
         )}
@@ -520,7 +578,9 @@ function FlowStats({ hr }: { hr: FlowHitrate }) {
         </span>
       </div>
       <div className="mt-1 text-[12px] text-neutral-400">
-        {hr.total}경기 기준 · 무승부 제외 · 홈/원정 무작위 기준선 50%
+        {hr.threeWay
+          ? `${hr.total}경기 기준 · 승·무·패 3지선다 (돈 몰린 결과 = 실제 결과 비율)`
+          : `${hr.total}경기 기준 · 무승부 제외 · 홈/원정 무작위 기준선 50%`}
       </div>
       {shown.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-neutral-500 dark:text-neutral-400">
@@ -535,6 +595,25 @@ function FlowStats({ hr }: { hr: FlowHitrate }) {
         </div>
       )}
     </div>
+  );
+}
+
+// 흐름 맥락 배지 — 인플레이 구간 포함 / 라인업·선발 발표됨 (배당 급변의 "왜" 힌트)
+function FlowChips({ m, moved }: { m: FlowMatch; moved: boolean }) {
+  if (!m.liveFlow && !(m.lineupOut && moved)) return null;
+  return (
+    <>
+      {m.liveFlow && (
+        <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[11px] font-medium text-rose-600 dark:bg-rose-500/15 dark:text-rose-400">
+          라이브 흐름
+        </span>
+      )}
+      {m.lineupOut && moved && (
+        <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-500 dark:bg-white/10 dark:text-neutral-300">
+          라인업 발표됨
+        </span>
+      )}
+    </>
   );
 }
 
@@ -586,6 +665,7 @@ function FlowCard({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw:
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px]" style={{ color: dim ? undefined : color }}>
             <span>{nar.text}</span>
+            <FlowChips m={m} moved={!dim} />
             {m.bestOdds != null && <span className="text-neutral-400">최고 {m.bestOdds.toFixed(2)}</span>}
             {en && (
               <span
@@ -601,7 +681,7 @@ function FlowCard({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw:
           </div>
         </div>
         {m.series.length >= 2 ? (
-          <MultiSpark series={m.series} hasDraw={hasDraw} movementSide={m.movementSide} w={110} h={46} strokeW={2} />
+          <MultiSpark series={m.series} hasDraw={hasDraw} movementSide={m.movementSide} w={110} h={46} strokeW={2} kickoffT={m.liveFlow ? m.startTime : undefined} />
         ) : (
           <Spark points={m.points} color={color} w={110} h={46} />
         )}
@@ -701,6 +781,8 @@ export default function OddsFlowList({
 }) {
   // 전체 목록을 기본으로 두고, 사용자가 필요할 때만 강한 변동을 거른다.
   const [movementFilter, setMovementFilter] = useState<MovementFilter>("all");
+  // 움직임 없는 경기는 기본 접힘 — "배당 흐름" 페이지에서 흐름 없는 카드가 지면 다 먹던 것 개선.
+  const [showQuiet, setShowQuiet] = useState(false);
   const filteredMatches = useMemo(() => {
     if (movementFilter === "drop") return matches.filter((m) => m.deltaPct <= -1.5);
     if (movementFilter === "rise") return matches.filter((m) => m.deltaPct >= 1.5);
@@ -753,14 +835,51 @@ export default function OddsFlowList({
         </div>
       )}
 
-      <div className="mb-2 mt-6 text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
-        {movementFilter === "drop" ? "배당 하락 폭이 큰 순" : movementFilter === "rise" ? "배당 상승 폭이 큰 순" : heroMoves ? "많이 움직인 순" : "예정 경기"}
-      </div>
-      <div className="space-y-2">
-        {(heroMoves ? rest : displayMatches).map((m) => (
-          <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
-        ))}
-      </div>
+      {(() => {
+        const listBase = heroMoves ? rest : displayMatches;
+        // "움직임 있음" = 프리매치 유의미 변동 또는 인플레이 흐름(LIVE) — 라이브 흐름
+        // 카드가 프리매치 delta 0 이라는 이유로 접히지 않게 liveFlow 도 포함.
+        const isMoved = (m: FlowMatch) => (m.points.length >= 2 && Math.abs(m.deltaPct) >= 1.5) || m.liveFlow;
+        const movedList = listBase.filter(isMoved);
+        const quietList = listBase.filter((m) => !isMoved(m));
+        // 히어로가 이미 움직임을 보여주고 있으면(heroMoves) 목록에 움직인 경기가 0개라도
+        // 무움직임 카드를 펼치지 않는다 — "hero 만 움직인 시간대" 에 접기가 무력화되던 버그.
+        const quietCollapsible = movedList.length > 0 || heroMoves;
+        const mainList = quietCollapsible ? movedList : listBase;
+        const quietSection = quietCollapsible ? quietList : [];
+        // 필터 무결과 fallback(전체 표시) 중엔 필터 라벨을 붙이면 내용과 모순 — 일반 라벨로.
+        const fallbackActive = !filteredMatches.length;
+        return (
+          <>
+            <div className="mb-2 mt-6 text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+              {!fallbackActive && movementFilter === "drop" ? "배당 하락 폭이 큰 순" : !fallbackActive && movementFilter === "rise" ? "배당 상승 폭이 큰 순" : movedList.length ? "많이 움직인 순" : "예정 경기"}
+            </div>
+            <div className="space-y-2">
+              {mainList.map((m) => (
+                <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
+              ))}
+            </div>
+            {quietSection.length > 0 && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowQuiet((v) => !v)}
+                  className="w-full rounded-xl border border-dashed border-neutral-300 px-4 py-2.5 text-[13px] text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                >
+                  아직 움직임 없는 경기 {quietSection.length}개 {showQuiet ? "접기 ▲" : "보기 ▼"}
+                </button>
+                {showQuiet && (
+                  <div className="mt-2 space-y-2">
+                    {quietSection.map((m) => (
+                      <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }

@@ -4,16 +4,18 @@ import { prisma } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 
 export type FlowHitrate = {
-  total: number; // 하락 신호가 있던 종료 경기 수 (무승부 제외)
+  total: number; // 하락 신호가 있던 종료 경기 수 (2-way 는 무승부 제외)
   hit: number;
   hitPct: number | null;
   windowDays: number;
   buckets: { label: string; total: number; hitPct: number | null }[];
+  // 3-way(축구): 무승부를 "미적중"으로 집계 — 기준선이 50% 가 아니라 표시 문구가 다름.
+  threeWay: boolean;
 };
 
 const DROP_THRESHOLD = 1.5; // 이 % 이상 하락해야 "돈 몰림" 신호로 집계
 
-async function compute(leagues: string[], windowDays: number): Promise<FlowHitrate> {
+async function compute(leagues: string[], windowDays: number, threeWay: boolean): Promise<FlowHitrate> {
   const since = new Date(Date.now() - windowDays * 24 * 3600 * 1000);
   const rows = await prisma.match.findMany({
     where: {
@@ -31,13 +33,13 @@ async function compute(leagues: string[], windowDays: number): Promise<FlowHitra
     ? await prisma.oddsSnapshot.findMany({
         where: { matchId: { in: ids } },
         orderBy: { fetchedAt: "asc" },
-        select: { matchId: true, fetchedAt: true, homeOdds: true, awayOdds: true },
+        select: { matchId: true, fetchedAt: true, homeOdds: true, drawOdds: true, awayOdds: true },
       })
     : [];
-  const byMatch = new Map<number, { t: number; h: number; a: number }[]>();
+  const byMatch = new Map<number, { t: number; h: number; d: number | null; a: number }[]>();
   for (const s of snaps) {
     const arr = byMatch.get(s.matchId) ?? [];
-    arr.push({ t: s.fetchedAt.getTime(), h: s.homeOdds, a: s.awayOdds });
+    arr.push({ t: s.fetchedAt.getTime(), h: s.homeOdds, d: s.drawOdds, a: s.awayOdds });
     byMatch.set(s.matchId, arr);
   }
 
@@ -54,19 +56,23 @@ async function compute(leagues: string[], windowDays: number): Promise<FlowHitra
     const kickoff = m.startTime.getTime();
     const pts = (byMatch.get(m.id) ?? []).filter((p) => p.t <= kickoff);
     if (pts.length < 2) continue;
-    const deltas = (["h", "a"] as const).map((k) => {
+    // 3-way(축구)는 무승부 배당 하락도 신호 — /odds 페이지의 movementSide 정의(무 포함)와
+    // 통계 모집단을 일치시킨다 (페이지가 보여주는 신호의 적중률이어야 의미 있음).
+    const sideKeys = threeWay ? (["h", "d", "a"] as const) : (["h", "a"] as const);
+    const deltas = sideKeys.map((k) => {
       const vals = pts.map((p) => p[k]).filter((v): v is number => v != null && v > 0);
-      if (vals.length < 2) return { key: k, deltaPct: 0 };
+      if (vals.length < 2) return { key: k as "h" | "d" | "a", deltaPct: 0 };
       const open = vals[0];
       const cur = vals[vals.length - 1];
-      return { key: k, deltaPct: ((cur - open) / open) * 100 };
+      return { key: k as "h" | "d" | "a", deltaPct: ((cur - open) / open) * 100 };
     });
     const mv = deltas.sort((a, b) => a.deltaPct - b.deltaPct)[0];
     if (!mv || mv.deltaPct >= -DROP_THRESHOLD) continue; // 유의미한 하락 없음
     const hs = m.homeScore as number;
     const as = m.awayScore as number;
-    if (hs === as) continue; // 무승부 제외 (2-way 승률)
-    const actual = hs > as ? "h" : "a";
+    // 2-way(야구): 무승부 표본 제외. 3-way(축구): 실제 결과(승/무/패)와 신호 side 비교.
+    if (hs === as && !threeWay) continue;
+    const actual: "h" | "d" | "a" = hs > as ? "h" : hs < as ? "a" : "d";
     const isHit = mv.key === actual;
     total++;
     if (isHit) hit++;
@@ -88,14 +94,20 @@ async function compute(leagues: string[], windowDays: number): Promise<FlowHitra
       total: b.total,
       hitPct: b.total ? (b.hit / b.total) * 100 : null,
     })),
+    threeWay,
   };
 }
 
 // 무거운 집계(수백 경기 × 스냅샷)라 1시간 캐시. 종료 경기 통계는 자주 변하지 않는다.
-export function getFlowHitrate(leagues: string[], windowDays = 60): Promise<FlowHitrate> {
+export function getFlowHitrate(
+  leagues: string[],
+  windowDays = 60,
+  opts?: { threeWay?: boolean },
+): Promise<FlowHitrate> {
+  const threeWay = opts?.threeWay ?? false;
   return unstable_cache(
-    () => compute(leagues, windowDays),
-    ["flow-hitrate", leagues.slice().sort().join(","), String(windowDays)],
+    () => compute(leagues, windowDays, threeWay),
+    ["flow-hitrate", leagues.slice().sort().join(","), String(windowDays), threeWay ? "3w" : "2w"],
     { revalidate: 3600 },
   )();
 }
