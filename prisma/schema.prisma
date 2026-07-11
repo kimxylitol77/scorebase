@@ -1055,3 +1055,15 @@ model ChatLog {
 
   @@index([createdAt])
 }
+
+// /scores 상단 광고 배너 — 단일 설정(관리자가 이미지·크기·링크·표시여부 관리).
+// row 는 항상 id=1 하나만 upsert. 표시 위치는 종목 공통 페이지 상단.
+model AdBanner {
+  id        Int      @id @default(1)
+  imageUrl  String // 배너 이미지 URL
+  linkUrl   String? // 클릭 시 이동할 광고주 URL (없으면 링크 없음)
+  width     Int      @default(0) // px, 0 이면 반응형(원본 비율, max-width 100%)
+  height    Int      @default(0) // px, 0 이면 auto
+  enabled   Boolean  @default(false) // 표시 여부
+  updatedAt DateTime @updatedAt
+}

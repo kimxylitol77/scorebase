@@ -112,6 +112,12 @@ function AdminBar({ username }: { username: string }) {
           >
             사이트 상태
           </Link>
+          <Link
+            href="/admin/ad"
+            className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+          >
+            광고
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
