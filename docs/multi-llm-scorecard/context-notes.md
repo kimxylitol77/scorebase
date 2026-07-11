@@ -10,6 +10,7 @@
 - **기존 페이지 확장 O, 신규 페이지 X** — scorecard 가 이미 "모델 vs 모델" 성적표. 좌석만 늘림.
 - **로스터** — Claude·Grok·Gemini·로컬 Qwen 추가. 기존 scorebase·GPT 유지. 총 6좌석. (사용자 확정)
 - **외부 접근 = OpenRouter 단일 키** — 키 1개로 Grok·Gemini·Claude. 관리·과금 단일화. (사용자 확정)
+- **Grok 은 xAI 직접으로 변경** (2026-07-11) — console.x.ai 무료 크레딧($25 프로모 + 데이터공유 시 월 $175)이 더 유리해 grok 패널만 xai 런타임(baseURL api.x.ai/v1, XAI_API_KEY, modelId grok-4-1-fast-non-reasoning). Claude·Gemini 는 여전히 OpenRouter 예정. 함정: xAI 는 max_tokens, 신형 OpenAI 는 max_completion_tokens → llmMarkets 런타임별 분기.
 - **헤드라인 = 모델별 리더보드** — "합의 vs 우리 정량"은 보조. (사용자 확정)
 - **착수 순서 = 백엔드 P1~3 먼저, Qwen만 켜서 무료 데이터 축적** → 페이지(P4)는 나중. (사용자 확정)
 

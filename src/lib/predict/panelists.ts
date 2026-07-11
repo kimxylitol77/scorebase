@@ -6,7 +6,7 @@
 // scorebase(정량 결정론 모델)는 LLM 이 아니라 앵커이므로 이 레지스트리 밖에 있다.
 import { GPT_SCORECARD_ACTIVE_MODEL } from "./gpt-scorecard-model";
 
-export type PanelRuntime = "openai" | "openrouter" | "ollama";
+export type PanelRuntime = "openai" | "openrouter" | "ollama" | "xai";
 
 export interface Panelist {
   /** AiPrediction.model 에 저장되는 문자열. 채점·집계의 안정 키이므로 변경 금지. */
@@ -54,10 +54,10 @@ export const PANELISTS: Panelist[] = [
     key: "grok",
     label: "Grok",
     accent: "sky",
-    runtime: "openrouter",
-    modelId: "x-ai/grok-4", // TODO(P3): OpenRouter 실제 id 검증
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKeyEnv: "OPENROUTER_API_KEY",
+    runtime: "xai", // xAI 직접(무료 크레딧). OpenAI 호환, baseURL 만 다름.
+    modelId: "grok-4-1-fast-non-reasoning", // 저렴·빠름, 단발 JSON 픽에 적합
+    baseURL: "https://api.x.ai/v1",
+    apiKeyEnv: "XAI_API_KEY",
     enabledEnv: "PANEL_GROK",
     location: "vercel",
   },

@@ -30,7 +30,7 @@ import { parseTsFootballScore } from "@/lib/sports/live-scores";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
-import { activePanelists, type Panelist } from "@/lib/predict/panelists";
+import { activePanelists, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 export const MAJOR_LEAGUES = [
@@ -363,6 +363,7 @@ export function parseMarketsResponse(
 async function llmMarkets(
   client: OpenAI,
   modelId: string,
+  runtime: PanelRuntime,
   league: string,
   homeKo: string,
   awayKo: string,
@@ -371,15 +372,20 @@ async function llmMarkets(
   facts: GptMatchFacts,
 ): Promise<GptMarketPick | null> {
   const { system, user } = buildMarketsPrompt(league, homeKo, awayKo, startTime, lines, facts);
-  const res = await client.chat.completions.create({
+  // 토큰 상한 파라미터 이름이 provider 마다 다름 — 신형 OpenAI 는 max_completion_tokens,
+  // xAI·OpenRouter 등은 max_tokens. 잘못 보내면 400 이므로 런타임별 분기.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const params: any = {
     model: modelId,
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
     ],
     response_format: { type: "json_object" },
-    max_completion_tokens: 3000,
-  });
+  };
+  if (runtime === "openai") params.max_completion_tokens = 3000;
+  else params.max_tokens = 3000;
+  const res = await client.chat.completions.create(params);
   return parseMarketsResponse(res.choices[0]?.message?.content, league, lines);
 }
 
@@ -498,7 +504,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
       if (doneByPanel.get(p.key)!.has(m.id)) continue; // 이미 픽함 → 재호출 안 함
       let res: GptMarketPick | null = null;
       try {
-        res = await llmMarkets(clients.get(p.key)!, p.modelId, m.league, homeKo, awayKo, m.startTime, {
+        res = await llmMarkets(clients.get(p.key)!, p.modelId, p.runtime, m.league, homeKo, awayKo, m.startTime, {
           hc: oursHcOu.hc?.line ?? null,
           ou: oursHcOu.ou?.line ?? null,
         }, facts);
@@ -703,7 +709,7 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
 
     let gpt: GptMarketPick | null = null;
     try {
-      gpt = await llmMarkets(client, GPT_MODEL, m.league, homeKo, awayKo, m.startTime, {
+      gpt = await llmMarkets(client, GPT_MODEL, "openai", m.league, homeKo, awayKo, m.startTime, {
         hc: oursHcOu.hc?.line ?? null,
         ou: oursHcOu.ou?.line ?? null,
       }, gptFacts);
