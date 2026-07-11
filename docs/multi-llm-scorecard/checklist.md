@@ -11,11 +11,16 @@
 - 주의: scorebase 앵커가 이제 패널 실패와 무관하게 저장됨 → 고아 scorebase 행 생길 수 있으나 현 2자 페이지는 `sb&&gpt` 필터라 무시(안전), P4 intersection 의도된 동작
 
 ## P2 — 로컬 Qwen (맥미니)
-- [ ] 내부 엔드포인트 `/api/internal/llm-panel` — GET: 예정경기+facts+라인 / POST: 픽 upsert
-- [ ] `mac-mini-worker/llm-panelist-qwen.js` — consensus-crawler 패턴, Ollama qwen2.5:32b 호출
-- [ ] `.env.example` 에 필요한 키 확인(OLLAMA_HOST·OLLAMA_MODEL 기존)
-- [ ] Qwen 게이트 ON, `model` 문자열 확정(예: `qwen2.5-32b`)
-- [ ] launchd plist + 스케줄 (기존 워커 관례 따름)
+- [x] `llmMarkets` 를 buildMarketsPrompt+parseMarketsResponse+얇은 llmMarkets 로 분리(프롬프트 단일소스)
+- [x] `storePanel` 라인 배열로 디커플링, scorebasePick/scorebaseHcOu/storeAnchor export
+- [x] `src/lib/predict/qwen-panel.ts` — getQwenTasks(앵커 자체계산=gpt 독립)+saveQwenPicks(DB기준 라인 재확인)
+- [x] 내부 엔드포인트 `/api/internal/llm-panel` — GET: 프롬프트+라인 / POST: raw 파싱·저장 (isCronAuthorized)
+- [x] `mac-mini-worker/llm-panelist-qwen.js` — 서버 프롬프트 받아 Ollama 전달만(파싱은 서버)
+- [x] launchd plist `com.scorebase.qwen-panel.plist` (09:00·21:00 KST 2회)
+- [x] `model` 키 확정 `qwen2.5-32b` (panelists.ts ↔ qwen-panel.ts 일치)
+- [x] tsc 통과 + 워커 node --check OK
+- [ ] **배포1(Vercel)**: 엔드포인트 라이브 (커밋+push)
+- [ ] **배포2(맥미니)**: 워커 반영(scorebase-macmini) + plist install + PANEL_QWEN 게이트 ON + 1회 실행 검증
 - [ ] 검증: `model=qwen2.5-32b` 행 저장 → 종료 경기 채점 확인
 
 ## P3 — OpenRouter 클라우드 패널

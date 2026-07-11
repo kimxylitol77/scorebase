@@ -33,7 +33,7 @@ import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
 import { activePanelists, type Panelist } from "@/lib/predict/panelists";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
-const MAJOR_LEAGUES = [
+export const MAJOR_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
   "WORLD_CUP", "NBA", "NHL", "MLB", "KBO", "NPB",
 ];
@@ -47,7 +47,7 @@ const LEAGUE_NAME: Record<string, string> = {
 
 const DAILY_CAP = Number(process.env.GPT_PREDICT_CAP ?? 40);
 const GPT_MODEL = GPT_SCORECARD_ACTIVE_MODEL;
-const LOOKAHEAD_HOURS = 72; // 향후 3일 예정 경기
+export const LOOKAHEAD_HOURS = 72; // 향후 3일 예정 경기
 const MIN_PRIOR = 5; // 양 팀 모두 5경기 이상 학습 후 (random 픽 방지) — evaluate 와 동일
 
 type Winner = "HOME" | "DRAW" | "AWAY";
@@ -114,7 +114,7 @@ function upsertPrediction(
  * 우리 통계모델의 1X2 — evaluate 백테스트와 동일 파이프라인(Elo/Dixon-Coles + 선발/골리 +
  * 시장 블렌드 + home calibration). 학습 부족(MIN_PRIOR 미달, WC 제외)이면 null 반환해 스킵.
  */
-function scorebasePick(
+export function scorebasePick(
   match: {
     id: number;
     league: string;
@@ -204,7 +204,7 @@ function scorebasePick(
  * 우리 모델의 핸디캡·OU 픽 + 기준선 — evaluate 와 동일 markets.ts 파이프라인(시점 기반).
  * 라인은 모델이 정하며, GPT 에 그대로 줘 같은 라인으로 채점한다(공정 비교).
  */
-function scorebaseHcOu(
+export function scorebaseHcOu(
   match: {
     league: string;
     homeTeamId: number;
@@ -246,21 +246,21 @@ interface GptMarketPick {
   reason: string;
 }
 
+export type MarketLines = { hc: number | null; ou: number | null };
+
 /**
- * 한 LLM 패널에 1X2 + (라인 제공 시) 핸디캡·OU 를 한 번에 묻는다(호출 1회 = 비용 절약).
- * 공정성 위해 우리 모델의 확률은 주지 않고, 채점 기준선(line)만 제공한다.
- * modelId 만 바꾸면 GPT·Claude·Grok·Gemini·Qwen 동일 함수로 호출된다(OpenAI 호환).
+ * 시장 예측 프롬프트(system+user)를 만든다 — 전 패널·전 실행위치 단일 소스.
+ * 공정성 위해 우리 모델의 확률은 주지 않고 채점 기준선(line)만 제공한다.
+ * 맥미니 Qwen 워커도 이 프롬프트를 그대로 받아 Ollama 에 전달한다(프롬프트 드리프트 방지).
  */
-async function llmMarkets(
-  client: OpenAI,
-  modelId: string,
+export function buildMarketsPrompt(
   league: string,
   homeKo: string,
   awayKo: string,
   startTime: Date,
-  lines: { hc: number | null; ou: number | null },
+  lines: MarketLines,
   facts: GptMatchFacts,
-): Promise<GptMarketPick | null> {
+): { system: string; user: string } {
   const allowDraw = drawAllowed(league);
   const picks = allowDraw ? '"HOME"|"DRAW"|"AWAY"' : '"HOME"|"AWAY"';
   const dateStr = startTime.toLocaleDateString("ko-KR", {
@@ -298,22 +298,24 @@ ${factsText}
 ${parts.join("\n")}
 "reason": 한국어 한 문장 근거 (40자 이내)
 요청한 키만 포함한 JSON 으로만 답하세요.`;
+  return { system, user };
+}
 
-  const res = await client.chat.completions.create({
-    model: modelId,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 3000,
-  });
-  const text = res.choices[0]?.message?.content?.trim();
+/**
+ * LLM 이 낸 JSON 텍스트를 검증·정규화 — 전 패널 동일 파싱(GPT·Qwen 공용).
+ * 1X2 는 필수, 핸디/OU 는 라인이 있을 때만. 실패 시 null.
+ */
+export function parseMarketsResponse(
+  text: string | null | undefined,
+  league: string,
+  lines: MarketLines,
+): GptMarketPick | null {
   if (!text) return null;
+  const allowDraw = drawAllowed(league);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let parsed: any;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text.trim());
   } catch {
     return null;
   }
@@ -321,7 +323,7 @@ ${parts.join("\n")}
   // 1X2 — 필수
   const oneRaw = String(parsed.oneXtwo?.pick ?? "").toUpperCase();
   let oneXtwo: { pick: Winner; prob: number } | null = null;
-  if ((oneRaw === "HOME" || oneRaw === "AWAY" || (oneRaw === "DRAW" && allowDraw))) {
+  if (oneRaw === "HOME" || oneRaw === "AWAY" || (oneRaw === "DRAW" && allowDraw)) {
     let p = Number(parsed.oneXtwo?.prob);
     if (!Number.isFinite(p) || p <= 0 || p > 1) p = 0.5;
     oneXtwo = { pick: oneRaw as Winner, prob: p };
@@ -351,6 +353,34 @@ ${parts.join("\n")}
 
   const reason = String(parsed.reason ?? "").slice(0, 120);
   return { oneXtwo, handicap, ou, reason };
+}
+
+/**
+ * 한 LLM 패널에 1X2 + (라인 제공 시) 핸디캡·OU 를 한 번에 묻는다(호출 1회 = 비용 절약).
+ * modelId 만 바꾸면 GPT·Claude·Grok·Gemini 동일 함수로 호출된다(OpenAI 호환).
+ * Qwen 은 Vercel 에서 Ollama 에 못 닿아 맥미니 워커가 buildMarketsPrompt→parseMarketsResponse 를 따로 탄다.
+ */
+async function llmMarkets(
+  client: OpenAI,
+  modelId: string,
+  league: string,
+  homeKo: string,
+  awayKo: string,
+  startTime: Date,
+  lines: MarketLines,
+  facts: GptMatchFacts,
+): Promise<GptMarketPick | null> {
+  const { system, user } = buildMarketsPrompt(league, homeKo, awayKo, startTime, lines, facts);
+  const res = await client.chat.completions.create({
+    model: modelId,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    response_format: { type: "json_object" },
+    max_completion_tokens: 3000,
+  });
+  return parseMarketsResponse(res.choices[0]?.message?.content, league, lines);
 }
 
 /** 우리 모델의 확률·픽·배당은 제외하고, GPT가 독립 판단할 수 있는 경기 사실만 전달한다. */
@@ -479,7 +509,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
         failed++; // 이 패널만 스킵 — 다른 패널·scorebase 는 그대로 저장(독립)
         continue;
       }
-      const n = await storePanel(m.id, p.key, oursHcOu, res);
+      const n = await storePanel(m.id, p.key, { hc: oursHcOu.hc?.line ?? null, ou: oursHcOu.ou?.line ?? null }, res);
       storedMarkets += n;
       matchStored = true;
       await new Promise((r) => setTimeout(r, 50));
@@ -494,7 +524,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
 }
 
 /** scorebase 정량 앵커 저장 — 1X2 는 항상, 핸디/OU 는 라인이 있을 때. 패널과 독립. */
-async function storeAnchor(
+export async function storeAnchor(
   matchId: number,
   ours1x2: { pick: Winner; prob: number },
   oursHcOu: ReturnType<typeof scorebaseHcOu>,
@@ -511,11 +541,12 @@ async function storeAnchor(
 /**
  * 한 패널의 시장별 픽 저장 — 1X2 는 필수, 핸디/OU 는 scorebase 라인이 있고 패널도 픽했을 때만
  * (양 모델 동일 라인으로 채점하는 공정성 유지). 반환: 저장한 시장 수.
+ * lines 는 scorebase 가 정한 채점 기준선(Vercel 잡은 scorebaseHcOu, 맥미니 워커는 저장된 라인).
  */
-async function storePanel(
+export async function storePanel(
   matchId: number,
   model: string,
-  oursHcOu: ReturnType<typeof scorebaseHcOu>,
+  lines: MarketLines,
   res: GptMarketPick,
 ): Promise<number> {
   let count = 0;
@@ -523,12 +554,12 @@ async function storePanel(
     await upsertPrediction(matchId, model, "1X2", res.oneXtwo.pick, res.oneXtwo.prob, null, res.reason);
     count++;
   }
-  if (oursHcOu.hc && res.handicap) {
-    await upsertPrediction(matchId, model, "HANDICAP", res.handicap.pick, res.handicap.prob, oursHcOu.hc.line, null);
+  if (lines.hc != null && res.handicap) {
+    await upsertPrediction(matchId, model, "HANDICAP", res.handicap.pick, res.handicap.prob, lines.hc, null);
     count++;
   }
-  if (oursHcOu.ou && res.ou) {
-    await upsertPrediction(matchId, model, "OU", res.ou.pick, res.ou.prob, oursHcOu.ou.line, null);
+  if (lines.ou != null && res.ou) {
+    await upsertPrediction(matchId, model, "OU", res.ou.pick, res.ou.prob, lines.ou, null);
     count++;
   }
   return count;
