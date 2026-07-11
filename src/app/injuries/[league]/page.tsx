@@ -777,7 +777,11 @@ export default async function InjuriesByLeague({
   }
   // generic("부상"/"미상"/"부상 의심" 등 부위 불명)은 부위가 아니므로 1위에서 제외 —
   // "최다 부상 부위: 부상" 같은 무의미 표기 방지. 구체 부위 우선, 전부 미분류면 null.
-  const GENERIC_REASON = new Set(["부상", "미상", "부상 의심", "결장", "기타"]);
+  const GENERIC_REASON = new Set([
+    "부상", "미상", "부상 의심", "결장", "기타",
+    // 부위가 아닌 상태성 사유 — "최다 부상 부위" 1위에서 제외
+    "개인 사정", "출전정지", "출전 정지", "경고 누적 출전 정지", "대표팀 차출", "감독 결정", "출전 불투명",
+  ]);
   const sortedParts = Array.from(partCount.entries()).sort(
     (a, b) => b[1] - a[1],
   );
@@ -793,6 +797,11 @@ export default async function InjuriesByLeague({
             : 0,
       }
     : null;
+  // "그 다음은 …" — generic·1위 부위 제외한 구체 부위 상위 2개 (서술 중복 방지)
+  const nextParts = sortedParts
+    .filter(([name]) => !GENERIC_REASON.has(name) && name !== topPart?.name)
+    .slice(0, 2)
+    .map((p) => p[0]);
 
   const lastUpdatedKst = new Date().toLocaleString("ko-KR", {
     timeZone: "Asia/Seoul",
@@ -1007,11 +1016,9 @@ export default async function InjuriesByLeague({
                   {topPart.name}({topPart.count}건, {topPart.pct}%)
                 </strong>
                 이 가장 많이 발생했고
-                {sortedParts.slice(1, 3).length > 0 &&
-                  `, 그 다음은 ${sortedParts
-                    .slice(1, 3)
-                    .map((p) => p[0])
-                    .join("과 ")} 순이다.`}
+                {nextParts.length > 0
+                  ? `, 그 다음은 ${nextParts.join("과 ")} 순이다.`
+                  : "."}
               </p>
             )}
           </section>
