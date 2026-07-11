@@ -91,6 +91,12 @@ export function isPanelEnabled(p: Panelist): boolean {
   return v === "1" || v === "true" || v === "on";
 }
 
+/** 패널 key 로 게이트 확인. 미등록 key 는 false. Qwen 처럼 activePanelists 를 안 타는 경로용. */
+export function isPanelEnabledByKey(key: string): boolean {
+  const p = PANELISTS.find((x) => x.key === key);
+  return p ? isPanelEnabled(p) : false;
+}
+
 /** 특정 실행 위치에서 활성화되고 키가 준비된 패널만. */
 export function activePanelists(location: "vercel" | "macmini"): Panelist[] {
   return PANELISTS.filter((p) => {

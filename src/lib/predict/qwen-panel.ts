@@ -5,6 +5,7 @@
 import { prisma } from "@/lib/db";
 import { buildMatchContext } from "@/lib/predict/build-context";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { isPanelEnabledByKey } from "@/lib/predict/panelists";
 import type { PredictMatch } from "@/lib/predict/types";
 import {
   scorebasePick,
@@ -34,6 +35,7 @@ export interface QwenTask {
  * 유료 gpt 잡과 무관하게 동작한다(Qwen 독립 = 무료로 단독 운용 가능).
  */
 export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
+  if (!isPanelEnabledByKey(QWEN_MODEL)) return []; // Vercel env PANEL_QWEN 킬스위치
   const now = new Date();
   const until = new Date(now.getTime() + LOOKAHEAD_HOURS * 3600 * 1000);
 
@@ -99,6 +101,7 @@ export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
 export async function saveQwenPicks(
   items: { matchId: number; text: string }[],
 ): Promise<{ saved: number; failed: number }> {
+  if (!isPanelEnabledByKey(QWEN_MODEL)) return { saved: 0, failed: 0 }; // 게이트 OFF 면 저장 안 함
   let saved = 0;
   let failed = 0;
   for (const it of items) {
