@@ -74,6 +74,9 @@ export default function FavoriteMatches({ matches }: Props) {
   const { ids, mounted, clear } = useFavorites();
   const [view, setView] = useState<ViewMode>("large");
   const [favSound, setFavSound] = useState(false);
+  // 스코어보드.kr 에서는 메인 라이브 테이블과 동일 행(SoccerLiveRow)으로 정렬 통일
+  // 위해 즐겨찾기 섹션도 항상 compact 강제 → 점수 중앙·별 우측이 메인 섹션과 세로 일치.
+  const [isScoreboard, setIsScoreboard] = useState(false);
 
   // localStorage init
   useEffect(() => {
@@ -84,7 +87,13 @@ export default function FavoriteMatches({ matches }: Props) {
     } catch {
       // ignore
     }
+    setIsScoreboard(
+      /xn--hy1bm7m1yevrd8pq|스코어보드/.test(window.location.host),
+    );
   }, []);
+
+  // 스코어보드.kr → compact 강제, 그 외 → 사용자 설정(view)
+  const effectiveView: ViewMode = isScoreboard ? "compact" : view;
 
   function toggleView() {
     const next: ViewMode = view === "large" ? "compact" : "large";
@@ -236,7 +245,7 @@ export default function FavoriteMatches({ matches }: Props) {
                 {list.length}경기
               </span>
             </div>
-            {view === "large" ? (
+            {effectiveView === "large" ? (
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {list.map(renderMatchLarge)}
               </ul>
