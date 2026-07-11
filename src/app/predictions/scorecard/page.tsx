@@ -25,7 +25,7 @@ const MARKET_META: { key: Market; label: string }[] = [
 type Accent = "rose" | "emerald" | "sky" | "amber" | "teal" | "violet";
 const MODEL_META: Record<string, { label: string; accent: Accent; order: number }> = {
   scorebase: { label: "스코어베이스", accent: "rose", order: 0 },
-  gpt: { label: "GPT", accent: "emerald", order: 1 },
+  gpt: { label: "GPT-5.6 Sol", accent: "emerald", order: 1 },
   grok: { label: "Grok", accent: "sky", order: 2 },
   gemini: { label: "Gemini", accent: "amber", order: 3 },
   "qwen2.5-32b": { label: "Qwen", accent: "teal", order: 4 },
