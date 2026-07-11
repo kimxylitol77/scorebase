@@ -27,11 +27,14 @@
 
 ## P2 완료 (2026-07-11). Qwen 무료 데이터 축적 시작 — 09:00·21:00 KST 자동.
 
-## P3 — OpenRouter 클라우드 패널
-- [ ] OpenRouter 런타임 패널 3개 등록(Claude·Grok·Gemini), modelId 매핑
-- [ ] `OPENROUTER_API_KEY` env, 각 패널 enabledEnv 기본 OFF
-- [ ] 검증: 게이트 OFF 시 호출·저장 0, ON 시 해당 모델만
-- [ ] 배포 후 Qwen 외 전부 OFF 확인 (비용 0)
+## P3 — 클라우드 패널
+- [x] **Grok = xAI 직접** (OpenRouter 아님) — 무료크레딧 유리. runtime "xai", modelId grok-4-1-fast-non-reasoning
+- [x] llmMarkets 토큰 파라미터 런타임 분기(openai=max_completion_tokens, xai=max_tokens)
+- [x] 진단 엔드포인트 `/api/internal/panel-status`(gateOn·keyPresent·active)
+- [x] Grok LIVE 검증(2026-07-11) — cron targeted40/stored40/storedMarkets116/failed0, 한국어 근거 정상
+- [x] 함정 기록: env 추가 후 **재배포 필수**(Ready Stale=env 미반영). PANEL_GROK gateOn=false 원인이 이것
+- [ ] Claude·Gemini = OpenRouter (OPENROUTER_API_KEY + PANEL_CLAUDE/GEMINI), modelId 검증 후. 미착수
+- 현재 LIVE: scorebase·gpt·qwen·grok (claude/gemini OFF)
 
 ## 배포
 - [ ] scorebase-deploy 스킬로 마무리 (tsc + commit + push)
