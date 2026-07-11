@@ -123,6 +123,13 @@ function extractScore(item) {
 // 중복 POST 방지 — 매치별 마지막 저장 hash. score/incidents/stats 변화 없으면 skip.
 const lastSavedHash = new Map();
 
+// heartbeat — hash 는 stats 배열 "길이"만 봐서 0-0 무이벤트 경기는 점유율 등 스탯 값이
+// 바뀌어도 push 를 계속 skip → cache.updatedAt 동결 → data-sanity stale_live 오탐 반복
+// + 상세 페이지 스탯 값 동결 (2026-07-12 #1159504/#1159500 진단).
+// hash 동일해도 마지막 push 후 5분 지나면 강제 push 해 신선도·스탯 최신값 유지.
+const HEARTBEAT_MS = 5 * 60_000;
+const lastPushedAt = new Map();
+
 let totalReceived = 0;
 let totalPushed = 0;
 let totalSkipped = 0;
@@ -156,8 +163,10 @@ async function poll() {
     const tliveLen = Array.isArray(item.tlive) ? item.tlive.length : 0;
     const hash = `${homeScore}|${awayScore}|${incidentsLen}|${statsLen}|${tliveLen}`;
     const prev = lastSavedHash.get(matchId);
-    if (prev === hash) continue;
+    const lastPush = lastPushedAt.get(matchId) || 0;
+    if (prev === hash && Date.now() - lastPush < HEARTBEAT_MS) continue;
     lastSavedHash.set(matchId, hash);
+    lastPushedAt.set(matchId, Date.now());
     updates.push(pushCache(matchId, item.id, item, homeScore, awayScore));
   }
   const settled = await Promise.allSettled(updates);
