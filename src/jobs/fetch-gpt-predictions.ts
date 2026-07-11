@@ -30,7 +30,7 @@ import { parseTsFootballScore } from "@/lib/sports/live-scores";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
-import { activePanelists, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
+import { activePanelists, PANELISTS, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 export const MAJOR_LEAGUES = [
@@ -249,6 +249,35 @@ interface GptMarketPick {
 export type MarketLines = { hc: number | null; ou: number | null };
 
 /**
+ * 단일 패널 진단 — 더미 경기로 1콜 실행해 성공/에러·원문·파싱결과를 반환.
+ * cron 전체 안 돌리고 특정 모델(claude 등) 호출 문제를 격리 확인.
+ */
+export async function testPanel(
+  key: string,
+): Promise<{ ok: boolean; model?: string; content?: string; parsed?: GptMarketPick | null; error?: string }> {
+  const p = PANELISTS.find((x) => x.key === key);
+  if (!p) return { ok: false, error: "unknown panel" };
+  if (p.location !== "vercel") return { ok: false, error: "not a vercel panel (macmini worker 로 테스트)" };
+  if (p.apiKeyEnv && !process.env[p.apiKeyEnv]) return { ok: false, error: `${p.apiKeyEnv} 없음` };
+  const client = panelClient(p);
+  const lines: MarketLines = { hc: null, ou: null };
+  const { system, user } = buildMarketsPrompt("MLB", "홈팀", "원정팀", new Date(), lines, {});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const params: any = { model: p.modelId, messages: [{ role: "system", content: system }, { role: "user", content: user }] };
+  if (p.jsonMode ?? true) params.response_format = { type: "json_object" };
+  if (p.runtime === "openai") params.max_completion_tokens = 500;
+  else params.max_tokens = 500;
+  try {
+    const res = await client.chat.completions.create(params);
+    const content = res.choices[0]?.message?.content ?? "";
+    return { ok: true, model: p.modelId, content: content.slice(0, 300), parsed: parseMarketsResponse(content, "MLB", lines) };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (e: any) {
+    return { ok: false, model: p.modelId, error: `${e?.status ?? ""} ${e?.message ?? e}`.slice(0, 400) };
+  }
+}
+
+/**
  * 시장 예측 프롬프트(system+user)를 만든다 — 전 패널·전 실행위치 단일 소스.
  * 공정성 위해 우리 모델의 확률은 주지 않고 채점 기준선(line)만 제공한다.
  * 맥미니 Qwen 워커도 이 프롬프트를 그대로 받아 Ollama 에 전달한다(프롬프트 드리프트 방지).
@@ -312,10 +341,17 @@ export function parseMarketsResponse(
 ): GptMarketPick | null {
   if (!text) return null;
   const allowDraw = drawAllowed(league);
+  // 마크다운 펜스(```json)나 앞뒤 설명을 감싸도 첫 { … } 블록만 추출 —
+  // json 모드 미지원 모델(Anthropic 등)이 프로즈로 감싸도 파싱되게.
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const body = (fence ? fence[1] : text).trim();
+  const start = body.indexOf("{");
+  const end = body.lastIndexOf("}");
+  if (start === -1 || end < start) return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let parsed: any;
   try {
-    parsed = JSON.parse(text.trim());
+    parsed = JSON.parse(body.slice(start, end + 1));
   } catch {
     return null;
   }
@@ -370,6 +406,7 @@ async function llmMarkets(
   startTime: Date,
   lines: MarketLines,
   facts: GptMatchFacts,
+  jsonMode = true,
 ): Promise<GptMarketPick | null> {
   const { system, user } = buildMarketsPrompt(league, homeKo, awayKo, startTime, lines, facts);
   // 토큰 상한 파라미터 이름이 provider 마다 다름 — 신형 OpenAI 는 max_completion_tokens,
@@ -381,8 +418,9 @@ async function llmMarkets(
       { role: "system", content: system },
       { role: "user", content: user },
     ],
-    response_format: { type: "json_object" },
   };
+  // response_format:json_object 미지원 모델(Anthropic 등)은 생략 — 프롬프트+견고한 파싱으로 처리.
+  if (jsonMode) params.response_format = { type: "json_object" };
   if (runtime === "openai") params.max_completion_tokens = 3000;
   else params.max_tokens = 3000;
   const res = await client.chat.completions.create(params);
@@ -507,7 +545,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
         res = await llmMarkets(clients.get(p.key)!, p.modelId, p.runtime, m.league, homeKo, awayKo, m.startTime, {
           hc: oursHcOu.hc?.line ?? null,
           ou: oursHcOu.ou?.line ?? null,
-        }, facts);
+        }, facts, p.jsonMode ?? true);
       } catch (e) {
         console.warn(`[llm-pred] ${p.key} 호출 실패 match=${m.id}: ${(e as Error).message}`);
       }

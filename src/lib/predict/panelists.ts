@@ -26,6 +26,8 @@ export interface Panelist {
   enabledEnv?: string;
   /** 실행 위치. ollama 패널은 macmini 에서만(Vercel 잡은 스킵). */
   location: "vercel" | "macmini";
+  /** response_format:json_object 지원 여부. Anthropic(OpenRouter)은 미지원 → false. 기본 true. */
+  jsonMode?: boolean;
 }
 
 // OpenRouter 모델 id 는 P3 에서 실제 호출로 검증할 것(게이트 OFF 라 P1~2 미호출).
@@ -49,6 +51,7 @@ export const PANELISTS: Panelist[] = [
     apiKeyEnv: "OPENROUTER_API_KEY",
     enabledEnv: "PANEL_CLAUDE",
     location: "vercel",
+    jsonMode: false, // Anthropic 은 OpenRouter 에서 response_format:json_object 미지원 → 프롬프트+파싱으로
   },
   {
     key: "grok",

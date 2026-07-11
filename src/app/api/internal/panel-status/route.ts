@@ -4,12 +4,17 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { PANELISTS, activePanelists, isPanelEnabled } from "@/lib/predict/panelists";
+import { testPanel } from "@/jobs/fetch-gpt-predictions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 export async function GET(req: Request) {
   if (!authorized(req)) return new NextResponse("Unauthorized", { status: 401 });
+  // ?test=<model> → 단건 호출 진단(실제 에러·원문 반환).
+  const test = new URL(req.url).searchParams.get("test");
+  if (test) return NextResponse.json({ ok: true, test: await testPanel(test) });
   const activeV = new Set(activePanelists("vercel").map((p) => p.key));
   const activeM = new Set(activePanelists("macmini").map((p) => p.key));
   const panels = PANELISTS.map((p) => ({
