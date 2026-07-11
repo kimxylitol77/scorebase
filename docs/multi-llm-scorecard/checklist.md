@@ -50,3 +50,10 @@
 ## 배포
 - [ ] scorebase-deploy 스킬로 마무리 (tsc + commit + push)
 - [ ] 맥미니 워커 반영 (scorebase-macmini 스킬)
+
+## P6 — 배구·LoL 편입 (2026-07-11 완료)
+- [x] MAJOR_LEAGUES 20리그 확장 — 배구 4(VNL/VNL_W/EGL_W/AVC_NATIONS_W)+LoL 3(LOL/LPL/LEC)
+- [x] 배구 앵커 = Match.predHome(배구 Elo+시장, 백테스트 83.3%) 재사용 (VB_ANCHOR_LEAGUES 분기)
+- [x] LoL 백테스트: LCK 70.0%·LPL 65.1%·LEC 58.3% (일반 Elo 그대로). LCS·LCK_CL 제외
+- [x] 배구·LoL 은 1X2만 (SPORT_PROFILE 없음 = 의도)
+- [x] 검증: 배구 픽 5모델 라이브(11~12경기). Qwen 은 21:00 자동 합류, LoL 은 72h 창 진입 시 자동
