@@ -1,8 +1,323 @@
 {
+ "Spain": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 4,
+  "updatedAt": "2026-07-11T00:38:28.636Z",
+  "xi": [
+   {
+    "id": "dj2ryohg1l6q1zp",
+    "name": "Unai Simon",
+    "nameKo": "우나이 시몬",
+    "position": "G",
+    "shirtNumber": 23,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/fb05903ceb5110856c75721fd71d0d03.png",
+    "avgRating": 6.75,
+    "lastRating": 6.54,
+    "afId": 47270
+   },
+   {
+    "id": "23xmvkhk1e18qg8",
+    "name": "Pau Cubarsí",
+    "nameKo": "파우 쿠바르시 파레데스",
+    "position": "D",
+    "shirtNumber": 22,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/ea9333bdb29c50eb645a8aec3102923f.png",
+    "avgRating": 7.25,
+    "lastRating": 6.67
+   },
+   {
+    "id": "8yomo4hk80wq0j6",
+    "name": "Aymeric Laporte",
+    "nameKo": "에이메릭 라포르트",
+    "position": "D",
+    "shirtNumber": 14,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/b30d87d99280aa83882b1983354b59d1.png",
+    "avgRating": 7.22,
+    "lastRating": 6.22,
+    "afId": 622
+   },
+   {
+    "id": "3glrw7hyp9eqdyj",
+    "name": "Marc Cucurella",
+    "nameKo": "마르크 쿠쿠렐라",
+    "position": "D",
+    "shirtNumber": 24,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/853a723cd296c0cb524cb0ed9a3acb24.png",
+    "avgRating": 7.44,
+    "lastRating": 6.26,
+    "afId": 47380
+   },
+   {
+    "id": "23xmvkhojvpjqg8",
+    "name": "Pedro Porro",
+    "nameKo": "페드로 포로",
+    "position": "D",
+    "shirtNumber": 12,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.86,
+    "photo": "https://img.thesports.com/football/player/1fbe68500a159068567e72f366b8a245.png",
+    "avgRating": 7.81,
+    "lastRating": 6.78,
+    "afId": 47519
+   },
+   {
+    "id": "4wyrn4hvlloq86p",
+    "name": "Rodrigo Hernandez Cascante",
+    "nameKo": "로드리",
+    "position": "M",
+    "shirtNumber": 16,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/a0b83882dcdedc132b6b4068d416064f.png",
+    "avgRating": 7.13,
+    "lastRating": 7.2
+   },
+   {
+    "id": "y39mp1hkgd1mojx",
+    "name": "Alejandro Baena Rodríguez",
+    "nameKo": "알레한드로 바에나",
+    "position": "M",
+    "shirtNumber": 15,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/f0942d77865fb7be7dac5a4bab9c43ef.png",
+    "avgRating": 7.18,
+    "lastRating": 6.25
+   },
+   {
+    "id": "4jwq2ghx151m0ve",
+    "name": "Daniel Olmo Carvajal",
+    "nameKo": "다니 올모",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.86,
+    "photo": "https://img.thesports.com/football/player/2d4bff6de58e537824bcd01d56ae5ca2.png",
+    "avgRating": 7.04,
+    "lastRating": 6.94
+   },
+   {
+    "id": "318q66hvwjy3qo9",
+    "name": "Pedri",
+    "nameKo": "페드리",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/6fe364721415b2c3b87ac7538e48ab46.png",
+    "avgRating": 7.11,
+    "afId": 133609
+   },
+   {
+    "id": "318q66h4jjyqo9j",
+    "name": "Fabián Ruiz",
+    "nameKo": "파비안 루이스",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 4,
+    "confidence": 0.43,
+    "photo": "https://img.thesports.com/football/player/94e94c73b0c62d9e41f186851d7c9106.png",
+    "avgRating": 7.93,
+    "lastRating": 7.93,
+    "afId": 328
+   },
+   {
+    "id": "4jwq2ghxjzkvm0v",
+    "name": "Lamine Yamal",
+    "nameKo": "라민 야말 나스라우이 에바나",
+    "position": "F",
+    "shirtNumber": 19,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/4e9336a1d5f25b9f33e7fd010de08ed8.png",
+    "avgRating": 6.54,
+    "lastRating": 6.61,
+    "afId": 386828
+   }
+  ]
+ },
+ "Belgium": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 4,
+  "updatedAt": "2026-07-11T00:38:28.637Z",
+  "xi": [
+   {
+    "id": "k82rekhvpdxrepz",
+    "name": "Thibaut Courtois",
+    "nameKo": "티보 쿠르투아",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/86949116968b247baf46e77ee6f8602d.png",
+    "avgRating": 6.66,
+    "lastRating": 6.97,
+    "afId": 730
+   },
+   {
+    "id": "23xmvkhd65dqg8n",
+    "name": "Timothy Castagne",
+    "nameKo": "티모시 카스타뉴",
+    "position": "D",
+    "shirtNumber": 21,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/d3b0d256112c3c6d0a74e42e568b2d10.png",
+    "avgRating": 6.81,
+    "lastRating": 6.23,
+    "afId": 2920
+   },
+   {
+    "id": "965mkyh3e8gr1ge",
+    "name": "Brandon Mechele",
+    "nameKo": "브란돈 메쉘레",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/be7c1a4bd2be2771e10c5a29f907bdbf.png",
+    "avgRating": 6.7,
+    "lastRating": 6.86,
+    "afId": 69
+   },
+   {
+    "id": "y0or5jhe556eqwz",
+    "name": "Maxim De Cuyper",
+    "nameKo": "막심 드 쿠퍼",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/0572010ba6f3755d3e27dfdf4e3547e6.png",
+    "avgRating": 6.69,
+    "lastRating": 6.12,
+    "afId": 162007
+   },
+   {
+    "id": "3glrw7hyoy8zqdy",
+    "name": "Nathan Ngoy",
+    "nameKo": "네이단 고이",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 2,
+    "games": 4,
+    "confidence": 0.71,
+    "photo": "https://img.thesports.com/football/player/360b6a10caff4b542567aeee16dd82a8.png",
+    "avgRating": 6.52,
+    "lastRating": 6.58,
+    "afId": 312964
+   },
+   {
+    "id": "l7oqdehen58r510",
+    "name": "Nicolas Raskin",
+    "nameKo": "니콜라스 라스킨",
+    "position": "M",
+    "shirtNumber": 23,
+    "starts": 2,
+    "games": 4,
+    "confidence": 0.71,
+    "photo": "https://img.thesports.com/football/player/4437361376d0a7b9690e5756f5e65628.png",
+    "avgRating": 6.64,
+    "lastRating": 5.96,
+    "afId": 2120
+   },
+   {
+    "id": "pxwrxlh1z5yryk0",
+    "name": "Hans Vanaken",
+    "nameKo": "한스 바나켄",
+    "position": "M",
+    "shirtNumber": 20,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.71,
+    "photo": "https://img.thesports.com/football/player/498430e70c4826d198eaa44fa1dc2607.png",
+    "avgRating": 6.63,
+    "lastRating": 5.92,
+    "afId": 78
+   },
+   {
+    "id": "l7oqdehnwz9r510",
+    "name": "Kevin De Bruyne",
+    "nameKo": "케빈 데 브라위너",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.71,
+    "photo": "https://img.thesports.com/football/player/42109088fe0c43b0bc4e7b098f8d52fb.png",
+    "avgRating": 6.91,
+    "lastRating": 6.3,
+    "afId": 629
+   },
+   {
+    "id": "n54qllhx4e7qvy9",
+    "name": "Youri Tielemans",
+    "nameKo": "요리 틸레만스",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/f04b09e715f9f617e4bcecb04d5eb698.png",
+    "avgRating": 7.02,
+    "afId": 2926
+   },
+   {
+    "id": "8yomo4hko79gq0j",
+    "name": "Amadou Onana",
+    "nameKo": "아마두 오나나",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 4,
+    "confidence": 0.29,
+    "photo": "https://img.thesports.com/football/player/f9fcd3ba25c6cacc8d07b46cb7cce0e5.png",
+    "avgRating": 6.37,
+    "afId": 162714
+   },
+   {
+    "id": "x7lm7pho79om2wd",
+    "name": "Leandro Trossard",
+    "nameKo": "레안드로 트로사르드",
+    "position": "F",
+    "shirtNumber": 10,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/eeba5051d4ae8a973db752c1f2ef60b6.png",
+    "avgRating": 7.57,
+    "lastRating": 6.1,
+    "afId": 1946
+   }
+  ]
+ },
  "France": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.735Z",
+  "updatedAt": "2026-07-11T00:38:28.637Z",
   "xi": [
    {
     "id": "4wyrn4hej2vq86p",
@@ -162,7 +477,7 @@
  "Morocco": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.736Z",
+  "updatedAt": "2026-07-11T00:38:28.637Z",
   "xi": [
    {
     "id": "6ypq3nhzyn3md7o",
@@ -322,7 +637,7 @@
  "Switzerland": {
   "formation": "4-3-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.736Z",
+  "updatedAt": "2026-07-11T00:38:28.637Z",
   "xi": [
    {
     "id": "ednm9whz104ryox",
@@ -481,7 +796,7 @@
  "Colombia": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.736Z",
+  "updatedAt": "2026-07-11T00:38:28.638Z",
   "xi": [
    {
     "id": "965mkyh4gogr1ge",
@@ -642,7 +957,7 @@
  "Argentina": {
   "formation": "4-1-3-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.736Z",
+  "updatedAt": "2026-07-11T00:38:28.638Z",
   "xi": [
    {
     "id": "318q66h0d5dqo9j",
@@ -802,7 +1117,7 @@
  "Egypt": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.736Z",
+  "updatedAt": "2026-07-11T00:38:28.638Z",
   "xi": [
    {
     "id": "zp5rzghzvzwjq82",
@@ -960,7 +1275,7 @@
  "USA": {
   "formation": "3-5-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.736Z",
+  "updatedAt": "2026-07-11T00:38:28.638Z",
   "xi": [
    {
     "id": "3glrw7hj6dyjqdy",
@@ -1116,169 +1431,10 @@
    }
   ]
  },
- "Belgium": {
-  "formation": "4-2-3-1",
-  "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.737Z",
-  "xi": [
-   {
-    "id": "k82rekhvpdxrepz",
-    "name": "Thibaut Courtois",
-    "nameKo": "티보 쿠르투아",
-    "position": "G",
-    "shirtNumber": 1,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/86949116968b247baf46e77ee6f8602d.png",
-    "avgRating": 6.57,
-    "lastRating": 6.22,
-    "afId": 730
-   },
-   {
-    "id": "965mkyh3e8gr1ge",
-    "name": "Brandon Mechele",
-    "nameKo": "브란돈 메쉘레",
-    "position": "D",
-    "shirtNumber": 4,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/be7c1a4bd2be2771e10c5a29f907bdbf.png",
-    "avgRating": 6.78,
-    "lastRating": 6.43,
-    "afId": 69
-   },
-   {
-    "id": "y0or5jhe556eqwz",
-    "name": "Maxim De Cuyper",
-    "nameKo": "막심 드 쿠퍼",
-    "position": "D",
-    "shirtNumber": 5,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/0572010ba6f3755d3e27dfdf4e3547e6.png",
-    "avgRating": 6.99,
-    "lastRating": 6.87,
-    "afId": 162007
-   },
-   {
-    "id": "23xmvkhd65dqg8n",
-    "name": "Timothy Castagne",
-    "nameKo": "티모시 카스타뉴",
-    "position": "D",
-    "shirtNumber": 21,
-    "starts": 3,
-    "games": 4,
-    "confidence": 0.86,
-    "photo": "https://img.thesports.com/football/player/d3b0d256112c3c6d0a74e42e568b2d10.png",
-    "avgRating": 7,
-    "lastRating": 7.09,
-    "afId": 2920
-   },
-   {
-    "id": "3glrw7hyoy8zqdy",
-    "name": "Nathan Ngoy",
-    "nameKo": "네이단 고이",
-    "position": "D",
-    "shirtNumber": 25,
-    "starts": 2,
-    "games": 4,
-    "confidence": 0.57,
-    "photo": "https://img.thesports.com/football/player/360b6a10caff4b542567aeee16dd82a8.png",
-    "avgRating": 6.27,
-    "lastRating": 6.45,
-    "afId": 312964
-   },
-   {
-    "id": "n54qllhx4e7qvy9",
-    "name": "Youri Tielemans",
-    "nameKo": "요리 틸레만스",
-    "position": "M",
-    "shirtNumber": 8,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/f04b09e715f9f617e4bcecb04d5eb698.png",
-    "avgRating": 7.02,
-    "lastRating": 6.29,
-    "afId": 2926
-   },
-   {
-    "id": "l7oqdehen58r510",
-    "name": "Nicolas Raskin",
-    "nameKo": "니콜라스 라스킨",
-    "position": "M",
-    "shirtNumber": 23,
-    "starts": 2,
-    "games": 4,
-    "confidence": 0.57,
-    "photo": "https://img.thesports.com/football/player/4437361376d0a7b9690e5756f5e65628.png",
-    "avgRating": 7.17,
-    "lastRating": 7.33,
-    "afId": 2120
-   },
-   {
-    "id": "l7oqdehnwz9r510",
-    "name": "Kevin De Bruyne",
-    "nameKo": "케빈 데 브라위너",
-    "position": "M",
-    "shirtNumber": 7,
-    "starts": 3,
-    "games": 4,
-    "confidence": 0.57,
-    "photo": "https://img.thesports.com/football/player/42109088fe0c43b0bc4e7b098f8d52fb.png",
-    "avgRating": 7.12,
-    "afId": 629
-   },
-   {
-    "id": "8yomo4hko79gq0j",
-    "name": "Amadou Onana",
-    "nameKo": "아마두 오나나",
-    "position": "M",
-    "shirtNumber": 24,
-    "starts": 1,
-    "games": 4,
-    "confidence": 0.43,
-    "photo": "https://img.thesports.com/football/player/f9fcd3ba25c6cacc8d07b46cb7cce0e5.png",
-    "avgRating": 6.37,
-    "lastRating": 6.37,
-    "afId": 162714
-   },
-   {
-    "id": "pxwrxlh1z5yryk0",
-    "name": "Hans Vanaken",
-    "nameKo": "한스 바나켄",
-    "position": "M",
-    "shirtNumber": 20,
-    "starts": 2,
-    "games": 4,
-    "confidence": 0.43,
-    "photo": "https://img.thesports.com/football/player/498430e70c4826d198eaa44fa1dc2607.png",
-    "avgRating": 6.99,
-    "afId": 78
-   },
-   {
-    "id": "x7lm7pho79om2wd",
-    "name": "Leandro Trossard",
-    "nameKo": "레안드로 트로사르드",
-    "position": "F",
-    "shirtNumber": 10,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/eeba5051d4ae8a973db752c1f2ef60b6.png",
-    "avgRating": 7.73,
-    "lastRating": 6.92,
-    "afId": 1946
-   }
-  ]
- },
  "Portugal": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.737Z",
+  "updatedAt": "2026-07-11T00:38:28.638Z",
   "xi": [
    {
     "id": "dn1m1gh8jl2moep",
@@ -1435,167 +1591,10 @@
    }
   ]
  },
- "Spain": {
-  "formation": "4-1-2-3",
-  "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.737Z",
-  "xi": [
-   {
-    "id": "dj2ryohg1l6q1zp",
-    "name": "Unai Simon",
-    "nameKo": "우나이 시몬",
-    "position": "G",
-    "shirtNumber": 23,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/fb05903ceb5110856c75721fd71d0d03.png",
-    "avgRating": 6.88,
-    "lastRating": 6.6,
-    "afId": 47270
-   },
-   {
-    "id": "23xmvkhk1e18qg8",
-    "name": "Pau Cubarsí",
-    "nameKo": "파우 쿠바르시 파레데스",
-    "position": "D",
-    "shirtNumber": 22,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/ea9333bdb29c50eb645a8aec3102923f.png",
-    "avgRating": 7.5,
-    "lastRating": 7.2
-   },
-   {
-    "id": "8yomo4hk80wq0j6",
-    "name": "Aymeric Laporte",
-    "nameKo": "에이메릭 라포르트",
-    "position": "D",
-    "shirtNumber": 14,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/b30d87d99280aa83882b1983354b59d1.png",
-    "avgRating": 7.68,
-    "lastRating": 7.12,
-    "afId": 622
-   },
-   {
-    "id": "3glrw7hyp9eqdyj",
-    "name": "Marc Cucurella",
-    "nameKo": "마르크 쿠쿠렐라",
-    "position": "D",
-    "shirtNumber": 24,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/853a723cd296c0cb524cb0ed9a3acb24.png",
-    "avgRating": 7.68,
-    "lastRating": 7.36,
-    "afId": 47380
-   },
-   {
-    "id": "23xmvkhojvpjqg8",
-    "name": "Pedro Porro",
-    "nameKo": "페드로 포로",
-    "position": "D",
-    "shirtNumber": 12,
-    "starts": 3,
-    "games": 4,
-    "confidence": 0.86,
-    "photo": "https://img.thesports.com/football/player/1fbe68500a159068567e72f366b8a245.png",
-    "avgRating": 8.22,
-    "lastRating": 7.59,
-    "afId": 47519
-   },
-   {
-    "id": "4wyrn4hvlloq86p",
-    "name": "Rodrigo Hernandez Cascante",
-    "nameKo": "로드리",
-    "position": "M",
-    "shirtNumber": 16,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/a0b83882dcdedc132b6b4068d416064f.png",
-    "avgRating": 7.13,
-    "lastRating": 6.9
-   },
-   {
-    "id": "318q66hvwjy3qo9",
-    "name": "Pedri",
-    "nameKo": "페드리",
-    "position": "M",
-    "shirtNumber": 20,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/6fe364721415b2c3b87ac7538e48ab46.png",
-    "avgRating": 7.05,
-    "lastRating": 7.18,
-    "afId": 133609
-   },
-   {
-    "id": "y39mp1hkgd1mojx",
-    "name": "Alejandro Baena Rodríguez",
-    "nameKo": "알레한드로 바에나",
-    "position": "M",
-    "shirtNumber": 15,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/f0942d77865fb7be7dac5a4bab9c43ef.png",
-    "avgRating": 7.33,
-    "lastRating": 6.8
-   },
-   {
-    "id": "4jwq2ghxjzkvm0v",
-    "name": "Lamine Yamal",
-    "nameKo": "라민 야말 나스라우이 에바나",
-    "position": "F",
-    "shirtNumber": 19,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/4e9336a1d5f25b9f33e7fd010de08ed8.png",
-    "avgRating": 6.94,
-    "lastRating": 6.55,
-    "afId": 386828
-   },
-   {
-    "id": "965mkyhngg9r1ge",
-    "name": "Mikel Oyarzabal",
-    "nameKo": "미켈 오야르사발",
-    "position": "F",
-    "shirtNumber": 21,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/fa3ad2f0531840002198511280948995.png",
-    "avgRating": 7.93,
-    "lastRating": 6.39,
-    "afId": 47323
-   },
-   {
-    "id": "4jwq2ghx151m0ve",
-    "name": "Daniel Olmo Carvajal",
-    "nameKo": "다니 올모",
-    "position": "M",
-    "shirtNumber": 10,
-    "starts": 3,
-    "games": 4,
-    "confidence": 0.86,
-    "photo": "https://img.thesports.com/football/player/2d4bff6de58e537824bcd01d56ae5ca2.png",
-    "avgRating": 7.3,
-    "lastRating": 6.99
-   }
-  ]
- },
  "Mexico": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.737Z",
+  "updatedAt": "2026-07-11T00:38:28.639Z",
   "xi": [
    {
     "id": "zp5rzghzvl8zq82",
@@ -1755,7 +1754,7 @@
  "England": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.738Z",
+  "updatedAt": "2026-07-11T00:38:28.639Z",
   "xi": [
    {
     "id": "23xmvkhopdpqg8n",
@@ -1914,7 +1913,7 @@
  "Brazil": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.738Z",
+  "updatedAt": "2026-07-11T00:38:28.639Z",
   "xi": [
    {
     "id": "ednm9whzz28ryox",
@@ -1927,8 +1926,7 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5c89a33cf034c8fbd79e593a1800cf37.png",
     "avgRating": 6.96,
-    "lastRating": 6.63,
-    "afId": 280
+    "lastRating": 6.63
    },
    {
     "id": "vjxm8ghg28lr6od",
@@ -1941,8 +1939,7 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/84b6ee39cfe9738c9cea1c8b0462b93f.png",
     "avgRating": 6.91,
-    "lastRating": 6.65,
-    "afId": 10097
+    "lastRating": 6.65
    },
    {
     "id": "3glrw7h1ew0qdyj",
@@ -1968,8 +1965,7 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/922207e8f1f6c15e7d7c6c73321037ce.png",
     "avgRating": 7.41,
-    "lastRating": 7,
-    "afId": 22224
+    "lastRating": 7
    },
    {
     "id": "n54qllhxxzgqvy9",
@@ -1995,8 +1991,7 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7f32ed1c2c4c3e3e2fc3c6c1cf4605f2.png",
     "avgRating": 7.27,
-    "lastRating": 6.16,
-    "afId": 10135
+    "lastRating": 6.16
    },
    {
     "id": "dj2ryohy2lpq1zp",
@@ -2021,8 +2016,7 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/dd6132559f62ad6ab1c2b428fd0eca27.png",
-    "avgRating": 7.14,
-    "afId": 1646
+    "avgRating": 7.14
    },
    {
     "id": "1l4rjnhe42vm7vx",
@@ -2048,8 +2042,7 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a5b1cafbef00050ebda4618043b5d7d8.png",
     "avgRating": 7.49,
-    "lastRating": 6.37,
-    "afId": 1165
+    "lastRating": 6.37
    },
    {
     "id": "zp5rzghp5394q82",
@@ -2069,7 +2062,7 @@
  "Norway": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.738Z",
+  "updatedAt": "2026-07-11T00:38:28.639Z",
   "xi": [
    {
     "id": "vjxm8gh44olr6od",
@@ -2229,7 +2222,7 @@
  "Paraguay": {
   "formation": "5-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.738Z",
+  "updatedAt": "2026-07-11T00:38:28.640Z",
   "xi": [
    {
     "id": "n54qllhx7x3gqvy",
@@ -2388,7 +2381,7 @@
  "Canada": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.738Z",
+  "updatedAt": "2026-07-11T00:38:28.641Z",
   "xi": [
    {
     "id": "4wyrn4he5p6q86p",
@@ -2548,7 +2541,7 @@
  "Ghana": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.738Z",
+  "updatedAt": "2026-07-11T00:38:28.641Z",
   "xi": [
    {
     "id": "y0or5jh3jldqwzv",
@@ -2707,7 +2700,7 @@
  "Cape Verde Islands": {
   "formation": "4-1-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.738Z",
+  "updatedAt": "2026-07-11T00:38:28.641Z",
   "xi": [
    {
     "id": "y39mp1hj053mojx",
@@ -2865,7 +2858,7 @@
  "Australia": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.641Z",
   "xi": [
    {
     "id": "3glrw7hynjzxqdy",
@@ -3023,7 +3016,7 @@
  "Algeria": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.641Z",
   "xi": [
    {
     "id": "l7oqdeh094vr510",
@@ -3184,7 +3177,7 @@
  "Croatia": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.641Z",
   "xi": [
    {
     "id": "4jwq2ghk87dm0ve",
@@ -3344,7 +3337,7 @@
  "Austria": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.642Z",
   "xi": [
    {
     "id": "x7lm7ph0n3jm2wd",
@@ -3504,7 +3497,7 @@
  "Bosnia & Herzegovina": {
   "formation": "5-3-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.642Z",
   "xi": [
    {
     "id": "318q66hvxv1qo9j",
@@ -3664,7 +3657,7 @@
  "Senegal": {
   "formation": "4-3-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.642Z",
   "xi": [
    {
     "id": "k82rekhozl4repz",
@@ -3823,7 +3816,7 @@
  "Congo DR": {
   "formation": "4-1-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.642Z",
   "xi": [
    {
     "id": "2y8m4zhgy4xpql0",
@@ -3982,7 +3975,7 @@
  "Ecuador": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.642Z",
   "xi": [
    {
     "id": "zp5rzghpj8gq82w",
@@ -4142,7 +4135,7 @@
  "Sweden": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.739Z",
+  "updatedAt": "2026-07-11T00:38:28.642Z",
   "xi": [
    {
     "id": "23xmvkhd023gqg8",
@@ -4302,7 +4295,7 @@
  "Ivory Coast": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.740Z",
+  "updatedAt": "2026-07-11T00:38:28.642Z",
   "xi": [
    {
     "id": "pxwrxlhv8ljryk0",
@@ -4463,7 +4456,7 @@
  "Netherlands": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.740Z",
+  "updatedAt": "2026-07-11T00:38:28.643Z",
   "xi": [
    {
     "id": "vjxm8ghjle8nr6o",
@@ -4623,7 +4616,7 @@
  "Germany": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.740Z",
+  "updatedAt": "2026-07-11T00:38:28.643Z",
   "xi": [
    {
     "id": "z318q66hylvqo9j",
@@ -4782,7 +4775,7 @@
  "Japan": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.740Z",
+  "updatedAt": "2026-07-11T00:38:28.643Z",
   "xi": [
    {
     "id": "zp5rzgh29o8q82w",
@@ -4942,7 +4935,7 @@
  "South Africa": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.741Z",
+  "updatedAt": "2026-07-11T00:38:28.643Z",
   "xi": [
    {
     "id": "4jwq2ghv8o4m0ve",
@@ -5101,7 +5094,7 @@
  "Jordan": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.742Z",
+  "updatedAt": "2026-07-11T00:38:28.643Z",
   "xi": [
    {
     "id": "k82rekh30vorepz",
@@ -5254,7 +5247,7 @@
  "Uzbekistan": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.743Z",
+  "updatedAt": "2026-07-11T00:38:28.643Z",
   "xi": [
    {
     "id": "l7oqdeh4g7npr51",
@@ -5410,7 +5403,7 @@
  "Panama": {
   "formation": "5-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.743Z",
+  "updatedAt": "2026-07-11T00:38:28.643Z",
   "xi": [
    {
     "id": "vjxm8gh2vl2r6od",
@@ -5566,168 +5559,10 @@
    }
   ]
  },
- "Iran": {
-  "formation": "5-3-2",
-  "basedOnGames": 3,
-  "updatedAt": "2026-07-10T00:02:10.743Z",
-  "xi": [
-   {
-    "id": "pxwrxlhj72dryk0",
-    "name": "Alireza Beiranvand",
-    "nameKo": "알리레자 베이란반드",
-    "position": "G",
-    "shirtNumber": 1,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/abc6aa5370d87f9b524d9bd9dcb993e3.png",
-    "avgRating": 7.66,
-    "lastRating": 6.88,
-    "afId": 2682
-   },
-   {
-    "id": "3glrw7hyz9gqdyj",
-    "name": "Ramin Rezaeian",
-    "nameKo": "라민 레자에언",
-    "position": "D",
-    "shirtNumber": 23,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/62c0b366803bdf2f65c3422dd544a49f.png",
-    "avgRating": 7.23,
-    "lastRating": 7.32,
-    "afId": 2691
-   },
-   {
-    "id": "3glrw7hjkxeqdyj",
-    "name": "Shoja Khalilzadeh",
-    "nameKo": "쇼자 칼릴자데",
-    "position": "D",
-    "shirtNumber": 4,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/9466749dab94ae59383bbaf642965389.png",
-    "avgRating": 6.5,
-    "lastRating": 6.14,
-    "afId": 29704
-   },
-   {
-    "id": "4jwq2gh6042m0ve",
-    "name": "Ali Nemati",
-    "nameKo": "알리 네마티",
-    "position": "D",
-    "shirtNumber": 19,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/051c4bbf2725ef66daf899cd5aef3224.png",
-    "avgRating": 6.47,
-    "lastRating": 6.18,
-    "afId": 533035
-   },
-   {
-    "id": "pxwrxlhzpv6ryk0",
-    "name": "Hossein Kanani",
-    "nameKo": "호세인 카나니",
-    "position": "D",
-    "shirtNumber": 13,
-    "starts": 2,
-    "games": 3,
-    "confidence": 0.83,
-    "photo": "https://img.thesports.com/football/player/06f6ddbc08f2802bb191bb472d64594f.png",
-    "avgRating": 6.39,
-    "lastRating": 5.96,
-    "afId": 2687
-   },
-   {
-    "id": "3glrw7hydxnqdyj",
-    "name": "Milad Mohammadi",
-    "nameKo": "밀라드 모하마디",
-    "position": "D",
-    "shirtNumber": 5,
-    "starts": 2,
-    "games": 3,
-    "confidence": 0.67,
-    "photo": "https://img.thesports.com/football/player/95d456aff1dfe040184d80650611bd9e.png",
-    "avgRating": 6.45,
-    "lastRating": 6.64,
-    "afId": 2688
-   },
-   {
-    "id": "318q66hv985qo9j",
-    "name": "Saman Ghoddos",
-    "nameKo": "사만 고도스",
-    "position": "M",
-    "shirtNumber": 14,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/fbb2772452c55bf2b0c01f42d29dc149.png",
-    "avgRating": 6.49,
-    "lastRating": 6.84,
-    "afId": 2699
-   },
-   {
-    "id": "vjxm8ghjd8pr6od",
-    "name": "Saeid Ezatolahi",
-    "nameKo": "사에이드 에자톨라히",
-    "position": "M",
-    "shirtNumber": 6,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/8cf1a110e27fee93b778480702ca2851.png",
-    "avgRating": 6.54,
-    "lastRating": 6.68,
-    "afId": 19614
-   },
-   {
-    "id": "4wyrn4hdxp3lq86",
-    "name": "Mohammad Mohebbi",
-    "nameKo": "모하마드 모헤비",
-    "position": "M",
-    "shirtNumber": 8,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/72633e499f385c09a28ec56dad759c29.png",
-    "avgRating": 6.57,
-    "lastRating": 6.41
-   },
-   {
-    "id": "vjxm8gh8ynkr6od",
-    "name": "Mehdi Taremi",
-    "nameKo": "메디 타레미",
-    "position": "F",
-    "shirtNumber": 9,
-    "starts": 3,
-    "games": 3,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/40024135b097a324f6dfa87ab9c5ff49.png",
-    "avgRating": 6.4,
-    "lastRating": 6.49,
-    "afId": 42315
-   },
-   {
-    "id": "4wyrn4hdx0gxq86",
-    "name": "Shahriyar Moghanloo",
-    "nameKo": "샤리야르 모간루",
-    "position": "F",
-    "shirtNumber": 20,
-    "starts": 1,
-    "games": 3,
-    "confidence": 0.17,
-    "photo": "https://img.thesports.com/football/player/a6866d3589f683119bcfc5f5820d22d5.png",
-    "avgRating": 6.48
-   }
-  ]
- },
  "New Zealand": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.743Z",
+  "updatedAt": "2026-07-11T00:38:28.644Z",
   "xi": [
    {
     "id": "3glrw7h1xvzqdyj",
@@ -5882,10 +5717,168 @@
    }
   ]
  },
+ "Iran": {
+  "formation": "5-3-2",
+  "basedOnGames": 3,
+  "updatedAt": "2026-07-11T00:38:28.644Z",
+  "xi": [
+   {
+    "id": "pxwrxlhj72dryk0",
+    "name": "Alireza Beiranvand",
+    "nameKo": "알리레자 베이란반드",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/abc6aa5370d87f9b524d9bd9dcb993e3.png",
+    "avgRating": 7.66,
+    "lastRating": 6.88,
+    "afId": 2682
+   },
+   {
+    "id": "3glrw7hyz9gqdyj",
+    "name": "Ramin Rezaeian",
+    "nameKo": "라민 레자에언",
+    "position": "D",
+    "shirtNumber": 23,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/62c0b366803bdf2f65c3422dd544a49f.png",
+    "avgRating": 7.23,
+    "lastRating": 7.32,
+    "afId": 2691
+   },
+   {
+    "id": "3glrw7hjkxeqdyj",
+    "name": "Shoja Khalilzadeh",
+    "nameKo": "쇼자 칼릴자데",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/9466749dab94ae59383bbaf642965389.png",
+    "avgRating": 6.5,
+    "lastRating": 6.14,
+    "afId": 29704
+   },
+   {
+    "id": "4jwq2gh6042m0ve",
+    "name": "Ali Nemati",
+    "nameKo": "알리 네마티",
+    "position": "D",
+    "shirtNumber": 19,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/051c4bbf2725ef66daf899cd5aef3224.png",
+    "avgRating": 6.47,
+    "lastRating": 6.18,
+    "afId": 533035
+   },
+   {
+    "id": "pxwrxlhzpv6ryk0",
+    "name": "Hossein Kanani",
+    "nameKo": "호세인 카나니",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.83,
+    "photo": "https://img.thesports.com/football/player/06f6ddbc08f2802bb191bb472d64594f.png",
+    "avgRating": 6.39,
+    "lastRating": 5.96,
+    "afId": 2687
+   },
+   {
+    "id": "3glrw7hydxnqdyj",
+    "name": "Milad Mohammadi",
+    "nameKo": "밀라드 모하마디",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 2,
+    "games": 3,
+    "confidence": 0.67,
+    "photo": "https://img.thesports.com/football/player/95d456aff1dfe040184d80650611bd9e.png",
+    "avgRating": 6.45,
+    "lastRating": 6.64,
+    "afId": 2688
+   },
+   {
+    "id": "318q66hv985qo9j",
+    "name": "Saman Ghoddos",
+    "nameKo": "사만 고도스",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/fbb2772452c55bf2b0c01f42d29dc149.png",
+    "avgRating": 6.49,
+    "lastRating": 6.84,
+    "afId": 2699
+   },
+   {
+    "id": "vjxm8ghjd8pr6od",
+    "name": "Saeid Ezatolahi",
+    "nameKo": "사에이드 에자톨라히",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/8cf1a110e27fee93b778480702ca2851.png",
+    "avgRating": 6.54,
+    "lastRating": 6.68,
+    "afId": 19614
+   },
+   {
+    "id": "4wyrn4hdxp3lq86",
+    "name": "Mohammad Mohebbi",
+    "nameKo": "모하마드 모헤비",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/72633e499f385c09a28ec56dad759c29.png",
+    "avgRating": 6.57,
+    "lastRating": 6.41
+   },
+   {
+    "id": "vjxm8gh8ynkr6od",
+    "name": "Mehdi Taremi",
+    "nameKo": "메디 타레미",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 3,
+    "games": 3,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/40024135b097a324f6dfa87ab9c5ff49.png",
+    "avgRating": 6.4,
+    "lastRating": 6.49,
+    "afId": 42315
+   },
+   {
+    "id": "4wyrn4hdx0gxq86",
+    "name": "Shahriyar Moghanloo",
+    "nameKo": "샤리야르 모간루",
+    "position": "F",
+    "shirtNumber": 20,
+    "starts": 1,
+    "games": 3,
+    "confidence": 0.17,
+    "photo": "https://img.thesports.com/football/player/a6866d3589f683119bcfc5f5820d22d5.png",
+    "avgRating": 6.48
+   }
+  ]
+ },
  "Saudi Arabia": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.743Z",
+  "updatedAt": "2026-07-11T00:38:28.644Z",
   "xi": [
    {
     "id": "23xmvkhkw94qg8n",
@@ -6035,7 +6028,7 @@
  "Uruguay": {
   "formation": "4-1-2-3",
   "basedOnGames": 3,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.644Z",
   "xi": [
    {
     "id": "3glrw7hwjxyqdyj",
@@ -6195,7 +6188,7 @@
  "Iraq": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.644Z",
   "xi": [
    {
     "id": "2y8m4zh4yxxql07",
@@ -6349,7 +6342,7 @@
  "Türkiye": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.644Z",
   "xi": [
    {
     "id": "vjxm8gh88g1r6od",
@@ -6505,7 +6498,7 @@
  "Tunisia": {
   "formation": "5-3-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.645Z",
   "xi": [
    {
     "id": "dj2ryohjekn8q1z",
@@ -6663,7 +6656,7 @@
  "Curaçao": {
   "formation": "5-3-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.645Z",
   "xi": [
    {
     "id": "3glrw7hw092qdyj",
@@ -6822,7 +6815,7 @@
  "Czechia": {
   "formation": "5-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.645Z",
   "xi": [
    {
     "id": "6ypq3nhz5y75md7",
@@ -6981,7 +6974,7 @@
  "South Korea": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.645Z",
   "xi": [
    {
     "id": "3glrw7hj1p6qdyj",
@@ -7140,7 +7133,7 @@
  "Haiti": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.744Z",
+  "updatedAt": "2026-07-11T00:38:28.645Z",
   "xi": [
    {
     "id": "l5ergphop6er8k0",
@@ -7299,7 +7292,7 @@
  "Scotland": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.745Z",
+  "updatedAt": "2026-07-11T00:38:28.645Z",
   "xi": [
    {
     "id": "pxwrxlh9gy2ryk0",
@@ -7457,7 +7450,7 @@
  "Qatar": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-10T00:02:10.745Z",
+  "updatedAt": "2026-07-11T00:38:28.645Z",
   "xi": [
    {
     "id": "23xmvkhd6jzoqg8",

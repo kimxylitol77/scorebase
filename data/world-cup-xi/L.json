@@ -55,23 +55,6 @@
       "y": 70
     },
     {
-      "id": "1l4rjnhzl642m7v",
-      "name": "Valentino Livramento",
-      "nameKo": "티노 리브라멘토",
-      "hasMv": true,
-      "pos": "D",
-      "country": "England",
-      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/d8f37b387236ade6322a09b76b2f53cb.png",
-      "score": 8.16,
-      "star": 4,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0,
-      "x": 39,
-      "y": 70
-    },
-    {
       "id": "y39mp1hywejomoj",
       "name": "Nico O'Reilly",
       "nameKo": "니코 오라일리",
@@ -84,8 +67,8 @@
       "star": 4,
       "recentRating": 6.18,
       "avgRating": 6.62,
-      "games": 6,
-      "x": 61,
+      "games": 5,
+      "x": 39,
       "y": 70
     },
     {
@@ -102,6 +85,23 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "23xmvkhx1y2qg8n",
+      "name": "Marc Guehi",
+      "nameKo": "마크 게히",
+      "hasMv": true,
+      "pos": "D",
+      "country": "England",
+      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      "logo": "https://img.thesports.com/football/player/0deb5bb79ce10fb6f18c57511f0b9849.png",
+      "score": 8.05,
+      "star": 4,
+      "recentRating": 5.92,
+      "avgRating": 6.78,
+      "games": 5,
       "x": 84,
       "y": 70
     },
@@ -117,25 +117,25 @@
       "score": 8.97,
       "star": 4,
       "recentRating": 9,
-      "avgRating": 7.81,
-      "games": 6,
+      "avgRating": 7.85,
+      "games": 5,
       "x": 22,
       "y": 32
     },
     {
-      "id": "ednm9whev1dryox",
-      "name": "Declan Rice",
-      "nameKo": "데클런 라이스",
+      "id": "zp5rzghp48nvq82",
+      "name": "Kobbie Mainoo",
+      "nameKo": "코비 메이누",
       "hasMv": true,
       "pos": "M",
       "country": "England",
       "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/733edda4bad06e139f96ced9ab7782d4.png",
-      "score": 8.52,
+      "logo": "https://img.thesports.com/football/player/13b2d9e10881b89677de23d94c92aa8f.png",
+      "score": 8.46,
       "star": 4,
-      "recentRating": 6.11,
-      "avgRating": 7.28,
-      "games": 5,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0,
       "x": 50,
       "y": 32
     },
@@ -157,6 +157,23 @@
       "y": 32
     },
     {
+      "id": "ednm9whev1dryox",
+      "name": "Declan Rice",
+      "nameKo": "데클런 라이스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "England",
+      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+      "logo": "https://img.thesports.com/football/player/733edda4bad06e139f96ced9ab7782d4.png",
+      "score": 8.27,
+      "star": 4,
+      "recentRating": 6.11,
+      "avgRating": 7.05,
+      "games": 4,
+      "x": 35,
+      "y": 52
+    },
+    {
       "id": "pxwrxlh92k9wryk",
       "name": "Elliot Anderson",
       "nameKo": "엘리엇 앤더슨",
@@ -165,28 +182,11 @@
       "country": "England",
       "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
       "logo": "https://img.thesports.com/football/player/d028d3350e26ac24586eacbad8ba0139.png",
-      "score": 8.03,
-      "star": 4,
-      "recentRating": 6.35,
-      "avgRating": 6.99,
-      "games": 6,
-      "x": 35,
-      "y": 52
-    },
-    {
-      "id": "zp5rzghp48nvq82",
-      "name": "Kobbie Mainoo",
-      "nameKo": "코비 메이누",
-      "hasMv": true,
-      "pos": "M",
-      "country": "England",
-      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/13b2d9e10881b89677de23d94c92aa8f.png",
-      "score": 7.83,
+      "score": 7.8,
       "star": 3,
-      "recentRating": 7.2,
-      "avgRating": 7.2,
-      "games": 1,
+      "recentRating": 6.35,
+      "avgRating": 6.87,
+      "games": 5,
       "x": 65,
       "y": 52
     },
@@ -202,8 +202,8 @@
       "score": 8.6,
       "star": 4,
       "recentRating": 7.7,
-      "avgRating": 7.7,
-      "games": 6,
+      "avgRating": 7.92,
+      "games": 5,
       "x": 50,
       "y": 14
     }
@@ -236,8 +236,8 @@
       "score": 8.11,
       "star": 4,
       "recentRating": 7.3,
-      "avgRating": 7.25,
-      "games": 5
+      "avgRating": 7.14,
+      "games": 4
     },
     {
       "id": "x7lm7ph0854om2w",
@@ -251,23 +251,8 @@
       "score": 8.09,
       "star": 4,
       "recentRating": 7.4,
-      "avgRating": 6.89,
-      "games": 6
-    },
-    {
-      "id": "23xmvkhx1y2qg8n",
-      "name": "Marc Guehi",
-      "nameKo": "마크 게히",
-      "hasMv": true,
-      "pos": "D",
-      "country": "England",
-      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-      "logo": "https://img.thesports.com/football/player/0deb5bb79ce10fb6f18c57511f0b9849.png",
-      "score": 8.05,
-      "star": 4,
-      "recentRating": 5.92,
-      "avgRating": 6.84,
-      "games": 6
+      "avgRating": 6.92,
+      "games": 5
     },
     {
       "id": "x7lm7phnwd2m2wd",
@@ -298,6 +283,21 @@
       "recentRating": 6.05,
       "avgRating": 7.12,
       "games": 3
+    },
+    {
+      "id": "y0or5jhey2jqwzv",
+      "name": "Derrick Luckassen",
+      "nameKo": "데릭 루카센",
+      "hasMv": false,
+      "pos": "D",
+      "country": "Ghana",
+      "flag": "🇬🇭",
+      "logo": "https://img.thesports.com/football/player/05b4b85c11b98d20ed9561b0b537dd8c.png",
+      "score": 8,
+      "star": 4,
+      "recentRating": 6.92,
+      "avgRating": 7.46,
+      "games": 2
     }
   ],
   "complete": true

@@ -32,8 +32,8 @@
       "score": 8.5,
       "star": 4,
       "recentRating": 7.57,
-      "avgRating": 7.43,
-      "games": 6,
+      "avgRating": 7.58,
+      "games": 5,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 8.47,
       "star": 4,
       "recentRating": 7.2,
-      "avgRating": 7.2,
-      "games": 6,
+      "avgRating": 7.36,
+      "games": 5,
       "x": 16,
       "y": 70
     },
@@ -83,8 +83,8 @@
       "score": 8,
       "star": 3,
       "recentRating": 6.18,
-      "avgRating": 6.87,
-      "games": 5,
+      "avgRating": 6.88,
+      "games": 4,
       "x": 61,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.57,
       "star": 4,
       "recentRating": 6.93,
-      "avgRating": 7.11,
-      "games": 6,
+      "avgRating": 7.15,
+      "games": 5,
       "x": 22,
       "y": 32
     },
@@ -134,8 +134,8 @@
       "score": 8.22,
       "star": 4,
       "recentRating": 6.53,
-      "avgRating": 7.06,
-      "games": 6,
+      "avgRating": 7.04,
+      "games": 5,
       "x": 50,
       "y": 32
     },
@@ -151,27 +151,10 @@
       "score": 8.15,
       "star": 4,
       "recentRating": 6.4,
-      "avgRating": 7.04,
-      "games": 6,
+      "avgRating": 7.08,
+      "games": 5,
       "x": 78,
       "y": 32
-    },
-    {
-      "id": "965mkyh32xpwr1g",
-      "name": "Samu Costa",
-      "nameKo": "사무 코스타",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/9585221ed7c01617bfdb5ff8e1c53c49.png",
-      "score": 7.35,
-      "star": 3,
-      "recentRating": 6.61,
-      "avgRating": 6.95,
-      "games": 2,
-      "x": 35,
-      "y": 52
     },
     {
       "id": "3glrw7hy6587qdy",
@@ -187,6 +170,23 @@
       "recentRating": 6.61,
       "avgRating": 7.22,
       "games": 5,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "3glrw7hj003qdyj",
+      "name": "Rúben Neves",
+      "nameKo": "후벵 네베스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/970a6d3411ed6882a758efbbc80d53ac.png",
+      "score": 7.29,
+      "star": 3,
+      "recentRating": 6.37,
+      "avgRating": 6.59,
+      "games": 2,
       "x": 65,
       "y": 52
     },
@@ -210,21 +210,6 @@
   ],
   "bench": [
     {
-      "id": "6ypq3nh19kemd7o",
-      "name": "Pedro Neto",
-      "nameKo": "페드루 네투",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/2585a5614ef6e4605f826aaf58670ddf.png",
-      "score": 8.05,
-      "star": 4,
-      "recentRating": 6.46,
-      "avgRating": 6.8,
-      "games": 6
-    },
-    {
       "id": "y39mp1hj09e5moj",
       "name": "Gonçalo Ramos",
       "nameKo": "곤살루 하무스",
@@ -236,23 +221,8 @@
       "score": 8.04,
       "star": 4,
       "recentRating": 8.2,
-      "avgRating": 7.08,
-      "games": 3
-    },
-    {
-      "id": "dj2ryohjlv0xq1z",
-      "name": "Francisco Conceicao",
-      "nameKo": "프란시스쿠 콘세이상",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/a7cdc78b755a777a56dc07e822d5792d.png",
-      "score": 7.9,
-      "star": 3,
-      "recentRating": 6.63,
-      "avgRating": 6.93,
-      "games": 5
+      "avgRating": 7.35,
+      "games": 2
     },
     {
       "id": "vjxm8ghxj52r6od",
@@ -281,8 +251,8 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 6.41,
-      "avgRating": 7.09,
-      "games": 6
+      "avgRating": 7.25,
+      "games": 5
     },
     {
       "id": "jw2r09h1veprz84",
@@ -298,6 +268,36 @@
       "recentRating": 6.96,
       "avgRating": 7.22,
       "games": 3
+    },
+    {
+      "id": "8yomo4h290z0q0j",
+      "name": "Jhon Arias",
+      "nameKo": "존 아리아스",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Colombia",
+      "flag": "🇨🇴",
+      "logo": "https://img.thesports.com/football/player/61ff11114ba68a0e9d157b824c665ff9.png",
+      "score": 7.76,
+      "star": 3,
+      "recentRating": 6.36,
+      "avgRating": 6.92,
+      "games": 5
+    },
+    {
+      "id": "n54qllhxvv8qvy9",
+      "name": "Davinson Sánchez",
+      "nameKo": "다빈손 산체스",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Colombia",
+      "flag": "🇨🇴",
+      "logo": "https://img.thesports.com/football/player/f63c91b340c51aaeaeebc1af02b77ae7.png",
+      "score": 7.73,
+      "star": 3,
+      "recentRating": 6.28,
+      "avgRating": 7.23,
+      "games": 5
     }
   ],
   "complete": true

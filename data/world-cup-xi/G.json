@@ -21,15 +21,15 @@
   "teamRating": 3.4,
   "xi": [
     {
-      "id": "dn1m1ghn029zmoe",
-      "name": "Senne Lammens",
-      "nameKo": "세너 라먼스",
+      "id": "318q66h4w4yyqo9",
+      "name": "Mike Penders",
+      "nameKo": "마이크 펜더르스",
       "hasMv": true,
       "pos": "G",
       "country": "Belgium",
       "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/0aa2f69e2c0fee08b15473600a6c25ca.png",
-      "score": 7.99,
+      "logo": "https://img.thesports.com/football/player/8ace0af583f66f675241902c76a3c592.png",
+      "score": 7.76,
       "star": 3,
       "recentRating": 0,
       "avgRating": 0,
@@ -65,9 +65,9 @@
       "logo": "https://img.thesports.com/football/player/0572010ba6f3755d3e27dfdf4e3547e6.png",
       "score": 7.59,
       "star": 3,
-      "recentRating": 6.78,
-      "avgRating": 6.77,
-      "games": 5,
+      "recentRating": 6.12,
+      "avgRating": 6.67,
+      "games": 6,
       "x": 39,
       "y": 70
     },
@@ -97,11 +97,11 @@
       "country": "Belgium",
       "flag": "🇧🇪",
       "logo": "https://img.thesports.com/football/player/360b6a10caff4b542567aeee16dd82a8.png",
-      "score": 7.3,
+      "score": 7.38,
       "star": 3,
-      "recentRating": 6.43,
-      "avgRating": 6.45,
-      "games": 3,
+      "recentRating": 7,
+      "avgRating": 6.58,
+      "games": 4,
       "x": 84,
       "y": 70
     },
@@ -220,9 +220,9 @@
       "logo": "https://img.thesports.com/football/player/8f60a918e7b278d4ca08e5bbf7a7bc6a.png",
       "score": 8.85,
       "star": 4,
-      "recentRating": 9.81,
-      "avgRating": 7.25,
-      "games": 4
+      "recentRating": 7.4,
+      "avgRating": 7.28,
+      "games": 5
     },
     {
       "id": "x7lm7pho79om2wd",
@@ -235,9 +235,9 @@
       "logo": "https://img.thesports.com/football/player/eeba5051d4ae8a973db752c1f2ef60b6.png",
       "score": 8.56,
       "star": 4,
-      "recentRating": 7.3,
-      "avgRating": 7.77,
-      "games": 5
+      "recentRating": 6.1,
+      "avgRating": 7.5,
+      "games": 6
     },
     {
       "id": "l5ergph2yx5r8k0",
@@ -250,24 +250,9 @@
       "logo": "https://img.thesports.com/football/player/aa5fde3cd04e03f67cbeb51c86572c90.png",
       "score": 7.78,
       "star": 3,
-      "recentRating": 6.69,
-      "avgRating": 6.71,
-      "games": 4
-    },
-    {
-      "id": "318q66h4w4yyqo9",
-      "name": "Mike Penders",
-      "nameKo": "마이크 펜더르스",
-      "hasMv": true,
-      "pos": "G",
-      "country": "Belgium",
-      "flag": "🇧🇪",
-      "logo": "https://img.thesports.com/football/player/8ace0af583f66f675241902c76a3c592.png",
-      "score": 7.76,
-      "star": 3,
-      "recentRating": 0,
-      "avgRating": 0,
-      "games": 0
+      "recentRating": 6.4,
+      "avgRating": 6.65,
+      "games": 5
     },
     {
       "id": "k82rekhvpdxrepz",
@@ -280,9 +265,9 @@
       "logo": "https://img.thesports.com/football/player/86949116968b247baf46e77ee6f8602d.png",
       "score": 7.72,
       "star": 3,
-      "recentRating": 6.22,
-      "avgRating": 6.84,
-      "games": 5
+      "recentRating": 7.9,
+      "avgRating": 7.02,
+      "games": 6
     },
     {
       "id": "pxwrxlh1z5yryk0",
@@ -295,8 +280,23 @@
       "logo": "https://img.thesports.com/football/player/498430e70c4826d198eaa44fa1dc2607.png",
       "score": 7.7,
       "star": 3,
-      "recentRating": 7.61,
-      "avgRating": 6.86,
+      "recentRating": 6.4,
+      "avgRating": 6.78,
+      "games": 6
+    },
+    {
+      "id": "l5ergphv4674r8k",
+      "name": "Marwan Attia",
+      "nameKo": "마르완 아티아",
+      "hasMv": false,
+      "pos": "M",
+      "country": "Egypt",
+      "flag": "🇪🇬",
+      "logo": "https://img.thesports.com/football/player/36dbbd84d488aa4e97fe192e894445a9.png",
+      "score": 7.7,
+      "star": 3,
+      "recentRating": 6.73,
+      "avgRating": 7.08,
       "games": 5
     }
   ],
