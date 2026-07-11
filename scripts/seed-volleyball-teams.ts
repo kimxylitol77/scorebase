@@ -43,9 +43,13 @@ async function main() {
     mapping.push({ ourId, ourName: t.name, ourLeague: t.league, tsId, tsName: t.name });
   }
 
-  mapping.sort((a, b) => a.ourLeague.localeCompare(b.ourLeague) || a.ourName.localeCompare(b.ourName));
-  writeFileSync(MAPPING_OUT, JSON.stringify(mapping, null, 2));
-  console.log(`Team 생성 ${created} · 갱신 ${updated} → mapping ${mapping.length}건 (${MAPPING_OUT})`);
+  // 기존 매핑 보존 — 이번 입력에 없는 팀(다른 리그)은 유지, 같은 tsId 는 갱신 (멱등 확장).
+  let prev: typeof mapping = [];
+  try { prev = JSON.parse(readFileSync(MAPPING_OUT, "utf-8")); } catch { /* 최초 실행 */ }
+  const merged = [...prev.filter((p) => !mapping.some((m) => m.tsId === p.tsId)), ...mapping];
+  merged.sort((a, b) => a.ourLeague.localeCompare(b.ourLeague) || a.ourName.localeCompare(b.ourName));
+  writeFileSync(MAPPING_OUT, JSON.stringify(merged, null, 2));
+  console.log(`Team 생성 ${created} · 갱신 ${updated} → mapping ${merged.length}건 (기존 ${prev.length} + 신규, ${MAPPING_OUT})`);
   await prisma.$disconnect();
 }
 main().catch((e) => { console.error(e); process.exit(1); });

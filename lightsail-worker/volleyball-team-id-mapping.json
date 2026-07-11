@@ -390,5 +390,131 @@
     "ourLeague": "VNL",
     "tsId": "gy0or58h2vprwzv",
     "tsName": "USA"
+  },
+  {
+    "ourId": 610768,
+    "ourName": "Belgium Women",
+    "ourLeague": "VNL_W",
+    "tsId": "l965mkdh6kyr1ge",
+    "tsName": "Belgium Women"
+  },
+  {
+    "ourId": 610758,
+    "ourName": "Brazil Women",
+    "ourLeague": "VNL_W",
+    "tsId": "yl5ergdh9zyr8k0",
+    "tsName": "Brazil Women"
+  },
+  {
+    "ourId": 610774,
+    "ourName": "Bulgaria Women",
+    "ourLeague": "VNL_W",
+    "tsId": "9k82redh7gpqepz",
+    "tsName": "Bulgaria Women"
+  },
+  {
+    "ourId": 610761,
+    "ourName": "Canada Women",
+    "ourLeague": "VNL_W",
+    "tsId": "jednm9vh319qyox",
+    "tsName": "Canada Women"
+  },
+  {
+    "ourId": 610765,
+    "ourName": "China Women",
+    "ourLeague": "VNL_W",
+    "tsId": "gpxwrxdhkv4myk0",
+    "tsName": "China Women"
+  },
+  {
+    "ourId": 610766,
+    "ourName": "Czech Republic Women",
+    "ourLeague": "VNL_W",
+    "tsId": "z318q67h5lkro9j",
+    "tsName": "Czech Republic Women"
+  },
+  {
+    "ourId": 610771,
+    "ourName": "Dominican Republic Women",
+    "ourLeague": "VNL_W",
+    "tsId": "p4jwq23h332r0ve",
+    "tsName": "Dominican Republic Women"
+  },
+  {
+    "ourId": 610773,
+    "ourName": "France Women",
+    "ourLeague": "VNL_W",
+    "tsId": "l965mkdh6yyr1ge",
+    "tsName": "France Women"
+  },
+  {
+    "ourId": 610767,
+    "ourName": "Germany Women",
+    "ourLeague": "VNL_W",
+    "tsId": "p4jwq23h3nwr0ve",
+    "tsName": "Germany Women"
+  },
+  {
+    "ourId": 610759,
+    "ourName": "Italy Women",
+    "ourLeague": "VNL_W",
+    "tsId": "l965mkdh6k9r1ge",
+    "tsName": "Italy Women"
+  },
+  {
+    "ourId": 610763,
+    "ourName": "Japan Women",
+    "ourLeague": "VNL_W",
+    "tsId": "vl7oqddh51xq510",
+    "tsName": "Japan Women"
+  },
+  {
+    "ourId": 610760,
+    "ourName": "Netherlands Women",
+    "ourLeague": "VNL_W",
+    "tsId": "8y39mpwh266qojx",
+    "tsName": "Netherlands Women"
+  },
+  {
+    "ourId": 610764,
+    "ourName": "Poland Women",
+    "ourLeague": "VNL_W",
+    "tsId": "j1l4rjdhw95r7vx",
+    "tsName": "Poland Women"
+  },
+  {
+    "ourId": 610769,
+    "ourName": "Serbia Women",
+    "ourLeague": "VNL_W",
+    "tsId": "jednm9vh3w2qyox",
+    "tsName": "Serbia Women"
+  },
+  {
+    "ourId": 610770,
+    "ourName": "Thailand Women",
+    "ourLeague": "VNL_W",
+    "tsId": "kdj2rydhz29r1zp",
+    "tsName": "Thailand Women"
+  },
+  {
+    "ourId": 610762,
+    "ourName": "Turkey Women",
+    "ourLeague": "VNL_W",
+    "tsId": "4zp5rzdhlg0q82w",
+    "tsName": "Turkey Women"
+  },
+  {
+    "ourId": 610772,
+    "ourName": "Ukraine Women",
+    "ourLeague": "VNL_W",
+    "tsId": "4zp5rzdhl50q82w",
+    "tsName": "Ukraine Women"
+  },
+  {
+    "ourId": 610757,
+    "ourName": "USA Women",
+    "ourLeague": "VNL_W",
+    "tsId": "p4jwq23h3l4r0ve",
+    "tsName": "USA Women"
   }
 ]

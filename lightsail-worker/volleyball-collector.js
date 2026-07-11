@@ -39,6 +39,7 @@ const TEAM_MAP_FILE = path.join(__dirname, "volleyball-team-id-mapping.json");
 // unique_tournament_id → 우리 league code (utid 는 시즌 불변 — season_id 와 달리 안정)
 const UTID_TO_LEAGUE = {
   "e4wyrn3hexvm86p": "VNL",
+  "yl5ergdh3wpr8k0": "VNL_W", // 여자 발리볼 네이션스리그 (2026-07-11 추가)
   "y0or58hld26rwzv": "AVC_NATIONS_W",
   "jednm9vh901qyox": "EGL_W",
 };

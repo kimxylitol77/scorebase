@@ -65,6 +65,7 @@ const BASEBALL_SEASONS = [
 // 시즌 초 diary sweep 매치의 season_id 로 갱신 (utid: VNL e4wyrn3hexvm86p / AVC y0or58hld26rwzv / EGL jednm9vh901qyox)
 const VOLLEYBALL_SEASONS = [
   { code: "VNL", seasonId: "23xmvzhkkv2qg8n" },
+  { code: "VNL_W", seasonId: "zp5rzdhppydq82w" }, // 여자 발리볼 네이션스리그 (2026-07-11 추가, utid yl5ergdh3wpr8k0)
   { code: "AVC_NATIONS_W", seasonId: "dj2rydhgn9yr1zp" },
   { code: "EGL_W", seasonId: "pxwrxdhjj28myk0" },
 ];

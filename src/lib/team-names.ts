@@ -3288,6 +3288,14 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Poland": "폴란드", "Serbia": "세르비아", "Slovenia": "슬로베니아", "Turkey": "튀르키예",
     "USA": "미국", "Ukraine": "우크라이나",
   },
+  VNL_W: {
+    "USA Women": "미국", "Brazil Women": "브라질", "Italy Women": "이탈리아",
+    "Netherlands Women": "네덜란드", "Canada Women": "캐나다", "Turkey Women": "튀르키예",
+    "Japan Women": "일본", "Poland Women": "폴란드", "China Women": "중국",
+    "Czech Republic Women": "체코", "Germany Women": "독일", "Belgium Women": "벨기에",
+    "Serbia Women": "세르비아", "Thailand Women": "태국", "Dominican Republic Women": "도미니카공화국",
+    "Ukraine Women": "우크라이나", "France Women": "프랑스", "Bulgaria Women": "불가리아",
+  },
   AVC_NATIONS_W: {
     "Australia Women": "호주", "Chinese Taipei Women": "대만", "Hong Kong Women": "홍콩",
     "Indonesia Women": "인도네시아", "Iran Women": "이란", "Kazakhstan Women": "카자흐스탄",
