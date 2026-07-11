@@ -14169,5 +14169,355 @@
     "tsName": "Jeju SK FC",
     "tsKo": "제주",
     "matchType": "manual"
+  },
+  {
+    "ourId": 115932,
+    "ourName": "Partick",
+    "ourLeague": "SPL",
+    "ourExternalId": "901",
+    "tsId": "p4jwq2ghyo3m0ve",
+    "tsName": "Partick Thistle FC",
+    "tsKo": "파틱 시슬",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 115933,
+    "ourName": "Dunfermline",
+    "ourLeague": "SPL",
+    "ourExternalId": "1388",
+    "tsId": "e4wyrn4h1l7q86p",
+    "tsName": "Dunfermline Athletic",
+    "tsKo": "던펌린 애슬레틱",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 119153,
+    "ourName": "Dundee Utd",
+    "ourLeague": "SPL",
+    "ourExternalId": "1386",
+    "tsId": "9dn1m1ghddgmoep",
+    "tsName": "Dundee United",
+    "tsKo": "던디 유나이티드",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 598126,
+    "ourName": "Aberdeen",
+    "ourLeague": "UEL",
+    "ourExternalId": "252",
+    "tsId": "z318q66hd2jqo9j",
+    "tsName": "Aberdeen",
+    "tsKo": "애버딘",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 598618,
+    "ourName": "Arbroath",
+    "ourLeague": "SPL",
+    "ourExternalId": "4249",
+    "tsId": "v2y8m4zhy2pql07",
+    "tsName": "Arbroath",
+    "tsKo": "아브로스",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610710,
+    "ourName": "ST Johnstone",
+    "ourLeague": "SPL",
+    "ourExternalId": "258",
+    "tsId": "z318q66hp4oqo9j",
+    "tsName": "Saint Johnstone",
+    "tsKo": "세인트 존스턴",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610775,
+    "ourName": "Airdrie United",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "4668",
+    "tsId": "gpxwrxlhkw4ryk0",
+    "tsName": "Airdrie United",
+    "tsKo": "에어드리 유나이티드",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610776,
+    "ourName": "Brechin",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1390",
+    "tsId": "z8yomo4hlwgq0j6",
+    "tsName": "Brechin City",
+    "tsKo": "브레친 시티",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610777,
+    "ourName": "Inverness CT",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "903",
+    "tsId": "v2y8m4zh9jnql07",
+    "tsName": "Inverness",
+    "tsKo": "인버네스",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610778,
+    "ourName": "East Fife",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6764",
+    "tsId": "9dn1m1ghzy5moep",
+    "tsName": "East Fife",
+    "tsKo": "이스트 파이프",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610779,
+    "ourName": "Dumbarton",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1382",
+    "tsId": "d23xmvkh5ovqg8n",
+    "tsName": "Dumbarton",
+    "tsKo": "덤바턴",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610780,
+    "ourName": "Morton",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1383",
+    "tsId": "gy0or5jh71wqwzv",
+    "tsName": "Greenock Morton",
+    "tsKo": "그리녹 모턴",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610781,
+    "ourName": "Linlithgow Rose",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6744",
+    "tsId": "4jwq2gh46pdm0ve",
+    "tsName": "Linlithgow Rose",
+    "tsKo": "린리스고 로즈",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610782,
+    "ourName": "Queen of the South",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1384",
+    "tsId": "vl7oqdehkz5r510",
+    "tsName": "Queen of South",
+    "tsKo": "퀸 오브 더 사우스",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610783,
+    "ourName": "Kelty Hearts",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6773",
+    "tsId": "pxwrxlhg7noryk0",
+    "tsName": "Kelty Hearts",
+    "tsKo": "켈티 하츠",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610784,
+    "ourName": "Raith Rovers",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1385",
+    "tsId": "kn54qllho2jqvy9",
+    "tsName": "Raith Rovers",
+    "tsKo": "레이스 로버스",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610785,
+    "ourName": "Elgin City",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6767",
+    "tsId": "kjw2r09h88nrz84",
+    "tsName": "Elgin City",
+    "tsKo": "엘긴 시티",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610786,
+    "ourName": "Annan Athletic",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6757",
+    "tsId": "3glrw7hw0p6qdyj",
+    "tsName": "Annan Athletic FC",
+    "tsKo": "아난 애슬레틱",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610787,
+    "ourName": "Ross County",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "902",
+    "tsId": "p3glrw7hv0oqdyj",
+    "tsName": "Ross County",
+    "tsKo": "로스 카운티",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610788,
+    "ourName": "East Kilbride",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6765",
+    "tsId": "jw2r09hn9jgrz84",
+    "tsName": "East Kilbride",
+    "tsKo": "이스트 킬브라이드",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610789,
+    "ourName": "Edinburgh City",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6766",
+    "tsId": "x7lm7phkpz8m2wd",
+    "tsName": "Edinburgh City",
+    "tsKo": "에든버러 시티",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610790,
+    "ourName": "Peterhead",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6777",
+    "tsId": "z8yomo4hdvwq0j6",
+    "tsName": "Peterhead",
+    "tsKo": "피터헤드",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610791,
+    "ourName": "Hamilton Academical",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "248",
+    "tsId": "gy0or5jh2l3qwzv",
+    "tsName": "Hamilton Academical",
+    "tsKo": "해밀턴 아카데미컬",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610792,
+    "ourName": "Queen's Park",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6778",
+    "tsId": "gy0or5jhyknqwzv",
+    "tsName": "Queen's Park",
+    "tsKo": "퀸스 파크",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610793,
+    "ourName": "Brora Rangers",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6760",
+    "tsId": "6ypq3nh0zl1md7o",
+    "tsName": "Brora Rangers",
+    "tsKo": "브로라 레인저스",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610794,
+    "ourName": "Spartans",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6781",
+    "tsId": "l7oqdehnoyor510",
+    "tsName": "Spartans",
+    "tsKo": "스파르탄스",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610795,
+    "ourName": "Stenhousemuir",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6784",
+    "tsId": "56ypq3nhjwxmd7o",
+    "tsName": "Stenhousemuir",
+    "tsKo": "스텐하우스뮤어",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610796,
+    "ourName": "Forfar Athletic",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "4250",
+    "tsId": "kdj2ryoh03wq1zp",
+    "tsName": "Forfar Athletic FC",
+    "tsKo": "포파 애슬레틱",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610797,
+    "ourName": "Stranraer",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6785",
+    "tsId": "vjxm8gh48p0r6od",
+    "tsName": "Stranraer",
+    "tsKo": "스트랜라어",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610798,
+    "ourName": "Ayr Utd",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1387",
+    "tsId": "8yomo4h738zq0j6",
+    "tsName": "Ayr United",
+    "tsKo": "에어 유나이티드",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610799,
+    "ourName": "Stirling Albion",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "4669",
+    "tsId": "gy0or5jhplvqwzv",
+    "tsName": "Stirling Albion",
+    "tsKo": "스털링 앨비언",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610800,
+    "ourName": "Montrose",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "4251",
+    "tsId": "kn54qllhvdyqvy9",
+    "tsName": "Montrose",
+    "tsKo": "몬트로즈",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610801,
+    "ourName": "Clyde",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6762",
+    "tsId": "p3glrw7hvevqdyj",
+    "tsName": "Clyde",
+    "tsKo": "클라이드",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610802,
+    "ourName": "Cove Rangers",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "6763",
+    "tsId": "y0or5jhlx1vqwzv",
+    "tsName": "Cove Rangers",
+    "tsKo": "코브 레인저스",
+    "matchType": "fixture-join"
+  },
+  {
+    "ourId": 610803,
+    "ourName": "Alloa Athletic",
+    "ourLeague": "SCO_LEAGUE_CUP",
+    "ourExternalId": "1391",
+    "tsId": "kdj2ryohzgoq1zp",
+    "tsName": "Alloa Athletic",
+    "tsKo": "앨로아 애슬레틱",
+    "matchType": "fixture-join"
   }
 ]
