@@ -80,6 +80,7 @@ const ALL_LEAGUES: League[] = [
   "SUPER_LIG",
   "JUPILER_PL",
   "SPL",
+  "SCO_LEAGUE_CUP", // 스코틀랜드 리그컵 (af 185, 2026 시즌 진행 중)
   "GREEK_SL",
   "BRASILEIRAO",
   "LIGA_MX",
