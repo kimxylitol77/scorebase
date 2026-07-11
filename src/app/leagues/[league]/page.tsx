@@ -79,6 +79,7 @@ const VALID_LEAGUES = [
   // 컵 대회 10개 (2026-05-20)
   "FA_CUP",
   "EFL_CUP",
+  "SCO_LEAGUE_CUP",
   "COPA_DEL_REY",
   "COPPA_ITALIA",
   "DFB_POKAL",
