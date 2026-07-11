@@ -33,8 +33,19 @@
 - [x] 진단 엔드포인트 `/api/internal/panel-status`(gateOn·keyPresent·active)
 - [x] Grok LIVE 검증(2026-07-11) — cron targeted40/stored40/storedMarkets116/failed0, 한국어 근거 정상
 - [x] 함정 기록: env 추가 후 **재배포 필수**(Ready Stale=env 미반영). PANEL_GROK gateOn=false 원인이 이것
-- [ ] Claude·Gemini = OpenRouter (OPENROUTER_API_KEY + PANEL_CLAUDE/GEMINI), modelId 검증 후. 미착수
-- 현재 LIVE: scorebase·gpt·qwen·grok (claude/gemini OFF)
+- [x] Claude·Gemini = OpenRouter LIVE(2026-07-11). modelId claude-haiku-4.5 / gemini-2.5-flash(카탈로그 검증)
+- [x] Claude 함정: Anthropic 은 OpenRouter 에서 response_format:json_object 미지원 → 전건 실패(0저장).
+      해결=Panelist.jsonMode:false + 파서가 ```json 펜스·프로즈 감싼 JSON 첫 {…} 추출. ?test=claude 로 실증
+- [x] 진단 확장: /api/internal/panel-status?test=<model> — 단건 호출로 실제 에러·원문·파싱 확인
+- 현재 LIVE 6모델: scorebase·gpt·grok·gemini·qwen·claude
+
+## P4 — 페이지 N자 리더보드 ✅ 완료 (2026-07-11)
+- [x] scorecard/page.tsx 재작성 — 2자 하드코딩 → 데이터 존재 모델 자동 리더보드(순위+막대+채점대기 칩)
+- [x] "AI 원탁": 예정 경기 전 모델 1X2 나란히 + 컨센서스(만장일치/의견갈림 배지)
+- [x] 시장별 성적(모델 자동)·경기별 피드(모델별 적중/실패 배지)
+- [x] gpt-5.5/5.6 → "GPT-5.6 Sol" 통합 표기(9c2d719). accent=panelists.ts 일치, Tailwind 정적 클래스
+- [x] 프로덕션 렌더 확인(리더보드 GPT 59.6% 1위·스코어베이스 57.6% 2위·대기 칩 3모델)
+- 남은 것(P5): 홈 쇼케이스·sitemap·nav 카피는 기존 2자 문구 유지 중 — 별도 손질
 
 ## 배포
 - [ ] scorebase-deploy 스킬로 마무리 (tsc + commit + push)
