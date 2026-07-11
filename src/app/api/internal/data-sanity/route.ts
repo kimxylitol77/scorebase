@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { BASEBALL_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
+import tsLeagueMap from "@/lib/sports/thesports/league-id-mapping.json";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +48,8 @@ type IssueKind =
   | "future_live"
   | "standings_stale"
   | "standings_mismatch"
-  | "friendly_dup";
+  | "friendly_dup"
+  | "cross_source_dup";
 
 interface Issue {
   kind: IssueKind;
@@ -465,6 +467,76 @@ export async function GET(req: NextRequest) {
       away: raw.awayTeam.name,
       detail: `같은 ts 매치(${tsId})가 ${rows.length} row — raw #${raw.id} 삭제 필요 (ts- 가 canonical)`,
     });
+  }
+
+  // ───── 4.6. 크로스소스 매치 중복 — 같은 경기가 숫자(af/ESPN) + ts- 두 row ─────
+  // 2026-07-11 BELARUS_PL: af #316314(1525920) 0-0 stale + ts #851442(ts-…) 1-0 이
+  // 화면에 두 카드로 동시 노출. 이중수집 리그(TS_COVERED_EXCEPTIONS 등)에서 write-time
+  // dedup 가드가 뚫리면(diary 시각 오기 등) 발생. friendly_dup 은 같은 tsMatchId 두 row
+  // 한정이라 이 유형(다른 id 체계)을 원리상 못 잡음 — 팀쌍+시각으로 감지.
+  // 야구는 더블헤더(같은 팀 3h 간격 2경기 정상)가 있어 윈도우 40분, 그 외 3h.
+  // ts- vs ts- 는 제외(더블헤더 — LMB 전수감사 확인). 숫자 vs 숫자 크로스소스
+  // (football-data vs api-football 등)는 이론상 가능하나 희귀 — 미검출 한계로 수용.
+  // 대상 리그 = ts 매핑 보유 리그로 스코핑 — ts- row 가 존재하려면 매핑 필수라 손실 없고,
+  // [league, startTime] 인덱스를 태워 3분 폴링의 전 테이블 스캔 회피.
+  const tsMappedLeagues = (tsLeagueMap as { code: string }[]).map((e) => e.code);
+  const xsRows = await prisma.match.findMany({
+    where: {
+      league: { in: tsMappedLeagues },
+      startTime: { gte: new Date(now - 3 * 86400_000), lte: new Date(now + 7 * 86400_000) },
+      status: { not: "POSTPONED" },
+    },
+    select: {
+      id: true, externalId: true, league: true, status: true, startTime: true,
+      homeTeamId: true, awayTeamId: true,
+      homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+    },
+  });
+  // teamId 쌍 키 + normalize 이름 쌍 키 병행 — af/ts 팀 resolve 가 서로 다른 Team row 로
+  // 갈린 중복(오늘 케이스의 변형)은 teamId 그룹으로 안 묶여서 이름 키가 백업.
+  const xsGroups = new Map<string, typeof xsRows>();
+  const addXs = (key: string, m: (typeof xsRows)[number]) => {
+    if (!xsGroups.has(key)) xsGroups.set(key, []);
+    xsGroups.get(key)!.push(m);
+  };
+  for (const m of xsRows) {
+    addXs(`${m.league}:id:${[m.homeTeamId, m.awayTeamId].sort((a, b) => a - b).join("-")}`, m);
+    const nh = normalizeTeamName(m.homeTeam.name);
+    const na = normalizeTeamName(m.awayTeam.name);
+    if (nh && na) addXs(`${m.league}:nm:${[nh, na].sort().join("|")}`, m);
+  }
+  const seenXsPairs = new Set<string>();
+  for (const rows of xsGroups.values()) {
+    if (rows.length < 2) continue;
+    const windowMs = BASEBALL_LEAGUES.has(rows[0].league) ? 40 * 60_000 : 3 * 3600_000;
+    for (let i = 0; i < rows.length; i++) {
+      for (let j = i + 1; j < rows.length; j++) {
+        const a = rows[i], b = rows[j];
+        if (Math.abs(a.startTime.getTime() - b.startTime.getTime()) > windowMs) continue;
+        const aTs = a.externalId.startsWith("ts-");
+        const bTs = b.externalId.startsWith("ts-");
+        if (aTs === bTs) continue; // 같은 소스끼리는 대상 아님
+        // 같은 ts id 의 raw+ts- 쌍은 friendly_dup 담당 — 이중 알림 방지.
+        if (a.externalId.replace(/^ts-/, "") === b.externalId.replace(/^ts-/, "")) continue;
+        const pairId = [a.id, b.id].sort((x, y) => x - y).join("-");
+        if (seenXsPairs.has(pairId)) continue;
+        seenXsPairs.add(pairId);
+        const numericRow = aTs ? b : a;
+        // LIVE/SCHEDULED 포함 = 지금 화면 중복 노출 → HIGH. 둘 다 FINISHED 면 표시는
+        // 렌더 dedup 이 합치지만 Elo/폼 계산 이중 집계 오염이라 WARN.
+        const active = [a, b].some((r) => r.status === "LIVE" || r.status === "SCHEDULED");
+        issues.push({
+          kind: "cross_source_dup",
+          severity: active ? "HIGH" : "WARN",
+          matchId: numericRow.id,
+          externalId: numericRow.externalId,
+          league: numericRow.league,
+          home: numericRow.homeTeam.name,
+          away: numericRow.awayTeam.name,
+          detail: `크로스소스 중복 — #${a.id}(${a.externalId}, ${a.status} ${a.startTime.toISOString().slice(11, 16)}) + #${b.id}(${b.externalId}, ${b.status} ${b.startTime.toISOString().slice(11, 16)}). 병합/정리 필요`,
+        });
+      }
+    }
   }
 
   // ───── 5/6. standings 검사 — 메이저 리그 source stale + 두 source 1위 팀 mismatch ─────

@@ -31,6 +31,7 @@ import {
   BASKETBALL_LEAGUES,
   BASEBALL_LEAGUES,
   VOLLEYBALL_LEAGUES,
+  SOCCER_LEAGUES,
 } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
@@ -281,15 +282,24 @@ export async function POST(req: NextRequest) {
     try {
       // ── 근본 dedup: 같은 매치를 다른 source (api-football/ESPN) 가 이미 등록했는지 체크.
       // SKIP_LEAGUES (worker 단) 가 누락한 리그도 여기서 차단 — worker 재배포 안 해도 효과.
-      // 조건: 같은 league + 시각 ±90분 + 팀 IDs (양방향) + externalId 가 ts- 아님.
+      // 조건: 같은 league + 시각 ±150분 + 팀 IDs (양방향) + externalId 가 ts- 아님.
       // 이미 ts: 매치 있으면 update path (where 절) 로 흘러가니 skip 필요 없음.
+      // 2026-07-11: 축구만 ±90분 → ±150분 (poller strict 와 통일) — TheSports diary 가
+      // 시각을 잘못 기재하면 (BELARUS_PL 15:00, 실제 13:00 = 120분 차) 90분 윈도우가 뚫려
+      // 중복 ts- row 가 생겼음 (#316314/#851442). 정규 축구는 같은 두 팀이 150분 내 두
+      // 경기를 치를 수 없어 안전. 야구(더블헤더 단축 시 150분 내 2경기 가능 — isTsSoleSource
+      // score 동기가 1차전 row 오염) + CLUB_FRIENDLY(스플릿 스쿼드 당일 2연전)는 90분 유지.
+      const DEDUP_WINDOW_MS =
+        SOCCER_LEAGUES.has(m.league) && m.league !== "CLUB_FRIENDLY"
+          ? 150 * 60 * 1000
+          : 90 * 60 * 1000;
       const startMs = new Date(m.startTime).getTime();
       let existingNonTs = await prisma.match.findFirst({
         where: {
           league: m.league,
           startTime: {
-            gte: new Date(startMs - 90 * 60 * 1000),
-            lte: new Date(startMs + 90 * 60 * 1000),
+            gte: new Date(startMs - DEDUP_WINDOW_MS),
+            lte: new Date(startMs + DEDUP_WINDOW_MS),
           },
           OR: [
             { homeTeamId: homeId, awayTeamId: awayId },
@@ -306,6 +316,8 @@ export async function POST(req: NextRequest) {
         const homeTeam = await prisma.team.findUnique({ where: { id: homeId }, select: { name: true } });
         const awayTeam = await prisma.team.findUnique({ where: { id: awayId }, select: { name: true } });
         if (homeTeam && awayTeam) {
+          // 이름 fallback 은 substring 휴리스틱이라 윈도우를 90분으로 유지 — 150분으로
+          // 넓히면 동시 킥오프 컵 라운드에서 오버매칭(Dundee⊂Dundee United 류) 노출 증가.
           const candidates = await prisma.match.findMany({
             where: {
               league: m.league,
@@ -326,6 +338,32 @@ export async function POST(req: NextRequest) {
             (sameTeamName(c.homeTeam.name, homeTeam.name) && sameTeamName(c.awayTeam.name, awayTeam.name)) ||
             (sameTeamName(c.homeTeam.name, awayTeam.name) && sameTeamName(c.awayTeam.name, homeTeam.name)),
           ) ?? null;
+        }
+      }
+
+      // 3차 fallback: ts id 역참조 (2026-07-11). poller(±150분 strict)나 이전 push 가
+      // 이 ts 경기를 이미 non-ts 매치의 cache 에 연결했다면 그 매치가 canonical.
+      // diary 시각이 아무리 틀려도 ts id 는 안 틀리므로 시간 윈도우와 무관하게 확실히
+      // 차단 — BELARUS_PL 사고에서 af row cache 에 같은 tsMatchId 가 이미 연결돼 있었음.
+      // @@index([tsMatchId]) 존재. 자기 자신(ts- row)은 startsWith 조건으로 제외.
+      // 단 blind link(위 skippedNoTeam 경로의 추측 연결)가 엉뚱한 매치를 가리킬 수 있어
+      // 팀쌍(양방향) 일치할 때만 채택 — 불일치면 오염 링크로 보고 정상 생성 진행.
+      if (!existingNonTs) {
+        const cacheLink = await prisma.theSportsMatchCache.findFirst({
+          where: {
+            tsMatchId: m.tsMatchId,
+            match: { league: m.league, NOT: { externalId: { startsWith: "ts-" } } },
+          },
+          select: {
+            match: { select: { id: true, externalId: true, homeTeamId: true, awayTeamId: true } },
+          },
+        });
+        if (cacheLink) {
+          const lm = cacheLink.match;
+          const teamsMatch =
+            (lm.homeTeamId === homeId && lm.awayTeamId === awayId) ||
+            (lm.homeTeamId === awayId && lm.awayTeamId === homeId);
+          if (teamsMatch) existingNonTs = { id: lm.id, externalId: lm.externalId };
         }
       }
 

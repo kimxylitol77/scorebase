@@ -12,7 +12,7 @@ import { fetchEplRange } from "@/lib/sports/football-data";
 import { fetchEspnSoccerByDate } from "@/lib/sports/espn-soccer";
 import { fetchWorldCupAll } from "@/lib/sports/world-cup";
 import { fetchLolAll } from "@/lib/sports/lol";
-import { LOL_LEAGUES } from "@/lib/sports/sport-leagues";
+import { LOL_LEAGUES, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { NPB_TEAM_SHORT_NAMES } from "@/lib/sports/npb-team-names";
 import type { League, MatchStatus, NormalizedMatch } from "@/lib/sports/types";
@@ -159,6 +159,26 @@ function mergeStatus(
   return incoming;
 }
 
+// 팀 이름 normalize 완전일치 비교 — af/ts 팀 resolve 가 서로 다른 Team row 로 갈린
+// 경우(접두어·분음부호 표기 차이로 중복 Team) teamId 페어 dedup 이 못 잡는 구멍을 메움.
+// route 의 sameTeamName 과 달리 substring 매칭은 의도적으로 배제 — Niger⊂Nigeria,
+// Dundee⊂Dundee United, Rangers⊂Cove Rangers 처럼 별개 두 경기를 병합하는 오탐 때문.
+// 위 normalizeTeamName(EPL cross-check 용, 분음부호 미처리)과 별개 — Loose 접미로 구분.
+function normalizeTeamNameLoose(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[ıİ]/g, "i")
+    .replace(/\b(fc|cf|ac|afc|sc|cd|rcd|sv|ss|ssc|nk|hsv|fk|club)\b/g, "")
+    .replace(/[^a-z0-9가-힣]/g, "");
+}
+function eqTeamNameLoose(a: string, b: string): boolean {
+  const na = normalizeTeamNameLoose(a);
+  const nb = normalizeTeamNameLoose(b);
+  return !!na && na === nb;
+}
+
 // opts.source: 팀 resolve 에 쓸 source 명시 — 기본은 getPrimarySource(league).
 // EPL 처럼 primary=football-data 인 리그에 api-football 데이터를 넣을 때 반드시 명시할 것.
 // 소스 라벨이 거짓이면 (league, source, ext) 매핑이 다른 체계의 팀을 가리켜 Team 이름
@@ -201,8 +221,15 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
   // 원인 예: 같은 LALIGA Barcelona vs Valencia 매치를 api-football fixture_id=748519 와
   // 다른 source 의 매치 id 로 두 row 생성 — chain collector / 시즌 변경 / 다른 fixture id
   // 응답 등 케이스. 매번 cron 마다 dup 누적되던 패턴 차단.
-  const dedupWindow = 30 * 60 * 1000;
-  const existing = await prisma.match.findFirst({
+  // 정규 축구는 ±150분 — TheSports diary 시각 오기(2026-07-11 BELARUS_PL 120분 차)로
+  // 좁은 윈도우가 뚫려 af/ts 중복 row 가 생겼음. 같은 리그 같은 두 팀이 150분 내 두
+  // 경기를 치를 수 없어 확대 안전. 야구(더블헤더)와 CLUB_FRIENDLY(스플릿 스쿼드 당일
+  // 2연전 — collect-friendlies 가 이 함수 사용)는 30분 유지.
+  const dedupWindow =
+    SOCCER_LEAGUES.has(m.league) && m.league !== "CLUB_FRIENDLY"
+      ? 150 * 60 * 1000
+      : 30 * 60 * 1000;
+  let existing = await prisma.match.findFirst({
     where: {
       league: m.league,
       externalId: { not: m.externalId },
@@ -217,21 +244,80 @@ export async function upsertMatch(m: NormalizedMatch, opts?: { source?: string }
     },
     select: { id: true, externalId: true, homeTeamId: true, status: true },
   });
+  let dedupSameDirection = existing ? existing.homeTeamId === homeTeam.id : true;
+
+  // 이름 fallback (축구 한정, 2026-07-11): af/ts 팀 resolve 가 다른 Team row 로 갈리면
+  // (표기 차이·중복 Team) teamId 페어가 이미 있는 반대 소스 row 를 못 봐 중복 생성.
+  // 신규 생성 직전(자기 row 부재)에만 실행해 평상시 collect 비용 증가 회피.
+  // 후보는 반대 prefix 로 제한 (숫자 incoming → ts- 후보만, ts- incoming → 숫자 후보만)
+  // — 같은 소스 안의 별개 두 경기(동시 킥오프 컵 라운드)를 병합하는 오탐 차단.
+  if (!existing && SOCCER_LEAGUES.has(m.league)) {
+    const ownRow = await prisma.match.findUnique({
+      where: { league_externalId: { league: m.league, externalId: m.externalId } },
+      select: { id: true },
+    });
+    if (!ownRow) {
+      const incomingTs = m.externalId.startsWith("ts-");
+      const candidates = await prisma.match.findMany({
+        where: {
+          league: m.league,
+          startTime: {
+            gte: new Date(m.startTime.getTime() - dedupWindow),
+            lte: new Date(m.startTime.getTime() + dedupWindow),
+          },
+          ...(incomingTs
+            ? { NOT: { externalId: { startsWith: "ts-" } } }
+            : { externalId: { startsWith: "ts-" } }),
+        },
+        select: {
+          id: true,
+          externalId: true,
+          homeTeamId: true,
+          status: true,
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } },
+        },
+      });
+      // 완전일치만 — 어느 clause 로 매치됐는지로 방향 판정 (더비 substring 오판 차단).
+      for (const c of candidates) {
+        if (eqTeamNameLoose(c.homeTeam.name, m.homeTeam.name) && eqTeamNameLoose(c.awayTeam.name, m.awayTeam.name)) {
+          existing = { id: c.id, externalId: c.externalId, homeTeamId: c.homeTeamId, status: c.status };
+          dedupSameDirection = true;
+          break;
+        }
+        if (eqTeamNameLoose(c.homeTeam.name, m.awayTeam.name) && eqTeamNameLoose(c.awayTeam.name, m.homeTeam.name)) {
+          existing = { id: c.id, externalId: c.externalId, homeTeamId: c.homeTeamId, status: c.status };
+          dedupSameDirection = false;
+          break;
+        }
+      }
+    }
+  }
 
   if (existing) {
-    const sameDirection = existing.homeTeamId === homeTeam.id;
+    const sameDirection = dedupSameDirection;
     console.log(
       `[upsertMatch/dedup] ${m.league} new=${m.externalId} ≈ existing=${existing.externalId} (matchId=${existing.id}) — update only`,
     );
     // raw 는 방향 일치일 때만 전파. WC 브래킷(page.tsx)은 raw 의 teams.home/away.winner 를
     // DB row 의 home/away 위치로 매핑하므로, 방향 불일치 row 에 af raw 를 그대로 저장하면
     // 승자가 반대로 잡힌다. ts- 소스 row 는 Match.raw 가 비어 있어(전 리그 0/N) 덮어쓸 값 없음.
+    // 다른 소스의 row 를 덮는 경로라 보수적으로 (2026-07-11) —
+    // score 는 숫자로 들어올 때만 갱신 (af NS 응답의 null 이 fresh ts 점수를 지우는 사고 방지),
+    // status 는 강등 금지 (af SCHEDULED 가 ts LIVE row 를 되돌리는 사고 방지).
+    // POSTPONED 는 기존 탈출 규칙 유지 (existing/incoming 어느 쪽이든 자유 전이).
+    const DEDUP_RANK = { SCHEDULED: 0, LIVE: 1, FINISHED: 2, POSTPONED: 2 } as const;
+    const exStatus = existing.status as MatchStatus;
+    const allowStatusUpdate =
+      exStatus === "POSTPONED" ||
+      m.status === "POSTPONED" ||
+      (DEDUP_RANK[m.status] ?? 0) >= (DEDUP_RANK[exStatus] ?? 0);
     await prisma.match.update({
       where: { id: existing.id },
       data: {
-        homeScore: sameDirection ? (m.homeScore ?? null) : (m.awayScore ?? null),
-        awayScore: sameDirection ? (m.awayScore ?? null) : (m.homeScore ?? null),
-        status: mergeStatus(existing.status as MatchStatus, m.status),
+        homeScore: sameDirection ? (m.homeScore ?? undefined) : (m.awayScore ?? undefined),
+        awayScore: sameDirection ? (m.awayScore ?? undefined) : (m.homeScore ?? undefined),
+        ...(allowStatusUpdate ? { status: mergeStatus(exStatus, m.status) } : {}),
         startTime: m.startTime,
         ...(sameDirection ? { raw: JSON.stringify(m.raw) } : {}),
       },
