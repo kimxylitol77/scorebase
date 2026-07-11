@@ -14,6 +14,7 @@ import { calcStandings } from "@/lib/predict/standings";
 import type { PredictMatch } from "@/lib/predict/types";
 import {
   fetchSeasonInjuries,
+  filterInjuriesToCurrentSquad,
   getApiFootballSeason,
   getTeamInjuries,
   API_FOOTBALL_LEAGUE_ID,
@@ -360,9 +361,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       // 본문과 동일 — TheSports 1순위 + cache 없는 팀만 api-football 보강
       const tsInj = await getTheSportsInjuriesByTeam(teams.map((t) => t.id));
       const needAf = !!API_FOOTBALL_LEAGUE_ID[upper] && teams.some((t) => !tsInj.has(t.id));
-      const all = needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0
+      let all = needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0
         ? await fetchSeasonInjuries(upper, getApiFootballSeason(new Date(), upper))
         : [];
+      // 본문과 동일 — 현재 스쿼드에 없는 이적/방출 선수 제거 (제목·설명 수치 일치)
+      if (all.length > 0) all = await filterInjuriesToCurrentSquad(all);
       teamLists = teams.map((t) => {
         const ts = tsInj.get(t.id);
         return { teamName: t.name, count: ts ? ts.length : getTeamInjuries(all, t.name, undefined, 30).length };
@@ -545,6 +548,8 @@ export default async function InjuriesByLeague({
     try {
       const season = getApiFootballSeason(new Date(), upper);
       allInjuries = await fetchSeasonInjuries(upper, season);
+      // 시즌 부상 목록에서 현재 스쿼드에 없는(이적/방출) 선수 제거 — 비시즌·시즌중 이적 잔존 방지.
+      allInjuries = await filterInjuriesToCurrentSquad(allInjuries);
     } catch {}
   } else if (isEspn && process.env.BALLDONTLIE_KEY) {
     try {

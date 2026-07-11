@@ -302,6 +302,51 @@ export function getTeamInjuries(
   return Array.from(byPlayer.values());
 }
 
+// ===== 현재 스쿼드 필터 (이적/방출 선수 제거) =====
+// 시즌 부상 목록(/injuries?season=Y)은 그 시즌 부상 이력이라 여름·1월에 팀을 떠난 선수도 남는다.
+// /players/squads 의 현재 로스터 player.id 와 대조해 스쿼드에 없는 선수를 제거 (이름 표기차 무관, id 기반).
+const squadCache = new Map<number, CacheEntry<Set<number>>>();
+const SQUAD_TTL_MS = 24 * 60 * 60 * 1000; // 24시간 — 스쿼드는 이적창에만 바뀜
+
+export async function fetchSquadPlayerIds(teamId: number): Promise<Set<number>> {
+  const cached = squadCache.get(teamId);
+  if (cached && Date.now() - cached.fetchedAt < SQUAD_TTL_MS) return cached.data;
+  try {
+    const { data } = await client().get("/players/squads", { params: { team: teamId } });
+    const players = data?.response?.[0]?.players ?? [];
+    const ids = new Set<number>(
+      players.map((p: any) => p.id).filter((x: any): x is number => typeof x === "number"),
+    );
+    // 빈 응답은 캐시하지 않음 (일시적 실패로 전 선수 제거되는 사고 방지)
+    if (ids.size > 0) squadCache.set(teamId, { fetchedAt: Date.now(), data: ids });
+    return ids;
+  } catch (e) {
+    console.warn("[api-football-pro] fetchSquadPlayerIds 실패:", (e as Error).message);
+    return new Set();
+  }
+}
+
+// 시즌 부상 목록에서 각 팀의 현재 스쿼드에 없는(=이적/방출) 선수를 제거한다.
+// 스쿼드 조회 실패/빈 팀은 필터하지 않음(안전 — 오탐으로 현역 선수를 지우지 않기 위해).
+export async function filterInjuriesToCurrentSquad(
+  all: InjuryEntry[],
+): Promise<InjuryEntry[]> {
+  if (all.length === 0) return all;
+  const afTeamIds = [
+    ...new Set(all.map((i) => i.teamId).filter((x): x is number => typeof x === "number")),
+  ];
+  const squadByTeam = new Map<number, Set<number>>();
+  for (const tid of afTeamIds) {
+    const ids = await fetchSquadPlayerIds(tid);
+    if (ids.size > 0) squadByTeam.set(tid, ids);
+  }
+  return all.filter((i) => {
+    const squad = squadByTeam.get(i.teamId);
+    if (!squad) return true; // 스쿼드 미확보 → 유지
+    return squad.has(i.playerId);
+  });
+}
+
 // ===== 시즌 득점왕 =====
 
 export interface TopScorerEntry {
