@@ -228,6 +228,17 @@ export default async function ScorecardPage() {
     .filter((d) => [...d.cells.values()].some((c) => c.correct !== null))
     .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
 
+  // AI 원탁 만장일치 성적 — 5개+ 모델이 전원 같은 1X2 픽을 낸 경기의 채점 결과.
+  // 첫 채점이 쌓이는 순간부터 페이지 최상단에 자동 등장한다.
+  const unanBase = datapoints.filter((d) => {
+    if (d.market !== "1X2" || d.cells.size < 5) return false;
+    return new Set([...d.cells.values()].map((c) => c.pick)).size === 1;
+  });
+  const unanGraded = unanBase.filter((d) => [...d.cells.values()].every((c) => c.correct !== null));
+  const unanWins = unanGraded.filter((d) => [...d.cells.values()][0].correct === true).length;
+  const unanPending = unanBase.length - unanGraded.length;
+  const unanRate = unanGraded.length > 0 ? unanWins / unanGraded.length : 0;
+
   const fmtDate = (d: Date) => d.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
   const fmtTime = (d: Date) => d.toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false });
 
@@ -268,6 +279,36 @@ export default async function ScorecardPage() {
           1X2·핸디캡·오버언더 세 시장을 두고 맞붙어, 결과가 나오면 <strong className="text-zinc-800 dark:text-white/80">전패까지 그대로</strong> 채점해 쌓습니다.
         </p>
       </header>
+
+      {/* AI 원탁 만장일치 성적 — 첫 채점부터 자동 등장 */}
+      {unanGraded.length > 0 && (
+        <section className="mb-12">
+          <div className="rounded-3xl bg-gradient-to-br from-rose-500/[0.07] to-amber-500/[0.07] p-6 ring-1 ring-rose-500/20 dark:from-rose-500/10 dark:to-amber-500/10">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 dark:text-rose-400">
+              <Users className="h-3.5 w-3.5" aria-hidden /> AI 원탁 만장일치
+            </div>
+            <div className="mt-3 flex flex-wrap items-end gap-x-6 gap-y-2">
+              <div>
+                <span className="text-4xl sm:text-5xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                  {(unanRate * 100).toFixed(1)}%
+                </span>
+                <span className="ml-2 text-[14px] text-zinc-500 dark:text-white/50 tabular-nums">
+                  {unanWins}승 {unanGraded.length - unanWins}패
+                </span>
+              </div>
+              {unanPending > 0 && (
+                <span className="rounded-full bg-white/60 px-3 py-1 text-[12px] font-medium text-zinc-600 ring-1 ring-zinc-200/70 dark:bg-white/[0.06] dark:text-white/60 dark:ring-white/10 tabular-nums">
+                  채점 대기 {unanPending}경기
+                </span>
+              )}
+            </div>
+            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-zinc-600 dark:text-white/50">
+              통계모델과 AI {present.length}개가 <strong className="text-zinc-800 dark:text-white/75">전원 같은 팀</strong>을 찍은
+              경기의 실제 적중률입니다. 서로 다른 모델이 모두 동의할수록 강한 신호인지, 숫자로 검증합니다.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* 리더보드 */}
       <section className="mb-12">
