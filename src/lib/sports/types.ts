@@ -116,6 +116,7 @@ export type League =
   // 컵 대회 (2026-05-20 추가)
   | "FA_CUP" // 잉글랜드 FA Cup — api-football
   | "EFL_CUP" // 잉글랜드 EFL Cup / 카라바오 컵 — api-football
+  | "SCO_LEAGUE_CUP" // 스코틀랜드 리그컵 — api-football
   | "COPA_DEL_REY" // 스페인 코파 델 레이 — api-football
   | "COPPA_ITALIA" // 이탈리아 코파 이탈리아 — api-football
   | "DFB_POKAL" // 독일 DFB-Pokal — api-football
@@ -284,6 +285,7 @@ export const SOCCER_LEAGUES = [
   "CANADA_PL",
   "FA_CUP",
   "EFL_CUP",
+  "SCO_LEAGUE_CUP",
   "COPA_DEL_REY",
   "COPPA_ITALIA",
   "DFB_POKAL",
@@ -463,6 +465,7 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   // 컵 대회 10개 — 모두 매치 수집만, 글 자동 생성 X (2026-05-20 사용자 결정)
   "FA_CUP",
   "EFL_CUP",
+  "SCO_LEAGUE_CUP",
   "COPA_DEL_REY",
   "COPPA_ITALIA",
   "DFB_POKAL",

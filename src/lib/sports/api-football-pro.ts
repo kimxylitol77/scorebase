@@ -104,6 +104,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   // 컵 대회 (2026-05-20 추가)
   FA_CUP: 45, // 잉글랜드 FA Cup
   EFL_CUP: 48, // 잉글랜드 EFL Cup / Carabao Cup
+  SCO_LEAGUE_CUP: 185, // 스코틀랜드 리그컵 (League Cup)
   COPA_DEL_REY: 143, // 스페인 코파 델 레이
   COPPA_ITALIA: 137, // 이탈리아 코파 이탈리아
   DFB_POKAL: 81, // 독일 DFB-Pokal
@@ -960,6 +961,7 @@ export function getApiFootballSeason(date: Date, league: string): number {
       // 유럽 자국 컵
       "FA_CUP",
       "EFL_CUP",
+      "SCO_LEAGUE_CUP",
       "COPA_DEL_REY",
       "COPPA_ITALIA",
       "DFB_POKAL",

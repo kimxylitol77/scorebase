@@ -42,7 +42,7 @@ export const ALL_LEAGUES = [
   // 여자 축구
   "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
   // 컵 대회
-  "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+  "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
   "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
   "KBO", "NPB", "MLB",
   // 2026-05-27 야구 9개 확장 — TheSports unique_tournament 매핑
@@ -105,7 +105,7 @@ export const SPORTS: SportMeta[] = [
       // 여자 축구
       "WSL", "NWSL", "WK_LEAGUE", "UEFA_WCL", "A_LEAGUE_W",
       // 컵 대회 — 메이저 5 + 한국·일본·CONCACAF·AFC + 스위스
-      "FA_CUP", "EFL_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
+      "FA_CUP", "EFL_CUP", "SCO_LEAGUE_CUP", "COPA_DEL_REY", "COPPA_ITALIA", "DFB_POKAL",
       "COUPE_DE_FRANCE", "KFA_CUP", "EMPEROR_CUP", "CONCACAF_CCUP", "AFC_CUP",
       "SUI_CUP",
       // 2026-05-24 추가 — 잉글랜드 3부 + 발트/동유럽
@@ -315,6 +315,7 @@ export const LEAGUE_DISPLAY: Record<string, string> = {
   COPA_SUD: "코파 수다메리카나",
   FA_CUP: "FA컵",
   EFL_CUP: "카라바오 컵",
+  SCO_LEAGUE_CUP: "스코틀랜드 리그컵",
   COPA_DEL_REY: "코파 델 레이",
   COPPA_ITALIA: "코파 이탈리아",
   DFB_POKAL: "DFB-포칼",
@@ -534,6 +535,7 @@ export const LEAGUE_ORDER: Record<string, number> = {
   DFB_POKAL: 13.1, // BUNDESLIGA 다음
   COPPA_ITALIA: 14.1, // SERIE_A 다음
   COUPE_DE_FRANCE: 15.1, // LIGUE_1 다음
+  SCO_LEAGUE_CUP: 15.85, // SPL(15.8) 다음
   CONCACAF_CCUP: 16.05, // MLS 다음
   // 2026-05-24 추가
   LEAGUE_ONE: 10.6, // CHAMPIONSHIP 다음 (EFL 3부)
@@ -697,6 +699,7 @@ export const COUNTRY_BY_LEAGUE: Record<string, string> = {
   // 자국 컵 — 리그와 동일 국가
   FA_CUP: "잉글랜드",
   EFL_CUP: "잉글랜드",
+  SCO_LEAGUE_CUP: "스코틀랜드",
   COPA_DEL_REY: "스페인",
   COPPA_ITALIA: "이탈리아",
   DFB_POKAL: "독일",

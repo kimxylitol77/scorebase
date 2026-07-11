@@ -145,6 +145,7 @@ export const collectors: Record<League, MatchCollector> = {
   // 컵 대회 10개 (2026-05-20 추가) — api-football fixtures
   FA_CUP: buildApiFootballCollector("FA_CUP"),
   EFL_CUP: buildApiFootballCollector("EFL_CUP"),
+  SCO_LEAGUE_CUP: buildApiFootballCollector("SCO_LEAGUE_CUP"),
   COPA_DEL_REY: buildApiFootballCollector("COPA_DEL_REY"),
   COPPA_ITALIA: buildApiFootballCollector("COPPA_ITALIA"),
   DFB_POKAL: buildApiFootballCollector("DFB_POKAL"),

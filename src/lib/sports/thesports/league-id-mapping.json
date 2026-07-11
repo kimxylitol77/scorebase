@@ -1095,6 +1095,13 @@
     "tsSeasonId": "l965mkyhp7xr1ge"
   },
   {
+    "code": "SCO_LEAGUE_CUP",
+    "ourLabel": "스코틀랜드 리그컵",
+    "tsId": "yl5ergphpzr8k0o",
+    "tsEn": "Scottish League Cup",
+    "tsKo": "스코틀랜드 리그컵"
+  },
+  {
     "code": "SUI_CUP",
     "ourLabel": "스위스 컵",
     "tsId": "p3glrw7h63qdyjv",
