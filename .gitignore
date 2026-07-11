@@ -62,3 +62,6 @@ src/lib/chatbot/run-brief.ts
 
 # Ollama 번역 제안 출력 (검토 후 team-names.ts/player-names.ts 로 paste)
 /data/translations/
+
+# mac-mini 봇 런타임 상태 (각 워커가 로컬 생성)
+mac-mini-worker/*.seen.json
