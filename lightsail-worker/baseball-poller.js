@@ -92,18 +92,28 @@ function extractScore(entry, swap) {
 }
 
 // detail_live 의 ts match id → metadata 캐시 (process 살아있는 동안 reuse).
-// 매치 metadata 는 lifecycle 동안 거의 안 변하므로 한 번 lookup 후 재사용 안전.
-const metaCache = new Map();
+// 매치 metadata 는 lifecycle 동안 거의 안 변하므로 positive 는 영구 reuse 안전.
+// 음수(null)는 영구 캐싱 금지 — 빈 응답/일시 오류 1회가 매치를 영영 unmapped 로
+// 고착시킴 (2026-07-12 MLB MIL@PIT cache 미생성 사고). NEG_TTL_MS 후 재조회.
+const metaCache = new Map(); // tsMatchId → { v: meta|null, at: ms }
+const NEG_TTL_MS = 10 * 60 * 1000;
+
+function cachedMeta(tsMatchId) {
+  const hit = metaCache.get(tsMatchId);
+  if (hit === undefined) return undefined;
+  if (hit.v === null && Date.now() - hit.at >= NEG_TTL_MS) return undefined; // 음수 만료 → 재조회
+  return hit;
+}
 
 async function ensureMeta(tsMatchId) {
-  if (metaCache.has(tsMatchId)) return metaCache.get(tsMatchId);
   try {
     const meta = await fetchTsMatchMeta(tsMatchId);
-    metaCache.set(tsMatchId, meta);
-    return meta;
+    if (!meta) console.error(`    ✗ match/list uuid=${tsMatchId}: empty results`);
+    metaCache.set(tsMatchId, { v: meta ?? null, at: Date.now() });
+    return meta ?? null;
   } catch (e) {
     console.error(`    ✗ match/list uuid=${tsMatchId}: ${e.message}`);
-    metaCache.set(tsMatchId, null); // 음수 캐시 — 다시 호출 안 함
+    metaCache.set(tsMatchId, { v: null, at: Date.now() });
     return null;
   }
 }
@@ -160,14 +170,16 @@ async function poll() {
 
   for (const entry of live) {
     if (!entry.id) continue;
-    let meta = metaCache.get(entry.id);
-    if (meta === undefined) {
+    const hit = cachedMeta(entry.id);
+    let meta;
+    if (hit === undefined) {
       if (newLookups >= NEW_LOOKUP_LIMIT) continue; // 이 cycle 에서 skip — 다음 cycle 에서 lookup
       meta = await ensureMeta(entry.id);
       newLookups++;
       // 작은 delay (50ms) — rate limit 여유
       await new Promise((r) => setTimeout(r, 50));
     } else {
+      meta = hit.v;
       cacheHits++;
     }
     const matchInfo = findOurMatch(ourMatches, meta);
