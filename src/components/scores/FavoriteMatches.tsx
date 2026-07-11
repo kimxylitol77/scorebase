@@ -389,6 +389,7 @@ function CompactRow({ match }: { match: MatchEntry }) {
         <SoccerLiveRow
           matchId={match.id}
           league={match.league}
+          hideLeague
           status={match.status}
           timeLabel={match.timeLabel}
           liveStatusLabel={match.liveStatusLabel}
