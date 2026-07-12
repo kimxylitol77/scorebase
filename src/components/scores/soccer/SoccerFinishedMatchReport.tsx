@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Activity, Star, Target } from "lucide-react";
 import MatchTrendChart, { type MatchTrendData } from "@/components/live/MatchTrendChart";
+import SoccerGoalReplay from "@/components/scores/soccer/SoccerGoalReplay";
+import type { GoalLineGoal } from "@/components/charts/GoalSceneViz";
 import type { SoccerGoal } from "@/lib/sports/live-scores";
 
 type StatPair = [number, number];
@@ -42,6 +44,7 @@ interface Props {
   halfTeamStats?: HalfTeamStats | null;
   trend?: MatchTrendData | null;
   goals?: SoccerGoal[] | null;
+  goalLine?: GoalLineGoal[] | null;
   lineup?: unknown;
   nameById?: Record<string, string>;
 }
@@ -248,6 +251,7 @@ export default function SoccerFinishedMatchReport({
   halfTeamStats,
   trend,
   goals,
+  goalLine,
   lineup,
   nameById = {},
 }: Props) {
@@ -257,6 +261,7 @@ export default function SoccerFinishedMatchReport({
     Number.isFinite(xgHome) &&
     Number.isFinite(xgAway);
   const hasTrend = !!trend?.data?.some((half) => Array.isArray(half) && half.length > 0);
+  const hasGoalReplay = !!goalLine?.some((goal) => Array.isArray(goal.pass) && goal.pass.length > 0);
   const hasHalfStats = !!halfTeamStats && PHASES.some(({ key }) => hasPhaseStats(halfTeamStats[key]));
   const topPlayers = getTopPlayers(lineup, homeNameKo, awayNameKo, nameById);
   const wentToExtraTime =
@@ -265,7 +270,7 @@ export default function SoccerFinishedMatchReport({
     regulationHomeScore != null &&
     regulationAwayScore != null &&
     (homeScore !== regulationHomeScore || awayScore !== regulationAwayScore);
-  if (!hasXg && !hasTrend && !hasHalfStats && topPlayers.length === 0) return null;
+  if (!hasXg && !hasTrend && !hasGoalReplay && !hasHalfStats && topPlayers.length === 0) return null;
 
   return (
     <section aria-labelledby="finished-match-report-title" className="space-y-4">
@@ -308,6 +313,17 @@ export default function SoccerFinishedMatchReport({
           homeScore={homeScore}
           awayScore={awayScore}
           goals={goals}
+        />
+      )}
+
+      {hasGoalReplay && goalLine && (
+        <SoccerGoalReplay
+          goals={goalLine}
+          homeName={homeNameKo}
+          awayName={awayNameKo}
+          nameById={nameById}
+          trend={trend}
+          eventGoals={goals}
         />
       )}
 

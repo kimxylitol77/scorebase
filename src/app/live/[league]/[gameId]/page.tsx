@@ -87,6 +87,13 @@ import MatchHighlightCard from "@/components/live/MatchHighlightCard";
 const SOCCER_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
 );
+
+// 골 장면 재연 1차 파일럿 — 2026-07-12 종료 월드컵 두 경기만.
+// 검증 후 WORLD_CUP 전체로 넓힐 때 이 allowlist 조건만 제거한다.
+const WORLD_CUP_GOAL_REPLAY_PILOT_IDS = new Set([
+  "ts-23xmvkh60yz0qg8", // 노르웨이 vs 잉글랜드
+  "ts-zp5rzghgw3e6q82", // 아르헨티나 vs 스위스
+]);
 function parseGoalie(json: string | null): GoalieInfo | null {
   if (!json) return null;
   try {
@@ -421,6 +428,16 @@ export default async function GenericLivePage({ params }: Props) {
         }
       }
     }
+    const goalLine = match.theSportsCache.goalLine as Array<{
+      pass?: Array<{ player_id?: string }>;
+    }> | null;
+    if (Array.isArray(goalLine)) {
+      for (const goal of goalLine) {
+        for (const pass of goal.pass ?? []) {
+          if (pass.player_id) ids.add(pass.player_id);
+        }
+      }
+    }
     if (ids.size > 0) {
       const rows = await prisma.theSportsPlayer.findMany({
         where: { id: { in: Array.from(ids) }, nameKo: { not: null } },
@@ -562,6 +579,11 @@ export default async function GenericLivePage({ params }: Props) {
             halfTeamStats={halfTeamStats}
             trend={trend}
             goals={trendGoals}
+            goalLine={
+              lg === "WORLD_CUP" && WORLD_CUP_GOAL_REPLAY_PILOT_IDS.has(gameId)
+                ? (cache.goalLine as Parameters<typeof SoccerFinishedMatchReport>[0]["goalLine"])
+                : null
+            }
             lineup={lineup}
             nameById={lineupNameById}
           />
