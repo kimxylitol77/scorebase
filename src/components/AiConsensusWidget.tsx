@@ -40,7 +40,7 @@ export default async function AiConsensusWidget() {
   }
 
   const now = Date.now();
-  const upcoming: { league: string; externalId: string; startTime: Date; home: string; away: string; pickTeam: string; avg: number; n: number }[] = [];
+  const upcoming: { league: string; externalId: string; startTime: Date; home: string; away: string; avg: number; n: number }[] = [];
   let graded = 0, wins = 0;
   for (const { m, cells } of byMatch.values()) {
     if (cells.length < MIN_MODELS) continue;
@@ -48,11 +48,9 @@ export default async function AiConsensusWidget() {
     if (m.status === "SCHEDULED" && m.startTime.getTime() > now) {
       const home = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
       const away = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
-      const pick = cells[0].pick;
       upcoming.push({
         league: m.league, externalId: m.externalId, startTime: m.startTime,
         home, away,
-        pickTeam: pick === "HOME" ? home : pick === "AWAY" ? away : "무승부",
         avg: cells.reduce((s, c) => s + c.prob, 0) / cells.length,
         n: cells.length,
       });
@@ -85,7 +83,7 @@ export default async function AiConsensusWidget() {
           {top.map((u) => (
             <Link
               key={`${u.league}-${u.externalId}`}
-              href={matchHref(u.league, u.externalId)}
+              href="/predictions/scorecard"
               className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2.5 text-[14px] ring-1 ring-zinc-200/60 transition-colors hover:bg-white dark:bg-white/[0.04] dark:ring-white/10 dark:hover:bg-white/[0.07]"
             >
               <span className="min-w-0 flex-1 truncate">
@@ -95,7 +93,7 @@ export default async function AiConsensusWidget() {
                 <span className="ml-2 text-[12px] text-zinc-400 dark:text-white/35">{fmt(u.startTime)}</span>
               </span>
               <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[12px] font-bold text-emerald-700 dark:text-emerald-300">
-                AI {u.n}개 전원 {u.pickTeam} {(u.avg * 100).toFixed(0)}%
+                AI {u.n}개 만장일치 · 평균 {(u.avg * 100).toFixed(0)}%
               </span>
             </Link>
           ))}
@@ -115,7 +113,7 @@ export default async function AiConsensusWidget() {
           6개 AI 픽 전부 보기
         </Link>
         <span className="text-[12px] text-zinc-500 dark:text-white/45">
-          경기를 누르면 내 픽도 남길 수 있습니다 — AI와 같은 기준으로 채점됩니다.
+          어느 팀에 만장일치했는지는 무료 가입 후 공개됩니다 — 내 픽도 AI와 같은 기준으로 채점됩니다.
         </span>
       </div>
     </aside>

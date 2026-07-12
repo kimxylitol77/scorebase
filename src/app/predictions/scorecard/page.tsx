@@ -462,16 +462,13 @@ export default async function ScorecardPage() {
                 </div>
               );
             };
-            const shown = upcoming.slice(0, 20);
             return (
-              <>
-                <div className="space-y-2">{shown.slice(0, 2).map(renderCard)}</div>
-                {shown.length > 2 && (
-                  <ConsensusGate count={shown.length - 2}>
-                    <div className="mt-2 space-y-2">{shown.slice(2).map(renderCard)}</div>
-                  </ConsensusGate>
-                )}
-              </>
+              <ConsensusGate
+                title="AI 6개의 예정 경기 픽은 회원 공개입니다"
+                desc="무료 가입하면 모든 예정 경기의 AI 픽과 만장일치·의견갈림을 볼 수 있고, 내 픽도 AI와 같은 기준으로 채점됩니다."
+              >
+                <div className="space-y-2">{upcoming.slice(0, 20).map(renderCard)}</div>
+              </ConsensusGate>
             );
           })()}
         </section>
@@ -483,6 +480,10 @@ export default async function ScorecardPage() {
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
             <Sparkles className="h-4 w-4 text-rose-500" aria-hidden /> 시장별 성적
           </h2>
+          <ConsensusGate
+            title="시장별 상세 성적은 회원 공개입니다"
+            desc="1X2·핸디캡·오버언더 시장별 AI 성적을 무료 가입 후 볼 수 있습니다."
+          >
           <div className="grid gap-3 sm:grid-cols-3">
             {perMarket.map((mm) => (
               <div key={mm.key} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
@@ -506,6 +507,7 @@ export default async function ScorecardPage() {
               </div>
             ))}
           </div>
+          </ConsensusGate>
         </section>
       )}
 
@@ -515,6 +517,10 @@ export default async function ScorecardPage() {
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
             <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 경기별 성적
           </h2>
+          <ConsensusGate
+            title="경기별 픽 기록은 회원 공개입니다"
+            desc="어떤 AI가 어떤 경기에서 무엇을 찍고 맞았는지, 전체 기록을 무료 가입 후 볼 수 있습니다."
+          >
           <div className="space-y-2">
             {resolved.slice(0, 40).map((d) => (
               <div key={`${d.matchId}:${d.market}`} className="rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
@@ -548,6 +554,7 @@ export default async function ScorecardPage() {
               </div>
             ))}
           </div>
+          </ConsensusGate>
         </section>
       )}
 
