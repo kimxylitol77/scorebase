@@ -88,11 +88,11 @@ function pageList(cur: number, total: number): (number | "…")[] {
 }
 
 interface Props {
-  searchParams: Promise<{ page?: string; view?: string; team?: string }>;
+  searchParams: Promise<{ page?: string; view?: string; team?: string; q?: string }>;
 }
 
 export default async function MlbSalariesPage({ searchParams }: Props) {
-  const { page: pageParam, view, team: teamParam } = await searchParams;
+  const { page: pageParam, view, team: teamParam, q: qParam } = await searchParams;
   const rate = await fetchUsdKrw();
 
   // 팀 로고·기준집합 — Team(MLB) 30팀(영문 풀네임). 스팟랙엔 마이너 산하팀(1명 row)도 섞여
@@ -171,7 +171,26 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
   }
 
   // ── 선수별 랭킹 뷰 (team 파라미터 있으면 그 팀만, 없으면 전체 페이지네이션) ──
-  const where = teamParam ? { league: "MLB", teamName: teamParam } : { league: "MLB" };
+  // 선수검색(q) — 영문명 부분일치 + 한글명(toKoreanPlayerName 변환) 부분일치 모두 지원.
+  const q = (qParam ?? "").trim();
+  let searchNames: string[] | null = null;
+  if (q) {
+    const all = await prisma.playerSalary.findMany({
+      where: { league: "MLB" },
+      select: { playerName: true },
+    });
+    const lower = q.toLowerCase();
+    searchNames = [...new Set(
+      all
+        .map((r) => r.playerName)
+        .filter((n) => n.toLowerCase().includes(lower) || toKoreanPlayerName(n).includes(q)),
+    )];
+  }
+  const where = searchNames
+    ? { league: "MLB", playerName: { in: searchNames } }
+    : teamParam
+      ? { league: "MLB", teamName: teamParam }
+      : { league: "MLB" };
   const total = await prisma.playerSalary.count({ where });
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const page = teamParam ? 1 : Math.min(Math.max(1, parseInt(pageParam ?? "1", 10) || 1), totalPages);
@@ -179,8 +198,8 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
   const rows = await prisma.playerSalary.findMany({
     where,
     orderBy: { rank: "asc" },
-    skip: teamParam ? 0 : (page - 1) * PER_PAGE,
-    take: teamParam ? 100 : PER_PAGE,
+    skip: teamParam || searchNames ? 0 : (page - 1) * PER_PAGE,
+    take: teamParam || searchNames ? 100 : PER_PAGE,
   });
   const season = rows[0]?.season ?? String(new Date().getUTCFullYear());
   const teamKo = teamParam ? (toKoreanTeamName(teamParam, "MLB") ?? teamParam) : null;
@@ -208,12 +227,39 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
       <SalaryHeader
         season={season}
         subtitle={
-          teamKo
-            ? `${teamKo} 선수 연봉 (달러·원화) · ${total.toLocaleString()}명`
-            : `선수별 연봉 순위 (달러·원화) · 전체 ${total.toLocaleString()}명 · 매주 자동 갱신`
+          q
+            ? `"${q}" 검색 결과 · ${total.toLocaleString()}명`
+            : teamKo
+              ? `${teamKo} 선수 연봉 (달러·원화) · ${total.toLocaleString()}명`
+              : `선수별 연봉 순위 (달러·원화) · 전체 ${total.toLocaleString()}명 · 매주 자동 갱신`
         }
       />
       <ViewToggle view="player" teamLabel={teamKo} />
+
+      {/* 선수검색 — GET 폼(?q=), 영문·한글명 모두 매칭 */}
+      <form method="get" action="/salaries/mlb" className="flex gap-2">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="선수 이름 검색 (한글·영문)"
+          className="w-full max-w-xs rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-sm outline-none transition-colors focus:border-neutral-400 dark:border-neutral-800 dark:bg-white/[0.04] dark:focus:border-neutral-600"
+        />
+        <button
+          type="submit"
+          className="shrink-0 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-85 dark:bg-white dark:text-neutral-900"
+        >
+          검색
+        </button>
+        {q && (
+          <Link
+            href="/salaries/mlb"
+            className="shrink-0 self-center text-xs text-neutral-400 underline-offset-2 hover:underline"
+          >
+            초기화
+          </Link>
+        )}
+      </form>
 
       {rows.length === 0 ? (
         <p className="py-16 text-center text-sm text-neutral-400">연봉 데이터를 불러오는 중입니다.</p>
