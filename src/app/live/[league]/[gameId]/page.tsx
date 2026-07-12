@@ -29,6 +29,7 @@ import SoccerHalfTimeStatsCard from "@/components/scores/soccer/SoccerHalfTimeSt
 import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard";
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
 import SoccerMatchSummaryCard from "@/components/scores/soccer/SoccerMatchSummaryCard";
+import SoccerFinishedMatchReport from "@/components/scores/soccer/SoccerFinishedMatchReport";
 import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
 import SoccerNowBlock, { type PredictedXiTeam, type InjuryLine } from "@/components/scores/soccer/SoccerNowBlock";
 import { fetchSeasonInjuries, getTeamInjuries } from "@/lib/sports/api-football-pro";
@@ -436,6 +437,8 @@ export default async function GenericLivePage({ params }: Props) {
   let soccerNowNode: ReactNode = null;
   // 매치 "한눈에" 요약 — 결론 카드 아래, 탭 위 (핵심 지표만 크게)
   let soccerSummaryNode: ReactNode = null;
+  // 종료 경기 리포트 — 라이브에서 수집한 흐름·구간 통계·선수 평점을 본문에 보존.
+  let soccerFinishedReportNode: ReactNode = null;
   let nowLineup: { home: unknown[]; away: unknown[] } | null = null;
   if (isSoccer) {
     let teamStatsNode: ReactNode = null;
@@ -464,21 +467,41 @@ export default async function GenericLivePage({ params }: Props) {
       const h2h = analysis?.history?.vs ?? [];
       const homeTsId = tsTeamId(match.homeTeam.id);
       const awayTsId = tsTeamId(match.awayTeam.id);
-      // 매치 "한눈에" 요약 — 종료/라이브 핵심 지표(xG·점유율·슈팅)만 크게. 탭 진입 전 글랜스.
-      if (match.status === "LIVE" || match.status === "FINISHED") {
-        let xgH: number | null = null;
-        let xgA: number | null = null;
-        if (match.fixtureStats) {
-          try {
-            const fs = JSON.parse(match.fixtureStats) as { expectedGoals?: number | string }[];
-            const nh = Number(fs[0]?.expectedGoals);
-            const na = Number(fs[1]?.expectedGoals);
-            xgH = Number.isFinite(nh) ? nh : null;
-            xgA = Number.isFinite(na) ? na : null;
-          } catch {
-            // fixtureStats 파싱 실패 — xG 생략
-          }
+      const trendGoals = detailLive
+        ? (() => {
+            const incs = (detailLive as { incidents?: unknown }).incidents;
+            if (!Array.isArray(incs)) return null;
+            return incs
+              .filter((i: Record<string, unknown>) =>
+                typeof i.home_score === "number" || typeof i.away_score === "number",
+              )
+              .map((i: Record<string, unknown>) => ({
+                minute:
+                  typeof i.add_time === "number" ? `${i.time}+${i.add_time}'` : `${i.time}'`,
+                side: (i.position === 1 ? "home" : "away") as "home" | "away",
+                player:
+                  (typeof i.player_id === "string" && lineupNameById[i.player_id]) ||
+                  (typeof i.player_name === "string" ? i.player_name : ""),
+                ownGoal: false,
+                penaltyKick: i.type === 17,
+              }));
+          })()
+        : null;
+      let xgH: number | null = null;
+      let xgA: number | null = null;
+      if (match.fixtureStats) {
+        try {
+          const fs = JSON.parse(match.fixtureStats) as { expectedGoals?: number | string }[];
+          const nh = Number(fs[0]?.expectedGoals);
+          const na = Number(fs[1]?.expectedGoals);
+          xgH = Number.isFinite(nh) ? nh : null;
+          xgA = Number.isFinite(na) ? na : null;
+        } catch {
+          // fixtureStats 파싱 실패 — xG 생략
         }
+      }
+      // 라이브 글랜스는 유지. 종료 경기는 아래 경기 리포트가 대신해 같은 지표의 중복을 막는다.
+      if (match.status === "LIVE") {
         soccerSummaryNode = (
           <SoccerMatchSummaryCard
             homeNameKo={homeKo}
@@ -515,28 +538,26 @@ export default async function GenericLivePage({ params }: Props) {
             awayNameKo={awayKo}
             homeScore={match.homeScore}
             awayScore={match.awayScore}
-            goals={
-              detailLive
-                ? (() => {
-                    const incs = (detailLive as { incidents?: unknown }).incidents;
-                    if (!Array.isArray(incs)) return null;
-                    return incs
-                      .filter((i: Record<string, unknown>) =>
-                        typeof i.home_score === "number" || typeof i.away_score === "number",
-                      )
-                      .map((i: Record<string, unknown>) => ({
-                        minute:
-                          typeof i.add_time === "number" ? `${i.time}+${i.add_time}'` : `${i.time}'`,
-                        side: (i.position === 1 ? "home" : "away") as "home" | "away",
-                        player: (typeof i.player_id === "string" && lineupNameById[i.player_id]) || (typeof i.player_name === "string" ? i.player_name : ""),
-                        ownGoal: false,
-                        penaltyKick: i.type === 17,
-                      }));
-                  })()
-                : null
-            }
+            goals={trendGoals}
           />
         ) : null;
+      if (match.status === "FINISHED") {
+        soccerFinishedReportNode = (
+          <SoccerFinishedMatchReport
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            homeScore={match.homeScore}
+            awayScore={match.awayScore}
+            xgHome={xgH}
+            xgAway={xgA}
+            halfTeamStats={halfTeamStats}
+            trend={trend}
+            goals={trendGoals}
+            lineup={lineup}
+            nameById={lineupNameById}
+          />
+        );
+      }
       // 라인업 확정(confirmed=1) 시에만 탭 표시. 미발표(confirmed=-)는 탭 자동 숨김.
       // 부분 도착·좌표 미도착(x/y 0,0)은 SoccerLineupSvg 내부에서 "확정 대기" 안내로 처리.
       lineupNode =
@@ -669,9 +690,11 @@ export default async function GenericLivePage({ params }: Props) {
       ) : null;
 
     const statsTab =
-      teamStatsNode || halfTimeNode || trendNode ? (
-        <div className="space-y-4">{teamStatsNode}{halfTimeNode}{trendNode}</div>
-      ) : null;
+      match.status === "FINISHED"
+        ? teamStatsNode
+        : teamStatsNode || halfTimeNode || trendNode
+          ? <div className="space-y-4">{teamStatsNode}{halfTimeNode}{trendNode}</div>
+          : null;
     const h2hTab =
       h2hNode || goalDistNode ? (
         <div className="space-y-4">{h2hNode}{goalDistNode}</div>
@@ -934,6 +957,9 @@ export default async function GenericLivePage({ params }: Props) {
         oddsHistory={oddsHistory}
         playerLogoById={playerLogoById}
       />
+
+      {/* 종료 경기에서는 라이브 기록을 기본 본문에 보존. 매치 한눈에와 팀 통계 탭 중복은 제외. */}
+      {soccerFinishedReportNode}
 
       {/* 월드컵 국가 분석 + 축구 "지금" 블록 — 예정 매치는 국가 비교(분석)가 먼저,
           예상 라인업이 뒤 (2026-06-10 사용자 순서 확정). LIVE/종료는 골 타임라인이

@@ -1,15 +1,15 @@
 // 축구 LIVE 통계 비교 — TheSports detail_live.stats 응답.
 // 응답 stats: [{ type: int, home: number, away: number }]
-// type 코드 의미 추정 (공식 status codes 문서 미확보):
-//   25 = 점유율(%), 2 = 슛 총, 21 = 유효슛, 4 = 코너킥, 22 = 위협적인 공격, 8 = 옐로카드
+// 실제 경기의 named teamStats 와 교차 검증한 핵심 코드:
+//   25 = 점유율(%), 83 = 슛 총, 21 = 유효슛, 2 = 코너킥
 // 다른 type 은 "기타" 로 표시.
 
-// type → 한국어 라벨 (추정)
+// type → 한국어 라벨
 const STAT_LABELS: Record<number, string> = {
   25: "점유율 (%)",
-  2: "슈팅",
+  83: "슈팅",
   21: "유효 슈팅",
-  4: "코너킥",
+  2: "코너킥",
   22: "위협적 공격",
   23: "공격",
   24: "공격 (전체)",
@@ -97,7 +97,7 @@ export default function SoccerLiveStatsCard({ stats, homeNameKo, awayNameKo }: P
       </ul>
 
       <div className="mt-3 text-[10px] text-neutral-500 leading-relaxed">
-        ⓘ 통계 라벨은 TheSports type code 추정. 정확한 매핑은 공식 status code 문서 확보 후 보정 예정.
+        점유율·슈팅·유효 슈팅·코너킥은 경기 원자료와 교차 검증된 수치입니다.
       </div>
     </section>
   );

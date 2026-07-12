@@ -3,9 +3,8 @@
 // p1 = 전반, p2 = 후반, ft = 풀타임 누적
 
 const STAT_LABELS: Record<number, string> = {
-  2: "슈팅",
+  2: "코너킥",
   3: "오프사이드",
-  4: "코너킥",
   8: "옐로카드",
   9: "레드카드",
   21: "유효 슈팅",
@@ -14,10 +13,11 @@ const STAT_LABELS: Record<number, string> = {
   24: "공격 (전체)",
   25: "점유율 (%)",
   37: "패스 성공률 (%)",
+  83: "슈팅",
 };
 
 // 표시 우선순위 (위→아래)
-const STAT_ORDER = [25, 2, 21, 22, 4, 3, 8, 9, 23, 24, 37];
+const STAT_ORDER = [25, 83, 21, 2, 22, 3, 8, 9, 23, 24, 37];
 
 interface PhaseStats {
   [statId: string]: [number, number] | undefined;

@@ -978,7 +978,7 @@ export function tsHalfScoreFromGoals(
 /**
  * halfTeamStats(half/team_stats/detail 의 results) 에서 특정 phase 통계 행 추출.
  * phase: p1=전반, p2=후반, ft=풀타임. 구조: { p1: { "25": [home, away], ... }, ... }
- * stat_id 라벨은 검증된 핵심만 (점유율 25 확실, 나머지 SoccerHalfTimeStatsCard 매핑 추정).
+ * stat_id 라벨은 named teamStats 와 실제 종료 경기로 교차 검증한 핵심만 사용한다.
  */
 export function tsHalfStatsToSoccerStats(
   halfStats: unknown,
@@ -990,13 +990,13 @@ export function tsHalfStatsToSoccerStats(
   const src = obj as Record<string, unknown>;
   const LABELS: Record<string, string> = {
     "25": "점유율",
-    "2": "슈팅",
+    "83": "슈팅",
     "21": "유효 슈팅",
-    "4": "코너킥",
+    "2": "코너킥",
     "8": "옐로카드",
     "9": "레드카드",
   };
-  const ORDER = ["25", "2", "21", "4", "8", "9"];
+  const ORDER = ["25", "83", "21", "2", "8", "9"];
   const PCT = new Set(["25"]);
   const out: SoccerTeamStat[] = [];
   for (const id of ORDER) {
