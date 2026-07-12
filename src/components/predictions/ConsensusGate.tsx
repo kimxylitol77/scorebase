@@ -12,9 +12,10 @@ export default function ConsensusGate({ children, title, desc }: { children: Rea
     let alive = true;
     fetch("/api/me", { cache: "no-store" })
       .then((r) => r.json())
-      .then((j: { nickname?: string | null }) => {
+      .then((j: { nickname?: string | null; admin?: string | null }) => {
         if (!alive) return;
-        if (j.nickname) setOpen(true);
+        // 회원(nickname) 또는 관리자(admin) 세션이면 해제 — 관리자는 user_session 없이 admin 쿠키만 있다.
+        if (j.nickname || j.admin) setOpen(true);
         setChecked(true);
       })
       .catch(() => setChecked(true));
