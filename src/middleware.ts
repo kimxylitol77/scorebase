@@ -67,6 +67,19 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // ── 서브 도메인(스코어보드.kr·스코어베이스.com) 로그인/가입 → 본 도메인으로 redirect ──
+  // 구글 OAuth 리디렉션 URI 가 콘솔에 www.scorebase.kr 만 등록돼 있어 서브 도메인에선 가입 불가
+  // (redirect_uri_mismatch). 세션 쿠키도 host 단위라 본 도메인에서 가입·로그인하게 넘긴다. query 유지.
+  if (
+    (isScoreboard || isScoreBaseCom) &&
+    (path === "/login" || path === "/signup" || path.startsWith("/api/auth/google"))
+  ) {
+    return NextResponse.redirect(
+      new URL(path + req.nextUrl.search, "https://www.scorebase.kr"),
+      307,
+    );
+  }
+
   // 스코어보드.kr — scorebase.kr 와 콘텐츠가 동일해 구글 중복 색인을 막기 위해 전 경로 noindex.
   // robots.txt 는 크롤 허용 상태라 구글이 이 헤더를 읽고 색인에서 제외한다 (Disallow 면 헤더를 못 읽음).
   // 루트는 /scores 내용으로 rewrite (URL 은 스코어보드.kr 유지).
