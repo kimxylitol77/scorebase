@@ -3319,6 +3319,12 @@ const RAW_BY_LEAGUE: Record<string, Record<string, string>> = {
     "Al-Ittihad": "이티하드 알렉산드리아",
     "Ittihad Alexandria": "이티하드 알렉산드리아",
   },
+  // 벨라루스 아르세날 제르진스크: 글로벌 "Arsenal": "아스널" (EPL) 과 충돌해 league scope 로 분리.
+  // 비잉글랜드 Arsenal 은 미디어 관행상 "아르세날" (아르세날 툴라 등).
+  BELARUS_PL: {
+    "Arsenal": "아르세날 제르진스크",
+    "Arsenal Dzerzhinsk": "아르세날 제르진스크",
+  },
   // LMB Leon 야구팀: 글로벌 "Leon": "레온" (멕시코 축구 Club León) 과 충돌해 league scope 로 분리.
   LMB: {
     "Leon": "브라보스 데 레온",
