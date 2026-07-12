@@ -9,16 +9,14 @@ if (!KEY) { console.error("THESTATSAPI_KEY 필요"); process.exit(1); }
 const BASE = "https://api.thestatsapi.com/api";
 const OUT = new URL("../data/player-match-heatmaps.json", import.meta.url).pathname;
 
-const PLAYERS = [
-  {
-    ourId: "n54qllhx11oqvy9", // Bruno Fernandes
-    statsId: "pl_4724692",
-    teamId: "tm_4643", // Manchester United
-    competitionId: "comp_3039", // EPL
-    seasonId: "sn_6125938", // 2025-26
-    seasonLabel: "2025-26 EPL",
-  },
-];
+// 선수 매핑은 discover-thestatsapi-players.ts 가 생성하는 map 파일에서 로드
+const MAP_PATH = new URL("../data/thestatsapi-player-map.json", import.meta.url).pathname;
+const PLAYERS = Object.entries(
+  JSON.parse(readFileSync(MAP_PATH, "utf8")) as Record<
+    string,
+    { statsId: string; teamId: string; competitionId: string; seasonId: string; seasonLabel: string; name: string }
+  >,
+).map(([ourId, m]) => ({ ourId, ...m }));
 
 interface MatchHeatmap {
   id: string;
@@ -52,19 +50,29 @@ async function main() {
     ? JSON.parse(readFileSync(OUT, "utf8"))
     : {};
 
+  // 같은 팀 선수들이 경기 목록을 공유하므로 팀 단위 캐시로 콜 절약
+  type ApiMatch = {
+    id: string; utc_date: string; status: string;
+    home_team: { id: string; name: string }; away_team: { id: string; name: string };
+    score: { home: number | null; away: number | null };
+  };
+  const teamMatchCache = new Map<string, ApiMatch[]>();
+
   for (const p of PLAYERS) {
     const existing = new Set((out[p.ourId]?.matches ?? []).map((m) => m.id));
-    const matches: Array<{
-      id: string; utc_date: string; status: string;
-      home_team: { id: string; name: string }; away_team: { id: string; name: string };
-      score: { home: number | null; away: number | null };
-    }> = [];
-    for (let page = 1; page <= 5; page++) {
-      const res = (await api(
-        `/football/matches?competition_id=${p.competitionId}&season_id=${p.seasonId}&team_id=${p.teamId}&per_page=50&page=${page}`,
-      )) as { data: typeof matches };
-      matches.push(...res.data);
-      if (res.data.length < 50) break;
+    let matches = teamMatchCache.get(p.teamId);
+    if (!matches) {
+      matches = [];
+      for (let page = 1; page <= 5; page++) {
+        const res = (await api(
+          `/football/matches?competition_id=${p.competitionId}&season_id=${p.seasonId}&team_id=${p.teamId}&per_page=50&page=${page}`,
+        )) as { data: ApiMatch[] } | null;
+        await new Promise((r) => setTimeout(r, 6000));
+        if (!res) break;
+        matches.push(...res.data);
+        if (res.data.length < 50) break;
+      }
+      teamMatchCache.set(p.teamId, matches);
     }
     const finished = matches
       .filter((m) => m.status === "finished")
@@ -78,6 +86,7 @@ async function main() {
       const hm = (await api(`/football/matches/${m.id}/players/${p.statsId}/heatmap`)) as {
         data: { points: Array<{ x: number; y: number }> };
       } | null;
+      await new Promise((r) => setTimeout(r, 6000)); // trial 분당 12회 — 결과와 무관하게 콜마다 간격
       const points = hm?.data?.points ?? [];
       if (points.length === 0) { empty++; continue; } // 404/빈 배열 = 미출전 또는 소스 무데이터
       const isHome = m.home_team.id === p.teamId;
@@ -93,14 +102,13 @@ async function main() {
         points: points.map((pt) => [pt.x, pt.y]),
       });
       added++;
-      await new Promise((r) => setTimeout(r, 1200)); // rate limit 여유 간격
     }
     rows.sort((a, b) => b.date.localeCompare(a.date));
     out[p.ourId] = { seasonLabel: p.seasonLabel, matches: rows };
+    writeFileSync(OUT, JSON.stringify(out)); // 선수 단위 저장 — 중단돼도 진행분 보존
     console.log(`  신규 ${added}, 미출전/무데이터 ${empty}, 총 ${rows.length}경기`);
   }
 
-  writeFileSync(OUT, JSON.stringify(out));
   console.log(`저장: ${OUT}`);
 }
 main();

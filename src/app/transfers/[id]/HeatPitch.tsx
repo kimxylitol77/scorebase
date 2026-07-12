@@ -131,7 +131,13 @@ export default function HeatPitch({ points, ariaLabel = "활동 히트맵" }: { 
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {/* 브랜드 워터마크 — 오른쪽 아래 */}
+        {/* 브랜드 워터마크 — 오른쪽 아래, 로고 마크(4막대) + 워드마크 */}
+        <g transform="translate(541 420.5) scale(0.42)" fill="rgba(255,255,255,.38)">
+          <rect x="3" y="20" width="5" height="9" rx="1.5" />
+          <rect x="11" y="14" width="5" height="15" rx="1.5" />
+          <rect x="19" y="8" width="5" height="21" rx="1.5" />
+          <rect x="27" y="3" width="5" height="26" rx="1.5" />
+        </g>
         <text
           x="646"
           y="433"

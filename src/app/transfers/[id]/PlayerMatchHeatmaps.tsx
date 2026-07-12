@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import HeatPitch, { type HeatPoint } from "./HeatPitch";
-import type { HeatmapCell } from "./PlayerHeatmapAnalysis";
+import { MetricBar, type PlayerHeatmapData } from "./PlayerHeatmapAnalysis";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 export interface MatchHeatmapRow {
@@ -33,22 +33,38 @@ export default function PlayerMatchHeatmaps({
   name,
   seasonLabel,
   matches,
-  seasonCells,
+  seasonData,
 }: {
   name: string;
   seasonLabel: string;
   matches: MatchHeatmapRow[];
-  seasonCells: HeatmapCell[] | null;
+  seasonData: PlayerHeatmapData | null;
 }) {
   // view: "last" | "last5" | "season" | 개별 경기 id
   const [view, setView] = useState<string>("last");
 
-  const { points, contextLabel, touches } = useMemo(() => {
-    if (view === "season" && seasonCells) {
+  // 현재 뷰 좌표에서 3선 분포·평균 전진 위치를 가중 계산 (시즌 카드와 동일 지표)
+  const zoneStats = (pts: HeatPoint[]) => {
+    let total = 0, sx = 0, def = 0, mid = 0, att = 0;
+    for (const p of pts) {
+      const w = p.w ?? 1;
+      total += w; sx += p.x * w;
+      if (p.x < 100 / 3) def += w; else if (p.x < 200 / 3) mid += w; else att += w;
+    }
+    return total === 0
+      ? { avgX: 0, defPct: 0, midPct: 0, attPct: 0 }
+      : { avgX: sx / total, defPct: (def / total) * 100, midPct: (mid / total) * 100, attPct: (att / total) * 100 };
+  };
+
+  const { points, contextLabel, touches, fixedStats } = useMemo(() => {
+    if (view === "season" && seasonData) {
+      // 시즌 뷰 지표는 카드와 동일한 정밀 요약값 사용 — 10x10 셀 재계산은 경계 배분이 어긋난다
+      const s = seasonData.summary;
       return {
-        points: seasonCells.map((c): HeatPoint => ({ x: c.x + 5, y: c.y + 5, w: c.count })),
+        points: seasonData.cells.map((c): HeatPoint => ({ x: c.x + 5, y: c.y + 5, w: c.count })),
         contextLabel: `${seasonLabel} 시즌 전체`,
-        touches: seasonCells.reduce((a, c) => a + c.count, 0),
+        touches: s.weightedPoints,
+        fixedStats: { avgX: s.averageX, defPct: s.defensiveThirdPct, midPct: s.middleThirdPct, attPct: s.attackingThirdPct },
       };
     }
     if (view === "last5") {
@@ -57,6 +73,7 @@ export default function PlayerMatchHeatmaps({
         points: recent.flatMap((m) => m.points.map(([x, y]): HeatPoint => ({ x, y }))),
         contextLabel: `최근 ${recent.length}경기 합산`,
         touches: recent.reduce((a, m) => a + m.points.length, 0),
+        fixedStats: null,
       };
     }
     const m = view === "last" ? matches[0] : matches.find((r) => r.id === view) ?? matches[0];
@@ -64,13 +81,14 @@ export default function PlayerMatchHeatmaps({
       points: m.points.map(([x, y]): HeatPoint => ({ x, y })),
       contextLabel: matchLabel(m),
       touches: m.points.length,
+      fixedStats: null,
     };
-  }, [view, matches, seasonCells, seasonLabel]);
+  }, [view, matches, seasonData, seasonLabel]);
 
   const chips: Array<{ key: string; label: string }> = [
     { key: "last", label: "직전 경기" },
     ...(matches.length >= 2 ? [{ key: "last5", label: `최근 ${Math.min(5, matches.length)}경기` }] : []),
-    ...(seasonCells ? [{ key: "season", label: "시즌 전체" }] : []),
+    ...(seasonData ? [{ key: "season", label: "시즌 전체" }] : []),
   ];
   const isChipActive = (key: string) => view === key || (key === "last" && view === matches[0]?.id);
 
@@ -117,18 +135,51 @@ export default function PlayerMatchHeatmaps({
 
         <HeatPitch points={points} ariaLabel={`${name} ${contextLabel} 히트맵`} />
 
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-          <span className="font-semibold text-neutral-700 dark:text-neutral-200">
-            {contextLabel}
-            {view !== "season" && view !== "last5" && (() => {
-              const m = view === "last" ? matches[0] : matches.find((r) => r.id === view);
-              return m ? (
-                <span className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-bold ${RESULT_CLS[m.result]}`}>{RESULT_KO[m.result]}</span>
-              ) : null;
-            })()}
-          </span>
-          <span className="tabular-nums">터치 {touches.toLocaleString()}회</span>
+        <div className="flex items-center justify-between gap-3 text-[11px] text-neutral-500">
+          <span>낮음</span>
+          <span
+            className="h-1.5 flex-1 rounded-full"
+            style={{ background: "linear-gradient(to right, #1c4a2a, #a8e03c 30%, #fcdc30 55%, #fc821c 78%, #e22628)" }}
+          />
+          <span>높음</span>
         </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <span className="font-semibold text-neutral-700 dark:text-neutral-200">{contextLabel}</span>
+          {view !== "season" && view !== "last5" && (() => {
+            const m = view === "last" ? matches[0] : matches.find((r) => r.id === view);
+            return m ? (
+              <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${RESULT_CLS[m.result]}`}>{RESULT_KO[m.result]}</span>
+            ) : null;
+          })()}
+        </div>
+
+        {(() => {
+          const s = fixedStats ?? zoneStats(points);
+          return (
+            <>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-lg bg-neutral-50 px-2 py-2.5 dark:bg-white/[0.04]">
+                  <div className="text-lg font-black tabular-nums">{Math.round(s.attPct)}%</div>
+                  <div className="mt-0.5 text-[11px] text-neutral-500">공격 3선</div>
+                </div>
+                <div className="rounded-lg bg-neutral-50 px-2 py-2.5 dark:bg-white/[0.04]">
+                  <div className="text-lg font-black tabular-nums">{s.avgX.toFixed(1)}</div>
+                  <div className="mt-0.5 text-[11px] text-neutral-500">평균 전진 위치</div>
+                </div>
+                <div className="rounded-lg bg-neutral-50 px-2 py-2.5 dark:bg-white/[0.04]">
+                  <div className="text-lg font-black tabular-nums">{touches.toLocaleString()}</div>
+                  <div className="mt-0.5 text-[11px] text-neutral-500">터치</div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <MetricBar label="수비 지역" value={s.defPct} accent="bg-emerald-500" />
+                <MetricBar label="중앙 지역" value={s.midPct} accent="bg-amber-400" />
+                <MetricBar label="공격 지역" value={s.attPct} accent="bg-red-500" />
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       <p className="border-t border-black/5 px-4 py-3 text-[10px] leading-4 text-neutral-400 dark:border-white/10 sm:px-5">

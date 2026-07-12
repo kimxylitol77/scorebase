@@ -31,7 +31,7 @@ function pct(value: number): string {
   return `${Math.round(value)}%`;
 }
 
-function MetricBar({ label, value, accent }: { label: string; value: number; accent: string }) {
+export function MetricBar({ label, value, accent }: { label: string; value: number; accent: string }) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">

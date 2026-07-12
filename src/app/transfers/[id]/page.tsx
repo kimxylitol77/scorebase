@@ -892,7 +892,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                     name={name}
                     seasonLabel={matchHeatmaps.seasonLabel}
                     matches={matchHeatmaps.matches}
-                    seasonCells={heatmapAnalysis?.cells ?? null}
+                    seasonData={heatmapAnalysis}
                   />
                 ),
               }]
