@@ -17,6 +17,7 @@ const JSONL = process.env.LANG_JSONL || "/tmp/lang-player-ko.jsonl";
 const MANUAL_KO_LOCK = new Set<string>([
   "23xmvkhx1y2qg8n", // Marc Guehi — 공식 "마크 구에히" → 관용 "마크 게히"
   "k82rekhyx2n4rep", // Noni Madueke — 공식 "추쿠논소 마두에케" → 통용 "노니 마두에케"
+  "l7oqdehepw7r510", // Anthony Gordon — 공식 "안소니 고든" → 관용 "앤서니 고든"
 ]);
 
 // 공식 name_ko 정규화: 영문/이니셜 혼합은 거부(haiku 유지), "성, 이름" 콤마 역순은 교정.
