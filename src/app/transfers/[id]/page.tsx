@@ -18,6 +18,7 @@ import rawWiki from "../../../../data/player-wiki-seasons.json";
 import rawAbility from "../../../../data/player-ability.json";
 import rawTeamLogos from "../../../../data/team-logos.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
+import rawPlayerBlogLinks from "../../../../data/player-blog-links.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
@@ -658,6 +659,16 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     take: 12,
   });
 
+  // 수동 작성 블로그 글 — data/player-blog-links.json 에 선수id → slug 등재하면 노출.
+  const blogSlugs = (rawPlayerBlogLinks as Record<string, string[]>)[id] ?? [];
+  const relatedBlogs = blogSlugs.length
+    ? await prisma.blog.findMany({
+        where: { slug: { in: blogSlugs } },
+        orderBy: { publishedAt: "desc" },
+        select: { slug: true, title: true, publishedAt: true },
+      })
+    : [];
+
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
@@ -864,10 +875,21 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       />
 
       {/* 이 선수 관련 글 — STAR 리포트 등 (선수 페이지 → 글 바로가기) */}
-      {relatedArticles.length > 0 && (
+      {(relatedArticles.length > 0 || relatedBlogs.length > 0) && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">{name} 관련 글 ({relatedArticles.length})</h2>
+          <h2 className="text-lg font-semibold mb-3">{name} 관련 글 ({relatedArticles.length + relatedBlogs.length})</h2>
           <div className="overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10 divide-y divide-black/5 dark:divide-white/5">
+            {relatedBlogs.map((b) => (
+              <Link
+                key={b.slug}
+                href={`/blog/${b.slug}`}
+                className="flex items-center gap-2 px-3 py-2.5 text-sm transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+              >
+                <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">분석</span>
+                <span className="truncate font-semibold min-w-0 flex-1">{b.title}</span>
+                <span className="ml-auto shrink-0 text-xs text-neutral-400 tabular-nums">{fmtDate(b.publishedAt ? Math.floor(b.publishedAt.getTime() / 1000) : undefined)}</span>
+              </Link>
+            ))}
             {relatedArticles.map((a) => (
               <Link
                 key={a.slug}
