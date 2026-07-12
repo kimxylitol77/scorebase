@@ -20,7 +20,7 @@ import {
   LEAGUE_ORDER,
   type SportCode,
 } from "@/lib/sports/sport-leagues";
-import { toKoreanTeamName } from "@/lib/team-names";
+import { teamDisplayKo, toKoreanTeamName } from "@/lib/team-names";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
@@ -586,7 +586,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         resultClock: true,
         homeTeam: {
           select: {
-            id: true, name: true, externalId: true, shortName: true, logoUrl: true,
+            id: true, name: true, nameKo: true, externalId: true, shortName: true, logoUrl: true,
             // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
             mmaFighter: {
               select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true, headshot: true, photo: true },
@@ -595,7 +595,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         },
         awayTeam: {
           select: {
-            id: true, name: true, externalId: true, shortName: true, logoUrl: true,
+            id: true, name: true, nameKo: true, externalId: true, shortName: true, logoUrl: true,
             // UFC 파이터 프로필 (league="UFC" 일 때만 non-null) — 한글명 + Tale of the Tape
             mmaFighter: {
               select: { nameKo: true, nickname: true, category: true, height: true, weight: true, reach: true, stance: true, headshot: true, photo: true },
@@ -1353,10 +1353,11 @@ export default async function ScoresPage({ searchParams }: Props) {
     // FIFA 국가 랭킹을 표시. 클럽 리그(EPL/이라크 스타스 리그 등)는 절대 안 건드림(position 유지).
     const isNationalTeam = NATIONAL_TEAM_LEAGUES.has(m.league);
     // UFC 파이터는 정적 dict 대신 MmaFighter.nameKo (haiku 음역) 우선, 없으면 영문 fallback.
+    // 일반 팀은 사전 hit > Team.nameKo(TheSports 공식) > 영문 (teamDisplayKo).
     const homeNameKo =
-      m.homeTeam.mmaFighter?.nameKo ?? toKoreanTeamName(m.homeTeam.name, m.league);
+      m.homeTeam.mmaFighter?.nameKo ?? teamDisplayKo(m.homeTeam, m.league);
     const awayNameKo =
-      m.awayTeam.mmaFighter?.nameKo ?? toKoreanTeamName(m.awayTeam.name, m.league);
+      m.awayTeam.mmaFighter?.nameKo ?? teamDisplayKo(m.awayTeam, m.league);
     const homeFifaRank = isNationalTeam
       ? getFifaRank(m.homeTeam.name, homeNameKo)
       : null;

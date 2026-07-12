@@ -3337,6 +3337,18 @@ const RAW_BY_LEAGUE_LOWER: Record<string, Record<string, string>> = Object.fromE
   ]),
 );
 
+// DB Team row 가 있는 곳의 표시용. 사전(사람 큐레이션 축약형) hit 이 항상 우선,
+// miss 면 Team.nameKo(TheSports 공식 미러, daily-official-korean 봇 적재), 그것도 없으면 영문 원본.
+// 표기 교정은 이 파일의 사전에 추가할 것 — DB nameKo 는 봇이 매일 덮어쓴다.
+export function teamDisplayKo(
+  team: { name: string; nameKo?: string | null },
+  league?: string,
+): string {
+  const dict = toKoreanTeamName(team.name, league);
+  if (dict !== team.name.trim()) return dict; // 사전 hit
+  return team.nameKo ?? dict;
+}
+
 export function toKoreanTeamName(
   name: string | undefined | null,
   league?: string,
