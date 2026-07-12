@@ -17,6 +17,10 @@
       "schedule": "0 5 * * *"
     },
     {
+      "path": "/api/cron/transfer-daily",
+      "schedule": "0 0 * * *"
+    },
+    {
       "path": "/api/cron/news-briefing",
       "schedule": "20 */2 * * *"
     },
