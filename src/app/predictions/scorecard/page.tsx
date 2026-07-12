@@ -200,11 +200,11 @@ export default async function ScorecardPage() {
 
   const board = present
     .map((m) => ({ model: m, ...metaOf(m), tally: tallyOf(m), recent: recentTallyOf(m), yday: ydayTallyOf(m) }))
-    // 실적 있는 모델 먼저(최근 100건 적중률 desc), 채점 대기 모델은 뒤로(예측 수 desc).
+    // 실적 있는 모델 먼저(누적 적중률 desc), 채점 대기 모델은 뒤로(예측 수 desc).
     .sort((a, b) => {
       const ag = a.tally.graded > 0, bg = b.tally.graded > 0;
       if (ag !== bg) return ag ? -1 : 1;
-      if (ag) return b.recent.rate - a.recent.rate;
+      if (ag) return b.tally.rate - a.tally.rate;
       return b.tally.predicted - a.tally.predicted;
     });
   // 소표본 왜곡 방지 — 채점 30건 미만 모델은 순위에 안 올리고 "표본 누적 중" 구간에 성적만 표시.
@@ -213,7 +213,21 @@ export default async function ScorecardPage() {
   const gradedModels = board.filter((b) => b.tally.graded >= RANK_MIN);
   const provisionalModels = board.filter((b) => b.tally.graded > 0 && b.tally.graded < RANK_MIN);
   const pendingModels = board.filter((b) => b.tally.graded === 0);
-  const maxRate = Math.max(0.0001, ...gradedModels.map((b) => b.recent.rate));
+  const maxRate = Math.max(0.0001, ...gradedModels.map((b) => b.tally.rate));
+
+  // 고신뢰 픽 — 어떤 모델이든 확률 65% 이상으로 확신한 픽의 채점 성적(전 시장 누적).
+  // 확신 강도와 실제 적중이 비례하는지 보여주는 대표 숫자. DB 동적 계산(하드코딩 금지).
+  const CONF_MIN = 0.65;
+  let confGraded = 0, confWins = 0;
+  for (const d of datapoints) {
+    for (const c of d.cells.values()) {
+      if (c.prob >= CONF_MIN && c.correct !== null) {
+        confGraded++;
+        if (c.correct) confWins++;
+      }
+    }
+  }
+  const confRate = confGraded > 0 ? confWins / confGraded : 0;
 
   // 시장별 성적(채점된 모델만).
   const perMarket = MARKET_META.map((mm) => ({
@@ -281,7 +295,7 @@ export default async function ScorecardPage() {
   const citeUrl = `${SITE_URL}/predictions/scorecard`;
   const citation =
     leader
-      ? `AI 예측 성적표 — ${gradedModels.map((m) => `${m.label} ${(m.recent.rate * 100).toFixed(1)}%`).join(", ")} (모델별 최근 채점 ${RECENT_WINDOW}건 기준, ${present.length}개 AI 리더보드 · 출처 Scorebase ${citeUrl}, ${citeDate})`
+      ? `AI 예측 성적표 — ${gradedModels.map((m) => `${m.label} ${(m.tally.rate * 100).toFixed(1)}%`).join(", ")} (채점 ${leader.tally.graded}경기 기준, ${present.length}개 AI 리더보드 · 출처 Scorebase ${citeUrl}, ${citeDate})`
       : `AI 예측 성적표 — 멀티 AI 승부예측 리더보드 (출처 Scorebase ${citeUrl})`;
 
   const jsonLd = {
@@ -314,8 +328,33 @@ export default async function ScorecardPage() {
         </p>
       </header>
 
-      {/* AI 원탁 만장일치 성적 — 첫 채점부터 자동 등장 */}
-      {unanGraded.length > 0 && (
+      {/* 고신뢰 픽 히어로 — 확률 65%+ 픽의 실제 적중률. 표본 30건부터 노출. */}
+      {confGraded >= RANK_MIN && (
+        <section className="mb-12">
+          <div className="rounded-3xl bg-gradient-to-br from-emerald-500/[0.07] to-sky-500/[0.07] p-6 ring-1 ring-emerald-500/20 dark:from-emerald-500/10 dark:to-sky-500/10">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-600 dark:text-emerald-400">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden /> 고신뢰 픽 적중률
+            </div>
+            <div className="mt-3 flex flex-wrap items-end gap-x-6 gap-y-2">
+              <div>
+                <span className="text-4xl sm:text-5xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                  {(confRate * 100).toFixed(1)}%
+                </span>
+                <span className="ml-2 text-[14px] text-zinc-500 dark:text-white/50 tabular-nums">
+                  {confWins}적중 / {confGraded}픽
+                </span>
+              </div>
+            </div>
+            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-zinc-600 dark:text-white/50">
+              통계모델과 AI들이 <strong className="text-zinc-800 dark:text-white/75">확률 {Math.round(CONF_MIN * 100)}% 이상</strong>으로
+              확신한 픽만 모은 실제 성적입니다. 확신이 강한 픽일수록 정말 더 많이 맞는지, 전 시장 누적으로 검증합니다.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* AI 원탁 만장일치 성적 — 소표본 왜곡 방지를 위해 채점 30건부터 노출 */}
+      {unanGraded.length >= RANK_MIN && (
         <section className="mb-12">
           <div className="rounded-3xl bg-gradient-to-br from-rose-500/[0.07] to-amber-500/[0.07] p-6 ring-1 ring-rose-500/20 dark:from-rose-500/10 dark:to-amber-500/10">
             <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 dark:text-rose-400">
@@ -347,7 +386,7 @@ export default async function ScorecardPage() {
       {/* 리더보드 */}
       <section className="mb-12">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
-          <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 최근 100건 적중률 리더보드
+          <Trophy className="h-4 w-4 text-rose-500" aria-hidden /> 누적 적중률 리더보드
         </h2>
         <div className="space-y-2">
           {gradedModels.map((b, i) => {
@@ -369,14 +408,14 @@ export default async function ScorecardPage() {
                         {i === 0 && <span className="ml-1.5 align-middle text-[10px] font-bold text-amber-500">1위</span>}
                       </span>
                       <span className={`shrink-0 text-xl font-bold tabular-nums ${a.text}`}>
-                        {(b.recent.rate * 100).toFixed(1)}%
+                        {(b.tally.rate * 100).toFixed(1)}%
                       </span>
                     </div>
                     <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-white/[0.06]">
-                      <div className={`h-full rounded-full ${a.bar}`} style={{ width: `${(b.recent.rate / maxRate) * 100}%` }} />
+                      <div className={`h-full rounded-full ${a.bar}`} style={{ width: `${(b.tally.rate / maxRate) * 100}%` }} />
                     </div>
                     <div className="mt-1 text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
-                      최근 {b.recent.graded}건 {b.recent.correct}적중 · 누적 {b.tally.correct}/{b.tally.graded}
+                      {b.tally.correct} / {b.tally.graded} 적중 · 최근 {b.recent.graded}건 {b.recent.correct}적중
                       {b.yday.graded > 0 && <> · 어제 {b.yday.correct}/{b.yday.graded}</>}
                     </div>
                   </div>
@@ -418,8 +457,8 @@ export default async function ScorecardPage() {
         )}
         {leader && (
           <p className="mt-3 text-center text-[13px] text-zinc-500 dark:text-white/40">
-            순위는 모델별 최근 채점 {RECENT_WINDOW}건 기준 · 같은 경기·같은 라인으로 공정 비교
-            {leader.recent.graded < RECENT_WINDOW && <span className="text-amber-600 dark:text-amber-400"> · 표본 누적 중</span>}
+            채점 {leader.tally.graded}경기 기준 · 같은 경기·같은 라인으로 공정 비교
+            {leader.tally.graded < 50 && <span className="text-amber-600 dark:text-amber-400"> · 표본 누적 중</span>}
           </p>
         )}
       </section>
