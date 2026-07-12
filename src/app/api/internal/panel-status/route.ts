@@ -26,5 +26,12 @@ export async function GET(req: Request) {
     keyPresent: p.apiKeyEnv ? Boolean(process.env[p.apiKeyEnv]) : true,
     active: activeV.has(p.key) || activeM.has(p.key),
   }));
-  return NextResponse.json({ ok: true, panels });
+  // 인증 env 존재 진단(값 미노출) — 로그인 장애 시 env 소실 여부를 외부에서 확인.
+  const auth = {
+    GOOGLE_CLIENT_ID: Boolean(process.env.GOOGLE_CLIENT_ID),
+    GOOGLE_CLIENT_SECRET: Boolean(process.env.GOOGLE_CLIENT_SECRET),
+    USER_SESSION_SECRET: Boolean(process.env.USER_SESSION_SECRET),
+    ADMIN_SECRET: Boolean(process.env.ADMIN_SECRET),
+  };
+  return NextResponse.json({ ok: true, panels, auth });
 }
