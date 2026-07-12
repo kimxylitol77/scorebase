@@ -12,6 +12,13 @@ const prisma = new PrismaClient();
 const APPLY = process.argv.includes("--apply");
 const JSONL = process.env.LANG_JSONL || "/tmp/lang-player-ko.jsonl";
 
+// 관용 표기 수동 고정 — 공식 name_ko 가 국내 관용 표기와 다른 선수는 여기 등재하면
+// 봇이 덮어쓰지 않는다. DB nameKo 는 등재 시점에 수동으로 맞춰둘 것.
+const MANUAL_KO_LOCK = new Set<string>([
+  "23xmvkhx1y2qg8n", // Marc Guehi — 공식 "마크 구에히" → 관용 "마크 게히"
+  "k82rekhyx2n4rep", // Noni Madueke — 공식 "추쿠논소 마두에케" → 통용 "노니 마두에케"
+]);
+
 // 공식 name_ko 정규화: 영문/이니셜 혼합은 거부(haiku 유지), "성, 이름" 콤마 역순은 교정.
 function normalize(raw: string): string | null {
   let s = raw.trim();
@@ -43,6 +50,7 @@ async function main() {
     const raw = langMap.get(p.id);
     if (!raw) continue;
     matched++;
+    if (MANUAL_KO_LOCK.has(p.id)) { same++; continue; } // 수동 고정 — 공식명으로 되돌리지 않음
     const off0 = normalize(raw);
     if (!off0) { rejected++; continue; }
     const off = deReverseKoreanName(off0, p.name); // 공식 ko 가 "흥민 손" 처럼 뒤집힌 경우 "손흥민" 으로 교정
