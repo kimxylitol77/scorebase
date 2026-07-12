@@ -40,6 +40,7 @@ import { capturePredictionContext } from "@/jobs/prediction-postmortems";
 export const MAJOR_LEAGUES = [
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
   "WORLD_CUP", "NBA", "NHL", "MLB", "KBO", "NPB",
+  "K_LEAGUE_1", "K_LEAGUE_2",
   "VNL", "VNL_W", "EGL_W", "AVC_NATIONS_W",
   "LOL", "LPL", "LEC",
 ];
@@ -52,6 +53,7 @@ const LEAGUE_NAME: Record<string, string> = {
   SERIE_A: "세리에 A", LIGUE_1: "리그 1", MLS: "MLS", UCL: "챔피언스리그",
   WORLD_CUP: "FIFA 월드컵", NBA: "NBA", NHL: "NHL", MLB: "MLB",
   KBO: "KBO", NPB: "NPB",
+  K_LEAGUE_1: "K리그1", K_LEAGUE_2: "K리그2",
   VNL: "발리볼네이션스리그 남자", VNL_W: "발리볼네이션스리그 여자",
   EGL_W: "유럽 골든리그 여자배구", AVC_NATIONS_W: "AVC 네이션스컵 여자배구",
   LOL: "LoL 챔피언스 코리아(LCK)", LPL: "LoL LPL(중국)", LEC: "LoL LEC(유럽)",
@@ -80,8 +82,11 @@ type GptMatchFacts = {
   h2h?: { homeWins: number; draws: number; awayWins: number; total: number };
 };
 
+// 무승부가 존재하는 축구 리그 — SOCCER_LEAGUES_FOR_MARKETS(핸디/OU 프로파일 스코프)와
+// 별개로, K리그처럼 프로파일 없이 1X2만 도는 리그도 무승부 픽은 허용해야 한다.
+const EXTRA_DRAW_LEAGUES = new Set(["WORLD_CUP", "K_LEAGUE_1", "K_LEAGUE_2"]);
 function drawAllowed(league: string): boolean {
-  return SOCCER_LEAGUES_FOR_MARKETS.has(league) || league === "WORLD_CUP";
+  return SOCCER_LEAGUES_FOR_MARKETS.has(league) || EXTRA_DRAW_LEAGUES.has(league);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
