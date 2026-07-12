@@ -12,13 +12,19 @@ const prisma = new PrismaClient();
 const APPLY = process.argv.includes("--apply");
 const JSONL = process.env.LANG_JSONL || "/tmp/lang-player-ko.jsonl";
 
-// 관용 표기 수동 고정 — 공식 name_ko 가 국내 관용 표기와 다른 선수는 여기 등재하면
-// 봇이 덮어쓰지 않는다. DB nameKo 는 등재 시점에 수동으로 맞춰둘 것.
+// 관용 표기 수동 고정 — 공식 name_ko 가 국내 관용 표기와 다른 선수는 잠금 등재하면
+// 봇이 덮어쓰지 않는다. 등재는 sync-player-ko-wikipedia.ts --apply (위키 표제어 동기)
+// 또는 data/player-ko-locks.json 직접 편집. DB nameKo 는 등재 시점에 맞춰둘 것.
+const LOCKS_PATH = new URL("../data/player-ko-locks.json", import.meta.url).pathname;
 const MANUAL_KO_LOCK = new Set<string>([
   "23xmvkhx1y2qg8n", // Marc Guehi — 공식 "마크 구에히" → 관용 "마크 게히"
   "k82rekhyx2n4rep", // Noni Madueke — 공식 "추쿠논소 마두에케" → 통용 "노니 마두에케"
   "l7oqdehepw7r510", // Anthony Gordon — 공식 "안소니 고든" → 관용 "앤서니 고든"
 ]);
+try {
+  const fileLocks = JSON.parse(readFileSync(LOCKS_PATH, "utf8")) as Record<string, unknown>;
+  for (const id of Object.keys(fileLocks)) MANUAL_KO_LOCK.add(id);
+} catch { /* 잠금 파일 없으면 하드코딩만 사용 */ }
 
 // 공식 name_ko 정규화: 영문/이니셜 혼합은 거부(haiku 유지), "성, 이름" 콤마 역순은 교정.
 function normalize(raw: string): string | null {
