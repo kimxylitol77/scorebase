@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getOverallRanking, getMonthlyRanking, type RankRow } from "@/lib/analysis/ranking";
 import ExpertRow from "@/components/experts/ExpertRow";
+import AiBenchmark from "@/components/experts/AiBenchmark";
 import { Trophy, Target } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +69,9 @@ export default async function ExpertsPage({ searchParams }: Props) {
           </p>
         </div>
       </details>
+
+      {/* AI 원탁 벤치마크 — AI 를 이긴 회원 수 */}
+      <AiBenchmark memberRows={rows} />
 
       {/* 탭 */}
       <div className="flex gap-2 mb-5">

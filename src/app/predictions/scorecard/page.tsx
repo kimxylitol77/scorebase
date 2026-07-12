@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
 import CiteBox from "@/components/CiteBox";
+import ConsensusGate from "@/components/predictions/ConsensusGate";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
@@ -421,8 +422,8 @@ export default async function ScorecardPage() {
               3초 구글 가입
             </Link>
           </div>
-          <div className="space-y-2">
-            {upcoming.slice(0, 20).map((e) => {
+          {(() => {
+            const renderCard = (e: UpMatch) => {
               const con = consensusOf(e.picks);
               const split = con.agree < con.total;
               return (
@@ -460,8 +461,19 @@ export default async function ScorecardPage() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            };
+            const shown = upcoming.slice(0, 20);
+            return (
+              <>
+                <div className="space-y-2">{shown.slice(0, 2).map(renderCard)}</div>
+                {shown.length > 2 && (
+                  <ConsensusGate count={shown.length - 2}>
+                    <div className="mt-2 space-y-2">{shown.slice(2).map(renderCard)}</div>
+                  </ConsensusGate>
+                )}
+              </>
+            );
+          })()}
         </section>
       )}
 
