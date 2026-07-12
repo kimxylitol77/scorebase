@@ -19,9 +19,13 @@ import rawAbility from "../../../../data/player-ability.json";
 import rawTeamLogos from "../../../../data/team-logos.json";
 import rawWcSquads from "../../../../data/wc-national-squads.json";
 import rawPlayerBlogLinks from "../../../../data/player-blog-links.json";
+import rawPlayerHeatmaps from "../../../../data/player-heatmap-analysis.json";
+import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
+import PlayerHeatmapAnalysis, { type PlayerHeatmapData } from "./PlayerHeatmapAnalysis";
+import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps";
 import PlayerBioPanel from "./PlayerBioPanel";
 import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
@@ -112,6 +116,9 @@ interface WikiSeasonRow { season: string; club: string; division: string; lApps:
 const WIKI = rawWiki as Record<string, WikiSeasonRow[]>;
 // 종합 능력치 (TheSports player/ability comprehensive, 10점=만점x10 아닌 0~100 종합)
 const ABILITY = rawAbility as Record<string, number>;
+const HEATMAP_ANALYSIS = rawPlayerHeatmaps as Record<string, PlayerHeatmapData>;
+// 경기별 원시 터치 좌표 (build-player-match-heatmaps.ts 수집)
+const MATCH_HEATMAPS = rawMatchHeatmaps as unknown as Record<string, { seasonLabel: string; matches: MatchHeatmapRow[] }>;
 // 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
 const TEAM_LOGOS = rawTeamLogos as Record<string, string>;
 // 선수 → 소속 국가대표 ts team id (WC 공식 스쿼드 역검색). 국가대표 경기 기록을 자국 경기로
@@ -387,6 +394,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const season = SEASON[id];
   const photoUrl = PHOTOS[id] || tsp?.photoUrl || null;
   const ability = ABILITY[id] ?? null;
+  const heatmapAnalysis = HEATMAP_ANALYSIS[id] ?? null;
+  const matchHeatmaps = MATCH_HEATMAPS[id] ?? null;
 
   // 시즌별 성적 — 현 시즌(TheSports 상세) + 과거 시즌(Wikipedia). 시즌별 collapsible.
   const normSeason = (s: string) => s.replace(/[–—]/g, "-");
@@ -742,6 +751,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             label: "개요",
             content: (
               <>
+                {heatmapAnalysis && (
+                  <PlayerHeatmapAnalysis name={name} data={heatmapAnalysis} />
+                )}
                 {/* 시즌 상세 기록 — 레이더 + 90분당 + 슈팅/패스/수비 */}
                 {season && (season.minutes ?? 0) > 0 && (
                   <PlayerSeasonOverview name={name} stat={season} />
@@ -871,6 +883,20 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
               </>
             ),
           },
+          ...(matchHeatmaps && matchHeatmaps.matches.length > 0
+            ? [{
+                key: "heatmap",
+                label: "히트맵",
+                content: (
+                  <PlayerMatchHeatmaps
+                    name={name}
+                    seasonLabel={matchHeatmaps.seasonLabel}
+                    matches={matchHeatmaps.matches}
+                    seasonCells={heatmapAnalysis?.cells ?? null}
+                  />
+                ),
+              }]
+            : []),
         ]}
       />
 

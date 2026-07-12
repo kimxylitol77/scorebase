@@ -1,0 +1,139 @@
+"use client";
+// 히트맵 탭 — 경기별 원시 터치 좌표(TheStatsAPI) 기반. 직전 경기/최근 5경기/시즌 전체 칩 + 개별 경기 드롭다운.
+// 합산 뷰는 저장된 경기별 좌표를 클라에서 합쳐 렌더 (추가 API 호출 없음).
+
+import { useMemo, useState } from "react";
+import HeatPitch, { type HeatPoint } from "./HeatPitch";
+import type { HeatmapCell } from "./PlayerHeatmapAnalysis";
+import { toKoreanTeamName } from "@/lib/team-names";
+
+export interface MatchHeatmapRow {
+  id: string;
+  date: string; // YYYY-MM-DD
+  opp: string;
+  ha: "H" | "A";
+  score: string;
+  result: "W" | "D" | "L";
+  points: Array<[number, number]>;
+}
+
+const RESULT_KO = { W: "승", D: "무", L: "패" } as const;
+const RESULT_CLS = {
+  W: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+  D: "bg-neutral-500/15 text-neutral-500 dark:text-neutral-400",
+  L: "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+} as const;
+
+function matchLabel(m: MatchHeatmapRow): string {
+  const [, mm, dd] = m.date.split("-");
+  return `${Number(mm)}/${Number(dd)} ${toKoreanTeamName(m.opp)} (${m.ha === "H" ? "홈" : "원정"}) ${m.score} ${RESULT_KO[m.result]}`;
+}
+
+export default function PlayerMatchHeatmaps({
+  name,
+  seasonLabel,
+  matches,
+  seasonCells,
+}: {
+  name: string;
+  seasonLabel: string;
+  matches: MatchHeatmapRow[];
+  seasonCells: HeatmapCell[] | null;
+}) {
+  // view: "last" | "last5" | "season" | 개별 경기 id
+  const [view, setView] = useState<string>("last");
+
+  const { points, contextLabel, touches } = useMemo(() => {
+    if (view === "season" && seasonCells) {
+      return {
+        points: seasonCells.map((c): HeatPoint => ({ x: c.x + 5, y: c.y + 5, w: c.count })),
+        contextLabel: `${seasonLabel} 시즌 전체`,
+        touches: seasonCells.reduce((a, c) => a + c.count, 0),
+      };
+    }
+    if (view === "last5") {
+      const recent = matches.slice(0, 5);
+      return {
+        points: recent.flatMap((m) => m.points.map(([x, y]): HeatPoint => ({ x, y }))),
+        contextLabel: `최근 ${recent.length}경기 합산`,
+        touches: recent.reduce((a, m) => a + m.points.length, 0),
+      };
+    }
+    const m = view === "last" ? matches[0] : matches.find((r) => r.id === view) ?? matches[0];
+    return {
+      points: m.points.map(([x, y]): HeatPoint => ({ x, y })),
+      contextLabel: matchLabel(m),
+      touches: m.points.length,
+    };
+  }, [view, matches, seasonCells, seasonLabel]);
+
+  const chips: Array<{ key: string; label: string }> = [
+    { key: "last", label: "직전 경기" },
+    ...(matches.length >= 2 ? [{ key: "last5", label: `최근 ${Math.min(5, matches.length)}경기` }] : []),
+    ...(seasonCells ? [{ key: "season", label: "시즌 전체" }] : []),
+  ];
+  const isChipActive = (key: string) => view === key || (key === "last" && view === matches[0]?.id);
+
+  return (
+    <section className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 px-4 py-4 dark:border-white/10 sm:px-5">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">Heatmap</p>
+          <h2 className="mt-1 text-lg font-bold tracking-tight">경기별 히트맵</h2>
+        </div>
+        <div className="text-right text-xs text-neutral-500 dark:text-neutral-400">
+          <div className="font-semibold text-neutral-700 dark:text-neutral-200">{seasonLabel}</div>
+          <div className="mt-0.5 tabular-nums">데이터 보유 {matches.length}경기</div>
+        </div>
+      </div>
+
+      <div className="space-y-4 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          {chips.map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setView(c.key)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                isChipActive(c.key)
+                  ? "bg-emerald-600 text-white dark:bg-emerald-500"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-white/[0.06] dark:text-neutral-300 dark:hover:bg-white/[0.1]"
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+          <select
+            value={view === "last" || view === "last5" || view === "season" ? "" : view}
+            onChange={(e) => e.target.value && setView(e.target.value)}
+            aria-label="경기 선택"
+            className="ml-auto max-w-[240px] rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-xs font-medium text-neutral-700 dark:border-white/10 dark:bg-neutral-900 dark:text-neutral-200"
+          >
+            <option value="">경기 선택…</option>
+            {matches.map((m) => (
+              <option key={m.id} value={m.id}>{matchLabel(m)}</option>
+            ))}
+          </select>
+        </div>
+
+        <HeatPitch points={points} ariaLabel={`${name} ${contextLabel} 히트맵`} />
+
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <span className="font-semibold text-neutral-700 dark:text-neutral-200">
+            {contextLabel}
+            {view !== "season" && view !== "last5" && (() => {
+              const m = view === "last" ? matches[0] : matches.find((r) => r.id === view);
+              return m ? (
+                <span className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-bold ${RESULT_CLS[m.result]}`}>{RESULT_KO[m.result]}</span>
+              ) : null;
+            })()}
+          </span>
+          <span className="tabular-nums">터치 {touches.toLocaleString()}회</span>
+        </div>
+      </div>
+
+      <p className="border-t border-black/5 px-4 py-3 text-[10px] leading-4 text-neutral-400 dark:border-white/10 sm:px-5">
+        TheStatsAPI 경기별 터치 좌표. 히트맵 데이터가 제공되는 경기만 표시됩니다.
+      </p>
+    </section>
+  );
+}
