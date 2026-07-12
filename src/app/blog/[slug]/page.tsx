@@ -1,5 +1,6 @@
 // 블로그 글 상세 — 데이터 분석 본문(저작권·출처 JSON-LD).
 import type { Metadata } from "next";
+import AiConsensusWidget from "@/components/AiConsensusWidget";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
@@ -179,6 +180,7 @@ export default async function BlogDetailPage({ params }: Props) {
       ) : (
         <Markdown>{b.content}</Markdown>
       )}
+      <AiConsensusWidget />
       <p className="mt-8 border-t border-black/5 pt-4 text-xs leading-relaxed text-zinc-500 break-keep dark:border-white/10 dark:text-white/50">
         © 스코어베이스. 이 글의 원문은{" "}
         <a

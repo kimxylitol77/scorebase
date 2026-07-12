@@ -76,6 +76,7 @@ interface DP {
   matchId: number;
   market: Market;
   league: string;
+  externalId: string;
   startTime: Date;
   status: string;
   homeScore: number | null;
@@ -98,6 +99,12 @@ function pickText(market: Market, pick: string, home: string, away: string, line
   if (pick === "AWAY") return away;
   return "무승부";
 }
+function matchHref(league: string, externalId: string): string {
+  if (league === "KBO" || league === "NPB" || league === "MLB") return `/live/${league.toLowerCase()}/${externalId}`;
+  if (league === "LOL") return `/live/lol/${externalId}`;
+  return `/live/${league}/${externalId}`;
+}
+
 function shortPick(pick: string, home: string, away: string): string {
   if (pick === "HOME") return home;
   if (pick === "AWAY") return away;
@@ -113,7 +120,7 @@ export default async function ScorecardPage() {
       model: true, market: true, pick: true, prob: true, line: true, reason: true, correct: true,
       match: {
         select: {
-          id: true, league: true, startTime: true, status: true, homeScore: true, awayScore: true,
+          id: true, league: true, startTime: true, status: true, homeScore: true, awayScore: true, externalId: true,
           homeTeam: { select: { name: true } },
           awayTeam: { select: { name: true } },
         },
@@ -131,7 +138,7 @@ export default async function ScorecardPage() {
     if (!dp) {
       dp = {
         matchId: m.id, market: mk, league: m.league, startTime: m.startTime, status: m.status,
-        homeScore: m.homeScore, awayScore: m.awayScore,
+        homeScore: m.homeScore, awayScore: m.awayScore, externalId: m.externalId,
         home: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
         away: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
         cells: new Map(),
@@ -199,6 +206,7 @@ export default async function ScorecardPage() {
   interface UpMatch {
     matchId: number;
     league: string;
+    externalId: string;
     startTime: Date;
     home: string;
     away: string;
@@ -214,7 +222,7 @@ export default async function ScorecardPage() {
       })
       .filter((x): x is { model: string; pick: string; prob: number } => x !== null);
     if (picks.length === 0) continue;
-    upMap.set(d.matchId, { matchId: d.matchId, league: d.league, startTime: d.startTime, home: d.home, away: d.away, picks });
+    upMap.set(d.matchId, { matchId: d.matchId, league: d.league, externalId: d.externalId, startTime: d.startTime, home: d.home, away: d.away, picks });
   }
   const upcoming = [...upMap.values()].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
@@ -399,9 +407,20 @@ export default async function ScorecardPage() {
           <h2 className="mb-1 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
             <Clock className="h-4 w-4 text-rose-500" aria-hidden /> 다가오는 맞대결 — AI 원탁
           </h2>
-          <p className="mb-4 text-[13px] text-zinc-500 dark:text-white/40">
+          <p className="mb-3 text-[13px] text-zinc-500 dark:text-white/40">
             예정 경기를 두고 각 AI가 낸 1X2 픽. 다수결이 갈릴수록 어려운 경기입니다.
           </p>
+          <div className="mb-4 flex items-center gap-2.5 rounded-xl bg-emerald-500/[0.07] px-3.5 py-2.5 ring-1 ring-emerald-500/15 flex-wrap">
+            <span className="text-[13px] text-zinc-700 dark:text-white/70">
+              <strong>AI 6개와 대결해 보세요</strong> — 경기에서 픽을 남기면 AI와 같은 기준으로 채점되고, 적중률이 기록됩니다.
+            </span>
+            <Link
+              href="/signup"
+              className="ml-auto shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-[12px] font-bold text-white transition-opacity hover:opacity-85"
+            >
+              3초 구글 가입
+            </Link>
+          </div>
           <div className="space-y-2">
             {upcoming.slice(0, 20).map((e) => {
               const con = consensusOf(e.picks);
@@ -415,8 +434,16 @@ export default async function ScorecardPage() {
                       {split ? `의견 갈림 ${con.agree}/${con.total}` : `만장일치 ${con.total}`}
                     </span>
                   </div>
-                  <div className="mt-2 text-[15px] font-semibold text-zinc-900 dark:text-white">
-                    {e.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {e.away}
+                  <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+                    <span className="text-[15px] font-semibold text-zinc-900 dark:text-white">
+                      {e.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {e.away}
+                    </span>
+                    <Link
+                      href={matchHref(e.league, e.externalId)}
+                      className="text-[12px] font-semibold text-emerald-600 underline-offset-2 hover:underline dark:text-emerald-400"
+                    >
+                      내 픽 남기기 →
+                    </Link>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {e.picks.map((p) => {

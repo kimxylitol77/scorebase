@@ -9,6 +9,7 @@ import MatchInsight from "@/components/MatchInsight";
 import MatchVoteCard from "@/components/MatchVoteCard";
 import InjuryAndKeyPlayers from "@/components/InjuryAndKeyPlayers";
 import RelatedArticles from "@/components/RelatedArticles";
+import AiConsensusWidget from "@/components/AiConsensusWidget";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -867,6 +868,7 @@ export default async function ArticlePage({ params }: Props) {
         </Link>
       )}
 
+      <AiConsensusWidget />
       <RelatedArticles league={article.league} currentId={article.id} />
 
       <div className="mt-12 pt-6 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-sm">
