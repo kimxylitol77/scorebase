@@ -52,9 +52,35 @@ const KNOWN_COMPETITORS = new Set([
   "fangraphs.com",
   "baseballsavant.mlb.com",
   "statiz.co.kr",
-  // 2026-07-12 최초 스카우트 결과로 운영자에게 보고한 뒤 중복 방지 목록에 편입.
+]);
+
+// 직접 경쟁자는 아니지만 과거 아이디어 참고 서비스로 보고한 도메인. 재보고하지 않는다.
+const REFERENCE_ONLY_DOMAINS = new Set([
   "escharts.com",
 ]);
+
+// 실제 검색 시험에서 드러난 오분류. 제품 유형이 맞지 않으므로 후보·참고 서비스 모두 제외한다.
+const REJECTED_SCOUT_DOMAINS = new Set([
+  "zed.run",       // NFT 기반 가상 경주 게임
+  "betegy.com",    // B2B 스포츠 콘텐츠·마케팅 자동화
+  "datarobot.com", // 범용 기업 AutoML
+]);
+
+// 직접 경쟁자로 통과하려면 제품의 핵심 기능이 아래 항목 중 최소 2개와 겹쳐야 한다.
+const DIRECT_OVERLAP_TAGS = [
+  "라이브스코어",
+  "배당 흐름",
+  "AI 예측",
+  "경기 데이터",
+  "성적 추적",
+];
+
+const DIRECT_PRODUCT_TYPES = [
+  "소비자용 라이브스코어",
+  "소비자용 경기 분석",
+  "소비자용 배당 분석",
+  "소비자용 AI 예측",
+];
 
 // 기사·커뮤니티·앱스토어는 발견 근거가 될 수 있지만 경쟁자 자체 도메인으로 저장하지 않는다.
 const NON_PRODUCT_DOMAINS = new Set([
@@ -77,13 +103,13 @@ const NON_PRODUCT_DOMAINS = new Set([
 ]);
 
 const LOCAL_QUERIES = [
-  "new sports analytics startup launch",
-  "new AI sports prediction platform",
-  "football analytics app startup launch",
-  "baseball analytics AI startup",
-  "sports fan data visualization startup",
-  "스포츠 데이터 스타트업 신규 서비스",
-  "AI 스포츠 예측 플랫폼 출시",
+  "2026 launch consumer AI sports prediction platform",
+  "2026 real-time football xG analysis app launch",
+  "2026 sports prediction performance tracking app",
+  "2026 new football live score AI analysis app",
+  "2026 baseball basketball consumer prediction analytics launch",
+  "2026 스포츠 AI 예측 앱 출시 경기 분석",
+  "2026 축구 실시간 xG 분석 앱 출시",
 ];
 
 function kstDateKey() {
@@ -113,7 +139,13 @@ function domainMatches(domain, blocked) {
 function isExcludedDomain(domain, reportedDomains = []) {
   const normalized = normalizeDomain(domain);
   if (!normalized || !normalized.includes(".")) return true;
-  const allBlocked = [...KNOWN_COMPETITORS, ...NON_PRODUCT_DOMAINS, ...reportedDomains];
+  const allBlocked = [
+    ...KNOWN_COMPETITORS,
+    ...REFERENCE_ONLY_DOMAINS,
+    ...REJECTED_SCOUT_DOMAINS,
+    ...NON_PRODUCT_DOMAINS,
+    ...reportedDomains,
+  ];
   return allBlocked.some((blocked) => domainMatches(normalized, normalizeDomain(blocked)));
 }
 
@@ -131,6 +163,8 @@ function loadState() {
 
 function buildPrompt(reportedDomains) {
   const exclusions = [...KNOWN_COMPETITORS, ...reportedDomains].sort().join(", ");
+  const pastReferences = [...REFERENCE_ONLY_DOMAINS].sort().join(", ");
+  const rejectedDomains = [...REJECTED_SCOUT_DOMAINS].sort().join(", ");
   return `오늘은 ${todayKst()} 입니다. 당신은 Scorebase의 신규 경쟁자 발굴 전담 스카우트입니다.
 
 ## 기존 competitor-watch 와 다른 임무
@@ -141,46 +175,87 @@ function buildPrompt(reportedDomains) {
 ## 이미 알고 있거나 과거 보고한 도메인 — 절대 후보로 내지 말 것
 ${exclusions}
 
+## 과거 아이디어 참고 서비스 — 직접 경쟁자로 승격하거나 다시 보고하지 말 것
+${pastReferences}
+
+## 제품 유형 오분류로 탈락한 도메인 — 후보·참고 서비스 모두 금지
+${rejectedDomains}
+
 ## 검색 범위
 - 최근 90일 안에 출시·피벗·주요 기능 공개가 확인된 신흥 서비스
 - 영어권뿐 아니라 한국·일본·유럽·동남아의 스포츠 데이터 제품
 - 축구뿐 아니라 MLB·KBO·NBA·e스포츠의 분석·예측·시각화 제품
 - 검색 결과에서 처음 본 이름은 공식 사이트를 web_fetch 해 실제 제품인지 확인
 
+## 우선 검색문
+${LOCAL_QUERIES.map((query) => `- ${query}`).join("\n")}
+
+## 직접 경쟁자에서 반드시 제외
+- NFT·판타지·가상 경주·스포츠 게임처럼 실제 프로 경기를 분석하지 않는 제품
+- 스포츠북·베팅 운영사·예측시장처럼 사용자의 베팅을 직접 받는 제품
+- B2B 데이터 API·화이트라벨·마케팅 콘텐츠 자동화처럼 일반 팬이 직접 쓰는 분석 화면이 없는 제품
+- 범용 AI·AutoML·방송·시청률·스폰서·선수 육성 제품
+- 보도자료만 있고 공식 사이트에서 가입·앱·실제 제품 화면을 확인할 수 없는 제품
+
 ## 검증 규칙
 1. 후보마다 공식 제품 도메인이 있어야 한다.
 2. 공식 출시·기능 페이지 또는 독립 기사 URL을 근거로 붙인다.
 3. 공식 사이트에서 확인되지 않은 기능은 쓰지 않는다.
 4. 검증 가능한 신규 후보가 없으면 억지로 채우지 말고 없다고 쓴다.
-5. 최대 2곳, 1800자 이내, 같은 모회사·화이트라벨 서비스는 1곳으로 합친다.
+5. 직접 경쟁자는 일반 팬이 실제 프로 경기 분석에 쓰는 소비자용 제품이어야 한다.
+6. 직접 경쟁자는 제품의 핵심 사용 목적이 아래 5개 중 최소 2개와 겹쳐야 한다.
+   라이브스코어 / 배당 흐름 / AI 예측 / 경기 데이터 / 성적 추적
+7. 시청률·방송·스폰서·선수 육성처럼 한 항목만 간접적으로 겹치면 '아이디어 참고 서비스'로 분류한다.
+8. 최대 직접 경쟁자 2곳 + 참고 서비스 1곳, 2000자 이내, 같은 모회사·화이트라벨 서비스는 1곳으로 합친다.
 
 ## 출력 형식
 - 서두·맺음말·마크다운 별표·HTML 없이 첫 글자부터 🛰로 시작한다.
 - 후보 첫 줄은 반드시 '번호. 서비스명 | domain.com | 한 줄 설명' 형식이다.
 - 근거 URL은 실제 접속한 주소를 그대로 쓰고 기사 날짜는 적지 않는다.
+- 직접 겹침은 아래 허용 태그만 사용하고 반드시 2개 이상 적는다.
+- 제품 유형은 아래 네 문구 중 정확히 하나만 사용한다.
+  소비자용 라이브스코어 / 소비자용 경기 분석 / 소비자용 배당 분석 / 소비자용 AI 예측
 
-🛰 신규 경쟁자
+🛰 신규 발굴 결과
+🥊 직접 경쟁자
 1. 서비스명 | domain.com | 한 줄 설명
 - 근거: https://...
-- 겹침: Scorebase의 어느 기능과 경쟁하는지
+- 제품 유형: 소비자용 경기 분석
+- 실제 경기 대상: 예
+- 직접 겹침: AI 예측, 경기 데이터, 성적 추적
 - 차이: 저 서비스만의 구체적 강점
 
+🧭 아이디어 참고 서비스
+1. 서비스명 | domain.com | 한 줄 설명
+- 근거: https://...
+- 참고 이유: 직접 경쟁자는 아니지만 참고할 구체적 방식
+
 💡 Scorebase 아이디어
-1. 바로 적용 가능한 아이디어 [난이도 상/중/하·효과 상/중/하]
-2. 아이디어
-3. 아이디어
+1. 바로 적용 가능한 구체적 기능 [근거: domain.com] [난이도 중·효과 상]
+2. 구체적 기능 [근거: domain.com] [난이도 하·효과 중]
+3. 구체적 기능 [근거: domain.com] [난이도 상·효과 상]
 
 🎯 오늘 1순위
 - 가장 먼저 실험할 한 가지와 이유
 
-신규 후보가 없을 때는 🛰 신규 경쟁자 아래에 '- 검증 가능한 신규 후보 없음'이라고 쓰고 아이디어도 근거 없이 만들지 말 것.`;
+직접 경쟁자가 없을 때는 🥊 직접 경쟁자 아래에 '- 검증 가능한 직접 경쟁자 없음'이라고 쓴다.
+참고 서비스도 없을 때는 🧭 아이디어 참고 서비스 아래에 '- 검증 가능한 참고 서비스 없음'이라고 쓴다.
+아이디어는 검증한 직접 경쟁자 또는 참고 서비스에서 확인한 기능만 근거로 작성할 것.`;
 }
 
-function extractCandidates(report) {
+function getSection(report, heading) {
+  const start = report.indexOf(heading);
+  if (start < 0) return "";
+  const rest = report.slice(start + heading.length);
+  const next = rest.search(/\n[🛰🥊🧭💡🎯]\s*/u);
+  return (next >= 0 ? rest.slice(0, next) : rest).trim();
+}
+
+function extractCandidatesFromSection(section) {
   const candidates = [];
   const re = /^\d+\.\s+([^|\n]+?)\s*\|\s*([^|\s]+)\s*\|/gm;
   let match;
-  while ((match = re.exec(report)) !== null) {
+  while ((match = re.exec(section)) !== null) {
     const name = match[1].trim();
     const domain = normalizeDomain(match[2]);
     if (name && domain) candidates.push({ name, domain });
@@ -188,49 +263,136 @@ function extractCandidates(report) {
   return candidates.slice(0, 3);
 }
 
+function extractCandidates(report) {
+  return extractCandidatesFromSection(getSection(report, "🥊 직접 경쟁자"));
+}
+
+function extractReferenceCandidates(report) {
+  return extractCandidatesFromSection(getSection(report, "🧭 아이디어 참고 서비스"));
+}
+
+function candidateBlock(section, candidate) {
+  const lines = section.split("\n");
+  const start = lines.findIndex((line) => {
+    const match = line.match(/^\d+\.\s+[^|\n]+?\s*\|\s*([^|\s]+)\s*\|/);
+    return match && normalizeDomain(match[1]) === candidate.domain;
+  });
+  if (start < 0) return "";
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i += 1) {
+    if (/^\d+\.\s+[^|\n]+?\s*\|/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  return lines.slice(start, end).join("\n");
+}
+
+function directOverlapTags(report, candidate) {
+  const block = candidateBlock(getSection(report, "🥊 직접 경쟁자"), candidate);
+  const overlap = block.match(/^- 직접 겹침:\s*(.+)$/m)?.[1] || "";
+  return DIRECT_OVERLAP_TAGS.filter((tag) => overlap.includes(tag));
+}
+
+function validateCandidateBlock(report, heading, candidate, { direct = false } = {}) {
+  const block = candidateBlock(getSection(report, heading), candidate);
+  if (!/^- 근거:\s*https?:\/\/\S+/m.test(block)) {
+    throw new Error(`개별 근거 URL 누락: ${candidate.domain}`);
+  }
+  if (!direct) return;
+
+  const productType = block.match(/^- 제품 유형:\s*(.+)$/m)?.[1]?.trim() || "";
+  if (!DIRECT_PRODUCT_TYPES.includes(productType)) {
+    throw new Error(`직접 경쟁 제품 유형 오류: ${candidate.domain}`);
+  }
+  if (!/^- 실제 경기 대상:\s*예\s*$/m.test(block)) {
+    throw new Error(`실제 경기 대상 확인 실패: ${candidate.domain}`);
+  }
+  const tags = directOverlapTags(report, candidate);
+  if (tags.length < 2) {
+    throw new Error(`직접 경쟁 기준 미달: ${candidate.domain} (${tags.length}/2 태그)`);
+  }
+}
+
+function validateIdeas(report, candidates) {
+  if (candidates.length === 0) return;
+  const ideas = getSection(report, "💡 Scorebase 아이디어")
+    .split("\n")
+    .filter((line) => /^\d+\.\s+/.test(line));
+  if (ideas.length < 2) throw new Error(`구체적 아이디어 부족: ${ideas.length}/2`);
+
+  const domains = candidates.map((item) => item.domain);
+  for (const idea of ideas) {
+    if (!/\[난이도 (상|중|하)·효과 (상|중|하)\]/.test(idea)) {
+      throw new Error("아이디어 난이도·효과 형식 오류");
+    }
+    const source = idea.match(/\[근거:\s*([^\]]+)\]/)?.[1]?.trim() || "";
+    if (!domains.some((domain) => normalizeDomain(source) === domain)) {
+      throw new Error(`아이디어 근거 도메인 오류: ${source || "없음"}`);
+    }
+    const body = idea
+      .replace(/^\d+\.\s+/, "")
+      .replace(/\[[^\]]+\]/g, "")
+      .trim();
+    if (body.length < 12) throw new Error("아이디어 설명이 지나치게 짧음");
+  }
+}
+
 function sanitizeReport(text) {
-  const normalized = String(text).replace(/^#{1,6}\s*(?=[🛰💡🎯])/gm, "");
-  return tidyBullets(stripPreamble(normalized, ["🛰", "💡", "🎯"]))
+  const normalized = String(text).replace(/^#{1,6}\s*(?=[🛰🥊🧭💡🎯])/gmu, "");
+  return tidyBullets(stripPreamble(normalized, ["🛰", "🥊", "🧭", "💡", "🎯"]))
     .replace(/\*\*/g, "")
+    .replace(/\[[^\]]+\]\((https?:\/\/[^)]+)\)/g, "$1")
+    .replace(/\s*\(https?:\/\/[^)]+\)/g, "")
     .replace(/^#{1,6}\s*/gm, "")
     .trim();
 }
 
 function validateReport(report, state) {
-  const candidates = extractCandidates(report);
-  const explicitlyEmpty = report.includes("검증 가능한 신규 후보 없음");
-  if (candidates.length === 0 && !explicitlyEmpty) {
-    throw new Error("신규 후보 형식 파싱 실패 — 전송 중단");
+  const direct = extractCandidates(report);
+  const references = extractReferenceCandidates(report);
+  const explicitlyEmpty = report.includes("검증 가능한 직접 경쟁자 없음");
+  if (direct.length === 0 && !explicitlyEmpty) {
+    throw new Error("직접 경쟁자 형식 파싱 실패 — 전송 중단");
   }
 
   const reportedDomains = state.discoveries.map((item) => item.domain);
-  const excluded = candidates.filter((item) => isExcludedDomain(item.domain, reportedDomains));
+  const allCandidates = [...direct, ...references];
+  const excluded = allCandidates.filter((item) => isExcludedDomain(item.domain, reportedDomains));
   if (excluded.length > 0) {
     throw new Error(`기존·제외 도메인 재등장: ${excluded.map((item) => item.domain).join(", ")}`);
   }
 
-  const unique = new Set(candidates.map((item) => item.domain));
-  if (unique.size !== candidates.length) throw new Error("동일 도메인 중복 후보");
+  const unique = new Set(allCandidates.map((item) => item.domain));
+  if (unique.size !== allCandidates.length) throw new Error("동일 도메인 중복 후보");
+  for (const candidate of direct) {
+    validateCandidateBlock(report, "🥊 직접 경쟁자", candidate, { direct: true });
+  }
+  for (const candidate of references) {
+    validateCandidateBlock(report, "🧭 아이디어 참고 서비스", candidate);
+  }
   const urlCount = (report.match(/https?:\/\//g) || []).length;
-  if (candidates.length > 0 && urlCount < candidates.length) {
+  if (allCandidates.length > 0 && urlCount < allCandidates.length) {
     throw new Error("후보별 검증 URL 부족 — 전송 중단");
   }
+  validateIdeas(report, allCandidates);
   if (report.length > 2600) throw new Error(`보고서 과다 길이: ${report.length}자`);
-  return candidates;
+  return { direct, references };
 }
 
-function saveResult(state, candidates, report) {
+function saveResult(state, result, report) {
   fs.mkdirSync(STATE_DIR, { recursive: true });
   const date = kstDateKey();
   const discoveries = [
     ...state.discoveries,
-    ...candidates.map((item) => ({ ...item, firstSeen: date })),
+    ...result.direct.map((item) => ({ ...item, type: "direct", firstSeen: date })),
+    ...result.references.map((item) => ({ ...item, type: "reference", firstSeen: date })),
   ];
   fs.writeFileSync(
     STATE_FILE,
     JSON.stringify({ updatedAt: new Date().toISOString(), discoveries }, null, 2),
   );
-  fs.appendFileSync(IDEA_LOG, JSON.stringify({ date, candidates, report }) + "\n");
+  fs.appendFileSync(IDEA_LOG, JSON.stringify({ date, ...result, report }) + "\n");
 }
 
 async function main() {
@@ -244,6 +406,10 @@ async function main() {
     if (process.env.OPENAI_API_KEY) process.env.BRIEF_PROVIDER = "openai";
     else if (process.env.ANTHROPIC_API_KEY) delete process.env.BRIEF_PROVIDER;
   }
+  // 검색 품질이 중요한 일 1회 작업이므로 다른 브리핑 봇과 분리해 강한 폴백 모델을 쓴다.
+  if (!process.env.OPENAI_BRIEF_MODEL) {
+    process.env.OPENAI_BRIEF_MODEL = process.env.SCOUT_OPENAI_MODEL || "gpt-5.6-sol";
+  }
   const text = await askWithWebSearch(buildPrompt(reportedDomains), {
     maxTokens: 2800,
     maxSearches: 12,
@@ -256,10 +422,12 @@ async function main() {
   if (!text) throw new Error("빈 응답 (검색 실패 가능)");
 
   const clean = sanitizeReport(text);
-  const candidates = validateReport(clean, state);
+  const result = validateReport(clean, state);
   if (DRY_RUN) {
-    console.log(`[competitor-scout] DRY RUN — candidates=${candidates.length}\n${clean}`);
-    return { candidates, report: clean };
+    console.log(
+      `[competitor-scout] DRY RUN — direct=${result.direct.length}, references=${result.references.length}\n${clean}`,
+    );
+    return { ...result, report: clean };
   }
 
   await notify({
@@ -267,11 +435,16 @@ async function main() {
     severity: "INFO",
     title: "🛰 신규 경쟁자 스카우트",
     message: escapeHtml(clean),
-    metadata: { domains: candidates.map((item) => item.domain) },
+    metadata: {
+      directDomains: result.direct.map((item) => item.domain),
+      referenceDomains: result.references.map((item) => item.domain),
+    },
   });
-  saveResult(state, candidates, clean);
-  console.log(`[competitor-scout] sent — candidates=${candidates.length}\n${clean}`);
-  return { candidates, report: clean };
+  saveResult(state, result, clean);
+  console.log(
+    `[competitor-scout] sent — direct=${result.direct.length}, references=${result.references.length}\n${clean}`,
+  );
+  return { ...result, report: clean };
 }
 
 if (require.main === module) {
@@ -296,6 +469,7 @@ if (require.main === module) {
 module.exports = {
   buildPrompt,
   extractCandidates,
+  extractReferenceCandidates,
   isExcludedDomain,
   loadState,
   main,
