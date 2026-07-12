@@ -35,6 +35,8 @@ interface Props {
   awayNameKo: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  regulationHomeScore?: number | null;
+  regulationAwayScore?: number | null;
   xgHome?: number | null;
   xgAway?: number | null;
   halfTeamStats?: HalfTeamStats | null;
@@ -239,6 +241,8 @@ export default function SoccerFinishedMatchReport({
   awayNameKo,
   homeScore,
   awayScore,
+  regulationHomeScore,
+  regulationAwayScore,
   xgHome,
   xgAway,
   halfTeamStats,
@@ -255,11 +259,17 @@ export default function SoccerFinishedMatchReport({
   const hasTrend = !!trend?.data?.some((half) => Array.isArray(half) && half.length > 0);
   const hasHalfStats = !!halfTeamStats && PHASES.some(({ key }) => hasPhaseStats(halfTeamStats[key]));
   const topPlayers = getTopPlayers(lineup, homeNameKo, awayNameKo, nameById);
+  const wentToExtraTime =
+    homeScore != null &&
+    awayScore != null &&
+    regulationHomeScore != null &&
+    regulationAwayScore != null &&
+    (homeScore !== regulationHomeScore || awayScore !== regulationAwayScore);
   if (!hasXg && !hasTrend && !hasHalfStats && topPlayers.length === 0) return null;
 
   return (
     <section aria-labelledby="finished-match-report-title" className="space-y-4">
-      <header className="flex items-end justify-between gap-4 border-b border-neutral-200 pb-3 dark:border-white/10">
+      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-neutral-200 pb-3 dark:border-white/10">
         <div>
           <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
             <Activity className="h-3.5 w-3.5" aria-hidden="true" />
@@ -269,7 +279,16 @@ export default function SoccerFinishedMatchReport({
             경기 리포트
           </h2>
         </div>
-        <span className="shrink-0 text-xs text-neutral-500">실시간 기록 보존</span>
+        {wentToExtraTime ? (
+          <div className="text-right text-[11px] leading-5 text-neutral-500">
+            <div className="font-semibold text-neutral-700 dark:text-neutral-300">연장 종료</div>
+            <div className="tabular-nums">
+              정규 {regulationHomeScore}-{regulationAwayScore} · 최종 {homeScore}-{awayScore}
+            </div>
+          </div>
+        ) : (
+          <span className="shrink-0 text-xs text-neutral-500">실시간 기록 보존</span>
+        )}
       </header>
 
       {hasXg && (

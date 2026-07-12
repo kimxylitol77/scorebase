@@ -429,6 +429,12 @@ export default async function GenericLivePage({ params }: Props) {
     }
   }
 
+  // 축구는 DB 점수가 정규시간 점수일 수 있다. 리포트·스코어보드는 TheSports 의
+  // 연장 포함 main 점수를 사용하고 승부차기만 별도로 분리한다.
+  const soccerScore = isSoccer
+    ? parseTsFootballScore(match.theSportsCache?.detailLive)
+    : null;
+
   // ── 축구 매치 인사이트 탭 (야구처럼 정리) ─────────────────────────────
   // 기존 세로 카드 스택(라인업/팀통계/하프타임/트렌드/골분포/H2H/구장/예측/시즌/다음경기)을
   // MatchInsight 의 탭(라인업 · 팀 통계 · 맞대결 · 경기 정보)으로 묶어 주입. 모든 스포츠 동일 UI.
@@ -536,8 +542,8 @@ export default async function GenericLivePage({ params }: Props) {
             trend={trend}
             homeNameKo={homeKo}
             awayNameKo={awayKo}
-            homeScore={match.homeScore}
-            awayScore={match.awayScore}
+            homeScore={soccerScore?.mainHome ?? match.homeScore}
+            awayScore={soccerScore?.mainAway ?? match.awayScore}
             goals={trendGoals}
           />
         ) : null;
@@ -546,8 +552,10 @@ export default async function GenericLivePage({ params }: Props) {
           <SoccerFinishedMatchReport
             homeNameKo={homeKo}
             awayNameKo={awayKo}
-            homeScore={match.homeScore}
-            awayScore={match.awayScore}
+            homeScore={soccerScore?.mainHome ?? match.homeScore}
+            awayScore={soccerScore?.mainAway ?? match.awayScore}
+            regulationHomeScore={soccerScore?.regHome}
+            regulationAwayScore={soccerScore?.regAway}
             xgHome={xgH}
             xgAway={xgA}
             halfTeamStats={halfTeamStats}
@@ -785,12 +793,6 @@ export default async function GenericLivePage({ params }: Props) {
     url: `https://www.scorebase.kr/live/${lg}/${gameId}`,
     isAccessibleForFree: true,
   };
-
-  // 축구 — 승부차기/연장 분리. DB.homeScore 는 승부차기 합산 오염 가능(예 UCL 결승 4-3) →
-  // SSR 초기값을 cache 의 정규/연장(mainHome) + 승부차기(penHome) 로 분리해 첫 화면부터 (4)1:1(3).
-  const soccerScore = isSoccer
-    ? parseTsFootballScore(match.theSportsCache?.detailLive)
-    : null;
 
   // 최근 5경기 + 상대전적 (전 종목 공통, Match 기반)
   const recentGames = await getBaseballRecentGames(match);
