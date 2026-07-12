@@ -88,12 +88,6 @@ const SOCCER_LEAGUES = new Set(
   SPORTS.find((s) => s.code === "soccer")?.leagues ?? [],
 );
 
-// 골 장면 재연 1차 파일럿 — 2026-07-12 종료 월드컵 두 경기만.
-// 검증 후 WORLD_CUP 전체로 넓힐 때 이 allowlist 조건만 제거한다.
-const WORLD_CUP_GOAL_REPLAY_PILOT_IDS = new Set([
-  "ts-23xmvkh60yz0qg8", // 노르웨이 vs 잉글랜드
-  "ts-zp5rzghgw3e6q82", // 아르헨티나 vs 스위스
-]);
 function parseGoalie(json: string | null): GoalieInfo | null {
   if (!json) return null;
   try {
@@ -580,7 +574,7 @@ export default async function GenericLivePage({ params }: Props) {
             trend={trend}
             goals={trendGoals}
             goalLine={
-              lg === "WORLD_CUP" && WORLD_CUP_GOAL_REPLAY_PILOT_IDS.has(gameId)
+              lg === "WORLD_CUP"
                 ? (cache.goalLine as Parameters<typeof SoccerFinishedMatchReport>[0]["goalLine"])
                 : null
             }
