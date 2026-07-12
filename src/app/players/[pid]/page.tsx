@@ -14,6 +14,7 @@ import {
   fetchHitterRecent,
 } from "@/lib/sports/mlb-stats-api";
 import { MlbHitterView, MlbPitcherView } from "./MlbViews";
+import PlayerRelatedArticles from "@/components/players/PlayerRelatedArticles";
 import { fetchKboPitcherProfile } from "@/lib/sports/kbo-official";
 import { npbTeamJpToKor } from "@/lib/sports/npb-official";
 import { fetchNpbPitcherProfileCached as fetchNpbPitcherProfile } from "@/lib/sports/npb-cache";
@@ -152,11 +153,16 @@ export default async function PlayerPage({ params, searchParams }: Props) {
 
   if (!isPitcher) {
     return (
-      <MlbHitterView
-        profile={hitterFirst}
-        recent={await fetchHitterRecent(id, season, 10)}
-        season={season}
-      />
+      <>
+        <MlbHitterView
+          profile={hitterFirst}
+          recent={await fetchHitterRecent(id, season, 10)}
+          season={season}
+        />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-10">
+          <PlayerRelatedArticles pid={pid} name={toKoreanPlayerName(hitterFirst.name) || hitterFirst.name} />
+        </div>
+      </>
     );
   }
 
@@ -166,7 +172,14 @@ export default async function PlayerPage({ params, searchParams }: Props) {
     fetchPitcherRecent(id, season, 10),
   ]);
   if (!profile) notFound();
-  return <MlbPitcherView profile={profile} recent={recent} season={season} />;
+  return (
+    <>
+      <MlbPitcherView profile={profile} recent={recent} season={season} />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-10">
+        <PlayerRelatedArticles pid={pid} name={toKoreanPlayerName(profile.name) || profile.name} />
+      </div>
+    </>
+  );
 }
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
