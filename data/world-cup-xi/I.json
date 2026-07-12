@@ -50,7 +50,7 @@
       "star": 4,
       "recentRating": 7.37,
       "avgRating": 7.5,
-      "games": 5,
+      "games": 6,
       "x": 16,
       "y": 70
     },
@@ -63,11 +63,11 @@
       "country": "France",
       "flag": "🇫🇷",
       "logo": "https://img.thesports.com/football/player/660ef4d6ca42c92b6d84d34f331dce61.png",
-      "score": 8.08,
+      "score": 8.13,
       "star": 4,
       "recentRating": 7.46,
-      "avgRating": 7.31,
-      "games": 4,
+      "avgRating": 7.36,
+      "games": 5,
       "x": 39,
       "y": 70
     },
@@ -83,8 +83,8 @@
       "score": 7.97,
       "star": 3,
       "recentRating": 7.53,
-      "avgRating": 7.25,
-      "games": 5,
+      "avgRating": 7.29,
+      "games": 6,
       "x": 61,
       "y": 70
     },
@@ -133,9 +133,9 @@
       "logo": "https://img.thesports.com/football/player/14426cc461d2748f83d117ff5f90868c.png",
       "score": 8.1,
       "star": 4,
-      "recentRating": 7.7,
+      "recentRating": 7.2,
       "avgRating": 7.21,
-      "games": 2,
+      "games": 3,
       "x": 50,
       "y": 32
     },
@@ -167,9 +167,9 @@
       "logo": "https://img.thesports.com/football/player/5826b588824cc39b40467cbad4cc0e62.png",
       "score": 8,
       "star": 3,
-      "recentRating": 7.11,
-      "avgRating": 7.28,
-      "games": 4,
+      "recentRating": 7.2,
+      "avgRating": 7.26,
+      "games": 5,
       "x": 35,
       "y": 52
     },
@@ -185,11 +185,30 @@
       "score": 7.92,
       "star": 3,
       "recentRating": 6.82,
-      "avgRating": 6.81,
-      "games": 4,
+      "avgRating": 6.8,
+      "games": 5,
       "x": 65,
       "y": 52
     },
+    {
+      "id": "pxwrxlhze0dryk0",
+      "name": "Kylian Mbappé",
+      "nameKo": "킬리안 음바페",
+      "hasMv": true,
+      "pos": "F",
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/d67aa76a863129e781c3a34b251c2adb.png",
+      "score": 9.36,
+      "star": 4,
+      "recentRating": 8.79,
+      "avgRating": 8.77,
+      "games": 6,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "318q66hjv6kqo9j",
       "name": "Ousmane Dembélé",
@@ -202,27 +221,8 @@
       "score": 9.35,
       "star": 4,
       "recentRating": 8.2,
-      "avgRating": 7.97,
-      "games": 5,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
-    {
-      "id": "pxwrxlhze0dryk0",
-      "name": "Kylian Mbappé",
-      "nameKo": "킬리안 음바페",
-      "hasMv": true,
-      "pos": "F",
-      "country": "France",
-      "flag": "🇫🇷",
-      "logo": "https://img.thesports.com/football/player/d67aa76a863129e781c3a34b251c2adb.png",
-      "score": 9.24,
-      "star": 4,
-      "recentRating": 8.79,
-      "avgRating": 8.62,
-      "games": 5
+      "avgRating": 7.88,
+      "games": 6
     },
     {
       "id": "2y8m4zhzd27ql07",
@@ -235,9 +235,9 @@
       "logo": "https://img.thesports.com/football/player/e579eba3fa3579885c1c69b1efb96d67.png",
       "score": 9.2,
       "star": 4,
-      "recentRating": 9.2,
-      "avgRating": 8.88,
-      "games": 4
+      "recentRating": 6.47,
+      "avgRating": 8.4,
+      "games": 5
     },
     {
       "id": "y0or5jhe6zx2qwz",
@@ -248,11 +248,11 @@
       "country": "France",
       "flag": "🇫🇷",
       "logo": "https://img.thesports.com/football/player/b6953f629a4b4734ab8640416dfc32d2.png",
-      "score": 8.74,
+      "score": 8.99,
       "star": 4,
       "recentRating": 7.4,
-      "avgRating": 7.42,
-      "games": 5
+      "avgRating": 7.69,
+      "games": 6
     },
     {
       "id": "vjxm8gh85pnpr6o",
@@ -266,8 +266,8 @@
       "score": 8.52,
       "star": 4,
       "recentRating": 7.61,
-      "avgRating": 7.16,
-      "games": 5
+      "avgRating": 7.15,
+      "games": 6
     },
     {
       "id": "dn1m1gh85pymoep",
@@ -285,19 +285,19 @@
       "games": 4
     },
     {
-      "id": "y39mp1hyjjegmoj",
-      "name": "Iliman Ndiaye",
-      "nameKo": "일리망 은디아예",
+      "id": "2y8m4zhg6dygql0",
+      "name": "Bradley Barcola",
+      "nameKo": "브래들리 바르콜라",
       "hasMv": true,
       "pos": "F",
-      "country": "Senegal",
-      "flag": "🇸🇳",
-      "logo": "https://img.thesports.com/football/player/f04c547700f919b3c98f83eafa99b666.png",
-      "score": 8.19,
+      "country": "France",
+      "flag": "🇫🇷",
+      "logo": "https://img.thesports.com/football/player/fa0218ca6c1a252673a5a72721777caf.png",
+      "score": 8.28,
       "star": 4,
-      "recentRating": 6.21,
-      "avgRating": 6.9,
-      "games": 3
+      "recentRating": 6.98,
+      "avgRating": 7.01,
+      "games": 6
     }
   ],
   "complete": true
