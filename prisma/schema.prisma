@@ -18,6 +18,7 @@ model Team {
   league     String // KBO | EPL | NBA | NHL | MLB | LALIGA | BUNDESLIGA | SERIE_A | LIGUE_1 | MLS | UCL | WORLD_CUP
   externalId String // 외부 API 의 팀 ID
   name       String
+  nameKo     String? // TheSports 공식 한국어명 미러 (daily-official-korean 봇이 매일 덮어씀). 표기 교정은 team-names.ts 사전에 — 표시 시 사전이 항상 우선.
   shortName  String?
   logoUrl    String?
 
