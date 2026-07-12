@@ -214,7 +214,11 @@ async function askWithLocalSearch(query, prompt, opts = {}) {
   for (const q of queries) {
     let items = [];
     try {
-      items = await fetchGoogleNews(q, { when: opts.when, limit: opts.perQuery || 12 });
+      items = await fetchGoogleNews(q, {
+        when: opts.when,
+        limit: opts.perQuery || 12,
+        maxAgeDays: opts.maxAgeDays || 2,
+      });
     } catch (e) {
       console.warn(`[ai-brief/local] RSS '${q}' 실패: ${String(e.message).slice(0, 80)}`);
     }

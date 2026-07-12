@@ -51,6 +51,7 @@ const SEV_LABEL_KO: Record<string, string> = {
 const SLACK_CHANNEL_BY_SOURCE: Record<string, string> = {
   "sports-news-brief": process.env.SLACK_CHANNEL_NEWS || "C0BAB424EG5", // #뉴스
   "competitor-watch": process.env.SLACK_CHANNEL_COMPETITOR || "C0BAB4257UM", // #경쟁사
+  "competitor-scout": process.env.SLACK_CHANNEL_COMPETITOR || "C0BAB4257UM", // #경쟁사
   "crypto-brief": process.env.SLACK_CHANNEL_CRYPTO || "C0B9Z7FBR3R", // #코인ai
   "ai-news-brief": process.env.SLACK_CHANNEL_AINEWS || "C0BAB9V9X53", // #ai-뉴스
 };
