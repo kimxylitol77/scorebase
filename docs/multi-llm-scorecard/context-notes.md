@@ -51,3 +51,11 @@
 - 모델 라벨: `src/lib/predict/gpt-scorecard-model.ts`
 - cron: `src/app/api/cron/gpt-predictions/route.ts` + `vercel.json`
 - Qwen 미러 패턴: `mac-mini-worker/consensus-crawler.js`, `src/app/api/internal/consensus-pick`
+
+## 리더보드 헤드라인 = 최근 100건 (2026-07-12)
+
+- 사용자 결정. 헤드라인 순위·%를 누적에서 **모델별 최근 채점 100건**(RECENT_WINDOW)으로 전환. 누적 이력 961건인 GPT·스코어베이스와 갓 합류한 4모델(Grok·Gemini·Claude·Qwen)을 같은 표본 크기로 비교하기 위함.
+- 누적 성적은 카드 하단에 병기(`누적 550/961`), **어제(KST) 성적**도 병기(`어제 32/61`). "오늘 승률"은 채점 cron 이 자정 1회(vercel.json `0 15 * * *` UTC)라 낮 동안 항상 0/0이어서 생략 — 사용자가 크론 증설 대신 자정 1회 유지 선택.
+- 전환 부수효과: 최근 폼 기준이라 순위 뒤집힘(스코어베이스 52.0% > GPT 48.0%, 누적은 GPT 우위). 인용 문구(citation)도 최근 100건 기준으로 갱신.
+- RANK_MIN 30 게이트는 유지(30건 미만은 "표본 누적 중" 버킷). recent = min(누적, 100) 이므로 게이트 판정은 동일.
+- Qwen 카운터 정체(4/6)의 원인 진단은 같은 날 세션: 워커·저장·채점 로직 전부 정상, 자정 1회 채점 배치 + Qwen 이 7/11 오후 합류해 표본이 적었던 것. 채점 대기 52건이 다음 자정에 반영 예정.
