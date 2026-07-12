@@ -158,7 +158,8 @@ export async function runGenerateTransferDaily(opts?: { dryRun?: boolean }) {
     where: { authorId: manager.id, title: { startsWith: TITLE_PREFIX }, createdAt: { gte: dayStartUtc } },
     select: { id: true },
   });
-  if (existing) return { posted: false, reason: "already", postId: existing.id };
+  // dryRun 은 미리보기 용도라 가드를 통과시킨다 (발행은 어차피 안 함).
+  if (existing && !opts?.dryRun) return { posted: false, reason: "already", postId: existing.id };
 
   // 지난 24h 신규 이적 — updatedAt=first-seen(소식일). transferTime 은 7/1 무더기라 부적합.
   const rows = await prisma.footballTransfer.findMany({
@@ -265,12 +266,19 @@ export async function runGenerateTransferDaily(opts?: { dryRun?: boolean }) {
             mvMap,
           )
         : null;
+      // versus 좌표 변환 — 빌더 placeY 와 동일(홈=아래 절반 50+0.46y, 원정=위 절반 미러 50-0.46y).
+      // 풀피치 좌표를 그대로 쓰면 두 팀 22명이 같은 자리에 겹친다 (post 938 초판에서 실측).
+      const vY = (players: Placed[], side: "home" | "away"): Placed[] =>
+        players.map((p) => ({ ...p, y: Math.round(side === "away" ? 50 - p.y * 0.46 : 50 + p.y * 0.46) }));
       const board: BoardState = rivalBuilt
         ? {
             mode: "versus", displayMode: "photo", orientation: "portrait",
             title: `${built.side.club} vs ${rivalBuilt.side.club}`,
             subtitle: `영입 반영 예상 XI · ${kstLabel}`,
-            kit: "grass", home: built.side, away: rivalBuilt.side, bench: [], strokes: [],
+            kit: "grass",
+            home: { ...built.side, players: vY(built.side.players, "home") },
+            away: { ...rivalBuilt.side, players: vY(rivalBuilt.side.players, "away") },
+            bench: [], strokes: [],
           }
         : {
             mode: "single", displayMode: "photo", orientation: "portrait",

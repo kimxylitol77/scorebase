@@ -14,3 +14,10 @@
 - **게이트 TRANSFER_DAILY_ENABLED** — 기본 OFF. LLM 하루 1회(haiku)라 저비용이지만 과금 게이트 원칙(feedback_deploy_gate_cost) 준수. cron-registry 워치독에는 게이트 ON 확인 후에 등록(OFF 상태로 등록하면 미실행 알림 소음).
 - **선수 한글명** — 본문 텍스트는 toKoreanPlayerName(사전) 폴백 영문. 보드는 pid 만 저장하고 /lineup 렌더가 pool 에서 한글화하므로 불필요.
 - **조사 워크플로우 실패 2건 메모** — postInfra·marketValue 에이전트가 StructuredOutput 실패했으나 직접 grep 으로 보완 완료. 이적 데이터·자동발행 패턴 조사는 성공(요약: FootballTransfer 6h 수집, jobs+cron route+vercel.json 3층, generate() haiku+OpenAI 폴백, GENERATE_DISABLED 킬스위치 존재).
+
+## 2026-07-12 versus 좌표 버그 (post 938 초판)
+
+- encodeBoard 는 좌표를 그대로 저장하고 Pitch 도 그대로 그린다 — **versus 배치는 빌더가 좌표를 미리 변환**해서 만드는 것(LineupBuilder placeY). 홈=50+0.46y(아래 절반), 원정=50-0.46y(위 절반 미러), x 는 그대로.
+- 잡이 풀피치 좌표로 두 팀을 넣어 22명이 겹침 → vY 변환 추가로 해결, post 938 lineupCode 교체 완료. 단일 보드는 변환 불필요(풀피치가 맞음).
+- dryRun 은 하루 1개 가드를 통과하도록 수정(미리보기 용도).
+- 신규 영입 선수는 /lineup pool 에 사진이 없으면 이니셜 칩으로 표시(휼만드) — 정상 동작.
