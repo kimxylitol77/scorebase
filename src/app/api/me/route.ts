@@ -1,11 +1,30 @@
-// 클라이언트 로그인 여부 확인 — 소프트 게이트(성적표 AI 픽 블러)용 경량 엔드포인트.
-// 값은 boolean 만 — 개인정보 미노출. ISR 페이지가 세션을 못 읽는 한계를 클라 fetch 로 보완.
+// 헤더 배지용 경량 세션 조회 — cookies() 를 route handler 로 격리해 페이지 ISR 을 지키기 위한 endpoint.
+// (서버 컴포넌트 배지가 cookies() 를 부르면 레이아웃 트리 전체가 dynamic 강등 — 전 페이지 CDN MISS 회귀)
 import { NextResponse } from "next/server";
-import { getCurrentUserId } from "@/lib/current-user";
+import { cookies } from "next/headers";
+import { prisma } from "@/lib/db";
+import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
+import { COOKIE_NAME, readSessionCookie } from "@/lib/auth";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const uid = await getCurrentUserId();
-  return NextResponse.json({ loggedIn: Boolean(uid) }, { headers: { "Cache-Control": "no-store" } });
+  const c = await cookies();
+  const userSession = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
+  const adminSession = readSessionCookie(c.get(COOKIE_NAME)?.value);
+
+  let nickname: string | null = null;
+  if (userSession) {
+    const user = await prisma.user.findUnique({
+      where: { id: userSession.userId },
+      select: { nickname: true },
+    });
+    nickname = user?.nickname ?? null;
+  }
+
+  return NextResponse.json(
+    { nickname, admin: adminSession?.username ?? null },
+    { headers: { "Cache-Control": "private, no-store" } },
+  );
 }

@@ -12,9 +12,9 @@ export default function ConsensusGate({ children, count }: { children: React.Rea
     let alive = true;
     fetch("/api/me", { cache: "no-store" })
       .then((r) => r.json())
-      .then((j: { loggedIn?: boolean }) => {
+      .then((j: { nickname?: string | null }) => {
         if (!alive) return;
-        if (j.loggedIn) setOpen(true);
+        if (j.nickname) setOpen(true);
         setChecked(true);
       })
       .catch(() => setChecked(true));
