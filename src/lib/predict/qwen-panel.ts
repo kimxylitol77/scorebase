@@ -14,6 +14,7 @@ import {
   storePanel,
   buildMarketsPrompt,
   parseMarketsResponse,
+  starterFacts,
   MAJOR_LEAGUES,
   LOOKAHEAD_HOURS,
   type MarketLines,
@@ -86,7 +87,10 @@ export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
 
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
-    const facts = buildMatchContext(pool, m.league, m.homeTeamId, m.awayTeamId, m.startTime, homeKo, awayKo);
+    const facts = {
+      ...buildMatchContext(pool, m.league, m.homeTeamId, m.awayTeamId, m.startTime, homeKo, awayKo),
+      starters: starterFacts(m.homeStarter, m.awayStarter),
+    };
     const lines: MarketLines = { hc: oursHcOu.hc?.line ?? null, ou: oursHcOu.ou?.line ?? null };
     const { system, user } = buildMarketsPrompt(m.league, homeKo, awayKo, m.startTime, lines, facts);
     tasks.push({ matchId: m.id, league: m.league, system, user, lines });

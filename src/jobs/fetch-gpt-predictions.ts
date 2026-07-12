@@ -80,7 +80,44 @@ type GptMatchFacts = {
   };
   restDays?: { home: number | null; away: number | null };
   h2h?: { homeWins: number; draws: number; awayWins: number; total: number };
+  starters?: { home: StarterFact | null; away: StarterFact | null };
 };
+
+// 야구 선발투수 프롬프트 팩트 — Match.homeStarter/awayStarter JSON 에서 추출.
+type StarterFact = {
+  name: string;
+  era: number;
+  whip?: number;
+  k9?: number;
+  wins?: number;
+  losses?: number;
+};
+
+/**
+ * Match.homeStarter/awayStarter JSON → 패널 프롬프트용 선발 팩트.
+ * ERA 없는 쪽은 null(미발표 표기). 양쪽 다 없으면 undefined(팩트 줄 자체 생략).
+ * 야구 외 리그는 컬럼이 null 이라 자연히 undefined — 리그 분기 불필요.
+ */
+export function starterFacts(
+  homeRaw: string | null,
+  awayRaw: string | null,
+): GptMatchFacts["starters"] {
+  const one = (raw: string | null): StarterFact | null => {
+    const s = parseJson(raw);
+    if (!s || typeof s.name !== "string" || typeof s.era !== "number") return null;
+    return {
+      name: s.name,
+      era: s.era,
+      whip: typeof s.whip === "number" ? s.whip : undefined,
+      k9: typeof s.k9 === "number" ? s.k9 : undefined,
+      wins: typeof s.wins === "number" ? s.wins : undefined,
+      losses: typeof s.losses === "number" ? s.losses : undefined,
+    };
+  };
+  const home = one(homeRaw);
+  const away = one(awayRaw);
+  return home || away ? { home, away } : undefined;
+}
 
 // 무승부가 존재하는 축구 리그 — SOCCER_LEAGUES_FOR_MARKETS(핸디/OU 프로파일 스코프)와
 // 별개로, K리그처럼 프로파일 없이 1X2만 도는 리그도 무승부 픽은 허용해야 한다.
@@ -471,6 +508,17 @@ function formatGptFacts(facts: GptMatchFacts, home: string, away: string): strin
     const { home: h, away: a } = facts.trend;
     lines.push(`최근 평균: ${home} 득점 ${h.gf.toFixed(2)}, 실점 ${h.ga.toFixed(2)}, 승점 ${h.ppg.toFixed(2)} / ${away} 득점 ${a.gf.toFixed(2)}, 실점 ${a.ga.toFixed(2)}, 승점 ${a.ppg.toFixed(2)}`);
   }
+  if (facts.starters) {
+    const one = (s: { name: string; era: number; whip?: number; k9?: number; wins?: number; losses?: number } | null) =>
+      s
+        ? `${s.name} (ERA ${s.era.toFixed(2)}` +
+          (s.whip != null ? `, WHIP ${s.whip.toFixed(2)}` : "") +
+          (s.k9 != null ? `, K/9 ${s.k9.toFixed(1)}` : "") +
+          (s.wins != null && s.losses != null ? `, ${s.wins}승 ${s.losses}패` : "") +
+          ")"
+        : "미발표";
+    lines.push(`선발투수: ${home} ${one(facts.starters.home)} / ${away} ${one(facts.starters.away)}`);
+  }
   if (facts.restDays?.home != null && facts.restDays.away != null) {
     lines.push(`휴식일: ${home} ${facts.restDays.home}일 / ${away} ${facts.restDays.away}일`);
   }
@@ -558,15 +606,18 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
     const oursHcOu = scorebaseHcOu(m, pool);
-    const facts = buildMatchContext(
-      pool,
-      m.league,
-      m.homeTeamId,
-      m.awayTeamId,
-      m.startTime,
-      homeKo,
-      awayKo,
-    );
+    const facts: GptMatchFacts = {
+      ...buildMatchContext(
+        pool,
+        m.league,
+        m.homeTeamId,
+        m.awayTeamId,
+        m.startTime,
+        homeKo,
+        awayKo,
+      ),
+      starters: starterFacts(m.homeStarter, m.awayStarter),
+    };
 
     // scorebase 앵커는 패널 성패와 무관하게 1회 저장(독립). 채점 기준선(line)의 출처.
     await storeAnchor(m.id, ours, oursHcOu);
@@ -772,15 +823,18 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
     if (!oursHcOu.hc && !oursHcOu.ou) continue; // 우리 모델이 줄 라인이 없으면 비교 불가
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
-    const gptFacts = buildMatchContext(
-      pool,
-      m.league,
-      m.homeTeamId,
-      m.awayTeamId,
-      m.startTime,
-      homeKo,
-      awayKo,
-    );
+    const gptFacts: GptMatchFacts = {
+      ...buildMatchContext(
+        pool,
+        m.league,
+        m.homeTeamId,
+        m.awayTeamId,
+        m.startTime,
+        homeKo,
+        awayKo,
+      ),
+      starters: starterFacts(m.homeStarter, m.awayStarter),
+    };
 
     let gpt: GptMarketPick | null = null;
     try {
