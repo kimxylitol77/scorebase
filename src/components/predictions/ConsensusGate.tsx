@@ -37,14 +37,14 @@ export default function ConsensusGate({ children, count }: { children: React.Rea
             무료 가입하면 6개 AI의 모든 예정 경기 픽을 볼 수 있고, 내 픽도 AI와 같은 기준으로 채점됩니다.
           </p>
           <a
-            href="/signup?next=/predictions/scorecard"
+            href="/signup?from=%2Fpredictions%2Fscorecard"
             className="mt-3 inline-block rounded-xl bg-emerald-600 px-4 py-2 text-[13px] font-bold text-white transition-opacity hover:opacity-85"
           >
             3초 구글 가입하고 전부 보기
           </a>
           {checked && (
             <p className="mt-2 text-[11px] text-zinc-400 dark:text-white/35">
-              이미 회원이라면 <a href="/login?next=/predictions/scorecard" className="underline underline-offset-2">로그인</a>
+              이미 회원이라면 <a href="/login?from=%2Fpredictions%2Fscorecard" className="underline underline-offset-2">로그인</a>
             </p>
           )}
         </div>

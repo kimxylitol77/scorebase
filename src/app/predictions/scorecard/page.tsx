@@ -416,7 +416,7 @@ export default async function ScorecardPage() {
               <strong>AI 6개와 대결해 보세요</strong> — 경기에서 픽을 남기면 AI와 같은 기준으로 채점되고, 적중률이 기록됩니다.
             </span>
             <Link
-              href="/signup"
+              href="/signup?from=%2Fpredictions%2Fscorecard"
               className="ml-auto shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-[12px] font-bold text-white transition-opacity hover:opacity-85"
             >
               3초 구글 가입
