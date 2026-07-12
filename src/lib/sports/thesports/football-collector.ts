@@ -9,6 +9,7 @@ import { thesportsGet } from "./client";
 import type {
   TSFootballMatchDiaryResponse,
   TSFootballMatch,
+  TSFootballScores,
   TSFootballTeamMeta,
   TSFootballLineupResponse,
   TSFootballLineupPlayer,
@@ -84,9 +85,19 @@ function normalizeFootballMatch(
   const away = teamMap.get(m.away_team_id);
   if (!home || !away) return null;
 
-  // home_scores/away_scores[0] = 정규시간 종합 (full time)
-  const homeScore = m.home_scores?.[0];
-  const awayScore = m.away_scores?.[0];
+  // home_scores/away_scores: [0]=정규시간, [5]=연장 포함 총점, [6]=승부차기.
+  // 연장 간 경기(컵/토너먼트)는 [5]가 최종 스코어 — [0]만 쓰면 정규 동점으로 덮여
+  // 브래킷에 1-1 같은 불가능한 결과가 표시된다(2026-07-12 노르웨이-잉글랜드 사고).
+  // 승부차기([6])는 절대 합산하지 않는다(과거 UCL 결승 4-3 오염 사고).
+  const finalScore = (arr?: TSFootballScores): number | undefined => {
+    if (!arr) return undefined;
+    const reg = Number(arr[0]);
+    const ot = Number(arr[5]);
+    if (!Number.isFinite(reg)) return undefined;
+    return Number.isFinite(ot) && ot > 0 && ot >= reg ? ot : reg;
+  };
+  const homeScore = finalScore(m.home_scores);
+  const awayScore = finalScore(m.away_scores);
 
   return {
     league,
