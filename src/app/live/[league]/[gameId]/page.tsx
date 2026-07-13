@@ -1021,45 +1021,21 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
-      {/* 축구: 팀 전력 섹션이 상단 (Elo·순위·홈/원정·시즌 폼·공수) — 시즌 성적·상대전적은
-          아래로 (2026-07-13 사용자 지시: 시즌 성적 카드는 분석 가치가 낮아 팀 전력으로 교체).
+      {/* 축구: 팀 전력 섹션이 상단 (Elo·순위·홈/원정·시즌 폼·공수) — 옛 "시즌 성적·상대전적"
+          카드는 시즌 성적이 팀 전력과 중복이라 제거, 고유 데이터인 상대전적 요약(h2h)만
+          팀 전력의 상세 전력으로 흡수 (2026-07-13 사용자 지시: 중복 통합).
           예정 매치는 분석 본문이라 펼침, LIVE/종료는 "지금" 블록이 답을 주므로 접힘. */}
       {isSoccer ? (
-        <>
-          {match.status === "SCHEDULED" ? (
-            <SoccerTeamStrength match={match} />
-          ) : (
-            <CollapsibleSection
-              title="팀 전력"
-              hint="Elo · 홈/원정 · 시즌 폼 · 공수 지표"
-            >
-              <SoccerTeamStrength match={match} />
-            </CollapsibleSection>
-          )}
+        match.status === "SCHEDULED" ? (
+          <SoccerTeamStrength match={match} h2h={extras.h2hHome} />
+        ) : (
           <CollapsibleSection
-            title="시즌 성적 · 상대전적"
-            hint={
-              homePosition && awayPosition
-                ? `${homeKo} ${homePosition}위 vs ${awayKo} ${awayPosition}위`
-                : homeFifaRank && awayFifaRank
-                  ? `FIFA ${homeFifaRank}위 vs ${awayFifaRank}위`
-                  : "순위 · 시즌 성적 · 맞대결"
-            }
+            title="팀 전력"
+            hint="Elo · 시즌 · 상대전적 · 홈/원정 · 시즌 폼"
           >
-            <MatchHeadToHead
-              homeShortName={homeShort}
-              awayShortName={awayShort}
-              homeTeamId={match.homeTeam.id}
-              awayTeamId={match.awayTeam.id}
-              h2hHome={extras.h2hHome}
-              homeStanding={extras.homeStanding}
-              awayStanding={extras.awayStanding}
-              totalTeams={extras.totalTeams}
-              hasDraw={isSoccer}
-              scoreLabel={scoreLabel}
-            />
+            <SoccerTeamStrength match={match} h2h={extras.h2hHome} />
           </CollapsibleSection>
-        </>
+        )
       ) : (
         <MatchHeadToHead
           homeShortName={homeShort}

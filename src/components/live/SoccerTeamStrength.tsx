@@ -13,7 +13,10 @@ import { calcHomeAway } from "@/lib/predict/home-away";
 import { calcStreaks } from "@/lib/predict/streak";
 import { calcRecentTrend } from "@/lib/predict/recent-trend";
 import { nationalElo } from "@/lib/predict/build-context";
+import type { FormResult } from "@/lib/predict/types";
+import type { H2HResult } from "@/lib/live/match-extras";
 import EloMeter from "../EloMeter";
+import FormDots from "../FormDots";
 import SeasonFormHeatmap from "../charts/SeasonFormHeatmap";
 import { GoalScatter } from "../charts/lazy-insight-charts";
 import TeamMatchup, { type TeamSide } from "../TeamMatchup";
@@ -31,9 +34,17 @@ interface Props {
     homeSeasonPoints?: number | null;
     awaySeasonPoints?: number | null;
   };
+  /** 양 팀 상대전적 요약 (home 관점, match-extras) — 옛 "시즌 성적 · 상대전적" 카드에서
+   *  흡수한 고유 데이터. 시즌 성적 수치는 시즌 전체 그룹과 중복이라 카드 자체를 제거. */
+  h2h?: H2HResult;
 }
 
-export default async function SoccerTeamStrength({ match }: Props) {
+/** home 관점 W/L 을 원정 관점으로 반전 */
+function flipResults(results: FormResult[]): FormResult[] {
+  return results.map((r) => (r === "W" ? "L" : r === "L" ? "W" : r) as FormResult);
+}
+
+export default async function SoccerTeamStrength({ match, h2h }: Props) {
   const matches = await getLeagueMatches(match.league);
   const referenceTime = match.startTime;
   const beforeMatches = matches.filter(
@@ -179,11 +190,51 @@ export default async function SoccerTeamStrength({ match }: Props) {
       {/* 기본 노출 — 팀명·최근 폼 + 시즌 전체 비교 */}
       <TeamMatchup sections="overview" showDraw={showDraw} home={homeSide} away={awaySide} />
 
-      {/* 나머지 지표는 접기 — 홈/원정 · 최근 5경기 · 흐름 · 시즌 폼 · 공수 분포 */}
+      {/* 나머지 지표는 접기 — 상대전적 · 홈/원정 · 최근 5경기 · 흐름 · 시즌 폼 · 공수 분포 */}
       <CollapsibleSection
         title="상세 전력"
-        hint="홈/원정 · 최근 5경기 · 흐름 · 시즌 폼 · 공수 분포"
+        hint="상대전적 · 홈/원정 · 최근 5경기 · 흐름 · 시즌 폼 · 공수 분포"
       >
+        {/* 상대전적 요약 — home 관점 결과를 원정 쪽은 반전 표시 */}
+        {h2h && h2h.results.length > 0 && (
+          <div>
+            <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+              상대전적 (최근 {h2h.results.length}경기)
+            </div>
+            <div className="rounded-xl border border-neutral-200/70 dark:border-neutral-800/70 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 py-4 px-3">
+              <div className="text-center space-y-2 min-w-0">
+                <div className="text-xs sm:text-sm font-bold tracking-tight text-blue-600 dark:text-blue-400 truncate">
+                  {homeKo}
+                </div>
+                <div className="text-sm font-bold tabular-nums">
+                  <span className="text-emerald-600 dark:text-emerald-400">{h2h.wins}승</span>{" "}
+                  <span className="text-neutral-500">{h2h.draws}무</span>{" "}
+                  <span className="text-rose-600 dark:text-rose-400">{h2h.losses}패</span>
+                </div>
+                <div className="flex justify-center">
+                  <FormDots results={h2h.results} />
+                </div>
+              </div>
+              <div className="text-[10px] sm:text-xs font-semibold tracking-wider text-neutral-400 uppercase">
+                VS
+              </div>
+              <div className="text-center space-y-2 min-w-0">
+                <div className="text-xs sm:text-sm font-bold tracking-tight text-rose-600 dark:text-rose-400 truncate">
+                  {awayKo}
+                </div>
+                <div className="text-sm font-bold tabular-nums">
+                  <span className="text-emerald-600 dark:text-emerald-400">{h2h.losses}승</span>{" "}
+                  <span className="text-neutral-500">{h2h.draws}무</span>{" "}
+                  <span className="text-rose-600 dark:text-rose-400">{h2h.wins}패</span>
+                </div>
+                <div className="flex justify-center">
+                  <FormDots results={flipResults(h2h.results)} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <TeamMatchup sections="detail" showDraw={showDraw} home={homeSide} away={awaySide} />
 
         {/* 시즌 폼 히트맵 */}
