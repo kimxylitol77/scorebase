@@ -169,5 +169,59 @@
   "competitionId": "comp_3039",
   "seasonId": "sn_6125938",
   "seasonLabel": "2025-26 EPL"
+ },
+ "zp5rzgh2ylnq82w": {
+  "statsId": "pl_57366939",
+  "teamId": "tm_4643",
+  "teamName": "Manchester United",
+  "name": "Matheus Cunha",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_6125938",
+  "seasonLabel": "2025-26 EPL"
+ },
+ "965mkyh3204gr1g": {
+  "statsId": "pl_13870831",
+  "teamId": "tm_8531",
+  "teamName": "Chelsea",
+  "name": "Moises Caicedo",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_6125938",
+  "seasonLabel": "2025-26 EPL"
+ },
+ "4wyrn4hd0p58q86": {
+  "statsId": "pl_72695512",
+  "teamId": "tm_8531",
+  "teamName": "Chelsea",
+  "name": "João Pedro",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_6125938",
+  "seasonLabel": "2025-26 EPL"
+ },
+ "ednm9whgg9x7ryo": {
+  "statsId": "pl_46997904",
+  "teamId": "tm_8531",
+  "teamName": "Chelsea",
+  "name": "Estêvão Willian Almeida de Oliveira Gonçalves",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_6125938",
+  "seasonLabel": "2025-26 EPL"
+ },
+ "l7oqdeh4dx80r51": {
+  "statsId": "pl_45277146",
+  "teamId": "tm_8531",
+  "teamName": "Chelsea",
+  "name": "Enzo Fernández",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_6125938",
+  "seasonLabel": "2025-26 EPL"
+ },
+ "x7lm7phpz18m2wd": {
+  "statsId": "pl_96242662",
+  "teamId": "tm_9145",
+  "teamName": "Arsenal",
+  "name": "Gabriel dos Santos Magalhães",
+  "competitionId": "comp_3039",
+  "seasonId": "sn_6125938",
+  "seasonLabel": "2025-26 EPL"
  }
 }
