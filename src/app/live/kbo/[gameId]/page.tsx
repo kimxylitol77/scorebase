@@ -307,7 +307,7 @@ export default async function KboLivePage({ params }: Props) {
       {(seasonAnalysis?.hasData || recentGames?.hasData) && (
         <CollapsibleSection
           title="팀 전력 · 시즌 분석"
-          hint="시즌 성적 · 타자 전력 · 최근 5경기"
+          hint="시즌 성적 · 타자 전력 · 최근 경기"
         >
           {seasonAnalysis?.hasData && (
             <>

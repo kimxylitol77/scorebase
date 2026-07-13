@@ -811,7 +811,7 @@ export default async function GenericLivePage({ params }: Props) {
     isAccessibleForFree: true,
   };
 
-  // 최근 5경기 + 상대전적 (전 종목 공통, Match 기반)
+  // 최근 경기 + 상대전적 (전 종목 공통, Match 기반, 5개씩 더보기)
   const recentGames = await getBaseballRecentGames(match);
 
   // ── 결론 3카드 데이터 (전 종목 공통) — 승률은 Match.pred* 스냅샷(단일소스) ──
@@ -1064,7 +1064,7 @@ export default async function GenericLivePage({ params }: Props) {
 
       {recentGames?.hasData && (
         <CollapsibleSection
-          title="최근 5경기 · 상대전적"
+          title="최근 경기 · 상대전적"
           hint="양 팀 최근 경기 + 맞대결"
           defaultOpen={isSoccer && match.status === "SCHEDULED"}
         >

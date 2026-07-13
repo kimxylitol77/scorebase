@@ -139,11 +139,11 @@ export async function getBaseballSeasonAnalysis(match: {
 }
 
 /* ============================================================
- * ③ 최근 5경기 / ④ 상대전적 — Match 테이블 기반
+ * ③ 최근 경기 / ④ 상대전적 — Match 테이블 기반
  * ==========================================================*/
 
 export interface BaseballGameRow {
-  date: string; // "MM.DD" (KST)
+  date: string; // "YY.MM.DD" (KST)
   homeName: string;
   awayName: string;
   homeScore: number | null;
@@ -174,11 +174,12 @@ const GAME_SELECT = {
   awayTeam: { select: { name: true } },
 };
 
-function kstMMDD(d: Date): string {
+function kstYYMMDD(d: Date): string {
   const k = new Date(d.getTime() + 9 * 3600 * 1000);
+  const yy = String(k.getUTCFullYear() % 100).padStart(2, "0");
   const mm = String(k.getUTCMonth() + 1).padStart(2, "0");
   const dd = String(k.getUTCDate()).padStart(2, "0");
-  return `${mm}.${dd}`;
+  return `${yy}.${mm}.${dd}`;
 }
 
 function toGameRow(m: RawGame, league: string): BaseballGameRow {
@@ -187,7 +188,7 @@ function toGameRow(m: RawGame, league: string): BaseballGameRow {
   let winner: BaseballGameRow["winner"] = null;
   if (hs != null && as != null) winner = hs > as ? "HOME" : hs < as ? "AWAY" : "DRAW";
   return {
-    date: kstMMDD(m.startTime),
+    date: kstYYMMDD(m.startTime),
     homeName: toKoreanTeamName(m.homeTeam.name, league) || m.homeTeam.name,
     awayName: toKoreanTeamName(m.awayTeam.name, league) || m.awayTeam.name,
     homeScore: hs,
@@ -196,7 +197,10 @@ function toGameRow(m: RawGame, league: string): BaseballGameRow {
   };
 }
 
-/** 양 팀 각자 최근 5경기 + 두 팀 상대전적(H2H) 최근 5경기. 비야구·데이터 없음·DB 에러 시 null. */
+/** 양 팀 각자 최근 경기 + 두 팀 상대전적(H2H) — 각 최대 RECENT_TAKE 경기.
+ *  UI 는 5개씩 노출 + "더 많은 경기 보기" 로 확장. 데이터 없음·DB 에러 시 null. */
+const RECENT_TAKE = 30;
+
 export async function getBaseballRecentGames(match: {
   league: string;
   startTime: Date;
@@ -215,13 +219,13 @@ export async function getBaseballRecentGames(match: {
       prisma.match.findMany({
         where: { ...base, OR: [{ homeTeamId: match.homeTeam.id }, { awayTeamId: match.homeTeam.id }] },
         orderBy: { startTime: "desc" },
-        take: 5,
+        take: RECENT_TAKE,
         select: GAME_SELECT,
       }),
       prisma.match.findMany({
         where: { ...base, OR: [{ homeTeamId: match.awayTeam.id }, { awayTeamId: match.awayTeam.id }] },
         orderBy: { startTime: "desc" },
-        take: 5,
+        take: RECENT_TAKE,
         select: GAME_SELECT,
       }),
       prisma.match.findMany({
@@ -233,7 +237,7 @@ export async function getBaseballRecentGames(match: {
           ],
         },
         orderBy: { startTime: "desc" },
-        take: 5,
+        take: RECENT_TAKE,
         select: GAME_SELECT,
       }),
     ]);
