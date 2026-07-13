@@ -32,8 +32,8 @@
       "score": 9.7,
       "star": 4,
       "recentRating": 8.3,
-      "avgRating": 7.87,
-      "games": 5,
+      "avgRating": 8.34,
+      "games": 4,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 8.7,
       "star": 4,
       "recentRating": 6.49,
-      "avgRating": 7.24,
-      "games": 5,
+      "avgRating": 7.2,
+      "games": 4,
       "x": 16,
       "y": 70
     },
@@ -66,8 +66,8 @@
       "score": 8.2,
       "star": 4,
       "recentRating": 6.63,
-      "avgRating": 6.46,
-      "games": 5,
+      "avgRating": 6.83,
+      "games": 4,
       "x": 39,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.7,
       "star": 4,
       "recentRating": 6.9,
-      "avgRating": 7.13,
-      "games": 5,
+      "avgRating": 7.35,
+      "games": 4,
       "x": 22,
       "y": 32
     },
@@ -151,8 +151,8 @@
       "score": 7.99,
       "star": 3,
       "recentRating": 6.95,
-      "avgRating": 7.01,
-      "games": 5,
+      "avgRating": 6.91,
+      "games": 4,
       "x": 78,
       "y": 32
     },
@@ -168,8 +168,8 @@
       "score": 7.7,
       "star": 3,
       "recentRating": 6.53,
-      "avgRating": 7.14,
-      "games": 4,
+      "avgRating": 7.02,
+      "games": 3,
       "x": 35,
       "y": 52
     },
@@ -191,25 +191,6 @@
       "y": 52
     },
     {
-      "id": "pxwrxlh9577pryk",
-      "name": "Folarin Balogun",
-      "nameKo": "폴러린 발로건",
-      "hasMv": true,
-      "pos": "F",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/8770da6921202e88b0bbcf94f1c53dba.png",
-      "score": 8.59,
-      "star": 4,
-      "recentRating": 6.42,
-      "avgRating": 7.68,
-      "games": 4,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
-    {
       "id": "2y8m4zh8wj47ql0",
       "name": "Nestory Irankunda",
       "nameKo": "네스토리 이란쿤다",
@@ -222,7 +203,26 @@
       "star": 4,
       "recentRating": 6.8,
       "avgRating": 6.99,
-      "games": 4
+      "games": 4,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
+    {
+      "id": "pxwrxlh9577pryk",
+      "name": "Folarin Balogun",
+      "nameKo": "폴러린 발로건",
+      "hasMv": true,
+      "pos": "F",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/8770da6921202e88b0bbcf94f1c53dba.png",
+      "score": 8.44,
+      "star": 4,
+      "recentRating": 6.42,
+      "avgRating": 7.21,
+      "games": 3
     },
     {
       "id": "3glrw7hynjzxqdy",
@@ -240,24 +240,9 @@
       "games": 4
     },
     {
-      "id": "965mkyhn3gjr1ge",
-      "name": "Christian Pulisic",
-      "nameKo": "크리스천 풀리식",
-      "hasMv": true,
-      "pos": "F",
-      "country": "USA",
-      "flag": "🇺🇸",
-      "logo": "https://img.thesports.com/football/player/59ea84ba1b15b3ea70f56f0766949f20.png",
-      "score": 7.89,
-      "star": 3,
-      "recentRating": 6.14,
-      "avgRating": 6.61,
-      "games": 4
-    },
-    {
       "id": "ednm9whzx15zryo",
       "name": "Julio Enciso",
-      "nameKo": "후리오 엔시소",
+      "nameKo": "훌리오 엔시소",
       "hasMv": true,
       "pos": "F",
       "country": "Paraguay",
@@ -266,8 +251,8 @@
       "score": 7.88,
       "star": 3,
       "recentRating": 6.22,
-      "avgRating": 7,
-      "games": 5
+      "avgRating": 7.03,
+      "games": 4
     },
     {
       "id": "k82rekhn1e6repz",
@@ -281,8 +266,8 @@
       "score": 7.72,
       "star": 3,
       "recentRating": 6.2,
-      "avgRating": 7.05,
-      "games": 4
+      "avgRating": 7.04,
+      "games": 3
     },
     {
       "id": "6ypq3nhwpj2md7o",
@@ -296,7 +281,22 @@
       "score": 7.59,
       "star": 3,
       "recentRating": 5.73,
-      "avgRating": 6.88,
+      "avgRating": 6.87,
+      "games": 3
+    },
+    {
+      "id": "y0or5jh1v1wqwzv",
+      "name": "Weston McKennie",
+      "nameKo": "웨스턴 매케니",
+      "hasMv": true,
+      "pos": "M",
+      "country": "USA",
+      "flag": "🇺🇸",
+      "logo": "https://img.thesports.com/football/player/7f86337523bdfe2e45d565e32fb53019.png",
+      "score": 7.59,
+      "star": 3,
+      "recentRating": 5.27,
+      "avgRating": 6.45,
       "games": 4
     }
   ],
