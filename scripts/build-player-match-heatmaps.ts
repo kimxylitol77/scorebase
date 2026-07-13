@@ -9,14 +9,25 @@ if (!KEY) { console.error("THESTATSAPI_KEY 필요"); process.exit(1); }
 const BASE = "https://api.thestatsapi.com/api";
 const OUT = new URL("../data/player-match-heatmaps.json", import.meta.url).pathname;
 
-// 선수 매핑은 discover-thestatsapi-players.ts 가 생성하는 map 파일에서 로드
+// 선수 매핑은 discover-thestatsapi-players.ts 가 생성하는 map 파일에서 로드.
+// 시즌 히트맵(analysis)이 없는 선수는 스킵 — 히트맵 미지원 리그/선수에 경기당 헛콜 38회를 막는 게이트.
 const MAP_PATH = new URL("../data/thestatsapi-player-map.json", import.meta.url).pathname;
+const ANALYSIS_PATH = new URL("../data/player-heatmap-analysis.json", import.meta.url).pathname;
+const hasSeasonHeatmap = new Set(
+  existsSync(ANALYSIS_PATH) ? Object.keys(JSON.parse(readFileSync(ANALYSIS_PATH, "utf8"))) : [],
+);
 const PLAYERS = Object.entries(
   JSON.parse(readFileSync(MAP_PATH, "utf8")) as Record<
     string,
     { statsId: string; teamId: string; competitionId: string; seasonId: string; seasonLabel: string; name: string }
   >,
-).map(([ourId, m]) => ({ ourId, ...m }));
+)
+  .map(([ourId, m]) => ({ ourId, ...m }))
+  .filter((p) => {
+    if (hasSeasonHeatmap.has(p.ourId)) return true;
+    console.log(`스킵(시즌 히트맵 없음): ${p.name}`);
+    return false;
+  });
 
 interface MatchHeatmap {
   id: string;

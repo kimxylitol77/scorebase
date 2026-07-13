@@ -4,7 +4,7 @@
 //   2) 이름 부분 일치 + 소속팀 일치 (우리 season-stats 의 영문 팀명 vs API current_team)
 //      — "Estêvão"(API) vs 풀네임(우리), "João Pedro" 동명 7명 같은 케이스를 자동 해결
 // 그래도 애매하면 매핑하지 않고 로그만 (틀린 매핑 < 누락).
-//   실행: THESTATSAPI_KEY=... npx tsx scripts/discover-thestatsapi-players.ts [상위N=25]
+//   실행: THESTATSAPI_KEY=... npx tsx scripts/discover-thestatsapi-players.ts [리그=EPL] [상위N=25]
 import { PrismaClient } from "@prisma/client";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 
@@ -12,8 +12,20 @@ const KEY = process.env.THESTATSAPI_KEY;
 if (!KEY) { console.error("THESTATSAPI_KEY 필요"); process.exit(1); }
 const BASE = "https://api.thestatsapi.com/api";
 const OUT = new URL("../data/thestatsapi-player-map.json", import.meta.url).pathname;
-const TOP_N = Number(process.argv[2] || 25);
-const COMP = { competitionId: "comp_3039", seasonId: "sn_6125938", seasonLabel: "2025-26 EPL" };
+
+// 5대 리그 TheStatsAPI 대회 id (2026-07-13 competitions 실측). 시즌 id 는 실행 시 조회.
+const LEAGUE_CFG: Record<string, { competitionId: string }> = {
+  EPL: { competitionId: "comp_3039" },
+  LALIGA: { competitionId: "comp_8814" },
+  SERIE_A: { competitionId: "comp_5840" },
+  BUNDESLIGA: { competitionId: "comp_4643" },
+  LIGUE_1: { competitionId: "comp_0256" },
+};
+// 하위 호환: 첫 인자가 숫자면 EPL 상위 N
+const argLeague = process.argv[2] && !/^\d+$/.test(process.argv[2]) ? process.argv[2] : "EPL";
+const TOP_N = Number((/^\d+$/.test(process.argv[2] ?? "") ? process.argv[2] : process.argv[3]) || 25);
+const CFG = LEAGUE_CFG[argLeague];
+if (!CFG) { console.error(`지원 리그: ${Object.keys(LEAGUE_CFG).join(", ")}`); process.exit(1); }
 
 const prisma = new PrismaClient();
 
@@ -35,8 +47,17 @@ async function api(path: string): Promise<unknown | null> {
 interface ApiPlayer { id: string; name: string; current_team: { id: string; name: string } | null }
 
 async function main() {
+  // 25/26 시즌 id 실행 시 조회 (리그마다 다름)
+  const seasonsRes = (await api(`/football/competitions/${CFG.competitionId}/seasons`)) as
+    | { data: Array<{ id: string; name: string }> }
+    | null;
+  const season = seasonsRes?.data?.find((s) => s.name.includes("25/26"));
+  if (!season) { console.error(`${argLeague} 25/26 시즌을 찾을 수 없음`); process.exit(1); }
+  const COMP = { competitionId: CFG.competitionId, seasonId: season.id, seasonLabel: `2025-26 ${argLeague}` };
+  console.log(`${argLeague} → ${CFG.competitionId} / ${season.id} (${season.name})`);
+
   const mv = await prisma.playerMarketValue.findMany({
-    where: { league: "EPL" },
+    where: { league: argLeague },
     orderBy: { currentValue: "desc" },
     take: TOP_N,
     select: { id: true, currentValue: true },
@@ -55,7 +76,7 @@ async function main() {
   const rows = mv
     .map((r) => ({ id: r.id, name: names.get(r.id) ?? "", team: seasonStats[r.id]?.team ?? null }))
     .filter((r) => r.name && /^[A-Za-zÀ-ž' .-]+$/.test(r.name)); // 로마자 이름만 (검색 가능 형태)
-  console.log(`EPL 상위 ${rows.length}명 (몸값순)`);
+  console.log(`${argLeague} 상위 ${rows.length}명 (몸값순)`);
 
   const out: Record<string, { statsId: string; teamId: string; teamName: string; name: string } & typeof COMP> =
     existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : {};
