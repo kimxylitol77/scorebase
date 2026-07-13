@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
     update: {
       tsSeasonId: body.tsSeasonId,
       payload: body.payload as object,
+      // 갱신 시각 — 생략하면 create 시점에 동결돼 "포러 중단"으로 오독됨 (2026-07-13)
+      fetchedAt: new Date(),
     },
     select: { league: true, updatedAt: true },
   });
