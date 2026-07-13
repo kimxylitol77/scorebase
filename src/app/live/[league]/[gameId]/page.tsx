@@ -48,6 +48,7 @@ import BasketballLiveOddsTab from "@/components/live/BasketballLiveOddsTab";
 import BasketballBoxScoreTab from "@/components/live/BasketballBoxScoreTab";
 import NhlGoalieInsight, { type GoalieInfo } from "@/components/NhlGoalieInsight";
 import MatchHeadToHead from "@/components/MatchHeadToHead";
+import SoccerTeamStrength from "@/components/live/SoccerTeamStrength";
 import MatchInsight from "@/components/MatchInsight";
 import MatchVoteCard from "@/components/MatchVoteCard";
 import AiRoundTableStrip from "@/components/AiRoundTableStrip";
@@ -1020,33 +1021,45 @@ export default async function GenericLivePage({ params }: Props) {
         />
       )}
 
-      {/* 팀명 + 최근경기 (상대전적) — 예정 매치는 분석 본문이라 펼침 (사용자 우선순위
-          2026-05-24), LIVE/종료 축구는 "지금" 블록이 답을 주므로 접힘 (2026-06-10 목업).
-          접힘 라벨에 순위 미리보기 — 안 펼쳐도 핵심이 보이게. */}
-      {isSoccer && match.status !== "SCHEDULED" ? (
-        <CollapsibleSection
-          title="시즌 성적 · 상대전적"
-          hint={
-            homePosition && awayPosition
-              ? `${homeKo} ${homePosition}위 vs ${awayKo} ${awayPosition}위`
-              : homeFifaRank && awayFifaRank
-                ? `FIFA ${homeFifaRank}위 vs ${awayFifaRank}위`
-                : "순위 · 시즌 성적 · 맞대결"
-          }
-        >
-          <MatchHeadToHead
-            homeShortName={homeShort}
-            awayShortName={awayShort}
-            homeTeamId={match.homeTeam.id}
-            awayTeamId={match.awayTeam.id}
-            h2hHome={extras.h2hHome}
-            homeStanding={extras.homeStanding}
-            awayStanding={extras.awayStanding}
-            totalTeams={extras.totalTeams}
-            hasDraw={isSoccer}
-            scoreLabel={scoreLabel}
-          />
-        </CollapsibleSection>
+      {/* 축구: 팀 전력 섹션이 상단 (Elo·순위·홈/원정·시즌 폼·공수) — 시즌 성적·상대전적은
+          아래로 (2026-07-13 사용자 지시: 시즌 성적 카드는 분석 가치가 낮아 팀 전력으로 교체).
+          예정 매치는 분석 본문이라 펼침, LIVE/종료는 "지금" 블록이 답을 주므로 접힘. */}
+      {isSoccer ? (
+        <>
+          {match.status === "SCHEDULED" ? (
+            <SoccerTeamStrength match={match} />
+          ) : (
+            <CollapsibleSection
+              title="팀 전력"
+              hint="Elo · 홈/원정 · 시즌 폼 · 공수 지표"
+            >
+              <SoccerTeamStrength match={match} />
+            </CollapsibleSection>
+          )}
+          <CollapsibleSection
+            title="시즌 성적 · 상대전적"
+            hint={
+              homePosition && awayPosition
+                ? `${homeKo} ${homePosition}위 vs ${awayKo} ${awayPosition}위`
+                : homeFifaRank && awayFifaRank
+                  ? `FIFA ${homeFifaRank}위 vs ${awayFifaRank}위`
+                  : "순위 · 시즌 성적 · 맞대결"
+            }
+          >
+            <MatchHeadToHead
+              homeShortName={homeShort}
+              awayShortName={awayShort}
+              homeTeamId={match.homeTeam.id}
+              awayTeamId={match.awayTeam.id}
+              h2hHome={extras.h2hHome}
+              homeStanding={extras.homeStanding}
+              awayStanding={extras.awayStanding}
+              totalTeams={extras.totalTeams}
+              hasDraw={isSoccer}
+              scoreLabel={scoreLabel}
+            />
+          </CollapsibleSection>
+        </>
       ) : (
         <MatchHeadToHead
           homeShortName={homeShort}
@@ -1129,6 +1142,7 @@ export default async function GenericLivePage({ params }: Props) {
       <MatchInsight
         match={match}
         extraTabs={soccerTabs}
+        hideMatchupTab={isSoccer}
         teamStatsContent={
           BASKETBALL_LEAGUES.has(lg) && match.theSportsCache?.detailLive ? (
             <BasketballTeamStatsCard

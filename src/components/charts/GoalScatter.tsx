@@ -51,6 +51,7 @@ export default function GoalScatter({
             stroke="#737373"
             fontSize={11}
             tick={{ fill: "currentColor" }}
+            tickFormatter={(v: number) => v.toFixed(1)}
             label={{
               value: "경기당 득점 →",
               position: "insideBottom",
@@ -68,6 +69,7 @@ export default function GoalScatter({
             stroke="#737373"
             fontSize={11}
             tick={{ fill: "currentColor" }}
+            tickFormatter={(v: number) => v.toFixed(1)}
             label={{
               value: "↑ 경기당 실점 (적을수록 위)",
               angle: -90,

@@ -52,6 +52,7 @@ import {
 } from "@/lib/predict/goalie-adjust";
 import { blendWithMarket } from "@/lib/predict/market-blend";
 import { nationalElo } from "@/lib/predict/build-context";
+import { getLeagueMatches, getLeagueTeamNames } from "@/lib/predict/league-data";
 import type { PredictMatch } from "@/lib/predict/types";
 import type { ReactNode } from "react";
 import EloMeter from "./EloMeter";
@@ -127,6 +128,8 @@ interface Props {
    *  KBO 는 kboPhotoUrl, MLB 는 mlbHeadshotUrl 로 pid 즉시 생성하므로 불필요. */
   homeStarterPhoto?: string;
   awayStarterPhoto?: string;
+  /** 팀 전력 탭 숨김 — 페이지 상단에 SoccerTeamStrength 로 이미 표시하는 경우 (축구 라이브) */
+  hideMatchupTab?: boolean;
 }
 
 /** 선발 투수 정보 — DB JSON 에서 파싱. MLB 는 풀 stats, KBO/NPB 는 이름만 (statizId 옵션). */
@@ -184,20 +187,10 @@ export default async function MatchInsight({
   extraTabs,
   homeStarterPhoto,
   awayStarterPhoto,
+  hideMatchupTab,
 }: Props) {
-  const dbMatches = await prisma.match.findMany({
-    where: { league: match.league },
-    select: {
-      id: true,
-      league: true,
-      status: true,
-      homeTeamId: true,
-      awayTeamId: true,
-      homeScore: true,
-      awayScore: true,
-      startTime: true,
-    },
-  });
+  // 리그 전체 매치 — React cache 공유 (같은 요청의 SoccerTeamStrength 와 중복 쿼리 방지)
+  const dbMatches = await getLeagueMatches(match.league);
 
   const matches: PredictMatch[] = dbMatches.map((m) => ({ ...m }));
   const referenceTime = match.startTime;
@@ -407,13 +400,9 @@ export default async function MatchInsight({
 
   // 시즌 산점도용 모든 팀 통계
   const seasonStats = calcSeasonStats(matches, referenceTime);
-  const teams = await prisma.team.findMany({
-    where: {
-      league: match.league,
-      id: { in: Array.from(seasonStats.keys()) },
-    },
-    select: { id: true, name: true },
-  });
+  const teams = (await getLeagueTeamNames(match.league)).filter((t) =>
+    seasonStats.has(t.id),
+  );
   const teamNameById = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name)]));
 
   const scatterPoints = Array.from(seasonStats.values())
@@ -1048,7 +1037,7 @@ export default async function MatchInsight({
         {
           key: "matchup",
           label: "팀 전력",
-          enabled: !!matchupContentFinal,
+          enabled: !!matchupContentFinal && !hideMatchupTab,
           content: matchupContentFinal,
         },
         {
