@@ -44,9 +44,12 @@ interface Props {
   home: TeamSide;
   away: TeamSide;
   showDraw?: boolean; // false 면 무승부 표기 안 함 (NBA 등)
+  /** 표시 범위 — overview=팀 헤더+시즌 전체만, detail=홈원정·최근·흐름만.
+   *  팀 전력 섹션의 "여기까지 기본 노출 + 나머지 접기" 분할용. 기본 all. */
+  sections?: "all" | "overview" | "detail";
 }
 
-export default function TeamMatchup({ home, away, showDraw = true }: Props) {
+export default function TeamMatchup({ home, away, showDraw = true, sections = "all" }: Props) {
   const homeAvgFor = home.played > 0 ? home.goalsFor / home.played : 0;
   const awayAvgFor = away.played > 0 ? away.goalsFor / away.played : 0;
   const homeAvgAgainst = home.played > 0 ? home.goalsAgainst / home.played : 0;
@@ -59,9 +62,13 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
   const homeRecentWinRate = formWinRate(home.form);
   const awayRecentWinRate = formWinRate(away.form);
 
+  const showOverview = sections !== "detail";
+  const showDetail = sections !== "overview";
+
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 sm:px-6 py-5 sm:py-6">
       {/* 팀 헤더 */}
+      {showOverview && (
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 mb-5 sm:mb-6">
         <div className="text-center min-w-0">
           <div className="text-sm sm:text-lg font-bold tracking-tight text-blue-600 dark:text-blue-400 mb-2 truncate">
@@ -83,8 +90,10 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
           </div>
         </div>
       </div>
+      )}
 
       {/* 그룹: 시즌 전체 */}
+      {showOverview && (
       <Group label="시즌 전체">
         <CompareRow
           label="리그순위"
@@ -186,9 +195,10 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
           />
         )}
       </Group>
+      )}
 
       {/* 그룹: 홈/원정 강도 */}
-      {(home.splitPlayed > 0 || away.splitPlayed > 0) && (
+      {showDetail && (home.splitPlayed > 0 || away.splitPlayed > 0) && (
         <Group label={`홈 · 원정 강도 (${home.splitLabel} / ${away.splitLabel})`}>
           <CompareRow
             label="기록"
@@ -224,7 +234,7 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
       )}
 
       {/* 그룹: 최근 5경기 */}
-      {(home.recentMatches > 0 || away.recentMatches > 0) && (
+      {showDetail && (home.recentMatches > 0 || away.recentMatches > 0) && (
         <Group label="최근 5경기">
           <CompareBarRow
             label="평균득점"
@@ -259,6 +269,7 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
       )}
 
       {/* 그룹: 흐름 */}
+      {showDetail && (
       <Group label="흐름 (최근 5경기)">
         <CompareRow
           label="진행중"
@@ -290,6 +301,7 @@ export default function TeamMatchup({ home, away, showDraw = true }: Props) {
           }
         />
       </Group>
+      )}
     </div>
   );
 }

@@ -16,7 +16,8 @@ import { nationalElo } from "@/lib/predict/build-context";
 import EloMeter from "../EloMeter";
 import SeasonFormHeatmap from "../charts/SeasonFormHeatmap";
 import { GoalScatter } from "../charts/lazy-insight-charts";
-import TeamMatchup from "../TeamMatchup";
+import TeamMatchup, { type TeamSide } from "../TeamMatchup";
+import CollapsibleSection from "./CollapsibleSection";
 
 interface Props {
   match: {
@@ -101,6 +102,67 @@ export default async function SoccerTeamStrength({ match }: Props) {
   const leagueAvgGA =
     scatterPoints.reduce((s, p) => s + p.goalsAgainst, 0) / Math.max(scatterPoints.length, 1);
 
+  const homeSide: TeamSide = {
+    name: homeKo,
+    form: homeForm.results,
+    position: homeRow.position,
+    seasonPoints: match.homeSeasonPoints ?? homeRow.points,
+    totalTeams,
+    played: homeRow.played,
+    wins: homeRow.wins,
+    draws: homeRow.draws,
+    losses: homeRow.losses,
+    goalsFor: homeRow.goalsFor,
+    goalsAgainst: homeRow.goalsAgainst,
+    attackRank: standings.attackRank.get(match.homeTeam.id),
+    defenseRank: standings.defenseRank.get(match.homeTeam.id),
+    splitLabel: "홈",
+    splitPlayed: homeHA.home.played,
+    splitWins: homeHA.home.wins,
+    splitDraws: homeHA.home.draws,
+    splitLosses: homeHA.home.losses,
+    splitPpg: homeHA.home.ppg,
+    recentMatches: homeTrend.matches,
+    recentAvgFor: homeTrend.avgGoalsFor,
+    recentAvgAgainst: homeTrend.avgGoalsAgainst,
+    recentPpg: homeTrend.ppg,
+    winningRun: homeStreak.winningRun,
+    unbeatenRun: homeStreak.unbeatenRun,
+    losingRun: homeStreak.losingRun,
+    cleanSheetsLast5: homeStreak.cleanSheetsLast5,
+    failedToScoreLast5: homeStreak.failedToScoreLast5,
+  };
+  const awaySide: TeamSide = {
+    name: awayKo,
+    form: awayForm.results,
+    position: awayRow.position,
+    seasonPoints: match.awaySeasonPoints ?? awayRow.points,
+    totalTeams,
+    played: awayRow.played,
+    wins: awayRow.wins,
+    draws: awayRow.draws,
+    losses: awayRow.losses,
+    goalsFor: awayRow.goalsFor,
+    goalsAgainst: awayRow.goalsAgainst,
+    attackRank: standings.attackRank.get(match.awayTeam.id),
+    defenseRank: standings.defenseRank.get(match.awayTeam.id),
+    splitLabel: "원정",
+    splitPlayed: awayHA.away.played,
+    splitWins: awayHA.away.wins,
+    splitDraws: awayHA.away.draws,
+    splitLosses: awayHA.away.losses,
+    splitPpg: awayHA.away.ppg,
+    recentMatches: awayTrend.matches,
+    recentAvgFor: awayTrend.avgGoalsFor,
+    recentAvgAgainst: awayTrend.avgGoalsAgainst,
+    recentPpg: awayTrend.ppg,
+    winningRun: awayStreak.winningRun,
+    unbeatenRun: awayStreak.unbeatenRun,
+    losingRun: awayStreak.losingRun,
+    cleanSheetsLast5: awayStreak.cleanSheetsLast5,
+    failedToScoreLast5: awayStreak.failedToScoreLast5,
+  };
+
   return (
     <section className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-4 sm:p-5 space-y-6">
       <header className="flex items-baseline justify-between">
@@ -114,113 +176,59 @@ export default async function SoccerTeamStrength({ match }: Props) {
         <EloMeter name={awayKo} rating={awayElo} opponentRating={homeElo} />
       </div>
 
-      {/* 시즌·최근·강도·흐름 통합 비교 */}
-      <TeamMatchup
-        showDraw={showDraw}
-        home={{
-          name: homeKo,
-          form: homeForm.results,
-          position: homeRow.position,
-          seasonPoints: match.homeSeasonPoints ?? homeRow.points,
-          totalTeams,
-          played: homeRow.played,
-          wins: homeRow.wins,
-          draws: homeRow.draws,
-          losses: homeRow.losses,
-          goalsFor: homeRow.goalsFor,
-          goalsAgainst: homeRow.goalsAgainst,
-          attackRank: standings.attackRank.get(match.homeTeam.id),
-          defenseRank: standings.defenseRank.get(match.homeTeam.id),
-          splitLabel: "홈",
-          splitPlayed: homeHA.home.played,
-          splitWins: homeHA.home.wins,
-          splitDraws: homeHA.home.draws,
-          splitLosses: homeHA.home.losses,
-          splitPpg: homeHA.home.ppg,
-          recentMatches: homeTrend.matches,
-          recentAvgFor: homeTrend.avgGoalsFor,
-          recentAvgAgainst: homeTrend.avgGoalsAgainst,
-          recentPpg: homeTrend.ppg,
-          winningRun: homeStreak.winningRun,
-          unbeatenRun: homeStreak.unbeatenRun,
-          losingRun: homeStreak.losingRun,
-          cleanSheetsLast5: homeStreak.cleanSheetsLast5,
-          failedToScoreLast5: homeStreak.failedToScoreLast5,
-        }}
-        away={{
-          name: awayKo,
-          form: awayForm.results,
-          position: awayRow.position,
-          seasonPoints: match.awaySeasonPoints ?? awayRow.points,
-          totalTeams,
-          played: awayRow.played,
-          wins: awayRow.wins,
-          draws: awayRow.draws,
-          losses: awayRow.losses,
-          goalsFor: awayRow.goalsFor,
-          goalsAgainst: awayRow.goalsAgainst,
-          attackRank: standings.attackRank.get(match.awayTeam.id),
-          defenseRank: standings.defenseRank.get(match.awayTeam.id),
-          splitLabel: "원정",
-          splitPlayed: awayHA.away.played,
-          splitWins: awayHA.away.wins,
-          splitDraws: awayHA.away.draws,
-          splitLosses: awayHA.away.losses,
-          splitPpg: awayHA.away.ppg,
-          recentMatches: awayTrend.matches,
-          recentAvgFor: awayTrend.avgGoalsFor,
-          recentAvgAgainst: awayTrend.avgGoalsAgainst,
-          recentPpg: awayTrend.ppg,
-          winningRun: awayStreak.winningRun,
-          unbeatenRun: awayStreak.unbeatenRun,
-          losingRun: awayStreak.losingRun,
-          cleanSheetsLast5: awayStreak.cleanSheetsLast5,
-          failedToScoreLast5: awayStreak.failedToScoreLast5,
-        }}
-      />
+      {/* 기본 노출 — 팀명·최근 폼 + 시즌 전체 비교 */}
+      <TeamMatchup sections="overview" showDraw={showDraw} home={homeSide} away={awaySide} />
 
-      {/* 시즌 폼 히트맵 */}
-      {(homeSeasonForm.length > 0 || awaySeasonForm.length > 0) && (
-        <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-            시즌 폼
-          </div>
-          <div className="space-y-4">
-            {homeSeasonForm.length > 0 && (
-              <SeasonFormHeatmap name={homeKo} cells={homeSeasonForm} />
-            )}
-            {awaySeasonForm.length > 0 && (
-              <SeasonFormHeatmap name={awayKo} cells={awaySeasonForm} />
-            )}
-          </div>
-        </div>
-      )}
+      {/* 나머지 지표는 접기 — 홈/원정 · 최근 5경기 · 흐름 · 시즌 폼 · 공수 분포 */}
+      <CollapsibleSection
+        title="상세 전력"
+        hint="홈/원정 · 최근 5경기 · 흐름 · 시즌 폼 · 공수 분포"
+      >
+        <TeamMatchup sections="detail" showDraw={showDraw} home={homeSide} away={awaySide} />
 
-      {/* 공격 vs 수비 산점도 */}
-      {scatterPoints.length >= 5 && (
-        <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-            공격 vs 수비 (시즌 평균)
+        {/* 시즌 폼 히트맵 */}
+        {(homeSeasonForm.length > 0 || awaySeasonForm.length > 0) && (
+          <div>
+            <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+              시즌 폼
+            </div>
+            <div className="space-y-4">
+              {homeSeasonForm.length > 0 && (
+                <SeasonFormHeatmap name={homeKo} cells={homeSeasonForm} />
+              )}
+              {awaySeasonForm.length > 0 && (
+                <SeasonFormHeatmap name={awayKo} cells={awaySeasonForm} />
+              )}
+            </div>
           </div>
-          <GoalScatter
-            points={scatterPoints}
-            leagueAvgGF={leagueAvgGF}
-            leagueAvgGA={leagueAvgGA}
-          />
-          <div className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
-            오른쪽 위로 갈수록 좋음. 점선은 리그 평균.{" "}
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-sm bg-blue-500" />
-              {homeKo}
-            </span>
-            ,{" "}
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-sm bg-rose-500" />
-              {awayKo}
-            </span>
+        )}
+
+        {/* 공격 vs 수비 산점도 */}
+        {scatterPoints.length >= 5 && (
+          <div>
+            <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+              공격 vs 수비 (시즌 평균)
+            </div>
+            <GoalScatter
+              points={scatterPoints}
+              leagueAvgGF={leagueAvgGF}
+              leagueAvgGA={leagueAvgGA}
+            />
+            <div className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
+              오른쪽 위로 갈수록 좋음. 점선은 리그 평균.{" "}
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-sm bg-blue-500" />
+                {homeKo}
+              </span>
+              ,{" "}
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-sm bg-rose-500" />
+                {awayKo}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </CollapsibleSection>
     </section>
   );
 }
