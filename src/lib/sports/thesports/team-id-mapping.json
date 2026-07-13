@@ -8529,6 +8529,28 @@
     "tsVenueId": "p4jwq2ghvp6m0ve"
   },
   {
+    "ourId": 288830,
+    "ourName": "Emelec",
+    "ourLeague": "ECUADOR_LP",
+    "ourExternalId": "1148",
+    "tsId": "dj2ryohkj7lq1zp",
+    "tsName": "Club Sport Emelec",
+    "tsKo": "에멜렉",
+    "matchType": "manual+standings",
+    "tsVenueId": "9vjxm8ghg0vr6od"
+  },
+  {
+    "ourId": 288826,
+    "ourName": "Aucas",
+    "ourLeague": "ECUADOR_LP",
+    "ourExternalId": "1156",
+    "tsId": "pxwrxlhgj6jryk0",
+    "tsName": "Sociedad Deportiva Aucas",
+    "tsKo": "아우카스",
+    "matchType": "manual+standings",
+    "tsVenueId": "yl5ergph55pr8k0"
+  },
+  {
     "ourId": 288898,
     "ourName": "UTC Cajamarca",
     "ourLeague": "PERU_PD",
