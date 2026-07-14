@@ -31,6 +31,7 @@ import PlayerCareerTable from "./PlayerCareerTable";
 import { getPlayerCareerByTs } from "./career-data";
 import PlayerInjuryHistory from "./PlayerInjuryHistory";
 import { getPlayerInjuriesByTs } from "./injury-data";
+import PlayerMatchLogTable, { type MatchLogRow } from "./PlayerMatchLogTable";
 import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
@@ -781,6 +782,18 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   const careerGroups = await getPlayerCareerByTs(id);
   // 부상 이력 (API-Football, 최근 5시즌 스펠) — 스펠 있으면 "부상" 탭 표시.
   const injurySpells = await getPlayerInjuriesByTs(id);
+  // 출전기록 (경기별 평점) — collect-player-match-logs 잡이 적재. 있으면 "출전기록" 탭.
+  const matchLogs: MatchLogRow[] = await prisma.playerMatchLog.findMany({
+    where: { playerId: id },
+    orderBy: { date: "desc" },
+    take: 60,
+    select: {
+      id: true, date: true, leagueName: true, leagueFlag: true,
+      homeName: true, homeLogo: true, awayName: true, awayLogo: true,
+      homeScore: true, awayScore: true, playerSide: true,
+      rating: true, minutes: true, goals: true, assists: true, yellow: true, red: true, started: true,
+    },
+  });
 
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
@@ -918,6 +931,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             ? [{ key: "career", label: "경력", content: <PlayerCareerTable groups={careerGroups} /> }]
             : seasonEntries.length > 0
             ? [{ key: "seasons", label: "시즌별", content: <SeasonAccordion seasons={seasonEntries} /> }]
+            : []),
+          ...(matchLogs.length > 0
+            ? [{ key: "matchlog", label: "출전기록", content: <PlayerMatchLogTable rows={matchLogs} /> }]
             : []),
           ...(injurySpells.length > 0
             ? [{ key: "injury", label: "부상", content: <PlayerInjuryHistory spells={injurySpells} /> }]

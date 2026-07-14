@@ -963,6 +963,35 @@ model PlayerEvent {
   @@index([playerId, occurredAt])
 }
 
+/// 선수 경기별 출전 로그 — API-Football /fixtures/players 를 fixture 중심으로 수집(경기당 1콜로 전 선수).
+/// 선수 페이지 "출전기록" 탭 소스. id = "match:{playerId}:{fixtureId}"(멱등). raw SQL 생성 — db push 금지.
+/// 수집: src/jobs/collect-player-match-logs.ts (주간 cron). playerId = ts player id(af→ts 역매핑).
+model PlayerMatchLog {
+  id         String   @id // "match:{playerId}:{fixtureId}"
+  playerId   String // ts player id
+  fixtureId  Int // api-football fixture id
+  date       DateTime
+  leagueName String
+  leagueFlag String?
+  homeName   String
+  homeLogo   String?
+  awayName   String
+  awayLogo   String?
+  homeScore  Int?
+  awayScore  Int?
+  playerSide String // "H" | "A" (선수 소속팀)
+  rating     Float?
+  minutes    Int?
+  goals      Int      @default(0)
+  assists    Int      @default(0)
+  yellow     Int      @default(0)
+  red        Int      @default(0)
+  started    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([playerId, date])
+}
+
 /// 해외 축구 브리핑 — Tier1 소스(BBC·Sky·Athletic·구단 공식) RSS 항목의 수집·검증·발행 상태.
 /// RSS 에서 본 모든 항목을 기록해 dedup (id = sha1(sourceUrl)). raw SQL 생성 — db push 금지.
 /// 발행물은 Post(category=BRIEFING) 로 나가고 postId 로 연결. 파이프라인: fetch-news-briefing.ts

@@ -953,6 +953,110 @@ export async function fetchSeasonFixtures(
   }
 }
 
+// ===== 경기별 출전 로그 수집 (출전기록 탭) =====
+
+export interface AfFixtureRich {
+  id: number;
+  dateMs: number;
+  leagueName: string;
+  leagueFlag?: string;
+  homeId: number;
+  homeName: string;
+  homeLogo?: string;
+  awayId: number;
+  awayName: string;
+  awayLogo?: string;
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+// api-football 리그 id(우리 코드 아님 — 컵·UCL 포함) 의 완료된 fixtures. from(YYYY-MM-DD) 주면 그 이후만.
+export async function fetchFixturesByLeagueId(
+  afLeagueId: number,
+  season: number,
+  opts: { from?: string; to?: string } = {},
+): Promise<AfFixtureRich[]> {
+  try {
+    const params: Record<string, string | number> = { league: afLeagueId, season };
+    if (opts.from) params.from = opts.from;
+    if (opts.to) params.to = opts.to;
+    const { data } = await client().get("/fixtures", { params });
+    return ((data?.response ?? []) as Record<string, unknown>[])
+      .map((r) => {
+        const fx = (r.fixture as Record<string, unknown>) ?? {};
+        const lg = (r.league as Record<string, unknown>) ?? {};
+        const teams = (r.teams as Record<string, unknown>) ?? {};
+        const home = (teams.home as Record<string, unknown>) ?? {};
+        const away = (teams.away as Record<string, unknown>) ?? {};
+        const goals = (r.goals as Record<string, unknown>) ?? {};
+        const status = ((fx.status as Record<string, unknown>) ?? {}).short as string | undefined;
+        return {
+          id: fx.id as number,
+          dateMs: new Date(fx.date as string).getTime(),
+          leagueName: (lg.name as string) ?? "",
+          leagueFlag: lg.flag as string | undefined,
+          homeId: home.id as number,
+          homeName: (home.name as string) ?? "",
+          homeLogo: home.logo as string | undefined,
+          awayId: away.id as number,
+          awayName: (away.name as string) ?? "",
+          awayLogo: away.logo as string | undefined,
+          homeScore: (goals.home as number) ?? null,
+          awayScore: (goals.away as number) ?? null,
+          _finished: ["FT", "AET", "PEN"].includes(status ?? ""),
+        };
+      })
+      .filter((f) => f.id && f._finished && Number.isFinite(f.dateMs))
+      .map(({ _finished, ...f }) => f as AfFixtureRich);
+  } catch {
+    return [];
+  }
+}
+
+export interface AfFixturePlayerStat {
+  teamId: number;
+  playerId: number;
+  minutes: number | null;
+  rating: number | null;
+  goals: number;
+  assists: number;
+  yellow: number;
+  red: number;
+  started: boolean;
+}
+
+// 한 경기의 전 선수 스탯 — /fixtures/players?fixture=. teamId 로 홈/원정 판별.
+export async function fetchFixturePlayerStats(fixtureId: number): Promise<AfFixturePlayerStat[]> {
+  try {
+    const { data } = await client().get("/fixtures/players", { params: { fixture: fixtureId } });
+    const out: AfFixturePlayerStat[] = [];
+    for (const tb of (data?.response ?? []) as Record<string, unknown>[]) {
+      const teamId = ((tb.team as Record<string, unknown>) ?? {}).id as number;
+      for (const p of (tb.players ?? []) as Record<string, unknown>[]) {
+        const st = (((p.statistics as Record<string, unknown>[]) ?? [])[0] ?? {}) as Record<string, unknown>;
+        const g = (st.games as Record<string, unknown>) ?? {};
+        const go = (st.goals as Record<string, unknown>) ?? {};
+        const c = (st.cards as Record<string, unknown>) ?? {};
+        const r = g.rating as string | undefined;
+        out.push({
+          teamId,
+          playerId: ((p.player as Record<string, unknown>) ?? {}).id as number,
+          minutes: (g.minutes as number) ?? null,
+          rating: r ? parseFloat(r) : null,
+          goals: (go.total as number) ?? 0,
+          assists: (go.assists as number) ?? 0,
+          yellow: (c.yellow as number) ?? 0,
+          red: (c.red as number) ?? 0,
+          started: g.substitute === false,
+        });
+      }
+    }
+    return out.filter((s) => s.playerId);
+  } catch {
+    return [];
+  }
+}
+
 // ===== API-Football 자체 예측 (third opinion) =====
 
 export interface ApiFootballPrediction {

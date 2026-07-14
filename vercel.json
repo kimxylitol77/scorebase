@@ -25,6 +25,10 @@
       "schedule": "0 16 * * 1"
     },
     {
+      "path": "/api/cron/player-match-logs",
+      "schedule": "30 16 * * 1"
+    },
+    {
       "path": "/api/cron/news-briefing",
       "schedule": "20 */2 * * *"
     },
