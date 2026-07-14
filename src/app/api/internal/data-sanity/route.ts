@@ -49,7 +49,25 @@ type IssueKind =
   | "standings_stale"
   | "standings_mismatch"
   | "friendly_dup"
-  | "cross_source_dup";
+  | "cross_source_dup"
+  | "teamsourceid_contamination";
+
+// 리그 → 대륙연맹/종목. 하나의 thesports id 가 서로 다른 연맹의 Team row 에 걸치면 = 이름매칭 오염
+// (예: FC 바르셀로나 ts id ↔ 에콰도르 Barcelona SC). 미매핑 리그는 null → 오탐 방지 위해 스킵.
+const TEAM_CONF: Record<string, string> = {
+  BUNDESLIGA: "UEFA", BUNDESLIGA_2: "UEFA", CHALLENGE_LEAGUE: "UEFA", CYPRUS_1D: "UEFA",
+  CZECH_2: "UEFA", CZECH_L: "UEFA", DENMARK_SL: "UEFA", EPL: "UEFA", EREDIVISIE: "UEFA",
+  GREEK_SL: "UEFA", LALIGA: "UEFA", LIGUE_1: "UEFA", PRIMEIRA_LIGA: "UEFA", SERIE_A: "UEFA",
+  SUPER_LIG: "UEFA", SWISS_SL: "UEFA", UCL: "UEFA", UEL: "UEFA", UECL: "UEFA", WSL: "UEFA",
+  UEFA_WCL: "UEFA", KAZAKHSTAN_PL: "UEFA",
+  BRASILEIRAO: "CONMEBOL", CHILE_PD: "CONMEBOL", COLOMBIA_PA: "CONMEBOL", COPA_LIB: "CONMEBOL",
+  COPA_SUD: "CONMEBOL", ECUADOR_LP: "CONMEBOL", PERU_PD: "CONMEBOL", VENEZUELA_PD: "CONMEBOL",
+  URUGUAY_PD: "CONMEBOL", BOLIVIA_PD: "CONMEBOL", ARGENTINA_LPF: "CONMEBOL",
+  AFC_CL: "AFC", AFC_CL_TWO: "AFC", CSL: "AFC", J1_LEAGUE: "AFC", K_LEAGUE_1: "AFC",
+  QATAR_SL: "AFC", SAUDI_PL: "AFC", UAE_PL: "AFC",
+  CANADA_PL: "CONCACAF", CONCACAF_CCUP: "CONCACAF", MLS: "CONCACAF",
+  NBA: "BASKETBALL", NHL: "HOCKEY", MLB: "BASEBALL", KBO: "BASEBALL", NPB: "BASEBALL",
+};
 
 interface Issue {
   kind: IssueKind;
@@ -716,6 +734,37 @@ export async function GET(req: NextRequest) {
           });
         }
       }
+    }
+  }
+
+  // 12. teamsourceid_contamination — 하나의 thesports id 가 서로 다른 대륙연맹의 Team row 에
+  //     연결된 이름매칭 오염(FC 바르셀로나↔에콰도르 Barcelona SC 류). 알려진 연맹끼리 교차할
+  //     때만 HIGH — 미매핑 리그는 스킵해 오탐 방지. 정상 컵 분열(같은 연맹)은 걸리지 않음.
+  {
+    const tsRows = await prisma.teamSourceId.findMany({
+      where: { source: "thesports" },
+      select: { externalId: true, teamId: true, team: { select: { name: true, league: true } } },
+    });
+    const byExt = new Map<string, typeof tsRows>();
+    for (const r of tsRows) {
+      const arr = byExt.get(r.externalId) ?? byExt.set(r.externalId, []).get(r.externalId)!;
+      arr.push(r);
+    }
+    for (const [ext, rows] of byExt) {
+      if (new Set(rows.map((r) => r.teamId)).size <= 1) continue;
+      const confs = new Set(rows.map((r) => TEAM_CONF[r.team.league]).filter(Boolean));
+      if (confs.size <= 1) continue; // 같은 연맹 = 정상 컵 분열, 또는 미매핑 = 스킵
+      const teams = [...new Map(rows.map((r) => [r.teamId, r.team])).values()];
+      issues.push({
+        matchId: 0,
+        externalId: ext,
+        league: teams[0].league,
+        home: teams.map((t) => `${t.name}(${t.league})`).join(" / "),
+        away: "",
+        kind: "teamsourceid_contamination",
+        severity: "HIGH",
+        detail: `ts id ${ext} 가 연맹 교차 Team row 에 연결 [${[...confs].join(", ")}] — 이름매칭 오염. scripts/scan-teamsourceid-contamination.mjs 로 확인`,
+      });
     }
   }
 
