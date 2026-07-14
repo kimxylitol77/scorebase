@@ -1,6 +1,6 @@
 "use client";
 // 발롱도르 지수 인터랙티브 계산기 — 가중치 슬라이더로 후보 순위를 실시간 재정렬한다.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import TeamBadge from "@/components/TeamBadge";
@@ -42,6 +42,38 @@ function score(c: BallonCandidate, w: Weights): number {
 
 export default function BallonCalculator({ candidates }: { candidates: BallonCandidate[] }) {
   const [w, setW] = useState<Weights>(DEFAULT);
+  const [copied, setCopied] = useState(false);
+  const ready = useRef(false);
+
+  // URL 쿼리 ↔ 가중치 동기화 — 링크를 열면 같은 순위가 재현되도록 공유 가능하게 한다.
+  const URL_KEYS: Record<keyof Weights, string> = {
+    goal: "g", assist: "a", rating: "r", team: "t", wc: "w",
+  };
+  // 마운트 시 URL 에서 초기 가중치 로드 (서버는 DEFAULT 렌더 → 클라에서 갱신, hydration 안전).
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const next = { ...DEFAULT };
+    (Object.keys(URL_KEYS) as (keyof Weights)[]).forEach((k) => {
+      const v = sp.get(URL_KEYS[k]);
+      if (v != null) {
+        const n = Number(v);
+        if (Number.isFinite(n)) next[k] = Math.min(2, Math.max(0, Math.round(n * 10) / 10));
+      }
+    });
+    setW(next);
+    ready.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // 가중치 변경 시 URL 갱신 (기본값과 다른 것만 — 히스토리 오염 없이 replaceState).
+  useEffect(() => {
+    if (!ready.current) return;
+    const sp = new URLSearchParams();
+    (Object.keys(URL_KEYS) as (keyof Weights)[]).forEach((k) => {
+      if (w[k] !== DEFAULT[k]) sp.set(URL_KEYS[k], String(w[k]));
+    });
+    const qs = sp.toString();
+    window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+  }, [w]);
 
   const isDefault = (Object.keys(DEFAULT) as (keyof Weights)[]).every((k) => w[k] === DEFAULT[k]);
 
@@ -62,6 +94,33 @@ export default function BallonCalculator({ candidates }: { candidates: BallonCan
     [candidates, w],
   );
   const maxScore = ranked[0]?.s || 1;
+
+  // 현재 가중치로 만든 순위를 공유 — Web Share(모바일 네이티브 시트) + 클립보드 폴백.
+  async function share() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const top3 = ranked
+      .slice(0, 3)
+      .map((r, i) => `${i + 1}. ${r.c.name}`)
+      .join(" · ");
+    const title = "발롱도르 순위 지수 계산기";
+    const text = `내가 만든 발롱도르 순위 — ${top3}`;
+    const nav = typeof navigator !== "undefined" ? navigator : null;
+    if (nav?.share) {
+      try {
+        await nav.share({ title, text, url });
+      } catch {
+        // 공유 시트 취소 — 무시
+      }
+      return;
+    }
+    try {
+      await nav?.clipboard.writeText(`${text}\n${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // 클립보드 거부 — 무시
+    }
+  }
 
   return (
     <div>
@@ -85,6 +144,19 @@ export default function BallonCalculator({ candidates }: { candidates: BallonCan
               초기화
             </button>
           )}
+          <button
+            onClick={share}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.6" y1="10.5" x2="15.4" y2="6.5" />
+              <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" />
+            </svg>
+            {copied ? "링크 복사됨" : "내 순위 공유"}
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
