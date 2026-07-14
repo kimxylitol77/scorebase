@@ -542,6 +542,73 @@ export async function fetchSoccerPlayerProfile(
   }
 }
 
+// ===== 선수 경력 (시즌별 대회별 스탯 — FotMob식 "경력" 표) =====
+
+export interface CareerCompRow {
+  season: number;
+  leagueName: string;
+  leagueCountry?: string;
+  leagueFlag?: string;
+  leagueType?: string; // api-football league.type ("League" | "Cup") — 있으면 그룹 분류에 사용
+  teamName: string;
+  teamLogo?: string;
+  appearances: number;
+  minutes: number;
+  rating: number | null;
+  goals: number;
+  assists: number;
+  yellow: number;
+  red: number;
+}
+
+// 선수 전 시즌 대회별 스탯. /players/seasons(1콜) + 시즌당 /players(병렬). 최근 12시즌 한정(유스 잡음·quota).
+export async function fetchPlayerCareer(playerId: number): Promise<CareerCompRow[]> {
+  try {
+    const { data } = await client().get("/players/seasons", { params: { player: playerId } });
+    const seasons: number[] = (data?.response ?? []).filter((s: unknown) => typeof s === "number");
+    if (!seasons.length) return [];
+    const recent = [...seasons].sort((a, b) => b - a).slice(0, 12);
+    const perSeason = await Promise.all(
+      recent.map(async (season) => {
+        try {
+          const { data: d } = await client().get("/players", { params: { id: playerId, season } });
+          const stx: Record<string, unknown>[] = d?.response?.[0]?.statistics ?? [];
+          return stx.map((s) => {
+            const g = (s.games as Record<string, unknown>) ?? {};
+            const go = (s.goals as Record<string, unknown>) ?? {};
+            const c = (s.cards as Record<string, unknown>) ?? {};
+            const lg = (s.league as Record<string, unknown>) ?? {};
+            const tm = (s.team as Record<string, unknown>) ?? {};
+            const r = g.rating as string | undefined;
+            return {
+              season,
+              leagueName: (lg.name as string) ?? "",
+              leagueCountry: lg.country as string | undefined,
+              leagueFlag: lg.flag as string | undefined,
+              leagueType: lg.type as string | undefined,
+              teamName: (tm.name as string) ?? "",
+              teamLogo: tm.logo as string | undefined,
+              appearances: (g.appearences as number) ?? 0,
+              minutes: (g.minutes as number) ?? 0,
+              rating: r ? parseFloat(r) : null,
+              goals: (go.total as number) ?? 0,
+              assists: (go.assists as number) ?? 0,
+              yellow: (c.yellow as number) ?? 0,
+              red: (c.red as number) ?? 0,
+            } as CareerCompRow;
+          });
+        } catch {
+          return [] as CareerCompRow[];
+        }
+      }),
+    );
+    return perSeason.flat().filter((r) => r.appearances > 0 || r.minutes > 0);
+  } catch (e) {
+    console.warn("[api-football-pro] fetchPlayerCareer 실패:", (e as Error).message);
+    return [];
+  }
+}
+
 // ===== 시즌 리그 리더보드 (LeagueLeaderBoard 용) =====
 // /players/topassists, /players/topyellowcards, /players/topredcards
 // 응답 구조는 topscorers 와 동일 — statistics[0] 에 각 stat.

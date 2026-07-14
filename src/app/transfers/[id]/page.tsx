@@ -27,6 +27,8 @@ import PlayerAdvancedStats from "./PlayerAdvancedStats";
 import PlayerHeatmapAnalysis, { type PlayerHeatmapData } from "./PlayerHeatmapAnalysis";
 import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps";
 import PlayerBioPanel from "./PlayerBioPanel";
+import PlayerCareerTable from "./PlayerCareerTable";
+import { getPlayerCareerByTs } from "./career-data";
 import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
@@ -773,6 +775,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     select: { id: true, type: true, occurredAt: true, title: true },
   });
 
+  // 경력 (API-Football 시즌별 대회별 스탯) — af 매핑 있으면. 없으면 WIKI 시즌 폴백.
+  const careerGroups = await getPlayerCareerByTs(id);
+
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
@@ -905,7 +910,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
               </>
             ),
           },
-          ...(seasonEntries.length > 0
+          ...(careerGroups.length > 0
+            ? [{ key: "career", label: "경력", content: <PlayerCareerTable groups={careerGroups} /> }]
+            : seasonEntries.length > 0
             ? [{ key: "seasons", label: "시즌별", content: <SeasonAccordion seasons={seasonEntries} /> }]
             : []),
           ...(natlGroups.length > 0
