@@ -8,9 +8,19 @@ import { fetchFixturesByLeagueId, fetchFixturePlayerStats, getApiFootballSeason 
 
 // af 리그 id — 빅5 리그 + 유럽대항전 + 빅5 국내컵. mapped 선수는 대부분 이 대회에서 뜀.
 const COMPETITIONS: number[] = [39, 140, 135, 78, 61, 2, 3, 848, 45, 48, 143, 81, 137, 66];
-const FETCH_CONCURRENCY = 8;
+const FETCH_CONCURRENCY = 6;
 
-// 동시성 제한 풀 — fixtures 수천 개 /fixtures/players 호출을 8개씩.
+// 레이트리밋 — api-football Ultra 분당 ~450. 안전하게 400/min(150ms 간격)으로 스로틀.
+//  (이걸 안 하면 429가 조용히 빈 응답 처리돼 라리가·세리에A 등 리그가 통째로 누락됨)
+let nextSlot = 0;
+async function throttle() {
+  const now = Date.now();
+  const wait = Math.max(0, nextSlot - now);
+  nextSlot = Math.max(now, nextSlot) + 150;
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+}
+
+// 동시성 제한 풀 — fixtures 수천 개 /fixtures/players 호출.
 async function mapPool<T, R>(items: T[], concurrency: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let idx = 0;
@@ -45,6 +55,7 @@ export async function runCollectPlayerMatchLogs({ backfill = false }: { backfill
 
   // 2) fixture 별 선수 스탯 → af→ts 매핑된 선수만 로그 행
   const rowsNested = await mapPool(fixtures, FETCH_CONCURRENCY, async (fx) => {
+    await throttle();
     const stats = await fetchFixturePlayerStats(fx.id);
     const rows: MatchLogRow[] = [];
     for (const s of stats) {

@@ -1026,11 +1026,26 @@ export interface AfFixturePlayerStat {
 }
 
 // 한 경기의 전 선수 스탯 — /fixtures/players?fixture=. teamId 로 홈/원정 판별.
+// 429(분당 한도) 시 백오프 재시도 — 빈 응답으로 조용히 누락되던 리그 방지.
 export async function fetchFixturePlayerStats(fixtureId: number): Promise<AfFixturePlayerStat[]> {
-  try {
-    const { data } = await client().get("/fixtures/players", { params: { fixture: fixtureId } });
-    const out: AfFixturePlayerStat[] = [];
-    for (const tb of (data?.response ?? []) as Record<string, unknown>[]) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const { data } = await client().get("/fixtures/players", { params: { fixture: fixtureId } });
+      return parseFixturePlayers(data);
+    } catch (e) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      if (status === 429 && attempt < 3) {
+        await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+        continue;
+      }
+      return [];
+    }
+  }
+}
+
+function parseFixturePlayers(data: unknown): AfFixturePlayerStat[] {
+  const out: AfFixturePlayerStat[] = [];
+  for (const tb of ((data as Record<string, unknown>)?.response ?? []) as Record<string, unknown>[]) {
       const teamId = ((tb.team as Record<string, unknown>) ?? {}).id as number;
       for (const p of (tb.players ?? []) as Record<string, unknown>[]) {
         const st = (((p.statistics as Record<string, unknown>[]) ?? [])[0] ?? {}) as Record<string, unknown>;
@@ -1049,12 +1064,9 @@ export async function fetchFixturePlayerStats(fixtureId: number): Promise<AfFixt
           red: (c.red as number) ?? 0,
           started: g.substitute === false,
         });
-      }
     }
-    return out.filter((s) => s.playerId);
-  } catch {
-    return [];
   }
+  return out.filter((s) => s.playerId);
 }
 
 // ===== API-Football 자체 예측 (third opinion) =====
