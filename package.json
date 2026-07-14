@@ -25,6 +25,7 @@
     "job:tod": "tsx src/jobs/generate-team-of-day-article.ts",
     "job:wc-star": "tsx src/jobs/generate-wc-star-report.ts",
     "job:baseball-weekly": "tsx src/jobs/generate-baseball-weekly-review.ts",
+    "job:mlb-weekly-players": "tsx src/jobs/generate-mlb-weekly-players.ts",
     "job:blog-weekly": "tsx src/jobs/generate-blog-weekly.ts",
     "job:mlb-starters": "tsx src/jobs/fetch-mlb-starters.ts",
     "job:nhl-goalies": "tsx src/jobs/fetch-nhl-goalies.ts",

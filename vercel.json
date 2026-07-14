@@ -275,6 +275,10 @@
     {
       "path": "/api/cron/baseball-weekly",
       "schedule": "0 2 * * 1"
+    },
+    {
+      "path": "/api/cron/mlb-weekly-players",
+      "schedule": "0 3 * * 1"
     }
   ]
 }

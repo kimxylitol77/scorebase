@@ -29,6 +29,7 @@ export interface GenerateOptions {
   system?: string;
   maxTokens?: number;
   temperature?: number;
+  model?: string; // 기본 OPENAI_MODEL 오버라이드 (예: 심판관은 정밀 대조용으로 상위 모델)
 }
 
 /**
@@ -46,7 +47,7 @@ export async function generate(
   messages.push({ role: "user", content: prompt });
 
   const res = await getClient().chat.completions.create({
-    model: OPENAI_MODEL,
+    model: opts.model ?? OPENAI_MODEL,
     messages,
     max_tokens: opts.maxTokens ?? 4096,
     temperature: opts.temperature ?? 0.7,
