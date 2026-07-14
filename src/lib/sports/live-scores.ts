@@ -11,6 +11,7 @@
 // 호출 1회로 모든 리그 라이브 매치 정규화. Server-only.
 
 // Edge Runtime 호환을 위해 fetch 사용 (axios 제거).
+import { unstable_cache } from "next/cache";
 import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
 import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -1898,15 +1899,27 @@ function bdlBuildDates(): URLSearchParams {
   return params;
 }
 
-export async function fetchNbaLive(): Promise<LiveMatch[]> {
-  const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return [];
-  try {
+// BDL 분당 5회 한도 — /scores SSR·/api/live/scores 폴링이 렌더마다 no-store 로 호출해
+// 한도를 상시 소진(NBA 선수 상세 429→404 의 원인). 원시 응답을 unstable_cache 로 렌더 간
+// 공유해 종목당 분당 1~2회로 제한. 실패(429 등)는 throw 로 캐시를 회피해 성공만 캐시.
+const getBdlNbaGamesCached = unstable_cache(
+  async (): Promise<BdlNbaGame[]> => {
+    const key = process.env.BALLDONTLIE_KEY;
+    if (!key) return [];
     const data = await getJson<{ data?: BdlNbaGame[] }>(
       `${BDL_BASE}/nba/v1/games?${bdlBuildDates().toString()}`,
       { Authorization: key },
     );
-    return (data.data ?? [])
+    return data.data ?? [];
+  },
+  ["bdl-nba-live-games"],
+  { revalidate: 60 },
+);
+
+export async function fetchNbaLive(): Promise<LiveMatch[]> {
+  try {
+    const games = await getBdlNbaGamesCached();
+    return games
       .filter(isNbaLive)
       .map(
         (g): LiveMatch => ({
@@ -1934,15 +1947,24 @@ export async function fetchNbaLive(): Promise<LiveMatch[]> {
   }
 }
 
-export async function fetchNhlLive(): Promise<LiveMatch[]> {
-  const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return [];
-  try {
+const getBdlNhlGamesCached = unstable_cache(
+  async (): Promise<BdlNhlGame[]> => {
+    const key = process.env.BALLDONTLIE_KEY;
+    if (!key) return [];
     const data = await getJson<{ data?: BdlNhlGame[] }>(
       `${BDL_BASE}/nhl/v1/games?${bdlBuildDates().toString()}`,
       { Authorization: key },
     );
-    return (data.data ?? [])
+    return data.data ?? [];
+  },
+  ["bdl-nhl-live-games"],
+  { revalidate: 60 },
+);
+
+export async function fetchNhlLive(): Promise<LiveMatch[]> {
+  try {
+    const games = await getBdlNhlGamesCached();
+    return games
       .filter(isNhlLive)
       .map(
         (g): LiveMatch => ({
@@ -1993,20 +2015,30 @@ function lolStatusLabel(match: BdlLolMatch): string {
 // LOL 라이브 — 전 리그(LCK 본선·2군 + 해외 LPL/LEC/LCS) tournament 를 한 번에 폴링.
 // tournament → league 매핑은 lol.ts 단일 소스. 해외 리그는 표준시 차이로 매치 날짜가
 // 어제/내일 KST 에 걸칠 수 있어 ±1일 window 로 조회한 뒤 status="current" 만 라이브로 채택.
-export async function fetchLolLive(): Promise<LiveMatch[]> {
-  const key = process.env.BALLDONTLIE_KEY;
-  if (!key) return [];
-  const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
-  const ymd = (offsetDays: number) =>
-    new Date(kstNow.getTime() + offsetDays * 86400000).toISOString().slice(0, 10);
-  const dateQs = [-1, 0, 1].map((o) => `dates[]=${ymd(o)}`).join("&");
-  const tourQs = LOL_TOURNAMENT_IDS.map((id) => `tournament_ids[]=${id}`).join("&");
-  try {
+const getBdlLolMatchesCached = unstable_cache(
+  async (): Promise<BdlLolMatch[]> => {
+    const key = process.env.BALLDONTLIE_KEY;
+    if (!key) return [];
+    const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
+    const ymd = (offsetDays: number) =>
+      new Date(kstNow.getTime() + offsetDays * 86400000).toISOString().slice(0, 10);
+    const dateQs = [-1, 0, 1].map((o) => `dates[]=${ymd(o)}`).join("&");
+    const tourQs = LOL_TOURNAMENT_IDS.map((id) => `tournament_ids[]=${id}`).join("&");
     const data = await getJson<{ data?: BdlLolMatch[] }>(
       `${BDL_BASE}/lol/v1/matches?${dateQs}&${tourQs}&per_page=100`,
       { Authorization: key },
     );
-    return (data.data ?? [])
+    return data.data ?? [];
+  },
+  ["bdl-lol-live-matches"],
+  // 시리즈 세트 스코어 단위라 30초면 충분 — NBA/NHL(60초)보다 짧게 둬 시즌 중 반영 지연 최소화.
+  { revalidate: 30 },
+);
+
+export async function fetchLolLive(): Promise<LiveMatch[]> {
+  try {
+    const matches = await getBdlLolMatchesCached();
+    return matches
       // 미정(TBD) 팀은 name=null 로 오므로 제외.
       .filter((m) => m.status === "current" && m.team1?.name && m.team2?.name)
       .map((m): LiveMatch => {

@@ -17,7 +17,7 @@ import {
 } from "@/lib/sports/espn-nba-player";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
-import { lookupNbaPlayer } from "@/lib/sports/nba-players";
+import { lookupNbaPlayer, lookupNbaPlayerByBdlId } from "@/lib/sports/nba-players";
 import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerTabs from "./PlayerTabs";
@@ -307,11 +307,19 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
   const m = now.getUTCMonth() + 1;
   const season = m >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
 
+  // BDL 은 분당 5회 한도라 429 가 잦음 — 실패 시 로컬 로스터 인덱스(bdlId 역조회)로
+  // 헤더를 구성해 렌더. 두 소스 모두 없을 때만 404.
   const profile = await fetchNbaPlayer(id);
-  if (!profile) notFound();
-  const fullName = `${profile.firstName} ${profile.lastName}`.trim();
+  const local = profile ? null : lookupNbaPlayerByBdlId(id);
+  if (!profile && !local) notFound();
+  const fullName = profile ? `${profile.firstName} ${profile.lastName}`.trim() : local!.name;
   const nameKo = toKoreanPlayerName(fullName) || fullName;
-  const teamKo = profile.team ? toKoreanTeamName(profile.team.fullName) || profile.team.fullName : "";
+  const teamName = profile?.team?.fullName ?? local?.team ?? null;
+  const teamKo = teamName ? toKoreanTeamName(teamName) || teamName : "";
+  const position = profile?.position || local?.pos || null;
+  const jersey = profile?.jerseyNumber ?? (local?.number != null ? String(local.number) : null);
+  const nameParts = fullName.split(/\s+/).filter(Boolean);
+  const initials = `${nameParts[0]?.[0] ?? ""}${nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : ""}`;
   const tsp = lookupNbaPlayer(fullName); // ESPN headshot + TheSports 프로필
   const photo = tsp?.photo;
   const espnId = tsp?.espnId;
@@ -327,7 +335,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
   // 시즌기록 팀 로고/링크 — DB NBA Team(영문 name 매칭)으로 logoUrl·팀페이지 id.
   const nbaTeams = await prisma.team.findMany({ where: { league: "NBA" }, select: { id: true, name: true, logoUrl: true } });
   const teamMap = new Map<string, TeamInfo>(nbaTeams.map((t) => [normTeam(t.name), { id: t.id, logo: t.logoUrl, name: t.name }]));
-  const currentTeam = profile.team ? teamMap.get(normTeam(profile.team.fullName)) : undefined;
+  const currentTeam = teamName ? teamMap.get(normTeam(teamName)) : undefined;
 
   const birth = tsp?.birthday ? new Date(tsp.birthday * 1000) : null;
   const age = birth ? Math.floor((Date.now() - birth.getTime()) / 31557600000) : null;
@@ -395,19 +403,18 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
             <img src={photo} alt={nameKo} className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 object-cover object-top" />
           ) : (
             <div className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center text-2xl font-bold text-neutral-400">
-              {profile.firstName[0]}
-              {profile.lastName[0]}
+              {initials}
             </div>
           )}
           <div className="space-y-1">
             <div className="flex items-baseline gap-3 flex-wrap">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">{nameKo}</h1>
-              {profile.position && (
+              {position && (
                 <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-                  {profile.position}
+                  {position}
                 </span>
               )}
-              {profile.jerseyNumber && <span className="text-sm text-neutral-500">#{profile.jerseyNumber}</span>}
+              {jersey && <span className="text-sm text-neutral-500">#{jersey}</span>}
               {age != null && <span className="text-sm text-neutral-500">{age}세</span>}
             </div>
             <div className="text-sm text-neutral-500">
@@ -423,9 +430,9 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
                   {" · "}
                 </>
               ) : ""}
-              {profile.height ? `${profile.height} · ` : ""}
-              {profile.weight ? `${profile.weight} lbs` : ""}
-              {profile.country ? ` · ${profile.country}` : ""}
+              {profile?.height ? `${profile.height} · ` : ""}
+              {profile?.weight ? `${profile.weight} lbs` : ""}
+              {profile?.country ? ` · ${profile.country}` : ""}
               {tsp?.city ? ` · 출생 ${tsp.city}` : ""}
             </div>
             {tsp?.salary ? (
@@ -436,7 +443,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
             ) : null}
             <div className="text-[11px] text-neutral-400">
               BALLDONTLIE · ESPN · TheSports · {season} 시즌
-              {profile.draftYear ? ` · ${profile.draftYear} 드래프트 ${profile.draftRound}R ${profile.draftNumber}순위` : ""}
+              {profile?.draftYear ? ` · ${profile.draftYear} 드래프트 ${profile.draftRound}R ${profile.draftNumber}순위` : ""}
               {birthStr ? ` · ${birthStr} 생` : ""}
             </div>
           </div>

@@ -70,6 +70,27 @@ export function nbaPlayerHref(info: NbaPlayerInfo | null): string | null {
   return info?.bdlId != null ? `/players/${info.bdlId}?league=NBA` : null;
 }
 
+export interface NbaPlayerLocal {
+  name: string;
+  ko: string;
+  pos: string | null;
+  number: number | null;
+  team: string | null;
+}
+
+let BDL_ID_INDEX: Map<number, PlayerEntry> | null = null;
+
+/** bdlId → 로컬 인덱스 선수. BDL API 장애(429 등) 시 선수 상세 헤더 fallback 용. */
+export function lookupNbaPlayerByBdlId(bdlId: number): NbaPlayerLocal | null {
+  if (!BDL_ID_INDEX) {
+    BDL_ID_INDEX = new Map();
+    for (const e of Object.values(INDEX)) if (e.bdlId != null) BDL_ID_INDEX.set(e.bdlId, e);
+  }
+  const e = BDL_ID_INDEX.get(bdlId);
+  if (!e) return null;
+  return { name: e.name, ko: e.ko || e.name, pos: e.pos, number: e.number ?? null, team: e.team ?? null };
+}
+
 export interface NbaRosterPlayer {
   ko: string;
   name: string;
