@@ -14,6 +14,12 @@ export interface PoolPlayer {
   isNew?: boolean; // 이번 여름 이적창 신규 영입 (NEW 배지)
 }
 
+// 마지막 경기 확정 선발 11명 — TheSports lineup cache 에서 서버가 추출(좌표는 보드 세로 좌표로 변환 완료).
+export interface LastXI {
+  f: string | null; // 그 경기 포메이션 문자열 ("4-2-3-1" 등, 프리셋에 없을 수 있음)
+  players: Array<{ pid: string; name: string; pos: Pos; x: number; y: number }>;
+}
+
 // 클럽 가져오기 드롭다운용 메타.
 export interface ClubMeta {
   key: string; // 그룹 키 (ts-{teamId} / wc-{nation})
@@ -23,4 +29,5 @@ export interface ClubMeta {
   canBest11: boolean; // GK1/DF4/MF3/FW3 충족 여부
   coachName?: string | null; // 감독 한글명 (team-coaches)
   coachFormation?: string | null; // 감독 선호 포메이션 ("4-4-2" 등)
+  lastXI?: LastXI; // 마지막 경기 선발 — 있으면 클럽 불러오기 기본 배치로 사용
 }

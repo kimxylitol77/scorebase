@@ -65,6 +65,20 @@ export const FORMATIONS: Record<string, Slot[]> = {
     { id: "rcb", pos: "DF", label: "CB", x: 73, y: 67 },
     { id: "gk", pos: "GK", label: "GK", x: 50, y: 92 },
   ],
+  // 사비 알론소식 3-4-2-1 — 스리백 + 윙백 2 + 중미 2 + 공미(10번) 2 + 원톱.
+  "3-4-2-1": [
+    { id: "st", pos: "FW", label: "ST", x: 50, y: 13 },
+    { id: "lam", pos: "MF", label: "AM", x: 30, y: 30 },
+    { id: "ram", pos: "MF", label: "AM", x: 70, y: 30 },
+    { id: "lwb", pos: "MF", label: "LWB", x: 10, y: 48 },
+    { id: "lcm", pos: "MF", label: "CM", x: 37, y: 53 },
+    { id: "rcm", pos: "MF", label: "CM", x: 63, y: 53 },
+    { id: "rwb", pos: "MF", label: "RWB", x: 90, y: 48 },
+    { id: "lcb", pos: "DF", label: "CB", x: 26, y: 72 },
+    { id: "cb", pos: "DF", label: "CB", x: 50, y: 74 },
+    { id: "rcb", pos: "DF", label: "CB", x: 74, y: 72 },
+    { id: "gk", pos: "GK", label: "GK", x: 50, y: 92 },
+  ],
 };
 
 export const FORMATION_NAMES = Object.keys(FORMATIONS);

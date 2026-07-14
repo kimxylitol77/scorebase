@@ -15,6 +15,7 @@ interface Props {
   mode: "single" | "versus";
   displayMode: DisplayMode;
   orientation: Orientation;
+  grid?: boolean; // 존 그리드 오버레이 (코칭 전술판)
   poolById: Record<string, PoolPlayer>;
   kitFrom: string;
   kitTo: string;
@@ -24,7 +25,7 @@ interface Props {
   onDragStart?: () => void; // 드래그 첫 이동 시 1회 (undo 체크포인트용)
 }
 
-export default function Pitch({ home, away, mode, displayMode, orientation, poolById, kitFrom, kitTo, activeUid, onNodeClick, onNodeMove, onDragStart }: Props) {
+export default function Pitch({ home, away, mode, displayMode, orientation, grid, poolById, kitFrom, kitTo, activeUid, onNodeClick, onNodeMove, onDragStart }: Props) {
   const pitchRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ uid: string; side: "home" | "away"; sx: number; sy: number; moved: boolean } | null>(null);
   const landscape = orientation === "landscape";
@@ -85,6 +86,7 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
       style={{ aspectRatio: landscape ? "16 / 10" : "4 / 5", background: `linear-gradient(${landscape ? "to right" : "to bottom"}, ${kitFrom}, ${kitTo})` }}
     >
       <PitchMarkings landscape={landscape} versus={mode === "versus"} />
+      {grid && <GridOverlay landscape={landscape} />}
       {depthMode && (
         <div className="pointer-events-none absolute bottom-1.5 left-2.5 flex items-center gap-2.5 text-[10px] font-semibold text-white/85" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: "rgba(59,130,246,0.95)" }} /> 선발</span>
@@ -160,6 +162,39 @@ export default function Pitch({ home, away, mode, displayMode, orientation, pool
         }),
       )}
     </div>
+  );
+}
+
+// 존 그리드 — 코칭 전술판 스타일. 길이 방향 6등분(1/3 지점 실선 + 1/6·5/6 점선, 50%는 기존 하프라인),
+// 폭 방향 5레인 실선. 필드 경계(inset 3.5%) 안쪽 기준 좌표. 세로/가로 대응.
+function GridOverlay({ landscape }: { landscape: boolean }) {
+  // 필드 시작 3.5% + 길이 93% 기준 등분 지점
+  const LEN = [
+    { p: 19, dashed: true },
+    { p: 34.5, dashed: false },
+    { p: 65.5, dashed: false },
+    { p: 81, dashed: true },
+  ];
+  const LANES = [22.1, 40.7, 59.3, 77.9];
+  const solid = "border-white/25";
+  const dash = "border-dashed border-white/20";
+  return (
+    <>
+      {LEN.map(({ p, dashed }) =>
+        landscape ? (
+          <div key={`l${p}`} className={`pointer-events-none absolute inset-y-[3.5%] border-l-2 ${dashed ? dash : solid}`} style={{ left: `${p}%` }} />
+        ) : (
+          <div key={`l${p}`} className={`pointer-events-none absolute inset-x-[3.5%] border-t-2 ${dashed ? dash : solid}`} style={{ top: `${p}%` }} />
+        ),
+      )}
+      {LANES.map((p) =>
+        landscape ? (
+          <div key={`w${p}`} className={`pointer-events-none absolute inset-x-[3.5%] border-t-2 ${solid}`} style={{ top: `${p}%` }} />
+        ) : (
+          <div key={`w${p}`} className={`pointer-events-none absolute inset-y-[3.5%] border-l-2 ${solid}`} style={{ left: `${p}%` }} />
+        ),
+      )}
+    </>
   );
 }
 

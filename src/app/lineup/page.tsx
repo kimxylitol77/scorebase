@@ -59,7 +59,7 @@ const getClubData = unstable_cache(
     const CUP_LEAGUES = new Set(["UCL", "UEL", "UECL", "AFC_CL", "AFC_CL_TWO", "CLUB_WORLD_CUP", "COPA_LIB", "COPA_SUD"]);
     const srcRows = await prisma.teamSourceId.findMany({
       where: { source: "thesports", externalId: { in: tsTeamIds } },
-      select: { externalId: true, team: { select: { name: true, league: true } } },
+      select: { externalId: true, team: { select: { id: true, name: true, league: true } } },
     });
     const teamByTsId = new Map<string, { name: string; league: string }>();
     for (const r of srcRows) {
@@ -67,6 +67,81 @@ const getClubData = unstable_cache(
       if (!cur || (CUP_LEAGUES.has(cur.league) && !CUP_LEAGUES.has(r.team.league))) {
         teamByTsId.set(r.externalId, r.team);
       }
+    }
+    // ts team id ↔ 우리 Team row 매핑 — 마지막 경기는 컵 리그 row(UCL 등)에 있을 수 있어 preferred row 만으론 부족.
+    // 단 대표 리그·컵 리그 row 만 — 이름 매칭 오염 row(예: FC 바르셀로나 ts id ↔ 에콰도르 바르셀로나 SC row)가
+    // 섞이면 진행 중인 타 리그 경기가 "마지막 경기"로 잡힌다.
+    const ourIdToTsIds = new Map<number, string[]>();
+    for (const r of srcRows) {
+      const preferred = teamByTsId.get(r.externalId);
+      if (r.team.league !== preferred?.league && !CUP_LEAGUES.has(r.team.league)) continue;
+      (ourIdToTsIds.get(r.team.id) ?? ourIdToTsIds.set(r.team.id, []).get(r.team.id)!).push(r.externalId);
+    }
+
+    // 팀별 마지막 경기 확정 선발 — 최근 120일 FINISHED 경기에서 최신순 최대 3경기의 lineup cache 를 시도.
+    // 좌표 변환: TheSports x(0~100, 공격 방향 아래 기준)·y(0~90, 0=자기 골문) → 보드 세로 좌표(공격 위).
+    interface RawXiPlayer { id?: string; first?: number; name?: string; position?: string; x?: number; y?: number }
+    const xiByTs = new Map<string, { f: string | null; starters: RawXiPlayer[] }>();
+    try {
+      const since = new Date(Date.now() - 120 * 86400 * 1000);
+      const recentMatches = await prisma.match.findMany({
+        where: {
+          status: "FINISHED",
+          startTime: { gte: since },
+          OR: [{ homeTeamId: { in: [...ourIdToTsIds.keys()] } }, { awayTeamId: { in: [...ourIdToTsIds.keys()] } }],
+        },
+        select: { id: true, homeTeamId: true, awayTeamId: true },
+        orderBy: { startTime: "desc" },
+      });
+      // ts 팀별 최신순 후보 경기 (side 포함, 최대 3개)
+      const candByTs = new Map<string, Array<{ matchId: number; side: "home" | "away" }>>();
+      for (const m of recentMatches) {
+        for (const [teamId, side] of [[m.homeTeamId, "home"], [m.awayTeamId, "away"]] as Array<[number, "home" | "away"]>) {
+          for (const tsId of ourIdToTsIds.get(teamId) ?? []) {
+            const arr = candByTs.get(tsId) ?? candByTs.set(tsId, []).get(tsId)!;
+            if (arr.length < 3) arr.push({ matchId: m.id, side });
+          }
+        }
+      }
+      const lineupByMatch = new Map<number, unknown>();
+      for (let round = 0; round < 3; round++) {
+        const need = new Set<number>();
+        for (const [tsId, cands] of candByTs) {
+          if (xiByTs.has(tsId) || !cands[round]) continue;
+          if (!lineupByMatch.has(cands[round].matchId)) need.add(cands[round].matchId);
+        }
+        if (need.size) {
+          const rows = await prisma.theSportsMatchCache.findMany({
+            where: { matchId: { in: [...need] } },
+            select: { matchId: true, lineup: true },
+          });
+          for (const r of rows) lineupByMatch.set(r.matchId, r.lineup);
+          for (const id of need) if (!lineupByMatch.has(id)) lineupByMatch.set(id, null);
+        }
+        for (const [tsId, cands] of candByTs) {
+          if (xiByTs.has(tsId) || !cands[round]) continue;
+          const lu = lineupByMatch.get(cands[round].matchId) as {
+            confirmed?: number;
+            home_formation?: string;
+            away_formation?: string;
+            lineup?: { home?: unknown; away?: unknown };
+          } | null;
+          if (!lu || lu.confirmed !== 1 || !lu.lineup) continue;
+          const side = cands[round].side;
+          // 워커 merge 로 배열이 Record 로 저장된 케이스 대응 — Object.values 로 통일 (매치 상세와 동일 처리)
+          const all = Object.values((side === "home" ? lu.lineup.home : lu.lineup.away) ?? {}) as RawXiPlayer[];
+          const starters = all.filter((p) => p && p.first === 1 && p.id && typeof p.x === "number" && typeof p.y === "number");
+          if (starters.length < 11) continue;
+          // 스쿼드 겹침 가드 — 선발 11명 중 6명 이상이 이 클럽 공식 스쿼드여야 채택.
+          // 매핑 오염으로 남의 팀 경기가 잡히면(겹침 0) 다음 후보 경기로 넘어간다.
+          const squadIds = new Set(T_SQUADS[tsId].squad.map((p) => p.id));
+          if (starters.filter((p) => squadIds.has(p.id!)).length < 6) continue;
+          const f = (side === "home" ? lu.home_formation : lu.away_formation) || null;
+          xiByTs.set(tsId, { f, starters: starters.slice(0, 11) });
+        }
+      }
+    } catch (e) {
+      console.error("[lineup] last-XI 추출 실패 — 베스트11 폴백", e);
     }
 
     // 여름 이적 오버레이 — 선수별 최신 1건만 (여러 번 이동 시 마지막 행선지 기준).
@@ -109,10 +184,11 @@ const getClubData = unstable_cache(
       (insByTeam.get(m.toTeamId) ?? insByTeam.set(m.toTeamId, []).get(m.toTeamId)!).push(m.playerId);
     }
 
-    // 한글명·포지션·사진 배치 조회 (스쿼드 전원 + 이적 IN)
+    // 한글명·포지션·사진 배치 조회 (스쿼드 전원 + 이적 IN + 마지막 경기 선발 — 이적으로 떠난 선수도 이름 필요)
     const allIds = new Set<string>();
     for (const v of Object.values(T_SQUADS)) for (const p of v.squad) allIds.add(p.id);
     for (const ids of insByTeam.values()) for (const id of ids) allIds.add(id);
+    for (const xi of xiByTs.values()) for (const p of xi.starters) if (p.id) allIds.add(p.id);
     const players = await prisma.theSportsPlayer.findMany({
       where: { id: { in: [...allIds] } },
       select: { id: true, name: true, nameKo: true, position: true, photoUrl: true },
@@ -174,6 +250,21 @@ const getClubData = unstable_cache(
       }
 
       const coach = T_COACHES[tsId];
+      // 마지막 경기 선발 좌표 변환 — ts x 는 좌우 거울(공격 위 기준), y 0(자기 골문)~90 → 보드 94~14.
+      const clamp = (lo: number, hi: number, v: number) => Math.max(lo, Math.min(hi, v));
+      const xi = xiByTs.get(tsId);
+      const lastXI = xi
+        ? {
+            f: xi.f,
+            players: xi.starters.map((p) => ({
+              pid: p.id!,
+              name: displayName(p.id!, p.name ?? "선수"),
+              pos: SQUAD_POS[p.position ?? ""] ?? "MF",
+              x: clamp(4, 96, Math.round(100 - (p.x ?? 50))),
+              y: clamp(6, 94, Math.round(94 - ((p.y ?? 0) * 80) / 90)),
+            })),
+          }
+        : undefined;
       clubs.push({
         key: clubKey,
         label,
@@ -182,6 +273,7 @@ const getClubData = unstable_cache(
         canBest11: posCount.GK >= 1 && posCount.DF >= 4 && posCount.MF >= 3 && posCount.FW >= 3,
         coachName: coach ? (coach.nameKo || coach.name) : null,
         coachFormation: coach?.preferredFormation || null,
+        lastXI,
       });
     }
 
@@ -203,7 +295,7 @@ const getClubData = unstable_cache(
     clubs.sort((a, b) => a.league.localeCompare(b.league) || a.label.localeCompare(b.label, "ko"));
     return { pool, clubs };
   },
-  ["lineup-club-data-v5"],
+  ["lineup-club-data-v7"],
   { revalidate: 3 * 3600 },
 );
 
@@ -248,7 +340,7 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
         </span>
         <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-white">라인업 전술판</h1>
         <p className="mt-1.5 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
-          클럽을 불러오면 공식 스쿼드 전원(이번 여름 이적 반영)이 후보로 뜨고, 감독의 선호 포메이션으로 자동 배치됩니다. 완성한 보드는 이미지 카드로 저장·공유하세요.
+          클럽을 불러오면 공식 스쿼드 전원(이번 여름 이적 반영)이 후보로 뜨고, 마지막 경기 선발 라인업 그대로 자동 배치됩니다. 완성한 보드는 이미지 카드로 저장·공유하세요.
         </p>
         <LineupBuilder pool={allPool} clubs={allClubs} initial={initial} />
       </div>

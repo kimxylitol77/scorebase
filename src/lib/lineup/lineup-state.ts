@@ -58,6 +58,7 @@ export interface BoardState {
   title: string;
   subtitle: string;
   kit: string;
+  grid?: boolean; // 존 그리드 오버레이 (세로 6등분 + 5레인) — 코칭 전술판 스타일
   home: Side;
   away?: Side;
   bench: BenchEntry[]; // 후보 명단 (더블 스쿼드) — 실선수 pid 또는 커스텀 이름
@@ -91,6 +92,7 @@ interface WireBoard {
   m: "s" | "v";
   dm?: "o" | "n"; // displayMode (생략=photo)
   o?: "l"; // orientation (생략=portrait)
+  g?: 1; // 존 그리드 (생략=off)
   t: string;
   s: string;
   kit: string;
@@ -140,6 +142,7 @@ export function encodeBoard(b: BoardState): string {
   if (b.displayMode === "ovr") w.dm = "o";
   else if (b.displayMode === "name") w.dm = "n";
   if (b.orientation === "landscape") w.o = "l";
+  if (b.grid) w.g = 1;
   if (b.mode === "versus" && b.away) w.a = sideToWire(b.away);
   if ((b.bench ?? []).length) w.b = (b.bench ?? []).map((e) => (e.pid ? e.pid : ([0, e.name ?? ""] as [0, string])));
   return b64urlEncode(JSON.stringify(w));
@@ -154,6 +157,7 @@ export function decodeBoard(code: string): BoardState | null {
         mode: obj.m === "v" ? "versus" : "single",
         displayMode: obj.dm === "o" ? "ovr" : obj.dm === "n" ? "name" : "photo",
         orientation: obj.o === "l" ? "landscape" : "portrait",
+        grid: obj.g === 1 || undefined,
         title: obj.t ?? "",
         subtitle: obj.s ?? "",
         kit: obj.kit ?? "grass",

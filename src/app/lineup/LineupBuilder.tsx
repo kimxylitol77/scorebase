@@ -2,7 +2,7 @@
 // 라인업 전술판 빌더 — 포메이션/자유/맞대결 + 클럽 + 드래그 + 표시모드/방향 + 전술 그리기 + undo/redo + 캡처 공유.
 // 피치·드래그=Pitch, 후보=CandidatePanel, 그리기=DrawLayer, 이력=useHistory.
 import { useMemo, useCallback, useState, useRef, useEffect, type ComponentType } from "react";
-import { Share2, Download, Link2, Check, Shirt, UserPlus, Undo2, Redo2, RotateCcw, MousePointer2, Pen, Minus, MoreHorizontal, MoveUpRight, Square, Circle, Volleyball, Eraser, PenLine } from "lucide-react";
+import { Share2, Download, Link2, Check, Shirt, UserPlus, Undo2, Redo2, RotateCcw, MousePointer2, Pen, Minus, MoreHorizontal, MoveUpRight, Square, Circle, Volleyball, Eraser, PenLine, Grid3x3 } from "lucide-react";
 import Pitch from "./Pitch";
 import CandidatePanel from "./CandidatePanel";
 import DrawLayer from "./DrawLayer";
@@ -87,7 +87,7 @@ function dataUrlToBlob(dataUrl: string): Blob {
 
 function initBoard(initial: BoardState | null): BoardState {
   if (initial) return { ...initial, strokes: initial.strokes ?? [] };
-  return { mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", bench: [], strokes: [], home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
+  return { mode: "single", displayMode: "photo", orientation: "portrait", title: "나의 베스트 11", subtitle: "", kit: "grass", grid: false, bench: [], strokes: [], home: { club: null, formation: "4-3-3", players: emptySlots("4-3-3", "home", false) } };
 }
 
 export default function LineupBuilder({ pool, clubs, initial }: Props) {
@@ -210,6 +210,18 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
           });
         });
         return updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: FREE_FORMATION, players }));
+      }
+      // 마지막 경기 확정 선발이 있으면 그 배치(실제 좌표) 그대로 — 이적으로 떠난 선수는 커스텀 이름으로.
+      const xi = club?.lastXI;
+      if (xi && xi.players.length >= 11) {
+        const players: Placed[] = xi.players.map((p) => {
+          const inPool = !!poolById[p.pid];
+          return { uid: newUid(), pid: inPool ? p.pid : null, name: inPool ? null : p.name, pos: p.pos, x: p.x, y: placeY(p.y, side, versus) };
+        });
+        const fname = xi.f && FORMATIONS[xi.f] ? xi.f : FREE_FORMATION;
+        const next = updateSideIn(b, side, (s) => ({ ...s, club: club?.label ?? null, formation: fname, players }));
+        if (!next.subtitle) return { ...next, subtitle: `최근 경기 선발${xi.f ? ` · ${xi.f}` : ""}` };
+        return next;
       }
       // 감독 선호 포메이션이 프리셋에 있으면 그것으로 자동 배치 (감독 전술 추천)
       const coachF = club?.coachFormation && FORMATIONS[club.coachFormation] ? club.coachFormation : null;
@@ -481,6 +493,13 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
         <div className="inline-flex rounded-lg bg-neutral-100 p-0.5 dark:bg-white/[0.06]">
           {ORIENTATIONS.map(([o, label]) => (<button key={o} type="button" onClick={() => commit((b) => ({ ...b, orientation: o }))} className={board.orientation === o ? segSmActive : segSmIdle}>{label}</button>))}
         </div>
+        <button
+          type="button"
+          onClick={() => commit((b) => ({ ...b, grid: !b.grid }))}
+          className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${board.grid ? "border-rose-300 bg-rose-500/10 text-rose-600 dark:border-rose-500/40 dark:text-rose-300" : "border-neutral-200 text-neutral-500 hover:text-neutral-800 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-white"}`}
+        >
+          <Grid3x3 className="h-3.5 w-3.5" /> 존 그리드
+        </button>
         <div className="ml-auto flex items-center gap-1.5">
           <button type="button" onClick={undo} disabled={!canUndo} className={iconBtn} title="되돌리기" aria-label="되돌리기"><Undo2 className="h-4 w-4" /></button>
           <button type="button" onClick={redo} disabled={!canRedo} className={iconBtn} title="다시" aria-label="다시"><Redo2 className="h-4 w-4" /></button>
@@ -508,7 +527,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
       <div className="mt-4">
         <div className={board.orientation === "landscape" ? "w-full" : "max-w-2xl"}>
           <div ref={captureRef} className="relative">
-            <Pitch home={board.home} away={board.away} mode={board.mode} displayMode={board.displayMode} orientation={board.orientation} poolById={poolById} kitFrom={kitObj.from} kitTo={kitObj.to} activeUid={activeUid} onNodeClick={nodeClick} onNodeMove={nodeMove} onDragStart={checkpoint} />
+            <Pitch home={board.home} away={board.away} mode={board.mode} displayMode={board.displayMode} orientation={board.orientation} grid={board.grid} poolById={poolById} kitFrom={kitObj.from} kitTo={kitObj.to} activeUid={activeUid} onNodeClick={nodeClick} onNodeMove={nodeMove} onDragStart={checkpoint} />
             <DrawLayer strokes={board.strokes} tool={tool} color={color} onCommitStroke={commitStroke} onErase={eraseStroke} />
             <div className="pointer-events-none absolute bottom-1.5 right-2.5 text-[11px] font-semibold text-white/70" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.85)" }}>scorebase.kr</div>
             {(board.bench ?? []).length > 0 && (
@@ -553,7 +572,7 @@ export default function LineupBuilder({ pool, clubs, initial }: Props) {
             <CandidatePanel pool={pool} pos={activePos} clubKey={activeClubKey} label={activeLabel} filled={!!(activeNode.pid || activeNode.name)} usedIds={usedIds} onPick={pickPlayer} onCustom={pickCustom} onDelete={deleteNode} onClose={() => setActiveUid(null)} altOn={!!activeNode.alt} onToggleAlt={toggleAlt} />
           ) : (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-5 dark:border-neutral-700 dark:bg-white/[0.02]">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우거나, 아래에서 클럽(팀)을 고르면 포메이션에 11명이 한 번에 채워집니다. 도구로 전술 화살표·선도 그릴 수 있어요.</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">피치의 자리를 눌러 선수를 채우거나, 아래에서 클럽(팀)을 고르면 마지막 경기 선발 11명이 실제 배치 그대로 채워집니다. 도구로 전술 화살표·선도 그릴 수 있어요.</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {board.mode === "versus" ? (
                   <>
