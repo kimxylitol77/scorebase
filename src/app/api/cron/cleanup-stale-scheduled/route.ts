@@ -74,10 +74,17 @@ function classifyApiFootballStatus(
 }
 
 // api-football /fixtures?ids 는 chunk size 최대 20.
+// date 도 함께 반환 — 연기로 fixture.date 가 앞당겨/미뤄진 경우 startTime 을 추종 갱신하기 위함.
+type AfFixtureVerify = {
+  short: string;
+  goalsHome: number | null;
+  goalsAway: number | null;
+  date: string | null;
+};
 async function fetchApiFootballStatuses(
   externalIds: string[],
-): Promise<Map<string, { short: string; goalsHome: number | null; goalsAway: number | null }>> {
-  const result = new Map<string, { short: string; goalsHome: number | null; goalsAway: number | null }>();
+): Promise<Map<string, AfFixtureVerify>> {
+  const result = new Map<string, AfFixtureVerify>();
   const key = process.env.API_FOOTBALL_KEY;
   if (!key || externalIds.length === 0) return result;
 
@@ -96,7 +103,7 @@ async function fetchApiFootballStatuses(
       if (!res.ok) continue;
       const data = (await res.json()) as {
         response?: Array<{
-          fixture?: { id?: number; status?: { short?: string } };
+          fixture?: { id?: number; date?: string; status?: { short?: string } };
           goals?: { home?: number | null; away?: number | null };
         }>;
       };
@@ -108,6 +115,7 @@ async function fetchApiFootballStatuses(
           short,
           goalsHome: f.goals?.home ?? null,
           goalsAway: f.goals?.away ?? null,
+          date: f.fixture?.date ?? null,
         });
       }
     } catch (e) {
@@ -225,6 +233,7 @@ export async function GET(req: NextRequest) {
   const verifiedFinished: typeof stale = [];
   const verifiedLive: typeof stale = [];
   const verifyKept: typeof stale = []; // NS/TBD 등 — 그대로 SCHEDULED 유지
+  const rescheduled: typeof stale = []; // NS 인데 af date 가 미래로 갱신됨 → startTime 추종
   const toPostpone: typeof stale = [];
 
   for (const m of stale) {
@@ -259,7 +268,26 @@ export async function GET(req: NextRequest) {
         toPostpone.push(m);
         continue;
       }
-      // SKIP — NS/TBD 등. 상태 변경하지 않고 SCHEDULED 유지 (다음 cron 에서 재시도)
+      // SKIP — NS/TBD 등. af 가 여전히 미시작이라 확정 상태 전이는 없지만,
+      // fixture.date 가 연기로 미래로 밀렸는데 collector day-loop 창(+7d) 밖이라
+      // startTime 이 과거에 동결된 케이스 → af date 를 추종 갱신해 stale 루프 해소.
+      // (2026-07-14 ECUADOR_LP/BOLIVIA_PD 진단: 옛 날짜가 창 밖으로 빠져 매 4h 오탐 반복.)
+      // 미래(now 이후) + 기존 startTime 과 60초+ 차이일 때만 — 동일값 무의미 update 회피.
+      const afDate = v.date ? new Date(v.date) : null;
+      if (
+        afDate &&
+        !Number.isNaN(afDate.getTime()) &&
+        afDate.getTime() > Date.now() &&
+        Math.abs(afDate.getTime() - m.startTime.getTime()) > 60_000
+      ) {
+        await prisma.match.update({
+          where: { id: m.id },
+          data: { startTime: afDate },
+        });
+        rescheduled.push(m);
+        continue;
+      }
+      // 상태 변경하지 않고 SCHEDULED 유지 (다음 cron 에서 재시도)
       verifyKept.push(m);
       continue;
     }
@@ -354,6 +382,16 @@ export async function GET(req: NextRequest) {
     })
     .join("\n");
 
+  // RESCHEDULED (af date 추종으로 startTime 미래 갱신) sample — 오탐 자가치유 실적.
+  const rescheduledLines = rescheduled
+    .slice(0, 8)
+    .map((m) => {
+      const v = verifyMap.get(m.externalId);
+      const to = v?.date ? new Date(v.date).toISOString().slice(5, 16) : "?";
+      return `  ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} → ${to}`;
+    })
+    .join("\n");
+
   // KEPT (상태 변경 없이 SCHEDULED 유지) sample. verify 불가 리그(ESPN/TheSports/esports)
   // 거나 외부 status 가 NS/TBD 라 안전하게 둔 매치. 같은 매치가 매 run 반복되면
   // = 영구 stuck → source/collector 점검 필요하므로 알림에 실제 목록을 노출한다.
@@ -394,13 +432,15 @@ export async function GET(req: NextRequest) {
       key: "summary",
       message:
         `stale SCHEDULED ${stale.length}건 — POSTPONED ${toPostpone.length}, ` +
-        `FINISHED ${verifiedFinished.length}, LIVE ${verifiedLive.length}, KEPT ${verifyKept.length}`,
+        `FINISHED ${verifiedFinished.length}, LIVE ${verifiedLive.length}, ` +
+        `RESCHEDULED ${rescheduled.length}, KEPT ${verifyKept.length}`,
       metadata: {
         staleHours: STALE_HOURS,
         totalStale: stale.length,
         postponed: toPostpone.length,
         verifiedFinished: verifiedFinished.length,
         verifiedLive: verifiedLive.length,
+        rescheduled: rescheduled.length,
         verifyKept: verifyKept.length,
         byLeague,
         sample: toPostpone.slice(0, 10).map((m) => ({
@@ -430,6 +470,7 @@ export async function GET(req: NextRequest) {
   try {
     const summary =
       `POSTPONED ${toPostpone.length} / FINISHED ${verifiedFinished.length} / LIVE ${verifiedLive.length}` +
+      (rescheduled.length > 0 ? ` / RESCHEDULED ${rescheduled.length}` : "") +
       (verifyKept.length > 0 ? ` / KEPT ${verifyKept.length}` : "");
     await sendTelegram(
       `🧹 <b>stale SCHEDULED ${stale.length}건 처리</b> (${summary})\n\n` +
@@ -441,6 +482,9 @@ export async function GET(req: NextRequest) {
           : "") +
         (correctedCount > 0
           ? `<b>verify 로 정정 (${correctedCount}건)</b>:\n<code>${correctedLines}</code>\n\n`
+          : "") +
+        (rescheduled.length > 0
+          ? `<b>연기 추종 — startTime 갱신 (${rescheduled.length}건)</b>:\n<code>${rescheduledLines}</code>\n\n`
           : "") +
         // KEPT 매치 실제 목록. 과거엔 toPostpone===0 이면 "모두 정정됨" 을 무조건 출력해
         // 정정 0·KEPT 다수인 run 에서 거짓 안심을 줬다 → 유지된 매치를 그대로 보여준다.
@@ -465,6 +509,7 @@ export async function GET(req: NextRequest) {
     postponed: toPostpone.length,
     verifiedFinished: verifiedFinished.length,
     verifiedLive: verifiedLive.length,
+    rescheduled: rescheduled.length,
     verifyKept: verifyKept.length,
     rejectedPreviews,
     byLeague,
