@@ -709,6 +709,13 @@ body.sb-mode [data-sinfo] {
 body.sb-mode [data-srow] {
   grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px !important;
 }
+/* 메인 리스트 행은 insetX 로 자체 좌우 패딩(px-3 sm:px-4)을 가져 LIVE 배경이 카드 끝까지
+   차게 했다(scorebase.kr). sb-mode 는 [data-scores-root] 루트 패딩으로 이미 가장자리
+   여백을 주므로 행 패딩은 제거해 flush(전폭) 유지 — 이중 들여쓰기 방지. */
+body.sb-mode [data-srow] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 /* 전반(6번째)·배당(9번째) 칸 숨김 → 라이브 스코어 전용 간결 뷰. 정보(8, data-sinfo)는 위에서 숨김.
    남는 6개(시간·상태·홈팀·점수·원정팀·별)가 6컬럼을 채운다.
    scorebase.kr(메인)은 sb-mode 미부여라 전반·배당 그대로 노출. */

@@ -66,6 +66,9 @@ export interface SoccerLiveRowProps {
   hasLineup?: boolean;
   /** 리그 그룹 카드 안에서 렌더 시 true → 리그 배지 컬럼 접기(리그는 카드 헤더로). */
   hideLeague?: boolean;
+  /** true 면 행이 자체 좌우 패딩을 가짐 → LIVE 배경이 카드 끝까지 full-bleed 되면서도
+      내용은 헤더와 정렬 유지. (부모 래퍼 px 제거와 짝. FavoriteMatches 는 미전달=flush 유지) */
+  insetX?: boolean;
 }
 
 function TeamLogo({ url, name }: { url?: string | null; name: string }) {
@@ -121,6 +124,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
     awayFirst,
     hasLineup,
     hideLeague,
+    insetX,
   } = props;
 
   // 행 전체가 <a>/<Link> 라 내부 링크를 anchor 로 두면 nested anchor (invalid HTML +
@@ -183,7 +187,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const rowContent = (
     <div
       data-srow
-      className={`grid items-center gap-3 px-0 py-2 text-sm transition ${
+      className={`grid items-center gap-3 ${insetX ? "px-3 sm:px-4" : "px-0"} py-2 text-sm transition ${
         isLive
           ? "bg-rose-50/70 dark:bg-rose-500/[0.07] hover:bg-rose-100/70 dark:hover:bg-rose-500/[0.12]"
           : "hover:bg-neutral-100 dark:hover:bg-white/[0.03]"

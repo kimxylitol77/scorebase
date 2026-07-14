@@ -2233,6 +2233,7 @@ function SoccerRowLayout({
         key={String(m.id)}
         matchId={m.id}
         league={m.league}
+        insetX
         status={statusKey}
         timeLabel={m.timeLabel}
         liveStatusLabel={m.liveStatusLabel}
@@ -2439,7 +2440,7 @@ function SoccerRowLayout({
     <div className="space-y-3">
       {leagueGroupsOf(items).map((lg) => (
         <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
-          <div className="px-3 sm:px-4 divide-y divide-neutral-100 dark:divide-white/[0.06]">
+          <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
             {lg.items.map(renderRow)}
           </div>
         </LeagueGroupCard>
@@ -2506,7 +2507,7 @@ function SoccerRowLayout({
       <div className="hidden md:block space-y-4">
         {wcAll.length > 0 && (
           <LeagueGroupCard league="WORLD_CUP" count={wcAll.length} accent="wc" href="/world-cup" linkLabel="우승 확률">
-            <div className="px-3 sm:px-4 divide-y divide-neutral-100 dark:divide-white/[0.06]">
+            <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
               {wcAll.map(renderRow)}
             </div>
           </LeagueGroupCard>
