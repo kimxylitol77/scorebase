@@ -266,7 +266,7 @@ interface ValuePoint { time: number; v: number; age?: number | null; chg: number
 // 커리어 + 몸값 변동 병합 타임라인 (Wikidata P54 클럽 이력 × TheSports 몸값 history).
 //  클럽 시기별로 그 기간의 시장가치 변동을 묶어 한 타임라인에 표시. 시니어 국가대표는 상단 요약.
 //  클럽 로고 = 그 시기 몸값 포인트의 ts team_id 를 tsLogo 로 해소(우리 Team DB, 빅5 위주).
-function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {}, arrivals = [] }: { entries: CareerEntry[]; hist: ValuePoint[]; tsLogo: Record<string, string>; tsName?: Record<string, string>; clubLogos?: Record<string, string>; arrivals?: { year: number; teamId: string }[] }) {
+function CareerTimeline({ entries, hist, tsLogo, tsName = {}, tsOurId = {}, clubTeamId = {}, arrivals = [] }: { entries: CareerEntry[]; hist: ValuePoint[]; tsLogo: Record<string, string>; tsName?: Record<string, string>; tsOurId?: Record<string, number>; clubTeamId?: Record<string, string>; arrivals?: { year: number; teamId: string }[] }) {
   // 현 소속(end=null) 우선 → 그다음 최근 시작순. (Wikidata 등록일 기준이라 임대가 본클럽보다
   //  start 가 늦는 경우가 있어 단순 역순으로는 현 소속이 묻힘 → 진행중 먼저)
   const clubs = [...entries.filter((e) => !e.nt)].sort((a, b) => {
@@ -296,31 +296,38 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {}, ar
   const byClub: ValuePoint[][] = clubs.map(() => []);
   if (clubs.length) for (const vp of hist) { const idx = bestIdx(vp.time); if (idx >= 0) byClub[idx].push(vp); }
   byClub.forEach((arr) => arr.sort((a, b) => b.time - a.time));
-  // 클럽 행 로고 — 1) 이적기록 팀명 매칭(정확→접두) 2) 그 시기 몸값 포인트 로고(팀명 일치 시만).
-  //  포인트만 쓰면 이적 발표~몸값 갱신 사이 새 클럽 행에 직전 클럽 로고가 붙고(예: 바르샤 행에 뉴캐슬 마크),
-  //  연도 단위 배정이라 임대 행에 본클럽 포인트가 섞임(예: 프레스턴 행에 에버턴) → 이름 불일치 로고는 숨김.
-  const logoFor = (i: number): string | null => {
+  // 클럽 행 → ts team_id 해소 (로고·팀 링크 공통). 이름 일치를 최우선 —
+  //  연도만으로 배정하면 같은 해 여러 클럽(본팀↔임대 반복)에서 로고가 뒤섞임
+  //  (예: 첼시 행에 노팅엄 마크). 이름 매칭이 실패할 때만 연도를 fallback 으로.
+  const sameClub = (a: string, b: string) =>
+    matchClub(a, b) || (b.length >= 2 && a.includes(b)) || (a.length >= 2 && b.includes(a));
+  const teamIdFor = (i: number): string | null => {
     const cn = normClub(clubs[i].club);
-    // 1) 이적기록 도착팀 중 클럽 시작연도 최근접(±1) — career 클럽명이 Wikidata 음역이라
-    //    우리 팀명과 표기가 달라도(함부르거↔함부르크·로스앤젤레스↔LAFC) 시간축으로 정확히 연결.
-    //    이적 도착 team_id 는 명시적이라 이름매칭·연도경계 오염을 모두 회피.
     const cy = clubs[i].start;
-    if (cy != null) {
-      let best: string | null = null, bd = 2;
+    // 1) 이적 도착팀 중 이름 일치(음역차 허용). 같은 클럽 재입단은 시작연도 최근접으로 택1.
+    if (cn) {
+      let best: string | null = null, bd = Infinity;
       for (const a of arrivals) {
-        if (!tsLogo[a.teamId]) continue;
-        const d = Math.abs(a.year - cy);
+        if (!tsLogo[a.teamId] || !sameClub(cn, normClub(tsName[a.teamId] || ""))) continue;
+        const d = cy != null ? Math.abs(a.year - cy) : 0;
         if (d < bd) { bd = d; best = a.teamId; }
       }
-      if (best) return tsLogo[best];
+      if (best) return best;
     }
-    // 2) 이적기록 팀명 → 로고 (정확/접두 이름 매칭)
+    // 2) 이적기록 클럽명 → team_id (정확/접두 이름 매칭) — from-only(유스 등) 클럽 커버
     if (cn) {
-      if (clubLogos[cn]) return clubLogos[cn];
-      for (const [k, v] of Object.entries(clubLogos)) if (matchClub(k, cn)) return v;
+      if (clubTeamId[cn]) return clubTeamId[cn];
+      for (const [k, v] of Object.entries(clubTeamId)) if (matchClub(k, cn)) return v;
     }
     // 3) 그 시기 몸값 포인트 team_id — 이름 일치 시만 (임대 본클럽·연도경계 오염 방지)
-    for (const vp of byClub[i]) if (vp.team && tsLogo[vp.team] && cn && matchClub(normClub(tsName[vp.team] || ""), cn)) return tsLogo[vp.team];
+    for (const vp of byClub[i]) if (vp.team && tsLogo[vp.team] && cn && sameClub(cn, normClub(tsName[vp.team] || ""))) return vp.team;
+    // 4) 최후: 시작연도 최근접(±1) 이적 — career 클럽명이 음역이라 이름 매칭이 안 될 때만
+    //    (함부르거↔함부르크·로스앤젤레스↔LAFC). 모호하므로 마지막 순위.
+    if (cy != null) {
+      let best: string | null = null, bd = 2;
+      for (const a of arrivals) { if (!tsLogo[a.teamId]) continue; const d = Math.abs(a.year - cy); if (d < bd) { bd = d; best = a.teamId; } }
+      if (best) return best;
+    }
     return null;
   };
 
@@ -342,17 +349,29 @@ function CareerTimeline({ entries, hist, tsLogo, tsName = {}, clubLogos = {}, ar
       {clubs.length > 0 && (
         <div className="relative border-l border-black/10 dark:border-white/10 ml-1.5">
           {clubs.map((c, i) => {
-            const logo = logoFor(i);
+            const tid = teamIdFor(i);
+            const logo = tid ? tsLogo[tid] : null;
+            const href = tid && tsOurId[tid] != null ? `/teams/${tsOurId[tid]}` : null;
+            const logoEl = logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logo} alt="" className="w-5 h-5 object-contain shrink-0" />
+            ) : null;
             return (
             <div key={i} className="relative pl-5 py-2.5">
               <span className={`absolute -left-[5px] top-4 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-neutral-950 ${c.end == null ? "bg-cyan-500" : "bg-neutral-300 dark:bg-neutral-600"}`} />
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-neutral-400 tabular-nums w-[68px] shrink-0">{yrRange(c.start, c.end)}</span>
-                {logo && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={logo} alt="" className="w-5 h-5 object-contain shrink-0" />
+                {href ? (
+                  <Link href={href} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    {logoEl}
+                    <span className="font-semibold hover:underline">{c.club}</span>
+                  </Link>
+                ) : (
+                  <>
+                    {logoEl}
+                    <span className="font-semibold">{c.club}</span>
+                  </>
                 )}
-                <span className="font-semibold">{c.club}</span>
                 {c.loan && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">임대</span>}
                 {(c.apps != null || c.goals != null) && (
                   <span className="ml-auto text-xs text-neutral-500 tabular-nums shrink-0">
@@ -455,6 +474,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   ].filter((x): x is string => !!x))];
   const tsLogo: Record<string, string> = {};
   const tsTeamName: Record<string, string> = {};
+  const tsOurId: Record<string, number> = {}; // ts team_id → 우리 Team.id (커리어 행·헤더 팀 링크용)
   if (histTeamIds.length) {
     const tss = await prisma.teamSourceId.findMany({ where: { source: "thesports", externalId: { in: histTeamIds } }, select: { externalId: true, teamId: true } });
     const teams = await prisma.team.findMany({ where: { id: { in: tss.map((t) => t.teamId) } }, select: { id: true, name: true, logoUrl: true, league: true } });
@@ -469,6 +489,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       if (tsLogo[t.externalId] && bestPri[t.externalId] <= p) continue;
       tsLogo[t.externalId] = tm.logoUrl;
       tsTeamName[t.externalId] = toKoreanTeamName(tm.name) || tm.name;
+      tsOurId[t.externalId] = tm.id;
       bestPri[t.externalId] = p;
     }
   }
@@ -484,16 +505,33 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     }
   }
 
+  // 현 소속 stale 보정 — mv.teamId(TheSports 몸값 피드의 현 소속)는 완전이적 발효를 며칠 늦게 반영.
+  //  가장 최근 "완료된" 이적이 완전이적(임대 type 1 제외)이고 도착팀이 mv.teamId 와 다르면 그쪽이 진짜 현 소속.
+  //  (예: 첼시→맨유 이적 발효됐는데 몸값 피드는 아직 첼시로 남아 헤더가 첼시 표시)
+  //  ⚠ 최신 이적이 임대면 보정 안 함 — 임대 중엔 몸값 피드(임대 클럽)를 그대로 신뢰(본팀 오표시 방지).
+  {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const latest = transfers.find(
+      (t) => t.transferTime && t.transferTime <= nowSec && t.toTeamId && t.toTeamName && !(t.toTeamName in SPECIAL_TEAM_KO),
+    );
+    if (latest?.toTeamId && latest.transferType !== 1 && latest.toTeamId !== mv?.teamId) {
+      teamName = koTeam(latest.toTeamName!);
+      teamLogo = tsLogo[latest.toTeamId] ?? teamLogo;
+      ourTeamId = tsOurId[latest.toTeamId] ?? null;
+    }
+  }
+
   // 커리어 행 로고용 — 이적기록 도착팀 연도→team_id (career 시작연도 최근접 매칭, 표기차·경계 무관)
   const arrivals = transfers
     .filter((t) => t.toTeamId && t.transferTime)
     .map((t) => ({ year: new Date(t.transferTime! * 1000).getUTCFullYear(), teamId: t.toTeamId! }));
 
-  // 커리어 행 로고용 클럽명 → 로고 (이적기록 기반, 과거→최신 순회로 최신 이적이 우선)
-  const clubLogos: Record<string, string> = {};
+  // 커리어 행 클럽명 → ts team_id (이적기록 from/to, 과거→최신 순회로 최신 이적 우선).
+  //  team_id 를 담아 로고(tsLogo)·팀 링크(tsOurId)를 함께 해소.
+  const clubTeamId: Record<string, string> = {};
   for (const t of [...transfers].reverse()) {
     for (const [tid, tname] of [[t.fromTeamId, t.fromTeamName], [t.toTeamId, t.toTeamName]] as const) {
-      if (tid && tname && tsLogo[tid]) clubLogos[normClub(tname)] = tsLogo[tid];
+      if (tid && tname && tsLogo[tid]) clubTeamId[normClub(tname)] = tid;
     }
   }
 
@@ -776,7 +814,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 )}
                 {/* 커리어 & 몸값 변동 — 시장가치 추이 바로 아래 (개요) */}
                 {careerView.length > 0 ? (
-                  <CareerTimeline entries={careerView} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} clubLogos={clubLogos} arrivals={arrivals} />
+                  <CareerTimeline entries={careerView} hist={valuePoints} tsLogo={tsLogo} tsName={tsTeamName} tsOurId={tsOurId} clubTeamId={clubTeamId} arrivals={arrivals} />
                 ) : hist.length >= 1 ? (
                   <section>
                     <h2 className="text-lg font-semibold mb-3">변동 이력 ({hist.length})</h2>
