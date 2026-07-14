@@ -2,7 +2,7 @@
 // 선수 후보 패널 — 활성 노드(빈 슬롯/선수)에 실선수 검색·배치 또는 커스텀 이름 입력·삭제.
 import { useState, useMemo } from "react";
 import { X, UserPlus, Trash2 } from "lucide-react";
-import type { PoolPlayer } from "./types";
+import { normSearch, type PoolPlayer } from "./types";
 import type { Pos } from "@/lib/lineup/formations";
 
 interface Props {
@@ -45,10 +45,11 @@ export default function CandidatePanel({ pool, pos, clubKey, label, filled, used
 
   const candidates = useMemo(() => {
     if (clubGroups) return clubGroups.flatMap((g) => g.players);
-    const q = search.trim();
-    // 검색 = 전체 풀·전 포지션 (슬롯 포지션 일치 → 같은 클럽 → OVR 순 정렬)
+    const q = normSearch(search.trim());
+    // 검색 = 전체 풀·전 포지션. searchKey(한글명+영문명+팀명, 정규화)로 언어·부분 무관 매칭.
+    // (슬롯 포지션 일치 → 같은 클럽 → OVR 순 정렬)
     return pool
-      .filter((p) => !usedIds.has(p.id) && (q === "" ? p.pos === pos : p.name.includes(q)))
+      .filter((p) => !usedIds.has(p.id) && (q === "" ? p.pos === pos : p.searchKey.includes(q)))
       .sort((a, b) => {
         const ap = a.pos === pos ? 1 : 0;
         const bp = b.pos === pos ? 1 : 0;

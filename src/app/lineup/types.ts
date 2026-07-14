@@ -1,6 +1,12 @@
 // 라인업 전술판 빌더 공용 타입 — page·LineupBuilder·Pitch·CandidatePanel 공유(순환 import 방지).
 import type { Pos } from "@/lib/lineup/formations";
 
+// 선수 검색 정규화 — 악센트 제거·소문자·공백 제거. 한글명·영문명을 한 문자열로 합쳐
+// 부분 검색이 언어 무관하게 되게 한다("유리"·"tiele" 둘 다 유리 틸레만스 매칭).
+export function normSearch(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, "");
+}
+
 // 빌더가 쓰는 선수 필드만 (page가 슬림 매핑해 전달, radar 등 무거운 필드 제외).
 export interface PoolPlayer {
   id: string;
@@ -12,6 +18,7 @@ export interface PoolPlayer {
   number: number | null; // 등번호 (team-squads 공식 스쿼드 기준, 없으면 null)
   clubKey: string; // 클럽 그룹 키 (스쿼드 클럽 = "ts-{teamId}", 검색 전용 = 정규화 팀명)
   isNew?: boolean; // 이번 여름 이적창 신규 영입 (NEW 배지)
+  searchKey: string; // 검색 인덱스 — normSearch(한글명 + 영문명 + 팀명). 언어·부분 무관 매칭용.
 }
 
 // 마지막 경기 확정 선발 11명 — TheSports lineup cache 에서 서버가 추출(좌표는 보드 세로 좌표로 변환 완료).

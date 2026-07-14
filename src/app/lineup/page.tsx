@@ -10,7 +10,7 @@ import { prisma } from "@/lib/db";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import LineupBuilder from "./LineupBuilder";
-import type { ClubMeta, PoolPlayer } from "./types";
+import { normSearch, type ClubMeta, type PoolPlayer } from "./types";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const metadata: Metadata = {
@@ -226,9 +226,10 @@ const getClubData = unstable_cache(
         seen.add(id);
         posCount[pos]++;
         count++;
+        const disp = displayName(id, engName);
         pool.push({
           id,
-          name: displayName(id, engName),
+          name: disp,
           pos,
           ovr: dream?.ovr ?? 0,
           team: label,
@@ -236,6 +237,8 @@ const getClubData = unstable_cache(
           number,
           clubKey,
           isNew: isNew || undefined,
+          // 한글명·영문명·팀명을 합쳐 언어 무관 부분 검색 ("유리"·"tiele"·"빌라" 모두 매칭).
+          searchKey: normSearch(`${disp} ${engName} ${db?.nameKo ?? ""} ${label}`),
         });
       };
 
@@ -280,22 +283,25 @@ const getClubData = unstable_cache(
     // 스쿼드 미커버 dream-pool 선수 — 검색 전용으로 풀에만 추가 (클럽 목록엔 없음)
     for (const p of dreamById.values()) {
       if (seen.has(p.id)) continue;
+      const disp = displayName(p.id, p.name);
+      const teamKo = toKoreanTeamName(p.team);
       pool.push({
         id: p.id,
-        name: displayName(p.id, p.name),
+        name: disp,
         pos: p.pos,
         ovr: p.ovr,
-        team: toKoreanTeamName(p.team),
+        team: teamKo,
         photo: p.photo,
         number: null,
         clubKey: normClub(p.team),
+        searchKey: normSearch(`${disp} ${p.name} ${teamKo}`),
       });
     }
 
     clubs.sort((a, b) => a.league.localeCompare(b.league) || a.label.localeCompare(b.label, "ko"));
     return { pool, clubs };
   },
-  ["lineup-club-data-v7"],
+  ["lineup-club-data-v8"],
   { revalidate: 3 * 3600 },
 );
 
@@ -315,15 +321,17 @@ export default async function LineupPage({ searchParams }: { searchParams: Promi
     for (const p of entry.xi) {
       // 이름: 교정 사전 우선 — wc-predicted-xi 의 nameKo 는 위키 빌더 음역이라 오염 케이스가 있음.
       const ko = toKoreanPlayerName(p.name);
+      const nm = /[가-힣]/.test(ko) ? ko : p.nameKo || p.name;
       wcPool.push({
         id: "wcx_" + p.id,
-        name: /[가-힣]/.test(ko) ? ko : p.nameKo || p.name,
+        name: nm,
         pos: WC_POS[p.position] || "MF",
         ovr: Math.round((p.avgRating || 6) * 10),
         team: label,
         photo: p.photo || null,
         number: p.shirtNumber ?? null,
         clubKey: key,
+        searchKey: normSearch(`${nm} ${p.name} ${p.nameKo ?? ""} ${label}`),
       });
     }
   }
