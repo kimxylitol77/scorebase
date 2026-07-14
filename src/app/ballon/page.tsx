@@ -1,4 +1,4 @@
-// 발롱도르 지수 계산기 페이지 — 서버에서 후보 데이터를 조립해 인터랙티브 계산기에 전달.
+// 발롱도르 순위 지수 계산기 페이지 — 서버에서 후보 데이터를 조립해 인터랙티브 계산기에 전달.
 import type { Metadata } from "next";
 import { buildBallonCandidates } from "@/lib/ballon";
 import BallonCalculator from "./BallonCalculator";
@@ -6,7 +6,7 @@ import BallonCalculator from "./BallonCalculator";
 export const revalidate = 1800; // 30분 ISR — LeagueLeader 매일 갱신이라 충분.
 
 export const metadata: Metadata = {
-  title: "발롱도르 지수 계산기 | Scorebase",
+  title: "발롱도르 순위 지수 계산기 | Scorebase",
   description:
     "골·도움·리그 난이도·선수 평점·팀 성적·월드컵 성적을 가중치로 조절해 실시간으로 2026 발롱도르 후보 순위를 계산합니다. 스탯 기반 지수.",
   alternates: { canonical: "https://www.scorebase.kr/ballon" },
@@ -24,7 +24,7 @@ export default async function BallonPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
       <header className="mb-5">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">발롱도르 지수 계산기</h1>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">발롱도르 순위 지수 계산기</h1>
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           가중치를 조절해 2026 발롱도르 후보 순위를 직접 계산해 보세요. 골·도움에 리그 난이도 계수를
           곱하고 선수 평점·팀 성적·월드컵 성적을 더한 스탯 기반 지수입니다.

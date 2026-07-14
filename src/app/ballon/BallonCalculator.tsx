@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import TeamBadge from "@/components/TeamBadge";
 import type { BallonCandidate } from "@/lib/ballon";
 
 interface Weights {
@@ -166,7 +167,14 @@ export default function BallonCalculator({ candidates }: { candidates: BallonCan
                     )}
                   </div>
                   <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                    <span>{c.mainLeagueFlag} {c.teamName}</span>
+                    <span className="inline-flex items-center gap-1 align-middle">
+                      {c.mainTeamLogoUrl ? (
+                        <TeamBadge logoUrl={c.mainTeamLogoUrl} size={16} className="bg-white rounded-sm" />
+                      ) : c.mainIsNational && c.mainFlag ? (
+                        <span>{c.mainFlag}</span>
+                      ) : null}
+                      {c.teamName}
+                    </span>
                     {c.teamRankPos != null && (
                       <span className="text-neutral-400"> · {c.mainLeagueLabel} {c.teamRankPos}위</span>
                     )}
@@ -188,13 +196,18 @@ export default function BallonCalculator({ candidates }: { candidates: BallonCan
                 {c.leagues.map((lg) => (
                   <span
                     key={lg.code}
-                    className={`rounded-md px-1.5 py-0.5 ${
+                    className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 ${
                       lg.isWorldCup
                         ? "bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300"
                         : "bg-neutral-100 dark:bg-white/[0.06]"
                     }`}
                   >
-                    {lg.flag} {lg.label} {lg.goals}골{lg.assists > 0 ? ` ${lg.assists}도움` : ""}
+                    {lg.logoUrl ? (
+                      <TeamBadge logoUrl={lg.logoUrl} size={14} className="rounded-[2px]" />
+                    ) : (
+                      <span>{lg.flag}</span>
+                    )}
+                    {lg.label} {lg.goals}골{lg.assists > 0 ? ` ${lg.assists}도움` : ""}
                   </span>
                 ))}
               </div>

@@ -6,6 +6,8 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { getFullStandings } from "@/lib/sports/thesports/standings-helper";
 import { LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
+import { leagueLogoUrl } from "@/lib/sports/league-logos";
+import { isNationalTeamLeague, fifaFlag } from "@/lib/sports/fifa-rankings";
 
 // 리그 계수 — 골 인플레·경쟁력 보정. 키에 든 리그만 후보 대상.
 // 빅5=1.0 기준, 챔스/월드컵 상향, 2부·군소 리그 하향.
@@ -51,6 +53,7 @@ export interface BallonLeagueStat {
   code: string;
   label: string;
   flag: string;
+  logoUrl: string | null; // 리그 마크 (없으면 flag 폴백)
   goals: number;
   assists: number;
   coef: number;
@@ -67,6 +70,9 @@ export interface BallonCandidate {
   mainLeague: string;
   mainLeagueLabel: string;
   mainLeagueFlag: string;
+  mainTeamLogoUrl: string | null; // 클럽 팀 마크 (국가대표면 null)
+  mainIsNational: boolean;
+  mainFlag: string; // 국가대표 국기 (클럽이면 "")
   leagues: BallonLeagueStat[];
   totalGoals: number;
   totalAssists: number;
@@ -192,6 +198,19 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
     }),
   );
 
+  // 4b) 팀 로고 조회 — LeagueLeader 는 팀명(한글)만 있어 이름 매칭으로 Team.logoUrl 을 붙인다.
+  // 컵(UCL 등) 주리그 선수의 클럽은 국내리그 Team row 에 있어 리그 무관 전역 이름 맵으로 해석.
+  const allTeams = await prisma.team.findMany({
+    where: { league: { in: leagues } },
+    select: { name: true, logoUrl: true, league: true },
+  });
+  const logoByName = new Map<string, string>();
+  for (const t of allTeams) {
+    if (!t.logoUrl) continue;
+    const key = normTeam(toKoreanTeamName(t.name, t.league));
+    if (key && !logoByName.has(key)) logoByName.set(key, t.logoUrl);
+  }
+
   // 5) 후보별 term 계산.
   const candidates: BallonCandidate[] = [];
   for (const a of agg.values()) {
@@ -226,6 +245,7 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
         code,
         label: LEAGUE_DISPLAY[code] ?? code,
         flag: getLeagueFlag(code),
+        logoUrl: leagueLogoUrl(code),
         goals: s.goals,
         assists: s.assists,
         coef,
@@ -239,6 +259,13 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
       }
     }
     leagueStats.sort((x, y) => y.coef - x.coef || y.goals - x.goals);
+
+    // 팀 마크 — 클럽은 로고, 국가대표(월드컵)는 국기.
+    const mainIsNational = isNationalTeamLeague(mainLeague);
+    const mainTeamLogoUrl = mainIsNational
+      ? null
+      : (logoByName.get(normTeam(mainTeamName)) ?? null);
+    const mainFlag = mainIsNational ? fifaFlag(mainTeamName, mainTeamName) : "";
 
     // 평점 term
     const ts = tsByAf.get(a.afId) ?? null;
@@ -269,6 +296,9 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
       mainLeague,
       mainLeagueLabel: LEAGUE_DISPLAY[mainLeague] ?? mainLeague,
       mainLeagueFlag: getLeagueFlag(mainLeague),
+      mainTeamLogoUrl,
+      mainIsNational,
+      mainFlag,
       leagues: leagueStats,
       totalGoals,
       totalAssists,
