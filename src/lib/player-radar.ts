@@ -1,4 +1,4 @@
-// 축구 선수 시즌 스탯 → 레이더 7축 0~100 정규화. 선수 페이지(PlayerSeasonOverview)·선수 비교(ComparePlayerRadar) 공용.
+// 축구 선수 시즌 스탯 → 레이더 8축 0~100 정규화. 선수 페이지(PlayerSeasonOverview)·선수 비교(ComparePlayerRadar) 공용.
 // per90 지표는 엘리트 상한 cap 으로 정규화, %지표(정확도)는 그대로. 단일 출처라 두 화면 축·스케일 일치 보장.
 
 export interface RadarStat {
@@ -11,6 +11,11 @@ export interface RadarStat {
   passAcc: number | null;
   tackles: number | null;
   interceptions: number | null;
+  // 모던 지표(있으면 사용, 없으면 0) — 드리블 성공률·경합 승률
+  dribbles?: number | null; // 성공한 드리블
+  dribbleAtt?: number | null; // 시도한 드리블
+  duelsWon?: number | null;
+  duelsTotal?: number | null;
 }
 
 export interface RadarAxis {
@@ -31,8 +36,12 @@ const AXES: {
   { label: "슈팅 정확도", raw: (s) => { const a = n(s.shots) > 0 ? (n(s.sot) / n(s.shots)) * 100 : 0; return { v: clamp(a), text: `${Math.round(a)}%` }; } },
   { label: "키패스/90", raw: (s, p90) => ({ v: clamp((p90(s.keyPasses) / 3) * 100), text: p90(s.keyPasses).toFixed(2) }) },
   { label: "패스 정확도", raw: (s) => ({ v: clamp(n(s.passAcc)), text: `${Math.round(n(s.passAcc))}%` }) },
-  { label: "태클/90", raw: (s, p90) => ({ v: clamp((p90(s.tackles) / 4.5) * 100), text: p90(s.tackles).toFixed(2) }) },
-  { label: "인터셉트/90", raw: (s, p90) => ({ v: clamp((p90(s.interceptions) / 2.5) * 100), text: p90(s.interceptions).toFixed(2) }) },
+  // 드리블 성공률 — 시도 대비 성공 (시도 없으면 0)
+  { label: "드리블 성공률", raw: (s) => { const a = n(s.dribbleAtt) > 0 ? (n(s.dribbles) / n(s.dribbleAtt)) * 100 : 0; return { v: clamp(a), text: `${Math.round(a)}%` }; } },
+  // 경합 승률 — 총 경합 대비 승 (경합 없으면 0)
+  { label: "경합 승률", raw: (s) => { const a = n(s.duelsTotal) > 0 ? (n(s.duelsWon) / n(s.duelsTotal)) * 100 : 0; return { v: clamp(a), text: `${Math.round(a)}%` }; } },
+  // 수비 액션/90 — 태클+인터셉트 통합 (엘리트 상한 7)
+  { label: "수비/90", raw: (s, p90) => { const d = p90(s.tackles) + p90(s.interceptions); return { v: clamp((d / 7) * 100), text: d.toFixed(2) }; } },
 ];
 
 /** 시즌 스탯을 레이더 7축(0~100 정규화 + 실제 수치 텍스트)으로 변환 */
