@@ -6,8 +6,17 @@ import { prisma } from "@/lib/db";
 import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { fetchFixturesByLeagueId, fetchFixturePlayerStats, getApiFootballSeason } from "@/lib/sports/api-football-pro";
 
-// af 리그 id — 빅5 리그 + 유럽대항전 + 빅5 국내컵. mapped 선수는 대부분 이 대회에서 뜀.
-const COMPETITIONS: number[] = [39, 140, 135, 78, 61, 2, 3, 848, 45, 48, 143, 81, 137, 66];
+// af 리그 id — ts↔af 매핑이 있는 리그 전체를 커버(mapped 선수 출전기록 최대화).
+//  유럽 시즌제(2025=25-26): 빅5 + 2부 + 기타 유럽 + 유럽대항전 + 빅5 국내컵.
+const EURO_LEAGUE_IDS = [
+  39, 140, 135, 78, 61, // 빅5 리그
+  2, 3, 848, // UCL / UEL / UECL
+  45, 48, 143, 81, 137, 66, // 빅5 국내컵 (FA·EFL·코파델레이·DFB·코파이탈리아·쿠프)
+  40, 141, 79, 136, 62, // 잉글2·라리가2·분데스2·세리에B·리그2
+  88, 94, 203, 307, // 에레디비지·프리메이라·쉬페르리그·사우디
+];
+//  캘린더제(2026): MLS·K리그1·J1·브라질
+const CALENDAR_LEAGUE_IDS = [253, 292, 98, 71];
 const FETCH_CONCURRENCY = 6;
 
 // 레이트리밋 — api-football Ultra 분당 ~450. 안전하게 400/min(150ms 간격)으로 스로틀.
@@ -44,12 +53,17 @@ interface MatchLogRow {
 }
 
 export async function runCollectPlayerMatchLogs({ backfill = false }: { backfill?: boolean } = {}) {
-  const season = getApiFootballSeason(new Date(), "EPL");
+  const euroSeason = getApiFootballSeason(new Date(), "EPL"); // 유럽 시즌제
+  const calSeason = getApiFootballSeason(new Date(), "MLS"); // 캘린더제
+  const comps = [
+    ...EURO_LEAGUE_IDS.map((id) => ({ id, season: euroSeason })),
+    ...CALENDAR_LEAGUE_IDS.map((id) => ({ id, season: calSeason })),
+  ];
   const from = backfill ? undefined : new Date(Date.now() - 10 * 86400_000).toISOString().slice(0, 10);
 
   // 1) 대회별 완료 fixtures 수집
   const fixtures = (
-    await Promise.all(COMPETITIONS.map((lid) => fetchFixturesByLeagueId(lid, season, from ? { from } : {})))
+    await Promise.all(comps.map((c) => fetchFixturesByLeagueId(c.id, c.season, from ? { from } : {})))
   ).flat();
   if (!fixtures.length) return { fixtures: 0, rows: 0, created: 0 };
 
