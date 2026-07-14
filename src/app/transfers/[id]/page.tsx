@@ -263,6 +263,55 @@ function yrRange(s: number | null, e: number | null): string {
 
 interface ValuePoint { time: number; v: number; age?: number | null; chg: number | null; team?: string | null }
 
+interface PlayerEventRow { id: string; type: string; occurredAt: Date; title: string }
+// 근황 이벤트 유형 → 배지 라벨·색 + 타임라인 점 색.
+const EV_META: Record<string, { label: string; badge: string; dot: string }> = {
+  TRANSFER: { label: "이적", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", dot: "bg-emerald-500" },
+  LOAN: { label: "임대", badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", dot: "bg-amber-500" },
+  VALUE_UP: { label: "몸값", badge: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300", dot: "bg-cyan-500" },
+  VALUE_DOWN: { label: "몸값", badge: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300", dot: "bg-rose-500" },
+  INJURY: { label: "부상", badge: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300", dot: "bg-red-500" },
+  RETURN: { label: "복귀", badge: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300", dot: "bg-green-500" },
+};
+
+// 근황 타임라인 — 이적·몸값·부상 이벤트를 최신순으로. 최근 8건 노출 + 나머지 접기.
+//  occurredAt 은 UTC 저장, getUTC* 로 결정적 표기(하이드레이션 불일치 방지).
+function RecentTimeline({ events }: { events: PlayerEventRow[] }) {
+  if (!events.length) return null;
+  const fmt = (d: Date) => `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${String(d.getUTCDate()).padStart(2, "0")}`;
+  const row = (e: PlayerEventRow) => {
+    const m = EV_META[e.type] ?? { label: "기록", badge: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300", dot: "bg-neutral-400" };
+    return (
+      <div key={e.id} className="relative pl-5 py-2">
+        <span className={`absolute -left-[5px] top-3.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-neutral-950 ${m.dot}`} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-neutral-400 tabular-nums w-[84px] shrink-0">{fmt(e.occurredAt)}</span>
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${m.badge}`}>{m.label}</span>
+          <span className="text-sm">{e.title}</span>
+        </div>
+      </div>
+    );
+  };
+  const head = events.slice(0, 8), rest = events.slice(8);
+  return (
+    <section>
+      <h2 className="text-lg font-semibold mb-1">근황</h2>
+      <p className="text-xs text-neutral-500 mb-3">이적·몸값·부상 등 최근 기록. 매주 자동 갱신.</p>
+      <div className="relative border-l border-black/10 dark:border-white/10 ml-1.5">
+        {head.map(row)}
+        {rest.length > 0 && (
+          <details className="group">
+            <summary className="pl-5 py-2 text-xs text-cyan-600 dark:text-cyan-400 cursor-pointer select-none list-none marker:hidden hover:underline">
+              이전 기록 {rest.length}건 더보기
+            </summary>
+            {rest.map(row)}
+          </details>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // 커리어 + 몸값 변동 병합 타임라인 (Wikidata P54 클럽 이력 × TheSports 몸값 history).
 //  클럽 시기별로 그 기간의 시장가치 변동을 묶어 한 타임라인에 표시. 시니어 국가대표는 상단 요약.
 //  클럽 로고 = 그 시기 몸값 포인트의 ts team_id 를 tsLogo 로 해소(우리 Team DB, 빅5 위주).
@@ -716,6 +765,14 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
       })
     : [];
 
+  // 근황 이벤트 (이적·몸값·부상) — 최신순. collect-player-events cron 이 주간 적재.
+  const playerEvents = await prisma.playerEvent.findMany({
+    where: { playerId: id },
+    orderBy: { occurredAt: "desc" },
+    take: 60,
+    select: { id: true, type: true, occurredAt: true, title: true },
+  });
+
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
@@ -789,6 +846,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             label: "개요",
             content: (
               <>
+                {/* 근황 — 이적·몸값·부상 최근 기록 (개요 최상단) */}
+                {playerEvents.length > 0 && <RecentTimeline events={playerEvents} />}
                 {heatmapAnalysis && (
                   <PlayerHeatmapAnalysis name={name} data={heatmapAnalysis} />
                 )}

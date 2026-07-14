@@ -947,6 +947,22 @@ model FootballTransfer {
   @@index([playerId])
 }
 
+/// 선수 근황 이벤트 — 이적·몸값 등 경기 관련 사건을 규칙 기반으로 추출해 선수 페이지 타임라인 표시.
+/// LLM 창작 없이 데이터 조립형 문장. id = 소스 자연키(멱등 upsert, 예 "transfer:{playerId}:{time}").
+/// raw SQL 생성 — db push 금지. 수집: src/jobs/collect-player-events.ts (주간 cron).
+model PlayerEvent {
+  id         String   @id // 소스 자연키 (멱등 재실행 방지)
+  playerId   String // ts player id (PlayerMarketValue.id)
+  type       String // TRANSFER | LOAN | VALUE_UP | VALUE_DOWN | (P2) PERFORMANCE | MILESTONE | INJURY | RETURN | NATIONAL
+  occurredAt DateTime // 사건 발생 시각
+  title      String // 데이터 조립형 한국어 문장
+  detail     Json? // 구조화 부가정보 (팀 id·금액·전후값 등)
+  matchId    Int? // 경기 연동 이벤트면 Match.id
+  createdAt  DateTime @default(now())
+
+  @@index([playerId, occurredAt])
+}
+
 /// 해외 축구 브리핑 — Tier1 소스(BBC·Sky·Athletic·구단 공식) RSS 항목의 수집·검증·발행 상태.
 /// RSS 에서 본 모든 항목을 기록해 dedup (id = sha1(sourceUrl)). raw SQL 생성 — db push 금지.
 /// 발행물은 Post(category=BRIEFING) 로 나가고 postId 로 연결. 파이프라인: fetch-news-briefing.ts
