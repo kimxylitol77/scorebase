@@ -490,7 +490,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
 
   // view 결정 — 축구는 전체 데이터 탭, 비축구(NHL/LOL)는 리그별 지원 view(순위는 단계적 추가).
   const NON_SOCCER_VIEWS: Record<string, ViewKey[]> = {
-    NHL: ["standings", "power", "fixtures", "history", "articles"],
+    NHL: ["standings", "power", "fixtures", "stats", "history", "articles"],
     LOL: ["standings", "power", "fixtures", "history", "articles"],
     // NBA — 일정 탭(이번 시즌 서머리그 + 지난 시즌 접기). 순위는 중복 팀 정비 전이라 아직 제외.
     NBA: ["fixtures", "history", "articles"],
@@ -507,7 +507,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const hasDataTabs = dataViews.some((v) => v !== "articles");
   const reqView = (sp.view ?? "").toLowerCase();
   const view: ViewKey = dataViews.includes(reqView as ViewKey) ? (reqView as ViewKey) : dataViews[0];
-  const leaderboard = isSoccer && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
+  const leaderboard = (isSoccer || upper === "NHL") && view === "stats" ? await loadLeagueLeaderboard(upper) : null;
 
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
@@ -667,7 +667,7 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           )}
         </div>
       )}
-      {isSoccer && view === "stats" && leaderboard && (
+      {(isSoccer || upper === "NHL") && view === "stats" && leaderboard && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <LeagueLeaderBoard league={upper} season={leaderboard.season} rowsByCategory={leaderboard.rowsByCategory} />
         </div>

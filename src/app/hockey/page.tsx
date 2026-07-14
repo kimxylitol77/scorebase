@@ -163,6 +163,7 @@ export default async function HockeyHub() {
       top3: nhlTop3,
       links: [
         { label: "순위", href: "/standings/NHL" },
+        { label: "선수 기록", href: "/leagues/NHL?view=stats" },
         { label: "AI 예측", href: "/predictions/NHL" },
         { label: "글·분석", href: "/leagues/NHL" },
         { label: "역사", href: "/leagues/NHL?view=history" },
