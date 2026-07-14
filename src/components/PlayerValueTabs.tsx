@@ -1,4 +1,4 @@
-// 선수 시장가치·연봉 페이지 종목별 탭 — /transfers · /salaries/{kbo,mlb,nba} 공유 네비
+// 선수 시장가치·연봉 페이지 종목별 탭 — /transfers · /salaries/{kbo,mlb,nba,nhl} 공유 네비
 import Link from "next/link";
 
 const TABS = [
@@ -6,6 +6,7 @@ const TABS = [
   { href: "/salaries/kbo", label: "KBO" },
   { href: "/salaries/mlb", label: "MLB" },
   { href: "/salaries/nba", label: "NBA" },
+  { href: "/salaries/nhl", label: "NHL" },
 ] as const;
 
 export default function PlayerValueTabs({ active, className = "" }: { active: string; className?: string }) {

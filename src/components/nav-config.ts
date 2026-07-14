@@ -66,6 +66,7 @@ export const SPORT_CATEGORIES: NavCategory[] = [
     href: "/scores",
     items: [
       { href: "/hockey", label: "하키 허브", desc: "NHL·세계선수권 순위·선수·예측 한눈에" },
+      { href: "/salaries/nhl", label: "NHL 연봉 랭킹", desc: "선수·팀별 cap hit 순위" },
       { href: "/leagues/NHL", label: "NHL 상세", desc: "북미 · 골리 매치업" },
       { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국" },
       { href: "/standings", label: "리그 순위", desc: "NHL·LCK·LEC·LCS" },

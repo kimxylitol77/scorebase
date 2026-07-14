@@ -8,6 +8,7 @@
 import { prisma } from "@/lib/db";
 import { fetchNbaSalaries, currentSeasonLabel } from "@/lib/sports/nba-salaries";
 import { fetchMlbSalaries, mlbSeasonLabel } from "@/lib/sports/mlb-salaries";
+import { fetchNhlSalaries, nhlSeasonLabel } from "@/lib/sports/nhl-salaries";
 import { getKboSalaries, KBO_SALARY_SEASON } from "@/lib/sports/kbo-salaries";
 
 interface LeagueResult {
@@ -56,11 +57,12 @@ interface NormalizedRow {
 
 export async function runFetchSalaries(): Promise<{ results: LeagueResult[] }> {
   const now = new Date();
-  // NBA·MLB 병렬 스크래핑 → 각자 replace (한쪽 실패해도 다른 쪽 진행)
-  const [nba, mlb] = await Promise.all([fetchNbaSalaries(), fetchMlbSalaries()]);
+  // NBA·MLB·NHL 병렬 스크래핑 → 각자 replace (한쪽 실패해도 다른 쪽 진행)
+  const [nba, mlb, nhl] = await Promise.all([fetchNbaSalaries(), fetchMlbSalaries(), fetchNhlSalaries()]);
   const results: LeagueResult[] = [];
   results.push(await replaceLeague("NBA", nba, currentSeasonLabel(now)));
   results.push(await replaceLeague("MLB", mlb, mlbSeasonLabel(now)));
+  results.push(await replaceLeague("NHL", nhl, nhlSeasonLabel(now)));
   results.push(await replaceLeague("KBO", getKboSalaries(), KBO_SALARY_SEASON));
   return { results };
 }

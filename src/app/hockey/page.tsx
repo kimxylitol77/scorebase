@@ -9,7 +9,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { calcStandings } from "@/lib/predict/standings";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
 import type { PredictMatch } from "@/lib/predict/types";
-import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, Coins, type LucideIcon } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import TeamBadge from "@/components/TeamBadge";
 
@@ -323,6 +323,7 @@ export default async function HockeyHub() {
       {/* 기능 바로가기 */}
       <div className="flex flex-wrap gap-2 pt-1">
         <FnChip href="/standings/NHL" Icon={ListOrdered} label="NHL 순위표" />
+        <FnChip href="/salaries/nhl" Icon={Coins} label="NHL 연봉 랭킹" />
         <FnChip href="/injuries/NHL" Icon={HeartPulse} label="NHL 부상자 명단" />
         <FnChip href="/compare?sport=NHL" Icon={GitCompare} label="선수 비교" />
         <FnChip href="/predictions/NHL" Icon={Users} label="NHL 플레이오프 브래킷" />
