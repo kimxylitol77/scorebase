@@ -24,6 +24,7 @@ import rawMatchHeatmaps from "../../../../data/player-match-heatmaps.json";
 import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
+import PlayerTraits from "./PlayerTraits";
 import PlayerHeatmapAnalysis, { type PlayerHeatmapData } from "./PlayerHeatmapAnalysis";
 import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps";
 import PlayerBioPanel from "./PlayerBioPanel";
@@ -882,6 +883,10 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 {/* 시즌 상세 기록 — 레이더 + 90분당 + 슈팅/패스/수비 */}
                 {season && (season.minutes ?? 0) > 0 && (
                   <PlayerSeasonOverview name={name} stat={season} />
+                )}
+                {/* 강점·약점 — 포지션 상대 백분위 상·하위 (데이터 있는 스탯만) */}
+                {season && (season.minutes ?? 0) > 0 && (
+                  <PlayerTraits pct={computeStatPercentiles(season)} />
                 )}
                 {/* 시즌 성적 상세 — FotMob식 카테고리별 스탯 + 포지션 백분위 순위 바 (펼치기) */}
                 {season && (season.minutes ?? 0) > 0 && (
