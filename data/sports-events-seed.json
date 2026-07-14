@@ -1,0 +1,28 @@
+{
+  "_note": "event-radar 봇의 시드 캘린더. 매년 반복되는 스포츠 특별 이벤트(올스타·시상식·드래프트·특별경기)를 등록. estimated=true 는 추정 날짜라 봇이 '(추정)' 표기하고 알림 — 실제 발표 시 확정치로 수정. leadDays=알림 리드타임(D-N). 매년 초 날짜 갱신(또는 LLM 월간 보완 레이어가 교체).",
+  "updatedAt": "2026-07-15",
+  "events": [
+    { "id": "ballon-dor-2026", "name": "발롱도르", "sport": "축구", "date": "2026-10-26", "estimated": false, "location": "런던", "leadDays": [30, 7, 1, 0], "hint": "후보 30인 발표(8월) 프리뷰·수상자 반응 글", "recur": "annual-oct" },
+    { "id": "fifa-the-best-2026", "name": "FIFA The Best", "sport": "축구", "date": "2026-12-14", "estimated": true, "leadDays": [14, 3, 0], "hint": "후보·수상 정리. 날짜 확정 확인 필요", "recur": "annual-dec" },
+    { "id": "transfer-deadline-summer-2026", "name": "여름 이적시장 마감일", "sport": "축구", "date": "2026-09-01", "estimated": true, "leadDays": [3, 1, 0], "hint": "마감일 딜 다이제스트. 5대리그 마감일 확인", "recur": "annual-sep" },
+    { "id": "ucl-final-2027", "name": "챔피언스리그 결승", "sport": "축구", "date": "2027-05-29", "estimated": true, "leadDays": [7, 1, 0], "hint": "결승 프리뷰. 개최지·날짜 확정 확인", "recur": "annual-may" },
+    { "id": "mlb-allstar-2026", "name": "MLB 올스타전", "sport": "야구", "date": "2026-07-14", "estimated": false, "location": "필라델피아", "leadDays": [7, 3, 1, 0], "hint": "로스터 발표·주간 베스트 봇 연동·올스타 프리뷰", "recur": "annual-jul" },
+    { "id": "mlb-homerun-derby-2026", "name": "MLB 홈런더비", "sport": "야구", "date": "2026-07-13", "estimated": false, "leadDays": [3, 1, 0], "hint": "참가자 프리뷰", "recur": "annual-jul" },
+    { "id": "mlb-draft-2026", "name": "MLB 드래프트", "sport": "야구", "date": "2026-07-11", "estimated": false, "leadDays": [3, 1], "hint": "1라운드 유망주 정리", "recur": "annual-jul" },
+    { "id": "mlb-trade-deadline-2026", "name": "MLB 트레이드 데드라인", "sport": "야구", "date": "2026-07-31", "estimated": false, "leadDays": [3, 1, 0], "hint": "마감일 트레이드 다이제스트", "recur": "annual-jul" },
+    { "id": "mlb-world-series-2026", "name": "월드시리즈", "sport": "야구", "date": "2026-10-23", "estimated": true, "leadDays": [7, 1, 0], "hint": "프리뷰. 정확한 1차전 날짜는 PS 진행에 따라 갱신", "recur": "annual-oct" },
+    { "id": "mlb-awards-2026", "name": "MLB 어워드 (MVP·사이영·GG)", "sport": "야구", "date": "2026-11-19", "estimated": true, "leadDays": [7, 1], "hint": "부문별 수상자 정리", "recur": "annual-nov" },
+    { "id": "kbo-allstar-2026", "name": "KBO 올스타전", "sport": "야구", "date": "2026-07-18", "estimated": true, "leadDays": [7, 3, 1], "hint": "팬투표·로스터. 확정 날짜 확인", "recur": "annual-jul" },
+    { "id": "kbo-golden-glove-2026", "name": "KBO 골든글러브", "sport": "야구", "date": "2026-12-11", "estimated": true, "leadDays": [7, 1], "hint": "부문별 수상자", "recur": "annual-dec" },
+    { "id": "nba-allstar-2027", "name": "NBA 올스타전", "sport": "농구", "date": "2027-02-14", "estimated": true, "leadDays": [14, 3, 0], "hint": "로스터·3점슛/덩크 프리뷰. 개최지·날짜 확정 확인", "recur": "annual-feb" },
+    { "id": "nba-draft-2026", "name": "NBA 드래프트", "sport": "농구", "date": "2026-06-25", "estimated": true, "leadDays": [7, 1], "hint": "지난 이벤트(2027로 갱신 예정)", "recur": "annual-jun" },
+    { "id": "nba-finals-2027", "name": "NBA 파이널", "sport": "농구", "date": "2027-06-03", "estimated": true, "leadDays": [7, 1, 0], "hint": "파이널 프리뷰", "recur": "annual-jun" },
+    { "id": "kbl-allstar-2027", "name": "KBL 올스타전", "sport": "농구", "date": "2027-01-18", "estimated": true, "leadDays": [7, 3], "hint": "로스터·팬투표. 확정 날짜 확인", "recur": "annual-jan" },
+    { "id": "worlds-lol-2026", "name": "롤드컵 (Worlds)", "sport": "LOL", "date": "2026-10-10", "estimated": true, "leadDays": [14, 3, 0], "hint": "대진·한국팀 프리뷰. 개막일 확정 확인", "recur": "annual-oct" },
+    { "id": "msi-lol-2027", "name": "MSI", "sport": "LOL", "date": "2027-05-01", "estimated": true, "leadDays": [14, 3], "hint": "대진 프리뷰", "recur": "annual-may" },
+    { "id": "lck-allstar-2026", "name": "LCK 올스타 / 이벤트전", "sport": "LOL", "date": "2026-12-19", "estimated": true, "leadDays": [7, 3], "hint": "이벤트 매치 안내", "recur": "annual-dec" },
+    { "id": "nhl-allstar-2027", "name": "NHL 올스타전", "sport": "하키", "date": "2027-02-06", "estimated": true, "leadDays": [7, 3], "hint": "로스터. 확정 날짜 확인", "recur": "annual-feb" },
+    { "id": "stanley-cup-2027", "name": "스탠리컵 파이널", "sport": "하키", "date": "2027-06-05", "estimated": true, "leadDays": [7, 1], "hint": "파이널 프리뷰", "recur": "annual-jun" },
+    { "id": "ufc-year-end-awards-2026", "name": "UFC 연말 어워드", "sport": "UFC", "date": "2026-12-30", "estimated": true, "leadDays": [7], "hint": "올해의 파이터·경기 정리", "recur": "annual-dec" }
+  ]
+}
