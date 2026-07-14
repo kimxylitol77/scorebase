@@ -48,17 +48,39 @@ function emptySlots(fname: string, side: "home" | "away", versus: boolean): Plac
   const slots = FORMATIONS[fname] ?? FORMATIONS["4-3-3"];
   return slots.map((s) => ({ uid: newUid(), pid: null, name: null, pos: s.pos, x: s.x, y: placeY(s.y, side, versus) }));
 }
-// 포메이션 변경 시 기존 선수 보존 — 같은 포지션 슬롯에 우선 배치하고, 포지션이 남는 선수는 빈 슬롯에 채워 11명을 유지.
+// 포메이션 변경 시 기존 선수 보존 — 현재 좌표와 가장 가까운 슬롯에 매칭(그리디, 같은 포지션 +가중).
 // 빈 보드(채워진 선수 0)면 빈 슬롯만 반환. 이게 없으면 포메이션을 바꿀 때마다 배치한 선수가 전부 사라진다.
+// 이전의 "포지션 그룹 순서 채우기"는 마지막 경기 선발처럼 구성이 프리셋과 다르면(미드 6명 등)
+// 남는 선수가 빈 슬롯에 순서대로 꽂혀 공격수가 중미로 가는 식의 랜덤처럼 보이는 재배치가 났다.
 function reflowSlots(prev: Placed[], fname: string, side: "home" | "away", versus: boolean): Placed[] {
   const slots = FORMATIONS[fname] ?? FORMATIONS["4-3-3"];
   const filled = prev.filter((p) => p.pid || p.name);
   if (filled.length === 0) return emptySlots(fname, side, versus);
-  const byPos: Record<Pos, Placed[]> = { GK: [], DF: [], MF: [], FW: [] };
-  for (const p of filled) byPos[p.pos].push(p);
-  const assigned: (Placed | null)[] = slots.map((s) => byPos[s.pos].shift() ?? null);
-  const leftover = [...byPos.GK, ...byPos.DF, ...byPos.MF, ...byPos.FW];
-  for (let i = 0; i < assigned.length && leftover.length; i++) if (!assigned[i]) assigned[i] = leftover.shift()!;
+  const assigned: (Placed | null)[] = new Array(slots.length).fill(null);
+  const used = new Set<number>();
+  // GK는 GK 슬롯 고정 — 좌표가 어긋나 있어도 필드 슬롯으로 끌려나오지 않게
+  const gkSlotIdx = slots.findIndex((s) => s.pos === "GK");
+  const gkIdx = filled.findIndex((p) => p.pos === "GK");
+  if (gkSlotIdx >= 0 && gkIdx >= 0) {
+    assigned[gkSlotIdx] = filled[gkIdx];
+    used.add(gkIdx);
+  }
+  const pairs: Array<{ si: number; pi: number; cost: number }> = [];
+  for (let si = 0; si < slots.length; si++) {
+    if (assigned[si]) continue;
+    const sy = placeY(slots[si].y, side, versus);
+    for (let pi = 0; pi < filled.length; pi++) {
+      if (used.has(pi)) continue;
+      const cost = Math.hypot(slots[si].x - filled[pi].x, sy - filled[pi].y) + (filled[pi].pos !== slots[si].pos ? 18 : 0);
+      pairs.push({ si, pi, cost });
+    }
+  }
+  pairs.sort((a, b) => a.cost - b.cost);
+  for (const { si, pi } of pairs) {
+    if (assigned[si] || used.has(pi)) continue;
+    assigned[si] = filled[pi];
+    used.add(pi);
+  }
   return slots.map((s, i) => {
     const p = assigned[i];
     return { uid: newUid(), pid: p?.pid ?? null, name: p?.name ?? null, pos: p?.pos ?? s.pos, x: s.x, y: placeY(s.y, side, versus) };
