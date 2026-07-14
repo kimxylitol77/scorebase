@@ -609,6 +609,45 @@ export async function fetchPlayerCareer(playerId: number): Promise<CareerCompRow
   }
 }
 
+// ===== 선수 부상 이력 =====
+
+export interface InjuryFlag {
+  date: string; // 경기 날짜 (YYYY-MM-DD)
+  leagueName: string;
+  type: string; // "Missing Fixture" | "Questionable"
+  reason: string; // "Foot Injury" | "Injury" | "Yellow Cards"(정지) 등
+}
+
+// 선수 부상/결장 플래그 — /injuries?player=&season=. 경기별 플래그라 소비처에서 스펠로 묶음.
+export async function fetchPlayerInjuries(playerId: number, seasons: number[]): Promise<InjuryFlag[]> {
+  try {
+    const perSeason = await Promise.all(
+      seasons.map(async (season) => {
+        try {
+          const { data } = await client().get("/injuries", { params: { player: playerId, season } });
+          return ((data?.response ?? []) as Record<string, unknown>[]).map((r) => {
+            const fx = (r.fixture as Record<string, unknown>) ?? {};
+            const lg = (r.league as Record<string, unknown>) ?? {};
+            const pl = (r.player as Record<string, unknown>) ?? {};
+            return {
+              date: ((fx.date as string) ?? "").slice(0, 10),
+              leagueName: (lg.name as string) ?? "",
+              type: (pl.type as string) ?? "",
+              reason: (pl.reason as string) ?? "",
+            } as InjuryFlag;
+          });
+        } catch {
+          return [] as InjuryFlag[];
+        }
+      }),
+    );
+    return perSeason.flat().filter((f) => f.date);
+  } catch (e) {
+    console.warn("[api-football-pro] fetchPlayerInjuries 실패:", (e as Error).message);
+    return [];
+  }
+}
+
 // ===== 시즌 리그 리더보드 (LeagueLeaderBoard 용) =====
 // /players/topassists, /players/topyellowcards, /players/topredcards
 // 응답 구조는 topscorers 와 동일 — statistics[0] 에 각 stat.

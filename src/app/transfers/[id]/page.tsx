@@ -29,6 +29,8 @@ import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps
 import PlayerBioPanel from "./PlayerBioPanel";
 import PlayerCareerTable from "./PlayerCareerTable";
 import { getPlayerCareerByTs } from "./career-data";
+import PlayerInjuryHistory from "./PlayerInjuryHistory";
+import { getPlayerInjuriesByTs } from "./injury-data";
 import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
@@ -777,6 +779,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
 
   // 경력 (API-Football 시즌별 대회별 스탯) — af 매핑 있으면. 없으면 WIKI 시즌 폴백.
   const careerGroups = await getPlayerCareerByTs(id);
+  // 부상 이력 (API-Football, 최근 5시즌 스펠) — 스펠 있으면 "부상" 탭 표시.
+  const injurySpells = await getPlayerInjuriesByTs(id);
 
   return (
     <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
@@ -914,6 +918,9 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             ? [{ key: "career", label: "경력", content: <PlayerCareerTable groups={careerGroups} /> }]
             : seasonEntries.length > 0
             ? [{ key: "seasons", label: "시즌별", content: <SeasonAccordion seasons={seasonEntries} /> }]
+            : []),
+          ...(injurySpells.length > 0
+            ? [{ key: "injury", label: "부상", content: <PlayerInjuryHistory spells={injurySpells} /> }]
             : []),
           ...(natlGroups.length > 0
             ? [{
