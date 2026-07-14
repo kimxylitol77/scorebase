@@ -37,6 +37,32 @@ interface IncomingMessage {
   content: string;
 }
 
+// 현재 경로가 경기 상세(/live/{league}/{gameId})면 그 경기를 챗봇에 알려주는 문장을 만든다.
+// gameId = Match.externalId 라 조회해 Match.id 를 얻는다(get_match_prediction 은 숫자 id 를 받음).
+async function resolveMatchContext(path: string | undefined): Promise<string | null> {
+  if (!path) return null;
+  const m = path.match(/^\/live\/[^/]+\/([^/?#]+)/);
+  if (!m) return null;
+  let externalId: string;
+  try {
+    externalId = decodeURIComponent(m[1]);
+  } catch {
+    externalId = m[1];
+  }
+  const match = await prisma.match.findFirst({
+    where: { externalId },
+    select: {
+      id: true,
+      homeTeam: { select: { nameKo: true, name: true } },
+      awayTeam: { select: { nameKo: true, name: true } },
+    },
+  });
+  if (!match) return null;
+  const home = match.homeTeam?.nameKo || match.homeTeam?.name || "홈팀";
+  const away = match.awayTeam?.nameKo || match.awayTeam?.name || "원정팀";
+  return `사용자는 지금 "${home} vs ${away}" 경기(matchId ${match.id}) 상세 페이지를 보고 있습니다. 사용자가 "이 경기", "이거", "여기" 처럼 특정 경기를 지칭하면 이 경기를 뜻합니다. 이 경기에 대한 질문(예측·배당·라인업·전망)은 어떤 경기인지 되묻지 말고 get_match_prediction 도구에 matchId ${match.id} 로 답하세요.`;
+}
+
 function getClientIp(h: Headers): string {
   return (
     h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -56,7 +82,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages?: IncomingMessage[] };
+  let body: { messages?: IncomingMessage[]; path?: string };
   try {
     body = await req.json();
   } catch {
@@ -102,6 +128,26 @@ export async function POST(req: Request) {
     content: typeof m.content === "string" ? m.content.slice(0, MAX_USER_LEN) : "",
   }));
 
+  // 경기 상세 페이지에서 열었으면 그 경기를 system 에 알려준다(조회 실패는 무시).
+  let matchContext: string | null = null;
+  try {
+    matchContext = await resolveMatchContext(body.path);
+  } catch (e) {
+    console.error("[chat] 경기 컨텍스트 해석 실패", e);
+  }
+
+  const systemBlocks: Anthropic.TextBlockParam[] = [
+    {
+      type: "text",
+      text: SYSTEM_PROMPT,
+      cache_control: { type: "ephemeral" },
+    },
+  ];
+  // 경기 컨텍스트는 캐시된 프롬프트와 분리(경기마다 캐시 무효화 방지).
+  if (matchContext) {
+    systemBlocks.push({ type: "text", text: matchContext });
+  }
+
   try {
     let iterations = 0;
     while (iterations < MAX_TOOL_ITERATIONS) {
@@ -110,13 +156,7 @@ export async function POST(req: Request) {
         model: CLAUDE_MODEL,
         max_tokens: 1024,
         temperature: 0.4,
-        system: [
-          {
-            type: "text",
-            text: SYSTEM_PROMPT,
-            cache_control: { type: "ephemeral" },
-          },
-        ],
+        system: systemBlocks,
         tools: TOOL_DEFS,
         messages,
       });

@@ -4,6 +4,7 @@
 // Phase 1 — 대화 히스토리는 클라이언트 메모리만 (새로고침 시 사라짐).
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 interface Message {
   role: "user" | "assistant";
@@ -60,6 +61,7 @@ export default function Chatbot() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -80,8 +82,10 @@ export default function Chatbot() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // 인사말은 서버에 보내지 않음 — 모델 system 과 중복.
+        // path = 현재 보고 있는 경로. 경기 상세면 서버가 그 경기를 챗봇에 알려줌.
         body: JSON.stringify({
           messages: next.filter((m) => m !== GREETING),
+          path: pathname,
         }),
       });
       const data = await res.json();
