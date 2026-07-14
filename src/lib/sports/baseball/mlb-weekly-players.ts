@@ -407,12 +407,19 @@ export function linkifyMlbPlayers(content: string, d: MlbWeeklyPlayersData): str
     for (const c of arr) add(c.name, c.personId);
   }
   const names = [...map.keys()].sort((a, b) => b.length - a.length);
-  let out = content;
-  for (const name of names) {
-    const id = map.get(name)!;
-    // 이미 [이름] 형태로 링크된 경우는 건너뛴다(앞 `[`·뒤 `]` 가드).
-    const re = new RegExp(`(?<!\\[)${escapeRe(name)}(?!\\])`, "g");
-    out = out.replace(re, `[${name}](/players/${id})`);
-  }
-  return out;
+  // 헤딩(#) 줄은 링크화하지 않는다 — 마크다운 헤딩 안의 링크는 렌더러가 깨뜨린다(제목 SBLNK 버그).
+  return content
+    .split("\n")
+    .map((line) => {
+      if (/^\s*#/.test(line)) return line;
+      let out = line;
+      for (const name of names) {
+        const id = map.get(name)!;
+        // 이미 [이름] 형태로 링크된 경우는 건너뛴다(앞 `[`·뒤 `]` 가드).
+        const re = new RegExp(`(?<!\\[)${escapeRe(name)}(?!\\])`, "g");
+        out = out.replace(re, `[${name}](/players/${id})`);
+      }
+      return out;
+    })
+    .join("\n");
 }

@@ -672,12 +672,13 @@ export default async function ArticlePage({ params }: Props) {
           href={`/players/${mlbMvp.personId}`}
           className="group mb-8 flex items-center gap-4 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-zinc-100 to-zinc-50 p-5 ring-1 ring-black/5 transition-colors hover:ring-black/15 sm:gap-5 sm:rounded-[2rem] sm:p-6 dark:from-white/[0.06] dark:to-white/[0.02] dark:ring-white/10 dark:hover:ring-white/25"
         >
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={mlbHeadshotUrl(mlbMvp.personId)}
             alt={mlbMvp.nameKo}
-            width={128}
-            height={128}
-            className="h-24 w-24 shrink-0 rounded-2xl bg-white object-cover object-top ring-1 ring-black/5 sm:h-28 sm:w-28 dark:ring-white/10"
+            width={112}
+            height={112}
+            className="h-24 w-24 shrink-0 rounded-2xl bg-zinc-200 object-cover object-top ring-1 ring-black/5 sm:h-28 sm:w-28 dark:bg-white/10 dark:ring-white/10"
           />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">
