@@ -1,5 +1,5 @@
 // /salaries/nhl — NHL 선수 연봉(cap hit) 랭킹 (USD + 한화 환산, 25명 페이지네이션).
-// 데이터: spotrac → PlayerSalary(NHL) (cron fetch-salaries). 사진·선수 링크 = nhle 머그샷(URL 에 player id).
+// 데이터: CapWages → PlayerSalary(NHL) (cron fetch-salaries). 사진·선수 링크 = nhle 머그샷(URL 에 player id).
 // ⚠️ 선수 한글명은 보유분(nhl-player-names)만, 나머지 영문. 팀·로고 = DB Team(NHL) 풀네임 매칭.
 
 import { prisma } from "@/lib/db";
@@ -20,7 +20,7 @@ const FX_FALLBACK = 1520; // USD→KRW fallback (2026-06 실측 ~1,520)
 export const metadata: Metadata = {
   title: "NHL 선수·팀별 연봉 랭킹 — cap hit (한화)",
   description:
-    "NHL 선수 연봉(cap hit) 순위 + 팀별 총 연봉(페이롤) 랭킹. 매키넌·카프리조프·드라이자이틀 등 최고 연봉 선수와 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 Spotrac.",
+    "NHL 선수 연봉(cap hit) 순위 + 팀별 총 연봉(페이롤) 랭킹. 매키넌·카프리조프·드라이자이틀 등 최고 연봉 선수와 구단 페이롤을 달러·원화로. 한국어 선수명·팀 표기, 매주 자동 갱신. 데이터 CapWages.",
   keywords: ["NHL 연봉", "NHL 팀 연봉", "NHL 페이롤", "NHL cap hit", "NHL 선수 연봉 순위", "매키넌 연봉", "하키 연봉"],
   alternates: { canonical: "https://www.scorebase.kr/salaries/nhl" },
 };
@@ -347,7 +347,7 @@ function SalaryHeader({ season, subtitle }: { season: string; subtitle: string }
         <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> NHL 연봉 랭킹
       </h1>
       <p className="text-sm text-neutral-500 leading-relaxed break-keep">
-        {season} 시즌 {subtitle} · cap hit 기준 · 데이터 Spotrac.
+        {season} 시즌 {subtitle} · cap hit 기준 · 데이터 CapWages.
       </p>
     </header>
   );
@@ -383,8 +383,8 @@ function SalaryFooter({ rate }: { rate: number }) {
   return (
     <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
       연봉은 해당 시즌 cap hit(USD) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다. 선수 한국어명·팀은 보유 데이터 매칭분만 표기됩니다. 데이터 제공{" "}
-      <a href="https://www.spotrac.com/nhl/rankings" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
-        Spotrac
+      <a href="https://capwages.com" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
+        CapWages
       </a>
       {" · 환율 "}
       <a href="https://www.frankfurter.app" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">

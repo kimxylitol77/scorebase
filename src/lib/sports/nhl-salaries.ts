@@ -1,11 +1,12 @@
-// NHL 선수 연봉(cap hit) 스크래퍼 — spotrac.com/nhl/rankings. MLB(mlb-salaries.ts)와 동일 구조.
+// NHL 선수 연봉(cap hit) 스크래퍼 — CapFriendly 후속 CapWages(capwages.com).
 //
-// ⚠️ spotrac 메인 랭킹은 .list-group-item div, 선수 링크는 a[href*='/redirect/player/'].
-//    NFL 추천 위젯(.widget-list)이 사이드바에 섞이므로 .list-group-item 조상 없는 링크는 제외.
-// ⚠️ NHL 행엔 팀 링크가 없고 텍스트("ANA, C")로만 있어 팀·사진은 data/nhl-players.json(이름 매칭)로 보강.
-// ⚠️ HTML 스크래핑 → 구조 변경 시 깨질 수 있음. job 단 "파싱 0건이면 기존 유지" 가드 필수.
+// ⚠️ Spotrac(구 소스)는 서버 요청을 JS 브라우저 챌린지로 하드 차단("Update Your Browser") → 폐기.
+//    CapWages 는 Next.js SSG — 홈에서 buildId 추출 후 팀별 `_next/data/{buildId}/teams/{slug}.json`
+//    를 받으면 로스터·시즌별 capHit 을 깔끔한 JSON 으로 준다(차단 없음).
+// ⚠️ 팀·사진은 CapWages 미제공분 보강: 팀명 = tricode→ABBR_TO_FULL(DB Team(NHL) 풀네임),
+//    사진 = data/nhl-players.json(이름 매칭, nhle 머그샷 URL 에 player id 포함 → 선수 링크).
+// ⚠️ 구조 변경 시 깨질 수 있음. job 단 "파싱 0건이면 seed fallback" 가드 필수.
 
-import * as cheerio from "cheerio";
 import nhlPlayers from "../../../data/nhl-players.json";
 
 export interface NormalizedSalary {
@@ -22,7 +23,7 @@ export function nhlSeasonLabel(now: Date): string {
   return `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
 }
 
-// nhl-players.json 팀 약어 → DB Team(NHL) 풀네임. LAK/NJD/SJS/TBL 만 DB 로고 약어와 다름.
+// CapWages tricode → DB Team(NHL) 풀네임. LAK/NJD/SJS/TBL 만 로고 약어와 다름.
 const ABBR_TO_FULL: Record<string, string> = {
   ANA: "Anaheim Ducks", BOS: "Boston Bruins", BUF: "Buffalo Sabres", CAR: "Carolina Hurricanes",
   CBJ: "Columbus Blue Jackets", CGY: "Calgary Flames", CHI: "Chicago Blackhawks", COL: "Colorado Avalanche",
@@ -37,70 +38,126 @@ const ABBR_TO_FULL: Record<string, string> = {
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
-// 이름 정규화 — 액센트 제거 + 소문자. spotrac↔nhl-players.json 표기차 흡수.
+// 이름 정규화 — 액센트 제거 + 소문자. CapWages↔nhl-players.json 표기차 흡수.
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
-// data/nhl-players.json(id→{name,photo,team abbr}) → 이름 매칭용 맵 (사진·팀 보강).
-const playerByName: Map<string, { photo: string; team: string }> = (() => {
-  const m = new Map<string, { photo: string; team: string }>();
-  const dict = nhlPlayers as Record<string, { name: string; photo: string; team: string }>;
+// "Last, First" → "First Last" (CapWages 표기 → nhl-players.json·표시 통일).
+function flipName(n: string): string {
+  const i = n.indexOf(",");
+  return i < 0 ? n.trim() : `${n.slice(i + 1).trim()} ${n.slice(0, i).trim()}`;
+}
+
+function moneyToInt(s: unknown): number | null {
+  if (typeof s !== "string") return null;
+  const n = parseInt(s.replace(/[^0-9]/g, ""), 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+// data/nhl-players.json(id→{name,photo,team abbr}) → 이름→사진 맵.
+const photoByName: Map<string, string> = (() => {
+  const m = new Map<string, string>();
+  const dict = nhlPlayers as Record<string, { name: string; photo: string }>;
   for (const id in dict) {
     const p = dict[id];
-    if (p?.name) m.set(norm(p.name), { photo: p.photo, team: p.team });
+    if (p?.name && p.photo) m.set(norm(p.name), p.photo);
   }
   return m;
 })();
 
+async function getJson(url: string): Promise<unknown | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": UA, Accept: "application/json,text/html" },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// CapWages 팀 JSON 타입(필요 부분만).
+interface CapDetail { season?: string; capHit?: string }
+interface CapContract { details?: CapDetail[] }
+interface CapPlayer { name?: string; contracts?: CapContract[] }
+interface CapTeamJson {
+  pageProps?: {
+    teamMetadata?: { tricode?: string };
+    data?: { roster?: { forwards?: CapPlayer[]; defense?: CapPlayer[]; goalies?: CapPlayer[] } };
+  };
+}
+
 export async function fetchNhlSalaries(): Promise<NormalizedSalary[]> {
+  // 1) 홈 HTML → buildId + 팀 슬러그 32개.
   let html: string;
   try {
-    const res = await fetch("https://www.spotrac.com/nhl/rankings/player/_/sort/cap_total", {
+    const res = await fetch("https://capwages.com/", {
       headers: { "User-Agent": UA, Accept: "text/html" },
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) return [];
     html = await res.text();
   } catch {
     return [];
   }
+  const buildId = html.match(/"buildId":"([^"]+)"/)?.[1];
+  const slugs = [...new Set([...html.matchAll(/\/teams\/([a-z_]+)/g)].map((m) => m[1]))];
+  if (!buildId || slugs.length < 20) return []; // 구조 변경 방어
 
-  const $ = cheerio.load(html);
-  const seen = new Set<string>();
+  // 2) 팀별 JSON 병렬 수집(동시 8) → 선수별 {name, tricode, seasonMap}.
+  interface Collected { name: string; tricode: string; seasonMap: Record<string, number> }
+  const collected: Collected[] = [];
+  const seasonCount = new Map<string, number>();
+  const CONCURRENCY = 8;
+  for (let i = 0; i < slugs.length; i += CONCURRENCY) {
+    const batch = slugs.slice(i, i + CONCURRENCY);
+    const jsons = await Promise.all(
+      batch.map((s) => getJson(`https://capwages.com/_next/data/${buildId}/teams/${s}.json`) as Promise<CapTeamJson | null>),
+    );
+    for (const j of jsons) {
+      const tricode = j?.pageProps?.teamMetadata?.tricode ?? "";
+      const roster = j?.pageProps?.data?.roster ?? {};
+      for (const grp of [roster.forwards, roster.defense, roster.goalies]) {
+        for (const p of grp ?? []) {
+          if (!p?.name) continue;
+          const seasonMap: Record<string, number> = {};
+          for (const c of p.contracts ?? []) {
+            for (const d of c.details ?? []) {
+              const v = moneyToInt(d.capHit);
+              if (d.season && v) {
+                seasonMap[d.season] = v;
+                seasonCount.set(d.season, (seasonCount.get(d.season) ?? 0) + 1);
+              }
+            }
+          }
+          if (Object.keys(seasonMap).length) collected.push({ name: flipName(p.name), tricode, seasonMap });
+        }
+      }
+    }
+  }
+  if (!collected.length) return [];
+
+  // 3) 현재 시즌 = 로스터 전체에서 최빈 season(오프시즌엔 CapWages 가 아직 직전 시즌을 current 로 노출).
+  const currentSeason = [...seasonCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+
   const out: NormalizedSalary[] = [];
-
-  $("a[href*='/redirect/player/']").each((_, a) => {
-    const $a = $(a);
-    const name = $a.text().trim();
-    if (!name || name.length < 3 || /sign in|premium/i.test(name)) return;
-    const $row = $a.closest(".list-group-item");
-    if (!$row.length || $row.closest(".widget-list").length) return; // NFL 사이드바 위젯 제외
-    if (seen.has(name)) return;
-
-    // 금액 — 행 내 첫 $숫자 (cap hit)
-    let salaryText = "";
-    $row.find("*").each((_, e) => {
-      if (salaryText) return;
-      const t = $(e).clone().children().remove().end().text().trim();
-      if (/^\$[0-9][0-9,]{4,}$/.test(t)) salaryText = t;
+  const seen = new Set<string>();
+  for (const p of collected) {
+    if (seen.has(p.name)) continue; // 중복 로스터(트레이드 등) 방지
+    const salary = (currentSeason ? p.seasonMap[currentSeason] : undefined) ?? Object.values(p.seasonMap)[0];
+    if (!salary) continue;
+    seen.add(p.name);
+    out.push({
+      rank: 0,
+      playerName: p.name,
+      teamName: ABBR_TO_FULL[p.tricode] ?? "",
+      salary,
+      photoUrl: photoByName.get(norm(p.name)),
     });
-    if (!salaryText) return;
-    const salary = parseInt(salaryText.replace(/[$,]/g, ""), 10);
-    if (!Number.isFinite(salary) || salary < 1) return;
-
-    seen.add(name);
-    out.push({ rank: 0, playerName: name, teamName: "", salary });
-  });
+  }
 
   out.sort((a, b) => b.salary - a.salary);
   out.forEach((r, i) => (r.rank = i + 1));
-
-  // nhl-players.json 매칭 — 사진(nhle 머그샷) + 팀(약어→풀네임) 보강. 미매칭은 연봉만 유지.
-  for (const r of out) {
-    const m = playerByName.get(norm(r.playerName));
-    if (!m) continue;
-    if (m.photo) r.photoUrl = m.photo;
-    if (m.team && ABBR_TO_FULL[m.team]) r.teamName = ABBR_TO_FULL[m.team];
-  }
-
   return out;
 }

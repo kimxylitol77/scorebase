@@ -109,7 +109,12 @@ export async function fetchMlbSalaries(): Promise<NormalizedSalary[]> {
   out.sort((a, b) => b.salary - a.salary);
   out.forEach((r, i) => (r.rank = i + 1));
 
-  // MLB Stats 매칭 — 팀·사진 보강 (meta 실패해도 연봉은 유지)
+  return enrichMlbSalaries(out);
+}
+
+// 연봉 rows(이름+금액)에 MLB Stats(공식·무료) 팀·사진 보강. seed 생성도 동일 함수 공유.
+// meta/검색 실패해도 연봉은 유지. rows 는 in-place 변경 후 그대로 반환.
+export async function enrichMlbSalaries(out: NormalizedSalary[]): Promise<NormalizedSalary[]> {
   const meta = await fetchMlbPlayerMeta();
   if (meta.size) {
     for (const r of out) {

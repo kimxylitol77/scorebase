@@ -10,22 +10,41 @@ import { fetchNbaSalaries, currentSeasonLabel } from "@/lib/sports/nba-salaries"
 import { fetchMlbSalaries, mlbSeasonLabel } from "@/lib/sports/mlb-salaries";
 import { fetchNhlSalaries, nhlSeasonLabel } from "@/lib/sports/nhl-salaries";
 import { getKboSalaries, KBO_SALARY_SEASON } from "@/lib/sports/kbo-salaries";
+import nhlSeed from "../../data/nhl-salaries-seed.json";
+import mlbSeed from "../../data/mlb-salaries-seed.json";
+import nbaSeed from "../../data/nba-salaries-seed.json";
 
 interface LeagueResult {
   league: string;
   fetched: number;
   replaced: boolean;
+  fromSeed?: boolean;
 }
 
-/** 한 리그 연봉 replace — 파싱 0건이면 기존 유지. */
+// 스크래핑 실패(0건) 시 커밋된 seed 로 대체. 연봉은 거의 불변 → seed 고정도 실용적.
+// Spotrac 하드차단(MLB) · Vercel 데이터센터 IP 차단(NBA basketball-ref) 대비 안전망.
+const SEEDS: Record<string, NormalizedRow[]> = {
+  NHL: nhlSeed as NormalizedRow[],
+  MLB: mlbSeed as NormalizedRow[],
+  NBA: nbaSeed as NormalizedRow[],
+};
+
+/** 한 리그 연봉 replace — 파싱 0건이면 seed fallback, seed 도 비면 기존 유지. */
 async function replaceLeague(
   league: string,
   rows: NormalizedRow[],
   season: string,
 ): Promise<LeagueResult> {
+  let fromSeed = false;
   if (rows.length === 0) {
-    console.warn(`[fetch-salaries] ${league}: 파싱 0건 — 스크래핑 실패 의심, 기존 데이터 유지(replace skip)`);
-    return { league, fetched: 0, replaced: false };
+    const seed = SEEDS[league] ?? [];
+    if (seed.length === 0) {
+      console.warn(`[fetch-salaries] ${league}: 파싱 0건 + seed 없음 — 기존 데이터 유지(replace skip)`);
+      return { league, fetched: 0, replaced: false };
+    }
+    console.warn(`[fetch-salaries] ${league}: 파싱 0건 — 스크래핑 실패, seed ${seed.length}명으로 대체`);
+    rows = seed;
+    fromSeed = true;
   }
   await prisma.$transaction([
     prisma.playerSalary.deleteMany({ where: { league } }),
@@ -42,8 +61,8 @@ async function replaceLeague(
       })),
     }),
   ]);
-  console.log(`[fetch-salaries] ${league}: ${rows.length}명 replace (시즌 ${season})`);
-  return { league, fetched: rows.length, replaced: true };
+  console.log(`[fetch-salaries] ${league}: ${rows.length}명 replace (시즌 ${season})${fromSeed ? " [seed]" : ""}`);
+  return { league, fetched: rows.length, replaced: true, fromSeed };
 }
 
 interface NormalizedRow {
