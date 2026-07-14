@@ -846,8 +846,6 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             label: "개요",
             content: (
               <>
-                {/* 근황 — 이적·몸값·부상 최근 기록 (개요 최상단) */}
-                {playerEvents.length > 0 && <RecentTimeline events={playerEvents} />}
                 {heatmapAnalysis && (
                   <PlayerHeatmapAnalysis name={name} data={heatmapAnalysis} />
                 )}
@@ -935,6 +933,8 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             label: "이적",
             content: (
               <>
+      {/* 근황 — 이적·몸값·부상 최근 기록 (이적 탭 최상단) */}
+      {playerEvents.length > 0 && <RecentTimeline events={playerEvents} />}
 
       {/* 이적 기록 */}
       <section>
