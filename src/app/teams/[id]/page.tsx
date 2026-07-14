@@ -285,7 +285,7 @@ export default async function TeamPage({ params }: Props) {
     return `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
   })();
   const sportLabel =
-    ({ soccer: "축구", baseball: "야구", basketball: "농구", ice_hockey: "아이스하키", esports: "e스포츠" } as Record<string, string>)[sport] ?? "축구";
+    ({ soccer: "축구", baseball: "야구", basketball: "농구", hockey: "아이스하키", esports: "e스포츠" } as Record<string, string>)[sport] ?? "축구";
   let squad: { id: string; name: string; photo: string | null; pos: string | null; value: number; number: number | null; flag: string | null }[] = [];
   if (tsTeamRows.length) {
     const extIds = tsTeamRows.map((t) => t.externalId);
