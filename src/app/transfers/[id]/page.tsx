@@ -35,7 +35,7 @@ import PlayerMatchLogTable, { type MatchLogRow } from "./PlayerMatchLogTable";
 import PlayerTabs from "./PlayerTabs";
 import { WC_STAR_SLUG_PREFIX } from "@/lib/sports/thesports/wc-star-report";
 import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/components/transfers/CompetitionStatsSection";
-import { DESC_KO, BADGE_CLS, SPECIAL_TEAM_KO, koTeam, badgeOf } from "../transfer-display";
+import { SPECIAL_TEAM_KO, koTeam } from "../transfer-display";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
 const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string }>;
@@ -268,7 +268,7 @@ function yrRange(s: number | null, e: number | null): string {
 
 interface ValuePoint { time: number; v: number; age?: number | null; chg: number | null; team?: string | null }
 
-interface PlayerEventRow { id: string; type: string; occurredAt: Date; title: string }
+interface PlayerEventRow { id: string; type: string; occurredAt: Date; title: string; detail?: unknown }
 // 근황 이벤트 유형 → 배지 라벨·색 + 타임라인 점 색.
 const EV_META: Record<string, { label: string; badge: string; dot: string }> = {
   TRANSFER: { label: "이적", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", dot: "bg-emerald-500" },
@@ -281,17 +281,25 @@ const EV_META: Record<string, { label: string; badge: string; dot: string }> = {
 
 // 근황 타임라인 — 이적·몸값·부상 이벤트를 최신순으로. 최근 8건 노출 + 나머지 접기.
 //  occurredAt 은 UTC 저장, getUTC* 로 결정적 표기(하이드레이션 불일치 방지).
-function RecentTimeline({ events }: { events: PlayerEventRow[] }) {
+function RecentTimeline({ events, logos = {} }: { events: PlayerEventRow[]; logos?: Record<string, string> }) {
   if (!events.length) return null;
   const fmt = (d: Date) => `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${String(d.getUTCDate()).padStart(2, "0")}`;
   const row = (e: PlayerEventRow) => {
     const m = EV_META[e.type] ?? { label: "기록", badge: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300", dot: "bg-neutral-400" };
+    // 이적·임대는 도착팀 로고 표시 (detail.toTeamId → 우리 로고맵)
+    const toId = (e.type === "TRANSFER" || e.type === "LOAN") && e.detail && typeof e.detail === "object"
+      ? (e.detail as { toTeamId?: string }).toTeamId : null;
+    const logo = toId ? logos[toId] : null;
     return (
       <div key={e.id} className="relative pl-5 py-2">
         <span className={`absolute -left-[5px] top-3.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-neutral-950 ${m.dot}`} />
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-neutral-400 tabular-nums w-[84px] shrink-0">{fmt(e.occurredAt)}</span>
           <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${m.badge}`}>{m.label}</span>
+          {logo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt="" className="w-4 h-4 object-contain shrink-0" />
+          )}
           <span className="text-sm">{e.title}</span>
         </div>
       </div>
@@ -775,7 +783,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     where: { playerId: id },
     orderBy: { occurredAt: "desc" },
     take: 60,
-    select: { id: true, type: true, occurredAt: true, title: true },
+    select: { id: true, type: true, occurredAt: true, title: true, detail: true },
   });
 
   // 경력 (API-Football 시즌별 대회별 스탯) — af 매핑 있으면. 없으면 WIKI 시즌 폴백.
@@ -963,50 +971,12 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             label: "이적",
             content: (
               <>
-      {/* 근황 — 이적·몸값·부상 최근 기록 (이적 탭 최상단) */}
-      {playerEvents.length > 0 && <RecentTimeline events={playerEvents} />}
-
-      {/* 이적 기록 */}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">이적 기록 ({transfers.length})</h2>
-        {transfers.length === 0 ? (
-          <p className="text-sm text-neutral-500">이적 기록이 아직 없습니다.</p>
-        ) : (
-          <div className="overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10 divide-y divide-black/5 dark:divide-white/5">
-            {transfers.map((t) => {
-              const badge = badgeOf(t);
-              return (
-              <div key={t.id} className="flex items-center gap-2 px-3 py-2.5 text-sm">
-                <span className="text-xs text-neutral-400 tabular-nums w-16 shrink-0">{fmtDate(t.transferTime ?? undefined)}</span>
-                <span className="truncate text-neutral-500 flex items-center gap-1 min-w-0">
-                  {t.fromTeamId && tsLogo[t.fromTeamId] && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={tsLogo[t.fromTeamId]} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
-                  )}
-                  <span className="truncate">{koTeam(t.fromTeamName)}</span>
-                </span>
-                <span className="text-neutral-400 shrink-0">→</span>
-                <span className="truncate font-semibold flex items-center gap-1 min-w-0">
-                  {t.toTeamId && tsLogo[t.toTeamId] && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={tsLogo[t.toTeamId]} alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
-                  )}
-                  <span className="truncate">{koTeam(t.toTeamName)}</span>
-                </span>
-                {badge && (
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${BADGE_CLS[badge] || "bg-neutral-100 dark:bg-neutral-800 text-neutral-500"}`}>{badge}</span>
-                )}
-                {t.transferFee != null && t.transferFee > 0 ? (
-                  <span className="ml-auto text-xs font-semibold text-cyan-600 dark:text-cyan-400 shrink-0">€{Math.round(t.transferFee / 1e6)}M</span>
-                ) : t.transferDesc && DESC_KO[t.transferDesc] ? (
-                  <span className="ml-auto text-[11px] font-semibold text-neutral-500 shrink-0">{DESC_KO[t.transferDesc]}</span>
-                ) : null}
-              </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {/* 근황 — 이적·몸값·부상 통합 타임라인. 이적행에 도착팀 로고. (기존 이적 기록 표를 흡수) */}
+      {playerEvents.length > 0 ? (
+        <RecentTimeline events={playerEvents} logos={tsLogo} />
+      ) : (
+        <p className="text-sm text-neutral-500">이적·근황 기록이 아직 없습니다.</p>
+      )}
               </>
             ),
           },
