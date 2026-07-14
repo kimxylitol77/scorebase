@@ -32,8 +32,8 @@
       "score": 8.24,
       "star": 4,
       "recentRating": 6.88,
-      "avgRating": 7.12,
-      "games": 6,
+      "avgRating": 7.23,
+      "games": 5,
       "x": 50,
       "y": 90
     },
@@ -66,26 +66,9 @@
       "score": 7.61,
       "star": 3,
       "recentRating": 6.65,
-      "avgRating": 7.23,
-      "games": 6,
+      "avgRating": 7.24,
+      "games": 5,
       "x": 39,
-      "y": 70
-    },
-    {
-      "id": "318q66h4w7enqo9",
-      "name": "Luc De Fougerolles",
-      "nameKo": "루크 롤레 드 푸제롤",
-      "hasMv": false,
-      "pos": "D",
-      "country": "Canada",
-      "flag": "🇨🇦",
-      "logo": "https://img.thesports.com/football/player/01f26820ac6ee0728175d941afe1e867.png",
-      "score": 7.44,
-      "star": 3,
-      "recentRating": 5.89,
-      "avgRating": 6.79,
-      "games": 4,
-      "x": 61,
       "y": 70
     },
     {
@@ -97,11 +80,28 @@
       "country": "Canada",
       "flag": "🇨🇦",
       "logo": "https://img.thesports.com/football/player/4c15ff675b234d478ecf6727fdb094b7.png",
-      "score": 7.39,
+      "score": 7.5,
       "star": 3,
-      "recentRating": 6.69,
-      "avgRating": 6.69,
+      "recentRating": 6.92,
+      "avgRating": 6.92,
       "games": 1,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "318q66h4w7enqo9",
+      "name": "Luc De Fougerolles",
+      "nameKo": "루크 롤레 드 푸제롤",
+      "hasMv": false,
+      "pos": "D",
+      "country": "Canada",
+      "flag": "🇨🇦",
+      "logo": "https://img.thesports.com/football/player/01f26820ac6ee0728175d941afe1e867.png",
+      "score": 7.47,
+      "star": 3,
+      "recentRating": 5.89,
+      "avgRating": 6.8,
+      "games": 4,
       "x": 84,
       "y": 70
     },
@@ -134,8 +134,8 @@
       "score": 8.62,
       "star": 4,
       "recentRating": 8,
-      "avgRating": 8.12,
-      "games": 4,
+      "avgRating": 8.6,
+      "games": 3,
       "x": 50,
       "y": 32
     },
@@ -169,7 +169,7 @@
       "star": 3,
       "recentRating": 7.2,
       "avgRating": 7.25,
-      "games": 6,
+      "games": 5,
       "x": 35,
       "y": 52
     },
@@ -221,8 +221,8 @@
       "score": 8.06,
       "star": 4,
       "recentRating": 7.7,
-      "avgRating": 6.99,
-      "games": 6
+      "avgRating": 7.1,
+      "games": 5
     },
     {
       "id": "23xmvkhdz1eqg8n",
@@ -235,9 +235,9 @@
       "logo": "https://img.thesports.com/football/player/1fc56408d3d06df6942dd7404dbe33d6.png",
       "score": 7.96,
       "star": 3,
-      "recentRating": 5.88,
-      "avgRating": 7.11,
-      "games": 6
+      "recentRating": 6,
+      "avgRating": 7.07,
+      "games": 5
     },
     {
       "id": "zp5rzgh138jq82w",
@@ -252,7 +252,7 @@
       "star": 3,
       "recentRating": 6.49,
       "avgRating": 7.1,
-      "games": 6
+      "games": 5
     },
     {
       "id": "4jwq2ghxngwym0v",
@@ -270,21 +270,6 @@
       "games": 3
     },
     {
-      "id": "23xmvkhd6jzoqg8",
-      "name": "Mahmoud Abunada",
-      "nameKo": "마흐무드 아부나드",
-      "hasMv": false,
-      "pos": "G",
-      "country": "Qatar",
-      "flag": "🇶🇦",
-      "logo": "https://img.thesports.com/football/player/3ced4c9a63d9e61ec1a4fae7e2343358.png",
-      "score": 7.6,
-      "star": 3,
-      "recentRating": 5.8,
-      "avgRating": 6.65,
-      "games": 3
-    },
-    {
       "id": "ednm9wh98v7ryox",
       "name": "Hassan Al-Haydos",
       "nameKo": "하산 알 하이두스",
@@ -296,8 +281,23 @@
       "score": 7.53,
       "star": 3,
       "recentRating": 7.53,
-      "avgRating": 6.91,
-      "games": 2
+      "avgRating": 7.53,
+      "games": 1
+    },
+    {
+      "id": "8yomo4hvvj3q0j6",
+      "name": "Denis Zakaria",
+      "nameKo": "데니스 자카리아",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Switzerland",
+      "flag": "🇨🇭",
+      "logo": "https://img.thesports.com/football/player/3ec74b06c85fa4539a32e8a09340d7d7.png",
+      "score": 7.45,
+      "star": 3,
+      "recentRating": 6.24,
+      "avgRating": 6.43,
+      "games": 3
     }
   ],
   "complete": true

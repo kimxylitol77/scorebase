@@ -32,8 +32,8 @@
       "score": 7.75,
       "star": 3,
       "recentRating": 6.9,
-      "avgRating": 7.05,
-      "games": 5,
+      "avgRating": 7.09,
+      "games": 4,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 8.7,
       "star": 4,
       "recentRating": 6.82,
-      "avgRating": 7.3,
-      "games": 6,
+      "avgRating": 7.34,
+      "games": 5,
       "x": 16,
       "y": 70
     },
@@ -66,8 +66,8 @@
       "score": 8.16,
       "star": 4,
       "recentRating": 6.4,
-      "avgRating": 7.26,
-      "games": 5,
+      "avgRating": 7.38,
+      "games": 4,
       "x": 39,
       "y": 70
     },
@@ -100,8 +100,8 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 6.52,
-      "avgRating": 7.26,
-      "games": 5,
+      "avgRating": 7.29,
+      "games": 4,
       "x": 84,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.63,
       "star": 4,
       "recentRating": 6.16,
-      "avgRating": 7.28,
-      "games": 5,
+      "avgRating": 7.32,
+      "games": 4,
       "x": 22,
       "y": 32
     },
@@ -134,8 +134,8 @@
       "score": 8.2,
       "star": 4,
       "recentRating": 6.7,
-      "avgRating": 7.23,
-      "games": 6,
+      "avgRating": 7.33,
+      "games": 5,
       "x": 50,
       "y": 32
     },
@@ -151,27 +151,10 @@
       "score": 7.81,
       "star": 3,
       "recentRating": 6.53,
-      "avgRating": 7,
-      "games": 4,
+      "avgRating": 7.14,
+      "games": 3,
       "x": 78,
       "y": 32
-    },
-    {
-      "id": "k82rekhy3o3repz",
-      "name": "John McGinn",
-      "nameKo": "존 맥긴",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Scotland",
-      "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-      "logo": "https://img.thesports.com/football/player/b3afc5b1db8d9cf92a72491ff493ab9a.png",
-      "score": 7.7,
-      "star": 3,
-      "recentRating": 6.56,
-      "avgRating": 6.91,
-      "games": 3,
-      "x": 35,
-      "y": 52
     },
     {
       "id": "y39mp1h1y53omoj",
@@ -186,6 +169,23 @@
       "star": 3,
       "recentRating": 6.37,
       "avgRating": 6.79,
+      "games": 4,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "ednm9whv23o9ryo",
+      "name": "Bilal El Khannouss",
+      "nameKo": "빌랄 엘 카누스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Morocco",
+      "flag": "🇲🇦",
+      "logo": "https://img.thesports.com/football/player/1f6a671830945b419a8b3d1e75c434bb.png",
+      "score": 7.6,
+      "star": 3,
+      "recentRating": 6.19,
+      "avgRating": 6.49,
       "games": 5,
       "x": 65,
       "y": 52
@@ -202,8 +202,8 @@
       "score": 9.11,
       "star": 4,
       "recentRating": 7.4,
-      "avgRating": 8.29,
-      "games": 5,
+      "avgRating": 8.36,
+      "games": 4,
       "x": 50,
       "y": 14
     }
@@ -221,8 +221,8 @@
       "score": 8.85,
       "star": 4,
       "recentRating": 6.67,
-      "avgRating": 7.41,
-      "games": 5
+      "avgRating": 7.62,
+      "games": 4
     },
     {
       "id": "y0or5jhe033wqwz",
@@ -236,8 +236,23 @@
       "score": 8.53,
       "star": 4,
       "recentRating": 6.02,
-      "avgRating": 6.91,
-      "games": 6
+      "avgRating": 6.9,
+      "games": 5
+    },
+    {
+      "id": "jw2r09hx3k00rz8",
+      "name": "Igor Thiago",
+      "nameKo": "이고르 치아구",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/9b683327f891ef7d2534cd1bd789218f.png",
+      "score": 8.41,
+      "star": 4,
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0
     },
     {
       "id": "x7lm7phn0pgm2wd",
@@ -266,8 +281,8 @@
       "score": 8.1,
       "star": 4,
       "recentRating": 6.79,
-      "avgRating": 7.26,
-      "games": 5
+      "avgRating": 7.12,
+      "games": 4
     },
     {
       "id": "zp5rzghp5394q82",
@@ -283,21 +298,6 @@
       "recentRating": 6.82,
       "avgRating": 7.18,
       "games": 4
-    },
-    {
-      "id": "4jwq2gh7pkdm0ve",
-      "name": "Issa Diop",
-      "nameKo": "이사 디오프",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Morocco",
-      "flag": "🇲🇦",
-      "logo": "https://img.thesports.com/football/player/63f51665b97ed32b0f6168a805578b62.png",
-      "score": 7.76,
-      "star": 3,
-      "recentRating": 6.2,
-      "avgRating": 7.07,
-      "games": 5
     }
   ],
   "complete": true
