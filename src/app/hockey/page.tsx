@@ -11,6 +11,7 @@ import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-wi
 import type { PredictMatch } from "@/lib/predict/types";
 import { Clock, ListOrdered, Target, Users, GitCompare, HeartPulse, type LucideIcon } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
+import TeamBadge from "@/components/TeamBadge";
 
 export const revalidate = 300;
 
@@ -91,7 +92,7 @@ export default async function HockeyHub() {
   const startUtc = new Date(midnightUtcMs);
   const endUtc = new Date(midnightUtcMs + 24 * 3600_000);
 
-  const [games, nhlTop3, iihfTop3, spMatches] = await Promise.all([
+  const [games, nhlTop3, iihfTop3, spMatches, nhlTeams] = await Promise.all([
     prisma.match.findMany({
       where: {
         league: { in: HOCKEY },
@@ -118,7 +119,16 @@ export default async function HockeyHub() {
       where: { league: { in: HOCKEY }, predCorrect: { not: null } },
       select: { predCorrect: true, predHome: true, predAway: true, league: true },
     }),
+    prisma.team.findMany({
+      where: { league: "NHL" },
+      select: { id: true, name: true, logoUrl: true },
+    }),
   ]);
+
+  // NHL 팀 → 각 팀 페이지의 로스터로. 한글 팀명 가나다 정렬.
+  const nhlTeamCards = nhlTeams
+    .map((t) => ({ id: t.id, logoUrl: t.logoUrl, name: toKoreanTeamName(t.name, "NHL") || t.name }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
   // 하키 Strong Pick(리그별 임계) 적중률
   let hit = 0;
@@ -225,6 +235,28 @@ export default async function HockeyHub() {
           ))}
         </div>
       </section>
+
+      {/* NHL 팀 — 각 팀 로스터(선수 명단) 진입 */}
+      {nhlTeamCards.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-500">
+            NHL 팀 · 로스터
+          </h2>
+          <p className="text-[11px] text-neutral-400 -mt-1">팀을 누르면 전체 선수 명단(로스터)과 시즌 성적을 볼 수 있습니다.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {nhlTeamCards.map((t) => (
+              <Link
+                key={t.id}
+                href={`/teams/${t.id}`}
+                className="flex items-center gap-2 rounded-2xl bg-white p-3 ring-1 ring-black/5 shadow-[0_12px_40px_-24px_rgba(15,23,30,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-md dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none dark:hover:bg-white/[0.06]"
+              >
+                <TeamBadge logoUrl={t.logoUrl} size={24} className="bg-white rounded shrink-0" />
+                <span className="truncate text-sm font-medium text-zinc-900 dark:text-neutral-200">{t.name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {/* 오늘 경기 */}
