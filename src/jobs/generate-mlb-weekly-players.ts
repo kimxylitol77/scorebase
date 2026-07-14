@@ -9,6 +9,8 @@ import {
   buildMlbWeeklyPlayers,
   serializeMlbWeeklyFacts,
   checkMlbWeeklyFaithfulness,
+  linkifyMlbPlayers,
+  buildMvpMarker,
   type MlbWeeklyPlayersData,
   type FaithfulnessResult,
 } from "@/lib/sports/baseball/mlb-weekly-players";
@@ -35,6 +37,14 @@ interface RunOpts {
   refDate?: Date;
   dry?: boolean; // 프롬프트만 출력(생성·판정·발행 없음, 무비용)
   review?: boolean; // 생성 + 심판관 판정 + 본문/판정 출력. 발행은 안 함(검수용)
+  force?: boolean; // 이번 주 글이 이미 있어도 재생성해서 덮어쓴다(검수 후 재발행용)
+}
+
+/** 게이트 통과 본문을 발행용으로 가공 — 선수명 링크화 + 상단 MVP 카드 마커. */
+function toPublishContent(content: string, data: MlbWeeklyPlayersData): string {
+  const body = linkifyMlbPlayers(content, data);
+  const marker = buildMvpMarker(data);
+  return marker ? `${marker}\n\n${body}` : body;
 }
 
 interface Attempt {
@@ -118,8 +128,8 @@ export async function runMlbWeeklyPlayers(opts: RunOpts = {}) {
   try {
     const slug = `mlb-players-weekly-${weekStartKst(refDate)}`;
     const existing = await prisma.article.findUnique({ where: { slug } });
-    if (existing && !opts.review) {
-      console.log(`[mlb-weekly-players] 이번 주 글 이미 있음 (#${existing.id}) — 스킵`);
+    if (existing && !opts.review && !opts.force) {
+      console.log(`[mlb-weekly-players] 이번 주 글 이미 있음 (#${existing.id}) — 스킵 (재발행은 --force)`);
       return;
     }
 
@@ -143,10 +153,10 @@ export async function runMlbWeeklyPlayers(opts: RunOpts = {}) {
       return;
     }
 
-    // 검수 모드 — 본문·판정만 출력하고 발행하지 않는다.
+    // 검수 모드 — 발행 가공본(링크+MVP 카드 마커)과 판정만 출력하고 발행하지 않는다.
     if (opts.review) {
       console.log(`\n===== [REVIEW] → ${slug} =====`);
-      console.log(r.content);
+      console.log(toPublishContent(r.content, data));
       console.log(`\n----- 검증 결과 -----`);
       console.log(JSON.stringify({ hardFail: isHardFail(r), det: r.det, verdict: r.verdict }, null, 2));
       return;
@@ -161,19 +171,25 @@ export async function runMlbWeeklyPlayers(opts: RunOpts = {}) {
     }
 
     const title = extractTitle(r.content);
-    const article = await prisma.article.create({
-      data: {
-        type: "ANALYSIS",
-        league: "MLB",
-        title,
-        slug,
-        content: r.content,
-        status: "PUBLISHED",
-        publishedAt: new Date(),
-      },
-    });
+    const content = toPublishContent(r.content, data); // 선수 링크 + MVP 카드 마커
+    const article = existing
+      ? await prisma.article.update({
+          where: { id: existing.id },
+          data: { title, content }, // 재발행 — id·slug·publishedAt 유지(URL·색인 보존)
+        })
+      : await prisma.article.create({
+          data: {
+            type: "ANALYSIS",
+            league: "MLB",
+            title,
+            slug,
+            content,
+            status: "PUBLISHED",
+            publishedAt: new Date(),
+          },
+        });
     console.log(
-      `[mlb-weekly-players] ✅ #${article.id} ${title} (${r.content.length}자) → /articles/${slug} · 게이트 통과(팩트 blocker 0·warn ${r.det.warnings.length}, 페르소나 ${r.verdict.persona} SEO ${r.verdict.seo})`,
+      `[mlb-weekly-players] ✅ #${article.id} ${title} (${content.length}자, ${existing ? "갱신" : "신규"}) → /articles/${slug} · 게이트 통과(팩트 blocker 0·warn ${r.det.warnings.length}, 페르소나 ${r.verdict.persona} SEO ${r.verdict.seo})`,
     );
   } catch (e) {
     console.error("[mlb-weekly-players] 실패:", (e as Error).message?.slice(0, 160));
@@ -186,11 +202,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const dry = args.includes("--dry");
   const review = args.includes("--review");
+  const force = args.includes("--force");
   const dateArg = args.find((a) => /^\d{4}-\d{2}-\d{2}$/.test(a));
   runMlbWeeklyPlayers({
     refDate: dateArg ? new Date(`${dateArg}T12:00:00+09:00`) : undefined,
     dry,
     review,
+    force,
   })
     .catch((e) => {
       console.error(e);

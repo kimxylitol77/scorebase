@@ -25,6 +25,8 @@ import TeamOfDayPitch from "@/components/TeamOfDayPitch";
 import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
 import { parseStarSlug } from "@/lib/sports/thesports/wc-star-report";
 import { playerOverrideNameKo } from "@/lib/sports/thesports/world-cup-player-stats";
+import { parseMvpMarker, stripMvpMarker, MLB_WEEKLY_SLUG_PREFIX } from "@/lib/sports/baseball/mlb-weekly-players";
+import { mlbHeadshotUrl } from "@/lib/sports/mlb-stats-api";
 import AmbientGlow from "@/components/AmbientGlow";
 import { BarChart3, CalendarDays, Activity, Star, Swords } from "lucide-react";
 
@@ -61,6 +63,7 @@ const SITE_NAME = process.env.SITE_NAME ?? "Scorebase";
  */
 function makeDescription(content: string): string {
   const flat = content
+    .replace(/<!--[\s\S]*?-->/g, "") // HTML 주석(예: MVP 카드 마커) 제거
     .replace(/[#*_`>[\]()]/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -296,6 +299,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   if (!article) return { title: "기사를 찾을 수 없습니다" };
 
+  // MLB 주간 베스트 선수 글의 MVP 카드 마커가 meta description 으로 새지 않게 제거.
+  if (slug.startsWith(MLB_WEEKLY_SLUG_PREFIX)) article.content = stripMvpMarker(article.content);
+
   const url = `${SITE_URL}/articles/${slug}`;
   const isLol = LCK_LEAGUES.has(article.league);
   const isBaseball =
@@ -450,6 +456,11 @@ export default async function ArticlePage({ params }: Props) {
   });
 
   if (!article || article.status !== "PUBLISHED") notFound();
+
+  // MLB 주간 베스트 선수 글 — 상단 MVP 카드용 마커를 먼저 파싱하고 본문에서 제거.
+  // 이후 desc·OG·Markdown 모두 마커 없는 본문을 쓰게 해 누수를 막는다.
+  const mlbMvp = parseMvpMarker(article.slug, article.content);
+  if (mlbMvp) article.content = stripMvpMarker(article.content);
 
   const date = formatDateKo(article.publishedAt ?? article.createdAt);
   const url = `${SITE_URL}/articles/${slug}`;
@@ -653,6 +664,39 @@ export default async function ArticlePage({ params }: Props) {
             )}
           </div>
         </div>
+      )}
+
+      {/* MLB 주간 베스트 선수 — 이주의 MVP 카드(클릭 시 선수 페이지). 축구 STAR 카드와 동형 + 링크. */}
+      {mlbMvp && (
+        <Link
+          href={`/players/${mlbMvp.personId}`}
+          className="group mb-8 flex items-center gap-4 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-zinc-100 to-zinc-50 p-5 ring-1 ring-black/5 transition-colors hover:ring-black/15 sm:gap-5 sm:rounded-[2rem] sm:p-6 dark:from-white/[0.06] dark:to-white/[0.02] dark:ring-white/10 dark:hover:ring-white/25"
+        >
+          <Image
+            src={mlbHeadshotUrl(mlbMvp.personId)}
+            alt={mlbMvp.nameKo}
+            width={128}
+            height={128}
+            className="h-24 w-24 shrink-0 rounded-2xl bg-white object-cover object-top ring-1 ring-black/5 sm:h-28 sm:w-28 dark:ring-white/10"
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">
+              <Star className="h-3.5 w-3.5 fill-current" aria-hidden />
+              이주의 MVP
+            </div>
+            <div className="mt-1 truncate text-lg font-bold text-zinc-900 group-hover:underline sm:text-xl dark:text-white">
+              {mlbMvp.nameKo}
+            </div>
+            {mlbMvp.nameEn && mlbMvp.nameEn !== mlbMvp.nameKo && (
+              <div className="truncate text-sm text-zinc-500 dark:text-white/50">{mlbMvp.nameEn}</div>
+            )}
+            {mlbMvp.line && (
+              <div className="mt-1 truncate text-xs font-medium text-zinc-600 tabular-nums dark:text-white/60">
+                {mlbMvp.line}
+              </div>
+            )}
+          </div>
+        </Link>
       )}
 
       {article.match && (() => {

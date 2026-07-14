@@ -8,7 +8,9 @@ const MIN_AB = 15; // 타율/OPS 랭킹 자격 (한 주 ~25타석 기준, 소표
 const MIN_IP = 6; // 평균자책점 랭킹 자격 (선발 1~2등판 분량)
 
 export interface WeeklyHitter {
+  personId: number | null; // MLB Stats API person id (선수 페이지·사진 링크용)
   name: string; // 한글명(없으면 영문)
+  nameEn: string; // 원문 영문명(카드 표시용)
   team: string; // 한글 팀명
   games: number;
   atBats: number;
@@ -20,7 +22,9 @@ export interface WeeklyHitter {
 }
 
 export interface WeeklyPitcher {
+  personId: number | null;
   name: string;
+  nameEn: string;
   team: string;
   wins: number;
   losses: number;
@@ -33,6 +37,7 @@ export interface WeeklyPitcher {
 }
 
 export interface CategoryLeader {
+  personId: number | null;
   name: string;
   team: string;
   value: number;
@@ -120,7 +125,9 @@ export async function buildMlbWeeklyPlayers(
       const st = s.stat ?? {};
       const teamEn = s.team?.name ?? "";
       return {
+        personId: s.player?.id ?? null,
         name: toKoreanPlayerName(s.player!.fullName) || s.player!.fullName!,
+        nameEn: s.player!.fullName!,
         team: toKoreanTeamName(teamEn) || teamEn,
         games: int(st.gamesPlayed),
         atBats: int(st.atBats),
@@ -138,7 +145,9 @@ export async function buildMlbWeeklyPlayers(
       const st = s.stat ?? {};
       const teamEn = s.team?.name ?? "";
       return {
+        personId: s.player?.id ?? null,
         name: toKoreanPlayerName(s.player!.fullName) || s.player!.fullName!,
+        nameEn: s.player!.fullName!,
         team: toKoreanTeamName(teamEn) || teamEn,
         wins: int(st.wins),
         losses: int(st.losses),
@@ -155,7 +164,8 @@ export async function buildMlbWeeklyPlayers(
   if (hitters.length < 20 || pitchers.length < 20) return null;
 
   const topN = <T>(arr: T[], n = 3) => arr.slice(0, n);
-  const cat = (h: { name: string; team: string }, value: number): CategoryLeader => ({
+  const cat = (h: { personId: number | null; name: string; team: string }, value: number): CategoryLeader => ({
+    personId: h.personId,
     name: h.name,
     team: h.team,
     value,
@@ -331,4 +341,78 @@ export function serializeMlbWeeklyFacts(d: MlbWeeklyPlayersData): string {
     L.push(line);
   }
   return L.join("\n");
+}
+
+/* ============================================================
+ * 선수 카드·링크 (글 상세에서 선수 페이지로 연결)
+ * ==========================================================*/
+
+/** MLB 주간 베스트 선수 글 slug 접두사. */
+export const MLB_WEEKLY_SLUG_PREFIX = "mlb-players-weekly-";
+
+export interface MlbWeeklyMvp {
+  personId: number;
+  nameKo: string;
+  nameEn: string;
+  line: string; // "OPS 1.847 · 4홈런 · 4타점"
+}
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * 본문 맨 위에 심는 MVP 마커(HTML 주석 — 마크다운 렌더 시 숨김, 글 페이지가 파싱해 카드로).
+ * MVP = 주간 베스트 타자 1위. personId 없으면 null.
+ */
+export function buildMvpMarker(d: MlbWeeklyPlayersData): string | null {
+  const mvp = d.topHitters[0];
+  if (!mvp || mvp.personId == null) return null;
+  const line = [
+    mvp.ops != null ? `OPS ${mvp.ops.toFixed(3)}` : null,
+    `${mvp.homeRuns}홈런`,
+    `${mvp.rbi}타점`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  // 이름·라인엔 | 가 없다(한글·영문·숫자··). 파이프 구분 안전.
+  return `<!--mvp:${mvp.personId}|${mvp.name}|${mvp.nameEn}|${line}-->`;
+}
+
+/** 글 상세 페이지용 — slug 가 주간글이고 마커가 있으면 MVP 정보 파싱. */
+export function parseMvpMarker(slug: string, content: string): MlbWeeklyMvp | null {
+  if (!slug.startsWith(MLB_WEEKLY_SLUG_PREFIX)) return null;
+  const m = content.match(/<!--mvp:(\d+)\|([^|]*)\|([^|]*)\|([^|]*)-->/);
+  if (!m) return null;
+  return { personId: Number(m[1]), nameKo: m[2], nameEn: m[3], line: m[4] };
+}
+
+/** 렌더 전 MVP 마커 제거. */
+export function stripMvpMarker(content: string): string {
+  return content.replace(/<!--mvp:[^>]*-->\s*/, "");
+}
+
+/**
+ * 본문의 선수명을 선수 페이지 링크 `[이름](/players/{personId})` 로 치환.
+ * personId 있는 선수만, 긴 이름 우선(부분일치 방지), 이미 링크된 이름은 건드리지 않는다.
+ */
+export function linkifyMlbPlayers(content: string, d: MlbWeeklyPlayersData): string {
+  const map = new Map<string, number>();
+  const add = (name: string, id: number | null) => {
+    if (id != null && name && !map.has(name)) map.set(name, id);
+  };
+  for (const h of d.topHitters) add(h.name, h.personId);
+  for (const p of d.topPitchers) add(p.name, p.personId);
+  for (const arr of [d.hrLeaders, d.rbiLeaders, d.sbLeaders, d.soLeaders, d.saveLeaders]) {
+    for (const c of arr) add(c.name, c.personId);
+  }
+  const names = [...map.keys()].sort((a, b) => b.length - a.length);
+  let out = content;
+  for (const name of names) {
+    const id = map.get(name)!;
+    // 이미 [이름] 형태로 링크된 경우는 건너뛴다(앞 `[`·뒤 `]` 가드).
+    const re = new RegExp(`(?<!\\[)${escapeRe(name)}(?!\\])`, "g");
+    out = out.replace(re, `[${name}](/players/${id})`);
+  }
+  return out;
 }
