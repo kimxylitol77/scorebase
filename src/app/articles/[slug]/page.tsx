@@ -678,7 +678,7 @@ export default async function ArticlePage({ params }: Props) {
             alt={mlbMvp.nameKo}
             width={112}
             height={112}
-            className="h-24 w-24 shrink-0 rounded-2xl bg-zinc-200 object-cover object-top ring-1 ring-black/5 sm:h-28 sm:w-28 dark:bg-white/10 dark:ring-white/10"
+            className="h-24 w-24 shrink-0 rounded-2xl bg-zinc-200 object-contain ring-1 ring-black/5 sm:h-28 sm:w-28 dark:bg-white/10 dark:ring-white/10"
           />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">
