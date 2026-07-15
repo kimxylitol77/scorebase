@@ -1,0 +1,15 @@
+# 이적시장 예상 XI 봇 — 컨텍스트 노트
+
+## 2026-07-15 설계
+
+- **계정 = fake13(축덕광)**: 사용자 선택. post 875(마레스카 맨시티, 조회 339)의 실제 작성자라 연속성 있음.
+  페르소나 톤 "축구 전술 얘기 좋아함. 라인업·압박 같은 단어를 가볍게 씀" (fake-members.ts PERSONAS[13]).
+  fake-members.ts 는 server-only 라 job 에서 import 불가 → 이메일(fake13@scorebase.internal)·톤 문자열을 job 에 로컬 정의.
+- **포지션 데이터 신뢰 순위**: player-positions-detail.json primary > 스쿼드 position 문자.
+  맨시티 실측에서 "불일치" 5건 모두 detail 쪽이 정답(그릴리시 LW, 누네스 RB, 오라일리 LB —
+  스쿼드 문자는 윙어를 M 으로 뭉뚱그림). 교차 게이트 만들면 오히려 정답을 기각하므로 안 함.
+- **포메이션은 역산**: 배치 결과 라인 인원수로 도출(4-2-3-1 등). 웹 검색 formation 은 로그만.
+- **중복 가드**: fake13 의 오늘 lineupCode 글 존재 = 스킵. 같은 팀 7일 = 최근 7d fake13 lineupCode 글 제목에 팀명 포함 검사.
+- **LLM 비용**: 웹서치 2회/일 (XI 이름 + 본문). 기본 ON, 킬스위치 TRANSFER_XI_DISABLED=1.
+- **크론 10:00 KST** — 이적 데일리(09:00) 뒤. 조용한 날(주목 이적 없음)은 자연 스킵.
+- 단일 보드 풀피치는 versus 절반과 달리 공간 여유(라인 간격 15%+) → 겹침 병합 불필요.

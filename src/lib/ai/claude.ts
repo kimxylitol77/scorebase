@@ -158,6 +158,51 @@ async function generateAnthropic(
 }
 
 /**
+ * 웹 검색 기반 생성 — Anthropic web_search 서버 도구로 실시간 정보를 검색한 뒤 답한다.
+ * (예상 라인업처럼 학습 지식만으론 낡거나 틀리는 사실을 매체에서 끌어올 때 사용.)
+ * 서버 도구라 검색은 API 가 실행하며, 최종 text 블록만 반환한다. 실패 시 예외를 던지므로
+ * 호출부는 반드시 try/catch 로 감싸 라인업 생략 등 fallback 을 둘 것.
+ */
+export async function generateWithWebSearch(
+  prompt: string,
+  opts: GenerateOptions & { maxUses?: number } = {},
+): Promise<string> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 120_000);
+  // web_search 는 서버 도구라 검색 왕복 동안 stop_reason=pause_turn 으로 끊길 수 있다.
+  // 그 경우 직전 assistant content 를 이어붙여 재요청해야 최종 text 가 나온다 (최대 4턴).
+  const messages: Anthropic.MessageParam[] = [{ role: "user", content: prompt }];
+  try {
+    for (let turn = 0; turn < 4; turn++) {
+      const response = await claude.messages.create(
+        {
+          model: opts.model ?? CLAUDE_MODEL,
+          max_tokens: opts.maxTokens ?? 2048,
+          system: opts.system,
+          messages,
+          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: opts.maxUses ?? 3 }],
+        },
+        { signal: ctrl.signal, timeout: 120_000 },
+      );
+      if (response.stop_reason === "pause_turn") {
+        messages.push({ role: "assistant", content: response.content });
+        continue;
+      }
+      const text = response.content
+        .filter((b): b is Anthropic.TextBlock => b.type === "text")
+        .map((b) => b.text)
+        .join("\n")
+        .trim();
+      if (!text) throw new Error("web_search 응답에 텍스트 블록이 없습니다.");
+      return text;
+    }
+    throw new Error("web_search pause_turn 4턴 초과 — 최종 응답 없음");
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/**
  * 기사 텍스트 생성 — Anthropic 우선, 크레딧 소진·장애 시 OpenAI(gpt-4o-mini) 자동 폴백.
  * AI_PROVIDER=openai 면 Anthropic 건너뛰고 OpenAI 직행 (크레딧 0 동안 400 왕복 회피).
  * 호출부(generateWithMinLength → 모든 글 생성)는 이 함수만 쓰면 됨.
