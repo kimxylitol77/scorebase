@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/claude";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { afPlayerToTs } from "@/lib/players/ts-af-map";
 import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import { kstDayWindow } from "@/lib/threads/kst";
 import { leagueLabel } from "@/lib/analysis/matches";
@@ -19,7 +20,7 @@ import { FAKE_NICKNAMES, PERSONAS, ensureFakeMember } from "@/lib/analysis/fake-
 const DAILY_CAP = 6; // 자유게시판 봇 글 하루 상한 — 규모 대비 도배 방지
 
 interface Topic {
-  kind: "upset" | "blowout" | "kbo-race" | "ai-report" | "big-match" | "leader" | "rumor";
+  kind: "upset" | "blowout" | "kbo-race" | "ai-report" | "big-match" | "leader" | "rumor" | "vs";
   data: string; // 프롬프트에 주입할 검증된 재료
   guide: string; // 글 형식 지시
   matchId?: number; // 매치 기반 토픽 — dedupe + 카드 첨부
@@ -188,6 +189,67 @@ async function rumorTopics(todayPosts: { content: string }[]): Promise<Topic[]> 
   return cands.sort(() => Math.random() - 0.5).slice(0, 2);
 }
 
+// ── vs놀이 (A vs B 누가 낫냐 / 라이벌 매치, mlbpark 간판 문화) ────────────────
+// 같은 리그 득점왕·도움왕 직접 경쟁자(rank1 vs rank2)를 라이벌로 세우고, 우리 선수 비교
+// 페이지(/compare/{ts_a}/{ts_b})로 링크해 댓글·탐색을 유도. 둘 다 af→ts 변환되는 축구만.
+const VS_SOCCER_LEAGUES = new Set(["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1"]);
+const VS_CATEGORIES = ["GOAL", "ASSIST"];
+
+/** 같은 리그 간판 스탯 1위 vs 2위 라이벌 vs놀이 토픽. 상한 2, 둘 다 비교 링크 가능해야 함. */
+async function vsTopics(todayPosts: { content: string }[]): Promise<Topic[]> {
+  const rows = await prisma.leagueLeader.findMany({
+    where: {
+      league: { in: [...VS_SOCCER_LEAGUES] },
+      category: { in: VS_CATEGORIES },
+      rank: { lte: 2 },
+      value: { gt: 0 },
+      externalId: { not: null },
+    },
+    orderBy: [{ league: "asc" }, { category: "asc" }, { season: "desc" }, { rank: "asc" }],
+    select: { league: true, category: true, rank: true, playerName: true, teamName: true, value: true, unit: true, season: true, externalId: true },
+    take: 200,
+  });
+
+  type Row = (typeof rows)[number];
+  const groups = new Map<string, Row[]>();
+  for (const r of rows) {
+    const key = `${r.league}|${r.category}`;
+    const g = groups.get(key);
+    if (!g) groups.set(key, [r]);
+    else if (g[0].season === r.season) g.push(r);
+  }
+
+  const cands: Topic[] = [];
+  for (const g of groups.values()) {
+    const r1 = g.find((x) => x.rank === 1);
+    const r2 = g.find((x) => x.rank === 2);
+    if (!r1 || !r2) continue;
+    // 비교 링크가 살아있으려면 둘 다 ts 매핑 필요 (없으면 라이벌 매치 자체를 생략).
+    const ts1 = r1.externalId ? afPlayerToTs(r1.externalId) : null;
+    const ts2 = r2.externalId ? afPlayerToTs(r2.externalId) : null;
+    if (!ts1 || !ts2 || ts1 === ts2) continue;
+    const p1 = toKoreanPlayerName(r1.playerName).trim();
+    const p2 = toKoreanPlayerName(r2.playerName).trim();
+    if (!p1 || !p2) continue;
+    if (todayPosts.some((p) => p.content.includes(p1) && p.content.includes(p2))) continue;
+    const cat = r1.unit ?? r1.category;
+    const t1 = toKoreanTeamName(r1.teamName, r1.league).trim();
+    const t2 = toKoreanTeamName(r2.teamName, r2.league).trim();
+    const [x, y] = [ts1, ts2].sort();
+    cands.push({
+      kind: "vs",
+      data: [
+        `${leagueLabel(r1.league)} ${cat} 라이벌 맞대결`,
+        `A: ${p1}(${t1}) ${cat} ${fmtLeaderValue(r1.category, r1.value)}`,
+        `B: ${p2}(${t2}) ${cat} ${fmtLeaderValue(r2.category, r2.value)}`,
+      ].join("\n"),
+      guide: "두 선수 중 누가 더 낫냐를 묻는 vs놀이 글. 자기 생각을 한쪽에 살짝 얹되 다른 회원 의견을 묻는 질문으로 끝내기. 1~2문장. 한쪽을 사실로 단정하지 말 것 — 어디까지나 취향·의견.",
+      appendix: `\n\n스탯 맞대결 → [${p1} vs ${p2}](/compare/${x}/${y})`,
+    });
+  }
+  return cands.sort(() => Math.random() - 0.5).slice(0, 2);
+}
+
 async function buildTopics(): Promise<Topic[]> {
   const topics: Topic[] = [];
   const todayPosts = await todayBotFreePosts();
@@ -331,6 +393,11 @@ async function buildTopics(): Promise<Topic[]> {
     topics.push(...(await rumorTopics(todayPosts)));
   } catch {
     // 루머 없음 → 토픽 생략
+  }
+  try {
+    topics.push(...(await vsTopics(todayPosts)));
+  } catch {
+    // 비교 가능한 라이벌 쌍 없음 → 토픽 생략
   }
 
   return topics;
