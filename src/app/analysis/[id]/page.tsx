@@ -2,7 +2,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
+import { COOKIE_NAME as ADMIN_COOKIE, readSessionCookie } from "@/lib/auth";
 import { displayGrade } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
@@ -126,6 +128,8 @@ export default async function PostDetailPage({ params }: Props) {
 
   const userId = await getCurrentUserId();
   const isAuthor = userId === post.authorId;
+  // 관리자 — 게시판 모든 글 수정 버튼 노출 (admin_session HMAC 검증).
+  const isAdmin = !!readSessionCookie((await cookies()).get(ADMIN_COOKIE)?.value);
   const g = displayGrade(post.author.level, post.author.badge);
   const a = post.author;
 
@@ -212,6 +216,14 @@ export default async function PostDetailPage({ params }: Props) {
             <>
               <span>·</span>
               <DeletePostButton postId={post.id} />
+            </>
+          )}
+          {isAdmin && (
+            <>
+              <span>·</span>
+              <Link href={`/analysis/${post.id}/edit`} className="font-semibold text-rose-500 hover:underline">
+                수정
+              </Link>
             </>
           )}
         </div>

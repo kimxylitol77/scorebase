@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
+import { COOKIE_NAME as ADMIN_COOKIE, readSessionCookie } from "@/lib/auth";
 import { getCurrentUserId } from "@/lib/current-user";
 import { awardExp } from "@/lib/user-exp";
 import { EXP_REWARDS, POINT_REWARDS } from "@/lib/user-level";
@@ -230,6 +232,32 @@ export async function deletePostAction(formData: FormData): Promise<void> {
   const listPath = post.category === "FREE" ? "/analysis?board=free" : "/analysis";
   revalidatePath(listPath);
   redirect(listPath);
+}
+
+/** 글 수정 (관리자 전용) — 게시판 모든 글의 제목·본문·전술판 코드 수정. */
+export async function updatePostAdminAction(formData: FormData): Promise<void> {
+  const c = await cookies();
+  const admin = readSessionCookie(c.get(ADMIN_COOKIE)?.value);
+  if (!admin) return;
+  const postId = Number(formData.get("postId"));
+  if (!Number.isInteger(postId)) return;
+  const title = String(formData.get("title") ?? "").trim();
+  const content = String(formData.get("content") ?? "").trim();
+  if (!title || !content) return;
+  // 전술판 — 공유 URL(/lineup?d=...) 을 통째로 붙여넣어도 코드만 추출.
+  let lineupCode = String(formData.get("lineupCode") ?? "").trim();
+  const dm = lineupCode.match(/[?&]d=([^&\s]+)/);
+  if (dm) lineupCode = dm[1];
+
+  const exists = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+  if (!exists) return;
+  await prisma.post.update({
+    where: { id: postId },
+    data: { title, content, lineupCode: lineupCode || null },
+  });
+  revalidatePath(`/analysis/${postId}`);
+  revalidatePath("/analysis");
+  redirect(`/analysis/${postId}`);
 }
 
 /** 댓글 삭제 (본인만). 댓글 경험치 회수 + commentCount 감소. */
