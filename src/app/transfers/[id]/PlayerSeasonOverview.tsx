@@ -109,6 +109,27 @@ export default function PlayerSeasonOverview({ name, stat }: { name: string; sta
             </ResponsiveContainer>
           </div>
           <p className="text-center text-[11px] text-neutral-400 mt-1">레이더에 마우스를 올리면 실제 수치가 표시됩니다</p>
+
+          {/* 90분당 지표 — 레이더가 상대 백분위라 절대값을 따로 명시 (buildup 벤치마크) */}
+          {!isGk && mins > 0 && (
+            <div className="mt-3">
+              <div className="mb-1 text-[11px] font-semibold text-neutral-400">90분당 지표</div>
+              <div className="grid grid-cols-5 gap-1.5">
+                {([
+                  ["골", p90(stat.goals)],
+                  ["도움", p90(stat.assists)],
+                  ["키패스", p90(stat.keyPasses)],
+                  ["태클", p90(stat.tackles)],
+                  ["인터셉트", p90(stat.interceptions)],
+                ] as [string, number][]).map(([label, v]) => (
+                  <div key={label} className="rounded-lg bg-neutral-50 px-1 py-2 text-center ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+                    <div className="text-sm font-bold tabular-nums">{v.toFixed(2)}</div>
+                    <div className="text-[10px] text-neutral-400">{label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 카드 2x2 */}

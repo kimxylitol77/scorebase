@@ -31,6 +31,7 @@ import PlayerHeatmapAnalysis, { type PlayerHeatmapData } from "./PlayerHeatmapAn
 import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps";
 import PlayerBioPanel from "./PlayerBioPanel";
 import PlayerCareerTable from "./PlayerCareerTable";
+import CareerTrendChart, { type TrendPoint } from "./CareerTrendChart";
 import { getPlayerCareerByTs } from "./career-data";
 import PlayerInjuryHistory from "./PlayerInjuryHistory";
 import { getPlayerInjuriesByTs } from "./injury-data";
@@ -793,6 +794,36 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
 
   // 경력 (API-Football 시즌별 대회별 스탯) — af 매핑 있으면. 없으면 WIKI 시즌 폴백.
   const careerGroups = await getPlayerCareerByTs(id);
+  // 통산(클럽 대회 합산) 요약 4칸 + 시즌별 골·도움 추이 — buildup 벤치마크 (2026-07-15).
+  const clubGroups = careerGroups.filter((g) => g.cat !== "national");
+  const careerTotals = clubGroups.length
+    ? clubGroups.reduce(
+        (a, g) => ({
+          apps: a.apps + g.total.appearances,
+          goals: a.goals + g.total.goals,
+          assists: a.assists + g.total.assists,
+          yellow: a.yellow + g.total.yellow,
+          red: a.red + g.total.red,
+        }),
+        { apps: 0, goals: 0, assists: 0, yellow: 0, red: 0 },
+      )
+    : null;
+  const trendPoints: TrendPoint[] = (() => {
+    const bySeason = new Map<number, { label: string; goals: number; assists: number; logo: string | null; topApps: number }>();
+    for (const g of clubGroups) {
+      for (const r of g.rows) {
+        const cur = bySeason.get(r.season) ?? {
+          label: r.seasonLabel.replace(/^20(\d\d)\/20(\d\d)$/, "$1/$2"),
+          goals: 0, assists: 0, logo: null, topApps: -1,
+        };
+        cur.goals += r.goals;
+        cur.assists += r.assists;
+        if (r.appearances > cur.topApps) { cur.topApps = r.appearances; cur.logo = r.teamLogo ?? cur.logo; }
+        bySeason.set(r.season, cur);
+      }
+    }
+    return [...bySeason.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+  })();
   // 부상 이력 (API-Football, 최근 5시즌 스펠) — 스펠 있으면 "부상" 탭 표시.
   const injurySpells = await getPlayerInjuriesByTs(id);
   // 출전기록 (경기별 평점) — collect-player-match-logs 잡이 적재. 있으면 "출전기록" 탭.
@@ -809,7 +840,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   });
 
   return (
-    <article className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
       <div className="flex items-center justify-between gap-2">
         <Link
@@ -872,6 +903,23 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
       />
+
+      {/* 통산 요약 (클럽 대회 합산) — 한눈 커리어 4칸 */}
+      {careerTotals && careerTotals.apps > 0 && (
+        <div className="grid grid-cols-4 gap-2 sm:gap-3">
+          {([
+            ["통산 출전", String(careerTotals.apps), ""],
+            ["통산 득점", String(careerTotals.goals), "text-rose-500"],
+            ["통산 도움", String(careerTotals.assists), "text-blue-500"],
+            ["경고/퇴장", `${careerTotals.yellow}/${careerTotals.red}`, ""],
+          ] as [string, string, string][]).map(([label, v, cls]) => (
+            <div key={label} className="rounded-xl bg-white px-2 py-3 text-center ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+              <div className={`text-xl sm:text-2xl font-bold tabular-nums ${cls}`}>{v}</div>
+              <div className="mt-0.5 text-[11px] text-neutral-400">{label}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 탭 — 개요 / 시즌별 / 경기 / 이적 (buildup IA). 헤더·출처는 탭 밖 고정 */}
       <PlayerTabs
@@ -949,7 +997,16 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             ),
           },
           ...(careerGroups.length > 0
-            ? [{ key: "career", label: "경력", content: <PlayerCareerTable groups={careerGroups} /> }]
+            ? [{
+                key: "career",
+                label: "경력",
+                content: (
+                  <>
+                    <CareerTrendChart points={trendPoints} />
+                    <PlayerCareerTable groups={careerGroups} />
+                  </>
+                ),
+              }]
             : seasonEntries.length > 0
             ? [{ key: "seasons", label: "시즌별", content: <SeasonAccordion seasons={seasonEntries} /> }]
             : []),
