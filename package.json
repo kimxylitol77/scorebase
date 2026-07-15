@@ -16,6 +16,7 @@
     "job:collect": "tsx src/jobs/collect.ts",
     "job:daily-topic": "tsx src/jobs/post-daily-topic.ts",
     "job:transfer-daily": "tsx --env-file=.env.local src/jobs/generate-transfer-daily.ts",
+    "job:lineup-post": "tsx --env-file=.env.local src/jobs/generate-lineup-post.ts",
     "job:news-briefing": "tsx --env-file=.env.local src/jobs/fetch-news-briefing.ts",
     "job:backfill": "tsx src/jobs/backfill.ts",
     "job:generate": "tsx src/jobs/generate-articles.ts",
