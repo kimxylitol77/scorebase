@@ -107,7 +107,7 @@ export default function TermsPage() {
       </p>
 
       <p className={`${P} mt-6 text-neutral-400 dark:text-neutral-500`}>
-        시행일: 2026년 7월 2일 · 문의:{" "}
+        시행일: 2026년 7월 2일 · 문의: 사이트 우하단 챗봇 또는{" "}
         <a href="mailto:kimxylitol77@gmail.com" className="hover:underline">
           kimxylitol77@gmail.com
         </a>

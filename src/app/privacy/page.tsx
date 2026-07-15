@@ -172,7 +172,8 @@ export default function PrivacyPage() {
       <p className={P}>
         개인정보 보호책임자: 스코어베이스 운영자
         <br />
-        문의: <a href="mailto:kimxylitol77@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">kimxylitol77@gmail.com</a>
+        문의: 사이트 우하단 챗봇으로 남기시면 가장 빠르게 확인합니다. 이메일 문의는{" "}
+        <a href="mailto:kimxylitol77@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">kimxylitol77@gmail.com</a> 로도 가능합니다.
         <br />
         개인정보 침해 신고·상담은 개인정보침해신고센터(privacy.kisa.or.kr,
         국번없이 118)에서도 가능합니다.
