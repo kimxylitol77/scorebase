@@ -402,14 +402,22 @@ export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeam
   };
 
   // XI 명단 텍스트 — 라인별.
-  const lineNames = (b: Bucket[]) =>
-    entries.filter((e) => b.includes(e.bucket)).map((e) => playerKo(e.name, names.get(e.id))).join(", ");
+  // XI 명단 — 보드 배치(슬롯) 기준으로 그룹핑해 전술판과 일치시킨다
+  // (이력 포지션 기준이면 4-2-3-1 인데 FW 2명으로 표기되는 어긋남 — post 1028 초판 실측).
+  const entryById = new Map(entries.map((e) => [e.id, e]));
+  const placedName = (p: Placed) =>
+    p.pid ? playerKo(entryById.get(p.pid)?.name ?? p.pid, names.get(p.pid)) : (p.name ?? "?");
+  // 같은 시각적 라인(y 미세 차이)은 좌→우로만 — /15 반올림으로 라인 단위 그룹핑.
+  const lineNames = (pos: Pos) =>
+    laid.players.filter((p) => p.pos === pos)
+      .sort((a, b) => Math.round(b.y / 15) - Math.round(a.y / 15) || a.x - b.x)
+      .map(placedName).join(", ");
   const xiBlock = [
     `**예상 베스트 XI (${laid.formation})**`,
-    `- GK: ${lineNames(["GK"])}`,
-    `- DF: ${lineNames(["DF"])}`,
-    `- MF: ${lineNames(["DM", "CM", "AM"])}`,
-    `- FW: ${lineNames(["FW"])}`,
+    `- GK: ${lineNames("GK")}`,
+    `- DF: ${lineNames("DF")}`,
+    `- MF: ${lineNames("MF")}`,
+    `- FW: ${lineNames("FW")}`,
   ].join("\n");
 
   const signingLines = focusTeam.moves.map(
