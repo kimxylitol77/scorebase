@@ -1,12 +1,14 @@
 // 자유게시판(FREE) 커뮤니티 포맷 봇 — 2026-07-05 커뮤니티 리서치에서 검증된 "잘 터지는"
-// 글 유형(이변 반응·대승 반응·순위 접전 정리·AI 성적표·빅매치 잡담)을 우리 DB 데이터로 재현.
-// 원칙: 날조 금지 — DB 에서 검증 가능한 숫자(스코어·확률·게임차·적중률)만 재료로 쓰고,
-// 짤은 자체 스탯카드(/api/og/match-card)를 쓴다. fake-picks cron(30분)에 편승해 하루 3~6글.
+// 글 유형을 우리 DB 데이터로 재현. 유형: 이변 반응·대승 반응·순위 접전 정리·AI 성적표·빅매치
+// 잡담 + (2026-07-15 fmkorea/mlbpark 리서치 반영) 선수 리더 소재·이적 루머 반응.
+// 원칙: 날조 금지 — DB 에서 검증 가능한 숫자(스코어·확률·게임차·적중률·리더 기록·보도 단계)만
+// 재료로 쓰고, 짤은 자체 스탯카드(/api/og/match-card)를 쓴다. fake-picks cron(30분)에 편승.
 
 import "server-only";
 import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/claude";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { ARTICLE_LEAGUES } from "@/lib/sports/types";
 import { kstDayWindow } from "@/lib/threads/kst";
 import { leagueLabel } from "@/lib/analysis/matches";
@@ -17,7 +19,7 @@ import { FAKE_NICKNAMES, PERSONAS, ensureFakeMember } from "@/lib/analysis/fake-
 const DAILY_CAP = 6; // 자유게시판 봇 글 하루 상한 — 규모 대비 도배 방지
 
 interface Topic {
-  kind: "upset" | "blowout" | "kbo-race" | "ai-report" | "big-match";
+  kind: "upset" | "blowout" | "kbo-race" | "ai-report" | "big-match" | "leader" | "rumor";
   data: string; // 프롬프트에 주입할 검증된 재료
   guide: string; // 글 형식 지시
   matchId?: number; // 매치 기반 토픽 — dedupe + 카드 첨부
@@ -73,6 +75,117 @@ async function todayBotFreePosts() {
     },
     select: { content: true },
   });
+}
+
+// ── 선수 리더 소재 (커뮤니티 최대 소재: "이 선수 이 기록 실화") ──────────────
+// 인기 리그 + 간판 스탯만. 카드·경고 카테고리(YELLOW/RED)나 군소 리그는 제외.
+const POPULAR_LEADER_LEAGUES = new Set([
+  "EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LIGUE_1", "UCL", "WORLD_CUP",
+  "MLB", "KBO", "NPB", "NBA", "NHL", "LOL",
+]);
+// 간판 카테고리만 — SAVE 는 KBO/NPB 에서 선발이 0으로 1위 잡히는 유령행이 있어 제외.
+const MARQUEE_CATEGORIES = ["GOAL", "ASSIST", "HR", "BA", "ERA", "K", "RBI", "PTS", "AST", "REB", "POINTS", "GOAL_NHL", "KDA", "KILL"];
+const LEADER_DEC1 = new Set(["PTS", "AST", "REB"]); // NBA 경기당 스탯 — 소수 1자리로 반올림
+const LEADER_DEC2 = new Set(["ERA", "KDA"]);
+const LEADER_DEC3 = new Set(["BA"]);
+
+/** 리더 값 표시 — 카테고리별 자릿수 고정. 긴 float(경기당 스탯)을 왜곡 없이 다듬기만. */
+function fmtLeaderValue(cat: string, v: number): string {
+  if (LEADER_DEC3.has(cat)) return v.toFixed(3);
+  if (LEADER_DEC2.has(cat)) return v.toFixed(2);
+  if (LEADER_DEC1.has(cat)) return v.toFixed(1);
+  return Number.isInteger(v) ? String(v) : v.toFixed(1);
+}
+
+/** 인기 리그 간판 스탯의 최신 시즌 선두(+근접 2위) 반응 토픽. 상한 3, 오늘 언급된 선수 제외. */
+async function leaderTopics(todayPosts: { content: string }[]): Promise<Topic[]> {
+  const rows = await prisma.leagueLeader.findMany({
+    where: {
+      league: { in: [...POPULAR_LEADER_LEAGUES] },
+      category: { in: MARQUEE_CATEGORIES },
+      rank: { lte: 2 },
+      value: { gt: 0 }, // 유령 0 기록(세이브 등) 배제
+    },
+    orderBy: [{ league: "asc" }, { category: "asc" }, { season: "desc" }, { rank: "asc" }],
+    select: { league: true, category: true, rank: true, playerName: true, teamName: true, value: true, unit: true, season: true },
+    take: 600,
+  });
+
+  // 리그+카테고리별 최신 시즌만 (season desc 정렬이라 그룹 첫 행이 최신 시즌).
+  type Row = (typeof rows)[number];
+  const groups = new Map<string, Row[]>();
+  for (const r of rows) {
+    const key = `${r.league}|${r.category}`;
+    const g = groups.get(key);
+    if (!g) groups.set(key, [r]);
+    else if (g[0].season === r.season) g.push(r);
+  }
+
+  const cands: Topic[] = [];
+  for (const g of groups.values()) {
+    const r1 = g.find((x) => x.rank === 1);
+    if (!r1) continue;
+    const player = toKoreanPlayerName(r1.playerName).trim();
+    if (!player) continue;
+    if (todayPosts.some((p) => p.content.includes(player))) continue; // 하루 중복 방지
+    const label = r1.unit ?? r1.category;
+    const team = toKoreanTeamName(r1.teamName, r1.league).trim();
+    const val = fmtLeaderValue(r1.category, r1.value);
+    const lines = [`${leagueLabel(r1.league)} ${label} 1위: ${player}(${team}) ${val}`];
+    const r2 = g.find((x) => x.rank === 2);
+    if (r2) {
+      const p2 = toKoreanPlayerName(r2.playerName).trim();
+      const t2 = toKoreanTeamName(r2.teamName, r2.league).trim();
+      if (p2) lines.push(`2위: ${p2}(${t2}) ${fmtLeaderValue(r2.category, r2.value)}`);
+    }
+    cands.push({
+      kind: "leader",
+      data: lines.join("\n"),
+      guide: "리그 선두 선수의 기록을 보고 감탄하거나 가볍게 던지는 반응 글. 1~2문장. 2위와 격차가 촘촘하면 순위 경쟁으로 엮어도 좋음.",
+      appendix: `\n\n[${leagueLabel(r1.league)} 리더 보기](/standings/${r1.league})`,
+    });
+  }
+  return cands.sort(() => Math.random() - 0.5).slice(0, 3);
+}
+
+// ── 이적 루머 반응 (fmkorea "[소식통] 선수 이적설" 문법) ──────────────────────
+const RUMOR_STAGE_KO: Record<string, string> = {
+  OFFICIAL: "공식 발표", HERE_WE_GO: "오피셜 임박", MEDICAL: "메디컬 진행", TALKS: "협상 진행",
+};
+
+/** 최근 3일 이적 보도 반응 토픽. 상한 2, 선수 중복·오늘 언급 제외. 금액은 프롬프트에 안 넣음. */
+async function rumorTopics(todayPosts: { content: string }[]): Promise<Topic[]> {
+  const since = new Date(Date.now() - 3 * 24 * 3600 * 1000);
+  const rows = await prisma.transferRumor.findMany({
+    where: { hidden: false, publishedAt: { gte: since }, toTeamKo: { not: null } },
+    orderBy: { publishedAt: "desc" },
+    take: 25,
+    select: { playerKo: true, fromTeamKo: true, toTeamKo: true, stage: true, summaryKo: true, sourceName: true },
+  });
+
+  const cands: Topic[] = [];
+  const seen = new Set<string>();
+  for (const r of rows) {
+    const player = r.playerKo.trim();
+    if (!player || seen.has(player)) continue;
+    seen.add(player);
+    if (todayPosts.some((p) => p.content.includes(player))) continue;
+    const from = r.fromTeamKo ?? "현 소속팀";
+    const stage = RUMOR_STAGE_KO[r.stage] ?? r.stage;
+    // summaryKo 는 보도 팩트지만 이적료 문구가 섞일 수 있어, 프롬프트엔 요약을 넣되 금액 언급을 금지한다.
+    cands.push({
+      kind: "rumor",
+      data: [
+        `이적 소식(보도): ${player} ${from} → ${r.toTeamKo}`,
+        `보도 단계: ${stage}`,
+        `한 줄 요약: ${r.summaryKo}`,
+        `보도 출처: ${r.sourceName}`,
+      ].join("\n"),
+      guide: "이 이적 소식을 접한 팬의 반응 글. 놀람·환영·의심·아쉬움 중 하나의 결. 1~2문장. 보도된 사실만 쓰고, 이적료·금액·구체적 계약 조건은 언급 금지. '협상 진행' 등 확정 아닌 단계는 단정하지 말 것.",
+      appendix: `\n\n[이적시장 보기](/transfers)`,
+    });
+  }
+  return cands.sort(() => Math.random() - 0.5).slice(0, 2);
 }
 
 async function buildTopics(): Promise<Topic[]> {
@@ -208,6 +321,18 @@ async function buildTopics(): Promise<Topic[]> {
     }
   }
 
+  // 6·7. 선수 리더 소재 + 이적 루머 반응 — 커뮤니티 밥줄 소재. 쿼리 실패해도 경기 토픽은 유지.
+  try {
+    topics.push(...(await leaderTopics(todayPosts)));
+  } catch {
+    // 리더 캐시 miss 는 토픽 생략
+  }
+  try {
+    topics.push(...(await rumorTopics(todayPosts)));
+  } catch {
+    // 루머 없음 → 토픽 생략
+  }
+
   return topics;
 }
 
@@ -217,9 +342,14 @@ const FREE_SYSTEM = (nickname: string, tone: string, guide: string, recent: stri
 - 말투: ${tone}
 - 전문 분석가 아님. 팬의 시선. 픽·베팅 얘기는 이 글에선 안 함.
 
+[커뮤니티 말투 — 중간 강도]
+- 진짜 스포츠 커뮤니티 회원처럼. 반응형 짧은 감탄·혼잣말·질문을 환영.
+- ㅋㅋ·ㄷㄷ·ㄹㅇ·실화냐·甲 같은 표현을 가끔 써도 됨(글 하나에 한두 번까지, 도배 금지). 이모지·해시태그 금지.
+- 매번 같은 결로 쓰지 말 것 — 어떤 글은 반말로 툭 던지고, 어떤 글은 존댓말로 의견을 묻는 식으로. 페르소나 말투를 우선.
+
 [이번 글]
 - ${guide}
-- 제목: 25자 이내 단문. 커뮤니티식 — 감탄·혼잣말·질문 다 가능. 팀명이나 숫자가 들어가면 좋음. 기사 헤드라인 톤 금지.
+- 제목: 25자 이내 단문. 커뮤니티식 — 감탄·혼잣말·질문·반토막 문장 다 가능. 팀명·선수 실명이나 숫자가 들어가면 좋음. 기사 헤드라인 톤 금지.
 - 본문: 1~3문장. 길면 안 됨.
 
 [사실 규칙 — 절대]
