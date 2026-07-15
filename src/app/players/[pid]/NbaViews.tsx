@@ -22,6 +22,7 @@ import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerTabs from "./PlayerTabs";
 import NbaSeasonOverview from "./NbaSeasonOverview";
+import { NbaTrendChart } from "./NbaTrendChart";
 
 /* ---------- 공통 헬퍼 ---------- */
 
@@ -367,6 +368,26 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
           </div>
         </section>
       )}
+
+      {career && career.min > 0 && (
+        <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
+            36분 환산 <span className="text-neutral-400 normal-case tracking-normal">per 36 MIN</span>
+          </h2>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            <Stat label="PTS" value={n1((career.pts / career.min) * 36)} accent />
+            <Stat label="REB" value={n1((career.reb / career.min) * 36)} accent />
+            <Stat label="AST" value={n1((career.ast / career.min) * 36)} accent />
+            <Stat label="STL" value={n1((career.stl / career.min) * 36)} />
+            <Stat label="BLK" value={n1((career.blk / career.min) * 36)} />
+          </div>
+          <p className="text-[11px] text-neutral-400 mt-2 leading-relaxed">
+            36분 뛴다고 가정했을 때의 생산량. 출전시간 편차를 걷어내 벤치·롤플레이어끼리 비교할 때 쓰인다.
+          </p>
+        </section>
+      )}
+
+      <NbaTrendChart rows={seasons} />
 
       {awards.length > 0 && (
         <section>
