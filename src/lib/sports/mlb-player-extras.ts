@@ -552,7 +552,9 @@ async function fetchBattedBallsRaw(personId: number, season: number): Promise<Ba
   }
 }
 
-export const getBattedBalls = unstable_cache(fetchBattedBallsRaw, ["mlb-batted-balls-v1"], {
+// v2: game_year→hfSea 수정. v1 은 배포 간 유지되는 Data Cache 에 빈/timeout 결과가
+// 남아있어 키를 올려 무효화한다.
+export const getBattedBalls = unstable_cache(fetchBattedBallsRaw, ["mlb-batted-balls-v2"], {
   revalidate: 21600,
 });
 
@@ -597,6 +599,6 @@ async function fetchPitchLocationsRaw(personId: number, season: number): Promise
   }
 }
 
-export const getPitchLocations = unstable_cache(fetchPitchLocationsRaw, ["mlb-pitch-loc-v1"], {
+export const getPitchLocations = unstable_cache(fetchPitchLocationsRaw, ["mlb-pitch-loc-v2"], {
   revalidate: 21600,
 });
