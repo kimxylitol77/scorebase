@@ -521,7 +521,8 @@ const HIT_EVENTS = new Set(["single", "double", "triple"]);
 async function fetchBattedBallsRaw(personId: number, season: number): Promise<BattedBall[]> {
   try {
     const { data } = await axios.get<string>(
-      `https://baseballsavant.mlb.com/statcast_search/csv?player_type=batter&batters_lookup[]=${personId}&game_year=${season}&type=details&all=true`,
+      // hfSea 가 실제 시즌 필터. game_year 는 무시돼 커리어 전체(25000행 캡)를 반환하므로 금지.
+      `https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfSea=${season}%7C&player_type=batter&batters_lookup[]=${personId}&type=details`,
       { timeout: 25000, responseType: "text" },
     );
     const lines = data.split("\n");
@@ -569,7 +570,8 @@ export interface PitchLoc {
 async function fetchPitchLocationsRaw(personId: number, season: number): Promise<PitchLoc[]> {
   try {
     const { data } = await axios.get<string>(
-      `https://baseballsavant.mlb.com/statcast_search/csv?player_type=pitcher&pitchers_lookup[]=${personId}&game_year=${season}&type=details&all=true`,
+      // hfSea 가 실제 시즌 필터. game_year 는 무시돼 커리어 전체(25000행 캡)를 반환하므로 금지.
+      `https://baseballsavant.mlb.com/statcast_search/csv?all=true&hfSea=${season}%7C&player_type=pitcher&pitchers_lookup[]=${personId}&type=details`,
       { timeout: 25000, responseType: "text" },
     );
     const lines = data.split("\n");
