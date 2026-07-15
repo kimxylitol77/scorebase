@@ -27,6 +27,7 @@ import PlayerAdvancedStats from "./PlayerAdvancedStats";
 import PlayerTraits from "./PlayerTraits";
 import PlayerAdvancedMetrics, { type AdvMetrics } from "./PlayerAdvancedMetrics";
 import rawAdvMetrics from "../../../../data/player-advanced-thestats.json";
+import rawWages from "../../../../data/football-wages.json";
 import PlayerHeatmapAnalysis, { type PlayerHeatmapData } from "./PlayerHeatmapAnalysis";
 import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps";
 import PlayerBioPanel from "./PlayerBioPanel";
@@ -129,6 +130,8 @@ const ABILITY = rawAbility as Record<string, number>;
 const HEATMAP_ANALYSIS = rawPlayerHeatmaps as Record<string, PlayerHeatmapData>;
 // 고급 지표(xG/xA/터치/빅찬스) — TheStatsAPI 경기 집계, EPL·세리에A. build-player-advanced-thestats.ts
 const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
+// 주급/연봉 (Capology 5대리그, fetch-football-wages.ts) — 세전 연봉 EUR.
+const WAGES = (rawWages as { players: Record<string, { eur: number }> }).players;
 // 경기별 원시 터치 좌표 (build-player-match-heatmaps.ts 수집)
 const MATCH_HEATMAPS = rawMatchHeatmaps as unknown as Record<string, { seasonLabel: string; matches: MatchHeatmapRow[] }>;
 // 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
@@ -915,6 +918,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
         valueEur={value ?? null}
         valueKrw={value != null ? krw(value) : null}
         recentChg={points.length >= 2 ? recentChg : null}
+        wageEur={WAGES[id]?.eur ?? null}
         positions={DETAIL_POS[id] ? { primary: DETAIL_POS[id].primary, others: DETAIL_POS[id].others } : null}
         posCode={tsp?.position ?? null}
       />

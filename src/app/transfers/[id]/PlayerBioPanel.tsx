@@ -54,7 +54,7 @@ function MiniPitch({ primary, others }: { primary: PosCode; others: PosCode[] })
 
 export default function PlayerBioPanel({
   age, birthDate, height, weight, country, flag, natlHref,
-  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg,
+  teamName, teamLogo, leagueLabel, teamHref, valueEur, valueKrw, recentChg, wageEur,
   positions, posCode,
 }: {
   age: number | null;
@@ -69,6 +69,7 @@ export default function PlayerBioPanel({
   leagueLabel: string | null;
   teamHref: string | null;
   valueEur: number | null;
+  wageEur?: number | null; // 연봉 세전 EUR (Capology) — 주급은 /52 표기
   valueKrw: string | null;
   recentChg: number | null;
   positions: { primary: PosCode; others: PosCode[] } | null; // 라인업 집계 (있으면 우선)
@@ -111,7 +112,7 @@ export default function PlayerBioPanel({
           </span>
         </InfoCell>
         {valueEur != null && (
-          <div className="col-span-2 pt-1 border-t border-black/5 dark:border-white/10">
+          <div className={`${wageEur != null ? "" : "col-span-2 "}pt-1 border-t border-black/5 dark:border-white/10`}>
             <div className="text-xs text-neutral-400 mb-0.5">현재 시장가치</div>
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-2xl font-black text-cyan-600 dark:text-cyan-400 tabular-nums">€{valueEur}M</span>
@@ -121,6 +122,17 @@ export default function PlayerBioPanel({
                   {recentChg >= 0 ? "▲" : "▼"} {Math.abs(recentChg)}% <span className="text-neutral-400 font-normal">최근</span>
                 </span>
               )}
+            </div>
+          </div>
+        )}
+        {wageEur != null && (
+          <div className={`${valueEur != null ? "" : "col-span-2 "}pt-1 border-t border-black/5 dark:border-white/10`}>
+            <div className="text-xs text-neutral-400 mb-0.5">주급 (세전)</div>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                €{Math.round(wageEur / 52 / 1000)}k
+              </span>
+              <span className="text-xs text-neutral-500 tabular-nums">연봉 €{(wageEur / 1e6).toFixed(1)}M</span>
             </div>
           </div>
         )}

@@ -18,6 +18,7 @@
     "job:transfer-daily": "tsx --env-file=.env.local src/jobs/generate-transfer-daily.ts",
     "job:lineup-post": "tsx --env-file=.env.local src/jobs/generate-lineup-post.ts",
     "job:transfer-xi": "tsx --env-file=.env.local src/jobs/generate-transfer-xi.ts",
+    "data:football-wages": "tsx --env-file=.env.local scripts/fetch-football-wages.ts",
     "job:news-briefing": "tsx --env-file=.env.local src/jobs/fetch-news-briefing.ts",
     "job:backfill": "tsx src/jobs/backfill.ts",
     "job:generate": "tsx src/jobs/generate-articles.ts",
