@@ -25,6 +25,10 @@
       "schedule": "*/10 * * * *"
     },
     {
+      "path": "/api/cron/transfer-xi",
+      "schedule": "0 1 * * *"
+    },
+    {
       "path": "/api/cron/player-events",
       "schedule": "0 16 * * 1"
     },

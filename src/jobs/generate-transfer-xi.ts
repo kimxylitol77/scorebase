@@ -1,0 +1,411 @@
+// 이적시장 예상 XI — 48h 이적 활동 1위 팀의 영입 반영 베스트 11 을 전술판과 함께
+// 커뮤니티 페르소나(축덕광) 명의로 발행. 웹 검색은 "누가"(이름 11개)만, "어디에"(포지션)는
+// 실좌표 도출 데이터(player-positions-detail.json)가 결정 — 과거 슬롯 배정 환각의 재발 차단.
+// 설계·결정 근거: docs/transfer-xi-bot/{plan,context-notes}.md
+import "@/lib/env";
+import { readFileSync } from "fs";
+import path from "path";
+import { prisma } from "@/lib/db";
+import { generateWithWebSearch } from "@/lib/ai/claude";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
+import { encodeBoard, newUid, type BoardState, type Placed, type BenchEntry } from "@/lib/lineup/lineup-state";
+import type { Pos } from "@/lib/lineup/formations";
+
+const FEED_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "SAUDI_PL", "MLS"];
+const LEAGUE_KO: Record<string, string> = {
+  EPL: "EPL", LALIGA: "라리가", BUNDESLIGA: "분데스리가", SERIE_A: "세리에 A",
+  LIGUE_1: "리그 1", K_LEAGUE_1: "K리그1", SAUDI_PL: "사우디 프로리그", MLS: "MLS",
+};
+const PSEUDO_TEAMS = new Set(["Free player", "Disqualification"]);
+// 페르소나 — post 875 작성자(축덕광, fake13)와 동일 인물로 연속성 유지. 톤은 PERSONAS[13] 사본
+// (fake-members.ts 는 server-only 라 job 에서 import 불가 → 로컬 정의).
+const AUTHOR_EMAIL = "fake13@scorebase.internal";
+const PERSONA_TONE = "축구 전술 얘기 좋아함. 라인업·압박 같은 단어를 가볍게 씀";
+// 주목 기준 — 이적료 0이어도 시장가치가 이 이상이면 대어 자유계약.
+const NOTABLE_MV = 3_000_000;
+// 포커스 성립 최소 가중치(이적료+시장가치 합) — 미만이면 조용한 날로 보고 스킵.
+const FOCUS_MIN_SCORE = 5_000_000;
+
+interface SquadPlayer { id: string; name: string; position: string | null; number: number | null }
+const T_SQUADS: Record<string, { squad: SquadPlayer[] }> = JSON.parse(
+  readFileSync(path.join(process.cwd(), "data/team-squads.json"), "utf-8"),
+);
+const T_COACHES: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null }> = JSON.parse(
+  readFileSync(path.join(process.cwd(), "data/team-coaches.json"), "utf-8"),
+);
+// 실좌표 도출 세부 포지션 (derive-detail-position.ts 산출, mac-mini 주간 갱신).
+const DETAIL_POS: Record<string, { primary: string; others: string[]; apps: number }> = JSON.parse(
+  readFileSync(path.join(process.cwd(), "data/player-positions-detail.json"), "utf-8"),
+);
+
+function fmtFee(fee: number): string {
+  return fee >= 1_000_000 ? `€${(fee / 1_000_000).toFixed(fee % 1_000_000 ? 1 : 0)}M` : `€${Math.round(fee / 1000)}k`;
+}
+function playerKo(name: string | null | undefined, dbKo?: string | null): string {
+  if (!name) return "?";
+  const fixed = toKoreanPlayerName(name);
+  if (/[가-힣]/.test(fixed)) return fixed;
+  if (dbKo && /[가-힣]/.test(dbKo)) return dbKo;
+  return name;
+}
+function teamKo(name: string | null | undefined, league: string): string {
+  if (!name) return "?";
+  return toKoreanTeamName(name, league) || name;
+}
+// 이름 정규화 — 악센트 제거·소문자·영문자만 (웹 검색 이름 ↔ 스쿼드 이름 매칭용).
+function normName(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+function matchSquadPlayer(name: string, squad: SquadPlayer[]): SquadPlayer | null {
+  const n = normName(name);
+  if (!n) return null;
+  const exact = squad.find((p) => normName(p.name) === n);
+  if (exact) return exact;
+  const last = n.split(" ").pop()!;
+  const byLast = squad.filter((p) => normName(p.name).split(" ").includes(last));
+  if (byLast.length === 1) return byLast[0];
+  const incl = squad.find((p) => { const pn = normName(p.name); return pn.includes(n) || n.includes(pn); });
+  return incl ?? null;
+}
+
+interface Move {
+  playerId: string;
+  playerName: string | null;
+  fromTeamName: string | null;
+  toTeamId: string;
+  toTeamName: string;
+  league: string;
+  fee: number;
+  transferType: number | null;
+  mv: number;
+}
+function moveLabel(m: Move): string {
+  if (m.transferType === 1) return "임대";
+  if (m.transferType === 7 || m.fromTeamName === "Free player") return "자유계약";
+  return m.fee > 0 ? `완전이적 ${fmtFee(m.fee)}` : "완전이적";
+}
+
+// ============================================================
+// 배치 엔진 — 세부 포지션 → 라인 버킷 → 풀피치 좌표 + 포메이션 역산
+// ============================================================
+type Bucket = "GK" | "DF" | "DM" | "CM" | "AM" | "FW";
+const BUCKET_OF: Record<string, Bucket> = {
+  GK: "GK", CB: "DF", LB: "DF", RB: "DF", FB: "DF",
+  CDM: "DM", DM: "DM", CM: "CM", LM: "CM", RM: "CM", CAM: "AM", AM: "AM",
+  LW: "FW", RW: "FW", ST: "FW", CF: "FW", W: "FW",
+};
+// 라인 내 좌→우 정렬 키 (0=왼쪽, 1=중앙, 2=오른쪽).
+const SIDE_OF: Record<string, number> = { LB: 0, LM: 0, LW: 0, RB: 2, RM: 2, RW: 2 };
+const POS_TYPE: Record<Bucket, Pos> = { GK: "GK", DF: "DF", DM: "MF", CM: "MF", AM: "MF", FW: "FW" };
+// 스쿼드 문자 폴백 — detail 없을 때 넓은 라인만이라도.
+const LETTER_BUCKET: Record<string, Bucket> = { G: "GK", D: "DF", M: "CM", F: "FW" };
+
+export interface XiEntry { id: string; name: string; detail: string | null; bucket: Bucket }
+
+/** XI 11명 → 풀피치 단일 보드 좌표 + 역산 포메이션. GK 1명이 아니면 null(게이트). */
+export function layoutXi(entries: XiEntry[], knownPids: Set<string>): { players: Placed[]; formation: string } | null {
+  const byBucket = new Map<Bucket, XiEntry[]>();
+  for (const e of entries) byBucket.set(e.bucket, [...(byBucket.get(e.bucket) ?? []), e]);
+  if ((byBucket.get("GK")?.length ?? 0) !== 1) return null;
+
+  const order: Bucket[] = ["GK", "DF", "DM", "CM", "AM", "FW"];
+  const lines = order.map((b) => ({ b, list: byBucket.get(b) ?? [] })).filter((l) => l.list.length > 0);
+  // 필드 플레이어가 한 라인에 6명+ 몰리면 포지션 데이터 이상 — 게이트.
+  if (lines.some((l) => l.b !== "GK" && l.list.length > 5)) return null;
+
+  const players: Placed[] = [];
+  const fieldLines = lines.filter((l) => l.b !== "GK");
+  fieldLines.forEach((line, i) => {
+    // y — 수비라인 74 부터 최전방 15 까지 균등 (formations.ts 단일 보드 관례 근사).
+    const y = fieldLines.length > 1 ? 74 - (i * 59) / (fieldLines.length - 1) : 40;
+    // x — 좌(0)→중(1)→우(2) 정렬 후 인원수 균등 분산.
+    line.list.sort((a, b) => (SIDE_OF[a.detail ?? ""] ?? 1) - (SIDE_OF[b.detail ?? ""] ?? 1));
+    const k = line.list.length;
+    const gap = k > 1 ? Math.min(24, 84 / (k - 1)) : 0;
+    line.list.forEach((e, j) => {
+      players.push({
+        uid: newUid(),
+        pid: knownPids.has(e.id) ? e.id : null,
+        name: knownPids.has(e.id) ? null : playerKo(e.name),
+        pos: POS_TYPE[e.bucket],
+        x: Math.round(50 + (j - (k - 1) / 2) * gap),
+        y: Math.round(y),
+      });
+    });
+  });
+  const gk = lines.find((l) => l.b === "GK")!.list[0];
+  players.push({
+    uid: newUid(),
+    pid: knownPids.has(gk.id) ? gk.id : null,
+    name: knownPids.has(gk.id) ? null : playerKo(gk.name),
+    pos: "GK", x: 50, y: 92,
+  });
+  const formation = fieldLines.map((l) => l.list.length).join("-");
+  return { players, formation };
+}
+
+// 본문 후처리 — ① generateWithWebSearch 가 인용 경계의 text 블록들을 \n 으로 join 해
+// 문장이 조각나므로 단일 개행은 결합(문단 경계 \n\n 유지). ② max_tokens 잘림 방어로
+// 마지막 완결 문장(종결부호)까지만 남긴다.
+function cleanBody(raw: string): string {
+  let s = raw.replace(/([^\n])\n(?!\n)/g, "$1 ").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  const last = Math.max(s.lastIndexOf("."), s.lastIndexOf("!"), s.lastIndexOf("?"));
+  if (last > 0 && last < s.length - 1) s = s.slice(0, last + 1);
+  return s.trim();
+}
+
+// 웹 검색 — 예상 선발 11명 "이름만". 포지션 배정은 절대 시키지 않는다(과거 환각 원인).
+async function searchXiNames(teamNameEn: string, coachEn: string | null, signings: string[]): Promise<string[] | null> {
+  const prompt = [
+    `너는 ${teamNameEn} 축구 전문 기자다.`,
+    `web_search 로 ${teamNameEn}${coachEn ? ` (${coachEn} 감독)` : ""} 의 가장 최근 예상 선발 라인업(predicted lineup / starting XI)을 확인해라.`,
+    signings.length ? `이번 이적시장 신규 영입: ${signings.join(", ")}. 매체가 주전으로 예상하면 포함해라.` : "",
+    `규칙: 반드시 web_search 결과에 근거할 것. 이름을 추측으로 지어내지 말 것. 그 팀 현 소속(확정 영입 포함) 선수만. 정확히 11명.`,
+    `출력 규칙(엄수): 분석·설명·검색계획 서술 금지. 검색이 끝나면 다른 말 없이 JSON 한 줄만 출력하고 멈춰라: {"players":["영문 풀네임", ... 11개]}`,
+  ].filter(Boolean).join("\n");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let raw: string;
+    try {
+      // XI 검색은 sonnet — haiku 는 검색 서술만 하다 JSON 을 못 내는 실측(2026-07-15). 본문은 기본 모델.
+      raw = await generateWithWebSearch(prompt, { maxTokens: 3000, maxUses: 5, model: process.env.TRANSFER_XI_MODEL || "claude-sonnet-5" });
+    } catch (e) {
+      console.warn(`[transfer-xi] 웹 XI 검색 실패(${attempt + 1}/2):`, (e as Error).message);
+      continue;
+    }
+    const jm = raw.replace(/```(?:json)?/gi, "").match(/\{[\s\S]*\}/);
+    if (!jm) {
+      console.warn(`[transfer-xi] 웹 XI JSON 없음(${attempt + 1}/2) — 응답 앞부분: ${raw.slice(0, 200)}`);
+      continue;
+    }
+    try {
+      const p = JSON.parse(jm[0]) as { players?: unknown };
+      if (Array.isArray(p.players) && p.players.length === 11 && p.players.every((x) => typeof x === "string")) {
+        return p.players as string[];
+      }
+      console.warn(`[transfer-xi] 웹 XI players 형식 불일치(${attempt + 1}/2): ${jm[0].slice(0, 200)}`);
+    } catch {
+      console.warn(`[transfer-xi] 웹 XI JSON invalid(${attempt + 1}/2): ${jm[0].slice(0, 200)}`);
+    }
+  }
+  return null;
+}
+
+export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeamId?: string }) {
+  const author = await prisma.user.findUnique({ where: { email: AUTHOR_EMAIL }, select: { id: true } });
+  if (!author) throw new Error(`페르소나 계정 없음 (${AUTHOR_EMAIL})`);
+
+  // 하루 1글 가드 — 축덕광의 오늘 전술판(lineupCode) 글.
+  const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
+  const dayStartUtc = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600 * 1000);
+  const todays = await prisma.post.findFirst({
+    where: { authorId: author.id, lineupCode: { not: null }, createdAt: { gte: dayStartUtc } },
+    select: { id: true },
+  });
+  if (todays && !opts?.dryRun) return { posted: false, reason: "already", postId: todays.id };
+
+  // 최근 48h 주목 이적 — updatedAt=first-seen (transfer-daily 와 동일 근거).
+  const rows = await prisma.footballTransfer.findMany({
+    where: {
+      updatedAt: { gte: new Date(Date.now() - 48 * 3600 * 1000) },
+      league: { in: FEED_LEAGUES },
+      toTeamId: { not: null },
+      transferType: { not: 2 },
+    },
+  });
+  const mvMap = new Map(
+    (await prisma.playerMarketValue.findMany({
+      where: { id: { in: [...new Set(rows.map((r) => r.playerId))] } },
+      select: { id: true, currentValue: true },
+    })).map((r) => [r.id, r.currentValue ?? 0]),
+  );
+  const moves: Move[] = rows
+    .filter((r) => r.toTeamName && !PSEUDO_TEAMS.has(r.toTeamName))
+    .map((r) => ({
+      playerId: r.playerId,
+      playerName:
+        T_SQUADS[r.toTeamId!]?.squad.find((p) => p.id === r.playerId)?.name ??
+        (r.fromTeamId ? T_SQUADS[r.fromTeamId]?.squad.find((p) => p.id === r.playerId)?.name : null) ?? null,
+      fromTeamName: r.fromTeamName,
+      toTeamId: r.toTeamId!,
+      toTeamName: r.toTeamName!,
+      league: r.league!,
+      fee: r.transferFee ?? 0,
+      transferType: r.transferType,
+      mv: mvMap.get(r.playerId) ?? 0,
+    }))
+    .filter((m) => m.playerName && (m.fee > 0 || m.mv >= NOTABLE_MV));
+  if (moves.length === 0 && !opts?.forceTeamId) return { posted: false, reason: "quiet" };
+
+  // 최근 7일 발행 팀 제외 (같은 팀 반복 방지).
+  const recent = await prisma.post.findMany({
+    where: { authorId: author.id, lineupCode: { not: null }, createdAt: { gte: new Date(Date.now() - 7 * 86400e3) } },
+    select: { title: true },
+  });
+
+  const byTeam = new Map<string, { moves: Move[]; score: number }>();
+  for (const m of moves) {
+    const t = byTeam.get(m.toTeamId) ?? { moves: [], score: 0 };
+    t.moves.push(m);
+    t.score += m.fee + m.mv;
+    byTeam.set(m.toTeamId, t);
+  }
+  const ranked = [...byTeam.entries()].sort((a, b) => b[1].score - a[1].score);
+  const focus = opts?.forceTeamId
+    ? ([opts.forceTeamId, byTeam.get(opts.forceTeamId) ?? { moves: [], score: FOCUS_MIN_SCORE }] as const)
+    : ranked.find(([id, t]) => {
+        if (t.score < FOCUS_MIN_SCORE || !T_SQUADS[id]?.squad?.length) return false;
+        const ko = teamKo(t.moves[0].toTeamName, t.moves[0].league);
+        return !recent.some((p) => p.title.includes(ko));
+      });
+  if (!focus) return { posted: false, reason: "no-focus" };
+
+  const [focusId, focusTeam] = focus;
+  const squad = T_SQUADS[focusId]?.squad ?? [];
+  if (!squad.length) return { posted: false, reason: "no-squad" };
+  const sample = focusTeam.moves[0] ?? null;
+  const teamNameEn = sample?.toTeamName ?? squad[0]?.name ?? focusId;
+  const league = sample?.league ?? "EPL";
+  const focusKo = teamKo(teamNameEn, league);
+  const coach = T_COACHES[focusId];
+
+  // 웹 검색 #1 — 선발 이름 11개.
+  const xiNames = await searchXiNames(teamNameEn, coach?.name ?? null, focusTeam.moves.map((m) => m.playerName!));
+  if (!xiNames) return { posted: false, reason: "no-xi" };
+
+  // 이름 → id 매칭 (스쿼드 + 영입 기록). 게이트: 9/11 미만 스킵.
+  const moveAsSquad: SquadPlayer[] = focusTeam.moves.map((m) => ({ id: m.playerId, name: m.playerName!, position: null, number: null }));
+  const pool = [...squad, ...moveAsSquad.filter((m) => !squad.some((s) => s.id === m.id))];
+  const used = new Set<string>();
+  const entries: XiEntry[] = [];
+  let matched = 0;
+  for (const name of xiNames) {
+    const hit = matchSquadPlayer(name, pool);
+    if (hit && !used.has(hit.id)) {
+      used.add(hit.id);
+      matched++;
+      const det = DETAIL_POS[hit.id];
+      const bucket = (det?.primary && BUCKET_OF[det.primary]) || LETTER_BUCKET[hit.position ?? ""] || "CM";
+      entries.push({ id: hit.id, name: hit.name, detail: det?.primary ?? null, bucket });
+    }
+  }
+  if (matched < 9) {
+    console.warn(`[transfer-xi] 이름 매칭 ${matched}/11 부족(${focusKo}) — 스킵`);
+    return { posted: false, reason: "low-match", matched };
+  }
+  const withDetail = entries.filter((e) => e.detail).length;
+  if (withDetail < 8) {
+    console.warn(`[transfer-xi] 세부 포지션 ${withDetail}/11 부족(${focusKo}) — 스킵`);
+    return { posted: false, reason: "low-detail", withDetail };
+  }
+
+  // pid 게이트 겸 한글명 — XI + 영입 당사자(벤치·제목·불릿 표기용) 모두.
+  const nameIds = [...new Set([...entries.map((e) => e.id), ...focusTeam.moves.map((m) => m.playerId)])];
+  const names = new Map<string, string | null>(
+    (await prisma.theSportsPlayer.findMany({ where: { id: { in: nameIds } }, select: { id: true, nameKo: true } }))
+      .map((r) => [r.id, r.nameKo]),
+  );
+  const laid = layoutXi(entries, new Set(names.keys()));
+  if (!laid) {
+    console.warn(`[transfer-xi] 배치 실패(GK ${entries.filter((e) => e.bucket === "GK").length}명 등) — 스킵`);
+    return { posted: false, reason: "layout" };
+  }
+
+  // 벤치 — XI 에 못 든 신규 영입 (전술판 하단 노출).
+  const bench: BenchEntry[] = focusTeam.moves
+    .filter((m) => !used.has(m.playerId))
+    .slice(0, 5)
+    .map((m) => ({ pid: m.playerId, name: null }));
+
+  const board: BoardState = {
+    mode: "single",
+    displayMode: "photo",
+    orientation: "portrait",
+    title: `${focusKo} 영입 반영 예상 XI`,
+    subtitle: `${coach?.nameKo || coach?.name || "감독 미정"} · ${laid.formation}`,
+    kit: "grass",
+    home: { club: focusKo, formation: laid.formation, players: laid.players },
+    bench,
+    strokes: [],
+  };
+
+  // XI 명단 텍스트 — 라인별.
+  const lineNames = (b: Bucket[]) =>
+    entries.filter((e) => b.includes(e.bucket)).map((e) => playerKo(e.name, names.get(e.id))).join(", ");
+  const xiBlock = [
+    `**예상 베스트 XI (${laid.formation})**`,
+    `- GK: ${lineNames(["GK"])}`,
+    `- DF: ${lineNames(["DF"])}`,
+    `- MF: ${lineNames(["DM", "CM", "AM"])}`,
+    `- FW: ${lineNames(["FW"])}`,
+  ].join("\n");
+
+  const signingLines = focusTeam.moves.map(
+    (m) => `- **${playerKo(m.playerName, names.get(m.playerId))}** (${teamKo(m.fromTeamName, m.league)} → ${focusKo}, ${moveLabel(m)})${m.mv > 0 ? ` · 시장가치 ${fmtFee(m.mv)}` : ""}`,
+  );
+
+  // 웹 검색 #2 — 전술 분석 본문 (페르소나 톤, 팩트 고정·창작 차단).
+  // haiku 는 검색 결과 문장을 조각째 인용해 붙이는 실측 문제 → sonnet 고정.
+  let body = "";
+  try {
+    body = (await generateWithWebSearch(
+      [
+        `너는 한국 축구 커뮤니티 회원이다. 말투: ${PERSONA_TONE}. "~다/~것 같다" 체, 존댓말 금지.`,
+        `web_search 로 ${teamNameEn} 의 최근 전술 성향·새 영입 활용 전망을 확인하고, 아래 사실만 근거로 3~4문단 분석 글을 써라.`,
+        `사실: 감독 ${coach?.nameKo || coach?.name || "미정"}, 예상 포메이션 ${laid.formation}, 신규 영입 ${focusTeam.moves.map((m) => `${playerKo(m.playerName, names.get(m.playerId))}(${DETAIL_POS[m.playerId]?.primary ?? "포지션 미상"})`).join(", ")}.`,
+        `규칙: 검색 과정·"확인해보겠습니다" 류 서술 금지 — 완성된 글만. 검색 결과 문장을 그대로 인용하지 말고 전부 네 문장으로 소화해서 쓸 것. 이모지·헤딩(#)·리스트 금지(문단 텍스트만). 금액·이적료·시장가치·구체 통계수치 언급 금지. 선발 11명 명단 나열 금지(아래에 코드가 붙임). 위 사실에 없는 선수명 창작 금지. 확정 단정 대신 "기대된다/보인다" 톤. 700자 이내.`,
+      ].join("\n"),
+      { maxTokens: 3000, maxUses: 3, model: process.env.TRANSFER_XI_MODEL || "claude-sonnet-5" },
+    )).trim();
+    body = cleanBody(body);
+  } catch (e) {
+    console.warn("[transfer-xi] 본문 생성 실패 — 짧은 고정 문구로 발행:", (e as Error).message);
+    body = `${focusKo} 이번 영입 반영해서 예상 XI 한번 짜봤다. 포메이션은 최근 기조 기준 ${laid.formation}.`;
+  }
+
+  const keySigning = focusTeam.moves.sort((a, b) => b.fee + b.mv - (a.fee + a.mv))[0];
+  const title = keySigning
+    ? `${playerKo(keySigning.playerName, names.get(keySigning.playerId))} 품은 ${focusKo} 예상 XI 뜯어봤다 (${laid.formation})`
+    : `${focusKo} 영입 반영 예상 XI 뜯어봤다 (${laid.formation})`;
+
+  const content = [
+    body,
+    xiBlock,
+    signingLines.length ? [`**이번 영입 정리**`, ...signingLines].join("\n") : "",
+    `전술판은 아래에. 여러분이 감독이면 어디 바꿀 건지 [직접 수정](/lineup)해서 댓글로.`,
+  ].filter((s) => s && s.trim()).join("\n\n");
+  const lineupCode = encodeBoard(board);
+
+  if (opts?.dryRun) {
+    return { posted: false, reason: "dryRun", title, content, lineupCode, formation: laid.formation, matched, withDetail, entries: entries.map((e) => `${e.name}:${e.detail ?? "?"}→${e.bucket}`) };
+  }
+
+  // createdAt 지터 — cron 정각 발행 티 제거 (free-board-bot 패턴).
+  const jitterMin = 1 + Math.floor(Math.random() * 20);
+  const post = await prisma.post.create({
+    data: {
+      authorId: author.id,
+      category: "FREE",
+      sport: "soccer",
+      title,
+      content,
+      lineupCode,
+      createdAt: new Date(Date.now() - jitterMin * 60e3),
+    },
+    select: { id: true },
+  });
+  console.log(`[transfer-xi] 발행: post ${post.id} — ${title}`);
+  return { posted: true, postId: post.id, focus: focusId, formation: laid.formation };
+}
+
+// tsx 직접 실행 (npm run job:transfer-xi) — `--dry` 미리보기, `--team=<tsId>` 팀 강제.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const teamArg = process.argv.find((a) => a.startsWith("--team="))?.slice(7);
+  runGenerateTransferXi({ dryRun: process.argv.includes("--dry"), forceTeamId: teamArg })
+    .then((r) => console.log(JSON.stringify(r, null, 2)))
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}
