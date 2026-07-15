@@ -46,8 +46,21 @@ const RATING_W = 8; // (평균평점 - 6.5) × RATING_W
 const RATING_BASE = 6.5;
 const TEAM_W = 10; // 팀 순위 정규화(0~1) × TEAM_W
 
-// PlayerMatchLog 시즌 경계 (2025-26 시즌 = 2025-07-01 이후).
+// PlayerMatchLog 심사 창 경계 — 2025-26 시즌 + 2026 월드컵(6-7월).
+// 상한을 2026-27 개막(8월) 직전에 둬 새 시즌 경기가 평점 평균에 섞이지 않게 한다.
 const SEASON_START = new Date("2025-07-01T00:00:00Z");
+const SEASON_END = new Date("2026-08-01T00:00:00Z");
+
+// 2026 발롱도르 심사 창 = 2025-26 유럽 시즌 + 2026 월드컵.
+// LeagueLeader 는 리그별로 여러 시즌 라벨을 함께 담을 수 있어(8월 개막 시 2026-27 적재),
+// "최신 시즌"을 쓰면 순위가 새 시즌 초반 노이즈로 뒤집힌다. 심사 창 시즌에 고정한다.
+const BALLON_AWARD_YEAR = 2026;
+const AWARD_EURO_SEASON = `${BALLON_AWARD_YEAR - 1}-${String(BALLON_AWARD_YEAR).slice(2)}`; // "2025-26"
+const AWARD_CALENDAR_SEASON = String(BALLON_AWARD_YEAR); // "2026" — 월드컵·MLS 등 달력연도 리그
+const CALENDAR_YEAR_LEAGUES = new Set(["WORLD_CUP", "MLS"]);
+function awardSeasonLabel(league: string): string {
+  return CALENDAR_YEAR_LEAGUES.has(league) ? AWARD_CALENDAR_SEASON : AWARD_EURO_SEASON;
+}
 
 export interface BallonLeagueStat {
   code: string;
@@ -122,14 +135,24 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
       playerNameEn: true, externalId: true, teamName: true, photoUrl: true, season: true,
     },
   });
-  const latestSeason = new Map<string, string>();
-  for (const r of rows) if (!latestSeason.has(r.league)) latestSeason.set(r.league, r.season);
+  // 리그별 사용 시즌 = 심사 창 시즌 우선, 없으면 최신(전환기 graceful).
+  const seasonsByLeague = new Map<string, Set<string>>();
+  for (const r of rows) {
+    let s = seasonsByLeague.get(r.league);
+    if (!s) { s = new Set(); seasonsByLeague.set(r.league, s); }
+    s.add(r.season);
+  }
+  const useSeason = new Map<string, string>();
+  for (const [lg, seasons] of seasonsByLeague) {
+    const target = awardSeasonLabel(lg);
+    useSeason.set(lg, seasons.has(target) ? target : [...seasons].sort().reverse()[0]);
+  }
 
   // 2) af id 로 선수 병합.
   const agg = new Map<string, RawAgg>();
   for (const r of rows) {
     if (!r.externalId) continue;
-    if (r.season !== latestSeason.get(r.league)) continue;
+    if (r.season !== useSeason.get(r.league)) continue;
     const a = agg.get(r.externalId) ?? {
       afId: r.externalId,
       photoUrl: r.photoUrl,
@@ -157,7 +180,7 @@ export async function buildBallonCandidates(limit = 40): Promise<BallonCandidate
       by: ["playerId"],
       where: {
         playerId: { in: [...new Set(tsByAf.values())] },
-        date: { gte: SEASON_START },
+        date: { gte: SEASON_START, lt: SEASON_END },
         rating: { not: null },
       },
       _avg: { rating: true },
