@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { buildBallonCandidates } from "@/lib/ballon";
 import BallonCalculator from "./BallonCalculator";
+import BallonWinners from "./BallonWinners";
 
 export const revalidate = 1800; // 30분 ISR — LeagueLeader 매일 갱신이라 충분.
 
@@ -35,6 +36,8 @@ export default async function BallonPage() {
       </header>
 
       <BallonCalculator candidates={candidates} />
+
+      <BallonWinners />
 
       <section className="mt-8 rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 px-4 py-4 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
         <p className="font-semibold text-neutral-600 dark:text-neutral-300 mb-1">지수 산정 방식과 한계</p>
