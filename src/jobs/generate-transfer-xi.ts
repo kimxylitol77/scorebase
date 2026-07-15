@@ -1,12 +1,13 @@
-// 이적시장 예상 XI — 48h 이적 활동 1위 팀의 영입 반영 베스트 11 을 전술판과 함께
-// 커뮤니티 페르소나(축덕광) 명의로 발행. 웹 검색은 "누가"(이름 11개)만, "어디에"(포지션)는
-// 실좌표 도출 데이터(player-positions-detail.json)가 결정 — 과거 슬롯 배정 환각의 재발 차단.
-// 설계·결정 근거: docs/transfer-xi-bot/{plan,context-notes}.md
+// 이적시장 예상 XI — 48h 이적 활동 1위 팀의 영입 반영 베스트 11 초안(제목+본문+명단+전술판 링크)을
+// 운영자 텔레그램으로 전송. 발행은 운영자가 직접(글쓰기 폼 붙여넣기 + 전술판 수동 첨부) — 2026-07-15 전환.
+// 웹 검색은 "누가"(이름 11개)만, "어디에"(포지션)는 실좌표 도출 데이터(player-positions-detail.json)가
+// 결정 — 과거 슬롯 배정 환각의 재발 차단. 설계·결정 근거: docs/transfer-xi-bot/{plan,context-notes}.md
 import "@/lib/env";
 import { readFileSync } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { generateWithWebSearch } from "@/lib/ai/claude";
+import { sendTelegram } from "@/lib/notify/telegram";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { encodeBoard, newUid, type BoardState, type Placed, type BenchEntry } from "@/lib/lineup/lineup-state";
@@ -18,9 +19,8 @@ const LEAGUE_KO: Record<string, string> = {
   LIGUE_1: "리그 1", K_LEAGUE_1: "K리그1", SAUDI_PL: "사우디 프로리그", MLS: "MLS",
 };
 const PSEUDO_TEAMS = new Set(["Free player", "Disqualification"]);
-// 페르소나 — post 875 작성자(축덕광, fake13)와 동일 인물로 연속성 유지. 톤은 PERSONAS[13] 사본
-// (fake-members.ts 는 server-only 라 job 에서 import 불가 → 로컬 정의).
-const AUTHOR_EMAIL = "fake13@scorebase.internal";
+// 본문 글투 — post 875 작성자(축덕광) 페르소나 톤 사본. 발행은 운영자 수동이지만
+// 붙여넣기용 초안이라 커뮤니티체 유지 (fake-members.ts 는 server-only 라 import 불가 → 로컬 정의).
 const PERSONA_TONE = "축구 전술 얘기 좋아함. 라인업·압박 같은 단어를 가볍게 씀";
 // 주목 기준 — 이적료 0이어도 시장가치가 이 이상이면 대어 자유계약.
 const NOTABLE_MV = 3_000_000;
@@ -143,10 +143,11 @@ function slotCost(e: XiEntry, s: Slot): number {
   return base + side;
 }
 
-/** 감독 선호 포메이션 슬롯에 XI 를 최소 비용으로 배정. 억지 배정(비용 8+)이 생기면 null. */
+/** 감독 선호 포메이션 슬롯에 XI 를 최소 비용으로 배정. 억지 배정(비용 8+)이 생기면 null.
+ *  매칭이 11명 미만이어도 배정 — 남는 슬롯은 비워 두고 운영자가 빌더에서 채운다(초안 모드). */
 export function fitToFormation(entries: XiEntry[], formationKey: string, knownPids: Set<string>): Placed[] | null {
   const slots = FORMATIONS[formationKey];
-  if (!slots || entries.length !== slots.length) return null;
+  if (!slots || entries.length > slots.length) return null;
   const pairs: { ei: number; si: number; cost: number }[] = [];
   entries.forEach((e, ei) => slots.forEach((s, si) => pairs.push({ ei, si, cost: slotCost(e, s) })));
   pairs.sort((p, q) => p.cost - q.cost);
@@ -158,13 +159,15 @@ export function fitToFormation(entries: XiEntry[], formationKey: string, knownPi
     eUsed.add(p.ei);
     sUsed.add(p.si);
     assign.set(p.si, p.ei);
-    if (assign.size === slots.length) break;
+    if (assign.size === entries.length) break;
   }
-  if (assign.size !== slots.length) return null;
-  return slots.map((s, si) => {
-    const e = entries[assign.get(si)!];
+  if (assign.size !== entries.length) return null;
+  return slots.flatMap((s, si) => {
+    const ei = assign.get(si);
+    if (ei === undefined) return [];
+    const e = entries[ei];
     const known = knownPids.has(e.id);
-    return { uid: newUid(), pid: known ? e.id : null, name: known ? null : playerKo(e.name), pos: s.pos, x: s.x, y: s.y };
+    return [{ uid: newUid(), pid: known ? e.id : null, name: known ? null : playerKo(e.name), pos: s.pos, x: s.x, y: s.y }];
   });
 }
 
@@ -257,18 +260,6 @@ async function searchXiNames(teamNameEn: string, coachEn: string | null, signing
 }
 
 export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeamId?: string }) {
-  const author = await prisma.user.findUnique({ where: { email: AUTHOR_EMAIL }, select: { id: true } });
-  if (!author) throw new Error(`페르소나 계정 없음 (${AUTHOR_EMAIL})`);
-
-  // 하루 1글 가드 — 축덕광의 오늘 전술판(lineupCode) 글.
-  const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
-  const dayStartUtc = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600 * 1000);
-  const todays = await prisma.post.findFirst({
-    where: { authorId: author.id, lineupCode: { not: null }, createdAt: { gte: dayStartUtc } },
-    select: { id: true },
-  });
-  if (todays && !opts?.dryRun) return { posted: false, reason: "already", postId: todays.id };
-
   // 최근 48h 주목 이적 — updatedAt=first-seen (transfer-daily 와 동일 근거).
   const rows = await prisma.footballTransfer.findMany({
     where: {
@@ -302,9 +293,9 @@ export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeam
     .filter((m) => m.playerName && (m.fee > 0 || m.mv >= NOTABLE_MV));
   if (moves.length === 0 && !opts?.forceTeamId) return { posted: false, reason: "quiet" };
 
-  // 최근 7일 발행 팀 제외 (같은 팀 반복 방지).
+  // 최근 7일 발행 팀 제외 — 운영자가 수동 발행한 예상 XI 글(전술판 첨부 + "예상 XI" 제목) 기준.
   const recent = await prisma.post.findMany({
-    where: { authorId: author.id, lineupCode: { not: null }, createdAt: { gte: new Date(Date.now() - 7 * 86400e3) } },
+    where: { lineupCode: { not: null }, title: { contains: "예상 XI" }, createdAt: { gte: new Date(Date.now() - 7 * 86400e3) } },
     select: { title: true },
   });
 
@@ -343,6 +334,7 @@ export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeam
   const pool = [...squad, ...moveAsSquad.filter((m) => !squad.some((s) => s.id === m.id))];
   const used = new Set<string>();
   const entries: XiEntry[] = [];
+  const unmatched: string[] = [];
   let matched = 0;
   for (const name of xiNames) {
     const hit = matchSquadPlayer(name, pool);
@@ -352,6 +344,8 @@ export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeam
       const det = DETAIL_POS[hit.id];
       const bucket = (det?.primary && BUCKET_OF[det.primary]) || LETTER_BUCKET[hit.position ?? ""] || "CM";
       entries.push({ id: hit.id, name: hit.name, detail: det?.primary ?? null, bucket });
+    } else {
+      unmatched.push(name);
     }
   }
   if (matched < 9) {
@@ -460,22 +454,21 @@ export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeam
     return { posted: false, reason: "dryRun", title, content, lineupCode, formation: laid.formation, matched, withDetail, entries: entries.map((e) => `${e.name}:${e.detail ?? "?"}→${e.bucket}`) };
   }
 
-  // createdAt 지터 — cron 정각 발행 티 제거 (free-board-bot 패턴).
-  const jitterMin = 1 + Math.floor(Math.random() * 20);
-  const post = await prisma.post.create({
-    data: {
-      authorId: author.id,
-      category: "FREE",
-      sport: "soccer",
-      title,
-      content,
-      lineupCode,
-      createdAt: new Date(Date.now() - jitterMin * 60e3),
-    },
-    select: { id: true },
-  });
-  console.log(`[transfer-xi] 발행: post ${post.id} — ${title}`);
-  return { posted: true, postId: post.id, focus: focusId, formation: laid.formation };
+  // 텔레그램 초안 전송 — 발행은 운영자가 직접 (본문 붙여넣기 + 전술판 첨부).
+  // 전술판 초안 링크: 봇이 계산한 배치가 빌더에 미리 로드돼 수정만 하면 됨.
+  const siteUrl = process.env.SITE_URL || "https://www.scorebase.kr";
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const message = [
+    `<b>[예상 XI 초안] ${esc(title)}</b>`,
+    ``,
+    esc(content),
+    ``,
+    ...(unmatched.length ? [`주의: 웹 XI 매칭 ${matched}/11 — 미매칭(전술판에 직접 추가 필요): ${esc(unmatched.join(", "))}`] : []),
+    `전술판 초안(빌더에서 열어 수정): ${siteUrl}/lineup?d=${lineupCode}`,
+  ].join("\n");
+  await sendTelegram(message);
+  console.log(`[transfer-xi] 초안 전송: ${title}`);
+  return { sent: true, focus: focusId, formation: laid.formation, title };
 }
 
 // tsx 직접 실행 (npm run job:transfer-xi) — `--dry` 미리보기, `--team=<tsId>` 팀 강제.
