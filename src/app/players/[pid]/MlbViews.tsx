@@ -325,7 +325,7 @@ export async function MlbHitterView({
   );
 
   return (
-    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
       <PlayerHeader
         photoUrl={mlbHeadshotUrl(pid)}
@@ -514,7 +514,7 @@ export async function MlbPitcherView({
   );
 
   return (
-    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
       <PlayerHeader
         photoUrl={mlbHeadshotUrl(pid)}

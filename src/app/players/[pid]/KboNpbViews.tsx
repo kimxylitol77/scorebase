@@ -295,7 +295,7 @@ async function KboPitcherView({
   );
 
   return (
-    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
       <Header
         backHref="/leagues/KBO"
@@ -397,7 +397,7 @@ async function KboHitterView({
   );
 
   return (
-    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
       <Header
         backHref="/leagues/KBO"
@@ -662,7 +662,7 @@ async function NpbPitcherView({
   );
 
   return (
-    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
       <Header
         backHref="/leagues/NPB"
@@ -760,7 +760,7 @@ async function NpbHitterView({
   );
 
   return (
-    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <AmbientGlow />
       <Header
         backHref="/leagues/NPB"
