@@ -5,7 +5,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { COOKIE_NAME as ADMIN_COOKIE, readSessionCookie } from "@/lib/auth";
-import { displayGrade } from "@/lib/user-level";
+import { displayGrade, EXP_REWARDS, POINT_REWARDS } from "@/lib/user-level";
 import { getCurrentUserId } from "@/lib/current-user";
 import { listTime, kickoffLabel, hitRate } from "@/lib/analysis/format";
 import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
@@ -21,6 +21,7 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ welcome?: string }>;
 }
 
 // 봇 자동 발행 + 회원 UGC 가 매일 쌓이는 섹션 — 전 글이 루트 제네릭 타이틀을 공유하며
@@ -44,8 +45,9 @@ const MARKET_LABEL: Record<string, string> = {
 };
 const fmtLine = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
-export default async function PostDetailPage({ params }: Props) {
+export default async function PostDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { welcome } = await searchParams;
   const postId = Number(id);
   if (!Number.isInteger(postId)) notFound();
 
@@ -175,6 +177,18 @@ export default async function PostDetailPage({ params }: Props) {
       >
         ← 목록
       </Link>
+
+      {/* 첫 글 축하 배너 — 작성자 본인이 방금 첫 글을 올렸을 때만 (welcome=1 & isAuthor) */}
+      {welcome === "1" && isAuthor && (
+        <div className="mt-4 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 px-5 py-4 text-white shadow-[0_18px_50px_-24px_rgba(225,29,72,0.7)]">
+          <div className="text-sm font-bold">🎉 첫 글 등록을 환영합니다!</div>
+          <div className="mt-1 text-sm text-white/90">
+            첫 글 보너스로 <strong className="tabular-nums">+{(EXP_REWARDS.analysisPost + EXP_REWARDS.firstPostBonus).toLocaleString()} XP</strong>
+            {" · "}
+            <strong className="tabular-nums">+{POINT_REWARDS.analysisPost + POINT_REWARDS.firstPostBonus} P</strong> 를 받았습니다. 경험치가 쌓이면 등급이 오릅니다.
+          </div>
+        </div>
+      )}
 
       <article className="mt-5">
         {post.category === "BRIEFING" ? (

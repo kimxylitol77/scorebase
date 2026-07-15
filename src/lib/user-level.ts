@@ -40,6 +40,7 @@ export const EXP_REWARDS = {
   predictionJoin: 50, // 경기 예측 참여
   predictionHit: 300, // 🎯 예측 적중 (자동 채점)
   recommendReceived: 20, // 내 글 추천 1개당
+  firstPostBonus: 500, // 생애 첫 글 보너스 (일반 글 보상에 추가 — 첫 글은 사실상 2배)
 } as const;
 
 /** 포인트 획득량 (등급과 분리, 소비용). */
@@ -49,6 +50,7 @@ export const POINT_REWARDS = {
   analysisPost: 100,
   predictionHit: 50,
   recommendReceived: 5,
+  firstPostBonus: 100, // 생애 첫 글 보너스
 } as const;
 
 /** 누적 경험치 → 등급 레벨 (1 ~ MAX_LEVEL). 음수 exp는 1로 클램프. */

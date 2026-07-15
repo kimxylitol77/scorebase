@@ -139,8 +139,19 @@ export async function createPostAction(
     "post_create",
   );
 
+  // 생애 첫 글 보너스 — 방금 만든 글 포함 count===1 이면 첫 글. 가입 전환 유도용.
+  const postCount = await prisma.post.count({ where: { authorId: userId } });
+  const isFirstPost = postCount === 1;
+  if (isFirstPost) {
+    await awardExp(
+      userId,
+      { exp: EXP_REWARDS.firstPostBonus, points: POINT_REWARDS.firstPostBonus },
+      "first_post_bonus",
+    );
+  }
+
   revalidatePath("/analysis"); // 두 보드가 같은 라우트 (?board=free)
-  redirect(`/analysis/${post.id}`);
+  redirect(`/analysis/${post.id}${isFirstPost ? "?welcome=1" : ""}`);
 }
 
 /** 글 추천 (회원, 본인 글 제외, 1인 1회). 작성자에게 추천 경험치 지급. */

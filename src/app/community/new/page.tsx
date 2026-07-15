@@ -1,11 +1,11 @@
 // 자유게시판 글쓰기 — 제목·본문 + 선택 첨부(내 드림팀 자랑 / 전술판 공유 링크)
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ChevronLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { TIERS } from "@/lib/dream-team/tiers";
+import SignupGateCard from "@/components/SignupGateCard";
 import BoardForm from "./BoardForm";
 
 export const dynamic = "force-dynamic";
@@ -14,16 +14,16 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
   // 전술판 "게시판에 올리기" 진입 — ?lineup={d코드} 를 폼에 미리 채움 (로그인 리다이렉트에도 보존)
   const { lineup } = await searchParams;
   const lineupCode = lineup && /^[A-Za-z0-9_\-~.%]+$/.test(lineup) && lineup.length <= 4000 ? lineup : null;
+  const backTo = `/community/new${lineupCode ? `?lineup=${lineupCode}` : ""}`;
   const user = await getCurrentUser();
-  if (!user) {
-    redirect(`/login?from=${encodeURIComponent(`/community/new${lineupCode ? `?lineup=${lineupCode}` : ""}`)}`);
-  }
 
   // 내 드림팀 — 있으면 첨부 체크박스에 팀명 노출
-  const team = await prisma.dreamTeam.findFirst({
-    where: { userId: user.id },
-    select: { name: true, tier: true },
-  });
+  const team = user
+    ? await prisma.dreamTeam.findFirst({
+        where: { userId: user.id },
+        select: { name: true, tier: true },
+      })
+    : null;
 
   return (
     <main className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
@@ -42,10 +42,14 @@ export default async function NewBoardPostPage({ searchParams }: { searchParams:
           <ChevronLeft className="h-4 w-4" aria-hidden /> 목록
         </Link>
       </div>
-      <BoardForm
-        myTeam={team ? { name: team.name, tierName: TIERS[team.tier]?.name ?? team.tier } : null}
-        defaultLineup={lineupCode}
-      />
+      {user ? (
+        <BoardForm
+          myTeam={team ? { name: team.name, tierName: TIERS[team.tier]?.name ?? team.tier } : null}
+          defaultLineup={lineupCode}
+        />
+      ) : (
+        <SignupGateCard from={backTo} />
+      )}
     </main>
   );
 }
