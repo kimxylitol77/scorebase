@@ -45,22 +45,22 @@ export default function SprayChart({ balls, season }: { balls: BattedBall[]; sea
         <span className="text-xs text-neutral-400">{season} · 인플레이 {balls.length}타구</span>
       </div>
       <div className="mx-auto max-w-[360px]">
-        <svg viewBox="8 78 235 132" className="w-full" role="img" aria-label="타구 분포 스프레이차트">
+        <svg viewBox="8 34 235 178" className="w-full" role="img" aria-label="타구 분포 스프레이차트">
           {/* 페어그라운드 잔디 */}
           <path
             d={`M ${HX} ${HY} L ${LF.x} ${LF.y} A ${R} ${R} 0 0 1 ${RF.x} ${RF.y} Z`}
-            fill="rgba(16,185,129,0.07)"
-            stroke="rgba(148,163,184,0.35)"
+            fill="rgba(16,185,129,0.12)"
+            stroke="rgba(148,163,184,0.55)"
             strokeWidth={0.7}
           />
           {/* 파울선 */}
-          <line x1={HX} y1={HY} x2={LF.x} y2={LF.y} stroke="rgba(148,163,184,0.4)" strokeWidth={0.7} />
-          <line x1={HX} y1={HY} x2={RF.x} y2={RF.y} stroke="rgba(148,163,184,0.4)" strokeWidth={0.7} />
+          <line x1={HX} y1={HY} x2={LF.x} y2={LF.y} stroke="rgba(148,163,184,0.55)" strokeWidth={0.8} />
+          <line x1={HX} y1={HY} x2={RF.x} y2={RF.y} stroke="rgba(148,163,184,0.55)" strokeWidth={0.8} />
           {/* 내야 다이아몬드 */}
           <path
             d={`M ${HX} ${HY} L ${B1.x} ${B1.y} L ${B2.x} ${B2.y} L ${B3.x} ${B3.y} Z`}
-            fill="rgba(180,120,70,0.10)"
-            stroke="rgba(148,163,184,0.4)"
+            fill="rgba(180,120,70,0.18)"
+            stroke="rgba(148,163,184,0.55)"
             strokeWidth={0.7}
           />
           {/* 타구 점 */}
