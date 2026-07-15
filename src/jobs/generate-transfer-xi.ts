@@ -10,7 +10,7 @@ import { generateWithWebSearch } from "@/lib/ai/claude";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { encodeBoard, newUid, type BoardState, type Placed, type BenchEntry } from "@/lib/lineup/lineup-state";
-import type { Pos } from "@/lib/lineup/formations";
+import { FORMATIONS, type Pos, type Slot } from "@/lib/lineup/formations";
 
 const FEED_LEAGUES = ["EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "K_LEAGUE_1", "SAUDI_PL", "MLS"];
 const LEAGUE_KO: Record<string, string> = {
@@ -102,6 +102,71 @@ const POS_TYPE: Record<Bucket, Pos> = { GK: "GK", DF: "DF", DM: "MF", CM: "MF", 
 const LETTER_BUCKET: Record<string, Bucket> = { G: "GK", D: "DF", M: "CM", F: "FW" };
 
 export interface XiEntry { id: string; name: string; detail: string | null; bucket: Bucket }
+
+// ============================================================
+// 감독 선호 포메이션 끼워맞춤 — 선수 세부 포지션과 슬롯의 적합도(비용) 최소 배정.
+// 역산만 하면 이력 포지션 분포에 따라 감독 실제 전술과 다른 포메이션이 나온다
+// (캐릭 4-2-3-1 인데 4-3-2-1 표기 — post 1027 실측).
+// ============================================================
+type Fam = "GK" | "WB" | "CB" | "DM" | "CM" | "AM" | "W" | "ST";
+const DETAIL_FAM: Record<string, Fam> = {
+  GK: "GK", LB: "WB", RB: "WB", FB: "WB", CB: "CB",
+  CDM: "DM", DM: "DM", CM: "CM", CAM: "AM", AM: "AM",
+  LM: "W", RM: "W", LW: "W", RW: "W", W: "W", ST: "ST", CF: "ST",
+};
+const SLOT_FAM: Record<string, Fam> = {
+  GK: "GK", LB: "WB", RB: "WB", LWB: "WB", RWB: "WB", CB: "CB",
+  DM: "DM", CM: "CM", AM: "AM", LM: "W", RM: "W", LW: "W", RW: "W", ST: "ST",
+};
+// 패밀리 간 이동 비용 — 0=제자리, 1~3=흔한 역할 전환, 9=말이 안 됨(배정 거부 기준).
+const FAM_COST: Record<Fam, Partial<Record<Fam, number>>> = {
+  GK: { GK: 0 },
+  WB: { WB: 0, CB: 2, W: 3, CM: 4, DM: 4 },
+  CB: { CB: 0, WB: 3, DM: 3.5 },
+  DM: { DM: 0, CM: 1, CB: 3, AM: 3 },
+  CM: { CM: 0, DM: 1, AM: 1.5, W: 3, WB: 4 },
+  AM: { AM: 0, CM: 1.5, W: 2, ST: 2.5, DM: 4 },
+  W: { W: 0, AM: 1.5, ST: 2.5, CM: 3, WB: 3.5 },
+  ST: { ST: 0, AM: 2, W: 2.5 },
+};
+type SideKey = "L" | "C" | "R";
+const sideOfDetail = (d: string | null): SideKey => (d?.startsWith("L") ? "L" : d?.startsWith("R") ? "R" : "C");
+const sideOfSlot = (s: Slot): SideKey => (s.x < 40 ? "L" : s.x > 60 ? "R" : "C");
+
+function slotCost(e: XiEntry, s: Slot): number {
+  const fam = e.detail ? DETAIL_FAM[e.detail] : ({ GK: "GK", DF: "CB", DM: "DM", CM: "CM", AM: "AM", FW: "ST" } as Record<Bucket, Fam>)[e.bucket];
+  const base = FAM_COST[fam]?.[SLOT_FAM[s.label] ?? "CM"];
+  if (base === undefined) return 9;
+  const a = sideOfDetail(e.detail);
+  const b = sideOfSlot(s);
+  const side = a === b ? 0 : a === "C" || b === "C" ? 0.7 : 3;
+  return base + side;
+}
+
+/** 감독 선호 포메이션 슬롯에 XI 를 최소 비용으로 배정. 억지 배정(비용 8+)이 생기면 null. */
+export function fitToFormation(entries: XiEntry[], formationKey: string, knownPids: Set<string>): Placed[] | null {
+  const slots = FORMATIONS[formationKey];
+  if (!slots || entries.length !== slots.length) return null;
+  const pairs: { ei: number; si: number; cost: number }[] = [];
+  entries.forEach((e, ei) => slots.forEach((s, si) => pairs.push({ ei, si, cost: slotCost(e, s) })));
+  pairs.sort((p, q) => p.cost - q.cost);
+  const eUsed = new Set<number>(), sUsed = new Set<number>();
+  const assign = new Map<number, number>(); // si → ei
+  for (const p of pairs) {
+    if (eUsed.has(p.ei) || sUsed.has(p.si)) continue;
+    if (p.cost >= 8) return null; // 억지 배정 — 포메이션이 이 XI 와 안 맞음 → 역산 폴백
+    eUsed.add(p.ei);
+    sUsed.add(p.si);
+    assign.set(p.si, p.ei);
+    if (assign.size === slots.length) break;
+  }
+  if (assign.size !== slots.length) return null;
+  return slots.map((s, si) => {
+    const e = entries[assign.get(si)!];
+    const known = knownPids.has(e.id);
+    return { uid: newUid(), pid: known ? e.id : null, name: known ? null : playerKo(e.name), pos: s.pos, x: s.x, y: s.y };
+  });
+}
 
 /** XI 11명 → 풀피치 단일 보드 좌표 + 역산 포메이션. GK 1명이 아니면 null(게이트). */
 export function layoutXi(entries: XiEntry[], knownPids: Set<string>): { players: Placed[]; formation: string } | null {
@@ -305,11 +370,18 @@ export async function runGenerateTransferXi(opts?: { dryRun?: boolean; forceTeam
     (await prisma.theSportsPlayer.findMany({ where: { id: { in: nameIds } }, select: { id: true, nameKo: true } }))
       .map((r) => [r.id, r.nameKo]),
   );
-  const laid = layoutXi(entries, new Set(names.keys()));
+  // 배치 — 감독 선호 포메이션 끼워맞춤 1순위, 안 맞으면(억지 배정) 라인 역산 폴백.
+  const knownPids = new Set(names.keys());
+  const pref = coach?.preferredFormation;
+  const fitted = pref && FORMATIONS[pref] ? fitToFormation(entries, pref, knownPids) : null;
+  const laid = fitted
+    ? { players: fitted, formation: pref! }
+    : layoutXi(entries, knownPids);
   if (!laid) {
     console.warn(`[transfer-xi] 배치 실패(GK ${entries.filter((e) => e.bucket === "GK").length}명 등) — 스킵`);
     return { posted: false, reason: "layout" };
   }
+  if (pref && !fitted) console.warn(`[transfer-xi] 선호 포메이션 ${pref} 끼워맞춤 실패 — 역산(${laid.formation})으로 폴백`);
 
   // 벤치 — XI 에 못 든 신규 영입 (전술판 하단 노출).
   const bench: BenchEntry[] = focusTeam.moves
