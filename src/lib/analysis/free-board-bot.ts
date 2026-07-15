@@ -78,6 +78,19 @@ async function todayBotFreePosts() {
   });
 }
 
+/** 지금 진행 중인 리그 집합 — 최근 14일 내 종료 or 향후 14일 내 예정 경기가 있으면 in-season.
+ *  리더/vs 프레이밍을 시즌 상태에 맞추는 데 사용(예: 축구 여름 비시즌 = 최종 기록, 야구 = 레이스). */
+async function activeLeagueSet(): Promise<Set<string>> {
+  const since = new Date(Date.now() - 14 * 24 * 3600 * 1000);
+  const until = new Date(Date.now() + 14 * 24 * 3600 * 1000);
+  const rows = await prisma.match.findMany({
+    where: { startTime: { gte: since, lte: until }, status: { in: ["FINISHED", "LIVE", "SCHEDULED"] } },
+    select: { league: true },
+    distinct: ["league"],
+  });
+  return new Set(rows.map((r) => r.league));
+}
+
 // ── 선수 리더 소재 (커뮤니티 최대 소재: "이 선수 이 기록 실화") ──────────────
 // 인기 리그 + 간판 스탯만. 카드·경고 카테고리(YELLOW/RED)나 군소 리그는 제외.
 const POPULAR_LEADER_LEAGUES = new Set([
@@ -99,7 +112,7 @@ function fmtLeaderValue(cat: string, v: number): string {
 }
 
 /** 인기 리그 간판 스탯의 최신 시즌 선두(+근접 2위) 반응 토픽. 상한 3, 오늘 언급된 선수 제외. */
-async function leaderTopics(todayPosts: { content: string }[]): Promise<Topic[]> {
+async function leaderTopics(todayPosts: { content: string }[], active: Set<string>): Promise<Topic[]> {
   const rows = await prisma.leagueLeader.findMany({
     where: {
       league: { in: [...POPULAR_LEADER_LEAGUES] },
@@ -132,6 +145,7 @@ async function leaderTopics(todayPosts: { content: string }[]): Promise<Topic[]>
     const label = r1.unit ?? r1.category;
     const team = toKoreanTeamName(r1.teamName, r1.league).trim();
     const val = fmtLeaderValue(r1.category, r1.value);
+    const inSeason = active.has(r1.league);
     const lines = [`${leagueLabel(r1.league)} ${label} 1위: ${player}(${team}) ${val}`];
     const r2 = g.find((x) => x.rank === 2);
     if (r2) {
@@ -139,10 +153,13 @@ async function leaderTopics(todayPosts: { content: string }[]): Promise<Topic[]>
       const t2 = toKoreanTeamName(r2.teamName, r2.league).trim();
       if (p2) lines.push(`2위: ${p2}(${t2}) ${fmtLeaderValue(r2.category, r2.value)}`);
     }
+    lines.push(`기록 상태: ${inSeason ? "진행 중인 시즌 (레이스 계속)" : `${r1.season} 시즌 최종 기록 (종료)`}`);
     cands.push({
       kind: "leader",
       data: lines.join("\n"),
-      guide: "리그 선두 선수의 기록을 보고 감탄하거나 가볍게 던지는 반응 글. 1~2문장. 2위와 격차가 촘촘하면 순위 경쟁으로 엮어도 좋음.",
+      guide: inSeason
+        ? "리그 선두 선수의 기록을 보고 감탄하거나 가볍게 던지는 반응 글. 1~2문장. 2위와 격차가 촘촘하면 순위 경쟁으로 엮어도 좋음."
+        : "이미 끝난 시즌의 최종 기록 회고 글. 1~2문장. ⚠️ 종료된 시즌이니 '아직 남았다·누가 될까·확정 짓겠다'처럼 진행 중인 척 금지. 지난 시즌 그 기록이 대단했다는 회고나 다음 시즌 전망으로.",
       appendix: `\n\n[${leagueLabel(r1.league)} 리더 보기](/standings/${r1.league})`,
     });
   }
@@ -196,7 +213,7 @@ const VS_SOCCER_LEAGUES = new Set(["EPL", "LALIGA", "SERIE_A", "BUNDESLIGA", "LI
 const VS_CATEGORIES = ["GOAL", "ASSIST"];
 
 /** 같은 리그 간판 스탯 1위 vs 2위 라이벌 vs놀이 토픽. 상한 2, 둘 다 비교 링크 가능해야 함. */
-async function vsTopics(todayPosts: { content: string }[]): Promise<Topic[]> {
+async function vsTopics(todayPosts: { content: string }[], active: Set<string>): Promise<Topic[]> {
   const rows = await prisma.leagueLeader.findMany({
     where: {
       league: { in: [...VS_SOCCER_LEAGUES] },
@@ -236,14 +253,16 @@ async function vsTopics(todayPosts: { content: string }[]): Promise<Topic[]> {
     const t1 = toKoreanTeamName(r1.teamName, r1.league).trim();
     const t2 = toKoreanTeamName(r2.teamName, r2.league).trim();
     const [x, y] = [ts1, ts2].sort();
+    const inSeason = active.has(r1.league);
     cands.push({
       kind: "vs",
       data: [
         `${leagueLabel(r1.league)} ${cat} 라이벌 맞대결`,
         `A: ${p1}(${t1}) ${cat} ${fmtLeaderValue(r1.category, r1.value)}`,
         `B: ${p2}(${t2}) ${cat} ${fmtLeaderValue(r2.category, r2.value)}`,
+        `기록 상태: ${inSeason ? "진행 중인 시즌 (레이스 계속)" : `${r1.season} 시즌 최종 기록 (종료)`}`,
       ].join("\n"),
-      guide: "두 선수 중 누가 더 낫냐를 묻는 vs놀이 글. 자기 생각을 한쪽에 살짝 얹되 다른 회원 의견을 묻는 질문으로 끝내기. 1~2문장. 한쪽을 사실로 단정하지 말 것 — 어디까지나 취향·의견.",
+      guide: `두 선수 중 누가 더 낫냐를 묻는 vs놀이 글. 자기 생각을 한쪽에 살짝 얹되 다른 회원 의견을 묻는 질문으로 끝내기. 1~2문장. 한쪽을 사실로 단정하지 말 것 — 어디까지나 취향·의견. ${inSeason ? "" : "⚠️ 이미 끝난 시즌이니 '누가 될까·아직 남았다'로 쓰지 말 것 — 지난 시즌 최종 기록 기준으로 누가 더 나은 선수였는지 묻기. 확인 안 되는 개인사(적응·이적·나이·부상)는 지어내지 말 것."}`,
       appendix: `\n\n스탯 맞대결 → [${p1} vs ${p2}](/compare/${x}/${y})`,
     });
   }
@@ -383,9 +402,11 @@ async function buildTopics(): Promise<Topic[]> {
     }
   }
 
-  // 6·7. 선수 리더 소재 + 이적 루머 반응 — 커뮤니티 밥줄 소재. 쿼리 실패해도 경기 토픽은 유지.
+  // 6·7·8. 선수 리더 소재 + 이적 루머 반응 + vs놀이 — 커뮤니티 밥줄 소재.
+  // 리더·vs 는 시즌 종료 여부(active)에 따라 프레이밍이 달라 활성 리그 집합을 한 번 조회해 공유.
+  const active = await activeLeagueSet().catch(() => new Set<string>());
   try {
-    topics.push(...(await leaderTopics(todayPosts)));
+    topics.push(...(await leaderTopics(todayPosts, active)));
   } catch {
     // 리더 캐시 miss 는 토픽 생략
   }
@@ -395,7 +416,7 @@ async function buildTopics(): Promise<Topic[]> {
     // 루머 없음 → 토픽 생략
   }
   try {
-    topics.push(...(await vsTopics(todayPosts)));
+    topics.push(...(await vsTopics(todayPosts, active)));
   } catch {
     // 비교 가능한 라이벌 쌍 없음 → 토픽 생략
   }
