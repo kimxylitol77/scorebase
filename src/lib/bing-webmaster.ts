@@ -7,6 +7,12 @@
 
 import "server-only";
 import { unstable_cache } from "next/cache";
+import {
+  OPP_MIN_IMPRESSIONS,
+  OPP_MIN_POSITION,
+  isOpportunity,
+  byPotentialDesc,
+} from "@/lib/search-opportunity";
 
 const API_BASE = "https://ssl.bing.com/webmaster/api.svc/json";
 const FETCH_TIMEOUT_MS = 8000;
@@ -46,9 +52,9 @@ function bingSiteUrl(): string {
   return process.env.BING_SITE_URL?.trim() || "https://www.scorebase.kr/";
 }
 
-// 기회 검색어 기준 — 노출 충분 + 순위 4위 밖(클릭 못 받음). UI 표·주간 SEO 점검 job 공용.
-export const BING_OPP_MIN_IMPRESSIONS = 10;
-export const BING_OPP_MIN_POSITION = 4;
+// 기회 검색어 기준 — 공용 판정 로직(search-opportunity)을 그대로 재노출 (기존 import 하위호환).
+export const BING_OPP_MIN_IMPRESSIONS = OPP_MIN_IMPRESSIONS;
+export const BING_OPP_MIN_POSITION = OPP_MIN_POSITION;
 
 /** 빙 전체 검색어(검색어별 집계, 노출순). 캐시 없음 — 호출부(UI 캐시·주간 job)에서 관리.
  *  GetQueryStats 행은 검색어×날짜라 검색어 기준 합산(position 은 노출 가중 평균). */
@@ -93,10 +99,8 @@ const fetchBingOverviewCached = unstable_cache(
     const queries = [...all]
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
       .slice(0, 20);
-    // 기회 검색어 — 노출 충분한데 순위가 4위 밖이라 클릭을 못 받는 것. all 이 이미 노출순.
-    const opportunities = all
-      .filter((r) => r.impressions >= BING_OPP_MIN_IMPRESSIONS && r.position >= BING_OPP_MIN_POSITION)
-      .slice(0, 20);
+    // 기회 검색어 — 노출 충분한데 순위가 낮아(4~30위) 클릭을 못 받는 것. 잠재 클릭순.
+    const opportunities = all.filter(isOpportunity).sort(byPotentialDesc).slice(0, 20);
     return {
       siteUrl: bingSiteUrl(),
       queries,

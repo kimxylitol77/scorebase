@@ -14,6 +14,7 @@
 import "server-only";
 import crypto from "node:crypto";
 import { unstable_cache } from "next/cache";
+import { isOpportunity, byPotentialDesc } from "@/lib/search-opportunity";
 
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const API_BASE = "https://searchconsole.googleapis.com/webmasters/v3";
@@ -53,6 +54,8 @@ export interface GscOverview {
   queries28: GscRow[];
   /** 클릭 많은 페이지 TOP — 28일 */
   pages28: GscRow[];
+  /** 기회 검색어 — 노출 많은데 순위 낮아(4~30위) 클릭 못 받는 것, 잠재 클릭순. 28일. */
+  opportunities: GscRow[];
 }
 
 interface ServiceAccount {
@@ -303,7 +306,9 @@ const fetchGscOverviewCached = unstable_cache(
       run({ startDate: range7.start, endDate }),
       run({ startDate: range28.start, endDate }),
       run({ startDate: range7.start, endDate, dimensions: ["query"], rowLimit: 50 }),
-      run({ startDate: range28.start, endDate, dimensions: ["query"], rowLimit: 50 }),
+      // 28일 검색어는 넉넉히(1000) 받아 클릭순 TOP20 과 기회 검색어(노출 많고 클릭 적은
+      // 것 — 클릭순 상위엔 안 잡힘)를 같은 데이터로 계산.
+      run({ startDate: range28.start, endDate, dimensions: ["query"], rowLimit: 1000 }),
       run({ startDate: range28.start, endDate, dimensions: ["page"], rowLimit: 25 }),
     ]);
 
@@ -312,6 +317,9 @@ const fetchGscOverviewCached = unstable_cache(
       rows.map((r) => ({ ...r, keys: [gscPageToPath(r.keys?.[0] ?? "")] })),
     );
 
+    // 28일 검색어를 한 번 합산해 클릭순 TOP20 과 기회 검색어(잠재 클릭순) 둘 다 뽑는다.
+    const queries28Merged = mergeRows(queries28, 1000);
+
     return {
       siteUrl: siteUrls.join(" + "),
       range7,
@@ -319,8 +327,12 @@ const fetchGscOverviewCached = unstable_cache(
       totals7: mergeTotals(totals7),
       totals28: mergeTotals(totals28),
       queries7: mergeRows(queries7, 20),
-      queries28: mergeRows(queries28, 20),
+      queries28: queries28Merged.slice(0, 20),
       pages28: mergeRows(pagesByPath, 10),
+      opportunities: queries28Merged
+        .filter(isOpportunity)
+        .sort(byPotentialDesc)
+        .slice(0, 20),
     };
   },
   ["gsc-overview-v2"],
@@ -336,6 +348,7 @@ const EMPTY: Omit<GscOverview, "configured" | "error"> = {
   queries7: [],
   queries28: [],
   pages28: [],
+  opportunities: [],
 };
 
 /** /admin/stats 진입점 — 미설정/실패 모두 throw 없이 상태로 반환 (페이지는 항상 렌더). */

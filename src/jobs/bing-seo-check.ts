@@ -1,11 +1,8 @@
 // 주간 빙 SEO 점검 — 빙 기회 검색어 신규/순위 변화를 운영자 텔레그램으로. (Vercel cron 월 아침)
 // 빙 전체 검색어를 매주 스냅샷 저장 → 직전 스냅샷과 비교해 "순위 개선/하락·신규 기회"를 보고.
 // 수정은 자동화하지 않는다(코드 판단 필요) — 알림 보고 사람이 지시하면 supervisor 흐름으로 처리.
-import {
-  fetchAllBingQueries,
-  BING_OPP_MIN_IMPRESSIONS,
-  BING_OPP_MIN_POSITION,
-} from "@/lib/bing-webmaster";
+import { fetchAllBingQueries } from "@/lib/bing-webmaster";
+import { isOpportunity, byPotentialDesc, OPP_MIN_POSITION } from "@/lib/search-opportunity";
 import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 
@@ -36,9 +33,7 @@ export async function runBingSeoCheck(
   if (!process.env.BING_WEBMASTER_API_KEY) return { ok: false, skipped: "BING_WEBMASTER_API_KEY 미설정" };
 
   const all = await fetchAllBingQueries(); // 노출순
-  const opportunities = all.filter(
-    (r) => r.impressions >= BING_OPP_MIN_IMPRESSIONS && r.position >= BING_OPP_MIN_POSITION,
-  );
+  const opportunities = all.filter(isOpportunity).sort(byPotentialDesc);
 
   // 직전 스냅샷(가장 최근, 오늘 제외) 과 비교
   const today = kstDate();
@@ -71,7 +66,7 @@ export async function runBingSeoCheck(
   if (!prev) {
     lines.push("\n기준 스냅샷을 저장했습니다. 다음 주부터 순위 변화를 추적합니다.");
   }
-  lines.push(`\n🎯 <b>기회 검색어 TOP</b> (노출 많은데 ${BING_OPP_MIN_POSITION}위 밖)`);
+  lines.push(`\n🎯 <b>기회 검색어 TOP</b> (노출 많은데 ${OPP_MIN_POSITION}위 밖)`);
   if (opportunities.length === 0) {
     lines.push("· 없음");
   } else {

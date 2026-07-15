@@ -11,6 +11,7 @@ import {
 } from "@/lib/referrer-channel";
 import { getGscOverview, gscPageToPath, type GscRow } from "@/lib/gsc";
 import { getBingOverview } from "@/lib/bing-webmaster";
+import { potentialClicks, OPP_MIN_POSITION, OPP_MAX_POSITION } from "@/lib/search-opportunity";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -777,6 +778,65 @@ export default async function StatsPage({ searchParams }: Props) {
         </p>
       </section>
 
+      {/* === 기회 검색어 (보강 타겟) — 구글·빙 통합 === */}
+      <section className="space-y-4 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
+        <div className="flex items-center gap-2 pt-6">
+          <span className="text-base">🎯</span>
+          <h2 className="text-lg font-bold tracking-tight">기회 검색어 (보강 타겟)</h2>
+          <span className="text-xs text-neutral-500">
+            노출 있는데 {OPP_MIN_POSITION}~{OPP_MAX_POSITION}위라 클릭 못 받는 검색어 · 잠재 클릭순
+          </span>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SectionCard
+            title="🟢 구글 기회 검색어"
+            subtitle={`최근 28일 · ${gsc.opportunities.length}개`}
+          >
+            {!gsc.configured ? (
+              <EmptyHint message="구글(GSC) 연동 대기 — 아래 '구글 검색 성과' 섹션 참고." />
+            ) : gsc.error ? (
+              <EmptyHint message="GSC 호출 실패 — 아래 '구글 검색 성과' 섹션에서 원인 확인." />
+            ) : gsc.opportunities.length === 0 ? (
+              <EmptyHint message={`기회 검색어 없음 (노출 10회+ · ${OPP_MIN_POSITION}~${OPP_MAX_POSITION}위 조건).`} />
+            ) : (
+              <OpportunityTable rows={gsc.opportunities} engine="google" />
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="🔷 빙 기회 검색어"
+            subtitle={`Bing Webmaster · ${bing.opportunities.length}개`}
+          >
+            {!bing.configured ? (
+              <EmptyHint message="빙 연동 대기 — 아래 '빙 검색 성과' 섹션 참고." />
+            ) : bing.error ? (
+              <EmptyHint message="빙 호출 실패 — 아래 '빙 검색 성과' 섹션에서 원인 확인." />
+            ) : bing.opportunities.length === 0 ? (
+              <EmptyHint message={`기회 검색어 없음 (노출 10회+ · ${OPP_MIN_POSITION}~${OPP_MAX_POSITION}위 조건).`} />
+            ) : (
+              <OpportunityTable
+                rows={bing.opportunities.map((q) => ({
+                  keys: [q.query],
+                  clicks: q.clicks,
+                  impressions: q.impressions,
+                  ctr: q.ctr,
+                  position: q.position,
+                }))}
+                engine="bing"
+              />
+            )}
+          </SectionCard>
+        </div>
+        <p className="text-xs text-neutral-500 leading-relaxed">
+          ⓘ <strong>기회 검색어</strong>는 검색 노출(수요)은 있는데 순위가 낮아 클릭을 못 받는 것 —
+          해당 주제 글·페이지를 보강하거나 새로 쓰면 순위·클릭을 끌어올릴 1순위 타겟입니다.{" "}
+          <strong>잠재 클릭</strong>은 그 검색어가 상위(약 3위권)로 올라갔을 때 더 얻을 수 있는
+          클릭의 추정치(우선순위 비교용 근사값)입니다. 검색어를 누르면 실제 검색 결과가 열려 현재
+          우리 노출·경쟁 페이지를 바로 확인할 수 있습니다. {OPP_MAX_POSITION}위 밖은 단기 보강으로
+          진입이 어려워 제외했습니다.
+        </p>
+      </section>
+
       {/* === 구글 검색 성과 (GSC) === */}
       <section className="space-y-6 pt-2 border-t-2 border-dashed border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-2 pt-6">
@@ -933,49 +993,26 @@ export default async function StatsPage({ searchParams }: Props) {
               <KpiCard label="클릭 (빙)" value={bing.totals?.clicks ?? 0} accent />
               <KpiCard label="노출 (빙)" value={bing.totals?.impressions ?? 0} />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <SectionCard title="빙 검색어 TOP 20" subtitle="클릭순 · Bing Webmaster Tools 집계">
-                {bing.queries.length === 0 ? (
-                  <EmptyHint message="빙 검색어 데이터가 아직 없습니다. 사이트 등록 직후면 며칠 뒤부터 쌓입니다." />
-                ) : (
-                  <GscTable
-                    rows={bing.queries.map((q) => ({
-                      keys: [q.query],
-                      clicks: q.clicks,
-                      impressions: q.impressions,
-                      ctr: q.ctr,
-                      position: q.position,
-                    }))}
-                    keyLabel="검색어"
-                  />
-                )}
-              </SectionCard>
-
-              <SectionCard
-                title="기회 검색어 (보강 타겟)"
-                subtitle="노출 많은데 순위 낮아(4위 밖) 클릭 못 받는 검색어 · 노출순"
-              >
-                {bing.opportunities.length === 0 ? (
-                  <EmptyHint message="아직 기회 검색어가 없습니다 (노출 10회 이상 + 4위 밖 조건)." />
-                ) : (
-                  <GscTable
-                    rows={bing.opportunities.map((q) => ({
-                      keys: [q.query],
-                      clicks: q.clicks,
-                      impressions: q.impressions,
-                      ctr: q.ctr,
-                      position: q.position,
-                    }))}
-                    keyLabel="검색어"
-                  />
-                )}
-              </SectionCard>
-            </div>
+            <SectionCard title="빙 검색어 TOP 20" subtitle="클릭순 · Bing Webmaster Tools 집계">
+              {bing.queries.length === 0 ? (
+                <EmptyHint message="빙 검색어 데이터가 아직 없습니다. 사이트 등록 직후면 며칠 뒤부터 쌓입니다." />
+              ) : (
+                <GscTable
+                  rows={bing.queries.map((q) => ({
+                    keys: [q.query],
+                    clicks: q.clicks,
+                    impressions: q.impressions,
+                    ctr: q.ctr,
+                    position: q.position,
+                  }))}
+                  keyLabel="검색어"
+                />
+              )}
+            </SectionCard>
             <p className="text-xs text-neutral-500 leading-relaxed">
               ⓘ 빙은 referrer 에 검색어를 안 남겨(구글과 동일) 위 &lsquo;검색어&rsquo; 표엔 안 잡힙니다 —
-              빙 검색어는 이 섹션이 유일한 소스입니다. <strong>기회 검색어</strong>는 노출(검색 수요)은
-              있는데 순위가 낮아 클릭을 못 받는 것 — 해당 주제 글·페이지를 보강하거나 새로 쓰면
-              순위·클릭을 끌어올릴 수 있는 1순위 타겟입니다. 수치는 1시간 캐시됩니다.
+              빙 검색어는 이 섹션이 유일한 소스입니다. 빙 기회 검색어(보강 타겟)는 위{" "}
+              <strong>&lsquo;기회 검색어&rsquo; 섹션</strong>에서 구글과 나란히 봅니다. 수치는 1시간 캐시됩니다.
               {bing.siteUrl && (
                 <>
                   {" "}
@@ -1436,6 +1473,65 @@ function GscTable({
               </td>
               <td className="py-2 pl-1 text-right tabular-nums text-neutral-500">
                 {r.position.toFixed(1)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+/** 기회 검색어 표 — 검색어(실검색 링크)·노출·현재순위·CTR·잠재클릭(상위 진입 시 추가 클릭 추정).
+ *  engine 으로 검색 결과 URL(구글/빙)을 결정 — 클릭하면 현재 우리 노출·경쟁 페이지를 바로 확인. */
+function OpportunityTable({ rows, engine }: { rows: GscRow[]; engine: "google" | "bing" }) {
+  const searchBase =
+    engine === "google" ? "https://www.google.com/search?q=" : "https://www.bing.com/search?q=";
+  const engineLabel = engine === "google" ? "구글" : "빙";
+  return (
+    <table className="w-full text-sm table-fixed">
+      <thead>
+        <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+          <th className="text-left font-medium pb-2 pr-2">검색어</th>
+          <th className="text-right font-medium pb-2 px-1 w-14">노출</th>
+          <th className="text-right font-medium pb-2 px-1 w-12">순위</th>
+          <th className="text-right font-medium pb-2 px-1 w-12">CTR</th>
+          <th className="text-right font-medium pb-2 pl-1 w-16">잠재클릭</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        {rows.map((r, i) => {
+          const q = r.keys[0] ?? "";
+          const pot = potentialClicks(r.impressions, r.clicks);
+          return (
+            <tr key={q || i}>
+              <td className="py-2 pr-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-5 shrink-0 text-right tabular-nums text-neutral-400 font-bold text-xs">
+                    {i + 1}
+                  </span>
+                  <a
+                    href={`${searchBase}${encodeURIComponent(q)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium truncate hover:underline"
+                    title={`"${q}" ${engineLabel} 검색결과 열기`}
+                  >
+                    {q}
+                  </a>
+                </div>
+              </td>
+              <td className="py-2 px-1 text-right tabular-nums text-neutral-500">
+                {r.impressions.toLocaleString()}
+              </td>
+              <td className="py-2 px-1 text-right tabular-nums text-neutral-500">
+                {r.position.toFixed(1)}
+              </td>
+              <td className="py-2 px-1 text-right tabular-nums text-neutral-500">
+                {(r.ctr * 100).toFixed(1)}%
+              </td>
+              <td className="py-2 pl-1 text-right tabular-nums font-bold text-amber-600 dark:text-amber-400">
+                +{pot.toLocaleString()}
               </td>
             </tr>
           );
