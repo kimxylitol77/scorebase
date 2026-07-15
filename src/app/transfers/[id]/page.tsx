@@ -25,6 +25,8 @@ import SeasonAccordion, { type SeasonEntry } from "./SeasonAccordion";
 import PlayerSeasonOverview from "./PlayerSeasonOverview";
 import PlayerAdvancedStats from "./PlayerAdvancedStats";
 import PlayerTraits from "./PlayerTraits";
+import PlayerAdvancedMetrics, { type AdvMetrics } from "./PlayerAdvancedMetrics";
+import rawAdvMetrics from "../../../../data/player-advanced-thestats.json";
 import PlayerHeatmapAnalysis, { type PlayerHeatmapData } from "./PlayerHeatmapAnalysis";
 import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps";
 import PlayerBioPanel from "./PlayerBioPanel";
@@ -123,6 +125,8 @@ const WIKI = rawWiki as Record<string, WikiSeasonRow[]>;
 // 종합 능력치 (TheSports player/ability comprehensive, 10점=만점x10 아닌 0~100 종합)
 const ABILITY = rawAbility as Record<string, number>;
 const HEATMAP_ANALYSIS = rawPlayerHeatmaps as Record<string, PlayerHeatmapData>;
+// 고급 지표(xG/xA/터치/빅찬스) — TheStatsAPI 경기 집계, EPL·세리에A. build-player-advanced-thestats.ts
+const ADV_METRICS = rawAdvMetrics as Record<string, AdvMetrics>;
 // 경기별 원시 터치 좌표 (build-player-match-heatmaps.ts 수집)
 const MATCH_HEATMAPS = rawMatchHeatmaps as unknown as Record<string, { seasonLabel: string; matches: MatchHeatmapRow[] }>;
 // 팀마크 보강 — TeamSourceId→Team.logoUrl 미커버(비빅5 팀)를 ts team/additional 수집분으로 (피드와 동일)
@@ -887,6 +891,10 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 {/* 강점·약점 — 포지션 상대 백분위 상·하위 (데이터 있는 스탯만) */}
                 {season && (season.minutes ?? 0) > 0 && (
                   <PlayerTraits pct={computeStatPercentiles(season)} />
+                )}
+                {/* 고급 지표 — xG·xA·빅찬스·터치 (EPL·세리에A, 데이터 있는 선수만) */}
+                {ADV_METRICS[id] && (
+                  <PlayerAdvancedMetrics adv={ADV_METRICS[id]} goals={season?.goals ?? 0} assists={season?.assists ?? 0} />
                 )}
                 {/* 시즌 성적 상세 — FotMob식 카테고리별 스탯 + 포지션 백분위 순위 바 (펼치기) */}
                 {season && (season.minutes ?? 0) > 0 && (
