@@ -297,6 +297,55 @@ function NbaRecentGames({ games }: { games: RecentGame[] }) {
   );
 }
 
+/* ---------- 부상이력 (PlayerEvent nba-injury/nba-return) ---------- */
+
+interface InjuryRow {
+  id: string;
+  type: string;
+  occurredAt: Date;
+  title: string;
+  detail: unknown;
+}
+
+const fmtInjDate = (d: Date) =>
+  `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${String(d.getUTCDate()).padStart(2, "0")}`;
+
+function NbaInjuryHistory({ rows }: { rows: InjuryRow[] }) {
+  return (
+    <section className="space-y-2">
+      {rows.map((r) => {
+        const d = (r.detail ?? {}) as { status?: string };
+        const isReturn = r.type === "RETURN";
+        return (
+          <div
+            key={r.id}
+            className={`flex items-center gap-3 rounded-lg px-4 py-3 ring-1 ${
+              isReturn
+                ? "bg-emerald-50 dark:bg-emerald-500/10 ring-emerald-200 dark:ring-emerald-500/30"
+                : "bg-rose-50 dark:bg-rose-500/10 ring-rose-200 dark:ring-rose-500/30"
+            }`}
+          >
+            <span
+              className={`text-xs font-semibold tabular-nums shrink-0 ${
+                isReturn ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"
+              }`}
+            >
+              {fmtInjDate(r.occurredAt)}
+            </span>
+            <span className="text-sm">
+              {r.title}
+              {!isReturn && d.status ? <span className="ml-2 text-xs text-neutral-500">{d.status}</span> : null}
+            </span>
+          </div>
+        );
+      })}
+      <p className="text-[11px] text-neutral-400 mt-1 leading-relaxed">
+        ESPN 부상 명단을 매주 스냅샷해 이력화. 복귀는 명단에서 사라진 시점으로 추정한다.
+      </p>
+    </section>
+  );
+}
+
 /* ============================================================
  * 메인 뷰
  * ==========================================================*/
@@ -332,6 +381,16 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
     espnId ? fetchNbaEspnSplits(espnId) : Promise.resolve(null),
     espnId ? fetchNbaEspnAwards(espnId) : Promise.resolve([]),
   ]);
+
+  // 부상이력 — PlayerEvent(playerId=espnId, id prefix "nba-"). collect-player-events cron 이 적재.
+  const injuryRows = espnId
+    ? await prisma.playerEvent.findMany({
+        where: { playerId: espnId, id: { startsWith: "nba-" } },
+        orderBy: { occurredAt: "desc" },
+        take: 40,
+        select: { id: true, type: true, occurredAt: true, title: true, detail: true },
+      })
+    : [];
 
   // 시즌기록 팀 로고/링크 — DB NBA Team(영문 name 매칭)으로 logoUrl·팀페이지 id.
   const nbaTeams = await prisma.team.findMany({ where: { league: "NBA" }, select: { id: true, name: true, logoUrl: true } });
@@ -488,6 +547,11 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
             key: "splits",
             label: "스플릿",
             content: <NbaSplitsView splits={splits} />,
+          },
+          injuryRows.length > 0 && {
+            key: "injuries",
+            label: "부상이력",
+            content: <NbaInjuryHistory rows={injuryRows} />,
           },
         ])}
       />

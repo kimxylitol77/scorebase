@@ -5,6 +5,7 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import { koTeam } from "@/app/transfers/transfer-display";
 import { tsInjuryReasonKo } from "@/lib/sports/thesports/injuries";
+import { fetchEspnInjuries } from "@/lib/sports/espn-injuries";
 
 // ts transfer_type → 한국어. 실이동만(1 임대·2 임대복귀·3 완전이적·6 방출·7 자유계약). 4·8 무시.
 const MOVE_TYPE_KO: Record<number, string> = { 1: "임대", 2: "임대 복귀", 3: "완전이적", 6: "방출", 7: "자유계약" };
@@ -127,6 +128,57 @@ export async function runCollectPlayerEvents({ backfill = false }: { backfill?: 
         }
       }
     }
+  }
+
+  // 4) NBA 부상/복귀 — ESPN 리그 injuries(현재 부상 명단 스냅샷). athlete id=espnId(links href).
+  //    축구와 달리 start/end 가 없어 매일 스냅샷을 비교해 이력화 → id prefix 로 축구(ts id)와 분리.
+  //    playerId = espnId(string). 오늘부터 축적이라 과거 이력은 비어 시작(ESPN 이 과거를 주지 않음).
+  try {
+    const nbaInj = await fetchEspnInjuries("NBA");
+    const nowMs = Date.now();
+    const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+    const currentIds = new Set<string>();
+    for (const e of nbaInj) {
+      if (!e.playerId) continue; // 0 = id 추출 실패분 스킵
+      const pid = String(e.playerId);
+      currentIds.add(pid);
+      const at = e.fixtureDate ? new Date(e.fixtureDate) : new Date(nowMs);
+      events.push({
+        id: `nba-injury:${pid}:${isoDay(at)}`,
+        playerId: pid,
+        type: "INJURY",
+        occurredAt: at,
+        title: `부상 — ${e.reason}`,
+        detail: { reason: e.reason, status: e.status, team: e.teamName, playerName: e.playerName, sport: "NBA" },
+      });
+    }
+    // 복귀 감지 — 마지막 이벤트가 INJURY(부상 중)인데 오늘 명단에 없으면 RETURN 1회.
+    // 멱등키 = 마지막 부상일 → 명단에서 계속 사라져도 중복 생성 안 됨.
+    const prior = await prisma.playerEvent.findMany({
+      where: { id: { startsWith: "nba-" } },
+      select: { playerId: true, type: true, id: true, occurredAt: true },
+      orderBy: { occurredAt: "asc" },
+    });
+    const lastByPlayer = new Map<string, { type: string; injDay: string }>();
+    for (const e of prior) {
+      const day = e.id.split(":")[2] ?? isoDay(new Date(nowMs));
+      const prev = lastByPlayer.get(e.playerId);
+      lastByPlayer.set(e.playerId, { type: e.type, injDay: e.type === "INJURY" ? day : prev?.injDay ?? day });
+    }
+    for (const [pid, last] of lastByPlayer) {
+      if (last.type === "INJURY" && !currentIds.has(pid)) {
+        events.push({
+          id: `nba-return:${pid}:${last.injDay}`,
+          playerId: pid,
+          type: "RETURN",
+          occurredAt: new Date(nowMs),
+          title: "부상 복귀",
+          detail: { sport: "NBA" },
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("[player-events] NBA 부상 수집 실패:", (err as Error).message);
   }
 
   // 메모리 dedup (같은 부상이 여러 매치에 등장) → id 유일화
