@@ -90,7 +90,12 @@ export async function GET(req: NextRequest) {
             OR jsonb_typeof(c."detailLive"->'incidents') IS DISTINCT FROM 'array'
             OR jsonb_array_length(c."detailLive"->'incidents') = 0
             OR jsonb_typeof(c.lineup) IS DISTINCT FROM 'object'
-            OR (c."goalLine" IS NULL AND (m."homeScore" > 0 OR m."awayScore" > 0)))
+            OR (CASE
+                  WHEN jsonb_typeof(c."goalLine") = 'array'
+                    THEN jsonb_array_length(c."goalLine")
+                  ELSE 0
+                END = 0
+                AND (m."homeScore" > 0 OR m."awayScore" > 0)))
      ORDER BY m."startTime" DESC
      LIMIT $3`,
     soccerLeagues,
@@ -107,7 +112,12 @@ export async function GET(req: NextRequest) {
               OR jsonb_typeof(c."detailLive"->'incidents') IS DISTINCT FROM 'array'
               OR jsonb_array_length(c."detailLive"->'incidents') = 0) AS "needIncidents",
              (c."matchId" IS NULL OR jsonb_typeof(c.lineup) IS DISTINCT FROM 'object') AS "needLineup",
-             ((c."matchId" IS NULL OR c."goalLine" IS NULL) AND (m."homeScore" > 0 OR m."awayScore" > 0)) AS "needGoalLine"
+             (CASE
+                WHEN jsonb_typeof(c."goalLine") = 'array'
+                  THEN jsonb_array_length(c."goalLine")
+                ELSE 0
+              END = 0
+              AND (m."homeScore" > 0 OR m."awayScore" > 0)) AS "needGoalLine"
            FROM "Match" m
            LEFT JOIN "TheSportsMatchCache" c ON c."matchId" = m.id
            WHERE m.id = ANY($1)`,

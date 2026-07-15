@@ -144,14 +144,14 @@ async function fetchLineup(uuid) {
 }
 
 // 골 장면 — 골별 슈터/어시 좌표 + 빌드업 패스. 골 있는 종료 매치만(needGoalLine).
-// 미커버/code≠0 이면 [] 반환 → 빈 마커 저장으로 다음 run 재시도 방지.
+// 종료 직후 아직 생성되지 않은 빈 응답은 저장하지 않아 다음 run 에서 재시도한다.
 async function fetchGoalLine(uuid) {
   const { data } = await axios.get(`${TS_BASE}/v1/football/match/goal/line/detail`, {
     params: { user: TS_USER, secret: TS_SECRET, uuid },
     timeout: 30_000,
   });
-  if (data.code !== 0) return [];
-  return Array.isArray(data.results) ? data.results : [];
+  if (data.code !== 0) return null;
+  return Array.isArray(data.results) && data.results.length > 0 ? data.results : null;
 }
 
 async function postCache(matchId, tsMatchId, body) {
@@ -224,10 +224,11 @@ async function runOnce() {
           // 30일 초과 등 — lineup 만 skip, incidents 는 진행
         }
       }
-      // 골 장면 — 골 있는 매치만(needGoalLine). [] 마커도 저장해 재시도 방지.
+      // 골 장면 — 빈 응답은 저장하지 않고 다음 4시간 run 에서 다시 시도.
       if (m.needGoalLine) {
         try {
-          body.goalLine = await fetchGoalLine(uuid);
+          const goalLine = await fetchGoalLine(uuid);
+          if (goalLine) body.goalLine = goalLine;
           await sleep(PACE_MS);
         } catch (e) {
           // goal/line 미커버/일시 오류 — skip (다음 run 재시도)
