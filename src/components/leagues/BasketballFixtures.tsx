@@ -71,7 +71,7 @@ function renderGroups(matches: Row[], displayLeague: string) {
               const a = toKoreanTeamName(m.awayTeam.name, displayLeague);
               const live = m.status === "LIVE";
               const done = m.status === "FINISHED";
-              const center = live || done ? `${m.homeScore ?? 0} - ${m.awayScore ?? 0}` : "vs";
+              const scored = live || done;
               const right = live ? "🔴 LIVE" : done ? "종료" : kstParts(m.startTime).time;
               const inner = (
                 <span className="flex items-center gap-2 text-sm px-3 py-2.5">
@@ -84,8 +84,16 @@ function renderGroups(matches: Row[], displayLeague: string) {
                     <span className="truncate">{h}</span>
                     <TeamBadge logoUrl={m.homeTeam.logoUrl} size={20} className="bg-white rounded-sm" />
                   </span>
-                  <span className={`w-14 text-center tabular-nums font-bold shrink-0 ${live ? "text-rose-600 dark:text-rose-400" : done ? "" : "text-neutral-400 font-normal"}`}>
-                    {center}
+                  <span className={`w-[72px] flex items-center justify-center gap-1 tabular-nums font-bold shrink-0 whitespace-nowrap ${live ? "text-rose-600 dark:text-rose-400" : done ? "" : "text-neutral-400 font-normal"}`}>
+                    {scored ? (
+                      <>
+                        <span className="w-7 text-right">{m.homeScore ?? 0}</span>
+                        <span className="text-neutral-300 dark:text-neutral-600 font-normal">-</span>
+                        <span className="w-7 text-left">{m.awayScore ?? 0}</span>
+                      </>
+                    ) : (
+                      "vs"
+                    )}
                   </span>
                   <span className="flex-1 flex items-center gap-1.5 min-w-0 font-medium">
                     <TeamBadge logoUrl={m.awayTeam.logoUrl} size={20} className="bg-white rounded-sm" />
