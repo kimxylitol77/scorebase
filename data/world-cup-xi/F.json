@@ -18,7 +18,7 @@
       "flag": "🇹🇳"
     }
   ],
-  "teamRating": 3.5,
+  "teamRating": 3.3,
   "xi": [
     {
       "id": "vjxm8ghjle8nr6o",
@@ -32,8 +32,8 @@
       "score": 8.19,
       "star": 4,
       "recentRating": 8.3,
-      "avgRating": 7.31,
-      "games": 4,
+      "avgRating": 7.8,
+      "games": 3,
       "x": 50,
       "y": 90
     },
@@ -49,26 +49,9 @@
       "score": 8.18,
       "star": 4,
       "recentRating": 7.03,
-      "avgRating": 7.31,
-      "games": 4,
+      "avgRating": 7.41,
+      "games": 3,
       "x": 16,
-      "y": 70
-    },
-    {
-      "id": "318q66h01egqo9j",
-      "name": "Virgil van Dijk",
-      "nameKo": "버질 판 데이크",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Netherlands",
-      "flag": "🇳🇱",
-      "logo": "https://img.thesports.com/football/player/d83e2a4e70d174250039448be60161f4.png",
-      "score": 8.01,
-      "star": 4,
-      "recentRating": 7.04,
-      "avgRating": 7.62,
-      "games": 4,
-      "x": 39,
       "y": 70
     },
     {
@@ -83,9 +66,9 @@
       "score": 8,
       "star": 3,
       "recentRating": 6.33,
-      "avgRating": 7.16,
-      "games": 4,
-      "x": 61,
+      "avgRating": 7.24,
+      "games": 3,
+      "x": 39,
       "y": 70
     },
     {
@@ -102,42 +85,25 @@
       "recentRating": 0,
       "avgRating": 0,
       "games": 0,
-      "x": 84,
+      "x": 61,
       "y": 70
     },
     {
-      "id": "n54qllheyly3qvy",
-      "name": "Ryan Gravenberch",
-      "nameKo": "라이언 흐라번베르흐",
+      "id": "318q66h01egqo9j",
+      "name": "Virgil van Dijk",
+      "nameKo": "버질 판 데이크",
       "hasMv": true,
-      "pos": "M",
+      "pos": "D",
       "country": "Netherlands",
       "flag": "🇳🇱",
-      "logo": "https://img.thesports.com/football/player/920ab06e898dfa8032f36739cb97dd91.png",
-      "score": 8.12,
-      "star": 4,
-      "recentRating": 6.48,
-      "avgRating": 6.84,
-      "games": 4,
-      "x": 22,
-      "y": 32
-    },
-    {
-      "id": "23xmvkhdjow4qg8",
-      "name": "Yasin Ayari",
-      "nameKo": "야신 아야리",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Sweden",
-      "flag": "🇸🇪",
-      "logo": "https://img.thesports.com/football/player/7aaa1e950802bc23036a8bbe71f6a745.png",
-      "score": 8.02,
-      "star": 4,
-      "recentRating": 6.41,
-      "avgRating": 6.72,
-      "games": 4,
-      "x": 50,
-      "y": 32
+      "logo": "https://img.thesports.com/football/player/d83e2a4e70d174250039448be60161f4.png",
+      "score": 7.7,
+      "star": 3,
+      "recentRating": 7.04,
+      "avgRating": 7.29,
+      "games": 3,
+      "x": 84,
+      "y": 70
     },
     {
       "id": "23xmvkhd9428qg8",
@@ -151,9 +117,9 @@
       "score": 7.94,
       "star": 3,
       "recentRating": 7.79,
-      "avgRating": 7.16,
-      "games": 3,
-      "x": 78,
+      "avgRating": 7.75,
+      "games": 2,
+      "x": 22,
       "y": 32
     },
     {
@@ -168,10 +134,10 @@
       "score": 7.8,
       "star": 3,
       "recentRating": 7.36,
-      "avgRating": 6.73,
-      "games": 3,
-      "x": 35,
-      "y": 52
+      "avgRating": 6.8,
+      "games": 2,
+      "x": 50,
+      "y": 32
     },
     {
       "id": "3glrw7hypxxqdyj",
@@ -185,8 +151,42 @@
       "score": 7.64,
       "star": 3,
       "recentRating": 6.61,
-      "avgRating": 6.84,
-      "games": 4,
+      "avgRating": 6.86,
+      "games": 3,
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "n54qllheyly3qvy",
+      "name": "Ryan Gravenberch",
+      "nameKo": "라이언 흐라번베르흐",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Netherlands",
+      "flag": "🇳🇱",
+      "logo": "https://img.thesports.com/football/player/920ab06e898dfa8032f36739cb97dd91.png",
+      "score": 7.6,
+      "star": 3,
+      "recentRating": 6.48,
+      "avgRating": 6.56,
+      "games": 3,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "965mkyheonyr1ge",
+      "name": "Daichi Kamada",
+      "nameKo": "가마다 다이치",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Japan",
+      "flag": "🇯🇵",
+      "logo": "https://img.thesports.com/football/player/5d5850c9cdbda3b6be439388a21e5dea.png",
+      "score": 7.59,
+      "star": 3,
+      "recentRating": 5.95,
+      "avgRating": 7,
+      "games": 3,
       "x": 65,
       "y": 52
     },
@@ -202,8 +202,8 @@
       "score": 9.48,
       "star": 4,
       "recentRating": 6.35,
-      "avgRating": 7.17,
-      "games": 4,
+      "avgRating": 7.42,
+      "games": 3,
       "x": 50,
       "y": 14
     }
@@ -221,38 +221,8 @@
       "score": 8.85,
       "star": 4,
       "recentRating": 7.7,
-      "avgRating": 7.37,
-      "games": 4
-    },
-    {
-      "id": "l7oqdehleg1r510",
-      "name": "Alexander Isak",
-      "nameKo": "알렉산데르 이사크",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Sweden",
-      "flag": "🇸🇪",
-      "logo": "https://img.thesports.com/football/player/22ad3876a52536da32eb31c9de316e3a.png",
-      "score": 8.85,
-      "star": 4,
-      "recentRating": 6.24,
-      "avgRating": 7.35,
-      "games": 4
-    },
-    {
-      "id": "4jwq2ghxjoym0ve",
-      "name": "Viktor Gyökeres",
-      "nameKo": "빅토르 요케레스",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Sweden",
-      "flag": "🇸🇪",
-      "logo": "https://img.thesports.com/football/player/518ef8929fa54625a4bb2f7c327b1c0d.png",
-      "score": 8.71,
-      "star": 4,
-      "recentRating": 6.46,
-      "avgRating": 7.25,
-      "games": 4
+      "avgRating": 7.76,
+      "games": 3
     },
     {
       "id": "l5ergph5xk8r8k0",
@@ -266,8 +236,8 @@
       "score": 8.54,
       "star": 4,
       "recentRating": 6.27,
-      "avgRating": 7.62,
-      "games": 4
+      "avgRating": 7.99,
+      "games": 3
     },
     {
       "id": "vjxm8ghg6vkkr6o",
@@ -281,8 +251,8 @@
       "score": 8.2,
       "star": 4,
       "recentRating": 6.37,
-      "avgRating": 6.99,
-      "games": 3
+      "avgRating": 7.29,
+      "games": 2
     },
     {
       "id": "3glrw7hzn1k8qdy",
@@ -298,6 +268,36 @@
       "recentRating": 8.2,
       "avgRating": 8.2,
       "games": 1
+    },
+    {
+      "id": "l7oqdehleg1r510",
+      "name": "Alexander Isak",
+      "nameKo": "알렉산데르 이사크",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Sweden",
+      "flag": "🇸🇪",
+      "logo": "https://img.thesports.com/football/player/22ad3876a52536da32eb31c9de316e3a.png",
+      "score": 8.15,
+      "star": 4,
+      "recentRating": 6.24,
+      "avgRating": 6.77,
+      "games": 3
+    },
+    {
+      "id": "4jwq2ghx7gzzm0v",
+      "name": "Anthony Elanga",
+      "nameKo": "안토니 엘랑가",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Sweden",
+      "flag": "🇸🇪",
+      "logo": "https://img.thesports.com/football/player/112e28f2c948b51896e642369e1872dc.png",
+      "score": 8.11,
+      "star": 4,
+      "recentRating": 6.29,
+      "avgRating": 7.33,
+      "games": 3
     }
   ],
   "complete": true

@@ -18,7 +18,7 @@
       "flag": "🇪🇨"
     }
   ],
-  "teamRating": 3.7,
+  "teamRating": 3.4,
   "xi": [
     {
       "id": "z318q66hylvqo9j",
@@ -32,44 +32,10 @@
       "score": 7.31,
       "star": 3,
       "recentRating": 8,
-      "avgRating": 6.77,
-      "games": 4,
+      "avgRating": 6.82,
+      "games": 3,
       "x": 50,
       "y": 90
-    },
-    {
-      "id": "8yomo4h2xn90q0j",
-      "name": "Nico Schlotterbeck",
-      "nameKo": "니코 슐로터베크",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Germany",
-      "flag": "🇩🇪",
-      "logo": "https://img.thesports.com/football/player/859cf466e4791e287f229eac30019e1b.png",
-      "score": 8.22,
-      "star": 4,
-      "recentRating": 6.31,
-      "avgRating": 7.22,
-      "games": 2,
-      "x": 16,
-      "y": 70
-    },
-    {
-      "id": "vjxm8gh870e8r6o",
-      "name": "Nathaniel Brown",
-      "nameKo": "너새니얼 브라운",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Germany",
-      "flag": "🇩🇪",
-      "logo": "https://img.thesports.com/football/player/3797d162d6803c43cc5fa8112ebdb721.png",
-      "score": 8.07,
-      "star": 4,
-      "recentRating": 7.21,
-      "avgRating": 7.24,
-      "games": 3,
-      "x": 39,
-      "y": 70
     },
     {
       "id": "pxwrxlh9zk74ryk",
@@ -83,9 +49,9 @@
       "score": 7.88,
       "star": 3,
       "recentRating": 6.8,
-      "avgRating": 6.9,
-      "games": 4,
-      "x": 61,
+      "avgRating": 6.88,
+      "games": 3,
+      "x": 16,
       "y": 70
     },
     {
@@ -100,8 +66,42 @@
       "score": 7.77,
       "star": 3,
       "recentRating": 5.49,
-      "avgRating": 6.36,
-      "games": 4,
+      "avgRating": 6.27,
+      "games": 3,
+      "x": 39,
+      "y": 70
+    },
+    {
+      "id": "vjxm8gh870e8r6o",
+      "name": "Nathaniel Brown",
+      "nameKo": "너새니얼 브라운",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Germany",
+      "flag": "🇩🇪",
+      "logo": "https://img.thesports.com/football/player/3797d162d6803c43cc5fa8112ebdb721.png",
+      "score": 7.65,
+      "star": 3,
+      "recentRating": 7.21,
+      "avgRating": 6.83,
+      "games": 2,
+      "x": 61,
+      "y": 70
+    },
+    {
+      "id": "zp5rzghzj63q82w",
+      "name": "Jonathan Tah",
+      "nameKo": "요나탄 타",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Germany",
+      "flag": "🇩🇪",
+      "logo": "https://img.thesports.com/football/player/e0a3104fad95aa45dade3b383c77d8e6.png",
+      "score": 7.31,
+      "star": 3,
+      "recentRating": 6.6,
+      "avgRating": 6.62,
+      "games": 3,
       "x": 84,
       "y": 70
     },
@@ -117,26 +117,9 @@
       "score": 8.45,
       "star": 4,
       "recentRating": 8.2,
-      "avgRating": 7.34,
-      "games": 4,
+      "avgRating": 7.42,
+      "games": 3,
       "x": 22,
-      "y": 32
-    },
-    {
-      "id": "3glrw7hj7vjoqdy",
-      "name": "Jamal Musiala",
-      "nameKo": "자말 무시알라",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Germany",
-      "flag": "🇩🇪",
-      "logo": "https://img.thesports.com/football/player/1443fe00d50e175270a8d8384bdea0cc.png",
-      "score": 8.4,
-      "star": 4,
-      "recentRating": 7.3,
-      "avgRating": 7.1,
-      "games": 4,
-      "x": 50,
       "y": 32
     },
     {
@@ -151,9 +134,9 @@
       "score": 8.35,
       "star": 4,
       "recentRating": 6.68,
-      "avgRating": 7.33,
-      "games": 4,
-      "x": 78,
+      "avgRating": 7.43,
+      "games": 3,
+      "x": 50,
       "y": 32
     },
     {
@@ -165,11 +148,28 @@
       "country": "Germany",
       "flag": "🇩🇪",
       "logo": "https://img.thesports.com/football/player/f30cb43561212860b110a622099dc483.png",
-      "score": 8.25,
-      "star": 4,
+      "score": 8,
+      "star": 3,
       "recentRating": 8,
-      "avgRating": 7.63,
-      "games": 4,
+      "avgRating": 7.34,
+      "games": 3,
+      "x": 78,
+      "y": 32
+    },
+    {
+      "id": "3glrw7hj7vjoqdy",
+      "name": "Jamal Musiala",
+      "nameKo": "자말 무시알라",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Germany",
+      "flag": "🇩🇪",
+      "logo": "https://img.thesports.com/football/player/1443fe00d50e175270a8d8384bdea0cc.png",
+      "score": 8,
+      "star": 4,
+      "recentRating": 7.3,
+      "avgRating": 6.76,
+      "games": 3,
       "x": 35,
       "y": 52
     },
@@ -182,11 +182,11 @@
       "country": "Germany",
       "flag": "🇩🇪",
       "logo": "https://img.thesports.com/football/player/5fda88281bc54f31b643b8050d1d22ea.png",
-      "score": 8.22,
-      "star": 4,
+      "score": 7.97,
+      "star": 3,
       "recentRating": 6.29,
-      "avgRating": 7.14,
-      "games": 4,
+      "avgRating": 6.79,
+      "games": 3,
       "x": 65,
       "y": 52
     },
@@ -202,8 +202,8 @@
       "score": 8.81,
       "star": 4,
       "recentRating": 6.44,
-      "avgRating": 7.74,
-      "games": 4,
+      "avgRating": 7.75,
+      "games": 3,
       "x": 50,
       "y": 14
     }
@@ -218,11 +218,11 @@
       "country": "Germany",
       "flag": "🇩🇪",
       "logo": "https://img.thesports.com/football/player/67aff27bdeb205d47598b958015fbc9c.png",
-      "score": 8.6,
-      "star": 4,
+      "score": 7.97,
+      "star": 3,
       "recentRating": 7.64,
-      "avgRating": 7.32,
-      "games": 4
+      "avgRating": 6.8,
+      "games": 3
     },
     {
       "id": "x7lm7phw7govm2w",
@@ -236,8 +236,8 @@
       "score": 7.87,
       "star": 3,
       "recentRating": 6.59,
-      "avgRating": 6.67,
-      "games": 4
+      "avgRating": 6.56,
+      "games": 3
     },
     {
       "id": "23xmvkhkg0p2qg8",
@@ -251,8 +251,8 @@
       "score": 7.85,
       "star": 3,
       "recentRating": 6.35,
-      "avgRating": 6.92,
-      "games": 4
+      "avgRating": 7.11,
+      "games": 3
     },
     {
       "id": "965mkyhn74o8r1g",
@@ -282,7 +282,7 @@
       "star": 3,
       "recentRating": 6.58,
       "avgRating": 7.19,
-      "games": 4
+      "games": 3
     },
     {
       "id": "23xmvkhd064vqg8",
