@@ -30,6 +30,8 @@ import {
   findNpbPidByName,
   type NpbPlayerIndexEntry,
 } from "@/lib/sports/npb-official";
+import { getWorldCupPlayerStats } from "@/lib/sports/thesports/world-cup-player-stats";
+import { tsPlayerToAf } from "@/lib/players/ts-af-map";
 
 const TOP_N = 10;
 
@@ -164,6 +166,47 @@ async function syncSoccerCategory(
   return top.length;
 }
 
+// 월드컵 리더 = TheSports 집계(getWorldCupPlayerStats) 소스. api-football 은 월드컵 시즌 미제공/키
+// 의존이라 사라짐(/ballon 월드컵 반복 소실 원인) → 이미 보유한 TheSports 데이터로 직접 적재.
+// externalId 는 af id 우선(클럽 리그 리더와 병합·ballon 평점 조회 위해), 매핑 없으면 ts id.
+async function syncWorldCupFromTheSports(seasonLabel: string): Promise<Record<string, number>> {
+  const stats = await getWorldCupPlayerStats();
+  const cats: Array<{ cat: "GOAL" | "ASSIST" | "YELLOW" | "RED"; unit: string; val: (s: (typeof stats)[number]) => number }> = [
+    { cat: "GOAL", unit: "골", val: (s) => s.goals },
+    { cat: "ASSIST", unit: "도움", val: (s) => s.assists },
+    { cat: "YELLOW", unit: "장", val: (s) => s.yellow },
+    { cat: "RED", unit: "장", val: (s) => s.red },
+  ];
+  const out: Record<string, number> = {};
+  for (const c of cats) {
+    const top = stats
+      .filter((s) => c.val(s) > 0)
+      .sort((a, b) => c.val(b) - c.val(a) || b.avgRating - a.avgRating)
+      .slice(0, TOP_N);
+    for (let i = 0; i < top.length; i++) {
+      const s = top[i];
+      const af = tsPlayerToAf(s.id);
+      await upsertLeader({
+        league: "WORLD_CUP",
+        category: c.cat,
+        rank: i + 1,
+        playerName: s.name, // 이미 한글 우선
+        playerNameEn: s.nameEn ?? undefined,
+        externalId: af ? String(af) : s.id,
+        teamName: toKoreanTeamName(s.country) || s.country,
+        value: c.val(s),
+        unit: c.unit,
+        appearances: s.games,
+        photoUrl: s.photo ?? undefined,
+        season: seasonLabel,
+      });
+    }
+    await clearOldRanks("WORLD_CUP", c.cat, seasonLabel, top.length);
+    out[c.cat] = top.length;
+  }
+  return out;
+}
+
 async function runSoccer() {
   const result: Record<string, Record<string, number>> = {};
   let lastLabel = "";
@@ -172,6 +215,11 @@ async function runSoccer() {
     lastLabel = label;
     result[lg] = {};
     try {
+      // 월드컵은 TheSports 집계 소스(api-football 미제공) — 나머지는 api-football.
+      if (lg === "WORLD_CUP") {
+        result[lg] = await syncWorldCupFromTheSports(label);
+        continue;
+      }
       result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
       result[lg].ASSIST = await syncSoccerCategory(lg, "ASSIST", season, label, fetchTopAssists, "도움");
       result[lg].YELLOW = await syncSoccerCategory(lg, "YELLOW", season, label, fetchTopYellowCards, "옐로");
