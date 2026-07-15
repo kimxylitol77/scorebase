@@ -2,7 +2,65 @@
 // 데이터: MLB Stats API (statsapi) + Baseball Savant 퍼센타일.
 
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
+import { prisma } from "@/lib/db";
+
+// 최근 경기 → 우리 매치 상세(/live/mlb) 링크 — statsapi↔우리 externalId 체계가 달라
+// 날짜(±2일)+상대팀명으로 매칭. 커버 경기만 링크 (축구 출전기록과 동일 패턴).
+async function mlbGameHrefs(games: { date: string; opponent: string }[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!games.length) return out;
+  // statsapi date=미국 경기일. 저녁 경기(≈23~02 UTC)에 맞춰 23:00Z 를 기준점으로 — 자정 기준이면
+  // 연속 시리즈에서 인접 경기로 어긋난다(저지 @Athletics 중복 실측).
+  const times = games.map((g) => new Date(`${g.date}T23:00:00Z`).getTime());
+  let rows: { externalId: string; startTime: Date; homeTeam: { name: string }; awayTeam: { name: string } }[] = [];
+  try {
+    rows = await prisma.match.findMany({
+      where: {
+        league: "MLB",
+        startTime: { gte: new Date(Math.min(...times) - 86400e3), lte: new Date(Math.max(...times) + 2 * 86400e3) },
+      },
+      select: { externalId: true, startTime: true, homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } } },
+    });
+  } catch {
+    return out; // DB 이슈 시 링크만 생략
+  }
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+  for (const g of games) {
+    const gn = norm(g.opponent);
+    if (!gn) continue;
+    const gt = new Date(`${g.date}T23:00:00Z`).getTime();
+    let best: { ext: string; d: number } | null = null;
+    for (const m of rows) {
+      if (!/^\d+$/.test(m.externalId)) continue; // /live/mlb 는 숫자 id 라우트
+      const names = [norm(m.homeTeam.name), norm(m.awayTeam.name)];
+      if (!names.some((n) => n === gn || n.includes(gn) || gn.includes(n))) continue;
+      const d = Math.abs(m.startTime.getTime() - gt);
+      if (d > 2 * 86400e3) continue;
+      if (!best || d < best.d) best = { ext: m.externalId, d };
+    }
+    if (best) out.set(`${g.date}|${g.opponent}`, `/live/mlb/${best.ext}`);
+  }
+  return out;
+}
+
+// 게임로그 "상대" 셀 — 커버 경기는 매치 상세 링크.
+function OppCell({ g, hrefs }: { g: { date: string; opponent: string; isHome: boolean }; hrefs: Map<string, string> }) {
+  const href = hrefs.get(`${g.date}|${g.opponent}`);
+  const body = (
+    <>
+      <span className="text-neutral-400 mr-1">{g.isHome ? "vs" : "@"}</span>
+      {g.opponent}
+      {href && <ExternalLink className="inline-block w-3 h-3 ml-1 -mt-0.5 text-neutral-400" aria-hidden />}
+    </>
+  );
+  return href ? (
+    <Link href={href} className="hover:underline">{body}</Link>
+  ) : (
+    body
+  );
+}
 import {
   mlbHeadshotUrl,
   type HitterProfile,
@@ -198,7 +256,7 @@ async function PitchZoneLoader({ pid, season }: { pid: number; season: number })
  * 타자
  * ==========================================================*/
 
-function HitterGameLog({ games }: { games: HitterRecentGame[] }) {
+function HitterGameLog({ games, hrefs }: { games: HitterRecentGame[]; hrefs: Map<string, string> }) {
   if (games.length === 0)
     return <p className="text-sm text-neutral-500">최근 경기 기록이 없습니다.</p>;
   return (
@@ -224,8 +282,7 @@ function HitterGameLog({ games }: { games: HitterRecentGame[] }) {
             <tr key={i}>
               <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{g.date.slice(5)}</td>
               <td className="px-3 py-2 truncate">
-                <span className="text-neutral-400 mr-1">{g.isHome ? "vs" : "@"}</span>
-                {g.opponent}
+                <OppCell g={g} hrefs={hrefs} />
               </td>
               <td className="px-2 py-2 text-right tabular-nums">{g.ab}</td>
               <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.h}</td>
@@ -363,7 +420,7 @@ export async function MlbHitterView({
         tabs={[
           { key: "overview", label: "개요", content: overview },
           { key: "seasons", label: "시즌기록", content: <HitterSeasonTable rows={career} advanced /> },
-          { key: "games", label: "경기", content: <HitterGameLog games={recent} /> },
+          { key: "games", label: "경기", content: <HitterGameLog games={recent} hrefs={await mlbGameHrefs(recent)} /> },
           { key: "splits", label: "스플릿", content: <SplitsView splits={splits} group="hitting" /> },
         ]}
       />
@@ -376,7 +433,7 @@ export async function MlbHitterView({
  * 투수
  * ==========================================================*/
 
-function PitcherGameLog({ games }: { games: PitcherRecentGame[] }) {
+function PitcherGameLog({ games, hrefs }: { games: PitcherRecentGame[]; hrefs: Map<string, string> }) {
   if (games.length === 0)
     return <p className="text-sm text-neutral-500">최근 등판 기록이 없습니다.</p>;
   return (
@@ -414,8 +471,7 @@ function PitcherGameLog({ games }: { games: PitcherRecentGame[] }) {
                 )}
               </td>
               <td className="px-3 py-2 text-xs">
-                <span className="text-neutral-400 mr-1">{g.isHome ? "vs" : "@"}</span>
-                <span className="font-medium">{g.opponent}</span>
+                <OppCell g={g} hrefs={hrefs} />
               </td>
               <td className="px-2 py-2 text-right tabular-nums">{g.ip}</td>
               <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.er}</td>
@@ -547,7 +603,7 @@ export async function MlbPitcherView({
         tabs={[
           { key: "overview", label: "개요", content: overview },
           { key: "seasons", label: "시즌기록", content: <PitcherSeasonTable rows={career} advanced /> },
-          { key: "games", label: "경기", content: <PitcherGameLog games={recent} /> },
+          { key: "games", label: "경기", content: <PitcherGameLog games={recent} hrefs={await mlbGameHrefs(recent)} /> },
           { key: "splits", label: "스플릿", content: <SplitsView splits={splits} group="pitching" /> },
         ]}
       />

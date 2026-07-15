@@ -159,7 +159,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
           recent={await fetchHitterRecent(id, season, 10)}
           season={season}
         />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
           <PlayerRelatedArticles pid={pid} name={toKoreanPlayerName(hitterFirst.name) || hitterFirst.name} />
         </div>
       </>
@@ -175,7 +175,7 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   return (
     <>
       <MlbPitcherView profile={profile} recent={recent} season={season} />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
         <PlayerRelatedArticles pid={pid} name={toKoreanPlayerName(profile.name) || profile.name} />
       </div>
     </>
@@ -214,7 +214,7 @@ async function renderSoccerPlayerView(pid: string, league: string) {
   const teamKo = main ? (toKoreanTeamName(main.teamName) || main.teamName) : "";
 
   return (
-    <article className="relative max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+    <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       <AmbientGlow />
       <header className="space-y-3">
         <Link
