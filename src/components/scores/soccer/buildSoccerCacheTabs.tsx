@@ -11,6 +11,7 @@ import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard"
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
 import GoalSceneViz, { type GoalLineGoal } from "@/components/charts/GoalSceneViz";
+import { tsIncidentsToGoals } from "@/lib/sports/live-scores";
 
 interface SoccerCacheLike {
   trend?: unknown;
@@ -84,22 +85,7 @@ export async function buildSoccerCacheTabs(opts: {
   const h2h = analysis?.history?.vs ?? [];
 
   // MatchTrendChart 골 marker — detailLive incidents 중 스코어 변화 항목 (live 페이지와 동일 변환)
-  const trendGoals = (() => {
-    const incs = detailLive?.incidents;
-    if (!Array.isArray(incs)) return null;
-    return incs
-      .filter(
-        (i: Record<string, unknown>) =>
-          typeof i.home_score === "number" || typeof i.away_score === "number",
-      )
-      .map((i: Record<string, unknown>) => ({
-        minute: typeof i.add_time === "number" ? `${i.time}+${i.add_time}'` : `${i.time}'`,
-        side: (i.position === 1 ? "home" : "away") as "home" | "away",
-        player: typeof i.player_name === "string" ? i.player_name : "",
-        ownGoal: false,
-        penaltyKick: i.type === 17,
-      }));
-  })();
+  const trendGoals = tsIncidentsToGoals(detailLive?.incidents, lineupNameById);
 
   const teamStatsNode =
     teamStats && Array.isArray(teamStats) && teamStats.length >= 2 ? (

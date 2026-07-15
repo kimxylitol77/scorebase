@@ -30,6 +30,7 @@ import SoccerLiveStatsCard from "@/components/scores/soccer/SoccerLiveStatsCard"
 import SoccerTeamStatsCard from "@/components/scores/soccer/SoccerTeamStatsCard";
 import SoccerMatchSummaryCard from "@/components/scores/soccer/SoccerMatchSummaryCard";
 import SoccerFinishedMatchReport from "@/components/scores/soccer/SoccerFinishedMatchReport";
+import { findMatchShotMap } from "@/lib/sports/thestatsapi-shotmaps";
 import SoccerVenueCard from "@/components/scores/soccer/SoccerVenueCard";
 import SoccerNowBlock, { type PredictedXiTeam, type InjuryLine } from "@/components/scores/soccer/SoccerNowBlock";
 import { fetchSeasonInjuries, getTeamInjuries } from "@/lib/sports/api-football-pro";
@@ -55,7 +56,7 @@ import AiRoundTableStrip from "@/components/AiRoundTableStrip";
 import AiMatchupCard from "@/components/AiMatchupCard";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
-import { parseTsFootballScore, fetchSoccerLive, type LiveMatch } from "@/lib/sports/live-scores";
+import { parseTsFootballScore, fetchSoccerLive, tsIncidentsToGoals, type LiveMatch } from "@/lib/sports/live-scores";
 import BaseballLiveDetail from "@/components/BaseballLiveDetail";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
@@ -473,7 +474,11 @@ export default async function GenericLivePage({ params }: Props) {
         history?: { vs?: unknown[] };
       } | null;
       const lineup = cache.lineup as Parameters<typeof SoccerLineupSvg>[0]["data"] | null;
-      const detailLive = cache.detailLive as { stats?: Array<{ type: number; home: number; away: number }> } | null;
+      const detailLive = cache.detailLive as {
+        stats?: Array<{ type: number; home: number; away: number }>;
+        incidents?: unknown;
+        tlive?: unknown;
+      } | null;
       const teamStats = cache.teamStats as Parameters<typeof SoccerTeamStatsCard>[0]["teamStats"] | null;
       const halfTeamStats = cache.halfTeamStats as Parameters<typeof SoccerHalfTimeStatsCard>[0]["halfTeamStats"] | null;
       const trendStale =
@@ -487,24 +492,7 @@ export default async function GenericLivePage({ params }: Props) {
       const homeTsId = tsTeamId(match.homeTeam.id);
       const awayTsId = tsTeamId(match.awayTeam.id);
       const trendGoals = detailLive
-        ? (() => {
-            const incs = (detailLive as { incidents?: unknown }).incidents;
-            if (!Array.isArray(incs)) return null;
-            return incs
-              .filter((i: Record<string, unknown>) =>
-                typeof i.home_score === "number" || typeof i.away_score === "number",
-              )
-              .map((i: Record<string, unknown>) => ({
-                minute:
-                  typeof i.add_time === "number" ? `${i.time}+${i.add_time}'` : `${i.time}'`,
-                side: (i.position === 1 ? "home" : "away") as "home" | "away",
-                player:
-                  (typeof i.player_id === "string" && lineupNameById[i.player_id]) ||
-                  (typeof i.player_name === "string" ? i.player_name : ""),
-                ownGoal: false,
-                penaltyKick: i.type === 17,
-              }));
-          })()
+        ? tsIncidentsToGoals(detailLive.incidents, lineupNameById)
         : null;
       let xgH: number | null = null;
       let xgA: number | null = null;
@@ -519,6 +507,14 @@ export default async function GenericLivePage({ params }: Props) {
           // fixtureStats 파싱 실패 — xG 생략
         }
       }
+      const shotMap = match.status === "FINISHED"
+        ? findMatchShotMap({
+            league: lg,
+            startTime: match.startTime,
+            homeName: match.homeTeam.name,
+            awayName: match.awayTeam.name,
+          })
+        : null;
       // 라이브 글랜스는 유지. 종료 경기는 아래 경기 리포트가 대신해 같은 지표의 중복을 막는다.
       if (match.status === "LIVE") {
         soccerSummaryNode = (
@@ -574,11 +570,9 @@ export default async function GenericLivePage({ params }: Props) {
             halfTeamStats={halfTeamStats}
             trend={trend}
             goals={trendGoals}
-            goalLine={
-              lg === "WORLD_CUP"
-                ? (cache.goalLine as Parameters<typeof SoccerFinishedMatchReport>[0]["goalLine"])
-                : null
-            }
+            goalLine={cache.goalLine as Parameters<typeof SoccerFinishedMatchReport>[0]["goalLine"]}
+            shotMap={shotMap}
+            timeline={detailLive?.tlive}
             lineup={lineup}
             nameById={lineupNameById}
           />

@@ -5,6 +5,12 @@ import { Pause, Play, Route, Target } from "lucide-react";
 import type { MatchTrendData } from "@/components/live/MatchTrendChart";
 import type { GoalLineGoal, GoalLinePass } from "@/components/charts/GoalSceneViz";
 import type { SoccerGoal } from "@/lib/sports/live-scores";
+import type { MatchShotMap } from "@/lib/sports/thestatsapi-shotmaps";
+import {
+  classifyGoalSituation,
+  GOAL_SITUATION_LABEL,
+  type GoalSituation,
+} from "@/lib/sports/thesports/goal-situation";
 
 interface Props {
   goals: GoalLineGoal[];
@@ -13,6 +19,8 @@ interface Props {
   nameById?: Record<string, string>;
   trend?: MatchTrendData | null;
   eventGoals?: SoccerGoal[] | null;
+  shotMap?: MatchShotMap | null;
+  timeline?: unknown;
 }
 
 type TeamSide = 1 | 2;
@@ -29,6 +37,10 @@ interface GoalScene {
   assist?: ReplayPoint;
   scoringSide: TeamSide;
   targetX: number;
+  targetY: number;
+  shotXg?: number;
+  goalMouth?: string | null;
+  situation: GoalSituation | null;
   score: string;
   minute: number;
   minuteLabel: string;
@@ -81,7 +93,12 @@ function getMomentumAtMinute(trend: MatchTrendData | null | undefined, minute: n
   return Number.isFinite(value) ? value : null;
 }
 
-function buildScenes(goals: GoalLineGoal[], eventGoals: SoccerGoal[] | null | undefined): GoalScene[] {
+function buildScenes(
+  goals: GoalLineGoal[],
+  eventGoals: SoccerGoal[] | null | undefined,
+  shotMap: MatchShotMap | null | undefined,
+  timeline: unknown,
+): GoalScene[] {
   let homeScore = 0;
   let awayScore = 0;
   const orderedEvents = [...(eventGoals ?? [])].sort(
@@ -118,6 +135,16 @@ function buildScenes(goals: GoalLineGoal[], eventGoals: SoccerGoal[] | null | un
       const targetX = Number(goal.own_goal) === 1 ? PITCH_W - normalTargetX : normalTargetX;
       const fallbackMinute = Math.max(1, Math.floor(goal.time / 60));
       const minute = parseMinute(event?.minute) ?? fallbackMinute;
+      const sourceTeamId = scoringSide === 1 ? shotMap?.home.id : shotMap?.away.id;
+      const matchingShot = shotMap?.shots
+        .filter((shot) => shot.result === "goal" && shot.team === sourceTeamId)
+        .sort((a, b) => Math.abs(a.min - minute) - Math.abs(b.min - minute))[0];
+      const hasMinuteMatch = !!matchingShot && Math.abs(matchingShot.min - minute) <= 2;
+      const mouthY = hasMinuteMatch ? matchingShot.mouthXyz?.y : null;
+      const goalWidth = 7.32;
+      const targetY = Number.isFinite(mouthY)
+        ? (PITCH_H - goalWidth) / 2 + (Math.max(0, Math.min(100, Number(mouthY))) / 100) * goalWidth
+        : PITCH_H / 2;
 
       return [{
         goal,
@@ -126,6 +153,17 @@ function buildScenes(goals: GoalLineGoal[], eventGoals: SoccerGoal[] | null | un
         assist,
         scoringSide,
         targetX,
+        targetY,
+        shotXg: hasMinuteMatch && Number.isFinite(matchingShot.xg) ? Number(matchingShot.xg) : undefined,
+        goalMouth: hasMinuteMatch ? matchingShot.mouth : null,
+        situation: classifyGoalSituation({
+          goal,
+          event,
+          minute,
+          scoringSide,
+          shotSituation: hasMinuteMatch ? matchingShot.sit : null,
+          timeline,
+        }),
         score: `${homeScore}-${awayScore}`,
         minute,
         minuteLabel: formatMinute(event?.minute, fallbackMinute),
@@ -141,9 +179,14 @@ export default function SoccerGoalReplay({
   nameById = {},
   trend,
   eventGoals,
+  shotMap,
+  timeline,
 }: Props) {
   const markerId = `goal-replay-arrow-${useId().replace(/:/g, "")}`;
-  const scenes = useMemo(() => buildScenes(goals, eventGoals), [eventGoals, goals]);
+  const scenes = useMemo(
+    () => buildScenes(goals, eventGoals, shotMap, timeline),
+    [eventGoals, goals, shotMap, timeline],
+  );
   const [selected, setSelected] = useState(0);
   const [visibleSteps, setVisibleSteps] = useState(1);
   const [playing, setPlaying] = useState(true);
@@ -179,7 +222,7 @@ export default function SoccerGoalReplay({
   const shotVisible = visibleSteps > scene.points.length;
   const currentPoint = shownPoints[shownPoints.length - 1] ?? scene.points[0];
   const ballX = shotVisible ? scene.targetX : currentPoint.px;
-  const ballY = shotVisible ? PITCH_H / 2 : currentPoint.py;
+  const ballY = shotVisible ? scene.targetY : currentPoint.py;
   const color = scene.scoringSide === 1 ? HOME_COLOR : AWAY_COLOR;
   const teamName = scene.scoringSide === 1 ? homeName : awayName;
   const shooterName = getPlayerName(scene.shooter, nameById, scene.scorerFallback);
@@ -210,7 +253,7 @@ export default function SoccerGoalReplay({
             <Route className="h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
             골 장면 재연
           </h3>
-          <p className="mt-0.5 text-[11px] text-neutral-500">실제 골 경로 좌표 · 선수 번호 · 슈팅 방향</p>
+          <p className="mt-0.5 text-[11px] text-neutral-500">실제 골 경로 좌표 · 득점 유형 · 슈팅 방향</p>
         </div>
         <button
           type="button"
@@ -241,6 +284,7 @@ export default function SoccerGoalReplay({
             >
               <span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ backgroundColor: itemColor }} />
               {item.minuteLabel} · {item.score}
+              {item.situation ? ` · ${GOAL_SITUATION_LABEL[item.situation]}` : ""}
             </button>
           );
         })}
@@ -303,7 +347,7 @@ export default function SoccerGoalReplay({
               x1={scene.shooter.px}
               y1={scene.shooter.py}
               x2={scene.targetX}
-              y2={PITCH_H / 2}
+              y2={scene.targetY}
               stroke={color}
               strokeWidth={1.25}
               strokeLinecap="round"
@@ -346,12 +390,18 @@ export default function SoccerGoalReplay({
 
       <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
         <div className="min-w-0 rounded-md bg-neutral-50 px-3 py-2 dark:bg-neutral-900">
-          <div className="flex items-center gap-1.5 font-semibold text-neutral-900 dark:text-neutral-100">
+          <div className="flex min-w-0 items-center gap-1.5 font-semibold text-neutral-900 dark:text-neutral-100">
             <Target className="h-3.5 w-3.5 shrink-0" style={{ color }} aria-hidden="true" />
             <span className="truncate">{scene.minuteLabel} {shooterName} 득점</span>
+            {scene.situation && (
+              <span className="shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                {GOAL_SITUATION_LABEL[scene.situation]}
+              </span>
+            )}
           </div>
           <p className="mt-0.5 truncate text-[11px] text-neutral-500">
             {assistName ? `${assistName} 도움` : "도움 기록 없음"} · 경로 {scene.points.length}지점
+            {scene.shotXg != null ? ` · xG ${scene.shotXg.toFixed(2)}` : ""}
           </p>
         </div>
         <div className="rounded-md bg-neutral-50 px-3 py-2 dark:bg-neutral-900">

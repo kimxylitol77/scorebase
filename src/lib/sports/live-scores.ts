@@ -1018,7 +1018,7 @@ export function tsHalfStatsToSoccerStats(
  *   1 = 골 (home_score/away_score 변동)
  *   3 = 카드 (reason_type=1 옐로 가정)
  *   4 = 레드 카드 추정 (드물어 미관측 — 보수적으로 score 변동 없는 type=4 만 red)
- *   9 = 교체, 11 = 하프타임, 17 = 다른 골 종류(페널티 추정), 19 = 추가시간
+ *   8 = 페널티 골, 9 = 교체, 11 = 하프타임, 17 = 자책골, 19 = 추가시간
  *
  * 변동 score 있는 incident 는 모두 골로 매핑 (type 무관 — 페널티/own goal 포함 정확).
  * position: 1 = home, 2 = away.
@@ -1052,8 +1052,8 @@ export function tsIncidentsToGoals(
       minute,
       side,
       player: (nameById && typeof i.player_id === "string" && nameById[i.player_id]) || (typeof i.player_name === "string" ? i.player_name : ""),
-      ownGoal: false, // TheSports 에 own goal flag 없음 — 추후 보강
-      penaltyKick: i.type === 17, // 추정 (관찰 기반)
+      ownGoal: i.type === 17,
+      penaltyKick: i.type === 8,
     });
   }
   return out;
