@@ -2,7 +2,7 @@
 // 데이터: MLB Stats API (statsapi) + Baseball Savant 퍼센타일.
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import {
   mlbHeadshotUrl,
   type HitterProfile,
@@ -173,6 +173,27 @@ const badge = (text: string, cls: string) => (
   <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${cls}`}>{text}</span>
 );
 
+// 무거운 Statcast CSV(2MB) 는 개요를 블록하지 않도록 Suspense 로 분리 — 개요 먼저,
+// 차트는 준비되면 스트리밍. fallback 은 같은 높이 스켈레톤으로 레이아웃 시프트 방지.
+function ChartSkeleton({ label }: { label: string }) {
+  return (
+    <section className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
+      <div className="text-base font-bold tracking-tight mb-3 text-neutral-400">{label}</div>
+      <div className="h-[220px] rounded-xl bg-neutral-100 dark:bg-white/[0.04] animate-pulse" />
+    </section>
+  );
+}
+
+async function SprayLoader({ pid, season }: { pid: number; season: number }) {
+  const balls = await getBattedBalls(pid, season);
+  return <SprayChart balls={balls} season={season} />;
+}
+
+async function PitchZoneLoader({ pid, season }: { pid: number; season: number }) {
+  const locs = await getPitchLocations(pid, season);
+  return <PitchZoneChart pitches={locs} season={season} />;
+}
+
 /* ============================================================
  * 타자
  * ==========================================================*/
@@ -233,11 +254,10 @@ export async function MlbHitterView({
   season: number;
 }) {
   const pid = profile.pid;
-  const [career, splits, pctl, batted] = await Promise.all([
+  const [career, splits, pctl] = await Promise.all([
     getHitterCareer(pid),
     getPlayerSplits(pid, season, "hitting"),
     fetchPlayerPercentiles(pid, season, "batter"),
-    getBattedBalls(pid, season),
   ]);
   const s = profile.season;
   const c = profile.career;
@@ -279,7 +299,9 @@ export async function MlbHitterView({
         </section>
       )}
       <HitterTrendChart rows={career} />
-      <SprayChart balls={batted} season={season} />
+      <Suspense fallback={<ChartSkeleton label="타구 분포" />}>
+        <SprayLoader pid={pid} season={season} />
+      </Suspense>
       {c && (
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
@@ -419,12 +441,11 @@ export async function MlbPitcherView({
   season: number;
 }) {
   const pid = profile.pid;
-  const [career, splits, pctl, arsenal, locs] = await Promise.all([
+  const [career, splits, pctl, arsenal] = await Promise.all([
     getPitcherCareer(pid),
     getPlayerSplits(pid, season, "pitching"),
     fetchPlayerPercentiles(pid, season, "pitcher"),
     getPitchArsenal(pid, season),
-    getPitchLocations(pid, season),
   ]);
   const s = profile.season;
   const c = profile.career;
@@ -467,7 +488,9 @@ export async function MlbPitcherView({
       )}
       <PitcherTrendChart rows={career} />
       {arsenal.length > 0 && <PitchArsenal pitches={arsenal} />}
-      <PitchZoneChart pitches={locs} season={season} />
+      <Suspense fallback={<ChartSkeleton label="투구 로케이션" />}>
+        <PitchZoneLoader pid={pid} season={season} />
+      </Suspense>
       {c && (
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
