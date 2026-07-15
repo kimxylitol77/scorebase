@@ -43,6 +43,7 @@ import type {
 } from "@/lib/sports/mlb-player-extras";
 import { prisma } from "@/lib/db";
 import PlayerTabs from "./PlayerTabs";
+import { HitterTrendChart, PitcherTrendChart } from "./BaseballTrendChart";
 import { HitterSeasonTable, PitcherSeasonTable } from "./SeasonTable";
 import SplitsView from "./SplitsView";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -288,6 +289,7 @@ async function KboPitcherView({
           </div>
         </section>
       )}
+      <PitcherTrendChart rows={yearly.seasons} />
       {yearly.career && <PitcherCareerCard c={yearly.career} />}
     </>
   );
@@ -389,6 +391,7 @@ async function KboHitterView({
           <Stat label="SO" value={stats.so != null ? String(stats.so) : "—"} />
         </div>
       </section>
+      <HitterTrendChart rows={yearly.seasons} />
       {yearly.career && <HitterCareerCard c={yearly.career} />}
     </>
   );
@@ -653,6 +656,7 @@ async function NpbPitcherView({
           </div>
         </section>
       )}
+      <PitcherTrendChart rows={yearly.seasons} />
       {yearly.career && <PitcherCareerCard c={yearly.career} />}
     </>
   );
@@ -750,6 +754,7 @@ async function NpbHitterView({
           <Stat label="SO" value={stats.so != null ? String(stats.so) : "—"} />
         </div>
       </section>
+      <HitterTrendChart rows={yearly.seasons} />
       {yearly.career && <HitterCareerCard c={yearly.career} />}
     </>
   );

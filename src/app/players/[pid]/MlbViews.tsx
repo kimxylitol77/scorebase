@@ -16,12 +16,17 @@ import {
   getPlayerSplits,
   fetchPlayerPercentiles,
   getPitchArsenal,
+  getBattedBalls,
+  getPitchLocations,
 } from "@/lib/sports/mlb-player-extras";
 import PlayerTabs from "./PlayerTabs";
 import PercentileBars from "./PercentileBars";
+import { HitterTrendChart, PitcherTrendChart } from "./BaseballTrendChart";
 import { HitterSeasonTable, PitcherSeasonTable } from "./SeasonTable";
 import SplitsView from "./SplitsView";
 import PitchArsenal from "./PitchArsenal";
+import SprayChart from "./SprayChart";
+import PitchZoneChart from "./PitchZoneChart";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ChevronLeft } from "lucide-react";
 import { toKoreanPlayerName } from "@/lib/player-names";
@@ -31,6 +36,21 @@ import { toKoreanPlayerName } from "@/lib/player-names";
 function fmtNum(n: number | undefined, dp: number): string {
   if (n == null || Number.isNaN(n)) return "—";
   return n.toFixed(dp);
+}
+
+// 정규화 지표(wRC+·ERA-, 100=리그평균) → "리그평균 ±N%" 배지 텍스트+색.
+// lowerBetter=true 는 ERA- 처럼 낮을수록 우수한 지표(우수 방향을 +로 뒤집는다).
+function avgCtx(
+  v: number | undefined,
+  lowerBetter = false,
+): { sub: string; color: string } | null {
+  if (v == null || !Number.isFinite(v)) return null;
+  const diff = lowerBetter ? 100 - v : v - 100;
+  const sign = diff > 0 ? "+" : "";
+  return {
+    sub: `리그평균 ${sign}${diff}%`,
+    color: diff >= 0 ? "#10b981" : "#ef4444",
+  };
 }
 
 function BioLine({
@@ -62,7 +82,19 @@ function BioLine({
   );
 }
 
-function StatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function StatCard({
+  label,
+  value,
+  accent,
+  sub,
+  subColor,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  sub?: string;
+  subColor?: string;
+}) {
   return (
     <div
       className={`rounded-lg px-3 py-2 ${
@@ -73,6 +105,11 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
     >
       <div className="text-[10px] text-neutral-500">{label}</div>
       <div className="text-lg font-bold tabular-nums">{value}</div>
+      {sub && (
+        <div className="text-[9px] font-semibold tabular-nums" style={{ color: subColor }}>
+          {sub}
+        </div>
+      )}
     </div>
   );
 }
@@ -196,14 +233,16 @@ export async function MlbHitterView({
   season: number;
 }) {
   const pid = profile.pid;
-  const [career, splits, pctl] = await Promise.all([
+  const [career, splits, pctl, batted] = await Promise.all([
     getHitterCareer(pid),
     getPlayerSplits(pid, season, "hitting"),
     fetchPlayerPercentiles(pid, season, "batter"),
+    getBattedBalls(pid, season),
   ]);
   const s = profile.season;
   const c = profile.career;
   const sabr = career.find((r) => r.season === String(season));
+  const wrc = avgCtx(sabr?.wrcPlus);
   const batsLabel =
     profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : profile.bats === "S" ? "스위치" : "";
 
@@ -221,7 +260,13 @@ export async function MlbHitterView({
             <StatCard label="HR" value={s.hr != null ? String(s.hr) : "—"} />
             <StatCard label="RBI" value={s.rbi != null ? String(s.rbi) : "—"} />
             <StatCard label="SB" value={s.sb != null ? String(s.sb) : "—"} />
-            <StatCard label="wRC+" value={sabr?.wrcPlus != null ? String(sabr.wrcPlus) : "—"} accent />
+            <StatCard
+              label="wRC+"
+              value={sabr?.wrcPlus != null ? String(sabr.wrcPlus) : "—"}
+              accent
+              sub={wrc?.sub}
+              subColor={wrc?.color}
+            />
             <StatCard label="WAR" value={sabr?.war != null ? String(sabr.war) : "—"} accent />
             <StatCard label="wOBA" value={sabr?.woba != null ? sabr.woba.toFixed(3) : "—"} />
             <StatCard label="OBP" value={s.obp ?? "—"} />
@@ -233,6 +278,8 @@ export async function MlbHitterView({
           </div>
         </section>
       )}
+      <HitterTrendChart rows={career} />
+      <SprayChart balls={batted} season={season} />
       {c && (
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">
@@ -372,15 +419,17 @@ export async function MlbPitcherView({
   season: number;
 }) {
   const pid = profile.pid;
-  const [career, splits, pctl, arsenal] = await Promise.all([
+  const [career, splits, pctl, arsenal, locs] = await Promise.all([
     getPitcherCareer(pid),
     getPlayerSplits(pid, season, "pitching"),
     fetchPlayerPercentiles(pid, season, "pitcher"),
     getPitchArsenal(pid, season),
+    getPitchLocations(pid, season),
   ]);
   const s = profile.season;
   const c = profile.career;
   const sabr = career.find((r) => r.season === String(season));
+  const eraCtx = avgCtx(sabr?.eraMinus, true);
   const handLabel = profile.hand === "L" ? "좌완" : profile.hand === "R" ? "우완" : "스위치";
 
   const overview = (
@@ -392,7 +441,13 @@ export async function MlbPitcherView({
             {season} 시즌
           </h2>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-            <StatCard label="ERA" value={fmtNum(s.era, 2)} accent />
+            <StatCard
+              label="ERA"
+              value={fmtNum(s.era, 2)}
+              accent
+              sub={eraCtx?.sub}
+              subColor={eraCtx?.color}
+            />
             <StatCard label="WHIP" value={fmtNum(s.whip, 2)} accent />
             <StatCard label="K/9" value={fmtNum(s.k9, 1)} />
             <StatCard
@@ -410,7 +465,9 @@ export async function MlbPitcherView({
           </div>
         </section>
       )}
+      <PitcherTrendChart rows={career} />
       {arsenal.length > 0 && <PitchArsenal pitches={arsenal} />}
+      <PitchZoneChart pitches={locs} season={season} />
       {c && (
         <section className="rounded-2xl bg-white p-5 ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">

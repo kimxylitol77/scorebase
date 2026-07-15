@@ -7,6 +7,14 @@ const v = (x: string | number | undefined | null): string =>
   x == null || x === "" ? "—" : String(x);
 const pct = (x: number | undefined): string => (x == null ? "—" : `${x}%`);
 
+// 정규화 지표(100=리그평균)를 평균 대비 색으로 — 우수=초록, 저조=빨강.
+function normColor(x: number | undefined, lowerBetter = false): string | undefined {
+  if (x == null || !Number.isFinite(x)) return undefined;
+  const good = lowerBetter ? x < 100 : x > 100;
+  const bad = lowerBetter ? x > 100 : x < 100;
+  return good ? "#10b981" : bad ? "#ef4444" : undefined;
+}
+
 function Th({ children, accent }: { children: React.ReactNode; accent?: boolean }) {
   return (
     <th
@@ -23,16 +31,19 @@ function Td({
   children,
   accent,
   muted,
+  color,
 }: {
   children: React.ReactNode;
   accent?: boolean;
   muted?: boolean;
+  color?: string;
 }) {
   return (
     <td
       className={`px-2.5 py-2 text-right tabular-nums whitespace-nowrap ${
         accent ? "font-bold" : ""
       } ${muted ? "text-neutral-400" : ""}`}
+      style={color ? { color } : undefined}
     >
       {children}
     </td>
@@ -107,7 +118,7 @@ export function HitterSeasonTable({
                   <Td>{v(r.iso)}</Td>
                   <Td muted>{pct(r.bbPct)}</Td>
                   <Td muted>{pct(r.kPct)}</Td>
-                  <Td accent>{v(r.wrcPlus)}</Td>
+                  <Td accent color={normColor(r.wrcPlus)}>{v(r.wrcPlus)}</Td>
                   <Td accent>{v(r.war)}</Td>
                 </>
               )}
@@ -183,7 +194,7 @@ export function PitcherSeasonTable({
               {advanced && (
                 <>
                   <Td accent>{v(r.fip)}</Td>
-                  <Td muted>{v(r.eraMinus)}</Td>
+                  <Td color={normColor(r.eraMinus, true)}>{v(r.eraMinus)}</Td>
                   <Td accent>{v(r.war)}</Td>
                 </>
               )}

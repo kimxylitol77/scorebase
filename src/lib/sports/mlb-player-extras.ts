@@ -502,3 +502,99 @@ async function fetchArsenalRaw(personId: number, season: number): Promise<Arsena
 export const getPitchArsenal = unstable_cache(fetchArsenalRaw, ["mlb-arsenal-v1"], {
   revalidate: 21600,
 });
+
+/* ============================================================
+ * 타구 분포 (스프레이차트) — Statcast search CSV 의 hc_x/hc_y 좌표
+ * ==========================================================*/
+
+export interface BattedBall {
+  x: number; // hc_x (원본 Statcast 좌표)
+  y: number; // hc_y
+  result: "hr" | "hit" | "out";
+  ev?: number; // 타구 속도(mph)
+}
+
+const HIT_EVENTS = new Set(["single", "double", "triple"]);
+
+// 한 타자의 시즌 인플레이 타구 좌표 — Savant statcast_search CSV(무거움, pitch 단위)를
+// 받아 hc_x/hc_y 있는 행(=인플레이)만 추린다. 6h 캐시라 파싱 결과(작은 배열)만 보관.
+async function fetchBattedBallsRaw(personId: number, season: number): Promise<BattedBall[]> {
+  try {
+    const { data } = await axios.get<string>(
+      `https://baseballsavant.mlb.com/statcast_search/csv?player_type=batter&batters_lookup[]=${personId}&game_year=${season}&type=details&all=true`,
+      { timeout: 25000, responseType: "text" },
+    );
+    const lines = data.split("\n");
+    if (lines.length < 2) return [];
+    const header = parseCsvLine(lines[0].replace(/^﻿/, "")).map((h) => h.replace(/^"|"$/g, ""));
+    const iX = header.indexOf("hc_x");
+    const iY = header.indexOf("hc_y");
+    const iEv = header.indexOf("events");
+    const iSpeed = header.indexOf("launch_speed");
+    if (iX < 0 || iY < 0 || iEv < 0) return [];
+    const out: BattedBall[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const c = parseCsvLine(lines[i]).map((s) => s.replace(/^"|"$/g, ""));
+      const x = Number(c[iX]);
+      const y = Number(c[iY]);
+      if (!Number.isFinite(x) || !Number.isFinite(y) || (x === 0 && y === 0)) continue;
+      const ev = c[iEv] ?? "";
+      const result: BattedBall["result"] =
+        ev === "home_run" ? "hr" : HIT_EVENTS.has(ev) ? "hit" : "out";
+      const speed = iSpeed >= 0 ? Number(c[iSpeed]) : NaN;
+      out.push({ x, y, result, ev: Number.isFinite(speed) ? speed : undefined });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+export const getBattedBalls = unstable_cache(fetchBattedBallsRaw, ["mlb-batted-balls-v1"], {
+  revalidate: 21600,
+});
+
+/* ============================================================
+ * 투구 로케이션 (존 히트맵) — Statcast plate_x/plate_z + 구종
+ * ==========================================================*/
+
+export interface PitchLoc {
+  px: number; // plate_x (ft, 포수 시점 좌우)
+  pz: number; // plate_z (ft, 지면 기준 높이)
+  code: string; // pitch_type (FF/SL/CU…)
+}
+
+// 한 투수의 시즌 투구 로케이션 — pitcher lookup CSV. plate_x/plate_z 유효 행만.
+async function fetchPitchLocationsRaw(personId: number, season: number): Promise<PitchLoc[]> {
+  try {
+    const { data } = await axios.get<string>(
+      `https://baseballsavant.mlb.com/statcast_search/csv?player_type=pitcher&pitchers_lookup[]=${personId}&game_year=${season}&type=details&all=true`,
+      { timeout: 25000, responseType: "text" },
+    );
+    const lines = data.split("\n");
+    if (lines.length < 2) return [];
+    const header = parseCsvLine(lines[0].replace(/^﻿/, "")).map((h) => h.replace(/^"|"$/g, ""));
+    const iType = header.indexOf("pitch_type");
+    const iPx = header.indexOf("plate_x");
+    const iPz = header.indexOf("plate_z");
+    if (iType < 0 || iPx < 0 || iPz < 0) return [];
+    const out: PitchLoc[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const c = parseCsvLine(lines[i]).map((s) => s.replace(/^"|"$/g, ""));
+      const px = Number(c[iPx]);
+      const pz = Number(c[iPz]);
+      const code = c[iType] ?? "";
+      if (!code || !Number.isFinite(px) || !Number.isFinite(pz)) continue;
+      out.push({ px, pz, code });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+export const getPitchLocations = unstable_cache(fetchPitchLocationsRaw, ["mlb-pitch-loc-v1"], {
+  revalidate: 21600,
+});
