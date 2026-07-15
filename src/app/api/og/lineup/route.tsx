@@ -276,6 +276,9 @@ function CardPlayer({ s, nameMode, depthMode }: { s: CardSlot; nameMode: boolean
   const bg = sideC ? sideC.soft : "rgba(190,52,85,0.24)";
   // 뎁스 차트 — 대체자원 빨강, (있으면) 선발 파랑. 아니면 기존 색.
   const bd = s.alt ? "rgba(239,68,68,0.95)" : depthMode && !sideC ? "rgba(59,130,246,0.95)" : sideC ? sideC.ring : "rgba(190,52,85,0.9)";
+  // 맞대결은 22명이 한 피치에 들어가 노드를 축소(사진 68px·이름 18px·포지션 생략) — 겹침 방지.
+  const compact = !!s.side;
+  const photoPx = compact ? "68px" : "88px";
   return (
     <div
       style={{
@@ -292,15 +295,15 @@ function CardPlayer({ s, nameMode, depthMode }: { s: CardSlot; nameMode: boolean
       {s.photo ? (
         // 래퍼 div(보더+overflow hidden) 안의 img 는 satori 가 뭉갬 — 맨 img 에 직접 스타일 (검증됨)
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={s.photo} alt="" width={88} height={88} style={{ width: "88px", height: "88px", borderRadius: "999px", border: `3px solid ${bd}`, background: "rgba(255,255,255,0.92)" }} />
+        <img src={s.photo} alt="" width={88} height={88} style={{ width: photoPx, height: photoPx, borderRadius: "999px", border: `3px solid ${bd}`, background: "rgba(255,255,255,0.92)" }} />
       ) : (
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: "84px",
-            height: "84px",
+            width: compact ? "64px" : "84px",
+            height: compact ? "64px" : "84px",
             borderRadius: "20px",
             background: bg,
             border: `3px solid ${bd}`,
@@ -310,9 +313,11 @@ function CardPlayer({ s, nameMode, depthMode }: { s: CardSlot; nameMode: boolean
         </div>
       )}
       {s.name ? (
-        <div style={{ display: "flex", marginTop: "9px", fontSize: nameMode ? "26px" : "22px", fontWeight: 700, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>{s.name}</div>
+        <div style={{ display: "flex", marginTop: compact ? "6px" : "9px", fontSize: nameMode ? "26px" : compact ? "18px" : "22px", fontWeight: 700, color: "white", textShadow: "0 1px 3px rgba(0,0,0,0.9)", textAlign: "center" }}>{s.name}</div>
       ) : null}
-      <div style={{ display: "flex", marginTop: "3px", fontSize: "15px", fontWeight: 700, color: "rgba(255,255,255,0.6)", letterSpacing: "0.05em" }}>{s.pos}</div>
+      {!compact && (
+        <div style={{ display: "flex", marginTop: "3px", fontSize: "15px", fontWeight: 700, color: "rgba(255,255,255,0.6)", letterSpacing: "0.05em" }}>{s.pos}</div>
+      )}
     </div>
   );
 }

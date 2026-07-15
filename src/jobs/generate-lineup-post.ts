@@ -52,10 +52,12 @@ function kstKickoff(d: Date): string {
 }
 
 /**
- * TS 좌표 → 전술판 versus 좌표.
- * TS: y 자기 골문=작음(GK≈12)·공격 방향 증가 / 빌더: y 0=공격·100=GK (formations.ts).
+ * TS 좌표 → 전술판 versus 좌표 — 라인 군집화 후 균등 간격 재배치.
+ * 원시 좌표를 0.46 로 접으면 최전방끼리 하프라인에서 만나고 라인 간격이 4~7%까지 좁아져
+ * OG 카드에서 이름표가 아래 선수와 겹친다(첫 렌더 실측). 대신 TS y 로 라인만 추출하고
+ * 좌표는 재구성한다 — 라인 y 균등(GK 92 ↔ 최전방 56, 원정 미러 8↔44 = 하프라인 완충 12%),
+ * 라인 내 x 도 인원수 기준 균등 분산. 포메이션 형태는 라인 구조·선수 순서로 보존된다.
  * away 좌표 프레임이 문서상 모호해 GK y 로 자가 판별 — GK 가 y>50 이면 그 팀 좌표를 뒤집는다.
- * versus 절반 배치는 transfer-daily 검증식(홈=아래 50+0.46y, 원정=위 미러 50-0.46y) 재사용.
  */
 function toVersusPlayers(
   xi: TSFootballLineupPlayer[],
@@ -64,22 +66,56 @@ function toVersusPlayers(
 ): Placed[] {
   const gk = xi.find((p) => p.position === "G");
   const flip = !!gk && gk.y > 50;
-  return xi.map((p) => {
-    const yTs = flip ? 100 - p.y : p.y;
-    const xTs = flip ? 100 - p.x : p.x;
-    const yB = clamp(100 - yTs, 0, 100);
-    const x = side === "away" ? 100 - xTs : xTs;
-    const y = side === "away" ? 50 - yB * 0.46 : 50 + yB * 0.46;
-    const known = names.has(p.id);
-    return {
-      uid: newUid(),
-      pid: known ? p.id : null,
-      name: known ? null : playerKo(p.name),
-      pos: posOf(p.position),
-      x: clamp(Math.round(x), 3, 97),
-      y: clamp(Math.round(y), 3, 97),
-    };
+  const norm = xi.map((p) => ({
+    p,
+    yTs: flip ? 100 - p.y : p.y, // 자기 골문=작음 으로 통일
+    xTs: flip ? 100 - p.x : p.x,
+  }));
+
+  // 라인 군집화 — y 오름차순(GK 부터), 직전 라인과 8 이상 벌어지면 새 라인.
+  norm.sort((a, b) => a.yTs - b.yTs);
+  const lines: (typeof norm)[] = [];
+  for (const e of norm) {
+    const cur = lines[lines.length - 1];
+    if (cur && e.yTs - cur[cur.length - 1].yTs < 8) cur.push(e);
+    else lines.push([e]);
+  }
+  // 최대 5라인 — 6라인이면 간격이 7.2%로 좁아져 같은 x 의 이름표가 아랫라인 원에 겹친다(실측).
+  // 가장 가까운 인접 라인 쌍부터 병합해 간격 9% 이상을 보장한다.
+  while (lines.length > 5) {
+    let best = 1, bestGap = Infinity;
+    for (let i = 1; i < lines.length; i++) {
+      const gapY = lines[i][0].yTs - lines[i - 1][lines[i - 1].length - 1].yTs;
+      if (gapY < bestGap) { bestGap = gapY; best = i; }
+    }
+    lines[best - 1].push(...lines[best]);
+    lines.splice(best, 1);
+  }
+
+  const placed: Placed[] = [];
+  const n = lines.length;
+  lines.forEach((line, i) => {
+    // 라인 y — GK(i=0) 92 부터 최전방 56 까지 균등. 원정은 위쪽 절반 미러.
+    const yHome = n > 1 ? 92 - (i * 36) / (n - 1) : 92;
+    const y = side === "away" ? 100 - yHome : yHome;
+    // 라인 내 x — TS x 순서 유지(원정은 미러), 중앙 기준 균등 분산.
+    line.sort((a, b) => (side === "away" ? b.xTs - a.xTs : a.xTs - b.xTs));
+    const k = line.length;
+    const gap = k > 1 ? Math.min(24, 84 / (k - 1)) : 0;
+    line.forEach((e, j) => {
+      const x = 50 + (j - (k - 1) / 2) * gap;
+      const known = names.has(e.p.id);
+      placed.push({
+        uid: newUid(),
+        pid: known ? e.p.id : null,
+        name: known ? null : playerKo(e.p.name),
+        pos: posOf(e.p.position),
+        x: clamp(Math.round(x), 3, 97),
+        y: clamp(Math.round(y), 3, 97),
+      });
+    });
   });
+  return placed;
 }
 
 // 선발 명단 텍스트 — 포지션 그룹별 (GK → DF → MF → FW), 주장은 (C) 표기.
