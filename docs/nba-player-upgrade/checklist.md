@@ -22,9 +22,10 @@
 - [x] UI: NBA 선수 페이지 "부상이력" 탭 (playerId=espnId 조회, NbaInjuryHistory)
 - [x] tsc 통과
 - [x] 로직 교차검증: 현재 부상자 127명 전원 espnId 추출·nba-players 매칭 100%
-- [ ] 첫 적재 검증: cron 실행 후 부상 선수 페이지에서 탭 노출 확인 (주간 cron 또는 수동 트리거)
-- 제약: ESPN 이 과거를 안 줘 오늘부터 축적. 첫 cron 전엔 탭 미노출(injuryRows=0).
+- [x] 첫 적재 완료: 잡 수동 실행 → nba-injury 127건 적재(무릎·발목 등 한글 부위)
+- [x] 프로덕션 검증: 자미르 왓킨스 페이지 부상이력 탭 노출 + "2026.07.15 부상 — 무릎 Day-To-Day" 렌더
+- 제약: ESPN 이 과거를 안 줘 오늘부터 축적. 이후 주간 cron 이 자동 갱신.
 
 ## 배포
 - [x] A·B commit + push (a05756b) → 프로덕션 검증 완료
-- [ ] C commit + push → cron 첫 실행 후 데이터 참
+- [x] C commit + push (3ecf052) → 잡 수동 실행으로 첫 데이터 적재·검증 완료
