@@ -65,3 +65,14 @@ src/lib/chatbot/run-brief.ts
 
 # mac-mini 봇 런타임 상태 (각 워커가 로컬 생성)
 mac-mini-worker/*.seen.json
+
+# assistant RAG 미니앱 벡터 인덱스 (75MB, 재생성 가능 — 코드는 추적하되 데이터만 제외)
+assistant/data/
+
+# SNS 카드 이미지 산출물 (로컬 생성)
+sns-cards/
+
+# 일회성 scratch 스크립트·캐시 (_ 접두, 커밋 대상 아님)
+scripts/_*-tmp.*
+scripts/_cache-*
+scripts/_diag-*
