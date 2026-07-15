@@ -18,7 +18,7 @@ import {
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { lookupNbaPlayer, lookupNbaPlayerByBdlId } from "@/lib/sports/nba-players";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ExternalLink } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerTabs from "./PlayerTabs";
 import NbaSeasonOverview from "./NbaSeasonOverview";
@@ -259,7 +259,43 @@ function NbaSplitsView({ splits }: { splits: NbaSplits }) {
 
 type RecentGame = Awaited<ReturnType<typeof fetchNbaEspnStats>>["recent"][number];
 
-function NbaRecentGames({ games }: { games: RecentGame[] }) {
+// 최근 경기 → 우리 매치 상세(/live/NBA) 링크.
+// 1순위: ESPN eventId = 우리 externalId 직접 조인(espn 소스 매치, 실측 401869393 일치).
+// 폴백: 스코어 쌍 유니크 매칭(BDL/ts 소스 매치) — 충돌 시 링크 생략.
+async function nbaGameHrefs(games: RecentGame[]): Promise<Map<number, string>> {
+  const out = new Map<number, string>();
+  const withGame = games.filter((g) => g.game);
+  if (!withGame.length) return out;
+  let rows: { externalId: string; homeScore: number | null; awayScore: number | null }[] = [];
+  try {
+    rows = await prisma.match.findMany({
+      where: {
+        league: "NBA",
+        OR: [
+          { externalId: { in: withGame.map((g) => String(g.id)) } },
+          { startTime: { gte: new Date(Date.now() - 400 * 86400e3) }, status: "FINISHED" },
+        ],
+      },
+      select: { externalId: true, homeScore: true, awayScore: true },
+    });
+  } catch {
+    return out;
+  }
+  const byExt = new Map(rows.map((m) => [m.externalId, m]));
+  for (const g of withGame) {
+    if (byExt.has(String(g.id))) {
+      out.set(g.id, `/live/NBA/${g.id}`);
+      continue;
+    }
+    const cands = rows.filter(
+      (m) => m.homeScore === g.game!.homeTeamScore && m.awayScore === g.game!.visitorTeamScore,
+    );
+    if (cands.length === 1) out.set(g.id, `/live/NBA/${cands[0].externalId}`);
+  }
+  return out;
+}
+
+function NbaRecentGames({ games, hrefs }: { games: RecentGame[]; hrefs: Map<number, string> }) {
   if (games.length === 0) return <p className="text-sm text-neutral-500">경기 기록이 없습니다.</p>;
   return (
     <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10">
@@ -281,7 +317,16 @@ function NbaRecentGames({ games }: { games: RecentGame[] }) {
             <tr key={g.id}>
               <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums">{g.game?.date?.slice(0, 10) ?? "—"}</td>
               <td className="px-2 py-2 truncate">
-                {g.game ? `${g.game.visitorTeam.abbr} ${g.game.visitorTeamScore} - ${g.game.homeTeamScore} ${g.game.homeTeam.abbr}` : "—"}
+                {g.game ? (
+                  hrefs.get(g.id) ? (
+                    <Link href={hrefs.get(g.id)!} className="hover:underline">
+                      {g.game.visitorTeam.abbr} {g.game.visitorTeamScore} - {g.game.homeTeamScore} {g.game.homeTeam.abbr}
+                      <ExternalLink className="inline-block w-3 h-3 ml-1 -mt-0.5 text-neutral-400" aria-hidden />
+                    </Link>
+                  ) : (
+                    `${g.game.visitorTeam.abbr} ${g.game.visitorTeamScore} - ${g.game.homeTeamScore} ${g.game.homeTeam.abbr}`
+                  )
+                ) : "—"}
               </td>
               <td className="px-2 py-2 text-right tabular-nums">{g.min}</td>
               <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.pts}</td>
@@ -541,7 +586,7 @@ export async function NbaPlayerView({ pid }: { pid: string }) {
           recent.length > 0 && {
             key: "games",
             label: "경기",
-            content: <NbaRecentGames games={recent} />,
+            content: <NbaRecentGames games={recent} hrefs={await nbaGameHrefs(recent)} />,
           },
           splits && hasNbaSplits(splits) && {
             key: "splits",
