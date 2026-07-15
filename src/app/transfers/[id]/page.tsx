@@ -32,6 +32,7 @@ import PlayerMatchHeatmaps, { type MatchHeatmapRow } from "./PlayerMatchHeatmaps
 import PlayerBioPanel from "./PlayerBioPanel";
 import PlayerCareerTable from "./PlayerCareerTable";
 import CareerTrendChart, { type TrendPoint } from "./CareerTrendChart";
+import CareerSeasonSummary from "./CareerSeasonSummary";
 import { getPlayerCareerByTs } from "./career-data";
 import PlayerInjuryHistory from "./PlayerInjuryHistory";
 import { getPlayerInjuriesByTs } from "./injury-data";
@@ -795,23 +796,25 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // 경력 (API-Football 시즌별 대회별 스탯) — af 매핑 있으면. 없으면 WIKI 시즌 폴백.
   const careerGroups = await getPlayerCareerByTs(id);
   // 통산(클럽 대회 합산) 요약 4칸 + 시즌별 골·도움 추이 — buildup 벤치마크 (2026-07-15).
+  // 연령별 대표(U23 등)가 클럽 분류로 새는 행은 제외 (Brazil U23 실측).
   const clubGroups = careerGroups.filter((g) => g.cat !== "national");
-  const careerTotals = clubGroups.length
-    ? clubGroups.reduce(
-        (a, g) => ({
-          apps: a.apps + g.total.appearances,
-          goals: a.goals + g.total.goals,
-          assists: a.assists + g.total.assists,
-          yellow: a.yellow + g.total.yellow,
-          red: a.red + g.total.red,
+  const clubRows = clubGroups.flatMap((g) => g.rows).filter((r) => !/\bU-?\d{2}\b/i.test(r.teamName));
+  const careerTotals = clubRows.length
+    ? clubRows.reduce(
+        (a, r) => ({
+          apps: a.apps + r.appearances,
+          goals: a.goals + r.goals,
+          assists: a.assists + r.assists,
+          yellow: a.yellow + r.yellow,
+          red: a.red + r.red,
         }),
         { apps: 0, goals: 0, assists: 0, yellow: 0, red: 0 },
       )
     : null;
   const trendPoints: TrendPoint[] = (() => {
     const bySeason = new Map<number, { label: string; goals: number; assists: number; logo: string | null; topApps: number }>();
-    for (const g of clubGroups) {
-      for (const r of g.rows) {
+    {
+      for (const r of clubRows) {
         const cur = bySeason.get(r.season) ?? {
           label: r.seasonLabel.replace(/^20(\d\d)\/20(\d\d)$/, "$1/$2"),
           goals: 0, assists: 0, logo: null, topApps: -1,
@@ -827,17 +830,29 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
   // 부상 이력 (API-Football, 최근 5시즌 스펠) — 스펠 있으면 "부상" 탭 표시.
   const injurySpells = await getPlayerInjuriesByTs(id);
   // 출전기록 (경기별 평점) — collect-player-match-logs 잡이 적재. 있으면 "출전기록" 탭.
-  const matchLogs: MatchLogRow[] = await prisma.playerMatchLog.findMany({
+  const rawMatchLogs = await prisma.playerMatchLog.findMany({
     where: { playerId: id },
     orderBy: { date: "desc" },
     take: 60,
     select: {
-      id: true, date: true, leagueName: true, leagueFlag: true,
+      id: true, fixtureId: true, date: true, leagueName: true, leagueFlag: true,
       homeName: true, homeLogo: true, awayName: true, awayLogo: true,
       homeScore: true, awayScore: true, playerSide: true,
       rating: true, minutes: true, goals: true, assists: true, yellow: true, red: true, started: true,
     },
   });
+  // 커버 매치 링크 — fixtureId ↔ Match.apiFixtureId 매칭되는 경기만 /live 상세로 (buildup 벤치마크).
+  const coveredMatches = rawMatchLogs.length
+    ? await prisma.match.findMany({
+        where: { apiFixtureId: { in: rawMatchLogs.map((m) => m.fixtureId) } },
+        select: { apiFixtureId: true, league: true, externalId: true },
+      })
+    : [];
+  const hrefByFixture = new Map(coveredMatches.map((m) => [m.apiFixtureId!, `/live/${m.league}/${m.externalId}`]));
+  const matchLogs: MatchLogRow[] = rawMatchLogs.map(({ fixtureId, ...m }) => ({
+    ...m,
+    href: hrefByFixture.get(fixtureId) ?? null,
+  }));
 
   return (
     <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
@@ -1003,6 +1018,7 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
                 content: (
                   <>
                     <CareerTrendChart points={trendPoints} />
+                    <CareerSeasonSummary groups={careerGroups} />
                     <PlayerCareerTable groups={careerGroups} />
                   </>
                 ),

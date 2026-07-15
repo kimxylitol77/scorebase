@@ -1,9 +1,13 @@
 // 출전기록 표 — 경기별 평점·출전·골·카드·결과 (PlayerMatchLog). 최근 15경기 + 더보기.
 // 데이터는 collect-player-match-logs 잡이 API-Football /fixtures/players 에서 적재.
+// 커버 매치(Match.apiFixtureId 매칭)는 행 전체가 매치 상세로 링크된다 (buildup 벤치마크).
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { toKoreanTeamName } from "@/lib/team-names";
 
 export interface MatchLogRow {
   id: string;
+  href: string | null; // 우리 매치 상세(/live/...) — 미커버 경기는 null
   date: Date;
   leagueName: string;
   leagueFlag: string | null;
@@ -59,8 +63,8 @@ function teamLine(name: string, logo: string | null, score: number | null, bold:
 function Row({ r }: { r: MatchLogRow }) {
   const played = (r.minutes ?? 0) > 0 || r.rating != null;
   const res = resultOf(r);
-  return (
-    <div className="flex items-center gap-3 px-3 py-2.5 border-b border-black/5 dark:border-white/5 last:border-0">
+  const inner = (
+    <>
       <div className="flex flex-col items-center gap-0.5 w-12 shrink-0">
         <span className="text-[11px] text-neutral-400 tabular-nums">{fmtDate(r.date)}</span>
         {r.leagueFlag && (
@@ -86,8 +90,17 @@ function Row({ r }: { r: MatchLogRow }) {
           <span className="text-[11px] text-neutral-400">벤치</span>
         )}
         {res && <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${RES_META[res].cls}`}>{RES_META[res].ko}</span>}
+        <ExternalLink className={`w-3.5 h-3.5 shrink-0 ${r.href ? "text-neutral-400" : "text-transparent"}`} aria-hidden />
       </div>
-    </div>
+    </>
+  );
+  const cls = "flex items-center gap-3 px-3 py-2.5 border-b border-black/5 dark:border-white/5 last:border-0";
+  return r.href ? (
+    <Link href={r.href} className={`${cls} transition-colors hover:bg-neutral-50 dark:hover:bg-white/[0.04]`}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={cls}>{inner}</div>
   );
 }
 
