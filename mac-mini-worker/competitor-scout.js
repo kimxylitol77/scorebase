@@ -410,19 +410,38 @@ async function main() {
   if (!process.env.OPENAI_BRIEF_MODEL) {
     process.env.OPENAI_BRIEF_MODEL = process.env.SCOUT_OPENAI_MODEL || "gpt-5.6-sol";
   }
-  const text = await askWithWebSearch(buildPrompt(reportedDomains), {
-    maxTokens: 2800,
-    maxSearches: 12,
-    fetch: true,
-    query: LOCAL_QUERIES,
-    perQuery: 6,
-    when: "90d",
-    maxAgeDays: 90,
-  });
-  if (!text) throw new Error("빈 응답 (검색 실패 가능)");
+  const basePrompt = buildPrompt(reportedDomains);
+  let clean;
+  let result;
+  let validationError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const prompt = validationError
+      ? `${basePrompt}\n\n## 이전 결과 재검증 지시\n- 검증 실패 이유: ${validationError.message}\n- 실패한 후보의 공식 제품 페이지를 다시 확인하고, 기준을 충족하면 형식을 바로잡고 충족하지 않으면 후보에서 제거한다.\n- 검증 가능한 직접 경쟁자가 없으면 억지로 대체하지 말고 지정된 '없음' 문구를 쓴다.`
+      : basePrompt;
+    const text = await askWithWebSearch(prompt, {
+      maxTokens: 2800,
+      maxSearches: 12,
+      fetch: true,
+      query: LOCAL_QUERIES,
+      perQuery: 6,
+      when: "90d",
+      maxAgeDays: 90,
+    });
+    if (!text) throw new Error("빈 응답 (검색 실패 가능)");
 
-  const clean = sanitizeReport(text);
-  const result = validateReport(clean, state);
+    clean = sanitizeReport(text);
+    try {
+      result = validateReport(clean, state);
+      validationError = null;
+      break;
+    } catch (error) {
+      validationError = error;
+      if (attempt === 0) {
+        console.warn(`[competitor-scout] 검증 실패, 1회 재검색: ${error.message}`);
+      }
+    }
+  }
+  if (validationError) throw validationError;
   if (DRY_RUN) {
     console.log(
       `[competitor-scout] DRY RUN — direct=${result.direct.length}, references=${result.references.length}\n${clean}`,

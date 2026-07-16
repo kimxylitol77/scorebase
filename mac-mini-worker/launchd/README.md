@@ -1,6 +1,6 @@
-# launchd — Mac mini 자동 시작
+# launchd — Mac mini 자동 실행
 
-5 봇 모두 macOS 부팅 시 자동 시작 + 크래시 시 자동 재시작.
+핵심 운영 봇과 정기 브리핑을 macOS 로그인 후 자동 실행한다.
 
 ## 봇 list
 
@@ -11,6 +11,9 @@
 | `com.scorebase.data-quality` | 15분 | LIVE 점수 누락·TBD 팀명 감시 |
 | `com.scorebase.api-quota` | 30분 | api-football / api-sports 한도 알림 |
 | `com.scorebase.preview-coverage` | 30분 | PREVIEW 누락 매치 알림 |
+| `com.scorebase.competitor-watch` | 매일 08:00 KST | 기존 경쟁사 변화 분석 |
+| `com.scorebase.competitor-scout` | 매일 08:40 KST | 신규 경쟁사 발굴·아이디어 전송 |
+| `com.scorebase.competitor-backlog` | 매주 월요일 09:00 KST | 경쟁사 아이디어 주간 종합 |
 
 ## 설치 (1회)
 
@@ -22,7 +25,7 @@ bash install.sh
 자동으로:
 1. node 경로 + 사용자 홈 plist 에 주입
 2. `~/Library/LaunchAgents/` 로 복사
-3. `launchctl load -w` 등록 + 즉시 시작
+3. `launchctl load -w` 등록 (주기 작업은 다음 예정 시각부터 실행)
 
 ## 동작 확인
 
@@ -30,8 +33,11 @@ bash install.sh
 # 등록된 봇
 launchctl list | grep scorebase
 
-# 로그 (5 봇 통합)
+# 주요 운영 봇 로그
 tail -f /tmp/match-narrator.log /tmp/endpoint-monitor.log /tmp/data-quality.log /tmp/api-quota.log /tmp/preview-coverage.log
+
+# 신규 경쟁자 스카우트 로그
+tail -f /tmp/competitor-scout.log
 
 # 특정 봇 재시작
 launchctl unload ~/Library/LaunchAgents/com.scorebase.endpoint-monitor.plist
@@ -46,17 +52,13 @@ bash uninstall.sh
 ```
 
 자동으로:
-1. 5 봇 `launchctl unload`
+1. 설치 목록의 봇을 `launchctl unload`
 2. plist 파일 삭제
 3. 남은 nohup 프로세스 `pkill` (혹시 직접 실행했을 경우)
 
 ## 옵션 설정
 
-각 plist:
-- **RunAtLoad** = true → 등록 즉시 시작
-- **KeepAlive.SuccessfulExit** = false → 비정상 종료 시 자동 재시작
-- **ThrottleInterval** = 30 → 30초 이내 재시작 반복 방지
-- **StandardOut/ErrorPath** → `/tmp/{이름}.log`
+각 plist의 `RunAtLoad`, `KeepAlive`, 실행 주기는 작업 성격에 맞게 개별 설정한다. 로그는 `/tmp/{이름}.log`에 저장한다.
 
 부팅 시 자동 시작 (RunAtLoad + 사용자 로그인 후) — 별도 작업 불필요.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# uninstall.sh — 8 봇 launchd 등록 해제
+# uninstall.sh — install.sh 로 등록한 핵심 운영 봇 해제
 
 set -e
 TARGET_DIR="$HOME/Library/LaunchAgents"
@@ -13,6 +13,11 @@ BOTS=(
   "com.scorebase.live-scores-watcher"
   "com.scorebase.route-guardian"
   "com.scorebase.threads-auto-poster"
+  "com.scorebase.stale-ts-verify"
+  "com.scorebase.football-incidents-backfill"
+  "com.scorebase.competitor-watch"
+  "com.scorebase.competitor-scout"
+  "com.scorebase.competitor-backlog"
 )
 
 for bot in "${BOTS[@]}"; do
@@ -35,6 +40,11 @@ pkill -f preview-coverage 2>/dev/null || true
 pkill -f live-scores-watcher 2>/dev/null || true
 pkill -f route-guardian 2>/dev/null || true
 pkill -f threads-auto-poster 2>/dev/null || true
+pkill -f stale-ts-verify 2>/dev/null || true
+pkill -f football-incidents-backfill 2>/dev/null || true
+pkill -f competitor-watch 2>/dev/null || true
+pkill -f competitor-scout 2>/dev/null || true
+pkill -f competitor-backlog 2>/dev/null || true
 
 echo ""
-echo "✓ 8 봇 모두 중지 + 등록 해제"
+echo "✓ ${#BOTS[@]} 봇 모두 중지 + 등록 해제"

@@ -55,13 +55,14 @@ async function askAnthropicWebSearch(
     throw new Error("ANTHROPIC_API_KEY 미설정 — .env.local 확인");
   }
   const tools = [
-    { type: "web_search_20260209", name: "web_search", max_uses: maxSearches },
+    { type: "web_search_20250305", name: "web_search", max_uses: maxSearches },
   ];
   if (fetch) {
-    tools.push({ type: "web_fetch_20260209", name: "web_fetch", max_uses: maxSearches });
+    tools.push({ type: "web_fetch_20250910", name: "web_fetch", max_uses: maxSearches });
   }
   const messages = [{ role: "user", content: prompt }];
   let finalText = "";
+  let containerId = null;
   // pause_turn 이어가기 최대 8회 (무한루프 방지)
   for (let turn = 0; turn < 8; turn++) {
     // web_search 다회 요청은 응답까지 오래 걸려 non-stream 은 connection 이 끊긴다.
@@ -76,8 +77,10 @@ async function askAnthropicWebSearch(
           ...(system ? { system } : {}),
           tools,
           messages,
+          ...(containerId ? { container: containerId } : {}),
         });
         res = await stream.finalMessage();
+        if (res.container?.id) containerId = res.container.id;
         break;
       } catch (e) {
         const msg = String(e?.message || e);

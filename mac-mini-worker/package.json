@@ -15,7 +15,9 @@
     "stale-ts-verify": "node stale-ts-verify.js",
     "football-incidents-backfill": "node football-incidents-backfill.js",
     "sports-news-brief": "node sports-news-brief.js",
-    "competitor-watch": "node competitor-watch.js"
+    "competitor-watch": "node competitor-watch.js",
+    "competitor-scout": "node competitor-scout.js",
+    "competitor-backlog": "node competitor-backlog.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",

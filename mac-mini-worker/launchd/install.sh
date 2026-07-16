@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh — Mac mini launchd 등록 (10 봇 모두)
+# install.sh — Mac mini 핵심 운영 봇 launchd 등록
 # 부팅 시 자동 시작 + 크래시 시 자동 재시작 (KeepAlive)
 #
 # 사용:
@@ -23,6 +23,9 @@ BOTS=(
   "com.scorebase.threads-auto-poster"
   "com.scorebase.stale-ts-verify"
   "com.scorebase.football-incidents-backfill"
+  "com.scorebase.competitor-watch"
+  "com.scorebase.competitor-scout"
+  "com.scorebase.competitor-backlog"
 )
 
 # Node 경로 자동 감지 (brew 위치 따라 다름)
@@ -37,7 +40,7 @@ echo "✓ node: $NODE_PATH"
 USER_HOME="$HOME"
 
 echo ""
-echo "▶ 9 봇 launchd 등록"
+echo "▶ ${#BOTS[@]} 봇 launchd 등록"
 echo ""
 
 for bot in "${BOTS[@]}"; do
@@ -49,8 +52,9 @@ for bot in "${BOTS[@]}"; do
     continue
   fi
 
-  # plist 의 /usr/local/bin/node → 실제 node 경로 + /Users/kkulkkul → 실제 홈
+  # plist 의 고정 node/home 경로를 현재 맥의 실제 경로로 치환
   sed -e "s|/usr/local/bin/node|$NODE_PATH|g" \
+      -e "s|/opt/homebrew/bin/node|$NODE_PATH|g" \
       -e "s|/Users/kkulkkul|$USER_HOME|g" \
       "$src" > "$dst"
 
@@ -67,5 +71,5 @@ echo "▶ 등록된 봇 확인"
 launchctl list | grep -E "scorebase\." | awk '{ printf "  [%s] %s\n", $1, $3 }'
 
 echo ""
-echo "▶ 로그 위치 — tail -f /tmp/{match-narrator,endpoint-monitor,data-quality,api-quota,preview-coverage,live-scores-watcher,route-guardian,threads-auto-poster,stale-ts-verify}.log"
+echo "▶ 신규 경쟁자 로그 — tail -f /tmp/competitor-scout.log"
 echo "▶ 중지: bash uninstall.sh"
