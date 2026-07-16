@@ -14,13 +14,16 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 type Outcome = "HOME" | "DRAW" | "AWAY";
+type PickChoice = Outcome | "OVER" | "UNDER";
+type PickMarket = "1X2" | "HANDICAP" | "OU";
 
 const HOUR = 60 * 60 * 1000;
 const MIN_LEAD_HOURS = 3;
 const MAX_LEAD_HOURS = 48;
 const MARKET_MAX_AGE_HOURS = 48;
 const MAX_NEGATIVE_MOVE_PP = -3;
-const UNCERTAINTY_RE = /미발표|미정|불확실|접전|박빙|변수|우세하지만|확정되지|정보 부족|선발.*없|라인업.*없/i;
+const PICK_MARKETS: PickMarket[] = ["1X2", "HANDICAP", "OU"];
+const SEVERE_UNCERTAINTY_RE = /미발표|미정|불확실|확정되지|정보 부족|선발.*없|라인업.*없/i;
 
 const LEAGUE_LABELS: Record<string, string> = {
   EPL: "프리미어리그",
@@ -31,9 +34,14 @@ const LEAGUE_LABELS: Record<string, string> = {
   MLS: "MLS",
   UCL: "UEFA 챔피언스리그",
   WORLD_CUP: "FIFA 월드컵",
+  BRASILEIRAO: "브라질 세리에 A",
+  K_LEAGUE_1: "K리그 1",
+  K_LEAGUE_2: "K리그 2",
   KBO: "KBO",
   NPB: "NPB",
   MLB: "MLB",
+  LMB: "멕시칸 리그",
+  CPBL: "대만 프로야구",
   NBA: "NBA",
   WNBA: "WNBA",
   NHL: "NHL",
@@ -43,7 +51,7 @@ const LEAGUE_LABELS: Record<string, string> = {
 };
 
 function sportForLeague(league: string) {
-  if (["KBO", "NPB", "MLB"].includes(league)) return "야구";
+  if (["KBO", "NPB", "MLB", "LMB", "CPBL"].includes(league)) return "야구";
   if (["NBA", "WNBA"].includes(league)) return "농구";
   if (league === "NHL") return "아이스하키";
   if (league.startsWith("VNL")) return "배구";
@@ -64,6 +72,16 @@ function selectedValue<T>(pick: Outcome, home: T, draw: T, away: T): T {
   if (pick === "HOME") return home;
   if (pick === "DRAW") return draw;
   return away;
+}
+
+function linesMatch(first: number | null, second: number | null) {
+  return first != null && second != null && Math.abs(first - second) < 0.01;
+}
+
+function marketLabel(market: PickMarket) {
+  if (market === "HANDICAP") return "핸디캡";
+  if (market === "OU") return "오버·언더";
+  return "승패";
 }
 
 function sanitizeReason(reason: string | null) {
@@ -103,11 +121,13 @@ export async function GET(req: Request) {
       homeTeam: { select: { name: true, nameKo: true } },
       awayTeam: { select: { name: true, nameKo: true } },
       aiPredictions: {
-        where: { market: "1X2", model: { in: ["scorebase", ...gptModels] } },
+        where: { market: { in: PICK_MARKETS }, model: { in: ["scorebase", ...gptModels] } },
         select: {
           model: true,
+          market: true,
           pick: true,
           prob: true,
+          line: true,
           reason: true,
           predictedAt: true,
         },
@@ -130,113 +150,217 @@ export async function GET(req: Request) {
   const candidates = matches.flatMap((match) => {
     if (match.status !== "SCHEDULED") return [];
     if (match.startTime < candidateFrom || match.startTime > candidateUntil) return [];
-
-    const statistical = match.aiPredictions.find((prediction) => prediction.model === "scorebase");
-    let gpt = match.aiPredictions.find((prediction) => prediction.model === GPT_SCORECARD_ACTIVE_MODEL);
-    if (!gpt) {
-      for (const prediction of match.aiPredictions) {
-        if (preferGptScorecardModel(gpt?.model, prediction.model)) gpt = prediction;
-      }
-    }
-    if (!statistical || !gpt) return [];
-    if (statistical.pick !== gpt.pick || !["HOME", "AWAY"].includes(gpt.pick)) return [];
-
-    const pick = gpt.pick as Outcome;
-    const reason = sanitizeReason(gpt.reason);
-    if (reason && UNCERTAINTY_RE.test(reason)) return [];
-    if (gpt.prob < 0.65 || statistical.prob < strongPickThreshold(match.league)) return [];
-    if (statistical.predictedAt >= match.startTime || gpt.predictedAt >= match.startTime) return [];
-
-    const marketPick = topOutcome(match.marketHome, match.marketDraw, match.marketAway);
-    const selectedMarket = selectedValue(pick, match.marketHome, match.marketDraw, match.marketAway);
-    const selectedOpening = selectedValue(
-      pick,
-      match.openingMarketHome,
-      match.openingMarketDraw,
-      match.openingMarketAway,
-    );
-    const selectedOdds = selectedValue(pick, match.oddsHome, match.oddsDraw, match.oddsAway);
-    const hasMarket = marketPick != null;
+    const sport = sportForLeague(match.league);
+    const homeTeam = teamDisplayKo(match.homeTeam, match.league);
+    const awayTeam = teamDisplayKo(match.awayTeam, match.league);
     const marketAgeHours = match.marketUpdatedAt
       ? (now.getTime() - match.marketUpdatedAt.getTime()) / HOUR
       : null;
-    const movementPp = selectedMarket != null && selectedOpening != null
-      ? Math.round((selectedMarket - selectedOpening) * 1000) / 10
-      : null;
+    const freshMarket = (match.marketBookmakers ?? 0) >= 3
+      && marketAgeHours != null
+      && marketAgeHours <= MARKET_MAX_AGE_HOURS;
 
-    if (hasMarket) {
-      if (marketPick !== pick || selectedMarket == null || selectedOdds == null) return [];
-      if ((match.marketBookmakers ?? 0) < 3) return [];
-      if (marketAgeHours == null || marketAgeHours > MARKET_MAX_AGE_HOURS) return [];
-      if (movementPp != null && movementPp < MAX_NEGATIVE_MOVE_PP) return [];
-    } else if (gpt.prob < 0.74 || statistical.prob < 0.7) {
-      return [];
+    const statisticalByMarket = new Map<PickMarket, (typeof match.aiPredictions)[number]>();
+    const gptByMarket = new Map<PickMarket, (typeof match.aiPredictions)[number]>();
+    for (const prediction of match.aiPredictions) {
+      const market = prediction.market as PickMarket;
+      if (!PICK_MARKETS.includes(market)) continue;
+      if (prediction.model === "scorebase") {
+        statisticalByMarket.set(market, prediction);
+        continue;
+      }
+      const current = gptByMarket.get(market);
+      if (preferGptScorecardModel(current?.model, prediction.model)) {
+        gptByMarket.set(market, prediction);
+      }
     }
 
-    const confidence = hasMarket && selectedMarket != null
-      ? 0.45 * gpt.prob + 0.35 * statistical.prob + 0.2 * selectedMarket
-      : 0.55 * gpt.prob + 0.45 * statistical.prob;
-    const confidenceScore = Math.max(55, Math.min(92, Math.round(confidence * 100)));
-    const homeTeam = teamDisplayKo(match.homeTeam, match.league);
-    const awayTeam = teamDisplayKo(match.awayTeam, match.league);
-    const pickTeam = pick === "HOME" ? homeTeam : awayTeam;
-    const opponent = pick === "HOME" ? awayTeam : homeTeam;
-    const evidence = [
-      `통계 예측과 경기 맥락 분석이 모두 ${pickTeam} 우세로 일치했습니다.`,
-      `두 분석의 선택 확률은 각각 ${Math.round(statistical.prob * 100)}%, ${Math.round(gpt.prob * 100)}%입니다.`,
-      hasMarket
-        ? `${match.marketBookmakers ?? 0}개 배당사 평균에서도 ${pickTeam} 방향이 가장 낮은 배당을 형성했습니다.`
-        : "현재 배당 표본이 없어 독립 예측 일치도와 확률 기준을 더 엄격하게 적용했습니다.",
-    ];
-    if (movementPp != null) {
-      evidence.push(
-        movementPp > 0
-          ? `오프닝 대비 ${pickTeam} 시장 지지율이 ${movementPp.toFixed(1)}%p 상승했습니다.`
-          : `오프닝 대비 시장 변화는 ${Math.abs(movementPp).toFixed(1)}%p 이내로 큰 역행이 없습니다.`,
-      );
-    }
-    if (reason) evidence.push(reason);
+    const contextReason = sanitizeReason(gptByMarket.get("1X2")?.reason ?? null);
+    const matchCandidates = [];
 
-    const risks = [
-      `${opponent}의 당일 선발·라인업 변화는 경기 전 다시 확인해야 합니다.`,
-      hasMarket
-        ? "발행 후 배당이 크게 반대로 움직이면 기존 판단의 신뢰도가 낮아질 수 있습니다."
-        : "배당 시장 교차 검증이 없는 경기이므로 일반 후보보다 변동 위험이 큽니다.",
-    ];
+    for (const market of PICK_MARKETS) {
+      const statistical = statisticalByMarket.get(market);
+      const gpt = gptByMarket.get(market);
+      if (!statistical || !gpt || statistical.pick !== gpt.pick) continue;
+      if (statistical.predictedAt >= match.startTime || gpt.predictedAt >= match.startTime) continue;
 
-    const persona = movementPp != null && Math.abs(movementPp) >= 1
-      ? "ODDS_TRACKER"
-      : match.isValueBet && match.valueGap != null && match.valueGap >= 0.05
+      const pick = gpt.pick as PickChoice;
+      if (market === "1X2" && !["HOME", "DRAW", "AWAY"].includes(pick)) continue;
+      if (market === "HANDICAP" && !["HOME", "AWAY"].includes(pick)) continue;
+      if (market === "OU" && !["OVER", "UNDER"].includes(pick)) continue;
+
+      const line = market === "1X2" ? null : (gpt.line ?? statistical.line);
+      if (market !== "1X2") {
+        if (!["축구", "야구"].includes(sport) || line == null) continue;
+        if (gpt.line != null && statistical.line != null && !linesMatch(gpt.line, statistical.line)) continue;
+      }
+
+      const reason = sanitizeReason(gpt.reason) ?? contextReason;
+      if (market === "1X2" && reason && SEVERE_UNCERTAINTY_RE.test(reason)) continue;
+
+      let selectedOdds: number | null = null;
+      let selectedMarket: number | null = null;
+      let movementPp: number | null = null;
+      let valueEdgePp: number | null = null;
+      let hasComparableMarket = false;
+      const consensusProb = 0.55 * gpt.prob + 0.45 * statistical.prob;
+
+      if (market === "1X2") {
+        const outcome = pick as Outcome;
+        const marketPick = topOutcome(match.marketHome, match.marketDraw, match.marketAway);
+        selectedMarket = selectedValue(outcome, match.marketHome, match.marketDraw, match.marketAway);
+        const selectedOpening = selectedValue(
+          outcome,
+          match.openingMarketHome,
+          match.openingMarketDraw,
+          match.openingMarketAway,
+        );
+        selectedOdds = selectedValue(outcome, match.oddsHome, match.oddsDraw, match.oddsAway);
+        movementPp = selectedMarket != null && selectedOpening != null
+          ? Math.round((selectedMarket - selectedOpening) * 1000) / 10
+          : null;
+        valueEdgePp = selectedMarket != null
+          ? Math.round((consensusProb - selectedMarket) * 1000) / 10
+          : null;
+        hasComparableMarket = freshMarket && marketPick != null && selectedMarket != null && selectedOdds != null;
+
+        const thresholdPassed = sport === "야구"
+          ? gpt.prob >= 0.65 && statistical.prob >= strongPickThreshold(match.league)
+          : sport === "축구"
+            ? gpt.prob >= 0.62 && statistical.prob >= 0.56
+            : gpt.prob >= 0.65 && statistical.prob >= strongPickThreshold(match.league);
+        if (!thresholdPassed) continue;
+
+        if (hasComparableMarket) {
+          if (selectedOdds! < 1.45) continue;
+          if (marketPick !== outcome && (valueEdgePp ?? 0) < 5) continue;
+          if (movementPp != null && movementPp < MAX_NEGATIVE_MOVE_PP && (valueEdgePp ?? 0) < 8) continue;
+        } else {
+          const noMarketPassed = sport === "축구"
+            ? gpt.prob >= 0.72 && statistical.prob >= 0.62
+            : sport === "야구"
+              ? gpt.prob >= 0.68 && statistical.prob >= 0.58
+              : gpt.prob >= 0.74 && statistical.prob >= 0.7;
+          if (!noMarketPassed) continue;
+          selectedOdds = null;
+        }
+      } else {
+        const thresholdPassed = market === "HANDICAP"
+          ? sport === "야구"
+            ? statistical.prob >= 0.56 && gpt.prob >= 0.62
+            : statistical.prob >= 0.54 && gpt.prob >= 0.6
+          : sport === "야구"
+            ? statistical.prob >= 0.52 && gpt.prob >= 0.58
+            : statistical.prob >= 0.62 && gpt.prob >= 0.57;
+        if (!thresholdPassed) continue;
+
+        const currentLine = market === "HANDICAP" ? match.oddsHcLine : match.oddsTotalLine;
+        const lineOdds = market === "HANDICAP"
+          ? pick === "HOME" ? match.oddsHcHome : match.oddsHcAway
+          : pick === "OVER" ? match.oddsOver : match.oddsUnder;
+        if (freshMarket && linesMatch(line, currentLine) && lineOdds != null) {
+          selectedOdds = lineOdds;
+          hasComparableMarket = true;
+        }
+      }
+
+      const pickTeam = pick === "HOME"
+        ? homeTeam
+        : pick === "AWAY"
+          ? awayTeam
+          : pick === "DRAW"
+            ? "무승부"
+            : `${line} ${pick === "OVER" ? "오버" : "언더"}`;
+      const opponent = pick === "HOME" ? awayTeam : homeTeam;
+      const evidence = [
+        `통계 예측과 경기 맥락 분석이 ${marketLabel(market)} 시장에서 같은 선택을 냈습니다.`,
+        `두 분석의 선택 확률은 각각 ${Math.round(statistical.prob * 100)}%, ${Math.round(gpt.prob * 100)}%입니다.`,
+      ];
+
+      if (market === "1X2") {
+        evidence.push(
+          hasComparableMarket
+            ? `${match.marketBookmakers ?? 0}개 배당사의 현재 시장과 비교해 ${valueEdgePp != null && valueEdgePp >= 3 ? `${valueEdgePp.toFixed(1)}%p의 확률 차이` : "같은 방향의 지지"}를 확인했습니다.`
+            : "현재 비교 가능한 배당이 없어 두 예측의 확률 기준을 더 엄격하게 적용했습니다.",
+        );
+      } else if (market === "HANDICAP") {
+        evidence.push(`${pickTeam} ${pick === "HOME" ? "-" : "+"}${line} 핸디캡 기준의 커버 가능성을 비교했습니다.`);
+      } else {
+        evidence.push(`양 팀 합계 ${line}점 기준 ${pick === "OVER" ? "오버" : "언더"} 가능성을 비교했습니다.`);
+      }
+      if (hasComparableMarket && selectedOdds != null) {
+        evidence.push(`같은 기준점의 ${match.marketBookmakers ?? 0}개 배당사 평균 배당은 ${selectedOdds.toFixed(2)}입니다.`);
+      }
+      if (movementPp != null) {
+        evidence.push(
+          movementPp > 0
+            ? `오프닝 대비 선택 방향의 시장 지지율이 ${movementPp.toFixed(1)}%p 상승했습니다.`
+            : `오프닝 이후 역행 폭은 ${Math.abs(movementPp).toFixed(1)}%p입니다.`,
+        );
+      }
+      if (reason && !SEVERE_UNCERTAINTY_RE.test(reason)) evidence.push(reason);
+
+      const risks = market === "1X2"
+        ? [
+            `${opponent}의 당일 선발·라인업 변화는 경기 전 다시 확인해야 합니다.`,
+            hasComparableMarket
+              ? "발행 후 배당이 크게 반대로 움직이면 기존 판단의 신뢰도가 낮아질 수 있습니다."
+              : "배당 시장 교차 검증이 없는 경기이므로 일반 후보보다 변동 위험이 큽니다.",
+          ]
+        : [
+            market === "HANDICAP"
+              ? `기준은 ${line}점 핸디캡이며 라인이 바뀌면 같은 선택으로 볼 수 없습니다.`
+              : `기준은 합계 ${line}점이며 기준점 변화 시 기대값이 달라집니다.`,
+            "선발·라인업과 경기 직전 시장 변화를 함께 확인해야 합니다.",
+          ];
+
+      const confidence = market === "1X2" && selectedMarket != null
+        ? 0.5 * gpt.prob + 0.35 * statistical.prob + 0.15 * selectedMarket
+        : consensusProb + (hasComparableMarket ? 0.01 : 0);
+      const confidenceScore = Math.max(60, Math.min(90, Math.round(confidence * 100)));
+      const persona = (valueEdgePp ?? 0) >= 5 || (selectedOdds ?? 0) >= 2
         ? "VALUE_HUNTER"
-        : sportForLeague(match.league) === "축구" && (match.lineupHome || match.lineupAway)
-          ? "TACTICAL_ANALYST"
-          : hasMarket || (confidenceScore >= 80 && match.id % 2 === 0)
-            ? "DATA_ANALYST"
-            : "RISK_MANAGER";
+        : movementPp != null && Math.abs(movementPp) >= 1
+          ? "ODDS_TRACKER"
+          : sport === "축구" && market !== "1X2"
+            ? "TACTICAL_ANALYST"
+            : hasComparableMarket || confidenceScore >= 75
+              ? "DATA_ANALYST"
+              : "RISK_MANAGER";
 
-    return [{
-      matchId: match.id,
-      league: match.league,
-      leagueLabel: LEAGUE_LABELS[match.league] ?? match.league,
-      sport: sportForLeague(match.league),
-      startTime: match.startTime.toISOString(),
-      homeTeam,
-      awayTeam,
-      pick,
-      pickTeam,
-      confidenceScore,
-      confidenceLabel: confidenceScore >= 78 ? "매우 높음" : "높음",
-      persona,
-      odds: selectedOdds,
-      marketBookmakers: match.marketBookmakers,
-      marketUpdatedAt: match.marketUpdatedAt?.toISOString() ?? null,
-      movementPp,
-      evidence,
-      risks,
-    }];
+      matchCandidates.push({
+        matchId: match.id,
+        league: match.league,
+        leagueLabel: LEAGUE_LABELS[match.league] ?? match.league,
+        sport,
+        startTime: match.startTime.toISOString(),
+        homeTeam,
+        awayTeam,
+        market,
+        pick,
+        line,
+        pickTeam,
+        confidenceScore,
+        confidenceLabel: confidenceScore >= 78 ? "매우 높음" : confidenceScore >= 68 ? "높음" : "선별 통과",
+        persona,
+        odds: selectedOdds,
+        marketBookmakers: hasComparableMarket ? match.marketBookmakers : null,
+        marketUpdatedAt: hasComparableMarket ? match.marketUpdatedAt?.toISOString() ?? null : null,
+        movementPp,
+        valueEdgePp,
+        evidence,
+        risks,
+      });
+    }
+
+    return matchCandidates;
   });
 
-  candidates.sort((a, b) => b.confidenceScore - a.confidenceScore || a.startTime.localeCompare(b.startTime));
+  const selectionScore = (candidate: (typeof candidates)[number]) => candidate.confidenceScore
+    + (candidate.market === "1X2" ? 0 : 3)
+    + (["축구", "야구"].includes(candidate.sport) ? 2 : 0)
+    + ((candidate.odds ?? 0) >= 1.8 ? 1 : 0);
+  candidates.sort((a, b) => selectionScore(b) - selectionScore(a) || a.startTime.localeCompare(b.startTime));
 
   return NextResponse.json(
     {
@@ -244,7 +368,8 @@ export async function GET(req: Request) {
       policy: {
         minimumLeadHours: MIN_LEAD_HOURS,
         maximumLeadHours: MAX_LEAD_HOURS,
-        maximumPicksPerArticle: 3,
+        maximumPicksPerArticle: 5,
+        markets: PICK_MARKETS,
       },
       candidates,
       settlements,
