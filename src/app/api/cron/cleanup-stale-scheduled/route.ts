@@ -37,8 +37,9 @@ const SOURCE_HINT: Record<string, string> = {
   BUNDESLIGA_2: "api-football + TheSports",
   SERIE_A: "ESPN + TheSports",
   LIGUE_1: "ESPN + TheSports",
-  UCL: "ESPN + TheSports",
-  UEL: "ESPN + TheSports",
+  // 본선=ESPN 콜렉터, 예선=af backfill(externalId 가 af fixture id) — 혼합 소스.
+  UCL: "ESPN(본선) + api-football(예선) + TheSports",
+  UEL: "api-football + TheSports",
   MLS: "ESPN",
   K_LEAGUE: "api-football + TheSports",
   K_LEAGUE_1: "api-football + TheSports",
@@ -224,10 +225,37 @@ export async function GET(req: NextRequest) {
   // api-football 으로 verify 할 매치 — collectors 에서 source="api-football" 로 태그된 리그만.
   // (SOURCE_HINT 화이트리스트는 누락 리그 — MOLDOVA_SL/COPA_LIB/ICELAND_1L 등 — 가 영구 stuck 됐음.
   //  ESPN/TheSports id 리그는 제외해 fixture id 오조회 방지. 숫자 ext 가드는 belt-and-suspenders.)
+  //
+  // UCL 예외(2026-07-16): 콜렉터가 ESPN 이라 위 집합에서 빠지지만, **예선(Q1~PO) fixture 는
+  // 일정 backfill(af)이 심어 externalId 가 af fixture id** 다. ESPN 은 예선을 다른 slug
+  // (uefa.champions_qual)로 서비스해 우리 콜렉터가 0건 → af 가 FT+점수를 갖고 있는데도 verify
+  // 대상이 아니라 40h 넘게 stale SCHEDULED 로 남았음. verify 자격을 "콜렉터 소스"가 아니라
+  // "externalId 가 af id 냐"로 봐야 맞는 케이스. 단 UCL 본선 row 는 ESPN event id(4억대)라
+  // af 에 없어 조회되지 않고(=KEPT 유지), 만에 하나 조회되더라도 아래 날짜 대조로 차단한다.
+  const AF_VERIFY_EXTRA_LEAGUES = new Set<string>(["UCL"]);
+  const isAfVerifiable = (lg: string) =>
+    API_FOOTBALL_LEAGUES.has(lg as League) || AF_VERIFY_EXTRA_LEAGUES.has(lg);
   const verifyTargets = stale.filter(
-    (m) => API_FOOTBALL_LEAGUES.has(m.league as League) && /^\d+$/.test(m.externalId),
+    (m) => isAfVerifiable(m.league) && /^\d+$/.test(m.externalId),
   );
   const verifyMap = await fetchApiFootballStatuses(verifyTargets.map((m) => m.externalId));
+
+  // 오조회 가드 — 추가 리그(콜렉터 소스가 af 가 아닌 리그)는 id 가 af 것이 아닐 수 있으므로
+  // af fixture 의 date 가 우리 startTime 과 근접(±72h, 연기 추종 여지)할 때만 신뢰한다.
+  // 기존 af 콜렉터 리그는 id 확실 → 검사 없음(동작 불변).
+  const AF_DATE_TOLERANCE_MS = 72 * 3600 * 1000;
+  for (const m of verifyTargets) {
+    if (API_FOOTBALL_LEAGUES.has(m.league as League)) continue; // 기존 리그는 그대로
+    const v = verifyMap.get(m.externalId);
+    if (!v) continue;
+    const afMs = v.date ? new Date(v.date).getTime() : NaN;
+    if (!Number.isFinite(afMs) || Math.abs(afMs - m.startTime.getTime()) > AF_DATE_TOLERANCE_MS) {
+      console.warn(
+        `[cleanup-stale-scheduled] af 오조회 의심 — ${m.league} #${m.id} ext=${m.externalId} afDate=${v.date} ourStart=${m.startTime.toISOString()} → verify 미적용`,
+      );
+      verifyMap.delete(m.externalId);
+    }
+  }
 
   // 분류 결과
   const verifiedFinished: typeof stale = [];
