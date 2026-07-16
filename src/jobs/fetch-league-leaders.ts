@@ -1,7 +1,8 @@
 // 리그별 시즌 리더보드 fetch — 매일 1회 cron.
 //
 // 데이터 소스:
-//   - 축구 클럽리그: data/player-season-stats.json (TheSports 시즌통계) — 커버 리그만, api-football 대체
+//   - 축구 클럽리그(커버): data/player-season-stats.json (TheSports 시즌통계) — 소스 1순위 원칙
+//   - 축구 그 외(UCL·UEL·컵 등 season-stats 미커버): API-Football topscorers 등 fallback
 //   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
@@ -16,6 +17,14 @@ import path from "path";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { prisma } from "@/lib/db";
+import {
+  fetchSeasonTopScorers,
+  fetchTopAssists,
+  fetchTopYellowCards,
+  fetchTopRedCards,
+  type PlayerLeaderEntry,
+  type TopScorerEntry,
+} from "@/lib/sports/api-football-pro";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { lookupNbaPlayer } from "@/lib/sports/nba-players";
@@ -105,13 +114,78 @@ async function clearStaleSeasons(league: string, currentSeason: string) {
  * - season-stats 미커버 리그(UCL/UEL/컵 등)는 순회 대상이 아니므로 기존 행 그대로 유지.
  * ==========================================================*/
 
+// 리더 발행 대상 축구 리그 전체. season-stats 커버 리그는 ts, 나머지는 api-football fallback.
+const SOCCER_LEAGUES = [
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
+  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL",
+  "UEL", "UECL",
+  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
+  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
+  "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD",
+  "CSL", "A_LEAGUE",
+  "CLUB_WORLD_CUP",
+];
+
 // season-stats 커버리지가 충분한 클럽리그 (≥30명). PRIMEIRA/EREDIVISIE/J1 등 표본이 얕은
-// 리그는 "리그 득점왕"이 부정확할 수 있어 제외 — 기존(api-football 최종) 데이터 보존.
+// 리그는 "리그 득점왕"이 부정확할 수 있어 제외 → api-football fallback 이 담당.
 const SEASON_STATS_LEAGUES = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
   "K_LEAGUE_1", "K_LEAGUE_2", "LALIGA_2", "MLS", "SAUDI_PL",
   "BRASILEIRAO", "SERIE_B", "BUNDESLIGA_2", "SUPER_LIG",
 ]);
+
+/** 리그별 시즌. 단일 대회 → 마지막 개최 연도, 달력 연도 vs 유럽 8-5월 시즌. */
+function currentSoccerSeason(league: string): { season: number; label: string } {
+  const now = new Date();
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth() + 1;
+  const calendarYearLeagues = [
+    "MLS", "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP",
+    "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
+  ];
+  if (league === "CLUB_WORLD_CUP") return { season: 2025, label: "2025" };
+  if (league === "AFC_U23") return { season: 2025, label: "2025" };
+  if (calendarYearLeagues.includes(league)) {
+    return { season: y, label: String(y) };
+  }
+  const startYear = m >= 7 ? y : y - 1;
+  return { season: startYear, label: `${startYear}-${String(startYear + 1).slice(2)}` };
+}
+
+// api-football 리더 적재 (season-stats 미커버 리그). 새 시즌 개막 전이면 raw=0 →
+// clearOldRanks 가 새 라벨에서만 동작해 기존 최종 데이터는 그대로 보존된다.
+async function syncSoccerCategory(
+  league: string,
+  category: "GOAL" | "ASSIST" | "YELLOW" | "RED",
+  season: number,
+  seasonLabel: string,
+  fetcher: (league: string, season: number) => Promise<PlayerLeaderEntry[] | TopScorerEntry[]>,
+  unit: string,
+): Promise<number> {
+  const raw = await fetcher(league, season);
+  const top = raw.slice(0, TOP_N);
+  for (let i = 0; i < top.length; i++) {
+    const p = top[i] as PlayerLeaderEntry & { goals?: number };
+    const value =
+      category === "GOAL" && "goals" in p ? p.goals ?? 0 : (p as PlayerLeaderEntry).value;
+    await upsertLeader({
+      league,
+      category,
+      rank: i + 1,
+      playerName: toKoreanPlayerName(p.playerName) || p.playerName,
+      playerNameEn: p.playerName,
+      externalId: p.playerId ? String(p.playerId) : undefined,
+      teamName: toKoreanTeamName(p.teamName) || p.teamName,
+      value,
+      unit,
+      appearances: p.appearances,
+      photoUrl: p.photoUrl,
+      season: seasonLabel,
+    });
+  }
+  await clearOldRanks(league, category, seasonLabel, top.length);
+  return top.length;
+}
 
 // 카테고리별 리더가 이 수 미만이면 커버리지 부족으로 보고 skip (기존 데이터 보존).
 const MIN_LEADERS = 5;
@@ -260,19 +334,25 @@ async function syncWorldCupFromTheSports(seasonLabel: string): Promise<Record<st
 
 async function runSoccer() {
   const result: Record<string, Record<string, number>> = {};
-
-  // 월드컵 = TheSports 집계 (달력연도 라벨).
-  const wcLabel = String(new Date().getUTCFullYear());
-  try {
-    result["WORLD_CUP"] = await syncWorldCupFromTheSports(wcLabel);
-  } catch (e) {
-    console.warn(`[league-leaders/WORLD_CUP]`, (e as Error).message);
-  }
-
-  // 클럽리그 = season-stats (커버 리그만). 미커버 리그는 순회 대상 아님 → 기존 데이터 보존.
-  for (const lg of SEASON_STATS_LEAGUES) {
+  for (const lg of SOCCER_LEAGUES) {
+    result[lg] = {};
     try {
-      result[lg] = await syncClubLeagueFromSeasonStats(lg);
+      // 월드컵 = TheSports 집계 (api-football 미제공 → /ballon 월드컵 소실 방지).
+      if (lg === "WORLD_CUP") {
+        result[lg] = await syncWorldCupFromTheSports(currentSoccerSeason(lg).label);
+        continue;
+      }
+      // TheSports 시즌통계 커버 리그 = ts 우선 (데이터 소스 1순위 원칙).
+      if (SEASON_STATS_LEAGUES.has(lg)) {
+        result[lg] = await syncClubLeagueFromSeasonStats(lg);
+        continue;
+      }
+      // 나머지(UCL·UEL·컵·에레디비시 등) = api-football fallback. ts 시즌통계 미커버라 이게 유일 소스.
+      const { season, label } = currentSoccerSeason(lg);
+      result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
+      result[lg].ASSIST = await syncSoccerCategory(lg, "ASSIST", season, label, fetchTopAssists, "도움");
+      result[lg].YELLOW = await syncSoccerCategory(lg, "YELLOW", season, label, fetchTopYellowCards, "옐로");
+      result[lg].RED = await syncSoccerCategory(lg, "RED", season, label, fetchTopRedCards, "레드");
     } catch (e) {
       console.warn(`[league-leaders/${lg}]`, (e as Error).message);
     }
