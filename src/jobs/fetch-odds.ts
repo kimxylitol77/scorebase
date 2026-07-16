@@ -37,6 +37,12 @@ import {
 import { backfillApiFootballOdds } from "@/lib/odds/api-sports-odds";
 import { backfillApiBaseballOdds } from "@/lib/odds/api-baseball-odds";
 
+function jsonRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
 export async function runFetchOdds(opts?: { leagues?: string[] }) {
   const leagues = opts?.leagues ?? ODDS_SUPPORTED_LEAGUES;
   console.log(`[odds] 시작 — leagues=${leagues.join(",")}`);
@@ -144,6 +150,27 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
                 openingCapturedAt: new Date(),
               }
             : {};
+        const previousOddsPayload = jsonRecord(m.oddsBookmakers);
+        const previousOpening = jsonRecord(previousOddsPayload?.opening);
+        const openingMarkets: Record<string, unknown> = {};
+        if (previousOpening?.handicap) {
+          openingMarkets.handicap = previousOpening.handicap;
+        } else if (spread) {
+          openingMarkets.handicap = {
+            line: spread.pick === "HOME" ? -spread.line : spread.line,
+            home: spread.homeOdds,
+            away: spread.awayOdds,
+          };
+        }
+        if (previousOpening?.totals) {
+          openingMarkets.totals = previousOpening.totals;
+        } else if (totals) {
+          openingMarkets.totals = {
+            line: totals.line,
+            home: totals.over,
+            away: totals.under,
+          };
+        }
         await prisma.match.update({
           where: { id: m.id },
           data: {
@@ -169,7 +196,11 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
             oddsDc12: dc?.twelve ?? null,
             oddsDcX2: dc?.xTwo ?? null,
             oddsBookmakers: bmList.length
-              ? ({ updatedAt: Date.now(), books: bmList } as unknown as Prisma.InputJsonValue)
+              ? ({
+                  updatedAt: Date.now(),
+                  books: bmList,
+                  ...(Object.keys(openingMarkets).length ? { opening: openingMarkets } : {}),
+                } as unknown as Prisma.InputJsonValue)
               : undefined,
           },
         });
