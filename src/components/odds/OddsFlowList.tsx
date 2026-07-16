@@ -1,8 +1,9 @@
 // 축구 배당 흐름 목록 — "어느 쪽으로 배당이 움직이나(=돈이 몰리나)"를 그래프+자연어로. 클릭 시 업체별 상세.
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, LineChart, Table2 } from "lucide-react";
 import TeamBadge from "@/components/TeamBadge";
 import { LEAGUE_DISPLAY, getLeagueFlag } from "@/lib/sports/sport-leagues";
 import type { FlowHitrate } from "@/lib/odds/flow-hitrate";
@@ -20,6 +21,13 @@ export type BookRec = {
   ha?: number;
 };
 
+export type OutcomeOdds = {
+  openOdds: number | null;
+  currentOdds: number | null;
+  deltaPct: number;
+  sampleCount: number;
+};
+
 export type FlowMatch = {
   id: number;
   league: string;
@@ -31,6 +39,11 @@ export type FlowMatch = {
   awayLogo: string | null;
   movementSide: "home" | "draw" | "away";
   movementLabel: string;
+  outcomes: {
+    home: OutcomeOdds;
+    draw: OutcomeOdds | null;
+    away: OutcomeOdds;
+  };
   points: number[]; // 가장 크게 움직인 결과의 배당 시계열 (오래된→최신)
   series: { t: number; home: number; draw: number | null; away: number }[]; // 홈·무·원정 전체 시계열
   openOdds: number | null;
@@ -96,6 +109,24 @@ function fmtTime(ms: number): string {
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${z(d.getUTCHours())}:${z(d.getUTCMinutes())}`;
 }
 
+function splitTime(ms: number): { date: string; time: string } {
+  const [date, time] = fmtTime(ms).split(" ");
+  return { date, time };
+}
+
+const LEAGUE_COLORS = ["#315f86", "#765b8f", "#a53a2b", "#61702d", "#3f7567", "#8a5d32", "#53657f"];
+
+function leagueColor(league: string): string {
+  let hash = 0;
+  for (let i = 0; i < league.length; i += 1) hash = (hash * 31 + league.charCodeAt(i)) >>> 0;
+  return LEAGUE_COLORS[hash % LEAGUE_COLORS.length];
+}
+
+function leagueCode(league: string): string {
+  const clean = league.replaceAll("_", " ");
+  return clean.length <= 12 ? clean : clean.split(" ").map((part) => part.slice(0, 3)).join(" ");
+}
+
 // 홈 배당 시계열 그래프
 function Spark({
   points,
@@ -112,7 +143,7 @@ function Spark({
 }) {
   if (points.length < 2)
     return (
-      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: w, height: h }} aria-hidden="true">
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", maxWidth: w, height: h }} aria-hidden="true">
         <line
           x1="0"
           x2={w}
@@ -135,7 +166,7 @@ function Spark({
   const lx = xOf(n - 1);
   const ly = yOf(points[n - 1]);
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: w, height: h }} preserveAspectRatio="none" aria-hidden="true">
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", maxWidth: w, height: h }} preserveAspectRatio="none" aria-hidden="true">
       <path d={d} fill="none" stroke={color} strokeWidth={strokeW} strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={lx} cy={ly} r={strokeW + 1} fill={color} />
     </svg>
@@ -180,7 +211,7 @@ function MultiSpark({
   const n = probs.length;
   if (n < 2)
     return (
-      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: w, height: h }} aria-hidden="true">
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", maxWidth: w, height: h }} aria-hidden="true">
         <line x1="0" x2={w} y1={h / 2} y2={h / 2} stroke={C_FLAT} strokeWidth="1.5" strokeDasharray="3,4" />
       </svg>
     );
@@ -205,7 +236,7 @@ function MultiSpark({
   // 킥오프 경계 — 인플레이 포인트가 섞여 있을 때만 (킥오프 이후 첫 포인트 위치에 점선).
   const liveIdx = kickoffT != null ? series.findIndex((p) => p.t > kickoffT) : -1;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: w, height: h }} preserveAspectRatio="none" aria-hidden="true">
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", maxWidth: w, height: h }} preserveAspectRatio="none" aria-hidden="true">
       {liveIdx > 0 && (
         <line
           x1={xOf(liveIdx)}
@@ -287,30 +318,33 @@ const MARKET_LABELS: Record<string, string[]> = {
   basketball: ["머니라인", "오버언더", "스프레드"],
 };
 
+function ExtraMarketRow({ label, cells }: { label: string; cells: [string, number | null][] }) {
+  return (
+    <div className="border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
+      <div className="mb-1 text-[11px] text-neutral-400">{label}</div>
+      <div className="flex gap-4 text-[13px]">
+        {cells.map(([key, value]) => (
+          <span key={key} className="tabular-nums">
+            <span className="text-neutral-500 dark:text-neutral-400">{key} </span>
+            <span className="font-medium text-neutral-700 dark:text-neutral-200">{value != null ? value.toFixed(2) : "-"}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // BTTS·더블찬스 — 업체별 JSON 엔 없어 매치 레벨 컨센서스 평균으로 표시 (축구 전용 탭).
 function ExtraMarkets({ m }: { m: FlowMatch }) {
   const hasBtts = m.bttsYes != null || m.bttsNo != null;
   const hasDc = m.dc1x != null || m.dc12 != null || m.dcX2 != null;
   if (!hasBtts && !hasDc)
     return <div className="px-3 py-2 text-[13px] text-neutral-400">이 경기의 BTTS·더블찬스는 아직 수집 전이에요.</div>;
-  const Row = ({ label, cells }: { label: string; cells: [string, number | null][] }) => (
-    <div className="border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
-      <div className="mb-1 text-[11px] text-neutral-400">{label}</div>
-      <div className="flex gap-4 text-[13px]">
-        {cells.map(([k, v]) => (
-          <span key={k} className="tabular-nums">
-            <span className="text-neutral-500 dark:text-neutral-400">{k} </span>
-            <span className="font-medium text-neutral-700 dark:text-neutral-200">{v != null ? v.toFixed(2) : "-"}</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
   return (
     <div>
       <div className="px-3 pb-1 pt-1 text-[11px] text-neutral-400">업체 평균 (컨센서스)</div>
-      {hasBtts && <Row label="양팀 득점 (BTTS)" cells={[["예", m.bttsYes], ["아니오", m.bttsNo]]} />}
-      {hasDc && <Row label="더블찬스" cells={[["홈 또는 무", m.dc1x], ["홈 또는 원정", m.dc12], ["무 또는 원정", m.dcX2]]} />}
+      {hasBtts && <ExtraMarketRow label="양팀 득점 (BTTS)" cells={[["예", m.bttsYes], ["아니오", m.bttsNo]]} />}
+      {hasDc && <ExtraMarketRow label="더블찬스" cells={[["홈 또는 무", m.dc1x], ["홈 또는 원정", m.dc12], ["무 또는 원정", m.dcX2]]} />}
     </div>
   );
 }
@@ -443,13 +477,13 @@ function Detail({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw: b
     );
   return (
     <div>
-      <div className="flex gap-2 px-2 py-3">
+      <div className="flex gap-2 overflow-x-auto px-2 py-3">
         {labels.map((label, i) => (
           <button
             key={label}
             type="button"
             onClick={() => setTab(i)}
-            className={`rounded-lg border px-4 py-1.5 text-[13px] ${
+            className={`flex-none rounded-lg border px-4 py-1.5 text-[13px] ${
               tab === i
                 ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900"
                 : "border-neutral-200 text-neutral-500 dark:border-neutral-700"
@@ -461,6 +495,219 @@ function Detail({ m, sport, hasDraw }: { m: FlowMatch; sport: string; hasDraw: b
       </div>
       {tab === 3 ? <ExtraMarkets m={m} /> : <MarketTable books={m.books} tab={tab} hasDraw={hasDraw} />}
     </div>
+  );
+}
+
+function OddsNumbers({ line, compact = false }: { line: OutcomeOdds | null; compact?: boolean }) {
+  if (!line || line.currentOdds == null) {
+    return <span className="text-neutral-400">-</span>;
+  }
+  const moved = line.sampleCount >= 2 && Math.abs(line.deltaPct) >= 0.1;
+  const dropping = moved && line.deltaPct < 0;
+  const rising = moved && line.deltaPct > 0;
+  const movementClass = dropping
+    ? "text-rose-600 dark:text-rose-400"
+    : rising
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-neutral-800 dark:text-neutral-100";
+  const Icon = dropping ? ArrowDown : rising ? ArrowUp : null;
+  return (
+    <div className="flex min-h-12 flex-col items-center justify-center tabular-nums">
+      <div className={`${compact ? "text-[10px]" : "text-[12px]"} leading-none text-neutral-400`}>
+        {line.openOdds != null ? line.openOdds.toFixed(2) : "-"}
+      </div>
+      <div className={`mt-1 flex items-center justify-center gap-1 font-semibold ${compact ? "text-[14px]" : "text-[15px]"} ${movementClass}`}>
+        <span>{line.currentOdds.toFixed(2)}</span>
+        {Icon && <Icon aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={2.5} />}
+      </div>
+      {moved && (
+        <div className={`mt-0.5 text-[10px] leading-none ${movementClass}`}>
+          {line.deltaPct > 0 ? "+" : ""}{line.deltaPct.toFixed(1)}%
+        </div>
+      )}
+    </div>
+  );
+}
+
+function oddsCellClass(line: OutcomeOdds | null): string {
+  if (!line || line.sampleCount < 2) return "bg-transparent";
+  if (line.deltaPct <= -8) return "bg-rose-100/80 dark:bg-rose-950/40";
+  if (line.deltaPct <= -1.5) return "bg-amber-100/80 dark:bg-amber-950/35";
+  if (line.deltaPct >= 3) return "bg-emerald-50 dark:bg-emerald-950/25";
+  return "bg-transparent";
+}
+
+function OddsTableCell({ line }: { line: OutcomeOdds | null }) {
+  return (
+    <td className={`h-[76px] w-[112px] border-l border-neutral-200 px-2 text-center dark:border-neutral-700 ${oddsCellClass(line)}`}>
+      <OddsNumbers line={line} />
+    </td>
+  );
+}
+
+function MobileOdds({ label, line }: { label: string; line: OutcomeOdds | null }) {
+  return (
+    <div className={`min-w-0 border-l border-neutral-200 px-1.5 py-2 first:border-l-0 dark:border-neutral-700 ${oddsCellClass(line)}`}>
+      <div className="text-center text-[10px] font-medium text-neutral-400">{label}</div>
+      <OddsNumbers line={line} compact />
+    </div>
+  );
+}
+
+function OddsRadarTable({
+  matches,
+  sport,
+  hasDraw,
+}: {
+  matches: FlowMatch[];
+  sport: string;
+  hasDraw: boolean;
+}) {
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const toggle = (id: number) => setExpandedId((current) => (current === id ? null : id));
+  const colSpan = hasDraw ? 7 : 6;
+
+  return (
+    <>
+      <div className="mt-4 hidden overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900 md:block">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] border-collapse text-[13px]">
+            <thead className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-300">
+              <tr className="h-11 border-b border-neutral-200 dark:border-neutral-700">
+                <th className="w-[112px] px-3 text-left font-medium">리그</th>
+                <th className="w-[94px] px-3 text-center font-medium">시간</th>
+                <th className="min-w-[190px] px-4 text-right font-medium">홈팀</th>
+                <th className="w-[112px] border-l border-neutral-200 px-2 text-center font-medium dark:border-neutral-700">
+                  홈승 <span className="block text-[9px] font-normal text-neutral-400">오픈 / 현재</span>
+                </th>
+                {hasDraw && (
+                  <th className="w-[112px] border-l border-neutral-200 px-2 text-center font-medium dark:border-neutral-700">
+                    무승부 <span className="block text-[9px] font-normal text-neutral-400">오픈 / 현재</span>
+                  </th>
+                )}
+                <th className="w-[112px] border-l border-neutral-200 px-2 text-center font-medium dark:border-neutral-700">
+                  원정승 <span className="block text-[9px] font-normal text-neutral-400">오픈 / 현재</span>
+                </th>
+                <th className="min-w-[210px] px-4 text-left font-medium">원정팀</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matches.map((m) => {
+                const expanded = expandedId === m.id;
+                const time = splitTime(m.startTime);
+                return (
+                  <Fragment key={m.id}>
+                    <tr className="border-b border-neutral-200 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-white/[0.03]">
+                      <td
+                        className="h-[76px] px-3 text-center text-[12px] font-semibold text-white"
+                        style={{ backgroundColor: leagueColor(m.league) }}
+                        title={LEAGUE_DISPLAY[m.league] ?? m.league}
+                      >
+                        {leagueCode(m.league)}
+                      </td>
+                      <td className="h-[76px] px-3 text-center tabular-nums">
+                        <div className="text-[11px] text-neutral-400">{time.date}</div>
+                        <div className="mt-0.5 text-[15px] font-semibold text-neutral-700 dark:text-neutral-200">{time.time}</div>
+                      </td>
+                      <td className="h-[76px] px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="truncate text-[15px] font-medium text-neutral-800 dark:text-neutral-100">{m.homeKo}</span>
+                          <TeamBadge logoUrl={m.homeLogo} size={20} />
+                        </div>
+                      </td>
+                      <OddsTableCell line={m.outcomes.home} />
+                      {hasDraw && <OddsTableCell line={m.outcomes.draw} />}
+                      <OddsTableCell line={m.outcomes.away} />
+                      <td className="h-[76px] px-2">
+                        <button
+                          type="button"
+                          onClick={() => toggle(m.id)}
+                          aria-expanded={expanded}
+                          title={expanded ? "업체별 배당 접기" : "업체별 배당 보기"}
+                          className="flex h-full w-full items-center gap-2 px-2 text-left text-neutral-800 hover:text-neutral-950 dark:text-neutral-100 dark:hover:text-white"
+                        >
+                          <TeamBadge logoUrl={m.awayLogo} size={20} />
+                          <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{m.awayKo}</span>
+                          {expanded ? <ChevronUp className="h-4 w-4 flex-none text-neutral-400" /> : <ChevronDown className="h-4 w-4 flex-none text-neutral-400" />}
+                        </button>
+                      </td>
+                    </tr>
+                    {expanded && (
+                      <tr className="border-b border-neutral-200 bg-neutral-50/80 dark:border-neutral-700 dark:bg-white/[0.02]">
+                        <td colSpan={colSpan}>
+                          <div className="mx-auto max-w-4xl py-2">
+                            <Detail m={m} sport={sport} hasDraw={hasDraw} />
+                            <div className="flex items-center justify-between gap-3 px-3 pb-3 pt-2 text-[11px] text-neutral-400">
+                              <span suppressHydrationWarning>{relativeTime(m.lastUpdatedAt)} · {m.books.length}개 업체</span>
+                              <Link href={`/live/${m.league.toLowerCase()}/${m.id}`} className="font-medium hover:text-neutral-700 dark:hover:text-neutral-200">
+                                경기 상세 보기
+                              </Link>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-2 md:hidden">
+        {matches.map((m) => {
+          const expanded = expandedId === m.id;
+          const time = splitTime(m.startTime);
+          return (
+            <article key={m.id} className="overflow-hidden rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+              <button
+                type="button"
+                onClick={() => toggle(m.id)}
+                aria-expanded={expanded}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-left"
+              >
+                <span
+                  className="flex h-8 min-w-[64px] items-center justify-center rounded px-2 text-[10px] font-semibold text-white"
+                  style={{ backgroundColor: leagueColor(m.league) }}
+                >
+                  {leagueCode(m.league)}
+                </span>
+                <span className="w-12 flex-none text-center tabular-nums">
+                  <span className="block text-[9px] text-neutral-400">{time.date}</span>
+                  <span className="block text-[13px] font-semibold text-neutral-700 dark:text-neutral-200">{time.time}</span>
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-800 dark:text-neutral-100">
+                    <TeamBadge logoUrl={m.homeLogo} size={15} />
+                    <span className="truncate">{m.homeKo}</span>
+                  </span>
+                  <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-neutral-500 dark:text-neutral-400">
+                    <TeamBadge logoUrl={m.awayLogo} size={15} />
+                    <span className="truncate">{m.awayKo}</span>
+                  </span>
+                </span>
+                {expanded ? <ChevronUp className="h-4 w-4 flex-none text-neutral-400" /> : <ChevronDown className="h-4 w-4 flex-none text-neutral-400" />}
+              </button>
+              <div className={`grid border-t border-neutral-200 dark:border-neutral-700 ${hasDraw ? "grid-cols-3" : "grid-cols-2"}`}>
+                <MobileOdds label="홈승" line={m.outcomes.home} />
+                {hasDraw && <MobileOdds label="무승부" line={m.outcomes.draw} />}
+                <MobileOdds label="원정승" line={m.outcomes.away} />
+              </div>
+              {expanded && (
+                <div className="border-t border-neutral-200 bg-neutral-50/70 dark:border-neutral-700 dark:bg-white/[0.02]">
+                  <Detail m={m} sport={sport} hasDraw={hasDraw} />
+                  <div className="flex items-center justify-between gap-2 px-3 pb-3 pt-2 text-[11px] text-neutral-400">
+                    <span suppressHydrationWarning>{relativeTime(m.lastUpdatedAt)} · {m.books.length}개 업체</span>
+                    <Link href={`/live/${m.league.toLowerCase()}/${m.id}`} className="font-medium">경기 상세 보기</Link>
+                  </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -719,6 +966,7 @@ const SPORT_TABS: [string, string][] = [
 ];
 
 type MovementFilter = "drop" | "all" | "rise";
+type DisplayMode = "table" | "chart";
 
 function MovementFilters({ value, onChange }: { value: MovementFilter; onChange: (value: MovementFilter) => void }) {
   const items: Array<[MovementFilter, string]> = [
@@ -727,7 +975,7 @@ function MovementFilters({ value, onChange }: { value: MovementFilter; onChange:
     ["rise", "배당 상승"],
   ];
   return (
-    <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1">
+    <div className="flex items-center gap-2 overflow-x-auto pb-1">
       {items.map(([key, label]) => (
         <button
           key={key}
@@ -739,6 +987,33 @@ function MovementFilters({ value, onChange }: { value: MovementFilter; onChange:
               : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
           }`}
         >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function DisplayModeSwitch({ value, onChange }: { value: DisplayMode; onChange: (value: DisplayMode) => void }) {
+  const items: Array<[DisplayMode, string, typeof Table2]> = [
+    ["table", "급변표", Table2],
+    ["chart", "그래프", LineChart],
+  ];
+  return (
+    <div className="inline-flex h-9 flex-none items-center rounded-lg border border-neutral-200 bg-white p-0.5 dark:border-neutral-700 dark:bg-neutral-900" role="group" aria-label="배당 보기 방식">
+      {items.map(([key, label, Icon]) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onChange(key)}
+          title={`${label} 보기`}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition ${
+            value === key
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+              : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+          }`}
+        >
+          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
           {label}
         </button>
       ))}
@@ -779,14 +1054,19 @@ export default function OddsFlowList({
   hasDraw: boolean;
   hitrate: FlowHitrate | null;
 }) {
-  // 전체 목록을 기본으로 두고, 사용자가 필요할 때만 강한 변동을 거른다.
-  const [movementFilter, setMovementFilter] = useState<MovementFilter>("all");
+  const [movementFilter, setMovementFilter] = useState<MovementFilter>("drop");
+  const [displayMode, setDisplayMode] = useState<DisplayMode>("table");
   // 움직임 없는 경기는 기본 접힘 — "배당 흐름" 페이지에서 흐름 없는 카드가 지면 다 먹던 것 개선.
   const [showQuiet, setShowQuiet] = useState(false);
   const filteredMatches = useMemo(() => {
-    if (movementFilter === "drop") return matches.filter((m) => m.deltaPct <= -1.5);
-    if (movementFilter === "rise") return matches.filter((m) => m.deltaPct >= 1.5);
-    return matches;
+    const selected = movementFilter === "drop"
+      ? matches.filter((m) => m.deltaPct <= -1.5)
+      : movementFilter === "rise"
+        ? matches.filter((m) => m.deltaPct >= 1.5)
+        : matches;
+    return [...selected].sort((a, b) =>
+      movementFilter === "rise" ? b.deltaPct - a.deltaPct : a.deltaPct - b.deltaPct,
+    );
   }, [matches, movementFilter]);
 
   if (!matches.length)
@@ -809,19 +1089,12 @@ export default function OddsFlowList({
     <div>
       <h1 className="text-2xl font-medium">배당 흐름</h1>
       <SportTabs sport={sport} />
-      <p className="mt-4 text-[14px] text-neutral-500 dark:text-neutral-400">
-        홈·무·원정 배당을 확률로 바꿔 시간에 따라 어디로 돈이 몰리는지 겹쳐서 보여줍니다. 선이 위로 오를수록 그쪽으로 돈이 몰리는 중이며, 시장 이동 신호일 뿐 결과를 보장하지 않습니다.
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px]">
-        <LineKey color={C_HOME} label="홈" emph />
-        {hasDraw && <LineKey color={C_DRAWLINE} label="무승부" emph />}
-        <LineKey color={C_AWAY} label="원정" emph />
-        <span className="text-neutral-400">굵은 선 = 가장 크게 움직인 결과</span>
-      </div>
-
       {hitrate && <FlowStats hr={hitrate} />}
 
-      <MovementFilters value={movementFilter} onChange={setMovementFilter} />
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <MovementFilters value={movementFilter} onChange={setMovementFilter} />
+        <DisplayModeSwitch value={displayMode} onChange={setDisplayMode} />
+      </div>
 
       {!filteredMatches.length && (
         <p className="mt-4 rounded-lg border border-dashed border-neutral-200 px-4 py-3 text-[13px] text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
@@ -829,57 +1102,80 @@ export default function OddsFlowList({
         </p>
       )}
 
-      {heroMoves && (
-        <div className="mt-5">
-          <Hero m={hero} hasDraw={hasDraw} />
+      {displayMode === "table" ? (
+        <div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-neutral-400">
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-rose-100 ring-1 ring-rose-200 dark:bg-rose-950 dark:ring-rose-800" />8% 이상 급락</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-amber-100 ring-1 ring-amber-200 dark:bg-amber-950 dark:ring-amber-800" />1.5% 이상 하락</span>
+            <span>위 숫자 오픈 · 아래 숫자 현재</span>
+          </div>
+          <OddsRadarTable matches={displayMatches} sport={sport} hasDraw={hasDraw} />
         </div>
-      )}
+      ) : (
+        <div className="mx-auto max-w-3xl">
+          <p className="mt-4 text-[14px] text-neutral-500 dark:text-neutral-400">
+            홈·무·원정 배당을 확률로 바꿔 시간에 따라 어디로 돈이 몰리는지 겹쳐서 보여줍니다. 선이 위로 오를수록 그쪽으로 돈이 몰리는 중이며, 시장 이동 신호일 뿐 결과를 보장하지 않습니다.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px]">
+            <LineKey color={C_HOME} label="홈" emph />
+            {hasDraw && <LineKey color={C_DRAWLINE} label="무승부" emph />}
+            <LineKey color={C_AWAY} label="원정" emph />
+            <span className="text-neutral-400">굵은 선 = 가장 크게 움직인 결과</span>
+          </div>
 
-      {(() => {
-        const listBase = heroMoves ? rest : displayMatches;
-        // "움직임 있음" = 프리매치 유의미 변동 또는 인플레이 흐름(LIVE) — 라이브 흐름
-        // 카드가 프리매치 delta 0 이라는 이유로 접히지 않게 liveFlow 도 포함.
-        const isMoved = (m: FlowMatch) => (m.points.length >= 2 && Math.abs(m.deltaPct) >= 1.5) || m.liveFlow;
-        const movedList = listBase.filter(isMoved);
-        const quietList = listBase.filter((m) => !isMoved(m));
-        // 히어로가 이미 움직임을 보여주고 있으면(heroMoves) 목록에 움직인 경기가 0개라도
-        // 무움직임 카드를 펼치지 않는다 — "hero 만 움직인 시간대" 에 접기가 무력화되던 버그.
-        const quietCollapsible = movedList.length > 0 || heroMoves;
-        const mainList = quietCollapsible ? movedList : listBase;
-        const quietSection = quietCollapsible ? quietList : [];
-        // 필터 무결과 fallback(전체 표시) 중엔 필터 라벨을 붙이면 내용과 모순 — 일반 라벨로.
-        const fallbackActive = !filteredMatches.length;
-        return (
-          <>
-            <div className="mb-2 mt-6 text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
-              {!fallbackActive && movementFilter === "drop" ? "배당 하락 폭이 큰 순" : !fallbackActive && movementFilter === "rise" ? "배당 상승 폭이 큰 순" : movedList.length ? "많이 움직인 순" : "예정 경기"}
+          {heroMoves && (
+            <div className="mt-5">
+              <Hero m={hero} hasDraw={hasDraw} />
             </div>
-            <div className="space-y-2">
-              {mainList.map((m) => (
-                <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
-              ))}
-            </div>
-            {quietSection.length > 0 && (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowQuiet((v) => !v)}
-                  className="w-full rounded-xl border border-dashed border-neutral-300 px-4 py-2.5 text-[13px] text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-                >
-                  아직 움직임 없는 경기 {quietSection.length}개 {showQuiet ? "접기 ▲" : "보기 ▼"}
-                </button>
-                {showQuiet && (
-                  <div className="mt-2 space-y-2">
-                    {quietSection.map((m) => (
-                      <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
-                    ))}
+          )}
+
+          {(() => {
+            const listBase = heroMoves ? rest : displayMatches;
+            // "움직임 있음" = 프리매치 유의미 변동 또는 인플레이 흐름(LIVE) — 라이브 흐름
+            // 카드가 프리매치 delta 0 이라는 이유로 접히지 않게 liveFlow 도 포함.
+            const isMoved = (m: FlowMatch) => (m.points.length >= 2 && Math.abs(m.deltaPct) >= 1.5) || m.liveFlow;
+            const movedList = listBase.filter(isMoved);
+            const quietList = listBase.filter((m) => !isMoved(m));
+            // 히어로가 이미 움직임을 보여주고 있으면(heroMoves) 목록에 움직인 경기가 0개라도
+            // 무움직임 카드를 펼치지 않는다 — "hero 만 움직인 시간대" 에 접기가 무력화되던 버그.
+            const quietCollapsible = movedList.length > 0 || heroMoves;
+            const mainList = quietCollapsible ? movedList : listBase;
+            const quietSection = quietCollapsible ? quietList : [];
+            // 필터 무결과 fallback(전체 표시) 중엔 필터 라벨을 붙이면 내용과 모순 — 일반 라벨로.
+            const fallbackActive = !filteredMatches.length;
+            return (
+              <>
+                <div className="mb-2 mt-6 text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+                  {!fallbackActive && movementFilter === "drop" ? "배당 하락 폭이 큰 순" : !fallbackActive && movementFilter === "rise" ? "배당 상승 폭이 큰 순" : movedList.length ? "많이 움직인 순" : "예정 경기"}
+                </div>
+                <div className="space-y-2">
+                  {mainList.map((m) => (
+                    <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
+                  ))}
+                </div>
+                {quietSection.length > 0 && (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowQuiet((v) => !v)}
+                      className="w-full rounded-lg border border-dashed border-neutral-300 px-4 py-2.5 text-[13px] text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                    >
+                      아직 움직임 없는 경기 {quietSection.length}개 {showQuiet ? "접기 ▲" : "보기 ▼"}
+                    </button>
+                    {showQuiet && (
+                      <div className="mt-2 space-y-2">
+                        {quietSection.map((m) => (
+                          <FlowCard key={m.id} m={m} sport={sport} hasDraw={hasDraw} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
-          </>
-        );
-      })()}
+              </>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 }

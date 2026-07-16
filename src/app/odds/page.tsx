@@ -132,6 +132,17 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
         const deltaPct = open != null && current != null && open > 0 ? ((current - open) / open) * 100 : 0;
         return { ...side, points, open, current, deltaPct };
       });
+      const outcome = (key: "home" | "draw" | "away") => {
+        const side = sideRows.find((item) => item.key === key);
+        return side
+          ? {
+              openOdds: side.open,
+              currentOdds: side.current,
+              deltaPct: side.deltaPct,
+              sampleCount: side.points.length,
+            }
+          : null;
+      };
       // 배당 하락을 우선으로, 같은 방향이면 하락 폭이 큰 결과를 선택한다.
       const movement = sideRows.sort((a, b) => a.deltaPct - b.deltaPct || Math.abs(b.deltaPct) - Math.abs(a.deltaPct))[0];
       const bestOdds = movement
@@ -153,6 +164,11 @@ async function buildFlowMatches(sport: Sport): Promise<FlowMatch[]> {
         awayLogo: m.awayTeam.logoUrl ?? null,
         movementSide: movement?.key ?? "home",
         movementLabel: movement?.label ?? toKoreanTeamName(m.homeTeam.name, m.league),
+        outcomes: {
+          home: outcome("home")!,
+          draw: outcome("draw"),
+          away: outcome("away")!,
+        },
         points: movement?.points ?? [],
         // 홈·무·원정 세 결과의 시계열 전체 — 밀도를 버리지 않고 겹쳐 그리기 위함.
         series: pts.map((p) => ({ t: p.t, home: p.home, draw: p.draw, away: p.away })),
@@ -212,7 +228,7 @@ export default async function OddsPage({
         : null;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-5">
+    <div className="mx-auto max-w-[1440px] px-3 py-5 sm:px-5">
       <OddsFlowList matches={matches} sport={sport} hasDraw={cfg.hasDraw} hitrate={hitrate} />
     </div>
   );
