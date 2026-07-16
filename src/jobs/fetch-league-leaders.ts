@@ -1,7 +1,8 @@
 // 리그별 시즌 리더보드 fetch — 매일 1회 cron.
 //
 // 데이터 소스:
-//   - 축구 7개 리그: API-Football /players/topscorers · topassists · topyellow · topred
+//   - 축구 클럽리그: data/player-season-stats.json (TheSports 시즌통계) — 커버 리그만, api-football 대체
+//   - 월드컵: TheSports 집계 (getWorldCupPlayerStats)
 //   - NBA: ESPN unofficial site v3 /leaders (경기당 pts · ast · reb · stl · blk — BDL plan 401 로 전환)
 //   - NHL: 공식 NHL API /v1/skater-stats-leaders + /v1/goalie-stats-leaders
 //   - MLB: MLB Stats API /v1/stats/leaders (타격 4 + 투구 4)
@@ -10,17 +11,11 @@
 //   - LOL/LCK: BALLDONTLIE /lol/v1/player_match_map_stats 시즌 집계 (KDA·CS)
 
 import "@/lib/env";
+import { readFileSync } from "fs";
+import path from "path";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { prisma } from "@/lib/db";
-import {
-  fetchSeasonTopScorers,
-  fetchTopAssists,
-  fetchTopYellowCards,
-  fetchTopRedCards,
-  type PlayerLeaderEntry,
-  type TopScorerEntry,
-} from "@/lib/sports/api-football-pro";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { lookupNbaPlayer } from "@/lib/sports/nba-players";
@@ -99,71 +94,127 @@ async function clearStaleSeasons(league: string, currentSeason: string) {
 }
 
 /* ============================================================
- * 축구 7개 리그 (API-Football)
+ * 축구 클럽리그 (TheSports 시즌통계 = data/player-season-stats.json)
+ *
+ * api-football 키 만료(2026-07)로 클럽리그 리더를 TheSports 시즌통계로 이관.
+ * predictions/[league] 가 이미 빅5 리더보드에 쓰는 것과 동일 소스·동일 이름 규칙.
+ * - externalId 는 af id 우선(tsPlayerToAf) — 매핑 없으면 ts id. ballon 병합·평점 조회 위해.
+ * - 저장 시즌 라벨은 데이터 자체의 s.season 사용 → 8월 2026-27 전환 시 자동 정합.
+ *   (2025-26 최종 데이터는 clearStaleSeasons 미호출로 프리즈 → ballon 심사창 보존.)
+ * - 커버리지가 충분한 리그만(allowlist), 그중 카테고리당 리더 <5 면 skip → 기존 데이터 보존.
+ * - season-stats 미커버 리그(UCL/UEL/컵 등)는 순회 대상이 아니므로 기존 행 그대로 유지.
  * ==========================================================*/
 
-const SOCCER_LEAGUES = [
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL", "WORLD_CUP",
-  "K_LEAGUE_1", "K_LEAGUE_2", "J1_LEAGUE", "J2_LEAGUE", "AFC_CL", "AFC_CL_TWO", "AFC_U23", "SAUDI_PL",
-  "UEL", "UECL",
-  "CHAMPIONSHIP", "LALIGA_2", "BUNDESLIGA_2", "SERIE_B", "LIGUE_2",
-  "EREDIVISIE", "PRIMEIRA_LIGA", "SUPER_LIG", "JUPILER_PL", "SPL", "GREEK_SL",
-  "BRASILEIRAO", "LIGA_MX", "COPA_LIB", "COPA_SUD",
-  "CSL", "A_LEAGUE",
-  "CLUB_WORLD_CUP",
-];
+// season-stats 커버리지가 충분한 클럽리그 (≥30명). PRIMEIRA/EREDIVISIE/J1 등 표본이 얕은
+// 리그는 "리그 득점왕"이 부정확할 수 있어 제외 — 기존(api-football 최종) 데이터 보존.
+const SEASON_STATS_LEAGUES = new Set([
+  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1",
+  "K_LEAGUE_1", "K_LEAGUE_2", "LALIGA_2", "MLS", "SAUDI_PL",
+  "BRASILEIRAO", "SERIE_B", "BUNDESLIGA_2", "SUPER_LIG",
+]);
 
-/** 리그별 시즌. 단일 대회 → 마지막 개최 연도, 달력 연도 vs 유럽 8-5월 시즌. */
-function currentSoccerSeason(league: string): { season: number; label: string } {
-  const now = new Date();
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth() + 1;
-  const calendarYearLeagues = [
-    "MLS", "J1_LEAGUE", "J2_LEAGUE", "K_LEAGUE_1", "K_LEAGUE_2", "AFC_CL", "WORLD_CUP",
-    "BRASILEIRAO", "COPA_LIB", "COPA_SUD", "CSL",
-  ];
-  if (league === "CLUB_WORLD_CUP") return { season: 2025, label: "2025" };
-  if (league === "AFC_U23") return { season: 2025, label: "2025" };
-  if (calendarYearLeagues.includes(league)) {
-    return { season: y, label: String(y) };
+// 카테고리별 리더가 이 수 미만이면 커버리지 부족으로 보고 skip (기존 데이터 보존).
+const MIN_LEADERS = 5;
+
+interface SeasonStatRow {
+  lg: string;
+  season: string;
+  team: string | null;
+  goals: number | null;
+  assists: number | null;
+  yellow: number | null;
+  red: number | null;
+  matches: number | null;
+  rating: number | null;
+}
+type PlayerNameOverride = { nameKo?: string };
+
+let seasonStatsCache: Record<string, SeasonStatRow> | null = null;
+let playerPhotosCache: Record<string, string> | null = null;
+let playerOverridesCache: Record<string, PlayerNameOverride> | null = null;
+function loadJson<T>(rel: string): T {
+  return JSON.parse(readFileSync(path.join(process.cwd(), rel), "utf-8")) as T;
+}
+function loadJsonSafe<T>(rel: string, fallback: T): T {
+  try {
+    return loadJson<T>(rel);
+  } catch {
+    return fallback;
   }
-  const startYear = m >= 7 ? y : y - 1;
-  return { season: startYear, label: `${startYear}-${String(startYear + 1).slice(2)}` };
+}
+function seasonStats(): Record<string, SeasonStatRow> {
+  return (seasonStatsCache ??= loadJson<Record<string, SeasonStatRow>>("data/player-season-stats.json"));
+}
+function playerPhotos(): Record<string, string> {
+  return (playerPhotosCache ??= loadJsonSafe("data/player-photos.json", {}));
+}
+function playerOverrides(): Record<string, PlayerNameOverride> {
+  return (playerOverridesCache ??= loadJsonSafe("data/player-overrides.json", {}));
 }
 
-async function syncSoccerCategory(
-  league: string,
-  category: "GOAL" | "ASSIST" | "YELLOW" | "RED",
-  season: number,
-  seasonLabel: string,
-  fetcher: (league: string, season: number) => Promise<PlayerLeaderEntry[] | TopScorerEntry[]>,
-  unit: string,
-): Promise<number> {
-  const raw = await fetcher(league, season);
-  const top = raw.slice(0, TOP_N);
-  for (let i = 0; i < top.length; i++) {
-    const p = top[i] as PlayerLeaderEntry & { goals?: number };
-    const value =
-      category === "GOAL" && "goals" in p
-        ? p.goals ?? 0
-        : (p as PlayerLeaderEntry).value;
-    await upsertLeader({
-      league,
-      category,
-      rank: i + 1,
-      playerName: toKoreanPlayerName(p.playerName) || p.playerName,
-      playerNameEn: p.playerName,
-      externalId: p.playerId ? String(p.playerId) : undefined,
-      teamName: toKoreanTeamName(p.teamName) || p.teamName,
-      value,
-      unit,
-      appearances: p.appearances,
-      photoUrl: p.photoUrl,
-      season: seasonLabel,
-    });
+const SOCCER_CATS: Array<{ cat: "GOAL" | "ASSIST" | "YELLOW" | "RED"; key: "goals" | "assists" | "yellow" | "red"; unit: string }> = [
+  { cat: "GOAL", key: "goals", unit: "골" },
+  { cat: "ASSIST", key: "assists", unit: "도움" },
+  { cat: "YELLOW", key: "yellow", unit: "장" },
+  { cat: "RED", key: "red", unit: "장" },
+];
+
+/** 한 클럽리그의 리더보드를 season-stats 로 적재. 카테고리별 <5 면 skip(기존 보존). */
+async function syncClubLeagueFromSeasonStats(league: string): Promise<Record<string, number>> {
+  const stats = seasonStats();
+  const entries = Object.entries(stats).filter(([, s]) => s.lg === league);
+  const out: Record<string, number> = {};
+  if (entries.length === 0) return out;
+
+  // 리그 시즌 라벨 — 행마다 동일하나 최빈값으로 방어.
+  const seasonCount = new Map<string, number>();
+  for (const [, s] of entries) seasonCount.set(s.season, (seasonCount.get(s.season) ?? 0) + 1);
+  const seasonLabel = [...seasonCount.entries()].sort((a, b) => b[1] - a[1])[0][0];
+
+  // 카테고리별 상위 계산 (값 내림차순, 평점 tiebreak — WC 패턴과 동일).
+  const tops = SOCCER_CATS.map(({ cat, key, unit }) => ({
+    cat, key, unit,
+    top: entries
+      .filter(([, s]) => (s[key] ?? 0) > 0)
+      .sort((a, b) => (b[1][key] ?? 0) - (a[1][key] ?? 0) || (b[1].rating ?? 0) - (a[1].rating ?? 0))
+      .slice(0, TOP_N),
+  }));
+
+  // 이름 배치 조회 (TheSportsPlayer DB). 상위 등장 id 합집합.
+  const ids = [...new Set(tops.flatMap((c) => c.top.map(([id]) => id)))];
+  const lp = ids.length
+    ? await prisma.theSportsPlayer.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, nameKo: true } })
+    : [];
+  const nm = new Map(lp.map((p) => [p.id, p]));
+  const ov = playerOverrides();
+  const photos = playerPhotos();
+  const nameOf = (id: string) => ov[id]?.nameKo || nm.get(id)?.nameKo || nm.get(id)?.name || "(미상)";
+
+  for (const { cat, unit, key, top } of tops) {
+    // 커버리지 부족 → 기존 데이터 보존 (upsert·clearOldRanks 모두 skip).
+    if (top.length < MIN_LEADERS) continue;
+    for (let i = 0; i < top.length; i++) {
+      const [id, s] = top[i];
+      const af = tsPlayerToAf(id);
+      await upsertLeader({
+        league,
+        category: cat,
+        rank: i + 1,
+        playerName: nameOf(id),
+        playerNameEn: nm.get(id)?.name ?? undefined,
+        externalId: af ? String(af) : id,
+        teamName: toKoreanTeamName(s.team ?? "", league) || s.team || "",
+        value: s[key] ?? 0,
+        unit,
+        appearances: s.matches ?? undefined,
+        photoUrl: photos[id] || undefined,
+        season: seasonLabel,
+      });
+    }
+    await clearOldRanks(league, cat, seasonLabel, top.length);
+    out[cat] = top.length;
   }
-  await clearOldRanks(league, category, seasonLabel, top.length);
-  return top.length;
+  return out;
 }
 
 // 월드컵 리더 = TheSports 집계(getWorldCupPlayerStats) 소스. api-football 은 월드컵 시즌 미제공/키
@@ -209,26 +260,24 @@ async function syncWorldCupFromTheSports(seasonLabel: string): Promise<Record<st
 
 async function runSoccer() {
   const result: Record<string, Record<string, number>> = {};
-  let lastLabel = "";
-  for (const lg of SOCCER_LEAGUES) {
-    const { season, label } = currentSoccerSeason(lg);
-    lastLabel = label;
-    result[lg] = {};
+
+  // 월드컵 = TheSports 집계 (달력연도 라벨).
+  const wcLabel = String(new Date().getUTCFullYear());
+  try {
+    result["WORLD_CUP"] = await syncWorldCupFromTheSports(wcLabel);
+  } catch (e) {
+    console.warn(`[league-leaders/WORLD_CUP]`, (e as Error).message);
+  }
+
+  // 클럽리그 = season-stats (커버 리그만). 미커버 리그는 순회 대상 아님 → 기존 데이터 보존.
+  for (const lg of SEASON_STATS_LEAGUES) {
     try {
-      // 월드컵은 TheSports 집계 소스(api-football 미제공) — 나머지는 api-football.
-      if (lg === "WORLD_CUP") {
-        result[lg] = await syncWorldCupFromTheSports(label);
-        continue;
-      }
-      result[lg].GOAL = await syncSoccerCategory(lg, "GOAL", season, label, fetchSeasonTopScorers, "득점");
-      result[lg].ASSIST = await syncSoccerCategory(lg, "ASSIST", season, label, fetchTopAssists, "도움");
-      result[lg].YELLOW = await syncSoccerCategory(lg, "YELLOW", season, label, fetchTopYellowCards, "옐로");
-      result[lg].RED = await syncSoccerCategory(lg, "RED", season, label, fetchTopRedCards, "레드");
+      result[lg] = await syncClubLeagueFromSeasonStats(lg);
     } catch (e) {
       console.warn(`[league-leaders/${lg}]`, (e as Error).message);
     }
   }
-  return { season: lastLabel, result };
+  return { result };
 }
 
 /* ============================================================
