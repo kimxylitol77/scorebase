@@ -31,6 +31,8 @@ export interface DcPrediction {
   probBttsNo: number;
   expGoals: number;
   topScore: { home: number; away: number; prob: number };
+  /** 확률 상위 3개 스코어 (분포 콘텐츠 표시용). topScores[0] === topScore. */
+  topScores: { home: number; away: number; prob: number }[];
   /** 학습에 쓰인 (가중) 표본 — 적으면 신뢰도 낮음. 스태킹/게이트 판단용. */
   sampleHome: number;
   sampleAway: number;
@@ -189,7 +191,7 @@ export function predictDixonColes(
     pAway = 0,
     pOver = 0,
     pBtts = 0;
-  const top = { home: 0, away: 0, prob: -1 };
+  const cells: { home: number; away: number; prob: number }[] = [];
   for (let i = 0; i <= MAX_GOALS; i++) {
     for (let j = 0; j <= MAX_GOALS; j++) {
       const p = grid[i][j] / total;
@@ -198,13 +200,12 @@ export function predictDixonColes(
       else pAway += p;
       if (i + j >= 3) pOver += p;
       if (i >= 1 && j >= 1) pBtts += p;
-      if (p > top.prob) {
-        top.home = i;
-        top.away = j;
-        top.prob = p;
-      }
+      cells.push({ home: i, away: j, prob: p });
     }
   }
+  cells.sort((a, b) => b.prob - a.prob);
+  const topScores = cells.slice(0, 3);
+  const top = topScores[0];
 
   return {
     lambdaHome: lh,
@@ -218,6 +219,7 @@ export function predictDixonColes(
     probBttsNo: 1 - pBtts,
     expGoals: lh + la,
     topScore: top,
+    topScores,
     sampleHome: H.nHome,
     sampleAway: A.nAway,
   };

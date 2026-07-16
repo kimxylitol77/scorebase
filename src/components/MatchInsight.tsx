@@ -803,6 +803,15 @@ export default async function MatchInsight({
               {dcPred.lambdaHome.toFixed(1)}–{dcPred.lambdaAway.toFixed(1)} (합{" "}
               {dcPred.expGoals.toFixed(1)})
             </div>
+            {dcPred.topScores.length > 1 && (
+              <div className="mt-1 text-center text-[11px] text-zinc-500 dark:text-white/45">
+                다음으로 유력{" "}
+                {dcPred.topScores
+                  .slice(1, 3)
+                  .map((s) => `${s.home}-${s.away}(${Math.round(s.prob * 100)}%)`)
+                  .join(", ")}
+              </div>
+            )}
             <p className="mt-2 text-[11px] leading-relaxed text-zinc-500 dark:text-white/45">
               ⓘ Dixon-Coles 득점 모델 — 팀별 공·수 강도와 홈 어드밴티지로 추정한 예상 스코어입니다.
               OVER 2.5 {Math.round(dcPred.probOver25 * 100)}% · 양 팀 득점{" "}
