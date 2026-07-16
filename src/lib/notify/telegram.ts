@@ -38,6 +38,37 @@ export async function sendTelegram(
   }
 }
 
+// 사용자 대면 알림 봇 (USER_BOT_TOKEN) — 회원 개인 chat_id 로 발송.
+// 운영자 알림(sendTelegram, TELEGRAM_BOT_TOKEN)과 분리된 별도 봇.
+// 반환: 성공 여부(디스패처가 발송 로그 기록 판단에 사용).
+export async function sendTelegramTo(
+  chatId: string,
+  text: string,
+  opts: SendOptions = {},
+): Promise<boolean> {
+  const token = process.env.USER_BOT_TOKEN;
+  if (!token) {
+    console.warn("[telegram] USER_BOT_TOKEN 미설정 — 사용자 알림을 건너뜁니다.");
+    return false;
+  }
+  try {
+    await axios.post(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      {
+        chat_id: chatId,
+        text,
+        parse_mode: opts.parseMode ?? "HTML",
+        disable_web_page_preview: opts.disablePreview ?? true,
+      },
+      { timeout: 10000 },
+    );
+    return true;
+  } catch (err) {
+    console.error("[telegram] 사용자 알림 전송 실패:", err);
+    return false;
+  }
+}
+
 /**
  * 이미지(공개 URL) + 캡션을 텔레그램으로 전송. SNS(인스타·스레드) 수동 게시용 카드 배달.
  */

@@ -14,6 +14,7 @@ import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
 import NicknameEditor from "./NicknameEditor";
 import FavoriteSummary from "./FavoriteSummary";
+import TelegramConnectCard from "./TelegramConnectCard";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const dynamic = "force-dynamic";
@@ -213,6 +214,9 @@ export default async function AccountPage({ searchParams }: Props) {
 
           {/* 즐겨찾기 경기 (client island) */}
           <FavoriteSummary />
+
+          {/* 텔레그램 경기 알림 연결 (client island) */}
+          <TelegramConnectCard />
 
           {/* 내가 쓴 글 */}
           <section className="rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none overflow-hidden">

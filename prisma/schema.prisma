@@ -780,6 +780,10 @@ model User {
   avatarUrl        String?   // 아바타: 프리셋 id(src/lib/avatars.ts) 또는 업로드 사진(data URL, 160px webp). null=기본
   lastAttendanceAt DateTime? // 출석 경험치 마지막 적립 시각 (KST 하루 1회 제한)
 
+  // 텔레그램 경기 알림 (docs/telegram-alerts). 연결 시 chatId 저장, 미연결=null.
+  telegramChatId    String? @unique // 텔레그램 chat_id (발송 대상)
+  telegramLinkToken String? @unique // 딥링크 /start 토큰 (연결 후 null 화)
+
   // 예측 적중 통계 (분석 게시판 자동채점 시 누적) — 작성자 신뢰도 표시용
   predTotal  Int @default(0) // 채점 완료된 예측 수
   predHit    Int @default(0) // 적중 수 (적중률 = predHit/predTotal)
@@ -791,9 +795,34 @@ model User {
   comments  Comment[]
   expLogs   ExpLog[]
   dreamTeams DreamTeam[]
+  teamFollows UserTeamFollow[]
 
   // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
+}
+
+/// 회원 즐겨찾기 팀 — 텔레그램 경기 알림 개인화 축 (docs/telegram-alerts).
+model UserTeamFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  teamId    String // Team.id (문자열 id)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@index([teamId])
+}
+
+/// 텔레그램 알림 중복 발송 방지 로그 — (회원, 경기, 종류) 유일.
+model TelegramAlertLog {
+  id      String   @id @default(cuid())
+  userId  String
+  matchId String
+  kind    String // "KICKOFF" | "FINAL" | "GAME_REMINDER"
+  sentAt  DateTime @default(now())
+
+  @@unique([userId, matchId, kind])
+  @@index([sentAt])
 }
 
 /// 회원 작성 스포츠 분석 게시판 글. 예측(승/무/패)을 선택적으로 포함 → 경기 종료 시 자동 채점.

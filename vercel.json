@@ -5,6 +5,10 @@
   ],
   "crons": [
     {
+      "path": "/api/cron/telegram-alerts",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/refresh-live-baseball",
       "schedule": "*/5 * * * *"
     },
