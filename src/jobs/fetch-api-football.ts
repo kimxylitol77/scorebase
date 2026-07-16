@@ -1,6 +1,9 @@
-// API-Football Pro 데이터 통합 잡.
-// 1) 향후 24시간 SCHEDULED 매치: fixture ID 매칭 + 라인업 + 자체 predictions
-// 2) 최근 36시간 FINISHED 매치 중 fixtureStats 미저장: 통계 fetch + 적중 평가
+// API-Football Pro 데이터 통합 잡 — **af 고유 데이터만** (쿼터 절약, 2026-07 제한).
+// 라인업은 TheSports 가 primary(convertTsLineup·football-poller)라 여기서 안 받는다.
+// af 만 가진 것: ① 매치 예측 %(apiPred*) ② fixtureStats(xG·점유) ③ 주심.
+// 1) 향후 24h SCHEDULED: fixture ID 매칭 + 예측
+// 2) 최근 36h FINISHED (fixtureStats 미저장): 통계 fetch + 예측 적중 평가
+// 3) 주심 보강
 //
 // 사용: npm run job:af  (cron 등록은 /api/cron/api-football)
 
@@ -8,11 +11,9 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 import {
   findFixtureByDateAndTeams,
-  fetchFixtureLineups,
   fetchFixtureStatistics,
   fetchFixturePredictions,
   fetchFixtureReferee,
-  teamsMatch,
   API_FOOTBALL_LEAGUE_ID,
 } from "@/lib/sports/api-football-pro";
 
@@ -39,9 +40,10 @@ export async function runApiFootball(opts?: { limit?: number }) {
     take: limit,
   });
   console.log(`[af/upcoming] 대상: ${upcoming.length}`);
-  let lineupCount = 0;
   let predCount = 0;
   for (const m of upcoming) {
+    // 예측이 이미 있으면 fixture 매칭 콜조차 생략 (예측만 af 고유라 이거 없으면 af 볼 이유 없음).
+    if (m.apiPredHome != null) continue;
     let fid = m.apiFixtureId ?? null;
     if (!fid) {
       fid = await findFixtureByDateAndTeams(
@@ -56,90 +58,50 @@ export async function runApiFootball(opts?: { limit?: number }) {
         data: { apiFixtureId: fid },
       });
     }
-    const data: Record<string, unknown> = {};
-    // 라인업 (1시간 전부터 발표)
-    if (!m.lineupUpdatedAt || Date.now() - m.lineupUpdatedAt.getTime() > 30 * 60 * 1000) {
-      const lineups = await fetchFixtureLineups(fid);
-      const home =
-        lineups.find((l) => teamsMatch(l.teamName, m.homeTeam.name)) ?? lineups[0];
-      const away =
-        lineups.find((l) => teamsMatch(l.teamName, m.awayTeam.name)) ?? lineups[1];
-      if (home) {
-        data.lineupHome = JSON.stringify(home);
-        data.lineupUpdatedAt = new Date();
-        lineupCount++;
-      }
-      if (away) data.lineupAway = JSON.stringify(away);
-    }
-    // API-Football 자체 prediction
-    if (m.apiPredHome == null) {
-      const pred = await fetchFixturePredictions(fid);
-      if (pred) {
-        data.apiPredHome = pred.homePct;
-        data.apiPredDraw = pred.drawPct;
-        data.apiPredAway = pred.awayPct;
-        data.apiPredWinner = pred.winner;
-        data.apiPredAdvice = pred.advice ?? null;
-        predCount++;
-      }
-    }
-    if (Object.keys(data).length > 0) {
-      await prisma.match.update({ where: { id: m.id }, data });
+    // API-Football 자체 prediction (af 고유)
+    const pred = await fetchFixturePredictions(fid);
+    if (pred) {
+      await prisma.match.update({
+        where: { id: m.id },
+        data: {
+          apiPredHome: pred.homePct,
+          apiPredDraw: pred.drawPct,
+          apiPredAway: pred.awayPct,
+          apiPredWinner: pred.winner,
+          apiPredAdvice: pred.advice ?? null,
+        },
+      });
+      predCount++;
     }
   }
-  console.log(`[af/upcoming] 라인업 ${lineupCount}건, predictions ${predCount}건`);
+  console.log(`[af/upcoming] predictions ${predCount}건`);
 
-  // ===== Phase 2: 최근 36h FINISHED 매치 — fixture statistics + 라인업 (사후) =====
+  // ===== Phase 2: 최근 36h FINISHED 매치 — fixture statistics(xG·점유, af 고유) + 예측 적중 평가 =====
+  // 라인업 사후 보강은 TheSports(convertTsLineup)가 담당 → 여기서 제외.
   const recent = await prisma.match.findMany({
     where: {
       league: { in: SOCCER_LEAGUES },
       status: "FINISHED",
       startTime: { gte: new Date(Date.now() - 36 * 3600 * 1000) },
-      OR: [{ fixtureStats: null }, { lineupHome: null }],
+      // fixtureStats 미저장 또는 예측 채점 대기 매치만.
+      OR: [{ fixtureStats: null }, { apiPredWinner: { not: null }, apiPredCorrect: null }],
     },
     include: { homeTeam: true, awayTeam: true },
     take: limit,
   });
   console.log(`[af/stats] 대상: ${recent.length}`);
   let statsCount = 0;
-  let postLineupCount = 0;
   for (const m of recent) {
-    let fid = m.apiFixtureId ?? null;
-    if (!fid) {
-      fid = await findFixtureByDateAndTeams(
-        m.league,
-        m.startTime,
-        m.homeTeam.name,
-        m.awayTeam.name,
-      );
-      if (!fid) continue;
-      await prisma.match.update({
-        where: { id: m.id },
-        data: { apiFixtureId: fid },
-      });
-    }
     const data: Record<string, unknown> = {};
-    if (!m.fixtureStats) {
-      const stats = await fetchFixtureStatistics(fid);
+    // fixtureStats — af fetch 필요 (fixture id 있을 때만; 없으면 매칭 콜 아껴 스킵).
+    if (!m.fixtureStats && m.apiFixtureId) {
+      const stats = await fetchFixtureStatistics(m.apiFixtureId);
       if (stats.length > 0) {
         data.fixtureStats = JSON.stringify(stats);
         statsCount++;
       }
     }
-    if (!m.lineupHome) {
-      const lineups = await fetchFixtureLineups(fid);
-      if (lineups.length >= 2) {
-        const home =
-          lineups.find((l) => teamsMatch(l.teamName, m.homeTeam.name)) ?? lineups[0];
-        const away =
-          lineups.find((l) => teamsMatch(l.teamName, m.awayTeam.name)) ?? lineups[1];
-        data.lineupHome = JSON.stringify(home);
-        data.lineupAway = JSON.stringify(away);
-        data.lineupUpdatedAt = new Date();
-        postLineupCount++;
-      }
-    }
-    // API-Football prediction 적중 평가
+    // API-Football prediction 적중 평가 (DB 값만, af 콜 없음)
     if (m.apiPredWinner && m.homeScore != null && m.awayScore != null && m.apiPredCorrect == null) {
       const actual =
         m.homeScore > m.awayScore
@@ -153,7 +115,7 @@ export async function runApiFootball(opts?: { limit?: number }) {
       await prisma.match.update({ where: { id: m.id }, data });
     }
   }
-  console.log(`[af/stats] ${statsCount}건 통계 + ${postLineupCount}건 사후 라인업 저장`);
+  console.log(`[af/stats] ${statsCount}건 통계 저장`);
 
   // ===== Phase 3: 주심 보강 — collect raw 에 referee 가 없는 축구 매치 (ESPN 6리그 등) =====
   // referee 미저장 + apiFixtureId 보유 + 최근 14일~향후 3일 매치만 (오래된 매치 무한 재조회 방지).
@@ -180,7 +142,7 @@ export async function runApiFootball(opts?: { limit?: number }) {
   }
   console.log(`[af/referee] ${refereeCount}건 주심 보강 (대상 ${noRef.length})`);
 
-  return { lineupCount, predCount, statsCount, postLineupCount, refereeCount };
+  return { predCount, statsCount, refereeCount };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
