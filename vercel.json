@@ -6,7 +6,7 @@
   "crons": [
     {
       "path": "/api/cron/telegram-alerts",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/2 * * * *"
     },
     {
       "path": "/api/cron/refresh-live-baseball",

@@ -1,4 +1,4 @@
-// 텔레그램 경기 알림 디스패처 cron (5분). 연결 회원 없으면 즉시 skip → 비용 0.
+// 텔레그램 경기 알림 디스패처 cron (2분 — 골 실시간). 연결 회원 없으면 즉시 skip → 비용 0.
 // 끄기: TELEGRAM_ALERTS_DISABLED=1
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";

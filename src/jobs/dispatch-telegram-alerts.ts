@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { sendTelegramTo } from "@/lib/notify/telegram";
 import { predictMatchById, type PredictionResult } from "@/lib/predictionEngine";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { SITE_URL } from "@/lib/site-url";
 
 const KICKOFF_WINDOW_MIN = 35; // 킥오프 이 분 이내면 발송 (크론 주기보다 넉넉히)
@@ -61,14 +62,15 @@ export async function dispatchTelegramAlerts() {
   const now = new Date();
 
   // 2. 대상 경기 (팔로우 팀이 홈/원정)
-  const [kickoff, finals] = await Promise.all([
+  const MATCH_SELECT = { id: true, league: true, externalId: true, homeTeamId: true, awayTeamId: true, startTime: true, homeScore: true, awayScore: true } as const;
+  const [kickoff, finals, live] = await Promise.all([
     prisma.match.findMany({
       where: {
         status: "SCHEDULED",
         startTime: { gte: now, lte: new Date(now.getTime() + KICKOFF_WINDOW_MIN * 60000) },
         OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
       },
-      select: { id: true, league: true, externalId: true, homeTeamId: true, awayTeamId: true, startTime: true, homeScore: true, awayScore: true },
+      select: MATCH_SELECT,
     }),
     prisma.match.findMany({
       where: {
@@ -78,16 +80,27 @@ export async function dispatchTelegramAlerts() {
         awayScore: { not: null },
         OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
       },
-      select: { id: true, league: true, externalId: true, homeTeamId: true, awayTeamId: true, startTime: true, homeScore: true, awayScore: true },
+      select: MATCH_SELECT,
+    }),
+    // 골 실시간은 축구만 (야구·농구는 매 득점=스팸). KICKOFF/FINAL은 전 종목.
+    prisma.match.findMany({
+      where: {
+        status: "LIVE",
+        league: { in: [...SOCCER_LEAGUES] },
+        homeScore: { not: null },
+        awayScore: { not: null },
+        OR: [{ homeTeamId: { in: teamIds } }, { awayTeamId: { in: teamIds } }],
+      },
+      select: MATCH_SELECT,
     }),
   ]);
-  if (kickoff.length === 0 && finals.length === 0) {
+  if (kickoff.length === 0 && finals.length === 0 && live.length === 0) {
     return { users: users.length, matches: 0, sent: 0 };
   }
 
   // 팀 이름 배치
   const teamRowIds = new Set<number>();
-  [...kickoff, ...finals].forEach((m) => {
+  [...kickoff, ...finals, ...live].forEach((m) => {
     teamRowIds.add(m.homeTeamId);
     teamRowIds.add(m.awayTeamId);
   });
@@ -158,5 +171,57 @@ export async function dispatchTelegramAlerts() {
     await fanOut(m, "FINAL", text);
   }
 
-  return { users: users.length, kickoff: kickoff.length, finals: finals.length, sent };
+  // 3-c. GOAL (라이브 득점 실시간). 상태 추적 = TelegramAlertLog kind "GOAL:h-a".
+  // 최초 관측은 베이스라인(무발송) → 중간 참여자 catch-up 스팸 방지. 총득점 증가 시에만 발송.
+  if (live.length) {
+    const liveIds = live.map((m) => String(m.id));
+    const userIds = users.map((u) => u.id);
+    const goalLogs = await prisma.telegramAlertLog.findMany({
+      where: { kind: { startsWith: "GOAL:" }, matchId: { in: liveIds }, userId: { in: userIds } },
+      select: { userId: true, matchId: true, kind: true },
+    });
+    // (userId|matchId) → { maxTotal, kinds }
+    const state = new Map<string, { maxTotal: number; kinds: Set<string> }>();
+    for (const g of goalLogs) {
+      const k = `${g.userId}|${g.matchId}`;
+      const s = state.get(k) ?? { maxTotal: -1, kinds: new Set<string>() };
+      s.kinds.add(g.kind);
+      const t = g.kind.slice(5).split("-").reduce((acc, n) => acc + (parseInt(n, 10) || 0), 0);
+      if (t > s.maxTotal) s.maxTotal = t;
+      state.set(k, s);
+    }
+    const record = (userId: string, matchId: string, kind: string) =>
+      prisma.telegramAlertLog.create({ data: { userId, matchId, kind } }).catch(() => {});
+
+    for (const m of live) {
+      const h = m.homeScore!;
+      const a = m.awayScore!;
+      const total = h + a;
+      const kind = `GOAL:${h}-${a}`;
+      const mid = String(m.id);
+      const home = nameOf(m.homeTeamId, m.league);
+      const away = nameOf(m.awayTeamId, m.league);
+      const text =
+        `⚽ <b>골!</b> ${esc(home)} ${h} - ${a} ${esc(away)}\n▶ ${matchUrl(m.league, m.externalId)}`;
+      for (const [userId, chatId] of recipientsOf(m)) {
+        if (sent >= MAX_SENDS) break;
+        const s = state.get(`${userId}|${mid}`);
+        if (!s) {
+          await record(userId, mid, kind); // 베이스라인
+          continue;
+        }
+        if (s.kinds.has(kind)) continue; // 이미 처리한 스코어
+        if (total > s.maxTotal) {
+          if (await sendTelegramTo(chatId, text)) {
+            await record(userId, mid, kind);
+            sent++;
+          }
+        } else {
+          await record(userId, mid, kind); // 정정/감소 → 상태만 갱신
+        }
+      }
+    }
+  }
+
+  return { users: users.length, kickoff: kickoff.length, finals: finals.length, live: live.length, sent };
 }
