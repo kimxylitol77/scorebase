@@ -66,8 +66,8 @@
       "score": 7.59,
       "star": 3,
       "recentRating": 6.12,
-      "avgRating": 6.67,
-      "games": 6,
+      "avgRating": 6.81,
+      "games": 5,
       "x": 39,
       "y": 70
     },
@@ -100,8 +100,8 @@
       "score": 7.38,
       "star": 3,
       "recentRating": 7,
-      "avgRating": 6.58,
-      "games": 4,
+      "avgRating": 6.5,
+      "games": 3,
       "x": 84,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.31,
       "star": 4,
       "recentRating": 6.22,
-      "avgRating": 7.18,
-      "games": 5,
+      "avgRating": 7.14,
+      "games": 4,
       "x": 22,
       "y": 32
     },
@@ -134,8 +134,8 @@
       "score": 8.29,
       "star": 4,
       "recentRating": 7.39,
-      "avgRating": 6.94,
-      "games": 5,
+      "avgRating": 7.08,
+      "games": 4,
       "x": 50,
       "y": 32
     },
@@ -151,8 +151,8 @@
       "score": 8.19,
       "star": 4,
       "recentRating": 6.31,
-      "avgRating": 7.1,
-      "games": 5,
+      "avgRating": 7.16,
+      "games": 4,
       "x": 78,
       "y": 32
     },
@@ -168,8 +168,8 @@
       "score": 7.8,
       "star": 3,
       "recentRating": 5.9,
-      "avgRating": 6.89,
-      "games": 5,
+      "avgRating": 6.66,
+      "games": 4,
       "x": 35,
       "y": 52
     },
@@ -191,25 +191,6 @@
       "y": 52
     },
     {
-      "id": "23xmvkhgj6eqg8n",
-      "name": "Elijah Just",
-      "nameKo": "엘리야 저스트",
-      "hasMv": false,
-      "pos": "F",
-      "country": "New Zealand",
-      "flag": "🇳🇿",
-      "logo": "https://img.thesports.com/football/player/653dfe275584ad95dd346e4de389bcd0.png",
-      "score": 9.02,
-      "star": 4,
-      "recentRating": 7.73,
-      "avgRating": 7.72,
-      "games": 3,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
-    {
       "id": "3glrw7hj75yxqdy",
       "name": "Charles De Ketelaere",
       "nameKo": "샤를 드 케텔라에",
@@ -221,9 +202,13 @@
       "score": 8.85,
       "star": 4,
       "recentRating": 7.4,
-      "avgRating": 7.28,
-      "games": 5
-    },
+      "avgRating": 7.45,
+      "games": 4,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "x7lm7pho79om2wd",
       "name": "Leandro Trossard",
@@ -236,8 +221,8 @@
       "score": 8.56,
       "star": 4,
       "recentRating": 6.1,
-      "avgRating": 7.5,
-      "games": 6
+      "avgRating": 7.69,
+      "games": 5
     },
     {
       "id": "l5ergph2yx5r8k0",
@@ -251,8 +236,23 @@
       "score": 7.78,
       "star": 3,
       "recentRating": 6.31,
-      "avgRating": 6.63,
-      "games": 5
+      "avgRating": 6.66,
+      "games": 4
+    },
+    {
+      "id": "23xmvkhgj6eqg8n",
+      "name": "Elijah Just",
+      "nameKo": "엘리야 저스트",
+      "hasMv": false,
+      "pos": "F",
+      "country": "New Zealand",
+      "flag": "🇳🇿",
+      "logo": "https://img.thesports.com/football/player/653dfe275584ad95dd346e4de389bcd0.png",
+      "score": 7.73,
+      "star": 3,
+      "recentRating": 7.73,
+      "avgRating": 7.08,
+      "games": 2
     },
     {
       "id": "k82rekhvpdxrepz",
@@ -266,8 +266,8 @@
       "score": 7.72,
       "star": 3,
       "recentRating": 7.9,
-      "avgRating": 7.02,
-      "games": 6
+      "avgRating": 7.11,
+      "games": 5
     },
     {
       "id": "pxwrxlh1z5yryk0",
@@ -281,8 +281,8 @@
       "score": 7.7,
       "star": 3,
       "recentRating": 6.4,
-      "avgRating": 6.83,
-      "games": 6
+      "avgRating": 7,
+      "games": 5
     },
     {
       "id": "l5ergphv4674r8k",
@@ -296,8 +296,8 @@
       "score": 7.7,
       "star": 3,
       "recentRating": 6.73,
-      "avgRating": 7.08,
-      "games": 5
+      "avgRating": 7.19,
+      "games": 4
     }
   ],
   "complete": true
