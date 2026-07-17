@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import ArticleCard from "@/components/ArticleCard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { leagueLabel } from "@/lib/analysis/matches";
+import { SPORTS as SPORT_META } from "@/lib/sports/sport-leagues";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -22,27 +23,19 @@ interface SportCategory {
   leagues: string[]; // 빈 배열 = 전체
 }
 
+// 리그 목록은 sport-leagues.ts 단일 진실에서 가져온다. 자체 하드코딩하면
+// 신규 리그가 종목 탭에서 누락된다 (2026-07-17: K리그·J리그·WNBA·LMB 등 88건이
+// "전체" 탭에만 있고 종목 탭 어디에도 안 잡히던 버그).
+const leaguesOf = (code: string) =>
+  SPORT_META.find((s) => s.code === code)?.leagues ?? [];
+
 const SPORTS: SportCategory[] = [
   { key: "ALL", label: "전체", leagues: [] },
-  {
-    key: "SOCCER",
-    label: "축구",
-    leagues: [
-      "EPL",
-      "LALIGA",
-      "BUNDESLIGA",
-      "SERIE_A",
-      "LIGUE_1",
-      "MLS",
-      "UCL",
-      "WORLD_CUP",
-      "INTL_FRIENDLY",
-    ],
-  },
-  { key: "BASEBALL", label: "야구", leagues: ["KBO", "NPB", "MLB"] },
-  { key: "BASKETBALL", label: "농구", leagues: ["NBA"] },
-  { key: "HOCKEY", label: "하키", leagues: ["NHL"] },
-  { key: "ESPORTS", label: "e스포츠", leagues: ["LOL"] },
+  { key: "SOCCER", label: "축구", leagues: leaguesOf("soccer") },
+  { key: "BASEBALL", label: "야구", leagues: leaguesOf("baseball") },
+  { key: "BASKETBALL", label: "농구", leagues: leaguesOf("basketball") },
+  { key: "HOCKEY", label: "하키", leagues: leaguesOf("hockey") },
+  { key: "ESPORTS", label: "e스포츠", leagues: leaguesOf("esports") },
 ];
 
 const PAGE_SIZE = 24;
@@ -61,7 +54,13 @@ const ARTICLE_INCLUDE = {
   },
 } satisfies Prisma.ArticleInclude;
 
-const ARTICLE_ORDER: Prisma.ArticleOrderByWithRelationInput[] = [
+// 예정 경기는 킥오프 임박순(asc) — "오늘 뭐 하지"가 프리뷰를 보는 이유라
+// 가장 먼 미래가 최상단에 오면 안 된다. 종료된 경기는 최신순(desc) 으로 뒤에 붙인다.
+const UPCOMING_ORDER: Prisma.ArticleOrderByWithRelationInput[] = [
+  { match: { startTime: "asc" } },
+  { publishedAt: "desc" },
+];
+const PAST_ORDER: Prisma.ArticleOrderByWithRelationInput[] = [
   { match: { startTime: "desc" } },
   { publishedAt: "desc" },
 ];
@@ -122,30 +121,66 @@ export default async function PreviewsPage({ searchParams }: Props) {
     isBaseball ? [selectedBaseball as string] : current.leagues,
   );
 
-  const [articles, total, countsBySport, baseballCounts] = await Promise.all([
-    prisma.article.findMany({
-      where,
-      orderBy: ARTICLE_ORDER,
-      skip: (pageNum - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      include: ARTICLE_INCLUDE,
-    }),
-    prisma.article.count({ where }),
-    Promise.all(
-      SPORTS.map(async (s) => ({
-        key: s.key,
-        count: await prisma.article.count({ where: buildWhere(s.leagues) }),
-      })),
-    ),
-    isBaseball
-      ? Promise.all(
-          BASEBALL_TABS.map(async (lg) => ({
-            league: lg,
-            count: await prisma.article.count({ where: buildWhere([lg]) }),
-          })),
-        )
-      : Promise.resolve([] as { league: string; count: number }[]),
+  const now = new Date();
+  const upcomingWhere: Prisma.ArticleWhereInput = {
+    ...where,
+    match: { startTime: { gte: now } },
+  };
+  const pastWhere: Prisma.ArticleWhereInput = {
+    ...where,
+    match: { startTime: { lt: now } },
+  };
+  const offset = (pageNum - 1) * PAGE_SIZE;
+
+  const [upcomingTotal, pastTotal, countsBySport, baseballCounts] =
+    await Promise.all([
+      prisma.article.count({ where: upcomingWhere }),
+      prisma.article.count({ where: pastWhere }),
+      Promise.all(
+        SPORTS.map(async (s) => ({
+          key: s.key,
+          count: await prisma.article.count({ where: buildWhere(s.leagues) }),
+        })),
+      ),
+      isBaseball
+        ? Promise.all(
+            BASEBALL_TABS.map(async (lg) => ({
+              league: lg,
+              count: await prisma.article.count({ where: buildWhere([lg]) }),
+            })),
+          )
+        : Promise.resolve([] as { league: string; count: number }[]),
+    ]);
+
+  const total = upcomingTotal + pastTotal;
+
+  // 예정분을 먼저 채우고 남는 자리를 종료분으로 메운다 — 페이지 경계에서 두
+  // 그룹이 한 화면에 섞일 수 있으나 순서(예정 → 종료)는 전 페이지에 걸쳐 유지된다.
+  const upcomingTake = Math.max(
+    0,
+    Math.min(PAGE_SIZE, upcomingTotal - offset),
+  );
+  const [upcoming, past] = await Promise.all([
+    upcomingTake > 0
+      ? prisma.article.findMany({
+          where: upcomingWhere,
+          orderBy: UPCOMING_ORDER,
+          skip: Math.min(offset, upcomingTotal),
+          take: upcomingTake,
+          include: ARTICLE_INCLUDE,
+        })
+      : Promise.resolve([]),
+    PAGE_SIZE - upcomingTake > 0
+      ? prisma.article.findMany({
+          where: pastWhere,
+          orderBy: PAST_ORDER,
+          skip: Math.max(0, offset - upcomingTotal),
+          take: PAGE_SIZE - upcomingTake,
+          include: ARTICLE_INCLUDE,
+        })
+      : Promise.resolve([]),
   ]);
+  const articles = [...upcoming, ...past];
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const countMap = new Map(countsBySport.map((c) => [c.key, c.count]));
