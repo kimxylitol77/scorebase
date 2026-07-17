@@ -199,25 +199,32 @@ export default async function PreviewsPage({ searchParams }: Props) {
   };
   const offset = (pageNum - 1) * PAGE_SIZE;
 
-  const [upcomingTotal, pastTotal, countsBySport, baseballCounts] =
-    await Promise.all([
-      prisma.article.count({ where: upcomingWhere }),
-      prisma.article.count({ where: pastWhere }),
-      Promise.all(
-        SPORTS.map(async (s) => ({
-          key: s.key,
-          count: await prisma.article.count({ where: buildWhere(s.leagues) }),
-        })),
-      ),
-      isBaseball
-        ? Promise.all(
-            BASEBALL_TABS.map(async (lg) => ({
-              league: lg,
-              count: await prisma.article.count({ where: buildWhere([lg]) }),
-            })),
-          )
-        : Promise.resolve([] as { league: string; count: number }[]),
-    ]);
+  // 탭 카운트는 리그별 groupBy 1회로 뽑아 JS 에서 종목별 합산 — 종목 6개 + 야구
+  // 하위 탭 3개를 count 쿼리 9개로 따로 세던 것을 축소 (force-dynamic 페이지라 매 요청 부하).
+  const [upcomingTotal, pastTotal, leagueCounts] = await Promise.all([
+    prisma.article.count({ where: upcomingWhere }),
+    prisma.article.count({ where: pastWhere }),
+    prisma.article.groupBy({
+      by: ["league"],
+      where: { status: "PUBLISHED", type: "PREVIEW", matchId: { not: null } },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const leagueCountMap = new Map(
+    leagueCounts.map((r) => [r.league, r._count._all]),
+  );
+  const countOf = (leagues: string[]) =>
+    leagues.length === 0
+      ? [...leagueCountMap.values()].reduce((a, b) => a + b, 0)
+      : leagues.reduce((s, lg) => s + (leagueCountMap.get(lg) ?? 0), 0);
+  const countsBySport = SPORTS.map((s) => ({
+    key: s.key,
+    count: countOf(s.leagues),
+  }));
+  const baseballCounts = isBaseball
+    ? BASEBALL_TABS.map((lg) => ({ league: lg, count: countOf([lg]) }))
+    : [];
 
   const total = upcomingTotal + pastTotal;
 
@@ -261,6 +268,22 @@ export default async function PreviewsPage({ searchParams }: Props) {
     const qs = params.toString();
     return qs ? `/previews?${qs}` : "/previews";
   };
+
+  // 숫자 페이지 링크 — 처음·현재±1·끝 + 생략(…). 이전/다음만 있으면 깊은 페이지는
+  // 사용자도 크롤러도 링크를 수십 번 타야 도달한다.
+  const pageItems: (number | "…")[] = [];
+  if (totalPages > 1) {
+    const wanted = [1, pageNum - 1, pageNum, pageNum + 1, totalPages]
+      .filter((p) => p >= 1 && p <= totalPages)
+      .filter((p, i, arr) => arr.indexOf(p) === i)
+      .sort((a, b) => a - b);
+    let prev = 0;
+    for (const p of wanted) {
+      if (prev && p - prev > 1) pageItems.push("…");
+      pageItems.push(p);
+      prev = p;
+    }
+  }
 
   // JSON-LD — Breadcrumb + CollectionPage + FAQPage (FAQ 는 하단 화면 노출과 동일 소스)
   const seo = SPORT_SEO[current.key];
@@ -436,9 +459,32 @@ export default async function PreviewsPage({ searchParams }: Props) {
                     ← 이전
                   </Link>
                 )}
-                <span className="px-4 py-2 text-sm tabular-nums text-zinc-500 dark:text-white/45">
-                  {pageNum} / {totalPages}
-                </span>
+                {pageItems.map((item, i) =>
+                  item === "…" ? (
+                    <span
+                      key={`gap-${i}`}
+                      className="px-1.5 text-sm text-zinc-400 dark:text-white/30"
+                    >
+                      …
+                    </span>
+                  ) : item === pageNum ? (
+                    <span
+                      key={item}
+                      aria-current="page"
+                      className="rounded-full bg-zinc-900 px-3.5 py-2 text-sm font-semibold tabular-nums text-white dark:bg-white dark:text-zinc-900"
+                    >
+                      {item}
+                    </span>
+                  ) : (
+                    <Link
+                      key={item}
+                      href={pageHref(item)}
+                      className="rounded-full px-3.5 py-2 text-sm font-medium tabular-nums text-zinc-500 transition-colors hover:text-zinc-900 dark:text-white/45 dark:hover:text-white"
+                    >
+                      {item}
+                    </Link>
+                  ),
+                )}
                 {pageNum < totalPages && (
                   <Link
                     href={pageHref(pageNum + 1)}
