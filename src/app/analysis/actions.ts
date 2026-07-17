@@ -271,6 +271,32 @@ export async function updatePostAdminAction(formData: FormData): Promise<void> {
   redirect(`/analysis/${postId}`);
 }
 
+/** 글 삭제 (관리자 전용) — 게시판 모든 글. 작성자 경험치 회수(본인 삭제와 동일). */
+export async function deletePostAdminAction(formData: FormData): Promise<void> {
+  const c = await cookies();
+  const admin = readSessionCookie(c.get(ADMIN_COOKIE)?.value);
+  if (!admin) return;
+  const postId = Number(formData.get("postId"));
+  if (!Number.isInteger(postId)) return;
+
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { authorId: true, category: true },
+  });
+  if (!post) return;
+
+  await prisma.post.delete({ where: { id: postId } });
+  await awardExp(
+    post.authorId,
+    { exp: -EXP_REWARDS.analysisPost, points: -POINT_REWARDS.analysisPost },
+    "post_delete",
+  );
+
+  const listPath = post.category === "FREE" ? "/analysis?board=free" : "/analysis";
+  revalidatePath(listPath);
+  redirect(listPath);
+}
+
 /** 댓글 삭제 (본인만). 댓글 경험치 회수 + commentCount 감소. */
 export async function deleteCommentAction(formData: FormData): Promise<void> {
   const userId = await getCurrentUserId();

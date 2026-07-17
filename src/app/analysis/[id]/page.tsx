@@ -15,7 +15,7 @@ import Markdown from "@/components/Markdown";
 import { Target } from "lucide-react";
 import LikeButton from "./LikeButton";
 import CommentForm from "./CommentForm";
-import { DeletePostButton, DeleteCommentButton } from "./DeleteButtons";
+import { DeletePostButton, DeleteCommentButton, AdminDeletePostButton } from "./DeleteButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -238,6 +238,13 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
               <Link href={`/analysis/${post.id}/edit`} className="font-semibold text-rose-500 hover:underline">
                 수정
               </Link>
+              {/* 본인 글이면 위 DeletePostButton 이 이미 있으므로 중복 노출 방지 */}
+              {!isAuthor && (
+                <>
+                  <span>·</span>
+                  <AdminDeletePostButton postId={post.id} />
+                </>
+              )}
             </>
           )}
         </div>
