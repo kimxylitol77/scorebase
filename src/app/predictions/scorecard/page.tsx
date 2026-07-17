@@ -279,6 +279,14 @@ export default async function ScorecardPage() {
   })).filter((mm) => mm.models.length > 0);
 
   // 다가오는 맞대결(AI 원탁) — 예정 경기의 1X2 를 전 모델 나란히 + 컨센서스.
+  // 핸디캡·오버언더 픽이 있으면 같은 카드의 접이식 부가 시장으로 붙는다.
+  const MARKET_ORDER: Record<Market, number> = { "1X2": 0, HANDICAP: 1, OU: 2 };
+  interface UpPick {
+    model: string;
+    pick: string;
+    prob: number;
+    line: number | null;
+  }
   interface UpMatch {
     matchId: number;
     league: string;
@@ -290,24 +298,36 @@ export default async function ScorecardPage() {
     awayRaw: string;
     homeLogo: string | null;
     awayLogo: string | null;
-    picks: { model: string; pick: string; prob: number }[];
+    picks: UpPick[]; // 1X2
+    extras: { market: Market; picks: UpPick[] }[]; // 핸디캡·오버언더
   }
+  const picksOf = (d: DP): UpPick[] =>
+    present
+      .map((m) => {
+        const c = d.cells.get(m);
+        return c ? { model: m, pick: c.pick, prob: c.prob, line: c.line } : null;
+      })
+      .filter((x): x is UpPick => x !== null);
   const upMap = new Map<number, UpMatch>();
   for (const d of datapoints) {
     if (d.market !== "1X2" || d.status !== "SCHEDULED") continue;
-    const picks = present
-      .map((m) => {
-        const c = d.cells.get(m);
-        return c ? { model: m, pick: c.pick, prob: c.prob } : null;
-      })
-      .filter((x): x is { model: string; pick: string; prob: number } => x !== null);
+    const picks = picksOf(d);
     if (picks.length === 0) continue;
     upMap.set(d.matchId, {
       matchId: d.matchId, league: d.league, externalId: d.externalId, startTime: d.startTime,
       home: d.home, away: d.away, homeRaw: d.homeRaw, awayRaw: d.awayRaw,
-      homeLogo: d.homeLogo, awayLogo: d.awayLogo, picks,
+      homeLogo: d.homeLogo, awayLogo: d.awayLogo, picks, extras: [],
     });
   }
+  for (const d of datapoints) {
+    if (d.market === "1X2" || d.status !== "SCHEDULED") continue;
+    const up = upMap.get(d.matchId);
+    if (!up) continue;
+    const picks = picksOf(d);
+    if (picks.length === 0) continue;
+    up.extras.push({ market: d.market, picks });
+  }
+  for (const up of upMap.values()) up.extras.sort((a, b) => MARKET_ORDER[a.market] - MARKET_ORDER[b.market]);
   const upcoming = [...upMap.values()].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   // 컨센서스(다수결) 계산.
@@ -326,7 +346,6 @@ export default async function ScorecardPage() {
 
   // 경기 단위로 묶음 — 같은 경기의 1X2·핸디캡·오버언더가 카드 3장으로 흩어지던 것을
   // 카드 1장 + 시장 드롭다운으로 통합. resolved 가 최근순이라 Map 삽입 순서 = 최근순 유지.
-  const MARKET_ORDER: Record<Market, number> = { "1X2": 0, HANDICAP: 1, OU: 2 };
   const matchGroupMap = new Map<number, DP[]>();
   for (const d of resolved) {
     const arr = matchGroupMap.get(d.matchId) ?? [];
@@ -500,7 +519,7 @@ export default async function ScorecardPage() {
             <Clock className="h-4 w-4 text-rose-500" aria-hidden /> 다가오는 맞대결 — AI 원탁
           </h2>
           <p className="mb-3 text-[13px] text-zinc-500 dark:text-white/40">
-            예정 경기를 두고 각 AI가 낸 1X2 픽. 다수결이 갈릴수록 어려운 경기입니다.
+            예정 경기를 두고 각 AI가 낸 1X2·핸디캡·오버언더 픽. 다수결이 갈릴수록 어려운 경기입니다.
           </p>
           <div className="mb-4 flex items-center gap-2.5 rounded-xl bg-emerald-500/[0.07] px-3.5 py-2.5 ring-1 ring-emerald-500/15 flex-wrap">
             <span className="text-[13px] text-zinc-700 dark:text-white/70">
@@ -557,6 +576,36 @@ export default async function ScorecardPage() {
                       );
                     })}
                   </div>
+                  {e.extras.length > 0 && (
+                    <details className="group mt-2.5">
+                      <summary className="flex cursor-pointer list-none items-center gap-1 text-[12px] font-medium text-zinc-400 hover:text-zinc-600 dark:text-white/35 dark:hover:text-white/60 [&::-webkit-details-marker]:hidden">
+                        <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform duration-300 group-open:rotate-180" aria-hidden />
+                        {e.extras.map((x) => MARKET_META.find((m) => m.key === x.market)?.label).join("·")} 픽 보기
+                      </summary>
+                      <div className="mt-2 space-y-2.5">
+                        {e.extras.map((x) => (
+                          <div key={x.market}>
+                            <div className="text-[11px] font-bold uppercase tracking-wide text-zinc-400 dark:text-white/35">
+                              {MARKET_META.find((m) => m.key === x.market)?.label}
+                            </div>
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              {x.picks.map((p) => {
+                                const a = ACCENT[metaOf(p.model).accent];
+                                return (
+                                  <span key={p.model} className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-50 px-2.5 py-1.5 text-[12px] ring-1 ring-zinc-100 dark:bg-white/[0.03] dark:ring-white/[0.06]">
+                                    <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
+                                    <span className="text-zinc-400 dark:text-white/40">{metaOf(p.model).label}</span>
+                                    <span className="font-semibold text-zinc-800 dark:text-white/80">{pickText(x.market, p.pick, e.home, e.away, p.line)}</span>
+                                    <span className="tabular-nums text-zinc-400 dark:text-white/30">{(p.prob * 100).toFixed(0)}%</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
                 </div>
               );
             };
