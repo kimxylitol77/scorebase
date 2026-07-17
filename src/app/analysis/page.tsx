@@ -12,34 +12,129 @@ import { resolveAvatar } from "@/lib/analysis/analysts";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
-export const metadata: Metadata = {
-  title: "스포츠 분석 게시판 — 축구·야구·농구 승부예측 + 적중 자동채점",
-  description:
-    "회원이 직접 올리는 축구·야구·농구·하키 경기 분석과 승부 예측. 모든 예측은 실제 경기 결과로 자동 채점되어 적중률·연승으로 랭킹이 매겨집니다. EPL·라리가·MLB·NBA·NHL.",
-  keywords: [
-    "스포츠 분석", "승부예측", "축구 분석", "경기 분석 게시판", "스포츠 픽",
-    "예측 적중률", "스포츠 커뮤니티", "축구 예측", "야구 분석", "스포츠 토론",
-  ],
-  alternates: { canonical: `${SITE_URL}/analysis` },
-  openGraph: {
-    title: "스포츠 분석 게시판",
-    description: "회원 경기 분석·승부 예측 + 적중 자동채점·랭킹.",
-    url: `${SITE_URL}/analysis`,
-  },
+// 보드·종목 탭별 SEO 문구 — "축구 분석 게시판", "야구 승부예측" 같은 검색 의도를
+// 각 탭이 따로 받도록 분리. 정적 metadata 1종이던 것을 generateMetadata 로 교체.
+const SPORT_SEO_LABEL: Record<string, string> = {
+  soccer: "축구",
+  baseball: "야구",
+  basketball: "농구",
+  hockey: "하키",
+  esports: "LoL e스포츠",
+  volleyball: "배구",
+  mma: "UFC",
 };
 
-// 구조화 데이터 (CollectionPage) — 분석 커뮤니티를 콘텐츠 페이지로 인식.
-const ANALYSIS_JSONLD = {
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  name: "스포츠 분석 게시판",
-  description:
-    "회원이 직접 올리는 축구·야구·농구·하키 경기 분석과 승부 예측. 예측 적중은 실제 경기 결과로 자동 채점됩니다.",
-  url: `${SITE_URL}/analysis`,
-  isPartOf: { "@type": "WebSite", name: "스코어베이스", url: SITE_URL },
-  about: "스포츠 경기 분석 및 승부 예측 커뮤니티",
-  inLanguage: "ko-KR",
-};
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const { sport, board } = await searchParams;
+  if (board === "free") {
+    return {
+      title: "스포츠 자유게시판 — 축구·야구 잡담·드림팀·전술판",
+      description:
+        "축구·야구 잡담부터 드림팀 자랑, 전술판 공유까지. 스코어베이스 스포츠 커뮤니티 자유게시판.",
+      alternates: { canonical: `${SITE_URL}/analysis?board=free` },
+      openGraph: {
+        title: "스포츠 자유게시판",
+        description: "축구·야구 잡담·드림팀·전술판 공유 커뮤니티.",
+        url: `${SITE_URL}/analysis?board=free`,
+      },
+    };
+  }
+  if (board === "briefing") {
+    return {
+      title: "해외 축구 브리핑 — BBC·스카이스포츠 공신력 보도 정리",
+      description:
+        "BBC·스카이스포츠·디 애슬레틱 등 공신력 있는 해외 보도만 골라 사실 기반으로 재구성한 축구 브리핑. 찌라시 없이 출처를 글마다 명시합니다.",
+      alternates: { canonical: `${SITE_URL}/analysis?board=briefing` },
+      openGraph: {
+        title: "해외 축구 브리핑",
+        description: "공신력 있는 해외 보도만 골라 사실 기반으로 재구성.",
+        url: `${SITE_URL}/analysis?board=briefing`,
+      },
+    };
+  }
+  const sportLabel = SPORT_SEO_LABEL[sport ?? ""];
+  if (sportLabel) {
+    return {
+      title: `${sportLabel} 분석 게시판 — 승부예측 + 적중 자동채점`,
+      description: `회원이 직접 올리는 ${sportLabel} 경기 분석과 승부 예측. 모든 예측은 실제 경기 결과로 자동 채점되어 적중률·연승으로 랭킹이 매겨집니다.`,
+      alternates: { canonical: `${SITE_URL}/analysis?sport=${sport}` },
+      openGraph: {
+        title: `${sportLabel} 분석 게시판`,
+        description: `${sportLabel} 경기 분석·승부 예측 + 적중 자동채점·랭킹.`,
+        url: `${SITE_URL}/analysis?sport=${sport}`,
+      },
+    };
+  }
+  return {
+    title: "스포츠 분석 게시판 — 축구·야구·농구 승부예측 + 적중 자동채점",
+    description:
+      "회원이 직접 올리는 축구·야구·농구·하키 경기 분석과 승부 예측. 모든 예측은 실제 경기 결과로 자동 채점되어 적중률·연승으로 랭킹이 매겨집니다. EPL·라리가·MLB·NBA·NHL.",
+    keywords: [
+      "스포츠 분석", "승부예측", "축구 분석", "경기 분석 게시판", "스포츠 픽",
+      "예측 적중률", "스포츠 커뮤니티", "축구 예측", "야구 분석", "스포츠 토론",
+    ],
+    alternates: { canonical: `${SITE_URL}/analysis` },
+    openGraph: {
+      title: "스포츠 분석 게시판",
+      description: "회원 경기 분석·승부 예측 + 적중 자동채점·랭킹.",
+      url: `${SITE_URL}/analysis`,
+    },
+  };
+}
+
+// 하단 FAQ — 화면 노출 + FAQPage JSON-LD 동일 소스. 답변은 실제 채점 로직만 서술.
+const FAQ = [
+  {
+    q: "적중률은 어떻게 채점되나요?",
+    a: "회원이 예정 경기에 건 픽이 실제 결과와 맞았는지를 경기 종료 후 자동으로 채점합니다. 승무패는 예측한 승자와 실제 승자의 일치, 핸디캡은 라인 적용 후 승패, 오버언더는 총득점과 기준선 비교로 판정합니다.",
+  },
+  {
+    q: "무승부나 푸시가 나면 어떻게 되나요?",
+    a: "무승부가 없는 종목의 동점 경기, 핸디캡·오버언더의 푸시(기준선 정확 일치)는 적중도 미적중도 아닌 무효로 처리되어 적중률 계산에서 제외됩니다.",
+  },
+  {
+    q: "예측 랭킹은 어떻게 정해지나요?",
+    a: "단순 적중률(%)이 아니라 표본 수를 반영한 신뢰도 보정(Wilson 점수 하한)으로 정렬합니다. 1경기 100%가 무조건 1등이 되지 않고, 많이 그리고 꾸준히 맞춘 회원이 위로 올라갑니다.",
+  },
+  {
+    q: "누구나 분석 글을 쓸 수 있나요?",
+    a: "네. 로그인하면 누구나 무료로 경기 분석 글을 올리고 픽을 걸 수 있습니다. 적중 기록은 프로필과 예측 랭킹에 그대로 남습니다.",
+  },
+];
+
+// 구조화 데이터 — CollectionPage + BreadcrumbList + FAQPage(하단 FAQ 와 동일 소스).
+const ANALYSIS_JSONLD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "스포츠 분석 게시판",
+    description:
+      "회원이 직접 올리는 축구·야구·농구·하키 경기 분석과 승부 예측. 예측 적중은 실제 경기 결과로 자동 채점됩니다.",
+    url: `${SITE_URL}/analysis`,
+    isPartOf: { "@type": "WebSite", name: "스코어베이스", url: SITE_URL },
+    about: "스포츠 경기 분석 및 승부 예측 커뮤니티",
+    inLanguage: "ko-KR",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "스포츠 분석 게시판" },
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+];
 
 // 데스크탑 그리드 컬럼 — 제목(1fr)·작성자를 넓게, 부수 칸(분류·배당·등록일·조회·추천)은 좁게.
 const COLS = "sm:grid-cols-[60px_minmax(0,1fr)_240px_50px_52px_42px_42px]";
@@ -201,10 +296,15 @@ export default async function AnalysisListPage({ searchParams }: Props) {
 
   return (
     <main className="relative max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ANALYSIS_JSONLD) }}
-      />
+      {/* 구조화 데이터 — FAQ 가 화면에 노출되는 분석 보드에서만 (free/briefing 은 콘텐츠 불일치) */}
+      {!isFreeBoard && !isBriefing &&
+        ANALYSIS_JSONLD.map((schema, i) => (
+          <script
+            key={i}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          />
+        ))}
       {/* 앰비언트 배경 — 상단에 은은한 메시 글로우 */}
       <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[440px] overflow-hidden">
         <div className="absolute -top-40 left-[15%] h-96 w-96 rounded-full bg-rose-500/10 blur-[130px] dark:bg-rose-500/15" />
@@ -542,22 +642,50 @@ export default async function AnalysisListPage({ searchParams }: Props) {
         </p>
       )}
 
-      {/* SEO 본문 — 게시판 소개 + 차별화(적중 자동채점) + 가치 페이지 내부링크 */}
+      {/* SEO 본문 — 게시판 소개 + 차별화(적중 자동채점) + FAQ + 가치 페이지 내부링크 */}
       <section className="mt-14 border-t border-black/5 dark:border-white/10 pt-8 space-y-3">
         <h2 className="text-base sm:text-lg font-bold tracking-tight">
           스포츠 분석 게시판이란?
         </h2>
         <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-          스코어베이스 분석 게시판은 회원이 직접 축구·야구·농구·하키 경기를 분석하고
-          승부를 예측하는 커뮤니티입니다. 다른 사이트와 달리{" "}
+          스코어베이스 분석 게시판은 회원이 직접 축구·야구·농구·하키·배구·e스포츠·UFC
+          경기를 분석하고 승부를 예측하는 커뮤니티입니다. 다른 사이트와 달리{" "}
           <strong>모든 예측은 실제 경기 결과로 자동 채점</strong>되어, 적중률·연승
           기록이 작성자 프로필과{" "}
           <Link href="/experts" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
             예측 랭킹
           </Link>
-          에 그대로 남습니다. 감이 아니라 검증된 기록으로 실력을 증명할 수 있습니다.
+          에 그대로 남습니다. 감이 아니라 검증된 기록으로 실력을 증명할 수 있으며,
+          지금까지 {totalAll.toLocaleString("ko-KR")}건의 분석 글이 쌓였습니다.
         </p>
         <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          게시판은 세 보드로 나뉩니다. <strong>스포츠 분석</strong>은 픽과 근거를
+          담은 경기 분석, <strong>자유게시판</strong>은 잡담·드림팀·전술판 공유,{" "}
+          <strong>해외 브리핑</strong>은 BBC·스카이스포츠 등 공신력 있는 해외 보도를
+          출처와 함께 정리한 소식입니다.
+        </p>
+
+        {!isFreeBoard && !isBriefing && (
+          <>
+            <h2 className="pt-3 text-base sm:text-lg font-bold tracking-tight">
+              자주 묻는 질문
+            </h2>
+            <dl className="space-y-3">
+              {FAQ.map((f) => (
+                <div key={f.q}>
+                  <dt className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                    {f.q}
+                  </dt>
+                  <dd className="mt-1 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                    {f.a}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </>
+        )}
+
+        <p className="pt-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
           스코어베이스 AI 모델의 예측 적중률은{" "}
           <Link href="/predictions/accuracy" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
             적중률 보드
@@ -566,7 +694,15 @@ export default async function AnalysisListPage({ searchParams }: Props) {
           <Link href="/predictions" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
             시즌 예측
           </Link>
-          에서 데이터로 확인할 수 있습니다.
+          에서 확인할 수 있습니다. 경기 전 데이터 분석은{" "}
+          <Link href="/previews" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+            경기 프리뷰
+          </Link>
+          , 실시간 경기는{" "}
+          <Link href="/scores" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+            라이브스코어
+          </Link>
+          에서 이어집니다.
         </p>
       </section>
     </main>
