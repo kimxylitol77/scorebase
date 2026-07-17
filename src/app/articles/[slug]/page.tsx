@@ -20,6 +20,11 @@ import { SITE_URL } from "@/lib/site-url";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
 import { buildSoccerCacheTabs, type SoccerInsightTab } from "@/components/scores/soccer/buildSoccerCacheTabs";
+import MatchHeadToHead from "@/components/MatchHeadToHead";
+import MatchOddsTable from "@/components/MatchOddsTable";
+import { fetchMatchExtras, type MatchExtras } from "@/lib/live/match-extras";
+import { fetchFixtureOdds, type FixtureOdds } from "@/lib/odds/api-sports-odds";
+import { loadBaseballOdds, type BaseballLiveOdds } from "@/lib/odds/baseball-ts-odds";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import TeamOfDayPitch from "@/components/TeamOfDayPitch";
 import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
@@ -542,6 +547,39 @@ export default async function ArticlePage({ params }: Props) {
     });
   }
 
+  // 원페이지 프리뷰 (docs/onepage-preview) — 프리뷰 글에서 분석 완결.
+  // H2H·순위 비교(라이브 페이지의 fetchMatchExtras 재사용) + 배당.
+  // 축구는 위 soccerTabs 에 H2H 탭이 이미 들어가므로 탭이 없을 때만 위젯 렌더(중복 방지).
+  // 배당은 예정 경기만 — 종료 경기 프리뷰에 낡은 배당은 소음.
+  let previewExtras: MatchExtras | null = null;
+  let previewFixtureOdds: FixtureOdds | null = null;
+  let previewBaseballOdds: BaseballLiveOdds | null = null;
+  if (article.type === "PREVIEW" && article.match) {
+    const m = article.match;
+    const isSoccer = SOCCER_LEAGUES.has(article.league);
+    const isBaseballLg = article.league === "KBO" || article.league === "MLB" || article.league === "NPB";
+    const [ex, fo, bo] = await Promise.all([
+      !isSoccer || soccerTabs.length === 0
+        ? fetchMatchExtras({
+            id: m.id,
+            league: article.league,
+            startTime: m.startTime,
+            homeTeam: { id: m.homeTeam.id },
+            awayTeam: { id: m.awayTeam.id },
+          })
+        : Promise.resolve(null),
+      isSoccer && m.status === "SCHEDULED" && /^\d+$/.test(m.externalId)
+        ? fetchFixtureOdds(m.externalId).catch(() => null)
+        : Promise.resolve(null),
+      isBaseballLg && m.status === "SCHEDULED"
+        ? loadBaseballOdds(m.id).then((r) => r?.odds ?? null).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+    previewExtras = ex;
+    previewFixtureOdds = fo;
+    previewBaseballOdds = bo;
+  }
+
   // LoL RECAP — 본문 안에 5라인 매치업·시즌·MVP 가 모두 들어있는 긴 Markdown 사용.
   // lolContext 는 디버깅용으로 DB 에 저장만 하고 페이지에서 카드로 렌더링하지 않는다.
 
@@ -863,6 +901,44 @@ export default async function ArticlePage({ params }: Props) {
         />
       )}
 
+      {/* 원페이지 프리뷰 — H2H·순위 비교 위젯 (라이브 페이지와 동일 데이터) */}
+      {previewExtras && article.match &&
+        (previewExtras.h2hHome.results.length > 0 ||
+          previewExtras.homeStanding ||
+          previewExtras.awayStanding) && (
+          <div className="mt-4">
+            <MatchHeadToHead
+              homeShortName={toKoreanTeamName(article.match.homeTeam.name, article.league)}
+              awayShortName={toKoreanTeamName(article.match.awayTeam.name, article.league)}
+              homeTeamId={article.match.homeTeam.id}
+              awayTeamId={article.match.awayTeam.id}
+              h2hHome={previewExtras.h2hHome}
+              homeStanding={previewExtras.homeStanding}
+              awayStanding={previewExtras.awayStanding}
+              totalTeams={previewExtras.totalTeams}
+              hasDraw={SOCCER_LEAGUES.has(article.league)}
+            />
+          </div>
+        )}
+
+      {/* 원페이지 프리뷰 — 배당 (예정 경기만). 축구=북메이커 표, 야구=머니라인·런라인·토탈 스트립 */}
+      {previewFixtureOdds && (
+        <section className="mt-6">
+          <h2 className="mb-1 text-lg font-bold tracking-tight">경기 전 배당</h2>
+          <p className="mb-3 text-[12px] text-neutral-500 dark:text-neutral-400">
+            북메이커별 배당 비교 — 최고 배당은 초록으로 강조됩니다. 참고용 정보입니다.
+          </p>
+          <MatchOddsTable odds={previewFixtureOdds} />
+        </section>
+      )}
+      {previewBaseballOdds && article.match && (
+        <BaseballOddsStrip
+          odds={previewBaseballOdds}
+          home={toKoreanTeamName(article.match.homeTeam.name, article.league)}
+          away={toKoreanTeamName(article.match.awayTeam.name, article.league)}
+        />
+      )}
+
       {/* H2H 상대전적 링크 — noindex 글이지만 follow 라 링크 권한은 흐름 (H2H 발견 경로) */}
       {article.match && (
         <p className="mt-3 text-sm">
@@ -952,6 +1028,54 @@ export default async function ArticlePage({ params }: Props) {
         </Link>
       </div>
     </article>
+  );
+}
+
+/** 야구 경기 전 배당 스트립 — 머니라인·런라인·오버언더 3칩 (TheSports). */
+function BaseballOddsStrip({
+  odds,
+  home,
+  away,
+}: {
+  odds: BaseballLiveOdds;
+  home: string;
+  away: string;
+}) {
+  const items: { label: string; value: string }[] = [];
+  if (odds.h2h)
+    items.push({
+      label: "머니라인",
+      value: `${home} ${odds.h2h.home.toFixed(2)} · ${away} ${odds.h2h.away.toFixed(2)}`,
+    });
+  if (odds.spread)
+    items.push({
+      label: "런라인",
+      value: `${odds.spread.pick === "HOME" ? home : away} -${odds.spread.line} (${odds.spread.homeOdds.toFixed(2)} / ${odds.spread.awayOdds.toFixed(2)})`,
+    });
+  if (odds.totals)
+    items.push({
+      label: "오버언더",
+      value: `${odds.totals.line} (오버 ${odds.totals.over.toFixed(2)} / 언더 ${odds.totals.under.toFixed(2)})`,
+    });
+  if (items.length === 0) return null;
+  return (
+    <section className="mt-6 rounded-2xl bg-zinc-50 p-4 ring-1 ring-black/5 dark:bg-white/[0.03] dark:ring-white/10">
+      <h2 className="text-[15px] font-bold tracking-tight">경기 전 배당</h2>
+      <div className="mt-2.5 flex flex-wrap gap-2">
+        {items.map((i) => (
+          <span
+            key={i.label}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-[13px] ring-1 ring-black/5 tabular-nums dark:bg-white/[0.04] dark:ring-white/10"
+          >
+            <span className="text-[11px] font-semibold text-neutral-400">{i.label}</span>
+            <span className="font-medium text-neutral-800 dark:text-neutral-200">{i.value}</span>
+          </span>
+        ))}
+      </div>
+      <p className="mt-2 text-[11px] text-neutral-400 dark:text-neutral-500">
+        참고용 정보입니다. 경기 시작 전 배당은 계속 변동됩니다.
+      </p>
+    </section>
   );
 }
 
