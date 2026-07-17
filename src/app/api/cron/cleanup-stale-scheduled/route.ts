@@ -13,6 +13,10 @@ import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
+import {
+  ESPN_BASKETBALL_SLUG,
+  verifyEspnBasketball,
+} from "@/lib/sports/espn-basketball-verify";
 import { BASEBALL_LEAGUES, SOCCER_LEAGUES, MMA_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { League } from "@/lib/sports/types";
 
@@ -28,7 +32,8 @@ const SOURCE_HINT: Record<string, string> = {
   KBO: "api-baseball + TheSports",
   NPB: "api-baseball + TheSports",
   MLB: "ESPN + api-baseball",
-  NBA: "BALLDONTLIE",
+  NBA: "BALLDONTLIE + ESPN verify",
+  WNBA: "api-sports basketball(수집) + ESPN verify",
   NHL: "BALLDONTLIE",
   LOL: "BALLDONTLIE / Leaguepedia",
   EPL: "football-data + TheSports",
@@ -240,6 +245,21 @@ export async function GET(req: NextRequest) {
   );
   const verifyMap = await fetchApiFootballStatuses(verifyTargets.map((m) => m.externalId));
 
+  // ESPN 농구 verify — WNBA 는 api-sports 농구 quota 로 verify 커버가 제거돼 항상 unknown
+  // → 영구 KEPT + 매 run 같은 알림 반복 (2026-07-17 WNBA #242294 Dallas-NY POSTPONED 수동 처리).
+  // ESPN scoreboard 로 STATUS_FINAL/STATUS_POSTPONED 만 확정 처리, 그 외는 기존대로 KEPT.
+  const espnBasketballVerdicts = await verifyEspnBasketball(
+    stale
+      .filter((m) => ESPN_BASKETBALL_SLUG[m.league])
+      .map((m) => ({
+        id: m.id,
+        league: m.league,
+        startTime: m.startTime,
+        homeName: m.homeTeam.name,
+        awayName: m.awayTeam.name,
+      })),
+  );
+
   // 오조회 가드 — 추가 리그(콜렉터 소스가 af 가 아닌 리그)는 id 가 af 것이 아닐 수 있으므로
   // af fixture 의 date 가 우리 startTime 과 근접(±72h, 연기 추종 여지)할 때만 신뢰한다.
   // 기존 af 콜렉터 리그는 id 확실 → 검사 없음(동작 불변).
@@ -265,6 +285,25 @@ export async function GET(req: NextRequest) {
   const toPostpone: typeof stale = [];
 
   for (const m of stale) {
+    // ESPN 농구 verdict — match id 키라 af fixture id 와 충돌 없음. WNBA/NBA 는 af verify
+    // 대상이 아니라 최우선 분기해도 기존 경로와 겹치지 않는다. verdict 없으면 아래 KEPT.
+    const eb = espnBasketballVerdicts.get(m.id);
+    if (eb) {
+      if (eb.kind === "FINISHED") {
+        await prisma.match.update({
+          where: { id: m.id },
+          data: {
+            status: "FINISHED",
+            homeScore: eb.homeScore ?? undefined,
+            awayScore: eb.awayScore ?? undefined,
+          },
+        });
+        verifiedFinished.push(m);
+        continue;
+      }
+      toPostpone.push(m);
+      continue;
+    }
     const v = verifyMap.get(m.externalId);
     if (v) {
       const action = classifyApiFootballStatus(v.short, v.goalsHome, v.goalsAway);
@@ -403,9 +442,11 @@ export async function GET(req: NextRequest) {
     .map((m) => {
       const v = verifyMap.get(m.externalId);
       const tag = verifiedFinished.includes(m) ? "FT" : "LIVE";
-      const src = BASEBALL_LEAGUES.has(m.league as League)
-        ? "TheSports score"
-        : `api-football ${v?.short ?? "?"}`;
+      const src = espnBasketballVerdicts.has(m.id)
+        ? `ESPN ${espnBasketballVerdicts.get(m.id)?.typeName ?? "?"}`
+        : BASEBALL_LEAGUES.has(m.league as League)
+          ? "TheSports score"
+          : `api-football ${v?.short ?? "?"}`;
       return `  [${tag}] ${m.league} | ${m.awayTeam.name} vs ${m.homeTeam.name} (${src})`;
     })
     .join("\n");
