@@ -2,13 +2,15 @@
 // 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, X, Trophy, Sparkles, Clock, Users } from "lucide-react";
+import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
+import TeamBadge from "@/components/TeamBadge";
 import CiteBox from "@/components/CiteBox";
 import ConsensusGate from "@/components/predictions/ConsensusGate";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
 import { isGptScorecardModel } from "@/lib/predict/gpt-scorecard-model";
@@ -84,6 +86,10 @@ interface DP {
   awayScore: number | null;
   home: string;
   away: string;
+  homeRaw: string; // 영문 원본 — 국가대항 국기(fifaFlag) 해석용
+  awayRaw: string;
+  homeLogo: string | null;
+  awayLogo: string | null;
   cells: Map<string, Cell>; // model → cell
 }
 interface Tally {
@@ -113,6 +119,38 @@ function shortPick(pick: string, home: string, away: string): string {
   return pick;
 }
 
+// 팀 라인 — 로고(국가대항은 국기)+팀명, 클릭 시 해당 경기 라이브 페이지로 이동.
+function TeamsLine(props: {
+  league: string;
+  externalId: string;
+  home: string;
+  away: string;
+  homeRaw: string;
+  awayRaw: string;
+  homeLogo: string | null;
+  awayLogo: string | null;
+}) {
+  const flag = isNationalTeamLeague(props.league);
+  const side = (raw: string, ko: string, logo: string | null) =>
+    flag ? (
+      <span className="shrink-0">{fifaFlag(raw, ko)}</span>
+    ) : (
+      <TeamBadge logoUrl={logo} size={16} className="bg-white rounded-sm" />
+    );
+  return (
+    <Link
+      href={matchHref(props.league, props.externalId)}
+      className="inline-flex min-w-0 items-center gap-1.5 text-[15px] font-semibold text-zinc-900 underline-offset-2 hover:underline dark:text-white"
+    >
+      {side(props.homeRaw, props.home, props.homeLogo)}
+      <span className="truncate">{props.home}</span>
+      <span className="shrink-0 text-xs font-normal text-zinc-400 dark:text-white/30">vs</span>
+      {side(props.awayRaw, props.away, props.awayLogo)}
+      <span className="truncate">{props.away}</span>
+    </Link>
+  );
+}
+
 export default async function ScorecardPage() {
   const rows = await prisma.aiPrediction.findMany({
     where: { market: { in: ["1X2", "HANDICAP", "OU"] } },
@@ -122,8 +160,8 @@ export default async function ScorecardPage() {
       match: {
         select: {
           id: true, league: true, startTime: true, status: true, homeScore: true, awayScore: true, externalId: true,
-          homeTeam: { select: { name: true } },
-          awayTeam: { select: { name: true } },
+          homeTeam: { select: { name: true, logoUrl: true } },
+          awayTeam: { select: { name: true, logoUrl: true } },
         },
       },
     },
@@ -142,6 +180,8 @@ export default async function ScorecardPage() {
         homeScore: m.homeScore, awayScore: m.awayScore, externalId: m.externalId,
         home: toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name,
         away: toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name,
+        homeRaw: m.homeTeam.name, awayRaw: m.awayTeam.name,
+        homeLogo: m.homeTeam.logoUrl, awayLogo: m.awayTeam.logoUrl,
         cells: new Map(),
       };
       byKey.set(key, dp);
@@ -246,6 +286,10 @@ export default async function ScorecardPage() {
     startTime: Date;
     home: string;
     away: string;
+    homeRaw: string;
+    awayRaw: string;
+    homeLogo: string | null;
+    awayLogo: string | null;
     picks: { model: string; pick: string; prob: number }[];
   }
   const upMap = new Map<number, UpMatch>();
@@ -258,7 +302,11 @@ export default async function ScorecardPage() {
       })
       .filter((x): x is { model: string; pick: string; prob: number } => x !== null);
     if (picks.length === 0) continue;
-    upMap.set(d.matchId, { matchId: d.matchId, league: d.league, externalId: d.externalId, startTime: d.startTime, home: d.home, away: d.away, picks });
+    upMap.set(d.matchId, {
+      matchId: d.matchId, league: d.league, externalId: d.externalId, startTime: d.startTime,
+      home: d.home, away: d.away, homeRaw: d.homeRaw, awayRaw: d.awayRaw,
+      homeLogo: d.homeLogo, awayLogo: d.awayLogo, picks,
+    });
   }
   const upcoming = [...upMap.values()].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
@@ -275,6 +323,29 @@ export default async function ScorecardPage() {
   const resolved = datapoints
     .filter((d) => [...d.cells.values()].some((c) => c.correct !== null))
     .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+
+  // 경기 단위로 묶음 — 같은 경기의 1X2·핸디캡·오버언더가 카드 3장으로 흩어지던 것을
+  // 카드 1장 + 시장 드롭다운으로 통합. resolved 가 최근순이라 Map 삽입 순서 = 최근순 유지.
+  const MARKET_ORDER: Record<Market, number> = { "1X2": 0, HANDICAP: 1, OU: 2 };
+  const matchGroupMap = new Map<number, DP[]>();
+  for (const d of resolved) {
+    const arr = matchGroupMap.get(d.matchId) ?? [];
+    arr.push(d);
+    matchGroupMap.set(d.matchId, arr);
+  }
+  const resolvedMatches = [...matchGroupMap.values()].map((arr) =>
+    [...arr].sort((a, b) => MARKET_ORDER[a.market] - MARKET_ORDER[b.market]),
+  );
+  // 시장 하나의 모델 채점 요약 (적중/채점 수) — 접힌 상태 칩 표시용.
+  const marketSummary = (d: DP) => {
+    let graded = 0, correct = 0;
+    for (const c of d.cells.values()) {
+      if (c.correct === null) continue;
+      graded++;
+      if (c.correct) correct++;
+    }
+    return { graded, correct };
+  };
 
   const fmtDate = (d: Date) => d.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
   const fmtTime = (d: Date) => d.toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false });
@@ -455,10 +526,17 @@ export default async function ScorecardPage() {
                       {split ? `의견 갈림 ${con.agree}/${con.total}` : `만장일치 ${con.total}`}
                     </span>
                   </div>
-                  <div className="mt-2 flex items-baseline gap-2 flex-wrap">
-                    <span className="text-[15px] font-semibold text-zinc-900 dark:text-white">
-                      {e.home} <span className="text-zinc-400 dark:text-white/30">vs</span> {e.away}
-                    </span>
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    <TeamsLine
+                      league={e.league}
+                      externalId={e.externalId}
+                      home={e.home}
+                      away={e.away}
+                      homeRaw={e.homeRaw}
+                      awayRaw={e.awayRaw}
+                      homeLogo={e.homeLogo}
+                      awayLogo={e.awayLogo}
+                    />
                     <Link
                       href={matchHref(e.league, e.externalId)}
                       className="text-[12px] font-semibold text-emerald-600 underline-offset-2 hover:underline dark:text-emerald-400"
@@ -542,37 +620,78 @@ export default async function ScorecardPage() {
             desc="어떤 AI가 어떤 경기에서 무엇을 찍고 맞았는지, 전체 기록을 무료 가입 후 볼 수 있습니다."
           >
           <div className="space-y-2">
-            {resolved.slice(0, 40).map((d) => (
-              <div key={`${d.matchId}:${d.market}`} className="rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-white/40">
-                  <LeagueBadge league={d.league} />
-                  <span className="font-medium text-zinc-700 dark:text-white/70">{d.home} · {d.away}</span>
-                  <span className="ml-auto rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-white/[0.06] dark:text-white/50">
-                    {MARKET_META.find((m) => m.key === d.market)?.label}
-                  </span>
-                  <span className="tabular-nums text-zinc-400 dark:text-white/30">{d.homeScore ?? "-"}:{d.awayScore ?? "-"}</span>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {present.map((m) => {
-                    const c = d.cells.get(m);
-                    if (!c || c.correct === null) return null;
-                    const a = ACCENT[metaOf(m).accent];
-                    return (
-                      <span key={m} className="inline-flex items-center gap-1 rounded-lg bg-zinc-50 px-2 py-1 text-[11px] ring-1 ring-zinc-100 dark:bg-white/[0.03] dark:ring-white/[0.06]">
-                        <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
-                        <span className="text-zinc-400 dark:text-white/40">{metaOf(m).label}</span>
-                        <span className="font-medium text-zinc-700 dark:text-white/70">{pickText(d.market, c.pick, d.home, d.away, c.line)}</span>
-                        {c.correct ? (
-                          <Check className="h-3 w-3 text-emerald-500" aria-hidden />
-                        ) : (
-                          <X className="h-3 w-3 text-rose-500" aria-hidden />
-                        )}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+            {resolvedMatches.slice(0, 30).map((mkts) => {
+              const f = mkts[0];
+              return (
+                <details
+                  key={f.matchId}
+                  className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10"
+                >
+                  <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1.5 p-3.5 [&::-webkit-details-marker]:hidden">
+                    <LeagueBadge league={f.league} />
+                    <TeamsLine
+                      league={f.league}
+                      externalId={f.externalId}
+                      home={f.home}
+                      away={f.away}
+                      homeRaw={f.homeRaw}
+                      awayRaw={f.awayRaw}
+                      homeLogo={f.homeLogo}
+                      awayLogo={f.awayLogo}
+                    />
+                    <span className="tabular-nums text-xs font-semibold text-zinc-500 dark:text-white/50">
+                      {f.homeScore ?? "-"}:{f.awayScore ?? "-"}
+                    </span>
+                    <span className="text-[11px] text-zinc-400 dark:text-white/30">{fmtDate(f.startTime)}</span>
+                    <span className="ml-auto flex items-center gap-1.5">
+                      {mkts.map((d) => {
+                        const s = marketSummary(d);
+                        return (
+                          <span
+                            key={d.market}
+                            className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-500 dark:bg-white/[0.06] dark:text-white/50"
+                          >
+                            {MARKET_META.find((m) => m.key === d.market)?.label} {s.correct}/{s.graded}
+                          </span>
+                        );
+                      })}
+                      <ChevronDown
+                        className="h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-300 group-open:rotate-180"
+                        aria-hidden
+                      />
+                    </span>
+                  </summary>
+                  <div className="space-y-3 border-t border-black/5 px-3.5 pb-3.5 pt-3 dark:border-white/5">
+                    {mkts.map((d) => (
+                      <div key={d.market}>
+                        <div className="text-[11px] font-bold uppercase tracking-wide text-zinc-400 dark:text-white/35">
+                          {MARKET_META.find((m) => m.key === d.market)?.label}
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {present.map((m) => {
+                            const c = d.cells.get(m);
+                            if (!c || c.correct === null) return null;
+                            const a = ACCENT[metaOf(m).accent];
+                            return (
+                              <span key={m} className="inline-flex items-center gap-1 rounded-lg bg-zinc-50 px-2 py-1 text-[11px] ring-1 ring-zinc-100 dark:bg-white/[0.03] dark:ring-white/[0.06]">
+                                <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden />
+                                <span className="text-zinc-400 dark:text-white/40">{metaOf(m).label}</span>
+                                <span className="font-medium text-zinc-700 dark:text-white/70">{pickText(d.market, c.pick, d.home, d.away, c.line)}</span>
+                                {c.correct ? (
+                                  <Check className="h-3 w-3 text-emerald-500" aria-hidden />
+                                ) : (
+                                  <X className="h-3 w-3 text-rose-500" aria-hidden />
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
           </div>
           </ConsensusGate>
         </section>
