@@ -50,7 +50,10 @@ const ARTICLE_INCLUDE = {
       homeStarter: true,
       awayStarter: true,
       startTime: true,
-      // 카드 매치업 줄(로고+팀명)용
+      // 카드 매치업 줄(로고+팀명)·예정/종료 구분(킥오프 칩+스코어)용
+      status: true,
+      homeScore: true,
+      awayScore: true,
       homeTeam: { select: { name: true, logoUrl: true } },
       awayTeam: { select: { name: true, logoUrl: true } },
     },

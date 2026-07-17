@@ -22,6 +22,10 @@ interface Props {
       /** 매치업 줄(로고+팀명)용 — select 에 없으면 줄 자체를 안 그린다 */
       homeTeam?: { name: string; logoUrl: string | null } | null;
       awayTeam?: { name: string; logoUrl: string | null } | null;
+      /** 예정/종료 구분(킥오프 칩+최종 스코어)용 — optional, 없으면 칩 생략 */
+      status?: string;
+      homeScore?: number | null;
+      awayScore?: number | null;
     } | null;
   };
   /** "compact" 면 더 좁은 그리드용으로 패딩/타이포 작게 */
@@ -66,6 +70,49 @@ function buildStarterBadge(
       };
 }
 
+// 매치 상태 칩 — 프리뷰 목록의 99%가 이미 끝난 경기라(2026-07-17 기준 1831중 1814)
+// 예정/종료 구분이 없으면 "예정된 매치의 사전 분석"이라는 소개와 화면이 어긋난다.
+// 예정=킥오프 시각(KST 고정 — 서버 TZ 무관), LIVE/종료/연기=상태 라벨.
+function buildStatusChip(
+  type: string,
+  match: NonNullable<Props["article"]["match"]> | null | undefined,
+): { label: string; cls: string } | null {
+  if (type !== "PREVIEW") return null; // RECAP 은 본질이 종료 후 글 — 칩 불필요
+  if (!match?.status) return null; // status 를 select 안 한 호출부는 생략
+  if (match.status === "LIVE")
+    return {
+      label: "LIVE",
+      cls: "bg-rose-50 text-rose-600 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/20",
+    };
+  if (match.status === "POSTPONED")
+    return {
+      label: "연기",
+      cls: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20",
+    };
+  if (match.status === "FINISHED")
+    return {
+      label: "종료",
+      cls: "bg-zinc-100 text-zinc-500 ring-zinc-200 dark:bg-white/[0.06] dark:text-white/45 dark:ring-white/10",
+    };
+  // SCHEDULED — 킥오프 시각. KST = UTC+9 고정 계산 (toLocale 은 서버 TZ 따라 흔들림)
+  const kst = new Date(match.startTime.getTime() + 9 * 3600 * 1000);
+  const nowKst = new Date(Date.now() + 9 * 3600 * 1000);
+  const dayDiff =
+    Math.floor(kst.getTime() / 86400000) -
+    Math.floor(nowKst.getTime() / 86400000);
+  const hm = `${String(kst.getUTCHours()).padStart(2, "0")}:${String(kst.getUTCMinutes()).padStart(2, "0")}`;
+  const day =
+    dayDiff === 0
+      ? "오늘"
+      : dayDiff === 1
+        ? "내일"
+        : `${kst.getUTCMonth() + 1}/${kst.getUTCDate()}`;
+  return {
+    label: `${day} ${hm}`,
+    cls: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20",
+  };
+}
+
 const BADGE_CLS =
   "bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-white/[0.06] dark:text-white/70 dark:ring-white/10";
 
@@ -89,12 +136,21 @@ export default function ArticleCard({ article, variant = "default" }: Props) {
     article.match,
   );
 
+  const statusChip = buildStatusChip(article.type, article.match);
+
   // 매치업 줄 — 제목이 서술형("포항의 공격력이 제주의 수비를 압도할 매치")이라
   // 어떤 경기인지 한눈에 안 들어와서 로고+팀명을 제목 위에 따로 놓는다.
   // homeTeam/awayTeam 을 select 안 한 호출부에선 undefined → 줄 자체를 생략.
   const home = article.match?.homeTeam;
   const away = article.match?.awayTeam;
   const showFlag = isNationalTeamLeague(article.league); // 국가대항은 국기, 클럽은 로고
+  // 종료 경기는 vs 대신 최종 스코어 — 카드에서 바로 결과 확인
+  const finalScore =
+    article.match?.status === "FINISHED" &&
+    article.match.homeScore != null &&
+    article.match.awayScore != null
+      ? `${article.match.homeScore}:${article.match.awayScore}`
+      : null;
   const matchup =
     home && away
       ? {
@@ -128,6 +184,13 @@ export default function ArticleCard({ article, variant = "default" }: Props) {
             {starterBadge.label}
           </span>
         )}
+        {statusChip && (
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-md font-semibold ring-1 ring-inset text-[10px] tabular-nums ${statusChip.cls}`}
+          >
+            {statusChip.label}
+          </span>
+        )}
         <span className="text-neutral-500">{formatRelativeKo(date)}</span>
       </div>
 
@@ -144,7 +207,13 @@ export default function ArticleCard({ article, variant = "default" }: Props) {
             </span>
           )}
           <span className="truncate">{matchup.homeKo}</span>
-          <span className="shrink-0 text-xs font-normal text-neutral-400">vs</span>
+          {finalScore ? (
+            <span className="shrink-0 text-sm font-bold tabular-nums">
+              {finalScore}
+            </span>
+          ) : (
+            <span className="shrink-0 text-xs font-normal text-neutral-400">vs</span>
+          )}
           <TeamBadge
             logoUrl={showFlag ? null : matchup.away.logoUrl}
             size={18}
