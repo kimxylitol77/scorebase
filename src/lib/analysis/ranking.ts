@@ -76,6 +76,53 @@ function monthStartUtc(): Date {
 }
 
 /** 월간 랭킹 — 이번 달 채점된(settledAt) 예측글 집계. */
+/** 팔로우 랭킹 — 팔로워 수 내림차순 (1명 이상만). RankRow + followers. */
+export async function getFollowRanking(
+  limit = 50,
+): Promise<Array<RankRow & { followers: number }>> {
+  const grouped = await prisma.userAnalystFollow.groupBy({
+    by: ["analystId"],
+    _count: { _all: true },
+    orderBy: { _count: { analystId: "desc" } },
+    take: limit,
+  });
+  if (grouped.length === 0) return [];
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: grouped.map((g) => g.analystId) } },
+    select: {
+      id: true,
+      nickname: true,
+      level: true,
+      badge: true,
+      avatarUrl: true,
+      predTotal: true,
+      predHit: true,
+      predStreak: true,
+    },
+  });
+  const userMap = new Map(users.map((u) => [u.id, u]));
+
+  return grouped.flatMap((g) => {
+    const u = userMap.get(g.analystId);
+    if (!u) return [];
+    return [
+      {
+        userId: u.id,
+        nickname: u.nickname,
+        level: u.level,
+        badge: u.badge,
+        total: u.predTotal,
+        hit: u.predHit,
+        streak: u.predStreak,
+        rate: hitRate(u.predHit, u.predTotal),
+        avatarUrl: u.avatarUrl,
+        followers: g._count._all,
+      },
+    ];
+  });
+}
+
 export async function getMonthlyRanking(limit = 50): Promise<RankRow[]> {
   const since = monthStartUtc();
   const [totals, hits] = await Promise.all([

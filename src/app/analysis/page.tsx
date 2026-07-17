@@ -163,7 +163,7 @@ const FREE_TABS = [
 ] as const;
 
 interface Props {
-  searchParams: Promise<{ page?: string; sport?: string; board?: string }>;
+  searchParams: Promise<{ page?: string; sport?: string; board?: string; feed?: string }>;
 }
 
 // 페이지 번호 목록 (총 7개 초과 시 … 으로 축약: 1 … 4 5 6 … 10)
@@ -218,7 +218,7 @@ function AuthorBadge({
 }
 
 export default async function AnalysisListPage({ searchParams }: Props) {
-  const { page, sport, board } = await searchParams;
+  const { page, sport, board, feed } = await searchParams;
   // 한 페이지 세 보드 — 스포츠 분석(기본) | 자유게시판(?board=free) | 해외 브리핑(?board=briefing).
   // 같은 테이블 UI 공유. 브리핑은 봇 전용 발행 보드 (글쓰기·종목 탭 없음).
   const isFreeBoard = board === "free";
@@ -229,10 +229,25 @@ export default async function AnalysisListPage({ searchParams }: Props) {
     : isFreeBoard
       ? FREE_TABS.some((t) => t.code === sport) ? sport! : null
       : SPORT_META[sport ?? ""] ? sport! : null;
+  // 팔로잉 피드 (?feed=following) — 분석 보드 한정, 내가 팔로우한 분석가 글만.
+  // 개인화 뷰라 canonical 은 /analysis 유지 (generateMetadata 가 feed 무시).
+  const isFollowingFeed = !isFreeBoard && !isBriefing && feed === "following";
+  const userId = await getCurrentUserId();
+  const followedIds = isFollowingFeed
+    ? userId
+      ? (
+          await prisma.userAnalystFollow.findMany({
+            where: { userId },
+            select: { analystId: true },
+          })
+        ).map((f) => f.analystId)
+      : []
+    : null;
   const href = (p: number, s: string | null = sportFilter) => {
     const q = new URLSearchParams();
     if (isFreeBoard) q.set("board", "free");
     if (isBriefing) q.set("board", "briefing");
+    if (isFollowingFeed) q.set("feed", "following");
     if (s) q.set("sport", s);
     if (p > 1) q.set("page", String(p));
     const qs = q.toString();
@@ -240,9 +255,10 @@ export default async function AnalysisListPage({ searchParams }: Props) {
   };
   const catWhere = { category: isBriefing ? "BRIEFING" : isFreeBoard ? "FREE" : "ANALYSIS" };
   const sportWhere = sportFilter ? (sportFilter === "talk" ? { sport: null } : { sport: sportFilter }) : {};
-  const [posts, sportCounts, userId] = await Promise.all([
+  const feedWhere = followedIds !== null ? { authorId: { in: followedIds } } : {};
+  const [posts, sportCounts, feedTotal] = await Promise.all([
     prisma.post.findMany({
-      where: { ...catWhere, ...sportWhere },
+      where: { ...catWhere, ...sportWhere, ...feedWhere },
       orderBy: { createdAt: "desc" },
       skip: (cur - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -286,12 +302,17 @@ export default async function AnalysisListPage({ searchParams }: Props) {
     }),
     // 종목별 글 수 — 탭 카운트 + 필터된 총 페이지 계산 (한 쿼리)
     prisma.post.groupBy({ by: ["sport"], _count: true, where: catWhere }),
-    getCurrentUserId(),
+    // 팔로잉 피드의 총 글 수 — 개인화 필터라 groupBy 캐시 불가, 별도 count
+    isFollowingFeed
+      ? prisma.post.count({ where: { ...catWhere, ...sportWhere, ...feedWhere } })
+      : Promise.resolve(0),
   ]);
   const countBySport = new Map(sportCounts.map((g) => [g.sport, g._count]));
   const talkCount = countBySport.get(null) ?? 0; // 자유게시판 잡담 = sport null
   const totalAll = sportCounts.reduce((s, g) => s + g._count, 0);
-  const total = sportFilter ? (sportFilter === "talk" ? talkCount : (countBySport.get(sportFilter) ?? 0)) : totalAll;
+  const total = isFollowingFeed
+    ? feedTotal
+    : sportFilter ? (sportFilter === "talk" ? talkCount : (countBySport.get(sportFilter) ?? 0)) : totalAll;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
@@ -410,6 +431,18 @@ export default async function AnalysisListPage({ searchParams }: Props) {
       {/* 종목·말머리 필터 탭 — 브리핑 보드는 전부 축구라 탭 없음 */}
       {!isBriefing && (
       <nav className="mb-6 flex flex-wrap items-center gap-2" aria-label="종목 필터">
+        {!isFreeBoard && (
+          <Link
+            href={isFollowingFeed ? "/analysis" : "/analysis?feed=following"}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              isFollowingFeed
+                ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
+                : "bg-white/60 text-rose-600 ring-rose-500/30 hover:-translate-y-0.5 hover:bg-white dark:bg-white/5 dark:text-rose-400 dark:ring-rose-500/30 dark:hover:bg-white/10"
+            }`}
+          >
+            팔로잉
+          </Link>
+        )}
         <Link
           href={href(1, null)}
           className={`rounded-full px-4 py-1.5 text-sm font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
@@ -443,7 +476,26 @@ export default async function AnalysisListPage({ searchParams }: Props) {
 
       {posts.length === 0 ? (
         <p className="text-sm text-neutral-500 py-24 text-center">
-          {isBriefing
+          {isFollowingFeed ? (
+            !userId ? (
+              <>
+                <Link href="/login?from=%2Fanalysis%3Ffeed%3Dfollowing" className="text-blue-600 dark:text-blue-400 underline">
+                  로그인
+                </Link>
+                하면 팔로우한 분석가의 글만 모아볼 수 있습니다.
+              </>
+            ) : (followedIds?.length ?? 0) === 0 ? (
+              <>
+                아직 팔로우한 분석가가 없습니다.{" "}
+                <Link href="/experts" className="text-blue-600 dark:text-blue-400 underline">
+                  예측 랭킹
+                </Link>
+                에서 마음에 드는 분석가를 팔로우해 보세요.
+              </>
+            ) : (
+              "팔로우한 분석가의 새 글이 아직 없습니다."
+            )
+          ) : isBriefing
             ? "아직 브리핑이 없습니다. 곧 첫 소식이 올라옵니다."
             : isFreeBoard
               ? "아직 글이 없습니다. 첫 글의 주인공이 되어보세요!"
