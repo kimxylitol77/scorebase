@@ -50,6 +50,9 @@ const ARTICLE_INCLUDE = {
       homeStarter: true,
       awayStarter: true,
       startTime: true,
+      // 카드 매치업 줄(로고+팀명)용
+      homeTeam: { select: { name: true, logoUrl: true } },
+      awayTeam: { select: { name: true, logoUrl: true } },
     },
   },
 } satisfies Prisma.ArticleInclude;

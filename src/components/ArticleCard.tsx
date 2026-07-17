@@ -1,6 +1,9 @@
 import Link from "next/link";
 import LeagueBadge from "./LeagueBadge";
+import TeamBadge from "./TeamBadge";
 import { formatRelativeKo } from "@/lib/format";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 
 interface Props {
   article: {
@@ -16,6 +19,9 @@ interface Props {
       homeStarter: string | null;
       awayStarter: string | null;
       startTime: Date;
+      /** 매치업 줄(로고+팀명)용 — select 에 없으면 줄 자체를 안 그린다 */
+      homeTeam?: { name: string; logoUrl: string | null } | null;
+      awayTeam?: { name: string; logoUrl: string | null } | null;
     } | null;
   };
   /** "compact" 면 더 좁은 그리드용으로 패딩/타이포 작게 */
@@ -83,6 +89,22 @@ export default function ArticleCard({ article, variant = "default" }: Props) {
     article.match,
   );
 
+  // 매치업 줄 — 제목이 서술형("포항의 공격력이 제주의 수비를 압도할 매치")이라
+  // 어떤 경기인지 한눈에 안 들어와서 로고+팀명을 제목 위에 따로 놓는다.
+  // homeTeam/awayTeam 을 select 안 한 호출부에선 undefined → 줄 자체를 생략.
+  const home = article.match?.homeTeam;
+  const away = article.match?.awayTeam;
+  const showFlag = isNationalTeamLeague(article.league); // 국가대항은 국기, 클럽은 로고
+  const matchup =
+    home && away
+      ? {
+          home,
+          away,
+          homeKo: toKoreanTeamName(home.name, article.league),
+          awayKo: toKoreanTeamName(away.name, article.league),
+        }
+      : null;
+
   return (
     <Link
       href={`/articles/${article.slug}`}
@@ -109,8 +131,36 @@ export default function ArticleCard({ article, variant = "default" }: Props) {
         <span className="text-neutral-500">{formatRelativeKo(date)}</span>
       </div>
 
+      {matchup && (
+        <div className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-zinc-800 dark:text-white/80">
+          <TeamBadge
+            logoUrl={showFlag ? null : matchup.home.logoUrl}
+            size={18}
+            className="bg-white rounded-sm"
+          />
+          {showFlag && (
+            <span className="shrink-0">
+              {fifaFlag(matchup.home.name, matchup.homeKo)}
+            </span>
+          )}
+          <span className="truncate">{matchup.homeKo}</span>
+          <span className="shrink-0 text-xs font-normal text-neutral-400">vs</span>
+          <TeamBadge
+            logoUrl={showFlag ? null : matchup.away.logoUrl}
+            size={18}
+            className="bg-white rounded-sm"
+          />
+          {showFlag && (
+            <span className="shrink-0">
+              {fifaFlag(matchup.away.name, matchup.awayKo)}
+            </span>
+          )}
+          <span className="truncate">{matchup.awayKo}</span>
+        </div>
+      )}
+
       <h3
-        className={`mt-3 font-bold leading-snug tracking-tight group-hover:underline underline-offset-4 decoration-2 line-clamp-3 ${
+        className={`${matchup ? "mt-2" : "mt-3"} font-bold leading-snug tracking-tight group-hover:underline underline-offset-4 decoration-2 line-clamp-3 ${
           isCompact ? "text-base" : "text-lg"
         }`}
       >
