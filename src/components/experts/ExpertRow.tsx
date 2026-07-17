@@ -8,7 +8,16 @@ import StreakBadge from "./StreakBadge";
 const MEDAL = ["🥇", "🥈", "🥉"];
 
 // 리더보드 1행 — 순위/메달 · 아바타 · 닉네임+연승+분석관칩 · 적중률. 클릭 → 프로필.
-export default function ExpertRow({ row, index }: { row: RankRow; index: number }) {
+// followers = 팔로워 수 보조 표시 (0이면 숨김 — 초기 커뮤니티에서 빈약해 보임 방지).
+export default function ExpertRow({
+  row,
+  index,
+  followers = 0,
+}: {
+  row: RankRow;
+  index: number;
+  followers?: number;
+}) {
   const g = displayGrade(row.level, row.badge);
   const avatar = resolveAvatar(row.avatarUrl, row.nickname, row.level, row.badge);
   const medal = MEDAL[index];
@@ -33,6 +42,11 @@ export default function ExpertRow({ row, index }: { row: RankRow; index: number 
             <span className="text-[11px] text-neutral-400" title={g.name}>
               {g.emoji} {g.name}
             </span>
+            {followers > 0 && (
+              <span className="text-[11px] text-neutral-400 tabular-nums">
+                · 팔로워 {followers.toLocaleString("ko-KR")}
+              </span>
+            )}
           </span>
         </span>
       </span>

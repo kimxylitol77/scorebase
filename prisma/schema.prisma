@@ -796,6 +796,8 @@ model User {
   expLogs   ExpLog[]
   dreamTeams DreamTeam[]
   teamFollows UserTeamFollow[]
+  analystFollows   UserAnalystFollow[] @relation("AnalystFollower") // 내가 팔로우한 분석가
+  analystFollowers UserAnalystFollow[] @relation("AnalystFollowee") // 나를 팔로우한 회원
 
   // 후속(즐겨찾기 서버 동기화): favoriteMatches/favoriteTeams 관계 자리
   @@index([email])
@@ -811,6 +813,20 @@ model UserTeamFollow {
 
   @@unique([userId, teamId])
   @@index([teamId])
+}
+
+/// 분석가 팔로우 — 회원이 다른 회원(봇 패널 포함)을 팔로우. 팔로우한 분석가가
+/// 새 픽 글을 올리면 텔레그램 알림(dispatch-telegram-alerts FOLLOW_PICK) 대상.
+model UserAnalystFollow {
+  id        String   @id @default(cuid())
+  userId    String // 팔로우 하는 회원
+  analystId String // 팔로우 대상 회원 (User.id)
+  createdAt DateTime @default(now())
+  user      User     @relation("AnalystFollower", fields: [userId], references: [id], onDelete: Cascade)
+  analyst   User     @relation("AnalystFollowee", fields: [analystId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, analystId])
+  @@index([analystId])
 }
 
 /// 텔레그램 알림 중복 발송 방지 로그 — (회원, 경기, 종류) 유일.

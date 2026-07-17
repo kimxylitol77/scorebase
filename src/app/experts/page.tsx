@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getOverallRanking, getMonthlyRanking, type RankRow } from "@/lib/analysis/ranking";
+import { prisma } from "@/lib/db";
 import ExpertRow from "@/components/experts/ExpertRow";
 import AiBenchmark from "@/components/experts/AiBenchmark";
 import { Trophy, Target } from "lucide-react";
@@ -22,6 +23,12 @@ export default async function ExpertsPage({ searchParams }: Props) {
   const { tab } = await searchParams;
   const monthly = tab === "monthly";
   const rows: RankRow[] = monthly ? await getMonthlyRanking(100) : await getOverallRanking(100);
+  // 팔로워 수 — 보조 지표 (0이면 행에서 숨김). 주 랭킹은 Wilson 적중률 유지.
+  const followCounts = await prisma.userAnalystFollow.groupBy({
+    by: ["analystId"],
+    _count: true,
+  });
+  const followerMap = new Map(followCounts.map((f) => [f.analystId, f._count]));
 
   return (
     <main className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
@@ -104,7 +111,12 @@ export default async function ExpertsPage({ searchParams }: Props) {
       ) : (
         <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_28px_70px_-34px_rgba(15,23,30,0.35)] divide-y divide-black/5 dark:bg-white/[0.04] dark:ring-white/10 dark:divide-white/5 dark:shadow-none">
           {rows.map((r, i) => (
-            <ExpertRow key={r.userId} row={r} index={i} />
+            <ExpertRow
+              key={r.userId}
+              row={r}
+              index={i}
+              followers={followerMap.get(r.userId) ?? 0}
+            />
           ))}
         </div>
       )}

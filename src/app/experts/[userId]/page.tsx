@@ -10,7 +10,10 @@ import {
 import ProfileHeader from "@/components/experts/ProfileHeader";
 import LeagueAccuracyBar from "@/components/experts/LeagueAccuracyBar";
 import PredictionHistoryItem from "@/components/experts/PredictionHistoryItem";
+import FollowButton from "@/components/experts/FollowButton";
 import AmbientGlow from "@/components/AmbientGlow";
+import { prisma } from "@/lib/db";
+import { getCurrentUserId } from "@/lib/current-user";
 import { ChevronLeft, BarChart3 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -47,10 +50,19 @@ export default async function ExpertProfilePage({ params, searchParams }: Props)
   const profile = await getUserProfile(userId);
   if (!profile) notFound();
 
-  const [leagues, history] = await Promise.all([
+  const currentUserId = await getCurrentUserId();
+  const [leagues, history, followerCount, myFollow] = await Promise.all([
     getUserLeagueAccuracy(userId),
     getUserPredictions(userId, { tab, page }),
+    prisma.userAnalystFollow.count({ where: { analystId: userId } }),
+    currentUserId
+      ? prisma.userAnalystFollow.findUnique({
+          where: { userId_analystId: { userId: currentUserId, analystId: userId } },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
   ]);
+  const isSelf = currentUserId === userId;
 
   return (
     <main className="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
@@ -70,6 +82,24 @@ export default async function ExpertProfilePage({ params, searchParams }: Props)
         <div className="mt-4">
           <ProfileHeader p={profile} />
         </div>
+        {/* 팔로우 — 팔로우하면 이 분석가의 새 픽을 텔레그램으로 받아본다 */}
+        {!isSelf && (
+          <div className="mt-4 flex items-center gap-3">
+            <FollowButton
+              analystId={userId}
+              following={!!myFollow}
+              from={`/experts/${userId}`}
+            />
+            {followerCount > 0 && (
+              <span className="text-sm text-neutral-500 tabular-nums">
+                팔로워 {followerCount.toLocaleString("ko-KR")}명
+              </span>
+            )}
+            <span className="text-xs text-neutral-400">
+              팔로우하면 새 픽을 텔레그램으로 알려드립니다
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 리그별 정확도 */}

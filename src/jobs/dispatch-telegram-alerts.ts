@@ -223,5 +223,105 @@ export async function dispatchTelegramAlerts() {
     }
   }
 
-  return { users: users.length, kickoff: kickoff.length, finals: finals.length, live: live.length, sent };
+  // 4. FOLLOW_PICK — 팔로우한 분석가(UserAnalystFollow)가 새 픽 글을 올리면 알림.
+  // 글 생성 인라인 훅이 아닌 스캔 방식 — 봇 글은 잡/직접 insert 로 생성돼 웹 액션 훅을 안 탐.
+  // 중복 방지 = TelegramAlertLog(matchId="post:{id}", kind="FOLLOW_PICK").
+  const followPickSent = await dispatchFollowPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
+
+  return { users: users.length, kickoff: kickoff.length, finals: finals.length, live: live.length, followPick: followPickSent, sent };
+}
+
+const FOLLOW_PICK_LOOKBACK_MIN = 40; // 크론 */5 대비 넉넉한 스캔 창 (중복은 로그로 차단)
+
+/** 픽 라벨 — 글 상세 페이지와 동일 규칙 (HANDICAP=라인 부호, OU=오버/언더, 1X2=승/무). */
+function followPickLabel(
+  market: string | null,
+  pick: string | null,
+  line: number | null,
+  home: string,
+  away: string,
+): string {
+  if (!pick) return "";
+  const fmtLine = (l: number) => (l > 0 ? `+${l}` : `${l}`);
+  if (market === "HANDICAP" && line != null) {
+    return pick === "HOME" ? `${home} ${fmtLine(line)}` : `${away} ${fmtLine(-line)}`;
+  }
+  if (market === "OU" && line != null) {
+    return pick === "OVER" ? `오버 ${line}` : `언더 ${line}`;
+  }
+  return pick === "HOME" ? `${home} 승` : pick === "AWAY" ? `${away} 승` : "무승부";
+}
+
+async function dispatchFollowPicks(
+  now: Date,
+  canSend: () => boolean,
+  addSent: (n: number) => void,
+): Promise<number> {
+  // 팔로워(텔레그램 연결) → 분석가 매핑
+  const follows = await prisma.userAnalystFollow.findMany({
+    where: { user: { telegramChatId: { not: null } } },
+    select: { analystId: true, user: { select: { id: true, telegramChatId: true } } },
+  });
+  if (follows.length === 0) return 0;
+  const followersByAnalyst = new Map<string, Array<{ userId: string; chatId: string }>>();
+  for (const f of follows) {
+    const arr = followersByAnalyst.get(f.analystId) ?? [];
+    arr.push({ userId: f.user.id, chatId: f.user.telegramChatId! });
+    followersByAnalyst.set(f.analystId, arr);
+  }
+
+  const posts = await prisma.post.findMany({
+    where: {
+      category: "ANALYSIS",
+      pick: { not: null },
+      authorId: { in: [...followersByAnalyst.keys()] },
+      createdAt: { gte: new Date(now.getTime() - FOLLOW_PICK_LOOKBACK_MIN * 60000) },
+    },
+    select: {
+      id: true,
+      title: true,
+      market: true,
+      pick: true,
+      line: true,
+      authorId: true,
+      author: { select: { nickname: true } },
+      match: {
+        select: {
+          league: true,
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } },
+        },
+      },
+    },
+  });
+  if (posts.length === 0) return 0;
+
+  let sent = 0;
+  for (const p of posts) {
+    const home = p.match ? toKoreanTeamName(p.match.homeTeam.name, p.match.league) : "";
+    const away = p.match ? toKoreanTeamName(p.match.awayTeam.name, p.match.league) : "";
+    const label = followPickLabel(p.market, p.pick, p.line, home, away);
+    const text =
+      `📌 <b>팔로우한 분석가 새 픽</b> · ${esc(p.author.nickname)}\n` +
+      `${esc(p.title)}\n` +
+      (label ? `픽: ${esc(label)}\n` : "") +
+      `▶ ${SITE_URL}/analysis/${p.id}`;
+    const logMatchId = `post:${p.id}`;
+    for (const { userId, chatId } of followersByAnalyst.get(p.authorId) ?? []) {
+      if (!canSend()) return sent;
+      const exists = await prisma.telegramAlertLog.findUnique({
+        where: { userId_matchId_kind: { userId, matchId: logMatchId, kind: "FOLLOW_PICK" } },
+      });
+      if (exists) continue;
+      const ok = await sendTelegramTo(chatId, text);
+      if (ok) {
+        await prisma.telegramAlertLog.create({
+          data: { userId, matchId: logMatchId, kind: "FOLLOW_PICK" },
+        });
+        sent++;
+        addSent(1);
+      }
+    }
+  }
+  return sent;
 }

@@ -13,6 +13,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { TIERS } from "@/lib/dream-team/tiers";
 import Markdown from "@/components/Markdown";
 import { Target } from "lucide-react";
+import FollowButton from "@/components/experts/FollowButton";
 import LikeButton from "./LikeButton";
 import CommentForm from "./CommentForm";
 import { DeletePostButton, DeleteCommentButton, AdminDeletePostButton } from "./DeleteButtons";
@@ -130,6 +131,13 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
 
   const userId = await getCurrentUserId();
   const isAuthor = userId === post.authorId;
+  // 작성자 팔로우 여부 — 팔로우 버튼 상태 (비로그인 = 미팔로우 표시, 클릭 시 로그인 유도)
+  const isFollowingAuthor = userId
+    ? !!(await prisma.userAnalystFollow.findUnique({
+        where: { userId_analystId: { userId, analystId: post.authorId } },
+        select: { id: true },
+      }))
+    : false;
   // 관리자 — 게시판 모든 글 수정 버튼 노출 (admin_session HMAC 검증).
   const isAdmin = !!readSessionCookie((await cookies()).get(ADMIN_COOKIE)?.value);
   const g = displayGrade(post.author.level, post.author.badge);
@@ -217,6 +225,14 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
             </span>
           ) : (
             <span className="text-neutral-400">🎯 예측 기록 없음</span>
+          )}
+          {!isAuthor && (
+            <FollowButton
+              analystId={post.authorId}
+              following={isFollowingAuthor}
+              from={`/analysis/${post.id}`}
+              variant="compact"
+            />
           )}
           <span>·</span>
           <span>{listTime(post.createdAt)}</span>

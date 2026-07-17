@@ -184,6 +184,40 @@ export async function likePostAction(formData: FormData): Promise<void> {
   revalidatePath("/analysis");
 }
 
+/** 분석가 팔로우 토글 (회원, 자기 자신 제외). 팔로우하면 새 픽 텔레그램 알림 대상. */
+export async function toggleAnalystFollowAction(formData: FormData): Promise<void> {
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    redirect(`/login?from=${encodeURIComponent(String(formData.get("from") || "/analysis"))}`);
+  }
+  const analystId = String(formData.get("analystId") || "");
+  if (!analystId || analystId === userId) return; // 자기 자신 팔로우 금지
+
+  const exists = await prisma.userAnalystFollow.findUnique({
+    where: { userId_analystId: { userId, analystId } },
+    select: { id: true },
+  });
+  if (exists) {
+    await prisma.userAnalystFollow.delete({ where: { id: exists.id } });
+  } else {
+    const analyst = await prisma.user.findUnique({
+      where: { id: analystId },
+      select: { id: true },
+    });
+    if (!analyst) return;
+    try {
+      await prisma.userAnalystFollow.create({ data: { userId, analystId } });
+    } catch {
+      return; // unique 위반 (동시 클릭) → 무시
+    }
+  }
+
+  revalidatePath(`/experts/${analystId}`);
+  revalidatePath("/experts");
+  const from = String(formData.get("from") || "");
+  if (from.startsWith("/analysis/")) revalidatePath(from);
+}
+
 /** 댓글 작성 (회원 전용). 댓글당 경험치 +50 (rate limit 으로 도배 방지). */
 export async function createCommentAction(
   _prev: PostFormState,
