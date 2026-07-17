@@ -120,16 +120,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // 발행된 글 — 최근 60일만 (Google 색인 quota 우선순위).
-  // PREVIEW + RECAP 은 AI 자동 발행 = scaled content abuse 회피 위해 sitemap 제외.
-  // article page 자체에도 robots noindex 적용됨 (이중 차단).
+  //
+  // PREVIEW + RECAP(AI 자동 발행)은 **경기 D-7 ~ D+2 창 안에서만** 포함한다.
+  // articles/[slug] 의 robots 시간창과 반드시 같은 기준 — 색인 허용인데 sitemap 에 없으면
+  // 발견이 늦고, 반대면 noindex 를 sitemap 이 광고하는 꼴이 된다. (2026-07-17, 배경은
+  // articles/[slug]/page.tsx 의 주석 참조: 5/21 붕괴 → 전면 noindex → 회복 경로 차단)
   const articleHorizon = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+  const autoWindowStart = new Date(now.getTime() - 2 * 24 * 3600 * 1000); // 경기가 2일 전까지
+  const autoWindowEnd = new Date(now.getTime() + 7 * 24 * 3600 * 1000); // 경기가 7일 후까지
   const articles = await prisma.article.findMany({
     where: {
       status: "PUBLISHED",
-      type: { notIn: ["PREVIEW", "RECAP"] },
       OR: [
-        { publishedAt: { gte: articleHorizon } },
-        { updatedAt: { gte: articleHorizon } },
+        // 사람/양질 글 — 기존 60일 기준 유지
+        {
+          type: { notIn: ["PREVIEW", "RECAP"] },
+          OR: [
+            { publishedAt: { gte: articleHorizon } },
+            { updatedAt: { gte: articleHorizon } },
+          ],
+        },
+        // 자동글 — 경기 시점이 색인 창 안일 때만
+        {
+          type: { in: ["PREVIEW", "RECAP"] },
+          match: { startTime: { gte: autoWindowStart, lte: autoWindowEnd } },
+        },
       ],
     },
     select: { slug: true, publishedAt: true, updatedAt: true },
