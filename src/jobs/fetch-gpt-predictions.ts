@@ -589,7 +589,23 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
   }
 
   let stored = 0, storedMarkets = 0, skipped = 0, failed = 0;
+  let deadlineHit = 0;
+  // 시간 예산 가드 (2026-07-17) — cron 라우트 maxDuration=300s. 매치당 패널 4개를 순차
+  // 호출해 ~15~20s 씩 걸리므로 cap(기본 40)이면 480s+ 로 **구조적으로 완주 불가**.
+  // 타임아웃은 JS 예외가 아니라 catch 도 안 타서 recordCronRun 이 아예 안 불렸고, 그 결과
+  // 레지스트리가 07-14 에 멈춰 "71h째 미실행" 알림이 떴다(실제로는 매일 돌고 있었음).
+  // → 남은 예산이 부족하면 루프를 끊고 정상 반환. 못 채운 매치는 "이미 픽한 매치 재호출
+  //   안 함" 가드 덕에 다음 실행이 이어받는다. 완주 신호(recordCronRun)를 되찾는 게 핵심.
+  const JOB_DEADLINE_MS = Number(process.env.GPT_PREDICT_DEADLINE_MS ?? 230_000);
+  const startedAt = Date.now();
   for (const m of targets) {
+    if (Date.now() - startedAt > JOB_DEADLINE_MS) {
+      deadlineHit = targets.length - stored - skipped - failed;
+      console.warn(
+        `[llm-pred] 시간 예산(${JOB_DEADLINE_MS}ms) 초과 — 남은 ${deadlineHit}건은 다음 실행으로 이월`,
+      );
+      break;
+    }
     // 킥오프 가드 — 잡 실행 중 경기가 시작되면(순차 LLM 호출로 수십 초 소요) 픽 무결성이
     // 깨지므로 매치 처리 직전 재확인. "경기 시작 전 예측" 원칙의 방어선.
     if (m.startTime.getTime() <= Date.now()) {
@@ -650,7 +666,8 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
   console.log(
     `[llm-pred] 완료 — 패널 ${panels.map((p) => p.key).join(",")} / 대상 ${targets.length} / 경기 ${stored}(시장 ${storedMarkets}) / 스킵(학습부족) ${skipped} / 패널실패 ${failed}`,
   );
-  return { targeted: targets.length, stored, storedMarkets, skipped, failed };
+  // deferred > 0 = 시간 예산에 걸려 다음 실행으로 이월된 건수 (완주 자체는 정상).
+  return { targeted: targets.length, stored, storedMarkets, skipped, failed, deferred: deadlineHit };
 }
 
 /** scorebase 정량 앵커 저장 — 1X2 는 항상, 핸디/OU 는 라인이 있을 때. 패널과 독립. */
