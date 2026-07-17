@@ -11,6 +11,7 @@ import ArticleCard from "@/components/ArticleCard";
 import AmbientGlow from "@/components/AmbientGlow";
 import { leagueLabel } from "@/lib/analysis/matches";
 import { SPORTS as SPORT_META } from "@/lib/sports/sport-leagues";
+import { SITE_URL } from "@/lib/site-url";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -36,6 +37,66 @@ const SPORTS: SportCategory[] = [
   { key: "BASKETBALL", label: "농구", leagues: leaguesOf("basketball") },
   { key: "HOCKEY", label: "하키", leagues: leaguesOf("hockey") },
   { key: "ESPORTS", label: "e스포츠", leagues: leaguesOf("esports") },
+];
+
+// 탭별 SEO 문구 — 검색 의도("EPL 프리뷰", "KBO 선발 분석")에 맞춘 title·description.
+// 대표 리그명은 카피용 나열이라 하드코딩하되, 글 수 같은 통계 숫자는 아래 본문에서
+// DB 카운트만 사용한다(마케팅 숫자 하드코딩 금지 원칙).
+const SPORT_SEO: Record<
+  SportCategory["key"],
+  { title: string; description: string }
+> = {
+  ALL: {
+    title: "경기 프리뷰 — 오늘의 매치 분석·예상 라인업",
+    description:
+      "EPL·라리가·챔피언스리그·K리그부터 KBO·MLB·NPB, NBA·NHL·LCK까지 경기 전 데이터 프리뷰. Elo 전력 비교, 최근 폼, 상대 전적, 선발 투수 매치업을 경기 시작 전에 확인하세요.",
+  },
+  SOCCER: {
+    title: "축구 프리뷰 — 경기 전 분석·예상 라인업",
+    description:
+      "EPL·라리가·분데스리가·세리에A·리그1·K리그·챔피언스리그 축구 경기 프리뷰. Elo 레이팅 전력 비교와 최근 폼, 홈·원정 성적, 상대 전적 기반의 경기 전 분석.",
+  },
+  BASEBALL: {
+    title: "야구 프리뷰 — KBO·MLB·NPB 선발 매치업 분석",
+    description:
+      "KBO·MLB·NPB 야구 경기 프리뷰. 선발 투수 매치업과 ERA 비교, 팀 타격 폼, 상대 전적 기반 경기 전 분석. 선발 확정·변경은 카드 배지로 표시됩니다.",
+  },
+  BASKETBALL: {
+    title: "농구 프리뷰 — NBA 경기 전 분석",
+    description:
+      "NBA·WNBA 농구 경기 프리뷰. 팀 전력 비교, 최근 폼, 상대 전적을 데이터 기반으로 정리한 경기 전 분석.",
+  },
+  HOCKEY: {
+    title: "하키 프리뷰 — NHL 경기 전 분석",
+    description:
+      "NHL 하키 경기 프리뷰. 팀 전력 비교, 최근 폼, 상대 전적을 데이터 기반으로 정리한 경기 전 분석.",
+  },
+  ESPORTS: {
+    title: "e스포츠 프리뷰 — LCK·LoL 경기 전 분석",
+    description:
+      "LCK 등 LoL e스포츠 경기 프리뷰. 팀 전력과 최근 경기력, 상대 전적을 데이터 기반으로 정리한 경기 전 분석.",
+  },
+};
+
+// 하단 FAQ — 화면 노출 + FAQPage JSON-LD 동일 소스. 답변은 실제 동작만 서술
+// (발행 주기·선발 배지·종료 스코어는 코드로 검증된 사실. 과장 광고 문구 금지).
+const FAQ = [
+  {
+    q: "경기 프리뷰는 언제 발행되나요?",
+    a: "경기 시작 전에 자동 발행됩니다. 야구는 KBO·NPB 당일, MLB는 최대 3일 전에 발행되며, 선발 투수가 확정되거나 변경되면 카드에 배지로 표시됩니다.",
+  },
+  {
+    q: "프리뷰에는 어떤 내용이 담기나요?",
+    a: "Elo 레이팅 기반 팀 전력 비교, 최근 폼, 홈·원정 성적, 상대 전적(H2H)을 데이터 기반으로 정리합니다. 야구는 선발 투수 매치업과 ERA 비교가 핵심이고, 축구는 예상 라인업과 부상자 정보를 함께 다룹니다.",
+  },
+  {
+    q: "종료된 경기의 프리뷰도 볼 수 있나요?",
+    a: "네. 종료된 경기의 프리뷰는 카드에 최종 스코어와 종료 표시가 붙은 채 그대로 남습니다. 경기 전 전망과 실제 결과를 비교해 볼 수 있습니다.",
+  },
+  {
+    q: "프리뷰와 리뷰는 무엇이 다른가요?",
+    a: "프리뷰는 경기 시작 전의 전망·분석이고, 리뷰는 경기 종료 후의 결과·기록 정리입니다. 진행 중인 경기는 라이브스코어에서 실시간으로 확인할 수 있습니다.",
+  },
 ];
 
 const PAGE_SIZE = 24;
@@ -86,10 +147,10 @@ export async function generateMetadata({
     BASEBALL_TABS.includes((sp.league ?? "").toUpperCase())
       ? ` ${(sp.league as string).toUpperCase()}`
       : "";
-  const titleSuffix = sport.key === "ALL" ? "" : ` · ${sport.label}${bleague}`;
+  const seo = SPORT_SEO[sport.key];
   return {
-    title: `프리뷰${titleSuffix}`,
-    description: `축구·야구·농구·하키·e스포츠 프리뷰를 한 곳에서. ${sport.label}${bleague} 카테고리의 최신 프리뷰 글 모음.`,
+    title: bleague ? `${bleague.trim()} 프리뷰 — 선발 매치업 분석` : seo.title,
+    description: seo.description,
     // sport 탭까지만 canonical 변형 — 야구 하위 리그 탭은 sport 페이지로 정규화
     alternates: {
       canonical: sport.key === "ALL" ? "/previews" : `/previews?sport=${sport.key}`,
@@ -201,9 +262,70 @@ export default async function PreviewsPage({ searchParams }: Props) {
     return qs ? `/previews?${qs}` : "/previews";
   };
 
+  // JSON-LD — Breadcrumb + CollectionPage + FAQPage (FAQ 는 하단 화면 노출과 동일 소스)
+  const seo = SPORT_SEO[current.key];
+  const canonicalUrl =
+    current.key === "ALL"
+      ? `${SITE_URL}/previews`
+      : `${SITE_URL}/previews?sport=${current.key}`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        ...(current.key === "ALL"
+          ? [{ "@type": "ListItem", position: 2, name: "프리뷰" }]
+          : [
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "프리뷰",
+                item: `${SITE_URL}/previews`,
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: `${current.label} 프리뷰`,
+              },
+            ]),
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: seo.title,
+      url: canonicalUrl,
+      description: seo.description,
+      inLanguage: "ko",
+      publisher: {
+        "@type": "Organization",
+        name: "스코어베이스",
+        url: SITE_URL,
+        logo: `${SITE_URL}/icon.png`,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: FAQ.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+  ];
+
   return (
     <div className="relative">
       <AmbientGlow />
+      {jsonLd.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-8">
@@ -335,9 +457,35 @@ export default async function PreviewsPage({ searchParams }: Props) {
             오늘의 경기 프리뷰 및 매치업 분석
           </h2>
           <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
-            EPL, MLB, NBA, KBO 등 주요 리그의 경기 시작 전 매치업 분석·예상 라인업·Elo 레이팅·H2H 상대 전적을 데이터 기반으로 정리한 프리뷰 콘텐츠입니다.
+            경기 시작 전 매치업 분석·예상 라인업·Elo 레이팅·상대 전적(H2H)을
+            데이터 기반으로 정리한 프리뷰 콘텐츠입니다. 축구는 EPL·라리가·분데스리가·세리에A·리그1·K리그·챔피언스리그,
+            야구는 KBO·MLB·NPB, 농구는 NBA, 하키는 NHL, e스포츠는 LCK 를 다루며
+            현재까지 총 {(countMap.get("ALL") ?? 0).toLocaleString("ko-KR")}건의
+            프리뷰가 발행됐습니다.
           </p>
           <p className="text-sm leading-relaxed text-zinc-600 dark:text-white/55">
+            프리뷰는 경기 전에 자동 발행되고, 야구는 선발 투수가 확정·변경되면
+            카드에 배지로 표시됩니다. 종료된 경기의 프리뷰는 최종 스코어와 함께
+            아카이브로 남아 경기 전 전망과 실제 결과를 비교해 볼 수 있습니다.
+          </p>
+
+          <h2 className="pt-3 text-base sm:text-lg font-bold tracking-tight text-zinc-950 dark:text-white">
+            자주 묻는 질문
+          </h2>
+          <dl className="space-y-3">
+            {FAQ.map((f) => (
+              <div key={f.q}>
+                <dt className="text-sm font-semibold text-zinc-800 dark:text-white/75">
+                  {f.q}
+                </dt>
+                <dd className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-white/55">
+                  {f.a}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <p className="pt-3 text-sm leading-relaxed text-zinc-600 dark:text-white/55">
             경기 진행은{" "}
             <Link href="/scores" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
               라이브스코어
