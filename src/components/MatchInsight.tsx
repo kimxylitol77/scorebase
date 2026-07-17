@@ -1511,12 +1511,73 @@ function StarterCard({
           photoUrl={homeStarterPhoto}
         />
       </div>
+      {/* 선발 비교 바 — 두 투수 수치를 가운데 지표 기준 좌(원정)/우(홈) 대칭 막대로.
+          우세 쪽 초록. 본문 서술("WHIP 우위 1.11 vs 1.40")을 한눈에 보이게. */}
+      {home && away && (
+        <div className="space-y-1.5 pt-1">
+          <StarterStatBar label="ERA" awayV={away.era} homeV={home.era} betterLow />
+          <StarterStatBar label="WHIP" awayV={away.whip} homeV={home.whip} betterLow />
+          <StarterStatBar label="K/9" awayV={away.k9} homeV={home.k9} betterLow={false} digits={1} />
+        </div>
+      )}
       {(home || away) && (home?.era != null || away?.era != null) && (
         <p className="text-[11px] text-neutral-500 leading-relaxed">
           ⓘ ERA(평균자책점)·WHIP(이닝당 출루)·K/9(9이닝당 삼진) 모두 낮을수록 좋고,
           K/9 만 높을수록 좋습니다. 오늘 매치 결과의 가장 큰 변수.
         </p>
       )}
+    </div>
+  );
+}
+
+/** 선발 비교 1행 — 가운데 지표 라벨, 좌=원정·우=홈 막대(길이=값 비례, 우세=초록).
+ *  값이 하나라도 없으면(KBO/NPB 이름만인 경우) 행 생략. */
+function StarterStatBar({
+  label,
+  homeV,
+  awayV,
+  betterLow,
+  digits = 2,
+}: {
+  label: string;
+  homeV?: number;
+  awayV?: number;
+  betterLow?: boolean;
+  digits?: number;
+}) {
+  if (homeV == null || awayV == null) return null;
+  const max = Math.max(homeV, awayV, 0.0001);
+  const homeBetter = betterLow ? homeV < awayV : homeV > awayV;
+  const awayBetter = betterLow ? awayV < homeV : awayV > homeV;
+  const widthPct = (v: number) => `${Math.max(8, (v / max) * 100)}%`;
+  const num = (v: number, better: boolean, align: "left" | "right") => (
+    <span
+      className={`w-10 shrink-0 text-[11px] font-semibold tabular-nums ${
+        align === "right" ? "text-right" : "text-left"
+      } ${
+        better
+          ? "text-emerald-600 dark:text-emerald-400"
+          : "text-zinc-500 dark:text-white/45"
+      }`}
+    >
+      {v.toFixed(digits)}
+    </span>
+  );
+  const barCls = (better: boolean) =>
+    `h-1.5 rounded-full ${better ? "bg-emerald-500" : "bg-zinc-300 dark:bg-white/20"}`;
+  return (
+    <div className="flex items-center gap-2">
+      {num(awayV, awayBetter, "left")}
+      <div className="flex flex-1 justify-end">
+        <div className={barCls(awayBetter)} style={{ width: widthPct(awayV) }} />
+      </div>
+      <span className="w-11 shrink-0 text-center text-[10px] font-bold uppercase text-zinc-400 dark:text-white/35">
+        {label}
+      </span>
+      <div className="flex-1">
+        <div className={barCls(homeBetter)} style={{ width: widthPct(homeV) }} />
+      </div>
+      {num(homeV, homeBetter, "right")}
     </div>
   );
 }
