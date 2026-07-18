@@ -410,7 +410,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
     status: "PUBLISHED",
     league: leagueFilter,
   };
-  if (currentType !== "ALL") where.type = currentType;
+  // 분석 탭엔 감독 전술 연구(TACTICAL)도 포함 — 층은 다르지만 독자 관점에선 같은 심층 분석군.
+  if (currentType === "ANALYSIS") where.type = { in: ["ANALYSIS", "TACTICAL"] };
+  else if (currentType !== "ALL") where.type = currentType;
 
   // 정렬: PREVIEW / RECAP 은 매치 킥오프 desc (큰 날짜 = 최근/미래가 위로).
   // ALL / ANALYSIS 는 매치 없는 글(ANALYSIS) 도 섞이므로 발행순 유지.

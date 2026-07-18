@@ -1022,7 +1022,7 @@ export default async function ArticlePage({ params }: Props) {
       )}
 
       <AiConsensusWidget />
-      <RelatedArticles league={article.league} currentId={article.id} />
+      <RelatedArticles league={article.league} currentId={article.id} currentType={article.type} />
 
       <div className="mt-12 pt-6 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-sm">
         <Link

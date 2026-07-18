@@ -127,6 +127,8 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
   const normPerson = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
   let tacticalCtx: TacticalManagerContext | null = null;
   const tacticalArticles: Array<{ slug: string; title: string; publishedAt: Date | null; seasonLabel: string }> = [];
+  // 다른 감독 전술 연구 — 시리즈 크로스 링크 (팀당 최신 1편)
+  const otherManagerArticles: Array<{ slug: string; coachKo: string; teamKo: string }> = [];
   {
     const rows = await prisma.article.findMany({
       where: {
@@ -140,14 +142,19 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
     }).catch(() => []);
     const me = normPerson(snap.name);
     const myLast = me.split(" ").pop();
+    const seenTeams = new Set<number>();
     for (const r of rows) {
       try {
         const ctx = JSON.parse(r.tacticalContext!) as TacticalManagerContext;
         const other = normPerson(ctx.coach.name);
         const match = other === me || (other.split(" ").pop() === myLast && ctx.team.tsId === teamTsId);
-        if (!match) continue;
-        tacticalArticles.push({ slug: r.slug, title: r.title, publishedAt: r.publishedAt, seasonLabel: ctx.seasonLabel });
-        if (!tacticalCtx) tacticalCtx = ctx; // 최신 글의 집계를 대시보드로
+        if (match) {
+          tacticalArticles.push({ slug: r.slug, title: r.title, publishedAt: r.publishedAt, seasonLabel: ctx.seasonLabel });
+          if (!tacticalCtx) tacticalCtx = ctx; // 최신 글의 집계를 대시보드로
+        } else if (!seenTeams.has(ctx.team.id) && otherManagerArticles.length < 8) {
+          seenTeams.add(ctx.team.id);
+          otherManagerArticles.push({ slug: r.slug, coachKo: ctx.coach.nameKo, teamKo: ctx.team.nameKo });
+        }
       } catch {
         // 손상 JSON — 아카이브에서 제외
       }
@@ -384,6 +391,23 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
                 </li>
               ))}
             </ul>
+          )}
+          {otherManagerArticles.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 text-xs font-medium text-neutral-400">다른 감독 전술 연구</div>
+              <div className="flex flex-wrap gap-1.5">
+                {otherManagerArticles.map((a) => (
+                  <Link
+                    key={a.slug}
+                    href={`/articles/${a.slug}`}
+                    prefetch={false}
+                    className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-700 hover:border-blue-300 dark:border-neutral-800 dark:bg-white/[0.04] dark:text-neutral-300 dark:hover:border-blue-800"
+                  >
+                    {a.coachKo} · {a.teamKo}
+                  </Link>
+                ))}
+              </div>
+            </div>
           )}
         </section>
       )}
