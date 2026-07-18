@@ -12,6 +12,8 @@ import BaseballDiamond from "./scores/baseball/BaseballDiamond";
 import LiveCommentaryBox, {
   type LiveCommentaryData,
 } from "./live/LiveCommentaryBox";
+import LiveTickerFeed from "./live/LiveTickerFeed";
+import { baseballTickerLines } from "@/lib/live/ticker";
 import dynamic from "next/dynamic";
 
 // 라이브 승리확률 패널 — KBO 한정·51K 테이블 import 라 dynamic 으로 필요시에만 로드.
@@ -488,6 +490,20 @@ export default function BaseballLiveDetail({
           awayName={live.awayTeam.name}
         />
       )}
+
+      {/* 문자 중계 — linescore 를 한국어 반응 스트림으로 재구성 (폴링마다 자동 갱신) */}
+      {(() => {
+        const tickerLines = baseballTickerLines({
+          awayInnings: lsAway,
+          homeInnings: lsHome,
+          awayName: awayNameKo,
+          homeName: homeNameKo,
+          status: live.status,
+          awayTotal: awayScore,
+          homeTotal: homeScore,
+        });
+        return tickerLines.length > 0 ? <LiveTickerFeed lines={tickerLines} /> : null;
+      })()}
 
       {/* cache 없을 때 fallback — 공식 페이지 안내 */}
       {isLive && !live.liveContext && (

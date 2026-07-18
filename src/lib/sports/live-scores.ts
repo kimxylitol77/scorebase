@@ -1148,6 +1148,9 @@ export interface SoccerEvent {
   playerId: string | null;
   /** 어시스트/교체-OUT 선수의 ts player id. */
   assistId: string | null;
+  /** 골 incident 시점의 누적 스코어 (ts 원본 home_score/away_score) — 티커용. 골 외엔 null. */
+  homeScore?: number | null;
+  awayScore?: number | null;
 }
 
 /**
@@ -1236,7 +1239,9 @@ export function tsIncidentsToEvents(incidents: unknown, nameById?: Record<string
       continue; // 19, 11, 12, 26, 27, 15, 16 등 — skip
     }
 
-    out.push({ minute: time, extra, type, detail, side, playerName: loc(playerName, playerId), assistName: loc(assistName, assistId), playerId, assistId });
+    const incHomeScore = type === "goal" && typeof i.home_score === "number" ? i.home_score : null;
+    const incAwayScore = type === "goal" && typeof i.away_score === "number" ? i.away_score : null;
+    out.push({ minute: time, extra, type, detail, side, playerName: loc(playerName, playerId), assistName: loc(assistName, assistId), playerId, assistId, homeScore: incHomeScore, awayScore: incAwayScore });
   }
   // 최신 위로 정렬 (extra 포함)
   out.sort((a, b) => (b.minute * 100 + b.extra) - (a.minute * 100 + a.extra));

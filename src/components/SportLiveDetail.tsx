@@ -14,6 +14,8 @@ import SoccerEventsTimeline from "./live/SoccerEventsTimeline";
 import SoccerGoalsCard from "./live/SoccerGoalsCard";
 import SubstitutionImpactCard from "./live/SubstitutionImpactCard";
 import MatchEventTabs from "./live/MatchEventTabs";
+import LiveTickerFeed from "./live/LiveTickerFeed";
+import { soccerTickerLines } from "@/lib/live/ticker";
 
 // 축구 리그 집합 — SPORTS 단일 진실 (라이브 배당 카드 suppress 판정용)
 const VOLLEYBALL_SET = new Set(
@@ -97,6 +99,9 @@ interface SoccerEventItem {
   assistName: string | null;
   playerId?: string | null;
   assistId?: string | null;
+  /** 골 시점 누적 스코어 (ts incident 원본) — 문자 중계 티커용 */
+  homeScore?: number | null;
+  awayScore?: number | null;
 }
 
 interface MatchLive {
@@ -491,6 +496,18 @@ export default function SportLiveDetail({
                 playerLogoById={playerLogoById}
               />
             ),
+          });
+        // 문자 중계 — 이벤트를 한국어 반응 스트림으로 (첫 탭). 폴링(5초)마다 자동 갱신.
+        const tickerLines = soccerTickerLines(sev, homeNameKo, awayNameKo, {
+          finished: live?.status === "FINAL",
+          finalHome: live?.homeScore ?? null,
+          finalAway: live?.awayScore ?? null,
+        });
+        if (tickerLines.length > 0)
+          tabs.unshift({
+            key: "ticker",
+            label: "중계",
+            content: <LiveTickerFeed lines={tickerLines} />,
           });
         return tabs.length > 0 ? <MatchEventTabs tabs={tabs} /> : null;
       })()}
