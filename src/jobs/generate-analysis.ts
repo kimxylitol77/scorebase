@@ -12,6 +12,7 @@ import { buildWorldCupAnalysisPrompt } from "@/prompts/world-cup-analysis";
 import { buildSeasonContext } from "@/lib/predict/season-context";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import type { PredictMatch } from "@/lib/predict/types";
+import { toKoreanTeamName } from "@/lib/team-names";
 
 const RELEGATION_BY_LEAGUE: Record<string, number> = {
   EPL: 3,
@@ -163,8 +164,25 @@ export async function runAnalysis() {
           continue;
         }
 
+        // 비시즌 게이트 — 마지막 종료 경기가 14일+ 과거이고 3주 내 예정 경기도 없으면
+        // 시즌 종료로 판단하고 스킵. 최종 순위표를 "진행 중"으로 해석한 오류 글이
+        // 유럽 3리그 비시즌 동안 13편 자동 발행된 실측(2026-07-18) 재발 방지.
+        // 시즌 개막 직전(직전 시즌 종료 오래됐어도 예정 경기 있음)과 겨울 휴식기는 통과한다.
+        const now = Date.now();
+        const lastFinishedAt = dbMatches
+          .filter((m) => m.status === "FINISHED")
+          .reduce((max, m) => Math.max(max, m.startTime.getTime()), 0);
+        const hasUpcoming = dbMatches.some(
+          (m) => m.status === "SCHEDULED" && m.startTime.getTime() > now && m.startTime.getTime() < now + 21 * 86400_000,
+        );
+        if (now - lastFinishedAt > 14 * 86400_000 && !hasUpcoming) {
+          console.log(`[analysis] ${league} 비시즌(마지막 경기 ${Math.round((now - lastFinishedAt) / 86400_000)}일 전, 예정 없음) — 스킵`);
+          continue;
+        }
+
         const teams = await prisma.team.findMany({ where: { league } });
-        const nameById = new Map(teams.map((t) => [t.id, t.name]));
+        // 팀명은 한글로 주입 — 영문을 주면 모델이 스스로 음역하다 "아르센알" 류 오염(실측).
+        const nameById = new Map(teams.map((t) => [t.id, toKoreanTeamName(t.name, league) || t.name]));
 
         const context = buildSeasonContext(matches, league, {
           relegationCount: RELEGATION_BY_LEAGUE[league] ?? 0,
