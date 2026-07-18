@@ -84,6 +84,17 @@ const RAW: Record<string, string> = {
   "B. Silva": "베르나르두 실바", // af 축약 표기 (감독 전술 집계)
   "Pep Guardiola": "펩 과르디올라",
   "Josep Guardiola": "펩 과르디올라",
+  // ─── EPL 감독 (감독 전술 연구 아티클 — 25/26 실측 누락분) ───
+  "Arne Slot": "아르네 슬롯",
+  "Keith Andrews": "키스 앤드루스",
+  "Marco Silva": "마르쿠 실바",
+  "Rob Edwards": "롭 에드워즈",
+  "Calum McFarlane": "칼럼 맥팔레인",
+  "Enzo Maresca": "엔초 마레스카",
+  "Liam Rosenior": "리암 로즈니어",
+  "David Moyes": "데이비드 모예스",
+  "Scott Parker": "스콧 파커",
+  "Mike Jackson": "마이크 잭슨",
   "Rodri": "로드리",
   "Rúben Dias": "후벤 디아스",
   "Ruben Dias": "후벤 디아스",

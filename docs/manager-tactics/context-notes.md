@@ -21,4 +21,13 @@
 - **generateWithMinLength 가 model 옵션을 드랍하던 버그** 수정(genOpts 복사 누락) — sonnet 고정이 무효였음. 기존 호출자는 model 미사용이라 무영향.
 - **월간 잡 라인업 소스 = af 런타임 수집(af-lineup-fetch.ts).** Vercel 런타임은 data/ 쓰기 불가 + 새 시즌은 백필 파일 없음 → 그 달 30~40경기를 in-memory 수집(maxDuration 300).
 - **검수 경로.** DRAFT 는 공개 404 — admin/review/[id] 에 대시보드 미리보기 추가로 위젯 포함 검수 가능.
-- **배포 순서 (필수).** ① 사용자 Neon: `ALTER TABLE "Article" ADD COLUMN "tacticalContext" TEXT;` ② push 배포. 역순이면 Article 전체 조회가 P2022 로 죽는다(article page 는 include 사용).
+- **배포 순서 (필수).** ① 사용자 Neon: `ALTER TABLE "Article" ADD COLUMN "tacticalContext" TEXT;` ② push 배포. 역순이면 Article 전체 조회가 P2022 로 죽는다(article page 는 include 사용). → 07-18 실행 완료(ALTER 는 lock_timeout 5s 가드로 직접).
+
+## 2026-07-18 20팀 생성 후 발견 — af coach 필드 결함 (중요)
+
+**af /fixtures/lineups 의 coach 는 경기 당시 감독이 아니라 "현재(조회 시점) 감독"을 과거 라인업 전체에 도장 찍는다.** 실측 3건 + 웹 검증 완료.
+- 번리: 실제=파커 34경기→잭슨 대행 4경기. af=잭슨 38경기.
+- 첼시: 실제=마레스카 19→맥팔레인 2→로즈니어 13→맥팔레인 4. af=맥팔레인 38경기.
+- 에버턴: 실제=모예스 전 시즌(베인스는 수석코치). af=베인스 38경기 — 코치진이 찍히기도 함.
+- 영향: coachStints 는 af 만으로는 항상 단일 구간 — 경질 감지 불가. 시즌 결산 7편은 웹 검증 후 DB 직접 교정 완료(감독명·재임 분할·사진 불일치 제거). 월간 잡의 "월중 교체 제외" 가드도 같은 이유로 제한적 — 검수에서 감독명 확인.
+- coachPhoto 함정: enrich 는 team-coaches(현직) 사진을 쓰므로 감독이 바뀐 시즌 글엔 다른 인물 사진이 붙는다 → 교정 시 현직≠글 감독이면 사진 제거(마레스카처럼 타팀 현직 등록이 있으면 그 사진 재사용).

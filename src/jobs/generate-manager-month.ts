@@ -66,7 +66,9 @@ export async function runManagerMonth(opts: { dryRun?: boolean; month?: string }
   for (const teamId of teamIds) {
     try {
       const ctx = await aggregateTeamSeason({ league: LEAGUE, teamId, from, to, seasonLabel: label, lineups });
-      if (ctx.record.played >= MIN_PLAYED && ctx.coachStints.length === 1) candidates.push(ctx); // 월중 교체 팀 제외
+      // ⚠️ af coach 는 "현재 감독을 과거 라인업 전체에 도장" 하는 결함이 있어(25/26 첼시·번리 실측)
+      // stints 가드가 월중 교체를 못 잡을 수 있다 — 검수 시 감독명 확인 필요.
+      if (ctx.record.played >= MIN_PLAYED && ctx.coachStints.length === 1) candidates.push(ctx); // 월중 교체 팀 제외(제한적)
     } catch {
       // 라인업 매칭 0 등 — 후보 제외
     }
