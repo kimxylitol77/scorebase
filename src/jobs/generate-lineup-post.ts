@@ -132,12 +132,15 @@ function toVersusPlayers(
 }
 
 // 선발 명단 텍스트 — 포지션 그룹별 (GK → DF → MF → FW), 주장은 (C) 표기.
+// 포지션 미상(초기 도착분은 position 이 빈 값인 경우 실측 — 1136 김천 GK)은 "기타"로라도
+// 반드시 표기 — 그룹 필터에서 조용히 탈락해 명단이 10명이 되던 문제 방지.
 function xiLines(xi: TSFootballLineupPlayer[], names: Map<string, string | null>): string {
-  const groups: [string, string][] = [["G", "GK"], ["D", "DF"], ["M", "MF"], ["F", "FW"]];
+  const groups: [string, string][] = [["G", "GK"], ["D", "DF"], ["M", "MF"], ["F", "FW"], ["", "기타"]];
+  const knownLetters = new Set(["G", "D", "M", "F"]);
   return groups
     .map(([letter, label]) => {
       const list = xi
-        .filter((p) => p.position === letter)
+        .filter((p) => (letter === "" ? !knownLetters.has(p.position) : p.position === letter))
         .map((p) => `${playerKo(p.name, names.get(p.id))}${p.captain === 1 ? " (C)" : ""}`);
       return list.length ? `- ${label}: ${list.join(", ")}` : "";
     })
@@ -169,7 +172,7 @@ function pickXi(side: TSFootballLineupPlayer[] | undefined): TSFootballLineupPla
   return (side ?? []).filter((p) => p.first === 1);
 }
 
-async function buildPost(c: Candidate) {
+export async function buildPost(c: Candidate) {
   const homeKo = toKoreanTeamName(c.homeName, c.league) || c.homeName;
   const awayKo = toKoreanTeamName(c.awayName, c.league) || c.awayName;
   const homeXi = pickXi(c.lineup.lineup?.home);
@@ -245,7 +248,12 @@ export async function runGenerateLineupPost(opts?: { dryRun?: boolean }) {
   let candidates: Candidate[] = rows.flatMap((r) => {
     const lu = r.theSportsCache?.lineup as TsLineup | null;
     if (!lu || lu.confirmed !== 1) return [];
-    if (pickXi(lu.lineup?.home).length !== 11 || pickXi(lu.lineup?.away).length !== 11) return [];
+    const homeXi = pickXi(lu.lineup?.home);
+    const awayXi = pickXi(lu.lineup?.away);
+    if (homeXi.length !== 11 || awayXi.length !== 11) return [];
+    // GK 도착 게이트 — 초기 도착분은 position 이 비어 있어(1136 김천 실측) 명단·보드가 깨진다.
+    // 양팀 모두 G 가 잡힐 때까지 이번 런은 보류(다음 10분 런이 재시도).
+    if (!homeXi.some((p) => p.position === "G") || !awayXi.some((p) => p.position === "G")) return [];
     return [{ id: r.id, league: r.league, externalId: r.externalId, startTime: r.startTime, homeName: r.homeTeam.name, awayName: r.awayTeam.name, lineup: lu }];
   });
 
