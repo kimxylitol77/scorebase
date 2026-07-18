@@ -16,6 +16,11 @@ const SCOREBOARD_HOSTS = ["스코어보드.kr", "xn--hy1bm7m1yevrd8pq.kr"];
 // 한글 도메인은 브라우저가 punycode(xn--) host 헤더로 전송 → 둘 다 매칭.
 const SCOREBASE_COM_HOSTS = ["스코어베이스.com", "xn--9k3b13iba842abwcsvs.com"];
 
+// 운영자 집 IP — 본인 브라우저·맥북 작업·맥미니 봇이 한 IP 를 공유해 봇 합산 트래픽으로
+// 200/분을 넘는 순간 운영자 브라우저까지 1분 잠기던 것 면제 (2026-07-19 실측).
+// IP 변경 시 갱신 — TheSports whitelist 에 등록된 집 IP 와 같은 값.
+const RATE_LIMIT_EXEMPT_IPS = new Set(["86.38.94.116"]);
+
 export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const host = (req.headers.get("host") || "").toLowerCase();
@@ -40,16 +45,18 @@ export function middleware(req: NextRequest) {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
       "unknown";
-    const { allowed, retryAfterSec } = rateLimit(`scrape:${ip}`, {
-      max: 200, // 60초당 200요청 — 정상 브라우징+prefetch 여유, 스크래퍼만 초과
-      windowMs: 60_000,
-      lockMs: 60_000, // 초과 시 1분 차단
-    });
-    if (!allowed) {
-      return new NextResponse("Too Many Requests", {
-        status: 429,
-        headers: { "Retry-After": String(retryAfterSec) },
+    if (!RATE_LIMIT_EXEMPT_IPS.has(ip)) {
+      const { allowed, retryAfterSec } = rateLimit(`scrape:${ip}`, {
+        max: 200, // 60초당 200요청 — 정상 브라우징+prefetch 여유, 스크래퍼만 초과
+        windowMs: 60_000,
+        lockMs: 60_000, // 초과 시 1분 차단
       });
+      if (!allowed) {
+        return new NextResponse("Too Many Requests", {
+          status: 429,
+          headers: { "Retry-After": String(retryAfterSec) },
+        });
+      }
     }
   }
 
