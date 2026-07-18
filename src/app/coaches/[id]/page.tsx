@@ -13,6 +13,9 @@ import AmbientGlow from "@/components/AmbientGlow";
 import rawCoaches from "../../../../data/team-coaches.json";
 import rawCareers from "../../../../data/coach-careers.json";
 import rawHonors from "../../../../data/coach-honors.json";
+import TacticalManagerSection from "@/components/TacticalManagerSection";
+import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
+import { formatDateKo } from "@/lib/format";
 
 // ISR — 감독 정보·경력은 거의 불변. 10분 캐시.
 export const revalidate = 600;
@@ -117,6 +120,40 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
       if (recentFormations.length >= 5) break;
     }
   }
+  // 전술 연구 — 이 감독을 다룬 TACTICAL 아티클 누적 (글=시점 스냅샷, 이 페이지=위키형 허브).
+  // 매칭은 감독 이름 기준(팀 기준이면 전임 감독 시즌 글이 새 감독 페이지에 붙는 오류).
+  // 이름 표기 차(Pep/Josep)는 성 일치 + 현 소속팀 일치로 보정. DRAFT 는 공개 404 라
+  // 프로덕션은 PUBLISHED 만 — 개발 환경에서만 DRAFT 포함(검수 전 확인용).
+  const normPerson = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
+  let tacticalCtx: TacticalManagerContext | null = null;
+  const tacticalArticles: Array<{ slug: string; title: string; publishedAt: Date | null; seasonLabel: string }> = [];
+  {
+    const rows = await prisma.article.findMany({
+      where: {
+        type: "TACTICAL",
+        status: process.env.NODE_ENV === "production" ? "PUBLISHED" : { in: ["PUBLISHED", "DRAFT"] },
+        tacticalContext: { not: null },
+      },
+      orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
+      select: { slug: true, title: true, publishedAt: true, tacticalContext: true },
+      take: 60,
+    }).catch(() => []);
+    const me = normPerson(snap.name);
+    const myLast = me.split(" ").pop();
+    for (const r of rows) {
+      try {
+        const ctx = JSON.parse(r.tacticalContext!) as TacticalManagerContext;
+        const other = normPerson(ctx.coach.name);
+        const match = other === me || (other.split(" ").pop() === myLast && ctx.team.tsId === teamTsId);
+        if (!match) continue;
+        tacticalArticles.push({ slug: r.slug, title: r.title, publishedAt: r.publishedAt, seasonLabel: ctx.seasonLabel });
+        if (!tacticalCtx) tacticalCtx = ctx; // 최신 글의 집계를 대시보드로
+      } catch {
+        // 손상 JSON — 아카이브에서 제외
+      }
+    }
+  }
+
   const formationSummary = (() => {
     if (!recentFormations.length) return null;
     const cnt = new Map<string, number>();
@@ -321,6 +358,32 @@ export default async function CoachPage({ params }: { params: Promise<{ id: stri
               <div className="text-[11px] text-neutral-400 mb-0.5">최근 {recentFormations.length}경기 실제 포메이션</div>
               <div className="text-xl font-black tabular-nums">{formationSummary}</div>
             </div>
+          )}
+        </section>
+      )}
+
+      {/* 전술 연구 — 시즌 집계 대시보드 + 글 아카이브 (감독 축 위키형 허브, 글이 늘수록 누적) */}
+      {tacticalCtx && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3 break-keep">전술 연구</h2>
+          <TacticalManagerSection ctx={tacticalCtx} />
+          {tacticalArticles.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {tacticalArticles.map((a) => (
+                <li key={a.slug}>
+                  <Link
+                    href={`/articles/${a.slug}`}
+                    prefetch={false}
+                    className="group flex items-baseline justify-between gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-white/[0.04] hover:border-blue-300 dark:hover:border-blue-800"
+                  >
+                    <span className="min-w-0 truncate text-sm font-semibold group-hover:underline break-keep">{a.title}</span>
+                    <span className="shrink-0 text-[11px] text-neutral-400 tabular-nums">
+                      {a.seasonLabel}{a.publishedAt ? ` · ${formatDateKo(a.publishedAt)}` : ""}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
       )}
