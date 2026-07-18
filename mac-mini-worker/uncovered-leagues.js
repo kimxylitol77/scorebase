@@ -1,5 +1,6 @@
 // TheSports 각 종목 일정(diary)을 훑어 우리가 아직 매핑 안 한 대회 중 새로 등장한 것만
-// 텔레그램으로 알린다. 축구·야구·농구·배구·아이스하키 5종목. 매일 1회(launchd), 신규 없으면 조용히 종료.
+// 텔레그램으로 알린다. 축구·야구·농구·배구·아이스하키 5종목 + LoL(커버팀 등장 게이트).
+// 매일 1회(launchd), 신규 없으면 조용히 종료.
 //
 // 흐름(종목별):
 //   1) /v1/{sport}/match/diary 를 -1~+3일 sweep → 대회id 집계 + 이름(results_extra)
@@ -259,6 +260,79 @@ async function collectSport(sport, snapshotKo, countryName, compCountry) {
   return candidates;
 }
 
+// ── LoL — 대회마다 ts uuid 가 새로 발급되는데 매핑이 수동이라 통째 누락 사고 반복 (EWC 본선·KeSPA Cup, 2026-07-18).
+// 커버 집합 = lightsail-worker/lol-collector.js TOURNAMENTS (단일 진실, 정규식 파싱).
+// 관련성 게이트 = 커버 팀(TS_LOL_TEAMS + LEC/LCS 순위 json) 등장 or 메이저 대회명 — 마이너 지역리그 노이즈 차단.
+const LOL_COLLECTOR_PATH = path.resolve(__dirname, "../lightsail-worker/lol-collector.js");
+const LOL_TEAMS_TS_PATH = path.resolve(__dirname, "../src/lib/sports/lol-thesports.ts");
+const LOL_MAJOR_RE = /lck|\blec\b|\blcs\b|\blpl\b|msi|mid-season|worlds|world championship|esports world cup|kespa|first stand/i;
+
+function loadLolCovered() {
+  const src = fs.readFileSync(LOL_COLLECTOR_PATH, "utf8");
+  const m = src.match(/const TOURNAMENTS = \[([^\]]*)\]/);
+  if (!m) throw new Error("lol-collector.js TOURNAMENTS 파싱 실패");
+  return new Set([...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]));
+}
+
+function loadLolTeams() {
+  const ids = new Set();
+  const src = fs.readFileSync(LOL_TEAMS_TS_PATH, "utf8");
+  // TS_LOL_TEAMS 항목 = `"uuid": { name: "..."` 또는 `uuid: { name: "..."` 줄만 매치 (토너먼트 매핑은 값이 문자열이라 제외됨)
+  for (const m of src.matchAll(/^\s*"?([A-Za-z0-9]+)"?:\s*\{ name: "/gm)) ids.add(m[1]);
+  // LPL json 은 그룹 구조(standings 키 없음)라 제외 — LPL 대회는 LOL_MAJOR_RE 로 감지
+  for (const f of ["lol-standings-LEC.json", "lol-standings-LCS.json"]) {
+    try {
+      const d = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../data/" + f), "utf8"));
+      for (const t of d.standings ?? []) if (t.teamId) ids.add(t.teamId);
+    } catch {
+      /* 파일 없으면 생략 */
+    }
+  }
+  return ids;
+}
+
+async function collectLol() {
+  const covered = loadLolCovered();
+  const ourTeams = loadLolTeams();
+  const counts = new Map();
+  const hitTeams = new Map();
+  const nameOf = new Map();
+  let total = 0;
+  for (const off of SWEEP_OFFSETS) {
+    try {
+      const { data } = await axios.get(`${TS_BASE}/v1/lol/match/diary`, {
+        params: { user: TS_USER, secret: TS_SECRET, tsp: kstMidnightTsp(off) },
+        timeout: 30_000,
+      });
+      if (data.code !== 0) throw new Error(`lol diary code=${data.code}`);
+      for (const t of data.results_extra?.tournament ?? []) if (t.id && !nameOf.has(t.id)) nameOf.set(t.id, t.name);
+      const rs = Array.isArray(data.results) ? data.results : [];
+      total += rs.length;
+      for (const r of rs) {
+        const tid = r.tournament_id;
+        if (!tid) continue;
+        counts.set(tid, (counts.get(tid) || 0) + 1);
+        const hit = (ourTeams.has(r.home_team_id) ? 1 : 0) + (ourTeams.has(r.away_team_id) ? 1 : 0);
+        if (hit) hitTeams.set(tid, (hitTeams.get(tid) || 0) + hit);
+      }
+    } catch (e) {
+      console.error(`  [lol] off ${off}: ${e.message}`);
+    }
+  }
+  const candidates = [];
+  for (const [tid, n] of counts) {
+    if (covered.has(tid)) continue;
+    const en = nameOf.get(tid) || "";
+    const hits = hitTeams.get(tid) || 0;
+    if (!hits && !(en && LOL_MAJOR_RE.test(en))) continue;
+    const label = hits ? `${en || "(이름 미상)"} · 커버팀 ${hits}회 등장` : en || "(이름 미상)";
+    candidates.push({ cid: tid, n, en, country: "", label });
+  }
+  candidates.sort((a, b) => b.n - a.n);
+  console.error(`[lol] 매치 ${total}, 미커버 후보 ${candidates.length}`);
+  return candidates;
+}
+
 // 축구 대회 id→country_id 맵. competition/additional/list 순회(3페이지, ~2600개).
 // 타종목은 이 API 가 미인가라 국가 병기 불가 — 축구 전용.
 async function fetchFootballCompetitionCountry() {
@@ -320,6 +394,15 @@ async function main() {
     perSport.push({ sport, candidates });
   }
 
+  // LoL — SPORTS 공통 경로와 달리 커버팀 등장 게이트가 있어 전용 수집기 사용
+  if (!ONLY_SPORT || ONLY_SPORT === "lol") {
+    try {
+      perSport.push({ sport: { key: "lol", label: "LoL" }, candidates: await collectLol() });
+    } catch (e) {
+      console.error(`[lol] 수집 실패: ${e.message}`);
+    }
+  }
+
   if (DRY) {
     for (const { sport, candidates } of perSport) {
       console.log(`\n=== [${sport.label}] 미커버 후보 ${candidates.length}개 ===`);
@@ -372,7 +455,7 @@ async function main() {
       severity: "INFO",
       title: `미커버 대회 ${totalNew}개 신규 감지`,
       message: lines.join("\n"),
-      action: "커버 가치 있으면 매핑에 추가 (축구=league-id-mapping.json, 타종목=해당 collector COMP_TO_LEAGUE)",
+      action: "커버 가치 있으면 매핑에 추가 (축구=league-id-mapping.json, LoL=lol-thesports.ts+lol-collector.js TOURNAMENTS, 타종목=해당 collector COMP_TO_LEAGUE)",
     });
   }
 
