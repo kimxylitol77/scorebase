@@ -15,6 +15,8 @@
 
 require("dotenv").config({ path: "/home/ubuntu/.env" });
 const axios = require("axios");
+// 내부 워커 UA — 미들웨어 rate limit 면제(bot-detect "scorebase-monitor" 매칭, b25a72a 참조).
+axios.defaults.headers.common["User-Agent"] = "scorebase-monitor/1.0 (kbo-player-names-cron)";
 
 const TS_BASE = "https://api.thesports.com";
 const TS_USER = process.env.THESPORTS_USER;
