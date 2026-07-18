@@ -7,6 +7,7 @@ import { Info } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { xgFairnessPct } from "@/lib/xg/outcome";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 
@@ -147,6 +148,19 @@ const TONE_CLS: Record<Tone, string> = {
   live: "bg-rose-600 text-white",
 };
 
+// 결과 부합도 — 이 xG 내용이면 실제 결과가 나올 확률. 낮을수록 이변·불운.
+function fairnessOf(r: XgRow): number | null {
+  if (r.status === "LIVE") return null;
+  if (r.homeXg == null || r.awayXg == null || r.homeScore == null || r.awayScore == null) return null;
+  return xgFairnessPct(r.homeXg, r.awayXg, r.homeScore, r.awayScore);
+}
+
+function fairnessCls(pct: number): string {
+  if (pct >= 50) return "text-emerald-600 dark:text-emerald-400";
+  if (pct >= 25) return "text-amber-600 dark:text-amber-400";
+  return "text-rose-600 dark:text-rose-400";
+}
+
 function xgCell(r: XgRow) {
   const h = r.homeXg;
   const a = r.awayXg;
@@ -208,11 +222,12 @@ export default async function WorldCupXgPage() {
             <div>경기</div>
             <div className="text-center">스코어</div>
             <div className="text-center">xG (홈–원정)</div>
-            <div className="text-right">판정</div>
+            <div className="text-right">판정 · 부합도</div>
           </div>
           <ul className="divide-y divide-black/5 dark:divide-white/5">
             {rows.map((r) => {
               const v = verdict(r);
+              const fair = fairnessOf(r);
               const score =
                 r.homeScore != null && r.awayScore != null
                   ? `${r.homeScore} - ${r.awayScore}`
@@ -226,12 +241,19 @@ export default async function WorldCupXgPage() {
                   >
                     {/* mobile */}
                     <div className="md:hidden space-y-1">
-                      <div className="flex items-center justify-between text-[11px] text-neutral-500">
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-500">
                         <span>{kstDate(r.startTime)}</span>
-                        <span
-                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${TONE_CLS[v.tone]}`}
-                        >
-                          {v.label}
+                        <span className="inline-flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${TONE_CLS[v.tone]}`}
+                          >
+                            {v.label}
+                          </span>
+                          {fair != null && (
+                            <span className={`text-[10px] font-bold tabular-nums ${fairnessCls(fair)}`}>
+                              부합 {fair}%
+                            </span>
+                          )}
                         </span>
                       </div>
                       <div className="text-sm font-medium truncate">
@@ -268,6 +290,11 @@ export default async function WorldCupXgPage() {
                         >
                           {v.label}
                         </span>
+                        {fair != null && (
+                          <div className={`mt-0.5 text-[10px] font-bold tabular-nums ${fairnessCls(fair)}`}>
+                            부합 {fair}%
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Link>
@@ -290,7 +317,9 @@ export default async function WorldCupXgPage() {
         <p className="text-sm leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           이 표의 <strong>판정</strong>은 xG 우위 팀과 실제 승자를 비교한 것입니다. 둘이 다르면
           <strong> 이변</strong>, 같으면 <strong>xG대로</strong>, xG 차가 작으면 <strong>팽팽</strong>으로
-          표시합니다. 경기를 누르면 라인업·팀 통계·모멘텀 상세로 이동합니다.
+          표시합니다. <strong>부합도</strong>는 양 팀 xG 를 기대득점으로 한 포아송 모델에서 실제
+          결과(승·무·패)가 나올 확률입니다 — 낮을수록 내용과 동떨어진 결과, 즉 이변이나 불운입니다.
+          경기를 누르면 라인업·팀 통계·모멘텀 상세로 이동합니다.
         </p>
         <p className="text-sm leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           우승 확률·진출 시뮬레이션은{" "}
