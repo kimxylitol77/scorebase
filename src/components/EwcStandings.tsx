@@ -17,10 +17,16 @@ interface TeamAgg {
   setsL: number;
 }
 
-const fmtDate = (d: Date) =>
-  `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-const fmtTime = (d: Date) =>
-  `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+// KST 고정 — 서버 TZ(Vercel=UTC)를 따라가면 "시간 KST" 라벨과 어긋난다.
+const KST_MS = 9 * 3600_000;
+const fmtDate = (d: Date) => {
+  const k = new Date(d.getTime() + KST_MS);
+  return `${String(k.getUTCMonth() + 1).padStart(2, "0")}.${String(k.getUTCDate()).padStart(2, "0")}`;
+};
+const fmtTime = (d: Date) => {
+  const k = new Date(d.getTime() + KST_MS);
+  return `${String(k.getUTCHours()).padStart(2, "0")}:${String(k.getUTCMinutes()).padStart(2, "0")}`;
+};
 
 export default async function EwcStandings({ name }: { name: string }) {
   const matches = await prisma.match.findMany({
