@@ -270,8 +270,12 @@ export default async function StandingsPage({ params }: Props) {
     rows = calc.rows.map((r) => ({ ...r, promotionColor: undefined, promotionName: undefined }));
   }
 
-  // 팀 DB lookup
-  const teamIds = rows!.map((r) => r.teamId);
+  // xG 심화(기대 승점) — 축구 리그 중 xG 커버리지 90%+ 만 노출 (부분 커버는 xPTS 누계 왜곡).
+  const xgTable = isSoccerLeague ? await buildXgTable(matches) : null;
+
+  // 팀 DB lookup — 본 순위표 + xG 표 팀 합집합 (MLS 처럼 ts 표가 컨퍼런스 1개만 줄 때
+  // xG 표의 나머지 컨퍼런스 팀이 조회에서 빠져 행이 사라지는 것 방지).
+  const teamIds = [...new Set([...rows!.map((r) => r.teamId), ...(xgTable?.rows.map((r) => r.teamId) ?? [])])];
   const teams = await prisma.team.findMany({
     where: { id: { in: teamIds } },
     select: { id: true, name: true, shortName: true, logoUrl: true },
@@ -281,9 +285,6 @@ export default async function StandingsPage({ params }: Props) {
   // 시즌 리더보드 (득점왕·도움왕 등) — DB cron 이 매일 채움. 데이터 있는 리그만 노출.
   const { rowsByCategory: leaderRows, season: leaderSeason } = await loadLeagueLeaderboard(upper);
   const hasLeaders = Object.keys(leaderRows).length > 0;
-
-  // xG 심화(기대 승점) — 축구 리그 중 xG 커버리지 90%+ 만 노출 (부분 커버는 xPTS 누계 왜곡).
-  const xgTable = isSoccerLeague ? await buildXgTable(matches) : null;
 
   // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
