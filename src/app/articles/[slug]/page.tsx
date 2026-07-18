@@ -27,6 +27,8 @@ import { fetchFixtureOdds, type FixtureOdds } from "@/lib/odds/api-sports-odds";
 import { loadBaseballOdds, type BaseballLiveOdds } from "@/lib/odds/baseball-ts-odds";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import TeamOfDayPitch from "@/components/TeamOfDayPitch";
+import TacticalManagerSection from "@/components/TacticalManagerSection";
+import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
 import { getTeamOfDay, parseXiTableNames, TOD_ARTICLE_SLUG_PREFIX } from "@/lib/sports/thesports/team-of-day";
 import { parseStarSlug } from "@/lib/sports/thesports/wc-star-report";
 import { playerOverrideNameKo } from "@/lib/sports/thesports/world-cup-player-stats";
@@ -868,6 +870,15 @@ export default async function ArticlePage({ params }: Props) {
           이후 갱신될 수 있어, 아래 실시간 위젯과 차이가 있을 수 있습니다.</span>
         </p>
       )}
+      {/* 감독 전술 연구(TACTICAL) — 본문 위 전술 대시보드. generate-manager-review 가 tacticalContext 저장. */}
+      {article.tacticalContext && (() => {
+        try {
+          return <TacticalManagerSection ctx={JSON.parse(article.tacticalContext) as TacticalManagerContext} />;
+        } catch {
+          return null;
+        }
+      })()}
+
       <Markdown>{article.content}</Markdown>
 
       {/* 데이터 출처 + 저작권 */}

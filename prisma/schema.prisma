@@ -415,6 +415,9 @@ model Article {
   // 야구(KBO/MLB/NPB) PREVIEW/RECAP — 이닝별 득점 확률 + 총 예상 득점 + 모델
   // 승률 (Poisson + Skellam). 페이지에서 JSON.parse 후 InningScoreChart 렌더.
   baseballContext String? // JSON: { inningScoreProbs, totalExpectedRuns, winProbPoisson }
+  // 전술 아티클(감독 연구) 위젯 JSON — TacticalManagerContext (src/lib/tactical/manager-aggregate.ts).
+  // 컬럼 추가는 db push 금지 관례 — Neon SQL 직접: ALTER TABLE "Article" ADD COLUMN "tacticalContext" TEXT;
+  tacticalContext String?
 
   match Match? @relation(fields: [matchId], references: [id])
 

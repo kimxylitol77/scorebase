@@ -81,6 +81,9 @@ const RAW: Record<string, string> = {
   "Kevin De Bruyne": "케빈 더 브라위너",
   "Phil Foden": "필 포든",
   "Bernardo Silva": "베르나르두 실바",
+  "B. Silva": "베르나르두 실바", // af 축약 표기 (감독 전술 집계)
+  "Pep Guardiola": "펩 과르디올라",
+  "Josep Guardiola": "펩 과르디올라",
   "Rodri": "로드리",
   "Rúben Dias": "후벤 디아스",
   "Ruben Dias": "후벤 디아스",

@@ -1,0 +1,470 @@
+// 감독 전술 연구 집계 — 백필 라인업(data/manager-lineups-*.json, af grid)·DB xG·스코어·샷맵을
+// 팀/감독 축으로 묶는다. 시즌 결산(generate-manager-review)·월간 이달의 감독(generate-manager-month) 공용.
+// 기간(from/to)만 바꾸면 월간 집계가 된다. 평균 포지션은 detail 끼워맞춤이 아니라 af grid 실데이터 평균.
+import { readFileSync, existsSync } from "fs";
+import path from "path";
+import { prisma } from "@/lib/db";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
+import { parseXg } from "./data-gate";
+
+// ============================================================
+// 데이터 파일 로드
+// ============================================================
+
+export interface BackfilledPlayer { id: number; name: string; number: number; pos: string; grid: string | null }
+export interface BackfilledSide { team: string; formation: string | null; coach: string | null; startXI: BackfilledPlayer[] }
+export interface BackfilledLineup { matchId: number; afFixtureId: number; date: string; home: BackfilledSide; away: BackfilledSide }
+
+interface ShotmapShot { pid: string; name: string; team: string; x: number; y: number; min: number; result: string; xg: number; sit: string; part: string }
+interface ShotmapMatch { date: string; home: { id: string; name: string; score: number }; away: { id: string; name: string; score: number }; shots: ShotmapShot[] }
+
+function dataPath(file: string): string {
+  return path.join(process.cwd(), "data", file);
+}
+
+export function loadBackfilledLineups(league: string): BackfilledLineup[] {
+  const p = dataPath(`manager-lineups-${league.toLowerCase()}-2526.json`);
+  if (!existsSync(p)) throw new Error(`백필 라인업 없음: ${p} — scripts/backfill-af-lineups.ts 먼저 실행`);
+  return JSON.parse(readFileSync(p, "utf8"));
+}
+
+function loadShotmaps(league: string): Record<string, ShotmapMatch> {
+  const p = dataPath(`match-shotmaps-${league.toLowerCase().replace(/_/g, "-")}-2526.json`);
+  return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : {};
+}
+
+// ============================================================
+// 팀명 정규화 — af·TheStatsAPI·우리 Team.name 3계 통일
+// ============================================================
+const TEAM_ALIAS: Record<string, string> = {
+  wolves: "wolverhampton",
+  wolverhamptonwanderers: "wolverhampton",
+  newcastleunited: "newcastle",
+  leedsunited: "leeds",
+  westhamunited: "westham",
+  tottenhamhotspur: "tottenham",
+  brightonhovealbion: "brighton",
+  afcbournemouth: "bournemouth",
+  burnleyfc: "burnley",
+};
+export function normTeam(s: string): string {
+  const n = s.toLowerCase().replace(/[^a-z]/g, "");
+  return TEAM_ALIAS[n] ?? n;
+}
+
+function normName(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+// ============================================================
+// af grid → 풀피치 좌표 (x 0~100 가로, y 0~100 자기 골문→상대 골문)
+// row 1 = GK. 같은 row 안에서 col 은 1부터 — af 는 왼쪽부터 번호.
+// ============================================================
+function gridToXY(xi: BackfilledPlayer[]): Map<number, { x: number; y: number }> {
+  const rows = new Map<number, BackfilledPlayer[]>();
+  for (const p of xi) {
+    if (!p.grid) continue;
+    const r = Number(p.grid.split(":")[0]);
+    if (!rows.has(r)) rows.set(r, []);
+    rows.get(r)!.push(p);
+  }
+  const maxRow = Math.max(...rows.keys());
+  const out = new Map<number, { x: number; y: number }>();
+  for (const [r, players] of rows) {
+    const size = players.length;
+    for (const p of players) {
+      const c = Number(p.grid!.split(":")[1]);
+      const x = size === 1 ? 50 : ((c - 0.5) / size) * 100;
+      const y = r === 1 ? 8 : 8 + ((r - 1) / (maxRow - 1)) * 80;
+      out.set(p.id, { x: Math.round(x), y: Math.round(y) });
+    }
+  }
+  return out;
+}
+
+// ============================================================
+// 집계 결과 타입 (tacticalContext 로 직렬화되는 공용 계약)
+// ============================================================
+export interface TeamMatchRow {
+  matchId: number;
+  date: string; // YYYY-MM-DD
+  opponent: string;
+  opponentKo: string;
+  homeAway: "H" | "A";
+  formation: string | null;
+  coach: string | null;
+  gf: number;
+  ga: number;
+  result: "W" | "D" | "L";
+  xgFor: number | null;
+  xgAgainst: number | null;
+}
+
+export interface FormationUsage {
+  formation: string;
+  count: number;
+  w: number; d: number; l: number;
+  gf: number; ga: number;
+  xgFor: number; xgAgainst: number; // 평균
+}
+
+export interface CoachStint {
+  coach: string;
+  coachKo: string;
+  from: string; to: string;
+  played: number; w: number; d: number; l: number;
+  ppg: number;
+}
+
+export interface XiPlayer {
+  afId: number;
+  name: string;
+  nameKo: string;
+  tsPid: string | null;
+  pos: string; // G | D | M | F
+  x: number; y: number; // 시즌 평균 실좌표
+  starts: number;
+}
+
+export interface ShotAgg {
+  shots: number;
+  goals: number;
+  xg: number;
+  insideBoxShare: number; // 0~1
+  bySituation: Record<string, number>;
+  topShooters: { name: string; nameKo: string; shots: number; goals: number; xg: number }[];
+}
+
+/** Article.tacticalContext 직렬화 계약 — 집계 + 렌더 전용 부가 필드(잡이 채움). */
+export type TacticalManagerContext = ManagerSeasonAggregate & {
+  /** /lineup?d= 전술판 빌더 프리로드 코드 (encodeBoard 산출) */
+  lineupCode?: string;
+  /** af 선수 id → 사진 URL (TheSportsPlayer.photoUrl) */
+  photoByAf?: Record<number, string>;
+  coachPhoto?: string | null;
+};
+
+export interface ManagerSeasonAggregate {
+  league: string;
+  seasonLabel: string;
+  team: { id: number; name: string; nameKo: string; tsId: string | null };
+  coach: { name: string; nameKo: string; preferredFormation: string | null };
+  record: { played: number; w: number; d: number; l: number; gf: number; ga: number; points: number; rank: number };
+  coachStints: CoachStint[];
+  formations: FormationUsage[];
+  mostUsedXi: { formation: string; players: XiPlayer[] };
+  topStarters: XiPlayer[]; // 선발 횟수 상위 14 (XI 밖 로테이션 포함)
+  xiChanges: { avgPerMatch: number; everPresent: string[] };
+  matches: TeamMatchRow[];
+  monthly: { month: string; played: number; w: number; d: number; l: number; gf: number; ga: number; xgFor: number; xgAgainst: number }[];
+  shotProfile: { for: ShotAgg; against: ShotAgg } | null;
+  goalsFor: { x: number; y: number; min: number; name: string; nameKo: string; xg: number; sit: string }[]; // 샷맵 위젯용
+}
+
+// ============================================================
+// 리그 테이블 (rank·대상 팀 선정 공용)
+// ============================================================
+export async function computeLeagueTable(
+  league: string,
+  from: Date,
+  to: Date,
+): Promise<{ teamId: number; points: number; gd: number; gf: number }[]> {
+  const ms = await prisma.match.findMany({
+    where: { league, status: "FINISHED", startTime: { gte: from, lte: to } },
+    select: { homeTeamId: true, awayTeamId: true, homeScore: true, awayScore: true },
+  });
+  const pts = new Map<number, { p: number; gd: number; gf: number }>();
+  const add = (id: number, p: number, gf: number, ga: number) => {
+    const cur = pts.get(id) ?? { p: 0, gd: 0, gf: 0 };
+    pts.set(id, { p: cur.p + p, gd: cur.gd + gf - ga, gf: cur.gf + gf });
+  };
+  for (const m of ms) {
+    if (m.homeScore == null || m.awayScore == null) continue;
+    const hp = m.homeScore > m.awayScore ? 3 : m.homeScore === m.awayScore ? 1 : 0;
+    add(m.homeTeamId, hp, m.homeScore, m.awayScore);
+    add(m.awayTeamId, hp === 3 ? 0 : hp === 1 ? 1 : 3, m.awayScore, m.homeScore);
+  }
+  return [...pts.entries()]
+    .sort((a, b) => b[1].p - a[1].p || b[1].gd - a[1].gd || b[1].gf - a[1].gf)
+    .map(([teamId, v]) => ({ teamId, points: v.p, gd: v.gd, gf: v.gf }));
+}
+
+async function computeRank(league: string, from: Date, to: Date, teamId: number): Promise<number> {
+  const table = await computeLeagueTable(league, from, to);
+  return table.findIndex((r) => r.teamId === teamId) + 1;
+}
+
+// ============================================================
+// 메인 집계
+// ============================================================
+export async function aggregateTeamSeason(opts: {
+  league: string;
+  teamId: number;
+  from?: Date;
+  to?: Date;
+  seasonLabel?: string;
+  /** 라인업 소스 주입 — 미지정 시 백필 파일(25/26 결산). 월간 잡은 af 런타임 수집분을 넘긴다. */
+  lineups?: BackfilledLineup[];
+}): Promise<ManagerSeasonAggregate> {
+  const { league, teamId } = opts;
+  const from = opts.from ?? new Date("2025-08-01");
+  const to = opts.to ?? new Date("2026-06-15");
+  const seasonLabel = opts.seasonLabel ?? "2025-26";
+
+  const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId }, select: { id: true, name: true, nameKo: true } });
+  const teamNorm = normTeam(team.name);
+  const teamKo = toKoreanTeamName(team.name, league) || team.nameKo || team.name;
+  const tsMap = await prisma.teamSourceId.findFirst({ where: { league, teamId, source: "thesports" }, select: { externalId: true } });
+  const tsId = tsMap?.externalId ?? null;
+
+  // 1) 라인업(주입분 또는 백필 파일)에서 이 팀 경기 추출 + DB 스코어·xG 조인
+  const lineups = (opts.lineups ?? loadBackfilledLineups(league)).filter((l) => {
+    const d = new Date(l.date);
+    return d >= from && d <= to && (normTeam(l.home.team) === teamNorm || normTeam(l.away.team) === teamNorm);
+  });
+  const dbRows = await prisma.match.findMany({
+    where: { id: { in: lineups.map((l) => l.matchId) } },
+    select: { id: true, homeScore: true, awayScore: true, fixtureStats: true },
+  });
+  const dbById = new Map(dbRows.map((r) => [r.id, r]));
+
+  interface Enriched { row: TeamMatchRow; side: BackfilledSide; xy: Map<number, { x: number; y: number }> }
+  const enriched: Enriched[] = [];
+  for (const l of lineups.sort((a, b) => a.date.localeCompare(b.date))) {
+    const isHome = normTeam(l.home.team) === teamNorm;
+    const side = isHome ? l.home : l.away;
+    const oppSide = isHome ? l.away : l.home;
+    const db = dbById.get(l.matchId);
+    if (!db || db.homeScore == null || db.awayScore == null) continue;
+    const gf = isHome ? db.homeScore : db.awayScore;
+    const ga = isHome ? db.awayScore : db.homeScore;
+    const xg = parseXg(db.fixtureStats);
+    enriched.push({
+      row: {
+        matchId: l.matchId,
+        date: l.date.slice(0, 10),
+        opponent: oppSide.team,
+        opponentKo: toKoreanTeamName(oppSide.team, league) || oppSide.team,
+        homeAway: isHome ? "H" : "A",
+        formation: side.formation,
+        coach: side.coach,
+        gf, ga,
+        result: gf > ga ? "W" : gf === ga ? "D" : "L",
+        xgFor: isHome ? xg.home : xg.away,
+        xgAgainst: isHome ? xg.away : xg.home,
+      },
+      side,
+      xy: gridToXY(side.startXI),
+    });
+  }
+  if (!enriched.length) throw new Error(`집계 대상 경기 0 (${team.name}, ${from.toISOString().slice(0, 10)}~)`);
+
+  // 2) 전적·순위
+  const rec = { played: enriched.length, w: 0, d: 0, l: 0, gf: 0, ga: 0, points: 0, rank: 0 };
+  for (const { row } of enriched) {
+    rec.gf += row.gf; rec.ga += row.ga;
+    if (row.result === "W") { rec.w++; rec.points += 3; }
+    else if (row.result === "D") { rec.d++; rec.points += 1; }
+    else rec.l++;
+  }
+  rec.rank = await computeRank(league, from, to, teamId);
+
+  // 3) 감독 재임 구간 (연속 그룹핑 — 중도 경질 감지)
+  const coaches: Record<string, { name: string; nameKo?: string | null; preferredFormation?: string | null }> = existsSync(dataPath("team-coaches.json"))
+    ? JSON.parse(readFileSync(dataPath("team-coaches.json"), "utf8"))
+    : {};
+  const coachKo = (name: string | null): string => {
+    if (!name) return "감독 미상";
+    const n = normName(name);
+    let hit = Object.values(coaches).find((c) => normName(c.name) === n);
+    if (!hit) {
+      // af 표기 차이(Pep vs Josep 등) — 성 유일 일치 폴백
+      const last = n.split(" ").pop()!;
+      const byLast = Object.values(coaches).filter((c) => normName(c.name).split(" ").pop() === last);
+      if (byLast.length === 1) hit = byLast[0];
+    }
+    if (hit?.nameKo) return hit.nameKo;
+    const t = toKoreanPlayerName(name);
+    return /[가-힣]/.test(t) ? t : name;
+  };
+  const stints: CoachStint[] = [];
+  for (const { row } of enriched) {
+    const name = row.coach ?? "?";
+    const last = stints[stints.length - 1];
+    if (!last || last.coach !== name) {
+      stints.push({ coach: name, coachKo: coachKo(row.coach), from: row.date, to: row.date, played: 0, w: 0, d: 0, l: 0, ppg: 0 });
+    }
+    const s = stints[stints.length - 1];
+    s.to = row.date; s.played++;
+    if (row.result === "W") s.w++; else if (row.result === "D") s.d++; else s.l++;
+  }
+  for (const s of stints) s.ppg = Number(((s.w * 3 + s.d) / s.played).toFixed(2));
+  const mainStint = [...stints].sort((a, b) => b.played - a.played)[0];
+  const coachProfile = Object.values(coaches).find((c) => normName(c.name) === normName(mainStint.coach));
+
+  // 4) 포메이션 사용 분포
+  const fmap = new Map<string, FormationUsage & { xgForSum: number; xgAgainstSum: number; xgN: number }>();
+  for (const { row } of enriched) {
+    const f = row.formation ?? "미상";
+    if (!fmap.has(f)) fmap.set(f, { formation: f, count: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, xgFor: 0, xgAgainst: 0, xgForSum: 0, xgAgainstSum: 0, xgN: 0 });
+    const u = fmap.get(f)!;
+    u.count++; u.gf += row.gf; u.ga += row.ga;
+    if (row.result === "W") u.w++; else if (row.result === "D") u.d++; else u.l++;
+    if (row.xgFor != null && row.xgAgainst != null) { u.xgForSum += row.xgFor; u.xgAgainstSum += row.xgAgainst; u.xgN++; }
+  }
+  const formations = [...fmap.values()]
+    .map((u) => ({ ...u, xgFor: u.xgN ? Number((u.xgForSum / u.xgN).toFixed(2)) : 0, xgAgainst: u.xgN ? Number((u.xgAgainstSum / u.xgN).toFixed(2)) : 0 }))
+    .sort((a, b) => b.count - a.count)
+    .map(({ xgForSum: _a, xgAgainstSum: _b, xgN: _c, ...rest }) => rest);
+  const mainFormation = formations[0].formation;
+
+  // 5) 선발 집계 + 평균 좌표. 좌표·XI 멤버십은 최다 포메이션 경기만(형태 섞임 방지),
+  //    선발 횟수 표시는 시즌 전체(주 포메이션만 세면 로테이션 팀 수치가 왜곡 — 아스널 실측).
+  interface Acc { afId: number; name: string; pos: string; starts: number; startsMain: number; sx: number; sy: number; n: number }
+  const players = new Map<number, Acc>();
+  for (const { row, side, xy } of enriched) {
+    for (const p of side.startXI) {
+      if (!players.has(p.id)) players.set(p.id, { afId: p.id, name: p.name, pos: p.pos, starts: 0, startsMain: 0, sx: 0, sy: 0, n: 0 });
+      const a = players.get(p.id)!;
+      a.starts++;
+      if (row.formation !== mainFormation) continue;
+      a.startsMain++;
+      const c = xy.get(p.id);
+      if (c) { a.sx += c.x; a.sy += c.y; a.n++; }
+    }
+  }
+
+  // ts pid + 한글명 매칭 (사진·빌더 링크용) — team-squads 이름 매칭
+  const squads: Record<string, { squad: { id: string; name: string }[] }> = existsSync(dataPath("team-squads.json"))
+    ? JSON.parse(readFileSync(dataPath("team-squads.json"), "utf8"))
+    : {};
+  const squad = tsId ? squads[tsId]?.squad ?? [] : [];
+  const pidOf = (name: string): string | null => {
+    const n = normName(name);
+    const exact = squad.find((p) => normName(p.name) === n);
+    if (exact) return exact.id;
+    const parts = n.split(" ");
+    const last = parts.pop()!;
+    const byLast = squad.filter((p) => normName(p.name).split(" ").includes(last));
+    if (byLast.length === 1) return byLast[0].id;
+    if (byLast.length > 1 && parts[0]) {
+      // af 축약명("B. Silva") — 이니셜로 동성이인 변별
+      const initial = parts[0][0];
+      const byInit = byLast.filter((p) => normName(p.name)[0] === initial);
+      if (byInit.length === 1) return byInit[0].id;
+    }
+    const incl = squad.find((p) => { const pn = normName(p.name); return pn.includes(n) || n.includes(pn); });
+    return incl?.id ?? null;
+  };
+  const pids = new Map<number, string | null>();
+  for (const a of players.values()) pids.set(a.afId, pidOf(a.name));
+  const koRows = await prisma.theSportsPlayer.findMany({
+    where: { id: { in: [...pids.values()].filter((v): v is string => !!v) } },
+    select: { id: true, nameKo: true },
+  });
+  const koByPid = new Map(koRows.map((r) => [r.id, r.nameKo]));
+  const playerKo = (name: string, pid: string | null): string => {
+    const fixed = toKoreanPlayerName(name);
+    if (/[가-힣]/.test(fixed)) return fixed;
+    const db = pid ? koByPid.get(pid) : null;
+    return db && /[가-힣]/.test(db) ? db : name;
+  };
+  const toXi = (a: Acc): XiPlayer => {
+    const pid = pids.get(a.afId) ?? null;
+    return {
+      afId: a.afId, name: a.name, nameKo: playerKo(a.name, pid), tsPid: pid, pos: a.pos,
+      x: a.n ? Math.round(a.sx / a.n) : 50, y: a.n ? Math.round(a.sy / a.n) : 50,
+      starts: a.starts,
+    };
+  };
+  const byMain = [...players.values()].filter((a) => a.n > 0).sort((a, b) => b.startsMain - a.startsMain);
+  const gk = byMain.filter((a) => a.pos === "G")[0];
+  const outfield = byMain.filter((a) => a.pos !== "G").slice(0, 10);
+  const mostUsedXi = { formation: mainFormation, players: [gk, ...outfield].filter(Boolean).map(toXi) };
+  const topStarters = [...players.values()].sort((a, b) => b.starts - a.starts).slice(0, 14).map(toXi);
+
+  // 6) XI 고정도 — 연속 경기 간 변경 수 평균 + 전 경기 선발
+  let changes = 0;
+  for (let i = 1; i < enriched.length; i++) {
+    const prev = new Set(enriched[i - 1].side.startXI.map((p) => p.id));
+    changes += enriched[i].side.startXI.filter((p) => !prev.has(p.id)).length;
+  }
+  const everPresent = [...players.values()]
+    .filter((a) => a.starts === enriched.length)
+    .map((a) => playerKo(a.name, pids.get(a.afId) ?? null));
+
+  // 7) 월별 (xG 추이 위젯 + 이달의 감독 선정 재사용)
+  const mmap = new Map<string, { month: string; played: number; w: number; d: number; l: number; gf: number; ga: number; xgFor: number; xgAgainst: number }>();
+  for (const { row } of enriched) {
+    const mo = row.date.slice(0, 7);
+    if (!mmap.has(mo)) mmap.set(mo, { month: mo, played: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, xgFor: 0, xgAgainst: 0 });
+    const m = mmap.get(mo)!;
+    m.played++; m.gf += row.gf; m.ga += row.ga;
+    if (row.result === "W") m.w++; else if (row.result === "D") m.d++; else m.l++;
+    m.xgFor += row.xgFor ?? 0; m.xgAgainst += row.xgAgainst ?? 0;
+  }
+  const monthly = [...mmap.values()].map((m) => ({ ...m, xgFor: Number(m.xgFor.toFixed(1)), xgAgainst: Number(m.xgAgainst.toFixed(1)) }));
+
+  // 8) 샷 프로필 (TheStatsAPI 샷맵 — 팀명 정규화 매칭)
+  const shotmaps = loadShotmaps(league);
+  const matchDates = new Set(enriched.map((e) => e.row.date));
+  let shotProfile: ManagerSeasonAggregate["shotProfile"] = null;
+  const goalsFor: ManagerSeasonAggregate["goalsFor"] = [];
+  {
+    const mk = (): ShotAgg & { shooters: Map<string, { name: string; shots: number; goals: number; xg: number }> } =>
+      ({ shots: 0, goals: 0, xg: 0, insideBoxShare: 0, bySituation: {}, topShooters: [], shooters: new Map() });
+    const agg = { for: mk(), against: mk() };
+    let inBoxFor = 0, inBoxAgainst = 0;
+    for (const sm of Object.values(shotmaps)) {
+      const isHome = normTeam(sm.home.name) === teamNorm;
+      const isAway = normTeam(sm.away.name) === teamNorm;
+      if (!isHome && !isAway) continue;
+      if (!matchDates.has(sm.date)) continue; // 기간 밖(월간 모드) 제외
+      const myTmId = isHome ? sm.home.id : sm.away.id;
+      for (const s of sm.shots) {
+        if (s.sit === "own_goal") continue;
+        const mine = s.team === myTmId;
+        const side = mine ? agg.for : agg.against;
+        side.shots++; side.xg += s.xg;
+        side.bySituation[s.sit] = (side.bySituation[s.sit] ?? 0) + 1;
+        const inBox = s.x <= 16 && s.y >= 21 && s.y <= 79;
+        if (inBox) { if (mine) inBoxFor++; else inBoxAgainst++; }
+        const isGoal = s.result === "goal";
+        if (isGoal) side.goals++;
+        if (mine) {
+          const sh = side.shooters.get(s.pid) ?? { name: s.name, shots: 0, goals: 0, xg: 0 };
+          sh.shots++; sh.xg += s.xg; if (isGoal) sh.goals++;
+          side.shooters.set(s.pid, sh);
+          if (isGoal) goalsFor.push({ x: s.x, y: s.y, min: s.min, name: s.name, nameKo: playerKo(s.name, null), xg: s.xg, sit: s.sit });
+        }
+      }
+    }
+    if (agg.for.shots > 0) {
+      const fin = (a: typeof agg.for, inBox: number): ShotAgg => ({
+        shots: a.shots, goals: a.goals, xg: Number(a.xg.toFixed(1)),
+        insideBoxShare: Number((inBox / a.shots).toFixed(2)),
+        bySituation: a.bySituation,
+        topShooters: [...a.shooters.values()].sort((x, y) => y.goals - x.goals || y.xg - x.xg).slice(0, 5)
+          .map((s) => ({ ...s, nameKo: playerKo(s.name, null), xg: Number(s.xg.toFixed(1)) })),
+      });
+      shotProfile = { for: fin(agg.for, inBoxFor), against: fin(agg.against, inBoxAgainst) };
+    }
+  }
+
+  return {
+    league, seasonLabel,
+    team: { id: team.id, name: team.name, nameKo: teamKo, tsId },
+    coach: { name: mainStint.coach, nameKo: mainStint.coachKo, preferredFormation: coachProfile?.preferredFormation ?? null },
+    record: rec,
+    coachStints: stints,
+    formations,
+    mostUsedXi,
+    topStarters,
+    xiChanges: { avgPerMatch: Number((changes / Math.max(1, enriched.length - 1)).toFixed(1)), everPresent },
+    matches: enriched.map((e) => e.row),
+    monthly,
+    shotProfile,
+    goalsFor: goalsFor.sort((a, b) => a.min - b.min),
+  };
+}

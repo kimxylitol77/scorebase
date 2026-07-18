@@ -24,6 +24,8 @@
     "job:generate": "tsx src/jobs/generate-articles.ts",
     "job:preview": "tsx src/jobs/generate-previews.ts",
     "job:analysis": "tsx src/jobs/generate-analysis.ts",
+    "job:manager-month": "tsx --env-file=.env.local src/jobs/generate-manager-month.ts",
+    "job:manager-review": "tsx --env-file=.env.local src/jobs/generate-manager-review.ts",
     "job:tactical": "tsx --env-file=.env.local src/jobs/generate-tactical.ts",
     "job:tod": "tsx src/jobs/generate-team-of-day-article.ts",
     "job:wc-star": "tsx src/jobs/generate-wc-star-report.ts",
