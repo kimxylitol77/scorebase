@@ -11,15 +11,10 @@ import {
   fetchSeasonFixtures,
   fetchFixtureStatistics,
   teamsMatch,
+  getApiFootballSeason,
 } from "../src/lib/sports/api-football-pro";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-function seasonOf(d: Date): number {
-  const y = d.getUTCFullYear();
-  const m = d.getUTCMonth() + 1;
-  return m >= 7 ? y : y - 1; // 유럽 리그(8월~5월) 시즌 = 시작 연도
-}
 
 async function main() {
   const league = (process.argv[2] || "").toUpperCase();
@@ -53,10 +48,10 @@ async function main() {
   console.log(`[xg-backfill] ${league} FINISHED ${all.length}건 중 대상 ${targets.length}건`);
   if (targets.length === 0) return;
 
-  // (season) 그룹핑 — 시즌 fixture 목록 1콜/시즌
+  // (season) 그룹핑 — 시즌 fixture 목록 1콜/시즌. MLS 등 달력연도 리그 분기 포함.
   const bySeason = new Map<number, typeof targets>();
   for (const m of targets) {
-    const s = seasonOf(m.startTime);
+    const s = getApiFootballSeason(m.startTime, league);
     const arr = bySeason.get(s);
     if (arr) arr.push(m);
     else bySeason.set(s, [m]);

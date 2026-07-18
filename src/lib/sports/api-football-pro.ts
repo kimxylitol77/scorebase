@@ -195,8 +195,14 @@ export function teamsMatch(a: string, b: string): boolean {
     "city", "united", "town", "rovers", "wanderers", "hotspur",
     "athletic", "albion", "rangers",
   ]);
-  // af 축약명 ↔ 정식명 토큰 알리아스 (Wolves ↔ Wolverhampton 등 startsWith 로 못 잡는 것만)
-  const ALIAS: Record<string, string> = { wolves: "wolverhampton" };
+  // af 축약명·철자 차이 토큰 알리아스 (startsWith 로 못 잡는 것만).
+  // lafc→angeles: "LAFC"↔"Los Angeles FC" — 구별 토큰(angeles)으로 정규화 (LA Galaxy 는 "la","galaxy" 라 충돌 없음).
+  const ALIAS: Record<string, string> = {
+    wolves: "wolverhampton",
+    olympiakos: "olympiacos",
+    prague: "praha",
+    lafc: "angeles",
+  };
   const tokenize = (s: string) =>
     s
       .toLowerCase()
