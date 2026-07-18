@@ -72,13 +72,26 @@ function toVersusPlayers(
     xTs: flip ? 100 - p.x : p.x,
   }));
 
-  // 라인 군집화 — y 오름차순(GK 부터), 직전 라인과 8 이상 벌어지면 새 라인.
-  norm.sort((a, b) => a.yTs - b.yTs);
   const lines: (typeof norm)[] = [];
-  for (const e of norm) {
-    const cur = lines[lines.length - 1];
-    if (cur && e.yTs - cur[cur.length - 1].yTs < 8) cur.push(e);
-    else lines.push([e]);
+  if (norm.every((e) => !e.p.x && !e.p.y)) {
+    // 좌표 부재 폴백 — TS 가 x/y 를 아예 안 주는 매치(K리그1 실측, post 1137)는 전원 yTs=0 이라
+    // 아래 군집화가 한 줄로 붕괴해 골라인 일렬 보드가 된다. 포지션 문자로 GK→DF→MF→FW 라인 재구성.
+    const order: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
+    const buckets = new Map<number, typeof norm>();
+    for (const e of norm) {
+      const key = order[e.p.position] ?? 2;
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(e);
+    }
+    lines.push(...[...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v));
+  } else {
+    // 라인 군집화 — y 오름차순(GK 부터), 직전 라인과 8 이상 벌어지면 새 라인.
+    norm.sort((a, b) => a.yTs - b.yTs);
+    for (const e of norm) {
+      const cur = lines[lines.length - 1];
+      if (cur && e.yTs - cur[cur.length - 1].yTs < 8) cur.push(e);
+      else lines.push([e]);
+    }
   }
   // 최대 5라인 — 6라인이면 간격이 7.2%로 좁아져 같은 x 의 이름표가 아랫라인 원에 겹친다(실측).
   // 가장 가까운 인접 라인 쌍부터 병합해 간격 9% 이상을 보장한다.
