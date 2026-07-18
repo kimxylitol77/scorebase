@@ -1,6 +1,8 @@
 // 실제 경기 기록 (코너·슈팅·유효슈팅·점유율·카드) — MatchStats 캡처/백필 데이터.
 // 예측이 아니라 "실제로 일어난 사실". 종료된 축구 경기에만 표시.
 
+import { xgFairnessPct } from "@/lib/xg/outcome";
+
 interface MatchStatsRow {
   homeCorners: number | null;
   awayCorners: number | null;
@@ -80,6 +82,17 @@ export default function MatchStatsCard({
       {xg && (() => {
         const max = Math.max(xg.home, xg.away, 0.1);
         const insight = xgInsight(xg, homeName, awayName);
+        // 결과 부합도 — 이 xG 내용의 포아송 모델에서 실제 결과(승·무·패)가 나올 확률. 낮을수록 이변·불운.
+        const fair =
+          xg.homeScore != null && xg.awayScore != null
+            ? xgFairnessPct(xg.home, xg.away, xg.homeScore, xg.awayScore)
+            : null;
+        const fairCls =
+          fair == null ? "" : fair >= 50
+            ? "text-emerald-700 dark:text-emerald-300"
+            : fair >= 25
+              ? "text-amber-700 dark:text-amber-300"
+              : "text-rose-600 dark:text-rose-400";
         return (
           <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/60 px-3 py-3 dark:border-emerald-900/50 dark:bg-emerald-950/30">
             <div className="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -106,6 +119,12 @@ export default function MatchStatsCard({
             {insight && (
               <p className="mt-2 text-center text-[11px] font-medium leading-relaxed text-emerald-800 dark:text-emerald-300">
                 {insight}
+              </p>
+            )}
+            {fair != null && (
+              <p className="mt-1.5 text-center text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
+                결과 부합도 <span className={`font-bold tabular-nums ${fairCls}`}>{fair}%</span>
+                <span className="text-neutral-400 dark:text-neutral-500"> — 이 경기 내용(xG)에서 실제 결과가 나올 확률</span>
               </p>
             )}
           </div>
