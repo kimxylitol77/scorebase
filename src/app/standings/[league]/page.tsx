@@ -19,6 +19,7 @@ import { VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
 import LeagueLeaderBoard from "@/components/LeagueLeaderBoard";
+import { parseFixtureXg, xgOutcome } from "@/lib/xg/outcome";
 import LolStandings from "@/components/LolStandings";
 import LolSimpleStandings from "@/components/LolSimpleStandings";
 import LolLplStandings from "@/components/LolLplStandings";
@@ -281,6 +282,9 @@ export default async function StandingsPage({ params }: Props) {
   const { rowsByCategory: leaderRows, season: leaderSeason } = await loadLeagueLeaderboard(upper);
   const hasLeaders = Object.keys(leaderRows).length > 0;
 
+  // xG 심화(기대 승점) — 축구 리그 중 xG 커버리지 90%+ 만 노출 (부분 커버는 xPTS 누계 왜곡).
+  const xgTable = isSoccerLeague ? await buildXgTable(matches) : null;
+
   // 야구(KBO/NPB) — 검색 의도·공식 표기가 승률·게임차 (meta description 도 승률·게임차 약속).
   // 축구식 득점·득실·승점(승×3) 컬럼은 야구에 없는 개념이라 야구식으로 분기 렌더.
   const isBaseball = upper === "KBO" || upper === "NPB";
@@ -427,6 +431,76 @@ export default async function StandingsPage({ params }: Props) {
         ⓘ FINISHED 매치만 집계. SCHEDULED/POSTPONED 제외.
       </div>
 
+      {xgTable && (
+        <section className="space-y-3 pt-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight break-keep">xG 심화 순위 — 기대 승점(xPTS)</h2>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed break-keep">
+            경기별 <strong>xG(기대득점)</strong>를 포아송 모델로 승점화한 <strong>xPTS(기대 승점)</strong>와
+            실제 승점을 비교합니다. ± 가 <strong>+</strong> 면 경기 내용 대비 초과 성과(결정력·운),
+            <strong> -</strong> 면 만든 기회에 비해 승점을 놓친 불운입니다.
+          </p>
+          <div className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-separate border-spacing-0">
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-white/10">
+                    <th className="text-right py-2 pl-3 pr-2 font-semibold">#</th>
+                    <th className="text-left py-2 px-2 font-semibold">팀</th>
+                    <th className="text-center py-2 px-2 font-semibold w-10">경기</th>
+                    <th className="text-center py-2 px-2 font-semibold w-12 hidden sm:table-cell">득점</th>
+                    <th className="text-center py-2 px-2 font-semibold w-14 hidden sm:table-cell">xG</th>
+                    <th className="text-center py-2 px-2 font-semibold w-12 hidden sm:table-cell">실점</th>
+                    <th className="text-center py-2 px-2 font-semibold w-14 hidden sm:table-cell">xGC</th>
+                    <th className="text-center py-2 px-2 font-semibold w-12">승점</th>
+                    <th className="text-center py-2 px-2 font-semibold w-14">xPTS</th>
+                    <th className="text-right py-2 pr-3 pl-2 font-semibold w-14">±</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {xgTable.rows.map((r, i) => {
+                    const t = teamMap.get(r.teamId);
+                    if (!t) return null;
+                    const luck = r.pts - r.xpts;
+                    return (
+                      <tr
+                        key={r.teamId}
+                        className="border-b border-neutral-100 dark:border-white/5 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      >
+                        <td className="text-right py-2 pl-3 pr-2 tabular-nums text-neutral-500 font-bold">{i + 1}</td>
+                        <td className="py-2 px-2">
+                          <Link href={`/teams/${t.id}`} prefetch={false} className="flex items-center gap-2 hover:underline">
+                            {t.logoUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={t.logoUrl} alt="" className="w-5 h-5 object-contain shrink-0" loading="lazy" />
+                            ) : (
+                              <span className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                            )}
+                            <span className="font-semibold truncate max-w-[160px] sm:max-w-none">{toKoreanTeamName(t.name, upper)}</span>
+                          </Link>
+                        </td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-600 dark:text-neutral-400">{r.played}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300 hidden sm:table-cell">{r.gf}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-500 hidden sm:table-cell">{r.xgFor.toFixed(1)}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-700 dark:text-neutral-300 hidden sm:table-cell">{r.ga}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-500 hidden sm:table-cell">{r.xgAgainst.toFixed(1)}</td>
+                        <td className="text-center py-2 px-2 tabular-nums font-black">{r.pts}</td>
+                        <td className="text-center py-2 px-2 tabular-nums text-neutral-500">{r.xpts.toFixed(1)}</td>
+                        <td className={`text-right py-2 pr-3 pl-2 tabular-nums font-semibold ${luck > 2 ? "text-emerald-600 dark:text-emerald-400" : luck < -2 ? "text-rose-500" : "text-neutral-500"}`}>
+                          {luck > 0 ? `+${luck.toFixed(1)}` : luck.toFixed(1)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="text-[11px] text-neutral-400 text-center">
+            ⓘ xG 보유 {xgTable.covered}/{xgTable.finished}경기 기준 · xG 출처 api-football · 실제 승점 순 정렬.
+          </div>
+        </section>
+      )}
+
       {hasLeaders && (
         <section className="space-y-3 pt-4">
           <h2 className="text-lg sm:text-xl font-bold tracking-tight">{name} 시즌 리더보드</h2>
@@ -435,6 +509,85 @@ export default async function StandingsPage({ params }: Props) {
       )}
     </div>
   );
+}
+
+// ── xG 심화 순위 — 시즌 FINISHED 매치의 xG 로 팀별 기대득점·기대승점(xPTS) 집계 ──
+// xgscore.io 벤치마크. 실제 승점과 xPTS 의 차이로 순위표의 '운' 요소를 수치화.
+// 커버리지 90% 미만 리그는 누계가 왜곡되어 null 반환(섹션 미노출). 현재 통과: 라리가·세리에A 등.
+interface XgAggRow {
+  teamId: number;
+  played: number;
+  gf: number;
+  ga: number;
+  xgFor: number;
+  xgAgainst: number;
+  pts: number;
+  xpts: number;
+}
+
+async function buildXgTable(
+  matches: Array<{
+    id: number;
+    status: string;
+    homeTeamId: number;
+    awayTeamId: number;
+    homeScore: number | null;
+    awayScore: number | null;
+  }>,
+): Promise<{ rows: XgAggRow[]; covered: number; finished: number } | null> {
+  const finished = matches.filter(
+    (m) => m.status === "FINISHED" && m.homeScore != null && m.awayScore != null,
+  );
+  if (finished.length < 20) return null; // 표본 부족(컵 초기·시즌 초)
+  const stats = await prisma.match.findMany({
+    where: { id: { in: finished.map((m) => m.id) }, fixtureStats: { not: null } },
+    select: { id: true, fixtureStats: true },
+  });
+  const xgById = new Map<number, { home: number; away: number }>();
+  for (const s of stats) {
+    const { home, away } = parseFixtureXg(s.fixtureStats);
+    if (home != null && away != null) xgById.set(s.id, { home, away });
+  }
+  if (xgById.size / finished.length < 0.9) return null;
+
+  const byTeam = new Map<number, XgAggRow>();
+  const rowOf = (teamId: number): XgAggRow => {
+    let r = byTeam.get(teamId);
+    if (!r) {
+      r = { teamId, played: 0, gf: 0, ga: 0, xgFor: 0, xgAgainst: 0, pts: 0, xpts: 0 };
+      byTeam.set(teamId, r);
+    }
+    return r;
+  };
+  for (const m of finished) {
+    const xg = xgById.get(m.id);
+    if (!xg) continue; // 미커버 경기는 실제 승점 쪽도 제외 — 같은 경기 집합으로 공정 비교
+    const o = xgOutcome(xg.home, xg.away);
+    const h = rowOf(m.homeTeamId);
+    const a = rowOf(m.awayTeamId);
+    h.played++;
+    a.played++;
+    h.gf += m.homeScore!;
+    h.ga += m.awayScore!;
+    h.xgFor += xg.home;
+    h.xgAgainst += xg.away;
+    a.gf += m.awayScore!;
+    a.ga += m.homeScore!;
+    a.xgFor += xg.away;
+    a.xgAgainst += xg.home;
+    h.xpts += o.xptsHome;
+    a.xpts += o.xptsAway;
+    if (m.homeScore! > m.awayScore!) h.pts += 3;
+    else if (m.homeScore! < m.awayScore!) a.pts += 3;
+    else {
+      h.pts++;
+      a.pts++;
+    }
+  }
+  const rows = [...byTeam.values()].sort(
+    (x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf,
+  );
+  return { rows, covered: xgById.size, finished: finished.length };
 }
 
 // ── FIFA 월드컵 2026 조별 순위 — 48개국 12개 조, FINISHED 매치 기반 자체 집계 ──

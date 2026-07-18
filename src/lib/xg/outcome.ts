@@ -44,6 +44,20 @@ export function xgOutcome(xgHome: number, xgAway: number): XgOutcome {
   return { pHome, pDraw, pAway, xptsHome: 3 * pHome + pDraw, xptsAway: 3 * pAway + pDraw };
 }
 
+// fixtureStats 는 [home, away] 순서 고정 (af /fixtures/statistics, predictionEngine.ts 검증).
+// af 는 expected_goals 를 문자열("1.15")로 줄 수 있어 Number() 로 방어적 변환.
+export function parseFixtureXg(fixtureStats: string | null): { home: number | null; away: number | null } {
+  if (!fixtureStats) return { home: null, away: null };
+  try {
+    const fs = JSON.parse(fixtureStats) as Array<{ expectedGoals?: unknown }>;
+    const h = Number(fs[0]?.expectedGoals);
+    const a = Number(fs[1]?.expectedGoals);
+    return { home: Number.isFinite(h) ? h : null, away: Number.isFinite(a) ? a : null };
+  } catch {
+    return { home: null, away: null };
+  }
+}
+
 /** 실제 결과(스코어)가 xG 내용에서 나올 확률(%) — 낮을수록 이변·불운. */
 export function xgFairnessPct(
   xgHome: number,

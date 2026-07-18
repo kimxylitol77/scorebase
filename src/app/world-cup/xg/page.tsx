@@ -7,7 +7,7 @@ import { Info } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { fifaCountryKo, fifaFlag } from "@/lib/sports/fifa-rankings";
 import { toKoreanTeamName } from "@/lib/team-names";
-import { xgFairnessPct } from "@/lib/xg/outcome";
+import { parseFixtureXg, xgFairnessPct } from "@/lib/xg/outcome";
 import { SITE_URL } from "@/lib/site-url";
 import AmbientGlow from "@/components/AmbientGlow";
 
@@ -61,20 +61,6 @@ function kstDate(d: Date): string {
   return `${k.getUTCMonth() + 1}/${k.getUTCDate()}`;
 }
 
-// fixtureStats 는 [home, away] 순서 고정 (af /fixtures/statistics, predictionEngine.ts:583 에서 394/394 검증).
-// af 는 expected_goals 를 문자열("1.15")로 줄 수 있어 Number() 로 방어적 변환.
-function parseXg(fixtureStats: string | null): { home: number | null; away: number | null } {
-  if (!fixtureStats) return { home: null, away: null };
-  try {
-    const fs = JSON.parse(fixtureStats) as Array<{ expectedGoals?: unknown }>;
-    const h = Number(fs[0]?.expectedGoals);
-    const a = Number(fs[1]?.expectedGoals);
-    return { home: Number.isFinite(h) ? h : null, away: Number.isFinite(a) ? a : null };
-  } catch {
-    return { home: null, away: null };
-  }
-}
-
 async function fetchRows(): Promise<XgRow[]> {
   const matches = await prisma.match.findMany({
     where: {
@@ -98,7 +84,7 @@ async function fetchRows(): Promise<XgRow[]> {
   });
   const rows: XgRow[] = [];
   for (const m of matches) {
-    const { home, away } = parseXg(m.fixtureStats);
+    const { home, away } = parseFixtureXg(m.fixtureStats);
     if (home == null && away == null) continue; // xG 없는 매치는 트래커에서 제외
     rows.push({
       matchId: m.id,
