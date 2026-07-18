@@ -32,7 +32,7 @@ export interface KboPitcherIndexEntry {
 }
 
 // KBO 10팀 코드 (PitcherBasic.aspx ddlTeam form value)
-const KBO_TEAM_CODES = [
+export const KBO_TEAM_CODES = [
   "KT", "LG", "SS", "SK", "OB", "HT", "HH", "NC", "LT", "WO",
 ] as const;
 const SEASON_DEFAULT = String(new Date().getFullYear());
@@ -137,6 +137,96 @@ async function fetchKboPitcherIndexForTeam(
     responseType: "text",
   });
   return parseKboPitcherTable(postRes.data);
+}
+
+export interface KboRecordRow {
+  cells: Record<string, string>;
+  playerId: string | null;
+}
+
+/** 기록 페이지 통계 테이블 파싱 — 헤더명→셀 매핑 (행 3+ 인 첫 테이블) */
+function parseKboRecordTable(html: string): KboRecordRow[] {
+  const $ = cheerio.load(html);
+  const table = $("table").filter((_, t) => $(t).find("tr").length > 3).first();
+  if (table.length === 0) return [];
+  const headers = table
+    .find("tr")
+    .first()
+    .find("th")
+    .map((_, th) => $(th).text().trim())
+    .get();
+  const rows: KboRecordRow[] = [];
+  table
+    .find("tr")
+    .slice(1)
+    .each((_, tr) => {
+      const tds = $(tr).find("td").map((_, td) => $(td).text().trim()).get();
+      if (tds.length < 3) return;
+      const cells: Record<string, string> = {};
+      for (let i = 0; i < headers.length && i < tds.length; i++) {
+        cells[headers[i]] = tds[i];
+      }
+      const href = $(tr).find("a[href*='playerId=']").first().attr("href") ?? "";
+      const m = href.match(/playerId=(\d+)/);
+      rows.push({ cells, playerId: m ? m[1] : null });
+    });
+  return rows;
+}
+
+/**
+ * Record/Player/* 기록 페이지를 팀 선택 POST 로 조회 — GET 단독의
+ * "규정 충족 상위 30" 제한 우회. 폼 구조는 PitcherBasic 과 동일한 기록
+ * 페이지 템플릿. hfOrderBy* 초기값은 GET 응답에서 그대로 echo.
+ */
+export async function fetchKboRecordTableForTeam(
+  pagePath: string, // 예: "/Record/Player/HitterBasic/Basic1.aspx"
+  teamCode: string, // KBO_TEAM_CODES 값
+  season = SEASON_DEFAULT,
+): Promise<KboRecordRow[]> {
+  const url = `${BASE}${pagePath}`;
+  const getRes = await axios.get<string>(url, {
+    headers: HEADERS,
+    timeout: 15000,
+    responseType: "text",
+  });
+  const setCookie = (getRes.headers["set-cookie"] ?? []).join("; ");
+  const cookie = setCookie
+    .split(/,\s*(?=[^;]+=)/)
+    .map((c) => c.split(";")[0])
+    .join("; ");
+  const hidden = extractHidden(getRes.data);
+  const $get = cheerio.load(getRes.data);
+  const hfVal = (suffix: string) =>
+    $get(`input[name$='${suffix}']`).attr("value") ?? "";
+  const P = "ctl00$ctl00$ctl00$cphContents$cphContents$cphContents";
+  const body = new URLSearchParams({
+    __EVENTTARGET: `${P}$ddlTeam$ddlTeam`,
+    __EVENTARGUMENT: "",
+    __LASTFOCUS: "",
+    __VIEWSTATE: hidden.viewState,
+    __VIEWSTATEGENERATOR: hidden.viewStateGenerator,
+    __EVENTVALIDATION: hidden.eventValidation,
+    [`${P}$ddlSeason$ddlSeason`]: season,
+    [`${P}$ddlSeries$ddlSeries`]: "0",
+    [`${P}$ddlTeam$ddlTeam`]: teamCode,
+    [`${P}$ddlSituation$ddlSituation`]: "",
+    [`${P}$ddlSituationDetail$ddlSituationDetail`]: "",
+    [`${P}$hfPage`]: "1",
+    [`${P}$hfOrderByCol`]: hfVal("hfOrderByCol"),
+    [`${P}$hfOrderBy`]: hfVal("hfOrderBy"),
+  });
+  const postRes = await axios.post<string>(url, body.toString(), {
+    headers: {
+      ...HEADERS,
+      "Content-Type": "application/x-www-form-urlencoded",
+      Referer: url,
+      Origin: BASE,
+      Cookie: cookie,
+    },
+    timeout: 15000,
+    responseType: "text",
+  });
+  return parseKboRecordTable(postRes.data);
 }
 
 /**

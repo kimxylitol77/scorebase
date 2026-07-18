@@ -18,6 +18,10 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
+import {
+  fetchKboRecordTableForTeam,
+  KBO_TEAM_CODES,
+} from "@/lib/sports/kbo-official";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { npbPlayerToKorean } from "@/lib/sports/npb-player-names";
 
@@ -357,10 +361,29 @@ async function runKbo(season: string) {
   }
 
   // --- 선수: HitterBasic Basic1(AVG/H/RBI/HR/팀명) + Basic2(OPS) — 팀명별 그룹
-  const [pHit1, pHit2] = await Promise.all([
-    fetchKboTable("https://www.koreabaseball.com/Record/Player/HitterBasic/Basic1.aspx"),
-    fetchKboTable("https://www.koreabaseball.com/Record/Player/HitterBasic/Basic2.aspx"),
-  ]);
+  // 팀 선택 POST 순회로 전 타자 수집 (GET 단독=규정타석 상위 30 제한). 실패 시 기존 GET fallback.
+  let pHit1: KboRow[] = [];
+  let pHit2: KboRow[] = [];
+  for (const code of KBO_TEAM_CODES) {
+    try {
+      pHit1.push(
+        ...(await fetchKboRecordTableForTeam("/Record/Player/HitterBasic/Basic1.aspx", code, season)),
+      );
+      pHit2.push(
+        ...(await fetchKboRecordTableForTeam("/Record/Player/HitterBasic/Basic2.aspx", code, season)),
+      );
+    } catch (e) {
+      console.warn(`[season-stats/KBO] team=${code} 타자 POST 실패:`, (e as Error).message);
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  if (pHit1.length < 30) {
+    console.warn(`[season-stats/KBO] 팀별 수집 ${pHit1.length}명 — 단일 페이지 fallback`);
+    [pHit1, pHit2] = await Promise.all([
+      fetchKboTable("https://www.koreabaseball.com/Record/Player/HitterBasic/Basic1.aspx"),
+      fetchKboTable("https://www.koreabaseball.com/Record/Player/HitterBasic/Basic2.aspx"),
+    ]);
+  }
   const ops2 = new Map<string, string>(); // 선수명+팀 → OPS
   for (const row of pHit2) {
     const key = `${row.cells["선수명"]}|${row.cells["팀명"]}`;
