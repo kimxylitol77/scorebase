@@ -20,7 +20,6 @@ import {
 import type { SoccerEvent } from "@/lib/live/soccer-events";
 import { fetchLiveOdds, isLiveOddsSupported, type LiveOddsSnapshot } from "@/lib/odds/live-odds";
 import { saveOddsSnapshot } from "@/lib/odds/snapshot-store";
-import { fetchNbaLiveStats } from "@/lib/sports/api-nba";
 import { BASKETBALL_LEAGUES, VOLLEYBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import { extractBasketballFromCache } from "@/lib/sports/thesports/basketball-live";
 
@@ -190,29 +189,14 @@ export async function GET(
   if (league === "NBA" || league === "NHL") {
     const sportPath = league === "NBA" ? "basketball/nba" : "hockey/nhl";
     const statsList = league === "NBA" ? NBA_STATS : NHL_STATS;
-    // NBA — api-nba 풀 boxscore (plusMinus, fastBreakPoints, pointsInPaint 등 ESPN 미제공)
-    const [periods, summary, nbaStats] = await Promise.all([
+    // NBA boxscore — api-nba Ultra 만료(Free 100/일)로 라이브 폴링 호출 중단.
+    // 일정·점수는 TheSports collector, 상세 스탯·리더는 ESPN summary 로 일원화 (2026-07-19).
+    const [periods, summary] = await Promise.all([
       fetchEspnPeriodLinescores(sportPath, date),
       fetchEspnSummary(sportPath, gameId, statsList),
-      league === "NBA"
-        ? fetchNbaLiveStats(date, awayName, homeName)
-        : Promise.resolve(null),
     ]);
     out.periodLinescore = periods[gameId] ?? null;
-    // api-nba stats 가 있으면 ESPN stats 덮어쓰고, ESPN leaders/winProb 는 유지.
-    if (nbaStats && (nbaStats.homeStats.length > 0 || nbaStats.awayStats.length > 0)) {
-      out.summary = {
-        homeStats: nbaStats.homeStats,
-        awayStats: nbaStats.awayStats,
-        homeLeaders: summary?.homeLeaders ?? [],
-        awayLeaders: summary?.awayLeaders ?? [],
-        winProbabilityHome: summary?.winProbabilityHome,
-        homePlayers: nbaStats.homePlayers,
-        awayPlayers: nbaStats.awayPlayers,
-      };
-    } else {
-      out.summary = summary;
-    }
+    out.summary = summary;
     // ESPN 에 종료된 매치 점수도 포함 → live 가 없으면 FINAL 로 간주
     if (!live && out.periodLinescore) {
       out.status = "FINAL";

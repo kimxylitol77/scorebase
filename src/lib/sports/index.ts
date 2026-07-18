@@ -19,7 +19,10 @@ const eplCollector: MatchCollector = process.env.FOOTBALL_DATA_KEY
   : eplCollectorApiFootball;
 
 // NBA collector 우선순위:
-//   1) API-Sports NBA Ultra (API_FOOTBALL_KEY 활성) — 정식 30팀만, TBD placeholder 없음, 풍부한 metadata
+//   1) API-Sports NBA (API_FOOTBALL_KEY 활성) — 정식 30팀만, TBD placeholder 없음, 풍부한 metadata
+//      ⚠️ 2026-06-16 Ultra 만료 → Free 100/일. /games?date 일 ~16콜이라 Free 안에서 동작하지만
+//      실제 일정·점수 주 소스는 TheSports collector(Vultr, NBA/NBA_SL) — 여긴 백업 겸 이중수집.
+//      10월 정규시즌 전 제거 vs 재구독 결정 예정 (라이브 boxscore 호출은 2026-07-19 제거됨).
 //   2) MySportsFeeds (legacy, USER 환경변수 활성 시)
 //   3) ESPN free fallback (TBD placeholder 등 edge case 존재)
 const nbaCollector: MatchCollector = process.env.API_FOOTBALL_KEY
