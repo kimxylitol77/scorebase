@@ -26,6 +26,8 @@ export interface GenerateOptions {
   // 주의: Claude 5 계열·Opus 4.7+ 는 temperature 등 sampling 파라미터에 400 을 던지므로
   // model 지정 시 temperature 를 아예 전송하지 않는다 (톤은 프롬프트로 제어).
   model?: string;
+  // 시도당 타임아웃 override — sonnet 장문(3000자+)은 기본 180s 를 초과함 (감독 전술 글 실측).
+  timeoutMs?: number;
 }
 
 /**
@@ -86,13 +88,16 @@ async function callAnthropicOnce(
   // 걸리는 케이스 흔함 (2026-05-27 진단). cron maxDuration 300s 안에 1-2 매치
   // 처리 + 일시 hang 회피 위해 backoff 짧게 + per-attempt 180s.
   const backoffs = [3000, 8000];
-  const ATTEMPT_TIMEOUT_MS = 180_000;
+  const ATTEMPT_TIMEOUT_MS = opts.timeoutMs ?? 180_000;
   let lastErr: unknown;
   for (let attempt = 0; attempt <= backoffs.length; attempt++) {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ATTEMPT_TIMEOUT_MS);
     try {
-      const response = await claude.messages.create(
+      // 스트리밍 수신 — 장문(sonnet 8192)의 비스트리밍 요청은 에지에서 Connection error 로
+      // 끊기는 케이스 실측(2026-07-18 감독 전술 글, 3/4편 폴백 강등). 청크가 계속 흘러
+      // 유휴 연결 종료를 회피한다. finalMessage() 가 기존과 동일한 Message 를 돌려준다.
+      const stream = claude.messages.stream(
         {
           model: opts.model ?? CLAUDE_MODEL,
           max_tokens: opts.maxTokens ?? 4096,
@@ -102,6 +107,7 @@ async function callAnthropicOnce(
         },
         { signal: ctrl.signal, timeout: ATTEMPT_TIMEOUT_MS },
       );
+      const response = await stream.finalMessage();
       const textBlocks = response.content
         .filter((b): b is Anthropic.TextBlock => b.type === "text")
         .map((b) => b.text);
@@ -222,7 +228,9 @@ export async function generate(
       console.warn(
         `[ai] Anthropic 생성 실패 → OpenAI 폴백: ${(err as Error).message?.slice(0, 120)}`,
       );
-      return generateOpenAI(prompt, opts);
+      // claude 모델명이 OpenAI 로 넘어가면 404 model_not_found — override 는 폴백에서 제거.
+      const model = opts.model?.startsWith("claude") ? undefined : opts.model;
+      return generateOpenAI(prompt, { ...opts, model });
     }
     throw err;
   }

@@ -22,7 +22,8 @@ const SYSTEM_PROMPT = `너는 축구 전술 분석 전문 필자다. "이달의 
 - 숫자는 제공된 값을 그대로 인용한다. 재계산·유추 금지.
 - 이모지 금지. 문장은 마침표로 끝낸다.
 - 출력은 마크다운. "# " 제목 한 줄로 시작하고, 이후 "## " 섹션들로 구성한다.
-- 글 상단에 포메이션 분포·평균 포지션 피치·월간 지표가 렌더된다. 필요하면 "위 전술 대시보드"로 참조한다.`;
+- 글 상단에 포메이션 분포·평균 포지션 피치·월간 지표가 렌더된다. 필요하면 "위 전술 대시보드"로 참조한다.
+- "웹 리서치 노트", "제공된 데이터" 같은 내부 자료 명칭을 본문에 노출하지 않는다. 필요하면 "이달의 보도에 따르면" 정도로 자연스럽게 녹인다.`;
 
 function monthBounds(month: string): { from: Date; to: Date } {
   const [y, m] = month.split("-").map(Number);
@@ -118,7 +119,8 @@ ${researchNotes}
 5. 다음 달 관전 포인트.
 
 분량은 한국어 2000자 이상.`,
-    { system: SYSTEM_PROMPT, model: MODEL, maxTokens: 3500, temperature: 0.6, minLength: MIN_LENGTH, label: `manager-month:${month}` },
+    // timeoutMs 240s — Vercel cron maxDuration 300s 안에서 af 수집 후 생성까지 맞추는 상한
+    { system: SYSTEM_PROMPT, model: MODEL, maxTokens: 3500, temperature: 0.6, minLength: MIN_LENGTH, timeoutMs: 240_000, label: `manager-month:${month}` },
   );
   if (!content) {
     console.warn("[manager-month] 본문 길이 미달 — skip");

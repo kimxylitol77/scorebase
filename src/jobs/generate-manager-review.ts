@@ -28,7 +28,8 @@ const SYSTEM_PROMPT = `너는 축구 전술 분석 전문 필자다. 데이터 �
 - 이모지 금지. 문장은 마침표로 끝낸다.
 - 출력은 마크다운. "# " 제목 한 줄로 시작하고, 이후 "## " 섹션들로 구성한다.
 - 글 상단에 포메이션 분포·평균 포지션 피치·득점 지도·월별 xG 차트가 렌더된다. 필요하면 "위 전술 대시보드"로 자연스럽게 참조하되 차트를 말로 중복 설명하지 않는다.
-- 전술 용어(빌드업, 하프스페이스, 압박 트리거 등)는 근거 데이터와 연결될 때만 사용한다.`;
+- 전술 용어(빌드업, 하프스페이스, 압박 트리거 등)는 근거 데이터와 연결될 때만 사용한다.
+- "웹 리서치 노트", "제공된 데이터" 같은 내부 자료 명칭을 본문에 노출하지 않는다. 필요하면 "시즌 중 보도에 따르면" 정도로 자연스럽게 녹인다.`;
 
 function buildPrompt(ctx: TacticalManagerContext, researchNotes: string): string {
   return `${ctx.coach.nameKo} 감독의 ${ctx.team.nameKo} ${SEASON_LABEL} 시즌(EPL) 전술 연구 글을 작성하라.
@@ -73,6 +74,7 @@ async function main() {
 
   let created = 0;
   for (const teamId of targetIds) {
+    try {
     const ctx: TacticalManagerContext = await aggregateTeamSeason({
       league: LEAGUE, teamId, from: SEASON_FROM, to: SEASON_TO, seasonLabel: SEASON_LABEL,
     });
@@ -111,6 +113,7 @@ async function main() {
       maxTokens: 4500,
       temperature: 0.6,
       minLength: MIN_LENGTH,
+      timeoutMs: 480_000, // sonnet 장문(3000자+)은 기본 180s 초과 — 실측으로 절단·타임아웃 반복
       label: `manager-review:${ctx.team.name}`,
     });
     if (!content) {
@@ -137,6 +140,10 @@ async function main() {
     await prisma.article.update({ where: { id: article.id }, data: { slug } });
     console.log(`[manager-review] DRAFT 저장: ${slug} (${content.length}자)`);
     created++;
+    } catch (e) {
+      // 팀별 격리 — 한 팀 실패가 나머지 생성을 막지 않는다 (1차 실행 실측: 아스널 실패로 전체 중단)
+      console.error(`[manager-review] 팀 ${teamId} 실패:`, (e as Error).message?.slice(0, 200));
+    }
   }
   console.log(`[manager-review] 완료 — 신규 DRAFT ${created}편`);
 }

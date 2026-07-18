@@ -38,6 +38,7 @@ export async function generateWithMinLength(
     maxTokens: opts.maxTokens,
     temperature: opts.temperature,
     model: opts.model,
+    timeoutMs: opts.timeoutMs,
   };
 
   const first = await generate(prompt, genOpts);
