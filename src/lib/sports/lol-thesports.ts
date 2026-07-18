@@ -15,7 +15,10 @@ export const TS_LOL_TOURNAMENTS: Record<string, League> = {
   "4wyrnxyt8jgm86p": "LOL", // LCK Cup 2026
   "4wyrnxyt8ggm86p": "LEC", // LEC Spring 2026 (해외 — 순위·인게임 수집)
   l5erg5ef300m8k0: "LCS", // LCS Spring 2026
-  "6ypq3e3u501md7o": "EWC", // 2026 Esports World Cup (국제 — T1·TL·KC·DCG 등 지역 혼합, 6/28~7월)
+  // ⚠️ 6ypq3e3u501md7o 는 ts 실명 "Mid-Season Invitational 2026" — EWC 로 오인 매핑됐던 것.
+  // 대회 종료(7/11)·기존 매치 10개는 사용자 결정으로 EWC 라벨 유지 (2026-07-18).
+  "6ypq3e3u501md7o": "EWC", // MSI 2026 (6/28~7/11, 종료)
+  y39mp8xu53gqojx: "EWC", // Esports World Cup 2026 본선 (7/15~7/19)
   // LCK_CL(x7lm797bog7r2wd)·LPL(Split 2그룹제라 단일순위 부정확, 보류)은 후속.
   // LCK 서머 새 UUID 는 TheSports 일정에 뜨면 "LOL" 로 추가.
 };
@@ -39,6 +42,18 @@ export const TS_LOL_TEAMS: Record<string, TeamInfo> = {
   y39mp8xu3g6yqoj: { name: "팀 리퀴드", short: "TL", logo: "https://eimg.thesports.com/lol/team/Fr_aqE1CaVsWXV-j7QqFquzknuvz" },
   "318q6g8to50vro9": { name: "카민 코프", short: "KC", logo: "https://eimg.thesports.com/lol/team/FpvzFLOCAur7cd59-22EEQlzsSw0" },
   "2y8m4exu3kx7ql0": { name: "딥 크로스 게이밍", short: "DCG", logo: "https://eimg.thesports.com/lol/team/FvoIo9QMK8gFby_e2GafGA_971_j" },
+  // === EWC 2026 본선(y39mp8xu53gqojx) 추가 참가팀 — 2026-07-18. 예선 uuid 와 팀 uuid 다름 주의(G2 등) ===
+  "318q6g8toepdro9": { name: "팀 시크릿", short: "TS", logo: "https://eimg.thesports.com/lol/team/FsWDvr9s1qwVIIKATJeNZ9CBn9cU" },
+  y0or59wblvd9mwz: { name: "센티널스", short: "SEN", logo: "https://eimg.thesports.com/lol/team/FuNY6_Z7GLK1__dP2dzvr3Lo2k8X" },
+  dj2ryy6tk6p1r1z: { name: "GAM e스포츠", short: "GAM", logo: "https://eimg.thesports.com/lol/team/FlILBcHMX4Rlg0hrt3BvGPeC3Eiw" },
+  "4wyrnxyt8pldm86": { name: "빌리빌리 게이밍", short: "BLG", logo: "https://eimg.thesports.com/lol/team/FuQ-HVlJW08a3QSsFNrwgDSrV-kn" },
+  "1l4rjevu6o0km7v": { name: "모비스타 KOI", short: "KOI", logo: "https://eimg.thesports.com/lol/team/FoyVZW9gn_9VOl5znxsz4F-jDwRq" },
+  ednm926hknxzryo: { name: "G2 e스포츠", short: "G2", logo: "https://eimg.thesports.com/lol/team/Fn8KDMp7ktyLFpTuoe4B7-WCxOAb" },
+  "4jwq2eku42deq0v": { name: "푸리아", short: "FUR", logo: "https://eimg.thesports.com/lol/team/Fvf1ddjsQwkosJUfvondE1DNSS_o" },
+  n54qleou2okvmvy: { name: "애니원스 레전드", short: "AL", logo: "https://eimg.thesports.com/lol/team/FnCKmQiZLEqRnh8cpocOQmLbcQhi" },
+  l5erg5efoxdym8k: { name: "리옹", short: "LYON", logo: "https://eimg.thesports.com/lol/team/FqK-TIHWghskhdl64vtXoHPLrVJ0" },
+  zp5rz5pfjvw9r82: { name: "징동 게이밍", short: "JDG", logo: "https://eimg.thesports.com/lol/team/FjTJM1hEw1EE9T_fTiz7W2efVrxU" },
+  y39mp8xu3x35qoj: { name: "MIBR", short: "MIBR", logo: "https://eimg.thesports.com/lol/team/Fts2CUJ_8yCRRDk9gXLp5jq-uZmu" },
 };
 // 해외(LEC/LCS) 팀은 순위 json(build-lol-standings --league 생성)에서 머지 — 한글명·로고 단일 진실.
 for (const d of [lecStandings, lcsStandings] as { standings: { teamId: string; name: string; short: string; logo: string }[] }[]) {
