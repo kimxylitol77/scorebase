@@ -19,8 +19,9 @@ export const TS_LOL_TOURNAMENTS: Record<string, League> = {
   // 대회 종료(7/11)·기존 매치 10개는 사용자 결정으로 EWC 라벨 유지 (2026-07-18).
   "6ypq3e3u501md7o": "EWC", // MSI 2026 (6/28~7/11, 종료)
   y39mp8xu53gqojx: "EWC", // Esports World Cup 2026 본선 (7/15~7/19)
+  "965mk6zt47xq1ge": "LOL", // KeSPA Cup 2026 (7/20~7/27) — LCK 10팀 전원·팀 uuid 동일이라 LCK 탭 편입
   // LCK_CL(x7lm797bog7r2wd)·LPL(Split 2그룹제라 단일순위 부정확, 보류)은 후속.
-  // LCK 서머 새 UUID 는 TheSports 일정에 뜨면 "LOL" 로 추가.
+  // LCK 2026(l7oqd9kb6y6m510)은 4/1~9/12 통짜라 서머 별도 UUID 없음 (7/29 재개 일정 수집 확인).
 };
 
 // ts team id → 한글명·약자·로고. 한글명은 한국 통용 표기(기존 BDL 매핑 재활용).
