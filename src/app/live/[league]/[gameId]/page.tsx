@@ -323,11 +323,17 @@ export default async function GenericLivePage({ params }: Props) {
 
   // api-football /predictions + /teams/statistics — 친선·예선처럼 리그 standings
   // 없는 매치의 정보 빈약 보완. fetch native cache 로 호출 부담 최소화.
+  // 시작 48h 지난 비라이브 매치는 af 4콜 생략 — 크롤러가 과거 매치 페이지를 대량
+  // 순회하며 af 일 한도(75k)를 매일 소진시키는 주범이라 지혈. 예측·시즌통계·라운드는
+  // 종료 후엔 부가 정보라 생략해도 본문(스코어·이벤트·리포트)은 그대로 유지된다.
+  const afRecent =
+    match.status === "LIVE" ||
+    Date.now() - match.startTime.getTime() < 48 * 3600_000;
   const afLeagueId = isSoccer ? API_FOOTBALL_LEAGUE_ID[lg] : undefined;
   const afSeason = match.startTime.getUTCFullYear();
   const homeAfExtId = isSoccer ? match.homeTeam.externalId : null;
   const awayAfExtId = isSoccer ? match.awayTeam.externalId : null;
-  const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer
+  const [matchPrediction, homeAfStats, awayAfStats, fixtureRound] = isSoccer && afRecent
     ? await Promise.all([
         fetchMatchPrediction(gameId).catch(() => null),
         afLeagueId && homeAfExtId
@@ -726,7 +732,8 @@ export default async function GenericLivePage({ params }: Props) {
 
     // 배당 — 라이브 배당(The Odds API 폴링, 농구 패턴과 동일 일원화 2026-06-10)
     // + API-Sports 북메이커별 상세. 본문 중복 카드는 SportLiveDetail 에서 제거됨.
-    const fixtureOdds = /^\d+$/.test(match.externalId)
+    // 종료 48h+ 매치는 af odds 콜도 생략 (위 afRecent 게이트와 동일한 지혈).
+    const fixtureOdds = afRecent && /^\d+$/.test(match.externalId)
       ? await fetchFixtureOdds(match.externalId)
       : null;
     const liveOddsNode = (

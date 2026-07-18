@@ -1,5 +1,6 @@
 // 리그별 부상자 명단 — 부상 부위·복귀 예상·치료/재활.
 import { prisma } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -65,6 +66,14 @@ function npbInjuryDisplayName(jpFullName: string): string {
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+// af /injuries 호출을 전 인스턴스 공유 캐시로 — 페이지가 force-dynamic 이라 렌더마다
+// (metadata+본문 2회) af 를 부르던 것을 15분 1회로 제한. af 일 한도 소진 지혈의 일부.
+const fetchSeasonInjuriesCached = unstable_cache(
+  fetchSeasonInjuries,
+  ["injuries-page-af-season"],
+  { revalidate: 900 },
+);
 
 // UCL 은 소속 리그(EPL/라리가/...)와 중복이라 제외
 const VALID = [
@@ -362,7 +371,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const tsInj = await getTheSportsInjuriesByTeam(teams.map((t) => t.id));
       const needAf = !!API_FOOTBALL_LEAGUE_ID[upper] && teams.some((t) => !tsInj.has(t.id));
       let all = needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper] && teams.length > 0
-        ? await fetchSeasonInjuries(upper, getApiFootballSeason(new Date(), upper))
+        ? await fetchSeasonInjuriesCached(upper, getApiFootballSeason(new Date(), upper))
         : [];
       // 본문과 동일 — 현재 스쿼드에 없는 이적/방출 선수 제거 (제목·설명 수치 일치)
       if (all.length > 0) all = await filterInjuriesToCurrentSquad(all);
@@ -547,7 +556,7 @@ export default async function InjuriesByLeague({
   if (isSoccer && needAf && process.env.API_FOOTBALL_KEY && API_FOOTBALL_LEAGUE_ID[upper]) {
     try {
       const season = getApiFootballSeason(new Date(), upper);
-      allInjuries = await fetchSeasonInjuries(upper, season);
+      allInjuries = await fetchSeasonInjuriesCached(upper, season);
       // 시즌 부상 목록에서 현재 스쿼드에 없는(이적/방출) 선수 제거 — 비시즌·시즌중 이적 잔존 방지.
       allInjuries = await filterInjuriesToCurrentSquad(allInjuries);
     } catch {}
