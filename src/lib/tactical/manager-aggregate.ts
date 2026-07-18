@@ -319,17 +319,18 @@ export async function aggregateTeamSeason(opts: {
     .map(({ xgForSum: _a, xgAgainstSum: _b, xgN: _c, ...rest }) => rest);
   const mainFormation = formations[0].formation;
 
-  // 5) 선발 집계 + 평균 좌표. 좌표·XI 멤버십은 최다 포메이션 경기만(형태 섞임 방지),
+  // 5) 선발 집계 + 좌표. 좌표·XI 멤버십은 최다 포메이션 경기만(형태 섞임 방지),
   //    선발 횟수 표시는 시즌 전체(주 포메이션만 세면 로테이션 팀 수치가 왜곡 — 아스널 실측).
-  interface Acc { afId: number; name: string; pos: string; starts: number; startsMain: number; sx: number; sy: number; n: number }
+  interface Acc { afId: number; name: string; pos: string; starts: number; startsMain: number; sx: number; sy: number; n: number; slots: Map<string, number> }
   const players = new Map<number, Acc>();
   for (const { row, side, xy } of enriched) {
     for (const p of side.startXI) {
-      if (!players.has(p.id)) players.set(p.id, { afId: p.id, name: p.name, pos: p.pos, starts: 0, startsMain: 0, sx: 0, sy: 0, n: 0 });
+      if (!players.has(p.id)) players.set(p.id, { afId: p.id, name: p.name, pos: p.pos, starts: 0, startsMain: 0, sx: 0, sy: 0, n: 0, slots: new Map() });
       const a = players.get(p.id)!;
       a.starts++;
       if (row.formation !== mainFormation) continue;
       a.startsMain++;
+      if (p.grid) a.slots.set(p.grid, (a.slots.get(p.grid) ?? 0) + 1);
       const c = xy.get(p.id);
       if (c) { a.sx += c.x; a.sy += c.y; a.n++; }
     }
@@ -370,19 +371,69 @@ export async function aggregateTeamSeason(opts: {
     const db = pid ? koByPid.get(pid) : null;
     return db && /[가-힣]/.test(db) ? db : name;
   };
-  const toXi = (a: Acc): XiPlayer => {
+  const toXi = (a: Acc, coord?: { x: number; y: number }): XiPlayer => {
     const pid = pids.get(a.afId) ?? null;
     return {
       afId: a.afId, name: a.name, nameKo: playerKo(a.name, pid), tsPid: pid, pos: a.pos,
-      x: a.n ? Math.round(a.sx / a.n) : 50, y: a.n ? Math.round(a.sy / a.n) : 50,
+      x: coord ? coord.x : a.n ? Math.round(a.sx / a.n) : 50,
+      y: coord ? coord.y : a.n ? Math.round(a.sy / a.n) : 50,
       starts: a.starts,
     };
   };
   const byMain = [...players.values()].filter((a) => a.n > 0).sort((a, b) => b.startsMain - a.startsMain);
   const gk = byMain.filter((a) => a.pos === "G")[0];
   const outfield = byMain.filter((a) => a.pos !== "G").slice(0, 10);
-  const mostUsedXi = { formation: mainFormation, players: [gk, ...outfield].filter(Boolean).map(toXi) };
-  const topStarters = [...players.values()].sort((a, b) => b.starts - a.starts).slice(0, 14).map(toXi);
+  const chosen = [gk, ...outfield].filter(Boolean);
+
+  // XI 좌표 = 최빈 그리드 슬롯을 중복 없이 배정. 평균 좌표는 로테이션 팀에서 여러 명이
+  // 같은 자리에 겹친다(시티 실측 — 포든·베르나르두·레이너르스 한 점 포개짐). 선발 많은
+  // 선수부터 자기 최빈 슬롯을 선점하고, 선점당하면 차순위 슬롯, 전부 뺏기면 평균 좌표 폴백.
+  const rowSizes = new Map<number, number>();
+  let slotMaxRow = 1;
+  for (const a of players.values()) {
+    for (const g of a.slots.keys()) {
+      const [r, c] = g.split(":").map(Number);
+      rowSizes.set(r, Math.max(rowSizes.get(r) ?? 0, c));
+      slotMaxRow = Math.max(slotMaxRow, r);
+    }
+  }
+  const slotXY = (g: string) => {
+    const [r, c] = g.split(":").map(Number);
+    const size = rowSizes.get(r) ?? 1;
+    return {
+      x: Math.round(size === 1 ? 50 : ((c - 0.5) / size) * 100),
+      y: Math.round(r === 1 ? 8 : 8 + ((r - 1) / Math.max(1, slotMaxRow - 1)) * 80),
+    };
+  };
+  const slotUniverse = new Set<string>();
+  for (const a of players.values()) for (const g of a.slots.keys()) slotUniverse.add(g);
+  const claimed = new Set<string>();
+  const coordOf = new Map<number, { x: number; y: number }>();
+  for (const a of chosen) {
+    const pref = [...a.slots.entries()].sort((x, y) => y[1] - x[1]).map(([g]) => g).find((g) => !claimed.has(g));
+    if (pref) {
+      claimed.add(pref);
+      coordOf.set(a.afId, slotXY(pref));
+    }
+  }
+  // 자기 슬롯을 전부 선점당한 선수 — 빈 슬롯 중 평균 좌표에서 가장 가까운 곳에 배정
+  // (평균 좌표 그대로 두면 다른 슬롯과 충돌 — 빌라 등 5팀 실측 10/11)
+  for (const a of chosen) {
+    if (coordOf.has(a.afId)) continue;
+    const ax = a.n ? a.sx / a.n : 50, ay = a.n ? a.sy / a.n : 50;
+    const free = [...slotUniverse].filter((g) => !claimed.has(g))
+      .sort((g1, g2) => {
+        const p1 = slotXY(g1), p2 = slotXY(g2);
+        return (p1.x - ax) ** 2 + (p1.y - ay) ** 2 - ((p2.x - ax) ** 2 + (p2.y - ay) ** 2);
+      })[0];
+    if (free) {
+      claimed.add(free);
+      coordOf.set(a.afId, slotXY(free));
+    }
+  }
+
+  const mostUsedXi = { formation: mainFormation, players: chosen.map((a) => toXi(a, coordOf.get(a.afId))) };
+  const topStarters = [...players.values()].sort((a, b) => b.starts - a.starts).slice(0, 14).map((a) => toXi(a));
 
   // 6) XI 고정도 — 연속 경기 간 변경 수 평균 + 전 경기 선발
   let changes = 0;
