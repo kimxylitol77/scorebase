@@ -48,6 +48,12 @@ const LEAGUE_LABELS: Record<string, string> = {
   VNL_M: "VNL 남자부",
   VNL_W: "VNL 여자부",
   VNL: "VNL",
+  LOL: "LCK",
+  LCK_CL: "LCK CL",
+  LPL: "LPL",
+  LEC: "LEC",
+  LCS: "LCS",
+  EWC: "EWC",
 };
 
 function sportForLeague(league: string) {
@@ -55,6 +61,7 @@ function sportForLeague(league: string) {
   if (["NBA", "WNBA"].includes(league)) return "농구";
   if (league === "NHL") return "아이스하키";
   if (league.startsWith("VNL")) return "배구";
+  if (["LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC"].includes(league)) return "이스포츠";
   return "축구";
 }
 
@@ -298,15 +305,36 @@ export async function GET(req: Request) {
             : `오프닝 이후 역행 폭은 ${Math.abs(movementPp).toFixed(1)}%p입니다.`,
         );
       }
-      if (reason && !SEVERE_UNCERTAINTY_RE.test(reason)) evidence.push(reason);
+      if (sport === "이스포츠") {
+        evidence.push(`최근 경기 흐름과 매치업 수치를 함께 비교해 ${pickTeam} 쪽을 우세로 봤습니다.`);
+      } else if (reason && !SEVERE_UNCERTAINTY_RE.test(reason)) {
+        evidence.push(reason);
+      }
 
       const risks = market === "1X2"
-        ? [
-            `${opponent}의 당일 선발·라인업 변화는 경기 전 다시 확인해야 합니다.`,
-            hasComparableMarket
-              ? "발행 후 배당이 크게 반대로 움직이면 기존 판단의 신뢰도가 낮아질 수 있습니다."
-              : "배당 시장 교차 검증이 없는 경기이므로 일반 후보보다 변동 위험이 큽니다.",
-          ]
+        ? sport === "이스포츠"
+          ? [
+              `${opponent}이 초반 밴픽에서 주도권을 잡으면 예상과 다른 흐름이 나올 수 있습니다.`,
+              "패치 적응과 당일 선수 컨디션은 경기 전까지 확인할 변수입니다.",
+            ]
+          : sport === "야구"
+            ? [
+                `${opponent}의 선발 투수와 당일 타순은 경기 전에 다시 확인해야 합니다.`,
+                hasComparableMarket
+                  ? "발행 후 배당이 크게 반대로 움직이면 기존 판단의 신뢰도가 낮아질 수 있습니다."
+                  : "배당 시장 교차 검증이 없는 경기이므로 일반 후보보다 변동 위험이 큽니다.",
+              ]
+            : sport === "축구"
+              ? [
+                  `${opponent}의 선발 명단과 포메이션 변화는 경기 전에 다시 확인해야 합니다.`,
+                  hasComparableMarket
+                    ? "발행 후 배당이 크게 반대로 움직이면 기존 판단의 신뢰도가 낮아질 수 있습니다."
+                    : "배당 시장 교차 검증이 없는 경기이므로 일반 후보보다 변동 위험이 큽니다.",
+                ]
+              : [
+                  `${opponent}의 부상자와 로테이션 변화는 경기 전에 다시 확인해야 합니다.`,
+                  "경기 직전 전력 변화가 크면 기존 판단의 신뢰도가 낮아질 수 있습니다.",
+                ]
         : [
             market === "HANDICAP"
               ? `기준은 ${line}점 핸디캡이며 라인이 바뀌면 같은 선택으로 볼 수 없습니다.`
