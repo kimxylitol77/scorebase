@@ -68,6 +68,14 @@ export function kboAbbrToFullName(abbr: string): string | null {
   return TEAM_ABBR_TO_NAME[abbr.trim()] ?? null;
 }
 
+/** 풀네임 → 약칭 역방향 (예: "KIA 타이거즈" → "KIA"). 삽입 순서상 정식 약칭 우선. */
+export function kboFullNameToAbbr(fullName: string): string | null {
+  for (const [abbr, full] of Object.entries(TEAM_ABBR_TO_NAME)) {
+    if (full === fullName) return abbr;
+  }
+  return null;
+}
+
 /**
  * 오늘 KBO 선발 투수 매치업 fetch.
  * mykbo 페이지가 "오늘" 기준 — 다른 날짜는 별도 호출 (현재는 today 만).
