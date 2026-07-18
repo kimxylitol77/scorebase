@@ -195,12 +195,15 @@ export function teamsMatch(a: string, b: string): boolean {
     "city", "united", "town", "rovers", "wanderers", "hotspur",
     "athletic", "albion", "rangers",
   ]);
+  // af 축약명 ↔ 정식명 토큰 알리아스 (Wolves ↔ Wolverhampton 등 startsWith 로 못 잡는 것만)
+  const ALIAS: Record<string, string> = { wolves: "wolverhampton" };
   const tokenize = (s: string) =>
     s
       .toLowerCase()
       .replace(/[^a-z0-9가-힣\s]/g, " ")
       .split(/\s+/)
-      .filter((t) => t && !STOP.has(t));
+      .filter((t) => t && !STOP.has(t))
+      .map((t) => ALIAS[t] ?? t);
   const ta = tokenize(a);
   const tb = tokenize(b);
   if (ta.length === 0 || tb.length === 0) return false;
