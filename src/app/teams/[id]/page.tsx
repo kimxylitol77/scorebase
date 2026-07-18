@@ -34,6 +34,7 @@ import TeamHistory, { type TeamHistoryData } from "@/components/teams/TeamHistor
 import LolTeamRoster from "@/components/LolTeamRoster";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Globe, Landmark, Goal, BarChart3, Users, Target, Star, HeartPulse } from "lucide-react";
+import { parseFixtureXg } from "@/lib/xg/outcome";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
@@ -345,6 +346,59 @@ export default async function TeamPage({ params }: Props) {
   const nbaRoster: NbaRosterPlayer[] =
     team.league === "NBA" ? getNbaRoster(team.name) : [];
 
+  // xG 추이 (최근 10경기) — fixtureStats 의 expectedGoals 보유 축구 경기만. 5경기 미만이면 섹션 미노출.
+  interface XgTrendItem {
+    matchId: number;
+    startTime: Date;
+    opp: string;
+    result: "W" | "D" | "L";
+    gf: number;
+    ga: number;
+    xgFor: number;
+    xgAgainst: number;
+  }
+  let xgTrend: XgTrendItem[] = [];
+  if (sport === "soccer") {
+    const withStats = await prisma.match.findMany({
+      where: {
+        league: team.league,
+        status: "FINISHED",
+        fixtureStats: { not: null },
+        OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+      },
+      orderBy: { startTime: "desc" },
+      take: 10,
+      select: {
+        id: true, startTime: true, homeTeamId: true, homeScore: true, awayScore: true, fixtureStats: true,
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } },
+      },
+    });
+    for (const m of withStats) {
+      const { home, away } = parseFixtureXg(m.fixtureStats);
+      if (home == null || away == null || m.homeScore == null || m.awayScore == null) continue;
+      const isHome = m.homeTeamId === teamId;
+      const gf = isHome ? m.homeScore : m.awayScore;
+      const ga = isHome ? m.awayScore : m.homeScore;
+      xgTrend.push({
+        matchId: m.id,
+        startTime: m.startTime,
+        opp: toKoreanTeamName(isHome ? m.awayTeam.name : m.homeTeam.name, team.league),
+        result: gf > ga ? "W" : gf < ga ? "L" : "D",
+        gf,
+        ga,
+        xgFor: isHome ? home : away,
+        xgAgainst: isHome ? away : home,
+      });
+    }
+    if (xgTrend.length < 5) xgTrend = [];
+    else xgTrend.reverse(); // 시간순 왼→오
+  }
+  const xgTrendMax = Math.max(1, ...xgTrend.flatMap((x) => [x.xgFor, x.xgAgainst]));
+  const xgForAvg = xgTrend.length ? xgTrend.reduce((s, x) => s + x.xgFor, 0) / xgTrend.length : 0;
+  const xgAgainstAvg = xgTrend.length ? xgTrend.reduce((s, x) => s + x.xgAgainst, 0) / xgTrend.length : 0;
+  const goalsAvg = xgTrend.length ? xgTrend.reduce((s, x) => s + x.gf, 0) / xgTrend.length : 0;
+
   return (
     <div className="relative">
       <script
@@ -573,6 +627,81 @@ export default async function TeamPage({ params }: Props) {
                     <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
                   </div>
                 ))}
+            </div>
+          </section>
+        )}
+
+        {/* xG 추이 — 최근 경기 기대득점 생성 vs 허용 (af expectedGoals, 5경기 미만이면 미노출) */}
+        {xgTrend.length > 0 && (
+          <section>
+            <SectionH
+              title="xG 추이"
+              subtitle={`최근 ${xgTrend.length}경기 · 기대득점 생성 vs 허용`}
+              icon={<Target className="h-5 w-5" aria-hidden />}
+            />
+            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-4">
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {([
+                  { label: "경기당 만든 xG", v: xgForAvg },
+                  { label: "경기당 허용 xG", v: xgAgainstAvg },
+                  { label: "경기당 실제 득점", v: goalsAvg },
+                ] as { label: string; v: number }[]).map((t) => (
+                  <div key={t.label} className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 text-center">
+                    <div className="text-xl font-black tabular-nums">{t.v.toFixed(2)}</div>
+                    <div className="text-[11px] text-neutral-500 mt-0.5">{t.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-4 mb-2 text-[11px] text-neutral-500">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-[2px] bg-emerald-500 dark:bg-emerald-600" aria-hidden /> 만든 xG
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-[2px] bg-rose-500" aria-hidden /> 허용 xG
+                </span>
+              </div>
+              <div className="flex items-end gap-1.5">
+                {xgTrend.map((x, i) => {
+                  const last = i === xgTrend.length - 1;
+                  return (
+                    <div
+                      key={x.matchId}
+                      className="flex-1 min-w-0 flex flex-col items-center gap-1"
+                      title={`vs ${x.opp} · ${x.gf}-${x.ga} ${x.result === "W" ? "승" : x.result === "D" ? "무" : "패"} · xG ${x.xgFor.toFixed(2)} - ${x.xgAgainst.toFixed(2)}`}
+                    >
+                      <div className="flex items-end justify-center gap-0.5 w-full h-24">
+                        <div className="w-3 max-w-[45%] flex flex-col items-center justify-end h-full">
+                          {last && (
+                            <span className="text-[9px] tabular-nums text-neutral-500 mb-0.5">{x.xgFor.toFixed(1)}</span>
+                          )}
+                          <div
+                            className="w-full rounded-t bg-emerald-500 dark:bg-emerald-600"
+                            style={{ height: `${Math.max(3, (x.xgFor / xgTrendMax) * 100)}%` }}
+                          />
+                        </div>
+                        <div className="w-3 max-w-[45%] flex flex-col items-center justify-end h-full">
+                          {last && (
+                            <span className="text-[9px] tabular-nums text-neutral-500 mb-0.5">{x.xgAgainst.toFixed(1)}</span>
+                          )}
+                          <div
+                            className="w-full rounded-t bg-rose-500"
+                            style={{ height: `${Math.max(3, (x.xgAgainst / xgTrendMax) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold ${x.result === "W" ? "text-emerald-600 dark:text-emerald-400" : x.result === "L" ? "text-rose-500" : "text-neutral-400"}`}
+                      >
+                        {x.result === "W" ? "승" : x.result === "D" ? "무" : "패"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-[11px] text-neutral-400 break-keep">
+                막대에 마우스를 올리면 상대·스코어·xG 를 볼 수 있습니다. 만든 xG 가 허용 xG 보다 꾸준히 높은데
+                결과가 안 따르면 불운 또는 결정력 문제, 반대면 내용 대비 초과 성과입니다.
+              </p>
             </div>
           </section>
         )}
