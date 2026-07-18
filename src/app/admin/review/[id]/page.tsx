@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReviewForm from "./ReviewForm";
+import TacticalManagerSection from "@/components/TacticalManagerSection";
+import type { TacticalManagerContext } from "@/lib/tactical/manager-aggregate";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,15 @@ export default async function ReviewPage({ params }: Props) {
           <span className="font-medium">{article.match.awayTeam.name}</span>
         </div>
       )}
+
+      {/* 감독 전술 글 — 발행 시 본문 위에 붙는 대시보드를 검수 화면에서도 미리 확인 */}
+      {article.tacticalContext && (() => {
+        try {
+          return <TacticalManagerSection ctx={JSON.parse(article.tacticalContext) as TacticalManagerContext} />;
+        } catch {
+          return null;
+        }
+      })()}
 
       <ReviewForm
         article={{
