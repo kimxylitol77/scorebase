@@ -1,5 +1,6 @@
 // /picks — 승부예측 허브: 오늘·내일 경기 원클릭 투표 + 내 적중 기록 + 회원 랭킹 (나 vs AI)
 import type { Metadata } from "next";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/current-user";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -139,6 +140,12 @@ export default async function PicksPage() {
               </span>
             </div>
           )}
+          <Link
+            href="/picks/me"
+            className="flex items-center rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
+          >
+            내 예측 리포트 →
+          </Link>
         </div>
       )}
 
