@@ -35,6 +35,8 @@ import LolTeamRoster from "@/components/LolTeamRoster";
 import AmbientGlow from "@/components/AmbientGlow";
 import { Globe, Landmark, Goal, BarChart3, Users, Target, Star, HeartPulse } from "lucide-react";
 import { parseFixtureXg } from "@/lib/xg/outcome";
+import rawCoaches from "../../../../data/team-coaches.json";
+import rawCoachNames from "../../../../data/coach-names.json";
 import { calcStandings } from "@/lib/predict/standings";
 import { calcEloTable, getElo } from "@/lib/predict/elo";
 import { currentSeasonStart, previousSeasonStart } from "@/lib/predict/season-window";
@@ -72,6 +74,9 @@ const TEAM_VENUES = rawTeamVenues as Record<string, TeamVenue>;
 interface BaseballRosterPlayer { id: string; name: string; group: "P" | "B" }
 const BASEBALL_ROSTERS = rawBaseballRosters as Record<string, BaseballRosterPlayer[]>;
 const T_HISTORY = rawTeamHistory as Record<string, TeamHistoryData>;
+// 감독 스냅샷 (ts coach/list + af 폴백, 키=ts team id) — 생성: scripts/build-team-coaches.ts
+const COACHES = rawCoaches as Record<string, { id?: string; name: string; nameKo: string | null; logo: string | null; age: number | null; nationality: string | null; preferredFormation: string | null; joined: number | null; contractUntil: number | null }>;
+const COACH_KO = rawCoachNames as Record<string, string>; // coachId → 한글명 (build-coach-names-haiku)
 const squadPos = (id: string, coarse: string | null | undefined): string | null =>
   T_POS[id] || (coarse === "G" ? "GK" : coarse === "M" ? "MF" : coarse === "D" ? "DF" : coarse === "F" ? "FW" : null);
 
@@ -276,6 +281,9 @@ export default async function TeamPage({ params }: Props) {
   const clubRank = tsTeamRows.map((t) => CLUB_RANK[t.externalId]).filter((r): r is number => !!r).sort((a, b) => a - b)[0] ?? null;
   const teamStat = tsTeamRows.map((t) => TEAM_STATS[t.externalId]).find((s): s is TeamStat => !!s) || null;
   const teamVenue = tsTeamRows.map((t) => TEAM_VENUES[t.externalId]).find((v): v is TeamVenue => !!v) || null;
+  // 현 감독 — ts coach id 있으면 /coaches/{id} 프로필 링크, 없으면(af 폴백 팀) 표시만.
+  const coach = tsTeamRows.map((t) => COACHES[t.externalId]).find((c) => !!c) ?? null;
+  const coachName = coach ? coach.nameKo || (coach.id && COACH_KO[coach.id]) || coach.name : null;
 
   // TeamAbout(SEO 소개 문단)용 — 이미 계산된 값 재사용, 시즌 라벨·종목명만 파생.
   const aboutSeasonLabel = (() => {
@@ -496,6 +504,38 @@ export default async function TeamPage({ params }: Props) {
               <div className="mt-3">
                 <TeamFollowButton teamId={team.id} />
               </div>
+              {coach && (() => {
+                const inner = (
+                  <>
+                    {coach.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={coach.logo} alt={coachName ?? coach.name} className="w-12 h-12 rounded-full object-cover bg-neutral-100 dark:bg-neutral-800 ring-1 ring-black/5 dark:ring-white/10 shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 grid place-items-center text-lg shrink-0">👔</div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-[10px] uppercase tracking-wider text-neutral-400">감독</div>
+                      <div className="font-bold leading-tight truncate">{coachName}</div>
+                      <div className="text-[11px] text-neutral-500 truncate">
+                        {[coach.nationality, coach.age ? `${coach.age}세` : null, coach.preferredFormation ? `선호 ${coach.preferredFormation}` : null].filter(Boolean).join(" · ")}
+                        {coach.id && <span className="text-rose-600 dark:text-rose-400"> · 프로필 →</span>}
+                      </div>
+                    </div>
+                  </>
+                );
+                const cls = "mt-4 inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white/70 p-3 pr-4 dark:border-neutral-800 dark:bg-white/[0.04]";
+                return coach.id ? (
+                  <Link
+                    href={`/coaches/${coach.id}`}
+                    prefetch={false}
+                    className={`${cls} transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]`}
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div className={cls}>{inner}</div>
+                );
+              })()}
             </div>
           </div>
         </div>
