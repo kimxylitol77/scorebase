@@ -83,7 +83,7 @@ function AvgPositionPitch({ ctx }: { ctx: TacticalManagerContext }) {
         </Pitch>
       </div>
       <p className={CAPTION}>
-        {mostUsedXi.formation} 사용 {mainCount}경기에서 각 선수가 실제 배치된 자리의 평균 좌표. 명목 포메이션과 실제 서는 위치의 차이가 감독의 전술 디테일이다.
+        {mostUsedXi.formation} 사용 {mainCount}경기에서 각 선수가 가장 자주 선 자리 기준. 시즌 최다 선발 11인의 실제 배치를 한 판에 모았다.
       </p>
       {ctx.lineupCode && (
         <Link
