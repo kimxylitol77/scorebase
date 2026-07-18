@@ -65,6 +65,14 @@ function sportForLeague(league: string) {
   return "축구";
 }
 
+function subjectParticle(value: string) {
+  const last = Array.from(value.trim()).at(-1);
+  if (!last) return "가";
+  const code = last.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) return "가";
+  return (code - 0xac00) % 28 === 0 ? "가" : "이";
+}
+
 function topOutcome(home: number | null, draw: number | null, away: number | null): Outcome | null {
   const rows: Array<[Outcome, number]> = [];
   if (home != null) rows.push(["HOME", home]);
@@ -314,7 +322,7 @@ export async function GET(req: Request) {
       const risks = market === "1X2"
         ? sport === "이스포츠"
           ? [
-              `${opponent}이 초반 밴픽에서 주도권을 잡으면 예상과 다른 흐름이 나올 수 있습니다.`,
+              `${opponent}${subjectParticle(opponent)} 초반 밴픽에서 주도권을 잡으면 예상과 다른 흐름이 나올 수 있습니다.`,
               "패치 적응과 당일 선수 컨디션은 경기 전까지 확인할 변수입니다.",
             ]
           : sport === "야구"
