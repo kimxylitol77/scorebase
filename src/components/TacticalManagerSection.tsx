@@ -108,15 +108,19 @@ function GoalShotmap({ ctx }: { ctx: TacticalManagerContext }) {
       <h3 className={H3}>시즌 득점 지도 — {sp.goals}골</h3>
       <div className="mx-auto mt-3 max-w-105">
         <Pitch orientation="vertical" aspect={3 / 4.2} className="rounded-xl">
-          {ctx.goalsFor.map((g, i) => (
-            <PitchMarker key={i} x={2.5 + g.y * 0.95} y={1.8 + g.x * 0.964}>
-              <div
-                className="rounded-full bg-amber-400/90 ring-1 ring-white/80"
-                style={{ width: `${10 + g.xg * 18}px`, height: `${10 + g.xg * 18}px` }}
-                title={`${g.min}' ${g.nameKo} — xG ${g.xg.toFixed(2)}${SIT_KO[g.sit] ? ` (${SIT_KO[g.sit]})` : ""}`}
-              />
-            </PitchMarker>
-          ))}
+          {ctx.goalsFor.map((g, i) => {
+            // 샷맵 원본에 xg null 인 골 실존(시티 등 6편) — toFixed 크래시로 섹션 전체가 사라졌던 사고. 방어 필수.
+            const xg = typeof g.xg === "number" ? g.xg : 0;
+            return (
+              <PitchMarker key={i} x={2.5 + g.y * 0.95} y={1.8 + g.x * 0.964}>
+                <div
+                  className="rounded-full bg-amber-400/90 ring-1 ring-white/80"
+                  style={{ width: `${10 + xg * 18}px`, height: `${10 + xg * 18}px` }}
+                  title={`${g.min}' ${g.nameKo} — xG ${xg.toFixed(2)}${SIT_KO[g.sit] ? ` (${SIT_KO[g.sit]})` : ""}`}
+                />
+              </PitchMarker>
+            );
+          })}
         </Pitch>
       </div>
       <p className={CAPTION}>

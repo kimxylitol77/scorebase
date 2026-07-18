@@ -436,7 +436,8 @@ export async function aggregateTeamSeason(opts: {
           const sh = side.shooters.get(s.pid) ?? { name: s.name, shots: 0, goals: 0, xg: 0 };
           sh.shots++; sh.xg += s.xg; if (isGoal) sh.goals++;
           side.shooters.set(s.pid, sh);
-          if (isGoal) goalsFor.push({ x: s.x, y: s.y, min: s.min, name: s.name, nameKo: playerKo(s.name, null), xg: s.xg, sit: s.sit });
+          // 샷맵 원본에 xg null 골 실존 — 렌더 계약은 number 고정 (null 이 섹션 크래시 유발했던 사고)
+          if (isGoal) goalsFor.push({ x: s.x, y: s.y, min: s.min, name: s.name, nameKo: playerKo(s.name, null), xg: typeof s.xg === "number" ? s.xg : 0, sit: s.sit });
         }
       }
     }
