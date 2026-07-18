@@ -514,7 +514,9 @@ export default async function LeaguePage({ params, searchParams }: Props) {
   const totalAll = countsByType.reduce((s, c) => s + c._count._all, 0);
   const countMap = new Map<FilterType, number>([["ALL", totalAll]]);
   for (const c of countsByType) {
-    countMap.set(c.type as FilterType, c._count._all);
+    // TACTICAL(감독 전술 연구)은 분석 탭에 합산 — 목록 where 와 동일 기준 (탭 카운트만 2로 남던 문제)
+    const key = (c.type === "TACTICAL" ? "ANALYSIS" : c.type) as FilterType;
+    countMap.set(key, (countMap.get(key) ?? 0) + c._count._all);
   }
 
   return (
