@@ -16,6 +16,7 @@ import {
   calcK9,
   type KboPitcherIndexEntry,
 } from "./kbo-official";
+import { calcFip, calcLobPct } from "./baseball-saber";
 
 const MYKBO_URL = "https://mykbo.statiz.co.kr/minigame/?m=sp";
 
@@ -31,6 +32,8 @@ export interface KboPitcherFullStats {
   qs?: number;
   avg?: number; // 피안타율
   hr?: number;
+  fip?: number; // 수비 무관 평자책 (리그 상수 근사)
+  lobPct?: number; // 잔루 처리율 % (높을수록 좋음)
   /** 최근 3등판 ERA (ER·IP 합산) */
   recentEra?: number;
   /** 최근 3등판 평균 이닝 */
@@ -185,6 +188,8 @@ export async function enrichKboStartersWithStats(
           qs: st.qs,
           avg: st.avg,
           hr: st.hr,
+          fip: calcFip({ league: "KBO", hr: st.hr, bb: st.bb, hbp: st.hbp, k: st.k, ip: st.ip }),
+          lobPct: calcLobPct({ hits: st.hits, bb: st.bb, hbp: st.hbp, r: st.r, hr: st.hr }),
           recentEra: form ? Number(form.recentEra.toFixed(2)) : undefined,
           recentIp: form ? Number(form.recentIp.toFixed(1)) : undefined,
         },

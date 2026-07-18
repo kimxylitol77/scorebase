@@ -53,6 +53,8 @@ interface StarterJson {
   era?: number;
   whip?: number;
   k9?: number;
+  fip?: number;
+  lobPct?: number;
   wins?: number;
   losses?: number;
   ip?: string;
@@ -171,6 +173,8 @@ export async function runFetchBaseballStarters(opts?: {
         era: side.stats?.era,
         whip: side.stats?.whip,
         k9: side.stats?.k9,
+        fip: side.stats?.fip,
+        lobPct: side.stats?.lobPct,
         wins: side.stats?.wins,
         losses: side.stats?.losses,
         ip: side.stats?.ip,
@@ -190,6 +194,8 @@ export async function runFetchBaseballStarters(opts?: {
         era: side.stats?.era,
         whip: side.stats?.whip,
         k9: side.stats?.k9,
+        fip: side.stats?.fip,
+        lobPct: side.stats?.lobPct,
         wins: side.stats?.wins,
         losses: side.stats?.losses,
         ip: side.stats?.ip,

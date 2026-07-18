@@ -23,6 +23,7 @@ import {
   type NpbPlayerIndexEntry,
 } from "./npb-official";
 import { kanaToKorean } from "./kana-to-korean";
+import { calcFip, calcLobPct } from "./baseball-saber";
 
 export interface NpbStarterPitcher {
   name: string; // 한글 음역 (UI 표시용)
@@ -39,6 +40,8 @@ export interface NpbStarterPitcher {
     k?: number;
     bb?: number;
     hra?: number;
+    fip?: number; // 수비 무관 평자책 (리그 상수 근사)
+    lobPct?: number; // 잔루 처리율 % (높을수록 좋음)
   };
 }
 
@@ -408,6 +411,8 @@ export async function enrichNpbStartersWithStats(
         k: st.k,
         bb: st.bb,
         hra: st.hra,
+        fip: calcFip({ league: "NPB", hr: st.hra, bb: st.bb, hbp: st.hbp, k: st.k, ip: st.ip }),
+        lobPct: calcLobPct({ hits: st.hits, bb: st.bb, hbp: st.hbp, r: st.r, hr: st.hra }),
       },
     };
   };

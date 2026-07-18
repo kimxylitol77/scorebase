@@ -140,6 +140,8 @@ interface MlbStarterInfo {
   era?: number;
   whip?: number;
   k9?: number;
+  fip?: number;
+  lobPct?: number;
   wins?: number;
   losses?: number;
   gs?: number;
@@ -1518,12 +1520,15 @@ function StarterCard({
           <StarterStatBar label="ERA" awayV={away.era} homeV={home.era} betterLow />
           <StarterStatBar label="WHIP" awayV={away.whip} homeV={home.whip} betterLow />
           <StarterStatBar label="K/9" awayV={away.k9} homeV={home.k9} betterLow={false} digits={1} />
+          <StarterStatBar label="FIP" awayV={away.fip} homeV={home.fip} betterLow />
+          <StarterStatBar label="LOB%" awayV={away.lobPct} homeV={home.lobPct} betterLow={false} digits={1} />
         </div>
       )}
       {(home || away) && (home?.era != null || away?.era != null) && (
         <p className="text-[11px] text-neutral-500 leading-relaxed">
-          ⓘ ERA(평균자책점)·WHIP(이닝당 출루)·K/9(9이닝당 삼진) 모두 낮을수록 좋고,
-          K/9 만 높을수록 좋습니다. 오늘 매치 결과의 가장 큰 변수.
+          ⓘ ERA(평균자책점)·WHIP(이닝당 출루)·FIP(수비 무관 평자책)는 낮을수록,
+          K/9(9이닝당 삼진)·LOB%(잔루 처리율)는 높을수록 좋습니다. 오늘 매치 결과의
+          가장 큰 변수.
         </p>
       )}
     </div>

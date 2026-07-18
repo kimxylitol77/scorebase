@@ -405,6 +405,8 @@ export async function runPreview(opts?: {
             era: side.stats?.era,
             whip: side.stats?.whip,
             k9: side.stats?.k9,
+            fip: side.stats?.fip,
+            lobPct: side.stats?.lobPct,
             wins: side.stats?.wins,
             losses: side.stats?.losses,
             ip: side.stats?.ip,

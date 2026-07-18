@@ -262,8 +262,10 @@ export interface KboPitcherStats {
   holds?: number;
   k?: number;
   bb?: number;
+  hbp?: number;
   hits?: number;
   hr?: number;
+  r?: number; // 실점 (LOB% 계산용)
   whip?: number;
   avg?: number; // 피안타율
   qs?: number;
@@ -334,8 +336,10 @@ function parseKboPitcherStatsHtml(
     holds: toNum(get("HLD")),
     k: toNum(get("SO")),
     bb: toNum(get("BB")),
+    hbp: toNum(get("HBP")),
     hits: toNum(get("H")),
     hr: toNum(get("HR")),
+    r: toNum(get("R")),
     whip: toNum(get("WHIP")),
     avg: toNum(get("AVG")),
     qs: toNum(get("QS")),

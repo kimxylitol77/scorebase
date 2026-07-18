@@ -5,6 +5,7 @@
 // 우리 DB 의 MLB 매치에 매일 자동으로 채워 넣는다.
 
 import axios from "axios";
+import { calcFip, calcLobPct } from "./baseball-saber";
 
 const BASE_URL = "https://statsapi.mlb.com/api/v1";
 
@@ -43,6 +44,10 @@ export interface MlbStarter {
   gs?: number;
   /** Innings Pitched (예: "41.0") */
   ip?: string;
+  /** 수비 무관 평자책 (리그 상수 근사) */
+  fip?: number;
+  /** 잔루 처리율 % (높을수록 좋음) */
+  lobPct?: number;
   /** 최근 3등판 ERA (ER·IP 합산 — 등판별 평균 아님) */
   recentEra?: number;
   /** 최근 3등판 평균 이닝 */
@@ -300,6 +305,23 @@ export async function fetchPitcherStats(
       out.losses = s.losses;
       out.gs = s.gamesStarted;
       out.ip = s.inningsPitched;
+      const num = (v: unknown) => (v != null ? Number(v) : undefined);
+      const hbp = num(s.hitBatsmen) ?? num(s.hitByPitch);
+      out.fip = calcFip({
+        league: "MLB",
+        hr: num(s.homeRuns),
+        bb: num(s.baseOnBalls),
+        hbp,
+        k: num(s.strikeOuts),
+        ip: out.ip,
+      });
+      out.lobPct = calcLobPct({
+        hits: num(s.hits),
+        bb: num(s.baseOnBalls),
+        hbp,
+        r: num(s.runs),
+        hr: num(s.homeRuns),
+      });
       break;
     }
   }

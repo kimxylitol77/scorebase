@@ -179,6 +179,8 @@ export interface PreviewContext {
       era?: number;
       whip?: number;
       k9?: number;
+      fip?: number;
+      lobPct?: number;
       wins?: number;
       losses?: number;
       gs?: number;
@@ -190,6 +192,8 @@ export interface PreviewContext {
       era?: number;
       whip?: number;
       k9?: number;
+      fip?: number;
+      lobPct?: number;
       wins?: number;
       losses?: number;
       gs?: number;
@@ -463,6 +467,8 @@ export function buildPreviewPrompt(input: PreviewPromptInput): string {
         side.era != null ? `ERA ${side.era.toFixed(2)}` : null,
         side.whip != null ? `WHIP ${side.whip.toFixed(2)}` : null,
         side.k9 != null ? `K/9 ${side.k9.toFixed(1)}` : null,
+        side.fip != null ? `FIP ${side.fip.toFixed(2)}` : null,
+        side.lobPct != null ? `LOB% ${side.lobPct.toFixed(1)}%` : null,
         side.wins != null && side.losses != null
           ? `${side.wins}-${side.losses}`
           : null,
@@ -798,6 +804,8 @@ Opta Analyst 수준의 데이터 기반 분석을 한국어로 작성한다.
   예) "보스턴 Net Rating +8.4 (리그 6위), 마이애미 +1.2 — 효율성 차이가 핵심."
 - 야구: **선발 투수 FIP** (수비 무관 평균자책점)
   예) "오타니 FIP 2.84, 콜 3.71 — DIPS 기준 오타니가 한 등급 위."
+  ⚠ FIP·LOB% 는 선발 컨텍스트 라인에 제공된 값만 사용. 미제공이면 이 단락 생략
+  (다른 지표로 대체) — 직접 계산·추정 절대 금지.
 - 하키: **Corsi (CF%)** (5v5 슈팅 시도 점유율)
   예) "콜로라도 CF% 54.2% (리그 3위), 베이거스 49.8% — 슛 압박은 콜로라도 우세."
 
