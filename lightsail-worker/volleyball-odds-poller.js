@@ -1,5 +1,5 @@
 // volleyball-odds-poller.js — TheSports `/v1/volleyball/odds/history` → Scorebase API push.
-// 10분 cycle (배당 변동 느림 — 프리매치+라이브 모두 cover, ±2일 매핑 매치 대상).
+// 3분 cycle (배당 변동 느림 — 프리매치+라이브 모두 cover, ±2일 매핑 매치 대상).
 // 저장은 야구와 동일 테이블/라우트 재사용 (TsBaseballOddsHistory — 구조 sport-agnostic):
 //   eu = 승패 배당 [ts, home, mid(0), away, status], company 2 = bet365.
 //
@@ -20,7 +20,7 @@ const TS_USER = process.env.THESPORTS_USER;
 const TS_SECRET = process.env.THESPORTS_SECRET;
 const SITE_URL = process.env.SITE_URL || "https://www.scorebase.kr";
 const TOKEN = process.env.INTERNAL_API_TOKEN;
-const POLL_INTERVAL_MS = 10 * 60_000;
+const POLL_INTERVAL_MS = 3 * 60_000;
 const PER_CALL_DELAY_MS = 250;
 
 if (!TS_USER || !TS_SECRET) { console.error("❌ THESPORTS env missing"); process.exit(1); }

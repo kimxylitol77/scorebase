@@ -269,7 +269,9 @@ async function main() {
   console.log(`◀ 종료 — ${results.map((r) => `${r.league}:${r.namesUpserted ?? "err"}`).join(" ")}`);
 }
 
-main().catch((e) => {
+main().catch(async (e) => {
+  try { await axios.post(`${SITE_URL}/api/internal/bot-heartbeat`, { name: "lightsail-baseball-player-names", ok: false, error: String(e.message || e).slice(0, 380) }, { headers: SITE_HEADERS, timeout: 10000 }); } catch {}
+
   console.error("❌ fatal:", e.message);
   bootHeartbeat({ error: e.message }).finally(() => process.exit(1));
 });
