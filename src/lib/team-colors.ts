@@ -29,7 +29,7 @@ const RAW: Record<string, string> = {
   "Everton": "#003399",
   "Fulham": "#000000",
   "Wolves": "#FDB913",
-  "노팅엄 포레스트": "#DD0000",
+  "노팅엄 포리스트": "#DD0000",
 
   // LALIGA
   "Real Madrid": "#FEBE10",
@@ -172,7 +172,7 @@ const RAW: Record<string, string> = {
   "Fenerbahce": "#0B449C",
   "페네르바체": "#0B449C",
   "Besiktas": "#000000",
-  "베식타스": "#000000",
+  "베식타시": "#000000",
   "Trabzonspor": "#7B0E11",
   "트라브존스포르": "#7B0E11",
 
@@ -180,7 +180,7 @@ const RAW: Record<string, string> = {
   "Club Brugge": "#0A4D8C",
   "클럽 브뤼헤": "#0A4D8C",
   "Anderlecht": "#592884",
-  "안더레흐트": "#592884",
+  "안데를레흐트": "#592884",
   "Genk": "#1B5DAB",
   "헹크": "#1B5DAB",
 
