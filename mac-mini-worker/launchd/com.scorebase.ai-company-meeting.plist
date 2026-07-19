@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.scorebase.ai-company-meeting</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/kkulkkul/dev/scorebase/ai-company</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/kkulkkul/dev/scorebase/ai-company/venv/bin/python</string>
+        <string>/Users/kkulkkul/dev/scorebase/ai-company/server/run_meeting.py</string>
+    </array>
+    <!-- 주간 자동 회의 — 월 09:30 KST. competitor-backlog(월 09:00) 직후라 재료가 신선함 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/tmp/ai-company-meeting.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/ai-company-meeting.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+</dict>
+</plist>
