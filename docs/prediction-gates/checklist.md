@@ -11,5 +11,5 @@
 - [x] 3. AiPrediction.published 컬럼 스키마 추가 + gatedUpsert 로 storeAnchor/storePanel/backfill 3관문 통일 (qwen 맥미니 경로는 storePanel 경유라 자동 커버)
 - [x] 4. 소비처 5곳 published:true 필터 — scorecard·AiConsensusWidget·AiRoundTableStrip·HomeAiScorecardShowcase·AiBenchmark. 채점·postmortem·qwen 라인 앵커는 전 행 유지(의도)
 - [x] 5. 게이트 단위 검증 10케이스 전 통과 + tsc 통과
-- [ ] 6. **프로덕션 ALTER (사용자 Neon SQL, 배포 전 필수)** — `ALTER TABLE "AiPrediction" ADD COLUMN "published" BOOLEAN NOT NULL DEFAULT true;`
-- [ ] 7. ALTER 확인 후 push·배포 + 다음 cron 실행 로그에서 [gate] 미발행 라인 확인
+- [x] 6. 프로덕션 ALTER 실행 완료 (lock_timeout 5s, 기존 5,892행 published=true 확인) — 2026-07-19
+- [x] 7. 배포 완료 (6a66337). 남은 관찰 = 다음 cron 로그의 [gate] 라인, 1주 후 미발행 픽 채점 성적 재확인
