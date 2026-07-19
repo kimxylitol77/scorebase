@@ -23,7 +23,9 @@ if (!USER || !SECRET || !TOKEN) { console.error("❌ env missing"); process.exit
 
 const SITE_HEADERS = { Authorization: `Bearer ${TOKEN}` };
 
-// === ts match id → our match id 매핑 (5분 TTL) ===
+// === ts match id → { matchId, swap } 매핑 (5분 TTL) ===
+// swap: TheSports 의 home/away 가 우리 home/away 와 거꾸로면 true.
+// baseball-poller 가 match/list 의 home_team_id 와 우리 Team.tsTeamId 비교로 결정.
 let mappingCache = new Map();
 let mappingFetchedAt = 0;
 const MAPPING_TTL_MS = 5 * 60 * 1000;
@@ -53,17 +55,18 @@ async function refreshMapping(force = false) {
 //   (Atlanta 6회초 3점). ft 도 동일 인덱싱 → [home=2 Boston, away=5 Atlanta] = ESPN 일치.
 // baseball-live.ts (KBO 검증) 와 sync. 이전 "ft[0]=away" 주석은 Houston/Texas
 //   sample 의 home/away 식별 오인. cache_db_mismatch 알림 (Atlanta vs Boston) 의 원인.
-function extractBaseballScore(item) {
+// swap=true 면 ts_home == our_away → 우리 관점에서 뒤집어 반환.
+function extractBaseballScore(item, swap) {
   const arr = item?.score;
   if (!Array.isArray(arr) || arr.length < 4) return [null, null];
   const scores = arr[3];
   if (!scores || typeof scores !== "object") return [null, null];
   const ft = scores.ft;
   if (!Array.isArray(ft) || ft.length < 2) return [null, null];
-  const home = parseInt(String(ft[0]), 10);
-  const away = parseInt(String(ft[1]), 10);
-  if (!Number.isFinite(home) || !Number.isFinite(away)) return [null, null];
-  return [home, away]; // [homeScore, awayScore]
+  const tsHome = parseInt(String(ft[0]), 10);
+  const tsAway = parseInt(String(ft[1]), 10);
+  if (!Number.isFinite(tsHome) || !Number.isFinite(tsAway)) return [null, null];
+  return swap ? [tsAway, tsHome] : [tsHome, tsAway]; // [homeScore, awayScore]
 }
 
 async function pushCache(matchId, tsMatchId, detailLiveDelta, homeScore, awayScore) {
@@ -99,8 +102,11 @@ async function handleMessage(topic, payload) {
   totalReceived += arr.length;
   for (const item of arr) {
     if (!item?.id) continue;
-    const matchId = mappingCache.get(item.id);
-    if (matchId == null) { totalSkipped++; continue; }
+    const entry = mappingCache.get(item.id);
+    if (!entry || entry.matchId == null) { totalSkipped++; continue; }
+    // 매핑 값이 숫자로 해석 안 되면 push 하지 않는다 — NaN POST 400 방지.
+    const ourMatchId = parseInt(entry.matchId, 10);
+    if (!Number.isFinite(ourMatchId)) { totalSkipped++; continue; }
     const delta = {};
     if (item.extra) delta.extra = item.extra;
     if (item.score) delta.score = item.score;
@@ -109,10 +115,12 @@ async function handleMessage(topic, payload) {
     if (Object.keys(delta).length === 0) continue;
 
     // score 메시지 있으면 DB.Match.homeScore/awayScore 도 함께 update.
-    const [homeScore, awayScore] = item.score ? extractBaseballScore(item) : [null, null];
+    const [homeScore, awayScore] = item.score
+      ? extractBaseballScore(item, entry.swap === true)
+      : [null, null];
     if (homeScore != null && awayScore != null) totalDbUpdated++;
 
-    await pushCache(parseInt(matchId, 10), item.id, delta, homeScore, awayScore);
+    await pushCache(ourMatchId, item.id, delta, homeScore, awayScore);
     totalPushed++;
   }
 }
