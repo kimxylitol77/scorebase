@@ -283,7 +283,9 @@ export default async function MatchInsight({
 
   // 시장 odds blending — 베팅사이트 평균 implied 와 ensemble
   let marketBlended = false;
+  let blendShift = 0; // 블렌드 전후 홈 승률 차 — 근거 %p 기여 분해용
   if (match.marketHome != null && match.marketAway != null) {
+    const preBlendHome = winProb.home;
     const blended = blendWithMarket(winProb, {
       home: match.marketHome,
       draw: match.marketDraw,
@@ -293,12 +295,14 @@ export default async function MatchInsight({
     if (blended.blended) {
       winProb = { home: blended.home, draw: blended.draw, away: blended.away };
       marketBlended = true;
+      blendShift = winProb.home - preBlendHome;
     }
   }
 
   // 단일 소스 — 글 생성 시점에 저장된 예측이 있으면 그 값을 사용 (본문 글과 100% 일치).
   // 위 재계산은 글 없는 매치용 fallback. 글이 있는 매치는 며칠 전 Elo/배당으로 쓴 본문과
   // 지금 재계산이 달라지는 불일치(76% vs 64%)를 방지 — 저장값으로 고정.
+  const liveHomeProb = winProb.home; // 저장값 고정 전 라이브 재계산 최종 홈 승률 (드리프트 가드용)
   if (match.predHome != null && match.predDraw != null && match.predAway != null) {
     winProb = { home: match.predHome, draw: match.predDraw, away: match.predAway };
   }
@@ -309,11 +313,20 @@ export default async function MatchInsight({
   );
 
   // === 예측 근거 분해 — 실제 1X2 승률에 반영되는 신호만 (정직성: 폼·H2H·득실은 미반영) ===
+  // 드리프트 가드 — 저장 예측으로 고정된 매치에서 라이브 재계산과 홈 승률이 3%p 초과로
+  // 어긋나면 분해값 합 ≠ 표시 확률이라 신뢰를 해침 → %p 표기를 숨기고 정성 문구만 유지.
+  const predDrifted =
+    match.predHome != null &&
+    match.predDraw != null &&
+    match.predAway != null &&
+    Math.abs(liveHomeProb - match.predHome) > 0.03;
+  const showShift = !predDrifted;
+  const fmtShift = (v: number) => `${v >= 0 ? "+" : ""}${(v * 100).toFixed(1)}%p`;
   const eloGap = Math.round(homeElo - awayElo);
   const predBasis: { label: string; detail: string }[] = [
     {
       label: "Elo 레이팅",
-      detail: `홈 ${Math.round(homeElo)} · 원정 ${Math.round(awayElo)} (${eloGap >= 0 ? "+" : ""}${eloGap} ${eloGap > 0 ? "홈 우위" : eloGap < 0 ? "원정 우위" : "대등"})`,
+      detail: `홈 ${Math.round(homeElo)} · 원정 ${Math.round(awayElo)} (${eloGap >= 0 ? "+" : ""}${eloGap} ${eloGap > 0 ? "홈 우위" : eloGap < 0 ? "원정 우위" : "대등"})${showShift ? ` · 기본 홈 승률 ${Math.round(baseWinProb.home * 100)}%` : ""}`,
     },
   ];
   if (starterAdj.applied) {
@@ -321,7 +334,7 @@ export default async function MatchInsight({
     const ae = awayStarterEarly?.era;
     const detail =
       he != null && ae != null
-        ? `${he < ae ? "홈 선발 우위" : he > ae ? "원정 선발 우위" : "대등"} — ERA ${he.toFixed(2)} vs ${ae.toFixed(2)}`
+        ? `${he < ae ? "홈 선발 우위" : he > ae ? "원정 선발 우위" : "대등"} — ERA ${he.toFixed(2)} vs ${ae.toFixed(2)}${showShift ? ` · 홈 승률 ${fmtShift(starterAdj.homeShift)}` : ""}`
         : "선발 매치업 반영 — 상세는 아래 선발 카드";
     predBasis.push({ label: "선발 투수", detail });
   }
@@ -330,12 +343,15 @@ export default async function MatchInsight({
     const ag = awayGoalieEarly?.gaa;
     const detail =
       hg != null && ag != null
-        ? `${hg < ag ? "홈 골리 우위" : hg > ag ? "원정 골리 우위" : "대등"} — GAA ${hg.toFixed(2)} vs ${ag.toFixed(2)}`
+        ? `${hg < ag ? "홈 골리 우위" : hg > ag ? "원정 골리 우위" : "대등"} — GAA ${hg.toFixed(2)} vs ${ag.toFixed(2)}${showShift ? ` · 홈 승률 ${fmtShift(goalieAdj.homeShift)}` : ""}`
         : "골리 매치업 반영 — 상세는 아래 골리 카드";
     predBasis.push({ label: "골리", detail });
   }
   if (marketBlended)
-    predBasis.push({ label: "시장 배당", detail: "베팅사이트 평균 확률과 앙상블 블렌드" });
+    predBasis.push({
+      label: "시장 배당",
+      detail: `베팅사이트 평균 확률과 앙상블 블렌드${showShift ? ` · 홈 승률 ${fmtShift(blendShift)}` : ""}`,
+    });
 
   // === AI 예측 시장 ===
   const isSoccer = SOCCER_LEAGUES_FOR_MARKETS.has(match.league);
@@ -781,6 +797,8 @@ export default async function MatchInsight({
           ))}
           <p className="mt-1 border-t border-black/5 pt-2 text-[11px] leading-relaxed text-zinc-500 dark:border-white/10 dark:text-white/45">
             ⓘ 위 신호만 승률에 직접 반영됩니다. 최근 폼·상대전적(H2H)·득실 추이는 아래 참고 지표이며, 예측 확률 계산에는 들어가지 않습니다.
+            {predDrifted &&
+              " 표시 승률은 예측 확정 시점 기준으로 고정된 값이라, 현재 재계산과 차이가 있어 신호별 기여치(%p)는 표시하지 않습니다."}
           </p>
         </div>
       </Section>
