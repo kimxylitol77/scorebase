@@ -207,6 +207,7 @@ ${LOCAL_QUERIES.map((query) => `- ${query}`).join("\n")}
    라이브스코어 / 배당 흐름 / AI 예측 / 경기 데이터 / 성적 추적
 7. 시청률·방송·스폰서·선수 육성처럼 한 항목만 간접적으로 겹치면 '아이디어 참고 서비스'로 분류한다.
 8. 최대 직접 경쟁자 2곳 + 참고 서비스 1곳, 2000자 이내, 같은 모회사·화이트라벨 서비스는 1곳으로 합친다.
+9. 같은 공식 도메인을 직접 경쟁자와 참고 서비스에 동시에 쓰지 않는다. 두 분류가 겹치면 직접 경쟁자에만 남긴다.
 
 ## 출력 형식
 - 서두·맺음말·마크다운 별표·HTML 없이 첫 글자부터 🛰로 시작한다.
@@ -348,6 +349,64 @@ function sanitizeReport(text) {
     .trim();
 }
 
+function replaceSection(report, heading, content) {
+  const start = report.indexOf(heading);
+  if (start < 0) return report;
+  const contentStart = start + heading.length;
+  const rest = report.slice(contentStart);
+  const next = rest.search(/\n[🛰🥊🧭💡🎯]\s*/u);
+  const end = next >= 0 ? contentStart + next : report.length;
+  return `${report.slice(0, contentStart)}\n${content.trim()}${report.slice(end)}`;
+}
+
+function dedupeCandidateSection(section, seenDomains, emptyText) {
+  const lines = section.split("\n");
+  const starts = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    if (/^\d+\.\s+[^|\n]+?\s*\|\s*[^|\s]+\s*\|/.test(lines[index])) starts.push(index);
+  }
+  if (starts.length === 0) return { section, removed: [] };
+
+  const kept = [];
+  const removed = [];
+  for (let blockIndex = 0; blockIndex < starts.length; blockIndex += 1) {
+    const start = starts[blockIndex];
+    const end = starts[blockIndex + 1] ?? lines.length;
+    const block = lines.slice(start, end).join("\n").trim();
+    const domain = normalizeDomain(block.match(/^\d+\.\s+[^|\n]+?\s*\|\s*([^|\s]+)\s*\|/)?.[1]);
+    if (!domain || seenDomains.has(domain)) {
+      if (domain) removed.push(domain);
+      continue;
+    }
+    seenDomains.add(domain);
+    kept.push(block);
+  }
+
+  return {
+    section: kept.length > 0
+      ? kept.map((block, index) => block.replace(/^\d+\./, `${index + 1}.`)).join("\n\n")
+      : emptyText,
+    removed,
+  };
+}
+
+function dedupeReportCandidates(report) {
+  const seenDomains = new Set();
+  const direct = dedupeCandidateSection(
+    getSection(report, "🥊 직접 경쟁자"),
+    seenDomains,
+    "- 검증 가능한 직접 경쟁자 없음",
+  );
+  let clean = replaceSection(report, "🥊 직접 경쟁자", direct.section);
+  const references = dedupeCandidateSection(
+    getSection(clean, "🧭 아이디어 참고 서비스"),
+    seenDomains,
+    "- 검증 가능한 참고 서비스 없음",
+  );
+  clean = replaceSection(clean, "🧭 아이디어 참고 서비스", references.section);
+  return { report: clean, removed: [...direct.removed, ...references.removed] };
+}
+
 function validateReport(report, state) {
   const direct = extractCandidates(report);
   const references = extractReferenceCandidates(report);
@@ -429,7 +488,11 @@ async function main() {
     });
     if (!text) throw new Error("빈 응답 (검색 실패 가능)");
 
-    clean = sanitizeReport(text);
+    const deduped = dedupeReportCandidates(sanitizeReport(text));
+    clean = deduped.report;
+    if (deduped.removed.length > 0) {
+      console.warn(`[competitor-scout] 중복 후보 자동 제거: ${deduped.removed.join(", ")}`);
+    }
     try {
       result = validateReport(clean, state);
       validationError = null;
@@ -487,6 +550,7 @@ if (require.main === module) {
 
 module.exports = {
   buildPrompt,
+  dedupeReportCandidates,
   extractCandidates,
   extractReferenceCandidates,
   isExcludedDomain,
