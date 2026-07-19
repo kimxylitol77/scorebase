@@ -250,7 +250,8 @@ export default function FavoriteMatches({ matches }: Props) {
                 {list.map(renderMatchLarge)}
               </ul>
             ) : (
-              <ul className="rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 divide-y divide-neutral-100 dark:divide-neutral-800">
+              // data-srows: SoccerLiveRow 접힘 컨테이너 쿼리 기준(globals.css)
+              <ul data-srows className="rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 divide-y divide-neutral-100 dark:divide-neutral-800">
                 {list.map((m) => (
                   <CompactRow key={m.id} match={m} />
                 ))}

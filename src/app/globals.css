@@ -696,43 +696,119 @@ body {
   font-weight: 600;
 }
 
-/* 스코어보드.kr (body.sb-mode) — /scores 행에서 예측/L/R(정보 칸) "내용만" 숨김. */
-body.sb-mode [data-sinfo] {
-  display: none !important;
+/* ═══════ /scores 축구 행(SoccerLiveRow) — data-scell 칸 체계 + 컨테이너 쿼리 접힘 ═══════
+   템플릿 단일 출처: 행의 grid-template-columns 는 여기서만 정의(인라인 스타일 금지).
+   칸 식별은 의미 속성 data-scell — nth-child 금지 (칸 추가 때마다 밀려 팀명이 붕괴하던
+   sb-mode 사고 2회의 구조적 종결, 2026-07-19).
+   접힘 우선순위(사용자 확정): 배당 → 전반+정보 → 리그배지(팀명 옆 미니 라벨로 대체) → 시간.
+   팀명(home/away, minmax(0,1fr)×2)은 마지막까지 최대 폭 유지.
+   경계값 근거: 비팀명 폭 합(고정칸+gap12×칸수-1+행패딩32) + 팀명 칸 120px×2 확보 기준.
+   flat = 시간순 평면 뷰(리그 배지 포함 10칸) · grouped = 리그 그룹 카드(9칸). */
+
+/* 행 리스트 래퍼가 쿼리 컨테이너 — 사이드바 유무·위성 도메인 전폭 모두 실폭 기준 자동 대응. */
+[data-srows] {
+  container-type: inline-size;
+  container-name: srows;
 }
-/* 리그 그룹 카드 리디자인 후 SoccerLiveRow 는 hideLeague 로 리그 배지 칸을 접어
-   9개 자식만 렌더: 1시간 · 2상태 · 3홈팀 · 4점수 · 5원정팀 · 6전반 · 7별 · 8정보(data-sinfo) · 9배당.
-   6컬럼(시간56·상태64·홈팀1fr·점수72·원정팀1fr·별28)만 남기고 전반·정보·배당은 숨김.
-   홈팀·원정팀을 동일 1fr 로 균등 배분 → 좁은 화면에서도 팀명 노출
-   (이전 grid 는 리그 배지가 있던 옛 10컬럼 기준이라, 리디자인 후 자식이 한 칸씩 밀려
-    홈팀이 44px 로 붕괴하고 배당이 안 숨겨지던 버그 — 사용자 보고: 스코어보드.kr 팀명 안 보임). */
-body.sb-mode [data-srow]:not([data-srow-league]) {
-  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px !important;
+
+/* 기본(최광폭) 템플릿 — 칸 순서: league time status home score away half star info odds.
+   score 72px 고정(내용폭 차이로 행마다 팀명 정렬 어긋남 방지), odds minmax(0,154px)는
+   vs/점수 가운데 정렬용 우측 spacer 겸용. */
+[data-srow="flat"] {
+  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 154px);
 }
-/* 시간순 평면 뷰(data-srow-league) — 리그 배지 칸이 앞에 붙은 10자식 변형.
-   자식이 한 칸씩 밀리므로 전용 템플릿(리그·시간·상태·홈·점수·원정·별 7칸) + 아래에서
-   전반(7)·배당(10) 숨김. 이 구분 없이는 홈팀 72px 붕괴·원정팀 증발(2026-07-19 사용자 보고). */
-body.sb-mode [data-srow][data-srow-league] {
-  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px !important;
+[data-srow="grouped"] {
+  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px minmax(0, 154px);
 }
+/* 리그 미니 라벨(좌측 팀 칸 안) — 3단계에서 리그 배지 칸 대체용. 평소 숨김. */
+[data-scell="league-mini"] {
+  display: none;
+}
+
+/* ── 1단계: 배당 접힘 (팀명 칸이 120px 밑으로 내려가기 전에 먼저 양보) ── */
+@container srows (max-width: 970px) {
+  [data-srow="flat"] {
+    grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px;
+  }
+  [data-srow="flat"] > [data-scell="odds"] {
+    display: none;
+  }
+}
+@container srows (max-width: 845px) {
+  [data-srow="grouped"] {
+    grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 54px 28px 48px;
+  }
+  [data-srow="grouped"] > [data-scell="odds"] {
+    display: none;
+  }
+}
+
+/* ── 2단계: 전반 스코어(half) + 정보(예측/L/R, info) 접힘 ── */
+@container srows (max-width: 800px) {
+  [data-srow="flat"] {
+    grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
+  }
+  [data-srow="flat"] > [data-scell="half"],
+  [data-srow="flat"] > [data-scell="info"] {
+    display: none;
+  }
+}
+@container srows (max-width: 680px) {
+  [data-srow="grouped"] {
+    grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
+  }
+  [data-srow="grouped"] > [data-scell="half"],
+  [data-srow="grouped"] > [data-scell="info"] {
+    display: none;
+  }
+}
+
+/* ── 스코어보드.kr(body.sb-mode): 전반·정보·배당 상시 숨김 = 2단계를 폭 무관 베이스라인으로.
+   :where() 로 특이도를 낮춰 아래 3·4단계 @container 규칙이 소스 순서로 이기게 한다.
+   ⚠️ 이 블록을 3·4단계 뒤로 옮기면 좁은 sb 창에서 접힘이 멈춤 — 위치 유지 필수. */
+:where(body.sb-mode) [data-srow="flat"] {
+  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
+}
+:where(body.sb-mode) [data-srow="grouped"] {
+  grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
+}
+:where(body.sb-mode) [data-srow] > [data-scell="half"],
+:where(body.sb-mode) [data-srow] > [data-scell="info"],
+:where(body.sb-mode) [data-srow] > [data-scell="odds"] {
+  display: none;
+}
+
+/* ── 3단계: 리그 배지 접힘(flat 전용) — 시간순 뷰 리그 식별은 팀명 옆 미니 라벨로 유지 ── */
+@container srows (max-width: 675px) {
+  [data-srow="flat"] {
+    grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
+  }
+  [data-srow="flat"] > [data-scell="league"] {
+    display: none;
+  }
+  /* inline-block: truncate(text-overflow) 는 flex 컨테이너에선 말줄임이 안 걸림 */
+  [data-srow="flat"] [data-scell="league-mini"] {
+    display: inline-block;
+  }
+}
+
+/* ── 4단계: 시간 접힘 — 남는 칸: 상태·홈·점수·원정·별. 팀명은 여기서도 1fr 최대 폭. ── */
+@container srows (max-width: 550px) {
+  [data-srow="flat"],
+  [data-srow="grouped"] {
+    grid-template-columns: 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px;
+  }
+  [data-srow] > [data-scell="time"] {
+    display: none;
+  }
+}
+
 /* 메인 리스트 행은 insetX 로 자체 좌우 패딩(px-3 sm:px-4)을 가져 LIVE 배경이 카드 끝까지
    차게 했다(scorebase.kr). sb-mode 는 [data-scores-root] 루트 패딩으로 이미 가장자리
    여백을 주므로 행 패딩은 제거해 flush(전폭) 유지 — 이중 들여쓰기 방지. */
 body.sb-mode [data-srow] {
   padding-left: 0 !important;
   padding-right: 0 !important;
-}
-/* 전반(6번째)·배당(9번째) 칸 숨김 → 라이브 스코어 전용 간결 뷰. 정보(8, data-sinfo)는 위에서 숨김.
-   남는 6개(시간·상태·홈팀·점수·원정팀·별)가 6컬럼을 채운다.
-   scorebase.kr(메인)은 sb-mode 미부여라 전반·배당 그대로 노출. */
-body.sb-mode [data-srow]:not([data-srow-league]) > :nth-child(6),
-body.sb-mode [data-srow]:not([data-srow-league]) > :nth-child(9) {
-  display: none !important;
-}
-/* 평면 뷰 변형 — 전반(7)·배당(10) 숨김 (자식 한 칸 밀림 반영). 정보(9)는 data-sinfo 로 숨음. */
-body.sb-mode [data-srow][data-srow-league] > :nth-child(7),
-body.sb-mode [data-srow][data-srow-league] > :nth-child(10) {
-  display: none !important;
 }
 /* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제해 화면(노란칸) 폭 사용.
    좌우 대칭(좌12·우16) — 우측은 스크롤바/관심별 가장자리 걸침 방지로만 살짝 더.
@@ -742,9 +818,4 @@ body.sb-mode [data-scores-root] {
   max-width: none !important;
   padding-left: 0.75rem !important;
   padding-right: 1rem !important;
-}
-/* 좁은 화면(태블릿·작은 창)에서 테이블 min-width(860) 가 컨테이너를 넘쳐 별(관심) 칼럼이
-   잘리던 문제: sb-mode 는 min-width 해제 → data-srow 7컬럼이 화면폭에 맞춰 압축(주석 731 의도대로). */
-body.sb-mode [data-srow-table] {
-  min-width: 0 !important;
 }

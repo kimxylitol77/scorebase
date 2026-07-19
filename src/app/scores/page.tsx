@@ -2481,7 +2481,8 @@ function SoccerRowLayout({
   const renderDesktopList = (items: NormalizedMatch[]) =>
     sortByTime ? (
       <section className={flatCardClass}>
-        <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+        {/* data-srows: 행 접힘 컨테이너 쿼리 기준(globals.css) — 사이드바 유무와 무관하게 실폭 대응 */}
+        <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
           {items.map((m) => renderRow(m, true))}
         </div>
       </section>
@@ -2489,7 +2490,7 @@ function SoccerRowLayout({
       <div className="space-y-3">
         {leagueGroupsOf(items).map((lg) => (
           <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
-            <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+            <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
               {lg.items.map((m) => renderRow(m))}
             </div>
           </LeagueGroupCard>
@@ -2556,7 +2557,7 @@ function SoccerRowLayout({
       <div className="hidden md:block space-y-4">
         {wcAll.length > 0 && (
           <LeagueGroupCard league="WORLD_CUP" count={wcAll.length} accent="wc" href="/world-cup" linkLabel="우승 확률">
-            <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+            <div data-srows className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
               {wcAll.map((m) => renderRow(m))}
             </div>
           </LeagueGroupCard>

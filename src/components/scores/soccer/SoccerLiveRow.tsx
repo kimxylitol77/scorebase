@@ -2,6 +2,11 @@
 // 구조 (데스크탑): [리그배지 110px] [시간] [상태] [홈팀 →] [점수] [← 원정팀] [글] [관심]
 // 다크 디폴트. 모바일은 카드 layout (별도 처리) — 이 컴포넌트는 데스크탑 row 전용.
 //
+// 칸 폭·접힘은 globals.css 의 [data-srow]/[data-scell] 컨테이너 쿼리가 단일 출처.
+// 여기서 인라인 gridTemplateColumns 를 다시 넣지 말 것 (nth-child 밀림 사고 종결 구조).
+// 각 칸은 data-scell="league|time|status|home|score|away|half|star|info|odds" 로 식별
+// (home/away 는 레이아웃 슬롯 명칭 — awayFirst 면 실제 팀은 좌우 스왑됨).
+//
 // client component — 행 전체가 <a>/<Link> 라서 내부 클릭 동작(리그배지/순위/예측/L/R)은
 // anchor 대신 button + window.open 으로 처리한다 (nested anchor invalid HTML + hydration 회피).
 
@@ -186,29 +191,21 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
   const rowContent = (
     <div
-      data-srow
-      // 리그 배지 칸이 있는 10자식 변형(시간순 평면 뷰) 표시 — sb-mode CSS 가 nth-child 로
-      // 칸을 숨기므로 자식 수가 다른 변형을 구분해야 함 (스코어보드.kr 팀명 붕괴 재발 방지)
-      data-srow-league={hideLeague ? undefined : ""}
+      // flat = 시간순 평면 뷰(리그 배지 칸 포함 10칸) / grouped = 리그 그룹 카드(9칸).
+      // grid-template-columns 는 globals.css 가 data-srow 값 + 컨테이너 쿼리로 정의 —
+      // 좁은 컨테이너에서 배당→전반·정보→리그배지→시간 순으로 접혀 팀명 폭을 지킨다.
+      data-srow={hideLeague ? "grouped" : "flat"}
       className={`grid items-center gap-3 ${insetX ? "px-3 sm:px-4" : "px-0"} py-2 text-sm transition ${
         isLive
           ? "bg-rose-50/70 dark:bg-rose-500/[0.07] hover:bg-rose-100/70 dark:hover:bg-rose-500/[0.12]"
           : "hover:bg-neutral-100 dark:hover:bg-white/[0.03]"
       }`}
-      style={{
-        // 좌측 fixed (110+56+64=230) vs 우측 fixed (28+48=76) 비대칭으로 vs/점수가 우측 쏠림.
-        // 우측에 154px spacer 컬럼 추가 → vs 가 row 가운데 정렬 (날짜 header 와 일치).
-        // 7=관심(28px), 8=글(48px) — 사용자 요청으로 위치 swap (2026-05-24)
-        // 5=점수: auto→72px 고정 (auto 면 vs(예정)·0-1(진행) 내용폭 차이로 행마다 팀명 정렬 어긋남, 2026-06-14)
-        gridTemplateColumns: hideLeague
-          ? "56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,154px)"
-          : "110px 56px 64px minmax(0,1fr) 72px minmax(0,1fr) 54px 28px 48px minmax(0,154px)",
-      }}
     >
       {/* 1. 리그 배지 — 그룹 카드 안(hideLeague)에서는 헤더로 이동해 접음. */}
       {!hideLeague && (
         <button
           type="button"
+          data-scell="league"
           onClick={openInNewTab(`/predictions/${league}`)}
           className="text-[11px] font-bold text-center py-1.5 px-2 rounded-sm truncate hover:opacity-80 transition w-full cursor-pointer"
           style={{ background: badge.bg, color: badge.fg }}
@@ -220,12 +217,12 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       )}
 
       {/* 2. KST 시간 */}
-      <div className="text-[12px] text-neutral-600 dark:text-neutral-400 tabular-nums">
+      <div data-scell="time" className="text-[12px] text-neutral-600 dark:text-neutral-400 tabular-nums">
         {timeLabel}
       </div>
 
       {/* 3. 상태 */}
-      <div>{statusNode}</div>
+      <div data-scell="status">{statusNode}</div>
 
       {/* 4. 좌측 팀 (우측 정렬 + 로고 옆) — awayFirst=true 면 원정팀, 아니면 홈팀 */}
       {(() => {
@@ -238,12 +235,24 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         // 좌측은 awayFirst 인 경우 원정 → "홈" 배지 안 붙음
         return (
           <div
+            data-scell="home"
             className={`flex items-center justify-end gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
               isFlash
                 ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
                 : ""
             }`}
           >
+            {/* 리그 미니 라벨 — 리그 배지 칸이 접힌 좁은 컨테이너에서만 CSS 로 표시(시간순 뷰
+                리그 식별 유지). mr-auto 로 칸 좌측 끝(옛 배지 자리 방향)에 붙는다. */}
+            {!hideLeague && (
+              <span
+                data-scell="league-mini"
+                className="mr-auto shrink-0 max-w-[76px] truncate rounded-sm px-1 py-px text-[9px] font-bold leading-tight"
+                style={{ background: badge.bg, color: badge.fg }}
+              >
+                {badge.label}
+              </span>
+            )}
             {isFlash && (
               <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 animate-pulse whitespace-nowrap">
                 ⚽ GOAL
@@ -291,6 +300,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       {/* 5. 점수 — awayFirst=true 면 away score 좌측 / home score 우측. hover 시 z-50 으로 tooltip 이 다른 row 위로.
            승부차기는 점수 아래 absolute 로 (6) (5) — 행 높이에 영향 안 주게 (다른 행과 높이 통일). */}
       <div
+        data-scell="score"
+        // 72px 고정 트랙(globals.css) — auto 면 vs(예정)·0-1(진행) 내용폭 차이로 행마다
+        // 팀명 정렬이 어긋남 (2026-06-14). 우측 끝 odds minmax(0,154px)는 vs 중앙정렬 spacer 겸용.
         className="relative text-center font-black text-[18px] tabular-nums whitespace-nowrap px-2 group hover:z-50"
         onMouseEnter={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
@@ -375,6 +387,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
         const showHomeBadge = awayFirst === true;
         return (
           <div
+            data-scell="away"
             className={`flex items-center gap-1.5 min-w-0 px-2 py-1 rounded-md transition ${
               isFlash
                 ? "bg-emerald-400/45 dark:bg-emerald-500/30 ring-2 ring-emerald-500 animate-pulse"
@@ -426,7 +439,7 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       })()}
 
       {/* 6.5 전반전 점수 (halfTeamStats.p1 골) — 진행/종료 매치만, 빨간색 점수만 */}
-      <div className="text-center text-[11px] tabular-nums whitespace-nowrap">
+      <div data-scell="half" className="text-center text-[11px] tabular-nums whitespace-nowrap">
         {(isLive || isFinished) && soccerHalfScore ? (
           <span title="전반전 점수" className="text-rose-600 dark:text-rose-400 font-semibold">
             {soccerHalfScore.home}-{soccerHalfScore.away}
@@ -435,14 +448,14 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
       </div>
 
       {/* 7. 관심 별표 (위치 swap — 글보다 우선 노출) */}
-      <div className="flex justify-center">
+      <div data-scell="star" className="flex justify-center">
         <FavoriteStar matchId={String(matchId)} />
       </div>
 
       {/* 8. 정보 — AI 매치 인사이트 + 라인업 cover 리그 + 리뷰 글 (있을 때).
           justify-start 로 AI 칩 위치를 row 마다 동일하게 고정 (칩 개수에 따라 흔들리지 않게).
-          data-sinfo: 스코어보드.kr(.sb-mode) 에서 숨김. */}
-      <div data-sinfo className="flex items-center justify-start gap-1">
+          data-scell="info": 스코어보드.kr(.sb-mode) 상시 숨김 + 좁은 컨테이너 접힘 (globals.css). */}
+      <div data-scell="info" className="flex items-center justify-start gap-1">
         {href && (
           <button
             type="button"
@@ -514,6 +527,7 @@ function OddsCell({ odds }: { odds: MatchOdds | null }) {
   if (!odds) return null;
   return (
     <div
+      data-scell="odds"
       role="link"
       title="이 배당이 어디로 움직이는지 — 배당 흐름 보기"
       onClick={(e) => {
