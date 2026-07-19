@@ -706,8 +706,14 @@ body.sb-mode [data-sinfo] {
    홈팀·원정팀을 동일 1fr 로 균등 배분 → 좁은 화면에서도 팀명 노출
    (이전 grid 는 리그 배지가 있던 옛 10컬럼 기준이라, 리디자인 후 자식이 한 칸씩 밀려
     홈팀이 44px 로 붕괴하고 배당이 안 숨겨지던 버그 — 사용자 보고: 스코어보드.kr 팀명 안 보임). */
-body.sb-mode [data-srow] {
+body.sb-mode [data-srow]:not([data-srow-league]) {
   grid-template-columns: 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px !important;
+}
+/* 시간순 평면 뷰(data-srow-league) — 리그 배지 칸이 앞에 붙은 10자식 변형.
+   자식이 한 칸씩 밀리므로 전용 템플릿(리그·시간·상태·홈·점수·원정·별 7칸) + 아래에서
+   전반(7)·배당(10) 숨김. 이 구분 없이는 홈팀 72px 붕괴·원정팀 증발(2026-07-19 사용자 보고). */
+body.sb-mode [data-srow][data-srow-league] {
+  grid-template-columns: 110px 56px 64px minmax(0, 1fr) 72px minmax(0, 1fr) 28px !important;
 }
 /* 메인 리스트 행은 insetX 로 자체 좌우 패딩(px-3 sm:px-4)을 가져 LIVE 배경이 카드 끝까지
    차게 했다(scorebase.kr). sb-mode 는 [data-scores-root] 루트 패딩으로 이미 가장자리
@@ -719,8 +725,13 @@ body.sb-mode [data-srow] {
 /* 전반(6번째)·배당(9번째) 칸 숨김 → 라이브 스코어 전용 간결 뷰. 정보(8, data-sinfo)는 위에서 숨김.
    남는 6개(시간·상태·홈팀·점수·원정팀·별)가 6컬럼을 채운다.
    scorebase.kr(메인)은 sb-mode 미부여라 전반·배당 그대로 노출. */
-body.sb-mode [data-srow] > :nth-child(6),
-body.sb-mode [data-srow] > :nth-child(9) {
+body.sb-mode [data-srow]:not([data-srow-league]) > :nth-child(6),
+body.sb-mode [data-srow]:not([data-srow-league]) > :nth-child(9) {
+  display: none !important;
+}
+/* 평면 뷰 변형 — 전반(7)·배당(10) 숨김 (자식 한 칸 밀림 반영). 정보(9)는 data-sinfo 로 숨음. */
+body.sb-mode [data-srow][data-srow-league] > :nth-child(7),
+body.sb-mode [data-srow][data-srow-league] > :nth-child(10) {
   display: none !important;
 }
 /* 스코어보드.kr — /scores 컨테이너 max-width(max-w-6xl) 해제해 화면(노란칸) 폭 사용.

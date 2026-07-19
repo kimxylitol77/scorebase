@@ -187,6 +187,9 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
   const rowContent = (
     <div
       data-srow
+      // 리그 배지 칸이 있는 10자식 변형(시간순 평면 뷰) 표시 — sb-mode CSS 가 nth-child 로
+      // 칸을 숨기므로 자식 수가 다른 변형을 구분해야 함 (스코어보드.kr 팀명 붕괴 재발 방지)
+      data-srow-league={hideLeague ? undefined : ""}
       className={`grid items-center gap-3 ${insetX ? "px-3 sm:px-4" : "px-0"} py-2 text-sm transition ${
         isLive
           ? "bg-rose-50/70 dark:bg-rose-500/[0.07] hover:bg-rose-100/70 dark:hover:bg-rose-500/[0.12]"
