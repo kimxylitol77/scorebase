@@ -74,7 +74,14 @@ interface LeagueStat {
   /** 1X2 최고 확률이 리그별 Strong Pick 임계 이상인 매치만의 적중률 */
   strong: MarketRate;
   recent10: MarketRate;
+  /** 경기 시작 시간 기준 최근 7/14/30일 롤링 1X2 (채점 완료 경기만) */
+  rolling7: MarketRate;
+  rolling14: MarketRate;
+  rolling30: MarketRate;
 }
+
+// 롤링 윈도 최소 표본 — 미만이면 수치 대신 "표본 부족" (소표본 왜곡 방지)
+const ROLLING_MIN_SAMPLE = 10;
 
 const SOCCER = new Set([
   "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
@@ -122,6 +129,14 @@ async function statForLeague(league: string): Promise<LeagueStat> {
     .map((m) => ({ ok: m.predCorrect }));
   const recent10 = all.slice(0, 10).map((m) => ({ ok: m.predCorrect }));
 
+  // 롤링 윈도 — 경기 시작 시간 기준 최근 N일, 이미 로드한 배열 인메모리 필터 (신규 쿼리 없음)
+  const rollingOf = (days: number) => {
+    const cutoff = new Date(Date.now() - days * 86400000);
+    return rateOf(
+      all.filter((m) => m.startTime >= cutoff).map((m) => ({ ok: m.predCorrect })),
+    );
+  };
+
   return {
     league,
     isSoccer: SOCCER.has(league),
@@ -132,6 +147,9 @@ async function statForLeague(league: string): Promise<LeagueStat> {
     btts,
     strong: rateOf(strong),
     recent10: rateOf(recent10),
+    rolling7: rollingOf(7),
+    rolling14: rollingOf(14),
+    rolling30: rollingOf(30),
   };
 }
 
@@ -316,6 +334,16 @@ export default async function AccuracyPage() {
   const hcTotal = stats.reduce((s, x) => s + x.hc.evaluated, 0);
   const hcCorrect = stats.reduce((s, x) => s + x.hc.correct, 0);
 
+  // 롤링 윈도 — 전 리그 합산 1X2 (7/14/30일)
+  const sumRolling = (k: "rolling7" | "rolling14" | "rolling30"): MarketRate => {
+    const evaluated = stats.reduce((s, x) => s + x[k].evaluated, 0);
+    const correct = stats.reduce((s, x) => s + x[k].correct, 0);
+    return { evaluated, correct, rate: evaluated > 0 ? correct / evaluated : 0 };
+  };
+  const rolling7 = sumRolling("rolling7");
+  const rolling14 = sumRolling("rolling14");
+  const rolling30 = sumRolling("rolling30");
+
   // 정렬 — DC 적중률 높은 순 (축구 우선)
   const sorted = [...stats]
     .filter((s) => s.oneXTwo.evaluated > 0)
@@ -429,6 +457,20 @@ export default async function AccuracyPage() {
         모든 수치는 데이터 모델의 후행 검증 결과입니다.
       </p>
 
+      {/* 롤링 윈도 요약 — 전 리그 합산 최근 7/14/30일 1X2 */}
+      <section className="mb-10">
+        <h2 className="text-lg font-semibold mb-1">최근 적중률 — 7·14·30일 롤링</h2>
+        <p className="mb-4 text-sm text-neutral-600 break-keep dark:text-neutral-400">
+          시즌 누적과 별도로, 최근 기간 창에서 모델이 지금 흐름을 얼마나 맞히고
+          있는지 봅니다. 전 리그 합산 1X2 · 채점 완료 경기 기준.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <RollingCard label="최근 7일" rate={rolling7} />
+          <RollingCard label="최근 14일" rate={rolling14} />
+          <RollingCard label="최근 30일" rate={rolling30} />
+        </div>
+      </section>
+
       {/* 누적 적중률 추이 곡선 — 신뢰 증거 앵커 */}
       {accSeries.leagues.length > 0 && (
         <section className="mb-10 rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5 sm:p-6">
@@ -515,6 +557,11 @@ export default async function AccuracyPage() {
           <li>
             <strong>최근 10경기</strong> = 가장 최근에 끝난 10경기 1X2 적중률.
             모델이 현재 시즌 흐름을 잘 따라가고 있는지 가늠.
+          </li>
+          <li>
+            <strong>최근 7·14·30일 롤링</strong> = 경기 시작 시간이 해당 기간에
+            드는 채점 완료 경기 기준 1X2 적중률 (당일 경기는 채점 전이라 제외될 수
+            있음). 표본 {ROLLING_MIN_SAMPLE}건 미만은 표본 부족으로 표시합니다.
           </li>
         </ul>
       </section>
@@ -758,7 +805,58 @@ function LeagueCard({ stat }: { stat: LeagueStat }) {
           </div>
         </div>
       )}
+
+      {/* 최근 30일 롤링 칩 — 표본 부족 시 수치 미표시 */}
+      <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-neutral-100 dark:bg-white/[0.06] px-2 py-1 text-[11px]">
+        <span className="text-neutral-500">최근 30일</span>
+        <span className="font-bold tabular-nums text-neutral-900 dark:text-white">
+          {stat.rolling30.evaluated >= ROLLING_MIN_SAMPLE
+            ? `${Math.round(stat.rolling30.rate * 100)}%`
+            : "표본 부족"}
+        </span>
+        {stat.rolling30.evaluated >= ROLLING_MIN_SAMPLE && (
+          <span className="text-neutral-400 tabular-nums">
+            {stat.rolling30.correct}/{stat.rolling30.evaluated}
+          </span>
+        )}
+      </div>
     </Link>
+  );
+}
+
+// 롤링 윈도 카드 — 표본 ROLLING_MIN_SAMPLE 미만이면 수치 대신 "표본 부족" (소표본 왜곡 방지)
+function RollingCard({ label, rate }: { label: string; rate: MarketRate }) {
+  const pct = Math.round(rate.rate * 100);
+  return (
+    <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none p-5">
+      <p className="text-xs text-neutral-500">{label}</p>
+      <p className="text-[10px] text-neutral-400 mt-0.5 mb-3">전 리그 합산 · 1X2</p>
+      {rate.evaluated < ROLLING_MIN_SAMPLE ? (
+        <>
+          <div className="text-2xl font-bold text-neutral-400 mb-3">표본 부족</div>
+          <p className="text-[11px] text-neutral-500 tabular-nums">
+            평가 {rate.evaluated}건 · {ROLLING_MIN_SAMPLE}건부터 표시
+          </p>
+        </>
+      ) : (
+        <>
+          <div className="flex items-baseline gap-2 mb-3">
+            <span className="text-4xl font-bold tracking-tight tabular-nums bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+              {pct}%
+            </span>
+          </div>
+          <div className="h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden mb-2">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-neutral-500 tabular-nums">
+            {rate.correct.toLocaleString()} / {rate.evaluated.toLocaleString()} 적중
+          </p>
+        </>
+      )}
+    </div>
   );
 }
 

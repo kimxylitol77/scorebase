@@ -238,8 +238,12 @@ export default async function ScorecardPage() {
   const ydayTallyOf = (model: string) =>
     tallyOf(model, (d) => d.startTime >= ydayStartKst && d.startTime < todayStartKst);
 
+  // 최근 7/14/30일 롤링 — 경기 시작 시간 기준 인메모리 필터 (채점 완료분만 적중률에 반영).
+  const rollingTallyOf = (model: string, days: number) =>
+    tallyOf(model, (d) => d.startTime >= new Date(Date.now() - days * DAY_MS));
+
   const board = present
-    .map((m) => ({ model: m, ...metaOf(m), tally: tallyOf(m), recent: recentTallyOf(m), yday: ydayTallyOf(m) }))
+    .map((m) => ({ model: m, ...metaOf(m), tally: tallyOf(m), recent: recentTallyOf(m), yday: ydayTallyOf(m), r7: rollingTallyOf(m, 7), r14: rollingTallyOf(m, 14), r30: rollingTallyOf(m, 30) }))
     // 실적 있는 모델 먼저(누적 적중률 desc), 채점 대기 모델은 뒤로(예측 수 desc).
     .sort((a, b) => {
       const ag = a.tally.graded > 0, bg = b.tally.graded > 0;
@@ -368,6 +372,9 @@ export default async function ScorecardPage() {
 
   const fmtDate = (d: Date) => d.toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric" });
   const fmtTime = (d: Date) => d.toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false });
+  // 롤링 탤리 표기 — 채점 0건이면 "—".
+  const rollLabel = (t: Tally) =>
+    t.graded > 0 ? `${(t.rate * 100).toFixed(1)}% (${t.correct}/${t.graded})` : "—";
 
   const leader = gradedModels[0];
   const citeDate = new Date().toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric" });
@@ -466,6 +473,9 @@ export default async function ScorecardPage() {
                     <div className="mt-1 text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
                       {b.tally.correct} / {b.tally.graded} 적중 · 최근 {b.recent.graded}건 {b.recent.correct}적중
                       {b.yday.graded > 0 && <> · 어제 {b.yday.correct}/{b.yday.graded}</>}
+                    </div>
+                    <div className="mt-0.5 text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
+                      최근 7일 {rollLabel(b.r7)} · 14일 {rollLabel(b.r14)} · 30일 {rollLabel(b.r30)}
                     </div>
                   </div>
                 </div>
