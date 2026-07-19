@@ -15,9 +15,9 @@
 - [x] 팀 팔로우 = 기존 ⭐(useFavoriteTeams) 재사용 + `/api/favorites/teams` 서버 동기화(연결 시 PUT)
 - [x] 디스패처 잡(`dispatch-telegram-alerts.ts`) — KICKOFF(임박+AI픽)·FINAL(결과), TelegramAlertLog 중복 방지. prod 실행 검증(no-op OK). GAME_REMINDER는 후속
 - [x] cron 라우트 `/api/cron/telegram-alerts` (*/5) + vercel.json 등록. TELEGRAM_ALERTS_DISABLED 킬스위치
-- [ ] **Vercel 프로덕션 env 등록** — USER_BOT_TOKEN·USER_BOT_WEBHOOK_SECRET (운영자)
-- [ ] 배포 + setWebhook(프로덕션 URL) 등록
-- [ ] 검증 — 봇 연결 → 팀 ⭐ → 경기로 알림 수신 (배포 후 end-to-end)
+- [x] **Vercel 프로덕션 env 등록** — USER_BOT_TOKEN·USER_BOT_WEBHOOK_SECRET (vercel env ls 로 확인, 2026-07-19)
+- [x] 배포 + setWebhook(프로덕션 URL) 등록 — getWebhookInfo url=prod·last_error 없음·pending 0, 무시크릿 POST 403 fail-closed 확인 (2026-07-19)
+- [ ] 검증 — 봇 연결 → 팀 ⭐ → 경기로 알림 수신 (연결 회원 1명 존재하나 팀 팔로우 0·발송 로그 0 — 실제 알림 수신 e2e 는 팀 ⭐ 후 경기 시점에 확인)
 
 ## Phase 2 — 실시간 골 (후속)
 - [ ] 라이브 score diff 훅(MQTT/cron) → GOAL 알림 fan-out
