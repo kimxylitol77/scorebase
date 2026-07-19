@@ -218,7 +218,7 @@ const LEAGUE_INFO: Partial<Record<
     subtitle: "일본프로야구 (Nippon Professional Baseball)",
     gradient: "from-red-600 via-rose-500 to-pink-500",
     copy:
-      "센트럴 리그(요미우리·한신·요코하마·히로시마·주니치·야쿠르트)와 퍼시픽 리그(소프트뱅크·닛폰햄·롯데·오릭스·라쿠텐·세이부) 12팀의 매치 프리뷰·결과·분석.",
+      "센트럴 리그(요미우리·한신·요코하마·히로시마·주니치·야쿠르트)와 퍼시픽 리그(소프트뱅크·닛폰햄·롯데·오릭스·라쿠텐·세이부) 12팀의 NPB 경기 분석·프리뷰·결과.",
   },
   LOL: {
     name: "LCK",
@@ -369,12 +369,15 @@ export async function generateMetadata({
     validType === "ALL"
       ? ""
       : ` · ${TAB_LABEL[validType].replace(/^\W+\s*/, "")}`;
+  // NPB 만 빙 실측 검색어 "npb경기분석" 정확 문구를 title 선두에 — 다른 리그 title 은 불변.
+  const baseTitle =
+    upper === "NPB" ? "NPB 경기 분석·프리뷰·결과" : `${info.name} 경기 프리뷰·결과·분석`;
   return {
-    title: `${info.name} 경기 프리뷰·결과·분석${titleSuffix}`,
+    title: `${baseTitle}${titleSuffix}`,
     description: TYPE_DESC[validType] + " — " + info.copy,
     alternates: { canonical },
     openGraph: {
-      title: `${info.name} 경기 프리뷰·결과·분석`,
+      title: baseTitle,
       description: info.copy,
       images: ogPageImage({ title: info.name, subtitle: "경기 프리뷰·결과·AI 분석", tag: upper }),
     },
@@ -555,6 +558,12 @@ export default async function LeaguePage({ params, searchParams }: Props) {
           <p className="mt-3 text-neutral-600 dark:text-neutral-400 max-w-xl">
             {TYPE_DESC[currentType]}
           </p>
+          {/* NPB 한정 표면 문구 — 빙 실측 "npb경기분석" 정확 매칭 (메타 title 과 짝) */}
+          {upper === "NPB" && (
+            <p className="mt-1.5 text-sm text-neutral-500 max-w-xl break-keep">
+              일본프로야구 12팀의 NPB 경기 분석·프리뷰·결과를 매일 자동 업데이트합니다.
+            </p>
+          )}
 
           {/* 토너먼트/플레이오프 브래킷 — /predictions/[league] 에 대진표 보유한 리그(NBA·NHL·UCL) */}
           {BRACKET_CTA_LABEL[upper] && (

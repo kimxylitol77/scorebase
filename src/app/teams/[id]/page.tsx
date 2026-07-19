@@ -149,7 +149,8 @@ function teamIntentKeywords(league: string): string {
   }
   switch (sport) {
     case "baseball":
-      return "순위·일정·로스터·선수 통계";
+      // 빙 실측 "삼성 라이온즈 팀 순위 야구" 류 롱테일 — "야구"·"팀 순위" 토큰 정확 매칭.
+      return "야구 팀 순위·일정·로스터·선수 통계";
     case "basketball":
       return "순위·일정·로스터·선수 기록";
     case "hockey":

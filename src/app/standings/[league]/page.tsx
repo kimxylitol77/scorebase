@@ -77,6 +77,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         "KBO 순위표",
         "KBO 리그 순위",
         "프로야구 순위",
+        "프로야구 순위표",
+        "야구 순위",
         "한국 프로야구 순위",
       ],
       alternates: { canonical: "https://www.scorebase.kr/standings/KBO" },
@@ -106,6 +108,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: `https://www.scorebase.kr/standings/${upper}` },
   };
 }
+
+// KBO 순위 FAQ — 빙 실측 키워드("kbo 리그 팀 순위"·"프로야구 순위"·"야구 순위") 대응.
+// 답변 사실 근거: 갱신 주기 = standings-poller 10분 주기 수집(lib/sports/thesports/baseball-table.ts)
+// + 이 페이지 revalidate 600초. 승률·게임차 = 아래 winPct·gamesBehind 계산식과 동일.
+// 포스트시즌 = KBO 공식 규정(상위 5팀, 와일드카드→준PO→PO→한국시리즈).
+const KBO_FAQ: { q: string; a: string }[] = [
+  {
+    q: "KBO 리그 팀 순위는 얼마나 자주 갱신되나요?",
+    a: "경기 종료 후 공식 순위 데이터를 10분 주기로 수집하며, 이 순위표 페이지도 약 10분 간격으로 자동 갱신됩니다.",
+  },
+  {
+    q: "프로야구 순위는 어떤 기준으로 정해지나요?",
+    a: "승률 순입니다. 승률은 승수를 승수와 패수의 합으로 나눈 값이며, 무승부는 승률 계산에서 제외됩니다.",
+  },
+  {
+    q: "게임차는 어떻게 계산하나요?",
+    a: "(1위 팀 승수 - 해당 팀 승수 + 해당 팀 패수 - 1위 팀 패수) ÷ 2 값입니다. 1위 팀과의 격차를 경기 수 단위로 나타낸 값입니다.",
+  },
+  {
+    q: "KBO 포스트시즌에는 몇 팀이 진출하나요?",
+    a: "정규시즌 상위 5팀이 진출합니다. 4위와 5위가 와일드카드 결정전(4위 팀 1승 어드밴티지)을 치르고, 승자가 3위와 준플레이오프, 그 승자가 2위와 플레이오프, 최종 승자가 1위와 한국시리즈를 치릅니다.",
+  },
+];
 
 export default async function StandingsPage({ params }: Props) {
   const { league } = await params;
@@ -506,6 +531,40 @@ export default async function StandingsPage({ params }: Props) {
         <section className="space-y-3 pt-4">
           <h2 className="text-lg sm:text-xl font-bold tracking-tight">{name} 시즌 리더보드</h2>
           <LeagueLeaderBoard league={upper} season={leaderSeason} rowsByCategory={leaderRows} />
+        </section>
+      )}
+
+      {/* KBO 한정 FAQ — layout 의 BreadcrumbList·Dataset JSON-LD 와 별도 스크립트로 주입 */}
+      {upper === "KBO" && (
+        <section className="space-y-3 pt-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight break-keep">KBO 리그 팀 순위 — 자주 묻는 질문</h2>
+          <div className="space-y-2">
+            {KBO_FAQ.map((f) => (
+              <details
+                key={f.q}
+                className="rounded-2xl border border-neutral-200 dark:border-white/10 px-4 py-3"
+              >
+                <summary className="text-sm font-semibold cursor-pointer break-keep">{f.q}</summary>
+                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed break-keep">
+                  {f.a}
+                </p>
+              </details>
+            ))}
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: KBO_FAQ.map((f) => ({
+                  "@type": "Question",
+                  name: f.q,
+                  acceptedAnswer: { "@type": "Answer", text: f.a },
+                })),
+              }),
+            }}
+          />
         </section>
       )}
     </div>
