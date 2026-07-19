@@ -19,6 +19,11 @@ const LEAGUE_MARKET_WEIGHT: Record<string, number> = {
   MLB: 0.75,
 };
 
+/** 리그 기본 시장 블렌드 가중 — member-bot 시장 손잡이의 100% 기준점 (blendWithMarket 과 동일 소스). */
+export function getDefaultMarketWeight(league?: string): number {
+  return (league && LEAGUE_MARKET_WEIGHT[league]) || DEFAULT_MARKET_WEIGHT;
+}
+
 export interface MarketProb {
   home: number;
   draw?: number | null;

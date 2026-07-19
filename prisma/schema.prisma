@@ -1218,6 +1218,45 @@ model ChatLog {
   @@index([createdAt])
 }
 
+/// 회원 커스텀 예측 봇 — 손잡이(가중치) 5종 저장. 확률 재계산·손잡이 정의는 src/lib/predict/member-bot.ts.
+/// 테이블은 raw SQL 로 생성(scripts/create-member-bot-tables.mjs — db push 금지 패턴).
+/// User 관계 없이 userId 만 기록(manual join — MatchVote 전례, 기존 모델 무변경).
+model MemberBot {
+  id            String   @id @default(cuid())
+  userId        String // User.id (cuid) — FK 없이 manual join
+  name          String
+  league        String   @default("ALL") // "ALL" 또는 리그 코드 (백테스트 기본 범위)
+  knobs         Json // { elo, form, home, market, underdog } 각 0~2 (member-bot.ts BotKnobs)
+  backtestCache Json? // 저장 시점 백테스트 요약 { n, hits, acc, brier, vsModel }
+  isActive      Boolean  @default(true) // false = 매일 픽 생성 제외
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  picks MemberBotPick[]
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+/// 회원 봇 픽 — 경기 전 cron 이 생성, evaluate 피기백이 correct 채점 (v1 은 1X2 만).
+/// Match 관계 없이 matchId 만 기록(manual join — 기존 모델 무변경).
+model MemberBotPick {
+  id        Int      @id @default(autoincrement())
+  botId     String
+  matchId   Int // Match.id — FK 없이 manual join
+  market    String   @default("1X2")
+  pick      String // "HOME" | "DRAW" | "AWAY"
+  prob      Float // 픽 확률 0~1
+  correct   Boolean? // 경기 종료 후 채점 (null = 미채점)
+  createdAt DateTime @default(now())
+
+  bot MemberBot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@unique([botId, matchId, market])
+  @@index([botId, correct])
+  @@index([matchId])
+}
+
 // /scores 상단 광고 배너 — 단일 설정(관리자가 이미지·크기·링크·표시여부 관리).
 // row 는 항상 id=1 하나만 upsert. 표시 위치는 종목 공통 페이지 상단.
 model AdBanner {

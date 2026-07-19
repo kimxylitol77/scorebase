@@ -2,7 +2,8 @@
 // 종목 엔진(축구 Poisson·야구 baseball-poisson·농구/하키 SPORT_PROFILE Normal)으로 스코어 분포를 만든다.
 // "검증"이 아니라 "모델 속 열어보기"용 — 엔진 암시 승률이 표시 승률과 크게 어긋나면
 // 스코어 섹션만 생략한다(MatchInsight 드리프트 가드와 같은 정직 원칙).
-// Elo 히스토리 재계산 금지 — Match 저장 필드만 사용.
+// 기본(무파라미터) 경로는 Elo 히스토리 재계산 금지 — Match 저장 필드만 사용.
+// 회원 봇 손잡이(knobs) 전달 시에만 리그 히스토리를 로드해 커스텀 확률로 주사위를 던진다.
 
 import { prisma } from "@/lib/db";
 import { leagueHasDraw } from "@/lib/sports/sport-leagues";
@@ -10,6 +11,14 @@ import { buildScoreDistribution } from "./score-distribution";
 import { calculateInningScoreProbs } from "./baseball-poisson";
 import { getSportProfile } from "./markets";
 import { getParkFactor } from "./park-factors";
+import {
+  buildLeagueFeatures,
+  computeCustomProb,
+  isDefaultKnobs,
+  leagueConfigOf,
+  type BotKnobs,
+} from "./member-bot";
+import type { PredictMatch } from "./types";
 
 const N = 5000;
 const BASEBALL_LEAGUES = new Set(["MLB", "KBO", "NPB"]);
@@ -27,8 +36,10 @@ export interface SimResult {
   ok: true;
   n: number;
   league: string;
-  /** 주사위에 쓴 표시 확률 (Match 저장 pred 그대로) */
+  /** 주사위에 쓴 확률 — 기본은 Match 저장 pred, knobs 전달 시 커스텀 재계산값 */
   used: { home: number; draw: number; away: number };
+  /** true = 회원 봇 손잡이로 재계산한 확률로 시뮬 (기본 경로는 필드 없음) */
+  custom?: boolean;
   /** 승무패 주사위 결과 카운트 */
   outcomes: { home: number; draw: number; away: number };
   /** 스코어 분포 TOP5 — 드리프트 가드에 걸리면 null */
@@ -49,17 +60,27 @@ export function simSupportedLeague(league: string): boolean {
   );
 }
 
-export async function simulateMatch(matchId: number): Promise<SimResult | SimError> {
+export async function simulateMatch(
+  matchId: number,
+  knobs?: BotKnobs,
+): Promise<SimResult | SimError> {
   const m = await prisma.match.findUnique({
     where: { id: matchId },
     select: {
       id: true,
       league: true,
+      startTime: true,
+      homeTeamId: true,
+      awayTeamId: true,
       predHome: true,
       predDraw: true,
       predAway: true,
       homeStarter: true,
       awayStarter: true,
+      marketHome: true,
+      marketDraw: true,
+      marketAway: true,
+      marketBookmakers: true,
       oddsTotalLine: true,
       homeTeam: { select: { name: true } },
     },
@@ -71,7 +92,47 @@ export async function simulateMatch(matchId: number): Promise<SimResult | SimErr
   if (m.predHome == null || m.predDraw == null || m.predAway == null)
     return { ok: false, status: 400, error: "no stored prediction" };
 
-  const used = { home: m.predHome, draw: m.predDraw, away: m.predAway };
+  // 회원 봇 손잡이 — 리그 히스토리를 as-of 로드해 커스텀 확률로 주사위 (member-bot.ts 수식).
+  // 기본(무파라미터) 호출은 이 블록을 건너뛰어 종전과 동일.
+  let custom = false;
+  let used = { home: m.predHome, draw: m.predDraw, away: m.predAway };
+  if (knobs && !isDefaultKnobs(knobs)) {
+    const all = (await prisma.match.findMany({
+      where: { league: m.league },
+      select: {
+        id: true,
+        league: true,
+        status: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        homeScore: true,
+        awayScore: true,
+        startTime: true,
+      },
+    })) as PredictMatch[];
+    const [feature] = buildLeagueFeatures(
+      all,
+      [
+        {
+          id: m.id,
+          homeTeamId: m.homeTeamId,
+          awayTeamId: m.awayTeamId,
+          startTime: m.startTime,
+          homeScore: null,
+          awayScore: null,
+          homeStarter: m.homeStarter,
+          awayStarter: m.awayStarter,
+          marketHome: m.marketHome,
+          marketDraw: m.marketDraw,
+          marketAway: m.marketAway,
+          marketBookmakers: m.marketBookmakers,
+        },
+      ],
+      m.league,
+    );
+    used = computeCustomProb(feature, leagueConfigOf(m.league), knobs);
+    custom = true;
+  }
   const sum = used.home + used.draw + used.away;
   if (!(sum > 0)) return { ok: false, status: 400, error: "invalid prediction" };
 
@@ -206,7 +267,17 @@ export async function simulateMatch(matchId: number): Promise<SimResult | SimErr
     ou = { line: profile.overLine, over };
   }
 
-  return { ok: true, n: N, league: m.league, used, outcomes, scores, ou, omitted };
+  return {
+    ok: true,
+    n: N,
+    league: m.league,
+    used,
+    ...(custom ? { custom } : {}),
+    outcomes,
+    scores,
+    ou,
+    omitted,
+  };
 }
 
 // ============================================================

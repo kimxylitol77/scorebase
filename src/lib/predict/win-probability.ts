@@ -20,7 +20,8 @@ const HOME_ADVANTAGE_SOCCER = 70;
 // 비개최국 "홈"팀이 +100 받아 시장 대비 과대평가되던 것 수정 (2026-06-11).
 const WC_HOST_NATIONS = new Set(["usa", "unitedstates", "mexico", "canada"]);
 
-function homeAdvantageFor(league: string, homeTeamName?: string): number {
+// export — member-bot 피처 벡터가 리그 HA 상수를 그대로 기록하기 위해 (로직 동일).
+export function homeAdvantageFor(league: string, homeTeamName?: string): number {
   if (LOL_LEAGUES.has(league)) return 0;
   if (league === "WORLD_CUP") {
     if (!homeTeamName) return 0;
@@ -76,6 +77,20 @@ const DEFAULT_CONFIG: Record<string, WinProbConfig> = {
 export interface WinProbOpts {
   /** 홈팀 이름 — WORLD_CUP 중립 구장 판정용 (개최국 USA/Mexico/Canada 만 홈 +100) */
   homeTeamName?: string;
+}
+
+/** 리그 무승부 설정 접근자 — member-bot 재계산이 calcWinProbability 와 동일 상수를 쓰기 위함. */
+export function getDrawConfig(league: string): {
+  drawWeight: number;
+  drawSensitivity: number;
+} {
+  const cfg =
+    DEFAULT_CONFIG[league] ??
+    (leagueHasDraw(league) ? DEFAULT_CONFIG.EPL : NO_DRAW);
+  return {
+    drawWeight: cfg.drawWeight ?? 0,
+    drawSensitivity: cfg.drawSensitivity ?? 0,
+  };
 }
 
 export function calcWinProbability(
