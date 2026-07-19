@@ -48,8 +48,8 @@
       "logo": "https://img.thesports.com/football/player/546d0ffa773888eaffeff73205d268c4.png",
       "score": 8.28,
       "star": 4,
-      "recentRating": 6.44,
-      "avgRating": 7.35,
+      "recentRating": 7,
+      "avgRating": 7.3,
       "games": 7,
       "x": 16,
       "y": 70
@@ -66,8 +66,8 @@
       "score": 8.13,
       "star": 4,
       "recentRating": 6.02,
-      "avgRating": 7.14,
-      "games": 6,
+      "avgRating": 7.17,
+      "games": 5,
       "x": 39,
       "y": 70
     },
@@ -82,8 +82,8 @@
       "logo": "https://img.thesports.com/football/player/b4f936f14eb44546aa2bcfeebf603dca.png",
       "score": 7.97,
       "star": 3,
-      "recentRating": 6.13,
-      "avgRating": 7.12,
+      "recentRating": 6,
+      "avgRating": 6.95,
       "games": 7,
       "x": 61,
       "y": 70
@@ -117,8 +117,8 @@
       "score": 8.83,
       "star": 4,
       "recentRating": 6.26,
-      "avgRating": 7.13,
-      "games": 4,
+      "avgRating": 7.38,
+      "games": 3,
       "x": 22,
       "y": 32
     },
@@ -134,8 +134,8 @@
       "score": 8.1,
       "star": 4,
       "recentRating": 6.47,
-      "avgRating": 7.02,
-      "games": 4,
+      "avgRating": 7.12,
+      "games": 3,
       "x": 50,
       "y": 32
     },
@@ -151,8 +151,8 @@
       "score": 8.1,
       "star": 4,
       "recentRating": 7.95,
-      "avgRating": 7.34,
-      "games": 3,
+      "avgRating": 8.07,
+      "games": 2,
       "x": 78,
       "y": 32
     },
@@ -165,11 +165,11 @@
       "country": "Norway",
       "flag": "🇳🇴",
       "logo": "https://img.thesports.com/football/player/5826b588824cc39b40467cbad4cc0e62.png",
-      "score": 8,
+      "score": 7.96,
       "star": 3,
       "recentRating": 7.2,
-      "avgRating": 7.26,
-      "games": 5,
+      "avgRating": 7.19,
+      "games": 4,
       "x": 35,
       "y": 52
     },
@@ -184,8 +184,8 @@
       "logo": "https://img.thesports.com/football/player/34018051c90149739b987a414f80e616.png",
       "score": 7.92,
       "star": 3,
-      "recentRating": 6.17,
-      "avgRating": 6.7,
+      "recentRating": 6.22,
+      "avgRating": 6.66,
       "games": 6,
       "x": 65,
       "y": 52
@@ -201,8 +201,8 @@
       "logo": "https://img.thesports.com/football/player/d67aa76a863129e781c3a34b251c2adb.png",
       "score": 9.36,
       "star": 4,
-      "recentRating": 6.23,
-      "avgRating": 8.41,
+      "recentRating": 9.5,
+      "avgRating": 8.54,
       "games": 7,
       "x": 50,
       "y": 14
@@ -220,8 +220,8 @@
       "logo": "https://img.thesports.com/football/player/6486545dd82704e231d7fd0b3f5be677.png",
       "score": 9.35,
       "star": 4,
-      "recentRating": 6.37,
-      "avgRating": 7.66,
+      "recentRating": 7.94,
+      "avgRating": 7.9,
       "games": 7
     },
     {
@@ -236,8 +236,8 @@
       "score": 9.2,
       "star": 4,
       "recentRating": 6.37,
-      "avgRating": 8.38,
-      "games": 5
+      "avgRating": 8.22,
+      "games": 4
     },
     {
       "id": "y0or5jhe6zx2qwz",
@@ -250,8 +250,8 @@
       "logo": "https://img.thesports.com/football/player/b6953f629a4b4734ab8640416dfc32d2.png",
       "score": 8.99,
       "star": 4,
-      "recentRating": 6.35,
-      "avgRating": 7.5,
+      "recentRating": 7.52,
+      "avgRating": 7.38,
       "games": 7
     },
     {
@@ -265,8 +265,8 @@
       "logo": "https://img.thesports.com/football/player/759549cd01dfe27fb415aa460c8d3786.png",
       "score": 8.52,
       "star": 4,
-      "recentRating": 6.95,
-      "avgRating": 7.12,
+      "recentRating": 5.9,
+      "avgRating": 7.06,
       "games": 7
     },
     {
@@ -281,8 +281,8 @@
       "score": 8.42,
       "star": 4,
       "recentRating": 7.82,
-      "avgRating": 7.78,
-      "games": 4
+      "avgRating": 8.29,
+      "games": 3
     },
     {
       "id": "2y8m4zhg6dygql0",
@@ -295,7 +295,7 @@
       "logo": "https://img.thesports.com/football/player/fa0218ca6c1a252673a5a72721777caf.png",
       "score": 8.28,
       "star": 4,
-      "recentRating": 6.31,
+      "recentRating": 7.42,
       "avgRating": 6.91,
       "games": 7
     }

@@ -32,8 +32,8 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 5.74,
-      "avgRating": 6.39,
-      "games": 3,
+      "avgRating": 6.79,
+      "games": 2,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 8.21,
       "star": 4,
       "recentRating": 6.4,
-      "avgRating": 7.31,
-      "games": 6,
+      "avgRating": 7.28,
+      "games": 5,
       "x": 16,
       "y": 70
     },
@@ -66,9 +66,26 @@
       "score": 7.88,
       "star": 3,
       "recentRating": 6.88,
-      "avgRating": 7.32,
-      "games": 6,
+      "avgRating": 7.3,
+      "games": 5,
       "x": 39,
+      "y": 70
+    },
+    {
+      "id": "l5ergphn42or8k0",
+      "name": "Nahuel Molina",
+      "nameKo": "나우엘 몰리나",
+      "hasMv": true,
+      "pos": "D",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/bf01950b4208e2a8e5cb3c8d3bc6c60c.png",
+      "score": 7.54,
+      "star": 3,
+      "recentRating": 6.5,
+      "avgRating": 6.93,
+      "games": 5,
+      "x": 61,
       "y": 70
     },
     {
@@ -83,25 +100,8 @@
       "score": 7.54,
       "star": 3,
       "recentRating": 6.1,
-      "avgRating": 7,
-      "games": 4,
-      "x": 61,
-      "y": 70
-    },
-    {
-      "id": "l5ergphn42or8k0",
-      "name": "Nahuel Molina",
-      "nameKo": "나우엘 몰리나",
-      "hasMv": true,
-      "pos": "D",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/bf01950b4208e2a8e5cb3c8d3bc6c60c.png",
-      "score": 7.54,
-      "star": 3,
-      "recentRating": 6.85,
-      "avgRating": 6.95,
-      "games": 6,
+      "avgRating": 6.87,
+      "games": 3,
       "x": 84,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.42,
       "star": 4,
       "recentRating": 8.2,
-      "avgRating": 7.46,
-      "games": 6,
+      "avgRating": 7.52,
+      "games": 5,
       "x": 22,
       "y": 32
     },
@@ -134,8 +134,8 @@
       "score": 8.33,
       "star": 4,
       "recentRating": 7,
-      "avgRating": 7.23,
-      "games": 7,
+      "avgRating": 7.24,
+      "games": 6,
       "x": 50,
       "y": 32
     },
@@ -151,27 +151,10 @@
       "score": 8.18,
       "star": 4,
       "recentRating": 5.69,
-      "avgRating": 6.57,
-      "games": 4,
+      "avgRating": 6.73,
+      "games": 3,
       "x": 78,
       "y": 32
-    },
-    {
-      "id": "x7lm7phwzozvm2w",
-      "name": "Nicolas Paz",
-      "nameKo": "니코 파스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/bcf38c3fecd3dff313c12b528da45cb9.png",
-      "score": 7.7,
-      "star": 3,
-      "recentRating": 6.56,
-      "avgRating": 6.7,
-      "games": 2,
-      "x": 35,
-      "y": 52
     },
     {
       "id": "4wyrn4h46peq86p",
@@ -187,28 +170,26 @@
       "recentRating": 8.2,
       "avgRating": 8.2,
       "games": 1,
-      "x": 65,
+      "x": 35,
       "y": 52
     },
     {
-      "id": "p3glrw7hv73qdyj",
-      "name": "Lionel Messi",
-      "nameKo": "리오넬 메시",
+      "id": "zp5rzghx815q82w",
+      "name": "Houssem Aouar",
+      "nameKo": "우셈 아우아르",
       "hasMv": true,
-      "pos": "F",
-      "country": "Argentina",
-      "flag": "🇦🇷",
-      "logo": "https://img.thesports.com/football/player/8d59474051c1faa84e7437a1c694d3da.png",
-      "score": 8.71,
-      "star": 4,
-      "recentRating": 8.8,
-      "avgRating": 8.87,
-      "games": 7,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
+      "pos": "M",
+      "country": "Algeria",
+      "flag": "🇩🇿",
+      "logo": "https://img.thesports.com/football/player/523a02478643eb073dd1830b8d82f723.png",
+      "score": 7.66,
+      "star": 3,
+      "recentRating": 6.36,
+      "avgRating": 7.33,
+      "games": 2,
+      "x": 65,
+      "y": 52
+    },
     {
       "id": "318q66hvngwvqo9",
       "name": "Julián Álvarez",
@@ -220,9 +201,28 @@
       "logo": "https://img.thesports.com/football/player/fea74a781033404f91f74f36447037c7.png",
       "score": 8.57,
       "star": 4,
-      "recentRating": 6.65,
-      "avgRating": 6.78,
-      "games": 7
+      "recentRating": 6.6,
+      "avgRating": 6.84,
+      "games": 6,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
+    {
+      "id": "p3glrw7hv73qdyj",
+      "name": "Lionel Messi",
+      "nameKo": "리오넬 메시",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/8d59474051c1faa84e7437a1c694d3da.png",
+      "score": 8.46,
+      "star": 4,
+      "recentRating": 8.8,
+      "avgRating": 8.68,
+      "games": 6
     },
     {
       "id": "4wyrn4hv7ydq86p",
@@ -236,8 +236,8 @@
       "score": 8.34,
       "star": 4,
       "recentRating": 8.09,
-      "avgRating": 7.01,
-      "games": 7
+      "avgRating": 7.08,
+      "games": 6
     },
     {
       "id": "3glrw7h1evyqdyj",
@@ -251,8 +251,8 @@
       "score": 8.07,
       "star": 4,
       "recentRating": 5.86,
-      "avgRating": 7.28,
-      "games": 4
+      "avgRating": 7.59,
+      "games": 3
     },
     {
       "id": "8yomo4hvky9xq0j",
@@ -281,23 +281,23 @@
       "score": 7.98,
       "star": 3,
       "recentRating": 6.22,
-      "avgRating": 6.79,
-      "games": 4
+      "avgRating": 6.98,
+      "games": 3
     },
     {
-      "id": "l7oqdeh436v8r51",
-      "name": "Ali Olwan",
-      "nameKo": "알리 올완",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Jordan",
-      "flag": "🇯🇴",
-      "logo": "https://img.thesports.com/football/player/7c8da44f6e7c66f8a51cda4b84a4abd1.png",
-      "score": 7.9,
+      "id": "x7lm7phwzozvm2w",
+      "name": "Nicolas Paz",
+      "nameKo": "니코 파스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Argentina",
+      "flag": "🇦🇷",
+      "logo": "https://img.thesports.com/football/player/bcf38c3fecd3dff313c12b528da45cb9.png",
+      "score": 7.56,
       "star": 3,
-      "recentRating": 6.42,
-      "avgRating": 6.91,
-      "games": 3
+      "recentRating": 6.56,
+      "avgRating": 6.56,
+      "games": 1
     }
   ],
   "complete": true

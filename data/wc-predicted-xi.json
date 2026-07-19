@@ -1,8 +1,163 @@
 {
- "England": {
+ "France": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.585Z",
+  "updatedAt": "2026-07-19T00:02:38.529Z",
+  "xi": [
+   {
+    "id": "4wyrn4hej2vq86p",
+    "name": "Mike Maignan",
+    "nameKo": "마이크 메냥",
+    "position": "G",
+    "shirtNumber": 16,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/7217f23471dbe0f22a7e9079d4a38ed6.png",
+    "avgRating": 6.45,
+    "lastRating": 6.12,
+    "afId": 22221
+   },
+   {
+    "id": "zp5rzgh278wq82w",
+    "name": "Jules Koundé",
+    "nameKo": "쥘 쿤데",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/b4f936f14eb44546aa2bcfeebf603dca.png",
+    "avgRating": 7.06,
+    "afId": 1257
+   },
+   {
+    "id": "jw2r09hjk38rz84",
+    "name": "Dayot Upamecano",
+    "nameKo": "다요 우파메카노",
+    "position": "D",
+    "shirtNumber": 4,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/546d0ffa773888eaffeff73205d268c4.png",
+    "avgRating": 7.22,
+    "afId": 1149
+   },
+   {
+    "id": "pxwrxlh9e758ryk",
+    "name": "William Saliba",
+    "nameKo": "윌리암 살리바",
+    "position": "D",
+    "shirtNumber": 17,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/660ef4d6ca42c92b6d84d34f331dce61.png",
+    "avgRating": 6.93,
+    "afId": 22090
+   },
+   {
+    "id": "pxwrxlh1g17ryk0",
+    "name": "Lucas Digne",
+    "nameKo": "뤼카 디뉴",
+    "position": "D",
+    "shirtNumber": 3,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/8549d2c6c6d5c9ed5dcdbc7e518c351c.png",
+    "avgRating": 7.25,
+    "afId": 2724
+   },
+   {
+    "id": "ednm9whzgd9ryox",
+    "name": "Adrien Rabiot",
+    "nameKo": "아드리앵 라비오",
+    "position": "M",
+    "shirtNumber": 14,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/97700189894df0bf2954f134dff29185.png",
+    "avgRating": 6.54,
+    "lastRating": 6.64,
+    "afId": 272
+   },
+   {
+    "id": "dn1m1gh30vw3moe",
+    "name": "Warren Zaire-Emery",
+    "nameKo": "와렌 자이르에므리",
+    "position": "M",
+    "shirtNumber": 18,
+    "starts": 1,
+    "games": 4,
+    "confidence": 0.43,
+    "photo": "https://img.thesports.com/football/player/aa1e5ca5121770e66607522b3b39523b.png",
+    "avgRating": 6.46,
+    "lastRating": 6.46,
+    "afId": 336657
+   },
+   {
+    "id": "6ypq3nhze775md7",
+    "name": "Rayan Cherki",
+    "nameKo": "라얀 셰르키",
+    "position": "M",
+    "shirtNumber": 24,
+    "starts": 1,
+    "games": 4,
+    "confidence": 0.43,
+    "photo": "https://img.thesports.com/football/player/34018051c90149739b987a414f80e616.png",
+    "avgRating": 6.22,
+    "lastRating": 6.22,
+    "afId": 156477
+   },
+   {
+    "id": "pxwrxlhv2peryk0",
+    "name": "Aurelien Tchouameni",
+    "nameKo": "오렐리앵 추아메니",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 1,
+    "games": 4,
+    "confidence": 0.29,
+    "photo": "https://img.thesports.com/football/player/14426cc461d2748f83d117ff5f90868c.png",
+    "avgRating": 6.4,
+    "afId": 1271
+   },
+   {
+    "id": "zp5rzghz03woq82",
+    "name": "Manu Koné",
+    "nameKo": "마누 코네",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 2,
+    "games": 4,
+    "confidence": 0.29,
+    "photo": "https://img.thesports.com/football/player/3da1f7280a8921171ab7ecd02c0007a0.png",
+    "avgRating": 7.14,
+    "afId": 22147
+   },
+   {
+    "id": "y0or5jhe6zx2qwz",
+    "name": "Michael Olise",
+    "nameKo": "마이클 올리스",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/b6953f629a4b4734ab8640416dfc32d2.png",
+    "avgRating": 6.86,
+    "lastRating": 7.61,
+    "afId": 19617
+   }
+  ]
+ },
+ "England": {
+  "formation": "4-1-2-3",
+  "basedOnGames": 4,
+  "updatedAt": "2026-07-19T00:02:38.530Z",
   "xi": [
    {
     "id": "23xmvkhopdpqg8n",
@@ -10,12 +165,12 @@
     "nameKo": "조던 픽퍼드",
     "position": "G",
     "shirtNumber": 1,
-    "starts": 4,
+    "starts": 3,
     "games": 4,
-    "confidence": 1,
+    "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/5f4680067bf3b920b2734ba303419d2b.png",
-    "avgRating": 6.48,
-    "lastRating": 5.63
+    "avgRating": 6.42,
+    "afId": 2932
    },
    {
     "id": "23xmvkhx1y2qg8n",
@@ -27,34 +182,9 @@
     "games": 4,
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0deb5bb79ce10fb6f18c57511f0b9849.png",
-    "avgRating": 6.49,
-    "lastRating": 6.76
-   },
-   {
-    "id": "2y8m4zhje02ql07",
-    "name": "John Stones",
-    "nameKo": "존 스톤스",
-    "position": "D",
-    "shirtNumber": 5,
-    "starts": 2,
-    "games": 4,
-    "confidence": 0.71,
-    "photo": "https://img.thesports.com/football/player/54243754773e09cb99310b0e7a742e27.png",
-    "avgRating": 7.13,
-    "lastRating": 7.23
-   },
-   {
-    "id": "pxwrxlh97xnpryk",
-    "name": "Djed Spence",
-    "nameKo": "제드 스펜스",
-    "position": "D",
-    "shirtNumber": 25,
-    "starts": 2,
-    "games": 4,
-    "confidence": 0.57,
-    "photo": "https://img.thesports.com/football/player/ac2a6d653b22c101dc164ea6a36b8444.png",
-    "avgRating": 6.35,
-    "lastRating": 6.48
+    "avgRating": 6.47,
+    "lastRating": 6.74,
+    "afId": 67971
    },
    {
     "id": "l7oqdehl38wr510",
@@ -64,9 +194,38 @@
     "shirtNumber": 2,
     "starts": 3,
     "games": 4,
-    "confidence": 0.57,
+    "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/af1819a26f5262a58ef6cc68da8b8332.png",
-    "avgRating": 6.71
+    "avgRating": 7.03,
+    "lastRating": 7.62
+   },
+   {
+    "id": "pxwrxlh97xnpryk",
+    "name": "Djed Spence",
+    "nameKo": "제드 스펜스",
+    "position": "D",
+    "shirtNumber": 25,
+    "starts": 2,
+    "games": 4,
+    "confidence": 0.71,
+    "photo": "https://img.thesports.com/football/player/ac2a6d653b22c101dc164ea6a36b8444.png",
+    "avgRating": 6.52,
+    "lastRating": 6.56,
+    "afId": 19235
+   },
+   {
+    "id": "318q66hvx4wxqo9",
+    "name": "Jarell Quansah",
+    "nameKo": "자렐 콴사",
+    "position": "D",
+    "shirtNumber": 26,
+    "starts": 2,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/96d6361c763375d35d6a07f2ca144517.png",
+    "avgRating": 5.81,
+    "lastRating": 6.42,
+    "afId": 158698
    },
    {
     "id": "ednm9whev1dryox",
@@ -78,34 +237,9 @@
     "games": 4,
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/733edda4bad06e139f96ced9ab7782d4.png",
-    "avgRating": 6.82,
-    "lastRating": 6.66
-   },
-   {
-    "id": "pxwrxlh92k9wryk",
-    "name": "Elliot Anderson",
-    "nameKo": "엘리엇 앤더슨",
-    "position": "M",
-    "shirtNumber": 8,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/d028d3350e26ac24586eacbad8ba0139.png",
-    "avgRating": 6.62,
-    "lastRating": 6.4
-   },
-   {
-    "id": "3glrw7hj71ldqdy",
-    "name": "Jude Bellingham",
-    "nameKo": "주드 벨링엄",
-    "position": "M",
-    "shirtNumber": 10,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/ab4d657b819116eaa27a199adb7d3037.png",
-    "avgRating": 7.58,
-    "lastRating": 6.45
+    "avgRating": 7.27,
+    "lastRating": 9,
+    "afId": 2937
    },
    {
     "id": "n54qllhxl41yqvy",
@@ -113,25 +247,40 @@
     "nameKo": "모건 로저스",
     "position": "M",
     "shirtNumber": 17,
-    "starts": 1,
+    "starts": 2,
     "games": 4,
-    "confidence": 0.43,
+    "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/154fba331fd5d83b1eb39f1560e67ecf.png",
-    "avgRating": 6.95,
-    "lastRating": 6.95
+    "avgRating": 6.75,
+    "lastRating": 6.56,
+    "afId": 19170
    },
    {
-    "id": "ednm9wh9z22ryox",
-    "name": "Harry Kane",
-    "nameKo": "해리 케인",
-    "position": "F",
-    "shirtNumber": 9,
-    "starts": 4,
+    "id": "pxwrxlh92k9wryk",
+    "name": "Elliot Anderson",
+    "nameKo": "엘리엇 앤더슨",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 3,
     "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/44937ab4346f4d9fa0b7c4daf2124773.png",
-    "avgRating": 7.26,
-    "lastRating": 6.17
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/d028d3350e26ac24586eacbad8ba0139.png",
+    "avgRating": 6.47,
+    "afId": 138908
+   },
+   {
+    "id": "x7lm7ph0854om2w",
+    "name": "Bukayo Saka",
+    "nameKo": "부카요 사카",
+    "position": "F",
+    "shirtNumber": 7,
+    "starts": 2,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/345f75196a2dc5769215c16606e7a587.png",
+    "avgRating": 8.34,
+    "lastRating": 9.27,
+    "afId": 1460
    },
    {
     "id": "l7oqdehepw7r510",
@@ -141,17 +290,30 @@
     "shirtNumber": 18,
     "starts": 3,
     "games": 4,
-    "confidence": 0.86,
+    "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/f353ac6f35da2eb28e6e1d1e798c96b5.png",
     "avgRating": 6.94,
-    "lastRating": 7.3
+    "afId": 138787
+   },
+   {
+    "id": "ednm9wh9z22ryox",
+    "name": "Harry Kane",
+    "nameKo": "해리 케인",
+    "position": "F",
+    "shirtNumber": 9,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/44937ab4346f4d9fa0b7c4daf2124773.png",
+    "avgRating": 6.74,
+    "afId": 184
    }
   ]
  },
  "Argentina": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.585Z",
+  "updatedAt": "2026-07-19T00:02:38.530Z",
   "xi": [
    {
     "id": "318q66h0d5dqo9j",
@@ -164,7 +326,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/ec7539addcb8ef85bbd721f12c2a14a3.png",
     "avgRating": 6.66,
-    "lastRating": 6.57
+    "lastRating": 6.57,
+    "afId": 19599
    },
    {
     "id": "l5ergphn42or8k0",
@@ -177,7 +340,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/bf01950b4208e2a8e5cb3c8d3bc6c60c.png",
     "avgRating": 6.84,
-    "lastRating": 6.85
+    "lastRating": 6.85,
+    "afId": 6503
    },
    {
     "id": "k82rekh3wyxrepz",
@@ -190,7 +354,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/de016e81e8bce428a0dc8d7454e6e3bb.png",
     "avgRating": 7.15,
-    "lastRating": 6.88
+    "lastRating": 6.88,
+    "afId": 30776
    },
    {
     "id": "x7lm7ph5xxgm2wd",
@@ -216,7 +381,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/8ba8df5454ce1f6651dee97bec3ec720.png",
     "avgRating": 6.63,
-    "lastRating": 6.92
+    "lastRating": 6.92,
+    "afId": 529
    },
    {
     "id": "1l4rjnh3p29m7vx",
@@ -229,7 +395,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5e827e5e98fc422e96cf06e794be7701.png",
     "avgRating": 7.16,
-    "lastRating": 6.42
+    "lastRating": 6.42,
+    "afId": 6716
    },
    {
     "id": "l7oqdeh4dx80r51",
@@ -242,7 +409,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/4c76ff111431d8fcb4d661068d77e7c1.png",
     "avgRating": 7.59,
-    "lastRating": 8.2
+    "lastRating": 8.2,
+    "afId": 5996
    },
    {
     "id": "318q66hvkjwqo9j",
@@ -255,7 +423,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/8dc56b98162f29b067ceab128d32bdd2.png",
     "avgRating": 7.16,
-    "lastRating": 7.19
+    "lastRating": 7.19,
+    "afId": 271
    },
    {
     "id": "2y8m4zhg82gql07",
@@ -267,7 +436,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/16ecf7889998c6b51598b2e6b8596b6d.png",
-    "avgRating": 6.8
+    "avgRating": 6.8,
+    "afId": 2472
    },
    {
     "id": "p3glrw7hv73qdyj",
@@ -280,7 +450,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8d59474051c1faa84e7437a1c694d3da.png",
     "avgRating": 8.25,
-    "lastRating": 8.3
+    "lastRating": 8.3,
+    "afId": 154
    },
    {
     "id": "318q66hvngwvqo9",
@@ -293,163 +464,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/fea74a781033404f91f74f36447037c7.png",
     "avgRating": 7.11,
-    "lastRating": 6.65
-   }
-  ]
- },
- "France": {
-  "formation": "4-2-3-1",
-  "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.586Z",
-  "xi": [
-   {
-    "id": "4wyrn4hej2vq86p",
-    "name": "Mike Maignan",
-    "nameKo": "마이크 메냥",
-    "position": "G",
-    "shirtNumber": 16,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/7217f23471dbe0f22a7e9079d4a38ed6.png",
-    "avgRating": 6.58,
-    "lastRating": 5.73
-   },
-   {
-    "id": "zp5rzgh278wq82w",
-    "name": "Jules Koundé",
-    "nameKo": "쥘 쿤데",
-    "position": "D",
-    "shirtNumber": 5,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/b4f936f14eb44546aa2bcfeebf603dca.png",
-    "avgRating": 7.24,
-    "lastRating": 6.14
-   },
-   {
-    "id": "jw2r09hjk38rz84",
-    "name": "Dayot Upamecano",
-    "nameKo": "다요 우파메카노",
-    "position": "D",
-    "shirtNumber": 4,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/546d0ffa773888eaffeff73205d268c4.png",
-    "avgRating": 7.29,
-    "lastRating": 6.55
-   },
-   {
-    "id": "pxwrxlh9e758ryk",
-    "name": "William Saliba",
-    "nameKo": "윌리암 살리바",
-    "position": "D",
-    "shirtNumber": 17,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/660ef4d6ca42c92b6d84d34f331dce61.png",
-    "avgRating": 7.1,
-    "lastRating": 6.02
-   },
-   {
-    "id": "pxwrxlh1g17ryk0",
-    "name": "Lucas Digne",
-    "nameKo": "뤼카 디뉴",
-    "position": "D",
-    "shirtNumber": 3,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/8549d2c6c6d5c9ed5dcdbc7e518c351c.png",
-    "avgRating": 7.26,
-    "lastRating": 6.73
-   },
-   {
-    "id": "ednm9whzgd9ryox",
-    "name": "Adrien Rabiot",
-    "nameKo": "아드리앵 라비오",
-    "position": "M",
-    "shirtNumber": 14,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/97700189894df0bf2954f134dff29185.png",
-    "avgRating": 6.67,
-    "lastRating": 5.69
-   },
-   {
-    "id": "pxwrxlhv2peryk0",
-    "name": "Aurelien Tchouameni",
-    "nameKo": "오렐리앵 추아메니",
-    "position": "M",
-    "shirtNumber": 8,
-    "starts": 2,
-    "games": 4,
-    "confidence": 0.57,
-    "photo": "https://img.thesports.com/football/player/14426cc461d2748f83d117ff5f90868c.png",
-    "avgRating": 6.71,
-    "lastRating": 6.4
-   },
-   {
-    "id": "zp5rzghz03woq82",
-    "name": "Manu Koné",
-    "nameKo": "마누 코네",
-    "position": "M",
-    "shirtNumber": 6,
-    "starts": 2,
-    "games": 4,
-    "confidence": 0.43,
-    "photo": "https://img.thesports.com/football/player/3da1f7280a8921171ab7ecd02c0007a0.png",
-    "avgRating": 7.14
-   },
-   {
-    "id": "318q66hjv6kqo9j",
-    "name": "Ousmane Dembélé",
-    "nameKo": "우스만 뎀벨레",
-    "position": "F",
-    "shirtNumber": 7,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/6486545dd82704e231d7fd0b3f5be677.png",
-    "avgRating": 6.93,
-    "lastRating": 6.19
-   },
-   {
-    "id": "y0or5jhe6zx2qwz",
-    "name": "Michael Olise",
-    "nameKo": "마이클 올리스",
-    "position": "F",
-    "shirtNumber": 11,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/b6953f629a4b4734ab8640416dfc32d2.png",
-    "avgRating": 7.01,
-    "lastRating": 6.35
-   },
-   {
-    "id": "pxwrxlhze0dryk0",
-    "name": "Kylian Mbappé",
-    "nameKo": "킬리안 음바페",
-    "position": "F",
-    "shirtNumber": 10,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/d67aa76a863129e781c3a34b251c2adb.png",
-    "avgRating": 7.95,
-    "lastRating": 5.83
+    "lastRating": 6.65,
+    "afId": 6009
    }
   ]
  },
  "Spain": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.586Z",
+  "updatedAt": "2026-07-19T00:02:38.530Z",
   "xi": [
    {
     "id": "dj2ryohg1l6q1zp",
@@ -462,7 +485,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/fb05903ceb5110856c75721fd71d0d03.png",
     "avgRating": 6.69,
-    "lastRating": 6.76
+    "lastRating": 6.76,
+    "afId": 47270
    },
    {
     "id": "23xmvkhojvpjqg8",
@@ -475,7 +499,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/1fbe68500a159068567e72f366b8a245.png",
     "avgRating": 7.86,
-    "lastRating": 7.99
+    "lastRating": 7.99,
+    "afId": 47519
    },
    {
     "id": "23xmvkhk1e18qg8",
@@ -501,7 +526,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b30d87d99280aa83882b1983354b59d1.png",
     "avgRating": 7.19,
-    "lastRating": 7.43
+    "lastRating": 7.43,
+    "afId": 622
    },
    {
     "id": "3glrw7hyp9eqdyj",
@@ -514,7 +540,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/853a723cd296c0cb524cb0ed9a3acb24.png",
     "avgRating": 7.28,
-    "lastRating": 6.73
+    "lastRating": 6.73,
+    "afId": 47380
    },
    {
     "id": "4wyrn4hvlloq86p",
@@ -566,7 +593,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/4e9336a1d5f25b9f33e7fd010de08ed8.png",
     "avgRating": 6.56,
-    "lastRating": 6.34
+    "lastRating": 6.34,
+    "afId": 386828
    },
    {
     "id": "965mkyhngg9r1ge",
@@ -579,7 +607,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/fa3ad2f0531840002198511280948995.png",
     "avgRating": 7.34,
-    "lastRating": 7.09
+    "lastRating": 7.09,
+    "afId": 47323
    },
    {
     "id": "318q66h4jjyqo9j",
@@ -592,14 +621,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/94e94c73b0c62d9e41f186851d7c9106.png",
     "avgRating": 7.47,
-    "lastRating": 7.02
+    "lastRating": 7.02,
+    "afId": 328
    }
   ]
  },
  "Switzerland": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.586Z",
+  "updatedAt": "2026-07-19T00:02:38.531Z",
   "xi": [
    {
     "id": "ednm9whz104ryox",
@@ -612,7 +642,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8d016e14c78f3d8b05c726c4042ce032.png",
     "avgRating": 7.07,
-    "lastRating": 6.88
+    "lastRating": 6.88,
+    "afId": 25282
    },
    {
     "id": "pxwrxlh975nryk0",
@@ -625,7 +656,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/779a25bc0f154eaed7da594fc3c7736f.png",
     "avgRating": 7.18,
-    "lastRating": 6.97
+    "lastRating": 6.97,
+    "afId": 2803
    },
    {
     "id": "l5ergphv954r8k0",
@@ -638,7 +670,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3388fc07e37e4285d78be6f37ac985ef.png",
     "avgRating": 7.16,
-    "lastRating": 6.65
+    "lastRating": 6.65,
+    "afId": 5
    },
    {
     "id": "8yomo4h7odoq0j6",
@@ -651,7 +684,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/82b9251694b03a7a4f8b8c991b7152b0.png",
     "avgRating": 7.05,
-    "lastRating": 7.56
+    "lastRating": 7.56,
+    "afId": 1631
    },
    {
     "id": "pxwrxlhj2n53ryk",
@@ -663,7 +697,8 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/c436337f52619a88d32c6577b7124878.png",
-    "avgRating": 6.45
+    "avgRating": 6.45,
+    "afId": 349344
    },
    {
     "id": "965mkyh4n45r1ge",
@@ -676,7 +711,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/35b07e4b40a4bff1104a8174dfbfd7f4.png",
     "avgRating": 6.67,
-    "lastRating": 6.72
+    "lastRating": 6.72,
+    "afId": 2807
    },
    {
     "id": "zp5rzgh7x6kq82w",
@@ -689,7 +725,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e07f0691bf05ece9d3deeab653b42405.png",
     "avgRating": 7,
-    "lastRating": 7.2
+    "lastRating": 7.2,
+    "afId": 1464
    },
    {
     "id": "8yomo4hvvj3q0j6",
@@ -702,7 +739,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/3ec74b06c85fa4539a32e8a09340d7d7.png",
     "avgRating": 6.58,
-    "lastRating": 6.24
+    "lastRating": 6.24,
+    "afId": 2810
    },
    {
     "id": "3glrw7h0z79qdyj",
@@ -715,7 +753,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/ca67d00d9a994a9bee9cfcd27185399c.png",
     "avgRating": 6.2,
-    "lastRating": 6.19
+    "lastRating": 6.19,
+    "afId": 163032
    },
    {
     "id": "4wyrn4h4yz7q86p",
@@ -728,7 +767,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/ebca94950f46b5e28647487c64c81f05.png",
     "avgRating": 6.65,
-    "lastRating": 6.82
+    "lastRating": 6.82,
+    "afId": 957
    },
    {
     "id": "23xmvkhdz1eqg8n",
@@ -741,14 +781,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/1fc56408d3d06df6942dd7404dbe33d6.png",
     "avgRating": 6.8,
-    "lastRating": 6.06
+    "lastRating": 6.06,
+    "afId": 421
    }
   ]
  },
  "Norway": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.586Z",
+  "updatedAt": "2026-07-19T00:02:38.531Z",
   "xi": [
    {
     "id": "vjxm8gh44olr6od",
@@ -761,7 +802,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/0d02febbc2e9d1576ed869884d7bf458.png",
     "avgRating": 7.64,
-    "lastRating": 7.45
+    "lastRating": 7.45,
+    "afId": 19172
    },
    {
     "id": "dn1m1gh3vd0moep",
@@ -774,7 +816,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/a191a16a76a79a352ca2be08111b8cf9.png",
     "avgRating": 7.01,
-    "lastRating": 6.05
+    "lastRating": 6.05,
+    "afId": 1119
    },
    {
     "id": "pxwrxlh1wk0jryk",
@@ -787,7 +830,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/e43ebe6bc535800215ec945c824e34ad.png",
     "avgRating": 6.97,
-    "lastRating": 6.73
+    "lastRating": 6.73,
+    "afId": 39254
    },
    {
     "id": "n54qllhxz2njqvy",
@@ -800,7 +844,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/df81706805c5ea6c71821ff842d19b33.png",
     "avgRating": 6.64,
-    "lastRating": 6.31
+    "lastRating": 6.31,
+    "afId": 265782
    },
    {
     "id": "3glrw7hy9yjqdyj",
@@ -813,7 +858,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/1b98f8b764422efdf85d0800932d394d.png",
     "avgRating": 7.06,
-    "lastRating": 6.91
+    "lastRating": 6.91,
+    "afId": 24845
    },
    {
     "id": "l7oqdeh4k26r510",
@@ -826,7 +872,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a62096143e9ff4aba01b46936e67f174.png",
     "avgRating": 6.75,
-    "lastRating": 6.61
+    "lastRating": 6.61,
+    "afId": 39064
    },
    {
     "id": "4wyrn4h42okq86p",
@@ -839,7 +886,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/ae7960eca0c653edf44c433d2213c741.png",
     "avgRating": 6.99,
-    "lastRating": 6.97
+    "lastRating": 6.97,
+    "afId": 1934
    },
    {
     "id": "4wyrn4hdjonq86p",
@@ -865,7 +913,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/c1a538c28fcb667eb4f553cce7dabebb.png",
     "avgRating": 6.12,
-    "lastRating": 6.07
+    "lastRating": 6.07,
+    "afId": 8492
    },
    {
     "id": "2y8m4zhzd27ql07",
@@ -878,7 +927,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/e579eba3fa3579885c1c69b1efb96d67.png",
     "avgRating": 7.93,
-    "lastRating": 6.77
+    "lastRating": 6.77,
+    "afId": 1100
    },
    {
     "id": "4wyrn4h495nzq86",
@@ -890,14 +940,15 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/9e66808ecdfb4799b3a0eaf55341a08a.png",
-    "avgRating": 7
+    "avgRating": 7,
+    "afId": 314511
    }
   ]
  },
  "Belgium": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.586Z",
+  "updatedAt": "2026-07-19T00:02:38.531Z",
   "xi": [
    {
     "id": "k82rekhvpdxrepz",
@@ -910,7 +961,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/86949116968b247baf46e77ee6f8602d.png",
     "avgRating": 6.66,
-    "lastRating": 6.97
+    "lastRating": 6.97,
+    "afId": 730
    },
    {
     "id": "23xmvkhd65dqg8n",
@@ -923,7 +975,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d3b0d256112c3c6d0a74e42e568b2d10.png",
     "avgRating": 6.81,
-    "lastRating": 6.23
+    "lastRating": 6.23,
+    "afId": 2920
    },
    {
     "id": "965mkyh3e8gr1ge",
@@ -936,7 +989,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/be7c1a4bd2be2771e10c5a29f907bdbf.png",
     "avgRating": 6.7,
-    "lastRating": 6.86
+    "lastRating": 6.86,
+    "afId": 69
    },
    {
     "id": "y0or5jhe556eqwz",
@@ -949,7 +1003,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0572010ba6f3755d3e27dfdf4e3547e6.png",
     "avgRating": 6.69,
-    "lastRating": 6.12
+    "lastRating": 6.12,
+    "afId": 162007
    },
    {
     "id": "3glrw7hyoy8zqdy",
@@ -962,7 +1017,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/360b6a10caff4b542567aeee16dd82a8.png",
     "avgRating": 6.52,
-    "lastRating": 6.58
+    "lastRating": 6.58,
+    "afId": 312964
    },
    {
     "id": "l7oqdehen58r510",
@@ -975,7 +1031,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/4437361376d0a7b9690e5756f5e65628.png",
     "avgRating": 6.64,
-    "lastRating": 5.96
+    "lastRating": 5.96,
+    "afId": 2120
    },
    {
     "id": "pxwrxlh1z5yryk0",
@@ -988,7 +1045,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/498430e70c4826d198eaa44fa1dc2607.png",
     "avgRating": 6.63,
-    "lastRating": 5.92
+    "lastRating": 5.92,
+    "afId": 78
    },
    {
     "id": "l7oqdehnwz9r510",
@@ -1001,7 +1059,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/42109088fe0c43b0bc4e7b098f8d52fb.png",
     "avgRating": 6.91,
-    "lastRating": 6.3
+    "lastRating": 6.3,
+    "afId": 629
    },
    {
     "id": "n54qllhx4e7qvy9",
@@ -1013,7 +1072,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/f04b09e715f9f617e4bcecb04d5eb698.png",
-    "avgRating": 7.02
+    "avgRating": 7.02,
+    "afId": 2926
    },
    {
     "id": "8yomo4hko79gq0j",
@@ -1025,7 +1085,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/f9fcd3ba25c6cacc8d07b46cb7cce0e5.png",
-    "avgRating": 6.37
+    "avgRating": 6.37,
+    "afId": 162714
    },
    {
     "id": "x7lm7pho79om2wd",
@@ -1038,14 +1099,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/eeba5051d4ae8a973db752c1f2ef60b6.png",
     "avgRating": 7.57,
-    "lastRating": 6.1
+    "lastRating": 6.1,
+    "afId": 1946
    }
   ]
  },
  "Morocco": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.586Z",
+  "updatedAt": "2026-07-19T00:02:38.531Z",
   "xi": [
    {
     "id": "6ypq3nhzyn3md7o",
@@ -1058,7 +1120,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/69a6838c1f7f0559f5e5433c9cccfa9f.png",
     "avgRating": 6.66,
-    "lastRating": 7.3
+    "lastRating": 7.3,
+    "afId": 2701
    },
    {
     "id": "dj2ryohnk9nq1zp",
@@ -1071,7 +1134,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5885cc072fb8b238b2611bb45de56c39.png",
     "avgRating": 7.38,
-    "lastRating": 6.75
+    "lastRating": 6.75,
+    "afId": 9
    },
    {
     "id": "4jwq2gh7pkdm0ve",
@@ -1084,7 +1148,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/63f51665b97ed32b0f6168a805578b62.png",
     "avgRating": 7.04,
-    "lastRating": 6.03
+    "lastRating": 6.03,
+    "afId": 18814
    },
    {
     "id": "y0or5jh1xegqwzv",
@@ -1097,7 +1162,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/9fc9eea13620a0dc5495e22c6fb2ff2d.png",
     "avgRating": 6.94,
-    "lastRating": 5.7
+    "lastRating": 5.7,
+    "afId": 545
    },
    {
     "id": "x7lm7ph0833pm2w",
@@ -1110,7 +1176,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/2cc4aa6dbd77aad5a28ef03ee154579f.png",
     "avgRating": 6.53,
-    "lastRating": 6.69
+    "lastRating": 6.69,
+    "afId": 162451
    },
    {
     "id": "6ypq3nhwgwjlmd7",
@@ -1123,7 +1190,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e48d3ababe95a06f3b5216379df133eb.png",
     "avgRating": 6.56,
-    "lastRating": 6.63
+    "lastRating": 6.63,
+    "afId": 277003
    },
    {
     "id": "ednm9whv23o9ryo",
@@ -1136,7 +1204,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/1f6a671830945b419a8b3d1e75c434bb.png",
     "avgRating": 6.49,
-    "lastRating": 6.19
+    "lastRating": 6.19,
+    "afId": 340573
    },
    {
     "id": "y39mp1h1y53omoj",
@@ -1149,7 +1218,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/02fde745ceb448bc915a464ffa77610b.png",
     "avgRating": 6.67,
-    "lastRating": 6.37
+    "lastRating": 6.37,
+    "afId": 438688
    },
    {
     "id": "vjxm8ghjo4j4r6o",
@@ -1162,7 +1232,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/8b1eaab222e197129cb587e3e53deec6.png",
     "avgRating": 7.68,
-    "lastRating": 6.72
+    "lastRating": 6.72,
+    "afId": 129678
    },
    {
     "id": "ednm9whz7ln3ryo",
@@ -1174,7 +1245,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/6f9236d59f2781a5a4b1d48cee76f875.png",
-    "avgRating": 6.8
+    "avgRating": 6.8,
+    "afId": 161897
    },
    {
     "id": "vjxm8ghp03nr6od",
@@ -1187,14 +1259,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/fe3830bdc1731c1bdaa54f2f290082f0.png",
     "avgRating": 6.56,
-    "lastRating": 6.43
+    "lastRating": 6.43,
+    "afId": 744
    }
   ]
  },
  "Colombia": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.587Z",
+  "updatedAt": "2026-07-19T00:02:38.532Z",
   "xi": [
    {
     "id": "965mkyh4gogr1ge",
@@ -1207,7 +1280,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/16189cd33832a62f038b4a3748893d39.png",
     "avgRating": 7.09,
-    "lastRating": 7.32
+    "lastRating": 7.32,
+    "afId": 2482
    },
    {
     "id": "n54qllhxvv8qvy9",
@@ -1220,7 +1294,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/f63c91b340c51aaeaeebc1af02b77ae7.png",
     "avgRating": 7.24,
-    "lastRating": 6.39
+    "lastRating": 6.39,
+    "afId": 168
    },
    {
     "id": "y0or5jhge5lqwzv",
@@ -1233,7 +1308,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/05cac2c2675d2ca7fdbf7a18e1852032.png",
     "avgRating": 7.17,
-    "lastRating": 6.51
+    "lastRating": 6.51,
+    "afId": 1929
    },
    {
     "id": "4wyrn4h9wpoq86p",
@@ -1246,7 +1322,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/64d2f5111758e30f423c81174c15abae.png",
     "avgRating": 7.86,
-    "lastRating": 7.14
+    "lastRating": 7.14,
+    "afId": 13736
    },
    {
     "id": "3glrw7hjg6wqdyj",
@@ -1259,7 +1336,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/6e83e68747ff5953eb863760d4561565.png",
     "avgRating": 7.24,
-    "lastRating": 6.9
+    "lastRating": 6.9,
+    "afId": 64268
    },
    {
     "id": "n54qllhx6pyqvy9",
@@ -1272,7 +1350,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/ab4ea744c223979b2fdb834350c6fbc7.png",
     "avgRating": 7.05,
-    "lastRating": 7.05
+    "lastRating": 7.05,
+    "afId": 2490
    },
    {
     "id": "3glrw7hy6587qdy",
@@ -1285,7 +1364,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0b07e20b27fc7097bb072aeb564798d3.png",
     "avgRating": 6.98,
-    "lastRating": 6.61
+    "lastRating": 6.61,
+    "afId": 324034
    },
    {
     "id": "vjxm8ghgjpnr6od",
@@ -1298,7 +1378,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/db32c00ee061fa1a5b2f1cdec9e7726b.png",
     "avgRating": 6.95,
-    "lastRating": 6.31
+    "lastRating": 6.31,
+    "afId": 517
    },
    {
     "id": "8yomo4h290z0q0j",
@@ -1311,7 +1392,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/61ff11114ba68a0e9d157b824c665ff9.png",
     "avgRating": 6.98,
-    "lastRating": 6.35
+    "lastRating": 6.35,
+    "afId": 13708
    },
    {
     "id": "6ypq3nh4pzdmd7o",
@@ -1324,7 +1406,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/ed3232cb401342d0b23ac15f40ead9ec.png",
     "avgRating": 6.47,
-    "lastRating": 6.76
+    "lastRating": 6.76,
+    "afId": 2489
    },
    {
     "id": "3glrw7h0loeqdyj",
@@ -1337,14 +1420,15 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/ad9bf195b37018ae8ab99efcfe0cdc68.png",
     "avgRating": 6.46,
-    "lastRating": 6.39
+    "lastRating": 6.39,
+    "afId": 47237
    }
   ]
  },
  "Egypt": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.532Z",
   "xi": [
    {
     "id": "zp5rzghzvzwjq82",
@@ -1357,7 +1441,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/9dc0caedf26b9a4325c92645395e1b32.png",
     "avgRating": 7.03,
-    "lastRating": 6.59
+    "lastRating": 6.59,
+    "afId": 269174
    },
    {
     "id": "vjxm8gh2e0nr6od",
@@ -1370,7 +1455,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d7af3699afa55b9163f1367ba2360b07.png",
     "avgRating": 6.86,
-    "lastRating": 6.43
+    "lastRating": 6.43,
+    "afId": 2654
    },
    {
     "id": "y39mp1hjdwvmojx",
@@ -1396,7 +1482,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/d3506b1471ed60e9417979dc2e317f9b.png",
     "avgRating": 6.32,
-    "lastRating": 6.81
+    "lastRating": 6.81,
+    "afId": 16805
    },
    {
     "id": "y0or5jh3xk7qwzv",
@@ -1409,7 +1496,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/3a7460f799a2618152c4691fa86841c3.png",
     "avgRating": 6.91,
-    "lastRating": 6.23
+    "lastRating": 6.23,
+    "afId": 2656
    },
    {
     "id": "l7oqdeh428dvr51",
@@ -1422,7 +1510,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7caa0221827b3dce67da45f5fe68e878.png",
     "avgRating": 6.63,
-    "lastRating": 5.9
+    "lastRating": 5.9,
+    "afId": 17269
    },
    {
     "id": "pxwrxlh1o1yryk0",
@@ -1435,7 +1524,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/132e6334d8236eeb2b6347d628fbb676.png",
     "avgRating": 7.02,
-    "lastRating": 6.12
+    "lastRating": 6.12,
+    "afId": 306
    },
    {
     "id": "2y8m4zh8yl0nql0",
@@ -1448,7 +1538,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/eb5a406880d108b43fc792a6baca2c2d.png",
     "avgRating": 7.11,
-    "lastRating": 7.39
+    "lastRating": 7.39,
+    "afId": 395075
    },
    {
     "id": "l5ergphv4674r8k",
@@ -1461,7 +1552,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/36dbbd84d488aa4e97fe192e894445a9.png",
     "avgRating": 6.88,
-    "lastRating": 6.58
+    "lastRating": 6.58,
+    "afId": 190575
    },
    {
     "id": "vjxm8ghx0l5r6od",
@@ -1473,7 +1565,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/e5341a6ac627bdd22fb32764635b3323.png",
-    "avgRating": 6.32
+    "avgRating": 6.32,
+    "afId": 81573
    },
    {
     "id": "l7oqdehdy9gr510",
@@ -1493,7 +1586,7 @@
  "USA": {
   "formation": "3-5-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.532Z",
   "xi": [
    {
     "id": "3glrw7hj6dyjqdy",
@@ -1506,7 +1599,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/98bf1d227ed26160d0f7596db179d142.png",
     "avgRating": 6.47,
-    "lastRating": 5.53
+    "lastRating": 5.53,
+    "afId": 50728
    },
    {
     "id": "3glrw7hy9934qdy",
@@ -1519,7 +1613,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/0e61eeaba8be9d47caa0b723362004e5.png",
     "avgRating": 7.67,
-    "lastRating": 6.68
+    "lastRating": 6.68,
+    "afId": 355994
    },
    {
     "id": "k82rekhn1e6repz",
@@ -1532,7 +1627,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/ccea67b5de0954147b3de8b1e4680fbf.png",
     "avgRating": 7.09,
-    "lastRating": 6.34
+    "lastRating": 6.34,
+    "afId": 126949
    },
    {
     "id": "l7oqdeh6lgdr510",
@@ -1545,7 +1641,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/9aebb0be44af1255d3383536e56cc7af.png",
     "avgRating": 7.06,
-    "lastRating": 6.21
+    "lastRating": 6.21,
+    "afId": 19023
    },
    {
     "id": "y0or5jh1v1wqwzv",
@@ -1558,7 +1655,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7f86337523bdfe2e45d565e32fb53019.png",
     "avgRating": 6.41,
-    "lastRating": 5.27
+    "lastRating": 5.27,
+    "afId": 415
    },
    {
     "id": "dj2ryohg7z1q1zp",
@@ -1571,7 +1669,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/5d51378d691a67d82e7cb7f1d1f4b327.png",
     "avgRating": 6.74,
-    "lastRating": 6.38
+    "lastRating": 6.38,
+    "afId": 1150
    },
    {
     "id": "23xmvkhd083jqg8",
@@ -1584,7 +1683,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/d4c86ead1bcdde2d9bea2a02de94ad9d.png",
     "avgRating": 7.37,
-    "lastRating": 6.97
+    "lastRating": 6.97,
+    "afId": 162037
    },
    {
     "id": "y39mp1hjo6vnmoj",
@@ -1596,7 +1696,8 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/dea145c5f225b6a8d6657887625bf5d7.png",
-    "avgRating": 9
+    "avgRating": 9,
+    "afId": 201713
    },
    {
     "id": "vjxm8ghj51ljr6o",
@@ -1608,7 +1709,8 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/ec82898a37877dcbb25e4b34a9ff7bf0.png",
-    "avgRating": 6.29
+    "avgRating": 6.29,
+    "afId": 161921
    },
    {
     "id": "pxwrxlh9577pryk",
@@ -1621,7 +1723,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/8770da6921202e88b0bbcf94f1c53dba.png",
     "avgRating": 6.57,
-    "lastRating": 6.48
+    "lastRating": 6.48,
+    "afId": 138835
    },
    {
     "id": "965mkyhn3gjr1ge",
@@ -1634,14 +1737,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/59ea84ba1b15b3ea70f56f0766949f20.png",
     "avgRating": 6.2,
-    "lastRating": 6.13
+    "lastRating": 6.13,
+    "afId": 17
    }
   ]
  },
  "Portugal": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.532Z",
   "xi": [
    {
     "id": "dn1m1gh8jl2moep",
@@ -1654,7 +1758,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e89df9dff6cb817d57e19e2dae84e909.png",
     "avgRating": 7.51,
-    "lastRating": 7.57
+    "lastRating": 7.57,
+    "afId": 369
    },
    {
     "id": "vjxm8ghg52lr6od",
@@ -1667,7 +1772,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/ffb8a71ea3a1ad27a6bd1d44cb01a69b.png",
     "avgRating": 7.05,
-    "lastRating": 6.65
+    "lastRating": 6.65,
+    "afId": 855
    },
    {
     "id": "n54qllhx733qvy9",
@@ -1680,7 +1786,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a21308e3048cc08658dea7a25b3de02c.png",
     "avgRating": 6.84,
-    "lastRating": 6.88
+    "lastRating": 6.88,
+    "afId": 567
    },
    {
     "id": "l7oqdeh03ygvr51",
@@ -1693,7 +1800,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/2528acd05ece72dfa7c10670e6c321a1.png",
     "avgRating": 6.9,
-    "lastRating": 6.81
+    "lastRating": 6.81,
+    "afId": 336671
    },
    {
     "id": "l5ergphvlzwor8k",
@@ -1706,7 +1814,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0abd6ad13204c4d55e054e90efb58a3b.png",
     "avgRating": 7.52,
-    "lastRating": 7.2
+    "lastRating": 7.2,
+    "afId": 263482
    },
    {
     "id": "l5ergphv839er8k",
@@ -1719,7 +1828,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b3025d04e1f4ae5cc6c17b2168f475a6.png",
     "avgRating": 6.86,
-    "lastRating": 6.53
+    "lastRating": 6.53,
+    "afId": 128384
    },
    {
     "id": "n54qllhx11oqvy9",
@@ -1732,7 +1842,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b80beaf7a7e00ee1740eb5526bf00547.png",
     "avgRating": 6.71,
-    "lastRating": 6.28
+    "lastRating": 6.28,
+    "afId": 1485
    },
    {
     "id": "1l4rjnhxj6gem7v",
@@ -1745,7 +1856,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/5a579871519550a3dabf9e5027b4be92.png",
     "avgRating": 6.74,
-    "lastRating": 6.85
+    "lastRating": 6.85,
+    "afId": 335051
    },
    {
     "id": "3glrw7hj003qdyj",
@@ -1757,7 +1869,8 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/970a6d3411ed6882a758efbbc80d53ac.png",
-    "avgRating": 6.51
+    "avgRating": 6.51,
+    "afId": 2676
    },
    {
     "id": "6ypq3nh19kemd7o",
@@ -1770,7 +1883,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/2585a5614ef6e4605f826aaf58670ddf.png",
     "avgRating": 6.44,
-    "lastRating": 6.46
+    "lastRating": 6.46,
+    "afId": 1864
    },
    {
     "id": "j1l4rjnhpgxm7vx",
@@ -1783,14 +1897,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/52dd0122ddfcb5bfecaa55830f8a6fe1.png",
     "avgRating": 7,
-    "lastRating": 6.41
+    "lastRating": 6.41,
+    "afId": 874
    }
   ]
  },
  "Mexico": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.533Z",
   "xi": [
    {
     "id": "zp5rzghzvl8zq82",
@@ -1803,7 +1918,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3448078945e6550541f7f941bc07ea2a.png",
     "avgRating": 6.53,
-    "lastRating": 5.67
+    "lastRating": 5.67,
+    "afId": 270774
    },
    {
     "id": "vjxm8ghpkjxr6od",
@@ -1816,7 +1932,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/128f7a26b34b2780c648e13a135ced56.png",
     "avgRating": 7.25,
-    "lastRating": 5.94
+    "lastRating": 5.94,
+    "afId": 2878
    },
    {
     "id": "23xmvkhozek3qg8",
@@ -1829,7 +1946,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3252552d7eaa20b761346439958bafed.png",
     "avgRating": 7.37,
-    "lastRating": 6.11
+    "lastRating": 6.11,
+    "afId": 35970
    },
    {
     "id": "1l4rjnhkznym7vx",
@@ -1842,7 +1960,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/2c4de28829bc7c6200f748532c0e216d.png",
     "avgRating": 6.88,
-    "lastRating": 6
+    "lastRating": 6,
+    "afId": 2873
    },
    {
     "id": "4wyrn4hd092lq86",
@@ -1855,7 +1974,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/90e94e51b6af49e4a0e268cb0d847346.png",
     "avgRating": 7.1,
-    "lastRating": 6.2
+    "lastRating": 6.2,
+    "afId": 35544
    },
    {
     "id": "2y8m4zhgnw6eql0",
@@ -1868,7 +1988,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/0953236b91d50d6541d6ec1e82002e63.png",
     "avgRating": 6.77,
-    "lastRating": 6.84
+    "lastRating": 6.84,
+    "afId": 266345
    },
    {
     "id": "n54qllhjn64gqvy",
@@ -1881,7 +2002,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/5af5bb74e7ad49d1876f3645a2636fb6.png",
     "avgRating": 6.78,
-    "lastRating": 6.39
+    "lastRating": 6.39,
+    "afId": 482605
    },
    {
     "id": "vjxm8ghxvp9r6od",
@@ -1893,7 +2015,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/bee2442b2ea28d005c7ae3a513f8fe24.png",
-    "avgRating": 6.85
+    "avgRating": 6.85,
+    "afId": 2869
    },
    {
     "id": "jw2r09h16xerz84",
@@ -1906,7 +2029,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/f52b07bd9b143cf37312afcda79c3413.png",
     "avgRating": 6.54,
-    "lastRating": 6.24
+    "lastRating": 6.24,
+    "afId": 2879
    },
    {
     "id": "318q66hjex6qo9j",
@@ -1919,7 +2043,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0ba7dc1cfcb83d64dfa795a6f6a7cde8.png",
     "avgRating": 7.67,
-    "lastRating": 8.1
+    "lastRating": 8.1,
+    "afId": 35532
    },
    {
     "id": "vjxm8ghgn50r6od",
@@ -1932,14 +2057,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/a24e5483125a9159512c3b95fb0bc61d.png",
     "avgRating": 7.08,
-    "lastRating": 7.25
+    "lastRating": 7.25,
+    "afId": 2887
    }
   ]
  },
  "Brazil": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.533Z",
   "xi": [
    {
     "id": "ednm9whzz28ryox",
@@ -1952,7 +2078,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5c89a33cf034c8fbd79e593a1800cf37.png",
     "avgRating": 6.96,
-    "lastRating": 6.63
+    "lastRating": 6.63,
+    "afId": 280
    },
    {
     "id": "vjxm8ghg28lr6od",
@@ -1965,7 +2092,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/84b6ee39cfe9738c9cea1c8b0462b93f.png",
     "avgRating": 6.91,
-    "lastRating": 6.65
+    "lastRating": 6.65,
+    "afId": 10097
    },
    {
     "id": "3glrw7h1ew0qdyj",
@@ -1991,7 +2119,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/922207e8f1f6c15e7d7c6c73321037ce.png",
     "avgRating": 7.41,
-    "lastRating": 7
+    "lastRating": 7,
+    "afId": 22224
    },
    {
     "id": "n54qllhxxzgqvy9",
@@ -2017,7 +2146,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7f32ed1c2c4c3e3e2fc3c6c1cf4605f2.png",
     "avgRating": 7.27,
-    "lastRating": 6.16
+    "lastRating": 6.16,
+    "afId": 10135
    },
    {
     "id": "dj2ryohy2lpq1zp",
@@ -2042,7 +2172,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/dd6132559f62ad6ab1c2b428fd0eca27.png",
-    "avgRating": 7.14
+    "avgRating": 7.14,
+    "afId": 1646
    },
    {
     "id": "1l4rjnhe42vm7vx",
@@ -2068,7 +2199,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a5b1cafbef00050ebda4618043b5d7d8.png",
     "avgRating": 7.49,
-    "lastRating": 6.37
+    "lastRating": 6.37,
+    "afId": 1165
    },
    {
     "id": "zp5rzghp5394q82",
@@ -2088,7 +2220,7 @@
  "Paraguay": {
   "formation": "5-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.533Z",
   "xi": [
    {
     "id": "n54qllhx7x3gqvy",
@@ -2114,7 +2246,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/25c0ed9fd773a7299c0d350962c539aa.png",
     "avgRating": 6.75,
-    "lastRating": 6.56
+    "lastRating": 6.56,
+    "afId": 195992
    },
    {
     "id": "l7oqdeh4yxnr510",
@@ -2127,7 +2260,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b0bf05ba32cc5314e348d3ffe41ce843.png",
     "avgRating": 6.99,
-    "lastRating": 6.59
+    "lastRating": 6.59,
+    "afId": 2502
    },
    {
     "id": "1l4rjnhzn37m7vx",
@@ -2140,7 +2274,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/986e4c9d94aa8dae1c833d73c796d6b9.png",
     "avgRating": 6.5,
-    "lastRating": 6.68
+    "lastRating": 6.68,
+    "afId": 2499
    },
    {
     "id": "dn1m1gh3z2gmoep",
@@ -2153,7 +2288,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/8d962fa50bfc710eafc089541ced62ee.png",
     "avgRating": 6.8,
-    "lastRating": 6.81
+    "lastRating": 6.81,
+    "afId": 6168
    },
    {
     "id": "8yomo4hvopvq0j6",
@@ -2166,7 +2302,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/29eca8f42c8de2bc8d9a33bea9f4d356.png",
     "avgRating": 6.63,
-    "lastRating": 6.55
+    "lastRating": 6.55,
+    "afId": 35808
    },
    {
     "id": "x7lm7ph0l79m2wd",
@@ -2179,7 +2316,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/2504342ae25a429d9d8255566713c19a.png",
     "avgRating": 6.3,
-    "lastRating": 5.89
+    "lastRating": 5.89,
+    "afId": 6236
    },
    {
     "id": "23xmvkhd6e7gqg8",
@@ -2192,7 +2330,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8ef889a9c080bf80f8fd15fe326329c9.png",
     "avgRating": 6.8,
-    "lastRating": 5.83
+    "lastRating": 5.83,
+    "afId": 305832
    },
    {
     "id": "8yomo4hvy06zq0j",
@@ -2205,7 +2344,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/8d26a5f09380a4bab9434ed074a8067c.png",
     "avgRating": 6.32,
-    "lastRating": 6.33
+    "lastRating": 6.33,
+    "afId": 278370
    },
    {
     "id": "ednm9whzlzo7ryo",
@@ -2217,7 +2357,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/163fdaaeaf8dca6b15b92ec21df9e900.png",
-    "avgRating": 6.47
+    "avgRating": 6.47,
+    "afId": 195107
    },
    {
     "id": "ednm9whzx15zryo",
@@ -2230,14 +2371,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7d1e4e243185ff0caaaf799ac872c46d.png",
     "avgRating": 7.04,
-    "lastRating": 6.21
+    "lastRating": 6.21,
+    "afId": 70747
    }
   ]
  },
  "Canada": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.533Z",
   "xi": [
    {
     "id": "4wyrn4he5p6q86p",
@@ -2250,7 +2392,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d22cbf478cacb62423a28237b93c0eef.png",
     "avgRating": 6.41,
-    "lastRating": 5.87
+    "lastRating": 5.87,
+    "afId": 51274
    },
    {
     "id": "pxwrxlh9lykoryk",
@@ -2263,7 +2406,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b70b6633865df87e4624efe306086f47.png",
     "avgRating": 6.97,
-    "lastRating": 6.73
+    "lastRating": 6.73,
+    "afId": 78547
    },
    {
     "id": "n54qllhjpwwqvy9",
@@ -2276,7 +2420,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/6fe5f22a8be64e76919ad67b4aa0e190.png",
     "avgRating": 6.98,
-    "lastRating": 5.97
+    "lastRating": 5.97,
+    "afId": 50816
    },
    {
     "id": "pxwrxlhjkov6ryk",
@@ -2289,7 +2434,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/e2608313dcbc4ec4b3a1857109e00810.png",
     "avgRating": 6.35,
-    "lastRating": 5.96
+    "lastRating": 5.96,
+    "afId": 407017
    },
    {
     "id": "318q66h4w7enqo9",
@@ -2302,7 +2448,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/01f26820ac6ee0728175d941afe1e867.png",
     "avgRating": 6.65,
-    "lastRating": 6.1
+    "lastRating": 6.1,
+    "afId": 327738
    },
    {
     "id": "318q66hv2gjkqo9",
@@ -2315,7 +2462,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/71d5d76dee4b46fa96cd95f3acc734c5.png",
     "avgRating": 6.3,
-    "lastRating": 6.07
+    "lastRating": 6.07,
+    "afId": 51016
    },
    {
     "id": "l5ergph50jvr8k0",
@@ -2328,7 +2476,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/d97408161ce7d3ba9d0131e08d874d66.png",
     "avgRating": 7.51,
-    "lastRating": 6.84
+    "lastRating": 6.84,
+    "afId": 35570
    },
    {
     "id": "zp5rzghpo3lyq82",
@@ -2341,7 +2490,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/5e01aed1847b20a2784206a53daa18f2.png",
     "avgRating": 6.62,
-    "lastRating": 6.5
+    "lastRating": 6.5,
+    "afId": 362145
    },
    {
     "id": "y0or5jh3ld3oqwz",
@@ -2353,7 +2503,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/0815ce051a0f4be5bb79a21d13c7adbc.png",
-    "avgRating": 6.87
+    "avgRating": 6.87,
+    "afId": 294824
    },
    {
     "id": "l7oqdeh42e77r51",
@@ -2366,7 +2517,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/9de146bd66bd42d984f0e451e11635cb.png",
     "avgRating": 7.07,
-    "lastRating": 6.25
+    "lastRating": 6.25,
+    "afId": 8489
    },
    {
     "id": "l7oqdeh0xdzlr51",
@@ -2379,14 +2531,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/d8cf3085960c4c778cd3107300e6a1af.png",
     "avgRating": 6.33,
-    "lastRating": 6.21
+    "lastRating": 6.21,
+    "afId": 351587
    }
   ]
  },
  "Ghana": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.588Z",
+  "updatedAt": "2026-07-19T00:02:38.534Z",
   "xi": [
    {
     "id": "y0or5jh3jldqwzv",
@@ -2412,7 +2565,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/c6189c05c2e85f52df5301dd50dee2d4.png",
     "avgRating": 6.69,
-    "lastRating": 6.47
+    "lastRating": 6.47,
+    "afId": 191240
    },
    {
     "id": "k82rekh35y8repz",
@@ -2425,7 +2579,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a282d6dcc7a31edf63abcd5f7606dca3.png",
     "avgRating": 6.88,
-    "lastRating": 6.53
+    "lastRating": 6.53,
+    "afId": 7578
    },
    {
     "id": "y0or5jhey2jqwzv",
@@ -2438,7 +2593,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/05b4b85c11b98d20ed9561b0b537dd8c.png",
     "avgRating": 7.17,
-    "lastRating": 6.84
+    "lastRating": 6.84,
+    "afId": 25341
    },
    {
     "id": "y39mp1hp5ppmojx",
@@ -2451,7 +2607,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/2b707c39c12e786eb7f00f59d1169b9e.png",
     "avgRating": 7.03,
-    "lastRating": 6.61
+    "lastRating": 6.61,
+    "afId": 137223
    },
    {
     "id": "8yomo4h235wq0j6",
@@ -2464,7 +2621,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/df8c8092e8c830b9c9dcb064ac96caea.png",
     "avgRating": 6.74,
-    "lastRating": 6.65
+    "lastRating": 6.65,
+    "afId": 49
    },
    {
     "id": "23xmvkhd7jjgqg8",
@@ -2477,7 +2635,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/45e082763087f4fb8a74d42143cfd8d0.png",
     "avgRating": 6.27,
-    "lastRating": 6.38
+    "lastRating": 6.38,
+    "afId": 3608
    },
    {
     "id": "ednm9wh9l3yyryo",
@@ -2489,7 +2648,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/3e6b615f7f432c0b77fc3f48c75d5f75.png",
-    "avgRating": 6.17
+    "avgRating": 6.17,
+    "afId": 21010
    },
    {
     "id": "4jwq2ghkkzxm0ve",
@@ -2502,7 +2662,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/88654e482f35e9dff4eaa3087a8b1eef.png",
     "avgRating": 6.33,
-    "lastRating": 6.17
+    "lastRating": 6.17,
+    "afId": 3428
    },
    {
     "id": "4jwq2gh6pdlm0ve",
@@ -2515,7 +2676,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7485ccbc7157b3273be6a2d735ca4c2b.png",
     "avgRating": 6.08,
-    "lastRating": 6.25
+    "lastRating": 6.25,
+    "afId": 19281
    },
    {
     "id": "x7lm7phw9w0m2wd",
@@ -2528,14 +2690,15 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/07d4ffaec02f05fa6eab164d381ed010.png",
     "avgRating": 6.1,
-    "lastRating": 6.07
+    "lastRating": 6.07,
+    "afId": 47294
    }
   ]
  },
  "Cape Verde Islands": {
   "formation": "4-1-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.534Z",
   "xi": [
    {
     "id": "y39mp1hj053mojx",
@@ -2548,7 +2711,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/ce8b3b60bcda70e2af58d0aaee7ede65.png",
     "avgRating": 7.61,
-    "lastRating": 8.72
+    "lastRating": 8.72,
+    "afId": 15304
    },
    {
     "id": "jw2r09hn50erz84",
@@ -2574,7 +2738,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/fd284995910964d406f21076feed8fe6.png",
     "avgRating": 6.84,
-    "lastRating": 7.1
+    "lastRating": 7.1,
+    "afId": 41608
    },
    {
     "id": "dj2ryohj45dq1zp",
@@ -2587,7 +2752,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/e77e7cde9d5c959a6f7ed05ca7a99af0.png",
     "avgRating": 6.37,
-    "lastRating": 6.94
+    "lastRating": 6.94,
+    "afId": 22139
    },
    {
     "id": "3glrw7hyyl73qdy",
@@ -2600,7 +2766,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/e54c368c70faf6fdc71f8614fc7e4cd1.png",
     "avgRating": 6.64,
-    "lastRating": 7.59
+    "lastRating": 7.59,
+    "afId": 308689
    },
    {
     "id": "6ypq3nhw03lemd7",
@@ -2613,7 +2780,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/aa47d11d005cf310b7172c03f04bc444.png",
     "avgRating": 6.75,
-    "lastRating": 6.51
+    "lastRating": 6.51,
+    "afId": 96512
    },
    {
     "id": "3glrw7hoj8gqdyj",
@@ -2626,7 +2794,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/9bc462fd0aa5103aca8852e19fae8ee2.png",
     "avgRating": 7.36,
-    "lastRating": 8.09
+    "lastRating": 8.09,
+    "afId": 37435
    },
    {
     "id": "965mkyhekgzr1ge",
@@ -2639,7 +2808,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/7cbbf6d5d74a2934c208523a114642ce.png",
     "avgRating": 6.37,
-    "lastRating": 6.35
+    "lastRating": 6.35,
+    "afId": 37436
    },
    {
     "id": "n54qllhj2o5qvy9",
@@ -2651,7 +2821,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/7ffcd32e2fb4dc399118a9abab5c03c7.png",
-    "avgRating": 6.37
+    "avgRating": 6.37,
+    "afId": 50745
    },
    {
     "id": "dj2ryohj3d93q1z",
@@ -2663,7 +2834,8 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/db2698470bc3de366685147dad202bad.png",
-    "avgRating": 6.01
+    "avgRating": 6.01,
+    "afId": 265556
    },
    {
     "id": "n54qllh24z0qvy9",
@@ -2676,14 +2848,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8db46c0d65a3d06eb9f97ec50c8bfa5c.png",
     "avgRating": 6.59,
-    "lastRating": 6.78
+    "lastRating": 6.78,
+    "afId": 50270
    }
   ]
  },
  "Australia": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.534Z",
   "xi": [
    {
     "id": "3glrw7hynjzxqdy",
@@ -2696,7 +2869,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/9b67228782074cfe908c0c9b071c790a.png",
     "avgRating": 6.93,
-    "lastRating": 6.5
+    "lastRating": 6.5,
+    "afId": 353883
    },
    {
     "id": "vjxm8gh8lgkdr6o",
@@ -2709,7 +2883,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d796460d9904281be7823c494ded5957.png",
     "avgRating": 6.59,
-    "lastRating": 6.72
+    "lastRating": 6.72,
+    "afId": 348568
    },
    {
     "id": "dn1m1gho182moep",
@@ -2722,7 +2897,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/69a4e3d5099e9ac72455e77f10a75208.png",
     "avgRating": 6.53,
-    "lastRating": 6.71
+    "lastRating": 6.71,
+    "afId": 20079
    },
    {
     "id": "ednm9whv2oygryo",
@@ -2735,7 +2911,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/76db6590700667e8e4ce78277d15c3ad.png",
     "avgRating": 6.64,
-    "lastRating": 5.84
+    "lastRating": 5.84,
+    "afId": 337587
    },
    {
     "id": "zp5rzgh1yl4q82w",
@@ -2761,7 +2938,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/7f19f71dab75486a8fb185fb58074d6b.png",
     "avgRating": 6.85,
-    "lastRating": 5.95
+    "lastRating": 5.95,
+    "afId": 6904
    },
    {
     "id": "vjxm8ghgzx8r6od",
@@ -2774,7 +2952,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/c64a1d78ef0e8e0873cea7afa7a575e4.png",
     "avgRating": 6.61,
-    "lastRating": 7.12
+    "lastRating": 7.12,
+    "afId": 2749
    },
    {
     "id": "2y8m4zh8wd28ql0",
@@ -2786,7 +2965,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/16b1f60562fcd07d5b6385adc7518176.png",
-    "avgRating": 7.12
+    "avgRating": 7.12,
+    "afId": 441269
    },
    {
     "id": "2y8m4zh8wj47ql0",
@@ -2799,7 +2979,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/edc678422cc090a64813860ff2ebffaa.png",
     "avgRating": 6.85,
-    "lastRating": 6.43
+    "lastRating": 6.43,
+    "afId": 338014
    },
    {
     "id": "y0or5jh3z093qwz",
@@ -2812,7 +2993,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/8be842d763a623c095eb21d0f187d75d.png",
     "avgRating": 6.49,
-    "lastRating": 6.48
+    "lastRating": 6.48,
+    "afId": 342035
    },
    {
     "id": "l5ergphvkv04r8k",
@@ -2824,14 +3006,15 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/f44a481b2e2a2944e91cb39ef752fee9.png",
-    "avgRating": 6.42
+    "avgRating": 6.42,
+    "afId": 198352
    }
   ]
  },
  "Algeria": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.534Z",
   "xi": [
    {
     "id": "l7oqdeh094vr510",
@@ -2844,7 +3027,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/a7f2a5e0194a1b6d32e20c08b4842d0d.png",
     "avgRating": 6.22,
-    "lastRating": 5.9
+    "lastRating": 5.9,
+    "afId": 732
    },
    {
     "id": "vjxm8gh8odnnr6o",
@@ -2857,7 +3041,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8aef2ae36bb60cc504e1c1afc62f1e21.png",
     "avgRating": 6.72,
-    "lastRating": 6.58
+    "lastRating": 6.58,
+    "afId": 303362
    },
    {
     "id": "n54qllhedpgqvy9",
@@ -2870,7 +3055,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/670f07f5f3eea413aaac361d6efdfee7.png",
     "avgRating": 6.81,
-    "lastRating": 6.81
+    "lastRating": 6.81,
+    "afId": 1567
    },
    {
     "id": "x7lm7phwgelm2wd",
@@ -2883,7 +3069,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/fc9aa23cadbb0e32d7957a90dacab2bb.png",
     "avgRating": 6.53,
-    "lastRating": 6.64
+    "lastRating": 6.64,
+    "afId": 2194
    },
    {
     "id": "6ypq3nh5dj2gmd7",
@@ -2896,7 +3083,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/7b0d0ec61220a4f0697ddb569777ee53.png",
     "avgRating": 6.53,
-    "lastRating": 6.94
+    "lastRating": 6.94,
+    "afId": 21138
    },
    {
     "id": "k82rekhojplkrep",
@@ -2909,7 +3097,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/af2a261aac6e1eec443b7d709d565d02.png",
     "avgRating": 6.53,
-    "lastRating": 6.24
+    "lastRating": 6.24,
+    "afId": 276670
    },
    {
     "id": "ednm9whv7dw1ryo",
@@ -2922,7 +3111,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/06bac886329b0384f5a2a3e3a0777881.png",
     "avgRating": 6.15,
-    "lastRating": 6
+    "lastRating": 6,
+    "afId": 380587
    },
    {
     "id": "1l4rjnhz7e8m7vx",
@@ -2935,7 +3125,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/75092f0da5be0c0f203fd7678537cf7e.png",
     "avgRating": 6.76,
-    "lastRating": 6.52
+    "lastRating": 6.52,
+    "afId": 409
    },
    {
     "id": "zp5rzghx815q82w",
@@ -2948,7 +3139,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/523a02478643eb073dd1830b8d82f723.png",
     "avgRating": 6.71,
-    "lastRating": 6.06
+    "lastRating": 6.06,
+    "afId": 658
    },
    {
     "id": "zp5rzghz5j79q82",
@@ -2961,7 +3153,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/2df96f61d9cdca3177990bd5ec8ffe2b.png",
     "avgRating": 6.71,
-    "lastRating": 6.32
+    "lastRating": 6.32,
+    "afId": 129047
    },
    {
     "id": "3glrw7h1evyqdyj",
@@ -2974,14 +3167,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/30ff3a90e302327b1556b4acff143be2.png",
     "avgRating": 7.73,
-    "lastRating": 6.28
+    "lastRating": 6.28,
+    "afId": 635
    }
   ]
  },
  "Croatia": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.534Z",
   "xi": [
    {
     "id": "4jwq2ghk87dm0ve",
@@ -2994,7 +3188,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/4741ab5ef4cfa301103170a8edc7dc00.png",
     "avgRating": 6.8,
-    "lastRating": 6.26
+    "lastRating": 6.26,
+    "afId": 1305
    },
    {
     "id": "x7lm7phnwd2m2wd",
@@ -3007,7 +3202,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e0bad08b146ced398bf00bc395cec96c.png",
     "avgRating": 6.87,
-    "lastRating": 6.46
+    "lastRating": 6.46,
+    "afId": 125171
    },
    {
     "id": "dn1m1ghnk27pmoe",
@@ -3020,7 +3216,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8447e6e67d1e399f2a3f1db9c92b739f.png",
     "avgRating": 6.81,
-    "lastRating": 6.57
+    "lastRating": 6.57,
+    "afId": 14701
    },
    {
     "id": "4wyrn4h9z60q86p",
@@ -3033,7 +3230,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/1d16c489bf6c856a2acdbc3c4bdf857e.png",
     "avgRating": 6.85,
-    "lastRating": 6.27
+    "lastRating": 6.27,
+    "afId": 1084
    },
    {
     "id": "8yomo4h2x0xnq0j",
@@ -3045,7 +3243,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/8f308a3f99adfba0e9cdb0186a9130ee.png",
-    "avgRating": 6.5
+    "avgRating": 6.5,
+    "afId": 129033
    },
    {
     "id": "4zp5rzghnopq82w",
@@ -3058,7 +3257,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/6a5b84f9fe5b5fa672fb501cd9e141dd.png",
     "avgRating": 6.82,
-    "lastRating": 6.46
+    "lastRating": 6.46,
+    "afId": 754
    },
    {
     "id": "4jwq2ghx4805m0v",
@@ -3071,7 +3271,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b48dbd82e5142e50106002195885d3d4.png",
     "avgRating": 6.68,
-    "lastRating": 6.17
+    "lastRating": 6.17,
+    "afId": 295026
    },
    {
     "id": "n54qllhezp4qvy9",
@@ -3084,7 +3285,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/725cf17196009e574d89b4edb6c3383f.png",
     "avgRating": 7.12,
-    "lastRating": 6.65
+    "lastRating": 6.65,
+    "afId": 2291
    },
    {
     "id": "3glrw7hy9vyoqdy",
@@ -3097,7 +3299,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/219480083c4d5c25e3f894d32d07098e.png",
     "avgRating": 7.07,
-    "lastRating": 6.39
+    "lastRating": 6.39,
+    "afId": 348205
    },
    {
     "id": "318q66hvp10qo9j",
@@ -3110,7 +3313,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/aeacab27d1ca9c52ba3a2c135c647816.png",
     "avgRating": 7.3,
-    "lastRating": 6.44
+    "lastRating": 6.44,
+    "afId": 842
    },
    {
     "id": "zp5rzghj23vq82w",
@@ -3123,14 +3327,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a26e7343e73eaef0d889ce3a4734bcc0.png",
     "avgRating": 6.93,
-    "lastRating": 7.77
+    "lastRating": 7.77,
+    "afId": 207
    }
   ]
  },
  "Austria": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.534Z",
   "xi": [
    {
     "id": "x7lm7ph0n3jm2wd",
@@ -3143,7 +3348,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/32926c44a6722f5d424568116f74d634.png",
     "avgRating": 6.75,
-    "lastRating": 7.16
+    "lastRating": 7.16,
+    "afId": 7525
    },
    {
     "id": "ednm9whz40lryox",
@@ -3156,7 +3362,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e7625676f1b2bf6c5c3576a1c6d4cd02.png",
     "avgRating": 5.74,
-    "lastRating": 5.22
+    "lastRating": 5.22,
+    "afId": 711
    },
    {
     "id": "jw2r09hlv39rz84",
@@ -3169,7 +3376,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/327e40a7278b71e2effbb8a259fbe50f.png",
     "avgRating": 6.78,
-    "lastRating": 6.53
+    "lastRating": 6.53,
+    "afId": 505
    },
    {
     "id": "4jwq2ghx954m0ve",
@@ -3182,7 +3390,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/249d62ca52138887bd9e71d9f4e82b44.png",
     "avgRating": 6.28,
-    "lastRating": 6.07
+    "lastRating": 6.07,
+    "afId": 25287
    },
    {
     "id": "3glrw7hykg8qdyj",
@@ -3194,7 +3403,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/9b1421fe1dbfa90a2246a5d85647b94b.png",
-    "avgRating": 6.71
+    "avgRating": 6.71,
+    "afId": 26240
    },
    {
     "id": "965mkyh3xoxr1ge",
@@ -3207,7 +3417,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/6f6c2559595f88d90bc8599eabf8ebe8.png",
     "avgRating": 6.17,
-    "lastRating": 6.38
+    "lastRating": 6.38,
+    "afId": 1157
    },
    {
     "id": "1l4rjnhz5e2lm7v",
@@ -3220,7 +3431,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/2aaa2c8e06f0be5b7b74881411b41817.png",
     "avgRating": 6.22,
-    "lastRating": 5.85
+    "lastRating": 5.85,
+    "afId": 7328
    },
    {
     "id": "2y8m4zh8n3pql07",
@@ -3233,7 +3445,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d93a4d53e531bb4ac797a79aa305a55e.png",
     "avgRating": 6.48,
-    "lastRating": 5.53
+    "lastRating": 5.53,
+    "afId": 1095
    },
    {
     "id": "l7oqdehlo15r510",
@@ -3246,7 +3459,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/c3db5b10837c703255c754e91d86b88e.png",
     "avgRating": 6.18,
-    "lastRating": 5.91
+    "lastRating": 5.91,
+    "afId": 7562
    },
    {
     "id": "l5ergph3y7or8k0",
@@ -3259,7 +3473,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3a1a07e7432f7098c162c23a309be463.png",
     "avgRating": 6.59,
-    "lastRating": 6.27
+    "lastRating": 6.27,
+    "afId": 1159
    },
    {
     "id": "zp5rzgh7pzpq82w",
@@ -3272,14 +3487,15 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/eb7b289b7abe02b578517d6c91b64235.png",
     "avgRating": 6.29,
-    "lastRating": 5.96
+    "lastRating": 5.96,
+    "afId": 25297
    }
   ]
  },
  "Bosnia & Herzegovina": {
   "formation": "5-3-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.535Z",
   "xi": [
    {
     "id": "318q66hvxv1qo9j",
@@ -3292,7 +3508,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7fbdb04fd3afa835d9374dff66714d5f.png",
     "avgRating": 5.92,
-    "lastRating": 5.85
+    "lastRating": 5.85,
+    "afId": 9026
    },
    {
     "id": "8yomo4h017pq0j6",
@@ -3305,7 +3522,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7e656c41feadb27639b540ac06f88ae9.png",
     "avgRating": 6.61,
-    "lastRating": 6.5
+    "lastRating": 6.5,
+    "afId": 1741
    },
    {
     "id": "l5ergph3wz0r8k0",
@@ -3318,7 +3536,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/1847d5228f38f83976379aed79a7dd60.png",
     "avgRating": 6.36,
-    "lastRating": 5.89
+    "lastRating": 5.89,
+    "afId": 1442
    },
    {
     "id": "ednm9whz2d90ryo",
@@ -3331,7 +3550,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/345142f5ef53781c617e114b1c562eb1.png",
     "avgRating": 6.12,
-    "lastRating": 6.56
+    "lastRating": 6.56,
+    "afId": 7318
    },
    {
     "id": "4wyrn4hvk84q86p",
@@ -3344,7 +3564,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/ae57da5b61d70320bd6d980d9b079fe7.png",
     "avgRating": 6.53,
-    "lastRating": 6.36
+    "lastRating": 6.36,
+    "afId": 14301
    },
    {
     "id": "4jwq2ghx1ojjm0v",
@@ -3357,7 +3578,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/2f941674989eba579b47dbd832e45f52.png",
     "avgRating": 6.31,
-    "lastRating": 6.6
+    "lastRating": 6.6,
+    "afId": 271350
    },
    {
     "id": "4wyrn4hd05xq86p",
@@ -3370,7 +3592,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/a64e817d9ecf78e9b7e600d6c1594126.png",
     "avgRating": 6.46,
-    "lastRating": 5.97
+    "lastRating": 5.97,
+    "afId": 1324
    },
    {
     "id": "23xmvkhdp1g5qg8",
@@ -3383,7 +3606,8 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/e8f1f982142c36182d17d90326795a1e.png",
     "avgRating": 6.09,
-    "lastRating": 6.09
+    "lastRating": 6.09,
+    "afId": 70514
    },
    {
     "id": "zp5rzghzgj80q82",
@@ -3395,7 +3619,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/5061a41e591106b3fd602f2b1e8cbbaa.png",
-    "avgRating": 7.45
+    "avgRating": 7.45,
+    "afId": 162222
    },
    {
     "id": "y0or5jh1yw8qwzv",
@@ -3408,7 +3633,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0da6f28a71fc4de0566467ce92ee6e5c.png",
     "avgRating": 6.29,
-    "lastRating": 6.38
+    "lastRating": 6.38,
+    "afId": 46930
    },
    {
     "id": "4jwq2ghxgnp3m0v",
@@ -3421,14 +3647,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/cbbf597d854217a3b0b17c704b901460.png",
     "avgRating": 6.93,
-    "lastRating": 6.11
+    "lastRating": 6.11,
+    "afId": 395559
    }
   ]
  },
  "Senegal": {
   "formation": "4-3-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.536Z",
   "xi": [
    {
     "id": "k82rekhozl4repz",
@@ -3441,7 +3668,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/c6d2665083dfb3f2780ba5250e26d72a.png",
     "avgRating": 6.6,
-    "lastRating": 6.14
+    "lastRating": 6.14,
+    "afId": 119853
    },
    {
     "id": "y39mp1hyykemojx",
@@ -3454,7 +3682,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5f6733233a2d3f75ea435d5414ee8cf1.png",
     "avgRating": 7.15,
-    "lastRating": 7.38
+    "lastRating": 7.38,
+    "afId": 25916
    },
    {
     "id": "x7lm7ph5d2em2wd",
@@ -3467,7 +3696,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/6a6f62bf4baca5a9599882215b6aad76.png",
     "avgRating": 6.68,
-    "lastRating": 5.99
+    "lastRating": 5.99,
+    "afId": 158121
    },
    {
     "id": "l5ergpheo82r8k0",
@@ -3479,7 +3709,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/9714b1dce0294d0d12995f5e33e3aa16.png",
-    "avgRating": 7.56
+    "avgRating": 7.56,
+    "afId": 8450
    },
    {
     "id": "jw2r09hnp25rz84",
@@ -3491,7 +3722,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/ca987e7a69b2ba37fcb03e02abc31b2d.png",
-    "avgRating": 6.52
+    "avgRating": 6.52,
+    "afId": 318
    },
    {
     "id": "4jwq2gh1wzjm0ve",
@@ -3504,7 +3736,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/c10e129580cacbaf57b68221f2e7d9c5.png",
     "avgRating": 6.85,
-    "lastRating": 6.75
+    "lastRating": 6.75,
+    "afId": 81
    },
    {
     "id": "vjxm8ghggnlr6od",
@@ -3517,7 +3750,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e7b1d4405d981b18e22f87f19106d509.png",
     "avgRating": 6.74,
-    "lastRating": 6.68
+    "lastRating": 6.68,
+    "afId": 2990
    },
    {
     "id": "jw2r09hj788drz8",
@@ -3530,7 +3764,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/43380e5d3e6fa5a6210dbb6f36a1a8db.png",
     "avgRating": 8.2,
-    "lastRating": 8.2
+    "lastRating": 8.2,
+    "afId": 327631
    },
    {
     "id": "dn1m1gh85pymoep",
@@ -3543,7 +3778,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/2bd6786bc659e6338ec4ef4df87e6cdc.png",
     "avgRating": 7.95,
-    "lastRating": 8.02
+    "lastRating": 8.02,
+    "afId": 2218
    },
    {
     "id": "4wyrn4hdz9xq86p",
@@ -3556,7 +3792,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8663da957576440f93a5f3adb0d88fc8.png",
     "avgRating": 6.72,
-    "lastRating": 6.64
+    "lastRating": 6.64,
+    "afId": 304
    },
    {
     "id": "y39mp1hyjjegmoj",
@@ -3569,14 +3806,15 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/f04c547700f919b3c98f83eafa99b666.png",
     "avgRating": 6.36,
-    "lastRating": 6.36
+    "lastRating": 6.36,
+    "afId": 18592
    }
   ]
  },
  "Congo DR": {
   "formation": "4-1-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.537Z",
   "xi": [
    {
     "id": "2y8m4zhgy4xpql0",
@@ -3602,7 +3840,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d625850b8b87fd0da8cb9122e143523f.png",
     "avgRating": 6.56,
-    "lastRating": 6.53
+    "lastRating": 6.53,
+    "afId": 18846
    },
    {
     "id": "l7oqdeh46jdr510",
@@ -3615,7 +3854,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/080e336a4b84069ba53efe8ed2a5ccbb.png",
     "avgRating": 6.73,
-    "lastRating": 7.06
+    "lastRating": 7.06,
+    "afId": 375
    },
    {
     "id": "8yomo4h029xq0j6",
@@ -3628,7 +3868,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b72c6b408a5d2ee887aee7baf1427481.png",
     "avgRating": 6.7,
-    "lastRating": 6.75
+    "lastRating": 6.75,
+    "afId": 19182
    },
    {
     "id": "y39mp1h5lk6mojx",
@@ -3641,7 +3882,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7f63ce4d6d77383909eb545ff755217e.png",
     "avgRating": 6.72,
-    "lastRating": 6.58
+    "lastRating": 6.58,
+    "afId": 18816
    },
    {
     "id": "23xmvkhgzv3qg8n",
@@ -3654,7 +3896,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e0b786eb7bc1c72afa68f0181e87fe67.png",
     "avgRating": 6.31,
-    "lastRating": 5.92
+    "lastRating": 5.92,
+    "afId": 21101
    },
    {
     "id": "4jwq2ghv9enem0v",
@@ -3667,7 +3910,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/7fe07db00711d2eda01d44326356887d.png",
     "avgRating": 6.33,
-    "lastRating": 6.2
+    "lastRating": 6.2,
+    "afId": 129670
    },
    {
     "id": "y0or5jh3pyoyqwz",
@@ -3680,7 +3924,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/f57c68243071f7cda453ca3a601bc5f9.png",
     "avgRating": 6.44,
-    "lastRating": 6.11
+    "lastRating": 6.11,
+    "afId": 375598
    },
    {
     "id": "pxwrxlhjn136ryk",
@@ -3693,7 +3938,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/93a77402546a61d1da07923d9d764715.png",
     "avgRating": 6.59,
-    "lastRating": 6.3
+    "lastRating": 6.3,
+    "afId": 365331
    },
    {
     "id": "y0or5jh070zqwzv",
@@ -3705,7 +3951,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/16c2d7f96301e34a19b1addbcc541fcd.png",
-    "avgRating": 6.34
+    "avgRating": 6.34,
+    "afId": 1424
    },
    {
     "id": "vjxm8gh86ljr6od",
@@ -3718,14 +3965,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7308988648cf2709297220f8f430a50c.png",
     "avgRating": 7.01,
-    "lastRating": 6.01
+    "lastRating": 6.01,
+    "afId": 20649
    }
   ]
  },
  "Ecuador": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.537Z",
   "xi": [
    {
     "id": "zp5rzghpj8gq82w",
@@ -3738,7 +3986,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/11f8eee6455e887e14343f5ba2da586f.png",
     "avgRating": 6.44,
-    "lastRating": 5.6
+    "lastRating": 5.6,
+    "afId": 16380
    },
    {
     "id": "pxwrxlh9zk74ryk",
@@ -3751,7 +4000,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5d873b0a9388f36b3aa8fbf566811a0a.png",
     "avgRating": 6.82,
-    "lastRating": 6.73
+    "lastRating": 6.73,
+    "afId": 16367
    },
    {
     "id": "ednm9whz7z5yryo",
@@ -3764,7 +4014,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3bd885fe2b5aa0ba827980a1605630ba.png",
     "avgRating": 6.52,
-    "lastRating": 6.47
+    "lastRating": 6.47,
+    "afId": 127817
    },
    {
     "id": "3glrw7hynekyqdy",
@@ -3777,7 +4028,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/2a7d5c6ebeb13e6a1003ba91dd0b81d2.png",
     "avgRating": 6.57,
-    "lastRating": 6.03
+    "lastRating": 6.03,
+    "afId": 354027
    },
    {
     "id": "pxwrxlhjokxryk0",
@@ -3789,7 +4041,8 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/966c202d20248caf21c679d95e71355e.png",
-    "avgRating": 6.64
+    "avgRating": 6.64,
+    "afId": 46731
    },
    {
     "id": "zp5rzghx19nq82w",
@@ -3802,7 +4055,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3477068fcde3671009ef7a03200ceee8.png",
     "avgRating": 6.3,
-    "lastRating": 5.69
+    "lastRating": 5.69,
+    "afId": 16360
    },
    {
     "id": "4jwq2gh1349m0ve",
@@ -3815,7 +4069,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/95c0a817fa22a3f9657a90700dcd2c41.png",
     "avgRating": 6.73,
-    "lastRating": 6.45
+    "lastRating": 6.45,
+    "afId": 25414
    },
    {
     "id": "x7lm7ph0j0wvm2w",
@@ -3828,7 +4083,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/f4907e7d523ddab0e636b246d0de5f65.png",
     "avgRating": 7.07,
-    "lastRating": 6.56
+    "lastRating": 6.56,
+    "afId": 237078
    },
    {
     "id": "965mkyh3204gr1g",
@@ -3841,7 +4097,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/34533b279f7810a5ad9cf3a02170baf1.png",
     "avgRating": 7.14,
-    "lastRating": 7.1
+    "lastRating": 7.1,
+    "afId": 116117
    },
    {
     "id": "zp5rzghz1kejq82",
@@ -3854,7 +4111,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/75aba71997d61be36febc5e2119f8494.png",
     "avgRating": 6.77,
-    "lastRating": 6.3
+    "lastRating": 6.3,
+    "afId": 16369
    },
    {
     "id": "n54qllheev3qvy9",
@@ -3867,14 +4125,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/f99e29e6163390dbc9952e6e549a5574.png",
     "avgRating": 6.26,
-    "lastRating": 6.41
+    "lastRating": 6.41,
+    "afId": 35533
    }
   ]
  },
  "Sweden": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.537Z",
   "xi": [
    {
     "id": "23xmvkhd023gqg8",
@@ -3887,7 +4146,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/c59e7ab4791050a35fe5f2066afb5924.png",
     "avgRating": 6.67,
-    "lastRating": 7.19
+    "lastRating": 7.19,
+    "afId": 48033
    },
    {
     "id": "6ypq3nhzk13xmd7",
@@ -3900,7 +4160,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/98e18b2218e2b89ded8ec839d102eae8.png",
     "avgRating": 6.15,
-    "lastRating": 5.96
+    "lastRating": 5.96,
+    "afId": 137721
    },
    {
     "id": "4wyrn4he62yq86p",
@@ -3913,7 +4174,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/64863426318e1df904abb78e02f0ff8a.png",
     "avgRating": 6.41,
-    "lastRating": 6.3
+    "lastRating": 6.3,
+    "afId": 889
    },
    {
     "id": "vjxm8ghpkn2r6od",
@@ -3926,7 +4188,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0184d7b987cdccaed8e3b5580257c4b1.png",
     "avgRating": 6.18,
-    "lastRating": 5.85
+    "lastRating": 5.85,
+    "afId": 47969
    },
    {
     "id": "y39mp1hyk8e4moj",
@@ -3939,7 +4202,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/78b62548f2b7af25358c971ea4d487e3.png",
     "avgRating": 6.31,
-    "lastRating": 6
+    "lastRating": 6,
+    "afId": 226765
    },
    {
     "id": "23xmvkhdjow4qg8",
@@ -3952,7 +4216,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7aaa1e950802bc23036a8bbe71f6a745.png",
     "avgRating": 6.63,
-    "lastRating": 6.41
+    "lastRating": 6.41,
+    "afId": 265820
    },
    {
     "id": "dj2ryohgezyzq1z",
@@ -3965,7 +4230,8 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/99ed20658a8b949eb656fe20ada40acd.png",
     "avgRating": 6.3,
-    "lastRating": 6.3
+    "lastRating": 6.3,
+    "afId": 347316
    },
    {
     "id": "ednm9whzk7lryox",
@@ -3977,7 +4243,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/9feefd47f6755354c38d56260b4fe1ae.png",
-    "avgRating": 6.19
+    "avgRating": 6.19,
+    "afId": 48047
    },
    {
     "id": "4jwq2ghxjoym0ve",
@@ -3990,7 +4257,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/518ef8929fa54625a4bb2f7c327b1c0d.png",
     "avgRating": 7.08,
-    "lastRating": 6.59
+    "lastRating": 6.59,
+    "afId": 18979
    },
    {
     "id": "l7oqdehleg1r510",
@@ -4003,7 +4271,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/22ad3876a52536da32eb31c9de316e3a.png",
     "avgRating": 7.29,
-    "lastRating": 6.24
+    "lastRating": 6.24,
+    "afId": 2864
    },
    {
     "id": "4jwq2ghx7gzzm0v",
@@ -4016,14 +4285,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/112e28f2c948b51896e642369e1872dc.png",
     "avgRating": 7,
-    "lastRating": 6.07
+    "lastRating": 6.07,
+    "afId": 153430
    }
   ]
  },
  "Ivory Coast": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.537Z",
   "xi": [
    {
     "id": "pxwrxlhv8ljryk0",
@@ -4036,7 +4306,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e9f172cb6aaddcddc9b1d88a300edd48.png",
     "avgRating": 6.73,
-    "lastRating": 5.84
+    "lastRating": 5.84,
+    "afId": 64190
    },
    {
     "id": "8yomo4h28elyq0j",
@@ -4049,7 +4320,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/320e830b06aa4c099c27f060b7174c0a.png",
     "avgRating": 7.09,
-    "lastRating": 6.8
+    "lastRating": 6.8,
+    "afId": 161747
    },
    {
     "id": "965mkyh3o4oyr1g",
@@ -4062,7 +4334,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/381afa40852d01940a7a9d38714dd9a0.png",
     "avgRating": 6.93,
-    "lastRating": 6.51
+    "lastRating": 6.51,
+    "afId": 48119
    },
    {
     "id": "8yomo4hvex5zq0j",
@@ -4075,7 +4348,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/800858ab9b0d12f91968afdf9ca9bb9a.png",
     "avgRating": 7.04,
-    "lastRating": 6.76
+    "lastRating": 6.76,
+    "afId": 135068
    },
    {
     "id": "4jwq2gh7n0dm0ve",
@@ -4088,7 +4362,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/0fe5a942778e607d67fa7eebbe0fde8a.png",
     "avgRating": 6.5,
-    "lastRating": 6.16
+    "lastRating": 6.16,
+    "afId": 22002
    },
    {
     "id": "965mkyh3d48r1ge",
@@ -4101,7 +4376,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/efe214f56ff9764d15a155d46f9b7217.png",
     "avgRating": 7.13,
-    "lastRating": 6.88
+    "lastRating": 6.88,
+    "afId": 1642
    },
    {
     "id": "2y8m4zhzk3xql07",
@@ -4114,7 +4390,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/6bf5507789344f5eef3eb4930f94201b.png",
     "avgRating": 6.82,
-    "lastRating": 6.27
+    "lastRating": 6.27,
+    "afId": 22149
    },
    {
     "id": "x7lm7ph9ek08m2w",
@@ -4127,7 +4404,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/0d38ba32dc2088913cd8d5bd78495eed.png",
     "avgRating": 6.81,
-    "lastRating": 6.7
+    "lastRating": 6.7,
+    "afId": 474591
    },
    {
     "id": "l7oqdehl92k2r51",
@@ -4140,7 +4418,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3cd5025465ce44708892d7a80f8e78c1.png",
     "avgRating": 6.68,
-    "lastRating": 6.45
+    "lastRating": 6.45,
+    "afId": 513776
    },
    {
     "id": "k82rekho9jerepz",
@@ -4153,7 +4432,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/9c7f21df1ac725bf1e794718ff2c1830.png",
     "avgRating": 7.42,
-    "lastRating": 7.19
+    "lastRating": 7.19,
+    "afId": 3246
    },
    {
     "id": "jw2r09hxe30prz8",
@@ -4166,14 +4446,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/14cf04231593b01cdd160bf112eed3b7.png",
     "avgRating": 6.23,
-    "lastRating": 5.98
+    "lastRating": 5.98,
+    "afId": 275651
    }
   ]
  },
  "Netherlands": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.537Z",
   "xi": [
    {
     "id": "vjxm8ghjle8nr6o",
@@ -4186,7 +4467,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/0569c6341724a5a6a30dd4d355e2a345.png",
     "avgRating": 7.04,
-    "lastRating": 7.11
+    "lastRating": 7.11,
+    "afId": 129058
    },
    {
     "id": "8yomo4h294epq0j",
@@ -4199,7 +4481,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/88ca75b59cab2b3fa6f6c77f0b0d4cfc.png",
     "avgRating": 7.28,
-    "lastRating": 7.03
+    "lastRating": 7.03,
+    "afId": 38695
    },
    {
     "id": "318q66h01egqo9j",
@@ -4212,7 +4495,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d83e2a4e70d174250039448be60161f4.png",
     "avgRating": 7.34,
-    "lastRating": 7.04
+    "lastRating": 7.04,
+    "afId": 290
    },
    {
     "id": "318q66h44gpqo9j",
@@ -4225,7 +4509,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a77e1c997ce3f3a96ff333b7460d087b.png",
     "avgRating": 7.1,
-    "lastRating": 6.33
+    "lastRating": 6.33,
+    "afId": 226
    },
    {
     "id": "n54qllheyly3qvy",
@@ -4238,7 +4523,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/920ab06e898dfa8032f36739cb97dd91.png",
     "avgRating": 6.91,
-    "lastRating": 6.48
+    "lastRating": 6.48,
+    "afId": 542
    },
    {
     "id": "3glrw7hypxxqdyj",
@@ -4251,7 +4537,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e6c346173618f2367a7093af483318c5.png",
     "avgRating": 6.84,
-    "lastRating": 6.61
+    "lastRating": 6.61,
+    "afId": 538
    },
    {
     "id": "965mkyhggodr1ge",
@@ -4263,7 +4550,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/860f7bce17f34ee67da6312771913c95.png",
-    "avgRating": 6.72
+    "avgRating": 6.72,
+    "afId": 36902
    },
    {
     "id": "4jwq2gh1p2km0ve",
@@ -4276,7 +4564,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e75d5b0002cd450cc117ef8137868bb6.png",
     "avgRating": 7.39,
-    "lastRating": 7.4
+    "lastRating": 7.4,
+    "afId": 247
    },
    {
     "id": "l5ergph5xk8r8k0",
@@ -4289,7 +4578,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/6542f52db8b0b944e29e09dc758b3af5.png",
     "avgRating": 7.89,
-    "lastRating": 6.27
+    "lastRating": 6.27,
+    "afId": 38750
    },
    {
     "id": "dj2ryohdww1q1zp",
@@ -4302,7 +4592,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/eed523333724d68a0371aa390815b11e.png",
     "avgRating": 7.41,
-    "lastRating": 7.15
+    "lastRating": 7.15,
+    "afId": 37724
    },
    {
     "id": "dj2ryohypgoq1zp",
@@ -4315,14 +4606,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/5130dfacf5b9d3485cab3e8b6e0f42a1.png",
     "avgRating": 6.9,
-    "lastRating": 6.93
+    "lastRating": 6.93,
+    "afId": 18861
    }
   ]
  },
  "Germany": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.537Z",
   "xi": [
    {
     "id": "z318q66hylvqo9j",
@@ -4335,7 +4627,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/474bc09bdfaa16f0604c3a52fc60a5e8.png",
     "avgRating": 6.53,
-    "lastRating": 7.07
+    "lastRating": 7.07,
+    "afId": 497
    },
    {
     "id": "zp5rzghzj63q82w",
@@ -4348,7 +4641,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/e0a3104fad95aa45dade3b383c77d8e6.png",
     "avgRating": 6.77,
-    "lastRating": 7.01
+    "lastRating": 7.01,
+    "afId": 972
    },
    {
     "id": "x7lm7phoj0vm2wd",
@@ -4361,7 +4655,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/f48a91364752eef7ba7dc5d5a88bd88a.png",
     "avgRating": 6.63,
-    "lastRating": 6.68
+    "lastRating": 6.68,
+    "afId": 2285
    },
    {
     "id": "vjxm8gh870e8r6o",
@@ -4374,7 +4669,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/3797d162d6803c43cc5fa8112ebdb721.png",
     "avgRating": 7.24,
-    "lastRating": 7.21
+    "lastRating": 7.21,
+    "afId": 280074
    },
    {
     "id": "y39mp1h9y0nmojx",
@@ -4386,7 +4682,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/6b7579ba989d180bfc144164782794eb.png",
-    "avgRating": 6.64
+    "avgRating": 6.64,
+    "afId": 25158
    },
    {
     "id": "n54qllhxdy6qvy9",
@@ -4399,7 +4696,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/f30cb43561212860b110a622099dc483.png",
     "avgRating": 7.45,
-    "lastRating": 7.19
+    "lastRating": 7.19,
+    "afId": 502
    },
    {
     "id": "3glrw7hl2lnqdyj",
@@ -4412,7 +4710,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5fda88281bc54f31b643b8050d1d22ea.png",
     "avgRating": 7.07,
-    "lastRating": 6.29
+    "lastRating": 6.29,
+    "afId": 637
    },
    {
     "id": "x7lm7phw7govm2w",
@@ -4425,7 +4724,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/2980172684614f09393e65d9f25be330.png",
     "avgRating": 6.64,
-    "lastRating": 6.59
+    "lastRating": 6.59,
+    "afId": 328033
    },
    {
     "id": "1l4rjnhzgol1m7v",
@@ -4438,7 +4738,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/4458a608a5464b7f82d5428eecb1c28b.png",
     "avgRating": 7.21,
-    "lastRating": 7.7
+    "lastRating": 7.7,
+    "afId": 203224
    },
    {
     "id": "3glrw7hj7vjoqdy",
@@ -4450,7 +4751,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/1443fe00d50e175270a8d8384bdea0cc.png",
-    "avgRating": 6.89
+    "avgRating": 6.89,
+    "afId": 181812
    },
    {
     "id": "y0or5jheolzqwzv",
@@ -4463,14 +4765,15 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/675f4c3344f14711b8449b9aa0db7680.png",
     "avgRating": 6.59,
-    "lastRating": 6.02
+    "lastRating": 6.02,
+    "afId": 644
    }
   ]
  },
  "Japan": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.589Z",
+  "updatedAt": "2026-07-19T00:02:38.537Z",
   "xi": [
    {
     "id": "zp5rzgh29o8q82w",
@@ -4483,7 +4786,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/af1558bc9594915d37407c50f13605b2.png",
     "avgRating": 6.98,
-    "lastRating": 7.28
+    "lastRating": 7.28,
+    "afId": 199578
    },
    {
     "id": "3glrw7hlljdqdyj",
@@ -4496,7 +4800,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/df976c35b8eedd7d3250c09ca7cf9775.png",
     "avgRating": 6.86,
-    "lastRating": 6.61
+    "lastRating": 6.61,
+    "afId": 32893
    },
    {
     "id": "n54qllh8yv3qvy9",
@@ -4509,7 +4814,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/7843042a31f5ae88d2242285bea03c69.png",
     "avgRating": 6.96,
-    "lastRating": 6.41
+    "lastRating": 6.41,
+    "afId": 2597
    },
    {
     "id": "6ypq3nhzjk6md7o",
@@ -4522,7 +4828,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/78c1a326945cacd0ec29419486ab4e03.png",
     "avgRating": 6.72,
-    "lastRating": 6.73
+    "lastRating": 6.73,
+    "afId": 32954
    },
    {
     "id": "zp5rzghp2noq82w",
@@ -4535,7 +4842,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/949a4d12097afd268cb4d15f17eaa05c.png",
     "avgRating": 6.52,
-    "lastRating": 6.06
+    "lastRating": 6.06,
+    "afId": 2598
    },
    {
     "id": "965mkyheonyr1ge",
@@ -4548,7 +4856,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5d5850c9cdbda3b6be439388a21e5dea.png",
     "avgRating": 7.14,
-    "lastRating": 5.86
+    "lastRating": 5.86,
+    "afId": 2601
    },
    {
     "id": "23xmvkhd9428qg8",
@@ -4561,7 +4870,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/9ca5e6f11c03263f043505c55322df23.png",
     "avgRating": 7.3,
-    "lastRating": 7.72
+    "lastRating": 7.72,
+    "afId": 33889
    },
    {
     "id": "ednm9wheokxryox",
@@ -4573,7 +4883,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/60c0654fa613391affa01a643fbd8d4e.png",
-    "avgRating": 7.04
+    "avgRating": 7.04,
+    "afId": 32966
    },
    {
     "id": "1l4rjnh30dym7vx",
@@ -4586,7 +4897,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/63cef90ed4532512bd84389c5ed5f9cd.png",
     "avgRating": 6.96,
-    "lastRating": 6.04
+    "lastRating": 6.04,
+    "afId": 33321
    },
    {
     "id": "6ypq3nhz757vmd7",
@@ -4599,7 +4911,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/74ac93b01579845f2cecedc49e648f50.png",
     "avgRating": 7.24,
-    "lastRating": 6.4
+    "lastRating": 6.4,
+    "afId": 72155
    },
    {
     "id": "vjxm8ghg6vkkr6o",
@@ -4612,14 +4925,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/afefd5e2ac84df3440b2b61a577a4b09.png",
     "avgRating": 6.98,
-    "lastRating": 6.32
+    "lastRating": 6.32,
+    "afId": 33224
    }
   ]
  },
  "South Africa": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "4jwq2ghv8o4m0ve",
@@ -4632,7 +4946,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/1e34d2d0196b1ae1e63357c02a4541ff.png",
     "avgRating": 6.81,
-    "lastRating": 7.76
+    "lastRating": 7.76,
+    "afId": 3275
    },
    {
     "id": "zp5rzghz27j2q82",
@@ -4645,7 +4960,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/cb3ef694196f4aca7b6bdc5ce606e8de.png",
     "avgRating": 7.1,
-    "lastRating": 7.39
+    "lastRating": 7.39,
+    "afId": 46601
    },
    {
     "id": "n54qllh8o7voqvy",
@@ -4658,7 +4974,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a47eb8b3e4e1adbdc5c8adfc45d68126.png",
     "avgRating": 7.01,
-    "lastRating": 7.3
+    "lastRating": 7.3,
+    "afId": 406752
    },
    {
     "id": "ednm9whgo51lryo",
@@ -4671,7 +4988,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5aa42266302b4c9ba4886b6901409df3.png",
     "avgRating": 7,
-    "lastRating": 7.37
+    "lastRating": 7.37,
+    "afId": 510799
    },
    {
     "id": "6ypq3nhlpe9md7o",
@@ -4684,7 +5002,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/162550f77d98633cccfd9499abc1dec4.png",
     "avgRating": 6.85,
-    "lastRating": 6.97
+    "lastRating": 6.97,
+    "afId": 46334
    },
    {
     "id": "jw2r09hw1djrz84",
@@ -4697,7 +5016,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/052c6d24e2c240e578b178b20c4009b1.png",
     "avgRating": 6.21,
-    "lastRating": 6.64
+    "lastRating": 6.64,
+    "afId": 158433
    },
    {
     "id": "dj2ryohj52jgq1z",
@@ -4710,7 +5030,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/b41966ec3bf319fa1bd25dd70b29d3c2.png",
     "avgRating": 6.87,
-    "lastRating": 6.59
+    "lastRating": 6.59,
+    "afId": 3287
    },
    {
     "id": "jw2r09hxk84yrz8",
@@ -4722,7 +5043,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/b65c3bf18ed6408d8ff2a91442ac011f.png",
-    "avgRating": 6.7
+    "avgRating": 6.7,
+    "afId": 194430
    },
    {
     "id": "8yomo4h2ll98q0j",
@@ -4734,7 +5056,8 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/779bb979d5342f4d9fb0d3d13d616655.png",
-    "avgRating": 6.49
+    "avgRating": 6.49,
+    "afId": 268710
    },
    {
     "id": "23xmvkhk6973qg8",
@@ -4747,7 +5070,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/409f6d7a77da95edb0403b271566e2f9.png",
     "avgRating": 6.9,
-    "lastRating": 6.33
+    "lastRating": 6.33,
+    "afId": 354831
    },
    {
     "id": "ednm9whz0p6jryo",
@@ -4760,14 +5084,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/f2641dd32d03b35ac53d3410b2b3382e.png",
     "avgRating": 6.49,
-    "lastRating": 6.7
+    "lastRating": 6.7,
+    "afId": 179893
    }
   ]
  },
  "Jordan": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "k82rekh30vorepz",
@@ -4819,7 +5144,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/6cc2fbb6f0cbc541cab97f04000ae2e2.png",
     "avgRating": 5.89,
-    "lastRating": 5.08
+    "lastRating": 5.08,
+    "afId": 310785
    },
    {
     "id": "6ypq3nhl64jmd7o",
@@ -4832,7 +5158,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/bb9a7ab1f236997ce90cb722854186b0.png",
     "avgRating": 6.36,
-    "lastRating": 6.52
+    "lastRating": 6.52,
+    "afId": 53902
    },
    {
     "id": "ednm9whzw41pryo",
@@ -4871,7 +5198,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7c8da44f6e7c66f8a51cda4b84a4abd1.png",
     "avgRating": 6.68,
-    "lastRating": 6.42
+    "lastRating": 6.42,
+    "afId": 164026
    },
    {
     "id": "pxwrxlhzn7pdryk",
@@ -4909,14 +5237,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/1b42cd9f84eededb26daf2df8de770d1.png",
     "avgRating": 5.85,
-    "lastRating": 5.88
+    "lastRating": 5.88,
+    "afId": 542822
    }
   ]
  },
  "Uzbekistan": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "l7oqdeh4g7npr51",
@@ -4929,7 +5258,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/ae1d3243ffcb0e3361bc3adaa6419582.png",
     "avgRating": 5.82,
-    "lastRating": 5.57
+    "lastRating": 5.57,
+    "afId": 73507
    },
    {
     "id": "dn1m1ghnzwlmoep",
@@ -4942,7 +5272,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/282aa7d389aad506d350b2498f9f9df0.png",
     "avgRating": 5.97,
-    "lastRating": 6.66
+    "lastRating": 6.66,
+    "afId": 34121
    },
    {
     "id": "4wyrn4h4w9dgq86",
@@ -4955,7 +5286,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/667facda1c689a94b739d2c0393d71d9.png",
     "avgRating": 6.09,
-    "lastRating": 6.09
+    "lastRating": 6.09,
+    "afId": 360114
    },
    {
     "id": "x7lm7ph0j4owm2w",
@@ -4981,7 +5313,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/ffac5d06201a0005370b6ee0b47bf909.png",
     "avgRating": 6.25,
-    "lastRating": 5.98
+    "lastRating": 5.98,
+    "afId": 50272
    },
    {
     "id": "y0or5jhewny8qwz",
@@ -4994,7 +5327,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/0ae1ffdbdcc45bd243a8b979bc86ceb5.png",
     "avgRating": 6.31,
-    "lastRating": 6.6
+    "lastRating": 6.6,
+    "afId": 73522
    },
    {
     "id": "vjxm8ghpdvexr6o",
@@ -5031,7 +5365,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/45525e6d2e394f688f39295d8be396b5.png",
     "avgRating": 6.63,
-    "lastRating": 7.35
+    "lastRating": 7.35,
+    "afId": 53535
    },
    {
     "id": "965mkyhenp1er1g",
@@ -5044,7 +5379,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/38a6aa68420da1acfb54a2e6482d2f00.png",
     "avgRating": 6.6,
-    "lastRating": 6.46
+    "lastRating": 6.46,
+    "afId": 263676
    },
    {
     "id": "l7oqdeh49ondr51",
@@ -5057,14 +5393,15 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/48af57bedbc8095dd26f0d51f1f37d62.png",
     "avgRating": 6.4,
-    "lastRating": 6.4
+    "lastRating": 6.4,
+    "afId": 53834
    }
   ]
  },
  "Panama": {
   "formation": "5-4-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "vjxm8gh2vl2r6od",
@@ -5077,7 +5414,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/60608ab4c46a8835254c7d36b28aaf7b.png",
     "avgRating": 6.43,
-    "lastRating": 6.57
+    "lastRating": 6.57,
+    "afId": 2968
    },
    {
     "id": "ednm9whgl54ryox",
@@ -5090,7 +5428,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/19d2545ba7e100c30c0973658607bc51.png",
     "avgRating": 6.8,
-    "lastRating": 6.65
+    "lastRating": 6.65,
+    "afId": 2973
    },
    {
     "id": "dj2ryohn6eeq1zp",
@@ -5103,7 +5442,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/048b498d3ce86bc8926a351809e16f1f.png",
     "avgRating": 6.54,
-    "lastRating": 5.87
+    "lastRating": 5.87,
+    "afId": 7197
    },
    {
     "id": "318q66hvwndzqo9",
@@ -5116,7 +5456,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/f1eb4b6ce08db26e7433db489bd23414.png",
     "avgRating": 6.79,
-    "lastRating": 6.77
+    "lastRating": 6.77,
+    "afId": 57739
    },
    {
     "id": "23xmvkhd69lpqg8",
@@ -5128,7 +5469,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/55e5dde3f4b02b5467057c8baa3beac9.png",
-    "avgRating": 7.36
+    "avgRating": 7.36,
+    "afId": 57667
    },
    {
     "id": "965mkyhnd24r1ge",
@@ -5140,7 +5482,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/e15cbd25fbd48b8317b363296d27351f.png",
-    "avgRating": 6.57
+    "avgRating": 6.57,
+    "afId": 2975
    },
    {
     "id": "4jwq2gh7jdxm0ve",
@@ -5153,7 +5496,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b67731e70ee087c85ea0a620b132b6f1.png",
     "avgRating": 6.18,
-    "lastRating": 6.1
+    "lastRating": 6.1,
+    "afId": 554208
    },
    {
     "id": "965mkyh3ov9er1g",
@@ -5166,7 +5510,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d62e73e9e5e33287f6090e2afa7d633c.png",
     "avgRating": 6.23,
-    "lastRating": 6.46
+    "lastRating": 6.46,
+    "afId": 71230
    },
    {
     "id": "1l4rjnhkn28m7vx",
@@ -5179,7 +5524,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8315ae3d8222ad45b0738ca2cec73d0c.png",
     "avgRating": 6.64,
-    "lastRating": 5.76
+    "lastRating": 5.76,
+    "afId": 46855
    },
    {
     "id": "k82rekh3p0orepz",
@@ -5192,7 +5538,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b498a168438b715ec3cf081691ccb139.png",
     "avgRating": 6.1,
-    "lastRating": 6.01
+    "lastRating": 6.01,
+    "afId": 2979
    },
    {
     "id": "zp5rzghp3331q82",
@@ -5205,162 +5552,15 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/58decfb288a9baa4c771eca3e8cb74fe.png",
     "avgRating": 6.47,
-    "lastRating": 6.47
-   }
-  ]
- },
- "New Zealand": {
-  "formation": "4-2-3-1",
-  "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
-  "xi": [
-   {
-    "id": "3glrw7h1xvzqdyj",
-    "name": "Max Crocombe",
-    "nameKo": "막스 크로컴",
-    "position": "G",
-    "shirtNumber": 1,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/a00aece3e3c574bb974b3129b3c97612.png",
-    "avgRating": 6.1,
-    "lastRating": 6.69
-   },
-   {
-    "id": "318q66hvk82eqo9",
-    "name": "Tim Payne",
-    "nameKo": "팀 페인",
-    "position": "D",
-    "shirtNumber": 2,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/1f87fc1a760b07735e96cce95477c24b.png",
-    "avgRating": 6.19,
-    "lastRating": 5.62
-   },
-   {
-    "id": "vjxm8gh88xz7r6o",
-    "name": "Finn Surman",
-    "nameKo": "핀 서만",
-    "position": "D",
-    "shirtNumber": 16,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/49fd9e4ae6f53e1a35d5027cb51c682c.png",
-    "avgRating": 6.7,
-    "lastRating": 5.95
-   },
-   {
-    "id": "x7lm7ph5ejym2wd",
-    "name": "Liberato Cacace",
-    "nameKo": "리베라토 카카세",
-    "position": "D",
-    "shirtNumber": 13,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/466188c101c372905b7fd37baba94489.png",
-    "avgRating": 6.46,
-    "lastRating": 6.08
-   },
-   {
-    "id": "y0or5jhl08wqwzv",
-    "name": "Michael Boxall",
-    "nameKo": "마이클 박스올",
-    "position": "D",
-    "shirtNumber": 5,
-    "starts": 3,
-    "games": 4,
-    "confidence": 0.57,
-    "photo": "https://img.thesports.com/football/player/bde185240993110e3187d6af02e0a24c.png",
-    "avgRating": 6.59
-   },
-   {
-    "id": "6ypq3nhl1ykmd7o",
-    "name": "Joe Bell",
-    "nameKo": "조 벨",
-    "position": "M",
-    "shirtNumber": 6,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/a45f2a8b435198ecc4da617762df1f85.png",
-    "avgRating": 6.3,
-    "lastRating": 5.65
-   },
-   {
-    "id": "l7oqdeh4g41er51",
-    "name": "Marko Stamenić",
-    "nameKo": "마르코 스타메닉",
-    "position": "M",
-    "shirtNumber": 8,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/b652c2a49d0fe6053e26460203550836.png",
-    "avgRating": 6.42,
-    "lastRating": 6.29
-   },
-   {
-    "id": "n54qllh8vvvoqvy",
-    "name": "Sarpreet Singh",
-    "nameKo": "사르프릿 싱",
-    "position": "M",
-    "shirtNumber": 10,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/4f334e857d31dcef08bc91c75cbcdb03.png",
-    "avgRating": 5.79,
-    "lastRating": 5.75
-   },
-   {
-    "id": "y39mp1hjd4vmojx",
-    "name": "Ryan Thomas",
-    "nameKo": "라이언 토마스",
-    "position": "M",
-    "shirtNumber": 23,
-    "starts": 1,
-    "games": 4,
-    "confidence": 0.43,
-    "photo": "https://img.thesports.com/football/player/d9d57794d1803c546485b6b79a08366e.png",
-    "avgRating": 5.52,
-    "lastRating": 5.52
-   },
-   {
-    "id": "jw2r09hxkx11rz8",
-    "name": "Matthew Garbett",
-    "nameKo": "매튜 가르벳",
-    "position": "M",
-    "shirtNumber": 7,
-    "starts": 1,
-    "games": 4,
-    "confidence": 0.14,
-    "photo": "https://img.thesports.com/football/player/c174e626d8d75c84f11242e7ea1e02dd.png",
-    "avgRating": 6.39
-   },
-   {
-    "id": "23xmvkhgj6eqg8n",
-    "name": "Elijah Just",
-    "nameKo": "엘리야흐 저스트",
-    "position": "F",
-    "shirtNumber": 11,
-    "starts": 4,
-    "games": 4,
-    "confidence": 1,
-    "photo": "https://img.thesports.com/football/player/653dfe275584ad95dd346e4de389bcd0.png",
-    "avgRating": 7.18,
-    "lastRating": 7.68
+    "lastRating": 6.47,
+    "afId": 57910
    }
   ]
  },
  "Iran": {
   "formation": "5-3-2",
   "basedOnGames": 3,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "pxwrxlhj72dryk0",
@@ -5373,7 +5573,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/abc6aa5370d87f9b524d9bd9dcb993e3.png",
     "avgRating": 7.66,
-    "lastRating": 6.88
+    "lastRating": 6.88,
+    "afId": 2682
    },
    {
     "id": "3glrw7hyz9gqdyj",
@@ -5386,7 +5587,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/62c0b366803bdf2f65c3422dd544a49f.png",
     "avgRating": 7.23,
-    "lastRating": 7.32
+    "lastRating": 7.32,
+    "afId": 2691
    },
    {
     "id": "3glrw7hjkxeqdyj",
@@ -5399,7 +5601,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/9466749dab94ae59383bbaf642965389.png",
     "avgRating": 6.5,
-    "lastRating": 6.14
+    "lastRating": 6.14,
+    "afId": 29704
    },
    {
     "id": "4jwq2gh6042m0ve",
@@ -5412,7 +5615,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/051c4bbf2725ef66daf899cd5aef3224.png",
     "avgRating": 6.47,
-    "lastRating": 6.18
+    "lastRating": 6.18,
+    "afId": 533035
    },
    {
     "id": "pxwrxlhzpv6ryk0",
@@ -5425,7 +5629,8 @@
     "confidence": 0.83,
     "photo": "https://img.thesports.com/football/player/06f6ddbc08f2802bb191bb472d64594f.png",
     "avgRating": 6.39,
-    "lastRating": 5.96
+    "lastRating": 5.96,
+    "afId": 2687
    },
    {
     "id": "3glrw7hydxnqdyj",
@@ -5438,7 +5643,8 @@
     "confidence": 0.67,
     "photo": "https://img.thesports.com/football/player/95d456aff1dfe040184d80650611bd9e.png",
     "avgRating": 6.45,
-    "lastRating": 6.64
+    "lastRating": 6.64,
+    "afId": 2688
    },
    {
     "id": "318q66hv985qo9j",
@@ -5451,7 +5657,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/fbb2772452c55bf2b0c01f42d29dc149.png",
     "avgRating": 6.49,
-    "lastRating": 6.84
+    "lastRating": 6.84,
+    "afId": 2699
    },
    {
     "id": "vjxm8ghjd8pr6od",
@@ -5464,7 +5671,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8cf1a110e27fee93b778480702ca2851.png",
     "avgRating": 6.54,
-    "lastRating": 6.68
+    "lastRating": 6.68,
+    "afId": 19614
    },
    {
     "id": "4wyrn4hdxp3lq86",
@@ -5490,7 +5698,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/40024135b097a324f6dfa87ab9c5ff49.png",
     "avgRating": 6.4,
-    "lastRating": 6.49
+    "lastRating": 6.49,
+    "afId": 42315
    },
    {
     "id": "4wyrn4hdx0gxq86",
@@ -5506,10 +5715,168 @@
    }
   ]
  },
+ "New Zealand": {
+  "formation": "4-2-3-1",
+  "basedOnGames": 4,
+  "updatedAt": "2026-07-19T00:02:38.538Z",
+  "xi": [
+   {
+    "id": "3glrw7h1xvzqdyj",
+    "name": "Max Crocombe",
+    "nameKo": "막스 크로컴",
+    "position": "G",
+    "shirtNumber": 1,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/a00aece3e3c574bb974b3129b3c97612.png",
+    "avgRating": 6.1,
+    "lastRating": 6.69,
+    "afId": 18110
+   },
+   {
+    "id": "318q66hvk82eqo9",
+    "name": "Tim Payne",
+    "nameKo": "팀 페인",
+    "position": "D",
+    "shirtNumber": 2,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/1f87fc1a760b07735e96cce95477c24b.png",
+    "avgRating": 6.19,
+    "lastRating": 5.62,
+    "afId": 94346
+   },
+   {
+    "id": "vjxm8gh88xz7r6o",
+    "name": "Finn Surman",
+    "nameKo": "핀 서만",
+    "position": "D",
+    "shirtNumber": 16,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/49fd9e4ae6f53e1a35d5027cb51c682c.png",
+    "avgRating": 6.7,
+    "lastRating": 5.95,
+    "afId": 210165
+   },
+   {
+    "id": "x7lm7ph5ejym2wd",
+    "name": "Liberato Cacace",
+    "nameKo": "리베라토 카카세",
+    "position": "D",
+    "shirtNumber": 13,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/466188c101c372905b7fd37baba94489.png",
+    "avgRating": 6.46,
+    "lastRating": 6.08,
+    "afId": 6931
+   },
+   {
+    "id": "y0or5jhl08wqwzv",
+    "name": "Michael Boxall",
+    "nameKo": "마이클 박스올",
+    "position": "D",
+    "shirtNumber": 5,
+    "starts": 3,
+    "games": 4,
+    "confidence": 0.57,
+    "photo": "https://img.thesports.com/football/player/bde185240993110e3187d6af02e0a24c.png",
+    "avgRating": 6.59,
+    "afId": 51149
+   },
+   {
+    "id": "6ypq3nhl1ykmd7o",
+    "name": "Joe Bell",
+    "nameKo": "조 벨",
+    "position": "M",
+    "shirtNumber": 6,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/a45f2a8b435198ecc4da617762df1f85.png",
+    "avgRating": 6.3,
+    "lastRating": 5.65,
+    "afId": 94541
+   },
+   {
+    "id": "l7oqdeh4g41er51",
+    "name": "Marko Stamenić",
+    "nameKo": "마르코 스타메닉",
+    "position": "M",
+    "shirtNumber": 8,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/b652c2a49d0fe6053e26460203550836.png",
+    "avgRating": 6.42,
+    "lastRating": 6.29,
+    "afId": 179862
+   },
+   {
+    "id": "n54qllh8vvvoqvy",
+    "name": "Sarpreet Singh",
+    "nameKo": "사르프릿 싱",
+    "position": "M",
+    "shirtNumber": 10,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/4f334e857d31dcef08bc91c75cbcdb03.png",
+    "avgRating": 5.79,
+    "lastRating": 5.75,
+    "afId": 6935
+   },
+   {
+    "id": "y39mp1hjd4vmojx",
+    "name": "Ryan Thomas",
+    "nameKo": "라이언 토마스",
+    "position": "M",
+    "shirtNumber": 23,
+    "starts": 1,
+    "games": 4,
+    "confidence": 0.43,
+    "photo": "https://img.thesports.com/football/player/d9d57794d1803c546485b6b79a08366e.png",
+    "avgRating": 5.52,
+    "lastRating": 5.52,
+    "afId": 242
+   },
+   {
+    "id": "jw2r09hxkx11rz8",
+    "name": "Matthew Garbett",
+    "nameKo": "매튜 가르벳",
+    "position": "M",
+    "shirtNumber": 7,
+    "starts": 1,
+    "games": 4,
+    "confidence": 0.14,
+    "photo": "https://img.thesports.com/football/player/c174e626d8d75c84f11242e7ea1e02dd.png",
+    "avgRating": 6.39
+   },
+   {
+    "id": "23xmvkhgj6eqg8n",
+    "name": "Elijah Just",
+    "nameKo": "엘리야흐 저스트",
+    "position": "F",
+    "shirtNumber": 11,
+    "starts": 4,
+    "games": 4,
+    "confidence": 1,
+    "photo": "https://img.thesports.com/football/player/653dfe275584ad95dd346e4de389bcd0.png",
+    "avgRating": 7.18,
+    "lastRating": 7.68,
+    "afId": 94333
+   }
+  ]
+ },
  "Uruguay": {
   "formation": "4-1-2-3",
   "basedOnGames": 3,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "3glrw7hwjxyqdyj",
@@ -5522,7 +5889,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/562952d0dfca79b009803b4fc2e6c952.png",
     "avgRating": 5.94,
-    "lastRating": 6.1
+    "lastRating": 6.1,
+    "afId": 429
    },
    {
     "id": "8yomo4h2gykq0j6",
@@ -5535,7 +5903,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/66ecbb5c40a00bd307724400e58e51f5.png",
     "avgRating": 6.51,
-    "lastRating": 6.05
+    "lastRating": 6.05,
+    "afId": 1290
    },
    {
     "id": "l5ergphvyppxr8k",
@@ -5548,7 +5917,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/8c9856371e7a46b07fa59f4327ce93b7.png",
     "avgRating": 6.54,
-    "lastRating": 6.5
+    "lastRating": 6.5,
+    "afId": 51535
    },
    {
     "id": "965mkyhex2gr1ge",
@@ -5561,7 +5931,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/4a6fb84b1db009575d537d6a4966a669.png",
     "avgRating": 6.83,
-    "lastRating": 6.44
+    "lastRating": 6.44,
+    "afId": 47254
    },
    {
     "id": "n54qllhdwjzqvy9",
@@ -5574,7 +5945,8 @@
     "confidence": 0.83,
     "photo": "https://img.thesports.com/football/player/33b6d9a1e69ebf4a442fc915730e3986.png",
     "avgRating": 6.15,
-    "lastRating": 6.29
+    "lastRating": 6.29,
+    "afId": 162891
    },
    {
     "id": "4wyrn4hvgyeq86p",
@@ -5587,7 +5959,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/882ea02197dd60d72a7b38b3ccac087a.png",
     "avgRating": 6.42,
-    "lastRating": 6.6
+    "lastRating": 6.6,
+    "afId": 51494
    },
    {
     "id": "y39mp1hypy9mojx",
@@ -5600,7 +5973,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/6a5456abd268d1515e5b85214e6cf2a1.png",
     "avgRating": 6.68,
-    "lastRating": 6.44
+    "lastRating": 6.44,
+    "afId": 863
    },
    {
     "id": "dj2ryohnl5gq1zp",
@@ -5613,7 +5987,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d6d3089e29d6520fc9ca07ecf3809ff8.png",
     "avgRating": 6.51,
-    "lastRating": 6.76
+    "lastRating": 6.76,
+    "afId": 756
    },
    {
     "id": "y0or5jhg789qwzv",
@@ -5626,7 +6001,8 @@
     "confidence": 0.83,
     "photo": "https://img.thesports.com/football/player/a858469db63cd2dde1cf57cfbd6390d2.png",
     "avgRating": 6.73,
-    "lastRating": 5.39
+    "lastRating": 5.39,
+    "afId": 51603
    },
    {
     "id": "ednm9whz6071ryo",
@@ -5639,7 +6015,8 @@
     "confidence": 0.67,
     "photo": "https://img.thesports.com/football/player/46e9b86d3ead46852d0cfa1f559bbc91.png",
     "avgRating": 6.33,
-    "lastRating": 6.04
+    "lastRating": 6.04,
+    "afId": 51617
    },
    {
     "id": "l5ergphvye6zr8k",
@@ -5651,14 +6028,15 @@
     "games": 3,
     "confidence": 0.5,
     "photo": "https://img.thesports.com/football/player/f54dc0db63e693b44db9d5cfd8e851f8.png",
-    "avgRating": 6.48
+    "avgRating": 6.48,
+    "afId": 51530
    }
   ]
  },
  "Saudi Arabia": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "23xmvkhkw94qg8n",
@@ -5684,7 +6062,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/f57c1cc570bc793d85785b828318706c.png",
     "avgRating": 6.39,
-    "lastRating": 6.48
+    "lastRating": 6.48,
+    "afId": 44594
    },
    {
     "id": "vjxm8ghxnp3r6od",
@@ -5761,7 +6140,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/2780409d5bf0c442765d24ef8bfa18d2.png",
     "avgRating": 6.5,
-    "lastRating": 6.29
+    "lastRating": 6.29,
+    "afId": 44349
    },
    {
     "id": "6ypq3nhwldgemd7",
@@ -5806,7 +6186,7 @@
  "Iraq": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "2y8m4zh4yxxql07",
@@ -5819,7 +6199,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/d24756492b1c1e5b21e75623b839a4a2.png",
     "avgRating": 5.74,
-    "lastRating": 4.72
+    "lastRating": 4.72,
+    "afId": 197933
    },
    {
     "id": "8yomo4h03j1jq0j",
@@ -5832,7 +6213,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/d0b0d590ae15d27edc3eec682e0e2a51.png",
     "avgRating": 6.36,
-    "lastRating": 5.41
+    "lastRating": 5.41,
+    "afId": 163854
    },
    {
     "id": "23xmvkhde6edqg8",
@@ -5844,7 +6226,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/07329a89f311720717ce48bad312833b.png",
     "avgRating": 6.23,
-    "lastRating": 4.61
+    "lastRating": 4.61,
+    "afId": 271444
    },
    {
     "id": "6ypq3nhzn33jmd7",
@@ -5856,7 +6239,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/7536ebc333bdcc376915abe3fdd5f502.png",
-    "avgRating": 6.14
+    "avgRating": 6.14,
+    "afId": 145465
    },
    {
     "id": "4jwq2ghx23zem0v",
@@ -5868,7 +6252,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/b7c866b18683ecaba8a8c1fb314033d5.png",
-    "avgRating": 6.21
+    "avgRating": 6.21,
+    "afId": 296373
    },
    {
     "id": "y0or5jh0237qwzv",
@@ -5894,7 +6279,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/07dc7d19a2a89fef8d6e1d1d6d2025b3.png",
     "avgRating": 5.89,
-    "lastRating": 6.04
+    "lastRating": 6.04,
+    "afId": 140747
    },
    {
     "id": "k82rekhyg5glrep",
@@ -5907,7 +6293,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/a0cec29c5c702597a63323018a0d02d3.png",
     "avgRating": 6.46,
-    "lastRating": 6.27
+    "lastRating": 6.27,
+    "afId": 284295
    },
    {
     "id": "6ypq3nhl4ekpmd7",
@@ -5945,14 +6332,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/7e4b86957fe24dffed9b4b99c5fd7d7e.png",
     "avgRating": 6.24,
-    "lastRating": 6.4
+    "lastRating": 6.4,
+    "afId": 542644
    }
   ]
  },
  "Türkiye": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "vjxm8gh88g1r6od",
@@ -5991,7 +6379,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/444e2d15b6a6130cb4b0b1ea6e965d3c.png",
     "avgRating": 6.71,
-    "lastRating": 6.54
+    "lastRating": 6.54,
+    "afId": 22222
    },
    {
     "id": "dj2ryoh2n60q1zp",
@@ -6004,7 +6393,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/facf64ff3763a226344cc593453a3185.png",
     "avgRating": 6.56,
-    "lastRating": 6.42
+    "lastRating": 6.42,
+    "afId": 26300
    },
    {
     "id": "l5ergphv8py2r8k",
@@ -6030,7 +6420,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/609e8cb7121c3e3c45101a1ec8719e57.png",
     "avgRating": 7.19,
-    "lastRating": 7.41
+    "lastRating": 7.41,
+    "afId": 291964
    },
    {
     "id": "y39mp1h58x8xmoj",
@@ -6043,7 +6434,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/24be6db75d6ffcfe52bac3e98d5c74b2.png",
     "avgRating": 6.45,
-    "lastRating": 6.26
+    "lastRating": 6.26,
+    "afId": 37155
    },
    {
     "id": "pxwrxlhj354wryk",
@@ -6068,7 +6460,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/326d5867b97ffffd3d876a797931fd69.png",
-    "avgRating": 6.69
+    "avgRating": 6.69,
+    "afId": 214463
    },
    {
     "id": "n54qllh8zyoqvy9",
@@ -6081,7 +6474,8 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/14917d49e891d322fce7d87fe0639d18.png",
     "avgRating": 6.15,
-    "lastRating": 6.15
+    "lastRating": 6.15,
+    "afId": 24807
    },
    {
     "id": "3glrw7hj5ol2qdy",
@@ -6094,14 +6488,15 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/7d15749c1ea13ef39fd08d8ceb447ad3.png",
     "avgRating": 7.33,
-    "lastRating": 8.33
+    "lastRating": 8.33,
+    "afId": 63274
    }
   ]
  },
  "Tunisia": {
   "formation": "5-3-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.538Z",
   "xi": [
    {
     "id": "dj2ryohjekn8q1z",
@@ -6114,7 +6509,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/59718f04bf95aa2dc484c9578391d0d3.png",
     "avgRating": 5.88,
-    "lastRating": 6.23
+    "lastRating": 6.23,
+    "afId": 49424
    },
    {
     "id": "n54qllhd0o2qvy9",
@@ -6127,7 +6523,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/03b208756f41e151c8d6ebbb619046f7.png",
     "avgRating": 6.07,
-    "lastRating": 6.45
+    "lastRating": 6.45,
+    "afId": 50030
    },
    {
     "id": "6ypq3nh4v8kmd7o",
@@ -6140,7 +6537,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/a4b2318b5d355c7640ba5975e9466eab.png",
     "avgRating": 5.42,
-    "lastRating": 5.72
+    "lastRating": 5.72,
+    "afId": 18942
    },
    {
     "id": "jw2r09h7l77rz84",
@@ -6153,7 +6551,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/c00a9a84d81cc5d3b4338d9f63c2dd54.png",
     "avgRating": 5.48,
-    "lastRating": 6.04
+    "lastRating": 6.04,
+    "afId": 49583
    },
    {
     "id": "k82rekhyg7pyrep",
@@ -6178,7 +6577,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/cfb22339ea0cd8a3e4ce34ed5715c8da.png",
-    "avgRating": 6.14
+    "avgRating": 6.14,
+    "afId": 163068
    },
    {
     "id": "jw2r09hjn23rz84",
@@ -6191,7 +6591,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3a81c3ff1124259c5c47a92ecc683b8c.png",
     "avgRating": 6.12,
-    "lastRating": 6.37
+    "lastRating": 6.37,
+    "afId": 21587
    },
    {
     "id": "n54qllhxnnvzqvy",
@@ -6204,7 +6605,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/c1afe3f6cce22c62625f2fcad6056cb6.png",
     "avgRating": 6.62,
-    "lastRating": 6.96
+    "lastRating": 6.96,
+    "afId": 180560
    },
    {
     "id": "6ypq3nhzvnwymd7",
@@ -6217,7 +6619,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/f92e91c75e782098b5fce13ac805e804.png",
     "avgRating": 5.83,
-    "lastRating": 5.79
+    "lastRating": 5.79,
+    "afId": 199310
    },
    {
     "id": "3glrw7hzn1k8qdy",
@@ -6230,7 +6633,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/43aa675ef7afb3aae420a971e4b4169c.png",
     "avgRating": 7.19,
-    "lastRating": 8.2
+    "lastRating": 8.2,
+    "afId": 344862
    },
    {
     "id": "pxwrxlh937j6ryk",
@@ -6242,14 +6646,15 @@
     "games": 4,
     "confidence": 0.29,
     "photo": "https://img.thesports.com/football/player/6972460e19c25c80c6f77971fcbdb1b1.png",
-    "avgRating": 6.17
+    "avgRating": 6.17,
+    "afId": 57518
    }
   ]
  },
  "Curaçao": {
   "formation": "5-3-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.539Z",
   "xi": [
    {
     "id": "3glrw7hw092qdyj",
@@ -6262,7 +6667,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/4295a8519859dc0c2378fb876046a04b.png",
     "avgRating": 7.44,
-    "lastRating": 5.71
+    "lastRating": 5.71,
+    "afId": 221
    },
    {
     "id": "965mkyh3oger1ge",
@@ -6275,7 +6681,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/19265bb6e79c564c088bc8c0099bf104.png",
     "avgRating": 6.66,
-    "lastRating": 6.58
+    "lastRating": 6.58,
+    "afId": 706
    },
    {
     "id": "vjxm8ghxyy7r6od",
@@ -6288,7 +6695,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/48aadd8e4bd74c63f2fd909e41101048.png",
     "avgRating": 6.38,
-    "lastRating": 6.4
+    "lastRating": 6.4,
+    "afId": 36857
    },
    {
     "id": "y39mp1h1wylmojx",
@@ -6301,7 +6709,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/f75f3d412e41f18edd4a1a1f791e1792.png",
     "avgRating": 6.41,
-    "lastRating": 6.4
+    "lastRating": 6.4,
+    "afId": 228
    },
    {
     "id": "4jwq2ghx5j6m0ve",
@@ -6314,7 +6723,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/8cf1b81ccdde9771a78f955117e9db6f.png",
     "avgRating": 6.41,
-    "lastRating": 6.77
+    "lastRating": 6.77,
+    "afId": 36970
    },
    {
     "id": "l5ergphe4vvyr8k",
@@ -6327,7 +6737,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/ee74bfc7357f3548a211abef999151b4.png",
     "avgRating": 6.43,
-    "lastRating": 6.91
+    "lastRating": 6.91,
+    "afId": 353808
    },
    {
     "id": "965mkyh7vx8r1ge",
@@ -6340,7 +6751,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/7a1ff512e474b52c0165394c9d2516f4.png",
     "avgRating": 6.29,
-    "lastRating": 6.46
+    "lastRating": 6.46,
+    "afId": 18997
    },
    {
     "id": "zp5rzghpxgg0q82",
@@ -6353,7 +6765,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/9c1f184a3e6a32a844aca6c3bc0fee6c.png",
     "avgRating": 6.77,
-    "lastRating": 6.22
+    "lastRating": 6.22,
+    "afId": 309763
    },
    {
     "id": "4wyrn4hdvynq86p",
@@ -6364,7 +6777,8 @@
     "starts": 1,
     "games": 4,
     "confidence": 0.14,
-    "photo": "https://img.thesports.com/football/player/ccf993c52723dcac81673ac87d8077b8.png"
+    "photo": "https://img.thesports.com/football/player/ccf993c52723dcac81673ac87d8077b8.png",
+    "afId": 37272
    },
    {
     "id": "jw2r09hw9wnrz84",
@@ -6377,7 +6791,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/17def69855bead616b08afde0bdaac8b.png",
     "avgRating": 6.54,
-    "lastRating": 6.5
+    "lastRating": 6.5,
+    "afId": 906
    },
    {
     "id": "6ypq3nh50g3md7o",
@@ -6390,14 +6805,15 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/634642bcfb8fea78a074350dbac1ab9c.png",
     "avgRating": 6.35,
-    "lastRating": 6.72
+    "lastRating": 6.72,
+    "afId": 18981
    }
   ]
  },
  "South Korea": {
   "formation": "3-4-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.539Z",
   "xi": [
    {
     "id": "3glrw7hj1p6qdyj",
@@ -6410,7 +6826,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/7791ae49d8c78177fecee9bf0f229138.png",
     "avgRating": 6.61,
-    "lastRating": 6.69
+    "lastRating": 6.69,
+    "afId": 2892
    },
    {
     "id": "2y8m4zhg5g5yql0",
@@ -6423,7 +6840,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/74e0149879b50cb589bd9594ac874ecb.png",
     "avgRating": 6.89,
-    "lastRating": 6.95
+    "lastRating": 6.95,
+    "afId": 237218
    },
    {
     "id": "4wyrn4h7evnq86p",
@@ -6436,7 +6854,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/01130144d34ce1bbad9854518e2a3be3.png",
     "avgRating": 7.19,
-    "lastRating": 7.07
+    "lastRating": 7.07,
+    "afId": 2897
    },
    {
     "id": "l7oqdeh0lol0r51",
@@ -6449,7 +6868,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a5025e5910821dd56a34411e9f47167a.png",
     "avgRating": 7.06,
-    "lastRating": 7.09
+    "lastRating": 7.09,
+    "afId": 304951
    },
    {
     "id": "1l4rjnhz2lw3m7v",
@@ -6462,7 +6882,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/20550cc8249a4e79485672d34e170340.png",
     "avgRating": 7.44,
-    "lastRating": 7.2
+    "lastRating": 7.2,
+    "afId": 2901
    },
    {
     "id": "l7oqdeh1575r510",
@@ -6475,7 +6896,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/2a9c93f59967c463136f92f28d2b44e3.png",
     "avgRating": 6.45,
-    "lastRating": 6.57
+    "lastRating": 6.57,
+    "afId": 2909
    },
    {
     "id": "l7oqdehed20r510",
@@ -6488,7 +6910,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/b85164dfe03db2402dd7b2c040e68417.png",
     "avgRating": 7.03,
-    "lastRating": 6.51
+    "lastRating": 6.51,
+    "afId": 927
    },
    {
     "id": "y0or5jh3gwyqwzv",
@@ -6501,7 +6924,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/bf031dbde0fdb60c6bee60d67c1ceb25.png",
     "avgRating": 6.48,
-    "lastRating": 6.43
+    "lastRating": 6.43,
+    "afId": 24888
    },
    {
     "id": "3glrw7hj4nydqdy",
@@ -6514,7 +6938,8 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/97d6ca592d48ca7555a520ad3164b3bc.png",
     "avgRating": 6.47,
-    "lastRating": 6.47
+    "lastRating": 6.47,
+    "afId": 34710
    },
    {
     "id": "y39mp1h5yjwmojx",
@@ -6526,7 +6951,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/02581622219073217cd06a3411fee61c.png",
-    "avgRating": 6.4
+    "avgRating": 6.4,
+    "afId": 186
    },
    {
     "id": "zp5rzghzg9dzq82",
@@ -6538,14 +6964,15 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/e392374143c6edc3177c1022c71b705b.png",
-    "avgRating": 6.1
+    "avgRating": 6.1,
+    "afId": 34211
    }
   ]
  },
  "Czechia": {
   "formation": "5-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.539Z",
   "xi": [
    {
     "id": "6ypq3nhz5y75md7",
@@ -6558,7 +6985,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/7fba9cc969d48f37b98f60584a155f0d.png",
     "avgRating": 6.33,
-    "lastRating": 5.62
+    "lastRating": 5.62,
+    "afId": 138804
    },
    {
     "id": "965mkyh4oj2r1ge",
@@ -6571,7 +6999,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/91131f391d2eabfff378817164ae9cd5.png",
     "avgRating": 6.28,
-    "lastRating": 5.95
+    "lastRating": 5.95,
+    "afId": 1231
    },
    {
     "id": "l7oqdeh49067r51",
@@ -6584,7 +7013,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/10618036791364c49c08420385662f64.png",
     "avgRating": 6.48,
-    "lastRating": 6.4
+    "lastRating": 6.4,
+    "afId": 162964
    },
    {
     "id": "1l4rjnhexnom7vx",
@@ -6597,7 +7027,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/d3ed9dbabbc98b4bf7f392bc558dc3df.png",
     "avgRating": 7.06,
-    "lastRating": 6.45
+    "lastRating": 6.45,
+    "afId": 66407
    },
    {
     "id": "l5ergph3dx2r8k0",
@@ -6610,7 +7041,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/e6c7728e0cc8932716c7d56106800149.png",
     "avgRating": 6.63,
-    "lastRating": 6.83
+    "lastRating": 6.83,
+    "afId": 2252
    },
    {
     "id": "pxwrxlhj76kwryk",
@@ -6622,7 +7054,8 @@
     "games": 4,
     "confidence": 0.14,
     "photo": "https://img.thesports.com/football/player/9cdae61f0a2ed5354dab2654252d3904.png",
-    "avgRating": 5.52
+    "avgRating": 5.52,
+    "afId": 337740
    },
    {
     "id": "4wyrn4hv2dzq86p",
@@ -6635,7 +7068,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/a2338f017e327a5ce8bdafba0d394b60.png",
     "avgRating": 7.05,
-    "lastRating": 6.24
+    "lastRating": 6.24,
+    "afId": 241
    },
    {
     "id": "4wyrn4hdx1njq86",
@@ -6648,7 +7082,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/beb4c1af45cb7211a583dac0c3f661da.png",
     "avgRating": 6.31,
-    "lastRating": 6.18
+    "lastRating": 6.18,
+    "afId": 162194
    },
    {
     "id": "2y8m4zhgnxw8ql0",
@@ -6661,7 +7096,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/fe0a3678d770be1c49a8ba75e12a92d5.png",
     "avgRating": 6.35,
-    "lastRating": 6.46
+    "lastRating": 6.46,
+    "afId": 66019
    },
    {
     "id": "vjxm8ghj3we8r6o",
@@ -6674,7 +7110,8 @@
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/acacff72dd34e26205ee93f0703acb19.png",
     "avgRating": 6.11,
-    "lastRating": 5.74
+    "lastRating": 5.74,
+    "afId": 66387
    },
    {
     "id": "y0or5jhej16qwzv",
@@ -6686,14 +7123,15 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/cfeb7d5290946889f11de321391e0632.png",
-    "avgRating": 6.42
+    "avgRating": 6.42,
+    "afId": 794
    }
   ]
  },
  "Scotland": {
   "formation": "4-2-3-1",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.590Z",
+  "updatedAt": "2026-07-19T00:02:38.539Z",
   "xi": [
    {
     "id": "pxwrxlh9gy2ryk0",
@@ -6706,7 +7144,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/2b4a3f4558b60c59401704fe2185878f.png",
     "avgRating": 6.94,
-    "lastRating": 6.69
+    "lastRating": 6.69,
+    "afId": 18933
    },
    {
     "id": "x7lm7phw3w7m2wd",
@@ -6719,7 +7158,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/f186e50696cc166833cc5e83751b9018.png",
     "avgRating": 6.92,
-    "lastRating": 6.32
+    "lastRating": 6.32,
+    "afId": 1111
    },
    {
     "id": "8yomo4h252dq0j6",
@@ -6732,7 +7172,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/81b2276b200545b3f2cf2cd92fa596ee.png",
     "avgRating": 6.67,
-    "lastRating": 6.42
+    "lastRating": 6.42,
+    "afId": 289
    },
    {
     "id": "l7oqdeh4goxgr51",
@@ -6745,7 +7186,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/d1d1f65b2ab2b899f18acb9cdfc53293.png",
     "avgRating": 6.35,
-    "lastRating": 6.28
+    "lastRating": 6.28,
+    "afId": 138417
    },
    {
     "id": "zp5rzgh7ynwq82w",
@@ -6757,7 +7199,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/817c32e1df6f1a00180bccb2da0f3fd3.png",
-    "avgRating": 7.4
+    "avgRating": 7.4,
+    "afId": 19066
    },
    {
     "id": "1l4rjnh3okgm7vx",
@@ -6770,7 +7213,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/25b171436e3f27cf1eceabceda870a66.png",
     "avgRating": 6.99,
-    "lastRating": 6.89
+    "lastRating": 6.89,
+    "afId": 44814
    },
    {
     "id": "2y8m4zh1ov4ql07",
@@ -6783,7 +7227,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/c2fda7b5269ac46e51d90de9183c92bb.png",
     "avgRating": 6.93,
-    "lastRating": 6.04
+    "lastRating": 6.04,
+    "afId": 903
    },
    {
     "id": "k82rekhy3o3repz",
@@ -6796,7 +7241,8 @@
     "confidence": 0.86,
     "photo": "https://img.thesports.com/football/player/b3afc5b1db8d9cf92a72491ff493ab9a.png",
     "avgRating": 6.91,
-    "lastRating": 6.56
+    "lastRating": 6.56,
+    "afId": 19191
    },
    {
     "id": "6ypq3nh09x4md7o",
@@ -6809,7 +7255,8 @@
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/e3241e5379ff6739b9838caa536c8856.png",
     "avgRating": 6.08,
-    "lastRating": 6.08
+    "lastRating": 6.08,
+    "afId": 19077
    },
    {
     "id": "3glrw7hj7vvqdyj",
@@ -6821,7 +7268,8 @@
     "games": 4,
     "confidence": 0.43,
     "photo": "https://img.thesports.com/football/player/87a50ee5c7012455bc1721e85e4ae86a.png",
-    "avgRating": 6.61
+    "avgRating": 6.61,
+    "afId": 1125
    },
    {
     "id": "23xmvkhkp0y1qg8",
@@ -6841,7 +7289,7 @@
  "Haiti": {
   "formation": "4-4-2",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.591Z",
+  "updatedAt": "2026-07-19T00:02:38.539Z",
   "xi": [
    {
     "id": "l5ergphop6er8k0",
@@ -6854,7 +7302,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/15552c657ead2cb54dacf703f9e27029.png",
     "avgRating": 6.33,
-    "lastRating": 6.53
+    "lastRating": 6.53,
+    "afId": 87789
    },
    {
     "id": "pxwrxlh1k711ryk",
@@ -6867,7 +7316,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/077349a2bc923fb72a63152072748070.png",
     "avgRating": 6.8,
-    "lastRating": 6.61
+    "lastRating": 6.61,
+    "afId": 12303
    },
    {
     "id": "8yomo4h0x46q0j6",
@@ -6880,7 +7330,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/4f3e35f52cbbd8fc4e7f3fbd817e010d.png",
     "avgRating": 6.48,
-    "lastRating": 6.18
+    "lastRating": 6.18,
+    "afId": 1411
    },
    {
     "id": "x7lm7ph045l3m2w",
@@ -6893,7 +7344,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/990a692b6b19de36461619ee4ad24a44.png",
     "avgRating": 6.1,
-    "lastRating": 5.45
+    "lastRating": 5.45,
+    "afId": 190747
    },
    {
     "id": "vjxm8ghpyjgr6od",
@@ -6906,7 +7358,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/4a8d3506e27940b20a80e8910573d3c9.png",
     "avgRating": 6.24,
-    "lastRating": 6.66
+    "lastRating": 6.66,
+    "afId": 20655
    },
    {
     "id": "965mkyhnj2wr1ge",
@@ -6919,7 +7372,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/68c0f2f49b8719fda51ee6d3ee6379bd.png",
     "avgRating": 6.21,
-    "lastRating": 5.88
+    "lastRating": 5.88,
+    "afId": 20665
    },
    {
     "id": "ednm9whz2kdwryo",
@@ -6945,7 +7399,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/077083f1859b2e6bd513a19a65aecd81.png",
     "avgRating": 6.37,
-    "lastRating": 6.41
+    "lastRating": 6.41,
+    "afId": 162733
    },
    {
     "id": "dj2ryohj0vndq1z",
@@ -6958,7 +7413,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/b33296c3c2ea8be949f17b66ac02f57d.png",
     "avgRating": 6.13,
-    "lastRating": 6.03
+    "lastRating": 6.03,
+    "afId": 174915
    },
    {
     "id": "x7lm7phpyx5m2wd",
@@ -6971,7 +7427,8 @@
     "confidence": 0.71,
     "photo": "https://img.thesports.com/football/player/51783cf3a014edc98f8b2e63789cc9cf.png",
     "avgRating": 7.29,
-    "lastRating": 7.68
+    "lastRating": 7.68,
+    "afId": 84087
    },
    {
     "id": "vjxm8gh8wxjr6od",
@@ -6983,14 +7440,15 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/91dfac893a7693285237e7a0c6862310.png",
-    "avgRating": 6.2
+    "avgRating": 6.2,
+    "afId": 20850
    }
   ]
  },
  "Qatar": {
   "formation": "4-1-2-3",
   "basedOnGames": 4,
-  "updatedAt": "2026-07-16T00:02:06.591Z",
+  "updatedAt": "2026-07-19T00:02:38.539Z",
   "xi": [
    {
     "id": "23xmvkhd6jzoqg8",
@@ -7003,7 +7461,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/3ced4c9a63d9e61ec1a4fae7e2343358.png",
     "avgRating": 6.74,
-    "lastRating": 5.94
+    "lastRating": 5.94,
+    "afId": 42207
    },
    {
     "id": "pxwrxlhznovryk0",
@@ -7016,7 +7475,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/cdcecfd733179fabc8a2f685b143b513.png",
     "avgRating": 6.26,
-    "lastRating": 5.77
+    "lastRating": 5.77,
+    "afId": 2530
    },
    {
     "id": "1l4rjnhxg3ydm7v",
@@ -7029,7 +7489,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/5044f9e9c362cece67acf988eeb52dbb.png",
     "avgRating": 6.41,
-    "lastRating": 6.24
+    "lastRating": 6.24,
+    "afId": 366516
    },
    {
     "id": "23xmvkhdox9qg8n",
@@ -7042,7 +7503,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/a7ba89b69c22bc9285c55e5447147d84.png",
     "avgRating": 6.6,
-    "lastRating": 6.05
+    "lastRating": 6.05,
+    "afId": 2532
    },
    {
     "id": "n54qllh8l5n3qvy",
@@ -7067,7 +7529,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/b89feec3f28c5aa0569b98d30a875213.png",
     "avgRating": 6.16,
-    "lastRating": 5.71
+    "lastRating": 5.71,
+    "afId": 200981
    },
    {
     "id": "965mkyheo19r1ge",
@@ -7080,7 +7543,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/06cca364e230667809f23377242038ca.png",
     "avgRating": 6.21,
-    "lastRating": 6.78
+    "lastRating": 6.78,
+    "afId": 2544
    },
    {
     "id": "ednm9whveodryox",
@@ -7106,7 +7570,8 @@
     "confidence": 1,
     "photo": "https://img.thesports.com/football/player/70c6a34a9d5a4fdcd08f196d27bb93e6.png",
     "avgRating": 6.54,
-    "lastRating": 6.94
+    "lastRating": 6.94,
+    "afId": 42075
    },
    {
     "id": "n54qllhxzok6qvy",
@@ -7118,7 +7583,8 @@
     "games": 4,
     "confidence": 0.57,
     "photo": "https://img.thesports.com/football/player/e1fb7f8329c0116a392a62bafd07c5ea.png",
-    "avgRating": 6.52
+    "avgRating": 6.52,
+    "afId": 542541
    },
    {
     "id": "ednm9wh98v7ryox",

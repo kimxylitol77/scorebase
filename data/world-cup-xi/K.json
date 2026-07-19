@@ -18,7 +18,7 @@
       "flag": "🇨🇩"
     }
   ],
-  "teamRating": 3.6,
+  "teamRating": 3.5,
   "xi": [
     {
       "id": "dn1m1gh8jl2moep",
@@ -32,8 +32,8 @@
       "score": 8.5,
       "star": 4,
       "recentRating": 7.57,
-      "avgRating": 7.58,
-      "games": 5,
+      "avgRating": 7.78,
+      "games": 4,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 8.47,
       "star": 4,
       "recentRating": 7.2,
-      "avgRating": 7.36,
-      "games": 5,
+      "avgRating": 7.58,
+      "games": 4,
       "x": 16,
       "y": 70
     },
@@ -66,8 +66,8 @@
       "score": 8.09,
       "star": 4,
       "recentRating": 6.86,
-      "avgRating": 7.41,
-      "games": 5,
+      "avgRating": 7.47,
+      "games": 4,
       "x": 39,
       "y": 70
     },
@@ -100,27 +100,10 @@
       "score": 7.82,
       "star": 3,
       "recentRating": 6.52,
-      "avgRating": 7.14,
-      "games": 5,
+      "avgRating": 7.25,
+      "games": 4,
       "x": 84,
       "y": 70
-    },
-    {
-      "id": "1l4rjnhxj6gem7v",
-      "name": "João Neves",
-      "nameKo": "주앙 네베스",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Portugal",
-      "flag": "🇵🇹",
-      "logo": "https://img.thesports.com/football/player/5a579871519550a3dabf9e5027b4be92.png",
-      "score": 8.57,
-      "star": 4,
-      "recentRating": 6.93,
-      "avgRating": 7.15,
-      "games": 5,
-      "x": 22,
-      "y": 32
     },
     {
       "id": "l5ergphv839er8k",
@@ -134,9 +117,9 @@
       "score": 8.22,
       "star": 4,
       "recentRating": 6.53,
-      "avgRating": 7.04,
-      "games": 5,
-      "x": 50,
+      "avgRating": 7,
+      "games": 4,
+      "x": 22,
       "y": 32
     },
     {
@@ -151,8 +134,25 @@
       "score": 8.15,
       "star": 4,
       "recentRating": 6.4,
-      "avgRating": 7.08,
-      "games": 5,
+      "avgRating": 6.95,
+      "games": 4,
+      "x": 50,
+      "y": 32
+    },
+    {
+      "id": "1l4rjnhxj6gem7v",
+      "name": "João Neves",
+      "nameKo": "주앙 네베스",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/5a579871519550a3dabf9e5027b4be92.png",
+      "score": 8,
+      "star": 3,
+      "recentRating": 6.93,
+      "avgRating": 6.88,
+      "games": 4,
       "x": 78,
       "y": 32
     },
@@ -168,8 +168,8 @@
       "score": 7.32,
       "star": 3,
       "recentRating": 6.61,
-      "avgRating": 7.22,
-      "games": 5,
+      "avgRating": 7.16,
+      "games": 4,
       "x": 35,
       "y": 52
     },
@@ -191,25 +191,6 @@
       "y": 52
     },
     {
-      "id": "6ypq3nh4pzdmd7o",
-      "name": "Luis Díaz",
-      "nameKo": "루이스 디아스",
-      "hasMv": true,
-      "pos": "F",
-      "country": "Colombia",
-      "flag": "🇨🇴",
-      "logo": "https://img.thesports.com/football/player/ed3232cb401342d0b23ac15f40ead9ec.png",
-      "score": 8.78,
-      "star": 4,
-      "recentRating": 6.76,
-      "avgRating": 7.18,
-      "games": 5,
-      "x": 50,
-      "y": 14
-    }
-  ],
-  "bench": [
-    {
       "id": "y39mp1hj09e5moj",
       "name": "Gonçalo Ramos",
       "nameKo": "곤살루 하무스",
@@ -221,9 +202,13 @@
       "score": 8.04,
       "star": 4,
       "recentRating": 8.2,
-      "avgRating": 7.35,
-      "games": 2
-    },
+      "avgRating": 8.2,
+      "games": 1,
+      "x": 50,
+      "y": 14
+    }
+  ],
+  "bench": [
     {
       "id": "vjxm8ghxj52r6od",
       "name": "Rafael Leão",
@@ -236,8 +221,8 @@
       "score": 7.85,
       "star": 3,
       "recentRating": 6.56,
-      "avgRating": 6.85,
-      "games": 5
+      "avgRating": 6.92,
+      "games": 4
     },
     {
       "id": "j1l4rjnhpgxm7vx",
@@ -251,23 +236,8 @@
       "score": 7.83,
       "star": 3,
       "recentRating": 6.41,
-      "avgRating": 7.25,
-      "games": 5
-    },
-    {
-      "id": "jw2r09h1veprz84",
-      "name": "Jaminton Campaz",
-      "nameKo": "하민톤 캄파스",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Colombia",
-      "flag": "🇨🇴",
-      "logo": "https://img.thesports.com/football/player/7cdbc43aa9c0f57105beb7af7e028c22.png",
-      "score": 7.8,
-      "star": 3,
-      "recentRating": 6.96,
-      "avgRating": 7.22,
-      "games": 3
+      "avgRating": 7.46,
+      "games": 4
     },
     {
       "id": "8yomo4h290z0q0j",
@@ -281,8 +251,8 @@
       "score": 7.76,
       "star": 3,
       "recentRating": 6.36,
-      "avgRating": 6.92,
-      "games": 5
+      "avgRating": 7.04,
+      "games": 4
     },
     {
       "id": "n54qllhxvv8qvy9",
@@ -296,8 +266,38 @@
       "score": 7.73,
       "star": 3,
       "recentRating": 6.28,
-      "avgRating": 7.23,
-      "games": 5
+      "avgRating": 7.25,
+      "games": 4
+    },
+    {
+      "id": "6ypq3nh4pzdmd7o",
+      "name": "Luis Díaz",
+      "nameKo": "루이스 디아스",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Colombia",
+      "flag": "🇨🇴",
+      "logo": "https://img.thesports.com/football/player/ed3232cb401342d0b23ac15f40ead9ec.png",
+      "score": 7.73,
+      "star": 3,
+      "recentRating": 6.76,
+      "avgRating": 6.7,
+      "games": 4
+    },
+    {
+      "id": "6ypq3nh19kemd7o",
+      "name": "Pedro Neto",
+      "nameKo": "페드루 네투",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Portugal",
+      "flag": "🇵🇹",
+      "logo": "https://img.thesports.com/football/player/2585a5614ef6e4605f826aaf58670ddf.png",
+      "score": 7.68,
+      "star": 3,
+      "recentRating": 6.46,
+      "avgRating": 6.52,
+      "games": 4
     }
   ],
   "complete": true
