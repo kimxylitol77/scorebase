@@ -19,6 +19,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { toKoreanTeamName } from "@/lib/team-names";
 import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
 import MyTeamsStrip from "@/components/MyTeamsStrip";
@@ -517,18 +518,73 @@ function FeaturesSection() {
   );
 }
 
-// 월드컵 배너 카피 — 2026-07-19 결승 종료로 결산 고정 (단계별 자동 전환 로직은 대회 종료로 제거).
-function wcBannerCopy(): { badge: string; title: string; sub: string; href: string } {
-  return {
+// 월드컵 배너 카피 — 마지막 매치(=결승) DB 상태로 자동 판정 (날짜 짐작 금지, 1h ISR 갱신).
+// 결승 전 = 대진 예고 + AI 우위, 진행 중 = LIVE, 종료 = 실제 스코어 기반 우승팀 결산.
+async function wcBannerCopy(): Promise<{ badge: string; title: string; sub: string; href: string }> {
+  const final = await prisma.match.findFirst({
+    where: { league: "WORLD_CUP", status: { in: ["SCHEDULED", "LIVE", "FINISHED"] } },
+    orderBy: { startTime: "desc" },
+    select: {
+      status: true,
+      startTime: true,
+      homeScore: true,
+      awayScore: true,
+      predHome: true,
+      predAway: true,
+      homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
+    },
+  });
+  const done = {
     badge: "FIFA World Cup 2026",
-    title: "북중미 월드컵 결산 — 잉글랜드 우승",
+    title: "북중미 월드컵 결산",
     sub: "최종 대진표·우승 확률 추이·조별 베스트 XI 다시 보기",
     href: "/world-cup",
   };
+  if (!final) return done;
+  const home = toKoreanTeamName(final.homeTeam.name, "WORLD_CUP");
+  const away = toKoreanTeamName(final.awayTeam.name, "WORLD_CUP");
+  if (final.status === "FINISHED") {
+    const winner =
+      final.homeScore != null && final.awayScore != null && final.homeScore !== final.awayScore
+        ? final.homeScore > final.awayScore
+          ? home
+          : away
+        : null;
+    return winner ? { ...done, title: `북중미 월드컵 결산 — ${winner} 우승` } : done;
+  }
+  if (final.status === "LIVE") {
+    return {
+      badge: "FIFA World Cup 2026 · FINAL",
+      title: `월드컵 결승 진행 중 — ${home} vs ${away}`,
+      sub: "라이브 스코어·AI 우승 확률 한눈에",
+      href: "/world-cup?view=bracket",
+    };
+  }
+  const kst = new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(final.startTime);
+  const favored =
+    final.predHome != null && final.predAway != null
+      ? final.predHome > final.predAway
+        ? `${home} ${Math.round(final.predHome * 100)}%`
+        : `${away} ${Math.round(final.predAway * 100)}%`
+      : null;
+  return {
+    badge: "FIFA World Cup 2026 · FINAL",
+    title: `월드컵 결승 — ${home} vs ${away}`,
+    sub: `${kst} 킥오프(한국시간)${favored ? ` · AI 예측 ${favored} 우위` : ""} — 대진표·우승 확률 한눈에`,
+    href: "/world-cup?view=bracket",
+  };
 }
 
-function LeagueDirectory() {
-  const wcBanner = wcBannerCopy();
+async function LeagueDirectory() {
+  const wcBanner = await wcBannerCopy();
   const tiles = [
     { href: "/leagues/EPL", name: "프리미어리그", sub: "EPL · 잉글랜드" },
     { href: "/leagues/LALIGA", name: "라리가", sub: "스페인" },
