@@ -22,18 +22,26 @@ interface Props {
   date: string;
   /** 상태 필터 유지용 */
   status?: string | null;
+  /** 정렬 방식 유지용 (선택) — "time" 만 URL 에 실림 */
+  sort?: string | null;
   /** 리그별 오늘 경기 수 — 주어지면 경기 있는 리그만 표시 + 카운트 뱃지. */
   matchCounts?: Record<string, number>;
   /** 전체 경기 수 ("전체 리그" 옆 카운트) */
   totalCount?: number;
 }
 
-function buildHref(date: string, status: string | null | undefined, league?: string | null): string {
+function buildHref(
+  date: string,
+  status: string | null | undefined,
+  league?: string | null,
+  sort?: string | null,
+): string {
   const params = new URLSearchParams();
   params.set("sport", "soccer");
   params.set("date", date);
   if (league) params.set("league", league);
   if (status && status !== "all") params.set("status", status);
+  if (sort === "time") params.set("sort", "time");
   return `/scores?${params.toString()}`;
 }
 
@@ -54,6 +62,7 @@ export default function SoccerLeagueSidebar({
   activeLeague,
   date,
   status,
+  sort,
   matchCounts,
   totalCount,
 }: Props) {
@@ -95,7 +104,7 @@ export default function SoccerLeagueSidebar({
     >
       {/* 전체 */}
       <Link
-        href={buildHref(date, status, null)}
+        href={buildHref(date, status, null, sort)}
         className={!activeLeague ? itemActiveClass : itemClass}
       >
         <span className="text-[14px] leading-none">⚽</span>
@@ -119,7 +128,7 @@ export default function SoccerLeagueSidebar({
               return (
                 <li key={`pop-${l}`}>
                   <Link
-                    href={buildHref(date, status, l)}
+                    href={buildHref(date, status, l, sort)}
                     className={activeLeague === l ? itemActiveClass : itemClass}
                   >
                     {logo ? (
@@ -172,7 +181,7 @@ export default function SoccerLeagueSidebar({
                       return (
                         <li key={`c-${country}-${l}`}>
                           <Link
-                            href={buildHref(date, status, l)}
+                            href={buildHref(date, status, l, sort)}
                             className={
                               activeLeague === l ? itemActiveClass : itemClass
                             }

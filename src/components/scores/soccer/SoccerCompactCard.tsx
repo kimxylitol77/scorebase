@@ -9,10 +9,13 @@ import Link from "next/link";
 import FavoriteStar from "../FavoriteStar";
 import { teamColor } from "@/lib/team-colors";
 import { useScoreFlash } from "../useScoreFlash";
+import { getLeagueBadge } from "./leagueBadge";
 
 interface Props {
   matchId: string | number;
   league: string;
+  /** 시간순 평면 뷰 등 그룹 카드 밖 — 리그 배지를 행 안에 표시 */
+  showLeague?: boolean;
   status: "scheduled" | "live" | "finished" | "postponed";
   /** "16:30" KST */
   timeLabel: string;
@@ -53,6 +56,8 @@ function TeamLogo({ url, name }: { url?: string | null; name: string }) {
 export default function SoccerCompactCard(props: Props) {
   const {
     matchId,
+    league,
+    showLeague,
     status,
     timeLabel,
     liveStatusLabel,
@@ -62,6 +67,7 @@ export default function SoccerCompactCard(props: Props) {
     penaltyHome,
     penaltyAway,
   } = props;
+  const leagueBadge = showLeague ? getLeagueBadge(league) : null;
   const isLive = status === "live";
   const isFinished = status === "finished";
   const isPostponed = status === "postponed";
@@ -122,9 +128,18 @@ export default function SoccerCompactCard(props: Props) {
         <FavoriteStar matchId={String(matchId)} />
       </div>
 
-      {/* 시간/상태 — 리그명은 그룹 카드 헤더로 이동 */}
-      <div className="shrink-0 w-12 text-center leading-tight">
+      {/* 시간/상태 — 리그명은 그룹 카드 헤더로 이동 (showLeague=시간순 평면 뷰만 배지 표시) */}
+      <div className={`shrink-0 ${leagueBadge ? "w-14" : "w-12"} text-center leading-tight`}>
         <div className={`text-[11px] ${leftClass}`}>{leftPrimary}</div>
+        {leagueBadge && (
+          <div
+            className="mt-0.5 text-[9px] font-bold rounded-sm px-0.5 py-px truncate"
+            style={{ background: leagueBadge.bg, color: leagueBadge.fg }}
+            title={leagueBadge.label}
+          >
+            {leagueBadge.label}
+          </div>
+        )}
       </div>
 
       {/* 팀 2줄 — 최근 골 측 row flash (7m 스타일) */}

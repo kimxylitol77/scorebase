@@ -12,18 +12,26 @@ interface Props {
   date: string;
   /** 리그 필터 유지용 (선택) */
   league?: string | null;
+  /** 정렬 방식 유지용 (선택) — "time" 만 URL 에 실림 */
+  sort?: string | null;
 }
 
-function buildHref(date: string, league: string | null | undefined, status: SoccerStatusFilter): string {
+function buildHref(
+  date: string,
+  league: string | null | undefined,
+  status: SoccerStatusFilter,
+  sort?: string | null,
+): string {
   const params = new URLSearchParams();
   params.set("sport", "soccer");
   params.set("date", date);
   if (league) params.set("league", league);
   if (status !== "all") params.set("status", status);
+  if (sort === "time") params.set("sort", "time");
   return `/scores?${params.toString()}`;
 }
 
-export default function SoccerStatusTabs({ active, counts, date, league }: Props) {
+export default function SoccerStatusTabs({ active, counts, date, league, sort }: Props) {
   const items: { key: SoccerStatusFilter; label: string; count: number }[] = [
     { key: "all", label: "전체", count: counts.all },
     { key: "live", label: "라이브", count: counts.live },
@@ -50,7 +58,7 @@ export default function SoccerStatusTabs({ active, counts, date, league }: Props
         return (
           <Link
             key={item.key}
-            href={buildHref(date, league, item.key)}
+            href={buildHref(date, league, item.key, sort)}
             className={`${baseClass} ${stateClass}`}
             aria-current={isActive ? "page" : undefined}
           >

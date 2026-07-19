@@ -69,6 +69,7 @@ import SoccerStatusTabs, {
 import MatchCard from "@/components/scores/MatchCard";
 import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
 import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
+import SoccerSortToggle from "@/components/scores/SoccerSortToggle";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
@@ -122,6 +123,8 @@ interface Props {
     league?: string;
     /** soccer 전용 — all | live | scheduled | finished */
     status?: string;
+    /** soccer 전용 — time(시간순 평면) | 미지정(리그별 그룹) */
+    sort?: string;
   }>;
 }
 
@@ -410,7 +413,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const isThin =
     (sp.date && dateStr !== todayKstStr) ||
     Boolean(sp.league) ||
-    (sp.status !== undefined && sp.status !== "all");
+    (sp.status !== undefined && sp.status !== "all") ||
+    Boolean(sp.sort);
 
   // canonical 은 sport 별 base URL 고정 — date param 은 매일 바뀌어 canonical 이
   // 매일 변하는 중복 신호가 됐었다 (2026-05 진단: "Crawled - not indexed" 원인).
@@ -468,6 +472,9 @@ export default async function ScoresPage({ searchParams }: Props) {
       sp.status === "postponed")
       ? sp.status
       : "all";
+  // 축구 전용 정렬 방식 — league(리그별 그룹, 기본) | time(시간순 평면)
+  const sortMode: "league" | "time" =
+    sport === "soccer" && sp.sort === "time" ? "time" : "league";
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
@@ -1803,7 +1810,8 @@ export default async function ScoresPage({ searchParams }: Props) {
 
   const extraQuery =
     (leagueFilter ? `&league=${leagueFilter}` : "") +
-    (statusFilter !== "all" ? `&status=${statusFilter}` : "");
+    (statusFilter !== "all" ? `&status=${statusFilter}` : "") +
+    (sortMode === "time" ? "&sort=time" : "");
 
   // SEO 동적 값 — generateMetadata 와 일치시킴.
   const sportKo = SPORT_NAMES_KO[sport] ?? "스포츠";
@@ -1997,7 +2005,18 @@ export default async function ScoresPage({ searchParams }: Props) {
               }}
               date={dateStr}
               league={leagueFilter}
+              sort={sortMode === "time" ? "time" : null}
             />
+
+            {/* 보기 방식 토글 — 리그별 그룹(기본) / 시간순 평면 */}
+            <div className="flex justify-end">
+              <SoccerSortToggle
+                active={sortMode}
+                date={dateStr}
+                league={leagueFilter}
+                status={statusFilter}
+              />
+            </div>
 
             {/* 매치 list */}
             {normalized.length === 0 ? (
@@ -2013,6 +2032,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   activeLeague={leagueFilter}
                   date={dateStr}
                   status={statusFilter}
+                  sort={sortMode === "time" ? "time" : null}
                   matchCounts={leagueMatchCounts}
                   totalCount={soccerDayTotal}
                 />
@@ -2060,6 +2080,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                   finishedList={visibleFinished}
                   postponedList={visiblePostponed}
                   lineupSet={lineupMatchIdSet}
+                  sortByTime={sortMode === "time"}
                 />
                 </div>
               </div>
@@ -2216,6 +2237,7 @@ function SoccerRowLayout({
   finishedList,
   postponedList,
   lineupSet,
+  sortByTime = false,
 }: {
   liveList: NormalizedMatch[];
   scheduledList: NormalizedMatch[];
@@ -2223,8 +2245,10 @@ function SoccerRowLayout({
   postponedList: NormalizedMatch[];
   /** cache.lineup 존재 매치 id — L 배지용 */
   lineupSet: Set<number>;
+  /** ?sort=time — 리그 그룹 대신 전 경기 시간순 평면 리스트 (행에 리그 배지 표시) */
+  sortByTime?: boolean;
 }) {
-  const renderRow = (m: NormalizedMatch) => {
+  const renderRow = (m: NormalizedMatch, showLeague = false) => {
     const statusKey: "scheduled" | "live" | "finished" | "postponed" =
       m.status === "LIVE"
         ? "live"
@@ -2273,7 +2297,7 @@ function SoccerRowLayout({
         awayFifaRank={m.away.fifaRank ?? null}
         awayFirst={BASEBALL_LEAGUES.has(m.league)}
         hasLineup={lineupSet.has(Number(m.id))}
-        hideLeague
+        hideLeague={!showLeague}
       />
     );
   };
@@ -2342,7 +2366,7 @@ function SoccerRowLayout({
   const finishedGroups = dayGroupsOf(finishedSorted);
   const postponedGroups = dayGroupsOf(postponedSorted);
 
-  const mobileCardFor = (m: NormalizedMatch) => {
+  const mobileCardFor = (m: NormalizedMatch, showLeague = false) => {
     const statusKey =
       m.status === "LIVE"
         ? "live"
@@ -2357,6 +2381,7 @@ function SoccerRowLayout({
           key={String(m.id)}
           matchId={m.id}
           league={m.league}
+          showLeague={showLeague}
           status={statusKey}
           timeLabel={m.timeLabel}
           liveStatusLabel={m.liveStatusLabel}
@@ -2428,30 +2453,49 @@ function SoccerRowLayout({
     </div>
   );
 
+  // 시간순 평면 뷰(?sort=time) 공용 카드 셸 — LeagueGroupCard 와 동일 톤(헤더 없음).
+  const flatCardClass =
+    "rounded-2xl border border-neutral-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-28px_rgba(15,23,42,0.20)] overflow-hidden dark:bg-white/[0.045] dark:border-white/10 dark:shadow-none";
+
   // SoccerRowLayout = 축구 전용 → 리그 그룹 카드(얇은 행)로 묶는다.
-  const renderMobileList = (items: NormalizedMatch[]) => (
-    <div className="space-y-2.5">
-      {leagueGroupsOf(items).map((lg) => (
-        <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
-          <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-            {lg.items.map((m) => mobileCardFor(m))}
-          </ul>
-        </LeagueGroupCard>
-      ))}
-    </div>
-  );
+  // sortByTime 이면 그룹 없이 전 경기 시간순 평면 리스트(행에 리그 배지).
+  const renderMobileList = (items: NormalizedMatch[]) =>
+    sortByTime ? (
+      <section className={flatCardClass}>
+        <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+          {items.map((m) => mobileCardFor(m, true))}
+        </ul>
+      </section>
+    ) : (
+      <div className="space-y-2.5">
+        {leagueGroupsOf(items).map((lg) => (
+          <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
+            <ul className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {lg.items.map((m) => mobileCardFor(m))}
+            </ul>
+          </LeagueGroupCard>
+        ))}
+      </div>
+    );
   // 데스크톱도 동일 그룹 카드 — 행은 SoccerLiveRow(hideLeague). 전역 테이블 헤더 대신 카드 헤더.
-  const renderDesktopList = (items: NormalizedMatch[]) => (
-    <div className="space-y-3">
-      {leagueGroupsOf(items).map((lg) => (
-        <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
-          <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-            {lg.items.map(renderRow)}
-          </div>
-        </LeagueGroupCard>
-      ))}
-    </div>
-  );
+  const renderDesktopList = (items: NormalizedMatch[]) =>
+    sortByTime ? (
+      <section className={flatCardClass}>
+        <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+          {items.map((m) => renderRow(m, true))}
+        </div>
+      </section>
+    ) : (
+      <div className="space-y-3">
+        {leagueGroupsOf(items).map((lg) => (
+          <LeagueGroupCard key={lg.league} league={lg.league} count={lg.items.length}>
+            <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
+              {lg.items.map((m) => renderRow(m))}
+            </div>
+          </LeagueGroupCard>
+        ))}
+      </div>
+    );
 
   return (
     <div className="space-y-5">
@@ -2513,7 +2557,7 @@ function SoccerRowLayout({
         {wcAll.length > 0 && (
           <LeagueGroupCard league="WORLD_CUP" count={wcAll.length} accent="wc" href="/world-cup" linkLabel="우승 확률">
             <div className="divide-y divide-neutral-100 dark:divide-white/[0.06]">
-              {wcAll.map(renderRow)}
+              {wcAll.map((m) => renderRow(m))}
             </div>
           </LeagueGroupCard>
         )}
