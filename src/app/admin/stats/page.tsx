@@ -12,6 +12,7 @@ import {
 import { getGscOverview, gscPageToPath, type GscRow } from "@/lib/gsc";
 import { getBingOverview } from "@/lib/bing-webmaster";
 import { potentialClicks, OPP_MIN_POSITION, OPP_MAX_POSITION } from "@/lib/search-opportunity";
+import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function StatsPage({ searchParams }: Props) {
   const last30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const last7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const last14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
   const today00KST = new Date(dayKey(now) + "T00:00:00+09:00");
   const yesterday00KST = new Date(today00KST.getTime() - 24 * 60 * 60 * 1000);
 
@@ -78,7 +80,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // 모든 PageView 한 번에 가져와서 메모리에서 사람/봇 분리
   // (gsc 는 DB 와 무관한 Google API — 병렬로 같이 — unstable_cache 1h 라 보통 즉시)
-  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, gsc, bing] = await Promise.all([
+  const [recent30Raw, recent24Raw, rangeRaw, totalAll, landingRaw, landing14Raw, gsc, bing] = await Promise.all([
     prisma.pageView.findMany({
       where: { ts: { gte: last30 } },
       select: { ts: true, path: true, userAgent: true, sessionId: true },
@@ -101,6 +103,14 @@ export default async function StatsPage({ searchParams }: Props) {
     prisma.pageView.findMany({
       where: { ...rangeWhere, isLanding: true },
       select: { referrer: true, userAgent: true, sessionId: true, path: true, utmSource: true },
+      take: 50000,
+      orderBy: { ts: "desc" },
+    }),
+    // 유입 채널 주간 비교용 — range 와 무관하게 14일 고정(이번 주 7일 + 지난주 7일).
+    // 위 landingRaw 와 같은 랜딩 1행 원칙, ts 만 추가로 가져와 코드에서 주 분리.
+    prisma.pageView.findMany({
+      where: { isLanding: true, ts: { gte: last14 } },
+      select: { ts: true, referrer: true, userAgent: true, sessionId: true, path: true, utmSource: true },
       take: 50000,
       orderBy: { ts: "desc" },
     }),
@@ -350,6 +360,44 @@ export default async function StatsPage({ searchParams }: Props) {
   const topExternalLandings = Array.from(externalLandingPathAgg.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
+
+  // === 유입 채널 지난주 대비 — 이번 주(최근 7일) vs 지난주(그 전 7일), range 무관 고정 ===
+  // 집계 원칙은 위 채널 집계와 동일(봇 제외·의심 스크레이퍼 제외·classifyLanding) — 기간 축만 주 단위.
+  // 의심 봇 휴리스틱의 "기간 내 PV 1개" 판정이 기간 종속이라, 전역 suspiciousSids 대신
+  // 각 주 윈도우 기준으로 같은 휴리스틱을 재계산한다 (사람 PV 는 humans30 이 14일을 포함).
+  const aggChannelWeek = (from: Date, to: Date) => {
+    const pvBySidWeek = new Map<string, number>();
+    for (const r of humans30) {
+      if (r.ts < from || r.ts >= to || !r.sessionId) continue;
+      pvBySidWeek.set(r.sessionId, (pvBySidWeek.get(r.sessionId) ?? 0) + 1);
+    }
+    const weekRows = landing14Raw.filter((l) => l.ts >= from && l.ts < to);
+    const suspiciousWeek = new Set<string>();
+    for (const l of weekRows) {
+      if (!l.sessionId || l.referrer || l.utmSource) continue;
+      if (detectBot(l.userAgent).isBot) continue;
+      if (pvBySidWeek.get(l.sessionId) !== 1) continue;
+      if (ENTRY_PATHS.has(l.path.split("?")[0])) continue;
+      suspiciousWeek.add(l.sessionId);
+    }
+    const counts = new Map<TrafficChannel, number>();
+    let total = 0;
+    for (const l of weekRows) {
+      if (detectBot(l.userAgent).isBot) continue;
+      if (l.sessionId && suspiciousWeek.has(l.sessionId)) continue;
+      const { channel } = classifyLanding(l.referrer, l.utmSource);
+      counts.set(channel, (counts.get(channel) ?? 0) + 1);
+      total++;
+    }
+    return { counts, total };
+  };
+  const weekCur = aggChannelWeek(last7, now);
+  const weekPrev = aggChannelWeek(last14, last7);
+  const weekChannelRows = CHANNEL_ORDER.map((c) => ({
+    channel: c,
+    cur: weekCur.counts.get(c) ?? 0,
+    prev: weekPrev.counts.get(c) ?? 0,
+  })).filter((r) => r.cur > 0 || r.prev > 0);
 
   // === AI 크롤러 전용 분석 (ChatGPT/Claude/Perplexity 등) ===
   // bots30 / botsRange 안에서 category === "ai" 만 추출 → KPI + top paths + 일별.
@@ -601,6 +649,57 @@ export default async function StatsPage({ searchParams }: Props) {
                 );
               })}
             </ul>
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title="지난주 대비"
+          subtitle="이번 주 = 최근 7일 · 지난주 = 그 전 7일 (기간 선택과 무관)"
+        >
+          {weekChannelRows.length === 0 ? (
+            <EmptyHint message="최근 14일 랜딩 유입이 없어 비교할 데이터가 없습니다." />
+          ) : (
+            <table className="w-full text-sm table-fixed">
+              <thead>
+                <tr className="text-[11px] uppercase tracking-wider text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
+                  <th className="text-left font-medium pb-2 pr-2">채널</th>
+                  <th className="text-right font-medium pb-2 px-1 w-20">이번 주</th>
+                  <th className="text-right font-medium pb-2 px-1 w-20">지난주</th>
+                  <th className="text-right font-medium pb-2 pl-1 w-36">증감</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                <tr className="font-bold bg-neutral-50 dark:bg-neutral-900/60">
+                  <td className="py-2.5 pr-2">전체 (사람 랜딩)</td>
+                  <td className="py-2.5 px-1 text-right tabular-nums">
+                    {weekCur.total.toLocaleString()}
+                  </td>
+                  <td className="py-2.5 px-1 text-right tabular-nums text-neutral-500">
+                    {weekPrev.total.toLocaleString()}
+                  </td>
+                  <td className="py-2.5 pl-1 text-right">
+                    <WeekDelta cur={weekCur.total} prev={weekPrev.total} />
+                  </td>
+                </tr>
+                {weekChannelRows.map((r) => (
+                  <tr key={r.channel}>
+                    <td className="py-2 pr-2 truncate">
+                      <span className="mr-1.5">{CHANNEL_META[r.channel].emoji}</span>
+                      <span className="font-medium">{CHANNEL_META[r.channel].label}</span>
+                    </td>
+                    <td className="py-2 px-1 text-right tabular-nums font-semibold">
+                      {r.cur.toLocaleString()}
+                    </td>
+                    <td className="py-2 px-1 text-right tabular-nums text-neutral-500">
+                      {r.prev.toLocaleString()}
+                    </td>
+                    <td className="py-2 pl-1 text-right">
+                      <WeekDelta cur={r.cur} prev={r.prev} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </SectionCard>
 
@@ -1350,6 +1449,45 @@ function SectionCard({
       </div>
       {children}
     </section>
+  );
+}
+
+/** 지난주 대비 증감 셀 — 절대 건수 + %, 방향은 lucide 아이콘. 지난주 0건이면 "신규". */
+function WeekDelta({ cur, prev }: { cur: number; prev: number }) {
+  if (prev === 0) {
+    if (cur === 0) {
+      return <span className="text-neutral-400">—</span>;
+    }
+    return (
+      <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+        <ArrowUpRight size={14} />
+        신규
+      </span>
+    );
+  }
+  const diff = cur - prev;
+  const pct = Math.round((diff / prev) * 100);
+  if (diff === 0) {
+    return (
+      <span className="inline-flex items-center gap-1 text-neutral-400 tabular-nums">
+        <Minus size={14} />0 (0%)
+      </span>
+    );
+  }
+  const up = diff > 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 font-semibold tabular-nums ${
+        up
+          ? "text-emerald-600 dark:text-emerald-400"
+          : "text-red-600 dark:text-red-400"
+      }`}
+    >
+      {up ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+      {up ? "+" : ""}
+      {diff.toLocaleString()} ({up ? "+" : ""}
+      {pct}%)
+    </span>
   );
 }
 
