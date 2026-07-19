@@ -70,6 +70,8 @@ import MatchCard from "@/components/scores/MatchCard";
 import LeagueGroupCard from "@/components/scores/LeagueGroupCard";
 import SoccerLeagueSidebar from "@/components/scores/SoccerLeagueSidebar";
 import SoccerSortToggle from "@/components/scores/SoccerSortToggle";
+import SortPrefWriter from "@/components/scores/SortPrefWriter";
+import { cookies } from "next/headers";
 import FavoriteMatches from "@/components/scores/FavoriteMatches";
 import EmptyState from "@/components/scores/EmptyState";
 import LiveRefresher from "@/components/scores/LiveRefresher";
@@ -472,9 +474,20 @@ export default async function ScoresPage({ searchParams }: Props) {
       sp.status === "postponed")
       ? sp.status
       : "all";
-  // 축구 전용 정렬 방식 — league(리그별 그룹, 기본) | time(시간순 평면)
+  // 축구 전용 정렬 방식 — league(리그별 그룹, 기본) | time(시간순 평면).
+  // URL 파라미터가 최우선, 없으면 쿠키(마지막 선택 기억) — 스코어보드.kr 처럼 루트로
+  // 재진입하는 사용 패턴에서 시간순 선택이 새로고침마다 풀리던 문제 해결 (2026-07-19).
+  const sortCookie = (await cookies()).get("scores_sort")?.value;
   const sortMode: "league" | "time" =
-    sport === "soccer" && sp.sort === "time" ? "time" : "league";
+    sport !== "soccer"
+      ? "league"
+      : sp.sort === "time"
+        ? "time"
+        : sp.sort === "league"
+          ? "league"
+          : sortCookie === "time"
+            ? "time"
+            : "league";
   const day = parseKstDate(sp.date);
   const dayEnd = new Date(day.getTime() + 24 * 3600 * 1000);
   const dateStr = sp.date ?? dateQuery(day);
@@ -2008,7 +2021,10 @@ export default async function ScoresPage({ searchParams }: Props) {
               sort={sortMode === "time" ? "time" : null}
             />
 
-            {/* 보기 방식 토글 — 리그별 그룹(기본) / 시간순 평면 */}
+            {/* 보기 방식 토글 — 리그별 그룹(기본) / 시간순 평면. 명시 선택은 쿠키로 기억 */}
+            <SortPrefWriter
+              explicitSort={sp.sort === "time" ? "time" : sp.sort === "league" ? "league" : null}
+            />
             <div className="flex justify-end">
               <SoccerSortToggle
                 active={sortMode}

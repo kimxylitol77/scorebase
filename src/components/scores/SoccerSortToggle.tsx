@@ -26,7 +26,8 @@ function buildHref(
   params.set("date", date);
   if (league) params.set("league", league);
   if (status && status !== "all") params.set("status", status);
-  if (sort === "time") params.set("sort", "time");
+  // 리그별도 명시(sort=league) — 쿠키 기본값(시간순 기억)을 이길 수 있어야 한다.
+  params.set("sort", sort);
   return `/scores?${params.toString()}`;
 }
 
