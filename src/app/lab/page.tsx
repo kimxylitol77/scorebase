@@ -10,7 +10,7 @@ import { simSupportedLeague } from "@/lib/predict/match-sim";
 import { clampKnobs, type BotKnobs } from "@/lib/predict/member-bot";
 import AmbientGlow from "@/components/AmbientGlow";
 import { KNOB_METAS } from "./knobs-meta";
-import LabClient, { type LabBot, type LabMatch } from "./LabClient";
+import LabClient, { type LabBot, type LabBotPick, type LabMatch } from "./LabClient";
 
 export const dynamic = "force-dynamic";
 
@@ -173,8 +173,56 @@ async function LabMember({
     isActive: b.isActive,
   }));
 
+  // 오늘 내 봇 픽 — cron 이 생성한 미시작 경기 픽 (매치는 manual join)
+  let todayPicks: LabBotPick[] = [];
+  if (botRows.length > 0) {
+    const pickRows = await prisma.memberBotPick.findMany({
+      where: { botId: { in: botRows.map((b) => b.id) }, market: "1X2" },
+      select: { botId: true, matchId: true, pick: true, prob: true },
+      orderBy: { id: "desc" },
+      take: 120,
+    });
+    const matchIds = [...new Set(pickRows.map((p) => p.matchId))];
+    if (matchIds.length > 0) {
+      const ms = await prisma.match.findMany({
+        where: { id: { in: matchIds }, startTime: { gte: new Date() } },
+        select: {
+          id: true,
+          league: true,
+          startTime: true,
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } },
+        },
+      });
+      const mMap = new Map(ms.map((m) => [m.id, m]));
+      todayPicks = pickRows
+        .filter((p) => mMap.has(p.matchId))
+        .map((p) => {
+          const m = mMap.get(p.matchId)!;
+          return {
+            botId: p.botId,
+            matchId: p.matchId,
+            pick: p.pick,
+            prob: p.prob,
+            league: m.league,
+            home: toKoreanTeamName(m.homeTeam.name),
+            away: toKoreanTeamName(m.awayTeam.name),
+            startMs: m.startTime.getTime(),
+            startKst: kstLabel(m.startTime),
+          };
+        })
+        .sort((a, b) => a.startMs - b.startMs)
+        .slice(0, 30);
+    }
+  }
+
   return (
-    <LabClient matches={matches} initialBots={bots} preselectMatchId={preselectId} />
+    <LabClient
+      matches={matches}
+      initialBots={bots}
+      todayPicks={todayPicks}
+      preselectMatchId={preselectId}
+    />
   );
 }
 

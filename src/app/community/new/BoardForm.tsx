@@ -10,9 +10,13 @@ const initialState: PostFormState = { ok: false };
 export default function BoardForm({
   myTeam,
   defaultLineup,
+  defaultTitle,
+  defaultContent,
 }: {
   myTeam: { name: string; tierName: string } | null;
   defaultLineup?: string | null;
+  defaultTitle?: string | null;
+  defaultContent?: string | null;
 }) {
   const [state, formAction, pending] = useActionState(createPostAction, initialState);
 
@@ -46,6 +50,7 @@ export default function BoardForm({
           required
           minLength={2}
           maxLength={120}
+          defaultValue={defaultTitle ?? undefined}
           placeholder="제목을 입력해주세요"
           className="w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-400 dark:border-neutral-700 dark:bg-white/[0.04]"
         />
@@ -59,6 +64,7 @@ export default function BoardForm({
           required
           minLength={5}
           rows={10}
+          defaultValue={defaultContent ?? undefined}
           placeholder="자유롭게 이야기해주세요. 마크다운을 지원합니다."
           className="w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-sm leading-relaxed outline-none focus:border-rose-400 dark:border-neutral-700 dark:bg-white/[0.04]"
         />

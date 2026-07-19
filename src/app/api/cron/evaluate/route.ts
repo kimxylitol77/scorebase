@@ -5,6 +5,7 @@ import { runEvaluate, runEvaluateMatches, runBrierReport } from "@/jobs/evaluate
 import { runEvaluateAiPredictions } from "@/jobs/fetch-gpt-predictions";
 import { runPredictionPostmortems } from "@/jobs/prediction-postmortems";
 import { runScoreMatchVotes } from "@/jobs/score-match-votes";
+import { runScoreMemberBotPicks } from "@/jobs/score-member-bot-picks";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,8 @@ export async function GET(req: Request) {
       : null;
     // 승부예측 투표 채점 — 회원·익명 투표의 correct 채움 (/picks 랭킹 소스)
     const votes = await runScoreMatchVotes().catch(() => null);
+    // 회원 커스텀 봇 픽 채점 — MemberBotPick.correct 채움 (/lab 내 봇 픽 성적 소스)
+    const botPicks = await runScoreMemberBotPicks().catch(() => null);
     await recordCronRun("evaluate");
     return NextResponse.json({
       ok: true,
@@ -39,6 +42,7 @@ export async function GET(req: Request) {
       aiScore,
       postmortems,
       votes,
+      botPicks,
     });
   } catch (e) {
     return NextResponse.json(

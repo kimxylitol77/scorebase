@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { recordCronRun } from "@/lib/cron-registry";
 import { runFetchGptPredictions } from "@/jobs/fetch-gpt-predictions";
+import { runGenerateMemberBotPicks } from "@/jobs/generate-member-bot-picks";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +15,10 @@ export async function GET(req: Request) {
   }
   try {
     const result = await runFetchGptPredictions();
+    // 회원 커스텀 봇 픽 생성 피기백 — 향후 24h 저장 pred 매치 (실패해도 본 잡 영향 없음)
+    const memberBotPicks = await runGenerateMemberBotPicks().catch(() => null);
     await recordCronRun("gpt-predictions", { count: result.stored });
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json({ ok: true, ...result, memberBotPicks });
   } catch (e) {
     await recordCronRun("gpt-predictions", { ok: false, error: (e as Error).message });
     return NextResponse.json(

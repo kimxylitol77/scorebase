@@ -3,6 +3,7 @@
 // 피처 벡터는 /api/bot-backtest 1회 로드 후 손잡이 변경마다 member-bot.ts 순수함수로 재채점한다.
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   SlidersHorizontal,
   LineChart,
@@ -12,6 +13,7 @@ import {
   Trash2,
   Power,
   RotateCcw,
+  Share2,
 } from "lucide-react";
 import {
   DEFAULT_KNOBS,
@@ -46,6 +48,19 @@ export interface LabBot {
     savedAt?: string;
   } | null;
   isActive: boolean;
+}
+
+/** 오늘 내 봇 픽 — cron 이 생성한 미시작 경기 픽 (page.tsx 서버 조회) */
+export interface LabBotPick {
+  botId: string;
+  matchId: number;
+  pick: string;
+  prob: number;
+  league: string;
+  home: string;
+  away: string;
+  startMs: number;
+  startKst: string;
 }
 
 const MAX_BOTS = 3;
@@ -91,10 +106,12 @@ const knobPct = (v: number) => Math.round(v * 100);
 export default function LabClient({
   matches,
   initialBots,
+  todayPicks,
   preselectMatchId,
 }: {
   matches: LabMatch[];
   initialBots: LabBot[];
+  todayPicks: LabBotPick[];
   preselectMatchId: number | null;
 }) {
   const [knobs, setKnobs] = useState<BotKnobs>({ ...DEFAULT_KNOBS });
@@ -635,6 +652,13 @@ export default function LabClient({
                   >
                     불러오기
                   </button>
+                  <Link
+                    href={`/community/new?bot=${encodeURIComponent(b.id)}`}
+                    title="게시판에 공유"
+                    className="rounded-full p-1.5 text-zinc-400 transition hover:text-zinc-700 dark:text-white/35 dark:hover:text-white/70"
+                  >
+                    <Share2 className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
                   <button
                     type="button"
                     onClick={() => toggleBot(b)}
@@ -654,11 +678,48 @@ export default function LabClient({
                     <Trash2 className="h-3.5 w-3.5" aria-hidden />
                   </button>
                 </div>
+                <BotTodayPicks
+                  picks={todayPicks.filter((p) => p.botId === b.id)}
+                  isActive={b.isActive}
+                />
               </li>
             ))}
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+/** 봇 카드 하단 "오늘 내 봇 픽" — cron 생성 픽을 회원이 눈으로 확인하는 최소 UI */
+function BotTodayPicks({ picks, isActive }: { picks: LabBotPick[]; isActive: boolean }) {
+  if (picks.length === 0) {
+    if (!isActive) return null;
+    return (
+      <p className="w-full border-t border-black/5 pt-1.5 text-[11px] text-zinc-400 dark:border-white/10 dark:text-white/35">
+        오늘 내 봇 픽 — 아직 없음 (매일 2회 자동 생성, 예정 경기에 저장 예측이 있어야 합니다)
+      </p>
+    );
+  }
+  return (
+    <div className="w-full border-t border-black/5 pt-1.5 dark:border-white/10">
+      <div className="text-[11px] font-semibold text-zinc-500 dark:text-white/45">
+        오늘 내 봇 픽 {picks.length}건
+      </div>
+      <ul className="mt-1 space-y-0.5">
+        {picks.map((p) => (
+          <li
+            key={`${p.botId}-${p.matchId}`}
+            className="text-[11px] tabular-nums text-zinc-600 dark:text-white/55"
+          >
+            [{leagueKo(p.league)}] {p.home} vs {p.away} —{" "}
+            <span className="font-bold text-zinc-900 dark:text-white">
+              {p.pick === "HOME" ? `${p.home} 승` : p.pick === "AWAY" ? `${p.away} 승` : "무승부"}
+            </span>{" "}
+            {pct(p.prob)} · {p.startKst}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
