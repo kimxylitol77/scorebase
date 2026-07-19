@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { sendSlack } from "@/lib/notify/slack";
+import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +46,22 @@ const SEV_LABEL_KO: Record<string, string> = {
   WARN: "주의",
   HIGH: "긴급",
   CRIT: "치명",
+};
+
+// ── 텔레그램 소음 게이트 (2026-07-19) ──
+// 운영 알림은 CRIT/HIGH 만 텔레그램 즉시 push. WARN/INFO 는 HealthCheck 테이블
+// 아카이브만 (/admin/health 에서 확인) — 사용자가 전 알림을 눈으로 거르던 부담 제거.
+// 예외: 브리핑류(SLACK_CHANNEL_BY_SOURCE 매핑)와 아래 화이트리스트는 등급 무관 현행 유지.
+const TELEGRAM_ALWAYS_SOURCES = new Set([
+  "mac-mini-ai-company", // AI 회사 주간 회의 결론 — 사용자 구독 리포트 성격
+]);
+
+// notify severity → HealthCheck severity 매핑 (대시보드 아카이브용)
+const HC_SEVERITY: Record<string, string> = {
+  CRIT: "HIGH",
+  HIGH: "HIGH",
+  WARN: "MED",
+  INFO: "LOW",
 };
 
 // 브리핑 소스 → 슬랙 채널 아카이빙. 여기 매핑된 source 만 슬랙에도 전송(나머지는 텔레그램만).
@@ -135,7 +152,30 @@ export async function POST(req: NextRequest) {
   lines.push("");
   lines.push(`<code>[${sevKo}] ${body.source}</code>`);
 
-  await sendTelegram(lines.join("\n"));
+  // ── 전 등급 HealthCheck 아카이브 — /admin/health 단일 이력. 실패해도 발송은 막지 않음.
+  try {
+    await prisma.healthCheck.create({
+      data: {
+        severity: HC_SEVERITY[body.severity] ?? "LOW",
+        category: `notify:${body.source}`,
+        key: body.title.slice(0, 120),
+        message: [body.what, body.impact, body.cause, body.message]
+          .filter(Boolean)
+          .join(" · ")
+          .slice(0, 500) || body.title,
+        metadata: { severity: body.severity, ...(body.metadata ?? {}) },
+      },
+    });
+  } catch {}
+
+  // ── 텔레그램은 치명 등급(CRIT/HIGH)·브리핑류·화이트리스트만 — 나머지는 아카이브로 충분.
+  const isBrief = !!SLACK_CHANNEL_BY_SOURCE[body.source];
+  const pushTelegram =
+    body.severity === "CRIT" ||
+    body.severity === "HIGH" ||
+    isBrief ||
+    TELEGRAM_ALWAYS_SOURCES.has(body.source);
+  if (pushTelegram) await sendTelegram(lines.join("\n"));
 
   // 브리핑 소스는 슬랙 채널에도 아카이빙 (검색·보존). SLACK_BOT_TOKEN 있을 때만 실제 전송.
   const slackChannel = SLACK_CHANNEL_BY_SOURCE[body.source];

@@ -87,10 +87,17 @@ export async function GET(req: Request) {
   const remaining = problems.filter((p) => !healed.some((h) => h.includes(p.name)));
 
   if (healed.length) {
-    await sendTelegram(
-      `🩹 배치 cron 누락 자가치유 완료\n\n${healed.map((h) => `• ${h}: 재실행 성공`).join("\n")}\n\n(사람 개입 불필요 — 자동 처리)`,
-      { parseMode: "Markdown" },
-    );
+    // 자가치유 성공은 사람 개입 불필요 — 텔레그램 push 대신 /admin/health 아카이브만 (소음 게이트 정책)
+    try {
+      await prisma.healthCheck.create({
+        data: {
+          severity: "LOW",
+          category: "cron-self-heal",
+          key: healed.map((h) => h.split(" ")[0]).join(","),
+          message: `누락 cron 자가치유 완료 — ${healed.join(", ")} 재실행 성공`,
+        },
+      });
+    } catch {}
   }
   if (remaining.length) {
     const lines = remaining.map((p) => `• ${p.label} (${p.name}): ${p.reason}`);
