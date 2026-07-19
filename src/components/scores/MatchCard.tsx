@@ -88,9 +88,11 @@ function Logo({ url, name, big }: { url?: string | null; name: string; big?: boo
   // ESPN 등 외부 CDN 에 사진이 없는 파이터는 404 → 흰 박스로 남는다. 로드 실패 시 이니셜 placeholder 로 폴백.
   const [failed, setFailed] = useState(false);
   if (url && !failed) {
-    // Liquipedia (LCK 로고) 는 hotlink Referer 검사로 외부 직접 fetch 불가 →
-    // Next.js image optimizer 통해 서버가 fetch 후 재제공해야 표시됨.
-    if (url.includes("liquipedia.net")) {
+    // Next.js image optimizer 경유(서버가 fetch 후 Vercel CDN 에 캐시 → 재사용):
+    //  - Liquipedia (LCK 로고): hotlink Referer 검사로 외부 직접 fetch 불가.
+    //  - ESPN MMA 파이터 사진: 매 로드마다 ESPN 핫링크 대신 한 번 받아 캐시본 재사용
+    //    (MatchCard 안 espncdn 은 MMA 파이터 전용, remotePatterns 에 등록됨).
+    if (url.includes("liquipedia.net") || url.includes("a.espncdn.com")) {
       return (
         <Image
           src={url}
