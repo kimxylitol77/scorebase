@@ -951,16 +951,6 @@ async function NhlStandings({ name }: { name: string }) {
   }
   const seasonLabel = formatNhlSeason(std.season);
 
-  const breadcrumb = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "라이브 스코어", item: "https://www.scorebase.kr/scores" },
-      { "@type": "ListItem", position: 2, name: "NHL", item: "https://www.scorebase.kr/leagues/NHL" },
-      { "@type": "ListItem", position: 3, name: "순위표", item: "https://www.scorebase.kr/standings/NHL" },
-    ],
-  };
-
   // 시즌 리더보드 (골·어시·포인트·세이브%) — 데이터 있을 때만.
   const { rowsByCategory: nhlLeaders, season: nhlLeaderSeason } = await loadLeagueLeaderboard("NHL");
   const hasNhlLeaders = Object.keys(nhlLeaders).length > 0;
@@ -968,10 +958,6 @@ async function NhlStandings({ name }: { name: string }) {
   return (
     <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8 space-y-4">
       <AmbientGlow />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
-      />
       <nav className="flex items-center gap-2 text-xs text-neutral-500">
         <Link href="/scores?sport=hockey" className="hover:underline">
           라이브 스코어
