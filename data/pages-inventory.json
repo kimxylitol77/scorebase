@@ -42,6 +42,13 @@
     "group": "detail"
   },
   {
+    "route": "/analysis/[id]/edit",
+    "desc": "게시판 글 수정 (관리자 전용) — admin_session 없으면 글로 되돌림. 모든 글 수정 가능.",
+    "inMenu": false,
+    "dynamic": true,
+    "group": "detail"
+  },
+  {
     "route": "/analysis/new",
     "desc": "분석글 작성 폼 — 종목→날짜→경기→마켓→픽 선택 후 발행.",
     "inMenu": false,
@@ -63,11 +70,11 @@
     "group": "detail"
   },
   {
-    "route": "/assistant",
-    "desc": "",
-    "inMenu": false,
+    "route": "/ballon",
+    "desc": "발롱도르 순위 지수 계산기 페이지 — 서버에서 후보 데이터를 조립해 인터랙티브 계산기에 전달.",
+    "inMenu": true,
     "dynamic": false,
-    "group": "other"
+    "group": "menu"
   },
   {
     "route": "/baseball",
@@ -145,6 +152,13 @@
     "inMenu": false,
     "dynamic": true,
     "group": "detail"
+  },
+  {
+    "route": "/compare/live-score-apps",
+    "desc": "라이브스코어 앱 비교 머니페이지 (GEO/AEO) — 플래시스코어·소파스코어·풋몹·네이버 vs 스코어베이스. 경쟁사 기능·유료티어는 변동되므로 널리 알려진 사실 범위로만 보수적으로 기술(주기적 재검토 필요).",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/dream-team",
@@ -231,6 +245,13 @@
     "group": "detail"
   },
   {
+    "route": "/hockey",
+    "desc": "하키 종목 허브 — 오늘 경기·리그별 순위/예측/글·역사·AI 예측을 한 페이지에. 농구(/basketball)·야구(/baseball) 허브와 동일 패턴. NHL 은 공식 API 로 순위/선수/예측 완비, IIHF 세계선수권(국제)은 경기·스코어만 커버돼 Top3 미리보기 + /scores 링크만 노출.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/injuries",
     "desc": "부상자 명단 — 리그 미지정 시 기본 리그로 redirect.",
     "inMenu": true,
@@ -250,6 +271,13 @@
     "inMenu": false,
     "dynamic": false,
     "group": "other"
+  },
+  {
+    "route": "/lab",
+    "desc": "회원 커스텀 예측 봇 만들기: 손잡이 5개로 우리 모델을 조립하고 즉석 백테스트·경기 시뮬·봇 저장. 비회원은 기능 소개 + 비활성 미리보기 + 가입 CTA. 손잡이 조작·백테스트·저장은 회원 전용.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
   },
   {
     "route": "/landing",
@@ -350,11 +378,25 @@
     "group": "detail"
   },
   {
+    "route": "/odds",
+    "desc": "배당 흐름 — 종목(축구/야구/농구)별로 시장이 어느 쪽으로 움직이는지(line movement) 보여줌.",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
     "route": "/picks",
     "desc": "승부예측 허브: 오늘·내일 경기 원클릭 투표 + 내 적중 기록 + 회원 랭킹 (나 vs AI)",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
+  },
+  {
+    "route": "/picks/me",
+    "desc": "회원 전용 내 예측 리포트: 요약·나 vs AI·리그별·월별·최근 기록 (MatchVote 집계)",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
   },
   {
     "route": "/players/[pid]",
@@ -400,7 +442,7 @@
   },
   {
     "route": "/predictions/scorecard",
-    "desc": "AI 예측 성적표 — 우리 통계모델 vs GPT-5.6 가 같은 경기를 맞춰온 정면 비교(1X2·핸디·OU 3개 시장) + 시장별·경기별 누적.",
+    "desc": "AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Grok·Gemini·Qwen)가 같은 경기를 경기 전 예측하고 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -441,6 +483,13 @@
     "group": "other"
   },
   {
+    "route": "/rankings/ufc",
+    "desc": "UFC 체급별·파운드-포-파운드 랭킹 페이지 — MmaRanking(주간 UFC.com 스냅샷) 을 읽어 탭 뷰로 렌더.",
+    "inMenu": false,
+    "dynamic": false,
+    "group": "other"
+  },
+  {
     "route": "/salaries/kbo",
     "desc": "KBO 국내 선수 연봉 랭킹 (원화, 상위 큐레이션). 데이터: KBO 공식 + 언론 교차검증 → PlayerSalary(KBO) (만원 단위). 선수명·구단 한글 그대로. ⚠️ KBO 연봉 전체 DB 무료 소스 없음(statiz 로그인 벽) → 국내 선수 TOP 10 큐레이션. 외국인은 달러 별도라 제외.",
     "inMenu": true,
@@ -449,7 +498,7 @@
   },
   {
     "route": "/salaries/mlb",
-    "desc": "MLB 선수 연봉 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: spotrac → PlayerSalary(MLB) (cron fetch-salaries). 선수 한글명·팀 = TheSportsPlayer(MLB) 매칭. ⚠️ MLB 선수 사진 소스가 없어 이니셜 fallback (NBA 는 ESPN headshot). 이름 매칭 ~69%(표기차 영문 유지).",
+    "desc": "MLB 선수 연봉 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: spotrac → PlayerSalary(MLB) (cron fetch-salaries). 선수 한글명 = 위키 사전(정본) > TheSportsPlayer > toKoreanPlayerName. ⚠️ MLB 선수 사진 소스가 없어 이니셜 fallback (NBA 는 ESPN headshot).",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"
@@ -457,6 +506,13 @@
   {
     "route": "/salaries/nba",
     "desc": "NBA 선수 연봉 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: basketball-reference contracts → PlayerSalary (cron fetch-salaries, 주 1회). 환율: frankfurter.app USD→KRW (revalidate 캐시, 실패 시 fallback).",
+    "inMenu": true,
+    "dynamic": false,
+    "group": "menu"
+  },
+  {
+    "route": "/salaries/nhl",
+    "desc": "NHL 선수 연봉(cap hit) 랭킹 (USD + 한화 환산, 25명 페이지네이션). 데이터: CapWages → PlayerSalary(NHL) (cron fetch-salaries). 사진·선수 링크 = nhle 머그샷(URL 에 player id). 선수 한글명 = 위키 사전(정본) > haiku json > 영문. 팀·로고 = DB Team(NHL) 풀네임 매칭.",
     "inMenu": true,
     "dynamic": false,
     "group": "menu"

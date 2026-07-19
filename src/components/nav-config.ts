@@ -85,6 +85,7 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.6 적중률 대결" },
+    { href: "/lab", label: "커스텀 봇", desc: "손잡이 5개로 나만의 예측 봇 · 즉석 백테스트" },
     { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
     { href: "/notices", label: "공지사항", desc: "사이트 공지 · 패치노트" },

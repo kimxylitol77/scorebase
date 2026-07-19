@@ -190,6 +190,15 @@ export default function MatchSimulator({ matchId, homeName, awayName, hideDraw }
               </Link>
               에서 확인하세요.
             </p>
+            <p className="w-full text-[11px] leading-relaxed text-zinc-500 dark:text-white/45">
+              손잡이를 직접 조절하고 싶다면{" "}
+              <Link
+                href={`/lab?match=${matchId}`}
+                className="font-semibold underline underline-offset-2 hover:text-zinc-700 dark:hover:text-white/70"
+              >
+                커스텀 봇 만들기
+              </Link>
+            </p>
           </div>
         </div>
       )}
