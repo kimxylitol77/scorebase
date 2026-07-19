@@ -32,6 +32,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
 import { activePanelists, PANELISTS, type Panelist, type PanelRuntime } from "@/lib/predict/panelists";
 import { capturePredictionContext } from "@/jobs/prediction-postmortems";
+import { shouldPublishPick, type MatchOddsCtx } from "@/lib/predict/publish-gate";
 
 // 비교 대상 리그 — 시즌 중인 주요 리그. 경기 없는 리그는 자동으로 0건.
 // 배구는 predHome(검증된 배구 Elo+시장 블렌드) 앵커, LoL 은 일반 Elo 파이프라인
@@ -147,8 +148,23 @@ function panelClient(p: Panelist): OpenAI {
   });
 }
 
-// AiPrediction 한 행 upsert — 모든 패널·scorebase 공용.
-function upsertPrediction(
+/** 발행 게이트용 매치 배당 컨텍스트 1회 조회 — storeAnchor/storePanel 공용. */
+async function loadOddsCtx(matchId: number): Promise<MatchOddsCtx | null> {
+  return prisma.match.findUnique({
+    where: { id: matchId },
+    select: {
+      league: true, marketHome: true, marketDraw: true, marketAway: true,
+      oddsHome: true, oddsDraw: true, oddsAway: true,
+    },
+  });
+}
+
+/**
+ * AiPrediction 한 행 upsert — 모든 패널·scorebase 공용. 발행 게이트 차단 픽도
+ * published=false 로 저장한다(재호출 방지 + 채점 유지로 게이트 유효성 계속 측정).
+ * 반환 true=발행. 차단 사유는 1X2/핸디만 로그(OU_WEAK_MODEL 은 정책상 결정적이라 소음).
+ */
+async function gatedUpsert(
   matchId: number,
   model: string,
   market: string,
@@ -156,12 +172,24 @@ function upsertPrediction(
   prob: number,
   line: number | null,
   reason: string | null,
-) {
-  return prisma.aiPrediction.upsert({
+  ctx: MatchOddsCtx | null,
+): Promise<boolean> {
+  let published = true;
+  if (ctx) {
+    const gate = shouldPublishPick(model, market, pick, prob, line, ctx);
+    if (!gate.ok) {
+      published = false;
+      if (gate.reason !== "OU_WEAK_MODEL") {
+        console.log(`[gate] 미발행 ${gate.reason} — match=${matchId} ${model} ${market} ${pick} ${(prob * 100).toFixed(0)}%`);
+      }
+    }
+  }
+  await prisma.aiPrediction.upsert({
     where: { matchId_model_market: { matchId, model, market } },
-    create: { matchId, model, market, pick, prob, line, reason },
-    update: { pick, prob, line, reason },
+    create: { matchId, model, market, pick, prob, line, reason, published },
+    update: { pick, prob, line, reason, published },
   });
+  return published;
 }
 
 /**
@@ -677,12 +705,13 @@ export async function storeAnchor(
   oursHcOu: ReturnType<typeof scorebaseHcOu>,
 ): Promise<void> {
   await capturePredictionContext(matchId, "scorebase");
-  await upsertPrediction(matchId, "scorebase", "1X2", ours1x2.pick, ours1x2.prob, null, null);
+  const ctx = await loadOddsCtx(matchId);
+  await gatedUpsert(matchId, "scorebase", "1X2", ours1x2.pick, ours1x2.prob, null, null, ctx);
   if (oursHcOu.hc) {
-    await upsertPrediction(matchId, "scorebase", "HANDICAP", oursHcOu.hc.pick, oursHcOu.hc.prob, oursHcOu.hc.line, null);
+    await gatedUpsert(matchId, "scorebase", "HANDICAP", oursHcOu.hc.pick, oursHcOu.hc.prob, oursHcOu.hc.line, null, ctx);
   }
   if (oursHcOu.ou) {
-    await upsertPrediction(matchId, "scorebase", "OU", oursHcOu.ou.pick, oursHcOu.ou.prob, oursHcOu.ou.line, null);
+    await gatedUpsert(matchId, "scorebase", "OU", oursHcOu.ou.pick, oursHcOu.ou.prob, oursHcOu.ou.line, null, ctx);
   }
 }
 
@@ -698,18 +727,16 @@ export async function storePanel(
   res: GptMarketPick,
 ): Promise<number> {
   await capturePredictionContext(matchId, model);
+  const ctx = await loadOddsCtx(matchId);
   let count = 0;
   if (res.oneXtwo) {
-    await upsertPrediction(matchId, model, "1X2", res.oneXtwo.pick, res.oneXtwo.prob, null, res.reason);
-    count++;
+    if (await gatedUpsert(matchId, model, "1X2", res.oneXtwo.pick, res.oneXtwo.prob, null, res.reason, ctx)) count++;
   }
   if (lines.hc != null && res.handicap) {
-    await upsertPrediction(matchId, model, "HANDICAP", res.handicap.pick, res.handicap.prob, lines.hc, null);
-    count++;
+    if (await gatedUpsert(matchId, model, "HANDICAP", res.handicap.pick, res.handicap.prob, lines.hc, null, ctx)) count++;
   }
   if (lines.ou != null && res.ou) {
-    await upsertPrediction(matchId, model, "OU", res.ou.pick, res.ou.prob, lines.ou, null);
-    count++;
+    if (await gatedUpsert(matchId, model, "OU", res.ou.pick, res.ou.prob, lines.ou, null, ctx)) count++;
   }
   return count;
 }
@@ -864,31 +891,16 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
     }
     if (!gpt) continue;
 
+    const ctx = await loadOddsCtx(m.id);
     if (oursHcOu.hc && gpt.handicap) {
-      await prisma.aiPrediction.upsert({
-        where: { matchId_model_market: { matchId: m.id, model: "scorebase", market: "HANDICAP" } },
-        create: { matchId: m.id, model: "scorebase", market: "HANDICAP", pick: oursHcOu.hc.pick, prob: oursHcOu.hc.prob, line: oursHcOu.hc.line },
-        update: { pick: oursHcOu.hc.pick, prob: oursHcOu.hc.prob, line: oursHcOu.hc.line },
-      });
-      await prisma.aiPrediction.upsert({
-        where: { matchId_model_market: { matchId: m.id, model: GPT_MODEL, market: "HANDICAP" } },
-        create: { matchId: m.id, model: GPT_MODEL, market: "HANDICAP", pick: gpt.handicap.pick, prob: gpt.handicap.prob, line: oursHcOu.hc.line },
-        update: { pick: gpt.handicap.pick, prob: gpt.handicap.prob, line: oursHcOu.hc.line },
-      });
-      added++;
+      const a = await gatedUpsert(m.id, "scorebase", "HANDICAP", oursHcOu.hc.pick, oursHcOu.hc.prob, oursHcOu.hc.line, null, ctx);
+      const b = await gatedUpsert(m.id, GPT_MODEL, "HANDICAP", gpt.handicap.pick, gpt.handicap.prob, oursHcOu.hc.line, null, ctx);
+      if (a || b) added++;
     }
     if (oursHcOu.ou && gpt.ou) {
-      await prisma.aiPrediction.upsert({
-        where: { matchId_model_market: { matchId: m.id, model: "scorebase", market: "OU" } },
-        create: { matchId: m.id, model: "scorebase", market: "OU", pick: oursHcOu.ou.pick, prob: oursHcOu.ou.prob, line: oursHcOu.ou.line },
-        update: { pick: oursHcOu.ou.pick, prob: oursHcOu.ou.prob, line: oursHcOu.ou.line },
-      });
-      await prisma.aiPrediction.upsert({
-        where: { matchId_model_market: { matchId: m.id, model: GPT_MODEL, market: "OU" } },
-        create: { matchId: m.id, model: GPT_MODEL, market: "OU", pick: gpt.ou.pick, prob: gpt.ou.prob, line: oursHcOu.ou.line },
-        update: { pick: gpt.ou.pick, prob: gpt.ou.prob, line: oursHcOu.ou.line },
-      });
-      added++;
+      const a = await gatedUpsert(m.id, "scorebase", "OU", oursHcOu.ou.pick, oursHcOu.ou.prob, oursHcOu.ou.line, null, ctx);
+      const b = await gatedUpsert(m.id, GPT_MODEL, "OU", gpt.ou.pick, gpt.ou.prob, oursHcOu.ou.line, null, ctx);
+      if (a || b) added++;
     }
     await new Promise((r) => setTimeout(r, 50));
   }

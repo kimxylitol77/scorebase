@@ -43,7 +43,7 @@ function pickLabel(pick: Winner, home: string, away: string): string {
 
 export default async function HomeAiScorecardShowcase() {
   const rows = await prisma.aiPrediction.findMany({
-    where: { market: "1X2" },
+    where: { market: "1X2", published: true },
     select: {
       model: true,
       pick: true,

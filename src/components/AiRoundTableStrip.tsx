@@ -7,7 +7,7 @@ import { Users } from "lucide-react";
 
 export default async function AiRoundTableStrip({ matchId }: { matchId: number }) {
   const rows = await prisma.aiPrediction.findMany({
-    where: { matchId, market: "1X2" },
+    where: { matchId, market: "1X2", published: true },
     select: { model: true, pick: true },
   });
   const models = new Set(rows.map((r) => (r.model.startsWith("gpt-") ? "gpt" : r.model)));

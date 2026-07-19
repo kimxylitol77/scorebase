@@ -17,7 +17,7 @@ function matchHref(league: string, externalId: string): string {
 
 export default async function AiConsensusWidget() {
   const rows = await prisma.aiPrediction.findMany({
-    where: { market: "1X2" },
+    where: { market: "1X2", published: true },
     select: {
       model: true, pick: true, prob: true, correct: true,
       match: {

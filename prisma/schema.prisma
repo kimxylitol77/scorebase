@@ -226,6 +226,7 @@ model AiPrediction {
   line        Float?   // HANDICAP/OU 채점 기준선 (홈 핸디 또는 총점 라인) — 양 모델 동일 라인으로 채점
   reason      String?  // GPT 한줄 근거 (있으면)
   correct     Boolean? // 경기 종료 후 actual 과 일치 여부 (null = 미채점)
+  published   Boolean  @default(true) // false = 발행 게이트 차단(publish-gate.ts). 저장·채점은 유지, 회원 노출·성적표만 제외
   predictedAt DateTime @default(now())
 
   match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)

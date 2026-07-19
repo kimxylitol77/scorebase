@@ -153,7 +153,7 @@ function TeamsLine(props: {
 
 export default async function ScorecardPage() {
   const rows = await prisma.aiPrediction.findMany({
-    where: { market: { in: ["1X2", "HANDICAP", "OU"] } },
+    where: { market: { in: ["1X2", "HANDICAP", "OU"] }, published: true },
     orderBy: { match: { startTime: "asc" } },
     select: {
       model: true, market: true, pick: true, prob: true, line: true, reason: true, correct: true,

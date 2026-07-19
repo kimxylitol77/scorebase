@@ -19,7 +19,7 @@ const AI_META: Record<string, { label: string; order: number }> = {
 
 export default async function AiBenchmark({ memberRows }: { memberRows: RankRow[] }) {
   const rows = await prisma.aiPrediction.findMany({
-    where: { correct: { not: null } },
+    where: { correct: { not: null }, published: true },
     select: { model: true, correct: true },
   });
   const tally = new Map<string, { total: number; hit: number }>();
