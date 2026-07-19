@@ -91,7 +91,7 @@ export default function Footer() {
             </p>
             <p className="mt-2 text-xs leading-relaxed text-neutral-500 dark:text-white/45">
               EPL · 라리가 · 분데스 · 세리에 A · 리그 1 · UCL · MLS · KBO · NPB ·
-              MLB · NBA · NHL · FIFA 월드컵 2026 · LCK
+              MLB · NBA · NHL · LCK
             </p>
             {TELEGRAM_CHANNEL_URL && (
               <a

@@ -8,7 +8,6 @@ import {
   BarChart3,
   Bot,
   ChevronRight,
-  ClipboardList,
   Dice5,
   FileText,
   HeartPulse,
@@ -20,7 +19,6 @@ import {
   Trophy,
 } from "lucide-react";
 import { prisma } from "@/lib/db";
-import { toKoreanTeamName } from "@/lib/team-names";
 import ArticleCard from "@/components/ArticleCard";
 import HeroSection from "@/components/HeroSection";
 import MyTeamsStrip from "@/components/MyTeamsStrip";
@@ -291,9 +289,9 @@ export default async function Home() {
             </Link>
             와{" "}
             <Link href="/world-cup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-              2026 월드컵
-            </Link>{" "}
-            일정·결과·우승 확률도 실시간으로 확인할 수 있습니다.
+              2026 월드컵 결산
+            </Link>
+            도 확인할 수 있습니다.
           </p>
         </section>
       </div>
@@ -340,21 +338,6 @@ async function RecentUpdatesSection() {
       ? `모델이 리그별 고신뢰 임계를 넘긴 매치만 따로 추적 — ${topStrong.map((t) => `${t.league} ${t.rate}%`).join(", ")} 적중. 종료된 모든 매치 백테스트로 검증.`
       : "모델이 리그별 고신뢰 임계를 넘긴 매치만 따로 추적합니다. 실제 적중률은 적중률 보드에서 실시간 공개합니다.";
 
-  // 월드컵 예상 선발 라인업 — 다음 예정 WC 매치로 동적 연결 (1h ISR 로 자동 추적).
-  // 데이터: data/wc-predicted-xi.json (cron-wc-xi.sh 매일 갱신, 46/48개국).
-  const nextWc = await prisma.match.findFirst({
-    where: { league: "WORLD_CUP", status: "SCHEDULED", startTime: { gte: new Date() } },
-    orderBy: { startTime: "asc" },
-    select: {
-      externalId: true,
-      homeTeam: { select: { name: true } },
-      awayTeam: { select: { name: true } },
-    },
-  });
-  const wcXiBody = nextWc
-    ? `${toKoreanTeamName(nextWc.homeTeam.name, "WORLD_CUP")} vs ${toKoreanTeamName(nextWc.awayTeam.name, "WORLD_CUP")}부터 — 최근 국제경기 선발 데이터 가중투표로 46개국 예상 11명 + 신뢰도 표시. 공식 발표(킥오프 ~1시간 전) 시 확정 라인업으로 자동 교체.`
-    : "최근 국제경기 선발 데이터 가중투표로 46개국 예상 11명 + 신뢰도 표시. 공식 발표 시 확정 라인업으로 자동 교체.";
-
   const items: UpdateItem[] = [
     {
       tag: "NEW",
@@ -366,11 +349,11 @@ async function RecentUpdatesSection() {
     },
     {
       tag: "NEW",
-      Icon: ClipboardList,
-      title: "🏆 월드컵 예상 선발 라인업",
-      body: wcXiBody,
-      href: nextWc ? `/live/WORLD_CUP/${nextWc.externalId}` : "/leagues/WORLD_CUP",
-      cta: "다음 경기 예상 라인업 보기",
+      Icon: Bot,
+      title: "커스텀 예측 봇 만들기 — 예측 실험실",
+      body: "우리 AI 의 신호 5개(팀 체급·최근 기세·홈 이점·대중 시선·언더독)를 손잡이로 직접 조절해 나만의 봇을 만들고, 최근 1년 실제 경기로 즉석 백테스트. 저장하면 매일 자동 픽이 생기고 결과로 채점됩니다.",
+      href: "/lab",
+      cta: "내 봇 만들기",
     },
     {
       tag: "NEW",
@@ -534,27 +517,13 @@ function FeaturesSection() {
   );
 }
 
-// 월드컵 배너 카피 — 대회 단계별 자동 전환 (진행 중 라운드 → 종료 후 fallback). revalidate 3600 으로 매시 갱신.
+// 월드컵 배너 카피 — 2026-07-19 결승 종료로 결산 고정 (단계별 자동 전환 로직은 대회 종료로 제거).
 function wcBannerCopy(): { badge: string; title: string; sub: string; href: string } {
-  const kstYmd = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  if (kstYmd > "2026-07-20") {
-    return {
-      badge: "FIFA World Cup 2026",
-      title: "북중미 월드컵 — 대회 종료",
-      sub: "최종 대진표·우승 확률 추이·조별 베스트 XI 다시 보기",
-      href: "/world-cup",
-    };
-  }
-  const round =
-    kstYmd <= "2026-07-04" ? "32강" :
-    kstYmd <= "2026-07-08" ? "16강" :
-    kstYmd <= "2026-07-13" ? "8강" :
-    kstYmd <= "2026-07-17" ? "4강" : "결승";
   return {
-    badge: "FIFA World Cup 2026 · KNOCKOUT",
-    title: `북중미 월드컵 — ${round} 토너먼트 진행 중`,
-    sub: `월드컵 ${round} 대진표·경기 일정(한국시간)·AI 우승 확률 한눈에`,
-    href: "/world-cup?view=bracket",
+    badge: "FIFA World Cup 2026",
+    title: "북중미 월드컵 결산 — 잉글랜드 우승",
+    sub: "최종 대진표·우승 확률 추이·조별 베스트 XI 다시 보기",
+    href: "/world-cup",
   };
 }
 
