@@ -5,7 +5,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   type BaseballContext,
 } from "./BaseballMiniBoard";
@@ -85,7 +85,9 @@ function Logo({ url, name, big }: { url?: string | null; name: string; big?: boo
   // MMA 파이터는 인물 사진이라 크게(big), 팀 로고는 작게.
   const sz = big ? "w-16 h-16 sm:w-24 sm:h-24" : "w-10 h-10 sm:w-12 sm:h-12";
   const imgCls = `${sz} object-contain bg-white rounded-md p-0.5`;
-  if (url) {
+  // ESPN 등 외부 CDN 에 사진이 없는 파이터는 404 → 흰 박스로 남는다. 로드 실패 시 이니셜 placeholder 로 폴백.
+  const [failed, setFailed] = useState(false);
+  if (url && !failed) {
     // Liquipedia (LCK 로고) 는 hotlink Referer 검사로 외부 직접 fetch 불가 →
     // Next.js image optimizer 통해 서버가 fetch 후 재제공해야 표시됨.
     if (url.includes("liquipedia.net")) {
@@ -96,6 +98,7 @@ function Logo({ url, name, big }: { url?: string | null; name: string; big?: boo
           width={96}
           height={96}
           className={imgCls}
+          onError={() => setFailed(true)}
         />
       );
     }
@@ -106,6 +109,7 @@ function Logo({ url, name, big }: { url?: string | null; name: string; big?: boo
         alt=""
         className={imgCls}
         loading="lazy"
+        onError={() => setFailed(true)}
       />
     );
   }
