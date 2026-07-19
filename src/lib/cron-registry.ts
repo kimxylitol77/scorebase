@@ -20,6 +20,8 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "daily-thread", label: "오늘의 픽 스레드", maxAgeH: 28 },
   // 2h 주기 — 기대 2h + 유예 4h = 6h
   { name: "news-briefing", label: "해외 브리핑", maxAgeH: 6 },
+  // 1h 주기 — env 미설정 no-op 도 실행 기록을 남기므로 오탐 없음 (broadcast-channel route)
+  { name: "broadcast-channel", label: "텔레그램 채널 방송", maxAgeH: 6 },
   // 6h 주기 — 기대 6h + 유예 4h = 10h
   { name: "lol-collect", label: "LOL(LCK·EWC) 수집", maxAgeH: 10 },
   { name: "lol-ingame", label: "LOL 인게임 상세 수집", maxAgeH: 10 },

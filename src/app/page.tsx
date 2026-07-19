@@ -103,6 +103,10 @@ const organizationJsonLd = {
   description:
     "AI 데이터 분석 기반 스포츠 미디어 — EPL·NBA·MLB·NHL 프리뷰·리뷰·부상자 명단·매치 인사이트",
   inLanguage: "ko-KR",
+  // sameAs — 공개 소셜 채널 (env 미설정이면 필드 자체를 생략, 죽은 URL 금지)
+  ...(process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL
+    ? { sameAs: [process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL] }
+    : {}),
 };
 
 const websiteJsonLd = {

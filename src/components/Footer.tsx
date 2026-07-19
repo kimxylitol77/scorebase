@@ -70,6 +70,9 @@ const CARD_HEADING = "text-[13px] font-semibold tracking-tight text-zinc-950 dar
 const NAV_LINK =
   "text-[13px] text-neutral-500 transition hover:text-rose-600 dark:text-white/55 dark:hover:text-white";
 
+// 공개 텔레그램 채널 — env 미설정이면 렌더 안 함 (채널 개설 전 죽은 링크 금지)
+const TELEGRAM_CHANNEL_URL = process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL;
+
 export default function Footer() {
   return (
     <footer className="mt-20 break-keep border-t border-black/5 bg-neutral-50 dark:border-white/10 dark:bg-transparent">
@@ -90,6 +93,16 @@ export default function Footer() {
               EPL · 라리가 · 분데스 · 세리에 A · 리그 1 · UCL · MLS · KBO · NPB ·
               MLB · NBA · NHL · FIFA 월드컵 2026 · LCK
             </p>
+            {TELEGRAM_CHANNEL_URL && (
+              <a
+                href={TELEGRAM_CHANNEL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-rose-50 hover:text-rose-700 dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+              >
+                텔레그램 채널 구독
+              </a>
+            )}
           </div>
 
           {/* 카드 2 — 카테고리(종목별 리그) */}

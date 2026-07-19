@@ -307,6 +307,14 @@
     {
       "path": "/api/cron/mlb-weekly-players",
       "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/broadcast-channel?mode=daily",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/broadcast-channel",
+      "schedule": "10 * * * *"
     }
   ]
 }

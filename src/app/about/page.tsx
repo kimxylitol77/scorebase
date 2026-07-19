@@ -29,7 +29,10 @@ export default function AboutPage() {
     logo: `${SITE_URL}/icon.png`,
     description:
       "EPL · NBA · MLB · NHL · 유럽 5대 리그 · 챔피언스리그 · MLS 의 경기 결과·프리뷰·시즌 시뮬레이션을 데이터 기반으로 매일 자동 정리하는 스포츠 미디어.",
-    sameAs: [],
+    // 공개 소셜 채널 (env 미설정이면 빈 배열 유지 — 죽은 URL 금지)
+    sameAs: process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL
+      ? [process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_URL]
+      : [],
     foundingDate: "2026",
   };
   return (

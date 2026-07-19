@@ -69,6 +69,31 @@ export async function sendTelegramTo(
   }
 }
 
+// 사용자 대면 봇(USER_BOT_TOKEN)으로 임의 chat(공개 채널 포함)에 사진+캡션 전송.
+// sendTelegramTo 와 동일 패턴 — 반환: 성공 여부(발송 로그 기록 판단에 사용).
+export async function sendTelegramPhotoTo(
+  chatId: string,
+  photoUrl: string,
+  caption: string,
+): Promise<boolean> {
+  const token = process.env.USER_BOT_TOKEN;
+  if (!token) {
+    console.warn("[telegram] USER_BOT_TOKEN 미설정 — 사진 전송을 건너뜁니다.");
+    return false;
+  }
+  try {
+    await axios.post(
+      `https://api.telegram.org/bot${token}/sendPhoto`,
+      { chat_id: chatId, photo: photoUrl, caption },
+      { timeout: 15000 },
+    );
+    return true;
+  } catch (err) {
+    console.error("[telegram] 사진 전송 실패:", (err as Error).message);
+    return false;
+  }
+}
+
 /**
  * 이미지(공개 URL) + 캡션을 텔레그램으로 전송. SNS(인스타·스레드) 수동 게시용 카드 배달.
  */
