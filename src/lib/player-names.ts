@@ -2009,11 +2009,12 @@ export function toKoreanPlayerName(name: string | undefined | null): string {
   // 리그별 전용 사전 우선 lookup — API-Football roman / BDL / ESPN 표기 매핑
   if (K_LEAGUE_PLAYER_NAMES_KO[trimmed]) return K_LEAGUE_PLAYER_NAMES_KO[trimmed];
   if (J_LEAGUE_PLAYER_NAMES_KO[trimmed]) return J_LEAGUE_PLAYER_NAMES_KO[trimmed];
-  if (NBA_PLAYER_NAMES_KO[trimmed]) return NBA_PLAYER_NAMES_KO[trimmed];
+  // 위키 표제어(정본, build-salary-names-wiki.ts 동기) > 수동 사전 > 음역 순.
   if (NBA_PLAYER_NAMES_WIKI_KO[trimmed]) return NBA_PLAYER_NAMES_WIKI_KO[trimmed];
+  if (NBA_PLAYER_NAMES_KO[trimmed]) return NBA_PLAYER_NAMES_KO[trimmed];
   if (NBA_PLAYER_NAMES_HAIKU_KO[trimmed]) return NBA_PLAYER_NAMES_HAIKU_KO[trimmed];
-  if (NHL_PLAYER_NAMES_KO[trimmed]) return NHL_PLAYER_NAMES_KO[trimmed];
   if (NHL_PLAYER_NAMES_WIKI_KO[trimmed]) return NHL_PLAYER_NAMES_WIKI_KO[trimmed];
+  if (NHL_PLAYER_NAMES_KO[trimmed]) return NHL_PLAYER_NAMES_KO[trimmed];
   if (NHL_INJURY_NAMES_HAIKU_KO[trimmed]) return NHL_INJURY_NAMES_HAIKU_KO[trimmed];
   if (WNBA_PLAYER_NAMES_KO[trimmed]) return WNBA_PLAYER_NAMES_KO[trimmed];
   if (MLB_PLAYER_NAMES_KO[trimmed]) return MLB_PLAYER_NAMES_KO[trimmed];

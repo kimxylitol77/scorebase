@@ -1,12 +1,13 @@
 // /salaries/mlb — MLB 선수 연봉 랭킹 (USD + 한화 환산, 25명 페이지네이션).
-// 데이터: spotrac → PlayerSalary(MLB) (cron fetch-salaries). 선수 한글명·팀 = TheSportsPlayer(MLB) 매칭.
-// ⚠️ MLB 선수 사진 소스가 없어 이니셜 fallback (NBA 는 ESPN headshot). 이름 매칭 ~69%(표기차 영문 유지).
+// 데이터: spotrac → PlayerSalary(MLB) (cron fetch-salaries). 선수 한글명 = 위키 사전(정본) > TheSportsPlayer > toKoreanPlayerName.
+// ⚠️ MLB 선수 사진 소스가 없어 이니셜 fallback (NBA 는 ESPN headshot).
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { MLB_PLAYER_NAMES_KO } from "@/lib/sports/mlb-player-names";
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
@@ -204,7 +205,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
   const season = rows[0]?.season ?? String(new Date().getUTCFullYear());
   const teamKo = teamParam ? (toKoreanTeamName(teamParam, "MLB") ?? teamParam) : null;
 
-  // 선수 한글명 = TheSportsPlayer(MLB) 매칭 (~69%).
+  // 선수 한글명 2순위 소스 = TheSportsPlayer(MLB) 매칭 (1순위는 위키 사전).
   const names = rows.map((r) => r.playerName);
   const tsP = names.length
     ? await prisma.theSportsPlayer.findMany({
@@ -281,7 +282,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                 {rows.map((r) => {
                   const top3 = r.rank <= 3;
                   const p = pMap.get(r.playerName);
-                  const display = p?.nameKo ?? toKoreanPlayerName(r.playerName);
+                  const display = MLB_PLAYER_NAMES_KO[r.playerName] ?? p?.nameKo ?? toKoreanPlayerName(r.playerName);
                   const team = r.teamName ? toKoreanTeamName(r.teamName, "MLB") : null;
                   const teamLogo = r.teamName ? teamLogoMap.get(r.teamName) ?? null : null;
                   // 사진 URL(mlbstatic headshot)의 mlbamId → 통일 선수 페이지(/players/[pid], MLB 기본)

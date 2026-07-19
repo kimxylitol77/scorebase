@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { lookupNbaPlayer, nbaPlayerHref } from "@/lib/sports/nba-players";
+import { toKoreanPlayerName } from "@/lib/player-names";
 import { nbaEspnLogo } from "@/lib/sports/nba-logos";
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -198,7 +199,9 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                 {rows.map((r) => {
                   const top3 = r.rank <= 3;
                   const info = lookupNbaPlayer(r.playerName);
-                  const display = info?.ko ?? r.playerName;
+                  // 위키 사전(정본) 우선 — 미등재만 로스터 json ko(음역 포함) fallback.
+                  const dictKo = toKoreanPlayerName(r.playerName);
+                  const display = dictKo !== r.playerName ? dictKo : info?.ko ?? r.playerName;
                   const href = nbaPlayerHref(info);
                   const teamLogo = nbaEspnLogo(r.teamName);
                   const age = calcAge(info?.birthday ? new Date(info.birthday * 1000) : null);

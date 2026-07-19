@@ -1,6 +1,6 @@
 // /salaries/nhl — NHL 선수 연봉(cap hit) 랭킹 (USD + 한화 환산, 25명 페이지네이션).
 // 데이터: CapWages → PlayerSalary(NHL) (cron fetch-salaries). 사진·선수 링크 = nhle 머그샷(URL 에 player id).
-// ⚠️ 선수 한글명은 보유분(nhl-player-names)만, 나머지 영문. 팀·로고 = DB Team(NHL) 풀네임 매칭.
+// 선수 한글명 = 위키 사전(정본) > haiku json > 영문. 팀·로고 = DB Team(NHL) 풀네임 매칭.
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
@@ -249,7 +249,9 @@ export default async function NhlSalariesPage({ searchParams }: Props) {
                 {rows.map((r) => {
                   const top3 = r.rank <= 3;
                   const nhlId = nhlIdFromPhoto(r.photoUrl);
-                  const display = (nhlId ? nhlPlayerKo(nhlId) : "") || toKoreanPlayerName(r.playerName);
+                  // 위키 사전(정본) 우선 — 미등재만 haiku json(ts-id 키라 사실상 미스) → 영문 fallback.
+                  const dictKo = toKoreanPlayerName(r.playerName);
+                  const display = dictKo !== r.playerName ? dictKo : (nhlId ? nhlPlayerKo(nhlId) : "") || r.playerName;
                   const team = r.teamName ? toKoreanTeamName(r.teamName, "NHL") : null;
                   const teamLogo = r.teamName ? teamLogoMap.get(r.teamName) ?? null : null;
                   const href = nhlId ? `/players/${nhlId}?league=NHL` : null;
