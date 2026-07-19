@@ -4,6 +4,8 @@
 import { createHash } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/claude";
+import { toKoreanTeamName } from "@/lib/team-names";
+import { toKoreanPlayerName } from "@/lib/player-names";
 
 const BRIEFING_MODEL = process.env.BRIEFING_MODEL ?? "claude-sonnet-5";
 
@@ -88,12 +90,87 @@ function teamKeyOf(toTeam: string | null | undefined): string {
 function dealKey(player: string, toTeam: string | null | undefined): string {
   return `${nameTokens(player).pop() ?? ""}|${teamKeyOf(toTeam)}`;
 }
-// 한글 표기 수동 교정 — haiku 음역 오기 반복분 (player-name-manual-fix 패턴)
-const KO_NAME_FIX: Record<string, string> = { 촉아메니: "추아메니", "나선 아케": "네이선 아케" };
+// 한글 표기 수동 교정 — haiku 음역 오기 반복분 (player-name-manual-fix 패턴).
+// 같은 행 안에서도 필드="아르센날"·요약="아르세날" 식으로 갈려 사전 치환이 못 잡는
+// 변형들이라, 실제 관측된 오기만 등록한다 (2026-07-19 전수 교정에서 수집).
+const KO_NAME_FIX: Record<string, string> = {
+  촉아메니: "추아메니",
+  츠와메니: "추아메니",
+  "나선 아케": "네이선 아케",
+  아르세날: "아스널",
+  아르센날: "아스널",
+  아르센알: "아스널",
+  아르센널: "아스널",
+  아르sennal: "아스널",
+  "애스턴 빌라": "아스톤 빌라",
+  "크리스탈 팰리스": "크리스털 팰리스",
+  펜에르바흐체: "페네르바체",
+  페네르바흐체: "페네르바체",
+  레스터시티: "레스터 시티",
+};
 function fixKo(s: string): string {
   let out = s;
   for (const [bad, good] of Object.entries(KO_NAME_FIX)) out = out.split(bad).join(good);
   return out;
+}
+
+// ── 사전 교정 — LLM 음역을 큐레이션 사전 공식 표기로 교체 ────────────────
+// haiku 음역이 "아르센알/아르센널/아르sennal" 식으로 매번 흔들려 수동 테이블로는 못 잡는다.
+// 영문 원본(playerName/fromTeam/toTeam)을 사전에 조회해 hit 이면 ko 필드와 summaryKo 안의
+// 동일 표기를 함께 치환한다. miss 면 LLM 표기 유지. _fix-rumor-ko-names.ts 재교정에서도 사용.
+
+// 치환 후 조사 정합 — "버밍엄으로"→"버밍엄 시티로" 처럼 새 표기 받침에 조사를 맞춘다.
+const JOSA_PAIRS: Array<[string, string]> = [["이", "가"], ["은", "는"], ["을", "를"], ["과", "와"]];
+function lastBatchim(word: string): number {
+  const code = word.charCodeAt(word.length - 1);
+  if (code < 0xac00 || code > 0xd7a3) return 0; // 한글 아니면 받침 없음 취급 (FC 등)
+  return (code - 0xac00) % 28;
+}
+function josaFor(word: string, josa: string): string {
+  const b = lastBatchim(word);
+  if (josa === "으로" || josa === "로") return b !== 0 && b !== 8 ? "으로" : "로"; // ㄹ받침=로
+  const pair = JOSA_PAIRS.find(([a, c]) => a === josa || c === josa);
+  return pair ? (b !== 0 ? pair[0] : pair[1]) : josa;
+}
+function swapWithJosa(text: string, bad: string, good: string): string {
+  const esc = bad.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return text.replace(new RegExp(`${esc}(으로|이|가|은|는|을|를|과|와|로)?`, "g"), (_, josa?: string) =>
+    josa ? good + josaFor(good, josa) : good,
+  );
+}
+export function canonicalizeRumorKo(d: {
+  player: string;
+  playerKo: string;
+  fromTeam?: string | null;
+  fromKo?: string | null;
+  toTeam?: string | null;
+  toKo?: string | null;
+  summaryKo: string;
+}): { playerKo: string; fromKo: string | null; toKo: string | null; summaryKo: string } {
+  const swaps: Array<[string, string]> = [];
+  const canonTeam = (en?: string | null, ko?: string | null): string | null => {
+    if (!en) return ko ?? null;
+    const dict = toKoreanTeamName(en);
+    if (dict === en.trim()) return ko ?? null; // 사전 miss
+    if (ko && ko !== dict) swaps.push([ko, dict]);
+    return dict;
+  };
+  const fromKo = canonTeam(d.fromTeam, d.fromKo);
+  const toKo = canonTeam(d.toTeam, d.toKo);
+  let playerKo = d.playerKo;
+  const pDict = toKoreanPlayerName(d.player);
+  if (pDict !== d.player.trim() && pDict !== playerKo) {
+    swaps.push([playerKo, pDict]);
+    // 요약이 성(姓)만 쓰는 경우 대비 — 마지막 토큰 치환 (1자는 오치환 위험이라 제외)
+    const oldLast = playerKo.split(/\s+/).pop() ?? "";
+    const newLast = pDict.split(/\s+/).pop() ?? "";
+    if (oldLast.length >= 2 && oldLast !== newLast) swaps.push([oldLast, newLast]);
+    playerKo = pDict;
+  }
+  let summaryKo = d.summaryKo;
+  swaps.sort((a, b) => b[0].length - a[0].length); // 긴 표기 먼저 — 부분 문자열 오치환 방지
+  for (const [bad, good] of swaps) summaryKo = swapWithJosa(summaryKo, bad, good);
+  return { playerKo: fixKo(playerKo), fromKo, toKo, summaryKo: fixKo(summaryKo) };
 }
 
 // ── stage 보수 클램프 — LLM 주장을 원문구 근거로 하향만 ─────────────────
@@ -205,10 +282,19 @@ export async function extractTransferRumors(items: RumorInput[], opts: { dry?: b
   let upserted = 0;
   for (const { c, item, fullPlayer, fullPlayerKo } of merged) {
     const stage = clampStage(c.stage, item);
+    const ko = canonicalizeRumorKo({
+      player: fullPlayer,
+      playerKo: fullPlayerKo,
+      fromTeam: c.fromTeam,
+      fromKo: c.fromKo,
+      toTeam: c.toTeam,
+      toKo: c.toKo,
+      summaryKo: c.summaryKo!,
+    });
     // 강한 주장은 sonnet 검증 통과해야 반영 — 불합격이면 딜 자체를 드롭
     if (STAGE_RANK[stage] >= 3) {
       const ok = await verifyStrongClaim(
-        { player: fullPlayer, fromTeam: c.fromTeam ?? null, toTeam: c.toTeam ?? null, stage, summaryKo: c.summaryKo! },
+        { player: fullPlayer, fromTeam: c.fromTeam ?? null, toTeam: c.toTeam ?? null, stage, summaryKo: ko.summaryKo },
         item,
       );
       if (!ok) {
@@ -217,7 +303,7 @@ export async function extractTransferRumors(items: RumorInput[], opts: { dry?: b
       }
     }
     if (dry) {
-      console.log(`[rumors] DRY: ${stage} ${fixKo(fullPlayerKo)} (${fullPlayer}) ${c.fromKo ?? c.fromTeam ?? "?"}→${c.toKo ?? c.toTeam ?? "?"} ${c.fee ?? ""} :: ${c.summaryKo} [${item.sourceName}]`);
+      console.log(`[rumors] DRY: ${stage} ${ko.playerKo} (${fullPlayer}) ${ko.fromKo ?? c.fromTeam ?? "?"}→${ko.toKo ?? c.toTeam ?? "?"} ${c.fee ?? ""} :: ${ko.summaryKo} [${item.sourceName}]`);
       upserted++;
       continue;
     }
@@ -234,15 +320,15 @@ export async function extractTransferRumors(items: RumorInput[], opts: { dry?: b
       create: {
         id,
         playerName: fullPlayer,
-        playerKo: fixKo(fullPlayerKo),
+        playerKo: ko.playerKo,
         fromTeam: c.fromTeam ?? null,
         toTeam: c.toTeam ?? null,
-        fromTeamKo: c.fromKo ?? null,
-        toTeamKo: c.toKo ?? null,
+        fromTeamKo: ko.fromKo,
+        toTeamKo: ko.toKo,
         stage,
         fee: c.fee ?? null,
         league: c.league ?? null,
-        summaryKo: fixKo(c.summaryKo!),
+        summaryKo: ko.summaryKo,
         sourceName: item.sourceName,
         sourceUrl: item.link,
         publishedAt: item.publishedAt,
@@ -250,7 +336,7 @@ export async function extractTransferRumors(items: RumorInput[], opts: { dry?: b
       update: {
         stage,
         fee: c.fee ?? undefined,
-        summaryKo: fixKo(c.summaryKo!),
+        summaryKo: ko.summaryKo,
         sourceName: item.sourceName,
         sourceUrl: item.link,
         publishedAt: item.publishedAt,
