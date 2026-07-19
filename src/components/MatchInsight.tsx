@@ -62,6 +62,8 @@ import SeasonFormHeatmap from "./charts/SeasonFormHeatmap";
 import TeamMatchup from "./TeamMatchup";
 import MatchInsightTabs, { type InsightTab } from "./MatchInsightTabs";
 import MatchStatsCard from "./MatchStatsCard";
+import MatchSimulator from "./MatchSimulator";
+import { simSupportedLeague } from "@/lib/predict/match-sim";
 
 interface Props {
   match: {
@@ -772,6 +774,13 @@ export default async function MatchInsight({
       <div className="space-y-6">{matchupSubsections}</div>
     ) : null;
 
+  // 5,000회 시뮬 버튼 — 지원 종목 + 저장 pred 3필드 전부 있을 때만 (표시 확률=저장값 보장)
+  const simEnabled =
+    simSupportedLeague(match.league) &&
+    match.predHome != null &&
+    match.predDraw != null &&
+    match.predAway != null;
+
   // === AI 예측 탭 — 항상 표시 ===
   const predictContent = (
     <div className="space-y-6">
@@ -785,6 +794,16 @@ export default async function MatchInsight({
           hideDraw={hideDraw}
         />
       </Section>
+      {simEnabled && (
+        <Section title="모델 시뮬레이터">
+          <MatchSimulator
+            matchId={match.id}
+            homeName={toKoreanTeamName(match.homeTeam.name)}
+            awayName={toKoreanTeamName(match.awayTeam.name)}
+            hideDraw={hideDraw}
+          />
+        </Section>
+      )}
       <Section title="이 예측의 근거">
         <div className="rounded-[1rem] bg-zinc-50 p-4 ring-1 ring-black/5 dark:bg-white/[0.04] dark:ring-white/10 space-y-2">
           {predBasis.map((b) => (
