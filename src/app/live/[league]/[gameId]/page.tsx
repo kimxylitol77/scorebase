@@ -323,12 +323,14 @@ export default async function GenericLivePage({ params }: Props) {
 
   // api-football /predictions + /teams/statistics — 친선·예선처럼 리그 standings
   // 없는 매치의 정보 빈약 보완. fetch native cache 로 호출 부담 최소화.
-  // 시작 48h 지난 비라이브 매치는 af 4콜 생략 — 크롤러가 과거 매치 페이지를 대량
-  // 순회하며 af 일 한도(75k)를 매일 소진시키는 주범이라 지혈. 예측·시즌통계·라운드는
-  // 종료 후엔 부가 정보라 생략해도 본문(스코어·이벤트·리포트)은 그대로 유지된다.
+  // 킥오프 D-7 ~ 종료+48h 창 밖 비라이브 매치는 af 5콜 생략 — 크롤러가 과거 매치와
+  // 새 시즌 backfill 미래 fixture(D+7 밖 7.5k 페이지)를 대량 순회하며 af 일 한도(75k)를
+  // 매일 소진시키는 주범이라 지혈. 예측·배당·시즌통계·라운드는 킥오프 임박에만 의미 있는
+  // 부가 정보라 생략해도 본문(스코어·이벤트·리포트)은 그대로 유지된다.
+  const msFromKickoff = Date.now() - match.startTime.getTime();
   const afRecent =
     match.status === "LIVE" ||
-    Date.now() - match.startTime.getTime() < 48 * 3600_000;
+    (msFromKickoff > -7 * 86400_000 && msFromKickoff < 48 * 3600_000);
   const afLeagueId = isSoccer ? API_FOOTBALL_LEAGUE_ID[lg] : undefined;
   const afSeason = match.startTime.getUTCFullYear();
   const homeAfExtId = isSoccer ? match.homeTeam.externalId : null;

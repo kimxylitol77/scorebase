@@ -1678,7 +1678,12 @@ export default async function ScoresPage({ searchParams }: Props) {
   // (청소년 친선·군소 리그 등 collect 큐레이션 대상 외 → DB 미적재.) live=all 만 쓰면 종료 후
   // 사라지므로, 날짜 기반 조회로 라이프사이클(예정→라이브→종료) 전부 표시.
   const sportIncludesSoccer = sport === "soccer" || sport === "all";
-  const datedSoccer: DatedMatch[] = sportIncludesSoccer
+  // orphan af 조회는 오늘-2 ~ 오늘+7 창만 — 크롤러가 날짜 페이지네이션을 무한 순회하며
+  // 날짜당 af 2콜(UTC 2일 조회)을 태우는 것 차단. 창 밖 날짜는 DB 매치만으로 충분
+  // (orphan 은 경기 임박·직후에만 의미, af 일 한도 소진 지혈의 일부).
+  const dayDiff =
+    (new Date(`${dateStr}T00:00:00+09:00`).getTime() - Date.now()) / 86400_000;
+  const datedSoccer: DatedMatch[] = sportIncludesSoccer && dayDiff > -3 && dayDiff < 7
     ? await fetchSoccerByDateCached(dateStr)
     : [];
   const dbExtIds = new Set(matches.map((m) => m.externalId)); // DB 매치와 중복 제거용
