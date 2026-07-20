@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function UfcRankingsPage() {
   const rows = await prisma.mmaRanking.findMany({ orderBy: { sortOrder: "asc" } });
 
-  const categories: RankCategory[] = rows.map((r) => ({
+  const parsed = rows.map((r) => ({
     slug: r.slug,
     displayName: r.displayName,
     gender: r.gender as "M" | "F",
@@ -26,6 +26,33 @@ export default async function UfcRankingsPage() {
     sortOrder: r.sortOrder,
     champion: r.champion ? (JSON.parse(r.champion) as RankedFighter) : null,
     ranks: JSON.parse(r.ranks) as RankedFighter[],
+  }));
+
+  // 랭킹 JSON엔 espnId 필드가 없어 headshot URL(.../full/{espnId}.png)에서 추출 → teamId 매핑(파이터 상세 링크)
+  const espnIdFromHeadshot = (url: string | null): string | null => url?.match(/\/full\/(\d+)\.png/)?.[1] ?? null;
+  const espnIds = new Set<string>();
+  for (const c of parsed) {
+    const ce = espnIdFromHeadshot(c.champion?.headshot ?? null);
+    if (ce) espnIds.add(ce);
+    for (const f of c.ranks) {
+      const e = espnIdFromHeadshot(f.headshot);
+      if (e) espnIds.add(e);
+    }
+  }
+  const fighters = espnIds.size
+    ? await prisma.mmaFighter.findMany({ where: { espnId: { in: [...espnIds] } }, select: { espnId: true, teamId: true } })
+    : [];
+  const teamIdByEspn = new Map(fighters.map((f) => [f.espnId!, f.teamId]));
+  const withHref = (f: RankedFighter): RankedFighter => {
+    const e = espnIdFromHeadshot(f.headshot);
+    const tid = e ? teamIdByEspn.get(e) : undefined;
+    return tid != null ? { ...f, href: `/ufc/fighters/${tid}` } : f;
+  };
+
+  const categories: RankCategory[] = parsed.map((c) => ({
+    ...c,
+    champion: c.champion ? withHref(c.champion) : null,
+    ranks: c.ranks.map(withHref),
   }));
 
   return (

@@ -287,5 +287,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }));
 
-  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages, ...teamPages];
+  // UFC 파이터 상세 — 전적·체급 데이터 있는 파이터만 (thin 회피). id = teamId.
+  const ufcFighters = await prisma.mmaFighter.findMany({
+    where: { OR: [{ record: { not: null } }, { category: { not: null } }] },
+    select: { teamId: true, updatedAt: true },
+  });
+  const ufcFighterPages: MetadataRoute.Sitemap = ufcFighters.map((f) => ({
+    url: `${base}/ufc/fighters/${f.teamId}`,
+    lastModified: f.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.55,
+  }));
+
+  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages, ...teamPages, ...ufcFighterPages];
 }

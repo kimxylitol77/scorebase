@@ -1,6 +1,7 @@
 "use client";
 // UFC 랭킹 인터랙티브 뷰 — 체급 탭 선택 + 챔피언 카드 + 컨텐더 리스트. 데이터는 서버에서 주입.
 import { useState } from "react";
+import Link from "next/link";
 
 export interface RankedFighter {
   rank: number; // 챔피언은 0
@@ -8,6 +9,7 @@ export interface RankedFighter {
   nameKo: string | null;
   record: string | null;
   headshot: string | null;
+  href?: string; // /ufc/fighters/{teamId} — 서버에서 headshot→espnId→teamId resolve 성공 시 주입
 }
 export interface RankCategory {
   slug: string;
@@ -85,7 +87,13 @@ export default function UfcRankingsView({ categories }: { categories: RankCatego
             <div className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
               🏆 챔피언
             </div>
-            <div className="truncate text-lg font-black">{active.champion.nameKo ?? active.champion.name}</div>
+            {active.champion.href ? (
+              <Link href={active.champion.href} className="block truncate text-lg font-black hover:underline">
+                {active.champion.nameKo ?? active.champion.name}
+              </Link>
+            ) : (
+              <div className="truncate text-lg font-black">{active.champion.nameKo ?? active.champion.name}</div>
+            )}
             {active.champion.record && (
               <div className="text-sm tabular-nums text-neutral-500">{active.champion.record}</div>
             )}
@@ -102,7 +110,13 @@ export default function UfcRankingsView({ categories }: { categories: RankCatego
           >
             <span className="w-6 shrink-0 text-center text-sm font-black tabular-nums text-neutral-400">{f.rank}</span>
             <Avatar f={f} size={36} />
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold">{f.nameKo ?? f.name}</span>
+            {f.href ? (
+              <Link href={f.href} className="min-w-0 flex-1 truncate text-sm font-semibold hover:underline">
+                {f.nameKo ?? f.name}
+              </Link>
+            ) : (
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold">{f.nameKo ?? f.name}</span>
+            )}
             {f.record && <span className="shrink-0 text-xs tabular-nums text-neutral-400">{f.record}</span>}
           </div>
         ))}
