@@ -52,9 +52,9 @@ export default function WcBracket({ slots, koreaTeamId }: { slots: BracketSlot[]
     <div className="space-y-4">
       {champion && (
         <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] shadow-sm">
-          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600" />
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_60%)]" />
-          <div className="flex flex-col gap-1.5 px-5 py-5 text-white sm:flex-row sm:items-center sm:gap-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_60%)]" />
+          <div className="relative flex flex-col gap-1.5 px-5 py-5 text-white sm:flex-row sm:items-center sm:gap-4">
             <Trophy className="h-9 w-9 shrink-0 drop-shadow" aria-hidden />
             <div>
               <div className="text-[11px] font-bold uppercase tracking-[0.25em] opacity-85">
