@@ -962,6 +962,30 @@ export async function fetchSeasonFixtures(
   }
 }
 
+// ===== 승부차기 스코어 오염 가드 =====
+
+export interface AfScoreBreakdown {
+  fulltime?: { home?: number | null; away?: number | null } | null;
+  extratime?: { home?: number | null; away?: number | null } | null;
+}
+
+// af 기벽: 승부차기 진행 중/직후(status.short "P"/"PEN") fixtures 의 goals 에 승부차기
+// 스코어가 실리는 경우가 있다 (예: ft 1-1 pen 5-4 경기가 goals 5-4 — 2026-07-20 피해 13건).
+// → score.fulltime + score.extratime(연장 "단독" 골수) 합으로 승부차기 제외 최종 스코어 재구성.
+// AET 는 goals 가 연장 포함 정상값이라 대상 아님 (2026-07-20 WC 실데이터 확인).
+export function afGoalsExcludingShootout(
+  statusShort: string | null | undefined,
+  goals: { home?: number | null; away?: number | null } | null | undefined,
+  score?: AfScoreBreakdown | null,
+): { home: number | null; away: number | null } {
+  const raw = { home: goals?.home ?? null, away: goals?.away ?? null };
+  if (statusShort !== "PEN" && statusShort !== "P") return raw;
+  const ft = score?.fulltime;
+  if (ft?.home == null || ft?.away == null) return raw; // score 미제공 → 기존 동작 유지
+  const et = score?.extratime;
+  return { home: ft.home + (et?.home ?? 0), away: ft.away + (et?.away ?? 0) };
+}
+
 // ===== 경기별 출전 로그 수집 (출전기록 탭) =====
 
 export interface AfFixtureRich {
@@ -997,8 +1021,12 @@ export async function fetchFixturesByLeagueId(
         const teams = (r.teams as Record<string, unknown>) ?? {};
         const home = (teams.home as Record<string, unknown>) ?? {};
         const away = (teams.away as Record<string, unknown>) ?? {};
-        const goals = (r.goals as Record<string, unknown>) ?? {};
         const status = ((fx.status as Record<string, unknown>) ?? {}).short as string | undefined;
+        const g = afGoalsExcludingShootout(
+          status,
+          r.goals as { home?: number | null; away?: number | null } | undefined,
+          r.score as AfScoreBreakdown | undefined,
+        );
         return {
           id: fx.id as number,
           dateMs: new Date(fx.date as string).getTime(),
@@ -1010,8 +1038,8 @@ export async function fetchFixturesByLeagueId(
           awayId: away.id as number,
           awayName: (away.name as string) ?? "",
           awayLogo: away.logo as string | undefined,
-          homeScore: (goals.home as number) ?? null,
-          awayScore: (goals.away as number) ?? null,
+          homeScore: g.home,
+          awayScore: g.away,
           _finished: ["FT", "AET", "PEN"].includes(status ?? ""),
         };
       })

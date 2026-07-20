@@ -12,7 +12,7 @@
 
 // Edge Runtime 호환을 위해 fetch 사용 (axios 제거).
 import { unstable_cache } from "next/cache";
-import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
+import { API_FOOTBALL_LEAGUE_ID, afGoalsExcludingShootout } from "./api-football-pro";
 import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -149,6 +149,10 @@ interface AFFixtureResp {
       away: { id: number; name: string; logo?: string };
     };
     goals: { home: number | null; away: number | null };
+    score?: {
+      fulltime?: { home: number | null; away: number | null };
+      extratime?: { home: number | null; away: number | null };
+    };
   }>;
 }
 
@@ -198,6 +202,7 @@ async function fetchSoccerLiveUncached(): Promise<LiveMatch[]> {
       .map((f): LiveMatch | null => {
         const code = AF_ID_TO_CODE[f.league.id];
         if (!code) return null; // 우리가 지원하는 12리그 외 제외
+        const g = afGoalsExcludingShootout(f.fixture.status.short, f.goals, f.score);
         return {
           id: `af-${f.fixture.id}`,
           league: code,
@@ -208,8 +213,8 @@ async function fetchSoccerLiveUncached(): Promise<LiveMatch[]> {
           awayShort: shortName(f.teams.away.name, code),
           homeLogo: f.teams.home.logo ?? null,
           awayLogo: f.teams.away.logo ?? null,
-          homeScore: f.goals.home ?? 0,
-          awayScore: f.goals.away ?? 0,
+          homeScore: g.home ?? 0,
+          awayScore: g.away ?? 0,
           statusLabel: soccerStatusLabel(
             f.fixture.status.short,
             f.fixture.status.elapsed,
@@ -310,6 +315,7 @@ export async function fetchSoccerByDate(kstDateStr: string): Promise<DatedMatch[
       const id = `af-${f.fixture.id}`;
       if (seen.has(id)) continue;
       seen.add(id);
+      const g = afGoalsExcludingShootout(f.fixture.status.short, f.goals, f.score);
       out.push({
         id,
         league: code,
@@ -320,8 +326,8 @@ export async function fetchSoccerByDate(kstDateStr: string): Promise<DatedMatch[
         awayShort: shortName(f.teams.away.name, code),
         homeLogo: f.teams.home.logo ?? null,
         awayLogo: f.teams.away.logo ?? null,
-        homeScore: f.goals.home ?? 0,
-        awayScore: f.goals.away ?? 0,
+        homeScore: g.home ?? 0,
+        awayScore: g.away ?? 0,
         statusLabel: soccerStatusLabel(f.fixture.status.short, f.fixture.status.elapsed),
         startTime: f.fixture.date,
         status: soccerEffStatus(f.fixture.status.short),

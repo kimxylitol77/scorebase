@@ -3,7 +3,7 @@
 // API_FOOTBALL_LEAGUE_ID 에 등록된 리그면 빌더로 즉시 collector 생성.
 
 import axios from "axios";
-import { API_FOOTBALL_LEAGUE_ID } from "./api-football-pro";
+import { API_FOOTBALL_LEAGUE_ID, afGoalsExcludingShootout } from "./api-football-pro";
 import type {
   League,
   MatchCollector,
@@ -43,6 +43,10 @@ interface ApiFixture {
     away: { id: number; name: string; logo?: string };
   };
   goals: { home: number | null; away: number | null };
+  score?: {
+    fulltime?: { home: number | null; away: number | null };
+    extratime?: { home: number | null; away: number | null };
+  };
 }
 
 /** date 가 속한 시즌 연도 — 달력 연도 vs 유럽 7월~6월 vs 단일 토너먼트. */
@@ -101,6 +105,7 @@ function seasonFor(league: League, date: string): number {
 }
 
 function toNormalized(league: League, f: ApiFixture): NormalizedMatch {
+  const g = afGoalsExcludingShootout(f.fixture?.status?.short, f.goals, f.score);
   return {
     league,
     externalId: String(f.fixture.id),
@@ -114,8 +119,8 @@ function toNormalized(league: League, f: ApiFixture): NormalizedMatch {
       name: f.teams.away.name,
       logoUrl: f.teams.away.logo,
     },
-    homeScore: f.goals?.home ?? undefined,
-    awayScore: f.goals?.away ?? undefined,
+    homeScore: g.home ?? undefined,
+    awayScore: g.away ?? undefined,
     status: mapStatus(f.fixture?.status?.short ?? ""),
     startTime: new Date(f.fixture.date),
     referee: f.fixture.referee ?? undefined,

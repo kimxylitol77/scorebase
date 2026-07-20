@@ -13,6 +13,7 @@ import { prisma } from "@/lib/db";
 import { sendTelegram } from "@/lib/notify/telegram";
 import { rejectPreviewsForPostponed } from "@/lib/reject-stale-previews";
 import { API_FOOTBALL_LEAGUES } from "@/lib/sports";
+import { afGoalsExcludingShootout } from "@/lib/sports/api-football-pro";
 import {
   ESPN_BASKETBALL_SLUG,
   verifyEspnBasketball,
@@ -111,16 +112,21 @@ async function fetchApiFootballStatuses(
         response?: Array<{
           fixture?: { id?: number; date?: string; status?: { short?: string } };
           goals?: { home?: number | null; away?: number | null };
+          score?: {
+            fulltime?: { home?: number | null; away?: number | null };
+            extratime?: { home?: number | null; away?: number | null };
+          };
         }>;
       };
       for (const f of data?.response ?? []) {
         const fid = f.fixture?.id != null ? String(f.fixture.id) : null;
         const short = f.fixture?.status?.short ?? "";
         if (!fid || !short) continue;
+        const g = afGoalsExcludingShootout(short, f.goals, f.score);
         result.set(fid, {
           short,
-          goalsHome: f.goals?.home ?? null,
-          goalsAway: f.goals?.away ?? null,
+          goalsHome: g.home,
+          goalsAway: g.away,
           date: f.fixture?.date ?? null,
         });
       }

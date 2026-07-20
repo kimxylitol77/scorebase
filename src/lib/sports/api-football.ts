@@ -1,4 +1,5 @@
 import axios from "axios";
+import { afGoalsExcludingShootout } from "./api-football-pro";
 import type {
   MatchCollector,
   MatchStatus,
@@ -50,24 +51,27 @@ export const eplCollector: MatchCollector = {
 
     const fixtures = (data?.response ?? []) as any[];
 
-    return fixtures.map((f): NormalizedMatch => ({
-      league: "EPL",
-      externalId: String(f.fixture.id),
-      homeTeam: {
-        externalId: String(f.teams.home.id),
-        name: f.teams.home.name,
-        logoUrl: f.teams.home.logo,
-      },
-      awayTeam: {
-        externalId: String(f.teams.away.id),
-        name: f.teams.away.name,
-        logoUrl: f.teams.away.logo,
-      },
-      homeScore: f.goals?.home ?? undefined,
-      awayScore: f.goals?.away ?? undefined,
-      status: mapStatus(f.fixture?.status?.short ?? ""),
-      startTime: new Date(f.fixture.date),
-      raw: f,
-    }));
+    return fixtures.map((f): NormalizedMatch => {
+      const g = afGoalsExcludingShootout(f.fixture?.status?.short, f.goals, f.score);
+      return {
+        league: "EPL",
+        externalId: String(f.fixture.id),
+        homeTeam: {
+          externalId: String(f.teams.home.id),
+          name: f.teams.home.name,
+          logoUrl: f.teams.home.logo,
+        },
+        awayTeam: {
+          externalId: String(f.teams.away.id),
+          name: f.teams.away.name,
+          logoUrl: f.teams.away.logo,
+        },
+        homeScore: g.home ?? undefined,
+        awayScore: g.away ?? undefined,
+        status: mapStatus(f.fixture?.status?.short ?? ""),
+        startTime: new Date(f.fixture.date),
+        raw: f,
+      };
+    });
   },
 };

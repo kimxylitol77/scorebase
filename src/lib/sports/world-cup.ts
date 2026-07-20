@@ -3,6 +3,7 @@
 // 조별예선 → 토너먼트로 이어진다. league=1, season=2026 고정.
 
 import axios from "axios";
+import { afGoalsExcludingShootout } from "./api-football-pro";
 import type {
   MatchCollector,
   MatchStatus,
@@ -43,9 +44,14 @@ interface ApiFixture {
     away: { id: number; name: string; logo?: string };
   };
   goals: { home: number | null; away: number | null };
+  score?: {
+    fulltime?: { home: number | null; away: number | null };
+    extratime?: { home: number | null; away: number | null };
+  };
 }
 
 function toNormalized(f: ApiFixture): NormalizedMatch {
+  const g = afGoalsExcludingShootout(f.fixture?.status?.short, f.goals, f.score);
   return {
     league: "WORLD_CUP",
     externalId: String(f.fixture.id),
@@ -59,8 +65,8 @@ function toNormalized(f: ApiFixture): NormalizedMatch {
       name: f.teams.away.name,
       logoUrl: f.teams.away.logo,
     },
-    homeScore: f.goals?.home ?? undefined,
-    awayScore: f.goals?.away ?? undefined,
+    homeScore: g.home ?? undefined,
+    awayScore: g.away ?? undefined,
     status: mapStatus(f.fixture?.status?.short ?? ""),
     startTime: new Date(f.fixture.date),
     raw: f,
