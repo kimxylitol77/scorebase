@@ -27,7 +27,14 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const path = typeof body.path === "string" ? body.path : "";
-    if (!path || path.startsWith("/admin") || path.startsWith("/api")) {
+    // 형식 검증 — 취약점 스캐너의 body fuzzing·SQLi 페이로드 path 가 통계를
+    // 오염시키지 않게 차단 (2026-07-16 스캔 실측: 정상 path 오탐 0건 확인).
+    if (
+      !path.startsWith("/") ||
+      /[\s'"<>`\\\u0000-\u001f]/.test(path) ||
+      path.startsWith("/admin") ||
+      path.startsWith("/api")
+    ) {
       return NextResponse.json({ ok: true, skipped: true });
     }
     // sessionId — 클라이언트 localStorage 의 random ID. unique 방문자 카운트 용.
