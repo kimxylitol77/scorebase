@@ -69,6 +69,18 @@ async function fetchDiary(tsp) {
   return Array.isArray(data.results) ? data.results : [];
 }
 
+// home_scores/away_scores: [0]=정규시간, [5]=연장 포함 총점, [6]=승부차기(절대 합산 금지).
+// 연장 경기(컵/토너먼트)는 [5]가 최종 — [0]만 쓰면 종료 후 sweep 이 라이브 중 맞게 들어간
+// 연장 스코어를 정규 90분 스코어로 되덮는다 (2026-07-20 WC 결승/준결승 사고).
+// src/lib/sports/thesports/football-collector.ts finalScore 와 동일 로직.
+function finalScore(arr) {
+  if (!Array.isArray(arr)) return undefined;
+  const reg = Number(arr[0]);
+  const ot = Number(arr[5]);
+  if (!Number.isFinite(reg)) return undefined;
+  return Number.isFinite(ot) && ot > 0 && ot >= reg ? ot : reg;
+}
+
 async function postBatch(matches) {
   if (matches.length === 0) return { ok: true, upserted: 0, skippedNoTeam: 0 };
   const res = await axios.post(
@@ -120,8 +132,8 @@ async function poll() {
         tsAwayTeamId: m.away_team_id,
         startTime: new Date((m.match_time || 0) * 1000).toISOString(),
         status: mapStatus(m.status_id),
-        homeScore: Array.isArray(m.home_scores) ? m.home_scores[0] : undefined,
-        awayScore: Array.isArray(m.away_scores) ? m.away_scores[0] : undefined,
+        homeScore: finalScore(m.home_scores),
+        awayScore: finalScore(m.away_scores),
       });
     }
   }

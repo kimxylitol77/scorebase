@@ -62,16 +62,26 @@ function numOrNull(v) {
 }
 
 // diary result → {homeScore, awayScore}. sport 별 score 위치가 다름.
-//   football: home_scores[0] / away_scores[0] (숫자)
+//   football: home_scores[0]=정규시간, [5]=연장 포함 총점, [6]=승부차기(합산 금지)
 //   baseball: scores.ft[0] / scores.ft[1] (문자열 → Number)
+// 축구 연장 경기는 [5]가 최종 — [0]만 읽으면 연장 경기 검증이 정규 스코어로 통과되는
+// 사각지대 (2026-07-20 WC 결승/준결승 사고, football-collector.ts finalScore 와 동일 로직).
+function footballFinal(arr) {
+  if (!Array.isArray(arr)) return null;
+  const reg = numOrNull(arr[0]);
+  const ot = numOrNull(arr[5]);
+  if (reg == null) return null;
+  return ot != null && ot > 0 && ot >= reg ? ot : reg;
+}
+
 function extractScore(sport, r) {
   if (sport === "baseball") {
     const ft = r.scores && r.scores.ft;
     return { homeScore: numOrNull(ft && ft[0]), awayScore: numOrNull(ft && ft[1]) };
   }
   return {
-    homeScore: numOrNull(r.home_scores && r.home_scores[0]),
-    awayScore: numOrNull(r.away_scores && r.away_scores[0]),
+    homeScore: footballFinal(r.home_scores),
+    awayScore: footballFinal(r.away_scores),
   };
 }
 
