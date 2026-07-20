@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
+import { athleteLd, breadcrumbLd, jsonLdScript } from "@/lib/seo/jsonld";
 import { ArrowLeft, Star, Trophy, Users } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import { toKoreanTeamName } from "@/lib/team-names";
@@ -44,7 +45,7 @@ import CompetitionStatsSection, { getSoccerPlayerBio, type CompRow } from "@/com
 import { SPECIAL_TEAM_KO, koTeam } from "../transfer-display";
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean; startTime?: number }
-const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string }>;
+const OVERRIDES = rawOverrides as Record<string, { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string; qid?: string }>;
 
 interface SeasonStat {
   lg: string; season: string; team: string | null; pos: string | null;
@@ -157,6 +158,25 @@ const LEAGUE_LABEL: Record<string, string> = {
   MLS: "MLS",
 };
 const POS_LABEL: Record<string, string> = { G: "GK", D: "DF", M: "MF", F: "FW" };
+// 대분류 포지션 한글 — 소개 문단·JSON-LD jobTitle 용 (표시용 세부 포지션과 별개)
+const POS_KO: Record<string, string> = { G: "골키퍼", D: "수비수", M: "미드필더", F: "공격수" };
+
+// 받침 유무로 조사 선택 (한글 음절만 판정; 그 외는 모음형 반환)
+function josa(w: string, batchim: string, none: string): string {
+  const c = w.charCodeAt(w.length - 1);
+  if (c >= 0xac00 && c <= 0xd7a3) return (c - 0xac00) % 28 !== 0 ? batchim : none;
+  return none;
+}
+// 선수 소개 문단 — DB 값 조립(위키 서사 복사 아님). 있는 데이터만 이어붙임.
+function buildAbout(o: { name: string; country: string | null; role: string | null; teamName: string | null; apps: number; goals: number; assists: number; valueM: number | null }): string {
+  const role = o.role || "축구 선수";
+  const parts: string[] = [
+    `${o.name}${josa(o.name, "은", "는")} ${o.teamName ? `${o.teamName} 소속의 ` : ""}${o.country ? `${o.country} 국적 ` : ""}${role}이다.`,
+  ];
+  if (o.apps > 0) parts.push(`통산 ${o.apps}경기에서 ${o.goals}골 ${o.assists}도움을 기록했다.`);
+  if (o.valueM != null) parts.push(`현재 시장가치는 약 €${o.valueM}M이다.`);
+  return parts.join(" ");
+}
 
 const EUR_KRW = 1791.5;
 function krw(eurM: number): string {
@@ -857,8 +877,34 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
     href: hrefByFixture.get(fixtureId) ?? null,
   }));
 
+  // ── 위키형 SEO — 소개 문단 + JSON-LD(Person·Breadcrumb) ──
+  const roleKo = tsp?.position ? POS_KO[tsp.position] ?? null : null;
+  const aboutText = buildAbout({
+    name, country: ov?.country ?? null, role: roleKo, teamName: teamName ?? null,
+    apps: careerTotals?.apps ?? 0, goals: careerTotals?.goals ?? 0, assists: careerTotals?.assists ?? 0,
+    valueM: value,
+  });
+  // 이름만 남는 얇은 소개는 생략 (국적·통산·시장가치 중 하나라도 있을 때만)
+  const showAbout = !!(ov?.country || (careerTotals && careerTotals.apps > 0) || value != null);
+  const personLd = athleteLd({
+    name, path: `/transfers/${id}`, image: photoUrl,
+    nationality: ov?.country ?? null,
+    birthDate: afProfile?.birthDate ?? null,
+    height: afProfile?.height ?? null,
+    weight: afProfile?.weight ?? null,
+    jobTitle: roleKo ?? "축구 선수",
+    team: teamName ? { name: teamName, url: ourTeamId != null ? `/teams/${ourTeamId}` : null } : null,
+    sameAs: ov?.qid ? [`https://www.wikidata.org/wiki/${ov.qid}`] : [],
+    description: aboutText,
+  });
+  const crumbLd = breadcrumbLd([
+    { name: "홈", path: "/" }, { name: "이적시장", path: "/transfers" }, { name, path: `/transfers/${id}` },
+  ]);
+
   return (
     <article className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(personLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(crumbLd) }} />
       <AmbientGlow />
       <div className="flex items-center justify-between gap-2">
         <Link
@@ -938,6 +984,14 @@ export default async function PlayerTransferPage({ params }: { params: Promise<{
             </div>
           ))}
         </div>
+      )}
+
+      {/* 소개 — 데이터 조립형 문단 (AI 검색 인용·GEO). 위키 서사 복사 아님 */}
+      {showAbout && (
+        <section className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
+          <h2 className="sr-only">{name} 선수 소개</h2>
+          <p>{aboutText}</p>
+        </section>
       )}
 
       {/* 탭 — 개요 / 시즌별 / 경기 / 이적 (buildup IA). 헤더·출처는 탭 밖 고정 */}

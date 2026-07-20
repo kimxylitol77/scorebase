@@ -84,7 +84,7 @@ const num = (a?: string): number | null => (a != null ? parseInt(a, 10) : null);
 const isNT = (en?: string | null, ko?: string | null) => /national/i.test(en || "") || /국가\s*대표/.test(ko || "");
 
 interface CareerEntry { club: string; start: number | null; end: number | null; apps: number | null; goals: number | null; loan: boolean; nt: boolean }
-interface Override { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string }
+interface Override { nameKo?: string; country?: string; flag?: string; career?: CareerEntry[]; pos?: string; qid?: string }
 
 // P413(주 포지션) 영문 라벨 → 세부 POS 코드. 순서 중요 — wing-back 이 winger 보다 먼저.
 // generic(defender/midfielder/forward 단독)은 세부 확정 불가 → 미기록(coarse 유지).
@@ -263,6 +263,7 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
       continue;
     }
     const o: Override = {};
+    o.qid = qid; // 위키데이터 엔티티 — 선수 페이지 JSON-LD sameAs(위키데이터·위키피디아 링크)용
     if (shouldOverrideName(cur, e.ko)) { o.nameKo = e.ko!; nameFix++; }
     if (e.countryQid) {
       const c = labels.get(e.countryQid);
@@ -285,7 +286,7 @@ async function enrichLeague(league: string, flagOf: (en: string | null) => strin
       .filter((c) => c.club && !(c.nt && /U-?\d{1,2}|under-?\d|youth/i.test(c.club)))
       .sort((a, b) => (a.start ?? a.end ?? 0) - (b.start ?? b.end ?? 0));
     if (career.length) { o.career = career; careerFix++; }
-    if (o.nameKo || o.country || o.career || o.pos) overrides[id] = o;
+    if (o.nameKo || o.country || o.career || o.pos || o.qid) overrides[id] = o;
   }
 
   // 병합 저장 (다른 리그 + 이전 결과 보존) — 같은 id 는 필드 단위 merge (flag-only 항목 보존)

@@ -54,6 +54,45 @@ export function itemListLd(opts: { name: string; items: { name: string; path: st
   };
 }
 
+/** 선수 프로필용 Person — 엔티티 인식(구글 Knowledge Graph·AI 검색)용. sameAs=위키 링크가 있으면 연결이 강력. */
+export function athleteLd(opts: {
+  name: string;
+  path: string;
+  image?: string | null;
+  nationality?: string | null;
+  birthDate?: string | null;
+  height?: string | null;
+  weight?: string | null;
+  jobTitle?: string | null;
+  team?: { name: string; url?: string | null } | null;
+  sameAs?: string[];
+  description?: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: opts.name,
+    url: `${SITE_URL}${opts.path}`,
+    ...(opts.image ? { image: opts.image } : {}),
+    ...(opts.nationality ? { nationality: opts.nationality } : {}),
+    ...(opts.birthDate ? { birthDate: opts.birthDate } : {}),
+    ...(opts.height ? { height: opts.height } : {}),
+    ...(opts.weight ? { weight: opts.weight } : {}),
+    ...(opts.jobTitle ? { jobTitle: opts.jobTitle } : {}),
+    ...(opts.team
+      ? {
+          memberOf: {
+            "@type": "SportsTeam",
+            name: opts.team.name,
+            ...(opts.team.url ? { url: opts.team.url.startsWith("http") ? opts.team.url : `${SITE_URL}${opts.team.url}` } : {}),
+          },
+        }
+      : {}),
+    ...(opts.sameAs && opts.sameAs.length ? { sameAs: opts.sameAs } : {}),
+    ...(opts.description ? { description: opts.description } : {}),
+  };
+}
+
 /** JSON-LD <script> 한 줄 — 서버 컴포넌트에서 `{jsonLdScript(obj)}` 로 삽입. */
 export function jsonLdScript(data: unknown): string {
   return JSON.stringify(data);
