@@ -32,8 +32,49 @@ export default function WcBracket({ slots, koreaTeamId }: { slots: BracketSlot[]
 
   const ctx = { active, setHot };
 
+  // 우승 배너 — 결승(M104) 종료 + 승자 해석 시에만 표시 (DB 스코어 기반, 하드코딩 금지)
+  const finalSlot = slots.find((s) => s.round === "final" && s.matchNo === 104);
+  const champion =
+    finalSlot && finalSlot.status === "FINISHED"
+      ? finalSlot.home.won
+        ? finalSlot.home
+        : finalSlot.away.won
+          ? finalSlot.away
+          : null
+      : null;
+  const runnerUp = champion
+    ? finalSlot!.home.won
+      ? finalSlot!.away
+      : finalSlot!.home
+    : null;
+
   return (
     <div className="space-y-4">
+      {champion && (
+        <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] shadow-sm">
+          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-600" />
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_60%)]" />
+          <div className="flex flex-col gap-1.5 px-5 py-5 text-white sm:flex-row sm:items-center sm:gap-4">
+            <Trophy className="h-9 w-9 shrink-0 drop-shadow" aria-hidden />
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.25em] opacity-85">
+                FIFA World Cup 2026 Champion
+              </div>
+              <div className="text-xl font-bold tracking-tight sm:text-2xl">
+                {champion.flag ? `${champion.flag} ` : ""}
+                {champion.nameKo ?? champion.name ?? champion.label} 우승
+              </div>
+              {runnerUp && finalSlot!.homeScore != null && finalSlot!.awayScore != null && (
+                <div className="mt-0.5 text-xs opacity-90 sm:text-sm">
+                  결승 {finalSlot!.home.nameKo ?? finalSlot!.home.label}{" "}
+                  {finalSlot!.homeScore} - {finalSlot!.awayScore}{" "}
+                  {finalSlot!.away.nameKo ?? finalSlot!.away.label}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {/* 컨트롤 + 범례 */}
       <div className="flex flex-wrap items-center gap-2 justify-between">
         <div className="flex items-center gap-3 text-[11px] text-neutral-500">
