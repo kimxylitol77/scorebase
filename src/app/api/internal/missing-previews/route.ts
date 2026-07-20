@@ -49,6 +49,10 @@ export async function GET(req: NextRequest) {
 
   const now = new Date();
   const horizon = new Date(now.getTime() + days * 24 * 3600 * 1000);
+  // 누락 알림 임계 — 킥오프 12시간 이내인데 PREVIEW 없을 때만 진짜 누락으로 카운트.
+  // preview cron 은 하루 4회(최대 공백 8.5h)라 더 먼 미래 경기는 아직 cron 이 안 만든 정상 상태다.
+  // (조회는 2일 유지 = total_scheduled 는 그대로, 누락 판정만 임박으로 좁혀 새벽 반복 오탐 차단)
+  const imminentBefore = new Date(now.getTime() + 12 * 3600 * 1000);
 
   const rawMatches = await prisma.match.findMany({
     where: {
@@ -85,6 +89,8 @@ export async function GET(req: NextRequest) {
   for (const m of matches) {
     const hasPreview = m.articles.length > 0;
     if (hasPreview) continue;
+    // 킥오프 임박(12h 이내)만 누락 카운트 — 더 먼 미래 경기는 다음 preview cron 이 생성 예정(오탐 방지).
+    if (m.startTime > imminentBefore) continue;
 
     if (BASEBALL_LEAGUES.has(m.league)) {
       // 야구: 양 팀 투수 확정 시에만 누락 카운트
