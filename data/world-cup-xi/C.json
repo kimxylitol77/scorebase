@@ -32,8 +32,8 @@
       "score": 7.75,
       "star": 3,
       "recentRating": 6.9,
-      "avgRating": 7.09,
-      "games": 4,
+      "avgRating": 7.03,
+      "games": 3,
       "x": 50,
       "y": 90
     },
@@ -49,8 +49,8 @@
       "score": 8.7,
       "star": 4,
       "recentRating": 6.82,
-      "avgRating": 7.34,
-      "games": 5,
+      "avgRating": 7.31,
+      "games": 4,
       "x": 16,
       "y": 70
     },
@@ -66,8 +66,8 @@
       "score": 8.16,
       "star": 4,
       "recentRating": 6.4,
-      "avgRating": 7.38,
-      "games": 4,
+      "avgRating": 7.34,
+      "games": 3,
       "x": 39,
       "y": 70
     },
@@ -89,19 +89,19 @@
       "y": 70
     },
     {
-      "id": "3glrw7h1ew0qdyj",
-      "name": "Marcos Aoás Corrêa",
-      "nameKo": "마르키뉴스",
+      "id": "4jwq2gh7pkdm0ve",
+      "name": "Issa Diop",
+      "nameKo": "이사 디오프",
       "hasMv": true,
       "pos": "D",
-      "country": "Brazil",
-      "flag": "🇧🇷",
-      "logo": "https://img.thesports.com/football/player/9778151565da5b533037788375468434.png",
-      "score": 7.83,
+      "country": "Morocco",
+      "flag": "🇲🇦",
+      "logo": "https://img.thesports.com/football/player/63f51665b97ed32b0f6168a805578b62.png",
+      "score": 7.76,
       "star": 3,
-      "recentRating": 6.52,
-      "avgRating": 7.29,
-      "games": 4,
+      "recentRating": 6.2,
+      "avgRating": 7.45,
+      "games": 3,
       "x": 84,
       "y": 70
     },
@@ -117,8 +117,8 @@
       "score": 8.63,
       "star": 4,
       "recentRating": 6.16,
-      "avgRating": 7.32,
-      "games": 4,
+      "avgRating": 7.55,
+      "games": 3,
       "x": 22,
       "y": 32
     },
@@ -134,26 +134,9 @@
       "score": 8.2,
       "star": 4,
       "recentRating": 6.7,
-      "avgRating": 7.33,
-      "games": 5,
+      "avgRating": 7.37,
+      "games": 4,
       "x": 50,
-      "y": 32
-    },
-    {
-      "id": "n54qllhjylvqvy9",
-      "name": "Lucas Paquetá",
-      "nameKo": "루카스 파케타",
-      "hasMv": true,
-      "pos": "M",
-      "country": "Brazil",
-      "flag": "🇧🇷",
-      "logo": "https://img.thesports.com/football/player/dd6132559f62ad6ab1c2b428fd0eca27.png",
-      "score": 7.81,
-      "star": 3,
-      "recentRating": 6.53,
-      "avgRating": 7.14,
-      "games": 3,
-      "x": 78,
       "y": 32
     },
     {
@@ -165,13 +148,13 @@
       "country": "Morocco",
       "flag": "🇲🇦",
       "logo": "https://img.thesports.com/football/player/02fde745ceb448bc915a464ffa77610b.png",
-      "score": 7.69,
+      "score": 7.61,
       "star": 3,
       "recentRating": 6.37,
-      "avgRating": 6.79,
-      "games": 4,
-      "x": 35,
-      "y": 52
+      "avgRating": 6.67,
+      "games": 3,
+      "x": 78,
+      "y": 32
     },
     {
       "id": "ednm9whv23o9ryo",
@@ -186,7 +169,24 @@
       "star": 3,
       "recentRating": 6.19,
       "avgRating": 6.49,
-      "games": 5,
+      "games": 4,
+      "x": 35,
+      "y": 52
+    },
+    {
+      "id": "n54qllhjylvqvy9",
+      "name": "Lucas Paquetá",
+      "nameKo": "루카스 파케타",
+      "hasMv": true,
+      "pos": "M",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/dd6132559f62ad6ab1c2b428fd0eca27.png",
+      "score": 7.56,
+      "star": 3,
+      "recentRating": 6.53,
+      "avgRating": 6.87,
+      "games": 2,
       "x": 65,
       "y": 52
     },
@@ -202,27 +202,27 @@
       "score": 9.11,
       "star": 4,
       "recentRating": 7.4,
-      "avgRating": 8.36,
-      "games": 4,
+      "avgRating": 8.08,
+      "games": 3,
       "x": 50,
       "y": 14
     }
   ],
   "bench": [
     {
-      "id": "zp5rzgh2ylnq82w",
-      "name": "Matheus Cunha",
-      "nameKo": "마테우스 쿠냐",
+      "id": "23xmvkh48j7qg8n",
+      "name": "Raphael Dias Belloli",
+      "nameKo": "하파에우 지아스 벨롤리",
       "hasMv": true,
       "pos": "F",
       "country": "Brazil",
       "flag": "🇧🇷",
-      "logo": "https://img.thesports.com/football/player/a5b1cafbef00050ebda4618043b5d7d8.png",
-      "score": 8.85,
+      "logo": "https://img.thesports.com/football/player/e9b3d3a2e33a4a1ab4279cf2b16790c2.png",
+      "score": 8.55,
       "star": 4,
-      "recentRating": 6.67,
-      "avgRating": 7.62,
-      "games": 4
+      "recentRating": 0,
+      "avgRating": 0,
+      "games": 0
     },
     {
       "id": "y0or5jhe033wqwz",
@@ -236,8 +236,8 @@
       "score": 8.53,
       "star": 4,
       "recentRating": 6.02,
-      "avgRating": 6.98,
-      "games": 5
+      "avgRating": 7.08,
+      "games": 4
     },
     {
       "id": "jw2r09hx3k00rz8",
@@ -255,6 +255,21 @@
       "games": 0
     },
     {
+      "id": "zp5rzgh2ylnq82w",
+      "name": "Matheus Cunha",
+      "nameKo": "마테우스 쿠냐",
+      "hasMv": true,
+      "pos": "F",
+      "country": "Brazil",
+      "flag": "🇧🇷",
+      "logo": "https://img.thesports.com/football/player/a5b1cafbef00050ebda4618043b5d7d8.png",
+      "score": 8.35,
+      "star": 4,
+      "recentRating": 6.67,
+      "avgRating": 7.09,
+      "games": 3
+    },
+    {
       "id": "x7lm7phn0pgm2wd",
       "name": "Gabriel Martinelli",
       "nameKo": "가브리엘 마르티넬리",
@@ -266,23 +281,8 @@
       "score": 8.18,
       "star": 4,
       "recentRating": 7.2,
-      "avgRating": 7.2,
-      "games": 4
-    },
-    {
-      "id": "ednm9whz7ln3ryo",
-      "name": "Ismael Saibari",
-      "nameKo": "이스마엘 사이바리",
-      "hasMv": false,
-      "pos": "F",
-      "country": "Morocco",
-      "flag": "🇲🇦",
-      "logo": "https://img.thesports.com/football/player/6f9236d59f2781a5a4b1d48cee76f875.png",
-      "score": 8.1,
-      "star": 4,
-      "recentRating": 6.79,
-      "avgRating": 7.12,
-      "games": 4
+      "avgRating": 7.28,
+      "games": 3
     },
     {
       "id": "zp5rzghp5394q82",
@@ -296,8 +296,8 @@
       "score": 8.03,
       "star": 4,
       "recentRating": 6.82,
-      "avgRating": 7.18,
-      "games": 4
+      "avgRating": 7.31,
+      "games": 3
     }
   ],
   "complete": true
