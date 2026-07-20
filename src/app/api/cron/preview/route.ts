@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isCronAuthorized as authorized } from "@/lib/cron-auth";
 import { runPreview } from "@/jobs/generate-previews";
+import { recordCronRun } from "@/lib/cron-registry";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,12 @@ export async function GET(req: Request) {
   const take = Number(url.searchParams.get("take")) || undefined;
   try {
     await runPreview({ league, horizonDays, take });
+    // 실행 기록 — cron-freshness dead-man's switch 가 preview 미실행·실패(529 등)를 직접 감지.
+    await recordCronRun("preview");
     return NextResponse.json({ ok: true, league, horizonDays, take });
   } catch (e) {
+    // 실패도 기록 — "미실행" 오탐 대신 "실행 실패" 로 알리게.
+    await recordCronRun("preview", { ok: false, error: (e as Error).message });
     return NextResponse.json(
       { ok: false, error: (e as Error).message },
       { status: 500 },
