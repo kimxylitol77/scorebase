@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { PREVIEW_LEAGUES } from "@/lib/sports/types";
+import { PREVIEW_LEAGUES, isUefaQualifierMatch } from "@/lib/sports/types";
 import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 export const runtime = "nodejs";
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const horizon = new Date(now.getTime() + days * 24 * 3600 * 1000);
 
-  const matches = await prisma.match.findMany({
+  const rawMatches = await prisma.match.findMany({
     where: {
       status: "SCHEDULED",
       startTime: { gte: now, lte: horizon },
@@ -68,6 +68,8 @@ export async function GET(req: NextRequest) {
     },
     orderBy: { startTime: "asc" },
   });
+  // UEFA 여름 예선(7·8월 UCL/UEL/UECL) 제외 — PREVIEW 미발행 대상이라 generate-previews 와 동일 기준으로 누락 오탐 방지.
+  const matches = rawMatches.filter((m) => !isUefaQualifierMatch(m.league, m.startTime));
 
   const missing: Array<{
     matchId: number;

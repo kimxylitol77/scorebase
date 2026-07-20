@@ -152,8 +152,8 @@ export async function runPreview(opts?: {
     }
   }
 
-  const { PREVIEW_LEAGUES } = await import("@/lib/sports/types");
-  const matches = await prisma.match.findMany({
+  const { PREVIEW_LEAGUES, isUefaQualifierMatch } = await import("@/lib/sports/types");
+  const rawMatches = await prisma.match.findMany({
     where: {
       status: "SCHEDULED",
       startTime: { gte: now, lte: horizon },
@@ -166,6 +166,8 @@ export async function runPreview(opts?: {
     orderBy: { startTime: "asc" },
     take,
   });
+  // UEFA 여름 예선(7·8월 UCL/UEL/UECL) 제외 — 소국 클럽 예선은 검색 수요 낮아 PREVIEW 미발행(사용자 결정).
+  const matches = rawMatches.filter((m) => !isUefaQualifierMatch(m.league, m.startTime));
 
   console.log(`[preview] 대상: ${matches.length}경기`);
   if (matches.length === 0) {

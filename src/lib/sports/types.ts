@@ -387,6 +387,15 @@ export const PREVIEW_LEAGUES: readonly League[] = [
   "WORLD_CUP", // 2026 본선 (6/11~7/19) — 6/3 화이트리스트 축소 때 평가전만 넣고 본선 누락됐던 것 복구
 ];
 
+// UEFA 클럽대회(UCL/UEL/UECL) 여름 예선 판별 — 7·8월 매치는 예선(소국 리그 클럽 위주, 검색 수요 낮음).
+// 본선(리그 페이즈 9월~1월·녹아웃 2~5월)은 대상 아님. PREVIEW 자동생성·누락점검에서 예선을 스킵한다.
+const UEFA_CLUB_COMPS: ReadonlySet<string> = new Set(["UCL", "UEL", "UECL"]);
+export function isUefaQualifierMatch(league: string, startTime: Date): boolean {
+  if (!UEFA_CLUB_COMPS.has(league)) return false;
+  const month = startTime.getUTCMonth() + 1; // 1~12
+  return month === 7 || month === 8;
+}
+
 /** PREVIEW/RECAP 자동 생성 제외 리그 — 수집만. (참고용; 발행 필터는 ARTICLE_LEAGUES 화이트리스트로 전환됨) */
 export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "K_LEAGUE_2",
