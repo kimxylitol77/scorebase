@@ -18,9 +18,12 @@ export async function GET(req: Request) {
   const league = url.searchParams.get("league") ?? undefined;
   const horizonDays = Number(url.searchParams.get("horizonDays")) || undefined;
   const take = Number(url.searchParams.get("take")) || undefined;
+  // 시작 시점에 먼저 기록 — 발행이 maxDuration(300s)에 걸려 잘리면 완료 기록에 도달하지 못해
+  // "미실행" 오탐이 났다 (2026-07-21 07:30 UTC 실행분). 시작 기록은 잘려도 남는다.
+  await recordCronRun("preview");
   try {
     await runPreview({ league, horizonDays, take });
-    // 실행 기록 — cron-freshness dead-man's switch 가 preview 미실행·실패(529 등)를 직접 감지.
+    // 완료 기록 — cron-freshness dead-man's switch 가 preview 미실행·실패(529 등)를 직접 감지.
     await recordCronRun("preview");
     return NextResponse.json({ ok: true, league, horizonDays, take });
   } catch (e) {
