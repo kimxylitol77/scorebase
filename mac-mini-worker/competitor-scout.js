@@ -165,6 +165,7 @@ function buildPrompt(reportedDomains) {
   const exclusions = [...KNOWN_COMPETITORS, ...reportedDomains].sort().join(", ");
   const pastReferences = [...REFERENCE_ONLY_DOMAINS].sort().join(", ");
   const rejectedDomains = [...REJECTED_SCOUT_DOMAINS].sort().join(", ");
+  const nonProductDomains = [...NON_PRODUCT_DOMAINS].sort().join(", ");
   return `오늘은 ${todayKst()} 입니다. 당신은 Scorebase의 신규 경쟁자 발굴 전담 스카우트입니다.
 
 ## 기존 competitor-watch 와 다른 임무
@@ -180,6 +181,12 @@ ${pastReferences}
 
 ## 제품 유형 오분류로 탈락한 도메인 — 후보·참고 서비스 모두 금지
 ${rejectedDomains}
+
+## domain.com 칸에 절대 쓰지 말 도메인 — 앱스토어·기사·SNS 링크
+${nonProductDomains}
+- 위 도메인은 발견 근거(근거 URL)로만 쓰고, 'domain.com' 칸에는 절대 쓰지 않는다.
+- 앱을 찾았으면 그 앱의 공식 웹사이트 도메인을 domain 칸에 쓴다. 앱스토어 링크(play.google.com, apps.apple.com)를 domain 으로 쓰지 않는다.
+- 공식 웹사이트 도메인을 확인할 수 없으면 그 후보는 제외한다.
 
 ## 검색 범위
 - 최근 90일 안에 출시·피벗·주요 기능 공개가 확인된 신흥 서비스
