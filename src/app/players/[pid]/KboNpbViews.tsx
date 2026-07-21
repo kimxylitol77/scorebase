@@ -180,6 +180,50 @@ type Tab = { key: string; label: string; content: ReactNode };
 const tabsOf = (arr: (Tab | false | null | undefined)[]): Tab[] =>
   arr.filter((t): t is Tab => Boolean(t));
 
+// 리그 순위 배지 — LeagueLeader(부문별 상위 10명)에 든 선수만. 부문 라벨은 한국 야구 표기.
+const LEADER_KO: Record<string, string> = {
+  BA: "타율", HR: "홈런", RBI: "타점", WIN: "다승", SAVE: "세이브", K: "탈삼진", ERA: "평균자책",
+};
+async function fetchLeaderRanks(league: string, pid: string) {
+  try {
+    const rows = await prisma.leagueLeader.findMany({
+      where: { league, externalId: pid },
+      select: { category: true, rank: true, value: true },
+      orderBy: { rank: "asc" },
+    });
+    return rows.filter((r) => LEADER_KO[r.category]);
+  } catch {
+    return [];
+  }
+}
+// 팀 약칭("한화") → 우리 팀 페이지 id. KBO 프로필은 약칭, DB Team.name 은 풀네임("한화 이글스").
+async function fetchTeamHref(league: string, teamName: string | undefined): Promise<string | null> {
+  if (!teamName) return null;
+  try {
+    const teams = await prisma.team.findMany({ where: { league }, select: { id: true, name: true } });
+    const hit = teams.find((t) => t.name === teamName) ?? teams.find((t) => t.name.startsWith(teamName));
+    return hit ? `/teams/${hit.id}` : null;
+  } catch {
+    return null;
+  }
+}
+
+function LeaderBadges({ rows }: { rows: { category: string; rank: number; value: number | null }[] }) {
+  if (!rows.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {rows.map((r) => (
+        <span
+          key={r.category}
+          className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+        >
+          {LEADER_KO[r.category]} 리그 {r.rank}위
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const hasSplits = (s: PlayerSplits): boolean =>
   Boolean(s.vsLeft || s.vsRight || s.home || s.away || s.byMonth.length > 0);
 
@@ -256,10 +300,12 @@ async function KboPitcherView({
   stats: Awaited<ReturnType<typeof fetchKboPitcherDetail>>["stats"];
   recent: KboPitcherRecentGame[];
 }) {
-  const [yearly, splits] = await Promise.all([
+  const [yearly, splits, leaderRanks] = await Promise.all([
     getKboPitcherYearly(pid),
     getKboSplits(pid, "pitching"),
+    fetchLeaderRanks("KBO", pid),
   ]);
+  const teamHref = await fetchTeamHref("KBO", profile.team ?? stats?.team);
   const name = profile.name ?? "(이름 정보 없음)";
   const team = profile.team ?? stats?.team;
   const season = new Date().getUTCFullYear();
@@ -312,7 +358,16 @@ async function KboPitcherView({
         }
         sub={
           <>
-            {team ? `${team} · ` : ""}
+            {team ? (
+              teamHref ? (
+                <>
+                  <Link href={teamHref} className="hover:underline">{team}</Link>
+                  {" · "}
+                </>
+              ) : (
+                `${team} · `
+              )
+            ) : ""}
             {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
             KBO 공식 (koreabaseball.com)
           </>
@@ -341,6 +396,15 @@ async function KboPitcherView({
             : null
         }
       />
+      <LeaderBadges rows={leaderRanks} />
+      <div>
+        <Link
+          href={`/compare?a=${pid}&sport=KBO&t=p`}
+          className="inline-flex items-center gap-1 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-cyan-600 ring-1 ring-cyan-500/20 transition-all duration-300 hover:-translate-y-0.5 dark:text-cyan-400"
+        >
+          다른 선수와 비교
+        </Link>
+      </div>
       <PlayerTabs
         tabs={tabsOf([
           { key: "overview", label: "개요", content: overview },
@@ -375,10 +439,12 @@ async function KboHitterView({
   profile: KboHitterProfile;
   stats: KboHitterStats;
 }) {
-  const [yearly, splits] = await Promise.all([
+  const [yearly, splits, leaderRanks] = await Promise.all([
     getKboHitterYearly(pid),
     getKboSplits(pid, "hitting"),
+    fetchLeaderRanks("KBO", pid),
   ]);
+  const teamHref = await fetchTeamHref("KBO", profile.team ?? stats.team);
   const name = profile.name ?? "(이름 정보 없음)";
   const team = profile.team ?? stats.team;
   const season = new Date().getUTCFullYear();
@@ -434,7 +500,16 @@ async function KboHitterView({
         }
         sub={
           <>
-            {team ? `${team} · ` : ""}
+            {team ? (
+              teamHref ? (
+                <>
+                  <Link href={teamHref} className="hover:underline">{team}</Link>
+                  {" · "}
+                </>
+              ) : (
+                `${team} · `
+              )
+            ) : ""}
             {profile.height && profile.weight ? `${profile.height}/${profile.weight} · ` : ""}
             KBO 공식 (koreabaseball.com)
           </>
@@ -464,6 +539,15 @@ async function KboHitterView({
             : null
         }
       />
+      <LeaderBadges rows={leaderRanks} />
+      <div>
+        <Link
+          href={`/compare?a=${pid}&sport=KBO&t=b`}
+          className="inline-flex items-center gap-1 rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-cyan-600 ring-1 ring-cyan-500/20 transition-all duration-300 hover:-translate-y-0.5 dark:text-cyan-400"
+        >
+          다른 선수와 비교
+        </Link>
+      </div>
       <PlayerTabs
         tabs={tabsOf([
           { key: "overview", label: "개요", content: overview },

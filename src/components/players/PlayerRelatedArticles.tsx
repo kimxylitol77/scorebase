@@ -27,9 +27,14 @@ export default async function PlayerRelatedArticles({ pid, name }: { pid: string
           select: { slug: true, title: true, publishedAt: true },
         })
       : Promise.resolve([]),
-    // 본문에 `(/players/{pid})` 링크가 있는 글 자동 탐지. `)` 로 접미사 경계 → 123 이 1234 매칭 방지.
+    // 본문에 `(/players/{pid})` 링크가 있는 글 자동 탐지.
+    //  `)` 또는 `?` 로 접미사 경계 → 123 이 1234 에 매칭되는 것 방지.
+    //  KBO/NPB 기사는 `(/players/123?league=KBO)` 형태라 `)` 만 보면 놓친다.
     prisma.article.findMany({
-      where: { status: "PUBLISHED", content: { contains: `(/players/${pid})` } },
+      where: {
+        status: "PUBLISHED",
+        OR: [{ content: { contains: `(/players/${pid})` } }, { content: { contains: `(/players/${pid}?` } }],
+      },
       orderBy: { publishedAt: "desc" },
       select: { slug: true, title: true, publishedAt: true },
       take: 12,

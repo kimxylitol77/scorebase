@@ -114,8 +114,18 @@ export default async function PlayerPage({ params, searchParams }: Props) {
   const { pid } = await params;
   const { league } = await searchParams;
 
-  if (league === "KBO") return <KboPlayerView pid={pid} />;
-  if (league === "NPB") return <NpbPlayerView pid={pid} />;
+  // KBO/NPB 도 관련 글 위젯 노출 (기존 MLB 전용 → 3리그 공통)
+  if (league === "KBO" || league === "NPB") {
+    const View = league === "KBO" ? KboPlayerView : NpbPlayerView;
+    return (
+      <>
+        <View pid={pid} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
+          <PlayerRelatedArticles pid={pid} name="" />
+        </div>
+      </>
+    );
+  }
   if (league === "NBA") return <NbaPlayerView pid={pid} />;
   if (league === "NHL") return <NhlPlayerView pid={pid} />;
   if (league === "LOL") return <LolPlayerView pid={pid} />;
