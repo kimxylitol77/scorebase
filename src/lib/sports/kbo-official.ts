@@ -686,6 +686,67 @@ export async function fetchKboPitcherDaily(kboId: string): Promise<KboPitcherDai
   return games;
 }
 
+export interface KboHitterDailyGame {
+  date: string; // "03.28"
+  opponent: string;
+  gameAvg?: number; // 그 경기 타율
+  cumAvg?: number; // 그 시점 누적 시즌 타율
+  pa?: number;
+  ab?: number;
+  r?: number;
+  h?: number;
+  d2b?: number;
+  d3b?: number;
+  hr?: number;
+  rbi?: number;
+  sb?: number;
+  bb?: number;
+  so?: number;
+}
+
+/**
+ * 타자 시즌 전체 출장 로그 — HitterDetail/Daily.aspx.
+ * 투수 Daily 와 같은 월별 표 구조이고, 컬럼만 18개(AVG1=그 경기 타율, AVG2=누적 타율)로 다르다.
+ */
+export async function fetchKboHitterDaily(kboId: string): Promise<KboHitterDailyGame[]> {
+  const url = `${BASE}/Record/Player/HitterDetail/Daily.aspx?playerId=${kboId}`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, { headers: HEADERS, timeout: 12000, responseType: "text" });
+    html = r.data;
+  } catch {
+    return [];
+  }
+  const $ = cheerio.load(html);
+  const games: KboHitterDailyGame[] = [];
+  $("table").each((_, t) => {
+    const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
+    if (headers[1] !== "상대" || !headers.includes("PA")) return;
+    $(t).find("tbody tr").each((_, tr) => {
+      const c = $(tr).find("td").map((_, td) => $(td).text().trim()).get();
+      if (c.length !== 18) return;
+      games.push({
+        date: c[0],
+        opponent: c[1],
+        gameAvg: toNum(c[2]),
+        pa: toNum(c[3]),
+        ab: toNum(c[4]),
+        r: toNum(c[5]),
+        h: toNum(c[6]),
+        d2b: toNum(c[7]),
+        d3b: toNum(c[8]),
+        hr: toNum(c[9]),
+        rbi: toNum(c[10]),
+        sb: toNum(c[11]),
+        bb: toNum(c[13]),
+        so: toNum(c[15]),
+        cumAvg: toNum(c[17]),
+      });
+    });
+  });
+  return games;
+}
+
 export interface KboPitcherProfile {
   name?: string;
   team?: string;

@@ -1,6 +1,6 @@
 "use client";
-// KBO 투수 경기별 평균자책점 추이 — 막대=그 경기 자책점, 라인=그 시점 누적 시즌 ERA.
-// 데이터는 KBO 공식 Daily.aspx 의 ER·ERA2 컬럼(시즌 전체 등판 로그)을 그대로 쓴다.
+// KBO 경기별 성적 추이 — 투수=자책점/누적 ERA, 타자=안타/누적 타율.
+// 데이터는 KBO 공식 Daily.aspx 의 누적 컬럼(ERA2·AVG2)을 그대로 쓴다.
 
 import {
   ComposedChart,
@@ -13,27 +13,37 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { KboPitcherDailyGame } from "@/lib/sports/kbo-official";
+import type { KboPitcherDailyGame, KboHitterDailyGame } from "@/lib/sports/kbo-official";
 
-export default function KboGameLogChart({ games }: { games: KboPitcherDailyGame[] }) {
-  const data = games
-    .filter((g) => g.cumEra != null)
-    .map((g) => ({
-      label: g.date,
-      자책점: g.er ?? 0,
-      누적ERA: g.cumEra,
-      상대: g.opponent,
-    }));
-  // 등판 2회 이하면 "추이"가 아니라 점 두 개 — 표만으로 충분하다.
-  if (data.length < 3) return null;
+interface Point {
+  label: string;
+  상대: string;
+  bar: number;
+  line: number | undefined;
+}
 
+function GameLogChart({
+  data,
+  title,
+  hint,
+  barName,
+  lineName,
+  lineColor,
+  lineFormat,
+}: {
+  data: Point[];
+  title: string;
+  hint: string;
+  barName: string;
+  lineName: string;
+  lineColor: string;
+  lineFormat?: (v: number) => string;
+}) {
   return (
     <section className="rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
       <div className="px-5 pt-4 pb-1">
-        <h2 className="text-base font-bold tracking-tight">경기별 평균자책점 추이</h2>
-        <p className="text-xs text-neutral-400">
-          막대 = 그 경기 자책점 · 라인 = 그 시점까지의 시즌 평균자책점
-        </p>
+        <h2 className="text-base font-bold tracking-tight">{title}</h2>
+        <p className="text-xs text-neutral-400">{hint}</p>
       </div>
       <div className="h-[260px] px-2 pb-3">
         <ResponsiveContainer width="100%" height="100%">
@@ -48,7 +58,7 @@ export default function KboGameLogChart({ games }: { games: KboPitcherDailyGame[
               axisLine={{ stroke: "rgba(148,163,184,0.3)" }}
             />
             <YAxis
-              yAxisId="er"
+              yAxisId="bar"
               tick={{ fill: "#94a3b8", fontSize: 11 }}
               tickLine={false}
               axisLine={false}
@@ -56,13 +66,14 @@ export default function KboGameLogChart({ games }: { games: KboPitcherDailyGame[
               allowDecimals={false}
             />
             <YAxis
-              yAxisId="era"
+              yAxisId="line"
               orientation="right"
               tick={{ fill: "#94a3b8", fontSize: 11 }}
               tickLine={false}
               axisLine={false}
-              width={40}
+              width={44}
               domain={["auto", "auto"]}
+              tickFormatter={lineFormat}
             />
             <Tooltip
               contentStyle={{
@@ -70,18 +81,22 @@ export default function KboGameLogChart({ games }: { games: KboPitcherDailyGame[
                 border: "1px solid rgba(148,163,184,0.3)",
                 fontSize: 12,
               }}
+              formatter={(v, name) =>
+                name === lineName && lineFormat && typeof v === "number" ? lineFormat(v) : v
+              }
               labelFormatter={(l, payload) => {
                 const opp = payload?.[0]?.payload?.상대;
                 return opp ? `${l} vs ${opp}` : String(l);
               }}
             />
             <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
-            <Bar yAxisId="er" dataKey="자책점" fill="#cbd5e1" radius={[3, 3, 0, 0]} maxBarSize={18} />
+            <Bar yAxisId="bar" dataKey="bar" name={barName} fill="#cbd5e1" radius={[3, 3, 0, 0]} maxBarSize={18} />
             <Line
-              yAxisId="era"
+              yAxisId="line"
               type="monotone"
-              dataKey="누적ERA"
-              stroke="#f43f5e"
+              dataKey="line"
+              name={lineName}
+              stroke={lineColor}
               strokeWidth={2.5}
               dot={false}
               connectNulls
@@ -90,5 +105,44 @@ export default function KboGameLogChart({ games }: { games: KboPitcherDailyGame[
         </ResponsiveContainer>
       </div>
     </section>
+  );
+}
+
+export function KboPitcherGameLogChart({ games }: { games: KboPitcherDailyGame[] }) {
+  const data = games
+    .filter((g) => g.cumEra != null)
+    .map((g) => ({ label: g.date, 상대: g.opponent, bar: g.er ?? 0, line: g.cumEra }));
+  // 등판 2회 이하면 "추이"가 아니라 점 두 개 — 표만으로 충분하다.
+  if (data.length < 3) return null;
+  return (
+    <GameLogChart
+      data={data}
+      title="경기별 평균자책점 추이"
+      hint="막대 = 그 경기 자책점 · 라인 = 그 시점까지의 시즌 평균자책점"
+      barName="자책점"
+      lineName="누적 ERA"
+      lineColor="#f43f5e"
+    />
+  );
+}
+
+// 타율은 야구 관례상 앞자리 0 을 생략한다 (.312)
+const fmtAvg = (v: number): string => v.toFixed(3).replace(/^0/, "");
+
+export function KboHitterGameLogChart({ games }: { games: KboHitterDailyGame[] }) {
+  const data = games
+    .filter((g) => g.cumAvg != null)
+    .map((g) => ({ label: g.date, 상대: g.opponent, bar: g.h ?? 0, line: g.cumAvg }));
+  if (data.length < 3) return null;
+  return (
+    <GameLogChart
+      data={data}
+      title="경기별 타율 추이"
+      hint="막대 = 그 경기 안타 · 라인 = 그 시점까지의 시즌 타율"
+      barName="안타"
+      lineName="누적 타율"
+      lineColor="#3b82f6"
+      lineFormat={fmtAvg}
+    />
   );
 }

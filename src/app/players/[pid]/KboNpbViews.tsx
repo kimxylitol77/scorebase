@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import {
   fetchKboPitcherDetail,
   fetchKboPitcherDaily,
+  fetchKboHitterDaily,
   fetchKboPitcherProfile,
   fetchKboHitterStats,
   fetchKboHitterProfile,
@@ -14,6 +15,7 @@ import {
   calcK9,
   type KboPitcherRecentGame,
   type KboPitcherDailyGame,
+  type KboHitterDailyGame,
   type KboPitcherProfile,
   type KboHitterProfile,
   type KboHitterStats,
@@ -46,7 +48,7 @@ import type {
 import { prisma } from "@/lib/db";
 import PlayerTabs from "./PlayerTabs";
 import { HitterTrendChart, PitcherTrendChart } from "./BaseballTrendChart";
-import KboGameLogChart from "./KboGameLogChart";
+import { KboPitcherGameLogChart, KboHitterGameLogChart } from "./KboGameLogChart";
 import { HitterSeasonTable, PitcherSeasonTable } from "./SeasonTable";
 import SplitsView from "./SplitsView";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -364,6 +366,49 @@ function KboDailyGames({ games }: { games: KboPitcherDailyGame[] }) {
   );
 }
 
+/** 타자 시즌 전체 출장 로그 — 최신 경기가 위. 주전은 80경기를 넘어 표 높이를 제한한다. */
+function KboHitterDailyGames({ games }: { games: KboHitterDailyGame[] }) {
+  const rows = [...games].reverse();
+  return (
+    <div className="rounded-xl bg-white ring-1 ring-black/5 overflow-x-auto max-h-[560px] overflow-y-auto dark:bg-white/[0.04] dark:ring-white/10">
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 bg-neutral-50 dark:bg-neutral-900 text-xs text-neutral-500">
+          <tr>
+            <th className="text-left px-3 py-2 font-medium">날짜</th>
+            <th className="text-left px-3 py-2 font-medium">상대</th>
+            <th className="text-right px-2 py-2 font-medium">타수</th>
+            <th className="text-right px-2 py-2 font-medium">안타</th>
+            <th className="text-right px-2 py-2 font-medium">2B</th>
+            <th className="text-right px-2 py-2 font-medium">HR</th>
+            <th className="text-right px-2 py-2 font-medium">타점</th>
+            <th className="text-right px-2 py-2 font-medium">BB</th>
+            <th className="text-right px-2 py-2 font-medium">SO</th>
+            <th className="text-right px-3 py-2 font-medium whitespace-nowrap">누적 타율</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
+          {rows.map((g, i) => (
+            <tr key={`${g.date}-${i}`}>
+              <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums whitespace-nowrap">{g.date}</td>
+              <td className="px-3 py-2 text-xs font-medium">{g.opponent}</td>
+              <td className="px-2 py-2 text-right tabular-nums">{g.ab ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.h ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.d2b ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums">{g.hr ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums">{g.rbi ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.bb ?? "—"}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.so ?? "—"}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">
+                {g.cumAvg != null ? g.cumAvg.toFixed(3).replace(/^0/, "") : "—"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function kboHandBats(profile: { hand?: "L" | "R"; bats?: "L" | "R" }): string {
   const h = profile.hand === "L" ? "좌투" : profile.hand === "R" ? "우투" : "";
   const b = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
@@ -503,7 +548,7 @@ async function KboPitcherView({
             content:
               daily.length > 0 ? (
                 <div className="space-y-4">
-                  <KboGameLogChart games={daily} />
+                  <KboPitcherGameLogChart games={daily} />
                   <KboDailyGames games={daily} />
                 </div>
               ) : (
@@ -531,10 +576,11 @@ async function KboHitterView({
   profile: KboHitterProfile;
   stats: KboHitterStats;
 }) {
-  const [yearly, splits, leaderRanks] = await Promise.all([
+  const [yearly, splits, leaderRanks, daily] = await Promise.all([
     getKboHitterYearly(pid),
     getKboSplits(pid, "hitting"),
     fetchLeaderRanks("KBO", pid),
+    fetchKboHitterDaily(pid),
   ]);
   const teamHref = await fetchTeamHref("KBO", profile.team ?? stats.team);
   const name = profile.name ?? "(이름 정보 없음)";
@@ -648,6 +694,16 @@ async function KboHitterView({
             key: "seasons",
             label: "시즌기록",
             content: <HitterSeasonTable rows={yearly.seasons} />,
+          },
+          daily.length > 0 && {
+            key: "games",
+            label: "경기",
+            content: (
+              <div className="space-y-4">
+                <KboHitterGameLogChart games={daily} />
+                <KboHitterDailyGames games={daily} />
+              </div>
+            ),
           },
           hasSplits(splits) && {
             key: "splits",
