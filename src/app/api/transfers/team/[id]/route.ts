@@ -3,6 +3,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 import { API_FOOTBALL_LEAGUE_ID } from "@/lib/sports/api-football-pro";
 
 export const runtime = "nodejs";
@@ -33,13 +34,22 @@ interface OutItem {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
   const { id } = await ctx.params;
   const dbId = parseInt(id);
   if (!Number.isFinite(dbId)) {
     return NextResponse.json({ error: "invalid id" }, { status: 400 });
+  }
+  // 유료 API(api-football) 프록시 — Team id 순회로 캐시 우회·쿼터 소진하는 남용 차단.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const rl = rateLimit(`transfers-team:${ip}`, { max: 30, windowMs: 60_000, lockMs: 300_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "rate limited" },
+      { status: 429, headers: { "retry-after": String(rl.retryAfterSec) } },
+    );
   }
 
   const team = await prisma.team.findUnique({

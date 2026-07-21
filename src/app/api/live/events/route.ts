@@ -3,6 +3,7 @@
 // 라이브 카드 expand 시 lazy fetch 용도.
 
 import { NextResponse, type NextRequest } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -55,6 +56,16 @@ export async function GET(req: NextRequest) {
   const fixture = req.nextUrl.searchParams.get("fixture");
   if (!fixture || !/^\d+$/.test(fixture)) {
     return NextResponse.json({ events: [], error: "invalid fixture id" }, { status: 400 });
+  }
+  // 유료 API(api-football) 프록시 — 임의 fixture id 순회로 쿼터 소진하는 남용 차단.
+  // edge isolate 단위 in-memory 한도라 완전하진 않지만 warm 인스턴스 재사용 시 유효.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const rl = rateLimit(`live-events:${ip}`, { max: 60, windowMs: 60_000, lockMs: 300_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { events: [], error: "rate limited" },
+      { status: 429, headers: { "retry-after": String(rl.retryAfterSec) } },
+    );
   }
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) {

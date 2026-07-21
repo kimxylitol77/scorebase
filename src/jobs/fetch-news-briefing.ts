@@ -7,6 +7,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { generate } from "@/lib/ai/claude";
 import { sendTelegram } from "@/lib/notify/telegram";
+import { makeHideToken } from "@/lib/admin-hide-token";
 import { extractTransferRumors } from "@/jobs/extract-transfer-rumors";
 
 // 재작성·검증 모델 — 품질 사고 재발 방지용 상위 모델 (haiku 오분류로 출시 당일 철회 이력).
@@ -645,7 +646,7 @@ export async function runNewsBriefing(opts: { dry?: boolean } = {}) {
         published++;
 
         const site = process.env.SITE_URL ?? "https://www.scorebase.kr";
-        const hideUrl = `${site}/api/admin/briefing-hide?id=${item.id}&s=${process.env.ADMIN_SECRET ?? ""}`;
+        const hideUrl = `${site}/api/admin/briefing-hide?id=${item.id}&t=${makeHideToken("briefing", item.id)}`;
         await sendTelegram(
           [
             `📰 <b>해외 브리핑 발행</b>`,

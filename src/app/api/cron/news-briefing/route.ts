@@ -1,21 +1,15 @@
 // 해외 축구 브리핑 cron — Tier1 소스 수집→재작성→검증→커뮤니티 발행 (2h 간격)
 import { NextResponse } from "next/server";
 import { recordCronRun } from "@/lib/cron-registry";
+import { isCronAuthorized } from "@/lib/cron-auth";
 import { runNewsBriefing } from "@/jobs/fetch-news-briefing";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-function authorized(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
-
 export async function GET(req: Request) {
-  if (!authorized(req)) {
+  if (!isCronAuthorized(req)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   try {
