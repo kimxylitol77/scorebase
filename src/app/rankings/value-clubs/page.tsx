@@ -10,6 +10,7 @@ import CiteBox from "@/components/CiteBox";
 import { Coins, TrendingDown } from "lucide-react";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
+import { teamDisplayKo } from "@/lib/team-names";
 
 export const revalidate = 3600;
 
@@ -124,7 +125,7 @@ export default async function ValueClubsPage() {
     const arr = byLeague.get(p.league) ?? [];
     arr.push({
       teamId: p.teamId,
-      name: s.nameKo || s.name,
+      name: teamDisplayKo(s, p.league),
       logoUrl: s.logoUrl,
       points: p.points,
       played: p.played,

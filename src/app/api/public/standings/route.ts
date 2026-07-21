@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { toKoreanTeamName } from "@/lib/team-names";
+import { teamDisplayKo } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { fetchBasketballStandings } from "@/lib/sports/basketball-standings";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
@@ -195,7 +195,7 @@ export async function GET(request: NextRequest) {
     return [{
       id: row.teamId,
       position: row.position,
-      team: row.teamName ?? toKoreanTeamName(team.nameKo || team.name, league),
+      team: row.teamName ?? teamDisplayKo(team, league),
       shortName: team.shortName,
       logoUrl: team.logoUrl,
       played,
