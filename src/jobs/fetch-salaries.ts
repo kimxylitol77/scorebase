@@ -3,7 +3,8 @@
 //
 // "현재 시즌 스냅샷" → league 전체 deleteMany 후 createMany (rank 변동·은퇴 자동 정리).
 // ⚠️ 파싱 0건이면 해당 league replace 안 함 — 스크래핑 실패(봇차단·구조변경) 시 빈 테이블 덮어쓰기 방지.
-// ⚠️ KBO 는 정적 큐레이션(만원 단위) — statiz 로그인 벽으로 자동 스크랩 불가. cron 마다 멱등 replace.
+// ⚠️ KBO 는 정적 JSON(만원 단위) — 연봉이 연 1회 발표 후 불변이라 수집은 scripts/collect-kbo-salaries.ts
+//    로 연 1회 수동 실행하고 커밋한다. 여기서는 그 JSON 을 cron 마다 멱등 replace 할 뿐이다.
 
 import { prisma } from "@/lib/db";
 import { fetchNbaSalaries, currentSeasonLabel } from "@/lib/sports/nba-salaries";

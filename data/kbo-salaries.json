@@ -1,0 +1,8968 @@
+{
+ "season": "2026",
+ "collectedAt": "2026-07-21",
+ "players": [
+  {
+   "kboId": "76232",
+   "playerName": "양의지",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "1987-06-05",
+   "salary": 420000,
+   "draft": "06 두산 2차 8라운드 59순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "64001",
+   "playerName": "고영표",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1991-09-16",
+   "salary": 260000,
+   "draft": "14 KT 2차 1라운드 10순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "75847",
+   "playerName": "최정",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "1987-02-28",
+   "salary": 220000,
+   "draft": "05 SK 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "76715",
+   "playerName": "류현진",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1987-03-25",
+   "salary": 210000,
+   "draft": "06 한화 2차 1라운드 2순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "64021",
+   "playerName": "박세웅",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1995-11-30",
+   "salary": 210000,
+   "draft": "14 KT 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "65320",
+   "playerName": "최원태",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1997-01-07",
+   "salary": 160000,
+   "draft": "15 넥센 1차",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "77829",
+   "playerName": "김광현",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1988-07-22",
+   "salary": 150000,
+   "draft": "07 SK 1차",
+   "signingBonus": 50000
+  },
+  {
+   "kboId": "63950",
+   "playerName": "장현식",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1995-02-24",
+   "salary": 150000,
+   "draft": "13 NC 1라운드 9순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "79109",
+   "playerName": "오지환",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "1990-03-12",
+   "salary": 140000,
+   "draft": "09 LG 1차",
+   "signingBonus": 28000
+  },
+  {
+   "kboId": "60841",
+   "playerName": "박종훈",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1991-08-13",
+   "salary": 110000,
+   "draft": "10 SK 2라운드 9순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "69737",
+   "playerName": "노시환",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2000-12-03",
+   "salary": 100000,
+   "draft": "19 한화 2차 1라운드 3순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "69446",
+   "playerName": "원태인",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2000-04-06",
+   "salary": 100000,
+   "draft": "19 삼성 1차",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "68050",
+   "playerName": "강백호",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "1999-07-29",
+   "salary": 90000,
+   "draft": "18 KT 2차 1라운드 1순위",
+   "signingBonus": 45000
+  },
+  {
+   "kboId": "65933",
+   "playerName": "구창모",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1997-02-17",
+   "salary": 90000,
+   "draft": "15 NC 2차 1라운드 3순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "65056",
+   "playerName": "엄상백",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1996-10-04",
+   "salary": 90000,
+   "draft": "15 KT 1차",
+   "signingBonus": 23000
+  },
+  {
+   "kboId": "62895",
+   "playerName": "한유섬",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1989-08-09",
+   "salary": 90000,
+   "draft": "12 SK 9라운드 85순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "62528",
+   "playerName": "김원중",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1993-06-14",
+   "salary": 80000,
+   "draft": "12 롯데 1라운드 5순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "65062",
+   "playerName": "김재윤",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1990-09-16",
+   "salary": 80000,
+   "draft": "15 KT 2차 특별 13순위"
+  },
+  {
+   "kboId": "76290",
+   "playerName": "김현수",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1988-01-12",
+   "salary": 80000,
+   "draft": "06 두산 육성선수"
+  },
+  {
+   "kboId": "62947",
+   "playerName": "나성범",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "1989-10-03",
+   "salary": 80000,
+   "draft": "12 NC 2라운드 10순위",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "62869",
+   "playerName": "문승원",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1989-11-28",
+   "salary": 80000,
+   "draft": "12 SK 1라운드 8순위",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "62907",
+   "playerName": "박민우",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "1993-02-06",
+   "salary": 80000,
+   "draft": "12 NC 1라운드 9순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "64646",
+   "playerName": "박찬호",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "1995-06-05",
+   "salary": 80000,
+   "draft": "14 KIA 2차 5라운드 50순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "62415",
+   "playerName": "박해민",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "1990-02-24",
+   "salary": 80000,
+   "draft": "12 삼성 육성선수"
+  },
+  {
+   "kboId": "77637",
+   "playerName": "양현종",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1988-03-01",
+   "salary": 80000,
+   "draft": "07 KIA 2차 1라운드 1순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "63248",
+   "playerName": "함덕주",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1995-01-13",
+   "salary": 80000,
+   "draft": "13 두산 5라운드 43순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "62234",
+   "playerName": "류지혁",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "1994-01-13",
+   "salary": 70000,
+   "draft": "12 두산 4라운드 36순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "61102",
+   "playerName": "유강남",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "1992-07-15",
+   "salary": 70000,
+   "draft": "11 LG 7라운드 50순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "78513",
+   "playerName": "전준우",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "1986-02-25",
+   "salary": 70000,
+   "draft": "08 롯데 2차 2라운드 15순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "79240",
+   "playerName": "허경민",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1990-08-26",
+   "salary": 70000,
+   "draft": "09 두산 2차 1라운드 7순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "61643",
+   "playerName": "홍건희",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1992-09-29",
+   "salary": 65000,
+   "draft": "11 KIA 2라운드 9순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "78603",
+   "playerName": "김선빈",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "1989-12-18",
+   "salary": 60000,
+   "draft": "08 KIA 2차 6라운드 43순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "78122",
+   "playerName": "김태군",
+   "teamName": "KIA",
+   "position": "포수",
+   "birthday": "1989-12-30",
+   "salary": 60000,
+   "draft": "08 LG 2차 3라운드 17순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "62931",
+   "playerName": "노진혁",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "1989-07-15",
+   "salary": 60000,
+   "draft": "12 NC 특별 20순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "79215",
+   "playerName": "박건우",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "1990-09-08",
+   "salary": 60000,
+   "draft": "09 두산 2차 2라운드 10순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "66291",
+   "playerName": "이영하",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1997-11-01",
+   "salary": 60000,
+   "draft": "16 두산 1차",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "78135",
+   "playerName": "이형종",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "1989-06-07",
+   "salary": 60000,
+   "draft": "08 LG 1차",
+   "signingBonus": 43000
+  },
+  {
+   "kboId": "79231",
+   "playerName": "정수빈",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "1990-10-07",
+   "salary": 60000,
+   "draft": "09 두산 2차 5라운드 39순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "66606",
+   "playerName": "최원준",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1997-03-23",
+   "salary": 60000,
+   "draft": "16 KIA 2차 1라운드 3순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "66108",
+   "playerName": "홍창기",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "1993-11-21",
+   "salary": 52000,
+   "draft": "16 LG 2차 3라운드 27순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "62404",
+   "playerName": "구자욱",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1993-02-12",
+   "salary": 50000,
+   "draft": "12 삼성 2라운드 12순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "78224",
+   "playerName": "김재환",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1988-09-22",
+   "salary": 50000,
+   "draft": "08 두산 2차 1라운드 4순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "79365",
+   "playerName": "박동원",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "1990-04-07",
+   "salary": 50000,
+   "draft": "09 히어로즈 2차 3라운드 19순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "60558",
+   "playerName": "오태곤",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1991-11-18",
+   "salary": 50000,
+   "draft": "10 롯데 3라운드 22순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "76118",
+   "playerName": "원종현",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1987-07-31",
+   "salary": 50000,
+   "draft": "06 LG 2차 2라운드 11순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "69102",
+   "playerName": "문보경",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2000-07-19",
+   "salary": 48000,
+   "draft": "19 LG 2차 3라운드 25순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "68341",
+   "playerName": "안우진",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1999-08-30",
+   "salary": 48000,
+   "draft": "18 넥센 1차",
+   "signingBonus": 60000
+  },
+  {
+   "kboId": "75867",
+   "playerName": "김진성",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1985-03-07",
+   "salary": 45000,
+   "draft": "04 SK 2차 6라운드 42순위"
+  },
+  {
+   "kboId": "67893",
+   "playerName": "박성한",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "1998-03-30",
+   "salary": 42000,
+   "draft": "17 SK 2차 2라운드 16순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "65769",
+   "playerName": "김범수",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1995-10-03",
+   "salary": 40000,
+   "draft": "15 한화 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "79402",
+   "playerName": "김상수",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1990-03-23",
+   "salary": 40000,
+   "draft": "09 삼성 1차",
+   "signingBonus": 28000
+  },
+  {
+   "kboId": "73211",
+   "playerName": "노경은",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1984-03-11",
+   "salary": 40000,
+   "draft": "03 두산 1차",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "62244",
+   "playerName": "박세혁",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "1990-01-09",
+   "salary": 40000,
+   "draft": "12 두산 5라운드 47순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "64006",
+   "playerName": "심우준",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "1995-04-28",
+   "salary": 40000,
+   "draft": "14 KT 2차 특별 14순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "63342",
+   "playerName": "조상우",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1994-09-04",
+   "salary": 40000,
+   "draft": "13 넥센 1라운드 1순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "79192",
+   "playerName": "채은성",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "1990-02-06",
+   "salary": 40000,
+   "draft": "09 LG 육성선수"
+  },
+  {
+   "kboId": "67263",
+   "playerName": "최원준",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1994-12-21",
+   "salary": 40000,
+   "draft": "17 두산 1차",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "78288",
+   "playerName": "최재훈",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "1989-08-27",
+   "salary": 40000,
+   "draft": "08 두산 육성선수"
+  },
+  {
+   "kboId": "72443",
+   "playerName": "최형우",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1983-12-16",
+   "salary": 40000,
+   "draft": "02 삼성 2차 6라운드 48순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "65207",
+   "playerName": "신민재",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "1996-01-21",
+   "salary": 38000,
+   "draft": "15 두산 육성선수"
+  },
+  {
+   "kboId": "50854",
+   "playerName": "최지훈",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1997-07-23",
+   "salary": 37000,
+   "draft": "20 SK 2차 3라운드 30순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "51907",
+   "playerName": "김주원",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2002-07-30",
+   "salary": 35000,
+   "draft": "21 NC 2차 1라운드 6순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "50030",
+   "playerName": "소형준",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2001-09-16",
+   "salary": 33000,
+   "draft": "20 KT 1차",
+   "signingBonus": 36000
+  },
+  {
+   "kboId": "66609",
+   "playerName": "전상현",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1996-04-18",
+   "salary": 31000,
+   "draft": "16 KIA 2차 4라운드 38순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "68220",
+   "playerName": "곽빈",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1999-05-28",
+   "salary": 30500,
+   "draft": "18 두산 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "74540",
+   "playerName": "강민호",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "1985-08-18",
+   "salary": 30000,
+   "draft": "04 롯데 2차 3라운드 17순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "63543",
+   "playerName": "구승민",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1990-06-12",
+   "salary": 30000,
+   "draft": "13 롯데 6라운드 52순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "62360",
+   "playerName": "김태훈",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1992-03-02",
+   "salary": 30000,
+   "draft": "12 넥센 9라운드 79순위",
+   "signingBonus": 2000
+  },
+  {
+   "kboId": "52060",
+   "playerName": "박영현",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2003-10-11",
+   "salary": 30000,
+   "draft": "22 KT 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "64153",
+   "playerName": "양석환",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "1991-07-15",
+   "salary": 30000,
+   "draft": "14 LG 2차 3라운드 28순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "62754",
+   "playerName": "임기영",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1993-04-16",
+   "salary": 30000,
+   "draft": "12 한화 2라운드 18순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "78548",
+   "playerName": "장성우",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "1990-01-17",
+   "salary": 30000,
+   "draft": "08 롯데 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "50662",
+   "playerName": "정해영",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2001-08-23",
+   "salary": 30000,
+   "draft": "20 KIA 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "76267",
+   "playerName": "최주환",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1988-02-28",
+   "salary": 30000,
+   "draft": "06 두산 2차 6라운드 46순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "61666",
+   "playerName": "한승혁",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1993-01-03",
+   "salary": 30000,
+   "draft": "11 KIA 1라운드 8순위",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "63123",
+   "playerName": "강승호",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "1994-02-09",
+   "salary": 29800,
+   "draft": "13 LG 1라운드 3순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "64004",
+   "playerName": "김민혁",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1995-11-21",
+   "salary": 29000,
+   "draft": "14 KT 2차 6라운드 56순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "67143",
+   "playerName": "손주영",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1998-12-02",
+   "salary": 29000,
+   "draft": "17 LG 2차 1라운드 2순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "52415",
+   "playerName": "이재현",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2003-02-04",
+   "salary": 29000,
+   "draft": "22 삼성 1차",
+   "signingBonus": 22000
+  },
+  {
+   "kboId": "68119",
+   "playerName": "문성주",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "1997-02-20",
+   "salary": 28000,
+   "draft": "18 LG 2차 10라운드 97순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69134",
+   "playerName": "이정용",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1996-03-26",
+   "salary": 27000,
+   "draft": "19 LG 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "60768",
+   "playerName": "이태양",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1990-07-03",
+   "salary": 27000,
+   "draft": "10 한화 5라운드 36순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "67703",
+   "playerName": "박상원",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1994-09-09",
+   "salary": 26300,
+   "draft": "17 한화 2차 3라운드 25순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "64166",
+   "playerName": "배정대",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1995-06-12",
+   "salary": 26000,
+   "draft": "14 LG 2차 1라운드 3순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "63963",
+   "playerName": "권희동",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "1990-12-30",
+   "salary": 25000,
+   "draft": "13 NC 9라운드 84순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "77263",
+   "playerName": "김강률",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1988-08-28",
+   "salary": 25000,
+   "draft": "07 두산 2차 4라운드 26순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "52605",
+   "playerName": "김도영",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2003-10-02",
+   "salary": 25000,
+   "draft": "22 KIA 1차",
+   "signingBonus": 40000
+  },
+  {
+   "kboId": "76802",
+   "playerName": "김성현",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "1987-03-09",
+   "salary": 25000,
+   "draft": "06 SK 2차 3라운드 20순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "65653",
+   "playerName": "김호령",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "1992-04-30",
+   "salary": 25000,
+   "draft": "15 KIA 2차 10라운드 102순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "51897",
+   "playerName": "조병현",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2002-05-08",
+   "salary": 25000,
+   "draft": "21 SK 2차 3라운드 28순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51344",
+   "playerName": "김휘집",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2002-01-01",
+   "salary": 24000,
+   "draft": "21 키움 2차 1라운드 9순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "50106",
+   "playerName": "유영찬",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1997-03-07",
+   "salary": 24000,
+   "draft": "20 LG 2차 5라운드 43순위"
+  },
+  {
+   "kboId": "69100",
+   "playerName": "구본혁",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "1997-01-11",
+   "salary": 23000,
+   "draft": "19 LG 2차 6라운드 55순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "50458",
+   "playerName": "김지찬",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2001-03-08",
+   "salary": 23000,
+   "draft": "20 삼성 2차 2라운드 15순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "53764",
+   "playerName": "문현빈",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2004-04-20",
+   "salary": 23000,
+   "draft": "23 한화 2라운드 11순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "50859",
+   "playerName": "오원석",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2001-04-23",
+   "salary": 23000,
+   "draft": "20 SK 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "52430",
+   "playerName": "김영웅",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2003-08-24",
+   "salary": 22000,
+   "draft": "22 삼성 2차 1라운드 3순위",
+   "signingBonus": 17000
+  },
+  {
+   "kboId": "54263",
+   "playerName": "김택연",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2005-06-03",
+   "salary": 22000,
+   "draft": "24 두산 1라운드 2순위",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "52701",
+   "playerName": "문동주",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2003-12-23",
+   "salary": 22000,
+   "draft": "22 한화 1차",
+   "signingBonus": 50000
+  },
+  {
+   "kboId": "68043",
+   "playerName": "김민",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1999-04-14",
+   "salary": 21000,
+   "draft": "18 KT 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "64350",
+   "playerName": "하영민",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1995-05-07",
+   "salary": 21000,
+   "draft": "14 넥센 2차 1라운드 4순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "65048",
+   "playerName": "김민수",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1992-07-24",
+   "salary": 20000,
+   "draft": "15 KT 2차 특별 11순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "67449",
+   "playerName": "김성윤",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1999-02-02",
+   "salary": 20000,
+   "draft": "17 삼성 2차 4라운드 39순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "68900",
+   "playerName": "김영규",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2000-02-10",
+   "salary": 20000,
+   "draft": "18 NC 2차 8라운드 79순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "68912",
+   "playerName": "김형준",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "1999-11-02",
+   "salary": 20000,
+   "draft": "18 NC 2차 1라운드 9순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "65949",
+   "playerName": "류진욱",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1996-10-10",
+   "salary": 20000,
+   "draft": "15 NC 2차 2라운드 21순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "65516",
+   "playerName": "배제성",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1996-09-29",
+   "salary": 20000,
+   "draft": "15 롯데 2차 9라운드 88순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "77446",
+   "playerName": "백정현",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1987-07-13",
+   "salary": 20000,
+   "draft": "07 삼성 2차 1라운드 8순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "79608",
+   "playerName": "안치홍",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1990-07-02",
+   "salary": 20000,
+   "draft": "09 KIA 2차 1라운드 1순위",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "73117",
+   "playerName": "우규민",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1985-01-21",
+   "salary": 20000,
+   "draft": "03 LG 2차 3라운드 19순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "53892",
+   "playerName": "이로운",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2004-09-11",
+   "salary": 20000,
+   "draft": "23 SSG 1라운드 5순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "65665",
+   "playerName": "이준영",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1992-08-10",
+   "salary": 20000,
+   "draft": "15 KIA 2차 4라운드 42순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "79456",
+   "playerName": "이지영",
+   "teamName": "SSG",
+   "position": "포수",
+   "birthday": "1986-02-27",
+   "salary": 20000,
+   "draft": "08 삼성 육성선수"
+  },
+  {
+   "kboId": "63959",
+   "playerName": "임정호",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1990-04-16",
+   "salary": 20000,
+   "draft": "13 NC 3라운드 30순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "61101",
+   "playerName": "임찬규",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1992-11-20",
+   "salary": 20000,
+   "draft": "11 LG 1라운드 2순위",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "66209",
+   "playerName": "조수행",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "1993-08-30",
+   "salary": 20000,
+   "draft": "16 두산 2차 1라운드 5순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "62700",
+   "playerName": "하주석",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "1994-02-25",
+   "salary": 20000,
+   "draft": "12 한화 1라운드 1순위",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "67391",
+   "playerName": "김재웅",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1998-10-22",
+   "salary": 19000,
+   "draft": "17 넥센 2차 6라운드 57순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "68902",
+   "playerName": "신민혁",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1999-02-04",
+   "salary": 19000,
+   "draft": "18 NC 2차 5라운드 49순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "67266",
+   "playerName": "박치국",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1998-03-10",
+   "salary": 18700,
+   "draft": "17 두산 2차 1라운드 10순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "65707",
+   "playerName": "주현상",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1992-08-10",
+   "salary": 18700,
+   "draft": "15 한화 2차 7라운드 64순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "69517",
+   "playerName": "고승민",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2000-08-11",
+   "salary": 18500,
+   "draft": "19 롯데 2차 1라운드 8순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "67539",
+   "playerName": "나균안",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1998-03-16",
+   "salary": 18000,
+   "draft": "17 롯데 2차 1라운드 3순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "61895",
+   "playerName": "서진용",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1992-10-02",
+   "salary": 18000,
+   "draft": "11 SK 1라운드 7순위"
+  },
+  {
+   "kboId": "52001",
+   "playerName": "안현민",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2003-08-22",
+   "salary": 18000,
+   "draft": "22 KT 2차 4라운드 38순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "52591",
+   "playerName": "윤동희",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2003-09-18",
+   "salary": 18000,
+   "draft": "22 롯데 2차 3라운드 24순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "68242",
+   "playerName": "정철원",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1999-03-27",
+   "salary": 18000,
+   "draft": "18 두산 2차 2라운드 20순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "53754",
+   "playerName": "김서현",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2004-05-31",
+   "salary": 16800,
+   "draft": "23 한화 1라운드 1순위",
+   "signingBonus": 50000
+  },
+  {
+   "kboId": "51868",
+   "playerName": "고명준",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2002-07-08",
+   "salary": 16000,
+   "draft": "21 SK 2차 2라운드 18순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "63260",
+   "playerName": "이우성",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "1994-07-17",
+   "salary": 16000,
+   "draft": "13 두산 2라운드 15순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "51264",
+   "playerName": "최승용",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2001-05-11",
+   "salary": 15500,
+   "draft": "21 두산 2차 2라운드 20순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "77564",
+   "playerName": "김민성",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "1988-12-17",
+   "salary": 15000,
+   "draft": "07 롯데 2차 2라운드 13순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "76430",
+   "playerName": "김태혁",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1988-01-02",
+   "salary": 15000,
+   "draft": "06 삼성 2차 2라운드 15순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "65343",
+   "playerName": "김택형",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1996-10-10",
+   "salary": 15000,
+   "draft": "15 넥센 2차 2라운드 18순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "69995",
+   "playerName": "서호철",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "1996-10-16",
+   "salary": 15000,
+   "draft": "19 NC 2차 9라운드 87순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69041",
+   "playerName": "손동현",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2001-01-23",
+   "salary": 15000,
+   "draft": "19 KT 2차 3라운드 21순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "60146",
+   "playerName": "이승현",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1991-11-20",
+   "salary": 15000,
+   "draft": "10 LG 2라운드 16순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "65060",
+   "playerName": "주권",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1995-05-31",
+   "salary": 15000,
+   "draft": "15 KT 우선지명",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "67421",
+   "playerName": "최지광",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1998-03-13",
+   "salary": 15000,
+   "draft": "17 삼성 2차 1라운드 9순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "63722",
+   "playerName": "한승택",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "1994-06-21",
+   "salary": 15000,
+   "draft": "13 한화 3라운드 23순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "50705",
+   "playerName": "강재민",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1997-04-03",
+   "salary": 14500,
+   "draft": "20 한화 2차 4라운드 38순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "50556",
+   "playerName": "최준용",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2001-10-10",
+   "salary": 14000,
+   "draft": "20 롯데 1차",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "51111",
+   "playerName": "송승기",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2002-04-10",
+   "salary": 13600,
+   "draft": "21 LG 2차 9라운드 87순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "64007",
+   "playerName": "문상철",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1991-04-06",
+   "salary": 13500,
+   "draft": "14 KT 2차 특별 11순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "64504",
+   "playerName": "오윤석",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1992-02-24",
+   "salary": 13500,
+   "draft": "14 롯데 육성선수"
+  },
+  {
+   "kboId": "50167",
+   "playerName": "이주형",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "2001-04-02",
+   "salary": 13500,
+   "draft": "20 LG 2차 2라운드 13순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "68743",
+   "playerName": "정은원",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2000-01-17",
+   "salary": 13500,
+   "draft": "18 한화 2차 3라운드 24순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "66704",
+   "playerName": "김태연",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "1997-06-10",
+   "salary": 13300,
+   "draft": "16 한화 2차 6라운드 59순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "60263",
+   "playerName": "이재학",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1990-10-04",
+   "salary": 13100,
+   "draft": "10 두산 2라운드 10순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "69745",
+   "playerName": "김도현",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2000-09-15",
+   "salary": 13000,
+   "draft": "19 한화 2차 4라운드 33순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "67954",
+   "playerName": "김진호",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1998-06-07",
+   "salary": 13000,
+   "draft": "17 NC 2차 2라운드 18순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "51648",
+   "playerName": "이의리",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2002-06-16",
+   "salary": 13000,
+   "draft": "21 KIA 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "69969",
+   "playerName": "전사민",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1999-07-06",
+   "salary": 13000,
+   "draft": "19 NC 2차 2라운드 17순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "54812",
+   "playerName": "정준재",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2003-01-03",
+   "salary": 13000,
+   "draft": "24 SSG 5라운드 50순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "68856",
+   "playerName": "최민준",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1999-06-11",
+   "salary": 13000,
+   "draft": "18 SK 2차 2라운드 15순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "51865",
+   "playerName": "조형우",
+   "teamName": "SSG",
+   "position": "포수",
+   "birthday": "2002-04-04",
+   "salary": 12500,
+   "draft": "21 SK 2차 1라운드 8순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "65703",
+   "playerName": "이도윤",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "1996-10-07",
+   "salary": 12100,
+   "draft": "15 한화 2차 3라운드 24순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "64995",
+   "playerName": "배재환",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1995-02-24",
+   "salary": 12000,
+   "draft": "14 NC 2차 1라운드 1순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "78168",
+   "playerName": "서건창",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1989-08-22",
+   "salary": 12000,
+   "draft": "08 LG 육성선수"
+  },
+  {
+   "kboId": "54610",
+   "playerName": "성영탁",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2004-07-28",
+   "salary": 12000,
+   "draft": "24 KIA 10라운드 96순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69636",
+   "playerName": "오선우",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "1996-12-13",
+   "salary": 12000,
+   "draft": "19 KIA 2차 5라운드 50순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51454",
+   "playerName": "이승현",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2002-05-19",
+   "salary": 12000,
+   "draft": "21 삼성 1차",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "74163",
+   "playerName": "이용규",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "1985-08-26",
+   "salary": 12000,
+   "draft": "04 LG 2차 2라운드 15순위"
+  },
+  {
+   "kboId": "63765",
+   "playerName": "김종수",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1994-06-03",
+   "salary": 11700,
+   "draft": "13 한화 8라운드 74순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69962",
+   "playerName": "송명기",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2000-08-09",
+   "salary": 11500,
+   "draft": "19 NC 2차 1라운드 7순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "50208",
+   "playerName": "오명진",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2001-09-04",
+   "salary": 11200,
+   "draft": "20 두산 2차 6라운드 59순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "67207",
+   "playerName": "이유찬",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "1998-08-05",
+   "salary": 11200,
+   "draft": "17 두산 2차 5라운드 50순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "68928",
+   "playerName": "김시훈",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1999-02-24",
+   "salary": 11000,
+   "draft": "18 NC 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "66409",
+   "playerName": "이성규",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1993-08-03",
+   "salary": 11000,
+   "draft": "16 삼성 2차 4라운드 31순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "69108",
+   "playerName": "이지강",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1999-07-02",
+   "salary": 11000,
+   "draft": "19 LG 2차 9라운드 85순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "66657",
+   "playerName": "이진영",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "1997-07-21",
+   "salary": 11000,
+   "draft": "16 KIA 2차 6라운드 58순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "64340",
+   "playerName": "임지열",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "1995-08-22",
+   "salary": 11000,
+   "draft": "14 넥센 2차 2라운드 22순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "68205",
+   "playerName": "전민재",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "1999-06-30",
+   "salary": 11000,
+   "draft": "18 두산 2차 4라운드 40순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "79140",
+   "playerName": "최동환",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1989-09-19",
+   "salary": 11000,
+   "draft": "09 LG 2차 2라운드 13순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "68639",
+   "playerName": "하준영",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1999-09-06",
+   "salary": 11000,
+   "draft": "18 KIA 2차 2라운드 16순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "67246",
+   "playerName": "김명신",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1993-11-29",
+   "salary": 10500,
+   "draft": "17 두산 2차 2라운드 20순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "64984",
+   "playerName": "김태진",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1995-10-07",
+   "salary": 10500,
+   "draft": "14 NC 2차 4라운드 45순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "50464",
+   "playerName": "이승민",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2000-08-26",
+   "salary": 10500,
+   "draft": "20 삼성 2차 4라운드 35순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "61353",
+   "playerName": "고종욱",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "1989-01-11",
+   "salary": 10000,
+   "draft": "11 넥센 3라운드 19순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "62864",
+   "playerName": "김민식",
+   "teamName": "SSG",
+   "position": "포수",
+   "birthday": "1989-06-28",
+   "salary": 10000,
+   "draft": "12 SK 2라운드 11순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "62934",
+   "playerName": "김성욱",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1993-05-01",
+   "salary": 10000,
+   "draft": "12 NC 3라운드 32순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "50157",
+   "playerName": "김윤식",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2000-04-03",
+   "salary": 10000,
+   "draft": "20 LG 2차 1라운드 3순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "62332",
+   "playerName": "김재현",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "1993-03-18",
+   "salary": 10000,
+   "draft": "12 넥센 8라운드 76순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "61404",
+   "playerName": "김헌곤",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1988-11-09",
+   "salary": 10000,
+   "draft": "11 삼성 5라운드 36순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51417",
+   "playerName": "김현준",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2002-10-11",
+   "salary": 10000,
+   "draft": "21 삼성 2차 9라운드 83순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "62802",
+   "playerName": "박승욱",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "1992-12-04",
+   "salary": 10000,
+   "draft": "12 SK 3라운드 31순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "77532",
+   "playerName": "손아섭",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "1988-03-18",
+   "salary": 10000,
+   "draft": "07 롯데 2차 4라운드 29순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53613",
+   "playerName": "윤영철",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2004-04-20",
+   "salary": 10000,
+   "draft": "23 KIA 1라운드 2순위",
+   "signingBonus": 32000
+  },
+  {
+   "kboId": "69054",
+   "playerName": "이상동",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1995-11-24",
+   "salary": 10000,
+   "draft": "19 KT 2차 4라운드 31순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "67603",
+   "playerName": "이승호",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1999-02-08",
+   "salary": 10000,
+   "draft": "17 KIA 2차 1라운드 4순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "77211",
+   "playerName": "이용찬",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1989-01-02",
+   "salary": 10000,
+   "draft": "07 두산 1차",
+   "signingBonus": 45000
+  },
+  {
+   "kboId": "76812",
+   "playerName": "이재원",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "1988-02-24",
+   "salary": 10000,
+   "draft": "06 SK 1차",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "53455",
+   "playerName": "이호성",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-08-14",
+   "salary": 10000,
+   "draft": "23 삼성 1라운드 8순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "77318",
+   "playerName": "장시환",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1987-11-01",
+   "salary": 10000,
+   "draft": "07 현대 2차 1라운드 2순위",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "69159",
+   "playerName": "정우영",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1999-08-19",
+   "salary": 10000,
+   "draft": "19 LG 2차 2라운드 15순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "67905",
+   "playerName": "천재환",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "1994-04-01",
+   "salary": 10000,
+   "draft": "17 NC 육성선수"
+  },
+  {
+   "kboId": "68419",
+   "playerName": "최지명",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1995-01-22",
+   "salary": 10000,
+   "draft": "18 삼성 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "52639",
+   "playerName": "최지민",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2003-09-10",
+   "salary": 10000,
+   "draft": "22 KIA 2차 1라운드 5순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "68646",
+   "playerName": "한준수",
+   "teamName": "KIA",
+   "position": "포수",
+   "birthday": "1999-02-13",
+   "salary": 10000,
+   "draft": "18 KIA 1차",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "54795",
+   "playerName": "황영묵",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "1999-10-16",
+   "salary": 9600,
+   "draft": "24 한화 4라운드 31순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "66112",
+   "playerName": "김기연",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "1997-09-07",
+   "salary": 9500,
+   "draft": "16 LG 2차 4라운드 34순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51551",
+   "playerName": "나승엽",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2002-02-15",
+   "salary": 9500,
+   "draft": "21 롯데 2차 2라운드 11순위",
+   "signingBonus": 50000
+  },
+  {
+   "kboId": "50812",
+   "playerName": "박시후",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2001-05-10",
+   "salary": 9500,
+   "draft": "20 SK 2차 10라운드 100순위",
+   "signingBonus": 2000
+  },
+  {
+   "kboId": "69594",
+   "playerName": "박진",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1999-04-02",
+   "salary": 9500,
+   "draft": "19 롯데 2차 4라운드 38순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "50150",
+   "playerName": "손호영",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "1994-08-23",
+   "salary": 9500,
+   "draft": "20 LG 2차 3라운드 23순위"
+  },
+  {
+   "kboId": "68092",
+   "playerName": "한두솔",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1997-01-15",
+   "salary": 9500,
+   "draft": "18 KT 육성선수"
+  },
+  {
+   "kboId": "52204",
+   "playerName": "이병헌",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2003-06-04",
+   "salary": 9400,
+   "draft": "22 두산 1차",
+   "signingBonus": 27000
+  },
+  {
+   "kboId": "53609",
+   "playerName": "곽도규",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2004-04-12",
+   "salary": 9000,
+   "draft": "23 KIA 5라운드 42순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "65522",
+   "playerName": "김강현",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1995-02-27",
+   "salary": 9000,
+   "draft": "15 롯데 육성선수"
+  },
+  {
+   "kboId": "66614",
+   "playerName": "김규성",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "1997-03-08",
+   "salary": 9000,
+   "draft": "16 KIA 2차 7라운드 63순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "67828",
+   "playerName": "김성민",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1994-04-26",
+   "salary": 9000,
+   "draft": "17 SK 2차 1라운드 6순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "64580",
+   "playerName": "김재열",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1996-01-02",
+   "salary": 9000,
+   "draft": "14 롯데 2차 7라운드 71순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55455",
+   "playerName": "배찬승",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2006-01-01",
+   "salary": 9000,
+   "draft": "25 삼성 1라운드 3순위",
+   "signingBonus": 40000
+  },
+  {
+   "kboId": "50126",
+   "playerName": "이민호",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2001-08-30",
+   "salary": 9000,
+   "draft": "20 LG 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "64560",
+   "playerName": "이창진",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "1991-03-04",
+   "salary": 9000,
+   "draft": "14 롯데 2차 6라운드 60순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "66706",
+   "playerName": "장진혁",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1993-09-30",
+   "salary": 9000,
+   "draft": "16 한화 2차 4라운드 39순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "65586",
+   "playerName": "전병우",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "1992-10-24",
+   "salary": 9000,
+   "draft": "15 롯데 2차 3라운드 28순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "54537",
+   "playerName": "정현수",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2001-05-10",
+   "salary": 9000,
+   "draft": "24 롯데 2라운드 13순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "50054",
+   "playerName": "천성호",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "1997-10-30",
+   "salary": 9000,
+   "draft": "20 KT 2차 2라운드 12순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "54768",
+   "playerName": "조동욱",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2004-11-02",
+   "salary": 8800,
+   "draft": "24 한화 2라운드 11순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "63257",
+   "playerName": "김인태",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "1994-07-03",
+   "salary": 8700,
+   "draft": "13 두산 1라운드 4순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "69992",
+   "playerName": "최정원",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2000-06-24",
+   "salary": 8700,
+   "draft": "19 NC 2차 7라운드 67순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52206",
+   "playerName": "최지강",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2001-07-23",
+   "salary": 8700,
+   "draft": "22 두산 육성선수"
+  },
+  {
+   "kboId": "55167",
+   "playerName": "김영우",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2005-01-14",
+   "salary": 8500,
+   "draft": "25 LG 1라운드 10순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "68415",
+   "playerName": "양창섭",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1999-09-22",
+   "salary": 8500,
+   "draft": "18 삼성 2차 1라운드 2순위",
+   "signingBonus": 26000
+  },
+  {
+   "kboId": "66018",
+   "playerName": "김선기",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1991-09-01",
+   "salary": 8400,
+   "draft": "18 넥센 2차 1라운드 8순위"
+  },
+  {
+   "kboId": "66920",
+   "playerName": "최성영",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1997-04-28",
+   "salary": 8200,
+   "draft": "16 NC 2차 2라운드 13순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "54729",
+   "playerName": "황준서",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2005-08-22",
+   "salary": 8200,
+   "draft": "24 한화 1라운드 1순위",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "53554",
+   "playerName": "김민석",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2004-05-09",
+   "salary": 8100,
+   "draft": "23 롯데 1라운드 3순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "64596",
+   "playerName": "김유영",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1994-05-02",
+   "salary": 8000,
+   "draft": "14 롯데 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "69418",
+   "playerName": "박승규",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2000-09-02",
+   "salary": 8000,
+   "draft": "19 삼성 2차 9라운드 82순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "54904",
+   "playerName": "손주환",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2002-01-05",
+   "salary": 8000,
+   "draft": "24 NC 6라운드 55순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "78756",
+   "playerName": "오선진",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1989-07-07",
+   "salary": 8000,
+   "draft": "08 한화 2차 4라운드 26순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52530",
+   "playerName": "이민석",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2003-12-10",
+   "salary": 8000,
+   "draft": "22 롯데 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "61145",
+   "playerName": "이우찬",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1992-08-04",
+   "salary": 8000,
+   "draft": "11 LG 2라운드 15순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "67116",
+   "playerName": "오석주",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1998-04-14",
+   "salary": 7800,
+   "draft": "17 LG 2차 6라운드 52순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "65764",
+   "playerName": "김민우",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1995-07-25",
+   "salary": 7700,
+   "draft": "15 한화 2차 1라운드 1순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "64468",
+   "playerName": "박계범",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "1996-01-11",
+   "salary": 7700,
+   "draft": "14 삼성 2차 2라운드 17순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "68507",
+   "playerName": "장두성",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "1999-09-16",
+   "salary": 7500,
+   "draft": "18 롯데 2차 10라운드 93순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "51895",
+   "playerName": "장지훈",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1998-12-06",
+   "salary": 7500,
+   "draft": "21 SK 2차 4라운드 38순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "51994",
+   "playerName": "한재승",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2001-11-21",
+   "salary": 7500,
+   "draft": "21 NC 2차 4라운드 36순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "66965",
+   "playerName": "도태훈",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "1993-03-18",
+   "salary": 7300,
+   "draft": "16 NC 육성선수"
+  },
+  {
+   "kboId": "51003",
+   "playerName": "권동진",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1998-09-12",
+   "salary": 7200,
+   "draft": "21 KT 2차 1라운드 5순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "67644",
+   "playerName": "이정훈",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1994-12-07",
+   "salary": 7100,
+   "draft": "17 KIA 2차 10라운드 94순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "60337",
+   "playerName": "김대유",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1991-05-08",
+   "salary": 7000,
+   "draft": "10 넥센 3라운드 18순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "68403",
+   "playerName": "김무신",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1999-12-08",
+   "salary": 7000,
+   "draft": "18 삼성 2차 6라운드 52순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51516",
+   "playerName": "김진욱",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2002-07-05",
+   "salary": 7000,
+   "draft": "21 롯데 2차 1라운드 1순위",
+   "signingBonus": 37000
+  },
+  {
+   "kboId": "67419",
+   "playerName": "문용익",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1995-02-04",
+   "salary": 7000,
+   "draft": "17 삼성 2차 6라운드 59순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "68249",
+   "playerName": "박신지",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1999-07-16",
+   "salary": 7000,
+   "draft": "18 두산 2차 1라운드 10순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "65109",
+   "playerName": "백승현",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1995-05-26",
+   "salary": 7000,
+   "draft": "15 LG 2차 3라운드 30순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "66864",
+   "playerName": "안상현",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "1997-01-27",
+   "salary": 7000,
+   "draft": "16 SK 2차 3라운드 26순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "54063",
+   "playerName": "원상현",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2004-10-16",
+   "salary": 7000,
+   "draft": "24 KT 1라운드 7순위",
+   "signingBonus": 23000
+  },
+  {
+   "kboId": "68106",
+   "playerName": "이재원",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "1999-07-17",
+   "salary": 7000,
+   "draft": "18 LG 2차 2라운드 17순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "68504",
+   "playerName": "이호연",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "1995-06-03",
+   "salary": 7000,
+   "draft": "18 롯데 2차 6라운드 53순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52809",
+   "playerName": "전영준",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2002-04-16",
+   "salary": 7000,
+   "draft": "22 SSG 2차 9라운드 82순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "68518",
+   "playerName": "정보근",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "1999-08-31",
+   "salary": 7000,
+   "draft": "18 롯데 2차 9라운드 83순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55743",
+   "playerName": "정우주",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2006-11-07",
+   "salary": 7000,
+   "draft": "25 한화 1라운드 2순위",
+   "signingBonus": 50000
+  },
+  {
+   "kboId": "52103",
+   "playerName": "최원영",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2003-07-18",
+   "salary": 7000,
+   "draft": "22 LG 2차 6라운드 57순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "55252",
+   "playerName": "박준순",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2006-07-13",
+   "salary": 6900,
+   "draft": "25 두산 1라운드 6순위",
+   "signingBonus": 26000
+  },
+  {
+   "kboId": "51203",
+   "playerName": "안재석",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2002-02-15",
+   "salary": 6700,
+   "draft": "21 두산 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "69360",
+   "playerName": "조영건",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1999-02-04",
+   "salary": 6700,
+   "draft": "19 넥센 2차 2라운드 14순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "64115",
+   "playerName": "장준원",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1995-11-21",
+   "salary": 6600,
+   "draft": "14 LG 2차 2라운드 23순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "76225",
+   "playerName": "김건국",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1988-02-02",
+   "salary": 6500,
+   "draft": "06 두산 2차 1라운드 6순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "51867",
+   "playerName": "김건우",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2002-07-12",
+   "salary": 6500,
+   "draft": "21 SK 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "69620",
+   "playerName": "김기훈",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2000-01-03",
+   "salary": 6500,
+   "draft": "19 KIA 1차",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "69727",
+   "playerName": "변우혁",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2000-03-18",
+   "salary": 6500,
+   "draft": "19 한화 1차",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "61268",
+   "playerName": "양현",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1992-08-23",
+   "salary": 6500,
+   "draft": "11 두산 10라운드 73순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "52395",
+   "playerName": "윤석원",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2003-07-04",
+   "salary": 6500,
+   "draft": "22 키움 2차 4라운드 36순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "68700",
+   "playerName": "이원석",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "1999-03-31",
+   "salary": 6500,
+   "draft": "18 한화 2차 4라운드 34순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "68868",
+   "playerName": "최준우",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1999-03-25",
+   "salary": 6500,
+   "draft": "18 SK 2차 4라운드 35순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "65639",
+   "playerName": "박정수",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1996-01-29",
+   "salary": 6400,
+   "draft": "15 KIA 2차 7라운드 65순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "68463",
+   "playerName": "윤정빈",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1999-06-24",
+   "salary": 6400,
+   "draft": "18 삼성 2차 5라운드 42순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "53996",
+   "playerName": "이준호",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2000-03-27",
+   "salary": 6400,
+   "draft": "23 NC 6라운드 54순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "50707",
+   "playerName": "최인호",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2000-01-30",
+   "salary": 6400,
+   "draft": "20 한화 2차 6라운드 58순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "64768",
+   "playerName": "조이현",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1995-06-27",
+   "salary": 6300,
+   "draft": "14 한화 2차 5라운드 47순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55268",
+   "playerName": "최민석",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2006-07-02",
+   "salary": 6300,
+   "draft": "25 두산 2라운드 16순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "53312",
+   "playerName": "김건희",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "2004-11-07",
+   "salary": 6200,
+   "draft": "23 키움 1라운드 6순위",
+   "signingBonus": 22000
+  },
+  {
+   "kboId": "68904",
+   "playerName": "오영수",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2000-01-30",
+   "salary": 6200,
+   "draft": "18 NC 2차 2라운드 19순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "63492",
+   "playerName": "이재익",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1994-03-18",
+   "salary": 6200,
+   "draft": "13 삼성 8라운드 68순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "64022",
+   "playerName": "안중열",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "1995-09-01",
+   "salary": 6100,
+   "draft": "14 KT 2차 특별 15순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "68089",
+   "playerName": "조대현",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "1999-08-06",
+   "salary": 6100,
+   "draft": "18 KT 2차 10라운드 91순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "51301",
+   "playerName": "김성진",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1997-11-14",
+   "salary": 6000,
+   "draft": "21 키움 2차 3라운드 29순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "62558",
+   "playerName": "김준태",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "1994-07-31",
+   "salary": 6000,
+   "draft": "12 롯데 육성선수"
+  },
+  {
+   "kboId": "55610",
+   "playerName": "김태형",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2006-12-15",
+   "salary": 6000,
+   "draft": "25 KIA 1라운드 5순위",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "65040",
+   "playerName": "김태훈",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1996-03-31",
+   "salary": 6000,
+   "draft": "15 KT 2차 5라운드 53순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "53301",
+   "playerName": "박윤성",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2004-02-08",
+   "salary": 6000,
+   "draft": "23 키움 3라운드 26순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "67609",
+   "playerName": "박정우",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "1998-02-01",
+   "salary": 6000,
+   "draft": "17 KIA 2차 7라운드 64순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51528",
+   "playerName": "손성빈",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2002-01-14",
+   "salary": 6000,
+   "draft": "21 롯데 1차",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "68619",
+   "playerName": "윤중현",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1995-04-25",
+   "salary": 6000,
+   "draft": "18 KIA 2차 9라운드 86순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "69428",
+   "playerName": "이병헌",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "1999-10-26",
+   "salary": 6000,
+   "draft": "19 삼성 2차 4라운드 32순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "68362",
+   "playerName": "추재현",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "1999-02-22",
+   "salary": 6000,
+   "draft": "18 넥센 2차 3라운드 28순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "66145",
+   "playerName": "김대현",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1997-03-08",
+   "salary": 5800,
+   "draft": "16 LG 1차",
+   "signingBonus": 27000
+  },
+  {
+   "kboId": "64346",
+   "playerName": "임병욱",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "1995-09-30",
+   "salary": 5800,
+   "draft": "14 넥센 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "63512",
+   "playerName": "박진형",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1994-06-10",
+   "salary": 5600,
+   "draft": "13 롯데 2라운드 13순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "63145",
+   "playerName": "배재준",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1994-11-24",
+   "salary": 5600,
+   "draft": "13 LG 2라운드 16순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "65616",
+   "playerName": "이민우",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1993-02-09",
+   "salary": 5600,
+   "draft": "15 KIA 1차",
+   "signingBonus": 24000
+  },
+  {
+   "kboId": "50066",
+   "playerName": "강현우",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "2001-04-13",
+   "salary": 5500,
+   "draft": "20 KT 2차 1라운드 2순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "67610",
+   "playerName": "김석환",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "1999-02-28",
+   "salary": 5500,
+   "draft": "17 KIA 2차 3라운드 24순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "69516",
+   "playerName": "김현수",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2000-07-10",
+   "salary": 5500,
+   "draft": "19 롯데 2차 3라운드 28순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "50657",
+   "playerName": "박민",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2001-06-05",
+   "salary": 5500,
+   "draft": "20 KIA 2차 1라운드 6순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "50357",
+   "playerName": "박주홍",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "2001-04-16",
+   "salary": 5500,
+   "draft": "20 키움 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "55530",
+   "playerName": "박찬형",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2002-10-17",
+   "salary": 5500,
+   "draft": "25 롯데 육성선수",
+   "signingBonus": 1920
+  },
+  {
+   "kboId": "68110",
+   "playerName": "송찬의",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "1999-02-20",
+   "salary": 5500,
+   "draft": "18 LG 2차 7라운드 67순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52667",
+   "playerName": "윤도현",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2003-05-07",
+   "salary": 5500,
+   "draft": "22 KIA 2차 2라운드 15순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "51100",
+   "playerName": "이영빈",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2002-06-17",
+   "salary": 5500,
+   "draft": "21 LG 2차 1라운드 7순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "52154",
+   "playerName": "이주헌",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "2003-03-04",
+   "salary": 5500,
+   "draft": "22 LG 2차 3라운드 27순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "62951",
+   "playerName": "이형범",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1994-02-27",
+   "salary": 5500,
+   "draft": "12 NC 특별 23순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54598",
+   "playerName": "이호준",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2004-03-20",
+   "salary": 5500,
+   "draft": "24 롯데 3라운드 23순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "69113",
+   "playerName": "임준형",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2000-11-16",
+   "salary": 5500,
+   "draft": "19 LG 2차 8라운드 75순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55926",
+   "playerName": "정현창",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2006-07-14",
+   "salary": 5500,
+   "draft": "25 NC 7라운드 67순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "66354",
+   "playerName": "주효상",
+   "teamName": "KIA",
+   "position": "포수",
+   "birthday": "1997-11-11",
+   "salary": 5500,
+   "draft": "16 넥센 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "68501",
+   "playerName": "최하늘",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1999-03-26",
+   "salary": 5500,
+   "draft": "18 롯데 2차 7라운드 63순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51230",
+   "playerName": "김동주",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2002-02-14",
+   "salary": 5300,
+   "draft": "21 두산 2차 1라운드 10순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "51948",
+   "playerName": "이용준",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2002-05-08",
+   "salary": 5300,
+   "draft": "21 NC 2차 2라운드 16순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "50204",
+   "playerName": "박지훈",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2000-09-07",
+   "salary": 5200,
+   "draft": "20 두산 2차 5라운드 49순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "68896",
+   "playerName": "이채호",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1998-11-23",
+   "salary": 5200,
+   "draft": "18 SK 2차 6라운드 55순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "50393",
+   "playerName": "김동욱",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1997-05-16",
+   "salary": 5000,
+   "draft": "20 키움 2차 10라운드 97순위",
+   "signingBonus": 2000
+  },
+  {
+   "kboId": "65132",
+   "playerName": "김재성",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "1996-10-30",
+   "salary": 5000,
+   "draft": "15 LG 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "67504",
+   "playerName": "김정율",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "1998-03-18",
+   "salary": 5000,
+   "draft": "17 롯데 2차 2라운드 13순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "54802",
+   "playerName": "박기호",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2005-07-26",
+   "salary": 5000,
+   "draft": "24 SSG 3라운드 30순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "60559",
+   "playerName": "박시영",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1989-03-10",
+   "salary": 5000,
+   "draft": "08 롯데 2차 4라운드 31순위"
+  },
+  {
+   "kboId": "55636",
+   "playerName": "박재현",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2006-12-08",
+   "salary": 5000,
+   "draft": "25 KIA 3라운드 25순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "67006",
+   "playerName": "안치영",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1998-05-29",
+   "salary": 5000,
+   "draft": "17 KT 2차 6라운드 51순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55392",
+   "playerName": "어준서",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2006-11-27",
+   "salary": 5000,
+   "draft": "25 키움 3라운드 21순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "53615",
+   "playerName": "이도현",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2005-01-07",
+   "salary": 5000,
+   "draft": "23 KIA 7라운드 62순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53659",
+   "playerName": "정해원",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2004-05-21",
+   "salary": 5000,
+   "draft": "23 KIA 3라운드 22순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "52903",
+   "playerName": "조민석",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1998-12-21",
+   "salary": 5000,
+   "draft": "22 NC 2차 9라운드 90순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69332",
+   "playerName": "주성원",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "2000-08-30",
+   "salary": 5000,
+   "draft": "19 넥센 2차 3라운드 24순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "50449",
+   "playerName": "허윤동",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2001-06-19",
+   "salary": 5000,
+   "draft": "20 삼성 2차 1라운드 5순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "50600",
+   "playerName": "홍종표",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2000-05-02",
+   "salary": 5000,
+   "draft": "20 KIA 2차 2라운드 16순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "52995",
+   "playerName": "김녹원",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2003-05-17",
+   "salary": 4900,
+   "draft": "22 NC 2차 3라운드 30순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "69442",
+   "playerName": "김도환",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "2000-04-14",
+   "salary": 4900,
+   "draft": "19 삼성 2차 2라운드 12순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "50360",
+   "playerName": "김동혁",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2001-12-27",
+   "salary": 4800,
+   "draft": "20 키움 2차 3라운드 27순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "50902",
+   "playerName": "김한별",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2001-01-18",
+   "salary": 4800,
+   "draft": "20 NC 2차 7라운드 61순위"
+  },
+  {
+   "kboId": "63202",
+   "playerName": "장승현",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "1994-03-07",
+   "salary": 4800,
+   "draft": "13 두산 4라운드 36순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "64101",
+   "playerName": "한석현",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "1994-05-17",
+   "salary": 4800,
+   "draft": "14 LG 2차 5라운드 48순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "69328",
+   "playerName": "박주성",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2000-11-09",
+   "salary": 4700,
+   "draft": "19 넥센 1차",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "51594",
+   "playerName": "송재영",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2002-06-20",
+   "salary": 4700,
+   "draft": "21 롯데 2차 4라운드 31순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55215",
+   "playerName": "양재훈",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2003-05-01",
+   "salary": 4700,
+   "draft": "25 두산 7라운드 66순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "64793",
+   "playerName": "김민수",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "1991-03-02",
+   "salary": 4600,
+   "draft": "14 한화 2차 2라운드 24순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "52992",
+   "playerName": "이준혁",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2003-06-30",
+   "salary": 4600,
+   "draft": "22 NC 2차 1라운드 10순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "62884",
+   "playerName": "최항",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "1994-01-03",
+   "salary": 4600,
+   "draft": "12 SK 8라운드 70순위"
+  },
+  {
+   "kboId": "52504",
+   "playerName": "김동혁",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2000-09-15",
+   "salary": 4500,
+   "draft": "22 롯데 2차 7라운드 64순위"
+  },
+  {
+   "kboId": "54368",
+   "playerName": "김연주",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2004-02-27",
+   "salary": 4500,
+   "draft": "24 키움 3라운드 29순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "50868",
+   "playerName": "류효승",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1996-07-16",
+   "salary": 4500,
+   "draft": "20 SK 2차 6라운드 60순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "67588",
+   "playerName": "윤성빈",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1999-02-26",
+   "salary": 4500,
+   "draft": "17 롯데 1차",
+   "signingBonus": 45000
+  },
+  {
+   "kboId": "52397",
+   "playerName": "이명종",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2002-12-05",
+   "salary": 4500,
+   "draft": "22 키움 2차 6라운드 56순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51460",
+   "playerName": "이재희",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2001-10-11",
+   "salary": 4500,
+   "draft": "21 삼성 2차 1라운드 3순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "54236",
+   "playerName": "임종성",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2005-03-03",
+   "salary": 4500,
+   "draft": "24 두산 3라운드 22순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "50820",
+   "playerName": "전의산",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2000-11-25",
+   "salary": 4500,
+   "draft": "20 SK 2차 1라운드 10순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "65464",
+   "playerName": "최정용",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "1996-10-24",
+   "salary": 4500,
+   "draft": "15 삼성 2차 2라운드 15순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "53259",
+   "playerName": "최준호",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2004-06-03",
+   "salary": 4500,
+   "draft": "23 두산 1라운드 9순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "66451",
+   "playerName": "최충연",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1997-03-05",
+   "salary": 4500,
+   "draft": "16 삼성 1차",
+   "signingBonus": 28000
+  },
+  {
+   "kboId": "50726",
+   "playerName": "한승주",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2001-03-17",
+   "salary": 4500,
+   "draft": "20 한화 2차 2라운드 18순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "69508",
+   "playerName": "신윤후",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "1996-01-05",
+   "salary": 4400,
+   "draft": "19 롯데 2차 10라운드 98순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69403",
+   "playerName": "양우현",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2000-04-13",
+   "salary": 4400,
+   "draft": "19 삼성 2차 3라운드 22순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "51143",
+   "playerName": "강효종",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2002-10-14",
+   "salary": 4300,
+   "draft": "21 LG 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "53344",
+   "playerName": "김동헌",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "2004-07-15",
+   "salary": 4300,
+   "draft": "23 키움 2라운드 12순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "68036",
+   "playerName": "최이준",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1999-04-10",
+   "salary": 4300,
+   "draft": "18 KT 2차 2라운드 11순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "69064",
+   "playerName": "강민성",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1999-12-08",
+   "salary": 4200,
+   "draft": "19 KT 2차 6라운드 51순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "68130",
+   "playerName": "김영준",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1999-01-12",
+   "salary": 4200,
+   "draft": "18 LG 1차",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "65898",
+   "playerName": "김웅빈",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1996-02-09",
+   "salary": 4200,
+   "draft": "15 SK 2차 3라운드 27순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "54319",
+   "playerName": "김윤하",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2005-03-07",
+   "salary": 4200,
+   "draft": "24 키움 1라운드 9순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "68269",
+   "playerName": "김호준",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1998-05-17",
+   "salary": 4200,
+   "draft": "18 두산 육성선수"
+  },
+  {
+   "kboId": "53973",
+   "playerName": "목지훈",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2004-05-11",
+   "salary": 4200,
+   "draft": "23 NC 4라운드 34순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "68159",
+   "playerName": "성동현",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1999-05-18",
+   "salary": 4200,
+   "draft": "18 LG 2차 1라운드 7순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "54404",
+   "playerName": "육선엽",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2005-07-13",
+   "salary": 4200,
+   "draft": "24 삼성 1라운드 4순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "69213",
+   "playerName": "윤산흠",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1999-05-15",
+   "salary": 4200,
+   "draft": "19 두산 육성선수"
+  },
+  {
+   "kboId": "69416",
+   "playerName": "이해승",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2000-08-01",
+   "salary": 4200,
+   "draft": "19 삼성 2차 8라운드 72순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "69047",
+   "playerName": "전용주",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2000-02-12",
+   "salary": 4200,
+   "draft": "19 KT 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "53058",
+   "playerName": "정준영",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2004-01-26",
+   "salary": 4200,
+   "draft": "23 KT 2라운드 20순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "52267",
+   "playerName": "김동준",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2002-09-04",
+   "salary": 4100,
+   "draft": "22 두산 2차 1라운드 9순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "51097",
+   "playerName": "김영현",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2002-08-18",
+   "salary": 4100,
+   "draft": "21 KT 2차 5라운드 45순위"
+  },
+  {
+   "kboId": "63894",
+   "playerName": "김사윤",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1994-06-08",
+   "salary": 4000,
+   "draft": "13 SK 3라운드 28순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "69367",
+   "playerName": "김인범",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2000-01-12",
+   "salary": 4000,
+   "draft": "19 넥센 2차 4라운드 34순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "53400",
+   "playerName": "김재상",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2004-07-26",
+   "salary": 4000,
+   "draft": "23 삼성 3라운드 28순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "51154",
+   "playerName": "김진수",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1998-08-31",
+   "salary": 4000,
+   "draft": "21 LG 2차 2라운드 17순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "50992",
+   "playerName": "김태경",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2001-04-07",
+   "salary": 4000,
+   "draft": "20 NC 1차",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "50720",
+   "playerName": "남지민",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2001-02-12",
+   "salary": 4000,
+   "draft": "20 한화 2차 1라운드 8순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "66707",
+   "playerName": "박상언",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "1997-03-03",
+   "salary": 4000,
+   "draft": "16 한화 2차 8라운드 79순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "52305",
+   "playerName": "박수종",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "1999-02-25",
+   "salary": 4000,
+   "draft": "22 키움 육성선수"
+  },
+  {
+   "kboId": "52348",
+   "playerName": "박찬혁",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "2003-04-25",
+   "salary": 4000,
+   "draft": "22 키움 2차 1라운드 6순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "66662",
+   "playerName": "신범수",
+   "teamName": "SSG",
+   "position": "포수",
+   "birthday": "1998-01-25",
+   "salary": 4000,
+   "draft": "16 KIA 2차 8라운드 78순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "51526",
+   "playerName": "우강훈",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2002-10-03",
+   "salary": 4000,
+   "draft": "21 롯데 2차 5라운드 41순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "50036",
+   "playerName": "이강준",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2001-12-14",
+   "salary": 4000,
+   "draft": "20 KT 2차 3라운드 22순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "65117",
+   "playerName": "이상규",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1996-10-20",
+   "salary": 4000,
+   "draft": "15 LG 2차 7라운드 70순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "68529",
+   "playerName": "이승헌",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1998-12-19",
+   "salary": 4000,
+   "draft": "18 롯데 2차 1라운드 3순위",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "50904",
+   "playerName": "이종준",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2001-03-09",
+   "salary": 4000,
+   "draft": "20 NC 2차 9라운드 81순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55313",
+   "playerName": "정현우",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-04-13",
+   "salary": 4000,
+   "draft": "25 키움 1라운드 1순위",
+   "signingBonus": 50000
+  },
+  {
+   "kboId": "51058",
+   "playerName": "한차현",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1998-11-30",
+   "salary": 4000,
+   "draft": "21 KT 2차 2라운드 15순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "50996",
+   "playerName": "박시원",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2001-05-30",
+   "salary": 3900,
+   "draft": "20 NC 2차 2라운드 11순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "50411",
+   "playerName": "박주혁",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2001-05-18",
+   "salary": 3900,
+   "draft": "20 삼성 2차 5라운드 45순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "69238",
+   "playerName": "김대한",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2000-12-06",
+   "salary": 3800,
+   "draft": "19 두산 1차",
+   "signingBonus": 35000
+  },
+  {
+   "kboId": "68830",
+   "playerName": "김정우",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1999-05-15",
+   "salary": 3800,
+   "draft": "18 SK 1차",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "67640",
+   "playerName": "유승철",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1998-03-02",
+   "salary": 3800,
+   "draft": "17 KIA 1차",
+   "signingBonus": 18000
+  },
+  {
+   "kboId": "69205",
+   "playerName": "이교훈",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2000-05-29",
+   "salary": 3800,
+   "draft": "19 두산 2차 3라운드 29순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "51302",
+   "playerName": "이주형",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2002-07-05",
+   "salary": 3800,
+   "draft": "21 키움 2차 4라운드 39순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52516",
+   "playerName": "조세진",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2003-11-21",
+   "salary": 3800,
+   "draft": "22 롯데 2차 1라운드 4순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "68200",
+   "playerName": "김민규",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1999-05-07",
+   "salary": 3700,
+   "draft": "18 두산 2차 3라운드 30순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "66162",
+   "playerName": "김주성",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "1998-01-30",
+   "salary": 3700,
+   "draft": "16 LG 2차 2라운드 14순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "66047",
+   "playerName": "박세진",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1997-06-27",
+   "salary": 3700,
+   "draft": "16 KT 1차",
+   "signingBonus": 23000
+  },
+  {
+   "kboId": "50709",
+   "playerName": "박정현",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2001-07-27",
+   "salary": 3700,
+   "draft": "20 한화 2차 8라운드 78순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "69974",
+   "playerName": "배민서",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1999-11-18",
+   "salary": 3700,
+   "draft": "19 NC 2차 4라운드 37순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54307",
+   "playerName": "원성준",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "2000-03-31",
+   "salary": 3700,
+   "draft": "24 키움 육성선수"
+  },
+  {
+   "kboId": "67048",
+   "playerName": "이정현",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1997-12-05",
+   "salary": 3700,
+   "draft": "17 KT 2차 1라운드 1순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "51407",
+   "playerName": "이창용",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "1999-06-03",
+   "salary": 3700,
+   "draft": "21 삼성 2차 8라운드 73순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "68556",
+   "playerName": "정성종",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1995-11-16",
+   "salary": 3700,
+   "draft": "18 롯데 2차 2라운드 13순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "52769",
+   "playerName": "권광민",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "1997-12-12",
+   "salary": 3600,
+   "draft": "22 한화 2차 5라운드 41순위"
+  },
+  {
+   "kboId": "54394",
+   "playerName": "송지후",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2005-01-08",
+   "salary": 3600,
+   "draft": "24 키움 6라운드 59순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51668",
+   "playerName": "이승재",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2000-10-04",
+   "salary": 3600,
+   "draft": "21 KIA 2차 3라운드 24순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "52764",
+   "playerName": "허인서",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "2003-07-11",
+   "salary": 3600,
+   "draft": "22 한화 2차 2라운드 11순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "50430",
+   "playerName": "홍원표",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2001-03-27",
+   "salary": 3550,
+   "draft": "20 삼성 2차 3라운드 25순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53164",
+   "playerName": "김동규",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2004-07-09",
+   "salary": 3500,
+   "draft": "23 LG 2라운드 17순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "52402",
+   "playerName": "김상민",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2003-12-06",
+   "salary": 3500,
+   "draft": "22 삼성 2차 8라운드 73순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "51303",
+   "playerName": "김시앙",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "2001-10-31",
+   "salary": 3500,
+   "draft": "21 키움 2차 5라운드 49순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52424",
+   "playerName": "김재혁",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "1999-12-26",
+   "salary": 3500,
+   "draft": "22 삼성 2차 2라운드 13순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "53404",
+   "playerName": "류승민",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2004-10-11",
+   "salary": 3500,
+   "draft": "23 삼성 7라운드 68순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52121",
+   "playerName": "문정빈",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2003-08-15",
+   "salary": 3500,
+   "draft": "22 LG 2차 8라운드 77순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55637",
+   "playerName": "박헌",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2006-01-05",
+   "salary": 3500,
+   "draft": "25 KIA 11라운드 105순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "52804",
+   "playerName": "석정우",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "1999-01-20",
+   "salary": 3500,
+   "draft": "22 SSG 육성선수"
+  },
+  {
+   "kboId": "55438",
+   "playerName": "심재훈",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2006-03-03",
+   "salary": 3500,
+   "draft": "25 삼성 2라운드 13순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "50604",
+   "playerName": "유지성",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2000-11-15",
+   "salary": 3500,
+   "draft": "20 KIA 2차 4라운드 36순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "50092",
+   "playerName": "윤준혁",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2001-07-26",
+   "salary": 3500,
+   "draft": "20 KT 2차 4라운드 32순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "52202",
+   "playerName": "윤태호",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2003-10-10",
+   "salary": 3500,
+   "draft": "22 두산 2차 5라운드 49순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "50704",
+   "playerName": "임종찬",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2001-09-28",
+   "salary": 3500,
+   "draft": "20 한화 2차 3라운드 28순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "51665",
+   "playerName": "장민기",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2001-12-30",
+   "salary": 3500,
+   "draft": "21 KIA 2차 2라운드 14순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "54362",
+   "playerName": "전준표",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2005-05-07",
+   "salary": 3500,
+   "draft": "24 키움 1라운드 8순위",
+   "signingBonus": 21000
+  },
+  {
+   "kboId": "55397",
+   "playerName": "전태현",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2006-03-02",
+   "salary": 3500,
+   "draft": "25 키움 5라운드 41순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "69804",
+   "playerName": "채현우",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1995-11-21",
+   "salary": 3500,
+   "draft": "19 SK 2차 8라운드 76순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "54903",
+   "playerName": "최우석",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2005-03-31",
+   "salary": 3500,
+   "draft": "24 NC 5라운드 45순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "51462",
+   "playerName": "홍무원",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2002-01-11",
+   "salary": 3500,
+   "draft": "21 삼성 2차 2라운드 13순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "66233",
+   "playerName": "홍성호",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "1997-07-15",
+   "salary": 3500,
+   "draft": "16 두산 2차 4라운드 36순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51408",
+   "playerName": "홍승원",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2001-12-06",
+   "salary": 3500,
+   "draft": "21 삼성 2차 6라운드 53순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "53006",
+   "playerName": "강건",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2004-07-12",
+   "salary": 3400,
+   "draft": "23 KT 11라운드 110순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "50304",
+   "playerName": "김병휘",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2001-02-16",
+   "salary": 3400,
+   "draft": "20 키움 2차 4라운드 37순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "52460",
+   "playerName": "김서준",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2003-09-01",
+   "salary": 3400,
+   "draft": "22 삼성 2차 5라운드 43순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "67956",
+   "playerName": "김태현",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1998-03-21",
+   "salary": 3400,
+   "draft": "17 NC 1차",
+   "signingBonus": 30000
+  },
+  {
+   "kboId": "55995",
+   "playerName": "김태훈",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2006-10-26",
+   "salary": 3400,
+   "draft": "25 NC 2라운드 17순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "51761",
+   "playerName": "배동현",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1998-03-16",
+   "salary": 3400,
+   "draft": "21 한화 2차 5라운드 42순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "54156",
+   "playerName": "손용준",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2000-02-15",
+   "salary": 3400,
+   "draft": "24 LG 3라운드 28순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "51013",
+   "playerName": "유준규",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2002-08-16",
+   "salary": 3400,
+   "draft": "21 KT 2차 3라운드 25순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "50641",
+   "playerName": "장재혁",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2001-08-02",
+   "salary": 3400,
+   "draft": "20 KIA 2차 6라운드 56순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "54214",
+   "playerName": "전다민",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2001-08-21",
+   "salary": 3400,
+   "draft": "24 두산 6라운드 52순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52405",
+   "playerName": "조민성",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2003-10-22",
+   "salary": 3400,
+   "draft": "22 삼성 2차 6라운드 53순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "50108",
+   "playerName": "함창건",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2001-08-18",
+   "salary": 3400,
+   "draft": "20 LG 2차 7라운드 63순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "50840",
+   "playerName": "현원회",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2001-07-08",
+   "salary": 3400,
+   "draft": "20 SK 2차 4라운드 40순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "65269",
+   "playerName": "김민혁",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "1996-05-03",
+   "salary": 3300,
+   "draft": "15 두산 2차 2라운드 16순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "69105",
+   "playerName": "김성진",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2000-03-17",
+   "salary": 3300,
+   "draft": "19 LG 2차 7라운드 65순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "55646",
+   "playerName": "김정엽",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2006-04-18",
+   "salary": 3300,
+   "draft": "25 KIA 5라운드 45순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51393",
+   "playerName": "김준형",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2002-07-12",
+   "salary": 3300,
+   "draft": "21 키움 2차 2라운드 19순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "66064",
+   "playerName": "김태오",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1997-07-29",
+   "salary": 3300,
+   "draft": "16 KT 2차 5라운드 41순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "54166",
+   "playerName": "김현종",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2004-08-04",
+   "salary": 3300,
+   "draft": "24 LG 2라운드 18순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "52994",
+   "playerName": "박동수",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1999-05-24",
+   "salary": 3300,
+   "draft": "22 NC 2차 2라운드 20순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55394",
+   "playerName": "박정훈",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-03-23",
+   "salary": 3300,
+   "draft": "25 키움 3라운드 28순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "52731",
+   "playerName": "박준영",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2003-03-02",
+   "salary": 3300,
+   "draft": "22 한화 2차 1라운드 1순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "54503",
+   "playerName": "박준우",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2005-05-27",
+   "salary": 3300,
+   "draft": "24 롯데 4라운드 33순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53411",
+   "playerName": "박진우",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "2003-10-14",
+   "salary": 3300,
+   "draft": "23 삼성 11라운드 108순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53919",
+   "playerName": "신영우",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2004-04-21",
+   "salary": 3300,
+   "draft": "23 NC 1라운드 4순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "56099",
+   "playerName": "심기정",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "2001-02-01",
+   "salary": 3300,
+   "draft": "26 LG 육성선수"
+  },
+  {
+   "kboId": "67365",
+   "playerName": "양지율",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1998-12-16",
+   "salary": 3300,
+   "draft": "17 넥센 2차 2라운드 17순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "51991",
+   "playerName": "오장한",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2002-05-20",
+   "salary": 3300,
+   "draft": "21 NC 2차 3라운드 26순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "51996",
+   "playerName": "오태양",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2002-04-25",
+   "salary": 3300,
+   "draft": "21 NC 2차 5라운드 46순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "69766",
+   "playerName": "유로결",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2000-05-30",
+   "salary": 3300,
+   "draft": "19 한화 2차 2라운드 13순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "55632",
+   "playerName": "이성원",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2006-05-18",
+   "salary": 3300,
+   "draft": "25 KIA 10라운드 95순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55301",
+   "playerName": "이준우",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2001-03-02",
+   "salary": 3300,
+   "draft": "25 키움 육성선수"
+  },
+  {
+   "kboId": "51762",
+   "playerName": "장규현",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "2002-06-28",
+   "salary": 3300,
+   "draft": "21 한화 2차 4라운드 32순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "69645",
+   "playerName": "장유호",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2000-05-25",
+   "salary": 3300,
+   "draft": "19 KIA 2차 2라운드 20순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "66858",
+   "playerName": "정동윤",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1997-10-22",
+   "salary": 3300,
+   "draft": "16 SK 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "51546",
+   "playerName": "정우준",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2000-03-17",
+   "salary": 3300,
+   "draft": "21 롯데 2차 6라운드 51순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52149",
+   "playerName": "조원태",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2003-05-10",
+   "salary": 3300,
+   "draft": "22 LG 1차",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "54148",
+   "playerName": "진우영",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2001-02-05",
+   "salary": 3300,
+   "draft": "24 LG 4라운드 38순위"
+  },
+  {
+   "kboId": "51007",
+   "playerName": "최성민",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2002-07-05",
+   "salary": 3300,
+   "draft": "21 KT 2차 6라운드 55순위"
+  },
+  {
+   "kboId": "50206",
+   "playerName": "최종인",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2001-05-01",
+   "salary": 3300,
+   "draft": "20 두산 2차 9라운드 89순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55440",
+   "playerName": "함수호",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2006-03-10",
+   "salary": 3300,
+   "draft": "25 삼성 4라운드 33순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "69706",
+   "playerName": "허관회",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "1999-02-12",
+   "salary": 3300,
+   "draft": "19 한화 2차 9라운드 83순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "52119",
+   "playerName": "허준혁",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1999-07-02",
+   "salary": 3300,
+   "draft": "22 LG 2차 5라운드 47순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "54506",
+   "playerName": "강승구",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2003-10-19",
+   "salary": 3200,
+   "draft": "24 롯데 육성선수"
+  },
+  {
+   "kboId": "53460",
+   "playerName": "강준서",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2000-10-13",
+   "salary": 3200,
+   "draft": "23 삼성 5라운드 48순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51640",
+   "playerName": "권다결",
+   "teamName": "KIA",
+   "position": "포수",
+   "birthday": "2002-01-23",
+   "salary": 3200,
+   "draft": "21 KIA 2차 4라운드 34순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55764",
+   "playerName": "권민규",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2006-05-13",
+   "salary": 3200,
+   "draft": "25 한화 2라운드 12순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "69702",
+   "playerName": "김건",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2000-02-23",
+   "salary": 3200,
+   "draft": "19 한화 2차 5라운드 43순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54164",
+   "playerName": "김대원",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2001-11-07",
+   "salary": 3200,
+   "draft": "24 LG 5라운드 48순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54402",
+   "playerName": "김동현",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2001-05-25",
+   "salary": 3200,
+   "draft": "24 삼성 육성선수"
+  },
+  {
+   "kboId": "55040",
+   "playerName": "김동현",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2006-01-21",
+   "salary": 3200,
+   "draft": "25 KT 1라운드 9순위",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "54097",
+   "playerName": "김민석",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "2005-07-22",
+   "salary": 3200,
+   "draft": "24 KT 10라운드 97순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "54403",
+   "playerName": "김성경",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1999-10-01",
+   "salary": 3200,
+   "draft": "24 삼성 5라운드 44순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "67900",
+   "playerName": "김수윤",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "1998-07-16",
+   "salary": 3200,
+   "draft": "17 NC 2차 7라운드 68순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "50711",
+   "playerName": "김승일",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2001-07-07",
+   "salary": 3200,
+   "draft": "20 한화 2차 10라운드 98순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53262",
+   "playerName": "김유성",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2002-01-01",
+   "salary": 3200,
+   "draft": "23 두산 2라운드 19순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "51586",
+   "playerName": "김창훈",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2001-11-09",
+   "salary": 3200,
+   "draft": "21 롯데 2차 3라운드 21순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "52803",
+   "playerName": "김태윤",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2003-02-28",
+   "salary": 3200,
+   "draft": "22 SSG 2차 7라운드 62순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55895",
+   "playerName": "김현재",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2006-07-03",
+   "salary": 3200,
+   "draft": "25 SSG 7라운드 68순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "53036",
+   "playerName": "류현인",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2000-11-08",
+   "salary": 3200,
+   "draft": "23 KT 7라운드 70순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "54219",
+   "playerName": "류현준",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "2005-03-25",
+   "salary": 3200,
+   "draft": "24 두산 10라운드 92순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55046",
+   "playerName": "박건우",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2006-11-28",
+   "salary": 3200,
+   "draft": "25 KT 2라운드 19순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "55121",
+   "playerName": "박시원",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2006-04-12",
+   "salary": 3200,
+   "draft": "25 LG 6라운드 60순위"
+  },
+  {
+   "kboId": "53416",
+   "playerName": "박장민",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2003-09-02",
+   "salary": 3200,
+   "draft": "23 삼성 10라운드 98순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55563",
+   "playerName": "박재엽",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2006-01-23",
+   "salary": 3200,
+   "draft": "25 롯데 4라운드 34순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "51860",
+   "playerName": "박정빈",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2002-06-14",
+   "salary": 3200,
+   "draft": "21 SK 2차 5라운드 48순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "69839",
+   "playerName": "백승건",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2000-10-29",
+   "salary": 3200,
+   "draft": "19 SK 1차",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "53560",
+   "playerName": "석상호",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2000-04-14",
+   "salary": 3200,
+   "draft": "23 롯데 7라운드 63순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52440",
+   "playerName": "신정환",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2003-04-28",
+   "salary": 3200,
+   "draft": "22 삼성 2차 4라운드 33순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55393",
+   "playerName": "여동욱",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2005-11-10",
+   "salary": 3200,
+   "draft": "25 키움 3라운드 27순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55005",
+   "playerName": "오서진",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2006-02-22",
+   "salary": 3200,
+   "draft": "25 KT 6라운드 59순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "54702",
+   "playerName": "원종혁",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2005-08-27",
+   "salary": 3200,
+   "draft": "24 한화 9라운드 81순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55396",
+   "playerName": "윤현",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-10-20",
+   "salary": 3200,
+   "draft": "25 키움 4라운드 31순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "64861",
+   "playerName": "이건욱",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1995-02-13",
+   "salary": 3200,
+   "draft": "14 SK 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "52868",
+   "playerName": "이기순",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2003-05-14",
+   "salary": 3200,
+   "draft": "22 SSG 2차 5라운드 42순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "67807",
+   "playerName": "이정범",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1998-04-10",
+   "salary": 3200,
+   "draft": "17 SK 2차 5라운드 46순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "53562",
+   "playerName": "이진하",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2004-06-02",
+   "salary": 3200,
+   "draft": "23 롯데 2라운드 13순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "53568",
+   "playerName": "정대선",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2004-11-16",
+   "salary": 3200,
+   "draft": "23 롯데 5라운드 43순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54467",
+   "playerName": "정민성",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2005-05-09",
+   "salary": 3200,
+   "draft": "24 삼성 4라운드 34순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "50211",
+   "playerName": "제환유",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2000-09-30",
+   "salary": 3200,
+   "draft": "20 두산 2차 2라운드 19순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "51809",
+   "playerName": "조요한",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2000-01-06",
+   "salary": 3200,
+   "draft": "21 SK 2차 7라운드 68순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55801",
+   "playerName": "한지헌",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2004-08-14",
+   "salary": 3200,
+   "draft": "25 SSG 10라운드 98순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55371",
+   "playerName": "권혁빈",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2005-11-04",
+   "salary": 3100,
+   "draft": "25 키움 7라운드 61순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "54705",
+   "playerName": "김도빈",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2001-01-05",
+   "salary": 3100,
+   "draft": "24 한화 육성선수"
+  },
+  {
+   "kboId": "55502",
+   "playerName": "김동현",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2004-12-30",
+   "salary": 3100,
+   "draft": "25 롯데 6라운드 54순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "51604",
+   "playerName": "김선우",
+   "teamName": "KIA",
+   "position": "포수",
+   "birthday": "2001-01-18",
+   "salary": 3100,
+   "draft": "21 KIA 2차 9라운드 84순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55216",
+   "playerName": "김성재",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "2006-05-16",
+   "salary": 3100,
+   "draft": "25 두산 8라운드 76순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "52514",
+   "playerName": "김세민",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2003-06-14",
+   "salary": 3100,
+   "draft": "22 롯데 2차 3라운드 28순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53029",
+   "playerName": "김정운",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2004-04-21",
+   "salary": 3100,
+   "draft": "23 KT 1라운드 10순위",
+   "signingBonus": 22000
+  },
+  {
+   "kboId": "65411",
+   "playerName": "김주온",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1996-12-08",
+   "salary": 3100,
+   "draft": "15 삼성 2차 7라운드 72순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52140",
+   "playerName": "김주완",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2003-08-27",
+   "salary": 3100,
+   "draft": "22 LG 2차 1라운드 7순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "55226",
+   "playerName": "김준상",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2004-08-02",
+   "salary": 3100,
+   "draft": "25 두산 육성선수"
+  },
+  {
+   "kboId": "69825",
+   "playerName": "김창평",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2000-06-14",
+   "salary": 3100,
+   "draft": "19 SK 2차 1라운드 6순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "55221",
+   "playerName": "김한중",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2004-11-03",
+   "salary": 3100,
+   "draft": "25 두산 육성선수"
+  },
+  {
+   "kboId": "50007",
+   "playerName": "문상준",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2001-03-14",
+   "salary": 3100,
+   "draft": "20 KT 2차 8라운드 72순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "50205",
+   "playerName": "박강민",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1997-11-12",
+   "salary": 3100,
+   "draft": "20 두산 육성선수"
+  },
+  {
+   "kboId": "55509",
+   "playerName": "박건우",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2003-02-01",
+   "salary": 3100,
+   "draft": "25 롯데 육성선수"
+  },
+  {
+   "kboId": "53469",
+   "playerName": "박권후",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-05-28",
+   "salary": 3100,
+   "draft": "23 삼성 2라운드 18순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "50563",
+   "playerName": "박로건",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2001-08-27",
+   "salary": 3100,
+   "draft": "20 롯데 2차 2라운드 14순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "53204",
+   "playerName": "박민준",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "2002-10-21",
+   "salary": 3100,
+   "draft": "23 두산 8라운드 79순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53305",
+   "playerName": "박성빈",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "2004-04-21",
+   "salary": 3100,
+   "draft": "23 키움 7라운드 66순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51298",
+   "playerName": "박성재",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2002-11-18",
+   "salary": 3100,
+   "draft": "21 두산 2차 8라운드 80순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55568",
+   "playerName": "박세현",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2006-01-21",
+   "salary": 3100,
+   "draft": "25 롯데 2라운드 14순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "53309",
+   "playerName": "서유신",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2000-08-17",
+   "salary": 3100,
+   "draft": "23 키움 11라운드 106순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "67962",
+   "playerName": "소이현",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1999-02-09",
+   "salary": 3100,
+   "draft": "17 NC 2차 3라운드 28순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53057",
+   "playerName": "손민석",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2004-06-21",
+   "salary": 3100,
+   "draft": "23 KT 3라운드 30순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "54363",
+   "playerName": "손현기",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2005-10-22",
+   "salary": 3100,
+   "draft": "24 키움 2라운드 19순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "55300",
+   "playerName": "손힘찬",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2002-07-17",
+   "salary": 3100,
+   "draft": "25 키움 육성선수"
+  },
+  {
+   "kboId": "53105",
+   "playerName": "송대현",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2000-02-03",
+   "salary": 3100,
+   "draft": "23 LG 8라운드 77순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "51767",
+   "playerName": "송호정",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2002-03-10",
+   "salary": 3100,
+   "draft": "21 한화 2차 2라운드 12순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55370",
+   "playerName": "양현종",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2006-08-15",
+   "salary": 3100,
+   "draft": "25 키움 6라운드 51순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "52124",
+   "playerName": "엄태경",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2003-05-03",
+   "salary": 3100,
+   "draft": "22 LG 2차 10라운드 97순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55339",
+   "playerName": "염승원",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2006-03-20",
+   "salary": 3100,
+   "draft": "25 키움 2라운드 11순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "53505",
+   "playerName": "윤수녕",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2000-03-01",
+   "salary": 3100,
+   "draft": "23 롯데 육성선수"
+  },
+  {
+   "kboId": "53296",
+   "playerName": "윤준호",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "2000-11-14",
+   "salary": 3100,
+   "draft": "23 두산 5라운드 49순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "53795",
+   "playerName": "이민준",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2004-02-02",
+   "salary": 3100,
+   "draft": "23 한화 3라운드 21순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "52063",
+   "playerName": "이상우",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2003-10-14",
+   "salary": 3100,
+   "draft": "22 KT 2차 1라운드 8순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "55224",
+   "playerName": "이선우",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2006-04-04",
+   "salary": 3100,
+   "draft": "25 두산 5라운드 46순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55503",
+   "playerName": "이영재",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2006-10-20",
+   "salary": 3100,
+   "draft": "25 롯데 7라운드 64순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "54305",
+   "playerName": "이재상",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2005-04-17",
+   "salary": 3100,
+   "draft": "24 키움 2라운드 16순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "53594",
+   "playerName": "이태연",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2004-02-21",
+   "salary": 3100,
+   "draft": "23 롯데 6라운드 53순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52807",
+   "playerName": "임근우",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1999-07-22",
+   "salary": 3100,
+   "draft": "22 SSG 육성선수"
+  },
+  {
+   "kboId": "52902",
+   "playerName": "임지민",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2003-10-11",
+   "salary": 3100,
+   "draft": "22 NC 2차 5라운드 50순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55382",
+   "playerName": "임진묵",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-04-23",
+   "salary": 3100,
+   "draft": "25 키움 9라운드 81순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53596",
+   "playerName": "장세진",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2004-12-30",
+   "salary": 3100,
+   "draft": "23 롯데 10라운드 93순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "50995",
+   "playerName": "정구범",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2000-06-16",
+   "salary": 3100,
+   "draft": "20 NC 2차 1라운드 1순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "51764",
+   "playerName": "정민규",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2003-01-10",
+   "salary": 3100,
+   "draft": "21 한화 1차",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "55377",
+   "playerName": "정세영",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-09-23",
+   "salary": 3100,
+   "draft": "25 키움 8라운드 71순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "51163",
+   "playerName": "조건희",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2002-03-26",
+   "salary": 3100,
+   "draft": "21 LG 2차 3라운드 27순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51701",
+   "playerName": "조현진",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2002-09-10",
+   "salary": 3100,
+   "draft": "21 한화 2차 6라운드 52순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51060",
+   "playerName": "지명성",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2002-02-15",
+   "salary": 3100,
+   "draft": "21 KT 2차 4라운드 35순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "52208",
+   "playerName": "천현재",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "1999-07-05",
+   "salary": 3100,
+   "draft": "22 두산 육성선수"
+  },
+  {
+   "kboId": "54112",
+   "playerName": "최명경",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2001-06-14",
+   "salary": 3100,
+   "draft": "24 LG 육성선수"
+  },
+  {
+   "kboId": "55419",
+   "playerName": "최예한",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2002-06-02",
+   "salary": 3100,
+   "draft": "25 삼성 육성선수"
+  },
+  {
+   "kboId": "52710",
+   "playerName": "한경빈",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "1998-12-11",
+   "salary": 3100,
+   "draft": "22 한화 육성선수"
+  },
+  {
+   "kboId": "52628",
+   "playerName": "한승연",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2003-06-09",
+   "salary": 3100,
+   "draft": "22 KIA 2차 8라운드 75순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "50903",
+   "playerName": "한재환",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2001-10-19",
+   "salary": 3100,
+   "draft": "20 NC 2차 8라운드 71순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55897",
+   "playerName": "홍대인",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2001-11-23",
+   "salary": 3100,
+   "draft": "25 SSG 9라운드 88순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56769",
+   "playerName": "강건우",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2007-07-19",
+   "salary": 3000,
+   "draft": "26 한화 2라운드 13순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "53103",
+   "playerName": "강민균",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2000-07-17",
+   "salary": 3000,
+   "draft": "23 LG 11라운드 107순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56102",
+   "playerName": "강민기",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "2007-09-14",
+   "salary": 3000,
+   "draft": "26 LG 5라운드 48순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55427",
+   "playerName": "강민성",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2006-02-22",
+   "salary": 3000,
+   "draft": "25 삼성 10라운드 93순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "67604",
+   "playerName": "강이준",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1998-04-07",
+   "salary": 3000,
+   "draft": "17 KIA 2차 4라운드 34순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "50905",
+   "playerName": "강태경",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2001-07-26",
+   "salary": 3000,
+   "draft": "20 NC 2차 5라운드 41순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54908",
+   "playerName": "고승완",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2001-03-15",
+   "salary": 3000,
+   "draft": "24 NC 9라운드 85순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56068",
+   "playerName": "고준혁",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2005-05-29",
+   "salary": 3000,
+   "draft": "26 KT 5라운드 46순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56949",
+   "playerName": "고준휘",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2007-08-12",
+   "salary": 3000,
+   "draft": "26 NC 4라운드 32순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56638",
+   "playerName": "곽동효",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2002-12-22",
+   "salary": 3000,
+   "draft": "26 KIA 육성선수"
+  },
+  {
+   "kboId": "53104",
+   "playerName": "곽민호",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2004-12-23",
+   "salary": 3000,
+   "draft": "23 LG 10라운드 97순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53168",
+   "playerName": "권동혁",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2003-03-20",
+   "salary": 3000,
+   "draft": "23 LG 6라운드 57순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52003",
+   "playerName": "권성준",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2003-03-09",
+   "salary": 3000,
+   "draft": "22 KT 2차 8라운드 78순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56149",
+   "playerName": "권우준",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2007-01-08",
+   "salary": 3000,
+   "draft": "26 LG 4라운드 38순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "54708",
+   "playerName": "권현",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "2005-02-23",
+   "salary": 3000,
+   "draft": "24 한화 10라운드 91순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56794",
+   "playerName": "권현규",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2007-03-23",
+   "salary": 3000,
+   "draft": "26 한화 5라운드 43순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55441",
+   "playerName": "권현우",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2006-03-28",
+   "salary": 3000,
+   "draft": "25 삼성 5라운드 43순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56017",
+   "playerName": "권효준",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2003-02-23",
+   "salary": 3000,
+   "draft": "26 KT 육성선수"
+  },
+  {
+   "kboId": "50811",
+   "playerName": "길지석",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2001-11-02",
+   "salary": 3000,
+   "draft": "20 SK 2차 7라운드 70순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56952",
+   "playerName": "김건",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2007-05-23",
+   "salary": 3000,
+   "draft": "26 NC 4라운드 35순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53049",
+   "playerName": "김건웅",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2004-04-12",
+   "salary": 3000,
+   "draft": "23 KT 4라운드 40순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56097",
+   "playerName": "김건휘",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2007-09-11",
+   "salary": 3000,
+   "draft": "26 KT 3라운드 26순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "52703",
+   "playerName": "김겸재",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1998-12-10",
+   "salary": 3000,
+   "draft": "22 한화 2차 6라운드 51순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "55618",
+   "playerName": "김경묵",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1999-05-07",
+   "salary": 3000,
+   "draft": "25 KIA 육성선수"
+  },
+  {
+   "kboId": "56009",
+   "playerName": "김경환",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2007-01-04",
+   "salary": 3000,
+   "draft": "26 KT 7라운드 66순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "53701",
+   "playerName": "김관우",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2003-09-07",
+   "salary": 3000,
+   "draft": "23 한화 4라운드 31순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "56016",
+   "playerName": "김규한",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2001-03-17",
+   "salary": 3000,
+   "draft": "26 KT 육성선수"
+  },
+  {
+   "kboId": "53540",
+   "playerName": "김기준",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2004-04-16",
+   "salary": 3000,
+   "draft": "23 롯데 4라운드 33순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "54511",
+   "playerName": "김대현",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2003-11-15",
+   "salary": 3000,
+   "draft": "24 롯데 육성선수"
+  },
+  {
+   "kboId": "52844",
+   "playerName": "김도현",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2003-05-24",
+   "salary": 3000,
+   "draft": "22 SSG 2차 2라운드 12순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "69592",
+   "playerName": "김동규",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "1999-04-08",
+   "salary": 3000,
+   "draft": "19 롯데 2차 6라운드 58순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56143",
+   "playerName": "김동현",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2005-03-03",
+   "salary": 3000,
+   "draft": "26 LG 11라운드 108순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55933",
+   "playerName": "김동현",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "2002-08-30",
+   "salary": 3000,
+   "draft": "25 NC 육성선수"
+  },
+  {
+   "kboId": "52398",
+   "playerName": "김리안",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "2003-11-25",
+   "salary": 3000,
+   "draft": "22 키움 2차 7라운드 66순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56944",
+   "playerName": "김명규",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2007-01-18",
+   "salary": 3000,
+   "draft": "26 NC 9라운드 82순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53205",
+   "playerName": "김문수",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2004-03-29",
+   "salary": 3000,
+   "draft": "23 두산 9라운드 89순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56637",
+   "playerName": "김민규",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2007-01-26",
+   "salary": 3000,
+   "draft": "26 KIA 3라운드 30순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "56815",
+   "playerName": "김민범",
+   "teamName": "SSG",
+   "position": "포수",
+   "birthday": "2003-11-04",
+   "salary": 3000,
+   "draft": "26 SSG 육성선수"
+  },
+  {
+   "kboId": "54094",
+   "playerName": "김민성",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2005-08-28",
+   "salary": 3000,
+   "draft": "24 KT 3라운드 27순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "69627",
+   "playerName": "김민수",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2000-04-05",
+   "salary": 3000,
+   "draft": "19 KIA 2차 7라운드 70순위"
+  },
+  {
+   "kboId": "56840",
+   "playerName": "김민준",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2006-04-08",
+   "salary": 3000,
+   "draft": "26 SSG 1라운드 5순위",
+   "signingBonus": 27000
+  },
+  {
+   "kboId": "53893",
+   "playerName": "김민준",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2004-03-20",
+   "salary": 3000,
+   "draft": "23 SSG 7라운드 65순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "55420",
+   "playerName": "김백산",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2003-10-13",
+   "salary": 3000,
+   "draft": "25 삼성 육성선수"
+  },
+  {
+   "kboId": "50710",
+   "playerName": "김범준",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2000-09-30",
+   "salary": 3000,
+   "draft": "20 한화 2차 9라운드 88순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69980",
+   "playerName": "김범준",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2000-04-20",
+   "salary": 3000,
+   "draft": "19 NC 2차 5라운드 47순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56621",
+   "playerName": "김상범",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2002-10-28",
+   "salary": 3000,
+   "draft": "26 KIA 10라운드 100순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55425",
+   "playerName": "김상준",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2002-12-30",
+   "salary": 3000,
+   "draft": "25 삼성 육성선수"
+  },
+  {
+   "kboId": "56467",
+   "playerName": "김상호",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2006-08-19",
+   "salary": 3000,
+   "draft": "26 삼성 2라운드 19순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "55359",
+   "playerName": "김서준",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-12-22",
+   "salary": 3000,
+   "draft": "25 키움 1라운드 7순위",
+   "signingBonus": 22000
+  },
+  {
+   "kboId": "50848",
+   "playerName": "김성민",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2001-04-30",
+   "salary": 3000,
+   "draft": "20 SK 2차 2라운드 20순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "53637",
+   "playerName": "김세일",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2003-03-02",
+   "salary": 3000,
+   "draft": "23 KIA 4라운드 32순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "53464",
+   "playerName": "김시온",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2003-10-30",
+   "salary": 3000,
+   "draft": "23 삼성 6라운드 58순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "50613",
+   "playerName": "김양수",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2001-01-23",
+   "salary": 3000,
+   "draft": "20 KIA 2차 5라운드 46순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56846",
+   "playerName": "김요셉",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2007-05-03",
+   "salary": 3000,
+   "draft": "26 SSG 2라운드 15순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "56936",
+   "playerName": "김요엘",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2007-04-04",
+   "salary": 3000,
+   "draft": "26 NC 3라운드 22순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "56014",
+   "playerName": "김유빈",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "2007-01-01",
+   "salary": 3000,
+   "draft": "26 KT 11라운드 106순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56317",
+   "playerName": "김유빈",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2007-03-09",
+   "salary": 3000,
+   "draft": "26 키움 11라운드 101순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55429",
+   "playerName": "김유현",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-02-07",
+   "salary": 3000,
+   "draft": "25 삼성 육성선수"
+  },
+  {
+   "kboId": "54909",
+   "playerName": "김재민",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "2005-08-31",
+   "salary": 3000,
+   "draft": "24 NC 10라운드 95순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53619",
+   "playerName": "김재현",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2000-12-02",
+   "salary": 3000,
+   "draft": "23 KIA 10라운드 92순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56810",
+   "playerName": "김재훈",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2007-03-12",
+   "salary": 3000,
+   "draft": "26 SSG 10라운드 95순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53865",
+   "playerName": "김정민",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2004-03-07",
+   "salary": 3000,
+   "draft": "23 SSG 3라운드 25순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "51903",
+   "playerName": "김정호",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "1998-07-13",
+   "salary": 3000,
+   "draft": "21 NC 2차 8라운드 76순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56316",
+   "playerName": "김주영",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "2007-02-05",
+   "salary": 3000,
+   "draft": "26 키움 10라운드 91순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56266",
+   "playerName": "김주오",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2007-09-14",
+   "salary": 3000,
+   "draft": "26 두산 1라운드 7순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "56814",
+   "playerName": "김준모",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2003-08-11",
+   "salary": 3000,
+   "draft": "26 SSG 육성선수"
+  },
+  {
+   "kboId": "56704",
+   "playerName": "김준수",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2007-03-27",
+   "salary": 3000,
+   "draft": "26 한화 8라운드 73순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53805",
+   "playerName": "김준영",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2003-11-18",
+   "salary": 3000,
+   "draft": "23 SSG 11라운드 105순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "54910",
+   "playerName": "김준원",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2005-05-31",
+   "salary": 3000,
+   "draft": "24 NC 11라운드 105순위"
+  },
+  {
+   "kboId": "56326",
+   "playerName": "김지석",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2007-02-19",
+   "salary": 3000,
+   "draft": "26 키움 2라운드 11순위",
+   "signingBonus": 16000
+  },
+  {
+   "kboId": "54397",
+   "playerName": "김지성",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "2004-05-27",
+   "salary": 3000,
+   "draft": "24 키움 7라운드 69순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "51104",
+   "playerName": "김지용",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2002-10-07",
+   "salary": 3000,
+   "draft": "21 LG 2차 6라운드 57순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55222",
+   "playerName": "김지윤",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2004-01-13",
+   "salary": 3000,
+   "draft": "25 두산 육성선수"
+  },
+  {
+   "kboId": "52661",
+   "playerName": "김찬민",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2003-09-13",
+   "salary": 3000,
+   "draft": "22 KIA 2차 4라운드 35순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55507",
+   "playerName": "김태균",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2006-07-31",
+   "salary": 3000,
+   "draft": "25 롯데 10라운드 94순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56313",
+   "playerName": "김태언",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-07-25",
+   "salary": 3000,
+   "draft": "26 키움 7라운드 61순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "68454",
+   "playerName": "김태우",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1999-09-15",
+   "salary": 3000,
+   "draft": "18 삼성 2차 2라운드 12순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "56809",
+   "playerName": "김태현",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2007-01-03",
+   "salary": 3000,
+   "draft": "26 SSG 9라운드 85순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56540",
+   "playerName": "김한결",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2006-07-24",
+   "salary": 3000,
+   "draft": "26 롯데 6라운드 54순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56595",
+   "playerName": "김한홀",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2006-12-12",
+   "salary": 3000,
+   "draft": "26 롯데 5라운드 44순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "53702",
+   "playerName": "김해찬",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2004-05-25",
+   "salary": 3000,
+   "draft": "23 한화 5라운드 41순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56664",
+   "playerName": "김현수",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2007-11-08",
+   "salary": 3000,
+   "draft": "26 KIA 2라운드 20순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "56541",
+   "playerName": "김현수",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2007-09-19",
+   "salary": 3000,
+   "draft": "26 롯데 11라운드 104순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56537",
+   "playerName": "김화중",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2006-02-27",
+   "salary": 3000,
+   "draft": "26 롯데 4라운드 34순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56013",
+   "playerName": "김휘연",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2007-08-10",
+   "salary": 3000,
+   "draft": "26 KT 10라운드 96순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55629",
+   "playerName": "나연우",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2006-07-24",
+   "salary": 3000,
+   "draft": "25 KIA 7라운드 65순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56208",
+   "playerName": "남태웅",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2007-01-08",
+   "salary": 3000,
+   "draft": "26 두산 10라운드 97순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56539",
+   "playerName": "남해담",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2007-06-05",
+   "salary": 3000,
+   "draft": "26 롯데 8라운드 74순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "52717",
+   "playerName": "노석진",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2003-01-31",
+   "salary": 3000,
+   "draft": "22 한화 2차 10라운드 91순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53914",
+   "playerName": "노재원",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2001-07-26",
+   "salary": 3000,
+   "draft": "23 NC 육성선수"
+  },
+  {
+   "kboId": "53806",
+   "playerName": "류현곤",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2004-11-10",
+   "salary": 3000,
+   "draft": "23 SSG 8라운드 75순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "50592",
+   "playerName": "박명현",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2001-06-16",
+   "salary": 3000,
+   "draft": "20 롯데 2차 3라운드 24순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "55004",
+   "playerName": "박민석",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2006-07-27",
+   "salary": 3000,
+   "draft": "25 KT 5라운드 49순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55711",
+   "playerName": "박부성",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2000-01-17",
+   "salary": 3000,
+   "draft": "25 한화 육성선수"
+  },
+  {
+   "kboId": "56702",
+   "playerName": "박상목",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2001-03-23",
+   "salary": 3000,
+   "draft": "26 한화 육성선수"
+  },
+  {
+   "kboId": "52634",
+   "playerName": "박상준",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2001-08-21",
+   "salary": 3000,
+   "draft": "22 KIA 육성선수"
+  },
+  {
+   "kboId": "52864",
+   "playerName": "박상후",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2003-08-05",
+   "salary": 3000,
+   "draft": "22 SSG 2차 3라운드 22순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "52980",
+   "playerName": "박성재",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "2003-03-21",
+   "salary": 3000,
+   "draft": "22 NC 1차",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56020",
+   "playerName": "박성준",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2003-07-28",
+   "salary": 3000,
+   "draft": "26 KT 육성선수"
+  },
+  {
+   "kboId": "56114",
+   "playerName": "박성진",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2007-10-11",
+   "salary": 3000,
+   "draft": "26 LG 10라운드 98순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53800",
+   "playerName": "박세직",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2004-07-30",
+   "salary": 3000,
+   "draft": "23 SSG 6라운드 55순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "53409",
+   "playerName": "박시원",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-03-16",
+   "salary": 3000,
+   "draft": "23 삼성 9라운드 88순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "50906",
+   "playerName": "박영빈",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "1997-07-16",
+   "salary": 3000,
+   "draft": "20 NC 육성선수"
+  },
+  {
+   "kboId": "56468",
+   "playerName": "박용재",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2007-03-24",
+   "salary": 3000,
+   "draft": "26 삼성 5라운드 49순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54911",
+   "playerName": "박인우",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2001-12-14",
+   "salary": 3000,
+   "draft": "24 NC 육성선수"
+  },
+  {
+   "kboId": "53706",
+   "playerName": "박재규",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2003-07-03",
+   "salary": 3000,
+   "draft": "23 한화 9라운드 81순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56536",
+   "playerName": "박정민",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2003-09-26",
+   "salary": 3000,
+   "draft": "26 롯데 2라운드 14순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "56634",
+   "playerName": "박종혁",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2007-10-05",
+   "salary": 3000,
+   "draft": "26 KIA 7라운드 70순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56438",
+   "playerName": "박주영",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2007-07-11",
+   "salary": 3000,
+   "draft": "26 삼성 11라운드 109순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56706",
+   "playerName": "박주진",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2007-03-17",
+   "salary": 3000,
+   "draft": "26 한화 10라운드 93순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69900",
+   "playerName": "박주찬",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "1996-01-11",
+   "salary": 3000,
+   "draft": "19 NC 육성선수"
+  },
+  {
+   "kboId": "56314",
+   "playerName": "박준건",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2007-04-06",
+   "salary": 3000,
+   "draft": "26 키움 8라운드 71순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56112",
+   "playerName": "박준기",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "2004-07-21",
+   "salary": 3000,
+   "draft": "26 LG 육성선수"
+  },
+  {
+   "kboId": "56159",
+   "playerName": "박준성",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2007-12-12",
+   "salary": 3000,
+   "draft": "26 LG 2라운드 18순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "56709",
+   "playerName": "박준영",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2002-06-03",
+   "salary": 3000,
+   "draft": "26 한화 육성선수"
+  },
+  {
+   "kboId": "55002",
+   "playerName": "박준혁",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2006-03-10",
+   "salary": 3000,
+   "draft": "25 KT 4라운드 39순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56318",
+   "playerName": "박준현",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2007-08-29",
+   "salary": 3000,
+   "draft": "26 키움 1라운드 1순위",
+   "signingBonus": 70000
+  },
+  {
+   "kboId": "69363",
+   "playerName": "박준형",
+   "teamName": "키움",
+   "position": "포수",
+   "birthday": "1999-03-07",
+   "salary": 3000,
+   "draft": "19 넥센 2차 6라운드 54순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56337",
+   "playerName": "박지성",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2007-03-16",
+   "salary": 3000,
+   "draft": "26 키움 3라운드 21순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "69994",
+   "playerName": "박지한",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2000-10-21",
+   "salary": 3000,
+   "draft": "19 NC 2차 8라운드 77순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56066",
+   "playerName": "박지훈",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2007-01-19",
+   "salary": 3000,
+   "draft": "26 KT 1라운드 6순위",
+   "signingBonus": 26000
+  },
+  {
+   "kboId": "55508",
+   "playerName": "박지훈",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2002-05-14",
+   "salary": 3000,
+   "draft": "25 롯데 육성선수"
+  },
+  {
+   "kboId": "54303",
+   "playerName": "박채울",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "2004-11-20",
+   "salary": 3000,
+   "draft": "24 키움 8라운드 79순위"
+  },
+  {
+   "kboId": "56015",
+   "playerName": "박치성",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "2003-04-26",
+   "salary": 3000,
+   "draft": "26 KT 육성선수"
+  },
+  {
+   "kboId": "53597",
+   "playerName": "박하늘",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2002-04-25",
+   "salary": 3000,
+   "draft": "23 롯데 육성선수"
+  },
+  {
+   "kboId": "56304",
+   "playerName": "박한결",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2007-12-05",
+   "salary": 3000,
+   "draft": "26 키움 1라운드 10순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "56108",
+   "playerName": "박현우",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2005-02-20",
+   "salary": 3000,
+   "draft": "26 LG 7라운드 68순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "54116",
+   "playerName": "배강",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "2005-11-04",
+   "salary": 3000,
+   "draft": "24 LG 7라운드 68순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "53988",
+   "playerName": "배상호",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2004-03-12",
+   "salary": 3000,
+   "draft": "23 NC 10라운드 94순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55798",
+   "playerName": "배승수",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2006-05-15",
+   "salary": 3000,
+   "draft": "25 한화 4라운드 32순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "53598",
+   "playerName": "배인혁",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2004-01-29",
+   "salary": 3000,
+   "draft": "23 롯데 11라운드 103순위",
+   "signingBonus": 2000
+  },
+  {
+   "kboId": "52392",
+   "playerName": "백진수",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2003-02-15",
+   "salary": 3000,
+   "draft": "22 키움 2차 3라운드 26순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54808",
+   "playerName": "변건우",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2005-07-15",
+   "salary": 3000,
+   "draft": "24 SSG 11라운드 110순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55160",
+   "playerName": "서영준",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2006-03-18",
+   "salary": 3000,
+   "draft": "25 LG 5라운드 44순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56241",
+   "playerName": "서준오",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2005-03-05",
+   "salary": 3000,
+   "draft": "26 두산 3라운드 27순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "53428",
+   "playerName": "서현원",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-02-28",
+   "salary": 3000,
+   "draft": "23 삼성 3라운드 23순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "56439",
+   "playerName": "석예헌",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-03-24",
+   "salary": 3000,
+   "draft": "26 삼성 육성선수"
+  },
+  {
+   "kboId": "55118",
+   "playerName": "성준서",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2006-04-09",
+   "salary": 3000,
+   "draft": "25 LG 11라운드 110순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56946",
+   "playerName": "손민서",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2007-02-18",
+   "salary": 3000,
+   "draft": "26 NC 11라운드 102순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56544",
+   "playerName": "손준이",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2004-01-07",
+   "salary": 3000,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "54701",
+   "playerName": "승지환",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2005-07-25",
+   "salary": 3000,
+   "draft": "24 한화 11라운드 101순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56567",
+   "playerName": "신동건",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2007-10-05",
+   "salary": 3000,
+   "draft": "26 롯데 1라운드 4순위",
+   "signingBonus": 27000
+  },
+  {
+   "kboId": "52642",
+   "playerName": "신명승",
+   "teamName": "KIA",
+   "position": "포수",
+   "birthday": "2002-11-02",
+   "salary": 3000,
+   "draft": "22 KIA 2차 9라운드 85순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55917",
+   "playerName": "신민우",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "2006-08-13",
+   "salary": 3000,
+   "draft": "25 NC 8라운드 77순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "52294",
+   "playerName": "신민철",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2003-01-13",
+   "salary": 3000,
+   "draft": "22 두산 2차 3라운드 29순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "51057",
+   "playerName": "신범준",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2002-06-01",
+   "salary": 3000,
+   "draft": "21 KT 1차",
+   "signingBonus": 17000
+  },
+  {
+   "kboId": "56808",
+   "playerName": "신상연",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2007-02-03",
+   "salary": 3000,
+   "draft": "26 SSG 8라운드 75순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53989",
+   "playerName": "신성호",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2003-09-28",
+   "salary": 3000,
+   "draft": "23 NC 7라운드 64순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56238",
+   "playerName": "신우열",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2001-12-30",
+   "salary": 3000,
+   "draft": "26 두산 4라운드 37순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53415",
+   "playerName": "신윤호",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-09-08",
+   "salary": 3000,
+   "draft": "23 삼성 4라운드 38순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56909",
+   "playerName": "신재인",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2007-06-28",
+   "salary": 3000,
+   "draft": "26 NC 1라운드 2순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "55860",
+   "playerName": "신지환",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2006-04-17",
+   "salary": 3000,
+   "draft": "25 SSG 2라운드 18순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "56217",
+   "playerName": "심건보",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2003-11-17",
+   "salary": 3000,
+   "draft": "26 두산 9라운드 87순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "54306",
+   "playerName": "심휘윤",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "2005-05-28",
+   "salary": 3000,
+   "draft": "24 키움 11라운드 109순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56222",
+   "playerName": "안민겸",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2004-05-17",
+   "salary": 3000,
+   "draft": "26 두산 육성선수"
+  },
+  {
+   "kboId": "56442",
+   "playerName": "안민성",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "2003-03-20",
+   "salary": 3000,
+   "draft": "26 삼성 육성선수"
+  },
+  {
+   "kboId": "55109",
+   "playerName": "안이도",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2006-05-02",
+   "salary": 3000,
+   "draft": "25 LG 9라운드 90순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "50901",
+   "playerName": "안인산",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2001-02-27",
+   "salary": 3000,
+   "draft": "20 NC 2차 3라운드 21순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "56811",
+   "playerName": "안재연",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2003-04-10",
+   "salary": 3000,
+   "draft": "26 SSG 11라운드 105순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56941",
+   "playerName": "안지원",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2007-05-05",
+   "salary": 3000,
+   "draft": "26 NC 6라운드 52순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56220",
+   "playerName": "안치호",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2004-11-30",
+   "salary": 3000,
+   "draft": "24 두산 11라운드 102순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55920",
+   "playerName": "양가온솔",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2006-02-24",
+   "salary": 3000,
+   "draft": "25 NC 10라운드 97순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "52702",
+   "playerName": "양경모",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2003-03-24",
+   "salary": 3000,
+   "draft": "22 한화 2차 4라운드 31순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "50813",
+   "playerName": "양선률",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1997-04-15",
+   "salary": 3000,
+   "draft": "20 SK 육성선수"
+  },
+  {
+   "kboId": "55659",
+   "playerName": "양수호",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2006-09-09",
+   "salary": 3000,
+   "draft": "25 KIA 4라운드 35순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56165",
+   "playerName": "양우진",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2007-06-05",
+   "salary": 3000,
+   "draft": "26 LG 1라운드 8순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "52123",
+   "playerName": "양진혁",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2003-06-20",
+   "salary": 3000,
+   "draft": "22 LG 2차 9라운드 87순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "51200",
+   "playerName": "양현진",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2002-01-03",
+   "salary": 3000,
+   "draft": "21 두산 2차 10라운드 100순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56414",
+   "playerName": "어윤성",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2005-03-12",
+   "salary": 3000,
+   "draft": "26 삼성 육성선수"
+  },
+  {
+   "kboId": "55708",
+   "playerName": "엄요셉",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2006-05-29",
+   "salary": 3000,
+   "draft": "25 한화 9라운드 82순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "52565",
+   "playerName": "엄장윤",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2003-10-07",
+   "salary": 3000,
+   "draft": "22 롯데 2차 8라운드 74순위",
+   "signingBonus": 2000
+  },
+  {
+   "kboId": "55631",
+   "playerName": "엄준현",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2006-04-20",
+   "salary": 3000,
+   "draft": "25 KIA 9라운드 85순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56214",
+   "playerName": "엄지민",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2005-11-22",
+   "salary": 3000,
+   "draft": "26 두산 6라운드 57순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56703",
+   "playerName": "여현승",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2006-02-20",
+   "salary": 3000,
+   "draft": "26 한화 7라운드 63순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "50622",
+   "playerName": "오규석",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2001-12-04",
+   "salary": 3000,
+   "draft": "20 KIA 2차 3라운드 26순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "54105",
+   "playerName": "오승윤",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2001-06-25",
+   "salary": 3000,
+   "draft": "24 LG 육성선수"
+  },
+  {
+   "kboId": "56807",
+   "playerName": "오시후",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2007-10-20",
+   "salary": 3000,
+   "draft": "26 SSG 7라운드 65순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56754",
+   "playerName": "오재원",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2007-01-21",
+   "salary": 3000,
+   "draft": "26 한화 1라운드 3순위",
+   "signingBonus": 27000
+  },
+  {
+   "kboId": "68614",
+   "playerName": "오정환",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "1999-03-27",
+   "salary": 3000,
+   "draft": "18 KIA 2차 4라운드 36순위"
+  },
+  {
+   "kboId": "55383",
+   "playerName": "오혜성",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-02-27",
+   "salary": 3000,
+   "draft": "25 키움 10라운드 91순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56169",
+   "playerName": "우명현",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2007-02-07",
+   "salary": 3000,
+   "draft": "26 LG 3라운드 28순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "55428",
+   "playerName": "우승완",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2005-09-06",
+   "salary": 3000,
+   "draft": "25 삼성 9라운드 83순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55111",
+   "playerName": "우정안",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2006-01-03",
+   "salary": 3000,
+   "draft": "25 LG 8라운드 80순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53101",
+   "playerName": "원상훈",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2004-10-23",
+   "salary": 3000,
+   "draft": "23 LG 5라운드 47순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "54906",
+   "playerName": "원종해",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2005-04-09",
+   "salary": 3000,
+   "draft": "24 NC 7라운드 65순위"
+  },
+  {
+   "kboId": "52765",
+   "playerName": "유민",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2003-01-20",
+   "salary": 3000,
+   "draft": "22 한화 2차 3라운드 21순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "55925",
+   "playerName": "유재현",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2005-10-17",
+   "salary": 3000,
+   "draft": "25 NC 5라운드 47순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56315",
+   "playerName": "유정택",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2003-11-20",
+   "salary": 3000,
+   "draft": "26 키움 9라운드 81순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55007",
+   "playerName": "윤상인",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2004-04-01",
+   "salary": 3000,
+   "draft": "25 KT 8라운드 79순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56945",
+   "playerName": "윤서현",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2007-03-13",
+   "salary": 3000,
+   "draft": "26 NC 10라운드 92순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "54809",
+   "playerName": "윤성보",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2002-09-12",
+   "salary": 3000,
+   "draft": "24 SSG 9라운드 90순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56943",
+   "playerName": "윤성환",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2003-06-19",
+   "salary": 3000,
+   "draft": "26 NC 8라운드 72순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "52867",
+   "playerName": "윤태현",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2003-10-10",
+   "salary": 3000,
+   "draft": "22 SSG 1차",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "56113",
+   "playerName": "윤형민",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2007-10-15",
+   "salary": 3000,
+   "draft": "26 LG 9라운드 88순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56006",
+   "playerName": "이강민",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2007-01-27",
+   "salary": 3000,
+   "draft": "26 KT 2라운드 16순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "53202",
+   "playerName": "이기석",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2002-06-07",
+   "salary": 3000,
+   "draft": "23 두산 육성선수"
+  },
+  {
+   "kboId": "54703",
+   "playerName": "이기창",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2005-04-21",
+   "salary": 3000,
+   "draft": "24 한화 5라운드 41순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55896",
+   "playerName": "이도우",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2006-05-13",
+   "salary": 3000,
+   "draft": "25 SSG 8라운드 78순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56635",
+   "playerName": "이도훈",
+   "teamName": "KIA",
+   "position": "포수",
+   "birthday": "2007-01-06",
+   "salary": 3000,
+   "draft": "26 KIA 11라운드 110순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56708",
+   "playerName": "이도훈",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2003-08-27",
+   "salary": 3000,
+   "draft": "26 한화 육성선수"
+  },
+  {
+   "kboId": "55704",
+   "playerName": "이동영",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2006-04-09",
+   "salary": 3000,
+   "draft": "25 한화 5라운드 42순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56538",
+   "playerName": "이로화",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2006-07-31",
+   "salary": 3000,
+   "draft": "26 롯데 10라운드 94순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56012",
+   "playerName": "이민준",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2007-06-14",
+   "salary": 3000,
+   "draft": "26 KT 9라운드 86순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "51110",
+   "playerName": "이믿음",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2000-07-18",
+   "salary": 3000,
+   "draft": "21 LG 2차 4라운드 37순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51592",
+   "playerName": "이병준",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2002-05-28",
+   "salary": 3000,
+   "draft": "21 롯데 2차 7라운드 61순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69168",
+   "playerName": "이상영",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2000-12-03",
+   "salary": 3000,
+   "draft": "19 LG 2차 1라운드 5순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "56433",
+   "playerName": "이서준",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2007-06-06",
+   "salary": 3000,
+   "draft": "26 삼성 4라운드 39순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56434",
+   "playerName": "이서준",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "2007-06-25",
+   "salary": 3000,
+   "draft": "26 삼성 7라운드 69순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56563",
+   "playerName": "이서준",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2007-10-10",
+   "salary": 3000,
+   "draft": "26 롯데 3라운드 24순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55997",
+   "playerName": "이세민",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2005-08-08",
+   "salary": 3000,
+   "draft": "25 NC 6라운드 57순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "53663",
+   "playerName": "이송찬",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2004-08-08",
+   "salary": 3000,
+   "draft": "23 KIA 6라운드 52순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "54806",
+   "playerName": "이승민",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2005-01-06",
+   "salary": 3000,
+   "draft": "24 SSG 2라운드 20순위",
+   "signingBonus": 13000
+  },
+  {
+   "kboId": "56806",
+   "playerName": "이승빈",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2006-11-24",
+   "salary": 3000,
+   "draft": "26 SSG 6라운드 55순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "54011",
+   "playerName": "이승현",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2005-01-26",
+   "salary": 3000,
+   "draft": "24 KT 9라운드 87순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "51605",
+   "playerName": "이영재",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2002-01-11",
+   "salary": 3000,
+   "draft": "21 KIA 2차 5라운드 44순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55006",
+   "playerName": "이용현",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2006-01-06",
+   "salary": 3000,
+   "draft": "25 KT 7라운드 69순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "52295",
+   "playerName": "이원재",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2003-05-07",
+   "salary": 3000,
+   "draft": "22 두산 2차 2라운드 19순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55893",
+   "playerName": "이원준",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2006-03-15",
+   "salary": 3000,
+   "draft": "25 SSG 5라운드 48순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56005",
+   "playerName": "이재원",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2007-04-27",
+   "salary": 3000,
+   "draft": "26 KT 6라운드 56순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56705",
+   "playerName": "이재환",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2006-05-03",
+   "salary": 3000,
+   "draft": "26 한화 9라운드 83순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55003",
+   "playerName": "이정환",
+   "teamName": "KT",
+   "position": "포수",
+   "birthday": "2006-04-12",
+   "salary": 3000,
+   "draft": "25 KT 9라운드 89순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56226",
+   "playerName": "이종혁",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2000-02-22",
+   "salary": 3000,
+   "draft": "26 두산 육성선수"
+  },
+  {
+   "kboId": "50262",
+   "playerName": "이주엽",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2001-03-26",
+   "salary": 3000,
+   "draft": "20 두산 1차",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "52901",
+   "playerName": "이주형",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2002-12-20",
+   "salary": 3000,
+   "draft": "22 NC 2차 6라운드 60순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56235",
+   "playerName": "이주호",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2006-11-21",
+   "salary": 3000,
+   "draft": "26 두산 5라운드 47순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "51702",
+   "playerName": "이준기",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2002-05-19",
+   "salary": 3000,
+   "draft": "21 한화 2차 7라운드 62순위"
+  },
+  {
+   "kboId": "53005",
+   "playerName": "이준명",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2002-12-18",
+   "salary": 3000,
+   "draft": "23 KT 10라운드 100순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "51602",
+   "playerName": "이준범",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2002-07-16",
+   "salary": 3000,
+   "draft": "21 KIA 2차 8라운드 74순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53160",
+   "playerName": "이준서",
+   "teamName": "LG",
+   "position": "외야수",
+   "birthday": "2004-11-18",
+   "salary": 3000,
+   "draft": "23 LG 4라운드 37순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56554",
+   "playerName": "이준서",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2006-08-05",
+   "salary": 3000,
+   "draft": "26 롯데 7라운드 64순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56111",
+   "playerName": "이지백",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2006-07-04",
+   "salary": 3000,
+   "draft": "26 LG 8라운드 78순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55706",
+   "playerName": "이지성",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2005-11-29",
+   "salary": 3000,
+   "draft": "25 한화 7라운드 62순위"
+  },
+  {
+   "kboId": "55417",
+   "playerName": "이진용",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2006-06-30",
+   "salary": 3000,
+   "draft": "25 삼성 6라운드 53순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "56366",
+   "playerName": "이태양",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2007-03-03",
+   "salary": 3000,
+   "draft": "26 키움 5라운드 41순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "54301",
+   "playerName": "이태준",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2005-11-27",
+   "salary": 3000,
+   "draft": "24 키움 3라운드 24순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55165",
+   "playerName": "이태훈",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2006-08-21",
+   "salary": 3000,
+   "draft": "25 LG 4라운드 40순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "52907",
+   "playerName": "이한",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2003-08-25",
+   "salary": 3000,
+   "draft": "22 NC 2차 4라운드 40순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55100",
+   "playerName": "이한림",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "2006-11-18",
+   "salary": 3000,
+   "draft": "25 LG 3라운드 30순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "56443",
+   "playerName": "이한민",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2002-06-04",
+   "salary": 3000,
+   "draft": "26 삼성 육성선수"
+  },
+  {
+   "kboId": "54014",
+   "playerName": "이현민",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2001-10-13",
+   "salary": 3000,
+   "draft": "24 KT 육성선수"
+  },
+  {
+   "kboId": "56441",
+   "playerName": "이호범",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2007-05-29",
+   "salary": 3000,
+   "draft": "26 삼성 1라운드 9순위",
+   "signingBonus": 25000
+  },
+  {
+   "kboId": "56624",
+   "playerName": "이호진",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2003-10-22",
+   "salary": 3000,
+   "draft": "26 KIA 육성선수"
+  },
+  {
+   "kboId": "56221",
+   "playerName": "이희성",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "2004-02-02",
+   "salary": 3000,
+   "draft": "26 두산 육성선수"
+  },
+  {
+   "kboId": "56932",
+   "playerName": "이희성",
+   "teamName": "NC",
+   "position": "포수",
+   "birthday": "2007-04-01",
+   "salary": 3000,
+   "draft": "26 NC 2라운드 12순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "56001",
+   "playerName": "임상우",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "2003-01-03",
+   "salary": 3000,
+   "draft": "26 KT 4라운드 36순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "53100",
+   "playerName": "임정균",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2004-05-10",
+   "salary": 3000,
+   "draft": "23 LG 5라운드 50순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56205",
+   "playerName": "임종훈",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2007-05-07",
+   "salary": 3000,
+   "draft": "26 두산 7라운드 67순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56435",
+   "playerName": "임주찬",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2003-10-07",
+   "salary": 3000,
+   "draft": "26 삼성 8라운드 79순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "51295",
+   "playerName": "임태윤",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2002-08-12",
+   "salary": 3000,
+   "draft": "21 두산 2차 5라운드 50순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56216",
+   "playerName": "임현철",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2007-10-21",
+   "salary": 3000,
+   "draft": "26 두산 8라운드 77순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "50244",
+   "playerName": "장규빈",
+   "teamName": "두산",
+   "position": "포수",
+   "birthday": "2001-04-21",
+   "salary": 3000,
+   "draft": "20 두산 2차 1라운드 9순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "55010",
+   "playerName": "장민호",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2002-07-05",
+   "salary": 3000,
+   "draft": "25 KT 육성선수"
+  },
+  {
+   "kboId": "51603",
+   "playerName": "장시현",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2001-12-21",
+   "salary": 3000,
+   "draft": "21 KIA 2차 7라운드 64순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53267",
+   "playerName": "장우진",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2004-03-20",
+   "salary": 3000,
+   "draft": "23 두산 3라운드 29순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "56849",
+   "playerName": "장재율",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "2007-09-12",
+   "salary": 3000,
+   "draft": "26 SSG 3라운드 25순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "56460",
+   "playerName": "장찬희",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2007-10-05",
+   "salary": 3000,
+   "draft": "26 삼성 3라운드 29순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "55993",
+   "playerName": "장창훈",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2000-05-22",
+   "salary": 3000,
+   "draft": "25 NC 9라운드 87순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55899",
+   "playerName": "장현진",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2004-05-18",
+   "salary": 3000,
+   "draft": "25 SSG 육성선수"
+  },
+  {
+   "kboId": "68869",
+   "playerName": "전경원",
+   "teamName": "LG",
+   "position": "포수",
+   "birthday": "1999-03-18",
+   "salary": 3000,
+   "draft": "18 SK 2차 5라운드 45순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "69204",
+   "playerName": "전루건",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2000-06-09",
+   "salary": 3000,
+   "draft": "19 두산 2차 1라운드 9순위",
+   "signingBonus": 14000
+  },
+  {
+   "kboId": "56627",
+   "playerName": "정다훈",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2003-01-25",
+   "salary": 3000,
+   "draft": "26 KIA 육성선수"
+  },
+  {
+   "kboId": "56345",
+   "playerName": "정다훈",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2006-07-06",
+   "salary": 3000,
+   "draft": "26 키움 4라운드 31순위",
+   "signingBonus": 9000
+  },
+  {
+   "kboId": "55385",
+   "playerName": "정동준",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2002-01-14",
+   "salary": 3000,
+   "draft": "25 키움 11라운드 101순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56543",
+   "playerName": "정문혁",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2007-02-24",
+   "salary": 3000,
+   "draft": "26 롯데 9라운드 84순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55515",
+   "playerName": "정선우",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2002-06-12",
+   "salary": 3000,
+   "draft": "25 롯데 육성선수"
+  },
+  {
+   "kboId": "56219",
+   "playerName": "정성헌",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2006-09-11",
+   "salary": 3000,
+   "draft": "26 두산 11라운드 107순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55008",
+   "playerName": "정영웅",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "1999-12-25",
+   "salary": 3000,
+   "draft": "25 KT 10라운드 99순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "69767",
+   "playerName": "정이황",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2000-03-07",
+   "salary": 3000,
+   "draft": "19 한화 2차 3라운드 23순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56469",
+   "playerName": "정재훈",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2007-03-08",
+   "salary": 3000,
+   "draft": "26 삼성 6라운드 59순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52007",
+   "playerName": "정정우",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2004-01-13",
+   "salary": 3000,
+   "draft": "22 KT 2차 7라운드 68순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "53995",
+   "playerName": "정주영",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2004-06-08",
+   "salary": 3000,
+   "draft": "23 NC 8라운드 74순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56645",
+   "playerName": "정찬화",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2006-06-10",
+   "salary": 3000,
+   "draft": "26 KIA 5라운드 50순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56940",
+   "playerName": "정튼튼",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2003-06-01",
+   "salary": 3000,
+   "draft": "26 NC 5라운드 42순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "56091",
+   "playerName": "정현우",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2007-02-10",
+   "salary": 3000,
+   "draft": "26 KT 8라운드 76순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56612",
+   "playerName": "조건호",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2002-05-09",
+   "salary": 3000,
+   "draft": "26 KIA 육성선수"
+  },
+  {
+   "kboId": "53504",
+   "playerName": "조경민",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2004-09-17",
+   "salary": 3000,
+   "draft": "23 롯데 8라운드 73순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55534",
+   "playerName": "조민영",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2005-03-24",
+   "salary": 3000,
+   "draft": "25 롯데 육성선수"
+  },
+  {
+   "kboId": "56444",
+   "playerName": "조세익",
+   "teamName": "삼성",
+   "position": "외야수",
+   "birthday": "2005-10-07",
+   "salary": 3000,
+   "draft": "26 삼성 육성선수"
+  },
+  {
+   "kboId": "56805",
+   "playerName": "조재우",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2004-03-09",
+   "salary": 3000,
+   "draft": "26 SSG 5라운드 45순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55927",
+   "playerName": "조창연",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "2006-04-07",
+   "salary": 3000,
+   "draft": "25 NC 11라운드 107순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "52908",
+   "playerName": "조효원",
+   "teamName": "NC",
+   "position": "외야수",
+   "birthday": "1999-03-10",
+   "salary": 3000,
+   "draft": "22 NC 2차 4라운드 34순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "52396",
+   "playerName": "주승빈",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2004-03-06",
+   "salary": 3000,
+   "draft": "22 키움 2차 5라운드 46순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "55217",
+   "playerName": "주양준",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "2006-04-09",
+   "salary": 3000,
+   "draft": "25 두산 9라운드 86순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56107",
+   "playerName": "주정환",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2004-05-27",
+   "salary": 3000,
+   "draft": "26 LG 6라운드 58순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "69093",
+   "playerName": "지강혁",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2000-08-14",
+   "salary": 3000,
+   "draft": "19 KT 2차 10라운드 91순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56633",
+   "playerName": "지현",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2007-07-13",
+   "salary": 3000,
+   "draft": "26 KIA 6라운드 60순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55415",
+   "playerName": "진희성",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2006-05-18",
+   "salary": 3000,
+   "draft": "25 삼성 11라운드 103순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "52400",
+   "playerName": "차동영",
+   "teamName": "삼성",
+   "position": "포수",
+   "birthday": "2002-11-01",
+   "salary": 3000,
+   "draft": "22 삼성 2차 3라운드 23순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56636",
+   "playerName": "차상현",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2003-01-26",
+   "salary": 3000,
+   "draft": "26 KIA 육성선수"
+  },
+  {
+   "kboId": "55435",
+   "playerName": "차승준",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "2006-11-20",
+   "salary": 3000,
+   "draft": "25 삼성 3라운드 23순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "55414",
+   "playerName": "천겸",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2006-01-25",
+   "salary": 3000,
+   "draft": "25 삼성 8라운드 73순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55890",
+   "playerName": "천범석",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2006-03-06",
+   "salary": 3000,
+   "draft": "25 SSG 4라운드 38순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56639",
+   "playerName": "천정민",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "2002-09-26",
+   "salary": 3000,
+   "draft": "26 KIA 육성선수"
+  },
+  {
+   "kboId": "55628",
+   "playerName": "최건희",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2002-07-09",
+   "salary": 3000,
+   "draft": "25 KIA 6라운드 55순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "52008",
+   "playerName": "최동희",
+   "teamName": "KT",
+   "position": "외야수",
+   "birthday": "2003-07-26",
+   "salary": 3000,
+   "draft": "22 KT 2차 6라운드 58순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "69893",
+   "playerName": "최수호",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2000-07-19",
+   "salary": 3000,
+   "draft": "19 SK 2차 3라운드 26순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56967",
+   "playerName": "최요한",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2007-10-16",
+   "salary": 3000,
+   "draft": "26 NC 3라운드 23순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "50650",
+   "playerName": "최용준",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "2001-12-19",
+   "salary": 3000,
+   "draft": "20 KIA 2차 10라운드 96순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "51564",
+   "playerName": "최우인",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2002-08-09",
+   "salary": 3000,
+   "draft": "21 롯데 2차 8라운드 71순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "53705",
+   "playerName": "최원준",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2004-05-01",
+   "salary": 3000,
+   "draft": "23 한화 8라운드 71순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56793",
+   "playerName": "최유빈",
+   "teamName": "한화",
+   "position": "내야수",
+   "birthday": "2002-05-27",
+   "salary": 3000,
+   "draft": "26 한화 4라운드 33순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56647",
+   "playerName": "최유찬",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2007-12-03",
+   "salary": 3000,
+   "draft": "26 KIA 8라운드 80순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "55894",
+   "playerName": "최윤석",
+   "teamName": "SSG",
+   "position": "내야수",
+   "birthday": "2006-04-25",
+   "salary": 3000,
+   "draft": "25 SSG 6라운드 58순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55913",
+   "playerName": "최윤혁",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2004-01-07",
+   "salary": 3000,
+   "draft": "25 NC 육성선수"
+  },
+  {
+   "kboId": "56338",
+   "playerName": "최재영",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "2007-01-08",
+   "salary": 3000,
+   "draft": "26 키움 4라운드 40순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56215",
+   "playerName": "최주형",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2006-08-19",
+   "salary": 3000,
+   "draft": "26 두산 2라운드 17순위",
+   "signingBonus": 12000
+  },
+  {
+   "kboId": "54611",
+   "playerName": "최지웅",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2004-05-14",
+   "salary": 3000,
+   "draft": "24 KIA 6라운드 56순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56312",
+   "playerName": "최현우",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2007-07-19",
+   "salary": 3000,
+   "draft": "26 키움 6라운드 51순위",
+   "signingBonus": 7000
+  },
+  {
+   "kboId": "55163",
+   "playerName": "추세현",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "2006-04-19",
+   "salary": 3000,
+   "draft": "25 LG 2라운드 20순위",
+   "signingBonus": 15000
+  },
+  {
+   "kboId": "56797",
+   "playerName": "하동준",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2007-06-11",
+   "salary": 3000,
+   "draft": "26 한화 6라운드 53순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "50107",
+   "playerName": "하현규",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "2001-02-28",
+   "salary": 3000,
+   "draft": "20 LG 2차 6라운드 53순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "55214",
+   "playerName": "한다현",
+   "teamName": "두산",
+   "position": "내야수",
+   "birthday": "2006-08-25",
+   "salary": 3000,
+   "draft": "25 두산 6라운드 56순위",
+   "signingBonus": 6000
+  },
+  {
+   "kboId": "53703",
+   "playerName": "한서구",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2003-12-04",
+   "salary": 3000,
+   "draft": "23 한화 6라운드 51순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56436",
+   "playerName": "한수동",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2007-08-13",
+   "salary": 3000,
+   "draft": "26 삼성 9라운드 89순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "56619",
+   "playerName": "한준희",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2007-07-01",
+   "salary": 3000,
+   "draft": "26 KIA 9라운드 90순위",
+   "signingBonus": 4000
+  },
+  {
+   "kboId": "52065",
+   "playerName": "한지웅",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2003-07-07",
+   "salary": 3000,
+   "draft": "22 KT 2차 2라운드 18순위",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55767",
+   "playerName": "한지윤",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2006-04-10",
+   "salary": 3000,
+   "draft": "25 한화 3라운드 22순위",
+   "signingBonus": 11000
+  },
+  {
+   "kboId": "56904",
+   "playerName": "허윤",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "2007-03-29",
+   "salary": 3000,
+   "draft": "26 NC 7라운드 62순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "55996",
+   "playerName": "홍재문",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2004-07-09",
+   "salary": 3000,
+   "draft": "25 NC 4라운드 37순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "55412",
+   "playerName": "홍준영",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2004-08-18",
+   "salary": 3000,
+   "draft": "25 삼성 7라운드 63순위",
+   "signingBonus": 5000
+  },
+  {
+   "kboId": "56707",
+   "playerName": "황희성",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2007-02-05",
+   "salary": 3000,
+   "draft": "26 한화 11라운드 103순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "55258",
+   "playerName": "황희천",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2006-11-06",
+   "salary": 3000,
+   "draft": "25 두산 4라운드 36순위",
+   "signingBonus": 8000
+  },
+  {
+   "kboId": "56713",
+   "playerName": "김동휘",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2000-03-30",
+   "salary": 1500,
+   "draft": "26 한화 육성선수"
+  },
+  {
+   "kboId": "56509",
+   "playerName": "김현도",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2002-04-26",
+   "salary": 1500,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "56512",
+   "playerName": "김호범",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2003-08-16",
+   "salary": 1500,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "56524",
+   "playerName": "서하은",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2004-10-15",
+   "salary": 1500,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "56520",
+   "playerName": "이건희",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2003-03-31",
+   "salary": 1500,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "56308",
+   "playerName": "이승재",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "2005-04-07",
+   "salary": 1500,
+   "draft": "26 키움 육성선수"
+  },
+  {
+   "kboId": "50608",
+   "playerName": "이인한",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "1998-12-24",
+   "salary": 1500,
+   "draft": "20 KIA 2차 9라운드 86순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "56513",
+   "playerName": "이정민",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2003-11-20",
+   "salary": 1500,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "56514",
+   "playerName": "이지훈",
+   "teamName": "롯데",
+   "position": "내야수",
+   "birthday": "2003-01-13",
+   "salary": 1500,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "53008",
+   "playerName": "정우성",
+   "teamName": "한화",
+   "position": "포수",
+   "birthday": "2002-04-11",
+   "salary": 1500,
+   "draft": "23 KT 육성선수"
+  },
+  {
+   "kboId": "56714",
+   "playerName": "최윤호",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "2000-03-06",
+   "salary": 1500,
+   "draft": "26 한화 육성선수"
+  },
+  {
+   "kboId": "56522",
+   "playerName": "하준서",
+   "teamName": "롯데",
+   "position": "포수",
+   "birthday": "2004-01-31",
+   "salary": 1500,
+   "draft": "26 롯데 육성선수"
+  },
+  {
+   "kboId": "53096",
+   "playerName": "한민우",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1999-04-27",
+   "salary": 1500,
+   "draft": "23 KT 육성선수",
+   "signingBonus": 1000
+  },
+  {
+   "kboId": "54513",
+   "playerName": "유제모",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "2003-02-26",
+   "salary": 750,
+   "draft": "24 롯데 11라운드 103순위",
+   "signingBonus": 3000
+  },
+  {
+   "kboId": "54505",
+   "playerName": "전하원",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "2005-10-30",
+   "salary": 750,
+   "draft": "24 롯데 10라운드 93순위",
+   "signingBonus": 3000
+  }
+ ]
+}

@@ -1,11 +1,12 @@
-// /salaries/kbo — KBO 국내 선수 연봉 랭킹 (원화, 상위 큐레이션).
-// 데이터: KBO 공식 + 언론 교차검증 → PlayerSalary(KBO) (만원 단위). 선수명·구단 한글 그대로.
-// ⚠️ KBO 연봉 전체 DB 무료 소스 없음(statiz 로그인 벽) → 국내 선수 TOP 10 큐레이션. 외국인은 달러 별도라 제외.
+// /salaries/kbo — KBO 국내 선수 연봉 랭킹 (원화, 상위 100명).
+// 데이터: KBO 공식 선수 프로필 전수 수집 → PlayerSalary(KBO) (만원 단위). 선수명·구단 한글 그대로.
+// ⚠️ 외국인 선수는 달러로 별도 공시되어 제외. 선수ID·생년월일은 이름+구단으로 JSON 원본에서 조회한다
+//    (DB 행에는 선수ID 컬럼이 없고, 동명이인이 44건이라 이름 단독 매칭은 엉뚱한 선수로 연결된다).
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { KBO_SALARY_PLAYER_IDS, KBO_SALARY_BIRTHDAYS } from "@/lib/sports/kbo-salaries";
+import { lookupKboSalaryPlayer } from "@/lib/sports/kbo-salaries";
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
@@ -16,7 +17,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "KBO 선수 연봉 랭킹 — 2026",
   description:
-    "2026 KBO 프로야구 국내 선수 연봉 순위 — 양의지 42억 역대 최고, 고영표·최정·류현진·박세웅 등 TOP 10. 한국어 선수명·구단 표기. 데이터 KBO 공식·언론 종합.",
+    "2026 KBO 프로야구 국내 선수 연봉 순위 TOP 100 — 양의지 42억 역대 최고, 고영표·최정·류현진·박세웅·김광현 순. 10개 구단 전 선수 KBO 공식 공시 연봉 기준.",
   alternates: { canonical: "https://www.scorebase.kr/salaries/kbo" },
 };
 
@@ -30,9 +31,11 @@ function fmtManwon(manwon: number): string {
 }
 
 export default async function KboSalariesPage() {
+  // 전체는 900명대(퓨처스 포함)라 하위는 최저연봉 동률만 이어진다 → 상위 100명만 노출.
   const rows = await prisma.playerSalary.findMany({
     where: { league: "KBO" },
     orderBy: { rank: "asc" },
+    take: 100,
   });
   const season = rows[0]?.season ?? "2026";
 
@@ -68,7 +71,7 @@ export default async function KboSalariesPage() {
         </span>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">KBO 연봉 랭킹</h1>
         <p className="text-sm text-neutral-500 leading-relaxed break-keep">
-          {season} 시즌 국내 선수 연봉 순위. 양의지 42억 역대 최고 · 데이터 KBO 공식·언론 종합.
+          {season} 시즌 국내 선수 연봉 순위 상위 {rows.length}명. 10개 구단 전 선수를 KBO 공식 프로필에서 집계했습니다.
         </p>
         <div className="flex flex-wrap gap-2 pt-1 text-xs">
           <Link href="/leagues/KBO" className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3 py-1 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]">
@@ -95,10 +98,10 @@ export default async function KboSalariesPage() {
             <tbody>
               {rows.map((r) => {
                 const top3 = r.rank <= 3;
-                const pid = KBO_SALARY_PLAYER_IDS[r.playerName];
+                const official = lookupKboSalaryPlayer(r.playerName, r.teamName);
+                const pid = official?.kboId;
                 const teamLogo = teamLogoOf(r.teamName);
-                const bd = KBO_SALARY_BIRTHDAYS[r.playerName];
-                const age = calcAge(bd ? new Date(bd) : null);
+                const age = calcAge(official?.birthday ? new Date(official.birthday) : null);
                 const cell = (
                   <div className="flex items-center gap-2.5">
                     <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
@@ -143,7 +146,7 @@ export default async function KboSalariesPage() {
       )}
 
       <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
-        연봉은 KBO 가 발표한 {season} 시즌 국내 선수 공시 연봉(계약금·인센티브 제외) 기준이며, 상위 선수 위주로 정리했습니다. 외국인 선수는 달러로 별도 공시되어 제외했습니다. 데이터 제공{" "}
+        연봉은 KBO 가 발표한 {season} 시즌 국내 선수 공시 연봉(계약금·인센티브 제외) 기준입니다. 10개 구단 등록 선수 전원의 공식 프로필에서 집계한 뒤 상위 {rows.length}명을 표시합니다. 외국인 선수는 달러로 별도 공시되어 제외했습니다. 데이터 제공{" "}
         <a href="https://www.koreabaseball.com" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
           KBO
         </a>
