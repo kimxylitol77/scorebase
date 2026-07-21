@@ -2,7 +2,7 @@
 // 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown } from "lucide-react";
+import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown, Crown } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -281,6 +281,26 @@ export default async function ScorecardPage() {
       .filter((x) => x.tally.graded > 0)
       .sort((a, b) => b.tally.rate - a.tally.rate),
   })).filter((mm) => mm.models.length > 0);
+
+  // 리그별 성적 — 같은 리그 안에서만 모델을 줄 세운다.
+  // (리그 간 적중률 비교는 종목별 난이도가 달라 — 야구는 무승부가 없고 축구 1X2 는 3지선다 — 참고용)
+  const leagueBoard = [...new Set(datapoints.map((d) => d.league))]
+    .map((lg) => {
+      const all = present
+        .map((m) => ({ model: m, ...metaOf(m), tally: tallyOf(m, (d) => d.league === lg) }))
+        .filter((x) => x.tally.graded > 0);
+      // 리그 순위는 모델별 채점 RANK_MIN 이상만 — 리그 합산 표본은 커도 특정 모델이
+      // 6건으로 1위에 오르는 왜곡(예: K리그1 Qwen 6건)을 차단.
+      const models = all
+        .filter((x) => x.tally.graded >= RANK_MIN)
+        .sort((a, b) => b.tally.rate - a.tally.rate);
+      const graded = all.reduce((s, x) => s + x.tally.graded, 0);
+      return { league: lg, models, graded };
+    })
+    .sort((a, b) => b.graded - a.graded);
+  // 순위에 올릴 모델이 2개 이상인 리그만 카드로, 나머지는 "표본 누적 중" 칩.
+  const leagueMain = leagueBoard.filter((x) => x.models.length >= 2);
+  const leagueThin = leagueBoard.filter((x) => x.models.length < 2);
 
   // 다가오는 맞대결(AI 원탁) — 예정 경기의 1X2 를 전 모델 나란히 + 컨센서스.
   // 핸디캡·오버언더 픽이 있으면 같은 카드의 접이식 부가 시장으로 붙는다.
@@ -665,6 +685,75 @@ export default async function ScorecardPage() {
             ))}
           </div>
           </ConsensusGate>
+        </section>
+      )}
+
+      {/* 리그별 성적 */}
+      {leagueMain.length > 0 && (
+        <section className="mb-12">
+          <h2 className="mb-1 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+            <Crown className="h-4 w-4 text-rose-500" aria-hidden /> 리그별 성적
+          </h2>
+          <p className="mb-4 text-[13px] text-zinc-500 dark:text-white/40">
+            리그마다 강한 AI가 다릅니다. 같은 리그·같은 경기끼리만 줄 세운 순위입니다.
+            리그 사이 적중률은 종목 난이도가 달라(야구는 무승부가 없고, 축구 1X2 는 세 갈래) 직접 비교하지 마세요.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {leagueMain.map((lb) => {
+              const top = lb.models[0];
+              const ta = ACCENT[top.accent];
+              return (
+                <div key={lb.league} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
+                  <div className="mb-2 flex items-center gap-2">
+                    <LeagueBadge league={lb.league} />
+                    <span className="ml-auto text-[11px] tabular-nums text-zinc-400 dark:text-white/30">
+                      채점 {lb.graded}
+                    </span>
+                  </div>
+                  <div className="mb-2.5 flex items-baseline gap-1.5">
+                    <Crown className={`h-3.5 w-3.5 shrink-0 self-center ${ta.text}`} aria-hidden />
+                    <span className="truncate text-[13px] font-bold text-zinc-800 dark:text-white/80">{top.label}</span>
+                    <span className={`ml-auto shrink-0 text-lg font-bold tabular-nums ${ta.text}`}>
+                      {(top.tally.rate * 100).toFixed(1)}%
+                      <span className="ml-1 text-[12px] font-normal text-zinc-400 dark:text-white/30">({top.tally.correct}/{top.tally.graded})</span>
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 border-t border-black/5 pt-2.5 dark:border-white/5">
+                    {lb.models.slice(1).map((x) => {
+                      const a = ACCENT[x.accent];
+                      return (
+                        <div key={x.model} className="flex items-center justify-between text-[12px]">
+                          <span className="flex items-center gap-1.5 text-zinc-500 dark:text-white/50">
+                            <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} aria-hidden /> {x.label}
+                          </span>
+                          <span className={`font-semibold tabular-nums ${a.text}`}>
+                            {(x.tally.rate * 100).toFixed(1)}%
+                            <span className="ml-1 font-normal text-zinc-400 dark:text-white/30">({x.tally.correct}/{x.tally.graded})</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {leagueThin.length > 0 && (
+            <div className="mt-3 rounded-2xl bg-zinc-50 p-4 ring-1 ring-zinc-200/70 dark:bg-white/[0.02] dark:ring-white/10">
+              <div className="mb-2 text-[12px] font-medium text-zinc-500 dark:text-white/40">
+                표본 누적 중 — 한 모델이 {RANK_MIN}건 이상 채점된 리그부터 카드로 올라옵니다
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {leagueThin.map((lb) => (
+                  <span key={lb.league} className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[12px] font-medium text-zinc-500 ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:text-white/50 dark:ring-white/10">
+                    <LeagueBadge league={lb.league} />
+                    <span className="tabular-nums">채점 {lb.graded}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
