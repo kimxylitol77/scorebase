@@ -50,6 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/injuries/NATIONAL`, changeFrequency: "daily", priority: 0.65 }, // 국가대표(월드컵·예선·친선) 통합 부상자
     { url: `${base}/transfers`, changeFrequency: "daily", priority: 0.85 },
     { url: `${base}/rankings/ufc`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/rankings/value-clubs`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/predictions/club-ranking`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/tools/kbo-win-probability`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/mlb-win-probability`, changeFrequency: "monthly", priority: 0.8 },

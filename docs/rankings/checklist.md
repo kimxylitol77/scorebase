@@ -19,8 +19,13 @@
 - [x] 적재 dry-run → 최근 14일 종료 2,014경기 중 배당 있는 203경기 × 평균 34.3북 = 6,966행. **일 498행 / 연 18만 행 추정**
 - [x] 적재 route 작성 `src/app/api/cron/closing-odds/route.ts` (DISTINCT ON 클로징 + NOT EXISTS 증분 + 500행 청크)
 - [x] cron 등록 — `vercel.json` `20 16 * * *`(KST 새벽 1시 20분, 채점 cron 직후) + `CRON_REGISTRY`
-- [ ] **CREATE TABLE SQL 을 Neon 콘솔에서 직접 실행** (db push 금지 원칙) ← 사용자 실행 대기
-- [ ] 첫 실행 후 행 수·중복 없음 확인 → 검증: `SELECT count(*), count(DISTINCT ("matchId", book)) FROM "BookClosingOdds"`
+- [x] 테이블 생성 — `$executeRawUnsafe` 로 CREATE TABLE/INDEX 4문 직접 실행(db push 미사용). 컬럼 11개·인덱스 4개 확인
+- [x] 첫 적재 실행 — **6,966행 삽입**(dry-run 예측과 일치). 재실행 시 `inserted: 0` 으로 멱등
+- [x] 품질 검증 — 중복 0 · overround 중앙값 1.0502에 이상치 0행 · **킥오프 이후 스냅샷 섞임 0행** · 클로징→킥오프 간격 중앙값 1시간 · 북 49개 · 결과 HOME 3,393 / AWAY 3,363 / DRAW 210
+- [x] 배포 (89995c2)
+
+**Phase 1 완료.** 남은 건 시간 — 표본이 찰 때까지 기다렸다가 랭킹 페이지를 만든다.
+현재 축구 무승부 표본이 210행뿐(≈6경기)이라 3-way 정확도 비교는 유럽 시즌이 시작돼야 의미가 생긴다.
 
 ## Phase 2. 가성비 구단 랭킹
 
