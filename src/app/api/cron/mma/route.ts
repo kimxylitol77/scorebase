@@ -5,6 +5,7 @@ import { runEnrichMma } from "@/jobs/enrich-mma-fighters";
 import { runEnrichMmaEspn } from "@/jobs/enrich-mma-espn";
 import { runEnrichMmaAthlete } from "@/jobs/enrich-mma-athlete";
 import { runSnapshotUfcRankings } from "@/jobs/snapshot-ufc-rankings";
+import { runBackfillMmaRankedFighters } from "@/jobs/backfill-mma-ranked-fighters";
 import { prisma } from "@/lib/db";
 
 // 랭킹은 주 1회 갱신 → 마지막 스냅샷이 3일 이상 지났을 때만 재수집(실패 시 다음 날 재시도).
@@ -31,7 +32,11 @@ export async function GET(req: Request) {
     // 랭킹 실패가 본 수집을 막지 않도록 격리.
     let rankings: { categories: number; fighters: number } | null = null;
     try {
-      if (await shouldSnapshotRankings()) rankings = await runSnapshotUfcRankings();
+      if (await shouldSnapshotRankings()) {
+        // 랭킹에 올랐지만 프로필 없던 파이터를 ESPN 검색으로 채운 뒤(신규만) 스냅샷 → 순위표 링크 커버 확대.
+        await runBackfillMmaRankedFighters();
+        rankings = await runSnapshotUfcRankings();
+      }
     } catch (e) {
       console.error("UFC 랭킹 스냅샷 실패:", (e as Error).message);
     }
