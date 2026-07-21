@@ -89,6 +89,10 @@
       "schedule": "10 */2 * * *"
     },
     {
+      "path": "/api/cron/closing-odds",
+      "schedule": "20 16 * * *"
+    },
+    {
       "path": "/api/cron/mma",
       "schedule": "0 21 * * *"
     },

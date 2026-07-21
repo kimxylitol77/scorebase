@@ -667,6 +667,30 @@ model OddsBookSnapshot {
   @@index([fetchedAt])
 }
 
+/// 북메이커별 클로징 배당 + 실제 결과 아카이브 — "북메이커 정확도 랭킹"의 표본 창고.
+/// OddsBookSnapshot 이 14일 보존이라 그냥 두면 표본이 영원히 안 찬다. 종료 경기의
+/// 킥오프 직전 마지막 스냅샷만 (경기, 북) 1행으로 영구 보존한다.
+/// 테이블 생성은 Neon SQL 직접 실행 (db push 프로덕션 hang 회피 원칙).
+/// Match FK 를 걸지 않는다 — 경기 row 가 정리돼도 통계 표본은 남아야 하므로
+/// league·startTime·result 를 비정규화해 담는다.
+model BookClosingOdds {
+  id         BigInt   @id @default(autoincrement())
+  matchId    Int
+  book       String
+  league     String
+  startTime  DateTime // 킥오프 (시즌·기간 필터용)
+  capturedAt DateTime // 클로징으로 채택한 스냅샷 시각
+  homeOdds   Float
+  drawOdds   Float? // 무승부 없는 종목은 null
+  awayOdds   Float
+  result     String // "HOME" | "DRAW" | "AWAY"
+  createdAt  DateTime @default(now())
+
+  @@unique([matchId, book])
+  @@index([book])
+  @@index([startTime])
+}
+
 /// TheSports baseball odds history — `/v1/baseball/odds/history` 응답의 시계열 row.
 /// kind = "eu" (머니라인), "asia" (런라인/핸디캡), "bs" (오버언더).
 /// row 구조: [ts, v1, mid, v2, status] — eu: (home, draw=0, away), asia: (home, line, away), bs: (over, line, under).
