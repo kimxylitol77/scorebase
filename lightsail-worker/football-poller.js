@@ -33,6 +33,9 @@ const TOKEN = process.env.INTERNAL_API_TOKEN;
 // 이 worker 는 analysis/lineup 등 느린 데이터만 5분 cycle 로 갱신.
 const POLL_INTERVAL_MS = 5 * 60_000;
 const MAX_MATCHES_PER_POLL = 20;
+// 비-LIVE 매치 순회 커서 — 매 cycle 앞에서부터 자르면 상한 밖 매치가 영영 처리되지 않는다.
+// 프로세스 재시작 시 0 으로 돌아가지만, 회전 자체가 목적이라 영속화 불필요.
+let restCursor = 0;
 
 if (!TS_USER || !TS_SECRET) {
   console.error("❌ THESPORTS_USER / THESPORTS_SECRET missing");
@@ -349,13 +352,22 @@ async function poll() {
       console.log(`    delta cached: teamStats=${teamStatsPushed} playerStats=${playerStatsPushed} halfTeamStats=${halfStatsPushed}`);
     }
 
-    // 2. LIVE 매치 우선 정렬 (timing 민감)
-    pairs.sort((a, b) => {
-      const aLive = isLiveStatus(a.ts.status_id) ? 0 : 1;
-      const bLive = isLiveStatus(b.ts.status_id) ? 0 : 1;
-      return aLive - bLive;
-    });
-    const slice = pairs.slice(0, MAX_MATCHES_PER_POLL);
+    // 2. LIVE 는 매 cycle 처리(timing 민감), 남은 슬롯은 비-LIVE 를 커서로 회전.
+    //    기존엔 LIVE 우선 정렬 후 앞에서 20개만 잘라 매 cycle 같은 구간만 봤다.
+    //    그래서 상한 밖 예정 매치는 순번을 못 받고 lineup(=부상자 명단) 이 안 쌓였다.
+    //    호출량은 그대로 — 보는 구간만 매번 바뀐다.
+    const liveList = pairs.filter((p) => isLiveStatus(p.ts.status_id));
+    const restList = pairs.filter((p) => !isLiveStatus(p.ts.status_id));
+    const slice = liveList.slice(0, MAX_MATCHES_PER_POLL);
+    let restTaken = 0;
+    if (restList.length > 0 && slice.length < MAX_MATCHES_PER_POLL) {
+      restTaken = Math.min(MAX_MATCHES_PER_POLL - slice.length, restList.length);
+      const start = restCursor % restList.length;
+      for (let i = 0; i < restTaken; i++) {
+        slice.push(restList[(start + i) % restList.length]);
+      }
+      restCursor = start + restTaken; // 다음 cycle 은 이어지는 구간부터
+    }
 
     let cached = 0;
     let lineupCount = 0;
@@ -407,7 +419,10 @@ async function poll() {
       }
     }
 
-    console.log(`    summary: cached=${cached}/${slice.length}, lineup=${lineupCount}, errors=${errors}`);
+    console.log(
+      `    summary: cached=${cached}/${slice.length}, lineup=${lineupCount}, errors=${errors}` +
+        ` (live=${liveList.length} rest=${restTaken}/${restList.length} cursor=${restCursor})`,
+    );
   } catch (err) {
     console.error(`[${ts}] ❌ poll error: ${err.message}`);
   }
