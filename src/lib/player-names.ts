@@ -1899,6 +1899,29 @@ const RAW: Record<string, string> = {
   "Tyler Mahle": "타일러 메일리",
   "Will Warren": "윌 워런",
   "Zebby Matthews": "제비 매튜스",
+
+  // ─── 발롱도르 후보 보강 (2026-07-21) ───
+  // /ballon 후보 40명 중 11명이 영문으로 노출되던 건을 메움. 사전이 5대리그 클럽 위주라
+  // MLS·사우디 소속(메시·호날두)이 통째로 빠져 있었고, 나머지는 api-football 표기가
+  // 기존 키와 달라(축약형·철자 차이) 매칭에 실패한 경우다. af 표기를 별칭으로 함께 등록한다.
+  "Lionel Messi": "리오넬 메시",
+  "Cristiano Ronaldo": "크리스티아누 호날두",
+  "Vinícius": "비니시우스 주니오르", // af 는 성 없이 이름만 — 기존 "Vinícius Júnior" 와 같은 인물
+  "Mason Greenwood": "메이슨 그린우드",
+  "Joao Felix": "주앙 펠릭스",
+  "João Félix": "주앙 펠릭스",
+  "Ivan Toney": "이반 토니",
+  "Nicolas Paz": "니코 파스", // 한국어 위키 표제어는 "니코 파스" (본명 Nicolás Paz Martínez)
+  "Nico Paz": "니코 파스",
+  "Sehrou Guirassy": "세르후 기라시", // af 철자 오류 — 정본은 기존 키 "Serhou Guirassy"
+  "T. Parrott": "트로이 패럿",
+  "Troy Parrott": "트로이 패럿",
+  "Joaquín Panichelli": "호아킨 파니첼리",
+  "Joaquin Panichelli": "호아킨 파니첼리",
+  // ⚠ 스포르팅 CP 의 콜롬비아 공격수(Luis Javier Suárez Charris). 우루과이 루이스 수아레스와
+  // 동명이인이라, af 가 이 선수에게만 쓰는 축약형 "L. Suárez" 를 키로 둔다.
+  "L. Suárez": "루이스 수아레스",
+  "Luis Javier Suárez": "루이스 수아레스",
 };
 
 const RAW_LOWER: Record<string, string> = Object.fromEntries(
