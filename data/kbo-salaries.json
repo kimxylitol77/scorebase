@@ -8964,5 +8964,521 @@
    "draft": "24 롯데 10라운드 93순위",
    "signingBonus": 3000
   }
+ ],
+ "foreign": [
+  {
+   "kboId": "54640",
+   "playerName": "네일",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1993-02-08",
+   "salary": 1600000,
+   "draft": "24 KIA 자유선발",
+   "signingBonus": 200000
+  },
+  {
+   "kboId": "54400",
+   "playerName": "디아즈",
+   "teamName": "삼성",
+   "position": "내야수",
+   "birthday": "1996-11-19",
+   "salary": 1300000,
+   "draft": "24 삼성 자유선발"
+  },
+  {
+   "kboId": "53123",
+   "playerName": "오스틴",
+   "teamName": "LG",
+   "position": "내야수",
+   "birthday": "1993-10-14",
+   "salary": 1100000,
+   "draft": "23 LG 자유선발",
+   "signingBonus": 100000
+  },
+  {
+   "kboId": "56409",
+   "playerName": "매닝",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1998-01-28",
+   "salary": 1000000,
+   "draft": "26 삼성 자유선발"
+  },
+  {
+   "kboId": "54944",
+   "playerName": "데이비슨",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1991-03-26",
+   "salary": 975000,
+   "draft": "24 NC 자유선발",
+   "signingBonus": 140000
+  },
+  {
+   "kboId": "56334",
+   "playerName": "와일스",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1998-07-02",
+   "salary": 910000,
+   "draft": "26 키움 자유선발"
+  },
+  {
+   "kboId": "55146",
+   "playerName": "치리노스",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1993-12-26",
+   "salary": 900000,
+   "draft": "25 LG 자유선발",
+   "signingBonus": 200000
+  },
+  {
+   "kboId": "54529",
+   "playerName": "레이예스",
+   "teamName": "롯데",
+   "position": "외야수",
+   "birthday": "1994-10-05",
+   "salary": 800000,
+   "draft": "24 롯데 자유선발",
+   "signingBonus": 100000
+  },
+  {
+   "kboId": "53827",
+   "playerName": "에레디아",
+   "teamName": "SSG",
+   "position": "외야수",
+   "birthday": "1991-01-31",
+   "salary": 800000,
+   "draft": "23 SSG 자유선발"
+  },
+  {
+   "kboId": "55130",
+   "playerName": "톨허스트",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1999-09-13",
+   "salary": 800000,
+   "draft": "25 LG 자유선발"
+  },
+  {
+   "kboId": "56724",
+   "playerName": "화이트",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1999-08-09",
+   "salary": 800000,
+   "draft": "26 한화 자유선발",
+   "signingBonus": 200000
+  },
+  {
+   "kboId": "55855",
+   "playerName": "화이트",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1994-12-28",
+   "salary": 800000,
+   "draft": "25 SSG 자유선발"
+  },
+  {
+   "kboId": "56841",
+   "playerName": "베니지아노",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1997-09-01",
+   "salary": 750000,
+   "draft": "26 SSG 자유선발"
+  },
+  {
+   "kboId": "56032",
+   "playerName": "사우어",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1999-01-21",
+   "salary": 750000,
+   "draft": "26 KT 자유선발",
+   "signingBonus": 200000
+  },
+  {
+   "kboId": "56322",
+   "playerName": "브룩스",
+   "teamName": "키움",
+   "position": "외야수",
+   "birthday": "1995-07-03",
+   "salary": 700000,
+   "draft": "26 키움 자유선발"
+  },
+  {
+   "kboId": "69045",
+   "playerName": "알칸타라",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1992-12-04",
+   "salary": 700000,
+   "draft": "19 KT 자유선발"
+  },
+  {
+   "kboId": "55633",
+   "playerName": "올러",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "1994-10-17",
+   "salary": 700000,
+   "draft": "25 KIA 자유선발",
+   "signingBonus": 200000
+  },
+  {
+   "kboId": "55239",
+   "playerName": "잭로그",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1996-04-23",
+   "salary": 700000,
+   "draft": "25 두산 자유선발",
+   "signingBonus": 100000
+  },
+  {
+   "kboId": "56626",
+   "playerName": "카스트로",
+   "teamName": "KIA",
+   "position": "외야수",
+   "birthday": "1993-11-30",
+   "salary": 700000,
+   "draft": "26 KIA 자유선발",
+   "signingBonus": 200000
+  },
+  {
+   "kboId": "54730",
+   "playerName": "페라자",
+   "teamName": "한화",
+   "position": "외야수",
+   "birthday": "1998-11-10",
+   "salary": 700000,
+   "draft": "24 한화 자유선발",
+   "signingBonus": 200000
+  },
+  {
+   "kboId": "56034",
+   "playerName": "힐리어드",
+   "teamName": "KT",
+   "position": "내야수",
+   "birthday": "1994-02-21",
+   "salary": 700000,
+   "draft": "26 KT 자유선발",
+   "signingBonus": 300000
+  },
+  {
+   "kboId": "56531",
+   "playerName": "로드리게스",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1998-03-31",
+   "salary": 650000,
+   "draft": "26 롯데 자유선발",
+   "signingBonus": 350000
+  },
+  {
+   "kboId": "56523",
+   "playerName": "비슬리",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1995-11-20",
+   "salary": 650000,
+   "draft": "26 롯데 자유선발",
+   "signingBonus": 250000
+  },
+  {
+   "kboId": "56712",
+   "playerName": "에르난데스",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1999-04-13",
+   "salary": 650000,
+   "draft": "26 한화 자유선발",
+   "signingBonus": 100000
+  },
+  {
+   "kboId": "50234",
+   "playerName": "플렉센",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1994-07-01",
+   "salary": 650000,
+   "draft": "20 두산 자유선발",
+   "signingBonus": 143000
+  },
+  {
+   "kboId": "55903",
+   "playerName": "라일리",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1996-07-09",
+   "salary": 600000,
+   "draft": "25 NC 자유선발",
+   "signingBonus": 120000
+  },
+  {
+   "kboId": "56036",
+   "playerName": "보쉴리",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1993-10-01",
+   "salary": 600000,
+   "draft": "26 KT 자유선발",
+   "signingBonus": 300000
+  },
+  {
+   "kboId": "56855",
+   "playerName": "해치",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1994-09-29",
+   "salary": 590000,
+   "draft": "26 SSG 자유선발"
+  },
+  {
+   "kboId": "56251",
+   "playerName": "카메론",
+   "teamName": "두산",
+   "position": "외야수",
+   "birthday": "1997-01-15",
+   "salary": 500000,
+   "draft": "26 두산 자유선발",
+   "signingBonus": 100000
+  },
+  {
+   "kboId": "56966",
+   "playerName": "테일러",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1995-07-25",
+   "salary": 420000,
+   "draft": "26 NC 자유선발",
+   "signingBonus": 280000
+  },
+  {
+   "kboId": "56305",
+   "playerName": "히우라",
+   "teamName": "키움",
+   "position": "내야수",
+   "birthday": "1996-08-02",
+   "salary": 400000,
+   "draft": "26 키움 자유선발"
+  },
+  {
+   "kboId": "56801",
+   "playerName": "아빌라",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1997-01-14",
+   "salary": 380000,
+   "draft": "26 SSG 자유선발"
+  },
+  {
+   "kboId": "56146",
+   "playerName": "리오스",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1993-06-27",
+   "salary": 350000,
+   "draft": "26 LG 자유선발"
+  },
+  {
+   "kboId": "56950",
+   "playerName": "블레인",
+   "teamName": "NC",
+   "position": "내야수",
+   "birthday": "1997-06-17",
+   "salary": 275000,
+   "draft": "26 NC 자유선발"
+  },
+  {
+   "kboId": "55348",
+   "playerName": "웰스",
+   "teamName": "LG",
+   "position": "투수",
+   "birthday": "1997-02-27",
+   "salary": 200000,
+   "draft": "25 키움 부상 대체 외국인선수"
+  },
+  {
+   "kboId": "56823",
+   "playerName": "타케다",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1993-04-03",
+   "salary": 200000,
+   "draft": "26 SSG 아시아쿼터"
+  },
+  {
+   "kboId": "55912",
+   "playerName": "로건",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "1997-05-23",
+   "salary": 125000,
+   "draft": "25 NC 자유선발"
+  },
+  {
+   "kboId": "56415",
+   "playerName": "미야지",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "1999-08-02",
+   "salary": 100000,
+   "draft": "26 삼성 아시아쿼터"
+  },
+  {
+   "kboId": "56719",
+   "playerName": "왕옌청",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "2001-02-14",
+   "salary": 100000,
+   "draft": "26 한화 아시아쿼터"
+  },
+  {
+   "kboId": "56348",
+   "playerName": "유토",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1999-11-04",
+   "salary": 100000,
+   "draft": "26 키움 아시아쿼터"
+  },
+  {
+   "kboId": "56911",
+   "playerName": "토다",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "2000-07-22",
+   "salary": 100000,
+   "draft": "26 NC 아시아쿼터",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "56548",
+   "playerName": "쿄야마",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1998-07-04",
+   "salary": 80000,
+   "draft": "26 롯데 아시아쿼터",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "56800",
+   "playerName": "긴지로",
+   "teamName": "SSG",
+   "position": "투수",
+   "birthday": "1999-09-30",
+   "salary": 70000,
+   "draft": "26 SSG 부상 대체 외국인선수"
+  },
+  {
+   "kboId": "56632",
+   "playerName": "데일",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "2000-09-11",
+   "salary": 70000,
+   "draft": "26 KIA 아시아쿼터",
+   "signingBonus": 40000
+  },
+  {
+   "kboId": "56928",
+   "playerName": "버하겐",
+   "teamName": "NC",
+   "position": "투수",
+   "birthday": "1990-10-22",
+   "salary": 70000,
+   "draft": "26 NC 부상 대체 외국인선수"
+  },
+  {
+   "kboId": "56011",
+   "playerName": "스기모토",
+   "teamName": "KT",
+   "position": "투수",
+   "birthday": "2000-05-19",
+   "salary": 70000,
+   "draft": "26 KT 아시아쿼터",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "56760",
+   "playerName": "쿠싱",
+   "teamName": "한화",
+   "position": "투수",
+   "birthday": "1996-12-03",
+   "salary": 60000,
+   "draft": "26 한화 부상 대체 외국인선수"
+  },
+  {
+   "kboId": "56212",
+   "playerName": "타카다",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "2002-09-18",
+   "salary": 60000,
+   "draft": "26 두산 아시아쿼터",
+   "signingBonus": 10000
+  },
+  {
+   "kboId": "55322",
+   "playerName": "로젠버그",
+   "teamName": "키움",
+   "position": "투수",
+   "birthday": "1995-07-09",
+   "salary": 50000,
+   "draft": "25 키움 자유선발"
+  },
+  {
+   "kboId": "52043",
+   "playerName": "벤자민",
+   "teamName": "두산",
+   "position": "투수",
+   "birthday": "1993-07-26",
+   "salary": 50000,
+   "draft": "22 KT 자유선발",
+   "signingBonus": 100000
+  },
+  {
+   "kboId": "56613",
+   "playerName": "아데를린",
+   "teamName": "KIA",
+   "position": "내야수",
+   "birthday": "1991-11-18",
+   "salary": 50000,
+   "draft": "26 KIA 부상 대체 외국인선수"
+  },
+  {
+   "kboId": "56464",
+   "playerName": "오러클린",
+   "teamName": "삼성",
+   "position": "투수",
+   "birthday": "2000-03-14",
+   "salary": 50000,
+   "draft": "26 삼성 부상 대체 외국인선수"
+  },
+  {
+   "kboId": "54843",
+   "playerName": "시라카와",
+   "teamName": "KIA",
+   "position": "투수",
+   "birthday": "2001-06-04",
+   "salary": 40000,
+   "draft": "24 SSG 부상 대체 외국인선수",
+   "signingBonus": 20000
+  },
+  {
+   "kboId": "56503",
+   "playerName": "이이무라",
+   "teamName": "롯데",
+   "position": "투수",
+   "birthday": "1998-04-28",
+   "salary": 40000,
+   "draft": "26 롯데 아시아쿼터",
+   "signingBonus": 10000
+  }
  ]
 }

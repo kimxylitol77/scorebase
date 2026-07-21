@@ -7,7 +7,7 @@
 //   기록 페이지 인덱스(PitcherBasic/HitterBasic)를 쓰지 않는 이유 — 그쪽은 "시즌 출장 기록이 있는 선수"만이라
 //   부상·재활로 결장 중인 고액 연봉자(김광현 15억 등)가 통째로 빠진다. Search 는 퓨처스 포함 전원.
 //
-// ⚠️ 외국인 선수는 달러 공시("700000달러") → 원화 랭킹에서 제외한다(기존 /salaries/kbo 정책).
+// ⚠️ 외국인 선수는 달러 공시("700000달러") → 통화가 달라 원화와 한 랭킹에 못 섞는다. `foreign` 배열로 분리 저장.
 
 import { writeFileSync } from "fs";
 import { resolve } from "path";
@@ -37,9 +37,9 @@ interface RosterEntry {
 }
 
 interface CollectedSalary extends RosterEntry {
-  salary: number; // 만원 단위
-  signingBonus?: number; // 만원 단위
-  draft?: string; // "22 한화 2차 1라운드 1순위"
+  salary: number; // 국내=만원 / 외국인=달러
+  signingBonus?: number; // 같은 통화
+  draft?: string; // "22 한화 2차 1라운드 1순위" (외국인은 "24 한화 자유선발")
 }
 
 /** ASP.NET hidden state */
@@ -117,11 +117,15 @@ async function fetchTeamRoster(teamCode: string): Promise<RosterEntry[]> {
   return [...merged.values()];
 }
 
-/** "3600만원" → 3600. 달러 표기·빈값은 null (원화 랭킹 제외 신호). */
-function parseManwon(v: string | undefined): number | null {
-  if (!v || v.includes("달러")) return null;
-  const m = v.replace(/[,\s]/g, "").match(/^(\d+)만원$/);
-  return m ? Number(m[1]) : null;
+/** "3600만원" → {만원, KRW} · "700000달러" → {달러, USD}. 형식이 다르면 null. */
+function parseSalary(v: string | undefined): { amount: number; currency: "KRW" | "USD" } | null {
+  if (!v) return null;
+  const s = v.replace(/[,\s]/g, "");
+  const krw = s.match(/^(\d+)만원$/);
+  if (krw) return { amount: Number(krw[1]), currency: "KRW" };
+  const usd = s.match(/^(\d+)달러$/);
+  if (usd) return { amount: Number(usd[1]), currency: "USD" };
+  return null;
 }
 
 /** 동시성 제한 map — KBO 서버 부담 회피. */
@@ -155,30 +159,40 @@ async function main() {
   const entries = [...roster.values()];
   console.log(`[kbo-salaries] 명단 ${entries.length}명 — 프로필 수집 시작`);
 
-  let done = 0, foreign = 0, missing = 0;
+  let done = 0, missing = 0;
   const collected = await mapLimit(entries, 4, async (e) => {
     const p = await fetchKboPitcherProfile(e.kboId); // .player_basic 은 투수/타자/퓨처스 동일 구조
     done++;
     if (done % 100 === 0) console.log(`  ${done}/${entries.length}`);
-    const salary = parseManwon(p.salary);
-    if (salary == null) {
-      if (p.salary?.includes("달러")) foreign++;
-      else missing++;
+    const parsed = parseSalary(p.salary);
+    if (!parsed) {
+      missing++;
       return null;
     }
-    const row: CollectedSalary = { ...e, salary, draft: p.draft };
-    const bonus = parseManwon(p.signingBonus);
-    if (bonus != null) row.signingBonus = bonus;
-    return row;
+    const row: CollectedSalary = { ...e, salary: parsed.amount, draft: p.draft };
+    // 계약금은 연봉과 같은 통화로 공시된다 — 통화가 어긋나면 섞지 않고 버린다.
+    const bonus = parseSalary(p.signingBonus);
+    if (bonus && bonus.currency === parsed.currency) row.signingBonus = bonus.amount;
+    return { row, currency: parsed.currency };
   });
 
-  const rows = collected.filter((r): r is CollectedSalary => r != null);
-  rows.sort((a, b) => b.salary - a.salary || a.playerName.localeCompare(b.playerName));
+  const byCurrency = (c: "KRW" | "USD") =>
+    collected
+      .filter((x): x is { row: CollectedSalary; currency: "KRW" | "USD" } => x != null && x.currency === c)
+      .map((x) => x.row)
+      .sort((a, b) => b.salary - a.salary || a.playerName.localeCompare(b.playerName));
 
-  console.log(`[kbo-salaries] 국내 ${rows.length}명 · 외국인(달러) ${foreign}명 · 연봉 미표기 ${missing}명`);
-  console.log("[kbo-salaries] TOP 10:");
-  rows.slice(0, 10).forEach((r, i) =>
+  const rows = byCurrency("KRW");
+  const foreign = byCurrency("USD");
+
+  console.log(`[kbo-salaries] 국내 ${rows.length}명 · 외국인(달러) ${foreign.length}명 · 연봉 미표기 ${missing}명`);
+  console.log("[kbo-salaries] 국내 TOP 5:");
+  rows.slice(0, 5).forEach((r, i) =>
     console.log(`  ${i + 1}. ${r.playerName} (${r.teamName}) ${r.salary.toLocaleString()}만원`),
+  );
+  console.log("[kbo-salaries] 외국인 TOP 5:");
+  foreign.slice(0, 5).forEach((r, i) =>
+    console.log(`  ${i + 1}. ${r.playerName} (${r.teamName}) $${r.salary.toLocaleString()}`),
   );
 
   const out = resolve(process.cwd(), "data/kbo-salaries.json");
@@ -189,12 +203,13 @@ async function main() {
         season: String(new Date().getFullYear()),
         collectedAt: new Date().toISOString().slice(0, 10),
         players: rows,
+        foreign,
       },
       null,
       1,
     ),
   );
-  console.log(`[kbo-salaries] 저장: ${out} (${rows.length}명)`);
+  console.log(`[kbo-salaries] 저장: ${out} (국내 ${rows.length} · 외국인 ${foreign.length})`);
 }
 
 main().catch((e) => {

@@ -1,12 +1,12 @@
-// /salaries/kbo — KBO 국내 선수 연봉 랭킹 (원화, 상위 100명).
-// 데이터: KBO 공식 선수 프로필 전수 수집 → PlayerSalary(KBO) (만원 단위). 선수명·구단 한글 그대로.
-// ⚠️ 외국인 선수는 달러로 별도 공시되어 제외. 선수ID·생년월일은 이름+구단으로 JSON 원본에서 조회한다
+// /salaries/kbo — KBO 연봉 랭킹. 국내 선수(원화, 상위 100명) + 외국인 선수(달러, 전원) 두 표.
+// 데이터: KBO 공식 선수 프로필 전수 수집 → 국내는 PlayerSalary(KBO), 외국인은 JSON 직접(DB 에 통화 구분 없음).
+// ⚠️ 국내 선수의 선수ID·생년월일은 이름+구단으로 JSON 원본에서 조회한다
 //    (DB 행에는 선수ID 컬럼이 없고, 동명이인이 44건이라 이름 단독 매칭은 엉뚱한 선수로 연결된다).
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { lookupKboSalaryPlayer } from "@/lib/sports/kbo-salaries";
+import { lookupKboSalaryPlayer, getKboForeignSalaries } from "@/lib/sports/kbo-salaries";
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
@@ -17,7 +17,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "KBO 선수 연봉 랭킹 — 2026",
   description:
-    "2026 KBO 프로야구 국내 선수 연봉 순위 TOP 100 — 양의지 42억 역대 최고, 고영표·최정·류현진·박세웅·김광현 순. 10개 구단 전 선수 KBO 공식 공시 연봉 기준.",
+    "2026 KBO 프로야구 연봉 순위 — 국내 선수 TOP 100(양의지 42억 역대 최고, 고영표·최정·류현진 순)과 외국인 선수 달러 연봉(네일 160만 달러) 별도 집계. 10개 구단 전 선수 KBO 공식 공시 기준.",
   alternates: { canonical: "https://www.scorebase.kr/salaries/kbo" },
 };
 
@@ -30,6 +30,22 @@ function fmtManwon(manwon: number): string {
   return `${manwon.toLocaleString()}만원`;
 }
 
+/** 달러 → "$1,000,000" (외국인 선수는 KBO 가 달러로 공시). */
+function fmtUsd(usd: number): string {
+  return `$${usd.toLocaleString()}`;
+}
+
+interface SalaryTableRow {
+  key: string;
+  rank: number;
+  playerName: string;
+  teamName: string;
+  position: string | null;
+  salary: number;
+  pid?: string;
+  birthday?: string;
+}
+
 export default async function KboSalariesPage() {
   // 전체는 900명대(퓨처스 포함)라 하위는 최저연봉 동률만 이어진다 → 상위 100명만 노출.
   const rows = await prisma.playerSalary.findMany({
@@ -39,15 +55,43 @@ export default async function KboSalariesPage() {
   });
   const season = rows[0]?.season ?? "2026";
 
+  // 외국인은 달러 공시라 DB(통화 구분 없음)를 거치지 않고 JSON 을 직접 읽는다.
+  const foreignAll = getKboForeignSalaries();
+
+  const domestic: SalaryTableRow[] = rows.map((r) => {
+    const official = lookupKboSalaryPlayer(r.playerName, r.teamName);
+    return {
+      key: String(r.id),
+      rank: r.rank,
+      playerName: r.playerName,
+      teamName: r.teamName,
+      position: r.position,
+      salary: r.salary,
+      pid: official?.kboId,
+      birthday: official?.birthday,
+    };
+  });
+  const foreign: SalaryTableRow[] = foreignAll.map((r) => ({
+    key: r.kboId,
+    rank: r.rank,
+    playerName: r.playerName,
+    teamName: r.teamName,
+    position: r.position,
+    salary: r.salary,
+    pid: r.kboId,
+    birthday: r.birthday,
+  }));
+
   // 선수 사진 = TheSportsPlayer(KBO) nameKo 매칭 (KBO 공식 이미지). 미매칭은 이니셜.
-  const names = rows.map((r) => r.playerName);
+  const names = [...domestic, ...foreign].map((r) => r.playerName);
   const tsP = names.length
     ? await prisma.theSportsPlayer.findMany({
         where: { sport: "KBO", nameKo: { in: names } },
         select: { nameKo: true, photoUrl: true },
       })
     : [];
-  const photoOf = new Map(tsP.map((p) => [p.nameKo, p.photoUrl]));
+  const photoOf = new Map<string, string | null>();
+  for (const p of tsP) if (p.nameKo) photoOf.set(p.nameKo, p.photoUrl);
 
   // 팀 로고 — Team(KBO) logoUrl. 약칭(두산)→풀네임(두산 베어스) 부분 매칭.
   const kboTeams = await prisma.team.findMany({ where: { league: "KBO" }, select: { name: true, logoUrl: true } });
@@ -83,76 +127,99 @@ export default async function KboSalariesPage() {
       {rows.length === 0 ? (
         <p className="py-16 text-center text-sm text-neutral-400">연봉 데이터를 불러오는 중입니다.</p>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
-                <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
-                <th className="px-2 py-2.5 text-left font-semibold">선수</th>
-                <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">팀</th>
-                <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">포지션</th>
-                <th className="px-3 py-2.5 text-center font-semibold w-14 hidden lg:table-cell">나이</th>
-                <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => {
-                const top3 = r.rank <= 3;
-                const official = lookupKboSalaryPlayer(r.playerName, r.teamName);
-                const pid = official?.kboId;
-                const teamLogo = teamLogoOf(r.teamName);
-                const age = calcAge(official?.birthday ? new Date(official.birthday) : null);
-                const cell = (
-                  <div className="flex items-center gap-2.5">
-                    <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
-                    <div className="leading-tight">
-                      <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${pid ? "group-hover:underline" : ""}`}>{r.playerName}</span>
-                      <div className="lg:hidden text-[11px] text-neutral-400">{r.teamName}{r.position ? ` · ${r.position}` : ""}</div>
-                    </div>
-                  </div>
-                );
-                return (
-                  <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
-                    <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
-                    <td className="px-2 py-2.5">
-                      {pid ? (
-                        <Link href={`/players/${pid}?league=KBO`} className="group block" aria-label={`${r.playerName} 선수 페이지`}>
-                          {cell}
-                        </Link>
-                      ) : (
-                        cell
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">
-                      <span className="inline-flex items-center gap-1.5">
-                        {teamLogo && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={teamLogo} alt="" className="w-5 h-5 object-contain shrink-0" />
-                        )}
-                        {r.teamName}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">{r.position ?? "—"}</td>
-                    <td className="px-3 py-2.5 text-center tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{age ?? "—"}</td>
-                    <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums font-bold">
-                      {fmtManwon(r.salary)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <SalaryTable rows={domestic} fmt={fmtManwon} photoOf={photoOf} teamLogoOf={teamLogoOf} />
+      )}
+
+      {foreign.length > 0 && (
+        <section className="space-y-2 pt-2">
+          <h2 className="text-xl font-bold tracking-tight">외국인 선수</h2>
+          <p className="text-sm text-neutral-500 leading-relaxed break-keep">
+            외국인 선수는 KBO 가 달러로 별도 공시합니다. 통화가 달라 위 국내 선수 순위와 합치지 않고 따로 표시합니다.
+          </p>
+          <SalaryTable rows={foreign} fmt={fmtUsd} photoOf={photoOf} teamLogoOf={teamLogoOf} />
+        </section>
       )}
 
       <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed">
-        연봉은 KBO 가 발표한 {season} 시즌 국내 선수 공시 연봉(계약금·인센티브 제외) 기준입니다. 10개 구단 등록 선수 전원의 공식 프로필에서 집계한 뒤 상위 {rows.length}명을 표시합니다. 외국인 선수는 달러로 별도 공시되어 제외했습니다. 데이터 제공{" "}
+        연봉은 KBO 가 발표한 {season} 시즌 공시 연봉(계약금·인센티브 제외) 기준입니다. 10개 구단 등록 선수 전원의 공식 프로필에서 집계한 뒤 국내 선수는 상위 {rows.length}명, 외국인 선수는 {foreign.length}명 전원을 표시합니다. 데이터 제공{" "}
         <a href="https://www.koreabaseball.com" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
           KBO
         </a>
         {" 공식·언론 종합."}
       </footer>
     </main>
+  );
+}
+
+/** 연봉 표 — 국내(만원)·외국인(달러) 공용. 통화 표기만 fmt 로 갈아끼운다. */
+function SalaryTable({
+  rows,
+  fmt,
+  photoOf,
+  teamLogoOf,
+}: {
+  rows: SalaryTableRow[];
+  fmt: (n: number) => string;
+  photoOf: Map<string, string | null>;
+  teamLogoOf: (short: string) => string | null;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
+            <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
+            <th className="px-2 py-2.5 text-left font-semibold">선수</th>
+            <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">팀</th>
+            <th className="px-3 py-2.5 text-left font-semibold hidden lg:table-cell">포지션</th>
+            <th className="px-3 py-2.5 text-center font-semibold w-14 hidden lg:table-cell">나이</th>
+            <th className="px-3 py-2.5 text-right font-semibold whitespace-nowrap">연봉</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const top3 = r.rank <= 3;
+            const teamLogo = teamLogoOf(r.teamName);
+            const age = calcAge(r.birthday ? new Date(r.birthday) : null);
+            const cell = (
+              <div className="flex items-center gap-2.5">
+                <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
+                <div className="leading-tight">
+                  <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${r.pid ? "group-hover:underline" : ""}`}>{r.playerName}</span>
+                  <div className="lg:hidden text-[11px] text-neutral-400">{r.teamName}{r.position ? ` · ${r.position}` : ""}</div>
+                </div>
+              </div>
+            );
+            return (
+              <tr key={r.key} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
+                <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
+                <td className="px-2 py-2.5">
+                  {r.pid ? (
+                    <Link href={`/players/${r.pid}?league=KBO`} className="group block" aria-label={`${r.playerName} 선수 페이지`}>
+                      {cell}
+                    </Link>
+                  ) : (
+                    cell
+                  )}
+                </td>
+                <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">
+                  <span className="inline-flex items-center gap-1.5">
+                    {teamLogo && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={teamLogo} alt="" className="w-5 h-5 object-contain shrink-0" />
+                    )}
+                    {r.teamName}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden lg:table-cell">{r.position ?? "—"}</td>
+                <td className="px-3 py-2.5 text-center tabular-nums text-neutral-500 dark:text-neutral-400 hidden lg:table-cell">{age ?? "—"}</td>
+                <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums font-bold">{fmt(r.salary)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
