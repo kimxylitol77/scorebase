@@ -208,6 +208,26 @@ async function fetchTeamHref(league: string, teamName: string | undefined): Prom
   }
 }
 
+// KBO 공식 프로필 부가 정보 — 연봉·계약금·지명순위·입단. 값 있는 것만 칩으로.
+function KboProfileChips({ p }: { p: { salary?: string; signingBonus?: string; draft?: string; debutYear?: string } }) {
+  const items: [string, string][] = [];
+  if (p.salary) items.push(["연봉", p.salary]);
+  if (p.signingBonus) items.push(["계약금", p.signingBonus]);
+  if (p.draft) items.push(["지명", p.draft]);
+  if (p.debutYear) items.push(["입단", p.debutYear]);
+  if (!items.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map(([k, v]) => (
+        <span key={k} className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+          <span className="text-neutral-400">{k}</span>
+          <span className="font-semibold">{v}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function LeaderBadges({ rows }: { rows: { category: string; rank: number; value: number | null }[] }) {
   if (!rows.length) return null;
   return (
@@ -397,6 +417,7 @@ async function KboPitcherView({
         }
       />
       <LeaderBadges rows={leaderRanks} />
+      <KboProfileChips p={profile} />
       <div>
         <Link
           href={`/compare?a=${pid}&sport=KBO&t=p`}
@@ -540,6 +561,7 @@ async function KboHitterView({
         }
       />
       <LeaderBadges rows={leaderRanks} />
+      <KboProfileChips p={profile} />
       <div>
         <Link
           href={`/compare?a=${pid}&sport=KBO&t=b`}

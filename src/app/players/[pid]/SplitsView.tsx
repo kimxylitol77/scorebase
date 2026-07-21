@@ -113,7 +113,8 @@ export default function SplitsView({
 }) {
   const hasLR = splits.vsLeft || splits.vsRight;
   const hasHA = splits.home || splits.away;
-  if (!hasLR && !hasHA && splits.byMonth.length === 0) {
+  const sit = splits.situational ?? [];
+  if (!hasLR && !hasHA && splits.byMonth.length === 0 && sit.length === 0) {
     return (
       <p className="text-sm text-neutral-500">이 시즌 스플릿 데이터가 아직 없습니다.</p>
     );
@@ -139,6 +140,29 @@ export default function SplitsView({
         </div>
       )}
       <MonthTable rows={splits.byMonth} group={group} />
+      {sit.map((g) => (
+        <div key={g.group}>
+          <div className="text-xs font-bold text-neutral-500 mb-2">{g.group}</div>
+          <div className="rounded-xl bg-white ring-1 ring-black/5 overflow-x-auto dark:bg-white/[0.04] dark:ring-white/10">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
+                <tr>
+                  <th className="text-left px-3 py-2 font-medium">구분</th>
+                  <th className="text-right px-3 py-2 font-medium">{group === "pitching" ? "피안타율" : "타율"}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {g.rows.map((r) => (
+                  <tr key={r.label} className="border-t border-neutral-100 dark:border-neutral-900">
+                    <td className="px-3 py-1.5">{r.label}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums font-semibold">{r.avg ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -290,6 +290,8 @@ export interface PlayerSplits {
   home?: SplitRow;
   away?: SplitRow;
   byMonth: SplitRow[];
+  /** 상황별 세부 스플릿 (KBO 공식 Situation: 주자·볼카운트·이닝·타순·아웃). MLB 는 미제공. */
+  situational?: { group: string; rows: SplitRow[] }[];
 }
 
 const MONTH_KO: Record<number, string> = {

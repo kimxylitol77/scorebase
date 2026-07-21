@@ -632,6 +632,11 @@ export interface KboPitcherProfile {
   height?: string; // "193cm"
   weight?: string; // "104kg"
   career?: string;
+  // KBO 공식 프로필 추가 항목 (선수 페이지 노출용)
+  salary?: string; // 연봉 "3300만원"
+  signingBonus?: string; // 입단 계약금 "20000만원"
+  draft?: string; // 지명순위 "22 한화 2차 1라운드 1순위"
+  debutYear?: string; // 입단년도 "22한화"
 }
 
 function calcAge(birthday: string | undefined): number | undefined {
@@ -697,6 +702,10 @@ export async function fetchKboPitcherProfile(kboId: string): Promise<KboPitcherP
     const birthday = fields.get("생년월일");
     return {
       name: fields.get("선수명") || undefined,
+      salary: fields.get("연봉") || undefined,
+      signingBonus: fields.get("입단 계약금") || undefined,
+      draft: fields.get("지명순위") || undefined,
+      debutYear: fields.get("입단년도") || undefined,
       team,
       number: fields.get("등번호") || undefined,
       birthday,
@@ -997,6 +1006,21 @@ export async function fetchKboSplitsRaw(
       if (l) res.vsLeft = mk(l, "vs 좌투");
       if (r) res.vsRight = mk(r, "vs 우투");
     }
+    // 상황별 세부 스플릿 — Situation.aspx 는 좌우 외에도 주자·볼카운트·이닝·타순·아웃 표를 담는다.
+    //  parseKboStatTable 이 같은 헤더의 표를 모두 모으므로 라벨 패턴으로 그룹만 나누면 된다.
+    const SIT_GROUPS: { group: string; test: (l: string) => boolean }[] = [
+      { group: "주자 상황", test: (l) => l === "주자없음" || /^[1-3](,[1-3])*루$/.test(l) || l === "만루" },
+      { group: "볼카운트", test: (l) => /^\d-\d$/.test(l) },
+      { group: "이닝", test: (l) => /^\d+회$/.test(l) },
+      { group: "타순", test: (l) => /^\d번타자$/.test(l) },
+      { group: "아웃카운트", test: (l) => /^\d아웃$/.test(l) },
+    ];
+    const situational: { group: string; rows: SplitRow[] }[] = [];
+    for (const g of SIT_GROUPS) {
+      const items = rows.filter((tds) => g.test(tds[0])).map((tds) => mk(tds, tds[0]));
+      if (items.length) situational.push({ group: g.group, rows: items });
+    }
+    if (situational.length) res.situational = situational;
   }
 
   if (game) {
@@ -1061,6 +1085,10 @@ export async function fetchKboHitterProfile(
     const birthday = fields.get("생년월일");
     return {
       name: fields.get("선수명") || undefined,
+      salary: fields.get("연봉") || undefined,
+      signingBonus: fields.get("입단 계약금") || undefined,
+      draft: fields.get("지명순위") || undefined,
+      debutYear: fields.get("입단년도") || undefined,
       team,
       number: fields.get("등번호") || undefined,
       birthday,
