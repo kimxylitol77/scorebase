@@ -29,6 +29,7 @@ import rawTeamStats from "../../../../data/team-season-stats.json";
 import rawTSquads from "../../../../data/team-squads.json";
 import rawTeamVenues from "../../../../data/team-venues.json";
 import rawBaseballRosters from "../../../../data/baseball-rosters.json";
+import { npbPlayerKo } from "@/lib/sports/npb-player-ko";
 import rawTeamHistory from "../../../../data/team-history.json";
 import TeamHistory, { type TeamHistoryData } from "@/components/teams/TeamHistory";
 import LolTeamRoster from "@/components/LolTeamRoster";
@@ -871,20 +872,24 @@ export default async function TeamPage({ params }: Props) {
                 <div key={g} className="mb-3">
                   <h3 className="text-xs font-bold text-neutral-400 mb-2">{label} ({ps.length})</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {ps.map((p) => (
+                    {ps.map((p) => {
+                      // NPB 로스터는 한자·가타카나 원문 → 카나 사전으로 한글 음역 (미보유는 원문)
+                      const nameKo = team.league === "NPB" ? npbPlayerKo(p.id, p.name) : p.name;
+                      return (
                       <Link
                         key={p.id}
                         href={`/players/${p.id}?league=${team.league}`}
                         className="flex items-center gap-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
                       >
                         <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 shrink-0 flex items-center justify-center ring-1 ring-black/5 dark:ring-white/10">
-                          <span className="text-xs font-bold text-neutral-500">{p.name.slice(0, 1)}</span>
+                          <span className="text-xs font-bold text-neutral-500">{nameKo.slice(0, 1)}</span>
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-sm truncate">{p.name}</div>
+                          <div className="font-semibold text-sm truncate">{nameKo}</div>
                         </div>
                       </Link>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
