@@ -88,6 +88,8 @@ import PitchZoneChart from "./PitchZoneChart";
 import AmbientGlow from "@/components/AmbientGlow";
 import { ChevronLeft } from "lucide-react";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { toKoreanTeamName } from "@/lib/team-names";
+import BaseballPlayerSeo from "@/components/players/BaseballPlayerSeo";
 
 /* ---------- 공통 작은 컴포넌트 ---------- */
 
@@ -416,6 +418,21 @@ export async function MlbHitterView({
           />
         }
       />
+      <BaseballPlayerSeo
+        name={toKoreanPlayerName(profile.name) || profile.name}
+        league="MLB"
+        path={`/players/${pid}`}
+        team={profile.team ? toKoreanTeamName(profile.team, "MLB") : null}
+        position="타자"
+        photo={mlbHeadshotUrl(pid)}
+        height={profile.height ?? null}
+        weight={profile.weight != null ? `${profile.weight} lbs` : null}
+        statLine={
+          s?.avg
+            ? `${season} 시즌 타율 ${s.avg}${s.hr != null ? `, ${s.hr}홈런` : ""}${s.rbi != null ? ` ${s.rbi}타점` : ""}을 기록 중이다.`
+            : null
+        }
+      />
       <PlayerTabs
         tabs={[
           { key: "overview", label: "개요", content: overview },
@@ -597,6 +614,21 @@ export async function MlbPitcherView({
             draft={profile.draft}
             school={profile.school}
           />
+        }
+      />
+      <BaseballPlayerSeo
+        name={toKoreanPlayerName(profile.name) || profile.name}
+        league="MLB"
+        path={`/players/${pid}`}
+        team={profile.team ? toKoreanTeamName(profile.team, "MLB") : null}
+        position="투수"
+        photo={mlbHeadshotUrl(pid)}
+        height={profile.height ?? null}
+        weight={profile.weight != null ? `${profile.weight} lbs` : null}
+        statLine={
+          s?.era != null
+            ? `${season} 시즌 평균자책점 ${s.era}${s.whip != null ? `, WHIP ${s.whip}` : ""}을 기록 중이다.`
+            : null
         }
       />
       <PlayerTabs

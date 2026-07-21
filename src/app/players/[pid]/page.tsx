@@ -37,15 +37,17 @@ interface Props {
 }
 
 import { ogPageImage } from "@/lib/seo/og";
+import { GOOGLE_NOINDEX } from "@/lib/seo-robots";
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { pid } = await params;
   const { league } = await searchParams;
-  // league 별로 다른 선수 — canonical 에 league param 유지 (없으면 MLB 기본)
-  const canonical = league ? `/players/${pid}?league=${league}` : `/players/${pid}`;
+  // league 별로 다른 선수 — canonical 에 league param 유지.
+  //  단 MLB 는 bare(/players/{pid}) 가 정본 — ?league=MLB 로 들어와도 같은 페이지라 자기중복 방지.
+  const canonical = league && league !== "MLB" ? `/players/${pid}?league=${league}` : `/players/${pid}`;
   if (league === "KBO") {
     const info = await fetchKboPitcherProfile(pid);
-    if (!info.name) return { title: "선수 미발견" };
+    if (!info.name) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
     return {
       title: `${info.name} — KBO 선발 투수 통계`,
       description: `${info.team ?? "KBO"} ${info.name} 의 시즌 ERA·WHIP·IP·W-L·최근 등판 결과.`,
@@ -58,7 +60,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   }
   if (league === "NPB") {
     const info = await fetchNpbPitcherProfile(pid);
-    if (!info.name) return { title: "선수 미발견" };
+    if (!info.name) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
     const koName = npbDisplayName(info.name, info.kana);
     const teamKo = npbTeamJpToKor(info.team) ?? info.team ?? "NPB";
     return {
@@ -82,12 +84,12 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     };
   }
   const id = Number(pid);
-  if (!Number.isFinite(id)) return { title: "Not Found" };
+  if (!Number.isFinite(id)) return { title: "Not Found", robots: GOOGLE_NOINDEX };
   const yr = new Date().getUTCFullYear();
   // 본문과 동일하게 fetchHitterProfile 로 position 받아 타자/투수 분기 (404 throw 면 generic fallback).
   try {
     const profile = await fetchHitterProfile(id, yr);
-    if (!profile) return { title: "선수 미발견" };
+    if (!profile) return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
     const isPitcher = profile.position === "P";
     const koName = toKoreanPlayerName(profile.name) || profile.name;
     return {
@@ -104,7 +106,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       },
     };
   } catch {
-    return { title: "선수 미발견" };
+    return { title: "선수 미발견", robots: GOOGLE_NOINDEX };
   }
 }
 

@@ -47,6 +47,7 @@ import { HitterTrendChart, PitcherTrendChart } from "./BaseballTrendChart";
 import { HitterSeasonTable, PitcherSeasonTable } from "./SeasonTable";
 import SplitsView from "./SplitsView";
 import AmbientGlow from "@/components/AmbientGlow";
+import BaseballPlayerSeo from "@/components/players/BaseballPlayerSeo";
 import { ChevronLeft } from "lucide-react";
 
 /* ---------- 공통 헬퍼 ---------- */
@@ -325,6 +326,21 @@ async function KboPitcherView({
           )
         }
       />
+      <BaseballPlayerSeo
+        name={name}
+        league="KBO"
+        path={`/players/${pid}?league=KBO`}
+        team={team ?? null}
+        position="투수"
+        photo={kboPhotoUrl(pid)}
+        height={profile.height ?? null}
+        weight={profile.weight ?? null}
+        statLine={
+          stats?.era != null
+            ? `${season} 시즌 평균자책점 ${stats.era}${stats.wins != null && stats.losses != null ? `, ${stats.wins}승 ${stats.losses}패` : ""}를 기록 중이다.`
+            : null
+        }
+      />
       <PlayerTabs
         tabs={tabsOf([
           { key: "overview", label: "개요", content: overview },
@@ -430,6 +446,22 @@ async function KboHitterView({
               {profile.career && <div>경력: {profile.career}</div>}
             </div>
           )
+        }
+      />
+      <BaseballPlayerSeo
+        name={name}
+        league="KBO"
+        path={`/players/${pid}?league=KBO`}
+        team={team ?? null}
+        position={profile.position ? profile.position.replace(/\(.+\)/, "").trim() : "타자"}
+        photo={kboPhotoUrl(pid)}
+        height={profile.height ?? null}
+        weight={profile.weight ?? null}
+        statLine={
+          // "-" 는 KBO 표기상 기록 없음 → 문장 생략 (투수가 타자 뷰로 잡히는 경우 등)
+          stats.avg && stats.avg !== "-"
+            ? `${season} 시즌 타율 ${stats.avg}${stats.hr ? `, ${stats.hr}홈런` : ""}${stats.rbi ? ` ${stats.rbi}타점` : ""}을 기록 중이다.`
+            : null
         }
       />
       <PlayerTabs
@@ -696,6 +728,21 @@ async function NpbPitcherView({
           )
         }
       />
+      <BaseballPlayerSeo
+        name={koName}
+        league="NPB"
+        path={`/players/${pid}?league=NPB`}
+        team={teamKo ?? null}
+        position="투수"
+        photo={photo ?? null}
+        height={profile.height ?? null}
+        weight={profile.weight ?? null}
+        statLine={
+          stats?.era != null
+            ? `${season} 시즌 평균자책점 ${stats.era}${stats.wins != null && stats.losses != null ? `, ${stats.wins}승 ${stats.losses}패` : ""}를 기록 중이다.`
+            : null
+        }
+      />
       <PlayerTabs
         tabs={tabsOf([
           { key: "overview", label: "개요", content: overview },
@@ -787,6 +834,22 @@ async function NpbHitterView({
               {profile.kana ? ` (${profile.kana})` : ""}
             </div>
           )
+        }
+      />
+      <BaseballPlayerSeo
+        name={koName}
+        league="NPB"
+        path={`/players/${pid}?league=NPB`}
+        team={teamKo ?? null}
+        position="타자"
+        photo={photo ?? null}
+        height={profile.height ?? null}
+        weight={profile.weight ?? null}
+        statLine={
+          // 타율은 야구 관례상 앞자리 0 생략 (.332)
+          stats.avg != null
+            ? `${stats.season} 시즌 타율 ${stats.avg.toFixed(3).replace(/^0/, "")}${stats.hr ? `, ${stats.hr}홈런` : ""}${stats.rbi ? ` ${stats.rbi}타점` : ""}을 기록 중이다.`
+            : null
         }
       />
       <PlayerTabs

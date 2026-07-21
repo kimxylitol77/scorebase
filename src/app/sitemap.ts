@@ -299,5 +299,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.55,
   }));
 
-  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages, ...teamPages, ...ufcFighterPages];
+  // 야구 선수 상세 — 시즌 스탯·리더보드 등재 선수만 (데이터 없는 2군·육성 pid thin 회피).
+  //  MLB 는 bare URL 이 정본(canonical), KBO/NPB 는 ?league= 로 구분.
+  const [bbStats, bbLeaders] = await Promise.all([
+    prisma.baseballPlayerSeasonStats.findMany({
+      where: { externalId: { not: null }, league: { in: ["MLB", "KBO", "NPB"] } },
+      distinct: ["externalId", "league"],
+      select: { league: true, externalId: true },
+    }),
+    prisma.leagueLeader.findMany({
+      where: { externalId: { not: null }, league: { in: ["MLB", "KBO", "NPB"] } },
+      distinct: ["externalId", "league"],
+      select: { league: true, externalId: true },
+    }),
+  ]);
+  const bbSeen = new Set<string>();
+  const baseballPlayerPages: MetadataRoute.Sitemap = [];
+  for (const r of [...bbStats, ...bbLeaders]) {
+    if (!r.externalId) continue;
+    const key = `${r.league}:${r.externalId}`;
+    if (bbSeen.has(key)) continue;
+    bbSeen.add(key);
+    baseballPlayerPages.push({
+      url: r.league === "MLB" ? `${base}/players/${r.externalId}` : `${base}/players/${r.externalId}?league=${r.league}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.55,
+    });
+  }
+
+  return [...staticPages, ...nationalTeamPages, ...todDatePages, ...h2hPages, ...articlePages, ...noticePages, ...blogPages, ...livePages, ...playerPages, ...squadPages, ...teamPages, ...ufcFighterPages, ...baseballPlayerPages];
 }
