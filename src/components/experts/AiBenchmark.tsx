@@ -15,6 +15,7 @@ const AI_META: Record<string, { label: string; order: number }> = {
   gemini: { label: "Gemini", order: 3 },
   "qwen2.5-32b": { label: "Qwen", order: 4 },
   claude: { label: "Claude", order: 5 },
+  "kimi-k3": { label: "Kimi K3", order: 6 },
 };
 
 export default async function AiBenchmark({ memberRows }: { memberRows: RankRow[] }) {

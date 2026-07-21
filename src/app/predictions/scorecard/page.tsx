@@ -25,7 +25,7 @@ const MARKET_META: { key: Market; label: string }[] = [
 ];
 
 // 모델 표시 메타 — gpt-5.5/5.6 은 "gpt" 로 통합. accent 는 panelists.ts 와 맞춤.
-type Accent = "rose" | "emerald" | "sky" | "amber" | "teal" | "violet";
+type Accent = "rose" | "emerald" | "sky" | "amber" | "teal" | "violet" | "indigo";
 const MODEL_META: Record<string, { label: string; accent: Accent; order: number }> = {
   scorebase: { label: "스코어베이스", accent: "rose", order: 0 },
   gpt: { label: "GPT-5.6 Sol", accent: "emerald", order: 1 },
@@ -33,6 +33,7 @@ const MODEL_META: Record<string, { label: string; accent: Accent; order: number 
   gemini: { label: "Gemini", accent: "amber", order: 3 },
   "qwen2.5-32b": { label: "Qwen", accent: "teal", order: 4 },
   claude: { label: "Claude", accent: "violet", order: 5 },
+  "kimi-k3": { label: "Kimi K3", accent: "indigo", order: 6 },
 };
 function normModel(m: string): string {
   return isGptScorecardModel(m) ? "gpt" : m;
@@ -49,6 +50,7 @@ const ACCENT: Record<Accent, { text: string; dot: string; bar: string; soft: str
   amber: { text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", bar: "bg-amber-500", soft: "bg-amber-500/10", ring: "ring-amber-400/60 dark:ring-amber-400/40" },
   teal: { text: "text-teal-600 dark:text-teal-400", dot: "bg-teal-500", bar: "bg-teal-500", soft: "bg-teal-500/10", ring: "ring-teal-400/60 dark:ring-teal-400/40" },
   violet: { text: "text-violet-600 dark:text-violet-400", dot: "bg-violet-500", bar: "bg-violet-500", soft: "bg-violet-500/10", ring: "ring-violet-400/60 dark:ring-violet-400/40" },
+  indigo: { text: "text-indigo-600 dark:text-indigo-400", dot: "bg-indigo-500", bar: "bg-indigo-500", soft: "bg-indigo-500/10", ring: "ring-indigo-400/60 dark:ring-indigo-400/40" },
 };
 
 export const metadata: Metadata = {

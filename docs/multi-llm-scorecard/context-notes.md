@@ -66,3 +66,12 @@
 - **고신뢰 픽 히어로 신설**: 전 모델·전 시장에서 prob>=0.65(CONF_MIN) 픽의 채점 성적을 페이지 최상단에 노출. 현재 67.7%(294/434) — 정직하게 큰 대표 숫자. DB 동적([[feedback_site_number_consistency]] 준수), 표본 30건(RANK_MIN) 미만이면 미렌더.
 - **만장일치 히어로에 30건 게이트 추가**: "첫 채점부터 자동 등장" 원안을 폐기. 당시 5승 5패(50.0%, n=10)가 최상단에 떠서 첫인상 훼손 → RANK_MIN 게이트로 표본 쌓이면 자동 등장.
 - 수동 채점 트리거 방법 확인: `/api/cron/evaluate` 를 CRON_SECRET Bearer 로 GET(로컬 .env.local). 5초 내 완료, 이날 370여 건 전량 채점. cron 은 자정 1회 그대로.
+
+## Kimi K3 좌석 추가 (2026-07-21)
+
+- 7번째 패널. Moonshot 직접 호출(runtime `moonshot`, baseURL `https://api.moonshot.ai/v1`, modelId `kimi-k3`). OpenAI 호환이라 `max_tokens` 규격 = 기존 else 분기 그대로.
+- env: `MOONSHOT_API_KEY` + 게이트 `PANEL_KIMI`. 기본 OFF(과금 안전) — 둘 다 있어야 활성.
+- **생각 토큰 함정**: K3 는 reasoning 모델이라 생각 과정이 `max_tokens` 를 같이 먹는다. 실측 max_tokens 500 이면 생각만 497 쓰고 본문이 **빈 채 finish=length**. 본 호출은 3000 이라 안전했지만 `testPanel` 진단이 500 이어서 Kimi 만 무조건 실패했을 것 → 진단도 3000 으로 통일(수동 1콜이라 비용 무관).
+- **속도 결정**: 기본 강도 17.9~25.8초 vs `reasoning_effort:"low"` 6.1~8.0초. 픽(HOME 0.62 vs 0.63)·근거 문장 품질 차이 없음. 패널 호출이 경기×패널 **순차 루프**(JOB_DEADLINE_MS 230초)라 느린 좌석 하나가 전체 처리 경기 수를 깎는다 → 사용자 선택으로 `low`. `Panelist.reasoningEffort` 필드 신설, 미지정이면 파라미터 자체를 안 보냄(기존 좌석 무영향).
+- 표시: accent `indigo`(기존 6색과 중복 없음), order 6. `scorecard/page.tsx` 의 Accent 타입·MODEL_META·ACCENT 맵 3곳 + `components/experts/AiBenchmark.tsx` 의 AI_META 까지 4곳에 등록해야 라벨이 뜬다(모델 목록이 이 두 파일에 각각 하드코딩돼 있음).
+- 검증: tsc 통과, `testPanel("kimi-k3")` end-to-end ok(파싱까지) 8.0초, 게이트 OFF 시 activePanelists 에서 정상 제외.

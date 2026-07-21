@@ -357,8 +357,11 @@ export async function testPanel(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const params: any = { model: p.modelId, messages: [{ role: "system", content: system }, { role: "user", content: user }] };
   if (p.jsonMode ?? true) params.response_format = { type: "json_object" };
-  if (p.runtime === "openai") params.max_completion_tokens = 500;
-  else params.max_tokens = 500;
+  if (p.reasoningEffort) params.reasoning_effort = p.reasoningEffort;
+  // 상한은 본 호출과 같은 3000 — 생각 과정을 토큰에 포함하는 모델(Kimi 등)은
+  // 500 이면 생각만으로 소진돼 본문이 빈 채 잘린다. 진단은 수동 1콜이라 비용 영향 없음.
+  if (p.runtime === "openai") params.max_completion_tokens = 3000;
+  else params.max_tokens = 3000;
   try {
     const res = await client.chat.completions.create(params);
     const content = res.choices[0]?.message?.content ?? "";
@@ -499,6 +502,7 @@ async function llmMarkets(
   lines: MarketLines,
   facts: GptMatchFacts,
   jsonMode = true,
+  reasoningEffort?: Panelist["reasoningEffort"],
 ): Promise<GptMarketPick | null> {
   const { system, user } = buildMarketsPrompt(league, homeKo, awayKo, startTime, lines, facts);
   // 토큰 상한 파라미터 이름이 provider 마다 다름 — 신형 OpenAI 는 max_completion_tokens,
@@ -513,6 +517,7 @@ async function llmMarkets(
   };
   // response_format:json_object 미지원 모델(Anthropic 등)은 생략 — 프롬프트+견고한 파싱으로 처리.
   if (jsonMode) params.response_format = { type: "json_object" };
+  if (reasoningEffort) params.reasoning_effort = reasoningEffort;
   if (runtime === "openai") params.max_completion_tokens = 3000;
   else params.max_tokens = 3000;
   const res = await client.chat.completions.create(params);
@@ -675,7 +680,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
         res = await llmMarkets(clients.get(p.key)!, p.modelId, p.runtime, m.league, homeKo, awayKo, m.startTime, {
           hc: oursHcOu.hc?.line ?? null,
           ou: oursHcOu.ou?.line ?? null,
-        }, facts, p.jsonMode ?? true);
+        }, facts, p.jsonMode ?? true, p.reasoningEffort);
       } catch (e) {
         console.warn(`[llm-pred] ${p.key} 호출 실패 match=${m.id}: ${(e as Error).message}`);
       }
