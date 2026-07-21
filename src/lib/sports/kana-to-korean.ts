@@ -1,7 +1,8 @@
 // 일본어 카나(히라가나/가타카나) → 한글 음역.
-// 한국 외래어 표기법 (일본어) 간이 적용. 완벽하진 않지만 야구 선수명에 실용.
 //
-// 어중 격음(카·키·쿠 등), 어두에서만 か/た 행을 평음으로 치환.
+// 표기 방침 — **통용 표기**(어두에서도 격음: 타나카·카토·츠요시).
+//   외래어 표기법은 어두 평음(다나카·가토)이지만, 스포츠 중계·기사와 우리 선수 사전(haiku 음역)이
+//   모두 격음을 쓰므로 사이트 표기를 그쪽에 맞춘다 (2026-07-21 사용자 결정).
 // 촉음(っ/ッ) 은 직전 음에 'ㅅ' 받침으로 단순화 (홋카이도 식).
 // 장음(ー) 은 생략.
 
@@ -12,7 +13,7 @@ const MONO: Record<string, string> = {
   が: "가", ぎ: "기", ぐ: "구", げ: "게", ご: "고",
   さ: "사", し: "시", す: "스", せ: "세", そ: "소",
   ざ: "자", じ: "지", ず: "즈", ぜ: "제", ぞ: "조",
-  た: "타", ち: "치", つ: "쓰", て: "테", と: "토",
+  た: "타", ち: "치", つ: "츠", て: "테", と: "토",
   だ: "다", ぢ: "지", づ: "즈", で: "데", ど: "도",
   な: "나", に: "니", ぬ: "누", ね: "네", の: "노",
   は: "하", ひ: "히", ふ: "후", へ: "헤", ほ: "호",
@@ -24,12 +25,6 @@ const MONO: Record<string, string> = {
   わ: "와", ゐ: "이", ゑ: "에", を: "오",
   ん: "ㄴ",
   ゔ: "부",
-};
-
-// 어두 평음 치환 (단어 시작 시 か/た 행 → 가·기·구... / 다·지·쓰...)
-const HEAD_MAP: Record<string, string> = {
-  か: "가", き: "기", く: "구", け: "게", こ: "고",
-  た: "다", ち: "지", つ: "쓰", て: "데", と: "도",
 };
 
 // yōon (작은 글자 결합) — 한 글자처럼 처리.
@@ -55,11 +50,6 @@ const YOON: Record<string, string> = {
   てぃ: "티", でぃ: "디", とぅ: "투", どぅ: "두",
   いぇ: "예",
 };
-const YOON_HEAD: Record<string, string> = {
-  きゃ: "갸", きゅ: "규", きょ: "교",
-  ちゃ: "자", ちゅ: "주", ちょ: "조", ちぇ: "제",
-};
-
 function kataToHira(s: string): string {
   return s.replace(/[ァ-ヶ]/g, (c) =>
     String.fromCharCode(c.charCodeAt(0) - 0x60),
@@ -68,8 +58,7 @@ function kataToHira(s: string): string {
 
 /**
  * 일본어 카나 → 한글 음역 (간이).
- *  - 어두 (단어 시작) 만 か/た 행 평음
- *  - 그 외 어중 격음 적용
+ *  - か/た 행은 위치와 무관하게 격음 (타나카·카토·츠요시) — 통용 표기
  *  - 촉음 っ → 'ㅅ' 받침 (직전 한글 종성에 결합)
  */
 export function kanaToKorean(input: string): string {
@@ -87,40 +76,29 @@ export function kanaToKorean(input: string): string {
 function translateToken(token: string): string {
   let out = "";
   let i = 0;
-  let atHead = true;
   while (i < token.length) {
     const ch = token[i];
     const pair = token.slice(i, i + 2);
     // yōon
     if (YOON[pair]) {
-      out += atHead && YOON_HEAD[pair] ? YOON_HEAD[pair] : YOON[pair];
+      out += YOON[pair];
       i += 2;
-      atHead = false;
       continue;
     }
     // 촉음 → 직전 한글에 ㅅ 받침 (홋카이도 식)
     if (ch === "っ") {
       out = appendBatchim(out, "ㅅ");
       i += 1;
-      atHead = false;
       continue;
     }
     // ん → 직전 한글에 ㄴ 받침 결합. 직전 음절이 없거나 받침 이미 있으면 "ㄴ" 단독.
     if (ch === "ん") {
       out = appendBatchim(out, "ㄴ");
       i += 1;
-      atHead = false;
       continue;
     }
-    if (atHead && HEAD_MAP[ch]) {
-      out += HEAD_MAP[ch];
-    } else if (MONO[ch]) {
-      out += MONO[ch];
-    } else {
-      out += ch;
-    }
+    out += MONO[ch] ?? ch;
     i += 1;
-    atHead = false;
   }
   // 장음 후처리 (한국 외래어 표기법 — 일본어 장음 う/い 생략):
   //   お단 + う = 장음 (도우 → 도, 쇼우 → 쇼, 쿄우 → 쿄)

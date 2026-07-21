@@ -16,7 +16,8 @@ const LINK_PATH = "data/npb-player-link.json";
 
 // 일본어 한글 음역 변이 흡수 — 어두 청음/탁음 통일(ㄱ→ㅋ, ㄷ→ㅌ, ㅂ→ㅍ, ㅈ→ㅊ) + 장음 축약.
 const BASE = 0xac00;
-const CHO_MAP: Record<number, number> = { 0: 15, 3: 16, 7: 17, 12: 14 };
+//   ㄱ→ㅋ, ㄷ→ㅌ, ㅂ→ㅍ, ㅈ→ㅊ, ㅆ→ㅊ(쓰/츠 표기 혼용 흡수)
+const CHO_MAP: Record<number, number> = { 0: 15, 3: 16, 7: 17, 12: 14, 10: 14 };
 export function jpNameNorm(s: string): string {
   let out = "";
   for (const ch of s.replace(/[\s·・()（）A-Za-z.]/g, "")) {
