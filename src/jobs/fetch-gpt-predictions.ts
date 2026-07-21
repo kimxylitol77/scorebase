@@ -27,6 +27,7 @@ import {
   overActual,
 } from "@/lib/predict/markets";
 import { parseTsFootballScore } from "@/lib/sports/live-scores";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { GPT_SCORECARD_ACTIVE_MODEL } from "@/lib/predict/gpt-scorecard-model";
@@ -82,6 +83,19 @@ type GptMatchFacts = {
   restDays?: { home: number | null; away: number | null };
   h2h?: { homeWins: number; draws: number; awayWins: number; total: number };
   starters?: { home: StarterFact | null; away: StarterFact | null };
+  goalies?: { home: GoalieFact | null; away: GoalieFact | null };
+  // buildMatchContext(PreviewContext)가 이미 채워 보내던 값 — 타입에 없어 프롬프트에만 빠져 있었다.
+  // 우리 모델의 winProb·픽·배당은 계속 제외(독립 판단 유지). Elo 는 경기 결과에서 나온 원자료.
+  elo?: { home: number; away: number };
+};
+
+// 하키 골리 프롬프트 팩트 — Match.homeGoalie/awayGoalie JSON 에서 추출.
+// scorebase 앵커는 computeGoalieAdjustment 로 이미 반영하는데 패널 프롬프트에는 빠져 있었다
+// (야구 선발은 주면서 하키 골리는 안 주던 비대칭).
+type GoalieFact = {
+  name: string;
+  gaa: number;
+  savePctg?: number;
 };
 
 // 야구 선발투수 프롬프트 팩트 — Match.homeStarter/awayStarter JSON 에서 추출.
@@ -113,6 +127,29 @@ export function starterFacts(
       k9: typeof s.k9 === "number" ? s.k9 : undefined,
       wins: typeof s.wins === "number" ? s.wins : undefined,
       losses: typeof s.losses === "number" ? s.losses : undefined,
+    };
+  };
+  const home = one(homeRaw);
+  const away = one(awayRaw);
+  return home || away ? { home, away } : undefined;
+}
+
+/**
+ * Match.homeGoalie/awayGoalie JSON → 패널 프롬프트용 골리 팩트.
+ * starterFacts 와 같은 규약 — 한쪽 없으면 null(미발표), 양쪽 다 없으면 undefined(줄 생략).
+ * 하키 외 리그는 컬럼이 null 이라 자연히 undefined.
+ */
+export function goalieFacts(
+  homeRaw: string | null,
+  awayRaw: string | null,
+): GptMatchFacts["goalies"] {
+  const one = (raw: string | null): GoalieFact | null => {
+    const g = parseJson(raw);
+    if (!g || typeof g.name !== "string" || typeof g.gaa !== "number") return null;
+    return {
+      name: g.name,
+      gaa: g.gaa,
+      savePctg: typeof g.savePctg === "number" ? g.savePctg : undefined,
     };
   };
   const home = one(homeRaw);
@@ -552,6 +589,18 @@ function formatGptFacts(facts: GptMatchFacts, home: string, away: string): strin
         : "미발표";
     lines.push(`선발투수: ${home} ${one(facts.starters.home)} / ${away} ${one(facts.starters.away)}`);
   }
+  if (facts.goalies) {
+    const one = (g: GoalieFact | null) =>
+      g
+        ? `${g.name} (GAA ${g.gaa.toFixed(2)}` +
+          (g.savePctg != null ? `, 세이브율 ${g.savePctg.toFixed(3)}` : "") +
+          ")"
+        : "미발표";
+    lines.push(`선발 골리: ${home} ${one(facts.goalies.home)} / ${away} ${one(facts.goalies.away)}`);
+  }
+  if (facts.elo) {
+    lines.push(`Elo 레이팅: ${home} ${Math.round(facts.elo.home)} / ${away} ${Math.round(facts.elo.away)} (차이 ${Math.round(facts.elo.home - facts.elo.away)})`);
+  }
   if (facts.restDays?.home != null && facts.restDays.away != null) {
     lines.push(`휴식일: ${home} ${facts.restDays.home}일 / ${away} ${facts.restDays.away}일`);
   }
@@ -603,8 +652,21 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     },
   });
   // 아직 픽 필요한 패널이 하나라도 있는 매치만, cap 만큼.
+  // 야구는 양 팀 선발이 공개된 뒤에만 픽을 낸다 — 선발이 승부에 미치는 비중이 커서
+  // 미공개 상태의 픽은 정보가 빠진 채 찍는 것에 가깝다. 실측(2026-07-21) KBO·NPB 는
+  // 킥오프 6시간 이내에 100% 공개(24h 전 0%), MLB 는 12~24h 전 80%. 예측 cron 이
+  // 13:30·01:30 KST 라 각각 저녁 KBO·NPB 와 새벽 MLB 를 공개 후 시점에 잡는다.
+  // 대상 선정 단계에서 걸러야 cap 을 미공개 경기가 차지하지 않는다.
+  let awaitingStarter = 0;
   const targets = candidates
     .filter((m) => panels.some((p) => !doneByPanel.get(p.key)!.has(m.id)))
+    .filter((m) => {
+      if (!BASEBALL_LEAGUES.has(m.league)) return true;
+      const f = starterFacts(m.homeStarter, m.awayStarter);
+      if (f?.home && f?.away) return true;
+      awaitingStarter++; // 다음 실행으로 미룸 — 스킵이 아니라 대기
+      return false;
+    })
     .slice(0, cap);
 
   // 관련 리그의 매치 풀 1회 로드 (우리 모델 컨텍스트용).
@@ -666,6 +728,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
         awayKo,
       ),
       starters: starterFacts(m.homeStarter, m.awayStarter),
+      goalies: goalieFacts(m.homeGoalie, m.awayGoalie),
     };
 
     // scorebase 앵커는 패널 성패와 무관하게 1회 저장(독립). 채점 기준선(line)의 출처.
@@ -697,7 +760,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
   }
 
   console.log(
-    `[llm-pred] 완료 — 패널 ${panels.map((p) => p.key).join(",")} / 대상 ${targets.length} / 경기 ${stored}(시장 ${storedMarkets}) / 스킵(학습부족) ${skipped} / 패널실패 ${failed}`,
+    `[llm-pred] 완료 — 패널 ${panels.map((p) => p.key).join(",")} / 대상 ${targets.length} / 경기 ${stored}(시장 ${storedMarkets}) / 스킵(학습부족) ${skipped} / 야구 선발대기 ${awaitingStarter} / 패널실패 ${failed}`,
   );
   // deferred > 0 = 시간 예산에 걸려 다음 실행으로 이월된 건수 (완주 자체는 정상).
   return { targeted: targets.length, stored, storedMarkets, skipped, failed, deferred: deadlineHit };
@@ -846,7 +909,7 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
     where: { id: { in: targetIds } },
     select: {
       id: true, league: true, homeTeamId: true, awayTeamId: true, startTime: true,
-      homeStarter: true, awayStarter: true,
+      homeStarter: true, awayStarter: true, homeGoalie: true, awayGoalie: true,
       homeTeam: { select: { name: true } },
       awayTeam: { select: { name: true } },
     },
@@ -883,6 +946,7 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
         awayKo,
       ),
       starters: starterFacts(m.homeStarter, m.awayStarter),
+      goalies: goalieFacts(m.homeGoalie, m.awayGoalie),
     };
 
     let gpt: GptMarketPick | null = null;

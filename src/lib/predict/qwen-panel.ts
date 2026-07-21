@@ -15,10 +15,12 @@ import {
   buildMarketsPrompt,
   parseMarketsResponse,
   starterFacts,
+  goalieFacts,
   MAJOR_LEAGUES,
   LOOKAHEAD_HOURS,
   type MarketLines,
 } from "@/jobs/fetch-gpt-predictions";
+import { BASEBALL_LEAGUES } from "@/lib/sports/sport-leagues";
 
 // AiPrediction.model 키 — panelists.ts 의 ollama 패널 key 와 반드시 일치.
 export const QWEN_MODEL = "qwen2.5-32b";
@@ -79,6 +81,12 @@ export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
   const tasks: QwenTask[] = [];
   for (const m of candidates) {
     if (done.has(m.id)) continue;
+    // 야구 선발 대기 — Vercel 패널(fetch-gpt-predictions)과 같은 규칙이어야
+    // 모델 간 경기 집합이 어긋나지 않는다.
+    if (BASEBALL_LEAGUES.has(m.league)) {
+      const f = starterFacts(m.homeStarter, m.awayStarter);
+      if (!f?.home || !f?.away) continue;
+    }
     const pool = poolByLeague.get(m.league)!;
     const ours = scorebasePick(m, pool);
     if (!ours) continue; // 학습 부족 — 앵커 없음 → 스킵
@@ -90,6 +98,7 @@ export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
     const facts = {
       ...buildMatchContext(pool, m.league, m.homeTeamId, m.awayTeamId, m.startTime, homeKo, awayKo),
       starters: starterFacts(m.homeStarter, m.awayStarter),
+      goalies: goalieFacts(m.homeGoalie, m.awayGoalie),
     };
     const lines: MarketLines = { hc: oursHcOu.hc?.line ?? null, ou: oursHcOu.ou?.line ?? null };
     const { system, user } = buildMarketsPrompt(m.league, homeKo, awayKo, m.startTime, lines, facts);
