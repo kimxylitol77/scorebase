@@ -2,7 +2,7 @@
 // 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown, Crown } from "lucide-react";
+import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown, Crown, Handshake } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -282,9 +282,59 @@ export default async function ScorecardPage() {
       .sort((a, b) => b.tally.rate - a.tally.rate),
   })).filter((mm) => mm.models.length > 0);
 
+  // 만장일치 성적 — 픽을 낸 AI가 MIN_PANEL 이상이고 전원이 같은 쪽을 고른 (경기, 시장) 묶음.
+  // 원탁 카드의 "만장일치/의견갈림" 뱃지가 실제로 성적 차이를 만드는지 검증하는 숫자.
+  // 초기에 모델 2개만 픽을 내던 구간을 만장일치로 세면 과장이라 3개 이상으로 자른다.
+  const MIN_PANEL = 3;
+  interface AgreeAgg {
+    graded: number;
+    correct: number;
+    sweepFail: number; // 만장일치인데 전원 오답
+    total: number; // (경기, 시장) 묶음 수
+  }
+  const emptyAgg = (): AgreeAgg => ({ graded: 0, correct: 0, sweepFail: 0, total: 0 });
+  const unanAgg = new Map<Market, AgreeAgg>();
+  const splitAgg = new Map<Market, AgreeAgg>();
+  const unanAll = emptyAgg(), splitAll = emptyAgg();
+  // 만장일치인데 전원이 틀린 경기 — 최근순으로 모은다(datapoints 는 startTime asc).
+  const betrayals: { dp: DP; pick: string; line: number | null; panel: number }[] = [];
+  for (const d of datapoints) {
+    const cells = [...d.cells.values()];
+    if (cells.length < MIN_PANEL) continue;
+    const graded = cells.filter((c) => c.correct !== null);
+    if (graded.length === 0) continue;
+    const unan = new Set(cells.map((c) => c.pick)).size === 1;
+    const correct = graded.filter((c) => c.correct).length;
+    const bucket = unan ? unanAgg : splitAgg;
+    const agg = bucket.get(d.market) ?? emptyAgg();
+    const all = unan ? unanAll : splitAll;
+    agg.graded += graded.length; agg.correct += correct; agg.total++;
+    all.graded += graded.length; all.correct += correct; all.total++;
+    if (unan && correct === 0) {
+      agg.sweepFail++; all.sweepFail++;
+      // 핸디캡·오버언더는 같은 픽이라도 모델마다 라인이 다를 수 있다.
+      // 전원이 같은 라인일 때만 라인을 붙이고, 갈리면 생략(대표값 하나로 뭉뚱그리지 않는다).
+      const lines = new Set(cells.map((c) => c.line));
+      betrayals.push({ dp: d, pick: cells[0].pick, line: lines.size === 1 ? cells[0].line : null, panel: cells.length });
+    }
+    bucket.set(d.market, agg);
+  }
+  betrayals.reverse(); // 최근순
+  const rateOf = (a: AgreeAgg) => (a.graded > 0 ? a.correct / a.graded : 0);
+  const agreeGap = rateOf(unanAll) - rateOf(splitAll);
+  // 시장별 비교 행 — 양쪽 모두 표본이 RANK_MIN 이상인 시장만.
+  const agreeRows = MARKET_META.map((mm) => ({
+    ...mm,
+    unan: unanAgg.get(mm.key) ?? emptyAgg(),
+    split: splitAgg.get(mm.key) ?? emptyAgg(),
+  })).filter((r) => r.unan.graded >= RANK_MIN && r.split.graded >= RANK_MIN);
+
   // 리그별 성적 — 같은 리그 안에서만 모델을 줄 세운다.
   // (리그 간 적중률 비교는 종목별 난이도가 달라 — 야구는 무승부가 없고 축구 1X2 는 3지선다 — 참고용)
+  // 끝난 단발 대회는 제외 — 상시 리그와 나란히 두면 지금도 진행 중인 것처럼 읽힌다.
+  const LEAGUE_EXCLUDE = new Set(["WORLD_CUP"]);
   const leagueBoard = [...new Set(datapoints.map((d) => d.league))]
+    .filter((lg) => !LEAGUE_EXCLUDE.has(lg))
     .map((lg) => {
       const all = present
         .map((m) => ({ model: m, ...metaOf(m), tally: tallyOf(m, (d) => d.league === lg) }))
@@ -648,6 +698,134 @@ export default async function ScorecardPage() {
               </ConsensusGate>
             );
           })()}
+        </section>
+      )}
+
+      {/* 만장일치 성적 — 원탁의 만장일치/의견갈림 뱃지가 실제 성적 차이를 만드는지 */}
+      {unanAll.graded >= RANK_MIN && splitAll.graded >= RANK_MIN && (
+        <section className="mb-12">
+          <h2 className="mb-1 flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+            <Handshake className="h-4 w-4 text-rose-500" aria-hidden /> 만장일치는 얼마나 맞았나
+          </h2>
+          <p className="mb-4 text-[13px] text-zinc-500 dark:text-white/40">
+            위 원탁에 붙는 <strong className="text-zinc-600 dark:text-white/60">만장일치</strong> 뱃지가 실제로 성적 차이를 만드는지
+            채점 기록으로 확인합니다. AI {MIN_PANEL}개 이상이 픽을 낸 경기만 셉니다.
+          </p>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl bg-emerald-500/[0.07] p-5 ring-1 ring-emerald-500/20">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-600 dark:text-emerald-400">
+                전원 같은 픽
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-4xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                  {(rateOf(unanAll) * 100).toFixed(1)}%
+                </span>
+                <span className="text-[13px] tabular-nums text-zinc-500 dark:text-white/40">
+                  {unanAll.correct} / {unanAll.graded}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-amber-500/[0.07] p-5 ring-1 ring-amber-500/20">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-amber-600 dark:text-amber-400">
+                의견 갈림
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-4xl font-bold tabular-nums text-zinc-900 dark:text-white">
+                  {(rateOf(splitAll) * 100).toFixed(1)}%
+                </span>
+                <span className="text-[13px] tabular-nums text-zinc-500 dark:text-white/40">
+                  {splitAll.correct} / {splitAll.graded}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p className="mt-2.5 text-center text-[13px] text-zinc-500 dark:text-white/40">
+            AI들이 뭉쳤을 때가{" "}
+            <strong className={agreeGap >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
+              {agreeGap >= 0 ? "+" : ""}{(agreeGap * 100).toFixed(1)}%p
+            </strong>{" "}
+            {agreeGap >= 0 ? "더 맞았습니다" : "오히려 덜 맞았습니다"}
+          </p>
+
+          {agreeRows.length > 0 && (
+            <div className="mt-4 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200/70 dark:bg-white/[0.04] dark:ring-white/10">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-black/5 text-[11px] uppercase tracking-wide text-zinc-400 dark:border-white/5 dark:text-white/35">
+                    <th className="px-4 py-2.5 text-left font-semibold">시장</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">전원 같은 픽</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">의견 갈림</th>
+                    <th className="px-4 py-2.5 text-right font-semibold">차이</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {agreeRows.map((r) => {
+                    const gap = rateOf(r.unan) - rateOf(r.split);
+                    return (
+                      <tr key={r.key} className="border-b border-black/[0.03] last:border-0 dark:border-white/[0.03]">
+                        <td className="px-4 py-2.5 font-semibold text-zinc-800 dark:text-white/80">{r.label}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums text-zinc-600 dark:text-white/60">
+                          {(rateOf(r.unan) * 100).toFixed(1)}%
+                          <span className="ml-1 text-[11px] text-zinc-400 dark:text-white/30">({r.unan.correct}/{r.unan.graded})</span>
+                        </td>
+                        <td className="px-3 py-2.5 text-right tabular-nums text-zinc-600 dark:text-white/60">
+                          {(rateOf(r.split) * 100).toFixed(1)}%
+                          <span className="ml-1 text-[11px] text-zinc-400 dark:text-white/30">({r.split.correct}/{r.split.graded})</span>
+                        </td>
+                        <td className={`px-4 py-2.5 text-right font-bold tabular-nums ${gap >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                          {gap >= 0 ? "+" : ""}{(gap * 100).toFixed(1)}%p
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {betrayals.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 text-[13px] font-bold text-zinc-800 dark:text-white/80">
+                만장일치가 배신당한 경기
+                <span className="ml-1.5 font-normal text-zinc-400 dark:text-white/30">
+                  전원 같은 픽 {unanAll.total}건 중 {unanAll.sweepFail}건이 전원 오답
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {betrayals.slice(0, 6).map((b) => (
+                  <div
+                    key={`${b.dp.matchId}:${b.dp.market}`}
+                    className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-rose-500/[0.05] px-3.5 py-2.5 ring-1 ring-rose-500/15"
+                  >
+                    <LeagueBadge league={b.dp.league} />
+                    <TeamsLine
+                      league={b.dp.league}
+                      externalId={b.dp.externalId}
+                      home={b.dp.home}
+                      away={b.dp.away}
+                      homeRaw={b.dp.homeRaw}
+                      awayRaw={b.dp.awayRaw}
+                      homeLogo={b.dp.homeLogo}
+                      awayLogo={b.dp.awayLogo}
+                    />
+                    <span className="tabular-nums text-xs font-semibold text-zinc-500 dark:text-white/50">
+                      {b.dp.homeScore ?? "-"}:{b.dp.awayScore ?? "-"}
+                    </span>
+                    <span className="ml-auto flex items-center gap-1.5 text-[12px]">
+                      <span className="text-zinc-400 dark:text-white/35">
+                        AI {b.panel}개 전원 {MARKET_META.find((m) => m.key === b.dp.market)?.label}
+                      </span>
+                      <span className="rounded-md bg-rose-500/10 px-2 py-0.5 font-semibold text-rose-600 dark:text-rose-400">
+                        {pickText(b.dp.market, b.pick, b.dp.home, b.dp.away, b.line)}
+                      </span>
+                      <X className="h-3.5 w-3.5 text-rose-500" aria-hidden />
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
