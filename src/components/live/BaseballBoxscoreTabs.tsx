@@ -13,6 +13,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import BaseballWpaChart from "./BaseballWpaChart";
 import LiveOddsCard from "./LiveOddsCard";
 import { baseballPositionLabel } from "@/lib/sports/thesports/baseball-stats";
@@ -66,6 +67,8 @@ interface Props {
   playerNameById: Record<string, string>;
   /** ts player_id → 사진 URL. miss 시 이니셜 fallback. */
   playerPhotoById?: Record<string, string>;
+  /** ts player_id → 선수 상세 링크. 로스터 이름 매칭 성공분만(모호하면 없음 = 텍스트 유지). */
+  playerHrefById?: Record<string, string>;
   /** 라이브 배당 + 시계열 (SSR) */
   initialOdds?: {
     odds: LiveOdds;
@@ -93,6 +96,7 @@ export default function BaseballBoxscoreTabs({
   pitcherColumns,
   playerNameById,
   playerPhotoById,
+  playerHrefById,
   initialOdds,
   wpaSeries,
   matchStatus,
@@ -138,6 +142,7 @@ export default function BaseballBoxscoreTabs({
   // 영구 미식별 placeholder id (예: KBO vmwz). cryptic "#vmwz" 대신 라벨 표시.
   const koName = (pid: string) => playerNameById[pid] ?? "미확인 선수";
   const koPhoto = (pid: string) => playerPhotoById?.[pid];
+  const koHref = (pid: string) => playerHrefById?.[pid];
 
   return (
     <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
@@ -184,6 +189,7 @@ export default function BaseballBoxscoreTabs({
             columns={batterColumns}
             koName={koName}
             koPhoto={koPhoto}
+            koHref={koHref}
             roleLabel="타자"
           />
         ) : activeTab === "pitching" ? (
@@ -192,6 +198,7 @@ export default function BaseballBoxscoreTabs({
             columns={pitcherColumns}
             koName={koName}
             koPhoto={koPhoto}
+            koHref={koHref}
             roleLabel="투수"
           />
         ) : activeTab === "odds" && initialOdds?.odds ? (
@@ -238,12 +245,14 @@ function StatTable({
   columns,
   koName,
   koPhoto,
+  koHref,
   roleLabel,
 }: {
   rows: PlayerStatRow[];
   columns: PlayerStatLabel[];
   koName: (pid: string) => string;
   koPhoto: (pid: string) => string | undefined;
+  koHref: (pid: string) => string | undefined;
   roleLabel: string;
 }) {
   if (rows.length === 0) {
@@ -303,7 +312,13 @@ function StatTable({
                       {name.charAt(0)}
                     </span>
                   )}
-                  <span className="font-medium truncate">{name}</span>
+                  {koHref(p.playerId) ? (
+                    <Link href={koHref(p.playerId)!} className="font-medium truncate hover:underline">
+                      {name}
+                    </Link>
+                  ) : (
+                    <span className="font-medium truncate">{name}</span>
+                  )}
                   {pos && (
                     <span className="text-[10px] font-normal text-neutral-400 shrink-0">
                       {pos}

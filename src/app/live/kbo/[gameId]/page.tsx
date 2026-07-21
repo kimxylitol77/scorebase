@@ -19,6 +19,7 @@ import MatchHeadToHead from "@/components/MatchHeadToHead";
 import MatchArticleLinks from "@/components/MatchArticleLinks";
 import { fetchMatchExtras } from "@/lib/live/match-extras";
 import BaseballBoxscoreTabs from "@/components/live/BaseballBoxscoreTabs";
+import { buildBaseballPlayerHrefs } from "@/lib/sports/baseball-player-link";
 import BaseballTeamStatsCard from "@/components/live/BaseballTeamStatsCard";
 import { extractPlayerStats, playerStatColumns } from "@/lib/sports/thesports/baseball-stats";
 import { computeBaseballWpa } from "@/lib/live/baseball-wpa";
@@ -347,6 +348,7 @@ export default async function KboLivePage({ params }: Props) {
           batterColumns={batterColumns}
           pitcherColumns={pitcherColumns}
           playerNameById={playerNameById}
+          playerHrefById={buildBaseballPlayerHrefs({ league: "KBO", teamIds: [match.homeTeam.id, match.awayTeam.id], playerNameById })}
           playerPhotoById={playerPhotoById}
           initialOdds={baseballOdds}
           wpaSeries={wpaSeries}
