@@ -4,7 +4,7 @@
 import "@/lib/env";
 import OpenAI from "openai";
 import { prisma } from "@/lib/db";
-import { buildMatchContext } from "@/lib/predict/build-context";
+import { buildMatchContext, enrichContextWithApiFootball } from "@/lib/predict/build-context";
 import {
   computeStarterAdjustment,
   applyStarterToWinProb,
@@ -87,6 +87,15 @@ type GptMatchFacts = {
   // buildMatchContext(PreviewContext)가 이미 채워 보내던 값 — 타입에 없어 프롬프트에만 빠져 있었다.
   // 우리 모델의 winProb·픽·배당은 계속 제외(독립 판단 유지). Elo 는 경기 결과에서 나온 원자료.
   elo?: { home: number; away: number };
+  // 축구 부상·핵심선수 — enrichContextWithApiFootball 보강 시에만 존재(축구 외 리그는 없음).
+  injuries?: {
+    home: Array<{ name: string; reason?: string }>;
+    away: Array<{ name: string; reason?: string }>;
+  };
+  keyPlayers?: {
+    home: Array<{ name: string; goals: number; assists: number }>;
+    away: Array<{ name: string; goals: number; assists: number }>;
+  };
 };
 
 // 하키 골리 프롬프트 팩트 — Match.homeGoalie/awayGoalie JSON 에서 추출.
@@ -155,6 +164,51 @@ export function goalieFacts(
   const home = one(homeRaw);
   const away = one(awayRaw);
   return home || away ? { home, away } : undefined;
+}
+
+/**
+ * 패널 프롬프트용 경기 팩트 단일 빌더 — runFetchGptPredictions·백필·Qwen 태스크 공용.
+ * buildMatchContext(순위·폼·Elo 등)에 축구 부상·핵심선수(api-football, 리그·시즌 캐시)를
+ * 보강하고 야구 선발·하키 골리를 붙인다. 비축구 리그는 enrich 가 그대로 통과시킨다.
+ * 팀명 매칭은 api-football 영문명 기준이라 enrich 에는 DB 원명을 넘긴다.
+ */
+export async function buildPanelFacts(
+  match: {
+    league: string;
+    homeTeamId: number;
+    awayTeamId: number;
+    startTime: Date;
+    homeStarter: string | null;
+    awayStarter: string | null;
+    homeGoalie: string | null;
+    awayGoalie: string | null;
+    homeTeam?: { name: string | null } | null;
+    awayTeam?: { name: string | null } | null;
+  },
+  leagueMatches: PredictMatch[],
+  homeKo: string,
+  awayKo: string,
+): Promise<GptMatchFacts> {
+  const ctx = await enrichContextWithApiFootball(
+    buildMatchContext(
+      leagueMatches,
+      match.league,
+      match.homeTeamId,
+      match.awayTeamId,
+      match.startTime,
+      homeKo,
+      awayKo,
+    ),
+    match.league,
+    match.homeTeam?.name ?? "",
+    match.awayTeam?.name ?? "",
+    match.startTime,
+  );
+  return {
+    ...ctx,
+    starters: starterFacts(match.homeStarter, match.awayStarter),
+    goalies: goalieFacts(match.homeGoalie, match.awayGoalie),
+  };
 }
 
 // 무승부가 존재하는 축구 리그 — SOCCER_LEAGUES_FOR_MARKETS(핸디/OU 프로파일 스코프)와
@@ -601,6 +655,18 @@ function formatGptFacts(facts: GptMatchFacts, home: string, away: string): strin
   if (facts.elo) {
     lines.push(`Elo 레이팅: ${home} ${Math.round(facts.elo.home)} / ${away} ${Math.round(facts.elo.away)} (차이 ${Math.round(facts.elo.home - facts.elo.away)})`);
   }
+  if (facts.injuries && (facts.injuries.home.length > 0 || facts.injuries.away.length > 0)) {
+    const fmt = (arr: Array<{ name: string; reason?: string }>) =>
+      arr.length > 0
+        ? arr.map((i) => `${i.name}${i.reason ? `(${i.reason})` : ""}`).join(", ")
+        : "없음";
+    lines.push(`부상·결장: ${home} ${fmt(facts.injuries.home)} / ${away} ${fmt(facts.injuries.away)}`);
+  }
+  if (facts.keyPlayers && (facts.keyPlayers.home.length > 0 || facts.keyPlayers.away.length > 0)) {
+    const fmt = (arr: Array<{ name: string; goals: number; assists: number }>) =>
+      arr.map((p) => `${p.name}(${p.goals}골 ${p.assists}도움)`).join(", ");
+    lines.push(`시즌 핵심 선수: ${home} ${fmt(facts.keyPlayers.home)} / ${away} ${fmt(facts.keyPlayers.away)}`);
+  }
   if (facts.restDays?.home != null && facts.restDays.away != null) {
     lines.push(`휴식일: ${home} ${facts.restDays.home}일 / ${away} ${facts.restDays.away}일`);
   }
@@ -717,19 +783,7 @@ export async function runFetchGptPredictions(opts?: { cap?: number }) {
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
     const oursHcOu = scorebaseHcOu(m, pool);
-    const facts: GptMatchFacts = {
-      ...buildMatchContext(
-        pool,
-        m.league,
-        m.homeTeamId,
-        m.awayTeamId,
-        m.startTime,
-        homeKo,
-        awayKo,
-      ),
-      starters: starterFacts(m.homeStarter, m.awayStarter),
-      goalies: goalieFacts(m.homeGoalie, m.awayGoalie),
-    };
+    const facts = await buildPanelFacts(m, pool, homeKo, awayKo);
 
     // scorebase 앵커는 패널 성패와 무관하게 1회 저장(독립). 채점 기준선(line)의 출처.
     await storeAnchor(m.id, ours, oursHcOu);
@@ -935,19 +989,7 @@ export async function runBackfillMarkets(opts?: { cap?: number }) {
     if (!oursHcOu.hc && !oursHcOu.ou) continue; // 우리 모델이 줄 라인이 없으면 비교 불가
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
-    const gptFacts: GptMatchFacts = {
-      ...buildMatchContext(
-        pool,
-        m.league,
-        m.homeTeamId,
-        m.awayTeamId,
-        m.startTime,
-        homeKo,
-        awayKo,
-      ),
-      starters: starterFacts(m.homeStarter, m.awayStarter),
-      goalies: goalieFacts(m.homeGoalie, m.awayGoalie),
-    };
+    const gptFacts = await buildPanelFacts(m, pool, homeKo, awayKo);
 
     let gpt: GptMarketPick | null = null;
     try {

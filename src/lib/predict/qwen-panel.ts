@@ -3,7 +3,6 @@
 // 원문 응답을 되돌려 준다. 앵커 계산·프롬프트 빌드·파싱·저장은 전부 서버(TS)에서 —
 // GPT 와 동일 파이프라인을 재사용해 프롬프트/채점 드리프트를 막는다.
 import { prisma } from "@/lib/db";
-import { buildMatchContext } from "@/lib/predict/build-context";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { isPanelEnabledByKey } from "@/lib/predict/panelists";
 import type { PredictMatch } from "@/lib/predict/types";
@@ -13,9 +12,9 @@ import {
   storeAnchor,
   storePanel,
   buildMarketsPrompt,
+  buildPanelFacts,
   parseMarketsResponse,
   starterFacts,
-  goalieFacts,
   MAJOR_LEAGUES,
   LOOKAHEAD_HOURS,
   type MarketLines,
@@ -95,11 +94,7 @@ export async function getQwenTasks(cap = 40): Promise<QwenTask[]> {
 
     const homeKo = toKoreanTeamName(m.homeTeam?.name, m.league) || m.homeTeam?.name || "홈";
     const awayKo = toKoreanTeamName(m.awayTeam?.name, m.league) || m.awayTeam?.name || "원정";
-    const facts = {
-      ...buildMatchContext(pool, m.league, m.homeTeamId, m.awayTeamId, m.startTime, homeKo, awayKo),
-      starters: starterFacts(m.homeStarter, m.awayStarter),
-      goalies: goalieFacts(m.homeGoalie, m.awayGoalie),
-    };
+    const facts = await buildPanelFacts(m, pool, homeKo, awayKo);
     const lines: MarketLines = { hc: oursHcOu.hc?.line ?? null, ou: oursHcOu.ou?.line ?? null };
     const { system, user } = buildMarketsPrompt(m.league, homeKo, awayKo, m.startTime, lines, facts);
     tasks.push({ matchId: m.id, league: m.league, system, user, lines });
