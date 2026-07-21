@@ -13,7 +13,12 @@ interface Weights {
   team: number;
   wc: number;
 }
-const DEFAULT: Weights = { goal: 1, assist: 1, rating: 1, team: 1, wc: 1 };
+// 순위 변동(↑↓) 표시의 기준선 — 리그·월드컵을 동등하게 보는 중립 가중치.
+// 초기 가중치와 분리해 둔다. 같은 값이면 "기준 대비 변동"이 항상 0이 되어 의미가 없다.
+const BALANCED: Weights = { goal: 1, assist: 1, rating: 1, team: 1, wc: 1 };
+// 첫 화면 가중치 — 2026 월드컵 종료(7/20) 직후라 월드컵 임팩트를 기본으로 둔다.
+// 방문자는 슬라이더·프리셋으로 언제든 바꿀 수 있다.
+const DEFAULT: Weights = { goal: 1, assist: 1, rating: 0.8, team: 0.5, wc: 2 };
 
 const PRESETS: { label: string; w: Weights }[] = [
   { label: "밸런스", w: { goal: 1, assist: 1, rating: 1, team: 1, wc: 1 } },
@@ -81,7 +86,7 @@ export default function BallonCalculator({ candidates }: { candidates: BallonCan
   const baselineRank = useMemo(() => {
     const m = new Map<string, number>();
     [...candidates]
-      .sort((a, b) => score(b, DEFAULT) - score(a, DEFAULT))
+      .sort((a, b) => score(b, BALANCED) - score(a, BALANCED))
       .forEach((c, i) => m.set(c.afId, i));
     return m;
   }, [candidates]);
