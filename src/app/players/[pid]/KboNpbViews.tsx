@@ -6,12 +6,14 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import {
   fetchKboPitcherDetail,
+  fetchKboPitcherDaily,
   fetchKboPitcherProfile,
   fetchKboHitterStats,
   fetchKboHitterProfile,
   kboPhotoUrl,
   calcK9,
   type KboPitcherRecentGame,
+  type KboPitcherDailyGame,
   type KboPitcherProfile,
   type KboHitterProfile,
   type KboHitterStats,
@@ -44,6 +46,7 @@ import type {
 import { prisma } from "@/lib/db";
 import PlayerTabs from "./PlayerTabs";
 import { HitterTrendChart, PitcherTrendChart } from "./BaseballTrendChart";
+import KboGameLogChart from "./KboGameLogChart";
 import { HitterSeasonTable, PitcherSeasonTable } from "./SeasonTable";
 import SplitsView from "./SplitsView";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -303,6 +306,64 @@ function KboRecentGames({ games }: { games: KboPitcherRecentGame[] }) {
   );
 }
 
+const KBO_RESULT_KO: Record<string, { label: string; cls: string }> = {
+  W: { label: "승", cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300" },
+  L: { label: "패", cls: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300" },
+  S: { label: "세", cls: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300" },
+  H: { label: "홀", cls: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300" },
+};
+
+/** 시즌 전체 등판 로그 (Daily.aspx) — 최신 경기가 위. 누적 ERA 컬럼이 차트와 같은 값. */
+function KboDailyGames({ games }: { games: KboPitcherDailyGame[] }) {
+  const rows = [...games].reverse();
+  return (
+    <div className="rounded-xl bg-white ring-1 ring-black/5 overflow-x-auto dark:bg-white/[0.04] dark:ring-white/10">
+      <table className="w-full text-sm">
+        <thead className="bg-neutral-50 dark:bg-white/[0.04] text-xs text-neutral-500">
+          <tr>
+            <th className="text-left px-3 py-2 font-medium">날짜</th>
+            <th className="text-left px-3 py-2 font-medium">상대</th>
+            <th className="text-left px-2 py-2 font-medium">구분</th>
+            <th className="text-right px-2 py-2 font-medium">IP</th>
+            <th className="text-right px-2 py-2 font-medium">ER</th>
+            <th className="text-right px-2 py-2 font-medium">K</th>
+            <th className="text-right px-2 py-2 font-medium">BB</th>
+            <th className="text-right px-2 py-2 font-medium">H</th>
+            <th className="text-right px-3 py-2 font-medium whitespace-nowrap">누적 ERA</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-black/5 dark:divide-white/5">
+          {rows.map((g, i) => {
+            const r = g.result ? KBO_RESULT_KO[g.result] : undefined;
+            return (
+              <tr key={`${g.date}-${i}`}>
+                <td className="px-3 py-2 text-xs text-neutral-500 tabular-nums whitespace-nowrap">
+                  {g.date}
+                  {r && (
+                    <span className={`ml-1.5 inline-block w-5 text-center text-[10px] font-bold rounded ${r.cls}`}>
+                      {r.label}
+                    </span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-xs font-medium">{g.opponent}</td>
+                <td className="px-2 py-2 text-xs text-neutral-500">{g.role ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums">{g.ip ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums font-semibold">{g.er ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums">{g.so ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.bb ?? "—"}</td>
+                <td className="px-2 py-2 text-right tabular-nums text-neutral-500">{g.h ?? "—"}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-xs text-neutral-500">
+                  {fmtNum(g.cumEra, 2)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function kboHandBats(profile: { hand?: "L" | "R"; bats?: "L" | "R" }): string {
   const h = profile.hand === "L" ? "좌투" : profile.hand === "R" ? "우투" : "";
   const b = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
@@ -320,10 +381,11 @@ async function KboPitcherView({
   stats: Awaited<ReturnType<typeof fetchKboPitcherDetail>>["stats"];
   recent: KboPitcherRecentGame[];
 }) {
-  const [yearly, splits, leaderRanks] = await Promise.all([
+  const [yearly, splits, leaderRanks, daily] = await Promise.all([
     getKboPitcherYearly(pid),
     getKboSplits(pid, "pitching"),
     fetchLeaderRanks("KBO", pid),
+    fetchKboPitcherDaily(pid),
   ]);
   const teamHref = await fetchTeamHref("KBO", profile.team ?? stats?.team);
   const name = profile.name ?? "(이름 정보 없음)";
@@ -434,10 +496,19 @@ async function KboPitcherView({
             label: "시즌기록",
             content: <PitcherSeasonTable rows={yearly.seasons} />,
           },
-          recent.length > 0 && {
+          // 시즌 전체 로그(Daily)가 잡히면 차트와 함께, 실패하면 Basic 의 최근 10경기로 폴백.
+          (daily.length > 0 || recent.length > 0) && {
             key: "games",
             label: "경기",
-            content: <KboRecentGames games={recent} />,
+            content:
+              daily.length > 0 ? (
+                <div className="space-y-4">
+                  <KboGameLogChart games={daily} />
+                  <KboDailyGames games={daily} />
+                </div>
+              ) : (
+                <KboRecentGames games={recent} />
+              ),
           },
           hasSplits(splits) && {
             key: "splits",

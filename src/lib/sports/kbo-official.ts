@@ -620,6 +620,72 @@ export function computeKboRecentForm(
   };
 }
 
+export interface KboPitcherDailyGame {
+  date: string; // "03.28"
+  opponent: string;
+  role?: string; // 선발 | 구원
+  result?: "W" | "L" | "S" | "H";
+  gameEra?: number; // 그 경기 방어율
+  cumEra?: number; // 그 시점 누적 시즌 방어율
+  ip?: string;
+  tbf?: number;
+  h?: number;
+  hr?: number;
+  bb?: number;
+  so?: number;
+  r?: number;
+  er?: number;
+}
+
+/**
+ * 시즌 전체 등판 로그 — PitcherDetail/Daily.aspx.
+ *
+ * Basic.aspx 의 최근 10경기와 달리 개막부터 전 경기를 담고, 그 시점 **누적 ERA** 컬럼이 있어
+ * 시즌 방어율 추이를 그릴 수 있다. 표가 월별로 쪼개져 있어(3월표·4월표…) 순회 합산한다.
+ *
+ * ⚠️ 합계 row 가 th 로 섞여 들어와 headers 가 15개를 넘는다 → 컬럼 수 15인 tbody 행만 채택.
+ *    ("기록이 없습니다" 안내 행도 이 조건에서 자연히 걸러진다)
+ */
+export async function fetchKboPitcherDaily(kboId: string): Promise<KboPitcherDailyGame[]> {
+  const url = `${BASE}/Record/Player/PitcherDetail/Daily.aspx?playerId=${kboId}`;
+  let html: string;
+  try {
+    const r = await axios.get<string>(url, { headers: HEADERS, timeout: 12000, responseType: "text" });
+    html = r.data;
+  } catch {
+    return [];
+  }
+  const $ = cheerio.load(html);
+  const games: KboPitcherDailyGame[] = [];
+  const resultMap: Record<string, "W" | "L" | "S" | "H"> = { 승: "W", 패: "L", 세: "S", 홀: "H" };
+  $("table").each((_, t) => {
+    const headers = $(t).find("th").map((_, th) => $(th).text().trim()).get();
+    // 월별 로그 표 — 첫 헤더가 "3월"·"4월" 이라 이름 대신 위치로 식별.
+    if (headers[1] !== "상대" || !headers.includes("IP")) return;
+    $(t).find("tbody tr").each((_, tr) => {
+      const c = $(tr).find("td").map((_, td) => $(td).text().trim()).get();
+      if (c.length !== 15) return;
+      games.push({
+        date: c[0],
+        opponent: c[1],
+        role: c[2] || undefined,
+        result: resultMap[c[3]],
+        gameEra: toNum(c[4]),
+        tbf: toNum(c[5]),
+        ip: c[6] || undefined,
+        h: toNum(c[7]),
+        hr: toNum(c[8]),
+        bb: toNum(c[9]),
+        so: toNum(c[11]),
+        r: toNum(c[12]),
+        er: toNum(c[13]),
+        cumEra: toNum(c[14]),
+      });
+    });
+  });
+  return games;
+}
+
 export interface KboPitcherProfile {
   name?: string;
   team?: string;
