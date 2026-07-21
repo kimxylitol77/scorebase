@@ -4,12 +4,18 @@
 //   카나 미보유·음역 실패 시 원문 폴백(빈 화면보다 원문이 낫다).
 import kanaDict from "../../../data/npb-player-kana.json";
 import foreignDict from "../../../data/npb-foreign-names.json";
+import photoDict from "../../../data/npb-player-photos.json";
 import { kanaToKorean } from "./kana-to-korean";
 
 const DICT = kanaDict as Record<string, string>;
 // 외국인 선수는 카나 음역 시 일본어 발음을 거쳐 원명과 멀어진다(JOSE QUIJADA → "호세 기하다").
 //  build-npb-foreign-names-haiku 가 영문 원명을 음역해 만든 사전을 1순위로 쓴다.
 const FOREIGN = foreignDict as Record<string, string>;
+
+// 사진 URL — build-npb-roster-photos 가 수집한 사전(pid → p.npb.jp URL). 미보유는 undefined(이니셜 폴백).
+export function npbPlayerPhoto(pid: string): string | undefined {
+  return (photoDict as Record<string, string>)[pid];
+}
 
 export function npbPlayerKo(pid: string, fallback: string): string {
   const foreign = FOREIGN[pid];

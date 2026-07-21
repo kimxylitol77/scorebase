@@ -403,7 +403,7 @@ export async function MlbHitterView({
         }
         sub={
           <>
-            {profile.team ? `${profile.team} · ` : ""}
+            {profile.team ? `${toKoreanTeamName(profile.team, "MLB")} · ` : ""}
             {profile.birthCity}
             {profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
           </>
@@ -601,7 +601,7 @@ export async function MlbPitcherView({
         }
         sub={
           <>
-            {profile.team ? `${profile.team} · ` : ""}
+            {profile.team ? `${toKoreanTeamName(profile.team, "MLB")} · ` : ""}
             {profile.birthCity}
             {profile.birthCountry ? `, ${profile.birthCountry}` : ""} · MLB Stats API
           </>
