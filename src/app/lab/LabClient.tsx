@@ -14,6 +14,7 @@ import {
   Power,
   RotateCcw,
   Share2,
+  Send,
 } from "lucide-react";
 import {
   DEFAULT_KNOBS,
@@ -48,6 +49,7 @@ export interface LabBot {
     savedAt?: string;
   } | null;
   isActive: boolean;
+  notifyTelegram: boolean;
 }
 
 /** 오늘 내 봇 픽 — cron 이 생성한 미시작 경기 픽 (page.tsx 서버 조회) */
@@ -108,11 +110,13 @@ export default function LabClient({
   initialBots,
   todayPicks,
   preselectMatchId,
+  telegramLinked,
 }: {
   matches: LabMatch[];
   initialBots: LabBot[];
   todayPicks: LabBotPick[];
   preselectMatchId: number | null;
+  telegramLinked: boolean;
 }) {
   const [knobs, setKnobs] = useState<BotKnobs>({ ...DEFAULT_KNOBS });
 
@@ -266,6 +270,7 @@ export default function LabClient({
         knobs: j.bot.knobs,
         backtestCache: j.bot.backtestCache ?? null,
         isActive: j.bot.isActive,
+        notifyTelegram: j.bot.notifyTelegram ?? false,
       };
       setBots((prev) =>
         isUpdate ? prev.map((b) => (b.id === saved.id ? saved : b)) : [...prev, saved],
@@ -292,6 +297,31 @@ export default function LabClient({
         setBots((prev) =>
           prev.map((b) => (b.id === bot.id ? { ...b, isActive: !bot.isActive } : b)),
         );
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // 텔레그램 하루 픽 요약 on/off. 미연결 회원은 버튼 대신 연결 안내를 띄운다.
+  async function toggleNotify(bot: LabBot) {
+    if (!telegramLinked) {
+      setMsg("텔레그램을 먼저 연결해 주세요. 마이페이지에서 연결할 수 있습니다.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await fetch("/api/member-bot", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: bot.id, notifyTelegram: !bot.notifyTelegram }),
+      });
+      const j = (await r.json()) as { ok: boolean };
+      if (j.ok) {
+        setBots((prev) =>
+          prev.map((b) => (b.id === bot.id ? { ...b, notifyTelegram: !bot.notifyTelegram } : b)),
+        );
+        setMsg(bot.notifyTelegram ? "텔레그램 알림을 껐습니다." : "이 봇의 하루 픽 요약을 텔레그램으로 보내드립니다.");
       }
     } finally {
       setBusy(false);
@@ -659,6 +689,25 @@ export default function LabClient({
                   >
                     <Share2 className="h-3.5 w-3.5" aria-hidden />
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => toggleNotify(b)}
+                    disabled={busy}
+                    title={
+                      !telegramLinked
+                        ? "텔레그램 연결 후 사용할 수 있습니다"
+                        : b.notifyTelegram
+                          ? "텔레그램 알림 끄기"
+                          : "하루 픽 요약을 텔레그램으로 받기"
+                    }
+                    className={`rounded-full p-1.5 transition disabled:opacity-40 ${
+                      b.notifyTelegram
+                        ? "text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                        : "text-zinc-400 hover:text-zinc-700 dark:text-white/35 dark:hover:text-white/70"
+                    }`}
+                  >
+                    <Send className="h-3.5 w-3.5" aria-hidden />
+                  </button>
                   <button
                     type="button"
                     onClick={() => toggleBot(b)}

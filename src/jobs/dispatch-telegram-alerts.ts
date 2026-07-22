@@ -57,9 +57,17 @@ export async function dispatchTelegramAlerts() {
     }
   }
   const teamIds = [...followersByTeam.keys()].map(Number).filter((n) => Number.isInteger(n));
-  if (teamIds.length === 0) return { users: users.length, follows: 0, sent: 0 };
 
   const now = new Date();
+  let sent = 0;
+
+  // 팀 즐겨찾기와 무관한 알림은 먼저 처리한다 — 아래 팀 기반 로직에는 early return 이
+  // 여러 개 있어서, 뒤에 두면 즐겨찾기가 없거나 대상 경기가 없는 날 통째로 건너뛴다.
+  const followPickSent = await dispatchFollowPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
+  const botDigestSent = await dispatchMyBotPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
+  const indep = { followPick: followPickSent, botDigest: botDigestSent };
+
+  if (teamIds.length === 0) return { users: users.length, follows: 0, ...indep, sent };
 
   // 2. 대상 경기 (팔로우 팀이 홈/원정)
   const MATCH_SELECT = { id: true, league: true, externalId: true, homeTeamId: true, awayTeamId: true, startTime: true, homeScore: true, awayScore: true } as const;
@@ -95,7 +103,7 @@ export async function dispatchTelegramAlerts() {
     }),
   ]);
   if (kickoff.length === 0 && finals.length === 0 && live.length === 0) {
-    return { users: users.length, matches: 0, sent: 0 };
+    return { users: users.length, matches: 0, ...indep, sent };
   }
 
   // 팀 이름 배치
@@ -116,7 +124,6 @@ export async function dispatchTelegramAlerts() {
   };
 
   type M = (typeof kickoff)[number];
-  let sent = 0;
 
   const recipientsOf = (m: M): Map<string, string> => {
     const r = new Map<string, string>(); // userId → chatId
@@ -223,12 +230,8 @@ export async function dispatchTelegramAlerts() {
     }
   }
 
-  // 4. FOLLOW_PICK — 팔로우한 분석가(UserAnalystFollow)가 새 픽 글을 올리면 알림.
-  // 글 생성 인라인 훅이 아닌 스캔 방식 — 봇 글은 잡/직접 insert 로 생성돼 웹 액션 훅을 안 탐.
-  // 중복 방지 = TelegramAlertLog(matchId="post:{id}", kind="FOLLOW_PICK").
-  const followPickSent = await dispatchFollowPicks(now, () => sent < MAX_SENDS, (n) => { sent += n; });
-
-  return { users: users.length, kickoff: kickoff.length, finals: finals.length, live: live.length, followPick: followPickSent, sent };
+  // FOLLOW_PICK·BOT_DIGEST 는 팀 즐겨찾기와 무관하므로 이 함수 앞부분에서 이미 처리했다.
+  return { users: users.length, kickoff: kickoff.length, finals: finals.length, live: live.length, ...indep, sent };
 }
 
 const FOLLOW_PICK_LOOKBACK_MIN = 40; // 크론 */5 대비 넉넉한 스캔 창 (중복은 로그로 차단)
@@ -321,6 +324,94 @@ async function dispatchFollowPicks(
         sent++;
         addSent(1);
       }
+    }
+  }
+  return sent;
+}
+
+/**
+ * BOT_DIGEST — 회원 커스텀 봇(/lab)이 오늘 낸 픽을 봇당 하루 1건으로 묶어 발송.
+ * 픽 하나씩 보내면 봇 한 대가 24h 창 경기 수만큼 통을 쏘게 되어 차단 위험이 크다.
+ * 중복 방지 = TelegramAlertLog(matchId="botdigest:{botId}:{YYYY-MM-DD KST}", kind="BOT_DIGEST").
+ * 발송 조건 = 봇 notifyTelegram=true + isActive + 소유자 telegramChatId 연결.
+ */
+async function dispatchMyBotPicks(
+  now: Date,
+  canSend: () => boolean,
+  addSent: (n: number) => void,
+): Promise<number> {
+  const bots = await prisma.memberBot.findMany({
+    where: { notifyTelegram: true, isActive: true },
+    select: { id: true, name: true, userId: true },
+  });
+  if (bots.length === 0) return 0;
+
+  // 소유자 중 텔레그램 연결된 회원만
+  const owners = await prisma.user.findMany({
+    where: { id: { in: [...new Set(bots.map((b) => b.userId))] }, telegramChatId: { not: null } },
+    select: { id: true, telegramChatId: true },
+  });
+  if (owners.length === 0) return 0;
+  const chatOf = new Map(owners.map((o) => [o.id, o.telegramChatId!]));
+
+  // KST 날짜 키 — 하루 1건 기준
+  const dayKey = new Date(now.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
+  let sent = 0;
+
+  for (const bot of bots) {
+    const chatId = chatOf.get(bot.userId);
+    if (!chatId) continue;
+    if (!canSend()) return sent;
+
+    const logMatchId = `botdigest:${bot.id}:${dayKey}`;
+    const exists = await prisma.telegramAlertLog.findUnique({
+      where: { userId_matchId_kind: { userId: bot.userId, matchId: logMatchId, kind: "BOT_DIGEST" } },
+    });
+    if (exists) continue;
+
+    // MemberBotPick 은 Match 와 FK 관계가 없다(수동 join) — 픽을 먼저 뽑고 matchId 로 배치 조회.
+    const rawPicks = await prisma.memberBotPick.findMany({
+      where: { botId: bot.id },
+      orderBy: [{ prob: "desc" }],
+      select: { matchId: true, pick: true, prob: true },
+    });
+    if (rawPicks.length === 0) continue;
+
+    // 아직 시작 안 한 경기만 — 이미 끝난 경기를 알려도 의미가 없다.
+    const matches = await prisma.match.findMany({
+      where: { id: { in: rawPicks.map((p) => p.matchId) }, startTime: { gte: now } },
+      select: {
+        id: true, league: true,
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } },
+      },
+    });
+    const matchOf = new Map(matches.map((m) => [m.id, m]));
+    const picks = rawPicks.filter((p) => matchOf.has(p.matchId));
+    if (picks.length === 0) continue;
+
+    const top = picks.slice(0, 5).map((p) => {
+      const m = matchOf.get(p.matchId)!;
+      const home = toKoreanTeamName(m.homeTeam.name, m.league) || m.homeTeam.name;
+      const away = toKoreanTeamName(m.awayTeam.name, m.league) || m.awayTeam.name;
+      const label = p.pick === "HOME" ? `${home} 승` : p.pick === "AWAY" ? `${away} 승` : "무승부";
+      return `· ${esc(home)} vs ${esc(away)} — ${esc(label)} ${Math.round(p.prob * 100)}%`;
+    });
+
+    const text =
+      `🤖 <b>내 봇 오늘의 픽</b> · ${esc(bot.name)}\n` +
+      `예정 경기 ${picks.length}건에 픽을 냈습니다.\n\n` +
+      `${top.join("\n")}\n` +
+      (picks.length > top.length ? `\n외 ${picks.length - top.length}건\n` : "") +
+      `\n▶ ${SITE_URL}/lab`;
+
+    const ok = await sendTelegramTo(chatId, text);
+    if (ok) {
+      await prisma.telegramAlertLog.create({
+        data: { userId: bot.userId, matchId: logMatchId, kind: "BOT_DIGEST" },
+      });
+      sent++;
+      addSent(1);
     }
   }
   return sent;

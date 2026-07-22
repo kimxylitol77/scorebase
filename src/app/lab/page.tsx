@@ -148,7 +148,7 @@ async function LabMember({
   userId: string;
   preselectId: number | null;
 }) {
-  const [botRows, matches] = await Promise.all([
+  const [botRows, matches, me] = await Promise.all([
     prisma.memberBot.findMany({
       where: { userId },
       select: {
@@ -158,11 +158,15 @@ async function LabMember({
         knobs: true,
         backtestCache: true,
         isActive: true,
+        notifyTelegram: true,
       },
       orderBy: { createdAt: "asc" },
     }),
     loadUpcoming(preselectId),
+    // 텔레그램 연결 여부 — 미연결이면 알림 토글 대신 연결 안내를 띄운다.
+    prisma.user.findUnique({ where: { id: userId }, select: { telegramChatId: true } }),
   ]);
+  const telegramLinked = Boolean(me?.telegramChatId);
 
   const bots: LabBot[] = botRows.map((b) => ({
     id: b.id,
@@ -171,6 +175,7 @@ async function LabMember({
     knobs: clampKnobs(b.knobs as Partial<BotKnobs> | null),
     backtestCache: (b.backtestCache as LabBot["backtestCache"]) ?? null,
     isActive: b.isActive,
+    notifyTelegram: b.notifyTelegram,
   }));
 
   // 오늘 내 봇 픽 — cron 이 생성한 미시작 경기 픽 (매치는 manual join)
@@ -222,6 +227,7 @@ async function LabMember({
       initialBots={bots}
       todayPicks={todayPicks}
       preselectMatchId={preselectId}
+      telegramLinked={telegramLinked}
     />
   );
 }

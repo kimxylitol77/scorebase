@@ -18,6 +18,7 @@ const BOT_SELECT = {
   knobs: true,
   backtestCache: true,
   isActive: true,
+  notifyTelegram: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -118,6 +119,7 @@ export async function PATCH(req: NextRequest) {
     name?: unknown;
     knobs?: unknown;
     isActive?: unknown;
+    notifyTelegram?: unknown;
     backtest?: unknown;
   };
   try {
@@ -136,6 +138,7 @@ export async function PATCH(req: NextRequest) {
     name?: string;
     knobs?: Prisma.InputJsonValue;
     isActive?: boolean;
+    notifyTelegram?: boolean;
     backtestCache?: Prisma.InputJsonValue;
   } = {};
   if (body.name !== undefined) {
@@ -154,6 +157,7 @@ export async function PATCH(req: NextRequest) {
     ) as unknown as Prisma.InputJsonValue;
   }
   if (typeof body.isActive === "boolean") data.isActive = body.isActive;
+  if (typeof body.notifyTelegram === "boolean") data.notifyTelegram = body.notifyTelegram;
   if (body.backtest !== undefined) {
     const backtest = validBacktest(body.backtest);
     if (backtest) data.backtestCache = { ...backtest, savedAt: new Date().toISOString() };

@@ -1253,6 +1253,9 @@ model MemberBot {
   knobs         Json // { elo, form, home, market, underdog } 각 0~2 (member-bot.ts BotKnobs)
   backtestCache Json? // 저장 시점 백테스트 요약 { n, hits, acc, brier, vsModel }
   isActive      Boolean  @default(true) // false = 매일 픽 생성 제외
+  /// 이 봇의 하루 픽 요약을 텔레그램으로 받을지. 기본 false — 기존 회원이
+  /// 갑자기 알림을 받지 않도록 봇별 옵트인. User.telegramChatId 연결이 선행 조건.
+  notifyTelegram Boolean @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
