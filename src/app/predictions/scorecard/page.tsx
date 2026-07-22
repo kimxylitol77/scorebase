@@ -2,7 +2,7 @@
 // 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown, Crown, Handshake } from "lucide-react";
+import { Check, X, Trophy, Sparkles, Clock, Users, ChevronDown, Crown, Handshake, FlaskConical } from "lucide-react";
 import { prisma } from "@/lib/db";
 import AmbientGlow from "@/components/AmbientGlow";
 import LeagueBadge from "@/components/LeagueBadge";
@@ -522,6 +522,13 @@ export default async function ScorecardPage() {
               이 페이지는 새로운 AI가 등장할 때마다 갱신됩니다. 회원으로 가입하시면 예정 경기의 전체 AI 픽을 보고,
               같은 기준으로 직접 채점받으실 수 있습니다.
             </p>
+            <Link
+              href="/lab"
+              className="mt-1 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-[13px] font-bold text-white transition-opacity hover:opacity-85"
+            >
+              <FlaskConical className="h-4 w-4" aria-hidden />
+              나만의 맞춤 예측 봇 만들기 — 손잡이 5개로 백테스트까지
+            </Link>
           </div>
         </div>
       </section>
