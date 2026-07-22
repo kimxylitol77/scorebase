@@ -18,6 +18,7 @@ const DAILY_CARD_MAX_LINES = 8; // og/daily 카드·SNS 캡션과 동일 노출 
 const KICKOFF_WINDOW_MIN = 75; // 매시 cron 겹침 여유 (중복은 로그로 차단)
 const MAX_PICKS_PER_MSG = 3;
 const DAILY_PICK_CAP = 3; // KST 하루 픽 상한 — 채널 소음 방지 (v1 하루 2~3건 정책)
+const SLATE_LEAGUES = ["KBO", "NPB"] as const; // 하루 전 경기 픽을 한 통으로 묶는 리그(국야·일야)
 
 /** HTML parse_mode 안전 — dispatch-telegram-alerts.ts 와 동일 패턴. */
 function esc(s: string): string {
@@ -78,6 +79,67 @@ export async function broadcastDailyCard() {
   const ok = await sendTelegramPhotoTo(chat, imageUrl, caption);
   if (ok) await prisma.telegramAlertLog.create({ data: logKey });
   return { sent: ok ? 1 : 0, dateKey, matches: matches.length };
+}
+
+/**
+ * 야구 하루 픽 슬레이트 — KBO/NPB 오늘 경기의 AI 픽이 "전부" 채워지면 리그당 1통.
+ * 하나라도 pred 가 비면 발송하지 않고 다음 cron 을 기다린다(부분 슬레이트 금지).
+ * 첫 경기 시작 후에는 선행 정보 가치가 없어 skip. dedup = slate:{league}:{dateKey}.
+ */
+export async function broadcastBaseballSlates() {
+  const chat = channelId();
+  if (!chat) {
+    console.log("[broadcast-channel] TELEGRAM_CHANNEL_ID 미설정 — 야구 슬레이트 skip");
+    return { skipped: "no TELEGRAM_CHANNEL_ID" };
+  }
+  const results: Record<string, unknown>[] = [];
+  for (const league of SLATE_LEAGUES) {
+    results.push({ league, ...(await broadcastLeagueSlate(chat, league)) });
+  }
+  return { results };
+}
+
+async function broadcastLeagueSlate(chat: string, league: string) {
+  const { start, end, dateKey, label } = kstDayWindow();
+  const logKey = { userId: CHANNEL_LOG_USER, matchId: `slate:${league}:${dateKey}`, kind: "CH_SLATE" };
+  const exists = await prisma.telegramAlertLog.findUnique({
+    where: { userId_matchId_kind: logKey },
+  });
+  if (exists) return { skipped: "already sent" };
+
+  const matches = await prisma.match.findMany({
+    where: { league, status: "SCHEDULED", startTime: { gte: start, lt: end } },
+    select: {
+      startTime: true,
+      predHome: true,
+      predAway: true,
+      homeTeam: { select: { name: true } },
+      awayTeam: { select: { name: true } },
+    },
+    orderBy: { startTime: "asc" },
+  });
+  if (matches.length === 0) return { skipped: "no matches" };
+
+  const pending = matches.filter((m) => m.predHome == null || m.predAway == null).length;
+  if (pending > 0) return { skipped: "picks pending", pending, total: matches.length };
+  if (matches[0].startTime.getTime() <= Date.now()) return { skipped: "first pitch passed" };
+
+  const lines = matches.map((m) => {
+    const home = toKoreanTeamName(m.homeTeam.name, league);
+    const away = toKoreanTeamName(m.awayTeam.name, league);
+    const homeWin = m.predHome! >= m.predAway!;
+    const pick = homeWin ? home : away;
+    const prob = Math.round((homeWin ? m.predHome! : m.predAway!) * 100);
+    return `${kstHHmm(m.startTime)} ${esc(home)} vs ${esc(away)} → <b>${esc(pick)}</b> ${prob}%`;
+  });
+  const text =
+    `<b>${LEAGUE_DISPLAY[league] ?? league} AI 픽 · ${label}</b>\n\n${lines.join("\n")}\n\n` +
+    `경기별 상세 ▶ ${SITE_URL}/leagues/${league}?${UTM}\n` +
+    `통계 모델 기반 참고용 정보입니다.`;
+
+  const ok = await sendTelegramTo(chat, text);
+  if (ok) await prisma.telegramAlertLog.create({ data: logKey });
+  return { sent: ok ? 1 : 0, matches: matches.length };
 }
 
 /** 킥오프 전 Strong Pick 요약 — 임박 경기 중 리그별 임계 통과 상위 1~3경기를 1개 메시지로. */

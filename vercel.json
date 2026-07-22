@@ -319,6 +319,10 @@
     {
       "path": "/api/cron/broadcast-channel",
       "schedule": "10 * * * *"
+    },
+    {
+      "path": "/api/cron/broadcast-channel?mode=slate",
+      "schedule": "25 0-10 * * *"
     }
   ]
 }
