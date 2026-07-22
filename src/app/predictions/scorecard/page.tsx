@@ -1,4 +1,4 @@
-// AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Grok·Gemini·Qwen)가 같은 경기를 경기 전 예측하고
+// AI 예측 성적표 — 여러 AI(스코어베이스 정량모델·GPT·Claude·Grok·Gemini·Qwen·Kimi)가 같은 경기를 경기 전 예측하고
 // 결과로 채점하는 N자 리더보드 + 다가오는 경기의 전 모델 픽(AI 원탁) + 시장별·경기별 누적.
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -53,18 +53,20 @@ const ACCENT: Record<Accent, { text: string; dot: string; bar: string; soft: str
   indigo: { text: "text-indigo-600 dark:text-indigo-400", dot: "bg-indigo-500", bar: "bg-indigo-500", soft: "bg-indigo-500/10", ring: "ring-indigo-400/60 dark:ring-indigo-400/40" },
 };
 
+// ⚠ 패널이 늘면 여기 모델명도 같이 갱신할 것 — metadata 는 정적 export 라
+// board(DB) 를 못 읽는다. panelists.ts 좌석 추가 시 함께 손대는 지점.
 export const metadata: Metadata = {
-  title: "AI 예측 성적표 — 스코어베이스·GPT·Grok·Gemini·Qwen 승부예측 리더보드",
+  title: "AI 예측 성적표 — GPT·Claude·Grok·Gemini·Qwen·Kimi 승부예측 리더보드",
   description:
-    "여러 AI가 같은 경기를 경기 전에 예측하고 결과로 채점합니다. 스코어베이스 통계모델·GPT·Grok·Gemini·Qwen의 1X2·핸디캡·오버언더 적중률을 투명하게 공개하는 멀티 AI 리더보드.",
+    "여러 AI가 같은 경기를 경기 전에 예측하고 결과로 채점합니다. 스코어베이스 통계모델·GPT·Claude·Grok·Gemini·Qwen·Kimi K3의 1X2·핸디캡·오버언더 적중률을 투명하게 공개하는 멀티 AI 리더보드.",
   keywords: [
     "AI 예측 성적표", "멀티 AI 승부예측", "AI 적중률 비교", "GPT 예측", "Grok 예측",
-    "Gemini 예측", "AI 스포츠 예측 리더보드", "핸디캡 예측", "오버언더 예측",
+    "Gemini 예측", "Claude 예측", "Kimi 예측", "AI 스포츠 예측 리더보드", "핸디캡 예측", "오버언더 예측",
   ],
   alternates: { canonical: `${SITE_URL}/predictions/scorecard` },
   openGraph: {
     title: "AI 예측 성적표 — 멀티 AI 승부예측 리더보드",
-    description: "스코어베이스·GPT·Grok·Gemini·Qwen이 같은 경기를 두고 맞붙는 승부예측 성적표.",
+    description: "스코어베이스·GPT·Claude·Grok·Gemini·Qwen·Kimi가 같은 경기를 두고 맞붙는 승부예측 성적표.",
     url: `${SITE_URL}/predictions/scorecard`,
     images: ogPageImage({ title: "AI 예측 성적표", subtitle: "멀티 AI 승부예측 리더보드", tag: "AI 대결" }),
   },
@@ -480,7 +482,7 @@ export default async function ScorecardPage() {
           AI 예측 성적표
         </h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-zinc-600 dark:text-white/60">
-          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT·Grok·Gemini·Qwen</strong> 등
+          스코어베이스 통계모델과 <strong className="text-zinc-800 dark:text-white/80">GPT·Claude·Grok·Gemini·Qwen·Kimi</strong> 등
           여러 AI가 <strong className="text-zinc-800 dark:text-white/80">정확히 같은 경기</strong>를 경기 전에 예측합니다.
           1X2·핸디캡·오버언더 세 시장을 두고 맞붙어, 결과가 나오면 <strong className="text-zinc-800 dark:text-white/80">전패까지 그대로</strong> 채점해 쌓습니다.
         </p>
@@ -605,7 +607,7 @@ export default async function ScorecardPage() {
           </p>
           <div className="mb-4 flex items-center gap-2.5 rounded-xl bg-emerald-500/[0.07] px-3.5 py-2.5 ring-1 ring-emerald-500/15 flex-wrap">
             <span className="text-[13px] text-zinc-700 dark:text-white/70">
-              <strong>AI 6개와 대결해 보세요</strong> — 경기에서 픽을 남기면 AI와 같은 기준으로 채점되고, 적중률이 기록됩니다.
+              <strong>AI {board.length}개와 대결해 보세요</strong> — 경기에서 픽을 남기면 AI와 같은 기준으로 채점되고, 적중률이 기록됩니다.
             </span>
             <Link
               href="/signup?from=%2Fpredictions%2Fscorecard"
@@ -693,7 +695,7 @@ export default async function ScorecardPage() {
             };
             return (
               <ConsensusGate
-                title="AI 6개의 예정 경기 픽은 회원 공개입니다"
+                title={`AI ${board.length}개의 예정 경기 픽은 회원 공개입니다`}
                 desc="무료 가입하면 모든 예정 경기의 AI 픽과 만장일치·의견갈림을 볼 수 있고, 내 픽도 AI와 같은 기준으로 채점됩니다."
               >
                 <div className="space-y-2">{upcoming.slice(0, 20).map(renderCard)}</div>
@@ -1031,7 +1033,7 @@ export default async function ScorecardPage() {
           <p className="font-semibold text-zinc-700 dark:text-white/70">계산 방법</p>
           <p className="mt-1.5">
             모든 AI가 <strong>경기 시작 전</strong>에 1X2·핸디캡·오버언더 픽을 제출합니다. 스코어베이스 AI는
-            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, 나머지 AI(GPT·Grok·Gemini·Qwen)는
+            Elo·Dixon-Coles + 선발/골리 + 시장 배당 블렌드 통계모델이고, 나머지 AI(GPT·Claude·Grok·Gemini·Qwen·Kimi)는
             같은 경기 데이터(순위·최근 폼·홈/원정·휴식일·상대전적)와 <strong>동일한 기준선</strong>을 받아
             (우리 모델 수치는 보지 않고) 독립 예측합니다. 경기가 끝나면 같은 라인으로 채점합니다(축구는 정규시간 기준).
             공정성을 위해 같은 경기·같은 시장만 비교하며, 각 모델의 예측 시점 이후 종료된 경기부터 성적에 반영됩니다.
