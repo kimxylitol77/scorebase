@@ -75,6 +75,10 @@ const PATTERNS: Array<{
   { re: /scorebase-(route-guardian|monitor|synthetic|endpoint)/i, category: "monitor", name: "Scorebase Internal" },
 
   // 🕷 일반 — 마지막에 검사 (위 패턴 우선)
+  // 헤드리스 브라우저 — UA 에 스스로 표시하는 자동화(Puppeteer/Playwright 기본값).
+  // 2026-07-22 실측: 사람으로 집계되던 유입에 11건 섞여 있었다. generic 이라
+  // rate limit 면제 대상은 아니므로 차단 정책은 그대로.
+  { re: /HeadlessChrome/i, category: "generic", name: "HeadlessChrome" },
   { re: /SemrushBot/i, category: "generic", name: "SemrushBot" },
   { re: /AhrefsBot/i, category: "generic", name: "AhrefsBot" },
   { re: /DotBot/i, category: "generic", name: "DotBot" },

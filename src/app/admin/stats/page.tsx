@@ -11,7 +11,12 @@ import {
 } from "@/lib/referrer-channel";
 import { getGscOverview, gscPageToPath, type GscRow } from "@/lib/gsc";
 import { getBingOverview } from "@/lib/bing-webmaster";
-import { potentialClicks, OPP_MIN_POSITION, OPP_MAX_POSITION } from "@/lib/search-opportunity";
+import {
+  potentialClicks,
+  OPP_MIN_IMPRESSIONS,
+  OPP_MIN_POSITION,
+  OPP_MAX_POSITION,
+} from "@/lib/search-opportunity";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import Link from "next/link";
 
@@ -145,6 +150,7 @@ export default async function StatsPage({ searchParams }: Props) {
   // 진짜 방문자는 대부분 referrer 를 달고 오거나(검색·SNS) 재방문으로 PV 가 누적된다 —
   // 북마크로 상세 페이지 1번 본 진짜 사람도 일부 섞이지만(과소집계) 스크레이퍼 오염보다 작다.
   const ENTRY_PATHS = new Set(["/", "/scores", "/landing"]);
+  const isDesktopLinuxUa = (ua: string | null) => /X11; Linux/.test(ua ?? "");
   const pvBySid = new Map<string, number>();
   for (const r of humansRange) {
     if (r.sessionId) pvBySid.set(r.sessionId, (pvBySid.get(r.sessionId) ?? 0) + 1);
@@ -156,6 +162,15 @@ export default async function StatsPage({ searchParams }: Props) {
     if (pvBySid.get(l.sessionId) !== 1) continue;
     if (ENTRY_PATHS.has(l.path.split("?")[0])) continue;
     suspiciousSids.add(l.sessionId);
+  }
+  // 데스크톱 리눅스 UA 도 의심 세션 — 2026-07-22 실측: 구글 referrer 랜딩 73건 중 59건이
+  // 이 UA 였고(전체 랜딩의 1%), 그중 33건의 랜딩이 /leagues/ELITESERIEN 인데 GSC 상 그
+  // 페이지 노출은 0 — 구글에 뜬 적 없는 페이지를 구글에서 클릭할 수 없다 = referrer 위조.
+  // 같은 기간 GSC 실클릭은 6건뿐이라 "구글 유입 79" 는 사실상 전부 이 스크레이퍼였다.
+  // 한국향 소비자 트래픽에서 데스크톱 리눅스는 사실상 없어 판별 신호로 쓴다
+  // (안드로이드는 "Linux; Android" 라 X11 로 걸리지 않는다).
+  for (const r of [...landingRaw, ...humansRange]) {
+    if (r.sessionId && isDesktopLinuxUa(r.userAgent)) suspiciousSids.add(r.sessionId);
   }
   // 사람 지표는 의심 봇 제외본으로 계산 (원본 humansRange 는 봇 대비 비율 등에 유지)
   const humansClean = humansRange.filter((r) => !r.sessionId || !suspiciousSids.has(r.sessionId));
@@ -379,6 +394,9 @@ export default async function StatsPage({ searchParams }: Props) {
       if (pvBySidWeek.get(l.sessionId) !== 1) continue;
       if (ENTRY_PATHS.has(l.path.split("?")[0])) continue;
       suspiciousWeek.add(l.sessionId);
+    }
+    for (const l of weekRows) {
+      if (l.sessionId && isDesktopLinuxUa(l.userAgent)) suspiciousWeek.add(l.sessionId);
     }
     const counts = new Map<TrafficChannel, number>();
     let total = 0;
@@ -822,8 +840,8 @@ export default async function StatsPage({ searchParams }: Props) {
           <SearchCompareColumn
             emoji="🟢"
             label="구글"
-            sub="GSC · 최근 28일"
-            metricLabel="클릭"
+            sub="GSC · 최근 28일 · 노출순"
+            metricLabel="노출"
             summary={
               gsc.totals28
                 ? `클릭 ${gsc.totals28.clicks.toLocaleString()} · 노출 ${gsc.totals28.impressions.toLocaleString()}`
@@ -831,9 +849,10 @@ export default async function StatsPage({ searchParams }: Props) {
                   ? "데이터 없음"
                   : "연동 대기"
             }
-            rows={gsc.queries28.slice(0, 10).map((r) => ({
+            // 클릭순이면 클릭 0 검색어가 다 밀려 "구글에 뭐가 뜨는지"를 못 본다 — 노출순.
+            rows={gsc.queriesByImpressions28.slice(0, 10).map((r) => ({
               query: r.keys[0] ?? "",
-              value: r.clicks.toLocaleString(),
+              value: r.impressions.toLocaleString(),
             }))}
             emptyHint="구글 검색어 데이터 없음 (색인·노출 누적 대기)"
           />
@@ -896,7 +915,20 @@ export default async function StatsPage({ searchParams }: Props) {
             ) : gsc.error ? (
               <EmptyHint message="GSC 호출 실패 — 아래 '구글 검색 성과' 섹션에서 원인 확인." />
             ) : gsc.opportunities.length === 0 ? (
-              <EmptyHint message={`기회 검색어 없음 (노출 10회+ · ${OPP_MIN_POSITION}~${OPP_MAX_POSITION}위 조건).`} />
+              // 색인 초기엔 검색어당 노출이 1~2회라 기회 기준(10회+)을 아무도 못 넘는다.
+              // 빈 칸 대신 "구글에 뜨기 시작한 검색어"를 노출순으로 보여준다.
+              gsc.queriesByImpressions28.length === 0 ? (
+                <EmptyHint message="구글 노출 검색어 없음 (색인·노출 누적 대기)." />
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-neutral-500">
+                    기회 기준(노출 {OPP_MIN_IMPRESSIONS}회+ · {OPP_MIN_POSITION}~
+                    {OPP_MAX_POSITION}위)을 넘은 검색어는 아직 없습니다. 대신 지금 구글에 뜨는
+                    검색어를 노출순으로 봅니다.
+                  </p>
+                  <OpportunityTable rows={gsc.queriesByImpressions28} engine="google" />
+                </div>
+              )
             ) : (
               <OpportunityTable rows={gsc.opportunities} engine="google" />
             )}

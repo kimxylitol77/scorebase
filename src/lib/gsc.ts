@@ -56,6 +56,10 @@ export interface GscOverview {
   pages28: GscRow[];
   /** 기회 검색어 — 노출 많은데 순위 낮아(4~30위) 클릭 못 받는 것, 잠재 클릭순. 28일. */
   opportunities: GscRow[];
+  /** 노출순 검색어 TOP — "구글에 무슨 검색어로 뜨는가". 28일.
+   *  색인 초기엔 클릭이 대부분 0이라 클릭순(queries28)만 보면 뭐가 뜨는지 알 수 없고,
+   *  기회 검색어(노출 10회+ 조건)도 늘 비어 화면에 아무것도 안 남는다. */
+  queriesByImpressions28: GscRow[];
 }
 
 interface ServiceAccount {
@@ -333,9 +337,13 @@ const fetchGscOverviewCached = unstable_cache(
         .filter(isOpportunity)
         .sort(byPotentialDesc)
         .slice(0, 20),
+      // 노출순 — 기회 기준(노출 10회+) 미달까지 포함한 "구글에 뜬 검색어" 전부
+      queriesByImpressions28: [...queries28Merged]
+        .sort((a, b) => b.impressions - a.impressions || a.position - b.position)
+        .slice(0, 20),
     };
   },
-  ["gsc-overview-v2"],
+  ["gsc-overview-v3"], // queriesByImpressions28 추가 — 옛 캐시(v2)에 없는 필드라 키 bump
   { revalidate: 3600 },
 );
 
@@ -349,6 +357,7 @@ const EMPTY: Omit<GscOverview, "configured" | "error"> = {
   queries28: [],
   pages28: [],
   opportunities: [],
+  queriesByImpressions28: [],
 };
 
 /** /admin/stats 진입점 — 미설정/실패 모두 throw 없이 상태로 반환 (페이지는 항상 렌더). */
