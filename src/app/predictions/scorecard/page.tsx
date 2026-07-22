@@ -490,6 +490,42 @@ export default async function ScorecardPage() {
         </p>
       </header>
 
+      {/* 진화 선언 — 낮은 적중률·신규 모델의 소표본을 방문자가 "부실"이 아니라 "검증 과정"으로
+          읽게 하는 맥락. 회원 게이트(ConsensusGate)보다 앞이라 비로그인도 본다(사용자 지시).
+          숫자는 전부 DB 동적(하드코딩 금지). */}
+      <section className="mb-12">
+        <div className="rounded-3xl bg-gradient-to-br from-emerald-500/[0.07] to-sky-500/[0.07] p-6 ring-1 ring-emerald-500/20 dark:from-emerald-500/10 dark:to-sky-500/10">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-600 dark:text-emerald-400">
+            계속 진화하는 성적표
+          </div>
+          <h2 className="mt-2 text-[19px] font-bold text-zinc-900 dark:text-white">
+            AI는 오늘보다 내일 더 정확해집니다
+          </h2>
+          <div className="mt-3 space-y-3 text-[14px] leading-relaxed text-zinc-700 dark:text-white/70">
+            <p>
+              스포츠 예측에 완성된 모델은 없습니다. 그래서 스코어베이스는 하나의 AI에 기대는 대신,
+              시장에 새로운 모델이 나올 때마다 <strong>같은 경기·같은 데이터·같은 기준</strong>으로 투입해
+              실제 결과로 검증합니다. 지금 <strong>{board.length}개</strong>가 이 성적표 위에서 경쟁하고 있고,
+              지금까지 <strong>{totalGraded.toLocaleString()}건</strong>이 채점됐습니다.
+            </p>
+            <p>
+              새로 합류한 모델은 처음엔 미숙합니다. 표본이 {RANK_MIN}건을 넘기 전까지 순위에 올리지 않는 이유이기도 합니다.
+              그러나 데이터가 쌓일수록 어떤 리그에 강하고 어떤 시장에서 흔들리는지가 드러나고,
+              그 약점이 다음 개선의 출발점이 됩니다.
+            </p>
+            <p>
+              <strong>틀린 예측도 지우지 않습니다.</strong> 맞은 것만 남기면 성적표가 아니라 광고가 됩니다.
+              경기 시작 전에 제출된 픽을 그대로 두고 결과로 채점하는 이 기록 전부가,
+              다음 모델을 고르고 프롬프트를 다듬는 근거가 됩니다.
+            </p>
+            <p className="text-[13px] text-zinc-500 dark:text-white/45">
+              이 페이지는 새로운 AI가 등장할 때마다 갱신됩니다. 회원으로 가입하시면 예정 경기의 전체 AI 픽을 보고,
+              같은 기준으로 직접 채점받으실 수 있습니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* 고신뢰 픽 히어로 — 확률 65%+ 픽의 실제 적중률. 표본 30건부터 노출. */}
       {confGraded >= RANK_MIN && (
         <section className="mb-12">
@@ -1028,41 +1064,6 @@ export default async function ScorecardPage() {
           </ConsensusGate>
         </section>
       )}
-
-      {/* 진화 선언 — 낮은 적중률·신규 모델의 소표본을 방문자가 "부실"이 아니라
-          "검증 과정"으로 읽게 하는 맥락. 숫자는 전부 DB 동적(하드코딩 금지). */}
-      <section className="mt-10">
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-500/[0.07] to-sky-500/[0.07] p-6 ring-1 ring-emerald-500/20 dark:from-emerald-500/10 dark:to-sky-500/10">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-600 dark:text-emerald-400">
-            계속 진화하는 성적표
-          </div>
-          <h2 className="mt-2 text-[19px] font-bold text-zinc-900 dark:text-white">
-            AI는 오늘보다 내일 더 정확해집니다
-          </h2>
-          <div className="mt-3 space-y-3 text-[14px] leading-relaxed text-zinc-700 dark:text-white/70">
-            <p>
-              스포츠 예측에 완성된 모델은 없습니다. 그래서 스코어베이스는 하나의 AI에 기대는 대신,
-              시장에 새로운 모델이 나올 때마다 <strong>같은 경기·같은 데이터·같은 기준</strong>으로 투입해
-              실제 결과로 검증합니다. 지금 <strong>{board.length}개</strong>가 이 성적표 위에서 경쟁하고 있고,
-              지금까지 <strong>{totalGraded.toLocaleString()}건</strong>이 채점됐습니다.
-            </p>
-            <p>
-              새로 합류한 모델은 처음엔 미숙합니다. 표본이 {RANK_MIN}건을 넘기 전까지 순위에 올리지 않는 이유이기도 합니다.
-              그러나 데이터가 쌓일수록 어떤 리그에 강하고 어떤 시장에서 흔들리는지가 드러나고,
-              그 약점이 다음 개선의 출발점이 됩니다.
-            </p>
-            <p>
-              <strong>틀린 예측도 지우지 않습니다.</strong> 맞은 것만 남기면 성적표가 아니라 광고가 됩니다.
-              경기 시작 전에 제출된 픽을 그대로 두고 결과로 채점하는 이 기록 전부가,
-              다음 모델을 고르고 프롬프트를 다듬는 근거가 됩니다.
-            </p>
-            <p className="text-[13px] text-zinc-500 dark:text-white/45">
-              이 페이지는 새로운 AI가 등장할 때마다 갱신됩니다. 회원으로 가입하시면 예정 경기의 전체 AI 픽을 보고,
-              같은 기준으로 직접 채점받으실 수 있습니다.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* 방법론 + 인용 */}
       <section className="space-y-4">
