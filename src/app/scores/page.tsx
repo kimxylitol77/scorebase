@@ -1769,6 +1769,15 @@ export default async function ScoresPage({ searchParams }: Props) {
     )
     .map((dm) => orphanCard(dm));
 
+  // "내 경기"(FavoriteMatches)는 orphan(DB 미적재 클럽친선·군소리그) 매치도 대상이어야 한다.
+  // normalizedAll 은 DB 매치만이라, orphan 을 즐겨찾기하면 하단 목록엔 뜨는데 "내 경기"엔
+  // 안 올라오던 버그(현재 종목 탭 기준). orphanCards 를 합쳐 넘긴다(id 중복은 방어적 제외).
+  const favSrcIds = new Set(normalizedAll.map((m) => String(m.id)));
+  const favSource = [
+    ...normalizedAll,
+    ...orphanCards.filter((o) => !favSrcIds.has(String(o.id))),
+  ];
+
   // 상태 그룹화 — DB(normalized) + orphan(date 조회) 합침
   const liveList = [
     ...normalized.filter((m) => m.status === "LIVE"),
@@ -2054,7 +2063,7 @@ export default async function ScoresPage({ searchParams }: Props) {
                 />
                 <div className="min-w-0 space-y-6">
                 <FavoriteMatches
-                  matches={normalizedAll.map((m) => ({
+                  matches={favSource.map((m) => ({
                     id: String(m.id),
                     sortKey:
                       m.status === "LIVE" ? 0 : m.status === "SCHEDULED" ? 1 : 2,
