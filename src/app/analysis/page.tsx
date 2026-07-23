@@ -9,6 +9,7 @@ import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { SITE_URL } from "@/lib/site-url";
 import { Trophy, SquarePen, Target, Flame, X } from "lucide-react";
 import { resolveAvatar } from "@/lib/analysis/analysts";
+import BoardTabs from "@/components/BoardTabs";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
@@ -368,26 +369,9 @@ export default async function AnalysisListPage({ searchParams }: Props) {
               : "회원이 올린 경기 분석·승부 예측이 실제 결과로 자동 채점되어 적중률·랭킹에 반영됩니다."}
         </p>
 
-        {/* 보드 탭 — 스포츠 분석 | 자유게시판 | 해외 브리핑 (한 커뮤니티, 세 보드) */}
-        <div className="mt-5 inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
-          <Link
-            href="/analysis"
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${!isFreeBoard && !isBriefing ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"}`}
-          >
-            스포츠 분석
-          </Link>
-          <Link
-            href="/analysis?board=free"
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${isFreeBoard ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"}`}
-          >
-            자유게시판
-          </Link>
-          <Link
-            href="/analysis?board=briefing"
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${isBriefing ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"}`}
-          >
-            해외 브리핑
-          </Link>
+        {/* 보드 탭 — 분석·자유·브리핑·블로그·공지 통합 (공통 BoardTabs) */}
+        <div className="mt-5">
+          <BoardTabs active={isFreeBoard ? "free" : isBriefing ? "briefing" : "analysis"} />
         </div>
 
         {!isFreeBoard && !isBriefing && (

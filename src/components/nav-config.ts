@@ -77,8 +77,8 @@ export const COMMUNITY_CATEGORY: NavCategory = {
   label: "커뮤니티",
   href: "/analysis",
   items: [
-    // 게시판 통합(?board=free/briefing) — 스포츠 분석·자유게시판·해외 브리핑이 한 페이지 보드 탭이라 메뉴도 1개
-    { href: "/analysis", label: "게시판", desc: "스포츠 분석 · 자유게시판 · 해외 브리핑" },
+    // 게시판 통합(BoardTabs) — 분석·자유·브리핑·블로그·공지가 한 탭 바로 묶여 메뉴도 1개
+    { href: "/analysis", label: "게시판", desc: "분석·자유·브리핑·블로그·공지 한 곳에" },
     { href: "/picks", label: "승부예측", desc: "원클릭 투표 · 나 vs AI 적중 대결" },
     { href: "/previews", label: "AI 프리뷰 모음", desc: "전 종목 경기 전 예측·분석" },
     { href: "/predictions/scorecard", label: "AI 예측 성적표", desc: "우리 AI vs GPT-5.6 적중률 대결" },
@@ -87,8 +87,6 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
     { href: "/compare", label: "선수 비교", desc: "선수 head-to-head 스탯 비교" },
     { href: "/ballon", label: "발롱도르 순위 지수", desc: "골·도움·평점·월드컵 가중치로 후보 순위 계산" },
-    { href: "/notices", label: "공지사항", desc: "사이트 공지 · 패치노트" },
-    { href: "/blog", label: "블로그", desc: "스포츠 데이터 분석 인사이트" },
     { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   ],
 };

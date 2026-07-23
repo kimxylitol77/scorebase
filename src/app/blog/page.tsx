@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatDateKo } from "@/lib/format";
 import AmbientGlow from "@/components/AmbientGlow";
+import BoardTabs from "@/components/BoardTabs";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 
 export const revalidate = 600; // 10분
@@ -74,6 +75,9 @@ export default async function BlogPage() {
           블로그입니다. Elo 레이팅 · 몬테카를로 시뮬레이션 · AI 예측 모델 활용법부터 선수·팀
           심층 분석까지, 데이터로 스포츠를 읽는 글을 모았습니다.
         </p>
+        <div className="mt-6">
+          <BoardTabs active="blog" />
+        </div>
       </header>
 
       {posts.length === 0 ? (

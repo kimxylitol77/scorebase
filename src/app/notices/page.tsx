@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatDateKo } from "@/lib/format";
+import BoardTabs from "@/components/BoardTabs";
 
 export const revalidate = 600; // 10분
 
@@ -54,6 +55,9 @@ export default async function NoticesPage() {
         <p className="mt-3 max-w-2xl leading-relaxed text-neutral-600 break-keep dark:text-neutral-400">
           새 기능, 모델 개선, 점검 소식을 한 곳에서.
         </p>
+        <div className="mt-6">
+          <BoardTabs active="notices" />
+        </div>
       </header>
 
       {/* 공지 list */}
