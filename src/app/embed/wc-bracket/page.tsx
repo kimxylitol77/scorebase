@@ -17,45 +17,55 @@ export const metadata: Metadata = {
 };
 
 export default async function WcBracketEmbed() {
-  const teams = await prisma.team.findMany({ where: { league: "WORLD_CUP" }, select: { id: true, name: true } });
-  const koreaTeamId = teams.find((t) => t.name === "South Korea")?.id ?? null;
+  // 빌드 타임 prerender 중 Neon(serverless·auto-suspend) 연결이 간헐적으로 실패해도
+  // 빌드가 깨지지 않도록 DB 조회를 graceful 처리 — 실패 시 빈 브래킷으로 렌더하고
+  // revalidate(10분)로 다음 재생성 때 실데이터를 채운다.
+  let slots: ReturnType<typeof buildWcBracket>;
+  let koreaTeamId: number | null = null;
+  try {
+    const teams = await prisma.team.findMany({ where: { league: "WORLD_CUP" }, select: { id: true, name: true } });
+    koreaTeamId = teams.find((t) => t.name === "South Korea")?.id ?? null;
 
-  const [standings, knockoutRows] = await Promise.all([
-    getWcGroupStandings(),
-    prisma.match.findMany({
-      where: { league: "WORLD_CUP", startTime: { gte: new Date("2026-06-28T00:00:00Z") } },
-      select: {
-        externalId: true, startTime: true, status: true, homeScore: true, awayScore: true,
-        homeTeamId: true, awayTeamId: true, raw: true,
-        homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
-      },
-    }),
-  ]);
+    const [standings, knockoutRows] = await Promise.all([
+      getWcGroupStandings(),
+      prisma.match.findMany({
+        where: { league: "WORLD_CUP", startTime: { gte: new Date("2026-06-28T00:00:00Z") } },
+        select: {
+          externalId: true, startTime: true, status: true, homeScore: true, awayScore: true,
+          homeTeamId: true, awayTeamId: true, raw: true,
+          homeTeam: { select: { name: true } }, awayTeam: { select: { name: true } },
+        },
+      }),
+    ]);
 
-  const knockout: WcKnockoutFixture[] = [];
-  for (const m of knockoutRows) {
-    let roundStr: string | null = null;
-    let winnerId: number | null = null;
-    try {
-      const j = JSON.parse(m.raw ?? "{}");
-      roundStr = j?.league?.round ?? null;
-      if (j?.teams?.home?.winner === true) winnerId = m.homeTeamId;
-      else if (j?.teams?.away?.winner === true) winnerId = m.awayTeamId;
-    } catch {}
-    const round = parseKnockoutRound(roundStr);
-    if (!round) continue;
-    knockout.push({
-      round, homeName: m.homeTeam.name, awayName: m.awayTeam.name,
-      homeId: m.homeTeamId, awayId: m.awayTeamId, homeScore: m.homeScore, awayScore: m.awayScore,
-      status: m.status, startTime: m.startTime.toISOString(), externalId: m.externalId, winnerId,
+    const knockout: WcKnockoutFixture[] = [];
+    for (const m of knockoutRows) {
+      let roundStr: string | null = null;
+      let winnerId: number | null = null;
+      try {
+        const j = JSON.parse(m.raw ?? "{}");
+        roundStr = j?.league?.round ?? null;
+        if (j?.teams?.home?.winner === true) winnerId = m.homeTeamId;
+        else if (j?.teams?.away?.winner === true) winnerId = m.awayTeamId;
+      } catch {}
+      const round = parseKnockoutRound(roundStr);
+      if (!round) continue;
+      knockout.push({
+        round, homeName: m.homeTeam.name, awayName: m.awayTeam.name,
+        homeId: m.homeTeamId, awayId: m.awayTeamId, homeScore: m.homeScore, awayScore: m.awayScore,
+        status: m.status, startTime: m.startTime.toISOString(), externalId: m.externalId, winnerId,
+      });
+    }
+
+    slots = buildWcBracket({
+      groupStandings: standings,
+      teamIdByName: new Map(teams.map((t) => [t.name, t.id])),
+      knockout,
     });
+  } catch (e) {
+    console.error("[embed/wc-bracket] 데이터 로드 실패 — 빈 브래킷 렌더:", (e as Error).message);
+    slots = buildWcBracket({ groupStandings: new Map(), teamIdByName: new Map(), knockout: [] });
   }
-
-  const slots = buildWcBracket({
-    groupStandings: standings,
-    teamIdByName: new Map(teams.map((t) => [t.name, t.id])),
-    knockout,
-  });
 
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 px-3 py-4">
