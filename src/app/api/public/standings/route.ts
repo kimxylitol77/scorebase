@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { teamDisplayKo } from "@/lib/team-names";
+import { teamDisplayKo, toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY } from "@/lib/sports/sport-leagues";
 import { fetchBasketballStandings } from "@/lib/sports/basketball-standings";
 import { fetchNhlStandings } from "@/lib/sports/nhl-api";
@@ -29,6 +29,8 @@ interface StandingInput {
   gamesBehind?: number | null;
   recordExtra?: string | null;
   teamName?: string;
+  shortName?: string;
+  logoUrl?: string;
 }
 
 const LEAGUES = new Map<string, Sport>([
@@ -46,6 +48,7 @@ const LEAGUES = new Map<string, Sport>([
   ["MLB", "baseball"],
   ["NPB", "baseball"],
   ["KBO", "baseball"],
+  ["NBA", "basketball"],
   ["WNBA", "basketball"],
   ["KBL", "basketball"],
   ["WKBL", "basketball"],
@@ -83,9 +86,11 @@ export async function GET(request: NextRequest) {
       scored: row.scored,
       conceded: row.conceded,
       difference: row.difference,
-      group: null,
+      group: row.group ?? null,
       gamesBehind: row.gamesBehind,
       teamName: row.teamName,
+      shortName: row.shortName,
+      logoUrl: row.logoUrl,
     }));
   } else if (sport === "volleyball") {
     const groups = await fetchVolleyballTable(league);
@@ -184,7 +189,7 @@ export async function GET(request: NextRequest) {
 
   const rows = sorted.flatMap((row) => {
     const team = teamById.get(row.teamId);
-    if (!team) return [];
+    if (!team && !row.teamName) return [];
     const played = row.played ?? row.won + row.draw + row.loss;
     const calculatedGamesBehind = leader
       ? Math.max(0, (leader.won - row.won + row.loss - leader.loss) / 2)
@@ -195,9 +200,11 @@ export async function GET(request: NextRequest) {
     return [{
       id: row.teamId,
       position: row.position,
-      team: row.teamName ?? teamDisplayKo(team, league),
-      shortName: team.shortName,
-      logoUrl: team.logoUrl,
+      team: row.teamName
+        ? toKoreanTeamName(row.teamName, league)
+        : teamDisplayKo(team!, league),
+      shortName: row.shortName ?? team?.shortName ?? null,
+      logoUrl: row.logoUrl ?? team?.logoUrl ?? null,
       played,
       won: row.won,
       draw: row.draw,

@@ -13,6 +13,9 @@ export interface BasketballStandingRow {
   difference: number | null;
   gamesBehind: number | null;
   teamName?: string;
+  shortName?: string;
+  logoUrl?: string;
+  group?: string;
 }
 
 export interface BasketballStandings {
@@ -45,6 +48,99 @@ const WKBL_TEAM_IDS: Array<[RegExp, number]> = [
 function gamesBehind(leaderWins: number, leaderLosses: number, wins: number, losses: number) {
   const value = Math.max(0, (leaderWins - wins + losses - leaderLosses) / 2);
   return value === 0 ? null : Number(value.toFixed(1));
+}
+
+interface EspnNbaStat {
+  name?: string;
+  value?: number;
+}
+
+interface EspnNbaEntry {
+  team?: {
+    id?: string;
+    displayName?: string;
+    abbreviation?: string;
+    logos?: Array<{ href?: string }>;
+  };
+  stats?: EspnNbaStat[];
+}
+
+interface EspnNbaStandingsPayload {
+  children?: Array<{
+    name?: string;
+    standings?: { entries?: EspnNbaEntry[] };
+  }>;
+}
+
+function nbaSeasonYear(now = new Date()) {
+  return now.getUTCMonth() >= 8 ? now.getUTCFullYear() + 1 : now.getUTCFullYear();
+}
+
+function nbaStat(entry: EspnNbaEntry, name: string) {
+  const value = entry.stats?.find((stat) => stat.name === name)?.value;
+  return Number.isFinite(value) ? Number(value) : null;
+}
+
+export function parseEspnNbaStandings(payload: unknown): BasketballStandingRow[] {
+  if (!payload || typeof payload !== "object") return [];
+  const children = (payload as EspnNbaStandingsPayload).children;
+  if (!Array.isArray(children)) return [];
+
+  return children.flatMap((conference) => {
+    const entries = conference.standings?.entries;
+    if (!Array.isArray(entries)) return [];
+    const group = /eastern/i.test(conference.name ?? "")
+      ? "동부 컨퍼런스"
+      : /western/i.test(conference.name ?? "")
+        ? "서부 컨퍼런스"
+        : conference.name?.trim() || "NBA";
+    return entries.flatMap((entry, index) => {
+      const espnId = Number(entry.team?.id);
+      const teamName = entry.team?.displayName?.trim();
+      const wins = nbaStat(entry, "wins");
+      const losses = nbaStat(entry, "losses");
+      if (!Number.isInteger(espnId) || !teamName || wins == null || losses == null) return [];
+      const played = wins + losses;
+      const pointsFor = nbaStat(entry, "pointsFor");
+      const pointsAgainst = nbaStat(entry, "pointsAgainst");
+      const playoffSeed = nbaStat(entry, "playoffSeed");
+      return [{
+        position: playoffSeed != null ? playoffSeed : index + 1,
+        // 공개 순위 응답 전용 안정 ID. 오염된 내부 NBA Team 행과 의도적으로 분리한다.
+        ourTeamId: 9_000_000 + espnId,
+        played,
+        wins,
+        losses,
+        scored: pointsFor,
+        conceded: pointsAgainst,
+        difference: pointsFor != null && pointsAgainst != null ? pointsFor - pointsAgainst : null,
+        gamesBehind: nbaStat(entry, "gamesBehind"),
+        teamName,
+        shortName: entry.team?.abbreviation?.trim() || undefined,
+        logoUrl: entry.team?.logos?.[0]?.href,
+        group,
+      }];
+    });
+  });
+}
+
+async function fetchNbaStandings(): Promise<BasketballStandings | null> {
+  try {
+    const season = nbaSeasonYear();
+    const response = await fetch(
+      `https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?season=${season}`,
+      {
+        headers: { accept: "application/json" },
+        next: { revalidate: 600 },
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
+    if (!response.ok) return null;
+    const rows = parseEspnNbaStandings(await response.json());
+    return rows.length === 30 ? { rows, updatedAt: new Date() } : null;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchWnbaStandings(): Promise<BasketballStandings | null> {
@@ -228,6 +324,7 @@ async function fetchWkblStandings(): Promise<BasketballStandings | null> {
 }
 
 export async function fetchBasketballStandings(league: string): Promise<BasketballStandings | null> {
+  if (league === "NBA") return fetchNbaStandings();
   if (league === "WNBA") return fetchWnbaStandings();
   if (league === "KBL") return fetchKblStandings();
   if (league === "WKBL") return fetchWkblStandings();
