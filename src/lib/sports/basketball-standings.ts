@@ -94,7 +94,7 @@ export function parseEspnNbaStandings(payload: unknown): BasketballStandingRow[]
       : /western/i.test(conference.name ?? "")
         ? "서부 컨퍼런스"
         : conference.name?.trim() || "NBA";
-    return entries.flatMap((entry, index) => {
+    const parsed = entries.flatMap((entry) => {
       const espnId = Number(entry.team?.id);
       const teamName = entry.team?.displayName?.trim();
       const wins = nbaStat(entry, "wins");
@@ -105,22 +105,35 @@ export function parseEspnNbaStandings(payload: unknown): BasketballStandingRow[]
       const pointsAgainst = nbaStat(entry, "pointsAgainst");
       const playoffSeed = nbaStat(entry, "playoffSeed");
       return [{
-        position: playoffSeed != null ? playoffSeed : index + 1,
-        // 공개 순위 응답 전용 안정 ID. 오염된 내부 NBA Team 행과 의도적으로 분리한다.
-        ourTeamId: 9_000_000 + espnId,
-        played,
-        wins,
-        losses,
-        scored: pointsFor,
-        conceded: pointsAgainst,
-        difference: pointsFor != null && pointsAgainst != null ? pointsFor - pointsAgainst : null,
-        gamesBehind: nbaStat(entry, "gamesBehind"),
-        teamName,
-        shortName: entry.team?.abbreviation?.trim() || undefined,
-        logoUrl: entry.team?.logos?.[0]?.href,
-        group,
+        playoffSeed,
+        row: {
+          position: 0,
+          // 공개 순위 응답 전용 안정 ID. 오염된 내부 NBA Team 행과 의도적으로 분리한다.
+          ourTeamId: 9_000_000 + espnId,
+          played,
+          wins,
+          losses,
+          scored: pointsFor,
+          conceded: pointsAgainst,
+          difference: pointsFor != null && pointsAgainst != null ? pointsFor - pointsAgainst : null,
+          gamesBehind: nbaStat(entry, "gamesBehind"),
+          teamName,
+          shortName: entry.team?.abbreviation?.trim() || undefined,
+          logoUrl: entry.team?.logos?.[0]?.href,
+          group,
+        },
       }];
     });
+    // 플레이인 종료 후 playoffSeed는 실제 플레이오프 시드로 변한다.
+    // 정규시즌 순위는 승패를 우선하고, 같은 성적일 때만 ESPN 시드를 타이브레이커로 쓴다.
+    return parsed
+      .sort((left, right) =>
+        right.row.wins - left.row.wins
+        || left.row.losses - right.row.losses
+        || (left.playoffSeed ?? Number.MAX_SAFE_INTEGER) - (right.playoffSeed ?? Number.MAX_SAFE_INTEGER)
+        || (right.row.difference ?? 0) - (left.row.difference ?? 0),
+      )
+      .map(({ row }, index) => ({ ...row, position: index + 1 }));
   });
 }
 
