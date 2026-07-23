@@ -147,7 +147,26 @@ export default function EsportsCard(props: EsportsCardProps) {
           {!isScheduled && (
             <span className="text-[10px] text-neutral-500 tabular-nums">{timeLabel}</span>
           )}
-          {matchId != null && <FavoriteStar matchId={String(matchId)} className="-mr-1" />}
+          {matchId != null && (
+            <FavoriteStar
+              matchId={String(matchId)}
+              meta={{
+                id: String(matchId),
+                sport: "esports",
+                league,
+                homeName: home.name,
+                awayName: away.name,
+                homeShort: home.abbr ?? undefined,
+                awayShort: away.abbr ?? undefined,
+                homeScore: home.score,
+                awayScore: away.score,
+                status,
+                statusLabel: liveStatusLabel ?? timeLabel,
+                href: href ?? undefined,
+              }}
+              className="-mr-1"
+            />
+          )}
         </div>
       </div>
 

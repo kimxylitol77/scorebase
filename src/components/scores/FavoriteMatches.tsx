@@ -393,7 +393,23 @@ function CompactRow({ match }: { match: MatchEntry }) {
           <MobileCells match={match} statusText={statusText} statusColor={statusColor} hasScore={hasScore} />
         )}
         <div className="flex items-center justify-center">
-          <FavoriteStar matchId={match.id} />
+          <FavoriteStar
+            matchId={match.id}
+            meta={{
+              id: match.id,
+              sport: match.sport,
+              league: match.league,
+              homeName: match.home.name,
+              awayName: match.away.name,
+              homeShort: match.home.abbr ?? undefined,
+              awayShort: match.away.abbr ?? undefined,
+              homeScore: match.home.score,
+              awayScore: match.away.score,
+              status: match.status,
+              statusLabel: match.liveStatusLabel ?? match.timeLabel,
+              href: match.href ?? undefined,
+            }}
+          />
         </div>
       </div>
 

@@ -193,7 +193,26 @@ export default function BaseballLiveCard(props: BaseballLiveCardProps) {
           >
             배당흐름
           </button>
-          {matchId != null && <FavoriteStar matchId={String(matchId)} className="-mr-1" />}
+          {matchId != null && (
+            <FavoriteStar
+              matchId={String(matchId)}
+              meta={{
+                id: String(matchId),
+                sport: "baseball",
+                league,
+                homeName: home.name,
+                awayName: away.name,
+                homeShort: home.abbr ?? undefined,
+                awayShort: away.abbr ?? undefined,
+                homeScore: home.score,
+                awayScore: away.score,
+                status,
+                statusLabel: liveStatusLabel ?? timeLabel,
+                href: href ?? undefined,
+              }}
+              className="-mr-1"
+            />
+          )}
         </div>
       </div>
 

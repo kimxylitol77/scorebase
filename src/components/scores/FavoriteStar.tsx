@@ -3,10 +3,12 @@
 
 "use client";
 
-import { useFavorites } from "./useFavorites";
+import { useFavorites, type FavMeta } from "./useFavorites";
 
 interface Props {
   matchId: string;
+  /** 즐겨찾기 시 함께 저장할 경기 스냅샷 — PiP 가 종료·예정 경기도 표시하는 데 사용 */
+  meta?: FavMeta;
   /** 카드가 Link 로 감싸진 경우 navigation 막기 */
   stopPropagation?: boolean;
   className?: string;
@@ -14,6 +16,7 @@ interface Props {
 
 export default function FavoriteStar({
   matchId,
+  meta,
   stopPropagation = true,
   className = "",
 }: Props) {
@@ -30,7 +33,7 @@ export default function FavoriteStar({
           e.preventDefault();
           e.stopPropagation();
         }
-        toggle(matchId);
+        toggle(matchId, meta);
       }}
       className={`inline-flex items-center justify-center w-7 h-7 rounded-md transition ${
         fav

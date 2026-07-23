@@ -449,7 +449,23 @@ export default function SoccerLiveRow(props: SoccerLiveRowProps) {
 
       {/* 7. 관심 별표 (위치 swap — 글보다 우선 노출) */}
       <div data-scell="star" className="flex justify-center">
-        <FavoriteStar matchId={String(matchId)} />
+        <FavoriteStar
+          matchId={String(matchId)}
+          meta={{
+            id: String(matchId),
+            sport: "soccer",
+            league,
+            homeName: home.name,
+            awayName: away.name,
+            homeShort,
+            awayShort,
+            homeScore,
+            awayScore,
+            status,
+            statusLabel: liveStatusLabel ?? timeLabel,
+            href: href ?? undefined,
+          }}
+        />
       </div>
 
       {/* 8. 정보 — AI 매치 인사이트 + 라인업 cover 리그 + 리뷰 글 (있을 때).

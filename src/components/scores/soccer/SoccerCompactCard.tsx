@@ -125,7 +125,21 @@ export default function SoccerCompactCard(props: Props) {
     >
       {/* ★ */}
       <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-        <FavoriteStar matchId={String(matchId)} />
+        <FavoriteStar
+          matchId={String(matchId)}
+          meta={{
+            id: String(matchId),
+            sport: "soccer",
+            league,
+            homeName: home.name,
+            awayName: away.name,
+            homeScore: home.score,
+            awayScore: away.score,
+            status,
+            statusLabel: liveStatusLabel ?? timeLabel,
+            href: href ?? undefined,
+          }}
+        />
       </div>
 
       {/* 시간/상태 — 리그명은 그룹 카드 헤더로 이동 (showLeague=시간순 평면 뷰만 배지 표시) */}

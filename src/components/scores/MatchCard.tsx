@@ -390,7 +390,24 @@ export default function MatchCard(props: MatchCardProps) {
             {leagueLabel ?? league}
           </span>
           {matchId != null && (
-            <FavoriteStar matchId={String(matchId)} className="-mr-1.5" />
+            <FavoriteStar
+              matchId={String(matchId)}
+              meta={{
+                id: String(matchId),
+                sport,
+                league,
+                homeName: home.name,
+                awayName: away.name,
+                homeShort: home.abbr ?? undefined,
+                awayShort: away.abbr ?? undefined,
+                homeScore: home.score,
+                awayScore: away.score,
+                status,
+                statusLabel: liveStatusLabel ?? timeLabel,
+                href: href ?? undefined,
+              }}
+              className="-mr-1.5"
+            />
           )}
         </div>
       </div>
