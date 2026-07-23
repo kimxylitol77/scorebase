@@ -44,6 +44,7 @@ const TOOLS: Array<{ href: string; label: string }> = [
   { href: "/predictions/starters", label: "선발 매치업" },
   { href: "/value-bets", label: "밸류 베트" },
   { href: "/transfers", label: "이적시장 · 몸값" },
+  { href: "/rankings/value-clubs", label: "가성비 구단 랭킹" },
   { href: "/salaries/mlb", label: "연봉 랭킹" },
   { href: "/injuries", label: "부상자 명단" },
 ];
