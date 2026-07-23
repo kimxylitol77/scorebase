@@ -58,6 +58,7 @@ import {
 import SportTabs from "@/components/scores/SportTabs";
 import TennisBoard from "@/components/scores/tennis/TennisBoard";
 import GolfBoard from "@/components/scores/golf/GolfBoard";
+import F1Board from "@/components/scores/f1/F1Board";
 import MyTeamsStrip from "@/components/MyTeamsStrip";
 import FavTeamOnboarding from "@/components/scores/FavTeamOnboarding";
 import AppInstallBanner from "@/components/scores/AppInstallBanner";
@@ -1940,7 +1941,7 @@ export default async function ScoresPage({ searchParams }: Props) {
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 flex flex-wrap items-center gap-x-2 gap-y-1.5">
             {/* 테니스·골프는 DB 파이프라인 밖(ESPN 보드)이라 카운트가 항상 0 — 숨김 */}
-            {sport !== "tennis" && sport !== "golf" && (
+            {sport !== "tennis" && sport !== "golf" && sport !== "f1" && (
               <span>{dateKo} · 총 {liveList.length + scheduledList.length + finishedList.length + postponedList.length}경기</span>
             )}
             {liveList.length > 0 && (
@@ -1958,7 +1959,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       <p className="text-[13px] sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
         {dateKo} {sportKo} 라이브 스코어·경기 일정·종료 결과를 한곳에서 확인하세요.
         {" "}{leagueBlurb} 통합, Elo 모델 승률 추정, 라이브 푸시 평균 2-3초 갱신.
-        {normalized.length === 0 && sport !== "tennis" && sport !== "golf" && (
+        {normalized.length === 0 && sport !== "tennis" && sport !== "golf" && sport !== "f1" && (
           <span className="block mt-1 text-neutral-500">
             해당 일자에 경기가 없습니다. 인접한 일자를 확인해 보세요.
           </span>
@@ -1998,6 +1999,8 @@ export default async function ScoresPage({ searchParams }: Props) {
         <TennisBoard kstDateStr={dateStr} />
       ) : sport === "golf" ? (
         <GolfBoard />
+      ) : sport === "f1" ? (
+        <F1Board />
       ) : sport === "soccer" ? (
         <div className="space-y-4">
             {/* 🏆 월드컵 기간 배너 (2026-06-11 개막 ~ 07-19 결승) — 우승 시뮬 진입점.
