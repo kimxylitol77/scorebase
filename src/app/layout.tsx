@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -154,7 +155,10 @@ export default async function RootLayout({
             />
           </noscript>
         )}
-        <PageViewTracker />
+        {/* useSearchParams(/scores 종목탭 PV 분리) 사용 — Suspense 경계 필수(정적 렌더 유지) */}
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         <SiteChromeHeader
           main={
             <>

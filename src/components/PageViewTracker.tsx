@@ -4,8 +4,15 @@
 // /admin 영역은 자동 제외.
 // localStorage 에 sessionId 발급 — unique 방문자 카운트 위한 라벨 (개인정보 X, random).
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
+
+// /scores 종목 탭 구분 기록용 화이트리스트 — 임의 쿼리 오염 방지.
+// 종목 탭 전환은 pathname 이 같아 기존엔 PV 자체가 안 찍혔음 (2026-07-23).
+const SCORES_SPORTS = new Set([
+  "all", "soccer", "baseball", "basketball", "volleyball",
+  "hockey", "esports", "mma", "tennis", "golf", "f1",
+]);
 
 const SESSION_KEY = "scorebase-sid";
 
@@ -49,13 +56,23 @@ function isLandingNow(): boolean {
 
 export default function PageViewTracker() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const lastPath = useRef<string | null>(null);
+
+  // /scores 는 종목 탭(?sport=)별로 분리 기록 — admin 인기 페이지에서 종목별 소비 확인용.
+  // 화이트리스트 외 값·타 페이지 쿼리는 기존대로 pathname 만 (date/league 변화는 PV 미기록).
+  const sportParam = searchParams?.get("sport") ?? null;
+  const sport =
+    pathname === "/scores" && sportParam && SCORES_SPORTS.has(sportParam)
+      ? sportParam
+      : null;
+  const trackPath = sport ? `/scores?sport=${sport}` : pathname;
 
   useEffect(() => {
     if (!pathname) return;
     if (pathname.startsWith("/admin") || pathname.startsWith("/api")) return;
-    if (lastPath.current === pathname) return;
-    lastPath.current = pathname;
+    if (lastPath.current === trackPath) return;
+    lastPath.current = trackPath;
 
     const sessionId = getSessionId();
     const isLanding = isLandingNow();
@@ -79,10 +96,10 @@ export default function PageViewTracker() {
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: pathname, sessionId, isLanding, referrer, utmSource }),
+      body: JSON.stringify({ path: trackPath, sessionId, isLanding, referrer, utmSource }),
       keepalive: true,
     }).catch(() => {});
-  }, [pathname]);
+  }, [pathname, trackPath]);
 
   return null;
 }
