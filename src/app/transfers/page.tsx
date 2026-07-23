@@ -21,7 +21,7 @@ import SquadBestXI, { pickBestXI } from "./SquadBestXI";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { breadcrumbLd, datasetLd } from "@/lib/seo/jsonld";
-import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap, Newspaper } from "lucide-react";
+import { Wallet, Banknote, ArrowLeftRight, Users, RefreshCw, Search, Sparkles, Zap, Newspaper, Gem, Award } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -897,6 +897,22 @@ export default async function TransfersPage({
           <>선수 몸값 랭킹과 <strong className="text-neutral-700 dark:text-neutral-300">변동 추이</strong> · 유럽 빅5 리그 · {totalCount}명.</>
         )}
       </p>
+
+      {/* 가치·랭킹 바로가기 — 발롱도르·가성비 구단을 몸값·가치 허브로 통합 */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link
+          href="/rankings/value-clubs"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
+        >
+          <Gem className="w-3.5 h-3.5" aria-hidden /> 가성비 구단 랭킹
+        </Link>
+        <Link
+          href="/ballon"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 px-3.5 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-50 dark:hover:bg-white/[0.06]"
+        >
+          <Award className="w-3.5 h-3.5" aria-hidden /> 발롱도르 순위 지수
+        </Link>
+      </div>
 
       <div className="mt-5">
         <TransfersFilterBar

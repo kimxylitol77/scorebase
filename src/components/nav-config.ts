@@ -86,7 +86,6 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
     { href: "/compare", label: "선수 비교", desc: "선수 head-to-head 스탯 비교" },
-    { href: "/ballon", label: "발롱도르 순위 지수", desc: "골·도움·평점·월드컵 가중치로 후보 순위 계산" },
     { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   ],
 };
