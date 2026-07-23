@@ -17,6 +17,7 @@ import SoccerLiveRow from "./soccer/SoccerLiveRow";
 import LeagueBadge from "../LeagueBadge";
 import FavoriteStar from "./FavoriteStar";
 import { useFavorites } from "./useFavorites";
+import { setPipOn } from "../LivePipScore";
 import { useScoreFlash } from "./useScoreFlash";
 import { playChime, unlockAudio } from "@/lib/sound/chime";
 import {
@@ -198,6 +199,18 @@ export default function FavoriteMatches({ matches }: Props) {
           {fav.length}경기 · {sportOrder.length}종목
         </span>
         <div className="ml-auto flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setPipOn(true)}
+            title="즐겨찾기 라이브를 화면에 고정(PiP) — 드래그로 이동"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-neutral-100 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" stroke="none" />
+            </svg>
+            <span className="hidden sm:inline">화면 고정</span>
+          </button>
           <ToggleBtn
             active={view === "compact"}
             onClick={toggleView}
