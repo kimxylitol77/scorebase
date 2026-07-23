@@ -11,6 +11,10 @@ import {
   Target,
   ListOrdered,
   IdCard,
+  Gem,
+  Award,
+  Coins,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
@@ -159,8 +163,12 @@ export default async function SoccerHub() {
       {/* 기능 바로가기 */}
       <div className="flex flex-wrap gap-2 pt-1">
         <FnChip href="/transfers" Icon={ArrowLeftRight} label="이적시장 · 몸값 랭킹" />
+        <FnChip href="/rankings/value-clubs" Icon={Gem} label="가성비 구단 랭킹" />
         <FnChip href="/compare" Icon={GitCompare} label="선수 비교" />
+        <FnChip href="/ballon" Icon={Award} label="발롱도르 순위 지수" />
         <FnChip href="/predictions" Icon={Target} label="시즌 예측" />
+        <FnChip href="/value-bets" Icon={Coins} label="밸류 베트" />
+        <FnChip href="/odds?sport=soccer" Icon={Activity} label="배당 흐름" />
         <FnChip href="/k-league-cards" Icon={IdCard} label="K리그 카드 선수 데이터" />
       </div>
 
