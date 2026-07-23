@@ -2122,10 +2122,22 @@ function withSportTimeout<T>(p: Promise<T>, fallback: T): Promise<T> {
   ]);
 }
 
+// af live=all 이 안 주는 orphan(클럽친선·군소리그) LIVE 축구를 date 조회로 보강.
+// keyParts 를 /scores page 의 fetchSoccerByDateCached 와 동일하게 맞춰 캐시를 공유 →
+// af 호출이 추가로 늘지 않는다(같은 날짜면 page 가 이미 캐싱).
+const fetchSoccerByDateCachedForLive = unstable_cache(
+  fetchSoccerByDate,
+  ["scores-page-soccer-by-date"],
+  { revalidate: 60, tags: ["live-scores"] },
+);
+
 export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
-  const [soccer, soccerTs, baseball, nba, nhl, lol] = await Promise.all([
+  // 오늘(KST) 날짜 — orphan LIVE 보강용 date 조회 키.
+  const todayKst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const [soccer, soccerTs, orphanDated, baseball, nba, nhl, lol] = await Promise.all([
     withSportTimeout(fetchSoccerLive(), [] as LiveMatch[]),
     withSportTimeout(fetchSoccerLiveTsScores(), new Map()),
+    withSportTimeout(fetchSoccerByDateCachedForLive(todayKst), [] as DatedMatch[]),
     withSportTimeout(fetchBaseballLive(), [] as LiveMatch[]),
     withSportTimeout(fetchNbaLive(), [] as LiveMatch[]),
     withSportTimeout(fetchNhlLive(), [] as LiveMatch[]),
@@ -2143,7 +2155,25 @@ export async function fetchAllLiveScores(): Promise<LiveMatch[]> {
       awayScore: Math.max(m.awayScore, ts.away),
     };
   });
-  const all = [...soccerMerged, ...baseball, ...nba, ...nhl, ...lol];
+  // orphan LIVE 축구 병합 — af live=all 에 없는 클럽친선·군소 라이브. af-live 우선(중복 id 제외).
+  // status 를 떼어 LiveMatch 로 변환(DatedMatch = LiveMatch + status).
+  const liveIds = new Set(soccerMerged.map((m) => m.id));
+  const orphanLive: LiveMatch[] = orphanDated
+    .filter((m) => m.status === "LIVE" && !liveIds.has(m.id))
+    .map((m) => ({
+      id: m.id,
+      league: m.league,
+      leagueLabel: m.leagueLabel,
+      homeName: m.homeName,
+      awayName: m.awayName,
+      homeShort: m.homeShort,
+      awayShort: m.awayShort,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      statusLabel: m.statusLabel,
+      startTime: m.startTime,
+    }));
+  const all = [...soccerMerged, ...orphanLive, ...baseball, ...nba, ...nhl, ...lol];
   // 정렬 — 가장 최근 시작 매치 우선
   all.sort((a, b) => b.startTime.localeCompare(a.startTime));
   return all;
