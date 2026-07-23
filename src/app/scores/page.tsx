@@ -56,6 +56,8 @@ import {
   type DatedMatch,
 } from "@/lib/sports/live-scores";
 import SportTabs from "@/components/scores/SportTabs";
+import TennisBoard from "@/components/scores/tennis/TennisBoard";
+import GolfBoard from "@/components/scores/golf/GolfBoard";
 import MyTeamsStrip from "@/components/MyTeamsStrip";
 import FavTeamOnboarding from "@/components/scores/FavTeamOnboarding";
 import AppInstallBanner from "@/components/scores/AppInstallBanner";
@@ -1988,7 +1990,12 @@ export default async function ScoresPage({ searchParams }: Props) {
       )}
 
       {/* 축구: 사이드바 제거 — 매치 list 만 가운데 정렬 / 다른 종목: 기존 그대로 */}
-      {sport === "soccer" ? (
+      {/* 테니스·골프 — ESPN 직접 fetch 표시 전용 (DB 파이프라인 미사용, docs/tennis-golf-scores) */}
+      {sport === "tennis" ? (
+        <TennisBoard kstDateStr={dateStr} />
+      ) : sport === "golf" ? (
+        <GolfBoard />
+      ) : sport === "soccer" ? (
         <div className="space-y-4">
             {/* 🏆 월드컵 기간 배너 (2026-06-11 개막 ~ 07-19 결승) — 우승 시뮬 진입점.
                 gradient 는 /predictions 허브 WORLD_CUP 카드와 통일. */}

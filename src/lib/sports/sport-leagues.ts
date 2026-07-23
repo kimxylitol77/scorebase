@@ -1,7 +1,7 @@
 // 종목(sport) ↔ 리그(league) 매핑 + 한글 라벨.
 // /scores 페이지 종목 탭에서 사용.
 
-export type SportCode = "all" | "soccer" | "baseball" | "basketball" | "volleyball" | "hockey" | "esports" | "mma";
+export type SportCode = "all" | "soccer" | "baseball" | "basketball" | "volleyball" | "hockey" | "esports" | "mma" | "tennis" | "golf";
 
 interface SportMeta {
   code: SportCode;
@@ -49,6 +49,8 @@ export const ALL_LEAGUES = [
   "CPBL", "WBC", "WBSC_PREMIER_12", "ASIAN_GAMES_BB", "OLYMPICS_BB",
   "KBO_FUTURES", "NPB_MINOR", "CARIBBEAN_SERIES", "LMB",
   "NBA", "WNBA", "KBL", "WKBL", "NBA_SL", "NHL", "IIHF_WC", "LOL", "LCK_CL", "LPL", "LEC", "LCS", "EWC", "UFC",
+  // 2026-07-23 테니스·골프 — ESPN 직접 fetch 표시 전용 (DB 수집 없음, docs/tennis-golf-scores)
+  "ATP", "WTA", "PGA", "LPGA",
   // 2026-06-12 배구 — TheSports unique_tournament 기반 (VNL 남/여 / AVC 네이션스컵 여자 / 유럽 골든리그 여자)
   "VNL", "VNL_W", "AVC_NATIONS_W", "EGL_W",
   // 2026-05-24 추가
@@ -167,6 +169,20 @@ export const SPORTS: SportMeta[] = [
     emoji: "🥊",
     leagues: ["UFC"],
   },
+  {
+    code: "tennis",
+    label: "테니스",
+    emoji: "🎾",
+    // 2026-07-23 신설 — ESPN scoreboard 직접 fetch (DB 수집 없음, 표시 전용)
+    leagues: ["ATP", "WTA"],
+  },
+  {
+    code: "golf",
+    label: "골프",
+    emoji: "⛳",
+    // 2026-07-23 신설 — ESPN 리더보드 직접 fetch (DB 수집 없음, 표시 전용)
+    leagues: ["PGA", "LPGA"],
+  },
 ];
 
 // 야구 리그 집합 — SPORTS.baseball.leagues 단일 진실에서 빌드.
@@ -230,6 +246,10 @@ export function leaguesForSport(code: SportCode): string[] {
 }
 
 export const LEAGUE_DISPLAY: Record<string, string> = {
+  ATP: "ATP 투어",
+  WTA: "WTA 투어",
+  PGA: "PGA 투어",
+  LPGA: "LPGA 투어",
   EPL: "프리미어리그",
   LALIGA: "라리가",
   BUNDESLIGA: "분데스리가",
