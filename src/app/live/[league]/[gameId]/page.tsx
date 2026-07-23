@@ -1233,11 +1233,12 @@ async function renderBaseballPage(args: {
   const { match, lg, gameId, homeKo, awayKo, homeShort, awayShort, label } = args;
   const detailLivePlayers =
     (match.theSportsCache?.detailLive as { players?: unknown } | null)?.players;
-  const [extras, baseballOdds, playerNameById, playerPhotoById] = await Promise.all([
+  const [extras, baseballOdds, playerNameById, playerPhotoById, recentGames] = await Promise.all([
     fetchMatchExtras(match),
     loadBaseballOdds(match.id),
     buildPlayerNameMap(detailLivePlayers),
     buildPlayerPhotoMap(detailLivePlayers),
+    getBaseballRecentGames(match),
   ]);
   const detailLive = match.theSportsCache?.detailLive as
     | { players?: unknown; stats?: unknown; score?: unknown[] }
@@ -1316,6 +1317,19 @@ async function renderBaseballPage(args: {
         awayStanding={extras.awayStanding}
         totalTeams={extras.totalTeams}
       />
+      {recentGames?.hasData && (
+        <CollapsibleSection
+          title="최근 경기 · 상대전적"
+          hint="양 팀 최근 경기 + 맞대결"
+          defaultOpen={match.status === "SCHEDULED"}
+        >
+          <RecentGamesCard
+            homeNameKo={homeKo}
+            awayNameKo={awayKo}
+            data={recentGames}
+          />
+        </CollapsibleSection>
+      )}
       <BaseballBoxscoreTabs
         homeNameKo={homeKo}
         awayNameKo={awayKo}
