@@ -367,3 +367,22 @@ export function fifaFlag(nameEn: string, nameKo?: string | null): string {
   }
   return "";
 }
+
+// 국가대표팀 영문명 집합 — FIFA 회원국(EN_TO_ISO2 207개) + 영국 구성국.
+// 북아일랜드는 국기 미표시라 SUBDIVISION_FLAG 엔 없지만 국가대표이므로 여기 명시.
+const NATIONAL_TEAM_NAMES: ReadonlySet<string> = new Set<string>([
+  ...Object.keys(EN_TO_ISO2),
+  "England",
+  "Scotland",
+  "Wales",
+  "Northern Ireland",
+]);
+
+/** af 팀명이 국가대표팀인지 판별 — 혼합 친선(국대 vs 클럽 스파링) 재분류용.
+ *  ENGLISH_ALIASES 로 af 변형 표기("South Korea"·"Ivory Coast" 등)를 canonical 정규화 후
+ *  국가명 집합과 대조. 클럽팀은 집합에 없어 false. */
+export function isNationalTeamName(name: string | null | undefined): boolean {
+  if (!name) return false;
+  const canonical = ENGLISH_ALIASES[name] ?? name;
+  return NATIONAL_TEAM_NAMES.has(canonical);
+}

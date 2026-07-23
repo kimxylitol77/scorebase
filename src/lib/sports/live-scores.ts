@@ -17,6 +17,7 @@ import { TOURNAMENT_TO_LEAGUE, LOL_TOURNAMENT_IDS } from "./lol";
 import { toKoreanPlayerName } from "@/lib/player-names";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { LEAGUE_DISPLAY, SOCCER_LEAGUES } from "@/lib/sports/sport-leagues";
+import { isNationalTeamName } from "@/lib/sports/fifa-rankings";
 
 const AF_BASE = "https://v3.football.api-sports.io";
 const AB_BASE = "https://v1.baseball.api-sports.io";
@@ -116,6 +117,14 @@ const AF_ID_TO_CODE: Record<number, string> = Object.fromEntries(
   Object.entries(API_FOOTBALL_LEAGUE_ID).map(([k, v]) => [v, k]),
 );
 
+// af 국가대표 친선(id 10)에는 국대가 클럽팀과 붙는 프리시즌 스파링(예: Antigua 대표팀 vs
+// 폴란드 4부 Podlasie)도 섞여 들어온다. 양쪽 다 국가대표일 때만 "국가대표 친선"으로 남기고,
+// 한쪽이라도 클럽이면 "클럽 친선"으로 재분류한다. 순수 A매치는 그대로 유지.
+function reclassifyFriendly(code: string, home: string, away: string): string {
+  if (code !== "INTL_FRIENDLY") return code;
+  return isNationalTeamName(home) && isNationalTeamName(away) ? code : "CLUB_FRIENDLY";
+}
+
 function shortName(name: string, league?: string): string {
   if (!name) return "";
   // 영문 풀명이면 한글 사전 통과 먼저 (EGYPT_PL "Al Ittihad" → "이티하드 알렉산드리아" → "이티하드")
@@ -200,8 +209,9 @@ async function fetchSoccerLiveUncached(): Promise<LiveMatch[]> {
     );
     return (data.response ?? [])
       .map((f): LiveMatch | null => {
-        const code = AF_ID_TO_CODE[f.league.id];
-        if (!code) return null; // 우리가 지원하는 12리그 외 제외
+        const rawCode = AF_ID_TO_CODE[f.league.id];
+        if (!rawCode) return null; // 우리가 지원하는 12리그 외 제외
+        const code = reclassifyFriendly(rawCode, f.teams.home.name, f.teams.away.name);
         const g = afGoalsExcludingShootout(f.fixture.status.short, f.goals, f.score);
         return {
           id: `af-${f.fixture.id}`,
@@ -306,8 +316,9 @@ export async function fetchSoccerByDate(kstDateStr: string): Promise<DatedMatch[
     const seen = new Set<string>();
     const out: DatedMatch[] = [];
     for (const f of resps.flatMap((r) => r.response ?? [])) {
-      const code = AF_ID_TO_CODE[f.league.id];
-      if (!code) continue; // 우리가 지원하는 리그만
+      const rawCode = AF_ID_TO_CODE[f.league.id];
+      if (!rawCode) continue; // 우리가 지원하는 리그만
+      const code = reclassifyFriendly(rawCode, f.teams.home.name, f.teams.away.name);
       const kst = new Date(new Date(f.fixture.date).getTime() + 9 * 3600 * 1000)
         .toISOString()
         .slice(0, 10);
