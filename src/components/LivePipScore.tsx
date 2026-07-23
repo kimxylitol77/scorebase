@@ -284,8 +284,14 @@ export default function LivePipScore() {
       win.document.title = "스코어베이스 내 경기";
       win.addEventListener("pagehide", () => setDocWin(null));
       setDocWin(win);
-    } catch {
-      // 사용자가 거부하거나 실패 — 인페이지 카드 유지
+    } catch (e) {
+      // 실패를 침묵하면 "버튼 눌러도 안 됨" 으로 보임 — 원인을 사용자에게 알려준다.
+      alert(
+        "브라우저 밖 분리에 실패했어요.\n" +
+          "Chrome/Edge 116 이상에서 지원됩니다.\n(" +
+          (e instanceof Error ? e.message : String(e)) +
+          ")",
+      );
     }
   }
 
@@ -389,14 +395,15 @@ export default function LivePipScore() {
             type="button"
             onClick={openDocPip}
             aria-label="브라우저 밖으로 분리"
-            title="브라우저 밖으로 분리 (항상 위)"
-            className="rounded-md p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+            title="브라우저 밖 항상-위 미니 창으로 분리"
+            className="mr-0.5 inline-flex items-center gap-1 rounded-md bg-rose-50 px-1.5 py-1 text-[10px] font-bold text-rose-600 transition hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <rect x="3" y="5" width="18" height="14" rx="2" />
-              <rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" stroke="none" />
-              <path d="M7 9l4 4" />
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="21" y1="3" x2="12" y2="12" />
+              <rect x="3" y="9" width="10" height="12" rx="2" />
             </svg>
+            밖으로
           </button>
         )}
         <button
