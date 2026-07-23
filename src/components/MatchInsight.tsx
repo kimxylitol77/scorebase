@@ -63,6 +63,7 @@ import TeamMatchup from "./TeamMatchup";
 import MatchInsightTabs, { type InsightTab } from "./MatchInsightTabs";
 import MatchStatsCard from "./MatchStatsCard";
 import MatchSimulator from "./MatchSimulator";
+import MatchWhatIf from "./MatchWhatIf";
 import { simSupportedLeague } from "@/lib/predict/match-sim";
 
 interface Props {
@@ -857,6 +858,12 @@ export default async function MatchInsight({
               {Math.round(dcPred.probBttsYes * 100)}%.
             </p>
           </div>
+          <MatchWhatIf
+            homeName={toKoreanTeamName(match.homeTeam.name)}
+            awayName={toKoreanTeamName(match.awayTeam.name)}
+            initHome={dcPred.lambdaHome}
+            initAway={dcPred.lambdaAway}
+          />
         </Section>
       )}
       <Section title={isFinished ? "AI 예측 종합 · 결과 비교" : "AI 예측 종합"}>
