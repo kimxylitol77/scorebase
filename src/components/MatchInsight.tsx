@@ -64,6 +64,7 @@ import MatchInsightTabs, { type InsightTab } from "./MatchInsightTabs";
 import MatchStatsCard from "./MatchStatsCard";
 import MatchSimulator from "./MatchSimulator";
 import MatchWhatIf from "./MatchWhatIf";
+import MatchScoreWhatIf from "./MatchScoreWhatIf";
 import { simSupportedLeague } from "@/lib/predict/match-sim";
 
 interface Props {
@@ -409,6 +410,23 @@ export default async function MatchInsight({
   const hcOk =
     isFinished && hc
       ? handicapCorrect(hc.pick, hc.line, match.homeScore!, match.awayScore!)
+      : null;
+
+  // 비축구(야구·농구·하키) 점수 시뮬레이터용 — total/hc 의 기대 총점·마진에서 팀별 기대 점수
+  // 역산(둘 다 같은 expectedHome/Away 로 계산돼 정확). 슬라이더 범위·단위는 종목별.
+  const scoreSim =
+    !isSoccer && sportProfile && total && hc
+      ? (() => {
+          const eh = (total.expectedTotal + hc.expectedMargin) / 2;
+          const ea = (total.expectedTotal - hc.expectedMargin) / 2;
+          const isBaseball = match.league === "KBO" || match.league === "NPB" || match.league === "MLB";
+          const cfg = isBaseball
+            ? { unit: "점", min: 0.5, max: 14, step: 0.1 }
+            : match.league === "NBA"
+              ? { unit: "점", min: 85, max: 145, step: 1 }
+              : { unit: "골", min: 0.5, max: 8, step: 0.1 }; // NHL
+          return { eh, ea, ...cfg };
+        })()
       : null;
 
   // Elo 변천사 (양 팀 시즌 추이)
@@ -947,6 +965,24 @@ export default async function MatchInsight({
           </p>
         )}
       </Section>
+      {scoreSim && (
+        <Section title="점수 시뮬레이터">
+          <MatchScoreWhatIf
+            homeName={toKoreanTeamName(match.homeTeam.name)}
+            awayName={toKoreanTeamName(match.awayTeam.name)}
+            initHome={scoreSim.eh}
+            initAway={scoreSim.ea}
+            overLine={total!.line}
+            totalStd={sportProfile!.totalStd}
+            marginStd={sportProfile!.marginStd}
+            handicapLine={sportProfile!.handicapLine}
+            unit={scoreSim.unit}
+            min={scoreSim.min}
+            max={scoreSim.max}
+            step={scoreSim.step}
+          />
+        </Section>
+      )}
       <Section title="Elo 레이팅">
         <div className="space-y-3 mb-4">
           <EloMeter
