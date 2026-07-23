@@ -11,6 +11,7 @@ import { readFavIds, FAV_EVENT_NAME } from "./scores/useFavorites";
 
 const PIP_ON_KEY = "scorebase:pip-on";
 const PIP_POS_KEY = "scorebase:pip-pos";
+const PIP_SIZE_KEY = "scorebase:pip-size";
 export const PIP_CHANGE_EVENT = "scorebase:pip-changed";
 const FAV_KEY = "scorebase:fav-matches";
 
@@ -54,6 +55,7 @@ export default function LivePipScore() {
   const [matches, setMatches] = useState<LiveMatch[]>([]);
   const [favIds, setFavIds] = useState<Set<string>>(new Set());
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [size, setSize] = useState<"sm" | "lg">("sm"); // 기본 작게
   const [mounted, setMounted] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +69,8 @@ export default function LivePipScore() {
         const parsed = JSON.parse(p);
         if (typeof parsed?.x === "number" && typeof parsed?.y === "number") setPos(parsed);
       }
+      const sz = localStorage.getItem(PIP_SIZE_KEY);
+      if (sz === "sm" || sz === "lg") setSize(sz);
     } catch {
       // ignore
     }
@@ -144,6 +148,16 @@ export default function LivePipScore() {
     setOn(false);
   }
 
+  function toggleSize() {
+    const next = size === "sm" ? "lg" : "sm";
+    setSize(next);
+    try {
+      localStorage.setItem(PIP_SIZE_KEY, next);
+    } catch {
+      // ignore
+    }
+  }
+
   // 헤더 드래그 — pointer 이벤트로 카드를 이동, 놓을 때 위치 저장.
   function onDragStart(e: ReactPointerEvent) {
     const el = cardRef.current;
@@ -186,7 +200,7 @@ export default function LivePipScore() {
     <div
       ref={cardRef}
       style={style}
-      className="fixed z-[60] w-64 rounded-2xl border border-neutral-200 bg-white/95 shadow-[0_24px_70px_-20px_rgba(15,23,30,0.35)] backdrop-blur dark:border-neutral-700 dark:bg-neutral-900/95"
+      className={`fixed z-[60] ${size === "lg" ? "w-80" : "w-64"} rounded-2xl border border-neutral-200 bg-white/95 shadow-[0_24px_70px_-20px_rgba(15,23,30,0.35)] backdrop-blur dark:border-neutral-700 dark:bg-neutral-900/95`}
       role="dialog"
       aria-label="즐겨찾기 라이브 스코어 PiP"
     >
@@ -204,9 +218,32 @@ export default function LivePipScore() {
         </span>
         <button
           type="button"
+          onClick={toggleSize}
+          aria-label={size === "sm" ? "크게 보기" : "작게 보기"}
+          title={size === "sm" ? "크게 보기" : "작게 보기"}
+          className="ml-auto rounded-md p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+        >
+          {size === "sm" ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="4 14 10 14 10 20" />
+              <polyline points="20 10 14 10 14 4" />
+              <line x1="14" y1="10" x2="21" y2="3" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+          )}
+        </button>
+        <button
+          type="button"
           onClick={close}
           aria-label="PiP 닫기"
-          className="ml-auto rounded-md p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+          className="rounded-md p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -227,7 +264,7 @@ export default function LivePipScore() {
             {favMatches.map((m) => (
               <li
                 key={m.id}
-                className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-1.5 rounded-lg px-1.5 py-1.5 text-[12px] hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+                className={`grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-1.5 rounded-lg px-1.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 ${size === "lg" ? "py-2.5 text-sm" : "py-1.5 text-[12px]"}`}
               >
                 <LeagueBadge league={m.league} size="sm" />
                 <span className="truncate text-right font-medium text-neutral-800 dark:text-neutral-200">
