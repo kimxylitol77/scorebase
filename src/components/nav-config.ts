@@ -85,7 +85,6 @@ export const COMMUNITY_CATEGORY: NavCategory = {
     { href: "/lab", label: "커스텀 봇", desc: "손잡이 5개로 나만의 예측 봇 · 즉석 백테스트" },
     { href: "/dream-team", label: "드림팀 빌더", desc: "나만의 스쿼드 빌드 · 봇 대전" },
     { href: "/lineup", label: "라인업 전술판", desc: "포메이션에 선수 배치 · 이미지 공유" },
-    { href: "/compare", label: "선수 비교", desc: "선수 head-to-head 스탯 비교" },
     { href: "/injuries", label: "부상자 명단", desc: "리그별 부상자 · 치료·재활" },
   ],
 };

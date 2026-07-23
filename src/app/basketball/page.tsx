@@ -312,7 +312,7 @@ export default async function BasketballHub() {
       <div className="flex flex-wrap gap-2 pt-1">
         <FnChip href="/transactions/nba" Icon={ArrowLeftRight} label="NBA 트랜잭션 · 트레이드·FA" />
         <FnChip href="/salaries/nba" Icon={Coins} label="NBA 연봉 랭킹" />
-        <FnChip href="/compare" Icon={GitCompare} label="선수 비교" />
+        <FnChip href="/compare?sport=NBA" Icon={GitCompare} label="선수 비교" />
         <FnChip href="/predictions" Icon={Target} label="시즌 예측" />
       </div>
 

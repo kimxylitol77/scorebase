@@ -8,7 +8,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { safeFetchTop3 } from "@/lib/sports/standings-overview";
-import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, type LucideIcon } from "lucide-react";
+import { Clock, ListOrdered, Target, Swords, Coins, Star, Radar, GitCompare, type LucideIcon } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 
 export const revalidate = 300;
@@ -358,6 +358,13 @@ export default async function BaseballHub() {
               </li>
             ))}
           </ul>
+        </Card>
+
+        {/* 선수 비교 */}
+        <Card title="선수 비교" Icon={GitCompare} href="/compare?sport=KBO" hrefLabel="비교 시작">
+          <p className="text-sm text-neutral-600 dark:text-white/60 leading-relaxed break-keep">
+            KBO·MLB·NPB 타자·투수를 나란히 놓고 성적·퍼센타일을 head-to-head 로 비교합니다.
+          </p>
         </Card>
 
         {/* MLB Statcast 리더보드 */}
