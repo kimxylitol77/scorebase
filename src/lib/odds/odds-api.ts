@@ -17,6 +17,7 @@ export const SPORT_KEY: Record<string, string> = {
   UCL: "soccer_uefa_champs_league",
   J1_LEAGUE: "soccer_japan_j_league",
   NBA: "basketball_nba",
+  WNBA: "basketball_wnba", // 2026-07 추가 — 시즌 4~9월, The Odds API active 확인
   NHL: "icehockey_nhl",
   MLB: "baseball_mlb",
   // KBO/NPB — The Odds API 무료 plan 에서도 active=true 확인 (2026-05).

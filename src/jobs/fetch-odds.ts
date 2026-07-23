@@ -76,10 +76,14 @@ export async function runFetchOdds(opts?: { leagues?: string[] }) {
         if (league === "NPB") return npbEnglishToKorean(s);
         return s;
       };
+      // WNBA 는 우리 DB 팀명에 여자팀 구분 " W" 접미사가 붙지만 The Odds API 는 없다
+      // (DB "Portland Fire W" ↔ odds "Portland Fire"). 매칭 전 접미사 제거.
+      const stripW = (s: string) =>
+        league === "WNBA" ? s.replace(/\s+W$/i, "") : s;
       let matched = 0;
       for (const m of dbMatches) {
-        const homeN = normalizeOddsTeamName(m.homeTeam.name);
-        const awayN = normalizeOddsTeamName(m.awayTeam.name);
+        const homeN = normalizeOddsTeamName(stripW(m.homeTeam.name));
+        const awayN = normalizeOddsTeamName(stripW(m.awayTeam.name));
         // 팀명 일치 후보 — 같은 매치업이 시리즈(여러 날)면 다수가 잡힌다.
         const candidates = events.filter((e) => {
           const eh = normalizeOddsTeamName(localizeTeam(e.home_team));
