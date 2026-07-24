@@ -9,6 +9,6 @@
 - [x] /rankings/f1 — 드라이버·컨스트럭터 탭, 포인트·우승·격차·DNF·차번호
 - [x] /scores F1 탭 → 챔피언십 배너
 - [x] weekly-static-refresh ⑯ 편입 (시즌 중 드라이버 교체 대비)
-- [ ] tsc → 배포 → production 검증
+- [x] tsc → 배포 → production 검증 (드라이버·컨스트럭터 탭 실측 완료)
 
 비범위: 드라이버 개인 상세 페이지(ESPN 에 세부 통계 없음), 레이스별 결과 아카이브(/scores F1 탭에 세션 결과 존재)
