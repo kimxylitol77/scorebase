@@ -1,8 +1,31 @@
 // /scores 골프 탭 — ESPN 리더보드(PGA·LPGA) 직접 fetch 표시 전용 (DB 수집 없음).
+// scoreboard 응답의 linescores 를 라운드·홀별로 파싱해 네이버식 스코어카드를 펼쳐 보여준다.
 // 진행/최근 대회 카드 + 리더보드 top10 + 한국 선수 전원 강조. docs/tennis-golf-scores 참고.
 
 import { unstable_cache } from "next/cache";
+import GolfLeaderboard, { type GolfLeaderData, type GolfRound, type HoleScore } from "./GolfLeaderboard";
+import golfKoreaSeason from "../../../../data/golf-korea-season.json";
 
+// 한국 선수 영문명 → 한글명 (시즌 트래커 JSON 재사용).
+const KO_NAME: Record<string, string> = (() => {
+  const m: Record<string, string> = {};
+  for (const p of (golfKoreaSeason as { players: Array<{ name: string; nameKo: string | null }> }).players) {
+    if (p.nameKo) m[p.name] = p.nameKo;
+  }
+  return m;
+})();
+
+interface EspnHole {
+  value?: number;
+  period?: number; // 홀 번호
+  scoreType?: { displayValue?: string }; // 홀별 대par ("E" / "-1" / "+1" …)
+}
+interface EspnRound {
+  value?: number;
+  displayValue?: string;
+  period?: number; // 라운드 번호
+  linescores?: EspnHole[]; // 홀 배열 (미시작 라운드는 없음)
+}
 interface EspnGolfResp {
   events?: Array<{
     id: string;
@@ -12,28 +35,75 @@ interface EspnGolfResp {
       competitors?: Array<{
         order?: number;
         score?: string | number;
-        athlete?: { displayName?: string; flag?: { href?: string; alt?: string } };
+        linescores?: EspnRound[];
+        athlete?: {
+          displayName?: string;
+          flag?: { href?: string; alt?: string };
+          links?: Array<{ href?: string }>;
+        };
       }>;
     }>;
   }>;
 }
 
-interface GolfLeader {
-  rank: number;
-  name: string;
-  flag: string | null;
-  country: string | null;
-  score: string;
-  isKorean: boolean;
-}
 interface GolfEvent {
   id: string;
   tour: "PGA" | "LPGA";
   name: string;
   state: "pre" | "in" | "post";
-  statusText: string;
-  leaders: GolfLeader[];
+  leaders: GolfLeaderData[];
   koreanCount: number;
+}
+
+// athlete.links href(".../id/6922/ben-kohles")에서 ESPN 선수 id → 헤드샷 URL.
+function photoFromAthlete(links?: Array<{ href?: string }>): string | null {
+  for (const l of links ?? []) {
+    const m = l.href?.match(/\/id\/(\d+)\//);
+    if (m) return `https://a.espncdn.com/i/headshots/golf/players/full/${m[1]}.png`;
+  }
+  return null;
+}
+
+// "E" → 0, "-1" → -1, "+2" → 2, 없으면 null.
+function relFromDisplay(s?: string): number | null {
+  if (s == null || s === "") return null;
+  if (s === "E") return 0;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+function fmtRel(n: number | null): string {
+  if (n == null) return "-";
+  if (n === 0) return "E";
+  return n > 0 ? `+${n}` : `${n}`;
+}
+
+function parseRounds(raw: EspnRound[]): GolfRound[] {
+  const rounds: GolfRound[] = [];
+  for (const r of raw) {
+    const rawHoles = r.linescores ?? [];
+    if (rawHoles.length === 0) continue; // 미시작 라운드 스킵
+    const holes: HoleScore[] = rawHoles
+      .map((h) => {
+        const strokes = typeof h.value === "number" ? h.value : null;
+        const rel = relFromDisplay(h.scoreType?.displayValue);
+        const par = strokes != null && rel != null ? strokes - rel : null;
+        return { hole: h.period ?? 0, strokes, rel, par };
+      })
+      .sort((a, b) => a.hole - b.hole);
+    rounds.push({ round: r.period ?? 0, holes });
+  }
+  return rounds.sort((a, b) => a.round - b.round);
+}
+
+// 현재 라운드의 진행 홀 수(thru) + 오늘 대par 계산.
+function todayAndThru(rounds: GolfRound[]): { today: string; thru: string } {
+  if (rounds.length === 0) return { today: "-", thru: "-" };
+  const last = rounds[rounds.length - 1];
+  const played = last.holes.filter((h) => h.strokes != null);
+  const thru = played.length === 0 ? "-" : played.length >= 18 ? "F" : String(played.length);
+  const rel = played.reduce((s, h) => s + (h.rel ?? 0), 0);
+  const today = played.length === 0 ? "-" : fmtRel(rel);
+  return { today, thru };
 }
 
 async function fetchTourUncached(tour: "PGA" | "LPGA"): Promise<EspnGolfResp> {
@@ -57,17 +127,26 @@ const fetchGolfCached = unstable_cache(
       const tour = tours[i];
       for (const ev of s.value.events ?? []) {
         const competitors = ev.competitions?.[0]?.competitors ?? [];
-        const all: GolfLeader[] = competitors
+        const all: GolfLeaderData[] = competitors
           .filter((c) => c.athlete?.displayName)
           .map((c) => {
             const country = c.athlete?.flag?.alt ?? null;
+            const isKorean = country === "South Korea";
+            const rounds = parseRounds(c.linescores ?? []);
+            const { today, thru } = todayAndThru(rounds);
+            const enName = c.athlete!.displayName!;
             return {
+              key: `${tour}-${ev.id}-${c.order ?? 0}-${enName}`,
               rank: c.order ?? 0,
-              name: c.athlete!.displayName!,
+              name: KO_NAME[enName] ?? enName,
               flag: c.athlete?.flag?.href ?? null,
+              photo: photoFromAthlete(c.athlete?.links),
               country,
-              score: String(c.score ?? "-"),
-              isKorean: country === "South Korea",
+              isKorean,
+              total: String(c.score ?? "-"),
+              today,
+              thru,
+              rounds,
             };
           })
           .sort((a, b) => a.rank - b.rank);
@@ -79,7 +158,6 @@ const fetchGolfCached = unstable_cache(
           tour,
           name: ev.name,
           state: (ev.status?.type?.state ?? "pre") as GolfEvent["state"],
-          statusText: ev.status?.type?.detail ?? ev.status?.type?.description ?? "",
           leaders: [...top, ...koreansOutside],
           koreanCount: all.filter((l) => l.isKorean).length,
         });
@@ -121,29 +199,10 @@ export default async function GolfBoard() {
               {ev.koreanCount > 0 && <span className="ml-2 text-neutral-400">🇰🇷 {ev.koreanCount}명 출전</span>}
             </span>
           </div>
-          <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {ev.leaders.map((l) => (
-              <li
-                key={`${ev.id}-${l.rank}-${l.name}`}
-                className={`flex items-center gap-3 px-4 py-2 text-[13px] ${l.isKorean ? "bg-amber-50/70 dark:bg-amber-500/[0.08]" : ""}`}
-              >
-                <span className="w-6 text-right font-bold tabular-nums text-neutral-500">{l.rank || "-"}</span>
-                {l.flag && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={l.flag} alt={l.country ?? ""} className="w-4 h-3 object-cover rounded-[2px]" />
-                )}
-                <span className={`truncate ${l.isKorean ? "font-bold text-neutral-900 dark:text-white" : "text-neutral-700 dark:text-neutral-300"}`}>
-                  {l.name}
-                </span>
-                <span className={`ml-auto tabular-nums font-bold ${l.score.startsWith("-") ? "text-rose-600 dark:text-rose-400" : "text-neutral-700 dark:text-neutral-300"}`}>
-                  {l.score}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <GolfLeaderboard leaders={ev.leaders} />
         </section>
       ))}
-      <p className="text-[11px] text-neutral-400 text-center">리더보드 top10 + 한국 선수 전원 · 5분 갱신 · 데이터 출처 ESPN</p>
+      <p className="text-[11px] text-neutral-400 text-center">리더보드 top10 + 한국 선수 전원 · 선수 행을 누르면 홀별 스코어카드 · 5분 갱신 · 데이터 출처 ESPN</p>
     </div>
   );
 }
