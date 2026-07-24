@@ -81,7 +81,10 @@ function parseRounds(raw: EspnRound[]): GolfRound[] {
   const rounds: GolfRound[] = [];
   for (const r of raw) {
     const rawHoles = r.linescores ?? [];
-    if (rawHoles.length === 0) continue; // 미시작 라운드 스킵
+    const roundStrokes = typeof r.value === "number" ? r.value : null;
+    const roundRel = relFromDisplay(r.displayValue);
+    // 홀도 없고 라운드 총점도 없으면 미시작 → 스킵 (일부 대회는 홀 없이 라운드 총점만 제공)
+    if (rawHoles.length === 0 && roundStrokes == null) continue;
     const holes: HoleScore[] = rawHoles
       .map((h) => {
         const strokes = typeof h.value === "number" ? h.value : null;
@@ -90,20 +93,24 @@ function parseRounds(raw: EspnRound[]): GolfRound[] {
         return { hole: h.period ?? 0, strokes, rel, par };
       })
       .sort((a, b) => a.hole - b.hole);
-    rounds.push({ round: r.period ?? 0, holes });
+    rounds.push({ round: r.period ?? 0, holes, strokes: roundStrokes, rel: roundRel });
   }
   return rounds.sort((a, b) => a.round - b.round);
 }
 
 // 현재 라운드의 진행 홀 수(thru) + 오늘 대par 계산.
+// 홀 데이터가 있으면 진행 홀로, 없으면 라운드 총점(rel)으로 오늘만 채운다(thru 불명).
 function todayAndThru(rounds: GolfRound[]): { today: string; thru: string } {
   if (rounds.length === 0) return { today: "-", thru: "-" };
   const last = rounds[rounds.length - 1];
   const played = last.holes.filter((h) => h.strokes != null);
-  const thru = played.length === 0 ? "-" : played.length >= 18 ? "F" : String(played.length);
-  const rel = played.reduce((s, h) => s + (h.rel ?? 0), 0);
-  const today = played.length === 0 ? "-" : fmtRel(rel);
-  return { today, thru };
+  if (played.length > 0) {
+    const thru = played.length >= 18 ? "F" : String(played.length);
+    const rel = played.reduce((s, h) => s + (h.rel ?? 0), 0);
+    return { today: fmtRel(rel), thru };
+  }
+  if (last.rel != null) return { today: fmtRel(last.rel), thru: "-" };
+  return { today: "-", thru: "-" };
 }
 
 async function fetchTourUncached(tour: "PGA" | "LPGA"): Promise<EspnGolfResp> {

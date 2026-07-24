@@ -13,6 +13,8 @@ export interface HoleScore {
 export interface GolfRound {
   round: number;
   holes: HoleScore[]; // 홀 번호 오름차순, 미플레이 홀은 strokes=null
+  strokes: number | null; // 라운드 총타수 (홀 데이터 없어도 옴)
+  rel: number | null; // 라운드 대par
 }
 export interface GolfLeaderData {
   key: string;
@@ -180,19 +182,55 @@ function Scorecard({ round }: { round: GolfRound }) {
   );
 }
 
+// 홀별 데이터가 없는 대회 — 라운드 총점만 요약 표로.
+function RoundSummary({ rounds }: { rounds: GolfRound[] }) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">
+      <table className="w-full text-center text-[12px]">
+        <thead>
+          <tr className="bg-neutral-100 dark:bg-white/[0.04] text-[11px] text-neutral-500 dark:text-neutral-400">
+            <th className="px-3 py-1.5 text-left font-semibold">라운드</th>
+            <th className="px-3 py-1.5 font-semibold">타수</th>
+            <th className="px-3 py-1.5 font-semibold">스코어</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+          {rounds.map((r) => (
+            <tr key={r.round}>
+              <td className="px-3 py-1.5 text-left font-semibold text-neutral-700 dark:text-neutral-200">{r.round}R</td>
+              <td className="px-3 py-1.5 tabular-nums text-neutral-700 dark:text-neutral-300">{r.strokes ?? "-"}</td>
+              <td className={`px-3 py-1.5 tabular-nums font-bold ${scoreTone(fmtRel(r.rel))}`}>{fmtRel(r.rel)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function ExpandedRow({ leader }: { leader: GolfLeaderData }) {
-  const [tab, setTab] = useState(leader.rounds.length - 1); // 최신 라운드 기본
+  const holeRounds = leader.rounds.filter((r) => r.holes.length > 0);
+  const [tab, setTab] = useState(Math.max(0, holeRounds.length - 1)); // 최신 라운드 기본
   if (leader.rounds.length === 0) {
     return (
-      <div className="px-4 py-3 text-[12px] text-neutral-400">아직 기록된 홀 스코어가 없습니다.</div>
+      <div className="px-4 py-3 text-[12px] text-neutral-400">아직 기록된 스코어가 없습니다.</div>
     );
   }
-  const round = leader.rounds[Math.min(tab, leader.rounds.length - 1)];
+  // 홀별 데이터가 없는 대회(일부 LPGA 등) → 라운드 총점 요약
+  if (holeRounds.length === 0) {
+    return (
+      <div className="px-3 sm:px-4 py-3 space-y-2 bg-neutral-50/60 dark:bg-white/[0.015]">
+        <RoundSummary rounds={leader.rounds} />
+        <p className="text-[10px] text-neutral-400">이 대회는 홀별 스코어카드가 제공되지 않아 라운드 총점만 표시합니다. 출처 ESPN.</p>
+      </div>
+    );
+  }
+  const round = holeRounds[Math.min(tab, holeRounds.length - 1)];
   return (
     <div className="px-3 sm:px-4 py-3 space-y-2.5 bg-neutral-50/60 dark:bg-white/[0.015]">
-      {leader.rounds.length > 1 && (
+      {holeRounds.length > 1 && (
         <div className="inline-flex gap-1 rounded-full bg-white p-0.5 ring-1 ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-800">
-          {leader.rounds.map((r, i) => (
+          {holeRounds.map((r, i) => (
             <button
               key={r.round}
               onClick={() => setTab(i)}
