@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { USER_COOKIE_NAME, createUserSessionCookie } from "@/lib/user-auth";
+import { awardAttendance } from "@/lib/user-exp";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +109,9 @@ export async function GET(req: Request) {
         }
       }
     }
+
+    // 출석 보상 (KST 하루 1회). 이메일 로그인과 동일. 실패해도 로그인은 진행.
+    await awardAttendance(userId).catch(() => {});
 
     // 4) 세션 쿠키 (이메일 로그인과 동일한 user_session)
     const { value, maxAge } = createUserSessionCookie(userId);

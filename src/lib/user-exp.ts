@@ -3,7 +3,7 @@
 
 import "server-only";
 import { prisma } from "@/lib/db";
-import { expToLevel } from "@/lib/user-level";
+import { EXP_REWARDS, POINT_REWARDS, expToLevel } from "@/lib/user-level";
 
 /**
  * exp/points 증감 후 level 동기화 + ExpLog 기록.
@@ -45,4 +45,33 @@ export async function awardExp(
     });
   }
   return updated;
+}
+
+/**
+ * 출석(로그인) 보상 — KST 하루 1회. exp/points 지급 + lastAttendanceAt 갱신.
+ * 이메일 로그인·구글 OAuth 콜백 양쪽에서 호출 (경로별 중복 방지용 공통 헬퍼).
+ * 오늘 이미 받았으면 아무것도 하지 않음. 실패해도 로그인 흐름은 막지 않도록 호출부에서 catch.
+ */
+export async function awardAttendance(userId: string): Promise<void> {
+  const KST = 9 * 3600 * 1000;
+  const nk = new Date(Date.now() + KST);
+  const todayStart = new Date(
+    Date.UTC(nk.getUTCFullYear(), nk.getUTCMonth(), nk.getUTCDate()) - KST,
+  );
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { lastAttendanceAt: true },
+  });
+  if (user?.lastAttendanceAt && user.lastAttendanceAt >= todayStart) return; // 오늘 이미 출석
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { lastAttendanceAt: new Date() },
+  });
+  await awardExp(
+    userId,
+    { exp: EXP_REWARDS.attendance, points: POINT_REWARDS.attendance },
+    "attendance",
+  );
 }

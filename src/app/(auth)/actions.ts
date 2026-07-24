@@ -11,7 +11,7 @@ import {
   verifyPassword,
 } from "@/lib/user-auth";
 import { rateLimit, rateLimitReset } from "@/lib/rate-limit";
-import { expToLevel } from "@/lib/user-level";
+import { awardAttendance } from "@/lib/user-exp";
 
 export interface AuthState {
   ok: boolean;
@@ -136,7 +136,7 @@ export async function loginUserAction(
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, passwordHash: true, exp: true, lastAttendanceAt: true },
+    select: { id: true, passwordHash: true },
   });
   // passwordHash null = 구글 OAuth 전용 계정 → 비밀번호 로그인 불가 (구글로 로그인 유도)
   if (!user || !user.passwordHash || !(await verifyPassword(password, user.passwordHash))) {
@@ -148,21 +148,8 @@ export async function loginUserAction(
 
   rateLimitReset(`user-login:${ip}`);
 
-  // 출석 경험치 +10 (KST 하루 1회). 실패해도 로그인은 진행.
-  const KST = 9 * 3600 * 1000;
-  const nk = new Date(Date.now() + KST);
-  const todayStart = new Date(
-    Date.UTC(nk.getUTCFullYear(), nk.getUTCMonth(), nk.getUTCDate()) - KST,
-  );
-  if (!user.lastAttendanceAt || user.lastAttendanceAt < todayStart) {
-    const newExp = user.exp + 10;
-    await prisma.user
-      .update({
-        where: { id: user.id },
-        data: { exp: newExp, level: expToLevel(newExp), lastAttendanceAt: new Date() },
-      })
-      .catch(() => {});
-  }
+  // 출석 보상 (KST 하루 1회). 실패해도 로그인은 진행.
+  await awardAttendance(user.id).catch(() => {});
 
   await setSession(user.id);
   redirect(from);

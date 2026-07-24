@@ -48,7 +48,8 @@ export const POINT_REWARDS = {
   attendance: 10,
   comment: 5,
   analysisPost: 100,
-  predictionHit: 50,
+  predictionJoin: 20, // 경기 예측 참여 (글 작성 보상에 추가 지급)
+  predictionHit: 100, // 🎯 예측 적중 (자동 채점)
   recommendReceived: 5,
   firstPostBonus: 100, // 생애 첫 글 보너스
 } as const;

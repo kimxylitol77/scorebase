@@ -139,6 +139,15 @@ export async function createPostAction(
     "post_create",
   );
 
+  // 예측 참여 보너스 — 픽(종목·경기·마켓)을 단 예측글이면 글 작성 보상에 추가 지급.
+  if (predData) {
+    await awardExp(
+      userId,
+      { exp: EXP_REWARDS.predictionJoin, points: POINT_REWARDS.predictionJoin },
+      "prediction_join",
+    );
+  }
+
   // 생애 첫 글 보너스 — 방금 만든 글 포함 count===1 이면 첫 글. 가입 전환 유도용.
   const postCount = await prisma.post.count({ where: { authorId: userId } });
   const isFirstPost = postCount === 1;
