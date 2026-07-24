@@ -1982,7 +1982,27 @@ export default async function ScoresPage({ searchParams }: Props) {
           <TennisBoard kstDateStr={dateStr} />
         </>
       ) : sport === "golf" ? (
-        <GolfBoard />
+        <>
+          {/* 한국 선수 시즌 트래커 진입 — 골프의 한국 특화 콘텐츠 */}
+          <Link
+            href="/golf/korea"
+            prefetch={false}
+            className="block rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+          >
+            <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+              <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                🇰🇷 한국 선수 시즌 성적{" "}
+                <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                  — LPGA·PGA 우승·톱10 집계
+                </span>
+              </span>
+              <span className="shrink-0 text-[12px] font-bold text-amber-600 dark:text-amber-400">
+                성적 보기 →
+              </span>
+            </span>
+          </Link>
+          <GolfBoard />
+        </>
       ) : sport === "f1" ? (
         <F1Board />
       ) : sport === "soccer" ? (
