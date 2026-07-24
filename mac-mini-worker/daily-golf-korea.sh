@@ -23,20 +23,27 @@ git fetch origin main -q && git reset --hard origin/main -q
 log "▶ 한국 선수 시즌 집계"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-golf-korea-season.ts' 2>&1 | tail -4
 
-# 빈 파일 가드 — ESPN 응답 이상으로 데이터가 쪼그라들면 push 중단
-SIZE=$(stat -f%z data/golf-korea-season.json 2>/dev/null || echo 0)
-if [ "$SIZE" -lt 10000 ]; then
-  echo "❌ data/golf-korea-season.json 비정상 (${SIZE}B) — push 중단"
-  git checkout -- data/ 2>/dev/null || true
-  exit 1
-fi
+# 세계랭킹(남자 OWGR) — 공식 API top100 → data/golf-world-rankings.json.
+# OWGR 은 매주 월요일(KST) 갱신이라 daily 로 두면 당일 반영. Haiku 미사용(기존 사전 재사용)이라 비용 0.
+log "▶ 세계랭킹(남자 OWGR)"
+npx tsx scripts/build-golf-world-rankings.ts 2>&1 | tail -2 || true
+
+# 빈 파일 가드 — 응답 이상으로 데이터가 쪼그라들면 push 중단
+for f in data/golf-korea-season.json data/golf-world-rankings.json; do
+  SIZE=$(stat -f%z "$f" 2>/dev/null || echo 0)
+  if [ "$SIZE" -lt 10000 ]; then
+    echo "❌ $f 비정상 (${SIZE}B) — push 중단"
+    git checkout -- data/ 2>/dev/null || true
+    exit 1
+  fi
+done
 
 # data/*.json 변경분만 commit/push (updatedAt 만 바뀐 경우도 포함 — 최신 갱신 시각 노출용)
 if git diff --quiet -- data/; then
   log "변경 없음 — push 생략"
 else
-  git add data/golf-korea-season.json data/golf-player-names.json
-  git commit -m "chore(data): 골프 한국 선수 시즌 성적 자동 갱신 (mac-mini)" -q
+  git add data/golf-korea-season.json data/golf-player-names.json data/golf-world-rankings.json
+  git commit -m "chore(data): 골프 한국 선수 성적·세계랭킹 자동 갱신 (mac-mini)" -q
   git push origin main -q
   log "✓ push 완료: $(git log --oneline -1)"
 fi
