@@ -5,6 +5,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
+import GolfWorldRanking from "@/components/golf/GolfWorldRanking";
 import { golfEventKo } from "@/lib/sports/golf-events-ko";
 import { SITE_URL } from "@/lib/site-url";
 import seasonData from "../../../../data/golf-korea-season.json";
@@ -33,9 +34,20 @@ const DATA = seasonData as { year: string; updatedAt: string; players: Player[] 
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ tour?: string }>;
+  searchParams: Promise<{ tour?: string; view?: string }>;
 }): Promise<Metadata> {
   const sp = await searchParams;
+  if (sp?.view === "world") {
+    return {
+      title: `골프 세계랭킹 — 남자 OWGR 순위 (한국어)`,
+      description: `공식 세계골프랭킹(OWGR) 남자 top100 을 한국어로. 순위·전주 대비 등락·평균점수와 한국 선수 위치까지 한 곳에서 — 스코어베이스 골프.`,
+      keywords: [
+        "골프 세계랭킹", "OWGR", "남자 골프 랭킹", "세계 골프 순위", "골프 순위",
+        "김시우 랭킹", "김주형 랭킹", "임성재 랭킹", "셰플러", "매킬로이",
+      ],
+      alternates: { canonical: `${SITE_URL}/golf/korea?view=world` },
+    };
+  }
   const tour = sp?.tour === "pga" ? "PGA" : "LPGA";
   return {
     title: `${tour} 한국 선수 시즌 성적 — 우승·톱10 (${DATA.year})`,
@@ -57,9 +69,10 @@ function medalTone(order: number | null): string {
 export default async function GolfKoreaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tour?: string }>;
+  searchParams: Promise<{ tour?: string; view?: string }>;
 }) {
   const sp = await searchParams;
+  const view: "korea" | "world" = sp?.view === "world" ? "world" : "korea";
   const tour: "PGA" | "LPGA" = sp?.tour === "pga" ? "PGA" : "LPGA";
   const players = DATA.players.filter((p) => p.tour === tour);
 
@@ -72,18 +85,50 @@ export default async function GolfKoreaPage({
 
       <header className="space-y-3">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 골프 · {DATA.year} 시즌
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden />{" "}
+          {view === "world" ? "골프 · 세계랭킹" : `골프 · ${DATA.year} 시즌`}
         </span>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight break-keep">
-          한국 선수 시즌 성적
+          {view === "world" ? "골프 세계랭킹" : "한국 선수 시즌 성적"}
         </h1>
         <p className="text-sm text-neutral-600 dark:text-neutral-400 break-keep">
-          {DATA.year} PGA·LPGA 투어에 출전한 한국 선수들의 우승·톱10·출전 기록을 한 곳에 모았습니다.
-          대회가 끝날 때마다 갱신됩니다.
+          {view === "world"
+            ? "공식 세계골프랭킹(OWGR) 남자 top100 을 한국어로. 한국 선수는 색으로 강조했습니다."
+            : `${DATA.year} PGA·LPGA 투어에 출전한 한국 선수들의 우승·톱10·출전 기록을 한 곳에 모았습니다. 대회가 끝날 때마다 갱신됩니다.`}
         </p>
       </header>
 
+      {/* 뷰 전환 — 한국 선수 / 세계랭킹 */}
+      <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
+        {(
+          [
+            { key: "korea", label: "한국 선수", href: "/golf/korea" },
+            { key: "world", label: "세계랭킹", href: "/golf/korea?view=world" },
+          ] as const
+        ).map((v) => {
+          const on = view === v.key;
+          return (
+            <Link
+              key={v.key}
+              href={v.href}
+              aria-current={on ? "page" : undefined}
+              className={`rounded-full px-5 py-1.5 text-sm font-medium transition-colors ${
+                on
+                  ? "bg-white font-bold text-rose-600 shadow-sm dark:bg-white/10 dark:text-rose-300"
+                  : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+              }`}
+            >
+              {v.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {view === "world" && <GolfWorldRanking />}
+
       {/* 투어 탭 */}
+      {view !== "world" && (
+      <>
       <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
         {(["LPGA", "PGA"] as const).map((t) => {
           const on = tour === t;
@@ -176,6 +221,8 @@ export default async function GolfKoreaPage({
           </ul>
         </div>
       )}
+      </>
+      )}
 
       <div className="flex flex-wrap gap-2 pt-1">
         <Link
@@ -186,10 +233,12 @@ export default async function GolfKoreaPage({
         </Link>
       </div>
 
-      <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
-        종료된 대회 기준 집계이며, 공동 순위는 같은 순위로 계산합니다. 선수 이름은 한국어 위키백과를 우선 사용합니다.
-        데이터 출처 ESPN · 마지막 갱신 {DATA.updatedAt.slice(0, 10)}.
-      </footer>
+      {view !== "world" && (
+        <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">
+          종료된 대회 기준 집계이며, 공동 순위는 같은 순위로 계산합니다. 선수 이름은 한국어 위키백과를 우선 사용합니다.
+          데이터 출처 ESPN · 마지막 갱신 {DATA.updatedAt.slice(0, 10)}.
+        </footer>
+      )}
     </main>
   );
 }
