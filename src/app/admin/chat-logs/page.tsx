@@ -99,9 +99,9 @@ export default async function ChatLogsPage({
                   )}
                 </div>
                 <p className="font-medium text-sm mb-2">Q. {log.question}</p>
-                <details className="text-sm text-neutral-700 dark:text-neutral-300">
+                <details open className="text-sm text-neutral-700 dark:text-neutral-300">
                   <summary className="cursor-pointer text-neutral-500 hover:text-neutral-900 dark:hover:text-white text-xs">
-                    답변 보기
+                    답변 접기/펼치기
                   </summary>
                   <p className="mt-2 whitespace-pre-wrap">{log.answer}</p>
                 </details>
