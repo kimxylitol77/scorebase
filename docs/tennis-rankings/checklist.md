@@ -6,7 +6,7 @@
 ## 1. 선수 한글명 사전
 - [x] scripts/build-tennis-player-names.ts — ATP·WTA top150(300명) 위키 ko langlink → 미확보분 Haiku 음역
 - [x] data/tennis-player-names.json 산출 (기존 nba/mlb 정적 사전 패턴)
-- [ ] weekly-static-refresh cron 에 편입 (랭킹 변동 → 신규 선수 자동 보강)
+- [x] weekly-static-refresh 편입(⑮) — 랭킹 변동 시 신규 선수 자동 보강
 
 ## 2. 랭킹 페이지
 - [x] src/lib/sports/espn-tennis.ts — 랭킹 fetch(캐시) + 한글명 매핑 + 국가명 한글(fifa-rankings 재사용)
