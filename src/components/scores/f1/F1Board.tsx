@@ -3,6 +3,20 @@
 // docs/tennis-golf-scores 참고 (테니스·골프와 동일 패턴).
 
 import { unstable_cache } from "next/cache";
+import Link from "next/link";
+import DriverAvatar from "./DriverAvatar";
+import driverNames from "../../../../data/f1-driver-names.json";
+
+const DRIVER_KO = driverNames as Record<string, string>;
+
+// athlete.links href(".../id/5752/...")에서 드라이버 id 추출.
+function driverIdFromLinks(links?: Array<{ href?: string }>): string | null {
+  for (const l of links ?? []) {
+    const m = l.href?.match(/\/id\/(\d+)/);
+    if (m) return m[1];
+  }
+  return null;
+}
 
 interface EspnF1Resp {
   events?: Array<{
@@ -20,7 +34,12 @@ interface EspnF1Resp {
       competitors?: Array<{
         order?: number;
         winner?: boolean;
-        athlete?: { displayName?: string; shortName?: string; flag?: { href?: string; alt?: string } };
+        athlete?: {
+          displayName?: string;
+          shortName?: string;
+          flag?: { href?: string; alt?: string };
+          links?: Array<{ href?: string }>;
+        };
         vehicle?: { manufacturer?: string };
       }>;
     }>;
@@ -32,7 +51,14 @@ interface F1Session {
   label: string;
   dateKst: string; // "7/24 (금) 20:30"
   state: "pre" | "in" | "post";
-  results: Array<{ rank: number; name: string; team: string | null; flag: string | null }>;
+  results: Array<{
+    rank: number;
+    name: string;
+    team: string | null;
+    flag: string | null;
+    country: string | null;
+    photo: string | null;
+  }>;
 }
 interface F1Event {
   id: string;
@@ -83,12 +109,18 @@ const fetchF1Cached = unstable_cache(
             .filter((d) => d.athlete?.displayName)
             .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
             .slice(0, 10)
-            .map((d) => ({
-              rank: d.order ?? 0,
-              name: d.athlete!.shortName || d.athlete!.displayName!,
-              team: d.vehicle?.manufacturer ?? null,
-              flag: d.athlete?.flag?.href ?? null,
-            })),
+            .map((d) => {
+              const did = driverIdFromLinks(d.athlete?.links);
+              const en = d.athlete!.shortName || d.athlete!.displayName!;
+              return {
+                rank: d.order ?? 0,
+                name: (did && DRIVER_KO[did]) || en,
+                team: d.vehicle?.manufacturer ?? null,
+                flag: d.athlete?.flag?.href ?? null,
+                country: d.athlete?.flag?.alt ?? null,
+                photo: did ? `https://a.espncdn.com/i/headshots/rpm/players/full/${did}.png` : null,
+              };
+            }),
         };
       }),
     }));
@@ -125,6 +157,12 @@ export default async function F1Board() {
             <span className={`ml-auto shrink-0 text-[11px] ${ev.state === "in" ? "font-semibold text-rose-600 dark:text-rose-400" : "text-neutral-400"}`}>
               {ev.state === "in" ? "진행 중" : ev.state === "post" ? "종료" : "예정"}
             </span>
+            <Link
+              href="/rankings/f1"
+              className="shrink-0 rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+            >
+              챔피언십
+            </Link>
           </div>
           <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
             {ev.sessions.map((s) => (
@@ -139,15 +177,24 @@ export default async function F1Board() {
                   </span>
                 </div>
                 {s.results.length > 0 && (
-                  <ol className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                  <ol className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
                     {s.results.map((r) => (
                       <li key={`${s.id}-${r.rank}`} className="flex items-center gap-2 text-[12px]">
-                        <span className="w-5 text-right font-bold tabular-nums text-neutral-500">{r.rank}</span>
-                        {r.flag && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={r.flag} alt="" className="w-4 h-3 object-cover rounded-[2px]" />
-                        )}
-                        <span className={`truncate ${r.rank === 1 ? "font-bold text-neutral-900 dark:text-white" : "text-neutral-700 dark:text-neutral-300"}`}>
+                        <span
+                          className={`w-5 text-right font-bold tabular-nums ${
+                            r.rank === 1
+                              ? "text-amber-500"
+                              : r.rank === 2
+                                ? "text-neutral-400"
+                                : r.rank === 3
+                                  ? "text-orange-400"
+                                  : "text-neutral-500"
+                          }`}
+                        >
+                          {r.rank}
+                        </span>
+                        <DriverAvatar photo={r.photo} flag={r.flag} country={r.country} name={r.name} />
+                        <span className={`truncate ${r.rank <= 3 ? "font-bold text-neutral-900 dark:text-white" : "text-neutral-700 dark:text-neutral-300"}`}>
                           {r.name}
                         </span>
                         {r.team && <span className="ml-auto text-[11px] text-neutral-400 truncate">{r.team}</span>}
