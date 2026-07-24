@@ -290,6 +290,13 @@ function soccerEffStatus(short: string): "LIVE" | "FINISHED" | "SCHEDULED" | "PO
 /** LiveMatch + 경기 상태 — 날짜 조회(예정/라이브/종료 혼재)용. */
 export interface DatedMatch extends LiveMatch {
   status: "LIVE" | "FINISHED" | "SCHEDULED" | "POSTPONED";
+  /**
+   * api-football 팀 ID — /scores 가 orphan 카드와 DB 매치의 중복을 팀명 대신 ID 로
+   * 판정하기 위해 함께 싣는다. 팀명은 소스마다 표기가 갈려(af "Club Brugge II" ↔
+   * TheSports "Club NXT") 이름 대조만으로는 같은 경기가 두 장으로 뜬다.
+   */
+  homeTeamExtId?: string;
+  awayTeamExtId?: string;
 }
 
 /**
@@ -335,6 +342,8 @@ export async function fetchSoccerByDate(kstDateStr: string): Promise<DatedMatch[
         awayName: f.teams.away.name,
         homeShort: shortName(f.teams.home.name, code),
         awayShort: shortName(f.teams.away.name, code),
+        homeTeamExtId: f.teams.home.id != null ? String(f.teams.home.id) : undefined,
+        awayTeamExtId: f.teams.away.id != null ? String(f.teams.away.id) : undefined,
         homeLogo: f.teams.home.logo ?? null,
         awayLogo: f.teams.away.logo ?? null,
         homeScore: g.home ?? 0,

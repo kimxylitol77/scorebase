@@ -55,6 +55,11 @@ import {
   fetchSoccerByDate,
   type DatedMatch,
 } from "@/lib/sports/live-scores";
+import {
+  buildOrphanDedup,
+  normalizeTeamName,
+  romanizeTeamName,
+} from "@/lib/sports/orphan-dedup";
 import SportTabs from "@/components/scores/SportTabs";
 import TennisBoard from "@/components/scores/tennis/TennisBoard";
 import GolfBoard from "@/components/scores/golf/GolfBoard";
@@ -1078,40 +1083,9 @@ export default async function ScoresPage({ searchParams }: Props) {
   // 외부 라이브 매치 ↔ DB 매치 매칭 (externalId 또는 league+이름)
   const liveByExternalId = new Map<string, LiveMatch>();
   const liveByNameKey = new Map<string, LiveMatch>();
-  function normalizeName(s: string): string {
-    const stripped = s
-      .replace(/\s+(fc|sc|cf|united|club|esports|f\.c\.|s\.c\.)\s*$/gi, "")
-      .trim();
-    let ko = toKoreanTeamName(stripped);
-    if (ko === stripped) {
-      const spaced = stripped.replace(/\./g, ". ").replace(/\s+/g, " ").trim();
-      if (spaced !== stripped) {
-        const ko2 = toKoreanTeamName(spaced);
-        if (ko2 !== spaced) ko = ko2;
-      }
-    }
-    return ko.toLowerCase().replace(/[\s.·\-_]/g, "");
-  }
-  // 순수 로마자 키 — 한글 매핑을 거치지 않고 발음기호·특수문자만 정규화. DB 매치와
-  // api-football orphan 이 같은 경기라도 철자(é/æ/ø/ł 등)가 달라 중복 카드로 뜨던 것 방지.
-  // normalizeName 은 toKoreanTeamName 을 먼저 태워서, 한쪽 철자만 한글 매핑에 걸리면
-  // 키가 갈린다(예: "Bodø/Glimt"→한글 vs "Bodo Glimt"→로마자). 이 키는 그 우회로.
-  function romanizeName(s: string): string {
-    return s
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "") // 결합 diacritic (é á ñ ü …)
-      .normalize("NFC")
-      .toLowerCase()
-      .replace(/æ/g, "ae")
-      .replace(/œ/g, "oe")
-      .replace(/ø/g, "o")
-      .replace(/ł/g, "l")
-      .replace(/đ|ð/g, "d")
-      .replace(/þ/g, "th")
-      .replace(/ß/g, "ss")
-      .replace(/ı/g, "i")
-      .replace(/[\s.·\-_/]/g, "");
-  }
+  // 팀명 정규화 키 2종은 orphan 중복 판정과 같은 정의를 써야 해 lib/sports/orphan-dedup 이 단일 출처.
+  const normalizeName = normalizeTeamName;
+  const romanizeName = romanizeTeamName;
   // 라이브 매치를 페이지의 KST 일자로 필터 — 다른 날짜 매치가 같은 팀명으로 false-match 되는 것 방지.
   // (예: 5/15 한화-KT 라이브 데이터가 5/16 한화-KT DB 매치에 잘못 붙어 "진행 중" 으로 보이던 버그)
   const liveForThisDay = liveMatches.filter((lm) => {
@@ -1713,44 +1687,38 @@ export default async function ScoresPage({ searchParams }: Props) {
   // externalId dedup 만으론 부족 — TheSports 수집 매치(ext="ts-xxx")와 api-football
   // orphan(ext="af-{fixtureId}")은 같은 경기라도 source 별 id 체계가 달라 ext 가 절대
   // 안 맞음. LALIGA_2 등 TheSports 로 적재되는 하위 리그가 full 카드 + minimal orphan
-  // 두 장으로 중복되던 버그 (2026-06-10 알메리아-카스테욘). 리그+팀명 정규화 키로 보강.
-  const dbNameKeys = new Set(
-    matches.map(
-      (m) =>
-        `${m.league}|${normalizeName(m.homeTeam.name)}|${normalizeName(m.awayTeam.name)}`,
+  // 두 장으로 중복되던 버그 (2026-06-10 알메리아-카스테욘). 팀명·팀ID·킥오프로 보강한
+  // 판정은 lib/sports/orphan-dedup 이 단일 출처 — scripts/audit-scores-orphan-dup 이
+  // 같은 함수로 감사한다(규칙을 이 파일에 두면 감사 사본이 갈라져 재발을 놓친다).
+  const afTeamExtIds = [
+    ...new Set(
+      datedSoccer.flatMap((d) => [d.homeTeamExtId, d.awayTeamExtId]).filter(Boolean) as string[],
     ),
+  ];
+  const afTeamIdMap = new Map<string, Set<number>>();
+  if (afTeamExtIds.length) {
+    const rows = await prisma.teamSourceId.findMany({
+      where: { source: "api-football", externalId: { in: afTeamExtIds } },
+      select: { externalId: true, teamId: true },
+    });
+    for (const r of rows) {
+      const s = afTeamIdMap.get(r.externalId) ?? new Set<number>();
+      s.add(r.teamId);
+      afTeamIdMap.set(r.externalId, s);
+    }
+  }
+  const orphanDedup = buildOrphanDedup(
+    matches.map((m) => ({
+      league: m.league,
+      startTime: m.startTime,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      homeName: m.homeTeam.name,
+      awayName: m.awayTeam.name,
+    })),
+    datedSoccer,
+    afTeamIdMap,
   );
-  // 정확 키가 어긋나는 표기 차이 보강 — DB "FK Qarabag" ↔ date 소스 "Qarabag" 처럼 접두/접미가
-  // 달라 정규화 키가 안 맞으면 orphan 이 중복 카드로 뜬다. matchLive 와 동일한 substring 포함
-  // 매칭으로 한 번 더 거른다(3자 미만은 오매칭 방지로 제외).
-  const dbNameNorms = matches.map((m) => ({
-    league: m.league,
-    h: normalizeName(m.homeTeam.name),
-    a: normalizeName(m.awayTeam.name),
-  }));
-  const nameOverlap = (x: string, y: string) =>
-    x.length >= 3 && y.length >= 3 && (x.includes(y) || y.includes(x));
-  const coveredByDbName = (dm: DatedMatch) => {
-    const h = normalizeName(dm.homeName);
-    const a = normalizeName(dm.awayName);
-    return dbNameNorms.some(
-      (d) => d.league === dm.league && nameOverlap(d.h, h) && nameOverlap(d.a, a),
-    );
-  };
-  // 로마자 키 보강 — 발음기호·특수문자만 다른 같은 경기(예: DB "Hradec Kralove" ↔
-  // date "Hradec Králové", "Bodo Glimt" ↔ "Bodø/Glimt")를 한글 매핑 우회로 한 번 더 거른다.
-  const dbRomanNorms = matches.map((m) => ({
-    league: m.league,
-    h: romanizeName(m.homeTeam.name),
-    a: romanizeName(m.awayTeam.name),
-  }));
-  const coveredByRoman = (dm: DatedMatch) => {
-    const h = romanizeName(dm.homeName);
-    const a = romanizeName(dm.awayName);
-    return dbRomanNorms.some(
-      (d) => d.league === dm.league && nameOverlap(d.h, h) && nameOverlap(d.a, a),
-    );
-  };
   // af "Friendlies"(id 10) 는 성인 대표팀 외에 U19/U21/U23·여자 친선까지 포함 —
   // orphan 으로 영문 그대로 섞여 노출되던 것 숨김 (2026-06-10). DB 수집 친선(성인)은 영향 없음.
   const isYouthOrWomenFriendly = (dm: DatedMatch) =>
@@ -1763,11 +1731,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         (!leagueFilter || dm.league === leagueFilter) &&
         !isYouthOrWomenFriendly(dm) &&
         !dbExtIds.has(dm.id.replace(/^[a-z]+-/i, "")) &&
-        !dbNameKeys.has(
-          `${dm.league}|${normalizeName(dm.homeName)}|${normalizeName(dm.awayName)}`,
-        ) &&
-        !coveredByDbName(dm) &&
-        !coveredByRoman(dm) &&
+        !orphanDedup.isCovered(dm) &&
         !matchedLiveIds.has(dm.id),
     )
     .map((dm) => orphanCard(dm));
