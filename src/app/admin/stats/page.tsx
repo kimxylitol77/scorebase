@@ -364,7 +364,7 @@ export default async function StatsPage({ searchParams }: Props) {
   }));
   const topReferralDomains = Array.from(referralDomainAgg.entries())
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
+    .slice(0, 50);
   const topSearchQueries = Array.from(searchQueryAgg.entries())
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 15);
@@ -798,10 +798,13 @@ export default async function StatsPage({ searchParams }: Props) {
         </div>
 
         {topReferralDomains.length > 0 && (
-          <SectionCard title="기타 사이트 상세 (referral TOP 10)" subtitle={rangeLabel}>
-            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {topReferralDomains.map(([domain, count], i) => {
-                const max = topReferralDomains[0][1];
+          <SectionCard
+            title={`기타 사이트 상세 (referral ${topReferralDomains.length}개)`}
+            subtitle={rangeLabel}
+          >
+            {(() => {
+              const max = topReferralDomains[0][1];
+              const row = ([domain, count]: [string, number], i: number) => {
                 const pct = max > 0 ? (count / max) * 100 : 0;
                 return (
                   <li key={domain} className="py-2 flex items-center gap-3 text-sm">
@@ -817,8 +820,30 @@ export default async function StatsPage({ searchParams }: Props) {
                     </span>
                   </li>
                 );
-              })}
-            </ul>
+              };
+              const head = topReferralDomains.slice(0, 10);
+              const rest = topReferralDomains.slice(10);
+              return (
+                <>
+                  <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                    {head.map(row)}
+                  </ul>
+                  {rest.length > 0 && (
+                    <details className="group mt-1">
+                      <summary className="cursor-pointer list-none py-2 text-sm font-medium text-sky-600 dark:text-sky-400 hover:underline select-none">
+                        <span className="group-open:hidden">
+                          + 나머지 {rest.length}개 펼치기
+                        </span>
+                        <span className="hidden group-open:inline">접기</span>
+                      </summary>
+                      <ul className="divide-y divide-neutral-200 dark:divide-neutral-800 border-t border-neutral-200 dark:border-neutral-800">
+                        {rest.map((entry, i) => row(entry, i + 10))}
+                      </ul>
+                    </details>
+                  )}
+                </>
+              );
+            })()}
           </SectionCard>
         )}
 
