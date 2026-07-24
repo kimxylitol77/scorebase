@@ -4,6 +4,7 @@ import { displayGrade } from "@/lib/user-level";
 import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "./Avatar";
 import StreakBadge from "./StreakBadge";
+import UserName from "@/components/UserName";
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
@@ -32,10 +33,10 @@ export default function ExpertRow({
       </span>
 
       <span className="flex items-center gap-3 min-w-0">
-        <Avatar avatar={avatar} size="md" />
+        <Avatar avatar={avatar} size="md" frame={row.avatarFrame} />
         <span className="min-w-0">
           <span className="flex items-center gap-1.5">
-            <span className="truncate font-bold text-sm transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400">{row.nickname}</span>
+            <UserName name={row.nickname} nameColor={row.nameColor} className="truncate font-bold text-sm transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400" />
             <StreakBadge streak={row.streak} />
           </span>
           <span className="flex items-center gap-1.5 mt-1">

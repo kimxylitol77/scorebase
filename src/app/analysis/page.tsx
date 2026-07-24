@@ -9,7 +9,9 @@ import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { SITE_URL } from "@/lib/site-url";
 import { Trophy, SquarePen, Target, Flame, X } from "lucide-react";
 import { resolveAvatar } from "@/lib/analysis/analysts";
+import { shopItemById } from "@/lib/shop";
 import BoardTabs from "@/components/BoardTabs";
+import UserName from "@/components/UserName";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
@@ -187,22 +189,25 @@ function AuthorBadge({
   nickname,
   level,
   badge,
+  frame,
   size = "h-8 w-8 text-base",
 }: {
   avatarUrl: string | null;
   nickname: string;
   level?: number;
   badge?: string | null;
+  frame?: string | null;
   size?: string;
 }) {
   const av = resolveAvatar(avatarUrl, nickname, level, badge);
+  const ring = shopItemById(frame)?.ring ?? "";
   if (av.imageUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={av.imageUrl}
         alt=""
-        className={`inline-block shrink-0 rounded-full object-cover ${size}`}
+        className={`inline-block shrink-0 rounded-full object-cover ${size} ${ring}`}
         aria-hidden
         loading="lazy"
       />
@@ -210,7 +215,7 @@ function AuthorBadge({
   }
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-full ${av.bg} ${size}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full ${av.bg} ${size} ${ring}`}
       aria-hidden
     >
       {av.emoji}
@@ -294,6 +299,8 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             avatarUrl: true,
             level: true,
             badge: true,
+            nameColor: true,
+            avatarFrame: true,
             predTotal: true,
             predHit: true,
             predStreak: true,
@@ -556,8 +563,8 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                           <span className="font-medium">{SPORT_META[p.sport].label}</span>
                         )}
                         <span className="inline-flex items-center gap-1">
-                          <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} size="h-6 w-6 text-sm" />
-                          {a.nickname}
+                          <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} frame={a.avatarFrame} size="h-6 w-6 text-sm" />
+                          <UserName name={a.nickname} nameColor={a.nameColor} />
                         </span>
                         {a.predTotal > 0 ? (
                           <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -582,9 +589,9 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                       className="hidden sm:flex items-center gap-2.5 text-sm text-neutral-600 dark:text-neutral-400 min-w-0"
                       title={g.name}
                     >
-                      <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} size="h-10 w-10 text-xl" />
+                      <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} frame={a.avatarFrame} size="h-10 w-10 text-xl" />
                       <span className="flex flex-col min-w-0">
-                        <span className="truncate">{a.nickname}</span>
+                        <UserName name={a.nickname} nameColor={a.nameColor} className="truncate" />
                         {a.predTotal > 0 ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                             <Target className="h-3 w-3" aria-hidden /> {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})

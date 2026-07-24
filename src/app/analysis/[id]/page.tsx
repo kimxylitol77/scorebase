@@ -12,6 +12,7 @@ import { pickOdds, fmtOdds } from "@/lib/analysis/odds";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { TIERS } from "@/lib/dream-team/tiers";
 import Markdown from "@/components/Markdown";
+import UserName from "@/components/UserName";
 import { Target } from "lucide-react";
 import FollowButton from "@/components/experts/FollowButton";
 import LikeButton from "./LikeButton";
@@ -76,6 +77,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
           nickname: true,
           level: true,
           badge: true,
+          nameColor: true,
           predTotal: true,
           predHit: true,
           predStreak: true,
@@ -107,7 +109,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
           content: true,
           createdAt: true,
           authorId: true,
-          author: { select: { nickname: true, level: true, badge: true } },
+          author: { select: { nickname: true, level: true, badge: true, nameColor: true } },
         },
       },
     },
@@ -214,7 +216,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
 
         <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-black/5 dark:border-white/10 text-xs text-neutral-500">
           <span className="font-semibold text-neutral-700 dark:text-neutral-300" title={g.name}>
-            {g.emoji} {a.nickname}
+            {g.emoji} <UserName name={a.nickname} nameColor={a.nameColor} />
           </span>
           {a.predTotal > 0 ? (
             <span
@@ -385,7 +387,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
                       className="font-semibold text-neutral-700 dark:text-neutral-300"
                       title={cg.name}
                     >
-                      {cg.emoji} {c.author.nickname}
+                      {cg.emoji} <UserName name={c.author.nickname} nameColor={c.author.nameColor} />
                     </span>
                     <span className="text-xs text-neutral-400">{listTime(c.createdAt)}</span>
                     {userId === c.authorId && <DeleteCommentButton commentId={c.id} />}

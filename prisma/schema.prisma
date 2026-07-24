@@ -808,6 +808,11 @@ model User {
   avatarUrl        String?   // 아바타: 프리셋 id(src/lib/avatars.ts) 또는 업로드 사진(data URL, 160px webp). null=기본
   lastAttendanceAt DateTime? // 출석 경험치 마지막 적립 시각 (KST 하루 1회 제한)
 
+  // 프로필 꾸미기 (포인트 상점에서 구매·장착). 카탈로그·해석은 src/lib/shop.ts.
+  // 장착 필드엔 아이템 id 를 저장 (보유 여부는 cosmetics 관계로 검증). null=미장착.
+  nameColor   String? // 장착 중인 닉네임 색상 아이템 id
+  avatarFrame String? // 장착 중인 아바타 프레임 아이템 id
+
   // 텔레그램 경기 알림 (docs/telegram-alerts). 연결 시 chatId 저장, 미연결=null.
   telegramChatId    String? @unique // 텔레그램 chat_id (발송 대상)
   telegramLinkToken String? @unique // 딥링크 /start 토큰 (연결 후 null 화)
@@ -822,6 +827,7 @@ model User {
   postLikes PostLike[]
   comments  Comment[]
   expLogs   ExpLog[]
+  cosmetics UserCosmetic[]
   dreamTeams DreamTeam[]
   teamFollows UserTeamFollow[]
   analystFollows   UserAnalystFollow[] @relation("AnalystFollower") // 내가 팔로우한 분석가
@@ -978,6 +984,20 @@ model ExpLog {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+/// 프로필 꾸미기 보유 인벤토리 — 포인트 상점에서 구매한 아이템. 카탈로그는 src/lib/shop.ts.
+/// 보유 = 이 row 존재. 장착 여부는 User.nameColor/avatarFrame 이 담당(보유해야 장착 가능).
+model UserCosmetic {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String // shop.ts 카탈로그 아이템 id
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId]) // 같은 아이템 중복 구매 방지
+  @@index([userId])
 }
 
 /// TheSports 선수 시장가치(몸값) — player/market/list 수집. id = ts player id.

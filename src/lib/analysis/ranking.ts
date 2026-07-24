@@ -15,6 +15,8 @@ export interface RankRow {
   rate: number;
   streak: number;
   avatarUrl: string | null;
+  nameColor: string | null;
+  avatarFrame: string | null;
 }
 
 // Wilson score 신뢰구간 하한(95%) — 표본이 적으면 적중률을 보정해 내린다.
@@ -45,6 +47,8 @@ export async function getOverallRanking(limit = 50): Promise<RankRow[]> {
       level: true,
       badge: true,
       avatarUrl: true,
+      nameColor: true,
+      avatarFrame: true,
       predTotal: true,
       predHit: true,
       predStreak: true,
@@ -62,6 +66,8 @@ export async function getOverallRanking(limit = 50): Promise<RankRow[]> {
       streak: u.predStreak,
       rate: hitRate(u.predHit, u.predTotal),
       avatarUrl: u.avatarUrl,
+      nameColor: u.nameColor,
+      avatarFrame: u.avatarFrame,
     }))
     .sort(byRate)
     .slice(0, limit);
@@ -96,6 +102,8 @@ export async function getFollowRanking(
       level: true,
       badge: true,
       avatarUrl: true,
+      nameColor: true,
+      avatarFrame: true,
       predTotal: true,
       predHit: true,
       predStreak: true,
@@ -117,6 +125,8 @@ export async function getFollowRanking(
         streak: u.predStreak,
         rate: hitRate(u.predHit, u.predTotal),
         avatarUrl: u.avatarUrl,
+        nameColor: u.nameColor,
+        avatarFrame: u.avatarFrame,
         followers: g._count._all,
       },
     ];
@@ -142,7 +152,7 @@ export async function getMonthlyRanking(limit = 50): Promise<RankRow[]> {
   const hitMap = new Map(hits.map((h) => [h.authorId, h._count._all]));
   const users = await prisma.user.findMany({
     where: { id: { in: totals.map((t) => t.authorId) } },
-    select: { id: true, nickname: true, level: true, badge: true, predStreak: true, avatarUrl: true },
+    select: { id: true, nickname: true, level: true, badge: true, predStreak: true, avatarUrl: true, nameColor: true, avatarFrame: true },
   });
   const userMap = new Map(users.map((u) => [u.id, u]));
 
@@ -161,6 +171,8 @@ export async function getMonthlyRanking(limit = 50): Promise<RankRow[]> {
         streak: u?.predStreak ?? 0,
         rate: hitRate(hit, total),
         avatarUrl: u?.avatarUrl ?? null,
+        nameColor: u?.nameColor ?? null,
+        avatarFrame: u?.avatarFrame ?? null,
       };
     })
     .sort(byRate)

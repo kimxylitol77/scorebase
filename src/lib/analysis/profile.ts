@@ -21,6 +21,8 @@ export interface UserProfile {
   level: number;
   badge: string | null;
   avatar: AvatarPreset;
+  nameColor: string | null;
+  avatarFrame: string | null;
   intro: string;
   total: number;
   hit: number;
@@ -47,6 +49,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       level: true,
       badge: true,
       avatarUrl: true,
+      nameColor: true,
+      avatarFrame: true,
       predTotal: true,
       predHit: true,
       predStreak: true,
@@ -65,6 +69,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     level: u.level,
     badge: u.badge,
     avatar: resolveAvatar(u.avatarUrl, u.nickname, u.level, u.badge),
+    nameColor: u.nameColor,
+    avatarFrame: u.avatarFrame,
     intro: analystIntro(u.nickname),
     total: u.predTotal,
     hit: u.predHit,

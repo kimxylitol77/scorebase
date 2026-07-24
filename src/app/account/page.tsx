@@ -8,7 +8,9 @@ import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
 import { logoutUserAction } from "@/app/(auth)/actions";
 import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
 import { AVATAR_EDIT_MIN_LEVEL } from "@/lib/avatars";
+import { shopItemById } from "@/lib/shop";
 import { resolveAvatar } from "@/lib/analysis/analysts";
+import UserName from "@/components/UserName";
 import DeleteAccountButton from "./DeleteAccountButton";
 import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
@@ -43,7 +45,7 @@ export default async function AccountPage({ searchParams }: Props) {
   const [user, myPosts, agg, settled, correct] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.userId },
-      select: { email: true, nickname: true, createdAt: true, exp: true, level: true, points: true, avatarUrl: true, badge: true },
+      select: { email: true, nickname: true, createdAt: true, exp: true, level: true, points: true, avatarUrl: true, badge: true, nameColor: true, avatarFrame: true },
     }),
     prisma.post.findMany({
       where: { authorId: session.userId },
@@ -62,6 +64,7 @@ export default async function AccountPage({ searchParams }: Props) {
   if (!user) redirect("/login?from=/account");
 
   const avatar = resolveAvatar(user.avatarUrl, user.nickname, user.level, user.badge);
+  const frameRing = shopItemById(user.avatarFrame)?.ring ?? "";
   const canEditAvatar = user.level >= AVATAR_EDIT_MIN_LEVEL;
   const grade = gradeByExp(user.exp);
   const prog = levelProgress(user.exp);
@@ -93,13 +96,13 @@ export default async function AccountPage({ searchParams }: Props) {
             <div className="flex flex-col items-center text-center">
               {avatar.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatar.imageUrl} alt="" className="w-20 h-20 rounded-full object-cover shadow-sm" />
+                <img src={avatar.imageUrl} alt="" className={`w-20 h-20 rounded-full object-cover shadow-sm ${frameRing}`} />
               ) : (
-                <div className={`w-20 h-20 rounded-full ${avatar.bg} flex items-center justify-center text-4xl shadow-sm`}>
+                <div className={`w-20 h-20 rounded-full ${avatar.bg} flex items-center justify-center text-4xl shadow-sm ${frameRing}`}>
                   {avatar.emoji}
                 </div>
               )}
-              <div className="mt-3 text-lg font-bold">{user.nickname}</div>
+              <UserName name={user.nickname} nameColor={user.nameColor} className="mt-3 text-lg font-bold" />
               <div className="mt-1.5">
                 <NicknameEditor current={user.nickname} />
               </div>
@@ -134,6 +137,14 @@ export default async function AccountPage({ searchParams }: Props) {
                 <div className="text-[10px] text-neutral-500">작성 글</div>
               </div>
             </div>
+
+            {/* 포인트 상점 진입 */}
+            <Link
+              href="/account/shop"
+              className="mt-3 flex items-center justify-center gap-1.5 rounded-2xl bg-blue-500 py-2.5 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
+            >
+              🛍️ 포인트 상점
+            </Link>
 
             {/* 아바타 — 1등급은 고정 기본 이미지, 2등급(유소년)부터 프리셋·사진 변경 가능 */}
             <div className="mt-5">
