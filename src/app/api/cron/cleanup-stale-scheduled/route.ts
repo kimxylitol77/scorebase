@@ -27,6 +27,98 @@ export const maxDuration = 60;
 
 const STALE_HOURS = 6;
 
+// 연기 추종으로 startTime 을 옮길 때, 옮겨갈 시각에 이미 반대 소스의 같은 경기 row 가
+// 있는지 확인하는 창. collect 의 dedup 가드와 같은 폭(축구 150분).
+const TWIN_WINDOW_MS = 150 * 60 * 1000;
+
+/**
+ * 옮겨갈 시각 기준으로 "반대 소스의 같은 경기" row 를 찾는다.
+ *
+ * 왜 필요한가: collect 의 dedup 가드는 **row 생성 시점**에만 검사한다. 생성 당시엔 두
+ * 소스의 킥오프가 달라 통과했다가, 나중에 한쪽이 연기 추종으로 옮겨오면 같은 시각에서
+ * 충돌해 크로스소스 중복 2장이 된다 (2026-07-24 ICELAND_1L Fylkir vs IR Reykjavik —
+ * af 가 7/23 19:15 → 7/25 14:00 으로 이동, 그 시각엔 이미 ts row 존재).
+ */
+async function findCrossSourceTwin(
+  m: { id: number; league: string; externalId: string; homeTeamId: number; awayTeamId: number },
+  newStart: Date,
+) {
+  const incomingTs = m.externalId.startsWith("ts-");
+  return prisma.match.findFirst({
+    where: {
+      id: { not: m.id },
+      league: m.league,
+      startTime: {
+        gte: new Date(newStart.getTime() - TWIN_WINDOW_MS),
+        lte: new Date(newStart.getTime() + TWIN_WINDOW_MS),
+      },
+      // 같은 소스 안의 별개 경기를 짝으로 오인하지 않게 반대 prefix 로만 제한.
+      ...(incomingTs
+        ? { NOT: { externalId: { startsWith: "ts-" } } }
+        : { externalId: { startsWith: "ts-" } }),
+      OR: [
+        { homeTeamId: m.homeTeamId, awayTeamId: m.awayTeamId },
+        { homeTeamId: m.awayTeamId, awayTeamId: m.homeTeamId },
+      ],
+    },
+    select: {
+      id: true,
+      externalId: true,
+      marketHome: true,
+      marketDraw: true,
+      marketAway: true,
+      marketBookmakers: true,
+    },
+  });
+}
+
+/**
+ * 중복이 확정된 stale row 를 쌍둥이로 흡수한다. 종속 데이터가 하나라도 있으면
+ * 삭제하지 않고 false — cron 이 사람 판단 없이 파괴적으로 지우지 않게 한다
+ * (data-sanity 의 크로스소스 중복 알림이 남아 사람이 처리).
+ */
+async function absorbIntoTwin(
+  staleId: number,
+  twin: NonNullable<Awaited<ReturnType<typeof findCrossSourceTwin>>>,
+): Promise<boolean> {
+  // matchId 를 참조하는 모든 테이블을 스키마에서 읽어 전수 확인 — 개별 모델을 나열하면
+  // 테이블이 늘 때 조용히 새고, Cascade 관계는 에러 없이 함께 지워져 손실을 못 본다.
+  const cols = await prisma.$queryRaw<Array<{ table_name: string; data_type: string }>>`
+    SELECT c.table_name, c.data_type
+    FROM information_schema.columns c
+    JOIN information_schema.tables t
+      ON t.table_name = c.table_name AND t.table_schema = c.table_schema
+    WHERE c.table_schema = 'public' AND c.column_name = 'matchId' AND t.table_type = 'BASE TABLE'`;
+  for (const { table_name, data_type } of cols) {
+    const isText = data_type === "text" || data_type === "character varying";
+    const rows = await prisma.$queryRawUnsafe<Array<{ n: number }>>(
+      `SELECT COUNT(*)::int AS n FROM "${table_name}" WHERE "matchId" = $1`,
+      isText ? String(staleId) : staleId,
+    );
+    if (rows[0]?.n) return false; // 종속 있음 — 사람이 판단
+  }
+  const stale = await prisma.match.findUnique({
+    where: { id: staleId },
+    select: { marketHome: true, marketDraw: true, marketAway: true, marketBookmakers: true },
+  });
+  await prisma.$transaction(async (tx) => {
+    // 배당은 stale row 에만 있는 경우가 있어(af 가 odds 를 받아옴) 흡수 전 넘긴다.
+    if (stale && twin.marketHome == null && stale.marketHome != null) {
+      await tx.match.update({
+        where: { id: twin.id },
+        data: {
+          marketHome: stale.marketHome,
+          marketDraw: stale.marketDraw,
+          marketAway: stale.marketAway,
+          marketBookmakers: stale.marketBookmakers,
+        },
+      });
+    }
+    await tx.match.delete({ where: { id: staleId } });
+  });
+  return true;
+}
+
 // 리그 → data source 매핑 (Haiku 진단 prompt 용 + 알림 hint)
 // "api-football" 포함된 리그는 stale 처리 전 fixture status 외부 verify.
 const SOURCE_HINT: Record<string, string> = {
@@ -288,6 +380,8 @@ export async function GET(req: NextRequest) {
   const verifiedLive: typeof stale = [];
   const verifyKept: typeof stale = []; // NS/TBD 등 — 그대로 SCHEDULED 유지
   const rescheduled: typeof stale = []; // NS 인데 af date 가 미래로 갱신됨 → startTime 추종
+  const dupAbsorbed: typeof stale = []; // 연기 추종 대상이 반대 소스 row 와 겹쳐 흡수(삭제)됨
+  const dupConflict: typeof stale = []; // 겹쳤지만 종속 데이터가 있어 사람 판단 대기
   const toPostpone: typeof stale = [];
 
   for (const m of stale) {
@@ -353,6 +447,15 @@ export async function GET(req: NextRequest) {
         afDate.getTime() > Date.now() &&
         Math.abs(afDate.getTime() - m.startTime.getTime()) > 60_000
       ) {
+        // 옮겨갈 시각에 반대 소스의 같은 경기가 이미 있으면, 갱신은 곧 크로스소스 중복이다.
+        // 그대로 옮기지 않고 흡수(종속 없을 때만) — 실패하면 startTime 을 건드리지 않아
+        // 최소한 두 row 가 같은 시각에 겹치는 상태는 만들지 않는다.
+        const twin = await findCrossSourceTwin(m, afDate);
+        if (twin) {
+          const absorbed = await absorbIntoTwin(m.id, twin);
+          (absorbed ? dupAbsorbed : dupConflict).push(m);
+          continue;
+        }
         await prisma.match.update({
           where: { id: m.id },
           data: { startTime: afDate },
@@ -508,7 +611,10 @@ export async function GET(req: NextRequest) {
       message:
         `stale SCHEDULED ${stale.length}건 — POSTPONED ${toPostpone.length}, ` +
         `FINISHED ${verifiedFinished.length}, LIVE ${verifiedLive.length}, ` +
-        `RESCHEDULED ${rescheduled.length}, KEPT ${verifyKept.length}`,
+        `RESCHEDULED ${rescheduled.length}, KEPT ${verifyKept.length}` +
+        (dupAbsorbed.length || dupConflict.length
+          ? `, 중복흡수 ${dupAbsorbed.length}, 중복충돌 ${dupConflict.length}`
+          : ""),
       metadata: {
         staleHours: STALE_HOURS,
         totalStale: stale.length,
@@ -517,6 +623,8 @@ export async function GET(req: NextRequest) {
         verifiedLive: verifiedLive.length,
         rescheduled: rescheduled.length,
         verifyKept: verifyKept.length,
+        dupAbsorbed: dupAbsorbed.length,
+        dupConflict: dupConflict.length,
         byLeague,
         sample: toPostpone.slice(0, 10).map((m) => ({
           id: m.id,
