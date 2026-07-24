@@ -355,11 +355,13 @@ export default async function StatsPage({ searchParams }: Props) {
     }
     landingTotal++;
   }
+  // 유입 0 인 채널도 행 유지 — 신규 채널(유튜브 등) 개설 후 "잡히고는 있나" 를
+  // 표에서 바로 확인하려면 0 행이 보여야 한다.
   const channelData = CHANNEL_ORDER.map((c) => ({
     channel: c,
     count: channelAgg.get(c)?.count ?? 0,
     unique: channelAgg.get(c)?.ids.size ?? 0,
-  })).filter((c) => c.count > 0);
+  }));
   const topReferralDomains = Array.from(referralDomainAgg.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
@@ -411,11 +413,12 @@ export default async function StatsPage({ searchParams }: Props) {
   };
   const weekCur = aggChannelWeek(last7, now);
   const weekPrev = aggChannelWeek(last14, last7);
+  // 양주 모두 0 인 채널도 행 유지 (위 channelData 와 동일 이유).
   const weekChannelRows = CHANNEL_ORDER.map((c) => ({
     channel: c,
     cur: weekCur.counts.get(c) ?? 0,
     prev: weekPrev.counts.get(c) ?? 0,
-  })).filter((r) => r.cur > 0 || r.prev > 0);
+  }));
 
   // === AI 크롤러 전용 분석 (ChatGPT/Claude/Perplexity 등) ===
   // bots30 / botsRange 안에서 category === "ai" 만 추출 → KPI + top paths + 일별.
@@ -642,7 +645,7 @@ export default async function StatsPage({ searchParams }: Props) {
         </div>
 
         <SectionCard title="어디서 들어왔나" subtitle={`유입 ${landingTotal.toLocaleString()}회`}>
-          {channelData.length === 0 ? (
+          {landingTotal === 0 ? (
             <EmptyHint message="유입 기록은 2026-06-11 기능 추가 이후 랜딩 PV부터 쌓입니다. 하루 정도 지나면 채널 분포가 보입니다." />
           ) : (
             <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -653,7 +656,10 @@ export default async function StatsPage({ searchParams }: Props) {
                 const share =
                   landingTotal > 0 ? Math.round((c.count / landingTotal) * 100) : 0;
                 return (
-                  <li key={c.channel} className="py-2.5 flex items-center gap-3 text-sm">
+                  <li
+                    key={c.channel}
+                    className={`py-2.5 flex items-center gap-3 text-sm${c.count === 0 ? " opacity-40" : ""}`}
+                  >
                     <span className="text-base w-6 text-center">{meta.emoji}</span>
                     <span className="font-medium truncate w-40 sm:w-48">{meta.label}</span>
                     <div className="flex-1 h-2 rounded bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
@@ -674,7 +680,7 @@ export default async function StatsPage({ searchParams }: Props) {
           title="지난주 대비"
           subtitle="이번 주 = 최근 7일 · 지난주 = 그 전 7일 (기간 선택과 무관)"
         >
-          {weekChannelRows.length === 0 ? (
+          {weekCur.total === 0 && weekPrev.total === 0 ? (
             <EmptyHint message="최근 14일 랜딩 유입이 없어 비교할 데이터가 없습니다." />
           ) : (
             <table className="w-full text-sm table-fixed">
@@ -700,7 +706,10 @@ export default async function StatsPage({ searchParams }: Props) {
                   </td>
                 </tr>
                 {weekChannelRows.map((r) => (
-                  <tr key={r.channel}>
+                  <tr
+                    key={r.channel}
+                    className={r.cur === 0 && r.prev === 0 ? "opacity-40" : undefined}
+                  >
                     <td className="py-2 pr-2 truncate">
                       <span className="mr-1.5">{CHANNEL_META[r.channel].emoji}</span>
                       <span className="font-medium">{CHANNEL_META[r.channel].label}</span>
