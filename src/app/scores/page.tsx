@@ -1996,7 +1996,27 @@ export default async function ScoresPage({ searchParams }: Props) {
       {/* 축구: 사이드바 제거 — 매치 list 만 가운데 정렬 / 다른 종목: 기존 그대로 */}
       {/* 테니스·골프 — ESPN 직접 fetch 표시 전용 (DB 파이프라인 미사용, docs/tennis-golf-scores) */}
       {sport === "tennis" ? (
-        <TennisBoard kstDateStr={dateStr} />
+        <>
+          {/* 테니스 랭킹 진입 배너 — UFC 랭킹 배너 패턴 */}
+          <Link
+            href="/rankings/tennis"
+            prefetch={false}
+            className="block rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+          >
+            <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+              <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                🎾 테니스 세계랭킹{" "}
+                <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                  — ATP·WTA 150위, 한국어 선수명
+                </span>
+              </span>
+              <span className="shrink-0 text-[12px] font-bold text-emerald-600 dark:text-emerald-400">
+                랭킹 보기 →
+              </span>
+            </span>
+          </Link>
+          <TennisBoard kstDateStr={dateStr} />
+        </>
       ) : sport === "golf" ? (
         <GolfBoard />
       ) : sport === "f1" ? (
