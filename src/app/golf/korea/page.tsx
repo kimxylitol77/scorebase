@@ -5,6 +5,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
+import { golfEventKo } from "@/lib/sports/golf-events-ko";
 import { SITE_URL } from "@/lib/site-url";
 import seasonData from "../../../../data/golf-korea-season.json";
 
@@ -164,7 +165,7 @@ export default async function GolfKoreaPage({
                         className="inline-flex items-center gap-1 rounded-md bg-neutral-50 px-2 py-1 text-[11px] dark:bg-white/[0.04]"
                         title={`${r.event} (${r.date})`}
                       >
-                        <span className="max-w-[120px] truncate text-neutral-500">{r.event}</span>
+                        <span className="max-w-[140px] truncate text-neutral-500">{golfEventKo(r.event)}</span>
                         <span className={medalTone(r.order)}>{r.order != null ? `${r.order}위` : "-"}</span>
                       </li>
                     ))}
