@@ -2,6 +2,7 @@
 // 대회별 그룹 → 매치 rows (선수·세트 스코어·상태). 단식만 1차. docs/tennis-golf-scores 참고.
 
 import { unstable_cache } from "next/cache";
+import Link from "next/link";
 
 interface EspnTennisResp {
   events?: Array<{
@@ -18,7 +19,7 @@ interface EspnTennisResp {
         };
         competitors?: Array<{
           winner?: boolean;
-          linescores?: Array<{ value?: number }>;
+          linescores?: Array<{ value?: number; tiebreak?: number }>;
           athlete?: { displayName?: string; shortName?: string; flag?: { href?: string; alt?: string } };
         }>;
       }>;
@@ -26,16 +27,22 @@ interface EspnTennisResp {
   }>;
 }
 
+interface SetScore {
+  games: number;
+  tb: number | null;
+}
 interface TennisRow {
   id: string;
   tour: "ATP" | "WTA";
+  tourSlug: "atp" | "wta";
+  eventId: string;
   tournament: string;
   round: string | null;
   state: "pre" | "in" | "post";
   statusDetail: string;
   date: string;
-  p1: { name: string; flag: string | null; winner: boolean; sets: number[] };
-  p2: { name: string; flag: string | null; winner: boolean; sets: number[] };
+  p1: { name: string; flag: string | null; winner: boolean; sets: SetScore[] };
+  p2: { name: string; flag: string | null; winner: boolean; sets: SetScore[] };
 }
 
 async function fetchTourUncached(tour: "ATP" | "WTA"): Promise<EspnTennisResp> {
@@ -65,9 +72,16 @@ const fetchTennisCached = unstable_cache(
             const [a, b] = c.competitors ?? [];
             if (!a?.athlete || !b?.athlete) continue;
             const state = (c.status?.type?.state ?? "pre") as TennisRow["state"];
+            const mkSets = (ls?: Array<{ value?: number; tiebreak?: number }>): SetScore[] =>
+              (ls ?? []).map((l) => ({
+                games: l.value ?? 0,
+                tb: typeof l.tiebreak === "number" ? l.tiebreak : null,
+              }));
             rows.push({
               id: `${tour}-${c.id}`,
               tour,
+              tourSlug: tour === "ATP" ? "atp" : "wta",
+              eventId: ev.id,
               tournament: ev.name,
               round: c.round?.displayName ?? null,
               state,
@@ -77,13 +91,13 @@ const fetchTennisCached = unstable_cache(
                 name: a.athlete.shortName || a.athlete.displayName || "?",
                 flag: a.athlete.flag?.href ?? null,
                 winner: a.winner === true,
-                sets: (a.linescores ?? []).map((l) => l.value ?? 0),
+                sets: mkSets(a.linescores),
               },
               p2: {
                 name: b.athlete.shortName || b.athlete.displayName || "?",
                 flag: b.athlete.flag?.href ?? null,
                 winner: b.winner === true,
-                sets: (b.linescores ?? []).map((l) => l.value ?? 0),
+                sets: mkSets(b.linescores),
               },
             });
           }
@@ -140,6 +154,12 @@ export default async function TennisBoard({ kstDateStr }: { kstDateStr: string }
               <h3 className="text-[13px] font-bold tracking-tight">{name}</h3>
               <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">{tour}</span>
               <span className="ml-auto text-[11px] text-neutral-400 tabular-nums">{list.length}경기</span>
+              <Link
+                href={`/tennis/draw/${list[0].tourSlug}/${list[0].eventId}`}
+                className="rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+              >
+                대진표
+              </Link>
             </div>
             <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {list.map((m) => (
@@ -165,13 +185,23 @@ export default async function TennisBoard({ kstDateStr }: { kstDateStr: string }
                     <div className="flex gap-2 tabular-nums text-right">
                       {[m.p1, m.p2].some((p) => p.sets.length > 0) ? (
                         <div className="space-y-0.5">
-                          {[m.p1, m.p2].map((p, i) => (
-                            <div key={i} className="flex gap-1.5 justify-end">
-                              {p.sets.map((s, si) => (
-                                <span key={si} className={`w-4 text-center ${p.winner ? "font-bold" : "text-neutral-500"}`}>{s}</span>
-                              ))}
-                            </div>
-                          ))}
+                          {[m.p1, m.p2].map((p, i) => {
+                            const opp = i === 0 ? m.p2 : m.p1;
+                            return (
+                              <div key={i} className="flex gap-1.5 justify-end">
+                                {p.sets.map((s, si) => {
+                                  const o = opp.sets[si];
+                                  const showTb = o != null && s.games < o.games && s.tb != null;
+                                  return (
+                                    <span key={si} className={`w-4 text-center ${p.winner ? "font-bold" : "text-neutral-500"}`}>
+                                      {s.games}
+                                      {showTb && <sup className="text-[8px] text-neutral-400">{s.tb}</sup>}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <span className="text-neutral-400 text-[11px]">vs</span>
