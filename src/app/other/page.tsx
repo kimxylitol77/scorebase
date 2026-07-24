@@ -81,6 +81,7 @@ const SPORTS: SportCard[] = [
     hrefLabel: "테니스 세계랭킹",
     links: [
       { label: "라이브 스코어", href: "/scores?sport=tennis" },
+      { label: "대진표", href: "/tennis/draw" },
       { label: "WTA 랭킹", href: "/rankings/tennis?tour=wta" },
     ],
     accent: "from-emerald-500 to-teal-600",

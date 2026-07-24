@@ -145,6 +145,12 @@ export default async function TennisRankingsPage({
         >
           🎾 테니스 라이브 스코어
         </Link>
+        <Link
+          href="/tennis/draw"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          대진표
+        </Link>
       </div>
 
       <footer className="text-[11px] text-neutral-400 leading-relaxed pt-2">

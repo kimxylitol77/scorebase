@@ -94,6 +94,55 @@ async function fetchTour(tour: Tour): Promise<EspnResp> {
   return res.json();
 }
 
+export interface DrawSummary {
+  tour: "ATP" | "WTA";
+  tourSlug: "atp" | "wta";
+  eventId: string;
+  name: string;
+  matchCount: number; // 본선 단식 매치 수
+  hasKorean: boolean;
+  completed: boolean; // 결승 승자 확정
+}
+
+// 진행/최근 대회 목록 (드로우 허브용). ATP·WTA 단식 본선 기준.
+export const listTennisDraws = unstable_cache(
+  async (): Promise<DrawSummary[]> => {
+    const tours: Tour[] = ["atp", "wta"];
+    const settled = await Promise.allSettled(tours.map((t) => fetchTour(t)));
+    const out: DrawSummary[] = [];
+    settled.forEach((s, i) => {
+      if (s.status !== "fulfilled") return;
+      const tour = tours[i];
+      for (const ev of s.value.events ?? []) {
+        const grouping = (ev.groupings ?? []).find((g) => /singles/i.test(g.grouping?.slug ?? ""));
+        if (!grouping) continue;
+        const main = (grouping.competitions ?? []).filter((c) => {
+          const rn = c.round?.displayName ?? "";
+          return rn && !/qualif/i.test(rn);
+        });
+        if (main.length === 0) continue;
+        const hasKorean = main.some((c) =>
+          (c.competitors ?? []).some((p) => p.athlete?.flag?.alt === "South Korea"),
+        );
+        const final = main.find((c) => /^final$/i.test(c.round?.displayName ?? ""));
+        const completed = !!final && (final.competitors ?? []).some((p) => p.winner === true);
+        out.push({
+          tour: tour === "atp" ? "ATP" : "WTA",
+          tourSlug: tour,
+          eventId: ev.id,
+          name: ev.name,
+          matchCount: main.length,
+          hasKorean,
+          completed,
+        });
+      }
+    });
+    return out;
+  },
+  ["tennis-draw-list"],
+  { revalidate: 300, tags: ["live-scores"] },
+);
+
 // tour+eventId 의 단식 메인 드로우. 실패/없음 시 null.
 export const getTennisDraw = unstable_cache(
   async (tour: Tour, eventId: string): Promise<TennisDraw | null> => {
