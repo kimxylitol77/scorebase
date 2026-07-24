@@ -53,12 +53,14 @@ async function auditDate(date: string) {
   }
 
   const dbMatches = matches.map((m) => ({
+    id: m.id,
     league: m.league,
     startTime: m.startTime,
     homeTeamId: m.homeTeamId,
     awayTeamId: m.awayTeamId,
     homeName: m.homeTeam.name,
     awayName: m.awayTeam.name,
+    apiFixtureId: m.apiFixtureId,
     externalId: m.externalId,
   }));
   const dedup = buildOrphanDedup(dbMatches, dated, afTeamIdMap);

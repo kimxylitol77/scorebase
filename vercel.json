@@ -197,6 +197,10 @@
       "schedule": "30 12 * * *"
     },
     {
+      "path": "/api/cron/link-friendly-af",
+      "schedule": "30 21 * * *"
+    },
+    {
       "path": "/api/cron/baseball-starters",
       "schedule": "30 1 * * *"
     },

@@ -13,6 +13,7 @@ export const CRON_REGISTRY: { name: string; label: string; maxAgeH: number }[] =
   { name: "league-leaders", label: "리그 리더", maxAgeH: 28 },
   { name: "mlb-starters", label: "MLB 선발", maxAgeH: 28 },
   { name: "nhl-goalies", label: "NHL 골리", maxAgeH: 28 },
+  { name: "link-friendly-af", label: "클럽 친선 af 연결", maxAgeH: 28 },
   { name: "wc-sim-snapshot", label: "WC 우승확률", maxAgeH: 28 },
   { name: "league-sim-snapshot", label: "시즌 시뮬", maxAgeH: 28 },
   { name: "evaluate", label: "적중률 평가", maxAgeH: 28 },

@@ -607,6 +607,7 @@ export default async function ScoresPage({ searchParams }: Props) {
         updatedAt: true,
         homeTeamId: true,
         awayTeamId: true,
+        apiFixtureId: true, // orphan 카드 중복 판정 — af fixture 확정 대조
         homeStarter: true,
         awayStarter: true,
         resultMethod: true,
@@ -1715,6 +1716,7 @@ export default async function ScoresPage({ searchParams }: Props) {
       awayTeamId: m.awayTeamId,
       homeName: m.homeTeam.name,
       awayName: m.awayTeam.name,
+      apiFixtureId: m.apiFixtureId,
     })),
     datedSoccer,
     afTeamIdMap,

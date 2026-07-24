@@ -67,10 +67,22 @@ export interface DedupDbMatch {
   awayTeamId: number;
   homeName: string;
   awayName: string;
+  /** 이미 연결된 af fixture id — 있으면 이름 규칙 없이 확정 판정. */
+  apiFixtureId?: number | null;
+  /** 링크 잡이 Match 를 갱신할 때만 필요(페이지는 안 넘겨도 된다). */
+  id?: number;
+}
+
+/** af fixture ↔ DB 매치가 양팀 모두 일치해 확정된 짝. */
+export interface ConfirmedPair {
+  dated: DatedMatch;
+  db: DedupDbMatch;
+  /** true 면 af 의 홈이 DB 의 원정 — 팀 매핑을 뒤집어 등록해야 한다. */
+  swapped: boolean;
 }
 
 /** 중복으로 판정한 근거 — 감사 출력용. */
-export type DedupReason = "name" | "roman" | "teamId" | "oneSide";
+export type DedupReason = "fixtureId" | "name" | "roman" | "teamId" | "oneSide";
 
 const NEAR_KICKOFF_MS = 120 * 60 * 1000;
 const SAME_KICKOFF_MS = 15 * 60 * 1000;
@@ -147,7 +159,28 @@ export function buildOrphanDedup(
     return { matched: 0, rest: null as [string, string] | null };
   };
 
+  /** 양팀이 모두 일치할 때의 방향 — 한쪽이라도 어긋나면 null. */
+  const exactSides = (m: DedupDbMatch, dm: DatedMatch): "straight" | "swapped" | null => {
+    const hh = sideOverlap(m.homeName, dm.homeName);
+    const aa = sideOverlap(m.awayName, dm.awayName);
+    if (hh && aa) return "straight";
+    const ha = sideOverlap(m.homeName, dm.awayName);
+    const ah = sideOverlap(m.awayName, dm.homeName);
+    if (ha && ah) return "swapped";
+    return null;
+  };
+
   const nearInTime = (aMs: number, bMs: number) => Math.abs(aMs - bMs) <= NEAR_KICKOFF_MS;
+
+  // 이미 연결된 af fixture id — 링크 잡(link-club-friendly-af)이 채워두면 이름 규칙을
+  // 아예 거치지 않고 확정 판정된다. orphan id 는 "af-{fixtureId}" 형식.
+  const dbFixtureIds = new Set(
+    matches.map((m) => m.apiFixtureId).filter((v): v is number => v != null),
+  );
+  const coveredByFixtureId = (dm: DatedMatch) => {
+    const m = /^af-(\d+)$/.exec(dm.id);
+    return !!m && dbFixtureIds.has(Number(m[1]));
+  };
 
   // 팀 ID 대조 — 이름 표기가 아무리 갈려도 af 팀 ID 가 우리 Team 행에 매핑돼 있으면 확실히 같은 경기.
   // (같은 af id 가 리그별로 다른 Team 행에 물릴 수 있어 teamId 를 Set 으로 모아 교차 검사.)
@@ -210,11 +243,42 @@ export function buildOrphanDedup(
 
   /** 중복이면 근거를, 아니면 null. */
   const reasonOf = (dm: DatedMatch): DedupReason | null => {
+    if (coveredByFixtureId(dm)) return "fixtureId";
     if (matches.some((m) => m.league === dm.league && bothSides(m, dm, normOf))) return "name";
     if (matches.some((m) => m.league === dm.league && bothSides(m, dm, romanOf))) return "roman";
     if (coveredByTeamId(dm)) return "teamId";
     if (coveredByOneSideAndTime(dm)) return "oneSide";
     return null;
+  };
+
+  /**
+   * af fixture ↔ DB 매치의 확정 짝 — 양팀 이름이 모두 맞고 킥오프 ±120분이며 1:1 일 때만.
+   * 링크 잡이 이 결과로 Match.apiFixtureId 와 af 팀 매핑을 저장한다. 영구 저장이라
+   * 표시용 dedup 보다 엄격하게 — 한쪽 팀만 맞는 추정 매칭은 절대 넣지 않는다.
+   */
+  const confirmedPairs = (): ConfirmedPair[] => {
+    const out: ConfirmedPair[] = [];
+    for (const dm of dated) {
+      const dmMs = new Date(dm.startTime).getTime();
+      const hits = matches.filter(
+        (m) =>
+          m.league === dm.league &&
+          nearInTime(m.startTime.getTime(), dmMs) &&
+          exactSides(m, dm) !== null,
+      );
+      if (hits.length !== 1) continue;
+      const db = hits[0];
+      // 역방향도 1:1 이어야 한다 — af 쪽에 같은 DB 매치를 노리는 fixture 가 둘이면 판정 불가.
+      const back = dated.filter(
+        (d) =>
+          d.league === db.league &&
+          nearInTime(new Date(d.startTime).getTime(), db.startTime.getTime()) &&
+          exactSides(db, d) !== null,
+      );
+      if (back.length !== 1) continue;
+      out.push({ dated: dm, db, swapped: exactSides(db, dm) === "swapped" });
+    }
+    return out;
   };
 
   /** 같은 경기가 DB 에 이미 있으면 true — orphan 카드로 그리지 않는다. */
@@ -239,5 +303,5 @@ export function buildOrphanDedup(
     );
   };
 
-  return { isCovered, reasonOf, pairedDbMatch };
+  return { isCovered, reasonOf, pairedDbMatch, confirmedPairs };
 }
