@@ -2006,7 +2006,27 @@ export default async function ScoresPage({ searchParams }: Props) {
           <GolfBoard />
         </>
       ) : sport === "f1" ? (
-        <F1Board />
+        <>
+          {/* F1 챔피언십 순위 진입 배너 */}
+          <Link
+            href="/rankings/f1"
+            prefetch={false}
+            className="block rounded-xl bg-gradient-to-r from-red-600 via-rose-500 to-orange-500 p-[1.5px] shadow-sm hover:shadow-md transition-shadow"
+          >
+            <span className="flex items-center justify-between gap-3 rounded-[10.5px] bg-white dark:bg-neutral-950 px-4 py-2.5">
+              <span className="text-[13px] sm:text-sm font-extrabold tracking-tight">
+                🏎️ F1 챔피언십 순위{" "}
+                <span className="hidden sm:inline text-neutral-500 dark:text-neutral-400 font-semibold">
+                  — 드라이버·컨스트럭터 포인트
+                </span>
+              </span>
+              <span className="shrink-0 text-[12px] font-bold text-red-600 dark:text-red-400">
+                순위 보기 →
+              </span>
+            </span>
+          </Link>
+          <F1Board />
+        </>
       ) : sport === "soccer" ? (
         <div className="space-y-4">
             {/* 🏆 월드컵 기간 배너 (2026-06-11 개막 ~ 07-19 결승) — 우승 시뮬 진입점.
