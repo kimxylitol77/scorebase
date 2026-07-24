@@ -23,6 +23,8 @@ export interface UserProfile {
   avatar: AvatarPreset;
   nameColor: string | null;
   avatarFrame: string | null;
+  title: string | null;
+  favTeamLogo: string | null;
   intro: string;
   total: number;
   hit: number;
@@ -51,6 +53,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       avatarUrl: true,
       nameColor: true,
       avatarFrame: true,
+      title: true,
+      favoriteTeam: { select: { logoUrl: true } },
       predTotal: true,
       predHit: true,
       predStreak: true,
@@ -71,6 +75,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     avatar: resolveAvatar(u.avatarUrl, u.nickname, u.level, u.badge),
     nameColor: u.nameColor,
     avatarFrame: u.avatarFrame,
+    title: u.title,
+    favTeamLogo: u.favoriteTeam?.logoUrl ?? null,
     intro: analystIntro(u.nickname),
     total: u.predTotal,
     hit: u.predHit,

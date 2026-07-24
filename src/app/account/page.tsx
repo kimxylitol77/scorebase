@@ -6,11 +6,15 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { USER_COOKIE_NAME, readUserSessionCookie } from "@/lib/user-auth";
 import { logoutUserAction } from "@/app/(auth)/actions";
+import { clearFavoriteTeamAction } from "./actions";
 import { GRADES, gradeByExp, levelProgress } from "@/lib/user-level";
 import { AVATAR_EDIT_MIN_LEVEL } from "@/lib/avatars";
 import { shopItemById } from "@/lib/shop";
 import { resolveAvatar } from "@/lib/analysis/analysts";
+import { toKoreanTeamName } from "@/lib/team-names";
 import UserName from "@/components/UserName";
+import TeamBadge from "@/components/TeamBadge";
+import FavoriteTeamPicker from "./FavoriteTeamPicker";
 import DeleteAccountButton from "./DeleteAccountButton";
 import AvatarPicker from "./AvatarPicker";
 import AvatarUpload from "./AvatarUpload";
@@ -45,7 +49,7 @@ export default async function AccountPage({ searchParams }: Props) {
   const [user, myPosts, agg, settled, correct] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.userId },
-      select: { email: true, nickname: true, createdAt: true, exp: true, level: true, points: true, avatarUrl: true, badge: true, nameColor: true, avatarFrame: true },
+      select: { email: true, nickname: true, createdAt: true, exp: true, level: true, points: true, avatarUrl: true, badge: true, nameColor: true, avatarFrame: true, title: true, favoriteTeam: { select: { name: true, nameKo: true, logoUrl: true, league: true } } },
     }),
     prisma.post.findMany({
       where: { authorId: session.userId },
@@ -102,7 +106,7 @@ export default async function AccountPage({ searchParams }: Props) {
                   {avatar.emoji}
                 </div>
               )}
-              <UserName name={user.nickname} nameColor={user.nameColor} className="mt-3 text-lg font-bold" />
+              <UserName name={user.nickname} nameColor={user.nameColor} title={user.title} className="mt-3 text-lg font-bold" />
               <div className="mt-1.5">
                 <NicknameEditor current={user.nickname} />
               </div>
@@ -160,6 +164,25 @@ export default async function AccountPage({ searchParams }: Props) {
                   <p className="text-[10px] text-neutral-400 mt-1">유소년 등급(경험치 1,000)에 도달하면 열려요</p>
                 </div>
               )}
+            </div>
+
+            {/* 대표팀 — 좋아하는 팀 하나. 프로필·글·리더보드에 로고로 표시 */}
+            <div className="mt-5">
+              <div className="text-xs font-semibold text-neutral-500 mb-2">대표팀</div>
+              {user.favoriteTeam && (
+                <div className="flex items-center gap-2 rounded-2xl bg-neutral-50 dark:bg-white/[0.04] px-3 py-2">
+                  <TeamBadge logoUrl={user.favoriteTeam.logoUrl} size={22} className="shrink-0 rounded-sm" />
+                  <span className="flex-1 truncate text-sm font-medium">
+                    {toKoreanTeamName(user.favoriteTeam.name, user.favoriteTeam.league)}
+                  </span>
+                  <form action={clearFavoriteTeamAction}>
+                    <button type="submit" className="text-[11px] text-neutral-400 hover:text-rose-500 transition-colors">
+                      해제
+                    </button>
+                  </form>
+                </div>
+              )}
+              <FavoriteTeamPicker />
             </div>
 
             {/* 계정 정보 */}

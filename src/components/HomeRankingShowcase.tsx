@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getOverallRanking } from "@/lib/analysis/ranking";
 import { displayGrade } from "@/lib/user-level";
 import UserName from "@/components/UserName";
+import TeamBadge from "@/components/TeamBadge";
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
@@ -53,7 +54,8 @@ export default async function HomeRankingShowcase() {
                   </span>
                   <span className="flex min-w-0 flex-1 items-center gap-1.5">
                     <span title={g.name}>{g.emoji}</span>
-                    <UserName name={r.nickname} nameColor={r.nameColor} className="truncate text-sm font-semibold" />
+                    <UserName name={r.nickname} nameColor={r.nameColor} title={r.title} className="truncate text-sm font-semibold" />
+                    <TeamBadge logoUrl={r.favTeamLogo} size={15} className="shrink-0 rounded-sm" />
                     {r.streak >= 3 && (
                       <span className="shrink-0 text-[11px] font-bold text-orange-500">
                         🔥{r.streak}

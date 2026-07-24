@@ -39,6 +39,7 @@ model Team {
   awayMatches Match[] @relation("AwayTeam")
   sourceIds   TeamSourceId[]
   mmaFighter  MmaFighter?   // UFC 파이터 프로필 (league="UFC" 일 때만 1:1)
+  fans        User[]        @relation("UserFavoriteTeam") // 이 팀을 대표팀으로 고른 회원
 
   @@unique([league, externalId])
   @@index([league, eloRating])
@@ -812,6 +813,11 @@ model User {
   // 장착 필드엔 아이템 id 를 저장 (보유 여부는 cosmetics 관계로 검증). null=미장착.
   nameColor   String? // 장착 중인 닉네임 색상 아이템 id
   avatarFrame String? // 장착 중인 아바타 프레임 아이템 id
+  title       String? // 장착 중인 칭호 아이템 id (닉네임 옆 배지)
+
+  // 대표(좋아하는) 팀 — 프로필·닉네임 옆에 팀 로고 표시. 상점과 무관(무료 선택). Team.logoUrl 사용.
+  favoriteTeamId Int?
+  favoriteTeam   Team? @relation("UserFavoriteTeam", fields: [favoriteTeamId], references: [id])
 
   // 텔레그램 경기 알림 (docs/telegram-alerts). 연결 시 chatId 저장, 미연결=null.
   telegramChatId    String? @unique // 텔레그램 chat_id (발송 대상)

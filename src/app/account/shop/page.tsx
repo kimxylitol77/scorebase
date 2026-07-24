@@ -34,6 +34,7 @@ export default async function ShopPage() {
         avatarUrl: true,
         nameColor: true,
         avatarFrame: true,
+        title: true,
       },
     }),
     prisma.userCosmetic.findMany({
@@ -72,12 +73,12 @@ export default async function ShopPage() {
       <div className="mb-6 flex items-center gap-3 rounded-3xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none px-5 py-4">
         <Avatar avatar={avatar} size="md" frame={user.avatarFrame} />
         <div>
-          <UserName name={user.nickname} nameColor={user.nameColor} className="text-base font-bold" />
+          <UserName name={user.nickname} nameColor={user.nameColor} title={user.title} className="text-base font-bold" />
           <div className="text-[11px] text-neutral-500">현재 내 프로필 미리보기</div>
         </div>
       </div>
 
-      <ShopGrid points={user.points} ownedIds={ownedIds} equipped={{ nameColor: user.nameColor, avatarFrame: user.avatarFrame }} />
+      <ShopGrid points={user.points} ownedIds={ownedIds} equipped={{ nameColor: user.nameColor, avatarFrame: user.avatarFrame, title: user.title }} />
     </div>
   );
 }

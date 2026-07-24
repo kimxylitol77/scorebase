@@ -3,6 +3,7 @@ import { displayGrade } from "@/lib/user-level";
 import Avatar from "./Avatar";
 import StreakBadge from "./StreakBadge";
 import UserName from "@/components/UserName";
+import TeamBadge from "@/components/TeamBadge";
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
@@ -23,8 +24,9 @@ export default function ProfileHeader({ p }: { p: UserProfile }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-bold truncate">
-              <UserName name={p.nickname} nameColor={p.nameColor} />
+              <UserName name={p.nickname} nameColor={p.nameColor} title={p.title} />
             </h1>
+            <TeamBadge logoUrl={p.favTeamLogo} size={22} className="shrink-0 rounded-sm" />
             <StreakBadge streak={p.streak} />
           </div>
           <div className="flex items-center gap-1.5 mt-2">

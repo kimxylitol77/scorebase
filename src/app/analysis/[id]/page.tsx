@@ -13,6 +13,7 @@ import { toKoreanTeamName } from "@/lib/team-names";
 import { TIERS } from "@/lib/dream-team/tiers";
 import Markdown from "@/components/Markdown";
 import UserName from "@/components/UserName";
+import TeamBadge from "@/components/TeamBadge";
 import { Target } from "lucide-react";
 import FollowButton from "@/components/experts/FollowButton";
 import LikeButton from "./LikeButton";
@@ -78,6 +79,8 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
           level: true,
           badge: true,
           nameColor: true,
+          title: true,
+          favoriteTeam: { select: { logoUrl: true } },
           predTotal: true,
           predHit: true,
           predStreak: true,
@@ -109,7 +112,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
           content: true,
           createdAt: true,
           authorId: true,
-          author: { select: { nickname: true, level: true, badge: true, nameColor: true } },
+          author: { select: { nickname: true, level: true, badge: true, nameColor: true, title: true } },
         },
       },
     },
@@ -215,8 +218,9 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
         <h1 className="mt-2 text-2xl sm:text-3xl font-bold leading-snug tracking-tight break-keep">{post.title}</h1>
 
         <div className="flex flex-wrap items-center gap-2 mt-3 pb-4 border-b border-black/5 dark:border-white/10 text-xs text-neutral-500">
-          <span className="font-semibold text-neutral-700 dark:text-neutral-300" title={g.name}>
-            {g.emoji} <UserName name={a.nickname} nameColor={a.nameColor} />
+          <span className="inline-flex items-center gap-1 font-semibold text-neutral-700 dark:text-neutral-300" title={g.name}>
+            {g.emoji} <UserName name={a.nickname} nameColor={a.nameColor} title={a.title} />
+            <TeamBadge logoUrl={a.favoriteTeam?.logoUrl ?? null} size={16} className="shrink-0 rounded-sm" />
           </span>
           {a.predTotal > 0 ? (
             <span
@@ -387,7 +391,7 @@ export default async function PostDetailPage({ params, searchParams }: Props) {
                       className="font-semibold text-neutral-700 dark:text-neutral-300"
                       title={cg.name}
                     >
-                      {cg.emoji} <UserName name={c.author.nickname} nameColor={c.author.nameColor} />
+                      {cg.emoji} <UserName name={c.author.nickname} nameColor={c.author.nameColor} title={c.author.title} />
                     </span>
                     <span className="text-xs text-neutral-400">{listTime(c.createdAt)}</span>
                     {userId === c.authorId && <DeleteCommentButton commentId={c.id} />}

@@ -12,6 +12,7 @@ import { resolveAvatar } from "@/lib/analysis/analysts";
 import { shopItemById } from "@/lib/shop";
 import BoardTabs from "@/components/BoardTabs";
 import UserName from "@/components/UserName";
+import TeamBadge from "@/components/TeamBadge";
 
 export const dynamic = "force-dynamic"; // 조회/추천 실시간 반영
 
@@ -301,6 +302,8 @@ export default async function AnalysisListPage({ searchParams }: Props) {
             badge: true,
             nameColor: true,
             avatarFrame: true,
+            title: true,
+            favoriteTeam: { select: { logoUrl: true } },
             predTotal: true,
             predHit: true,
             predStreak: true,
@@ -564,7 +567,8 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                         )}
                         <span className="inline-flex items-center gap-1">
                           <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} frame={a.avatarFrame} size="h-6 w-6 text-sm" />
-                          <UserName name={a.nickname} nameColor={a.nameColor} />
+                          <UserName name={a.nickname} nameColor={a.nameColor} title={a.title} />
+                          <TeamBadge logoUrl={a.favoriteTeam?.logoUrl ?? null} size={14} className="shrink-0 rounded-sm" />
                         </span>
                         {a.predTotal > 0 ? (
                           <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -591,7 +595,10 @@ export default async function AnalysisListPage({ searchParams }: Props) {
                     >
                       <AuthorBadge avatarUrl={a.avatarUrl} nickname={a.nickname} level={a.level} badge={a.badge} frame={a.avatarFrame} size="h-10 w-10 text-xl" />
                       <span className="flex flex-col min-w-0">
-                        <UserName name={a.nickname} nameColor={a.nameColor} className="truncate" />
+                        <span className="flex items-center gap-1 min-w-0">
+                          <UserName name={a.nickname} nameColor={a.nameColor} title={a.title} className="truncate" />
+                          <TeamBadge logoUrl={a.favoriteTeam?.logoUrl ?? null} size={15} className="shrink-0 rounded-sm" />
+                        </span>
                         {a.predTotal > 0 ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                             <Target className="h-3 w-3" aria-hidden /> {hitRate(a.predHit, a.predTotal)}% ({a.predHit}/{a.predTotal})

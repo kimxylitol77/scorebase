@@ -73,6 +73,28 @@ export async function setNicknameAction(formData: FormData): Promise<void> {
   revalidatePath("/account");
 }
 
+/** 대표(좋아하는) 팀 설정 — 본인만. 존재하는 팀만. 프로필에 로고 표시. */
+export async function setFavoriteTeamAction(formData: FormData): Promise<void> {
+  const c = await cookies();
+  const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
+  if (!session) return;
+  const teamId = Number(formData.get("teamId"));
+  if (!Number.isInteger(teamId)) return;
+  const team = await prisma.team.findUnique({ where: { id: teamId }, select: { id: true } });
+  if (!team) return;
+  await prisma.user.update({ where: { id: session.userId }, data: { favoriteTeamId: teamId } });
+  revalidatePath("/account");
+}
+
+/** 대표팀 해제 — 본인만. */
+export async function clearFavoriteTeamAction(): Promise<void> {
+  const c = await cookies();
+  const session = readUserSessionCookie(c.get(USER_COOKIE_NAME)?.value);
+  if (!session) return;
+  await prisma.user.update({ where: { id: session.userId }, data: { favoriteTeamId: null } });
+  revalidatePath("/account");
+}
+
 export type DeleteAccountState = { error?: string } | null;
 
 /** 회원 탈퇴 — 본인 세션 확인 후 계정 삭제. 게시글·댓글·예측·드림팀은 onDelete: Cascade 로 일괄 삭제.

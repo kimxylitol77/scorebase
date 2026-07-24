@@ -5,6 +5,7 @@ import { resolveAvatar } from "@/lib/analysis/analysts";
 import Avatar from "./Avatar";
 import StreakBadge from "./StreakBadge";
 import UserName from "@/components/UserName";
+import TeamBadge from "@/components/TeamBadge";
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
@@ -36,7 +37,8 @@ export default function ExpertRow({
         <Avatar avatar={avatar} size="md" frame={row.avatarFrame} />
         <span className="min-w-0">
           <span className="flex items-center gap-1.5">
-            <UserName name={row.nickname} nameColor={row.nameColor} className="truncate font-bold text-sm transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400" />
+            <UserName name={row.nickname} nameColor={row.nameColor} title={row.title} className="truncate font-bold text-sm transition-colors group-hover:text-rose-600 dark:group-hover:text-rose-400" />
+            <TeamBadge logoUrl={row.favTeamLogo} size={16} className="shrink-0 rounded-sm" />
             <StreakBadge streak={row.streak} />
           </span>
           <span className="flex items-center gap-1.5 mt-1">

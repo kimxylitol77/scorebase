@@ -8,11 +8,18 @@ import {
   unequipCosmeticAction,
   type PurchaseState,
 } from "./actions";
-import { shopItemsByType, RAINBOW_NAME_CLASS, type ShopItem, type CosmeticType } from "@/lib/shop";
+import {
+  shopItemsByType,
+  RAINBOW_NAME_CLASS,
+  TITLE_BADGE_CLASS,
+  type ShopItem,
+  type CosmeticType,
+} from "@/lib/shop";
 
 const SECTIONS: { type: CosmeticType; label: string }[] = [
   { type: "nameColor", label: "닉네임 색상" },
   { type: "avatarFrame", label: "아바타 프레임" },
+  { type: "title", label: "칭호" },
 ];
 
 export default function ShopGrid({
@@ -22,7 +29,7 @@ export default function ShopGrid({
 }: {
   points: number;
   ownedIds: string[];
-  equipped: { nameColor: string | null; avatarFrame: string | null };
+  equipped: { nameColor: string | null; avatarFrame: string | null; title: string | null };
 }) {
   const [state, purchase, pending] = useActionState<PurchaseState, FormData>(
     purchaseCosmeticAction,
@@ -97,6 +104,10 @@ function ItemCard({
     >
       <Preview item={item} />
       <div className="mt-2 text-xs font-semibold">{item.name}</div>
+      {/* 가격은 항상 표시 — 보유·장착 아이템은 "보유중" 으로 대체 */}
+      <div className="mt-0.5 text-[11px] font-bold tabular-nums text-blue-600 dark:text-blue-400">
+        {isOwned || isEquipped ? "보유중" : `${item.price.toLocaleString()}P`}
+      </div>
 
       {isEquipped ? (
         <form action={unequipCosmeticAction} className="mt-2 w-full">
@@ -126,7 +137,7 @@ function ItemCard({
             disabled={pending || !canAfford}
             className="w-full rounded-xl bg-emerald-500 py-1.5 text-[11px] font-semibold text-white enabled:hover:bg-emerald-600 disabled:opacity-40 transition-colors"
           >
-            {canAfford ? `${item.price.toLocaleString()}P 구매` : "포인트 부족"}
+            {canAfford ? "구매" : `${(item.price - points).toLocaleString()}P 부족`}
           </button>
         </form>
       )}
@@ -134,7 +145,7 @@ function ItemCard({
   );
 }
 
-/** 아이템 미리보기 — 색상은 샘플 닉네임, 프레임은 링 두른 원. */
+/** 아이템 미리보기 — 색상은 샘플 닉네임, 칭호는 배지, 프레임은 링 두른 원. */
 function Preview({ item }: { item: ShopItem }) {
   if (item.type === "nameColor") {
     if (item.gradient) {
@@ -143,6 +154,13 @@ function Preview({ item }: { item: ShopItem }) {
     return (
       <span className="text-lg font-extrabold" style={{ color: item.color }}>
         가나다
+      </span>
+    );
+  }
+  if (item.type === "title") {
+    return (
+      <span className="flex h-10 items-center">
+        <span className={TITLE_BADGE_CLASS}>{item.name}</span>
       </span>
     );
   }
