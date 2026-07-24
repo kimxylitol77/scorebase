@@ -60,13 +60,16 @@ export const SPORT_CATEGORIES: NavCategory[] = [
   },
   {
     label: "기타종목",
-    href: "/scores",
+    href: "/other",
     items: [
-      { href: "/hockey", label: "하키 허브", desc: "NHL·세계선수권 순위·선수·예측 한눈에" },
-      { href: "/salaries/nhl", label: "NHL 연봉 랭킹", desc: "선수·팀별 cap hit 순위" },
-      { href: "/leagues/NHL", label: "NHL 상세", desc: "북미 · 골리 매치업" },
-      { href: "/leagues/LOL", label: "LCK", desc: "리그 오브 레전드 한국" },
-      { href: "/standings", label: "리그 순위", desc: "NHL·LCK·LEC·LCS" },
+      { href: "/other", label: "기타 종목 허브", desc: "하키·배구·e스포츠·테니스·골프·F1 한눈에" },
+      { href: "/hockey", label: "하키 허브", desc: "NHL·세계선수권 순위·선수·예측" },
+      { href: "/scores?sport=volleyball", label: "배구", desc: "VNL 발리볼 네이션스리그" },
+      { href: "/standings/LOL", label: "LCK", desc: "리그 오브 레전드 한국 · 순위·선수" },
+      { href: "/rankings/tennis", label: "테니스 세계랭킹", desc: "ATP·WTA 150위 · 한국어 선수명" },
+      { href: "/golf/korea", label: "골프 한국 선수", desc: "PGA·LPGA 우승·톱10 시즌 집계" },
+      { href: "/rankings/f1", label: "F1 챔피언십", desc: "드라이버·컨스트럭터 포인트" },
+      { href: "/standings", label: "리그 순위", desc: "NHL·VNL·LCK 등 전 종목" },
     ],
   },
 ];
