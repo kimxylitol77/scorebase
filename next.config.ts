@@ -105,6 +105,19 @@ const nextConfig: NextConfig = {
       { source: "/h2h", destination: "/scores", permanent: false },
       { source: "/tools", destination: "/tools/kbo-win-probability", permanent: false },
       { source: "/transactions", destination: "/transactions/nba", permanent: false },
+      // 크로스소스 중복 row 를 정리하며 같은 경기에 두 편이 된 글 — 대표 글로 영구 이전.
+      // 글 페이지는 status !== PUBLISHED 를 404 로 처리해서(articles/[slug]) 비공개 전환이
+      // 곧 링크 유실이다. 삭제 + 308 로 색인·외부 링크를 남는 글에 넘긴다. (2026-07-24)
+      {
+        source: "/articles/k_league_1-preview-848657",
+        destination: "/articles/k_league_1-preview-836852",
+        permanent: true,
+      },
+      {
+        source: "/articles/j1_league-recap-55076",
+        destination: "/articles/j1_league-recap-88341",
+        permanent: true,
+      },
     ];
   },
 };
