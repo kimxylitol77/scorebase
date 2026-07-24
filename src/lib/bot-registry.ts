@@ -123,6 +123,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     // 2026-07-10 맥미니→Vultr 이관 — 집 회선 저하로 12시간 걸리던 덤프가 Vultr(AWS 아님, 서울 DC)에선 39초.
     role: "Neon pg_dump → Vultr(64.176.230.240) /root/scorebase-backup 30일 보존 (매일 04:30 KST)",
   },
+  "mac-mini-daily-golf-korea": {
+    ko: "골프 한국선수 시즌 집계",
+    intervalMs: 1 * DAY,
+    role: "PGA·LPGA 시즌 리더보드 → 한국 선수 우승·톱10 재집계 + data push (매일 09:00)",
+  },
   "mac-mini-weekly-static-refresh": {
     ko: "정적 데이터 주간 갱신",
     intervalMs: 7 * DAY,

@@ -7,7 +7,7 @@
 - [ ] scripts/build-golf-korea-season.ts — PGA·LPGA ?dates=YYYY 훑어 한국 선수 집계
       (출전·우승·top10·최고순위·최근성적) + 선수 한글명(위키→Haiku)
 - [ ] data/golf-korea-season.json 산출
-- [x] 갱신 — mac-mini weekly-static-refresh 편입(⑯, 일요일 05:00 KST). 대회 종료가 KST 월요일이라 최대 6일 지연 가능 → 더 빨라야 하면 별도 daily cron
+- [x] 갱신 — mac-mini daily-golf-korea.sh (매일 09:00 KST, CRON_REGISTRY 등록). 대회가 KST 월요일 종료라 당일 반영
 
 ## 2. 페이지
 - [ ] /golf/korea — 한국 선수 시즌 성적 (LPGA·PGA 탭, 우승·top10 정렬)

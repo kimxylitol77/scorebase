@@ -52,8 +52,7 @@ log "⑭ NBA 선수 인덱스·로스터 (ESPN 30팀 로스터 → nba-players.j
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-nba-players.ts' 2>&1 | tail -2 || true
 log "⑮ 테니스 선수 한글명 (ATP·WTA top150 — 위키 ko → 미확보분 Haiku. /rankings/tennis)"
 env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-tennis-player-names.ts' 2>&1 | tail -2 || true
-log "⑯ 골프 한국 선수 시즌 집계 (PGA·LPGA 시즌 리더보드 → 우승·톱10. /golf/korea)"
-env -u ANTHROPIC_API_KEY zsh -c 'set -a; . mac-mini-worker/.env; set +a; npx tsx scripts/build-golf-korea-season.ts' 2>&1 | tail -3 || true
+# 골프 한국 선수 집계는 daily-golf-korea.sh(매일 09:00)로 분리 — 대회가 KST 월요일 종료라 주간으론 최대 6일 지연.
 
 # ── 빈 파일 가드 — 핵심 json 이 비정상으로 작아지면 push 중단 ──
 for f in data/team-squads.json data/team-coaches.json data/player-overrides.json data/player-positions.json data/ts-af-player-map.json data/player-season-stats.json data/baseball-rosters.json data/nba-players.json data/golf-korea-season.json; do
