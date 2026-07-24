@@ -116,6 +116,10 @@ interface AthleteResp {
   id?: string;
   displayName?: string;
   age?: number;
+  /** 인치 — 한국 표기는 cm 로 변환해서 노출 */
+  height?: number;
+  /** 파운드 — kg 로 변환 */
+  weight?: number;
   displayHeight?: string;
   displayWeight?: string;
   hand?: { displayValue?: string; type?: string };
@@ -173,8 +177,9 @@ export const fetchTennisPlayer = unstable_cache(
       countryKo: countryEn ? fifaCountryKo(countryEn) : null,
       flag: a.flag?.href ?? null,
       age: a.age ?? null,
-      heightDisplay: a.displayHeight ?? null,
-      weightDisplay: a.displayWeight ?? null,
+      // 한국 표기 — 인치/파운드를 cm/kg 로 변환 (원본 displayHeight 는 6' 3" 형식)
+      heightDisplay: a.height ? `${Math.round(a.height * 2.54)}cm` : (a.displayHeight ?? null),
+      weightDisplay: a.weight ? `${Math.round(a.weight * 0.4536)}kg` : (a.displayWeight ?? null),
       hand: a.hand?.displayValue ?? null,
       debutYear: a.debutYear ?? null,
       birthPlace: [a.birthPlace?.city, a.birthPlace?.country].filter(Boolean).join(", ") || null,
