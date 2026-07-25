@@ -1,25 +1,85 @@
 {
   "league": "LPL",
   "name": "LPL",
-  "updatedAt": "2026-06-29T14:43:33.645Z",
+  "updatedAt": "2026-07-25T00:45:24.027Z",
   "groups": [
     {
       "name": "그룹 A",
       "standings": [
         {
           "rank": 1,
+          "teamId": "n54qleou2okvmvy",
+          "name": "애니원스 레전드",
+          "short": "AL",
+          "logo": "https://eimg.thesports.com/lol/team/FjrHFvRBMig3usi4JEERm5J5XDoZ",
+          "win": 2,
+          "lose": 0,
+          "roster": [
+            {
+              "playerId": "965mk6zt82oeq1g",
+              "name": "Flandre",
+              "realName": "Li Xuan-Jun (李炫君)",
+              "photo": "https://eimg.thesports.com/lol/player/FrOFXxpyF8qWIhAXyxL-kiJA1xoL",
+              "position": 3
+            },
+            {
+              "playerId": "x7lm797bxj1er2w",
+              "name": "Breathe",
+              "realName": "Chen Chen (陈晨)",
+              "photo": "https://eimg.thesports.com/lol/player/Fk-x4zQXArgypMhQuZfNDTKrsbXU",
+              "position": 3
+            },
+            {
+              "playerId": "x7lm797bxzldr2w",
+              "name": "Tarzan",
+              "realName": "Lee Seung-yong (이승용)",
+              "photo": "https://eimg.thesports.com/lol/player/FpjVlQtcrN_q26ZTztcdvI_PFABj",
+              "position": 4
+            },
+            {
+              "playerId": "k82repjt24kzqep",
+              "name": "Shanks",
+              "realName": "Cui Xiao-Jun (崔校军)",
+              "photo": "https://eimg.thesports.com/lol/player/Ftf7gwIvn5YjY4Kmbn9SUqaoZd8C",
+              "position": 2
+            },
+            {
+              "playerId": "k82repjt2wjdqep",
+              "name": "Hope",
+              "realName": "Wang Jie (王杰)",
+              "photo": "https://eimg.thesports.com/lol/player/Fv5RJ6ZywwDQY8njYdmlyOGJdFvT",
+              "position": 1
+            },
+            {
+              "playerId": "y39mp8xud8pkqoj",
+              "name": "Kael",
+              "realName": "Kim Jin-hong (김진홍)",
+              "photo": "https://eimg.thesports.com/lol/player/FsgiXCRlNgKBD_7N6091SoaDtxN1",
+              "position": 5
+            }
+          ]
+        },
+        {
+          "rank": 2,
           "teamId": "4wyrnxyt8pldm86",
           "name": "빌리빌리 게이밍",
           "short": "BLG",
           "logo": "https://eimg.thesports.com/lol/team/FuQ-HVlJW08a3QSsFNrwgDSrV-kn",
-          "win": 12,
-          "lose": 2,
+          "win": 2,
+          "lose": 0,
           "roster": [
             {
               "playerId": "l7oqd9kbjj4xm51",
               "name": "Bin",
               "realName": "Chen Ze-Bin (陈泽彬)",
               "photo": "https://eimg.thesports.com/lol/player/FrANI0Eey2YqIGCah73UqpKLvWhx",
+              "position": 3
+            },
+            {
+              "playerId": "k82repjteoovqep",
+              "name": "Wenbo",
+              "realName": "杨文波",
+              "photo": "https://eimg.thesports.com/lol/player/FoI_8sZTOcg2zJN0iJe4OqbfJJv2",
               "position": 3
             },
             {
@@ -53,59 +113,13 @@
           ]
         },
         {
-          "rank": 2,
-          "teamId": "zp5rz5pfjvw9r82",
-          "name": "JD 게이밍",
-          "short": "JDG",
-          "logo": "https://eimg.thesports.com/lol/team/FjTJM1hEw1EE9T_fTiz7W2efVrxU",
-          "win": 9,
-          "lose": 5,
-          "roster": [
-            {
-              "playerId": "y0or59wb9k25mwz",
-              "name": "Xiaoxu",
-              "realName": "Xu Xing-Zu (徐兴祖)",
-              "photo": "https://eimg.thesports.com/lol/player/Fn37CTEzAoWOda11M0STClTK3EB0",
-              "position": 3
-            },
-            {
-              "playerId": "4wyrnxyty5xlm86",
-              "name": "JunJia",
-              "realName": "Yu Chun-Chia (余峻嘉)",
-              "photo": "https://eimg.thesports.com/lol/player/FvpV9O2PGMYRYdN4eFwlzU3kuQdz",
-              "position": 4
-            },
-            {
-              "playerId": "6ypq3e3u851wmd7",
-              "name": "HongQ",
-              "realName": "Tsai Ming-hong",
-              "photo": "https://eimg.thesports.com/lol/player/FusMDbG9ldRadxVbklrTSlltzQHQ",
-              "position": 2
-            },
-            {
-              "playerId": "ednm926h5wd0ryo",
-              "name": "GALA",
-              "realName": "Chen Wei (陈伟)",
-              "photo": "https://eimg.thesports.com/lol/player/FsMCxvRgCy8c37G9mv-Gh-q3Sf5t",
-              "position": 1
-            },
-            {
-              "playerId": "3glrwwot9wzzrdy",
-              "name": "Vampire",
-              "realName": "Zhao Zhe-Can (赵哲灿)",
-              "photo": "https://eimg.thesports.com/lol/player/FvAGenMg6FMCKeX8A55gD11UbGEh",
-              "position": 5
-            }
-          ]
-        },
-        {
           "rank": 3,
           "teamId": "965mk6zt7d83q1g",
           "name": "탑 e스포츠",
           "short": "TES",
           "logo": "https://eimg.thesports.com/lol/team/1139c61f11e06147a05b9180b9ce064a.png",
-          "win": 8,
-          "lose": 6,
+          "win": 1,
+          "lose": 0,
           "roster": [
             {
               "playerId": "zp5rz5pf3g9er82",
@@ -143,98 +157,6 @@
               "position": 1
             },
             {
-              "playerId": "jw2r08ku3l6xqz8",
-              "name": "Fengyue",
-              "realName": "Wang Run-Lai (王润来)",
-              "photo": "https://eimg.thesports.com/lol/player/FhBcUiRgmyeSCGFL1j2yYxaAtCKm",
-              "position": 5
-            }
-          ]
-        },
-        {
-          "rank": 4,
-          "teamId": "n54qleou2okvmvy",
-          "name": "애니원스 레전드",
-          "short": "AL",
-          "logo": "https://eimg.thesports.com/lol/team/FjBYl_bpqXM4Thw2Z2WYxwDIOJx1",
-          "win": 8,
-          "lose": 6,
-          "roster": [
-            {
-              "playerId": "965mk6zt82oeq1g",
-              "name": "Flandre",
-              "realName": "Li Xuan-Jun (李炫君)",
-              "photo": "https://eimg.thesports.com/lol/player/FrOFXxpyF8qWIhAXyxL-kiJA1xoL",
-              "position": 3
-            },
-            {
-              "playerId": "x7lm797bxzldr2w",
-              "name": "Tarzan",
-              "realName": "Lee Seung-yong (이승용)",
-              "photo": "https://eimg.thesports.com/lol/player/FpjVlQtcrN_q26ZTztcdvI_PFABj",
-              "position": 4
-            },
-            {
-              "playerId": "k82repjt24kzqep",
-              "name": "Shanks",
-              "realName": "Cui Xiao-Jun (崔校军)",
-              "photo": "https://eimg.thesports.com/lol/player/Ftf7gwIvn5YjY4Kmbn9SUqaoZd8C",
-              "position": 2
-            },
-            {
-              "playerId": "k82repjt2wjdqep",
-              "name": "Hope",
-              "realName": "Wang Jie (王杰)",
-              "photo": "https://eimg.thesports.com/lol/player/Fv5RJ6ZywwDQY8njYdmlyOGJdFvT",
-              "position": 1
-            },
-            {
-              "playerId": "y39mp8xud8pkqoj",
-              "name": "Kael",
-              "realName": "Kim Jin-hong (김진홍)",
-              "photo": "https://eimg.thesports.com/lol/player/FsgiXCRlNgKBD_7N6091SoaDtxN1",
-              "position": 5
-            }
-          ]
-        },
-        {
-          "rank": 5,
-          "teamId": "pxwrx81ug8nkqyk",
-          "name": "닌자 인 파자마스",
-          "short": "NIP",
-          "logo": "https://eimg.thesports.com/lol/team/FqCjTdpLzs0aJwMyocEK7zI1DTOi",
-          "win": 7,
-          "lose": 7,
-          "roster": [
-            {
-              "playerId": "4wyrnxytynyjm86",
-              "name": "HOYA",
-              "realName": "Yoon Yong-ho (윤용호)",
-              "photo": "https://eimg.thesports.com/lol/player/FikNiyTilwtkeRbUUAGKeU1B8hUC",
-              "position": 3
-            },
-            {
-              "playerId": "1l4rjevunw58m7v",
-              "name": "Guwon",
-              "realName": "Koo Kwan-mo (구관모)",
-              "photo": "https://eimg.thesports.com/lol/player/Fg8hmABTQFT218yQK-kZ-XeV9nHV",
-              "position": 4
-            },
-            {
-              "playerId": "8yomow3typygr0j",
-              "name": "Care",
-              "realName": "Yang Jie (阳杰)",
-              "photo": "https://eimg.thesports.com/lol/player/FlV5m_G3GJ4p0tyZWxk1pq71Te64",
-              "position": 2
-            },
-            {
-              "playerId": "dn1m1eku9g27qoe",
-              "name": "Assum",
-              "realName": "Zou Wei（邹维）",
-              "photo": "https://eimg.thesports.com/lol/player/FjFPc_t1Yg_fK8hLHOU2C-m9jzD9",
-              "position": 1
-            },
-            {
               "playerId": "x7lm797bxjyer2w",
               "name": "Zhuo",
               "realName": "Wang Xu-Zhuo (王旭卓)",
@@ -244,126 +166,59 @@
           ]
         },
         {
-          "rank": 6,
-          "teamId": "pxwrx81ugk2oqyk",
-          "name": "웨이보 게이밍",
-          "short": "WBG",
-          "logo": "https://eimg.thesports.com/lol/team/FsGLCKNVEaNUowzakjbT75oqQIsY",
-          "win": 6,
-          "lose": 8,
+          "rank": 4,
+          "teamId": "8yomow3t7l4xr0j",
+          "name": "LGD 게이밍",
+          "short": "LGD",
+          "logo": "https://eimg.thesports.com/lol/team/Fg_MRnJU_nJIN_fhBFBAoLoAscP5",
+          "win": 1,
+          "lose": 1,
           "roster": [
             {
-              "playerId": "3glrwwot4v5wrdy",
-              "name": "Zika",
-              "realName": "Tang Hua-Yu (唐华钰)",
-              "photo": "https://eimg.thesports.com/lol/player/FpbPU2ACPsEGldinmJqh4qca9VYJ",
+              "playerId": "dj2ryy6t7op4r1z",
+              "name": "Burdol",
+              "realName": "Noh Tae-yoon (노태윤)",
+              "photo": "https://eimg.thesports.com/lol/player/FrEYHL8V8PBa-PVVm5ukk0DFrwo0",
               "position": 3
             },
             {
-              "playerId": "dj2ryy6t7701r1z",
-              "name": "Jiejie",
-              "realName": "Zhao Li-Jie (赵礼杰）",
-              "photo": "https://eimg.thesports.com/lol/player/FjdAEDbTMPrcfD6d1W6UoUPx_soS",
+              "playerId": "k82repjt2p71qep",
+              "name": "Heng",
+              "realName": "Yang Cui-Heng (杨翠衡)",
+              "photo": "https://eimg.thesports.com/lol/player/FvqJxe7XtLGPyMmvnFw_JWxXHtNi",
               "position": 4
             },
             {
-              "playerId": "318q6g8t86k0ro9",
-              "name": "Xiaohu",
-              "realName": "Li Yuan-Hao (李元浩)",
-              "photo": "https://eimg.thesports.com/lol/player/FgP95GRttfUOKjOSQLPLBwi-Hy_J",
+              "playerId": "965mk6zt86p0q1g",
+              "name": "Tangyuan",
+              "realName": "Lin Yu-Hong (林宇鸿)",
+              "photo": "https://eimg.thesports.com/lol/player/Frw-P3R54azUWfPjk0KldjvWufqa",
               "position": 2
             },
             {
-              "playerId": "l7oqd9kbjgwlm51",
-              "name": "Elk",
-              "realName": "Zhao Jia-Hao (赵嘉豪)",
-              "photo": "https://eimg.thesports.com/lol/player/Fv0cfo4GGOasy-UYtPgvnjXra87T",
+              "playerId": "n54qleou4o21mvy",
+              "name": "Shaoye",
+              "realName": "Qiu Guo-Bin (仇国斌)",
+              "photo": "https://eimg.thesports.com/lol/player/FtN9AtHN0T6rLyiv28UA2Z-41psY",
               "position": 1
             },
             {
-              "playerId": "y0or59wb993gmwz",
-              "name": "Hang",
-              "realName": "Fu Ming-Hang (付明航)",
-              "photo": "https://eimg.thesports.com/lol/player/FtSBqxCNGuSV8IeMF3_sMUzrmnMt",
+              "playerId": "jw2r08ku52xpqz8",
+              "name": "Crisp",
+              "realName": "Liu Qing-Song (刘青松)",
+              "photo": "https://eimg.thesports.com/lol/player/FmQ7RuNwALDJtI7kcqqQZ9LhAeyP",
               "position": 5
             }
           ]
         },
         {
-          "rank": 7,
-          "teamId": "6ypq3e3u0ynnmd7",
-          "name": "인빅터스 게이밍",
-          "short": "IG",
-          "logo": "https://eimg.thesports.com/lol/team/8e0be89305eafd6f37503187a6fc4c53.png",
-          "win": 5,
-          "lose": 9,
-          "roster": [
-            {
-              "playerId": "x7lm797bxj1er2w",
-              "name": "Breathe",
-              "realName": "Chen Chen (陈晨)",
-              "photo": "https://eimg.thesports.com/lol/player/Fk-x4zQXArgypMhQuZfNDTKrsbXU",
-              "position": 3
-            },
-            {
-              "playerId": "965mk6zt86o7q1g",
-              "name": "Soboro",
-              "realName": "Lim Seong-min",
-              "photo": "https://eimg.thesports.com/lol/player/Fij9jBphJAcRe7xCNPre8NHXao7k",
-              "position": 3
-            },
-            {
-              "playerId": "318q6g8t8w7nro9",
-              "name": "Wei",
-              "realName": "Yan Yang-Wei (闫扬威)",
-              "photo": "https://eimg.thesports.com/lol/player/Fq8RwBIVO1lEF7-iohLfG3BFLtvg",
-              "position": 4
-            },
-            {
-              "playerId": "23xmvxjtypw7rg8",
-              "name": "Rookie",
-              "realName": "Song Eui-jin (송의진)",
-              "photo": "https://eimg.thesports.com/lol/player/Fn2KGfnDi9zl8RpRFkV2k-rIXrC9",
-              "position": 2
-            },
-            {
-              "playerId": "2y8m4exuvd24ql0",
-              "name": "Renard",
-              "realName": "Zhang Xing-Che (张星澈)",
-              "photo": "https://eimg.thesports.com/lol/player/Ft5vdAf5oBLkKBTNmbAJRZLqmX5l",
-              "position": 2
-            },
-            {
-              "playerId": "n54qleou3xl7mvy",
-              "name": "Nia",
-              "realName": "Zou Guang-Lu (邹广禄)",
-              "photo": "https://eimg.thesports.com/lol/player/FussB-zAHAvbEPfVkVdi9nCj0NGW",
-              "position": 2
-            },
-            {
-              "playerId": "k82repjt2k29qep",
-              "name": "JiaQi",
-              "realName": "Zi Jia-Qi (资嘉琪)",
-              "photo": "https://eimg.thesports.com/lol/player/FiLazd08jY2KFHxjetKO-So_Q4BC",
-              "position": 1
-            },
-            {
-              "playerId": "vjxm89jbk5pkq6o",
-              "name": "Meiko",
-              "realName": "Tian Ye (田野)",
-              "photo": "https://eimg.thesports.com/lol/player/Fob9FMa2gXQ9ZX8Vfutd3Z30WCka",
-              "position": 5
-            }
-          ]
-        },
-        {
-          "rank": 8,
+          "rank": 5,
           "teamId": "pxwrx81ug83xqyk",
           "name": "팀 WE",
           "short": "WE",
           "logo": "https://eimg.thesports.com/lol/team/a5e8b721fa3495424ab2f7f813ccfd9e.png",
           "win": 1,
-          "lose": 13,
+          "lose": 1,
           "roster": [
             {
               "playerId": "4jwq2ekugndyq0v",
@@ -377,6 +232,13 @@
               "name": "Monki",
               "realName": "Wang Meng-Qi (王梦齐)",
               "photo": "https://eimg.thesports.com/lol/player/FiAi-Hm0Dq8g2sW3A3mAtdd-I1Pq",
+              "position": 4
+            },
+            {
+              "playerId": "318q6g8t1o98ro9",
+              "name": "Tyrion",
+              "realName": "Peng Jun-bin",
+              "photo": "https://eimg.thesports.com/lol/player/FqbNVt5Fwe6S6OsSBhAvEoesDD-Y",
               "position": 4
             },
             {
@@ -399,75 +261,17 @@
               "realName": "Shi Xu-Ye (施旭烨)",
               "photo": "https://eimg.thesports.com/lol/player/Fh7Xy4lcO63s3MxBKhYZCi0GQnay",
               "position": 5
-            },
-            {
-              "playerId": "3glrwwot9k0yrdy",
-              "name": "Dorian",
-              "realName": "陈思远",
-              "photo": "https://eimg.thesports.com/lol/player/Fu3I6r7H3wfSq70OvX-iMPsR5SHj",
-              "position": 5
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "그룹 B",
-      "standings": [
-        {
-          "rank": 1,
-          "teamId": "23xmvxjt310zrg8",
-          "name": "LNG e스포츠",
-          "short": "LNG",
-          "logo": "https://eimg.thesports.com/lol/team/5b00639e9203f5adac6655d783e11d88.png",
-          "win": 4,
-          "lose": 1,
-          "roster": [
-            {
-              "playerId": "ednm926hokg5ryo",
-              "name": "Sheer",
-              "realName": "Xu Wen-Jie (徐文杰)",
-              "photo": "https://eimg.thesports.com/lol/player/FgofERxLnH73nBVWeb3ev44ZtzRm",
-              "position": 3
-            },
-            {
-              "playerId": "l7oqd9kbjzy0m51",
-              "name": "Croco",
-              "realName": "Kim Dong-beom（김동범）",
-              "photo": "https://eimg.thesports.com/lol/player/FnB92hBJ1JQMLmnTuSq6PAxymmfc",
-              "position": 4
-            },
-            {
-              "playerId": "965mk6zt864wq1g",
-              "name": "BuLLDoG",
-              "realName": "Lee  Tae-yeong",
-              "photo": "https://eimg.thesports.com/lol/player/FnTJ2n9EpOXUKyJISQZzgCiJy2KQ",
-              "position": 2
-            },
-            {
-              "playerId": "6ypq3e3ukj0zmd7",
-              "name": "1xn",
-              "realName": "Li Xiu-Nan (李修楠)",
-              "photo": "https://eimg.thesports.com/lol/player/FpjY52Vab85-djdrEgs0LWYjaXEx",
-              "position": 1
-            },
-            {
-              "playerId": "3glrwwot4n6wrdy",
-              "name": "MISSING",
-              "realName": "Lou Yun-Feng (娄运峰)",
-              "photo": "https://eimg.thesports.com/lol/player/Ftyq7A3at17Mnj3Eu4cVXiJfcPfF",
-              "position": 5
             }
           ]
         },
         {
-          "rank": 2,
+          "rank": 6,
           "teamId": "8yomow3t7d7zr0j",
           "name": "썬더토크 게이밍",
           "short": "TT",
           "logo": "https://eimg.thesports.com/lol/team/Fi06LtV6yXZji05FCa8wywt68Zzm",
-          "win": 3,
-          "lose": 2,
+          "win": 0,
+          "lose": 1,
           "roster": [
             {
               "playerId": "4wyrnxytw8j5m86",
@@ -514,12 +318,58 @@
           ]
         },
         {
-          "rank": 3,
+          "rank": 7,
+          "teamId": "zp5rz5pfjvw9r82",
+          "name": "JD 게이밍",
+          "short": "JDG",
+          "logo": "https://eimg.thesports.com/lol/team/FjTJM1hEw1EE9T_fTiz7W2efVrxU",
+          "win": 0,
+          "lose": 2,
+          "roster": [
+            {
+              "playerId": "y0or59wb9k25mwz",
+              "name": "Xiaoxu",
+              "realName": "Xu Xing-Zu (徐兴祖)",
+              "photo": "https://eimg.thesports.com/lol/player/Fn37CTEzAoWOda11M0STClTK3EB0",
+              "position": 3
+            },
+            {
+              "playerId": "4wyrnxyty5xlm86",
+              "name": "JunJia",
+              "realName": "Yu Chun-Chia (余峻嘉)",
+              "photo": "https://eimg.thesports.com/lol/player/FvpV9O2PGMYRYdN4eFwlzU3kuQdz",
+              "position": 4
+            },
+            {
+              "playerId": "6ypq3e3u851wmd7",
+              "name": "HongQ",
+              "realName": "Tsai Ming-hong",
+              "photo": "https://eimg.thesports.com/lol/player/FusMDbG9ldRadxVbklrTSlltzQHQ",
+              "position": 2
+            },
+            {
+              "playerId": "ednm926h5wd0ryo",
+              "name": "GALA",
+              "realName": "Chen Wei (陈伟)",
+              "photo": "https://eimg.thesports.com/lol/player/FsMCxvRgCy8c37G9mv-Gh-q3Sf5t",
+              "position": 1
+            },
+            {
+              "playerId": "3glrwwot9wzzrdy",
+              "name": "Vampire",
+              "realName": "Zhao Zhe-Can (赵哲灿)",
+              "photo": "https://eimg.thesports.com/lol/player/FvAGenMg6FMCKeX8A55gD11UbGEh",
+              "position": 5
+            }
+          ]
+        },
+        {
+          "rank": 8,
           "teamId": "23xmvxjt319zrg8",
           "name": "에드워드 게이밍",
           "short": "EDG",
           "logo": "https://eimg.thesports.com/lol/team/2f6a16771b9e8f03507e7f8a7307ab4e.png",
-          "win": 3,
+          "win": 0,
           "lose": 2,
           "roster": [
             {
@@ -544,18 +394,18 @@
               "position": 2
             },
             {
+              "playerId": "965mk6zt864wq1g",
+              "name": "BuLLDoG",
+              "realName": "Lee  Tae-yeong",
+              "photo": "https://eimg.thesports.com/lol/player/FnTJ2n9EpOXUKyJISQZzgCiJy2KQ",
+              "position": 2
+            },
+            {
               "playerId": "dj2ryy6t7zkvr1z",
               "name": "Leave",
               "realName": "Hu Hong-Chao (胡洪超)",
               "photo": "https://eimg.thesports.com/lol/player/FqxBGpC4nn_lIR58e3C4WKC9oGkm",
               "position": 1
-            },
-            {
-              "playerId": "k82repjt2kn7qep",
-              "name": "Jwei",
-              "realName": "Sun Jun-Wei (孙俊委)",
-              "photo": "https://eimg.thesports.com/lol/player/FgIEp-QVAcWTNwu2Wu1w62lNg7mV",
-              "position": 5
             },
             {
               "playerId": "318q6g8t1v86ro9",
@@ -565,43 +415,147 @@
               "position": 5
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "그룹 B",
+      "standings": [
         {
-          "rank": 4,
-          "teamId": "8yomow3t7l4xr0j",
-          "name": "LGD 게이밍",
-          "short": "LGD",
-          "logo": "https://eimg.thesports.com/lol/team/Fg_MRnJU_nJIN_fhBFBAoLoAscP5",
-          "win": 3,
-          "lose": 2,
+          "rank": 1,
+          "teamId": "pxwrx81ugk2oqyk",
+          "name": "웨이보 게이밍",
+          "short": "WBG",
+          "logo": "https://eimg.thesports.com/lol/team/FsGLCKNVEaNUowzakjbT75oqQIsY",
+          "win": 0,
+          "lose": 0,
           "roster": [
             {
-              "playerId": "dj2ryy6t7op4r1z",
-              "name": "Burdol",
-              "realName": "Noh Tae-yoon (노태윤)",
-              "photo": "https://eimg.thesports.com/lol/player/FrEYHL8V8PBa-PVVm5ukk0DFrwo0",
+              "playerId": "3glrwwot4v5wrdy",
+              "name": "Zika",
+              "realName": "Tang Hua-Yu (唐华钰)",
+              "photo": "https://eimg.thesports.com/lol/player/FpbPU2ACPsEGldinmJqh4qca9VYJ",
               "position": 3
             },
             {
-              "playerId": "k82repjt2p71qep",
-              "name": "Heng",
-              "realName": "Yang Cui-Heng (杨翠衡)",
-              "photo": "https://eimg.thesports.com/lol/player/FvqJxe7XtLGPyMmvnFw_JWxXHtNi",
+              "playerId": "dj2ryy6t7701r1z",
+              "name": "Jiejie",
+              "realName": "Zhao Li-Jie (赵礼杰）",
+              "photo": "https://eimg.thesports.com/lol/player/FjdAEDbTMPrcfD6d1W6UoUPx_soS",
               "position": 4
             },
             {
-              "playerId": "965mk6zt86p0q1g",
-              "name": "Tangyuan",
-              "realName": "Lin Yu-Hong (林宇鸿)",
-              "photo": "https://eimg.thesports.com/lol/player/Frw-P3R54azUWfPjk0KldjvWufqa",
+              "playerId": "318q6g8t86k0ro9",
+              "name": "Xiaohu",
+              "realName": "Li Yuan-Hao (李元浩)",
+              "photo": "https://eimg.thesports.com/lol/player/FgP95GRttfUOKjOSQLPLBwi-Hy_J",
               "position": 2
             },
             {
-              "playerId": "n54qleou4o21mvy",
-              "name": "Shaoye",
-              "realName": "Qiu Guo-Bin (仇国斌)",
-              "photo": "https://eimg.thesports.com/lol/player/FtN9AtHN0T6rLyiv28UA2Z-41psY",
+              "playerId": "l7oqd9kbjgwlm51",
+              "name": "Elk",
+              "realName": "Zhao Jia-Hao (赵嘉豪)",
+              "photo": "https://eimg.thesports.com/lol/player/Fv0cfo4GGOasy-UYtPgvnjXra87T",
               "position": 1
+            },
+            {
+              "playerId": "k82repjt2kn7qep",
+              "name": "Jwei",
+              "realName": "Sun Jun-Wei (孙俊委)",
+              "photo": "https://eimg.thesports.com/lol/player/FgIEp-QVAcWTNwu2Wu1w62lNg7mV",
+              "position": 5
+            }
+          ]
+        },
+        {
+          "rank": 2,
+          "teamId": "pxwrx81ug8nkqyk",
+          "name": "닌자 인 파자마스",
+          "short": "NIP",
+          "logo": "https://eimg.thesports.com/lol/team/FqCjTdpLzs0aJwMyocEK7zI1DTOi",
+          "win": 0,
+          "lose": 0,
+          "roster": [
+            {
+              "playerId": "4wyrnxytynyjm86",
+              "name": "HOYA",
+              "realName": "Yoon Yong-ho (윤용호)",
+              "photo": "https://eimg.thesports.com/lol/player/FikNiyTilwtkeRbUUAGKeU1B8hUC",
+              "position": 3
+            },
+            {
+              "playerId": "1l4rjevunw58m7v",
+              "name": "Guwon",
+              "realName": "Koo Kwan-mo (구관모)",
+              "photo": "https://eimg.thesports.com/lol/player/Fg8hmABTQFT218yQK-kZ-XeV9nHV",
+              "position": 4
+            },
+            {
+              "playerId": "8yomow3typygr0j",
+              "name": "Care",
+              "realName": "Yang Jie (阳杰)",
+              "photo": "https://eimg.thesports.com/lol/player/FlV5m_G3GJ4p0tyZWxk1pq71Te64",
+              "position": 2
+            },
+            {
+              "playerId": "965mk6zt8kx6q1g",
+              "name": "Photic",
+              "realName": "Ying Qi-Shen (应祺燊)",
+              "photo": "https://eimg.thesports.com/lol/player/FoGRIexyCAb8m6KA1HuQ1A9wTz2d",
+              "position": 1
+            },
+            {
+              "playerId": "jw2r08ku3l6xqz8",
+              "name": "Fengyue",
+              "realName": "Wang Run-Lai (王润来)",
+              "photo": "https://eimg.thesports.com/lol/player/FhBcUiRgmyeSCGFL1j2yYxaAtCKm",
+              "position": 5
+            }
+          ]
+        },
+        {
+          "rank": 3,
+          "teamId": "23xmvxjt310zrg8",
+          "name": "LNG e스포츠",
+          "short": "LNG",
+          "logo": "https://eimg.thesports.com/lol/team/5b00639e9203f5adac6655d783e11d88.png",
+          "win": 0,
+          "lose": 0,
+          "roster": [
+            {
+              "playerId": "ednm926hokg5ryo",
+              "name": "Sheer",
+              "realName": "Xu Wen-Jie (徐文杰)",
+              "photo": "https://eimg.thesports.com/lol/player/FgofERxLnH73nBVWeb3ev44ZtzRm",
+              "position": 3
+            },
+            {
+              "playerId": "jw2r08ku5kdjqz8",
+              "name": "Weiwei",
+              "realName": "Wei Bo-Han (魏博涵)",
+              "photo": "https://eimg.thesports.com/lol/player/Foa4yO954SLDvcDQv2MCztEpNizT",
+              "position": 4
+            },
+            {
+              "playerId": "n54qleou3xl7mvy",
+              "name": "Nia",
+              "realName": "Zou Guang-Lu (邹广禄)",
+              "photo": "https://eimg.thesports.com/lol/player/FussB-zAHAvbEPfVkVdi9nCj0NGW",
+              "position": 2
+            },
+            {
+              "playerId": "6ypq3e3ukj0zmd7",
+              "name": "1xn",
+              "realName": "Li Xiu-Nan (李修楠)",
+              "photo": "https://eimg.thesports.com/lol/player/FpjY52Vab85-djdrEgs0LWYjaXEx",
+              "position": 1
+            },
+            {
+              "playerId": "3glrwwot4n6wrdy",
+              "name": "MISSING",
+              "realName": "Lou Yun-Feng (娄运峰)",
+              "photo": "https://eimg.thesports.com/lol/player/Ftyq7A3at17Mnj3Eu4cVXiJfcPfF",
+              "position": 5
             },
             {
               "playerId": "x7lm797bvg5kr2w",
@@ -613,100 +567,61 @@
           ]
         },
         {
-          "rank": 5,
-          "teamId": "1l4rjevu6we1m7v",
-          "name": "울트라 프라임",
-          "short": "UP",
-          "logo": "https://eimg.thesports.com/lol/team/Fu4KY4VW4cFXNWhjpi3uyW5mCruN",
-          "win": 2,
-          "lose": 3,
-          "roster": [
-            {
-              "playerId": "pxwrx81ungnlqyk",
-              "name": "Sasi",
-              "realName": "Yan Rui (严睿)",
-              "photo": "https://eimg.thesports.com/lol/player/Fp_XZkED420pZsdWjURZj68MsOIc",
-              "position": 3
-            },
-            {
-              "playerId": "4jwq2ekug8ywq0v",
-              "name": "climber",
-              "realName": "Wu Hong-Tao (吴弘涛)",
-              "photo": "https://eimg.thesports.com/lol/player/FlF0Lf3fvnCuwoJ34H1vtkcD1mJ5",
-              "position": 4
-            },
-            {
-              "playerId": "2y8m4exu73p1ql0",
-              "name": "Saber",
-              "realName": "Song Dai-Lin (宋岱霖)",
-              "photo": "https://eimg.thesports.com/lol/player/FqD7y5dQn-ZKB-P9Qw_ID8tALNVg",
-              "position": 2
-            },
-            {
-              "playerId": "2y8m4exuv9g6ql0",
-              "name": "Hena",
-              "realName": "Park Jeung-hwan",
-              "photo": "https://eimg.thesports.com/lol/player/FvwCXkHbbIWcEkTJb5X1Qa-D9TIY",
-              "position": 1
-            },
-            {
-              "playerId": "4wyrnxytwz82m86",
-              "name": "Xiaoxia",
-              "realName": "Xia Jing-Yao (夏敬耀)",
-              "photo": "https://eimg.thesports.com/lol/player/FpPUiUmvEF-9HGLXmT-5CJDaeRe_",
-              "position": 5
-            }
-          ]
-        },
-        {
-          "rank": 6,
-          "teamId": "y0or59wblyo5mwz",
-          "name": "OMG",
-          "short": "OMG",
-          "logo": "https://eimg.thesports.com/lol/team/Fk1q1UZDRzxHTV8Eeqm47Z9djiPl",
+          "rank": 4,
+          "teamId": "6ypq3e3u0ynnmd7",
+          "name": "인빅터스 게이밍",
+          "short": "IG",
+          "logo": "https://eimg.thesports.com/lol/team/8e0be89305eafd6f37503187a6fc4c53.png",
           "win": 0,
-          "lose": 5,
+          "lose": 0,
           "roster": [
             {
-              "playerId": "jw2r08ku5o4eqz8",
-              "name": "Hery",
-              "realName": "Wang He-Yong (王赫永)",
-              "photo": "https://eimg.thesports.com/lol/player/FlzTLpsyhZ1M6r8nika5l5556CcF",
+              "playerId": "n54qleou4778mvy",
+              "name": "TheShy",
+              "realName": "Kang Dong-geun (강동근)",
+              "photo": "https://eimg.thesports.com/lol/player/Fs61sWLhU3jpI7d2BUOc5Y4k37AX",
               "position": 3
             },
             {
-              "playerId": "6ypq3e3ukpkdmd7",
-              "name": "Juhan",
-              "realName": "Lee Ju-han（이주한）",
-              "photo": "https://eimg.thesports.com/lol/player/FrknNV3dmzaf20zhN4SGZyKEKX_P",
+              "playerId": "318q6g8t8w7nro9",
+              "name": "Wei",
+              "realName": "Yan Yang-Wei (闫扬威)",
+              "photo": "https://eimg.thesports.com/lol/player/Fq8RwBIVO1lEF7-iohLfG3BFLtvg",
               "position": 4
             },
             {
-              "playerId": "4jwq2ekuwv85q0v",
-              "name": "re0",
-              "realName": "Xu Han-Yang (徐寒阳)",
-              "photo": "https://eimg.thesports.com/lol/player/Ft9tJWq_pis23mcDs3opRIKFlm5M",
-              "position": 4
-            },
-            {
-              "playerId": "pxwrx81ul84wqyk",
-              "name": "haichao",
-              "realName": "Zhang Hai-Chao (张海超)",
-              "photo": "https://eimg.thesports.com/lol/player/FnKj-a26nFVK24cBfgdZ-3XoYUHa",
+              "playerId": "23xmvxjtypw7rg8",
+              "name": "Rookie",
+              "realName": "Song Eui-jin (송의진)",
+              "photo": "https://eimg.thesports.com/lol/player/Fn2KGfnDi9zl8RpRFkV2k-rIXrC9",
               "position": 2
             },
             {
-              "playerId": "x7lm797bx1k5r2w",
-              "name": "Starry",
-              "realName": "Lei Ming (雷明)",
-              "photo": "https://eimg.thesports.com/lol/player/Fk6pIGBW0pMkZsK2r688-OM4xMjU",
+              "playerId": "2y8m4exuvd24ql0",
+              "name": "Renard",
+              "realName": "Zhang Xing-Che (张星澈)",
+              "photo": "https://eimg.thesports.com/lol/player/Ft5vdAf5oBLkKBTNmbAJRZLqmX5l",
+              "position": 2
+            },
+            {
+              "playerId": "dn1m1eku9g27qoe",
+              "name": "Assum",
+              "realName": "Zou Wei（邹维）",
+              "photo": "https://eimg.thesports.com/lol/player/FjFPc_t1Yg_fK8hLHOU2C-m9jzD9",
               "position": 1
             },
             {
-              "playerId": "23xmvxjtynk2rg8",
-              "name": "Moham",
-              "realName": "Jeong Jae-hun (정재훈)",
-              "photo": "https://eimg.thesports.com/lol/player/FpGD6SVZUb-_YBIUnDXtywJ0ic9B",
+              "playerId": "k82repjt2k29qep",
+              "name": "JiaQi",
+              "realName": "Zi Jia-Qi (资嘉琪)",
+              "photo": "https://eimg.thesports.com/lol/player/FiLazd08jY2KFHxjetKO-So_Q4BC",
+              "position": 1
+            },
+            {
+              "playerId": "vjxm89jbk5pkq6o",
+              "name": "Meiko",
+              "realName": "Tian Ye (田野)",
+              "photo": "https://eimg.thesports.com/lol/player/Fob9FMa2gXQ9ZX8Vfutd3Z30WCka",
               "position": 5
             }
           ]

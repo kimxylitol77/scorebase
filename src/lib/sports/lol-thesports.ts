@@ -13,8 +13,8 @@ import lcsStandings from "../../../data/lol-standings-LCS.json";
 export const TS_LOL_TOURNAMENTS: Record<string, League> = {
   l7oqd9kb6y6m510: "LOL", // LCK 2026
   "4wyrnxyt8jgm86p": "LOL", // LCK Cup 2026
-  "4wyrnxyt8ggm86p": "LEC", // LEC Spring 2026 (해외 — 순위·인게임 수집)
-  l5erg5ef300m8k0: "LCS", // LCS Spring 2026
+  "23xmvxjto36rg8n": "LEC", // LEC Summer 2026 (7/24~, 해외 — 순위·인게임 수집)
+  n54qleoue27mvy9: "LCS", // LCS Summer 2026 (7/25~)
   // ⚠️ 6ypq3e3u501md7o 는 ts 실명 "Mid-Season Invitational 2026" — EWC 로 오인 매핑됐던 것.
   // 대회 종료(7/11)·기존 매치 10개는 사용자 결정으로 EWC 라벨 유지 (2026-07-18).
   "6ypq3e3u501md7o": "EWC", // MSI 2026 (6/28~7/11, 종료)

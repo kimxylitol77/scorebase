@@ -1,50 +1,50 @@
 {
   "league": "LCS",
   "name": "LCS",
-  "updatedAt": "2026-06-21T14:54:41.443Z",
+  "updatedAt": "2026-07-25T00:45:11.876Z",
   "standings": [
     {
       "rank": 1,
-      "teamId": "zp5rz5pfjv49r82",
-      "name": "클라우드9",
-      "short": "C9",
-      "logo": "https://eimg.thesports.com/lol/team/Fsw76FPPLryV8TsUo53l1ThEsgN3",
-      "win": 7,
+      "teamId": "2y8m4exu3yv5ql0",
+      "name": "플라이퀘스트",
+      "short": "FLY",
+      "logo": "https://eimg.thesports.com/lol/team/FkhLkeyYqwGAz4KtVYQF2WIko0iX",
+      "win": 0,
       "lose": 0,
       "roster": [
         {
-          "playerId": "zp5rz5pf3kyxr82",
-          "name": "Thanatos",
-          "realName": "Park Seung-gyu",
-          "photo": "https://eimg.thesports.com/lol/player/FrQIRXqMWuVAanMyNnp9LwVfkx-d",
+          "playerId": "l5erg5efdo59m8k",
+          "name": "Gakgos",
+          "realName": "İbrahim Samet Bulut",
+          "photo": "https://eimg.thesports.com/lol/player/FuP4P6oCJMy601E36uEtwKb4G3Wf",
           "position": 3
         },
         {
-          "playerId": "4wyrnxyty6xkm86",
-          "name": "Blaber",
-          "realName": "Robert Huang",
-          "photo": "https://eimg.thesports.com/lol/player/FjSWvl5SeBLqbcoeb9FhhUN-CJvP",
+          "playerId": "2y8m4exuv2g4ql0",
+          "name": "Gryffinn",
+          "realName": "Johnson Le",
+          "photo": "https://eimg.thesports.com/lol/player/FlIWfJgODmqFpAWEkS4mJMGKQlL8",
           "position": 4
         },
         {
-          "playerId": "vjxm89jbk1o1q6o",
-          "name": "APA",
-          "realName": "Eain Stearns",
-          "photo": "https://eimg.thesports.com/lol/player/Fm9Tsql52Jb4NNTAqT0qEY73jbbe",
+          "playerId": "x7lm797bxe94r2w",
+          "name": "Quad",
+          "realName": "Song Su-hyeong (송수형)",
+          "photo": "https://eimg.thesports.com/lol/player/FlbuyF6swKfkdVkp64SPHOO4uHuT",
           "position": 2
         },
         {
-          "playerId": "l5erg5efkl2nm8k",
-          "name": "Zven",
-          "realName": "Jesper Svenningsen",
-          "photo": "https://eimg.thesports.com/lol/player/FjW7Ms3mvzGJF2yWzD6--qfiYPee",
+          "playerId": "4wyrnxytygd0m86",
+          "name": "Massu",
+          "realName": "Fahad Abdulmalek",
+          "photo": "https://eimg.thesports.com/lol/player/Fh9d2gJ3D3Y9L5XhXH5sJ7y1_8IW",
           "position": 1
         },
         {
-          "playerId": "jw2r08ku5k28qz8",
-          "name": "Vulcan",
-          "realName": "Philippe Laflamme",
-          "photo": "https://eimg.thesports.com/lol/player/FrAHQCnGx3iU4kltSOcR9y_euyw7",
+          "playerId": "y39mp8xuoj4yqoj",
+          "name": "Cryogen",
+          "realName": "Michael Luu",
+          "photo": "https://eimg.thesports.com/lol/player/FpmsungvMwdEkcFBFoPFqUkqT3fo",
           "position": 5
         }
       ]
@@ -53,10 +53,10 @@
       "rank": 2,
       "teamId": "l5erg5efoxdym8k",
       "name": "리옹",
-      "short": "",
-      "logo": "https://eimg.thesports.com/lol/team/ce543eb6b6ea2b771ba2e02614e591bf.png",
-      "win": 5,
-      "lose": 2,
+      "short": "LYON",
+      "logo": "https://eimg.thesports.com/lol/team/FqK-TIHWghskhdl64vtXoHPLrVJ0",
+      "win": 0,
+      "lose": 0,
       "roster": [
         {
           "playerId": "y0or59wb984kmwz",
@@ -104,249 +104,12 @@
     },
     {
       "rank": 3,
-      "teamId": "y39mp8xu3g6yqoj",
-      "name": "팀 리퀴드",
-      "short": "TL",
-      "logo": "https://eimg.thesports.com/lol/team/Fr_aqE1CaVsWXV-j7QqFquzknuvz",
-      "win": 5,
-      "lose": 2,
-      "roster": [
-        {
-          "playerId": "4jwq2ekugg79q0v",
-          "name": "Morgan",
-          "realName": "Park Gi-tae (박기태)",
-          "photo": "https://eimg.thesports.com/lol/player/FiS0fclNEX_iE27x9Pcj8mNmqMHz",
-          "position": 3
-        },
-        {
-          "playerId": "x7lm797bxdgzr2w",
-          "name": "Josedeodo",
-          "realName": "Brandon Joel Villegas",
-          "photo": "https://eimg.thesports.com/lol/player/FtIIiHGpMiEa4Fa88XnupI11KIGm",
-          "position": 4
-        },
-        {
-          "playerId": "vjxm89jbkz6gq6o",
-          "name": "Quid",
-          "realName": "Lim Hyeon-seung",
-          "photo": "https://eimg.thesports.com/lol/player/Fl2nFU0bNcOG-keUTd8KKCkBhk6u",
-          "position": 2
-        },
-        {
-          "playerId": "zp5rz5pf3kzwr82",
-          "name": "Yeon",
-          "realName": "Sean Sung",
-          "photo": "https://eimg.thesports.com/lol/player/FsOvzG2CScKlJs6ijKo0QUHhFoqm",
-          "position": 1
-        },
-        {
-          "playerId": "y0or59wb9zj2mwz",
-          "name": "CoreJJ",
-          "realName": "Jo Yong-in (조용인)",
-          "photo": "https://eimg.thesports.com/lol/player/FtFdaCEKCQYmttEDeZ42ec9e_yKX",
-          "position": 5
-        }
-      ]
-    },
-    {
-      "rank": 4,
-      "teamId": "2y8m4exu3yv5ql0",
-      "name": "플라이퀘스트",
-      "short": "FLY",
-      "logo": "https://eimg.thesports.com/lol/team/FkhLkeyYqwGAz4KtVYQF2WIko0iX",
-      "win": 4,
-      "lose": 3,
-      "roster": [
-        {
-          "playerId": "l5erg5efdo59m8k",
-          "name": "Gakgos",
-          "realName": "İbrahim Samet Bulut",
-          "photo": "https://eimg.thesports.com/lol/player/FuP4P6oCJMy601E36uEtwKb4G3Wf",
-          "position": 3
-        },
-        {
-          "playerId": "2y8m4exuv2g4ql0",
-          "name": "Gryffinn",
-          "realName": "Johnson Le",
-          "photo": "https://eimg.thesports.com/lol/player/FlIWfJgODmqFpAWEkS4mJMGKQlL8",
-          "position": 4
-        },
-        {
-          "playerId": "x7lm797bxe94r2w",
-          "name": "Quad",
-          "realName": "Song Su-hyeong (송수형)",
-          "photo": "https://eimg.thesports.com/lol/player/FlbuyF6swKfkdVkp64SPHOO4uHuT",
-          "position": 2
-        },
-        {
-          "playerId": "4wyrnxytygd0m86",
-          "name": "Massu",
-          "realName": "Fahad Abdulmalek",
-          "photo": "https://eimg.thesports.com/lol/player/Fh9d2gJ3D3Y9L5XhXH5sJ7y1_8IW",
-          "position": 1
-        },
-        {
-          "playerId": "y39mp8xuoj4yqoj",
-          "name": "Cryogen",
-          "realName": "Michael Luu",
-          "photo": "https://eimg.thesports.com/lol/player/FpmsungvMwdEkcFBFoPFqUkqT3fo",
-          "position": 5
-        }
-      ]
-    },
-    {
-      "rank": 5,
-      "teamId": "y0or59wblvd9mwz",
-      "name": "센티넬스",
-      "short": "Sentinels",
-      "logo": "https://eimg.thesports.com/lol/team/FuNY6_Z7GLK1__dP2dzvr3Lo2k8X",
-      "win": 3,
-      "lose": 4,
-      "roster": [
-        {
-          "playerId": "l7oqd9kbj81em51",
-          "name": "Impact",
-          "realName": "Jeong Eon-young (정언영)",
-          "photo": "https://eimg.thesports.com/lol/player/Fpfk_1BWz6TYnaQTEXVpNTirb6nh",
-          "position": 3
-        },
-        {
-          "playerId": "k82repjt270yqep",
-          "name": "HamBak",
-          "realName": "Ham Yoo-jin",
-          "photo": "https://eimg.thesports.com/lol/player/Fl62sh-6DsSvxYc_8GqacF1BQHwz",
-          "position": 4
-        },
-        {
-          "playerId": "dj2ryy6t7o37r1z",
-          "name": "DarkWings",
-          "realName": "Isaac Chou",
-          "photo": "https://eimg.thesports.com/lol/player/Fmk2S-o4soRSKcvSbq9swHXNfHEl",
-          "position": 2
-        },
-        {
-          "playerId": "965mk6zt86lwq1g",
-          "name": "Rahel",
-          "realName": "Cho Min-seong (조민성)",
-          "photo": "https://eimg.thesports.com/lol/player/FvxJT2hSVJ7qQUFy8CEMn2hzzY4V",
-          "position": 1
-        },
-        {
-          "playerId": "8yomow3tyg54r0j",
-          "name": "huhi",
-          "realName": "Choi Jae-hyun (최재현)",
-          "photo": "https://eimg.thesports.com/lol/player/FpB_7D8rugE6Ewt2G_7Ox8NeyYzZ",
-          "position": 5
-        }
-      ]
-    },
-    {
-      "rank": 6,
-      "teamId": "4jwq2eku48xxq0v",
-      "name": "쇼피파이 리벨리온",
-      "short": "SR",
-      "logo": "https://eimg.thesports.com/lol/team/Fj25P-2Jj7VteNObnG_siQ8xkGuv",
-      "win": 2,
-      "lose": 5,
-      "roster": [
-        {
-          "playerId": "pxwrx81ul0z7qyk",
-          "name": "Fudge",
-          "realName": "Ibrahim Allami",
-          "photo": "https://eimg.thesports.com/lol/player/FgL2HSjuc8uxpUYd8Fjjw5NApMEt",
-          "position": 3
-        },
-        {
-          "playerId": "y39mp8xudz13qoj",
-          "name": "Contractz",
-          "realName": "Juan Arturo Garcia",
-          "photo": "https://eimg.thesports.com/lol/player/FuseQiPhdtBtNH4B5YPLLv4_RDli",
-          "position": 4
-        },
-        {
-          "playerId": "vjxm89jb04w5q6o",
-          "name": "Zinie",
-          "realName": "Yoo Baek-jin (유백진)",
-          "photo": "https://eimg.thesports.com/lol/player/Fsd8t4aodKp6fF9pgwUgehinE310",
-          "position": 2
-        },
-        {
-          "playerId": "dn1m1eku92v6qoe",
-          "name": "Bvoy",
-          "realName": "Joo Young-hoon (주영훈)",
-          "photo": "https://eimg.thesports.com/lol/player/FkGLupUvTZn6_c3m8fGhNbukk2_n",
-          "position": 1
-        },
-        {
-          "playerId": "jw2r08ku5dd8qz8",
-          "name": "Ceos",
-          "realName": "Denilson Oliveira",
-          "photo": "https://eimg.thesports.com/lol/player/FiWPSZsnOA_NUp2z9tOS1nymrzLl",
-          "position": 5
-        }
-      ]
-    },
-    {
-      "rank": 7,
-      "teamId": "l7oqd9kbn5v0m51",
-      "name": "디스가이즈드",
-      "short": "",
-      "logo": "https://eimg.thesports.com/lol/team/FpVXO3Vcgv6d7DZrC8NTSPcMroJx",
-      "win": 2,
-      "lose": 5,
-      "roster": [
-        {
-          "playerId": "965mk6zt8d6eq1g",
-          "name": "Castle",
-          "realName": "Cho Hyeon-seong",
-          "photo": "https://eimg.thesports.com/lol/player/FlFw41B53g0D3IpZDAdFxkjrOI3T",
-          "position": 3
-        },
-        {
-          "playerId": "k82repjtev65qep",
-          "name": "Kisno",
-          "realName": "James Woo",
-          "photo": "https://eimg.thesports.com/lol/player/FkLe2JQDLSKutB-wiGNwmFLTjRJI",
-          "position": 4
-        },
-        {
-          "playerId": "pxwrx81un1v3qyk",
-          "name": "KryRa",
-          "realName": "Christian Rahaian",
-          "photo": "",
-          "position": 4
-        },
-        {
-          "playerId": "l7oqd9kbjv23m51",
-          "name": "callme",
-          "realName": "Oh Ji-hoon",
-          "photo": "https://eimg.thesports.com/lol/player/FjfcFPuMskzdI44c8lzxB_nCWJZu",
-          "position": 2
-        },
-        {
-          "playerId": "1l4rjevug634m7v",
-          "name": "Sajed",
-          "realName": "Sajed Ziade",
-          "photo": "https://eimg.thesports.com/lol/player/FpejBHa0r-dknCNQqYY0KrjI-kfT",
-          "position": 1
-        },
-        {
-          "playerId": "dj2ryy6t7wder1z",
-          "name": "LYONZ",
-          "realName": "Pedro Luis Peralta",
-          "photo": "https://eimg.thesports.com/lol/player/FnA4ooXkb_BACU_YP_6ZzAn4k6pT",
-          "position": 5
-        }
-      ]
-    },
-    {
-      "rank": 8,
       "teamId": "4wyrnxyt8p60m86",
       "name": "디그니타스",
       "short": "DIG",
       "logo": "https://eimg.thesports.com/lol/team/Fjq9FFhFaCyNAE1BcnFfzxb3TngN",
       "win": 0,
-      "lose": 7,
+      "lose": 0,
       "roster": [
         {
           "playerId": "dj2ryy6t7ol4r1z",
@@ -395,6 +158,243 @@
           "name": "Breezyyy",
           "realName": "Brindon Keesey",
           "photo": "https://eimg.thesports.com/lol/player/FlWhrBPesXrV335vlhHyJqsM4Z0r",
+          "position": 5
+        }
+      ]
+    },
+    {
+      "rank": 4,
+      "teamId": "y0or59wblvd9mwz",
+      "name": "센티넬스",
+      "short": "SEN",
+      "logo": "https://eimg.thesports.com/lol/team/FuNY6_Z7GLK1__dP2dzvr3Lo2k8X",
+      "win": 0,
+      "lose": 0,
+      "roster": [
+        {
+          "playerId": "l7oqd9kbj81em51",
+          "name": "Impact",
+          "realName": "Jeong Eon-young (정언영)",
+          "photo": "https://eimg.thesports.com/lol/player/Fpfk_1BWz6TYnaQTEXVpNTirb6nh",
+          "position": 3
+        },
+        {
+          "playerId": "k82repjt270yqep",
+          "name": "HamBak",
+          "realName": "Ham Yoo-jin",
+          "photo": "https://eimg.thesports.com/lol/player/Fl62sh-6DsSvxYc_8GqacF1BQHwz",
+          "position": 4
+        },
+        {
+          "playerId": "dj2ryy6t7o37r1z",
+          "name": "DarkWings",
+          "realName": "Isaac Chou",
+          "photo": "https://eimg.thesports.com/lol/player/Fmk2S-o4soRSKcvSbq9swHXNfHEl",
+          "position": 2
+        },
+        {
+          "playerId": "965mk6zt86lwq1g",
+          "name": "Rahel",
+          "realName": "Cho Min-seong (조민성)",
+          "photo": "https://eimg.thesports.com/lol/player/FvxJT2hSVJ7qQUFy8CEMn2hzzY4V",
+          "position": 1
+        },
+        {
+          "playerId": "8yomow3tyg54r0j",
+          "name": "huhi",
+          "realName": "Choi Jae-hyun (최재현)",
+          "photo": "https://eimg.thesports.com/lol/player/FpB_7D8rugE6Ewt2G_7Ox8NeyYzZ",
+          "position": 5
+        }
+      ]
+    },
+    {
+      "rank": 5,
+      "teamId": "y39mp8xu3g6yqoj",
+      "name": "팀 리퀴드",
+      "short": "TLAW",
+      "logo": "https://eimg.thesports.com/lol/team/FtU4aOsGU2gBGd2Bbh-XFeRTV9R4",
+      "win": 0,
+      "lose": 0,
+      "roster": [
+        {
+          "playerId": "4jwq2ekugg79q0v",
+          "name": "Morgan",
+          "realName": "Park Gi-tae (박기태)",
+          "photo": "https://eimg.thesports.com/lol/player/FiS0fclNEX_iE27x9Pcj8mNmqMHz",
+          "position": 3
+        },
+        {
+          "playerId": "x7lm797bxdgzr2w",
+          "name": "Josedeodo",
+          "realName": "Brandon Joel Villegas",
+          "photo": "https://eimg.thesports.com/lol/player/FtIIiHGpMiEa4Fa88XnupI11KIGm",
+          "position": 4
+        },
+        {
+          "playerId": "vjxm89jbkz6gq6o",
+          "name": "Quid",
+          "realName": "Lim Hyeon-seung",
+          "photo": "https://eimg.thesports.com/lol/player/Fl2nFU0bNcOG-keUTd8KKCkBhk6u",
+          "position": 2
+        },
+        {
+          "playerId": "zp5rz5pf3kzwr82",
+          "name": "Yeon",
+          "realName": "Sean Sung",
+          "photo": "https://eimg.thesports.com/lol/player/FsOvzG2CScKlJs6ijKo0QUHhFoqm",
+          "position": 1
+        },
+        {
+          "playerId": "y0or59wb9zj2mwz",
+          "name": "CoreJJ",
+          "realName": "Jo Yong-in (조용인)",
+          "photo": "https://eimg.thesports.com/lol/player/FtFdaCEKCQYmttEDeZ42ec9e_yKX",
+          "position": 5
+        }
+      ]
+    },
+    {
+      "rank": 6,
+      "teamId": "zp5rz5pfjv49r82",
+      "name": "클라우드9",
+      "short": "C9",
+      "logo": "https://eimg.thesports.com/lol/team/Fsw76FPPLryV8TsUo53l1ThEsgN3",
+      "win": 0,
+      "lose": 0,
+      "roster": [
+        {
+          "playerId": "zp5rz5pf3kyxr82",
+          "name": "Thanatos",
+          "realName": "Park Seung-gyu",
+          "photo": "https://eimg.thesports.com/lol/player/FrQIRXqMWuVAanMyNnp9LwVfkx-d",
+          "position": 3
+        },
+        {
+          "playerId": "4wyrnxyty6xkm86",
+          "name": "Blaber",
+          "realName": "Robert Huang",
+          "photo": "https://eimg.thesports.com/lol/player/FjSWvl5SeBLqbcoeb9FhhUN-CJvP",
+          "position": 4
+        },
+        {
+          "playerId": "vjxm89jbk1o1q6o",
+          "name": "APA",
+          "realName": "Eain Stearns",
+          "photo": "https://eimg.thesports.com/lol/player/Fm9Tsql52Jb4NNTAqT0qEY73jbbe",
+          "position": 2
+        },
+        {
+          "playerId": "l5erg5efkl2nm8k",
+          "name": "Zven",
+          "realName": "Jesper Svenningsen",
+          "photo": "https://eimg.thesports.com/lol/player/FjW7Ms3mvzGJF2yWzD6--qfiYPee",
+          "position": 1
+        },
+        {
+          "playerId": "jw2r08ku5k28qz8",
+          "name": "Vulcan",
+          "realName": "Philippe Laflamme",
+          "photo": "https://eimg.thesports.com/lol/player/FrAHQCnGx3iU4kltSOcR9y_euyw7",
+          "position": 5
+        }
+      ]
+    },
+    {
+      "rank": 7,
+      "teamId": "l7oqd9kbn5v0m51",
+      "name": "디스가이즈드",
+      "short": "",
+      "logo": "https://eimg.thesports.com/lol/team/FpVXO3Vcgv6d7DZrC8NTSPcMroJx",
+      "win": 0,
+      "lose": 0,
+      "roster": [
+        {
+          "playerId": "965mk6zt8d6eq1g",
+          "name": "Castle",
+          "realName": "Cho Hyeon-seong",
+          "photo": "https://eimg.thesports.com/lol/player/FlFw41B53g0D3IpZDAdFxkjrOI3T",
+          "position": 3
+        },
+        {
+          "playerId": "k82repjtev65qep",
+          "name": "Kisno",
+          "realName": "James Woo",
+          "photo": "https://eimg.thesports.com/lol/player/FkLe2JQDLSKutB-wiGNwmFLTjRJI",
+          "position": 4
+        },
+        {
+          "playerId": "pxwrx81un1v3qyk",
+          "name": "KryRa",
+          "realName": "Christian Rahaian",
+          "photo": "",
+          "position": 4
+        },
+        {
+          "playerId": "l7oqd9kbjv23m51",
+          "name": "callme",
+          "realName": "Oh Ji-hoon",
+          "photo": "https://eimg.thesports.com/lol/player/FjfcFPuMskzdI44c8lzxB_nCWJZu",
+          "position": 2
+        },
+        {
+          "playerId": "1l4rjevug634m7v",
+          "name": "Sajed",
+          "realName": "Sajed Ziade",
+          "photo": "https://eimg.thesports.com/lol/player/FpejBHa0r-dknCNQqYY0KrjI-kfT",
+          "position": 1
+        },
+        {
+          "playerId": "dj2ryy6t7wder1z",
+          "name": "LYONZ",
+          "realName": "Pedro Luis Peralta",
+          "photo": "https://eimg.thesports.com/lol/player/FnA4ooXkb_BACU_YP_6ZzAn4k6pT",
+          "position": 5
+        }
+      ]
+    },
+    {
+      "rank": 8,
+      "teamId": "4jwq2eku48xxq0v",
+      "name": "쇼피파이 리벨리온",
+      "short": "SR",
+      "logo": "https://eimg.thesports.com/lol/team/Fj25P-2Jj7VteNObnG_siQ8xkGuv",
+      "win": 0,
+      "lose": 0,
+      "roster": [
+        {
+          "playerId": "pxwrx81ul0z7qyk",
+          "name": "Fudge",
+          "realName": "Ibrahim Allami",
+          "photo": "https://eimg.thesports.com/lol/player/FgL2HSjuc8uxpUYd8Fjjw5NApMEt",
+          "position": 3
+        },
+        {
+          "playerId": "y39mp8xudz13qoj",
+          "name": "Contractz",
+          "realName": "Juan Arturo Garcia",
+          "photo": "https://eimg.thesports.com/lol/player/FuseQiPhdtBtNH4B5YPLLv4_RDli",
+          "position": 4
+        },
+        {
+          "playerId": "vjxm89jb04w5q6o",
+          "name": "Zinie",
+          "realName": "Yoo Baek-jin (유백진)",
+          "photo": "https://eimg.thesports.com/lol/player/Fsd8t4aodKp6fF9pgwUgehinE310",
+          "position": 2
+        },
+        {
+          "playerId": "dn1m1eku92v6qoe",
+          "name": "Bvoy",
+          "realName": "Joo Young-hoon (주영훈)",
+          "photo": "https://eimg.thesports.com/lol/player/FkGLupUvTZn6_c3m8fGhNbukk2_n",
+          "position": 1
+        },
+        {
+          "playerId": "jw2r08ku5dd8qz8",
+          "name": "Ceos",
+          "realName": "Denilson Oliveira",
+          "photo": "https://eimg.thesports.com/lol/player/FiWPSZsnOA_NUp2z9tOS1nymrzLl",
           "position": 5
         }
       ]

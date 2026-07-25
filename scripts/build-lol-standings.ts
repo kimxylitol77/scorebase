@@ -13,13 +13,13 @@ const LCK = "l7oqd9kb6y6m510"; // LCK 2026 본선 tournament
 
 // 해외 리그 → 가장 최근 정규 split tournament uuid (2026 시즌). 시즌 갱신 시 _explore 재발굴.
 const FOREIGN_TOURNAMENTS: Record<string, string> = {
-  LEC: "4wyrnxyt8ggm86p", // LEC Spring 2026
-  LCS: "l5erg5ef300m8k0", // LCS Spring 2026
+  LEC: "23xmvxjto36rg8n", // LEC Summer 2026 (7/24~)
+  LCS: "n54qleoue27mvy9", // LCS Summer 2026 (7/25~)
 };
 
 // LPL — split 마다 part_stage(그룹)로 나뉘어 그룹별 순위가 1부터 재시작 → 단일표 부정확.
 //   현재 split tournament uuid (시즌/스플릿 갱신 시 tournament/list 에서 "LPL Split N 2026" 재발굴).
-const LPL_TOURNAMENT = "23xmvxjtov6rg8n"; // LPL Split 2 2026
+const LPL_TOURNAMENT = "l5erg5ef330m8k0"; // LPL Split 3 2026 (7/22~)
 
 // LPL 팀 한글명 (abbr 키 — uuid 보다 안정적). 로고·영문명은 team/list 자동.
 const LPL_KO: Record<string, string> = {
