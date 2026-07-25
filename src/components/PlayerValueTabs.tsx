@@ -1,4 +1,4 @@
-// 선수 시장가치·연봉 페이지 종목별 탭 — /transfers · /salaries/{kbo,mlb,nba,nhl} 공유 네비
+// 선수 랭킹 페이지 종목별 탭 — /transfers · /salaries/{kbo,mlb,nba,nhl} · 골프/테니스/F1 랭킹 공유 네비
 import Link from "next/link";
 
 const TABS = [
@@ -7,11 +7,14 @@ const TABS = [
   { href: "/salaries/mlb", label: "MLB" },
   { href: "/salaries/nba", label: "NBA" },
   { href: "/salaries/nhl", label: "NHL" },
+  { href: "/golf/korea?view=world", label: "골프" },
+  { href: "/rankings/tennis", label: "테니스" },
+  { href: "/rankings/f1", label: "F1" },
 ] as const;
 
 export default function PlayerValueTabs({ active, className = "" }: { active: string; className?: string }) {
   return (
-    <nav className={`flex flex-wrap items-center gap-2 ${className}`} aria-label="종목별 선수 가치·연봉">
+    <nav className={`flex flex-wrap items-center gap-2 ${className}`} aria-label="종목별 선수 랭킹">
       {TABS.map((t) => {
         const on = t.href === active;
         return (

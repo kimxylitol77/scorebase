@@ -4,6 +4,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
+import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -52,6 +53,8 @@ export default async function TennisRankingsPage({
           ATP(남자)·WTA(여자) 세계랭킹 1~150위. 선수 이름을 한국어로, 순위 등락과 랭킹 포인트를 함께 봅니다.
         </p>
       </header>
+
+      <PlayerValueTabs active="/rankings/tennis" />
 
       {/* 투어 탭 */}
       <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">

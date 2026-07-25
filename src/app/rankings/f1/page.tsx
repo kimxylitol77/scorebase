@@ -4,6 +4,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
+import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { fetchF1Championship } from "@/lib/sports/espn-f1";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -62,6 +63,8 @@ export default async function F1RankingsPage({
           )}
         </p>
       </header>
+
+      <PlayerValueTabs active="/rankings/f1" />
 
       {/* 뷰 탭 */}
       <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
