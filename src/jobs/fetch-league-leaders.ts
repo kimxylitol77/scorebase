@@ -148,7 +148,12 @@ function currentSoccerSeason(league: string): { season: number; label: string } 
   if (calendarYearLeagues.includes(league)) {
     return { season: y, label: String(y) };
   }
-  const startYear = m >= 7 ? y : y - 1;
+  // UEFA 컨티넨탈 컵(UCL/UEL/UECL)은 본대회(리그 페이즈) 9월 개막. 7~8월 예선 득점자를
+  // 새 시즌으로 적재하면 완료된 직전 시즌 리더보드를 최다 2골짜리 예선 데이터가 밀어낸다
+  // (2026-07 UCL 리더보드가 예선 득점판으로 뒤바뀐 실측). 컵만 전환을 9월로 늦춘다.
+  const CONTINENTAL_CUPS = ["UCL", "UEL", "UECL"];
+  const seasonStartMonth = CONTINENTAL_CUPS.includes(league) ? 9 : 7;
+  const startYear = m >= seasonStartMonth ? y : y - 1;
   return { season: startYear, label: `${startYear}-${String(startYear + 1).slice(2)}` };
 }
 

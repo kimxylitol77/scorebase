@@ -27,12 +27,18 @@ function expectedSeasonForLeague(league: string, now: Date): string[] {
     case "BUNDESLIGA":
     case "SERIE_A":
     case "LIGUE_1":
-    case "UCL":
-    case "UEL":
     case "EREDIVISIE":
     case "PRIMEIRA_LIGA": {
       // 8월 시작 → (y)-(y+1). 1~6월 = (y-1)-(y).
       if (m >= 8) return [`${y}-${String(y + 1).slice(2)}`, `${y}-${y + 1}`];
+      return [`${y - 1}-${String(y).slice(2)}`, `${y - 1}-${y}`];
+    }
+    case "UCL":
+    case "UEL":
+    case "UECL": {
+      // UEFA 컨티넨탈 컵 — 본대회(리그 페이즈) 9월 개막. 7~8월 예선은 완료 시즌으로 간주.
+      // (fetch-league-leaders.ts currentSoccerSeason 의 컵 전환 월과 일치시킨다.)
+      if (m >= 9) return [`${y}-${String(y + 1).slice(2)}`, `${y}-${y + 1}`];
       return [`${y - 1}-${String(y).slice(2)}`, `${y - 1}-${y}`];
     }
     case "KBO":
