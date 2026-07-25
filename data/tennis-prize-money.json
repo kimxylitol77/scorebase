@@ -1,0 +1,612 @@
+{
+  "asOf": "2026-07-20",
+  "season": "2026",
+  "sources": {
+    "atp": "https://www.protennislive.com/posting/ramr/current_prize.pdf",
+    "wta": "https://wtafiles.wtatennis.com/pdf/rankings/All_YTD_Prize_Money.pdf"
+  },
+  "atp": [
+    {
+      "rank": 1,
+      "playerName": "Jannik Sinner",
+      "country": null,
+      "salary": 11620364
+    },
+    {
+      "rank": 2,
+      "playerName": "Alexander Zverev",
+      "country": null,
+      "salary": 9029247
+    },
+    {
+      "rank": 3,
+      "playerName": "Carlos Alcaraz",
+      "country": null,
+      "salary": 4365354
+    },
+    {
+      "rank": 4,
+      "playerName": "Flavio Cobolli",
+      "country": null,
+      "salary": 3867662
+    },
+    {
+      "rank": 5,
+      "playerName": "Novak Djokovic",
+      "country": null,
+      "salary": 3000801
+    },
+    {
+      "rank": 6,
+      "playerName": "Alex de Minaur",
+      "country": null,
+      "salary": 2806796
+    },
+    {
+      "rank": 7,
+      "playerName": "Felix Auger-Aliassime",
+      "country": null,
+      "salary": 2784974
+    },
+    {
+      "rank": 8,
+      "playerName": "Daniil Medvedev",
+      "country": null,
+      "salary": 2782205
+    },
+    {
+      "rank": 9,
+      "playerName": "Ben Shelton",
+      "country": null,
+      "salary": 2378518
+    },
+    {
+      "rank": 10,
+      "playerName": "Taylor Fritz",
+      "country": null,
+      "salary": 2238759
+    },
+    {
+      "rank": 11,
+      "playerName": "Jakub Mensik",
+      "country": null,
+      "salary": 2234877
+    },
+    {
+      "rank": 12,
+      "playerName": "Frances Tiafoe",
+      "country": null,
+      "salary": 2150204
+    },
+    {
+      "rank": 13,
+      "playerName": "Casper Ruud",
+      "country": null,
+      "salary": 2112965
+    },
+    {
+      "rank": 14,
+      "playerName": "Arthur Fils",
+      "country": null,
+      "salary": 2056868
+    },
+    {
+      "rank": 15,
+      "playerName": "Francisco Cerundolo",
+      "country": null,
+      "salary": 2037220
+    },
+    {
+      "rank": 16,
+      "playerName": "Tommy Paul",
+      "country": null,
+      "salary": 1974167
+    },
+    {
+      "rank": 17,
+      "playerName": "Jiri Lehecka",
+      "country": null,
+      "salary": 1919040
+    },
+    {
+      "rank": 18,
+      "playerName": "Andrey Rublev",
+      "country": null,
+      "salary": 1910460
+    },
+    {
+      "rank": 19,
+      "playerName": "Rafael Jodar",
+      "country": null,
+      "salary": 1818683
+    },
+    {
+      "rank": 20,
+      "playerName": "Alexander Bublik",
+      "country": null,
+      "salary": 1739000
+    },
+    {
+      "rank": 21,
+      "playerName": "Hubert Hurkacz",
+      "country": null,
+      "salary": 1728081
+    },
+    {
+      "rank": 22,
+      "playerName": "Luciano Darderi",
+      "country": null,
+      "salary": 1624104
+    },
+    {
+      "rank": 23,
+      "playerName": "Joao Fonseca",
+      "country": null,
+      "salary": 1586833
+    },
+    {
+      "rank": 24,
+      "playerName": "Tomas Martin Etcheverry",
+      "country": null,
+      "salary": 1580284
+    },
+    {
+      "rank": 25,
+      "playerName": "Learner Tien",
+      "country": null,
+      "salary": 1552463
+    },
+    {
+      "rank": 26,
+      "playerName": "Arthur Fery",
+      "country": null,
+      "salary": 1531439
+    },
+    {
+      "rank": 27,
+      "playerName": "Alejandro Davidovich Fokina",
+      "country": null,
+      "salary": 1461953
+    },
+    {
+      "rank": 28,
+      "playerName": "Zizou Bergs",
+      "country": null,
+      "salary": 1426104
+    },
+    {
+      "rank": 29,
+      "playerName": "Karen Khachanov",
+      "country": null,
+      "salary": 1401813
+    },
+    {
+      "rank": 30,
+      "playerName": "Harri Heliovaara",
+      "country": null,
+      "salary": 1397091
+    },
+    {
+      "rank": 30,
+      "playerName": "Henry Patten",
+      "country": null,
+      "salary": 1397091
+    },
+    {
+      "rank": 32,
+      "playerName": "Alejandro Tabilo",
+      "country": null,
+      "salary": 1331801
+    },
+    {
+      "rank": 33,
+      "playerName": "Stefanos Tsitsipas",
+      "country": null,
+      "salary": 1330467
+    },
+    {
+      "rank": 34,
+      "playerName": "Matteo Arnaldi",
+      "country": null,
+      "salary": 1308363
+    },
+    {
+      "rank": 35,
+      "playerName": "Arthur Rinderknech",
+      "country": null,
+      "salary": 1300717
+    },
+    {
+      "rank": 36,
+      "playerName": "Ugo Humbert",
+      "country": null,
+      "salary": 1292870
+    },
+    {
+      "rank": 37,
+      "playerName": "Valentin Vacherot",
+      "country": null,
+      "salary": 1217921
+    },
+    {
+      "rank": 38,
+      "playerName": "Brandon Nakashima",
+      "country": null,
+      "salary": 1194143
+    },
+    {
+      "rank": 39,
+      "playerName": "Jan-Lennard Struff",
+      "country": null,
+      "salary": 1178707
+    },
+    {
+      "rank": 40,
+      "playerName": "Ignacio Buse",
+      "country": null,
+      "salary": 1172012
+    },
+    {
+      "rank": 41,
+      "playerName": "Tallon Griekspoor",
+      "country": null,
+      "salary": 1165504
+    },
+    {
+      "rank": 42,
+      "playerName": "Matteo Berrettini",
+      "country": null,
+      "salary": 1161920
+    },
+    {
+      "rank": 43,
+      "playerName": "Cameron Norrie",
+      "country": null,
+      "salary": 1083547
+    },
+    {
+      "rank": 44,
+      "playerName": "Nuno Borges",
+      "country": null,
+      "salary": 1075869
+    },
+    {
+      "rank": 45,
+      "playerName": "Sebastian Baez",
+      "country": null,
+      "salary": 1066788
+    },
+    {
+      "rank": 46,
+      "playerName": "Quentin Halys",
+      "country": null,
+      "salary": 1036333
+    },
+    {
+      "rank": 47,
+      "playerName": "Alexander Blockx",
+      "country": null,
+      "salary": 1015068
+    },
+    {
+      "rank": 48,
+      "playerName": "Ethan Quinn",
+      "country": null,
+      "salary": 982625
+    },
+    {
+      "rank": 49,
+      "playerName": "Lorenzo Musetti",
+      "country": null,
+      "salary": 979726
+    },
+    {
+      "rank": 50,
+      "playerName": "Fabian Marozsan",
+      "country": null,
+      "salary": 974243
+    }
+  ],
+  "wta": [
+    {
+      "rank": 1,
+      "playerName": "Linda Noskova",
+      "country": "CZE",
+      "salary": 6188432
+    },
+    {
+      "rank": 2,
+      "playerName": "Mirra Andreeva",
+      "country": null,
+      "salary": 5580118
+    },
+    {
+      "rank": 3,
+      "playerName": "Aryna Sabalenka",
+      "country": null,
+      "salary": 5083826
+    },
+    {
+      "rank": 4,
+      "playerName": "Elena Rybakina",
+      "country": "KAZ",
+      "salary": 4660205
+    },
+    {
+      "rank": 5,
+      "playerName": "Karolina Muchova",
+      "country": "CZE",
+      "salary": 4459277
+    },
+    {
+      "rank": 6,
+      "playerName": "Coco Gauff",
+      "country": "USA",
+      "salary": 4110431
+    },
+    {
+      "rank": 7,
+      "playerName": "Elina Svitolina",
+      "country": "UKR",
+      "salary": 3547885
+    },
+    {
+      "rank": 8,
+      "playerName": "Marta Kostyuk",
+      "country": "UKR",
+      "salary": 3506707
+    },
+    {
+      "rank": 9,
+      "playerName": "Jessica Pegula",
+      "country": "USA",
+      "salary": 3465949
+    },
+    {
+      "rank": 10,
+      "playerName": "Iga Swiatek",
+      "country": "POL",
+      "salary": 2246059
+    },
+    {
+      "rank": 11,
+      "playerName": "Elise Mertens",
+      "country": "BEL",
+      "salary": 2245542
+    },
+    {
+      "rank": 12,
+      "playerName": "Belinda Bencic",
+      "country": "SUI",
+      "salary": 2194302
+    },
+    {
+      "rank": 13,
+      "playerName": "Diana Shnaider",
+      "country": null,
+      "salary": 2048137
+    },
+    {
+      "rank": 14,
+      "playerName": "Katerina Siniakova",
+      "country": "CZE",
+      "salary": 1960084
+    },
+    {
+      "rank": 15,
+      "playerName": "Jasmine Paolini",
+      "country": "ITA",
+      "salary": 1959517
+    },
+    {
+      "rank": 16,
+      "playerName": "Maja Chwalinska",
+      "country": "POL",
+      "salary": 1855006
+    },
+    {
+      "rank": 17,
+      "playerName": "Victoria Mboko",
+      "country": "CAN",
+      "salary": 1800978
+    },
+    {
+      "rank": 18,
+      "playerName": "Naomi Osaka",
+      "country": "JPN",
+      "salary": 1764220
+    },
+    {
+      "rank": 19,
+      "playerName": "Iva Jovic",
+      "country": "USA",
+      "salary": 1706548
+    },
+    {
+      "rank": 20,
+      "playerName": "Sorana Cirstea",
+      "country": "ROU",
+      "salary": 1702936
+    },
+    {
+      "rank": 21,
+      "playerName": "Taylor Townsend",
+      "country": "USA",
+      "salary": 1621374
+    },
+    {
+      "rank": 22,
+      "playerName": "Jelena Ostapenko",
+      "country": "LAT",
+      "salary": 1499576
+    },
+    {
+      "rank": 23,
+      "playerName": "Madison Keys",
+      "country": "USA",
+      "salary": 1490927
+    },
+    {
+      "rank": 24,
+      "playerName": "Anna Kalinskaya",
+      "country": null,
+      "salary": 1475776
+    },
+    {
+      "rank": 25,
+      "playerName": "Amanda Anisimova",
+      "country": "USA",
+      "salary": 1415385
+    },
+    {
+      "rank": 26,
+      "playerName": "Anastasia Potapova",
+      "country": "AUT",
+      "salary": 1291510
+    },
+    {
+      "rank": 27,
+      "playerName": "Alexandra Eala",
+      "country": "PHI",
+      "salary": 1285330
+    },
+    {
+      "rank": 28,
+      "playerName": "Marie Bouzkova",
+      "country": "CZE",
+      "salary": 1264841
+    },
+    {
+      "rank": 29,
+      "playerName": "Shuai Zhang",
+      "country": "CHN",
+      "salary": 1232845
+    },
+    {
+      "rank": 30,
+      "playerName": "Maria Sakkari",
+      "country": "GRE",
+      "salary": 1171338
+    },
+    {
+      "rank": 31,
+      "playerName": "Hailey Baptiste",
+      "country": "USA",
+      "salary": 1111149
+    },
+    {
+      "rank": 32,
+      "playerName": "Barbora Krejcikova",
+      "country": "CZE",
+      "salary": 1089261
+    },
+    {
+      "rank": 33,
+      "playerName": "Ekaterina Alexandrova",
+      "country": null,
+      "salary": 1028121
+    },
+    {
+      "rank": 34,
+      "playerName": "Xinyu Wang",
+      "country": "CHN",
+      "salary": 1015385
+    },
+    {
+      "rank": 35,
+      "playerName": "Liudmila Samsonova",
+      "country": null,
+      "salary": 969912
+    },
+    {
+      "rank": 36,
+      "playerName": "Clara Tauson",
+      "country": "DEN",
+      "salary": 923749
+    },
+    {
+      "rank": 37,
+      "playerName": "Emma Navarro",
+      "country": "USA",
+      "salary": 922411
+    },
+    {
+      "rank": 38,
+      "playerName": "Caty McNally",
+      "country": "USA",
+      "salary": 911870
+    },
+    {
+      "rank": 39,
+      "playerName": "Leylah Fernandez",
+      "country": "CAN",
+      "salary": 906382
+    },
+    {
+      "rank": 40,
+      "playerName": "Cristina Bucsa",
+      "country": "ESP",
+      "salary": 900490
+    },
+    {
+      "rank": 41,
+      "playerName": "Solana Sierra",
+      "country": "ARG",
+      "salary": 886550
+    },
+    {
+      "rank": 42,
+      "playerName": "Ashlyn Krueger",
+      "country": "USA",
+      "salary": 882284
+    },
+    {
+      "rank": 43,
+      "playerName": "Peyton Stearns",
+      "country": "USA",
+      "salary": 879674
+    },
+    {
+      "rank": 44,
+      "playerName": "Laura Siegemund",
+      "country": "GER",
+      "salary": 874974
+    },
+    {
+      "rank": 45,
+      "playerName": "Jaqueline Cristian",
+      "country": "ROU",
+      "salary": 861345
+    },
+    {
+      "rank": 46,
+      "playerName": "Magda Linette",
+      "country": "POL",
+      "salary": 854453
+    },
+    {
+      "rank": 47,
+      "playerName": "Yuliia Starodubtseva",
+      "country": "UKR",
+      "salary": 851612
+    },
+    {
+      "rank": 48,
+      "playerName": "Ann Li",
+      "country": "USA",
+      "salary": 841028
+    },
+    {
+      "rank": 49,
+      "playerName": "Hanyu Guo",
+      "country": "CHN",
+      "salary": 821241
+    },
+    {
+      "rank": 50,
+      "playerName": "Talia Gibson",
+      "country": "AUS",
+      "salary": 818921
+    }
+  ]
+}

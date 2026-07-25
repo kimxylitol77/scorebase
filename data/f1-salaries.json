@@ -1,0 +1,31 @@
+{
+  "season": "2026",
+  "asOf": "2026-02-04",
+  "source": "RacingNews365 (미디어 종합 추정)",
+  "sourceUrl": "https://racingnews365.com/f1-drivers-salaries-2026",
+  "note": "F1 팀은 드라이버 연봉을 공식 발표하지 않는다. 아래 수치는 미디어 종합 추정 기본급(보너스 제외, USD). 범위 표기(0.5~1M)는 하한값으로 저장.",
+  "drivers": [
+    { "name": "Max Verstappen", "nameKo": "막스 페르스타펀", "team": "Red Bull", "salary": 70000000 },
+    { "name": "Lewis Hamilton", "nameKo": "루이스 해밀턴", "team": "Ferrari", "salary": 60000000 },
+    { "name": "Charles Leclerc", "nameKo": "샤를 르클레르", "team": "Ferrari", "salary": 34000000 },
+    { "name": "George Russell", "nameKo": "조지 러셀", "team": "Mercedes", "salary": 34000000 },
+    { "name": "Lando Norris", "nameKo": "랜도 노리스", "team": "McLaren", "salary": 30000000 },
+    { "name": "Fernando Alonso", "nameKo": "페르난도 알론소", "team": "Aston Martin", "salary": 20000000 },
+    { "name": "Carlos Sainz", "nameKo": "카를로스 사인츠", "team": "Williams", "salary": 13000000 },
+    { "name": "Oscar Piastri", "nameKo": "오스카 피아스트리", "team": "McLaren", "salary": 13000000 },
+    { "name": "Pierre Gasly", "nameKo": "피에르 가슬리", "team": "Alpine", "salary": 12000000 },
+    { "name": "Alexander Albon", "nameKo": "알렉산더 알본", "team": "Williams", "salary": 12000000 },
+    { "name": "Lance Stroll", "nameKo": "랜스 스트롤", "team": "Aston Martin", "salary": 12000000 },
+    { "name": "Sergio Perez", "nameKo": "세르히오 페레스", "team": "Cadillac", "salary": 8000000 },
+    { "name": "Nico Hulkenberg", "nameKo": "니코 휠켄베르크", "team": "Audi", "salary": 7000000 },
+    { "name": "Esteban Ocon", "nameKo": "에스테반 오콘", "team": "Haas", "salary": 7000000 },
+    { "name": "Isack Hadjar", "nameKo": "아이작 하자르", "team": "Red Bull", "salary": 5000000 },
+    { "name": "Valtteri Bottas", "nameKo": "발테리 보타스", "team": "Cadillac", "salary": 5000000 },
+    { "name": "Gabriel Bortoleto", "nameKo": "가브리에우 보르툴레투", "team": "Audi", "salary": 2000000 },
+    { "name": "Kimi Antonelli", "nameKo": "키미 안토넬리", "team": "Mercedes", "salary": 2000000 },
+    { "name": "Oliver Bearman", "nameKo": "올리버 베어먼", "team": "Haas", "salary": 1000000 },
+    { "name": "Liam Lawson", "nameKo": "리암 로슨", "team": "Racing Bulls", "salary": 1000000 },
+    { "name": "Franco Colapinto", "nameKo": "프랑코 콜라핀토", "team": "Alpine", "salary": 500000 },
+    { "name": "Arvid Lindblad", "nameKo": "아르비드 린드블라드", "team": "Racing Bulls", "salary": 500000 }
+  ]
+}

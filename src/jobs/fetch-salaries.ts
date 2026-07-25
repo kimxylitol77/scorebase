@@ -1,19 +1,24 @@
-// 선수 연봉 수집 잡 — NBA(basketball-reference)·MLB(spotrac) 스크래핑 + KBO(큐레이션) → PlayerSalary replace.
+// 선수 연봉 수집 잡 — NBA(basketball-reference)·MLB(spotrac)·GOLF(ESPN) 스크래핑 + KBO·테니스·F1(큐레이션) → PlayerSalary replace.
 // /api/cron/fetch-salaries 호출 + 수동: npm run job:salaries
 //
 // "현재 시즌 스냅샷" → league 전체 deleteMany 후 createMany (rank 변동·은퇴 자동 정리).
 // ⚠️ 파싱 0건이면 해당 league replace 안 함 — 스크래핑 실패(봇차단·구조변경) 시 빈 테이블 덮어쓰기 방지.
 // ⚠️ KBO 는 정적 JSON(만원 단위) — 연봉이 연 1회 발표 후 불변이라 수집은 scripts/collect-kbo-salaries.ts
 //    로 연 1회 수동 실행하고 커밋한다. 여기서는 그 JSON 을 cron 마다 멱등 replace 할 뿐이다.
+// ⚠️ 테니스(ATP/WTA 시즌 상금)·F1(연봉 추정)도 정적 JSON 멱등 replace — 갱신 방법은 각 lib 헤더 참고.
 
 import { prisma } from "@/lib/db";
 import { fetchNbaSalaries, currentSeasonLabel } from "@/lib/sports/nba-salaries";
 import { fetchMlbSalaries, mlbSeasonLabel } from "@/lib/sports/mlb-salaries";
 import { fetchNhlSalaries, nhlSeasonLabel } from "@/lib/sports/nhl-salaries";
 import { getKboSalaries, KBO_SALARY_SEASON } from "@/lib/sports/kbo-salaries";
+import { fetchGolfSalaries, golfSeasonLabel } from "@/lib/sports/golf-salaries";
+import { getTennisPrizeMoney, TENNIS_PRIZE_SEASON } from "@/lib/sports/tennis-prize-money";
+import { getF1Salaries, F1_SALARY_SEASON } from "@/lib/sports/f1-salaries";
 import nhlSeed from "../../data/nhl-salaries-seed.json";
 import mlbSeed from "../../data/mlb-salaries-seed.json";
 import nbaSeed from "../../data/nba-salaries-seed.json";
+import golfSeed from "../../data/golf-salaries-seed.json";
 
 interface LeagueResult {
   league: string;
@@ -28,6 +33,7 @@ const SEEDS: Record<string, NormalizedRow[]> = {
   NHL: nhlSeed as NormalizedRow[],
   MLB: mlbSeed as NormalizedRow[],
   NBA: nbaSeed as NormalizedRow[],
+  GOLF: golfSeed as NormalizedRow[],
 };
 
 /** 한 리그 연봉 replace — 파싱 0건이면 seed fallback, seed 도 비면 기존 유지. */
@@ -75,15 +81,40 @@ interface NormalizedRow {
   photoUrl?: string;
 }
 
+/** 테니스 상금·F1 연봉 JSON → NormalizedRow (country/team → teamName). */
+function tennisRows(tour: "ATP" | "WTA"): NormalizedRow[] {
+  return getTennisPrizeMoney(tour).map((r) => ({
+    rank: r.rank,
+    playerName: r.playerName,
+    teamName: r.country ?? "",
+    salary: r.salary,
+  }));
+}
+
 export async function runFetchSalaries(): Promise<{ results: LeagueResult[] }> {
   const now = new Date();
-  // NBA·MLB·NHL 병렬 스크래핑 → 각자 replace (한쪽 실패해도 다른 쪽 진행)
-  const [nba, mlb, nhl] = await Promise.all([fetchNbaSalaries(), fetchMlbSalaries(), fetchNhlSalaries()]);
+  // NBA·MLB·NHL·GOLF 병렬 스크래핑 → 각자 replace (한쪽 실패해도 다른 쪽 진행)
+  const [nba, mlb, nhl, golf] = await Promise.all([
+    fetchNbaSalaries(),
+    fetchMlbSalaries(),
+    fetchNhlSalaries(),
+    fetchGolfSalaries(now),
+  ]);
   const results: LeagueResult[] = [];
   results.push(await replaceLeague("NBA", nba, currentSeasonLabel(now)));
   results.push(await replaceLeague("MLB", mlb, mlbSeasonLabel(now)));
   results.push(await replaceLeague("NHL", nhl, nhlSeasonLabel(now)));
   results.push(await replaceLeague("KBO", getKboSalaries(), KBO_SALARY_SEASON));
+  results.push(await replaceLeague("GOLF", golf, golfSeasonLabel(now)));
+  results.push(await replaceLeague("TENNIS_ATP", tennisRows("ATP"), TENNIS_PRIZE_SEASON));
+  results.push(await replaceLeague("TENNIS_WTA", tennisRows("WTA"), TENNIS_PRIZE_SEASON));
+  results.push(
+    await replaceLeague(
+      "F1",
+      getF1Salaries().map((d) => ({ rank: d.rank, playerName: d.name, teamName: d.team, salary: d.salary })),
+      F1_SALARY_SEASON,
+    ),
+  );
   return { results };
 }
 

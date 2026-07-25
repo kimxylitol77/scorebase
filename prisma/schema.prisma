@@ -1171,7 +1171,7 @@ model SportsTransaction {
 /// id = autoincrement(매번 갈아끼워 안정 id 불필요). 축구는 시장가치(PlayerMarketValue) 별도.
 model PlayerSalary {
   id         Int      @id @default(autoincrement())
-  league     String // "NBA" | "MLB" | "NHL"
+  league     String // "NBA" | "MLB" | "NHL" | "KBO" | "GOLF" | "TENNIS_ATP" | "TENNIS_WTA" | "F1"
   season     String // "2025-26"
   rank       Int // 연봉 순위
   playerName String
