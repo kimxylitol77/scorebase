@@ -806,21 +806,38 @@ function LeagueCard({ stat }: { stat: LeagueStat }) {
         </div>
       )}
 
-      {/* 최근 30일 롤링 칩 — 표본 부족 시 수치 미표시 */}
-      <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-neutral-100 dark:bg-white/[0.06] px-2 py-1 text-[11px]">
-        <span className="text-neutral-500">최근 30일</span>
-        <span className="font-bold tabular-nums text-neutral-900 dark:text-white">
-          {stat.rolling30.evaluated >= ROLLING_MIN_SAMPLE
-            ? `${Math.round(stat.rolling30.rate * 100)}%`
-            : "표본 부족"}
-        </span>
-        {stat.rolling30.evaluated >= ROLLING_MIN_SAMPLE && (
-          <span className="text-neutral-400 tabular-nums">
-            {stat.rolling30.correct}/{stat.rolling30.evaluated}
-          </span>
-        )}
+      {/* 최근 7·14·30일 롤링 칩 — 표본 수 병기, 0건은 "—", 10건 미만은 표본 부족 */}
+      <div className="mt-3 grid grid-cols-3 gap-1.5 text-[11px]">
+        <RollingChip label="최근 7일" rate={stat.rolling7} />
+        <RollingChip label="최근 14일" rate={stat.rolling14} />
+        <RollingChip label="최근 30일" rate={stat.rolling30} />
       </div>
     </Link>
+  );
+}
+
+// 리그 카드용 롤링 칩 — 표본 0건 "—", ROLLING_MIN_SAMPLE 미만 "표본 부족", 이상이면 적중률+표본
+function RollingChip({ label, rate }: { label: string; rate: MarketRate }) {
+  return (
+    <div className="rounded-lg bg-neutral-100 dark:bg-white/[0.06] px-2 py-1.5">
+      <div className="text-[10px] text-neutral-500">{label}</div>
+      {rate.evaluated === 0 ? (
+        <div className="font-bold text-neutral-400 text-sm">—</div>
+      ) : rate.evaluated < ROLLING_MIN_SAMPLE ? (
+        <div className="text-[10px] font-semibold leading-5 text-neutral-400">
+          표본 부족 ({rate.evaluated}건)
+        </div>
+      ) : (
+        <div className="flex items-baseline gap-1">
+          <span className="font-bold tabular-nums text-neutral-900 dark:text-white text-sm">
+            {Math.round(rate.rate * 100)}%
+          </span>
+          <span className="text-[10px] text-neutral-400 tabular-nums">
+            {rate.correct}/{rate.evaluated}
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
 
