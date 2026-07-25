@@ -3,6 +3,8 @@
 //   npx tsx --env-file=.env.local scripts/cleanup-duplicate-matches.ts --apply    # SAFE 그룹 실제 삭제
 //   ... --league=CLUB_FRIENDLY   # 특정 리그만
 //   ... --ids=1159634,2522421    # 해당 matchId 를 포함하는 그룹만 (특정 중복 겨냥)
+//   ... --merge                  # MANUAL(양쪽 참조) 그룹 병합 계획 출력 (dry-run)
+//   ... --merge --apply          # MANUAL 그룹 실제 병합 (기사/게시글/투표 이전·정리 후 loser 삭제)
 //
 // 배경. upsertMatch 의 dedup 가드(collect.ts)는 생성 시점에 (리그+팀페어+startTime±윈도우)로만
 // 병합한다. TheSports 가 친선 등에서 임시 시각으로 먼저 올린 뒤 시각을 옮기면 신규 externalId 가
@@ -22,6 +24,7 @@ import "@/lib/env";
 import { prisma } from "@/lib/db";
 
 const APPLY = process.argv.includes("--apply");
+const MERGE = process.argv.includes("--merge"); // MANUAL(양쪽 참조) 그룹을 병합 처리
 const leagueArg = process.argv.find((a) => a.startsWith("--league="))?.split("=")[1];
 const idsArg = process.argv.find((a) => a.startsWith("--ids="))?.split("=")[1];
 const idFilter = idsArg ? new Set(idsArg.split(",").map((s) => Number(s.trim())).filter(Boolean)) : null;
@@ -82,6 +85,73 @@ function pickKeep(rows: Row[]): Row {
   })[0];
 }
 
+// 병합 survivor 선정: 실제 결과를 보여주는 FINISHED 우선 → 참조 많은 순 → 정본 → 최초 생성.
+// (POSTPONED row 를 남기면 종료된 경기가 사이트에서 '연기' 로 보이므로 FINISHED 를 최우선.)
+function pickSurvivor(rows: Row[]): Row {
+  const rank = (s: string) => (s === "FINISHED" ? 0 : 1);
+  return [...rows].sort((a, b) => {
+    if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
+    if (b.protectedRefs !== a.protectedRefs) return b.protectedRefs - a.protectedRefs;
+    const aCanon = a.externalId.replace(/^ts-/, "") === a.tsMatchId ? 1 : 0;
+    const bCanon = b.externalId.replace(/^ts-/, "") === b.tsMatchId ? 1 : 0;
+    if (bCanon !== aCanon) return bCanon - aCanon;
+    return a.createdAt.getTime() - b.createdAt.getTime();
+  })[0];
+}
+
+// MANUAL 그룹 병합. survivor 유지, loser 의 참조를 이전/정리 후 loser row 삭제.
+//   Article: survivor 에 같은 type 기사 있으면 loser 중복기사 삭제, 없으면 이전.
+//   Post: 전부 survivor 로 이전(matchId unique 없음).
+//   MatchVote: survivor 와 (userId 또는 sessionId) 충돌하면 loser 표 삭제, 아니면 이전.
+//   apply=false 면 계획만 반환.
+async function mergeGroup(survivor: Row, losers: Row[], apply: boolean): Promise<string[]> {
+  const plan: string[] = [];
+  const survArts = await prisma.article.findMany({ where: { matchId: survivor.id }, select: { type: true } });
+  const survTypes = new Set(survArts.map((a) => a.type));
+  const survVotes = await prisma.matchVote.findMany({ where: { matchId: survivor.id }, select: { userId: true, sessionId: true } });
+  const survUsers = new Set(survVotes.map((v) => v.userId).filter(Boolean) as string[]);
+  const survSessions = new Set(survVotes.map((v) => v.sessionId).filter(Boolean) as string[]);
+
+  for (const L of losers) {
+    const arts = await prisma.article.findMany({ where: { matchId: L.id }, select: { id: true, type: true, slug: true } });
+    const posts = await prisma.post.findMany({ where: { matchId: L.id }, select: { id: true } });
+    const votes = await prisma.matchVote.findMany({ where: { matchId: L.id }, select: { id: true, userId: true, sessionId: true } });
+
+    for (const a of arts) {
+      if (survTypes.has(a.type)) {
+        plan.push(`ART삭제 #${a.id}(${a.type},${a.slug}) — survivor 에 동일 type 존재`);
+        if (apply) await prisma.article.delete({ where: { id: a.id } });
+      } else {
+        plan.push(`ART이전 #${a.id}(${a.type}) → #${survivor.id}`);
+        if (apply) await prisma.article.update({ where: { id: a.id }, data: { matchId: survivor.id } });
+        survTypes.add(a.type);
+      }
+    }
+    for (const p of posts) {
+      plan.push(`POST이전 #${p.id} → #${survivor.id}`);
+      if (apply) await prisma.post.update({ where: { id: p.id }, data: { matchId: survivor.id } });
+    }
+    for (const v of votes) {
+      const conflict = (v.userId && survUsers.has(v.userId)) || (v.sessionId && survSessions.has(v.sessionId));
+      if (conflict) {
+        plan.push(`VOTE삭제 #${v.id} — survivor 에 동일 유저/세션 표 존재`);
+        if (apply) await prisma.matchVote.delete({ where: { id: v.id } });
+      } else {
+        plan.push(`VOTE이전 #${v.id} → #${survivor.id}`);
+        if (apply) await prisma.matchVote.update({ where: { id: v.id }, data: { matchId: survivor.id } });
+        if (v.userId) survUsers.add(v.userId);
+        if (v.sessionId) survSessions.add(v.sessionId);
+      }
+    }
+    plan.push(`ROW삭제 #${L.id}(${L.externalId},${L.status})`);
+    if (apply) {
+      await prisma.matchStats.deleteMany({ where: { matchId: L.id } });
+      await prisma.match.delete({ where: { id: L.id } });
+    }
+  }
+  return plan;
+}
+
 async function main() {
   console.log(`=== 중복 Match 정리 ${APPLY ? "[APPLY]" : "[DRY-RUN]"}${leagueArg ? ` league=${leagueArg}` : ""} ===\n`);
 
@@ -132,6 +202,7 @@ async function main() {
 
   const buckets = { SAFE: [] as string[], MANUAL: [] as string[], LIVE: [] as string[], PENDING: [] as string[], ANOMALY: [] as string[] };
   let deleted = 0;
+  let mergedGroups = 0;
 
   for (const [, idSet] of groupsById) {
     const ids = [...idSet];
@@ -166,7 +237,19 @@ async function main() {
     const desc = `${base.league} ${base.startTime.toISOString()} KEEP #${keep.id}(${keep.externalId},refs=${keep.protectedRefs}) DEL ${dels.map((r) => `#${r.id}(${r.externalId},refs=${r.protectedRefs},${r.status})`).join(",")}`;
 
     if (blocked.length > 0) {
-      buckets.MANUAL.push(`[MANUAL] ${desc} — 삭제대상에 보호참조 존재, FK 이전 필요`);
+      if (MERGE) {
+        // survivor 는 FINISHED 우선으로 다시 뽑는다(refs 최다가 POSTPONED 일 수 있음).
+        const survivor = pickSurvivor(rows);
+        const losers = rows.filter((r) => r.id !== survivor.id);
+        const plan = await mergeGroup(survivor, losers, APPLY);
+        buckets.MANUAL.push(
+          `[MERGE${APPLY ? "-APPLY" : "-PLAN"}] ${base.league} ${base.startTime.toISOString()} SURV #${survivor.id}(${survivor.externalId},${survivor.status})\n      ` +
+            plan.join("\n      "),
+        );
+        if (APPLY) mergedGroups++;
+      } else {
+        buckets.MANUAL.push(`[MANUAL] ${desc} — 삭제대상에 보호참조 존재, FK 이전 필요 (--merge 로 병합)`);
+      }
       continue;
     }
 
@@ -197,13 +280,13 @@ async function main() {
     for (const l of arr) console.log("  " + l);
   };
   out("SAFE (자동 삭제 가능)", buckets.SAFE);
-  out("MANUAL (보호참조 — 사람 판단)", buckets.MANUAL);
+  out(MERGE ? "MANUAL 병합" : "MANUAL (보호참조 — --merge 로 병합)", buckets.MANUAL);
   out("PENDING (미종료 — 종료 후 재판정)", buckets.PENDING);
   out("LIVE-SKIP (라이브 — 미처리)", buckets.LIVE);
   out("ANOMALY (팀페어 불일치 오링크)", buckets.ANOMALY);
   console.log(
     `\n요약. SAFE=${buckets.SAFE.length} MANUAL=${buckets.MANUAL.length} PENDING=${buckets.PENDING.length} LIVE=${buckets.LIVE.length} ANOMALY=${buckets.ANOMALY.length}` +
-      (APPLY ? ` / 삭제 ${deleted}건` : " / dry-run (삭제 안 함, --apply 로 실행)"),
+      (APPLY ? ` / SAFE삭제 ${deleted}건${MERGE ? ` / 병합 ${mergedGroups}그룹` : ""}` : " / dry-run (삭제 안 함, --apply 로 실행)"),
   );
 
   await prisma.$disconnect();
