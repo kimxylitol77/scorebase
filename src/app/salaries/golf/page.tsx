@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { fifaCountryKo } from "@/lib/sports/fifa-rankings";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
+import PlayerPhoto from "@/components/PlayerPhoto";
 import { CircleDollarSign } from "lucide-react";
 import golfNames from "../../../../data/golf-player-names.json";
 
@@ -64,7 +65,7 @@ export default async function GolfSalariesPage() {
   const updated = rows[0]?.updatedAt ? rows[0].updatedAt.toISOString().slice(0, 10) : null;
 
   return (
-    <main className="relative max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
       <PlayerValueTabs active="/salaries/golf" />
 
@@ -117,7 +118,7 @@ export default async function GolfSalariesPage() {
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                     <td className="px-2 py-2.5">
                       <div className="flex items-center gap-2.5">
-                        <Avatar photo={r.photoUrl} name={nameKo ?? r.playerName} />
+                        <PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />
                         <span className="min-w-0">
                           <span className={`block truncate font-semibold ${isKorean ? "text-rose-600 dark:text-rose-400" : top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
                             {nameKo ?? r.playerName}
@@ -155,19 +156,5 @@ export default async function GolfSalariesPage() {
         .
       </footer>
     </main>
-  );
-}
-
-/** 선수 아바타 — ESPN 골프 headshot, 없으면 이니셜 원형. */
-function Avatar({ photo, name }: { photo?: string | null; name: string }) {
-  if (photo) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 lg:h-9 lg:w-9 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
-  }
-  const initial = name.trim().charAt(0).toUpperCase();
-  return (
-    <span className="inline-flex h-7 w-7 lg:h-9 lg:w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
-      {initial}
-    </span>
   );
 }

@@ -11,6 +11,7 @@ import { MLB_PLAYER_NAMES_KO } from "@/lib/sports/mlb-player-names";
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
+import PlayerPhoto from "@/components/PlayerPhoto";
 import { CircleDollarSign } from "lucide-react";
 
 export const revalidate = 3600;
@@ -118,7 +119,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
       .map((g) => ({ name: g.teamName as string, total: g._sum.salary ?? 0, count: g._count._all }))
       .sort((a, b) => b.total - a.total);
     return (
-      <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
         <AmbientGlow />
         <PlayerValueTabs active="/salaries/mlb" />
         <SalaryHeader season={season} subtitle={`팀별 총 연봉(페이롤) 순위 · ${teamRows.length}개 구단`} />
@@ -222,7 +223,7 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
   const birthdayMap = await fetchMlbBirthdays(mlbamIds);
 
   return (
-    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
       <PlayerValueTabs active="/salaries/mlb" />
       <SalaryHeader
@@ -296,12 +297,12 @@ export default async function MlbSalariesPage({ searchParams }: Props) {
                       <td className="px-2 py-2.5">
                         {href ? (
                           <Link href={href} className="flex items-center gap-2.5 hover:underline">
-                            <Avatar photo={r.photoUrl} name={display} />
+                            <PlayerPhoto photo={r.photoUrl} name={display} />
                             <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
                           </Link>
                         ) : (
                           <div className="flex items-center gap-2.5">
-                            <Avatar photo={r.photoUrl} name={display} />
+                            <PlayerPhoto photo={r.photoUrl} name={display} />
                             <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
                           </div>
                         )}
@@ -437,19 +438,5 @@ function PageLink({ page, disabled, label }: { page: number; disabled: boolean; 
     >
       {label}
     </Link>
-  );
-}
-
-/** 선수 아바타 — MLB Stats headshot, 매칭 실패 시 이니셜 원형. */
-function Avatar({ photo, name }: { photo?: string | null; name: string }) {
-  if (photo) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 lg:h-9 lg:w-9 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
-  }
-  const initial = name.trim().charAt(0).toUpperCase();
-  return (
-    <span className="inline-flex h-7 w-7 lg:h-9 lg:w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
-      {initial}
-    </span>
   );
 }

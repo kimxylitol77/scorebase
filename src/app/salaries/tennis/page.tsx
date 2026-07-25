@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
+import PlayerPhoto from "@/components/PlayerPhoto";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { TENNIS_PRIZE_AS_OF } from "@/lib/sports/tennis-prize-money";
 import { CircleDollarSign } from "lucide-react";
@@ -93,7 +94,7 @@ export default async function TennisSalariesPage({
   }
 
   return (
-    <main className="relative max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
       <PlayerValueTabs active="/salaries/tennis" />
 
@@ -164,21 +165,24 @@ export default async function TennisSalariesPage({
                 const display = hit?.nameKo ?? r.playerName;
                 const country = hit?.countryKo ?? hit?.countryEn ?? (r.teamName || null);
                 const name = (
-                  <span className="min-w-0">
-                    <span className={`block truncate font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
-                    {hit?.nameKo && <span className="block truncate text-[11px] font-normal text-neutral-400">{r.playerName}</span>}
-                  </span>
+                  <>
+                    <PlayerPhoto photo={r.photoUrl} name={display} />
+                    <span className="min-w-0">
+                      <span className={`block truncate font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>{display}</span>
+                      {hit?.nameKo && <span className="block truncate text-[11px] font-normal text-neutral-400">{r.playerName}</span>}
+                    </span>
+                  </>
                 );
                 return (
                   <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                     <td className="px-2 py-2.5">
                       {hit ? (
-                        <Link href={`/rankings/tennis/${hit.athleteId}`} className="flex items-center gap-1.5 hover:underline">
+                        <Link href={`/rankings/tennis/${hit.athleteId}`} className="flex items-center gap-2.5 hover:underline">
                           {name}
                         </Link>
                       ) : (
-                        name
+                        <div className="flex items-center gap-2.5">{name}</div>
                       )}
                     </td>
                     <td className="px-2 py-2.5 text-neutral-500 hidden sm:table-cell">

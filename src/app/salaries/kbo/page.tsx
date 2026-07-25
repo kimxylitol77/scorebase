@@ -10,7 +10,8 @@ import { lookupKboSalaryPlayer, getKboForeignSalaries } from "@/lib/sports/kbo-s
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
-import { Trophy } from "lucide-react";
+import PlayerPhoto from "@/components/PlayerPhoto";
+import { CircleDollarSign, Trophy } from "lucide-react";
 
 export const revalidate = 3600;
 
@@ -99,7 +100,7 @@ export default async function KboSalariesPage() {
     kboTeams.find((t) => t.name.startsWith(short) || t.name.includes(short))?.logoUrl ?? null;
 
   return (
-    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
       <PlayerValueTabs active="/salaries/kbo" />
       <header className="space-y-2">
@@ -113,7 +114,9 @@ export default async function KboSalariesPage() {
         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 연봉 랭킹
         </span>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">KBO 연봉 랭킹</h1>
+        <h1 className="flex items-center gap-2.5 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
+          <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> KBO 연봉 랭킹
+        </h1>
         <p className="text-sm text-neutral-500 leading-relaxed break-keep">
           {season} 시즌 국내 선수 연봉 순위 상위 {rows.length}명. 10개 구단 전 선수를 KBO 공식 프로필에서 집계했습니다.
         </p>
@@ -183,7 +186,7 @@ function SalaryTable({
             const age = calcAge(r.birthday ? new Date(r.birthday) : null);
             const cell = (
               <div className="flex items-center gap-2.5">
-                <Avatar photo={photoOf.get(r.playerName)} name={r.playerName} />
+                <PlayerPhoto photo={photoOf.get(r.playerName)} name={r.playerName} />
                 <div className="leading-tight">
                   <span className={`font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""} ${r.pid ? "group-hover:underline" : ""}`}>{r.playerName}</span>
                   <div className="lg:hidden text-[11px] text-neutral-400">{r.teamName}{r.position ? ` · ${r.position}` : ""}</div>
@@ -220,19 +223,5 @@ function SalaryTable({
         </tbody>
       </table>
     </div>
-  );
-}
-
-/** 선수 아바타 — KBO 공식 이미지(TheSportsPlayer), 매칭 실패 시 한글 첫 글자 원형. */
-function Avatar({ photo, name }: { photo?: string | null; name: string }) {
-  if (photo) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={photo} alt="" loading="lazy" className="h-7 w-7 lg:h-9 lg:w-9 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top shrink-0" />;
-  }
-  const initial = name.trim().charAt(0);
-  return (
-    <span className="inline-flex h-7 w-7 lg:h-9 lg:w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300 shrink-0">
-      {initial}
-    </span>
   );
 }

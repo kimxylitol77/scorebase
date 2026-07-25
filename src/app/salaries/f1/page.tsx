@@ -8,6 +8,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
+import PlayerPhoto from "@/components/PlayerPhoto";
 import { F1_TEAM_KO, F1_TEAM_COLOR } from "@/lib/sports/espn-f1";
 import { getF1Salaries, F1_SALARY_AS_OF, F1_SALARY_SOURCE, F1_SALARY_SOURCE_URL } from "@/lib/sports/f1-salaries";
 import { CircleDollarSign } from "lucide-react";
@@ -65,7 +66,7 @@ export default async function F1SalariesPage() {
   const koMap = new Map(getF1Salaries().map((d) => [d.name, d.nameKo]));
 
   return (
-    <main className="relative max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
       <PlayerValueTabs active="/salaries/f1" />
 
@@ -126,6 +127,7 @@ export default async function F1SalariesPage() {
                     <td className="px-2 py-2.5">
                       <div className="flex items-center gap-2.5">
                         <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+                        <PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />
                         <span className="min-w-0">
                           <span className={`block truncate font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
                             {nameKo ?? r.playerName}

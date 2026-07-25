@@ -12,7 +12,8 @@ import { nbaEspnLogo } from "@/lib/sports/nba-logos";
 import { calcAge } from "@/lib/age";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
-import { ArrowLeftRight, Trophy } from "lucide-react";
+import PlayerPhoto from "@/components/PlayerPhoto";
+import { ArrowLeftRight, CircleDollarSign, Trophy } from "lucide-react";
 
 export const revalidate = 3600; // 1시간 — 연봉 주1회·환율 시간당 갱신이면 충분
 
@@ -97,15 +98,15 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
       .map((g) => ({ name: g.teamName as string, total: g._sum.salary ?? 0, count: g._count._all }))
       .sort((a, b) => b.total - a.total);
     return (
-      <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
         <AmbientGlow />
         <PlayerValueTabs active="/salaries/nba" />
         <NbaSalaryHeader season={season} subtitle={`팀별 총 연봉(페이롤) 순위 · ${teamRows.length}개 구단`} />
         <NbaViewToggle view="team" />
-        <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-black/5 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.03] text-xs text-neutral-500">
+              <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                 <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
                 <th className="px-2 py-2.5 text-left font-semibold">팀</th>
                 <th className="px-3 py-2.5 text-center font-semibold w-16 hidden sm:table-cell">인원</th>
@@ -121,7 +122,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                 const logo = nbaEspnLogo(t.name);
                 const avg = t.count ? t.total / t.count : 0;
                 return (
-                  <tr key={t.name} className="border-b border-black/5 dark:border-white/5 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
+                  <tr key={t.name} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{i + 1}</td>
                     <td className="px-2 py-2.5">
                       <Link href={`/salaries/nba?team=${encodeURIComponent(t.name)}`} className="flex items-center gap-2.5 hover:underline">
@@ -166,7 +167,7 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
   const teamKo = teamParam ? (toKoreanTeamName(teamParam, "NBA") ?? teamParam) : null;
 
   return (
-    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
       <AmbientGlow />
       <PlayerValueTabs active="/salaries/nba" />
       <NbaSalaryHeader
@@ -183,10 +184,10 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
         <p className="py-16 text-center text-sm text-neutral-400 break-keep">연봉 데이터를 불러오는 중입니다.</p>
       ) : (
         <>
-          <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:bg-white/[0.04] dark:ring-white/10 dark:shadow-none">
+          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-30px_rgba(15,23,30,0.18)] dark:border-neutral-800 dark:bg-white/[0.04] dark:shadow-none">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-black/5 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.03] text-xs text-neutral-500">
+                <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-white/[0.03] text-xs text-neutral-500">
                   <th className="px-3 py-2.5 text-center font-semibold w-12">#</th>
                   <th className="px-2 py-2.5 text-left font-semibold" colSpan={2}>선수</th>
                   <th className="px-2 py-2.5 text-left font-semibold">팀</th>
@@ -213,14 +214,14 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                   return (
                     <tr
                       key={r.id}
-                      className="border-b border-black/5 dark:border-white/5 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
+                      className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
                     >
                       <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                       <td className="pl-2 py-1.5 w-9">
                         {href ? (
-                          <Link href={href}><PlayerAvatar photo={info?.photo} name={display} /></Link>
+                          <Link href={href}><PlayerPhoto photo={info?.photo} name={display} /></Link>
                         ) : (
-                          <PlayerAvatar photo={info?.photo} name={display} />
+                          <PlayerPhoto photo={info?.photo} name={display} />
                         )}
                       </td>
                       <td className="pr-2 py-2.5">
@@ -260,10 +261,10 @@ export default async function NbaSalariesPage({ searchParams }: Props) {
                     key={p}
                     href={p === 1 ? "/salaries/nba" : `/salaries/nba?page=${p}`}
                     aria-current={p === page ? "page" : undefined}
-                    className={`min-w-[36px] rounded-full px-3 py-1.5 text-center font-semibold ring-1 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    className={`min-w-[34px] rounded-full px-2.5 py-1.5 text-center font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                       p === page
-                        ? "bg-rose-600 text-white ring-rose-600 shadow-[0_8px_24px_-10px_rgba(225,29,72,0.6)]"
-                        : "text-neutral-600 ring-black/10 hover:-translate-y-0.5 hover:bg-white dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
+                        ? "bg-neutral-900 text-white shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)] dark:bg-white dark:text-neutral-900"
+                        : "border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"
                     }`}
                   >
                     {p}
@@ -295,7 +296,9 @@ function NbaSalaryHeader({ season, subtitle }: { season: string; subtitle: strin
       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-600 ring-1 ring-rose-500/20 dark:text-rose-400">
         <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> 연봉 랭킹
       </span>
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">NBA 연봉 랭킹</h1>
+      <h1 className="flex items-center gap-2.5 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight break-keep">
+        <CircleDollarSign className="h-8 w-8 shrink-0 text-rose-500" aria-hidden /> NBA 연봉 랭킹
+      </h1>
       <p className="text-sm text-neutral-500 leading-relaxed break-keep">
         {season} 시즌 {subtitle} · 데이터 Basketball Reference.
       </p>
@@ -345,7 +348,7 @@ function NbaViewToggle({ view, teamLabel }: { view: "player" | "team"; teamLabel
 // 공통 푸터 — 출처·환율 면책.
 function NbaSalaryFooter({ rate }: { rate: number }) {
   return (
-    <footer className="border-t border-black/5 dark:border-white/10 pt-4 text-xs text-neutral-400 leading-relaxed break-keep">
+    <footer className="border-t border-neutral-200 dark:border-neutral-800 pt-4 text-xs text-neutral-400 leading-relaxed break-keep">
       연봉은 해당 시즌 실계약액(USD) 기준이며, 원화는 1달러 = {Math.round(rate).toLocaleString()}원 적용한 근사값입니다. 데이터 제공{" "}
       <a href="https://www.basketball-reference.com/contracts/players.html" target="_blank" rel="nofollow noopener" className="text-blue-600 dark:text-blue-400 hover:underline">
         Basketball Reference
@@ -362,39 +365,14 @@ function NbaSalaryFooter({ rate }: { rate: number }) {
 /** 이전/다음 버튼 — disabled 면 비활성 표시. */
 function PageLink({ page, disabled, label }: { page: number; disabled: boolean; label: string }) {
   if (disabled) {
-    return (
-      <span className="rounded-full px-3 py-1.5 text-neutral-300 dark:text-neutral-700 cursor-default select-none">
-        {label}
-      </span>
-    );
+    return <span className="rounded-full px-2.5 py-1.5 text-neutral-300 dark:text-neutral-700 cursor-default select-none">{label}</span>;
   }
   return (
     <Link
       href={page === 1 ? "/salaries/nba" : `/salaries/nba?page=${page}`}
-      className="rounded-full px-3 py-1.5 font-semibold text-neutral-600 ring-1 ring-black/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white dark:text-neutral-300 dark:ring-white/15 dark:hover:bg-white/10"
+      className="rounded-full border border-neutral-200 dark:border-neutral-800 px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-300 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-neutral-100 dark:hover:bg-white/[0.06]"
     >
       {label}
     </Link>
-  );
-}
-
-/** 선수 사진 아바타 — ESPN headshot. 없으면(매칭 실패) 이니셜 원형 fallback. */
-function PlayerAvatar({ photo, name }: { photo?: string; name: string }) {
-  if (!photo) {
-    const initial = name.trim().charAt(0).toUpperCase();
-    return (
-      <span className="inline-flex h-7 w-7 lg:h-9 lg:w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-[11px] font-bold text-neutral-500 dark:text-neutral-300">
-        {initial}
-      </span>
-    );
-  }
-  // eslint-disable-next-line @next/next/no-img-element
-  return (
-    <img
-      src={photo}
-      alt=""
-      loading="lazy"
-      className="h-7 w-7 lg:h-9 lg:w-9 rounded-full bg-neutral-100 dark:bg-neutral-800 object-cover object-top"
-    />
   );
 }
