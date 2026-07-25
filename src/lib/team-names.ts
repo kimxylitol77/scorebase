@@ -2422,6 +2422,13 @@ const RAW: Record<string, string> = {
   "Syria": "시리아",
   "Tajikistan": "타지키스탄",
   "Thailand": "태국",
+  // ASEAN 챔피언십 참가국 (senior 국가대표) — Cambodia/Myanmar/Singapore/Thailand 는 위에 이미 있음
+  "Malaysia": "말레이시아",
+  "Laos": "라오스",
+  "Vietnam": "베트남",
+  "Timor-Leste": "동티모르",
+  "Brunei": "브루나이",
+  "Brunei Darussalam": "브루나이",
   "Trinidad and Tobago": "트리니다드 토바고",
   "Ukraine": "우크라이나",
   "Wales": "웨일스",
