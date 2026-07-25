@@ -4,7 +4,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
-import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { fetchTennisRankings, type Tour } from "@/lib/sports/espn-tennis";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -53,8 +52,6 @@ export default async function TennisRankingsPage({
           ATP(남자)·WTA(여자) 세계랭킹 1~150위. 선수 이름을 한국어로, 순위 등락과 랭킹 포인트를 함께 봅니다.
         </p>
       </header>
-
-      <PlayerValueTabs active="/rankings/tennis" />
 
       {/* 투어 탭 */}
       <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
@@ -153,6 +150,12 @@ export default async function TennisRankingsPage({
           className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
         >
           대진표
+        </Link>
+        <Link
+          href={tour === "WTA" ? "/salaries/tennis?tour=wta" : "/salaries/tennis"}
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          시즌 상금 랭킹
         </Link>
       </div>
 

@@ -6,7 +6,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
 import GolfWorldRanking from "@/components/golf/GolfWorldRanking";
-import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { golfEventKo } from "@/lib/sports/golf-events-ko";
 import { SITE_URL } from "@/lib/site-url";
 import seasonData from "../../../../data/golf-korea-season.json";
@@ -98,8 +97,6 @@ export default async function GolfKoreaPage({
             : `${DATA.year} PGA·LPGA 투어에 출전한 한국 선수들의 우승·톱10·출전 기록을 한 곳에 모았습니다. 대회가 끝날 때마다 갱신됩니다.`}
         </p>
       </header>
-
-      {view === "world" && <PlayerValueTabs active="/golf/korea?view=world" />}
 
       {/* 뷰 전환 — 한국 선수 / 세계랭킹 */}
       <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
@@ -233,6 +230,12 @@ export default async function GolfKoreaPage({
           className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
         >
           ⛳ 골프 라이브 리더보드
+        </Link>
+        <Link
+          href="/salaries/golf"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          PGA 상금 랭킹
         </Link>
       </div>
 

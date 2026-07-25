@@ -4,7 +4,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
-import PlayerValueTabs from "@/components/PlayerValueTabs";
 import { fetchF1Championship } from "@/lib/sports/espn-f1";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -63,8 +62,6 @@ export default async function F1RankingsPage({
           )}
         </p>
       </header>
-
-      <PlayerValueTabs active="/rankings/f1" />
 
       {/* 뷰 탭 */}
       <div className="inline-flex rounded-full border border-neutral-200 bg-neutral-100/60 p-1 dark:border-neutral-800 dark:bg-white/[0.04]">
@@ -194,6 +191,12 @@ export default async function F1RankingsPage({
           className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
         >
           🏎️ F1 그랑프리 일정·결과
+        </Link>
+        <Link
+          href="/salaries/f1"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-2 text-xs font-medium text-neutral-700 transition-all hover:-translate-y-0.5 hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-white/[0.06]"
+        >
+          드라이버 연봉 랭킹
         </Link>
       </div>
 
