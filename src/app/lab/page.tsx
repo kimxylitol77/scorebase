@@ -11,6 +11,8 @@ import { clampKnobs, type BotKnobs } from "@/lib/predict/member-bot";
 import AmbientGlow from "@/components/AmbientGlow";
 import { KNOB_METAS } from "./knobs-meta";
 import LabClient, { type LabBot, type LabBotPick, type LabMatch } from "./LabClient";
+import LabLeaderboard from "./LabLeaderboard";
+import { loadBotLeaderboard, LEADERBOARD_MIN_N } from "./leaderboard";
 
 export const dynamic = "force-dynamic";
 
@@ -97,7 +99,10 @@ export default async function LabPage({
   const preselectId =
     match && /^\d+$/.test(match) ? Number(match) : null;
 
-  const userId = await getCurrentUserId();
+  const [userId, leaderboard] = await Promise.all([
+    getCurrentUserId(),
+    loadBotLeaderboard(),
+  ]);
 
   return (
     <main className="relative mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -122,6 +127,11 @@ export default async function LabPage({
         ) : (
           <LabGuest />
         )}
+      </div>
+
+      {/* 봇 리더보드 — 회원·비회원 공개 (닉네임·적중 성과는 게시판과 동일한 공개 정보) */}
+      <div className="mt-6">
+        <LabLeaderboard bots={leaderboard} minN={LEADERBOARD_MIN_N} />
       </div>
 
       <footer className="mt-10 border-t border-black/5 pt-4 dark:border-white/10">
