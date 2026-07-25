@@ -2,6 +2,7 @@
 //   npx tsx --env-file=.env.local scripts/cleanup-duplicate-matches.ts            # dry-run (기본, 보고만)
 //   npx tsx --env-file=.env.local scripts/cleanup-duplicate-matches.ts --apply    # SAFE 그룹 실제 삭제
 //   ... --league=CLUB_FRIENDLY   # 특정 리그만
+//   ... --ids=1159634,2522421    # 해당 matchId 를 포함하는 그룹만 (특정 중복 겨냥)
 //
 // 배경. upsertMatch 의 dedup 가드(collect.ts)는 생성 시점에 (리그+팀페어+startTime±윈도우)로만
 // 병합한다. TheSports 가 친선 등에서 임시 시각으로 먼저 올린 뒤 시각을 옮기면 신규 externalId 가
@@ -22,6 +23,8 @@ import { prisma } from "@/lib/db";
 
 const APPLY = process.argv.includes("--apply");
 const leagueArg = process.argv.find((a) => a.startsWith("--league="))?.split("=")[1];
+const idsArg = process.argv.find((a) => a.startsWith("--ids="))?.split("=")[1];
+const idFilter = idsArg ? new Set(idsArg.split(",").map((s) => Number(s.trim())).filter(Boolean)) : null;
 
 type Row = {
   id: number;
@@ -133,6 +136,7 @@ async function main() {
   for (const [, idSet] of groupsById) {
     const ids = [...idSet];
     if (ids.length < 2) continue;
+    if (idFilter && !ids.some((id) => idFilter.has(id))) continue; // 겨냥한 매치를 포함하는 그룹만
     const rows = (await Promise.all(ids.map(loadRow))).filter(Boolean) as Row[];
     if (rows.length < 2) continue;
 
