@@ -45,6 +45,7 @@ export type League =
   // 신규 — 아시아 추가
   | "AFC_CL_TWO" // AFC 챔피언스리그 2 — api-football
   | "AFC_U23" // AFC U23 아시안컵 — api-football
+  | "ASEAN_CHAMP" // ASEAN 챔피언십(옛 AFF, 동남아 국가대표) — api-football
   | "CSL" // 중국 슈퍼리그 — api-football
   | "A_LEAGUE" // 호주 A-리그 — api-football
   // 유럽 추가
@@ -223,6 +224,7 @@ export const SOCCER_LEAGUES = [
   "CLUB_WORLD_CUP",
   "AFC_CL_TWO",
   "AFC_U23",
+  "ASEAN_CHAMP",
   "CSL",
   "A_LEAGUE",
   "EREDIVISIE",
@@ -411,6 +413,7 @@ export const NO_ARTICLE_LEAGUES: readonly League[] = [
   "CLUB_WORLD_CUP",
   "AFC_CL_TWO",
   "AFC_U23",
+  "ASEAN_CHAMP",
   "CSL",
   "A_LEAGUE",
   "EREDIVISIE",

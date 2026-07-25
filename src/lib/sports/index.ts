@@ -77,6 +77,7 @@ export const collectors: Record<League, MatchCollector> = {
   // 아시아 추가
   AFC_CL_TWO: buildApiFootballCollector("AFC_CL_TWO"),
   AFC_U23: buildApiFootballCollector("AFC_U23"),
+  ASEAN_CHAMP: buildApiFootballCollector("ASEAN_CHAMP"),
   CSL: buildApiFootballCollector("CSL"),
   A_LEAGUE: buildApiFootballCollector("A_LEAGUE"),
   // 유럽 추가

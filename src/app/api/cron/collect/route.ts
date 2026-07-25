@@ -73,6 +73,7 @@ const ALL_LEAGUES: League[] = [
   "CLUB_WORLD_CUP",
   "AFC_CL_TWO",
   "AFC_U23",
+  "ASEAN_CHAMP",
   "CSL",
   "A_LEAGUE",
   "EREDIVISIE",

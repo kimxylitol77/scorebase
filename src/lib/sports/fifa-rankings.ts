@@ -28,6 +28,7 @@ export const NATIONAL_TEAM_LEAGUES = new Set<string>([
   "UEFA_NL", // UEFA 네이션스 리그
   "AFCON", // 아프리카 네이션스컵
   "CONCACAF_GOLD", // CONCACAF 골드컵
+  "ASEAN_CHAMP", // ASEAN 챔피언십 (동남아 국가대표, 옛 AFF)
   "WORLD_CUP", // FIFA 월드컵 (본선)
 ]);
 

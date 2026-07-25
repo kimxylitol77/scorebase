@@ -86,6 +86,7 @@ function seasonFor(league: League, date: string): number {
   if (league === "WORLD_CUP") return 2026;
   if (league === "CLUB_WORLD_CUP") return 2025; // 다음 대회 시작 시 업데이트
   if (league === "AFC_U23") return 2025; // 다음 대회 ~2027
+  if (league === "ASEAN_CHAMP") return 2025; // 2026 대회를 api-football 이 season 2025 로 표기
   // 토너 단발성 — 매년/격년 업데이트
   if (league === "AFCON") return 2025;
   if (league === "CONCACAF_GOLD") return 2025;

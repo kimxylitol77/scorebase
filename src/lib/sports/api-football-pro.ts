@@ -35,6 +35,7 @@ export const API_FOOTBALL_LEAGUE_ID: Record<string, number> = {
   CLUB_WORLD_CUP: 15,
   AFC_CL_TWO: 18,
   AFC_U23: 532,
+  ASEAN_CHAMP: 24,
   CSL: 169,
   A_LEAGUE: 188,
   EREDIVISIE: 88,
