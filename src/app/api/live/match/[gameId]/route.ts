@@ -117,6 +117,11 @@ interface MatchLive {
   /** 축구 승부차기 점수 — 정규/연장 동점 후 PK. 있으면 (4) 1 : 1 (3) 표시. */
   penHome?: number | null;
   penAway?: number | null;
+  /** 축구 — TheSports trend (분당 momentum -100~+100). 모멘텀 탭 라이브 갱신용.
+   *  LIVE 인데 cache 10분 stale 이면 미포함 (페이지와 동일 가드). */
+  trend?: { count?: number; per?: number; data?: number[][] } | null;
+  /** 축구 — 모멘텀 차트 골 marker (incidents 기반, soccerGoals 와 별도 — 기존 소비자 불간섭) */
+  trendGoals?: SoccerGoal[] | null;
   /** 주심 이름 (축구 — DB Match.referee. 정적이라 ETag hash 제외, 첫 200 응답에만 실림). */
   referee?: string | null;
 }
@@ -135,13 +140,17 @@ async function hashLive(live: MatchLive): Promise<string> {
   const evSig = (live.soccerEvents ?? [])
     .map((e) => `${e.minute}-${e.extra}-${e.type}-${e.side}`)
     .join(";");
+  // trend 는 분당 배열이 늘어나며 갱신 — 총 길이 + 마지막 값으로 변화 감지
+  const tArr = live.trend?.data ?? [];
+  const tLast = tArr.length > 0 ? tArr[tArr.length - 1] : [];
+  const trendSig = `${tArr.map((h) => h.length).join(",")}:${tLast[tLast.length - 1] ?? ""}:${live.trendGoals?.length ?? 0}`;
   const sig = `${live.status}|${live.homeScore}|${live.awayScore}|${live.statusLabel}|${
     live.periodLinescore?.homePeriods.join(",") ?? ""
   }|${live.periodLinescore?.awayPeriods.join(",") ?? ""}|${
     (live.soccerGoals ?? []).map((g) => `${g.minute}-${g.side}`).join(";")
   }|${live.summary?.homeStats.map((s) => s.value).join(",") ?? ""}|${
     live.summary?.winProbabilityHome?.length ?? 0
-  }|${oddsSig}|${luSig}|${evSig}`;
+  }|${oddsSig}|${luSig}|${evSig}|${trendSig}`;
   const buf = await crypto.subtle.digest(
     "SHA-1",
     new TextEncoder().encode(sig),
@@ -227,11 +236,19 @@ export async function GET(
         if (ourMatch.referee) out.referee = ourMatch.referee;
         const cache = await db.theSportsMatchCache.findUnique({
           where: { matchId: ourMatch.id },
-          select: { detailLive: true },
+          select: { detailLive: true, trend: true, fetchedAt: true },
         });
+        // 모멘텀 탭 라이브 갱신용 trend — LIVE 인데 10분 stale 이면 숨김 (live 페이지와 동일 가드)
+        const trendStale =
+          ourMatch.status === "LIVE" &&
+          cache != null &&
+          cache.fetchedAt.getTime() < Date.now() - 10 * 60 * 1000;
+        if (cache?.trend && !trendStale) {
+          out.trend = cache.trend as MatchLive["trend"];
+        }
         const dl = cache?.detailLive as { incidents?: unknown } | null;
         if (dl?.incidents) {
-          const { tsIncidentsToEvents } = await import("@/lib/sports/live-scores");
+          const { tsIncidentsToEvents, tsIncidentsToGoals } = await import("@/lib/sports/live-scores");
           // 이벤트(골·도움·교체) 선수명 한글화 — incident player id 들의 nameKo 조회
           const nameById: Record<string, string> = {};
           if (Array.isArray(dl.incidents)) {
@@ -253,6 +270,9 @@ export async function GET(
           }
           const events = tsIncidentsToEvents(dl.incidents, nameById);
           if (events.length > 0) out.soccerEvents = events;
+          // 모멘텀 차트 골 marker — live 페이지 SSR 과 동일 변환 (soccerGoals 는 건드리지 않음)
+          const tGoals = tsIncidentsToGoals(dl.incidents, nameById);
+          if (tGoals && tGoals.length > 0) out.trendGoals = tGoals;
         }
         // af 폴백 — ts 교체가 아예 없을 때(ts 미커버 경기)만 api-football /fixtures/events 보강.
         // ts in/out 반대는 위 tsIncidentsToEvents swap 으로 교정되므로 ts 교체가 있으면 그대로

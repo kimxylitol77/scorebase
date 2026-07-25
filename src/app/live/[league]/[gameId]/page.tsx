@@ -39,6 +39,7 @@ import WcMatchAnalysisCard from "@/components/live/WcMatchAnalysisCard";
 import { readFileSync } from "fs";
 import path from "path";
 import MatchTrendChart from "@/components/live/MatchTrendChart";
+import LiveMomentumTab from "@/components/live/LiveMomentumTab";
 import teamIdMapping from "@/lib/sports/thesports/team-id-mapping.json";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
 import { getRecentForm } from "@/lib/predict/recent-form";
@@ -553,15 +554,20 @@ export default async function GenericLivePage({ params }: Props) {
         halfTeamStats && (halfTeamStats.p1 || halfTeamStats.p2 || halfTeamStats.ft) ? (
           <SoccerHalfTimeStatsCard halfTeamStats={halfTeamStats} homeNameKo={homeKo} awayNameKo={awayKo} />
         ) : null;
+      // 종료 경기는 아래 SoccerFinishedMatchReport 가 흐름 그래프를 본문에 표시 — 탭 중복 금지.
+      // LIVE/예정은 독립 "모멘텀" 탭 (LIVE 중 120초 자동 갱신).
       trendNode =
-        trend && Array.isArray(trend.data) && trend.data.length > 0 ? (
-          <MatchTrendChart
-            trend={trend}
+        match.status !== "FINISHED" && trend && Array.isArray(trend.data) && trend.data.length > 0 ? (
+          <LiveMomentumTab
+            gameId={gameId}
+            league={lg}
+            initialTrend={trend}
+            initialGoals={trendGoals}
             homeNameKo={homeKo}
             awayNameKo={awayKo}
-            homeScore={soccerScore?.mainHome ?? match.homeScore}
-            awayScore={soccerScore?.mainAway ?? match.awayScore}
-            goals={trendGoals}
+            initialHomeScore={soccerScore?.mainHome ?? match.homeScore}
+            initialAwayScore={soccerScore?.mainAway ?? match.awayScore}
+            initialStatus={match.status}
           />
         ) : null;
       if (match.status === "FINISHED") {
@@ -720,8 +726,8 @@ export default async function GenericLivePage({ params }: Props) {
     const statsTab =
       match.status === "FINISHED"
         ? teamStatsNode
-        : teamStatsNode || halfTimeNode || trendNode
-          ? <div className="space-y-4">{teamStatsNode}{halfTimeNode}{trendNode}</div>
+        : teamStatsNode || halfTimeNode
+          ? <div className="space-y-4">{teamStatsNode}{halfTimeNode}</div>
           : null;
     const h2hTab =
       h2hNode || goalDistNode ? (
@@ -766,6 +772,7 @@ export default async function GenericLivePage({ params }: Props) {
 
     soccerTabs.push(
       { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
+      { key: "soccer-momentum", label: "모멘텀", enabled: !!trendNode, content: trendNode },
       { key: "soccer-stats", label: "팀 통계", enabled: !!statsTab, content: statsTab },
       { key: "soccer-h2h", label: "맞대결", enabled: !!h2hTab, content: h2hTab },
       { key: "soccer-info", label: "경기 정보", enabled: !!infoTab, content: infoTab },

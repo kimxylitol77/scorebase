@@ -149,11 +149,10 @@ export async function buildSoccerCacheTabs(opts: {
     ) : null;
 
   const statsTab =
-    teamStatsNode || halfTimeNode || trendNode ? (
+    teamStatsNode || halfTimeNode ? (
       <div className="space-y-4">
         {teamStatsNode}
         {halfTimeNode}
-        {trendNode}
       </div>
     ) : null;
   const h2hTab =
@@ -167,6 +166,7 @@ export async function buildSoccerCacheTabs(opts: {
   return [
     { key: "soccer-lineup", label: "라인업", enabled: !!lineupNode, content: lineupNode },
     { key: "soccer-goalscene", label: "골 장면", enabled: !!goalSceneNode, content: goalSceneNode },
+    { key: "soccer-momentum", label: "모멘텀", enabled: !!trendNode, content: trendNode },
     { key: "soccer-stats", label: "팀 통계", enabled: !!statsTab, content: statsTab },
     { key: "soccer-h2h", label: "맞대결", enabled: !!h2hTab, content: h2hTab },
   ];

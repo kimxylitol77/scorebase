@@ -6,7 +6,8 @@
 
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useRef, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 export interface InsightTab {
   key: string;
@@ -33,6 +34,26 @@ export default function MatchInsightTabs({
   const visibleTabs = tabs.filter((t) => t.enabled);
   const initialKey = visibleTabs[0]?.key ?? "";
   const [active, setActive] = useState<string>(initialKey);
+  const pathname = usePathname();
+  // 탭 클릭 PV — 어떤 탭이 실제로 소비되는지 측정 (`{path}?tab={key}` 로 기록).
+  // 초기 활성 탭(자동 노출)은 제외, mount 당 탭별 1회만. sessionId 는 PageViewTracker 가 발급한 값 재사용.
+  const trackedTabs = useRef<Set<string>>(new Set());
+  const trackTabClick = (key: string) => {
+    if (!pathname || trackedTabs.current.has(key)) return;
+    trackedTabs.current.add(key);
+    let sessionId: string | null = null;
+    try {
+      sessionId = localStorage.getItem("scorebase-sid");
+    } catch {
+      // private mode 등 — sessionId 없이 기록
+    }
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: `${pathname}?tab=${key}`, sessionId, isLanding: false }),
+      keepalive: true,
+    }).catch(() => {});
+  };
 
   if (visibleTabs.length === 0) return null;
 
@@ -68,7 +89,10 @@ export default function MatchInsightTabs({
           {visibleTabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => setActive(t.key)}
+              onClick={() => {
+                setActive(t.key);
+                trackTabClick(t.key);
+              }}
               className={`px-2.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
                 activeKey === t.key
                   ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
