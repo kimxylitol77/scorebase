@@ -828,7 +828,7 @@ function RollingChip({ label, rate }: { label: string; rate: MarketRate }) {
           표본 부족 ({rate.evaluated}건)
         </div>
       ) : (
-        <div className="flex items-baseline gap-1">
+        <div className="flex flex-wrap items-baseline gap-x-1">
           <span className="font-bold tabular-nums text-neutral-900 dark:text-white text-sm">
             {Math.round(rate.rate * 100)}%
           </span>
