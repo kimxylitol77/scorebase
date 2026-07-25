@@ -29,6 +29,7 @@ const WEIGHT_CLASS_KO: Record<string, string> = {
 };
 
 const FIGHTER_SELECT = {
+  id: true,
   name: true,
   logoUrl: true,
   mmaFighter: {
@@ -41,6 +42,7 @@ const FIGHTER_SELECT = {
 } as const;
 
 type FighterTeam = {
+  id: number;
   name: string;
   logoUrl: string | null;
   mmaFighter: {
@@ -64,6 +66,7 @@ function parseHistory(s: string | null | undefined): FightRow[] {
 function view(team: FighterTeam) {
   const f = team.mmaFighter;
   return {
+    id: team.id,
     ko: f?.nameKo ?? toKoreanTeamName(team.name, "UFC"),
     photo: f?.headshot ?? f?.photo ?? team.logoUrl ?? null, // ESPN 헤드샷 우선(안정적) → api-sports → 로고
     flag: f?.flagUrl ?? null,
@@ -194,16 +197,19 @@ function Headshot({ url, name }: { url: string | null; name: string }) {
 
 function FighterCol({ f }: { f: ReturnType<typeof view> }) {
   return (
-    <div className="flex flex-col items-center text-center gap-1.5">
+    <Link
+      href={`/ufc/fighters/${f.id}`}
+      className="group flex flex-col items-center text-center gap-1.5 rounded-xl -m-1 p-1 transition hover:bg-neutral-50 dark:hover:bg-white/5"
+    >
       <Headshot url={f.photo} name={f.ko} />
       {f.flag && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={f.flag} alt="" className="h-4 w-6 object-contain" loading="lazy" />
       )}
-      <div className="font-bold text-sm leading-tight">{f.ko}</div>
+      <div className="font-bold text-sm leading-tight group-hover:text-rose-600 dark:group-hover:text-rose-400">{f.ko}</div>
       {f.nickname && <div className="text-[11px] italic text-neutral-500">&lsquo;{f.nickname}&rsquo;</div>}
       {f.record && <div className="text-xs font-semibold tabular-nums text-neutral-600 dark:text-neutral-300">{f.record}</div>}
-    </div>
+    </Link>
   );
 }
 
