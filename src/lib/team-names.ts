@@ -210,6 +210,7 @@ const RAW: Record<string, string> = {
   "Stade Brestois 29": "브레스트",
   "Le Havre": "르아브르",
   "Le Havre AC": "르아브르",
+  "Havre Athletic Club": "르아브르", // season-stats 리더보드가 쓰는 표기(영문 노출 방지)
   "Lens": "랑스",
   "RC Lens": "랑스",
   "Lille": "릴",
