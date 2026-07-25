@@ -128,6 +128,11 @@ export const BOT_REGISTRY: Record<string, BotMeta> = {
     intervalMs: 1 * DAY,
     role: "PGA·LPGA 시즌 리더보드 → 한국 선수 우승·톱10 재집계 + data push (매일 09:00)",
   },
+  "mac-mini-daily-dup-cleanup": {
+    ko: "중복 매치 일일 정리",
+    intervalMs: 1 * DAY,
+    role: "ts 이중저장 Match 중복(종료·참조0) SAFE 자동 삭제 — collect 가드 사각 보완 (매일 10:30)",
+  },
   "mac-mini-weekly-static-refresh": {
     ko: "정적 데이터 주간 갱신",
     intervalMs: 7 * DAY,
