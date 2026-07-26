@@ -27,7 +27,7 @@
 - [x] dev 서버 실렌더 — /en·/en/standings(+KBO·MLB·EPL)·/en/predictions(+KBO·EPL) 한글 잔존 없음
 - [x] ko 회귀 없음 — 홈 200 + hreflang, /predictions/KBO 정상, 헤더 EN 토글
 - [x] 언어 토글 경로 매핑 (/en/predictions/KBO ↔ /predictions/KBO)
-- [ ] 커밋 + push (사용자 확인 후)
+- [x] 커밋 + push + production 검증 (9d6eb36 + 33b3006 keywords 후속fix)
 
 ## v2 후보 (이번 범위 제외)
 - NBA·NHL 순위 (NBA 소스 정비 중 / NHL 전용 포맷) — 지원 시 EN_STANDINGS_LEAGUE_SET 에 추가
