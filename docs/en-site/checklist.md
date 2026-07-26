@@ -46,6 +46,9 @@
 - [x] /en/teams/[id] (4b460e8) — 전 리그, 성적+일정+로스터(축구 ts 스쿼드·MLB 링크·NHL·NBA)
 - [x] /en/transfers (ecb3d80) — 루머 스테이지·공식 피드·시장가치 Top 10, 이름 라틴 가드
 
+## v4.1 (2026-07-26 배포)
+- [x] /en/predictions/scorecard (1f7c43d) — 멀티 AI 리더보드 (ko 와 수치 일치 검증) + en/layout twitter 메타 영문화
+
 ## v5 후보
 - NBA 순위 — ko 데이터 소스 정비 완료 후 (오염 데이터 노출 방지로 보류 중)
 - /en/scores e스포츠 (팀명 영문화 후)
