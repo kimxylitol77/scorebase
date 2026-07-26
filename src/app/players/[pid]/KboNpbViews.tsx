@@ -53,6 +53,8 @@ import { HitterSeasonTable, PitcherSeasonTable } from "./SeasonTable";
 import SplitsView from "./SplitsView";
 import AmbientGlow from "@/components/AmbientGlow";
 import BaseballPlayerSeo from "@/components/players/BaseballPlayerSeo";
+import KboPercentileSection from "@/components/players/KboPercentileSection";
+import { getKboHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
 import { ChevronLeft } from "lucide-react";
 
 /* ---------- 공통 헬퍼 ---------- */
@@ -585,6 +587,10 @@ async function KboHitterView({
   const teamHref = await fetchTeamHref("KBO", profile.team ?? stats.team);
   const name = profile.name ?? "(이름 정보 없음)";
   const team = profile.team ?? stats.team;
+  // 리그 백분위 — 규정 미달·표본 부족이면 null (섹션 생략). 이름+팀으로 DB 매칭.
+  const percentiles = profile.name
+    ? await getKboHitterPercentiles(profile.name, team ?? null)
+    : null;
   const season = new Date().getUTCFullYear();
   const batsLabel = profile.bats === "L" ? "좌타" : profile.bats === "R" ? "우타" : "";
   const ops =
@@ -611,6 +617,13 @@ async function KboHitterView({
           <Stat label="SO" value={stats.so != null ? String(stats.so) : "—"} />
         </div>
       </section>
+      {percentiles && (
+        <KboPercentileSection
+          data={percentiles}
+          shareUrl={`/players/${pid}?league=KBO`}
+          cardImageUrl={`/api/og/kbo-percentile?name=${encodeURIComponent(percentiles.playerName)}&team=${encodeURIComponent(percentiles.teamName)}&pid=${encodeURIComponent(pid)}`}
+        />
+      )}
       <HitterTrendChart rows={yearly.seasons} />
       {yearly.career && <HitterCareerCard c={yearly.career} />}
     </>
