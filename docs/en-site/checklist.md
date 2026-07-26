@@ -29,7 +29,12 @@
 - [x] 언어 토글 경로 매핑 (/en/predictions/KBO ↔ /predictions/KBO)
 - [x] 커밋 + push + production 검증 (9d6eb36 + 33b3006 keywords 후속fix)
 
-## v2 후보 (이번 범위 제외)
+## v2 (2026-07-26 배포 완료, 2e2c852)
+- [x] /en/scores — DB 직조회 라이브 스코어 (UTC date 네비 + LIVE 60초 자동 새로고침, e스포츠 제외)
+- [x] /en/predictions/accuracy — 적중률 성적표 (lib/predict/accuracy-stats 추출로 ko 와 숫자 단일 출처)
+- [x] EnHeader Scores 메뉴·랜딩 3카드·LangSwitch scores 커버·ko hreflang 역방향·sitemap 2건
+
+## v3 후보
 - NBA·NHL 순위 (NBA 소스 정비 중 / NHL 전용 포맷) — 지원 시 EN_STANDINGS_LEAGUE_SET 에 추가
-- /en/scores 라이브 스코어
 - 시즌 시뮬(우승 확률) 영어판
+- /en/scores e스포츠 (팀명 영문화 후)
