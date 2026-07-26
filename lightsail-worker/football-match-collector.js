@@ -51,13 +51,16 @@ const SKIP_LEAGUES = new Set([
   "INTL_FRIENDLY", "AFCON", "CONCACAF_GOLD",
 ]);
 
-// TheSports football status_id (검증):
-//   1 = scheduled, 2~7 = LIVE 단계, 8 = finished, 9 = postponed, 10 = cancelled, 11 = interrupted
+// TheSports football status_id (docs):
+//   0 = abnormal(숨김 권장), 1 = scheduled, 2~7 = LIVE 단계, 8 = finished,
+//   9 = delay, 10 = interrupt, 11 = cut in half, 12 = cancelled, 13 = TBD
+// 12 가 default SCHEDULED 로 빠지면 취소 경기가 유령 SCHEDULED row 로 남아
+// stale-scheduled 알림 반복 (2026-07-26 CLUB_FRIENDLY Thionville 사건).
 function mapStatus(id) {
   if (id === 1) return "SCHEDULED";
   if (id >= 2 && id <= 7) return "LIVE";
   if (id === 8) return "FINISHED";
-  if (id === 9 || id === 10 || id === 11) return "POSTPONED";
+  if (id === 9 || id === 10 || id === 11 || id === 12) return "POSTPONED";
   return "SCHEDULED";
 }
 
@@ -121,6 +124,9 @@ async function poll() {
     for (const m of raw) {
       if (!m.id || seen.has(m.id)) continue;
       seen.add(m.id);
+      // 0=Abnormal(숨김 권장)·13=TBD(시간 미정) — push 자체 제외. TBD 를 SCHEDULED 로
+      // 넣으면 같은 fixture 의 두 번째 ts id 가 유령 row 로 생성됨 (2026-07-26 사건).
+      if (m.status_id === 0 || m.status_id === 13) continue;
       const ourLeague = compToCode.get(m.competition_id);
       if (!ourLeague) continue; // 우리 매핑 없는 리그
       if (SKIP_LEAGUES.has(ourLeague)) continue; // ESPN/api-football 이 cover — duplicate 회피

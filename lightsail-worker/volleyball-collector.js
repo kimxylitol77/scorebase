@@ -100,7 +100,7 @@ async function poll() {
     for (const m of raw) {
       if (!m.id || seen.has(m.id)) continue;
       seen.add(m.id);
-      if (m.status_id === 0) continue; // Abnormal(suggest hiding) skip
+      if (m.status_id === 0 || m.status_id === 99) continue; // 0=Abnormal(hide)·99=TBD(시간 미정) skip
       const league = UTID_TO_LEAGUE[m.unique_tournament_id];
       if (!league) continue;
       if (!m.home_team_id || !m.away_team_id) continue;

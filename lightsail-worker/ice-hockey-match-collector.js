@@ -114,6 +114,7 @@ async function poll() {
       // status_id=0 = ABNORMAL(Suggest Hiding) — TheSports 가 숨김 권장. 같은 경기의
       // 중복/유령 entry 인 경우가 많아 매치 생성 skip (Sweden@Slovakia 중복 사고 2026-05-28).
       if (m.status_id === 0) continue;
+      if (m.status_id === 99) continue; // TBD(시간 미정) — SCHEDULED 유령 row 방지 push 제외
       const league = COMP_TO_LEAGUE[m.unique_tournament_id];
       if (!league) continue;
       if (!m.home_team_id || !m.away_team_id) continue;
