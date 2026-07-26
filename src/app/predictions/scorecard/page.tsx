@@ -14,6 +14,7 @@ import { fifaFlag, isNationalTeamLeague } from "@/lib/sports/fifa-rankings";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
 import { isGptScorecardModel } from "@/lib/predict/gpt-scorecard-model";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 1800; // 30분 ISR
 
@@ -63,7 +64,11 @@ export const metadata: Metadata = {
     "AI 예측 성적표", "멀티 AI 승부예측", "AI 적중률 비교", "GPT 예측", "Grok 예측",
     "Gemini 예측", "Claude 예측", "Kimi 예측", "AI 스포츠 예측 리더보드", "핸디캡 예측", "오버언더 예측",
   ],
-  alternates: { canonical: `${SITE_URL}/predictions/scorecard` },
+  alternates: {
+    canonical: `${SITE_URL}/predictions/scorecard`,
+    // 영어판 hreflang 상호 연결
+    languages: koEnLanguages("/predictions/scorecard", "/en/predictions/scorecard"),
+  },
   openGraph: {
     title: "AI 예측 성적표 — 멀티 AI 승부예측 리더보드",
     description: "스코어베이스·GPT·Claude·Grok·Gemini·Qwen·Kimi가 같은 경기를 두고 맞붙는 승부예측 성적표.",

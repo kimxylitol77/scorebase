@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     description:
       "AI-powered predictions, standings and data analysis for football, baseball, basketball and hockey leagues worldwide.",
   },
+  // root layout 의 한국어 twitter 메타 상속 차단
+  twitter: {
+    card: "summary_large_image",
+    title: "Scorebase",
+    description:
+      "AI-powered sports predictions, standings and stats — Premier League, MLB, NBA, NHL, KBO and more.",
+  },
 };
 
 export default function EnLayout({ children }: { children: React.ReactNode }) {

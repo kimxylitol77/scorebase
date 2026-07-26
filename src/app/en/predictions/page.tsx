@@ -55,6 +55,13 @@ export default async function EnPredictionsRoot() {
             className="font-medium text-blue-600 hover:underline dark:text-blue-400"
           >
             hit rates are public
+          </Link>{" "}
+          — and our model competes against GPT, Claude, Grok and more on the{" "}
+          <Link
+            href="/en/predictions/scorecard"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            AI scorecard
           </Link>
           .
         </p>
