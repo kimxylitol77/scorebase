@@ -34,7 +34,11 @@
 - [x] /en/predictions/accuracy — 적중률 성적표 (lib/predict/accuracy-stats 추출로 ko 와 숫자 단일 출처)
 - [x] EnHeader Scores 메뉴·랜딩 3카드·LangSwitch scores 커버·ko hreflang 역방향·sitemap 2건
 
-## v3 후보
-- NBA·NHL 순위 (NBA 소스 정비 중 / NHL 전용 포맷) — 지원 시 EN_STANDINGS_LEAGUE_SET 에 추가
-- 시즌 시뮬(우승 확률) 영어판
+## v3 (2026-07-26 배포 완료, 0dd00a5)
+- [x] Season outlook — /en/predictions/[league] Monte Carlo 시즌 시뮬 (_season-sim.ts, 남은 일정 있는 시즌만·야구 xPts 숨김)
+- [x] NHL 순위 — /en/standings/NHL 공식 API 컨퍼런스 표 + 허브 Ice Hockey 카드
+
+## v4 후보
+- NBA 순위 — ko 데이터 소스 정비 완료 후 (오염 데이터 노출 방지로 보류 중)
 - /en/scores e스포츠 (팀명 영문화 후)
+- /en 선수 페이지·이적시장 등 추가 섹션
