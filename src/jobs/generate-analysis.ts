@@ -13,6 +13,7 @@ import { buildSeasonContext } from "@/lib/predict/season-context";
 import { simulateWorldCup } from "@/lib/predict/world-cup-simulation";
 import type { PredictMatch } from "@/lib/predict/types";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { buildAbsChallengeSection } from "@/lib/sports/mlb-abs-challenges";
 
 const RELEGATION_BY_LEAGUE: Record<string, number> = {
   EPL: 3,
@@ -195,13 +196,21 @@ export async function runAnalysis() {
         });
       }
 
-      const content = await generateWithMinLength(prompt, {
+      let content = await generateWithMinLength(prompt, {
         system: SYSTEM_PROMPT,
         maxTokens: 3000,
         temperature: 0.65,
         label: `analysis ${league}`,
       });
       if (!content) continue; // 길이 미달 — DB INSERT 스킵
+
+      // MLB 한정: ABS 챌린지 리더보드 섹션을 코드가 결정적으로 덧붙임 (LLM 수치 오염 차단).
+      // Savant 비공식 endpoint 실패 시 섹션만 생략하고 발행은 계속.
+      if (league === "MLB") {
+        const abs = await buildAbsChallengeSection(new Date().getFullYear());
+        if (abs) content = `${content}\n\n${abs}`;
+        else console.warn("[analysis] MLB ABS 섹션 생략 (Savant 응답 실패)");
+      }
 
       const title = extractTitle(content);
 
