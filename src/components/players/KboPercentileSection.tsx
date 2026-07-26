@@ -1,9 +1,17 @@
-// KBO·NPB 타자·투수 리그 백분위 섹션 — Savant 비교 툴 스타일의 5개 핵심 스탯 백분위 막대.
+// 리그 백분위 섹션 (KBO·NPB·NHL 등 공용) — Savant 비교 툴 스타일의 5개 핵심 스탯 백분위 막대.
 // 서버 컴포넌트. 데이터 없으면(규정 미달·표본 부족) 부모에서 렌더 자체를 생략한다.
+// 규정 문구는 minGames(경기)·minIp(이닝) 중 데이터가 가진 쪽으로 표기.
 
-import type { KboHitterPercentiles } from "@/lib/sports/baseball/kbo-hitter-percentile";
-import type { KboPitcherPercentiles } from "@/lib/sports/baseball/kbo-pitcher-percentile";
 import ShareCardButton from "@/components/ShareCardButton";
+
+export type PercentileSectionData = {
+  league: string;
+  playerName: string;
+  teamName: string;
+  season: string;
+  sample: number;
+  metrics: { key: string; label: string; display: string; pct: number }[];
+} & ({ minGames: number } | { minIp: number });
 
 // Savant 관례: 상위(높음)=빨강, 하위=파랑, 중간=회색
 function barColor(pct: number): string {
@@ -19,9 +27,9 @@ export default function KboPercentileSection({
   shareUrl,
   cardImageUrl,
 }: {
-  data: KboHitterPercentiles | KboPitcherPercentiles;
-  shareUrl: string;
-  cardImageUrl: string;
+  data: PercentileSectionData;
+  shareUrl?: string;
+  cardImageUrl?: string;
 }) {
   // 규정 문구 — 타자는 출장 경기, 투수는 이닝 기준
   const qualifier =
@@ -32,12 +40,14 @@ export default function KboPercentileSection({
         <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">
           {data.season} {data.league} 리그 백분위
         </h2>
-        <ShareCardButton
-          url={shareUrl}
-          title={`${data.playerName} — ${data.season} ${data.league} 리그 백분위 | Scorebase`}
-          text={`${data.playerName}의 ${data.league} 리그 내 위치를 백분위로 확인해 보세요.`}
-          cardImageUrl={cardImageUrl}
-        />
+        {shareUrl && cardImageUrl && (
+          <ShareCardButton
+            url={shareUrl}
+            title={`${data.playerName} — ${data.season} ${data.league} 리그 백분위 | Scorebase`}
+            text={`${data.playerName}의 ${data.league} 리그 내 위치를 백분위로 확인해 보세요.`}
+            cardImageUrl={cardImageUrl}
+          />
+        )}
       </div>
       <p className="mb-4 text-[11px] leading-relaxed text-neutral-500">
         규정 표본 {data.sample}명({qualifier}) 기준. 백분위 90 = 리그 상위 10%.

@@ -20,6 +20,8 @@ import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerTabs from "./PlayerTabs";
 import NhlSeasonOverview from "./NhlSeasonOverview";
+import KboPercentileSection from "@/components/players/KboPercentileSection";
+import { getNhlGoaliePercentiles, getNhlSkaterPercentiles } from "@/lib/sports/nhl-percentile";
 
 /* ---------- 공통 헬퍼 ---------- */
 
@@ -317,6 +319,11 @@ export async function NhlPlayerView({ pid }: { pid: string }) {
     : [];
   const teamMap = new Map<string, TeamInfo>(nhlTeams.map((t) => [t.name, { id: t.id, logo: t.logoUrl }]));
 
+  // 리그 백분위 — playerId 정확 매칭 (규정 미달·표본 부족이면 null → 섹션 생략)
+  const percentiles = isGoalie
+    ? await getNhlGoaliePercentiles(id).catch(() => null)
+    : await getNhlSkaterPercentiles(id).catch(() => null);
+
   // 경기 탭 — 골리는 SV%·GAA 게임로그, 스케이터는 G·A·PTS.
   let gamesContent: ReactNode = null;
   if (isGoalie) {
@@ -334,6 +341,7 @@ export async function NhlPlayerView({ pid }: { pid: string }) {
       ) : (
         <SkaterOverview profile={profile} seasonStart={seasonStart} />
       )}
+      {percentiles && <KboPercentileSection data={percentiles} />}
       {awards.length > 0 && (
         <section>
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-500 mb-3">수상 이력</h2>
