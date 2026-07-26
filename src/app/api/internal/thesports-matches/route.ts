@@ -414,6 +414,42 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
+      // ── 유령 ts-vs-ts 중복 차단 (2026-07-26): TheSports 가 같은 fixture 를 두 ts id 로
+      // 내보내는 케이스 (한쪽은 status 13 TBD → worker 가 SCHEDULED 로 매핑). 같은 팀페어의
+      // ts- 쌍둥이가 이미 FINISHED 인데 시작시각 지난 SCHEDULED 를 새로 만들려는 push 는
+      // 유령 — daily dup-cleanup 이 지워도 diary push 가 매시간 재생성하는 루프를 여기서 끊는다.
+      // 기존 row 업데이트는 막지 않음 (신규 생성만 차단). 스플릿스쿼드 2연전은 양쪽 다
+      // 킥오프 전에 SCHEDULED 로 생성되므로 이 조건(과거 시작시각 + 쌍둥이 FINISHED)에 안 걸린다.
+      if (m.status === "SCHEDULED" && startMs < Date.now()) {
+        const ownRow = await prisma.match.findUnique({
+          where: { league_externalId: { league: m.league, externalId } },
+          select: { id: true },
+        });
+        if (!ownRow) {
+          const tsTwin = await prisma.match.findFirst({
+            where: {
+              league: m.league,
+              externalId: { startsWith: "ts-", not: externalId },
+              status: "FINISHED",
+              startTime: {
+                gte: new Date(startMs - DEDUP_WINDOW_MS),
+                lte: new Date(startMs + DEDUP_WINDOW_MS),
+              },
+              OR: [
+                { homeTeamId: homeId, awayTeamId: awayId },
+                { homeTeamId: awayId, awayTeamId: homeId },
+              ],
+            },
+            select: { id: true },
+          });
+          if (tsTwin) {
+            skippedDuplicate++;
+            console.log(`[ts-matches] ghost skip ${m.league}/${m.tsMatchId} — FINISHED ts twin #${tsTwin.id}`);
+            continue;
+          }
+        }
+      }
+
       // 단조 progression 가드 — 30분 주기 collector 가 detail_live 의 stale/wrong
       // status (e.g. baseball 100 = FINISHED 인데 구버전 mapper 가 SCHEDULED 로 잘못
       // 매핑한 케이스) 로 fresh FINISHED 매치를 SCHEDULED 로 revert + score null

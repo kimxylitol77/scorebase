@@ -74,10 +74,13 @@ function sameFixture(a: Row, b: Row): boolean {
   return forward || reverse;
 }
 
-// KEEP row 선정: 참조 많은 순 → 정본(externalId==ts) → 최초 생성.
+// KEEP row 선정: 참조 많은 순 → FINISHED 우선 → 정본(externalId==ts) → 최초 생성.
+// (유령 SCHEDULED 그룹이 SAFE 로 내려올 때 실제 결과를 가진 FINISHED 를 남기기 위함.)
 function pickKeep(rows: Row[]): Row {
+  const rank = (s: string) => (s === "FINISHED" ? 0 : 1);
   return [...rows].sort((a, b) => {
     if (b.protectedRefs !== a.protectedRefs) return b.protectedRefs - a.protectedRefs;
+    if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
     const aCanon = a.externalId.replace(/^ts-/, "") === a.tsMatchId ? 1 : 0;
     const bCanon = b.externalId.replace(/^ts-/, "") === b.tsMatchId ? 1 : 0;
     if (bCanon !== aCanon) return bCanon - aCanon;
@@ -226,9 +229,17 @@ async function main() {
       continue;
     }
     // SCHEDULED(아직 안 끝난 매치) 는 startTime 이 또 이동할 수 있어 정리 보류 — 종료 후 처리.
-    if (rows.some((r) => r.status === "SCHEDULED")) {
-      buckets.PENDING.push(`[PENDING] ${base.league} ${base.startTime.toISOString()} ${rows.map((r) => `#${r.id}(${r.externalId},${r.status})`).join(" | ")} — 종료 후 재판정`);
-      continue;
+    // 예외: 쌍둥이가 이미 FINISHED 이고 SCHEDULED 쪽 시작시각이 6h+ 지났으면 경기는 실제로 끝난 것 —
+    // startTime 이 더 움직일 일 없는 유령 row 이므로 정리 대상에 포함한다(stale-scheduled 알림 반복 차단).
+    const scheduledRows = rows.filter((r) => r.status === "SCHEDULED");
+    if (scheduledRows.length > 0) {
+      const ghostCutoff = Date.now() - 6 * 3600 * 1000;
+      const twinFinished = rows.some((r) => r.status === "FINISHED");
+      const allGhost = scheduledRows.every((r) => r.startTime.getTime() < ghostCutoff);
+      if (!(twinFinished && allGhost)) {
+        buckets.PENDING.push(`[PENDING] ${base.league} ${base.startTime.toISOString()} ${rows.map((r) => `#${r.id}(${r.externalId},${r.status})`).join(" | ")} — 종료 후 재판정`);
+        continue;
+      }
     }
 
     const keep = pickKeep(rows);
