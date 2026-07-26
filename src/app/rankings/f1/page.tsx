@@ -4,7 +4,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AmbientGlow from "@/components/AmbientGlow";
-import { fetchF1Championship } from "@/lib/sports/espn-f1";
+import TeamBadge from "@/components/TeamBadge";
+import DriverAvatar from "@/components/scores/f1/DriverAvatar";
+import { fetchF1Championship, F1_TEAM_LOGO } from "@/lib/sports/espn-f1";
 import { SITE_URL } from "@/lib/site-url";
 
 export const revalidate = 1800;
@@ -113,6 +115,7 @@ export default async function F1RankingsPage({
                     style={{ backgroundColor: c.color ?? "#9CA3AF" }}
                     aria-hidden
                   />
+                  <TeamBadge logoUrl={F1_TEAM_LOGO[c.name] ?? null} size={22} />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
                       {c.nameKo ?? c.name}
@@ -157,10 +160,12 @@ export default async function F1RankingsPage({
                     style={{ backgroundColor: d.teamColor ?? "#9CA3AF" }}
                     aria-hidden
                   />
-                  {d.flag && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={d.flag} alt="" className="w-4 h-3 shrink-0 object-cover rounded-[2px]" />
-                  )}
+                  <DriverAvatar
+                    photo={`https://a.espncdn.com/i/headshots/rpm/players/full/${d.athleteId}.png`}
+                    flag={d.flag}
+                    country={d.countryEn}
+                    name={d.nameKo ?? d.name}
+                  />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
                       {d.nameKo ?? d.name}
