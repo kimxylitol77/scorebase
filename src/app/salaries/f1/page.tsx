@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import AmbientGlow from "@/components/AmbientGlow";
 import PlayerValueTabs from "@/components/PlayerValueTabs";
 import PlayerPhoto from "@/components/PlayerPhoto";
-import { F1_TEAM_KO, F1_TEAM_COLOR } from "@/lib/sports/espn-f1";
+import { F1_TEAM_KO, F1_TEAM_COLOR, fetchF1Championship } from "@/lib/sports/espn-f1";
 import { getF1Salaries, F1_SALARY_AS_OF, F1_SALARY_SOURCE, F1_SALARY_SOURCE_URL } from "@/lib/sports/f1-salaries";
 import { CircleDollarSign } from "lucide-react";
 
@@ -40,6 +40,14 @@ function fmtKrw(usd: number, rate: number): string {
   return `약 ${Math.round(won).toLocaleString()}원`;
 }
 
+// 이름 매칭용 정규화 — 소문자 + 발음기호 제거 (DB 는 영문 이름만 있어 ESPN athleteId 를 이름으로 연결)
+function normName(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 async function fetchUsdKrw(): Promise<number> {
   try {
     const res = await fetch("https://api.frankfurter.app/latest?from=USD&to=KRW", {
@@ -64,6 +72,9 @@ export default async function F1SalariesPage() {
   const season = rows[0]?.season ?? String(new Date().getUTCFullYear());
   // 한글 드라이버명 — 시드 JSON name→nameKo (DB 에는 영문만 저장)
   const koMap = new Map(getF1Salaries().map((d) => [d.name, d.nameKo]));
+  // 드라이버 상세 링크 — ESPN standings 이름 매칭 (2026 시즌 22명 전원 정확 일치 실측, 실패 시 링크 없이 표시)
+  const { drivers: championshipDrivers } = await fetchF1Championship(String(new Date().getUTCFullYear()));
+  const idByName = new Map(championshipDrivers.map((d) => [normName(d.name), d.athleteId]));
 
   return (
     <main className="relative max-w-3xl lg:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 space-y-6">
@@ -121,20 +132,34 @@ export default async function F1SalariesPage() {
                 const nameKo = koMap.get(r.playerName) ?? null;
                 const teamKo = F1_TEAM_KO[r.teamName] ?? r.teamName;
                 const color = F1_TEAM_COLOR[r.teamName] ?? "#9CA3AF";
+                const athleteId = idByName.get(normName(r.playerName)) ?? null;
                 return (
                   <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-800/60 last:border-0 transition-colors duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-neutral-50 dark:hover:bg-white/[0.04]">
                     <td className="px-3 py-2.5 text-center tabular-nums font-bold text-neutral-400">{r.rank}</td>
                     <td className="px-2 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
-                        <PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />
-                        <span className="min-w-0">
-                          <span className={`block truncate font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
-                            {nameKo ?? r.playerName}
+                      {athleteId ? (
+                        <Link href={`/rankings/f1/${athleteId}`} className="flex items-center gap-2.5 group">
+                          <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+                          <PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />
+                          <span className="min-w-0">
+                            <span className={`block truncate font-semibold group-hover:underline ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
+                              {nameKo ?? r.playerName}
+                            </span>
+                            {nameKo && <span className="block truncate text-[11px] font-normal text-neutral-400">{r.playerName}</span>}
                           </span>
-                          {nameKo && <span className="block truncate text-[11px] font-normal text-neutral-400">{r.playerName}</span>}
-                        </span>
-                      </div>
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-2.5">
+                          <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+                          <PlayerPhoto photo={r.photoUrl} name={nameKo ?? r.playerName} />
+                          <span className="min-w-0">
+                            <span className={`block truncate font-semibold ${top3 ? "text-amber-600 dark:text-amber-400" : ""}`}>
+                              {nameKo ?? r.playerName}
+                            </span>
+                            {nameKo && <span className="block truncate text-[11px] font-normal text-neutral-400">{r.playerName}</span>}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-2 py-2.5 text-neutral-500 hidden sm:table-cell">{teamKo}</td>
                     <td className="px-3 py-2.5 text-right whitespace-nowrap" title={fmtFull(r.salary)}>
