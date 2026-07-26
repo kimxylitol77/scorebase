@@ -104,7 +104,11 @@ function StandingsTable({
                 className="border-b border-neutral-100 last:border-0 dark:border-white/5"
               >
                 <td className="px-3 py-2 text-center font-bold tabular-nums text-neutral-400">{r.position}</td>
-                <td className="px-3 py-2 font-medium">{nameById.get(r.teamId) ?? `Team ${r.teamId}`}</td>
+                <td className="px-3 py-2 font-medium">
+                  <Link href={`/en/teams/${r.teamId}`} prefetch={false} className="hover:underline">
+                    {nameById.get(r.teamId) ?? `Team ${r.teamId}`}
+                  </Link>
+                </td>
                 <td className="px-2 py-2 text-center tabular-nums text-neutral-500">{games}</td>
                 <td className="px-2 py-2 text-center tabular-nums">{r.won}</td>
                 {(!isBaseball || hasDraws) && (

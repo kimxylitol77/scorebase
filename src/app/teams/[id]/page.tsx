@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import LeagueBadge from "@/components/LeagueBadge";
 import ArticleCard from "@/components/ArticleCard";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { koEnLanguages } from "@/lib/i18n/en";
 import { SITE_URL } from "@/lib/site-url";
 import { ogPageImage } from "@/lib/seo/og";
 import FavoriteTeamButton from "@/components/FavoriteTeamButton";
@@ -174,7 +175,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/teams/${id}` },
+    alternates: {
+      canonical: `/teams/${id}`,
+      // 영어판(/en/teams) hreflang 상호 연결
+      languages: koEnLanguages(`/teams/${id}`, `/en/teams/${id}`),
+    },
     openGraph: {
       title: `${ko} · ${team.league}`,
       description,

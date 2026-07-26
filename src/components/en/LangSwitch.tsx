@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // /en 에서 커버하는 한국어 경로 prefix — 이 밖의 경로는 /en 홈으로 보냄.
-const EN_COVERED = /^\/(standings|predictions|scores|injuries)(\/|$)/;
+const EN_COVERED = /^\/(standings|predictions|scores|injuries|teams|players)(\/|$)/;
 
 export function toEnPath(pathname: string): string {
   if (pathname === "/" || pathname === "") return "/en";

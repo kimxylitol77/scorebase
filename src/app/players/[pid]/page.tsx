@@ -25,6 +25,7 @@ import { NhlPlayerView } from "./NhlViews";
 import { LolPlayerView } from "./LolViews";
 import { toKoreanTeamName } from "@/lib/team-names";
 import { toKoreanPlayerName } from "@/lib/player-names";
+import { koEnLanguages } from "@/lib/i18n/en";
 import { ChevronLeft } from "lucide-react";
 import AmbientGlow from "@/components/AmbientGlow";
 
@@ -80,7 +81,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {
       title: `선수 — ${league}`,
       description: `${league} 선수 프로필 · 통계 · 최근 경기.`,
-      alternates: { canonical },
+      alternates: {
+        canonical,
+        // 영어판(/en/players)은 축구만 지원 — NBA/NHL/LOL 은 hreflang 미연결
+        ...(SOCCER_LEAGUES.includes(league)
+          ? { languages: koEnLanguages(canonical, `/en/players/${pid}?league=${league}`) }
+          : {}),
+      },
     };
   }
   const id = Number(pid);
@@ -99,7 +106,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       description: isPitcher
         ? `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 ERA·WHIP·K/9·최근 등판 결과.`
         : `${profile.team ?? ""} ${koName} 의 ${yr} 시즌 타율·홈런·타점·OPS·최근 경기 기록.`,
-      alternates: { canonical },
+      alternates: {
+        canonical,
+        // 영어판(/en/players) hreflang — MLB 는 bare 경로가 정본
+        languages: koEnLanguages(canonical, `/en/players/${pid}`),
+      },
       openGraph: {
         title: `${koName} — MLB ${isPitcher ? "선발 투수" : "타자"} 통계`,
         images: ogPageImage({ title: koName, subtitle: `MLB ${yr} 시즌 통계·최근 경기`, tag: "MLB" }),
