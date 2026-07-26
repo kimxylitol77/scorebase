@@ -21,6 +21,9 @@ export default function EnFooter() {
           <Link href="/en/injuries" className="hover:text-neutral-900 dark:hover:text-white transition">
             Injuries
           </Link>
+          <Link href="/en/transfers" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Transfers
+          </Link>
           <Link href="/" className="hover:text-neutral-900 dark:hover:text-white transition">
             한국어 (Korean site)
           </Link>

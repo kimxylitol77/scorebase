@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // /en 에서 커버하는 한국어 경로 prefix — 이 밖의 경로는 /en 홈으로 보냄.
-const EN_COVERED = /^\/(standings|predictions|scores|injuries|teams|players)(\/|$)/;
+const EN_COVERED = /^\/(standings|predictions|scores|injuries|teams|players|transfers)(\/|$)/;
 
 export function toEnPath(pathname: string): string {
   if (pathname === "/" || pathname === "") return "/en";
+  // /transfers/{id} 선수 상세는 en 미지원 → en 이적 허브로
+  if (/^\/transfers\/.+/.test(pathname)) return "/en/transfers";
   if (EN_COVERED.test(pathname)) return `/en${pathname}`;
   return "/en";
 }

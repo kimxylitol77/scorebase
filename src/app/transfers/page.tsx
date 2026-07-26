@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import { Fragment, type ReactNode } from "react";
 import TransfersFilterBar from "./TransfersFilterBar";
 import { toKoreanTeamName } from "@/lib/team-names";
+import { koEnLanguages } from "@/lib/i18n/en";
 import { leagueLogoUrl } from "@/lib/sports/league-logos";
 import { ogPageImage } from "@/lib/seo/og";
 import rawDetailPos from "../../../data/player-positions.json";
@@ -82,7 +83,13 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       type: "website",
       images: ogPageImage({ title: title.replace(/\s*\|\s*스코어베이스\s*$/, ""), subtitle: "선수 몸값·시장가치·이적 기록을 한눈에", tag: "이적시장" }),
     },
-    alternates: { canonical },
+    alternates: {
+      canonical,
+      // 영어판(/en/transfers) hreflang — base 뷰에서만 상호 연결
+      ...(canonical === "/transfers"
+        ? { languages: koEnLanguages("/transfers", "/en/transfers") }
+        : {}),
+    },
     ...(sp.q ? { robots: { index: false } } : {}), // 검색 결과 페이지는 색인 제외
   };
 }
