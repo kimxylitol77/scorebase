@@ -1,6 +1,5 @@
 // AI 예측 적중률 보드 — 13개 리그 1X2/OU/핸디 실측 + 누적 추이(인용 자석).
 import type { Metadata } from "next";
-import { strongPickThreshold } from "@/lib/predict/strong-pick";
 import Link from "next/link";
 import { Sparkles, Star } from "lucide-react";
 import { prisma } from "@/lib/db";
@@ -16,6 +15,12 @@ import ReliabilityCurveChart, {
 } from "@/components/charts/ReliabilityCurveChart";
 import { SITE_URL } from "@/lib/site-url"; // www 강제 정규화(apex 새어나감 방지)
 import { ogPageImage } from "@/lib/seo/og";
+import {
+  statForLeague,
+  type MarketRate,
+  type LeagueStat,
+} from "@/lib/predict/accuracy-stats";
+import { koEnLanguages } from "@/lib/i18n/en";
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -49,7 +54,11 @@ export const metadata: Metadata = {
     "예측 적중률", "EPL 예측 적중률", "MLB 예측", "NBA 예측 정확도",
     "Elo 레이팅 예측", "승부예측 정확도", "스포츠 AI 분석",
   ],
-  alternates: { canonical: `${SITE_URL}/predictions/accuracy` },
+  alternates: {
+    canonical: `${SITE_URL}/predictions/accuracy`,
+    // 영어판 hreflang 상호 연결
+    languages: koEnLanguages("/predictions/accuracy", "/en/predictions/accuracy"),
+  },
   openGraph: {
     title: "AI 스포츠 예측 적중률 — Scorebase",
     description: "리그별·시장별 AI 매치 예측 적중률을 표본 수와 함께 데이터로 투명 공개.",
@@ -58,100 +67,10 @@ export const metadata: Metadata = {
   },
 };
 
-interface MarketRate {
-  evaluated: number;
-  correct: number;
-  rate: number;
-}
-interface LeagueStat {
-  league: string;
-  isSoccer: boolean;
-  oneXTwo: MarketRate;
-  dc: MarketRate;
-  over: MarketRate;
-  hc: MarketRate;
-  btts: MarketRate;
-  /** 1X2 최고 확률이 리그별 Strong Pick 임계 이상인 매치만의 적중률 */
-  strong: MarketRate;
-  recent10: MarketRate;
-  /** 경기 시작 시간 기준 최근 7/14/30일 롤링 1X2 (채점 완료 경기만) */
-  rolling7: MarketRate;
-  rolling14: MarketRate;
-  rolling30: MarketRate;
-}
+// 집계 로직·타입은 lib/predict/accuracy-stats 로 이동 — /en/predictions/accuracy 와 숫자 단일 출처.
 
 // 롤링 윈도 최소 표본 — 미만이면 수치 대신 "표본 부족" (소표본 왜곡 방지)
 const ROLLING_MIN_SAMPLE = 10;
-
-const SOCCER = new Set([
-  "EPL", "LALIGA", "BUNDESLIGA", "SERIE_A", "LIGUE_1", "MLS", "UCL",
-]);
-
-function rateOf(arr: Array<{ ok: boolean | null }>): MarketRate {
-  const evaluated = arr.filter((x) => x.ok !== null).length;
-  const correct = arr.filter((x) => x.ok === true).length;
-  return {
-    evaluated,
-    correct,
-    rate: evaluated > 0 ? correct / evaluated : 0,
-  };
-}
-
-async function statForLeague(league: string): Promise<LeagueStat> {
-  const all = await prisma.match.findMany({
-    where: { league, predCorrect: { not: null } },
-    select: {
-      predCorrect: true,
-      predHome: true,
-      predDraw: true,
-      predAway: true,
-      predDcCorrect: true,
-      predOverCorrect: true,
-      predHcCorrect: true,
-      predBttsCorrect: true,
-      startTime: true,
-    },
-    orderBy: { startTime: "desc" },
-  });
-
-  const oneXTwo = rateOf(all.map((m) => ({ ok: m.predCorrect })));
-  const dc = rateOf(all.map((m) => ({ ok: m.predDcCorrect })));
-  const over = rateOf(all.map((m) => ({ ok: m.predOverCorrect })));
-  const hc = rateOf(all.map((m) => ({ ok: m.predHcCorrect })));
-  const btts = rateOf(all.map((m) => ({ ok: m.predBttsCorrect })));
-
-  // AI Strong Pick — 리그별 임계(strong-pick.ts) 이상
-  const strong = all
-    .filter((m) => {
-      const top = Math.max(m.predHome ?? 0, m.predDraw ?? 0, m.predAway ?? 0);
-      return top >= strongPickThreshold(league);
-    })
-    .map((m) => ({ ok: m.predCorrect }));
-  const recent10 = all.slice(0, 10).map((m) => ({ ok: m.predCorrect }));
-
-  // 롤링 윈도 — 경기 시작 시간 기준 최근 N일, 이미 로드한 배열 인메모리 필터 (신규 쿼리 없음)
-  const rollingOf = (days: number) => {
-    const cutoff = new Date(Date.now() - days * 86400000);
-    return rateOf(
-      all.filter((m) => m.startTime >= cutoff).map((m) => ({ ok: m.predCorrect })),
-    );
-  };
-
-  return {
-    league,
-    isSoccer: SOCCER.has(league),
-    oneXTwo,
-    dc,
-    over,
-    hc,
-    btts,
-    strong: rateOf(strong),
-    recent10: rateOf(recent10),
-    rolling7: rollingOf(7),
-    rolling14: rollingOf(14),
-    rolling30: rollingOf(30),
-  };
-}
 
 // 누적 적중률 곡선용 리그 색 (LEAGUES 순)
 const LEAGUE_COLOR: Record<string, string> = {

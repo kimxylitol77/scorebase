@@ -5,6 +5,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import LangSwitch from "@/components/en/LangSwitch";
 
 const NAV = [
+  { href: "/en/scores", label: "Scores", live: true },
   { href: "/en/standings", label: "Standings" },
   { href: "/en/predictions", label: "Predictions" },
 ];
@@ -22,15 +23,29 @@ export default function EnHeader() {
         </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2 text-sm">
-          {NAV.map((it) => (
-            <Link
-              key={it.href}
-              href={it.href}
-              className="px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
-            >
-              {it.label}
-            </Link>
-          ))}
+          {NAV.map((it) =>
+            it.live ? (
+              <Link
+                key={it.href}
+                href={it.href}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition whitespace-nowrap"
+              >
+                <span className="relative inline-flex w-1.5 h-1.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75 animate-ping" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500" />
+                </span>
+                {it.label}
+              </Link>
+            ) : (
+              <Link
+                key={it.href}
+                href={it.href}
+                className="px-3 py-1.5 rounded-full font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition whitespace-nowrap"
+              >
+                {it.label}
+              </Link>
+            ),
+          )}
           <LangSwitch target="ko" />
           <ThemeToggle variant="icon" />
         </nav>

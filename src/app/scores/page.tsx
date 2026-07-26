@@ -21,6 +21,7 @@ import {
   type SportCode,
 } from "@/lib/sports/sport-leagues";
 import { teamDisplayKo, toKoreanTeamName } from "@/lib/team-names";
+import { koEnLanguages } from "@/lib/i18n/en";
 import { getStandingsForLeagues } from "@/lib/sports/thesports/standings-helper";
 import { getFifaRank, NATIONAL_TEAM_LEAGUES } from "@/lib/sports/fifa-rankings";
 import { fetchVolleyballTable } from "@/lib/sports/thesports/volleyball-table";
@@ -434,7 +435,13 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     title: { absolute: title },
     description,
     keywords,
-    alternates: { canonical },
+    alternates: {
+      canonical,
+      // 영어판(/en/scores) hreflang — 축구 base 뷰(=canonical /scores)에서만 상호 연결
+      ...(sportCode === "soccer" && !isThin
+        ? { languages: koEnLanguages("/scores", "/en/scores") }
+        : {}),
+    },
     ...(isThin && { robots: { index: false, follow: true } }),
     openGraph: {
       title,

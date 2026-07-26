@@ -9,6 +9,9 @@ export default function EnFooter() {
           <Link href="/en" className="hover:text-neutral-900 dark:hover:text-white transition">
             Home
           </Link>
+          <Link href="/en/scores" className="hover:text-neutral-900 dark:hover:text-white transition">
+            Scores
+          </Link>
           <Link href="/en/standings" className="hover:text-neutral-900 dark:hover:text-white transition">
             Standings
           </Link>

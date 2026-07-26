@@ -27,6 +27,11 @@ export const metadata: Metadata = {
 
 const HUBS = [
   {
+    href: "/en/scores",
+    title: "Live Scores",
+    desc: "Scores, results and fixtures across football, baseball, basketball, hockey and more — updated around the clock.",
+  },
+  {
     href: "/en/predictions",
     title: "AI Predictions",
     desc: "Win probabilities, over/under and handicap picks for every upcoming match — with published hit rates.",
@@ -62,7 +67,7 @@ export default async function EnHome() {
         </p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {HUBS.map((h) => (
           <Link
             key={h.href}

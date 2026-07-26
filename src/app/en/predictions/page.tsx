@@ -49,7 +49,14 @@ export default async function EnPredictionsRoot() {
         </h1>
         <p className="max-w-2xl text-sm leading-relaxed text-neutral-500">
           Win probabilities from Elo ratings blended with market odds, plus starting-pitcher (MLB)
-          and goalie (NHL) adjustments. Every pick is graded after the match — hit rates are public.
+          and goalie (NHL) adjustments. Every pick is graded after the match —{" "}
+          <Link
+            href="/en/predictions/accuracy"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            hit rates are public
+          </Link>
+          .
         </p>
       </header>
 
