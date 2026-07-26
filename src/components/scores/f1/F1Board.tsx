@@ -1,10 +1,12 @@
 // /scores F1 탭 — ESPN 그랑프리 scoreboard 직접 fetch 표시 전용 (DB 수집 없음).
 // 그랑프리 카드 = 세션 일정(FP1~레이스, KST) + 세션 결과 있으면 드라이버 top10.
+// 팀·기록은 scoreboard 에 없어 core API(events/{id})에서 보강 — vehicle 인라인, 기록은 드라이버별 statistics ref.
 // docs/tennis-golf-scores 참고 (테니스·골프와 동일 패턴).
 
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import DriverAvatar from "./DriverAvatar";
+import { F1_TEAM_KO, F1_TEAM_COLOR } from "@/lib/sports/espn-f1";
 import driverNames from "../../../../data/f1-driver-names.json";
 
 const DRIVER_KO = driverNames as Record<string, string>;
@@ -32,6 +34,7 @@ interface EspnF1Resp {
       type?: { abbreviation?: string; text?: string };
       status?: { type?: { state?: string; shortDetail?: string; completed?: boolean } };
       competitors?: Array<{
+        id?: string;
         order?: number;
         winner?: boolean;
         athlete?: {
@@ -46,6 +49,46 @@ interface EspnF1Resp {
   }>;
 }
 
+// core API events/{id} — scoreboard 에 없는 팀(vehicle)과 드라이버별 statistics ref 를 가짐.
+interface CoreEventResp {
+  competitions?: Array<{
+    id: string;
+    competitors?: Array<{
+      id: string;
+      vehicle?: { number?: string; manufacturer?: string; teamColor?: string };
+      statistics?: { $ref?: string };
+    }>;
+  }>;
+}
+
+interface CoreCompetitorInfo {
+  team: string | null;
+  statsRef: string | null;
+}
+
+// core statistics ref → 기록 문자열. 레이스/퀄리파잉 2위 이하 behindTime("+1.952"), 그 외 totalTime(베스트랩·완주시간).
+async function fetchDriverRecord(statsRef: string): Promise<string | null> {
+  try {
+    const res = await fetch(statsRef.replace(/^http:/, "https:"), { cache: "no-store" });
+    if (!res.ok) return null;
+    const json: {
+      splits?: { categories?: Array<{ stats?: Array<{ name?: string; displayValue?: string }> }> };
+    } = await res.json();
+    const stats: Record<string, string> = {};
+    for (const cat of json.splits?.categories ?? []) {
+      for (const s of cat.stats ?? []) {
+        if (s.name && s.displayValue) stats[s.name] = s.displayValue;
+      }
+    }
+    const isEmpty = (v?: string) => !v || v === "0" || v === "0.000" || v === ".000" || v === "+0.000";
+    if (!isEmpty(stats.behindTime)) return stats.behindTime;
+    if (!isEmpty(stats.totalTime)) return stats.totalTime;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 interface F1Session {
   id: string;
   label: string;
@@ -55,6 +98,7 @@ interface F1Session {
     rank: number;
     name: string;
     team: string | null;
+    record: string | null; // 1위 랩타임/완주시간, 2위 이하 "+격차"
     flag: string | null;
     country: string | null;
     photo: string | null;
@@ -83,6 +127,32 @@ function kstLabel(iso: string): string {
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()} (${WEEKDAY_KO[d.getUTCDay()]}) ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 }
 
+// core API 이벤트 1회 fetch → 세션id·드라이버id 별 팀/statistics ref 맵. 실패 시 빈 맵 graceful.
+async function fetchCoreEventMap(eventId: string): Promise<Map<string, Map<string, CoreCompetitorInfo>>> {
+  const map = new Map<string, Map<string, CoreCompetitorInfo>>();
+  try {
+    const res = await fetch(
+      `https://sports.core.api.espn.com/v2/sports/racing/leagues/f1/events/${eventId}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return map;
+    const json: CoreEventResp = await res.json();
+    for (const c of json.competitions ?? []) {
+      const drivers = new Map<string, CoreCompetitorInfo>();
+      for (const d of c.competitors ?? []) {
+        drivers.set(d.id, {
+          team: d.vehicle?.manufacturer ?? null,
+          statsRef: d.statistics?.$ref ?? null,
+        });
+      }
+      map.set(c.id, drivers);
+    }
+  } catch {
+    // graceful
+  }
+  return map;
+}
+
 // ESPN unofficial — 실패 시 빈 배열 graceful.
 const fetchF1Cached = unstable_cache(
   async (): Promise<F1Event[]> => {
@@ -92,38 +162,51 @@ const fetchF1Cached = unstable_cache(
     );
     if (!res.ok) throw new Error(`espn f1 ${res.status}`);
     const json: EspnF1Resp = await res.json();
-    return (json.events ?? []).map((ev) => ({
-      id: ev.id,
-      name: ev.name,
-      circuit: ev.circuit?.fullName ?? null,
-      state: (ev.status?.type?.state ?? "pre") as F1Event["state"],
-      sessions: (ev.competitions ?? []).map((c) => {
-        const abbr = c.type?.abbreviation ?? c.type?.text ?? "?";
+    return Promise.all(
+      (json.events ?? []).map(async (ev) => {
+        const coreMap = await fetchCoreEventMap(ev.id);
         return {
-          id: c.id,
-          label: SESSION_LABEL[abbr] ?? abbr,
-          dateKst: kstLabel(c.date),
-          state: (c.status?.type?.state ?? "pre") as F1Session["state"],
-          // 결과는 세션 진행/종료 후에만 옴 — top10 만
-          results: (c.competitors ?? [])
-            .filter((d) => d.athlete?.displayName)
-            .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
-            .slice(0, 10)
-            .map((d) => {
-              const did = driverIdFromLinks(d.athlete?.links);
-              const en = d.athlete!.shortName || d.athlete!.displayName!;
+          id: ev.id,
+          name: ev.name,
+          circuit: ev.circuit?.fullName ?? null,
+          state: (ev.status?.type?.state ?? "pre") as F1Event["state"],
+          sessions: await Promise.all(
+            (ev.competitions ?? []).map(async (c) => {
+              const abbr = c.type?.abbreviation ?? c.type?.text ?? "?";
+              const coreDrivers = coreMap.get(c.id);
+              const state = (c.status?.type?.state ?? "pre") as F1Session["state"];
               return {
-                rank: d.order ?? 0,
-                name: (did && DRIVER_KO[did]) || en,
-                team: d.vehicle?.manufacturer ?? null,
-                flag: d.athlete?.flag?.href ?? null,
-                country: d.athlete?.flag?.alt ?? null,
-                photo: did ? `https://a.espncdn.com/i/headshots/rpm/players/full/${did}.png` : null,
+                id: c.id,
+                label: SESSION_LABEL[abbr] ?? abbr,
+                dateKst: kstLabel(c.date),
+                state,
+                // 결과는 세션 진행/종료 후에만 옴 — top10 만
+                results: await Promise.all(
+                  (c.competitors ?? [])
+                    .filter((d) => d.athlete?.displayName)
+                    .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+                    .slice(0, 10)
+                    .map(async (d) => {
+                      const did = d.id ?? driverIdFromLinks(d.athlete?.links);
+                      const en = d.athlete!.shortName || d.athlete!.displayName!;
+                      const core = did ? coreDrivers?.get(did) : undefined;
+                      return {
+                        rank: d.order ?? 0,
+                        name: (did && DRIVER_KO[did]) || en,
+                        team: d.vehicle?.manufacturer ?? core?.team ?? null,
+                        record: state !== "pre" && core?.statsRef ? await fetchDriverRecord(core.statsRef) : null,
+                        flag: d.athlete?.flag?.href ?? null,
+                        country: d.athlete?.flag?.alt ?? null,
+                        photo: did ? `https://a.espncdn.com/i/headshots/rpm/players/full/${did}.png` : null,
+                      };
+                    }),
+                ),
               };
             }),
+          ),
         };
       }),
-    }));
+    );
   },
   ["scores-f1-espn"],
   { revalidate: 120, tags: ["live-scores"] },
@@ -176,10 +259,10 @@ export default async function F1Board() {
                     {s.state === "in" ? "LIVE" : s.state === "post" ? "종료" : "예정"}
                   </span>
                 </div>
-                {s.results.length > 0 && (
+                {s.state !== "pre" && s.results.length > 0 && (
                   <ol className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
-                    {s.results.map((r) => (
-                      <li key={`${s.id}-${r.rank}`} className="flex items-center gap-2 text-[12px]">
+                    {s.results.map((r, i) => (
+                      <li key={`${s.id}-${i}`} className="flex items-center gap-2 text-[12px]">
                         <span
                           className={`w-5 text-right font-bold tabular-nums ${
                             r.rank === 1
@@ -197,7 +280,21 @@ export default async function F1Board() {
                         <span className={`truncate ${r.rank <= 3 ? "font-bold text-neutral-900 dark:text-white" : "text-neutral-700 dark:text-neutral-300"}`}>
                           {r.name}
                         </span>
-                        {r.team && <span className="ml-auto text-[11px] text-neutral-400 truncate">{r.team}</span>}
+                        {r.team && (
+                          <span className="flex min-w-0 shrink items-center gap-1 text-[11px] text-neutral-400">
+                            <span
+                              className="h-1.5 w-1.5 shrink-0 rounded-full"
+                              style={{ backgroundColor: F1_TEAM_COLOR[r.team] ?? "#9ca3af" }}
+                              aria-hidden
+                            />
+                            <span className="truncate">{F1_TEAM_KO[r.team] ?? r.team}</span>
+                          </span>
+                        )}
+                        {r.record && (
+                          <span className="ml-auto shrink-0 pl-2 text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">
+                            {r.record}
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ol>
